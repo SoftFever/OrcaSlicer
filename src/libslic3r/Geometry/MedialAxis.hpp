@@ -2,6 +2,7 @@
 #define slic3r_Geometry_MedialAxis_hpp_
 
 #include "Voronoi.hpp"
+#include "../ExPolygon.hpp"
 
 namespace Slic3r { namespace Geometry {
 

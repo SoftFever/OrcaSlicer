@@ -1,5 +1,7 @@
 #include "MedialAxis.hpp"
 
+#include "clipper.hpp"
+
 #ifdef SLIC3R_DEBUG
 namespace boost { namespace polygon {
 

@@ -2,6 +2,9 @@
 
 #include "../Polygon.hpp"
 
+#include <numeric>
+#include <boost/log/trivial.hpp>
+
 namespace Slic3r { namespace Geometry {
 
 Point circle_center_taubin_newton(const Points::const_iterator& input_begin, const Points::const_iterator& input_end, size_t cycles)

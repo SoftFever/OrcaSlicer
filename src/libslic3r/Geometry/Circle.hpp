@@ -1,6 +1,10 @@
 #ifndef slic3r_Geometry_Circle_hpp_
 #define slic3r_Geometry_Circle_hpp_
 
+#include "../Point.hpp"
+
+#include <Eigen/Geometry>
+
 namespace Slic3r { namespace Geometry {
 
 /// Find the center of the circle corresponding to the vector of Points as an arc.
