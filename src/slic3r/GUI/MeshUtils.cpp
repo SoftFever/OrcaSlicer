@@ -82,10 +82,10 @@ void MeshClipper::recalculate_triangles()
     const Transform3f& instance_matrix_no_translation_no_scaling = m_trafo.get_matrix(true,false,true).cast<float>();
     const Vec3f& scaling = m_trafo.get_scaling_factor().cast<float>();
     // Calculate clipping plane normal in mesh coordinates.
-    Vec3f up_noscale = instance_matrix_no_translation_no_scaling.inverse() * m_plane.get_normal().cast<float>();
-    Vec3d up (up_noscale(0)*scaling(0), up_noscale(1)*scaling(1), up_noscale(2)*scaling(2));
+    const Vec3f up_noscale = instance_matrix_no_translation_no_scaling.inverse() * m_plane.get_normal().cast<float>();
+    const Vec3d up (up_noscale(0)*scaling(0), up_noscale(1)*scaling(1), up_noscale(2)*scaling(2));
     // Calculate distance from mesh origin to the clipping plane (in mesh coordinates).
-    float height_mesh = m_plane.distance(m_trafo.get_offset()) * (up_noscale.norm()/up.norm());
+    const float height_mesh = m_plane.distance(m_trafo.get_offset()) * (up_noscale.norm()/up.norm());
 
     // Now do the cutting
     MeshSlicingParams slicing_params;
@@ -94,7 +94,7 @@ void MeshClipper::recalculate_triangles()
     ExPolygons expolys = union_ex(slice_mesh(m_mesh->its, height_mesh, slicing_params));
 
     if (m_negative_mesh && !m_negative_mesh->empty()) {
-        ExPolygons neg_expolys = union_ex(slice_mesh(m_negative_mesh->its, height_mesh, slicing_params));
+        const ExPolygons neg_expolys = union_ex(slice_mesh(m_negative_mesh->its, height_mesh, slicing_params));
         expolys = diff_ex(expolys, neg_expolys);
     }
 
@@ -110,13 +110,13 @@ void MeshClipper::recalculate_triangles()
         // Now remove whatever ended up below the limiting plane (e.g. sinking objects).
         // First transform the limiting plane from world to mesh coords.
         // Note that inverse of tr transforms the plane from world to horizontal.
-        Vec3d normal_old = m_limiting_plane.get_normal().normalized();
-        Vec3d normal_new = (tr.matrix().block<3,3>(0,0).transpose() * normal_old).normalized();
+        const Vec3d normal_old = m_limiting_plane.get_normal().normalized();
+        const Vec3d normal_new = (tr.matrix().block<3,3>(0,0).transpose() * normal_old).normalized();
 
         // normal_new should now be the plane normal in mesh coords. To find the offset,
         // transform a point and set offset so it belongs to the transformed plane.
         Vec3d pt = Vec3d::Zero();
-        double plane_offset = m_limiting_plane.get_data()[3];
+        const double plane_offset = m_limiting_plane.get_data()[3];
         if (std::abs(normal_old.z()) > 0.5) // normal is normalized, at least one of the coords if larger than sqrt(3)/3 = 0.57
             pt.z() = - plane_offset / normal_old.z();
         else if (std::abs(normal_old.y()) > 0.5)
@@ -124,27 +124,25 @@ void MeshClipper::recalculate_triangles()
         else
             pt.x() = - plane_offset / normal_old.x();
         pt = tr.inverse() * pt;
-        double offset = -(normal_new.dot(pt));
+        const double offset = -(normal_new.dot(pt));
 
         if (std::abs(normal_old.dot(m_plane.get_normal().normalized())) > 0.99) {
             // The cuts are parallel, show all or nothing.
-            if (offset < height_mesh)
+            if (normal_old.dot(m_plane.get_normal().normalized()) < 0.0 && offset < height_mesh)
                 expolys.clear();
         } else {
             // The cut is a horizontal plane defined by z=height_mesh.
             // ax+by+e=0 is the line of intersection with the limiting plane.
             // Normalized so a^2 + b^2 = 1.
-            double len = std::hypot(normal_new.x(), normal_new.y());
+            const double len = std::hypot(normal_new.x(), normal_new.y());
             if (len == 0.)
                 return;
-            double a = normal_new.x() / len;
-            double b = normal_new.y() / len;
-            double e = (normal_new.z() * height_mesh + offset) / len;
-            if (b == 0.)
-                return;
+            const double a = normal_new.x() / len;
+            const double b = normal_new.y() / len;
+            const double e = (normal_new.z() * height_mesh + offset) / len;
 
             // We need a half-plane to limit the cut. Get angle of the intersecting line.
-            double angle = std::atan(-a/b);
+            double angle = (b != 0.0) ? std::atan(-a / b) : ((a < 0.0) ? -0.5 * M_PI : 0.5 * M_PI);
             if (b > 0) // select correct half-plane
                 angle += M_PI;
 
@@ -152,7 +150,7 @@ void MeshClipper::recalculate_triangles()
             // it so it lies on our line. This will be the figure to subtract
             // from the cut. The coordinates must not overflow after the transform,
             // make the rectangle a bit smaller.
-            coord_t size = (std::numeric_limits<coord_t>::max() - scale_(std::max(std::abs(e*a), std::abs(e*b)))) / 4;
+            const coord_t size = (std::numeric_limits<coord_t>::max() - scale_(std::max(std::abs(e*a), std::abs(e*b)))) / 4;
             Polygons ep {Polygon({Point(-size, 0), Point(size, 0), Point(size, 2*size), Point(-size, 2*size)})};
             ep.front().rotate(angle);
             ep.front().translate(scale_(-e * a), scale_(-e * b));
@@ -169,7 +167,7 @@ void MeshClipper::recalculate_triangles()
         m_vertex_array.push_geometry(tr * Vec3d((*(it+0))(0), (*(it+0))(1), height_mesh), up);
         m_vertex_array.push_geometry(tr * Vec3d((*(it+1))(0), (*(it+1))(1), height_mesh), up);
         m_vertex_array.push_geometry(tr * Vec3d((*(it+2))(0), (*(it+2))(1), height_mesh), up);
-        size_t idx = it - m_triangles2d.cbegin();
+        const size_t idx = it - m_triangles2d.cbegin();
         m_vertex_array.push_triangle(idx, idx+1, idx+2);
     }
     m_vertex_array.finalize_geometry(true);
