@@ -72,10 +72,6 @@ static ConstPrintObjectPtrs get_top_level_objects_with_brim(const Print &print, 
     ConstPrintObjectPtrs island_to_object;
     for(size_t print_object_idx = 0; print_object_idx < print.objects().size(); ++print_object_idx) {
         const PrintObject *object = print.objects()[print_object_idx];
-
-        if (! object->has_brim())
-            continue;
-
         Polygons islands_object;
         islands_object.reserve(bottom_layers_expolygons[print_object_idx].size());
         for (const ExPolygon &ex_poly : bottom_layers_expolygons[print_object_idx])
@@ -134,6 +130,9 @@ static Polygons top_level_outer_brim_islands(const ConstPrintObjectPtrs &top_lev
 {
     Polygons islands;
     for (const PrintObject *object : top_level_objects_with_brim) {
+        if (!object->has_brim())
+            continue;
+
         //FIXME how about the brim type?
         auto     brim_separation = float(scale_(object->config().brim_separation.value));
         Polygons islands_object;
@@ -243,7 +242,7 @@ static ExPolygons inner_brim_area(const Print                   &print,
                 append(no_brim_area_object, diff_ex(offset(ex_poly.contour, no_brim_offset, ClipperLib::jtSquare), ex_poly_holes_reversed));
 
             if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btNoBrim)
-                append(no_brim_area_object, shrink_ex(ex_poly_holes_reversed, no_brim_offset, ClipperLib::jtSquare));
+                append(no_brim_area_object, diff_ex(ExPolygon(ex_poly.contour), shrink_ex(ex_poly_holes_reversed, no_brim_offset, ClipperLib::jtSquare)));
 
             append(holes_object, ex_poly_holes_reversed);
         }
