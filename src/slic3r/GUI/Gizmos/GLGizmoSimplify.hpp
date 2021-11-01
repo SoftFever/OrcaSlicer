@@ -49,7 +49,7 @@ private:
     void worker_finished();
 
     void create_gui_cfg();
-    void request_rerender();
+    void request_rerender(bool force = false);
     void init_model(const indexed_triangle_set& its);
 
     void set_center_position();
@@ -96,6 +96,7 @@ private:
         Status status = idle;
         int progress = 0; // percent of done work
         Configuration config; // Configuration we started with.
+        const ModelVolume* mv = nullptr;
         std::unique_ptr<indexed_triangle_set> result;
     };
 

@@ -19,7 +19,7 @@ namespace Slic3r::GUI {
 // but only run it when the gizmo is still alive. Scheduling a CallAfter from the
 // background thread may trigger the code after the gizmo is destroyed. Having
 // both the gizmo and the checking function static should solve it.
-bool s_simplify_gizmo_destructor_run = false;
+static bool s_simplify_gizmo_destructor_run = false;
 void call_after_if_alive(std::function<void()> fn)
 {
     wxGetApp().CallAfter([fn]() {
@@ -149,18 +149,23 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     bool is_cancelling = false;
     bool is_worker_running = false;
+    bool is_result_ready = false;
     int progress = 0;
     {
         std::lock_guard lk(m_state_mutex);
         is_cancelling = m_state.status == State::cancelling;
         is_worker_running = m_state.status == State::running;
+        is_result_ready = bool(m_state.result);
         progress = m_state.progress;
     }
+
+    // Whether to trigger calculation after rendering is done.
+    bool start_process = false;
     
 
     // Check selection of new volume
     // Do not reselect object when processing 
-    if (act_volume != m_volume && ! is_worker_running) {
+    if (act_volume != m_volume) {
         bool change_window_position = (m_volume == nullptr);
         // select different model
 
@@ -172,7 +177,10 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         m_configuration.decimate_ratio = 50.; // default value
         m_configuration.fix_count_by_ratio(m_volume->mesh().its.indices.size());
         init_model(m_volume->mesh().its);
-        process();
+
+        // Start processing. If we switched from another object, process will
+        // stop the background thread and it will restart itself later.
+        start_process = true;
         
         // set window position
         if (m_move_to_center && change_window_position) {
@@ -220,7 +228,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     if(ImGui::RadioButton("##use_error", !m_configuration.use_count)) {
         m_configuration.use_count = !m_configuration.use_count;
-        process();
+        start_process = true;
     }
     ImGui::SameLine();
     m_imgui->disabled_begin(m_configuration.use_count);
@@ -245,19 +253,18 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         case 3: m_configuration.max_error = 0.5f; break;
         case 4: m_configuration.max_error = 1.f; break;
         }
-        process();
+        start_process = true;
     }
     m_imgui->disabled_end(); // !use_count
 
     if (ImGui::RadioButton("##use_count", m_configuration.use_count)) {
         m_configuration.use_count = !m_configuration.use_count;
-        process();
+        start_process = true;
     }
     ImGui::SameLine();
 
     // show preview result triangle count (percent)
-    // lm_FIXME
-    if (/*m_need_reload &&*/ !m_configuration.use_count) {
+    if (!m_configuration.use_count) {
         m_configuration.wanted_count = static_cast<uint32_t>(m_triangle_count);
         m_configuration.decimate_ratio = 
             (1.0f - (m_configuration.wanted_count / (float) orig_triangle_count)) * 100.f;
@@ -276,7 +283,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         if (m_configuration.decimate_ratio > 100.f)
             m_configuration.decimate_ratio = 100.f;
         m_configuration.fix_count_by_ratio(orig_triangle_count);
-        process();
+        start_process = true;
     }
 
     ImGui::NewLine();
@@ -295,7 +302,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
 
     ImGui::SameLine();
 
-    m_imgui->disabled_begin(is_worker_running);
+    m_imgui->disabled_begin(is_worker_running || ! is_result_ready);
     if (m_imgui->button(_L("Apply"))) {
         apply_simplify();
     } else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_worker_running)
@@ -312,19 +319,8 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     }
     m_imgui->end();
 
-    // refresh view when needed
-    // lm_FIXME
-    /*if (m_need_reload) {
-        m_need_reload = false;
-        bool close_on_end = (m_state.status == State::close_on_end);
-        request_rerender();
-        // set m_state.status must be before close() !!!
-        m_state.status = State::settings;
-        if (close_on_end) after_apply();
-        else init_model(m_volume->mesh().its);
-        // Fix warning icon in object list
-        wxGetApp().obj_list()->update_item_error_icon(m_obj_index, -1);
-    }*/
+    if (start_process)
+        process();
 }
 
 
@@ -336,7 +332,6 @@ void GLGizmoSimplify::close() {
 
 void GLGizmoSimplify::stop_worker_thread_request()
 {
-    
     std::lock_guard lk(m_state_mutex);
     if (m_state.status == State::running)
         m_state.status = State::Status::cancelling;
@@ -347,22 +342,25 @@ void GLGizmoSimplify::stop_worker_thread_request()
 // worker calls it through a CallAfter.
 void GLGizmoSimplify::worker_finished()
 {
-    if (! m_worker.joinable()) {
-        // Somebody already joined.
-        // Nobody cares about the result apparently.
-        assert(! m_state.result);
-        return;
+    {
+        std::lock_guard lk(m_state_mutex);
+        if (m_state.status == State::running) {
+            // Someone started the worker again, before this callback
+            // was called. Do nothing.
+            return;
+        }
     }
-    m_worker.join();
+    if (m_worker.joinable())
+        m_worker.join();
     if (GLGizmoBase::m_state == Off)
         return;
     if (m_state.result)
         init_model(*m_state.result);
-    if (m_state.config != m_configuration) {
+    if (m_state.config != m_configuration || m_state.mv != m_volume) {
         // Settings were changed, restart the worker immediately.
         process();
     }
-    request_rerender();
+    request_rerender(true);
 }
 
 void GLGizmoSimplify::process()
@@ -375,7 +373,7 @@ void GLGizmoSimplify::process()
     bool is_worker_running = false;
     {
         std::lock_guard lk(m_state_mutex);
-        configs_match = m_state.config == m_configuration;
+        configs_match = (m_volume == m_state.mv && m_state.config == m_configuration);
         result_valid = bool(m_state.result);
         is_worker_running = m_state.status == State::running;
     }
@@ -385,17 +383,24 @@ void GLGizmoSimplify::process()
         return;
     }
 
-    if (is_worker_running && m_state.config != m_configuration) {
+    if (is_worker_running && ! configs_match) {
         // Worker is running with outdated config. Stop it. It will
         // restart itself when cancellation is done.
         stop_worker_thread_request();
         return;
     }
 
-    assert(! is_worker_running && ! m_worker.joinable());
+    if (m_worker.joinable()) {
+        // This can happen when process() is called after previous worker terminated,
+        // but before the worker_finished callback was called. In this case, just join the thread,
+        // the callback will check this and do nothing.
+        m_worker.join();
+    }
 
     // Copy configuration that will be used.    
     m_state.config = m_configuration;
+    m_state.mv = m_volume;
+    m_state.status = State::running;
 
     // Create a copy of current mesh to pass to the worker thread.
     // Using unique_ptr instead of pass-by-value to avoid an extra
@@ -473,6 +478,8 @@ void GLGizmoSimplify::apply_simplify() {
 
     // fix hollowing, sla support points, modifiers, ...    
     plater->changed_mesh(object_idx);
+    // Fix warning icon in object list
+    wxGetApp().obj_list()->update_item_error_icon(object_idx, -1);
     close();
 }
 
@@ -517,9 +524,9 @@ void GLGizmoSimplify::create_gui_cfg() {
     m_gui_cfg = cfg;
 }
 
-void GLGizmoSimplify::request_rerender() {
+void GLGizmoSimplify::request_rerender(bool force) {
     int64_t now = m_parent.timestamp_now();
-    if (now > m_last_rerender_timestamp + 250) { // 250 ms
+    if (force || now > m_last_rerender_timestamp + 250) { // 250 ms
         set_dirty();
         m_parent.schedule_extra_frame(0);
         m_last_rerender_timestamp = now;
@@ -556,6 +563,10 @@ void GLGizmoSimplify::on_render()
     const auto& volume_idxs = selection.get_volume_idxs();
     if (volume_idxs.empty() || volume_idxs.size() != 1) return;
     const GLVolume *selected_volume = selection.get_volume(*volume_idxs.begin());
+
+    // Check that the GLVolume still belongs to the ModelObject we work on.
+    if (m_volume != get_model_volume(selection, wxGetApp().model()))
+        return;
 
     const Transform3d trafo_matrix = selected_volume->world_matrix();
     glsafe(::glPushMatrix());
