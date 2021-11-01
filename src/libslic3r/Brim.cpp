@@ -72,10 +72,6 @@ static ConstPrintObjectPtrs get_top_level_objects_with_brim(const Print &print, 
     ConstPrintObjectPtrs island_to_object;
     for(size_t print_object_idx = 0; print_object_idx < print.objects().size(); ++print_object_idx) {
         const PrintObject *object = print.objects()[print_object_idx];
-
-        if (! object->has_brim())
-            continue;
-
         Polygons islands_object;
         islands_object.reserve(bottom_layers_expolygons[print_object_idx].size());
         for (const ExPolygon &ex_poly : bottom_layers_expolygons[print_object_idx])
@@ -134,6 +130,9 @@ static Polygons top_level_outer_brim_islands(const ConstPrintObjectPtrs &top_lev
 {
     Polygons islands;
     for (const PrintObject *object : top_level_objects_with_brim) {
+        if (!object->has_brim())
+            continue;
+
         //FIXME how about the brim type?
         auto     brim_separation = float(scale_(object->config().brim_separation.value));
         Polygons islands_object;
@@ -177,11 +176,14 @@ static ExPolygons top_level_outer_brim_area(const Print                   &print
             if ((brim_type == BrimType::btOuterOnly || brim_type == BrimType::btOuterAndInner) && is_top_outer_brim)
                 append(brim_area_object, diff_ex(offset(ex_poly.contour, brim_width + brim_separation, ClipperLib::jtSquare), offset(ex_poly.contour, brim_separation, ClipperLib::jtSquare)));
 
+            // After 7ff76d07684858fd937ef2f5d863f105a10f798e offset and shrink don't work with CW polygons (holes), so let's make it CCW.
+            Polygons ex_poly_holes_reversed = ex_poly.holes;
+            polygons_reverse(ex_poly_holes_reversed);
             if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btNoBrim)
-                append(no_brim_area_object, shrink_ex(ex_poly.holes, no_brim_offset, ClipperLib::jtSquare));
+                append(no_brim_area_object, shrink_ex(ex_poly_holes_reversed, no_brim_offset, ClipperLib::jtSquare));
 
             if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btNoBrim)
-                append(no_brim_area_object, diff_ex(offset(ex_poly.contour, no_brim_offset, ClipperLib::jtSquare), ex_poly.holes));
+                append(no_brim_area_object, diff_ex(offset(ex_poly.contour, no_brim_offset, ClipperLib::jtSquare), ex_poly_holes_reversed));
 
             if (brim_type != BrimType::btNoBrim)
                 append(no_brim_area_object, offset_ex(ExPolygon(ex_poly.contour), brim_separation, ClipperLib::jtSquare));
@@ -230,16 +232,19 @@ static ExPolygons inner_brim_area(const Print                   &print,
                     append(brim_area_object, diff_ex(offset(ex_poly.contour, brim_width + brim_separation, ClipperLib::jtSquare), offset(ex_poly.contour, brim_separation, ClipperLib::jtSquare)));
             }
 
+            // After 7ff76d07684858fd937ef2f5d863f105a10f798e offset and shrink don't work with CW polygons (holes), so let's make it CCW.
+            Polygons ex_poly_holes_reversed = ex_poly.holes;
+            polygons_reverse(ex_poly_holes_reversed);
             if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btOuterAndInner)
-                append(brim_area_object, diff_ex(shrink_ex(ex_poly.holes, brim_separation, ClipperLib::jtSquare), shrink_ex(ex_poly.holes, brim_width + brim_separation, ClipperLib::jtSquare)));
+                append(brim_area_object, diff_ex(shrink_ex(ex_poly_holes_reversed, brim_separation, ClipperLib::jtSquare), shrink_ex(ex_poly_holes_reversed, brim_width + brim_separation, ClipperLib::jtSquare)));
 
             if (brim_type == BrimType::btInnerOnly || brim_type == BrimType::btNoBrim)
-                append(no_brim_area_object, diff_ex(offset(ex_poly.contour, no_brim_offset, ClipperLib::jtSquare), ex_poly.holes));
+                append(no_brim_area_object, diff_ex(offset(ex_poly.contour, no_brim_offset, ClipperLib::jtSquare), ex_poly_holes_reversed));
 
             if (brim_type == BrimType::btOuterOnly || brim_type == BrimType::btNoBrim)
-                append(no_brim_area_object, shrink_ex(ex_poly.holes, no_brim_offset, ClipperLib::jtSquare));
+                append(no_brim_area_object, diff_ex(ExPolygon(ex_poly.contour), shrink_ex(ex_poly_holes_reversed, no_brim_offset, ClipperLib::jtSquare)));
 
-            append(holes_object, ex_poly.holes);
+            append(holes_object, ex_poly_holes_reversed);
         }
         append(no_brim_area_object, offset_ex(bottom_layers_expolygons[print_object_idx], brim_separation, ClipperLib::jtSquare));
 
