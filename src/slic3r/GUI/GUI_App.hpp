@@ -210,6 +210,9 @@ public:
     const wxColour& get_color_hovered_btn_label() { return m_color_hovered_btn_label; }
     const wxColour& get_color_selected_btn_bg() { return m_color_selected_btn_bg; }
     void            force_colors_update();
+#ifdef _MSW_DARK_MODE
+    void            force_menu_update();
+#endif //_MSW_DARK_MODE
 #endif
 
     const wxFont&   small_font()            { return m_small_font; }

@@ -53,7 +53,7 @@ struct LifetimeGuard
 
 BonjourDialog::BonjourDialog(wxWindow *parent, Slic3r::PrinterTechnology tech)
 	: wxDialog(parent, wxID_ANY, _(L("Network lookup")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
-	, list(new wxListView(this, wxID_ANY))
+	, list(new wxListView(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxSIMPLE_BORDER))
 	, replies(new ReplySet)
 	, label(new wxStaticText(this, wxID_ANY, ""))
 	, timer(new wxTimer())
