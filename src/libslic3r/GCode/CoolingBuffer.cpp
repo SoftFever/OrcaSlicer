@@ -769,27 +769,31 @@ std::string CoolingBuffer::apply_layer_cooldown(
             // Find the 'F' word.
             const char *fpos            = strstr(line_start + 2, " F") + 2;
             int         new_feedrate    = current_feedrate;
+            // Modify the F word of the current G-code line.
             bool        modify          = false;
+            // Remove the F word from the current G-code line.
+            bool        remove          = false;
             assert(fpos != nullptr);
-            if (line->slowdown) {
-                modify       = true;
-                new_feedrate = int(floor(60. * line->feedrate + 0.5));
-            } else {
-                new_feedrate = atoi(fpos);
-                if (new_feedrate != current_feedrate) {
-                    // Append the line without the comment.
-                    new_gcode.append(line_start, end - line_start);
-                    current_feedrate = new_feedrate;
-                } else if ((line->type & (CoolingLine::TYPE_ADJUSTABLE | CoolingLine::TYPE_EXTERNAL_PERIMETER | CoolingLine::TYPE_WIPE)) || line->length == 0.) {
+            new_feedrate = line->slowdown ? int(floor(60. * line->feedrate + 0.5)) : atoi(fpos);
+            if (new_feedrate == current_feedrate) {
+                // No need to change the F value.
+                if ((line->type & (CoolingLine::TYPE_ADJUSTABLE | CoolingLine::TYPE_EXTERNAL_PERIMETER | CoolingLine::TYPE_WIPE)) || line->length == 0.)
                     // Feedrate does not change and this line does not move the print head. Skip the complete G-code line including the G-code comment.
                     end = line_end;
-                } else {
-                    // Remove the feedrate from the G0/G1 line.
-                    modify = true;
-                }
+                else
+                    // Remove the feedrate from the G0/G1 line. The G-code line may become empty!
+                    remove = true;
+            } else if (line->slowdown) {
+                // The F value will be overwritten.
+                modify = true;
+            } else {
+                // The F value is different from current_feedrate, but not slowed down, thus the G-code line will not be modified.
+                // Emit the line without the comment.
+                new_gcode.append(line_start, end - line_start);
+                current_feedrate = new_feedrate;
             }
-            if (modify) {
-                if (new_feedrate != current_feedrate) {
+            if (modify || remove) {
+                if (modify) {
                     // Replace the feedrate.
                     new_gcode.append(line_start, fpos - line_start);
                     current_feedrate = new_feedrate;
@@ -805,12 +809,16 @@ std::string CoolingBuffer::apply_layer_cooldown(
                     new_gcode.append(line_start, f - line_start + 1);
                 }
                 // Skip the non-whitespaces of the F parameter up the comment or end of line.
-                for (; fpos != end && *fpos != ' ' && *fpos != ';' && *fpos != '\n'; ++fpos);
+                for (; fpos != end && *fpos != ' ' && *fpos != ';' && *fpos != '\n'; ++ fpos);
                 // Append the rest of the line without the comment.
                 if (fpos < end)
+                    // The G-code line is not empty yet. Emit the rest of it.
                     new_gcode.append(fpos, end - fpos);
-                // There should never be an empty G1 statement emited by the filter. Such lines should be removed completely.
-                assert(new_gcode.size() < 4 || new_gcode.substr(new_gcode.size() - 4) != "G1 \n");
+                else if (remove && new_gcode == "G1") {
+                    // The G-code line only contained the F word, now it is empty. Remove it completely including the comments.
+                    new_gcode.resize(new_gcode.size() - 2);
+                    end = line_end;
+                }
             }
             // Process the rest of the line.
             if (end < line_end) {
