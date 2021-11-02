@@ -188,6 +188,61 @@ void PresetBundle::setup_directories()
     }
 }
 
+// recursively copy all files and dirs in from_dir to to_dir
+static void copy_dir(const boost::filesystem::path& from_dir, const boost::filesystem::path& to_dir)
+{
+    if(!boost::filesystem::is_directory(from_dir))
+        return;
+    // i assume to_dir.parent surely exists
+    if (!boost::filesystem::is_directory(to_dir))
+        boost::filesystem::create_directory(to_dir);
+    for (auto& dir_entry : boost::filesystem::directory_iterator(from_dir)) {
+        if (!boost::filesystem::is_directory(dir_entry.path())) {
+            std::string em;
+            CopyFileResult cfr = copy_file(dir_entry.path().string(), (to_dir / dir_entry.path().filename()).string(), em, false);
+            if (cfr != SUCCESS) {
+                BOOST_LOG_TRIVIAL(error) << "Error when copying files from " << from_dir << " to " << to_dir << ": " << em;
+            }
+        } else {
+            copy_dir(dir_entry.path(), to_dir / dir_entry.path().filename());
+        }
+    }
+}
+
+void PresetBundle::copy_files(const std::string& from)
+{
+    boost::filesystem::path data_dir = boost::filesystem::path(Slic3r::data_dir());
+    // list of searched paths based on current directory system in setup_directories()
+    // do not copy cache and snapshots
+    boost::filesystem::path from_data_dir = boost::filesystem::path(from);
+    std::initializer_list<boost::filesystem::path> from_dirs= {
+        from_data_dir / "vendor",
+        from_data_dir / "shapes",
+#ifdef SLIC3R_PROFILE_USE_PRESETS_SUBDIR
+        // Store the print/filament/printer presets into a "presets" directory.
+        data_dir / "presets",
+        data_dir / "presets" / "print",
+        data_dir / "presets" / "filament",
+        data_dir / "presets" / "sla_print",
+        data_dir / "presets" / "sla_material",
+        data_dir / "presets" / "printer",
+        data_dir / "presets" / "physical_printer"
+#else
+        // Store the print/filament/printer presets at the same location as the upstream Slic3r.
+        from_data_dir / "print",
+        from_data_dir / "filament",
+        from_data_dir / "sla_print",
+        from_data_dir / "sla_material",
+        from_data_dir / "printer",
+        from_data_dir / "physical_printer"
+#endif
+    };
+    // copy recursively all files
+    for (const boost::filesystem::path& from_dir : from_dirs) {
+        copy_dir(from_dir, data_dir / from_dir.filename());
+    }
+}
+
 PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, ForwardCompatibilitySubstitutionRule substitution_rule, 
                                                       const PresetPreferences& preferred_selection/* = PresetPreferences()*/)
 {

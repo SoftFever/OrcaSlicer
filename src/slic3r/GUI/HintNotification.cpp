@@ -413,9 +413,9 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 				// open preferences
 				} else if(dict["hypertext_type"] == "preferences") {
 					int			page = static_cast<Preset::Type>(std::atoi(dict["hypertext_preferences_page"].c_str()));
-					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, [page]() { wxGetApp().open_preferences(page); } };
+					std::string	item = dict["hypertext_preferences_item"];
+					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, [page, item]() { wxGetApp().open_preferences(page, item); } };
 					m_loaded_hints.emplace_back(hint_data);
-
 				} else if (dict["hypertext_type"] == "plater") {
 					std::string	item = dict["hypertext_plater_item"];
 					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, [item]() { wxGetApp().plater()->canvas3D()->highlight_toolbar_item(item); } };

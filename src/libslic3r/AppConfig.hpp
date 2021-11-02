@@ -148,6 +148,9 @@ public:
 	// Does the config file exist?
 	bool 				exists();
 
+	void                set_loading_path(const std::string& path) { m_loading_path = path; }
+	std::string         loading_path() { return (m_loading_path.empty() ? config_path() : m_loading_path); }
+
     std::vector<std::string> get_recent_projects() const;
     void set_recent_projects(const std::vector<std::string>& recent_projects);
 
@@ -196,6 +199,8 @@ private:
 	Semver                                                      m_orig_version;
 	// Whether the existing version is before system profiles & configuration updating
 	bool                                                        m_legacy_datadir;
+
+	std::string                                                 m_loading_path;
 };
 
 } // namespace Slic3r
