@@ -2,7 +2,6 @@
 #include <tuple>
 #include <optional>
 #include "MutablePriorityQueue.hpp"
-#include "SimplifyMeshImpl.hpp"
 #include <tbb/parallel_for.h>
 
 using namespace Slic3r;
@@ -13,10 +12,47 @@ using namespace Slic3r;
 
 // only private namespace not neccessary be in .hpp
 namespace QuadricEdgeCollapse {
+    // SymetricMatrix
+    class SymMat {
+        using T = double;
+        static const constexpr size_t N = 10;
+        T m[N];
+    public:    
+        explicit SymMat(ArithmeticOnly<T> c = T()) { std::fill(m, m + N, c); }
+    
+        // Make plane
+        SymMat(T a, T b, T c, T d)
+        {
+            m[0] = a * a; m[1] = a * b; m[2] = a * c; m[3] = a * d;
+            m[4] = b * b; m[5] = b * c; m[6] = b * d;
+            m[7] = c * c; m[8] = c * d;
+            m[9] = d * d;
+        }
+    
+        T operator[](int c) const { return m[c]; }
+    
+        // Determinant
+        T det(int a11, int a12, int a13,
+              int a21, int a22, int a23,
+              int a31, int a32, int a33) const
+        {
+            T det = m[a11] * m[a22] * m[a33] + m[a13] * m[a21] * m[a32] +
+                    m[a12] * m[a23] * m[a31] - m[a13] * m[a22] * m[a31] -
+                    m[a11] * m[a23] * m[a32] - m[a12] * m[a21] * m[a33];
+        
+            return det;
+        }
+    
+        const SymMat &operator+=(const SymMat &n)
+        {
+            for (size_t i = 0; i < N; ++i) m[i] += n[i];
+            return *this;
+        }    
+    };
+
     using Vertices = std::vector<stl_vertex>;
     using Triangle = stl_triangle_vertex_indices;
     using Indices = std::vector<stl_triangle_vertex_indices>;
-    using SymMat = SimplifyMesh::implementation::SymetricMatrix<double>;
     using ThrowOnCancel = std::function<void(void)>;
     using StatusFn = std::function<void(int)>;
     // smallest error caused by edges, identify smallest edge in triangle

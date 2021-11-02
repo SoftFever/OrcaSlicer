@@ -7,7 +7,7 @@
 #include <libslic3r/SLA/Hollowing.hpp>
 #include <libslic3r/SLA/IndexedMesh.hpp>
 #include <libslic3r/ClipperUtils.hpp>
-#include <libslic3r/SimplifyMesh.hpp>
+#include <libslic3r/QuadricEdgeCollapse.hpp>
 #include <libslic3r/SLA/SupportTreeMesher.hpp>
 
 #include <boost/log/trivial.hpp>
@@ -132,7 +132,10 @@ InteriorPtr generate_interior(const TriangleMesh &   mesh,
 
         // flip normals back...
         swap_normals(interior->mesh);
-        Slic3r::simplify_mesh(interior->mesh);
+
+        // simplify mesh lossless
+        float loss_less_max_error = 2*std::numeric_limits<float>::epsilon();
+        its_quadric_edge_collapse(interior->mesh, 0U, &loss_less_max_error);
 
         its_compactify_vertices(interior->mesh);
         its_merge_vertices(interior->mesh);

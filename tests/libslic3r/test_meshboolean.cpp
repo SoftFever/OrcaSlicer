@@ -3,7 +3,6 @@
 
 #include <libslic3r/TriangleMesh.hpp>
 #include <libslic3r/MeshBoolean.hpp>
-#include <libslic3r/SimplifyMesh.hpp>
 
 using namespace Slic3r;
 

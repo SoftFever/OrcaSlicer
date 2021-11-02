@@ -232,9 +232,6 @@ add_library(libslic3r STATIC
     MinAreaBoundingBox.cpp
     miniz_extension.hpp
     miniz_extension.cpp
-    SimplifyMesh.hpp
-    SimplifyMeshImpl.hpp
-    SimplifyMesh.cpp
     MarchingSquares.hpp
     Execution/Execution.hpp
     Execution/ExecutionSeq.hpp
