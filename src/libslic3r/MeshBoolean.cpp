@@ -148,19 +148,23 @@ template<class _Mesh> TriangleMesh cgal_to_triangle_mesh(const _Mesh &cgalmesh)
     its.vertices.reserve(cgalmesh.num_vertices());
     its.indices.reserve(cgalmesh.num_faces());
     
-    for (auto &vi : cgalmesh.vertices()) {
+    const auto &faces = cgalmesh.faces();
+    const auto &vertices = cgalmesh.vertices();
+    int vsize = int(vertices.size());
+
+    for (auto &vi : vertices) {
         auto &v = cgalmesh.point(vi); // Don't ask...
         its.vertices.emplace_back(to_vec3f(v));
     }
-    
-    for (auto &face : cgalmesh.faces()) {
+
+    for (auto &face : faces) {
         auto vtc = cgalmesh.vertices_around_face(cgalmesh.halfedge(face));
 
         int i = 0;
         Vec3i facet;
         for (auto v : vtc) {
             int iv = v;
-            if (i > 2 || iv < 0 || iv >= int(cgalmesh.vertices().size())) { i = 0; break; }
+            if (i > 2 || iv < 0 || iv >= vsize) { i = 0; break; }
             facet(i++) = iv;
         }
 
