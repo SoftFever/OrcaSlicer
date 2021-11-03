@@ -83,6 +83,9 @@
 #include <wx/msw/dark_mode.h>
 #endif // _MSW_DARK_MODE
 #endif
+#ifdef _WIN32
+#include <boost/dll/runtime_symbol_info.hpp>
+#endif
 
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG
 #include <boost/beast/core/detail/base64.hpp>
@@ -424,6 +427,53 @@ bool static check_old_linux_datadir(const wxString& app_name) {
 #endif
 
 
+#ifdef _WIN32
+static void run_updater_win()
+{
+    // find updater exe
+    boost::filesystem::path path_to_binary = boost::dll::program_location();
+    for (const auto& dir_entry : boost::filesystem::directory_iterator(path_to_binary.parent_path())) {
+        if (dir_entry.path().filename() == "prusaslicer-updater.exe") {
+            // run updater. Original args: /silent -restartapp prusa-slicer.exe -startappfirst
+
+            // Using quoted string as mentioned in CreateProcessW docs.
+            std::wstring wcmd = L"\"" + dir_entry.path().wstring() + L"\"";
+            wcmd += L" /silent";
+
+            // additional information
+            STARTUPINFOW si;
+            PROCESS_INFORMATION pi;
+
+            // set the size of the structures
+            ZeroMemory(&si, sizeof(si));
+            si.cb = sizeof(si);
+            ZeroMemory(&pi, sizeof(pi));
+
+            // start the program up
+            if (CreateProcessW(NULL,   // the path
+                wcmd.data(),    // Command line
+                NULL,           // Process handle not inheritable
+                NULL,           // Thread handle not inheritable
+                FALSE,          // Set handle inheritance to FALSE
+                0,              // No creation flags
+                NULL,           // Use parent's environment block
+                NULL,           // Use parent's starting directory 
+                &si,            // Pointer to STARTUPINFO structure
+                &pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
+            )) {
+                // Close process and thread handles.
+                CloseHandle(pi.hProcess);
+                CloseHandle(pi.hThread);
+            }
+            break;
+        }
+    }
+    return;
+}
+#endif //_WIN32
+
+
+
 wxString file_wildcards(FileType file_type, const std::string &custom_extension)
 {
     static const std::string defaults[FT_SIZE] = {
@@ -686,6 +736,10 @@ void GUI_App::post_init()
                 // sees something else than "we want something" on the first start.
                 show_send_system_info_dialog_if_needed();
             }
+        #ifdef _WIN32
+            // Run external updater on Windows.
+            run_updater_win();
+        #endif // _WIN32
         });
     }
 

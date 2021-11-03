@@ -677,49 +677,6 @@ bool CLI::setup(int argc, char **argv)
     set_local_dir((path_resources / "localization").string());
     set_sys_shapes_dir((path_resources / "shapes").string());
 
-#ifdef _WIN32
-    // find updater exe
-    for (const auto& dir_entry : boost::filesystem::directory_iterator(path_to_binary.parent_path())) {
-       if (dir_entry.path().filename() == "prusaslicer-updater.exe") {
-           // run updater. Original args: /silent -restartapp prusa-slicer.exe -startappfirst
-
-           // Using quoted string as mentioned in CreateProcessW docs.
-           std::wstring wcmd = L"\"" + dir_entry.path().wstring() + L"\"";
-           wcmd += L" /silent";
-
-
-
-           // additional information
-           STARTUPINFOW si;
-           PROCESS_INFORMATION pi;
-
-           // set the size of the structures
-           ZeroMemory(&si, sizeof(si));
-           si.cb = sizeof(si);
-           ZeroMemory(&pi, sizeof(pi));
-
-           // start the program up
-           if (CreateProcessW(NULL,   // the path
-               wcmd.data(),    // Command line
-               NULL,           // Process handle not inheritable
-               NULL,           // Thread handle not inheritable
-               FALSE,          // Set handle inheritance to FALSE
-               0,              // No creation flags
-               NULL,           // Use parent's environment block
-               NULL,           // Use parent's starting directory 
-               &si,            // Pointer to STARTUPINFO structure
-               &pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
-           )) {
-               // Close process and thread handles.
-               CloseHandle(pi.hProcess);
-               CloseHandle(pi.hThread);
-           }
-           break;
-       }
-    }
-#endif //_WIN32
-
-
     // Parse all command line options into a DynamicConfig.
     // If any option is unsupported, print usage and abort immediately.
     t_config_option_keys opt_order;
