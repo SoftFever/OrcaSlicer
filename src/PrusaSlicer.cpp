@@ -679,14 +679,18 @@ bool CLI::setup(int argc, char **argv)
 
 #ifdef _WIN32
     // find updater exe
-    for (auto& dir_entry : boost::filesystem::directory_iterator(path_to_binary.parent_path())) {
+    for (const auto& dir_entry : boost::filesystem::directory_iterator(path_to_binary.parent_path())) {
        if (dir_entry.path().filename() == "prusaslicer-updater.exe") {
            // run updater. Original args: /silent -restartapp prusa-slicer.exe -startappfirst
-           std::string args = dir_entry.path().string();
-           args += " /silent";
+
+           // Using quoted string as mentioned in CreateProcessW docs.
+           std::wstring wcmd = L"\"" + dir_entry.path().wstring() + L"\"";
+           wcmd += L" /silent";
+
+
 
            // additional information
-           STARTUPINFOA si;
+           STARTUPINFOW si;
            PROCESS_INFORMATION pi;
 
            // set the size of the structures
@@ -695,8 +699,8 @@ bool CLI::setup(int argc, char **argv)
            ZeroMemory(&pi, sizeof(pi));
 
            // start the program up
-           CreateProcessA(NULL,   // the path
-               const_cast<char*>(args.c_str()),  // Command line
+           if (CreateProcessW(NULL,   // the path
+               wcmd.data(),    // Command line
                NULL,           // Process handle not inheritable
                NULL,           // Thread handle not inheritable
                FALSE,          // Set handle inheritance to FALSE
@@ -705,11 +709,11 @@ bool CLI::setup(int argc, char **argv)
                NULL,           // Use parent's starting directory 
                &si,            // Pointer to STARTUPINFO structure
                &pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
-           );
-           // Close process and thread handles. 
-           CloseHandle(pi.hProcess);
-           CloseHandle(pi.hThread);
-
+           )) {
+               // Close process and thread handles.
+               CloseHandle(pi.hProcess);
+               CloseHandle(pi.hThread);
+           }
            break;
        }
     }
