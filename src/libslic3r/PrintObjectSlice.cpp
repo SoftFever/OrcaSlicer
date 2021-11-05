@@ -538,7 +538,7 @@ template<typename ThrowOnCancel>
 static inline void apply_mm_segmentation(PrintObject &print_object, ThrowOnCancel throw_on_cancel)
 {
     // Returns MMU segmentation based on painting in MMU segmentation gizmo
-    std::vector<std::vector<std::pair<ExPolygon, size_t>>> segmentation = multi_material_segmentation_by_painting(print_object, throw_on_cancel);
+    std::vector<std::vector<ExPolygons>> segmentation = multi_material_segmentation_by_painting(print_object, throw_on_cancel);
     assert(segmentation.size() == print_object.layer_count());
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, segmentation.size(), std::max(segmentation.size() / 128, size_t(1))),
@@ -568,9 +568,7 @@ static inline void apply_mm_segmentation(PrintObject &print_object, ThrowOnCance
                 bool layer_split = false;
                 for (size_t extruder_id = 0; extruder_id < num_extruders; ++ extruder_id) {
                     ByExtruder &region = by_extruder[extruder_id];
-                    for (const std::pair<ExPolygon, size_t> &colored_polygon : segmentation[layer_id])
-                        if (colored_polygon.second == extruder_id)
-                            region.expolygons.emplace_back(std::move(colored_polygon.first));
+                    append(region.expolygons, std::move(segmentation[layer_id][extruder_id]));
                     if (! region.expolygons.empty()) {
                         region.bbox = get_extents(region.expolygons);
                         layer_split = true;
