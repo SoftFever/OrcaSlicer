@@ -182,6 +182,9 @@ void AppConfig::set_defaults()
 
     if (get("dark_color_mode").empty())
         set("dark_color_mode", "0");
+
+    if (get("sys_menu_enabled").empty())
+        set("sys_menu_enabled", "1");
 #endif // _WIN32
 
     // Remove legacy window positions/sizes
