@@ -1,3 +1,4 @@
+#include <numeric>
 
 #include "SlicesToTriangleMesh.hpp"
 
@@ -22,11 +23,16 @@ inline indexed_triangle_set wall_strip(const Polygon &poly,
     
     ret.vertices.reserve(ret.vertices.size() + 2 *offs);
     
+    // The expression unscaled(p).cast<float>().eval() is important here
+    // as it ensures identical conversion of 2D scaled coordinates to float 3D
+    // to that used by the tesselation. This way, the duplicated vertices in the
+    // output mesh can be found with the == operator of the points.
+    // its_merge_vertices will then reliably remove the duplicates.
     for (const Point &p : poly.points)
-        ret.vertices.emplace_back(to_3d(unscaled<float>(p), float(lower_z_mm)));
+        ret.vertices.emplace_back(to_3d(unscaled(p).cast<float>().eval(), float(lower_z_mm)));
     
     for (const Point &p : poly.points)
-        ret.vertices.emplace_back(to_3d(unscaled<float>(p), float(upper_z_mm)));
+        ret.vertices.emplace_back(to_3d(unscaled(p).cast<float>().eval(), float(upper_z_mm)));
     
     for (size_t i = startidx + 1; i < startidx + offs; ++i) {
         ret.indices.emplace_back(i - 1, i, i + offs - 1);
@@ -84,12 +90,14 @@ indexed_triangle_set slices_to_mesh(
         const ExPolygons &upper = slices[i + 1];
         const ExPolygons &lower = slices[i];
 
-        ExPolygons dff1 = diff_ex(lower, upper);
-        ExPolygons dff2 = diff_ex(upper, lower);
-        its_merge(layers[i], triangulate_expolygons_3d(dff1, grid[i], NORMALS_UP));
-        its_merge(layers[i], triangulate_expolygons_3d(dff2, grid[i], NORMALS_DOWN));
+        // Small 0 area artefacts can be created by diff_ex, and the
+        // tesselation also can create 0 area triangles. These will be removed
+        // by its_remove_degenerate_faces.
+        ExPolygons free_top = diff_ex(lower, upper);
+        ExPolygons overhang = diff_ex(upper, lower);
+        its_merge(layers[i], triangulate_expolygons_3d(free_top, grid[i], NORMALS_UP));
+        its_merge(layers[i], triangulate_expolygons_3d(overhang, grid[i], NORMALS_DOWN));
         its_merge(layers[i], straight_walls(upper, grid[i], grid[i + 1]));
-        
     });
 
     auto merge_fn = []( const indexed_triangle_set &a, const indexed_triangle_set &b ) {
@@ -99,37 +107,30 @@ indexed_triangle_set slices_to_mesh(
     auto ret = execution::reduce(ex_tbb, layers.begin(), layers.end(),
                                  indexed_triangle_set{}, merge_fn);
 
-    //    sla::Contour3D ret = tbb::parallel_reduce(
-    //        tbb::blocked_range(layers.begin(), layers.end()),
-    //        sla::Contour3D{},
-    //        [](const tbb::blocked_range<Layers::iterator>& r, sla::Contour3D
-    //        init) {
-    //            for(auto it = r.begin(); it != r.end(); ++it )
-    //            init.merge(*it); return init;
-    //        },
-    //        []( const sla::Contour3D &a, const sla::Contour3D &b ) {
-    //            sla::Contour3D res{a}; res.merge(b); return res;
-    //        });
-    
     its_merge(ret, triangulate_expolygons_3d(slices.front(), zmin, NORMALS_DOWN));
     its_merge(ret, straight_walls(slices.front(), zmin, grid.front()));
     its_merge(ret, triangulate_expolygons_3d(slices.back(), grid.back(), NORMALS_UP));
-        
+
+    // FIXME: these repairs do not fix the mesh entirely. There will be cracks
+    // in the output. It is very hard to do the meshing in a way that does not
+    // leave errors.
+    its_merge_vertices(ret);
+    its_remove_degenerate_faces(ret);
+    its_compactify_vertices(ret);
+
     return ret;
 }
 
 void slices_to_mesh(indexed_triangle_set &         mesh,
-                             const std::vector<ExPolygons> &slices,
-                             double                         zmin,
-                             double                         lh,
-                             double                         ilh)
+                    const std::vector<ExPolygons> &slices,
+                    double                         zmin,
+                    double                         lh,
+                    double                         ilh)
 {
-    std::vector<indexed_triangle_set> wall_meshes(slices.size());
     std::vector<float> grid(slices.size(), zmin + ilh);
-    
-    for (size_t i = 1; i < grid.size(); ++i)
-        grid[i] = grid[i - 1] + lh;
-    
+
+    for (size_t i = 1; i < grid.size(); ++i) grid[i] = grid[i - 1] + lh;
+
     indexed_triangle_set cntr = slices_to_mesh(slices, zmin, grid);
     its_merge(mesh, cntr);
 }

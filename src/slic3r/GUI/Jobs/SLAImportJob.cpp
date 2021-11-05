@@ -236,7 +236,7 @@ void SLAImportJob::finalize()
 
     if (!p->mesh.empty()) {
         bool is_centered = false;
-        p->plater->sidebar().obj_list()->load_mesh_object(TriangleMesh{p->mesh},
+        p->plater->sidebar().obj_list()->load_mesh_object(TriangleMesh{std::move(p->mesh)},
                                                           name, is_centered);
     }
 
