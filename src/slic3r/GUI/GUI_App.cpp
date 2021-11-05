@@ -411,7 +411,7 @@ bool static check_old_linux_datadir(const wxString& app_name) {
                 "location again.\n\n"
                 "What do you want to do now?")) % SLIC3R_APP_NAME % new_path % old_path).str());
             wxString caption = from_u8((boost::format(_u8L("%s - BREAKING CHANGE")) % SLIC3R_APP_NAME).str());
-            wxRichMessageDialog dlg(nullptr, msg, caption, wxYES_NO);
+            RichMessageDialog dlg(nullptr, msg, caption, wxYES_NO);
             dlg.SetYesNoLabels(_L("Quit, I will move my data now"), _L("Start the application"));
             if (dlg.ShowModal() != wxID_NO)
                 return false;
@@ -846,7 +846,7 @@ bool GUI_App::check_older_app_config(Semver current_version, bool backup)
         return false;
     BOOST_LOG_TRIVIAL(info) << "last app config file used: " << m_older_data_dir_path;
     // ask about using older data folder
-    wxRichMessageDialog msg(nullptr, backup ? 
+    RichMessageDialog msg(nullptr, backup ? 
         wxString::Format(_L("PrusaSlicer detected another configuration folder at %s."
             "\nIts version is %s." 
             "\nLast version you used in current configuration folder is %s."
@@ -936,7 +936,7 @@ bool GUI_App::on_init_inner()
 // win32 build on win64 and viceversa
 #ifdef _WIN64
     if (wxPlatformInfo::Get().GetArchName().substr(0, 2) == "") {
-        wxRichMessageDialog dlg(nullptr,
+        RichMessageDialog dlg(nullptr,
                 _L("You have started PrusaSlicer for 64-bit architecture on 32-bit system."
                     "\nPlease download and install correct version at https://www.prusa3d.cz/prusaslicer/."
                     "\nDo you wish to continue?"),
@@ -946,7 +946,7 @@ bool GUI_App::on_init_inner()
     }
 #elif _WIN32
     if (wxPlatformInfo::Get().GetArchName().substr(0, 2) == "64") {
-        wxRichMessageDialog dlg(nullptr,
+        RichMessageDialog dlg(nullptr,
             _L("You have started PrusaSlicer for 32-bit architecture on 64-bit system."
                 "\nPlease download and install correct version at https://www.prusa3d.cz/prusaslicer/."
                 "\nDo you wish to continue?"),
@@ -991,7 +991,7 @@ bool GUI_App::on_init_inner()
         bool ssl_accept = app_config->get("tls_cert_store_accepted") == "yes" && ssl_cert_store == Http::tls_system_cert_store();
 
         if (!msg.empty() && !ssl_accept) {
-            wxRichMessageDialog
+            RichMessageDialog
                 dlg(nullptr,
                     wxString::Format(_L("%s\nDo you want to continue?"), msg),
                     "PrusaSlicer", wxICON_QUESTION | wxYES_NO);
@@ -2855,7 +2855,7 @@ bool GUI_App::open_browser_with_warning_dialog(const wxString& url, int flags/* 
     bool launch = true;
 
     if (get_app_config()->get("suppress_hyperlinks").empty()) {
-        wxRichMessageDialog dialog(nullptr, _L("Should we open this hyperlink in your default browser?"), _L("PrusaSlicer: Open hyperlink"), wxICON_QUESTION | wxYES_NO);
+        RichMessageDialog dialog(nullptr, _L("Should we open this hyperlink in your default browser?"), _L("PrusaSlicer: Open hyperlink"), wxICON_QUESTION | wxYES_NO);
         dialog.ShowCheckBox(_L("Remember my choice"));
         int answer = dialog.ShowModal();
         launch = answer == wxID_YES;

@@ -2482,15 +2482,15 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             model.convert_from_meters(true);
                     };
                     if (answer_convert_from_meters == wxOK_DEFAULT) {
-                        MessageWithCheckDialog dlg(q, format_wxstr(_L_PLURAL(
+                        RichMessageDialog dlg(q, format_wxstr(_L_PLURAL(
                             "The dimensions of the object from file %s seem to be defined in meters.\n"
                             "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of the object?",
                             "The dimensions of some objects from file %s seem to be defined in meters.\n"
                             "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
-                            _L("Apply to all the remaining small objects being loaded."),
                             _L("The object is too small"), wxICON_WARNING | wxYES | wxNO);
+                        dlg.ShowCheckBox(_L("Apply to all the remaining small objects being loaded."));
                         int answer = dlg.ShowModal();
-                        if (dlg.GetCheckVal())
+                        if (dlg.IsCheckBoxChecked())
                             answer_convert_from_meters = answer;
                         else 
                             convert_model_if(model, answer == wxID_YES);
@@ -2504,15 +2504,15 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             convert_from_imperial_units(model, true);
                     };
                     if (answer_convert_from_imperial_units == wxOK_DEFAULT) {
-                        MessageWithCheckDialog dlg(q, format_wxstr(_L_PLURAL(
+                        RichMessageDialog dlg(q, format_wxstr(_L_PLURAL(
                             "The dimensions of the object from file %s seem to be defined in inches.\n"
                             "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of the object?",
                             "The dimensions of some objects from file %s seem to be defined in inches.\n"
                             "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
-                            _L("Apply to all the remaining small objects being loaded."),
                             _L("The object is too small"), wxICON_WARNING | wxYES | wxNO);
+                        dlg.ShowCheckBox(_L("Apply to all the remaining small objects being loaded."));
                         int answer = dlg.ShowModal();
-                        if (dlg.GetCheckVal())
+                        if (dlg.IsCheckBoxChecked())
                             answer_convert_from_imperial_units = answer;
                         else 
                             convert_model_if(model, answer == wxID_YES);
