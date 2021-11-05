@@ -317,10 +317,16 @@ ConfigSubstitutions import_sla_archive(
     if (profile_in.empty()) { // missing profile... do guess work
         // try to recover the layer height from the config.ini which was
         // present in all versions of sl1 files.
-        auto lh_str   = arch.config.find("layerHeight")->second.data();
-        double lh = std::stod(lh_str); // TODO replace with std::from_chars
-        profile_out.set("layer_height", lh);
-        profile_out.set("initial_layer_height", lh);
+        if (auto lh_opt = arch.config.find("layerHeight");
+            lh_opt != arch.config.not_found())
+        {
+            auto lh_str = lh_opt->second.data();
+            try {
+                double lh = std::stod(lh_str); // TODO replace with std::from_chars
+                profile_out.set("layer_height", lh);
+                profile_out.set("initial_layer_height", lh);
+            } catch(...) {}
+        }
     }
 
     // If the archive contains an empty profile, use the one that was passed as output argument
