@@ -1557,7 +1557,14 @@ static std::vector<std::vector<ExPolygons>> merge_segmented_layers(
                     segmented_regions_merged[layer_idx][extruder_id - 1] = std::move(segmented_regions_trimmed);
                 }
 
-                append(segmented_regions_merged[layer_idx][extruder_id - 1], top_and_bottom_layers[extruder_id][layer_idx]);
+                if (!top_and_bottom_layers[extruder_id][layer_idx].empty()) {
+                    bool was_top_and_bottom_empty = segmented_regions_merged[layer_idx][extruder_id - 1].empty();
+                    append(segmented_regions_merged[layer_idx][extruder_id - 1], top_and_bottom_layers[extruder_id][layer_idx]);
+
+                    // Remove dimples (#7235) appearing after merging side segmentation of the model with tops and bottoms painted layers.
+                    if (!was_top_and_bottom_empty)
+                        segmented_regions_merged[layer_idx][extruder_id - 1] = offset2_ex(union_ex(segmented_regions_merged[layer_idx][extruder_id - 1]), SCALED_EPSILON, -SCALED_EPSILON);
+                }
             }
         }
     }); // end of parallel_for
