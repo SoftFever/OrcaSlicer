@@ -1563,7 +1563,7 @@ static std::vector<std::vector<ExPolygons>> merge_segmented_layers(
 
                     // Remove dimples (#7235) appearing after merging side segmentation of the model with tops and bottoms painted layers.
                     if (!was_top_and_bottom_empty)
-                        segmented_regions_merged[layer_idx][extruder_id - 1] = offset2_ex(union_ex(segmented_regions_merged[layer_idx][extruder_id - 1]), SCALED_EPSILON, -SCALED_EPSILON);
+                        segmented_regions_merged[layer_idx][extruder_id - 1] = offset2_ex(union_ex(segmented_regions_merged[layer_idx][extruder_id - 1]), float(SCALED_EPSILON), -float(SCALED_EPSILON));
                 }
             }
         }
