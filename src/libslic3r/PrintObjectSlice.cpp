@@ -630,6 +630,13 @@ static inline void apply_mm_segmentation(PrintObject &print_object, ThrowOnCance
                                     if (mine.empty())
                                         break;
                                 }
+                            // Filter out unprintable polygons produced by subtraction multi-material painted regions from layerm.region().
+                            // ExPolygon returned from multi-material segmentation does not precisely match ExPolygons in layerm.region()
+                            // (because of preprocessing of the input regions in multi-material segmentation). Therefore, subtraction from
+                            // layerm.region() could produce a huge number of small unprintable regions for the model's base extruder.
+                            // This could, on some models, produce bulges with the model's base color (#7109).
+                            if (! mine.empty())
+                                mine = opening(union_ex(mine), float(scale_(5 * EPSILON)), float(scale_(5 * EPSILON)));
                             if (! mine.empty()) {
                                 ByRegion &dst = by_region[layerm.region().print_object_region_id()];
                                 if (dst.expolygons.empty()) {
