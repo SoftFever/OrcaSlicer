@@ -10,6 +10,7 @@
 #include <wx/msgdlg.h>
 #include <wx/richmsgdlg.h>
 #include <wx/textctrl.h>
+#include <wx/statline.h>
 
 class wxBoxSizer;
 class wxCheckBox;
