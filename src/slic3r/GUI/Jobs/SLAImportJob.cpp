@@ -122,7 +122,9 @@ public:
     std::string          err;
     ConfigSubstitutions config_substitutions;
 
-    priv(Plater *plt) : plater{plt} {}
+    ImportDlg           import_dlg;
+
+    priv(Plater *plt) : plater{plt}, import_dlg{plt} {}
 };
 
 SLAImportJob::SLAImportJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater)
@@ -176,14 +178,12 @@ void SLAImportJob::prepare()
 {
     reset();
 
-    ImportDlg dlg{p->plater};
-
-    if (dlg.ShowModal() == wxID_OK) {
-        auto path = dlg.get_path();
+    if (p->import_dlg.ShowModal() == wxID_OK) {
+        auto path = p->import_dlg.get_path();
         auto nm = wxFileName(path);
         p->path = !nm.Exists(wxFILE_EXISTS_REGULAR) ? "" : nm.GetFullPath();
-        p->sel  = dlg.get_selection();
-        p->win  = dlg.get_marchsq_windowsize();
+        p->sel  = p->import_dlg.get_selection();
+        p->win  = p->import_dlg.get_marchsq_windowsize();
         p->config_substitutions.clear();
     } else {
         p->path = "";
