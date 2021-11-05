@@ -4157,6 +4157,7 @@ void TabSLAMaterial::build()
     auto page = add_options_page(L("Material"), "resin");
 
     auto optgroup = page->new_optgroup(L("Material"));
+    optgroup->append_single_option_line("material_colour");
     optgroup->append_single_option_line("bottle_cost");
     optgroup->append_single_option_line("bottle_volume");
     optgroup->append_single_option_line("bottle_weight");
@@ -4164,6 +4165,12 @@ void TabSLAMaterial::build()
 
     optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value)
     {
+        if (opt_key == "material_colour") {
+            update_dirty();
+            on_value_change(opt_key, value); 
+            return;
+        }
+
         DynamicPrintConfig new_conf = *m_config;
 
         if (opt_key == "bottle_volume") {
