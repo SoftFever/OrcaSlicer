@@ -705,22 +705,16 @@ void its_flip_triangles(indexed_triangle_set &its)
 
 int its_remove_degenerate_faces(indexed_triangle_set &its, bool shrink_to_fit)
 {
-    int last = 0;
-    for (int i = 0; i < int(its.indices.size()); ++ i) {
-        const stl_triangle_vertex_indices &face = its.indices[i];
-        if (face(0) != face(1) && face(0) != face(2) && face(1) != face(2)) {
-            if (last < i)
-                its.indices[last] = its.indices[i];
-            ++ last;
-        }
-    }
-    int removed = int(its.indices.size()) - last;
-    if (removed) {
-        its.indices.erase(its.indices.begin() + last, its.indices.end());
-        // Optionally shrink the vertices.
-        if (shrink_to_fit)
-            its.indices.shrink_to_fit();
-    }
+    auto it = std::remove_if(its.indices.begin(), its.indices.end(), [](auto &face) {
+        return face(0) == face(1) || face(0) == face(2) || face(1) == face(2);
+    });
+
+    int removed = std::distance(it, its.indices.end());
+    its.indices.erase(it, its.indices.end());
+
+    if (removed && shrink_to_fit)
+        its.indices.shrink_to_fit();
+
     return removed;
 }
 
