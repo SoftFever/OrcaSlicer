@@ -135,7 +135,7 @@ ArchiveData extract_sla_archive(const std::string &zipfname,
 ExPolygons rings_to_expolygons(const std::vector<marchsq::Ring> &rings,
                                double px_w, double px_h)
 {
-    ExPolygons polys; polys.reserve(rings.size());
+    auto polys = reserve_vector<ExPolygon>(rings.size());
 
     for (const marchsq::Ring &ring : rings) {
         Polygon poly; Points &pts = poly.points;
@@ -147,7 +147,7 @@ ExPolygons rings_to_expolygons(const std::vector<marchsq::Ring> &rings,
         polys.emplace_back(poly);
     }
 
-    // reverse the raster transformations
+    // TODO: Is a union necessary?
     return union_ex(polys);
 }
 
@@ -270,11 +270,11 @@ std::vector<ExPolygons> extract_slices_from_sla_archive(
         png::ReadBuf rb{arch.images[i].buf.data(), arch.images[i].buf.size()};
         if (!png::decode_png(rb, img)) return;
 
-        auto rings = marchsq::execute(img, 128, rstp.win);
+        uint8_t isoval = 128;
+        auto rings = marchsq::execute(img, isoval, rstp.win);
         ExPolygons expolys = rings_to_expolygons(rings, rstp.px_w, rstp.px_h);
 
-        // Invert the raster transformations indicated in
-        // the profile metadata
+        // Invert the raster transformations indicated in the profile metadata
         invert_raster_trafo(expolys, rstp.trafo, rstp.width, rstp.height);
 
         slices[i] = std::move(expolys);
@@ -310,7 +310,18 @@ ConfigSubstitutions import_sla_archive(
     std::string exclude_entries{"thumbnail"};
     ArchiveData arch = extract_sla_archive(zipfname, exclude_entries);
     DynamicPrintConfig profile_in, profile_use;
-    ConfigSubstitutions config_substitutions = profile_in.load(arch.profile, ForwardCompatibilitySubstitutionRule::Enable);
+    ConfigSubstitutions config_substitutions =
+        profile_in.load(arch.profile,
+                        ForwardCompatibilitySubstitutionRule::Enable);
+
+    if (profile_in.empty()) { // missing profile... do guess work
+        // try to recover the layer height from the config.ini which was
+        // present in all versions of sl1 files.
+        auto lh_str   = arch.config.find("layerHeight")->second.data();
+        double lh = std::stod(lh_str); // TODO replace with std::from_chars
+        profile_out.set("layer_height", lh);
+        profile_out.set("initial_layer_height", lh);
+    }
 
     // If the archive contains an empty profile, use the one that was passed as output argument
     // then replace it with the readed profile to report that it was empty.
