@@ -286,8 +286,12 @@ void GCodeViewer::SequentialView::Marker::render() const
     if (width != last_window_width || length != last_text_length) {
         last_window_width = width;
         last_text_length = length;
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+        imgui.set_requires_extra_frame();
+#else
         wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
         wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     }
 
     imgui.end();
@@ -3379,8 +3383,12 @@ void GCodeViewer::render_legend(float& legend_height)
                         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
 
                     // to avoid the tooltip to change size when moving the mouse
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+                    imgui.set_requires_extra_frame();
+#else
                     wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
                     wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
                 }
             }
 
@@ -4115,8 +4123,12 @@ void GCodeViewer::render_legend(float& legend_height)
             if (can_show_mode_button(mode)) {
                 if (imgui.button(label)) {
                     m_time_estimate_mode = mode;
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+                    imgui.set_requires_extra_frame();
+#else
                     wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
                     wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
                 }
             }
         };
