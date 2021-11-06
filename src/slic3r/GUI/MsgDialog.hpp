@@ -98,7 +98,7 @@ public:
 				const wxPoint& pos = wxDefaultPosition,
 				const wxSize& size = wxDefaultSize,
 				long style = wxLI_HORIZONTAL,
-				const wxString& name = wxASCII_STR(wxTextCtrlNameStr))
+				const wxString& name = wxString::FromAscii(wxTextCtrlNameStr))
 	: wxTextCtrl(parent, id, wxEmptyString, pos, size!=wxDefaultSize ? size : (style == wxLI_HORIZONTAL ? wxSize(10, 1) : wxSize(1, 10)), wxSIMPLE_BORDER, wxDefaultValidator, name)
 	{
 		this->Enable(false);
@@ -268,7 +268,7 @@ public:
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
 		long style = wxLI_HORIZONTAL,
-		const wxString& name = wxASCII_STR(wxStaticLineNameStr))
+		const wxString& name = wxString::FromAscii(wxStaticLineNameStr))
 		: wxStaticLine(parent, id, pos, size, style, name) {}
 	~StaticLine() {}
 };
