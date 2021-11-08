@@ -1620,6 +1620,7 @@ void GUI_App::update_ui_from_settings()
         m_force_colors_update = false;
         mainframe->force_color_changed();
         mainframe->diff_dialog.force_color_changed();
+        mainframe->printhost_queue_dlg()->force_color_changed();
 #ifdef _MSW_DARK_MODE
         update_scrolls(mainframe);
 #endif //_MSW_DARK_MODE

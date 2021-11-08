@@ -72,6 +72,7 @@ public:
     }
 protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
+    void on_sys_color_changed() override;
 
 private:
     enum Column {
