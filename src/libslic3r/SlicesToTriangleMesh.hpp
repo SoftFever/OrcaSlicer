@@ -7,10 +7,10 @@
 namespace Slic3r {
 
 void slices_to_mesh(indexed_triangle_set &         mesh,
-                             const std::vector<ExPolygons> &slices,
-                             double                         zmin,
-                             double                         lh,
-                             double                         ilh);
+                    const std::vector<ExPolygons> &slices,
+                    double                         zmin,
+                    double                         lh,
+                    double                         ilh);
 
 inline indexed_triangle_set slices_to_mesh(
     const std::vector<ExPolygons> &slices, double zmin, double lh, double ilh)

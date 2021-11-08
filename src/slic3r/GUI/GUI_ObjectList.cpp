@@ -2044,8 +2044,7 @@ void ObjectList::split()
 void ObjectList::merge(bool to_multipart_object)
 {
     // merge selected objects to the multipart object
-    if (to_multipart_object)
-    {
+    if (to_multipart_object) {
         auto get_object_idxs = [this](std::vector<int>& obj_idxs, wxDataViewItemArray& sels)
         {
             // check selections and split instances to the separated objects...
@@ -2056,8 +2055,7 @@ void ObjectList::merge(bool to_multipart_object)
                     break;
                 }
 
-            if (!instance_selection)
-            {
+            if (!instance_selection) {
                 for (wxDataViewItem item : sels) {
                     assert(m_objects_model->GetItemType(item) & itObject);
                     obj_idxs.emplace_back(m_objects_model->GetIdByItem(item));
@@ -2069,8 +2067,7 @@ void ObjectList::merge(bool to_multipart_object)
             std::map<int, std::set<int>> sel_map;
             std::set<int> empty_set;
             for (wxDataViewItem item : sels) {
-                if (m_objects_model->GetItemType(item) & itObject)
-                {
+                if (m_objects_model->GetItemType(item) & itObject) {
                     int obj_idx = m_objects_model->GetIdByItem(item);
                     int inst_cnt = (*m_objects)[obj_idx]->instances.size();
                     if (inst_cnt == 1)
@@ -2087,8 +2084,7 @@ void ObjectList::merge(bool to_multipart_object)
             // all objects, created from the instances will be added to the end of list
             int new_objects_cnt = 0; // count of this new objects
 
-            for (auto map_item : sel_map)
-            {
+            for (auto map_item : sel_map) {
                 int obj_idx = map_item.first;
                 // object with just 1 instance
                 if (map_item.second.empty()) {
@@ -2148,37 +2144,36 @@ void ObjectList::merge(bool to_multipart_object)
         new_object->name = _u8L("Merged");
         ModelConfig &config = new_object->config;
 
-        for (int obj_idx : obj_idxs)
-        {
+        for (int obj_idx : obj_idxs) {
             ModelObject* object = (*m_objects)[obj_idx];
 
             const Geometry::Transformation& transformation = object->instances[0]->get_transformation();
-            Vec3d scale     = transformation.get_scaling_factor();
-            Vec3d mirror    = transformation.get_mirror();
-            Vec3d rotation  = transformation.get_rotation();
+            const Vec3d scale     = transformation.get_scaling_factor();
+            const Vec3d mirror    = transformation.get_mirror();
+            const Vec3d rotation  = transformation.get_rotation();
 
             if (object->id() == (*m_objects)[obj_idxs.front()]->id())
                 new_object->add_instance();
-            Transform3d     volume_offset_correction = new_object->instances[0]->get_transformation().get_matrix().inverse() * transformation.get_matrix();
+            const Transform3d& volume_offset_correction = transformation.get_matrix();
 
             // merge volumes
             for (const ModelVolume* volume : object->volumes) {
                 ModelVolume* new_volume = new_object->add_volume(*volume);
 
                 //set rotation
-                Vec3d vol_rot = new_volume->get_rotation() + rotation;
+                const Vec3d vol_rot = new_volume->get_rotation() + rotation;
                 new_volume->set_rotation(vol_rot);
 
                 // set scale
-                Vec3d vol_sc_fact = new_volume->get_scaling_factor().cwiseProduct(scale);
+                const Vec3d vol_sc_fact = new_volume->get_scaling_factor().cwiseProduct(scale);
                 new_volume->set_scaling_factor(vol_sc_fact);
 
                 // set mirror
-                Vec3d vol_mirror = new_volume->get_mirror().cwiseProduct(mirror);
+                const Vec3d vol_mirror = new_volume->get_mirror().cwiseProduct(mirror);
                 new_volume->set_mirror(vol_mirror);
 
                 // set offset
-                Vec3d vol_offset = volume_offset_correction* new_volume->get_offset();
+                const Vec3d vol_offset = volume_offset_correction* new_volume->get_offset();
                 new_volume->set_offset(vol_offset);
             }
             new_object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
@@ -2211,6 +2206,11 @@ void ObjectList::merge(bool to_multipart_object)
             for (const auto& range : object->layer_config_ranges)
                 new_object->layer_config_ranges.emplace(range);
         }
+
+        new_object->center_around_origin();
+        new_object->translate_instances(-new_object->origin_translation);
+        new_object->origin_translation = Vec3d::Zero();
+
         // remove selected objects
         remove();
 
@@ -2221,8 +2221,7 @@ void ObjectList::merge(bool to_multipart_object)
     }
     // merge all parts to the one single object
     // all part's settings will be lost
-    else
-    {
+    else {
         wxDataViewItem item = GetSelection();
         if (!item)
             return;

@@ -101,6 +101,8 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, bool can_start_pr
         EndDialog(wxID_OK);
         });
 
+    wxGetApp().UpdateDlgDarkUI(this);
+
     Fit();
     CenterOnParent();
 
@@ -329,6 +331,14 @@ void PrintHostQueueDialog::on_dpi_changed(const wxRect &suggested_rect)
     Refresh();
 
     save_user_data(UDT_SIZE | UDT_POSITION | UDT_COLS);
+}
+
+void PrintHostQueueDialog::on_sys_color_changed()
+{
+#ifdef _WIN32
+    wxGetApp().UpdateDlgDarkUI(this);
+    wxGetApp().UpdateDVCDarkUI(job_list);
+#endif
 }
 
 PrintHostQueueDialog::JobState PrintHostQueueDialog::get_state(int idx)

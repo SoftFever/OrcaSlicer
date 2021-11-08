@@ -27,7 +27,7 @@ namespace GUI {
 
 MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxWindowID button_id, wxBitmap bitmap)
 	: wxDialog(parent ? parent : dynamic_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
-	, boldfont(wxGetApp().normal_font()/*wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT)*/)
+	, boldfont(wxGetApp().normal_font())
 	, content_sizer(new wxBoxSizer(wxVERTICAL))
 	, btn_sizer(new wxBoxSizer(wxHORIZONTAL))
 {
@@ -36,6 +36,7 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
     this->SetFont(wxGetApp().normal_font());
     this->CenterOnParent();
 
+    auto *main_sizer = new wxBoxSizer(wxVERTICAL);
 	auto *topsizer = new wxBoxSizer(wxHORIZONTAL);
 	auto *rightsizer = new wxBoxSizer(wxVERTICAL);
 
@@ -46,14 +47,13 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 	rightsizer->AddSpacer(VERT_SPACING);
 
 	rightsizer->Add(content_sizer, 1, wxEXPAND);
+    btn_sizer->AddStretchSpacer();
 
 	if (button_id != wxID_NONE) {
 		auto *button = new wxButton(this, button_id);
 		button->SetFocus();
 		btn_sizer->Add(button);
 	}
-
-	rightsizer->Add(btn_sizer, 0, wxALIGN_RIGHT);
 
 	if (! bitmap.IsOk()) {
 		bitmap = create_scaled_bitmap("PrusaSlicer_192px.png", this, 192);
@@ -64,7 +64,11 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 	topsizer->Add(logo, 0, wxALL, BORDER);
 	topsizer->Add(rightsizer, 1, wxTOP | wxBOTTOM | wxRIGHT | wxEXPAND, BORDER);
 
-	SetSizerAndFit(topsizer);
+    main_sizer->Add(topsizer, 1, wxEXPAND);
+    main_sizer->Add(new StaticLine(this), 0, wxEXPAND | wxLEFT | wxRIGHT, HORIZ_SPACING);
+    main_sizer->Add(btn_sizer, 0, wxALL | wxEXPAND, VERT_SPACING);
+
+	SetSizerAndFit(main_sizer);
 }
 
 void MsgDialog::add_btn(wxWindowID btn_id, bool set_focus /*= false*/)
@@ -72,7 +76,7 @@ void MsgDialog::add_btn(wxWindowID btn_id, bool set_focus /*= false*/)
     wxButton* btn = new wxButton(this, btn_id);
     if (set_focus)
         btn->SetFocus();
-    btn_sizer->Add(btn, 0, wxRIGHT, HORIZ_SPACING);
+    btn_sizer->Add(btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, HORIZ_SPACING);
     btn->Bind(wxEVT_BUTTON, [this, btn_id](wxCommandEvent&) { this->EndModal(btn_id); });
 };
 
@@ -209,33 +213,38 @@ MessageDialog::MessageDialog(wxWindow* parent,
     apply_style(style);
     finalize();
 }
-#endif
 
 
-// MessageWithCheckDialog
+// RichMessageDialog
 
-MessageWithCheckDialog::MessageWithCheckDialog( wxWindow* parent,
-                                                const wxString& message,
-                                                const wxString& checkbox_label,
-                                                const wxString& caption/* = wxEmptyString*/,
-                                                long style/* = wxOK*/)
+RichMessageDialog::RichMessageDialog(wxWindow* parent,
+    const wxString& message,
+    const wxString& caption/* = wxEmptyString*/,
+    long style/* = wxOK*/)
     : MsgDialog(parent, caption.IsEmpty() ? wxString::Format(_L("%s info"), SLIC3R_APP_NAME) : caption, wxEmptyString, wxID_NONE)
 {
     add_msg_content(this, content_sizer, message);
 
-    m_check = new wxCheckBox(this, wxID_ANY, checkbox_label);
-    content_sizer->Add(m_check, 0, wxTOP, 10);
+    m_checkBox = new wxCheckBox(this, wxID_ANY, m_checkBoxText);
+    m_checkBox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) { m_checkBoxValue = m_checkBox->GetValue(); });
+
+    btn_sizer->Insert(0, m_checkBox, wxALIGN_CENTER_VERTICAL);
 
     apply_style(style);
     finalize();
 }
 
-bool MessageWithCheckDialog::GetCheckVal()
+int RichMessageDialog::ShowModal()
 {
-    if (m_check)
-        return m_check->GetValue();
-    return false;
+    if (m_checkBoxText.IsEmpty())
+        m_checkBox->Hide();
+    else
+        m_checkBox->SetLabelText(m_checkBoxText);
+    Layout();
+
+    return wxDialog::ShowModal();
 }
+#endif
 
 // InfoDialog
 

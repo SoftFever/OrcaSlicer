@@ -534,6 +534,7 @@ static std::vector<std::string> s_Preset_sla_print_options {
 };
 
 static std::vector<std::string> s_Preset_sla_material_options {
+    "material_colour",
     "material_type",
     "initial_layer_height",
     "bottle_cost",
