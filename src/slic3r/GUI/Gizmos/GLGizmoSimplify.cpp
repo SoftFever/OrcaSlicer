@@ -313,12 +313,11 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     if (is_worker_running) { // apply or preview
         ImGui::SameLine(m_gui_cfg->bottom_left_width);
         // draw progress bar
-        char buf[32];
-        sprintf(buf, L("Process %d / 100"), progress);
-        ImGui::ProgressBar(progress / 100., ImVec2(m_gui_cfg->input_width, 0.f), buf);
+        std::string progress_text = GUI::format(_L("Process %1% / 100"), std::to_string(progress));
+        ImVec2 progress_size(m_gui_cfg->input_width, 0.f);
+        ImGui::ProgressBar(progress / 100., progress_size, progress_text.c_str());
     }
     m_imgui->end();
-
     if (start_process)
         process();
 }
