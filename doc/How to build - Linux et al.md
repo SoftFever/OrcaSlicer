@@ -13,7 +13,9 @@ This guide describes building PrusaSlicer statically against dependencies pulled
 
 #### 0. Prerequisities
 
-You must have CMake, GNU build tools and git. If you don't already have them, install them as usual from your distribution packages (e.g. on Ubuntu, you would run `sudo apt-get install cmake build-essential git`, etc.)
+CMake, GNU build tools, git and m4 macro processor have to be installed. Unless that's already the case, install them as usual from your distribution packages.  E.g. on Ubuntu, run `sudo apt-get install cmake build-essential git m4`. The names of the packages may be different on different distros.
+
+Although most of dependencies are handled by the build script, PrusaSlicer still expects that some libraries will be available in the system (GTK, MESA, gettext). E.g., on Ubuntu, install the required packages by running `sudo apt-get install libgtk-3-dev libglu1-mesa-dev gettext`. The names of the packages may be different on different distros.
 
 #### 1. Cloning the repository
 
@@ -28,12 +30,12 @@ This will download the source code into a new directory and `cd` into it. You ca
 
 #### 2. Building dependencies
 
-PrusaSlicer uses CMake and the build is quite simple, the only tricky part is resolution of dependencies. The supported and recommended way is to build the dependencies first and link to them statically. The source base contains a CMake script that automatically downloads and builds the required dependencies. All that is needed is to run the following (from the top of the cloned repository):
+PrusaSlicer uses CMake and the build is quite simple, the only tricky part is resolution of dependencies. The supported and recommended way is to build the dependencies first and link to them statically. PrusaSlicer source base contains a CMake script that automatically downloads and builds the required dependencies. All that is needed is to run the following (from the top of the cloned repository):
 
     cd deps
     mkdir build
     cd build
-    cmake ..
+    cmake .. -DDEP_WX_GTK3=ON
     make
     cd ../..
 
@@ -43,23 +45,19 @@ PrusaSlicer uses CMake and the build is quite simple, the only tricky part is re
 
 #### 3. Building PrusaSlicer
 
-Now when you have the dependencies compiled, all that is needed is to tell CMake that we are interested in static build and point it to the dependencies. From the top of the repository, run
+Now when the dependencies are compiled, all that is needed is to tell CMake that we are interested in static build and point it to the dependencies. From the top of the repository, run
 
     mkdir build
     cd build
-    cmake .. -DSLIC3R_STATIC=1 -DSLIC3R_PCH=OFF -DCMAKE_PREFIX_PATH=$(pwd)/../deps/build/destdir/usr/local
+    cmake .. -DSLIC3R_STATIC=1 -DSLIC3R_GTK=3 -DSLIC3R_PCH=OFF -DCMAKE_PREFIX_PATH=$(pwd)/../deps/build/destdir/usr/local
     make -j4
 
-And that's it. You can now run the freshly built PrusaSlicer binary:
+And that's it. It is now possible to run the freshly built PrusaSlicer binary:
 
     cd src
     ./prusa-slicer
 
 
-
-#### Troubleshooting
-
-Although most of the dependencies are handled by the build script, we still rely on some system libraries (such as GTK, GL, etc). It is quite likely that you have them already installed, but in case that CMake reports any library missing, install the respective package from your distribution and run CMake again.
 
 
 ## Useful CMake flags when building dependencies
@@ -86,8 +84,7 @@ See the CMake files to get the complete list.
 
 As already mentioned above, dynamic linking of dependencies is possible, but PrusaSlicer team is unable to troubleshoot (Linux world is way too complex). Feel free to do so, but you are on your own. Several remarks though:
 
-The list of dependencies can be easily obtained by inspecting the CMake scripts in the `deps/` directory. Many don't necessarily need to be as recent
-as the versions listed - generally versions available on conservative Linux distros such as Debian stable, Ubuntu LTS releases or Fedora are likely sufficient. If you decide to build this way, it is your responsibility to make sure that CMake finds all required dependencies. It is possible to look at your distribution PrusaSlicer package to see how the package maintainers solved the dependency issues.
+The list of dependencies can be easily obtained by inspecting the CMake scripts in the `deps/` directory. Some of the dependencies don't have to be as recent as the versions listed - generally versions available on conservative Linux distros such as Debian stable, Ubuntu LTS releases or Fedora are likely sufficient. If you decide to build this way, it is your responsibility to make sure that CMake finds all required dependencies. It is possible to look at your distribution PrusaSlicer package to see how the package maintainers solved the dependency issues.
 
 #### wxWidgets
 By default, PrusaSlicer looks for wxWidgets 3.1. Our build script in fact downloads specific patched version of wxWidgets. If you want to link against wxWidgets 3.0 (which are still provided by most distributions because wxWidgets 3.1 have not yet been declared stable), you must set `-DSLIC3R_WX_STABLE=ON` when running CMake. Note that while PrusaSlicer can be linked against wWidgets 3.0, the combination is not well tested and there might be bugs in the resulting application. 
