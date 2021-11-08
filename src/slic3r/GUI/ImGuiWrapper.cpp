@@ -52,7 +52,7 @@ static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::PreferencesButton      , "notification_preferences"      },
     {ImGui::PreferencesHoverButton , "notification_preferences_hover"},
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
-    {ImGui::SliderFloatEditBtnIcon, "edit_button_white"              },
+    {ImGui::SliderFloatEditBtnIcon, "edit_button"                    },
 #endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 };
 static const std::map<const wchar_t, std::string> font_icons_large = {
@@ -500,10 +500,14 @@ bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float 
 
         std::wstring btn_name;
         btn_name = ImGui::SliderFloatEditBtnIcon + boost::nowide::widen(std::string(label));
+        ImGui::PushStyleColor(ImGuiCol_Button, { 0.25f, 0.25f, 0.25f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.5f, 0.5f, 0.5f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0.5f, 0.5f, 0.5f, 1.0f });
         if (ImGui::Button(into_u8(btn_name).c_str())) {
             ImGui::SetKeyboardFocusHere(-1);
             this->set_requires_extra_frame();
         }
+        ImGui::PopStyleColor(3);
         if (ImGui::IsItemHovered())
             this->tooltip(into_u8(_L("Edit")).c_str(), max_tooltip_width);
 
