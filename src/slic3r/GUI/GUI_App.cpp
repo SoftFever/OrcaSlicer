@@ -428,7 +428,7 @@ bool static check_old_linux_datadir(const wxString& app_name) {
 
 
 #ifdef _WIN32
-static void run_updater_win()
+static bool run_updater_win()
 {
     // find updater exe
     boost::filesystem::path path_to_binary = boost::dll::program_location();
@@ -464,11 +464,14 @@ static void run_updater_win()
                 // Close process and thread handles.
                 CloseHandle(pi.hProcess);
                 CloseHandle(pi.hThread);
+                return true;
+            } else {
+                BOOST_LOG_TRIVIAL(error) << "Failed to start prusaslicer-updater.exe with command " << wcmd;
             }
             break;
         }
     }
-    return;
+    return false;
 }
 #endif //_WIN32
 
@@ -728,7 +731,6 @@ void GUI_App::post_init()
         this->check_updates(false);
         CallAfter([this] {
             bool cw_showed = this->config_wizard_startup();
-            this->preset_updater->slic3r_update_notify();
             this->preset_updater->sync(preset_bundle);
             if (! cw_showed) {
                 // The CallAfter is needed as well, without it, GL extensions did not show.
@@ -736,10 +738,15 @@ void GUI_App::post_init()
                 // sees something else than "we want something" on the first start.
                 show_send_system_info_dialog_if_needed();
             }
+            bool updater_running = 
         #ifdef _WIN32
             // Run external updater on Windows.
             run_updater_win();
+        #else
+            false;
         #endif // _WIN32
+            if (!updater_running)
+                this->preset_updater->slic3r_update_notify();
         });
     }
 
@@ -1124,26 +1131,30 @@ bool GUI_App::on_init_inner()
         Bind(EVT_SLIC3R_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
             app_config->set("version_online", into_u8(evt.GetString()));
             app_config->save();
-            if (this->plater_ != nullptr) {
+            std::string opt = app_config->get("notify_release");
+            if (this->plater_ != nullptr && (opt == "all" || opt == "release")) {
                 if (*Semver::parse(SLIC3R_VERSION) < *Semver::parse(into_u8(evt.GetString()))) {
-                    this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable);
+                    this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable
+                        , NotificationManager::NotificationLevel::ImportantNotificationLevel
+                        , Slic3r::format(_u8L("New release version %1% is available."), evt.GetString())
+                        , _u8L("See Download page.")
+                        , [](wxEvtHandler* evnthndlr) {wxGetApp().open_web_page_localized("https://www.prusa3d.com/slicerweb"); return true; }
+                    );
                 }
             }
             });
-        Bind(EVT_SLIC3R_ALPHA_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
+        Bind(EVT_SLIC3R_EXPERIMENTAL_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
             app_config->save();
-            if (this->plater_ != nullptr && app_config->get("notify_testing_release") == "1") {
-                if (*Semver::parse(SLIC3R_VERSION) < *Semver::parse(into_u8(evt.GetString()))) {
-                    this->plater_->get_notification_manager()->push_notification(NotificationType::NewAlphaAvailable);
-                }
-            }
-            });
-        Bind(EVT_SLIC3R_BETA_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
-            app_config->save();
-            if (this->plater_ != nullptr && app_config->get("notify_testing_release") == "1") {
-                if (*Semver::parse(SLIC3R_VERSION) < *Semver::parse(into_u8(evt.GetString()))) {
-                    this->plater_->get_notification_manager()->close_notification_of_type(NotificationType::NewAlphaAvailable);
-                    this->plater_->get_notification_manager()->push_notification(NotificationType::NewBetaAvailable);
+            if (this->plater_ != nullptr && app_config->get("notify_release") == "all") {
+                std::string evt_string = into_u8(evt.GetString());
+                if (*Semver::parse(SLIC3R_VERSION) < *Semver::parse(evt_string)) {
+                    auto notif_type = (evt_string.find("beta") != std::string::npos ? NotificationType::NewBetaAvailable : NotificationType::NewAlphaAvailable);
+                    this->plater_->get_notification_manager()->push_notification( notif_type
+                        , NotificationManager::NotificationLevel::ImportantNotificationLevel
+                        , Slic3r::format(_u8L("New prerelease version %1% is available."), evt_string)
+                        , _u8L("See Releases page.")
+                        , [](wxEvtHandler* evnthndlr) {wxGetApp().open_browser_with_warning_dialog("https://github.com/prusa3d/PrusaSlicer/releases"); return true; }
+                    );
                 }
             }
             });
