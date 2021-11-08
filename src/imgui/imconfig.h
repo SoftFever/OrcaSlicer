@@ -154,7 +154,8 @@ namespace ImGui
     const wchar_t DocumentationHoverButton = 0x2601;
     const wchar_t ClippyMarker             = 0x2602;
     const wchar_t InfoMarker               = 0x2603;
-        
+    const wchar_t SliderFloatEditBtnIcon   = 0x2604;
+
 //    void MyFunction(const char* name, const MyMatrix44& v);
 }
 

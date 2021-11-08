@@ -8,6 +8,9 @@
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+#include <boost/nowide/convert.hpp>
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 
 #include <wx/string.h>
 #include <wx/event.h>
@@ -48,7 +51,9 @@ static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::RightArrowHoverButton , "notification_right_hover"      },
     {ImGui::PreferencesButton      , "notification_preferences"      },
     {ImGui::PreferencesHoverButton , "notification_preferences_hover"},
-   
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    {ImGui::SliderFloatEditBtnIcon, "edit_button_white"              },
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 };
 static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::CloseNotifButton        , "notification_close"              },
@@ -492,8 +497,10 @@ bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float 
         const ImGuiStyle& style = ImGui::GetStyle();
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 1, style.ItemSpacing.y });
         ImGui::SameLine();
-        const std::string btn_name = "..." + std::string(label);
-        if (ImGui::Button(btn_name.c_str())) {
+
+        std::wstring btn_name;
+        btn_name = ImGui::SliderFloatEditBtnIcon + boost::nowide::widen(std::string(label));
+        if (ImGui::Button(into_u8(btn_name).c_str())) {
             ImGui::SetKeyboardFocusHere(-1);
             this->set_requires_extra_frame();
         }
