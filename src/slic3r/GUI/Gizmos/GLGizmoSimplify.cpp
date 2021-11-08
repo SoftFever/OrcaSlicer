@@ -15,16 +15,22 @@
 
 namespace Slic3r::GUI {
 
-// Following flag and function allow to schedule a function call through CallAfter,
-// but only run it when the gizmo is still alive. Scheduling a CallAfter from the
-// background thread may trigger the code after the gizmo is destroyed. Having
-// both the gizmo and the checking function static should solve it.
-static bool s_simplify_gizmo_destructor_run = false;
-void call_after_if_alive(std::function<void()> fn)
+// Extend call after only when Simplify gizmo is still alive
+static void call_after_if_active(std::function<void()> fn, GUI_App* app = &wxGetApp())
 {
-    wxGetApp().CallAfter([fn]() {
-        if (! s_simplify_gizmo_destructor_run)
-            fn();
+    // check application GUI
+    if (app == nullptr) return;
+    app->CallAfter([fn, app]() {
+        // app must exist because it call this
+        // if (app == nullptr) return;
+        const Plater *plater = app->plater();
+        if (plater == nullptr) return;
+        const GLCanvas3D *canvas = plater->canvas3D();
+        if (canvas == nullptr) return;
+        const GLGizmosManager &mng = canvas->get_gizmos_manager();
+        // check if simplify is still activ gizmo
+        if (mng.get_current_type() != GLGizmosManager::Simplify) return;
+        fn();
     });
 }
 
@@ -63,8 +69,7 @@ GLGizmoSimplify::GLGizmoSimplify(GLCanvas3D &       parent,
 {}
 
 GLGizmoSimplify::~GLGizmoSimplify()
-{
-    s_simplify_gizmo_destructor_run = true;  
+{ 
     stop_worker_thread_request();
     if (m_worker.joinable())
         m_worker.join();
@@ -420,7 +425,7 @@ void GLGizmoSimplify::process()
         std::function<void(int)> statusfn = [this](int percent) {
             std::lock_guard lk(m_state_mutex);
             m_state.progress = percent;
-            call_after_if_alive([this]() { request_rerender(); });
+            call_after_if_active([this]() { request_rerender(); });
         };
 
         // Initialize.
@@ -453,7 +458,7 @@ void GLGizmoSimplify::process()
         }
 
         // Update UI. Use CallAfter so the function is run on UI thread.
-        call_after_if_alive([this]() { worker_finished(); });
+        call_after_if_active([this]() { worker_finished(); });
     }, std::move(its));
 }
 
