@@ -261,51 +261,28 @@ wxBitmap* BitmapCache::load_png(const std::string &bitmap_name, unsigned width, 
 }
 
 wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_width, unsigned target_height, 
-    const bool grayscale/* = false*/, const bool dark_mode/* = false*/)
+    const bool grayscale/* = false*/, const bool dark_mode/* = false*/, const std::string& new_color /*= ""*/)
 {
     std::string bitmap_key = bitmap_name + ( target_height !=0 ? 
                                            "-h" + std::to_string(target_height) : 
                                            "-w" + std::to_string(target_width))
                                          + (m_scale != 1.0f ? "-s" + float_to_string_decimal_point(m_scale) : "")
-                                         + (grayscale ? "-gs" : "");
+                                         + (dark_mode ? "-dm" : "")
+                                         + (grayscale ? "-gs" : "")
+                                         + new_color;
 
-    /* For the Dark mode of any platform, we should draw icons in respect to OS background
-     * Note: All standard(regular) icons are collected in "icons" folder,
-     *       SVG-icons, which have "Dark mode" variant, are collected in "icons/white" folder
-     */
-    std::string folder;
+    auto it = m_map.find(bitmap_key);
+    if (it != m_map.end())
+        return it->second;
+
+    // map of color replaces
+    std::map<std::string, std::string> replaces;
     if (dark_mode)
-    {
-#ifdef __WXMSW__
-        folder = "white\\";
-#else
-        folder = "white/";
-#endif
-        auto it = m_map.find(folder + bitmap_key);
-        if (it != m_map.end())
-            return it->second;
-        // It's expensive to check if the bitmap exists every time, but otherwise:
-        // For the case, when application was started in Light mode and then switched to the Dark,
-        // we will never get a white bitmaps, if check m_map.find(bitmap_key) 
-        // before boost::filesystem::exists(var(folder + bitmap_name + ".svg"))
-        if (!boost::filesystem::exists(var(folder + bitmap_name + ".svg"))) {
-            folder.clear();
-        
-            it = m_map.find(bitmap_key);
-            if (it != m_map.end())
-                return it->second;
-        }
+        replaces["#808080"] = "#FFFFFF";
+    if (!new_color.empty())
+        replaces["#ED6B21"] = new_color;
 
-        bitmap_key = folder + bitmap_key;
-    }
-    else 
-    {
-        auto it = m_map.find(bitmap_key);
-        if (it != m_map.end())
-            return it->second;
-    }
-
-    NSVGimage *image = ::nsvgParseFromFile(Slic3r::var(folder + bitmap_name + ".svg").c_str(), "px", 96.0f);
+    NSVGimage *image =  ::nsvgParseFromFileWithReplace(Slic3r::var(bitmap_name + ".svg").c_str(), "px", 96.0f, replaces);
     if (image == nullptr)
         return nullptr;
 

@@ -1017,15 +1017,7 @@ std::vector<unsigned char> ImGuiWrapper::load_svg(const std::string& bitmap_name
 {
     std::vector<unsigned char> empty_vector;
 
-#ifdef __WXMSW__
-    std::string folder = "white\\";
-#else
-    std::string folder = "white/";
-#endif        
-    if (!boost::filesystem::exists(Slic3r::var(folder + bitmap_name + ".svg")))
-        folder.clear();
-
-    NSVGimage* image = ::nsvgParseFromFile(Slic3r::var(folder + bitmap_name + ".svg").c_str(), "px", 96.0f);
+    NSVGimage* image = ::nsvgParseFromFileWithReplace(Slic3r::var(bitmap_name + ".svg").c_str(), "px", 96.0f, { { "#808080", "#FFFFFF" } });
     if (image == nullptr)
         return empty_vector;
 

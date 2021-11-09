@@ -6221,14 +6221,8 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
                 continue;
             }
         }
-        
         if (opt_key == "material_colour") {
             update_scheduled = true; // update should be scheduled (for update 3DScene)
-
-            // update material color in full config
-            std::vector<std::string> material_colors = { config.opt_string("material_colour", (unsigned)0) };
-            p->config->option<ConfigOptionStrings>("material_colour")->values = material_colors;
-            continue;
         }
         
         p->config->set_key_value(opt_key, config.option(opt_key)->clone());

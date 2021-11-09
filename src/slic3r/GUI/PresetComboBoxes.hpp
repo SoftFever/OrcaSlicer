@@ -122,7 +122,7 @@ protected:
 
     wxBitmap* get_bmp(  std::string bitmap_key, bool wide_icons, const std::string& main_icon_name, 
                         bool is_compatible = true, bool is_system = false, bool is_single_bar = false,
-                        std::string filament_rgb = "", std::string extruder_rgb = "");
+                        const std::string& filament_rgb = "", const std::string& extruder_rgb = "", const std::string& material_rgb = "");
 
     wxBitmap* get_bmp(  std::string bitmap_key, const std::string& main_icon_name, const std::string& next_icon_name,
                         bool is_enabled = true, bool is_compatible = true, bool is_system = false);

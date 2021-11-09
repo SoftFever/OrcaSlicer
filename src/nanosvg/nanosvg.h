@@ -165,6 +165,11 @@ typedef struct NSVGimage
 // Parses SVG file from a file, returns SVG image as paths.
 NSVGimage* nsvgParseFromFile(const char* filename, const char* units, float dpi);
 
+// Parses SVG file from a file, returns SVG image as paths.
+// And makes replases befor parsing
+// replace_map containes old_value->new_value
+NSVGimage* nsvgParseFromFileWithReplace(const char* filename, const char* units, float dpi, const std::map<std::string, std::string>& replace_map);
+
 // Parses SVG file from a null terminated string, returns SVG image as paths.
 // Important note: changes the string.
 NSVGimage* nsvgParse(char* input, const char* units, float dpi);
@@ -188,6 +193,8 @@ void nsvgDelete(NSVGimage* image);
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+
+#include <boost/algorithm/string/replace.hpp>
 
 #define NSVG_PI (3.14159265358979323846264338327f)
 #define NSVG_KAPPA90 (0.5522847493f)	// Length proportional to radius of a cubic bezier handle for 90deg arcs.
@@ -2901,6 +2908,12 @@ NSVGimage* nsvgParse(char* input, const char* units, float dpi)
 
 NSVGimage* nsvgParseFromFile(const char* filename, const char* units, float dpi)
 {
+	return nsvgParseFromFileWithReplace(filename, units, dpi, { {} });
+}
+
+NSVGimage* nsvgParseFromFileWithReplace(const char* filename, const char* units, float dpi, const std::map<std::string, std::string>& replaces)
+{
+	std::string str;
 	FILE* fp = NULL;
 	size_t size;
 	char* data = NULL;
@@ -2916,9 +2929,16 @@ NSVGimage* nsvgParseFromFile(const char* filename, const char* units, float dpi)
 	if (fread(data, 1, size, fp) != size) goto error;
 	data[size] = '\0';	// Must be null terminated.
 	fclose(fp);
-	image = nsvgParse(data, units, dpi);
-	free(data);
 
+	if(replaces.empty())
+		image = nsvgParse(data, units, dpi);
+	else {
+		str.assign(data);
+		for (auto val : replaces)
+			boost::replace_all(str, val.first, val.second);
+		image = nsvgParse(str.data(), units, dpi);
+	}
+	free(data);
 	return image;
 
 error:

@@ -4197,7 +4197,7 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
     shader->set_uniform("emission_factor", 0.0f);
 
     for (GLVolume* vol : visible_volumes) {
-        shader->set_uniform("uniform_color", (vol->printable && !vol->is_outside) ? orange : gray);
+        shader->set_uniform("uniform_color", (vol->printable && !vol->is_outside) ? (current_printer_technology() == ptSLA ? vol->color : orange) : gray);
         // the volume may have been deactivated by an active gizmo
         bool is_active = vol->is_active;
         vol->is_active = true;

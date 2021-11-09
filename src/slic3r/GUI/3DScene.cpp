@@ -1136,15 +1136,11 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
 
     if (static_cast<PrinterTechnology>(config->opt_int("printer_technology")) == ptSLA) 
     {
-        const ConfigOptionStrings* resin_clr = dynamic_cast<const ConfigOptionStrings*>(config->option("material_colour"));
-        if (resin_clr == nullptr)
-            return;
-        assert(resin_clr->values.size() == 1);
-        colors.resize(1);
-
-        const std::string& txt_color = config->opt_string("material_colour", 0);
-        if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
+        const std::string& txt_color = config->opt_string("material_colour");
+        if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb)) {
+            colors.resize(1);
             colors[0].set(txt_color, rgb);
+        }
     }
     else 
     {
