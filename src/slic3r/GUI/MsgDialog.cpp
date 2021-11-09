@@ -55,11 +55,7 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 		btn_sizer->Add(button);
 	}
 
-	if (! bitmap.IsOk()) {
-		bitmap = create_scaled_bitmap("PrusaSlicer_192px.png", this, 192);
-	}
-
-	logo = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
+	logo = new wxStaticBitmap(this, wxID_ANY, bitmap.IsOk() ? bitmap : wxNullBitmap);
 
 	topsizer->Add(logo, 0, wxALL, BORDER);
 	topsizer->Add(rightsizer, 1, wxTOP | wxBOTTOM | wxRIGHT | wxEXPAND, BORDER);

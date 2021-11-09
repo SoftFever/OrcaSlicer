@@ -40,7 +40,8 @@ ModelInstanceEPrintVolumeState printbed_collision_state(const Polygon& printbed_
             break;
         }
     }
-    const bool contained_z = -1e10 < obj_min_z && obj_max_z < print_volume_height;
+
+    const bool contained_z = -1e10 < obj_min_z && obj_max_z <= print_volume_height;
     return (contained_xy && contained_z) ? ModelInstancePVS_Inside : ModelInstancePVS_Partly_Outside;
 }
 
