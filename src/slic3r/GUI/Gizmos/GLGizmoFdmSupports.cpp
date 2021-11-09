@@ -170,7 +170,13 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     float slider_start_position = std::max(position_before_text_y, position_after_text_y - slider_height);
     ImGui::SetCursorPosY(slider_start_position);
 
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    wxString tooltip = format_wxstr(_L("Preselects faces by overhang angle. It is possible to restrict paintable facets to only preselected faces when "
+            "the option \"%1%\" is enabled."), m_desc["on_overhangs_only"]);
+    if (m_imgui->slider_float("##angle_threshold_deg", &m_highlight_by_angle_threshold_deg, 0.f, 90.f, format_str.data(), 1.0f, true, tooltip)) {
+#else
     if (m_imgui->slider_float("##angle_threshold_deg", &m_highlight_by_angle_threshold_deg, 0.f, 90.f, format_str.data())) {
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
         m_parent.set_slope_normal_angle(90.f - m_highlight_by_angle_threshold_deg);
         if (! m_parent.is_using_slope()) {
             m_parent.use_slope(true);
@@ -182,9 +188,11 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     ImGui::SetCursorPosY(std::max(position_before_text_y + slider_height, position_after_text_y));
 
     const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
+#if !ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     if (ImGui::IsItemHovered())
         m_imgui->tooltip(format_wxstr(_L("Preselects faces by overhang angle. It is possible to restrict paintable facets to only preselected faces when "
                                            "the option \"%1%\" is enabled."), m_desc["on_overhangs_only"]), max_tooltip_width);
+#endif // !ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 
     m_imgui->disabled_begin(m_highlight_by_angle_threshold_deg == 0.f);
     ImGui::NewLine();
@@ -267,9 +275,13 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         m_imgui->text(m_desc.at("cursor_size"));
         ImGui::SameLine(sliders_left_width);
         ImGui::PushItemWidth(window_width - sliders_left_width);
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+        m_imgui->slider_float("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true, _L("Alt + Mouse wheel"));
+#else
         m_imgui->slider_float("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f");
         if (ImGui::IsItemHovered())
             m_imgui->tooltip(_L("Alt + Mouse wheel"), max_tooltip_width);
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 
         m_imgui->checkbox(m_desc["split_triangles"], m_triangle_splitting_enabled);
 
@@ -284,14 +296,20 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
         ImGui::SameLine(sliders_left_width);
         ImGui::PushItemWidth(window_width - sliders_left_width);
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+        if (m_imgui->slider_float("##smart_fill_angle", &m_smart_fill_angle, SmartFillAngleMin, SmartFillAngleMax, format_str.data(), 1.0f, true, _L("Alt + Mouse wheel")))
+#else
         if (m_imgui->slider_float("##smart_fill_angle", &m_smart_fill_angle, SmartFillAngleMin, SmartFillAngleMax, format_str.data()))
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
             for (auto &triangle_selector : m_triangle_selectors) {
                 triangle_selector->seed_fill_unselect_all_triangles();
                 triangle_selector->request_update_render_data();
             }
 
+#if !ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
         if (ImGui::IsItemHovered())
             m_imgui->tooltip(_L("Alt + Mouse wheel"), max_tooltip_width);
+#endif // !ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     }
 
     ImGui::Separator();
@@ -310,11 +328,16 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     ImGui::SameLine(sliders_left_width);
     ImGui::PushItemWidth(window_width - sliders_left_width);
     auto clp_dist = float(m_c->object_clipper()->get_position());
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    if (m_imgui->slider_float("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true, _L("Ctrl + Mouse wheel")))
+        m_c->object_clipper()->set_position(clp_dist, true);
+#else
     if (m_imgui->slider_float("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f"))
         m_c->object_clipper()->set_position(clp_dist, true);
 
     if (ImGui::IsItemHovered())
         m_imgui->tooltip(_L("Ctrl + Mouse wheel"), max_tooltip_width);
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 
     ImGui::Separator();
     if (m_imgui->button(m_desc.at("remove_all"))) {

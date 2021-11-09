@@ -8,6 +8,9 @@
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+#include <boost/nowide/convert.hpp>
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 
 #include <wx/string.h>
 #include <wx/event.h>
@@ -48,7 +51,9 @@ static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::RightArrowHoverButton , "notification_right_hover"      },
     {ImGui::PreferencesButton      , "notification_preferences"      },
     {ImGui::PreferencesHoverButton , "notification_preferences_hover"},
-   
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    {ImGui::SliderFloatEditBtnIcon, "edit_button"                    },
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 };
 static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::CloseNotifButton        , "notification_close"              },
@@ -85,14 +90,6 @@ const ImVec4 ImGuiWrapper::COL_BUTTON_HOVERED    = COL_ORANGE_LIGHT;
 const ImVec4 ImGuiWrapper::COL_BUTTON_ACTIVE     = ImGuiWrapper::COL_BUTTON_HOVERED;
 
 ImGuiWrapper::ImGuiWrapper()
-    : m_glyph_ranges(nullptr)
-    , m_font_cjk(false)
-    , m_font_size(18.0)
-    , m_font_texture(0)
-    , m_style_scaling(1.0)
-    , m_mouse_buttons(0)
-    , m_disabled(false)
-    , m_new_frame_open(false)
 {
     ImGui::CreateContext();
 
@@ -484,6 +481,53 @@ void ImGuiWrapper::tooltip(const wxString &label, float wrap_width)
     ImGui::EndTooltip();
 }
 
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/, bool clamp /*= true*/, const wxString& tooltip /*= ""*/, bool show_edit_btn /*= true*/)
+{
+    const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
+
+    bool ret = ImGui::SliderFloat(label, v, v_min, v_max, format, power);
+    if (!tooltip.empty() && ImGui::IsItemHovered())
+        this->tooltip(into_u8(tooltip).c_str(), max_tooltip_width);
+
+    if (clamp)
+        *v = std::clamp(*v, v_min, v_max);
+
+    if (show_edit_btn) {
+        const ImGuiStyle& style = ImGui::GetStyle();
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 1, style.ItemSpacing.y });
+        ImGui::SameLine();
+
+        std::wstring btn_name;
+        btn_name = ImGui::SliderFloatEditBtnIcon + boost::nowide::widen(std::string(label));
+        ImGui::PushStyleColor(ImGuiCol_Button, { 0.25f, 0.25f, 0.25f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.5f, 0.5f, 0.5f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0.5f, 0.5f, 0.5f, 1.0f });
+        if (ImGui::Button(into_u8(btn_name).c_str())) {
+            ImGui::SetKeyboardFocusHere(-1);
+            this->set_requires_extra_frame();
+        }
+        ImGui::PopStyleColor(3);
+        if (ImGui::IsItemHovered())
+            this->tooltip(into_u8(_L("Edit")).c_str(), max_tooltip_width);
+
+        ImGui::PopStyleVar();
+    }
+
+    return ret;
+}
+
+bool ImGuiWrapper::slider_float(const std::string& label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/, bool clamp /*= true*/, const wxString& tooltip /*= ""*/, bool show_edit_btn /*= true*/)
+{
+    return this->slider_float(label.c_str(), v, v_min, v_max, format, power, clamp, tooltip, show_edit_btn);
+}
+
+bool ImGuiWrapper::slider_float(const wxString& label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/, bool clamp /*= true*/, const wxString& tooltip /*= ""*/, bool show_edit_btn /*= true*/)
+{
+    auto label_utf8 = into_u8(label);
+    return this->slider_float(label_utf8.c_str(), v, v_min, v_max, format, power, clamp, tooltip, show_edit_btn);
+}
+#else
 bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/, bool clamp /*= true*/)
 {
     bool ret = ImGui::SliderFloat(label, v, v_min, v_max, format, power);
@@ -502,6 +546,7 @@ bool ImGuiWrapper::slider_float(const wxString& label, float* v, float v_min, fl
     auto label_utf8 = into_u8(label);
     return this->slider_float(label_utf8.c_str(), v, v_min, v_max, format, power, clamp);
 }
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 
 bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& options, int& selection)
 {
