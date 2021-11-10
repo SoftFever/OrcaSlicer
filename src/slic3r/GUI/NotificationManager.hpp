@@ -150,7 +150,7 @@ public:
 	// Push a NotificationType::CustomNotification with NotificationLevel::RegularNotificationLevel and 10s fade out interval.
 	void push_notification(const std::string& text, int timestamp = 0);
 	// Push a NotificationType::CustomNotification with provided notification level and 10s for RegularNotificationLevel.
-	// ErrorNotificationLevel and ImportantNotificationLevel are never faded out.
+	// ErrorNotificationLevel are never faded out.
     void push_notification(NotificationType type, NotificationLevel level, const std::string& text, const std::string& hypertext = "",
                            std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>(), int timestamp = 0);
 	// Pushes basic_notification with delay. See push_delayed_notification_data.
@@ -720,7 +720,7 @@ private:
 		
 		case NotificationLevel::ErrorNotificationLevel: 			return 0;
 		case NotificationLevel::WarningNotificationLevel:			return 0;
-		case NotificationLevel::ImportantNotificationLevel:			return 0;
+		case NotificationLevel::ImportantNotificationLevel:			return 20;
 		case NotificationLevel::ProgressBarNotificationLevel:		return 2;
 		case NotificationLevel::PrintInfoShortNotificationLevel:	return 5;
 		case NotificationLevel::RegularNotificationLevel: 			return 10;

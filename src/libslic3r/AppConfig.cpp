@@ -71,8 +71,6 @@ void AppConfig::set_defaults()
         if (get("drop_project_action").empty())
             set("drop_project_action", "1");
 
-        if (get("version_check").empty())
-            set("version_check", "1");
         if (get("preset_update").empty())
             set("preset_update", "1");
 
