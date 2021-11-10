@@ -1860,18 +1860,17 @@ size_t ModelVolume::split(unsigned int max_extruders)
 
     size_t idx = 0;
     size_t ivolume = std::find(this->object->volumes.begin(), this->object->volumes.end(), this) - this->object->volumes.begin();
-    std::string name = this->name;
+    const std::string name = this->name;
 
     unsigned int extruder_counter = 0;
-    Vec3d offset = this->get_offset();
+    const Vec3d offset = this->get_offset();
 
     for (TriangleMesh &mesh : meshes) {
         if (mesh.empty())
             // Repair may have removed unconnected triangles, thus emptying the mesh.
             continue;
 
-        if (idx == 0)
-        {
+        if (idx == 0) {
             this->set_mesh(std::move(mesh));
             this->calculate_convex_hull();
             // Assign a new unique ID, so that a new GLVolume will be generated.
@@ -1890,7 +1889,19 @@ size_t ModelVolume::split(unsigned int max_extruders)
         this->object->volumes[ivolume]->m_is_splittable = 0;
         ++ idx;
     }
-    
+
+    // discard volumes for which the convex hull was not generated or is degenerate
+    size_t i = 0;
+    while (i < this->object->volumes.size()) {
+        std::shared_ptr<const TriangleMesh> hull = this->object->volumes[i]->get_convex_hull_shared_ptr();
+        if (hull == nullptr || hull->its.vertices.empty() || hull->its.indices.empty()) {
+            this->object->delete_volume(i);
+            --idx;
+            --i;
+        }
+        ++i;
+    }
+
     return idx;
 }
 
