@@ -2487,7 +2487,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of the object?",
                             "The dimensions of some objects from file %s seem to be defined in meters.\n"
                             "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
-                            _L("The object is too small"), wxICON_WARNING | wxYES | wxNO);
+                            _L("The object is too small"), wxICON_QUESTION | wxYES_NO);
                         dlg.ShowCheckBox(_L("Apply to all the remaining small objects being loaded."));
                         int answer = dlg.ShowModal();
                         if (dlg.IsCheckBoxChecked())
@@ -2509,7 +2509,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of the object?",
                             "The dimensions of some objects from file %s seem to be defined in inches.\n"
                             "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
-                            _L("The object is too small"), wxICON_WARNING | wxYES | wxNO);
+                            _L("The object is too small"), wxICON_QUESTION | wxYES_NO);
                         dlg.ShowCheckBox(_L("Apply to all the remaining small objects being loaded."));
                         int answer = dlg.ShowModal();
                         if (dlg.IsCheckBoxChecked())

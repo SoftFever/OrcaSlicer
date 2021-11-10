@@ -25,7 +25,7 @@ namespace Slic3r {
 namespace GUI {
 
 
-MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxWindowID button_id, wxBitmap bitmap)
+MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, long style, wxBitmap bitmap)
 	: wxDialog(parent ? parent : dynamic_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 	, boldfont(wxGetApp().normal_font())
 	, content_sizer(new wxBoxSizer(wxVERTICAL))
@@ -49,12 +49,6 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 	rightsizer->Add(content_sizer, 1, wxEXPAND);
     btn_sizer->AddStretchSpacer();
 
-	if (button_id != wxID_NONE) {
-		auto *button = new wxButton(this, button_id);
-		button->SetFocus();
-		btn_sizer->Add(button);
-	}
-
 	logo = new wxStaticBitmap(this, wxID_ANY, bitmap.IsOk() ? bitmap : wxNullBitmap);
 
 	topsizer->Add(logo, 0, wxALL, BORDER);
@@ -63,6 +57,8 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
     main_sizer->Add(topsizer, 1, wxEXPAND);
     main_sizer->Add(new StaticLine(this), 0, wxEXPAND | wxLEFT | wxRIGHT, HORIZ_SPACING);
     main_sizer->Add(btn_sizer, 0, wxALL | wxEXPAND, VERT_SPACING);
+
+    apply_style(style);
 
 	SetSizerAndFit(main_sizer);
 }
@@ -83,9 +79,9 @@ void MsgDialog::apply_style(long style)
     if (style & wxNO)       add_btn(wxID_NO);
     if (style & wxCANCEL)   add_btn(wxID_CANCEL);
 
-    logo->SetBitmap(create_scaled_bitmap(style & wxICON_WARNING     ? "exclamation" :
-                                         style & wxICON_INFORMATION ? "info"        :
-                                         style & wxICON_QUESTION    ? "question"    : "PrusaSlicer"/*"_192px_grayscale.png"*/, this, 84));
+    logo->SetBitmap( create_scaled_bitmap(style & wxICON_WARNING        ? "exclamation" :
+                                          style & wxICON_INFORMATION    ? "info"        :
+                                          style & wxICON_QUESTION       ? "question"    : "PrusaSlicer", this, 64, style & wxICON_ERROR));
 }
 
 void MsgDialog::finalize()
@@ -161,18 +157,17 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
         msg_escaped = std::string("<pre><code>") + msg_escaped + "</code></pre>";
     html->SetPage("<html><body bgcolor=\"" + bgr_clr_str + "\"><font color=\"" + text_clr_str + "\">" + wxString::FromUTF8(msg_escaped.data()) + "</font></body></html>");
     content_sizer->Add(html, 1, wxEXPAND);
+    wxGetApp().UpdateDarkUI(html);
 }
 
 // ErrorDialog
 
 ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg, bool monospaced_font)
     : MsgDialog(parent, wxString::Format(_(L("%s error")), SLIC3R_APP_NAME), 
-                        wxString::Format(_(L("%s has encountered an error")), SLIC3R_APP_NAME),
-		wxID_NONE)
+                        wxString::Format(_(L("%s has encountered an error")), SLIC3R_APP_NAME), wxOK)
 	, msg(msg)
 {
     add_msg_content(this, content_sizer, msg, monospaced_font);
-	add_btn(wxID_OK, true);
 
 	// Use a small bitmap with monospaced font, as the error text will not be wrapped.
 	logo->SetBitmap(create_scaled_bitmap("PrusaSlicer_192px_grayscale.png", this, monospaced_font ? 48 : /*1*/84));
@@ -189,10 +184,9 @@ WarningDialog::WarningDialog(wxWindow *parent,
                              const wxString& caption/* = wxEmptyString*/,
                              long style/* = wxOK*/)
     : MsgDialog(parent, caption.IsEmpty() ? wxString::Format(_L("%s warning"), SLIC3R_APP_NAME) : caption, 
-                        wxString::Format(_L("%s has a warning")+":", SLIC3R_APP_NAME), wxID_NONE)
+                        wxString::Format(_L("%s has a warning")+":", SLIC3R_APP_NAME), style)
 {
     add_msg_content(this, content_sizer, message);
-    apply_style(style);
     finalize();
 }
 
@@ -203,10 +197,9 @@ MessageDialog::MessageDialog(wxWindow* parent,
     const wxString& message,
     const wxString& caption/* = wxEmptyString*/,
     long style/* = wxOK*/)
-    : MsgDialog(parent, caption.IsEmpty() ? wxString::Format(_L("%s info"), SLIC3R_APP_NAME) : caption, wxEmptyString, wxID_NONE)
+    : MsgDialog(parent, caption.IsEmpty() ? wxString::Format(_L("%s info"), SLIC3R_APP_NAME) : caption, wxEmptyString, style)
 {
     add_msg_content(this, content_sizer, message);
-    apply_style(style);
     finalize();
 }
 
@@ -217,16 +210,16 @@ RichMessageDialog::RichMessageDialog(wxWindow* parent,
     const wxString& message,
     const wxString& caption/* = wxEmptyString*/,
     long style/* = wxOK*/)
-    : MsgDialog(parent, caption.IsEmpty() ? wxString::Format(_L("%s info"), SLIC3R_APP_NAME) : caption, wxEmptyString, wxID_NONE)
+    : MsgDialog(parent, caption.IsEmpty() ? wxString::Format(_L("%s info"), SLIC3R_APP_NAME) : caption, wxEmptyString, style)
 {
     add_msg_content(this, content_sizer, message);
 
     m_checkBox = new wxCheckBox(this, wxID_ANY, m_checkBoxText);
+    wxGetApp().UpdateDarkUI(m_checkBox);
     m_checkBox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) { m_checkBoxValue = m_checkBox->GetValue(); });
 
     btn_sizer->Insert(0, m_checkBox, wxALIGN_CENTER_VERTICAL);
 
-    apply_style(style);
     finalize();
 }
 
@@ -245,13 +238,10 @@ int RichMessageDialog::ShowModal()
 // InfoDialog
 
 InfoDialog::InfoDialog(wxWindow* parent, const wxString &title, const wxString& msg)
-	: MsgDialog(parent, wxString::Format(_L("%s information"), SLIC3R_APP_NAME), title)
+	: MsgDialog(parent, wxString::Format(_L("%s information"), SLIC3R_APP_NAME), title, wxOK | wxICON_INFORMATION)
 	, msg(msg)
 {
     add_msg_content(this, content_sizer, msg);
-	// Set info bitmap
-	logo->SetBitmap(create_scaled_bitmap("info", this, 84));
-
     finalize();
 }
 

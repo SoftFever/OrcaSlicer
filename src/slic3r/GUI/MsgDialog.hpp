@@ -41,8 +41,7 @@ protected:
 		HORIZ_SPACING = 5,
 	};
 
-	// button_id is an id of a button that can be added by default, use wxID_NONE to disable
-	MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, wxWindowID button_id = wxID_OK, wxBitmap bitmap = wxNullBitmap);
+	MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, long style = wxOK, wxBitmap bitmap = wxNullBitmap);
 
 	void add_btn(wxWindowID btn_id, bool set_focus = false);
 	void apply_style(long style);

@@ -156,7 +156,7 @@ MsgUpdateConfig::~MsgUpdateConfig() {}
 //MsgUpdateForced
 
 MsgUpdateForced::MsgUpdateForced(const std::vector<Update>& updates) :
-    MsgDialog(nullptr, wxString::Format(_(L("%s incompatibility")), SLIC3R_APP_NAME), _(L("You must install a configuration update.")) + " ", wxID_NONE)
+    MsgDialog(nullptr, wxString::Format(_(L("%s incompatibility")), SLIC3R_APP_NAME), _(L("You must install a configuration update.")) + " ", wxICON_ERROR)
 {
 	auto* text = new wxStaticText(this, wxID_ANY, wxString::Format(_(L(
 		"%s will now start updates. Otherwise it won't be able to start.\n\n"
@@ -165,7 +165,6 @@ MsgUpdateForced::MsgUpdateForced(const std::vector<Update>& updates) :
 		"Updated configuration bundles:"
 	)), SLIC3R_APP_NAME));
 	
-	logo->SetBitmap(create_scaled_bitmap("PrusaSlicer_192px_grayscale.png", this, 192));
 
 	text->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 	content_sizer->Add(text);
@@ -210,7 +209,7 @@ MsgUpdateForced::MsgUpdateForced(const std::vector<Update>& updates) :
 	btn_exit->Bind(wxEVT_BUTTON, exiter);
 	btn_ok->Bind(wxEVT_BUTTON, exiter);
 
-	Fit();
+	finalize();
 }
 
 MsgUpdateForced::~MsgUpdateForced() {}
@@ -219,10 +218,8 @@ MsgUpdateForced::~MsgUpdateForced() {}
 
 MsgDataIncompatible::MsgDataIncompatible(const std::unordered_map<std::string, wxString> &incompats) :
     MsgDialog(nullptr, wxString::Format(_(L("%s incompatibility")), SLIC3R_APP_NAME), 
-                       wxString::Format(_(L("%s configuration is incompatible")), SLIC3R_APP_NAME), wxID_NONE)
+                       wxString::Format(_(L("%s configuration is incompatible")), SLIC3R_APP_NAME), /*wxID_NONE | */wxICON_ERROR)
 {
-	logo->SetBitmap(create_scaled_bitmap("PrusaSlicer_192px_grayscale.png", this, 192));
-
 	auto *text = new wxStaticText(this, wxID_ANY, wxString::Format(_(L(
 		"This version of %s is not compatible with currently installed configuration bundles.\n"
 		"This probably happened as a result of running an older %s after using a newer one.\n\n"
@@ -265,7 +262,7 @@ MsgDataIncompatible::MsgDataIncompatible(const std::unordered_map<std::string, w
 	btn_exit->Bind(wxEVT_BUTTON, exiter);
 	btn_reconf->Bind(wxEVT_BUTTON, exiter);
 
-	Fit();
+	finalize();
 }
 
 MsgDataIncompatible::~MsgDataIncompatible() {}
@@ -303,9 +300,7 @@ MsgDataLegacy::MsgDataLegacy() :
 	content_sizer->Add(link);
 	content_sizer->AddSpacer(VERT_SPACING);
 
-	wxGetApp().UpdateDlgDarkUI(this);
-
-	Fit();
+	finalize();
 }
 
 MsgDataLegacy::~MsgDataLegacy() {}
@@ -314,7 +309,7 @@ MsgDataLegacy::~MsgDataLegacy() {}
 // MsgNoUpdate
 
 MsgNoUpdates::MsgNoUpdates() :
-    MsgDialog(nullptr, _(L("Configuration updates")), _(L("No updates available")))
+    MsgDialog(nullptr, _(L("Configuration updates")), _(L("No updates available")), wxICON_ERROR)
 {
 
 	auto* text = new wxStaticText(this, wxID_ANY, wxString::Format(
@@ -327,11 +322,7 @@ MsgNoUpdates::MsgNoUpdates() :
 	content_sizer->Add(text);
 	content_sizer->AddSpacer(VERT_SPACING);
 
-	logo->SetBitmap(create_scaled_bitmap("PrusaSlicer_192px_grayscale.png", this, 192));
-
-	wxGetApp().UpdateDlgDarkUI(this);
-
-	Fit();
+	finalize();
 }
 
 MsgNoUpdates::~MsgNoUpdates() {}

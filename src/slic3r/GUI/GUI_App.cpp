@@ -865,7 +865,7 @@ bool GUI_App::check_older_app_config(Semver current_version, bool backup)
             "\n\nIf you select yes, PrusaSlicer will copy all profiles and other files from found folder to the current one."
             "\nIf you select no, you will start with clean installation with configuration wizard.")
             , m_older_data_dir_path, last_semver.to_string())
-        , _L("PrusaSlicer"), wxICON_QUESTION | wxYES_NO);
+        , _L("PrusaSlicer"), /*wxICON_QUESTION | */wxYES_NO);
     if (msg.ShowModal() == wxID_YES) {
         std::string snapshot_id;
         if (backup) {
