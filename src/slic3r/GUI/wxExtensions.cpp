@@ -460,33 +460,6 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
     return *bmp;
 }
 
-wxBitmap create_scaled_bitmap(const std::string& bmp_name_in,
-                                const std::string& new_color, // color witch will used instead of orange
-                                wxWindow* win,
-                                const int px_cnt/* = 16*/,
-                                const bool grayscale/* = false*/)
-{
-    static Slic3r::GUI::BitmapCache cache;
-
-    unsigned int width = 0;
-    unsigned int height = (unsigned int)(em_unit(win) * px_cnt * 0.1f + 0.5f);
-
-    std::string bmp_name = bmp_name_in;
-    auto it = boost::find_last(bmp_name, ".png");
-    assert(it == bmp_name.end()); // this function works just with SVGs
-
-    bool dark_mode = Slic3r::GUI::wxGetApp().dark_mode();
-
-    // Try loading an SVG first, then PNG if SVG is not found:
-    wxBitmap* bmp = cache.load_svg(bmp_name, width, height, grayscale, dark_mode, new_color);
-    if (bmp == nullptr) {
-        // Neither SVG nor PNG has been found, raise error
-        throw Slic3r::RuntimeError("Could not load bitmap: " + bmp_name);
-    }
-
-    return *bmp;
-}
-
 std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
 {
     static Slic3r::GUI::BitmapCache bmp_cache;
