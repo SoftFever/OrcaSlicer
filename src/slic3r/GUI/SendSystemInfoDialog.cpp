@@ -485,21 +485,18 @@ static std::string generate_system_info_json()
         pt::ptree blacklisted_node;
         std::vector<std::wstring> blacklisted_libraries;
         BlacklistedLibraryCheck::get_instance().get_blacklisted(blacklisted_libraries);
-        for (const std::wstring& str : blacklisted_libraries) {
-            std::string utf8;
-            const size_t num_bytes = WideCharToMultiByte(CP_UTF8, 0, str.c_str(), str.size(), utf8.data(), 0, 0, 0);
-            utf8.resize(num_bytes);
-            if (WideCharToMultiByte(CP_UTF8, 0, str.c_str(), str.size(), utf8.data(), num_bytes, 0, 0)) {
-                if (size_t last_bs_pos = utf8.find_last_of("\\"); last_bs_pos < utf8.size() - 1) {
-                    // Remove anything before last backslash so we don't send the path to the DLL.
-                    utf8.erase(0, last_bs_pos + 1);
-                }
-                pt::ptree node; // Create an unnamed node containing the value
-                node.put("", utf8);
-                blacklisted_node.push_back(std::make_pair("", node)); // Add this node to the list.
+        for (const std::wstring& wstr : blacklisted_libraries) {
+            std::string utf8 = boost::nowide::narrow(wstr);
+            if (size_t last_bs_pos = utf8.find_last_of("\\"); last_bs_pos < utf8.size() - 1) {
+                // Remove anything before last backslash so we don't send the path to the DLL.
+                utf8.erase(0, last_bs_pos + 1);
             }
+            pt::ptree node; // Create an unnamed node containing the value
+            node.put("", utf8);
+            blacklisted_node.push_back(std::make_pair("", node)); // Add this node to the list.
         }
-        data_node.add_child("Blacklisted libraries", blacklisted_node);
+        if (! blacklisted_libraries.empty())
+            data_node.add_child("Blacklisted libraries", blacklisted_node);
     }
 #endif // _WIN32
 
