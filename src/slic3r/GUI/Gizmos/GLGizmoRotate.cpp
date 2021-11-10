@@ -512,9 +512,21 @@ GLGizmoRotate3D::RotoptimzeWindow::RotoptimzeWindow(ImGuiWrapper *   imgui,
     y = std::min(y, alignment.bottom_limit - win_h);
     ImGui::SetWindowPos(ImVec2(x, y), ImGuiCond_Always);
 
-    ImGui::PushItemWidth(300.f);
+    float max_text_w = 0.;
+    auto padding = ImGui::GetStyle().FramePadding;
+    padding.x *= 2.f;
+    padding.y *= 2.f;
 
-    if (ImGui::BeginCombo(_L("Choose goal").c_str(), RotoptimizeJob::get_method_name(state.method_id).c_str())) {
+    for (size_t i = 0; i < RotoptimizeJob::get_methods_count(); ++i) {
+        float w =
+            ImGui::CalcTextSize(RotoptimizeJob::get_method_name(i).c_str()).x +
+            padding.x + ImGui::GetFrameHeight();
+        max_text_w = std::max(w, max_text_w);
+    }
+
+    ImGui::PushItemWidth(max_text_w);
+
+    if (ImGui::BeginCombo("", RotoptimizeJob::get_method_name(state.method_id).c_str())) {
         for (size_t i = 0; i < RotoptimizeJob::get_methods_count(); ++i) {
             if (ImGui::Selectable(RotoptimizeJob::get_method_name(i).c_str())) {
                 state.method_id = i;
@@ -530,12 +542,18 @@ GLGizmoRotate3D::RotoptimzeWindow::RotoptimzeWindow(ImGuiWrapper *   imgui,
         ImGui::EndCombo();
     }
 
+    ImVec2 sz = ImGui::GetItemRectSize();
+
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("%s", RotoptimizeJob::get_method_description(state.method_id).c_str());
 
     ImGui::Separator();
 
-    if ( imgui->button(_L("Optimize")) ) {
+    auto btn_txt = _L("Apply");
+    auto btn_txt_sz = ImGui::CalcTextSize(btn_txt.c_str());
+    ImVec2 button_sz = {btn_txt_sz.x + padding.x, btn_txt_sz.y + padding.y};
+    ImGui::SetCursorPosX(padding.x + sz.x - button_sz.x);
+    if ( imgui->button(btn_txt) ) {
         wxGetApp().plater()->optimize_rotation();
     }
 }
