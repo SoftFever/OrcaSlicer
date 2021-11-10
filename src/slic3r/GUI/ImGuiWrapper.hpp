@@ -6,6 +6,8 @@
 
 #include <imgui/imgui.h>
 
+#include <wx/string.h>
+
 #include "libslic3r/Point.hpp"
 
 namespace Slic3r {namespace Search {
