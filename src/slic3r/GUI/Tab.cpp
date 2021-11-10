@@ -4239,6 +4239,11 @@ void TabSLAMaterial::build()
     optgroup->append_single_option_line(option);
 
     build_preset_description_line(optgroup.get());
+
+    page = add_options_page(L("Material printing profile"), "note.png");
+    optgroup = page->new_optgroup(L("Material printing profile"));
+    option = optgroup->get_option("material_print_speed");
+    optgroup->append_single_option_line(option);
 }
 
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
@@ -4247,6 +4252,13 @@ void TabSLAMaterial::reload_config()
     this->compatible_widget_reload(m_compatible_printers);
     this->compatible_widget_reload(m_compatible_prints);
     Tab::reload_config();
+}
+
+void TabSLAMaterial::toggle_options()
+{
+    const Preset &current_printer = wxGetApp().preset_bundle->printers.get_edited_preset();
+    std::string model = current_printer.config.opt_string("printer_model");
+    m_config_manipulation.toggle_field("material_print_speed", model != "SL1");
 }
 
 void TabSLAMaterial::update()

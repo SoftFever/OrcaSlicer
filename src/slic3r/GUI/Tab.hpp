@@ -480,7 +480,7 @@ public:
 
 	void		build() override;
 	void		reload_config() override;
-	void		toggle_options() override {};
+	void		toggle_options() override;
 	void		update() override;
     void		init_options_list() override;
 	bool 		supports_printer_technology(const PrinterTechnology tech) const override { return tech == ptSLA; }

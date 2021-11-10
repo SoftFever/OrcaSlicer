@@ -915,6 +915,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, hollowing_closing_distance))
 )
 
+enum SLAMaterialSpeed { slamsSlow, slamsFast };
+
 PRINT_CONFIG_CLASS_DEFINE(
     SLAMaterialConfig,
 
@@ -929,6 +931,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                       material_correction_x))
     ((ConfigOptionFloat,                       material_correction_y))
     ((ConfigOptionFloat,                       material_correction_z))
+    ((ConfigOptionEnum<SLAMaterialSpeed>,      material_print_speed))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(

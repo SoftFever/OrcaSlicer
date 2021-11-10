@@ -165,6 +165,12 @@ static const t_config_enum_values s_keys_map_SLAPillarConnectionMode = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SLAPillarConnectionMode)
 
+static const t_config_enum_values s_keys_map_SLAMaterialSpeed = {
+    {"slow", slamsSlow},
+    {"fast", slamsFast}
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SLAMaterialSpeed);
+
 static const t_config_enum_values s_keys_map_BrimType = {
     {"no_brim",         btNoBrim},
     {"outer_only",      btOuterOnly},
@@ -3730,6 +3736,17 @@ void PrintConfigDef::init_sla_params()
     def->max = 10;
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionFloat(2.0));
+
+    def = this->add("material_print_speed", coEnum);
+    def->label = L("Print speed");
+    def->tooltip = L("lorem ipsum");
+    def->enum_keys_map = &ConfigOptionEnum<SLAMaterialSpeed>::get_enum_values();
+    def->enum_values.push_back("slow");
+    def->enum_values.push_back("fast");
+    def->enum_labels.push_back(L("Slow"));
+    def->enum_labels.push_back(L("Fast"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<SLAMaterialSpeed>(slamsSlow));
 }
 
 void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &value)
