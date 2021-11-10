@@ -1189,6 +1189,7 @@ void ImGuiWrapper::init_input()
     io.KeyMap[ImGuiKey_Backspace] = WXK_BACK;
     io.KeyMap[ImGuiKey_Space] = WXK_SPACE;
     io.KeyMap[ImGuiKey_Enter] = WXK_RETURN;
+    io.KeyMap[ImGuiKey_KeyPadEnter] = WXK_NUMPAD_ENTER;
     io.KeyMap[ImGuiKey_Escape] = WXK_ESCAPE;
     io.KeyMap[ImGuiKey_A] = 'A';
     io.KeyMap[ImGuiKey_C] = 'C';
