@@ -1379,6 +1379,14 @@ const Preset* PrinterPresetCollection::find_system_preset_by_model_and_variant(c
     return it != cend() ? &*it : nullptr;
 }
 
+bool  PrinterPresetCollection::only_default_printers() const
+{
+    for (const auto& printer : get_presets()) {
+        if (!boost::starts_with(printer.name,"- default"))
+            return false;
+    }
+    return true;
+}
 // -------------------------
 // ***  PhysicalPrinter  ***
 // -------------------------

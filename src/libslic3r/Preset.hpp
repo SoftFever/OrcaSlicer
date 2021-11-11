@@ -597,6 +597,7 @@ public:
 
     const Preset*   find_system_preset_by_model_and_variant(const std::string &model_id, const std::string &variant) const;
 
+    bool            only_default_printers() const;
 private:
     PrinterPresetCollection() = default;
     PrinterPresetCollection(const PrinterPresetCollection &other) = default;
