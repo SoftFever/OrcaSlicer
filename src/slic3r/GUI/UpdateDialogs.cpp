@@ -89,7 +89,7 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates, bool force_
 	MsgDialog(nullptr, force_before_wizard ? _L("Opening Configuration Wizard") : _L("Configuration update"), 
 					   force_before_wizard ? _L("PrusaSlicer is not using the newest configuration available.\n"
 												"Configuration Wizard may not offer the latest printers, filaments and SLA materials to be installed. ") : 
-											 _L("Configuration update is available"), wxOK)
+											 _L("Configuration update is available"), wxICON_ERROR)
 {
 	auto *text = new wxStaticText(this, wxID_ANY, _(L(
 		"Would you like to install it?\n\n"
