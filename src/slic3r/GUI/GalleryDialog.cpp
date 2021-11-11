@@ -101,7 +101,7 @@ GalleryDialog::GalleryDialog(wxWindow* parent, bool modify_gallery/* = false*/) 
         ok_btn->SetToolTip(_L("Add selected shape(s) to the bed"));
     }
     static_cast<wxButton*>(FindWindowById(wxID_CLOSE, this))->Bind(wxEVT_BUTTON, [this](wxCommandEvent&){ this->EndModal(wxID_CLOSE); });
-
+    this->SetEscapeId(wxID_CLOSE);
     auto add_btn = [this, buttons]( size_t pos, int& ID, wxString title, wxString tooltip,
                                     void (GalleryDialog::* method)(wxEvent&), 
                                     std::function<bool()> enable_fn = []() {return true; }) {
