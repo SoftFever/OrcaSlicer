@@ -123,7 +123,7 @@ wxBitmap ModelNode::get_bitmap(const wxString& color)
     const int icon_width    = lround(6.4 * em);
     const int icon_height   = lround(1.6 * em);
 
-    BitmapCache bmp_cache;
+    BitmapCache bmp_cache { wxGetApp().is_medical() };
     unsigned char rgb[3];
     BitmapCache::parse_color(into_u8(color), rgb);
     // there is no need to scale created solid bitmap

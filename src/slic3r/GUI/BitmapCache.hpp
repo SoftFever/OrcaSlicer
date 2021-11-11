@@ -14,7 +14,7 @@ namespace Slic3r { namespace GUI {
 class BitmapCache
 {
 public:
-	BitmapCache();
+	BitmapCache(bool medical);
 	~BitmapCache() { clear(); }
 	void 			clear();
 	double			scale() { return m_scale; }
@@ -42,6 +42,7 @@ public:
 	static bool     parse_color(const std::string& scolor, unsigned char* rgb_out);
 
 private:
+	bool    m_medical;
     std::map<std::string, wxBitmap*>	m_map;
     double	m_gs	= 0.2;	// value, used for image.ConvertToGreyscale(m_gs, m_gs, m_gs)
 	double	m_scale = 1.0;	// value, used for correct scaling of SVG icons on Retina display

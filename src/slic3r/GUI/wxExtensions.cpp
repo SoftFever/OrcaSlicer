@@ -432,7 +432,7 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
                                 const std::string& new_color/* = std::string()*/, // color witch will used instead of orange
                                 const bool menu_bitmap/* = false*/)
 {
-    static Slic3r::GUI::BitmapCache cache;
+    static Slic3r::GUI::BitmapCache cache { Slic3r::GUI::wxGetApp().is_medical() };
 
     unsigned int width = 0;
     unsigned int height = (unsigned int)(em_unit(win) * px_cnt * 0.1f + 0.5f);
@@ -462,7 +462,7 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
 
 std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
 {
-    static Slic3r::GUI::BitmapCache bmp_cache;
+    static Slic3r::GUI::BitmapCache bmp_cache { Slic3r::GUI::wxGetApp().is_medical() };
 
     // Create the bitmap with color bars.
     std::vector<wxBitmap*> bmps;

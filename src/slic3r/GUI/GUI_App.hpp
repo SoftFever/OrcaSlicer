@@ -113,6 +113,7 @@ private:
     bool            m_initialized { false };
     bool            m_app_conf_exists{ false };
     EAppMode        m_app_mode{ EAppMode::Editor };
+    bool            m_medical { false };
     bool            m_is_recreating_gui{ false };
 #ifdef __linux__
     bool            m_opengl_initialized{ false };
@@ -159,12 +160,13 @@ public:
     bool            OnInit() override;
     bool            initialized() const { return m_initialized; }
 
-    explicit GUI_App(EAppMode mode = EAppMode::Editor);
+    explicit GUI_App(EAppMode mode = EAppMode::Editor, bool medical = false);
     ~GUI_App() override;
 
     EAppMode get_app_mode() const { return m_app_mode; }
     bool is_editor() const { return m_app_mode == EAppMode::Editor; }
     bool is_gcode_viewer() const { return m_app_mode == EAppMode::GCodeViewer; }
+    bool is_medical() const { return m_medical; }
     bool is_recreating_gui() const { return m_is_recreating_gui; }
     std::string logo_name() const { return is_editor() ? "PrusaSlicer" : "PrusaSlicer-gcodeviewer"; }
 

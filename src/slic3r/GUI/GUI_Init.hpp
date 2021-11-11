@@ -21,6 +21,7 @@ struct GUI_InitParams
     std::vector<std::string>    input_files;
 
 	bool	                    start_as_gcodeviewer;
+	bool   						start_as_medical;
 };
 
 int GUI_Run(GUI_InitParams &params);

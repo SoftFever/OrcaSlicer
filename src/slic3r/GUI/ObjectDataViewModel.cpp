@@ -322,7 +322,7 @@ static int get_root_idx(ObjectDataViewModelNode *parent_node, const ItemType roo
 
 ObjectDataViewModel::ObjectDataViewModel()
 {
-    m_bitmap_cache = new Slic3r::GUI::BitmapCache;
+    m_bitmap_cache = new Slic3r::GUI::BitmapCache { wxGetApp().is_medical() };
 
     m_volume_bmps = MenuFactory::get_volume_bitmaps();
     m_warning_bmp = create_scaled_bitmap(WarningIcon);

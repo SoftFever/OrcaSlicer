@@ -195,7 +195,7 @@ public:
         int width = lround(bmp.GetWidth() * 0.4);
 
         // load bitmap for logo
-        BitmapCache bmp_cache;
+        BitmapCache bmp_cache { wxGetApp().is_medical() };
         int logo_size = lround(width * 0.25);
         wxBitmap logo_bmp = *bmp_cache.load_svg(wxGetApp().logo_name(), logo_size, logo_size);
 
@@ -758,9 +758,10 @@ void GUI_App::post_init()
 
 IMPLEMENT_APP(GUI_App)
 
-GUI_App::GUI_App(EAppMode mode)
+GUI_App::GUI_App(EAppMode mode, bool medical)
     : wxApp()
     , m_app_mode(mode)
+    , m_medical(medical)
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
 	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())

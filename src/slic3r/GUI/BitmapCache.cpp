@@ -20,7 +20,7 @@
 
 namespace Slic3r { namespace GUI {
 
-BitmapCache::BitmapCache()
+BitmapCache::BitmapCache(bool medical) : m_medical(medical)
 {
 #ifdef __APPLE__
     // Note: win->GetContentScaleFactor() is not used anymore here because it tends to
@@ -280,7 +280,9 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
     if (dark_mode)
         replaces["#808080"] = "#FFFFFF";
     if (!new_color.empty())
-        replaces["#ED6B21"] = new_color;
+        replaces[m_medical ? "#5EA796" : "#ED6B21"] = new_color;
+    if (m_medical)
+        replaces["#ED6B21"] = "#5EA796";
 
     NSVGimage *image =  ::nsvgParseFromFileWithReplace(Slic3r::var(bitmap_name + ".svg").c_str(), "px", 96.0f, replaces);
     if (image == nullptr)
