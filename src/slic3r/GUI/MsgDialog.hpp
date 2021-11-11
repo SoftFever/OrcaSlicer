@@ -43,7 +43,7 @@ protected:
 
 	MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, long style = wxOK, wxBitmap bitmap = wxNullBitmap);
 
-	void add_btn(wxWindowID btn_id, bool set_focus = false);
+	void add_btn(wxWindowID btn_id, bool set_focus = false, const wxString& label = wxString());
 	void apply_style(long style);
 	void finalize();
 

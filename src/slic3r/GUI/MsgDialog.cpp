@@ -63,9 +63,9 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 	SetSizerAndFit(main_sizer);
 }
 
-void MsgDialog::add_btn(wxWindowID btn_id, bool set_focus /*= false*/)
+void MsgDialog::add_btn(wxWindowID btn_id, bool set_focus /*= false*/, const wxString& label/* = wxString()*/)
 {
-    wxButton* btn = new wxButton(this, btn_id);
+    wxButton* btn = new wxButton(this, btn_id, label);
     if (set_focus)
         btn->SetFocus();
     btn_sizer->Add(btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, HORIZ_SPACING);
@@ -75,7 +75,7 @@ void MsgDialog::add_btn(wxWindowID btn_id, bool set_focus /*= false*/)
 void MsgDialog::apply_style(long style)
 {
     if (style & wxOK)       add_btn(wxID_OK, true);
-    if (style & wxYES)      add_btn(wxID_YES);
+    if (style & wxYES)      add_btn(wxID_YES, true);
     if (style & wxNO)       add_btn(wxID_NO);
     if (style & wxCANCEL)   add_btn(wxID_CANCEL);
 
@@ -118,7 +118,7 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
     wxFont      font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     wxFont      monospace = wxGetApp().code_font();
     wxColour    text_clr = wxGetApp().get_label_clr_default();
-    wxColour    bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+    wxColour    bgr_clr = parent->GetBackgroundColour(); //wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
     auto        text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
     auto        bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
     const int   font_size = font.GetPointSize();
