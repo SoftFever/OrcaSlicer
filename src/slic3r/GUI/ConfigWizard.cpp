@@ -772,7 +772,9 @@ void PageMaterials::set_compatible_printers_html_window(const std::vector<std::s
             , second_line
             );
     } else {
-        wxString second_line = printer_names.empty() ? "" : format_wxstr(_L("Only the following installed printers are compatible with the selected %1%:"), materials->technology == T_FFF ? _L("filament") : _L("SLA material"));
+        wxString second_line = printer_names.empty() ? "" : format_wxstr(_L("Only the following installed printers are compatible with the selected %1%:"), 
+                                                                         materials->technology == T_FFF ? _CTX(L_CONTEXT("filaments", "WithSelected"), "WithSelected") : 
+                                                                                                          _CTX(L_CONTEXT("SLA materials", "WithSelected"), "WithSelected"));
         text = wxString::Format(
             "<html>"
             "<style>"
@@ -2488,7 +2490,7 @@ static std::string get_first_added_preset(const std::map<std::string, std::strin
 
 bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater, bool& apply_keeped_changes)
 {
-    wxString header, caption = _L("Configuration is editing from ConfigWizard");
+    wxString header, caption = _L("Configuration is edited in ConfigWizard");
     const auto enabled_vendors = appconfig_new.vendors();
 
     bool suppress_sla_printer = model_has_multi_part_objects(wxGetApp().model());
@@ -2590,7 +2592,7 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
             break;
     }
 
-    if (snapshot && ! take_config_snapshot_cancel_on_error(*app_config, snapshot_reason, "", _u8L("Continue with applying configuration changes?")))
+    if (snapshot && ! take_config_snapshot_cancel_on_error(*app_config, snapshot_reason, "", _u8L("Do you want to continue changing the configuration?")))
         return false;
 
     if (check_unsaved_preset_changes &&

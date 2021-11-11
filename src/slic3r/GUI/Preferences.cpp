@@ -218,7 +218,7 @@ void PreferencesDialog::build(size_t selected_tab)
 
 		m_optgroup_general->append_separator();
 
-		def.label = L("Ask for unsaved changes when closing application or loading new project");
+		def.label = L("Ask to save unsaved changes when closing the application or when loading a new project.");
 		def.type = coBool;
 		def.tooltip = L("Always ask for unsaved changes, when: \n"
 						"- Closing PrusaSlicer while some presets are modified,\n"
@@ -468,7 +468,7 @@ void PreferencesDialog::build(size_t selected_tab)
 	// Add "Dark Mode" tab
 	if (is_editor) {
 		// Add "Dark Mode" tab
-		m_optgroup_dark_mode = create_options_tab(_L("Dark mode (experimental)"), tabs);
+		m_optgroup_dark_mode = create_options_tab(_L("Dark mode IU (experimental)"), tabs);
 		m_optgroup_dark_mode->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
 			m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
 		};
@@ -542,8 +542,8 @@ void PreferencesDialog::accept(wxEvent&)
 			wxString title = wxGetApp().is_editor() ? wxString(SLIC3R_APP_NAME) : wxString(GCODEVIEWER_APP_NAME);
 			title += " - " + _L("Changes for the critical options");
 			MessageDialog dialog(nullptr,
-				_L("Changing fo some options will trigger application restart.\n"
-				   "You will lose content of the plater.") + "\n\n" +
+				_L("Changing some options will trigger application restart.\n"
+				   "You will lose the content of the plater.") + "\n\n" +
 				_L("Do you want to proceed?"),
 				title,
 				wxICON_QUESTION | wxYES | wxNO);
@@ -762,7 +762,7 @@ void PreferencesDialog::create_settings_text_color_widget()
 {
 	wxWindow* parent = m_optgroup_gui->parent();
 
-	wxStaticBox* stb = new wxStaticBox(parent, wxID_ANY, _L("Text color Settings"));
+	wxStaticBox* stb = new wxStaticBox(parent, wxID_ANY, _L("Text colors"));
 	wxGetApp().UpdateDarkUI(stb);
 	if (!wxOSX) stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
 

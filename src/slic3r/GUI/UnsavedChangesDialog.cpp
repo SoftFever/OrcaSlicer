@@ -899,7 +899,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
                                                                                       _L("You will not be asked about the unsaved changes the next time you: \n"
                                                                                             "- close the application,\n"
                                                                                             "- load project,\n"
-                                                                                            "- process Undo / Redo with change of print technologie,\n"
+                                                                                            "- process Undo / Redo with a change of print technology,\n"
                                                                                             "- take/load snapshot,\n"
                                                                                             "- load config file/bundle,\n"
                                                                                             "- export config_bundle") ;
@@ -1628,7 +1628,7 @@ void DiffPresetDialog::update_tree()
         const DynamicPrintConfig& right_congig  = right_preset->config;
 
         if (left_pt != right_preset->printer_technology()) {
-            bottom_info = _L("Comparable printer presets has different printer technology");
+            bottom_info = _L("Compared presets has different printer technology");
             preset_combos.equal_bmp->SetBitmap_(ScalableBitmap(this, "question"));
             preset_combos.equal_bmp->SetToolTip(bottom_info);
             continue;
@@ -1651,7 +1651,7 @@ void DiffPresetDialog::update_tree()
         show_tree = true;
         preset_combos.equal_bmp->SetBitmap_(ScalableBitmap(this, "not_equal"));
         preset_combos.equal_bmp->SetToolTip(_L("Presets are different.\n"
-                                               "Click this button to select the same as left preset for the right preset."));
+                                               "Click this button to select the same preset for the right and left preset."));
 
         m_tree->model->AddPreset(type, "\"" + from_u8(left_preset->name) + "\" vs \"" + from_u8(right_preset->name) + "\"", left_pt);
 

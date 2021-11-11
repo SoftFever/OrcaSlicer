@@ -772,7 +772,7 @@ bool OG_CustomCtrl::CtrlLine::launch_browser() const
     bool launch = true;
 
     if (get_app_config()->get("suppress_hyperlinks").empty()) {
-        RememberChoiceDialog dialog(nullptr, _L("Should we open this hyperlink in your default browser?"), _L("PrusaSlicer: Open hyperlink"));
+        RememberChoiceDialog dialog(nullptr, _L("Open hyperlink in default browser?"), _L("PrusaSlicer: Open hyperlink"));
         int answer = dialog.ShowModal();
         launch = answer == wxID_YES;
 

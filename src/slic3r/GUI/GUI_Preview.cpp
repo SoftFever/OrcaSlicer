@@ -727,7 +727,7 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
                     NotificationType::SignDetected, NotificationManager::NotificationLevel::PrintInfoNotificationLevel,
                     _u8L("NOTE:") + "\n" +
                     format(_u8L("Sliced object \"%1%\" looks like a logo or a sign"), object->model_object()->name) + "\n",
-                    _u8L("Apply automatic color change"),
+                    _u8L("Apply color change automatically"),
                     [this](wxEvtHandler*) {
                         m_layers_slider->auto_color_change();
                         return true;

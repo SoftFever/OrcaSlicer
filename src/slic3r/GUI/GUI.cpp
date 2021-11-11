@@ -204,7 +204,7 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 	}
 	catch (const std::exception &e)
 	{
-		wxLogError(format_wxstr(_L("Internal error when changing value for %1%: %2%"), opt_key, e.what()));
+		wxLogError(format_wxstr("Internal error when changing value for %1%: %2%", opt_key, e.what()));
 	}
 }
 

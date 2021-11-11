@@ -2525,7 +2525,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     MessageDialog msg_dlg(q, _L(
                         "This file contains several objects positioned at multiple heights.\n"
                         "Instead of considering them as multiple objects, should \n"
-                        "should the file be loaded as a single object having multiple parts?") + "\n",
+                        "the file be loaded as a single object having multiple parts?") + "\n",
                         _L("Multi-part object detected"), wxICON_WARNING | wxYES | wxNO);
                     if (msg_dlg.ShowModal() == wxID_YES) {
                         model.convert_multipart_object(nozzle_dmrs->values.size());
@@ -3430,7 +3430,7 @@ void Plater::priv::replace_with_stl()
     if (!volume->source.input_file.empty() && fs::exists(volume->source.input_file))
         input_path = volume->source.input_file;
 
-    wxString title = _L("Please select the file to replace");
+    wxString title = _L("Select the new file");
     title += ":";
     wxFileDialog dialog(q, title, "", from_u8(input_path.filename().string()), file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dialog.ShowModal() != wxID_OK)
@@ -5050,7 +5050,7 @@ void Plater::new_project()
         int act_buttons = ab::KEEP;
         if (saved_project == wxID_NO)
             act_buttons |= ab::SAVE;
-        if (!wxGetApp().check_and_keep_current_preset_changes(_L("New Project is creating"), header, act_buttons))
+        if (!wxGetApp().check_and_keep_current_preset_changes(_L("Creating a new project"), header, act_buttons))
             return;
     }
 
@@ -5877,7 +5877,7 @@ bool Plater::export_3mf(const boost::filesystem::path& output_path)
 {
 #if ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED
     if (p->model.objects.empty()) {
-        MessageDialog dialog(nullptr, _L("The plater is empty.\nConfirm you want to save the project ?"), _L("Save project"), wxYES_NO);
+        MessageDialog dialog(nullptr, _L("The plater is empty.\nDo you want to save the project?"), _L("Save project"), wxYES_NO);
         if (dialog.ShowModal() != wxID_YES)
             return false;
     }

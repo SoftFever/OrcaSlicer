@@ -732,7 +732,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessor::Result* re
             reports += source + ": \"" + keyword + "\"\n";
         }
         print->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL,
-            _(L("Found reserved keyword(s) into custom g-code:")) + "\n" +
+            _(L("In the custom G-code were found reserved keywords:")) + "\n" +
             reports +
             _(L("This may cause problems in g-code visualization and printing time estimation.")));
     }

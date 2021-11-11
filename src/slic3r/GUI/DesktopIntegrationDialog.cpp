@@ -366,7 +366,7 @@ void DesktopIntegrationDialog::perform_desktop_integration()
                     }
                 } else {
                 	// Desktop file not written - end desktop integration
-                    BOOST_LOG_TRIVIAL(error) << "Performing desktop integration failed - could not find applications directory";
+                    BOOST_LOG_TRIVIAL(error) << "Performing desktop integration failed because the application directory was not found.";
                     return;
                 }
             }
@@ -374,8 +374,8 @@ void DesktopIntegrationDialog::perform_desktop_integration()
     }
     if(target_dir_desktop.empty()) {
     	// Desktop file not written - end desktop integration
-        BOOST_LOG_TRIVIAL(error) << "Performing desktop integration failed - could not find applications directory";
-        show_error(nullptr, _L("Performing desktop integration failed - could not find applications directory."));
+        BOOST_LOG_TRIVIAL(error) << "Performing desktop integration failed because the application directory was not found.";
+        show_error(nullptr, _L("Performing desktop integration failed because the application directory was not found."));
         return;
     }
     // save path to desktop file

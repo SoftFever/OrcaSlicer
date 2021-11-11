@@ -286,7 +286,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         m_imgui->checkbox(m_desc["split_triangles"], m_triangle_splitting_enabled);
 
         if (ImGui::IsItemHovered())
-            m_imgui->tooltip(_L("Split bigger facets into smaller ones while the object is painted."), max_tooltip_width);
+            m_imgui->tooltip(_L("Splits bigger facets into smaller ones while the object is painted."), max_tooltip_width);
 
         m_imgui->disabled_end();
     } else {

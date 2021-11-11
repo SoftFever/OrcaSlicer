@@ -481,7 +481,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("brim_width", coFloat);
     def->label = L("Brim width");
     def->category = L("Skirt and brim");
-    def->tooltip = L("Horizontal width of the brim that will be printed around each object on the first layer."
+    def->tooltip = L("The horizontal width of the brim that will be printed around each object on the first layer. "
                      "When raft is used, no brim is generated (use raft_first_layer_expansion).");
     def->sidetext = L("mm");
     def->min = 0;
@@ -1252,7 +1252,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("fuzzy_skin_thickness", coFloat);
     def->label = L("Fuzzy skin thickness");
     def->category = L("Fuzzy Skin");
-    def->tooltip = "";
+    def->tooltip = L("The maximum distance that each skin point can be offset (both ways), "
+                     "measured perpendicular to the perimeter wall.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -1261,7 +1262,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("fuzzy_skin_point_dist", coFloat);
     def->label = L("Fuzzy skin point distance");
     def->category = L("Fuzzy Skin");
-    def->tooltip = "";
+    def->tooltip = L("Perimeters will be split into multiple segments by inserting Fuzzy skin points. "
+                     "Lowering the Fuzzy skin point distance will increase the number of randomly offset points on the perimeter wall.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -2745,7 +2747,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("thick_bridges", coBool);
     def->label = L("Thick bridges");
     def->category = L("Layers and Perimeters");
-    def->tooltip = L("Print bridges with round extrusions.");
+    def->tooltip = L("If enabled, bridges are more reliable, can bridge longer distances, but may look worse. "
+                     "If disabled, bridges look better but are reliable just for shorter bridged distances.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
@@ -4268,7 +4271,7 @@ CLIMiscConfigDef::CLIMiscConfigDef()
 
     def = this->add("config_compatibility", coEnum);
     def->label = L("Forward-compatibility rule when loading configurations from config files and project files (3MF, AMF).");
-    def->tooltip = L("This version of PrusaSlicer may not understand configurations produced by newest PrusaSlicer versions. "
+    def->tooltip = L("This version of PrusaSlicer may not understand configurations produced by the newest PrusaSlicer versions. "
                      "For example, newer PrusaSlicer may extend the list of supported firmware flavors. One may decide to "
                      "bail out or to substitute an unknown value with a default silently or verbosely.");
     def->enum_keys_map = &ConfigOptionEnum<ForwardCompatibilitySubstitutionRule>::get_enum_values();

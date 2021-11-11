@@ -118,7 +118,7 @@ bool GLGizmoMmuSegmentation::on_init()
     m_desc["second_color"]         = _L("Second color");
     m_desc["remove_caption"]       = _L("Shift + Left mouse button") + ": ";
     m_desc["remove"]               = _L("Remove painted color");
-    m_desc["remove_all"]           = _L("Remove all painted areas");
+    m_desc["remove_all"]           = _L("Clear all");
     m_desc["circle"]               = _L("Circle");
     m_desc["sphere"]               = _L("Sphere");
     m_desc["pointer"]              = _L("Triangles");
