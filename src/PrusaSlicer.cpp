@@ -117,13 +117,6 @@ int CLI::run(int argc, char **argv)
             // On Unix systems, the prusa-slicer binary may be symlinked to give the application a different meaning.
             boost::algorithm::iends_with(boost::filesystem::path(argv[0]).filename().string(), "gcodeviewer");
 #endif // _WIN32
-    bool                            start_as_medical = 
-            boost::algorithm::iends_with(boost::filesystem::path(argv[0]).filename().string(), 
-#ifdef _WIN32
-                "-medical.exe");
-#else
-                "-medical");
-#endif // _WIN32
 
     const std::vector<std::string>              &load_configs		      = m_config.option<ConfigOptionStrings>("load", true)->values;
     const ForwardCompatibilitySubstitutionRule   config_substitution_rule = m_config.option<ConfigOptionEnum<ForwardCompatibilitySubstitutionRule>>("config_compatibility", true)->value;
@@ -609,7 +602,6 @@ int CLI::run(int argc, char **argv)
         params.extra_config = std::move(m_extra_config);
         params.input_files  = std::move(m_input_files);
         params.start_as_gcodeviewer = start_as_gcodeviewer;
-        params.start_as_medical = start_as_medical;
         return Slic3r::GUI::GUI_Run(params);
 #else // SLIC3R_GUI
         // No GUI support. Just print out a help.

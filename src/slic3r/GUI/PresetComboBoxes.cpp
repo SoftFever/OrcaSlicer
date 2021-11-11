@@ -150,7 +150,7 @@ PresetComboBox::~PresetComboBox()
 
 BitmapCache& PresetComboBox::bitmap_cache()
 {
-    static BitmapCache bmps { wxGetApp().is_medical() };
+    static BitmapCache bmps;
     return bmps;
 }
 

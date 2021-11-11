@@ -644,8 +644,6 @@ void MainFrame::update_title()
 #endif
     	}
     }
-    if (wxGetApp().is_medical())
-        boost::replace_first(build_id, "PrusaSlicer", "PrusaSlicer-medical");
 
     title += wxString(build_id);
     if (wxGetApp().is_editor())
