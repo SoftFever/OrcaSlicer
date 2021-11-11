@@ -48,6 +48,9 @@ GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)
         if (evt.GetInt() == status_range() || m_worker_error) {
             // set back the original range and cancel callback
             m_progress->set_range(m_range);
+            // Make sure progress indicators get the last value of their range
+            // to make sure they close, fade out, whathever
+            m_progress->set_progress(m_range);
             m_progress->set_cancel_callback();
             wxEndBusyCursor();
 
