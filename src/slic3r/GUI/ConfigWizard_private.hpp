@@ -257,6 +257,9 @@ struct PagePrinters: ConfigWizardPage
     std::string get_vendor_id() const { return printer_pickers.empty() ? "" : printer_pickers[0]->vendor_id; }
 
     virtual void set_run_reason(ConfigWizard::RunReason run_reason) override;
+
+    bool has_printers { false };
+    bool is_primary_printer_page { false };
 };
 
 // Here we extend wxListBox and wxCheckListBox
@@ -548,7 +551,9 @@ struct ConfigWizard::priv
     std::unique_ptr<DynamicPrintConfig> custom_config;           // Backing for custom printer definition
     bool any_fff_selected;        // Used to decide whether to display Filaments page
     bool any_sla_selected;        // Used to decide whether to display SLA Materials page
-	bool custom_printer_selected; 
+    bool custom_printer_selected { false }; 
+    // Set to true if there are none FFF printers on the main FFF page. If true, only SLA printers are shown (not even custum printers)
+    bool only_sla_mode { false };
 
     wxScrolledWindow *hscroll = nullptr;
     wxBoxSizer *hscroll_sizer = nullptr;
