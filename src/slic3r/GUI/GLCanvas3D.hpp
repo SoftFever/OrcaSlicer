@@ -390,7 +390,7 @@ class GLCanvas3D
     public:
         bool is_empty() const { return m_text.empty(); }
         void set_text(const std::string& text);
-        void render(const Vec2d& mouse_position, GLCanvas3D& canvas) const;
+        void render(const Vec2d& mouse_position, GLCanvas3D& canvas);
         // Indicates that the mouse is inside an ImGUI dialog, therefore the tooltip should be suppressed.
         void set_in_imgui(bool b) { m_in_imgui = b; }
         bool is_in_imgui() const { return m_in_imgui; }

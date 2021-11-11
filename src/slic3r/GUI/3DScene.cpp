@@ -1131,29 +1131,41 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
     if (config == nullptr)
         return;
 
-    const ConfigOptionStrings* extruders_opt = dynamic_cast<const ConfigOptionStrings*>(config->option("extruder_colour"));
-    if (extruders_opt == nullptr)
-        return;
-
-    const ConfigOptionStrings* filamemts_opt = dynamic_cast<const ConfigOptionStrings*>(config->option("filament_colour"));
-    if (filamemts_opt == nullptr)
-        return;
-
-    unsigned int colors_count = std::max((unsigned int)extruders_opt->values.size(), (unsigned int)filamemts_opt->values.size());
-    if (colors_count == 0)
-        return;
-
-    std::vector<Color> colors(colors_count);
-
     unsigned char rgb[3];
-    for (unsigned int i = 0; i < colors_count; ++i) {
-        const std::string& txt_color = config->opt_string("extruder_colour", i);
-        if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
-            colors[i].set(txt_color, rgb);
-        else {
-            const std::string& txt_color = config->opt_string("filament_colour", i);
+    std::vector<Color> colors;
+
+    if (static_cast<PrinterTechnology>(config->opt_int("printer_technology")) == ptSLA) 
+    {
+        const std::string& txt_color = config->opt_string("material_colour");
+        if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb)) {
+            colors.resize(1);
+            colors[0].set(txt_color, rgb);
+        }
+    }
+    else 
+    {
+        const ConfigOptionStrings* extruders_opt = dynamic_cast<const ConfigOptionStrings*>(config->option("extruder_colour"));
+        if (extruders_opt == nullptr)
+            return;
+
+        const ConfigOptionStrings* filamemts_opt = dynamic_cast<const ConfigOptionStrings*>(config->option("filament_colour"));
+        if (filamemts_opt == nullptr)
+            return;
+
+        unsigned int colors_count = std::max((unsigned int)extruders_opt->values.size(), (unsigned int)filamemts_opt->values.size());
+        if (colors_count == 0)
+            return;
+        colors.resize(colors_count);
+
+        for (unsigned int i = 0; i < colors_count; ++i) {
+            const std::string& txt_color = config->opt_string("extruder_colour", i);
             if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
                 colors[i].set(txt_color, rgb);
+            else {
+                const std::string& txt_color = config->opt_string("filament_colour", i);
+                if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb))
+                    colors[i].set(txt_color, rgb);
+            }
         }
     }
 

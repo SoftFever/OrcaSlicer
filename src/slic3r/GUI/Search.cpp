@@ -401,6 +401,18 @@ void OptionsSearcher::show_dialog()
     search_dialog->Popup();
 }
 
+void OptionsSearcher::dlg_sys_color_changed()
+{
+    if (search_dialog)
+        search_dialog->on_sys_color_changed();
+}
+
+void OptionsSearcher::dlg_msw_rescale()
+{
+    if (search_dialog)
+        search_dialog->msw_rescale();
+}
+
 void OptionsSearcher::add_key(const std::string& opt_key, Preset::Type type, const wxString& group, const wxString& category)
 {
     groups_and_categories[get_key(opt_key, type)] = GroupAndCategory{group, category};
@@ -666,7 +678,7 @@ void SearchDialog::OnLeftDown(wxMouseEvent& event)
     ProcessSelection(search_list->GetSelection());
 }
 
-void SearchDialog::on_dpi_changed(const wxRect& suggested_rect)
+void SearchDialog::msw_rescale()
 {
     const int& em = em_unit();
 

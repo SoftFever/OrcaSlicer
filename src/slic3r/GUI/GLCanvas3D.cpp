@@ -722,8 +722,13 @@ void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_
         }
 
         // force re-render while the windows gets to its final size (it takes several frames)
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+        if (ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowNextAutoFitSize(ImGui::GetCurrentWindow()).x)
+            imgui.set_requires_extra_frame();
+#else
         if (ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowNextAutoFitSize(ImGui::GetCurrentWindow()).x)
             m_canvas.request_extra_frame();
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 
         imgui.end();
         ImGui::PopStyleColor();
@@ -734,47 +739,48 @@ void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_
 void GLCanvas3D::Tooltip::set_text(const std::string& text)
 {
     // If the mouse is inside an ImGUI dialog, then the tooltip is suppressed.
-	const std::string &new_text = m_in_imgui ? std::string() : text;
-    if (m_text != new_text) {
-        if (m_text.empty())
-            m_start_time = std::chrono::steady_clock::now();
-
-        m_text = new_text;
-    }
+    m_text = m_in_imgui ? std::string() : text;
 }
 
-void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas) const
+void GLCanvas3D::Tooltip::render(const Vec2d& mouse_position, GLCanvas3D& canvas)
 {
     static ImVec2 size(0.0f, 0.0f);
 
     auto validate_position = [](const Vec2d& position, const GLCanvas3D& canvas, const ImVec2& wnd_size) {
-        Size cnv_size = canvas.get_canvas_size();
-        float x = std::clamp((float)position(0), 0.0f, (float)cnv_size.get_width() - wnd_size.x);
-        float y = std::clamp((float)position(1) + 16, 0.0f, (float)cnv_size.get_height() - wnd_size.y);
+        const Size cnv_size = canvas.get_canvas_size();
+        const float x = std::clamp((float)position.x(), 0.0f, (float)cnv_size.get_width() - wnd_size.x);
+        const float y = std::clamp((float)position.y() + 16.0f, 0.0f, (float)cnv_size.get_height() - wnd_size.y);
         return Vec2f(x, y);
     };
 
-    if (m_text.empty())
+    if (m_text.empty()) {
+        m_start_time = std::chrono::steady_clock::now();
         return;
+    }
 
     // draw the tooltip as hidden until the delay is expired
     // use a value of alpha slightly different from 0.0f because newer imgui does not calculate properly the window size if alpha == 0.0f
-    float alpha = (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_start_time).count() < 500) ? 0.01f : 1.0f;
+    const float alpha = (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_start_time).count() < 500) ? 0.01f : 1.0f;
 
-    Vec2f position = validate_position(mouse_position, canvas, size);
+    const Vec2f position = validate_position(mouse_position, canvas, size);
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
-    imgui.set_next_window_pos(position(0), position(1), ImGuiCond_Always, 0.0f, 0.0f);
+    imgui.set_next_window_pos(position.x(), position.y(), ImGuiCond_Always, 0.0f, 0.0f);
 
     imgui.begin(wxString("canvas_tooltip"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoFocusOnAppearing);
     ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
     ImGui::TextUnformatted(m_text.c_str());
 
     // force re-render while the windows gets to its final size (it may take several frames) or while hidden
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    if (alpha < 1.0f || ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowNextAutoFitSize(ImGui::GetCurrentWindow()).x)
+        imgui.set_requires_extra_frame();
+#else
     if (alpha < 1.0f || ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowNextAutoFitSize(ImGui::GetCurrentWindow()).x)
         canvas.request_extra_frame();
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 
     size = ImGui::GetWindowSize();
 
@@ -2250,14 +2256,29 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
     m_dirty |= wxGetApp().plater()->get_notification_manager()->update_notifications(*this);
     auto gizmo = wxGetApp().plater()->canvas3D()->get_gizmos_manager().get_current();
     if (gizmo != nullptr) m_dirty |= gizmo->update_items_state();
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    // ImGuiWrapper::m_requires_extra_frame may have been set by a render made outside of the OnIdle mechanism
+    bool imgui_requires_extra_frame = wxGetApp().imgui()->requires_extra_frame();
+    m_dirty |= imgui_requires_extra_frame;
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 
     if (!m_dirty)
         return;
 
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    // this needs to be done here.
+    // during the render launched by the refresh the value may be set again 
+    wxGetApp().imgui()->reset_requires_extra_frame();
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+
     _refresh_if_shown_on_screen();
 
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    if (m_extra_frame_requested || mouse3d_controller_applied || imgui_requires_extra_frame || wxGetApp().imgui()->requires_extra_frame()) {
+#else
     if (m_extra_frame_requested || mouse3d_controller_applied) {
         m_dirty = true;
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
         m_extra_frame_requested = false;
         evt.RequestMore();
     }
@@ -4176,7 +4197,7 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
     shader->set_uniform("emission_factor", 0.0f);
 
     for (GLVolume* vol : visible_volumes) {
-        shader->set_uniform("uniform_color", (vol->printable && !vol->is_outside) ? orange : gray);
+        shader->set_uniform("uniform_color", (vol->printable && !vol->is_outside) ? (current_printer_technology() == ptSLA ? vol->color : orange) : gray);
         // the volume may have been deactivated by an active gizmo
         bool is_active = vol->is_active;
         vol->is_active = true;

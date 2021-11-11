@@ -3,6 +3,7 @@
 #include "GUI_Init.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
+#include "GUI_Factories.hpp"
 #include "format.hpp"
 #include "I18N.hpp"
 
@@ -81,6 +82,9 @@
 #ifdef _MSW_DARK_MODE
 #include <wx/msw/dark_mode.h>
 #endif // _MSW_DARK_MODE
+#endif
+#ifdef _WIN32
+#include <boost/dll/runtime_symbol_info.hpp>
 #endif
 
 #if ENABLE_THUMBNAIL_GENERATOR_DEBUG
@@ -410,7 +414,7 @@ bool static check_old_linux_datadir(const wxString& app_name) {
                 "location again.\n\n"
                 "What do you want to do now?")) % SLIC3R_APP_NAME % new_path % old_path).str());
             wxString caption = from_u8((boost::format(_u8L("%s - BREAKING CHANGE")) % SLIC3R_APP_NAME).str());
-            wxRichMessageDialog dlg(nullptr, msg, caption, wxYES_NO);
+            RichMessageDialog dlg(nullptr, msg, caption, wxYES_NO);
             dlg.SetYesNoLabels(_L("Quit, I will move my data now"), _L("Start the application"));
             if (dlg.ShowModal() != wxID_NO)
                 return false;
@@ -421,6 +425,56 @@ bool static check_old_linux_datadir(const wxString& app_name) {
     return true;
 }
 #endif
+
+
+#ifdef _WIN32
+static bool run_updater_win()
+{
+    // find updater exe
+    boost::filesystem::path path_to_binary = boost::dll::program_location();
+    for (const auto& dir_entry : boost::filesystem::directory_iterator(path_to_binary.parent_path())) {
+        if (dir_entry.path().filename() == "prusaslicer-updater.exe") {
+            // run updater. Original args: /silent -restartapp prusa-slicer.exe -startappfirst
+
+            // Using quoted string as mentioned in CreateProcessW docs.
+            std::wstring wcmd = L"\"" + dir_entry.path().wstring() + L"\"";
+            wcmd += L" /silent";
+
+            // additional information
+            STARTUPINFOW si;
+            PROCESS_INFORMATION pi;
+
+            // set the size of the structures
+            ZeroMemory(&si, sizeof(si));
+            si.cb = sizeof(si);
+            ZeroMemory(&pi, sizeof(pi));
+
+            // start the program up
+            if (CreateProcessW(NULL,   // the path
+                wcmd.data(),    // Command line
+                NULL,           // Process handle not inheritable
+                NULL,           // Thread handle not inheritable
+                FALSE,          // Set handle inheritance to FALSE
+                0,              // No creation flags
+                NULL,           // Use parent's environment block
+                NULL,           // Use parent's starting directory 
+                &si,            // Pointer to STARTUPINFO structure
+                &pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
+            )) {
+                // Close process and thread handles.
+                CloseHandle(pi.hProcess);
+                CloseHandle(pi.hThread);
+                return true;
+            } else {
+                BOOST_LOG_TRIVIAL(error) << "Failed to start prusaslicer-updater.exe with command " << wcmd;
+            }
+            break;
+        }
+    }
+    return false;
+}
+#endif //_WIN32
+
 
 
 wxString file_wildcards(FileType file_type, const std::string &custom_extension)
@@ -677,7 +731,6 @@ void GUI_App::post_init()
         this->check_updates(false);
         CallAfter([this] {
             bool cw_showed = this->config_wizard_startup();
-            this->preset_updater->slic3r_update_notify();
             this->preset_updater->sync(preset_bundle);
             if (! cw_showed) {
                 // The CallAfter is needed as well, without it, GL extensions did not show.
@@ -685,6 +738,15 @@ void GUI_App::post_init()
                 // sees something else than "we want something" on the first start.
                 show_send_system_info_dialog_if_needed();
             }
+            bool updater_running = 
+        #ifdef _WIN32
+            // Run external updater on Windows.
+            run_updater_win();
+        #else
+            false;
+        #endif // _WIN32
+            if (!updater_running)
+                this->preset_updater->slic3r_update_notify();
         });
     }
 
@@ -845,7 +907,7 @@ bool GUI_App::check_older_app_config(Semver current_version, bool backup)
         return false;
     BOOST_LOG_TRIVIAL(info) << "last app config file used: " << m_older_data_dir_path;
     // ask about using older data folder
-    wxRichMessageDialog msg(nullptr, backup ? 
+    RichMessageDialog msg(nullptr, backup ? 
         wxString::Format(_L("PrusaSlicer detected another configuration folder at %s."
             "\nIts version is %s." 
             "\nLast version you used in current configuration folder is %s."
@@ -864,7 +926,7 @@ bool GUI_App::check_older_app_config(Semver current_version, bool backup)
             "\n\nIf you select yes, PrusaSlicer will copy all profiles and other files from found folder to the current one."
             "\nIf you select no, you will start with clean installation with configuration wizard.")
             , m_older_data_dir_path, last_semver.to_string())
-        , _L("PrusaSlicer"), wxICON_QUESTION | wxYES_NO);
+        , _L("PrusaSlicer"), /*wxICON_QUESTION | */wxYES_NO);
     if (msg.ShowModal() == wxID_YES) {
         std::string snapshot_id;
         if (backup) {
@@ -935,7 +997,7 @@ bool GUI_App::on_init_inner()
 // win32 build on win64 and viceversa
 #ifdef _WIN64
     if (wxPlatformInfo::Get().GetArchName().substr(0, 2) == "") {
-        wxRichMessageDialog dlg(nullptr,
+        RichMessageDialog dlg(nullptr,
                 _L("You have started PrusaSlicer for 64-bit architecture on 32-bit system."
                     "\nPlease download and install correct version at https://www.prusa3d.cz/prusaslicer/."
                     "\nDo you wish to continue?"),
@@ -945,7 +1007,7 @@ bool GUI_App::on_init_inner()
     }
 #elif _WIN32
     if (wxPlatformInfo::Get().GetArchName().substr(0, 2) == "64") {
-        wxRichMessageDialog dlg(nullptr,
+        RichMessageDialog dlg(nullptr,
             _L("You have started PrusaSlicer for 32-bit architecture on 64-bit system."
                 "\nPlease download and install correct version at https://www.prusa3d.cz/prusaslicer/."
                 "\nDo you wish to continue?"),
@@ -990,7 +1052,7 @@ bool GUI_App::on_init_inner()
         bool ssl_accept = app_config->get("tls_cert_store_accepted") == "yes" && ssl_cert_store == Http::tls_system_cert_store();
 
         if (!msg.empty() && !ssl_accept) {
-            wxRichMessageDialog
+            RichMessageDialog
                 dlg(nullptr,
                     wxString::Format(_L("%s\nDo you want to continue?"), msg),
                     "PrusaSlicer", wxICON_QUESTION | wxYES_NO);
@@ -1020,11 +1082,7 @@ bool GUI_App::on_init_inner()
     wxInitAllImageHandlers();
 
 #ifdef _MSW_DARK_MODE
-    if (bool dark_mode = app_config->get("dark_color_mode") == "1") {
-        NppDarkMode::InitDarkMode();
-        if (dark_mode != NppDarkMode::IsDarkMode())
-            NppDarkMode::SetDarkMode(dark_mode);
-    }
+    NppDarkMode::InitDarkMode(app_config->get("dark_color_mode") == "1", app_config->get("sys_menu_enabled") == "1");
 #endif
     SplashScreen* scrn = nullptr;
     if (app_config->get("show_splash_screen") == "1") {
@@ -1073,26 +1131,30 @@ bool GUI_App::on_init_inner()
         Bind(EVT_SLIC3R_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
             app_config->set("version_online", into_u8(evt.GetString()));
             app_config->save();
-            if (this->plater_ != nullptr) {
+            std::string opt = app_config->get("notify_release");
+            if (this->plater_ != nullptr && (opt == "all" || opt == "release")) {
                 if (*Semver::parse(SLIC3R_VERSION) < *Semver::parse(into_u8(evt.GetString()))) {
-                    this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable);
+                    this->plater_->get_notification_manager()->push_notification(NotificationType::NewAppAvailable
+                        , NotificationManager::NotificationLevel::ImportantNotificationLevel
+                        , Slic3r::format(_u8L("New release version %1% is available."), evt.GetString())
+                        , _u8L("See Download page.")
+                        , [](wxEvtHandler* evnthndlr) {wxGetApp().open_web_page_localized("https://www.prusa3d.com/slicerweb"); return true; }
+                    );
                 }
             }
             });
-        Bind(EVT_SLIC3R_ALPHA_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
+        Bind(EVT_SLIC3R_EXPERIMENTAL_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
             app_config->save();
-            if (this->plater_ != nullptr && app_config->get("notify_testing_release") == "1") {
-                if (*Semver::parse(SLIC3R_VERSION) < *Semver::parse(into_u8(evt.GetString()))) {
-                    this->plater_->get_notification_manager()->push_notification(NotificationType::NewAlphaAvailable);
-                }
-            }
-            });
-        Bind(EVT_SLIC3R_BETA_VERSION_ONLINE, [this](const wxCommandEvent& evt) {
-            app_config->save();
-            if (this->plater_ != nullptr && app_config->get("notify_testing_release") == "1") {
-                if (*Semver::parse(SLIC3R_VERSION) < *Semver::parse(into_u8(evt.GetString()))) {
-                    this->plater_->get_notification_manager()->close_notification_of_type(NotificationType::NewAlphaAvailable);
-                    this->plater_->get_notification_manager()->push_notification(NotificationType::NewBetaAvailable);
+            if (this->plater_ != nullptr && app_config->get("notify_release") == "all") {
+                std::string evt_string = into_u8(evt.GetString());
+                if (*Semver::parse(SLIC3R_VERSION) < *Semver::parse(evt_string)) {
+                    auto notif_type = (evt_string.find("beta") != std::string::npos ? NotificationType::NewBetaAvailable : NotificationType::NewAlphaAvailable);
+                    this->plater_->get_notification_manager()->push_notification( notif_type
+                        , NotificationManager::NotificationLevel::ImportantNotificationLevel
+                        , Slic3r::format(_u8L("New prerelease version %1% is available."), evt_string)
+                        , _u8L("See Releases page.")
+                        , [](wxEvtHandler* evnthndlr) {wxGetApp().open_browser_with_warning_dialog("https://github.com/prusa3d/PrusaSlicer/releases"); return true; }
+                    );
                 }
             }
             });
@@ -1347,10 +1409,9 @@ void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/)
 {
 #ifdef _WIN32
     UpdateDarkUI(dvc, highlited ? dark_mode() : false);
-    wxItemAttr attr(dark_mode() ? m_color_highlight_default : m_color_label_default,
-        m_color_window_default,
-        m_normal_font);
-    dvc->SetHeaderAttr(attr);
+#ifdef _MSW_DARK_MODE
+    dvc->RefreshHeaderDarkMode(&m_normal_font);
+#endif //_MSW_DARK_MODE
     if (dvc->HasFlag(wxDV_ROW_LINES))
         dvc->SetAlternateRowColour(m_color_highlight_default);
     if (dvc->GetBorder() != wxBORDER_SIMPLE)
@@ -1574,12 +1635,44 @@ void fatal_error(wxWindow* parent)
 }
 
 #ifdef _WIN32
+
+#ifdef _MSW_DARK_MODE
+static void update_scrolls(wxWindow* window)
+{
+    wxWindowList::compatibility_iterator node = window->GetChildren().GetFirst();
+    while (node)
+    {
+        wxWindow* win = node->GetData();
+        if (dynamic_cast<wxScrollHelper*>(win) ||
+            dynamic_cast<wxTreeCtrl*>(win) ||
+            dynamic_cast<wxTextCtrl*>(win))
+            NppDarkMode::SetDarkExplorerTheme(win->GetHWND());
+
+        update_scrolls(win);
+        node = node->GetNext();
+    }
+}
+#endif //_MSW_DARK_MODE
+
+
+#ifdef _MSW_DARK_MODE
+void GUI_App::force_menu_update()
+{
+    NppDarkMode::SetSystemMenuForApp(app_config->get("sys_menu_enabled") == "1");
+}
+#endif //_MSW_DARK_MODE
+
 void GUI_App::force_colors_update()
 {
+#ifdef _MSW_DARK_MODE
     NppDarkMode::SetDarkMode(app_config->get("dark_color_mode") == "1");
+    if (WXHWND wxHWND = wxToolTip::GetToolTipCtrl())
+        NppDarkMode::SetDarkExplorerTheme((HWND)wxHWND);
+    NppDarkMode::SetDarkTitleBar(mainframe->GetHWND());
+#endif //_MSW_DARK_MODE
     m_force_colors_update = true;
 }
-#endif
+#endif //_WIN32
 
 // Called after the Preferences dialog is closed and the program settings are saved.
 // Update the UI based on the current preferences.
@@ -1587,11 +1680,15 @@ void GUI_App::update_ui_from_settings()
 {
     update_label_colours();
 #ifdef _WIN32
-    // Upadte UU colors before Update UI from settings
+    // Upadte UI colors before Update UI from settings
     if (m_force_colors_update) {
         m_force_colors_update = false;
         mainframe->force_color_changed();
         mainframe->diff_dialog.force_color_changed();
+        mainframe->printhost_queue_dlg()->force_color_changed();
+#ifdef _MSW_DARK_MODE
+        update_scrolls(mainframe);
+#endif //_MSW_DARK_MODE
     }
 #endif
     mainframe->update_ui_from_settings();
@@ -2000,7 +2097,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
         local_menu->Append(config_id_base + ConfigMenuWizard, config_wizard_name + dots, config_wizard_tooltip);
         local_menu->Append(config_id_base + ConfigMenuSnapshots, _L("&Configuration Snapshots") + dots, _L("Inspect / activate configuration snapshots"));
         local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _L("Take Configuration &Snapshot"), _L("Capture a configuration snapshot"));
-        local_menu->Append(config_id_base + ConfigMenuUpdate, _L("Check for updates"), _L("Check for configuration updates"));
+        local_menu->Append(config_id_base + ConfigMenuUpdate, _L("Check for Configuration Updates"), _L("Check for configuration updates"));
 #if defined(__linux__) && defined(SLIC3R_DESKTOP_INTEGRATION) 
         //if (DesktopIntegrationDialog::integration_possible())
         local_menu->Append(config_id_base + ConfigMenuDesktopIntegration, _L("Desktop Integration"), _L("Desktop Integration"));    
@@ -2824,7 +2921,7 @@ bool GUI_App::open_browser_with_warning_dialog(const wxString& url, int flags/* 
     bool launch = true;
 
     if (get_app_config()->get("suppress_hyperlinks").empty()) {
-        wxRichMessageDialog dialog(nullptr, _L("Should we open this hyperlink in your default browser?"), _L("PrusaSlicer: Open hyperlink"), wxICON_QUESTION | wxYES_NO);
+        RichMessageDialog dialog(nullptr, _L("Should we open this hyperlink in your default browser?"), _L("PrusaSlicer: Open hyperlink"), wxICON_QUESTION | wxYES_NO);
         dialog.ShowCheckBox(_L("Remember my choice"));
         int answer = dialog.ShowModal();
         launch = answer == wxID_YES;

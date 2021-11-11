@@ -684,7 +684,7 @@ public:
 
     void                calculate_convex_hull();
     const TriangleMesh& get_convex_hull() const;
-    std::shared_ptr<const TriangleMesh> get_convex_hull_shared_ptr() const { return m_convex_hull; }
+    const std::shared_ptr<const TriangleMesh>& get_convex_hull_shared_ptr() const { return m_convex_hull; }
     // Get count of errors in the mesh
     int                 get_repaired_errors_count() const;
 

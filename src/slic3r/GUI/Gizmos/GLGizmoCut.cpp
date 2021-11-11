@@ -167,7 +167,11 @@ void GLGizmoCut::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::SetWindowPos(ImVec2(x, y), ImGuiCond_Always);
     if (last_h != win_h || last_y != y) {
         // ask canvas for another frame to render the window in the correct position
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+        m_imgui->set_requires_extra_frame();
+#else
         m_parent.request_extra_frame();
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
         if (last_h != win_h)
             last_h = win_h;
         if (last_y != y)

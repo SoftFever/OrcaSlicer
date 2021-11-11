@@ -40,7 +40,8 @@ ModelInstanceEPrintVolumeState printbed_collision_state(const Polygon& printbed_
             break;
         }
     }
-    const bool contained_z = -1e10 < obj_min_z && obj_max_z < print_volume_height;
+
+    const bool contained_z = -1e10 < obj_min_z && obj_max_z <= print_volume_height;
     return (contained_xy && contained_z) ? ModelInstancePVS_Inside : ModelInstancePVS_Partly_Outside;
 }
 
@@ -1263,10 +1264,10 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, ModelObjectCutAttr
         instances[instance]->get_mirror()
     );
 
-    z -= instances[instance]->get_offset()(2);
+    z -= instances[instance]->get_offset().z();
 
-    // Lower part per-instance bounding boxes
-    std::vector<BoundingBoxf3> lower_bboxes { instances.size() };
+    // Displacement (in instance coordinates) to be applied to place the upper parts
+    Vec3d local_displace = Vec3d::Zero();
 
     for (ModelVolume *volume : volumes) {
         const auto volume_matrix = volume->get_matrix();
@@ -1286,8 +1287,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, ModelObjectCutAttr
             if (attributes.has(ModelObjectCutAttribute::KeepLower))
                 lower->add_volume(*volume);
         }
-        else if (! volume->mesh().empty()) {
-            
+        else if (! volume->mesh().empty()) {            
             // Transform the mesh by the combined transformation matrix.
             // Flip the triangles in case the composite transformation is left handed.
 			TriangleMesh mesh(volume->mesh());
@@ -1327,13 +1327,10 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, ModelObjectCutAttr
 	    		assert(vol->config.id() != volume->config.id());
                 vol->set_material(volume->material_id(), *volume->material());
 
-                // Compute the lower part instances' bounding boxes to figure out where to place
-                // the upper part
-                if (attributes.has(ModelObjectCutAttribute::KeepUpper)) {
-                    for (size_t i = 0; i < instances.size(); i++) {
-                        lower_bboxes[i].merge(instances[i]->transform_mesh_bounding_box(lower_mesh, true));
-                    }
-                }
+                // Compute the displacement (in instance coordinates) to be applied to place the upper parts
+                // The upper part displacement is set to half of the lower part bounding box
+                // this is done in hope at least a part of the upper part will always be visible and draggable
+                local_displace = lower->full_raw_mesh_bounding_box().size().cwiseProduct(Vec3d(-0.5, -0.5, 0.0));
             }
         }
     }
@@ -1341,17 +1338,18 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, ModelObjectCutAttr
     ModelObjectPtrs res;
 
     if (attributes.has(ModelObjectCutAttribute::KeepUpper) && upper->volumes.size() > 0) {
-        upper->invalidate_bounding_box();
-        upper->center_around_origin();
+        if (!upper->origin_translation.isApprox(Vec3d::Zero()) && instances[instance]->get_offset().isApprox(Vec3d::Zero())) {
+            upper->center_around_origin();
+            upper->translate_instances(-upper->origin_translation);
+            upper->origin_translation = Vec3d::Zero();
+        }
 
         // Reset instance transformation except offset and Z-rotation
-        for (size_t i = 0; i < instances.size(); i++) {
+        for (size_t i = 0; i < instances.size(); ++i) {
             auto &instance = upper->instances[i];
             const Vec3d offset = instance->get_offset();
-            const double rot_z = instance->get_rotation()(2);
-            // The upper part displacement is set to half of the lower part bounding box
-            // this is done in hope at least a part of the upper part will always be visible and draggable
-            const Vec3d displace = lower_bboxes[i].size().cwiseProduct(Vec3d(-0.5, -0.5, 0.0));
+            const double rot_z = instance->get_rotation().z();
+            const Vec3d displace = Geometry::assemble_transform(Vec3d::Zero(), instance->get_rotation()) * local_displace;
 
             instance->set_transformation(Geometry::Transformation());
             instance->set_offset(offset + displace);
@@ -1361,14 +1359,16 @@ ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z, ModelObjectCutAttr
         res.push_back(upper);
     }
     if (attributes.has(ModelObjectCutAttribute::KeepLower) && lower->volumes.size() > 0) {
-        lower->invalidate_bounding_box();
-        lower->center_around_origin();
+        if (!lower->origin_translation.isApprox(Vec3d::Zero()) && instances[instance]->get_offset().isApprox(Vec3d::Zero())) {
+            lower->center_around_origin();
+            lower->translate_instances(-lower->origin_translation);
+            lower->origin_translation = Vec3d::Zero();
+        }
 
         // Reset instance transformation except offset and Z-rotation
         for (auto *instance : lower->instances) {
             const Vec3d offset = instance->get_offset();
-            const double rot_z = instance->get_rotation()(2);
-
+            const double rot_z = instance->get_rotation().z();
             instance->set_transformation(Geometry::Transformation());
             instance->set_offset(offset);
             instance->set_rotation(Vec3d(attributes.has(ModelObjectCutAttribute::FlipLower) ? Geometry::deg2rad(180.0) : 0.0, 0.0, rot_z));
@@ -1860,18 +1860,17 @@ size_t ModelVolume::split(unsigned int max_extruders)
 
     size_t idx = 0;
     size_t ivolume = std::find(this->object->volumes.begin(), this->object->volumes.end(), this) - this->object->volumes.begin();
-    std::string name = this->name;
+    const std::string name = this->name;
 
     unsigned int extruder_counter = 0;
-    Vec3d offset = this->get_offset();
+    const Vec3d offset = this->get_offset();
 
     for (TriangleMesh &mesh : meshes) {
         if (mesh.empty())
             // Repair may have removed unconnected triangles, thus emptying the mesh.
             continue;
 
-        if (idx == 0)
-        {
+        if (idx == 0) {
             this->set_mesh(std::move(mesh));
             this->calculate_convex_hull();
             // Assign a new unique ID, so that a new GLVolume will be generated.
@@ -1890,7 +1889,19 @@ size_t ModelVolume::split(unsigned int max_extruders)
         this->object->volumes[ivolume]->m_is_splittable = 0;
         ++ idx;
     }
-    
+
+    // discard volumes for which the convex hull was not generated or is degenerate
+    size_t i = 0;
+    while (i < this->object->volumes.size()) {
+        const std::shared_ptr<const TriangleMesh> &hull = this->object->volumes[i]->get_convex_hull_shared_ptr();
+        if (hull == nullptr || hull->its.vertices.empty() || hull->its.indices.empty()) {
+            this->object->delete_volume(i);
+            --idx;
+            --i;
+        }
+        ++i;
+    }
+
     return idx;
 }
 

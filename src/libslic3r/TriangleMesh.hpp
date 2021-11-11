@@ -219,8 +219,8 @@ std::vector<indexed_triangle_set> its_split(const indexed_triangle_set &its);
 std::vector<indexed_triangle_set> its_split(const indexed_triangle_set &its, std::vector<Vec3i> &face_neighbors);
 
 // Number of disconnected patches (faces are connected if they share an edge, shared edge defined with 2 shared vertex indices).
-bool its_number_of_patches(const indexed_triangle_set &its);
-bool its_number_of_patches(const indexed_triangle_set &its, const std::vector<Vec3i> &face_neighbors);
+size_t its_number_of_patches(const indexed_triangle_set &its);
+size_t its_number_of_patches(const indexed_triangle_set &its, const std::vector<Vec3i> &face_neighbors);
 // Same as its_number_of_patches(its) > 1, but faster.
 bool its_is_splittable(const indexed_triangle_set &its);
 bool its_is_splittable(const indexed_triangle_set &its, const std::vector<Vec3i> &face_neighbors);

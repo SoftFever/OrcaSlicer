@@ -1087,6 +1087,8 @@ void Sidebar::msw_rescale()
     p->btn_reslice     ->SetMinSize(wxSize(-1, scaled_height));
 
     p->scrolled->Layout();
+
+    p->searcher.dlg_msw_rescale();
 }
 
 void Sidebar::sys_color_changed()
@@ -1125,6 +1127,8 @@ void Sidebar::sys_color_changed()
     p->btn_export_gcode_removable->msw_rescale();
 
     p->scrolled->Layout();
+
+    p->searcher.dlg_sys_color_changed();
 }
 
 void Sidebar::search()
@@ -1916,7 +1920,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         "bed_shape", "bed_custom_texture", "bed_custom_model", "complete_objects", "duplicate_distance", "extruder_clearance_radius", "skirts", "skirt_distance",
         "brim_width", "brim_separation", "brim_type", "variable_layer_height", "nozzle_diameter", "single_extruder_multi_material",
         "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_brim_width",
-        "extruder_colour", "filament_colour", "max_print_height", "printer_model", "printer_technology",
+        "extruder_colour", "filament_colour", "material_colour", "max_print_height", "printer_model", "printer_technology",
         // These values are necessary to construct SlicingParameters by the Canvas3D variable layer height editor.
         "layer_height", "first_layer_height", "min_layer_height", "max_layer_height",
         "brim_width", "perimeters", "perimeter_extruder", "fill_density", "infill_extruder", "top_solid_layers", 
@@ -2478,15 +2482,15 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             model.convert_from_meters(true);
                     };
                     if (answer_convert_from_meters == wxOK_DEFAULT) {
-                        MessageWithCheckDialog dlg(q, format_wxstr(_L_PLURAL(
+                        RichMessageDialog dlg(q, format_wxstr(_L_PLURAL(
                             "The dimensions of the object from file %s seem to be defined in meters.\n"
                             "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of the object?",
                             "The dimensions of some objects from file %s seem to be defined in meters.\n"
                             "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
-                            _L("Apply to all the remaining small objects being loaded."),
-                            _L("The object is too small"), wxICON_WARNING | wxYES | wxNO);
+                            _L("The object is too small"), wxICON_QUESTION | wxYES_NO);
+                        dlg.ShowCheckBox(_L("Apply to all the remaining small objects being loaded."));
                         int answer = dlg.ShowModal();
-                        if (dlg.GetCheckVal())
+                        if (dlg.IsCheckBoxChecked())
                             answer_convert_from_meters = answer;
                         else 
                             convert_model_if(model, answer == wxID_YES);
@@ -2500,15 +2504,15 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             convert_from_imperial_units(model, true);
                     };
                     if (answer_convert_from_imperial_units == wxOK_DEFAULT) {
-                        MessageWithCheckDialog dlg(q, format_wxstr(_L_PLURAL(
+                        RichMessageDialog dlg(q, format_wxstr(_L_PLURAL(
                             "The dimensions of the object from file %s seem to be defined in inches.\n"
                             "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of the object?",
                             "The dimensions of some objects from file %s seem to be defined in inches.\n"
                             "The internal unit of PrusaSlicer are millimeters. Do you want to recalculate the dimensions of these objects?", model.objects.size()), from_path(filename)) + "\n",
-                            _L("Apply to all the remaining small objects being loaded."),
-                            _L("The object is too small"), wxICON_WARNING | wxYES | wxNO);
+                            _L("The object is too small"), wxICON_QUESTION | wxYES_NO);
+                        dlg.ShowCheckBox(_L("Apply to all the remaining small objects being loaded."));
                         int answer = dlg.ShowModal();
-                        if (dlg.GetCheckVal())
+                        if (dlg.IsCheckBoxChecked())
                             answer_convert_from_imperial_units = answer;
                         else 
                             convert_model_if(model, answer == wxID_YES);
@@ -5055,6 +5059,7 @@ void Plater::new_project()
     Plater::SuppressSnapshots suppress(this);
     reset();
     reset_project_dirty_initial_presets();
+    wxGetApp().update_saved_preset_from_current_preset();
     update_project_dirty_from_presets();
 }
 
@@ -6216,6 +6221,9 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
                 p->sidebar->obj_list()->update_extruder_colors();
                 continue;
             }
+        }
+        if (opt_key == "material_colour") {
+            update_scheduled = true; // update should be scheduled (for update 3DScene)
         }
         
         p->config->set_key_value(opt_key, config.option(opt_key)->clone());

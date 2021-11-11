@@ -3163,6 +3163,13 @@ void PrintConfigDef::init_sla_params()
 
 
     // SLA Material settings.
+
+    def = this->add("material_colour", coString);
+    def->label = L("Color");
+    def->tooltip = L("This is only used in the Slic3r interface as a visual help.");
+    def->gui_type = ConfigOptionDef::GUIType::color;
+    def->set_default_value(new ConfigOptionString("#29B2B2"));
+
     def = this->add("material_type", coString);
     def->label = L("SLA material type");
     def->tooltip = L("SLA material type");

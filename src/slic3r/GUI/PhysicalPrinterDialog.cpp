@@ -534,7 +534,7 @@ void PhysicalPrinterDialog::update_host_type(bool printer_change)
                     [model_id](const VendorProfile::PrinterModel& model) { return model.id == model_id; });
                 if (it != models.end() && (it->family == "MK3" || it->family == "MINI"))
                     continue;
-            } else if (!preset->vendor && (boost::ends_with(model_id, "MK3") || boost::ends_with(model_id, "MINI"))) {
+            } else if (!preset->vendor && (boost::starts_with(model_id, "MK3") || boost::starts_with(model_id, "MINI"))) {
                 continue;
             }
             

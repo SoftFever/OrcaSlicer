@@ -256,7 +256,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     const char * format = (m_configuration.decimate_ratio > 10)? "%.0f %%": 
         ((m_configuration.decimate_ratio > 1)? "%.1f %%":"%.2f %%");
 
-    if (ImGui::SliderFloat("##decimate_ratio", &m_configuration.decimate_ratio, 0.f, 100.f, format)) {
+    if(m_imgui->slider_float("##decimate_ratio",  &m_configuration.decimate_ratio, 0.f, 100.f, format)){
         if (m_configuration.decimate_ratio < 0.f)
             m_configuration.decimate_ratio = 0.01f;
         if (m_configuration.decimate_ratio > 100.f)

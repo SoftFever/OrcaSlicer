@@ -419,7 +419,7 @@ wxString PresetComboBox::separator(const std::string& label)
 
 wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, const std::string& main_icon_name, 
                                     bool is_compatible/* = true*/, bool is_system/* = false*/, bool is_single_bar/* = false*/,
-                                    std::string filament_rgb/* = ""*/, std::string extruder_rgb/* = ""*/)
+                                    const std::string& filament_rgb/* = ""*/, const std::string& extruder_rgb/* = ""*/, const std::string& material_rgb/* = ""*/)
 {
     // If the filament preset is not compatible and there is a "red flag" icon loaded, show it left
     // to the filament color image.
@@ -431,6 +431,7 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, con
     bool dark_mode = wxGetApp().dark_mode();
     if (dark_mode)
         bitmap_key += ",dark";
+    bitmap_key += material_rgb;
 
     wxBitmap* bmp = bitmap_cache().find(bitmap_key);
     if (bmp == nullptr) {
@@ -457,7 +458,10 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, con
         {
             // Paint the color bars.
             bmps.emplace_back(bitmap_cache().mkclear(thin_space_icon_width, icon_height));
-            bmps.emplace_back(create_scaled_bitmap(main_icon_name));
+            if (m_type == Preset::TYPE_SLA_MATERIAL)
+                bmps.emplace_back(create_scaled_bitmap(main_icon_name, this, 16, false, material_rgb));
+            else
+                bmps.emplace_back(create_scaled_bitmap(main_icon_name));
             // Paint a lock at the system presets.
             bmps.emplace_back(bitmap_cache().mkclear(wide_space_icon_width, icon_height));
         }
@@ -789,7 +793,7 @@ void PlaterPresetComboBox::update()
         if (!preset.is_visible || (!preset.is_compatible && !is_selected))
             continue;
 
-        std::string bitmap_key, filament_rgb, extruder_rgb;
+        std::string bitmap_key, filament_rgb, extruder_rgb, material_rgb;
         std::string bitmap_type_name = bitmap_key = m_type == Preset::TYPE_PRINTER && preset.printer_technology() == ptSLA ? "sla_printer" : m_main_bitmap_name;
 
         bool single_bar = false;
@@ -803,10 +807,12 @@ void PlaterPresetComboBox::update()
 
             bitmap_key += single_bar ? filament_rgb : filament_rgb + extruder_rgb;
         }
+        else if (m_type == Preset::TYPE_SLA_MATERIAL)
+            material_rgb = is_selected ? m_preset_bundle->sla_materials.get_edited_preset().config.opt_string("material_colour") : preset.config.opt_string("material_colour");
 
         wxBitmap* bmp = get_bmp(bitmap_key, wide_icons, bitmap_type_name, 
                                 preset.is_compatible, preset.is_system || preset.is_default, 
-                                single_bar, filament_rgb, extruder_rgb);
+                                single_bar, filament_rgb, extruder_rgb, material_rgb);
         assert(bmp);
 
         const std::string name = preset.alias.empty() ? preset.name : preset.alias;

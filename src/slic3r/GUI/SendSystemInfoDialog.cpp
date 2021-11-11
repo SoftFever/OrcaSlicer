@@ -1,6 +1,7 @@
 #include "SendSystemInfoDialog.hpp"
 
 #include "libslic3r/AppConfig.hpp"
+#include "libslic3r/BlacklistedLibraryCheck.hpp"
 #include "libslic3r/Platform.hpp"
 #include "libslic3r/Utils.hpp"
 
@@ -478,6 +479,26 @@ static std::string generate_system_info_json()
     }
     hw_node.add_child("Monitors", monitors_node);
     data_node.add_child("Hardware", hw_node);
+
+#ifdef _WIN32
+    {
+        pt::ptree blacklisted_node;
+        std::vector<std::wstring> blacklisted_libraries;
+        BlacklistedLibraryCheck::get_instance().get_blacklisted(blacklisted_libraries);
+        for (const std::wstring& wstr : blacklisted_libraries) {
+            std::string utf8 = boost::nowide::narrow(wstr);
+            if (size_t last_bs_pos = utf8.find_last_of("\\"); last_bs_pos < utf8.size() - 1) {
+                // Remove anything before last backslash so we don't send the path to the DLL.
+                utf8.erase(0, last_bs_pos + 1);
+            }
+            pt::ptree node; // Create an unnamed node containing the value
+            node.put("", utf8);
+            blacklisted_node.push_back(std::make_pair("", node)); // Add this node to the list.
+        }
+        if (! blacklisted_libraries.empty())
+            data_node.add_child("Blacklisted libraries", blacklisted_node);
+    }
+#endif // _WIN32
 
     pt::ptree opengl_node;
     opengl_node.put("Version", OpenGLManager::get_gl_info().get_version());

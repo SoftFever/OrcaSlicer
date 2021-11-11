@@ -866,6 +866,9 @@ void ObjectManipulation::change_rotation_value(int axis, double value)
 
 void ObjectManipulation::change_scale_value(int axis, double value)
 {
+    if (value <= 0.0)
+        return;
+
     if (std::abs(m_cache.scale_rounded(axis) - value) < EPSILON)
         return;
 
@@ -882,6 +885,9 @@ void ObjectManipulation::change_scale_value(int axis, double value)
 
 void ObjectManipulation::change_size_value(int axis, double value)
 {
+    if (value <= 0.0)
+        return;
+
     if (std::abs(m_cache.size_rounded(axis) - value) < EPSILON)
         return;
 
@@ -947,10 +953,26 @@ void ObjectManipulation::on_change(const std::string& opt_key, int axis, double 
         change_position_value(axis, new_value);
     else if (opt_key == "rotation")
         change_rotation_value(axis, new_value);
-    else if (opt_key == "scale")
-        change_scale_value(axis, new_value);
-    else if (opt_key == "size")
-        change_size_value(axis, new_value);
+    else if (opt_key == "scale") {
+        if (new_value > 0.0)
+            change_scale_value(axis, new_value);
+        else {
+            new_value = m_cache.scale(axis);
+            m_cache.scale(axis) = 0.0;
+            m_cache.scale_rounded(axis) = DBL_MAX;
+            change_scale_value(axis, new_value);
+        }
+    }
+    else if (opt_key == "size") {
+        if (new_value > 0.0)
+            change_size_value(axis, new_value);
+        else {
+            new_value = m_cache.size(axis);
+            m_cache.size(axis) = 0.0;
+            m_cache.size_rounded(axis) = DBL_MAX;
+            change_size_value(axis, new_value);
+        }
+    }
 }
 
 void ObjectManipulation::set_uniform_scaling(const bool new_value)

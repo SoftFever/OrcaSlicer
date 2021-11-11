@@ -71,8 +71,6 @@ void AppConfig::set_defaults()
         if (get("drop_project_action").empty())
             set("drop_project_action", "1");
 
-        if (get("version_check").empty())
-            set("version_check", "1");
         if (get("preset_update").empty())
             set("preset_update", "1");
 
@@ -182,6 +180,9 @@ void AppConfig::set_defaults()
 
     if (get("dark_color_mode").empty())
         set("dark_color_mode", "0");
+
+    if (get("sys_menu_enabled").empty())
+        set("sys_menu_enabled", "1");
 #endif // _WIN32
 
     // Remove legacy window positions/sizes

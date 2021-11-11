@@ -27,6 +27,10 @@
 #include <wx/wupdlock.h>
 #include <wx/debug.h>
 
+#ifdef _MSW_DARK_MODE
+#include <wx/msw/dark_mode.h>
+#endif // _MSW_DARK_MODE
+
 #include "libslic3r/Platform.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Config.hpp"
@@ -551,7 +555,7 @@ PagePrinters::PagePrinters(ConfigWizard *parent,
             wizard_p()->on_printer_pick(this, evt);
         });
 
-        append(new wxStaticLine(this));
+        append(new StaticLine(this));
 
         append(picker);
         printer_pickers.push_back(picker);
@@ -1202,7 +1206,7 @@ PageUpdate::PageUpdate(ConfigWizard *parent)
     boldfont.SetWeight(wxFONTWEIGHT_BOLD);
 
     auto *box_slic3r = new wxCheckBox(this, wxID_ANY, _L("Check for application updates"));
-    box_slic3r->SetValue(app_config->get("version_check") == "1");
+    box_slic3r->SetValue(app_config->get("notify_release") != "none");
     append(box_slic3r);
     append_text(wxString::Format(_L(
         "If enabled, %s checks for new application versions online. When a new version becomes available, "
@@ -2693,7 +2697,7 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 
     app_config->set_vendors(appconfig_new);
 
-    app_config->set("version_check", page_update->version_check ? "1" : "0");
+    app_config->set("notify_release", page_update->version_check ? "all" : "none");
     app_config->set("preset_update", page_update->preset_update ? "1" : "0");
     app_config->set("export_sources_full_pathnames", page_reload_from_disk->full_pathnames ? "1" : "0");
 
@@ -2796,7 +2800,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
 
     auto *vsizer = new wxBoxSizer(wxVERTICAL);
     auto *topsizer = new wxBoxSizer(wxHORIZONTAL);
-    auto *hline = new wxStaticLine(this);
+    auto* hline = new StaticLine(this);
     p->btnsizer = new wxBoxSizer(wxHORIZONTAL);
 
     // Initially we _do not_ SetScrollRate in order to figure out the overall width of the Wizard  without scrolling.
@@ -2872,7 +2876,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->index->go_to(size_t{0});
 
     vsizer->Add(topsizer, 1, wxEXPAND | wxALL, DIALOG_MARGIN);
-    vsizer->Add(hline, 0, wxEXPAND);
+    vsizer->Add(hline, 0, wxEXPAND | wxLEFT | wxRIGHT, VERTICAL_SPACING);
     vsizer->Add(p->btnsizer, 0, wxEXPAND | wxALL, DIALOG_MARGIN);
 
     SetSizer(vsizer);

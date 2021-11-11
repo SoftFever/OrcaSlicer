@@ -141,14 +141,6 @@ void PreferencesDialog::build(size_t selected_tab)
 		option = Option(def, "background_processing");
 		m_optgroup_general->append_single_option_line(option);
 
-		// Please keep in sync with ConfigWizard
-		def.label = L("Check for application updates");
-		def.type = coBool;
-		def.tooltip = L("If enabled, PrusaSlicer will check for the new versions of itself online. When a new version becomes available a notification is displayed at the next application startup (never during program usage). This is only a notification mechanisms, no automatic installation is done.");
-		def.set_default_value(new ConfigOptionBool(app_config->get("version_check") == "1"));
-		option = Option(def, "version_check");
-		m_optgroup_general->append_single_option_line(option);
-
 		m_optgroup_general->append_separator();
 
 		// Please keep in sync with ConfigWizard
@@ -350,8 +342,6 @@ void PreferencesDialog::build(size_t selected_tab)
 			tabs->Layout();
 			this->layout();
 		}
-
-		
 	};
 
 	def.label = L("Sequential slider applied only to top layer");
@@ -395,16 +385,6 @@ void PreferencesDialog::build(size_t selected_tab)
 		m_optgroup_gui->append_single_option_line(option);
 
 #ifdef _MSW_DARK_MODE
-	}
-		def.label = L("Use Dark color mode (experimental)");
-		def.type = coBool;
-		def.tooltip = L("If enabled, UI will use Dark mode colors. "
-						"If disabled, old UI will be used.");
-		def.set_default_value(new ConfigOptionBool{ app_config->get("dark_color_mode") == "1" });
-		option = Option(def, "dark_color_mode");
-		m_optgroup_gui->append_single_option_line(option);
-
-	if (is_editor) {
 		def.label = L("Set settings tabs as menu items (experimental)");
 		def.type = coBool;
 		def.tooltip = L("If enabled, Settings Tabs will be placed as menu items. "
@@ -484,6 +464,36 @@ void PreferencesDialog::build(size_t selected_tab)
 	}
 #endif // ENABLE_ENVIRONMENT_MAP
 
+#ifdef _WIN32
+	// Add "Dark Mode" tab
+	if (is_editor) {
+		// Add "Dark Mode" tab
+		m_optgroup_dark_mode = create_options_tab(_L("Dark mode (experimental)"), tabs);
+		m_optgroup_dark_mode->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
+			m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
+		};
+
+		def.label = L("Enable dark mode");
+		def.type = coBool;
+		def.tooltip = L("If enabled, UI will use Dark mode colors. "
+			"If disabled, old UI will be used.");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("dark_color_mode") == "1" });
+		option = Option(def, "dark_color_mode");
+		m_optgroup_dark_mode->append_single_option_line(option);
+
+		def.label = L("Use system menu for application");
+		def.type = coBool;
+		def.tooltip = L("If enabled, application will use standart Windows system menu,\n"
+			"but on some combination od display scales it can looks ugly. "
+			"If disabled, old UI will be used.");
+		def.set_default_value(new ConfigOptionBool{ app_config->get("sys_menu_enabled") == "1" });
+		option = Option(def, "sys_menu_enabled");
+		m_optgroup_dark_mode->append_single_option_line(option);
+
+		activate_options_tab(m_optgroup_dark_mode);
+	}
+#endif //_WIN32
+
 	// update alignment of the controls for all tabs
 	update_ctrls_alignment();
 
@@ -525,7 +535,7 @@ void PreferencesDialog::accept(wxEvent&)
 //	if (m_values.find("no_defaults") != m_values.end()
 //		warning_catcher(this, wxString::Format(_L("You need to restart %s to make the changes effective."), SLIC3R_APP_NAME));
 
-	std::vector<std::string> options_to_recreate_GUI = { "no_defaults", "tabs_as_menu" };
+	std::vector<std::string> options_to_recreate_GUI = { "no_defaults", "tabs_as_menu", "sys_menu_enabled" };
 
 	for (const std::string& option : options_to_recreate_GUI) {
 		if (m_values.find(option) != m_values.end()) {
@@ -588,11 +598,14 @@ void PreferencesDialog::accept(wxEvent&)
 
 	EndModal(wxID_OK);
 
-#ifdef _MSW_DARK_MODE
+#ifdef _WIN32
 	if (m_values.find("dark_color_mode") != m_values.end())
 		wxGetApp().force_colors_update();
-#endif
-
+#ifdef _MSW_DARK_MODE
+	if (m_values.find("sys_menu_enabled") != m_values.end())
+		wxGetApp().force_menu_update();
+#endif //_MSW_DARK_MODE
+#endif // _WIN32
 	if (m_settings_layout_changed)
 		;// application will be recreated after Preference dialog will be destroyed
 	else

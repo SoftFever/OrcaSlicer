@@ -128,9 +128,13 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     m_imgui->text(m_desc.at("cursor_size"));
     ImGui::SameLine(sliders_width);
     ImGui::PushItemWidth(window_width - sliders_width);
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    m_imgui->slider_float("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true, _L("Alt + Mouse wheel"));
+#else
     m_imgui->slider_float("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f");
     if (ImGui::IsItemHovered())
         m_imgui->tooltip(_L("Alt + Mouse wheel"), max_tooltip_width);
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("cursor_type"));
@@ -168,11 +172,16 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::SameLine(sliders_width);
     ImGui::PushItemWidth(window_width - sliders_width);
     auto clp_dist = float(m_c->object_clipper()->get_position());
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    if (m_imgui->slider_float("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true, _L("Ctrl + Mouse wheel")))
+        m_c->object_clipper()->set_position(clp_dist, true);
+#else
     if (m_imgui->slider_float("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f"))
         m_c->object_clipper()->set_position(clp_dist, true);
 
     if (ImGui::IsItemHovered())
         m_imgui->tooltip(_L("Ctrl + Mouse wheel"), max_tooltip_width);
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 
     ImGui::Separator();
     if (m_imgui->button(m_desc.at("remove_all"))) {

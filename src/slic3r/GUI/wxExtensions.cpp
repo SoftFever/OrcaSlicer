@@ -419,7 +419,7 @@ int mode_icon_px_size()
 
 wxBitmap create_menu_bitmap(const std::string& bmp_name)
 {
-    return create_scaled_bitmap(bmp_name, nullptr, 16, false, true);
+    return create_scaled_bitmap(bmp_name, nullptr, 16, false, "", true);
 }
 
 // win is used to get a correct em_unit value
@@ -429,6 +429,7 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
                                 wxWindow *win/* = nullptr*/,
                                 const int px_cnt/* = 16*/, 
                                 const bool grayscale/* = false*/,
+                                const std::string& new_color/* = std::string()*/, // color witch will used instead of orange
                                 const bool menu_bitmap/* = false*/)
 {
     static Slic3r::GUI::BitmapCache cache;
@@ -446,7 +447,7 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
         Slic3r::GUI::wxGetApp().dark_mode();
 
     // Try loading an SVG first, then PNG if SVG is not found:
-    wxBitmap *bmp = cache.load_svg(bmp_name, width, height, grayscale, dark_mode);
+    wxBitmap *bmp = cache.load_svg(bmp_name, width, height, grayscale, dark_mode, new_color);
     if (bmp == nullptr) {
         bmp = cache.load_png(bmp_name, width, height, grayscale);
     }
