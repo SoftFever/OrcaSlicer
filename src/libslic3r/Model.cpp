@@ -1893,7 +1893,7 @@ size_t ModelVolume::split(unsigned int max_extruders)
     // discard volumes for which the convex hull was not generated or is degenerate
     size_t i = 0;
     while (i < this->object->volumes.size()) {
-        std::shared_ptr<const TriangleMesh> hull = this->object->volumes[i]->get_convex_hull_shared_ptr();
+        const std::shared_ptr<const TriangleMesh> &hull = this->object->volumes[i]->get_convex_hull_shared_ptr();
         if (hull == nullptr || hull->its.vertices.empty() || hull->its.indices.empty()) {
             this->object->delete_volume(i);
             --idx;
