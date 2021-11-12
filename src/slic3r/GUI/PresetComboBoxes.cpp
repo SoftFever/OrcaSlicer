@@ -573,31 +573,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
             }
 
             // Swallow the mouse click and open the color picker.
-
-            // get current color
-            DynamicPrintConfig* cfg = wxGetApp().get_tab(Preset::TYPE_PRINTER)->get_config();
-            auto colors = static_cast<ConfigOptionStrings*>(cfg->option("extruder_colour")->clone());
-            wxColour clr(colors->values[m_extruder_idx]);
-            if (!clr.IsOk())
-                clr = wxColour(0,0,0); // Don't set alfa to transparence
-
-            auto data = new wxColourData();
-            data->SetChooseFull(1);
-            data->SetColour(clr);
-
-            wxColourDialog dialog(this, data);
-            dialog.CenterOnParent();
-            if (dialog.ShowModal() == wxID_OK)
-            {
-                colors->values[m_extruder_idx] = dialog.GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
-
-                DynamicPrintConfig cfg_new = *cfg;
-                cfg_new.set_key_value("extruder_colour", colors);
-
-                wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg_new);
-                this->update();
-                wxGetApp().plater()->on_config_change(cfg_new);
-            }
+            change_extruder_color();
         });
     }
 
@@ -607,28 +583,15 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
     edit_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent)
     {
         // In a case of a physical printer, for its editing open PhysicalPrinterDialog
-        if (m_type == Preset::TYPE_PRINTER/* && this->is_selected_physical_printer()*/) {
-            this->show_edit_menu();
-            return;
-        }
-
-        if (!switch_to_tab())
-            return;
-
-        /* In a case of a multi-material printing, for editing another Filament Preset
-         * it's needed to select this preset for the "Filament settings" Tab
-         */
-        if (m_type == Preset::TYPE_FILAMENT && wxGetApp().extruders_edited_cnt() > 1)
-        {
-            const std::string& selected_preset = GetString(GetSelection()).ToUTF8().data();
-
-            // Call select_preset() only if there is new preset and not just modified
-            if ( !boost::algorithm::ends_with(selected_preset, Preset::suffix_modified()) )
-            {
-                const std::string& preset_name = wxGetApp().preset_bundle->filaments.get_preset_name_by_alias(selected_preset);
-                wxGetApp().get_tab(m_type)->select_preset(preset_name);
-            }
-        }
+        if (m_type == Preset::TYPE_PRINTER
+#ifdef __linux__
+            // To edit extruder color from the sidebar
+            || m_type == Preset::TYPE_FILAMENT
+#endif //__linux__
+            )
+            show_edit_menu();
+        else
+            switch_to_tab();
     });
 }
 
@@ -672,20 +635,59 @@ void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
     evt.Skip();
 }
 
-bool PlaterPresetComboBox::switch_to_tab()
+void PlaterPresetComboBox::switch_to_tab()
 {
     Tab* tab = wxGetApp().get_tab(m_type);
     if (!tab)
-        return false;
+        return;
 
-    int page_id = wxGetApp().tab_panel()->FindPage(tab);
-    if (page_id == wxNOT_FOUND)
-        return false;
+    if (int page_id = wxGetApp().tab_panel()->FindPage(tab); page_id != wxNOT_FOUND)
+    {
+        wxGetApp().tab_panel()->SetSelection(page_id);
+        // Switch to Settings NotePad
+        wxGetApp().mainframe->select_tab();
 
-    wxGetApp().tab_panel()->SetSelection(page_id);
-    // Switch to Settings NotePad
-    wxGetApp().mainframe->select_tab();
-    return true;
+        //In a case of a multi-material printing, for editing another Filament Preset
+        //it's needed to select this preset for the "Filament settings" Tab
+        if (m_type == Preset::TYPE_FILAMENT && wxGetApp().extruders_edited_cnt() > 1)
+        {
+            const std::string& selected_preset = GetString(GetSelection()).ToUTF8().data();
+            // Call select_preset() only if there is new preset and not just modified
+            if (!boost::algorithm::ends_with(selected_preset, Preset::suffix_modified()))
+            {
+                const std::string& preset_name = wxGetApp().preset_bundle->filaments.get_preset_name_by_alias(selected_preset);
+                wxGetApp().get_tab(m_type)->select_preset(preset_name);
+            }
+        }
+    }
+}
+
+void PlaterPresetComboBox::change_extruder_color()
+{
+    // get current color
+    DynamicPrintConfig* cfg = wxGetApp().get_tab(Preset::TYPE_PRINTER)->get_config();
+    auto colors = static_cast<ConfigOptionStrings*>(cfg->option("extruder_colour")->clone());
+    wxColour clr(colors->values[m_extruder_idx]);
+    if (!clr.IsOk())
+        clr = wxColour(0, 0, 0); // Don't set alfa to transparence
+
+    auto data = new wxColourData();
+    data->SetChooseFull(1);
+    data->SetColour(clr);
+
+    wxColourDialog dialog(this, data);
+    dialog.CenterOnParent();
+    if (dialog.ShowModal() == wxID_OK)
+    {
+        colors->values[m_extruder_idx] = dialog.GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+
+        DynamicPrintConfig cfg_new = *cfg;
+        cfg_new.set_key_value("extruder_colour", colors);
+
+        wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg_new);
+        this->update();
+        wxGetApp().plater()->on_config_change(cfg_new);
+    }
 }
 
 void PlaterPresetComboBox::show_add_menu()
@@ -713,6 +715,16 @@ void PlaterPresetComboBox::show_edit_menu()
 
     append_menu_item(menu, wxID_ANY, _L("Edit preset"), "",
         [this](wxCommandEvent&) { this->switch_to_tab(); }, "cog", menu, []() { return true; }, wxGetApp().plater());
+
+#ifdef __linux__
+    // To edit extruder color from the sidebar
+    if (m_type == Preset::TYPE_FILAMENT) {
+        append_menu_item(menu, wxID_ANY, _L("Change extruder color"), "",
+            [this](wxCommandEvent&) { this->change_extruder_color(); }, "funnel", menu, []() { return true; }, wxGetApp().plater());
+        wxGetApp().plater()->PopupMenu(menu);
+        return;
+    }
+#endif //__linux__
 
     if (this->is_selected_physical_printer()) {
         append_menu_item(menu, wxID_ANY, _L("Edit physical printer"), "",

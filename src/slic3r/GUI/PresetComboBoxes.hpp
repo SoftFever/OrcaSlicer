@@ -147,7 +147,8 @@ public:
     void set_extruder_idx(const int extr_idx)   { m_extruder_idx = extr_idx; }
     int  get_extruder_idx() const               { return m_extruder_idx; }
 
-    bool switch_to_tab();
+    void switch_to_tab();
+    void change_extruder_color();
     void show_add_menu();
     void show_edit_menu();
 
