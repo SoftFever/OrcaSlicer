@@ -9,6 +9,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/filesystem.hpp>
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/nowide/convert.hpp>
 #endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 
@@ -486,7 +487,16 @@ bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float 
 {
     const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
 
-    bool ret = ImGui::SliderFloat(label, v, v_min, v_max, format, power);
+    std::string str_label;
+    if (boost::algorithm::istarts_with(label, "##"))
+        str_label = std::string(label);
+    else {
+        str_label = std::string("##") + std::string(label);
+        this->text(label);
+        ImGui::SameLine();
+    }
+
+    bool ret = ImGui::SliderFloat(str_label.c_str(), v, v_min, v_max, format, power);
     if (!tooltip.empty() && ImGui::IsItemHovered())
         this->tooltip(into_u8(tooltip).c_str(), max_tooltip_width);
 
@@ -497,10 +507,8 @@ bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float 
         const ImGuiStyle& style = ImGui::GetStyle();
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 1, style.ItemSpacing.y });
         ImGui::SameLine();
-
-        std::wstring btn_name;
-        btn_name = ImGui::SliderFloatEditBtnIcon + boost::nowide::widen(std::string(label));
-        ImGui::PushStyleColor(ImGuiCol_Button, { 0.25f, 0.25f, 0.25f, 1.0f });
+        std::wstring btn_name = ImGui::SliderFloatEditBtnIcon + boost::nowide::widen(str_label);
+        ImGui::PushStyleColor(ImGuiCol_Button, { 0.25f, 0.25f, 0.25f, 0.0f });
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.5f, 0.5f, 0.5f, 1.0f });
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0.5f, 0.5f, 0.5f, 1.0f });
         if (ImGui::Button(into_u8(btn_name).c_str())) {
