@@ -218,7 +218,7 @@ void PreferencesDialog::build(size_t selected_tab)
 
 		m_optgroup_general->append_separator();
 
-		def.label = L("Ask to save unsaved changes when closing the application or when loading a new project.");
+		def.label = L("Ask to save unsaved changes when closing the application or when loading a new project");
 		def.type = coBool;
 		def.tooltip = L("Always ask for unsaved changes, when: \n"
 						"- Closing PrusaSlicer while some presets are modified,\n"

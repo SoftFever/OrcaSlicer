@@ -1068,14 +1068,12 @@ void NotificationManager::UpdatedItemsInfoNotification::add_type(InfoItemType ty
 	for (it = m_types_and_counts.begin(); it != m_types_and_counts.end(); ++it) {
 		if ((*it).second == 0)
 			continue;
-		text += std::to_string((*it).second);
-		text += _L_PLURAL(" Object was loaded with "," Objects were loaded with ", (*it).second).ToUTF8().data();
 		switch ((*it).first) {
-		case InfoItemType::CustomSupports:      text += _utf8("custom supports.\n"); break;
-		case InfoItemType::CustomSeam:          text += _utf8("custom seam.\n"); break;
-		case InfoItemType::MmuSegmentation:     text += _utf8("multimaterial painting.\n"); break;
-		case InfoItemType::VariableLayerHeight: text += _utf8("variable layer height.\n"); break;
-		case InfoItemType::Sinking:             text += _utf8("Partial sinking.\n"); break;
+		case InfoItemType::CustomSupports:      text += format(_L_PLURAL("%1$d Object was loaded with custom supports.",		"%1$d Objects were loaded with custom supports.",		(*it).second), (*it).second) + "\n"; break;
+		case InfoItemType::CustomSeam:          text += format(_L_PLURAL("%1$d Object was loaded with custom seam.",			"%1$d Objects were loaded with custom seam.",			(*it).second), (*it).second) + "\n"; break;
+		case InfoItemType::MmuSegmentation:     text += format(_L_PLURAL("%1$d Object was loaded with multimaterial painting.", "%1$d Objects were loaded with multimaterial painting.",(*it).second), (*it).second) + "\n"; break;
+		case InfoItemType::VariableLayerHeight: text += format(_L_PLURAL("%1$d Object was loaded with variable layer height.",	"%1$d Objects were loaded with variable layer height.", (*it).second), (*it).second) + "\n"; break;
+		case InfoItemType::Sinking:             text += format(_L_PLURAL("%1$d Object was loaded with partial sinking.",		"%1$d Objects were loaded with partial sinking.",		(*it).second), (*it).second) + "\n"; break;
 		default: BOOST_LOG_TRIVIAL(error) << "Unknown InfoItemType: " << (*it).second; break;
 		}
 	}

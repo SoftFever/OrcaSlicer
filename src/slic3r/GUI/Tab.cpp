@@ -1478,7 +1478,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Advanced"));
         optgroup->append_single_option_line("seam_position", category_path + "seam-position");
         optgroup->append_single_option_line("external_perimeters_first", category_path + "external-perimeters-first");
-        optgroup->append_single_option_line("gap_fill_enabled");
+        optgroup->append_single_option_line("gap_fill_enabled", category_path + "fill-gaps");
 
         optgroup = page->new_optgroup(L("Fuzzy skin (experimental)"));
         category_path = "fuzzy-skin_246186/#";
@@ -1497,12 +1497,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("bottom_fill_pattern", category_path + "bottom-fill-pattern");
 
         optgroup = page->new_optgroup(L("Ironing"));
-        optgroup->append_single_option_line("ironing");
-        optgroup->append_single_option_line("ironing_type");
-        optgroup->append_single_option_line("ironing_flowrate");
-        optgroup->append_single_option_line("ironing_spacing");
+        category_path = "ironing_177488#";
+        optgroup->append_single_option_line("ironing", category_path);
+        optgroup->append_single_option_line("ironing_type", category_path + "ironing-type");
+        optgroup->append_single_option_line("ironing_flowrate", category_path + "flow-rate");
+        optgroup->append_single_option_line("ironing_spacing", category_path + "spacing-between-ironing-passes");
 
         optgroup = page->new_optgroup(L("Reducing printing time"));
+        category_path = "infill_42#";
         optgroup->append_single_option_line("infill_every_layers", category_path + "combine-infill-every-x-layers");
         optgroup->append_single_option_line("infill_only_where_needed", category_path + "only-infill-where-needed");
 
@@ -1540,7 +1542,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Raft"));
         optgroup->append_single_option_line("raft_layers", category_path + "raft-layers");
-        optgroup->append_single_option_line("raft_contact_distance");
+        optgroup->append_single_option_line("raft_contact_distance", category_path + "raft-layers");
         optgroup->append_single_option_line("raft_expansion");
 
         optgroup = page->new_optgroup(L("Options for support material and raft"));
@@ -3650,8 +3652,8 @@ void Tab::delete_preset()
                 for (const std::string& printer : ph_printers)
                     msg += "\n    \"" + from_u8(printer) + "\",";
                 msg.RemoveLast();
-                msg += "\n" + _L_PLURAL("Note, that selected preset will be deleted from this printer too.", 
-                                        "Note, that selected preset will be deleted from these printers too.", ph_printers.size()) + "\n\n";
+                msg += "\n" + _L_PLURAL("Note, that the selected preset will be deleted from this printer too.", 
+                                        "Note, that the selected preset will be deleted from these printers too.", ph_printers.size()) + "\n\n";
             }
 
             if (!ph_printers_only.empty()) {
@@ -3660,8 +3662,8 @@ void Tab::delete_preset()
                 for (const std::string& printer : ph_printers_only)
                     msg += "\n    \"" + from_u8(printer) + "\",";
                 msg.RemoveLast();
-                msg += "\n" + _L_PLURAL("Note, that this printer will be deleted after deleting of the selected preset.",
-                                        "Note, that these printers will be deleted after deleting of the selected preset.", ph_printers_only.size()) + "\n\n";
+                msg += "\n" + _L_PLURAL("Note, that this printer will be deleted after deleting the selected preset.",
+                                        "Note, that these printers will be deleted after deleting the selected preset.", ph_printers_only.size()) + "\n\n";
             }
         }
     

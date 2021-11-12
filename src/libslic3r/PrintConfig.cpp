@@ -2441,13 +2441,13 @@ void PrintConfigDef::init_fff_params()
     def = this->add("slicing_mode", coEnum);
     def->label = L("Slicing Mode");
     def->category = L("Advanced");
-    def->tooltip = L("Use \"Even / Odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model.");
+    def->tooltip = L("Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model.");
     def->enum_keys_map = &ConfigOptionEnum<SlicingMode>::get_enum_values();
     def->enum_values.push_back("regular");
     def->enum_values.push_back("even_odd");
     def->enum_values.push_back("close_holes");
     def->enum_labels.push_back(L("Regular"));
-    def->enum_labels.push_back(L("Even / Odd"));
+    def->enum_labels.push_back(L("Even-odd"));
     def->enum_labels.push_back(L("Close holes"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SlicingMode>(SlicingMode::Regular));

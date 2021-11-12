@@ -772,9 +772,11 @@ void PageMaterials::set_compatible_printers_html_window(const std::vector<std::s
             , second_line
             );
     } else {
-        wxString second_line = printer_names.empty() ? "" : format_wxstr(_L("Only the following installed printers are compatible with the selected %1%:"), 
-                                                                         materials->technology == T_FFF ? _CTX(L_CONTEXT("filaments", "WithSelected"), "WithSelected") : 
-                                                                                                          _CTX(L_CONTEXT("SLA materials", "WithSelected"), "WithSelected"));
+        wxString second_line;
+        if (!printer_names.empty())
+            second_line = (materials->technology == T_FFF ?
+                          _L("Only the following installed printers are compatible with the selected filaments") :
+                          _L("Only the following installed printers are compatible with the selected SLA materials")) + ":";
         text = wxString::Format(
             "<html>"
             "<style>"
@@ -2563,7 +2565,7 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
     }
     if (!check_unsaved_preset_changes)
         if ((check_unsaved_preset_changes = install_bundles.size() > 0))
-            header = _L_PLURAL("New vendor was installed and one of its printer will be activated", "New vendors were installed and one of theirs printer will be activated", install_bundles.size());
+            header = _L_PLURAL("A new vendor was installed and one of its printers will be activated", "New vendors were installed and one of theirs printers will be activated", install_bundles.size());
 
 #ifdef __linux__
     // Desktop integration on Linux
