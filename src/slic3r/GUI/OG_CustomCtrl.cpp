@@ -772,65 +772,30 @@ bool OG_CustomCtrl::CtrlLine::launch_browser() const
     bool launch = true;
 
     if (get_app_config()->get("suppress_hyperlinks").empty()) {
-        RememberChoiceDialog dialog(nullptr, _L("Open hyperlink in default browser?"), _L("PrusaSlicer: Open hyperlink"));
+        RichMessageDialog dialog(nullptr, _L("Open hyperlink in default browser?"), _L("PrusaSlicer: Open hyperlink"), wxYES_NO);
+        dialog.ShowCheckBox(_L("Remember my choice"));
         int answer = dialog.ShowModal();
-        launch = answer == wxID_YES;
 
-        get_app_config()->set("suppress_hyperlinks", dialog.remember_choice() ? (answer == wxID_NO ? "1" : "0") : "");
-    }
-    if (launch)
-        launch = get_app_config()->get("suppress_hyperlinks") != "1";
-
-    return  launch && wxLaunchDefaultBrowser(get_url(og_line.label_path));
-}
-
-
-RememberChoiceDialog::RememberChoiceDialog(wxWindow* parent, const wxString& msg_text, const wxString& caption)
-    : wxDialog(parent, wxID_ANY, caption, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxICON_INFORMATION)
-{
-    this->SetEscapeId(wxID_CLOSE);
-
-    wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
-
-    m_remember_choice = new wxCheckBox(this, wxID_ANY, _L("Remember my choice"));
-    m_remember_choice->SetValue(false);
-    m_remember_choice->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& evt)
-        {
-            if (!evt.IsChecked())
-                return;
+        if (dialog.IsCheckBoxChecked()) {
             wxString preferences_item = _L("Suppress to open hyperlink in browser");
             wxString msg =
                 _L("PrusaSlicer will remember your choice.") + "\n\n" +
                 _L("You will not be asked about it again on label hovering.") + "\n\n" +
                 format_wxstr(_L("Visit \"Preferences\" and check \"%1%\"\nto changes your choice."), preferences_item);
 
-            //wxMessageDialog dialog(nullptr, msg, _L("PrusaSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
-            MessageDialog dialog(nullptr, msg, _L("PrusaSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
-            if (dialog.ShowModal() == wxID_CANCEL)
-                m_remember_choice->SetValue(false);
-        });
+            MessageDialog msg_dlg(nullptr, msg, _L("PrusaSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
+            if (msg_dlg.ShowModal() == wxID_CANCEL)
+                return false;
 
+            get_app_config()->set("suppress_hyperlinks", dialog.IsCheckBoxChecked() ? (answer == wxID_NO ? "1" : "0") : "");
+        }
 
-    // Add dialog's buttons
-    wxStdDialogButtonSizer* btns = this->CreateStdDialogButtonSizer(wxYES | wxNO);
-    wxButton* btnYES = static_cast<wxButton*>(this->FindWindowById(wxID_YES, this));
-    wxButton* btnNO = static_cast<wxButton*>(this->FindWindowById(wxID_NO, this));
-    btnYES->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { this->EndModal(wxID_YES); });
-    btnNO->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { this->EndModal(wxID_NO); });
+        launch = answer == wxID_YES;
+    }
+    if (launch)
+        launch = get_app_config()->get("suppress_hyperlinks") != "1";
 
-    topSizer->Add(new wxStaticText(this, wxID_ANY, msg_text), 0, wxEXPAND | wxALL, 10);
-    topSizer->Add(m_remember_choice, 0, wxEXPAND | wxALL, 10);
-    topSizer->Add(btns, 0, wxEXPAND | wxALL, 10);
-
-#ifdef _WIN32
-    wxGetApp().UpdateDlgDarkUI(this);
-#else
-    this->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-#endif
-    this->SetSizer(topSizer);
-    topSizer->SetSizeHints(this);
-
-    this->CenterOnScreen();
+    return launch && wxLaunchDefaultBrowser(get_url(og_line.label_path));
 }
 
 } // GUI
