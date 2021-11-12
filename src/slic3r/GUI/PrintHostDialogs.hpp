@@ -36,8 +36,8 @@ public:
     virtual void EndModal(int ret) override;
 private:
     wxTextCtrl *txt_filename;
-    wxCheckBox *box_print;
     wxComboBox *combo_groups;
+    bool start_print_selected { false };
 };
 
 

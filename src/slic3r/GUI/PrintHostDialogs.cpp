@@ -39,9 +39,8 @@ static const char *CONFIG_KEY_PRINT = "printhost_print";
 static const char *CONFIG_KEY_GROUP = "printhost_group";
 
 PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, bool can_start_print, const wxArrayString &groups)
-    : MsgDialog(static_cast<wxWindow*>(wxGetApp().mainframe), _L("Send G-Code to printer host"), _L("Upload to Printer Host with the following filename:"), wxOK | wxCANCEL)
+    : MsgDialog(static_cast<wxWindow*>(wxGetApp().mainframe), _L("Send G-Code to printer host"), _L("Upload to Printer Host with the following filename:"))
     , txt_filename(new wxTextCtrl(this, wxID_ANY))
-    , box_print(can_start_print ? new wxCheckBox(this, wxID_ANY, _L("Start printing after upload")) : nullptr)
     , combo_groups(!groups.IsEmpty() ? new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, groups, wxCB_READONLY) : nullptr)
 {
 #ifdef __APPLE__
@@ -55,10 +54,6 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, bool can_start_pr
     content_sizer->Add(txt_filename, 0, wxEXPAND);
     content_sizer->Add(label_dir_hint);
     content_sizer->AddSpacer(VERT_SPACING);
-    if (box_print != nullptr) {
-        content_sizer->Add(box_print, 0, wxBOTTOM, 2*VERT_SPACING);
-        box_print->SetValue(app_config->get("recent", CONFIG_KEY_PRINT) == "1");
-    }
     
     if (combo_groups != nullptr) {
         // Repetier specific: Show a selection of file groups.
@@ -84,18 +79,37 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, bool can_start_pr
     
     wxString suffix = recent_path.substr(recent_path.find_last_of('.'));
 
-    static_cast<wxButton*>(FindWindowById(wxID_OK, this))->Bind(wxEVT_BUTTON, [this, suffix](wxCommandEvent&) {
-        wxString path = txt_filename->GetValue();
-        // .gcode suffix control
-        if (!path.Lower().EndsWith(suffix.Lower()))
-        {
-            MessageDialog msg_wingow(this, wxString::Format(_L("Upload filename doesn't end with \"%s\". Do you wish to continue?"), suffix), wxString(SLIC3R_APP_NAME), wxYES | wxNO);
-            if (msg_wingow.ShowModal() == wxID_NO)
-                return;
-        }
-        EndDialog(wxID_OK);
-    });
+    if (can_start_print) {
+        auto* btn_print = add_button(wxID_YES, false, _L("Upload and Print"));
+        btn_print->Bind(wxEVT_BUTTON, [this, suffix](wxCommandEvent&) {
+            wxString path = txt_filename->GetValue();
+            // .gcode suffix control
+            if (!path.Lower().EndsWith(suffix.Lower()))
+            {
+                MessageDialog msg_wingow(this, wxString::Format(_L("Upload filename doesn't end with \"%s\". Do you wish to continue?"), suffix), wxString(SLIC3R_APP_NAME), wxYES | wxNO);
+                if (msg_wingow.ShowModal() == wxID_NO)
+                    return;
+            }
+            start_print_selected = true;
+            EndDialog(wxID_OK);
+            });
+    }
+    add_button(wxID_CANCEL);
 
+    if (auto* btn_ok = get_button(wxID_NO); btn_ok != NULL) {
+        btn_ok->SetLabel(_L("Upload"));
+        btn_ok->Bind(wxEVT_BUTTON, [this, suffix](wxCommandEvent&) {
+            wxString path = txt_filename->GetValue();
+            // .gcode suffix control
+            if (!path.Lower().EndsWith(suffix.Lower()))
+            {
+                MessageDialog msg_wingow(this, wxString::Format(_L("Upload filename doesn't end with \"%s\". Do you wish to continue?"), suffix), wxString(SLIC3R_APP_NAME), wxYES | wxNO);
+                if (msg_wingow.ShowModal() == wxID_NO)
+                    return;
+            }
+            EndDialog(wxID_OK);
+        });   
+    }
     finalize();
 
 #ifdef __linux__
@@ -125,7 +139,7 @@ fs::path PrintHostSendDialog::filename() const
 
 bool PrintHostSendDialog::start_print() const
 {
-    return box_print != nullptr ? box_print->GetValue() : false;
+    return start_print_selected;
 }
 
 std::string PrintHostSendDialog::group() const

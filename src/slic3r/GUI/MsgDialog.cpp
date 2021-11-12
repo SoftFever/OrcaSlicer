@@ -63,21 +63,26 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 	SetSizerAndFit(main_sizer);
 }
 
-void MsgDialog::add_btn(wxWindowID btn_id, bool set_focus /*= false*/, const wxString& label/* = wxString()*/)
+wxButton* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, const wxString& label/* = wxString()*/)
 {
     wxButton* btn = new wxButton(this, btn_id, label);
     if (set_focus)
         btn->SetFocus();
     btn_sizer->Add(btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, HORIZ_SPACING);
     btn->Bind(wxEVT_BUTTON, [this, btn_id](wxCommandEvent&) { this->EndModal(btn_id); });
+    return btn;
 };
+
+wxButton* MsgDialog::get_button(wxWindowID btn_id){
+    return static_cast<wxButton*>(FindWindowById(btn_id, this));
+}
 
 void MsgDialog::apply_style(long style)
 {
-    if (style & wxOK)       add_btn(wxID_OK, true);
-    if (style & wxYES)      add_btn(wxID_YES, true);
-    if (style & wxNO)       add_btn(wxID_NO);
-    if (style & wxCANCEL)   add_btn(wxID_CANCEL);
+    if (style & wxOK)       add_button(wxID_OK, true);
+    if (style & wxYES)      add_button(wxID_YES, true);
+    if (style & wxNO)       add_button(wxID_NO);
+    if (style & wxCANCEL)   add_button(wxID_CANCEL);
 
     logo->SetBitmap( create_scaled_bitmap(style & wxICON_WARNING        ? "exclamation" :
                                           style & wxICON_INFORMATION    ? "info"        :
