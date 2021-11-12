@@ -4,27 +4,18 @@
 // Include GLGizmoBase.hpp before I18N.hpp as it includes some libigl code,
 // which overrides our localization "L" macro.
 #include "GLGizmoBase.hpp"
-#include "GLGizmoPainterBase.hpp" // for render wireframe
+#include "slic3r/GUI/3DScene.hpp"
 #include "admesh/stl.h" // indexed_triangle_set
-#include <thread>
 #include <mutex>
-#include <condition_variable>
-#include <chrono>
-#include <optional>
-#include <atomic>
-
-#include <GL/glew.h> // GLUint
-
-// for simplify suggestion
-class ModelObjectPtrs; //  std::vector<ModelObject*>
 
 namespace Slic3r {
 class ModelVolume;
+class Model;
 
 namespace GUI {
 class NotificationManager; // for simplify suggestion
 
-class GLGizmoSimplify: public GLGizmoBase, public GLGizmoTransparentRender // GLGizmoBase
+class GLGizmoSimplify: public GLGizmoBase
 {    
 public:
     GLGizmoSimplify(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
@@ -32,8 +23,9 @@ public:
     bool on_esc_key_down();
     static void add_simplify_suggestion_notification(
         const std::vector<size_t> &object_ids,
-        const ModelObjectPtrs &    objects,
+        const std::vector<ModelObject*> &    objects,
         NotificationManager &      manager);
+
 protected:
     virtual std::string on_get_name() const override;
     virtual void on_render_input_window(float x, float y, float bottom_limit) override;
@@ -43,76 +35,75 @@ protected:
 
     // must implement
     virtual bool on_init() override { return true;};
-    virtual void on_render() override{};
+    virtual void on_render() override;
     virtual void on_render_for_picking() override{};    
 
-    // GLGizmoPainterBase
-    virtual void render_painter_gizmo() const override{ render_wireframe(); }
+    virtual CommonGizmosDataID on_get_requirements() const;
+
 private:
-    void after_apply();
+    void apply_simplify();
     void close();
-    void live_preview();
+
     void process();
-    void set_its(indexed_triangle_set &its);
+    void stop_worker_thread_request();
+    void worker_finished();
+
     void create_gui_cfg();
-    void request_rerender();
+    void request_rerender(bool force = false);
+    void init_model(const indexed_triangle_set& its);
 
     void set_center_position();
-    // move to global functions
-    static ModelVolume *get_volume(const Selection &selection, Model &model);
-    static const ModelVolume *get_volume(const GLVolume::CompositeID &cid, const Model &model);
-
-    // return false when volume was deleted
-    static bool exist_volume(ModelVolume *volume);
-
-    std::atomic_bool m_is_valid_result; // differ what to do in apply
-    std::atomic_bool m_exist_preview;   // set when process end
-
-    bool m_move_to_center; // opening gizmo
-
-    volatile int m_progress; // percent of done work
-    ModelVolume *m_volume; // keep pointer to actual working volume
-    size_t m_obj_index;
-
-    std::optional<indexed_triangle_set> m_original_its;
-    bool m_show_wireframe; 
-
-    volatile bool m_need_reload; // after simplify, glReload must be on main thread
-
-    std::thread m_worker;
-    // wait before process
-    std::mutex m_state_mutex;
-    std::condition_variable m_dealy_process_cv;
-
-    enum class State {
-        settings,
-        preview,      // simplify to show preview
-        close_on_end, // simplify with close on end
-        canceling // after button click, before canceled
-    };
-    volatile State m_state;
 
     struct Configuration
     {
         bool use_count = false;
-        // minimal triangle count
         float    decimate_ratio = 50.f; // in percent
-        uint32_t wanted_count   = 0; // initialize by percents
+        uint32_t wanted_count = 0; // initialize by percents
+        float max_error = 1.; // maximal quadric error
 
-        // maximal quadric error
-        float max_error = 1.;
-
-        void fix_count_by_ratio(size_t triangle_count)
-        {
-            if (decimate_ratio <= 0.f) 
-                wanted_count = static_cast<uint32_t>(triangle_count);
-            else if (decimate_ratio >= 100.f)
-                wanted_count = 0;
-            else
-                wanted_count = static_cast<uint32_t>(std::round(
-                    triangle_count * (100.f - decimate_ratio) / 100.f));
+        void fix_count_by_ratio(size_t triangle_count);
+        bool operator==(const Configuration& rhs) {
+            return (use_count == rhs.use_count && decimate_ratio == rhs.decimate_ratio
+                && wanted_count == rhs.wanted_count && max_error == rhs.max_error);
         }
-    } m_configuration;
+        bool operator!=(const Configuration& rhs) {
+            return ! (*this == rhs);
+        }
+    };
+
+    Configuration m_configuration;
+
+    bool m_move_to_center; // opening gizmo
+        
+    const ModelVolume *m_volume; // keep pointer to actual working volume
+
+    bool m_show_wireframe;
+    GLModel m_glmodel;
+    size_t m_triangle_count; // triangle count of the model currently shown
+
+    // Timestamp of the last rerender request. Only accessed from UI thread.
+    int64_t m_last_rerender_timestamp = std::numeric_limits<int64_t>::min();
+
+    // Following struct is accessed by both UI and worker thread.
+    // Accesses protected by a mutex.
+    struct State {
+        enum Status {
+            idle,
+            running,
+            cancelling
+        };
+
+        Status status = idle;
+        int progress = 0; // percent of done work
+        Configuration config; // Configuration we started with.
+        const ModelVolume* mv = nullptr;
+        std::unique_ptr<indexed_triangle_set> result;
+    };
+
+    std::thread m_worker;
+    std::mutex m_state_mutex; // guards m_state
+    State m_state; // accessed by both threads
+
 
     // This configs holds GUI layout size given by translated texts.
     // etc. When language changes, GUI is recreated and this class constructed again,
@@ -138,16 +129,8 @@ private:
     // translations used for calc window size
     const std::string tr_mesh_name;
     const std::string tr_triangles;
-    const std::string tr_preview;
     const std::string tr_detail_level;
     const std::string tr_decimate_ratio;
-
-    // rendering wireframe
-    void render_wireframe() const;
-    void init_wireframe();
-    void free_gpu();
-    GLuint m_wireframe_VBO_id, m_wireframe_IBO_id;
-    size_t m_wireframe_IBO_size;
 
     // cancel exception
     class SimplifyCanceledException: public std::exception
