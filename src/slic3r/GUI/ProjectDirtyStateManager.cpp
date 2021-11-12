@@ -26,12 +26,14 @@ void ProjectDirtyStateManager::update_from_presets()
 {
     m_presets_dirty = false;
     // check switching of the presets only for exist/loaded project, but not for new
-    if (!wxGetApp().plater()->get_project_filename().IsEmpty()) {
-        for (const auto& [type, name] : wxGetApp().get_selected_presets())
+    GUI_App &app = wxGetApp();
+    if (!app.plater()->get_project_filename().IsEmpty()) {
+        for (const auto& [type, name] : app.get_selected_presets())
             m_presets_dirty |= !m_initial_presets[type].empty() && m_initial_presets[type] != name;
     }
-    m_presets_dirty |= wxGetApp().has_unsaved_preset_changes();
-    wxGetApp().mainframe->update_title();
+    m_presets_dirty |= app.has_unsaved_preset_changes();
+    m_project_config_dirty = m_initial_project_config != app.preset_bundle->project_config;
+    app.mainframe->update_title();
 }
 
 void ProjectDirtyStateManager::reset_after_save()
@@ -39,14 +41,17 @@ void ProjectDirtyStateManager::reset_after_save()
     this->reset_initial_presets();
     m_plater_dirty  = false;
     m_presets_dirty = false;
+    m_project_config_dirty = false;
     wxGetApp().mainframe->update_title();
 }
 
 void ProjectDirtyStateManager::reset_initial_presets()
 {
     m_initial_presets.fill(std::string{});
-    for (const auto& [type, name] : wxGetApp().get_selected_presets())
+    GUI_App &app = wxGetApp();
+    for (const auto& [type, name] : app.get_selected_presets())
         m_initial_presets[type] = name;
+    m_initial_project_config = app.preset_bundle->project_config;
 }
 
 #if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
