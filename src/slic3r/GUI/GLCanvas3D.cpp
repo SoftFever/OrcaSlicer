@@ -5240,7 +5240,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
             // visible when inside modifier meshes etc.
             {
                 const GLGizmosManager& gm = get_gizmos_manager();
-                GLGizmosManager::EType type = gm.get_current_type();
+//                GLGizmosManager::EType type = gm.get_current_type();
                 if (dynamic_cast<GLGizmoPainterBase*>(gm.get_current())) {
                     shader->stop_using();
                     gm.render_painter_gizmo();
