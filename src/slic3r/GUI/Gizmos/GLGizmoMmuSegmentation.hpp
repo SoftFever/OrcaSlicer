@@ -97,6 +97,8 @@ public:
     // will be also extended to support additional states, requiring at least one state to remain free out of 19 states.
     static const constexpr size_t EXTRUDERS_LIMIT = 16;
 
+    virtual const float get_cursor_radius_min() const { return CursorRadiusMin; }
+
 protected:
     std::array<float, 4> get_cursor_sphere_left_button_color() const override;
     std::array<float, 4> get_cursor_sphere_right_button_color() const override;
@@ -119,6 +121,8 @@ protected:
     std::vector<std::array<float, 4>> m_original_extruders_colors;
     std::vector<std::array<float, 4>> m_modified_extruders_colors;
     std::vector<int>                  m_original_volumes_extruder_idxs;
+
+    static const constexpr float      CursorRadiusMin = 0.1f; // cannot be zero
 
 private:
     bool on_init() override;

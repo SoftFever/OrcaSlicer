@@ -122,6 +122,10 @@ public:
     // after all volumes (including transparent ones) are rendered.
     virtual void render_painter_gizmo() const = 0;
 
+    virtual const float get_cursor_radius_min() const { return CursorRadiusMin; }
+    virtual const float get_cursor_radius_max() const { return CursorRadiusMax; }
+    virtual const float get_cursor_radius_step() const { return CursorRadiusStep; }
+
 protected:
     virtual void render_triangles(const Selection& selection) const;
     void render_cursor() const;
