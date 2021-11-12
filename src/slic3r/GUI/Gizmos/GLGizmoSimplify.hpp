@@ -7,6 +7,7 @@
 #include "slic3r/GUI/3DScene.hpp"
 #include "admesh/stl.h" // indexed_triangle_set
 #include <mutex>
+#include <thread>
 
 namespace Slic3r {
 class ModelVolume;
