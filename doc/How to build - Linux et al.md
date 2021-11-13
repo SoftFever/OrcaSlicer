@@ -13,9 +13,21 @@ This guide describes building PrusaSlicer statically against dependencies pulled
 
 #### 0. Prerequisities
 
-CMake, GNU build tools, git and m4 macro processor have to be installed. Unless that's already the case, install them as usual from your distribution packages.  E.g. on Ubuntu, run `sudo apt-get install cmake build-essential git m4`. The names of the packages may be different on different distros.
+GNU build tools, CMake, git and other libraries have to be installed on the build machine.
+Unless that's already the case, install them as usual from your distribution packages.
+E.g. on Ubuntu 20.10, run
+```shell
+sudo apt-get install  -y \
+git \
+build-essential \
+autoconf \
+cmake \
+libglu1-mesa-dev \
+libgtk-3-dev \
+libdbus-1-dev \
 
-Although most of dependencies are handled by the build script, PrusaSlicer still expects that some libraries will be available in the system (GTK, MESA, gettext). E.g., on Ubuntu, install the required packages by running `sudo apt-get install libgtk-3-dev libglu1-mesa-dev gettext`. The names of the packages may be different on different distros.
+```
+The names of the packages may be different on different distros.
 
 #### 1. Cloning the repository
 
