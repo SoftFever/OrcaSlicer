@@ -812,13 +812,11 @@ static boost::optional<Semver> parse_semver_from_ini(std::string path)
     std::stringstream buffer;
     buffer << stream.rdbuf();
     std::string body = buffer.str();
-    size_t end_line = body.find_first_of("\n\r");
-    body.resize(end_line);
     size_t start = body.find("PrusaSlicer ");
     if (start == std::string::npos)
         return boost::none;
     body = body.substr(start + 12);
-    size_t end = body.find_first_of(" \n\r");
+    size_t end = body.find_first_of(" \n");
     if (end < body.size())
         body.resize(end);
     return Semver::parse(body);
