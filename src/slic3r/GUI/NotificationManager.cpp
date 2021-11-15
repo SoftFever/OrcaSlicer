@@ -1082,6 +1082,8 @@ void NotificationManager::UpdatedItemsInfoNotification::add_type(InfoItemType ty
 	NotificationData data { get_data().type, get_data().level , get_data().duration, text };
 	update(data);
 }
+// Uncomment to have different icon for every type of info, otherwise it will have standart cube with i.
+/*
 void NotificationManager::UpdatedItemsInfoNotification::render_left_sign(ImGuiWrapper& imgui)
 {
 	std::string text;
@@ -1098,7 +1100,7 @@ void NotificationManager::UpdatedItemsInfoNotification::render_left_sign(ImGuiWr
 	ImGui::SetCursorPosY(m_window_height / 2 - m_line_height);
 	imgui.text(text.c_str());
 }
-
+*/
 //------SlicingProgressNotification
 void NotificationManager::SlicingProgressNotification::init()
 {
