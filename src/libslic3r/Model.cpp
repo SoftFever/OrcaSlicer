@@ -1,3 +1,4 @@
+#include "Model.hpp"
 #include "libslic3r.h"
 #include "Exception.hpp"
 #include "Model.hpp"
@@ -1701,9 +1702,6 @@ std::string ModelObject::get_export_filename() const
 
 TriangleMeshStats ModelObject::get_object_stl_stats() const
 {
-    if (this->volumes.size() == 1)
-        return this->volumes[0]->mesh().stats();
-
     TriangleMeshStats full_stats;
     full_stats.volume = 0.f;
 
@@ -1718,7 +1716,8 @@ TriangleMeshStats ModelObject::get_object_stl_stats() const
 
         // another used satistics value
         if (volume->is_model_part()) {
-            full_stats.volume           += stats.volume;
+            Transform3d trans = instances[0]->get_matrix() * volume->get_matrix();
+            full_stats.volume           += stats.volume * std::fabs(trans.matrix().block(0, 0, 3, 3).determinant());
             full_stats.number_of_parts  += stats.number_of_parts;
         }
     }
