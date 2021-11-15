@@ -9,6 +9,7 @@
 #include "libslic3r/Config.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "libslic3r/Config.hpp"
+#include "format.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
