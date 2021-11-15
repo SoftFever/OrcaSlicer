@@ -151,6 +151,9 @@ public:
 
     Vec3f get_closest_point(const Vec3f& point, Vec3f* normal = nullptr) const;
 
+    // Given a point in mesh coords, the method returns the closest facet from mesh.
+    int get_closest_facet(const Vec3f &point) const;
+
     Vec3f get_triangle_normal(size_t facet_idx) const;
 
 private:

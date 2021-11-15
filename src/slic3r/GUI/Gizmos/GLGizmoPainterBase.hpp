@@ -156,6 +156,13 @@ protected:
         SMART_FILL
     };
 
+    struct ProjectedMousePosition
+    {
+        Vec3f  mesh_hit;
+        int    mesh_idx;
+        size_t facet_idx;
+    };
+
     bool     m_triangle_splitting_enabled = true;
     ToolType m_tool_type                  = ToolType::BRUSH;
     float    m_smart_fill_angle           = 30.f;
@@ -188,6 +195,8 @@ protected:
     TriangleSelector::ClippingPlane get_clipping_plane_in_volume_coordinates(const Transform3d &trafo) const;
 
 private:
+    std::vector<std::vector<ProjectedMousePosition>> get_projected_mouse_positions(const Vec2d &mouse_position, double resolution, const std::vector<Transform3d> &trafo_matrices) const;
+
     bool is_mesh_point_clipped(const Vec3d& point, const Transform3d& trafo) const;
     void update_raycast_cache(const Vec2d& mouse_position,
                               const Camera& camera,

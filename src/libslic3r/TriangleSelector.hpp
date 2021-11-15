@@ -52,7 +52,9 @@ public:
         virtual bool is_pointer_in_triangle(const Vec3f &p1, const Vec3f &p2, const Vec3f &p3) const = 0;
         virtual int  vertices_inside(const Triangle &tr, const std::vector<Vertex> &vertices) const;
         virtual bool is_edge_inside_cursor(const Triangle &tr, const std::vector<Vertex> &vertices) const = 0;
-        virtual bool is_facet_visible(int facet_idx, const std::vector<Vec3f> &face_normals) const { return true; }
+        virtual bool is_facet_visible(int facet_idx, const std::vector<Vec3f> &face_normals) const = 0;
+
+        static bool is_facet_visible(const Cursor &cursor, int facet_idx, const std::vector<Vec3f> &face_normals);
 
     protected:
         explicit Cursor(const Vec3f &source_, float radius_world, const Transform3d &trafo_, const ClippingPlane &clipping_plane_);
@@ -62,6 +64,7 @@ public:
 
         bool        uniform_scaling;
         Transform3f trafo_normal;
+        float       radius;
         float       radius_sqr;
         Vec3f       dir = Vec3f(0.f, 0.f, 0.f);
 
@@ -76,7 +79,6 @@ public:
         SinglePointCursor()           = delete;
         ~SinglePointCursor() override = default;
 
-        bool is_edge_inside_cursor(const Triangle &tr, const std::vector<Vertex> &vertices) const override;
         bool is_pointer_in_triangle(const Vec3f &p1, const Vec3f &p2, const Vec3f &p3) const override;
 
         static std::unique_ptr<Cursor> cursor_factory(const Vec3f &center, const Vec3f &camera_pos, const float cursor_radius, const CursorType cursor_type, const Transform3d &trafo_matrix, const ClippingPlane &clipping_plane)
@@ -94,6 +96,30 @@ public:
         Vec3f center;
     };
 
+    class DoublePointCursor : public Cursor
+    {
+    public:
+        DoublePointCursor()           = delete;
+        ~DoublePointCursor() override = default;
+
+        bool is_pointer_in_triangle(const Vec3f &p1, const Vec3f &p2, const Vec3f &p3) const override;
+
+        static std::unique_ptr<Cursor> cursor_factory(const Vec3f &first_center, const Vec3f &second_center, const Vec3f &camera_pos, const float cursor_radius, const CursorType cursor_type, const Transform3d &trafo_matrix, const ClippingPlane &clipping_plane)
+        {
+            assert(cursor_type == TriangleSelector::CursorType::CIRCLE || cursor_type == TriangleSelector::CursorType::SPHERE);
+            if (cursor_type == TriangleSelector::CursorType::SPHERE)
+                return std::make_unique<TriangleSelector::Capsule3D>(first_center, second_center, camera_pos, cursor_radius, trafo_matrix, clipping_plane);
+            else
+                return std::make_unique<TriangleSelector::Capsule2D>(first_center, second_center, camera_pos, cursor_radius, trafo_matrix, clipping_plane);
+        }
+
+    protected:
+        explicit DoublePointCursor(const Vec3f &first_center_, const Vec3f &second_center_, const Vec3f &source_, float radius_world, const Transform3d &trafo_, const ClippingPlane &clipping_plane_);
+
+        Vec3f first_center;
+        Vec3f second_center;
+    };
+
     class Sphere : public SinglePointCursor
     {
     public:
@@ -103,6 +129,8 @@ public:
         ~Sphere() override = default;
 
         bool is_mesh_point_inside(const Vec3f &point) const override;
+        bool is_edge_inside_cursor(const Triangle &tr, const std::vector<Vertex> &vertices) const override;
+        bool is_facet_visible(int facet_idx, const std::vector<Vec3f> &face_normals) const override { return true; }
     };
 
     class Circle : public SinglePointCursor
@@ -114,7 +142,42 @@ public:
         ~Circle() override = default;
 
         bool is_mesh_point_inside(const Vec3f &point) const override;
-        bool is_facet_visible(int facet_idx, const std::vector<Vec3f> &face_normals) const override;
+        bool is_edge_inside_cursor(const Triangle &tr, const std::vector<Vertex> &vertices) const override;
+        bool is_facet_visible(int facet_idx, const std::vector<Vec3f> &face_normals) const override
+        {
+            return TriangleSelector::Cursor::is_facet_visible(*this, facet_idx, face_normals);
+        }
+    };
+
+    class Capsule3D : public DoublePointCursor
+    {
+    public:
+        Capsule3D() = delete;
+        explicit Capsule3D(const Vec3f &first_center_, const Vec3f &second_center_, const Vec3f &source_, float radius_world, const Transform3d &trafo_, const ClippingPlane &clipping_plane_)
+            : TriangleSelector::DoublePointCursor(first_center_, second_center_, source_, radius_world, trafo_, clipping_plane_)
+        {}
+        ~Capsule3D() override = default;
+
+        bool is_mesh_point_inside(const Vec3f &point) const override;
+        bool is_edge_inside_cursor(const Triangle &tr, const std::vector<Vertex> &vertices) const override;
+        bool is_facet_visible(int facet_idx, const std::vector<Vec3f> &face_normals) const override { return true; }
+    };
+
+    class Capsule2D : public DoublePointCursor
+    {
+    public:
+        Capsule2D() = delete;
+        explicit Capsule2D(const Vec3f &first_center_, const Vec3f &second_center_, const Vec3f &source_, float radius_world, const Transform3d &trafo_, const ClippingPlane &clipping_plane_)
+            : TriangleSelector::DoublePointCursor(first_center_, second_center_, source_, radius_world, trafo_, clipping_plane_)
+        {}
+        ~Capsule2D() override = default;
+
+        bool is_mesh_point_inside(const Vec3f &point) const override;
+        bool is_edge_inside_cursor(const Triangle &tr, const std::vector<Vertex> &vertices) const override;
+        bool is_facet_visible(int facet_idx, const std::vector<Vec3f> &face_normals) const override
+        {
+            return TriangleSelector::Cursor::is_facet_visible(*this, facet_idx, face_normals);
+        }
     };
 
     std::pair<std::vector<Vec3i>, std::vector<Vec3i>> precompute_all_neighbors() const;

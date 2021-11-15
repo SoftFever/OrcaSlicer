@@ -304,7 +304,13 @@ Vec3f MeshRaycaster::get_closest_point(const Vec3f& point, Vec3f* normal) const
     return closest_point.cast<float>();
 }
 
-
+int MeshRaycaster::get_closest_facet(const Vec3f &point) const
+{
+    int   facet_idx = 0;
+    Vec3d closest_point;
+    m_emesh.squared_distance(point.cast<double>(), facet_idx, closest_point);
+    return facet_idx;
+}
 
 } // namespace GUI
 } // namespace Slic3r
