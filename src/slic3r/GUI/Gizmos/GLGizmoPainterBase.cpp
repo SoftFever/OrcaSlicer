@@ -365,10 +365,11 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                     m_triangle_selectors[m_rr.mesh_id]->bucket_fill_select_triangles(m_rr.hit, int(m_rr.facet), clp, true, true);
 
                 m_seed_fill_last_mesh_id = -1;
-            } else if (m_tool_type == ToolType::BRUSH)
-                m_triangle_selectors[m_rr.mesh_id]->select_patch(m_rr.hit, int(m_rr.facet), camera_pos, m_cursor_radius, m_cursor_type,
-                                                                 new_state, trafo_matrix, trafo_matrix_not_translate, m_triangle_splitting_enabled, clp,
-                                                                 m_paint_on_overhangs_only ? m_highlight_by_angle_threshold_deg : 0.f);
+            } else if (m_tool_type == ToolType::BRUSH) {
+                auto cursor = TriangleSelector::SinglePointCursor::cursor_factory(m_rr.hit, camera_pos, m_cursor_radius, m_cursor_type, trafo_matrix, clp);
+                m_triangle_selectors[m_rr.mesh_id]->select_patch(int(m_rr.facet), std::move(cursor), new_state, trafo_matrix_not_translate, m_triangle_splitting_enabled, m_paint_on_overhangs_only ? m_highlight_by_angle_threshold_deg : 0.f);
+            }
+
             m_triangle_selectors[m_rr.mesh_id]->request_update_render_data();
             m_last_mouse_click = mouse_position;
         }

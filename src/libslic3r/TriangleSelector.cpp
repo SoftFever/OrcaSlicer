@@ -124,24 +124,20 @@ int TriangleSelector::select_unsplit_triangle(const Vec3f &hit, int facet_idx) c
     return this->select_unsplit_triangle(hit, facet_idx, neighbors);
 }
 
-void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
-                                    const Vec3f& source, float radius,
-                                    CursorType cursor_type, EnforcerBlockerType new_state,
-                                    const Transform3d& trafo, const Transform3d& trafo_no_translate,
-                                    bool triangle_splitting, const ClippingPlane &clp, float highlight_by_angle_deg)
+void TriangleSelector::select_patch(int facet_start, std::unique_ptr<Cursor> &&cursor, EnforcerBlockerType new_state, const Transform3d& trafo_no_translate, bool triangle_splitting, float highlight_by_angle_deg)
 {
     assert(facet_start < m_orig_size_indices);
 
     // Save current cursor center, squared radius and camera direction, so we don't
     // have to pass it around.
-    m_cursor = Cursor(hit, source, radius, cursor_type, trafo, clp);
+    m_cursor = std::move(cursor);
 
     // In case user changed cursor size since last time, update triangle edge limit.
     // It is necessary to compare the internal radius in m_cursor! radius is in
     // world coords and does not change after scaling.
-    if (m_old_cursor_radius_sqr != m_cursor.radius_sqr) {
-        set_edge_limit(std::sqrt(m_cursor.radius_sqr) / 5.f);
-        m_old_cursor_radius_sqr = m_cursor.radius_sqr;
+    if (m_old_cursor_radius_sqr != m_cursor->radius_sqr) {
+        set_edge_limit(std::sqrt(m_cursor->radius_sqr) / 5.f);
+        m_old_cursor_radius_sqr = m_cursor->radius_sqr;
     }
 
     const float highlight_angle_limit = cos(Geometry::deg2rad(highlight_by_angle_deg));
@@ -163,7 +159,7 @@ void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
             if (select_triangle(facet, new_state, triangle_splitting)) {
                 // add neighboring facets to list to be processed later
                 for (int neighbor_idx : m_neighbors[facet])
-                    if (neighbor_idx >= 0 && (m_cursor.type == SPHERE || faces_camera(neighbor_idx)))
+                    if (neighbor_idx >= 0 && m_cursor->is_facet_visible(neighbor_idx, m_face_normals))
                         facets_to_check.push_back(neighbor_idx);
             }
         }
@@ -788,11 +784,11 @@ bool TriangleSelector::select_triangle_recursive(int facet_idx, const Vec3i &nei
 
     assert(this->verify_triangle_neighbors(*tr, neighbors));
 
-    int num_of_inside_vertices = vertices_inside(facet_idx);
+    int num_of_inside_vertices = m_cursor->vertices_inside(*tr, m_vertices);
 
     if (num_of_inside_vertices == 0
-     && ! is_pointer_in_triangle(facet_idx)
-     && ! is_edge_inside_cursor(facet_idx))
+     && ! m_cursor->is_pointer_in_triangle(*tr, m_vertices)
+     && ! m_cursor->is_edge_inside_cursor(*tr, m_vertices))
         return false;
 
     if (num_of_inside_vertices == 3) {
@@ -840,7 +836,7 @@ void TriangleSelector::set_facet(int facet_idx, EnforcerBlockerType state)
 }
 
 // called by select_patch()->select_triangle()...select_triangle()
-// to decide which sides of the traingle to split and to actually split it calling set_division() and perform_split().
+// to decide which sides of the triangle to split and to actually split it calling set_division() and perform_split().
 void TriangleSelector::split_triangle(int facet_idx, const Vec3i &neighbors)
 {
     if (m_triangles[facet_idx].is_split()) {
@@ -864,9 +860,9 @@ void TriangleSelector::split_triangle(int facet_idx, const Vec3i &neighbors)
 
     // In case the object is non-uniformly scaled, transform the
     // points to world coords.
-    if (! m_cursor.uniform_scaling) {
+    if (! m_cursor->uniform_scaling) {
         for (size_t i=0; i<pts.size(); ++i) {
-            pts_transformed[i] = m_cursor.trafo * (*pts[i]);
+            pts_transformed[i] = m_cursor->trafo * (*pts[i]);
             pts[i] = &pts_transformed[i];
         }
     }
@@ -897,71 +893,62 @@ void TriangleSelector::split_triangle(int facet_idx, const Vec3i &neighbors)
     perform_split(facet_idx, neighbors, old_type);
 }
 
-
-
 // Is pointer in a triangle?
-bool TriangleSelector::is_pointer_in_triangle(int facet_idx) const
-{
-    const Vec3f& p1 = m_vertices[m_triangles[facet_idx].verts_idxs[0]].v;
-    const Vec3f& p2 = m_vertices[m_triangles[facet_idx].verts_idxs[1]].v;
-    const Vec3f& p3 = m_vertices[m_triangles[facet_idx].verts_idxs[2]].v;
-    return m_cursor.is_pointer_in_triangle(p1, p2, p3);
+bool TriangleSelector::Cursor::is_pointer_in_triangle(const Triangle &tr, const std::vector<Vertex> &vertices) const {
+    const Vec3f& p1 = vertices[tr.verts_idxs[0]].v;
+    const Vec3f& p2 = vertices[tr.verts_idxs[1]].v;
+    const Vec3f& p3 = vertices[tr.verts_idxs[2]].v;
+    return this->is_pointer_in_triangle(p1, p2, p3);
 }
-
-
 
 // Determine whether this facet is potentially visible (still can be obscured).
-bool TriangleSelector::faces_camera(int facet) const
+bool TriangleSelector::Circle::is_facet_visible(int facet_idx, const std::vector<Vec3f> &face_normals) const
 {
-    assert(facet < m_orig_size_indices);
-    Vec3f n = m_face_normals[facet];
-    if (! m_cursor.uniform_scaling)
-        n = m_cursor.trafo_normal * n;
-    return n.dot(m_cursor.dir) < 0.;
+    assert(facet_idx < int(face_normals.size()));
+    Vec3f n = face_normals[facet_idx];
+    if (!this->uniform_scaling)
+        n = this->trafo_normal * n;
+    return n.dot(this->dir) < 0.f;
 }
 
-
 // How many vertices of a triangle are inside the circle?
-int TriangleSelector::vertices_inside(int facet_idx) const
+int TriangleSelector::Cursor::vertices_inside(const Triangle &tr, const std::vector<Vertex> &vertices) const
 {
     int inside = 0;
-    for (size_t i=0; i<3; ++i) {
-        if (m_cursor.is_mesh_point_inside(m_vertices[m_triangles[facet_idx].verts_idxs[i]].v))
+    for (size_t i = 0; i < 3; ++i)
+        if (this->is_mesh_point_inside(vertices[tr.verts_idxs[i]].v))
             ++inside;
-    }
+
     return inside;
 }
 
-
 // Is edge inside cursor?
-bool TriangleSelector::is_edge_inside_cursor(int facet_idx) const
+bool TriangleSelector::SinglePointCursor::is_edge_inside_cursor(const Triangle &tr, const std::vector<Vertex> &vertices) const
 {
     std::array<Vec3f, 3> pts;
-    for (int i=0; i<3; ++i) {
-        pts[i] = m_vertices[m_triangles[facet_idx].verts_idxs[i]].v;
-        if (! m_cursor.uniform_scaling)
-            pts[i] = m_cursor.trafo * pts[i];
+    for (int i = 0; i < 3; ++i) {
+        pts[i] = vertices[tr.verts_idxs[i]].v;
+        if (!this->uniform_scaling)
+            pts[i] = this->trafo * pts[i];
     }
 
-    const Vec3f& p = m_cursor.center;
+    const Vec3f &p = this->center;
 
     for (int side = 0; side < 3; ++side) {
-        const Vec3f& a = pts[side];
-        const Vec3f& b = pts[side<2 ? side+1 : 0];
-        Vec3f s = (b-a).normalized();
-        float t = (p-a).dot(s);
-        Vec3f vector = a+t*s - p;
+        const Vec3f &a      = pts[side];
+        const Vec3f &b      = pts[side < 2 ? side + 1 : 0];
+        Vec3f        s      = (b - a).normalized();
+        float        t      = (p - a).dot(s);
+        Vec3f        vector = a + t * s - p;
 
         // vector is 3D vector from center to the intersection. What we want to
         // measure is length of its projection onto plane perpendicular to dir.
-        float dist_sqr = vector.squaredNorm() - std::pow(vector.dot(m_cursor.dir), 2.f);
-        if (dist_sqr < m_cursor.radius_sqr && t>=0.f && t<=(b-a).norm())
+        float dist_sqr = vector.squaredNorm() - std::pow(vector.dot(this->dir), 2.f);
+        if (dist_sqr < this->radius_sqr && t >= 0.f && t <= (b - a).norm())
             return true;
     }
     return false;
 }
-
-
 
 // Recursively remove all subtriangles.
 void TriangleSelector::undivide_triangle(int facet_idx)
@@ -1002,7 +989,6 @@ void TriangleSelector::undivide_triangle(int facet_idx)
     }
 }
 
-
 void TriangleSelector::remove_useless_children(int facet_idx)
 {
     // Check that all children are leafs of the same type. If not, try to
@@ -1040,8 +1026,6 @@ void TriangleSelector::remove_useless_children(int facet_idx)
     undivide_triangle(facet_idx);
     tr.set_state(first_child_type);
 }
-
-
 
 void TriangleSelector::garbage_collect()
 {
@@ -1103,7 +1087,6 @@ TriangleSelector::TriangleSelector(const TriangleMesh& mesh)
     reset();
 }
 
-
 void TriangleSelector::reset()
 {
     m_vertices.clear();
@@ -1124,16 +1107,10 @@ void TriangleSelector::reset()
 
 }
 
-
-
-
-
 void TriangleSelector::set_edge_limit(float edge_limit)
 {
     m_edge_limit_sqr = std::pow(edge_limit, 2.f);
 }
-
-
 
 int TriangleSelector::push_triangle(int a, int b, int c, int source_triangle, const EnforcerBlockerType state)
 {
@@ -1693,42 +1670,55 @@ void TriangleSelector::seed_fill_apply_on_triangles(EnforcerBlockerType new_stat
         }
 }
 
-TriangleSelector::Cursor::Cursor(
-        const Vec3f& center_, const Vec3f& source_, float radius_world,
-        CursorType type_, const Transform3d& trafo_, const ClippingPlane &clipping_plane_)
-    : center{center_},
-      source{source_},
-      type{type_},
-      trafo{trafo_.cast<float>()},
-      clipping_plane(clipping_plane_)
+TriangleSelector::Cursor::Cursor(const Vec3f &source_, float radius_world, const Transform3d &trafo_, const ClippingPlane &clipping_plane_)
+    : source{source_}, trafo{trafo_.cast<float>()}, clipping_plane{clipping_plane_}
 {
     Vec3d sf = Geometry::Transformation(trafo_).get_scaling_factor();
     if (is_approx(sf(0), sf(1)) && is_approx(sf(1), sf(2))) {
-        radius_sqr = float(std::pow(radius_world / sf(0), 2));
+        radius_sqr      = float(std::pow(radius_world / sf(0), 2));
         uniform_scaling = true;
-    }
-    else {
+    } else {
         // In case that the transformation is non-uniform, all checks whether
         // something is inside the cursor should be done in world coords.
-        // First transform center, source and dir in world coords and remember
-        // that we did this.
-        center = trafo * center;
-        source = trafo * source;
+        // First transform source in world coords and remember that we did this.
+        source          = trafo * source;
         uniform_scaling = false;
-        radius_sqr = radius_world * radius_world;
-        trafo_normal = trafo.linear().inverse().transpose();
+        radius_sqr      = radius_world * radius_world;
+        trafo_normal    = trafo.linear().inverse().transpose();
     }
+}
+
+TriangleSelector::SinglePointCursor::SinglePointCursor(const Vec3f& center_, const Vec3f& source_, float radius_world, const Transform3d& trafo_, const ClippingPlane &clipping_plane_)
+    : center{center_}, Cursor(source_, radius_world, trafo_, clipping_plane_)
+{
+    // In case that the transformation is non-uniform, all checks whether
+    // something is inside the cursor should be done in world coords.
+    // Because of the center is transformed.
+    if (!uniform_scaling)
+        center = trafo * center;
 
     // Calculate dir, in whatever coords is appropriate.
     dir = (center - source).normalized();
 }
 
-// Is a point (in mesh coords) inside a cursor?
-bool TriangleSelector::Cursor::is_mesh_point_inside(const Vec3f &point) const
+// Is a point (in mesh coords) inside a Sphere cursor?
+bool TriangleSelector::Sphere::is_mesh_point_inside(const Vec3f &point) const
+{
+    const Vec3f transformed_point = uniform_scaling ? point : Vec3f(trafo * point);
+    const bool  is_point_inside   = (center - point).squaredNorm() < radius_sqr;
+
+    if (is_point_inside && clipping_plane.is_active())
+        return !clipping_plane.is_mesh_point_clipped(point);
+
+    return is_point_inside;
+}
+
+// Is a point (in mesh coords) inside a Circle cursor?
+bool TriangleSelector::Circle::is_mesh_point_inside(const Vec3f &point) const
 {
     const Vec3f transformed_point = uniform_scaling ? point : Vec3f(trafo * point);
     const Vec3f diff              = center - transformed_point;
-    const bool  is_point_inside   = (type == CIRCLE ? (diff - diff.dot(dir) * dir).squaredNorm() : diff.squaredNorm()) < radius_sqr;
+    const bool  is_point_inside   = (diff - diff.dot(dir) * dir).squaredNorm() < radius_sqr;
 
     if (is_point_inside && clipping_plane.is_active())
         return !clipping_plane.is_mesh_point_clipped(point);
@@ -1737,10 +1727,7 @@ bool TriangleSelector::Cursor::is_mesh_point_inside(const Vec3f &point) const
 }
 
 // p1, p2, p3 are in mesh coords!
-bool TriangleSelector::Cursor::is_pointer_in_triangle(const Vec3f& p1_,
-                                                      const Vec3f& p2_,
-                                                      const Vec3f& p3_) const
-{
+static bool is_circle_pointer_inside_triangle(const Vec3f &p1_, const Vec3f &p2_, const Vec3f &p3_, const Vec3f &center, const Vec3f &dir, const bool uniform_scaling, const Transform3f &trafo) {
     const Vec3f& q1 = center + dir;
     const Vec3f& q2 = center - dir;
 
@@ -1759,6 +1746,12 @@ bool TriangleSelector::Cursor::is_pointer_in_triangle(const Vec3f& p1_,
 
     bool pos = signed_volume_sign(q1,q2,p1,p2);
     return signed_volume_sign(q1,q2,p2,p3) == pos && signed_volume_sign(q1,q2,p3,p1) == pos;
+}
+
+// p1, p2, p3 are in mesh coords!
+bool TriangleSelector::SinglePointCursor::is_pointer_in_triangle(const Vec3f &p1_, const Vec3f &p2_, const Vec3f &p3_) const
+{
+    return is_circle_pointer_inside_triangle(p1_, p2_, p3_, center, dir, uniform_scaling, trafo);
 }
 
 } // namespace Slic3r
