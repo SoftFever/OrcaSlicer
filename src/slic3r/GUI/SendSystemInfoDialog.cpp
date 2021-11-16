@@ -563,11 +563,8 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
                                + (is_alpha ? "Alpha" : is_beta ? "Beta" : "");
     }
 
-    // Get current source file name.
-    std::string filename(__FILE__);
-    size_t last_slash_idx = filename.find_last_of("/\\");
-    if (last_slash_idx != std::string::npos)
-        filename = filename.substr(last_slash_idx+1);
+    const char* filename = "SendSystemInfoDialog.cpp";
+    assert(strstr(__FILE__, filename));
 
     // Set dialog background color, fonts, etc.
     SetFont(wxGetApp().normal_font());
