@@ -483,6 +483,11 @@ void ImGuiWrapper::tooltip(const wxString &label, float wrap_width)
 }
 
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+ImVec2 ImGuiWrapper::get_slider_icon_size() const
+{
+    return this->calc_button_size(std::wstring(&ImGui::SliderFloatEditBtnIcon, 1));
+}
+
 bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float v_max, const char* format/* = "%.3f"*/, float power/* = 1.0f*/, bool clamp /*= true*/, const wxString& tooltip /*= ""*/, bool show_edit_btn /*= true*/)
 {
     const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;

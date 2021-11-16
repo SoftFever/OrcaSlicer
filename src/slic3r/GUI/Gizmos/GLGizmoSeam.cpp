@@ -104,8 +104,13 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     total_text_max += caption_max + m_imgui->scaled(1.f);
     caption_max    += m_imgui->scaled(1.f);
 
-    float sliders_width = std::max(cursor_size_slider_left, clipping_slider_left);
-    float window_width  = minimal_slider_width + sliders_width;
+    const float sliders_left_width = std::max(cursor_size_slider_left, clipping_slider_left);
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    const float slider_icon_width  = m_imgui->get_slider_icon_size().x;
+    float       window_width       = minimal_slider_width + sliders_left_width + slider_icon_width;
+#else
+    float       window_width       = minimal_slider_width + sliders_left_width;
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     window_width = std::max(window_width, total_text_max);
     window_width = std::max(window_width, button_width);
     window_width = std::max(window_width, cursor_type_radio_left + cursor_type_radio_sphere + cursor_type_radio_circle);
@@ -126,11 +131,12 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("cursor_size"));
-    ImGui::SameLine(sliders_width);
-    ImGui::PushItemWidth(window_width - sliders_width);
+    ImGui::SameLine(sliders_left_width);
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
     m_imgui->slider_float("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true, _L("Alt + Mouse wheel"));
 #else
+    ImGui::PushItemWidth(window_width - sliders_left_width);
     m_imgui->slider_float("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f");
     if (ImGui::IsItemHovered())
         m_imgui->tooltip(_L("Alt + Mouse wheel"), max_tooltip_width);
@@ -169,13 +175,14 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
         }
     }
 
-    ImGui::SameLine(sliders_width);
-    ImGui::PushItemWidth(window_width - sliders_width);
     auto clp_dist = float(m_c->object_clipper()->get_position());
+    ImGui::SameLine(sliders_left_width);
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
     if (m_imgui->slider_float("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true, _L("Ctrl + Mouse wheel")))
         m_c->object_clipper()->set_position(clp_dist, true);
 #else
+    ImGui::PushItemWidth(window_width - sliders_left_width);
     if (m_imgui->slider_float("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f"))
         m_c->object_clipper()->set_position(clp_dist, true);
 

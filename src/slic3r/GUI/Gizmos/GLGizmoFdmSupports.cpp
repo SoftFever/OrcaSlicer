@@ -133,8 +133,13 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     total_text_max += caption_max + m_imgui->scaled(1.f);
     caption_max    += m_imgui->scaled(1.f);
 
-    float sliders_left_width = std::max(std::max(autoset_slider_left, smart_fill_slider_left), std::max(cursor_slider_left, clipping_slider_left));
-    float window_width       = minimal_slider_width + sliders_left_width;
+    const float sliders_left_width = std::max(std::max(autoset_slider_left, smart_fill_slider_left), std::max(cursor_slider_left, clipping_slider_left));
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    const float slider_icon_width  = m_imgui->get_slider_icon_size().x;
+    float       window_width       = minimal_slider_width + sliders_left_width + slider_icon_width;
+#else
+    float       window_width       = minimal_slider_width + sliders_left_width;
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     window_width = std::max(window_width, total_text_max);
     window_width = std::max(window_width, button_width);
     window_width = std::max(window_width, split_triangles_checkbox_width);
@@ -163,18 +168,19 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         "Degree sign to use in the respective slider in FDM supports gizmo,"
         "placed after the number with no whitespace in between.");
     ImGui::SameLine(sliders_left_width);
-    ImGui::PushItemWidth(window_width - sliders_left_width);
 
     float slider_height = m_imgui->get_slider_float_height();
     // Makes slider to be aligned to bottom of the multi-line text.
-    float slider_start_position = std::max(position_before_text_y, position_after_text_y - slider_height);
-    ImGui::SetCursorPosY(slider_start_position);
+    float slider_start_position_y = std::max(position_before_text_y, position_after_text_y - slider_height);
+    ImGui::SetCursorPosY(slider_start_position_y);
 
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
     wxString tooltip = format_wxstr(_L("Preselects faces by overhang angle. It is possible to restrict paintable facets to only preselected faces when "
             "the option \"%1%\" is enabled."), m_desc["on_overhangs_only"]);
     if (m_imgui->slider_float("##angle_threshold_deg", &m_highlight_by_angle_threshold_deg, 0.f, 90.f, format_str.data(), 1.0f, true, tooltip)) {
 #else
+    ImGui::PushItemWidth(window_width - sliders_left_width);
     if (m_imgui->slider_float("##angle_threshold_deg", &m_highlight_by_angle_threshold_deg, 0.f, 90.f, format_str.data())) {
 #endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
         m_parent.set_slope_normal_angle(90.f - m_highlight_by_angle_threshold_deg);
@@ -274,10 +280,11 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("cursor_size"));
         ImGui::SameLine(sliders_left_width);
-        ImGui::PushItemWidth(window_width - sliders_left_width);
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+        ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
         m_imgui->slider_float("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true, _L("Alt + Mouse wheel"));
 #else
+        ImGui::PushItemWidth(window_width - sliders_left_width);
         m_imgui->slider_float("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f");
         if (ImGui::IsItemHovered())
             m_imgui->tooltip(_L("Alt + Mouse wheel"), max_tooltip_width);
@@ -295,10 +302,11 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         m_imgui->text(m_desc["smart_fill_angle"] + ":");
 
         ImGui::SameLine(sliders_left_width);
-        ImGui::PushItemWidth(window_width - sliders_left_width);
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+        ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
         if (m_imgui->slider_float("##smart_fill_angle", &m_smart_fill_angle, SmartFillAngleMin, SmartFillAngleMax, format_str.data(), 1.0f, true, _L("Alt + Mouse wheel")))
 #else
+        ImGui::PushItemWidth(window_width - sliders_left_width);
         if (m_imgui->slider_float("##smart_fill_angle", &m_smart_fill_angle, SmartFillAngleMin, SmartFillAngleMax, format_str.data()))
 #endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
             for (auto &triangle_selector : m_triangle_selectors) {
@@ -325,13 +333,14 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         }
     }
 
-    ImGui::SameLine(sliders_left_width);
-    ImGui::PushItemWidth(window_width - sliders_left_width);
     auto clp_dist = float(m_c->object_clipper()->get_position());
+    ImGui::SameLine(sliders_left_width);
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
     if (m_imgui->slider_float("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true, _L("Ctrl + Mouse wheel")))
         m_c->object_clipper()->set_position(clp_dist, true);
 #else
+    ImGui::PushItemWidth(window_width - sliders_left_width);
     if (m_imgui->slider_float("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f"))
         m_c->object_clipper()->set_position(clp_dist, true);
 
