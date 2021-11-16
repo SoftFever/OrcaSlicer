@@ -3,6 +3,7 @@
 #include "../Polygon.hpp"
 
 #include <numeric>
+#include <random>
 #include <boost/log/trivial.hpp>
 
 namespace Slic3r { namespace Geometry {
@@ -92,6 +93,46 @@ Vec2d circle_center_taubin_newton(const Vec2ds::const_iterator& input_begin, con
     Vec2d center(Mxz * (Myy - xnew) - Myz * Mxy, Myz * (Mxx - xnew) - Mxz*Mxy);
     center /= (DET * 2.);
     return center + centroid;
+}
+
+Circled circle_taubin_newton(const Vec2ds& input, size_t cycles)
+{
+    Circled out;
+    if (input.size() < 3) {
+        out = Circled::make_invalid();
+    } else {
+        out.center = circle_center_taubin_newton(input, cycles);
+        out.radius = std::accumulate(input.begin(), input.end(), 0., [&out](double acc, const Vec2d& pt) { return (pt - out.center).norm() + acc; });
+        out.radius /= double(input.size());
+    }
+    return out;
+}
+
+Circled circle_ransac(const Vec2ds& input, size_t iterations)
+{
+    if (input.size() < 3)
+        return Circled::make_invalid();
+
+    std::mt19937 rng;
+    std::vector<Vec2d> samples;
+    Circled circle_best = Circled::make_invalid();
+    double  err_min = std::numeric_limits<double>::max();
+    for (size_t iter = 0; iter < iterations; ++ iter) {
+        samples.clear();
+        std::sample(input.begin(), input.end(), std::back_inserter(samples), 3, rng);
+        Circled c;
+        c.center = Geometry::circle_center(samples[0], samples[1], samples[2], EPSILON);
+        c.radius = std::accumulate(input.begin(), input.end(), 0., [&c](double acc, const Vec2d& pt) { return (pt - c.center).norm() + acc; });
+        c.radius /= double(input.size());
+        double err = 0;
+        for (const Vec2d &pt : input)
+            err = std::max(err, std::abs((pt - c.center).norm() - c.radius));
+        if (err < err_min) {
+            err_min = err;
+            circle_best = c;
+        }
+    }
+    return circle_best;
 }
 
 } } // namespace Slic3r::Geometry

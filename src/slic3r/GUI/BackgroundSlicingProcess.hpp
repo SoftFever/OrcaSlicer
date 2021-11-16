@@ -86,7 +86,7 @@ public:
 	void set_fff_print(Print *print) { m_fff_print = print; }
     void set_sla_print(SLAPrint *print) { m_sla_print = print; m_sla_print->set_printer(&m_sla_archive); }
 	void set_thumbnail_cb(ThumbnailsGeneratorCallback cb) { m_thumbnail_cb = cb; }
-	void set_gcode_result(GCodeProcessor::Result* result) { m_gcode_result = result; }
+	void set_gcode_result(GCodeProcessorResult* result) { m_gcode_result = result; }
 
 	// The following wxCommandEvent will be sent to the UI thread / Plater window, when the slicing is finished
 	// and the background processing will transition into G-code export.
@@ -216,7 +216,7 @@ private:
 	Print 					   *m_fff_print 		 = nullptr;
 	SLAPrint 				   *m_sla_print			 = nullptr;
 	// Data structure, to which the G-code export writes its annotations.
-	GCodeProcessor::Result     *m_gcode_result 		 = nullptr;
+	GCodeProcessorResult     *m_gcode_result 		 = nullptr;
 	// Callback function, used to write thumbnails into gcode.
 	ThumbnailsGeneratorCallback m_thumbnail_cb 	     = nullptr;
 	SL1Archive                  m_sla_archive;

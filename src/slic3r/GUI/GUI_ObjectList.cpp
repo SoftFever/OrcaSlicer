@@ -1758,12 +1758,9 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
     new_object->invalidate_bounding_box();
     new_object->translate(-bb.center());
 
-    if (center) {
-        const BoundingBoxf bed_shape = wxGetApp().plater()->bed_shape_bb();
-        new_object->instances[0]->set_offset(Slic3r::to_3d(bed_shape.center().cast<double>(), -new_object->origin_translation.z()));
-    } else {
-        new_object->instances[0]->set_offset(bb.center());
-    }
+    new_object->instances[0]->set_offset(center ? 
+        to_3d(wxGetApp().plater()->build_volume().bounding_volume2d().center(), -new_object->origin_translation.z()) :
+        bb.center());
 
     new_object->ensure_on_bed();
 

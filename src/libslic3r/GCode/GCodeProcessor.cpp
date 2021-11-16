@@ -343,7 +343,7 @@ void GCodeProcessor::TimeProcessor::reset()
     machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].enabled = true;
 }
 
-void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, std::vector<MoveVertex>& moves, std::vector<size_t>& lines_ends)
+void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends)
 {
     FilePtr in{ boost::nowide::fopen(filename.c_str(), "rb") };
     if (in.f == nullptr)
@@ -636,7 +636,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     // updates moves' gcode ids which have been modified by the insertion of the M73 lines
     unsigned int curr_offset_id = 0;
     unsigned int total_offset = 0;
-    for (MoveVertex& move : moves) {
+    for (GCodeProcessorResult::MoveVertex& move : moves) {
         while (curr_offset_id < static_cast<unsigned int>(offsets.size()) && offsets[curr_offset_id].first <= move.gcode_id) {
             total_offset += offsets[curr_offset_id].second;
             ++curr_offset_id;
@@ -716,8 +716,8 @@ void GCodeProcessor::UsedFilaments::process_caches(GCodeProcessor* processor)
 }
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
-void GCodeProcessor::Result::reset() {
-    moves = std::vector<GCodeProcessor::MoveVertex>();
+void GCodeProcessorResult::reset() {
+    moves = std::vector<GCodeProcessorResult::MoveVertex>();
     bed_shape = Pointfs();
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     max_print_height = 0.0f;
@@ -731,7 +731,7 @@ void GCodeProcessor::Result::reset() {
     time = 0;
 }
 #else
-void GCodeProcessor::Result::reset() {
+void GCodeProcessorResult::reset() {
 
     moves.clear();
     lines_ends.clear();
@@ -1256,7 +1256,7 @@ void GCodeProcessor::process_file(const std::string& filename, std::function<voi
     m_result.filename = filename;
     m_result.id = ++s_result_id;
     // 1st move must be a dummy move
-    m_result.moves.emplace_back(MoveVertex());
+    m_result.moves.emplace_back(GCodeProcessorResult::MoveVertex());
     size_t parse_line_callback_cntr = 10000;
     m_parser.parse_file(filename, [this, cancel_callback, &parse_line_callback_cntr](GCodeReader& reader, const GCodeReader::GCodeLine& line) {
         if (-- parse_line_callback_cntr == 0) {
@@ -1284,7 +1284,7 @@ void GCodeProcessor::initialize(const std::string& filename)
     m_result.filename = filename;
     m_result.id = ++s_result_id;
     // 1st move must be a dummy move
-    m_result.moves.emplace_back(MoveVertex());
+    m_result.moves.emplace_back(GCodeProcessorResult::MoveVertex());
 }
 
 void GCodeProcessor::process_buffer(const std::string &buffer)
@@ -1298,7 +1298,7 @@ void GCodeProcessor::process_buffer(const std::string &buffer)
 void GCodeProcessor::finalize(bool post_process)
 {
     // update width/height of wipe moves
-    for (MoveVertex& move : m_result.moves) {
+    for (GCodeProcessorResult::MoveVertex& move : m_result.moves) {
         if (move.type == EMoveType::Wipe) {
             move.width = Wipe_Width;
             move.height = Wipe_Height;

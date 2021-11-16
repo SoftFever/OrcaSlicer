@@ -3,6 +3,7 @@
 %{
 #include <xsinit.h>
 #include "libslic3r/Geometry.hpp"
+#include "libslic3r/Geometry/ConvexHull.hpp"
 #include "libslic3r/ShortestPath.hpp"
 %}
 

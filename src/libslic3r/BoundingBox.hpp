@@ -111,7 +111,7 @@ public:
     void translate(coordf_t x, coordf_t y, coordf_t z) { assert(this->defined); PointClass v(x, y, z); this->min += v; this->max += v; }
     void translate(const Vec3d &v) { this->min += v; this->max += v; }
     void offset(coordf_t delta);
-    BoundingBoxBase<PointClass> inflated(coordf_t delta) const throw() { BoundingBoxBase<PointClass> out(*this); out.offset(delta); return out; }
+    BoundingBox3Base<PointClass> inflated(coordf_t delta) const throw() { BoundingBox3Base<PointClass> out(*this); out.offset(delta); return out; }
     PointClass center() const;
     coordf_t max_size() const;
 

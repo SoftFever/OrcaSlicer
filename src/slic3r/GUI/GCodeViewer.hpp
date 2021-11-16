@@ -233,7 +233,7 @@ class GCodeViewer
         unsigned char cp_color_id{ 0 };
         std::vector<Sub_Path> sub_paths;
 
-        bool matches(const GCodeProcessor::MoveVertex& move) const;
+        bool matches(const GCodeProcessorResult::MoveVertex& move) const;
         size_t vertices_count() const {
             return sub_paths.empty() ? 0 : sub_paths.back().last.s_id - sub_paths.front().first.s_id + 1;
         }
@@ -251,7 +251,7 @@ class GCodeViewer
                 return -1;
             }
         }
-        void add_sub_path(const GCodeProcessor::MoveVertex& move, unsigned int b_id, size_t i_id, size_t s_id) {
+        void add_sub_path(const GCodeProcessorResult::MoveVertex& move, unsigned int b_id, size_t i_id, size_t s_id) {
             Endpoint endpoint = { b_id, i_id, s_id, move.position };
             sub_paths.push_back({ endpoint , endpoint });
         }
@@ -361,7 +361,7 @@ class GCodeViewer
         // b_id index of buffer contained in this->indices
         // i_id index of first index contained in this->indices[b_id]
         // s_id index of first vertex contained in this->vertices
-        void add_path(const GCodeProcessor::MoveVertex& move, unsigned int b_id, size_t i_id, size_t s_id);
+        void add_path(const GCodeProcessorResult::MoveVertex& move, unsigned int b_id, size_t i_id, size_t s_id);
 
         unsigned int max_vertices_per_segment() const {
             switch (render_primitive_type)
@@ -802,7 +802,7 @@ private:
     Statistics m_statistics;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
     std::array<float, 2> m_detected_point_sizes = { 0.0f, 0.0f };
-    GCodeProcessor::Result::SettingsIds m_settings_ids;
+    GCodeProcessorResult::SettingsIds m_settings_ids;
     std::array<SequentialRangeCap, 2> m_sequential_range_caps;
 
     std::vector<CustomGCode::Item> m_custom_gcode_per_print_z;
@@ -820,9 +820,9 @@ public:
 #endif // ENABLE_SEAMS_USING_MODELS
 
     // extract rendering data from the given parameters
-    void load(const GCodeProcessor::Result& gcode_result, const Print& print, bool initialized);
+    void load(const GCodeProcessorResult& gcode_result, const Print& print, bool initialized);
     // recalculate ranges in dependence of what is visible and sets tool/print colors
-    void refresh(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors);
+    void refresh(const GCodeProcessorResult& gcode_result, const std::vector<std::string>& str_tool_colors);
     void refresh_render_paths();
     void update_shells_color_by_extruder(const DynamicPrintConfig* config);
 
@@ -870,7 +870,7 @@ public:
     size_t get_extruders_count() { return m_extruders_count; }
 
 private:
-    void load_toolpaths(const GCodeProcessor::Result& gcode_result);
+    void load_toolpaths(const GCodeProcessorResult& gcode_result);
     void load_shells(const Print& print, bool initialized);
     void refresh_render_paths(bool keep_sequential_current_first, bool keep_sequential_current_last) const;
     void render_toolpaths();

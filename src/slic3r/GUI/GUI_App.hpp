@@ -281,6 +281,7 @@ public:
     ObjectList*          obj_list();
     ObjectLayers*        obj_layers();
     Plater*              plater();
+    const Plater*        plater() const;
     Model&      		 model();
     NotificationManager * notification_manager();
 

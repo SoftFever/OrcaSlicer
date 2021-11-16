@@ -4,6 +4,7 @@
 #include "MeshSplitImpl.hpp"
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
+#include "Geometry/ConvexHull.hpp"
 #include "Point.hpp"
 #include "Execution/ExecutionTBB.hpp"
 #include "Execution/ExecutionSeq.hpp"
@@ -436,27 +437,55 @@ BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d &trafo) c
 }
 
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d& trafo, double world_min_z) const
+BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d& trafod, double world_min_z) const
 {
-    BoundingBoxf3 bbox;
-    const Transform3f ftrafo = trafo.cast<float>();
-    for (const stl_triangle_vertex_indices& tri : its.indices) {
-        const Vec3f pts[3] = { ftrafo * its.vertices[tri(0)], ftrafo * its.vertices[tri(1)], ftrafo * its.vertices[tri(2)] };
-        int iprev = 2;
-        for (int iedge = 0; iedge < 3; ++iedge) {
-            const Vec3f& p1 = pts[iprev];
-            const Vec3f& p2 = pts[iedge];
-            if ((p1.z() < world_min_z && p2.z() > world_min_z) || (p2.z() < world_min_z && p1.z() > world_min_z)) {
-                // Edge crosses the z plane. Calculate intersection point with the plane.
-                const float t = (world_min_z - p1.z()) / (p2.z() - p1.z());
-                bbox.merge(Vec3f(p1.x() + (p2.x() - p1.x()) * t, p1.y() + (p2.y() - p1.y()) * t, world_min_z).cast<double>());
-            }
-            if (p2.z() >= world_min_z)
-                bbox.merge(p2.cast<double>());
-            iprev = iedge;
+    // 1) Allocate transformed vertices with their position with respect to print bed surface.
+    std::vector<char>           sides;
+    size_t                      num_above = 0;
+    Eigen::AlignedBox<float, 3> bbox;
+    Transform3f                 trafo = trafod.cast<float>();
+    sides.reserve(its.vertices.size());
+    for (const stl_vertex &v : this->its.vertices) {
+        const stl_vertex pt   = trafo * v;
+        const int        sign = pt.z() > world_min_z ? 1 : pt.z() < world_min_z ? -1 : 0;
+        sides.emplace_back(sign);
+        if (sign >= 0) {
+            // Vertex above or on print bed surface. Test whether it is inside the build volume.
+            ++ num_above;
+            bbox.extend(pt);
         }
     }
-    return bbox;
+
+    // 2) Calculate intersections of triangle edges with the build surface.
+    if (num_above < its.vertices.size()) {
+        // Not completely above the build surface and status may still change by testing edges intersecting the build platform.
+        for (const stl_triangle_vertex_indices &tri : its.indices) {
+            const int s[3] = { sides[tri(0)], sides[tri(1)], sides[tri(2)] };
+            if (std::min(s[0], std::min(s[1], s[2])) < 0 && std::max(s[0], std::max(s[1], s[2])) > 0) {
+                // Some edge of this triangle intersects the build platform. Calculate the intersection.
+                int iprev = 2;
+                for (int iedge = 0; iedge < 3; ++ iedge) {
+                    if (s[iprev] * s[iedge] == -1) {
+                        // edge intersects the build surface. Calculate intersection point.
+                        const stl_vertex p1 = trafo * its.vertices[tri(iprev)];
+                        const stl_vertex p2 = trafo * its.vertices[tri(iedge)];
+                        // Edge crosses the z plane. Calculate intersection point with the plane.
+                        const float t = (world_min_z - p1.z()) / (p2.z() - p1.z());
+                        bbox.extend(Vec3f(p1.x() + (p2.x() - p1.x()) * t, p1.y() + (p2.y() - p1.y()) * t, world_min_z));
+                    }
+                    iprev = iedge;
+                }
+            }
+        }
+    }
+
+    BoundingBoxf3 out;
+    if (! bbox.isEmpty()) {
+        out.min = bbox.min().cast<double>();
+        out.max = bbox.max().cast<double>();
+        out.defined = true;
+    };
+    return out;
 }
 #endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 

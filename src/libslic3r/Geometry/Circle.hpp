@@ -7,14 +7,6 @@
 
 namespace Slic3r { namespace Geometry {
 
-/// Find the center of the circle corresponding to the vector of Points as an arc.
-Point circle_center_taubin_newton(const Points::const_iterator& input_start, const Points::const_iterator& input_end, size_t cycles = 20);
-inline Point circle_center_taubin_newton(const Points& input, size_t cycles = 20) { return circle_center_taubin_newton(input.cbegin(), input.cend(), cycles); }
-
-/// Find the center of the circle corresponding to the vector of Pointfs as an arc.
-Vec2d circle_center_taubin_newton(const Vec2ds::const_iterator& input_start, const Vec2ds::const_iterator& input_end, size_t cycles = 20);
-inline Vec2d circle_center_taubin_newton(const Vec2ds& input, size_t cycles = 20) { return circle_center_taubin_newton(input.cbegin(), input.cend(), cycles); }
-
 // https://en.wikipedia.org/wiki/Circumscribed_circle
 // Circumcenter coordinates, Cartesian coordinates
 template<typename Vector>
@@ -99,6 +91,18 @@ using Circlef = Circle<Vec2f>;
 using Circled = Circle<Vec2d>;
 using CircleSqf = CircleSq<Vec2f>;
 using CircleSqd = CircleSq<Vec2d>;
+
+/// Find the center of the circle corresponding to the vector of Points as an arc.
+Point circle_center_taubin_newton(const Points::const_iterator& input_start, const Points::const_iterator& input_end, size_t cycles = 20);
+inline Point circle_center_taubin_newton(const Points& input, size_t cycles = 20) { return circle_center_taubin_newton(input.cbegin(), input.cend(), cycles); }
+
+/// Find the center of the circle corresponding to the vector of Pointfs as an arc.
+Vec2d circle_center_taubin_newton(const Vec2ds::const_iterator& input_start, const Vec2ds::const_iterator& input_end, size_t cycles = 20);
+inline Vec2d circle_center_taubin_newton(const Vec2ds& input, size_t cycles = 20) { return circle_center_taubin_newton(input.cbegin(), input.cend(), cycles); }
+Circled circle_taubin_newton(const Vec2ds& input, size_t cycles = 20);
+
+// Find circle using RANSAC randomized algorithm.
+Circled circle_ransac(const Vec2ds& input, size_t iterations = 20);
 
 // Randomized algorithm by Emo Welzl, working with squared radii for efficiency. The returned circle radius is inflated by epsilon.
 template<typename Vector, typename Points>

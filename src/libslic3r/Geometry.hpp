@@ -72,32 +72,6 @@ static inline bool is_ccw(const Polygon &poly)
     return o == ORIENTATION_CCW;
 }
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-// returns true if the given polygons are identical
-static inline bool are_approx(const Polygon& lhs, const Polygon& rhs)
-{
-    if (lhs.points.size() != rhs.points.size())
-        return false;
-
-    size_t rhs_id = 0;
-    while (rhs_id < rhs.points.size()) {
-        if (rhs.points[rhs_id].isApprox(lhs.points.front()))
-            break;
-        ++rhs_id;
-    }
-
-    if (rhs_id == rhs.points.size())
-        return false;
-
-    for (size_t i = 0; i < lhs.points.size(); ++i) {
-        if (!lhs.points[i].isApprox(rhs.points[(i + rhs_id) % lhs.points.size()]))
-            return false;
-    }
-
-    return true;
-}
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-
 inline bool ray_ray_intersection(const Vec2d &p1, const Vec2d &v1, const Vec2d &p2, const Vec2d &v2, Vec2d &res)
 {
     double denom = v1(0) * v2(1) - v2(0) * v1(1);
@@ -313,10 +287,6 @@ bool liang_barsky_line_clipping(
 	return liang_barsky_line_clipping(x0clip, x1clip, bbox);
 }
 
-Pointf3s convex_hull(Pointf3s points);
-Polygon convex_hull(Points points);
-Polygon convex_hull(const Polygons &polygons);
-
 bool directions_parallel(double angle1, double angle2, double max_diff = 0);
 #if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 bool directions_perpendicular(double angle1, double angle2, double max_diff = 0);
@@ -478,10 +448,6 @@ inline bool is_rotation_ninety_degrees(const Vec3d &rotation)
 {
     return is_rotation_ninety_degrees(rotation.x()) && is_rotation_ninety_degrees(rotation.y()) && is_rotation_ninety_degrees(rotation.z());
 }
-
-// Returns true if the intersection of the two convex polygons A and B
-// is not an empty set.
-bool convex_polygons_intersect(const Polygon &A, const Polygon &B);
 
 } } // namespace Slicer::Geometry
 

@@ -1554,7 +1554,7 @@ struct Plater::priv
     Slic3r::SLAPrint            sla_print;
     Slic3r::Model               model;
     PrinterTechnology           printer_technology = ptFFF;
-    Slic3r::GCodeProcessor::Result gcode_result;
+    Slic3r::GCodeProcessorResult gcode_result;
 
     // GUI elements
     wxSizer* panel_sizer{ nullptr };
@@ -1717,8 +1717,6 @@ struct Plater::priv
     void update_main_toolbar_tooltips();
 //   std::shared_ptr<ProgressStatusBar> statusbar();
     std::string get_config(const std::string &key) const;
-    BoundingBoxf bed_shape_bb() const;
-    BoundingBox scaled_bed_shape_bb() const;
 
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool used_inches = false);
     std::vector<size_t> load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z = false);
@@ -1842,7 +1840,7 @@ struct Plater::priv
     // triangulate the bed and store the triangles into m_bed.m_triangles,
     // fills the m_bed.m_grid_lines and sets m_bed.m_origin.
     // Sets m_bed.m_polygon to limit the object placement.
-    void set_bed_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false);
+    void set_bed_shape(const Pointfs& shape, const double max_print_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false);
 
     bool can_delete() const;
     bool can_delete_all() const;
@@ -1956,8 +1954,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     sla_print.set_status_callback(statuscb);
     this->q->Bind(EVT_SLICING_UPDATE, &priv::on_slicing_update, this);
 
-    view3D = new View3D(q, &model, config, &background_process);
-    preview = new Preview(q, &model, config, &background_process, &gcode_result, [this]() { schedule_background_process(); });
+    view3D = new View3D(q, bed, &model, config, &background_process);
+    preview = new Preview(q, bed, &model, config, &background_process, &gcode_result, [this]() { schedule_background_process(); });
 
 #ifdef __APPLE__
     // set default view_toolbar icons size equal to GLGizmosManager::Default_Icons_Size
@@ -2172,13 +2170,8 @@ void Plater::priv::update(unsigned int flags)
 {
     // the following line, when enabled, causes flickering on NVIDIA graphics cards
 //    wxWindowUpdateLocker freeze_guard(q);
-    if (get_config("autocenter") == "1") {
-        // auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
-        // const auto bed_shape = Slic3r::Polygon::new_scale(bed_shape_opt->values);
-        // const BoundingBox bed_shape_bb = bed_shape.bounding_box();
-        const Vec2d& bed_center = bed_shape_bb().center();
-        model.center_instances_around_point(bed_center);
-    }
+    if (get_config("autocenter") == "1")
+        model.center_instances_around_point(this->bed.build_volume().bed_center());
 
     unsigned int update_status = 0;
     const bool force_background_processing_restart = this->printer_technology == ptSLA || (flags & (unsigned int)UpdateParams::FORCE_BACKGROUND_PROCESSING_UPDATE);
@@ -2279,19 +2272,6 @@ void Plater::priv::update_main_toolbar_tooltips()
 std::string Plater::priv::get_config(const std::string &key) const
 {
     return wxGetApp().app_config->get(key);
-}
-
-BoundingBoxf Plater::priv::bed_shape_bb() const
-{
-    BoundingBox bb = scaled_bed_shape_bb();
-    return BoundingBoxf(unscale(bb.min), unscale(bb.max));
-}
-
-BoundingBox Plater::priv::scaled_bed_shape_bb() const
-{
-    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
-    const auto bed_shape = Slic3r::Polygon::new_scale(bed_shape_opt->values);
-    return bed_shape.bounding_box();
 }
 
 std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_files, bool load_model, bool load_config, bool imperial_units/* = false*/)
@@ -2564,7 +2544,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
             if (one_by_one) {
                 if (type_3mf && !is_project_file)
-                    model.center_instances_around_point(bed_shape_bb().center());
+                    model.center_instances_around_point(this->bed.build_volume().bed_center());
                 auto loaded_idxs = load_model_objects(model.objects, is_project_file);
                 obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
             } else {
@@ -2623,8 +2603,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
 std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z)
 {
-    const BoundingBoxf bed_shape = bed_shape_bb();
-    const Vec3d bed_size = Slic3r::to_3d(bed_shape.size().cast<double>(), 1.0) - 2.0 * Vec3d::Ones();
+    const Vec3d bed_size = Slic3r::to_3d(this->bed.build_volume().bounding_volume2d().size(), 1.0) - 2.0 * Vec3d::Ones();
 
 #ifndef AUTOPLACEMENT_ON_LOAD
     // bool need_arrange = false;
@@ -2652,7 +2631,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
              // add a default instance and center object around origin
             object->center_around_origin();  // also aligns object to Z = 0
             ModelInstance* instance = object->add_instance();
-            instance->set_offset(Slic3r::to_3d(bed_shape.center().cast<double>(), -object->origin_translation(2)));
+            instance->set_offset(Slic3r::to_3d(this->bed.build_volume().bed_center(), -object->origin_translation(2)));
 #endif /* AUTOPLACEMENT_ON_LOAD */
         }
 
@@ -2989,7 +2968,7 @@ void Plater::find_new_position(const ModelInstancePtrs &instances)
     if (auto wt = get_wipe_tower_arrangepoly(*this))
         fixed.emplace_back(*wt);
     
-    arrangement::arrange(movable, fixed, get_bed_shape(*config()), arr_params);
+    arrangement::arrange(movable, fixed, this->build_volume().polygon(), arr_params);
 
     for (auto & m : movable)
         m.apply();
@@ -3057,21 +3036,8 @@ void Plater::priv::schedule_background_process()
 
 void Plater::priv::update_print_volume_state()
 {
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(this->config->option("bed_shape"));
-    const Polygon bed_poly_convex = offset(Geometry::convex_hull(Polygon::new_scale(opt->values).points), static_cast<float>(scale_(BedEpsilon))).front();
-    const float bed_height = this->config->opt_float("max_print_height");
-    this->q->model().update_print_volume_state(bed_poly_convex, bed_height);
-#else
-    BoundingBox     bed_box_2D = get_extents(Polygon::new_scale(this->config->opt<ConfigOptionPoints>("bed_shape")->values));
-    BoundingBoxf3   print_volume(unscale(bed_box_2D.min(0), bed_box_2D.min(1), 0.0), unscale(bed_box_2D.max(0), bed_box_2D.max(1), scale_(this->config->opt_float("max_print_height"))));
-    // Allow the objects to protrude below the print bed, only the part of the object above the print bed will be sliced.
-    print_volume.offset(BedEpsilon);
-    print_volume.min(2) = -1e10;
-    this->q->model().update_print_volume_state(print_volume);
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    this->q->model().update_print_volume_state(this->bed.build_volume());
 }
-
 
 void Plater::priv::process_validation_warning(const std::string& warning) const
 {
@@ -4588,9 +4554,9 @@ bool Plater::priv::can_reload_from_disk() const
     return !paths.empty();
 }
 
-void Plater::priv::set_bed_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom)
+void Plater::priv::set_bed_shape(const Pointfs& shape, const double max_print_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom)
 {
-    bool new_shape = bed.set_shape(shape, custom_texture, custom_model, force_as_custom);
+    bool new_shape = bed.set_shape(shape, max_print_height, custom_texture, custom_model, force_as_custom);
     if (new_shape) {
         if (view3D) view3D->bed_shape_changed();
         if (preview) preview->bed_shape_changed();
@@ -6278,13 +6244,14 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 void Plater::set_bed_shape() const
 {
     set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values,
+        p->config->option<ConfigOptionFloat>("max_print_height")->value,
         p->config->option<ConfigOptionString>("bed_custom_texture")->value,
         p->config->option<ConfigOptionString>("bed_custom_model")->value);
 }
 
-void Plater::set_bed_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom) const
+void Plater::set_bed_shape(const Pointfs& shape, const double max_print_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom) const
 {
-    p->set_bed_shape(shape, custom_texture, custom_model, force_as_custom);
+    p->set_bed_shape(shape, max_print_height, custom_texture, custom_model, force_as_custom);
 }
 
 void Plater::force_filament_colors_update()
@@ -6339,7 +6306,7 @@ void Plater::on_activate()
 }
 
 // Get vector of extruder colors considering filament color, if extruder color is undefined.
-std::vector<std::string> Plater::get_extruder_colors_from_plater_config(const GCodeProcessor::Result* const result) const
+std::vector<std::string> Plater::get_extruder_colors_from_plater_config(const GCodeProcessorResult* const result) const
 {
     if (wxGetApp().is_gcode_viewer() && result != nullptr)
         return result->extruder_colors;
@@ -6365,7 +6332,7 @@ std::vector<std::string> Plater::get_extruder_colors_from_plater_config(const GC
 /* Get vector of colors used for rendering of a Preview scene in "Color print" mode
  * It consists of extruder colors and colors, saved in model.custom_gcode_per_print_z
  */
-std::vector<std::string> Plater::get_colors_for_color_print(const GCodeProcessor::Result* const result) const
+std::vector<std::string> Plater::get_colors_for_color_print(const GCodeProcessorResult* const result) const
 {
     std::vector<std::string> colors = get_extruder_colors_from_plater_config(result);
     colors.reserve(colors.size() + p->model.custom_gcode_per_print_z.gcodes.size());
@@ -6429,11 +6396,6 @@ const GLCanvas3D* Plater::canvas3D() const
 GLCanvas3D* Plater::get_current_canvas3D()
 {
     return p->get_current_canvas3D();
-}
-
-BoundingBoxf Plater::bed_shape_bb() const
-{
-    return p->bed_shape_bb();
 }
 
 void Plater::arrange()
@@ -6725,14 +6687,9 @@ unsigned int Plater::get_environment_texture_id() const
 }
 #endif // ENABLE_ENVIRONMENT_MAP
 
-const Bed3D& Plater::get_bed() const
+const BuildVolume& Plater::build_volume() const
 {
-    return p->bed;
-}
-
-Bed3D& Plater::get_bed()
-{
-    return p->bed;
+    return p->bed.build_volume();
 }
 
 const GLToolbar& Plater::get_view_toolbar() const

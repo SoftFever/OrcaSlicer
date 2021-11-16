@@ -137,7 +137,7 @@ void Bed3D::Axes::render() const
     glsafe(::glDisable(GL_DEPTH_TEST));
 }
 
-bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom)
+bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom)
 {
     auto check_texture = [](const std::string& texture) {
         boost::system::error_code ec; // so the exists call does not throw (e.g. after a permission problem)
@@ -149,17 +149,13 @@ bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, c
         return !model.empty() && boost::algorithm::iends_with(model, ".stl") && boost::filesystem::exists(model, ec);
     };
 
-    EType type;
+    Type type;
     std::string model;
     std::string texture;
     if (force_as_custom)
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-        type = EType::Custom;
-#else
-        type = Custom;
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+        type = Type::Custom;
     else {
-        auto [new_type, system_model, system_texture] = detect_type(shape);
+        auto [new_type, system_model, system_texture] = detect_type(bed_shape);
         type = new_type;
         model = system_model;
         texture = system_texture;
@@ -177,29 +173,18 @@ bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, c
         model_filename.clear();
     }
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    EShapeType shape_type = detect_shape_type(shape);
-    if (m_shape == shape && m_type == type && m_shape_type == shape_type && m_texture_filename == texture_filename && m_model_filename == model_filename)
-#else
-    if (m_shape == shape && m_type == type && m_texture_filename == texture_filename && m_model_filename == model_filename)
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    
+    if (m_build_volume.bed_shape() == bed_shape && m_type == type && m_texture_filename == texture_filename && m_model_filename == model_filename)
         // No change, no need to update the UI.
         return false;
 
-    m_shape = shape;
+    m_type = type;
+    m_build_volume = BuildVolume { bed_shape, max_print_height };
     m_texture_filename = texture_filename;
     m_model_filename = model_filename;
-    m_type = type;
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    m_shape_type = shape_type;
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    m_extended_bounding_box = this->calc_extended_bounding_box();
 
-    calc_bounding_boxes();
-
-    ExPolygon poly;
-    for (const Vec2d& p : m_shape) {
-        poly.contour.append({ scale_(p(0)), scale_(p(1)) });
-    }
+    ExPolygon poly{ Polygon::new_scale(bed_shape) };
 
     calc_triangles(poly);
 
@@ -208,13 +193,13 @@ bool Bed3D::set_shape(const Pointfs& shape, const std::string& custom_texture, c
 
     m_polygon = offset(poly.contour, (float)bed_bbox.radius() * 1.7f, jtRound, scale_(0.5))[0];
 
-    reset();
+    this->release_VBOs();
     m_texture.reset();
     m_model.reset();
 
     // Set the origin and size for rendering the coordinate system axes.
     m_axes.set_origin({ 0.0, 0.0, static_cast<double>(GROUND_Z) });
-    m_axes.set_stem_length(0.1f * static_cast<float>(m_bounding_box.max_size()));
+    m_axes.set_stem_length(0.1f * static_cast<float>(m_build_volume.bounding_volume().max_size()));
 
     // Let the calee to update the UI.
     return true;
@@ -240,85 +225,6 @@ void Bed3D::render_for_picking(GLCanvas3D& canvas, bool bottom, float scale_fact
     render_internal(canvas, bottom, scale_factor, false, false, true);
 }
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-bool Bed3D::is_rectangle(const Pointfs& shape, Vec2d* min, Vec2d* max)
-{
-    const Lines lines = Polygon::new_scale(shape).lines();
-    bool ret = lines.size() == 4 && lines[0].parallel_to(lines[2]) && lines[1].parallel_to(lines[3]) && lines[0].perpendicular_to(lines[1]);
-    if (ret) {
-        if (min != nullptr) {
-            *min = shape.front();
-            for (const Vec2d& pt : shape) {
-                min->x() = std::min(min->x(), pt.x());
-                min->y() = std::min(min->y(), pt.y());
-            }
-        }
-        if (max != nullptr) {
-            *max = shape.front();
-            for (const Vec2d& pt : shape) {
-                max->x() = std::max(max->x(), pt.x());
-                max->y() = std::max(max->y(), pt.y());
-            }
-        }
-    }
-    return ret;
-}
-
-bool Bed3D::is_circle(const Pointfs& shape, Vec2d* center, double* radius)
-{
-    if (shape.size() < 3)
-        return false;
-
-    // Analyze the array of points.
-    // Do they reside on a circle ?
-    const Vec2d box_center = Geometry::circle_center_taubin_newton(shape);
-
-    std::vector<double> vertex_distances;
-    double avg_dist = 0.0;
-    for (const Vec2d& pt : shape) {
-        double distance = (pt - box_center).norm();
-        vertex_distances.push_back(distance);
-        avg_dist += distance;
-    }
-
-    avg_dist /= vertex_distances.size();
-
-    double tolerance = avg_dist * 0.01;
-
-    bool defined_value = true;
-    for (double el : vertex_distances) {
-        if (fabs(el - avg_dist) > tolerance)
-            defined_value = false;
-        break;
-    }
-
-    if (center != nullptr)
-        *center = box_center;
-
-    if (radius != nullptr)
-        *radius = avg_dist;
-
-    return defined_value;
-}
-
-bool Bed3D::is_convex(const Pointfs& shape)
-{
-    return Polygon::new_scale(shape).convex_points().size() == shape.size();
-}
-
-Bed3D::EShapeType Bed3D::detect_shape_type(const Pointfs& shape)
-{
-    if (shape.size() < 3)
-        return EShapeType::Invalid;
-    else if (is_rectangle(shape))
-        return EShapeType::Rectangle;
-    else if (is_circle(shape))
-        return EShapeType::Circle;
-    else
-        return EShapeType::Custom;
-}
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-
 void Bed3D::render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
     bool show_axes, bool show_texture, bool picking)
 {
@@ -334,41 +240,31 @@ void Bed3D::render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
 
     switch (m_type)
     {
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    case EType::System: { render_system(canvas, bottom, show_texture); break; }
+    case Type::System: { render_system(canvas, bottom, show_texture); break; }
     default:
-    case EType::Custom: { render_custom(canvas, bottom, show_texture, picking); break; }
-#else
-    case System: { render_system(canvas, bottom, show_texture); break; }
-    default:
-    case Custom: { render_custom(canvas, bottom, show_texture, picking); break; }
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    case Type::Custom: { render_custom(canvas, bottom, show_texture, picking); break; }
     }
 
     glsafe(::glDisable(GL_DEPTH_TEST));
 }
 
-void Bed3D::calc_bounding_boxes() const
+// Calculate an extended bounding box from axes and current model for visualization purposes.
+BoundingBoxf3 Bed3D::calc_extended_bounding_box() const
 {
-    BoundingBoxf3* bounding_box = const_cast<BoundingBoxf3*>(&m_bounding_box);
-    *bounding_box = BoundingBoxf3();
-    for (const Vec2d& p : m_shape) {
-        bounding_box->merge({ p.x(), p.y(), 0.0 });
-    }
-
-    BoundingBoxf3* extended_bounding_box = const_cast<BoundingBoxf3*>(&m_extended_bounding_box);
-    *extended_bounding_box = m_bounding_box;
-
+    BoundingBoxf3 out { m_build_volume.bounding_volume() };
+    // Reset the build volume Z, we don't want to zoom to the top of the build volume if it is empty.
+    out.min.z() = 0;
+    out.max.z() = 0;
     // extend to contain axes
-    extended_bounding_box->merge(m_axes.get_origin() + m_axes.get_total_length() * Vec3d::Ones());
-    extended_bounding_box->merge(extended_bounding_box->min + Vec3d(-Axes::DefaultTipRadius, -Axes::DefaultTipRadius, extended_bounding_box->max(2)));
-
+    out.merge(m_axes.get_origin() + m_axes.get_total_length() * Vec3d::Ones());
+    out.merge(out.min + Vec3d(-Axes::DefaultTipRadius, -Axes::DefaultTipRadius, out.max(2)));
     // extend to contain model, if any
     BoundingBoxf3 model_bb = m_model.get_bounding_box();
     if (model_bb.defined) {
         model_bb.translate(m_model_offset);
-        extended_bounding_box->merge(model_bb);
+        out.merge(model_bb);
     }
+    return out;
 }
 
 void Bed3D::calc_triangles(const ExPolygon& poly)
@@ -404,8 +300,9 @@ void Bed3D::calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox)
         BOOST_LOG_TRIVIAL(error) << "Unable to create bed grid lines\n";
 }
 
-
-std::tuple<Bed3D::EType, std::string, std::string> Bed3D::detect_type(const Pointfs& shape) const
+// Try to match the print bed shape with the shape of an active profile. If such a match exists,
+// return the print bed model.
+std::tuple<Bed3D::Type, std::string, std::string> Bed3D::detect_type(const Pointfs& shape)
 {
     auto bundle = wxGetApp().preset_bundle;
     if (bundle != nullptr) {
@@ -416,11 +313,7 @@ std::tuple<Bed3D::EType, std::string, std::string> Bed3D::detect_type(const Poin
                     std::string model_filename = PresetUtils::system_printer_bed_model(*curr);
                     std::string texture_filename = PresetUtils::system_printer_bed_texture(*curr);
                     if (!model_filename.empty() && !texture_filename.empty())
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-                        return { EType::System, model_filename, texture_filename };
-#else
-                        return { System, model_filename, texture_filename };
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+                        return { Type::System, model_filename, texture_filename };
                 }
             }
 
@@ -428,16 +321,12 @@ std::tuple<Bed3D::EType, std::string, std::string> Bed3D::detect_type(const Poin
         }
     }
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    return { EType::Custom, "", "" };
-#else
-    return { Custom, "", "" };
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    return { Type::Custom, {}, {} };
 }
 
 void Bed3D::render_axes() const
 {
-    if (!m_shape.empty())
+    if (m_build_volume.valid())
         m_axes.render();
 }
 
@@ -596,12 +485,10 @@ void Bed3D::render_model() const
         model->set_color(-1, DEFAULT_MODEL_COLOR);
 
         // move the model so that its origin (0.0, 0.0, 0.0) goes into the bed shape center and a bit down to avoid z-fighting with the texture quad
-        Vec3d shift = m_bounding_box.center();
-        shift(2) = -0.03;
-        *const_cast<Vec3d*>(&m_model_offset) = shift;
+        *const_cast<Vec3d*>(&m_model_offset) = to_3d(m_build_volume.bounding_volume2d().center(), -0.03);
 
         // update extended bounding box
-        calc_bounding_boxes();
+        const_cast<BoundingBoxf3&>(m_extended_bounding_box) = this->calc_extended_bounding_box();
     }
 
     if (!model->get_filename().empty()) {
@@ -673,7 +560,7 @@ void Bed3D::render_default(bool bottom, bool picking) const
     }
 }
 
-void Bed3D::reset()
+void Bed3D::release_VBOs()
 {
     if (m_vbo_id > 0) {
         glsafe(::glDeleteBuffers(1, &m_vbo_id));

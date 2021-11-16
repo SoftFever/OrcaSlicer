@@ -84,6 +84,10 @@ BoundingBox get_extents_rotated(const Polygon &poly, double angle);
 BoundingBox get_extents_rotated(const Polygons &polygons, double angle);
 std::vector<BoundingBox> get_extents_vector(const Polygons &polygons);
 
+// Polygon must be valid (at least three points), collinear points and duplicate points removed.
+bool        polygon_is_convex(const Points &poly);
+inline bool polygon_is_convex(const Polygon &poly) { return polygon_is_convex(poly.points); }
+
 // Test for duplicate points. The points are copied, sorted and checked for duplicates globally.
 inline bool has_duplicate_points(Polygon &&poly)      { return has_duplicate_points(std::move(poly.points)); }
 inline bool has_duplicate_points(const Polygon &poly) { return has_duplicate_points(poly.points); }

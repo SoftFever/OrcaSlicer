@@ -31,6 +31,7 @@
 namespace Slic3r {
 class SLAPrintObject;
 enum  SLAPrintObjectStep : unsigned int;
+class BuildVolume;
 class DynamicPrintConfig;
 class ExtrusionPath;
 class ExtrusionMultiPath;
@@ -281,10 +282,8 @@ private:
     std::shared_ptr<const TriangleMesh> m_convex_hull;
     // Bounding box of this volume, in unscaled coordinates.
     std::optional<BoundingBoxf3> m_transformed_convex_hull_bounding_box;
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     // Bounding box of the non sinking part of this volume, in unscaled coordinates.
     std::optional<BoundingBoxf3> m_transformed_non_sinking_bounding_box;
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     class SinkingContours
     {
@@ -475,12 +474,10 @@ public:
     BoundingBoxf3        transformed_convex_hull_bounding_box(const Transform3d &trafo) const;
     // caching variant
     const BoundingBoxf3& transformed_convex_hull_bounding_box() const;
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     // non-caching variant
     BoundingBoxf3        transformed_non_sinking_bounding_box(const Transform3d& trafo) const;
     // caching variant
     const BoundingBoxf3& transformed_non_sinking_bounding_box() const;
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     // convex hull
     const TriangleMesh*  convex_hull() const { return m_convex_hull.get(); }
 
@@ -493,15 +490,11 @@ public:
     void                finalize_geometry(bool opengl_initialized) { this->indexed_vertex_array.finalize_geometry(opengl_initialized); }
     void                release_geometry() { this->indexed_vertex_array.release_geometry(); }
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     void                set_bounding_boxes_as_dirty() {
         m_transformed_bounding_box.reset();
         m_transformed_convex_hull_bounding_box.reset();
         m_transformed_non_sinking_bounding_box.reset();
     }
-#else
-    void                set_bounding_boxes_as_dirty() { m_transformed_bounding_box.reset(); m_transformed_convex_hull_bounding_box.reset(); }
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     bool                is_sla_support() const;
     bool                is_sla_pad() const;
@@ -518,12 +511,6 @@ public:
     // Return an estimate of the memory held by GPU vertex buffers.
     size_t 				gpu_memory_used() const { return this->indexed_vertex_array.gpu_memory_used(); }
     size_t 				total_memory_used() const { return this->cpu_memory_used() + this->gpu_memory_used(); }
-
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    // calculates the 3D convex hull from indexed_vertex_array.vertices_and_normals_interleaved
-    // must be called before calling indexed_vertex_array.finalize_geometry();
-    void calc_convex_hull_3d();
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 };
 
 typedef std::vector<GLVolume*> GLVolumePtrs;
@@ -540,7 +527,6 @@ public:
         All
     };
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     struct PrintVolume
     {
         // see: Bed3D::EShapeType
@@ -554,16 +540,9 @@ public:
         //   [0] = min z, [1] = max z
         std::array<float, 2> zs;
     };
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 private:
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     PrintVolume m_print_volume;
-#else
-    // min and max vertex of the print box volume
-    float m_print_box_min[3];
-    float m_print_box_max[3];
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     // z range for clipping in shaders
     float m_z_range[2];
@@ -635,14 +614,7 @@ public:
     bool empty() const { return volumes.empty(); }
     void set_range(double low, double high) { for (GLVolume *vol : this->volumes) vol->set_range(low, high); }
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     void set_print_volume(const PrintVolume& print_volume) { m_print_volume = print_volume; }
-#else
-    void set_print_box(float min_x, float min_y, float min_z, float max_x, float max_y, float max_z) {
-        m_print_box_min[0] = min_x; m_print_box_min[1] = min_y; m_print_box_min[2] = min_z;
-        m_print_box_max[0] = max_x; m_print_box_max[1] = max_y; m_print_box_max[2] = max_z;
-    }
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     void set_z_range(float min_z, float max_z) { m_z_range[0] = min_z; m_z_range[1] = max_z; }
     void set_clipping_plane(const double* coeffs) { m_clipping_plane[0] = coeffs[0]; m_clipping_plane[1] = coeffs[1]; m_clipping_plane[2] = coeffs[2]; m_clipping_plane[3] = coeffs[3]; }
@@ -657,11 +629,7 @@ public:
 
     // returns true if all the volumes are completely contained in the print volume
     // returns the containment state in the given out_state, if non-null
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    bool check_outside_state(const DynamicPrintConfig* config, ModelInstanceEPrintVolumeState* out_state, bool as_toolpaths = false) const;
-#else
-    bool check_outside_state(const DynamicPrintConfig* config, ModelInstanceEPrintVolumeState* out_state) const;
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    bool check_outside_state(const Slic3r::BuildVolume& build_volume, ModelInstanceEPrintVolumeState* out_state) const;
     void reset_outside_state();
 
     void update_colors_by_extruder(const DynamicPrintConfig* config);
@@ -698,8 +666,6 @@ struct _3DScene
     static void polyline3_to_verts(const Polyline3& polyline, double width, double height, GLVolume& volume);
     static void point3_to_verts(const Vec3crd& point, double width, double height, GLVolume& volume);
 };
-
-static constexpr float BedEpsilon = 3.f * float(EPSILON);
 
 }
 

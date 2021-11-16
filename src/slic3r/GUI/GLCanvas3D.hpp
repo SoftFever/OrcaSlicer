@@ -39,6 +39,7 @@ class wxGLContext;
 namespace Slic3r {
 
 class BackgroundSlicingProcess;
+class BuildVolume;
 struct ThumbnailData;
 struct ThumbnailsParams;
 class ModelObject;
@@ -49,6 +50,8 @@ class SLAPrint;
 namespace CustomGCode { struct Item; }
 
 namespace GUI {
+
+class Bed3D;
 
 #if ENABLE_RETINA_GL
 class RetinaHelper;
@@ -446,6 +449,7 @@ public:
 private:
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
+    Bed3D &m_bed;
 #if ENABLE_RETINA_GL
     std::unique_ptr<RetinaHelper> m_retina_helper;
 #endif
@@ -600,7 +604,7 @@ private:
     m_gizmo_highlighter;
 
 public:
-    explicit GLCanvas3D(wxGLCanvas* canvas);
+    explicit GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed);
     ~GLCanvas3D();
 
     bool is_initialized() const { return m_initialized; }
@@ -621,11 +625,7 @@ public:
     unsigned int get_volumes_count() const;
     const GLVolumeCollection& get_volumes() const { return m_volumes; }
     void reset_volumes();
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    ModelInstanceEPrintVolumeState check_volumes_outside_state(bool as_toolpaths = false) const;
-#else
     ModelInstanceEPrintVolumeState check_volumes_outside_state() const;
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 #if ENABLE_SEAMS_USING_MODELS
     void init_gcode_viewer() { m_gcode_viewer.init(); }
@@ -736,7 +736,7 @@ public:
 
     void reload_scene(bool refresh_immediately, bool force_full_scene_refresh = false);
 
-    void load_gcode_preview(const GCodeProcessor::Result& gcode_result, const std::vector<std::string>& str_tool_colors);
+    void load_gcode_preview(const GCodeProcessorResult& gcode_result, const std::vector<std::string>& str_tool_colors);
     void refresh_gcode_preview_render_paths();
     void set_gcode_view_preview_type(GCodeViewer::EViewType type) { return m_gcode_viewer.set_view_type(type); }
     GCodeViewer::EViewType get_gcode_view_preview_type() const { return m_gcode_viewer.get_view_type(); }
@@ -955,33 +955,19 @@ private:
     void _start_timer();
     void _stop_timer();
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     // Create 3D thick extrusion lines for a skirt and brim.
-    // Adds a new Slic3r::GUI::3DScene::Volume to volumes.
-    void _load_print_toolpaths(bool generate_convex_hulls = false);
+    // Adds a new Slic3r::GUI::3DScene::Volume to volumes, updates collision with the build_volume.
+    void _load_print_toolpaths(const BuildVolume &build_volume);
     // Create 3D thick extrusion lines for object forming extrusions.
     // Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes,
-    // one for perimeters, one for infill and one for supports.
-    void _load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors,
-        const std::vector<CustomGCode::Item>& color_print_values, bool generate_convex_hulls = false);
-    // Create 3D thick extrusion lines for wipe tower extrusions
-    void _load_wipe_tower_toolpaths(const std::vector<std::string>& str_tool_colors, bool generate_convex_hulls = false);
-#else
-    // Create 3D thick extrusion lines for a skirt and brim.
-    // Adds a new Slic3r::GUI::3DScene::Volume to volumes.
-    void _load_print_toolpaths();
-    // Create 3D thick extrusion lines for object forming extrusions.
-    // Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes,
-    // one for perimeters, one for infill and one for supports.
-    void _load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors,
-        const std::vector<CustomGCode::Item>& color_print_values);
-    // Create 3D thick extrusion lines for wipe tower extrusions
-    void _load_wipe_tower_toolpaths(const std::vector<std::string>& str_tool_colors);
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    // one for perimeters, one for infill and one for supports, updates collision with the build_volume.
+    void _load_print_object_toolpaths(const PrintObject& print_object, const BuildVolume &build_volume,
+        const std::vector<std::string>& str_tool_colors, const std::vector<CustomGCode::Item>& color_print_values);
+    // Create 3D thick extrusion lines for wipe tower extrusions, updates collision with the build_volume.
+    void _load_wipe_tower_toolpaths(const BuildVolume &build_volume, const std::vector<std::string>& str_tool_colors);
 
     // Load SLA objects and support structures for objects, for which the slaposSliceSupports step has been finished.
 	void _load_sla_shells();
-    void _update_toolpath_volumes_outside_state();
     void _update_sla_shells_outside_state();
     void _set_warning_notification_if_needed(EWarning warning);
 

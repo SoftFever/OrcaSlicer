@@ -33,6 +33,7 @@ namespace cereal {
 namespace Slic3r {
 enum class ConversionType;
 
+class BuildVolume;
 class Model;
 class ModelInstance;
 class ModelMaterial;
@@ -366,13 +367,6 @@ public:
     double get_instance_min_z(size_t instance_idx) const;
     double get_instance_max_z(size_t instance_idx) const;
 
-    // Called by Print::validate() from the UI thread.
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    unsigned int check_instances_print_volume_state(const Polygon& printbed_shape, double print_volume_height);
-#else
-    unsigned int check_instances_print_volume_state(const BoundingBoxf3& print_volume);
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-
     // Print object statistics to console.
     void print_info() const;
 
@@ -505,6 +499,9 @@ private:
             sla_support_points, sla_points_status, sla_drain_holes, printable, origin_translation,
             m_bounding_box, m_bounding_box_valid, m_raw_bounding_box, m_raw_bounding_box_valid, m_raw_mesh_bounding_box, m_raw_mesh_bounding_box_valid);
 	}
+
+    // Called by Print::validate() from the UI thread.
+    unsigned int update_instances_print_volume_state(const BuildVolume &build_volume);
 };
 
 enum class EnforcerBlockerType : int8_t {
@@ -908,17 +905,6 @@ enum ModelInstanceEPrintVolumeState : unsigned char
     ModelInstanceNum_BedStates
 };
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-// return the state of the given object's volume (extrusion along z of obj_hull_2d from obj_min_z to obj_max_z)
-// with respect to the given print volume (extrusion along z of printbed_shape from zero to print_volume_height)
-// Using rotating callipers to check for collision of two convex polygons.
-ModelInstanceEPrintVolumeState printbed_collision_state(const Polygon& printbed_shape, double print_volume_height, const Polygon& obj_hull_2d, double obj_min_z, double obj_max_z);
-// return the state of the given box
-// with respect to the given print volume (extrusion along z of printbed_shape from zero to print_volume_height)
-// Commented out, using rotating callipers is quite expensive for a bounding box test.
-//ModelInstanceEPrintVolumeState printbed_collision_state(const Polygon& printbed_shape, double print_volume_height, const BoundingBoxf3& box);
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-
 // A single instance of a ModelObject.
 // Knows the affine transformation of an object.
 class ModelInstance final : public ObjectBase
@@ -1123,12 +1109,7 @@ public:
     BoundingBoxf3 bounding_box() const;
     // Set the print_volume_state of PrintObject::instances, 
     // return total number of printable objects.
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    // printbed_shape is convex polygon
-    unsigned int  update_print_volume_state(const Polygon& printbed_shape, double print_volume_height);
-#else
-    unsigned int  update_print_volume_state(const BoundingBoxf3 &print_volume);
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    unsigned int  update_print_volume_state(const BuildVolume &build_volume);
     // Returns true if any ModelObject was modified.
     bool 		  center_instances_around_point(const Vec2d &point);
     void 		  translate(coordf_t x, coordf_t y, coordf_t z) { for (ModelObject *o : this->objects) o->translate(x, y, z); }

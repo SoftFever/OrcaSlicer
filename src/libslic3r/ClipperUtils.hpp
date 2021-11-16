@@ -331,6 +331,8 @@ Slic3r::ExPolygons union_safety_offset_ex(const Slic3r::Polygons &polygons);
 Slic3r::ExPolygons union_safety_offset_ex(const Slic3r::ExPolygons &expolygons);
 
 // Aliases for the various offset(...) functions, conveying the purpose of the offset.
+inline Slic3r::Polygons   expand(const Slic3r::Polygon &polygon, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
+    { assert(delta > 0); return offset(polygon, delta, joinType, miterLimit); }
 inline Slic3r::Polygons   expand(const Slic3r::Polygons &polygons, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
     { assert(delta > 0); return offset(polygons, delta, joinType, miterLimit); }
 inline Slic3r::ExPolygons expand_ex(const Slic3r::Polygons &polygons, const float delta, ClipperLib::JoinType joinType = DefaultJoinType, double miterLimit = DefaultMiterLimit) 
@@ -378,6 +380,7 @@ inline Slic3r::ExPolygons opening_ex(const Slic3r::Surfaces &surfaces, const flo
 Slic3r::Lines _clipper_ln(ClipperLib::ClipType clipType, const Slic3r::Lines &subject, const Slic3r::Polygons &clip);
 
 // Safety offset is applied to the clipping polygons only.
+Slic3r::Polygons   diff(const Slic3r::Polygon &subject, const Slic3r::Polygon &clip, ApplySafetyOffset do_safety_offset = ApplySafetyOffset::No);
 Slic3r::Polygons   diff(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, ApplySafetyOffset do_safety_offset = ApplySafetyOffset::No);
 Slic3r::Polygons   diff(const Slic3r::Polygons &subject, const Slic3r::ExPolygons &clip, ApplySafetyOffset do_safety_offset = ApplySafetyOffset::No);
 Slic3r::Polygons   diff(const Slic3r::ExPolygons &subject, const Slic3r::Polygons &clip, ApplySafetyOffset do_safety_offset = ApplySafetyOffset::No);

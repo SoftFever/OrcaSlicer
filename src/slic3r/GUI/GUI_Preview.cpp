@@ -37,11 +37,11 @@
 namespace Slic3r {
 namespace GUI {
 
-View3D::View3D(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
+View3D::View3D(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
     : m_canvas_widget(nullptr)
     , m_canvas(nullptr)
 {
-    init(parent, model, config, process);
+    init(parent, bed, model, config, process);
 }
 
 View3D::~View3D()
@@ -50,7 +50,7 @@ View3D::~View3D()
     delete m_canvas_widget;
 }
 
-bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
+bool View3D::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process)
 {
     if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
@@ -59,7 +59,7 @@ bool View3D::init(wxWindow* parent, Model* model, DynamicPrintConfig* config, Ba
     if (m_canvas_widget == nullptr)
         return false;
 
-    m_canvas = new GLCanvas3D(m_canvas_widget);
+    m_canvas = new GLCanvas3D(m_canvas_widget, bed);
     m_canvas->set_context(wxGetApp().init_glcontext(*m_canvas_widget));
 
     m_canvas->allow_multisample(OpenGLManager::can_multisample());
@@ -169,18 +169,18 @@ void View3D::render()
 }
 
 Preview::Preview(
-    wxWindow* parent, Model* model, DynamicPrintConfig* config,
-    BackgroundSlicingProcess* process, GCodeProcessor::Result* gcode_result, std::function<void()> schedule_background_process_func)
+    wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config,
+    BackgroundSlicingProcess* process, GCodeProcessorResult* gcode_result, std::function<void()> schedule_background_process_func)
     : m_config(config)
     , m_process(process)
     , m_gcode_result(gcode_result)
     , m_schedule_background_process(schedule_background_process_func)
 {
-    if (init(parent, model))
+    if (init(parent, bed, model))
         load_print();
 }
 
-bool Preview::init(wxWindow* parent, Model* model)
+bool Preview::init(wxWindow* parent, Bed3D& bed, Model* model)
 {
     if (!Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 /* disable wxTAB_TRAVERSAL */))
         return false;
@@ -196,7 +196,7 @@ bool Preview::init(wxWindow* parent, Model* model)
     if (m_canvas_widget == nullptr)
         return false;
 
-    m_canvas = new GLCanvas3D(m_canvas_widget);
+    m_canvas = new GLCanvas3D(m_canvas_widget, bed);
     m_canvas->set_context(wxGetApp().init_glcontext(*m_canvas_widget));
     m_canvas->allow_multisample(OpenGLManager::can_multisample());
     m_canvas->set_config(m_config);

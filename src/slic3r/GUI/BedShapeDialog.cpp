@@ -22,98 +22,7 @@ namespace GUI {
 
 BedShape::BedShape(const ConfigOptionPoints& points)
 {
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    if (points.size() < 3) {
-        m_type = Bed3D::EShapeType::Invalid;
-        return;
-    }
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-
-    // is this a rectangle ?
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    Vec2d min;
-    Vec2d max;
-    if (Bed3D::is_rectangle(points.values, &min, &max)) {
-        m_type       = Bed3D::EShapeType::Rectangle;
-        m_rectSize   = max - min;
-        m_rectOrigin = -min;
-        return;
-    }
-#else
-    Polygon polygon = Polygon::new_scale(points.values);
-    if (points.size() == 4) {
-        auto lines = polygon.lines();
-        if (lines[0].parallel_to(lines[2]) && lines[1].parallel_to(lines[3])) {
-            // okay, it's a rectangle
-            // find origin
-            coordf_t x_min, x_max, y_min, y_max;
-            x_max = x_min = points.values[0](0);
-            y_max = y_min = points.values[0](1);
-            for (auto pt : points.values)
-            {
-                x_min = std::min(x_min, pt(0));
-                x_max = std::max(x_max, pt(0));
-                y_min = std::min(y_min, pt(1));
-                y_max = std::max(y_max, pt(1));
-            }
-
-            m_type          = Type::Rectangular;
-            m_rectSize      = Vec2d(x_max - x_min, y_max - y_min);
-            m_rectOrigin    = Vec2d(-x_min, -y_min);
-
-            return;
-        }
-    }
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-
-    // is this a circle ?
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    Vec2d center;
-    double radius;
-    if (Bed3D::is_circle(points.values, &center, &radius)) {
-        m_type     = Bed3D::EShapeType::Circle;
-        m_diameter = 2.0 * radius;
-        return;
-    }
-
-    // This is a custom bed shape, use the polygon provided.
-    m_type = Bed3D::EShapeType::Custom;
-#else
-    {
-        // Analyze the array of points.Do they reside on a circle ?
-        auto center = polygon.bounding_box().center();
-        std::vector<double> vertex_distances;
-        double avg_dist = 0;
-        for (auto pt : polygon.points)
-        {
-            double distance = (pt - center).cast<double>().norm();
-            vertex_distances.push_back(distance);
-            avg_dist += distance;
-        }
-
-        avg_dist /= vertex_distances.size();
-        bool defined_value = true;
-        for (auto el : vertex_distances)
-        {
-            if (abs(el - avg_dist) > 10 * SCALED_EPSILON)
-                defined_value = false;
-            break;
-        }
-        if (defined_value) {
-            // all vertices are equidistant to center
-            m_type      = Type::Circular;
-            m_diameter  = unscale<double>(avg_dist * 2);
-
-            return;
-        }
-    }
-
-    if (points.size() < 3)
-        return;
-
-    // This is a custom bed shape, use the polygon provided.
-    m_type = Type::Custom;
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    m_build_volume = { points.values, 0. };
 }
 
 static std::string get_option_label(BedShape::Parameter param)
@@ -122,119 +31,101 @@ static std::string get_option_label(BedShape::Parameter param)
     case BedShape::Parameter::RectSize  : return L("Size");
     case BedShape::Parameter::RectOrigin: return L("Origin");
     case BedShape::Parameter::Diameter  : return L("Diameter");
-    default:                              return "";
+    default:                              assert(false); return {};
     }
 }
 
 void BedShape::append_option_line(ConfigOptionsGroupShp optgroup, Parameter param)
 {
     ConfigOptionDef def;
-
-    if (param == Parameter::RectSize) {
+    t_config_option_key key;
+    switch (param) {
+    case Parameter::RectSize:
         def.type = coPoints;
         def.set_default_value(new ConfigOptionPoints{ Vec2d(200, 200) });
         def.min = 0;
         def.max = 1200;
         def.label = get_option_label(param);
         def.tooltip = L("Size in X and Y of the rectangular plate.");
-
-        Option option(def, "rect_size");
-        optgroup->append_single_option_line(option);
-    }
-    else if (param == Parameter::RectOrigin) {
+        key = "rect_size";
+        break;
+    case Parameter::RectOrigin:
         def.type = coPoints;
         def.set_default_value(new ConfigOptionPoints{ Vec2d(0, 0) });
         def.min = -600;
         def.max = 600;
         def.label = get_option_label(param);
         def.tooltip = L("Distance of the 0,0 G-code coordinate from the front left corner of the rectangle.");
-        
-        Option option(def, "rect_origin");
-        optgroup->append_single_option_line(option);
-    }
-    else if (param == Parameter::Diameter) {
+        key = "rect_origin";
+        break;
+    case Parameter::Diameter:
         def.type = coFloat;
         def.set_default_value(new ConfigOptionFloat(200));
         def.sidetext = L("mm");
         def.label = get_option_label(param);
         def.tooltip = L("Diameter of the print bed. It is assumed that origin (0,0) is located in the center.");
-
-        Option option(def, "diameter");
-        optgroup->append_single_option_line(option);
+        key = "diameter";
+        break;
+    default:
+        assert(false);
     }
+
+    optgroup->append_single_option_line({ def, std::move(key) });
 }
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-wxString BedShape::get_name(Bed3D::EShapeType type)
+wxString BedShape::get_name(PageType type)
 {
     switch (type) {
-    case Bed3D::EShapeType::Rectangle: { return _L("Rectangular"); }
-    case Bed3D::EShapeType::Circle:    { return _L("Circular"); }
-    case Bed3D::EShapeType::Custom:    { return _L("Custom"); }
-    case Bed3D::EShapeType::Invalid:
-    default: return _L("Invalid");
+    case PageType::Rectangle:  return _L("Rectangular");
+    case PageType::Circle:     return _L("Circular");
+    case PageType::Custom:     return _L("Custom");
     }
+    // make visual studio happy
+    assert(false);
+    return {};
 }
-#else
-wxString BedShape::get_name(Type type)
-{
-    switch (type) {
-    case Type::Rectangular: return _L("Rectangular");
-    case Type::Circular: return _L("Circular");
-    case Type::Custom: return _L("Custom");
-    case Type::Invalid:
-    default: return _L("Invalid");
-    }
-}
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
-size_t BedShape::get_type()
+BedShape::PageType BedShape::get_page_type()
 {
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    return static_cast<size_t>(m_type == Bed3D::EShapeType::Invalid ? Bed3D::EShapeType::Rectangle : m_type);
-#else
-    return static_cast<size_t>(m_type == Type::Invalid ? Type::Rectangular : m_type);
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    switch (m_build_volume.type()) {
+    case BuildVolume::Type::Rectangle:
+    case BuildVolume::Type::Invalid:    return PageType::Rectangle;
+    case BuildVolume::Type::Circle:     return PageType::Circle;
+    case BuildVolume::Type::Convex:
+    case BuildVolume::Type::Custom:     return PageType::Custom;
+    }
+    // make visual studio happy
+    assert(false);
+    return PageType::Rectangle;
 }
 
 wxString BedShape::get_full_name_with_params()
 {
-    wxString out = _L("Shape") + ": " + get_name(m_type);
-
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    if (m_type == Bed3D::EShapeType::Rectangle) {
-#else
-    if (m_type == Type::Rectangular) {
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-        out += "\n" + _(get_option_label(Parameter::RectSize))  + ": [" + ConfigOptionPoint(m_rectSize).serialize()     + "]";
-        out += "\n" + _(get_option_label(Parameter::RectOrigin))+ ": [" + ConfigOptionPoint(m_rectOrigin).serialize()   + "]";
+    wxString out = _L("Shape") + ": " + get_name(this->get_page_type());
+    switch (m_build_volume.type()) {
+    case BuildVolume::Type::Circle:
+        out += "\n" + _L(get_option_label(Parameter::Diameter)) + ": [" + double_to_string(2. * unscaled<double>(m_build_volume.circle().radius)) + "]";
+        break;
+    default:
+        // rectangle, convex, concave...
+        out += "\n" + _(get_option_label(Parameter::RectSize)) + ": [" + ConfigOptionPoint(to_2d(m_build_volume.bounding_volume().size())).serialize() + "]";
+        out += "\n" + _(get_option_label(Parameter::RectOrigin)) + ": [" + ConfigOptionPoint(to_2d(m_build_volume.bounding_volume().min)).serialize() + "]";
+        break;
     }
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    else if (m_type == Bed3D::EShapeType::Circle)
-#else
-    else if (m_type == Type::Circular)
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-        out += "\n" + _L(get_option_label(Parameter::Diameter)) + ": [" + double_to_string(m_diameter)                  + "]";
-
     return out;
 }
 
 void BedShape::apply_optgroup_values(ConfigOptionsGroupShp optgroup)
 {
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    if (m_type == Bed3D::EShapeType::Rectangle || m_type == Bed3D::EShapeType::Invalid) {
-#else
-    if (m_type == Type::Rectangular || m_type == Type::Invalid) {
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-        optgroup->set_value("rect_size"     , new ConfigOptionPoints{ m_rectSize    });
-        optgroup->set_value("rect_origin"   , new ConfigOptionPoints{ m_rectOrigin  });
+    switch (m_build_volume.type()) {
+    case BuildVolume::Type::Circle:
+        optgroup->set_value("diameter", double_to_string(2. * unscaled<double>(m_build_volume.circle().radius)));
+        break;
+    default:
+        // rectangle, convex, concave...
+        optgroup->set_value("rect_size"     , new ConfigOptionPoints{ to_2d(m_build_volume.bounding_volume().size()) });
+        optgroup->set_value("rect_origin"   , new ConfigOptionPoints{ to_2d(m_build_volume.bounding_volume().min) });
     }
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    else if (m_type == Bed3D::EShapeType::Circle)
-#else
-    else if (m_type == Type::Circular)
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-        optgroup->set_value("diameter", double_to_string(m_diameter));
 }
 
 void BedShapeDialog::build_dialog(const ConfigOptionPoints& default_pt, const ConfigOptionString& custom_texture, const ConfigOptionString& custom_model)
@@ -295,28 +186,16 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const Conf
 
     sbsizer->Add(m_shape_options_book);
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    auto optgroup = init_shape_options_page(BedShape::get_name(Bed3D::EShapeType::Rectangle));
-#else
-    auto optgroup = init_shape_options_page(BedShape::get_name(BedShape::Type::Rectangular));
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    auto optgroup = init_shape_options_page(BedShape::get_name(BedShape::PageType::Rectangle));
     BedShape::append_option_line(optgroup, BedShape::Parameter::RectSize);
     BedShape::append_option_line(optgroup, BedShape::Parameter::RectOrigin);
     activate_options_page(optgroup);
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    optgroup = init_shape_options_page(BedShape::get_name(Bed3D::EShapeType::Circle));
-#else
-    optgroup = init_shape_options_page(BedShape::get_name(BedShape::Type::Circular));
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    optgroup = init_shape_options_page(BedShape::get_name(BedShape::PageType::Circle));
     BedShape::append_option_line(optgroup, BedShape::Parameter::Diameter);
     activate_options_page(optgroup);
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    optgroup = init_shape_options_page(BedShape::get_name(Bed3D::EShapeType::Custom));
-#else
-    optgroup = init_shape_options_page(BedShape::get_name(BedShape::Type::Custom));
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    optgroup = init_shape_options_page(BedShape::get_name(BedShape::PageType::Custom));
 
 	Line line{ "", "" };
 	line.full_width = 1;
@@ -538,8 +417,8 @@ void BedShapePanel::set_shape(const ConfigOptionPoints& points)
 {
     BedShape shape(points);
 
-    m_shape_options_book->SetSelection(shape.get_type());
-    shape.apply_optgroup_values(m_optgroups[shape.get_type()]);
+    m_shape_options_book->SetSelection(int(shape.get_page_type()));
+    shape.apply_optgroup_values(m_optgroups[int(shape.get_page_type())]);
 
     // Copy the polygon to the canvas, make a copy of the array, if custom shape is selected
     if (shape.is_custom())
@@ -562,17 +441,9 @@ void BedShapePanel::update_shape()
 	auto page_idx = m_shape_options_book->GetSelection();
     auto opt_group = m_optgroups[page_idx];
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    Bed3D::EShapeType page_type = static_cast<Bed3D::EShapeType>(page_idx);
-#else
-    BedShape::Type page_type = static_cast<BedShape::Type>(page_idx);
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    if (page_type == Bed3D::EShapeType::Rectangle) {
-#else
-    if (page_type == BedShape::Type::Rectangular) {
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    switch (static_cast<BedShape::PageType>(page_idx)) {
+    case BedShape::PageType::Rectangle:
+    {
         Vec2d rect_size(Vec2d::Zero());
 		Vec2d rect_origin(Vec2d::Zero());
 
@@ -602,12 +473,10 @@ void BedShapePanel::update_shape()
                     Vec2d(x1, y0),
                     Vec2d(x1, y1),
                     Vec2d(x0, y1) };
+        break;
     }
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    else if (page_type == Bed3D::EShapeType::Circle) {
-#else
-    else if (page_type == BedShape::Type::Circular) {
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    case BedShape::PageType::Circle:
+    {
         double diameter;
 		try { diameter = boost::any_cast<double>(opt_group->get_value("diameter")); }
 		catch (const std::exception & /* e */) { return; } 
@@ -615,6 +484,7 @@ void BedShapePanel::update_shape()
  		if (diameter == 0.0) return ;
 		auto r = diameter / 2;
 		auto twopi = 2 * PI;
+        // Don't change this value without adjusting BuildVolume constructor detecting circle diameter!
         auto edges = 72;
         std::vector<Vec2d> points;
         for (int i = 1; i <= edges; ++i) {
@@ -622,13 +492,12 @@ void BedShapePanel::update_shape()
 			points.push_back(Vec2d(r*cos(angle), r*sin(angle)));
 		}
         m_shape = points;
+        break;
     }
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    else if (page_type == Bed3D::EShapeType::Custom)
-#else
-    else if (page_type == BedShape::Type::Custom)
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+    case BedShape::PageType::Custom:
         m_shape = m_loaded_shape;
+        break;
+    }
 
     update_preview();
 }

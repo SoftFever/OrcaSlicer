@@ -44,7 +44,7 @@ class View3D : public wxPanel
     GLCanvas3D* m_canvas;
 
 public:
-    View3D(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
+    View3D(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
     virtual ~View3D();
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
@@ -70,7 +70,7 @@ public:
     void render();
 
 private:
-    bool init(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
+    bool init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process);
 };
 
 class Preview : public wxPanel
@@ -93,7 +93,7 @@ class Preview : public wxPanel
 
     DynamicPrintConfig* m_config;
     BackgroundSlicingProcess* m_process;
-    GCodeProcessor::Result* m_gcode_result;
+    GCodeProcessorResult* m_gcode_result;
 
 #ifdef __linux__
     // We are getting mysterious crashes on Linux in gtk due to OpenGL context activation GH #1874 #1955.
@@ -129,8 +129,8 @@ public:
         Legend
     };
 
-    Preview(wxWindow* parent, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process, 
-        GCodeProcessor::Result* gcode_result, std::function<void()> schedule_background_process = []() {});
+    Preview(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig* config, BackgroundSlicingProcess* process, 
+        GCodeProcessorResult* gcode_result, std::function<void()> schedule_background_process = []() {});
     virtual ~Preview();
 
     wxGLCanvas* get_wxglcanvas() { return m_canvas_widget; }
@@ -161,7 +161,7 @@ public:
     void hide_layers_slider();
 
 private:
-    bool init(wxWindow* parent, Model* model);
+    bool init(wxWindow* parent, Bed3D& bed, Model* model);
 
     void bind_event_handlers();
     void unbind_event_handlers();

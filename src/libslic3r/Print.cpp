@@ -5,7 +5,7 @@
 #include "ClipperUtils.hpp"
 #include "Extruder.hpp"
 #include "Flow.hpp"
-#include "Geometry.hpp"
+#include "Geometry/ConvexHull.hpp"
 #include "I18N.hpp"
 #include "ShortestPath.hpp"
 #include "SupportMaterial.hpp"
@@ -850,7 +850,7 @@ void Print::process()
 // The export_gcode may die for various reasons (fails to process output_filename_format,
 // write error into the G-code, cannot execute post-processing scripts).
 // It is up to the caller to show an error message.
-std::string Print::export_gcode(const std::string& path_template, GCodeProcessor::Result* result, ThumbnailsGeneratorCallback thumbnail_cb)
+std::string Print::export_gcode(const std::string& path_template, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb)
 {
     // output everything to a G-code file
     // The following call may die if the output_filename_format template substitution fails.

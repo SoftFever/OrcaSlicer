@@ -201,6 +201,14 @@ BoundingBox get_extents(const std::vector<Points> &pts)
     return bbox;
 }
 
+BoundingBoxf get_extents(const std::vector<Vec2d> &pts)
+{
+    BoundingBoxf bbox;
+    for (const Vec2d &p : pts)
+        bbox.merge(p);
+    return bbox;
+}
+
 std::ostream& operator<<(std::ostream &stm, const Vec2d &pointf)
 {
     return stm << pointf(0) << "," << pointf(1);

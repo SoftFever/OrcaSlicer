@@ -1,6 +1,7 @@
 #include "ModelArrange.hpp"
 
 #include <libslic3r/Model.hpp>
+#include <libslic3r/Geometry/ConvexHull.hpp>
 #include "MTUtils.hpp"
 
 namespace Slic3r {

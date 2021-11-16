@@ -1,5 +1,6 @@
 #include "ArrangeJob.hpp"
 
+#include "libslic3r/BuildVolume.hpp"
 #include "libslic3r/MTUtils.hpp"
 #include "libslic3r/Model.hpp"
 
@@ -263,7 +264,7 @@ get_wipe_tower_arrangepoly(const Plater &plater)
 }
 
 double bed_stride(const Plater *plater) {
-    double bedwidth = plater->bed_shape_bb().size().x();
+    double bedwidth = plater->build_volume().bounding_volume().size().x();
     return scaled<double>((1. + LOGICAL_BED_GAP) * bedwidth);
 }
 
