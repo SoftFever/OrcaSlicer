@@ -5095,36 +5095,35 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
 
     m_camera_clipping_plane = m_gizmos.get_clipping_plane();
 
-    if (m_picking_enabled) {
+    if (m_picking_enabled)
         // Update the layer editing selection to the first object selected, update the current object maximum Z.
         m_layers_editing.select_object(*m_model, this->is_layers_editing_enabled() ? m_selection.get_object_idx() : -1);
 
-        if (const BuildVolume &build_volume = m_bed.build_volume(); build_volume.valid()) {
-            switch (build_volume.type()) {
-            case BuildVolume::Type::Rectangle: {
-                const BoundingBox3Base<Vec3d> bed_bb = build_volume.bounding_volume().inflated(BuildVolume::SceneEpsilon);
-                m_volumes.set_print_volume({ 0, // circle
-                    { float(bed_bb.min.x()), float(bed_bb.min.y()), float(bed_bb.max.x()), float(bed_bb.max.y()) },
-                    { 0.0f, float(build_volume.max_print_height()) } });
-                break;
-            }
-            case BuildVolume::Type::Circle: {
-                m_volumes.set_print_volume({ 1, // rectangle
-                    { unscaled<float>(build_volume.circle().center.x()), unscaled<float>(build_volume.circle().center.y()), unscaled<float>(build_volume.circle().radius + BuildVolume::SceneEpsilon), 0.0f },
-                    { 0.0f, float(build_volume.max_print_height() + BuildVolume::SceneEpsilon) } });
-                break;
-            }
-            default:
-            case BuildVolume::Type::Custom: {
-                m_volumes.set_print_volume({ static_cast<int>(type),
-                    { 0.0f, 0.0f, 0.0f, 0.0f },
-                    { 0.0f, 0.0f } });
-            }
-            }
-            if (m_requires_check_outside_state) {
-                m_volumes.check_outside_state(build_volume, nullptr);
-                m_requires_check_outside_state = false;
-            }
+    if (const BuildVolume &build_volume = m_bed.build_volume(); build_volume.valid()) {
+        switch (build_volume.type()) {
+        case BuildVolume::Type::Rectangle: {
+            const BoundingBox3Base<Vec3d> bed_bb = build_volume.bounding_volume().inflated(BuildVolume::SceneEpsilon);
+            m_volumes.set_print_volume({ 0, // circle
+                { float(bed_bb.min.x()), float(bed_bb.min.y()), float(bed_bb.max.x()), float(bed_bb.max.y()) },
+                { 0.0f, float(build_volume.max_print_height()) } });
+            break;
+        }
+        case BuildVolume::Type::Circle: {
+            m_volumes.set_print_volume({ 1, // rectangle
+                { unscaled<float>(build_volume.circle().center.x()), unscaled<float>(build_volume.circle().center.y()), unscaled<float>(build_volume.circle().radius + BuildVolume::SceneEpsilon), 0.0f },
+                { 0.0f, float(build_volume.max_print_height() + BuildVolume::SceneEpsilon) } });
+            break;
+        }
+        default:
+        case BuildVolume::Type::Custom: {
+            m_volumes.set_print_volume({ static_cast<int>(type),
+                { 0.0f, 0.0f, 0.0f, 0.0f },
+                { 0.0f, 0.0f } });
+        }
+        }
+        if (m_requires_check_outside_state) {
+            m_volumes.check_outside_state(build_volume, nullptr);
+            m_requires_check_outside_state = false;
         }
     }
 
