@@ -137,6 +137,7 @@ public:
     ObjectInfo(wxWindow *parent);
 
     wxStaticBitmap *manifold_warning_icon;
+    wxStaticBitmap *info_icon;
     wxStaticText *info_size;
     wxStaticText *info_volume;
     wxStaticText *info_facets;
@@ -144,7 +145,7 @@ public:
     wxStaticText *info_manifold;
 
     wxStaticText *label_volume;
-    wxStaticText *label_materials;
+//    wxStaticText *label_materials; // ysFIXME - delete after next release if anyone will not complain about this
     std::vector<wxStaticText *> sla_hidden_items;
 
     bool        showing_manifold_warning_icon;
@@ -161,23 +162,33 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
 
     auto *grid_sizer = new wxFlexGridSizer(4, 5, 15);
     grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
-//     grid_sizer->AddGrowableCol(1, 1);
-//     grid_sizer->AddGrowableCol(3, 1);
 
-    auto init_info_label = [parent, grid_sizer](wxStaticText **info_label, wxString text_label) {
-        auto *text = new wxStaticText(parent, wxID_ANY, text_label + (text_label.empty() ? "" : ":"));
+    auto init_info_label = [parent, grid_sizer](wxStaticText **info_label, wxString text_label, wxSizer* sizer_with_icon=nullptr) {
+        auto *text = new wxStaticText(parent, wxID_ANY, text_label + ":");
         text->SetFont(wxGetApp().small_font());
         *info_label = new wxStaticText(parent, wxID_ANY, "");
         (*info_label)->SetFont(wxGetApp().small_font());
         grid_sizer->Add(text, 0);
-        grid_sizer->Add(*info_label, 0);
+        if (sizer_with_icon) {
+            sizer_with_icon->Insert(0, *info_label, 0);
+            grid_sizer->Add(sizer_with_icon, 0, wxEXPAND);
+        }
+        else
+            grid_sizer->Add(*info_label, 0);
         return text;
     };
 
     init_info_label(&info_size, _L("Size"));
-    label_volume = init_info_label(&info_volume, _L("Volume"));
+
+    info_icon = new wxStaticBitmap(parent, wxID_ANY, create_scaled_bitmap("info"));
+    info_icon->SetToolTip(_L("For a multipart object, this value isn't accurate.\n"
+                             "It doesn't take account of intersections and negative volumes."));
+    auto* volume_info_sizer = new wxBoxSizer(wxHORIZONTAL);
+    volume_info_sizer->Add(info_icon, 0, wxLEFT, 10);
+    label_volume = init_info_label(&info_volume, _L("Volume"), volume_info_sizer);
+
     init_info_label(&info_facets, _L("Facets"));
-    label_materials = init_info_label(&info_materials, /*_L("Materials")*/"");
+//    label_materials = init_info_label(&info_materials, _L("Materials"));
     Add(grid_sizer, 0, wxEXPAND);
 
     info_manifold = new wxStaticText(parent, wxID_ANY, "");
@@ -188,7 +199,7 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
     sizer_manifold->Add(info_manifold, 0, wxLEFT, 2);
     Add(sizer_manifold, 0, wxEXPAND | wxTOP, 4);
 
-    sla_hidden_items = { label_volume, info_volume, label_materials, info_materials };
+    sla_hidden_items = { label_volume, info_volume, /*label_materials, */info_materials };
 }
 
 void ObjectInfo::show_sizer(bool show)
@@ -1252,6 +1263,8 @@ void Sidebar::show_info_sizer()
     p->object_info->manifold_warning_icon->SetToolTip(tooltip);
 
     p->object_info->show_sizer(true);
+    if (vol || model_object->volumes.size() == 1)
+        p->object_info->info_icon->Hide();
 
     if (p->plater->printer_technology() == ptSLA) {
         for (auto item: p->object_info->sla_hidden_items)
