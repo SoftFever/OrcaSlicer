@@ -1354,7 +1354,10 @@ void GLCanvas3D::allow_multisample(bool allow)
 
 void GLCanvas3D::zoom_to_bed()
 {
-    _zoom_to_box(m_bed.build_volume().bounding_volume());
+    BoundingBoxf3 box = m_bed.build_volume().bounding_volume();
+    box.min.z() = 0.0;
+    box.max.z() = 0.0;
+    _zoom_to_box(box);
 }
 
 void GLCanvas3D::zoom_to_volumes()
