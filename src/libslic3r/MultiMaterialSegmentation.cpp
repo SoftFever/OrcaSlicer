@@ -1723,10 +1723,21 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
     }); // end of parallel_for
     BOOST_LOG_TRIVIAL(debug) << "MMU segmentation - slices preparation in parallel - end";
 
+    std::vector<BoundingBox> layer_bboxes(num_layers);
     for (size_t layer_idx = 0; layer_idx < num_layers; ++layer_idx) {
         throw_on_cancel_callback();
-        BoundingBox bbox(get_extents(layers[layer_idx]->regions()));
-        bbox.merge(get_extents(input_expolygons[layer_idx]));
+        layer_bboxes[layer_idx] = get_extents(layers[layer_idx]->regions());
+        layer_bboxes[layer_idx].merge(get_extents(input_expolygons[layer_idx]));
+    }
+
+    for (size_t layer_idx = 0; layer_idx < num_layers; ++layer_idx) {
+        throw_on_cancel_callback();
+        BoundingBox bbox = layer_bboxes[layer_idx];
+        // Projected triangles could, in rare cases (as in GH issue #7299), belongs to polygons printed in the previous or the next layer.
+        // Let's merge the bounding box of the current layer with bounding boxes of the previous and the next layer to ensure that
+        // every projected triangle will be inside the resulting bounding box.
+        if (layer_idx > 1) bbox.merge(layer_bboxes[layer_idx - 1]);
+        if (layer_idx < num_layers - 1) bbox.merge(layer_bboxes[layer_idx + 1]);
         // Projected triangles may slightly exceed the input polygons.
         bbox.offset(20 * SCALED_EPSILON);
         edge_grids[layer_idx].set_bbox(bbox);
