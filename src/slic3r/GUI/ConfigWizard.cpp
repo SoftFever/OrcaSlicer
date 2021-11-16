@@ -2292,25 +2292,53 @@ void ConfigWizard::priv::select_default_materials_for_printer_models(Technology 
 {
     PageMaterials     *page_materials    = technology & T_FFF ? page_filaments : page_sla_materials;
     const std::string &appconfig_section = page_materials->materials->appconfig_section();
-
-    auto select_default_materials_for_printer_page = [this, appconfig_section, printer_models](PagePrinters *page_printers, Technology technology)
+    
+    // Following block was unnecessary. Its enough to iterate printer_models once. Not for every vendor printer page. 
+    // Filament is selected on same page for all printers of same technology.
+    /*
+    auto select_default_materials_for_printer_page = [this, appconfig_section, printer_models, technology](PagePrinters *page_printers, Technology technology)
     {
         const std::string vendor_id = page_printers->get_vendor_id();
         for (auto& pair : bundles)
             if (pair.first == vendor_id)
-            	for (const VendorProfile::PrinterModel *printer_model : printer_models)
-    		        for (const std::string &material : printer_model->default_materials)
-			            appconfig_new.set(appconfig_section, material, "1");
+                for (const VendorProfile::PrinterModel *printer_model : printer_models)
+                    for (const std::string &material : printer_model->default_materials)
+                        appconfig_new.set(appconfig_section, material, "1");
     };
 
     PagePrinters* page_printers = technology & T_FFF ? page_fff : page_msla;
     select_default_materials_for_printer_page(page_printers, technology);
 
-    for (const auto& printer : pages_3rdparty) 
+    for (const auto& printer : pages_3rdparty)
     {
         page_printers = technology & T_FFF ? printer.second.first : printer.second.second;
         if (page_printers)
             select_default_materials_for_printer_page(page_printers, technology);
+    }
+    */
+
+    // Iterate printer_models and select default materials. If none available -> msg to user.
+    std::vector<const VendorProfile::PrinterModel*> models_without_default;
+    for (const VendorProfile::PrinterModel* printer_model : printer_models) {
+        if (printer_model->default_materials.empty()) {
+            models_without_default.emplace_back(printer_model);
+        } else {
+            for (const std::string& material : printer_model->default_materials)
+                appconfig_new.set(appconfig_section, material, "1");
+        }
+    }
+
+    if (!models_without_default.empty()) {
+        std::string printer_names = "\n\n";
+        for (const VendorProfile::PrinterModel* printer_model : models_without_default) {
+            printer_names += printer_model->name + "\n";
+        }
+        printer_names += "\n\n";
+        std::string message = (technology & T_FFF ?
+            GUI::format(_L("Following printer profiles has no default filament: %1%Please select one manually."), printer_names) :
+            GUI::format(_L("Following printer profiles has no default material: %1%Please select one manually."), printer_names));
+        MessageDialog msg(q, message, _L("Notice"), wxOK);
+        msg.ShowModal();
     }
 
     update_materials(technology);

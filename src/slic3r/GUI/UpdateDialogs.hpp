@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <wx/hyperlink.h>
 
 #include "libslic3r/Semver.hpp"
 #include "MsgDialog.hpp"
@@ -30,6 +31,7 @@ public:
 	// Tells whether the user checked the "don't bother me again" checkbox
 	bool disable_version_check() const;
 
+	void on_hyperlink(wxHyperlinkEvent& evt);
 private:
 	wxCheckBox *cbox;
 };

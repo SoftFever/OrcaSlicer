@@ -674,7 +674,7 @@ private:
 			PopNotification::close(); 
 		}
 	protected:
-		void render_left_sign(ImGuiWrapper& imgui) override;
+		//void render_left_sign(ImGuiWrapper& imgui) override;
 		std::vector<std::pair<InfoItemType, size_t>> m_types_and_counts;
 	};
 

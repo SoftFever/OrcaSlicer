@@ -139,16 +139,16 @@ namespace ImGui
     const wchar_t EjectHoverButton         = 0x13;
     const wchar_t CancelButton             = 0x14;
     const wchar_t CancelHoverButton        = 0x15;
-    const wchar_t VarLayerHeightMarker     = 0x16;
+//    const wchar_t VarLayerHeightMarker     = 0x16;
 
     const wchar_t RightArrowButton         = 0x18;
     const wchar_t RightArrowHoverButton    = 0x19;
     const wchar_t PreferencesButton        = 0x1A;
     const wchar_t PreferencesHoverButton   = 0x1B;
-    const wchar_t SinkingObjectMarker      = 0x1C;
-    const wchar_t CustomSupportsMarker     = 0x1D;
-    const wchar_t CustomSeamMarker         = 0x1E;
-    const wchar_t MmuSegmentationMarker    = 0x1F;
+//    const wchar_t SinkingObjectMarker      = 0x1C;
+//    const wchar_t CustomSupportsMarker     = 0x1D;
+//    const wchar_t CustomSeamMarker         = 0x1E;
+//    const wchar_t MmuSegmentationMarker    = 0x1F;
     // Do not forget use following letters only in wstring
     const wchar_t DocumentationButton      = 0x2600;
     const wchar_t DocumentationHoverButton = 0x2601;
