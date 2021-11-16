@@ -536,7 +536,7 @@ std::string GCodeWriter::set_fan(unsigned int speed) const
 
 void GCodeFormatter::emit_axis(const char axis, const double v, size_t digits) {
     assert(digits <= 6);
-    static constexpr const std::array<int, 7> pow_10{1, 10, 100, 1000, 10000, 100000, 1000000};
+    static constexpr const std::array<int, 10> pow_10{1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000};
     *ptr_err.ptr++ = ' '; *ptr_err.ptr++ = axis;
 
     char *base_ptr = this->ptr_err.ptr;

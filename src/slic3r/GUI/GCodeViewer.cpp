@@ -520,6 +520,8 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Travel_Colors {{
     { 0.505f, 0.064f, 0.028f, 1.0f }  // Retract
 }};
 
+#if 1
+// Normal ranges
 const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors {{
     { 0.043f, 0.173f, 0.478f, 1.0f }, // bluish
     { 0.075f, 0.349f, 0.522f, 1.0f },
@@ -533,6 +535,32 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors {{
     { 0.761f, 0.322f, 0.235f, 1.0f },
     { 0.581f, 0.149f, 0.087f, 1.0f }  // reddish
 }};
+#else
+// Detailed ranges
+const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors{ {
+    { 0.043f, 0.173f, 0.478f, 1.0f }, // bluish
+    { 0.5f * (0.043f + 0.075f), 0.5f * (0.173f + 0.349f), 0.5f * (0.478f + 0.522f), 1.0f },
+    { 0.075f, 0.349f, 0.522f, 1.0f },
+    { 0.5f * (0.075f + 0.110f), 0.5f * (0.349f + 0.533f), 0.5f * (0.522f + 0.569f), 1.0f },
+    { 0.110f, 0.533f, 0.569f, 1.0f },
+    { 0.5f * (0.110f + 0.016f), 0.5f * (0.533f + 0.839f), 0.5f * (0.569f + 0.059f), 1.0f },
+    { 0.016f, 0.839f, 0.059f, 1.0f },
+    { 0.5f * (0.016f + 0.667f), 0.5f * (0.839f + 0.949f), 0.5f * (0.059f + 0.000f), 1.0f },
+    { 0.667f, 0.949f, 0.000f, 1.0f },
+    { 0.5f * (0.667f + 0.988f), 0.5f * (0.949f + 0.975f), 0.5f * (0.000f + 0.012f), 1.0f },
+    { 0.988f, 0.975f, 0.012f, 1.0f },
+    { 0.5f * (0.988f + 0.961f), 0.5f * (0.975f + 0.808f), 0.5f * (0.012f + 0.039f), 1.0f },
+    { 0.961f, 0.808f, 0.039f, 1.0f },
+    { 0.5f * (0.961f + 0.890f), 0.5f * (0.808f + 0.533f), 0.5f * (0.039f + 0.125f), 1.0f },
+    { 0.890f, 0.533f, 0.125f, 1.0f },
+    { 0.5f * (0.890f + 0.820f), 0.5f * (0.533f + 0.408f), 0.5f * (0.125f + 0.188f), 1.0f },
+    { 0.820f, 0.408f, 0.188f, 1.0f },
+    { 0.5f * (0.820f + 0.761f), 0.5f * (0.408f + 0.322f), 0.5f * (0.188f + 0.235f), 1.0f },
+    { 0.761f, 0.322f, 0.235f, 1.0f },
+    { 0.5f * (0.761f + 0.581f), 0.5f * (0.322f + 0.149f), 0.5f * (0.235f + 0.087f), 1.0f },
+    { 0.581f, 0.149f, 0.087f, 1.0f }  // reddishgit 
+} };
+#endif
 
 const GCodeViewer::Color GCodeViewer::Wipe_Color = { 1.0f, 1.0f, 0.0f, 1.0f };
 const GCodeViewer::Color GCodeViewer::Neutral_Color = { 0.25f, 0.25f, 0.25f, 1.0f };

@@ -104,8 +104,22 @@ public:
     GCodeFormatter(const GCodeFormatter&) = delete;
     GCodeFormatter& operator=(const GCodeFormatter&) = delete;
 
+    // At layer height 0.15mm, extrusion width 0.2mm and filament diameter 1.75mm,
+    // the crossection of extrusion is 0.4 * 0.15 = 0.06mm2
+    // and the filament crossection is 1.75^2 = 3.063mm2
+    // thus the filament moves 3.063 / 0.6 = 51x slower than the XY axes
+    // and we need roughly two decimal digits more on extruder than on XY.
+#if 0
     static constexpr const int XYZF_EXPORT_DIGITS = 3;
     static constexpr const int E_EXPORT_DIGITS    = 5;
+#else
+    // order of magnitude smaller extrusion rate erros
+    static constexpr const int XYZF_EXPORT_DIGITS = 4;
+    static constexpr const int E_EXPORT_DIGITS    = 6;
+    // excessive accuracy
+//    static constexpr const int XYZF_EXPORT_DIGITS = 6;
+//    static constexpr const int E_EXPORT_DIGITS    = 9;
+#endif
 
     void emit_axis(const char axis, const double v, size_t digits);
 
