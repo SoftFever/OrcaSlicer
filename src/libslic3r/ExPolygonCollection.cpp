@@ -1,5 +1,6 @@
 #include "ExPolygonCollection.hpp"
 #include "Geometry/ConvexHull.hpp"
+#include "BoundingBox.hpp"
 
 namespace Slic3r {
 

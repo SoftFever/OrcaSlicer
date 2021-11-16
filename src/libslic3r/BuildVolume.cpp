@@ -4,6 +4,8 @@
 #include "GCode/GCodeProcessor.hpp"
 #include "Point.hpp"
 
+#include <boost/log/trivial.hpp>
+
 namespace Slic3r {
 
 BuildVolume::BuildVolume(const std::vector<Vec2d> &bed_shape, const double max_print_height) : m_bed_shape(bed_shape), m_max_print_height(max_print_height)

@@ -1,5 +1,6 @@
 #include "libslic3r.h"
 #include "ConvexHull.hpp"
+#include "BoundingBox.hpp"
 
 #include <boost/multiprecision/integer.hpp>
 

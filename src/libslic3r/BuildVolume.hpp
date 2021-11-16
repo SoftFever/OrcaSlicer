@@ -3,6 +3,9 @@
 
 #include "Point.hpp"
 #include "Geometry/Circle.hpp"
+#include "Polygon.hpp"
+#include "BoundingBox.hpp"
+#include <admesh/stl.h>
 
 #include <string_view>
 
@@ -49,7 +52,7 @@ public:
     const BoundingBox&          bounding_box()      const { return m_bbox; }
     // Bounding volume of bed_shape(), max_print_height(), unscaled.
     const BoundingBoxf3&        bounding_volume()   const { return m_bboxf; }
-    BoundingBoxf                bounding_volume2d() const { return { to_2d(m_bboxf.min), to_2d(m_bboxf.max) }; };
+    BoundingBoxf                bounding_volume2d() const { return { to_2d(m_bboxf.min), to_2d(m_bboxf.max) }; }
 
     // Center of the print bed, unscaled.
     Vec2d                       bed_center()        const { return to_2d(m_bboxf.center()); }
