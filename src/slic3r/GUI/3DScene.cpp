@@ -25,6 +25,7 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/Tesselate.hpp"
+#include "libslic3r/PrintConfig.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1020,7 +1021,9 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
 
     if (static_cast<PrinterTechnology>(config->opt_int("printer_technology")) == ptSLA) 
     {
-        const std::string& txt_color = config->opt_string("material_colour");
+        const std::string& txt_color = config->opt_string("material_colour").empty() ? 
+                                       print_config_def.get("material_colour")->get_default_value<ConfigOptionString>()->value : 
+                                       config->opt_string("material_colour");
         if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb)) {
             colors.resize(1);
             colors[0].set(txt_color, rgb);

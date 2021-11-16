@@ -819,8 +819,11 @@ void PlaterPresetComboBox::update()
 
             bitmap_key += single_bar ? filament_rgb : filament_rgb + extruder_rgb;
         }
-        else if (m_type == Preset::TYPE_SLA_MATERIAL)
+        else if (m_type == Preset::TYPE_SLA_MATERIAL) {
             material_rgb = is_selected ? m_preset_bundle->sla_materials.get_edited_preset().config.opt_string("material_colour") : preset.config.opt_string("material_colour");
+            if (material_rgb.empty())
+                material_rgb = print_config_def.get("material_colour")->get_default_value<ConfigOptionString>()->value;
+        }
 
         wxBitmap* bmp = get_bmp(bitmap_key, wide_icons, bitmap_type_name, 
                                 preset.is_compatible, preset.is_system || preset.is_default, 
