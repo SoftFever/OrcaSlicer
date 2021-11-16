@@ -475,6 +475,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
     std::vector<GCode::LayerToPrint> layers_to_print;
     layers_to_print.reserve(object.layers().size() + object.support_layers().size());
 
+    /*
     // Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
     // This is the same logic as in support generator.
     //FIXME should we use the printing extruders instead?
@@ -488,7 +489,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
         for (auto lh : object.print()->config().min_layer_height.values)
             support_layer_height_min = std::min(support_layer_height_min, std::max(0.01, lh));
         gap_over_supports += support_layer_height_min;
-    }
+    }*/
 
     std::vector<std::pair<double, double>> warning_ranges;
 
@@ -528,22 +529,23 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
         if ((layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
             // Allow empty support layers, as the support generator may produce no extrusions for non-empty support regions.
             || (layer_to_print.support_layer /* && layer_to_print.support_layer->has_extrusions() */)) {
-            double support_contact_z = (last_extrusion_layer && last_extrusion_layer->support_layer)
-                ? gap_over_supports
-                : 0.;
+            double top_cd = object.config().support_material_contact_distance;
+            double bottom_cd = object.config().support_material_bottom_contact_distance == 0. ? top_cd : object.config().support_material_bottom_contact_distance;
+
+            double extra_gap = (layer_to_print.support_layer ? bottom_cd : top_cd);
+
             double maximal_print_z = (last_extrusion_layer ? last_extrusion_layer->print_z() : 0.)
                 + layer_to_print.layer()->height
-                + support_contact_z;
+                + std::max(0., extra_gap);
             // Negative support_contact_z is not taken into account, it can result in false positives in cases
             // where previous layer has object extrusions too (https://github.com/prusa3d/PrusaSlicer/issues/2752)
 
             if (has_extrusions && layer_to_print.print_z() > maximal_print_z + 2. * EPSILON)
                 warning_ranges.emplace_back(std::make_pair((last_extrusion_layer ? last_extrusion_layer->print_z() : 0.), layers_to_print.back().print_z()));
-
-            // Remember last layer with extrusions.
-            if (has_extrusions)
-                last_extrusion_layer = &layers_to_print.back();
         }
+        // Remember last layer with extrusions.
+        if (has_extrusions)
+            last_extrusion_layer = &layers_to_print.back();
     }
 
     if (! warning_ranges.empty()) {
