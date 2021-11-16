@@ -112,9 +112,7 @@ Selection::Selection()
     , m_type(Empty)
     , m_valid(false)
     , m_scale_factor(1.0f)
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     , m_dragging(false)
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 {
     this->set_bounding_boxes_dirty();
 }
@@ -693,10 +691,7 @@ void Selection::start_dragging()
     if (!m_valid)
         return;
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     m_dragging = true;
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-
     set_caches();
 }
 
@@ -737,9 +732,7 @@ void Selection::translate(const Vec3d& displacement, bool local)
 
     ensure_not_below_bed();
     set_bounding_boxes_dirty();
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     wxGetApp().plater()->canvas3D()->requires_check_outside_state();
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 }
 
 // Rotate an object around one of the axes. Only one rotation component is expected to be changing.
@@ -853,9 +846,7 @@ void Selection::rotate(const Vec3d& rotation, TransformationType transformation_
     }
 
     set_bounding_boxes_dirty();
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     wxGetApp().plater()->canvas3D()->requires_check_outside_state();
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 }
 
 void Selection::flattening_rotate(const Vec3d& normal)
@@ -954,9 +945,7 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
 
     ensure_on_bed();
     set_bounding_boxes_dirty();
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     wxGetApp().plater()->canvas3D()->requires_check_outside_state();
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 }
 
 void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)

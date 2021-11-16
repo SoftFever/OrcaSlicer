@@ -141,7 +141,7 @@ public:
     wxStaticText *info_size;
     wxStaticText *info_volume;
     wxStaticText *info_facets;
-    wxStaticText *info_materials;
+//    wxStaticText *info_materials;
     wxStaticText *info_manifold;
 
     wxStaticText *label_volume;
@@ -199,7 +199,7 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
     sizer_manifold->Add(info_manifold, 0, wxLEFT, 2);
     Add(sizer_manifold, 0, wxEXPAND | wxTOP, 4);
 
-    sla_hidden_items = { label_volume, info_volume, /*label_materials, */info_materials };
+    sla_hidden_items = { label_volume, info_volume, /*label_materials, info_materials*/ };
 }
 
 void ObjectInfo::show_sizer(bool show)

@@ -25,6 +25,7 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/Tesselate.hpp"
+#include "libslic3r/PrintConfig.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -262,11 +263,9 @@ void GLIndexedVertexArray::render(
     const std::pair<size_t, size_t>& tverts_range,
     const std::pair<size_t, size_t>& qverts_range) const
 {
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     // this method has been called before calling finalize() ?
     if (this->vertices_and_normals_interleaved_VBO_id == 0 && !this->vertices_and_normals_interleaved.empty())
         return;
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     assert(this->vertices_and_normals_interleaved_VBO_id != 0);
     assert(this->triangle_indices_VBO_id != 0 || this->quad_indices_VBO_id != 0);
@@ -524,7 +523,6 @@ BoundingBoxf3 GLVolume::transformed_convex_hull_bounding_box(const Transform3d &
         bounding_box().transformed(trafo);
 }
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 BoundingBoxf3 GLVolume::transformed_non_sinking_bounding_box(const Transform3d& trafo) const
 {
     return GUI::wxGetApp().plater()->model().objects[object_idx()]->volumes[volume_idx()]->mesh().transformed_bounding_box(trafo, 0.0);
@@ -539,7 +537,6 @@ const BoundingBoxf3& GLVolume::transformed_non_sinking_bounding_box() const
     }
     return *m_transformed_non_sinking_bounding_box;
 }
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 void GLVolume::set_range(double min_z, double max_z)
 {
@@ -773,9 +770,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
     volumes.emplace_back(new GLVolume(color));
     GLVolume& v = *volumes.back();
     v.indexed_vertex_array.load_mesh(mesh);
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     v.set_convex_hull(mesh.convex_hull_3d());
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     v.indexed_vertex_array.finalize_geometry(opengl_initialized);
     v.set_volume_offset(Vec3d(pos_x, pos_y, 0.0));
     v.set_volume_rotation(Vec3d(0., 0., (M_PI / 180.) * rotation_angle));
@@ -882,17 +877,10 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         shader->set_uniform("uniform_color", volume.first->render_color);
         shader->set_uniform("z_range", m_z_range, 2);
         shader->set_uniform("clipping_plane", m_clipping_plane, 4);
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
         shader->set_uniform("print_volume.type", static_cast<int>(m_print_volume.type));
         shader->set_uniform("print_volume.xy_data", m_print_volume.data);
         shader->set_uniform("print_volume.z_data", m_print_volume.zs);
         shader->set_uniform("volume_world_matrix", volume.first->world_matrix());
-#else
-        shader->set_uniform("print_box.min", m_print_box_min, 3);
-        shader->set_uniform("print_box.max", m_print_box_max, 3);
-        shader->set_uniform("print_box.actived", volume.first->shader_outside_printer_detection_enabled);
-        shader->set_uniform("print_box.volume_world_matrix", volume.first->world_matrix());
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
         shader->set_uniform("slope.actived", m_slope.active && !volume.first->is_modifier && !volume.first->is_wipe_tower);
         shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(volume.first->world_matrix().matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));
         shader->set_uniform("slope.normal_z", m_slope.normal_z);
@@ -1033,7 +1021,9 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
 
     if (static_cast<PrinterTechnology>(config->opt_int("printer_technology")) == ptSLA) 
     {
-        const std::string& txt_color = config->opt_string("material_colour");
+        const std::string& txt_color = config->opt_string("material_colour").empty() ? 
+                                       print_config_def.get("material_colour")->get_default_value<ConfigOptionString>()->value : 
+                                       config->opt_string("material_colour");
         if (Slic3r::GUI::BitmapCache::parse_color(txt_color, rgb)) {
             colors.resize(1);
             colors[0].set(txt_color, rgb);

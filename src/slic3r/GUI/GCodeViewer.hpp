@@ -780,9 +780,7 @@ private:
     BoundingBoxf3 m_paths_bounding_box;
     // bounding box of toolpaths + marker tools
     BoundingBoxf3 m_max_bounding_box;
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     float m_max_print_height{ 0.0f };
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     std::vector<Color> m_tool_colors;
     Layers m_layers;
     std::array<unsigned int, 2> m_layers_z_range;
@@ -807,9 +805,7 @@ private:
 
     std::vector<CustomGCode::Item> m_custom_gcode_per_print_z;
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     bool m_contained_in_bed{ true };
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 public:
     GCodeViewer();
@@ -839,9 +835,7 @@ public:
     const SequentialView& get_sequential_view() const { return m_sequential_view; }
     void update_sequential_view_current(unsigned int first, unsigned int last);
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     bool is_contained_in_bed() const { return m_contained_in_bed; }
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     EViewType get_view_type() const { return m_view_type; }
     void set_view_type(EViewType type) {

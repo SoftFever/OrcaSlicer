@@ -374,6 +374,7 @@ void PrintConfigDef::init_fff_params()
                      "Detour length could be specified either as an absolute value or as percentage (for example 50%) of a direct travel path.");
     def->sidetext = L("mm or % (zero to disable)");
     def->min = 0;
+    def->max_literal = 1000;
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
@@ -720,6 +721,7 @@ void PrintConfigDef::init_fff_params()
                    "If expressed as percentage (for example 200%), it will be computed over layer height.");
     def->sidetext = L("mm or %");
     def->min = 0;
+    def->max_literal = 50;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
@@ -831,6 +833,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm or %");
     def->min = 0;
     def->max = 1000;
+    def->max_literal = 50;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
@@ -1181,6 +1184,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm or %");
     def->ratio_over = "first_layer_height";
     def->min = 0;
+    def->max_literal = 50;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(200, true));
 
@@ -1200,6 +1204,7 @@ void PrintConfigDef::init_fff_params()
                    "(for example: 40%) it will scale the default speeds.");
     def->sidetext = L("mm/s or %");
     def->min = 0;
+    def->max_literal = 20;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(30, false));
 
@@ -1374,6 +1379,7 @@ void PrintConfigDef::init_fff_params()
                      "Set this parameter to zero to disable anchoring perimeters connected to a single infill line.");
     def->sidetext = L("mm or %");
     def->ratio_over = "infill_extrusion_width";
+    def->max_literal = 1000;
     def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->enum_values.push_back("0");
     def->enum_values.push_back("1");
@@ -1401,6 +1407,7 @@ void PrintConfigDef::init_fff_params()
                      "Set this parameter to zero to disable anchoring.");
     def->sidetext    = def_infill_anchor_min->sidetext;
     def->ratio_over  = def_infill_anchor_min->ratio_over;
+    def->max_literal = def_infill_anchor_min->max_literal;
     def->gui_type    = def_infill_anchor_min->gui_type;
     def->enum_values = def_infill_anchor_min->enum_values;
     def->enum_labels.push_back(L("0 (not anchored)"));
@@ -1429,6 +1436,7 @@ void PrintConfigDef::init_fff_params()
                    "If expressed as percentage (for example 90%) it will be computed over layer height.");
     def->sidetext = L("mm or %");
     def->min = 0;
+    def->max_literal = 50;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
@@ -1928,6 +1936,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm or %");
     def->aliases = { "perimeters_extrusion_width" };
     def->min = 0;
+    def->max_literal = 50;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
@@ -2300,6 +2309,7 @@ void PrintConfigDef::init_fff_params()
                    "If expressed as percentage (for example 90%) it will be computed over layer height.");
     def->sidetext = L("mm or %");
     def->min = 0;
+    def->max_literal = 50;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
@@ -2474,6 +2484,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm or %");
     def->ratio_over = "external_perimeter_extrusion_width";
     def->min = 0;
+    def->max_literal = 10;
     def->mode = comAdvanced;
     // Default is half the external perimeter width.
     def->set_default_value(new ConfigOptionFloatOrPercent(50, true));
@@ -2560,6 +2571,7 @@ void PrintConfigDef::init_fff_params()
                    "If expressed as percentage (for example 90%) it will be computed over layer height.");
     def->sidetext = L("mm or %");
     def->min = 0;
+    def->max_literal = 50;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 
@@ -2793,6 +2805,7 @@ void PrintConfigDef::init_fff_params()
                    "If expressed as percentage (for example 90%) it will be computed over layer height.");
     def->sidetext = L("mm or %");
     def->min = 0;
+    def->max_literal = 50;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(0, false));
 

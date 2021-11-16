@@ -436,7 +436,6 @@ BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d &trafo) c
     return bbox;
 }
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d& trafod, double world_min_z) const
 {
     // 1) Allocate transformed vertices with their position with respect to print bed surface.
@@ -487,7 +486,6 @@ BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d& trafod, 
     };
     return out;
 }
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 TriangleMesh TriangleMesh::convex_hull_3d() const
 {
