@@ -1764,6 +1764,8 @@ public:
     // By setting min=0, only nonnegative input is allowed.
     int                                 min = INT_MIN;
     int                                 max = INT_MAX;
+    // To check if it's not a typo and a % is missing
+    double                              max_literal = 1;
     ConfigOptionMode                    mode = comSimple;
     // Legacy names for this configuration option.
     // Used when parsing legacy configuration file.
