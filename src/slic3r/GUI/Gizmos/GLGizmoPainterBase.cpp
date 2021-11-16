@@ -66,7 +66,7 @@ GLGizmoPainterBase::ClippingPlaneDataWrapper GLGizmoPainterBase::get_clipping_pl
 
 void GLGizmoPainterBase::render_triangles(const Selection& selection) const
 {
-    auto* shader = wxGetApp().get_shader("gouraud_mod");
+    auto* shader = wxGetApp().get_shader("gouraud");
     if (! shader)
         return;
     shader->start_using();
@@ -597,7 +597,7 @@ void TriangleSelectorGUI::render(ImGuiWrapper* imgui)
     auto* shader = wxGetApp().get_current_shader();
     if (! shader)
         return;
-    assert(shader->get_name() == "gouraud_mod");
+    assert(shader->get_name() == "gouraud");
     ScopeGuard guard([shader]() { if (shader) shader->set_uniform("offset_depth_buffer", false);});
     shader->set_uniform("offset_depth_buffer", true);
     for (auto iva : {std::make_pair(&m_iva_enforcers, enforcers_color),

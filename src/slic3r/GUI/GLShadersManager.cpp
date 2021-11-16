@@ -61,8 +61,7 @@ std::pair<bool, std::string> GLShadersManager::init()
     // used to render extrusion and travel paths as lines in gcode preview
     valid &= append_shader("toolpaths_lines", { "toolpaths_lines.vs", "toolpaths_lines.fs" });
     // used to render objects in 3d editor
-    // When setting this technology to default rename the following from "gouraud_mod" to "gouraud"
-    valid &= append_shader("gouraud_mod", { "gouraud_mod.vs", "gouraud_mod.fs" }
+    valid &= append_shader("gouraud", { "gouraud.vs", "gouraud.fs" }
 #if ENABLE_ENVIRONMENT_MAP
         , { "ENABLE_ENVIRONMENT_MAP"sv }
 #endif // ENABLE_ENVIRONMENT_MAP
