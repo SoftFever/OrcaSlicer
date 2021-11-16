@@ -33,14 +33,12 @@ bool directions_parallel(double angle1, double angle2, double max_diff)
     return diff < max_diff || fabs(diff - PI) < max_diff;
 }
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 bool directions_perpendicular(double angle1, double angle2, double max_diff)
 {
     double diff = fabs(angle1 - angle2);
     max_diff += EPSILON;
     return fabs(diff - 0.5 * PI) < max_diff || fabs(diff - 1.5 * PI) < max_diff;
 }
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
 template<class T>
 bool contains(const std::vector<T> &vector, const Point &point)

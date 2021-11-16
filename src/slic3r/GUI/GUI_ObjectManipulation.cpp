@@ -657,14 +657,10 @@ void ObjectManipulation::update_if_dirty()
     else
         m_og->disable();
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     if (!selection.is_dragging()) {
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
-    update_reset_buttons_visibility();
-    update_mirror_buttons_visibility();
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
+        update_reset_buttons_visibility();
+      update_mirror_buttons_visibility();
     }
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     m_dirty = false;
 }
@@ -820,9 +816,7 @@ void ObjectManipulation::change_position_value(int axis, double value)
     Selection& selection = canvas->get_selection();
     selection.start_dragging();
     selection.translate(position - m_cache.position, selection.requires_local_axes());
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     selection.stop_dragging();
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     canvas->do_move(L("Set Position"));
 
     m_cache.position = position;
@@ -854,9 +848,7 @@ void ObjectManipulation::change_rotation_value(int axis, double value)
 	selection.rotate(
 		(M_PI / 180.0) * (transformation_type.absolute() ? rotation : rotation - m_cache.rotation), 
 		transformation_type);
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     selection.stop_dragging();
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     canvas->do_rotate(L("Set Orientation"));
 
     m_cache.rotation = rotation;
@@ -935,9 +927,7 @@ void ObjectManipulation::do_scale(int axis, const Vec3d &scale) const
 
     selection.start_dragging();
     selection.scale(scaling_factor, transformation_type);
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     selection.stop_dragging();
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     wxGetApp().plater()->canvas3D()->do_scale(L("Set Scale"));
 }
 

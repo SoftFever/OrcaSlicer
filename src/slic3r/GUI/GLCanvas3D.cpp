@@ -2585,9 +2585,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 displacement = multiplier * direction;
 
             m_selection.translate(displacement);
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
             m_selection.stop_dragging();
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
             m_dirty = true;
         }
     );
@@ -2686,9 +2684,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     auto do_rotate = [this](double angle_z_rad) {
                         m_selection.start_dragging();
                         m_selection.rotate(Vec3d(0.0, 0.0, angle_z_rad), TransformationType(TransformationType::World_Relative_Joint));
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
                         m_selection.stop_dragging();
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
                         m_dirty = true;
 //                        wxGetApp().obj_manipul()->set_dirty();
                     };
@@ -3242,10 +3238,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
     }
     else if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp()) {
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
         if (evt.LeftUp())
             m_selection.stop_dragging();
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
         if (m_layers_editing.state != LayersEditing::Unknown) {
             m_layers_editing.state = LayersEditing::Unknown;
@@ -6342,15 +6336,8 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
         show = _is_any_volume_outside();
     else {
         if (wxGetApp().is_editor()) {
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
             if (current_printer_technology() != ptSLA)
                 show = m_gcode_viewer.has_data() && !m_gcode_viewer.is_contained_in_bed();
-#else
-            BoundingBoxf3 test_volume = (m_config != nullptr) ? print_volume(*m_config) : BoundingBoxf3();
-            const BoundingBoxf3& paths_volume = m_gcode_viewer.get_paths_bounding_box();
-            if (test_volume.radius() > 0.0 && paths_volume.radius() > 0.0)
-                show = !test_volume.contains(paths_volume);
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
         }
     }
 

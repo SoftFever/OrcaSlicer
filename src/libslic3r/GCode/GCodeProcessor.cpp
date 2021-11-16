@@ -719,9 +719,7 @@ void GCodeProcessor::UsedFilaments::process_caches(GCodeProcessor* processor)
 void GCodeProcessorResult::reset() {
     moves = std::vector<GCodeProcessorResult::MoveVertex>();
     bed_shape = Pointfs();
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     max_print_height = 0.0f;
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     settings_ids.reset();
     extruders_count = 0;
     extruder_colors = std::vector<std::string>();
@@ -736,9 +734,7 @@ void GCodeProcessorResult::reset() {
     moves.clear();
     lines_ends.clear();
     bed_shape = Pointfs();
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     max_print_height = 0.0f;
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     settings_ids.reset();
     extruders_count = 0;
     extruder_colors = std::vector<std::string>();
@@ -889,9 +885,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     if (first_layer_height != nullptr)
         m_first_layer_height = std::abs(first_layer_height->value);
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     m_result.max_print_height = config.max_print_height;
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 }
 
 void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
@@ -1122,11 +1116,9 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     if (first_layer_height != nullptr)
         m_first_layer_height = std::abs(first_layer_height->value);
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     const ConfigOptionFloat* max_print_height = config.option<ConfigOptionFloat>("max_print_height");
     if (max_print_height != nullptr)
         m_result.max_print_height = max_print_height->value;
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 }
 
 void GCodeProcessor::enable_stealth_time_estimator(bool enabled)

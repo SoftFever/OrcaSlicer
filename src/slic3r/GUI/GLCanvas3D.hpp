@@ -479,9 +479,7 @@ private:
     const DynamicPrintConfig* m_config;
     Model* m_model;
     BackgroundSlicingProcess *m_process;
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     bool m_requires_check_outside_state{ false };
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     std::array<unsigned int, 2> m_old_size{ 0, 0 };
 
@@ -618,9 +616,7 @@ public:
     void post_event(wxEvent &&event);
 
     void set_as_dirty();
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     void requires_check_outside_state() { m_requires_check_outside_state = true; }
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     unsigned int get_volumes_count() const;
     const GLVolumeCollection& get_volumes() const { return m_volumes; }

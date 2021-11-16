@@ -288,9 +288,7 @@ bool liang_barsky_line_clipping(
 }
 
 bool directions_parallel(double angle1, double angle2, double max_diff = 0);
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 bool directions_perpendicular(double angle1, double angle2, double max_diff = 0);
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 template<class T> bool contains(const std::vector<T> &vector, const Point &point);
 template<typename T> T rad2deg(T angle) { return T(180.0) * angle / T(PI); }
 double rad2deg_dir(double angle);

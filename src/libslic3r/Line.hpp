@@ -105,10 +105,8 @@ public:
     double perp_distance_to(const Point &point) const;
     bool   parallel_to(double angle) const;
     bool   parallel_to(const Line& line) const;
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     bool   perpendicular_to(double angle) const;
     bool   perpendicular_to(const Line& line) const;
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     double atan2_() const { return atan2(this->b(1) - this->a(1), this->b(0) - this->a(0)); }
     double orientation() const;
     double direction() const;

@@ -681,9 +681,7 @@ void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& pr
     if (wxGetApp().is_gcode_viewer())
         m_custom_gcode_per_print_z = gcode_result.custom_gcode_per_print_z;
 
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     m_max_print_height = gcode_result.max_print_height;
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 
     load_toolpaths(gcode_result);
 
@@ -831,9 +829,7 @@ void GCodeViewer::reset()
 
     m_paths_bounding_box = BoundingBoxf3();
     m_max_bounding_box = BoundingBoxf3();
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     m_max_print_height = 0.0f;
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     m_tool_colors = std::vector<Color>();
     m_extruders_count = 0;
     m_extruder_ids = std::vector<unsigned char>();
@@ -850,9 +846,7 @@ void GCodeViewer::reset()
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.reset_all();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-#if ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
     m_contained_in_bed = true;
-#endif // ENABLE_OUT_OF_BED_DETECTION_IMPROVEMENTS
 }
 
 void GCodeViewer::render()
