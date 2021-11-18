@@ -1,5 +1,6 @@
 #include "libslic3r/libslic3r.h"
 #include "DoubleSlider.hpp"
+#include "DoubleSlider_Utils.hpp"
 #include "libslic3r/GCode.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
@@ -2546,12 +2547,70 @@ bool Control::check_ticks_changed_event(Type type)
 std::string TickCodeInfo::get_color_for_tick(TickCode tick, Type type, const int extruder)
 {
     if (mode == SingleExtruder && type == ColorChange && m_use_default_colors) {
+#if 1
+        if (ticks.empty())
+            return get_opposite_color((*m_colors)[0]);
+        
+        auto before_tick_it = std::lower_bound(ticks.begin(), ticks.end(), tick);
+        if (before_tick_it == ticks.end()) 
+        {
+            while (before_tick_it != ticks.begin())
+                if (--before_tick_it; before_tick_it->type == ColorChange)
+                    break;
+            if (before_tick_it->type == ColorChange)
+                return get_opposite_color(before_tick_it->color);
+            return get_opposite_color((*m_colors)[0]);
+        }
+
+        if (before_tick_it == ticks.begin())
+        {
+            const std::string& frst_color = (*m_colors)[0];
+            if (before_tick_it->type == ColorChange)
+                return get_opposite_color(frst_color, before_tick_it->color);
+
+            auto next_tick_it = before_tick_it;
+            while (next_tick_it != ticks.end())
+                if (++next_tick_it; next_tick_it->type == ColorChange)
+                    break;
+            if (next_tick_it->type == ColorChange)
+                return get_opposite_color(frst_color, next_tick_it->color);
+
+            return get_opposite_color(frst_color);
+        }
+
+        std::string frst_color = "";
+        if (before_tick_it->type == ColorChange)
+            frst_color = before_tick_it->color;
+        else {
+            auto next_tick_it = before_tick_it;
+            while (next_tick_it != ticks.end())
+                if (++next_tick_it; next_tick_it->type == ColorChange) {
+                    frst_color = next_tick_it->color;
+                    break;
+                }
+        }
+
+        while (before_tick_it != ticks.begin())
+            if (--before_tick_it; before_tick_it->type == ColorChange)
+                break;
+
+        if (before_tick_it->type == ColorChange) {
+            if (frst_color.empty())
+                return get_opposite_color(before_tick_it->color);
+            return get_opposite_color(before_tick_it->color, frst_color);
+        }
+
+        if (frst_color.empty())
+            return get_opposite_color((*m_colors)[0]);
+        return get_opposite_color((*m_colors)[0], frst_color);
+#else
         const std::vector<std::string>& colors = ColorPrintColors::get();
         if (ticks.empty())
             return colors[0];
         m_default_color_idx++;
 
         return colors[m_default_color_idx % colors.size()];
+#endif
     }
 
     std::string color = (*m_colors)[extruder - 1];
