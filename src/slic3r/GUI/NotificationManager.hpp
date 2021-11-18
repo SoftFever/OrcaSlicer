@@ -438,9 +438,7 @@ private:
 		ProgressBarNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler) : PopNotification(n, id_provider, evt_handler) { }
 		virtual void set_percentage(float percent) { m_percentage = percent; }
 	protected:
-		virtual void init() override;
-		virtual void count_lines() override;
-		
+		virtual void init() override;		
 		virtual void	render_text(ImGuiWrapper& imgui,
 									const float win_size_x, const float win_size_y,
 									const float win_pos_x, const float win_pos_y) override;
@@ -548,13 +546,6 @@ private:
 		void                set_export_possible(bool b) { m_export_possible = b; }
 	protected:
 		void        init() override;
-		void        count_lines() override 
-		{
-			if (m_sp_state == SlicingProgressState::SP_PROGRESS)
-				ProgressBarNotification::count_lines();
-			else
-				PopNotification::count_lines();
-		}
 		void	    render_text(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y) override;
 		void		render_bar(ImGuiWrapper& imgui,
 								const float win_size_x, const float win_size_y,
