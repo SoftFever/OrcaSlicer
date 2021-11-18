@@ -271,11 +271,9 @@ void HollowedMesh::on_update()
                     m_old_hollowing_timestamp = timestamp;
 
                     indexed_triangle_set interior = print_object->hollowed_interior_mesh();
-                    if (!interior.empty()) {
-                        its_flip_triangles(interior);
-                        m_hollowed_interior_transformed = std::make_unique<TriangleMesh>(std::move(interior));
-                        m_hollowed_interior_transformed->transform(trafo_inv);
-                    }
+                    its_flip_triangles(interior);
+                    m_hollowed_interior_transformed = std::make_unique<TriangleMesh>(std::move(interior));
+                    m_hollowed_interior_transformed->transform(trafo_inv);
                 }
                 else {
                     m_hollowed_mesh_transformed.reset(nullptr);
