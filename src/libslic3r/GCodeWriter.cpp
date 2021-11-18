@@ -533,9 +533,8 @@ std::string GCodeWriter::set_fan(unsigned int speed) const
     return GCodeWriter::set_fan(this->config.gcode_flavor, this->config.gcode_comments, speed);
 }
 
-
 void GCodeFormatter::emit_axis(const char axis, const double v, size_t digits) {
-    assert(digits <= 6);
+    assert(digits <= 9);
     static constexpr const std::array<int, 10> pow_10{1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000};
     *ptr_err.ptr++ = ' '; *ptr_err.ptr++ = axis;
 
@@ -576,6 +575,21 @@ void GCodeFormatter::emit_axis(const char axis, const double v, size_t digits) {
     if ((this->ptr_err.ptr + 1) == base_ptr || *this->ptr_err.ptr == '-')
         *(++this->ptr_err.ptr) = '0';
     this->ptr_err.ptr++;
+
+#if 0 // #ifndef NDEBUG
+    {
+        // Verify that the optimized formatter produces the same result as the standard sprintf().
+        double v1 = atof(std::string(base_ptr, this->ptr_err.ptr).c_str());
+        char buf[2048];
+        sprintf(buf, "%.*lf", int(digits), v);
+        double v2 = atof(buf);
+        // Numbers may differ when rounding at exactly or very close to 0.5 due to numerical issues when scaling the double to an integer.
+        // Thus the complex assert.
+//        assert(v1 == v2);
+        assert(std::abs(v1 - v) * pow_10[digits] < 0.50001);
+        assert(std::abs(v2 - v) * pow_10[digits] < 0.50001);
+    }
+#endif // NDEBUG
 }
 
 } // namespace Slic3r
