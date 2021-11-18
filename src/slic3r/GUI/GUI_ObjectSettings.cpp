@@ -181,17 +181,16 @@ bool ObjectSettings::update_settings_list()
 
 bool ObjectSettings::add_missed_options(ModelConfig* config_to, const DynamicPrintConfig& config_from)
 {
+    const DynamicPrintConfig& print_config = wxGetApp().plater()->printer_technology() == ptFFF ?
+                                             wxGetApp().preset_bundle->prints.get_edited_preset().config :
+                                             wxGetApp().preset_bundle->sla_prints.get_edited_preset().config;
     bool is_added = false;
-    if (wxGetApp().plater()->printer_technology() == ptFFF)
-    {
-        if (config_to->has("fill_density") && !config_to->has("fill_pattern"))
-        {
-            if (config_from.option<ConfigOptionPercent>("fill_density")->value == 100) {
-                config_to->set_key_value("fill_pattern", config_from.option("fill_pattern")->clone());
-                is_added = true;
-            }
+
+    for (auto opt_key : config_from.diff(print_config))
+        if (!config_to->has(opt_key)) {
+            config_to->set_key_value(opt_key, config_from.option(opt_key)->clone());
+            is_added = true;
         }
-    }
 
     return is_added;
 }
