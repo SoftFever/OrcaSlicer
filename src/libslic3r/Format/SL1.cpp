@@ -19,6 +19,7 @@
 #include "libslic3r/SLA/RasterBase.hpp"
 #include "libslic3r/miniz_extension.hpp"
 #include "libslic3r/PNGReadWrite.hpp"
+#include "libslic3r/LocalesUtils.hpp"
 
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/filesystem/path.hpp>
@@ -321,11 +322,13 @@ ConfigSubstitutions import_sla_archive(
             lh_opt != arch.config.not_found())
         {
             auto lh_str = lh_opt->second.data();
-            try {
-                double lh = std::stod(lh_str); // TODO replace with std::from_chars
+
+            size_t pos;
+            double lh = string_to_double_decimal_point(lh_str, &pos);
+            if (pos) { // TODO: verify that pos is 0 when parsing fails
                 profile_out.set("layer_height", lh);
                 profile_out.set("initial_layer_height", lh);
-            } catch(...) {}
+            }
         }
     }
 
