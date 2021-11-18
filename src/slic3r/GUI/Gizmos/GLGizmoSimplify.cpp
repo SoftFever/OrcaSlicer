@@ -200,7 +200,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
             pos.x -= m_gui_cfg->window_offset_x;
             pos.y -= m_gui_cfg->window_offset_y;
             // minimal top left value
-            ImVec2 tl(m_gui_cfg->window_padding, m_gui_cfg->window_padding);
+            ImVec2 tl(m_gui_cfg->window_padding, m_gui_cfg->window_padding + m_parent.get_main_toolbar_height());
             if (pos.x < tl.x) pos.x = tl.x;
             if (pos.y < tl.y) pos.y = tl.y;
             // maximal bottom right value
