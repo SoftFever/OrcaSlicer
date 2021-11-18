@@ -3,6 +3,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_ObjectManipulation.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
+#include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/GUI/NotificationManager.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/format.hpp"
@@ -150,6 +151,12 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     if (act_volume == nullptr) {
         stop_worker_thread_request();
         close();
+        if (! m_parent.get_selection().is_single_volume()) {
+            MessageDialog msg((wxWindow*)wxGetApp().mainframe,
+                _L("Simplification is currently only allowed when a single part is selected"),
+                _L("Error"));
+            msg.ShowModal();
+        }
         return;
     }
 
