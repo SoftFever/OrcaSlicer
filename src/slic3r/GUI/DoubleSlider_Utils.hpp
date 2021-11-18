@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "wx/colour.h"
 
 // next code is borrowed from https://stackoverflow.com/questions/3018313/algorithm-to-convert-rgb-to-hsv-and-hsv-to-rgb-in-range-0-255-for-both
@@ -143,7 +144,7 @@ std::string get_opposite_color(const std::string& color)
 
     rgb rgb_opp_color = hsv2rgb(hsv_clr);
 
-    wxString clr_str = wxString::Format(wxT("#%02X%02X%02X"), unsigned char(rgb_opp_color.r * 255), unsigned char(rgb_opp_color.g * 255), unsigned char(rgb_opp_color.b * 255));
+    wxString clr_str = wxString::Format(wxT("#%02X%02X%02X"), (unsigned char)(rgb_opp_color.r * 255), (unsigned char)(rgb_opp_color.g * 255), (unsigned char)(rgb_opp_color.b * 255));
     opp_color = clr_str.ToStdString();
 
     return opp_color;
@@ -165,7 +166,7 @@ std::string get_opposite_color(const std::string& color_frst, const std::string&
     hsv hsv_opp = hsv{ start_h + 0.5 * delta_h, rand_val(), rand_val() };
     rgb rgb_opp_color = hsv2rgb(hsv_opp);
 
-    wxString clr_str = wxString::Format(wxT("#%02X%02X%02X"), unsigned char(rgb_opp_color.r * 255), unsigned char(rgb_opp_color.g * 255), unsigned char(rgb_opp_color.b * 255));
+    wxString clr_str = wxString::Format(wxT("#%02X%02X%02X"), (unsigned char)(rgb_opp_color.r * 255), (unsigned char)(rgb_opp_color.g * 255), (unsigned char)(rgb_opp_color.b * 255));
     opp_color = clr_str.ToStdString();
 
     return opp_color;
