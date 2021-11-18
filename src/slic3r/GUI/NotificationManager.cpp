@@ -393,6 +393,8 @@ void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, cons
 	std::string line;
 
 	for (size_t i = 0; i < (m_multiline ? m_endlines.size() : std::min(m_endlines.size(), (size_t)2)); i++) {
+		if (m_endlines[i] > m_text1.size())
+			break;
 		line.clear();
 		ImGui::SetCursorPosX(x_offset);     
 		ImGui::SetCursorPosY(starting_y + i * shift_y);
@@ -788,73 +790,20 @@ void NotificationManager::ProgressBarNotification::init()
 	} else {
 		m_lines_count = 2;
 		m_endlines.push_back(m_endlines.back());
+		m_multiline = false;
 	}
 	if(m_state == EState::Shown)
 		m_state = EState::NotFading;
 }
 
-
-void NotificationManager::ProgressBarNotification::count_lines()
-{
-	std::string text		= m_text1 + " " + m_hypertext;
-	size_t      last_end	= 0;
-	m_lines_count			= 0;
-
-	m_endlines.clear();
-	while (last_end < text.length() - 1)
-	{
-		size_t next_hard_end = text.find_first_of('\n', last_end);
-		if (next_hard_end != std::string::npos && ImGui::CalcTextSize(text.substr(last_end, next_hard_end - last_end).c_str()).x < m_window_width - m_window_width_offset) {
-			//next line is ended by '/n'
-			m_endlines.push_back(next_hard_end);
-			last_end = next_hard_end + 1;
-		}
-		else {
-			// find next suitable endline
-			if (ImGui::CalcTextSize(text.substr(last_end).c_str()).x >= m_window_width - m_window_width_offset) {
-				// more than one line till end
-				size_t next_space = text.find_first_of(' ', last_end);
-				if (next_space > 0) {
-					size_t next_space_candidate = text.find_first_of(' ', next_space + 1);
-					while (next_space_candidate > 0 && ImGui::CalcTextSize(text.substr(last_end, next_space_candidate - last_end).c_str()).x < m_window_width - m_window_width_offset) {
-						next_space = next_space_candidate;
-						next_space_candidate = text.find_first_of(' ', next_space + 1);
-					}
-					// when one word longer than line. Or the last space is too early.
-					if (ImGui::CalcTextSize(text.substr(last_end, next_space - last_end).c_str()).x > m_window_width - m_window_width_offset ||
-						ImGui::CalcTextSize(text.substr(last_end, next_space - last_end).c_str()).x < (m_window_width - m_window_width_offset) / 4 * 3
-						) {
-						float width_of_a = ImGui::CalcTextSize("a").x;
-						int letter_count = (int)((m_window_width - m_window_width_offset) / width_of_a);
-						while (last_end + letter_count < text.size() && ImGui::CalcTextSize(text.substr(last_end, letter_count).c_str()).x < m_window_width - m_window_width_offset) {
-							letter_count++;
-						}
-						m_endlines.push_back(last_end + letter_count);
-						last_end += letter_count;
-					}
-					else {
-						m_endlines.push_back(next_space);
-						last_end = next_space + 1;
-					}
-				}
-			}
-			else {
-				m_endlines.push_back(text.length());
-				last_end = text.length();
-			}
-
-		}
-		m_lines_count++;
-	}
-}
-
-
-
 void NotificationManager::ProgressBarNotification::render_text(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
-	// line1 - we do not print any more text than what fits on line 1. Line 2 is bar.
+	// hypertext is not rendered at all. If it is needed, it needs to be added here.
+	// m_endlines should have endline for each line and then for hypertext thus m_endlines[1] should always be in m_text1
 	if (m_multiline) {
-		// two lines text, one line bar
+		if(m_endlines[0] > m_text1.size() || m_endlines[1] > m_text1.size())
+			return;
+		// two lines text (what doesnt fit, wont show), one line bar
 		ImGui::SetCursorPosX(m_left_indentation);
 		ImGui::SetCursorPosY(m_line_height / 4);
 		imgui.text(m_text1.substr(0, m_endlines[0]).c_str());
@@ -866,6 +815,8 @@ void NotificationManager::ProgressBarNotification::render_text(ImGuiWrapper& img
 			render_cancel_button(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
 		render_bar(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
 	} else {
+		if (m_endlines[0] > m_text1.size())
+			return;
 		//one line text, one line bar
 		ImGui::SetCursorPosX(m_left_indentation);
 		ImGui::SetCursorPosY(/*win_size_y / 2 - win_size_y / 6 -*/ m_line_height / 4);
@@ -1173,7 +1124,7 @@ void NotificationManager::SlicingProgressNotification::set_status_text(const std
 		break;
 	case Slic3r::GUI::NotificationManager::SlicingProgressNotification::SlicingProgressState::SP_PROGRESS:
 	{
-		NotificationData data{ NotificationType::SlicingProgress, NotificationLevel::ProgressBarNotificationLevel, 0, text + ".",  m_is_fff ? _u8L("Export G-Code.") : _u8L("Export.") };
+		NotificationData data{ NotificationType::SlicingProgress, NotificationLevel::ProgressBarNotificationLevel, 0, text + "." };
 		update(data);
 		m_state = EState::NotFading;
 	}
