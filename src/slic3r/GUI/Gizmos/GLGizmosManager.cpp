@@ -1230,16 +1230,14 @@ bool GLGizmosManager::activate_gizmo(EType type)
         if (! m_parent.get_gizmos_manager().is_serializing()
          && old_gizmo->wants_enter_leave_snapshots())
             Plater::TakeSnapshot snapshot(wxGetApp().plater(),
-                Slic3r::format(_CTX_utf8("Leaving %1%", "undo/redo action name, placeholder "
-                    "expands to a name of a gizmo being closed"), old_gizmo->get_name(false)),
+                old_gizmo->get_gizmo_leaving_text(),
                 UndoRedo::SnapshotType::LeavingGizmoWithAction);
     }
 
     if (new_gizmo && ! m_parent.get_gizmos_manager().is_serializing()
      && new_gizmo->wants_enter_leave_snapshots())
         Plater::TakeSnapshot snapshot(wxGetApp().plater(),
-            Slic3r::format(_CTX_utf8("Entering %1%", "undo/redo action name, placeholder "
-                    "expands to a name of a gizmo being opened"), new_gizmo->get_name(false)),
+            new_gizmo->get_gizmo_entering_text(),
             UndoRedo::SnapshotType::EnteringGizmo);
 
     m_current = type;

@@ -136,6 +136,8 @@ public:
     bool is_selectable() const { return on_is_selectable(); }
     CommonGizmosDataID get_requirements() const { return on_get_requirements(); }
     virtual bool wants_enter_leave_snapshots() const { return false; }
+    virtual std::string get_gizmo_entering_text() const { assert(false); return ""; }
+    virtual std::string get_gizmo_leaving_text() const { assert(false); return ""; }
     virtual std::string get_action_snapshot_name() { return _u8L("Gizmo action"); }
     void set_common_data_pool(CommonGizmosDataPool* ptr) { m_c = ptr; }
 
