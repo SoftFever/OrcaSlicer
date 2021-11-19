@@ -807,7 +807,13 @@ bool SLAPrint::invalidate_state_by_config_options(const std::vector<t_config_opt
     static std::unordered_set<std::string> steps_full = {
         "initial_layer_height",
         "material_correction",
+        "material_correction_x",
+        "material_correction_y",
+        "material_correction_z",
         "relative_correction",
+        "relative_correction_x",
+        "relative_correction_y",
+        "relative_correction_z",
         "absolute_correction",
         "elefant_foot_compensation",
         "elefant_foot_min_width",
@@ -1047,15 +1053,15 @@ Vec3d SLAPrint::relative_correction() const
     Vec3d corr(1., 1., 1.);
 
     if(printer_config().relative_correction.values.size() >= 2) {
-        corr.x() = printer_config().relative_correction.values[0];
-        corr.y() = corr.x();
-        corr.z() = printer_config().relative_correction.values[1];
+        corr.x() = printer_config().relative_correction_x.value;
+        corr.y() = printer_config().relative_correction_y.value;
+        corr.z() = printer_config().relative_correction_z.value;
     }
 
     if(material_config().material_correction.values.size() >= 2) {
-        corr.x() *= material_config().material_correction.values[0];
-        corr.y() =  corr.x();
-        corr.z() *= material_config().material_correction.values[1];
+        corr.x() *= material_config().material_correction_x.value;
+        corr.y() *= material_config().material_correction_y.value;
+        corr.z() *= material_config().material_correction_z.value;
     }
 
     return corr;
