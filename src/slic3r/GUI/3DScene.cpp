@@ -932,9 +932,11 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
 bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, ModelInstanceEPrintVolumeState *out_state) const
 {
     const Model&        model              = GUI::wxGetApp().plater()->model();
+    auto                volume_below       = [](GLVolume& volume) -> bool
+        { return volume.object_idx() != -1 && volume.volume_idx() != -1 && volume.is_below_printbed(); };
     // Volume is partially below the print bed, thus a pre-calculated convex hull cannot be used.
     auto                volume_sinking     = [](GLVolume& volume) -> bool
-        { return volume.is_sinking() && volume.object_idx() != -1 && volume.volume_idx() != -1; };
+        { return volume.object_idx() != -1 && volume.volume_idx() != -1 && volume.is_sinking(); };
     // Cached bounding box of a volume above the print bed.
     auto                volume_bbox        = [volume_sinking](GLVolume& volume) -> BoundingBoxf3 
         { return volume_sinking(volume) ? volume.transformed_non_sinking_bounding_box() : volume.transformed_convex_hull_bounding_box(); };
@@ -948,21 +950,26 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     for (GLVolume* volume : this->volumes)
         if (! volume->is_modifier && (volume->shader_outside_printer_detection_enabled || (! volume->is_wipe_tower && volume->composite_id.volume_id >= 0))) {
             BuildVolume::ObjectState state;
-            switch (build_volume.type()) {
-            case BuildVolume::Type::Rectangle:
-            //FIXME this test does not evaluate collision of a build volume bounding box with non-convex objects.
-                state = build_volume.volume_state_bbox(volume_bbox(*volume));
-                break;
-            case BuildVolume::Type::Circle:
-            case BuildVolume::Type::Convex:
-            //FIXME doing test on convex hull until we learn to do test on non-convex polygons efficiently.
-            case BuildVolume::Type::Custom:
-                state = build_volume.object_state(volume_convex_mesh(*volume).its, volume->world_matrix().cast<float>(), volume_sinking(*volume));
-                break;
-            default:
-                // Ignore, don't produce any collision.
-                state = BuildVolume::ObjectState::Inside;
-                break;
+            if (volume_below(*volume))
+                state = BuildVolume::ObjectState::Below;
+            else {
+                switch (build_volume.type()) {
+                case BuildVolume::Type::Rectangle:
+                //FIXME this test does not evaluate collision of a build volume bounding box with non-convex objects.
+                    state = build_volume.volume_state_bbox(volume_bbox(*volume));
+                    break;
+                case BuildVolume::Type::Circle:
+                case BuildVolume::Type::Convex:
+                //FIXME doing test on convex hull until we learn to do test on non-convex polygons efficiently.
+                case BuildVolume::Type::Custom:
+                    state = build_volume.object_state(volume_convex_mesh(*volume).its, volume->world_matrix().cast<float>(), volume_sinking(*volume));
+                    break;
+                default:
+                    // Ignore, don't produce any collision.
+                    state = BuildVolume::ObjectState::Inside;
+                    break;
+                }
+                assert(state != BuildVolume::ObjectState::Below);
             }
             volume->is_outside = state != BuildVolume::ObjectState::Inside;
             if (volume->printable) {

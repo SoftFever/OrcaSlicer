@@ -216,6 +216,11 @@ BuildVolume::ObjectState object_state_templ(const indexed_triangle_set &its, con
             }
         }
 
+        if (num_above == 0)
+            // Special case, the object is completely below the print bed, thus it is outside,
+            // however we want to allow an object to be still printable if some of its parts are completely below the print bed.
+            return BuildVolume::ObjectState::Below;
+
         // 2) Calculate intersections of triangle edges with the build surface.
         inside  = num_inside > 0;
         outside = num_inside < num_above;
@@ -303,7 +308,9 @@ BuildVolume::ObjectState BuildVolume::volume_state_bbox(const BoundingBoxf3 &vol
     BoundingBox3Base<Vec3d> build_volume = this->bounding_volume().inflated(SceneEpsilon);
     if (m_max_print_height == 0)
         build_volume.max.z() = std::numeric_limits<double>::max();
-    return build_volume.contains(volume_bbox) ? ObjectState::Inside : build_volume.intersects(volume_bbox) ? ObjectState::Colliding : ObjectState::Outside;
+    return build_volume.max.z() <= - SceneEpsilon ? ObjectState::Below :
+           build_volume.contains(volume_bbox) ? ObjectState::Inside : 
+           build_volume.intersects(volume_bbox) ? ObjectState::Colliding : ObjectState::Outside;
 }
 
 bool BuildVolume::all_paths_inside(const GCodeProcessorResult &paths, const BoundingBoxf3 &paths_bbox) const

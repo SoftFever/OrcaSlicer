@@ -68,7 +68,10 @@ public:
         // Colliding with the build volume boundary, thus not printable and error is shown.
         Colliding,
         // Outside of the build volume means the object is ignored: Not printed and no error is shown.
-        Outside
+        Outside,
+        // Completely below the print bed. The same as Outside, but an object with one printable part below the print bed 
+        // and at least one part above the print bed is still printable.
+        Below,
     };
 
     // 1) Tests called on the plater.

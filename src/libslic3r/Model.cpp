@@ -1546,15 +1546,21 @@ unsigned int ModelObject::update_instances_print_volume_state(const BuildVolume 
                 const Transform3d matrix = model_instance->get_matrix() * vol->get_matrix();
                 BuildVolume::ObjectState state = build_volume.object_state(vol->mesh().its, matrix.cast<float>(), true /* may be below print bed */);
                 if (state == BuildVolume::ObjectState::Inside)
+                    // Volume is completely inside.
                     inside_outside |= INSIDE;
                 else if (state == BuildVolume::ObjectState::Outside)
+                    // Volume is completely outside.
                     inside_outside |= OUTSIDE;
-                else
+                else if (state == BuildVolume::ObjectState::Below) {
+                    // Volume below the print bed, thus it is completely outside, however this does not prevent the object to be printable
+                    // if some of its volumes are still inside the build volume.
+                } else
+                    // Volume colliding with the build volume.
                     inside_outside |= INSIDE | OUTSIDE;
             }
         model_instance->print_volume_state =
-            (inside_outside == (INSIDE | OUTSIDE)) ? ModelInstancePVS_Partly_Outside :
-            (inside_outside == INSIDE) ? ModelInstancePVS_Inside : ModelInstancePVS_Fully_Outside;
+            inside_outside == (INSIDE | OUTSIDE) ? ModelInstancePVS_Partly_Outside :
+            inside_outside == INSIDE ? ModelInstancePVS_Inside : ModelInstancePVS_Fully_Outside;
         if (inside_outside == INSIDE)
             ++num_printable;
     }
