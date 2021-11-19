@@ -15,6 +15,7 @@ public:
     void reset_initial_presets();
 
     bool is_dirty() const { return m_plater_dirty || m_project_config_dirty || m_presets_dirty; }
+    bool is_presets_dirty() const { return m_presets_dirty; }
 
 #if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
     void render_debug_window() const;
