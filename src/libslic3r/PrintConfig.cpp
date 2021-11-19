@@ -3739,7 +3739,9 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("material_print_speed", coEnum);
     def->label = L("Print speed");
-    def->tooltip = L("lorem ipsum");
+    def->tooltip = L(
+        "A slower printing profile might be necessary when using materials with higher viscosity "
+        "or with some hollowed parts. It slows down the tilt movement and adds a delay before exposure.");
     def->enum_keys_map = &ConfigOptionEnum<SLAMaterialSpeed>::get_enum_values();
     def->enum_values.push_back("slow");
     def->enum_values.push_back("fast");
