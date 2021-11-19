@@ -31,6 +31,7 @@
 #include "GUI.hpp"
 #include "I18N.hpp"
 #include "Search.hpp"
+#include "BitmapCache.hpp"
 
 #include "../Utils/MacDarkMode.hpp"
 #include "nanosvg/nanosvg.h"
@@ -1030,7 +1031,7 @@ std::vector<unsigned char> ImGuiWrapper::load_svg(const std::string& bitmap_name
 {
     std::vector<unsigned char> empty_vector;
 
-    NSVGimage* image = ::nsvgParseFromFileWithReplace(Slic3r::var(bitmap_name + ".svg").c_str(), "px", 96.0f, { { "#808080", "#FFFFFF" } });
+    NSVGimage* image = BitmapCache::nsvgParseFromFileWithReplace(Slic3r::var(bitmap_name + ".svg").c_str(), "px", 96.0f, { { "\"#808080\"", "\"#FFFFFF\"" } });
     if (image == nullptr)
         return empty_vector;
 

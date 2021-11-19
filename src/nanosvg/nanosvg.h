@@ -165,11 +165,6 @@ typedef struct NSVGimage
 // Parses SVG file from a file, returns SVG image as paths.
 NSVGimage* nsvgParseFromFile(const char* filename, const char* units, float dpi);
 
-// Parses SVG file from a file, returns SVG image as paths.
-// And makes replases befor parsing
-// replace_map containes old_value->new_value
-NSVGimage* nsvgParseFromFileWithReplace(const char* filename, const char* units, float dpi, const std::map<std::string, std::string>& replace_map);
-
 // Parses SVG file from a null terminated string, returns SVG image as paths.
 // Important note: changes the string.
 NSVGimage* nsvgParse(char* input, const char* units, float dpi);
@@ -2908,12 +2903,6 @@ NSVGimage* nsvgParse(char* input, const char* units, float dpi)
 
 NSVGimage* nsvgParseFromFile(const char* filename, const char* units, float dpi)
 {
-	return nsvgParseFromFileWithReplace(filename, units, dpi, { {} });
-}
-
-NSVGimage* nsvgParseFromFileWithReplace(const char* filename, const char* units, float dpi, const std::map<std::string, std::string>& replaces)
-{
-	std::string str;
 	FILE* fp = NULL;
 	size_t size;
 	char* data = NULL;
@@ -2930,14 +2919,7 @@ NSVGimage* nsvgParseFromFileWithReplace(const char* filename, const char* units,
 	data[size] = '\0';	// Must be null terminated.
 	fclose(fp);
 
-	if(replaces.empty())
-		image = nsvgParse(data, units, dpi);
-	else {
-		str.assign(data);
-		for (auto val : replaces)
-			boost::replace_all(str, val.first, val.second);
-		image = nsvgParse(str.data(), units, dpi);
-	}
+	image = nsvgParse(data, units, dpi);
 	free(data);
 	return image;
 

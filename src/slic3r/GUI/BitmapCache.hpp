@@ -9,6 +9,8 @@
     #include <wx/wx.h>
 #endif
 
+struct NSVGimage;
+
 namespace Slic3r { namespace GUI {
 
 class BitmapCache
@@ -32,6 +34,11 @@ public:
 
 	// Load png from resources/icons. bitmap_key is given without the .png suffix. Bitmap will be rescaled to provided height/width if nonzero.
     wxBitmap* 		load_png(const std::string &bitmap_key, unsigned width = 0, unsigned height = 0, const bool grayscale = false);
+
+	// Parses SVG file from a file, returns SVG image as paths.
+	// And makes replases befor parsing
+	// replace_map containes old_value->new_value
+	static NSVGimage* nsvgParseFromFileWithReplace(const char* filename, const char* units, float dpi, const std::map<std::string, std::string>& replaces);
 	// Load svg from resources/icons. bitmap_key is given without the .svg suffix. SVG will be rasterized to provided height/width.
     wxBitmap* 		load_svg(const std::string &bitmap_key, unsigned width = 0, unsigned height = 0, const bool grayscale = false, const bool dark_mode = false, const std::string& new_color = "");
 
