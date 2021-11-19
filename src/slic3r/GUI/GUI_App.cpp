@@ -992,22 +992,13 @@ bool GUI_App::OnInit()
 
 bool GUI_App::on_init_inner()
 {
-// win32 build on win64 and viceversa
-#ifdef _WIN64
-    if (wxPlatformInfo::Get().GetArchName().substr(0, 2) == "") {
-        RichMessageDialog dlg(nullptr,
-                _L("You have started PrusaSlicer for 64-bit architecture on 32-bit system."
-                    "\nPlease download and install correct version at https://www.prusa3d.cz/prusaslicer/."
-                    "\nDo you wish to continue?"),
-                "PrusaSlicer", wxICON_QUESTION | wxYES_NO);
-        if (dlg.ShowModal() != wxID_YES)
-            return false;
-    }
-#elif _WIN32
+#if defined(_WIN32) && ! defined(_WIN64)
+    // Win32 32bit build.
     if (wxPlatformInfo::Get().GetArchName().substr(0, 2) == "64") {
         RichMessageDialog dlg(nullptr,
-            _L("You have started PrusaSlicer for 32-bit architecture on 64-bit system."
-                "\nPlease download and install correct version at https://www.prusa3d.cz/prusaslicer/."
+            _L("You are running a 32 bit build of PrusaSlicer on 64-bit Windows."
+                "\n32 bit build of PrusaSlicer will likely not be able to utilize all the RAM available in the system."
+                "\nPlease download and install a 64 bit build of PrusaSlice from https://www.prusa3d.cz/prusaslicer/."
                 "\nDo you wish to continue?"),
             "PrusaSlicer", wxICON_QUESTION | wxYES_NO);
         if (dlg.ShowModal() != wxID_YES)
