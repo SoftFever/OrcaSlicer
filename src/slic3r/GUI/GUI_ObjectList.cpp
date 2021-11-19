@@ -911,21 +911,14 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
 	        toggle_printable_state();
 	    else if (title == _("Editing"))
 	        show_context_menu(evt_context_menu);
-	    else if (title == _("Name"))
-	    {
-	        if (wxOSX)
-	            show_context_menu(evt_context_menu); // return context menu under OSX (related to #2909)
-
-	        if (is_windows10())
-	        {
-	            int obj_idx, vol_idx;
-	            get_selected_item_indexes(obj_idx, vol_idx, item);
-
-	            if (m_objects_model->HasWarningIcon(item) &&
-	                mouse_pos.x > 2 * wxGetApp().em_unit() && mouse_pos.x < 4 * wxGetApp().em_unit())
-	                fix_through_netfabb();
-	        }
-	    }
+        else if (title == _("Name"))
+        {
+            if (is_windows10() && m_objects_model->HasWarningIcon(item) &&
+                mouse_pos.x > 2 * wxGetApp().em_unit() && mouse_pos.x < 4 * wxGetApp().em_unit())
+                fix_through_netfabb();
+            else
+                show_context_menu(evt_context_menu); // show context menu for "Name" column too
+        }
 	    // workaround for extruder editing under OSX 
 	    else if (wxOSX && evt_context_menu && title == _("Extruder"))
 	        extruder_editing();
