@@ -551,6 +551,7 @@ static std::vector<std::string> s_Preset_sla_material_options {
     "material_correction_z",
     "material_notes",
     "material_vendor",
+    "material_print_speed",
     "default_sla_material_profile",
     "compatible_prints", "compatible_prints_condition",
     "compatible_printers", "compatible_printers_condition", "inherits"
