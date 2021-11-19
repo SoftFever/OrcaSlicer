@@ -431,51 +431,45 @@ bool static check_old_linux_datadir(const wxString& app_name) {
 static bool run_updater_win()
 {
     // find updater exe
-    boost::filesystem::path path_to_binary = boost::dll::program_location();
-    for (const auto& dir_entry : boost::filesystem::directory_iterator(path_to_binary.parent_path())) {
-        if (dir_entry.path().filename() == "prusaslicer-updater.exe") {
-            // run updater. Original args: /silent -restartapp prusa-slicer.exe -startappfirst
+    boost::filesystem::path path_updater = boost::dll::program_location().parent_path() / "prusaslicer-updater.exe";
+    if (boost::filesystem::exists(path_updater)) {
+        // run updater. Original args: /silent -restartapp prusa-slicer.exe -startappfirst
 
-            // Using quoted string as mentioned in CreateProcessW docs.
-            std::wstring wcmd = L"\"" + dir_entry.path().wstring() + L"\"";
-            wcmd += L" /silent";
+        // Using quoted string as mentioned in CreateProcessW docs, silent execution parameter.
+        std::wstring wcmd = L"\"" + path_updater.wstring() + L"\" /silent";
 
-            // additional information
-            STARTUPINFOW si;
-            PROCESS_INFORMATION pi;
+        // additional information
+        STARTUPINFOW si;
+        PROCESS_INFORMATION pi;
 
-            // set the size of the structures
-            ZeroMemory(&si, sizeof(si));
-            si.cb = sizeof(si);
-            ZeroMemory(&pi, sizeof(pi));
+        // set the size of the structures
+        ZeroMemory(&si, sizeof(si));
+        si.cb = sizeof(si);
+        ZeroMemory(&pi, sizeof(pi));
 
-            // start the program up
-            if (CreateProcessW(NULL,   // the path
-                wcmd.data(),    // Command line
-                NULL,           // Process handle not inheritable
-                NULL,           // Thread handle not inheritable
-                FALSE,          // Set handle inheritance to FALSE
-                0,              // No creation flags
-                NULL,           // Use parent's environment block
-                NULL,           // Use parent's starting directory 
-                &si,            // Pointer to STARTUPINFO structure
-                &pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
-            )) {
-                // Close process and thread handles.
-                CloseHandle(pi.hProcess);
-                CloseHandle(pi.hThread);
-                return true;
-            } else {
-                BOOST_LOG_TRIVIAL(error) << "Failed to start prusaslicer-updater.exe with command " << wcmd;
-            }
-            break;
+        // start the program up
+        if (CreateProcessW(NULL,   // the path
+            wcmd.data(),    // Command line
+            NULL,           // Process handle not inheritable
+            NULL,           // Thread handle not inheritable
+            FALSE,          // Set handle inheritance to FALSE
+            0,              // No creation flags
+            NULL,           // Use parent's environment block
+            NULL,           // Use parent's starting directory 
+            &si,            // Pointer to STARTUPINFO structure
+            &pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
+        )) {
+            // Close process and thread handles.
+            CloseHandle(pi.hProcess);
+            CloseHandle(pi.hThread);
+            return true;
+        } else {
+            BOOST_LOG_TRIVIAL(error) << "Failed to start prusaslicer-updater.exe with command " << wcmd;
         }
     }
     return false;
 }
 #endif //_WIN32
-
-
 
 wxString file_wildcards(FileType file_type, const std::string &custom_extension)
 {
@@ -738,14 +732,11 @@ void GUI_App::post_init()
                 // sees something else than "we want something" on the first start.
                 show_send_system_info_dialog_if_needed();
             }
-            bool updater_running = 
         #ifdef _WIN32
             // Run external updater on Windows.
-            run_updater_win();
-        #else
-            false;
+            if (! run_updater_win())
+                // "prusaslicer-updater.exe" was not started, run our own update check.
         #endif // _WIN32
-            if (!updater_running)
                 this->preset_updater->slic3r_update_notify();
         });
     }
