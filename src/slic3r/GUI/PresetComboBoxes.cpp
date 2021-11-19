@@ -786,8 +786,8 @@ void PlaterPresetComboBox::update()
 
     std::map<wxString, wxBitmap*> nonsys_presets;
 
-    wxString selected_user_preset = "";
-    wxString tooltip = "";
+    wxString selected_user_preset;
+    wxString tooltip;
     const std::deque<Preset>& presets = m_collection->get_presets();
 
     if (!presets.front().is_visible)
