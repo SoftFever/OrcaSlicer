@@ -916,7 +916,7 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
             if (is_windows10() && m_objects_model->HasWarningIcon(item) &&
                 mouse_pos.x > 2 * wxGetApp().em_unit() && mouse_pos.x < 4 * wxGetApp().em_unit())
                 fix_through_netfabb();
-            else
+            else if (evt_context_menu)
                 show_context_menu(evt_context_menu); // show context menu for "Name" column too
         }
 	    // workaround for extruder editing under OSX 
