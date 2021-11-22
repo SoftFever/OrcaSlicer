@@ -393,8 +393,7 @@ void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, cons
 	std::string line;
 
 	for (size_t i = 0; i < (m_multiline ? m_endlines.size() : std::min(m_endlines.size(), (size_t)2)); i++) {
-		if (m_endlines[i] > m_text1.size())
-			break;
+		assert(m_endlines.size() > i && m_text1.size() >= m_endlines[i]);
 		line.clear();
 		ImGui::SetCursorPosX(x_offset);     
 		ImGui::SetCursorPosY(starting_y + i * shift_y);
@@ -681,6 +680,7 @@ void NotificationManager::ExportFinishedNotification::render_text(ImGuiWrapper& 
 	float starting_y = m_line_height / 2;//10;
 	float shift_y = m_line_height;// -m_line_height / 20;
 	for (size_t i = 0; i < m_lines_count; i++) {
+		assert(m_text1.size() >= m_endlines[i]);
 		if (m_text1.size() >= m_endlines[i]) {
 			std::string line = m_text1.substr(last_end, m_endlines[i] - last_end);
 			last_end = m_endlines[i];
@@ -801,6 +801,7 @@ void NotificationManager::ProgressBarNotification::render_text(ImGuiWrapper& img
 	// hypertext is not rendered at all. If it is needed, it needs to be added here.
 	// m_endlines should have endline for each line and then for hypertext thus m_endlines[1] should always be in m_text1
 	if (m_multiline) {
+		assert(m_text1.size() >= m_endlines[0]  || m_text1.size() >= m_endlines[1]);
 		if(m_endlines[0] > m_text1.size() || m_endlines[1] > m_text1.size())
 			return;
 		// two lines text (what doesnt fit, wont show), one line bar
@@ -815,6 +816,7 @@ void NotificationManager::ProgressBarNotification::render_text(ImGuiWrapper& img
 			render_cancel_button(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
 		render_bar(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
 	} else {
+		assert(m_text1.size() >= m_endlines[0]);
 		if (m_endlines[0] > m_text1.size())
 			return;
 		//one line text, one line bar
