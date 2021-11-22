@@ -604,10 +604,22 @@ void print_objects_regions_invalidate_keep_some_volumes(PrintObjectRegions &prin
     print_object_regions.cached_volume_ids.erase(print_object_regions.cached_volume_ids.begin() + last_cached_volume, print_object_regions.cached_volume_ids.end());
 }
 
+// Find a bounding box of a volume's part intersecting layer_range. Such a bounding box will likely be smaller in XY than the full bounding box,
+// thus it will intersect with lower number of other volumes.
 const PrintObjectRegions::BoundingBox* find_volume_extents(const PrintObjectRegions::LayerRangeRegions &layer_range, const ModelVolume &volume)
 {
     auto it = lower_bound_by_predicate(layer_range.volumes.begin(), layer_range.volumes.end(), [&volume](const PrintObjectRegions::VolumeExtents &l){ return l.volume_id < volume.id(); });
     return it != layer_range.volumes.end() && it->volume_id == volume.id() ? &it->bbox : nullptr;
+}
+
+// Find a bounding box of a topmost printable volume referenced by this modifier given this_region_id.
+const PrintObjectRegions::BoundingBox* find_modifier_volume_extents(const PrintObjectRegions::LayerRangeRegions &layer_range, const int this_region_id)
+{
+    // Find the top-most printable volume of this modifier, or the printable volume itself.
+    int parent_region_id = this_region_id;
+    for (; ! layer_range.volume_regions[parent_region_id].model_volume->is_model_part(); parent_region_id = layer_range.volume_regions[parent_region_id].parent)
+        assert(parent_region_id >= 0);
+    return find_volume_extents(layer_range, *layer_range.volume_regions[parent_region_id].model_volume);
 }
 
 PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &default_or_parent_region_config, const DynamicPrintConfig *layer_range_config, const ModelVolume &volume, size_t num_extruders);
@@ -634,11 +646,54 @@ bool verify_update_print_object_regions(
         print_region_ref_reset(*region);
 
     // Verify and / or update PrintRegions produced by ModelVolumes, layer range modifiers, modifier volumes.
-    for (PrintObjectRegions::LayerRangeRegions &layer_range : print_object_regions.layer_ranges)
+    for (PrintObjectRegions::LayerRangeRegions &layer_range : print_object_regions.layer_ranges) {
+        // Each modifier ModelVolume intersecting this layer_range shall be referenced here at least once if it intersects some
+        // printable ModelVolume at this layer_range even if it does not modify its overlapping printable ModelVolume configuration yet.
+        // VolumeRegions reference ModelVolumes in layer_range.volume_regions the order they are stored in ModelObject volumes.
+        // Remember whether a given modifier ModelVolume was visited already.
+        auto it_model_volume_modifier_last = model_volumes.end();
         for (PrintObjectRegions::VolumeRegion &region : layer_range.volume_regions)
             if (region.model_volume->is_model_part() || region.model_volume->is_modifier()) {
                 auto it_model_volume = lower_bound_by_predicate(model_volumes.begin(), model_volumes.end(), [&region](const ModelVolume *l){ return l->id() < region.model_volume->id(); });
                 assert(it_model_volume != model_volumes.end() && (*it_model_volume)->id() == region.model_volume->id());
+                if (region.model_volume->is_modifier() && it_model_volume != it_model_volume_modifier_last) {
+                    // A modifier ModelVolume is visited for the first time.
+                    // A visited modifier may not have had parent volume_regions created overlapping with some model parts or modifiers,
+                    // if the visited modifier did not modify their properties. Now the visited modifier's configuration may have changed,
+                    // which may require new regions to be created.
+                    it_model_volume_modifier_last = it_model_volume;
+                    int this_region_id = int(&region - layer_range.volume_regions.data());
+                    int next_region_id = this_region_id + 1;
+                    const PrintObjectRegions::BoundingBox *bbox = find_volume_extents(layer_range, *region.model_volume);
+                    assert(bbox);
+                    for (int parent_region_id = this_region_id - 1; parent_region_id >= 0; -- parent_region_id) {
+                        const PrintObjectRegions::VolumeRegion &parent_region = layer_range.volume_regions[parent_region_id];
+                        assert(parent_region.model_volume != region.model_volume);
+                        if (parent_region.model_volume->is_model_part() || parent_region.model_volume->is_modifier()) {
+                            // volume_regions are produced in decreasing order of parent volume_regions ids.
+                            // Some regions may not have been generated the last time by generate_print_object_regions().
+                            assert(next_region_id == int(layer_range.volume_regions.size()) ||
+                                   layer_range.volume_regions[next_region_id].model_volume != region.model_volume ||
+                                   layer_range.volume_regions[next_region_id].parent <= parent_region_id);
+                            if (next_region_id < int(layer_range.volume_regions.size()) && 
+                                layer_range.volume_regions[next_region_id].model_volume == region.model_volume &&
+                                layer_range.volume_regions[next_region_id].parent == parent_region_id) {
+                                // A parent region is already overridden.
+                                ++ next_region_id;
+                            } else {
+                                // Such parent region does not exist. If it is needed, then we need to reslice.
+                                const PrintObjectRegions::BoundingBox *parent_bbox = find_modifier_volume_extents(layer_range, parent_region_id);
+                                assert(parent_bbox != nullptr);
+                                if (parent_bbox->intersects(*bbox))
+                                    // Only create new region for a modifier, which actually modifies config of it's parent.
+                                    if (PrintRegionConfig config = region_config_from_model_volume(parent_region.region->config(), nullptr, **it_model_volume, num_extruders);
+                                        config != parent_region.region->config())
+                                        // This modifier newly overrides a region, which it did not before. We need to reslice.
+                                        return false;
+                            }
+                        }
+                    }
+                }
                 PrintRegionConfig cfg = region.parent == -1 ?
                     region_config_from_model_volume(default_region_config, layer_range.config, **it_model_volume, num_extruders) :
                     region_config_from_model_volume(layer_range.volume_regions[region.parent].region->config(), nullptr, **it_model_volume, num_extruders);
@@ -657,6 +712,7 @@ bool verify_update_print_object_regions(
                 }
                 print_region_ref_inc(*region.region);
             }
+    }
 
     // Verify and / or update PrintRegions produced by color painting. 
     for (const PrintObjectRegions::LayerRangeRegions &layer_range : print_object_regions.layer_ranges)
@@ -851,17 +907,28 @@ static PrintObjectRegions* generate_print_object_regions(
                     } else {
                         assert(volume.is_modifier());
                         // Modifiers may be chained one over the other. Check for overlap, merge DynamicPrintConfigs.
-                        for (int parent_region_id = int(layer_range.volume_regions.size()) - 1; parent_region_id >= 0; -- parent_region_id)
-                            if (const PrintObjectRegions::VolumeRegion &parent_region = layer_range.volume_regions[parent_region_id];
-                                parent_region.model_volume->is_model_part() || parent_region.model_volume->is_modifier()) {
-                                const PrintObjectRegions::BoundingBox *parent_bbox = find_volume_extents(layer_range, *parent_region.model_volume);
+                        bool added = false;
+                        int  parent_model_part_id = -1;
+                        for (int parent_region_id = int(layer_range.volume_regions.size()) - 1; parent_region_id >= 0; -- parent_region_id) {
+                            const PrintObjectRegions::VolumeRegion &parent_region = layer_range.volume_regions[parent_region_id];
+                            const ModelVolume                      &parent_volume = *parent_region.model_volume;
+                            if (parent_volume.is_model_part() || parent_volume.is_modifier()) {
+                                const PrintObjectRegions::BoundingBox *parent_bbox = find_modifier_volume_extents(layer_range, parent_region_id);
                                 assert(parent_bbox != nullptr);
                                 if (parent_bbox->intersects(*bbox))
                                     // Only create new region for a modifier, which actually modifies config of it's parent.
                                     if (PrintRegionConfig config = region_config_from_model_volume(parent_region.region->config(), nullptr, volume, num_extruders); 
-                                        config != parent_region.region->config())
+                                        config != parent_region.region->config()) {
+                                        added = true;
                                         layer_range.volume_regions.push_back({ &volume, parent_region_id, get_create_region(std::move(config)), bbox });
+                                    } else if (parent_model_part_id == -1 && parent_volume.is_model_part())
+                                        parent_model_part_id = parent_region_id;
+                            }
                         }
+                        if (! added && parent_model_part_id >= 0)
+                            // This modifier does not override any printable volume's configuration, however it may in the future.
+                            // Store it so that verify_update_print_object_regions() will handle this modifier correctly if its configuration changes.
+                            layer_range.volume_regions.push_back({ &volume, parent_model_part_id, layer_range.volume_regions[parent_model_part_id].region, bbox });
                     }
                 }
             }
