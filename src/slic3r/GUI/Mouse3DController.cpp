@@ -375,7 +375,7 @@ void Mouse3DController::load_config(const AppConfig &appconfig)
         appconfig.get_mouse_device_swap_yz(device_name, swap_yz);
         // clamp to valid values
 	    Params params;
-	    params.translation.scale = Params::DefaultTranslationScale * std::clamp(translation_speed, 0.1, 10.0);
+	    params.translation.scale = Params::DefaultTranslationScale * std::clamp(translation_speed, Params::MinTranslationScale, Params::MaxTranslationScale);
 	    params.translation.deadzone = std::clamp(translation_deadzone, 0.0, Params::MaxTranslationDeadzone);
 	    params.rotation.scale = Params::DefaultRotationScale * std::clamp(rotation_speed, 0.1f, 10.0f);
 	    params.rotation.deadzone = std::clamp(rotation_deadzone, 0.0f, Params::MaxRotationDeadzone);
@@ -469,7 +469,7 @@ void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
             imgui.text_colored(color, _L("Speed:"));
 
             float translation_scale = (float)params_copy.translation.scale / Params::DefaultTranslationScale;
-            if (imgui.slider_float(_L("Translation") + "##1", &translation_scale, 0.1f, 10.0f, "%.1f")) {
+            if (imgui.slider_float(_L("Translation") + "##1", &translation_scale, Params::MinTranslationScale, Params::MaxTranslationScale, "%.1f")) {
             	params_copy.translation.scale = Params::DefaultTranslationScale * (double)translation_scale;
             	params_changed = true;
             }

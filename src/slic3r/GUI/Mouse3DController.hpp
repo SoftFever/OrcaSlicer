@@ -33,6 +33,8 @@ class Mouse3DController
 	// to copy the parameters.
 	struct Params
 	{
+        static constexpr double MinTranslationScale = 0.1;
+        static constexpr double MaxTranslationScale = 30.;
 		static constexpr double DefaultTranslationScale = 2.5;
         static constexpr double MaxTranslationDeadzone = 0.2;
         static constexpr double DefaultTranslationDeadzone = 0.0;
