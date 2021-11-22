@@ -1214,7 +1214,7 @@ void Sidebar::show_info_sizer()
     ModelObjectPtrs objects = p->plater->model().objects;
     int obj_idx = selection.get_object_idx();
 
-    if (m_mode < comExpert || objects.empty() || obj_idx < 0 || obj_idx > 1000 ||
+    if (m_mode < comExpert || objects.empty() || obj_idx < 0 || obj_idx == 1000 ||
         objects[obj_idx]->volumes.empty() ||                                            // hack to avoid crash when deleting the last object on the bed
         (selection.is_single_full_object() && objects[obj_idx]->instances.size()> 1) ||
         !(selection.is_single_full_instance() || selection.is_single_volume())) {
