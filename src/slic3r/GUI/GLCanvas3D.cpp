@@ -271,8 +271,10 @@ void GLCanvas3D::LayersEditing::render_overlay(const GLCanvas3D& canvas) const
     ImGui::SetCursorPosX(widget_align);
     ImGui::PushItemWidth(imgui.get_style_scaling() * 120.0f);
     int radius = (int)m_smooth_params.radius;
-    if (ImGui::SliderInt("##1", &radius, 1, 10))
+    if (ImGui::SliderInt("##1", &radius, 1, 10)) {
+        radius = std::clamp(radius, 1, 10);
         m_smooth_params.radius = (unsigned int)radius;
+    }
 
     ImGui::SetCursorPosX(text_align);
     ImGui::AlignTextToFramePadding();
