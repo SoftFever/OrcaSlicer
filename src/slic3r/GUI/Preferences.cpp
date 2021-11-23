@@ -483,8 +483,8 @@ void PreferencesDialog::build(size_t selected_tab)
 
 		def.label = L("Use system menu for application");
 		def.type = coBool;
-		def.tooltip = L("If enabled, application will use standart Windows system menu,\n"
-			"but on some combination od display scales it can looks ugly. "
+		def.tooltip = L("If enabled, application will use the standart Windows system menu,\n"
+			"but on some combination od display scales it can look ugly. "
 			"If disabled, old UI will be used.");
 		def.set_default_value(new ConfigOptionBool{ app_config->get("sys_menu_enabled") == "1" });
 		option = Option(def, "sys_menu_enabled");

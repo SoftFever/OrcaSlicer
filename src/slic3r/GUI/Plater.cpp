@@ -5068,7 +5068,7 @@ void Plater::new_project()
         wxString header = _L("Creating a new project while some presets are modified.") + "\n" + 
                           (saved_project == wxID_YES ? _L("You can keep presets modifications to the new project or discard them") :
                           _L("You can keep presets modifications to the new project, discard them or save changes as new presets.\n"
-                             "Note, if changes will be saved than new project wouldn't keep them"));
+                             "Note, if changes will be saved then new project wouldn't keep them"));
         using ab = UnsavedChangesDialog::ActionButtons;
         int act_buttons = ab::KEEP;
         if (saved_project == wxID_NO)
