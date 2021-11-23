@@ -519,7 +519,11 @@ void PreferencesDialog::build(size_t selected_tab)
 void PreferencesDialog::update_ctrls_alignment()
 {
 	int max_ctrl_width{ 0 };
-	std::initializer_list<ConfigOptionsGroup*> og_list = { m_optgroup_general.get(), m_optgroup_camera.get(), m_optgroup_gui.get() };
+	std::initializer_list<ConfigOptionsGroup*> og_list = { m_optgroup_general.get(), m_optgroup_camera.get(), m_optgroup_gui.get() 
+#ifdef _WIN32
+		, m_optgroup_dark_mode.get()
+#endif // _WIN32
+	};
 	for (auto og : og_list) {
 		if (int max = og->custom_ctrl->get_max_win_width();
 			max_ctrl_width < max)

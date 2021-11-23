@@ -21,7 +21,13 @@ void ButtonsDescription::FillSizerWithTextColorDescriptions(wxSizer* sizer, wxWi
 	ScalableBitmap bmp_delete_focus = ScalableBitmap(parent, "cross_focus");
 
 	auto add_color = [grid_sizer, parent](wxColourPickerCtrl** color_picker, const wxColour& color, const wxColour& def_color, wxString label_text) {
-		//
+		// wrap the label_text to the max 80 characters
+		if (label_text.Len() > 80) {
+			size_t brack_pos = label_text.find_last_of(" ", 79);
+			if (brack_pos > 0 && brack_pos < 80)
+				label_text.insert(brack_pos + 1, "\n");
+		}
+
 		auto sys_label = new wxStaticText(parent, wxID_ANY, label_text);
 		sys_label->SetForegroundColour(color);
 
