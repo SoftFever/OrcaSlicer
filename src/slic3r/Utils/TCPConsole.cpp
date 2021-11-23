@@ -158,18 +158,18 @@ namespace Slic3r {
             }
         }
 
-        void TCPConsole::set_deadline_in(boost::chrono::steady_clock::duration d)
+        void TCPConsole::set_deadline_in(std::chrono::steady_clock::duration d)
         {
-            deadline_ = boost::chrono::steady_clock::now() + d;
+            deadline_ = std::chrono::steady_clock::now() + d;
         }
         bool TCPConsole::is_deadline_over()
         {
-            return deadline_ < boost::chrono::steady_clock::now();
+            return deadline_ < std::chrono::steady_clock::now();
         }
 
         bool TCPConsole::run_queue()
         {
-            auto now = boost::chrono::steady_clock::now();
+            auto now = std::chrono::steady_clock::now();
             try {
                 // TODO: Add more resets and initializations after previous run (reset() method?..)
                 set_deadline_in(connect_timeout_);
