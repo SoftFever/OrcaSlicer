@@ -4016,18 +4016,8 @@ void ObjectList::rename_item()
     if (new_name.IsEmpty())
         return;
 
-    bool is_unusable_symbol = false;
-    std::string chosen_name = Slic3r::normalize_utf8_nfc(new_name.ToUTF8());
-    const char* unusable_symbols = "<>:/\\|?*\"";
-    for (size_t i = 0; i < std::strlen(unusable_symbols); i++) {
-        if (chosen_name.find_first_of(unusable_symbols[i]) != std::string::npos) {
-            is_unusable_symbol = true;
-        }
-    }
-
-    if (is_unusable_symbol) {
-        show_error(this, _(L("The supplied name is not valid;")) + "\n" +
-            _(L("the following characters are not allowed:")) + " <>:/\\|?*\"");
+    if (Plater::has_illegal_filename_characters(new_name)) {
+        Plater::show_illegal_characters_warning(this);
         return;
     }
 
@@ -4247,10 +4237,7 @@ void ObjectList::OnEditingDone(wxDataViewEvent &event)
     const auto renderer = dynamic_cast<BitmapTextRenderer*>(GetColumn(colName)->GetRenderer());
 
     if (renderer->WasCanceled())
-		wxTheApp->CallAfter([this]{
-			show_error(this, _(L("The supplied name is not valid;")) + "\n" +
-				             _(L("the following characters are not allowed:")) + " <>:/\\|?*\"");
-		});
+		wxTheApp->CallAfter([this]{ Plater::show_illegal_characters_warning(this); });
 
 #ifdef __WXMSW__
 	// Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.

@@ -119,6 +119,30 @@ wxDEFINE_EVENT(EVT_SLICING_COMPLETED,               wxCommandEvent);
 wxDEFINE_EVENT(EVT_PROCESS_COMPLETED,               SlicingProcessCompletedEvent);
 wxDEFINE_EVENT(EVT_EXPORT_BEGAN,                    wxCommandEvent);
 
+
+bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
+{
+    std::string name = into_u8(wxs_name);
+    return has_illegal_filename_characters(name);
+}
+
+bool Plater::has_illegal_filename_characters(const std::string& name)
+{
+    const char* illegal_characters = "<>:/\\|?*\"";
+    for (size_t i = 0; i < std::strlen(illegal_characters); i++)
+        if (name.find_first_of(illegal_characters[i]) != std::string::npos)
+            return true;
+
+    return false;
+}
+
+void Plater::show_illegal_characters_warning(wxWindow* parent)
+{
+    show_error(parent, _L("The supplied name is not valid;") + "\n" +
+        _L("the following characters are not allowed:") + " <>:/\\|?*\"");
+}
+
+
 // Sidebar widgets
 
 // struct InfoBox : public wxStaticBox
@@ -5685,8 +5709,15 @@ void Plater::export_gcode(bool prefer_removable)
             GUI::file_wildcards((printer_technology() == ptFFF) ? FT_GCODE : boost::iequals(ext, ".sl1s") ? FT_SL1S : FT_SL1, ext),
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT
         );
-            if (dlg.ShowModal() == wxID_OK)
+        if (dlg.ShowModal() == wxID_OK) {
             output_path = into_path(dlg.GetPath());
+            while (has_illegal_filename_characters(output_path.filename().string())) {
+                show_illegal_characters_warning(this);
+                dlg.SetFilename(from_path(output_path.filename()));
+                if (dlg.ShowModal() == wxID_OK)
+                    output_path = into_path(dlg.GetPath());
+            }
+        }
     }
 
     if (! output_path.empty()) {

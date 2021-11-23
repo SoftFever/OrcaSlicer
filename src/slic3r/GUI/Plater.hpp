@@ -426,6 +426,10 @@ public:
     wxMenu* layer_menu();
     wxMenu* multi_selection_menu();
 
+    static bool has_illegal_filename_characters(const wxString& name);
+    static bool has_illegal_filename_characters(const std::string& name);
+    static void show_illegal_characters_warning(wxWindow* parent);
+
 private:
     struct priv;
     std::unique_ptr<priv> p;

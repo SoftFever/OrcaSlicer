@@ -3,6 +3,7 @@
 #include "GUI.hpp"
 #include "I18N.hpp"
 #include "BitmapComboBox.hpp"
+#include "Plater.hpp"
 
 #include <wx/dc.h>
 #ifdef wxHAS_GENERIC_DATAVIEWCTRL
@@ -222,14 +223,8 @@ bool BitmapTextRenderer::GetValueFromEditorCtrl(wxWindow* ctrl, wxVariant& value
     if (!text_editor || text_editor->GetValue().IsEmpty())
         return false;
 
-    std::string chosen_name = into_u8(text_editor->GetValue());
-    const char* unusable_symbols = "<>:/\\|?*\"";
-    for (size_t i = 0; i < std::strlen(unusable_symbols); i++) {
-        if (chosen_name.find_first_of(unusable_symbols[i]) != std::string::npos) {
-            m_was_unusable_symbol = true;
-            return false;
-        }
-    }
+    if (m_was_unusable_symbol = Slic3r::GUI::Plater::has_illegal_filename_characters(text_editor->GetValue()))
+        return false;
 
     // The icon can't be edited so get its old value and reuse it.
     wxVariant valueOld;
