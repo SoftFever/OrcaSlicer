@@ -72,7 +72,8 @@ static t_config_enum_values s_keys_map_PrintHostType {
     { "duet",           htDuet },
     { "flashair",       htFlashAir },
     { "astrobox",       htAstroBox },
-    { "repetier",       htRepetier }
+    { "repetier",       htRepetier },
+    { "mks",            htMKS }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrintHostType)
 
