@@ -174,7 +174,7 @@ bool Bed3D::set_shape(const Pointfs& bed_shape, const double max_print_height, c
     }
 
     
-    if (m_build_volume.bed_shape() == bed_shape && m_type == type && m_texture_filename == texture_filename && m_model_filename == model_filename)
+    if (m_build_volume.bed_shape() == bed_shape && m_build_volume.max_print_height() == max_print_height && m_type == type && m_texture_filename == texture_filename && m_model_filename == model_filename)
         // No change, no need to update the UI.
         return false;
 
