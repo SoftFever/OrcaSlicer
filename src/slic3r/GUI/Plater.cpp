@@ -1910,6 +1910,9 @@ struct Plater::priv
     bool can_reload_from_disk() const;
     bool can_replace_with_stl() const;
     bool can_split(bool to_objects) const;
+#if ENABLE_ENHANCED_PRINT_VOLUME_FIT
+    bool can_scale_to_print_volume() const;
+#endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
 
     void generate_thumbnail(ThumbnailData& data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, Camera::EType camera_type);
     ThumbnailsList generate_thumbnails(const ThumbnailsParams& params, Camera::EType camera_type);
@@ -3075,7 +3078,11 @@ void Plater::priv::split_volume()
 
 void Plater::priv::scale_selection_to_fit_print_volume()
 {
+#if ENABLE_ENHANCED_PRINT_VOLUME_FIT
+    this->view3D->get_canvas3d()->get_selection().scale_to_fit_print_volume(this->bed.build_volume());
+#else
     this->view3D->get_canvas3d()->get_selection().scale_to_fit_print_volume(*config);
+#endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
 }
 
 void Plater::priv::schedule_background_process()
@@ -4542,6 +4549,14 @@ bool Plater::priv::can_split(bool to_objects) const
 {
     return sidebar->obj_list()->is_splittable(to_objects);
 }
+
+#if ENABLE_ENHANCED_PRINT_VOLUME_FIT
+bool Plater::priv::can_scale_to_print_volume() const
+{
+    const BuildVolume::Type type = this->bed.build_volume().type();
+    return !view3D->get_canvas3d()->get_selection().is_empty() && (type == BuildVolume::Type::Rectangle || type == BuildVolume::Type::Circle);
+}
+#endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
 
 bool Plater::priv::layers_height_allowed() const
 {
@@ -6870,6 +6885,10 @@ bool Plater::can_reload_from_disk() const { return p->can_reload_from_disk(); }
 bool Plater::can_replace_with_stl() const { return p->can_replace_with_stl(); }
 bool Plater::can_mirror() const { return p->can_mirror(); }
 bool Plater::can_split(bool to_objects) const { return p->can_split(to_objects); }
+#if ENABLE_ENHANCED_PRINT_VOLUME_FIT
+bool Plater::can_scale_to_print_volume() const { return p->can_scale_to_print_volume(); }
+#endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
+
 const UndoRedo::Stack& Plater::undo_redo_stack_main() const { return p->undo_redo_stack_main(); }
 void Plater::clear_undo_redo_stack_main() { p->undo_redo_stack_main().clear(); }
 void Plater::enter_gizmos_stack() { p->enter_gizmos_stack(); }
