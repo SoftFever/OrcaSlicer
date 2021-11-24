@@ -3751,7 +3751,8 @@ Linef3 GLCanvas3D::mouse_ray(const Point& mouse_pos)
 
 double GLCanvas3D::get_size_proportional_to_max_bed_size(double factor) const
 {
-    return factor * m_bed.build_volume().bounding_volume().max_size();
+    const BoundingBoxf& bbox = m_bed.build_volume().bounding_volume2d();
+    return factor * std::max(bbox.size()[0], bbox.size()[1]);
 }
 
 void GLCanvas3D::set_cursor(ECursorType type)
@@ -5119,10 +5120,12 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
             break;
         }
         default:
+        case BuildVolume::Type::Convex:
         case BuildVolume::Type::Custom: {
             m_volumes.set_print_volume({ static_cast<int>(type),
-                { 0.0f, 0.0f, 0.0f, 0.0f },
-                { 0.0f, 0.0f } });
+                { -FLT_MAX, -FLT_MAX, FLT_MAX, FLT_MAX },
+                { -FLT_MAX, FLT_MAX } }
+            );
         }
         }
         if (m_requires_check_outside_state) {

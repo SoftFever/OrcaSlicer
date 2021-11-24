@@ -468,9 +468,9 @@ void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
             ImGui::Separator();
             imgui.text_colored(color, _L("Speed:"));
 
-            float translation_scale = (float)params_copy.translation.scale / Params::DefaultTranslationScale;
-            if (imgui.slider_float(_L("Translation"), &translation_scale, Params::MinTranslationScale, Params::MaxTranslationScale, "%.1f")) {
-                params_copy.translation.scale = Params::DefaultTranslationScale * (double)translation_scale;
+            float translation_scale = float(params_copy.translation.scale) / float(Params::DefaultTranslationScale);
+            if (imgui.slider_float(_L("Translation"), &translation_scale, float(Params::MinTranslationScale), float(Params::MaxTranslationScale), "%.1f")) {
+                params_copy.translation.scale = Params::DefaultTranslationScale * double(translation_scale);
             	params_changed = true;
             }
 
