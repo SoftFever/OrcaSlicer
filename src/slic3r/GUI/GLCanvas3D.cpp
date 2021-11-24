@@ -5119,10 +5119,12 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type)
             break;
         }
         default:
+        case BuildVolume::Type::Convex:
         case BuildVolume::Type::Custom: {
             m_volumes.set_print_volume({ static_cast<int>(type),
-                { 0.0f, 0.0f, 0.0f, 0.0f },
-                { 0.0f, 0.0f } });
+                { -FLT_MAX, -FLT_MAX, FLT_MAX, FLT_MAX },
+                { -FLT_MAX, FLT_MAX } }
+            );
         }
         }
         if (m_requires_check_outside_state) {
