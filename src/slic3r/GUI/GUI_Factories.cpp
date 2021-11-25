@@ -786,8 +786,14 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
 
 void MenuFactory::append_menu_item_scale_selection_to_fit_print_volume(wxMenu* menu)
 {
+#if ENABLE_ENHANCED_PRINT_VOLUME_FIT
+    append_menu_item(menu, wxID_ANY, _L("Scale to print volume"), _L("Scale the selected object to fit the print volume"),
+        [](wxCommandEvent&) { plater()->scale_selection_to_fit_print_volume(); }, "", menu,
+        []() { return plater()->can_scale_to_print_volume(); }, m_parent);
+#else
     append_menu_item(menu, wxID_ANY, _L("Scale to print volume"), _L("Scale the selected object to fit the print volume"),
         [](wxCommandEvent&) { plater()->scale_selection_to_fit_print_volume(); }, "", menu);
+#endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
 }
 
 void MenuFactory::append_menu_items_convert_unit(wxMenu* menu, int insert_pos/* = 1*/)

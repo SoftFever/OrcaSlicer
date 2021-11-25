@@ -15,6 +15,9 @@
 #include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#if ENABLE_ENHANCED_PRINT_VOLUME_FIT
+#include "libslic3r/BuildVolume.hpp"
+#endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
 
 #include <GL/glew.h>
 
@@ -948,6 +951,94 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
     wxGetApp().plater()->canvas3D()->requires_check_outside_state();
 }
 
+#if ENABLE_ENHANCED_PRINT_VOLUME_FIT
+void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
+{
+    auto fit = [this](double s, const Vec3d& offset) {
+        if (s <= 0.0 || s == 1.0)
+            return;
+
+        wxGetApp().plater()->take_snapshot(_L("Scale To Fit"));
+
+        TransformationType type;
+        type.set_world();
+        type.set_relative();
+        type.set_joint();
+
+        // apply scale
+        start_dragging();
+        scale(s * Vec3d::Ones(), type);
+        wxGetApp().plater()->canvas3D()->do_scale(""); // avoid storing another snapshot
+
+        // center selection on print bed
+        start_dragging();
+        translate(offset);
+        wxGetApp().plater()->canvas3D()->do_move(""); // avoid storing another snapshot
+
+        wxGetApp().obj_manipul()->set_dirty();
+    };
+
+    auto fit_rectangle = [this, fit](const BuildVolume& volume) {
+        const BoundingBoxf3 print_volume = volume.bounding_volume();
+        const Vec3d print_volume_size = print_volume.size();
+
+        // adds 1/100th of a mm on all sides to avoid false out of print volume detections due to floating-point roundings
+        const Vec3d box_size = get_bounding_box().size() + 0.02 * Vec3d::Ones();
+
+        const double sx = (box_size.x() != 0.0) ? print_volume_size.x() / box_size.x() : 0.0;
+        const double sy = (box_size.y() != 0.0) ? print_volume_size.y() / box_size.y() : 0.0;
+        const double sz = (box_size.z() != 0.0) ? print_volume_size.z() / box_size.z() : 0.0;
+
+        if (sx != 0.0 && sy != 0.0 && sz != 0.0)
+            fit(std::min(sx, std::min(sy, sz)), print_volume.center() - get_bounding_box().center());
+    };
+
+    auto fit_circle = [this, fit](const BuildVolume& volume) {
+        const Geometry::Circled& print_circle = volume.circle();
+        double print_circle_radius = unscale<double>(print_circle.radius);
+
+        if (print_circle_radius == 0.0)
+            return;
+
+        Points points;
+        double max_z = 0.0;
+        for (unsigned int i : m_list) {
+            const GLVolume& v = *(*m_volumes)[i];
+            TriangleMesh hull_3d = *v.convex_hull();
+            hull_3d.transform(v.world_matrix());
+            max_z = std::max(max_z, hull_3d.bounding_box().size().z());
+            const Polygon hull_2d = hull_3d.convex_hull();
+            points.insert(points.end(), hull_2d.begin(), hull_2d.end());
+        }
+
+        if (points.empty())
+            return;
+
+        const Geometry::Circled circle = Geometry::smallest_enclosing_circle_welzl(points);
+        // adds 1/100th of a mm on all sides to avoid false out of print volume detections due to floating-point roundings
+        const double circle_radius = unscale<double>(circle.radius) + 0.01;
+
+        if (circle_radius == 0.0 || max_z == 0.0)
+            return;
+
+        const double s = std::min(print_circle_radius / circle_radius, volume.max_print_height() / max_z);
+        const Vec3d sel_center = get_bounding_box().center();
+        const Vec3d offset = s * (Vec3d(unscale<double>(circle.center.x()), unscale<double>(circle.center.y()), 0.5 * max_z) - sel_center);
+        const Vec3d print_center = { unscale<double>(print_circle.center.x()), unscale<double>(print_circle.center.y()), 0.5 * volume.max_print_height() };
+        fit(s, print_center - (sel_center + offset));
+    };
+
+    if (is_empty() || m_mode == Volume)
+        return;
+
+    switch (volume.type())
+    {
+    case BuildVolume::Type::Rectangle: { fit_rectangle(volume); break; }
+    case BuildVolume::Type::Circle:    { fit_circle(volume); break; }
+    default: { break; }
+    }
+}
+#else
 void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)
 {
     if (is_empty() || m_mode == Volume)
@@ -990,6 +1081,7 @@ void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)
         }
     }
 }
+#endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
 
 void Selection::mirror(Axis axis)
 {
