@@ -80,19 +80,19 @@ public:
     // Called by Plater to update Inside / Colliding / Outside state of ModelObjects before slicing.
     // Called from Model::update_print_volume_state() -> ModelObject::update_instances_print_volume_state()
     // Using SceneEpsilon
-    ObjectState  object_state(const indexed_triangle_set &its, const Transform3f &trafo, bool may_be_below_bed) const;
+    ObjectState  object_state(const indexed_triangle_set &its, const Transform3f &trafo, bool may_be_below_bed, bool ignore_bottom = true) const;
     // Called by GLVolumeCollection::check_outside_state() after an object is manipulated with gizmos for example.
     // Called for a rectangular bed:
-    ObjectState  volume_state_bbox(const BoundingBoxf3 &volume_bbox) const;
+    ObjectState  volume_state_bbox(const BoundingBoxf3& volume_bbox, bool ignore_bottom = true) const;
 
     // 2) Test called on G-code paths.
     // Using BedEpsilon for all tests.
     static constexpr const double BedEpsilon = 3. * EPSILON;
     // Called on final G-code paths.
     //FIXME The test does not take the thickness of the extrudates into account!
-    bool         all_paths_inside(const GCodeProcessorResult &paths, const BoundingBoxf3 &paths_bbox) const;
+    bool         all_paths_inside(const GCodeProcessorResult& paths, const BoundingBoxf3& paths_bbox, bool ignore_bottom = true) const;
     // Called on initial G-code preview on OpenGL vertex buffer interleaved normals and vertices.
-    bool         all_paths_inside_vertices_and_normals_interleaved(const std::vector<float> &paths, const Eigen::AlignedBox<float, 3> &bbox) const;
+    bool         all_paths_inside_vertices_and_normals_interleaved(const std::vector<float>& paths, const Eigen::AlignedBox<float, 3>& bbox, bool ignore_bottom = true) const;
 
 private:
     // Source definition of the print bed geometry (PrintConfig::bed_shape)

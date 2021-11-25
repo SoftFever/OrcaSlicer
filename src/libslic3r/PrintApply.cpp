@@ -662,11 +662,10 @@ bool verify_update_print_object_regions(
                     // if the visited modifier did not modify their properties. Now the visited modifier's configuration may have changed,
                     // which may require new regions to be created.
                     it_model_volume_modifier_last = it_model_volume;
-                    int this_region_id = int(&region - layer_range.volume_regions.data());
-                    int next_region_id = this_region_id + 1;
+                    int next_region_id = int(&region - layer_range.volume_regions.data());
                     const PrintObjectRegions::BoundingBox *bbox = find_volume_extents(layer_range, *region.model_volume);
                     assert(bbox);
-                    for (int parent_region_id = this_region_id - 1; parent_region_id >= 0; -- parent_region_id) {
+                    for (int parent_region_id = next_region_id - 1; parent_region_id >= 0; -- parent_region_id) {
                         const PrintObjectRegions::VolumeRegion &parent_region = layer_range.volume_regions[parent_region_id];
                         assert(parent_region.model_volume != region.model_volume);
                         if (parent_region.model_volume->is_model_part() || parent_region.model_volume->is_modifier()) {
