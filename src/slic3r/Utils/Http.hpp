@@ -41,6 +41,8 @@ public:
 	// Writing true to the `cancel` reference cancels the request in progress.
 	typedef std::function<void(Progress, bool& /* cancel */)> ProgressFn;
 
+	typedef std::function<void(std::string/* address */)> IPResolveFn;
+
 	Http(Http &&other);
 
 	// Note: strings are expected to be UTF-8-encoded
@@ -113,6 +115,9 @@ public:
 	// See the `Progress` structure for description of the data passed.
 	// Writing a true-ish value into the cancel reference parameter cancels the request.
 	Http& on_progress(ProgressFn fn);
+	// Callback called after succesful HTTP request (after on_complete callback)
+	// Called if curl_easy_getinfo resolved just used IP address.
+	Http& on_ip_resolve(IPResolveFn fn);
 
 	// Starts performing the request in a background thread
 	Ptr perform();

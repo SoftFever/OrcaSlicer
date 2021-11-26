@@ -127,6 +127,7 @@ struct Http::priv
 	Http::CompleteFn completefn;
 	Http::ErrorFn errorfn;
 	Http::ProgressFn progressfn;
+	Http::IPResolveFn ipresolvefn;
 
 	priv(const std::string &url);
 	~priv();
@@ -390,6 +391,13 @@ void Http::priv::http_perform()
 			if (errorfn) { errorfn(std::move(buffer), std::string(), http_status); }
 		} else {
 			if (completefn) { completefn(std::move(buffer), http_status); }
+			if (ipresolvefn) {
+				char* ct;
+				res = curl_easy_getinfo(curl, CURLINFO_PRIMARY_IP, &ct);
+				if ((CURLE_OK == res) && ct) {
+					ipresolvefn(ct);
+				}
+			}
 		}
 	}
 }
@@ -551,6 +559,12 @@ Http& Http::on_error(ErrorFn fn)
 Http& Http::on_progress(ProgressFn fn)
 {
 	if (p) { p->progressfn = std::move(fn); }
+	return *this;
+}
+
+Http& Http::on_ip_resolve(IPResolveFn fn)
+{
+	if (p) { p->ipresolvefn = std::move(fn); }
 	return *this;
 }
 
