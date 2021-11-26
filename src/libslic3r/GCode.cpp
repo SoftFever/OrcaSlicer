@@ -1544,6 +1544,12 @@ void GCode::process_layers(
     const size_t                             single_object_idx,
     GCodeOutputStream                       &output_stream)
 {
+    // FIXME: Following condition is probably not necessary, spiral vase should be applied the same way it
+    // is done in nonsequential print case. The reason it is done this way is that spiral vase and sequential
+    // print was broken recently, and LukasM is trying to do the safest fix possible before 2.4.0-beta2, so
+    // he copied the first block and only planted the spiral vase to the copy. This should be unified
+    // after 2.4.0 final.
+    if (! m_spiral_vase) {
     // The pipeline is fixed: Neither wipe tower nor vase mode are implemented for sequential print.
     size_t layer_to_print_idx = 0;
     tbb::parallel_pipeline(12,
@@ -1568,6 +1574,37 @@ void GCode::process_layers(
             tbb::filter::serial_in_order,
             [&output_stream](std::string s) { output_stream.write(s); }
         ));
+    }
+    else {
+        size_t layer_to_print_idx = 0;
+        tbb::parallel_pipeline(12,
+            tbb::make_filter<void, GCode::LayerResult>(
+                tbb::filter::serial_in_order,
+                [this, &print, &tool_ordering, &layers_to_print, &layer_to_print_idx, single_object_idx](tbb::flow_control& fc) -> GCode::LayerResult {
+                    if (layer_to_print_idx == layers_to_print.size()) {
+                        fc.stop();
+                        return {};
+                    } else {
+                        LayerToPrint &layer = layers_to_print[layer_to_print_idx ++];
+                        print.throw_if_canceled();
+                        return this->process_layer(print, { std::move(layer) }, tool_ordering.tools_for_layer(layer.print_z()), &layer == &layers_to_print.back(), nullptr, single_object_idx);
+                    }
+                }) &
+            tbb::make_filter<GCode::LayerResult, GCode::LayerResult>(tbb::filter::serial_in_order,
+                [&spiral_vase = *this->m_spiral_vase.get()](GCode::LayerResult in)->GCode::LayerResult {
+                    spiral_vase.enable(in.spiral_vase_enable);
+                    return { spiral_vase.process_layer(std::move(in.gcode)), in.layer_id, in.spiral_vase_enable, in.cooling_buffer_flush };
+                }) &
+            tbb::make_filter<GCode::LayerResult, std::string>(
+                tbb::filter::serial_in_order,
+                [&cooling_buffer = *this->m_cooling_buffer.get()](GCode::LayerResult in)->std::string {
+                    return cooling_buffer.process_layer(std::move(in.gcode), in.layer_id, in.cooling_buffer_flush);
+                }) &
+            tbb::make_filter<std::string, void>(
+                tbb::filter::serial_in_order,
+                [&output_stream](std::string s) { output_stream.write(s); }
+                ));
+    }
 }
 
 std::string GCode::placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override)
