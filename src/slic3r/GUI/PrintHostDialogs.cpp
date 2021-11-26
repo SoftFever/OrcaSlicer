@@ -96,7 +96,7 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, bool can_start_pr
     }
     add_button(wxID_CANCEL);
 
-    if (auto* btn_ok = get_button(wxID_NO); btn_ok != NULL) {
+    if (auto* btn_ok = get_button(wxID_OK); btn_ok != NULL) {
         btn_ok->SetLabel(_L("Upload"));
         btn_ok->Bind(wxEVT_BUTTON, [this, suffix](wxCommandEvent&) {
             wxString path = txt_filename->GetValue();
