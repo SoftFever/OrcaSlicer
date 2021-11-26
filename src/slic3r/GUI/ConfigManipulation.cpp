@@ -162,8 +162,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     if (config->opt_bool("support_material")) {
         // Ask only once.
-        if (!support_material_overhangs_queried) {
-            support_material_overhangs_queried = true;
+        if (!m_support_material_overhangs_queried) {
+            m_support_material_overhangs_queried = true;
             if (!config->opt_bool("overhangs")/* != 1*/) {
                 wxString msg_text = _(L("Supports work better, if the following feature is enabled:\n"
                                         "- Detect bridging perimeters"));
@@ -182,7 +182,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         }
     }
     else {
-        support_material_overhangs_queried = false;
+        m_support_material_overhangs_queried = false;
     }
 
     if (config->option<ConfigOptionPercent>("fill_density")->value == 100) {
