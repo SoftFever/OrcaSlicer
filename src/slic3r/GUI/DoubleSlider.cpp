@@ -26,6 +26,7 @@
 
 #include <cmath>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <random>
 #include "Field.hpp"
 #include "format.hpp"
@@ -1446,6 +1447,18 @@ wxString Control::get_tooltip(int tick/*=-1*/)
         std::string space = "   ";
         tooltip = space;
         auto format_gcode = [space](std::string gcode) {
+            // when the tooltip is too long, it starts to flicker, see: https://github.com/prusa3d/PrusaSlicer/issues/7368
+            // so we limit the number of lines shown
+            std::vector<std::string> lines;
+            boost::split(lines, gcode, boost::is_any_of("\n"), boost::token_compress_off);
+            static const size_t MAX_LINES = 10;
+            if (lines.size() > MAX_LINES) {
+                gcode = lines.front() + '\n';
+                for (size_t i = 1; i < MAX_LINES; ++i) {
+                    gcode += lines[i] + '\n';
+                }
+                gcode += "[" + into_u8(_L("continue")) + "]\n";
+            }
             boost::replace_all(gcode, "\n", "\n" + space);
             return gcode;
         };
