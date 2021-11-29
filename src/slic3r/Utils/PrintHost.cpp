@@ -18,6 +18,7 @@
 #include "FlashAir.hpp"
 #include "AstroBox.hpp"
 #include "Repetier.hpp"
+#include "MKS.hpp"
 #include "../GUI/PrintHostDialogs.hpp"
 
 namespace fs = boost::filesystem;
@@ -51,6 +52,7 @@ PrintHost* PrintHost::get_print_host(DynamicPrintConfig *config)
             case htAstroBox:  return new AstroBox(config);
             case htRepetier:  return new Repetier(config);
             case htPrusaLink: return new PrusaLink(config);
+            case htMKS:       return new MKS(config);
             default:          return nullptr;
         }
     } else {
