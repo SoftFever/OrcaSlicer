@@ -1866,9 +1866,13 @@ std::vector<ExPolygons> slice_mesh_ex(
                 //FIXME simplify
                 if (this_mode == MeshSlicingParams::SlicingMode::PositiveLargestContour)
                     keep_largest_contour_only(expolygons);
-                if (resolution != 0.)
-                    for (ExPolygon &ex : expolygons)
-                        ex.simplify(resolution);
+                if (resolution != 0.) {
+                    ExPolygons simplified;
+                    simplified.reserve(expolygons.size());
+                    for (const ExPolygon &ex : expolygons)
+                        append(simplified, ex.simplify(resolution));
+                    expolygons = std::move(simplified);
+                }
             }
         });
 //    BOOST_LOG_TRIVIAL(debug) << "slice_mesh make_expolygons in parallel - end";
