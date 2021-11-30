@@ -25,7 +25,7 @@ public:
 	bool upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn) const override;
 	bool has_auto_discovery() const override { return false; }
 	bool can_test() const override { return true; }
-	bool can_start_print() const override { return true; }
+    PrintHostPostUploadActions get_post_upload_actions() const { return PrintHostPostUploadAction::StartPrint | PrintHostPostUploadAction::StartSimulation; }
 	std::string get_host() const override { return host; }
    
 private:
@@ -39,7 +39,7 @@ private:
 	std::string timestamp_str() const;
 	ConnectionType connect(wxString &msg) const;
 	void disconnect(ConnectionType connectionType) const;
-	bool start_print(wxString &msg, const std::string &filename, ConnectionType connectionType) const;
+	bool start_print(wxString &msg, const std::string &filename, ConnectionType connectionType, bool simulationMode) const;
 	int get_err_code_from_body(const std::string &body) const;
 };
 

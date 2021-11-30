@@ -115,11 +115,11 @@ bool AstroBox::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Error
         % url
         % upload_filename.string()
         % upload_parent_path.string()
-        % upload_data.start_print;
+        % (upload_data.post_action == PrintHostPostUploadAction::StartPrint ? "true" : "false");
 
     auto http = Http::post(std::move(url));
     set_auth(http);
-    http.form_add("print", upload_data.start_print ? "true" : "false")
+    http.form_add("print", upload_data.post_action == PrintHostPostUploadAction::StartPrint ? "true" : "false")
         .form_add("path", upload_parent_path.string())      // XXX: slashes on windows ???
         .form_add_file("file", upload_data.source_path.string(), upload_filename.string())
         .on_complete([&](std::string body, unsigned status) {

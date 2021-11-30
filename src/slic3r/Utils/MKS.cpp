@@ -70,7 +70,7 @@ bool MKS::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn er
 	BOOST_LOG_TRIVIAL(info) << boost::format("MKS: Uploading file %1%, filepath: %2%, print: %3%, command: %4%")
 		% upload_data.source_path
 		% upload_data.upload_path
-		% upload_data.start_print
+		% (upload_data.post_action == PrintHostPostUploadAction::StartPrint)
 		% upload_cmd;
 
 	auto http = Http::post(std::move(upload_cmd));
@@ -85,7 +85,7 @@ bool MKS::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn er
 			error_fn(format_error(body, L("Unknown error occured"), 0));
 			res = false;
 		}
-		else if (upload_data.start_print) {
+		else if (upload_data.post_action == PrintHostPostUploadAction::StartPrint) {
 			wxString errormsg;
 			res = start_print(errormsg, upload_data.upload_path.string());
 			if (!res) {

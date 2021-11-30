@@ -6117,11 +6117,12 @@ void Plater::send_gcode()
         upload_job.printhost->get_groups(groups);
     }
     
-    PrintHostSendDialog dlg(default_output_file, upload_job.printhost->can_start_print(), groups);
+    PrintHostSendDialog dlg(default_output_file, upload_job.printhost->get_post_upload_actions(), groups);
     if (dlg.ShowModal() == wxID_OK) {
         upload_job.upload_data.upload_path = dlg.filename();
-        upload_job.upload_data.start_print = dlg.start_print();
+        upload_job.upload_data.post_action = dlg.post_action();
         upload_job.upload_data.group       = dlg.group();
+
         p->export_gcode(fs::path(), false, std::move(upload_job));
     }
 }
