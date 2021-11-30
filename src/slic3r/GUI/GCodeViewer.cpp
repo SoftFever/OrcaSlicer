@@ -2545,11 +2545,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         if (m_sequential_view.current.first <= buffer.model.instances.s_ids.back() && buffer.model.instances.s_ids.front() <= m_sequential_view.current.last) {
             for (size_t id : buffer.model.instances.s_ids) {
                 if (has_second_range) {
-#if ENABLE_FIX_PREVIEW_OPTIONS_Z
                     if (id < m_sequential_view.endpoints.first) {
-#else
-                    if (id <= m_sequential_view.endpoints.first) {
-#endif // ENABLE_FIX_PREVIEW_OPTIONS_Z
                         ++buffer.model.instances.render_ranges.ranges.front().offset;
                         if (id <= m_sequential_view.current.first)
                             ++buffer.model.instances.render_ranges.ranges.back().offset;
