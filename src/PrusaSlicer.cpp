@@ -595,6 +595,18 @@ int CLI::run(int argc, char **argv)
 
     if (start_gui) {
 #ifdef SLIC3R_GUI
+    #if !defined(_WIN32) && !defined(__APPLE__)
+        // likely some linux / unix system
+        const char *display = boost::nowide::getenv("DISPLAY");
+        const char *wayland_display = boost::nowide::getenv("WAYLAND_DISPLAY");
+        if (! ((display && *display) || (wayland_display && *wayland_display))) {
+            // DISPLAY not set.
+            boost::nowide::cerr << "DISPLAY not set, GUI mode not available." << std::endl << std::endl;
+            this->print_help(false);
+            // Indicate an error.
+            return 1;
+        }
+    #endif // some linux / unix system
         Slic3r::GUI::GUI_InitParams params;
         params.argc = argc;
         params.argv = argv;
