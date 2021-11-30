@@ -542,9 +542,7 @@ namespace Slic3r {
             PrusaSlicer,
             Slic3rPE,
             Slic3r,
-#if ENABLE_FIX_SUPERSLICER_GCODE_IMPORT
             SuperSlicer,
-#endif // ENABLE_FIX_SUPERSLICER_GCODE_IMPORT
             Cura,
             Simplify3D,
             CraftWare,
@@ -601,9 +599,7 @@ namespace Slic3r {
     private:
         void apply_config(const DynamicPrintConfig& config);
         void apply_config_simplify3d(const std::string& filename);
-#if ENABLE_FIX_SUPERSLICER_GCODE_IMPORT
         void apply_config_superslicer(const std::string& filename);
-#endif // ENABLE_FIX_SUPERSLICER_GCODE_IMPORT
         void process_gcode_line(const GCodeReader::GCodeLine& line, bool producers_enabled);
 
         // Process tags embedded into comments

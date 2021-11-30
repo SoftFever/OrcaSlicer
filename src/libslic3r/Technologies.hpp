@@ -37,15 +37,6 @@
 
 
 //====================
-// 2.4.0.alpha3 techs
-//====================
-#define ENABLE_2_4_0_ALPHA3 1
-
-// Enable fixing loading of gcode files generated with SuperSlicer in GCodeViewer
-#define ENABLE_FIX_SUPERSLICER_GCODE_IMPORT (1 && ENABLE_2_4_0_ALPHA3)
-
-
-//====================
 // 2.4.0.beta1 techs
 //====================
 #define ENABLE_2_4_0_BETA1 1

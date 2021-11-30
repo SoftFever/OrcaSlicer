@@ -740,11 +740,7 @@ ConfigSubstitutions ConfigBase::load(const boost::property_tree::ptree &tree, Fo
 }
 
 // Load the config keys from the given string.
-#if ENABLE_FIX_SUPERSLICER_GCODE_IMPORT
 size_t ConfigBase::load_from_gcode_string_legacy(ConfigBase& config, const char* str, ConfigSubstitutionContext& substitutions)
-#else
-static inline size_t load_from_gcode_string_legacy(ConfigBase& config, const char* str, ConfigSubstitutionContext& substitutions)
-#endif // ENABLE_FIX_SUPERSLICER_GCODE_IMPORT
 {
     if (str == nullptr)
         return 0;
