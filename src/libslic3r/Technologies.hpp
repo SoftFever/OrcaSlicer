@@ -41,8 +41,6 @@
 //====================
 #define ENABLE_2_4_0_ALPHA2 1
 
-// Enable rendering seams (and other options) in preview using batched models on systems not supporting OpenGL 3.3
-#define ENABLE_SEAMS_USING_BATCHED_MODELS (1 && ENABLE_2_4_0_ALPHA2)
 // Enable fixing the z position of color change, pause print and custom gcode markers in preview
 #define ENABLE_FIX_PREVIEW_OPTIONS_Z (1 && ENABLE_2_4_0_ALPHA2)
 // Enable replacing a missing file during reload from disk command

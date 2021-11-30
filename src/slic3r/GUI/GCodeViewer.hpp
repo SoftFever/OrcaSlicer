@@ -105,16 +105,10 @@ class GCodeViewer
         void reset();
     };
 
-#if ENABLE_SEAMS_USING_BATCHED_MODELS
     // buffer containing instances data used to render a toolpaths using instanced or batched models
     // instance record format:
     // instanced models: 5 floats -> position.x|position.y|position.z|width|height (which are sent to the shader as -> vec3 (offset) + vec2 (scales) in GLModel::render_instanced())
     // batched models:   3 floats -> position.x|position.y|position.z
-#else
-    // buffer containing instances data used to render a toolpaths using instanced models
-    // instance record format: 5 floats -> position.x|position.y|position.z|width|height
-    // which is sent to the shader as -> vec3 (offset) + vec2 (scales) in GLModel::render_instanced()
-#endif // ENABLE_SEAMS_USING_BATCHED_MODELS
     struct InstanceVBuffer
     {
         // ranges used to render only subparts of the intances
@@ -137,7 +131,6 @@ class GCodeViewer
             void reset();
         };
 
-#if ENABLE_SEAMS_USING_BATCHED_MODELS
         enum class EFormat : unsigned char
         {
             InstancedModel,
@@ -145,7 +138,6 @@ class GCodeViewer
         };
 
         EFormat format;
-#endif // ENABLE_SEAMS_USING_BATCHED_MODELS
 
         // cpu-side buffer containing all instances data
         InstanceBuffer buffer;
@@ -159,7 +151,6 @@ class GCodeViewer
 
         size_t data_size_bytes() const { return s_ids.size() * instance_size_bytes(); }
 
-#if ENABLE_SEAMS_USING_BATCHED_MODELS
         size_t instance_size_floats() const {
             switch (format)
             {
@@ -168,9 +159,6 @@ class GCodeViewer
             default: { return 0; }
             }
         }
-#else
-        size_t instance_size_floats() const { return 5; }
-#endif // ENABLE_SEAMS_USING_BATCHED_MODELS
         size_t instance_size_bytes() const { return instance_size_floats() * sizeof(float); }
 
         void reset();
@@ -310,12 +298,8 @@ class GCodeViewer
             Point,
             Line,
             Triangle,
-#if ENABLE_SEAMS_USING_BATCHED_MODELS
             InstancedModel,
             BatchedModel
-#else
-            Model
-#endif // ENABLE_SEAMS_USING_BATCHED_MODELS
         };
 
         ERenderPrimitiveType render_primitive_type;
@@ -329,9 +313,7 @@ class GCodeViewer
             GLModel model;
             Color color;
             InstanceVBuffer instances;
-#if ENABLE_SEAMS_USING_BATCHED_MODELS
             GLModel::InitializationData data;
-#endif // ENABLE_SEAMS_USING_BATCHED_MODELS
 
             void reset();
         };
@@ -394,15 +376,11 @@ class GCodeViewer
             case ERenderPrimitiveType::Triangle: {
                 return !vertices.vbos.empty() && vertices.vbos.front() != 0 && !indices.empty() && indices.front().ibo != 0;
             }
-#if ENABLE_SEAMS_USING_BATCHED_MODELS
             case ERenderPrimitiveType::InstancedModel: { return model.model.is_initialized() && !model.instances.buffer.empty(); }
             case ERenderPrimitiveType::BatchedModel: {
                 return model.data.vertices_count() > 0 && model.data.indices_count() &&
                     !vertices.vbos.empty() && vertices.vbos.front() != 0 && !indices.empty() && indices.front().ibo != 0;
             }
-#else
-            case ERenderPrimitiveType::Model: { return model.model.is_initialized() && !model.instances.buffer.empty(); }
-#endif // ENABLE_SEAMS_USING_BATCHED_MODELS
             default: { return false; }
             }
         }
@@ -554,9 +532,7 @@ class GCodeViewer
         int64_t gl_multi_triangles_calls_count{ 0 };
         int64_t gl_triangles_calls_count{ 0 };
         int64_t gl_instanced_models_calls_count{ 0 };
-#if ENABLE_SEAMS_USING_BATCHED_MODELS
         int64_t gl_batched_models_calls_count{ 0 };
-#endif // ENABLE_SEAMS_USING_BATCHED_MODELS
         // memory
         int64_t results_size{ 0 };
         int64_t total_vertices_gpu_size{ 0 };
@@ -572,9 +548,7 @@ class GCodeViewer
         int64_t wipe_segments_count{ 0 };
         int64_t extrude_segments_count{ 0 };
         int64_t instances_count{ 0 };
-#if ENABLE_SEAMS_USING_BATCHED_MODELS
         int64_t batched_count{ 0 };
-#endif // ENABLE_SEAMS_USING_BATCHED_MODELS
         int64_t vbuffers_count{ 0 };
         int64_t ibuffers_count{ 0 };
 
@@ -601,9 +575,7 @@ class GCodeViewer
             gl_multi_triangles_calls_count = 0;
             gl_triangles_calls_count = 0;
             gl_instanced_models_calls_count = 0;
-#if ENABLE_SEAMS_USING_BATCHED_MODELS
             gl_batched_models_calls_count = 0;
-#endif // ENABLE_SEAMS_USING_BATCHED_MODELS
         }
 
         void reset_sizes() {
@@ -623,9 +595,7 @@ class GCodeViewer
             wipe_segments_count = 0;
             extrude_segments_count = 0;
             instances_count = 0;
-#if ENABLE_SEAMS_USING_BATCHED_MODELS
             batched_count = 0;
-#endif // ENABLE_SEAMS_USING_BATCHED_MODELS
             vbuffers_count = 0;
             ibuffers_count = 0;
         }

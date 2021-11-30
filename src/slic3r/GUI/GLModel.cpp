@@ -17,7 +17,6 @@
 namespace Slic3r {
 namespace GUI {
 
-#if ENABLE_SEAMS_USING_BATCHED_MODELS
 size_t GLModel::InitializationData::vertices_count() const
 {
     size_t ret = 0;
@@ -35,7 +34,6 @@ size_t GLModel::InitializationData::indices_count() const
     }
     return ret;
 }
-#endif // ENABLE_SEAMS_USING_BATCHED_MODELS
 
 void GLModel::init_from(const InitializationData& data)
 {
