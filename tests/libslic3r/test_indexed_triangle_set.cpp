@@ -117,15 +117,18 @@ static float triangle_area(const Vec3crd &triangle_inices, const std::vector<Vec
                          vertices[triangle_inices[2]]);
 }
 
+#if 0
+// clang complains about unused functions
 static std::mt19937 create_random_generator() {
     std::random_device rd;
     std::mt19937 gen(rd());
     return gen;
 }
+#endif
 
 std::vector<Vec3f> its_sample_surface(const indexed_triangle_set &its,
                                       double        sample_per_mm2,
-                                      std::mt19937 random_generator = create_random_generator())
+                                      std::mt19937 random_generator) // = create_random_generator())
 {
     std::vector<Vec3f> samples;
     std::uniform_real_distribution<float> rand01(0.f, 1.f);

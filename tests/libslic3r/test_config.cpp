@@ -220,8 +220,8 @@ SCENARIO("DynamicPrintConfig serialization", "[Config]") {
             cereal::BinaryOutputArchive oarchive(ss);
             oarchive(cfg);
             serialized = ss.str();
-        } catch (std::runtime_error &e) {
-            e.what();
+        } catch (const std::runtime_error & /* e */) {
+            // e.what();
         }
 
         THEN("Config object contains ini file options.") {
@@ -230,8 +230,8 @@ SCENARIO("DynamicPrintConfig serialization", "[Config]") {
                 std::stringstream ss(serialized);
                 cereal::BinaryInputArchive iarchive(ss);
                 iarchive(cfg2);
-            } catch (std::runtime_error &e) {
-                e.what();
+            } catch (const std::runtime_error & /* e */) {
+                // e.what();
             }
             REQUIRE(cfg == cfg2);
         }

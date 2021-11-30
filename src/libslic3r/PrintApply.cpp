@@ -920,7 +920,7 @@ static PrintObjectRegions* generate_print_object_regions(
                             const PrintObjectRegions::VolumeRegion &parent_region = layer_range.volume_regions[parent_region_id];
                             const ModelVolume                      &parent_volume = *parent_region.model_volume;
                             if (parent_volume.is_model_part() || parent_volume.is_modifier())
-                                if (PrintObjectRegions::BoundingBox parent_bbox = find_modifier_volume_extents(layer_range, parent_region_id); parent_bbox.intersects(*bbox))
+                                if (PrintObjectRegions::BoundingBox parent_bbox = find_modifier_volume_extents(layer_range, parent_region_id); parent_bbox.intersects(*bbox)) {
                                     // Only create new region for a modifier, which actually modifies config of it's parent.
                                     if (PrintRegionConfig config = region_config_from_model_volume(parent_region.region->config(), nullptr, volume, num_extruders); 
                                         config != parent_region.region->config()) {
@@ -928,6 +928,7 @@ static PrintObjectRegions* generate_print_object_regions(
                                         layer_range.volume_regions.push_back({ &volume, parent_region_id, get_create_region(std::move(config)), bbox });
                                     } else if (parent_model_part_id == -1 && parent_volume.is_model_part())
                                         parent_model_part_id = parent_region_id;
+                                }
                         }
                         if (! added && parent_model_part_id >= 0)
                             // This modifier does not override any printable volume's configuration, however it may in the future.

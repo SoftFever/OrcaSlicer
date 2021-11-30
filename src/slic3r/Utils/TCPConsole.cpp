@@ -148,7 +148,6 @@ bool TCPConsole::is_deadline_over() const
 
 bool TCPConsole::run_queue()
 {
-    auto now = std::chrono::steady_clock::now();
     try {
         // TODO: Add more resets and initializations after previous run (reset() method?..)
         set_deadline_in(m_connect_timeout);

@@ -535,7 +535,7 @@ wxString file_wildcards(FileType file_type, const std::string &custom_extension)
         }
     }
 
-    for (const std::string_view ext : data.file_extensions)
+    for (const std::string_view &ext : data.file_extensions)
         // Only add an extension if it was not added first as the custom extension.
         if (ext != custom_ext_lower) {
             if (title.empty()) {

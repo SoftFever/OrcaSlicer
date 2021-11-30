@@ -39,7 +39,7 @@ protected:
     virtual void on_render() override;
     virtual void on_render_for_picking() override{};    
 
-    virtual CommonGizmosDataID on_get_requirements() const;
+    CommonGizmosDataID on_get_requirements() const override;
 
 private:
     void apply_simplify();

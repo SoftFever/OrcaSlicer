@@ -26,7 +26,7 @@ public:
 	bool upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn error_fn) const override;
 	bool has_auto_discovery() const override { return false; }
 	bool can_test() const override { return true; }
-    PrintHostPostUploadActions get_post_upload_actions() const { return {}; }
+    PrintHostPostUploadActions get_post_upload_actions() const override { return {}; }
 	std::string get_host() const override { return host; }
     
 private:

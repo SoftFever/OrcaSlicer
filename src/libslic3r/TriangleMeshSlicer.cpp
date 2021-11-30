@@ -560,9 +560,9 @@ void slice_facet_with_slabs(
                         // Save the open edge for sure.
                         type = FacetSliceType::Slicing;
                     } else {
+#ifndef NDEBUG
                         const stl_triangle_vertex_indices &neighbor = mesh_triangles[neighbor_idx];
                         float z = *it;
-#ifndef NDEBUG
                         int num_on_plane = (mesh_vertices[neighbor(0)].z() == z) + (mesh_vertices[neighbor(1)].z() == z) + (mesh_vertices[neighbor(2)].z() == z);
                         assert(num_on_plane == 2 || num_on_plane == 3);
 #endif // NDEBUG

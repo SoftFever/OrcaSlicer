@@ -115,7 +115,7 @@ class TickCodeInfo
     bool        m_suppress_plus     = false;
     bool        m_suppress_minus    = false;
     bool        m_use_default_colors= false;
-    int         m_default_color_idx = 0;
+//    int         m_default_color_idx = 0;
 
     std::vector<std::string>* m_colors {nullptr};
 
