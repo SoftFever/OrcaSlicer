@@ -870,7 +870,7 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 		}
 		break;
 	case coString:
-		ret = static_cast<wxString>(config.opt_string(opt_key));
+		ret = from_u8(config.opt_string(opt_key));
 		break;
 	case coStrings:
 		if (opt_key == "compatible_printers" || opt_key == "compatible_prints") {
@@ -891,7 +891,7 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 			ret = text_value;
 		}
 		else
-			ret = static_cast<wxString>(config.opt_string(opt_key, static_cast<unsigned int>(idx)));
+			ret = from_u8(config.opt_string(opt_key, static_cast<unsigned int>(idx)));
 		break;
 	case coBool:
 		ret = config.opt_bool(opt_key);

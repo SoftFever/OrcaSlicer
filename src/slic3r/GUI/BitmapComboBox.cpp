@@ -167,7 +167,12 @@ int BitmapComboBox::Append(const wxString& item)
     //3. Set this empty bitmap to the at list one item and BitmapCombobox will be recreated correct
 
     wxBitmap bitmap(1, int(1.6 * wxGetApp().em_unit() + 1));
-    bitmap.SetWidth(0);
+    {
+        // bitmap.SetWidth(0); is depricated now
+        // so, use next code 
+        bitmap.UnShare();// AllocExclusive(); 
+        bitmap.GetGDIImageData()->m_width = 0;
+    }
 
     OnAddBitmap(bitmap);
     const int n = wxComboBox::Append(item);

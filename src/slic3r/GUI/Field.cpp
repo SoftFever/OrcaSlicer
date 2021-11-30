@@ -316,7 +316,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
             }
             else if (((m_opt.sidetext.rfind("mm/s") != std::string::npos && val > m_opt.max) ||
                      (m_opt.sidetext.rfind("mm ") != std::string::npos && val > /*1*/m_opt.max_literal)) &&
-                     (m_value.empty() || std::string(str.ToUTF8().data()) != boost::any_cast<std::string>(m_value)))
+                     (m_value.empty() || into_u8(str) != boost::any_cast<std::string>(m_value)))
             {
                 if (!check_value) {
                     m_value.clear();
@@ -340,7 +340,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
             }
         }
 
-        m_value = std::string(str.ToUTF8().data());
+        m_value = into_u8(str);
 		break; }
 
     case coPoints: {
@@ -1286,7 +1286,7 @@ void Choice::msw_rescale()
     	size_t counter = 0;
     	bool   labels = ! m_opt.enum_labels.empty();
         for (const std::string &el : labels ? m_opt.enum_labels : m_opt.enum_values) {
-        	wxString text = labels ? _(el) : wxString::FromUTF8(el.c_str());
+        	wxString text = labels ? _(el) : from_u8(el);
             field->Append(text);
             if (text == selection)
                 idx = counter;
@@ -1574,7 +1574,7 @@ void StaticText::BUILD()
     if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
     if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
-    const wxString legend = wxString::FromUTF8(m_opt.get_default_value<ConfigOptionString>()->value.c_str());
+    const wxString legend = from_u8(m_opt.get_default_value<ConfigOptionString>()->value);
     auto temp = new wxStaticText(m_parent, wxID_ANY, legend, wxDefaultPosition, size, wxST_ELLIPSIZE_MIDDLE);
 	temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 	temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
