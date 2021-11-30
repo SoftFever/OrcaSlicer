@@ -41,8 +41,6 @@
 //====================
 #define ENABLE_2_4_0_ALPHA2 1
 
-// Enable replacing a missing file during reload from disk command
-#define ENABLE_RELOAD_FROM_DISK_REPLACE_FILE (1 && ENABLE_2_4_0_ALPHA2)
 // Enable fixing the synchronization of seams with the horizontal slider in preview
 #define ENABLE_FIX_SEAMS_SYNCH (1 && ENABLE_2_4_0_ALPHA2)
 
