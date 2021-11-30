@@ -5082,7 +5082,8 @@ void Plater::add_model(bool imperial_units/* = false*/)
 
 void Plater::import_sl1_archive()
 {
-    p->m_ui_jobs.import_sla_arch();
+    if (!p->m_ui_jobs.is_any_running())
+        p->m_ui_jobs.import_sla_arch();
 }
 
 void Plater::extract_config_from_project()
@@ -5366,6 +5367,11 @@ void Plater::update() { p->update(); }
 
 void Plater::stop_jobs() { p->m_ui_jobs.stop_all(); }
 
+bool Plater::is_any_job_running() const
+{
+    return p->m_ui_jobs.is_any_running();
+}
+
 void Plater::update_ui_from_settings() { p->update_ui_from_settings(); }
 
 void Plater::select_view(const std::string& direction) { p->select_view(direction); }
@@ -5514,7 +5520,8 @@ void Plater::set_number_of_copies(/*size_t num*/)
 
 void Plater::fill_bed_with_instances()
 {
-    p->m_ui_jobs.fill_bed();
+    if (!p->m_ui_jobs.is_any_running())
+        p->m_ui_jobs.fill_bed();
 }
 
 bool Plater::is_selection_empty() const
@@ -6394,7 +6401,8 @@ GLCanvas3D* Plater::get_current_canvas3D()
 
 void Plater::arrange()
 {
-    p->m_ui_jobs.arrange();
+    if (!p->m_ui_jobs.is_any_running())
+        p->m_ui_jobs.arrange();
 }
 
 void Plater::set_current_canvas_as_dirty()
@@ -6565,7 +6573,7 @@ void Plater::suppress_background_process(const bool stop_background_process)
 void Plater::mirror(Axis axis)      { p->mirror(axis); }
 void Plater::split_object()         { p->split_object(); }
 void Plater::split_volume()         { p->split_volume(); }
-void Plater::optimize_rotation()    { p->m_ui_jobs.optimize_rotation();}
+void Plater::optimize_rotation()    { if (!p->m_ui_jobs.is_any_running()) p->m_ui_jobs.optimize_rotation(); }
 void Plater::update_menus()         { p->menus.update(); }
 void Plater::show_action_buttons(const bool ready_to_slice) const   { p->show_action_buttons(ready_to_slice); }
 

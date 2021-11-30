@@ -553,9 +553,15 @@ GLGizmoRotate3D::RotoptimzeWindow::RotoptimzeWindow(ImGuiWrapper *   imgui,
     auto btn_txt_sz = ImGui::CalcTextSize(btn_txt.c_str());
     ImVec2 button_sz = {btn_txt_sz.x + padding.x, btn_txt_sz.y + padding.y};
     ImGui::SetCursorPosX(padding.x + sz.x - button_sz.x);
+
+    if (wxGetApp().plater()->is_any_job_running())
+        imgui->disabled_begin(true);
+
     if ( imgui->button(btn_txt) ) {
         wxGetApp().plater()->optimize_rotation();
     }
+
+    imgui->disabled_end();
 }
 
 GLGizmoRotate3D::RotoptimzeWindow::~RotoptimzeWindow()

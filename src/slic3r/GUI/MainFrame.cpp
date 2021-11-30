@@ -1203,7 +1203,7 @@ void MainFrame::init_menubar_as_editor()
         
         append_menu_item(import_menu, wxID_ANY, _L("Import SL1 / SL1S archive") + dots, _L("Load an SL1 / Sl1S archive"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->import_sl1_archive(); }, "import_plater", nullptr,
-            [this](){return m_plater != nullptr; }, this);    
+            [this](){return m_plater != nullptr && !m_plater->is_any_job_running(); }, this);
     
         import_menu->AppendSeparator();
         append_menu_item(import_menu, wxID_ANY, _L("Import &Config") + dots + "\tCtrl+L", _L("Load exported configuration file"),

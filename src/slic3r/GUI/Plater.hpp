@@ -178,6 +178,7 @@ public:
 
     void update();
     void stop_jobs();
+    bool is_any_job_running() const;
     void select_view(const std::string& direction);
     void select_view_3D(const std::string& name);
 
