@@ -15,6 +15,7 @@
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "Http.hpp"
+#include "libslic3r/AppConfig.hpp"
 
 
 namespace fs = boost::filesystem;
@@ -115,7 +116,9 @@ bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Erro
     std::string url;
     bool res = true;
 
-    if (m_host.find("https://") == 0 || test_msg.empty()) {
+    bool allow_ip_resolve = GUI::get_app_config()->get("allow_ip_resolve") == "1";
+
+    if (m_host.find("https://") == 0 || test_msg.empty() || !allow_ip_resolve) {
         // If https is entered we assume signed ceritificate is being used
         // IP resolving will not happen - it could resolve into address not being specified in cert
         url = make_url("api/files/local");

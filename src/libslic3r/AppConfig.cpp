@@ -174,6 +174,9 @@ void AppConfig::set_defaults()
     if (get("show_hints").empty())
         set("show_hints", "1");
 
+    if (get("allow_ip_resolve").empty())
+        set("allow_ip_resolve", "1");
+
 #ifdef _WIN32
     if (get("use_legacy_3DConnexion").empty())
         set("use_legacy_3DConnexion", "0");
