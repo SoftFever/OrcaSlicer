@@ -2,6 +2,7 @@
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/format.hpp"
+#include "libslic3r/I18N.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
@@ -18,6 +19,11 @@
 #define NOMINMAX
 #include <Windows.h>
 #include <shellapi.h>
+
+//! macro used to mark string used at localization,
+//! return same string
+#define L(s) (s)
+#define _(s) Slic3r::I18N::translate(s)
 
 // https://blogs.msdn.microsoft.com/twistylittlepassagesallalike/2011/04/23/everyone-quotes-command-line-arguments-the-wrong-way/
 // This routine appends the given argument to a command line such that CommandLineToArgvW will return the argument string unchanged.
@@ -276,6 +282,15 @@ bool run_post_process_scripts(std::string &src_path, bool make_copy, const std::
                         : (boost::format("Post-processing script %1% on file %2% failed.\nError code: %3%\nOutput:\n%4%") % script % path % result % std_err).str();
                     BOOST_LOG_TRIVIAL(error) << msg;
                     delete_copy();
+                    throw Slic3r::RuntimeError(msg);
+                }
+                if (! boost::filesystem::exists(gcode_file)) {
+                    const std::string msg = (boost::format(_(
+                        "Post-processing script %1% failed.\n\n"
+                        "The post-processing script is expected to change the G-code file %2% in place, but the G-code file was deleted and likely saved under a new name.\n"
+                        "Please adjust the post-processing script to change the G-code in place and consult the manual on how to optionally rename the post-processed G-code file.\n"))
+                        % script % path).str();
+                    BOOST_LOG_TRIVIAL(error) << msg;
                     throw Slic3r::RuntimeError(msg);
                 }
             }
