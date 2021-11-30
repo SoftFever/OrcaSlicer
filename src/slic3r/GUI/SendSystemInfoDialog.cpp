@@ -70,7 +70,7 @@ public:
     SendSystemInfoDialog(wxWindow* parent);
 
 private:
-    wxString send_info();
+    bool send_info(wxString& message);
     const std::string m_system_info_json;
     wxButton* m_btn_show_data;
     wxButton* m_btn_send;
@@ -649,8 +649,11 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
 
     m_btn_send->Bind(wxEVT_BUTTON, [this](const wxEvent&)
                                     {
-                                        if (wxString out = send_info(); !out.IsEmpty()) {
-                                            InfoDialog(nullptr, wxEmptyString, out).ShowModal();
+                                        wxString message;
+                                        bool success = send_info(message);
+                                        if (! message.IsEmpty())
+                                            InfoDialog(nullptr, wxEmptyString, message).ShowModal();
+                                        if (success) {
                                             save_version();
                                             EndModal(0);
                                         }
@@ -679,7 +682,7 @@ void SendSystemInfoDialog::on_dpi_changed(const wxRect&)
 
 
 // This actually sends the info.
-wxString SendSystemInfoDialog::send_info()
+bool SendSystemInfoDialog::send_info(wxString& message)
 {
     std::atomic<int> job_done = false; // Flag to communicate between threads.
     struct Result {
@@ -723,9 +726,8 @@ wxString SendSystemInfoDialog::send_info()
     job_done = true;       // In case the user closed the dialog, let the other thread know
     sending_thread.join(); // and wait until it terminates.
 
-    if (result.value == Result::Cancelled)
-        return "";
-    return result.str;
+    message = result.value == Result::Cancelled ? wxString("") : result.str;
+    return result.value == Result::Success;
 }
 
 
