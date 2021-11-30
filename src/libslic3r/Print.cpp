@@ -214,7 +214,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         } else if (
                opt_key == "first_layer_extrusion_width" 
             || opt_key == "min_layer_height"
-            || opt_key == "max_layer_height") {
+            || opt_key == "max_layer_height"
+            || opt_key == "gcode_resolution") {
             osteps.emplace_back(posPerimeters);
             osteps.emplace_back(posInfill);
             osteps.emplace_back(posSupportMaterial);

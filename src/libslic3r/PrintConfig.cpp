@@ -2072,7 +2072,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("resolution", coFloat);
-    def->label = L("Resolution");
+    def->label = L("Slice resolution");
     def->tooltip = L("Minimum detail resolution, used to simplify the input file for speeding up "
                    "the slicing job and reducing memory usage. High-resolution models often carry "
                    "more detail than printers can render. Set to zero to disable any simplification "
@@ -2081,6 +2081,18 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comExpert;
     def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("gcode_resolution", coFloat);
+    def->label = L("G-code resolution");
+    def->tooltip = L("Maximum deviation of exported G-code paths from their full resolution counterparts. "
+                     "Very high resolution G-code requires huge amount of RAM to slice and preview, "
+                     "also a 3D printer may stutter not being able to process a high resolution G-code in a timely manner. "
+                     "On the other hand, a low resolution G-code will produce a low poly effect and because "
+                     "the G-code reduction is performed at each layer independently, visible artifacts may be produced.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(0.0125));
 
     def = this->add("retract_before_travel", coFloats);
     def->label = L("Minimum travel after retraction");
@@ -3940,6 +3952,10 @@ void DynamicPrintConfig::normalize_fdm()
             this->opt<ConfigOptionPercent>("fill_density", true)->value = 0;
         }
     }
+
+    if (auto *opt_gcode_resolution = this->opt<ConfigOptionFloat>("gcode_resolution", false); opt_gcode_resolution)
+        // Resolution will be above 1um.
+        opt_gcode_resolution->value = std::max(opt_gcode_resolution->value, 0.001);
 }
 
 void  handle_legacy_sla(DynamicPrintConfig &config)

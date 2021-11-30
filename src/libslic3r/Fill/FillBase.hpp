@@ -44,6 +44,9 @@ struct FillParams
     float       anchor_length       { 1000.f };
     float       anchor_length_max   { 1000.f };
 
+    // G-code resolution.
+    double      resolution          { 0.0125 };
+
     // Don't adjust spacing to fill the space evenly.
     bool        dont_adjust 	{ true };
 

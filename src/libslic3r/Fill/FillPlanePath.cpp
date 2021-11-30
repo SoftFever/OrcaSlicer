@@ -31,7 +31,8 @@ void FillPlanePath::_fill_surface_single(
         coord_t(ceil(coordf_t(bounding_box.min.x()) / distance_between_lines)),
         coord_t(ceil(coordf_t(bounding_box.min.y()) / distance_between_lines)),
         coord_t(ceil(coordf_t(bounding_box.max.x()) / distance_between_lines)),
-        coord_t(ceil(coordf_t(bounding_box.max.y()) / distance_between_lines)));
+        coord_t(ceil(coordf_t(bounding_box.max.y()) / distance_between_lines)),
+        params.resolution);
 
     if (pts.size() >= 2) {
         // Convert points to a polyline, upscale.
@@ -58,7 +59,7 @@ void FillPlanePath::_fill_surface_single(
 }
 
 // Follow an Archimedean spiral, in polar coordinates: r=a+b\theta
-Pointfs FillArchimedeanChords::_generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y)
+Pointfs FillArchimedeanChords::_generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y, const double resolution)
 {
     // Radius to achieve.
     coordf_t rmax = std::sqrt(coordf_t(max_x)*coordf_t(max_x)+coordf_t(max_y)*coordf_t(max_y)) * std::sqrt(2.) + 1.5;
@@ -72,8 +73,8 @@ Pointfs FillArchimedeanChords::_generate(coord_t min_x, coord_t min_y, coord_t m
     out.emplace_back(0, 0);
     out.emplace_back(1, 0);
     while (r < rmax) {
-        // Discretization angle to achieve a discretization error lower than RESOLUTION.
-        theta += 2. * acos(1. - RESOLUTION / r);
+        // Discretization angle to achieve a discretization error lower than resolution.
+        theta += 2. * acos(1. - resolution / r);
         r = a + b * theta;
         out.emplace_back(r * cos(theta), r * sin(theta));
     }
@@ -125,7 +126,7 @@ static inline Point hilbert_n_to_xy(const size_t n)
     return Point(x, y);
 }
 
-Pointfs FillHilbertCurve::_generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y)
+Pointfs FillHilbertCurve::_generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y, const double /* resolution */)
 {
     // Minimum power of two square to fit the domain.
     size_t sz = 2;
@@ -148,7 +149,7 @@ Pointfs FillHilbertCurve::_generate(coord_t min_x, coord_t min_y, coord_t max_x,
     return line;
 }
 
-Pointfs FillOctagramSpiral::_generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y)
+Pointfs FillOctagramSpiral::_generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y, const double /* resolution */)
 {
     // Radius to achieve.
     coordf_t rmax = std::sqrt(coordf_t(max_x)*coordf_t(max_x)+coordf_t(max_y)*coordf_t(max_y)) * std::sqrt(2.) + 1.5;

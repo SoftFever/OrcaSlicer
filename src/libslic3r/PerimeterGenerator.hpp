@@ -50,6 +50,7 @@ public:
             overhang_flow(flow), solid_infill_flow(flow),
             config(config), object_config(object_config), print_config(print_config),
             m_spiral_vase(spiral_vase),
+            m_scaled_resolution(scaled<double>(print_config->gcode_resolution.value)),
             loops(loops), gap_fill(gap_fill), fill_surfaces(fill_surfaces),
             m_ext_mm3_per_mm(-1), m_mm3_per_mm(-1), m_mm3_per_mm_overhang(-1)
         {}
@@ -63,6 +64,7 @@ public:
 
 private:
     bool        m_spiral_vase;
+    double      m_scaled_resolution;
     double      m_ext_mm3_per_mm;
     double      m_mm3_per_mm;
     double      m_mm3_per_mm_overhang;

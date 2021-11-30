@@ -345,6 +345,8 @@ private:
        methods. */
     Vec2d                               m_origin;
     FullPrintConfig                     m_config;
+    // scaled G-code resolution
+    double                              m_scaled_resolution;
     GCodeWriter                         m_writer;
     PlaceholderParser                   m_placeholder_parser;
     // For random number generator etc.

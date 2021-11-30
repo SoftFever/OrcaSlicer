@@ -28,7 +28,7 @@ protected:
 
     float _layer_angle(size_t idx) const override { return 0.f; }
     virtual bool  _centered() const = 0;
-    virtual Pointfs _generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y) = 0;
+    virtual Pointfs _generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y, const double resolution) = 0;
 };
 
 class FillArchimedeanChords : public FillPlanePath
@@ -39,7 +39,7 @@ public:
 
 protected:
     bool  _centered() const override { return true; }
-    Pointfs _generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y) override;
+    Pointfs _generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y, const double resolution) override;
 };
 
 class FillHilbertCurve : public FillPlanePath
@@ -50,7 +50,7 @@ public:
 
 protected:
     bool  _centered() const override { return false; }
-    Pointfs _generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y) override;
+    Pointfs _generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y, const double resolution) override;
 };
 
 class FillOctagramSpiral : public FillPlanePath
@@ -61,7 +61,7 @@ public:
 
 protected:
     bool  _centered() const override { return true; }
-    Pointfs _generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y) override;
+    Pointfs _generate(coord_t min_x, coord_t min_y, coord_t max_x, coord_t max_y, const double resolution) override;
 };
 
 } // namespace Slic3r

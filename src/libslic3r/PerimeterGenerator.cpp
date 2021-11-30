@@ -322,7 +322,7 @@ void PerimeterGenerator::process()
     for (const Surface &surface : this->slices->surfaces) {
         // detect how many perimeters must be generated for this island
         int        loop_number = this->config->perimeters + surface.extra_perimeters - 1;  // 0-indexed loops
-        ExPolygons last        = union_ex(surface.expolygon.simplify_p(SCALED_RESOLUTION));
+        ExPolygons last        = union_ex(surface.expolygon.simplify_p(m_scaled_resolution));
         ExPolygons gaps;
         if (loop_number >= 0) {
             // In case no perimeters are to be generated, loop_number will equal to -1.
@@ -533,7 +533,7 @@ void PerimeterGenerator::process()
         // simplify infill contours according to resolution
         Polygons pp;
         for (ExPolygon &ex : last)
-            ex.simplify_p(SCALED_RESOLUTION, &pp);
+            ex.simplify_p(m_scaled_resolution, &pp);
         // collapse too narrow infill areas
         coord_t min_perimeter_infill_spacing = coord_t(solid_infill_spacing * (1. - INSET_OVERLAP_TOLERANCE));
         // append infill areas to fill_surfaces
