@@ -2916,6 +2916,7 @@ void Plater::priv::remove(size_t obj_idx)
     if (view3D->is_layers_editing_enabled())
         view3D->enable_layers_editing(false);
 
+    m_ui_jobs.cancel_all();
     model.delete_object(obj_idx);
     update();
     // Delete object from Sidebar list. Do it after update, so that the GLScene selection is updated with the modified model.
@@ -2930,6 +2931,7 @@ void Plater::priv::delete_object_from_model(size_t obj_idx)
     if (! model.objects[obj_idx]->name.empty())
         snapshot_label += ": " + wxString::FromUTF8(model.objects[obj_idx]->name.c_str());
     Plater::TakeSnapshot snapshot(q, snapshot_label);
+    m_ui_jobs.cancel_all();
     model.delete_object(obj_idx);
     update();
     object_list_changed();
@@ -2946,6 +2948,8 @@ void Plater::priv::delete_all_objects_from_model()
     gcode_result.reset();
 
     view3D->get_canvas3d()->reset_sequential_print_clearance();
+
+    m_ui_jobs.cancel_all();
 
     // Stop and reset the Print content.
     background_process.reset();
@@ -2976,6 +2980,8 @@ void Plater::priv::reset()
     gcode_result.reset();
 
     view3D->get_canvas3d()->reset_sequential_print_clearance();
+
+    m_ui_jobs.cancel_all();
 
     // Stop and reset the Print content.
     this->background_process.reset();
@@ -4546,7 +4552,7 @@ void Plater::priv::set_bed_shape(const Pointfs& shape, const double max_print_he
 
 bool Plater::priv::can_delete() const
 {
-    return !get_selection().is_empty() && !get_selection().is_wipe_tower() && !m_ui_jobs.is_any_running();
+    return !get_selection().is_empty() && !get_selection().is_wipe_tower();
 }
 
 bool Plater::priv::can_delete_all() const
@@ -5399,6 +5405,7 @@ void Plater::remove_selected()
         return;
 
     Plater::TakeSnapshot snapshot(this, _L("Delete Selected Objects"));
+    p->m_ui_jobs.cancel_all();
     p->view3D->delete_selected();
 }
 
