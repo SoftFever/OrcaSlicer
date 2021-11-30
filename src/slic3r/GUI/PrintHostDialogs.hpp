@@ -1,6 +1,7 @@
 #ifndef slic3r_PrintHostSendDialog_hpp_
 #define slic3r_PrintHostSendDialog_hpp_
 
+#include <set>
 #include <string>
 #include <boost/filesystem/path.hpp>
 
@@ -10,34 +11,32 @@
 
 #include "GUI_Utils.hpp"
 #include "MsgDialog.hpp"
+#include "../Utils/PrintHost.hpp"
 
 class wxButton;
 class wxTextCtrl;
+class wxChoice;
 class wxComboBox;
-class wxCheckBox;
 class wxDataViewListCtrl;
-
 
 namespace Slic3r {
 
-struct PrintHostJob;
-
 namespace GUI {
-
 
 class PrintHostSendDialog : public GUI::MsgDialog
 {
 public:
-    PrintHostSendDialog(const boost::filesystem::path &path, bool can_start_print, const wxArrayString& groups);
+    PrintHostSendDialog(const boost::filesystem::path &path, PrintHostPostUploadActions post_actions, const wxArrayString& groups);
     boost::filesystem::path filename() const;
-    bool start_print() const;
+    PrintHostPostUploadAction post_action() const;
     std::string group() const;
 
     virtual void EndModal(int ret) override;
 private:
     wxTextCtrl *txt_filename;
     wxComboBox *combo_groups;
-    bool start_print_selected { false };
+    PrintHostPostUploadAction post_upload_action;
+    wxString    m_valid_suffix;
 };
 
 

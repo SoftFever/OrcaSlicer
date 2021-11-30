@@ -107,7 +107,9 @@ bool Repetier::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Error
 
     bool res = true;
 
-    auto url = upload_data.start_print?make_url((boost::format("printer/job/%1%") % port).str()):make_url((boost::format("printer/model/%1%") % port).str());
+    auto url = upload_data.post_action == PrintHostPostUploadAction::StartPrint
+        ? make_url((boost::format("printer/job/%1%") % port).str())
+        : make_url((boost::format("printer/model/%1%") % port).str());
 
     BOOST_LOG_TRIVIAL(info) << boost::format("%1%: Uploading file %2% at %3%, filename: %4%, path: %5%, print: %6%, group: %7%")
         % name
@@ -115,17 +117,17 @@ bool Repetier::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Error
         % url
         % upload_filename.string()
         % upload_parent_path.string()
-        % upload_data.start_print
+        % (upload_data.post_action == PrintHostPostUploadAction::StartPrint ? "true" : "false")
         % upload_data.group;
 
     auto http = Http::post(std::move(url));
     set_auth(http);
-    
+
     if (! upload_data.group.empty() && upload_data.group != _utf8(L("Default"))) {
         http.form_add("group", upload_data.group);
     }
-    
-    if(upload_data.start_print) {
+
+    if(upload_data.post_action == PrintHostPostUploadAction::StartPrint) {
         http.form_add("name", upload_filename.string());
     }
 

@@ -67,10 +67,10 @@ bool Duet::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn e
 	bool dsf = (connectionType == ConnectionType::dsf);
 
 	auto upload_cmd = get_upload_url(upload_data.upload_path.string(), connectionType);
-	BOOST_LOG_TRIVIAL(info) << boost::format("Duet: Uploading file %1%, filepath: %2%, print: %3%, command: %4%")
+	BOOST_LOG_TRIVIAL(info) << boost::format("Duet: Uploading file %1%, filepath: %2%, post_action: %3%, command: %4%")
 		% upload_data.source_path
 		% upload_data.upload_path
-		% upload_data.start_print
+		% int(upload_data.post_action)
 		% upload_cmd;
 
 	auto http = (dsf ? Http::put(std::move(upload_cmd)) : Http::post(std::move(upload_cmd)));
@@ -87,9 +87,15 @@ bool Duet::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, ErrorFn e
 				BOOST_LOG_TRIVIAL(error) << boost::format("Duet: Request completed but error code was received: %1%") % err_code;
 				error_fn(format_error(body, L("Unknown error occured"), 0));
 				res = false;
-			} else if (upload_data.start_print) {
+			} else if (upload_data.post_action == PrintHostPostUploadAction::StartPrint) {
 				wxString errormsg;
-				res = start_print(errormsg, upload_data.upload_path.string(), connectionType);
+				res = start_print(errormsg, upload_data.upload_path.string(), connectionType, false);
+				if (! res) {
+					error_fn(std::move(errormsg));
+				}
+			} else if (upload_data.post_action == PrintHostPostUploadAction::StartSimulation) {
+				wxString errormsg;
+				res = start_print(errormsg, upload_data.upload_path.string(), connectionType, true);
 				if (! res) {
 					error_fn(std::move(errormsg));
 				}
@@ -230,7 +236,7 @@ std::string Duet::timestamp_str() const
 	return std::string(buffer);
 }
 
-bool Duet::start_print(wxString &msg, const std::string &filename, ConnectionType connectionType) const
+bool Duet::start_print(wxString &msg, const std::string &filename, ConnectionType connectionType, bool simulationMode) const
 {
     assert(connectionType != ConnectionType::error);
 
@@ -240,14 +246,18 @@ bool Duet::start_print(wxString &msg, const std::string &filename, ConnectionTyp
 	auto url = dsf
 		? (boost::format("%1%machine/code")
 			% get_base_url()).str()
-		: (boost::format("%1%rr_gcode?gcode=M32%%20\"0:/gcodes/%2%\"")
+		: (boost::format(simulationMode
+				? "%1%rr_gcode?gcode=M37%%20P\"0:/gcodes/%2%\""
+				: "%1%rr_gcode?gcode=M32%%20\"0:/gcodes/%2%\"")
 			% get_base_url()
 			% Http::url_encode(filename)).str();
 
 	auto http = (dsf ? Http::post(std::move(url)) : Http::get(std::move(url)));
 	if (dsf) {
 		http.set_post_body(
-				(boost::format("M32 \"0:/gcodes/%1%\"")
+				(boost::format(simulationMode
+						? "M37 P\"0:/gcodes/%1%\""
+						: "M32 \"0:/gcodes/%1%\"")
 					% filename).str()
 				);
 	}
