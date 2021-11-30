@@ -66,13 +66,11 @@ enum FileType
     FT_TEX,
 
     FT_SL1,
-	// Workaround for OSX file picker, for some reason it always saves with the 1st extension.
- 	FT_SL1S,
 
     FT_SIZE,
 };
 
-extern wxString file_wildcards(FileType file_type, const std::string &custom_extension = std::string());
+extern wxString file_wildcards(FileType file_type, const std::string &custom_extension = std::string{});
 
 enum ConfigMenuIDs {
     ConfigMenuWizard,

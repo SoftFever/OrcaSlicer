@@ -379,11 +379,7 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                         int j = i;
                         bool merged = false;
                         ExPolygons &expolygons = temp_slices[i].expolygons;
-                        for (++ j; 
-                             j < int(temp_slices.size()) && 
-                                temp_slices[i].region_id == temp_slices[j].region_id && 
-                                (clip_multipart_objects || temp_slices[i].volume_id == temp_slices[j].volume_id); 
-                             ++ j)
+                        for (++ j; j < int(temp_slices.size()) && temp_slices[i].region_id == temp_slices[j].region_id; ++ j)
                             if (ExPolygons &expolygons2 = temp_slices[j].expolygons; ! expolygons2.empty()) {
                                 if (expolygons.empty()) {
                                     expolygons = std::move(expolygons2);
@@ -392,7 +388,10 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                                     merged = true;
                                 }
                             }
-                        if (merged)
+                        // Don't unite the regions if ! clip_multipart_objects. In that case it is user's responsibility
+                        // to handle region overlaps. Indeed, one may intentionally let the regions overlap to produce crossing perimeters 
+                        // for example.
+                        if (merged && clip_multipart_objects)
                             expolygons = closing_ex(expolygons, float(scale_(EPSILON)));
                         slices_by_region[temp_slices[i].region_id][z_idx] = std::move(expolygons);
                         i = j;
