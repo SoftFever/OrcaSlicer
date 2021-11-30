@@ -30,6 +30,14 @@ inline wxString format_wxstr(const wxString& fmt, TArgs&&... args) {
 	return format_wxstr(fmt.ToUTF8().data(), std::forward<TArgs>(args)...);
 }
 template<typename... TArgs>
+inline std::string format(const char* fmt, TArgs&&... args) {
+    return Slic3r::format(fmt, std::forward<TArgs>(args)...);
+}
+template<typename... TArgs>
+inline std::string format(const std::string& fmt, TArgs&&... args) {
+    return Slic3r::format(fmt, std::forward<TArgs>(args)...);
+}
+template<typename... TArgs>
 inline std::string format(const wxString& fmt, TArgs&&... args) {
     return Slic3r::format(fmt.ToUTF8().data(), std::forward<TArgs>(args)...);
 }
