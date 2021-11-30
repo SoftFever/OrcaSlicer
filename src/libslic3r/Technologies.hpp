@@ -37,15 +37,6 @@
 
 
 //====================
-// 2.4.0.alpha2 techs
-//====================
-#define ENABLE_2_4_0_ALPHA2 1
-
-// Enable fixing the synchronization of seams with the horizontal slider in preview
-#define ENABLE_FIX_SEAMS_SYNCH (1 && ENABLE_2_4_0_ALPHA2)
-
-
-//====================
 // 2.4.0.alpha3 techs
 //====================
 #define ENABLE_2_4_0_ALPHA3 1
