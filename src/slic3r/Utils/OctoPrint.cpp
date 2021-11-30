@@ -115,8 +115,7 @@ bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Erro
     std::string url;
     bool res = true;
 
-    if (m_host.find("https://") == 0 || test_msg.empty())
-    {
+    if (m_host.find("https://") == 0 || test_msg.empty()) {
         // If https is entered we assume signed ceritificate is being used
         // IP resolving will not happen - it could resolve into address not being specified in cert
         url = make_url("api/files/local");
@@ -129,6 +128,34 @@ bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Erro
         // put ipv6 into [] brackets (there shouldn't be any http:// if its resolved addr)
         if (resolved_addr.find(':') != std::string::npos && resolved_addr.at(0) != '[')
             resolved_addr = "[" + resolved_addr + "]";
+        // port number is not part of resolved addr. If it is in m_host, we need to add it again
+        // if ipv6 the format would be [add]:port
+        if (size_t port_start = m_host.rfind(':'); port_start != std::string::npos) {
+            size_t count_of_colon = std::count(m_host.begin(), m_host.end(), ':');
+            // ipv6
+            if (size_t addr_end = m_host.rfind(']'); addr_end != port_start - 1 && count_of_colon > 2)
+                port_start = std::string::npos;
+            // http:// (https cant go to this else branch)
+            else if (m_host.find("http:") == 0 && port_start == 4)
+                port_start = std::string::npos;
+            // add port to resolved addres
+            if (port_start != std::string::npos && port_start < m_host.size()) {
+                std::string port_string = m_host.substr(port_start);
+                // last check - try casting port string to number.
+                bool cont = true;
+                for (size_t i = 1; i < port_string.size(); i++) {
+                    // number smaller than 65535
+                    if (port_string[i] < '0' || port_string[i] > '9' || i > 6) {
+                        cont = false;
+                        BOOST_LOG_TRIVIAL(debug) << "IP resolve wrongly concidered string as port: " << port_string;
+                        break;
+                    }
+                }
+                if (cont)
+                    resolved_addr += port_string;
+                
+            }
+        }
         url = make_url("api/files/local", resolved_addr);
     }
 
