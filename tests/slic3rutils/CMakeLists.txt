@@ -4,6 +4,9 @@ add_executable(${_TEST_NAME}_tests
     )
 
 target_link_libraries(${_TEST_NAME}_tests test_common libslic3r_gui libslic3r)
+if (MSVC)
+    target_link_libraries(${_TEST_NAME}_tests Setupapi.lib)
+endif ()
 set_property(TARGET ${_TEST_NAME}_tests PROPERTY FOLDER "tests")
 
 # catch_discover_tests(${_TEST_NAME}_tests TEST_PREFIX "${_TEST_NAME}: ")
