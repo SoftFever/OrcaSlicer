@@ -43,8 +43,6 @@
 
 // Enable implementation of retract acceleration in gcode processor
 #define ENABLE_RETRACT_ACCELERATION (1 && ENABLE_2_4_0_ALPHA1)
-// Enable rendering seams (and other options) in preview using models
-#define ENABLE_SEAMS_USING_MODELS (1 && ENABLE_2_4_0_ALPHA1)
 // Enable save and save as commands to be enabled also when the plater is empty and allow to load empty projects
 #define ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED (1 && ENABLE_2_4_0_ALPHA1)
 
@@ -55,9 +53,9 @@
 #define ENABLE_2_4_0_ALPHA2 1
 
 // Enable rendering seams (and other options) in preview using batched models on systems not supporting OpenGL 3.3
-#define ENABLE_SEAMS_USING_BATCHED_MODELS (1 && ENABLE_SEAMS_USING_MODELS && ENABLE_2_4_0_ALPHA2)
+#define ENABLE_SEAMS_USING_BATCHED_MODELS (1 && ENABLE_2_4_0_ALPHA2)
 // Enable fixing the z position of color change, pause print and custom gcode markers in preview
-#define ENABLE_FIX_PREVIEW_OPTIONS_Z (1 && ENABLE_SEAMS_USING_MODELS && ENABLE_2_4_0_ALPHA2)
+#define ENABLE_FIX_PREVIEW_OPTIONS_Z (1 && ENABLE_2_4_0_ALPHA2)
 // Enable replacing a missing file during reload from disk command
 #define ENABLE_RELOAD_FROM_DISK_REPLACE_FILE (1 && ENABLE_2_4_0_ALPHA2)
 // Enable fixing the synchronization of seams with the horizontal slider in preview

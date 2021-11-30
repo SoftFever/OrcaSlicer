@@ -3904,9 +3904,7 @@ void Plater::priv::set_current_panel(wxPanel* panel)
             bool export_in_progress = this->background_process.is_export_scheduled();
             bool model_fits = view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
             if (!model.objects.empty() && !export_in_progress && model_fits) {
-#if ENABLE_SEAMS_USING_MODELS
                 preview->get_canvas3d()->init_gcode_viewer();
-#endif // ENABLE_SEAMS_USING_MODELS
                 q->reslice();
             }
             // keeps current gcode preview, if any

@@ -623,9 +623,7 @@ public:
     void reset_volumes();
     ModelInstanceEPrintVolumeState check_volumes_outside_state() const;
 
-#if ENABLE_SEAMS_USING_MODELS
     void init_gcode_viewer() { m_gcode_viewer.init(); }
-#endif // ENABLE_SEAMS_USING_MODELS
     void reset_gcode_toolpaths() { m_gcode_viewer.reset(); }
     const GCodeViewer::SequentialView& get_gcode_sequential_view() const { return m_gcode_viewer.get_sequential_view(); }
     void update_gcode_sequential_view_current(unsigned int first, unsigned int last) { m_gcode_viewer.update_sequential_view_current(first, last); }

@@ -89,7 +89,6 @@ void GCodeViewer::VBuffer::reset()
     count = 0;
 }
 
-#if ENABLE_SEAMS_USING_MODELS
 void GCodeViewer::InstanceVBuffer::Ranges::reset()
 {
     for (Range& range : ranges) {
@@ -107,7 +106,6 @@ void GCodeViewer::InstanceVBuffer::reset()
     buffer.clear();
     render_ranges.reset();
 }
-#endif // ENABLE_SEAMS_USING_MODELS
 
 void GCodeViewer::IBuffer::reset()
 {
@@ -150,12 +148,10 @@ bool GCodeViewer::Path::matches(const GCodeProcessorResult::MoveVertex& move) co
     }
 }
 
-#if ENABLE_SEAMS_USING_MODELS
 void GCodeViewer::TBuffer::Model::reset()
 {
     instances.reset();
 }
-#endif // ENABLE_SEAMS_USING_MODELS
 
 void GCodeViewer::TBuffer::reset()
 {
@@ -167,9 +163,7 @@ void GCodeViewer::TBuffer::reset()
     indices.clear();
     paths.clear();
     render_paths.clear();
-#if ENABLE_SEAMS_USING_MODELS
     model.reset();
-#endif // ENABLE_SEAMS_USING_MODELS
 }
 
 void GCodeViewer::TBuffer::add_path(const GCodeProcessorResult::MoveVertex& move, unsigned int b_id, size_t i_id, size_t s_id)
@@ -567,48 +561,11 @@ const GCodeViewer::Color GCodeViewer::Neutral_Color = { 0.25f, 0.25f, 0.25f, 1.0
 
 GCodeViewer::GCodeViewer()
 {
-#if !ENABLE_SEAMS_USING_MODELS
-    // initializes non OpenGL data of TBuffers
-    // OpenGL data are initialized into render().init_gl_data()
-    for (size_t i = 0; i < m_buffers.size(); ++i) {
-        TBuffer& buffer = m_buffers[i];
-        switch (buffer_type(i))
-        {
-        default: { break; }
-        case EMoveType::Tool_change:
-        case EMoveType::Color_change:
-        case EMoveType::Pause_Print:
-        case EMoveType::Custom_GCode:
-        case EMoveType::Retract:
-        case EMoveType::Unretract:
-        case EMoveType::Seam: {
-            buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Point;
-            buffer.vertices.format = VBuffer::EFormat::Position;
-            break;
-        }
-        case EMoveType::Wipe:
-        case EMoveType::Extrude: {
-            buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Triangle;
-            buffer.vertices.format = VBuffer::EFormat::PositionNormal3;
-            break;
-        }
-        case EMoveType::Travel: {
-            buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Line;
-            buffer.vertices.format = VBuffer::EFormat::PositionNormal1;
-            break;
-        }
-        }
-    }
-
-    set_toolpath_move_type_visible(EMoveType::Extrude, true);
-#endif // !ENABLE_SEAMS_USING_MODELS
-
     m_extrusions.reset_role_visibility_flags();
 
 //    m_sequential_view.skip_invisible_moves = true;
 }
 
-#if ENABLE_SEAMS_USING_MODELS
 void GCodeViewer::init()
 {
     if (m_gl_data_initialized)
@@ -689,7 +646,6 @@ void GCodeViewer::init()
 
     m_gl_data_initialized = true;
 }
-#endif // ENABLE_SEAMS_USING_MODELS
 
 void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& print, bool initialized)
 {
@@ -879,71 +835,10 @@ void GCodeViewer::reset()
 
 void GCodeViewer::render()
 {
-#if !ENABLE_SEAMS_USING_MODELS
-    auto init_gl_data = [this]() {
-        // initializes opengl data of TBuffers
-        for (size_t i = 0; i < m_buffers.size(); ++i) {
-            TBuffer& buffer = m_buffers[i];
-            EMoveType type = buffer_type(i);
-            switch (type)
-            {
-            default: { break; }
-            case EMoveType::Tool_change:
-            case EMoveType::Color_change:
-            case EMoveType::Pause_Print:
-            case EMoveType::Custom_GCode:
-            case EMoveType::Retract:
-            case EMoveType::Unretract:
-            case EMoveType::Seam: {
-                if (wxGetApp().is_gl_version_greater_or_equal_to(3, 3)) {
-                    buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Model;
-                    buffer.shader = "gouraud_light_instanced";
-                    buffer.model.model.init_from(diamond(16));
-                    buffer.model.color = option_color(type);
-                }
-                else {
-                    buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Point;
-                    buffer.vertices.format = VBuffer::EFormat::Position;
-                    buffer.shader = wxGetApp().is_glsl_version_greater_or_equal_to(1, 20) ? "options_120" : "options_110";
-                }
-                break;
-            }
-            case EMoveType::Wipe:
-            case EMoveType::Extrude: {
-                buffer.shader = "gouraud_light";
-                break;
-            }
-            case EMoveType::Travel: {
-                buffer.shader = "toolpaths_lines";
-                break;
-            }
-            }
-        }
-
-        // initializes tool marker
-        m_sequential_view.marker.init();
-
-        // initializes point sizes
-        std::array<int, 2> point_sizes;
-        ::glGetIntegerv(GL_ALIASED_POINT_SIZE_RANGE, point_sizes.data());
-        m_detected_point_sizes = { static_cast<float>(point_sizes[0]), static_cast<float>(point_sizes[1]) };
-        m_gl_data_initialized = true;
-    };
-#endif // !ENABLE_SEAMS_USING_MODELS
-
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_statistics.reset_opengl();
-#if ENABLE_SEAMS_USING_MODELS
     m_statistics.total_instances_gpu_size = 0;
-#endif // ENABLE_SEAMS_USING_MODELS
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-
-#if !ENABLE_SEAMS_USING_MODELS
-    // OpenGL data must be initialized after the glContext has been created.
-    // This is ensured when this method is called by GLCanvas3D::_render_gcode().
-    if (!m_gl_data_initialized)
-        init_gl_data();
-#endif // !ENABLE_SEAMS_USING_MODELS
 
     if (m_roles.empty())
         return;
@@ -1501,7 +1396,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
             sq_prev_length = sq_length;
     };
 
-#if ENABLE_SEAMS_USING_MODELS
     // format data into the buffers to be rendered as instanced model
     auto add_model_instance = [](const GCodeProcessorResult::MoveVertex& curr, InstanceBuffer& instances, InstanceIdBuffer& instances_ids, size_t move_id) {
         // append position
@@ -1559,7 +1453,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
         }
     };
 #endif // ENABLE_SEAMS_USING_BATCHED_MODELS
-#endif // ENABLE_SEAMS_USING_MODELS
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -1614,10 +1507,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
 
     std::vector<MultiVertexBuffer> vertices(m_buffers.size());
     std::vector<MultiIndexBuffer> indices(m_buffers.size());
-#if ENABLE_SEAMS_USING_MODELS
     std::vector<InstanceBuffer> instances(m_buffers.size());
     std::vector<InstanceIdBuffer> instances_ids(m_buffers.size());
-#endif // ENABLE_SEAMS_USING_MODELS
 #if ENABLE_FIX_SEAMS_SYNCH
     std::vector<InstancesOffsets> instances_offsets(m_buffers.size());
 #endif // ENABLE_FIX_SEAMS_SYNCH
@@ -1658,13 +1549,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
         const unsigned char id = buffer_id(curr.type);
         TBuffer& t_buffer = m_buffers[id];
         MultiVertexBuffer& v_multibuffer = vertices[id];
-#if ENABLE_SEAMS_USING_MODELS
         InstanceBuffer& inst_buffer = instances[id];
         InstanceIdBuffer& inst_id_buffer = instances_ids[id];
 #if ENABLE_FIX_SEAMS_SYNCH
         InstancesOffsets& inst_offsets = instances_offsets[id];
 #endif // ENABLE_FIX_SEAMS_SYNCH
-#endif // ENABLE_SEAMS_USING_MODELS
 
         // ensure there is at least one vertex buffer
         if (v_multibuffer.empty())
@@ -1701,7 +1590,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
 #else
         case TBuffer::ERenderPrimitiveType::Triangle: { add_vertices_as_solid(prev, curr, t_buffer, static_cast<unsigned int>(v_multibuffer.size()) - 1, v_buffer, i); break; }
 #endif // ENABLE_FIX_SEAMS_SYNCH
-#if ENABLE_SEAMS_USING_MODELS
 #if ENABLE_SEAMS_USING_BATCHED_MODELS
         case TBuffer::ERenderPrimitiveType::InstancedModel:
         {
@@ -1742,7 +1630,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
             break;
         }
-#endif // ENABLE_SEAMS_USING_MODELS
 #endif // ENABLE_SEAMS_USING_BATCHED_MODELS
         }
 
@@ -1951,7 +1838,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
     // send vertices data to gpu, where needed
     for (size_t i = 0; i < m_buffers.size(); ++i) {
         TBuffer& t_buffer = m_buffers[i];
-#if ENABLE_SEAMS_USING_MODELS
 #if ENABLE_SEAMS_USING_BATCHED_MODELS
         if (t_buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::InstancedModel) {
             const InstanceBuffer& inst_buffer = instances[i];
@@ -1987,7 +1873,6 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
         }
         else {
 #endif // ENABLE_SEAMS_USING_BATCHED_MODELS
-#endif // ENABLE_SEAMS_USING_MODELS
             const MultiVertexBuffer& v_multibuffer = vertices[i];
             for (const VertexBuffer& v_buffer : v_multibuffer) {
                 const size_t size_elements = v_buffer.size();
@@ -2010,9 +1895,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
                 t_buffer.vertices.vbos.push_back(static_cast<unsigned int>(id));
                 t_buffer.vertices.sizes.push_back(size_bytes);
             }
-#if ENABLE_SEAMS_USING_MODELS
         }
-#endif // ENABLE_SEAMS_USING_MODELS
     }
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -2023,10 +1906,8 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
 
     // dismiss vertices data, no more needed
     std::vector<MultiVertexBuffer>().swap(vertices);
-#if ENABLE_SEAMS_USING_MODELS
     std::vector<InstanceBuffer>().swap(instances);
     std::vector<InstanceIdBuffer>().swap(instances_ids);
-#endif // ENABLE_SEAMS_USING_MODELS
 
     // toolpaths data -> extract indices from result
     // paths may have been filled while extracting vertices,
@@ -2082,9 +1963,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
         // ensure there is at least one index buffer
         if (i_multibuffer.empty()) {
             i_multibuffer.push_back(IndexBuffer());
-#if ENABLE_SEAMS_USING_MODELS
             if (!t_buffer.vertices.vbos.empty())
-#endif // ENABLE_SEAMS_USING_MODELS
                 vbo_index_list.push_back(t_buffer.vertices.vbos[curr_vertex_buffer.first]);
         }
 
@@ -2192,13 +2071,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
     // toolpaths data -> send indices data to gpu
     for (size_t i = 0; i < m_buffers.size(); ++i) {
         TBuffer& t_buffer = m_buffers[i];
-#if ENABLE_SEAMS_USING_MODELS
 #if ENABLE_SEAMS_USING_BATCHED_MODELS
         if (t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::InstancedModel) {
 #else
         if (t_buffer.render_primitive_type != TBuffer::ERenderPrimitiveType::Model) {
 #endif // ENABLE_SEAMS_USING_BATCHED_MODELS
-#endif // ENABLE_SEAMS_USING_MODELS
             const MultiIndexBuffer& i_multibuffer = indices[i];
             for (const IndexBuffer& i_buffer : i_multibuffer) {
                 const size_t size_elements = i_buffer.size();
@@ -2221,9 +2098,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
                 glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, size_bytes, i_buffer.data(), GL_STATIC_DRAW));
                 glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
             }
-#if ENABLE_SEAMS_USING_MODELS
         }
-#endif // ENABLE_SEAMS_USING_MODELS
     }
 
     if (progress_dialog != nullptr) {
@@ -2474,9 +2349,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 #if ENABLE_GCODE_VIEWER_STATISTICS
     Statistics* statistics = const_cast<Statistics*>(&m_statistics);
     statistics->render_paths_size = 0;
-#if ENABLE_SEAMS_USING_MODELS
     statistics->models_instances_size = 0;
-#endif // ENABLE_SEAMS_USING_MODELS
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
     const bool top_layer_only = get_app_config()->get("seq_top_layer_only") == "1";
@@ -2497,7 +2370,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         if (!buffer.visible)
             continue;
 
-#if ENABLE_SEAMS_USING_MODELS
 #if ENABLE_SEAMS_USING_BATCHED_MODELS
         if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::InstancedModel ||
             buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::BatchedModel) {
@@ -2521,7 +2393,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             }
         }
         else {
-#endif // ENABLE_SEAMS_USING_MODELS
             for (size_t i = 0; i < buffer.paths.size(); ++i) {
                 const Path& path = buffer.paths[i];
                 if (path.type == EMoveType::Travel) {
@@ -2555,9 +2426,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
                     }
                 }
             }
-#if ENABLE_SEAMS_USING_MODELS
         }
-#endif // ENABLE_SEAMS_USING_MODELS
     }
 
     // update current sequential position
@@ -2567,7 +2436,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     // get the world position from the vertex buffer
     bool found = false;
     for (const TBuffer& buffer : m_buffers) {
-#if ENABLE_SEAMS_USING_MODELS
 #if ENABLE_SEAMS_USING_BATCHED_MODELS
         if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::InstancedModel ||
             buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::BatchedModel) {
@@ -2590,7 +2458,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             }
         }
         else {
-#endif // ENABLE_SEAMS_USING_MODELS
             // searches the path containing the current position
             for (const Path& path : buffer.paths) {
                 if (path.contains(m_sequential_view.current.last)) {
@@ -2631,9 +2498,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
                     }
                 }
             }
-#if ENABLE_SEAMS_USING_MODELS
         }
-#endif // ENABLE_SEAMS_USING_MODELS
 
         if (found)
             break;
@@ -2740,7 +2605,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 #endif 
     }
 
-#if ENABLE_SEAMS_USING_MODELS
 #if ENABLE_SEAMS_USING_BATCHED_MODELS
     // second pass: for buffers using instanced and batched models, update the instances render ranges
 #else
@@ -2796,14 +2660,11 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             }
         }
     }
-#endif // ENABLE_SEAMS_USING_MODELS
 
     // set sequential data to their final value
     sequential_view->endpoints = top_layer_only ? top_layer_endpoints : global_endpoints;
     sequential_view->current.first = !top_layer_only && keep_sequential_current_first ? std::clamp(sequential_view->current.first, sequential_view->endpoints.first, sequential_view->endpoints.last) : sequential_view->endpoints.first;
-#if ENABLE_SEAMS_USING_MODELS
     sequential_view->global = global_endpoints;
-#endif // ENABLE_SEAMS_USING_MODELS
 
     // updates sequential range caps
     std::array<SequentialRangeCap, 2>* sequential_range_caps = const_cast<std::array<SequentialRangeCap, 2>*>(&m_sequential_range_caps);
@@ -2925,11 +2786,9 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
             statistics->render_paths_size += SLIC3R_STDVEC_MEMSIZE(path.sizes, unsigned int);
             statistics->render_paths_size += SLIC3R_STDVEC_MEMSIZE(path.offsets, size_t);
         }
-#if ENABLE_SEAMS_USING_MODELS
         statistics->models_instances_size += SLIC3R_STDVEC_MEMSIZE(buffer.model.instances.buffer, float);
         statistics->models_instances_size += SLIC3R_STDVEC_MEMSIZE(buffer.model.instances.s_ids, size_t);
         statistics->models_instances_size += SLIC3R_STDVEC_MEMSIZE(buffer.model.instances.render_ranges.ranges, InstanceVBuffer::Ranges::Range);
-#endif // ENABLE_SEAMS_USING_MODELS
     }
     statistics->refresh_paths_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start_time).count();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -3018,7 +2877,6 @@ void GCodeViewer::render_toolpaths()
         }
     };
 
-#if ENABLE_SEAMS_USING_MODELS
 #if ENABLE_GCODE_VIEWER_STATISTICS
     auto render_as_instanced_model = [this]
 #else
@@ -3103,7 +2961,6 @@ void GCodeViewer::render_toolpaths()
         }
     };
 #endif // ENABLE_SEAMS_USING_BATCHED_MODELS
-#endif // ENABLE_SEAMS_USING_MODELS
 
     auto line_width = [](double zoom) {
         return (zoom < 5.0) ? 1.0 : (1.0 + 5.0 * (zoom - 5.0) / (100.0 - 5.0));
@@ -3113,11 +2970,7 @@ void GCodeViewer::render_toolpaths()
     unsigned char end_id = buffer_id(EMoveType::Count);
 
     for (unsigned char i = begin_id; i < end_id; ++i) {
-#if ENABLE_SEAMS_USING_MODELS
         TBuffer& buffer = m_buffers[i];
-#else
-        const TBuffer& buffer = m_buffers[i];
-#endif // ENABLE_SEAMS_USING_MODELS
         if (!buffer.visible || !buffer.has_data())
             continue;
 
@@ -3125,7 +2978,6 @@ void GCodeViewer::render_toolpaths()
         if (shader != nullptr) {
             shader->start_using();
 
-#if ENABLE_SEAMS_USING_MODELS
 #if ENABLE_SEAMS_USING_BATCHED_MODELS
             if (buffer.render_primitive_type == TBuffer::ERenderPrimitiveType::InstancedModel) {
 #else
@@ -3143,7 +2995,6 @@ void GCodeViewer::render_toolpaths()
             }
 #endif // ENABLE_SEAMS_USING_BATCHED_MODELS
             else {
-#endif // ENABLE_SEAMS_USING_MODELS
                 for (size_t j = 0; j < buffer.indices.size(); ++j) {
                     const IBuffer& i_buffer = buffer.indices[j];
 
@@ -3184,9 +3035,7 @@ void GCodeViewer::render_toolpaths()
                     glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
                     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
                 }
-#if ENABLE_SEAMS_USING_MODELS
             }
-#endif // ENABLE_SEAMS_USING_MODELS
 
             shader->stop_using();
         }
@@ -4198,13 +4047,11 @@ void GCodeViewer::render_statistics()
         add_counter(std::string("Multi GL_LINES:"), m_statistics.gl_multi_lines_calls_count);
         add_counter(std::string("Multi GL_TRIANGLES:"), m_statistics.gl_multi_triangles_calls_count);
         add_counter(std::string("GL_TRIANGLES:"), m_statistics.gl_triangles_calls_count);
-#if ENABLE_SEAMS_USING_MODELS
         ImGui::Separator();
         add_counter(std::string("Instanced models:"), m_statistics.gl_instanced_models_calls_count);
 #if ENABLE_SEAMS_USING_BATCHED_MODELS
         add_counter(std::string("Batched models:"), m_statistics.gl_batched_models_calls_count);
 #endif // ENABLE_SEAMS_USING_BATCHED_MODELS
-#endif // ENABLE_SEAMS_USING_MODELS
     }
 
     if (ImGui::CollapsingHeader("CPU memory")) {
@@ -4213,17 +4060,13 @@ void GCodeViewer::render_statistics()
         ImGui::Separator();
         add_memory(std::string("Paths:"), m_statistics.paths_size);
         add_memory(std::string("Render paths:"), m_statistics.render_paths_size);
-#if ENABLE_SEAMS_USING_MODELS
         add_memory(std::string("Models instances:"), m_statistics.models_instances_size);
-#endif // ENABLE_SEAMS_USING_MODELS
     }
 
     if (ImGui::CollapsingHeader("GPU memory")) {
         add_memory(std::string("Vertices:"), m_statistics.total_vertices_gpu_size);
         add_memory(std::string("Indices:"), m_statistics.total_indices_gpu_size);
-#if ENABLE_SEAMS_USING_MODELS
         add_memory(std::string("Instances:"), m_statistics.total_instances_gpu_size);
-#endif // ENABLE_SEAMS_USING_MODELS
         ImGui::Separator();
         add_memory(std::string("Max VBuffer:"), m_statistics.max_vbuffer_gpu_size);
         add_memory(std::string("Max IBuffer:"), m_statistics.max_ibuffer_gpu_size);
@@ -4233,12 +4076,10 @@ void GCodeViewer::render_statistics()
         add_counter(std::string("Travel segments count:"), m_statistics.travel_segments_count);
         add_counter(std::string("Wipe segments count:"), m_statistics.wipe_segments_count);
         add_counter(std::string("Extrude segments count:"), m_statistics.extrude_segments_count);
-#if ENABLE_SEAMS_USING_MODELS
         add_counter(std::string("Instances count:"), m_statistics.instances_count);
 #if ENABLE_SEAMS_USING_BATCHED_MODELS
         add_counter(std::string("Batched count:"), m_statistics.batched_count);
 #endif // ENABLE_SEAMS_USING_BATCHED_MODELS
-#endif // ENABLE_SEAMS_USING_MODELS
         ImGui::Separator();
         add_counter(std::string("VBuffers count:"), m_statistics.vbuffers_count);
         add_counter(std::string("IBuffers count:"), m_statistics.ibuffers_count);

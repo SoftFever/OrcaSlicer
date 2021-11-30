@@ -46,17 +46,13 @@ std::pair<bool, std::string> GLShadersManager::init()
     if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 3))
         valid &= append_shader("gouraud_light_instanced", { "gouraud_light_instanced.vs", "gouraud_light_instanced.fs" });
 #else
-#if ENABLE_SEAMS_USING_MODELS
     if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 3))
         valid &= append_shader("gouraud_light_instanced", { "gouraud_light_instanced.vs", "gouraud_light_instanced.fs" });
     else {
-#endif // ENABLE_SEAMS_USING_MODELS
         valid &= append_shader("options_110", { "options_110.vs", "options_110.fs" });
         if (GUI::wxGetApp().is_glsl_version_greater_or_equal_to(1, 20))
             valid &= append_shader("options_120", { "options_120.vs", "options_120.fs" });
-#if ENABLE_SEAMS_USING_MODELS
     }
-#endif // ENABLE_SEAMS_USING_MODELS
 #endif // ENABLE_SEAMS_USING_BATCHED_MODELS
     // used to render extrusion and travel paths as lines in gcode preview
     valid &= append_shader("toolpaths_lines", { "toolpaths_lines.vs", "toolpaths_lines.fs" });

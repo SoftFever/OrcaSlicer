@@ -1422,10 +1422,8 @@ void GLCanvas3D::render()
     if (!is_initialized() && !init())
         return;
 
-#if ENABLE_SEAMS_USING_MODELS
     if (!m_main_toolbar.is_enabled())
         m_gcode_viewer.init();
-#endif // ENABLE_SEAMS_USING_MODELS
 
     if (! m_bed.build_volume().valid()) {
         // this happens at startup when no data is still saved under <>\AppData\Roaming\Slic3rPE

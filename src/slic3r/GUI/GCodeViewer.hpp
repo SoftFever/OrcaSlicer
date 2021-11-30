@@ -27,10 +27,8 @@ class GCodeViewer
     using MultiVertexBuffer = std::vector<VertexBuffer>;
     using IndexBuffer = std::vector<IBufferType>;
     using MultiIndexBuffer = std::vector<IndexBuffer>;
-#if ENABLE_SEAMS_USING_MODELS
     using InstanceBuffer = std::vector<float>;
     using InstanceIdBuffer = std::vector<size_t>;
-#endif // ENABLE_SEAMS_USING_MODELS
 #if ENABLE_FIX_SEAMS_SYNCH
     using InstancesOffsets = std::vector<Vec3f>;
 #endif // ENABLE_FIX_SEAMS_SYNCH
@@ -107,7 +105,6 @@ class GCodeViewer
         void reset();
     };
 
-#if ENABLE_SEAMS_USING_MODELS
 #if ENABLE_SEAMS_USING_BATCHED_MODELS
     // buffer containing instances data used to render a toolpaths using instanced or batched models
     // instance record format:
@@ -178,7 +175,6 @@ class GCodeViewer
 
         void reset();
     };
-#endif // ENABLE_SEAMS_USING_MODELS
 
     // ibo buffer containing indices data (for lines/triangles) used to render a specific toolpath type
     struct IBuffer
@@ -313,7 +309,6 @@ class GCodeViewer
         {
             Point,
             Line,
-#if ENABLE_SEAMS_USING_MODELS
             Triangle,
 #if ENABLE_SEAMS_USING_BATCHED_MODELS
             InstancedModel,
@@ -321,9 +316,6 @@ class GCodeViewer
 #else
             Model
 #endif // ENABLE_SEAMS_USING_BATCHED_MODELS
-#else
-            Triangle
-#endif // ENABLE_SEAMS_USING_MODELS
         };
 
         ERenderPrimitiveType render_primitive_type;
@@ -332,7 +324,6 @@ class GCodeViewer
         VBuffer vertices;
         std::vector<IBuffer> indices;
 
-#if ENABLE_SEAMS_USING_MODELS
         struct Model
         {
             GLModel model;
@@ -347,7 +338,6 @@ class GCodeViewer
 
         // contain the buffer for model primitive types
         Model model;
-#endif // ENABLE_SEAMS_USING_MODELS
 
         std::string shader;
         std::vector<Path> paths;
@@ -396,7 +386,6 @@ class GCodeViewer
         }
         size_t max_indices_per_segment_size_bytes() const { return max_indices_per_segment() * sizeof(IBufferType); }
 
-#if ENABLE_SEAMS_USING_MODELS
         bool has_data() const {
             switch (render_primitive_type)
             {
@@ -417,11 +406,6 @@ class GCodeViewer
             default: { return false; }
             }
         }
-#else
-        bool has_data() const {
-            return !vertices.vbos.empty() && vertices.vbos.front() != 0 && !indices.empty() && indices.front().ibo != 0;
-        }
-#endif // ENABLE_SEAMS_USING_MODELS
     };
 
     // helper to render shells
@@ -569,36 +553,28 @@ class GCodeViewer
         int64_t gl_multi_lines_calls_count{ 0 };
         int64_t gl_multi_triangles_calls_count{ 0 };
         int64_t gl_triangles_calls_count{ 0 };
-#if ENABLE_SEAMS_USING_MODELS
         int64_t gl_instanced_models_calls_count{ 0 };
 #if ENABLE_SEAMS_USING_BATCHED_MODELS
         int64_t gl_batched_models_calls_count{ 0 };
 #endif // ENABLE_SEAMS_USING_BATCHED_MODELS
-#endif // ENABLE_SEAMS_USING_MODELS
         // memory
         int64_t results_size{ 0 };
         int64_t total_vertices_gpu_size{ 0 };
         int64_t total_indices_gpu_size{ 0 };
-#if ENABLE_SEAMS_USING_MODELS
         int64_t total_instances_gpu_size{ 0 };
-#endif // ENABLE_SEAMS_USING_MODELS
         int64_t max_vbuffer_gpu_size{ 0 };
         int64_t max_ibuffer_gpu_size{ 0 };
         int64_t paths_size{ 0 };
         int64_t render_paths_size{ 0 };
-#if ENABLE_SEAMS_USING_MODELS
         int64_t models_instances_size{ 0 };
-#endif // ENABLE_SEAMS_USING_MODELS
         // other
         int64_t travel_segments_count{ 0 };
         int64_t wipe_segments_count{ 0 };
         int64_t extrude_segments_count{ 0 };
-#if ENABLE_SEAMS_USING_MODELS
         int64_t instances_count{ 0 };
 #if ENABLE_SEAMS_USING_BATCHED_MODELS
         int64_t batched_count{ 0 };
 #endif // ENABLE_SEAMS_USING_BATCHED_MODELS
-#endif // ENABLE_SEAMS_USING_MODELS
         int64_t vbuffers_count{ 0 };
         int64_t ibuffers_count{ 0 };
 
@@ -624,40 +600,32 @@ class GCodeViewer
             gl_multi_lines_calls_count = 0;
             gl_multi_triangles_calls_count = 0;
             gl_triangles_calls_count = 0;
-#if ENABLE_SEAMS_USING_MODELS
             gl_instanced_models_calls_count = 0;
 #if ENABLE_SEAMS_USING_BATCHED_MODELS
             gl_batched_models_calls_count = 0;
 #endif // ENABLE_SEAMS_USING_BATCHED_MODELS
-#endif // ENABLE_SEAMS_USING_MODELS
         }
 
         void reset_sizes() {
             results_size = 0;
             total_vertices_gpu_size = 0;
             total_indices_gpu_size = 0;
-#if ENABLE_SEAMS_USING_MODELS
             total_instances_gpu_size = 0;
-#endif // ENABLE_SEAMS_USING_MODELS
             max_vbuffer_gpu_size = 0;
             max_ibuffer_gpu_size = 0;
             paths_size = 0;
             render_paths_size = 0;
-#if ENABLE_SEAMS_USING_MODELS
             models_instances_size = 0;
-#endif // ENABLE_SEAMS_USING_MODELS
         }
 
         void reset_others() {
             travel_segments_count = 0;
             wipe_segments_count = 0;
-            extrude_segments_count =  0;
-#if ENABLE_SEAMS_USING_MODELS
+            extrude_segments_count = 0;
             instances_count = 0;
 #if ENABLE_SEAMS_USING_BATCHED_MODELS
             batched_count = 0;
 #endif // ENABLE_SEAMS_USING_BATCHED_MODELS
-#endif // ENABLE_SEAMS_USING_MODELS
             vbuffers_count = 0;
             ibuffers_count = 0;
         }
@@ -743,9 +711,7 @@ public:
         Endpoints endpoints;
         Endpoints current;
         Endpoints last_current;
-#if ENABLE_SEAMS_USING_MODELS
         Endpoints global;
-#endif // ENABLE_SEAMS_USING_MODELS
         Vec3f current_position{ Vec3f::Zero() };
 #if ENABLE_FIX_SEAMS_SYNCH
         Vec3f current_offset{ Vec3f::Zero() };
@@ -811,9 +777,7 @@ public:
     GCodeViewer();
     ~GCodeViewer() { reset(); }
 
-#if ENABLE_SEAMS_USING_MODELS
     void init();
-#endif // ENABLE_SEAMS_USING_MODELS
 
     // extract rendering data from the given parameters
     void load(const GCodeProcessorResult& gcode_result, const Print& print, bool initialized);
