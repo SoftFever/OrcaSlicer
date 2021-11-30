@@ -2710,16 +2710,10 @@ namespace Slic3r {
 
     bool _3MF_Exporter::_add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items)
     {
-#if ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED
         // This happens for empty projects
-#endif // ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED
         if (build_items.size() == 0) {
             add_error("No build item found");
-#if ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED
             return true;
-#else
-            return false;
-#endif // ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED
         }
 
         stream << " <" << BUILD_TAG << ">\n";

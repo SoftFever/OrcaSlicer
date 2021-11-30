@@ -37,17 +37,6 @@
 
 
 //====================
-// 2.4.0.alpha1 techs
-//====================
-#define ENABLE_2_4_0_ALPHA1 1
-
-// Enable implementation of retract acceleration in gcode processor
-#define ENABLE_RETRACT_ACCELERATION (1 && ENABLE_2_4_0_ALPHA1)
-// Enable save and save as commands to be enabled also when the plater is empty and allow to load empty projects
-#define ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED (1 && ENABLE_2_4_0_ALPHA1)
-
-
-//====================
 // 2.4.0.alpha2 techs
 //====================
 #define ENABLE_2_4_0_ALPHA2 1

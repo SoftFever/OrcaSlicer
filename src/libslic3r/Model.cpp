@@ -160,13 +160,7 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
     if (!result)
         throw Slic3r::RuntimeError("Loading of a model file failed.");
 
-#if !ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED
-    if (model.objects.empty())
-        throw Slic3r::RuntimeError("The supplied file couldn't be read because it's empty");
-#endif // !ENABLE_SAVE_COMMANDS_ALWAYS_ENABLED
-
-    for (ModelObject *o : model.objects)
-    {
+    for (ModelObject *o : model.objects) {
 //        if (boost::algorithm::iends_with(input_file, ".zip.amf"))
 //        {
 //            // we remove the .zip part of the extension to avoid it be added to filenames when exporting
