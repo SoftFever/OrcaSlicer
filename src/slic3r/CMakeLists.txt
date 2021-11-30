@@ -254,7 +254,6 @@ if (APPLE)
             GUI/InstanceCheckMac.h
         )
     FIND_LIBRARY(DISKARBITRATION_LIBRARY DiskArbitration)
-
 endif ()
 
 add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
@@ -263,18 +262,18 @@ encoding_check(libslic3r_gui)
 
 target_link_libraries(libslic3r_gui libslic3r avrdude cereal imgui GLEW::GLEW OpenGL::GL hidapi libcurl ${wxWidgets_LIBRARIES})
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if (MSVC)
+    target_link_libraries(libslic3r_gui Setupapi.lib)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries(libslic3r_gui ${DBUS_LIBRARIES}) 
+elseif (APPLE)
+    target_link_libraries(libslic3r_gui ${DISKARBITRATION_LIBRARY})
 endif()
 
 if (SLIC3R_STATIC)
     # FIXME: This was previously exported by wx-config but the wxWidgets
     # cmake build forgets this and the build fails in debug mode (or on raspberry release)
     target_compile_definitions(libslic3r_gui PUBLIC -DwxDEBUG_LEVEL=0)
-endif()
-
-if(APPLE)
-    target_link_libraries(libslic3r_gui ${DISKARBITRATION_LIBRARY})
 endif()
 
 if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_CURL AND UNIX AND NOT APPLE)
