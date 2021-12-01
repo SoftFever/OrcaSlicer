@@ -12,16 +12,16 @@
 #include <list>
 #include <unordered_map>
 
-namespace Slic3r
+namespace Slic3r::FillLightning
 {
-class LightningTreeNode;
 
-using LightningTreeNodeSPtr = std::shared_ptr<LightningTreeNode>;
-using SparseLightningTreeNodeGrid = std::unordered_multimap<Point, std::weak_ptr<LightningTreeNode>, PointHash>;
+class Node;
+using NodeSPtr = std::shared_ptr<Node>;
+using SparseNodeGrid = std::unordered_multimap<Point, std::weak_ptr<Node>, PointHash>;
 
 struct GroundingLocation
 {
-    LightningTreeNodeSPtr tree_node; //!< not null if the gounding location is on a tree
+    NodeSPtr tree_node; //!< not null if the gounding location is on a tree
     std::optional<Point> boundary_location; //!< in case the gounding location is on the boundary
     Point p() const;
 };
@@ -31,10 +31,10 @@ struct GroundingLocation
  *
  * Contains the trees to be printed and propagated to the next layer below.
  */
-class LightningLayer
+class Layer
 {
 public:
-    std::vector<LightningTreeNodeSPtr> tree_roots;
+    std::vector<NodeSPtr> tree_roots;
 
     void generateNewTrees
     (
@@ -55,8 +55,8 @@ public:
         const EdgeGrid::Grid& outline_locator,
         const coord_t supporting_radius,
         const coord_t wall_supporting_radius,
-        const SparseLightningTreeNodeGrid& tree_node_locator,
-        const LightningTreeNodeSPtr& exclude_tree = nullptr
+        const SparseNodeGrid& tree_node_locator,
+        const NodeSPtr& exclude_tree = nullptr
     );
 
     /*!
@@ -64,24 +64,24 @@ public:
      * \param[out] new_root The new root node if one had been made
      * \return Whether a new root was added
      */
-    bool attach(const Point& unsupported_location, const GroundingLocation& ground, LightningTreeNodeSPtr& new_child, LightningTreeNodeSPtr& new_root);
+    bool attach(const Point& unsupported_location, const GroundingLocation& ground, NodeSPtr& new_child, NodeSPtr& new_root);
 
     void reconnectRoots
     (
-        std::vector<LightningTreeNodeSPtr>& to_be_reconnected_tree_roots,
+        std::vector<NodeSPtr>& to_be_reconnected_tree_roots,
         const Polygons& current_outlines,
         const EdgeGrid::Grid& outline_locator,
         const coord_t supporting_radius,
         const coord_t wall_supporting_radius
     );
 
-    Polygons convertToLines(const Polygons& limit_to_outline, const coord_t line_width) const;
+    Polylines convertToLines(const Polygons& limit_to_outline, const coord_t line_width) const;
 
     coord_t getWeightedDistance(const Point& boundary_loc, const Point& unsupported_location);
 
-    void fillLocator(SparseLightningTreeNodeGrid& tree_node_locator);
+    void fillLocator(SparseNodeGrid& tree_node_locator);
 };
 
-} // namespace Slic3r
+} // namespace Slic3r::FillLightning
 
 #endif // LIGHTNING_LAYER_H

@@ -4,12 +4,12 @@
 #include "DistanceField.hpp" //Class we're implementing.
 #include "../FillRectilinear.hpp"
 
-namespace Slic3r
+namespace Slic3r::FillLightning
 {
 
 constexpr coord_t radius_per_cell_size = 6;  // The cell-size should be small compared to the radius, but not so small as to be inefficient.
 
-LightningDistanceField::LightningDistanceField(const coord_t& radius, const Polygons& current_outline, const Polygons& current_overhang) : 
+DistanceField::DistanceField(const coord_t& radius, const Polygons& current_outline, const Polygons& current_overhang) : 
     m_cell_size(radius / radius_per_cell_size), 
     m_supporting_radius(radius)
 {
@@ -44,7 +44,7 @@ LightningDistanceField::LightningDistanceField(const coord_t& radius, const Poly
     }
 }
 
-void LightningDistanceField::update(const Point& to_node, const Point& added_leaf)
+void DistanceField::update(const Point& to_node, const Point& added_leaf)
 {
     Vec2d       v  = (added_leaf - to_node).cast<double>();
     auto        l2 = v.squaredNorm();
@@ -95,4 +95,4 @@ void LightningDistanceField::update(const Point& to_node, const Point& added_lea
     }
 }
 
-} // namespace Slic3r
+} // namespace Slic3r::FillLightning

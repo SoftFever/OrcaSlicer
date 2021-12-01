@@ -5,9 +5,9 @@
 
 #include "../../Geometry.hpp"
 
-using namespace Slic3r;
+namespace Slic3r::FillLightning {
 
-coord_t LightningTreeNode::getWeightedDistance(const Point& unsupported_location, const coord_t& supporting_radius) const
+coord_t Node::getWeightedDistance(const Point& unsupported_location, const coord_t& supporting_radius) const
 {
     constexpr coord_t min_valence_for_boost = 0;
     constexpr coord_t max_valence_for_boost = 4;
@@ -19,7 +19,7 @@ coord_t LightningTreeNode::getWeightedDistance(const Point& unsupported_location
     return dist_here - valence_boost;
 }
 
-bool LightningTreeNode::hasOffspring(const LightningTreeNodeSPtr& to_be_checked) const
+bool Node::hasOffspring(const NodeSPtr& to_be_checked) const
 {
     if (to_be_checked == shared_from_this())
         return true;
@@ -31,14 +31,14 @@ bool LightningTreeNode::hasOffspring(const LightningTreeNodeSPtr& to_be_checked)
     return false;
 }
 
-LightningTreeNodeSPtr LightningTreeNode::addChild(const Point& child_loc)
+NodeSPtr Node::addChild(const Point& child_loc)
 {
     assert(m_p != child_loc);
-    LightningTreeNodeSPtr child = LightningTreeNode::create(child_loc);
+    NodeSPtr child = Node::create(child_loc);
     return addChild(child);
 }
 
-LightningTreeNodeSPtr LightningTreeNode::addChild(LightningTreeNodeSPtr& new_child)
+NodeSPtr Node::addChild(NodeSPtr& new_child)
 {
     assert(new_child != shared_from_this());
     //assert(p != new_child->p); // NOTE: No problem for now. Issue to solve later. Maybe even afetr final. Low prio.
@@ -48,8 +48,8 @@ LightningTreeNodeSPtr LightningTreeNode::addChild(LightningTreeNodeSPtr& new_chi
     return new_child;
 }
 
-void LightningTreeNode::propagateToNextLayer(
-    std::vector<LightningTreeNodeSPtr>& next_trees,
+void Node::propagateToNextLayer(
+    std::vector<NodeSPtr>& next_trees,
     const Polygons& next_outlines,
     const EdgeGrid::Grid& outline_locator,
     const coord_t prune_distance,
@@ -65,7 +65,7 @@ void LightningTreeNode::propagateToNextLayer(
 
 // NOTE: Depth-first, as currently implemented.
 //       Skips the root (because that has no root itself), but all initial nodes will have the root point anyway.
-void LightningTreeNode::visitBranches(const std::function<void(const Point&, const Point&)>& visitor) const
+void Node::visitBranches(const std::function<void(const Point&, const Point&)>& visitor) const
 {
     for (const auto& node : m_children) {
         assert(node->m_parent.lock() == shared_from_this());
@@ -75,7 +75,7 @@ void LightningTreeNode::visitBranches(const std::function<void(const Point&, con
 }
 
 // NOTE: Depth-first, as currently implemented.
-void LightningTreeNode::visitNodes(const std::function<void(LightningTreeNodeSPtr)>& visitor)
+void Node::visitNodes(const std::function<void(NodeSPtr)>& visitor)
 {
     visitor(shared_from_this());
     for (const auto& node : m_children) {
@@ -84,13 +84,13 @@ void LightningTreeNode::visitNodes(const std::function<void(LightningTreeNodeSPt
     }
 }
 
-LightningTreeNode::LightningTreeNode(const Point& p, const std::optional<Point>& last_grounding_location /*= std::nullopt*/) : 
+Node::Node(const Point& p, const std::optional<Point>& last_grounding_location /*= std::nullopt*/) : 
     m_is_root(true), m_p(p), m_last_grounding_location(last_grounding_location)
 {}
 
-LightningTreeNodeSPtr LightningTreeNode::deepCopy() const
+NodeSPtr Node::deepCopy() const
 {
-    LightningTreeNodeSPtr local_root = LightningTreeNode::create(m_p);
+    NodeSPtr local_root = Node::create(m_p);
     local_root->m_is_root = m_is_root;
     if (m_is_root)
     {
@@ -99,14 +99,14 @@ LightningTreeNodeSPtr LightningTreeNode::deepCopy() const
     local_root->m_children.reserve(m_children.size());
     for (const auto& node : m_children)
     {
-        LightningTreeNodeSPtr child = node->deepCopy();
+        NodeSPtr child = node->deepCopy();
         child->m_parent = local_root;
         local_root->m_children.push_back(child);
     }
     return local_root;
 }
 
-void LightningTreeNode::reroot(LightningTreeNodeSPtr new_parent /*= nullptr*/)
+void Node::reroot(NodeSPtr new_parent /*= nullptr*/)
 {
     if (! m_is_root) {
         auto old_parent = m_parent.lock();
@@ -124,13 +124,13 @@ void LightningTreeNode::reroot(LightningTreeNodeSPtr new_parent /*= nullptr*/)
     }
 }
 
-LightningTreeNodeSPtr LightningTreeNode::closestNode(const Point& loc)
+NodeSPtr Node::closestNode(const Point& loc)
 {
-    LightningTreeNodeSPtr result = shared_from_this();
+    NodeSPtr result = shared_from_this();
     auto closest_dist2 = coord_t((m_p - loc).cast<double>().norm());
 
     for (const auto& child : m_children) {
-        LightningTreeNodeSPtr candidate_node = child->closestNode(loc);
+        NodeSPtr candidate_node = child->closestNode(loc);
         const auto child_dist2 = coord_t((candidate_node->m_p - loc).cast<double>().norm());
         if (child_dist2 < closest_dist2) {
             closest_dist2 = child_dist2;
@@ -183,7 +183,7 @@ bool lineSegmentPolygonsIntersection(const Point& a, const Point& b, const EdgeG
     return visitor.d2min < within_max_dist * within_max_dist;
 }
 
-bool LightningTreeNode::realign(const Polygons& outlines, const EdgeGrid::Grid& outline_locator, std::vector<LightningTreeNodeSPtr>& rerooted_parts)
+bool Node::realign(const Polygons& outlines, const EdgeGrid::Grid& outline_locator, std::vector<NodeSPtr>& rerooted_parts)
 {
     if (outlines.empty())
         return false;
@@ -192,10 +192,10 @@ bool LightningTreeNode::realign(const Polygons& outlines, const EdgeGrid::Grid& 
         // Only keep children that have an unbroken connection to here, realign will put the rest in rerooted parts due to recursion:
         Point coll;
         bool reground_me = false;
-        m_children.erase(std::remove_if(m_children.begin(), m_children.end(), [&](const LightningTreeNodeSPtr &child) {
+        m_children.erase(std::remove_if(m_children.begin(), m_children.end(), [&](const NodeSPtr &child) {
             bool connect_branch = child->realign(outlines, outline_locator, rerooted_parts);
             // Find an intersection of the line segment from p to child->p, at maximum outline_locator.resolution() * 2 distance from p.
-            if (connect_branch && lineSegmentPolygonsIntersection(child->m_p, m_p, outlines, outline_locator, coll, outline_locator.resolution() * 2)) {
+            if (connect_branch && lineSegmentPolygonsIntersection(child->m_p, m_p, outline_locator, coll, outline_locator.resolution() * 2)) {
                 child->m_last_grounding_location.reset();
                 child->m_parent.reset();
                 child->m_is_root = true;
@@ -223,12 +223,12 @@ bool LightningTreeNode::realign(const Polygons& outlines, const EdgeGrid::Grid& 
     return false;
 }
 
-void LightningTreeNode::straighten(const coord_t magnitude, const coord_t max_remove_colinear_dist)
+void Node::straighten(const coord_t magnitude, const coord_t max_remove_colinear_dist)
 {
     straighten(magnitude, m_p, 0, max_remove_colinear_dist * max_remove_colinear_dist);
 }
 
-LightningTreeNode::RectilinearJunction LightningTreeNode::straighten(
+Node::RectilinearJunction Node::straighten(
     const coord_t magnitude,
     const Point& junction_above,
     const coord_t accumulated_dist,
@@ -259,7 +259,7 @@ LightningTreeNode::RectilinearJunction LightningTreeNode::straighten(
             constexpr coord_t close_enough = 10;
 
             child_p = m_children.front(); //recursive call to straighten might have removed the child
-            const LightningTreeNodeSPtr& parent_node = m_parent.lock();
+            const NodeSPtr& parent_node = m_parent.lock();
             if (parent_node &&
                 (child_p->m_p - parent_node->m_p).cast<double>().squaredNorm() < max_remove_colinear_dist2 &&
                 Line::distance_to_squared(m_p, parent_node->m_p, child_p->m_p) < close_enough * close_enough) {
@@ -306,7 +306,7 @@ LightningTreeNode::RectilinearJunction LightningTreeNode::straighten(
 }
 
 // Prune the tree from the extremeties (leaf-nodes) until the pruning distance is reached.
-coord_t LightningTreeNode::prune(const coord_t& pruning_distance)
+coord_t Node::prune(const coord_t& pruning_distance)
 {
     if (pruning_distance <= 0)
         return 0;
@@ -343,7 +343,7 @@ coord_t LightningTreeNode::prune(const coord_t& pruning_distance)
     return max_distance_pruned;
 }
 
-void LightningTreeNode::convertToPolylines(Polygons& output, const coord_t line_width) const
+void Node::convertToPolylines(Polygons& output, const coord_t line_width) const
 {
     Polygons result;
     output.emplace_back();
@@ -352,7 +352,7 @@ void LightningTreeNode::convertToPolylines(Polygons& output, const coord_t line_
     append(output, std::move(result));
 }
 
-void LightningTreeNode::convertToPolylines(size_t long_line_idx, Polygons& output) const
+void Node::convertToPolylines(size_t long_line_idx, Polygons& output) const
 {
     if (m_children.empty()) {
         output[long_line_idx].points.push_back(m_p);
@@ -364,7 +364,7 @@ void LightningTreeNode::convertToPolylines(size_t long_line_idx, Polygons& outpu
 
     for (size_t idx_offset = 1; idx_offset < m_children.size(); idx_offset++) {
         size_t child_idx = (first_child_idx + idx_offset) % m_children.size();
-        const LightningTreeNode& child = *m_children[child_idx];
+        const Node& child = *m_children[child_idx];
         output.emplace_back();
         size_t child_line_idx = output.size() - 1;
         child.convertToPolylines(child_line_idx, output);
@@ -372,7 +372,7 @@ void LightningTreeNode::convertToPolylines(size_t long_line_idx, Polygons& outpu
     }
 }
 
-void LightningTreeNode::removeJunctionOverlap(Polygons& result_lines, const coord_t line_width) const
+void Node::removeJunctionOverlap(Polygons& result_lines, const coord_t line_width) const
 {
     const coord_t reduction = line_width / 2; // TODO make configurable?
     for (auto poly_it = result_lines.begin(); poly_it != result_lines.end(); ) {
@@ -406,3 +406,5 @@ void LightningTreeNode::removeJunctionOverlap(Polygons& result_lines, const coor
             ++ poly_it;
     }
 }
+
+} // namespace Slic3r::FillLightning

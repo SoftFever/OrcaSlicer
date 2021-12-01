@@ -20,12 +20,12 @@
  * - Make a pass with Arachne over the output. Somehow.
  * - Generate all to-be-supported points at once instead of sequentially: See branch interlocking_gen PolygonUtils::spreadDots (Or work with sparse grids.)
  * - Lots of magic values ... to many to parameterize. But are they the best?
- * - Move more complex computations from LightningGenerator constructor to elsewhere.
+ * - Move more complex computations from Generator constructor to elsewhere.
  */
 
-using namespace Slic3r;
+namespace Slic3r::FillLightning {
 
-LightningGenerator::LightningGenerator(const PrintObject &print_object)
+Generator::Generator(const PrintObject &print_object)
 {
     const PrintConfig         &print_config         = print_object.print()->config();
     const PrintObjectConfig   &object_config        = print_object.config();
@@ -51,7 +51,7 @@ LightningGenerator::LightningGenerator(const PrintObject &print_object)
     generateTrees(print_object);
 }
 
-void LightningGenerator::generateInitialInternalOverhangs(const PrintObject &print_object)
+void Generator::generateInitialInternalOverhangs(const PrintObject &print_object)
 {
     m_overhang_per_layer.resize(print_object.layers().size());
     const float infill_wall_offset = - m_infill_extrusion_width;
@@ -73,13 +73,13 @@ void LightningGenerator::generateInitialInternalOverhangs(const PrintObject &pri
     }
 }
 
-const LightningLayer& LightningGenerator::getTreesForLayer(const size_t& layer_id) const
+const Layer& Generator::getTreesForLayer(const size_t& layer_id) const
 {
     assert(layer_id < m_lightning_layers.size());
     return m_lightning_layers[layer_id];
 }
 
-void LightningGenerator::generateTrees(const PrintObject &print_object)
+void Generator::generateTrees(const PrintObject &print_object)
 {
     m_lightning_layers.resize(print_object.layers().size());
     const coord_t infill_wall_offset = - m_infill_extrusion_width;
@@ -101,11 +101,11 @@ void LightningGenerator::generateTrees(const PrintObject &print_object)
     // For-each layer from top to bottom:
     for (int layer_id = top_layer_id; layer_id >= 0; layer_id--)
     {
-        LightningLayer& current_lightning_layer = m_lightning_layers[layer_id];
+        Layer& current_lightning_layer = m_lightning_layers[layer_id];
         Polygons& current_outlines = infill_outlines[layer_id];
 
         // register all trees propagated from the previous layer as to-be-reconnected
-        std::vector<LightningTreeNodeSPtr> to_be_reconnected_tree_roots = current_lightning_layer.tree_roots;
+        std::vector<NodeSPtr> to_be_reconnected_tree_roots = current_lightning_layer.tree_roots;
 
         current_lightning_layer.generateNewTrees(m_overhang_per_layer[layer_id], current_outlines, outlines_locator, m_supporting_radius, m_wall_supporting_radius);
         current_lightning_layer.reconnectRoots(to_be_reconnected_tree_roots, current_outlines, outlines_locator, m_supporting_radius, m_wall_supporting_radius);
@@ -118,8 +118,10 @@ void LightningGenerator::generateTrees(const PrintObject &print_object)
         outlines_locator.set_bbox(get_extents(below_outlines).inflated(SCALED_EPSILON));
         outlines_locator.create(below_outlines, locator_cell_size);
 
-        std::vector<LightningTreeNodeSPtr>& lower_trees = m_lightning_layers[layer_id - 1].tree_roots;
+        std::vector<NodeSPtr>& lower_trees = m_lightning_layers[layer_id - 1].tree_roots;
         for (auto& tree : current_lightning_layer.tree_roots)
             tree->propagateToNextLayer(lower_trees, below_outlines, outlines_locator, m_prune_length, m_straightening_max_distance, locator_cell_size / 2);
     }
 }
+
+} // namespace Slic3r::FillLightning

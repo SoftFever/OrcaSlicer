@@ -4,7 +4,7 @@
 #ifndef LIGHTNING_DISTANCE_FIELD_H
 #define LIGHTNING_DISTANCE_FIELD_H
 
-namespace Slic3r
+namespace Slic3r::FillLightning
 {
 
 /*!
@@ -15,7 +15,7 @@ namespace Slic3r
  * maintains how far it is removed from the edge, which is used to determine
  * how it gets supported by Lightning Infill.
  */
-class LightningDistanceField
+class DistanceField
 {
 public:
     /*!
@@ -26,7 +26,7 @@ public:
      * \param current_overhang The overhang that needs to be supported on this
      * layer.
      */
-    LightningDistanceField(const coord_t& radius, const Polygons& current_outline, const Polygons& current_overhang);
+    DistanceField(const coord_t& radius, const Polygons& current_outline, const Polygons& current_overhang);
     
     /*!
      * Gets the next unsupported location to be supported by a new branch.
@@ -92,6 +92,6 @@ protected:
     std::unordered_map<Point, std::list<UnsupportedCell>::iterator, PointHash> m_unsupported_points_grid;
 };
 
-} // namespace Slic3r
+} // namespace Slic3r::FillLightning
 
 #endif //LIGHTNING_DISTANCE_FIELD_H

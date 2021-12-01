@@ -12,14 +12,14 @@
 #include "../../EdgeGrid.hpp"
 #include "../../Polygon.hpp"
 
-namespace Slic3r
+namespace Slic3r::FillLightning
 {
 
 constexpr auto locator_cell_size = scaled<coord_t>(4.);
 
-class LightningTreeNode;
+class Node;
 
-using LightningTreeNodeSPtr = std::shared_ptr<LightningTreeNode>;
+using NodeSPtr = std::shared_ptr<Node>;
 
 // NOTE: As written, this struct will only be valid for a single layer, will have to be updated for the next.
 // NOTE: Reasons for implementing this with some separate closures:
@@ -35,15 +35,15 @@ using LightningTreeNodeSPtr = std::shared_ptr<LightningTreeNode>;
  * a tree. The class also has some helper functions specific to Lightning Infill
  * e.g. to straighten the paths around this node.
  */
-class LightningTreeNode : public std::enable_shared_from_this<LightningTreeNode>
+class Node : public std::enable_shared_from_this<Node>
 {
 public:
     // Workaround for private/protected constructors and 'make_shared': https://stackoverflow.com/a/27832765
-    template<typename ...Arg> LightningTreeNodeSPtr static create(Arg&&...arg)
+    template<typename ...Arg> NodeSPtr static create(Arg&&...arg)
     {
-        struct EnableMakeShared : public LightningTreeNode
+        struct EnableMakeShared : public Node
         {
-            EnableMakeShared(Arg&&...arg) : LightningTreeNode(std::forward<Arg>(arg)...) {}
+            EnableMakeShared(Arg&&...arg) : Node(std::forward<Arg>(arg)...) {}
         };
         return std::make_shared<EnableMakeShared>(std::forward<Arg>(arg)...);
     }
@@ -62,19 +62,19 @@ public:
     void setLocation(const Point& p) { m_p = p; }
 
     /*!
-     * Construct a new ``LightningTreeNode`` instance and add it as a child of
+     * Construct a new ``Node`` instance and add it as a child of
      * this node.
      * \param p The location of the new node.
      * \return A shared pointer to the new node.
      */
-    LightningTreeNodeSPtr addChild(const Point& p);
+    NodeSPtr addChild(const Point& p);
 
     /*!
-     * Add an existing ``LightningTreeNode`` as a child of this node.
+     * Add an existing ``Node`` as a child of this node.
      * \param new_child The node that must be added as a child.
      * \return Always returns \p new_child.
      */
-    LightningTreeNodeSPtr addChild(LightningTreeNodeSPtr& new_child);
+    NodeSPtr addChild(NodeSPtr& new_child);
 
     /*!
      * Propagate this node's sub-tree to the next layer.
@@ -96,7 +96,7 @@ public:
      */
     void propagateToNextLayer
     (
-        std::vector<LightningTreeNodeSPtr>& next_trees,
+        std::vector<NodeSPtr>& next_trees,
         const Polygons& next_outlines,
         const EdgeGrid::Grid& outline_locator,
         const coord_t prune_distance,
@@ -127,7 +127,7 @@ public:
      * \param visitor A function to execute for every node in this node's sub-
      * tree.
      */
-    void visitNodes(const std::function<void(LightningTreeNodeSPtr)>& visitor);
+    void visitNodes(const std::function<void(NodeSPtr)>& visitor);
 
     /*!
      * Get a weighted distance from an unsupported point to this node (given the current supporting radius).
@@ -156,14 +156,14 @@ public:
      * This is then recursively bubbled up until it reaches the (former) root, which then will become a leaf.
      * \param new_parent The (new) parent-node of the root, useful for recursing or immediately attaching the node to another tree.
      */
-    void reroot(LightningTreeNodeSPtr new_parent = nullptr);
+    void reroot(NodeSPtr new_parent = nullptr);
 
     /*!
      * Retrieves the closest node to the specified location.
      * \param loc The specified location.
      * \result The branch that starts at the position closest to the location within this tree.
      */
-    LightningTreeNodeSPtr closestNode(const Point& loc);
+    NodeSPtr closestNode(const Point& loc);
 
     /*!
      * Returns whether the given tree node is a descendant of this node.
@@ -174,10 +174,10 @@ public:
      * \return ``true`` if the given node is a descendant or this node itself,
      * or ``false`` if it is not in the sub-tree.
      */
-    bool hasOffspring(const LightningTreeNodeSPtr& to_be_checked) const;
+    bool hasOffspring(const NodeSPtr& to_be_checked) const;
 
 protected:
-    LightningTreeNode() = delete; // Don't allow empty contruction
+    Node() = delete; // Don't allow empty contruction
 
     /*!
      * Construct a new node, either for insertion in a tree or as root.
@@ -185,19 +185,19 @@ protected:
      * Connecting other nodes to this node indicates that a line segment should
      * be drawn between those two physical positions.
      */
-    LightningTreeNode(const Point& p, const std::optional<Point>& last_grounding_location = std::nullopt);
+    Node(const Point& p, const std::optional<Point>& last_grounding_location = std::nullopt);
 
     /*!
      * Copy this node and its entire sub-tree.
      * \return The equivalent of this node in the copy (the root of the new sub-
      * tree).
      */
-    LightningTreeNodeSPtr deepCopy() const;
+    NodeSPtr deepCopy() const;
 
     /*! Reconnect trees from the layer above to the new outlines of the lower layer.
      * \return Wether or not the root is kept (false is no, true is yes).
      */
-    bool realign(const Polygons& outlines, const EdgeGrid::Grid& outline_locator, std::vector<LightningTreeNodeSPtr>& rerooted_parts);
+    bool realign(const Polygons& outlines, const EdgeGrid::Grid& outline_locator, std::vector<NodeSPtr>& rerooted_parts);
 
     struct RectilinearJunction
     {
@@ -261,15 +261,15 @@ protected:
 
     bool m_is_root;
     Point m_p;
-    std::weak_ptr<LightningTreeNode> m_parent;
-    std::vector<LightningTreeNodeSPtr> m_children;
+    std::weak_ptr<Node> m_parent;
+    std::vector<NodeSPtr> m_children;
 
     std::optional<Point> m_last_grounding_location;  //<! The last known grounding location, see 'getLastGroundingLocation()'.
 };
 
 bool inside(const Polygons &polygons, const Point p);
-bool lineSegmentPolygonsIntersection(const Point& a, const Point& b, const Polygons& current_outlines, const EdgeGrid::Grid& outline_locator, Point& result, const coord_t within_max_dist);
+bool lineSegmentPolygonsIntersection(const Point& a, const Point& b, const EdgeGrid::Grid& outline_locator, Point& result, const coord_t within_max_dist);
 
-} // namespace Slic3r
+} // namespace Slic3r::FillLightning
 
 #endif // LIGHTNING_TREE_NODE_H
