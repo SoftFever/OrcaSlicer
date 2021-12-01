@@ -254,7 +254,7 @@ static std::vector<Intersection> extend_for_closest_lines(const std::vector<Inte
     };
 
     std::vector<Intersection> new_intersections = intersections;
-    if (!intersections.empty() && !start_lines.empty()) {
+    if (!new_intersections.empty() && !start_lines.empty()) {
         size_t cl_start_idx = get_closer(start_lines, new_intersections.front(), start);
         if (cl_start_idx != std::numeric_limits<size_t>::max()) {
             // If there is any ClosestLine around the start point closer to the Intersection, then replace this Intersection with ClosestLine.
@@ -265,11 +265,13 @@ static std::vector<Intersection> extend_for_closest_lines(const std::vector<Inte
             // vector of intersections. This allows in some cases when it is more than one around ClosestLine start point chose that one which
             // minimizes the number of contours (also length of the detour) in result detour. If there doesn't exist any ClosestLine like this, then
             // use the first one, which is the closest one to the start point.
-            size_t             start_closest_lines_idx = find_closest_line_with_same_boundary_idx(start_lines, intersections, true);
+            size_t             start_closest_lines_idx = find_closest_line_with_same_boundary_idx(start_lines, new_intersections, true);
             const ClosestLine &cl_start                = (start_closest_lines_idx != std::numeric_limits<size_t>::max()) ? start_lines[start_closest_lines_idx] : start_lines.front();
             new_intersections.insert(new_intersections.begin(),{cl_start.border_idx, cl_start.line_idx, cl_start.point, compute_distance(cl_start)});
         }
-    } else if (!intersections.empty() && !end_lines.empty()) {
+    }
+
+    if (!new_intersections.empty() && !end_lines.empty()) {
         size_t cl_end_idx = get_closer(end_lines, new_intersections.back(), end);
         if (cl_end_idx != std::numeric_limits<size_t>::max()) {
             // If there is any ClosestLine around the end point closer to the Intersection, then replace this Intersection with ClosestLine.
@@ -280,7 +282,7 @@ static std::vector<Intersection> extend_for_closest_lines(const std::vector<Inte
             // vector of intersections. This allows in some cases when it is more than one around ClosestLine end point chose that one which
             // minimizes the number of contours (also length of the detour) in result detour. If there doesn't exist any ClosestLine like this, then
             // use the first one, which is the closest one to the end point.
-            size_t             end_closest_lines_idx = find_closest_line_with_same_boundary_idx(end_lines, intersections, false);
+            size_t             end_closest_lines_idx = find_closest_line_with_same_boundary_idx(end_lines, new_intersections, false);
             const ClosestLine &cl_end                = (end_closest_lines_idx != std::numeric_limits<size_t>::max()) ? end_lines[end_closest_lines_idx] : end_lines.front();
             new_intersections.push_back({cl_end.border_idx, cl_end.line_idx, cl_end.point, compute_distance(cl_end)});
         }
