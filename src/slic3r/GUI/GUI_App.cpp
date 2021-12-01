@@ -1035,7 +1035,7 @@ bool GUI_App::on_init_inner()
         RichMessageDialog dlg(nullptr,
             _L("You are running a 32 bit build of PrusaSlicer on 64-bit Windows."
                 "\n32 bit build of PrusaSlicer will likely not be able to utilize all the RAM available in the system."
-                "\nPlease download and install a 64 bit build of PrusaSlice from https://www.prusa3d.cz/prusaslicer/."
+                "\nPlease download and install a 64 bit build of PrusaSlicer from https://www.prusa3d.cz/prusaslicer/."
                 "\nDo you wish to continue?"),
             "PrusaSlicer", wxICON_QUESTION | wxYES_NO);
         if (dlg.ShowModal() != wxID_YES)

@@ -2713,7 +2713,9 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
     // if unsaved changes was not cheched till this moment
     if (!check_unsaved_preset_changes) {
         if ((check_unsaved_preset_changes = !first_added_filament.empty() || !first_added_sla_material.empty())) {
-            header = format_wxstr(_L("A new %1% was installed and it will be activated."), !first_added_filament.empty() ? _L("Filament") : _L("SLA material"));
+            header = !first_added_filament.empty() ? 
+                     _L("A new filament was installed and it will be activated.") :
+                     _L("A new SLA material was installed and it will be activated.");
             if (!wxGetApp().check_and_keep_current_preset_changes(caption, header, act_btns, &apply_keeped_changes))
                 return false;
         }
@@ -2721,7 +2723,7 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
             bool is_filaments_changed = app_config->get_section(AppConfig::SECTION_FILAMENTS) != appconfig_new.get_section(AppConfig::SECTION_FILAMENTS);
             bool is_sla_materials_changed = app_config->get_section(AppConfig::SECTION_MATERIALS) != appconfig_new.get_section(AppConfig::SECTION_MATERIALS);
             if ((check_unsaved_preset_changes = is_filaments_changed || is_sla_materials_changed)) {
-                header = format_wxstr(_L("Some %1% were uninstalled."), is_filaments_changed ? _L("Filaments") : _L("SLA materials"));
+                header = is_filaments_changed ? _L("Some filaments were uninstalled.") : _L("Some SLA materials were uninstalled.");
                 if (!wxGetApp().check_and_keep_current_preset_changes(caption, header, act_btns, &apply_keeped_changes))
                     return false;
             }

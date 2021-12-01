@@ -1407,8 +1407,8 @@ wxString Control::get_tooltip(int tick/*=-1*/)
     if (tick_code_it == m_ticks.ticks.end() && m_focus == fiActionIcon)    // tick doesn't exist
     {
         if (m_draw_mode == dmSequentialFffPrint)
-            return   _L("The sequential print is on.\n"
-                        "It's impossible to apply any custom G-code for objects printing sequentually.\n");
+            return  (_L("The sequential print is on.\n"
+                        "It's impossible to apply any custom G-code for objects printing sequentually.") + "\n");
 
         // Show mode as a first string of tooltop
         tooltip = "    " + _L("Print mode") + ": ";

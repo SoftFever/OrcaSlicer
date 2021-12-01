@@ -13,11 +13,9 @@ msgstr ""
 "Language-Team: \n"
 
 #: src/slic3r/GUI/Tab.cpp:4124
-msgid ""
-"\"%1%\" is disabled because \"%2%\" is on in \"%3%\" category.\n"
+msgid "\"%1%\" is disabled because \"%2%\" is on in \"%3%\" category.\n"
 "To enable \"%1%\", please switch off \"%2%\""
-msgstr ""
-"\"%1%\" je deaktivováno, protože \"%2%\" je zapnuto v kategorii \"%3%\".\n"
+msgstr "\"%1%\" je deaktivováno, protože \"%2%\" je zapnuto v kategorii \"%3%\".\n"
 "Chcete-li povolit \"%1%\",, vypněte \"%2%\""
 
 #: src/libslic3r/PrintConfig.cpp:249 src/libslic3r/PrintConfig.cpp:828 src/libslic3r/PrintConfig.cpp:1148 src/libslic3r/PrintConfig.cpp:1327 src/libslic3r/PrintConfig.cpp:1390 src/libslic3r/PrintConfig.cpp:1640 src/libslic3r/PrintConfig.cpp:2568 src/libslic3r/PrintConfig.cpp:2805 src/libslic3r/PrintConfig.cpp:2931
@@ -174,11 +172,9 @@ msgstr "%d trojúhelníků"
 
 #: src/slic3r/GUI/GUI_App.cpp:718
 #, c-format
-msgid ""
-"%s\n"
+msgid "%s\n"
 "Do you want to continue?"
-msgstr ""
-"%s\n"
+msgstr "%s\n"
 "Chcete pokračovat?"
 
 #: src/slic3r/GUI/MainFrame.cpp:917 src/slic3r/GUI/MainFrame.cpp:1316
@@ -228,12 +224,10 @@ msgstr "Došlo k chybě v programu %s"
 
 #: src/slic3r/GUI/GUI_App.cpp:528
 #, c-format
-msgid ""
-"%s has encountered an error. It was likely caused by running out of memory. If you are sure you have enough RAM on your system, this may also be a bug and we would be glad if you reported it.\n"
+msgid "%s has encountered an error. It was likely caused by running out of memory. If you are sure you have enough RAM on your system, this may also be a bug and we would be glad if you reported it.\n"
 "\n"
 "The application will now terminate."
-msgstr ""
-"%s zaznamenal chybu. Bylo to pravděpodobně způsobeno nedostatkem paměti. Pokud jste si jisti, že máte v systému dostatek paměti RAM, může to být také chyba programu a v takovém případě bychom byli rádi, kdybyste nám to nahlásili.\n"
+msgstr "%s zaznamenal chybu. Bylo to pravděpodobně způsobeno nedostatkem paměti. Pokud jste si jisti, že máte v systému dostatek paměti RAM, může to být také chyba programu a v takovém případě bychom byli rádi, kdybyste nám to nahlásili.\n"
 "\n"
 "Aplikace se nyní ukončí."
 
@@ -264,15 +258,13 @@ msgstr "%s informace"
 
 #: src/slic3r/GUI/UpdateDialogs.cpp:270
 #, c-format
-msgid ""
-"%s now uses an updated configuration structure.\n"
+msgid "%s now uses an updated configuration structure.\n"
 "\n"
 "So called 'System presets' have been introduced, which hold the built-in default settings for various printers. These System presets cannot be modified, instead, users now may create their own presets inheriting settings from one of the System presets.\n"
 "An inheriting preset may either inherit a particular value from its parent or override it with a customized value.\n"
 "\n"
 "Please proceed with the %s that follows to set up the new presets and to choose whether to enable automatic preset updates."
-msgstr ""
-"%s nyní používá aktualizovanou konfigurační strukturu.\n"
+msgstr "%s nyní používá aktualizovanou konfigurační strukturu.\n"
 "\n"
 "Byly uvedeny takzvaná \"Systémová přednastavení\", která obsahují výchozí nastavení pro rozličné tiskárny. Tato systémová přednastavení nemohou být upravena, místo toho si nyní uživatel může vytvořit svá vlastní přednastavení tím, že zdědí nastavení z jednoho ze systémových přednastavení.\n"
 "Nově vytvořené přednastavení může buď zdědit určitou hodnotu od svého předchůdce nebo ji přepsat upravenou hodnotou.\n"
@@ -291,14 +283,12 @@ msgstr "%s varování"
 
 #: src/slic3r/GUI/UpdateDialogs.cpp:151
 #, c-format
-msgid ""
-"%s will now start updates. Otherwise it won't be able to start.\n"
+msgid "%s will now start updates. Otherwise it won't be able to start.\n"
 "\n"
 "Note that a full configuration snapshot will be created first. It can then be restored at any time should there be a problem with the new version.\n"
 "\n"
 "Updated configuration bundles:"
-msgstr ""
-"%s nyní spustí aktualizaci. Jinak nebude moci být spuštěn.\n"
+msgstr "%s nyní spustí aktualizaci. Jinak nebude moci být spuštěn.\n"
 "\n"
 "Nejprve bude vytvořen kompletní snímek konfigurace a v případě problému s novou verzí lze provést obnovu.\n"
 "\n"
@@ -549,14 +539,22 @@ msgstr "Bude vytvořena oddělená  kopie aktuálního systémového přednastav
 msgid "A new %1% was installed and it will be activated."
 msgstr "Byl nainstalován nový %1% a bude aktivován."
 
+#: src/slic3r/GUI/ConfigWizard.cpp:2717
+msgid "A new filament was installed and it will be activated."
+msgstr "Byl nainstalován nový filament a bude aktivován."
+
 #: src/slic3r/GUI/ConfigWizard.cpp:2648
 msgid "A new Printer was installed and it will be activated."
 msgstr "Byla nainstalována nová tiskárna, která bude aktivována."
 
+#: src/slic3r/GUI/ConfigWizard.cpp:2718
+msgid "A new SLA material was installed and it will be activated."
+msgstr "Byl nainstalován nový SLA materiál a bude aktivován."
+
 #: src/slic3r/GUI/ConfigWizard.cpp:2568
 msgid "A new vendor was installed and one of its printers will be activated"
 msgid_plural "New vendors were installed and one of theirs printers will be activated"
-msgstr[0] "Byl instalován nový výrobce a jedna z jeho tiskáren bude aktivována."
+msgstr[0] "Byl instalován nový výrobce a jedna z jeho tiskáren bude aktivována"
 msgstr[1] "Byli nainstalováni noví výrobci a bude aktivována jedna z jejich tiskáren"
 msgstr[2] "Byli nainstalováni noví výrobci a bude aktivována jedna z jejich tiskáren"
 msgstr[3] ""
@@ -568,6 +566,10 @@ msgstr "Obecným pravidlem je 160 až 230 °C pro PLA a 215 až 250 °C pro ABS.
 #: src/slic3r/GUI/ConfigWizard.cpp:1414
 msgid "A rule of thumb is 60 °C for PLA and 110 °C for ABS. Leave zero if you have no heated bed."
 msgstr "Obecným pravidlem je 60 °C pro PLA a 110 °C pro ABS. Zadejte nula, pokud nemáte vyhřívanou podložku."
+
+#: src/libslic3r/PrintConfig.cpp:3743
+msgid "A slower printing profile might be necessary when using materials with higher viscosity or with some hollowed parts. It slows down the tilt movement and adds a delay before exposure."
+msgstr "Pomalejší tiskový profil může být nutný při použití materiálů s vyšší viskozitou nebo u některých dutých dílů. Zpomaluje pohyb tiltu a přidává zpoždění před osvitem."
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:634
 msgid "A toolpath outside the print area was detected."
@@ -627,11 +629,9 @@ msgid "Adaptive Cubic"
 msgstr "Kubický adaptivní"
 
 #: resources/data/hints.ini: [hint:Adaptive infills]
-msgid ""
-"Adaptive infills\n"
+msgid "Adaptive infills\n"
 "Did you know that you can use the Adaptive cubic and Support cubic infills to decrease the print time and lower the filament consumption? Read more in the documentation."
-msgstr ""
-"Adaptivní výplň\n"
+msgstr "Adaptivní výplň\n"
 "Věděli jste, že můžete použít adaptivní kubické a kubické adaptivní výplně, abyste zkrátili dobu tisku a snížili spotřebu filamentu? Přečtěte si více v dokumentaci."
 
 #: src/slic3r/GUI/GalleryDialog.cpp:123
@@ -773,7 +773,7 @@ msgstr "Přidat přednastavení pro tuto tiskárnu"
 
 #: src/slic3r/GUI/GalleryDialog.cpp:99
 msgid "Add selected shape(s) to the bed"
-msgstr " Přidat vybraný tvar(y) na podložku"
+msgstr "Přidat vybraný tvar(y) na podložku"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:1640
 msgid "Add settings"
@@ -933,7 +933,7 @@ msgstr "Všechny instalované tiskárny jsou kompatibilní s vybraným %1%."
 
 #: src/slic3r/GUI/Plater.cpp:2925
 msgid "All non-solid parts (modifiers) were deleted"
-msgstr "Všechny modifikátory byly odstraněny."
+msgstr "Všechny modifikátory byly odstraněny"
 
 #: src/libslic3r/Print.cpp:1245
 msgid "All objects are outside of the print volume."
@@ -1009,33 +1009,33 @@ msgstr "Při vytváření nového projektu se vždy zeptat na neuložené změny
 
 #: src/slic3r/GUI/Preferences.cpp:200
 msgid "Always ask for unsaved changes when selecting new preset or resetting a preset"
-msgstr "Při výběru nového přednastavení nebo resetování přednastavení se vždy dotazovat na neuložené změny."
+msgstr "Při výběru nového přednastavení nebo resetování přednastavení se vždy dotazovat na neuložené změny"
 
 #: src/slic3r/GUI/Preferences.cpp:191
-msgid ""
-"Always ask for unsaved changes, when: \n"
+msgid "Always ask for unsaved changes, when: \n"
 "- Closing PrusaSlicer while some presets are modified,\n"
 "- Loading a new project while some presets are modified"
-msgstr ""
-"Vždy dotázat na neuložené změny přednastavení, při:\n"
+msgstr "Vždy dotázat na neuložené změny přednastavení, při:\n"
 "- zavírání PrusaSliceru,\n"
-"- načítání nového projektu."
+"- načítání nového projektu"
 
 #: src/slic3r/GUI/Plater.cpp:2983
 msgid "An object has custom support enforcers which will not be used because supports are disabled."
 msgstr "Na objektu jsou definované vynucené podpěry, které nebudou použity, protože podpěry jsou zakázány."
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:638
-msgid ""
-"An object outside the print area was detected.\n"
+msgid "An object outside the print area was detected.\n"
 "Resolve the current problem to continue slicing."
-msgstr ""
-"Byl detekován objekt mimo tiskovou oblast.\n"
+msgstr "Byl detekován objekt mimo tiskovou oblast.\n"
 "Pro pokračování ve slicování vyřešte tento problém."
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:633
 msgid "An object outside the print area was detected."
 msgstr "Byl detekován objekt mimo tiskovou oblast."
+
+#: src/slic3r/GUI/Jobs/PlaterJob.cpp:13
+msgid "An unexpected error occured"
+msgstr "Došlo k neočekávané chybě"
 
 #: src/slic3r/GUI/Jobs/PlaterJob.cpp:13
 msgid "An unexpected error occured: "
@@ -1098,11 +1098,9 @@ msgid "Are you sure you want to %1% the selected preset?"
 msgstr "Opravdu chcete %1% vybrané přednastavení?"
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:902
-msgid ""
-"Are you sure you want to cancel firmware flashing?\n"
+msgid "Are you sure you want to cancel firmware flashing?\n"
 "This could leave your printer in an unusable state!"
-msgstr ""
-"Opravdu chcete ukončit nahrávání firmware?\n"
+msgstr "Opravdu chcete ukončit nahrávání firmware?\n"
 "Tiskárna může zůstat v nefunkčním stavu!"
 
 #: src/slic3r/GUI/DoubleSlider.cpp:2122 src/slic3r/GUI/DoubleSlider.cpp:2142
@@ -1142,11 +1140,9 @@ msgid "Arrange selection"
 msgstr "Uspořádat výběr"
 
 #: resources/data/hints.ini: [hint:Arrange settings]
-msgid ""
-"Arrange settings\n"
+msgid "Arrange settings\n"
 "Did you know that you can right-click the<a>Arrange icon</a>to adjust the size of the gap between objects and to allow automatic rotations?"
-msgstr ""
-"Nastavení uspořádání\n"
+msgstr "Nastavení uspořádání\n"
 "Věděli jste, že můžete kliknutím pravým tlačítkem myši na ikonu <a>Uspořádat</a> upravit velikost mezery mezi objekty a umožnit automatické otáčení modelů?"
 
 #: src/libslic3r/PrintConfig.cpp:3642
@@ -1155,11 +1151,9 @@ msgstr "Uspořádejte modely na tiskovou podložku a slučte je do jednoho model
 
 #: src/slic3r/GUI/Jobs/ArrangeJob.cpp:249
 #, c-format
-msgid ""
-"Arrangement ignored the following objects which can't fit into a single bed:\n"
+msgid "Arrangement ignored the following objects which can't fit into a single bed:\n"
 "%s"
-msgstr ""
-"Uspořádání ignorovalo následující objekty, které se nevejdou na jednu podložku:\n"
+msgstr "Uspořádání ignorovalo následující objekty, které se nevejdou na jednu podložku:\n"
 "%s"
 
 #: src/slic3r/GUI/Jobs/ArrangeJob.cpp:149
@@ -1300,19 +1294,15 @@ msgid "BACK ARROW"
 msgstr "ŠIPKA ZPĚT"
 
 #: src/slic3r/GUI/Tab.cpp:3727
-msgid ""
-"BACK ARROW icon indicates that the settings were changed and are not equal to the last saved preset for the current option group.\n"
+msgid "BACK ARROW icon indicates that the settings were changed and are not equal to the last saved preset for the current option group.\n"
 "Click to reset all settings for the current option group to the last saved preset."
-msgstr ""
-"Ikona ŠIPKY ZPĚT indikuje, že došlo ke změně nastavení, které není shodné s naposledy uloženým přednastavením pro aktuální skupinu nastavení.\n"
+msgstr "Ikona ŠIPKY ZPĚT indikuje, že došlo ke změně nastavení, které není shodné s naposledy uloženým přednastavením pro aktuální skupinu nastavení.\n"
 "Klikněte pro reset všech nastavení pro aktuální skupinu nastavení na naposledy uložené přednastavení."
 
 #: src/slic3r/GUI/Tab.cpp:3741
-msgid ""
-"BACK ARROW icon indicates that the value was changed and is not equal to the last saved preset.\n"
+msgid "BACK ARROW icon indicates that the value was changed and is not equal to the last saved preset.\n"
 "Click to reset current value to the last saved preset."
-msgstr ""
-"Ikona ŠIPKY ZPĚT indikuje, že se hodnota změnila a není shodná s naposledy uloženým přednastavením.\n"
+msgstr "Ikona ŠIPKY ZPĚT indikuje, že se hodnota změnila a není shodná s naposledy uloženým přednastavením.\n"
 "Klikněte pro reset současné hodnoty na naposledy uložené přednastavení."
 
 #: src/slic3r/GUI/Preferences.cpp:72
@@ -1463,11 +1453,9 @@ msgid "Box"
 msgstr "Kostka"
 
 #: resources/data/hints.ini: [hint:Box selection]
-msgid ""
-"Box selection\n"
+msgid "Box selection\n"
 "Did you know that you can do a box selection with Shift+Mouse drag? You can also box-deselect objects with <b>Alt+Mouse drag</b>."
-msgstr ""
-"Výběr rámečkem\n"
+msgstr "Výběr rámečkem\n"
 "Věděli jste, že můžete provést výběr rámečkem současným stiskem Shift+tažením myší? Výběr objektů v rámečku můžete také zrušit pomocí <b>Alt+tažení myší</b>."
 
 #: src/libslic3r/PrintConfig.cpp:227
@@ -1543,11 +1531,9 @@ msgid "buffer too small"
 msgstr "buffer je příliš malý"
 
 #: src/slic3r/GUI/GUI_App.cpp:1152
-msgid ""
-"But since this version of PrusaSlicer we don't show this information in Printer Settings anymore.\n"
+msgid "But since this version of PrusaSlicer we don't show this information in Printer Settings anymore.\n"
 "Settings will be available in physical printers settings."
-msgstr ""
-"Ale od této verze PrusaSliceru již nebudeme tyto informace zobrazovat v Nastavení tiskárny.\n"
+msgstr "Ale od této verze PrusaSliceru již nebudeme tyto informace zobrazovat v Nastavení tiskárny.\n"
 "Nastavení bude k dispozici v nastavení fyzických tiskáren."
 
 #: src/slic3r/GUI/ButtonsDescription.cpp:16
@@ -1555,11 +1541,9 @@ msgid "Buttons And Text Colors Description"
 msgstr "Barvy pro textové popisky a tlačítka"
 
 #: src/slic3r/GUI/GUI_App.cpp:1084
-msgid ""
-"By default new Printer devices will be named as \"Printer N\" during its creation.\n"
+msgid "By default new Printer devices will be named as \"Printer N\" during its creation.\n"
 "Note: This name can be changed later from the physical printers settings"
-msgstr ""
-"Ve výchozím stavu budou při vytváření nové tiskárny pojmenovány jako „Printer N“.\n"
+msgstr "Ve výchozím stavu budou při vytváření nové tiskárny pojmenovány jako „Printer N“.\n"
 "Poznámka: Tento název lze později změnit v nastavení fyzických tiskáren"
 
 #: src/slic3r/GUI/PresetHints.cpp:222
@@ -1575,11 +1559,9 @@ msgid "Camera view"
 msgstr "Pohled kamery"
 
 #: resources/data/hints.ini: [hint:Camera Views]
-msgid ""
-"Camera Views\n"
+msgid "Camera Views\n"
 "Did you know that you can use the number keys <b>0-6</b> to quickly switch between predefined camera angles?"
-msgstr ""
-"Pohledy kamery\n"
+msgstr "Pohledy kamery\n"
 "Věděli jste, že pomocí číselných kláves <b>0-6</b> můžete rychle přepínat mezi předdefinovanými úhly kamery?"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSimplify.cpp:315
@@ -1619,30 +1601,24 @@ msgid "Cannot calculate extrusion width for %1%: Variable \"%2%\" not accessible
 msgstr "Nelze vypočítat šířku extrudování pro %1%: Proměnná \"%2%\" není dostupná."
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:3400
-msgid ""
-"Cannot insert a new layer range after the current layer range.\n"
+msgid "Cannot insert a new layer range after the current layer range.\n"
 "Current layer range overlaps with the next layer range."
-msgstr ""
-"Nelze vložit nový rozsah vrstev za aktuální rozsah vrstev.\n"
+msgstr "Nelze vložit nový rozsah vrstev za aktuální rozsah vrstev.\n"
 "Aktuální rozsah vrstev se překrývá s dalším rozsahem vrstev."
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:3391
-msgid ""
-"Cannot insert a new layer range after the current layer range.\n"
+msgid "Cannot insert a new layer range after the current layer range.\n"
 "The next layer range is too thin to be split to two\n"
 "without violating the minimum layer height."
-msgstr ""
-"Nelze vložit nový rozsah vrstev za aktuální rozsah vrstev.\n"
+msgstr "Nelze vložit nový rozsah vrstev za aktuální rozsah vrstev.\n"
 "Další rozsah vrstev je příliš tenký na to, aby byl rozdělen na dva\n"
 "bez porušení minimální výšky vrstvy."
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:3395
-msgid ""
-"Cannot insert a new layer range between the current and the next layer range.\n"
+msgid "Cannot insert a new layer range between the current and the next layer range.\n"
 "The gap between the current layer range and the next layer range\n"
 "is thinner than the minimum layer height allowed."
-msgstr ""
-"Nelze vložit nový rozsah vrstev mezi aktuální a následující rozsah vrstev.\n"
+msgstr "Nelze vložit nový rozsah vrstev mezi aktuální a následující rozsah vrstev.\n"
 "Mezera mezi aktuálním rozsahem vrstev a dalším rozsahem vrstev\n"
 "je tenčí, než je minimální povolená výška vrstvy."
 
@@ -1752,11 +1728,9 @@ msgid "Changing of an application language"
 msgstr "Změnit jazyk aplikace"
 
 #: src/slic3r/GUI/Preferences.cpp:545
-msgid ""
-"Changing some options will trigger application restart.\n"
+msgid "Changing some options will trigger application restart.\n"
 "You will lose the content of the plater."
-msgstr ""
-"Změnou nastavení se aplikace restartuje.\n"
+msgstr "Změnou nastavení se aplikace restartuje.\n"
 "Ztratíte objekty na tiskové podložce."
 
 #: src/slic3r/GUI/ConfigWizard.cpp:1128 src/slic3r/GUI/Preferences.cpp:81
@@ -1940,11 +1914,9 @@ msgid "Colorprint height"
 msgstr "Výška barevného tisku"
 
 #: resources/data/hints.ini: [hint:Combine infill]
-msgid ""
-"Combine infill\n"
+msgid "Combine infill\n"
 "Did you know that you can print the infill with a higher layer height compared to perimeters to save print time using the setting<a>Combine infill every</a>."
-msgstr ""
-"Kombinovaná výplň\n"
+msgstr "Kombinovaná výplň\n"
 "Věděli jste, že můžete tisknout výplně s vyšší výškou vrstvy než perimetry? a ušetřit tak čas tisku pomocí nastavení <a>Kombinovat výplň každou</a>."
 
 #: src/libslic3r/PrintConfig.cpp:1034
@@ -2045,18 +2017,16 @@ msgstr "Nastavení se upravuje v Průvodci konfigurace"
 
 #: src/slic3r/GUI/ConfigWizard.cpp:2480 src/slic3r/GUI/GUI_App.cpp:2471
 msgid "Configuration is editing from ConfigWizard"
-msgstr "Konfigurace se upravuje z nástroje Průvodce nastavením "
+msgstr "Konfigurace se upravuje z nástroje Průvodce nastavením"
 
 #: src/libslic3r/PrintConfig.cpp:1424
 msgid "Configuration notes"
 msgstr "Poznámky k nastavení"
 
 #: resources/data/hints.ini: [hint:Configuration snapshots]
-msgid ""
-"Configuration snapshots\n"
+msgid "Configuration snapshots\n"
 "Did you know that roll back to a complete backup of all system and user profiles? You can view and move back and forth between snapshots using the Configuration - <a>Configuration snapshots menu</a>."
-msgstr ""
-"Zálohy konfigurace\n"
+msgstr "Zálohy konfigurace\n"
 "Věděli jste, že lze vrátit zpět kompletní zálohu všech systémových a uživatelských přednastavení? Pomocí nabídky <a>Konfigurace - Zálohy konfigurace</a> můžete konfigurace prohlížet a přepínat se mezi nimi."
 
 #: src/slic3r/GUI/ConfigSnapshotDialog.cpp:104
@@ -2080,11 +2050,9 @@ msgid "Configuration updates"
 msgstr "Aktualizace nastavení"
 
 #: src/slic3r/Utils/PresetUpdater.cpp:725
-msgid ""
-"Configuration Updates causes a lost of preset modification.\n"
+msgid "Configuration Updates causes a lost of preset modification.\n"
 "So, check unsaved changes and save them if necessary."
-msgstr ""
-"Aktualizace konfigurace způsobí ztrátu změn v přednastaveních.\n"
+msgstr "Aktualizace konfigurace způsobí ztrátu změn v přednastaveních.\n"
 "Zkontrolujte tedy neuložené změny a případně je uložte."
 
 #: src/slic3r/GUI/ConfigWizard.cpp:2627
@@ -2138,6 +2106,10 @@ msgstr "Připojení k PrusaLinku funguje správně."
 #: src/slic3r/Utils/Repetier.cpp:84
 msgid "Connection to Repetier works correctly."
 msgstr "Připojení k Repetieru funguje správně."
+
+#: src/slic3r/GUI/DoubleSlider.cpp:1460
+msgid "continue"
+msgstr "pokračovat"
 
 #: src/slic3r/Utils/PresetUpdater.cpp:593 src/slic3r/Utils/PresetUpdater.cpp:610
 msgid "Continue and install configuration updates?"
@@ -2232,11 +2204,9 @@ msgid "Copying of the temporary G-code to the output G-code failed"
 msgstr "Kopírování dočasného G-codu do výstupního G-codu selhalo"
 
 #: src/slic3r/GUI/BackgroundSlicingProcess.cpp:163
-msgid ""
-"Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?\n"
+msgid "Copying of the temporary G-code to the output G-code failed. Maybe the SD card is write locked?\n"
 "Error message: %1%"
-msgstr ""
-"Kopírování dočasného G-codu do výstupního G-codu se nezdařilo. Není SD karta chráněná proti zápisu?\n"
+msgstr "Kopírování dočasného G-codu do výstupního G-codu se nezdařilo. Není SD karta chráněná proti zápisu?\n"
 "Chybová hláška: %1%"
 
 #: src/slic3r/GUI/BackgroundSlicingProcess.cpp:147
@@ -2250,6 +2220,18 @@ msgstr "Autorská práva"
 #: src/libslic3r/PrintConfig.cpp:2714 src/libslic3r/PrintConfig.cpp:2715
 msgid "Correction for expansion"
 msgstr "Korekce expanze"
+
+#: src/libslic3r/PrintConfig.cpp:3328 src/libslic3r/PrintConfig.cpp:3329
+msgid "Correction for expansion in X axis"
+msgstr "Korekce roztažnosti v ose X"
+
+#: src/libslic3r/PrintConfig.cpp:3335 src/libslic3r/PrintConfig.cpp:3336
+msgid "Correction for expansion in Y axis"
+msgstr "Korekce roztažnosti v ose Y"
+
+#: src/libslic3r/PrintConfig.cpp:3342 src/libslic3r/PrintConfig.cpp:3343
+msgid "Correction for expansion in Z axis"
+msgstr "Korekce roztažnosti v ose Z"
 
 #: src/slic3r/GUI/Tab.cpp:2270 src/slic3r/GUI/Tab.cpp:3935
 msgid "Corrections"
@@ -2439,6 +2421,10 @@ msgstr "Válec"
 #: src/slic3r/GUI/MainFrame.cpp:1174
 msgid "D&eselect all"
 msgstr "Odznačit vš&e"
+
+#: src/slic3r/GUI/Preferences.cpp:471
+msgid "Dark mode (experimental)"
+msgstr "Tmavý režim (experimentální)"
 
 #: src/slic3r/GUI/Preferences.cpp:471
 msgid "Dark mode IU (experimental)"
@@ -2718,12 +2704,10 @@ msgid "Desktop integration failed."
 msgstr "Integrace do systému selhala."
 
 #: src/slic3r/GUI/DesktopIntegrationDialog.cpp:466
-msgid ""
-"Desktop Integration sets this binary to be searchable by the system.\n"
+msgid "Desktop Integration sets this binary to be searchable by the system.\n"
 "\n"
 "Press \"Perform\" to proceed."
-msgstr ""
-"Integrace do systému nastaví tuto binárku tak, aby jej systém mohl prohledávat.\n"
+msgstr "Integrace do systému nastaví tuto binárku tak, aby jej systém mohl prohledávat.\n"
 "\n"
 "Pro pokračování stiskněte tlačítko \"Provést\"."
 
@@ -2796,11 +2780,9 @@ msgid "Diameter of the print bed. It is assumed that origin (0,0) is located in 
 msgstr "Průměr tiskové podložky. Přepokládaný počátek (0,0) je umístěn uprostřed."
 
 #: resources/data/hints.ini: [hint:Different layer height for each model]
-msgid ""
-"Different layer height for each model\n"
+msgid "Different layer height for each model\n"
 "Did you know that you can print each model on the plater with a different layer height? Right-click the model in the 3D view, choose Layers and Perimeters and adjust the values in the right panel. Read more in the documentation."
-msgstr ""
-"Různé výšky vrstev pro každý model zvlášť\n"
+msgstr "Různé výšky vrstev pro každý model zvlášť\n"
 "Věděli jste, že každý model na podložce můžete vytisknout s různou výškou vrstvy? Klepněte pravým tlačítkem myši na model ve 3D zobrazení, zvolte Vrstvy a perimetry a upravte hodnoty v pravém panelu. Více informací najdete v dokumentaci."
 
 #: src/slic3r/GUI/Plater.cpp:3534
@@ -2917,12 +2899,10 @@ msgstr "Neposílat nic"
 
 #: src/slic3r/GUI/Field.cpp:288
 #, c-format
-msgid ""
-"Do you mean %s%% instead of %s %s?\n"
+msgid "Do you mean %s%% instead of %s %s?\n"
 "Select YES if you want to change this value to %s%%, \n"
 "or NO if you are sure that %s %s is a correct value."
-msgstr ""
-"Myslíte %s%% namísto %s %s?\n"
+msgstr "Myslíte %s%% namísto %s %s?\n"
 "Vyberte ANO, pokud chcete změnit tuto hodnotu na %s%%,\n"
 "nebo NE, pokud jste si jisti, že %s %s je správná hodnota."
 
@@ -3301,7 +3281,7 @@ msgstr "Zadejte požadovanou teplotu pro extruzi vašeho filamentu."
 
 #: src/libslic3r/PrintConfig.cpp:813
 msgid "Enter weight of the empty filament spool. One may weigh a partially consumed filament spool before printing and one may compare the measured weight with the calculated weight of the filament with the spool to find out whether the amount of filament on the spool is sufficient to finish the print."
-msgstr "Zadejte hmotnost prázdné cívky. Díky tomu budete moci určit, zda máte na cívce dostatečné množství filamentu pro dokončení tisku. Zvážíte cívku s částečně spotřebovaným filamentem a hodnotu porovnáte s vypočtenou hmotností vypočítanou PrusaSlicerem. "
+msgstr "Zadejte hmotnost prázdné cívky. Díky tomu budete moci určit, zda máte na cívce dostatečné množství filamentu pro dokončení tisku. Zvážíte cívku s částečně spotřebovaným filamentem a hodnotu porovnáte s vypočtenou hmotností vypočítanou PrusaSlicerem."
 
 #: src/libslic3r/PrintConfig.cpp:797
 msgid "Enter your filament cost per kg here. This is only for statistical information."
@@ -3316,12 +3296,10 @@ msgid "Enter your filament diameter here. Good precision is required, so use a c
 msgstr "Zde zadejte průměr filamentu. Je zapotřebí správné přesnosti, proto použijte šupleru a proveďte několik měření podél filamentu, poté vypočtete průměr."
 
 #: src/slic3r/Utils/Repetier.cpp:260
-msgid ""
-"Enumeration of host printers failed.\n"
+msgid "Enumeration of host printers failed.\n"
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
-msgstr ""
-"Výčet tiskových serverů se nezdařil.\n"
+msgstr "Výčet tiskových serverů se nezdařil.\n"
 "Tělo zprávy: \"%1%\"\n"
 "Chyba: \"%2%\""
 
@@ -4066,12 +4044,10 @@ msgid "First layer height can't be greater than nozzle diameter"
 msgstr "Výška první vrstvy nesmí být větší než průměr trysky"
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:62
-msgid ""
-"First layer height is not valid.\n"
+msgid "First layer height is not valid.\n"
 "\n"
 "The first layer height will be reset to 0.01."
-msgstr ""
-"Výška první vrstvy není platná.\n"
+msgstr "Výška první vrstvy není platná.\n"
 "\n"
 "Výška vrstvy bude resetována na 0,01."
 
@@ -4155,6 +4131,14 @@ msgstr[1] "Následující přednastavení tiskárny jsou duplicitní:%1%Výše u
 msgstr[2] ""
 msgstr[3] ""
 
+#: src/slic3r/GUI/ConfigWizard.cpp:2338
+msgid "Following printer profiles has no default filament: %1%Please select one manually."
+msgstr "Následující profily tiskáren nemají žádný výchozí filament: %1%Vyberte jej prosím ručně."
+
+#: src/slic3r/GUI/ConfigWizard.cpp:2339
+msgid "Following printer profiles has no default material: %1%Please select one manually."
+msgstr "Následující profily tiskáren nemají žádný výchozí materiál: %1%Vyberte jej prosím ručně."
+
 #: src/slic3r/GUI/GUI_ObjectList.cpp:4164
 msgid "Folowing model repair failed"
 msgid_plural "Folowing models repair failed"
@@ -4163,13 +4147,19 @@ msgstr[1] "Opravy modelů se nezdařily"
 msgstr[2] ""
 msgstr[3] ""
 
+#: src/slic3r/GUI/Plater.cpp:208
+msgid "For a multipart object, this value isn't accurate.\n"
+"It doesn't take account of intersections and negative volumes."
+msgstr "Pro vícedílný objekt není tato hodnota přesná.\n"
+"Nezohledňuje průniky a negativní objemy."
+
 #: src/slic3r/GUI/UpdateDialogs.cpp:287
 msgid "For more information please visit our wiki page:"
 msgstr "Pro více informací prosím navštivte naší wiki stránku:"
 
 #: src/slic3r/GUI/GUI_App.cpp:2181
 msgid "For new project all modifications will be reseted"
-msgstr "U nového projektu budou všechny změny resetovány."
+msgstr "U nového projektu budou všechny změny resetovány"
 
 #: src/libslic3r/PrintConfig.cpp:2616
 msgid "For snug supports, the support regions will be merged using morphological closing operation. Gaps smaller than the closing radius will be filled in."
@@ -4181,25 +4171,20 @@ msgstr "Pouze pro vynucené podpěry"
 
 #. TRN Description for "WHITE BULLET"
 #: src/slic3r/GUI/Tab.cpp:3702
-msgid ""
-"for the left button: indicates a non-system (or non-default) preset,\n"
+msgid "for the left button: indicates a non-system (or non-default) preset,\n"
 "for the right button: indicates that the settings hasn't been modified."
-msgstr ""
-"na levé straně: indikuje nesystémové (jiné než výchozí) přednastavení,\n"
+msgstr "na levé straně: indikuje nesystémové (jiné než výchozí) přednastavení,\n"
 "na pravé straně: indikuje, že nastavení nebylo změněno."
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:135
-msgid ""
-"For the Wipe Tower to work with the soluble supports, the support layers\n"
+msgid "For the Wipe Tower to work with the soluble supports, the support layers\n"
 "need to be synchronized with the object layers."
-msgstr ""
-"U čistící věže pokud pracujte s rozpustnými materiály, je třeba\n"
+msgstr "U čistící věže pokud pracujte s rozpustnými materiály, je třeba\n"
 "synchronizovat vrstvy podpěr s vrstvami objektů."
 
 #: src/libslic3r/Print.cpp:1422
 msgid "For the Wipe Tower to work with the soluble supports, the support layers need to be synchronized with the object layers."
-msgstr ""
-"U čistící věže pokud pracujte s rozpustnými materiály, je třeba\n"
+msgstr "U čistící věže pokud pracujte s rozpustnými materiály, je třeba\n"
 "synchronizovat vrstvy podpěr s vrstvami objektů."
 
 #: src/libslic3r/PrintConfig.cpp:3028
@@ -4255,19 +4240,15 @@ msgid "Full screen"
 msgstr "Na celou obrazovku"
 
 #: resources/data/hints.ini: [hint:Fullscreen mode]
-msgid ""
-"Fullscreen mode\n"
+msgid "Fullscreen mode\n"
 "Did you know that you can switch PrusaSlicer to fullscreen mode? Use the <b>F11</b> hotkey."
-msgstr ""
-"Režim celé obrazovky\n"
+msgstr "Režim celé obrazovky\n"
 "Věděli jste, že PrusaSlicer můžete přepnout do režimu celé obrazovky? Použijte klávesovou zkratku <b>F11</b>."
 
 #: resources/data/hints.ini: [hint:Fuzzy skin]
-msgid ""
-"Fuzzy skin\n"
+msgid "Fuzzy skin\n"
 "Did you know that you can create rough fibre-like texture on the sides of your models using the<a>Fuzzy skin</a>feature? You can also use modifiers to apply fuzzy-skin only to a portion of your model."
-msgstr ""
-"Členitý povrch\n"
+msgstr "Členitý povrch\n"
 "Věděli jste, že pomocí funkce <a>Členitý povrch</a> můžete na bocích modelů vytvořit texturu připomínající hrubou látku? Pomocí modifikátorů můžete také aplikovat členitý povrch pouze na část modelu."
 
 #: src/slic3r/GUI/GUI_Factories.cpp:130 src/libslic3r/PrintConfig.cpp:1238 src/libslic3r/PrintConfig.cpp:1239 src/libslic3r/PrintConfig.cpp:1254 src/libslic3r/PrintConfig.cpp:1263
@@ -4288,7 +4269,7 @@ msgstr "Tloušťka členitého povrchu"
 
 #: src/libslic3r/PrintConfig.cpp:1240
 msgid "Fuzzy skin type."
-msgstr "Typ členitého povrchu"
+msgstr "Typ členitého povrchu."
 
 #: src/libslic3r/PrintConfig.cpp:817
 msgid "g"
@@ -4299,11 +4280,9 @@ msgid "G-code"
 msgstr "G-code"
 
 #: src/slic3r/GUI/DoubleSlider.cpp:1146
-msgid ""
-"G-code associated to this tick mark is in a conflict with print mode.\n"
+msgid "G-code associated to this tick mark is in a conflict with print mode.\n"
 "Editing it will cause changes of Slider data."
-msgstr ""
-"G-code na této značce je v rozporu s tiskovým režimem.\n"
+msgstr "G-code na této značce je v rozporu s tiskovým režimem.\n"
 "Editace způsobí změny v posuvníku."
 
 #: src/slic3r/GUI/BackgroundSlicingProcess.cpp:165
@@ -4317,6 +4296,10 @@ msgstr "Druh G-code"
 #: src/slic3r/GUI/MainFrame.cpp:66 src/slic3r/GUI/MainFrame.cpp:79
 msgid "G-code preview"
 msgstr "Náhled G-codu"
+
+#: src/libslic3r/PrintConfig.cpp:2086
+msgid "G-code resolution"
+msgstr "G-code rozlišení"
 
 #: src/libslic3r/PrintConfig.cpp:66
 msgid "G-code thumbnails"
@@ -4596,12 +4579,10 @@ msgid "Hide ruler"
 msgstr "Skrýt pravítko"
 
 #: resources/data/hints.ini: [hint:Hiding sidebar]
-msgid ""
-"Hiding sidebar\n"
+msgid "Hiding sidebar\n"
 "Did you know that you can hide the right sidebar using the shortcut <b>Shift+Tab</b>? You can also enable the icon for this from the<a>Preferences</a>."
-msgstr ""
-"Skrytí postranního panelu\n"
-"Věděli jste, že pravý postranní panel můžete skrýt pomocí klávesové zkratky <b>Shift+Tab</b>? Pro ovládání panelu si v <a>Nastavení</a> můžete aktivovat zobrazení ikony.\n"
+msgstr "Skrytí postranního panelu\n"
+"Věděli jste, že pravý postranní panel můžete skrýt pomocí klávesové zkratky <b>Shift+Tab</b>? Pro ovládání panelu si v <a>Nastavení</a> můžete aktivovat zobrazení ikony."
 
 #: src/slic3r/GUI/Gizmos/GLGizmoSimplify.cpp:154
 msgid "High"
@@ -4700,11 +4681,9 @@ msgid "Hostname, IP or URL"
 msgstr "Název serveru, IP nebo URL"
 
 #: src/slic3r/GUI/Tab.cpp:210
-msgid ""
-"Hover the cursor over buttons to find more information \n"
+msgid "Hover the cursor over buttons to find more information \n"
 "or click this button."
-msgstr ""
-"Pro více informací přejeďte kurzorem nad tlačítky\n"
+msgstr "Pro více informací přejeďte kurzorem nad tlačítky\n"
 "nebo na tlačítko klikněte."
 
 #: src/libslic3r/PrintConfig.cpp:2976
@@ -4736,11 +4715,9 @@ msgid "HTTP digest"
 msgstr "HTTP digest"
 
 #: src/slic3r/Utils/Repetier.cpp:240
-msgid ""
-"HTTP status: %1%\n"
+msgid "HTTP status: %1%\n"
 "Message body: \"%2%\""
-msgstr ""
-"HTTP stavový kód: %1%\n"
+msgstr "HTTP stavový kód: %1%\n"
 "Tělo zprávy: \"%2%\""
 
 #: src/slic3r/GUI/PhysicalPrinterDialog.cpp:358 src/libslic3r/PrintConfig.cpp:113
@@ -4782,11 +4759,9 @@ msgid "If enabled, all printing extruders will be primed at the front edge of th
 msgstr "Pokud je tato možnost povolena, všechny tiskové extrudery na začátku tisku vytlačí na předním okraji podložky malé množství materiálu."
 
 #: src/slic3r/GUI/ConfigWizard.cpp:1164
-msgid ""
-"If enabled, allows the Reload from disk command to automatically find and load the files when invoked.\n"
+msgid "If enabled, allows the Reload from disk command to automatically find and load the files when invoked.\n"
 "If not enabled, the Reload from disk command will ask to select each file using an open file dialog."
-msgstr ""
-"Pokud je povoleno, v případě vyžádání, umožňuje funkci „Znovu načíst z disku“ automaticky vyhledat a načíst soubory.\n"
+msgstr "Pokud je povoleno, v případě vyžádání, umožňuje funkci „Znovu načíst z disku“ automaticky vyhledat a načíst soubory.\n"
 "Pokud není povoleno,  funkce „Znovu načíst z disku“ požádá o zadání cest ke každému souboru pomocí dialogového okna."
 
 #: src/slic3r/GUI/Preferences.cpp:91
@@ -4794,17 +4769,26 @@ msgid "If enabled, allows the Reload from disk command to automatically find and
 msgstr "Pokud je povoleno, v případě vyžádání, umožňuje funkci „Znovu načíst z disku“ automaticky vyhledat a načíst soubory."
 
 #: src/slic3r/GUI/Preferences.cpp:486
-msgid ""
-"If enabled, application will use standart Windows system menu,\n"
+msgid "If enabled, application will use standart Windows system menu,\n"
 "but on some combination od display scales it can looks ugly. If disabled, old UI will be used."
-msgstr ""
-"Pokud je povoleno, aplikace použije standardní systémovou nabídku Windows,\n"
-"ale na některých měřítkách obrazovky to může vypadat ošklivě. Pokud je zakázáno, použije se staré uživatelské rozhraní."
+msgstr "Pokud je povoleno, aplikace použije standardní systémovou nabídku Windows,\n"
+"ale na některých měřítkách obrazovky to může vypadat ošklivě. Pokud není povoleno, použije se původní uživatelské rozhraní."
+
+#: src/slic3r/GUI/Preferences.cpp:486
+msgid "If enabled, application will use the standart Windows system menu,\n"
+"but on some combination of display scales it can looks ugly. If disabled, old UI will be used."
+msgstr "Pokud je povoleno, aplikace použije standardní systémovou nabídku Windows,\n"
+"ale na některých měřítkách obrazovky to nemusí vypadat dobře. Pokud není povoleno, použije se původní uživatelské rozhraní."
+
+#: src/slic3r/GUI/Preferences.cpp:489
+msgid "If enabled, application will use the standart Windows system menu,\n"
+"but on some combination of display scales it can looks ugly. If disabled, old UI will be used."
+msgstr "Pokud je povoleno, aplikace použije standardní systémovou nabídku Windows,\n"
+"ale na některých měřítkách obrazovky to nemusí vypadat dobře. Pokud není povoleno, použije se původní uživatelské rozhraní."
 
 #: src/libslic3r/PrintConfig.cpp:2750
 msgid "If enabled, bridges are more reliable, can bridge longer distances, but may look worse. If disabled, bridges look better but are reliable just for shorter bridged distances."
-msgstr ""
-"Pokud je povoleno, jsou mosty spolehlivější, mohou překlenout delší vzdálenosti, ale mohou vypadat hůře.\n"
+msgstr "Pokud je povoleno, jsou mosty spolehlivější, mohou překlenout delší vzdálenosti, ale mohou vypadat hůře.\n"
 "Pokud je zakázáno, mosty vypadají lépe, ale jsou spolehlivé jen pro kratší přemostění."
 
 #: src/slic3r/GUI/Preferences.cpp:307
@@ -4865,7 +4849,7 @@ msgstr "Pokud je zaškrtnuto, popisky konfiguračních parametrů na kartách na
 
 #: src/slic3r/GUI/Preferences.cpp:209
 msgid "If enabled, the legacy 3DConnexion devices settings dialog is available by pressing CTRL+M"
-msgstr "Pokud je povoleno, je dialogové okno nastavení pro starší zařízení 3DConnexion k dispozici stisknutím kombinace kláves CTRL + M."
+msgstr "Pokud je povoleno, je dialogové okno nastavení pro starší zařízení 3DConnexion k dispozici stisknutím kombinace kláves CTRL + M"
 
 #: src/libslic3r/PrintConfig.cpp:2000
 msgid "If enabled, the wipe tower will not be printed on layers with no toolchanges. On layers with a toolchange, extruder will travel downward to print the wipe tower. User is responsible for ensuring there is no collision with the print."
@@ -5119,11 +5103,9 @@ msgstr "Zvětšit / zmenšit oblast úprav"
 
 #. TRN Description for "UNLOCKED LOCK"
 #: src/slic3r/GUI/Tab.cpp:3695
-msgid ""
-"indicates that some settings were changed and are not equal to the system (or default) values for the current option group.\n"
+msgid "indicates that some settings were changed and are not equal to the system (or default) values for the current option group.\n"
 "Click the UNLOCKED LOCK icon to reset all settings for current option group to the system (or default) values."
-msgstr ""
-"indikuje, že některá nastavení byla změněna a nejsou shodná se systémovými (výchozími) hodnotami pro danou skupinu nastavení.\n"
+msgstr "indikuje, že některá nastavení byla změněna a nejsou shodná se systémovými (výchozími) hodnotami pro danou skupinu nastavení.\n"
 "Klikněte na ikonu ODEMKNUTÉHO ZÁMKU pro reset všech nastavení aktuální skupiny nastavení na systémové (nebo výchozí) hodnoty."
 
 #. TRN Description for "LOCKED LOCK"
@@ -5133,11 +5115,9 @@ msgstr "indikuje, že nastavení jsou stejná jako systémové (výchozí) hodno
 
 #. TRN Description for "BACK ARROW"
 #: src/slic3r/GUI/Tab.cpp:3707
-msgid ""
-"indicates that the settings were changed and are not equal to the last saved preset for the current option group.\n"
+msgid "indicates that the settings were changed and are not equal to the last saved preset for the current option group.\n"
 "Click the BACK ARROW icon to reset all settings for the current option group to the last saved preset."
-msgstr ""
-"indikuje, že došlo ke změně nastavení, které není shodné s naposledy uloženým přednastavením pro aktuální skupinu nastavení.\n"
+msgstr "indikuje, že došlo ke změně nastavení, které není shodné s naposledy uloženým přednastavením pro aktuální skupinu nastavení.\n"
 "Klikněte na ikonu ŠIPKY ZPĚT pro reset všech nastavení pro aktuální skupinu nastavení na naposledy uložené přednastavení."
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:210 src/slic3r/GUI/GUI_ObjectList.cpp:35 src/slic3r/GUI/GUI_ObjectList.cpp:93 src/slic3r/GUI/GUI_ObjectList.cpp:652 src/slic3r/GUI/Plater.cpp:393 src/slic3r/GUI/Tab.cpp:1413 src/slic3r/GUI/Tab.cpp:1414 src/libslic3r/PrintConfig.cpp:237 src/libslic3r/PrintConfig.cpp:450 src/libslic3r/PrintConfig.cpp:472 src/libslic3r/PrintConfig.cpp:812 src/libslic3r/PrintConfig.cpp:826 src/libslic3r/PrintConfig.cpp:863 src/libslic3r/PrintConfig.cpp:1025 src/libslic3r/PrintConfig.cpp:1035 src/libslic3r/PrintConfig.cpp:1053 src/libslic3r/PrintConfig.cpp:1072 src/libslic3r/PrintConfig.cpp:1091 src/libslic3r/PrintConfig.cpp:1843
@@ -5195,11 +5175,9 @@ msgstr "Pouze vnitřní límec"
 
 #: src/slic3r/GUI/Field.cpp:269
 #, c-format
-msgid ""
-"Input value is out of range\n"
+msgid "Input value is out of range\n"
 "Are you sure that %s is a correct value and that you want to continue?"
-msgstr ""
-"Vstupní hodnota je mimo povolený rozsah\n"
+msgstr "Vstupní hodnota je mimo povolený rozsah\n"
 "Jste si jisti, že %s je správná hodnota a že chcete pokračovat?"
 
 #: src/slic3r/GUI/Field.cpp:252 src/slic3r/GUI/Field.cpp:1370
@@ -5207,19 +5185,21 @@ msgid "Input value is out of range"
 msgstr "Zadaná hodnota je mimo rozsah"
 
 #: resources/data/hints.ini: [hint:Insert Custom G-code]
-msgid ""
-"Insert Custom G-code\n"
+msgid "Insert Custom G-code\n"
+"Did you know that you can insert a custom G-code at a specific layer? Left-click the layer in the Preview, Right-click the plus icon and select Add custom G-code. With this function you can, for example, create a temperature tower. Read more in the documentation."
+msgstr "Vložení vlastního G-codu\n"
+"Věděli jste, že můžete vložit vlastní G-code do určité vrstvy? Klikněte levým tlačítkem myši na vrstvu v Náhledu, pravým tlačítkem myší klikněte na ikonu plus a vyberte možnost Přidat vlastní G-code. Pomocí této funkce můžete například vytvořit teplotní věž. Více informací se dozvíte v dokumentaci."
+
+#: resources/data/hints.ini: [hint:Insert Custom G-code]
+msgid "Insert Custom G-code\n"
 "Did you know that you can insert a custom G-code at a specific layer? Right-click the layer in the Preview and select Add custom G-code. With this function you can, for example, create a temperature tower. Read more in the documentation."
-msgstr ""
-"Vložení vlastního G-codu\n"
-"Věděli jste, že můžete vložit vlastní G-code do určité vrstvy? Klikněte pravým tlačítkem myši na vrstvu v Náhledu a vyberte možnost Přidat vlastní G-code. Pomocí této funkce můžete například vytvořit teplotní věž. Více informací se dozvíte v dokumentaci."
+msgstr "Vložení vlastního G-codu\n"
+"Věděli jste, že můžete vložit vlastní G-code do určité vrstvy? Klikněte levým tlačítkem myši na vrstvu v Náhledu, pravým tlačítkem myší klikněte na ikonu plus a vyberte možnost Přidat vlastní G-code. Pomocí této funkce můžete například vytvořit teplotní věž. Více informací se dozvíte v dokumentaci."
 
 #: resources/data/hints.ini: [hint:Insert Pause]
-msgid ""
-"Insert Pause\n"
+msgid "Insert Pause\n"
 "Did you know that you can schedule the print to pause at a specific layer? Right-click the layer slider in the Preview and select Add pause print (M601). This can be used to insert magnets, weights or nuts into your prints. Read more in the documentation."
-msgstr ""
-"Vložení pauzy\n"
+msgstr "Vložení pauzy\n"
 "Věděli jste, že můžete naplánovat pozastavení tisku v určité vrstvě? Klepněte pravým tlačítkem myši na posuvník vrstvy v Náhledu a vyberte možnost Přidat pozastavení tisku (M601). Tuto funkci lze použít k vložení magnetů, závaží nebo matic do výtisků. Více informací najdete v dokumentaci."
 
 #: src/slic3r/GUI/GUI_App.cpp:1480
@@ -5316,11 +5296,9 @@ msgid "Invalid pinhead diameter"
 msgstr "Průměr hrotu podpěry je neplatný"
 
 #: resources/data/hints.ini: [hint:Ironing]
-msgid ""
-"Ironing\n"
+msgid "Ironing\n"
 "Did you know that you can smooth top surfaces of prints using Ironing? The nozzle will run a special second infill phase at the same layer to fill in holes and flatten any lifted plastic. Read more in the documentation. (Requires Advanced or Expert mode.)"
-msgstr ""
-"Ironing\n"
+msgstr "Ironing\n"
 "Věděli jste, že horní plochy tisků můžete vyhladit žehlením? Tryska spustí speciální druhou fázi výplně ve stejné vrstvě, aby vyplnila otvory a vyrovnala případné nadzvednuté otřepky plastu. Více informací se dozvíte v dokumentaci. (Vyžaduje pokročilý nebo expertní režim.)"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:94 src/slic3r/GUI/GUI_ObjectList.cpp:653 src/slic3r/GUI/GUI_Preview.cpp:307 src/slic3r/GUI/Tab.cpp:1420 src/libslic3r/ExtrusionEntity.cpp:320 src/libslic3r/ExtrusionEntity.cpp:348 src/libslic3r/PrintConfig.cpp:1126 src/libslic3r/PrintConfig.cpp:1132 src/libslic3r/PrintConfig.cpp:1146 src/libslic3r/PrintConfig.cpp:1156
@@ -5361,12 +5339,10 @@ msgid "It is not allowed to change the file to reload"
 msgstr "Není možné změnit soubor, který má být znovu načten"
 
 #: src/slic3r/GUI/GalleryDialog.cpp:435
-msgid ""
-"It looks like selected %1%-file has an error or is destructed.\n"
+msgid "It looks like selected %1%-file has an error or is destructed.\n"
 "We can't load this file"
-msgstr ""
-"Vypadá to, že vybraný %1%-soubor obsahuje chybu nebo je zničený.\n"
-"Tento není možné načíst."
+msgstr "Vypadá to, že vybraný %1%-soubor obsahuje chybu nebo je zničený.\n"
+"Tento není možné načíst"
 
 #: src/libslic3r/PrintConfig.cpp:1018
 msgid "It may be beneficial to increase the extruder motor current during the filament exchange sequence to allow for rapid ramming feed rates and to overcome resistance when loading a filament with an ugly shaped tip."
@@ -5398,21 +5374,17 @@ msgstr "Přechod do výšky"
 
 #: src/slic3r/GUI/DoubleSlider.cpp:1223
 #, c-format
-msgid ""
-"Jump to height %s\n"
+msgid "Jump to height %s\n"
 "or Set ruler mode"
-msgstr ""
-"Přechod do výšky %s\n"
+msgstr "Přechod do výšky %s\n"
 "nebo Nastavení režimu pravítka"
 
 #: src/slic3r/GUI/DoubleSlider.cpp:1220
 #, c-format
-msgid ""
-"Jump to height %s\n"
+msgid "Jump to height %s\n"
 "Set ruler mode\n"
 "or Set extruder sequence for the entire print"
-msgstr ""
-"Přechod do výšky %s\n"
+msgstr "Přechod do výšky %s\n"
 "Nastavení režimu pravítka\n"
 "nebo Nastavení sekvence extruderů pro celý tisk"
 
@@ -5493,12 +5465,10 @@ msgid "Layer height can't be greater than nozzle diameter"
 msgstr "Výška vrstvy nemůže být větší než je průměr trysky"
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:49
-msgid ""
-"Layer height is not valid.\n"
+msgid "Layer height is not valid.\n"
 "\n"
 "The layer height will be reset to 0.01."
-msgstr ""
-"Výška vrstvy není platná.\n"
+msgstr "Výška vrstvy není platná.\n"
 "\n"
 "Výška vrstvy bude resetována na 0,01."
 
@@ -5626,11 +5596,9 @@ msgid "Load config file"
 msgstr "Načíst konfigurační soubor"
 
 #: resources/data/hints.ini: [hint:Load config from G-code]
-msgid ""
-"Load config from G-code\n"
+msgid "Load config from G-code\n"
 "Did you know that you can use File-Import-Import Config to load print, filament and printer profiles from an existing G-code file? Similarly, you can use File-Import-Import SL1 / SL1S archive, which also lets you reconstruct 3D models from the voxel data."
-msgstr ""
-"Načtení konfigurace z G-codu\n"
+msgstr "Načtení konfigurace z G-codu\n"
 "Věděli jste, že můžete pomocí funkce Soubor-Importovat-Importovat Konfiguraci načíst nastavení tisku, filamentu a tiskárny z existujícího souboru G-code? Podobně můžete použít funkci Soubor-Importovat-Importovat SL1 / SL1S archiv, která rovněž umožňuje rekonstruovat 3D modely z voxelových dat."
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:113
@@ -5805,6 +5773,10 @@ msgstr "Panel Nastavení mate&riálu"
 msgid "Material"
 msgstr "Materiál"
 
+#: src/slic3r/GUI/Tab.cpp:4243 src/slic3r/GUI/Tab.cpp:4244
+msgid "Material printing profile"
+msgstr "Profil tiskového materiálu"
+
 #: src/slic3r/GUI/Tab.hpp:486
 msgid "Material Settings"
 msgstr "Nastavení materiálu"
@@ -5902,12 +5874,10 @@ msgid "Maximum acceleration when extruding"
 msgstr "Maximální zrychlení při extruzi"
 
 #: src/libslic3r/PrintConfig.cpp:1686
-msgid ""
-"Maximum acceleration when extruding (M204 P)\n"
+msgid "Maximum acceleration when extruding (M204 P)\n"
 "\n"
 "Marlin (legacy) firmware flavor will use this also as travel acceleration (M204 T)."
-msgstr ""
-"Maximální zrychlení při vytlačování (M204 P)\n"
+msgstr "Maximální zrychlení při vytlačování (M204 P)\n"
 "\n"
 "Marlin (legacy) firmware používá toto také jako zrychlení při přesunu (M204 T)."
 
@@ -5934,6 +5904,10 @@ msgstr "Maximální zrychlení Z"
 #: src/slic3r/GUI/Tab.cpp:2391
 msgid "Maximum accelerations"
 msgstr "Maximální zrychlení"
+
+#: src/libslic3r/PrintConfig.cpp:2087
+msgid "Maximum deviation of exported G-code paths from their full resolution counterparts. Very high resolution G-code requires huge amount of RAM to slice and preview, also a 3D printer may stutter not being able to process a high resolution G-code in a timely manner. On the other hand, a low resolution G-code will produce a low poly effect and because the G-code reduction is performed at each layer independently, visible artifacts may be produced."
+msgstr "Maximální odchylka exportovaných cest G-codu od plného rozlišení. G-code ve velmi vysokém rozlišení vyžaduje při slicování a náhledu obrovské množství paměti RAM a také se může stát, že 3D tiskárna nebude schopna včas zpracovat G-code ve vysokém rozlišení. Na druhou stranu G-code s nízkým rozlišením vytvoří low poly efekt a protože redukce G-codu se provádí v každé vrstvě nezávisle, mohou vznikat viditelné artefakty."
 
 #: src/libslic3r/PrintConfig.cpp:2676 src/libslic3r/PrintConfig.cpp:2677
 msgid "Maximum exposure time"
@@ -6139,6 +6113,12 @@ msgstr "Minimální rychlosti posuvu"
 msgid "Minimum initial exposure time"
 msgstr "Minimální doba počátečního osvitu"
 
+#: resources/data/hints.ini: [hint:Minimum shell thickness]
+msgid "Minimum shell thickness\n"
+"Did you know that instead of the number of top and bottom layers, you can define the<a>Minimum shell thickness</a>in millimeters? This feature is especially useful when using the variable layer height function."
+msgstr "Minimální tloušťka stěny\n"
+"Věděli jste, že místo počtu horních a spodních vrstev můžete definovat <a>Minimální tloušťku stěny</a> milimetrech? Tato funkce je užitečná zejména při použití funkce proměnné výšky vrstvy."
+
 #: src/slic3r/GUI/Tab.cpp:1391
 msgid "Minimum shell thickness"
 msgstr "Minimální tloušťka skořepiny"
@@ -6168,11 +6148,9 @@ msgid "Minimum travel feedrate (M205 T)"
 msgstr "Minimální rychlost při přesunu (M205 T)"
 
 #: resources/data/hints.ini: [hint:Minimum wall thickness]
-msgid ""
-"Minimum wall thickness\n"
+msgid "Minimum wall thickness\n"
 "Did you know that instead of the number of top and bottom layers, you can define the<a>Minimum shell thickness</a>in millimeters? This feature is especially useful when using the variable layer height function."
-msgstr ""
-"Minimální tloušťka stěny\n"
+msgstr "Minimální tloušťka stěny\n"
 "Věděli jste, že místo počtu horních a spodních vrstev můžete definovat <a>Minimální tloušťku stěny</a> milimetrech? Tato funkce je užitečná zejména při použití funkce proměnné výšky vrstvy."
 
 #: src/libslic3r/PrintConfig.cpp:3081
@@ -6184,11 +6162,9 @@ msgid "Minimum width of features to maintain when doing elephant foot compensati
 msgstr "Minimální šířka prvků, které je třeba zachovat při provádění kompenzace rozplácnutí první vrstvy."
 
 #: resources/data/hints.ini: [hint:Mirror]
-msgid ""
-"Mirror\n"
+msgid "Mirror\n"
 "Did you know that you can mirror the selected model to create a reversed version of it? Right-click the model, select Mirror and pick the mirror axis."
-msgstr ""
-"Zrcadlení\n"
+msgstr "Zrcadlení\n"
 "Věděli jste, že můžete vybraný model zrcadlit a vytvořit jeho zrcadlenou verzi? Klepněte na model pravým tlačítkem myši, vyberte možnost Zrcadlit a vyberte osu zrcadlení."
 
 #: src/slic3r/GUI/Plater.cpp:3922
@@ -6444,12 +6420,10 @@ msgid "Multiple Extruders"
 msgstr "Více Extruderů"
 
 #: src/slic3r/GUI/Plater.cpp:2372
-msgid ""
-"Multiple objects were loaded for a multi-material printer.\n"
+msgid "Multiple objects were loaded for a multi-material printer.\n"
 "Instead of considering them as multiple objects, should I consider\n"
 "these files to represent a single object having multiple parts?"
-msgstr ""
-"Bylo nahráno více objektů pro multi materiálovou tiskárnu.\n"
+msgstr "Bylo nahráno více objektů pro multi materiálovou tiskárnu.\n"
 "Mají být vloženy jako jeden objekt obsahující více částí, \n"
 "namísto vložení několika objektů?"
 
@@ -6494,11 +6468,9 @@ msgid "Nearest"
 msgstr "Nejbližší"
 
 #: resources/data/hints.ini: [hint:Negative volume]
-msgid ""
-"Negative volume\n"
+msgid "Negative volume\n"
 "Did you know that you can subtract one mesh from another using the Negative volume modifier? That way you can, for example, create easily resizable holes directly in PrusaSlicer. Read more in the documentation. (Requires Advanced or Expert mode.)"
-msgstr ""
-"Negativní objem\n"
+msgstr "Negativní objem\n"
 "Věděli jste, že pomocí modifikátoru Negativní objem můžete odečíst jeden objekt od druhého? Tímto způsobem můžete například přímo v PrusaSliceru vytvářet snadno upravitelné otvory. Více informací se dozvíte v dokumentaci. (Vyžaduje režim Pokročilý nebo Expert.)"
 
 #: src/slic3r/GUI/GUI_ObjectList.cpp:3770
@@ -6643,12 +6615,10 @@ msgid "NOTE:"
 msgstr "POZNÁMKA:"
 
 #: src/slic3r/GUI/Tab.cpp:2039
-msgid ""
-"Note: All parameters from this group are moved to the Physical Printer settings (see changelog).\n"
+msgid "Note: All parameters from this group are moved to the Physical Printer settings (see changelog).\n"
 "\n"
 "A new Physical Printer profile is created by clicking on the \"cog\" icon right of the Printer profiles combo box, by selecting the \"Add physical printer\" item in the Printer combo box. The Physical Printer profile editor opens also when clicking on the \"cog\" icon in the Printer settings tab. The Physical Printer profiles are being stored into PrusaSlicer/physical_printer directory."
-msgstr ""
-"Poznámka: Všechna nastavení z této sekce jsou přesunuta do nastavení Fyzické tiskárny (viz changelog).\n"
+msgstr "Poznámka: Všechna nastavení z této sekce jsou přesunuta do nastavení Fyzické tiskárny (viz changelog).\n"
 "\n"
 "Nový profil Fyzické tiskárny lze vytvořit kliknutím na ikonu „ozubeného kolečka“ vpravo od pole se seznamem profilů tiskáren a výběrem položky „Přidat fyzickou tiskárnu“. Editor fyzické tiskárny se otevře po kliknutí na ikonu „ozubeného kolečka“ na kartě Nastavení tiskárny. Profily fyzických tiskáren se ukládají do adresáře PrusaSlicer/physical_printer directory."
 
@@ -6734,7 +6704,7 @@ msgstr "Počet interface vrstev vložených mezi objekt (objekty) a podpěry."
 
 #: src/libslic3r/PrintConfig.cpp:2602
 msgid "Number of interface layers to insert between the object(s) and support material. Set to -1 to use support_material_interface_layers"
-msgstr "Počet kontaktních vrstev, které se vloží mezi objekt(y) a podpěry. Nastavte na -1, chcete-li použít support_material_interface_layers."
+msgstr "Počet kontaktních vrstev, které se vloží mezi objekt(y) a podpěry. Nastavte na -1, chcete-li použít support_material_interface_layers"
 
 #: src/libslic3r/PrintConfig.cpp:1812
 msgid "Number of loops for the skirt. If the Minimum Extrusion Length option is set, the number of loops might be greater than the one configured here. Set this to zero to disable skirt completely."
@@ -6810,17 +6780,13 @@ msgstr "Změna nastavení objektu"
 
 #: src/slic3r/GUI/Plater.cpp:2469
 #, c-format
-msgid ""
-"Object size from file %s appears to be zero.\n"
+msgid "Object size from file %s appears to be zero.\n"
 "This object has been removed from the model"
-msgid_plural ""
-"Objects size from file %s appears to be zero.\n"
+msgid_plural "Objects size from file %s appears to be zero.\n"
 "These objects have been removed from the model"
-msgstr[0] ""
-"Velikost objektu ze souboru %s se zdá být nulová.\n"
-"Tento objekt byl z modelu odstraněn."
-msgstr[1] ""
-"Velikost objektů ze souboru %s se zdá být nulová.\n"
+msgstr[0] "Velikost objektu ze souboru %s se zdá být nulová.\n"
+"Tento objekt byl z modelu odstraněn"
+msgstr[1] "Velikost objektů ze souboru %s se zdá být nulová.\n"
 "Tento objekty byly z modelu odstraněny."
 msgstr[2] ""
 msgstr[3] ""
@@ -6989,7 +6955,7 @@ msgstr "Otevře stránku pro stažení programu"
 
 #: src/slic3r/GUI/NotificationManager.cpp:742
 msgid "Open Folder."
-msgstr "Otevřít složku"
+msgstr "Otevřít složku."
 
 #: src/slic3r/Utils/Process.cpp:151
 msgid "Open G-code file:"
@@ -7013,7 +6979,7 @@ msgstr "Otevřít novou instanci"
 
 #: src/slic3r/GUI/HintNotification.cpp:903
 msgid "Open Preferences."
-msgstr "Otevřít Nastavení"
+msgstr "Otevřít Nastavení."
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:106
 msgid "Open project STL/OBJ/AMF/3MF with config, clear plater"
@@ -7030,7 +6996,7 @@ msgstr "Otevřít webovou stránku %s v prohlížeči"
 
 #: src/slic3r/GUI/MainFrame.cpp:1403
 msgid "Open the dialog to modify shape gallery"
-msgstr "Otevřete dialogové okno pro úpravu galerie tvarů."
+msgstr "Otevřete dialogové okno pro úpravu galerie tvarů"
 
 #: src/slic3r/GUI/MainFrame.cpp:909 src/slic3r/GUI/MainFrame.cpp:1308
 msgid "Open the Prusa3D drivers download page in your browser"
@@ -7225,19 +7191,15 @@ msgid "Page Up"
 msgstr "Page Up"
 
 #: resources/data/hints.ini: [hint:PageUp / PageDown quick rotation by 45 degrees]
-msgid ""
-"PageUp / PageDown quick rotation by 45 degrees\n"
+msgid "PageUp / PageDown quick rotation by 45 degrees\n"
 "Did you know that you can quickly rotate selected models by 45 degrees around the Z-axis clockwise or counter-clockwise by pressing <b>Page Up</b> or <b>Page Down</b> respectively?"
-msgstr ""
-"PageUp / PageDown rychlé otočení o 45 stupňů\n"
+msgstr "PageUp / PageDown rychlé otočení o 45 stupňů\n"
 "Věděli jste, že můžete vybrané modely rychle otočit o 45 stupňů kolem osy Z ve směru nebo proti směru hodinových ručiček stisknutím tlačítka <b>Page Up</b> nebo <b>Page Down</b>?"
 
 #: resources/data/hints.ini: [hint:Paint-on seam]
-msgid ""
-"Paint-on seam\n"
+msgid "Paint-on seam\n"
 "Did you know that you can paint directly on the object and select where to place the start/endpoint of each perimeter loop? Try the<a>Seam painting</a>feature. (Requires Advanced or Expert mode.)"
-msgstr ""
-"Malování pozice švu\n"
+msgstr "Malování pozice švu\n"
 "Věděli jste, že můžete malovat přímo na objekt a vybrat místo, kam se umístí počáteční/koncový bod každého perimetru? Vyzkoušejte funkci <a>Malování pozice švu</a>. (Vyžaduje režim Pokročilý nebo Expert.)"
 
 #: src/slic3r/GUI/ObjectDataViewModel.cpp:50
@@ -7245,11 +7207,9 @@ msgid "Paint-on seam"
 msgstr "Malování pozice švu"
 
 #: resources/data/hints.ini: [hint:Paint-on supports]
-msgid ""
-"Paint-on supports\n"
+msgid "Paint-on supports\n"
 "Did you know that you can paint directly on the object and select areas, where supports should be enforced or blocked? Try the<a>Paint-on supports</a>feature. (Requires Advanced or Expert mode.)"
-msgstr ""
-"Malování podpěr\n"
+msgstr "Malování podpěr\n"
 "Věděli jste, že můžete malovat přímo na objekt a vybrat oblasti, kde mají či nemají být podpěry? Vyzkoušejte <a>Malování podpěr</a>. (Vyžaduje režim Pokročilý nebo Expert.)"
 
 #: src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp:33
@@ -7289,12 +7249,10 @@ msgid "Parameter validation"
 msgstr "Validace parametru"
 
 #: src/slic3r/Utils/Repetier.cpp:247
-msgid ""
-"Parsing of host response failed.\n"
+msgid "Parsing of host response failed.\n"
 "Message body: \"%1%\"\n"
 "Error: \"%2%\""
-msgstr ""
-"Parsování odpovědi od hostitele se nezdařilo.\n"
+msgstr "Parsování odpovědi od hostitele se nezdařilo.\n"
 "Tělo zprávy: \"%1%\"\n"
 "Chyba: \"%2%\""
 
@@ -7423,11 +7381,9 @@ msgid "Perimeters will be split into multiple segments by inserting Fuzzy skin p
 msgstr "Perimetry se rozdělí na více segmentů vložením bodů členitého povrchu. Snížením vzdálenosti bodů členitého povrchu se zvýší počet náhodně posunutých bodů na obvodové stěně."
 
 #: resources/data/hints.ini: [hint:Perspective camera]
-msgid ""
-"Perspective camera\n"
+msgid "Perspective camera\n"
 "Did you know that you can use the <b>K</b> key to quickly switch between an orthographic and perspective camera?"
-msgstr ""
-"Perspektivní zobrazení scény\n"
+msgstr "Perspektivní zobrazení scény\n"
 "Věděli jste, že pomocí klávesy <b>K</b> můžete rychle přepínat mezi ortografickou a perspektivní kamerou?"
 
 #: src/slic3r/GUI/PhysicalPrinterDialog.cpp:159
@@ -7476,11 +7432,9 @@ msgid "Place bearings in slots and resume printing"
 msgstr "Vložte ložiska do otvorů a pokračujte v tisku"
 
 #: resources/data/hints.ini: [hint:Place on face]
-msgid ""
-"Place on face\n"
+msgid "Place on face\n"
 "Did you know that you can quickly orient a model so that one of its faces sits on the print bed? Select the<a>Place on face</a>function or press the <b>F</b> key."
-msgstr ""
-"Place on face\n"
+msgstr "Place on face\n"
 "Věděli jste, že můžete model rychle zorientovat tak, aby jedna z jeho ploch ležela na podložce? Vyberte funkci <a>Place on face</a> nebo stiskněte klávesu <b>F</b>."
 
 #: src/slic3r/GUI/Gizmos/GLGizmoFlatten.cpp:41
@@ -7589,11 +7543,9 @@ msgid "Copy"
 msgstr "Kopie"
 
 #: src/slic3r/GUI/UnsavedChangesDialog.cpp:1653
-msgid ""
-"Presets are different.\n"
+msgid "Presets are different.\n"
 "Click this button to select the same preset for the right and left preset."
-msgstr ""
-"Přednastavení se liší.\n"
+msgstr "Přednastavení se liší.\n"
 "Kliknutím na toto tlačítko vyberete stejná nastavení pro pravé i levé přednastavení."
 
 #: src/slic3r/GUI/UnsavedChangesDialog.cpp:1645
@@ -7613,19 +7565,15 @@ msgid "Press to activate selection rectangle"
 msgstr "Stiskem aktivujete obdélníkový výběr"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:155
-msgid ""
-"Press to select multiple objects\n"
+msgid "Press to select multiple objects\n"
 "or move multiple objects with mouse"
-msgstr ""
-"Stisknutím vyberte více objektů\n"
+msgstr "Stisknutím vyberte více objektů\n"
 "nebo přesuňte více objektů pomocí myši"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:221 src/slic3r/GUI/KBShortcutsDialog.cpp:222 src/slic3r/GUI/KBShortcutsDialog.cpp:231 src/slic3r/GUI/KBShortcutsDialog.cpp:232
-msgid ""
-"Press to speed up 5 times while moving thumb\n"
+msgid "Press to speed up 5 times while moving thumb\n"
 "with arrow keys or mouse wheel"
-msgstr ""
-"5×  zrychlíte pohyb posuvníku pomocí\n"
+msgstr "5×  zrychlíte pohyb posuvníku pomocí\n"
 "šipek nebo kolečkem myši"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:212 src/slic3r/GUI/Plater.cpp:4052 src/slic3r/GUI/Tab.cpp:2559
@@ -7692,6 +7640,10 @@ msgstr "Nastavení tisku"
 msgid "Print Settings Tab"
 msgstr "Panel Nastavení tisku"
 
+#: src/libslic3r/PrintConfig.cpp:3741
+msgid "Print speed"
+msgstr "Rychlost tisku"
+
 #: src/slic3r/GUI/Tab.cpp:1824
 msgid "Print speed override"
 msgstr "Přepsání rychlosti tisku"
@@ -7705,11 +7657,9 @@ msgid "Printable"
 msgstr "Tisknout objekt"
 
 #: resources/data/hints.ini: [hint:Printable toggle]
-msgid ""
-"Printable toggle\n"
+msgid "Printable toggle\n"
 "Did you know that you can disable the G-code generation for the selected model without having to move or delete it? Toggle the Printable property of a model from the Right-click context menu."
-msgstr ""
-"Přepínač pro tisk objektu\n"
+msgstr "Přepínač pro tisk objektu\n"
 "Věděli jste, že můžete zakázat generování G-kódu pro vybraný model, aniž byste jej museli přesouvat nebo odstraňovat? Změňte volbu Tisknout model v kontextové nabídce pravého tlačítka myši."
 
 #: src/slic3r/GUI/Plater.cpp:694
@@ -7743,6 +7693,22 @@ msgstr "Názvy přednastavení tiskáren"
 #: src/libslic3r/PrintConfig.cpp:2574 src/libslic3r/PrintConfig.cpp:2575 src/libslic3r/PrintConfig.cpp:2576
 msgid "Printer scaling correction"
 msgstr "Korekce měřítka tisku"
+
+#: src/libslic3r/PrintConfig.cpp:3158 src/libslic3r/PrintConfig.cpp:3160
+msgid "Printer scaling correction in X axis"
+msgstr "Korekce měřítka v ose X"
+
+#: src/libslic3r/PrintConfig.cpp:3166 src/libslic3r/PrintConfig.cpp:3168
+msgid "Printer scaling correction in Y axis"
+msgstr "Korekce měřítka v ose Y"
+
+#: src/libslic3r/PrintConfig.cpp:3174 src/libslic3r/PrintConfig.cpp:3176
+msgid "Printer scaling correction in Z axis"
+msgstr "Korekce měřítka v ose Z"
+
+#: src/libslic3r/PrintConfig.cpp:3159 src/libslic3r/PrintConfig.cpp:3167 src/libslic3r/PrintConfig.cpp:3175
+msgid "Printer scaling X axis correction"
+msgstr "Korekce měřítka v ose X"
 
 #: src/slic3r/GUI/Tab.hpp:453
 msgid "Printer Settings"
@@ -7832,8 +7798,7 @@ msgstr "PrusaSlicer"
 
 #: src/slic3r/GUI/GUI_App.cpp:911
 #, c-format
-msgid ""
-"PrusaSlicer detected another configuration folder at %s.\n"
+msgid "PrusaSlicer detected another configuration folder at %s.\n"
 "Its version is %s.\n"
 "Last version you used in current configuration folder is %s.\n"
 "Please note that PrusaSlicer uses different folders to save configuration of alpha, beta and full release versions.\n"
@@ -7841,8 +7806,7 @@ msgid ""
 "\n"
 "If you select yes, PrusaSlicer will copy all profiles and other files from found folder to the current one. Overwriting any existing file with matching name.\n"
 "If you select no, you will continue with current configuration."
-msgstr ""
-"PrusaSlicer nalezl další složku s konfiguracemi umístěnou v %s.\n"
+msgstr "PrusaSlicer nalezl další složku s konfiguracemi umístěnou v %s.\n"
 "Její verze je %s.\n"
 "Poslední verze, kterou jste použili v aktuální složce s konfiguracemi, je %s.\n"
 "Vezměte prosím na vědomí, že PrusaSlicer používá různé složky pro uložení konfigurací verzí alfa, beta a finální verze.\n"
@@ -7853,8 +7817,7 @@ msgstr ""
 
 #: src/slic3r/GUI/GUI_App.cpp:920
 #, c-format
-msgid ""
-"PrusaSlicer detected another configuration folder at %s.\n"
+msgid "PrusaSlicer detected another configuration folder at %s.\n"
 "Its version is %s.\n"
 "There is no configuration file in current configuration folder.\n"
 "Please note that PrusaSlicer uses different folders to save configuration of alpha, beta and full release versions.\n"
@@ -7862,8 +7825,7 @@ msgid ""
 "\n"
 "If you select yes, PrusaSlicer will copy all profiles and other files from found folder to the current one.\n"
 "If you select no, you will start with clean installation with configuration wizard."
-msgstr ""
-"PrusaSlicer nalezl další složku s konfiguracemi umístěnou v %s.\n"
+msgstr "PrusaSlicer nalezl další složku s konfiguracemi umístěnou v %s.\n"
 "Její verze je %s.\n"
 "V aktuální složce s konfiguracemi není žádný konfigurační soubor.\n"
 "Vezměte prosím na vědomí, že PrusaSlicer používá různé složky pro uložení konfigurací verzí alfa, beta a finální verze.\n"
@@ -7881,12 +7843,10 @@ msgid "PrusaSlicer GUI initialization failed"
 msgstr "Inicializace grafického uživatelského rozhraní PrusaSliceru se nezdařila"
 
 #: src/slic3r/GUI/GUI_App.cpp:586
-msgid ""
-"PrusaSlicer has encountered a localization error. Please report to PrusaSlicer team, what language was active and in which scenario this issue happened. Thank you.\n"
+msgid "PrusaSlicer has encountered a localization error. Please report to PrusaSlicer team, what language was active and in which scenario this issue happened. Thank you.\n"
 "\n"
 "The application will now terminate."
-msgstr ""
-"V aplikaci PrusaSlicer došlo k chybě v lokalizaci. Nahlaste PrusaSlicer týmu, jaký jazyk byl aktivní a ve kterém scénáři k tomuto problému došlo. Děkujeme.\n"
+msgstr "V aplikaci PrusaSlicer došlo k chybě v lokalizaci. Nahlaste PrusaSlicer týmu, jaký jazyk byl aktivní a ve kterém scénáři k tomuto problému došlo. Děkujeme.\n"
 "\n"
 "Aplikace bude nyní ukončena."
 
@@ -7899,17 +7859,20 @@ msgid "PrusaSlicer is closing"
 msgstr "PrusaSlicer se zavírá"
 
 #: src/slic3r/GUI/UpdateDialogs.cpp:90
-msgid ""
-"PrusaSlicer is not using the newest configuration available.\n"
-"Configuration Wizard may not offer the latest printers, filaments and SLA materials to be installed. "
-msgstr ""
-"PrusaSlicer nepoužívá nejnovější dostupnou konfiguraci.\n"
+msgid "PrusaSlicer is not using the newest configuration available.\n"
+"Configuration Wizard may not offer the latest printers, filaments and SLA materials to be installed."
+msgstr "PrusaSlicer nepoužívá nejnovější dostupnou konfiguraci.\n"
+"Průvodce nastavením proto nemusí k instalaci nabízet nejnovější tiskárny, filamenty a SLA materiály."
+
+#: src/slic3r/GUI/UpdateDialogs.cpp:95
+msgid "PrusaSlicer is not using the newest configuration available.\n"
+"Configuration Wizard may not offer the latest printers, filaments and SLA materials to be installed."
+msgstr "PrusaSlicer nepoužívá nejnovější dostupnou konfiguraci.\n"
 "Průvodce nastavením proto nemusí k instalaci nabízet nejnovější tiskárny, filamenty a SLA materiály."
 
 #: src/slic3r/GUI/OpenGLManager.cpp:259
 #, c-format
-msgid ""
-"PrusaSlicer requires OpenGL 2.0 capable graphics driver to run correctly, \n"
+msgid "PrusaSlicer requires OpenGL 2.0 capable graphics driver to run correctly, \n"
 "while OpenGL version %s, render %s, vendor %s was detected."
 msgstr "PrusaSlicer vyžaduje grafický ovladač s funkčním OpenGL 2.0. Zatímco byla detekována verze OpenGL %s, render %s, výrobce %s."
 
@@ -7922,12 +7885,10 @@ msgid "PrusaSlicer will remember your action."
 msgstr "PrusaSlicer si vaši akci zapamatuje."
 
 #: src/slic3r/GUI/ConfigWizard.cpp:1174
-msgid ""
-"PrusaSlicer's user interfaces comes in three variants:\n"
+msgid "PrusaSlicer's user interfaces comes in three variants:\n"
 "Simple, Advanced, and Expert.\n"
 "The Simple mode shows only the most frequently used settings relevant for regular 3D printing. The other two offer progressively more sophisticated fine-tuning, they are suitable for advanced and expert users, respectively."
-msgstr ""
-"Uživatelské rozhraní PrusaSlicer je k dispozici ve třech variantách:\n"
+msgstr "Uživatelské rozhraní PrusaSlicer je k dispozici ve třech variantách:\n"
 "Jednoduché, pokročilé a expertní.\n"
 "Jednoduchý režim zobrazuje pouze nejčastěji používaná nastavení relevantní pro běžný 3D tisk. Další dva nabízejí detailnější doladění a proto jsou vhodné pro pokročilé a expertní uživatele."
 
@@ -8022,12 +7983,10 @@ msgid "Ramming customization"
 msgstr "Přizpůsobení rapidní extruze"
 
 #: src/slic3r/GUI/WipeTowerDialog.cpp:41
-msgid ""
-"Ramming denotes the rapid extrusion just before a tool change in a single-extruder MM printer. Its purpose is to properly shape the end of the unloaded filament so it does not prevent insertion of the new filament and can itself be reinserted later. This phase is important and different materials can require different extrusion speeds to get the good shape. For this reason, the extrusion rates during ramming are adjustable.\n"
+msgid "Ramming denotes the rapid extrusion just before a tool change in a single-extruder MM printer. Its purpose is to properly shape the end of the unloaded filament so it does not prevent insertion of the new filament and can itself be reinserted later. This phase is important and different materials can require different extrusion speeds to get the good shape. For this reason, the extrusion rates during ramming are adjustable.\n"
 "\n"
 "This is an expert-level setting, incorrect adjustment will likely lead to jams, extruder wheel grinding into filament etc."
-msgstr ""
-"Rapidní extruze označuje rychlé vytlačení filamentu těsně před jeho výměnou za jiný v multi material tiskárně s jedním extruderem. Účelem je správně vytvarovat konec vysouvaného filamentu tak, aby neblokoval zasunutí nového filamentu a také mohl být sám později opětovně zasunut. Tento proces je důležitý a rozdílné materiály mohou pro získání optimálního tvaru vyžadovat různé rychlosti extruze. Z tohoto důvodu jsou objemové průtoky při rapidní extruzi uživatelsky upravitelné.\n"
+msgstr "Rapidní extruze označuje rychlé vytlačení filamentu těsně před jeho výměnou za jiný v multi material tiskárně s jedním extruderem. Účelem je správně vytvarovat konec vysouvaného filamentu tak, aby neblokoval zasunutí nového filamentu a také mohl být sám později opětovně zasunut. Tento proces je důležitý a rozdílné materiály mohou pro získání optimálního tvaru vyžadovat různé rychlosti extruze. Z tohoto důvodu jsou objemové průtoky při rapidní extruzi uživatelsky upravitelné.\n"
 "\n"
 "Toto nastavení je určeno pro pokročilé uživatele, nesprávné nastavení velmi pravděpodobně povede k zaseknutí filamentu, vybroušení filamentu podávacím kolečkem, atd."
 
@@ -8150,11 +8109,9 @@ msgid "Reload all from disk"
 msgstr "Vše znovu načíst z disku"
 
 #: resources/data/hints.ini: [hint:Reload from disk]
-msgid ""
-"Reload from disk\n"
+msgid "Reload from disk\n"
 "Did you know that if you created a newer version of your model, you can simply reload it in PrusaSlicer? Right-click the model in the 3D view and choose Reload from disk. Read more in the documentation."
-msgstr ""
-"Znovu načíst z disku\n"
+msgstr "Znovu načíst z disku\n"
 "Věděli jste, že pokud jste vytvořili novější verzi modelu, můžete ji jednoduše znovu načíst v PrusaSliceru? Klepněte pravým tlačítkem myši na model ve 3D zobrazení a zvolte možnost Znovu načíst z disku. Více informací najdete v dokumentaci."
 
 #: src/slic3r/GUI/ConfigWizard.cpp:1157 src/slic3r/GUI/GUI_ObjectList.cpp:1793 src/slic3r/GUI/GUI_ObjectList.cpp:4439 src/slic3r/GUI/Plater.cpp:3028 src/slic3r/GUI/Plater.cpp:3852 src/slic3r/GUI/Plater.cpp:3881
@@ -8543,7 +8500,7 @@ msgstr "Pravé tlačítko myši:"
 
 #: src/slic3r/GUI/UnsavedChangesDialog.cpp:1513
 msgid "Right Preset Value"
-msgstr "Pravá hodnota přednastavení"
+msgstr "Hodnota pravého přednastavení"
 
 #: src/slic3r/GUI/MainFrame.cpp:970 src/slic3r/GUI/MainFrame.cpp:1290
 msgid "Right View"
@@ -8783,11 +8740,9 @@ msgid "Search"
 msgstr "Vyhledávání"
 
 #: resources/data/hints.ini: [hint:Search functionality]
-msgid ""
-"Search functionality\n"
+msgid "Search functionality\n"
 "Did you know that you use the<a>Search</a>tool to quickly find a specific PrusaSlicer setting? Or use the familiar shortcut <b>Ctrl+F</b>."
-msgstr ""
-"Funkce vyhledávání\n"
+msgstr "Funkce vyhledávání\n"
 "Věděli jste, že nástroj<a>Hledat<h> slouží k rychlému nalezení konkrétního nastavení v PrusaSliceru? Lze použít i známou klávesovou zkratku <b>Ctrl+F</b>."
 
 #: src/slic3r/GUI/ImGuiWrapper.cpp:803 src/slic3r/GUI/Search.cpp:460
@@ -8820,7 +8775,7 @@ msgstr "Viz stránka ke stažení."
 
 #: src/slic3r/GUI/NotificationManager.hpp:321
 msgid "See more."
-msgstr "Více"
+msgstr "Více."
 
 #: src/slic3r/GUI/NotificationManager.hpp:322
 msgid "See Releases page."
@@ -8919,18 +8874,16 @@ msgid "Select what kind of support do you need"
 msgstr "Vyberte typ podpěr, které potřebujete"
 
 #: src/slic3r/GUI/DoubleSlider.cpp:2135
-msgid ""
-"Select YES if you want to delete all saved tool changes, \n"
+msgid "Select YES if you want to delete all saved tool changes, \n"
 "NO if you want all tool changes switch to color changes, \n"
 "or CANCEL to leave it unchanged."
-msgstr ""
-"Vyberte ANO, pokud chcete odstranit všechny uložené změny nástroje,\n"
+msgstr "Vyberte ANO, pokud chcete odstranit všechny uložené změny nástroje,\n"
 "NE, pokud chcete, aby se všechny změny nástroje přepnout na změny barev,\n"
 "nebo ZRUŠIT pro ponechání beze změny."
 
 #: src/slic3r/GUI/Selection.cpp:191
 msgid "Selection-Add"
-msgstr "Výběř - Přidání"
+msgstr "Výběr - Přidání"
 
 #: src/slic3r/GUI/Selection.cpp:421
 msgid "Selection-Add All"
@@ -9089,11 +9042,9 @@ msgid "Set Mirror"
 msgstr "Zrcadlení"
 
 #: resources/data/hints.ini: [hint:Set number of instances]
-msgid ""
-"Set number of instances\n"
+msgid "Set number of instances\n"
 "Did you know that you can right-click a model and set an exact number of instances instead of copy-pasting it several times?"
-msgstr ""
-"Nastavení počtu instancí\n"
+msgstr "Nastavení počtu instancí\n"
 "Věděli jste, že můžete kliknout pravým tlačítkem myši na model a nastavit přesný počet instancí, místo abyste jej museli několikrát kopírovat?"
 
 #: src/slic3r/GUI/Plater.cpp:3862
@@ -9214,11 +9165,9 @@ msgid "Set upper thumb as active"
 msgstr "Nastavit horní ukazatel jako aktivní"
 
 #: src/libslic3r/PrintConfig.cpp:3714
-msgid ""
-"Sets logging sensitivity. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:trace\n"
+msgid "Sets logging sensitivity. 0:fatal, 1:error, 2:warning, 3:info, 4:debug, 5:trace\n"
 "For example. loglevel=2 logs fatal, error and warning level messages."
-msgstr ""
-"Zvolte úroveň logování:  0:fatalní chyby, 1:chyby, 2:varování, 3:info, 4:ladění, 5:trasování\n"
+msgstr "Zvolte úroveň logování:  0:fatalní chyby, 1:chyby, 2:varování, 3:info, 4:ladění, 5:trasování\n"
 "Například. loglevel=2 zaznamenává fatální chyby, chyby a varovné zprávy."
 
 #: src/slic3r/GUI/BedShapeDialog.cpp:292 src/slic3r/GUI/MainFrame.cpp:1969
@@ -9230,11 +9179,9 @@ msgid "Settings for height range"
 msgstr "Nastavení pro výškový rozsah"
 
 #: resources/data/hints.ini: [hint:Settings in non-modal window]
-msgid ""
-"Settings in non-modal window\n"
+msgid "Settings in non-modal window\n"
 "Did you know that you can open the Settings in a new non-modal window? This means you can have settings open on one screen and the G-code Preview on the other. Go to the<a>Preferences</a>and select Settings in non-modal window."
-msgstr ""
-"Nastavení v samostatném okně\n"
+msgstr "Nastavení v samostatném okně\n"
 "Věděli jste, že si můžete otevřít Nastavení v novém okně? To znamená, že na jedné obrazovce můžete mít otevřená nastavení a na druhé náhled G-codu. Přejděte do <a>Nastavení</a> a vyberte možnost Nastavení v nemodálním okně."
 
 #: src/slic3r/GUI/Preferences.cpp:431
@@ -9270,11 +9217,9 @@ msgid "Shape Gallery"
 msgstr "Galerie Tvarů"
 
 #: resources/data/hints.ini: [hint:Shapes gallery]
-msgid ""
-"Shapes gallery\n"
+msgid "Shapes gallery\n"
 "Did you know that PrusaSlicer has a Shapes Gallery? You can use the included models as modifiers, negative volumes or as printable objects. Right-click the platter and select<a>Add Shape - Gallery</a>."
-msgstr ""
-"Galerie tvarů\n"
+msgstr "Galerie tvarů\n"
 "Věděli jste, že PrusaSlicer má galerii tvarů? Modely můžete použít jako modifikátory, negativní objemy nebo jako tisknutelné objekty. Klepněte pravým tlačítkem myši na podložku a vyberte možnost <a>Přidat Tvar - Galerie</a>."
 
 #: src/slic3r/GUI/GUI_Preview.cpp:338 src/slic3r/GUI/GUI_Preview.cpp:1478
@@ -9477,6 +9422,10 @@ msgstr "Jednoduchý režim"
 msgid "Simple View Mode"
 msgstr "Jednoduchý režim"
 
+#: src/slic3r/GUI/Gizmos/GLGizmoSimplify.cpp:156
+msgid "Simplification is currently only allowed when a single part is selected"
+msgstr "Zjednodušení je v současné době povoleno pouze pokud je vybrán jeden díl"
+
 #: src/slic3r/GUI/Gizmos/GLGizmoSimplify.cpp:53
 msgid "Simplify"
 msgstr "Zjednodušit"
@@ -9485,12 +9434,14 @@ msgstr "Zjednodušit"
 msgid "Simplify "
 msgstr "Zjednodušit"
 
+#: src/slic3r/GUI/Gizmos/GLGizmoSimplify.cpp:479
+msgid "Simplify %1%"
+msgstr "Zjednodušení %1%"
+
 #: resources/data/hints.ini: [hint:Simplify mesh]
-msgid ""
-"Simplify mesh\n"
+msgid "Simplify mesh\n"
 "Did you know that you can reduce the number of triangles in a mesh using the Simplify mesh feature? Right-click the model and select Simplify model. Read more in the documentation."
-msgstr ""
-"Zjednodušení meshe\n"
+msgstr "Zjednodušení meshe\n"
 "Věděli jste, že můžete snížit počet trojúhelníků v meshi pomocí funkce Zjednodušit model? Klepněte pravým tlačítkem myši na model a vyberte možnost Zjednodušit model. Více informací najdete v dokumentaci."
 
 #: src/slic3r/GUI/GUI_Factories.cpp:699 src/slic3r/GUI/Plater.cpp:3731
@@ -9506,12 +9457,10 @@ msgid "Single Extruder Multi Material"
 msgstr "MultiMaterial tisk s jedním extrudérem"
 
 #: src/slic3r/GUI/Tab.cpp:2101
-msgid ""
-"Single Extruder Multi Material is selected, \n"
+msgid "Single Extruder Multi Material is selected, \n"
 "and all extruders must have the same diameter.\n"
 "Do you want to change the diameter for all extruders to first extruder nozzle diameter value?"
-msgstr ""
-"Je zvolená Multi Materiálová tiskárna s jedním extruderem,\n"
+msgstr "Je zvolená Multi Materiálová tiskárna s jedním extruderem,\n"
 "a proto všechny extrudery musí mít stejný průměr.\n"
 "Chcete nastavit průměry všech extruderových trysek podle průměru prvního extruderu?"
 
@@ -9647,6 +9596,10 @@ msgstr "Poloměr uzavření mezery v tiskové vrstvě"
 msgid "Slice now"
 msgstr "Slicovat"
 
+#: src/libslic3r/PrintConfig.cpp:2075
+msgid "Slice resolution"
+msgstr "Rozlišení slicování"
+
 #: src/libslic3r/PrintConfig.cpp:3526
 msgid "Slice the model and export SLA printing layers as PNG."
 msgstr "Naslicuje model a exportuje SLA tiskové vrstvy jako PNG soubory."
@@ -9665,7 +9618,7 @@ msgstr "Informace o slicování"
 
 #: src/slic3r/GUI/GUI_Preview.cpp:729
 msgid "Sliced object \"%1%\" looks like a logo or a sign"
-msgstr "Slicovaný objekt vypadá jako logo nebo nápis"
+msgstr "Slicovaný objekt \"%1%\" vypadá jako logo nebo nápis"
 
 #: src/slic3r/GUI/MainFrame.cpp:1548 src/slic3r/GUI/Plater.cpp:2921 src/slic3r/GUI/Plater.cpp:5234 src/slic3r/GUI/Tab.cpp:1551 src/slic3r/GUI/Tab.cpp:4081
 msgid "Slicing"
@@ -9768,11 +9721,9 @@ msgid "Solid infill extruder"
 msgstr "Extruder pro plnou výplň"
 
 #: resources/data/hints.ini: [hint:Solid infill threshold area]
-msgid ""
-"Solid infill threshold area\n"
+msgid "Solid infill threshold area\n"
 "Did you know that you can make parts of your model with a small cross-section be filled with solid infill automatically? Set the<a>Solid infill threshold area</a>.(Expert mode only.)"
-msgstr ""
-"Prahová oblast s plnou výplní\n"
+msgstr "Prahová oblast s plnou výplní\n"
 "Věděli jste, že můžete části modelu s malým průřezem automaticky vyplnit plnou výplní? Nastavit <a>Prahovou oblast s plnou výplní</a>. (Pouze v režimu Expert.)"
 
 #: src/libslic3r/PrintConfig.cpp:1842
@@ -9798,6 +9749,10 @@ msgstr "Některé %1% byly odinstalovány."
 #: src/slic3r/GUI/UnsavedChangesDialog.cpp:735
 msgid "Some fields are too long to fit. Right mouse click reveals the full text."
 msgstr "Některá pole jsou příliš dlouhá a nevejdou se. Kliknutím pravým tlačítkem myši zobrazíte celý text."
+
+#: src/slic3r/GUI/ConfigWizard.cpp:2726
+msgid "Some filaments were uninstalled."
+msgstr "Některé filamenty byly odinstalovány."
 
 #: src/libslic3r/PrintConfig.cpp:981
 msgid "Some G/M-code commands, including temperature control and others, are not universal. Set this option to your printer's firmware to get a compatible output. The \"No extrusion\" flavor prevents PrusaSlicer from exporting any extrusion value at all."
@@ -9835,6 +9790,10 @@ msgstr "Některé tiskárny nebo nastavení tiskárny mohou mít potíže s tisk
 msgid "Some Printers were uninstalled."
 msgstr "Některé tiskárny byly odinstalovány."
 
+#: src/slic3r/GUI/ConfigWizard.cpp:2726
+msgid "Some SLA materials were uninstalled."
+msgstr "Některé SLA materiály byly odinstalovány."
+
 #: src/slic3r/GUI/GLCanvas3D.cpp:3967
 msgid "Spacing"
 msgstr "Vzdálenost"
@@ -9864,11 +9823,9 @@ msgid "Speed for filling small gaps using short zigzag moves. Keep this reasonab
 msgstr "Rychlost plnění malých mezer pomocí krátkých cikcak pohybů. Udržujte tuto hodnotu poměrně nízkou, aby nedošlo k přílišným otřesům a problémům s rezonancí. Nastavte nulu pro vypnutí vyplnění mezery."
 
 #: src/libslic3r/PrintConfig.cpp:2842
-msgid ""
-"Speed for movements along the Z axis.\n"
+msgid "Speed for movements along the Z axis.\n"
 "When set to zero, the value is ignored and regular travel speed is used instead."
-msgstr ""
-"Rychlost pro pohyby podél osy Z.\n"
+msgstr "Rychlost pro pohyby podél osy Z.\n"
 "Pokud je nastavena na nulu, hodnota se ignoruje a místo ní se použije běžná rychlost pohybu."
 
 #: src/slic3r/GUI/Tab.cpp:1488
@@ -10036,8 +9993,7 @@ msgid "Start the application"
 msgstr "Spusťit aplikaci"
 
 #: src/slic3r/GUI/GUI_App.cpp:386
-msgid ""
-"Starting with %1% 2.3, configuration directory on Linux has changed (according to XDG Base Directory Specification) to \n"
+msgid "Starting with %1% 2.3, configuration directory on Linux has changed (according to XDG Base Directory Specification) to \n"
 "%2%.\n"
 "\n"
 "This directory did not exist yet (maybe you run the new version for the first time).\n"
@@ -10048,8 +10004,7 @@ msgid ""
 "Note that if you decide to downgrade %1% in future, it will use the old location again.\n"
 "\n"
 "What do you want to do now?"
-msgstr ""
-"Počínaje %1% 2.3 se konfigurační adresář v systému Linux změnil (podle specifikace XDG Base Directory) na %2%.\n"
+msgstr "Počínaje %1% 2.3 se konfigurační adresář v systému Linux změnil (podle specifikace XDG Base Directory) na %2%.\n"
 "\n"
 "Tento adresář ještě neexistoval (možná používáte novou verzi poprvé).\n"
 "Byl však zjištěn starý konfigurační adresář %1% v\n"
@@ -10204,11 +10159,9 @@ msgid "Supports stealth mode"
 msgstr "Podporuje tichý režim"
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:158
-msgid ""
-"Supports work better, if the following feature is enabled:\n"
+msgid "Supports work better, if the following feature is enabled:\n"
 "- Detect bridging perimeters"
-msgstr ""
-"Podpěry fungují lépe, pokud je povolena funkce:\n"
+msgstr "Podpěry fungují lépe, pokud je povolena funkce:\n"
 "- Detekovat perimetry přemostění"
 
 #: src/slic3r/GUI/Preferences.cpp:104
@@ -10269,28 +10222,22 @@ msgid "Switching Presets: Unsaved Changes"
 msgstr "Přepnutí na jiné přednastavení: Neuložené změny"
 
 #: src/slic3r/GUI/GUI_App.cpp:1608
-msgid ""
-"Switching the language will trigger application restart.\n"
+msgid "Switching the language will trigger application restart.\n"
 "You will lose content of the plater."
-msgstr ""
-"Přepnutím jazyka se aplikace restartuje.\n"
+msgstr "Přepnutím jazyka se aplikace restartuje.\n"
 "Ztratíte obsah scény."
 
 #: src/slic3r/GUI/Plater.cpp:4784
-msgid ""
-"Switching the printer technology from %1% to %2%.\n"
+msgid "Switching the printer technology from %1% to %2%.\n"
 "Some %1% presets were modified, which will be lost after switching the printer technology."
-msgstr ""
-"Přepnutí technologie tisku z %1% na %2%.\n"
+msgstr "Přepnutí technologie tisku z %1% na %2%.\n"
 "Byly upravena některá přednastavení %1%, která budou po přepnutí technologie tisku ztracena."
 
 #: src/slic3r/GUI/WipeTowerDialog.cpp:365
-msgid ""
-"Switching to simple settings will discard changes done in the advanced mode!\n"
+msgid "Switching to simple settings will discard changes done in the advanced mode!\n"
 "\n"
 "Do you want to proceed?"
-msgstr ""
-"Přepnutím do jednoduchého nastavení ztratíte změny provedené v pokročilém režimu!\n"
+msgstr "Přepnutím do jednoduchého nastavení ztratíte změny provedené v pokročilém režimu!\n"
 "\n"
 "Opravdu chcete pokračovat?"
 
@@ -10377,8 +10324,7 @@ msgstr "Zařízení %s nebylo nalezeno"
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:436
 #, c-format
-msgid ""
-"The %s device was not found.\n"
+msgid "The %s device was not found.\n"
 "If the device is connected, please press the Reset button next to the USB connector ..."
 msgstr "Zařízení %s nebylo nalezeno. Pokud je zařízení připojeno, stiskněte tlačítko Reset vedle USB konektoru ..."
 
@@ -10387,8 +10333,7 @@ msgid "The current custom preset will be detached from the parent system preset.
 msgstr "Aktuální vlastní přednastavení bude odděleno od rodičovského systémového přednastavení."
 
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:925
-msgid ""
-"The currently manipulated object is tilted (rotation angles are not multiples of 90°).\n"
+msgid "The currently manipulated object is tilted (rotation angles are not multiples of 90°).\n"
 "Non-uniform scaling of tilted objects is only possible in the World coordinate system,\n"
 "once the rotation is embedded into the object coordinates."
 msgstr "Momentálně upravovaný objekt je pootočený (rotační úhly nejsou násobky 90°). Nejednotné škálování nakloněných objektů je ve světových koordinátech možné pouze tehdy, když je informace o rotacích zapsána do koordinátů daného objektu."
@@ -10399,42 +10344,31 @@ msgstr "Výchozí úhel pro připojení nosných tyčí a spojek."
 
 #: src/slic3r/GUI/Plater.cpp:2509
 #, c-format
-msgid ""
-"The dimensions of the object from file %s seem to be defined in inches.\n"
+msgid "The dimensions of the object from file %s seem to be defined in inches.\n"
 "The internal unit of PrusaSlicer is a millimeter. Do you want to recalculate the dimensions of the object?"
-msgid_plural ""
-"The dimensions of some objects from file %s seem to be defined in inches.\n"
+msgid_plural "The dimensions of some objects from file %s seem to be defined in inches.\n"
 "The internal unit of PrusaSlicer is a millimeter. Do you want to recalculate the dimensions of these objects?"
-msgstr[0] ""
-"Zdá se, že rozměry objektu ze souboru %s jsou definovány v palcích.\n"
+msgstr[0] "Zdá se, že rozměry objektu ze souboru %s jsou definovány v palcích.\n"
 "Interní jednotkou PrusaSliceru je milimetr. Chcete přepočítat rozměry objektu?"
-msgstr[1] ""
-"Zdá se, že rozměry objektů ze souboru %s jsou definovány v palcích.\n"
+msgstr[1] "Zdá se, že rozměry objektů ze souboru %s jsou definovány v palcích.\n"
 "Interní jednotkou PrusaSliceru je milimetr. Chcete přepočítat rozměry objektů?"
-msgstr[2] ""
-"Zdá se, že rozměry objektů ze souboru %s jsou definovány v palcích.\n"
+msgstr[2] "Zdá se, že rozměry objektů ze souboru %s jsou definovány v palcích.\n"
 "Interní jednotkou PrusaSliceru je milimetr. Chcete přepočítat rozměry objektů?"
 msgstr[3] ""
 
 #: src/slic3r/GUI/Plater.cpp:2487
 #, c-format
-msgid ""
-"The dimensions of the object from file %s seem to be defined in meters.\n"
+msgid "The dimensions of the object from file %s seem to be defined in meters.\n"
 "The internal unit of PrusaSlicer is a millimeter. Do you want to recalculate the dimensions of the object?"
-msgid_plural ""
-"The dimensions of some objects from file %s seem to be defined in meters.\n"
+msgid_plural "The dimensions of some objects from file %s seem to be defined in meters.\n"
 "The internal unit of PrusaSlicer is a millimeter. Do you want to recalculate the dimensions of these objects?"
-msgstr[0] ""
-"Zdá se, že rozměry objektu ze souboru %s jsou definovány v metrech.\n"
+msgstr[0] "Zdá se, že rozměry objektu ze souboru %s jsou definovány v metrech.\n"
 "Interní jednotkou PrusaSliceru je milimetr. Chcete přepočítat rozměry objektu?"
-msgstr[1] ""
-"Zdá se, že rozměry objektů ze souboru %s jsou definovány v metrech.\n"
+msgstr[1] "Zdá se, že rozměry objektů ze souboru %s jsou definovány v metrech.\n"
 "Interní jednotkou PrusaSliceru je milimetr. Chcete přepočítat rozměry objektů?"
-msgstr[2] ""
-"Zdá se, že rozměry objektů ze souboru %s jsou definovány v metrech.\n"
+msgstr[2] "Zdá se, že rozměry objektů ze souboru %s jsou definovány v metrech.\n"
 "Interní jednotkou PrusaSliceru je milimetr. Chcete přepočítat rozměry objektů?"
-msgstr[3] ""
-"Zdá se, že rozměry objektů ze souboru %s jsou definovány v metrech.\n"
+msgstr[3] "Zdá se, že rozměry objektů ze souboru %s jsou definovány v metrech.\n"
 "Interní jednotkou PrusaSliceru je milimetr. Chcete přepočítat rozměry objektů?"
 
 #: src/libslic3r/SLAPrint.cpp:645
@@ -10491,17 +10425,13 @@ msgstr "Následující modely FFF tiskáren nemají vybraný filament:"
 
 #: src/slic3r/GUI/Tab.cpp:1790
 #, c-format
-msgid ""
-"The following line %s contains reserved keywords.\n"
+msgid "The following line %s contains reserved keywords.\n"
 "Please remove it, as it may cause problems in G-code visualization and printing time estimation."
-msgid_plural ""
-"The following lines %s contain reserved keywords.\n"
+msgid_plural "The following lines %s contain reserved keywords.\n"
 "Please remove them, as they may cause problems in G-code visualization and printing time estimation."
-msgstr[0] ""
-"Řádek %s obsahuje vyhrazená klíčová slova.\n"
+msgstr[0] "Řádek %s obsahuje vyhrazená klíčová slova.\n"
 "Odstraňte jej, protože může způsobit problémy při vizualizaci G-codu a odhadu času tisku."
-msgstr[1] ""
-"Řádekky %s obsahují vyhrazená klíčová slova.\n"
+msgstr[1] "Řádekky %s obsahují vyhrazená klíčová slova.\n"
 "Odstraňte je, protože mohou způsobit problémy při vizualizaci G-codu a odhadu času tisku."
 msgstr[2] ""
 msgstr[3] ""
@@ -10635,12 +10565,10 @@ msgid "The percentage of smaller pillars compared to the normal pillar diameter 
 msgstr "Procentuální velikost menších podpěrných pilířů oproti průměru normálních pilířů. Menší pilíře jsou použity v problematických místech, kam se normální nevejdou."
 
 #: src/libslic3r/PrintConfig.cpp:2567
-msgid ""
-"The percentage of the bed area. \n"
+msgid "The percentage of the bed area. \n"
 "If the print area exceeds the specified value, \n"
 "then a slow tilt will be used, otherwise - a fast tilt"
-msgstr ""
-"Procentuálně vyjádřená zabraná tisková plocha.\n"
+msgstr "Procentuálně vyjádřená zabraná tisková plocha.\n"
 "Pokud tisk zabere více než je zadaná hodnota,\n"
 "bude použit pomalý náklon. V ostatních případech bude použit rychlý náklon"
 
@@ -10665,11 +10593,9 @@ msgid "The places where the brim will be printed around each object on the first
 msgstr "Místa, kde bude kolem každého objektu v první vrstvě vytištěn límec."
 
 #: src/slic3r/GUI/Plater.cpp:5880
-msgid ""
-"The plater is empty.\n"
+msgid "The plater is empty.\n"
 "Do you want to save the project?"
-msgstr ""
-"Tisková podložka je prázdná.\n"
+msgstr "Tisková podložka je prázdná.\n"
 "Chcete projekt uložit?"
 
 #: src/slic3r/GUI/Plater.cpp:2420
@@ -10733,30 +10659,24 @@ msgid "The selected object couldn't be split because it contains only one solid 
 msgstr "Vybraný objekt nebylo možné rozdělit, protože obsahuje pouze jednu část."
 
 #: src/slic3r/GUI/MainFrame.cpp:1003
-msgid ""
-"The selected project is no longer available.\n"
+msgid "The selected project is no longer available.\n"
 "Do you want to remove it from the recent projects list?"
-msgstr ""
-"Vybraný projekt již není k dispozici.\n"
+msgstr "Vybraný projekt již není k dispozici.\n"
 "Chcete ho odstranit ze seznamu posledních projektů?"
 
-#: src/slic3r/GUI/DoubleSlider.cpp:1400
-msgid ""
-"The sequential print is on.\n"
-"It's impossible to apply any custom G-code for objects printing sequentually.\n"
-msgstr ""
-"Sekvenční tisk je zapnutý.\n"
-"Pro objekty tisknuté sekvenčním tiskem nelze použít žádný vlastní G-code."
-
 #: src/slic3r/GUI/DoubleSlider.cpp:1121
-msgid ""
-"The sequential print is on.\n"
+msgid "The sequential print is on.\n"
 "It's impossible to apply any custom G-code for objects printing sequentually.\n"
 "This code won't be processed during G-code generation."
-msgstr ""
-"Sekvenční tisk je zapnutý.\n"
+msgstr "Sekvenční tisk je zapnutý.\n"
 "Není možné použít jakýkoliv vlastní G-kód pro objekty tisknuté sekvenčně.\n"
 "Během generování G-kódu nebude tento kód zpracován."
+
+#: src/slic3r/GUI/DoubleSlider.cpp:1410
+msgid "The sequential print is on.\n"
+"It's impossible to apply any custom G-code for objects printing sequentually."
+msgstr "Sekvenční tisk je zapnutý.\n"
+"Pro objekty tisknuté sekvenčním tiskem nelze použít žádný vlastní G-code."
 
 #: src/slic3r/GUI/ConfigWizard.cpp:1187
 msgid "The size of the object can be specified in inches"
@@ -10784,16 +10704,14 @@ msgstr "Rychlost retrakce (toto nastavení platí pouze pro motor extruderu)."
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:80
 #, c-format
-msgid ""
-"The Spiral Vase mode requires:\n"
+msgid "The Spiral Vase mode requires:\n"
 "- one perimeter\n"
 "- no top solid layers\n"
 "- 0% fill density\n"
 "- no support material\n"
 "- Ensure vertical shell thickness enabled\n"
 "- Detect thin walls disabled"
-msgstr ""
-"Režim Spiral Vase vyžaduje:\n"
+msgstr "Režim Spiral Vase vyžaduje:\n"
 "- jeden perimetr\n"
 "- žádné horní plné vrstvy\n"
 "- 0% hustota výplně\n"
@@ -10842,12 +10760,10 @@ msgid "The vertical distance between the object top surface and the support mate
 msgstr "Vertikální vzdálenost mezi horním povrchem objektu a podpěr. Pokud je nastavena na nulu, použije se hodnota support_material_contact_distance, která určí shodnou vzdálenost mezi podpěry a horním/spodní povrchem objektu v ose Z."
 
 #: src/slic3r/GUI/Tab.cpp:2731
-msgid ""
-"The Wipe option is not available when using the Firmware Retraction mode.\n"
+msgid "The Wipe option is not available when using the Firmware Retraction mode.\n"
 "\n"
 "Shall I disable it in order to enable Firmware Retraction?"
-msgstr ""
-"Možnost Očistit není k dispozici při použití režimu retrakcí z firmwaru.\n"
+msgstr "Možnost Očistit není k dispozici při použití režimu retrakcí z firmwaru.\n"
 "\n"
 "Mám ji deaktivovat, aby bylo možné povolit retrakce z firmwaru?"
 
@@ -10856,19 +10772,16 @@ msgid "The Wipe Tower currently does not support volumetric E (use_volumetric_e=
 msgstr "Čistíví Věž v současné době nepodporuje volumetric E (use_volumetric_e = 0)."
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:114
-msgid ""
-"The Wipe Tower currently supports the non-soluble supports only\n"
+msgid "The Wipe Tower currently supports the non-soluble supports only\n"
 "if they are printed with the current extruder without triggering a tool change.\n"
 "(both support_material_extruder and support_material_interface_extruder need to be set to 0)."
-msgstr ""
-"Čistící věž v současné době podporuje pouze nerozpustné podpěry\n"
+msgstr "Čistící věž v současné době podporuje pouze nerozpustné podpěry\n"
 "pokud jsou vytištěny s aktuálním extrudérem bez spuštění výměny nástroje.\n"
 "(jak extruder pro tisk podpor tak extruder pro tisk kontaktních podpěr je třeba nastavit na 0)."
 
 #: src/libslic3r/Print.cpp:1426
 msgid "The Wipe Tower currently supports the non-soluble supports only if they are printed with the current extruder without triggering a tool change. (both support_material_extruder and support_material_interface_extruder need to be set to 0)."
-msgstr ""
-"Čistící věž v současné době podporuje pouze nerozpustné podpěry\n"
+msgstr "Čistící věž v současné době podporuje pouze nerozpustné podpěry\n"
 "pokud jsou vytištěny s aktuálním extrudérem bez spuštění výměny nástroje.\n"
 "(jak extruder pro tisk podpor tak extruder pro tisk kontaktních podpěr je třeba nastavit na 0)."
 
@@ -10917,27 +10830,21 @@ msgid "There are unprintable objects. Try to adjust support settings to make the
 msgstr "Nacházejí se zde netisknutelné objekty. Zkuste upravit nastavení podpěr tak, aby bylo možné objekty vytisknout."
 
 #: src/slic3r/GUI/DoubleSlider.cpp:1155
-msgid ""
-"There is a color change for extruder that has not been used before.\n"
+msgid "There is a color change for extruder that has not been used before.\n"
 "Check your settings to avoid redundant color changes."
-msgstr ""
-"Dochází zde ke změně barvy u extruderu, který dosud nebyl použit.\n"
+msgstr "Dochází zde ke změně barvy u extruderu, který dosud nebyl použit.\n"
 "Zkontrolujte nastavení, abyste se vyhnuli redundantním změnám barev."
 
 #: src/slic3r/GUI/DoubleSlider.cpp:1149
-msgid ""
-"There is a color change for extruder that won't be used till the end of print job.\n"
+msgid "There is a color change for extruder that won't be used till the end of print job.\n"
 "This code won't be processed during G-code generation."
-msgstr ""
-"Dochází zde ke změně barvy u extruderu, který již do konce tisku nebude použit.\n"
+msgstr "Dochází zde ke změně barvy u extruderu, který již do konce tisku nebude použit.\n"
 "Tento kód nebude během generování G-kódu zpracován."
 
 #: src/slic3r/GUI/DoubleSlider.cpp:1152
-msgid ""
-"There is an extruder change set to the same extruder.\n"
+msgid "There is an extruder change set to the same extruder.\n"
 "This code won't be processed during G-code generation."
-msgstr ""
-"Je zde změna extruderu na ten samý extruder.\n"
+msgstr "Je zde změna extruderu na ten samý extruder.\n"
 "Během generování G-codu nebude tento kód zpracován."
 
 #: src/libslic3r/GCode.cpp:521
@@ -10954,11 +10861,9 @@ msgid "This %s version: %s"
 msgstr "Tento %s verze: %s"
 
 #: src/slic3r/GUI/DoubleSlider.cpp:2041 src/slic3r/GUI/Tab.cpp:1305
-msgid ""
-"This action is not revertible.\n"
+msgid "This action is not revertible.\n"
 "Do you want to proceed?"
-msgstr ""
-"Tato akce není vratná.\n"
+msgstr "Tato akce není vratná.\n"
 "Chcete pokračovat?"
 
 #: src/slic3r/GUI/DoubleSlider.cpp:2040
@@ -11034,26 +10939,22 @@ msgid "This file cannot be loaded in a simple mode. Do you want to switch to an 
 msgstr "Tento soubor nelze načíst v jednoduchém režimu. Chcete přepnout do pokročilého režimu?"
 
 #: src/slic3r/GUI/Plater.cpp:2526
-msgid ""
-"This file contains several objects positioned at multiple heights.\n"
+msgid "This file contains several objects positioned at multiple heights.\n"
 "Instead of considering them as multiple objects, should \n"
 "the file be loaded as a single object having multiple parts?"
-msgstr ""
-"Tento soubor obsahuje několik objektů umístěných v různých výškách.\n"
+msgstr "Tento soubor obsahuje několik objektů umístěných v různých výškách.\n"
 "Místo toho, aby se s nimi pracovalo jako se separátními objekty, \n"
 "mají být načteny jako jeden objekt, který má více částí?"
 
 #: src/slic3r/GUI/FirmwareDialog.cpp:332
 #, c-format
-msgid ""
-"This firmware hex file does not match the printer model.\n"
+msgid "This firmware hex file does not match the printer model.\n"
 "The hex file is intended for: %s\n"
 "Printer reported: %s\n"
 "\n"
 "Do you want to continue and flash this hex file anyway?\n"
 "Please only continue if you are sure this is the right thing to do."
-msgstr ""
-"Tento hex soubor s firmware neodpovídá modelu tiskárny.\n"
+msgstr "Tento hex soubor s firmware neodpovídá modelu tiskárny.\n"
 "Soubor hex je určen pro: %s\n"
 "Tiskárna oznámila: %s\n"
 "\n"
@@ -11162,11 +11063,9 @@ msgid "This may cause problems in g-code visualization and printing time estimat
 msgstr "Může to způsobit problémy při vizualizaci g-codu a odhadu doby tisku."
 
 #: src/slic3r/GUI/GUI_ObjectManipulation.cpp:928
-msgid ""
-"This operation is irreversible.\n"
+msgid "This operation is irreversible.\n"
 "Do you want to proceed?"
-msgstr ""
-"Tato operace je nevratná.\n"
+msgstr "Tato operace je nevratná.\n"
 "Chcete pokračovat?"
 
 #: src/libslic3r/PrintConfig.cpp:1550
@@ -11235,13 +11134,11 @@ msgstr "Tento vektor ukládá potřebné objemy pro změnu z/na každý extruder
 
 #: src/slic3r/GUI/UpdateDialogs.cpp:216
 #, c-format
-msgid ""
-"This version of %s is not compatible with currently installed configuration bundles.\n"
+msgid "This version of %s is not compatible with currently installed configuration bundles.\n"
 "This probably happened as a result of running an older %s after using a newer one.\n"
 "\n"
 "You may either exit %s and try again with a newer version, or you may re-run the initial configuration. Doing so will create a backup snapshot of the existing configuration before installing files compatible with this %s."
-msgstr ""
-"Tato verze %s není kompatibilní se současně nainstalovanými balíčky nastavení.\n"
+msgstr "Tato verze %s není kompatibilní se současně nainstalovanými balíčky nastavení.\n"
 "Tato situace nejspíše nastala spuštěním starší verze %s po používání novější verze.\n"
 "\n"
 "Můžete buď ukončit %s a zkusit to znovu s novou verzí, nebo můžete znovu spustit výchozí konfiguraci. Před instalací kompatibilního nastavení s touto verzí %s dojde k vytvoření zálohy současné konfigurace."
@@ -11479,11 +11376,9 @@ msgstr "Nelze vyvrtat aktuální konfiguraci otvorů do modelu."
 
 #: src/slic3r/GUI/OpenGLManager.cpp:275
 #, c-format
-msgid ""
-"Unable to load the following shaders:\n"
+msgid "Unable to load the following shaders:\n"
 "%s"
-msgstr ""
-"Nelze načíst následující shadery: \n"
+msgstr "Nelze načíst následující shadery: \n"
 "%s"
 
 #: src/slic3r/GUI/Plater.cpp:3233
@@ -11548,11 +11443,9 @@ msgid "Undo History"
 msgstr "Historie operací Zpět"
 
 #: resources/data/hints.ini: [hint:Undo/redo history]
-msgid ""
-"Undo/redo history\n"
+msgid "Undo/redo history\n"
 "Did you know that you can right-click the<a>undo/redo arrows</a>to see the history of changes and to undo or redo several actions at once?"
-msgstr ""
-"Historie akcí\n"
+msgstr "Historie akcí\n"
 "Věděli jste, že můžete kliknutím pravým tlačítkem myši na <a>šipky Zpět/Vpřed</a> vrátit několik akcí najednou?"
 
 #: src/libslic3r/miniz_extension.cpp:115
@@ -11588,17 +11481,14 @@ msgid "UNLOCKED LOCK"
 msgstr "ODEMČENÝ ZÁMEK"
 
 #: src/slic3r/GUI/Tab.cpp:3719
-msgid ""
-"UNLOCKED LOCK icon indicates that some settings were changed and are not equal to the system (or default) values for the current option group.\n"
+msgid "UNLOCKED LOCK icon indicates that some settings were changed and are not equal to the system (or default) values for the current option group.\n"
 "Click to reset all settings for current option group to the system (or default) values."
 msgstr "Ikona ODEMKNUTÉHO ZÁMKU indikuje, že některá nastavení byla změněna a nejsou shodná se systémovými (výchozími) hodnotami pro danou skupinu nastavení. Klikněte pro reset všech nastavení aktuální skupiny nastavení na systémové hodnoty."
 
 #: src/slic3r/GUI/Tab.cpp:3734
-msgid ""
-"UNLOCKED LOCK icon indicates that the value was changed and is not equal to the system (or default) value.\n"
+msgid "UNLOCKED LOCK icon indicates that the value was changed and is not equal to the system (or default) value.\n"
 "Click to reset current value to the system (or default) value."
-msgstr ""
-"Ikona ODEMKNUTÉHO ZÁMKU indikuje, že se hodnota změnila a není shodná se systémovou (nebo výchozí) hodnotou.\n"
+msgstr "Ikona ODEMKNUTÉHO ZÁMKU indikuje, že se hodnota změnila a není shodná se systémovou (nebo výchozí) hodnotou.\n"
 "Klikněte pro reset současné hodnoty na systémovou hodnotu."
 
 #: src/slic3r/GUI/UnsavedChangesDialog.cpp:771
@@ -11680,6 +11570,10 @@ msgstr "Nahrát firmware do tiskárny s Arduinem"
 #: src/slic3r/GUI/PrintHostDialogs.cpp:83
 msgid "Upload and Print"
 msgstr "Nahrát a Tisknout"
+
+#: src/slic3r/GUI/PrintHostDialogs.cpp:101
+msgid "Upload and Simulate"
+msgstr "Nahrát a simulovat"
 
 #: src/slic3r/GUI/PrintHostDialogs.cpp:97
 #, c-format
@@ -11839,11 +11733,9 @@ msgid "Values in this column are for Stealth mode"
 msgstr "Hodnoty v tomto sloupci jsou pro Tichý režim"
 
 #: resources/data/hints.ini: [hint:Variable layer height]
-msgid ""
-"Variable layer height\n"
+msgid "Variable layer height\n"
 "Did you know that you can print different regions of your model with a different layer height and smooth the transitions between them? Try the<a>Variable layer height tool.</a>(Not available for SLA printers.)"
-msgstr ""
-"Proměnná výška vrstvy\n"
+msgstr "Proměnná výška vrstvy\n"
 "Věděli jste, že můžete tisknout různé oblasti modelu s různou výškou vrstvy a vyhlazovat přechody mezi nimi? Vyzkoušejte nástroj <a>Proměnná výška vrstvy.</a> (Není k dispozici pro SLA tiskárny.)"
 
 #: src/slic3r/GUI/GLCanvas3D.cpp:231 src/slic3r/GUI/GLCanvas3D.cpp:4978
@@ -11915,8 +11807,7 @@ msgid "View mode"
 msgstr "Režim zobrazení"
 
 #: src/slic3r/GUI/UnsavedChangesDialog.cpp:666
-msgid ""
-"Visit \"Preferences\" and check \"%1%\"\n"
+msgid "Visit \"Preferences\" and check \"%1%\"\n"
 "to be asked about unsaved changes again."
 msgstr "Pro zrušení zapamatování jděte do Nastaneví a zaškrtněte \"%1%\"."
 
@@ -12147,13 +12038,11 @@ msgid "With bowden extruders, it may be wise to do some amount of quick retract 
 msgstr "U bowdenových extrudérů může být vhodné provést rychlé retrakce než se spustí očištění."
 
 #: src/libslic3r/PrintConfig.cpp:2218
-msgid ""
-"With draft shield active, the skirt will be printed skirt_distance from the object, possibly intersecting brim.\n"
+msgid "With draft shield active, the skirt will be printed skirt_distance from the object, possibly intersecting brim.\n"
 "Enabled = skirt is as tall as the highest printed object.\n"
 "Limited = skirt is as tall as specified by skirt_height.\n"
 "This is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft."
-msgstr ""
-"Při ochranném štítu proti průvanu se obrys vytiskne ve vzdálenosti skirt_distance od objektu, případně protíná límec.\n"
+msgstr "Při ochranném štítu proti průvanu se obrys vytiskne ve vzdálenosti skirt_distance od objektu, případně protíná límec.\n"
 "Povoleno = obrys je stejně vysoký jako nejvyšší tištěný objekt.\n"
 "Omezeno = obrys je tak vysoký, jak určuje výška skirt_height.\n"
 "To je užitečné pro ochranu modelu z ABS nebo ASA před deformací a odlepením od tiskové podložky v důsledku průvanu."
@@ -12167,14 +12056,12 @@ msgid "World coordinates"
 msgstr "Světové souřadnice"
 
 #: src/slic3r/GUI/UpdateDialogs.cpp:92
-msgid ""
-"Would you like to install it?\n"
+msgid "Would you like to install it?\n"
 "\n"
 "Note that a full configuration snapshot will be created first. It can then be restored at any time should there be a problem with the new version.\n"
 "\n"
 "Updated configuration bundles:"
-msgstr ""
-"Přejete si spustit instalaci?\n"
+msgstr "Přejete si spustit instalaci?\n"
 "\n"
 "Nejprve bude provedena kompletní záloha nastavení. V případě problémů s novou verzí ji bude možné kdykoliv obnovit.\n"
 "\n"
@@ -12216,17 +12103,41 @@ msgstr "Y souřadnice levého předního rohu čistící věže"
 msgid "You are currently editing SLA support points. Please, apply or discard your changes first."
 msgstr "Právě upravujete SLA  podpěrné body. Změny nejprve aplikujte nebo zahoďte."
 
+#: src/slic3r/GUI/GUI_App.cpp:990
+msgid "You are running a 32 bit build of PrusaSlicer on 64-bit Windows.\n"
+"32 bit build of PrusaSlicer will likely not be able to utilize all the RAM available in the system.\n"
+"Please download and install a 64 bit build of PrusaSlicer from https://www.prusa3d.cz/prusaslicer/.\n"
+"Do you wish to continue?"
+msgstr "Používáte 32bitovou aplikaci PrusaSlicer v 64bitovém systému Windows.\n"
+"32bitovová aplikace PrusaSliceru pravděpodobně nebude schopna využít veškerou dostupnou paměť RAM v systému.\n"
+"Stáhněte si a nainstalujte 64bitovou verzi PrusaSliceru ze stránek https://www.prusa3d.cz/prusaslicer/.\n"
+"Přejete si pokračovat?"
+
+#: src/slic3r/GUI/GUI_App.cpp:1036
+msgid "You are running a 32 bit build of PrusaSlicer on 64-bit Windows.\n"
+"32 bit build of PrusaSlicer will likely not be able to utilize all the RAM available in the system.\n"
+"Please download and install a 64 bit build of PrusaSlicer from https://www.prusa3d.cz/prusaslicer/.\n"
+"Do you wish to continue?"
+msgstr "Používáte 32bitovou aplikaci PrusaSlicer v 64bitovém systému Windows.\n"
+"32bitovová aplikace PrusaSliceru pravděpodobně nebude schopna využít veškerou dostupnou paměť RAM v systému.\n"
+"Stáhněte si a nainstalujte 64bitovou verzi PrusaSliceru ze stránek https://www.prusa3d.cz/prusaslicer/.\n"
+"Přejete si pokračovat?"
+
 #: src/slic3r/GUI/Plater.cpp:4984
 msgid "You can keep presets modifications to the new project or discard them"
-msgstr "Úpravy přednastavení můžete v novém projektu ponechat nebo je zahodit."
+msgstr "Úpravy přednastavení můžete v novém projektu ponechat nebo je zahodit"
 
 #: src/slic3r/GUI/Plater.cpp:4985
-msgid ""
-"You can keep presets modifications to the new project, discard them or save changes as new presets.\n"
+msgid "You can keep presets modifications to the new project, discard them or save changes as new presets.\n"
 "Note, if changes will be saved than new project wouldn't keep them"
-msgstr ""
-"Změny přednastavení můžete v novém projektu ponechat, zahodit je nebo uložit jako nové přednastavení.\n"
-"Pamatuje, že pokud budou změny uloženy, nový projekt je nezachová."
+msgstr "Změny přednastavení můžete v novém projektu ponechat, zahodit je nebo uložit jako nové přednastavení.\n"
+"Pamatuje, že pokud budou změny uloženy, nový projekt je nezachová"
+
+#: src/slic3r/GUI/Plater.cpp:5070
+msgid "You can keep presets modifications to the new project, discard them or save changes as new presets.\n"
+"Note, if changes will be saved then new project wouldn't keep them"
+msgstr "Změny přednastavení můžete v novém projektu ponechat, zahodit je nebo uložit jako nové přednastavení.\n"
+"Pamatuje, že pokud budou změny uloženy, nový projekt je nezachová"
 
 #: src/slic3r/GUI/Plater.cpp:1405
 msgid "You can open only one .gcode file at a time."
@@ -12274,38 +12185,30 @@ msgid "You cannot use non-uniform scaling mode for multiple objects/parts select
 msgstr "Nemůžete použít nestejnoměrnou změnu měřítka pro více vybraných objektů/částí"
 
 #: src/slic3r/GUI/NotificationManager.hpp:459
-msgid ""
-"You have just added a G-code for color change, but its value is empty.\n"
+msgid "You have just added a G-code for color change, but its value is empty.\n"
 "To export the G-code correctly, check the \"Color Change G-code\" in \"Printer Settings > Custom G-code\""
-msgstr ""
-"Právě jste přidali G-code pro změnu barvy, ale jeho obsah je prázdný.\n"
+msgstr "Právě jste přidali G-code pro změnu barvy, ale jeho obsah je prázdný.\n"
 "Chcete-li exportovat G-code správně, zkontrolujte „G-code pro změnu barvy“ v „Nastavení tiskárny> Vlastní G-code“"
 
 #: src/slic3r/GUI/SavePresetDialog.cpp:277
-msgid ""
-"You have selected physical printer \"%1%\" \n"
+msgid "You have selected physical printer \"%1%\" \n"
 "with related printer preset \"%2%\""
-msgstr ""
-"Vybrali jste fyzickou tiskárnu \"%1%\"\n"
+msgstr "Vybrali jste fyzickou tiskárnu \"%1%\"\n"
 "s tiskovým přednastavením \"%2%\""
 
 #: src/slic3r/GUI/GUI_App.cpp:1011
-msgid ""
-"You have started PrusaSlicer for 32-bit architecture on 64-bit system.\n"
+msgid "You have started PrusaSlicer for 32-bit architecture on 64-bit system.\n"
 "Please download and install correct version at https://www.prusa3d.cz/prusaslicer/.\n"
 "Do you wish to continue?"
-msgstr ""
-"Spustili jste PrusaSlicer pro 32bitovou architekturu na 64bitovém systému.\n"
+msgstr "Spustili jste PrusaSlicer pro 32bitovou architekturu na 64bitovém systému.\n"
 "Stáhněte si a nainstalujte správnou verzi na https://www.prusa3d.cz/prusaslicer/.\n"
 "Chcete pokračovat?"
 
 #: src/slic3r/GUI/GUI_App.cpp:1001
-msgid ""
-"You have started PrusaSlicer for 64-bit architecture on 32-bit system.\n"
+msgid "You have started PrusaSlicer for 64-bit architecture on 32-bit system.\n"
 "Please download and install correct version at https://www.prusa3d.cz/prusaslicer/.\n"
 "Do you wish to continue?"
-msgstr ""
-"Spustili jste PrusaSlicer pro 64bitovou architekturu na 32bitovém systému.\n"
+msgstr "Spustili jste PrusaSlicer pro 64bitovou architekturu na 32bitovém systému.\n"
 "Stáhněte si a nainstalujte správnou verzi na https://www.prusa3d.cz/prusaslicer/.\n"
 "Chcete pokračovat?"
 
@@ -12336,23 +12239,21 @@ msgstr "Po spuštění budete  informováni o nové verzi: Všechny = stabilní 
 
 #: src/slic3r/GUI/UnsavedChangesDialog.cpp:897
 msgid "You will not be asked about the unsaved changes the next time you create new project"
-msgstr "Při příštím vytvoření nového projektu nebudete dotázáni na neuložené změny."
+msgstr "Při příštím vytvoření nového projektu nebudete dotázáni na neuložené změny"
 
 #: src/slic3r/GUI/UnsavedChangesDialog.cpp:898
 msgid "You will not be asked about the unsaved changes the next time you switch a preset"
 msgstr "Při příštím přepnutí přednastavení nebudete dotázáni na neuložené změny"
 
 #: src/slic3r/GUI/UnsavedChangesDialog.cpp:899
-msgid ""
-"You will not be asked about the unsaved changes the next time you: \n"
+msgid "You will not be asked about the unsaved changes the next time you: \n"
 "- close the application,\n"
 "- load project,\n"
 "- process Undo / Redo with a change of print technology,\n"
 "- take/load snapshot,\n"
 "- load config file/bundle,\n"
 "- export config_bundle"
-msgstr ""
-"Na neuložené změny nebudete dotázáni při příštím:\n"
+msgstr "Na neuložené změny nebudete dotázáni při příštím:\n"
 "- zavření aplikace,\n"
 "- načtení projektu,\n"
 "- zpracování kroků Zpět / Vpřed se změnou tiskové technologie,\n"
@@ -12405,11 +12306,9 @@ msgid "Zoom in"
 msgstr "Přiblížit"
 
 #: resources/data/hints.ini: [hint:Zoom on selected objects or all if none selected]
-msgid ""
-"Zoom on selected objects or on all objects if none selected\n"
+msgid "Zoom on selected objects or on all objects if none selected\n"
 "Did you know that you can zoom in on selected objects by pressing the <b>Z</b> key? If none are selected, the camera will zoom on all objects in the scene."
-msgstr ""
-"Přiblížení vybraných objektů nebo všech objektů, pokud není vybrán žádný\n"
+msgstr "Přiblížení vybraných objektů nebo všech objektů, pokud není vybrán žádný\n"
 "Věděli jste, že vybrané objekty můžete přiblížit stisknutím klávesy <b>Z</b>? Pokud nejsou vybrány žádné, kamera přiblíží všechny objekty ve scéně."
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:178
@@ -12421,11 +12320,9 @@ msgid "Zoom to Bed"
 msgstr "Pohled na tiskovou plochu"
 
 #: src/slic3r/GUI/KBShortcutsDialog.cpp:176
-msgid ""
-"Zoom to selected object\n"
+msgid "Zoom to selected object\n"
 "or all objects in scene, if none selected"
-msgstr ""
-"Pohled na označený objekt, nebo na všechny objekty ve scéně,\n"
+msgstr "Pohled na označený objekt, nebo na všechny objekty ve scéně,\n"
 "pokud není vybraný žádný objekt"
 
 #: src/libslic3r/PrintConfig.cpp:241 src/libslic3r/PrintConfig.cpp:816 src/libslic3r/PrintConfig.cpp:1748 src/libslic3r/PrintConfig.cpp:1758 src/libslic3r/PrintConfig.cpp:2036 src/libslic3r/PrintConfig.cpp:2191 src/libslic3r/PrintConfig.cpp:2390 src/libslic3r/PrintConfig.cpp:2891 src/libslic3r/PrintConfig.cpp:3012
@@ -12435,3 +12332,4 @@ msgstr "°"
 #: src/slic3r/GUI/ConfigWizard.cpp:1404 src/slic3r/GUI/ConfigWizard.cpp:1418 src/libslic3r/PrintConfig.cpp:180 src/libslic3r/PrintConfig.cpp:912 src/libslic3r/PrintConfig.cpp:956 src/libslic3r/PrintConfig.cpp:2209
 msgid "°C"
 msgstr "°C"
+

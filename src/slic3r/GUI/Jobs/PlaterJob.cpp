@@ -10,7 +10,7 @@ void PlaterJob::on_exception(const std::exception_ptr &eptr)
         if (eptr)
             std::rethrow_exception(eptr);
     }  catch (std::exception &e) {
-       show_error(m_plater, _(L("An unexpected error occured: ")) + e.what());
+       show_error(m_plater, _(L("An unexpected error occured")) + ": "+ e.what());
     }
 }
 

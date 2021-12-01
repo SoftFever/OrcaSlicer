@@ -476,7 +476,7 @@ void GLGizmoSimplify::apply_simplify() {
     int object_idx = selection.get_object_idx();
 
     auto plater = wxGetApp().plater();
-    plater->take_snapshot(_u8L("Simplify ") + m_volume->name);
+    plater->take_snapshot(GUI::format(_u8L("Simplify %1%"), m_volume->name));
     plater->clear_before_change_mesh(object_idx);
 
     ModelVolume* mv = get_model_volume(selection, wxGetApp().model());
