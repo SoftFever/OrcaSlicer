@@ -148,7 +148,6 @@ public:
         return false;
     }
     void                    make_perimeters();
-    void                    make_fills() { this->make_fills(nullptr, nullptr); };
     void                    make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive::Octree* support_fill_octree);
     void 					make_ironing();
 

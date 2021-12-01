@@ -193,7 +193,7 @@ void Layer::reconnectRoots
 
         if (root_ptr->getLastGroundingLocation())
         {
-            const Point& ground_loc = root_ptr->getLastGroundingLocation().value();
+            const Point& ground_loc = *root_ptr->getLastGroundingLocation();
             if (ground_loc != root_ptr->getLocation())
             {
                 Point new_root_pt;
@@ -225,7 +225,7 @@ void Layer::reconnectRoots
             );
         if (ground.boundary_location)
         {
-            if (ground.boundary_location.value() == root_ptr->getLocation())
+            if (*ground.boundary_location == root_ptr->getLocation())
                 continue; // Already on the boundary.
 
             auto new_root = Node::create(ground.p(), ground.p());

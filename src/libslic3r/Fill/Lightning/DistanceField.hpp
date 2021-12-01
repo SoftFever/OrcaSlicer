@@ -73,7 +73,7 @@ protected:
      */
     struct UnsupportedCell
     {
-        UnsupportedCell(Point grid_loc, coord_t dist_to_boundary) : loc(loc), dist_to_boundary(dist_to_boundary) {}
+        UnsupportedCell(Point loc, coord_t dist_to_boundary) : loc(loc), dist_to_boundary(dist_to_boundary) {}
         // The position of the center of this cell.
         Point loc;
         // How far this cell is removed from the ``current_outline`` polygon, the edge of the infill area.
