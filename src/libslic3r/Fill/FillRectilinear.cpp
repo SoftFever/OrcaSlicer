@@ -3041,5 +3041,40 @@ Polylines FillSupportBase::fill_surface(const Surface *surface, const FillParams
     return polylines_out;
 }
 
-} // namespace Slic3r
+Points sample_grid_pattern(const ExPolygon &expolygon, coord_t spacing)
+{
+    ExPolygonWithOffset poly_with_offset(expolygon, 0, 0, 0);
+    BoundingBox bounding_box = poly_with_offset.bounding_box_src();
+    std::vector<SegmentedIntersectionLine> segs = slice_region_by_vertical_lines(
+        poly_with_offset, 
+        (bounding_box.max.x() - bounding_box.min.x() + spacing - 1) / spacing, 
+        bounding_box.min.x(),
+        spacing);
 
+    Points out;
+    for (const SegmentedIntersectionLine &sil : segs) {
+        for (size_t i = 0; i < sil.intersections.size(); i += 2) {
+            coord_t a = sil.intersections[i].pos();
+            coord_t b = sil.intersections[i + 1].pos();
+            for (coord_t y = a - (a % spacing) - spacing; y < b; y += spacing)
+                if (y > a)
+                    out.emplace_back(sil.pos, y);
+        }
+    }
+    return out;
+}
+
+Points sample_grid_pattern(const ExPolygons &expolygons, coord_t spacing)
+{
+    Points out;
+    for (const ExPolygon &expoly : expolygons)
+        append(out, sample_grid_pattern(expoly, spacing));
+    return out;
+}
+
+Points sample_grid_pattern(const Polygons &polygons, coord_t spacing)
+{
+    return sample_grid_pattern(union_ex(polygons), spacing);
+}
+
+} // namespace Slic3r

@@ -255,7 +255,7 @@ namespace int128 {
 // To be used by std::unordered_map, std::unordered_multimap and friends.
 struct PointHash {
     size_t operator()(const Vec2crd &pt) const {
-        return std::hash<coord_t>()(pt.x()) ^ std::hash<coord_t>()(pt.y());
+        return coord_t((89 * 31 + int64_t(pt.x())) * 31 + pt.y());
     }
 };
 

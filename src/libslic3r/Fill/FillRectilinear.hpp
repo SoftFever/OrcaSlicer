@@ -109,6 +109,10 @@ protected:
     float _layer_angle(size_t idx) const override { return 0.f; }
 };
 
+Points sample_grid_pattern(const ExPolygon &expolygon, coord_t spacing);
+Points sample_grid_pattern(const ExPolygons &expolygons, coord_t spacing);
+Points sample_grid_pattern(const Polygons &polygons, coord_t spacing);
+
 } // namespace Slic3r
 
 #endif // slic3r_FillRectilinear_hpp_

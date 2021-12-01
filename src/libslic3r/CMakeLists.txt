@@ -69,6 +69,14 @@ add_library(libslic3r STATIC
     Fill/FillLine.hpp
     Fill/FillRectilinear.cpp
     Fill/FillRectilinear.hpp
+    Fill/Lightning/DistanceField.cpp
+    Fill/Lightning/DistanceField.hpp
+    Fill/Lightning/Generator.cpp
+    Fill/Lightning/Generator.hpp
+    Fill/Lightning/Layer.cpp
+    Fill/Lightning/Layer.hpp
+    Fill/Lightning/TreeNode.cpp
+    Fill/Lightning/TreeNode.hpp
     Flow.cpp
     Flow.hpp
     format.hpp
