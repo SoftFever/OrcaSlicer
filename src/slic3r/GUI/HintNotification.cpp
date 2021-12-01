@@ -294,6 +294,10 @@ void HintDatabase::uninit()
 		write_used_binary(m_used_ids);
 	}
 	m_initialized = false;
+	m_loaded_hints.clear();
+	m_sorted_hints = false;
+	m_used_ids.clear();
+	 m_used_ids_loaded = false;
 }
 void HintDatabase::init()
 {
@@ -336,7 +340,8 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path)
 			size_t      weight = 1;
 			bool		was_displayed = is_used(id_string);
 			//unescape text1
-			unescape_string_cstyle(_utf8(dict["text"]), fulltext);
+			unescape_string_cstyle(dict["text"], fulltext);
+			fulltext = _utf8(fulltext);
 			// replace <b> and </b> for imgui markers
 			std::string marker_s(1, ImGui::ColorMarkerStart);
 			std::string marker_e(1, ImGui::ColorMarkerEnd);
