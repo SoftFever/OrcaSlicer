@@ -2736,16 +2736,17 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
             _L("Object too large?"));
     }
 
-    // Now ObjectList uses GLCanvas3D::is_object_sinkin() to show/hide "Sinking" InfoItem, 
-    // so 3D-scene should be updated before object additing to the ObjectList
-    this->view3D->reload_scene(false, (unsigned int)UpdateParams::FORCE_FULL_SCREEN_REFRESH);
-
     notification_manager->close_notification_of_type(NotificationType::UpdatedItemsInfo);
     for (const size_t idx : obj_idxs) {
         wxGetApp().obj_list()->add_object_to_list(idx);
     }
 
     update();
+    // Update InfoItems in ObjectList after update() to use of a correct value of the GLCanvas3D::is_sinking(),
+    // which is updated after a view3D->reload_scene(false, flags & (unsigned int)UpdateParams::FORCE_FULL_SCREEN_REFRESH) call
+    for (const size_t idx : obj_idxs)
+        wxGetApp().obj_list()->update_info_items(idx);
+
     object_list_changed();
 
     this->schedule_background_process();
