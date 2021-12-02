@@ -24,6 +24,30 @@ namespace pt = boost::property_tree;
 
 namespace Slic3r {
 
+namespace {
+std::string substitute_host(const std::string& orig_addr, const std::string sub_addr)
+{
+    //URI = scheme ":"["//"[userinfo "@"] host [":" port]] path["?" query]["#" fragment]
+    std::string final_addr = orig_addr;
+    //  http
+    size_t double_dash = orig_addr.find("//");
+    size_t host_start = (double_dash == std::string::npos ? 0 : double_dash + 2);
+    // userinfo
+    size_t at = orig_addr.find("@");
+    host_start = (at != std::string::npos && at > host_start ? at + 1 : host_start);
+    // end of host, could be port, subpath (could be query or fragment?)
+    size_t host_end = orig_addr.find_first_of(":/?#", host_start);
+    host_end = (host_end == std::string::npos ? orig_addr.length() : host_end);
+    // now host_start and host_end should mark where to put resolved addr
+    // check host_start. if its nonsense, lets just use original addr (or  resolved addr?)
+    if (host_start >= orig_addr.length()) {
+        return final_addr;
+    }
+    final_addr.replace(host_start, host_end - host_start, sub_addr);
+    return final_addr;
+}
+} //namespace
+
 OctoPrint::OctoPrint(DynamicPrintConfig *config) :
     m_host(config->opt_string("print_host")),
     m_apikey(config->opt_string("printhost_apikey")),
@@ -128,38 +152,13 @@ bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Erro
         // This new address returns in "test_msg" variable.
         // Solves troubles of uploades failing with name address.
         std::string resolved_addr = boost::nowide::narrow(test_msg);
-        // put ipv6 into [] brackets (there shouldn't be any http:// if its resolved addr)
+        // put ipv6 into [] brackets 
         if (resolved_addr.find(':') != std::string::npos && resolved_addr.at(0) != '[')
             resolved_addr = "[" + resolved_addr + "]";
-        // port number is not part of resolved addr. If it is in m_host, we need to add it again
-        // if ipv6 the format would be [add]:port
-        if (size_t port_start = m_host.rfind(':'); port_start != std::string::npos) {
-            size_t count_of_colon = std::count(m_host.begin(), m_host.end(), ':');
-            // ipv6
-            if (size_t addr_end = m_host.rfind(']'); addr_end != port_start - 1 && count_of_colon > 2)
-                port_start = std::string::npos;
-            // http:// (https cant go to this else branch)
-            else if (m_host.find("http:") == 0 && port_start == 4)
-                port_start = std::string::npos;
-            // add port to resolved addres
-            if (port_start != std::string::npos && port_start < m_host.size()) {
-                std::string port_string = m_host.substr(port_start);
-                // last check - try casting port string to number.
-                bool cont = true;
-                for (size_t i = 1; i < port_string.size(); i++) {
-                    // number smaller than 65535
-                    if (port_string[i] < '0' || port_string[i] > '9' || i > 6) {
-                        cont = false;
-                        BOOST_LOG_TRIVIAL(debug) << "IP resolve wrongly concidered string as port: " << port_string;
-                        break;
-                    }
-                }
-                if (cont)
-                    resolved_addr += port_string;
-                
-            }
-        }
-        url = make_url("api/files/local", resolved_addr);
+        // in original address (m_host) replace host for resolved ip 
+        std::string final_addr = substitute_host(m_host, resolved_addr);
+        BOOST_LOG_TRIVIAL(debug) << "Upload address after ip resolve: " << final_addr;
+        url = make_url("api/files/local", final_addr);
     }
 
     BOOST_LOG_TRIVIAL(info) << boost::format("%1%: Uploading file %2% at %3%, filename: %4%, path: %5%, print: %6%")
