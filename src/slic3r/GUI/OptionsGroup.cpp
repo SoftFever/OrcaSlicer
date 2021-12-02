@@ -4,6 +4,7 @@
 #include "GUI_App.hpp"
 #include "OG_CustomCtrl.hpp"
 #include "MsgDialog.hpp"
+#include "format.hpp"
 
 #include <utility>
 #include <wx/numformatter.h>
