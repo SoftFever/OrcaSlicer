@@ -72,15 +72,10 @@ namespace Slic3r {
 #if ENABLE_SMOOTH_NORMALS
 static void smooth_normals_corner(TriangleMesh& mesh, std::vector<stl_normal>& normals)
 {
-    mesh.repair();
-
     using MapMatrixXfUnaligned = Eigen::Map<const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>>;
     using MapMatrixXiUnaligned = Eigen::Map<const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>>;
 
-    std::vector<stl_normal> face_normals(mesh.stl.stats.number_of_facets);
-    for (uint32_t i = 0; i < mesh.stl.stats.number_of_facets; ++i) {
-        face_normals[i] = mesh.stl.facet_start[i].normal;
-    }
+    std::vector<Vec3f> face_normals = its_face_normals(mesh.its);
 
     Eigen::MatrixXd vertices = MapMatrixXfUnaligned(mesh.its.vertices.front().data(),
         Eigen::Index(mesh.its.vertices.size()), 3).cast<double>();
@@ -102,8 +97,6 @@ static void smooth_normals_corner(TriangleMesh& mesh, std::vector<stl_normal>& n
 
 static void smooth_normals_vertex(TriangleMesh& mesh, std::vector<stl_normal>& normals)
 {
-    mesh.repair();
-
     using MapMatrixXfUnaligned = Eigen::Map<const Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>>;
     using MapMatrixXiUnaligned = Eigen::Map<const Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor | Eigen::DontAlign>>;
 
