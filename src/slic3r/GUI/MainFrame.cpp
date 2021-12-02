@@ -319,8 +319,10 @@ static void add_tabs_as_menu(wxMenuBar* bar, MainFrame* main_frame, wxWindow* ba
 
     bar_parent->Bind(wxEVT_MENU_OPEN, [main_frame, bar, is_mainframe_menu](wxMenuEvent& event) {
         wxMenu* const menu = event.GetMenu();
-        if (!menu || menu->GetMenuItemCount() > 0)
+        if (!menu || menu->GetMenuItemCount() > 0) {
+            event.Skip(); // it is verry important to next pricessing of the wxEVT_UPDATE_UI by this menu 
             return;
+        }
 
         // update tab selection
 
