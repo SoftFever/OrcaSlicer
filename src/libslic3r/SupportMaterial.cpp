@@ -1480,7 +1480,7 @@ static inline std::tuple<Polygons, Polygons, Polygons, float> detect_overhangs(
         overhang_polygons = to_polygons(layer.lslices);
 #endif
         // Expand for better stability.
-        contact_polygons = expand(overhang_polygons, scaled<float>(object_config.raft_expansion.value));
+        contact_polygons = object_config.raft_expansion.value > 0 ? expand(overhang_polygons, scaled<float>(object_config.raft_expansion.value)) : overhang_polygons;
     }
     else if (! layer.regions().empty())
     {

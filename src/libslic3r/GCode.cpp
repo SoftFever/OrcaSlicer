@@ -1998,13 +1998,19 @@ GCode::LayerResult GCode::process_layer(
     // Either printing all copies of all objects, or just a single copy of a single object.
     assert(single_object_instance_idx == size_t(-1) || layers.size() == 1);
 
+    // First object, support and raft layer, if available.
     const Layer         *object_layer  = nullptr;
     const SupportLayer  *support_layer = nullptr;
+    const SupportLayer  *raft_layer    = nullptr;
     for (const LayerToPrint &l : layers) {
-        if (l.object_layer != nullptr && object_layer == nullptr)
+        if (l.object_layer && ! object_layer)
             object_layer = l.object_layer;
-        if (l.support_layer != nullptr && support_layer == nullptr)
-            support_layer = l.support_layer;
+        if (l.support_layer) {
+            if (! support_layer)
+                support_layer = l.support_layer;
+            if (! raft_layer && support_layer->id() < support_layer->object()->slicing_parameters().raft_layers())
+                raft_layer = support_layer;
+        }
     }
     const Layer         &layer         = (object_layer != nullptr) ? *object_layer : *support_layer;
     GCode::LayerResult   result { {}, layer.id(), false, last_layer };
@@ -2406,7 +2412,7 @@ GCode::LayerResult GCode::process_layer(
     log_memory_info();
 
     result.gcode = std::move(gcode);
-    result.cooling_buffer_flush = object_layer || last_layer;
+    result.cooling_buffer_flush = object_layer || raft_layer || last_layer;
     return result;
 }
 
