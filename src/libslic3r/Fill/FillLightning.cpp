@@ -2,6 +2,7 @@
 
 #include "FillLightning.hpp"
 #include "Lightning/Generator.hpp"
+#include "../Surface.hpp"
 
 #include <cstdlib>
 #include <cmath>

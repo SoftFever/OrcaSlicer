@@ -4,6 +4,7 @@
 #include "TreeNode.hpp"
 
 #include "../../Geometry.hpp"
+#include "../../ClipperUtils.hpp"
 
 namespace Slic3r::FillLightning {
 

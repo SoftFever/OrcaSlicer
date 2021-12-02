@@ -4,6 +4,9 @@
 #ifndef LIGHTNING_DISTANCE_FIELD_H
 #define LIGHTNING_DISTANCE_FIELD_H
 
+#include "../../Point.hpp"
+#include "../../Polygon.hpp"
+
 namespace Slic3r::FillLightning
 {
 

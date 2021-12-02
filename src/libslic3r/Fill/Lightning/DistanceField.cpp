@@ -3,6 +3,7 @@
 
 #include "DistanceField.hpp" //Class we're implementing.
 #include "../FillRectilinear.hpp"
+#include "../../ClipperUtils.hpp"
 
 namespace Slic3r::FillLightning
 {

@@ -13,10 +13,10 @@
 #include "../BoundingBox.hpp"
 #include "../Exception.hpp"
 #include "../Utils.hpp"
+#include "../ExPolygon.hpp"
 
 namespace Slic3r {
 
-class ExPolygon;
 class Surface;
 enum InfillPattern : int;
 
