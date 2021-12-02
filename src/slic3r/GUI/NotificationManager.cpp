@@ -33,36 +33,6 @@ wxDEFINE_EVENT(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED, EjectDriveNotificationClicke
 wxDEFINE_EVENT(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED, ExportGcodeNotificationClickedEvent);
 wxDEFINE_EVENT(EVT_PRESET_UPDATE_AVAILABLE_CLICKED, PresetUpdateAvailableClickedEvent);
 
-const NotificationManager::NotificationData NotificationManager::basic_notifications[] = {
-	{NotificationType::Mouse3dDisconnected, NotificationLevel::RegularNotificationLevel, 10,  _u8L("3D Mouse disconnected.") },
-	{NotificationType::PresetUpdateAvailable, NotificationLevel::ImportantNotificationLevel, 20,  _u8L("Configuration update is available."),  _u8L("See more."),
-		[](wxEvtHandler* evnthndlr) {
-			if (evnthndlr != nullptr)
-				wxPostEvent(evnthndlr, PresetUpdateAvailableClickedEvent(EVT_PRESET_UPDATE_AVAILABLE_CLICKED));
-			return true;
-		}
-	},
-	{NotificationType::EmptyColorChangeCode, NotificationLevel::PrintInfoNotificationLevel, 10,
-		_u8L("You have just added a G-code for color change, but its value is empty.\n"
-			 "To export the G-code correctly, check the \"Color Change G-code\" in \"Printer Settings > Custom G-code\"") },
-	{NotificationType::EmptyAutoColorChange, NotificationLevel::PrintInfoNotificationLevel, 10,
-		_u8L("No color change event was added to the print. The print does not look like a sign.") },
-	{NotificationType::DesktopIntegrationSuccess, NotificationLevel::RegularNotificationLevel, 10,
-		_u8L("Desktop integration was successful.") },
-	{NotificationType::DesktopIntegrationFail, NotificationLevel::WarningNotificationLevel, 10,
-		_u8L("Desktop integration failed.") },
-	{NotificationType::UndoDesktopIntegrationSuccess, NotificationLevel::RegularNotificationLevel, 10,
-		_u8L("Undo desktop integration was successful.") },
-	{NotificationType::UndoDesktopIntegrationFail, NotificationLevel::WarningNotificationLevel, 10,
-		_u8L("Undo desktop integration failed.") },
-	{NotificationType::ExportOngoing, NotificationLevel::RegularNotificationLevel, 0, _u8L("Exporting.") },
-	//{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotificationLevel, 20,  _u8L("New version is available."),  _u8L("See Releases page."), [](wxEvtHandler* evnthndlr) {
-	//	wxGetApp().open_browser_with_warning_dialog("https://github.com/prusa3d/PrusaSlicer/releases"); return true; }},
-	//{NotificationType::NewAppAvailable, NotificationLevel::ImportantNotificationLevel, 20,  _u8L("New vesion of PrusaSlicer is available.",  _u8L("Download page.") },
-	//{NotificationType::LoadingFailed, NotificationLevel::RegularNotificationLevel, 20,  _u8L("Loading of model has Failed") },
-	//{NotificationType::DeviceEjected, NotificationLevel::RegularNotificationLevel, 10,  _u8L("Removable device has been safely ejected")} // if we want changeble text (like here name of device), we need to do it as CustomNotification
-};
-
 namespace {
 	/* // not used?
 	ImFont* add_default_font(float pixel_size)
@@ -393,8 +363,7 @@ void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, cons
 	std::string line;
 
 	for (size_t i = 0; i < (m_multiline ? m_endlines.size() : std::min(m_endlines.size(), (size_t)2)); i++) {
-		if (m_endlines[i] > m_text1.size())
-			break;
+		assert(m_endlines.size() > i && m_text1.size() >= m_endlines[i]);
 		line.clear();
 		ImGui::SetCursorPosX(x_offset);     
 		ImGui::SetCursorPosY(starting_y + i * shift_y);
@@ -681,6 +650,7 @@ void NotificationManager::ExportFinishedNotification::render_text(ImGuiWrapper& 
 	float starting_y = m_line_height / 2;//10;
 	float shift_y = m_line_height;// -m_line_height / 20;
 	for (size_t i = 0; i < m_lines_count; i++) {
+		assert(m_text1.size() >= m_endlines[i]);
 		if (m_text1.size() >= m_endlines[i]) {
 			std::string line = m_text1.substr(last_end, m_endlines[i] - last_end);
 			last_end = m_endlines[i];
@@ -801,6 +771,7 @@ void NotificationManager::ProgressBarNotification::render_text(ImGuiWrapper& img
 	// hypertext is not rendered at all. If it is needed, it needs to be added here.
 	// m_endlines should have endline for each line and then for hypertext thus m_endlines[1] should always be in m_text1
 	if (m_multiline) {
+		assert(m_text1.size() >= m_endlines[0]  || m_text1.size() >= m_endlines[1]);
 		if(m_endlines[0] > m_text1.size() || m_endlines[1] > m_text1.size())
 			return;
 		// two lines text (what doesnt fit, wont show), one line bar
@@ -815,6 +786,7 @@ void NotificationManager::ProgressBarNotification::render_text(ImGuiWrapper& img
 			render_cancel_button(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
 		render_bar(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
 	} else {
+		assert(m_text1.size() >= m_endlines[0]);
 		if (m_endlines[0] > m_text1.size())
 			return;
 		//one line text, one line bar
