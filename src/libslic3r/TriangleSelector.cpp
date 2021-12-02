@@ -9,6 +9,112 @@
 
 namespace Slic3r {
 
+// Check if the line is whole inside the sphere, or it is partially inside (intersecting) the sphere.
+// Inspired by Christer Ericson's Real-Time Collision Detection, pp. 177-179.
+static bool test_line_inside_sphere(const Vec3f &line_a, const Vec3f &line_b, const Vec3f &sphere_p, const float sphere_radius)
+{
+    const float sphere_radius_sqr = Slic3r::sqr(sphere_radius);
+    const Vec3f line_dir          = line_b - line_a;   // n
+    const Vec3f origins_diff      = line_a - sphere_p; // m
+
+    const float m_dot_m           = origins_diff.dot(origins_diff);
+    // Check if any of the end-points of the line is inside the sphere.
+    if (m_dot_m <= sphere_radius_sqr || (line_b - sphere_p).squaredNorm() <= sphere_radius_sqr)
+        return true;
+
+    // Check if the infinite line is going through the sphere.
+    const float n_dot_n = line_dir.dot(line_dir);
+    const float m_dot_n = origins_diff.dot(line_dir);
+
+    const float eq_a    = n_dot_n;
+    const float eq_b    = m_dot_n;
+    const float eq_c    = m_dot_m - sphere_radius_sqr;
+
+    const float discr = eq_b * eq_b - eq_a * eq_c;
+    // A negative discriminant corresponds to the infinite line infinite not going through the sphere.
+    if (discr < 0.f)
+        return false;
+
+    // Check if the finite line is going through the sphere.
+    const float discr_sqrt = std::sqrt(discr);
+    const float t1         = (-eq_b - discr_sqrt) / eq_a;
+    if (0.f <= t1 && t1 <= 1.f)
+        return true;
+
+    const float t2 = (-eq_b + discr_sqrt) / eq_a;
+    if (0.f <= t2 && t2 <= 1.f && discr_sqrt > 0.f)
+        return true;
+
+    return false;
+}
+
+// Check if the line is whole inside the finite cylinder, or it is partially inside (intersecting) the finite cylinder.
+// Inspired by Christer Ericson's Real-Time Collision Detection, pp. 194-198.
+static bool test_line_inside_cylinder(const Vec3f &line_a, const Vec3f &line_b, const Vec3f &cylinder_P, const Vec3f &cylinder_Q, const float cylinder_radius)
+{
+    assert(cylinder_P != cylinder_Q);
+    const Vec3f cylinder_dir                    = cylinder_Q - cylinder_P; // d
+    auto        is_point_inside_finite_cylinder = [&cylinder_P, &cylinder_Q, &cylinder_radius, &cylinder_dir](const Vec3f &pt) {
+        const Vec3f first_center_diff  = cylinder_P - pt;
+        const Vec3f second_center_diff = cylinder_Q - pt;
+        // First, check if the point pt is laying between planes defined by cylinder_p and cylinder_q.
+        // Then check if it is inside the cylinder between cylinder_p and cylinder_q.
+        return first_center_diff.dot(cylinder_dir) <= 0 && second_center_diff.dot(cylinder_dir) >= 0 &&
+               (first_center_diff.cross(cylinder_dir).norm() / cylinder_dir.norm()) <= cylinder_radius;
+    };
+
+    // Check if any of the end-points of the line is inside the cylinder.
+    if (is_point_inside_finite_cylinder(line_a) || is_point_inside_finite_cylinder(line_b))
+       return true;
+
+    // Check if the line is going through the cylinder.
+    const Vec3f origins_diff = line_a - cylinder_P;     // m
+    const Vec3f line_dir     = line_b - line_a;         // n
+
+    const float m_dot_d = origins_diff.dot(cylinder_dir);
+    const float n_dot_d = line_dir.dot(cylinder_dir);
+    const float d_dot_d = cylinder_dir.dot(cylinder_dir);
+
+    const float n_dot_n = line_dir.dot(line_dir);
+    const float m_dot_n = origins_diff.dot(line_dir);
+    const float m_dot_m = origins_diff.dot(origins_diff);
+
+    const float eq_a    = d_dot_d * n_dot_n - n_dot_d * n_dot_d;
+    const float eq_b    = d_dot_d * m_dot_n - n_dot_d * m_dot_d;
+    const float eq_c    = d_dot_d * (m_dot_m - Slic3r::sqr(cylinder_radius)) - m_dot_d * m_dot_d;
+
+    const float discr   = eq_b * eq_b - eq_a * eq_c;
+    // A negative discriminant corresponds to the infinite line not going through the infinite cylinder.
+    if (discr < 0.0f)
+        return false;
+
+    // Check if the finite line is going through the finite cylinder.
+    const float discr_sqrt = std::sqrt(discr);
+    const float t1         = (-eq_b - discr_sqrt) / eq_a;
+    if (0.f <= t1 && t1 <= 1.f)
+        if (const float cylinder_endcap_t1 = m_dot_d + t1 * n_dot_d; 0.f <= cylinder_endcap_t1 && cylinder_endcap_t1 <= d_dot_d)
+            return true;
+
+    const float t2 = (-eq_b + discr_sqrt) / eq_a;
+    if (0.f <= t2 && t2 <= 1.f)
+        if (const float cylinder_endcap_t2 = (m_dot_d + t2 * n_dot_d); 0.f <= cylinder_endcap_t2 && cylinder_endcap_t2 <= d_dot_d)
+            return true;
+
+    return false;
+}
+
+// Check if the line is whole inside the capsule, or it is partially inside (intersecting) the capsule.
+static bool test_line_inside_capsule(const Vec3f &line_a, const Vec3f &line_b, const Vec3f &capsule_p, const Vec3f &capsule_q, const float capsule_radius) {
+    assert(capsule_p != capsule_q);
+
+    // Check if the line intersect any of the spheres forming the capsule.
+    if (test_line_inside_sphere(line_a, line_b, capsule_p, capsule_radius) || test_line_inside_sphere(line_a, line_b, capsule_q, capsule_radius))
+        return true;
+
+    // Check if the line intersects the cylinder between the centers of the spheres.
+    return test_line_inside_cylinder(line_a, line_b, capsule_p, capsule_q, capsule_radius);
+}
+
 #ifndef NDEBUG
 bool TriangleSelector::verify_triangle_midpoints(const Triangle &tr) const
 {
@@ -124,24 +230,20 @@ int TriangleSelector::select_unsplit_triangle(const Vec3f &hit, int facet_idx) c
     return this->select_unsplit_triangle(hit, facet_idx, neighbors);
 }
 
-void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
-                                    const Vec3f& source, float radius,
-                                    CursorType cursor_type, EnforcerBlockerType new_state,
-                                    const Transform3d& trafo, const Transform3d& trafo_no_translate,
-                                    bool triangle_splitting, const ClippingPlane &clp, float highlight_by_angle_deg)
+void TriangleSelector::select_patch(int facet_start, std::unique_ptr<Cursor> &&cursor, EnforcerBlockerType new_state, const Transform3d& trafo_no_translate, bool triangle_splitting, float highlight_by_angle_deg)
 {
     assert(facet_start < m_orig_size_indices);
 
     // Save current cursor center, squared radius and camera direction, so we don't
     // have to pass it around.
-    m_cursor = Cursor(hit, source, radius, cursor_type, trafo, clp);
+    m_cursor = std::move(cursor);
 
     // In case user changed cursor size since last time, update triangle edge limit.
     // It is necessary to compare the internal radius in m_cursor! radius is in
     // world coords and does not change after scaling.
-    if (m_old_cursor_radius_sqr != m_cursor.radius_sqr) {
-        set_edge_limit(std::sqrt(m_cursor.radius_sqr) / 5.f);
-        m_old_cursor_radius_sqr = m_cursor.radius_sqr;
+    if (m_old_cursor_radius_sqr != m_cursor->radius_sqr) {
+        set_edge_limit(std::sqrt(m_cursor->radius_sqr) / 5.f);
+        m_old_cursor_radius_sqr = m_cursor->radius_sqr;
     }
 
     const float highlight_angle_limit = cos(Geometry::deg2rad(highlight_by_angle_deg));
@@ -163,7 +265,7 @@ void TriangleSelector::select_patch(const Vec3f& hit, int facet_start,
             if (select_triangle(facet, new_state, triangle_splitting)) {
                 // add neighboring facets to list to be processed later
                 for (int neighbor_idx : m_neighbors[facet])
-                    if (neighbor_idx >= 0 && (m_cursor.type == SPHERE || faces_camera(neighbor_idx)))
+                    if (neighbor_idx >= 0 && m_cursor->is_facet_visible(neighbor_idx, m_face_normals))
                         facets_to_check.push_back(neighbor_idx);
             }
         }
@@ -788,11 +890,11 @@ bool TriangleSelector::select_triangle_recursive(int facet_idx, const Vec3i &nei
 
     assert(this->verify_triangle_neighbors(*tr, neighbors));
 
-    int num_of_inside_vertices = vertices_inside(facet_idx);
+    int num_of_inside_vertices = m_cursor->vertices_inside(*tr, m_vertices);
 
     if (num_of_inside_vertices == 0
-     && ! is_pointer_in_triangle(facet_idx)
-     && ! is_edge_inside_cursor(facet_idx))
+     && ! m_cursor->is_pointer_in_triangle(*tr, m_vertices)
+     && ! m_cursor->is_edge_inside_cursor(*tr, m_vertices))
         return false;
 
     if (num_of_inside_vertices == 3) {
@@ -840,7 +942,7 @@ void TriangleSelector::set_facet(int facet_idx, EnforcerBlockerType state)
 }
 
 // called by select_patch()->select_triangle()...select_triangle()
-// to decide which sides of the traingle to split and to actually split it calling set_division() and perform_split().
+// to decide which sides of the triangle to split and to actually split it calling set_division() and perform_split().
 void TriangleSelector::split_triangle(int facet_idx, const Vec3i &neighbors)
 {
     if (m_triangles[facet_idx].is_split()) {
@@ -864,9 +966,9 @@ void TriangleSelector::split_triangle(int facet_idx, const Vec3i &neighbors)
 
     // In case the object is non-uniformly scaled, transform the
     // points to world coords.
-    if (! m_cursor.uniform_scaling) {
+    if (! m_cursor->uniform_scaling) {
         for (size_t i=0; i<pts.size(); ++i) {
-            pts_transformed[i] = m_cursor.trafo * (*pts[i]);
+            pts_transformed[i] = m_cursor->trafo * (*pts[i]);
             pts[i] = &pts_transformed[i];
         }
     }
@@ -897,71 +999,80 @@ void TriangleSelector::split_triangle(int facet_idx, const Vec3i &neighbors)
     perform_split(facet_idx, neighbors, old_type);
 }
 
-
-
 // Is pointer in a triangle?
-bool TriangleSelector::is_pointer_in_triangle(int facet_idx) const
-{
-    const Vec3f& p1 = m_vertices[m_triangles[facet_idx].verts_idxs[0]].v;
-    const Vec3f& p2 = m_vertices[m_triangles[facet_idx].verts_idxs[1]].v;
-    const Vec3f& p3 = m_vertices[m_triangles[facet_idx].verts_idxs[2]].v;
-    return m_cursor.is_pointer_in_triangle(p1, p2, p3);
+bool TriangleSelector::Cursor::is_pointer_in_triangle(const Triangle &tr, const std::vector<Vertex> &vertices) const {
+    const Vec3f& p1 = vertices[tr.verts_idxs[0]].v;
+    const Vec3f& p2 = vertices[tr.verts_idxs[1]].v;
+    const Vec3f& p3 = vertices[tr.verts_idxs[2]].v;
+    return this->is_pointer_in_triangle(p1, p2, p3);
 }
-
-
 
 // Determine whether this facet is potentially visible (still can be obscured).
-bool TriangleSelector::faces_camera(int facet) const
+bool TriangleSelector::Cursor::is_facet_visible(const Cursor &cursor, int facet_idx, const std::vector<Vec3f> &face_normals)
 {
-    assert(facet < m_orig_size_indices);
-    Vec3f n = m_face_normals[facet];
-    if (! m_cursor.uniform_scaling)
-        n = m_cursor.trafo_normal * n;
-    return n.dot(m_cursor.dir) < 0.;
+    assert(facet_idx < int(face_normals.size()));
+    Vec3f n = face_normals[facet_idx];
+    if (!cursor.uniform_scaling)
+        n = cursor.trafo_normal * n;
+    return n.dot(cursor.dir) < 0.f;
 }
 
-
 // How many vertices of a triangle are inside the circle?
-int TriangleSelector::vertices_inside(int facet_idx) const
+int TriangleSelector::Cursor::vertices_inside(const Triangle &tr, const std::vector<Vertex> &vertices) const
 {
     int inside = 0;
-    for (size_t i=0; i<3; ++i) {
-        if (m_cursor.is_mesh_point_inside(m_vertices[m_triangles[facet_idx].verts_idxs[i]].v))
+    for (size_t i = 0; i < 3; ++i)
+        if (this->is_mesh_point_inside(vertices[tr.verts_idxs[i]].v))
             ++inside;
-    }
+
     return inside;
 }
 
-
-// Is edge inside cursor?
-bool TriangleSelector::is_edge_inside_cursor(int facet_idx) const
+// Is any edge inside Sphere cursor?
+bool TriangleSelector::Sphere::is_edge_inside_cursor(const Triangle &tr, const std::vector<Vertex> &vertices) const
 {
     std::array<Vec3f, 3> pts;
-    for (int i=0; i<3; ++i) {
-        pts[i] = m_vertices[m_triangles[facet_idx].verts_idxs[i]].v;
-        if (! m_cursor.uniform_scaling)
-            pts[i] = m_cursor.trafo * pts[i];
+    for (int i = 0; i < 3; ++i) {
+        pts[i] = vertices[tr.verts_idxs[i]].v;
+        if (!this->uniform_scaling)
+            pts[i] = this->trafo * pts[i];
     }
 
-    const Vec3f& p = m_cursor.center;
-
     for (int side = 0; side < 3; ++side) {
-        const Vec3f& a = pts[side];
-        const Vec3f& b = pts[side<2 ? side+1 : 0];
-        Vec3f s = (b-a).normalized();
-        float t = (p-a).dot(s);
-        Vec3f vector = a+t*s - p;
-
-        // vector is 3D vector from center to the intersection. What we want to
-        // measure is length of its projection onto plane perpendicular to dir.
-        float dist_sqr = vector.squaredNorm() - std::pow(vector.dot(m_cursor.dir), 2.f);
-        if (dist_sqr < m_cursor.radius_sqr && t>=0.f && t<=(b-a).norm())
+        const Vec3f &edge_a = pts[side];
+        const Vec3f &edge_b = pts[side < 2 ? side + 1 : 0];
+        if (test_line_inside_sphere(edge_a, edge_b, this->center, this->radius))
             return true;
     }
     return false;
 }
 
+// Is edge inside cursor?
+bool TriangleSelector::Circle::is_edge_inside_cursor(const Triangle &tr, const std::vector<Vertex> &vertices) const
+{
+    std::array<Vec3f, 3> pts;
+    for (int i = 0; i < 3; ++i) {
+        pts[i] = vertices[tr.verts_idxs[i]].v;
+        if (!this->uniform_scaling)
+            pts[i] = this->trafo * pts[i];
+    }
 
+    const Vec3f &p = this->center;
+    for (int side = 0; side < 3; ++side) {
+        const Vec3f &a      = pts[side];
+        const Vec3f &b      = pts[side < 2 ? side + 1 : 0];
+        Vec3f        s      = (b - a).normalized();
+        float        t      = (p - a).dot(s);
+        Vec3f        vector = a + t * s - p;
+
+        // vector is 3D vector from center to the intersection. What we want to
+        // measure is length of its projection onto plane perpendicular to dir.
+        float dist_sqr = vector.squaredNorm() - std::pow(vector.dot(this->dir), 2.f);
+        if (dist_sqr < this->radius_sqr && t >= 0.f && t <= (b - a).norm())
+            return true;
+    }
+    return false;
+}
 
 // Recursively remove all subtriangles.
 void TriangleSelector::undivide_triangle(int facet_idx)
@@ -1002,7 +1113,6 @@ void TriangleSelector::undivide_triangle(int facet_idx)
     }
 }
 
-
 void TriangleSelector::remove_useless_children(int facet_idx)
 {
     // Check that all children are leafs of the same type. If not, try to
@@ -1040,8 +1150,6 @@ void TriangleSelector::remove_useless_children(int facet_idx)
     undivide_triangle(facet_idx);
     tr.set_state(first_child_type);
 }
-
-
 
 void TriangleSelector::garbage_collect()
 {
@@ -1103,7 +1211,6 @@ TriangleSelector::TriangleSelector(const TriangleMesh& mesh)
     reset();
 }
 
-
 void TriangleSelector::reset()
 {
     m_vertices.clear();
@@ -1124,16 +1231,10 @@ void TriangleSelector::reset()
 
 }
 
-
-
-
-
 void TriangleSelector::set_edge_limit(float edge_limit)
 {
     m_edge_limit_sqr = std::pow(edge_limit, 2.f);
 }
-
-
 
 int TriangleSelector::push_triangle(int a, int b, int c, int source_triangle, const EnforcerBlockerType state)
 {
@@ -1693,54 +1794,132 @@ void TriangleSelector::seed_fill_apply_on_triangles(EnforcerBlockerType new_stat
         }
 }
 
-TriangleSelector::Cursor::Cursor(
-        const Vec3f& center_, const Vec3f& source_, float radius_world,
-        CursorType type_, const Transform3d& trafo_, const ClippingPlane &clipping_plane_)
-    : center{center_},
-      source{source_},
-      type{type_},
-      trafo{trafo_.cast<float>()},
-      clipping_plane(clipping_plane_)
+TriangleSelector::Cursor::Cursor(const Vec3f &source_, float radius_world, const Transform3d &trafo_, const ClippingPlane &clipping_plane_)
+    : source{source_}, trafo{trafo_.cast<float>()}, clipping_plane{clipping_plane_}
 {
     Vec3d sf = Geometry::Transformation(trafo_).get_scaling_factor();
     if (is_approx(sf(0), sf(1)) && is_approx(sf(1), sf(2))) {
-        radius_sqr = float(std::pow(radius_world / sf(0), 2));
+        radius          = float(radius_world / sf(0));
+        radius_sqr      = float(Slic3r::sqr(radius_world / sf(0)));
         uniform_scaling = true;
-    }
-    else {
+    } else {
         // In case that the transformation is non-uniform, all checks whether
         // something is inside the cursor should be done in world coords.
-        // First transform center, source and dir in world coords and remember
-        // that we did this.
-        center = trafo * center;
-        source = trafo * source;
+        // First transform source in world coords and remember that we did this.
+        source          = trafo * source;
         uniform_scaling = false;
-        radius_sqr = radius_world * radius_world;
-        trafo_normal = trafo.linear().inverse().transpose();
+        radius          = radius_world;
+        radius_sqr      = Slic3r::sqr(radius_world);
+        trafo_normal    = trafo.linear().inverse().transpose();
     }
+}
+
+TriangleSelector::SinglePointCursor::SinglePointCursor(const Vec3f& center_, const Vec3f& source_, float radius_world, const Transform3d& trafo_, const ClippingPlane &clipping_plane_)
+    : center{center_}, Cursor(source_, radius_world, trafo_, clipping_plane_)
+{
+    // In case that the transformation is non-uniform, all checks whether
+    // something is inside the cursor should be done in world coords.
+    // Because of the center is transformed.
+    if (!uniform_scaling)
+        center = trafo * center;
 
     // Calculate dir, in whatever coords is appropriate.
     dir = (center - source).normalized();
 }
 
-// Is a point (in mesh coords) inside a cursor?
-bool TriangleSelector::Cursor::is_mesh_point_inside(const Vec3f &point) const
+TriangleSelector::DoublePointCursor::DoublePointCursor(const Vec3f &first_center_, const Vec3f &second_center_, const Vec3f &source_, float radius_world, const Transform3d &trafo_, const ClippingPlane &clipping_plane_)
+    : first_center{first_center_}, second_center{second_center_}, Cursor(source_, radius_world, trafo_, clipping_plane_)
+{
+    if (!uniform_scaling) {
+        first_center  = trafo * first_center_;
+        second_center = trafo * second_center_;
+    }
+
+    // Calculate dir, in whatever coords is appropriate.
+    dir = (first_center - source).normalized();
+}
+
+// Returns true if clipping plane is not active or if the point not clipped by clipping plane.
+inline static bool is_mesh_point_not_clipped(const Vec3f &point, const TriangleSelector::ClippingPlane &clipping_plane)
+{
+    return !clipping_plane.is_active() || !clipping_plane.is_mesh_point_clipped(point);
+}
+
+// Is a point (in mesh coords) inside a Sphere cursor?
+bool TriangleSelector::Sphere::is_mesh_point_inside(const Vec3f &point) const
+{
+    const Vec3f transformed_point = uniform_scaling ? point : Vec3f(trafo * point);
+    if ((center - transformed_point).squaredNorm() < radius_sqr)
+        return is_mesh_point_not_clipped(point, clipping_plane);
+
+    return false;
+}
+
+// Is a point (in mesh coords) inside a Circle cursor?
+bool TriangleSelector::Circle::is_mesh_point_inside(const Vec3f &point) const
 {
     const Vec3f transformed_point = uniform_scaling ? point : Vec3f(trafo * point);
     const Vec3f diff              = center - transformed_point;
-    const bool  is_point_inside   = (type == CIRCLE ? (diff - diff.dot(dir) * dir).squaredNorm() : diff.squaredNorm()) < radius_sqr;
 
-    if (is_point_inside && clipping_plane.is_active())
-        return !clipping_plane.is_mesh_point_clipped(point);
+    if ((diff - diff.dot(dir) * dir).squaredNorm() < radius_sqr)
+        return is_mesh_point_not_clipped(point, clipping_plane);
 
-    return is_point_inside;
+    return false;
+}
+
+// Is a point (in mesh coords) inside a Capsule3D cursor?
+bool TriangleSelector::Capsule3D::is_mesh_point_inside(const Vec3f &point) const
+{
+    const Vec3f transformed_point  = uniform_scaling ? point : Vec3f(trafo * point);
+    const Vec3f first_center_diff  = this->first_center - transformed_point;
+    const Vec3f second_center_diff = this->second_center - transformed_point;
+    if (first_center_diff.squaredNorm() < this->radius_sqr || second_center_diff.squaredNorm() < this->radius_sqr)
+        return is_mesh_point_not_clipped(point, clipping_plane);
+
+    // First, check if the point pt is laying between planes defined by first_center and second_center.
+    // Then check if it is inside the cylinder between first_center and second_center.
+    const Vec3f centers_diff = this->second_center - this->first_center;
+    if (first_center_diff.dot(centers_diff) <= 0.f && second_center_diff.dot(centers_diff) >= 0.f && (first_center_diff.cross(centers_diff).norm() / centers_diff.norm()) <= this->radius)
+        return is_mesh_point_not_clipped(point, clipping_plane);
+
+    return false;
+}
+
+// Is a point (in mesh coords) inside a Capsule2D cursor?
+bool TriangleSelector::Capsule2D::is_mesh_point_inside(const Vec3f &point) const
+{
+    const Vec3f transformed_point           = uniform_scaling ? point : Vec3f(trafo * point);
+    const Vec3f first_center_diff           = this->first_center - transformed_point;
+    const Vec3f first_center_diff_projected = first_center_diff - first_center_diff.dot(this->dir) * this->dir;
+    if (first_center_diff_projected.squaredNorm() < this->radius_sqr)
+        return is_mesh_point_not_clipped(point, clipping_plane);
+
+    const Vec3f second_center_diff           = this->second_center - transformed_point;
+    const Vec3f second_center_diff_projected = second_center_diff - second_center_diff.dot(this->dir) * this->dir;
+    if (second_center_diff_projected.squaredNorm() < this->radius_sqr)
+        return is_mesh_point_not_clipped(point, clipping_plane);
+
+    const Vec3f centers_diff           = this->second_center - this->first_center;
+    const Vec3f centers_diff_projected = centers_diff - centers_diff.dot(this->dir) * this->dir;
+
+    // First, check if the point is laying between first_center and second_center.
+    if (first_center_diff_projected.dot(centers_diff_projected) <= 0.f && second_center_diff_projected.dot(centers_diff_projected) >= 0.f) {
+        // Vector in the direction of line |AD| of the rectangle that intersects the circle with the center in first_center.
+        const Vec3f rectangle_da_dir              = centers_diff.cross(this->dir);
+        // Vector pointing from first_center to the point 'A' of the rectangle.
+        const Vec3f first_center_rectangle_a_diff = rectangle_da_dir.normalized() * this->radius;
+        const Vec3f rectangle_a                   = this->first_center - first_center_rectangle_a_diff;
+        const Vec3f rectangle_d                   = this->first_center + first_center_rectangle_a_diff;
+        // Now check if the point is laying inside the rectangle between circles with centers in first_center and second_center.
+        if ((rectangle_a - transformed_point).dot(rectangle_da_dir) <= 0.f && (rectangle_d - transformed_point).dot(rectangle_da_dir) >= 0.f)
+            return is_mesh_point_not_clipped(point, clipping_plane);
+    }
+
+    return false;
 }
 
 // p1, p2, p3 are in mesh coords!
-bool TriangleSelector::Cursor::is_pointer_in_triangle(const Vec3f& p1_,
-                                                      const Vec3f& p2_,
-                                                      const Vec3f& p3_) const
-{
+static bool is_circle_pointer_inside_triangle(const Vec3f &p1_, const Vec3f &p2_, const Vec3f &p3_, const Vec3f &center, const Vec3f &dir, const bool uniform_scaling, const Transform3f &trafo) {
     const Vec3f& q1 = center + dir;
     const Vec3f& q2 = center - dir;
 
@@ -1759,6 +1938,110 @@ bool TriangleSelector::Cursor::is_pointer_in_triangle(const Vec3f& p1_,
 
     bool pos = signed_volume_sign(q1,q2,p1,p2);
     return signed_volume_sign(q1,q2,p2,p3) == pos && signed_volume_sign(q1,q2,p3,p1) == pos;
+}
+
+// p1, p2, p3 are in mesh coords!
+bool TriangleSelector::SinglePointCursor::is_pointer_in_triangle(const Vec3f &p1_, const Vec3f &p2_, const Vec3f &p3_) const
+{
+    return is_circle_pointer_inside_triangle(p1_, p2_, p3_, center, dir, uniform_scaling, trafo);
+}
+
+// p1, p2, p3 are in mesh coords!
+bool TriangleSelector::DoublePointCursor::is_pointer_in_triangle(const Vec3f &p1_, const Vec3f &p2_, const Vec3f &p3_) const
+{
+    return is_circle_pointer_inside_triangle(p1_, p2_, p3_, first_center, dir, uniform_scaling, trafo) ||
+           is_circle_pointer_inside_triangle(p1_, p2_, p3_, second_center, dir, uniform_scaling, trafo);
+}
+
+bool line_plane_intersection(const Vec3f &line_a, const Vec3f &line_b, const Vec3f &plane_origin, const Vec3f &plane_normal, Vec3f &out_intersection)
+{
+    Vec3f line_dir      = line_b - line_a;
+    float t_denominator = plane_normal.dot(line_dir);
+    if (t_denominator == 0.f)
+        return false;
+
+    // Compute 'd' in plane equation by using some point (origin) on the plane
+    float plane_d = plane_normal.dot(plane_origin);
+    if (float t = (plane_d - plane_normal.dot(line_a)) / t_denominator; t >= 0.f && t <= 1.f) {
+        out_intersection = line_a + t * line_dir;
+        return true;
+    }
+
+    return false;
+}
+
+bool TriangleSelector::Capsule3D::is_edge_inside_cursor(const Triangle &tr, const std::vector<Vertex> &vertices) const
+{
+    std::array<Vec3f, 3> pts;
+    for (int i = 0; i < 3; ++i) {
+        pts[i] = vertices[tr.verts_idxs[i]].v;
+        if (!this->uniform_scaling)
+            pts[i] = this->trafo * pts[i];
+    }
+
+    for (int side = 0; side < 3; ++side) {
+        const Vec3f &edge_a = pts[side];
+        const Vec3f &edge_b = pts[side < 2 ? side + 1 : 0];
+        if (test_line_inside_capsule(edge_a, edge_b, this->first_center, this->second_center, this->radius))
+            return true;
+    }
+
+    return false;
+}
+
+// Is edge inside cursor?
+bool TriangleSelector::Capsule2D::is_edge_inside_cursor(const Triangle &tr, const std::vector<Vertex> &vertices) const
+{
+    std::array<Vec3f, 3> pts;
+    for (int i = 0; i < 3; ++i) {
+        pts[i] = vertices[tr.verts_idxs[i]].v;
+        if (!this->uniform_scaling)
+            pts[i] = this->trafo * pts[i];
+    }
+
+    const Vec3f centers_diff                  = this->second_center - this->first_center;
+    // Vector in the direction of line |AD| of the rectangle that intersects the circle with the center in first_center.
+    const Vec3f rectangle_da_dir              = centers_diff.cross(this->dir);
+    // Vector pointing from first_center to the point 'A' of the rectangle.
+    const Vec3f first_center_rectangle_a_diff = rectangle_da_dir.normalized() * this->radius;
+    const Vec3f rectangle_a                   = this->first_center - first_center_rectangle_a_diff;
+    const Vec3f rectangle_d                   = this->first_center + first_center_rectangle_a_diff;
+
+    auto edge_inside_rectangle = [&self = std::as_const(*this), &centers_diff](const Vec3f &edge_a, const Vec3f &edge_b, const Vec3f &plane_origin, const Vec3f &plane_normal) -> bool {
+        Vec3f intersection(-1.f, -1.f, -1.f);
+        if (line_plane_intersection(edge_a, edge_b, plane_origin, plane_normal, intersection)) {
+            // Now check if the intersection point is inside the rectangle. That means it is between 'first_center' and 'second_center', resp. between 'A' and 'B'.
+            if (self.first_center.dot(centers_diff) <= intersection.dot(centers_diff) && intersection.dot(centers_diff) <= self.second_center.dot(centers_diff))
+                return true;
+        }
+        return false;
+    };
+
+    for (int side = 0; side < 3; ++side) {
+        const Vec3f &edge_a     = pts[side];
+        const Vec3f &edge_b     = pts[side < 2 ? side + 1 : 0];
+        const Vec3f  edge_dir   = edge_b - edge_a;
+        const Vec3f  edge_dir_n = edge_dir.normalized();
+
+        float t1      = (this->first_center - edge_a).dot(edge_dir_n);
+        float t2      = (this->second_center - edge_a).dot(edge_dir_n);
+        Vec3f vector1 = edge_a + t1 * edge_dir_n - this->first_center;
+        Vec3f vector2 = edge_a + t2 * edge_dir_n - this->second_center;
+
+        // Vectors vector1 and vector2 are 3D vector from centers to the intersections. What we want to
+        // measure is length of its projection onto plane perpendicular to dir.
+        if (float dist = vector1.squaredNorm() - std::pow(vector1.dot(this->dir), 2.f); dist < this->radius_sqr && t1 >= 0.f && t1 <= edge_dir.norm())
+            return true;
+
+        if (float dist = vector2.squaredNorm() - std::pow(vector2.dot(this->dir), 2.f); dist < this->radius_sqr && t2 >= 0.f && t2 <= edge_dir.norm())
+            return true;
+
+        // Check if the edge is passing through the rectangle between first_center and second_center.
+        if (edge_inside_rectangle(edge_a, edge_b, rectangle_a, (rectangle_d - rectangle_a)) || edge_inside_rectangle(edge_a, edge_b, rectangle_d, (rectangle_a - rectangle_d)))
+            return true;
+    }
+
+    return false;
 }
 
 } // namespace Slic3r

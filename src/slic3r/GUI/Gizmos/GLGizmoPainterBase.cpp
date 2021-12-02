@@ -13,7 +13,8 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 
-
+#include <memory>
+#include <optional>
 
 namespace Slic3r::GUI {
 
@@ -223,6 +224,126 @@ bool GLGizmoPainterBase::is_mesh_point_clipped(const Vec3d& point, const Transfo
     return m_c->object_clipper()->get_clipping_plane()->is_point_clipped(transformed_point);
 }
 
+// Interpolate points between the previous and current mouse positions, which are then projected onto the object.
+// Returned projected mouse positions are grouped by mesh_idx. It may contain multiple std::vector<GLGizmoPainterBase::ProjectedMousePosition>
+// with the same mesh_idx, but all items in std::vector<GLGizmoPainterBase::ProjectedMousePosition> always have the same mesh_idx.
+std::vector<std::vector<GLGizmoPainterBase::ProjectedMousePosition>> GLGizmoPainterBase::get_projected_mouse_positions(const Vec2d &mouse_position, const double resolution, const std::vector<Transform3d> &trafo_matrices) const
+{
+    // List of mouse positions that will be used as seeds for painting.
+    std::vector<Vec2d> mouse_positions{mouse_position};
+    if (m_last_mouse_click != Vec2d::Zero()) {
+        // In case current mouse position is far from the last one,
+        // add several positions from between into the list, so there
+        // are no gaps in the painted region.
+        if (size_t patches_in_between = size_t((mouse_position - m_last_mouse_click).norm() / resolution); patches_in_between > 0) {
+            const Vec2d diff = (m_last_mouse_click - mouse_position) / (patches_in_between + 1);
+            for (size_t patch_idx = 1; patch_idx <= patches_in_between; ++patch_idx)
+                mouse_positions.emplace_back(mouse_position + patch_idx * diff);
+            mouse_positions.emplace_back(m_last_mouse_click);
+        }
+    }
+
+    const Camera                       &camera = wxGetApp().plater()->get_camera();
+    std::vector<ProjectedMousePosition> mesh_hit_points;
+    mesh_hit_points.reserve(mouse_position.size());
+
+    // In mesh_hit_points only the last item could have mesh_id == -1, any other items mustn't.
+    for (const Vec2d &mp : mouse_positions) {
+        update_raycast_cache(mp, camera, trafo_matrices);
+        mesh_hit_points.push_back({m_rr.hit, m_rr.mesh_id, m_rr.facet});
+        if (m_rr.mesh_id == -1)
+            break;
+    }
+
+    // Divide mesh_hit_points into groups with the same mesh_idx. It may contain multiple groups with the same mesh_idx.
+    std::vector<std::vector<ProjectedMousePosition>> mesh_hit_points_by_mesh;
+    for (size_t prev_mesh_hit_point = 0, curr_mesh_hit_point = 0; curr_mesh_hit_point < mesh_hit_points.size(); ++curr_mesh_hit_point) {
+        size_t next_mesh_hit_point = curr_mesh_hit_point + 1;
+        if (next_mesh_hit_point >= mesh_hit_points.size() || mesh_hit_points[curr_mesh_hit_point].mesh_idx != mesh_hit_points[next_mesh_hit_point].mesh_idx) {
+            mesh_hit_points_by_mesh.emplace_back();
+            mesh_hit_points_by_mesh.back().insert(mesh_hit_points_by_mesh.back().end(), mesh_hit_points.begin() + int(prev_mesh_hit_point), mesh_hit_points.begin() + int(next_mesh_hit_point));
+            prev_mesh_hit_point = next_mesh_hit_point;
+        }
+    }
+
+    auto on_same_facet = [](std::vector<ProjectedMousePosition> &hit_points) -> bool {
+        for (const ProjectedMousePosition &mesh_hit_point : hit_points)
+            if (mesh_hit_point.facet_idx != hit_points.front().facet_idx)
+                return false;
+        return true;
+    };
+
+    struct Plane
+    {
+        Vec3d origin;
+        Vec3d first_axis;
+        Vec3d second_axis;
+    };
+    auto find_plane = [](std::vector<ProjectedMousePosition> &hit_points) -> std::optional<Plane> {
+        assert(hit_points.size() >= 3);
+        for (size_t third_idx = 2; third_idx < hit_points.size(); ++third_idx) {
+            const Vec3d &first_point  = hit_points[third_idx - 2].mesh_hit.cast<double>();
+            const Vec3d &second_point = hit_points[third_idx - 1].mesh_hit.cast<double>();
+            const Vec3d &third_point  = hit_points[third_idx].mesh_hit.cast<double>();
+
+            const Vec3d  first_vec    = first_point - second_point;
+            const Vec3d  second_vec   = third_point - second_point;
+
+            // If three points aren't collinear, then there exists only one plane going through all points.
+            if (first_vec.cross(second_vec).squaredNorm() > sqr(EPSILON)) {
+                const Vec3d first_axis_vec_n = first_vec.normalized();
+                // Make second_vec perpendicular to first_axis_vec_n using Gram–Schmidt orthogonalization process
+                const Vec3d second_axis_vec_n = (second_vec - (first_vec.dot(second_vec) / first_vec.dot(first_vec)) * first_vec).normalized();
+                return Plane{second_point, first_axis_vec_n, second_axis_vec_n};
+            }
+        }
+
+        return std::nullopt;
+    };
+
+    for(std::vector<ProjectedMousePosition> &hit_points : mesh_hit_points_by_mesh) {
+        assert(!hit_points.empty());
+        if (hit_points.back().mesh_idx == -1)
+            break;
+
+        if (hit_points.size() <= 2)
+            continue;
+
+        if (on_same_facet(hit_points)) {
+            hit_points = {hit_points.front(), hit_points.back()};
+        } else if (std::optional<Plane> plane = find_plane(hit_points); plane) {
+            Polyline polyline;
+            polyline.points.reserve(hit_points.size());
+            // Project hit_points into its plane to simplified them in the next step.
+            for (auto &hit_point : hit_points) {
+                const Vec3d &point  = hit_point.mesh_hit.cast<double>();
+                const double x_cord = plane->first_axis.dot(point - plane->origin);
+                const double y_cord = plane->second_axis.dot(point - plane->origin);
+                polyline.points.emplace_back(scale_(x_cord), scale_(y_cord));
+            }
+
+            polyline.simplify(scale_(m_cursor_radius) / 10.);
+
+            const int                           mesh_idx = hit_points.front().mesh_idx;
+            std::vector<ProjectedMousePosition> new_hit_points;
+            new_hit_points.reserve(polyline.points.size());
+            // Project 2D simplified hit_points beck to 3D.
+            for (const Point &point : polyline.points) {
+                const double x_cord        = unscale<double>(point.x());
+                const double y_cord        = unscale<double>(point.y());
+                const Vec3d  new_hit_point = plane->origin + x_cord * plane->first_axis + y_cord * plane->second_axis;
+                const int    facet_idx     = m_c->raycaster()->raycasters()[mesh_idx]->get_closest_facet(new_hit_point.cast<float>());
+                new_hit_points.push_back({new_hit_point.cast<float>(), mesh_idx, size_t(facet_idx)});
+            }
+
+            hit_points = new_hit_points;
+        } else {
+            hit_points = {hit_points.front(), hit_points.back()};
+        }
+    }
+
+    return mesh_hit_points_by_mesh;
+}
 
 // Following function is called from GLCanvas3D to inform the gizmo about a mouse/keyboard event.
 // The gizmo has an opportunity to react - if it does, it should return true so that the Canvas3D is
@@ -295,28 +416,6 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         const Transform3d   instance_trafo               = mi->get_transformation().get_matrix();
         const Transform3d   instance_trafo_not_translate = mi->get_transformation().get_matrix(true);
 
-        // List of mouse positions that will be used as seeds for painting.
-        std::vector<Vec2d> mouse_positions{mouse_position};
-
-        // In case current mouse position is far from the last one,
-        // add several positions from between into the list, so there
-        // are no gaps in the painted region.
-        {
-            if (m_last_mouse_click == Vec2d::Zero())
-                m_last_mouse_click = mouse_position;
-            // resolution describes minimal distance limit using circle radius
-            // as a unit (e.g., 2 would mean the patches will be touching).
-            double resolution = 0.7;
-            double diameter_px =  resolution  * m_cursor_radius * camera.get_zoom();
-            int patches_in_between = int(((mouse_position - m_last_mouse_click).norm() - diameter_px) / diameter_px);
-            if (patches_in_between > 0) {
-                Vec2d diff = (mouse_position - m_last_mouse_click)/(patches_in_between+1);
-                for (int i=1; i<=patches_in_between; ++i)
-                    mouse_positions.emplace_back(m_last_mouse_click + i*diff);
-            }
-        }
-        m_last_mouse_click = Vec2d::Zero(); // only actual hits should be saved
-
         // Precalculate transformations of individual meshes.
         std::vector<Transform3d> trafo_matrices;
         std::vector<Transform3d> trafo_matrices_not_translate;
@@ -326,50 +425,70 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 trafo_matrices_not_translate.emplace_back(instance_trafo_not_translate * mv->get_matrix(true));
             }
 
-        // Now "click" into all the prepared points and spill paint around them.
-        for (const Vec2d& mp : mouse_positions) {
-            update_raycast_cache(mp, camera, trafo_matrices);
+        std::vector<std::vector<ProjectedMousePosition>> projected_mouse_positions_by_mesh = get_projected_mouse_positions(mouse_position, 1., trafo_matrices);
+        m_last_mouse_click = Vec2d::Zero(); // only actual hits should be saved
 
-            bool dragging_while_painting = (action == SLAGizmoEventType::Dragging && m_button_down != Button::None);
+        for (const std::vector<ProjectedMousePosition> &projected_mouse_positions : projected_mouse_positions_by_mesh) {
+            assert(!projected_mouse_positions.empty());
+            const int  mesh_idx                = projected_mouse_positions.front().mesh_idx;
+            const bool dragging_while_painting = (action == SLAGizmoEventType::Dragging && m_button_down != Button::None);
 
             // The mouse button click detection is enabled when there is a valid hit.
             // Missing the object entirely
             // shall not capture the mouse.
-            if (m_rr.mesh_id != -1) {
+            if (mesh_idx != -1)
                 if (m_button_down == Button::None)
                     m_button_down = ((action == SLAGizmoEventType::LeftDown) ? Button::Left : Button::Right);
-            }
 
-            if (m_rr.mesh_id == -1) {
-                // In case we have no valid hit, we can return. The event will be stopped when
-                // dragging while painting (to prevent scene rotations and moving the object)
+            // In case we have no valid hit, we can return. The event will be stopped when
+            // dragging while painting (to prevent scene rotations and moving the object)
+            if (mesh_idx == -1)
                 return dragging_while_painting;
-            }
 
-            const Transform3d &trafo_matrix               = trafo_matrices[m_rr.mesh_id];
-            const Transform3d &trafo_matrix_not_translate = trafo_matrices_not_translate[m_rr.mesh_id];
+            const Transform3d &trafo_matrix               = trafo_matrices[mesh_idx];
+            const Transform3d &trafo_matrix_not_translate = trafo_matrices_not_translate[mesh_idx];
 
             // Calculate direction from camera to the hit (in mesh coords):
             Vec3f camera_pos = (trafo_matrix.inverse() * camera.get_position()).cast<float>();
 
-            assert(m_rr.mesh_id < int(m_triangle_selectors.size()));
+            assert(mesh_idx < int(m_triangle_selectors.size()));
             const TriangleSelector::ClippingPlane &clp = this->get_clipping_plane_in_volume_coordinates(trafo_matrix);
             if (m_tool_type == ToolType::SMART_FILL || m_tool_type == ToolType::BUCKET_FILL || (m_tool_type == ToolType::BRUSH && m_cursor_type == TriangleSelector::CursorType::POINTER)) {
-                m_triangle_selectors[m_rr.mesh_id]->seed_fill_apply_on_triangles(new_state);
-                if (m_tool_type == ToolType::SMART_FILL)
-                    m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), trafo_matrix_not_translate, clp, m_smart_fill_angle,
-                                                                                   m_paint_on_overhangs_only ? m_highlight_by_angle_threshold_deg : 0.f, true);
-                else if (m_tool_type == ToolType::BRUSH && m_cursor_type == TriangleSelector::CursorType::POINTER)
-                    m_triangle_selectors[m_rr.mesh_id]->bucket_fill_select_triangles(m_rr.hit, int(m_rr.facet), clp, false, true);
-                else if (m_tool_type == ToolType::BUCKET_FILL)
-                    m_triangle_selectors[m_rr.mesh_id]->bucket_fill_select_triangles(m_rr.hit, int(m_rr.facet), clp, true, true);
+                for(const ProjectedMousePosition &projected_mouse_position : projected_mouse_positions) {
+                    assert(projected_mouse_position.mesh_idx == mesh_idx);
+                    const Vec3f mesh_hit = projected_mouse_position.mesh_hit;
+                    const int facet_idx = int(projected_mouse_position.facet_idx);
+                    m_triangle_selectors[mesh_idx]->seed_fill_apply_on_triangles(new_state);
+                    if (m_tool_type == ToolType::SMART_FILL)
+                        m_triangle_selectors[mesh_idx]->seed_fill_select_triangles(mesh_hit, facet_idx, trafo_matrix_not_translate, clp, m_smart_fill_angle,
+                                                                                       m_paint_on_overhangs_only ? m_highlight_by_angle_threshold_deg : 0.f, true);
+                    else if (m_tool_type == ToolType::BRUSH && m_cursor_type == TriangleSelector::CursorType::POINTER)
+                        m_triangle_selectors[mesh_idx]->bucket_fill_select_triangles(mesh_hit, facet_idx, clp, false, true);
+                    else if (m_tool_type == ToolType::BUCKET_FILL)
+                        m_triangle_selectors[mesh_idx]->bucket_fill_select_triangles(mesh_hit, facet_idx, clp, true, true);
 
-                m_seed_fill_last_mesh_id = -1;
-            } else if (m_tool_type == ToolType::BRUSH)
-                m_triangle_selectors[m_rr.mesh_id]->select_patch(m_rr.hit, int(m_rr.facet), camera_pos, m_cursor_radius, m_cursor_type,
-                                                                 new_state, trafo_matrix, trafo_matrix_not_translate, m_triangle_splitting_enabled, clp,
-                                                                 m_paint_on_overhangs_only ? m_highlight_by_angle_threshold_deg : 0.f);
-            m_triangle_selectors[m_rr.mesh_id]->request_update_render_data();
+                    m_seed_fill_last_mesh_id = -1;
+                }
+            } else if (m_tool_type == ToolType::BRUSH) {
+                assert(m_cursor_type == TriangleSelector::CursorType::CIRCLE || m_cursor_type == TriangleSelector::CursorType::SPHERE);
+
+                if (projected_mouse_positions.size() == 1) {
+                    const ProjectedMousePosition             &first_position = projected_mouse_positions.front();
+                    std::unique_ptr<TriangleSelector::Cursor> cursor         = TriangleSelector::SinglePointCursor::cursor_factory(first_position.mesh_hit,
+                                                                                                                                   camera_pos, m_cursor_radius,
+                                                                                                                                   m_cursor_type, trafo_matrix, clp);
+                    m_triangle_selectors[mesh_idx]->select_patch(int(first_position.facet_idx), std::move(cursor), new_state, trafo_matrix_not_translate,
+                                                                 m_triangle_splitting_enabled, m_paint_on_overhangs_only ? m_highlight_by_angle_threshold_deg : 0.f);
+                } else {
+                    for (auto first_position_it = projected_mouse_positions.cbegin(); first_position_it != projected_mouse_positions.cend() - 1; ++first_position_it) {
+                        auto second_position_it = first_position_it + 1;
+                        std::unique_ptr<TriangleSelector::Cursor> cursor = TriangleSelector::DoublePointCursor::cursor_factory(first_position_it->mesh_hit, second_position_it->mesh_hit, camera_pos, m_cursor_radius, m_cursor_type, trafo_matrix, clp);
+                        m_triangle_selectors[mesh_idx]->select_patch(int(first_position_it->facet_idx), std::move(cursor), new_state, trafo_matrix_not_translate, m_triangle_splitting_enabled, m_paint_on_overhangs_only ? m_highlight_by_angle_threshold_deg : 0.f);
+                    }
+                }
+            }
+
+            m_triangle_selectors[mesh_idx]->request_update_render_data();
             m_last_mouse_click = mouse_position;
         }
 

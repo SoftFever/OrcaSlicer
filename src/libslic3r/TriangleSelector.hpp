@@ -15,7 +15,12 @@ enum class EnforcerBlockerType : int8_t;
 
 // Following class holds information about selected triangles. It also has power
 // to recursively subdivide the triangles and make the selection finer.
-class TriangleSelector {
+class TriangleSelector
+{
+protected:
+    class Triangle;
+    struct Vertex;
+
 public:
     enum CursorType {
         CIRCLE,
@@ -35,6 +40,146 @@ public:
         bool is_mesh_point_clipped(const Vec3f &point) const { return normal.dot(point) - offset > 0.f; }
     };
 
+    class Cursor
+    {
+    public:
+        Cursor()          = delete;
+        virtual ~Cursor() = default;
+
+        bool is_pointer_in_triangle(const Triangle &tr, const std::vector<Vertex> &vertices) const;
+
+        virtual bool is_mesh_point_inside(const Vec3f &point) const = 0;
+        virtual bool is_pointer_in_triangle(const Vec3f &p1, const Vec3f &p2, const Vec3f &p3) const = 0;
+        virtual int  vertices_inside(const Triangle &tr, const std::vector<Vertex> &vertices) const;
+        virtual bool is_edge_inside_cursor(const Triangle &tr, const std::vector<Vertex> &vertices) const = 0;
+        virtual bool is_facet_visible(int facet_idx, const std::vector<Vec3f> &face_normals) const = 0;
+
+        static bool is_facet_visible(const Cursor &cursor, int facet_idx, const std::vector<Vec3f> &face_normals);
+
+    protected:
+        explicit Cursor(const Vec3f &source_, float radius_world, const Transform3d &trafo_, const ClippingPlane &clipping_plane_);
+
+        Transform3f trafo;
+        Vec3f       source;
+
+        bool        uniform_scaling;
+        Transform3f trafo_normal;
+        float       radius;
+        float       radius_sqr;
+        Vec3f       dir = Vec3f(0.f, 0.f, 0.f);
+
+        ClippingPlane clipping_plane; // Clipping plane to limit painting to not clipped facets only
+
+        friend TriangleSelector;
+    };
+
+    class SinglePointCursor : public Cursor
+    {
+    public:
+        SinglePointCursor()           = delete;
+        ~SinglePointCursor() override = default;
+
+        bool is_pointer_in_triangle(const Vec3f &p1, const Vec3f &p2, const Vec3f &p3) const override;
+
+        static std::unique_ptr<Cursor> cursor_factory(const Vec3f &center, const Vec3f &camera_pos, const float cursor_radius, const CursorType cursor_type, const Transform3d &trafo_matrix, const ClippingPlane &clipping_plane)
+        {
+            assert(cursor_type == TriangleSelector::CursorType::CIRCLE || cursor_type == TriangleSelector::CursorType::SPHERE);
+            if (cursor_type == TriangleSelector::CursorType::SPHERE)
+                return std::make_unique<TriangleSelector::Sphere>(center, camera_pos, cursor_radius, trafo_matrix, clipping_plane);
+            else
+                return std::make_unique<TriangleSelector::Circle>(center, camera_pos, cursor_radius, trafo_matrix, clipping_plane);
+        }
+
+    protected:
+        explicit SinglePointCursor(const Vec3f &center_, const Vec3f &source_, float radius_world, const Transform3d &trafo_, const ClippingPlane &clipping_plane_);
+
+        Vec3f center;
+    };
+
+    class DoublePointCursor : public Cursor
+    {
+    public:
+        DoublePointCursor()           = delete;
+        ~DoublePointCursor() override = default;
+
+        bool is_pointer_in_triangle(const Vec3f &p1, const Vec3f &p2, const Vec3f &p3) const override;
+
+        static std::unique_ptr<Cursor> cursor_factory(const Vec3f &first_center, const Vec3f &second_center, const Vec3f &camera_pos, const float cursor_radius, const CursorType cursor_type, const Transform3d &trafo_matrix, const ClippingPlane &clipping_plane)
+        {
+            assert(cursor_type == TriangleSelector::CursorType::CIRCLE || cursor_type == TriangleSelector::CursorType::SPHERE);
+            if (cursor_type == TriangleSelector::CursorType::SPHERE)
+                return std::make_unique<TriangleSelector::Capsule3D>(first_center, second_center, camera_pos, cursor_radius, trafo_matrix, clipping_plane);
+            else
+                return std::make_unique<TriangleSelector::Capsule2D>(first_center, second_center, camera_pos, cursor_radius, trafo_matrix, clipping_plane);
+        }
+
+    protected:
+        explicit DoublePointCursor(const Vec3f &first_center_, const Vec3f &second_center_, const Vec3f &source_, float radius_world, const Transform3d &trafo_, const ClippingPlane &clipping_plane_);
+
+        Vec3f first_center;
+        Vec3f second_center;
+    };
+
+    class Sphere : public SinglePointCursor
+    {
+    public:
+        Sphere() = delete;
+        explicit Sphere(const Vec3f &center_, const Vec3f &source_, float radius_world, const Transform3d &trafo_, const ClippingPlane &clipping_plane_)
+            : SinglePointCursor(center_, source_, radius_world, trafo_, clipping_plane_){};
+        ~Sphere() override = default;
+
+        bool is_mesh_point_inside(const Vec3f &point) const override;
+        bool is_edge_inside_cursor(const Triangle &tr, const std::vector<Vertex> &vertices) const override;
+        bool is_facet_visible(int facet_idx, const std::vector<Vec3f> &face_normals) const override { return true; }
+    };
+
+    class Circle : public SinglePointCursor
+    {
+    public:
+        Circle() = delete;
+        explicit Circle(const Vec3f &center_, const Vec3f &source_, float radius_world, const Transform3d &trafo_, const ClippingPlane &clipping_plane_)
+            : SinglePointCursor(center_, source_, radius_world, trafo_, clipping_plane_){};
+        ~Circle() override = default;
+
+        bool is_mesh_point_inside(const Vec3f &point) const override;
+        bool is_edge_inside_cursor(const Triangle &tr, const std::vector<Vertex> &vertices) const override;
+        bool is_facet_visible(int facet_idx, const std::vector<Vec3f> &face_normals) const override
+        {
+            return TriangleSelector::Cursor::is_facet_visible(*this, facet_idx, face_normals);
+        }
+    };
+
+    class Capsule3D : public DoublePointCursor
+    {
+    public:
+        Capsule3D() = delete;
+        explicit Capsule3D(const Vec3f &first_center_, const Vec3f &second_center_, const Vec3f &source_, float radius_world, const Transform3d &trafo_, const ClippingPlane &clipping_plane_)
+            : TriangleSelector::DoublePointCursor(first_center_, second_center_, source_, radius_world, trafo_, clipping_plane_)
+        {}
+        ~Capsule3D() override = default;
+
+        bool is_mesh_point_inside(const Vec3f &point) const override;
+        bool is_edge_inside_cursor(const Triangle &tr, const std::vector<Vertex> &vertices) const override;
+        bool is_facet_visible(int facet_idx, const std::vector<Vec3f> &face_normals) const override { return true; }
+    };
+
+    class Capsule2D : public DoublePointCursor
+    {
+    public:
+        Capsule2D() = delete;
+        explicit Capsule2D(const Vec3f &first_center_, const Vec3f &second_center_, const Vec3f &source_, float radius_world, const Transform3d &trafo_, const ClippingPlane &clipping_plane_)
+            : TriangleSelector::DoublePointCursor(first_center_, second_center_, source_, radius_world, trafo_, clipping_plane_)
+        {}
+        ~Capsule2D() override = default;
+
+        bool is_mesh_point_inside(const Vec3f &point) const override;
+        bool is_edge_inside_cursor(const Triangle &tr, const std::vector<Vertex> &vertices) const override;
+        bool is_facet_visible(int facet_idx, const std::vector<Vec3f> &face_normals) const override
+        {
+            return TriangleSelector::Cursor::is_facet_visible(*this, facet_idx, face_normals);
+        }
+    };
+
     std::pair<std::vector<Vec3i>, std::vector<Vec3i>> precompute_all_neighbors() const;
     void precompute_all_neighbors_recursive(int facet_idx, const Vec3i &neighbors, const Vec3i &neighbors_propagated, std::vector<Vec3i> &neighbors_out, std::vector<Vec3i> &neighbors_normal_out) const;
 
@@ -51,17 +196,12 @@ public:
     [[nodiscard]] int select_unsplit_triangle(const Vec3f &hit, int facet_idx, const Vec3i &neighbors) const;
 
     // Select all triangles fully inside the circle, subdivide where needed.
-    void select_patch(const Vec3f        &hit,         // point where to start
-                      int                 facet_start, // facet of the original mesh (unsplit) that the hit point belongs to
-                      const Vec3f        &source,      // camera position (mesh coords)
-                      float               radius,      // radius of the cursor
-                      CursorType          type,        // current type of cursor
-                      EnforcerBlockerType new_state,   // enforcer or blocker?
-                      const Transform3d  &trafo,       // matrix to get from mesh to world
-                      const Transform3d  &trafo_no_translate,            // matrix to get from mesh to world without translation
-                      bool                triangle_splitting,            // If triangles will be split base on the cursor or not
-                      const ClippingPlane &clp,                          // Clipping plane to limit painting to not clipped facets only
-                      float               highlight_by_angle_deg = 0.f); // The maximal angle of overhang. If it is set to a non-zero value, it is possible to paint only the triangles of overhang defined by this angle in degrees.
+    void select_patch(int                       facet_start,                   // facet of the original mesh (unsplit) that the hit point belongs to
+                      std::unique_ptr<Cursor> &&cursor,                        // Cursor containing information about the point where to start, camera position (mesh coords), matrix to get from mesh to world, and its shape and type.
+                      EnforcerBlockerType       new_state,                     // enforcer or blocker?
+                      const Transform3d        &trafo_no_translate,            // matrix to get from mesh to world without translation
+                      bool                      triangle_splitting,            // If triangles will be split base on the cursor or not
+                      float                     highlight_by_angle_deg = 0.f); // The maximal angle of overhang. If it is set to a non-zero value, it is possible to paint only the triangles of overhang defined by this angle in degrees.
 
     void seed_fill_select_triangles(const Vec3f        &hit,                          // point where to start
                                     int                 facet_start,                  // facet of the original mesh (unsplit) that the hit point belongs to
@@ -195,39 +335,16 @@ protected:
     int m_orig_size_vertices = 0;
     int m_orig_size_indices = 0;
 
-    // Cache for cursor position, radius and direction.
-    struct Cursor {
-        Cursor() = default;
-        Cursor(const Vec3f& center_, const Vec3f& source_, float radius_world,
-               CursorType type_, const Transform3d& trafo_, const ClippingPlane &clipping_plane_);
-        bool is_mesh_point_inside(const Vec3f &pt) const;
-        bool is_pointer_in_triangle(const Vec3f& p1, const Vec3f& p2, const Vec3f& p3) const;
-
-        Vec3f center;
-        Vec3f source;
-        Vec3f dir;
-        float radius_sqr;
-        CursorType type;
-        Transform3f trafo;
-        Transform3f trafo_normal;
-        bool uniform_scaling;
-        ClippingPlane clipping_plane;
-    };
-
-    Cursor m_cursor;
+    std::unique_ptr<Cursor> m_cursor;
     float m_old_cursor_radius_sqr;
 
     // Private functions:
 private:
     bool select_triangle(int facet_idx, EnforcerBlockerType type, bool triangle_splitting);
     bool select_triangle_recursive(int facet_idx, const Vec3i &neighbors, EnforcerBlockerType type, bool triangle_splitting);
-    int  vertices_inside(int facet_idx) const;
-    bool faces_camera(int facet) const;
     void undivide_triangle(int facet_idx);
     void split_triangle(int facet_idx, const Vec3i &neighbors);
     void remove_useless_children(int facet_idx); // No hidden meaning. Triangles are meant.
-    bool is_pointer_in_triangle(int facet_idx) const;
-    bool is_edge_inside_cursor(int facet_idx) const;
     bool is_facet_clipped(int facet_idx, const ClippingPlane &clp) const;
     int  push_triangle(int a, int b, int c, int source_triangle, EnforcerBlockerType state = EnforcerBlockerType{0});
     void perform_split(int facet_idx, const Vec3i &neighbors, EnforcerBlockerType old_state);
