@@ -539,7 +539,7 @@ void Layer::make_ironing()
     fill_params.density 	 = 1.;
     fill_params.monotonic    = true;
 
-	for (size_t i = 0; i < by_extruder.size(); ++ i) {
+	for (size_t i = 0; i < by_extruder.size();) {
 		// Find span of regions equivalent to the ironing operation.
 		IroningParams &ironing_params = by_extruder[i];
 		size_t j = i;
@@ -589,14 +589,17 @@ void Layer::make_ironing()
 							polygons_append(infills, surface.expolygon);
 				}
 			}
+
+			if (! infills.empty() || j > i + 1) {
+				// Ironing over more than a single region or over solid internal infill.
+				if (! infills.empty())
+					// For IroningType::AllSolid only:
+					// Add solid infill areas for layers, that contain some non-ironable infil (sparse infill, bridge infill).
+					append(polys, std::move(infills));
+				polys = union_safety_offset(polys);
+			}
 			// Trim the top surfaces with half the nozzle diameter.
 			ironing_areas = intersection_ex(polys, offset(this->lslices, - float(scale_(0.5 * nozzle_dmr))));
-			if (! infills.empty()) {
-				// For IroningType::AllSolid only:
-				// Add solid infill areas for layers, that contain some non-ironable infil (sparse infill, bridge infill).
-				append(infills, to_polygons(std::move(ironing_areas)));
-				ironing_areas = union_safety_offset_ex(infills);
-			}
 		}
 
         // Create the filler object.
@@ -626,6 +629,9 @@ void Layer::make_ironing()
 		            flow_mm3_per_mm, extrusion_width, float(extrusion_height));
 		    }
 		}
+
+		// Regions up to j were processed.
+		i = j;
 	}
 }
 

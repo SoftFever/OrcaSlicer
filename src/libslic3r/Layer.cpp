@@ -45,7 +45,7 @@ void Layer::make_slices()
         Polygons slices_p;
         for (LayerRegion *layerm : m_regions)
             polygons_append(slices_p, to_polygons(layerm->slices.surfaces));
-        slices = union_ex(slices_p);
+        slices = union_safety_offset_ex(slices_p);
     }
     
     this->lslices.clear();
