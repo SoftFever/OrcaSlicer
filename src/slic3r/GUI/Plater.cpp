@@ -236,6 +236,7 @@ void ObjectInfo::show_sizer(bool show)
 void ObjectInfo::msw_rescale()
 {
     manifold_warning_icon->SetBitmap(create_scaled_bitmap(m_warning_icon_name));
+    info_icon->SetBitmap(create_scaled_bitmap("info"));
 }
 
 void ObjectInfo::update_warning_icon(const std::string& warning_icon_name)
@@ -1134,6 +1135,7 @@ void Sidebar::sys_color_changed()
 
     for (wxWindow* win : std::vector<wxWindow*>{ this, p->sliced_info->GetStaticBox(), p->object_info->GetStaticBox(), p->btn_reslice, p->btn_export_gcode })
         wxGetApp().UpdateDarkUI(win);
+    p->object_info->msw_rescale();
     for (wxWindow* win : std::vector<wxWindow*>{ p->scrolled, p->presets_panel })
         wxGetApp().UpdateAllStaticTextDarkUI(win);
     for (wxWindow* btn : std::vector<wxWindow*>{ p->btn_reslice, p->btn_export_gcode })

@@ -35,9 +35,16 @@ std::string substitute_host(const std::string& orig_addr, const std::string sub_
     // userinfo
     size_t at = orig_addr.find("@");
     host_start = (at != std::string::npos && at > host_start ? at + 1 : host_start);
-    // end of host, could be port, subpath (could be query or fragment?)
-    size_t host_end = orig_addr.find_first_of(":/?#", host_start);
-    host_end = (host_end == std::string::npos ? orig_addr.length() : host_end);
+    // end of host, could be port(:), subpath(/) (could be query(?) or fragment(#)?)
+    // or it will be ']' if address is ipv6 )
+    size_t potencial_host_end = orig_addr.find_first_of(":/", host_start); 
+    // if there are more ':' it must be ipv6
+    if (potencial_host_end != std::string::npos && orig_addr[potencial_host_end] == ':' && orig_addr.rfind(':') != potencial_host_end) {
+        size_t ipv6_end = orig_addr.find(']', host_start);
+        // DK: Uncomment and replace orig_addr.length() if we want to allow subpath after ipv6 without [] parentheses.
+        potencial_host_end = (ipv6_end != std::string::npos ? ipv6_end + 1 : orig_addr.length()); //orig_addr.find('/', host_start));
+    }
+    size_t host_end = (potencial_host_end != std::string::npos ? potencial_host_end : orig_addr.length());
     // now host_start and host_end should mark where to put resolved addr
     // check host_start. if its nonsense, lets just use original addr (or  resolved addr?)
     if (host_start >= orig_addr.length()) {

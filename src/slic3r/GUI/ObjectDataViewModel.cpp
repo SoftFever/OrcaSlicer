@@ -46,10 +46,10 @@ struct InfoItemAtributes {
 
 const std::map<InfoItemType, InfoItemAtributes> INFO_ITEMS{
 //           info_item Type                         info_item Name              info_item BitmapName
-            { InfoItemType::CustomSupports,      {L("Paint-on supports"),       "fdm_supports" },      },
-            { InfoItemType::CustomSeam,          {L("Paint-on seam"),           "seam" },              },
-            { InfoItemType::MmuSegmentation,     {L("Multimaterial painting"),  "mmu_segmentation"},   },
-            { InfoItemType::Sinking,             {L("Sinking"),                 "support_blocker"},    },
+            { InfoItemType::CustomSupports,      {L("Paint-on supports"),       "fdm_supports_" },     },
+            { InfoItemType::CustomSeam,          {L("Paint-on seam"),           "seam_" },             },
+            { InfoItemType::MmuSegmentation,     {L("Multimaterial painting"),  "mmu_segmentation_"},  },
+            { InfoItemType::Sinking,             {L("Sinking"),                 "sinking"},            },
             { InfoItemType::VariableLayerHeight, {L("Variable layer height"),   "layers"},             },
 };
 
@@ -1682,6 +1682,9 @@ void ObjectDataViewModel::Rescale()
     m_warning_bmp = create_scaled_bitmap(WarningIcon);
     m_warning_manifold_bmp = create_scaled_bitmap(WarningManifoldIcon);
 
+    for (auto item : INFO_ITEMS)
+        m_info_bmps[item.first] = create_scaled_bitmap(item.second.bmp_name);
+
     wxDataViewItemArray all_items;
     GetAllChildren(wxDataViewItem(0), all_items);
 
@@ -1705,6 +1708,8 @@ void ObjectDataViewModel::Rescale()
             node->m_bmp = create_scaled_bitmap(LayerRootIcon);
         case itLayer:
             node->m_bmp = create_scaled_bitmap(LayerIcon);
+        case itInfo:
+            node->m_bmp = m_info_bmps.at(node->m_info_item_type);
             break;
         default: break;
         }

@@ -1398,7 +1398,7 @@ void MainFrame::init_menubar_as_editor()
                     if (!input_files.IsEmpty())
                         m_plater->sidebar().obj_list()->load_shape_object_from_gallery(input_files);
                 }
-            }, "cog", nullptr, []() {return true; }, this);
+            }, "shape_gallery", nullptr, []() {return true; }, this);
         
         windowMenu->AppendSeparator();
         append_menu_item(windowMenu, wxID_ANY, _L("Print &Host Upload Queue") + "\tCtrl+J", _L("Display the Print Host Upload Queue window"),
