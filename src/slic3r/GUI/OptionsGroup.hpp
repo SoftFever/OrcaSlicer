@@ -53,7 +53,7 @@ class Line {
 public:
     wxString	label;
     wxString	label_tooltip;
-	wxString	label_path;
+	std::string	label_path;
 
     size_t		full_width {0}; 
 	wxColour*	full_Label_color {nullptr};
@@ -133,8 +133,8 @@ public:
 	// delete all controls from the option group
 	void		clear(bool destroy_custom_ctrl = false);
 
-    Line		create_single_option_line(const Option& option, const wxString& path = wxEmptyString) const;
-    void		append_single_option_line(const Option& option, const wxString& path = wxEmptyString) { append_line(create_single_option_line(option, path)); }
+    Line		create_single_option_line(const Option& option, const std::string& path = std::string()) const;
+    void		append_single_option_line(const Option& option, const std::string& path = std::string()) { append_line(create_single_option_line(option, path)); }
 	void		append_separator();
 
     // return a non-owning pointer reference 
@@ -219,6 +219,10 @@ protected:
 	virtual void		on_change_OG(const t_config_option_key& opt_id, const boost::any& value);
 	virtual void		back_to_initial_value(const std::string& opt_key) {}
 	virtual void		back_to_sys_value(const std::string& opt_key) {}
+
+public:
+	static wxString		get_url(const std::string& path_end);
+	static bool			launch_browser(const std::string& path_end);
 };
 
 class ConfigOptionsGroup: public OptionsGroup {
@@ -239,17 +243,17 @@ public:
 	void 		set_config_category_and_type(const wxString &category, int type) { m_config_category = category; m_config_type = type; }
     void        set_config(DynamicPrintConfig* config) { m_config = config; m_modelconfig = nullptr; }
 	Option		get_option(const std::string& opt_key, int opt_index = -1);
-	Line		create_single_option_line(const std::string& title, const wxString& path = wxEmptyString, int idx = -1) /*const*/{
+	Line		create_single_option_line(const std::string& title, const std::string& path = std::string(), int idx = -1) /*const*/{
 		Option option = get_option(title, idx);
 		return OptionsGroup::create_single_option_line(option, path);
 	}
-	Line		create_single_option_line(const Option& option, const wxString& path = wxEmptyString) const {
+	Line		create_single_option_line(const Option& option, const std::string& path = std::string()) const {
 		return OptionsGroup::create_single_option_line(option, path);
 	}
-	void		append_single_option_line(const Option& option, const wxString& path = wxEmptyString)	{
+	void		append_single_option_line(const Option& option, const std::string& path = std::string())	{
 		OptionsGroup::append_single_option_line(option, path);
 	}
-	void		append_single_option_line(const std::string title, const wxString& path = wxEmptyString, int idx = -1)
+	void		append_single_option_line(const std::string title, const std::string& path = std::string(), int idx = -1)
 	{
 		Option option = get_option(title, idx);
 		append_single_option_line(option, path);
@@ -298,6 +302,9 @@ public:
 	~ogStaticText() {}
 
 	void		SetText(const wxString& value, bool wrap = true);
+	// Set special path end. It will be used to generation of the hyperlink on info page
+	void		SetPathEnd(const std::string& link);
+	void		FocusText(bool focus);
 };
 
 }}

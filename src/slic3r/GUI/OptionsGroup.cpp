@@ -3,6 +3,7 @@
 #include "Plater.hpp"
 #include "GUI_App.hpp"
 #include "OG_CustomCtrl.hpp"
+#include "MsgDialog.hpp"
 
 #include <utility>
 #include <wx/numformatter.h>
@@ -10,6 +11,7 @@
 #include <boost/algorithm/string/classification.hpp>
 #include "libslic3r/Exception.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/AppConfig.hpp"
 #include "I18N.hpp"
 
 namespace Slic3r { namespace GUI {
@@ -504,7 +506,7 @@ void OptionsGroup::clear(bool destroy_custom_ctrl)
 	m_fields.clear();
 }
 
-Line OptionsGroup::create_single_option_line(const Option& option, const wxString& path/* = wxEmptyString*/) const {
+Line OptionsGroup::create_single_option_line(const Option& option, const std::string& path/* = std::string()*/) const {
 // 	Line retval{ _(option.opt.label), _(option.opt.tooltip) };
     wxString tooltip = _(option.opt.tooltip);
     edit_tooltip(tooltip);
@@ -962,6 +964,54 @@ void ConfigOptionsGroup::change_opt_value(const t_config_option_key& opt_key, co
 		m_modelconfig->touch();
 }
 
+wxString OptionsGroup::get_url(const std::string& path_end)
+{
+    if (path_end.empty())
+        return wxEmptyString;
+
+    wxString language = get_app_config()->get("translation_language");
+    wxString lang_marker = language.IsEmpty() ? "en" : language.BeforeFirst('_');
+
+    return wxString("https://help.prusa3d.com/") + lang_marker + wxString("/article/" + path_end);
+}
+
+bool OptionsGroup::launch_browser(const std::string& path_end)
+{
+    bool launch = true;
+
+    if (get_app_config()->get("suppress_hyperlinks").empty()) {
+        RichMessageDialog dialog(nullptr, _L("Open hyperlink in default browser?"), _L("PrusaSlicer: Open hyperlink"), wxYES_NO);
+        dialog.ShowCheckBox(_L("Remember my choice"));
+        int answer = dialog.ShowModal();
+
+        if (dialog.IsCheckBoxChecked()) {
+            wxString preferences_item = _L("Suppress to open hyperlink in browser");
+            wxString msg =
+                _L("PrusaSlicer will remember your choice.") + "\n\n" +
+                _L("You will not be asked about it again on label hovering.") + "\n\n" +
+                format_wxstr(_L("Visit \"Preferences\" and check \"%1%\"\nto changes your choice."), preferences_item);
+
+            MessageDialog msg_dlg(nullptr, msg, _L("PrusaSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
+            if (msg_dlg.ShowModal() == wxID_CANCEL)
+                return false;
+
+            get_app_config()->set("suppress_hyperlinks", dialog.IsCheckBoxChecked() ? (answer == wxID_NO ? "1" : "0") : "");
+        }
+
+        launch = answer == wxID_YES;
+    }
+    if (launch)
+        launch = get_app_config()->get("suppress_hyperlinks") != "1";
+
+    return launch && wxLaunchDefaultBrowser(OptionsGroup::get_url(path_end));
+}
+
+
+
+//-------------------------------------------------------------------------------------------
+// ogStaticText
+//-------------------------------------------------------------------------------------------
+
 ogStaticText::ogStaticText(wxWindow* parent, const wxString& text) :
     wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, wxDefaultSize)
 {
@@ -977,6 +1027,38 @@ void ogStaticText::SetText(const wxString& value, bool wrap/* = true*/)
 	SetLabel(value);
     if (wrap) Wrap(60 * wxGetApp().em_unit());
 	GetParent()->Layout();
+}
+
+void ogStaticText::SetPathEnd(const std::string& link)
+{
+    if (get_app_config()->get("suppress_hyperlinks") != "1")
+        SetToolTip(OptionsGroup::get_url(link));
+
+    Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event) {
+        if (HasCapture())
+            return;
+        this->CaptureMouse();
+        event.Skip();
+    } );
+    Bind(wxEVT_LEFT_UP, [link, this](wxMouseEvent& event) {
+        if (!HasCapture())
+            return;
+        ReleaseMouse();
+        OptionsGroup::launch_browser(link);
+        event.Skip();
+    } );
+    Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& event) { FocusText(true) ; event.Skip(); });
+    Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& event) { FocusText(false); event.Skip(); });
+}
+
+void ogStaticText::FocusText(bool focus)
+{
+    if (get_app_config()->get("suppress_hyperlinks") == "1")
+        return;
+
+    SetFont(focus ? Slic3r::GUI::wxGetApp().link_font() :
+                    Slic3r::GUI::wxGetApp().normal_font());
+    Refresh();
 }
 
 } // GUI

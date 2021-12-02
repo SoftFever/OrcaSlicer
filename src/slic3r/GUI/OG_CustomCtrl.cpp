@@ -28,17 +28,6 @@ static wxSize get_bitmap_size(const wxBitmap& bmp)
 #endif
 }
 
-static wxString get_url(const wxString& path_end, bool get_default = false) 
-{
-    if (path_end.IsEmpty())
-        return wxEmptyString;
-
-    wxString language = wxGetApp().app_config->get("translation_language");
-    wxString lang_marker = language.IsEmpty() ? "en" : language.BeforeFirst('_');
-
-    return wxString("https://help.prusa3d.com/") + lang_marker + "/article/" + path_end;
-}
-
 OG_CustomCtrl::OG_CustomCtrl(   wxWindow*            parent,
                                 OptionsGroup*        og,
                                 const wxPoint&       pos /* = wxDefaultPosition*/,
@@ -264,7 +253,7 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
         line.is_focused = is_point_in_rect(pos, line.rect_label);
         if (line.is_focused) {
             if (!suppress_hyperlinks && !line.og_line.label_path.empty())
-                tooltip = get_url(line.og_line.label_path) +"\n\n";
+                tooltip = OptionsGroup::get_url(line.og_line.label_path) +"\n\n";
             tooltip += line.og_line.label_tooltip;
             break;
         }
@@ -577,7 +566,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
     bool is_url_string = false;
     if (ctrl->opt_group->label_width != 0 && !label.IsEmpty()) {
         const wxColour* text_clr = (option_set.size() == 1 && field ? field->label_color() : og_line.full_Label_color);
-        is_url_string = !suppress_hyperlinks && !og_line.label_path.IsEmpty();
+        is_url_string = !suppress_hyperlinks && !og_line.label_path.empty();
         h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label + ":", text_clr, ctrl->opt_group->label_width * ctrl->m_em_unit, is_url_string);
     }
 
@@ -619,7 +608,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
             if (is_url_string)
                 is_url_string = false;
             else if(opt == option_set.front())
-                is_url_string = !suppress_hyperlinks && !og_line.label_path.IsEmpty();
+                is_url_string = !suppress_hyperlinks && !og_line.label_path.empty();
             h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label, field ? field->label_color() : nullptr, ctrl->opt_group->sublabel_width * ctrl->m_em_unit, is_url_string);
         }
 
@@ -766,36 +755,10 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBi
 
 bool OG_CustomCtrl::CtrlLine::launch_browser() const
 {
-    if (!is_focused || og_line.label_path.IsEmpty())
+    if (!is_focused || og_line.label_path.empty())
         return false;
 
-    bool launch = true;
-
-    if (get_app_config()->get("suppress_hyperlinks").empty()) {
-        RichMessageDialog dialog(nullptr, _L("Open hyperlink in default browser?"), _L("PrusaSlicer: Open hyperlink"), wxYES_NO);
-        dialog.ShowCheckBox(_L("Remember my choice"));
-        int answer = dialog.ShowModal();
-
-        if (dialog.IsCheckBoxChecked()) {
-            wxString preferences_item = _L("Suppress to open hyperlink in browser");
-            wxString msg =
-                _L("PrusaSlicer will remember your choice.") + "\n\n" +
-                _L("You will not be asked about it again on label hovering.") + "\n\n" +
-                format_wxstr(_L("Visit \"Preferences\" and check \"%1%\"\nto changes your choice."), preferences_item);
-
-            MessageDialog msg_dlg(nullptr, msg, _L("PrusaSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
-            if (msg_dlg.ShowModal() == wxID_CANCEL)
-                return false;
-
-            get_app_config()->set("suppress_hyperlinks", dialog.IsCheckBoxChecked() ? (answer == wxID_NO ? "1" : "0") : "");
-        }
-
-        launch = answer == wxID_YES;
-    }
-    if (launch)
-        launch = get_app_config()->get("suppress_hyperlinks") != "1";
-
-    return launch && wxLaunchDefaultBrowser(get_url(og_line.label_path));
+    return OptionsGroup::launch_browser(og_line.label_path);
 }
 
 } // GUI
