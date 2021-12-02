@@ -1190,7 +1190,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
             vertices.push_back(normal.z());
         };
 
-        if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
+        if (buffer.paths.empty() || prev.type != curr.type || !buffer.paths.back().matches(curr)) {
             buffer.add_path(curr, vbuffer_id, vertices.size(), move_id - 1);
             buffer.paths.back().sub_paths.back().first.position = prev.position;
         }
@@ -1281,7 +1281,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
                 store_triangle(indices, v_offsets[4], v_offsets[5], v_offsets[6]);
             };
 
-            if (prev.type != curr.type || !buffer.paths.back().matches(curr)) {
+            if (buffer.paths.empty() || prev.type != curr.type || !buffer.paths.back().matches(curr)) {
                 buffer.add_path(curr, ibuffer_id, indices.size(), move_id - 1);
                 buffer.paths.back().sub_paths.back().first.position = prev.position;
             }
