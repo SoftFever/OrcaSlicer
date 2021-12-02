@@ -15,6 +15,7 @@
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "Http.hpp"
+#include "libslic3r/AppConfig.hpp"
 
 
 namespace fs = boost::filesystem;
@@ -22,6 +23,30 @@ namespace pt = boost::property_tree;
 
 
 namespace Slic3r {
+
+namespace {
+std::string substitute_host(const std::string& orig_addr, const std::string sub_addr)
+{
+    //URI = scheme ":"["//"[userinfo "@"] host [":" port]] path["?" query]["#" fragment]
+    std::string final_addr = orig_addr;
+    //  http
+    size_t double_dash = orig_addr.find("//");
+    size_t host_start = (double_dash == std::string::npos ? 0 : double_dash + 2);
+    // userinfo
+    size_t at = orig_addr.find("@");
+    host_start = (at != std::string::npos && at > host_start ? at + 1 : host_start);
+    // end of host, could be port, subpath (could be query or fragment?)
+    size_t host_end = orig_addr.find_first_of(":/?#", host_start);
+    host_end = (host_end == std::string::npos ? orig_addr.length() : host_end);
+    // now host_start and host_end should mark where to put resolved addr
+    // check host_start. if its nonsense, lets just use original addr (or  resolved addr?)
+    if (host_start >= orig_addr.length()) {
+        return final_addr;
+    }
+    final_addr.replace(host_start, host_end - host_start, sub_addr);
+    return final_addr;
+}
+} //namespace
 
 OctoPrint::OctoPrint(DynamicPrintConfig *config) :
     m_host(config->opt_string("print_host")),
@@ -115,8 +140,9 @@ bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Erro
     std::string url;
     bool res = true;
 
-    if (m_host.find("https://") == 0 || test_msg.empty())
-    {
+    bool allow_ip_resolve = GUI::get_app_config()->get("allow_ip_resolve") == "1";
+
+    if (m_host.find("https://") == 0 || test_msg.empty() || !allow_ip_resolve) {
         // If https is entered we assume signed ceritificate is being used
         // IP resolving will not happen - it could resolve into address not being specified in cert
         url = make_url("api/files/local");
@@ -126,10 +152,13 @@ bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Erro
         // This new address returns in "test_msg" variable.
         // Solves troubles of uploades failing with name address.
         std::string resolved_addr = boost::nowide::narrow(test_msg);
-        // put ipv6 into [] brackets (there shouldn't be any http:// if its resolved addr)
+        // put ipv6 into [] brackets 
         if (resolved_addr.find(':') != std::string::npos && resolved_addr.at(0) != '[')
             resolved_addr = "[" + resolved_addr + "]";
-        url = make_url("api/files/local", resolved_addr);
+        // in original address (m_host) replace host for resolved ip 
+        std::string final_addr = substitute_host(m_host, resolved_addr);
+        BOOST_LOG_TRIVIAL(debug) << "Upload address after ip resolve: " << final_addr;
+        url = make_url("api/files/local", final_addr);
     }
 
     BOOST_LOG_TRIVIAL(info) << boost::format("%1%: Uploading file %2% at %3%, filename: %4%, path: %5%, print: %6%")
