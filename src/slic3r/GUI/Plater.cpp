@@ -6303,16 +6303,34 @@ void Plater::force_print_bed_update()
 void Plater::on_activate()
 {
 #if defined(__linux__) || defined(_WIN32)
+    this->restore_keyboard_focus();
+#endif
+	this->p->show_delayed_error_message();
+}
+
+#if defined(__linux__) || defined(_WIN32)
+// wxWidgets callback to enable / disable window and all its children windows.
+// called by wxProgressDialog when entering / leaving modal dialog loop.
+// Unfortunately the wxProgressDialog calls Enable(true) after the wxEVT_ACTIVATE event is processed
+// while MainFrame is not yet enabled, thus restoring focus in OnActivate() handler fails
+// and we need to do it now.
+bool Plater::Enable(bool enable)
+{
+    bool retval = wxPanel::Enable(enable);
+    if (enable && retval)
+        this->restore_keyboard_focus();
+    return retval;
+}
+void Plater::restore_keyboard_focus()
+{
     // Activating the main frame, and no window has keyboard focus.
     // Set the keyboard focus to the visible Canvas3D.
     if (this->p->view3D->IsShown() && wxWindow::FindFocus() != this->p->view3D->get_wxglcanvas())
-        CallAfter([this]() { this->p->view3D->get_wxglcanvas()->SetFocus(); });
+        this->p->view3D->get_wxglcanvas()->SetFocus();
     else if (this->p->preview->IsShown() && wxWindow::FindFocus() != this->p->view3D->get_wxglcanvas())
-        CallAfter([this]() { this->p->preview->get_wxglcanvas()->SetFocus(); });
-#endif
-
-	this->p->show_delayed_error_message();
+        this->p->preview->get_wxglcanvas()->SetFocus();
 }
+#endif // Linux or Windows
 
 // Get vector of extruder colors considering filament color, if extruder color is undefined.
 std::vector<std::string> Plater::get_extruder_colors_from_plater_config(const GCodeProcessorResult* const result) const
@@ -6874,7 +6892,6 @@ wxMenu* Plater::default_menu()          { return p->menus.default_menu();       
 wxMenu* Plater::instance_menu()         { return p->menus.instance_menu();          }
 wxMenu* Plater::layer_menu()            { return p->menus.layer_menu();             }
 wxMenu* Plater::multi_selection_menu()  { return p->menus.multi_selection_menu();   }
-
 
 SuppressBackgroundProcessingUpdate::SuppressBackgroundProcessingUpdate() :
     m_was_scheduled(wxGetApp().plater()->is_background_process_update_scheduled())

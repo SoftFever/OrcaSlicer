@@ -2101,6 +2101,21 @@ void MainFrame::technology_changed()
 
 }
 
+#if defined(__linux__) || defined(_WIN32)
+// wxWidgets callback to enable / disable window and all its children windows.
+// called by wxWindowDisabler when entering / leaving modal dialog loop.
+// Unfortunately the wxWindowDisabler calls Enable(true) after the wxEVT_ACTIVATE event is processed
+// while MainFrame is not yet enabled, thus restoring focus in OnActivate() handler fails
+// and we need to do it now.
+bool MainFrame::Enable(bool enable)
+{
+    bool retval = DPIFrame::Enable(enable);
+    if (enable && retval)
+        this->plater()->restore_keyboard_focus();
+    return retval;
+}
+#endif
+
 //
 // Called after the Preferences dialog is closed and the program settings are saved.
 // Update the UI based on the current preferences.
