@@ -44,7 +44,6 @@ private:
 
     virtual void set_auth(Http &http) const;
     std::string make_url(const std::string &path) const;
-    std::string make_url(const std::string& path, const std::string& addr) const;
 };
 
 class SL1Host: public OctoPrint
