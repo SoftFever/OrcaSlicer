@@ -954,4 +954,9 @@ void PresetUpdater::on_update_notification_confirm()
 	}	
 }
 
+bool PresetUpdater::version_check_enabled() const
+{
+	return p->enabled_version_check;
+}
+
 }
