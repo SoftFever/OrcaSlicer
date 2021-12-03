@@ -138,10 +138,9 @@ bool Plater::has_illegal_filename_characters(const std::string& name)
 
 void Plater::show_illegal_characters_warning(wxWindow* parent)
 {
-    show_error(parent, _L("The supplied name is not valid;") + "\n" +
+    show_error(parent, _L("The provided name is not valid;") + "\n" +
         _L("the following characters are not allowed:") + " <>:/\\|?*\"");
 }
-
 
 // Sidebar widgets
 
@@ -5656,10 +5655,15 @@ void Plater::export_gcode(bool prefer_removable)
         if (dlg.ShowModal() == wxID_OK) {
             output_path = into_path(dlg.GetPath());
             while (has_illegal_filename_characters(output_path.filename().string())) {
-                show_illegal_characters_warning(this);
+                show_error(this, _L("The provided file name is not valid.") + "\n" +
+                    _L("The following characters are not allowed by a FAT file system:") + " <>:/\\|?*\"");
                 dlg.SetFilename(from_path(output_path.filename()));
                 if (dlg.ShowModal() == wxID_OK)
                     output_path = into_path(dlg.GetPath());
+                else {
+                    output_path.clear();
+                    break;
+                }
             }
         }
     }
