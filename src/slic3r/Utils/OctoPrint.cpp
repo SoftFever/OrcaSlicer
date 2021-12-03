@@ -26,6 +26,8 @@ namespace pt = boost::property_tree;
 
 namespace Slic3r {
 
+#ifdef WIN32
+// Workaround for Windows 10/11 mDNS resolve issue, where two mDNS resolves in succession fail.
 namespace {
 std::string substitute_host(const std::string& orig_addr, std::string sub_addr)
 {
@@ -90,6 +92,7 @@ std::string substitute_host(const std::string& orig_addr, std::string sub_addr)
 #endif
 }
 } //namespace
+#endif // WIN32
 
 OctoPrint::OctoPrint(DynamicPrintConfig *config) :
     m_host(config->opt_string("print_host")),
@@ -146,9 +149,11 @@ bool OctoPrint::test(wxString &msg) const
 #ifdef WIN32
         .ssl_revoke_best_effort(m_ssl_revoke_best_effort)
         .on_ip_resolve([&](std::string address) {
+            // Workaround for Windows 10/11 mDNS resolve issue, where two mDNS resolves in succession fail.
+            // Remember resolved address to be reused at successive REST API call.
             msg = GUI::from_u8(address);
         })
-#endif
+#endif // WIN32
         .perform_sync();
 
     return res;
@@ -185,13 +190,18 @@ bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Erro
     std::string url;
     bool res = true;
 
-    bool allow_ip_resolve = GUI::get_app_config()->get("allow_ip_resolve") == "1";
-
-    if (m_host.find("https://") == 0 || test_msg_or_host_ip.empty() || !allow_ip_resolve) {
+#ifdef WIN32
+    // Workaround for Windows 10/11 mDNS resolve issue, where two mDNS resolves in succession fail.
+    if (m_host.find("https://") == 0 || test_msg_or_host_ip.empty() || GUI::get_app_config()->get("allow_ip_resolve") != "1")
+#endif // _WIN32
+    {
         // If https is entered we assume signed ceritificate is being used
         // IP resolving will not happen - it could resolve into address not being specified in cert
         url = make_url("api/files/local");
-    } else {
+    }
+#ifdef WIN32
+    else {
+        // Workaround for Windows 10/11 mDNS resolve issue, where two mDNS resolves in succession fail.
         // Curl uses easy_getinfo to get ip address of last successful transaction.
         // If it got the address use it instead of the stored in "host" variable.
         // This new address returns in "test_msg_or_host_ip" variable.
@@ -200,6 +210,7 @@ bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Erro
         url = substitute_host(make_url("api/files/local", m_host), GUI::into_u8(test_msg_or_host_ip));
         BOOST_LOG_TRIVIAL(info) << "Upload address after ip resolve: " << url;
     }
+#endif // _WIN32
 
     BOOST_LOG_TRIVIAL(info) << boost::format("%1%: Uploading file %2% at %3%, filename: %4%, path: %5%, print: %6%")
         % name
