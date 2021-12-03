@@ -1032,9 +1032,6 @@ void ogStaticText::SetText(const wxString& value, bool wrap/* = true*/)
 
 void ogStaticText::SetPathEnd(const std::string& link)
 {
-    if (get_app_config()->get("suppress_hyperlinks") != "1")
-        SetToolTip(OptionsGroup::get_url(link));
-
     Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event) {
         if (HasCapture())
             return;
@@ -1048,7 +1045,11 @@ void ogStaticText::SetPathEnd(const std::string& link)
         OptionsGroup::launch_browser(link);
         event.Skip();
     } );
-    Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& event) { FocusText(true) ; event.Skip(); });
+    Bind(wxEVT_ENTER_WINDOW, [this, link](wxMouseEvent& event) {
+        SetToolTip(OptionsGroup::get_url(get_app_config()->get("suppress_hyperlinks") != "1" ? link : std::string()));
+        FocusText(true); 
+        event.Skip(); 
+    });
     Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& event) { FocusText(false); event.Skip(); });
 }
 

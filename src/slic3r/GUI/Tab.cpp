@@ -1731,7 +1731,9 @@ void TabPrint::update_description_lines()
     if (m_active_page && m_active_page->title() == "Output options" && m_post_process_explanation) {
         m_post_process_explanation->SetText(
             _u8L("Post processing scripts shall modify G-code file in place."));
+#ifndef __linux__
         m_post_process_explanation->SetPathEnd("post-processing-scripts_283913");
+#endif // __linux__
     }
 }
 
