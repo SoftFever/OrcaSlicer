@@ -2493,8 +2493,7 @@ void TabPrinter::build_sla()
 
     optgroup = page->new_optgroup(L("Corrections"));
     line = Line{ m_config->def()->get("relative_correction")->full_label, "" };
-    std::vector<std::string> axes{ "X", "Y", "Z" };
-    for (auto& axis : axes) {
+    for (auto& axis : { "X", "Y", "Z" }) {
         auto opt = optgroup->get_option(std::string("relative_correction_") + char(std::tolower(axis[0])));
         opt.opt.label = axis;
         line.append_option(opt);
@@ -2603,7 +2602,7 @@ PageShp TabPrinter::build_kinematics_page()
         optgroup->append_line(line);
     }
 
-    std::vector<std::string> axes{ "x", "y", "z", "e" };
+    const std::vector<std::string> axes{ "x", "y", "z", "e" };
     optgroup = page->new_optgroup(L("Maximum feedrates"));
         for (const std::string &axis : axes)	{
             append_option_line(optgroup, "machine_max_feedrate_" + axis);
@@ -4217,8 +4216,7 @@ void TabSLAMaterial::build()
 
     optgroup = page->new_optgroup(L("Corrections"));
     auto line = Line{ m_config->def()->get("material_correction")->full_label, "" };
-    std::vector<std::string> axes{ "X", "Y", "Z" };
-    for (auto& axis : axes) {
+    for (auto& axis : { "X", "Y", "Z" }) {
         auto opt = optgroup->get_option(std::string("material_correction_") + char(std::tolower(axis[0])));
         opt.opt.label = axis;
         line.append_option(opt);

@@ -3188,7 +3188,7 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("relative_correction_y", coFloat);
     def->label = L("Printer scaling correction in Y axis");
-    def->full_label = L("Printer scaling X axis correction");
+    def->full_label = L("Printer scaling Y axis correction");
     def->tooltip  = L("Printer scaling correction in Y axis");
     def->min = 0;
     def->mode = comExpert;
@@ -3196,7 +3196,7 @@ void PrintConfigDef::init_sla_params()
 
     def = this->add("relative_correction_z", coFloat);
     def->label = L("Printer scaling correction in Z axis");
-    def->full_label = L("Printer scaling X axis correction");
+    def->full_label = L("Printer scaling Z axis correction");
     def->tooltip  = L("Printer scaling correction in Z axis");
     def->min = 0;
     def->mode = comExpert;
