@@ -358,8 +358,9 @@ void TriangleSelector::precompute_all_neighbors_recursive(const int facet_idx, c
                 assert(tr->children[i] < int(m_triangles.size()));
                 // Recursion, deep first search over the children of this triangle.
                 // All children of this triangle were created by splitting a single source triangle of the original mesh.
-                this->precompute_all_neighbors_recursive(tr->children[i], this->child_neighbors(*tr, neighbors, i),
-                                                         this->child_neighbors_propagated(*tr, neighbors_propagated, i), neighbors_out,
+                const Vec3i child_neighbors = this->child_neighbors(*tr, neighbors, i);
+                this->precompute_all_neighbors_recursive(tr->children[i], child_neighbors,
+                                                         this->child_neighbors_propagated(*tr, neighbors_propagated, i, child_neighbors), neighbors_out,
                                                          neighbors_propagated_out);
             }
         }
@@ -784,33 +785,29 @@ Vec3i TriangleSelector::child_neighbors(const Triangle &tr, const Vec3i &neighbo
 
 // Return neighbors of the ith child of a triangle given neighbors of the triangle.
 // If such a neighbor doesn't exist, return the neighbor from the previous depth.
-Vec3i TriangleSelector::child_neighbors_propagated(const Triangle &tr, const Vec3i &neighbors, int child_idx) const
+Vec3i TriangleSelector::child_neighbors_propagated(const Triangle &tr, const Vec3i &neighbors_propagated, int child_idx, const Vec3i &child_neighbors) const
 {
     int i = tr.special_side();
     int j = next_idx_modulo(i, 3);
     int k = next_idx_modulo(j, 3);
 
-    Vec3i out;
-    auto  replace_if_not_exists = [&out](int index_to_replace, int neighbor) {
+    Vec3i out = child_neighbors;
+    auto  replace_if_not_exists = [&out, &neighbors_propagated](int index_to_replace, int neighbor_idx) {
         if (out(index_to_replace) == -1)
-            out(index_to_replace) = neighbor;
+            out(index_to_replace) = neighbors_propagated(neighbor_idx);
     };
 
     switch (tr.number_of_split_sides()) {
     case 1:
         switch (child_idx) {
         case 0:
-            out(0) = neighbors(i);
-            out(1) = this->neighbor_child(neighbors(j), tr.verts_idxs[k], tr.verts_idxs[j], Partition::Second);
-            replace_if_not_exists(1, neighbors(j));
-            out(2) = tr.children[1];
+            replace_if_not_exists(0, i);
+            replace_if_not_exists(1, j);
             break;
         default:
             assert(child_idx == 1);
-            out(0) = this->neighbor_child(neighbors(j), tr.verts_idxs[k], tr.verts_idxs[j], Partition::First);
-            replace_if_not_exists(0, neighbors(j));
-            out(1) = neighbors(k);
-            out(2) = tr.children[0];
+            replace_if_not_exists(0, j);
+            replace_if_not_exists(1, k);
             break;
         }
         break;
@@ -818,25 +815,17 @@ Vec3i TriangleSelector::child_neighbors_propagated(const Triangle &tr, const Vec
     case 2:
         switch (child_idx) {
         case 0:
-            out(0) = this->neighbor_child(neighbors(i), tr.verts_idxs[j], tr.verts_idxs[i], Partition::Second);
-            replace_if_not_exists(0, neighbors(i));
-            out(1) = tr.children[1];
-            out(2) = this->neighbor_child(neighbors(k), tr.verts_idxs[i], tr.verts_idxs[k], Partition::First);
-            replace_if_not_exists(2, neighbors(k));
+            replace_if_not_exists(0, i);
+            replace_if_not_exists(2, k);
             break;
         case 1:
             assert(child_idx == 1);
-            out(0) = this->neighbor_child(neighbors(i), tr.verts_idxs[j], tr.verts_idxs[i], Partition::First);
-            replace_if_not_exists(0, neighbors(i));
-            out(1) = tr.children[2];
-            out(2) = tr.children[0];
+            replace_if_not_exists(0, i);
             break;
         default:
             assert(child_idx == 2);
-            out(0) = neighbors(j);
-            out(1) = this->neighbor_child(neighbors(k), tr.verts_idxs[i], tr.verts_idxs[k], Partition::Second);
-            replace_if_not_exists(1, neighbors(k));
-            out(2) = tr.children[1];
+            replace_if_not_exists(0, j);
+            replace_if_not_exists(1, k);
             break;
         }
         break;
@@ -845,31 +834,19 @@ Vec3i TriangleSelector::child_neighbors_propagated(const Triangle &tr, const Vec
         assert(tr.special_side() == 0);
         switch (child_idx) {
         case 0:
-            out(0) = this->neighbor_child(neighbors(0), tr.verts_idxs[1], tr.verts_idxs[0], Partition::Second);
-            replace_if_not_exists(0, neighbors(0));
-            out(1) = tr.children[3];
-            out(2) = this->neighbor_child(neighbors(2), tr.verts_idxs[0], tr.verts_idxs[2], Partition::First);
-            replace_if_not_exists(2, neighbors(2));
+            replace_if_not_exists(0, 0);
+            replace_if_not_exists(2, 2);
             break;
         case 1:
-            out(0) = this->neighbor_child(neighbors(0), tr.verts_idxs[1], tr.verts_idxs[0], Partition::First);
-            replace_if_not_exists(0, neighbors(0));
-            out(1) = this->neighbor_child(neighbors(1), tr.verts_idxs[2], tr.verts_idxs[1], Partition::Second);
-            replace_if_not_exists(1, neighbors(1));
-            out(2) = tr.children[3];
+            replace_if_not_exists(0, 0);
+            replace_if_not_exists(1, 1);
             break;
         case 2:
-            out(0) = this->neighbor_child(neighbors(1), tr.verts_idxs[2], tr.verts_idxs[1], Partition::First);
-            replace_if_not_exists(0, neighbors(1));
-            out(1) = this->neighbor_child(neighbors(2), tr.verts_idxs[0], tr.verts_idxs[2], Partition::Second);
-            replace_if_not_exists(1, neighbors(2));
-            out(2) = tr.children[3];
+            replace_if_not_exists(0, 1);
+            replace_if_not_exists(1, 2);
             break;
         default:
             assert(child_idx == 3);
-            out(0) = tr.children[1];
-            out(1) = tr.children[2];
-            out(2) = tr.children[0];
             break;
         }
         break;
@@ -1527,7 +1504,9 @@ void TriangleSelector::get_seed_fill_contour_recursive(const int facet_idx, cons
                 assert(tr->children[i] < int(m_triangles.size()));
                 // Recursion, deep first search over the children of this triangle.
                 // All children of this triangle were created by splitting a single source triangle of the original mesh.
-                this->get_seed_fill_contour_recursive(tr->children[i], this->child_neighbors(*tr, neighbors, i), this->child_neighbors_propagated(*tr, neighbors_propagated, i), edges_out);
+                const Vec3i child_neighbors = this->child_neighbors(*tr, neighbors, i);
+                this->get_seed_fill_contour_recursive(tr->children[i], child_neighbors,
+                                                      this->child_neighbors_propagated(*tr, neighbors_propagated, i, child_neighbors), edges_out);
             }
         }
     } else if (tr->is_selected_by_seed_fill()) {

@@ -349,7 +349,7 @@ private:
     int  push_triangle(int a, int b, int c, int source_triangle, EnforcerBlockerType state = EnforcerBlockerType{0});
     void perform_split(int facet_idx, const Vec3i &neighbors, EnforcerBlockerType old_state);
     Vec3i child_neighbors(const Triangle &tr, const Vec3i &neighbors, int child_idx) const;
-    Vec3i child_neighbors_propagated(const Triangle &tr, const Vec3i &neighbors, int child_idx) const;
+    Vec3i child_neighbors_propagated(const Triangle &tr, const Vec3i &neighbors_propagated, int child_idx, const Vec3i &child_neighbors) const;
     // Return child of itriangle at a CCW oriented side (vertexi, vertexj), either first or 2nd part.
     // If itriangle == -1 or if the side sharing (vertexi, vertexj) is not split, return -1.
     enum class Partition {
