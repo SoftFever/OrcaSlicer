@@ -1260,7 +1260,11 @@ void Sidebar::show_info_sizer()
     if (selection.is_single_volume()) {
         std::vector<int> obj_idxs, vol_idxs;
         wxGetApp().obj_list()->get_selection_indexes(obj_idxs, vol_idxs);
-        assert(vol_idxs.size() == 1);
+        if (vol_idxs.size() != 1)
+            // Case when this fuction is called between update selection in ObjectList and on Canvas
+            // Like after try to delete last solid part in object, the object is selected in ObjectLIst when just a part is still selected on Canvas
+            // see https://github.com/prusa3d/PrusaSlicer/issues/7408
+            return;
         vol = model_object->volumes[vol_idxs[0]];
         t = model_object->instances[inst_idx]->get_matrix() * vol->get_matrix();
     }
