@@ -1447,7 +1447,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
     static const unsigned int progress_threshold = 1000;
     wxProgressDialog* progress_dialog = wxGetApp().is_gcode_viewer() ?
         new wxProgressDialog(_L("Generating toolpaths"), "...",
-            100, wxGetApp().plater(), wxPD_AUTO_HIDE | wxPD_APP_MODAL) : nullptr;
+            100, wxGetApp().mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL) : nullptr;
 
     wxBusyCursor busy;
 

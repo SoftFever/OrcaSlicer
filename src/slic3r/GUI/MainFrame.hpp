@@ -148,15 +148,6 @@ public:
 
     void        update_title();
 
-#if defined(__linux__) || defined(_WIN32)
-    // wxWidgets callback to enable / disable window and all its children windows.
-	// called by wxWindowDisabler when entering / leaving modal dialog loop.
-	// Unfortunately the wxWindowDisabler calls Enable(true) after the wxEVT_ACTIVATE event is processed
-	// while MainFrame is not yet enabled, thus restoring focus in OnActivate() handler fails
- 	// and we need to do it now.
-    bool        Enable(bool enable = true) override;
-#endif
-
     void        init_tabpanel();
     void        create_preset_tabs();
     void        add_created_tab(Tab* panel, const std::string& bmp_name = "");
@@ -211,7 +202,7 @@ public:
     SettingsDialog        m_settings_dialog;
     DiffPresetDialog      diff_dialog;
     wxWindow*             m_plater_page{ nullptr };
-    wxProgressDialog*     m_progress_dialog { nullptr };
+//    wxProgressDialog*     m_progress_dialog { nullptr };
     PrintHostQueueDialog* m_printhost_queue_dlg;
 //    std::shared_ptr<ProgressStatusBar>  m_statusbar;
 
