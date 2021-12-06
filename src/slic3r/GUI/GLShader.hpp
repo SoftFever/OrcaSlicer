@@ -29,6 +29,8 @@ public:
 private:
     std::string m_name;
     unsigned int m_id{ 0 };
+    std::vector<std::pair<std::string, int>> m_attrib_location_cache;
+    std::vector<std::pair<std::string, int>> m_uniform_location_cache;
 
 public:
     ~GLShaderProgram();

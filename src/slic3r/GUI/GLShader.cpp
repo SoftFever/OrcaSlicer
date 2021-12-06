@@ -358,12 +358,38 @@ bool GLShaderProgram::set_uniform(const char* name, const Vec3d& value) const
 
 int GLShaderProgram::get_attrib_location(const char* name) const
 {
-    return (m_id > 0) ? ::glGetAttribLocation(m_id, name) : -1;
+    assert(m_id > 0);
+
+    if (m_id <= 0)
+        // Shader program not loaded. This should not happen.
+        return -1;
+
+    auto it = std::find_if(m_attrib_location_cache.begin(), m_attrib_location_cache.end(), [name](const auto& p) { return p.first == name; });
+    if (it != m_attrib_location_cache.end())
+        // Attrib ID cached.
+        return it->second;
+
+    int id = ::glGetAttribLocation(m_id, name);
+    const_cast<GLShaderProgram*>(this)->m_attrib_location_cache.push_back({ name, id });
+    return id;
 }
 
 int GLShaderProgram::get_uniform_location(const char* name) const
 {
-    return (m_id > 0) ? ::glGetUniformLocation(m_id, name) : -1;
+    assert(m_id > 0);
+
+    if (m_id <= 0)
+        // Shader program not loaded. This should not happen.
+        return -1;
+
+    auto it = std::find_if(m_uniform_location_cache.begin(), m_uniform_location_cache.end(), [name](const auto &p) { return p.first == name; });
+    if (it != m_uniform_location_cache.end())
+        // Uniform ID cached.
+        return it->second;
+
+    int id = ::glGetUniformLocation(m_id, name);
+    const_cast<GLShaderProgram*>(this)->m_uniform_location_cache.push_back({ name, id });
+    return id;
 }
 
 } // namespace Slic3r
