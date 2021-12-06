@@ -884,7 +884,7 @@ void GUI_App::init_app_config()
             set_data_dir((dir + "/" + GetAppName()).ToUTF8().data());
         #endif
     } else {
-        m_config_folder_redefined = true;
+        m_datadir_redefined = true;
     }
 
 	if (!app_config)
@@ -918,7 +918,7 @@ void GUI_App::init_app_config()
 bool GUI_App::check_older_app_config(Semver current_version, bool backup)
 {
     // If the config folder is redefined - do not check
-    if (m_config_folder_redefined)
+    if (m_datadir_redefined)
         return false;
 
     // find other version app config (alpha / beta / release)
