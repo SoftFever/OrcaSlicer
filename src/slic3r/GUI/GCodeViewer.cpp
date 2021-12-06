@@ -977,8 +977,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     for (const RenderPath& path : t_buffer.render_paths) {
         colors.push_back(path.color);
     }
-    std::sort(colors.begin(), colors.end());
-    colors.erase(std::unique(colors.begin(), colors.end()), colors.end());
+    sort_remove_duplicates(colors);
 
     // save materials file
     boost::filesystem::path mat_filename(filename);
@@ -2020,13 +2019,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
     }
 
     // roles -> remove duplicates
-    std::sort(m_roles.begin(), m_roles.end());
-    m_roles.erase(std::unique(m_roles.begin(), m_roles.end()), m_roles.end());
+    sort_remove_duplicates(m_roles);
     m_roles.shrink_to_fit();
 
     // extruder ids -> remove duplicates
-    std::sort(m_extruder_ids.begin(), m_extruder_ids.end());
-    m_extruder_ids.erase(std::unique(m_extruder_ids.begin(), m_extruder_ids.end()), m_extruder_ids.end());
+    sort_remove_duplicates(m_extruder_ids);
     m_extruder_ids.shrink_to_fit();
 
     // set layers z range
@@ -2374,8 +2371,10 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         }
 
         RenderPath key{ tbuffer_id, color, static_cast<unsigned int>(ibuffer_id), path_id };
-        if (render_path == nullptr || !RenderPathPropertyEqual()(*render_path, key))
-            render_path = const_cast<RenderPath*>(&(*buffer.render_paths.emplace(key).first));
+        if (render_path == nullptr || !RenderPathPropertyEqual()(*render_path, key)) {
+            buffer.render_paths.emplace_back(key);
+            render_path = const_cast<RenderPath*>(&buffer.render_paths.back());
+        }
 
         unsigned int delta_1st = 0;
         if (sub_path.first.s_id < m_sequential_view.current.first && m_sequential_view.current.first <= sub_path.last.s_id)
@@ -2433,16 +2432,14 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 #endif 
     }
 
-    // removes empty render paths
+    // Removes empty render paths and sort.
     for (size_t b = 0; b < m_buffers.size(); ++b) {
         TBuffer* buffer = const_cast<TBuffer*>(&m_buffers[b]);
-        std::set<RenderPath, RenderPathPropertyLower>::iterator it = buffer->render_paths.begin();
-        while (it != buffer->render_paths.end()) {
-            if (it->sizes.empty() || it->offsets.empty())
-                it = buffer->render_paths.erase(it);
-            else
-                ++it;
-        }
+        buffer->render_paths.erase(std::remove_if(buffer->render_paths.begin(), buffer->render_paths.end(), 
+            [](const auto &path){ return path.sizes.empty() || path.offsets.empty(); }),
+            buffer->render_paths.end());
+        //FIXME is this sorting needed at all?
+        std::sort(buffer->render_paths.begin(), buffer->render_paths.end(), RenderPathPropertyLower{});
     }
 
     // second pass: for buffers using instanced and batched models, update the instances render ranges

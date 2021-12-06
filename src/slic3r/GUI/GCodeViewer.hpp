@@ -259,14 +259,6 @@ class GCodeViewer
             return false;
         }
     };
-//    // for unordered_set implementation of render_paths
-//    struct RenderPathPropertyHash {
-//        size_t operator() (const RenderPath &p) const {
-//            // Convert the RGB value to an integer hash.
-////            return (size_t(int(p.color[0] * 255) + 255 * int(p.color[1] * 255) + (255 * 255) * int(p.color[2] * 255)) * 7919) ^ size_t(p.ibuffer_id);
-//            return size_t(int(p.color[0] * 255) + 255 * int(p.color[1] * 255) + (255 * 255) * int(p.color[2] * 255)) ^ size_t(p.ibuffer_id);
-//        }
-//    };
     struct RenderPathPropertyLower {
         bool operator() (const RenderPath &l, const RenderPath &r) const {
             if (l.tbuffer_id < r.tbuffer_id)
@@ -319,9 +311,7 @@ class GCodeViewer
 
         std::string shader;
         std::vector<Path> paths;
-        // std::set seems to perform significantly better, at least on Windows.
-//        std::unordered_set<RenderPath, RenderPathPropertyHash, RenderPathPropertyEqual> render_paths;
-        std::set<RenderPath, RenderPathPropertyLower> render_paths;
+        std::vector<RenderPath> render_paths;
         bool visible{ false };
 
         void reset();
