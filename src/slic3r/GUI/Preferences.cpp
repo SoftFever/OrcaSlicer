@@ -465,7 +465,7 @@ void PreferencesDialog::build(size_t selected_tab)
 
 #ifdef _WIN32
 	// Add "Dark Mode" tab
-	if (is_editor) {
+	{
 		// Add "Dark Mode" tab
 		m_optgroup_dark_mode = create_options_tab(_L("Dark mode (experimental)"), tabs);
 		m_optgroup_dark_mode->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
