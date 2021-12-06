@@ -2438,8 +2438,6 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         buffer->render_paths.erase(std::remove_if(buffer->render_paths.begin(), buffer->render_paths.end(), 
             [](const auto &path){ return path.sizes.empty() || path.offsets.empty(); }),
             buffer->render_paths.end());
-        //FIXME is this sorting needed at all?
-        std::sort(buffer->render_paths.begin(), buffer->render_paths.end(), RenderPathPropertyLower{});
     }
 
     // second pass: for buffers using instanced and batched models, update the instances render ranges
@@ -2650,12 +2648,12 @@ void GCodeViewer::render_toolpaths()
 #if ENABLE_GCODE_VIEWER_STATISTICS
         this
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-    ](std::vector<const RenderPath*>::iterator it_path, std::vector<const RenderPath*>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
+    ](std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
         glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
         glsafe(::glEnable(GL_POINT_SPRITE));
 
-        for (auto it = it_path; it != it_end && (*it_path)->ibuffer_id == (*it)->ibuffer_id; ++ it) {
-            const RenderPath& path = **it;
+        for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
+            const RenderPath& path = *it;
             glsafe(::glUniform4fv(uniform_color, 1, static_cast<const GLfloat*>(path.color.data())));
             glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -2674,9 +2672,9 @@ void GCodeViewer::render_toolpaths()
 #if ENABLE_GCODE_VIEWER_STATISTICS
         this
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-    ](std::vector<const RenderPath*>::iterator it_path, std::vector<const RenderPath*>::iterator it_end, GLShaderProgram &shader, int uniform_color) {
-        for (auto it = it_path; it != it_end && (*it_path)->ibuffer_id == (*it)->ibuffer_id; ++it) {
-            const RenderPath& path = **it;
+    ](std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
+        for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
+            const RenderPath& path = *it;
             glsafe(::glUniform4fv(uniform_color, 1, static_cast<const GLfloat*>(path.color.data())));
             glsafe(::glMultiDrawElements(GL_LINES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -2689,9 +2687,9 @@ void GCodeViewer::render_toolpaths()
 #if ENABLE_GCODE_VIEWER_STATISTICS
         this
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-    ](std::vector<const RenderPath*>::iterator it_path, std::vector<const RenderPath*>::iterator it_end, GLShaderProgram &shader, int uniform_color) {
-        for (auto it = it_path; it != it_end && (*it_path)->ibuffer_id == (*it)->ibuffer_id; ++it) {
-            const RenderPath& path = **it;
+    ](std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
+        for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
+            const RenderPath& path = *it;
             glsafe(::glUniform4fv(uniform_color, 1, static_cast<const GLfloat*>(path.color.data())));
             glsafe(::glMultiDrawElements(GL_TRIANGLES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -2815,19 +2813,12 @@ void GCodeViewer::render_toolpaths()
                 default: break;
                 }
                 int uniform_color = shader->get_uniform_location("uniform_color");
-                // Render paths are sorted by ibuffer_id.
-                std::vector<const RenderPath*> paths;
-                paths.reserve(buffer.render_paths.size());
-                for (const RenderPath& path : buffer.render_paths)
-                    paths.emplace_back(&path);
-                std::stable_sort(paths.begin(), paths.end(), [](const auto* l, const auto* r){ return l->ibuffer_id < r->ibuffer_id; });
-                //FIXME maybe std::sort would suffice?
-                auto it_path = paths.begin();
+                auto it_path = buffer.render_paths.begin();
                 for (unsigned int ibuffer_id = 0; ibuffer_id < static_cast<unsigned int>(buffer.indices.size()); ++ibuffer_id) {
                     const IBuffer& i_buffer = buffer.indices[ibuffer_id];
                     // Skip all paths with ibuffer_id < ibuffer_id.
-                    for (; it_path != paths.end() && (*it_path)->ibuffer_id < ibuffer_id; ++ it_path) ;
-                    if (it_path == paths.end() || (*it_path)->ibuffer_id > ibuffer_id)
+                    for (; it_path != buffer.render_paths.end() && it_path->ibuffer_id < ibuffer_id; ++ it_path) ;
+                    if (it_path == buffer.render_paths.end() || it_path->ibuffer_id > ibuffer_id)
                         // Not found. This shall not happen.
                         continue;
 
@@ -2846,16 +2837,16 @@ void GCodeViewer::render_toolpaths()
                     switch (buffer.render_primitive_type)
                     {
                     case TBuffer::ERenderPrimitiveType::Point: {
-                        render_as_points(it_path, paths.end(), *shader, uniform_color);
+                        render_as_points(it_path, buffer.render_paths.end(), *shader, uniform_color);
                         break;
                     }
                     case TBuffer::ERenderPrimitiveType::Line: {
                         glsafe(::glLineWidth(static_cast<GLfloat>(line_width(zoom))));
-                        render_as_lines(it_path, paths.end(), *shader, uniform_color);
+                        render_as_lines(it_path, buffer.render_paths.end(), *shader, uniform_color);
                         break;
                     }
                     case TBuffer::ERenderPrimitiveType::Triangle: {
-                        render_as_triangles(it_path, paths.end(), *shader, uniform_color);
+                        render_as_triangles(it_path, buffer.render_paths.end(), *shader, uniform_color);
                         break;
                     }
                     default: { break; }
