@@ -2433,6 +2433,18 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 #endif 
     }
 
+    // removes empty render paths
+    for (size_t b = 0; b < m_buffers.size(); ++b) {
+        TBuffer* buffer = const_cast<TBuffer*>(&m_buffers[b]);
+        std::set<RenderPath, RenderPathPropertyLower>::iterator it = buffer->render_paths.begin();
+        while (it != buffer->render_paths.end()) {
+            if (it->sizes.empty() || it->offsets.empty())
+                it = buffer->render_paths.erase(it);
+            else
+                ++it;
+        }
+    }
+
     // second pass: for buffers using instanced and batched models, update the instances render ranges
     for (size_t b = 0; b < m_buffers.size(); ++b) {
         TBuffer& buffer = const_cast<TBuffer&>(m_buffers[b]);
