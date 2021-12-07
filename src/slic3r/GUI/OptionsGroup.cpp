@@ -344,7 +344,7 @@ void OptionsGroup::activate_line(Line& line)
 		ConfigOptionDef option = opt.opt;
         wxSizer* sizer_tmp = sizer;
 		// add label if any
-		if (is_multioption_line && !option.label.empty() && !custom_ctrl) {
+		if ((is_multioption_line || line.label.IsEmpty()) && !option.label.empty() && !custom_ctrl) {
 //!			To correct translation by context have to use wxGETTEXT_IN_CONTEXT macro from wxWidget 3.1.1
 			wxString str_label = (option.label == L_CONTEXT("Top", "Layers") || option.label == L_CONTEXT("Bottom", "Layers")) ?
 				_CTX(option.label, "Layers") :
