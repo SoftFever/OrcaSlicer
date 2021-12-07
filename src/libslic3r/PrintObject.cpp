@@ -6,6 +6,7 @@
 #include "Geometry.hpp"
 #include "I18N.hpp"
 #include "Layer.hpp"
+#include "MutablePolygon.hpp"
 #include "SupportMaterial.hpp"
 #include "Surface.hpp"
 #include "Slicing.hpp"
@@ -1709,9 +1710,6 @@ void PrintObject::clip_fill_surfaces()
         Layer *layer       = m_layers[layer_id];
         Layer *lower_layer = m_layers[layer_id - 1];
         // Detect things that we need to support.
-        // Cummulative slices.
-        Polygons slices;
-        polygons_append(slices, layer->lslices);
         // Cummulative fill surfaces.
         Polygons fill_surfaces;
         // Solid surfaces to be supported.
@@ -1736,7 +1734,7 @@ void PrintObject::clip_fill_surfaces()
         {
             // Get perimeters area as the difference between slices and fill_surfaces
             // Only consider the area that is not supported by lower perimeters
-            Polygons perimeters = intersection(diff(slices, fill_surfaces), lower_layer_fill_surfaces);
+            Polygons perimeters = intersection(diff(layer->lslices, fill_surfaces), lower_layer_fill_surfaces);
             // Only consider perimeter areas that are at least one extrusion width thick.
             //FIXME Offset2 eats out from both sides, while the perimeters are create outside in.
             //Should the pw not be half of the current value?
@@ -1746,9 +1744,15 @@ void PrintObject::clip_fill_surfaces()
             // Append such thick perimeters to the areas that need support
             polygons_append(overhangs, opening(perimeters, pw));
         }
-        // Find new internal infill.
-        polygons_append(overhangs, std::move(upper_internal));
-        upper_internal = intersection(overhangs, lower_layer_internal_surfaces);
+        // Merge the new overhangs, find new internal infill.
+        polygons_append(upper_internal, std::move(overhangs));
+        static constexpr const auto closing_radius = scaled<float>(2.f);
+        upper_internal = intersection(
+            // Regularize the overhang regions, so that the infill areas will not become excessively jagged.
+            smooth_outward(
+                closing(upper_internal, closing_radius, ClipperLib::jtSquare, 0.),
+                scaled<coord_t>(0.1)), 
+            lower_layer_internal_surfaces);
         // Apply new internal infill to regions.
         for (LayerRegion *layerm : lower_layer->m_regions) {
             if (layerm->region().config().fill_density.value == 0)
