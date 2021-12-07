@@ -291,6 +291,16 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
 	case coString:
 	case coStrings:
     case coFloatOrPercent: {
+        if (m_opt.type == coFloatOrPercent && m_opt.opt_key == "first_layer_height" && !str.IsEmpty() && str.Last() == '%') {
+            // Workaroud to avoid of using of the % for first layer height
+            // see https://github.com/prusa3d/PrusaSlicer/issues/7418
+            wxString label = m_opt.full_label.empty() ? _(m_opt.label) : _(m_opt.full_label);
+            show_error(m_parent, from_u8((boost::format(_utf8(L("%s doesn't support percentage"))) % label).str()));
+            const wxString stVal = double_to_string(0.01, 2);
+            set_value(stVal, true);
+            m_value = into_u8(stVal);;
+            break;
+        }
         if (m_opt.type == coFloatOrPercent && !str.IsEmpty() &&  str.Last() != '%')
         {
             double val = 0.;

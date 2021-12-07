@@ -507,15 +507,13 @@ void OptionsGroup::clear(bool destroy_custom_ctrl)
 	m_fields.clear();
 }
 
-Line OptionsGroup::create_single_option_line(const Option& option, const std::string& path/* = std::string()*/) const {
-// 	Line retval{ _(option.opt.label), _(option.opt.tooltip) };
+Line OptionsGroup::create_single_option_line(const Option& option, const std::string& path/* = std::string()*/) const
+{
     wxString tooltip = _(option.opt.tooltip);
     edit_tooltip(tooltip);
 	Line retval{ _(option.opt.label), tooltip };
 	retval.label_path = path;
-    Option tmp(option);
-    tmp.opt.label = std::string("");
-    retval.append_option(tmp);
+    retval.append_option(option);
     return retval;
 }
 
