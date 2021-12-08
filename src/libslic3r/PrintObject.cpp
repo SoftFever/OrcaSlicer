@@ -227,6 +227,17 @@ void PrintObject::prepare_infill()
 
     m_print->set_status(30, L("Preparing infill"));
 
+    if (m_typed_slices) {
+        // To improve robustness of detect_surfaces_type() when reslicing (working with typed slices), see GH issue #7442.
+        // The preceding step (perimeter generator) only modifies extra_perimeters and the extra perimeters are only used by discover_vertical_shells()
+        // with more than a single region. If this step does not use Surface::extra_perimeters or Surface::extra_perimeters is always zero, it is safe
+        // to reset to the untyped slices before re-runnning detect_surfaces_type().
+        for (Layer* layer : m_layers) {
+            layer->restore_untyped_slices_no_extra_perimeters();
+            m_print->throw_if_canceled();
+        }
+    }
+
     // This will assign a type (top/bottom/internal) to $layerm->slices.
     // Then the classifcation of $layerm->slices is transfered onto 
     // the $layerm->fill_surfaces by clipping $layerm->fill_surfaces
