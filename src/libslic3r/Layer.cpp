@@ -100,13 +100,13 @@ void Layer::restore_untyped_slices_no_extra_perimeters()
 {
     if (layer_needs_raw_backup(this)) {
         for (LayerRegion *layerm : m_regions)
-        	if (layerm->region().config().extra_perimeters.value <= 0)
+        	if (! layerm->region().config().extra_perimeters.value)
             	layerm->slices.set(layerm->raw_slices, stInternal);
     } else {
     	assert(m_regions.size() == 1);
     	LayerRegion *layerm = m_regions.front();
     	// This optimization is correct, as extra_perimeters are only reused by prepare_infill() with multi-regions.
-        //if (layerm->region().config().extra_perimeters.value <= 0)
+        //if (! layerm->region().config().extra_perimeters.value)
         	layerm->slices.set(this->lslices, stInternal);
     }
 }
