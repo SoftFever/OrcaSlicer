@@ -687,16 +687,16 @@ RENDER_AGAIN:
         //  - take correct undo/redo snapshot after the user is done with moving the slider
         float initial_value = m_new_point_head_diameter;
         m_imgui->slider_float("##head_diameter", &m_new_point_head_diameter, 0.1f, diameter_upper_cap, "%.1f");
-        if (ImGui::IsItemClicked()) {
+        if (m_imgui->get_last_slider_status().clicked) {
             if (m_old_point_head_diameter == 0.f)
                 m_old_point_head_diameter = initial_value;
         }
-        if (ImGui::IsItemEdited()) {
+        if (m_imgui->get_last_slider_status().edited) {
             for (auto& cache_entry : m_editing_cache)
                 if (cache_entry.selected)
                     cache_entry.support_point.head_front_radius = m_new_point_head_diameter / 2.f;
         }
-        if (ImGui::IsItemDeactivatedAfterEdit()) {
+        if (m_imgui->get_last_slider_status().deactivated_after_edit) {
             // momentarily restore the old value to take snapshot
             for (auto& cache_entry : m_editing_cache)
                 if (cache_entry.selected)
@@ -747,18 +747,18 @@ RENDER_AGAIN:
         float minimal_point_distance = static_cast<const ConfigOptionFloat*>(opts[1])->value;
 
         m_imgui->slider_float("##minimal_point_distance", &minimal_point_distance, 0.f, 20.f, "%.f mm");
-        bool slider_clicked = ImGui::IsItemClicked(); // someone clicked the slider
-        bool slider_edited = ImGui::IsItemEdited(); // someone is dragging the slider
-        bool slider_released = ImGui::IsItemDeactivatedAfterEdit(); // someone has just released the slider
+        bool slider_clicked = m_imgui->get_last_slider_status().clicked; // someone clicked the slider
+        bool slider_edited = m_imgui->get_last_slider_status().edited; // someone is dragging the slider
+        bool slider_released = m_imgui->get_last_slider_status().deactivated_after_edit; // someone has just released the slider
 
         ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("points_density"));
         ImGui::SameLine(settings_sliders_left);
 
         m_imgui->slider_float("##points_density", &density, 0.f, 200.f, "%.f %%");
-        slider_clicked |= ImGui::IsItemClicked();
-        slider_edited |= ImGui::IsItemEdited();
-        slider_released |= ImGui::IsItemDeactivatedAfterEdit();
+        slider_clicked |= m_imgui->get_last_slider_status().clicked;
+        slider_edited |= m_imgui->get_last_slider_status().edited;
+        slider_released |= m_imgui->get_last_slider_status().deactivated_after_edit;
 
         if (slider_clicked) { // stash the values of the settings so we know what to revert to after undo
             m_minimal_point_distance_stash = minimal_point_distance;
