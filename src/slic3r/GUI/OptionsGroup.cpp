@@ -8,6 +8,7 @@
 #include "format.hpp"
 
 #include <utility>
+#include <wx/bookctrl.h>
 #include <wx/numformatter.h>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
