@@ -3773,7 +3773,7 @@ void PrintConfigDef::init_sla_params()
     def->enum_labels.push_back(L("Slow"));
     def->enum_labels.push_back(L("Fast"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<SLAMaterialSpeed>(slamsSlow));
+    def->set_default_value(new ConfigOptionEnum<SLAMaterialSpeed>(slamsFast));
 }
 
 void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &value)
