@@ -2,7 +2,7 @@
 #include "ConfigExceptions.hpp"
 #include "Plater.hpp"
 #include "GUI_App.hpp"
-#include "Mainframe.hpp"
+#include "MainFrame.hpp"
 #include "OG_CustomCtrl.hpp"
 #include "MsgDialog.hpp"
 #include "format.hpp"
