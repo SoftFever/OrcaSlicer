@@ -92,6 +92,25 @@ void Layer::restore_untyped_slices()
     }
 }
 
+// Similar to Layer::restore_untyped_slices()
+// To improve robustness of detect_surfaces_type() when reslicing (working with typed slices), see GH issue #7442.
+// Only resetting layerm->slices if Slice::extra_perimeters is always zero or it will not be used anymore
+// after the perimeter generator.
+void Layer::restore_untyped_slices_no_extra_perimeters()
+{
+    if (layer_needs_raw_backup(this)) {
+        for (LayerRegion *layerm : m_regions)
+        	if (! layerm->region().config().extra_perimeters.value)
+            	layerm->slices.set(layerm->raw_slices, stInternal);
+    } else {
+    	assert(m_regions.size() == 1);
+    	LayerRegion *layerm = m_regions.front();
+    	// This optimization is correct, as extra_perimeters are only reused by prepare_infill() with multi-regions.
+        //if (! layerm->region().config().extra_perimeters.value)
+        	layerm->slices.set(this->lslices, stInternal);
+    }
+}
+
 ExPolygons Layer::merged(float offset_scaled) const
 {
 	assert(offset_scaled >= 0.f);
@@ -179,7 +198,7 @@ void Layer::make_perimeters()
 	                // group slices (surfaces) according to number of extra perimeters
 	                std::map<unsigned short, Surfaces> slices;  // extra_perimeters => [ surface, surface... ]
 	                for (LayerRegion *layerm : layerms) {
-	                    for (Surface &surface : layerm->slices.surfaces)
+	                    for (const Surface &surface : layerm->slices.surfaces)
 	                        slices[surface.extra_perimeters].emplace_back(surface);
 	                    if (layerm->region().config().fill_density > layerm_config->region().config().fill_density)
 	                    	layerm_config = layerm;

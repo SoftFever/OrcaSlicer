@@ -149,16 +149,6 @@ public:
     void render_project_state_debug_window() const;
 #endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
 
-#if defined(__linux__) || defined(_WIN32)
-	// wxWidgets callback to enable / disable window and all its children windows.
-	// called by wxProgressDialog when entering / leaving modal dialog loop.
-	// Unfortunately the wxProgressDialog calls Enable(true) after the wxEVT_ACTIVATE event is processed
-	// while MainFrame is not yet enabled, thus restoring focus in OnActivate() handler fails
-	// and we need to do it now.
-    bool Enable(bool enable) override;
-    void restore_keyboard_focus();
-#endif
-
     Sidebar& sidebar();
     const Model& model() const;
     Model& model();

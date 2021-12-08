@@ -112,7 +112,17 @@ SCENARIO("2D convex hull of sinking object", "[3mf]") {
                 { -91501496, 4243 }
             };
 
-            bool res = hull_2d.points == result;
+            // Allow 1um error due to floating point rounding.
+            bool res = hull_2d.points.size() == result.size();
+            if (res)
+                for (size_t i = 0; i < result.size(); ++ i) {
+                    const Point &p1 = result[i];
+                    const Point &p2 = hull_2d.points[i];
+                    if (std::abs(p1.x() - p2.x()) > 1 || std::abs(p1.y() - p2.y()) > 1) {
+                        res = false;
+                        break;
+                    }
+                }
 
             THEN("2D convex hull should match with reference") {
                 REQUIRE(res);

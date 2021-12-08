@@ -1446,7 +1446,7 @@ void ObjectList::load_part(ModelObject& model_object, std::vector<ModelVolume*>&
     else
         wxGetApp().import_model(parent, input_files);
 
-    wxProgressDialog dlg(_L("Loading") + dots, "", 100, wxGetApp().plater(), wxPD_AUTO_HIDE);
+    wxProgressDialog dlg(_L("Loading") + dots, "", 100, wxGetApp().mainframe wxPD_AUTO_HIDE);
     wxBusyCursor busy;
 
     for (size_t i = 0; i < input_files.size(); ++i) {
@@ -1506,7 +1506,7 @@ void ObjectList::load_modifier(ModelObject& model_object, std::vector<ModelVolum
     else
         wxGetApp().import_model(parent, input_files);
 
-    wxProgressDialog dlg(_L("Loading") + dots, "", 100, wxGetApp().plater(), wxPD_AUTO_HIDE);
+    wxProgressDialog dlg(_L("Loading") + dots, "", 100, wxGetApp().mainframe, wxPD_AUTO_HIDE);
     wxBusyCursor busy;
 
     const int obj_idx = get_selected_obj_idx();
@@ -4105,7 +4105,7 @@ void ObjectList::fix_through_netfabb()
     Plater::TakeSnapshot snapshot(plater, _L("Fix through NetFabb"));
 
     // Open a progress dialog.
-    wxProgressDialog progress_dlg(_L("Fixing through NetFabb"), "", 100, plater,
+    wxProgressDialog progress_dlg(_L("Fixing through NetFabb"), "", 100, find_toplevel_parent(plater),
                                     wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
     int model_idx{ 0 };
     if (vol_idxs.empty()) {

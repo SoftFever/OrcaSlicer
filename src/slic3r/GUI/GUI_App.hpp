@@ -352,6 +352,7 @@ private:
 	void            check_updates(const bool verbose);
 
     bool                    m_init_app_config_from_older { false };
+    bool                    m_datadir_redefined { false }; 
     std::string             m_older_data_dir_path;
     boost::optional<Semver> m_last_config_version;
 };

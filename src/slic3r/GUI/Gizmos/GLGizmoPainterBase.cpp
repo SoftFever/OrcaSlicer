@@ -859,9 +859,9 @@ void GLPaintContour::finalize_geometry()
 
     if (!this->contour_indices.empty()) {
         glsafe(::glGenBuffers(1, &this->m_contour_EBO_id));
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_contour_EBO_id));
-        glsafe(::glBufferData(GL_ARRAY_BUFFER, this->contour_indices.size() * sizeof(unsigned int), this->contour_indices.data(), GL_STATIC_DRAW));
-        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->m_contour_EBO_id));
+        glsafe(::glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->contour_indices.size() * sizeof(unsigned int), this->contour_indices.data(), GL_STATIC_DRAW));
+        glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
         this->contour_indices.clear();
     }
 }

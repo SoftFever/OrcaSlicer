@@ -51,8 +51,7 @@ void LayerRegion::slices_to_fill_surfaces_clipped()
     // so we're safe. This guarantees idempotence of prepare_infill() also in case
     // that combine_infill() turns some fill_surface into VOID surfaces.
     // Collect polygons per surface type.
-    std::vector<SurfacesPtr> by_surface;
-    by_surface.assign(size_t(stCount), SurfacesPtr());
+    std::array<SurfacesPtr, size_t(stCount)> by_surface;
     for (Surface &surface : this->slices.surfaces)
         by_surface[size_t(surface.surface_type)].emplace_back(&surface);
     // Trim surfaces by the fill_boundaries.

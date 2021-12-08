@@ -2,11 +2,13 @@
 #include "ConfigExceptions.hpp"
 #include "Plater.hpp"
 #include "GUI_App.hpp"
+#include "MainFrame.hpp"
 #include "OG_CustomCtrl.hpp"
 #include "MsgDialog.hpp"
 #include "format.hpp"
 
 #include <utility>
+#include <wx/bookctrl.h>
 #include <wx/numformatter.h>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -247,7 +249,6 @@ void OptionsGroup::activate_line(Line& line)
 
 	// if we have a single option with no label, no sidetext just add it directly to sizer
     if (option_set.size() == 1 && label_width == 0 && option_set.front().opt.full_width &&
-        option_set.front().opt.label.empty() &&
 		option_set.front().opt.sidetext.size() == 0 && option_set.front().side_widget == nullptr &&
 		line.get_extra_widgets().size() == 0) {
 
@@ -326,7 +327,6 @@ void OptionsGroup::activate_line(Line& line)
         grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM | wxTOP | wxLEFT), staticbox ? 0 : 1);
     // If we have a single option with no sidetext just add it directly to the grid sizer
     if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
-        option_set.front().opt.label.empty() &&
 		option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0) {
 		const auto& option = option_set.front();
 		const auto& field = build_field(option);
@@ -341,11 +341,12 @@ void OptionsGroup::activate_line(Line& line)
         return;
 	}
 
+    bool is_multioption_line = option_set.size() > 1;
     for (auto opt : option_set) {
 		ConfigOptionDef option = opt.opt;
         wxSizer* sizer_tmp = sizer;
 		// add label if any
-		if (!option.label.empty() && !custom_ctrl) {
+		if ((is_multioption_line || line.label.IsEmpty()) && !option.label.empty() && !custom_ctrl) {
 //!			To correct translation by context have to use wxGETTEXT_IN_CONTEXT macro from wxWidget 3.1.1
 			wxString str_label = (option.label == L_CONTEXT("Top", "Layers") || option.label == L_CONTEXT("Bottom", "Layers")) ?
 				_CTX(option.label, "Layers") :
@@ -507,15 +508,13 @@ void OptionsGroup::clear(bool destroy_custom_ctrl)
 	m_fields.clear();
 }
 
-Line OptionsGroup::create_single_option_line(const Option& option, const std::string& path/* = std::string()*/) const {
-// 	Line retval{ _(option.opt.label), _(option.opt.tooltip) };
+Line OptionsGroup::create_single_option_line(const Option& option, const std::string& path/* = std::string()*/) const
+{
     wxString tooltip = _(option.opt.tooltip);
     edit_tooltip(tooltip);
 	Line retval{ _(option.opt.label), tooltip };
 	retval.label_path = path;
-    Option tmp(option);
-    tmp.opt.label = std::string("");
-    retval.append_option(tmp);
+    retval.append_option(option);
     return retval;
 }
 
@@ -981,7 +980,8 @@ bool OptionsGroup::launch_browser(const std::string& path_end)
     bool launch = true;
 
     if (get_app_config()->get("suppress_hyperlinks").empty()) {
-        RichMessageDialog dialog(nullptr, _L("Open hyperlink in default browser?"), _L("PrusaSlicer: Open hyperlink"), wxYES_NO);
+        wxWindow* parent = wxGetApp().mainframe->m_tabpanel;
+        RichMessageDialog dialog(parent, _L("Open hyperlink in default browser?"), _L("PrusaSlicer: Open hyperlink"), wxYES_NO);
         dialog.ShowCheckBox(_L("Remember my choice"));
         int answer = dialog.ShowModal();
 
@@ -992,7 +992,7 @@ bool OptionsGroup::launch_browser(const std::string& path_end)
                 _L("You will not be asked about it again on label hovering.") + "\n\n" +
                 format_wxstr(_L("Visit \"Preferences\" and check \"%1%\"\nto changes your choice."), preferences_item);
 
-            MessageDialog msg_dlg(nullptr, msg, _L("PrusaSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
+            MessageDialog msg_dlg(parent, msg, _L("PrusaSlicer: Don't ask me again"), wxOK | wxCANCEL | wxICON_INFORMATION);
             if (msg_dlg.ShowModal() == wxID_CANCEL)
                 return false;
 

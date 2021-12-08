@@ -883,6 +883,8 @@ void GUI_App::init_app_config()
                 dir = wxFileName::GetHomeDir() + wxS("/.config");
             set_data_dir((dir + "/" + GetAppName()).ToUTF8().data());
         #endif
+    } else {
+        m_datadir_redefined = true;
     }
 
 	if (!app_config)
@@ -915,6 +917,10 @@ void GUI_App::init_app_config()
 // returns true if found newer version and user agreed to use it
 bool GUI_App::check_older_app_config(Semver current_version, bool backup)
 {
+    // If the config folder is redefined - do not check
+    if (m_datadir_redefined)
+        return false;
+
     // find other version app config (alpha / beta / release)
     std::string             config_path = app_config->config_path();
     boost::filesystem::path parent_file_path(config_path);

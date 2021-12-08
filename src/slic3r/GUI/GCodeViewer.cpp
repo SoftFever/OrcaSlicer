@@ -977,8 +977,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
     for (const RenderPath& path : t_buffer.render_paths) {
         colors.push_back(path.color);
     }
-    std::sort(colors.begin(), colors.end());
-    colors.erase(std::unique(colors.begin(), colors.end()), colors.end());
+    sort_remove_duplicates(colors);
 
     // save materials file
     boost::filesystem::path mat_filename(filename);
@@ -1447,7 +1446,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
     static const unsigned int progress_threshold = 1000;
     wxProgressDialog* progress_dialog = wxGetApp().is_gcode_viewer() ?
         new wxProgressDialog(_L("Generating toolpaths"), "...",
-            100, wxGetApp().plater(), wxPD_AUTO_HIDE | wxPD_APP_MODAL) : nullptr;
+            100, wxGetApp().mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL) : nullptr;
 
     wxBusyCursor busy;
 
@@ -2020,13 +2019,11 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
     }
 
     // roles -> remove duplicates
-    std::sort(m_roles.begin(), m_roles.end());
-    m_roles.erase(std::unique(m_roles.begin(), m_roles.end()), m_roles.end());
+    sort_remove_duplicates(m_roles);
     m_roles.shrink_to_fit();
 
     // extruder ids -> remove duplicates
-    std::sort(m_extruder_ids.begin(), m_extruder_ids.end());
-    m_extruder_ids.erase(std::unique(m_extruder_ids.begin(), m_extruder_ids.end()), m_extruder_ids.end());
+    sort_remove_duplicates(m_extruder_ids);
     m_extruder_ids.shrink_to_fit();
 
     // set layers z range
@@ -2374,8 +2371,10 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         }
 
         RenderPath key{ tbuffer_id, color, static_cast<unsigned int>(ibuffer_id), path_id };
-        if (render_path == nullptr || !RenderPathPropertyEqual()(*render_path, key))
-            render_path = const_cast<RenderPath*>(&(*buffer.render_paths.emplace(key).first));
+        if (render_path == nullptr || !RenderPathPropertyEqual()(*render_path, key)) {
+            buffer.render_paths.emplace_back(key);
+            render_path = const_cast<RenderPath*>(&buffer.render_paths.back());
+        }
 
         unsigned int delta_1st = 0;
         if (sub_path.first.s_id < m_sequential_view.current.first && m_sequential_view.current.first <= sub_path.last.s_id)
@@ -2431,6 +2430,14 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         if (render_path->offsets.back() + render_path->sizes.back() * sizeof(IBufferType) > buffer_size)
             BOOST_LOG_TRIVIAL(error) << "GCodeViewer::refresh_render_paths: Invalid render path data";
 #endif 
+    }
+
+    // Removes empty render paths and sort.
+    for (size_t b = 0; b < m_buffers.size(); ++b) {
+        TBuffer* buffer = const_cast<TBuffer*>(&m_buffers[b]);
+        buffer->render_paths.erase(std::remove_if(buffer->render_paths.begin(), buffer->render_paths.end(), 
+            [](const auto &path){ return path.sizes.empty() || path.offsets.empty(); }),
+            buffer->render_paths.end());
     }
 
     // second pass: for buffers using instanced and batched models, update the instances render ranges
@@ -2624,12 +2631,7 @@ void GCodeViewer::render_toolpaths()
     float near_plane_height = camera.get_type() == Camera::EType::Perspective ? static_cast<float>(viewport[3]) / (2.0f * static_cast<float>(2.0 * std::tan(0.5 * Geometry::deg2rad(camera.get_fov())))) :
         static_cast<float>(viewport[3]) * 0.0005;
 
-#if ENABLE_GCODE_VIEWER_STATISTICS
-    auto render_as_points = [this, zoom, point_size, near_plane_height]
-#else
-    auto render_as_points = [zoom, point_size, near_plane_height]
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-    (const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
+    auto shader_init_as_points = [zoom, point_size, near_plane_height](GLShaderProgram& shader) {
 #if ENABLE_FIXED_SCREEN_SIZE_POINT_MARKERS
         shader.set_uniform("use_fixed_screen_size", 1);
 #else
@@ -2640,65 +2642,67 @@ void GCodeViewer::render_toolpaths()
         shader.set_uniform("percent_center_radius", 0.33f);
         shader.set_uniform("point_size", point_size);
         shader.set_uniform("near_plane_height", near_plane_height);
+    };
 
+    auto render_as_points = [
+#if ENABLE_GCODE_VIEWER_STATISTICS
+        this
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
+    ](std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
         glsafe(::glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
         glsafe(::glEnable(GL_POINT_SPRITE));
 
-        for (const RenderPath& path : buffer.render_paths) {
-            if (path.ibuffer_id == ibuffer_id) {
-                shader.set_uniform("uniform_color", path.color);
-                glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
+        for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
+            const RenderPath& path = *it;
+            glsafe(::glUniform4fv(uniform_color, 1, static_cast<const GLfloat*>(path.color.data())));
+            glsafe(::glMultiDrawElements(GL_POINTS, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
-                ++m_statistics.gl_multi_points_calls_count;
+            ++m_statistics.gl_multi_points_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-            }
         }
 
         glsafe(::glDisable(GL_POINT_SPRITE));
         glsafe(::glDisable(GL_VERTEX_PROGRAM_POINT_SIZE));
     };
 
-#if ENABLE_GCODE_VIEWER_STATISTICS
-    auto render_as_lines = [this, light_intensity]
-#else
-    auto render_as_lines = [light_intensity]
-#endif // ENABLE_GCODE_VIEWER_STATISTICS
-    (const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
+    auto shader_init_as_lines = [light_intensity](GLShaderProgram &shader) {
         shader.set_uniform("light_intensity", light_intensity);
-        for (const RenderPath& path : buffer.render_paths) {
-            if (path.ibuffer_id == ibuffer_id) {
-                shader.set_uniform("uniform_color", path.color);
-                glsafe(::glMultiDrawElements(GL_LINES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
+    };
+    auto render_as_lines = [
 #if ENABLE_GCODE_VIEWER_STATISTICS
-                ++m_statistics.gl_multi_lines_calls_count;
+        this
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-            }
+    ](std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
+        for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
+            const RenderPath& path = *it;
+            glsafe(::glUniform4fv(uniform_color, 1, static_cast<const GLfloat*>(path.color.data())));
+            glsafe(::glMultiDrawElements(GL_LINES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
+#if ENABLE_GCODE_VIEWER_STATISTICS
+            ++m_statistics.gl_multi_lines_calls_count;
+#endif // ENABLE_GCODE_VIEWER_STATISTICS
         }
     };
 
+    auto render_as_triangles = [
 #if ENABLE_GCODE_VIEWER_STATISTICS
-    auto render_as_triangles = [this]
-#else
-    auto render_as_triangles = []
+        this
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-    (const TBuffer& buffer, unsigned int ibuffer_id, GLShaderProgram& shader) {
-        for (const RenderPath& path : buffer.render_paths) {
-            if (path.ibuffer_id == ibuffer_id) {
-                shader.set_uniform("uniform_color", path.color);
-                glsafe(::glMultiDrawElements(GL_TRIANGLES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
+    ](std::vector<RenderPath>::iterator it_path, std::vector<RenderPath>::iterator it_end, GLShaderProgram& shader, int uniform_color) {
+        for (auto it = it_path; it != it_end && it_path->ibuffer_id == it->ibuffer_id; ++it) {
+            const RenderPath& path = *it;
+            glsafe(::glUniform4fv(uniform_color, 1, static_cast<const GLfloat*>(path.color.data())));
+            glsafe(::glMultiDrawElements(GL_TRIANGLES, (const GLsizei*)path.sizes.data(), GL_UNSIGNED_SHORT, (const void* const*)path.offsets.data(), (GLsizei)path.sizes.size()));
 #if ENABLE_GCODE_VIEWER_STATISTICS
-                ++m_statistics.gl_multi_triangles_calls_count;
+            ++m_statistics.gl_multi_triangles_calls_count;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-            }
         }
     };
 
+    auto render_as_instanced_model = [
 #if ENABLE_GCODE_VIEWER_STATISTICS
-    auto render_as_instanced_model = [this]
-#else
-    auto render_as_instanced_model = []
+        this
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
-        (TBuffer& buffer, GLShaderProgram & shader) {
+        ](TBuffer& buffer, GLShaderProgram & shader) {
         for (auto& range : buffer.model.instances.render_ranges.ranges) {
             if (range.vbo == 0 && range.count > 0) {
                 glsafe(::glGenBuffers(1, &range.vbo));
@@ -2803,8 +2807,20 @@ void GCodeViewer::render_toolpaths()
                 shader->set_uniform("emission_factor", 0.0f);
             }
             else {
-                for (size_t j = 0; j < buffer.indices.size(); ++j) {
-                    const IBuffer& i_buffer = buffer.indices[j];
+                switch (buffer.render_primitive_type) {
+                case TBuffer::ERenderPrimitiveType::Point: shader_init_as_points(*shader); break;
+                case TBuffer::ERenderPrimitiveType::Line:  shader_init_as_lines(*shader); break;
+                default: break;
+                }
+                int uniform_color = shader->get_uniform_location("uniform_color");
+                auto it_path = buffer.render_paths.begin();
+                for (unsigned int ibuffer_id = 0; ibuffer_id < static_cast<unsigned int>(buffer.indices.size()); ++ibuffer_id) {
+                    const IBuffer& i_buffer = buffer.indices[ibuffer_id];
+                    // Skip all paths with ibuffer_id < ibuffer_id.
+                    for (; it_path != buffer.render_paths.end() && it_path->ibuffer_id < ibuffer_id; ++ it_path) ;
+                    if (it_path == buffer.render_paths.end() || it_path->ibuffer_id > ibuffer_id)
+                        // Not found. This shall not happen.
+                        continue;
 
                     glsafe(::glBindBuffer(GL_ARRAY_BUFFER, i_buffer.vbo));
                     glsafe(::glVertexPointer(buffer.vertices.position_size_floats(), GL_FLOAT, buffer.vertices.vertex_size_bytes(), (const void*)buffer.vertices.position_offset_bytes()));
@@ -2817,19 +2833,20 @@ void GCodeViewer::render_toolpaths()
 
                     glsafe(::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, i_buffer.ibo));
 
+                    // Render all elements with it_path->ibuffer_id == ibuffer_id, possible with varying colors.
                     switch (buffer.render_primitive_type)
                     {
                     case TBuffer::ERenderPrimitiveType::Point: {
-                        render_as_points(buffer, static_cast<unsigned int>(j), *shader);
+                        render_as_points(it_path, buffer.render_paths.end(), *shader, uniform_color);
                         break;
                     }
                     case TBuffer::ERenderPrimitiveType::Line: {
                         glsafe(::glLineWidth(static_cast<GLfloat>(line_width(zoom))));
-                        render_as_lines(buffer, static_cast<unsigned int>(j), *shader);
+                        render_as_lines(it_path, buffer.render_paths.end(), *shader, uniform_color);
                         break;
                     }
                     case TBuffer::ERenderPrimitiveType::Triangle: {
-                        render_as_triangles(buffer, static_cast<unsigned int>(j), *shader);
+                        render_as_triangles(it_path, buffer.render_paths.end(), *shader, uniform_color);
                         break;
                     }
                     default: { break; }

@@ -498,7 +498,7 @@ Point SeamPlacer::calculate_seam(const Layer& layer, const SeamPosition seam_pos
         else if (seam_position == spRear) {
             // Object is centered around (0,0) in its current coordinate system.
             last_pos.x() = 0;
-            last_pos.y() += coord_t(3. * po->bounding_box().radius());
+            last_pos.y() = coord_t(3. * po->bounding_box().radius());
             last_pos_weight = 5.f;
         } if (seam_position == spNearest) {
             // last_pos already contains current nozzle position

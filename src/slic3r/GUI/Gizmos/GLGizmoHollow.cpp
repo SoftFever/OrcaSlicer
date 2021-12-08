@@ -550,24 +550,24 @@ RENDER_AGAIN:
     ImGui::SameLine(settings_sliders_left, m_imgui->get_item_spacing().x);
     ImGui::PushItemWidth(window_width - settings_sliders_left);
     m_imgui->slider_float("##offset", &offset, offset_min, offset_max, "%.1f mm");
-    if (ImGui::IsItemHovered())
+    if (m_imgui->get_last_slider_status().hovered)
         m_imgui->tooltip((_utf8(opts[0].second->tooltip)).c_str(), max_tooltip_width);
 
-    bool slider_clicked = ImGui::IsItemClicked(); // someone clicked the slider
-    bool slider_edited = ImGui::IsItemEdited(); // someone is dragging the slider
-    bool slider_released = ImGui::IsItemDeactivatedAfterEdit(); // someone has just released the slider
+    bool slider_clicked = m_imgui->get_last_slider_status().clicked; // someone clicked the slider
+    bool slider_edited =m_imgui->get_last_slider_status().edited; // someone is dragging the slider
+    bool slider_released =m_imgui->get_last_slider_status().deactivated_after_edit; // someone has just released the slider
 
     if (current_mode >= quality_mode) {
         ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("quality"));
         ImGui::SameLine(settings_sliders_left, m_imgui->get_item_spacing().x);
         m_imgui->slider_float("##quality", &quality, quality_min, quality_max, "%.1f");
-        if (ImGui::IsItemHovered())
+        if (m_imgui->get_last_slider_status().hovered)
             m_imgui->tooltip((_utf8(opts[1].second->tooltip)).c_str(), max_tooltip_width);
 
-        slider_clicked |= ImGui::IsItemClicked();
-        slider_edited |= ImGui::IsItemEdited();
-        slider_released |= ImGui::IsItemDeactivatedAfterEdit();
+        slider_clicked |= m_imgui->get_last_slider_status().clicked;
+        slider_edited |= m_imgui->get_last_slider_status().edited;
+        slider_released |= m_imgui->get_last_slider_status().deactivated_after_edit;
     }
 
     if (current_mode >= closing_d_mode) {
@@ -575,12 +575,12 @@ RENDER_AGAIN:
         m_imgui->text(m_desc.at("closing_distance"));
         ImGui::SameLine(settings_sliders_left, m_imgui->get_item_spacing().x);
         m_imgui->slider_float("##closing_distance", &closing_d, closing_d_min, closing_d_max, "%.1f mm");
-        if (ImGui::IsItemHovered())
+        if (m_imgui->get_last_slider_status().hovered)
             m_imgui->tooltip((_utf8(opts[2].second->tooltip)).c_str(), max_tooltip_width);
 
-        slider_clicked |= ImGui::IsItemClicked();
-        slider_edited |= ImGui::IsItemEdited();
-        slider_released |= ImGui::IsItemDeactivatedAfterEdit();
+        slider_clicked |= m_imgui->get_last_slider_status().clicked;
+        slider_edited |= m_imgui->get_last_slider_status().edited;
+        slider_released |= m_imgui->get_last_slider_status().deactivated_after_edit;
     }
 
     if (slider_clicked) {
@@ -627,9 +627,9 @@ RENDER_AGAIN:
     //complete non-sense.
     diam = std::clamp(diam, 0.1f, diameter_upper_cap);
     m_new_hole_radius = diam / 2.f;
-    bool clicked = ImGui::IsItemClicked();
-    bool edited = ImGui::IsItemEdited();
-    bool deactivated = ImGui::IsItemDeactivatedAfterEdit();
+    bool clicked = m_imgui->get_last_slider_status().clicked;
+    bool edited = m_imgui->get_last_slider_status().edited;
+    bool deactivated = m_imgui->get_last_slider_status().deactivated_after_edit;
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc["hole_depth"]);
@@ -638,9 +638,9 @@ RENDER_AGAIN:
     // Same as above:
     m_new_hole_height = std::clamp(m_new_hole_height, 0.f, 100.f);
 
-    clicked |= ImGui::IsItemClicked();
-    edited |= ImGui::IsItemEdited();
-    deactivated |= ImGui::IsItemDeactivatedAfterEdit();
+    clicked |= m_imgui->get_last_slider_status().clicked;
+    edited |= m_imgui->get_last_slider_status().edited;
+    deactivated |= m_imgui->get_last_slider_status().deactivated_after_edit;;
 
     // Following is a nasty way to:
     //  - save the initial value of the slider before one starts messing with it

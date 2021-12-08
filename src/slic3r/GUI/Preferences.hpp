@@ -6,6 +6,7 @@
 
 #include <wx/dialog.h>
 #include <wx/timer.h>
+#include <vector>
 #include <map>
 
 class wxColourPickerCtrl;
@@ -61,6 +62,7 @@ protected:
     void create_settings_mode_widget();
     void create_settings_text_color_widget();
 	void init_highlighter(const t_config_option_key& opt_key);
+	std::vector<ConfigOptionsGroup*> optgroups();
 
 	struct PreferencesHighlighter
 	{

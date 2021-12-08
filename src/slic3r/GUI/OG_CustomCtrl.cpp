@@ -79,7 +79,6 @@ void OG_CustomCtrl::init_ctrl_lines()
 
         // if we have a single option with no label, no sidetext just add it directly to sizer
         if (option_set.size() == 1 && opt_group->label_width == 0 && option_set.front().opt.full_width &&
-            option_set.front().opt.label.empty() &&
             option_set.front().opt.sidetext.size() == 0 && option_set.front().side_widget == nullptr &&
             line.get_extra_widgets().size() == 0)
         {
@@ -157,7 +156,6 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
             // If we have a single option with no sidetext
             const std::vector<Option>& option_set = line.get_options();
             if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
-                option_set.front().opt.label.empty() &&
                 option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0)
             {
                 h_pos += 3 * blinking_button_width;
@@ -167,13 +165,14 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                 break;
             }
 
+            bool is_multioption_line = option_set.size() > 1;
             for (auto opt : option_set) {
                 Field* field = opt_group->get_field(opt.opt_id);
                 correct_line_height(ctrl_line.height, field->getWindow());
 
                 ConfigOptionDef option = opt.opt;
                 // add label if any
-                if (!option.label.empty()) {
+                if (is_multioption_line && !option.label.empty()) {
                     //!            To correct translation by context have to use wxGETTEXT_IN_CONTEXT macro from wxWidget 3.1.1
                     label = (option.label == L_CONTEXT("Top", "Layers") || option.label == L_CONTEXT("Bottom", "Layers")) ?
                         _CTX(option.label, "Layers") : _(option.label);
@@ -581,7 +580,6 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
 
     // If we have a single option with no sidetext just add it directly to the grid sizer
     if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
-        option_set.front().opt.label.empty() &&
         option_set.front().side_widget == nullptr && og_line.get_extra_widgets().size() == 0)
     {
         if (field && field->undo_to_sys_bitmap())
@@ -595,11 +593,12 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord v_pos)
     }
 
     size_t bmp_rect_id = 0;
+    bool is_multioption_line = option_set.size() > 1;
     for (const Option& opt : option_set) {
         field = ctrl->opt_group->get_field(opt.opt_id);
         ConfigOptionDef option = opt.opt;
         // add label if any
-        if (!option.label.empty()) {
+        if (is_multioption_line && !option.label.empty()) {
             //!            To correct translation by context have to use wxGETTEXT_IN_CONTEXT macro from wxWidget 3.1.1
             label = (option.label == L_CONTEXT("Top", "Layers") || option.label == L_CONTEXT("Bottom", "Layers")) ?
                     _CTX(option.label, "Layers") : _(option.label);
