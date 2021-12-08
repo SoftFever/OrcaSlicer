@@ -28,9 +28,9 @@
      inkscape:document-rotation="0"
      inkscape:current-layer="layer1"
      inkscape:document-units="mm"
-     inkscape:cy="641.00451"
-     inkscape:cx="527.97455"
-     inkscape:zoom="2.3268167"
+     inkscape:cy="273.25679"
+     inkscape:cx="270.34593"
+     inkscape:zoom="1.3741653"
      inkscape:pageshadow="2"
      inkscape:pageopacity="0"
      borderopacity="1"
@@ -111,6 +111,10 @@
        style="fill:none;stroke:#ffffff;stroke-width:0.524282;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 164.98179,40.012141 H 0.01821435"
        id="path2649-5" />
+    <path
+       style="display:inline;fill:none;stroke:#ffffff;stroke-width:0.524282;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 164.98155,14.979971 H 0.01797199"
+       id="path2649-5-8" />
     <path
        style="fill:none;stroke:#ffffff;stroke-width:0.524282;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 164.98179,65.006071 H 0.01821435"
@@ -226,9 +230,27 @@
        d="M 145.0201,144.64901 V 0.04903965"
        id="path2687-47" />
     <path
+       style="display:inline;fill:none;stroke:#fdfdfd;stroke-width:0.261383;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.522763, 0.261383;stroke-dashoffset:0;stroke-opacity:1"
+       d="M 155.02037,164.52883 V 0.04882967"
+       id="path2687-47-8" />
+    <path
+       style="display:inline;fill:none;stroke:#fdfdfd;stroke-width:0.261383;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.522763, 0.261383;stroke-dashoffset:0;stroke-opacity:1"
+       d="M 160.01152,164.45083 V -0.02917033"
+       id="path2687-47-8-9" />
+    <path
        style="fill:none;stroke:#fdfdfd;stroke-width:0.262146;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.524292, 0.262146;stroke-dashoffset:0;stroke-opacity:1"
        d="M 164.70884,19.961975 0.05273017,20.006069"
        id="path2681-39"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="display:inline;fill:none;stroke:#fdfdfd;stroke-width:0.262146;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.524292, 0.262146;stroke-dashoffset:0;stroke-opacity:1"
+       d="M 164.12698,9.9619027 -0.5291339,10.005993"
+       id="path2681-39-4"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="display:inline;fill:none;stroke:#fdfdfd;stroke-width:0.262146;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.524292, 0.262146;stroke-dashoffset:0;stroke-opacity:1"
+       d="M 164.12698,4.9619027 -0.5291339,5.0059927"
+       id="path2681-39-4-7"
        sodipodi:nodetypes="cc" />
     <path
        style="fill:none;stroke:#fdfdfd;stroke-width:0.262146;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.524292, 0.262146;stroke-dashoffset:0;stroke-opacity:1"
@@ -494,6 +516,11 @@
        style="display:inline;fill:none;stroke:#fdfdfd;stroke-width:0.263112;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.526224, 0.263112;stroke-dashoffset:0;stroke-opacity:1"
        d="m 153.34858,150 h 11.07649"
        id="path2683-0-5-5" />
+    <path
+       sodipodi:nodetypes="cc"
+       style="display:inline;fill:none;stroke:#fdfdfd;stroke-width:0.263112;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.526224, 0.263112;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 153.01348,155.00039 h 11.07649"
+       id="path2683-0-5-5-7" />
     <g
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8.81944px;line-height:1.25;font-family:'Bauhaus 93';-inkscape-font-specification:'Bauhaus 93, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
        id="text893"
