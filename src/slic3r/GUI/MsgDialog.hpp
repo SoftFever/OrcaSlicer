@@ -133,7 +133,9 @@ public:
 	RichMessageDialog(	wxWindow *parent,
 						const wxString& message,
 						const wxString& caption = wxEmptyString,
-						long style = wxOK);
+						long style = wxOK,
+						const wxString& headline = wxEmptyString
+					);
 	RichMessageDialog(RichMessageDialog&&) = delete;
 	RichMessageDialog(const RichMessageDialog&) = delete;
 	RichMessageDialog &operator=(RichMessageDialog&&) = delete;
