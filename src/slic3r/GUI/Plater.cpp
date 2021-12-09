@@ -3651,12 +3651,12 @@ void Plater::priv::reload_from_disk()
             if (has_source || has_name) {
                 int new_volume_idx = -1;
                 int new_object_idx = -1;
-                if (has_source) {
-                    // take idxs from source
-                    new_volume_idx = old_volume->source.volume_idx;
-                    new_object_idx = old_volume->source.object_idx;
-                }
-                else {
+//                if (has_source) {
+//                    // take idxs from source
+//                    new_volume_idx = old_volume->source.volume_idx;
+//                    new_object_idx = old_volume->source.object_idx;
+//                }
+//                else {
                     // take idxs from the 1st matching volume
                     for (size_t o = 0; o < new_model.objects.size(); ++o) {
                         ModelObject* obj = new_model.objects[o];
@@ -3672,7 +3672,7 @@ void Plater::priv::reload_from_disk()
                         if (found)
                             break;
                     }
-                }
+//                }
 
                 if (new_object_idx < 0 && (int)new_model.objects.size() <= new_object_idx) {
                     fail_list.push_back(from_u8(has_source ? old_volume->source.input_file : old_volume->name));
@@ -3692,6 +3692,8 @@ void Plater::priv::reload_from_disk()
                     new_volume->set_material_id(old_volume->material_id());
                     new_volume->set_transformation(old_volume->get_transformation());
                     new_volume->translate(new_volume->get_transformation().get_matrix(true) * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
+                    new_volume->source.object_idx = old_volume->source.object_idx;
+                    new_volume->source.volume_idx = old_volume->source.volume_idx;
                     assert(! old_volume->source.is_converted_from_inches || ! old_volume->source.is_converted_from_meters);
                     if (old_volume->source.is_converted_from_inches)
                         new_volume->convert_from_imperial_units();
