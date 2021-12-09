@@ -245,7 +245,7 @@ std::vector<std::vector<GLGizmoPainterBase::ProjectedMousePosition>> GLGizmoPain
 
     const Camera                       &camera = wxGetApp().plater()->get_camera();
     std::vector<ProjectedMousePosition> mesh_hit_points;
-    mesh_hit_points.reserve(mouse_position.size());
+    mesh_hit_points.reserve(mouse_positions.size());
 
     // In mesh_hit_points only the last item could have mesh_id == -1, any other items mustn't.
     for (const Vec2d &mp : mouse_positions) {
