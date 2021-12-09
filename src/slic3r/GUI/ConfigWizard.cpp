@@ -627,7 +627,7 @@ PageMaterials::PageMaterials(ConfigWizard *parent, Materials *materials, wxStrin
 
 
 	list_printer->SetMinSize(wxSize(23*em, list_h));
-    list_type->SetMinSize(wxSize(8*em, list_h));
+    list_type->SetMinSize(wxSize(13*em, list_h));
     list_vendor->SetMinSize(wxSize(13*em, list_h));
     list_profile->SetMinSize(wxSize(23*em, list_h));
 
