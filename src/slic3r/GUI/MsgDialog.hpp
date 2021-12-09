@@ -293,7 +293,9 @@ public:
 		const wxString& message,
 		const wxString& caption = wxEmptyString,
 		long style = wxOK)
-    : wxRichMessageDialog(parent, message, caption, style) {}
+    : wxRichMessageDialog(parent, message, caption, style) {
+		this->SetEscapeId(wxID_CANCEL);
+	}
 	~RichMessageDialog() {}
 };
 #endif
