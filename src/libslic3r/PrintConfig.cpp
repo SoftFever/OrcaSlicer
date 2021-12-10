@@ -1405,10 +1405,10 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("10");
     def->enum_values.push_back("1000");
     def->enum_labels.push_back(L("0 (no open anchors)"));
-    def->enum_labels.push_back("1 mm");
-    def->enum_labels.push_back("2 mm");
-    def->enum_labels.push_back("5 mm");
-    def->enum_labels.push_back("10 mm");
+    def->enum_labels.push_back(L("1 mm"));
+    def->enum_labels.push_back(L("2 mm"));
+    def->enum_labels.push_back(L("5 mm"));
+    def->enum_labels.push_back(L("10 mm"));
     def->enum_labels.push_back(L("1000 (unlimited)"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(600, true));
@@ -1428,10 +1428,10 @@ void PrintConfigDef::init_fff_params()
     def->gui_type    = def_infill_anchor_min->gui_type;
     def->enum_values = def_infill_anchor_min->enum_values;
     def->enum_labels.push_back(L("0 (not anchored)"));
-    def->enum_labels.push_back("1 mm");
-    def->enum_labels.push_back("2 mm");
-    def->enum_labels.push_back("5 mm");
-    def->enum_labels.push_back("10 mm");
+    def->enum_labels.push_back(L("1 mm"));
+    def->enum_labels.push_back(L("2 mm"));
+    def->enum_labels.push_back(L("5 mm"));
+    def->enum_labels.push_back(L("10 mm"));
     def->enum_labels.push_back(L("1000 (unlimited)"));
     def->mode        = def_infill_anchor_min->mode;
     def->set_default_value(new ConfigOptionFloatOrPercent(50, false));
@@ -2566,9 +2566,10 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("0");
     def->enum_values.push_back("0.1");
     def->enum_values.push_back("0.2");
-    def->enum_labels.push_back(L("same as top"));
-    def->enum_labels.push_back(L("0.1"));
-    def->enum_labels.push_back(L("0.2"));
+    //TRN To be shown in Print Settings "Bottom contact Z distance". Have to be as short as possible
+    def->enum_labels.push_back(L("Same as top"));
+    def->enum_labels.push_back("0.1");
+    def->enum_labels.push_back("0.2");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
@@ -2650,7 +2651,8 @@ void PrintConfigDef::init_fff_params()
     def->min = -1;
     def->enum_values.push_back("-1");
     append(def->enum_values, support_material_interface_layers->enum_values);
-    def->enum_labels.push_back(L("same as top"));
+    //TRN To be shown in Print Settings "Bottom interface layers". Have to be as short as possible
+    def->enum_labels.push_back(L("Same as top"));
     append(def->enum_labels, support_material_interface_layers->enum_labels);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(-1));

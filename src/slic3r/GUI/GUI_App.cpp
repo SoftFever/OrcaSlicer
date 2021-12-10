@@ -2167,9 +2167,9 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     local_menu->Append(config_id_base + ConfigMenuLanguage, _L("&Language"));
     if (is_editor()) {
         local_menu->AppendSeparator();
-        local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _L("Flash printer &firmware"), _L("Upload a firmware image into an Arduino based printer"));
+        local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _L("Flash Printer &Firmware"), _L("Upload a firmware image into an Arduino based printer"));
         // TODO: for when we're able to flash dictionaries
-        // local_menu->Append(config_id_base + FirmwareMenuDict,  _L("Flash language file"),    _L("Upload a language dictionary file into a Prusa printer"));
+        // local_menu->Append(config_id_base + FirmwareMenuDict,  _L("Flash Language File"),    _L("Upload a language dictionary file into a Prusa printer"));
     }
 
     local_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent &event) {
