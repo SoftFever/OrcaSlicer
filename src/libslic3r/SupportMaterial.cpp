@@ -3044,7 +3044,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::generate_raf
                     raft = diff(expand(raft, step), trimming);
             } else
                 raft = diff(raft, trimming);
-            if (contacts != nullptr)
+            if (! interface_polygons.empty())
                 columns_base->polygons = diff(columns_base->polygons, interface_polygons);
         }
         if (! brim.empty()) {
