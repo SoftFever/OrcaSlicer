@@ -223,6 +223,9 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
     Add(sizer_manifold, 0, wxEXPAND | wxTOP, 4);
 
     sla_hidden_items = { label_volume, info_volume, /*label_materials, info_materials*/ };
+
+    // Fixes layout issues on plater, short BitmapComboBoxes with some Windows scaling, see GH issue #7414.
+    this->Show(false);
 }
 
 void ObjectInfo::show_sizer(bool show)
