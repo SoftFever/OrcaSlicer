@@ -1556,7 +1556,7 @@ void ObjectList::load_modifier(ModelObject& model_object, std::vector<ModelVolum
             for (auto object : model.objects) {
                 if (model_object.origin_translation != Vec3d::Zero()) {
                     object->center_around_origin();
-                    Vec3d delta = model_object.origin_translation - object->origin_translation;
+                    const Vec3d delta = model_object.origin_translation - object->origin_translation;
                     for (auto volume : object->volumes) {
                         volume->translate(delta);
                     }
@@ -1570,6 +1570,12 @@ void ObjectList::load_modifier(ModelObject& model_object, std::vector<ModelVolum
         new_volume->name = boost::filesystem::path(input_file).filename().string();
         // set a default extruder value, since user can't add it manually
         new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+        // update source data
+        new_volume->source.input_file = input_file;
+        new_volume->source.object_idx = obj_idx;
+        new_volume->source.volume_idx = int(model_object.volumes.size()) - 1;
+        if (model.objects.size() == 1 && model.objects.front()->volumes.size() == 1)
+            new_volume->source.mesh_offset = model.objects.front()->volumes.front()->source.mesh_offset;
 
         if (from_galery) {
             // Transform the new modifier to be aligned with the print bed.
