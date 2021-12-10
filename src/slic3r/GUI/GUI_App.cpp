@@ -948,24 +948,31 @@ bool GUI_App::check_older_app_config(Semver current_version, bool backup)
         return false;
     BOOST_LOG_TRIVIAL(info) << "last app config file used: " << m_older_data_dir_path;
     // ask about using older data folder
-    RichMessageDialog msg(nullptr, backup ? 
-        wxString::Format(_L(
-            "Current configuration folder: %s"
-            "\n\n%s found another configuration for version %s."
-            "\nIt is found at %s."
-            "\n\nDo you wish to copy and use the configuration file for version %s (overwriting any file with the same name)? A backup of your current configuration will be created."
-            "\nIf you select no, you will continue with the configuration file for version %s (may not be fully compatible).")
-            , current_version.to_string(), SLIC3R_APP_NAME, last_semver.to_string(), m_older_data_dir_path, last_semver.to_string(), current_version.to_string())
-        : wxString::Format(_L(
-            "%s found another configuration for version %s."
-            "\nIt is found at %s."
-            "\nThere is no configuration file in current configuration folder."
-            "\n\nDo you wish to copy and use the configuration file for version %s?"
-            "\nIf you select no, you will start with clean installation with configuration wizard.")
-            , SLIC3R_APP_NAME, last_semver.to_string(), m_older_data_dir_path, last_semver.to_string())
-        , _L("PrusaSlicer")
-        , wxYES_NO
-        , wxString::Format(_L("Load configuration from version %s?"), last_semver.to_string()));
+
+    InfoDialog msg(nullptr
+        , format_wxstr(_L("You are opening %1% version %2%."), SLIC3R_APP_NAME, SLIC3R_VERSION)
+        , backup ? 
+        format_wxstr(_L(
+            "The active configuration was created by <b>%1% %2%</b>,"
+            "\nwhile a newer configuration was found in <b>%3%</b>"
+            "\ncreated by <b>%1% %4%</b>."
+            "\n\nShall the newer configuration be imported?"
+            "\nIf so, your active configuration will backed up before importing the new configuration."
+        )
+            , SLIC3R_APP_NAME, current_version.to_string(), m_older_data_dir_path, last_semver.to_string())
+        : format_wxstr(_L(
+            "An existing configuration was found in <b>%3%</b>"
+            "\ncreated by <b>%1% %2%</b>."
+            "\n\nShall this configuration be imported?"
+        )
+            , SLIC3R_APP_NAME, last_semver.to_string(), m_older_data_dir_path)
+        , true, wxYES_NO);
+
+    if (backup) {
+        msg.SetButtonLabel(wxID_YES, _L("Import"));
+        msg.SetButtonLabel(wxID_NO, _L("Don't import"));
+    }
+
     if (msg.ShowModal() == wxID_YES) {
         std::string snapshot_id;
         if (backup) {

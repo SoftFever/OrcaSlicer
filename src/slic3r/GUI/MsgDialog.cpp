@@ -63,6 +63,15 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
 	SetSizerAndFit(main_sizer);
 }
 
+void MsgDialog::SetButtonLabel(wxWindowID btn_id, const wxString& label, bool set_focus/* = false*/) 
+{
+    if (wxButton* btn = get_button(btn_id)) {
+        btn->SetLabel(label);
+        if (set_focus)
+            btn->SetFocus();
+    }
+}
+
 wxButton* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, const wxString& label/* = wxString()*/)
 {
     wxButton* btn = new wxButton(this, btn_id, label);
@@ -98,7 +107,7 @@ void MsgDialog::finalize()
 
 
 // Text shown as HTML, so that mouse selection and Ctrl-V to copy will work.
-static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxString msg, bool monospaced_font = false)
+static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxString msg, bool monospaced_font = false, bool is_marked_msg = false)
 {
     wxHtmlWindow* html = new wxHtmlWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO);
 
@@ -136,8 +145,7 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
     int em = wxGetApp().em_unit();
 
     // if message containes the table
-    bool is_marked = msg.Contains("<tr>");
-    if (is_marked) {
+    if (msg.Contains("<tr>")) {
         int lines = msg.Freq('\n') + 1;
         int pos = 0;
         while (pos < (int)msg.Len() && pos != wxNOT_FOUND) {
@@ -155,7 +163,7 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
     }
     html->SetMinSize(page_size);
 
-    std::string msg_escaped = xml_escape(msg.ToUTF8().data(), is_marked);
+    std::string msg_escaped = xml_escape(msg.ToUTF8().data(), is_marked_msg);
     boost::replace_all(msg_escaped, "\r\n", "<br>");
     boost::replace_all(msg_escaped, "\n", "<br>");
     if (monospaced_font)
@@ -215,10 +223,8 @@ MessageDialog::MessageDialog(wxWindow* parent,
 RichMessageDialog::RichMessageDialog(wxWindow* parent,
     const wxString& message,
     const wxString& caption/* = wxEmptyString*/,
-    long style/* = wxOK*/,
-    const wxString& headline/* = wxEmptyString*/
-    )
-    : MsgDialog(parent, caption.IsEmpty() ? wxString::Format(_L("%s info"), SLIC3R_APP_NAME) : caption, headline, style)
+    long style/* = wxOK*/)
+    : MsgDialog(parent, caption.IsEmpty() ? wxString::Format(_L("%s info"), SLIC3R_APP_NAME) : caption, wxEmptyString, style)
 {
     add_msg_content(this, content_sizer, message);
 
@@ -245,11 +251,11 @@ int RichMessageDialog::ShowModal()
 
 // InfoDialog
 
-InfoDialog::InfoDialog(wxWindow* parent, const wxString &title, const wxString& msg)
-	: MsgDialog(parent, wxString::Format(_L("%s information"), SLIC3R_APP_NAME), title, wxOK | wxICON_INFORMATION)
+InfoDialog::InfoDialog(wxWindow* parent, const wxString &title, const wxString& msg, bool is_marked_msg/* = false*/, long style/* = wxOK | wxICON_INFORMATION*/)
+	: MsgDialog(parent, wxString::Format(_L("%s information"), SLIC3R_APP_NAME), title, style)
 	, msg(msg)
 {
-    add_msg_content(this, content_sizer, msg);
+    add_msg_content(this, content_sizer, msg, false, is_marked_msg);
     finalize();
 }
 
