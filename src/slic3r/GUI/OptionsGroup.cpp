@@ -984,6 +984,8 @@ bool OptionsGroup::launch_browser(const std::string& path_end)
         RichMessageDialog dialog(parent, _L("Open hyperlink in default browser?"), _L("PrusaSlicer: Open hyperlink"), wxYES_NO);
         dialog.ShowCheckBox(_L("Remember my choice"));
         int answer = dialog.ShowModal();
+        if (answer == wxID_CANCEL)
+            return false;
 
         if (dialog.IsCheckBoxChecked()) {
             wxString preferences_item = _L("Suppress to open hyperlink in browser");

@@ -948,26 +948,31 @@ bool GUI_App::check_older_app_config(Semver current_version, bool backup)
         return false;
     BOOST_LOG_TRIVIAL(info) << "last app config file used: " << m_older_data_dir_path;
     // ask about using older data folder
-    RichMessageDialog msg(nullptr, backup ? 
-        wxString::Format(_L("PrusaSlicer detected another configuration folder at %s."
-            "\nIts version is %s." 
-            "\nLast version you used in current configuration folder is %s."
-            "\nPlease note that PrusaSlicer uses different folders to save configuration of alpha, beta and full release versions."
-            "\nWould you like to copy found configuration to your current configuration folder?"
-            
-            "\n\nIf you select yes, PrusaSlicer will copy all profiles and other files from found folder to the current one. Overwriting any existing file with matching name."
-            "\nIf you select no, you will continue with current configuration.")
-            , m_older_data_dir_path, last_semver.to_string(), current_version.to_string())
-        : wxString::Format(_L("PrusaSlicer detected another configuration folder at %s."
-            "\nIts version is %s."
-            "\nThere is no configuration file in current configuration folder."
-            "\nPlease note that PrusaSlicer uses different folders to save configuration of alpha, beta and full release versions."
-            "\nWould you like to copy found configuration to your current configuration folder?"
 
-            "\n\nIf you select yes, PrusaSlicer will copy all profiles and other files from found folder to the current one."
-            "\nIf you select no, you will start with clean installation with configuration wizard.")
-            , m_older_data_dir_path, last_semver.to_string())
-        , _L("PrusaSlicer"), /*wxICON_QUESTION | */wxYES_NO);
+    InfoDialog msg(nullptr
+        , format_wxstr(_L("You are opening %1% version %2%."), SLIC3R_APP_NAME, SLIC3R_VERSION)
+        , backup ? 
+        format_wxstr(_L(
+            "The active configuration was created by <b>%1% %2%</b>,"
+            "\nwhile a newer configuration was found in <b>%3%</b>"
+            "\ncreated by <b>%1% %4%</b>."
+            "\n\nShall the newer configuration be imported?"
+            "\nIf so, your active configuration will backed up before importing the new configuration."
+        )
+            , SLIC3R_APP_NAME, current_version.to_string(), m_older_data_dir_path, last_semver.to_string())
+        : format_wxstr(_L(
+            "An existing configuration was found in <b>%3%</b>"
+            "\ncreated by <b>%1% %2%</b>."
+            "\n\nShall this configuration be imported?"
+        )
+            , SLIC3R_APP_NAME, last_semver.to_string(), m_older_data_dir_path)
+        , true, wxYES_NO);
+
+    if (backup) {
+        msg.SetButtonLabel(wxID_YES, _L("Import"));
+        msg.SetButtonLabel(wxID_NO, _L("Don't import"));
+    }
+
     if (msg.ShowModal() == wxID_YES) {
         std::string snapshot_id;
         if (backup) {
@@ -2162,9 +2167,9 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     local_menu->Append(config_id_base + ConfigMenuLanguage, _L("&Language"));
     if (is_editor()) {
         local_menu->AppendSeparator();
-        local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _L("Flash printer &firmware"), _L("Upload a firmware image into an Arduino based printer"));
+        local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _L("Flash Printer &Firmware"), _L("Upload a firmware image into an Arduino based printer"));
         // TODO: for when we're able to flash dictionaries
-        // local_menu->Append(config_id_base + FirmwareMenuDict,  _L("Flash language file"),    _L("Upload a language dictionary file into a Prusa printer"));
+        // local_menu->Append(config_id_base + FirmwareMenuDict,  _L("Flash Language File"),    _L("Upload a language dictionary file into a Prusa printer"));
     }
 
     local_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent &event) {

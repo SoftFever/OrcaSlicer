@@ -345,7 +345,7 @@ void PreferencesDialog::build(size_t selected_tab)
 
 	def.label = L("Sequential slider applied only to top layer");
 	def.type = coBool;
-	def.tooltip = L("If enabled, changes made using the sequential slider, in preview, apply only to gcode top layer."
+	def.tooltip = L("If enabled, changes made using the sequential slider, in preview, apply only to gcode top layer. "
 					"If disabled, changes made using the sequential slider, in preview, apply to the whole gcode.");
 	def.set_default_value(new ConfigOptionBool{ app_config->get("seq_top_layer_only") == "1" });
 	option = Option(def, "seq_top_layer_only");
@@ -485,7 +485,7 @@ void PreferencesDialog::build(size_t selected_tab)
 		{
 			def.label = L("Use system menu for application");
 			def.type = coBool;
-			def.tooltip = L("If enabled, application will use the standart Windows system menu,\n"
+			def.tooltip = L("If enabled, application will use the standard Windows system menu,\n"
 				"but on some combination of display scales it can looks ugly. If disabled, old UI will be used.");
 			def.set_default_value(new ConfigOptionBool{ app_config->get("sys_menu_enabled") == "1" });
 			option = Option(def, "sys_menu_enabled");

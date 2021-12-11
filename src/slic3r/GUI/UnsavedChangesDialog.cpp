@@ -891,18 +891,14 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection* dependent_
         {
             if (!evt.IsChecked())
                 return;
-            wxString preferences_item = m_app_config_key == "default_action_on_new_project"     ? _L("Ask for unsaved changes when creating new project") : 
+            wxString preferences_item = m_app_config_key == "default_action_on_new_project"     ? _L("Ask for unsaved changes when creating new project") :
                                         m_app_config_key == "default_action_on_select_preset"   ? _L("Ask for unsaved changes when selecting new preset") :
-                                                                                                  _L("Ask for unsaved changes when ??closing application??") ;
+                                                                                                  _L("Ask to save unsaved changes when closing the application or when loading a new project") ;
             wxString action = m_app_config_key == "default_action_on_new_project"   ? _L("You will not be asked about the unsaved changes the next time you create new project") : 
                               m_app_config_key == "default_action_on_select_preset" ? _L("You will not be asked about the unsaved changes the next time you switch a preset") :
                                                                                       _L("You will not be asked about the unsaved changes the next time you: \n"
-                                                                                            "- close the application,\n"
-                                                                                            "- load project,\n"
-                                                                                            "- process Undo / Redo with a change of print technology,\n"
-                                                                                            "- take/load snapshot,\n"
-                                                                                            "- load config file/bundle,\n"
-                                                                                            "- export config_bundle") ;
+						                                                                    "- Closing PrusaSlicer while some presets are modified,\n"
+						                                                                    "- Loading a new project while some presets are modified") ;
             wxString msg = _L("PrusaSlicer will remember your action.") + "\n\n" + action + "\n\n" +
                            format_wxstr(_L("Visit \"Preferences\" and check \"%1%\"\nto be asked about unsaved changes again."), preferences_item);
     
@@ -1494,7 +1490,7 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
         });
     }
 
-    m_show_all_presets = new wxCheckBox(this, wxID_ANY, _L("Show all preset (including incompatible)"));
+    m_show_all_presets = new wxCheckBox(this, wxID_ANY, _L("Show all presets (including incompatible)"));
     m_show_all_presets->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
         bool show_all = m_show_all_presets->GetValue();
         for (auto preset_combos : m_preset_combos) {
@@ -1555,7 +1551,7 @@ void DiffPresetDialog::update_bundles_from_app()
 
 void DiffPresetDialog::show(Preset::Type type /* = Preset::TYPE_INVALID*/)
 {
-    this->SetTitle(type == Preset::TYPE_INVALID ? _L("Compare Presets") : format_wxstr(_L("Compare %1% Presets"), wxGetApp().get_tab(type)->name()));
+    this->SetTitle(_L("Compare Presets"));
     m_view_type = type;
 
     update_bundles_from_app();

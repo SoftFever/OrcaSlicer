@@ -289,7 +289,9 @@ void Tab::create_preset_tab()
     // There is used just additional sizer for m_mode_sizer with right alignment
     if (m_mode_sizer) {
         auto mode_sizer = new wxBoxSizer(wxVERTICAL);
-        mode_sizer->Add(m_mode_sizer, 1, wxALIGN_RIGHT);
+        // Don't set the 2nd parameter to 1, making the sizer rubbery scalable in Y axis may lead 
+        // to wrong vertical size assigned to wxBitmapComboBoxes, see GH issue #7176.
+        mode_sizer->Add(m_mode_sizer, 0, wxALIGN_RIGHT);
         m_hsizer->Add(mode_sizer, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, wxOSX ? 15 : 10);
     }
 

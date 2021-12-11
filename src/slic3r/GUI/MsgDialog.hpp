@@ -30,7 +30,7 @@ struct MsgDialog : wxDialog
 	MsgDialog &operator=(const MsgDialog &) = delete;
 	virtual ~MsgDialog() = default;
 
-	// TODO: refactor with CreateStdDialogButtonSizer usage
+	void SetButtonLabel(wxWindowID btn_id, const wxString& label, bool set_focus = false);
 
 protected:
 	enum {
@@ -111,6 +111,7 @@ public:
 class MessageDialog : public MsgDialog
 {
 public:
+	// NOTE! Don't change a signature of contsrucor. It have to  be tha same as for wxMessageDialog
 	MessageDialog(	wxWindow *parent,
 		            const wxString& message,
 		            const wxString& caption = wxEmptyString,
@@ -130,6 +131,7 @@ class RichMessageDialog : public MsgDialog
 	bool		m_checkBoxValue{ false };
 
 public:
+	// NOTE! Don't change a signature of contsrucor. It have to  be tha same as for wxRichMessageDialog
 	RichMessageDialog(	wxWindow *parent,
 						const wxString& message,
 						const wxString& caption = wxEmptyString,
@@ -293,7 +295,9 @@ public:
 		const wxString& message,
 		const wxString& caption = wxEmptyString,
 		long style = wxOK)
-    : wxRichMessageDialog(parent, message, caption, style) {}
+    : wxRichMessageDialog(parent, message, caption, style) {
+		this->SetEscapeId(wxID_CANCEL);
+	}
 	~RichMessageDialog() {}
 };
 #endif
@@ -302,7 +306,7 @@ public:
 class InfoDialog : public MsgDialog
 {
 public:
-	InfoDialog(wxWindow *parent, const wxString &title, const wxString &msg);
+	InfoDialog(wxWindow *parent, const wxString &title, const wxString &msg, bool is_marked = false, long style = wxOK| wxICON_INFORMATION);
 	InfoDialog(InfoDialog&&) = delete;
 	InfoDialog(const InfoDialog&) = delete;
 	InfoDialog&operator=(InfoDialog&&) = delete;
