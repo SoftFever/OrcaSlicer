@@ -960,7 +960,7 @@ bool GUI_App::check_older_app_config(Semver current_version, bool backup)
             "\nwhile a newer configuration was found in <b>%3%</b>"
             "\ncreated by <b>%1% %4%</b>."
             "\n\nShall the newer configuration be imported?"
-            "\nIf so, your active configuration will backed up before importing the new configuration."
+            "\nIf so, your active configuration will be backed up before importing the new configuration."
         )
             , SLIC3R_APP_NAME, current_version.to_string(), m_older_data_dir_path, last_semver.to_string())
         : format_wxstr(_L(
