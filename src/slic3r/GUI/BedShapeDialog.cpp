@@ -109,7 +109,7 @@ wxString BedShape::get_full_name_with_params()
     default:
         // rectangle, convex, concave...
         out += "\n" + _(get_option_label(Parameter::RectSize)) + ": [" + ConfigOptionPoint(to_2d(m_build_volume.bounding_volume().size())).serialize() + "]";
-        out += "\n" + _(get_option_label(Parameter::RectOrigin)) + ": [" + ConfigOptionPoint(to_2d(m_build_volume.bounding_volume().min)).serialize() + "]";
+        out += "\n" + _(get_option_label(Parameter::RectOrigin)) + ": [" + ConfigOptionPoint(- to_2d(m_build_volume.bounding_volume().min)).serialize() + "]";
         break;
     }
     return out;
@@ -124,7 +124,7 @@ void BedShape::apply_optgroup_values(ConfigOptionsGroupShp optgroup)
     default:
         // rectangle, convex, concave...
         optgroup->set_value("rect_size"     , new ConfigOptionPoints{ to_2d(m_build_volume.bounding_volume().size()) });
-        optgroup->set_value("rect_origin"   , new ConfigOptionPoints{ to_2d(m_build_volume.bounding_volume().min) });
+        optgroup->set_value("rect_origin"   , new ConfigOptionPoints{ - to_2d(m_build_volume.bounding_volume().min) });
     }
 }
 
