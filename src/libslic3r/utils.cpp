@@ -47,6 +47,16 @@
 
 // We are using quite an old TBB 2017 U7, which does not support global control API officially.
 // Before we update our build servers, let's use the old API, which is deprecated in up to date TBB.
+#include <tbb/tbb.h>
+#if ! defined(TBB_VERSION_MAJOR)
+    #include <tbb/version.h>
+#endif
+#if ! defined(TBB_VERSION_MAJOR)
+    static_assert(false, "TBB_VERSION_MAJOR not defined");
+#endif
+#if TBB_VERSION_MAJOR >= 2021
+    #define TBB_HAS_GLOBAL_CONTROL
+#endif
 #ifdef TBB_HAS_GLOBAL_CONTROL
     #include <tbb/global_control.h>
 #else

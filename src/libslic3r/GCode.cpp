@@ -36,15 +36,14 @@
 
 #include <tbb/parallel_for.h>
 
+// Intel redesigned some TBB interface considerably when merging TBB with their oneAPI set of libraries, see GH #7332.
+// We are using quite an old TBB 2017 U7. Before we update our build servers, let's use the old API, which is deprecated in up to date TBB.
 #if ! defined(TBB_VERSION_MAJOR)
     #include <tbb/version.h>
 #endif
-
 #if ! defined(TBB_VERSION_MAJOR)
     static_assert(false, "TBB_VERSION_MAJOR not defined");
 #endif
-
-// Intel redesigned some TBB interface considerably when merging TBB with their oneAPI set of libraries, see GH #7332.
 #if TBB_VERSION_MAJOR >= 2021
     #include <tbb/parallel_pipeline.h>
     using slic3r_tbb_filtermode = tbb::filter_mode;
