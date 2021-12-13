@@ -49,7 +49,7 @@ MsgUpdateSlic3r::MsgUpdateSlic3r(const Semver &ver_current, const Semver &ver_on
 	if (dev_version) {
 		const std::string url = (boost::format(URL_DEV) % ver_online.to_string()).str();
 		const wxString url_wx = from_u8(url);
-		auto *link = new wxHyperlinkCtrl(this, wxID_ANY, _(L("Changelog && Download")), url_wx);
+		auto *link = new wxHyperlinkCtrl(this, wxID_ANY, _(L("Changelog & Download")), url_wx);
 		content_sizer->Add(link);
 	} else {
 		const auto lang_code = wxGetApp().current_language_code_safe().ToStdString();
