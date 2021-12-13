@@ -8,9 +8,11 @@ if(${CMAKE_FIND_PACKAGE_NAME}_FIND_QUIETLY)
     set(_q QUIET)
 endif()
 
-# Not building the static dependencies
+# Only consider the config scripts if not building with the static dependencies
+# and this call is not made from a static dependency build (e.g. dep_OpenVDB will use this module)
+# BUILD_SHARED_LIBS will always be defined for dependency projects and will be OFF.
 # Newer versions of TBB also discourage from using TBB as a static library
-if (NOT SLIC3R_STATIC AND NOT BUILD_SHARED_LIBS) 
+if (NOT SLIC3R_STATIC AND (NOT DEFINED BUILD_SHARED_LIBS OR BUILD_SHARED_LIBS)) 
     find_package(${CMAKE_FIND_PACKAGE_NAME} ${${CMAKE_FIND_PACKAGE_NAME}_FIND_VERSION} CONFIG ${_q})
 
     if(NOT ${CMAKE_FIND_PACKAGE_NAME}_FIND_QUIETLY)
