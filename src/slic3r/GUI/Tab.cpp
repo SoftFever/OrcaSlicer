@@ -3933,6 +3933,8 @@ bool Tab::validate_custom_gcodes()
     bool valid = true;
     for (auto opt_group : m_active_page->m_optgroups) {
         assert(opt_group->opt_map().size() == 1);
+        if (!opt_group->is_activated())
+            break;
         std::string key = opt_group->opt_map().begin()->first;
         valid &= validate_custom_gcode(opt_group->title, boost::any_cast<std::string>(opt_group->get_value(key)));
         if (!valid)

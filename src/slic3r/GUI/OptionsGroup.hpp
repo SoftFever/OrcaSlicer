@@ -181,6 +181,8 @@ public:
     // we have to set same max contrtol width to all of them
 	void				set_max_win_width(int max_win_width);
 
+	bool				is_activated() { return sizer != nullptr; }
+
 protected:
 	std::map<t_config_option_key, Option>	m_options;
     wxWindow*				m_parent {nullptr};
