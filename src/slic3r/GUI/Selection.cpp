@@ -954,7 +954,7 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT
 void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
 {
-    auto fit = [this](double s, const Vec3d& offset) {
+    auto fit = [this](double s, Vec3d offset) {
         if (s <= 0.0 || s == 1.0)
             return;
 
@@ -972,6 +972,7 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
 
         // center selection on print bed
         start_dragging();
+        offset.z() = -get_bounding_box().min.z();
         translate(offset);
         wxGetApp().plater()->canvas3D()->do_move(""); // avoid storing another snapshot
 
