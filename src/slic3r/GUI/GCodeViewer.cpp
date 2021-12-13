@@ -581,14 +581,14 @@ void GCodeViewer::init()
         case EMoveType::Retract:
         case EMoveType::Unretract:
         case EMoveType::Seam: {
-            if (wxGetApp().is_gl_version_greater_or_equal_to(3, 3)) {
-                buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::InstancedModel;
-                buffer.shader = "gouraud_light_instanced";
-                buffer.model.model.init_from(diamond(16));
-                buffer.model.color = option_color(type);
-                buffer.model.instances.format = InstanceVBuffer::EFormat::InstancedModel;
-            }
-            else {
+//            if (wxGetApp().is_gl_version_greater_or_equal_to(3, 3)) {
+//                buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::InstancedModel;
+//                buffer.shader = "gouraud_light_instanced";
+//                buffer.model.model.init_from(diamond(16));
+//                buffer.model.color = option_color(type);
+//                buffer.model.instances.format = InstanceVBuffer::EFormat::InstancedModel;
+//            }
+//            else {
                 buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::BatchedModel;
                 buffer.vertices.format = VBuffer::EFormat::PositionNormal3;
                 buffer.shader = "gouraud_light";
@@ -596,7 +596,7 @@ void GCodeViewer::init()
                 buffer.model.data = diamond(16);
                 buffer.model.color = option_color(type);
                 buffer.model.instances.format = InstanceVBuffer::EFormat::BatchedModel;
-            }
+//            }
             break;
         }
         case EMoveType::Wipe:
