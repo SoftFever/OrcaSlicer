@@ -765,8 +765,8 @@ static void precompute_polygon_distances(const Polygon &polygon, std::vector<flo
 {
     polygon_distances_out.assign(polygon.size() + 1, 0.f);
     for (size_t point_idx = 1; point_idx < polygon.size(); ++point_idx)
-        polygon_distances_out[point_idx] = polygon_distances_out[point_idx - 1] + (polygon[point_idx].cast<float>() - polygon[point_idx - 1].cast<float>()).norm();
-    polygon_distances_out.back() = polygon_distances_out[polygon.size() - 1] + (polygon.points.back().cast<float>() - polygon.points.front().cast<float>()).norm();
+        polygon_distances_out[point_idx] = polygon_distances_out[point_idx - 1] + float((polygon[point_idx] - polygon[point_idx - 1]).cast<double>().norm());
+    polygon_distances_out.back() = polygon_distances_out[polygon.size() - 1] + float((polygon.points.back() - polygon.points.front()).cast<double>().norm());
 }
 
 static void precompute_expolygon_distances(const ExPolygon &ex_polygon, std::vector<std::vector<float>> &expolygon_distances_out)
