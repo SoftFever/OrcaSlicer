@@ -1769,11 +1769,14 @@ void TabPrint::update()
     // Note: This workaround works till "support_material" and "overhangs" is exclusive sets of mutually no-exclusive parameters.
     // But it should be corrected when we will have more such sets.
     // Disable check of the compatibility of the "support_material" and "overhangs" options for saved user profile
-    if (!m_config_manipulation.is_initialized_support_material_overhangs_queried()) {
+    // or for profile which was loaded from 3mf
+//    if (!m_config_manipulation.is_initialized_support_material_overhangs_queried())
+    if (bool support_material_overhangs_queried = m_config->opt_bool("support_material") && !m_config->opt_bool("overhangs"))
+    {
         const Preset& selected_preset = m_preset_bundle->prints.get_selected_preset();
         bool is_user_and_saved_preset = !selected_preset.is_system && !selected_preset.is_dirty;
-        bool support_material_overhangs_queried = m_config->opt_bool("support_material") && !m_config->opt_bool("overhangs");
-        m_config_manipulation.initialize_support_material_overhangs_queried(is_user_and_saved_preset && support_material_overhangs_queried);
+        bool is_saved_in_3mf_preset = selected_preset.is_dirty && !wxGetApp().plater()->is_presets_dirty();
+        m_config_manipulation.initialize_support_material_overhangs_queried((is_user_and_saved_preset || is_saved_in_3mf_preset) && support_material_overhangs_queried);
     }
 
     m_config_manipulation.update_print_fff_config(m_config, true);
