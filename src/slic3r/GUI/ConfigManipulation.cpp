@@ -155,7 +155,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
     }
 
-    if (config->opt_bool("support_material")) {
+    // Check "support_material" and "overhangs" relations only on global settings level
+    if (is_global_config && config->opt_bool("support_material")) {
         // Ask only once.
         if (!m_support_material_overhangs_queried) {
             m_support_material_overhangs_queried = true;
@@ -164,10 +165,10 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                                         "- Detect bridging perimeters"));
                 if (is_global_config)
                     msg_text += "\n\n" + _(L("Shall I adjust those settings for supports?"));
-                MessageDialog dialog(m_msg_dlg_parent, msg_text, _L("Support Generator"), wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK));
+                MessageDialog dialog(m_msg_dlg_parent, msg_text, _L("Support Generator"), wxICON_WARNING | wxYES | wxNO);
                 DynamicPrintConfig new_conf = *config;
                 auto answer = dialog.ShowModal();
-                if (!is_global_config || answer == wxID_YES) {
+                if (answer == wxID_YES) {
                     // Enable "detect bridging perimeters".
                     new_conf.set_key_value("overhangs", new ConfigOptionBool(true));
                 }
