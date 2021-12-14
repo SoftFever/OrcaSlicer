@@ -1040,6 +1040,9 @@ bool GUI_App::OnInit()
 
 bool GUI_App::on_init_inner()
 {
+    // Set initialization of image handlers before any UI actions - See GH issue #7469
+    wxInitAllImageHandlers();
+
 #if defined(_WIN32) && ! defined(_WIN64)
     // Win32 32bit build.
     if (wxPlatformInfo::Get().GetArchName().substr(0, 2) == "64") {
@@ -1103,18 +1106,13 @@ bool GUI_App::on_init_inner()
         }
     }
 
-    app_config->save();
-
-    // Set language, color mode and initialization of image handlers before check_older_app_config() call
+    // Set language and color mode before check_older_app_config() call
 
     // If load_language() fails, the application closes.
     load_language(wxString(), true);
 #ifdef _MSW_DARK_MODE
     NppDarkMode::InitDarkMode(app_config->get("dark_color_mode") == "1", app_config->get("sys_menu_enabled") == "1");
 #endif
-
-    // See GH issue #7469
-    wxInitAllImageHandlers();
 
     if (m_last_config_version) {
         if (*m_last_config_version < *Semver::parse(SLIC3R_VERSION))
