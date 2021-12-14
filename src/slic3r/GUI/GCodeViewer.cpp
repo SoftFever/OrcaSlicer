@@ -608,7 +608,7 @@ void GCodeViewer::init()
         }
         case EMoveType::Travel: {
             buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::Line;
-            buffer.vertices.format = VBuffer::EFormat::PositionNormal1;
+            buffer.vertices.format = VBuffer::EFormat::PositionNormal3;
             buffer.shader = "toolpaths_lines";
             break;
         }
@@ -1140,15 +1140,19 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result)
     // format data into the buffers to be rendered as lines
     auto add_vertices_as_line = [](const GCodeProcessorResult::MoveVertex& prev, const GCodeProcessorResult::MoveVertex& curr, VertexBuffer& vertices) {
         // x component of the normal to the current segment (the normal is parallel to the XY plane)
-        const float normal_x = (curr.position - prev.position).normalized().y();
+        const Vec3f dir = (curr.position - prev.position).normalized();
+        Vec3f normal(dir.y(), -dir.x(), 0.0);
+        normal.normalize();
 
-        auto add_vertex = [&vertices, normal_x](const GCodeProcessorResult::MoveVertex& vertex) {
+        auto add_vertex = [&vertices, &normal](const GCodeProcessorResult::MoveVertex& vertex) {
             // add position
             vertices.push_back(vertex.position.x());
             vertices.push_back(vertex.position.y());
             vertices.push_back(vertex.position.z());
-            // add normal x component
-            vertices.push_back(normal_x);
+            // add normal
+            vertices.push_back(normal.x());
+            vertices.push_back(normal.y());
+            vertices.push_back(normal.z());
         };
 
         // add previous vertex
