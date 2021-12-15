@@ -22,10 +22,7 @@ public:
 	};
 
 	explicit AppConfig(EAppMode mode) :
-		m_dirty(false),
-		m_orig_version(Semver::invalid()),
-		m_mode(mode),
-		m_legacy_datadir(false)
+		m_mode(mode)
 	{
 		this->reset();
 	}

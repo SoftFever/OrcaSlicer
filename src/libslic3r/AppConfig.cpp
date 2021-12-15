@@ -43,6 +43,10 @@ const std::string AppConfig::SECTION_MATERIALS = "sla_materials";
 void AppConfig::reset()
 {
     m_storage.clear();
+    m_vendors.clear();
+    m_dirty = false;
+    m_orig_version = Semver::invalid();
+    m_legacy_datadir = false;
     set_defaults();
 };
 
@@ -245,6 +249,8 @@ static bool verify_config_file_checksum(boost::nowide::ifstream &ifs)
 
 std::string AppConfig::load(const std::string &path)
 {
+    this->reset();
+
     // 1) Read the complete config file into a boost::property_tree.
     namespace pt = boost::property_tree;
     pt::ptree tree;
