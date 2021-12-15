@@ -977,17 +977,17 @@ std::string GUI_App::check_older_app_config(Semver current_version, bool backup)
     if (msg.ShowModal() == wxID_YES) {
         std::string snapshot_id;
         if (backup) {
-            // configuration snapshot
-            std::string comment;
-            if (const Config::Snapshot* snapshot = Config::take_config_snapshot_report_error(
-                    *app_config, 
-                    Config::Snapshot::SNAPSHOT_USER, 
-                    comment);
-                    snapshot != nullptr)
-                // Is thos correct? Save snapshot id for later, when new app config is loaded.
+            const Config::Snapshot* snapshot{ nullptr };
+            if (! GUI::Config::take_config_snapshot_cancel_on_error(*app_config, Config::Snapshot::SNAPSHOT_USER, "",
+                _u8L("Continue and import newer configuration?")), &snapshot)
+                return {};
+            if (snapshot) {
+                // Save snapshot ID before loading the alternate AppConfig, as loading the alternate AppConfig may fail.
                 snapshot_id = snapshot->id;
-            else
-                BOOST_LOG_TRIVIAL(error) << "Failed to take congiguration snapshot: ";
+                assert(! snapshot_id.empty());
+                app_config->set("on_snapshot", snapshot_id);
+            } else
+                BOOST_LOG_TRIVIAL(error) << "Failed to take congiguration snapshot";
         }
 
         // load app config from older file

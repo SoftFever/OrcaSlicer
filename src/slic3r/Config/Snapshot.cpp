@@ -586,10 +586,12 @@ const Snapshot* take_config_snapshot_report_error(const AppConfig &app_config, S
     }
 }
 
-bool take_config_snapshot_cancel_on_error(const AppConfig &app_config, Snapshot::Reason reason, const std::string &comment, const std::string &message)
+bool take_config_snapshot_cancel_on_error(const AppConfig &app_config, Snapshot::Reason reason, const std::string &comment, const std::string &message, Snapshot const **psnapshot)
 {
     try {
-        SnapshotDB::singleton().take_snapshot(app_config, reason, comment);
+        const Snapshot *snapshot = &SnapshotDB::singleton().take_snapshot(app_config, reason, comment);
+        if (*psnapshot)
+            *psnapshot = snapshot;
         return true;
     } catch (std::exception &err) {
         RichMessageDialog dlg(static_cast<wxWindow*>(wxGetApp().mainframe),
