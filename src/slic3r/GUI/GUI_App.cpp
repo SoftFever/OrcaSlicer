@@ -979,7 +979,7 @@ std::string GUI_App::check_older_app_config(Semver current_version, bool backup)
         if (backup) {
             const Config::Snapshot* snapshot{ nullptr };
             if (! GUI::Config::take_config_snapshot_cancel_on_error(*app_config, Config::Snapshot::SNAPSHOT_USER, "",
-                _u8L("Continue and import newer configuration?")), &snapshot)
+                _u8L("Continue and import newer configuration?"), &snapshot))
                 return {};
             if (snapshot) {
                 // Save snapshot ID before loading the alternate AppConfig, as loading the alternate AppConfig may fail.

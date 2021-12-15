@@ -590,7 +590,7 @@ bool take_config_snapshot_cancel_on_error(const AppConfig &app_config, Snapshot:
 {
     try {
         const Snapshot *snapshot = &SnapshotDB::singleton().take_snapshot(app_config, reason, comment);
-        if (*psnapshot)
+        if (psnapshot)
             *psnapshot = snapshot;
         return true;
     } catch (std::exception &err) {
