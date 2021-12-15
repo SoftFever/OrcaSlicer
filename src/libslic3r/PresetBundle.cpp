@@ -212,17 +212,27 @@ static void copy_dir(const boost::filesystem::path& from_dir, const boost::files
 // Import newer configuration from alternate PrusaSlicer configuration directory.
 // AppConfig from the alternate location is already loaded.
 // User profiles are being merged (old files are not being deleted),
-// while old system bundles are being deleted before newer are copied.
+// while old vendors and cache folders are being deleted before newer are copied.
 void PresetBundle::import_newer_configs(const std::string& from)
 {
     boost::filesystem::path data_dir = boost::filesystem::path(Slic3r::data_dir());
     // Clean-up vendors from the target directory, as the existing vendors will not be referenced
     // by the copied PrusaSlicer.ini
-    boost::filesystem::remove_all(data_dir / "vendor");
+    try {
+        boost::filesystem::remove_all(data_dir / "cache");
+    } catch (const std::exception &ex) {
+        BOOST_LOG_TRIVIAL(error) << "Error deleting old cache " << (data_dir / "cache").string();
+    }
+    try {
+        boost::filesystem::remove_all(data_dir / "vendor");
+    } catch (const std::exception &ex) {
+        BOOST_LOG_TRIVIAL(error) << "Error deleting old vendors " << (data_dir / "vendor").string();
+    }
     // list of searched paths based on current directory system in setup_directories()
     // do not copy cache and snapshots
     boost::filesystem::path from_data_dir = boost::filesystem::path(from);
     std::initializer_list<boost::filesystem::path> from_dirs= {
+        from_data_dir / "cache",
         from_data_dir / "vendor",
         from_data_dir / "shapes",
 #ifdef SLIC3R_PROFILE_USE_PRESETS_SUBDIR
