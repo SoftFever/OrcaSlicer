@@ -1105,7 +1105,9 @@ bool GUI_App::on_init_inner()
     // If load_language() fails, the application closes.
     load_language(wxString(), true);
 #ifdef _MSW_DARK_MODE
-    NppDarkMode::InitDarkMode(app_config->get("dark_color_mode") == "1", app_config->get("sys_menu_enabled") == "1");
+    bool init_dark_color_mode = app_config->get("dark_color_mode") == "1";
+    bool init_sys_menu_enabled = app_config->get("sys_menu_enabled") == "1";
+    NppDarkMode::InitDarkMode(init_dark_color_mode, init_sys_menu_enabled);
 #endif
     // initialize label colors and fonts
     init_label_colours();
@@ -1120,6 +1122,19 @@ bool GUI_App::on_init_inner()
         // No AppConfig exists, fresh install. Always try to copy from an alternate location, don't make backup of the current configuration.
         older_data_dir_path = check_older_app_config(Semver(), false);
     }
+
+#ifdef _MSW_DARK_MODE
+    // app_config can be updated in check_older_app_config(), so check if dark_color_mode and sys_menu_enabled was changed
+    if (bool new_dark_color_mode = app_config->get("dark_color_mode") == "1";
+        init_dark_color_mode != new_dark_color_mode) {
+        NppDarkMode::SetDarkMode(new_dark_color_mode);
+        init_label_colours();
+        update_label_colours_from_appconfig();
+    }
+    if (bool new_sys_menu_enabled = app_config->get("sys_menu_enabled") == "1";
+        init_sys_menu_enabled != new_sys_menu_enabled)
+        NppDarkMode::SetSystemMenuForApp(new_sys_menu_enabled);
+#endif
 
     SplashScreen* scrn = nullptr;
     if (app_config->get("show_splash_screen") == "1") {
