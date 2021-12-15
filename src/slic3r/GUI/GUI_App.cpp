@@ -990,8 +990,6 @@ std::string GUI_App::check_older_app_config(Semver current_version, bool backup)
                 BOOST_LOG_TRIVIAL(error) << "Failed to take congiguration snapshot: ";
         }
 
-        // This will tell later (when config folder structure is sure to exists) to copy files from older_data_dir_path
-        m_init_app_config_from_older = true;
         // load app config from older file
         std::string error = app_config->load((boost::filesystem::path(older_data_dir_path) / filename).string());
         if (!error.empty()) {
@@ -1115,9 +1113,9 @@ bool GUI_App::on_init_inner()
 
     std::string older_data_dir_path;
     if (m_app_conf_exists) {
-        if (app_config->orig_version() && *app_config->orig_version() < *Semver::parse(SLIC3R_VERSION))
+        if (app_config->orig_version().valid() && app_config->orig_version() < *Semver::parse(SLIC3R_VERSION))
             // Only copying configuration if it was saved with a newer slicer than the one currently running.
-            older_data_dir_path = check_older_app_config(*app_config->orig_version(), true);
+            older_data_dir_path = check_older_app_config(app_config->orig_version(), true);
     } else {
         // No AppConfig exists, fresh install. Always try to copy from an alternate location, don't make backup of the current configuration.
         older_data_dir_path = check_older_app_config(Semver(), false);
