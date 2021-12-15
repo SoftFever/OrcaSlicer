@@ -24,7 +24,7 @@ public:
     void            reset(bool delete_files);
 
     void            setup_directories();
-    void            copy_files(const std::string& from);
+    void            import_newer_configs(const std::string& from);
 
     struct PresetPreferences {
         std::string printer_model_id;// name of a preferred printer model

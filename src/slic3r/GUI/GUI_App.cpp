@@ -1166,7 +1166,7 @@ bool GUI_App::on_init_inner()
     preset_bundle->setup_directories();
     
     if (! older_data_dir_path.empty())
-        preset_bundle->copy_files(older_data_dir_path);
+        preset_bundle->import_newer_configs(older_data_dir_path);
 
     // Save PrusaSlicer.ini after possibly copying the config from the alternate location and after all the configs from the alternate location were copied.
     app_config->set("version", SLIC3R_VERSION);
