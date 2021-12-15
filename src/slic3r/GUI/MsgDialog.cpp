@@ -147,6 +147,20 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
     // calculate html page size from text
     wxSize page_size;
     int em = wxGetApp().em_unit();
+    if (!wxGetApp().mainframe) {
+        // If mainframe is nullptr, it means that GUI_App::on_init_inner() isn't completed 
+        // (We just show information dialog about configuration version now)
+        // And as a result the em_unit value wasn't created yet
+        // So, calculate it from the scale factor of Dialog
+#if defined(__WXGTK__)
+        // Linux specific issue : get_dpi_for_window(this) still doesn't responce to the Display's scale in new wxWidgets(3.1.3).
+        // So, initialize default width_unit according to the width of the one symbol ("m") of the currently active font of this window.
+        em = std::max<size_t>(10, parent->GetTextExtent("m").x - 1);
+#else
+        double scale_factor = (double)get_dpi_for_window(parent) / (double)DPI_DEFAULT;
+        em = std::max<size_t>(10, 10.0f * scale_factor);
+#endif // __WXGTK__
+    }
 
     // if message containes the table
     if (msg.Contains("<tr>")) {
