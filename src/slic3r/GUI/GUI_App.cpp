@@ -992,8 +992,7 @@ bool GUI_App::check_older_app_config(Semver current_version, bool backup)
         // This will tell later (when config folder structure is sure to exists) to copy files from m_older_data_dir_path
         m_init_app_config_from_older = true;
         // load app config from older file
-        app_config->set_loading_path((boost::filesystem::path(m_older_data_dir_path) / filename).string());
-        std::string error = app_config->load();
+        std::string error = app_config->load((boost::filesystem::path(m_older_data_dir_path) / filename).string());
         if (!error.empty()) {
             // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
             if (is_editor()) {
