@@ -132,6 +132,7 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates, bool force_
 			line->AddSpacer(3*VERT_SPACING);
 			line->Add(new wxHyperlinkCtrl(this, wxID_ANY, _(L("Open changelog page")), changelog_url));
 			versions->Add(line);
+			versions->AddSpacer(1); // empty value for the correct alignment inside a GridSizer
 		}
 	}
 
@@ -189,6 +190,7 @@ MsgUpdateForced::MsgUpdateForced(const std::vector<Update>& updates) :
 			line->AddSpacer(3 * VERT_SPACING);
 			line->Add(new wxHyperlinkCtrl(this, wxID_ANY, _(L("Open changelog page")), changelog_url));
 			versions->Add(line);
+			versions->AddSpacer(1); // empty value for the correct alignment inside a GridSizer
 		}
 	}
 
