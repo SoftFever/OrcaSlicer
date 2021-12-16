@@ -1034,24 +1034,30 @@ static Polygons get_boundary_external(const Layer &layer)
 #endif
     // Collect all holes for all printed objects and their instances, which will be printed at the same time as passed "layer".
     for (const PrintObject *object : layer.object()->print()->objects()) {
-        Polygons   polygons_per_obj;
+        Polygons   holes_per_obj;
 #ifdef INCLUDE_SUPPORTS_IN_BOUNDARY
         ExPolygons supports_per_obj;
 #endif
         if (const Layer *l = object->get_layer_at_printz(layer.print_z, EPSILON); l)
-            for (const ExPolygon &island : l->lslices) append(polygons_per_obj, island.holes);
+            for (const ExPolygon &island : l->lslices)
+                append(holes_per_obj, island.holes);
         if (support_layer) {
             auto *layer_below = object->get_first_layer_bellow_printz(layer.print_z, EPSILON);
             if (layer_below)
-                for (const ExPolygon &island : layer_below->lslices) append(polygons_per_obj, island.holes);
+                for (const ExPolygon &island : layer_below->lslices)
+                    append(holes_per_obj, island.holes);
 #ifdef INCLUDE_SUPPORTS_IN_BOUNDARY
             append(supports_per_obj, support_layer->support_islands.expolygons);
 #endif
         }
 
+        // After 7ff76d07684858fd937ef2f5d863f105a10f798e, when expand is called on CW polygons (holes), they are shrunk
+        // instead of expanded because union that makes CCW from CW isn't called anymore. So let's make it CCW.
+        polygons_reverse(holes_per_obj);
+
         for (const PrintInstance &instance : object->instances()) {
             size_t boundary_idx = boundary.size();
-            append(boundary, polygons_per_obj);
+            append(boundary, holes_per_obj);
             for (; boundary_idx < boundary.size(); ++boundary_idx)
                 boundary[boundary_idx].translate(instance.shift);
 #ifdef INCLUDE_SUPPORTS_IN_BOUNDARY
