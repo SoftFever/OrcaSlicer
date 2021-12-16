@@ -221,12 +221,12 @@ void PresetBundle::import_newer_configs(const std::string& from)
     try {
         boost::filesystem::remove_all(data_dir / "cache");
     } catch (const std::exception &ex) {
-        BOOST_LOG_TRIVIAL(error) << "Error deleting old cache " << (data_dir / "cache").string();
+        BOOST_LOG_TRIVIAL(error) << "Error deleting old cache " << (data_dir / "cache").string() << ": " << ex.what();
     }
     try {
         boost::filesystem::remove_all(data_dir / "vendor");
     } catch (const std::exception &ex) {
-        BOOST_LOG_TRIVIAL(error) << "Error deleting old vendors " << (data_dir / "vendor").string();
+        BOOST_LOG_TRIVIAL(error) << "Error deleting old vendors " << (data_dir / "vendor").string() << ": " << ex.what();
     }
     // list of searched paths based on current directory system in setup_directories()
     // do not copy cache and snapshots
