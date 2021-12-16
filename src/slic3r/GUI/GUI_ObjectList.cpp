@@ -1398,6 +1398,8 @@ void ObjectList::load_subobject(ModelVolumeType type, bool from_galery/* = false
     if (m_objects_model->GetItemType(item)&itInstance)
         item = m_objects_model->GetItemById(obj_idx);
 
+    take_snapshot((type == ModelVolumeType::MODEL_PART) ? _L("Load Part") : _L("Load Modifier"));
+
     std::vector<ModelVolume*> volumes;
     // ! ysFIXME - delete commented code after testing and rename "load_modifier" to something common
     /*
@@ -1408,8 +1410,6 @@ void ObjectList::load_subobject(ModelVolumeType type, bool from_galery/* = false
 
     if (volumes.empty())
         return;
-
-    take_snapshot((type == ModelVolumeType::MODEL_PART) ? _L("Load Part") : _L("Load Modifier"));
 
     wxDataViewItemArray items = reorder_volumes_and_get_selection(obj_idx, [volumes](const ModelVolume* volume) {
         return std::find(volumes.begin(), volumes.end(), volume) != volumes.end(); });
