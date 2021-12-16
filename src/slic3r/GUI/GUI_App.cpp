@@ -1718,6 +1718,7 @@ void GUI_App::force_colors_update()
     if (WXHWND wxHWND = wxToolTip::GetToolTipCtrl())
         NppDarkMode::SetDarkExplorerTheme((HWND)wxHWND);
     NppDarkMode::SetDarkTitleBar(mainframe->GetHWND());
+    NppDarkMode::SetDarkTitleBar(mainframe->m_settings_dialog.GetHWND());
 #endif //_MSW_DARK_MODE
     m_force_colors_update = true;
 }
@@ -1737,6 +1738,14 @@ void GUI_App::update_ui_from_settings()
         mainframe->printhost_queue_dlg()->force_color_changed();
 #ifdef _MSW_DARK_MODE
         update_scrolls(mainframe);
+        if (mainframe->is_dlg_layout()) {
+            // update for tabs bar
+            UpdateDarkUI(&mainframe->m_settings_dialog);
+            mainframe->m_settings_dialog.Fit();
+            mainframe->m_settings_dialog.Refresh();
+            // update scrollbars
+            update_scrolls(&mainframe->m_settings_dialog);
+        }
 #endif //_MSW_DARK_MODE
     }
 #endif
