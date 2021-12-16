@@ -731,34 +731,50 @@ static bool need_wipe(const GCode          &gcodegen,
 }
 
 // Adds points around all vertices so that the offset affects only small sections around these vertices.
-static void resample_polygon(Polygon &polygon, double dist_from_vertex)
+static void resample_polygon(Polygon &polygon, double dist_from_vertex, double max_allowed_distance)
 {
     Points resampled_poly;
     resampled_poly.reserve(3 * polygon.size());
-    resampled_poly.emplace_back(polygon.first_point());
-    for (size_t pt_idx = 1; pt_idx < polygon.size(); ++pt_idx) {
-        const Point &p1          = polygon[pt_idx - 1];
-        const Point &p2          = polygon[pt_idx];
-        double       line_length = (p2 - p1).cast<double>().norm();
-        Vector       line_vec    = ((p2 - p1).cast<double>().normalized() * dist_from_vertex).cast<coord_t>();
-        if (line_length > 2 * dist_from_vertex) {
-            resampled_poly.emplace_back(p1 + line_vec);
-            resampled_poly.emplace_back(p2 - line_vec);
-        }
+    for (size_t pt_idx = 0; pt_idx < polygon.size(); ++pt_idx) {
         resampled_poly.emplace_back(polygon[pt_idx]);
+
+        const Point &p1          = polygon[pt_idx];
+        const Point &p2          = polygon[next_idx_modulo(pt_idx, polygon.size())];
+        const Vec2d  line_vec    = (p2 - p1).cast<double>();
+        double       line_length = line_vec.norm();
+        const Vector vertex_offset_vec = (line_vec.normalized() * dist_from_vertex).cast<coord_t>();
+        if (line_length > 2 * dist_from_vertex && vertex_offset_vec != Vector(0, 0)) {
+            resampled_poly.emplace_back(p1 + vertex_offset_vec);
+
+            const Vec2d  new_vertex_vec        = (p2 - p1 - 2 * vertex_offset_vec).cast<double>();
+            const double new_vertex_vec_length = new_vertex_vec.norm();
+            if (new_vertex_vec_length > max_allowed_distance) {
+                const Vec2d &prev_point  = resampled_poly.back().cast<double>();
+                const size_t parts_count = size_t(ceil(new_vertex_vec_length / max_allowed_distance));
+                for (size_t part_idx = 1; part_idx < parts_count; ++part_idx) {
+                    const double part_param = double(part_idx) / double(parts_count);
+                    const Vec2d  new_point  = prev_point + new_vertex_vec * part_param;
+                    resampled_poly.emplace_back(new_point.cast<coord_t>());
+                }
+            }
+
+            resampled_poly.emplace_back(p2 - vertex_offset_vec);
+        }
     }
     polygon.points = std::move(resampled_poly);
 }
 
-static void resample_expolygon(ExPolygon &ex_polygon, double dist_from_vertex)
+static void resample_expolygon(ExPolygon &ex_polygon, double dist_from_vertex, double max_allowed_distance)
 {
-    resample_polygon(ex_polygon.contour, dist_from_vertex);
-    for (Polygon &polygon : ex_polygon.holes) resample_polygon(polygon, dist_from_vertex);
+    resample_polygon(ex_polygon.contour, dist_from_vertex, max_allowed_distance);
+    for (Polygon &polygon : ex_polygon.holes)
+        resample_polygon(polygon, dist_from_vertex, max_allowed_distance);
 }
 
-static void resample_expolygons(ExPolygons &ex_polygons, double dist_from_vertex)
+static void resample_expolygons(ExPolygons &ex_polygons, double dist_from_vertex, double max_allowed_distance)
 {
-    for (ExPolygon &ex_poly : ex_polygons) resample_expolygon(ex_poly, dist_from_vertex);
+    for (ExPolygon &ex_poly : ex_polygons)
+        resample_expolygon(ex_poly, dist_from_vertex, max_allowed_distance);
 }
 
 static void precompute_polygon_distances(const Polygon &polygon, std::vector<float> &polygon_distances_out)
@@ -834,7 +850,7 @@ static std::vector<float> contour_distance(const EdgeGrid::Grid     &grid,
                             double                   param_end = boundary_parameters.back();
                             const size_t ipt = it_contour_and_segment->second;
                             if (contour.begin() + ipt + 1 < contour.end())
-                                param_hi += boundary_parameters[ipt > 0 ? ipt - 1 : 0];
+                                param_hi += boundary_parameters[ipt];
                             if (param_lo > param_hi)
                                 std::swap(param_lo, param_hi);
                             assert(param_lo > -SCALED_EPSILON && param_lo <= param_end + SCALED_EPSILON);
@@ -932,7 +948,7 @@ static ExPolygons inner_offset(const ExPolygons &ex_polygons, double offset)
     double     min_contour_width = 2. * offset + SCALED_EPSILON;
     double     search_radius     = 2. * (offset + min_contour_width);
     ExPolygons ex_poly_result    = ex_polygons;
-    resample_expolygons(ex_poly_result, offset / 2);
+    resample_expolygons(ex_poly_result, offset / 2, scaled<double>(0.5));
 
     for (ExPolygon &ex_poly : ex_poly_result) {
         BoundingBox bbox(get_extents(ex_poly));
@@ -1034,24 +1050,30 @@ static Polygons get_boundary_external(const Layer &layer)
 #endif
     // Collect all holes for all printed objects and their instances, which will be printed at the same time as passed "layer".
     for (const PrintObject *object : layer.object()->print()->objects()) {
-        Polygons   polygons_per_obj;
+        Polygons   holes_per_obj;
 #ifdef INCLUDE_SUPPORTS_IN_BOUNDARY
         ExPolygons supports_per_obj;
 #endif
         if (const Layer *l = object->get_layer_at_printz(layer.print_z, EPSILON); l)
-            for (const ExPolygon &island : l->lslices) append(polygons_per_obj, island.holes);
+            for (const ExPolygon &island : l->lslices)
+                append(holes_per_obj, island.holes);
         if (support_layer) {
             auto *layer_below = object->get_first_layer_bellow_printz(layer.print_z, EPSILON);
             if (layer_below)
-                for (const ExPolygon &island : layer_below->lslices) append(polygons_per_obj, island.holes);
+                for (const ExPolygon &island : layer_below->lslices)
+                    append(holes_per_obj, island.holes);
 #ifdef INCLUDE_SUPPORTS_IN_BOUNDARY
             append(supports_per_obj, support_layer->support_islands.expolygons);
 #endif
         }
 
+        // After 7ff76d07684858fd937ef2f5d863f105a10f798e, when expand is called on CW polygons (holes), they are shrunk
+        // instead of expanded because union that makes CCW from CW isn't called anymore. So let's make it CCW.
+        polygons_reverse(holes_per_obj);
+
         for (const PrintInstance &instance : object->instances()) {
             size_t boundary_idx = boundary.size();
-            append(boundary, polygons_per_obj);
+            append(boundary, holes_per_obj);
             for (; boundary_idx < boundary.size(); ++boundary_idx)
                 boundary[boundary_idx].translate(instance.shift);
 #ifdef INCLUDE_SUPPORTS_IN_BOUNDARY
