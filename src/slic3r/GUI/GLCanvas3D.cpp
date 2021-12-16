@@ -1871,7 +1871,10 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 volume->set_volume_transformation(mvs->model_volume->get_transformation());
 
                 // updates volumes convex hull
-                volume->set_convex_hull(mvs->model_volume->get_convex_hull_shared_ptr());
+                if (mvs->model_volume->is_model_part() && ! volume->convex_hull())
+                    // Model volume was likely changed from modifier or support blocker / enforcer to a model part.
+                    // Only model parts require convex hulls.
+                    volume->set_convex_hull(mvs->model_volume->get_convex_hull_shared_ptr());
             }
         }
     }
