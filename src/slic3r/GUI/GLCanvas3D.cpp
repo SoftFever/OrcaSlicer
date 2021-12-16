@@ -1869,6 +1869,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 // updates volumes transformations
                 volume->set_instance_transformation(mvs->model_volume->get_object()->instances[mvs->composite_id.instance_id]->get_transformation());
                 volume->set_volume_transformation(mvs->model_volume->get_transformation());
+
+                // updates volumes convex hull
+                volume->set_convex_hull(mvs->model_volume->get_convex_hull_shared_ptr());
             }
         }
     }
