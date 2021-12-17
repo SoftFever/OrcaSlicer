@@ -251,7 +251,7 @@ public:
     void                load_subobject(ModelVolumeType type, bool from_galery = false);
     // ! ysFIXME - delete commented code after testing and rename "load_modifier" to something common
     //void                load_part(ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery = false);
-    void                load_modifier(ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery = false);
+    void                load_modifier(const wxArrayString& input_files, ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery = false);
     void                load_generic_subobject(const std::string& type_name, const ModelVolumeType type);
     void                load_shape_object(const std::string &type_name);
     void                load_shape_object_from_gallery();

@@ -1398,6 +1398,18 @@ void ObjectList::load_subobject(ModelVolumeType type, bool from_galery/* = false
     if (m_objects_model->GetItemType(item)&itInstance)
         item = m_objects_model->GetItemById(obj_idx);
 
+    wxArrayString input_files;
+    if (from_galery) {
+        GalleryDialog dlg(this);
+        if (dlg.ShowModal() != wxID_CLOSE)
+            dlg.get_input_files(input_files);
+    }
+    else
+        wxGetApp().import_model(wxGetApp().tab_panel()->GetPage(0), input_files);
+
+    if (input_files.IsEmpty())
+        return;
+
     take_snapshot((type == ModelVolumeType::MODEL_PART) ? _L("Load Part") : _L("Load Modifier"));
 
     std::vector<ModelVolume*> volumes;
@@ -1406,7 +1418,7 @@ void ObjectList::load_subobject(ModelVolumeType type, bool from_galery/* = false
     if (type == ModelVolumeType::MODEL_PART)
         load_part(*(*m_objects)[obj_idx], volumes, type, from_galery);
     else*/
-        load_modifier(*(*m_objects)[obj_idx], volumes, type, from_galery);
+        load_modifier(input_files, *(*m_objects)[obj_idx], volumes, type, from_galery);
 
     if (volumes.empty())
         return;
@@ -1486,26 +1498,13 @@ void ObjectList::load_part(ModelObject& model_object, std::vector<ModelVolume*>&
     }
 }
 */
-void ObjectList::load_modifier(ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery)
+void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery)
 {
     // ! ysFIXME - delete commented code after testing and rename "load_modifier" to something common
     //if (type == ModelVolumeType::MODEL_PART)
     //    return;
 
     wxWindow* parent = wxGetApp().tab_panel()->GetPage(0);
-
-    wxArrayString input_files;
-
-    if (from_galery) {
-        GalleryDialog dlg(this);
-        if (dlg.ShowModal() == wxID_CLOSE)
-            return;
-        dlg.get_input_files(input_files);
-        if (input_files.IsEmpty())
-            return;
-    }
-    else
-        wxGetApp().import_model(parent, input_files);
 
     wxProgressDialog dlg(_L("Loading") + dots, "", 100, wxGetApp().mainframe, wxPD_AUTO_HIDE);
     wxBusyCursor busy;
