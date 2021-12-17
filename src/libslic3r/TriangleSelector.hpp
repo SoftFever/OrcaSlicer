@@ -336,7 +336,8 @@ protected:
     int m_orig_size_indices = 0;
 
     std::unique_ptr<Cursor> m_cursor;
-    float m_old_cursor_radius_sqr;
+    // Zero indicates an uninitialized state.
+    float m_old_cursor_radius_sqr = 0;
 
     // Private functions:
 private:
