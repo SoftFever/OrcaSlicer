@@ -87,6 +87,7 @@ And that's it. It is now possible to run the freshly built PrusaSlicer binary:
 - `-DSLIC3R_STATIC=ON` for static build (defaults to `OFF`)
 - `-DSLIC3R_WX_STABLE=ON` to look for wxWidgets 3.0 (defaults to `OFF`)
 - `-DCMAKE_BUILD_TYPE=Debug` to build in debug mode (defaults to `Release`)
+- `-DSLIC3R_GUI=no` to build the console variant of PrusaSlicer
 
 See the CMake files to get the complete list.
 
