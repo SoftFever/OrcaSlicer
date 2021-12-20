@@ -78,6 +78,11 @@ static float round_to_nearest_percent(float value)
     return std::round(value * 100.f) * 0.01f;
 }
 
+static float round_to_nearest_perthousand(float value)
+{
+    return std::round(value * 1000.f) * 0.001f;
+}
+
 void GCodeViewer::VBuffer::reset()
 {
     // release gpu memory
@@ -138,7 +143,7 @@ bool GCodeViewer::Path::matches(const GCodeProcessorResult::MoveVertex& move) co
         // use rounding to reduce the number of generated paths
         return type == move.type && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id && role == move.extrusion_role &&
             move.position.z() <= sub_paths.front().first.position.z() && feedrate == move.feedrate && fan_speed == move.fan_speed &&
-            height == round_to_nearest_percent(move.height) && width == round_to_nearest_percent(move.width) &&
+            height == round_to_nearest_perthousand(move.height) && width == round_to_nearest_percent(move.width) &&
             matches_percent(volumetric_rate, move.volumetric_rate(), 0.05f);
     }
     case EMoveType::Travel: {
@@ -171,7 +176,7 @@ void GCodeViewer::TBuffer::add_path(const GCodeProcessorResult::MoveVertex& move
     Path::Endpoint endpoint = { b_id, i_id, s_id, move.position };
     // use rounding to reduce the number of generated paths
     paths.push_back({ move.type, move.extrusion_role, move.delta_extruder,
-        round_to_nearest_percent(move.height), round_to_nearest_percent(move.width),
+        round_to_nearest_perthousand(move.height), round_to_nearest_percent(move.width),
         move.feedrate, move.fan_speed, move.temperature,
         move.volumetric_rate(), move.extruder_id, move.cp_color_id, { { endpoint, endpoint } } });
 }
@@ -746,7 +751,7 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
         {
         case EMoveType::Extrude:
         {
-            m_extrusions.ranges.height.update_from(round_to_nearest_percent(curr.height));
+            m_extrusions.ranges.height.update_from(round_to_nearest_perthousand(curr.height));
             m_extrusions.ranges.width.update_from(round_to_nearest_percent(curr.width));
             m_extrusions.ranges.fan_speed.update_from(curr.fan_speed);
             m_extrusions.ranges.temperature.update_from(curr.temperature);
