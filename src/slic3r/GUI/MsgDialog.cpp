@@ -75,8 +75,13 @@ void MsgDialog::SetButtonLabel(wxWindowID btn_id, const wxString& label, bool se
 wxButton* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, const wxString& label/* = wxString()*/)
 {
     wxButton* btn = new wxButton(this, btn_id, label);
-    if (set_focus)
+    if (set_focus) {
         btn->SetFocus();
+        // For non-MSW platforms SetFocus is not enought to use it as default, when the dialog is closed by ENTER
+        // We have to set this button as the (permanently) default one in its dialog
+        // See https://twitter.com/ZMelmed/status/1472678454168539146
+        btn->SetDefault();
+    }
     btn_sizer->Add(btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, HORIZ_SPACING);
     btn->Bind(wxEVT_BUTTON, [this, btn_id](wxCommandEvent&) { this->EndModal(btn_id); });
     return btn;
