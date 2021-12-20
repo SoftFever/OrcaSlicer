@@ -13,6 +13,8 @@ This guide describes building PrusaSlicer statically against dependencies pulled
 
 #### 0. Prerequisities
 
+You need at least 8GB of RAM on your system. Linking on a 4GB RAM system will likely fail and you may need to limit the number of compiler processes with the '-j xxx' make or ninja parameter, where 'xxx' is the number of compiler processes launched if running on low RAM multi core system, for example on Raspberry PI.
+
 GNU build tools, CMake, git and other libraries have to be installed on the build machine.
 Unless that's already the case, install them as usual from your distribution packages.
 E.g. on Ubuntu 20.10, run
