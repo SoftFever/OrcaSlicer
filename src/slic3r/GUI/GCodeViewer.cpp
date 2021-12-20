@@ -73,14 +73,19 @@ static std::vector<std::array<float, 4>> decode_colors(const std::vector<std::st
     return output;
 }
 
-static float round_to_nearest_percent(float value)
+// Round to a bin with minimum two digits resolution.
+// Equivalent to conversion to string with sprintf(buf, "%.2g", value) and conversion back to float, but faster.
+static float round_to_bin(const float value)
 {
-    return std::round(value * 100.f) * 0.01f;
-}
-
-static float round_to_nearest_perthousand(float value)
-{
-    return std::round(value * 1000.f) * 0.001f;
+    assert(value > 0);
+    constexpr float const scale    [5] = { 100.f,  1000.f,  10000.f,  100000.f,  1000000.f };
+    constexpr float const invscale [5] = { 0.01f,  0.001f,  0.0001f,  0.00001f,  0.000001f };
+    constexpr float const threshold[5] = { 0.095f, 0.0095f, 0.00095f, 0.000095f, 0.0000095f };
+    // Scaling factor, pointer to the tables above.
+    int                   i            = 0;
+    // While the scaling factor is not yet large enough to get two integer digits after scaling and rounding:
+    for (; value < threshold[i] && i < 4; ++ i) ;
+    return std::round(value * scale[i]) * invscale[i];
 }
 
 void GCodeViewer::VBuffer::reset()
@@ -143,7 +148,7 @@ bool GCodeViewer::Path::matches(const GCodeProcessorResult::MoveVertex& move) co
         // use rounding to reduce the number of generated paths
         return type == move.type && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id && role == move.extrusion_role &&
             move.position.z() <= sub_paths.front().first.position.z() && feedrate == move.feedrate && fan_speed == move.fan_speed &&
-            height == round_to_nearest_perthousand(move.height) && width == round_to_nearest_percent(move.width) &&
+            height == round_to_bin(move.height) && width == round_to_bin(move.width) &&
             matches_percent(volumetric_rate, move.volumetric_rate(), 0.05f);
     }
     case EMoveType::Travel: {
@@ -176,7 +181,7 @@ void GCodeViewer::TBuffer::add_path(const GCodeProcessorResult::MoveVertex& move
     Path::Endpoint endpoint = { b_id, i_id, s_id, move.position };
     // use rounding to reduce the number of generated paths
     paths.push_back({ move.type, move.extrusion_role, move.delta_extruder,
-        round_to_nearest_perthousand(move.height), round_to_nearest_percent(move.width),
+        round_to_bin(move.height), round_to_bin(move.width),
         move.feedrate, move.fan_speed, move.temperature,
         move.volumetric_rate(), move.extruder_id, move.cp_color_id, { { endpoint, endpoint } } });
 }
@@ -751,12 +756,12 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
         {
         case EMoveType::Extrude:
         {
-            m_extrusions.ranges.height.update_from(round_to_nearest_perthousand(curr.height));
-            m_extrusions.ranges.width.update_from(round_to_nearest_percent(curr.width));
+            m_extrusions.ranges.height.update_from(round_to_bin(curr.height));
+            m_extrusions.ranges.width.update_from(round_to_bin(curr.width));
             m_extrusions.ranges.fan_speed.update_from(curr.fan_speed);
             m_extrusions.ranges.temperature.update_from(curr.temperature);
             if (curr.extrusion_role != erCustom || is_visible(erCustom))
-                m_extrusions.ranges.volumetric_rate.update_from(round_to_nearest_percent(curr.volumetric_rate()));
+                m_extrusions.ranges.volumetric_rate.update_from(round_to_bin(curr.volumetric_rate()));
             [[fallthrough]];
         }
         case EMoveType::Travel:
