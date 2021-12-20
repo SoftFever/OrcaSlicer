@@ -77,7 +77,7 @@ static std::vector<std::array<float, 4>> decode_colors(const std::vector<std::st
 // Equivalent to conversion to string with sprintf(buf, "%.2g", value) and conversion back to float, but faster.
 static float round_to_bin(const float value)
 {
-    assert(value > 0);
+//    assert(value > 0);
     constexpr float const scale    [5] = { 100.f,  1000.f,  10000.f,  100000.f,  1000000.f };
     constexpr float const invscale [5] = { 0.01f,  0.001f,  0.0001f,  0.00001f,  0.000001f };
     constexpr float const threshold[5] = { 0.095f, 0.0095f, 0.00095f, 0.000095f, 0.0000095f };
