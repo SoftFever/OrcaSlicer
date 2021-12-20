@@ -440,7 +440,6 @@ msgid "First layer height"
 msgstr "Висота першого шару"
 
 #: src/slic3r/GUI/ConfigManipulation.cpp:82
-#, fuzzy, c-format, boost-format
 msgid ""
 "The Spiral Vase mode requires:\n"
 "- one perimeter\n"
@@ -11111,7 +11110,6 @@ msgid "Extra perimeters if needed"
 msgstr "Додаткові периметри, якщо необхідно"
 
 #: src/libslic3r/PrintConfig.cpp:761
-#, fuzzy, c-format, boost-format
 msgid ""
 "Add more perimeters when needed for avoiding gaps in sloping walls. Slic3r "
 "keeps adding perimeters, until more than 70% of the loop immediately above "
@@ -12272,7 +12270,6 @@ msgid "This setting represents the maximum speed of your fan."
 msgstr "Цей параметр відображає максимальну швидкість вашого вентилятора."
 
 #: src/libslic3r/PrintConfig.cpp:1753
-#, fuzzy, c-format, boost-format
 msgid ""
 "This is the highest printable layer height for this extruder, used to cap "
 "the variable layer height and support layer height. Maximum recommended "
