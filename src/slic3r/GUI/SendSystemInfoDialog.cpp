@@ -556,8 +556,8 @@ SendSystemInfoDialog::SendSystemInfoDialog(wxWindow* parent)
     std::string app_name;
     {
         Semver semver(SLIC3R_VERSION);
-        bool is_alpha = std::string{semver.prerelease()}.find("alpha") != std::string::npos;
-        bool is_beta = std::string{semver.prerelease()}.find("beta") != std::string::npos;
+        bool is_alpha = semver.prerelease() && std::string{semver.prerelease()}.find("alpha") != std::string::npos;
+        bool is_beta = semver.prerelease() && std::string{semver.prerelease()}.find("beta") != std::string::npos;
         app_name = std::string(SLIC3R_APP_NAME) + " " + std::to_string(semver.maj())
                                + "." + std::to_string(semver.min()) + " "
                                + (is_alpha ? "Alpha" : is_beta ? "Beta" : "");
