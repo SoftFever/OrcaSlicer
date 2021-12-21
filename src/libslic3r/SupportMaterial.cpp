@@ -336,6 +336,8 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     m_support_params.support_layer_height_min = 1000000.;
     for (auto lh : m_print_config->min_layer_height.values)
         m_support_params.support_layer_height_min = std::min(m_support_params.support_layer_height_min, std::max(0.01, lh));
+    for (auto layer : m_object->layers())
+        m_support_params.support_layer_height_min = std::min(m_support_params.support_layer_height_min, std::max(0.01, layer->height));
 
     if (m_object_config->support_material_interface_layers.value == 0) {
         // No interface layers allowed, print everything with the base support pattern.
