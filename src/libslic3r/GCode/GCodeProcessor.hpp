@@ -657,6 +657,7 @@ namespace Slic3r {
         float m_forced_height; // mm
         float m_mm3_per_mm;
         float m_fan_speed; // percentage
+        float m_z_offset; // mm
         ExtrusionRole m_extrusion_role;
         unsigned char m_extruder_id;
         unsigned char m_last_extruder_id;
