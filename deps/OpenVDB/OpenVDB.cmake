@@ -7,8 +7,9 @@ else()
 endif()
 
 bambustudio_add_cmake_project(OpenVDB
-    URL https://github.com/tamasmeszaros/openvdb/archive/refs/tags/v6.2.1-prusa3d.zip #v6.2.1 patched
-    URL_HASH SHA256=caf9f0c91976722883ff9cb32420ef142af22f7e625fc643b91c23d6e4172f62 
+    # 8.2 patched
+    URL https://github.com/tamasmeszaros/openvdb/archive/d49d53332d054e71dfa444a8cb5f965212a57a92.zip
+    URL_HASH SHA256=2a5a50f3565a53ab7e7b78d6e2b345faa1f3b49891d004a3f052cb8cf01a5dfa
     DEPENDS dep_TBB dep_Blosc dep_OpenEXR dep_Boost
     CMAKE_ARGS
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON 
