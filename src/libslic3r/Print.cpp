@@ -23,6 +23,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/regex.hpp>
 
 //BBS: add json support
 #include "nlohmann/json.hpp"
@@ -953,6 +954,10 @@ StringObjectException Print::check_multi_filament_valid(const Print& print)
     return {std::string()};
 }
 
+// Orca: this g92e0 regex is used copied from PrusaSlicer
+// Matches "G92 E0" with various forms of writing the zero and with an optional comment.
+boost::regex regex_g92e0 { "^[ \\t]*[gG]92[ \\t]*[eE](0(\\.0*)?|\\.0+)[ \\t]*(;.*)?$" };
+
 // Precondition: Print::validate() requires the Print::apply() to be called its invocation.
 //BBS: refine seq-print validation logic
 StringObjectException Print::validate(StringObjectException *warning, Polygons* collison_polygons, std::vector<std::pair<Polygon, float>>* height_polygons) const
@@ -1227,6 +1232,27 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         }
     }
 
+    // Orca: G92 E0 is not supported when using absolute extruder addressing
+    // This check is copied from PrusaSlicer, the original author is Vojtech Bubnik
+    {
+        bool before_layer_gcode_resets_extruder =
+            boost::regex_search(m_config.before_layer_change_gcode.value, regex_g92e0);
+        bool layer_gcode_resets_extruder = boost::regex_search(m_config.layer_change_gcode.value, regex_g92e0);
+        if (m_config.use_relative_e_distances) {
+            // See GH issues #6336 #5073
+            if ((m_config.gcode_flavor == gcfMarlinLegacy || m_config.gcode_flavor == gcfMarlinFirmware) &&
+                !before_layer_gcode_resets_extruder && !layer_gcode_resets_extruder)
+                return {L("Relative extruder addressing requires resetting the extruder position at each layer to "
+                          "prevent loss of floating point accuracy. Add \"G92 E0\" to layer_gcode."),
+                        nullptr, "before_layer_change_gcode"};
+        } else if (before_layer_gcode_resets_extruder)
+            return {L("\"G92 E0\" was found in before_layer_gcode, which is incompatible with absolute extruder "
+                      "addressing."),
+                    nullptr, "before_layer_change_gcode"};
+        else if (layer_gcode_resets_extruder)
+            return {L("\"G92 E0\" was found in layer_gcode, which is incompatible with absolute extruder addressing."),
+                    nullptr, "layer_change_gcode"};
+    }
 
     const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
     assert(bed_type_def != nullptr);
