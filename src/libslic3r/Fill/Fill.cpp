@@ -11,6 +11,7 @@
 
 #include "FillBase.hpp"
 #include "FillRectilinear.hpp"
+#include "FillLightning.hpp"
 #include "FillConcentricInternal.hpp"
 #include "FillConcentric.hpp"
 
@@ -373,7 +374,7 @@ void export_group_fills_to_svg(const char *path, const std::vector<SurfaceFill> 
 #endif
 
 // friend to Layer
-void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive::Octree* support_fill_octree)
+void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive::Octree* support_fill_octree, FillLightning::Generator* lightning_generator)
 {
 	for (LayerRegion *layerm : m_regions)
 		layerm->fills.clear();
@@ -413,7 +414,8 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
             assert(fill_concentric != nullptr);
             fill_concentric->print_config = &this->object()->print()->config();
             fill_concentric->print_object_config = &this->object()->config();
-        }
+        } else if (surface_fill.params.pattern == ipLightning)
+            dynamic_cast<FillLightning::Filler*>(f.get())->generator = lightning_generator;
 
         // calculate flow spacing for infill pattern generation
         bool using_internal_flow = ! surface_fill.surface.is_solid() && ! surface_fill.params.bridge;

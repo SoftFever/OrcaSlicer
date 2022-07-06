@@ -61,6 +61,12 @@ namespace FillAdaptive {
     using OctreePtr = std::unique_ptr<Octree, OctreeDeleter>;
 };
 
+namespace FillLightning {
+    class Generator;
+    struct GeneratorDeleter;
+    using GeneratorPtr = std::unique_ptr<Generator, GeneratorDeleter>;
+}; // namespace FillLightning
+
 // Print step IDs for keeping track of the print state.
 // The Print steps are applied in this order.
 enum PrintStep {
@@ -466,6 +472,7 @@ private:
     void combine_infill();
     void _generate_support_material();
     std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> prepare_adaptive_infill_data();
+    FillLightning::GeneratorPtr prepare_lightning_infill_data();
 
     // BBS
     SupportNecessaryType is_support_necessary();

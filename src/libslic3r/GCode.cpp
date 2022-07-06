@@ -3832,12 +3832,20 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
 
     if (role == erSupportMaterial || role == erSupportTransition) {
         const SupportLayer* support_layer = dynamic_cast<const SupportLayer*>(m_layer);
+
         //FIXME support_layer->support_islands.contains should use some search structure!
         if (support_layer != NULL && support_layer->support_islands.contains(travel))
             // skip retraction if this is a travel move inside a support material island
             //FIXME not retracting over a long path may cause oozing, which in turn may result in missing material
             // at the end of the extrusion path!
             return false;
+
+        //reduce the retractions in lightning infills for tree support
+        const TreeSupportLayer* ts_layer = dynamic_cast<const TreeSupportLayer*>(m_layer);
+        if (ts_layer != NULL)
+            for (auto& area : ts_layer->base_areas)
+                if(area.contains(travel))
+                    return false;
     }
 
     //BBS: need retract when long moving to print perimeter to avoid dropping of material

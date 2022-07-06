@@ -10,6 +10,7 @@
 #include "tbb/concurrent_unordered_map.h"
 #include "Flow.hpp"
 #include "PrintConfig.hpp"
+#include "Fill/Lightning/Generator.hpp"
 
 #ifndef SQ
 #define SQ(x) ((x)*(x))
@@ -350,6 +351,9 @@ public:
     int  avg_node_per_layer = 0;
     float nodes_angle       = 0;
     bool            has_sharp_tail;
+
+    std::unique_ptr<FillLightning::Generator> generator;
+    std::unordered_map<double, size_t> printZ_to_lightninglayer;
 private:
     /*!
      * \brief Generator for model collision, avoidance and internal guide volumes

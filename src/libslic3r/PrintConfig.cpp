@@ -171,7 +171,10 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SlicingMode)
 static t_config_enum_values s_keys_map_SupportMaterialPattern {
     { "rectilinear",        smpRectilinear },
     { "rectilinear-grid",   smpRectilinearGrid },
-    { "honeycomb",          smpHoneycomb }
+    { "honeycomb",          smpHoneycomb },
+#if HAS_LIGHTNING_INFILL
+    { "lightning",          smpLightning },
+#endif
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialPattern)
 
@@ -1201,7 +1204,7 @@ void PrintConfigDef::init_fff_params()
     //def->enum_values.push_back("octagramspiral");
     //def->enum_values.push_back("supportcubic");
 #if HAS_LIGHTNING_INFILL
-    //def->enum_values.push_back("lightning");
+    def->enum_values.push_back("lightning");
 #endif // HAS_LIGHTNING_INFILL
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Rectilinear"));
@@ -1220,7 +1223,7 @@ void PrintConfigDef::init_fff_params()
     //def->enum_labels.push_back(L("Octagram Spiral"));
     //def->enum_labels.push_back(L("Support Cubic"));
 #if HAS_LIGHTNING_INFILL
-    //def->enum_labels.push_back(L("Lightning"));
+    def->enum_labels.push_back(L("Lightning"));
 #endif // HAS_LIGHTNING_INFILL
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCubic));
 
@@ -2442,9 +2445,15 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("rectilinear-grid");
     def->enum_values.push_back("honeycomb");
+#if HAS_LIGHTNING_INFILL
+    def->enum_values.push_back("lightning");
+#endif
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Rectilinear grid"));
     def->enum_labels.push_back(L("Honeycomb"));
+#if HAS_LIGHTNING_INFILL
+    def->enum_labels.push_back(L("Lightning"));
+#endif
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialPattern>(smpRectilinear));
 

@@ -1,20 +1,25 @@
 #include "../Print.hpp"
+#include "../ShortestPath.hpp"
 
 #include "FillLightning.hpp"
 #include "Lightning/Generator.hpp"
-#include "../Surface.hpp"
-
-#include <cstdlib>
-#include <cmath>
-#include <algorithm>
-#include <numeric>
 
 namespace Slic3r::FillLightning {
 
-Polylines Filler::fill_surface(const Surface *surface, const FillParams &params)
+void Filler::_fill_surface_single(
+    const FillParams              &params,
+    unsigned int                   thickness_layers,
+    const std::pair<float, Point> &direction,
+    ExPolygon                      expolygon,
+    Polylines                     &polylines_out)
 {
-    const Layer &layer = generator->getTreesForLayer(this->layer_id);
-    return layer.convertToLines(to_polygons(surface->expolygon), generator->infilll_extrusion_width());
+    const Layer &layer      = generator->getTreesForLayer(this->layer_id);
+    Polylines    fill_lines = layer.convertToLines(to_polygons(expolygon), scaled<coord_t>(0.5 * this->spacing - this->overlap));
+
+    if (params.dont_connect() || fill_lines.size() <= 1) {
+        append(polylines_out, chain_polylines(std::move(fill_lines)));
+    } else
+        connect_infill(std::move(fill_lines), expolygon, polylines_out, this->spacing, params);
 }
 
 void GeneratorDeleter::operator()(Generator *p) {

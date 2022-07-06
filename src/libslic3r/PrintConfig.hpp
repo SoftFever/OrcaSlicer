@@ -50,7 +50,7 @@ enum AuthorizationType {
     atKeyPassword, atUserPassword
 };
 
-#define HAS_LIGHTNING_INFILL 0
+#define HAS_LIGHTNING_INFILL 1
 
 enum InfillPattern : int {
     ipConcentric, ipRectilinear, ipGrid, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
@@ -96,6 +96,9 @@ enum class SlicingMode
 
 enum SupportMaterialPattern {
     smpRectilinear, smpRectilinearGrid, smpHoneycomb,
+#if HAS_LIGHTNING_INFILL
+    smpLightning,
+#endif // HAS_LIGHTNING_INFILL
 };
 
 enum SupportMaterialStyle {

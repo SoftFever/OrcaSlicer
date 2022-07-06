@@ -180,6 +180,11 @@ inline bool operator<(const Point &l, const Point &r)
     return l.x() < r.x() || (l.x() == r.x() && l.y() < r.y());
 }
 
+inline Point operator* (const Point& l, const double& r)
+{
+    return { coord_t(l.x() * r), coord_t(l.y() * r) };
+}
+
 inline bool is_approx(const Point &p1, const Point &p2, coord_t epsilon = coord_t(SCALED_EPSILON))
 {
 	Point d = (p2 - p1).cwiseAbs();
