@@ -2,7 +2,7 @@
 
 # BambuStudio
 Bambu Studio is a cutting-edge, feature-rich slicing software.  
-It contains project-based workflows, systematically optimized slicing algorithms, highly integrated device management & control, and an easy-to-use graphic interface, bringing users an incredibly smooth printing experience.
+It contains project-based workflows, systematically optimized slicing algorithms, and an easy-to-use graphic interface, bringing users an incredibly smooth printing experience.
 
 Prebuilt Windows, macOS 64-bit releases are available through the [github releases page](https://github.com/bambulab/BambuStudio/releases/).  
 Linux version currently is not supported.
