@@ -1352,6 +1352,9 @@ void SelectMachineDialog::show_status(PrintDialogStatus status)
         update_print_status_msg(msg_text, true);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusAmsMappingByOrder) {
+        Enable_Send_Button(true);
+        Enable_Refresh_Button(true);
     }
 }
 
@@ -1469,7 +1472,10 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     m_print_job->m_dev_ip      = obj_->dev_ip;
     m_print_job->m_access_code = obj_->access_code;
     m_print_job->connection_type = obj_->connection_type();
-    m_print_job->task_ams_mapping = ams_mapping_array;
+    if (obj_->is_support_ams_mapping())
+        m_print_job->task_ams_mapping = ams_mapping_array;
+    else
+        m_print_job->task_ams_mapping = "";
     
     if (obj_->has_sdcard()) {
         m_print_job->has_sdcard = obj_->has_sdcard();
@@ -1758,6 +1764,12 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         return;
     }
 
+    if (!obj_->is_support_ams_mapping()) {
+        do_ams_mapping(obj_);
+        show_status(PrintDialogStatus::PrintStatusAmsMappingByOrder);
+        return;
+    }
+
     // do ams mapping if no ams result
     if (m_ams_mapping_result.empty()) {
         do_ams_mapping(obj_);
@@ -1968,27 +1980,27 @@ void SelectMachineDialog::set_default()
 
         // item->Layout();
 
-        item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {
-            auto    mouse_pos = ClientToScreen(e.GetPosition());
-            wxPoint rect      = item->ClientToScreen(wxPoint(0, 0));
+        //item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {
+        //    auto    mouse_pos = ClientToScreen(e.GetPosition());
+        //    wxPoint rect      = item->ClientToScreen(wxPoint(0, 0));
 
-            auto    mapping = new AmsMapingPopup(this);
-            wxPoint pos     = item->ClientToScreen(wxPoint(0, 0));
-            pos.y += item->GetRect().height;
-            mapping->Position(pos, wxSize(0, 0));
+        //    auto    mapping = new AmsMapingPopup(this);
+        //    wxPoint pos     = item->ClientToScreen(wxPoint(0, 0));
+        //    pos.y += item->GetRect().height;
+        //    mapping->Position(pos, wxSize(0, 0));
 
-            // update ams data
-            DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-            if (!dev_manager) return;
-            MachineObject *obj_        = dev_manager->get_selected_machine();
+        //    // update ams data
+        //    DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+        //    if (!dev_manager) return;
+        //    MachineObject *obj_        = dev_manager->get_selected_machine();
 
-            if (obj_ && obj_->has_ams()) {
-                mapping->update_ams_data(obj_->amsList);
-                mapping->set_tag_texture(materials[extruder]);
-                mapping->Popup();
-            }
-            e.Skip();
-        });
+        //    if (obj_ && obj_->has_ams()) {
+        //        mapping->update_ams_data(obj_->amsList);
+        //        mapping->set_tag_texture(materials[extruder]);
+        //        mapping->Popup();
+        //    }
+        //    e.Skip();
+        //});
 
         item->Bind(wxEVT_LEFT_DOWN, [this, item, extruder](wxMouseEvent &e) {
             Freeze();

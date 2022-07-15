@@ -599,8 +599,8 @@ Sidebar::Sidebar(Plater *parent)
 
     ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
     add_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent& e){
-        // BBS: limit filament choices to 16
-        if (p->combos_filament.size() >= 16)
+        // BBS: limit filament choices to 4
+        if (p->combos_filament.size() >= 4)
             return;
 
         int filament_count = p->combos_filament.size() + 1;

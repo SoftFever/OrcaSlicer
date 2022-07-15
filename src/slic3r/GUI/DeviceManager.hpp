@@ -347,9 +347,9 @@ public:
     // parse amsStatusMain and ams_status_sub
     void _parse_ams_status(int ams_status);
     bool has_ams() { return ams_exist_bits != 0; }
-    bool is_need_upgrade_for_ams();
+    bool is_support_ams_mapping();
     bool is_only_support_cloud_print();
-    
+    static bool is_support_ams_mapping_version(std::string module, std::string version);
 
     int ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<int> exclude_id = std::vector<int>());
     bool is_valid_mapping_result(std::vector<FilamentInfo>& result);

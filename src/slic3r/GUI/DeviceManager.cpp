@@ -455,9 +455,50 @@ void MachineObject::_parse_ams_status(int ams_status)
     BOOST_LOG_TRIVIAL(trace) << "ams_debug: main = " << ams_status_main_int << ", sub = " << ams_status_sub;
 }
 
-bool MachineObject::is_need_upgrade_for_ams()
+bool MachineObject::is_support_ams_mapping()
 {
-    return false;
+    AppConfig* config = Slic3r::GUI::wxGetApp().app_config;
+    if (config) {
+        if (config->get("check_ams_version") == "0")
+            return false;
+    }
+    bool need_upgrade = false;
+    if (has_ams()) {
+        // compare ota version and ams version
+        auto ota_ver_it = module_vers.find("ota");
+        if (ota_ver_it != module_vers.end()) {
+            if (!MachineObject::is_support_ams_mapping_version("ota", ota_ver_it->second.sw_ver)) {
+                need_upgrade = true;
+            }
+        }
+        for (int i = 0; i < 4; i++) {
+            std::string ams_id = (boost::format("ams/%1%") % i).str();
+            auto ams_ver_it = module_vers.find(ams_id);
+            if (ams_ver_it != module_vers.end()) {
+                if (!MachineObject::is_support_ams_mapping_version("ams", ams_ver_it->second.sw_ver)) {
+                    need_upgrade = true;
+                }
+            }
+        }
+    }
+    return !need_upgrade;
+}
+
+bool MachineObject::is_support_ams_mapping_version(std::string module, std::string version)
+{
+    bool result = true;
+    if (module == "ota") {
+        if (version.compare("00.01.04.03") < 0)
+            return false;
+    }
+    else if (module == "ams") {
+        // omit ams version is empty
+        if (version.empty())
+            return true;
+        if (version.compare("00.00.04.10") < 0)
+            return false;
+    }
+    return result;
 }
 
 bool MachineObject::is_only_support_cloud_print()
@@ -571,6 +612,44 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
         }
     }
 
+    // tray info list
+    std::vector<FilamentInfo> tray_info_list;
+    for (auto it = amsList.begin(); it != amsList.end(); it++) {
+        for (int i = 0; i < 4; i++) {
+            FilamentInfo info;
+            auto tray_it = it->second->trayList.find(std::to_string(i));
+            if (tray_it != it->second->trayList.end()) {
+                info.id = atoi(tray_it->first.c_str()) + atoi(it->first.c_str()) * 4;
+                info.tray_id = atoi(tray_it->first.c_str()) + atoi(it->first.c_str()) * 4;
+                info.color = tray_it->second->color;
+                info.type = tray_it->second->type;
+            }
+            else {
+                info.id = -1;
+                info.tray_id = -1;
+            }
+            tray_info_list.push_back(info);
+        }
+    }
+
+    // is_support_ams_mapping
+    if (!is_support_ams_mapping()) {
+        for (int i = 0; i < filaments.size(); i++) {
+            FilamentInfo info;
+            if (i < tray_info_list.size()) {
+                info.id = filaments[i].id;
+                info.tray_id = filaments[i].id;
+                info.color = tray_info_list[i].color;
+                info.type = tray_info_list[i].type;
+            } else {
+                info.id = filaments[i].id;
+                info.tray_id = -1;
+            }
+            result.push_back(info);
+        }
+        return 0;
+    }
+
     // calc distance map
     struct DisValue {
         int  tray_id;
@@ -648,25 +727,6 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
     }
 
     try {
-        //ordering mapping
-        std::vector<FilamentInfo> tray_info_list;
-        for (auto it = amsList.begin(); it != amsList.end(); it++) {
-            for (int i = 0; i < 4; i++) {
-                FilamentInfo info;
-                auto tray_it = it->second->trayList.find(std::to_string(i));
-                if (tray_it != it->second->trayList.end()) {
-                    info.id = atoi(tray_it->first.c_str()) + atoi(it->first.c_str()) * 4;
-                    info.tray_id = atoi(tray_it->first.c_str()) + atoi(it->first.c_str()) * 4;
-                    info.color = tray_it->second->color;
-                    info.type  = tray_it->second->type;
-                } else {
-                    info.id = -1;
-                    info.tray_id = -1;
-                }
-                tray_info_list.push_back(info);
-            }
-        }
-
         // try to use ordering ams mapping
         bool order_mapping_result = true;
         for (int i = 0; i < filaments.size(); i++) {
