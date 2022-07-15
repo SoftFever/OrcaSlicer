@@ -1,0 +1,144 @@
+
+#Content
+{
+	overflow-y:auto;
+}
+
+#Content::-webkit-scrollbar {/*滚动条整体样式*/
+    width: 5px;     /*高宽分别对应横竖滚动条的尺寸*/
+    height: 1px;
+}
+
+#Content::-webkit-scrollbar-thumb {/*滚动条里面小方块*/
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+	box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+    background-color: #AAAAAA;
+}
+
+#Content::-webkit-scrollbar-track {/*滚动条里面轨道*/
+        -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+	    box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        border-radius: 10px;
+        background: #EDEDED;
+}
+
+
+.BlockBanner
+{
+	padding: 0px;
+	border-bottom:#00AE42 1px solid;
+	width: 100%;
+}
+
+
+.BannerBtns
+{
+	float: right;
+	display: flex;
+	width: 140px;
+	justify-content: space-around;
+	align-items: center;
+	height: 40px;
+	text-align: center;
+	margin-right: 10px;
+}
+
+.BlockBanner  a
+{
+	display: inline-block;
+	background-color:#00AE42;
+	line-height: 40px;
+	height: 40px;
+	padding: 0px 24px;
+	color: #fff;
+}
+
+.PrinterArea
+{
+	padding: 10px;
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.PrinterBlock
+{
+	width: 160px;
+	text-align: center;
+	padding: 10px;
+}
+
+.PrinterBlock img
+{
+	width:160px;
+	height: 160px;
+}
+
+.PName
+{
+	font-weight: 700;
+}
+
+.pNozzel
+{
+	display: flex;
+	align-items: center;
+	justify-content:flex-start;
+	color: #5A5A5A;	
+	padding-left: 10px;
+}
+
+.pNozzel input
+{
+	vertical-align: middle;
+	margin-right: 5px;
+}
+
+
+/*-----Notice-----*/
+#NoticeMask
+{
+	background-color: #000;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	opacity: 0.05;
+	display: none;
+}
+
+#NoticeBody
+{
+	display: none;
+	width: 400px;
+	border: 1px solid #000;
+	border-radius: 4px;
+	background-color: #fff;	
+	position: absolute;
+	left: 50%;
+	top: 200px;
+	margin-left: -200px;
+}
+
+#NoticeBar
+{
+	background-color:#00B35C;
+	height: 40px;
+	line-height: 40px;
+	color: #fff;
+	text-align: center;
+}
+
+#NoticeContent
+{
+	padding: 4mm 10mm;	
+}
+
+
+#NoticeBtns
+{
+	margin-top: 4mm;
+	display: flex;
+	justify-content:space-around;
+}

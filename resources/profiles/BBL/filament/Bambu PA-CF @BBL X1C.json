@@ -1,0 +1,14 @@
+{
+    "type": "filament",
+    "setting_id": "GFSN00",
+    "name": "Bambu PA-CF @BBL X1C",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Bambu PA-CF @base",
+    "filament_max_volumetric_speed": [
+        "8"
+    ],
+    "compatible_printers": [
+      "Bambu Lab X1 Carbon 0.4 nozzle"
+    ]
+}

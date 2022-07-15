@@ -1,0 +1,68 @@
+
+#Content
+{
+	display: flex;
+	flex-direction: column;
+	justify-content:flex-start;
+	align-items:center;
+}
+
+
+#EarthIcon img
+{
+	width: 160px;
+}
+
+#EarthIcon
+{
+	margin-bottom: 20px;
+}
+
+#RegionList
+{
+	border: 3px solid #C7C7C7;
+	width: 400px;
+	cursor: pointer;
+}
+
+.RegionItem
+{
+	line-height: 40px;
+	height: 40px;
+	padding-left: 10px;
+	text-align: center;
+}
+
+.RegionItem:hover
+{
+	background-color: #ECECEC;
+}
+
+
+.RegionSelected
+{
+	background-color:#00AE42;
+	color: #fff;
+}
+
+.RegionSelected:hover
+{
+	background-color:#00AE42;
+	color: #fff;
+}
+
+#ChangeTip
+{
+	margin-top: 15px;
+	line-height:20px;
+	text-align: center;
+	display: flex;
+	align-items: center;
+}
+
+.TipIcon
+{
+	width:24px;
+	height: 24px;
+	margin-right: 5px;
+}

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 24.1.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" baseProfile="basic"
+	 id="Layer_1" inkscape:version="1.0 (4035a4fb49, 2020-05-01)" sodipodi:docname="notification_right_hover.svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:svg="http://www.w3.org/2000/svg"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 800 800"
+	 xml:space="preserve">
+<sodipodi:namedview  bordercolor="#666666" borderopacity="1" gridtolerance="10" guidetolerance="10" id="namedview11" inkscape:current-layer="Layer_1" inkscape:cx="400" inkscape:cy="396.42857" inkscape:document-rotation="0" inkscape:pageopacity="0" inkscape:pageshadow="2" inkscape:window-height="2066" inkscape:window-maximized="1" inkscape:window-width="3840" inkscape:window-x="-11" inkscape:window-y="-11" inkscape:zoom="1.26" objecttolerance="10" pagecolor="#ffffff" showgrid="false">
+	</sodipodi:namedview>
+<path id="path6" fill="#ED6B21" d="M460.5,399.9l-93.2,70.2V329.8L460.5,399.9 M500.5,399.9c0-3.7-1.6-7.3-4.9-9.7L357.9,286.6
+	c-8.1-6.1-19.5-0.3-19.5,9.7v207.2c0,10,11.5,15.8,19.5,9.7l137.7-103.7C498.8,407.2,500.5,403.6,500.5,399.9L500.5,399.9z"/>
+<g id="g4" transform="matrix(0.5865,0,0,0.5865,191.9219,191.92265)">
+	<path id="path2" fill="#ED6B21" d="M597.2,701.3H110.6c-57.4,0-104.1-46.7-104.1-104.1V110.6C6.5,53.2,53.2,6.5,110.6,6.5h486.6
+		c57.4,0,104.1,46.7,104.1,104.1v486.6C701.3,654.6,654.6,701.3,597.2,701.3z M110.6,52.4c-32,0-58.2,26-58.2,58.2v486.6
+		c0,32,26,58.2,58.2,58.2h486.6c32,0,58.2-26,58.2-58.2V110.6c0-32-26-58.2-58.2-58.2L110.6,52.4z"/>
+</g>
+<path id="path17" fill="#ED6B21" d="M250.2,602.7c-7.5-0.8-16-3.6-22.7-7.3c-10.7-5.9-20.3-16-25.5-26.8c-3.6-7.5-5.3-14-5.9-23.1
+	c-0.3-4.1-0.4-52.5-0.3-150.4c0.1-133.7,0.2-144.6,0.8-148c2.5-13.5,8.2-24.4,17.5-33.6c8.5-8.4,19.2-14.1,31.6-16.6
+	c3.5-0.7,8.4-0.8,153.8-0.8h150.2l4.3,0.9c12.8,2.8,22.1,7.9,31.2,17c8.8,8.9,13.9,18.2,16.7,30.5l0.9,4.2v150.6
+	c0,145.6,0,150.7-0.8,154.2c-5.6,26.8-27.1,46.5-53.9,49.1C542.6,603.2,255.1,603.2,250.2,602.7L250.2,602.7z M551.5,575.3
+	c12-3.7,20.8-12.9,24-24.8l0.9-3.4V399.5V252l-0.9-3.4c-3.4-12.8-12.8-22.1-25.3-25.1c-3.4-0.8-4.6-0.8-151.9-0.7l-148.5,0.1l-2.8,1
+	c-10.8,3.7-19,11.5-22.5,21.6c-0.6,1.8-1.3,4.5-1.6,6c-0.3,1.8-0.4,49.2-0.4,148.2c0,130.9,0.1,145.9,0.6,149
+	c2.6,13.6,13.3,24.5,26.9,27.3c2.2,0.4,29.5,0.5,150.6,0.5l147.9-0.1L551.5,575.3z"/>
+<path id="path19" fill="#ED6B21" d="M339.9,290.9c1.2-2.5,2.9-4.1,5.6-5.6c2.1-1.1,7.7-1.1,9.9,0c1.9,1,139.6,104.5,141.5,106.4
+	c2,2,2.9,4.2,3.1,7.4c0.2,2.5,0,3.2-0.9,5.3c-0.6,1.3-1.7,3-2.4,3.6c-2.6,2.4-139.4,105.2-141.3,106.1c-2.8,1.4-7.3,1.4-9.9,0.1
+	c-2.3-1.2-4.7-3.4-5.8-5.5l-0.9-1.6l-0.1-106.9l-0.1-106.9L339.9,290.9z M367.3,470.1c0.6,0,93-69.9,93-70.3
+	c0-0.4-92.4-70.1-93-70.1c-0.2,0-0.3,31.6-0.3,70.2S367.1,470.1,367.3,470.1z"/>
+</svg>

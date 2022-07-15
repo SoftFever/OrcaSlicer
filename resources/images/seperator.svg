@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="128mm"
+   height="128mm"
+   viewBox="0 0 128 128"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1 (c68e22c387, 2021-05-23)"
+   sodipodi:docname="seperator.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     width="128mm"
+     inkscape:zoom="0.77771465"
+     inkscape:cx="413.3907"
+     inkscape:cy="271.95065"
+     inkscape:window-width="3440"
+     inkscape:window-height="1361"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="图层 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       inkscape:label="图层 1"
+       id="layer1-9"
+       transform="matrix(0.73484844,0,0,0.50769191,-13.305129,-6.3896798)">
+      <rect
+         style="fill:#00ffff;stroke-width:0.640159;stroke-miterlimit:4;stroke-dasharray:0.640159, 1.28032;stroke-dashoffset:0"
+         id="rect865"
+         width="2.7216496"
+         height="57.987961"
+         x="103.83791"
+         y="40.161522" />
+      <rect
+         style="fill:#00ffff;stroke-width:0.552188;stroke-miterlimit:4;stroke-dasharray:0.552188, 1.10438;stroke-dashoffset:0"
+         id="rect865-1"
+         width="2.7216496"
+         height="43.145557"
+         x="103.83791"
+         y="115.61198" />
+      <rect
+         style="fill:#00ffff;stroke-width:0.644598;stroke-miterlimit:4;stroke-dasharray:0.644598, 1.2892;stroke-dashoffset:0"
+         id="rect865-1-4"
+         width="2.7216496"
+         height="58.79504"
+         x="103.83791"
+         y="178.33633" />
+    </g>
+  </g>
+</svg>

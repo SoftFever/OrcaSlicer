@@ -1,0 +1,29 @@
+{
+    "type": "filament",
+    "filament_id": "GFS00",
+    "name": "Bambu Support W @base",
+    "from": "system",
+    "instantiation": "false",
+    "inherits": "fdm_filament_pla",
+    "filament_vendor": [
+        "Bambu Lab"
+    ],
+    "filament_density": [
+        "1.30"
+    ],
+    "filament_is_support": [
+        "1"
+    ],
+    "cool_plate_temp": [
+        "40"
+    ],
+    "hot_plate_temp": [
+        "40"
+    ],
+    "cool_plate_temp_initial_layer": [
+        "40"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "40"
+    ]
+}

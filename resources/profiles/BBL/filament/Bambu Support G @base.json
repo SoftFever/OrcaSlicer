@@ -1,0 +1,23 @@
+{
+    "type": "filament",
+    "filament_id": "GFS01",
+    "name": "Bambu Support G @base",
+    "from": "system",
+    "instantiation": "false",
+    "inherits": "fdm_filament_pa",
+    "filament_vendor": [
+        "Bambu Lab"
+    ],
+    "filament_density": [
+        "1.22"
+    ],
+    "filament_is_support": [
+        "1"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "280"
+    ],
+    "nozzle_temperature": [
+        "280"
+    ]
+}

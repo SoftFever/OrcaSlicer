@@ -1,0 +1,320 @@
+*
+{
+	padding:0px;
+	border: 0px;
+	margin: 0px;
+	font-size: 16px;
+}
+
+html, body {
+	height: 100%;
+	width: 100%;
+    margin: 0px;
+    padding: 0px;
+	line-height: 20px;
+}
+
+/*------------------*/
+body
+{
+	display:flex;
+	justify-content: flex-start;
+}
+
+#LeftBoard
+{
+	border-right: 1px solid #EFF0F0;
+	width:262px;
+	height: 100%;
+}
+
+#LoginArea
+{
+	height: 180px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: nowrap;
+}
+
+
+#Login1
+{
+	height:36px;
+	line-height: 36px;
+	display: flex;
+	justify-content: center;
+}
+
+#LoginBtn
+{
+	cursor:pointer;
+}
+
+
+
+#Icon1
+{
+	margin-right: 10px;	
+}
+
+#BBLIcon
+{
+	height:36px;
+}
+
+#Login2
+{
+	display: none;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	width: 262px;
+}
+
+#UserAvatarIcon
+{
+	height: 85px;
+}
+
+#UserName
+{
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	text-align: center;
+	overflow: hidden; 
+	width: 80%;
+}
+
+#LogoutBtn
+{
+	font-size: 14px;
+	height: 24px;
+	line-height: 24px;
+	color: #00B731;
+	border: 1px solid  #00AE42;
+	border-radius: 4px;
+	cursor: pointer;
+	margin-top: 5px;
+	padding: 0px 8px;
+}
+
+#LogoutBtn:hover
+{
+	background: #00B731;
+	color: #fff;
+}
+
+
+/*------------------*/
+#BtnArea
+{
+	
+}
+
+
+.BtnItem
+{
+    padding-left:40px;	
+	height:50px;
+	line-height: 50px;
+	display: flex;
+	justify-content:flex-start;
+	cursor: pointer;
+}
+
+.BtnItem:hover
+{
+	background-color: #E0FCEB;
+}
+
+.BtnItemSelected
+{
+	background-color: #E0FCEB;
+}
+
+.BtnIcon
+{
+	margin-right:6px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.LeftIcon
+{
+	width:20px;
+	height: 20px;
+}
+
+
+/*--------------------*/
+#RightBoard
+{
+	width: 100%;
+	height: 100%;
+	overflow-y:auto;
+}
+
+#ContentBoard
+{
+	overflow-y:hidden;
+	padding: 0px 40px;
+	display: flex;
+	flex-direction: column;
+}
+
+#MenuArea
+{
+	height: 140px;
+	display: flex;
+	align-items: center;
+}
+
+.MenuItem
+{
+	border: 1px solid #4CAA50;
+	border-radius: 12px;
+	height: 101px;
+	width: 253px;
+	padding-left: 20px;
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+	margin-right: 16px;
+	cursor: pointer;
+}
+
+.MenuItem:hover
+{
+	background-color: #E0FCEB;
+}
+
+.MenuIcon
+{
+	margin-right: 1em;
+}
+
+.MenuIcon img
+{
+	width:56px;
+	height: 56px;
+}
+
+.MenuDesc
+{
+	color: #A8A8A8;
+}
+
+
+.Content-Title
+{
+	line-height: 30px;
+	font-weight: 700;
+}
+
+#HotspotWEB
+{
+	width:100%;
+	height: 420px;
+}
+
+#RecentFileArea
+{
+	margin-top: 10px;
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+}
+
+#RecentTitle
+{
+	border-bottom: 1px solid #D9D9D9;
+}
+
+#FileList
+{
+	flex: 1;
+	display: flex;
+	flex-wrap: wrap;
+	align-content: flex-start;
+	overflow-y: auto;
+}
+
+.FileItem
+{
+	width: 184px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    word-break: break-all;
+	position: relative;
+	cursor: pointer;
+	margin: 8px;
+}
+
+.FileTip
+{
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+}
+
+.FileImg
+{
+	text-align: center;
+	background-color: #E4E4E4;
+	border-radius: 8px;
+	width: 184px;
+	height: 184px;	
+}
+
+.FileItem img
+{
+	width: 184px;
+	height: 184px;
+	border-radius: 8px;
+	display: inline-block;
+}
+
+.FileDate
+{
+	color: #A8A8A8;
+}
+
+/*--------Mall------*/
+#MallBoard
+{
+	height: 100%;
+	max-width: 1600px;
+	overflow-y: hidden;
+	padding: 0px 40px;
+	display: none;
+}
+
+#MallWeb
+{
+	width: 100%;
+	height: 95%;
+	border: 1px solid #D9D9D9;
+}
+
+/*------Manual------*/
+#ManualBoard
+{
+	height: 100%;
+	max-width: 1600px;
+	overflow-y: hidden;
+	padding: 0px 40px;
+	display: none;
+}
+
+#ManualWeb
+{
+	width: 100%;
+	height: 95%;
+	border: 1px solid #D9D9D9;
+}

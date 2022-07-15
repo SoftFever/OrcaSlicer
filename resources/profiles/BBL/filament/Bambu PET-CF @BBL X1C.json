@@ -1,0 +1,27 @@
+{
+    "type": "filament",
+    "setting_id": "GFST00",
+    "name": "Bambu PET-CF @BBL X1C",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Bambu PET-CF @base",
+    "slow_down_for_layer_cooling": [
+        "1"
+    ],
+    "reduce_fan_stop_start_freq": [
+        "0"
+    ],
+    "fan_cooling_layer_time": [
+        "4"
+    ],
+    "slow_down_min_speed": [
+        "20"
+    ],
+    "slow_down_layer_time": [
+        "2"
+    ],
+    "compatible_printers": [
+      "Bambu Lab X1 Carbon 0.4 nozzle",
+      "Bambu Lab X1 0.4 nozzle"
+    ]
+}

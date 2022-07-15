@@ -1,0 +1,25 @@
+{
+    "type": "filament",
+    "filament_id": "GFS99",
+    "setting_id": "GFSS99",
+    "name": "Generic PVA",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pva",
+    "filament_flow_ratio": [
+        "0.95"
+    ],
+    "filament_max_volumetric_speed": [
+        "16"
+    ],
+    "slow_down_layer_time": [
+        "7"
+    ],
+    "slow_down_min_speed": [
+        "20"
+    ],
+    "compatible_printers": [
+      "Bambu Lab X1 Carbon 0.4 nozzle",
+      "Bambu Lab X1 0.4 nozzle"
+    ]
+}

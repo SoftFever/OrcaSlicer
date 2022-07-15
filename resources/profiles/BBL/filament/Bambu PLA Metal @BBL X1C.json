@@ -1,0 +1,15 @@
+{
+    "type": "filament",
+    "setting_id": "GFSA02",
+    "name": "Bambu PLA Metal @BBL X1C",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Bambu PLA Metal @base",
+    "filament_max_volumetric_speed": [
+        "25"
+    ],
+    "compatible_printers": [
+      "Bambu Lab X1 Carbon 0.4 nozzle",
+      "Bambu Lab X1 0.4 nozzle"
+    ]
+}

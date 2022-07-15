@@ -1,0 +1,14 @@
+{
+    "type": "filament",
+    "setting_id": "GFSL18",
+    "name": "PolyTerra PLA @BBL X1C",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "PolyTerra PLA @base",
+    "filament_max_volumetric_speed": [
+        "22"
+    ],
+    "compatible_printers": [
+      "Bambu Lab X1 Carbon 0.4 nozzle"
+    ]
+}

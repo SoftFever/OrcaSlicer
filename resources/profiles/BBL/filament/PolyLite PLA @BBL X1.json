@@ -1,0 +1,17 @@
+{
+    "type": "filament",
+    "setting_id": "GFSL23",
+    "name": "PolyLite PLA @BBL X1",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "PolyLite PLA @base",
+    "filament_max_volumetric_speed": [
+        "15"
+    ],
+    "slow_down_layer_time": [
+        "8"
+    ],
+    "compatible_printers": [
+      "Bambu Lab X1 0.4 nozzle"
+    ]
+}

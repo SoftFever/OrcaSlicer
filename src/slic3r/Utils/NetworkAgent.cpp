@@ -1,0 +1,822 @@
+#include <stdio.h>
+#include <stdlib.h>
+#if defined(_MSC_VER) || defined(_WIN32)
+#include <Windows.h>
+#else
+#include <dlfcn.h>
+#endif
+
+#include <boost/log/trivial.hpp>
+#include "libslic3r/Utils.hpp"
+#include "NetworkAgent.hpp"
+
+
+using namespace BBL;
+
+namespace Slic3r {
+
+#if defined(_MSC_VER) || defined(_WIN32)
+static HMODULE netwoking_module = NULL;
+#else
+static void* netwoking_module = NULL;
+#endif
+
+func_create_agent                   NetworkAgent::create_agent_ptr = nullptr;
+func_destroy_agent                  NetworkAgent::destroy_agent_ptr = nullptr;
+func_init_log                       NetworkAgent::init_log_ptr = nullptr;
+func_set_config_dir                 NetworkAgent::set_config_dir_ptr = nullptr;
+func_set_cert_file                  NetworkAgent::set_cert_file_ptr = nullptr;
+func_set_country_code               NetworkAgent::set_country_code_ptr = nullptr;
+func_start                          NetworkAgent::start_ptr = nullptr;
+func_set_on_ssdp_msg_fn             NetworkAgent::set_on_ssdp_msg_fn_ptr = nullptr;
+func_set_on_user_login_fn           NetworkAgent::set_on_user_login_fn_ptr = nullptr;
+func_set_on_printer_connected_fn    NetworkAgent::set_on_printer_connected_fn_ptr = nullptr;
+func_set_on_server_connected_fn     NetworkAgent::set_on_server_connected_fn_ptr = nullptr;
+func_set_on_http_error_fn           NetworkAgent::set_on_http_error_fn_ptr = nullptr;
+func_set_get_country_code_fn        NetworkAgent::set_get_country_code_fn_ptr = nullptr;
+func_set_on_message_fn              NetworkAgent::set_on_message_fn_ptr = nullptr;
+func_set_on_local_connect_fn        NetworkAgent::set_on_local_connect_fn_ptr = nullptr;
+func_set_on_local_message_fn        NetworkAgent::set_on_local_message_fn_ptr = nullptr;
+func_connect_server                 NetworkAgent::connect_server_ptr = nullptr;
+func_is_server_connected            NetworkAgent::is_server_connected_ptr = nullptr;
+func_refresh_connection             NetworkAgent::refresh_connection_ptr = nullptr;
+func_start_subscribe                NetworkAgent::start_subscribe_ptr = nullptr;
+func_stop_subscribe                 NetworkAgent::stop_subscribe_ptr = nullptr;
+func_send_message                   NetworkAgent::send_message_ptr = nullptr;
+func_connect_printer                NetworkAgent::connect_printer_ptr = nullptr;
+func_disconnect_printer             NetworkAgent::disconnect_printer_ptr = nullptr;
+func_send_message_to_printer        NetworkAgent::send_message_to_printer_ptr = nullptr;
+func_start_discovery                NetworkAgent::start_discovery_ptr = nullptr;
+func_change_user                    NetworkAgent::change_user_ptr = nullptr;
+func_is_user_login                  NetworkAgent::is_user_login_ptr = nullptr;
+func_user_logout                    NetworkAgent::user_logout_ptr = nullptr;
+func_get_user_id                    NetworkAgent::get_user_id_ptr = nullptr;
+func_get_user_name                  NetworkAgent::get_user_name_ptr = nullptr;
+func_get_user_avatar                NetworkAgent::get_user_avatar_ptr = nullptr;
+func_get_user_nickanme              NetworkAgent::get_user_nickanme_ptr = nullptr;
+func_build_login_cmd                NetworkAgent::build_login_cmd_ptr = nullptr;
+func_build_logout_cmd               NetworkAgent::build_logout_cmd_ptr = nullptr;
+func_build_login_info               NetworkAgent::build_login_info_ptr = nullptr;
+func_bind                           NetworkAgent::bind_ptr = nullptr;
+func_unbind                         NetworkAgent::unbind_ptr = nullptr;
+func_get_bambulab_host              NetworkAgent::get_bambulab_host_ptr = nullptr;
+func_get_user_selected_machine      NetworkAgent::get_user_selected_machine_ptr = nullptr;
+func_set_user_selected_machine      NetworkAgent::set_user_selected_machine_ptr = nullptr;
+func_start_print                    NetworkAgent::start_print_ptr = nullptr;
+func_start_local_print_with_record  NetworkAgent::start_local_print_with_record_ptr = nullptr;
+func_start_local_print              NetworkAgent::start_local_print_ptr = nullptr;
+func_get_user_presets               NetworkAgent::get_user_presets_ptr = nullptr;
+func_request_setting_id             NetworkAgent::request_setting_id_ptr = nullptr;
+func_put_setting                    NetworkAgent::put_setting_ptr = nullptr;
+func_get_setting_list               NetworkAgent::get_setting_list_ptr = nullptr;
+func_delete_setting                 NetworkAgent::delete_setting_ptr = nullptr;
+func_get_studio_info_url            NetworkAgent::get_studio_info_url_ptr = nullptr;
+func_set_extra_http_header          NetworkAgent::set_extra_http_header_ptr = nullptr;
+func_check_user_task_report         NetworkAgent::check_user_task_report_ptr = nullptr;
+func_get_user_print_info            NetworkAgent::get_user_print_info_ptr = nullptr;
+func_get_printer_firmware           NetworkAgent::get_printer_firmware_ptr = nullptr;
+func_get_task_plate_index           NetworkAgent::get_task_plate_index_ptr = nullptr;
+func_get_slice_info                 NetworkAgent::get_slice_info_ptr = nullptr;
+func_query_bind_status              NetworkAgent::query_bind_status_ptr = nullptr;
+func_modify_printer_name            NetworkAgent::modify_printer_name_ptr = nullptr;
+func_get_camera_url                 NetworkAgent::get_camera_url_ptr = nullptr;
+
+
+NetworkAgent::NetworkAgent()
+{
+    if (create_agent_ptr) {
+        network_agent = create_agent_ptr();
+    }
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", this %1%, network_agent=%2%, create_agent_ptr=%3%")%this %network_agent %create_agent_ptr;
+}
+
+NetworkAgent::~NetworkAgent()
+{
+    int ret = 0;
+    if (network_agent && destroy_agent_ptr) {
+        ret = destroy_agent_ptr(network_agent);
+    }
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", this %1%, network_agent=%2%, destroy_agent_ptr=%3%, ret %4%")%this %network_agent %destroy_agent_ptr %ret;
+}
+
+int NetworkAgent::initialize_network_module()
+{
+    //int ret = -1;
+    std::string library;
+
+    //first load the library
+#if defined(_MSC_VER) || defined(_WIN32)
+    library = std::string(BAMBU_NETWORK_LIBRARY) + ".dll";
+    wchar_t lib_wstr[128];
+    memset(lib_wstr, 0, sizeof(lib_wstr));
+    ::MultiByteToWideChar(CP_UTF8, NULL, library.c_str(), strlen(library.c_str())+1, lib_wstr, sizeof(lib_wstr) / sizeof(lib_wstr[0]));
+    netwoking_module = LoadLibrary(lib_wstr);
+#elif defined(__WXMAC__)
+    std::string resource_dir = resources_dir();
+    library = resource_dir + "/../Library/"+ std::string("lib") + BAMBU_NETWORK_LIBRARY + ".dylib";
+    printf("loading network module at %s\n", library.c_str());
+    netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
+    if (!netwoking_module) {
+        library = std::string("lib") + BAMBU_NETWORK_LIBRARY + ".dylib";
+        netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
+    }
+    printf("after dlopen, network_module is %p\n", netwoking_module);
+#else
+    library = std::string("lib") + BAMBU_NETWORK_LIBRARY + ".so";
+    netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
+#endif
+
+    if (!netwoking_module) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", can not Load Library for %1%")%library;
+        return -1;
+    }
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", successfully loaded library %1%")%library;
+
+    //load the functions
+    create_agent_ptr                  =  reinterpret_cast<func_create_agent>(get_network_function("bambu_network_create_agent"));
+    destroy_agent_ptr                 =  reinterpret_cast<func_destroy_agent>(get_network_function("bambu_network_destroy_agent"));
+    init_log_ptr                      =  reinterpret_cast<func_init_log>(get_network_function("bambu_network_init_log"));
+    set_config_dir_ptr                =  reinterpret_cast<func_set_config_dir>(get_network_function("bambu_network_set_config_dir"));
+    set_cert_file_ptr                 =  reinterpret_cast<func_set_cert_file>(get_network_function("bambu_network_set_cert_file"));
+    set_country_code_ptr              =  reinterpret_cast<func_set_country_code>(get_network_function("bambu_network_set_country_code"));
+    start_ptr                         =  reinterpret_cast<func_start>(get_network_function("bambu_network_start"));
+    set_on_ssdp_msg_fn_ptr            =  reinterpret_cast<func_set_on_ssdp_msg_fn>(get_network_function("bambu_network_set_on_ssdp_msg_fn"));
+    set_on_user_login_fn_ptr          =  reinterpret_cast<func_set_on_user_login_fn>(get_network_function("bambu_network_set_on_user_login_fn"));
+    set_on_printer_connected_fn_ptr   =  reinterpret_cast<func_set_on_printer_connected_fn>(get_network_function("bambu_network_set_on_printer_connected_fn"));
+    set_on_server_connected_fn_ptr    =  reinterpret_cast<func_set_on_server_connected_fn>(get_network_function("bambu_network_set_on_server_connected_fn"));
+    set_on_http_error_fn_ptr          =  reinterpret_cast<func_set_on_http_error_fn>(get_network_function("bambu_network_set_on_http_error_fn"));
+    set_get_country_code_fn_ptr       =  reinterpret_cast<func_set_get_country_code_fn>(get_network_function("bambu_network_set_get_country_code_fn"));
+    set_on_message_fn_ptr             =  reinterpret_cast<func_set_on_message_fn>(get_network_function("bambu_network_set_on_message_fn"));
+    set_on_local_connect_fn_ptr       =  reinterpret_cast<func_set_on_local_connect_fn>(get_network_function("bambu_network_set_on_local_connect_fn"));
+    set_on_local_message_fn_ptr       =  reinterpret_cast<func_set_on_local_message_fn>(get_network_function("bambu_network_set_on_local_message_fn"));
+    connect_server_ptr                =  reinterpret_cast<func_connect_server>(get_network_function("bambu_network_connect_server"));
+    is_server_connected_ptr           =  reinterpret_cast<func_is_server_connected>(get_network_function("bambu_network_is_server_connected"));
+    refresh_connection_ptr            =  reinterpret_cast<func_refresh_connection>(get_network_function("bambu_network_refresh_connection"));
+    start_subscribe_ptr               =  reinterpret_cast<func_start_subscribe>(get_network_function("bambu_network_start_subscribe"));
+    stop_subscribe_ptr                =  reinterpret_cast<func_stop_subscribe>(get_network_function("bambu_network_stop_subscribe"));
+    send_message_ptr                  =  reinterpret_cast<func_send_message>(get_network_function("bambu_network_send_message"));
+    connect_printer_ptr               =  reinterpret_cast<func_connect_printer>(get_network_function("bambu_network_connect_printer"));
+    disconnect_printer_ptr            =  reinterpret_cast<func_disconnect_printer>(get_network_function("bambu_network_disconnect_printer"));
+    send_message_to_printer_ptr       =  reinterpret_cast<func_send_message_to_printer>(get_network_function("bambu_network_send_message_to_printer"));
+    start_discovery_ptr               =  reinterpret_cast<func_start_discovery>(get_network_function("bambu_network_start_discovery"));
+    change_user_ptr                   =  reinterpret_cast<func_change_user>(get_network_function("bambu_network_change_user"));
+    is_user_login_ptr                 =  reinterpret_cast<func_is_user_login>(get_network_function("bambu_network_is_user_login"));
+    user_logout_ptr                   =  reinterpret_cast<func_user_logout>(get_network_function("bambu_network_user_logout"));
+    get_user_id_ptr                   =  reinterpret_cast<func_get_user_id>(get_network_function("bambu_network_get_user_id"));
+    get_user_name_ptr                 =  reinterpret_cast<func_get_user_name>(get_network_function("bambu_network_get_user_name"));
+    get_user_avatar_ptr               =  reinterpret_cast<func_get_user_avatar>(get_network_function("bambu_network_get_user_avatar"));
+    get_user_nickanme_ptr             =  reinterpret_cast<func_get_user_nickanme>(get_network_function("bambu_network_get_user_nickanme"));
+    build_login_cmd_ptr               =  reinterpret_cast<func_build_login_cmd>(get_network_function("bambu_network_build_login_cmd"));
+    build_logout_cmd_ptr              =  reinterpret_cast<func_build_logout_cmd>(get_network_function("bambu_network_build_logout_cmd"));
+    build_login_info_ptr              =  reinterpret_cast<func_build_login_info>(get_network_function("bambu_network_build_login_info"));
+    bind_ptr                          =  reinterpret_cast<func_bind>(get_network_function("bambu_network_bind"));
+    unbind_ptr                        =  reinterpret_cast<func_unbind>(get_network_function("bambu_network_unbind"));
+    get_bambulab_host_ptr             =  reinterpret_cast<func_get_bambulab_host>(get_network_function("bambu_network_get_bambulab_host"));
+    get_user_selected_machine_ptr     =  reinterpret_cast<func_get_user_selected_machine>(get_network_function("bambu_network_get_user_selected_machine"));
+    set_user_selected_machine_ptr     =  reinterpret_cast<func_set_user_selected_machine>(get_network_function("bambu_network_set_user_selected_machine"));
+    start_print_ptr                   =  reinterpret_cast<func_start_print>(get_network_function("bambu_network_start_print"));
+    start_local_print_with_record_ptr =  reinterpret_cast<func_start_local_print_with_record>(get_network_function("bambu_network_start_local_print_with_record"));
+    start_local_print_ptr             =  reinterpret_cast<func_start_local_print>(get_network_function("bambu_network_start_local_print"));
+    get_user_presets_ptr              =  reinterpret_cast<func_get_user_presets>(get_network_function("bambu_network_get_user_presets"));
+    request_setting_id_ptr            =  reinterpret_cast<func_request_setting_id>(get_network_function("bambu_network_request_setting_id"));
+    put_setting_ptr                   =  reinterpret_cast<func_put_setting>(get_network_function("bambu_network_put_setting"));
+    get_setting_list_ptr              =  reinterpret_cast<func_get_setting_list>(get_network_function("bambu_network_get_setting_list"));
+    delete_setting_ptr                =  reinterpret_cast<func_delete_setting>(get_network_function("bambu_network_delete_setting"));
+    get_studio_info_url_ptr           =  reinterpret_cast<func_get_studio_info_url>(get_network_function("bambu_network_get_studio_info_url"));
+    set_extra_http_header_ptr         =  reinterpret_cast<func_set_extra_http_header>(get_network_function("bambu_network_set_extra_http_header"));
+    check_user_task_report_ptr        =  reinterpret_cast<func_check_user_task_report>(get_network_function("bambu_network_check_user_task_report"));
+    get_user_print_info_ptr           =  reinterpret_cast<func_get_user_print_info>(get_network_function("bambu_network_get_user_print_info"));
+    get_printer_firmware_ptr          =  reinterpret_cast<func_get_printer_firmware>(get_network_function("bambu_network_get_printer_firmware"));
+    get_task_plate_index_ptr          =  reinterpret_cast<func_get_task_plate_index>(get_network_function("bambu_network_get_task_plate_index"));
+    get_slice_info_ptr                =  reinterpret_cast<func_get_slice_info>(get_network_function("bambu_network_get_slice_info"));
+    query_bind_status_ptr             =  reinterpret_cast<func_query_bind_status>(get_network_function("bambu_network_query_bind_status"));
+    modify_printer_name_ptr           =  reinterpret_cast<func_modify_printer_name>(get_network_function("bambu_network_modify_printer_name"));
+    get_camera_url_ptr                =  reinterpret_cast<func_get_camera_url>(get_network_function("bambu_network_get_camera_url"));
+
+    return 0;
+}
+
+void* NetworkAgent::get_network_function(const char* name)
+{
+    void* function = nullptr;
+
+    if (!netwoking_module)
+        return function;
+
+#if defined(_MSC_VER) || defined(_WIN32)
+    function = GetProcAddress(netwoking_module, name);
+#else
+    function = dlsym(netwoking_module, name);
+#endif
+
+    if (!function) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", can not find function %1%")%name;
+    }
+    return function;
+}
+
+int NetworkAgent::init_log()
+{
+    int ret = 0;
+    if (network_agent && init_log_ptr) {
+        ret = init_log_ptr(network_agent);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::set_config_dir(std::string config_dir)
+{
+    int ret = 0;
+    if (network_agent && set_config_dir_ptr) {
+        ret = set_config_dir_ptr(network_agent, config_dir);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, config_dir=%3%")%network_agent %ret %config_dir ;
+    }
+    return ret;
+}
+
+int NetworkAgent::set_cert_file(std::string folder, std::string filename)
+{
+    int ret = 0;
+    if (network_agent && set_cert_file_ptr) {
+        ret = set_cert_file_ptr(network_agent, folder, filename);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, folder=%3%, filename=%4%")%network_agent %ret %folder %filename;
+    }
+    return ret;
+}
+
+int NetworkAgent::set_country_code(std::string country_code)
+{
+    int ret = 0;
+    if (network_agent && set_country_code_ptr) {
+        ret = set_country_code_ptr(network_agent, country_code);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, country_code=%3%")%network_agent %ret %country_code ;
+    }
+    return ret;
+}
+
+int NetworkAgent::start()
+{
+    int ret = 0;
+    if (network_agent && start_ptr) {
+        ret = start_ptr(network_agent);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::set_on_ssdp_msg_fn(OnMsgArrivedFn fn)
+{
+    int ret = 0;
+    if (network_agent && set_on_ssdp_msg_fn_ptr) {
+        ret = set_on_ssdp_msg_fn_ptr(network_agent, fn);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::set_on_user_login_fn(OnUserLoginFn fn)
+{
+    int ret = 0;
+    if (network_agent && set_on_user_login_fn_ptr) {
+        ret = set_on_user_login_fn_ptr(network_agent, fn);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::set_on_printer_connected_fn(OnPrinterConnectedFn fn)
+{
+    int ret = 0;
+    if (network_agent && set_on_printer_connected_fn_ptr) {
+        ret = set_on_printer_connected_fn_ptr(network_agent, fn);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::set_on_server_connected_fn(OnServerConnectedFn fn)
+{
+    int ret = 0;
+    if (network_agent && set_on_server_connected_fn_ptr) {
+        ret = set_on_server_connected_fn_ptr(network_agent, fn);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::set_on_http_error_fn(OnHttpErrorFn fn)
+{
+    int ret = 0;
+    if (network_agent && set_on_http_error_fn_ptr) {
+        ret = set_on_http_error_fn_ptr(network_agent, fn);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::set_get_country_code_fn(GetCountryCodeFn fn)
+{
+    int ret = 0;
+    if (network_agent && set_get_country_code_fn_ptr) {
+        ret = set_get_country_code_fn_ptr(network_agent, fn);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::set_on_message_fn(OnMessageFn fn)
+{
+    int ret = 0;
+    if (network_agent && set_on_message_fn_ptr) {
+        ret = set_on_message_fn_ptr(network_agent, fn);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::set_on_local_connect_fn(OnLocalConnectedFn fn)
+{
+    int ret = 0;
+    if (network_agent && set_on_local_connect_fn_ptr) {
+        ret = set_on_local_connect_fn_ptr(network_agent, fn);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::set_on_local_message_fn(OnMessageFn fn)
+{
+    int ret = 0;
+    if (network_agent && set_on_local_message_fn_ptr) {
+        ret = set_on_local_message_fn_ptr(network_agent, fn);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::connect_server()
+{
+    int ret = 0;
+    if (network_agent && connect_server_ptr) {
+        ret = connect_server_ptr(network_agent);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+    }
+    return ret;
+}
+
+bool NetworkAgent::is_server_connected()
+{
+    bool ret = false;
+    if (network_agent && is_server_connected_ptr) {
+        ret = is_server_connected_ptr(network_agent);
+        //BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::refresh_connection()
+{
+    int ret = 0;
+    if (network_agent && refresh_connection_ptr) {
+        ret = refresh_connection_ptr(network_agent);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::start_subscribe(std::string module)
+{
+    int ret = 0;
+    if (network_agent && start_subscribe_ptr) {
+        ret = start_subscribe_ptr(network_agent, module);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, module=%3%")%network_agent %ret %module ;
+    }
+    return ret;
+}
+
+int NetworkAgent::stop_subscribe(std::string module)
+{
+    int ret = 0;
+    if (network_agent && stop_subscribe_ptr) {
+        ret = stop_subscribe_ptr(network_agent, module);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, module=%3%")%network_agent %ret %module ;
+    }
+    return ret;
+}
+
+int NetworkAgent::send_message(std::string dev_id, std::string json_str, int qos)
+{
+    int ret = 0;
+    if (network_agent && send_message_ptr) {
+        ret = send_message_ptr(network_agent, dev_id, json_str, qos);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%, json_str=%4%, qos=%5%")%network_agent %ret %dev_id %json_str %qos;
+    }
+    return ret;
+}
+
+int NetworkAgent::connect_printer(std::string dev_id, std::string dev_ip, std::string username, std::string password)
+{
+    int ret = 0;
+    if (network_agent && connect_printer_ptr) {
+        ret = connect_printer_ptr(network_agent, dev_id, dev_ip, username, password);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%, dev_ip=%4%, username=%5%, password=%6%")
+                %network_agent %ret %dev_id %dev_ip %username %password;
+    }
+    return ret;
+}
+
+int NetworkAgent::disconnect_printer()
+{
+    int ret = 0;
+    if (network_agent && disconnect_printer_ptr) {
+        ret = disconnect_printer_ptr(network_agent);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::send_message_to_printer(std::string dev_id, std::string json_str, int qos)
+{
+    int ret = 0;
+    if (network_agent && send_message_to_printer_ptr) {
+        ret = send_message_to_printer_ptr(network_agent, dev_id, json_str, qos);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%, json_str=%4%, qos=%5%")
+                %network_agent %ret %dev_id %json_str %qos;
+    }
+    return ret;
+}
+
+bool NetworkAgent::start_discovery(bool start, bool sending)
+{
+    bool ret = false;
+    if (network_agent && start_discovery_ptr) {
+        ret = start_discovery_ptr(network_agent, start, sending);
+        //BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, start=%3%, sending=%4%")%network_agent %ret %start %sending;
+    }
+    return ret;
+}
+
+int  NetworkAgent::change_user(std::string user_info)
+{
+    int ret = 0;
+    if (network_agent && change_user_ptr) {
+        ret = change_user_ptr(network_agent, user_info);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, user_info=%3%")%network_agent %ret %user_info ;
+    }
+    return ret;
+}
+
+bool NetworkAgent::is_user_login()
+{
+    bool ret = false;
+    if (network_agent && is_user_login_ptr) {
+        ret = is_user_login_ptr(network_agent);
+    }
+    return ret;
+}
+
+int  NetworkAgent::user_logout()
+{
+    int ret = 0;
+    if (network_agent && user_logout_ptr) {
+        ret = user_logout_ptr(network_agent);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%")%network_agent %ret;
+    }
+    return ret;
+}
+
+std::string NetworkAgent::get_user_id()
+{
+    std::string ret;
+    if (network_agent && get_user_id_ptr) {
+        ret = get_user_id_ptr(network_agent);
+    }
+    return ret;
+}
+
+std::string NetworkAgent::get_user_name()
+{
+    std::string ret;
+    if (network_agent && get_user_name_ptr) {
+        ret = get_user_name_ptr(network_agent);
+    }
+    return ret;
+}
+
+std::string NetworkAgent::get_user_avatar()
+{
+    std::string ret;
+    if (network_agent && get_user_avatar_ptr) {
+        ret = get_user_avatar_ptr(network_agent);
+    }
+    return ret;
+}
+
+std::string NetworkAgent::get_user_nickanme()
+{
+    std::string ret;
+    if (network_agent && get_user_nickanme_ptr) {
+        ret = get_user_nickanme_ptr(network_agent);
+    }
+    return ret;
+}
+
+std::string NetworkAgent::build_login_cmd()
+{
+    std::string ret;
+    if (network_agent && build_login_cmd_ptr) {
+        ret = build_login_cmd_ptr(network_agent);
+    }
+    return ret;
+}
+
+std::string NetworkAgent::build_logout_cmd()
+{
+    std::string ret;
+    if (network_agent && build_logout_cmd_ptr) {
+        ret = build_logout_cmd_ptr(network_agent);
+    }
+    return ret;
+}
+
+std::string NetworkAgent::build_login_info()
+{
+    std::string ret;
+    if (network_agent && build_login_info_ptr) {
+        ret = build_login_info_ptr(network_agent);
+    }
+    return ret;
+}
+
+int NetworkAgent::bind(std::string dev_ip, std::string timezone, OnUpdateStatusFn update_fn)
+{
+    int ret = 0;
+    if (network_agent && bind_ptr) {
+        ret = bind_ptr(network_agent, dev_ip, timezone, update_fn);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_ip=%3%, timezone=%4%")
+                %network_agent %ret %dev_ip %timezone;
+    }
+    return ret;
+}
+
+int NetworkAgent::unbind(std::string dev_id)
+{
+    int ret = 0;
+    if (network_agent && unbind_ptr) {
+        ret = unbind_ptr(network_agent, dev_id);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, user_info=%3%")%network_agent %ret %dev_id ;
+    }
+    return ret;
+}
+
+std::string NetworkAgent::get_bambulab_host()
+{
+    std::string ret;
+    if (network_agent && get_bambulab_host_ptr) {
+        ret = get_bambulab_host_ptr(network_agent);
+    }
+    return ret;
+}
+
+std::string NetworkAgent::get_user_selected_machine()
+{
+    std::string ret;
+    if (network_agent && get_user_selected_machine_ptr) {
+        ret = get_user_selected_machine_ptr(network_agent);
+    }
+    return ret;
+}
+
+int NetworkAgent::set_user_selected_machine(std::string dev_id)
+{
+    int ret = 0;
+    if (network_agent && set_user_selected_machine_ptr) {
+        ret = set_user_selected_machine_ptr(network_agent, dev_id);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, user_info=%3%")%network_agent %ret %dev_id ;
+    }
+    return ret;
+}
+
+int NetworkAgent::start_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
+{
+    int ret = 0;
+    if (network_agent && start_print_ptr) {
+        ret = start_print_ptr(network_agent, params, update_fn, cancel_fn);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%")
+                %network_agent %ret %params.dev_id %params.task_name %params.project_name;
+    }
+    return ret;
+}
+
+int NetworkAgent::start_local_print_with_record(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
+{
+    int ret = 0;
+    if (network_agent && start_local_print_with_record_ptr) {
+        ret = start_local_print_with_record_ptr(network_agent, params, update_fn, cancel_fn);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%")
+                %network_agent %ret %params.dev_id %params.task_name %params.project_name;
+    }
+    return ret;
+}
+
+int NetworkAgent::start_local_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
+{
+    int ret = 0;
+    if (network_agent && start_local_print_ptr) {
+        ret = start_local_print_ptr(network_agent, params, update_fn, cancel_fn);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%")
+                %network_agent %ret %params.dev_id %params.task_name %params.project_name;
+    }
+    return ret;
+}
+
+int NetworkAgent::get_user_presets(std::map<std::string, std::map<std::string, std::string>>* user_presets)
+{
+    int ret = 0;
+    if (network_agent && get_user_presets_ptr) {
+        ret = get_user_presets_ptr(network_agent, user_presets);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, setting_id count=%3%")%network_agent %ret %user_presets->size() ;
+    }
+    return ret;
+}
+
+std::string NetworkAgent::request_setting_id(std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code)
+{
+    std::string ret;
+    if (network_agent && request_setting_id_ptr) {
+        ret = request_setting_id_ptr(network_agent, name, values_map, http_code);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, name=%2%, http_code=%3%, ret.setting_id=%4%")
+                %network_agent %name %(*http_code) %ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code)
+{
+    int ret;
+    if (network_agent && put_setting_ptr) {
+        ret = put_setting_ptr(network_agent, setting_id, name, values_map, http_code);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, setting_id=%2%, name=%3%, http_code=%4%, ret=%5%")
+                %network_agent %setting_id %name %(*http_code) %ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::get_setting_list(std::string bundle_version, ProgressFn pro_fn, WasCancelledFn cancel_fn)
+{
+    int ret = 0;
+    if (network_agent && get_setting_list_ptr) {
+        ret = get_setting_list_ptr(network_agent, bundle_version, pro_fn, cancel_fn);
+        if (ret)
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, bundle_version=%3%")%network_agent %ret %bundle_version ;
+    }
+    return ret;
+}
+
+int NetworkAgent::delete_setting(std::string setting_id)
+{
+    int ret = 0;
+    if (network_agent && delete_setting_ptr) {
+        ret = delete_setting_ptr(network_agent, setting_id);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, setting_id=%3%")%network_agent %ret %setting_id ;
+    }
+    return ret;
+}
+
+std::string NetworkAgent::get_studio_info_url()
+{
+    std::string ret;
+    if (network_agent && get_studio_info_url_ptr) {
+        ret = get_studio_info_url_ptr(network_agent);
+    }
+    return ret;
+}
+
+int NetworkAgent::set_extra_http_header(std::map<std::string, std::string> extra_headers)
+{
+    int ret = 0;
+    if (network_agent && set_extra_http_header_ptr) {
+        ret = set_extra_http_header_ptr(network_agent, extra_headers);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, extra_headers count=%3%")%network_agent %ret %extra_headers.size() ;
+    }
+    return ret;
+}
+
+int NetworkAgent::check_user_task_report(int* task_id, bool* printable)
+{
+    int ret = 0;
+    if (network_agent && check_user_task_report_ptr) {
+        ret = check_user_task_report_ptr(network_agent, task_id, printable);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, task_id=%3%, printable=%4%")%network_agent %ret %(*task_id) %(*printable);
+    }
+    return ret;
+}
+
+int NetworkAgent::get_user_print_info(unsigned int* http_code, std::string* http_body)
+{
+    int ret = 0;
+    if (network_agent && get_user_print_info_ptr) {
+        ret = get_user_print_info_ptr(network_agent, http_code, http_body);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, http_code=%3%, http_body=%4%")%network_agent %ret %(*http_code) %(*http_body);
+    }
+    return ret;
+}
+
+int NetworkAgent::get_printer_firmware(std::string dev_id, unsigned* http_code, std::string* http_body)
+{
+    int ret = 0;
+    if (network_agent && get_printer_firmware_ptr) {
+        ret = get_printer_firmware_ptr(network_agent, dev_id, http_code, http_body);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, http_code=%4%, http_body=%5%")
+                %network_agent %ret %dev_id %(*http_code) %(*http_body);
+    }
+    return ret;
+}
+
+int NetworkAgent::get_task_plate_index(std::string task_id, int* plate_index)
+{
+    int ret = 0;
+    if (network_agent && get_task_plate_index_ptr) {
+        ret = get_task_plate_index_ptr(network_agent, task_id, plate_index);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, task_id=%3%")%network_agent %ret %task_id;
+    }
+    return ret;
+}
+
+int NetworkAgent::get_slice_info(std::string project_id, std::string profile_id, int plate_index, std::string* slice_json)
+{
+    int ret;
+    if (network_agent && get_slice_info_ptr) {
+        ret = get_slice_info_ptr(network_agent, project_id, profile_id, plate_index, slice_json);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, project_id=%2%, profile_id=%3%, plate_index=%4%, slice_json=%5%")
+                %network_agent %project_id %profile_id %plate_index %(*slice_json);
+    }
+    return ret;
+}
+
+int NetworkAgent::query_bind_status(std::vector<std::string> query_list, unsigned int* http_code, std::string* http_body)
+{
+    int ret;
+    if (network_agent && query_bind_status_ptr) {
+        ret = query_bind_status_ptr(network_agent, query_list, http_code, http_body);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, http_code=%3%, http_body=%4%")
+                %network_agent %ret%(*http_code) %(*http_body);
+    }
+    return ret;
+}
+
+int NetworkAgent::modify_printer_name(std::string dev_id, std::string dev_name)
+{
+    int ret = 0;
+    if (network_agent && modify_printer_name_ptr) {
+        ret = modify_printer_name_ptr(network_agent, dev_id, dev_name);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, dev_name=%4%")%network_agent %ret %dev_id %dev_name;
+    }
+    return ret;
+}
+
+int NetworkAgent::get_camera_url(std::string dev_id, std::function<void(std::string)> callback)
+{
+    int ret = 0;
+    if (network_agent && get_camera_url_ptr) {
+        ret = get_camera_url_ptr(network_agent, dev_id, callback);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%")%network_agent %ret %dev_id;
+    }
+    return ret;
+}
+
+
+} //namespace

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Bambu GCode viewer
+Exec=bambu-studio --gcodeviewer %F
+Icon=BambuStudio-gcodeviewer
+Terminal=false
+Type=Application
+MimeType=text/x.gcode;
+Categories=Graphics;3DGraphics;
+Keywords=3D;Printing;Slicer;
