@@ -173,7 +173,7 @@ void AppConfig::set_defaults()
         set_bool("developer_mode", false);
 
     if (get("severity_level").empty())
-        set("severity_level", "trace");
+        set("severity_level", "info");
 
     if (get("dump_video").empty())
         set_bool("dump_video", false);

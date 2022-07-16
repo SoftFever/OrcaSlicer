@@ -1448,7 +1448,6 @@ int CLI::run(int argc, char **argv)
 
 bool CLI::setup(int argc, char **argv)
 {
-#if !BBL_RELEASE_TO_PUBLIC
     {
 	    Slic3r::set_logging_level(1);
         const char *loglevel = boost::nowide::getenv("BBL_LOGLEVEL");
@@ -1459,10 +1458,6 @@ bool CLI::setup(int argc, char **argv)
                 boost::nowide::cerr << "Invalid BBL_LOGLEVEL environment variable: " << loglevel << std::endl;
         }
     }
-#else
-    //set to fatal
-    Slic3r::set_logging_level(0);
-#endif
 
     // Detect the operating system flavor after SLIC3R_LOGLEVEL is set.
     detect_platform();
