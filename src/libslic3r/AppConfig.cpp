@@ -118,7 +118,7 @@ void AppConfig::set_defaults()
             set("use_environment_map", false);
 #endif // ENABLE_ENVIRONMENT_MAP
 
-        if (get("use_inches").empty()) 
+        if (get("use_inches").empty())
             set("use_inches", "0");
     }
     else {
@@ -257,7 +257,7 @@ void AppConfig::set_defaults()
     }
 
     if (get("iot_environment").empty()) {
-        set("iot_environment", "1");
+        set("iot_environment", "3");
     }
 
     // Remove legacy window positions/sizes
@@ -1004,11 +1004,11 @@ std::string AppConfig::get_country_code()
 {
     std::string region = get_region();
     /* fix PRE environment when release to public */
-#if BBL_RELEASE_TO_PUBLIC
+#if 0
     this->set("iot_environment", "2");
     return "ENV_CN_PRE";
 #else
-    if (is_engineering_region()) { return region; }
+    //if (is_engineering_region()) { return region; }
     if (region == "CHN" || region == "China")
         return "CN";
     else if (region == "USA")

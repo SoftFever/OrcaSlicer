@@ -569,15 +569,18 @@ void PreferencesDialog::create()
     m_sizer_body->Add(m_top_line, 0, wxEXPAND, 0);
 
     auto general_page = create_general_page();
+#if !BBL_RELEASE_TO_PUBLIC
     auto debug_page   = create_debug_page();
-
+#endif
     /* create_gui_page();
      create_sync_page();
      create_shortcuts_page();*/
 
      m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(28));
     m_sizer_body->Add(general_page, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(38));
+#if !BBL_RELEASE_TO_PUBLIC
     m_sizer_body->Add(debug_page, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(38));
+#endif
     m_sizer_body->Add(0, 0, 0, wxBOTTOM, FromDIP(28));
     SetSizer(m_sizer_body);
     Layout();
