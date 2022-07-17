@@ -1,12 +1,22 @@
 {
     "type": "process",
     "setting_id": "GP003",
-    "name": "0.16mm Optimal @BBL X1C",
+    "name": "0.16mm Optimal @Voron",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_process_bbl_0.16",
+    "initial_layer_speed": "50",
+    "initial_layer_infill_speed": "105",
+    "outer_wall_speed": "120",
+    "inner_wall_speed": "200",
+    "sparse_infill_speed": "300",
+    "internal_solid_infill_speed": "200",
+    "top_surface_speed": "100",
+    "gap_infill_speed": "100",
+    "travel_speed": "350",
     "compatible_printers": [
-      "Bambu Lab X1 Carbon 0.4 nozzle",
-      "Bambu Lab X1 0.4 nozzle"
+      "Voron 2.4 250 0.4 nozzle",
+      "Voron 2.4 300 0.4 nozzle",
+      "Voron 2.4 350 0.4 nozzle"
     ]
 }
