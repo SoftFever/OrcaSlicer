@@ -9,6 +9,9 @@
         "22"
     ],
     "compatible_printers": [
-      "Bambu Lab X1 Carbon 0.4 nozzle"
+      "Bambu Lab X1 Carbon 0.4 nozzle",
+      "Voron 2.4 250 0.4 nozzle",
+      "Voron 2.4 300 0.4 nozzle",
+      "Voron 2.4 350 0.4 nozzle"
     ]
 }
