@@ -1,5 +1,20 @@
-![image](https://user-images.githubusercontent.com/106916061/179006347-497d24c0-9bd6-45b7-8c49-d5cc8ecfe5d7.png)
 
+A modified version of Bambu Studio.
+I has following changes:
+
+- Add support for Voron 2.4 machines(Trident should work as well).
+- Export to to .gcode file.
+
+![image](https://user-images.githubusercontent.com/103989404/179396319-743a5836-42f4-4240-8763-9f5b7a323488.png)
+![image](https://user-images.githubusercontent.com/103989404/179396355-fc07135a-fd08-430c-aa8d-dc1060ae94d1.png)
+![image](https://user-images.githubusercontent.com/103989404/179396363-d9868dfc-f8d5-4227-ad19-a439dfc31ce5.png)
+![image](https://user-images.githubusercontent.com/103989404/179398283-f71ea1bd-18a8-4526-9678-a3c63bc36964.png)
+
+Image credits: 
+ 1. Voron machine: vorondesign.com
+ 2. Voron bed texture: VoronUsers/bryansj
+
+![image](https://user-images.githubusercontent.com/106916061/179006347-497d24c0-9bd6-45b7-8c49-d5cc8ecfe5d7.png)
 # BambuStudio
 Bambu Studio is a cutting-edge, feature-rich slicing software.  
 It contains project-based workflows, systematically optimized slicing algorithms, and an easy-to-use graphic interface, bringing users an incredibly smooth printing experience.
