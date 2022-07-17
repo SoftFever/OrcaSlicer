@@ -1219,9 +1219,6 @@ wxBoxSizer* MainFrame::create_side_tools()
 #endif
             SideButton* print_plate_btn = new SideButton(p, _L("Print"), "");
             print_plate_btn->SetCornerRadius(0);
-            SideButton* export_sliced_file_btn = new SideButton(p, _L("Export sliced file"), "");
-            export_sliced_file_btn->SetCornerRadius(0);
-
             print_plate_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Print"));
                     m_print_select = ePrintPlate;
@@ -1231,8 +1228,10 @@ wxBoxSizer* MainFrame::create_side_tools()
                     p->Dismiss();
                 });
 
-            export_sliced_file_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
-                    m_print_btn->SetLabel(_L("Export Sliced File"));
+            SideButton* export_sliced_file_3mf_btn = new SideButton(p, _L("Export sliced file (.3mf)"), "");
+            export_sliced_file_3mf_btn->SetCornerRadius(0);
+            export_sliced_file_3mf_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+                    m_print_btn->SetLabel(_L("Export Sliced File (.3mf)"));
                     m_print_select = eExportSlicedFile;
                     if (m_print_enable)
                         m_print_enable = get_enable_print_status();
@@ -1240,11 +1239,25 @@ wxBoxSizer* MainFrame::create_side_tools()
                     this->Layout();
                     p->Dismiss();
                 });
+
+            SideButton* export_sliced_file_gcode_btn = new SideButton(p, _L("Export sliced file (.gcode)"), "");
+            export_sliced_file_gcode_btn->SetCornerRadius(0);
+            export_sliced_file_gcode_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+                    m_print_btn->SetLabel(_L("Export Sliced File (.gcode)"));
+                    m_print_select = eExportGcode;
+                    if (m_print_enable)
+                        m_print_enable = get_enable_print_status();
+                    m_print_btn->Enable(m_print_enable);
+                    this->Layout();
+                    p->Dismiss();
+                });
+
 #if ENABEL_PRINT_ALL
             p->append_button(print_all_btn);
 #endif
             p->append_button(print_plate_btn);
-            p->append_button(export_sliced_file_btn);
+            p->append_button(export_sliced_file_3mf_btn);
+            p->append_button(export_sliced_file_gcode_btn);
             p->Popup(m_print_btn);
         }
     );
