@@ -1,5 +1,5 @@
 
-A modified version of Bambu Studio. 
+A modified version of Bambu Studio.   
 It has following changes:
 
 - Support third-party machines:
@@ -9,8 +9,12 @@ It has following changes:
     - Prusa MK3S
 - Export to to .gcode file.
 
-![image](https://user-images.githubusercontent.com/103989404/179396319-743a5836-42f4-4240-8763-9f5b7a323488.png)
+Video: https://youtu.be/zCc7mVwu2xQ  
+ 
+![image](https://user-images.githubusercontent.com/103989404/179447873-b7b2a200-7a00-409d-b9d5-b0522f5f2ec8.png)
+![image](https://user-images.githubusercontent.com/103989404/179447890-a124bd43-dab2-46b7-b0da-ef6c67783d9c.png)
 ![image](https://user-images.githubusercontent.com/103989404/179396355-fc07135a-fd08-430c-aa8d-dc1060ae94d1.png)
+![image](https://user-images.githubusercontent.com/103989404/179447933-7752235a-a6eb-468c-a304-6eb0875c4c95.png)
 ![image](https://user-images.githubusercontent.com/103989404/179396363-d9868dfc-f8d5-4227-ad19-a439dfc31ce5.png)
 ![image](https://user-images.githubusercontent.com/103989404/179398283-f71ea1bd-18a8-4526-9678-a3c63bc36964.png)
 
@@ -18,7 +22,10 @@ Image credits:
  1. Voron 2.4: vorondesign.com
  2. Voron bed texture: VoronUsers/bryansj
  3. Voron 0.1: myself
- 4. Prusa MK3S: Prusa3d
+ 4. Prusa MK3S: Prusa3d  
+
+
+=========================SPLIT=========================     
 
 ![image](https://user-images.githubusercontent.com/106916061/179006347-497d24c0-9bd6-45b7-8c49-d5cc8ecfe5d7.png)
 # BambuStudio
