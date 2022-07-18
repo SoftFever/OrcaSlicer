@@ -1,11 +1,11 @@
 {
   "type": "machine",
   "setting_id": "GM003",
-  "name": "Voron 2.4 350 0.4 nozzle",
+  "name": "Voron 0.1 0.4 nozzle",
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_bbl_3dp_001_common",
-  "printer_model": "Voron 2.4 350",
+  "printer_model": "Voron 0.1",
   "default_filament_profile": [
       "Bambu PLA Basic @BBL X1"
   ],
@@ -18,14 +18,13 @@
   ],
   "printable_area": [
     "0x0",
-    "350x0",
-    "350x350",
-    "0x350"
+    "120x0",
+    "120x120",
+    "0x120"
   ],
-  "printable_height": "325",
+  "printable_height": "120",
   "machine_start_gcode": "PRINT_START EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer_single]",
   "machine_end_gcode": "PRINT_END",
-  "layer_change_gcode": "",
   "scan_first_layer": "0",
   "machine_load_filament_time": "17",
   "machine_unload_filament_time": "16",

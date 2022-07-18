@@ -23,8 +23,9 @@
     "0x300"
   ],
   "printable_height": "275",
-   "machine_start_gcode": "PRINT_START EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer_single]",
+  "machine_start_gcode": "PRINT_START EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer_single]",
   "machine_end_gcode": "PRINT_END",
+  "layer_change_gcode": "",
   "scan_first_layer": "0",
   "machine_load_filament_time": "17",
   "machine_unload_filament_time": "16",
