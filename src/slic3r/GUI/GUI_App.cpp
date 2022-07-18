@@ -1303,7 +1303,7 @@ static boost::optional<Semver> parse_semver_from_ini(std::string path)
 void GUI_App::init_app_config()
 {
 	// Profiles for the alpha are stored into the PrusaSlicer-alpha directory to not mix with the current release.
-    SetAppName(SLIC3R_APP_KEY);
+    SetAppName("BambuStudio-SoftFever");
 //	SetAppName(SLIC3R_APP_KEY "-alpha");
 //  SetAppName(SLIC3R_APP_KEY "-beta");
 //	SetAppDisplayName(SLIC3R_APP_NAME);
