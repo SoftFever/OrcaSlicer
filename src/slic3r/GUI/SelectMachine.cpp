@@ -1064,7 +1064,7 @@ void SelectMachineDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &res
                     ams_col = AmsTray::decode_color(f->color);
                 } else {
                     // default color
-                    ams_col = wxColour(0x6B, 0x6B, 0x6B);
+                    ams_col = wxColour(0xEE, 0xEE, 0xEE);
                 }
 
                 m->set_ams_info(ams_col, ams_id);
@@ -1950,6 +1950,10 @@ void SelectMachineDialog::set_default()
         m_sizer_material->Add(item, 0, wxALL, FromDIP(4));
 
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {
+           
+        });
+
+        item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent &e) {
             MaterialHash::iterator iter = m_materialList.begin();
             while (iter != m_materialList.end()) {
                 int           id   = iter->first;
@@ -1961,9 +1965,8 @@ void SelectMachineDialog::set_default()
 
             m_current_filament_id = extruder;
             item->on_selected();
-        });
 
-        item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent &e) {
+
             auto    mouse_pos = ClientToScreen(e.GetPosition());
             wxPoint rect      = item->ClientToScreen(wxPoint(0, 0));
             // update ams data

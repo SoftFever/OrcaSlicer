@@ -85,6 +85,24 @@ public:
     void doRender(wxDC &dc);
 };
 
+class MappingItem : public wxPanel
+{
+public:
+    MappingItem(wxWindow *parent);
+    ~MappingItem();
+
+	void     update_data(TrayData data);
+    void     send_event(int fliament_id);
+    wxColour m_coloul;
+    wxString m_name;
+    TrayData m_tray_data;
+
+    void msw_rescale();
+    void paintEvent(wxPaintEvent &evt);
+    void render(wxDC &dc);
+    void set_data(wxColour colour, wxString name, TrayData data);
+    void doRender(wxDC &dc);
+};
 
 class AmsMapingPopup : public wxPopupTransientWindow
 {
@@ -94,6 +112,7 @@ public:
 
     std::vector<std::string> m_materials_list;
     std::vector<wxBoxSizer*>  m_amsmapping_sizer_list;
+    std::vector<MappingItem*> m_mapping_item_list;
 
     int         m_current_filament_id;
     std::string m_tag_material;
@@ -105,7 +124,8 @@ public:
     void         add_ams_mapping(std::vector<TrayData> tray_data);
     void         set_current_filament_id(int id){m_current_filament_id = id;};
     int          get_current_filament_id(){return m_current_filament_id;};
-    bool         is_match_material(int id, std::string material);
+    bool         is_match_material(std::string material);
+    void         on_left_down(wxMouseEvent &evt);
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;
     void paintEvent(wxPaintEvent &evt);
