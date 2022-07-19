@@ -6572,6 +6572,8 @@ int Plater::save_project(bool saveAs)
 
     up_to_date(true, false);
     up_to_date(true, true);
+
+    wxGetApp().update_saved_preset_from_current_preset();
     p->dirty_state.reset_after_save();
     return wxID_YES;
 }
