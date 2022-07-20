@@ -4642,6 +4642,40 @@ void PrintObjectSupportMaterial::generate_toolpaths(
             }
 #endif
 
+            // Calculate top interface angle
+            float angle_of_biggest_bridge = -1.f;
+            do
+            {
+                // Currently only works when thick_bridges is off
+                if (m_object->config().thick_bridges)
+                    break;
+
+                coordf_t object_layer_bottom_z = support_layer.print_z + m_slicing_params.gap_support_object;
+                const Layer* object_layer = m_object->get_layer_at_bottomz(object_layer_bottom_z, 10.0 * EPSILON);
+                if (object_layer == nullptr)
+                    break;
+
+                if (object_layer != nullptr) {
+                    float biggest_bridge_area = 0.f;
+                    const Polygons& top_contact_polys = top_contact_layer.polygons_to_extrude();
+                    for (auto layerm : object_layer->regions()) {
+                        for (auto bridge_surface : layerm->fill_surfaces.filter_by_type(stBottomBridge)) {
+                            float bs_area = bridge_surface->area();
+                            if (bs_area <= biggest_bridge_area || bridge_surface->bridge_angle < 0.f)
+                                continue;
+
+                            angle_of_biggest_bridge = bridge_surface->bridge_angle;
+                            biggest_bridge_area = bs_area;
+                        }
+                    }
+                }
+            } while (0);
+
+            auto calc_included_angle_degree = [](int degree_a, int degree_b) {
+                int iad = std::abs(degree_b - degree_a);
+                return std::min(iad, 180 - iad);
+            };
+
             // Top and bottom contacts, interface layers.
             for (size_t i = 0; i < 3; ++ i) {
                 MyLayerExtruded &layer_ex = (i == 0) ? top_contact_layer : (i == 1 ? bottom_contact_layer : interface_layer);
@@ -4664,6 +4698,22 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                         // Use interface angle for the interface layers.
                         m_support_params.interface_angle + interface_angle_delta;
 
+                // BBS
+                bool can_adjust_top_interface_angle = (m_object_config->support_interface_top_layers.value > 1 && &layer_ex == &top_contact_layer);
+                if (can_adjust_top_interface_angle && angle_of_biggest_bridge >= 0.f) {
+                    int bridge_degree = (int)Geometry::rad2deg(angle_of_biggest_bridge);
+                    int support_intf_degree = (int)Geometry::rad2deg(filler_interface->angle);
+                    int max_included_degree = 0;
+                    int step = 90;
+                    for (int add_on_degree = 0; add_on_degree < 180; add_on_degree += step) {
+                        int degree_to_try = support_intf_degree + add_on_degree;
+                        int included_degree = calc_included_angle_degree(bridge_degree, degree_to_try);
+                        if (included_degree > max_included_degree) {
+                            max_included_degree = included_degree;
+                            filler_interface->angle = Geometry::deg2rad((float)degree_to_try);
+                        }
+                    }
+                }
                 double density = interface_as_base ? m_support_params.support_density : m_support_params.interface_density;
                 filler_interface->spacing = interface_as_base ? m_support_params.support_material_flow.spacing() : m_support_params.support_material_interface_flow.spacing();
                 filler_interface->link_max_length = coord_t(scale_(filler_interface->spacing * link_max_length_factor / density));
