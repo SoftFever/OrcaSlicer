@@ -412,7 +412,7 @@ void ArrangeJob::prepare()
 
     //add the virtual object into unselect list if has
     m_plater->get_partplate_list().preprocess_exclude_areas(m_unselected, MAX_NUM_PLATES);
-
+    
 #if SAVE_ARRANGE_POLY
     if (1)
     { // subtract excluded region and get a polygon bed
@@ -558,10 +558,8 @@ void ArrangeJob::process()
 
     params.stopcondition = [this]() { return was_canceled(); };
 
-    auto count = unsigned(m_selected.size());// + m_unprintable.size());
-    params.progressind = [this, count](unsigned num_finished, std::string str="") {
-        // if (num_finished >= 0 && num_finished <= count)
-        //     update_status(int(float(num_finished) / count * 100), _L("Arranging") + " "+str);
+    params.progressind = [this](unsigned num_finished, std::string str="") {
+        update_status(num_finished, _L("Arranging") + " " + str);
     };
 
     if(!params.is_seq_print)
@@ -610,7 +608,7 @@ void ArrangeJob::process()
     }
 
     // finalize just here.
-    update_status(100,
+    update_status(status_range(),
         was_canceled() ? _(L("Arranging canceled.")) :
         we_have_unpackable_items ? _(L("Arranging is done but there are unpacked items. Reduce spacing and try again.")) : _(L("Arranging done.")));
 }
