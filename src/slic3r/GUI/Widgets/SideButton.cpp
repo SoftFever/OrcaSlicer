@@ -214,9 +214,9 @@ void SideButton::render(wxDC& dc)
                 dc.SetPen(wxNullPen);
             } else {
                 dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
-                dc.DrawRectangle(0, 0, size.x - radius, size.y);
+                dc.DrawRectangle(0, 0, radius, size.y);
                 dc.SetPen(wxNullPen);
-                dc.DrawRectangle(size.x - radius - pen_width, pen_width, 2 * pen_width, size.y - 2 * pen_width);
+                dc.DrawRectangle(pen_width, pen_width, size.x - radius, size.y - 2 * pen_width);
             }
         } else {
             dc.DrawRectangle(0, 0, size.x, size.y);
