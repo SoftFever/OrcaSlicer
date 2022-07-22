@@ -7,6 +7,10 @@
 #include "BitmapCache.hpp"
 #include "GUI_App.hpp"
 
+#include "slic3r/Utils/Http.hpp"
+#include "libslic3r/Thread.hpp"
+
+
 namespace Slic3r { namespace GUI {
 
 #define TEMP_THRESHOLD_VAL 2
@@ -105,6 +109,7 @@ StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint 
 
     m_project_task_panel = new wxPanel(this);
     m_project_task_panel->SetBackgroundColour(*wxWHITE);
+
     auto m_project_task_sizer = create_project_task_page(m_project_task_panel);
     m_project_task_panel->SetSizer(m_project_task_sizer);
     m_project_task_panel->Layout();
@@ -145,7 +150,6 @@ StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint 
     m_panel_separotor_bottom->SetBackgroundColour(STATUS_PANEL_BG);
 
     bSizer_status->Add(m_panel_separotor_bottom, 0, wxEXPAND | wxALL, 0);
-
     this->SetSizerAndFit(bSizer_status);
     this->Layout();
 }
@@ -392,13 +396,10 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     m_staticText_progress_percent->SetFont(::Label::Head_13);
     m_staticText_progress_percent->SetForegroundColour(wxColour(0, 174, 66));
    
-
     m_staticText_progress_left = new wxStaticText(penel_text, wxID_ANY, _L("N/A"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_progress_left->Wrap(-1);
     m_staticText_progress_left->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
     m_staticText_progress_left->SetForegroundColour(wxColour(146, 146, 146));
-
-   
 
     //fgSizer_task->Add(bSizer_buttons, 0, wxEXPAND, 0);
     //fgSizer_task->Add(0, 0, 0, wxEXPAND, FromDIP(5));
@@ -417,7 +418,6 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     penel_text->SetSizer(bSizer_text);
     penel_text->Layout();
 
-
     bSizer_buttons->Add(penel_text, 1, wxEXPAND | wxALL, 0);
     bSizer_buttons->Add(panel_button_block, 0, wxALIGN_CENTER | wxALL, 0);
 
@@ -431,6 +431,37 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
 
     sizer->Add(m_printing_sizer, 0, wxEXPAND | wxALL, 0);
 
+    m_staticline = new wxPanel( parent, wxID_ANY);
+    m_staticline->SetBackgroundColour(wxColour(238,238,238));
+    m_staticline->Layout();
+    m_staticline->Hide();
+
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+    sizer->Add(m_staticline, 0, wxEXPAND|wxALL, FromDIP(10));
+
+    m_panel_error_txt = new wxPanel(parent, wxID_ANY);
+    m_panel_error_txt->SetBackgroundColour(*wxWHITE);
+
+    wxBoxSizer *static_text_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *text_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_error_text = new wxStaticText2(m_panel_error_txt);
+    m_error_text->SetForegroundColour(PAGE_TITLE_FONT_COL);
+    text_sizer->Add(m_error_text, 1, wxEXPAND|wxLEFT, FromDIP(17));
+    m_button_clean = new Button(m_panel_error_txt, _L("Clean"));
+    m_button_clean->SetBackgroundColor(abort_bg);
+    m_button_clean->SetBorderColor(abort_bd);
+    m_button_clean->SetTextColor(abort_text);
+    m_button_clean->SetFont(Label::Body_10);
+    m_button_clean->SetMinSize(TASK_BUTTON_SIZE2);
+
+    static_text_sizer->Add(text_sizer, 1, wxEXPAND|wxTOP, FromDIP(7));
+    static_text_sizer->Add( FromDIP(10), 0, 0, 0, 0 );
+    static_text_sizer->Add(m_button_clean, 0, wxALIGN_CENTRE_VERTICAL|wxRIGHT,FromDIP(5));
+
+    m_panel_error_txt->SetSizer(static_text_sizer);
+    m_panel_error_txt->Hide();
+    sizer->Add(m_panel_error_txt, 0, wxEXPAND | wxALL,0);
     sizer->Add(0, FromDIP(12), 0);
 
     m_tasklist_sizer = new wxBoxSizer(wxVERTICAL);
@@ -563,7 +594,6 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     m_tempCtrl_frame->SetBorderColor(StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Focused),
                                                 std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Hovered), std::make_pair(*wxWHITE, (int) StateColor::Normal)));
     sizer->Add(m_tempCtrl_frame, 0, wxEXPAND | wxALL, 1);
-
     line = new StaticLine(parent);
     line->SetLineColour(STATIC_BOX_LINE_COL);
     sizer->Add(line, 0, wxEXPAND | wxLEFT | wxRIGHT, 12);
@@ -916,6 +946,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_buttons.push_back(m_button_pause_resume);
     m_buttons.push_back(m_button_abort);
     m_buttons.push_back(m_button_unload);
+    m_buttons.push_back(m_button_clean);
     m_buttons.push_back(m_bpButton_z_10);
     m_buttons.push_back(m_bpButton_z_1);
     m_buttons.push_back(m_bpButton_z_down_1);
@@ -924,7 +955,6 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_buttons.push_back(m_bpButton_e_down_10);
 
     obj = nullptr;
-
     /* set default values */
     m_switch_lamp->SetValue(false);
     m_switch_printing_fan->SetValue(false);
@@ -953,6 +983,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
 
     m_button_pause_resume->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
+    m_button_clean->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_clean), NULL, this);
     m_tempCtrl_bed->Connect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_kill_focus), NULL, this);
     m_tempCtrl_bed->Connect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_set_focus), NULL, this);
     m_tempCtrl_nozzle->Connect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_kill_focus), NULL, this);
@@ -974,6 +1005,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     Bind(EVT_AMS_REFRESH_RFID, &StatusPanel::on_ams_refresh_rfid, this);
     Bind(EVT_AMS_ON_SELECTED, &StatusPanel::on_ams_selected, this);
     Bind(EVT_AMS_ON_FILAMENT_EDIT, &StatusPanel::on_filament_edit, this);
+    Bind(EVT_UPDATE_ERROR_MESSAGE, &StatusPanel::on_update_error_message, this);
 
     m_switch_speed->Connect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_switch_speed), NULL, this);
     m_calibration_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_calibration), NULL, this);
@@ -987,6 +1019,7 @@ StatusPanel::~StatusPanel()
     m_recording_button->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_switch_recording), NULL, this);
     m_button_pause_resume->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
+    m_button_clean->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_clean), NULL, this);
     m_tempCtrl_bed->Disconnect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_kill_focus), NULL, this);
     m_tempCtrl_bed->Disconnect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_set_focus), NULL, this);
     m_tempCtrl_nozzle->Disconnect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_kill_focus), NULL, this);
@@ -1014,6 +1047,8 @@ void StatusPanel::init_scaled_buttons()
     m_button_pause_resume->SetCornerRadius(FromDIP(12));
     m_button_abort->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
     m_button_abort->SetCornerRadius(FromDIP(12));
+    m_button_clean->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
+    m_button_clean->SetCornerRadius(FromDIP(12));
     m_button_unload->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_unload->SetCornerRadius(FromDIP(10));
     m_bpButton_z_10->SetMinSize(Z_BUTTON_SIZE);
@@ -1066,6 +1101,7 @@ void StatusPanel::show_task_list_info(bool show)
         m_tasklist_sizer->Hide(m_tasklist_caption_sizer);
     }
     Layout();
+
 }
 
 void StatusPanel::update_tasklist_info()
@@ -1089,6 +1125,20 @@ void StatusPanel::on_subtask_pause_resume(wxCommandEvent &event)
 void StatusPanel::on_subtask_abort(wxCommandEvent &event)
 {
     if (obj) obj->command_task_abort();
+}
+
+void StatusPanel::error_info_reset()
+{
+    m_error_text->SetLabel("");
+    before_error_code = 0;
+}
+
+void StatusPanel::on_subtask_clean(wxCommandEvent &event)
+{
+    m_staticline->Hide();
+    m_panel_error_txt->Hide();
+    m_panel_error_txt->GetParent()->Layout();
+    error_info_reset();
 }
 
 void StatusPanel::on_webrequest_state(wxWebRequestEvent &evt)
@@ -1163,11 +1213,47 @@ void StatusPanel::update(MachineObject *obj)
             calibration_dlg->update_machine_obj(obj);
         }
         calibration_dlg->update_cali(obj);
+
+        if (print_options_dlg == nullptr) {
+            print_options_dlg = new PrintOptionsDialog(this);
+            print_options_dlg->update_machine_obj(obj);
+        } else {
+            print_options_dlg->update_machine_obj(obj);
+        }
+        print_options_dlg->update_options(obj);
+        update_error_message();
     }
-   
 
     upodate_camera_state(obj->has_recording(), obj->has_timelapse(), obj->has_sdcard());
     m_machine_ctrl_panel->Thaw();
+}
+
+void StatusPanel::on_update_error_message(wxCommandEvent &event)
+{
+    m_error_text->SetLabel(event.GetString());
+    m_staticline->Show();
+    m_panel_error_txt->Show();
+}
+
+void StatusPanel::update_error_message()
+{
+    if (obj->print_error <= 0) {
+        before_error_code = obj->print_error;
+        return;
+    }
+
+    if (before_error_code != obj->print_error) {
+        if (!get_error_message_thread) {
+            get_error_message_thread = new boost::thread(Slic3r::create_thread([&] {
+                std::string message = show_error_message(obj->print_error);
+                wxCommandEvent event(EVT_UPDATE_ERROR_MESSAGE);
+                event.SetString(wxString(message));
+                event.SetEventObject(this);
+                wxPostEvent(this, event);
+            }));
+        }
+        before_error_code = obj->print_error;
+   }
 }
 
 void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
@@ -2113,6 +2199,9 @@ void StatusPanel::set_default()
     m_ams_control->Hide();
     m_ams_control->Reset();
     clean_tasklist_info();
+    m_staticline->Hide();
+    m_panel_error_txt->Hide();
+    error_info_reset();
 }
 
 void StatusPanel::show_status(int status)

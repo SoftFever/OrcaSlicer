@@ -336,6 +336,7 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     /* printing */
     mc_print_stage = 0;
     mc_print_error_code = 0;
+    print_error = 0;
     mc_print_line_number = 0;
     mc_print_percent = 0;
     mc_print_sub_stage = 0;
@@ -1680,8 +1681,6 @@ int MachineObject::parse_json(std::string payload)
                             mc_print_stage = jj["mc_print_stage"].get<int>();
                     }
                     if (jj.contains("mc_print_error_code")) {
-                        if (jj["mc_print_error_code"].is_string())
-                            mc_print_error_code = atoi(jj["mc_print_error_code"].get<std::string>().c_str());
                         if (jj["mc_print_error_code"].is_number())
                             mc_print_error_code = jj["mc_print_error_code"].get<int>();
 
@@ -1690,6 +1689,11 @@ int MachineObject::parse_json(std::string payload)
                         if (jj["mc_print_line_number"].is_string() && !jj["mc_print_line_number"].is_null())
                             mc_print_line_number = atoi(jj["mc_print_line_number"].get<std::string>().c_str());
                     }
+                    if (jj.contains("print_error")) {
+                        if (jj["print_error"].is_number())
+                            print_error = jj["print_error"].get<int>();
+                    }
+
 #pragma endregion
 
 #pragma region print_task
@@ -1750,6 +1754,8 @@ int MachineObject::parse_json(std::string payload)
 
                         }
                     }
+
+
 #pragma endregion
 
 #pragma region status

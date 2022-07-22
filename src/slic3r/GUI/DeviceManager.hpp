@@ -426,6 +426,7 @@ public:
     int     mc_left_time;           /* left time in seconds */
     int     last_mc_print_stage;
     bool    is_system_printing();
+    int     print_error;
 
     std::vector<int> stage_list_info;
     int stage_curr = 0;

@@ -26,8 +26,8 @@
 #include "Widgets/ProgressBar.hpp"
 #include "Widgets/ImageSwitchButton.hpp"
 #include "Widgets/AMSControl.hpp"
-
-
+#include "UpdateErrorMessage.hpp"
+#include "Widgets/wxStaticText2.hpp"
 class StepIndicator;
 
 #define COMMAND_TIMEOUT_U0      15
@@ -119,6 +119,7 @@ protected:
     Button *        m_button_report;
     Button *        m_button_pause_resume;
     Button *        m_button_abort;
+    Button *        m_button_clean;
 
     wxStaticText *  m_text_tasklist_caption;
 
@@ -165,6 +166,9 @@ protected:
     wxBoxSizer *    m_printing_sizer;
     wxBoxSizer *    m_tasklist_sizer;
     wxBoxSizer *    m_tasklist_caption_sizer;
+    wxPanel*        m_panel_error_txt;
+    wxPanel*        m_staticline;
+    wxStaticText2 *  m_error_text;
     wxStaticText*   m_staticText_calibration_caption;
     wxStaticText*   m_staticText_calibration_caption_top;
     wxStaticText*   m_calibration_text;
@@ -214,7 +218,7 @@ public:
     wxBoxSizer *create_extruder_control(wxWindow *parent);
 
     void reset_temp_misc_control();
-
+    int before_error_code = 0;
     wxBoxSizer *create_ams_group(wxWindow *parent);
 
     void show_ams_group(bool show = true);
@@ -240,7 +244,6 @@ protected:
     bool         m_start_loading_thumbnail = false;
     bool         m_load_sdcard_thumbnail = false;
     wxWebRequest web_request;
-
     bool bed_temp_input    = false;
     bool nozzle_temp_input = false;
     int speed_lvl = 1; // 0 - 3
@@ -250,9 +253,8 @@ protected:
     std::map<wxString, wxImage> img_list; // key: url, value: wxBitmap png Image
     std::vector<Button *>       m_buttons;
     int last_status;
-    
     void init_scaled_buttons();
-
+    void update_error_message();
     void create_tasklist_info();
     void clean_tasklist_info();
     void show_task_list_info(bool show = true);
@@ -260,6 +262,9 @@ protected:
 
     void on_subtask_pause_resume(wxCommandEvent &event);
     void on_subtask_abort(wxCommandEvent &event);
+    void on_subtask_clean(wxCommandEvent &event);
+    void on_update_error_message(wxCommandEvent &event);
+    void error_info_reset();
 
     /* axis control */
     void on_axis_ctrl_xy(wxCommandEvent &event);
@@ -339,6 +344,7 @@ public:
     long           last_ams_version { -1 };
 
     std::vector<int> last_stage_list_info;
+    boost::thread *  get_error_message_thread{nullptr};
 
     bool is_stage_list_info_changed(MachineObject* obj);
 

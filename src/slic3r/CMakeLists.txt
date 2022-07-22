@@ -68,6 +68,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/SideTools.hpp
     GUI/Widgets/WebView.cpp
     GUI/Widgets/WebView.hpp
+    GUI/Widgets/wxStaticText2.cpp
+    GUI/Widgets/wxStaticText2.hpp
     GUI/AboutDialog.cpp
     GUI/AboutDialog.hpp
     GUI/AuxiliaryDialog.cpp
@@ -213,6 +215,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/MonitorPage.hpp
     GUI/StatusPanel.cpp
     GUI/StatusPanel.hpp
+    GUI/UpdateErrorMessage.cpp
+    GUI/UpdateErrorMessage.hpp
     GUI/SliceInfoPanel.cpp
     GUI/SliceInfoPanel.hpp
     GUI/CameraPopup.cpp
