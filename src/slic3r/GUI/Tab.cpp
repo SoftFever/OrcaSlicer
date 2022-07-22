@@ -2107,6 +2107,9 @@ void TabPrintModel::update_model_config()
         m_config->apply_only(local_config, local_keys);
         m_config_manipulation.apply_null_fff_config(m_config, m_null_keys, m_object_configs);
     }
+    toggle_options();
+    if (m_active_page)
+        m_active_page->update_visibility(m_mode, true); // for taggle line
     update_dirty();
     TabPrint::reload_config();
     //update();
