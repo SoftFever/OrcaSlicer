@@ -97,13 +97,23 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
 
     auto staticline = new ::StaticLine(cali_right_panel);
     staticline->SetLineColour(wxColour(0x00, 0xAE, 0x42));
-
-    m_calibration_flow = new StepIndicator(cali_right_panel, wxID_ANY);
+    auto calibration_panel = new wxPanel(cali_right_panel);
+    calibration_panel->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
+    auto calibration_sizer = new wxBoxSizer(wxVERTICAL);
+    calibration_panel->SetMinSize(wxSize(FromDIP(170), FromDIP(160)));
+    calibration_panel->SetSize(wxSize(FromDIP(170), FromDIP(160)));
+   
+    m_calibration_flow = new StepIndicator(calibration_panel, wxID_ANY);
     StateColor bg_color(std::pair<wxColour, int>(wxColour(248, 248, 248), StateColor::Normal));
     m_calibration_flow->SetBackgroundColor(bg_color);
     m_calibration_flow->SetFont(Label::Body_12);
+
     m_calibration_flow->SetMinSize(wxSize(FromDIP(170), FromDIP(160)));
     m_calibration_flow->SetSize(wxSize(FromDIP(170), FromDIP(160)));
+    
+    calibration_panel->SetSizer(calibration_sizer);
+    calibration_panel->Layout();
+    calibration_sizer->Add(m_calibration_flow, 0, wxALIGN_CENTER_HORIZONTAL | wxEXPAND, 0);
 
     StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
                             std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
@@ -119,10 +129,10 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     cali_right_sizer_v->Add(cali_text_right_top, 0, wxALIGN_CENTER, 0);
     cali_right_sizer_v->Add(0, 0, 0, wxTOP, FromDIP(7));
     cali_right_sizer_v->Add(staticline, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(10));
-    cali_right_sizer_v->Add(0, 0, 0, wxTOP, FromDIP(9));
-    cali_right_sizer_v->Add(m_calibration_flow, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(6));
-    cali_right_sizer_v->Add(0, 0, 0, wxTOP, FromDIP(10));
-    cali_right_sizer_v->Add(m_calibration_btn, 0, wxALIGN_CENTER, 0);
+    cali_right_sizer_v->Add(0, 0, 0, wxTOP, FromDIP(3));
+    cali_right_sizer_v->Add(calibration_panel, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, FromDIP(6));
+    cali_right_sizer_v->Add(0, 0, 1, wxEXPAND, 5);
+    cali_right_sizer_v->Add(m_calibration_btn, 0, wxALIGN_CENTER_HORIZONTAL, 0);
 
     cali_right_sizer_h->Add(cali_right_sizer_v, 0, wxALIGN_CENTER, 0);
     cali_right_panel->SetSizer(cali_right_sizer_h);
@@ -137,7 +147,6 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     SetSizer(m_sizer_main);
     Layout();
     Fit();
-    Centre(wxBOTH);
 
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent &evt) { Hide(); });
 
@@ -151,29 +160,41 @@ void CalibrationDialog::on_dpi_changed(const wxRect &suggested_rect) {}
 void CalibrationDialog::update_cali(MachineObject *obj)
 {
     if (!obj) return;
-
-    // in printing
-    if (obj->is_in_printing()) {
-        m_calibration_flow->DeleteAllItems();
-        m_calibration_btn->Disable();
-        return;
-    } else {
-         m_calibration_btn->Enable();
-        if (!obj->is_in_calibration()) {
-            m_calibration_flow->DeleteAllItems();
-            m_calibration_btn->SetLabel(_L("Start Calibration"));
+    if (obj->is_in_calibration() || obj->is_calibration_done()) {
+        if (obj->is_calibration_done()) {
+            m_calibration_btn->Enable();
+            m_calibration_btn->SetLabel(_L("Completed"));
         } else {
+            // RUNNING && IDLE
             m_calibration_btn->Disable();
             m_calibration_btn->SetLabel(_L("Calibrating"));
-
-            if (is_stage_list_info_changed(obj)) {
-                // change items if stage_list_info changed
-                m_calibration_flow->DeleteAllItems();
-                for (int i = 0; i < obj->stage_list_info.size(); i++) { m_calibration_flow->AppendItem(get_stage_string(obj->stage_list_info[i])); }
-            }
-            int index = obj->get_curr_stage_idx();
-            m_calibration_flow->SelectItem(index);
         }
+        auto size = wxSize(-1, obj->stage_list_info.size() * FromDIP(44));
+        if (m_calibration_flow->GetSize().y != size.y) {
+            m_calibration_flow->SetSize(size);
+            m_calibration_flow->SetMinSize(size);
+            m_calibration_flow->SetMaxSize(size);
+            Layout();
+        }
+        if (is_stage_list_info_changed(obj)) {
+            // change items if stage_list_info changed
+            m_calibration_flow->DeleteAllItems();
+            for (int i = 0; i < obj->stage_list_info.size(); i++) {
+                m_calibration_flow->AppendItem(get_stage_string(obj->stage_list_info[i]));
+            }
+        }
+        int index = obj->get_curr_stage_idx();
+        m_calibration_flow->SelectItem(index);
+    } else {
+        // IDLE
+        if (obj->is_in_printing()) {
+            m_calibration_btn->Disable();
+        }
+        else {
+            m_calibration_btn->Enable();
+        }
+        m_calibration_flow->DeleteAllItems();
+        m_calibration_btn->SetLabel(_L("Start Calibration"));
     }
 }
 
@@ -193,11 +214,23 @@ bool CalibrationDialog::is_stage_list_info_changed(MachineObject *obj)
 void CalibrationDialog::on_start_calibration(wxMouseEvent &event)
 {
     if (m_obj) {
-        BOOST_LOG_TRIVIAL(trace) << "on_start_calibration";
-        m_obj->command_start_calibration();
+        if (m_obj->is_calibration_done()) {
+            m_obj->calibration_done = false;
+            EndModal(wxID_CANCEL);
+            Close();
+        } else {
+            BOOST_LOG_TRIVIAL(info) << "on_start_calibration";
+            m_obj->command_start_calibration();
+        }
     }
 }
 
 void CalibrationDialog::update_machine_obj(MachineObject *obj) { m_obj = obj; }
+
+bool CalibrationDialog::Show(bool show) 
+{
+    if (show) { CentreOnParent(); }
+    return DPIDialog::Show(show);
+}
 
 }} // namespace Slic3r::GUI

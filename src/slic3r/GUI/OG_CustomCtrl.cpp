@@ -123,35 +123,6 @@ int OG_CustomCtrl::get_height(const Line& line)
     return 0;
 }
 
-static wxSize split_lines(wxDC &dc, int width, const wxString &text, wxString &multiline_text)
-{
-    if (width > 0 && dc.GetTextExtent(text).x > width) {
-        multiline_text = text;
-        size_t start   = 0;
-        while (true) {
-            size_t idx = size_t(-1);
-            for (size_t i = start; i < multiline_text.Len(); i++) {
-                if (multiline_text[i] == ' ') {
-                    if (dc.GetTextExtent(multiline_text.SubString(start, i)).x < width)
-                        idx = i;
-                    else {
-                        if (idx == size_t(-1))
-                            idx = i;
-                        break;
-                    }
-                }
-            }
-            if (idx == size_t(-1))
-                break;
-            multiline_text[idx] = '\n';
-            start = idx + 1;
-            if (dc.GetTextExtent(multiline_text.Mid(start)).x < width)
-                break;
-        }
-    }
-    return dc.GetMultiLineTextExtent(multiline_text.IsEmpty() ? text : multiline_text);
-}
-
 wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
 {
     // BBS: new layout
@@ -178,7 +149,7 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
         wxClientDC dc(this);
         dc.SetFont(m_font);
         wxString multiline_text;
-        auto size = split_lines(dc, label_width, label, multiline_text);
+        auto size = Label::split_lines(dc, label_width, label, multiline_text);
         if (label_width > 0) size.x = label_width;
         h_pos += size.x + m_h_gap;
         if (ctrl_line.height < size.y)
@@ -915,7 +886,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
 wxCoord    OG_CustomCtrl::CtrlLine::draw_text(wxDC& dc, wxPoint pos, const wxString& text, const wxColour* color, int width, bool is_main/* = false*/)
 {
     wxString multiline_text;
-    auto size = split_lines(dc, width, text, multiline_text);
+    auto size = Label::split_lines(dc, width, text, multiline_text);
 
     if (!text.IsEmpty()) {
         const wxString& out_text = multiline_text.IsEmpty() ? text : multiline_text;

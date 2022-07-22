@@ -11,6 +11,7 @@
 #include "PartPlate.hpp"
 
 #define TOPBAR_ICON_SIZE  18
+#define TOPBAR_TITLE_WIDTH  300
 
 using namespace Slic3r;
 
@@ -243,7 +244,7 @@ void BBLTopbar::Init(wxFrame* parent)
     this->AddSpacer(FromDIP(10));
     this->AddStretchSpacer(1);
 
-    m_title_item = this->AddLabel(ID_TITLE, "", FromDIP(300));
+    m_title_item = this->AddLabel(ID_TITLE, "", FromDIP(TOPBAR_TITLE_WIDTH));
     m_title_item->SetAlignment(wxCENTER);
 
     this->AddSpacer(FromDIP(10));
@@ -402,6 +403,9 @@ wxMenu* BBLTopbar::GetTopMenu()
 
 void BBLTopbar::SetTitle(wxString title)
 {
+    wxGCDC dc(this);
+    title = wxControl::Ellipsize(title, dc, wxELLIPSIZE_END, FromDIP(TOPBAR_TITLE_WIDTH));
+
     m_title_item->SetLabel(title);
     m_title_item->SetAlignment(wxALIGN_CENTRE_HORIZONTAL);
     this->Refresh();

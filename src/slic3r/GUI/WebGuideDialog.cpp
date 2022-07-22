@@ -23,7 +23,9 @@
 #include "MainFrame.hpp"
 #include <boost/dll.hpp>
 #include <slic3r/GUI/Widgets/WebView.hpp>
-
+#include <slic3r/Utils/Http.hpp>
+#include <libslic3r/miniz_extension.hpp>
+#include <libslic3r/Utils.hpp>
 
 using namespace nlohmann;
 
@@ -38,14 +40,15 @@ GuideFrame::GuideFrame(GUI_App *pGUI, long style)
     // INI
     m_SectionName = "firstguide";
     PrivacyUse    = true;
+    InstallNetplugin = false;
 
     m_MainPtr = pGUI;
 
     // set the frame icon
     wxBoxSizer *topsizer = new wxBoxSizer(wxVERTICAL);
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  set start page to welcome");
     wxString TargetUrl = SetStartPage(BBL_WELCOME, false);
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  set start page to welcome ") << TargetUrl;
 
     // Create the webview
     m_browser = WebView::CreateWebView(this, TargetUrl);
@@ -350,7 +353,9 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             }
 
             this->EndModal(wxID_OK);
-            //this->Close();
+  
+            if (InstallNetplugin) 
+                GUI::wxGetApp().CallAfter([this] { GUI::wxGetApp().ShowDownNetPluginDlg(); });
 
             if (bLogin)
                 GUI::wxGetApp().CallAfter([this] { login(); });
@@ -360,6 +365,14 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             this->Close();
         } else if (strCmd == "save_region") {
             m_Region = j["region"];
+        } 
+        else if (strCmd == "network_plugin_install") {
+            std::string sAction = j["data"]["action"];
+
+            if (sAction == "yes")
+                InstallNetplugin = true;
+            else
+                InstallNetplugin = false;
         }
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);
@@ -433,6 +446,7 @@ void GuideFrame::OnError(wxWebViewEvent &evt)
     // Show the info bar with an error
     // m_info->ShowMessage(_L("An error occurred loading ") + evt.GetURL() +
     // "\n" + "'" + category + "'", wxICON_ERROR);
+    BOOST_LOG_TRIVIAL(info) << "GuideFrame::OnError: An error occurred loading " << evt.GetURL() << category;
 
     UpdateState();
 }
@@ -911,8 +925,10 @@ int GuideFrame::LoadProfile()
         //----region
         m_Region = wxGetApp().app_config->get("region");
         m_ProfileJson["region"] = m_Region;
-
-        }
+                                                                          
+        m_ProfileJson["network_plugin_install"] = wxGetApp().app_config->get("app","installed_networking");
+        m_ProfileJson["network_plugin_compability"] = wxGetApp().is_compatibility_version() ? "1" : "0";
+    }
     catch (std::exception &e) {
         //wxLogMessage("GUIDE: load_profile_error  %s ", e.what());
         // wxMessageBox(e.what(), "", MB_OK);
@@ -924,6 +940,18 @@ int GuideFrame::LoadProfile()
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished, json contents: "<< std::endl<<strAll;
     return 0;
+}
+
+void StringReplace(string &strBase, string strSrc, string strDes)
+{
+    string::size_type pos    = 0;
+    string::size_type srcLen = strSrc.size();
+    string::size_type desLen = strDes.size();
+    pos                      = strBase.find(strSrc, pos);
+    while ((pos != string::npos)) {
+        strBase.replace(pos, srcLen, strDes);
+        pos = strBase.find(strSrc, (pos + desLen));
+    }
 }
 
 
@@ -968,7 +996,9 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
             //wxLogMessage("GUIDE: json_path2  loaded");
 
             OneModel["vendor"]          = strVendor;
-            OneModel["nozzle_diameter"] = pm["nozzle_diameter"];
+            std::string NozzleOpt = pm["nozzle_diameter"];
+            StringReplace(NozzleOpt, " ", "");
+            OneModel["nozzle_diameter"] = NozzleOpt;
             OneModel["materials"]       = pm["default_materials"];
 
             //wxString strCoverPath = wxString::Format("%s\\%s\\%s_cover.png", strFolder, strVendor, std::string(s1.mb_str()));
@@ -1142,6 +1172,30 @@ bool GuideFrame::LoadFile(std::string jPath, std::string &sContent)
     }
 
     return true;
+}
+
+int GuideFrame::DownloadPlugin()
+{
+    return wxGetApp().download_plugin(
+        [this](int status, int percent, bool& cancel) {
+            return ShowPluginStatus(status, percent, cancel);
+        }
+    , nullptr);
+}
+
+int GuideFrame::InstallPlugin()
+{
+    return wxGetApp().install_plugin(
+        [this](int status, int percent, bool &cancel) {
+            return ShowPluginStatus(status, percent, cancel);
+        }
+    );
+}
+
+int GuideFrame::ShowPluginStatus(int status, int percent, bool& cancel)
+{
+    //TODO
+    return 0;
 }
 
 

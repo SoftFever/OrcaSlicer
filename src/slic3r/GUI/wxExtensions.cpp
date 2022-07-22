@@ -115,7 +115,7 @@ wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxStrin
     if (id == wxID_ANY)
         id = wxNewId();
 
-    wxMenuItem* item = new wxMenuItem(menu, id, string, description);
+    wxMenuItem* item = new wxMenuItem(menu, id, string, description, wxITEM_NORMAL, sub_menu);
     if (!icon.empty()) {
         item->SetBitmap(create_menu_bitmap(icon));    // FIXME: pass window ptr
 //#ifdef __WXMSW__
@@ -124,7 +124,6 @@ wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxStrin
 #endif /* __WXMSW__ */
     }
 
-    item->SetSubMenu(sub_menu);
     menu->Append(item);
 
     if (parent) {

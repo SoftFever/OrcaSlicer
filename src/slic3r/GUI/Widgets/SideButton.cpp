@@ -165,7 +165,11 @@ void SideButton::paintEvent(wxPaintEvent& evt)
 {
     // depending on your system you may need to look at double-buffered dcs
     wxPaintDC dc(this);
+#ifdef __WXMSW__
     wxGCDC dc2(dc);
+#else
+    wxDC & dc2(dc);
+#endif
     render(dc2);
 }
 

@@ -10,7 +10,7 @@ class StepCtrlBase : public StaticBox
 {
 protected:
     wxFont font_tip;
-    StateColor clr_bar;
+    StateColor clr_bar; 
     StateColor clr_step;
     StateColor clr_text;
     StateColor clr_tip;

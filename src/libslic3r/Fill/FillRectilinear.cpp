@@ -3156,7 +3156,7 @@ void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, c
         ThickPolylines polylines;
         for (ExPolygon& ex : gaps_ex_sorted) {
             //BBS: Use DP simplify to avoid duplicated points and accelerate medial-axis calculation as well.
-            ex.douglas_peucker(SCALED_RESOLUTION);
+            ex.douglas_peucker(SCALED_RESOLUTION * 0.1);
             ex.medial_axis(max, min, &polylines);
         }
 

@@ -1,0 +1,20 @@
+<svg width="18" height="16" xmlns="http://www.w3.org/2000/svg" fill="none">
+ <defs>
+  <clipPath id="clip0_7049_31130">
+   <rect id="svg_1" transform="rotate(-90 -3.49691e-7 16)" x="0" y="16" fill="white" height="18" width="16"/>
+  </clipPath>
+ </defs>
+ <g>
+  <title>Layer 1</title>
+  <g id="svg_2" clip-path="url(#clip0_7049_31130)">
+   <path id="svg_3" stroke="#CECECE" d="m17.25,2.5l0,11c0,0.8284 -0.6716,1.5 -1.5,1.5l-13.5,0c-0.82843,0 -1.5,-0.6716 -1.5,-1.5l0,-8.07938c0,-0.42149 0.17733,-0.82353 0.4886,-1.10773l3.19877,-2.92062c0.27639,-0.25236 0.63714,-0.39227 1.0114,-0.39227l10.30123,0c0.8284,0 1.5,0.67157 1.5,1.5z"/>
+   <rect id="svg_4" stroke-linejoin="round" stroke-width="0.7" stroke="#CECECE" transform="rotate(-90 2.64687 13.2281)" rx="0.65" height="4.23491" width="2.68084" y="13.2281" x="2.64687"/>
+   <rect id="svg_5" stroke-linejoin="round" stroke="#CECECE" transform="rotate(-90 8.82422 13.0781)" rx="0.5" height="6.09272" width="10.1538" y="13.0781" x="8.82422"/>
+   <rect id="svg_6" stroke-linejoin="round" stroke-width="0.7" stroke="#CECECE" transform="rotate(-90 2.64687 9.38047)" rx="0.65" height="4.23491" width="2.71828" y="9.38047" x="2.64687"/>
+   <rect id="svg_7" stroke-linejoin="round" stroke-width="0.7" stroke="#CECECE" transform="rotate(-90 4.65078 5.41367)" rx="0.65" height="2.23134" width="2.56278" y="5.41367" x="4.65078"/>
+   <circle id="svg_8" fill="#262E30" r="3.30427" cy="12.6949" cx="14.6949"/>
+   <path id="svg_9" stroke-linejoin="round" stroke-linecap="round" stroke="#F8F8F8" d="m13.3164,11.3164l2.7578,2.7578"/>
+   <path id="svg_10" stroke-linejoin="round" stroke-linecap="round" stroke="#F8F8F8" d="m16.0742,11.3164l-2.7578,2.7578"/>
+  </g>
+ </g>
+</svg>

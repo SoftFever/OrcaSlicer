@@ -379,7 +379,7 @@ PrintObjectSupportMaterial::PrintObjectSupportMaterial(const PrintObject *object
     m_support_params.gap_xy = m_object_config->support_object_xy_distance.value;
     bridge_flow /= object->num_printing_regions();
 
-    m_support_params.support_material_bottom_interface_flow = m_slicing_params.soluble_interface || ! g_config_thick_bridges ?
+    m_support_params.support_material_bottom_interface_flow = m_slicing_params.soluble_interface || ! m_object_config->thick_bridges ?
         m_support_params.support_material_interface_flow.with_flow_ratio(bridge_flow) :
         Flow::bridging_flow(bridge_flow * m_support_params.support_material_interface_flow.nozzle_diameter(), m_support_params.support_material_interface_flow.nozzle_diameter());
 
@@ -1339,7 +1339,7 @@ namespace SupportMaterialInternal {
         }
     }
 
-    static void remove_bridges_from_contactsxx(
+    static void remove_bridges_from_contacts(
         const PrintConfig   &print_config, 
         const Layer         &lower_layer,
         const Polygons      &lower_layer_polygons,
@@ -1374,7 +1374,9 @@ namespace SupportMaterialInternal {
             // since we're dealing with bridges, we can't assume width is larger than spacing,
             // so we take the largest value and also apply safety offset to be ensure no gaps
             // are left in between
-            Flow perimeter_bridge_flow = layerm.bridging_flow(frPerimeter, g_config_thick_bridges);
+            // BBS
+            const PrintObjectConfig& object_config = layerm.layer()->object()->config();
+            Flow perimeter_bridge_flow = layerm.bridging_flow(frPerimeter, object_config.thick_bridges);
             //FIXME one may want to use a maximum of bridging flow width and normal flow width, as the perimeters are calculated using the normal flow
             // and then turned to bridging flow, thus their centerlines are derived from non-bridging flow and expanding them by a bridging flow
             // may not expand them to the edge of their respective islands.
@@ -1509,7 +1511,7 @@ static inline Polygons detect_overhangs(
         M_PI * double(object_config.support_threshold_angle.value + 1) / 180. : // +1 makes the threshold inclusive
         0.;
     const coordf_t max_bridge_length = scale_(object_config.max_bridge_length.value);
-    const bool bridge_no_support = max_bridge_length > 0;// config.bridge_no_support.value;
+    const bool bridge_no_support = object_config.bridge_no_support.value;
 
     if (layer_id == 0) 
     {
@@ -1667,7 +1669,8 @@ static inline Polygons detect_overhangs(
 
             if (bridge_no_support) {
                 //FIXME Expensive, potentially not precise enough. Misses gap fill extrusions, which bridge.
-                PrintObject::remove_bridges_from_contacts(&lower_layer, &layer, fw, &diff_polygons, max_bridge_length);
+                SupportMaterialInternal::remove_bridges_from_contacts(
+                    print_config, lower_layer, lower_layer_polygons, *layerm, fw, diff_polygons);
             }
 
             if (diff_polygons.empty() || offset(diff_polygons, -0.1 * fw).empty())
@@ -1861,7 +1864,7 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
 
         // Contact layer will be printed with a normal flow, but
         // it will support layers printed with a bridging flow.
-        if (g_config_thick_bridges && SupportMaterialInternal::has_bridging_extrusions(layer)) {
+        if (object_config.thick_bridges && SupportMaterialInternal::has_bridging_extrusions(layer)) {
             coordf_t bridging_height = 0.;
             for (const LayerRegion* region : layer.regions())
                 bridging_height += region->region().bridging_height_avg(print_config);
@@ -2429,7 +2432,7 @@ static inline PrintObjectSupportMaterial::MyLayer* detect_bottom_contacts(
         layer.print_z + layer_new.height + slicing_params.gap_object_support;
     layer_new.bottom_z = layer.print_z;
     layer_new.idx_object_layer_below = layer_id;
-    layer_new.bridging = !slicing_params.soluble_interface && g_config_thick_bridges;
+    layer_new.bridging = !slicing_params.soluble_interface && object.config().thick_bridges;
     //FIXME how much to inflate the bottom surface, as it is being extruded with a bridging flow? The following line uses a normal flow.
     layer_new.polygons = expand(touching, float(support_params.support_material_flow.scaled_width()), SUPPORT_SURFACES_OFFSET_PARAMETERS);
 
@@ -3234,7 +3237,7 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                         polygons_append(polygons_trimming, offset({ expoly }, trimming_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
                     }
                 }
-                if (! m_slicing_params.soluble_interface && g_config_thick_bridges) {
+                if (! m_slicing_params.soluble_interface && m_object_config->thick_bridges) {
                     // Collect all bottom surfaces, which will be extruded with a bridging flow.
                     for (; i < object.layers().size(); ++ i) {
                         const Layer &object_layer = *object.layers()[i];
@@ -4515,6 +4518,7 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                         angles[support_layer_id % angles.size()] :
                         // Use interface angle for the interface layers.
                         m_support_params.interface_angle + interface_angle_delta;
+
                 double density = interface_as_base ? m_support_params.support_density : m_support_params.interface_density;
                 filler_interface->spacing = interface_as_base ? m_support_params.support_material_flow.spacing() : m_support_params.support_material_interface_flow.spacing();
                 filler_interface->link_max_length = coord_t(scale_(filler_interface->spacing * link_max_length_factor / density));

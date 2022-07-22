@@ -26,19 +26,19 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
 
-    m_status_text = new wxStaticText(m_self, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, 0);
+    m_status_text = new wxStaticText(m_self, wxID_ANY, L(""), wxDefaultPosition, wxSize(m_self->FromDIP(280), -1), 0);
     m_status_text->SetForegroundColour(wxColour(107, 107, 107));
     m_status_text->SetFont(::Label::Body_13);
-    m_status_text->Wrap(-1);
-    m_sizer_body->Add(m_status_text, 0, 0, 0);
+    m_status_text->Wrap(m_self->FromDIP(280));
+   
 
     m_prog = new wxGauge(m_self, wxID_ANY, 100, wxDefaultPosition, wxSize(-1, m_self->FromDIP(6)), wxGA_HORIZONTAL);
     m_prog->SetValue(0);
 
-    block_left = new wxWindow(m_prog, wxID_ANY, wxPoint(0, 0), wxSize(2, m_prog->GetSize().GetHeight() * 2));
-    block_left->SetBackgroundColour(wxColour(255, 255, 255));
-    block_right = new wxWindow(m_prog, wxID_ANY, wxPoint(m_prog->GetSize().GetWidth() - 2, 0), wxSize(2, m_prog->GetSize().GetHeight() * 2));
-    block_right->SetBackgroundColour(wxColour(255, 255, 255));
+  /*  block_left = new wxWindow(m_prog, wxID_ANY, wxPoint(0, 0), wxSize(2, m_prog->GetSize().GetHeight() * 2));
+      block_left->SetBackgroundColour(wxColour(255, 255, 255));
+      block_right = new wxWindow(m_prog, wxID_ANY, wxPoint(m_prog->GetSize().GetWidth() - 2, 0), wxSize(2, m_prog->GetSize().GetHeight() * 2));
+      block_right->SetBackgroundColour(wxColour(255, 255, 255));*/
 
     m_sizer_bottom->Add(m_prog, 1, wxALIGN_CENTER, 0);
 
@@ -47,9 +47,10 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     m_cancelbutton->SetTextColor(wxColour(107, 107, 107));
     m_cancelbutton->SetBackgroundColor(wxColour(255, 255, 255));
     m_cancelbutton->SetCornerRadius(12);
-    m_cancelbutton->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &) {
+    m_cancelbutton->Bind(wxEVT_BUTTON, 
+        [this](wxCommandEvent &evt) {
         m_was_cancelled = true;
-        if (m_cancel_cb_fina) 
+        if (m_cancel_cb_fina)
             m_cancel_cb_fina();
     });
 
@@ -60,7 +61,9 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     m_sizer_bottom->Add(m_stext_percent, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 10);
 
     m_sizer_bottom->Add(m_cancelbutton, 0, wxALIGN_CENTER, 0);
-    m_sizer_body->Add(0, 0, 0, wxTOP, 5);
+
+    m_sizer_body->Add(m_status_text, 0, 0, 0);
+    m_sizer_body->Add(0, 0, 0, wxTOP, 1);
     m_sizer_body->Add(m_sizer_bottom, 1, wxEXPAND, 0);
 
     m_sizer->Add(m_sizer_body, 1, wxALIGN_CENTER, 0);
@@ -73,8 +76,8 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
 
 void BBLStatusBarSend::set_prog_block()
 {
-    block_left->SetPosition(wxPoint(0, 0));
-    block_right->SetPosition(wxPoint(m_prog->GetSize().GetWidth() - 2, 0));
+    //block_left->SetPosition(wxPoint(0, 0));
+    //block_right->SetPosition(wxPoint(m_prog->GetSize().GetWidth() - 2, 0));
 }
 
 int BBLStatusBarSend::get_progress() const
@@ -84,33 +87,19 @@ int BBLStatusBarSend::get_progress() const
 
 void BBLStatusBarSend::set_progress(int val)
 {
-    set_prog_block();
+    //set_prog_block();
 
     if(val < 0)
         return;
 
-    bool need_layout = false;
     //add the logic for arrange/orient jobs, which don't call stop_busy
-    if(val == m_prog->GetRange()) {
-        m_prog->SetValue(0);
-        set_percent_text("0%");
-        m_sizer->Hide(m_prog);
-        need_layout = true;
+    if (!m_sizer->IsShown(m_prog)) {
+        m_sizer->Show(m_prog);
+        m_sizer->Show(m_cancelbutton);
     }
-    else
-    {
-        if (!m_sizer->IsShown(m_prog)) {
-            m_sizer->Show(m_prog);
-            m_sizer->Show(m_cancelbutton);
-            need_layout = true;
-        }
-        m_prog->SetValue(val);
-        set_percent_text(wxString::Format("%d%%", val));
-    }
-
-    if (need_layout) {
-        m_sizer->Layout();
-    }
+    m_prog->SetValue(val);
+    set_percent_text(wxString::Format("%d%%", val));
+    m_sizer->Layout();
 }
 
 int BBLStatusBarSend::get_range() const
@@ -185,6 +174,9 @@ void BBLStatusBarSend::set_status_text(const wxString& txt)
     //auto txtss = "The printing project is being uploaded... 25%%";
     //m_status_text->SetLabelText(txtss);
     m_status_text->SetLabelText(txt);
+    m_status_text->SetSize(wxSize(m_self->FromDIP(280), -1));
+    m_status_text->SetMaxSize(wxSize(m_self->FromDIP(280), -1));
+    m_status_text->Wrap(m_self->FromDIP(280));
 }
 
 void BBLStatusBarSend::set_percent_text(const wxString &txt)
@@ -203,7 +195,7 @@ void BBLStatusBarSend::set_status_text(const char *txt)
 }
 
 void BBLStatusBarSend::msw_rescale() { 
-    set_prog_block();
+    //set_prog_block();
     m_cancelbutton->SetMinSize(wxSize(m_self->FromDIP(56), m_self->FromDIP(24)));
 }
 
@@ -230,6 +222,7 @@ void BBLStatusBarSend::reset()
     set_status_text("");
     m_was_cancelled = false;
     set_progress(0);
+    set_percent_text(wxString::Format("%d%%", 0));
 }
 
 
@@ -248,6 +241,11 @@ void BBLStatusBarSend::hide_cancel_button()
 {
     m_sizer->Hide(m_cancelbutton);
     m_sizer->Layout();
+}
+
+void BBLStatusBarSend::change_button_label(wxString name) 
+{
+    m_cancelbutton->SetLabel(name);
 }
 
 }

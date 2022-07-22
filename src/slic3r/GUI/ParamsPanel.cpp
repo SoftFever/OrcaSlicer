@@ -21,7 +21,7 @@
 namespace Slic3r {
 namespace GUI {
 
-    
+
 TipsDialog::TipsDialog(wxWindow *parent, const wxString &title)
     : DPIDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
@@ -230,16 +230,17 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         //m_search_btn = new ScalableButton(m_top_panel, wxID_ANY, "search", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
         //m_search_btn->SetToolTip(format_wxstr(_L("Search in settings [%1%]"), "Ctrl+F"));
         //m_search_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().plater()->search(false); });
-#if !BBL_RELEASE_TO_PUBLIC
+
         m_compare_btn = new ScalableButton(m_top_panel, wxID_ANY, "compare", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
         m_compare_btn->SetToolTip(_L("Compare presets"));
         m_compare_btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { wxGetApp().mainframe->diff_dialog.show(); }));
-#endif
+#if !BBL_RELEASE_TO_PUBLIC
         m_setting_btn = new ScalableButton(m_top_panel, wxID_ANY, "table", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
         m_setting_btn->SetToolTip(_L("View all object's settings"));
         m_setting_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { wxGetApp().plater()->PopupObjectTable(-1, -1, {0, 0}); });
+#endif
 
-        m_highlighter.set_timer_owner(this, 0);    
+        m_highlighter.set_timer_owner(this, 0);
         this->Bind(wxEVT_TIMER, [this](wxTimerEvent &)
         {
             m_highlighter.blink();
@@ -332,12 +333,13 @@ void ParamsPanel::create_layout()
         m_mode_sizer->Add( m_title_view, 0, wxALIGN_CENTER );
         m_mode_sizer->AddSpacer(FromDIP(9));
         m_mode_sizer->Add( m_mode_view, 0, wxALIGN_CENTER );
-        m_mode_sizer->AddSpacer(FromDIP(16));
-        m_mode_sizer->Add( m_setting_btn, 0, wxALIGN_CENTER );
 #if !BBL_RELEASE_TO_PUBLIC
         m_mode_sizer->AddSpacer(FromDIP(16));
-        m_mode_sizer->Add( m_compare_btn, 0, wxALIGN_CENTER );
+        m_mode_sizer->Add( m_setting_btn, 0, wxALIGN_CENTER );
 #endif
+        m_mode_sizer->AddSpacer(FromDIP(16));
+        m_mode_sizer->Add( m_compare_btn, 0, wxALIGN_CENTER );
+
         m_mode_sizer->AddSpacer(FromDIP(8));
         //m_mode_sizer->Add( m_search_btn, 0, wxALIGN_CENTER );
         //m_mode_sizer->AddSpacer(16);
@@ -590,7 +592,9 @@ void ParamsPanel::update_mode()
 void ParamsPanel::msw_rescale()
 {
     if (m_process_icon) m_process_icon->msw_rescale();
+#if !BBL_RELEASE_TO_PUBLIC
     if (m_setting_btn) m_setting_btn->msw_rescale();
+#endif
     if (m_search_btn) m_search_btn->msw_rescale();
     if (m_compare_btn) m_compare_btn->msw_rescale();
     m_left_sizer->SetMinSize(wxSize(40 * em_unit(this), -1));

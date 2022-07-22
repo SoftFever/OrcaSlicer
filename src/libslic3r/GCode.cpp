@@ -2542,6 +2542,24 @@ GCode::LayerResult GCode::process_layer(
                 // Shall the support interface be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
                 bool            interface_dontcare = object.config().support_interface_filament.value == 0;
 
+                // BBS: apply wiping overridden extruders
+                WipingExtrusions& wiping_extrusions = const_cast<LayerTools&>(layer_tools).wiping_extrusions();
+                if (support_dontcare) {
+                    int extruder_override = wiping_extrusions.get_support_extruder_overrides(&object);
+                    if (extruder_override >= 0) {
+                        support_extruder = extruder_override;
+                        support_dontcare = false;
+                    }
+                }
+
+                if (interface_dontcare) {
+                    int extruder_override = wiping_extrusions.get_support_interface_extruder_overrides(&object);
+                    if (extruder_override >= 0) {
+                        interface_extruder = extruder_override;
+                        interface_dontcare = false;
+                    }
+                }
+
                 // BBS: try to print support base with a filament other than interface filament
                 if (support_dontcare && !interface_dontcare) {
                     unsigned int dontcare_extruder = first_extruder_id;
@@ -2609,7 +2627,16 @@ GCode::LayerResult GCode::process_layer(
                 // Shall the support interface be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
                 bool            interface_dontcare = object.config().support_interface_filament.value == 0;
 
+                // BBS: apply wiping overridden extruders
                 WipingExtrusions& wiping_extrusions = const_cast<LayerTools&>(layer_tools).wiping_extrusions();
+                if (support_dontcare) {
+                    int extruder_override = wiping_extrusions.get_support_extruder_overrides(&object);
+                    if (extruder_override >= 0) {
+                        support_extruder = extruder_override;
+                        support_dontcare = false;
+                    }
+                }
+
                 if (support_dontcare || interface_dontcare) {
                     // Some support will be printed with "don't care" material, preferably non-soluble.
                     // Is the current extruder assigned a soluble filament?
@@ -2897,8 +2924,12 @@ GCode::LayerResult GCode::process_layer(
 
                     // BBS
                     WipingExtrusions& wiping_extrusions = const_cast<LayerTools&>(layer_tools).wiping_extrusions();
+                    bool support_overridden = wiping_extrusions.is_support_overridden(layer.object());
+                    bool support_intf_overridden = wiping_extrusions.is_support_interface_overridden(layer.object());
+
                     ExtrusionRole support_extrusion_role = instance_to_print.object_by_extruder.support_extrusion_role;
-                    if (print_wipe_extrusions == 0)
+                    bool is_overridden = support_extrusion_role == erSupportMaterialInterface ? support_intf_overridden : support_overridden;
+                    if (is_overridden == (print_wipe_extrusions != 0))
                         support_eec.entities = filter_by_extrusion_role(instance_to_print.object_by_extruder.support->entities, instance_to_print.object_by_extruder.support_extrusion_role);
 
                     for (auto& ptr : support_eec.entities)

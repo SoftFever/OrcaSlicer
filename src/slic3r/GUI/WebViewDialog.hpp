@@ -92,6 +92,7 @@ public:
 public:
     void SendRecentList(wxString const &sequence_id);
     void SendLoginInfo();
+    void ShowNetpluginTip();
 
     void update_mode();
 private:

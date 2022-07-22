@@ -97,3 +97,13 @@ void set_miniaturizable(void * window)
 }
 
 @end
+
+
+@implementation NSTextField (FocusRing)
+
+- (NSFocusRingType) focusRingType
+{
+    return NSFocusRingTypeNone;
+}
+
+@end

@@ -70,6 +70,7 @@ public:
     void set_print_job_finished_event(int event_id) { m_print_job_completed_id = event_id; }
 
     void on_success(std::function<void()> success);
+    wxString get_http_error_msg(unsigned int status, std::string body);
     void process() override;
     void finalize() override;
 };

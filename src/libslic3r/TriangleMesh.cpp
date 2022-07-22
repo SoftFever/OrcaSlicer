@@ -497,15 +497,10 @@ BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d& trafod, 
 
 TriangleMesh TriangleMesh::convex_hull_3d() const
 {
-    // BBS: don't compute convex hull for objects like a single sheet
-    if (this->m_stats.volume>0.001) {
-        TriangleMesh mesh(its_convex_hull(this->its));
-        // Quite often qhull produces non-manifold mesh.
-        // assert(mesh.stats().manifold());
-        return mesh;
-    }
-    else
-        return TriangleMesh();
+    TriangleMesh mesh(its_convex_hull(this->its));
+    // Quite often qhull produces non-manifold mesh.
+    // assert(mesh.stats().manifold());
+    return mesh;
 }
 
 std::vector<ExPolygons> TriangleMesh::slice(const std::vector<double> &z) const

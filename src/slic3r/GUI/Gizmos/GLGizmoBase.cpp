@@ -246,7 +246,7 @@ void GLGizmoBase::GizmoImguiEnd()
     m_imgui->end();
 }
 
-void GLGizmoBase::GizmoImguiSetNextWIndowPos(float x, float y, int flag, float pivot_x, float pivot_y)
+void GLGizmoBase::GizmoImguiSetNextWIndowPos(float &x, float y, int flag, float pivot_x, float pivot_y)
 {
     if (abs(last_input_window_width) > 0.01f) {
         if (x + last_input_window_width > m_parent.get_canvas_size().get_width()) {

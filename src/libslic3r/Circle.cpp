@@ -4,6 +4,9 @@
 #include <cassert>
 #include "Geometry.hpp"
 
+
+//BBS: Refer to ArcWelderLib for the arc fitting functions
+
 namespace Slic3r {
 
 //BBS: threshold used to judge collineation

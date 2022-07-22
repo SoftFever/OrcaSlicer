@@ -1188,9 +1188,10 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
     int orig_opt_idx = -1;
     int opt_idx = -1;
     int pos = opt_key.find("#");
+    std::string temp_str = opt_key;
     if (pos > 0) {
-        boost::erase_head(opt_key, pos + 1);
-        orig_opt_idx = static_cast<size_t>(atoi(opt_key.c_str()));
+        boost::erase_head(temp_str, pos + 1);
+        orig_opt_idx = static_cast<size_t>(atoi(temp_str.c_str()));
     }
     opt_idx = orig_opt_idx >= 0 ? orig_opt_idx : 0;
     opt_key = get_pure_opt_key(opt_key);

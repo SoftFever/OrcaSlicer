@@ -109,3 +109,8 @@ input
 	display: flex;
 	justify-content:space-around;
 }
+
+#GotoNetPluginBtn
+{
+	display: none;
+}

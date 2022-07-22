@@ -686,7 +686,15 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Don't support the whole bridge area which make support very large. "
                      "Bridge usually can be printing directly without support if not very long");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("thick_bridges", coBool);
+    def->label = L("Thick bridges");
+    def->category = L("Layers and Perimeters");
+    def->tooltip = L("If enabled, bridges are more reliable, can bridge longer distances, but may look worse. "
+        "If disabled, bridges look better but are reliable just for shorter bridged distances.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("max_bridge_length", coFloat);
     def->label = L("Max bridge length");
@@ -722,10 +730,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values.push_back("concentric");
     def->enum_values.push_back("zig-zag");
-#if !BBL_RELEASE_TO_PUBLIC
     def->enum_values.push_back("monotonic");
-#endif
-    //BBS: use monotonicline pattern to replace monotonic for top and bottom surface
     def->enum_values.push_back("monotonicline");
     //def->enum_values.push_back("alignedrectilinear");
     //def->enum_values.push_back("hilbertcurve");
@@ -733,9 +738,7 @@ void PrintConfigDef::init_fff_params()
     //def->enum_values.push_back("octagramspiral");
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Zig zag"));
-#if !BBL_RELEASE_TO_PUBLIC
     def->enum_labels.push_back(L("Monotonic"));
-#endif
     def->enum_labels.push_back(L("Monotonic line"));
     //def->enum_labels.push_back(L("Aligned Rectilinear"));
     //def->enum_labels.push_back(L("Hilbert Curve"));
@@ -1627,8 +1630,10 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("reduce_infill_retraction", coBool);
     def->label = L("Reduce infill retraction");
-    def->tooltip = L("Don't retract when the travel is in infill area absolutely. That means the oozing can't been seen");
-    def->mode = comDevelop;
+    def->tooltip = L("Don't retract when the travel is in infill area absolutely. That means the oozing can't been seen. "
+                     "This can reduce times of retraction for complex model and save printing time, but make slicing and "
+                     "G-code generating slower");
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("ooze_prevention", coBool);
@@ -2545,6 +2550,13 @@ void PrintConfigDef::init_fff_params()
         "If the walls are printed with transparent filament, the mixed color infill will be seen outside");
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("flush_into_support", coBool);
+    def->category = L("Flush options");
+    def->label = L("Flush into objects' support");
+    def->tooltip = L("Purging after filament change will be done inside objects' support. "
+        "This may lower the amount of waste and decrease the print time");
+    def->set_default_value(new ConfigOptionBool(true));
+
     def = this->add("flush_into_objects", coBool);
     def->category = L("Flush options");
     def->label = L("Flush into this object");
@@ -3345,12 +3357,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         //But now these key-value must be absolute value.
         //Reset to default value by erasing these key to avoid parsing error.
         opt_key = "";
-    } else if (opt_key == "top_surface_pattern" || opt_key == "bottom_surface_pattern") {
-#if BBL_RELEASE_TO_PUBLIC
-        //BBS: replace monotonic pattern to be monotonicline for top and bottom surface
-        if (value == "monotonic")
-            value = "monotonicline";
-#endif
     } else if (opt_key == "filament_type" && value == "PA-CF") {
         value == "PA";
     } else if (opt_key == "inherits_cummulative") {
@@ -3372,7 +3378,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         , "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative"
 #endif /* HAS_PRESSURE_EQUALIZER */
         // BBS
-        , "thick_bridges","support_sharp_tails","remove_small_overhangs", "support_with_sheath",
+        , "support_sharp_tails","remove_small_overhangs", "support_with_sheath",
         "tree_support_branch_diameter_angle", "tree_support_collision_resolution",
         "small_perimeter_speed", "max_volumetric_speed", "max_print_speed",
         "support_bottom_z_distance", "support_closing_radius", "slicing_mode", "slice_closing_radius",

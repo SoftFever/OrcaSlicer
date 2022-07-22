@@ -390,5 +390,4 @@ void DownloadDialog::SetExtendedMessage(const wxString &extendedMessage)
     Fit();
 }
 
-}
-}
+}} // namespace Slic3r::GUI

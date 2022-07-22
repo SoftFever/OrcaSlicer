@@ -221,8 +221,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Monitor.hpp
     GUI/WebViewDialog.cpp
     GUI/WebViewDialog.hpp
-    GUI/WebDailytipDialog.hpp
-    GUI/WebDailytipDialog.cpp
+    GUI/WebDownPluginDlg.hpp
+    GUI/WebDownPluginDlg.cpp
     GUI/WebGuideDialog.hpp
     GUI/WebGuideDialog.cpp
     GUI/WebUserLoginDialog.cpp
@@ -268,12 +268,16 @@ set(SLIC3R_GUI_SOURCES
     GUI/ConfigWizard_private.hpp
     GUI/MsgDialog.cpp
     GUI/MsgDialog.hpp
+    GUI/DownloadProgressDialog.hpp
+    GUI/DownloadProgressDialog.cpp
     GUI/UpdateDialogs.cpp
     GUI/UpdateDialogs.hpp
     GUI/Jobs/Job.hpp
     GUI/Jobs/Job.cpp
     GUI/Jobs/PlaterJob.hpp
     GUI/Jobs/PlaterJob.cpp
+    GUI/Jobs/UpgradeNetworkJob.hpp
+    GUI/Jobs/UpgradeNetworkJob.cpp
     GUI/Jobs/ArrangeJob.hpp
     GUI/Jobs/ArrangeJob.cpp
     GUI/Jobs/OrientJob.hpp

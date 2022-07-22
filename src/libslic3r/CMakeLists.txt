@@ -122,8 +122,6 @@ set(lisbslic3r_sources
     GCode/SpiralVase.hpp
     GCode/SeamPlacer.cpp
     GCode/SeamPlacer.hpp
-    GCode/SpeedGenerator.cpp
-    GCode/SpeedGenerator.hpp
     GCode/ToolOrdering.cpp
     GCode/ToolOrdering.hpp
     GCode/WipeTower.cpp
@@ -316,6 +314,12 @@ set(lisbslic3r_sources
     SLA/Clustering.cpp
     SLA/ReprojectPointsOnMesh.hpp
 )
+
+if (APPLE)
+    list(APPEND lisbslic3r_sources
+			MacUtils.mm
+        )
+endif ()
 
 add_library(libslic3r STATIC ${lisbslic3r_sources} 
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h"

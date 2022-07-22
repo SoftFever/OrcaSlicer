@@ -11,6 +11,7 @@
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include "slic3r/GUI/WebViewDialog.hpp"
+#include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
 
 #include <wx/app.h>
 #include <wx/colour.h>
@@ -22,7 +23,8 @@
 #include <mutex>
 #include <stack>
 
-#define BBL_HAS_FIRST_PAGE 1
+#define BBL_HAS_FIRST_PAGE          1
+#define STUDIO_INACTIVE_TIMEOUT     15*60*1000
 
 class wxMenuItem;
 class wxMenuBar;
@@ -103,6 +105,7 @@ enum CameraMenuIDs {
     wxID_CAMERA_ORTHOGONAL,
     wxID_CAMERA_COUNT,
 };
+
 
 class Tab;
 class ConfigWizard;
@@ -186,6 +189,7 @@ public:
 class GUI_App : public wxApp
 {
 public:
+    
     //BBS: remove GCodeViewer as seperate APP logic
     enum class EAppMode : unsigned char
     {
@@ -241,9 +245,13 @@ private:
 
     //BBS
     bool m_is_closing {false};
-    Slic3r::DeviceManager* m_device_manager;
+    Slic3r::DeviceManager* m_device_manager { nullptr };
     NetworkAgent* m_agent { nullptr };
     std::vector<std::string> need_delete_presets;   // store setting ids of preset
+    bool m_networking_compatible { false };
+    bool m_networking_need_update { false };
+    bool m_networking_cancel_update { false };
+    std::shared_ptr<UpgradeNetworkJob> m_upgrade_network_job;
 
     VersionInfo version_info;
 
@@ -335,7 +343,7 @@ public:
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
 
     void            ShowUserGuide();
-    void            ShowDailyTip();
+    void            ShowDownNetPluginDlg();
     void            ShowUserLogin();
     void            ShowOnlyFilament();
     //BBS
@@ -358,11 +366,18 @@ public:
     void            on_http_error(wxCommandEvent &evt);
     void            on_user_login(wxCommandEvent &evt);
 
+    // BBS
+    bool            is_studio_active();
+    void            reset_to_active();
+    bool            m_studio_active = true;
+    std::chrono::system_clock::time_point  last_active_point;
+
     void            check_update(bool show_tips);
     void            check_new_version(bool show_tips = false);
     void            request_new_version();
     void            enter_force_upgrade();
     void            no_new_version();
+    void            show_dialog(wxString msg);
     void            reload_settings();
     void            remove_user_presets();
     void            sync_preset(Preset* preset);
@@ -484,12 +499,23 @@ public:
     void            associate_files(std::wstring extend);
     void            disassociate_files(std::wstring extend);
 #endif // __WXMSW__
+    std::string     get_plugin_url(std::string country_code);
+    int             download_plugin(InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
+    int             install_plugin(InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
+    std::string     get_http_url(std::string country_code);
+    bool            is_compatibility_version();
+    bool            check_networking_version();
+    void            cancel_networking_install();
+    void            restart_networking();
 
 private:
+    int             updating_bambu_networking();
     bool            on_init_inner();
+    bool            on_init_network();
     void            init_networking_callbacks();
     void            init_app_config();
     //BBS set extra header for http request
+    std::map<std::string, std::string> get_extra_header();
     void            init_http_extra_header();
     bool            check_older_app_config(Semver current_version, bool backup);
     void            copy_older_config();

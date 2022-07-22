@@ -3,6 +3,10 @@
 #include "I18N.hpp"
 #include "Widgets/Label.hpp"
 #include "libslic3r/Utils.hpp"
+#include "BitmapCache.hpp"
+#include <wx/progdlg.h>
+#include <wx/clipbrd.h>
+#include <wx/dcgraph.h>
 
 namespace Slic3r {
 namespace GUI {
@@ -128,5 +132,94 @@ void CameraPopup::OnMouse(wxMouseEvent &event)
 }
 
 
+CameraItem::CameraItem(wxWindow *parent,std::string off_normal, std::string on_normal, std::string off_hover, std::string on_hover)
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
+{
+#ifdef __WINDOWS__
+    SetDoubleBuffered(true);
+#endif //__WINDOWS__
+
+    m_bitmap_on_normal  = create_scaled_bitmap(on_normal, nullptr, 20);
+    m_bitmap_off_normal = create_scaled_bitmap(off_normal, nullptr, 20);
+    m_bitmap_on_hover   = create_scaled_bitmap(on_hover, nullptr, 20);
+    m_bitmap_off_hover  = create_scaled_bitmap(off_hover, nullptr, 20);
+
+    SetSize(wxSize(FromDIP(20), FromDIP(20)));
+    SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
+    SetMaxSize(wxSize(FromDIP(20), FromDIP(20)));
+    Bind(wxEVT_PAINT, &CameraItem::paintEvent, this);
+    Bind(wxEVT_ENTER_WINDOW, &CameraItem::on_enter_win, this);
+    Bind(wxEVT_LEAVE_WINDOW, &CameraItem::on_level_win, this);
+}
+
+CameraItem::~CameraItem() {}
+
+void CameraItem::msw_rescale() {}
+
+void CameraItem::set_switch(bool is_on)
+{
+    m_on = is_on;
+    Refresh();
+}
+
+void CameraItem::on_enter_win(wxMouseEvent &evt)
+{
+    m_hover = true;
+    Refresh();
+}
+
+void CameraItem::on_level_win(wxMouseEvent &evt)
+{
+    m_hover = false;
+    Refresh();
+}
+
+void CameraItem::paintEvent(wxPaintEvent &evt)
+{
+    wxPaintDC dc(this);
+    render(dc);
+
+    // PrepareDC(buffdc);
+    // PrepareDC(dc);
+}
+
+void CameraItem::render(wxDC &dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({0, 0}, size, &dc, {0, 0});
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void CameraItem::doRender(wxDC &dc)
+{
+    if (m_on) {
+        if (m_hover) {
+            dc.DrawBitmap(m_bitmap_on_hover, wxPoint((GetSize().x - m_bitmap_on_hover.GetSize().x) / 2, (GetSize().y - m_bitmap_on_hover.GetSize().y) / 2));
+        } else {
+            dc.DrawBitmap(m_bitmap_on_normal, wxPoint((GetSize().x - m_bitmap_on_normal.GetSize().x) / 2, (GetSize().y - m_bitmap_on_normal.GetSize().y) / 2));
+        }
+
+    } else {
+        if (m_hover) {
+            dc.DrawBitmap(m_bitmap_off_hover, wxPoint((GetSize().x - m_bitmap_off_hover.GetSize().x) / 2, (GetSize().y - m_bitmap_off_hover.GetSize().y) / 2));
+        } else {
+            dc.DrawBitmap(m_bitmap_off_normal, wxPoint((GetSize().x - m_bitmap_off_normal.GetSize().x) / 2, (GetSize().y - m_bitmap_off_normal.GetSize().y) / 2));
+        }
+    }
+}
 }
 }

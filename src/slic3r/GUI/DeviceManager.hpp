@@ -13,9 +13,9 @@
 
 #define USE_LOCAL_SOCKET_BIND 0
 
-#define DISCONNECT_TIMEOUT      10000.f     // milliseconds
+#define DISCONNECT_TIMEOUT      30000.f     // milliseconds
 #define PUSHINFO_TIMEOUT        15000.f     // milliseconds
-#define REQUEST_PUSH_MIN_TIME    3000.f     // milliseconds
+#define REQUEST_PUSH_MIN_TIME   15000.f     // milliseconds
 
 #define FILAMENT_MAX_TEMP       300
 #define FILAMENT_DEF_TEMP       220
@@ -153,11 +153,13 @@ public:
     wxColour        wx_color;
     bool            is_bbl;
     bool            is_exists = false;
+    int             hold_count = 0;
 
     AmsRoadPosition road_position;
     AmsStep         step_state;
     AmsRfidState    rfid_state;
 
+    void set_hold_count() { hold_count = 3; }
     void update_color_from_str(std::string color);
     wxColour get_color();
 
@@ -244,7 +246,13 @@ public:
 #define UpgradeFlashFailed      -3
 #define UpgradePrinting         -4
 
-
+// calc distance map
+struct DisValue {
+    int  tray_id;
+    float distance;
+    bool  is_same_color = true;
+    bool  is_type_match = true;
+};
 
 class MachineObject
 {
@@ -347,6 +355,7 @@ public:
     // parse amsStatusMain and ams_status_sub
     void _parse_ams_status(int ams_status);
     bool has_ams() { return ams_exist_bits != 0; }
+    bool is_U0_firmware();
     bool is_support_ams_mapping();
     bool is_only_support_cloud_print();
     static bool is_support_ams_mapping_version(std::string module, std::string version);
@@ -415,16 +424,22 @@ public:
     int     mc_print_line_number;
     int     mc_print_percent;       /* left print progess in percent */
     int     mc_left_time;           /* left time in seconds */
+    int     last_mc_print_stage;
     bool    is_system_printing();
 
     std::vector<int> stage_list_info;
     int stage_curr = 0;
     int m_push_count = 0;
+    bool calibration_done { false };
 
     wxString get_curr_stage();
     // return curr stage index of stage list
     int get_curr_stage_idx();
     bool is_in_calibration();
+    bool is_calibration_running();
+    bool is_calibration_done();
+
+    void parse_state_changed_event();
 
     /* printing status */
     std::string print_status;      /* enum string: FINISH, RUNNING, PAUSE, INIT, FAILED */
@@ -455,11 +470,14 @@ public:
     BBLSliceInfo* slice_info {nullptr};
     int plate_index { -1 };
     std::string m_gcode_file;
+    int gcode_file_prepare_percent = 0;
     BBLSubTask* subtask_;
     std::string obj_subtask_id;     // subtask_id == 0 for sdcard
     std::string subtask_name;
     bool is_sdcard_printing();
     bool has_sdcard();
+    bool has_timelapse();
+    bool has_recording();
 
 
     MachineObject(NetworkAgent* agent, std::string name, std::string id, std::string ip);
@@ -517,6 +535,7 @@ public:
     bool can_pause();
     bool can_abort();
     bool is_in_printing();
+    bool is_in_prepare();
     bool is_printing_finished();
     void reset_update_time();
     void reset();
@@ -525,6 +544,7 @@ public:
     void set_print_state(std::string status);
 
     bool is_connected();
+    bool is_connecting();
     void set_online_state(bool on_off);
     bool is_online() { return m_is_online; }
     bool is_info_ready();
@@ -554,6 +574,7 @@ private:
 public:
     DeviceManager(NetworkAgent* agent = nullptr);
     ~DeviceManager();
+    void set_agent(NetworkAgent* agent);
 
     std::mutex listMutex;
     std::string selected_machine;                               /* dev_id */
@@ -566,6 +587,7 @@ public:
     MachineObject* get_local_machine(std::string dev_id);
     MachineObject* get_user_machine(std::string dev_id);
     MachineObject* get_my_machine(std::string dev_id);
+    void erase_user_machine(std::string dev_id);
     void clean_user_info();
 
     bool set_selected_machine(std::string dev_id);
@@ -588,8 +610,6 @@ public:
     // get alive machine
     std::map<std::string, MachineObject*> get_local_machine_list();
     void load_last_machine();
-
-    void check_alive();
 };
 
 } // namespace Slic3r

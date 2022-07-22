@@ -251,6 +251,12 @@ public:
     };
     std::vector<std::pair<ExPolygon *, int>> area_groups;
 
+    enum OverhangType {
+        Detected=0,
+        Enforced
+    };
+    std::map<const ExPolygon *, OverhangType> overhang_types;
+
     virtual bool has_extrusions() const { return !support_fills.empty(); }
 
     void simplify_support_extrusion_path() { this->simplify_support_entity_collection(&support_fills);}

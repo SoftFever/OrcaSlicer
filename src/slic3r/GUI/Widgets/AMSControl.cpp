@@ -14,14 +14,14 @@ static const int UNLOAD_STEP_COUNT = 3;
 static const wxColour AMS_TRAY_DEFAULT_COL = wxColour(255, 255, 255);
 
 static wxString FILAMENT_LOAD_STEP_STRING[LOAD_STEP_COUNT] = {
-    _L("Heat the nozzle to target \ntemperature"), 
+    _L("Heat the nozzle to target temperature"), 
     _L("Cut filament"), 
     _L("Pull back current filament"),
-    _L("Push new filament \ninto extruder"),
+    _L("Push new filament into extruder"),
     _L("Purge old filament"),
 };
 
-static wxString FILAMENT_UNLOAD_STEP_STRING[UNLOAD_STEP_COUNT] = {_L("Heat the nozzle to target \ntemperature"), _L("Cut filament"), _L("Pull back current filament")};
+static wxString FILAMENT_UNLOAD_STEP_STRING[UNLOAD_STEP_COUNT] = {_L("Heat the nozzle to target temperature"), _L("Cut filament"), _L("Pull back current filament")};
 
 wxDEFINE_EVENT(EVT_AMS_LOAD, SimpleEvent);
 wxDEFINE_EVENT(EVT_AMS_UNLOAD, SimpleEvent);
@@ -1138,13 +1138,6 @@ void AmsCans::SelectCan(std::string canid)
 
 void AmsCans::SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step)
 {
-    auto tag_can_index = -1;
-    for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
-        CanRoads *road = m_can_road_list[i];
-        if (canid == road->canRoad->m_info.can_id) { tag_can_index = road->canRoad->m_canindex; }
-    }
-
-    if (tag_can_index == -1) return;
 
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_NONE) {
         for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
@@ -1156,6 +1149,14 @@ void AmsCans::SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP s
 
         return;
     }
+
+    
+    auto tag_can_index = -1;
+    for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
+        CanRoads *road = m_can_road_list[i];
+        if (canid == road->canRoad->m_info.can_id) { tag_can_index = road->canRoad->m_canindex; }
+    }
+    if (tag_can_index == -1) return;
 
     // get colour
     auto tag_colour = *wxWHITE;
@@ -1430,6 +1431,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     amswin->SetSizer(m_sizer_body);
     amswin->Layout();
     amswin->Fit();
+    
     //Thaw();
 
     SetSize(amswin->GetSize());
@@ -1503,7 +1505,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_simplebook_calibration->AddPage(m_calibration_err_panel, wxEmptyString, false);
 
     AddPage(amswin, wxEmptyString, false);
-    AddPage(m_in_calibration_panel, wxEmptyString, false);
+    AddPage(m_simplebook_calibration, wxEmptyString, false);
 
     UpdateStepCtrl();
 
@@ -1518,11 +1520,11 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
 void AMSControl::init_scaled_buttons()
 {
-    m_button_extruder_feed->SetMinSize(wxSize(FromDIP(54), FromDIP(24)));
+    m_button_extruder_feed->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_extruder_feed->SetCornerRadius(FromDIP(11));
-    m_button_extruder_back->SetMinSize(wxSize(FromDIP(54), FromDIP(24)));
+    m_button_extruder_back->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_extruder_back->SetCornerRadius(FromDIP(11));
-    m_button_ams_setting->SetMinSize(wxSize(FromDIP(88), FromDIP(33)));
+    m_button_ams_setting->SetMinSize(wxSize(-1, FromDIP(33)));
     m_button_ams_setting->SetCornerRadius(FromDIP(12));
 }
 
@@ -1651,9 +1653,9 @@ void AMSControl::StopRridLoading(wxString amsid, wxString canid)
 void AMSControl::msw_rescale()
 {
     m_extruder->msw_rescale();
-    m_button_extruder_back->SetMinSize(wxSize(FromDIP(54), FromDIP(24)));
-    m_button_extruder_feed->SetMinSize(wxSize(FromDIP(54), FromDIP(24)));
-    m_button_ams_setting->SetMinSize(wxSize(FromDIP(88), FromDIP(33)));
+    m_button_extruder_back->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_extruder_feed->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_ams_setting->SetMinSize(wxSize(-1, FromDIP(33)));
 
     for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
         AmsCansWindow *cans = m_ams_cans_list[i];
@@ -1688,6 +1690,13 @@ void AMSControl::CreateAms()
     m_sizer_top->Layout();
     Thaw();
 }
+
+void AMSControl::Reset() 
+{
+    m_current_ams = ""; 
+    m_current_senect = "";
+}
+
 
 void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection)
 {

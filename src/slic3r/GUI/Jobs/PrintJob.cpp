@@ -51,6 +51,49 @@ void PrintJob::on_success(std::function<void()> success)
     m_success_fun = success;
 }
 
+wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
+{
+    int code = 0;
+    std::string error;
+    std::string message;
+    wxString result;
+    if (status >= 400 && status < 500)
+        try {
+        json j = json::parse(body);
+        if (j.contains("code")) {
+            if (!j["code"].is_null())
+                code = j["code"].get<int>();
+        }
+        if (j.contains("error")) {
+            if (!j["error"].is_null())
+                error = j["error"].get<std::string>();
+        }
+        if (j.contains("message")) {
+            if (!j["message"].is_null())
+                message = j["message"].get<std::string>();
+        }
+        switch (status) {
+            ;
+        }
+    }
+    catch (...) {
+        ;
+    }
+    else if (status == 503) {
+        return _L("Service Unavailable");
+    }
+    else {
+        wxString unkown_text = _L("Unkown Error.");
+        unkown_text += wxString::Format("status=%u, body=%s", status, body);
+        return unkown_text;
+    }
+
+    BOOST_LOG_TRIVIAL(error) << "http_error: status=" << status << ", code=" << code << ", error=" << error;
+
+    result = wxString::Format("code=%u, error=%s", code, from_u8(error));
+    return result;
+}
+
 void PrintJob::process()
 {
     /* display info */
@@ -114,8 +157,10 @@ void PrintJob::process()
     params.dev_ip = m_dev_ip;
     params.username = "bblp";
     params.password = m_access_code;
+    wxString error_text;
+    wxString msg_text;
 
-    auto update_fn = [this, &msg, &curr_percent](int stage, int code, std::string info) {
+    auto update_fn = [this, &msg, &curr_percent, &error_text](int stage, int code, std::string info) {
                         if (stage == BBL::SendingPrintJobStage::PrintingStageCreate) {
                             if (this->connection_type == "lan") {
                                 msg = _L("Sending print job over LAN");
@@ -157,13 +202,17 @@ void PrintJob::process()
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageFinished) {
                             curr_percent = 100;
-                            msg = wxString::Format(_L("Successfully sent.Will automatically jump to the device page in %s s"), info);
+                            msg = wxString::Format(_L("Successfully sent. Will automatically jump to the device page in %s s"), info);
                         } else {
                             if (this->connection_type == "lan") {
                                 msg = _L("Sending print job over LAN");
                             } else {
                                 msg = _L("Sending print job through cloud service");
                             }
+                        }
+                        if (code != 0) {
+                            error_text = this->get_http_error_msg(code, info);
+                            msg += wxString::Format("[%s]", error_text);
                         }
                         this->update_status(curr_percent, msg);
                     };
@@ -193,19 +242,6 @@ void PrintJob::process()
             BOOST_LOG_TRIVIAL(info) << "print_job: send with cloud";
             this->update_status(curr_percent, _L("Sending print job through cloud service"));
             result = m_agent->start_print(params, update_fn, cancel_fn);
-            if (result < 0) {
-                if (!params.password.empty() && !params.dev_ip.empty()) {
-                    //try to send with local only
-                    if (this->has_sdcard) {
-                        this->update_status(curr_percent, _L("Sending print job over LAN"));
-                        result = m_agent->start_local_print(params, update_fn, cancel_fn);
-                    } else {
-                        this->update_status(curr_percent, _L("Failed to connect to the cloud server connection. Please insert an SD card and resend the print job, which will transfer the print file via LAN. "));
-                        BOOST_LOG_TRIVIAL(error) << "print_job: failed, need sdcard";
-                        return;
-                    }
-                }
-            }
         }
     } else {
         if (this->has_sdcard) {
@@ -224,26 +260,29 @@ void PrintJob::process()
 
     if (result < 0) {
         if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
-            update_status(curr_percent, upload_failed_str);
+            msg_text = upload_failed_str;
         } if (result == BAMBU_NETWORK_ERR_FILE_NOT_EXIST) {
-            update_status(curr_percent, file_is_not_exists_str);
+            msg_text = file_is_not_exists_str;
         } else if (result == BAMBU_NETWORK_ERR_FILE_OVER_SIZE) {
-            update_status(curr_percent, file_over_size_str);
+            msg_text = file_over_size_str;
         } else if (result == BAMBU_NETWORK_ERR_CHECK_MD5_FAILED) {
-            update_status(curr_percent, failed_in_cloud_service_str);
+            msg_text = failed_in_cloud_service_str;
         } else if (result == BAMBU_NETWORK_ERR_INVALID_PARAMS) {
-            update_status(curr_percent, upload_failed_str);
+            msg_text = upload_failed_str;
         } else if (result == BAMBU_NETWORK_ERR_CANCELED) {
-            update_status(curr_percent, print_canceled_str);
+            msg_text = print_canceled_str;
         } else if (result == BAMBU_NETWORK_ERR_TIMEOUT) {
-            update_status(curr_percent, timeout_to_upload_str);
+            msg_text = timeout_to_upload_str;
         } else if (result == BAMBU_NETWORK_ERR_INVALID_RESULT) {
-            update_status(curr_percent, upload_failed_str);
+            msg_text = upload_failed_str;
         } else if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
-            update_status(curr_percent, upload_failed_str);
+            msg_text = upload_failed_str;
         } else {
             update_status(curr_percent, failed_in_cloud_service_str);
         }
+        if (!error_text.IsEmpty())
+            msg_text += wxString::Format("[%s]", error_text);
+        update_status(curr_percent, msg_text);
         BOOST_LOG_TRIVIAL(error) << "print_job: failed, result = " << result;
     } else {
         BOOST_LOG_TRIVIAL(error) << "print_job: send ok.";

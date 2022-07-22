@@ -152,6 +152,9 @@ wxDEFINE_EVENT(EVT_PRINT_FINISHED,                  wxCommandEvent);
 //BBS: repair model
 wxDEFINE_EVENT(EVT_REPAIR_MODEL,                    wxCommandEvent);
 wxDEFINE_EVENT(EVT_FILAMENT_COLOR_CHANGED,          wxCommandEvent);
+wxDEFINE_EVENT(EVT_INSTALL_PLUGIN_NETWORKING,       wxCommandEvent);
+wxDEFINE_EVENT(EVT_INSTALL_PLUGIN_HINT,             wxCommandEvent);
+wxDEFINE_EVENT(EVT_PREVIEW_ONLY_MODE_HINT,          wxCommandEvent);
 
 
 
@@ -301,7 +304,6 @@ struct Sidebar::priv
     wxPanel* m_panel_printer_content = nullptr;
 
     ObjectList          *m_object_list{ nullptr };
-    wxPanel             *m_object_panel;
     AuxiliaryDialog     *m_auxiliary_dialog{ nullptr };
     ObjectSettings      *object_settings{ nullptr };
 
@@ -335,10 +337,6 @@ Sidebar::priv::~priv()
 #if 0
     delete frequently_changed_parameters;
 #endif
-
-    // BBS
-    if (m_object_panel != nullptr)
-        delete m_object_panel;
 }
 
 void Sidebar::priv::show_preset_comboboxes()
@@ -415,6 +413,8 @@ Sidebar::Sidebar(Plater *parent)
     // As a result we can see the empty block at the bottom of the sidebar
     // But if we set this value to 5, layout will be better
     p->scrolled->SetScrollRate(0, 5);
+    p->scrolled->SetBackgroundColour(*wxWHITE);
+
 
     SetFont(wxGetApp().normal_font());
 #ifndef __APPLE__
@@ -437,11 +437,8 @@ Sidebar::Sidebar(Plater *parent)
     wxColour active_text = wxColour(0, 0, 0);
     wxColour static_line_col = wxColour(166, 169, 170);
 
-    bool is_msw = false;
 #ifdef __WINDOWS__
     p->scrolled->SetDoubleBuffered(true);
-
-    is_msw = true;
 #endif //__WINDOWS__
 
     // add printer
@@ -450,7 +447,7 @@ Sidebar::Sidebar(Plater *parent)
         // 1.1 create title bar resources
         p->m_panel_printer_title = new StaticBox(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE);
         p->m_panel_printer_title->SetBackgroundColor(title_bg);
-        p->m_panel_printer_title->SetBackgroundColor(0xF1F1F1);
+        p->m_panel_printer_title->SetBackgroundColor2(0xF1F1F1);
 
         p->m_printer_icon = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "printer");
         p->m_text_printer_settings = new wxStaticText(p->m_panel_printer_title, wxID_ANY, _L("Printer"), wxDefaultPosition, wxDefaultSize, 0);
@@ -521,7 +518,6 @@ Sidebar::Sidebar(Plater *parent)
         bed_type_title->Wrap(-1);
         bed_type_title->SetFont(Label::Body_14);
         m_bed_type_list = new ComboBox(p->m_panel_printer_content, wxID_ANY, wxString(""), wxDefaultPosition, {-1, FromDIP(30)}, 0, nullptr, wxCB_READONLY);
-        DynamicPrintConfig& config = wxGetApp().preset_bundle->project_config;
         const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
         if (bed_type_def && bed_type_def->enum_keys_map) {
             for (auto item : *bed_type_def->enum_keys_map)
@@ -542,7 +538,7 @@ Sidebar::Sidebar(Plater *parent)
     // add filament title
     p->m_panel_filament_title = new StaticBox(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE);
     p->m_panel_filament_title->SetBackgroundColor(title_bg);
-    p->m_panel_filament_title->SetBackgroundColor(0xF1F1F1);
+    p->m_panel_filament_title->SetBackgroundColor2(0xF1F1F1);
 
     wxBoxSizer* bSizer39;
     bSizer39 = new wxBoxSizer( wxHORIZONTAL );
@@ -577,16 +573,23 @@ Sidebar::Sidebar(Plater *parent)
             auto& printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
             const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
             const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values;
+            ConfigOption* extra_flush_volume_opt = printer_config.option("nozzle_volume");
+            int extra_flush_volume = extra_flush_volume_opt ? (int)extra_flush_volume_opt->getFloat() : 0;
+            ConfigOption* flush_multi_opt = project_config.option("flush_multiplier");
+            float flush_multiplier = flush_multi_opt ? flush_multi_opt->getFloat() : 1.f;
 
             const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
 
-            WipingDialog dlg(parent, cast<float>(init_matrix), cast<float>(init_extruders), extruder_colours);
+            WipingDialog dlg(parent, cast<float>(init_matrix), cast<float>(init_extruders), extruder_colours, extra_flush_volume, flush_multiplier);
 
             if (dlg.ShowModal() == wxID_OK) {
                 std::vector<float> matrix = dlg.get_matrix();
                 std::vector<float> extruders = dlg.get_extruders();
                 (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
                 (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values = std::vector<double>(extruders.begin(), extruders.end());
+#if !BBL_RELEASE_TO_PUBLIC
+                (project_config.option<ConfigOptionFloat>("flush_multiplier"))->set(new ConfigOptionFloat(dlg.get_flush_multiplier()));
+#endif
 
                 wxGetApp().plater()->update_project_dirty_from_presets();
                 wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
@@ -599,8 +602,8 @@ Sidebar::Sidebar(Plater *parent)
 
     ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
     add_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent& e){
-        // BBS: limit filament choices to 4
-        if (p->combos_filament.size() >= 4)
+        // BBS: limit filament choices to 16
+        if (p->combos_filament.size() >= 16)
             return;
 
         int filament_count = p->combos_filament.size() + 1;
@@ -717,14 +720,10 @@ Sidebar::Sidebar(Plater *parent)
 
     //add project content
     p->sizer_params = new wxBoxSizer(wxVERTICAL);
-    p->m_object_panel = new wxPanel(p->scrolled);
-    p->m_object_list = new ObjectList(p->m_object_panel);
-    wxBoxSizer* object_sizer = new wxBoxSizer(wxVERTICAL);
-    object_sizer->Add(p->m_object_list, 1, wxEXPAND);
-    p->m_object_panel->SetSizer(object_sizer);
-    p->sizer_params->Add(p->m_object_panel, 1, wxEXPAND | wxTOP, 0);
+    p->m_object_list = new ObjectList(p->scrolled);
+    p->sizer_params->Add(p->m_object_list, 1, wxEXPAND | wxTOP, 0);
     scrolled_sizer->Add(p->sizer_params, 3, wxEXPAND | wxLEFT, 0);
-    p->m_object_panel->Hide();
+    p->m_object_list->Hide();
 
     p->m_auxiliary_dialog = new AuxiliaryDialog(this);
 
@@ -1329,7 +1328,7 @@ void Sidebar::update_ui_from_settings()
 
 bool Sidebar::show_object_list(bool show) const
 {
-    if (!p->m_object_panel->Show(show))
+    if (!p->m_object_list->Show(show))
         return false;
     p->scrolled->Layout();
     return true;
@@ -1770,6 +1769,9 @@ struct Plater::priv
     //BBS: add model repair
     void on_repair_model(wxCommandEvent &event);
     void on_filament_color_changed(wxCommandEvent &event);
+    void show_install_plugin_hint(wxCommandEvent &event);
+    void install_network_plugin(wxCommandEvent &event);
+    void show_preview_only_hint(wxCommandEvent &event);
     //BBS: add part plate related logic
     void on_plate_right_click(RBtnPlateEvent&);
     void on_plate_selected(SimpleEvent&);
@@ -1801,6 +1803,7 @@ struct Plater::priv
     // Sets m_bed.m_polygon to limit the object placement.
     //BBS: add bed exclude area
     void set_bed_shape(const Pointfs& shape, const Pointfs& exclude_areas, const double printable_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false);
+    bool can_add_timelapse_wt() const;
 
     bool can_delete() const;
     bool can_delete_all() const;
@@ -1963,6 +1966,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(EVT_PUBLISH, &priv::on_action_publish, this);
     this->q->Bind(EVT_REPAIR_MODEL, &priv::on_repair_model, this);
     this->q->Bind(EVT_FILAMENT_COLOR_CHANGED, &priv::on_filament_color_changed, this);
+    this->q->Bind(EVT_INSTALL_PLUGIN_NETWORKING, &priv::install_network_plugin, this);
+    this->q->Bind(EVT_INSTALL_PLUGIN_HINT, &priv::show_install_plugin_hint, this);
+    this->q->Bind(EVT_PREVIEW_ONLY_MODE_HINT, &priv::show_preview_only_hint, this);
 
     view3D = new View3D(q, bed, &model, config, &background_process);
     //BBS: use partplater's gcode
@@ -2987,6 +2993,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
         tolal_model_count += model_idx;
 
+
         if (one_by_one) {
             // BBS: add load_old_project logic
             if (type_3mf && !is_project_file && !load_old_project)
@@ -3061,8 +3068,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 //set to 3d tab
                 q->select_view_3D("Preview");
                 wxGetApp().mainframe->select_tab(MainFrame::tpPreview);
-                wxTheApp->CallAfter([]() { wxGetApp().mainframe->enable_tab(MainFrame::tp3DEditor, false);});
-                notification_manager->bbl_show_plateinfo_notification(into_u8(_L("Preview only mode:\nThe loaded file contains gcode only.")));
             }
             else {
                 //set to 3d tab
@@ -3112,7 +3117,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         obj_idxs, model.objects, *notification_manager);
 
 
-    if (tolal_model_count <= 0) {
+    if (tolal_model_count <= 0 && !q->m_exported_file) {
         dlg.Hide();
         MessageDialog msg(wxGetApp().mainframe, _L("The file does not contain any geometry data."), _L("Warning"), wxYES | wxICON_WARNING);
         if (msg.ShowModal() == wxID_YES) {}
@@ -4865,6 +4870,7 @@ void Plater::priv::on_export_began(wxCommandEvent& evt)
 
 void Plater::priv::on_export_finished(wxCommandEvent& evt)
 {
+#if 0
     //BBS: also export 3mf to the same directory for debugging
     std::string gcode_path_str(evt.GetString().ToUTF8().data());
     fs::path gcode_path(gcode_path_str);
@@ -4872,6 +4878,7 @@ void Plater::priv::on_export_finished(wxCommandEvent& evt)
     if (q) {
         q->export_3mf(gcode_path.replace_extension(".3mf"), SaveStrategy::Silence); // BBS: silence
     }
+#endif
 }
 
 void Plater::priv::on_slicing_began()
@@ -5327,6 +5334,22 @@ void Plater::priv::on_filament_color_changed(wxCommandEvent &event)
 {
     q->update_platplate_thumbnails(true);
     q->get_preview_canvas3D()->update_plate_thumbnails();
+}
+
+void Plater::priv::install_network_plugin(wxCommandEvent &event)
+{
+    wxGetApp().ShowDownNetPluginDlg();
+    return;
+}
+
+void Plater::priv::show_install_plugin_hint(wxCommandEvent &event)
+{
+    notification_manager->bbl_show_plugin_install_notification(into_u8(_L("Network Plug-in is not detected. Network related features are unavailable.")));
+}
+
+void Plater::priv::show_preview_only_hint(wxCommandEvent &event)
+{
+    notification_manager->bbl_show_preview_only_notification(into_u8(_L("Preview only mode:\nThe loaded file contains gcode only, Can not enter the Prepare page")));
 }
 
 void Plater::priv::on_right_click(RBtnEvent& evt)
@@ -5871,6 +5894,16 @@ void Plater::priv::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_ar
     }
 }
 
+bool Plater::priv::can_add_timelapse_wt() const {
+    const DynamicPrintConfig &dconfig = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    const ConfigOption* option = dconfig.option("timelapse_no_toolhead");
+    bool timelapse_enabled = option?option->getBool():false;
+
+    PartPlate* curr_plate = q->get_partplate_list().get_curr_plate();
+
+    return timelapse_enabled && curr_plate->can_add_timelapse_object();
+}
+
 bool Plater::priv::can_delete() const
 {
     return !get_selection().is_empty() && !get_selection().is_wipe_tower();
@@ -6387,8 +6420,8 @@ int Plater::new_project(bool skip_confirm, bool silent)
 
     m_only_gcode = false;
     m_exported_file = false;
-    wxGetApp().mainframe->enable_tab(MainFrame::tp3DEditor);
     get_notification_manager()->bbl_close_plateinfo_notification();
+    get_notification_manager()->bbl_close_preview_only_notification();
 
     if (!silent)
         wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
@@ -6455,10 +6488,8 @@ void Plater::load_project(wxString const& filename2,
 
     m_only_gcode = false;
     m_exported_file = false;
-    wxGetApp().mainframe->enable_tab(MainFrame::tp3DEditor);
     get_notification_manager()->bbl_close_plateinfo_notification();
-
-    wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+    get_notification_manager()->bbl_close_preview_only_notification();
 
     auto path     = into_path(filename);
 
@@ -6494,7 +6525,9 @@ void Plater::load_project(wxString const& filename2,
     if (!m_exported_file) {
         p->select_view("topfront");
         p->camera.requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
+        wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
     }
+
     if (previous_gcode)
         collapse_sidebar(false);
 
@@ -6663,8 +6696,7 @@ void Plater::load_gcode(const wxString& filename)
     wxGetApp().mainframe->select_tab(MainFrame::tpPreview);
     p->set_current_panel(p->preview, true);
     p->get_current_canvas3D()->render();
-    wxTheApp->CallAfter([]() { wxGetApp().mainframe->enable_tab(MainFrame::tp3DEditor, false);});
-    p->notification_manager->bbl_show_plateinfo_notification(into_u8(_L("Preview only mode for gcode file.")));
+    //p->notification_manager->bbl_show_plateinfo_notification(into_u8(_L("Preview only mode for gcode file.")));
 
     current_print.apply(this->model(), wxGetApp().preset_bundle->full_config());
 
@@ -8083,8 +8115,10 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
             }
             thumbnails.push_back(thumbnail_data);
 
-            calibration_thumbnails.push_back(new ThumbnailData());
-            plate_bboxes.push_back(new PlateBBoxData());
+            ThumbnailData* calibration_data = &p->partplate_list.get_plate(i)->cali_thumbnail_data;
+            calibration_thumbnails.push_back(calibration_data);
+            PlateBBoxData* plate_bbox_data = &p->partplate_list.get_plate(i)->cali_bboxes_data;
+            plate_bboxes.push_back(plate_bbox_data);
         }
 
         if (p->partplate_list.get_curr_plate()->is_slice_result_valid()) {
@@ -8096,7 +8130,11 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
             const int thumbnail_width = 2560;
             const int thumbnail_height = 2560;
             p->generate_calibration_thumbnail(*calibration_data, thumbnail_width, thumbnail_height, calibration_params);
-            *plate_bboxes[index] = p->generate_first_layer_bbox();
+            if (using_exported_file()) {
+                //do nothing
+            }
+            else
+                *plate_bboxes[index] = p->generate_first_layer_bbox();
         }
     }
 
@@ -8128,7 +8166,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
 
     for (int i = 0; i < plate_data_list.size(); i++) {
         PlateData *plate_data = plate_data_list[i];
-        for (auto it = plate_data->slice_flaments_info.begin(); it != plate_data->slice_flaments_info.end(); it++) {
+        for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++) {
             it->type  = cfg.get_filament_type(it->id);
             it->color = filament_color ? filament_color->get_at(it->id) : "#FFFFFF";
             // save filament info used in curr plate
@@ -8192,11 +8230,10 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
 
     for (unsigned int i = 0; i < calibration_thumbnails.size(); i++)
     {
-        delete calibration_thumbnails[i];
+        //release the data here, as it will always be generated when export
+        calibration_thumbnails[i]->reset();
     }
-    for (int i = 0; i < plate_bboxes.size(); i++)
-        delete plate_bboxes[i];
-    thumbnails.clear();
+
     return 0;
 }
 
@@ -8428,7 +8465,7 @@ int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
 #if !BBL_RELEASE_TO_PUBLIC
     //only save model in QA environment
     std::string sel = get_app_config()->get("iot_environment");
-    if (sel == ENV_QAT_HOST)
+    if (sel == ENV_PRE_HOST)
         strategy = SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode;
 #endif
 
@@ -9764,6 +9801,7 @@ void Plater::show_status_message(std::string s)
     BOOST_LOG_TRIVIAL(trace) << "show_status_message:" << s;
 }
 
+bool Plater::can_add_timelapse_wt() const { return p->can_add_timelapse_wt(); } // BBS
 bool Plater::can_delete() const { return p->can_delete(); }
 bool Plater::can_delete_all() const { return p->can_delete_all(); }
 bool Plater::can_add_model() const { return !is_background_process_slicing(); }

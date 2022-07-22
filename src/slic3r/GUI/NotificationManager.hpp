@@ -37,6 +37,8 @@ enum class InfoItemType;
 #define BBL_NOTICE_PLATEINFO_OBJID      1024+1
 #define BBL_NOTICE_OBJECTS_OBJID        1024+2
 
+#define BBL_NOTICE_MAX_INTERVAL         86400 * 10
+
 enum class NotificationType
 {
 	CustomNotification,
@@ -131,6 +133,9 @@ enum class NotificationType
 	BBLGcodeOverlap,
 	//BBL: sequence print info
 	BBLSeqPrintInfo,
+	//BBL: plugin install hint
+	BBLPluginInstallHint,
+	BBLPreviewOnlyMode,
 };
 
 class NotificationManager
@@ -269,6 +274,14 @@ public:
 	//BBS--plateinfo
     void bbl_show_plateinfo_notification(const std::string &text);
     void bbl_close_plateinfo_notification();
+
+    //BBS--preview only mode
+    void bbl_show_preview_only_notification(const std::string &text);
+    void bbl_close_preview_only_notification();
+
+    //BBS--PluginInstallHint
+    void bbl_show_plugin_install_notification(const std::string &text);
+    void bbl_close_plugin_install_notification();
 
 	//BBS--Objects Info
 	void bbl_show_objectsinfo_notification(const std::string &text, bool is_warning, bool is_hidden);
@@ -791,7 +804,7 @@ private:
 	// non-static so its not loaded too early. If static, the translations wont load correctly.
 	const std::vector<NotificationData> basic_notifications = {
         NotificationData{NotificationType::Mouse3dDisconnected, NotificationLevel::RegularNotificationLevel, 10, _u8L("3D Mouse disconnected.")},
-        NotificationData{NotificationType::PresetUpdateAvailable, NotificationLevel::ImportantNotificationLevel, 20, _u8L("Configuration can update now."), _u8L("Detail."),
+        NotificationData{NotificationType::PresetUpdateAvailable, NotificationLevel::ImportantNotificationLevel, BBL_NOTICE_MAX_INTERVAL, _u8L("Configuration can update now."), _u8L("Detail."),
 		[](wxEvtHandler* evnthndlr) {
 			if (evnthndlr != nullptr)
 				wxPostEvent(evnthndlr, PresetUpdateAvailableClickedEvent(EVT_PRESET_UPDATE_AVAILABLE_CLICKED));

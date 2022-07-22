@@ -233,6 +233,9 @@ int PresetComboBox::update_ams_color()
     new_cfg.set_key_value("filament_colour", colors);
     cfg->apply(new_cfg);
     wxGetApp().plater()->on_config_change(new_cfg);
+    //trigger the filament color changed
+    wxCommandEvent *evt = new wxCommandEvent(EVT_FILAMENT_COLOR_CHANGED);
+    wxQueueEvent(wxGetApp().plater(), evt);
     return idx;
 }
 
@@ -381,7 +384,7 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
         for (auto &f : m_preset_bundle->filament_ams_list) {
             std::string setting_id = f.opt_string("filament_settings_id", 0u);
             auto iter = std::find_if(filaments.begin(), filaments.end(),
-                [&setting_id](auto &f) { return f.is_compatible && f.filament_id == setting_id; });
+                [&setting_id](auto &f) { return f.is_compatible && f.is_system && f.filament_id == setting_id; });
             if (iter == filaments.end())
                 continue;
             const_cast<Preset&>(*iter).is_visible = true;

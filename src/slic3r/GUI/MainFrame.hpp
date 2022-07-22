@@ -83,7 +83,6 @@ protected:
 class MainFrame : public DPIFrame
 {
     bool        m_loaded {false};
-    bool        m_with_3dEditor { true };
 
     wxString    m_qs_last_input_file = wxEmptyString;
     wxString    m_qs_last_output_file = wxEmptyString;
@@ -278,7 +277,6 @@ public:
     // Select tab in m_tabpanel
     // When tab == -1, will be selected last selected tab
     //BBS: GUI refactor
-    void        enable_tab(size_t tab, bool enabled = true);
     void        select_tab(wxPanel* panel);
     void        select_tab(size_t tab = size_t(-1));
     void        request_select_tab(TabPosition pos);
@@ -301,6 +299,7 @@ public:
 
     //BBS
     void        load_url(wxString url);
+    void        refresh_plugin_tips();
     void RunScript(wxString js);
 
     // BBS. Replace title bar and menu bar with top bar.

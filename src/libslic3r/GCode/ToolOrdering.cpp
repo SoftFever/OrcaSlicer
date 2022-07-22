@@ -304,6 +304,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
             layer_tools.extruders.push_back(extruder_interface);
         if (has_support || has_interface) {
             layer_tools.has_support = true;
+            layer_tools.wiping_extrusions().is_support_overriddable_and_mark(role, object);
         }
     }
 
@@ -321,6 +322,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
             layer_tools.extruders.push_back(extruder_interface);
         if (has_support || has_interface) {
             layer_tools.has_support = true;
+            layer_tools.wiping_extrusions().is_support_overriddable_and_mark(role, object);
         }
     }
 
@@ -797,6 +799,19 @@ void WipingExtrusions::set_extruder_override(const ExtrusionEntity* entity, size
     copies_vector[copy_id] = extruder;
 }
 
+// BBS
+void WipingExtrusions::set_support_extruder_override(const PrintObject* object, size_t copy_id, int extruder, size_t num_of_copies)
+{
+    something_overridden = true;
+    support_map.emplace(object, extruder);
+}
+
+void WipingExtrusions::set_support_interface_extruder_override(const PrintObject* object, size_t copy_id, int extruder, size_t num_of_copies)
+{
+    something_overridden = true;
+    support_intf_map.emplace(object, extruder);
+}
+
 // Finds first non-soluble extruder on the layer
 int WipingExtrusions::first_nonsoluble_extruder_on_layer(const PrintConfig& print_config) const
 {
@@ -834,6 +849,25 @@ bool WipingExtrusions::is_overriddable(const ExtrusionEntityCollection& eec, con
     return true;
 }
 
+// BBS
+bool WipingExtrusions::is_support_overriddable(const ExtrusionRole role, const PrintObject& object) const
+{
+    if (!object.config().flush_into_support)
+        return false;
+
+    if (role == erMixed) {
+        return object.config().support_filament == 0 || object.config().support_interface_filament == 0;
+    }
+    else if (role == erSupportMaterial || role == erSupportTransition) {
+        return object.config().support_filament == 0;
+    }
+    else if (role == erSupportMaterialInterface) {
+        return object.config().support_interface_filament == 0;
+    }
+
+    return false;
+}
+
 // Following function iterates through all extrusions on the layer, remembers those that could be used for wiping after toolchange
 // and returns volume that is left to be wiped on the wipe tower.
 float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int old_extruder, unsigned int new_extruder, float volume_to_wipe)
@@ -843,6 +877,10 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
 
     if (! this->something_overridable || volume_to_wipe <= 0. || print.config().filament_soluble.get_at(old_extruder) || print.config().filament_soluble.get_at(new_extruder))
         return std::max(0.f, volume_to_wipe); // Soluble filament cannot be wiped in a random infill, neither the filament after it
+
+    // BBS
+    if (print.config().filament_is_support.get_at(old_extruder))
+        return std::max(0.f, volume_to_wipe); // Support filament cannot be used to print support, infill, wipe_tower, etc.
 
     // we will sort objects so that dedicated for wiping are at the beginning:
     ConstPrintObjectPtrs object_list = print.objects().vector();
@@ -876,7 +914,7 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
             for (const LayerRegion *layerm : this_layer->regions()) {
                 const auto &region = layerm->region();
 
-                if (!object->config().flush_into_infill && !object->config().flush_into_objects)
+                if (!object->config().flush_into_infill && !object->config().flush_into_objects && !object->config().flush_into_support)
                     continue;
                 bool wipe_into_infill_only = !object->config().flush_into_objects && object->config().flush_into_infill;
                 bool is_infill_first = print.config().wall_infill_order == WallInfillOrder::InfillInnerOuter ||
@@ -917,6 +955,46 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
                         }
                     }
                 }
+            }
+
+            // BBS
+            if (object->config().flush_into_support) {
+                auto& object_config = object->config();
+                const SupportLayer* this_support_layer = object->get_support_layer_at_printz(lt.print_z, EPSILON);
+                const TreeSupportLayer* this_tree_support_layer = object->get_tree_support_layer_at_printz(lt.print_z, EPSILON);
+
+                do {
+                    if (this_support_layer == nullptr && this_tree_support_layer == nullptr)
+                        break;
+
+                    bool support_overriddable = object_config.support_filament == 0;
+                    bool support_intf_overriddable = object_config.support_interface_filament == 0;
+                    if (!support_overriddable && !support_intf_overriddable)
+                        break;
+
+                    auto& entities = this_support_layer != nullptr ? this_support_layer->support_fills.entities : this_tree_support_layer->support_fills.entities;
+                    if (support_overriddable && !is_support_overridden(object)) {
+                        set_support_extruder_override(object, copy, new_extruder, num_of_copies);
+                        for (const ExtrusionEntity* ee : entities) {
+                            if (ee->role() == erSupportMaterial || ee->role() == erSupportTransition)
+                                volume_to_wipe -= ee->total_volume();
+
+                            if (volume_to_wipe <= 0.f)
+                                return 0.f;
+                        }
+                    }
+
+                    if (support_intf_overriddable && !is_support_interface_overridden(object)) {
+                        set_support_interface_extruder_override(object, copy, new_extruder, num_of_copies);
+                        for (const ExtrusionEntity* ee : entities) {
+                            if (ee->role() == erSupportMaterialInterface)
+                                volume_to_wipe -= ee->total_volume();
+
+                            if (volume_to_wipe <= 0.f)
+                                return 0.f;
+                        }
+                    }
+                } while (0);
             }
         }
     }
@@ -1009,5 +1087,25 @@ const WipingExtrusions::ExtruderPerCopy* WipingExtrusions::get_extruder_override
 	}
     return overrides;
 }
+
+// BBS
+int WipingExtrusions::get_support_extruder_overrides(const PrintObject* object)
+{
+    auto iter = support_map.find(object);
+    if (iter != support_map.end())
+        return iter->second;
+
+    return -1;
+}
+
+int WipingExtrusions::get_support_interface_extruder_overrides(const PrintObject* object)
+{
+    auto iter = support_intf_map.find(object);
+    if (iter != support_intf_map.end())
+        return iter->second;
+
+    return -1;
+}
+
 
 } // namespace Slic3r
