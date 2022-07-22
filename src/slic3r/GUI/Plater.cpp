@@ -453,6 +453,7 @@ Sidebar::Sidebar(Plater *parent)
         p->m_text_printer_settings = new wxStaticText(p->m_panel_printer_title, wxID_ANY, _L("Printer"), wxDefaultPosition, wxDefaultSize, 0);
         p->m_text_printer_settings->Wrap(-1);
         p->m_text_printer_settings->SetFont(Label::Body_14);
+        p->m_text_printer_settings->SetBackgroundColour(0xF1F1F1);
 
         p->m_printer_setting = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "settings");
         p->m_printer_setting->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
@@ -546,6 +547,7 @@ Sidebar::Sidebar(Plater *parent)
     p->m_staticText_filament_settings = new wxStaticText( p->m_panel_filament_title, wxID_ANY, _L("Filament"), wxDefaultPosition, wxDefaultSize, 0 );
     p->m_staticText_filament_settings->Wrap( -1 );
     p->m_staticText_filament_settings->SetFont(Label::Body_14);
+    p->m_staticText_filament_settings->SetBackgroundColour(0xF1F1F1);
     bSizer39->Add(p->m_filament_icon, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(10));
     bSizer39->Add( p->m_staticText_filament_settings, 0, wxALIGN_CENTER );
     bSizer39->Add(FromDIP(10), 0, 0, 0, 0);
