@@ -116,7 +116,7 @@ struct TrianglePatch {
     std::vector<int> facet_indices;
     EnforcerBlockerType type = EnforcerBlockerType::NONE;
     std::set<EnforcerBlockerType> neighbor_types;
-    // if area is larger than FragmentAreaMax, stop accumulate left triangle areas to improve performance
+    // if area is larger than GapAreaMax, stop accumulate left triangle areas to improve performance
     float area = 0.f;
 
     bool is_fragment() const;
@@ -140,11 +140,11 @@ public:
     void set_ebt_colors(const std::vector<std::array<float, 4>> ebt_colors) { m_ebt_colors = ebt_colors; }
     void set_filter_state(bool is_filter_state);
 
-    constexpr static float FragmentAreaMin = 0.f;
-    constexpr static float FragmentAreaMax = 5.f;
+    constexpr static float GapAreaMin = 0.f;
+    constexpr static float GapAreaMax = 5.f;
 
     // BBS: fix me
-    static float fragment_area;
+    static float gap_area;
 
 protected:
     // Release the geometry data, release OpenGL VBOs.
@@ -265,7 +265,7 @@ protected:
         BUCKET_FILL,
         SMART_FILL,
         // BBS
-        FRAGMENT_FILTER,
+        GAP_FILL,
     };
 
     struct ProjectedMousePosition

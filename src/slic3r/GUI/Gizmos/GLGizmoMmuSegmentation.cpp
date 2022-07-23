@@ -108,10 +108,10 @@ bool GLGizmoMmuSegmentation::on_init()
     m_desc["shortcut_key_caption"] = _L("Key 1~9") + ": ";
     m_desc["shortcut_key"]         = _L("Choose filament");
     m_desc["edge_detection"]       = _L("Edge detection");
-    m_desc["fragment_area"]        = _L("Fragment area");
-    m_desc["perform_filter"]       = _L("Perform");
+    m_desc["gap_area"]             = _L("Gap area");
+    m_desc["perform"]              = _L("Perform");
 
-    m_desc["remove_all"]           = _L("Clear all");
+    m_desc["remove_all"]           = _L("Erase all painting");
     m_desc["circle"]               = _L("Circle");
     m_desc["sphere"]               = _L("Sphere");
     m_desc["pointer"]              = _L("Triangles");
@@ -341,11 +341,11 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     const float cursor_slider_left = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.f);
     const float smart_fill_slider_left = m_imgui->calc_text_size(m_desc.at("smart_fill_angle")).x + m_imgui->scaled(1.5f);
     const float edge_detect_slider_left = m_imgui->calc_text_size(m_desc.at("edge_detection")).x + m_imgui->scaled(1.f);
-    const float fragment_area_slider_left = m_imgui->calc_text_size(m_desc.at("fragment_area")).x + m_imgui->scaled(1.5f);
+    const float gap_area_slider_left = m_imgui->calc_text_size(m_desc.at("gap_area")).x + m_imgui->scaled(1.5f);
     const float height_range_slider_left = m_imgui->calc_text_size(m_desc.at("height_range")).x + m_imgui->scaled(1.5f);
 
     const float remove_btn_width = m_imgui->calc_text_size(m_desc.at("remove_all")).x + m_imgui->scaled(1.f);
-    const float filter_btn_width = m_imgui->calc_text_size(m_desc.at("perform_filter")).x + m_imgui->scaled(1.f);
+    const float filter_btn_width = m_imgui->calc_text_size(m_desc.at("perform")).x + m_imgui->scaled(1.f);
     const float buttons_width = remove_btn_width + filter_btn_width + m_imgui->scaled(1.f);
     const float minimal_slider_width = m_imgui->scaled(4.f);
     const float color_button_width = m_imgui->calc_text_size("").x + m_imgui->scaled(1.75f);
@@ -362,7 +362,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     const float circle_max_width = std::max(clipping_slider_left,cursor_slider_left);
     const float height_max_width = std::max(clipping_slider_left,height_range_slider_left);
     const float sliders_left_width = std::max(smart_fill_slider_left,
-                                         std::max(cursor_slider_left, std::max(edge_detect_slider_left, std::max(fragment_area_slider_left, std::max(height_range_slider_left,
+                                         std::max(cursor_slider_left, std::max(edge_detect_slider_left, std::max(gap_area_slider_left, std::max(height_range_slider_left,
                                                                                                                                               clipping_slider_left)))));
     const float slider_icon_width = m_imgui->get_slider_icon_size().x;
     float window_width = minimal_slider_width + sliders_left_width + slider_icon_width;
@@ -434,7 +434,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     m_imgui->text(m_desc.at("tool_type"));
 
-    std::array<wchar_t, 6> tool_icons = { ImGui::CircleButtonIcon,ImGui::SphereButtonIcon, ImGui::TriangleButtonIcon, ImGui::HeightRangeIcon, ImGui::FillButtonIcon, ImGui::FragmentFilterIcon };
+    std::array<wchar_t, 6> tool_icons = { ImGui::CircleButtonIcon,ImGui::SphereButtonIcon, ImGui::TriangleButtonIcon, ImGui::HeightRangeIcon, ImGui::FillButtonIcon, ImGui::GapFillIcon };
     std::array<wxString, 6> tool_tips = { _L("Circle"), _L("Sphere"), _L("Triangle"), _L("Height Range"), _L("Fill"), _L("Gap Fill") };
     for (int i = 0; i < tool_icons.size(); i++) {
         std::string  str_label = std::string("##");
@@ -585,18 +585,18 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
         if (slider_clp_dist || b_clp_dist_input) { m_c->object_clipper()->set_position(clp_dist, true); }
     }
-    else if (m_current_tool == ImGui::FragmentFilterIcon) {
-        m_tool_type = ToolType::FRAGMENT_FILTER;
+    else if (m_current_tool == ImGui::GapFillIcon) {
+        m_tool_type = ToolType::GAP_FILL;
         m_cursor_type = TriangleSelector::CursorType::POINTER;
         ImGui::AlignTextToFramePadding();
-        m_imgui->text(m_desc["fragment_area"] + ":");
-        ImGui::SameLine(fragment_area_slider_left);
-        ImGui::PushItemWidth(window_width - fragment_area_slider_left - slider_width_times * slider_icon_width);
+        m_imgui->text(m_desc["gap_area"] + ":");
+        ImGui::SameLine(gap_area_slider_left);
+        ImGui::PushItemWidth(window_width - gap_area_slider_left - slider_width_times * slider_icon_width);
         std::string format_str = std::string("%.2f") + I18N::translate_utf8("", "Triangle patch area threshold,""triangle patch will be merged to neighbor if its area is less than threshold");
-        m_imgui->bbl_slider_float_style("##fragment_area", &TriangleSelectorPatch::fragment_area, TriangleSelectorPatch::FragmentAreaMin, TriangleSelectorPatch::FragmentAreaMax, format_str.data(), 1.0f, true);
+        m_imgui->bbl_slider_float_style("##gap_area", &TriangleSelectorPatch::gap_area, TriangleSelectorPatch::GapAreaMin, TriangleSelectorPatch::GapAreaMax, format_str.data(), 1.0f, true);
         ImGui::SameLine(window_width - slider_icon_width);
         ImGui::PushItemWidth(1.5 * slider_icon_width);
-        ImGui::BBLDragFloat("##fragment_area_input", &TriangleSelectorPatch::fragment_area, 0.05f, 0.0f, 0.0f, "%.2f");
+        ImGui::BBLDragFloat("##gap_area_input", &TriangleSelectorPatch::gap_area, 0.05f, 0.0f, 0.0f, "%.2f");
     }
 
     ImGui::Separator();
@@ -607,9 +607,9 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     show_tooltip_information(caption_max, x, get_cur_y);
     ImGui::SameLine();
 
-    if (m_current_tool == ImGui::FragmentFilterIcon) {
-        if (m_imgui->button(m_desc.at("perform_filter"))) {
-            Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Filter fragment", UndoRedo::SnapshotType::GizmoAction);
+    if (m_current_tool == ImGui::GapFillIcon) {
+        if (m_imgui->button(m_desc.at("perform"))) {
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Gap fill", UndoRedo::SnapshotType::GizmoAction);
 
             for (int i = 0; i < m_triangle_selectors.size(); i++) {
                 TriangleSelectorPatch* ts_mm = dynamic_cast<TriangleSelectorPatch*>(m_triangle_selectors[i].get());
@@ -730,13 +730,13 @@ void GLGizmoMmuSegmentation::update_from_model_object(bool first_update)
 
 void GLGizmoMmuSegmentation::tool_changed(wchar_t old_tool, wchar_t new_tool)
 {
-    if ((old_tool == ImGui::FragmentFilterIcon && new_tool == ImGui::FragmentFilterIcon) ||
-        (old_tool != ImGui::FragmentFilterIcon && new_tool != ImGui::FragmentFilterIcon))
+    if ((old_tool == ImGui::GapFillIcon && new_tool == ImGui::GapFillIcon) ||
+        (old_tool != ImGui::GapFillIcon && new_tool != ImGui::GapFillIcon))
         return;
 
     for (auto& selector_ptr : m_triangle_selectors) {
         TriangleSelectorPatch* tsp = dynamic_cast<TriangleSelectorPatch*>(selector_ptr.get());
-        tsp->set_filter_state(new_tool == ImGui::FragmentFilterIcon);
+        tsp->set_filter_state(new_tool == ImGui::GapFillIcon);
     }
 }
 
