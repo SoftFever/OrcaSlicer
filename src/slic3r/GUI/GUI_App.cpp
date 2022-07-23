@@ -3710,6 +3710,11 @@ bool GUI_App::load_language(wxString language, bool initial)
     }
 #endif
 
+    if (! wxLocale::IsAvailable(language_info->Language)&&initial) {
+        language_info = wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH_UK);
+        app_config->set("language", language_info->CanonicalName.ToUTF8().data());
+    }
+
     if (! wxLocale::IsAvailable(language_info->Language)) {
     	// Loading the language dictionary failed.
     	wxString message = "Switching Bambu Studio to language " + language_info->CanonicalName + " failed.";
