@@ -1962,6 +1962,8 @@ bool GUI_App::on_init_inner()
     // Suppress the '- default -' presets.
     preset_bundle->set_default_suppressed(true);
 
+    Bind(EVT_USER_LOGIN, &GUI_App::on_user_login, this);
+    
     on_init_network();
 
     //BBS if load user preset failed
@@ -2063,7 +2065,7 @@ bool GUI_App::on_init_inner()
 //#endif //__APPLE__
 
     Bind(EVT_HTTP_ERROR, &GUI_App::on_http_error, this);
-    Bind(EVT_USER_LOGIN, &GUI_App::on_user_login, this);
+    
 
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
