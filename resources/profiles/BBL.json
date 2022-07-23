@@ -32,6 +32,10 @@
         {
             "name": "Prusa MK3S",
             "sub_path": "machine/Prusa MK3S.json"
+        },
+        {
+            "name": "Anycubic 4Max Pro",
+            "sub_path": "machine/Anycubic 4Max Pro.json"
         }
     ],
     "process_list": [
@@ -142,6 +146,10 @@
         {
             "name": "0.20mm Standard @MK3S",
             "sub_path": "process/0.20mm Standard @MK3S.json"
+        },
+        {
+            "name": "0.20mm Standard @A4MaxPro",
+            "sub_path": "process/0.20mm Standard @A4MaxPro.json"
         }
     ],
     "filament_list": [
@@ -410,6 +418,10 @@
         {
             "name": "Prusa MK3S 0.4 nozzle",
             "sub_path": "machine/Prusa MK3S 0.4 nozzle.json"
+        },
+        {
+            "name": "Anycubic 4Max Pro 0.4 nozzle",
+            "sub_path": "machine/Anycubic 4Max Pro 0.4 nozzle.json"
         }
     ]
 }
