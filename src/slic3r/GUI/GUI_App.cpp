@@ -1963,7 +1963,7 @@ bool GUI_App::on_init_inner()
     preset_bundle->set_default_suppressed(true);
 
     Bind(EVT_USER_LOGIN, &GUI_App::on_user_login, this);
-    
+
     on_init_network();
 
     //BBS if load user preset failed
@@ -2065,7 +2065,7 @@ bool GUI_App::on_init_inner()
 //#endif //__APPLE__
 
     Bind(EVT_HTTP_ERROR, &GUI_App::on_http_error, this);
-    
+
 
     Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
     {
@@ -3610,7 +3610,7 @@ bool GUI_App::load_language(wxString language, bool initial)
                 m_language_info_system = wxLocale::GetLanguageInfo(lang_system);
                 BOOST_LOG_TRIVIAL(trace) << boost::format("System language detected (user locales and such): %1%") % m_language_info_system->CanonicalName.ToUTF8().data();
                 // BBS set language to app config
-                //app_config->set("language", m_language_info_system->CanonicalName.ToUTF8().data());
+                app_config->set("language", m_language_info_system->CanonicalName.ToUTF8().data());
             } else {
                 {
                     std::map<wxString, wxString> language_descptions = {
@@ -3645,7 +3645,7 @@ bool GUI_App::load_language(wxString language, bool initial)
                         m_language_info_best = wxLocale::FindLanguageInfo(best_language);
                         BOOST_LOG_TRIVIAL(trace) << boost::format("Best translation language detected (may be different from user locales): %1%") %
                                                         m_language_info_best->CanonicalName.ToUTF8().data();
-                        //app_config->set("language", m_language_info_best->CanonicalName.ToUTF8().data());
+                        app_config->set("language", m_language_info_best->CanonicalName.ToUTF8().data());
                     }
 #ifdef __linux__
                     wxString lc_all;
@@ -3717,7 +3717,7 @@ bool GUI_App::load_language(wxString language, bool initial)
         language_info = wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH_UK);
         app_config->set("language", language_info->CanonicalName.ToUTF8().data());
     }
-    else {
+    else if (initial) {
         // bbs supported languages
         //TODO: use a global one with Preference
         wxLanguage supported_languages[] {wxLANGUAGE_ENGLISH,  wxLANGUAGE_CHINESE_SIMPLIFIED, wxLANGUAGE_GERMAN, wxLANGUAGE_FRENCH, wxLANGUAGE_SPANISH,  wxLANGUAGE_SWEDISH, wxLANGUAGE_DUTCH };
