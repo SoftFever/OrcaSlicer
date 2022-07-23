@@ -1233,7 +1233,7 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
         return result;
     }
 
-    
+
     if (download_url.empty()) {
         BOOST_LOG_TRIVIAL(info) << "[download_plugin]: no availaible plugin found for this app version: " << SLIC3R_VERSION;
         if (pro_fn) pro_fn(InstallStatusDownloadFailed, 0, cancel);
@@ -1310,12 +1310,14 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
     mz_zip_archive archive;
     mz_zip_zero_struct(&archive);
     if (!open_zip_reader(&archive, target_file_path)) {
+        BOOST_LOG_TRIVIAL(error) << boost::format("install_plugin: %1%, open zip file failed")%__LINE__;
         if (pro_fn) pro_fn(InstallStatusDownloadFailed, 0, cancel);
         return InstallStatusUnzipFailed;
     }
 
     mz_uint num_entries = mz_zip_reader_get_num_files(&archive);
     mz_zip_archive_file_stat stat;
+    BOOST_LOG_TRIVIAL(error) << boost::format("install_plugin: %1%, got %2% files")%__LINE__ %num_entries;
     for (mz_uint i = 0; i < num_entries; i++) {
         if (m_networking_cancel_update || cancel) {
             BOOST_LOG_TRIVIAL(info) << boost::format("install_plugin: %1%, cancelled by user")%__LINE__;
@@ -1368,6 +1370,9 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
                 }
             }
         }
+        else {
+            BOOST_LOG_TRIVIAL(error) << boost::format("install_plugin: %1%, mz_zip_reader_file_stat for file %2% failed")%__LINE__%i;
+        }
     }
 
     close_zip_reader(&archive);
@@ -1380,7 +1385,7 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
 
 void GUI_App::restart_networking()
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format("enter, mainframe %1%")%mainframe;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(" enter, mainframe %1%")%mainframe;
     on_init_network();
     if(m_agent) {
         init_networking_callbacks();
@@ -1402,7 +1407,7 @@ void GUI_App::restart_networking()
         if (plater_)
             plater_->get_notification_manager()->bbl_close_plugin_install_notification();
     }
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format("exit, m_agent=%1%")%m_agent;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(" exit, m_agent=%1%")%m_agent;
 }
 
 int GUI_App::updating_bambu_networking()
@@ -2121,7 +2126,15 @@ bool GUI_App::on_init_network()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll ok";
         if (check_networking_version()) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, compatibility version";
-            create_network_agent = true;
+            auto bambu_source = Slic3r::NetworkAgent::get_bambu_source_entry();
+            if (!bambu_source) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": can not get bambu source module!";
+                if (app_config->get("installed_networking") == "1") {
+                    m_networking_need_update = true;
+                }
+            }
+            else
+                create_network_agent = true;
         } else {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, version dismatch, need upload network module";
             if (app_config->get("installed_networking") == "1") {
