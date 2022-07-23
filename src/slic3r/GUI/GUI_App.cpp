@@ -2523,6 +2523,7 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
     dlg.Update(80, _L("Loading current presets") + dots);
     load_current_presets();
     mainframe->Show(true);
+    mainframe->refresh_plugin_tips();
 
     dlg.Update(90, _L("Loading a mode view") + dots);
 
@@ -3601,7 +3602,7 @@ bool GUI_App::load_language(wxString language, bool initial)
     	// Get the active language from PrusaSlicer.ini, or empty string if the key does not exist.
         language = app_config->get("language");
         if (! language.empty())
-        	BOOST_LOG_TRIVIAL(trace) << boost::format("language provided by PrusaSlicer.ini: %1%") % language;
+        	BOOST_LOG_TRIVIAL(trace) << boost::format("language provided by PBambuStudio.conf: %1%") % language;
         else {
             // Get the system language.
             const wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
@@ -3609,7 +3610,7 @@ bool GUI_App::load_language(wxString language, bool initial)
                 m_language_info_system = wxLocale::GetLanguageInfo(lang_system);
                 BOOST_LOG_TRIVIAL(trace) << boost::format("System language detected (user locales and such): %1%") % m_language_info_system->CanonicalName.ToUTF8().data();
                 // BBS set language to app config
-                app_config->set("language", m_language_info_system->CanonicalName.ToUTF8().data());
+                //app_config->set("language", m_language_info_system->CanonicalName.ToUTF8().data());
             } else {
                 {
                     std::map<wxString, wxString> language_descptions = {
@@ -3644,7 +3645,7 @@ bool GUI_App::load_language(wxString language, bool initial)
                         m_language_info_best = wxLocale::FindLanguageInfo(best_language);
                         BOOST_LOG_TRIVIAL(trace) << boost::format("Best translation language detected (may be different from user locales): %1%") %
                                                         m_language_info_best->CanonicalName.ToUTF8().data();
-                        app_config->set("language", m_language_info_best->CanonicalName.ToUTF8().data());
+                        //app_config->set("language", m_language_info_best->CanonicalName.ToUTF8().data());
                     }
 #ifdef __linux__
                     wxString lc_all;
@@ -3715,6 +3716,27 @@ bool GUI_App::load_language(wxString language, bool initial)
     if (! wxLocale::IsAvailable(language_info->Language)&&initial) {
         language_info = wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH_UK);
         app_config->set("language", language_info->CanonicalName.ToUTF8().data());
+    }
+    else {
+        // bbs supported languages
+        //TODO: use a global one with Preference
+        wxLanguage supported_languages[] {wxLANGUAGE_ENGLISH,  wxLANGUAGE_CHINESE_SIMPLIFIED, wxLANGUAGE_GERMAN, wxLANGUAGE_FRENCH, wxLANGUAGE_SPANISH,  wxLANGUAGE_SWEDISH, wxLANGUAGE_DUTCH };
+        std::string cur_language = app_config->get("language");
+        if (cur_language != "") {
+            //cleanup the language wrongly set before
+            const wxLanguageInfo *langinfo = nullptr;
+            bool embedded_language = false;
+            for (auto index = 0; index < 7; index++) {
+                langinfo = wxLocale::GetLanguageInfo(supported_languages[index]);
+                std::string temp_lan = langinfo->CanonicalName.ToUTF8().data();
+                if (cur_language == temp_lan) {
+                    embedded_language = true;
+                    break;
+                }
+            }
+            if (!embedded_language)
+                app_config->erase("app", "language");
+        }
     }
 
     if (! wxLocale::IsAvailable(language_info->Language)) {
