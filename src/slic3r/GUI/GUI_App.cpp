@@ -2523,7 +2523,7 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
     dlg.Update(80, _L("Loading current presets") + dots);
     load_current_presets();
     mainframe->Show(true);
-    mainframe->refresh_plugin_tips();
+    //mainframe->refresh_plugin_tips();
 
     dlg.Update(90, _L("Loading a mode view") + dots);
 
@@ -2540,6 +2540,10 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 //     });
 
     m_is_recreating_gui = false;
+        
+        CallAfter([this]() {
+            mainframe->refresh_plugin_tips();
+        });
 }
 
 void GUI_App::system_info()
