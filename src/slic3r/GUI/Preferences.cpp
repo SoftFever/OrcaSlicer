@@ -634,7 +634,6 @@ wxWindow* PreferencesDialog::create_general_page()
     // bbs supported languages
     wxLanguage supported_languages[]{wxLANGUAGE_ENGLISH,  wxLANGUAGE_CHINESE_SIMPLIFIED, wxLANGUAGE_GERMAN, wxLANGUAGE_FRENCH, wxLANGUAGE_SPANISH,  wxLANGUAGE_SWEDISH, wxLANGUAGE_DUTCH };
 
-
     auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
     std::vector<const wxLanguageInfo *> language_infos;
     language_infos.emplace_back(wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH));
@@ -643,7 +642,7 @@ wxWindow* PreferencesDialog::create_general_page()
 
         if (langinfo == nullptr) continue;
 
-        for (auto si = 0; si < sizeof(supported_languages); si++) {
+        for (auto si = 0; si < 7; si++) {
             if (langinfo == wxLocale::GetLanguageInfo(supported_languages[si])) {
                 language_infos.emplace_back(langinfo);
             }

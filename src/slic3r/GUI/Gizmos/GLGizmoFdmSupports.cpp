@@ -397,16 +397,20 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     show_tooltip_information(caption_max, x, get_cur_y);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 5.0f));
     ImGui::SameLine();
-    if (m_imgui->button(m_desc.at("perform_filter"))) {
-        Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection", UndoRedo::SnapshotType::GizmoAction);
 
-        for (int i = 0; i < m_triangle_selectors.size(); i++) {
-            TriangleSelectorPatch *ts_mm = dynamic_cast<TriangleSelectorPatch *>(m_triangle_selectors[i].get());
-            ts_mm->update_selector_triangles();
-            ts_mm->request_update_render_data(true);
+    // Perform button is for gap fill
+    if (m_current_tool == ImGui::FragmentFilterIcon) {
+        if (m_imgui->button(m_desc.at("perform_filter"))) {
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Reset selection", UndoRedo::SnapshotType::GizmoAction);
+
+            for (int i = 0; i < m_triangle_selectors.size(); i++) {
+                TriangleSelectorPatch* ts_mm = dynamic_cast<TriangleSelectorPatch*>(m_triangle_selectors[i].get());
+                ts_mm->update_selector_triangles();
+                ts_mm->request_update_render_data(true);
+            }
+            update_model_object();
+            m_parent.set_as_dirty();
         }
-        update_model_object();
-        m_parent.set_as_dirty();
     }
 
     ImGui::SameLine();
