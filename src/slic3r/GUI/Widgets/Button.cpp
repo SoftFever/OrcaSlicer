@@ -151,7 +151,6 @@ void Button::render(wxDC& dc)
     wxSize szIcon;
     wxSize szContent = textSize;
 
-
     ScalableBitmap icon;
     if (m_selected || ((states & (int)StateColor::State::Hovered) != 0))
         icon = active_icon;
@@ -217,7 +216,10 @@ void Button::messureSize()
         if (szIcon.y > szContent.y)
             szContent.y = szIcon.y;
     }
-    wxWindow::SetMinSize(szContent + paddingSize * 2);
+    wxSize size = szContent + paddingSize * 2;
+    if (minSize.GetHeight() > 0)
+        size.SetHeight(minSize.GetHeight());
+    wxWindow::SetMinSize(size);
 }
 
 void Button::mouseDown(wxMouseEvent& event)

@@ -1756,7 +1756,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("minimum_sparse_infill_area");
         optgroup->append_single_option_line("infill_combination");
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill");
-        optgroup->append_single_option_line("reduce_infill_retraction");
 
     page = add_options_page(L("Speed"), "empty");
         optgroup = page->new_optgroup(L("Initial layer speed"), 15);
@@ -1827,8 +1826,9 @@ void TabPrint::build()
         //optgroup->append_single_option_line("support_interface_loop_pattern");
 
         optgroup->append_single_option_line("support_object_xy_distance");
-        //optgroup->append_single_option_line("bridge_no_support");
+        optgroup->append_single_option_line("bridge_no_support");
         optgroup->append_single_option_line("max_bridge_length");
+        optgroup->append_single_option_line("thick_bridges");
         //optgroup->append_single_option_line("independent_support_layer_height");
 
     page = add_options_page(L("Others"), "advanced");
@@ -1852,6 +1852,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Flush options"));
         optgroup->append_single_option_line("flush_into_infill");
         optgroup->append_single_option_line("flush_into_objects");
+        optgroup->append_single_option_line("flush_into_support");
 
         optgroup = page->new_optgroup(L("Special mode"));
         optgroup->append_single_option_line("print_sequence");
@@ -1875,7 +1876,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("fuzzy_skin_thickness");
 
 
-        optgroup = page->new_optgroup(L("Output file"));
+        optgroup = page->new_optgroup(L("G-code output"));
+        optgroup->append_single_option_line("reduce_infill_retraction");
         optgroup->append_single_option_line("gcode_add_line_number");
         Option option = optgroup->get_option("filename_format");
         option.opt.full_width = true;

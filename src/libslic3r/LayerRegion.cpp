@@ -70,6 +70,7 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
 
     const PrintConfig       &print_config  = this->layer()->object()->print()->config();
     const PrintRegionConfig &region_config = this->region().config();
+    const PrintObjectConfig& object_config = this->layer()->object()->config();
     // This needs to be in sync with PrintObject::_slice() slicing_mode_normal_below_layer!
     bool spiral_mode = print_config.spiral_mode &&
         //FIXME account for raft layers.
@@ -100,7 +101,7 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
     
     g.layer_id              = (int)this->layer()->id();
     g.ext_perimeter_flow    = this->flow(frExternalPerimeter);
-    g.overhang_flow         = this->bridging_flow(frPerimeter, g_config_thick_bridges);
+    g.overhang_flow         = this->bridging_flow(frPerimeter, object_config.thick_bridges);
     g.solid_infill_flow     = this->flow(frSolidInfill);
     
     g.process();
@@ -117,6 +118,9 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
 {
     const bool      has_infill = this->region().config().sparse_infill_density.value > 0.;
     const float		margin 	   = float(scale_(EXTERNAL_INFILL_MARGIN));
+
+    // BBS
+    const PrintObjectConfig& object_config = this->layer()->object()->config();
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
     export_region_fill_surfaces_to_svg_debug("3_process_external_surfaces-initial");
@@ -285,7 +289,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                 // would get merged into a single one while they need different directions
                 // also, supply the original expolygon instead of the grown one, because in case
                 // of very thin (but still working) anchors, the grown expolygon would go beyond them
-                BridgeDetector bd(initial, lower_layer->lslices, this->bridging_flow(frInfill, g_config_thick_bridges).scaled_width());
+                BridgeDetector bd(initial, lower_layer->lslices, this->bridging_flow(frInfill, object_config.thick_bridges).scaled_width());
                 #ifdef SLIC3R_DEBUG
                 printf("Processing bridge at layer %zu:\n", this->layer()->id());
                 #endif

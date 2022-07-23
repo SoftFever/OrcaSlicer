@@ -99,41 +99,8 @@ public:
         MultiPoint::append(std::move(src));
         append_fitting_result_after_append_points();
     }
-    void append(const Polyline &src) 
-    {
-        if (!src.is_valid()) return;
-
-        if (this->points.empty()) {
-            this->points = src.points;
-            this->fitting_result = src.fitting_result;
-        } else {
-            //BBS: append the first point to create connection first, update the fitting date as well
-            this->append(src.points[0]);
-            //BBS: then append the remain points
-            MultiPoint::append(src.points.begin() + 1, src.points.end());
-            //BBS: finally append the fitting data
-            append_fitting_result_after_append_polyline(src);
-        }
-    }
-
-    void append(Polyline &&src) 
-    {
-        if (!src.is_valid()) return;
-
-        if (this->points.empty()) {
-            this->points = std::move(src.points);
-            this->fitting_result = std::move(src.fitting_result);
-        } else {
-            //BBS: append the first point to create connection first, update the fitting date as well
-            this->append(src.points[0]);
-            //BBS: then append the remain points
-            MultiPoint::append(src.points.begin() + 1, src.points.end());
-            //BBS: finally append the fitting data
-            append_fitting_result_after_append_polyline(src);
-            src.points.clear();
-            src.fitting_result.clear();
-        }
-    }
+    void append(const Polyline& src);
+    void append(Polyline&& src);
   
     const Point& last_point() const override { return this->points.back(); }
     const Point& leftmost_point() const;

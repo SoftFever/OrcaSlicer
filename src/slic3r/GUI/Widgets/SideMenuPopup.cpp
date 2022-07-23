@@ -42,9 +42,18 @@ bool SidePopup::Show( bool show )
 void SidePopup::Popup(wxWindow* focus)
 {
     Create();
+     int screenwidth = wxSystemSettings::GetMetric(wxSYS_SCREEN_X,NULL);
+    int max_width = 0;
+    for (auto btn : btn_list)
+    {
+        max_width = std::max(btn->GetMinSize().x, max_width);
+    }
     if (focus) {
         wxPoint pos = focus->ClientToScreen(wxPoint(0, -6));
-        Position(pos, {0, focus->GetSize().y + 12});
+        if (pos.x + max_width > screenwidth)
+            Position({pos.x - (pos.x + max_width - screenwidth),pos.y}, {0, focus->GetSize().y + 12});
+        else
+            Position(pos, {0, focus->GetSize().y + 12});
     }
     wxPopupTransientWindow::Popup();
 }

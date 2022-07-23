@@ -206,7 +206,7 @@ protected:
 
     bool GizmoImguiBegin(const std::string& name, int flags);
     void GizmoImguiEnd();
-    void GizmoImguiSetNextWIndowPos(float x, float y, int flag, float pivot_x = 0.0f, float pivot_y = 0.0f);
+    void GizmoImguiSetNextWIndowPos(float &x, float y, int flag, float pivot_x = 0.0f, float pivot_y = 0.0f);
     // Returns the picking color for the given id, based on the BASE_ID constant
     // No check is made for clashing with other picking color (i.e. GLVolumes)
     std::array<float, 4> picking_color_component(unsigned int id) const;

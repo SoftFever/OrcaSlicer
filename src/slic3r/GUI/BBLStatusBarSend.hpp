@@ -73,6 +73,7 @@ public:
     // Temporary methods to satisfy Perl side
     void show_cancel_button();
     void hide_cancel_button();
+    void change_button_label(wxString name);
 
 private:
     bool     m_busy = false;

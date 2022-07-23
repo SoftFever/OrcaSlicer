@@ -185,7 +185,8 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString &text, bool bSelect /*
     btn->Bind(wxEVT_BUTTON, [this, btn](wxCommandEvent& event) {
         if (auto it = std::find(m_pageButtons.begin(), m_pageButtons.end(), btn); it != m_pageButtons.end()) {
             auto sel = it - m_pageButtons.begin();
-            SetSelection(sel);
+            //do it later
+            //SetSelection(sel);
             
             wxCommandEvent evt = wxCommandEvent(wxCUSTOMEVT_NOTEBOOK_SEL_CHANGED);
             evt.SetId(sel);
@@ -205,7 +206,11 @@ void ButtonsListCtrl::RemovePage(size_t n)
     Button* btn = m_pageButtons[n];
     m_pageButtons.erase(m_pageButtons.begin() + n);
     m_buttons_sizer->Remove(n);
+#if __WXOSX__
+    RemoveChild(btn);
+#else
     btn->Reparent(nullptr);
+#endif
     btn->Destroy();
     m_sizer->Layout();
 }

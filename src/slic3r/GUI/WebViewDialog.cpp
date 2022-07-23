@@ -421,6 +421,27 @@ void WebViewPanel::SendLoginInfo()
     }
 }
 
+void WebViewPanel::ShowNetpluginTip()
+{
+    // Install Network Plugin
+    //std::string NP_Installed = wxGetApp().app_config->get("installed_networking");
+    bool        bValid       = wxGetApp().is_compatibility_version();
+
+    int nShow = 0;
+    if (!bValid) nShow = 1;
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": bValid=%1%, nShow=%2%")%bValid %nShow;
+
+    json m_Res           = json::object();
+    m_Res["command"]     = "network_plugin_installtip";
+    m_Res["sequence_id"] = "10001";
+    m_Res["show"]        = nShow;
+
+    wxString strJS = wxString::Format("window.postMessage(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
+
+    RunScript(strJS);
+}
+
 void WebViewPanel::update_mode()
 {
     int app_mode = Slic3r::GUI::wxGetApp().get_mode();
@@ -486,6 +507,7 @@ void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
             wxLogMessage("%s", "Document loaded; url='" + evt.GetURL() + "'");
     }
     UpdateState();
+    ShowNetpluginTip();
 }
 
 void WebViewPanel::OnTitleChanged(wxWebViewEvent &evt)

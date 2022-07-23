@@ -5,6 +5,11 @@
 #include "DeviceManager.hpp"
 #include "GUI.hpp"
 #include <wx/panel.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
+#include <wx/sizer.h>
+#include <wx/gbsizer.h>
+#include <wx/webrequest.h>
 #include "Widgets/SwitchButton.hpp"
 
 namespace Slic3r {
@@ -42,6 +47,31 @@ private:
 private:
     wxDECLARE_ABSTRACT_CLASS(CameraPopup);
     wxDECLARE_EVENT_TABLE();
+};
+
+
+class CameraItem : public wxPanel
+{
+public:
+    CameraItem(wxWindow *parent, std::string off_normal, std::string on_normal, std::string off_hover, std::string on_hover);
+    ~CameraItem();
+
+    MachineObject *m_obj{nullptr};
+    bool     m_on{false};
+    bool     m_hover{false};
+    wxBitmap m_bitmap_on_normal;
+    wxBitmap m_bitmap_on_hover;
+    wxBitmap m_bitmap_off_normal;
+    wxBitmap m_bitmap_off_hover;
+
+    void msw_rescale();
+    void set_switch(bool is_on);
+    bool get_switch_status() { return m_on; };
+    void on_enter_win(wxMouseEvent &evt);
+    void on_level_win(wxMouseEvent &evt);
+    void paintEvent(wxPaintEvent &evt);
+    void render(wxDC &dc);
+    void doRender(wxDC &dc);
 };
 
 }

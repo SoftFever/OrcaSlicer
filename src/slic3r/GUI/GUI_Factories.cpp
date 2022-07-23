@@ -464,7 +464,8 @@ wxMenu* MenuFactory::append_submenu_add_generic(wxMenu* menu, ModelVolumeType ty
         auto item = L("Timelapse Wipe Tower");
         type      = ModelVolumeType::TIMELAPSE_WIPE_TOWER;
         append_menu_item(sub_menu, wxID_ANY, _(item), "",
-            [type, item](wxCommandEvent&) { obj_list()->load_generic_subobject(item, type); }, "", menu);
+            [type, item](wxCommandEvent &) { obj_list()->load_generic_subobject(item, type); }, "", menu,
+            []() { return plater()->can_add_timelapse_wt(); }, m_parent);
     }
 
     return sub_menu;

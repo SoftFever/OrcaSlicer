@@ -29,8 +29,11 @@ public:
     static wxFont Body_13;
 	static wxFont Body_12;
 	static wxFont Body_10;
+	static wxFont Body_9;
 
     static wxFont sysFont(int size, bool bold = false);
+
+    static wxSize split_lines(wxDC &dc, int width, const wxString &text, wxString &multiline_text);
 };
 
 #endif // !slic3r_GUI_Label_hpp_

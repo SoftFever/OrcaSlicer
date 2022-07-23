@@ -538,4 +538,52 @@ void desktop_open_datadir_folder()
 #endif
 }
 
+void desktop_open_any_folder( const std::string path )
+{
+    // Execute command to open a file explorer, platform dependent.
+    // FIXME: The const_casts aren't needed in wxWidgets 3.1, remove them when we upgrade.
+
+#ifdef _WIN32
+    const wxString widepath = from_u8(path);
+    const wchar_t *argv[]   = {L"explorer", widepath.GetData(), nullptr};
+    ::wxExecute(const_cast<wchar_t **>(argv), wxEXEC_ASYNC, nullptr);
+#elif __APPLE__
+    const char *argv[] = {"open", path.data(), nullptr};
+    ::wxExecute(const_cast<char **>(argv), wxEXEC_ASYNC, nullptr);
+#else
+    const char *argv[] = {"xdg-open", path.data(), nullptr};
+
+    // Check if we're running in an AppImage container, if so, we need to remove AppImage's env vars,
+    // because they may mess up the environment expected by the file manager.
+    // Mostly this is about LD_LIBRARY_PATH, but we remove a few more too for good measure.
+    if (wxGetEnv("APPIMAGE", nullptr)) {
+        // We're running from AppImage
+        wxEnvVariableHashMap env_vars;
+        wxGetEnvMap(&env_vars);
+
+        env_vars.erase("APPIMAGE");
+        env_vars.erase("APPDIR");
+        env_vars.erase("LD_LIBRARY_PATH");
+        env_vars.erase("LD_PRELOAD");
+        env_vars.erase("UNION_PRELOAD");
+
+        wxExecuteEnv exec_env;
+        exec_env.env = std::move(env_vars);
+
+        wxString owd;
+        if (wxGetEnv("OWD", &owd)) {
+            // This is the original work directory from which the AppImage image was run,
+            // set it as CWD for the child process:
+            exec_env.cwd = std::move(owd);
+        }
+
+        ::wxExecute(const_cast<char **>(argv), wxEXEC_ASYNC, nullptr, &exec_env);
+    } else {
+        // Looks like we're NOT running from AppImage, we'll make no changes to the environment.
+        ::wxExecute(const_cast<char **>(argv), wxEXEC_ASYNC, nullptr, nullptr);
+    }
+#endif
+}
+
+
 } }

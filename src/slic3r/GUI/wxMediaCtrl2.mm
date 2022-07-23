@@ -11,6 +11,7 @@
 
 #import <Foundation/Foundation.h>
 #import "BambuPlayer/BambuPlayer.h"
+#import "../Utils/NetworkAgent.hpp"
 
 #include <stdlib.h>
 #include <dlfcn.h>
@@ -43,12 +44,23 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent)
     imageView.layer.backgroundColor = color;
     CGColorRelease(color);
     imageView.wantsLayer = YES;
-    auto module = dlopen("libBambuSource.dylib", RTLD_LAZY);
+    create_player();
+}
+
+void wxMediaCtrl2::create_player()
+{
+	auto module = Slic3r::NetworkAgent::get_bambu_source_entry();
+	if (!module) {
+		//not ready yet
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "Network plugin not ready currently!";
+		return;
+	}
     Class cls = (__bridge Class) dlsym(module, "OBJC_CLASS_$_BambuPlayer");
     if (cls == nullptr) {
         m_error = -2;
         return;
     }
+    NSView * imageView = (NSView *) GetHandle();
     BambuPlayer * player = [cls alloc];
     [player initWithImageView: imageView];
     [player setLogger: bambu_log withContext: &m_error];
@@ -57,6 +69,14 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent)
 
 void wxMediaCtrl2::Load(wxURI url)
 {
+	if (!m_player) {
+		create_player();
+		if (!m_player) {
+			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": create_player failed currently!";
+			return;
+		}
+	}
+
     BambuPlayer * player = (BambuPlayer *) m_player;
     if (player) {
         [player close];
@@ -71,6 +91,13 @@ void wxMediaCtrl2::Load(wxURI url)
 
 void wxMediaCtrl2::Play()
 {
+	if (!m_player) {
+		create_player();
+		if (!m_player) {
+			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": create_player failed currently!";
+			return;
+		}
+	}
     BambuPlayer * player2 = (BambuPlayer *) m_player;
     [player2 play];
     if (m_state != wxMEDIASTATE_PLAYING) {
@@ -84,6 +111,13 @@ void wxMediaCtrl2::Play()
 
 void wxMediaCtrl2::Stop()
 {
+	if (!m_player) {
+		create_player();
+		if (!m_player) {
+			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": create_player failed currently!";
+			return;
+		}
+	}
     BambuPlayer * player2 = (BambuPlayer *) m_player;
     [player2 close];
     if (m_state != wxMEDIASTATE_STOPPED) {

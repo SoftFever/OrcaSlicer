@@ -96,6 +96,7 @@ private:
 
     Print *m_print; //Print reference, not own it, no need to serialize
     GCodeProcessorResult *m_gcode_result;
+    std::vector<FilamentInfo> slice_filaments_info;
     int m_print_index;
 
     std::string m_tmp_gcode_path;       //use a temp path to store the gcode
@@ -207,6 +208,7 @@ public:
     static const int plate_thumbnail_height = 512;
 
     ThumbnailData cali_thumbnail_data;
+    PlateBBoxData cali_bboxes_data;
 
     //set the plate's index
     void set_index(int index);
@@ -276,6 +278,9 @@ public:
 
     //move instances to left or right PartPlate
     void move_instances_to(PartPlate& left_plate, PartPlate& right_plate, BoundingBoxf3* bounding_box = nullptr);
+
+    //can add timelapse object
+    bool can_add_timelapse_object();
 
     /*rendering related functions*/
     const Pointfs& get_shape() const { return m_shape; }
@@ -361,6 +366,8 @@ public:
     int load_thumbnail_data(std::string filename);
     //load pattern thumbnail data from file
     int load_pattern_thumbnail_data(std::string filename);
+    //load pattern box data from file
+    int load_pattern_box_data(std::string filename);
 
     void print() const;
 

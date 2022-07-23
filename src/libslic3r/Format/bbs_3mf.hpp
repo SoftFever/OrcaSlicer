@@ -30,7 +30,7 @@ public:
     std::string _3mf_thumbnail;
     std::string _3mf_printer_thumbnail_middle;
     std::string _3mf_printer_thumbnail_small;
-    
+
     PackingTemporaryData() {}
 };
 
@@ -63,9 +63,10 @@ struct PlateData
     ThumbnailData   plate_thumbnail;
     ThumbnailData   pattern_thumbnail;
     std::string     pattern_file;
+    std::string     pattern_bbox_file;
     std::string     gcode_prediction;
     std::string     gcode_weight;
-    std::vector<FilamentInfo> slice_flaments_info;
+    std::vector<FilamentInfo> slice_filaments_info;
     bool            is_sliced_valid = false;
     bool            toolpath_outside {false};
 
@@ -114,7 +115,7 @@ enum class LoadStrategy
 {
     Default = 0,
     AddDefaultInstances = 1,
-    CheckVersion = 2, 
+    CheckVersion = 2,
     LoadModel = 4,
     LoadConfig = 8,
     LoadAuxiliary = 16,
@@ -223,7 +224,7 @@ extern bool store_bbs_3mf(StoreParams& store_params);
 
 extern void release_PlateData_list(PlateDataPtrs& plate_data_list);
 
-// backup & restore project 
+// backup & restore project
 
 extern void save_object_mesh(ModelObject& object);
 

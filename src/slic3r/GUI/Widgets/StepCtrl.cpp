@@ -242,36 +242,35 @@ void StepIndicator::doRender(wxDC &dc)
         states = clr_step.Disabled;
     } 
     
-    int font_height = radius * 2;
-    if (steps.size() > 0)
-        font_height = dc.GetTextExtent(steps[0]).y;
+    int textWidth = size.x - radius * 5;
+    dc.SetFont(GetFont());
+    wxString firstLine;
+    if (step == 0) dc.SetFont(GetFont().Bold());
+    wxSize   firstLineSize = Label::split_lines(dc, textWidth, steps.front(), firstLine);
+    wxString lastLine;
+    if (step == steps.size() - 1) dc.SetFont(GetFont().Bold());
+    wxSize   lastLineSize = Label::split_lines(dc, textWidth, steps.back(), lastLine);
+    int      firstPadding = std::max(0, firstLineSize.y / 2 - radius);
+    int      lastPadding  = std::max(0, lastLineSize.y / 2 - radius);
 
-    int    itemWidth = steps.size() == 1 ? size.y : (size.y - font_height) / (steps.size() - 1);
-    wxRect rcBar     = {radius - bar_width / 2, radius, bar_width, size.y - radius * 4};
+    wxRect rcBar = {radius * 2 - bar_width / 2, radius * 2 + firstPadding, bar_width, size.y - radius * 6 - firstPadding - lastPadding};
+    int    itemWidth = steps.size() == 1 ? size.y : rcBar.height / (steps.size() - 1);
 
+    // Draw thin bar stick
     dc.SetPen(wxPen(clr_bar.colorForStates(states)));
     dc.SetBrush(wxBrush(clr_bar.colorForStates(states)));
     dc.DrawRectangle(rcBar);
-    int circleX = radius;
-    int circleY = radius;
+
+    int circleX = radius * 2;
+    int circleY = radius * 3 + firstPadding;
     dc.SetPen(wxPen(clr_step.colorForStates(states)));
     dc.SetBrush(wxBrush(clr_step.colorForStates(states)));
     for (int i = 0; i < steps.size(); ++i) {
         bool disabled = step > i;
         bool checked = step == i;
+        // Draw circle point & texts in it
         dc.DrawEllipse(circleX - radius, circleY - radius, radius * 2, radius * 2);
-        dc.SetTextForeground(clr_text.colorForStates(states 
-                | (disabled ? StateColor::Disabled : checked ? StateColor::Checked : 0)));
-        dc.SetFont(checked ? GetFont().Bold() : GetFont());
-        wxSize textSize = dc.GetTextExtent(steps[i]);
-
-
-        if (steps[i].Find("\n") >= 0) {
-            dc.DrawText(steps[i], circleX + radius * 3, circleY - textSize.y / 4);
-        } else {
-            dc.DrawText(steps[i], circleX + radius * 3, circleY - (textSize.y/2));
-        }
-        
+        // Draw content ( icon or text ) in circle
         if (disabled) {
             wxSize sz = bmp_ok.GetBmpSize();
             dc.DrawBitmap(bmp_ok.bmp(), circleX - radius, circleY - radius);
@@ -283,6 +282,22 @@ void StepIndicator::doRender(wxDC &dc)
             wxSize sz = dc.GetTextExtent(tip);
             dc.DrawText(tip, circleX - sz.x / 2, circleY - sz.y / 2 + 1);
         }
+        // Draw step text
+        dc.SetTextForeground(clr_text.colorForStates(states 
+                | (disabled ? StateColor::Disabled : checked ? StateColor::Checked : 0)));
+        dc.SetFont(checked ? GetFont().Bold() : GetFont());
+        wxString text;
+        wxSize textSize;
+        if (i == 0) {
+            text = firstLine;
+            textSize = firstLineSize;
+        } else if (i == steps.size() - 1) {
+            text = lastLine;
+            textSize = lastLineSize;
+        } else {
+            textSize = Label::split_lines(dc, textWidth, steps[i], text);
+        }
+        dc.DrawText(text, circleX + radius * 3, circleY - (textSize.y / 2));
         circleY += itemWidth;
     }
 }

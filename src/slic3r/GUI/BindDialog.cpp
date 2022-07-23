@@ -436,17 +436,23 @@ void UnBindMachineDilaog::on_unbind_printer(wxCommandEvent &event)
     if (result == 0) {
         DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
         if (!dev) return;
-        dev->update_user_machine_list_info();
+        // clean local machine access code info
+        MachineObject* obj = dev->get_local_machine(m_machine_info->dev_id);
+        if (obj) {
+            obj->set_access_code("");
+        }
+        dev->erase_user_machine(m_machine_info->dev_id);
 
         m_status_text->SetLabelText(_L("Log out successful."));
         m_button_cancel->SetLabel(_L("Close"));
         m_button_unbind->Hide();
+        EndModal(wxID_OK);
     }
     else {
         m_status_text->SetLabelText(_L("Failed to log out."));
+        EndModal(wxID_CANCEL);
         return;
     }
-    EndModal(wxID_OK);
 }
 
  void UnBindMachineDilaog::on_dpi_changed(const wxRect &suggested_rect)

@@ -187,7 +187,7 @@ struct Updates
 
 wxDEFINE_EVENT(EVT_SLIC3R_VERSION_ONLINE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SLIC3R_EXPERIMENTAL_VERSION_ONLINE, wxCommandEvent);
-wxDEFINE_EVENT(EVT_ENTER_FORCE_UPGRADE, wxCommandEvent);
+
 
 struct PresetUpdater::priv
 {
@@ -225,9 +225,9 @@ struct PresetUpdater::priv
 	void prune_tmps() const;
 	void sync_version() const;
 	void parse_version_string(const std::string& body) const;
-    void sync_resources(std::map<std::string, Resource> &resources);
-    void sync_config(const VendorMap vendors);
-    void sync_tooltip();
+    void sync_resources(std::string http_url, std::map<std::string, Resource> &resources);
+    void sync_config(std::string http_url, const VendorMap vendors);
+    void sync_tooltip(std::string http_url);
 
 	//BBS: refine preset update logic
 	bool install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot) const;
@@ -401,6 +401,7 @@ void PresetUpdater::priv::sync_version() const
 // Version string must contain release version on first line. Follows non-mandatory alpha / beta releases on following lines (alpha=2.0.0-alpha1).
 void PresetUpdater::priv::parse_version_string(const std::string& body) const
 {
+#if 0
 	// release version
 	std::string version;
 	const auto first_nl_pos = body.find_first_of("\n\r");
@@ -464,20 +465,16 @@ void PresetUpdater::priv::parse_version_string(const std::string& body) const
 		evt->SetString(GUI::from_u8(version));
 		GUI::wxGetApp().QueueEvent(evt);
 	}
+#endif
+    return;
 }
 
 //BBS: refine the Preset Updater logic
 // Download vendor indices. Also download new bundles if an index indicates there's a new one available.
 // Both are saved in cache.
-void PresetUpdater::priv::sync_resources(std::map<std::string, Resource> &resources)
+void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::string, Resource> &resources)
 {
     std::map<std::string, Resource>    resource_list;
-
-    NetworkAgent* m_agent = GUI::wxGetApp().getAgent();
-    if (!m_agent) {
-        BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: can not get account manager";
-        return;
-    }
 
     BOOST_LOG_TRIVIAL(info) << format("[BBL Updater]: get preferred setting version for app version %1%, url: `%2%`", SLIC3R_APP_NAME, version_check_url);
 
@@ -494,7 +491,7 @@ void PresetUpdater::priv::sync_resources(std::map<std::string, Resource> &resour
         first = false;
     }
 
-    std::string url = m_agent->get_studio_info_url();
+    std::string url = http_url;
     url += query_params;
     Slic3r::Http http = Slic3r::Http::get(url);
     http.on_complete([this, &resource_list, resources](std::string body, unsigned) {
@@ -606,19 +603,13 @@ void PresetUpdater::priv::sync_resources(std::map<std::string, Resource> &resour
 //BBS: refine the Preset Updater logic
 // Download vendor indices. Also download new bundles if an index indicates there's a new one available.
 // Both are saved in cache.
-void PresetUpdater::priv::sync_config(const VendorMap vendors)
+void PresetUpdater::priv::sync_config(std::string http_url, const VendorMap vendors)
 {
     std::map<std::string, std::pair<Semver, std::string>> vendor_list;
     std::map<std::string, std::string> vendor_descriptions;
 	BOOST_LOG_TRIVIAL(info) << "[BBL Updater]: Syncing configuration cache";
 
 	if (!enabled_config_update) { return; }
-
-    NetworkAgent* agent = GUI::wxGetApp().getAgent();
-    if (!agent) {
-        BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: can not get account manager";
-        return;
-    }
 
     BOOST_LOG_TRIVIAL(info) << format("[BBL Updater]: get preferred setting version for app version %1%, url: `%2%`", SLIC3R_APP_NAME, version_check_url);
 
@@ -640,7 +631,7 @@ void PresetUpdater::priv::sync_config(const VendorMap vendors)
         query_params += query_vendor;
     }
 
-    std::string url = agent->get_studio_info_url();
+    std::string url = http_url;
     url += query_params;
     Slic3r::Http http = Slic3r::Http::get(url);
     http.on_complete(
@@ -787,7 +778,7 @@ void PresetUpdater::priv::sync_config(const VendorMap vendors)
     }
 }
 
-void PresetUpdater::priv::sync_tooltip()
+void PresetUpdater::priv::sync_tooltip(std::string http_url)
 {
     try {
         std::string language = GUI::into_u8(GUI::wxGetApp().current_language_code());
@@ -805,7 +796,7 @@ void PresetUpdater::priv::sync_tooltip()
             {"slicer/tooltip/common", { common_version, "", "", (cache_root / "common").string() }},
             {"slicer/tooltip/" + language, { language_version, "", "", (cache_root / language).string() }}
         };
-        sync_resources(resources);
+        sync_resources(http_url, resources);
         for (auto &r : resources) {
             if (!r.second.url.empty()) {
                 GUI::MarkdownTip::Reload();
@@ -1063,7 +1054,7 @@ PresetUpdater::~PresetUpdater()
 
 //BBS: change directories by design
 //BBS: refine the preset updater logic
-void PresetUpdater::sync(PresetBundle *preset_bundle)
+void PresetUpdater::sync(std::string http_url, PresetBundle *preset_bundle)
 {
 	//p->set_download_prefs(GUI::wxGetApp().app_config);
 	if (!p->enabled_version_check && !p->enabled_config_update) { return; }
@@ -1073,11 +1064,11 @@ void PresetUpdater::sync(PresetBundle *preset_bundle)
 	// into the closure (but perhaps the compiler can elide this).
 	VendorMap vendors = preset_bundle->vendors;
 
-    p->thread = std::thread([this, vendors]() {
+    p->thread = std::thread([this, vendors, http_url]() {
 		this->p->prune_tmps();
 		this->p->sync_version();
-		this->p->sync_config(std::move(vendors));
-        this->p->sync_tooltip();
+		this->p->sync_config(http_url, std::move(vendors));
+        this->p->sync_tooltip(http_url);
     });
 }
 

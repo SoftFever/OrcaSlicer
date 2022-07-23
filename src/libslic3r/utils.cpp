@@ -11,6 +11,10 @@
 #include "Time.hpp"
 #include "libslic3r.h"
 
+#ifdef __APPLE__
+#include "MacUtils.hpp"
+#endif
+
 #ifdef WIN32
 	#include <windows.h>
 	#include <psapi.h>
@@ -292,12 +296,21 @@ namespace keywords = boost::log::keywords;
 namespace attrs = boost::log::attributes;
 void set_log_path_and_level(const std::string& file, unsigned int level)
 {
+#ifdef __APPLE__
+	//currently on old macos, the boost::log::add_file_log will crash
+	//TODO: need to be fixed
+	if (!is_macos_support_boost_add_file_log()) {
+		return;
+	}
+#endif
+
 	//BBS log file at C:\\Users\\[yourname]\\AppData\\Roaming\\BambuStudio\\log\\[log_filename].log
 	auto log_folder = boost::filesystem::path(g_data_dir) / "log";
 	if (!boost::filesystem::exists(log_folder)) {
 		boost::filesystem::create_directory(log_folder);
 	}
 	auto full_path = (log_folder / file).make_preferred();
+
 	g_log_sink = boost::log::add_file_log(
 		keywords::file_name = full_path.string() + ".%N",
 		keywords::rotation_size = 100 * 1024 * 1024,
@@ -309,6 +322,7 @@ void set_log_path_and_level(const std::string& file, unsigned int level)
 			<< ":" << expr::smessage
 			)
 	);
+
 	logging::add_common_attributes();
 
 	set_logging_level(level);

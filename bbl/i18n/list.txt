@@ -33,10 +33,12 @@ src/slic3r/GUI/Jobs/PlaterJob.cpp
 src/slic3r/GUI/Jobs/RotoptimizeJob.cpp
 src/slic3r/GUI/Jobs/BindJob.cpp
 src/slic3r/GUI/Jobs/PrintJob.cpp
+src/slic3r/GUI/Jobs/UpgradeNetworkJob.cpp
 src/slic3r/GUI/AboutDialog.cpp
 src/slic3r/GUI/AMSMaterialsSetting.cpp
 src/slic3r/GUI/AMSSetting.cpp
 src/slic3r/GUI/BBLTopbar.cpp
+src/slic3r/GUI/DownloadProgressDialog.cpp
 src/slic3r/GUI/BackgroundSlicingProcess.cpp
 src/slic3r/GUI/BedShapeDialog.cpp
 src/slic3r/GUI/BedShapeDialog.hpp
@@ -49,7 +51,6 @@ src/slic3r/GUI/GLCanvas3D.cpp
 src/slic3r/GUI/Calibration.cpp
 src/slic3r/GUI/CameraPopup.cpp
 src/slic3r/GUI/ConnectPrinter.cpp
-src/slic3r/GUI/DebugToolDialog.cpp
 src/slic3r/GUI/HMSPanel.cpp
 src/slic3r/GUI/MainFrame.cpp
 src/slic3r/GUI/MediaPlayCtrl.cpp

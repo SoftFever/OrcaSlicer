@@ -49,6 +49,21 @@ public:
     wxScrolledWindow *m_scrollwindw_release_note {nullptr};
 };
 
+class UpdateVersionDialog : public DPIDialog
+{
+public:
+    UpdateVersionDialog(wxWindow *parent = nullptr);
+    ~UpdateVersionDialog();
+
+    void on_dpi_changed(const wxRect &suggested_rect) override;
+    void update_version_info(wxString release_note, wxString version);
+
+    wxStaticText *    m_text_up_info{nullptr};
+    wxScrolledWindow *m_scrollwindw_release_note{nullptr};
+    wxBoxSizer *      sizer_text_release_note{nullptr};
+    wxStaticText *    m_staticText_release_note{nullptr};
+};
+
 }} // namespace Slic3r::GUI
 
 #endif

@@ -340,9 +340,8 @@ public:
         bool          with_sheath;
     };
 
-    float           total_overhang_area;
-    float           max_overhang_area;
-    size_t          total_overhang_layer_cnt;
+    int  avg_node_per_layer = 0;
+    float nodes_angle       = 0;
     bool            has_sharp_tail;
 private:
     /*!

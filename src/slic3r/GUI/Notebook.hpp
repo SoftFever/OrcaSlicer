@@ -85,7 +85,7 @@ public:
         SetSizer(mainSizer);
 
         this->Bind(wxCUSTOMEVT_NOTEBOOK_SEL_CHANGED, [this](wxCommandEvent& evt)
-        {                    
+        {
             if (int page_idx = evt.GetId(); page_idx >= 0)
                 SetSelection(page_idx);
         });
@@ -183,8 +183,14 @@ public:
 
     virtual int SetSelection(size_t n) override
     {
-        GetBtnsListCtrl()->SetSelection(n);
         int ret = DoSetSelection(n, SetSelection_SendEvent);
+        int new_sel = GetSelection();
+        //check the new_sel firstly
+        if (new_sel != n) {
+            //not allowed, skip it
+            return ret;
+        }
+        GetBtnsListCtrl()->SetSelection(n);
 
         // check that only the selected page is visible and others are hidden:
         for (size_t page = 0; page < m_pages.size(); page++) {

@@ -48,11 +48,12 @@ wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
 
 void MaterialItem::msw_rescale() {}
 
-void MaterialItem::set_ams_info(wxColour col, wxString txt) 
+void MaterialItem::set_ams_info(wxColour col, wxString txt)
 {
-    m_ams_coloul = col;
-    m_ams_name = txt;
-    Refresh();
+    auto need_refresh = false;
+    if (m_ams_coloul != col) { m_ams_coloul = col; need_refresh = true;}
+    if (m_ams_name != txt) {m_ams_name   = txt;need_refresh = true;}
+    if (need_refresh) { Refresh();}
 }
 
 void MaterialItem::on_selected()
@@ -74,17 +75,22 @@ void MaterialItem::on_warning()
 
 void MaterialItem::on_normal()
 {
-    m_selected = false;
-    m_warning = false;
-    Refresh();
+    if (m_selected || m_warning) {
+        m_selected = false;
+        m_warning  = false;
+        Refresh();
+    }
 }
-
 
 
 void MaterialItem::paintEvent(wxPaintEvent &evt) 
 {  
     wxPaintDC dc(this);
     render(dc);
+
+    //PrepareDC(buffdc);
+    //PrepareDC(dc);
+    
 }
 
 void MaterialItem::render(wxDC &dc) 
@@ -107,29 +113,33 @@ void MaterialItem::render(wxDC &dc)
     doRender(dc);
 #endif
 
-     //materials name
-     dc.SetFont(::Label::Body_13);
+    // materials name
+    dc.SetFont(::Label::Body_13);
 
-     auto material_name_colour = m_material_coloul.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26,0x2E,0x30);
-     dc.SetTextForeground(material_name_colour);
+    auto material_name_colour = m_material_coloul.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
+    dc.SetTextForeground(material_name_colour);
 
-     auto material_txt_size = dc.GetTextExtent(m_material_name);
-     dc.DrawText(m_material_name, wxPoint((MATERIAL_ITEM_SIZE.x - material_txt_size.x) / 2, FromDIP(3)));
+    if (dc.GetTextExtent(m_material_name).x > GetSize().x - 10) {
+        dc.SetFont(::Label::Body_10);
 
-     //mapping num
-     dc.SetFont(::Label::Body_10);
-     dc.SetTextForeground(m_ams_coloul.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26,0x2E,0x30));
+    }
 
+    auto material_txt_size = dc.GetTextExtent(m_material_name);
+    dc.DrawText(m_material_name, wxPoint((MATERIAL_ITEM_SIZE.x - material_txt_size.x) / 2, (FromDIP(22) - material_txt_size.y) / 2));
 
-     wxString mapping_txt = wxEmptyString;
-     if (m_ams_name.empty()) {
-         mapping_txt = "-";
-     }else{
-         mapping_txt = m_ams_name;
-     }
-     
-     auto mapping_txt_size = dc.GetTextExtent(mapping_txt);
-     dc.DrawText(mapping_txt, wxPoint((MATERIAL_ITEM_SIZE.x - mapping_txt_size.x) / 2, FromDIP(2) + material_txt_size.y ));
+    // mapping num
+    dc.SetFont(::Label::Body_10);
+    dc.SetTextForeground(m_ams_coloul.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30));
+
+    wxString mapping_txt = wxEmptyString;
+    if (m_ams_name.empty()) {
+        mapping_txt = "-";
+    } else {
+        mapping_txt = m_ams_name;
+    }
+
+    auto mapping_txt_size = dc.GetTextExtent(mapping_txt);
+    dc.DrawText(mapping_txt, wxPoint((MATERIAL_ITEM_SIZE.x - mapping_txt_size.x) / 2, FromDIP(20) + (FromDIP(14) - mapping_txt_size.y) / 2));
 }
 
 void MaterialItem::doRender(wxDC &dc) 
@@ -137,36 +147,33 @@ void MaterialItem::doRender(wxDC &dc)
     //top
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(wxBrush(m_material_coloul));
-    dc.DrawRoundedRectangle(FromDIP(3), FromDIP(3), MATERIAL_ITEM_SIZE.x - FromDIP(6), MATERIAL_ITEM_SIZE.y / 2, 5);
+    dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(18), 5);
     
     //bottom
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(wxBrush(wxColour(m_ams_coloul)));
-    dc.DrawRoundedRectangle(FromDIP(3), MATERIAL_ITEM_SIZE.y / 2 - FromDIP(2), MATERIAL_ITEM_SIZE.x - FromDIP(6), MATERIAL_ITEM_SIZE.y / 2, 5);
+    dc.DrawRoundedRectangle(FromDIP(1), FromDIP(18), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(16), 5);
 
-    //middle
+    ////middle
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(wxBrush(m_material_coloul));
-    dc.DrawRectangle(FromDIP(3), FromDIP(10), MATERIAL_ITEM_SIZE.x - FromDIP(6), FromDIP(8));
+    dc.DrawRectangle(FromDIP(1), FromDIP(11), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(8));
 
-    //border
-    if (m_material_coloul == *wxWHITE) {
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.SetBrush(wxBrush(m_ams_coloul));
+    dc.DrawRectangle(FromDIP(1), FromDIP(18), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(8));
+
+    ////border
+    if (m_material_coloul == *wxWHITE || m_ams_coloul == *wxWHITE) {
         dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(3, 3, MATERIAL_ITEM_SIZE.x -6, MATERIAL_ITEM_SIZE.y - 6, 5);
+        dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y, 5);
     }
-
 
     if (m_selected) {
         dc.SetPen(wxColour(0x00, 0xAE, 0x42));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(1, 1, MATERIAL_ITEM_SIZE.x - 2, MATERIAL_ITEM_SIZE.y - 2, 5);
-    }
-
-    if (m_warning) {
-        dc.SetPen(wxColour(0xFF, 0x6F, 0x00));
-        dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(1, 1, MATERIAL_ITEM_SIZE.x - 2, MATERIAL_ITEM_SIZE.y - 2, 5);
+        dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y, 5);
     }
 }
 
@@ -186,10 +193,6 @@ void MaterialItem::doRender(wxDC &dc)
      Layout();
  }
 
-void AmsMapingPopup::Popup(wxWindow *focus /*= NULL*/)
-{
-    wxPopupTransientWindow::Popup();
-}
 
 void AmsMapingPopup::update_materials_list(std::vector<std::string> list) 
 { 
@@ -210,6 +213,11 @@ bool AmsMapingPopup::is_match_material(int id, std::string material)
 
 void AmsMapingPopup::update_ams_data(std::map<std::string, Ams*> amsList) 
 { 
+    if (m_amsmapping_sizer_list.size() > 0) {
+        for (wxBoxSizer *bz : m_amsmapping_sizer_list) { bz->Clear(true); }
+        m_amsmapping_sizer_list.clear();
+    }
+   
     std::map<std::string, Ams *>::iterator ams_iter;
 
     BOOST_LOG_TRIVIAL(trace) << "ams_mapping total count " << amsList.size();
@@ -228,8 +236,6 @@ void AmsMapingPopup::update_ams_data(std::map<std::string, Ams*> amsList)
             TrayData td;
 
             td.id = ams_indx * AMS_TOTAL_COUNT + atoi(tray_data->id.c_str());
-
-            BOOST_LOG_TRIVIAL(trace) << "ams_mapping ams data ==type==" << tray_data->type << "==colour=="<<tray_data->color << "==trayid=="<<tray_data->id.c_str() << "==ftrayid=="<<td.id;
 
             if (!tray_data->is_exists) {
                 td.type = EMPTY;
@@ -254,9 +260,7 @@ void AmsMapingPopup::update_ams_data(std::map<std::string, Ams*> amsList)
 
 void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
 { 
-    wxBoxSizer *sizer_mapping_list = new wxBoxSizer(wxHORIZONTAL);
-    
-
+    auto sizer_mapping_list = new wxBoxSizer(wxHORIZONTAL);
     for (auto i = 0; i < tray_data.size(); i++) {
         wxBoxSizer *sizer_mapping_item   = new wxBoxSizer(wxVERTICAL);
 
@@ -299,7 +303,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
                 if (!is_match_material(tray_data[i].id, tray_data[i].name)) return;
                 wxCommandEvent event(EVT_SET_FINISH_MAPPING);
                 event.SetInt(tray_data[i].id);
-                wxString param = wxString::Format("%d|%d|%d|%02d", tray_data[i].colour.Red(), tray_data[i].colour.Green(), tray_data[i].colour.Blue(), tray_data[i].id + 1);
+                wxString param = wxString::Format("%d|%d|%d|%02d|%d", tray_data[i].colour.Red(), tray_data[i].colour.Green(), tray_data[i].colour.Blue(), tray_data[i].id + 1, m_current_filament_id);
                 event.SetString(param);
                 event.SetEventObject(this->GetParent());
                 wxPostEvent(this->GetParent(), event);
@@ -317,7 +321,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
             m_filament_name->Bind(wxEVT_BUTTON, [this, tray_data, i](wxCommandEvent &e) {
                 wxCommandEvent event(EVT_SET_FINISH_MAPPING);
                 event.SetInt(tray_data[i].id);
-                wxString param = wxString::Format("%d|%d|%d|%02d", 0x6B, 0x6B, 0x6B, tray_data[i].id + 1);
+                wxString param = wxString::Format("%d|%d|%d|%02d|%d", 0x6B, 0x6B, 0x6B, tray_data[i].id + 1, m_current_filament_id);
                 event.SetString(param);
                 event.SetEventObject(this->GetParent());
                 wxPostEvent(this->GetParent(), event);
@@ -334,7 +338,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
              m_filament_name->Bind(wxEVT_BUTTON, [this, tray_data, i](wxCommandEvent &e) {
                 wxCommandEvent event(EVT_SET_FINISH_MAPPING);
                 event.SetInt(tray_data[i].id);
-                wxString param = wxString::Format("%d|%d|%d|%02d", 0x6B, 0x6B, 0x6B, tray_data[i].id + 1);
+                wxString param = wxString::Format("%d|%d|%d|%02d|%d", 0x6B, 0x6B, 0x6B, tray_data[i].id + 1, m_current_filament_id);
                 event.SetString(param);
                 event.SetEventObject(this->GetParent());
                 wxPostEvent(this->GetParent(), event);
@@ -342,17 +346,17 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
             });
         }
 
-
         sizer_mapping_item->Add(number, 0, wxALIGN_CENTER_HORIZONTAL, 0);
         sizer_mapping_item->Add(m_filament_name, 0, wxALIGN_CENTER_HORIZONTAL, 0);
         sizer_mapping_list->Add(sizer_mapping_item, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, FromDIP(5));
+        m_amsmapping_sizer_list.push_back(sizer_mapping_list);
     }
     m_sizer_main->Add(sizer_mapping_list, 0, wxALIGN_CENTER_HORIZONTAL, 0);
 }
 
 void AmsMapingPopup::OnDismiss()
 {
-    delete this;
+
 }
 
 bool AmsMapingPopup::ProcessLeftDown(wxMouseEvent &event) 

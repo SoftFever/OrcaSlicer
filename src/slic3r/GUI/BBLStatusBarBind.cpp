@@ -77,28 +77,13 @@ void BBLStatusBarBind::set_progress(int val)
     if(val < 0)
         return;
 
-    bool need_layout = false;
-    //add the logic for arrange/orient jobs, which don't call stop_busy
-    if(val == m_prog->GetRange()) {
-        m_prog->SetValue(0);
-        set_percent_text("0%");
-        //m_sizer->Hide(m_prog);
-        need_layout = true;
+    if (!m_sizer->IsShown(m_prog)) {
+        m_sizer->Show(m_prog);
+        m_sizer->Show(m_cancelbutton);
     }
-    else
-    {
-        if (!m_sizer->IsShown(m_prog)) {
-            m_sizer->Show(m_prog);
-            m_sizer->Show(m_cancelbutton);
-            need_layout = true;
-        }
-        m_prog->SetValue(val);
-        set_percent_text(wxString::Format("%d%%", val));
-    }
-
-    if (need_layout) {
-        m_sizer->Layout();
-    }
+    m_prog->SetValue(val);
+    set_percent_text(wxString::Format("%d%%", val));
+    m_sizer->Layout();
 }
 
 int BBLStatusBarBind::get_range() const

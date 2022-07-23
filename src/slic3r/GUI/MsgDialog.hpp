@@ -13,6 +13,8 @@
 #include <wx/textctrl.h>
 #include <wx/statline.h>
 #include "Widgets/Button.hpp"
+#include "BBLStatusBar.hpp"
+#include "BBLStatusBarSend.hpp"
 
 class wxBoxSizer;
 class wxCheckBox;
@@ -363,7 +365,6 @@ public:
 private:
     wxString msg;
 };
-
 
 }
 }

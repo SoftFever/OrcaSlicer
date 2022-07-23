@@ -184,7 +184,7 @@ private:
     template <typename T>
     boost::uint32_t SendRequest(int type, json const& req, Translator<T> const& translator, Callback<T> const& callback)
     {
-        auto c = [translator, callback, thiz = shared_from_this()](int result, json const &resp, unsigned char const *data)
+        auto c = [translator, callback, this](int result, json const &resp, unsigned char const *data)
         {
             T t;
             if (result == 0 || result == CONTINUE) {
@@ -196,7 +196,7 @@ private:
                     result = ERROR_JSON;
                 }
             }
-            thiz->PostCallback<T>(callback, result, t);
+            PostCallback<T>(callback, result, t);
         };
         return SendRequest(type, req, c);
     }
@@ -206,7 +206,7 @@ private:
     template<typename T>
     void InstallNotify(int type, Translator<T> const& translator, Applier<T> const& applier)
     {
-        auto c = [translator, applier, thiz = shared_from_this()](int result, json const &resp, unsigned char const *data)
+        auto c = [translator, applier, this](int result, json const &resp, unsigned char const *data)
         {
             T t;
             if (result == 0 || result == CONTINUE) {
@@ -219,7 +219,7 @@ private:
                 }
             }
             if (result == 0 && applier) {
-                thiz->PostCallback<T>([applier](int, T const & t) {
+                PostCallback<T>([applier](int, T const & t) {
                     applier(t);
                 }, 0, t);
             }
@@ -274,9 +274,9 @@ private:
     std::deque<callback_t2> m_callbacks;
     std::deque<callback_t2> m_notifies;
     bool m_stopped = true;
-    boost::thread m_recv_thread;
     boost::mutex m_mutex;
     boost::condition_variable m_cond;
+    boost::thread m_recv_thread;
     Status m_status;
     int m_last_error = 0;
 };

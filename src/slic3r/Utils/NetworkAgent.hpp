@@ -6,7 +6,8 @@
 using namespace BBL;
 
 namespace Slic3r {
-
+typedef bool (*func_check_debug_consistent)(bool is_debug);
+typedef std::string (*func_get_version)(void);
 typedef void* (*func_create_agent)(void);
 typedef int (*func_destroy_agent)(void *agent);
 typedef int (*func_init_log)(void *agent);
@@ -75,6 +76,13 @@ class NetworkAgent
 
 public:
     static int initialize_network_module();
+    static int unload_network_module();
+#if defined(_MSC_VER) || defined(_WIN32)
+    static HMODULE get_bambu_source_entry();
+#else
+    static void* get_bambu_source_entry();
+#endif
+    static std::string get_version();
     static void* get_network_function(const char* name);
     NetworkAgent();
     ~NetworkAgent();
@@ -141,6 +149,8 @@ private:
 
     void*                   network_agent { nullptr };
 
+    static func_check_debug_consistent         check_debug_consistent_ptr;
+    static func_get_version                    get_version_ptr;
     static func_create_agent                   create_agent_ptr;
     static func_destroy_agent                  destroy_agent_ptr;
     static func_init_log                       init_log_ptr;

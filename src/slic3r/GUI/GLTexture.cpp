@@ -299,10 +299,12 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
         ::memcpy((void*)pressed_data.data(), (const void*)sprite_data.data(), sprite_bytes);
         for (int i = 0; i < sprite_n_pixels; ++i) {
             int offset = i * 4;
-            if (pressed_data.data()[offset] == 0) {
-                ::memset((void*)&pressed_data.data()[offset], 172, 3);
-                pressed_data.data()[offset + 3] = (unsigned char)150;
-            }
+            if (pressed_data.data()[offset + 0] == 0 && 
+                pressed_data.data()[offset + 1] == 0 &&
+                pressed_data.data()[offset + 2] == 0) {
+                ::memset((void*)&pressed_data.data()[offset], 238, 3);
+                pressed_data.data()[offset + 3] = (unsigned char) 225;
+            } 
         }
 
         ::memcpy((void*)disable_data.data(), (const void*)sprite_data.data(), sprite_bytes);
@@ -315,24 +317,35 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
         ::memcpy((void*)hover_data.data(), (const void*)sprite_data.data(), sprite_bytes);
         for (int i = 0; i < sprite_n_pixels; ++i) {
             int offset = i * 4;
-            if (hover_data.data()[offset] == 0) {
-                ::memset((void*)&hover_data.data()[offset], 172, 3);
-                hover_data.data()[offset + 3] = (unsigned char)75;
+            if (hover_data.data()[offset + 0] == 0 &&
+                hover_data.data()[offset + 1] == 0 &&
+                hover_data.data()[offset + 2] == 0) 
+            {
+                ::memset((void *) &hover_data.data()[offset], 238, 3);
+                hover_data.data()[offset + 3] = (unsigned char) 75;
             }
         }
 
+
         ::memcpy((void*)sprite_white_only_data.data(), (const void*)sprite_data.data(), sprite_bytes);
+        for (int i = 0; i < sprite_n_pixels; ++i) {
+            int offset = i * 4;
+            if (sprite_white_only_data.data()[offset + 0] != 0 ||
+                sprite_white_only_data.data()[offset + 1] != 0 || 
+                sprite_white_only_data.data()[offset + 2] != 0){
+                sprite_white_only_data.data()[offset + 0] = (unsigned char) 43;
+                sprite_white_only_data.data()[offset + 1] = (unsigned char) 52;
+                sprite_white_only_data.data()[offset + 2] = (unsigned char) 54;
+            }
+        }
 
         ::memcpy((void*)sprite_gray_only_data.data(), (const void*)sprite_data.data(), sprite_bytes);
         for (int i = 0; i < sprite_n_pixels; ++i) {
             int offset = i * 4;
-            if (sprite_gray_only_data.data()[offset + 0] == 0) {
+            if (sprite_gray_only_data.data()[offset + 0] != 0 ||
+                sprite_gray_only_data.data()[offset + 1] != 0 || 
+                sprite_gray_only_data.data()[offset + 2] != 0 ) {
                 ::memset((void*)&sprite_gray_only_data.data()[offset], 200, 3);
-            }
-            else {
-                sprite_gray_only_data.data()[offset + 0] = (unsigned char)(sprite_data.data()[offset + 0] * 0.3 + 178);
-                sprite_gray_only_data.data()[offset + 1] = (unsigned char)(sprite_data.data()[offset + 1] * 0.3 + 178);
-                sprite_gray_only_data.data()[offset + 2] = (unsigned char)(sprite_data.data()[offset + 2] * 0.3 + 178);
             }
         }
 
@@ -394,9 +407,9 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
     else
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
-    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
-    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 
     glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
 

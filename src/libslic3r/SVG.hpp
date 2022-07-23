@@ -19,6 +19,7 @@ public:
     float height;
     bool  flipY;
 
+    SVG() = default;
     SVG(const char* afilename) :
         arrows(false), fill("grey"), stroke("black"), filename(afilename), flipY(false)
         { open(filename); }

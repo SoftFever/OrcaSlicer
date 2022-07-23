@@ -21,10 +21,13 @@ private:
 	void update();
 
 private:
-	ScalableBitmap m_on;
-	ScalableBitmap m_half;
-	ScalableBitmap m_off;
-	bool m_half_checked = false;
+    ScalableBitmap m_on;
+    ScalableBitmap m_half;
+    ScalableBitmap m_off;
+    ScalableBitmap m_on_disabled;
+    ScalableBitmap m_half_disabled;
+    ScalableBitmap m_off_disabled;
+    bool m_half_checked = false;
 };
 
 #endif // !slic3r_GUI_CheckBox_hpp_

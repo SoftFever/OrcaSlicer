@@ -39,13 +39,13 @@ public:
     void input_max_finish();
     void update();
     void enable_confirm_button(bool en);
-    void on_select_cancel(wxMouseEvent &event);
     void Dismiss() override;
     bool Show(bool show) override;
     void Popup(bool show, bool third = true, wxString filament = wxEmptyString, wxColour colour = *wxWHITE, wxString sn = wxEmptyString, wxString tep = wxEmptyString);
 
 	void post_select_event();
     void on_select_ok(wxMouseEvent &event);
+
     void set_color(wxColour color);
 
     void on_clr_picker(wxCommandEvent &event);
@@ -67,6 +67,8 @@ protected:
     //void on_dpi_changed(const wxRect &suggested_rect) override;
     void on_select_filament(wxCommandEvent& evt);
 
+    bool ProcessLeftDown(wxMouseEvent &evt);
+
 protected:
     StateColor          m_btn_bg_green;
     wxPanel *           m_panel_SN;
@@ -82,6 +84,9 @@ protected:
     TextInput *         m_input_nozzle_min;
     TextInput*          m_input_nozzle_max;
     Button *            m_button_confirm;
+#ifdef __APPLE__
+    wxComboBox *m_comboBox_filament_mac;
+#endif
     wxColourData *      m_clrData;
 
 };

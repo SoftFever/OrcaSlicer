@@ -1349,7 +1349,12 @@ void GLCanvas3D::render(bool only_init)
             right_margin = SLIDER_RIGHT_MARGIN;
             bottom_margin = SLIDER_BOTTOM_MARGIN;
         }
-        wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overlay_window_width(), bottom_margin, right_margin);
+        #if ENABLE_RETINA_GL
+            float sc = m_retina_helper->get_scale_factor();
+            wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overlay_window_width(), bottom_margin * sc, right_margin);
+        #else
+            wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overlay_window_width(), bottom_margin, right_margin);
+        #endif
     }
 
     wxGetApp().imgui()->render();
@@ -3037,6 +3042,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         if (wxWindow::FindFocus() != m_canvas)
             // Grab keyboard focus for input in gizmo dialogs.
             m_canvas->SetFocus();
+
+        if (evt.LeftDown()) {
+            // Clear hover state in main toolbar
+            wxMouseEvent evt2 = evt;
+            evt2.SetEventType(wxEVT_MOTION);
+            evt2.SetLeftDown(false);
+            m_main_toolbar.on_mouse(evt2, *this);
+        }
 
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
@@ -6397,34 +6410,25 @@ void GLCanvas3D::_render_paint_toolbar() const
        }
    }
 
-   #ifdef __APPLE__
-   std::string  item_text   = (boost::format("%1% %2%") % (11) % filament_types[0]).str();
-   const ImVec2 label_size  = ImGui::CalcTextSize(item_text.c_str(), NULL, true);
-   int          button_size = label_size.x + item_spacing;
-   #else
-   int button_size  = GLToolbar::Default_Icons_Size * wxGetApp().toolbar_icon_scale() + item_spacing;
-   #endif
+    float button_size  = GLToolbar::Default_Icons_Size * f_scale * wxGetApp().toolbar_icon_scale() + item_spacing;
 
     imgui.set_next_window_pos(0.5f * (canvas_w + (button_size + item_spacing) * extruder_num), button_size + item_spacing * 2, ImGuiCond_Always, 1.0f, 1.0f);
     imgui.begin(_L("Paint Toolbar"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar);
     bool disabled = !wxGetApp().plater()->can_fillcolor();
     unsigned char rgb[3];
 
+    float max_text = 0;
     for (int i = 0; i < extruder_num; i++) {
-        if (i > 0) {
-            if (filament_types.size() <= i) continue;
-            std::string  item_text  = (boost::format("%1% %2%") % (i + 1) % filament_types[i]).str();
-            const ImVec2 label_size = ImGui::CalcTextSize(item_text.c_str(), NULL, true);
-            #ifdef __WINDOWS__
-            if (i > 8)
-                ImGui::SameLine(0.5 * item_spacing + (button_size - label_size.x) / 2 + (button_size + item_spacing) * i);
-            else
-                ImGui::SameLine((button_size - label_size.x) / 2 + (button_size + item_spacing) * i);
-            #else
-            ImGui::SameLine();
-            #endif
-        }
-            //ImGui::SameLine();
+        std::string item_text = (boost::format("%1%%2%") % (i + 1) % filament_types[i]).str();
+        ImVec2 label_size = ImGui::CalcTextSize(item_text.c_str(), NULL, true);
+        if (label_size.x > button_size)
+               label_size.x  = button_size * 0.6;
+        max_text = std::max(max_text,label_size.x);
+    }
+    for (int i = 0; i < extruder_num; i++) {
+        if (filament_types.size() <= i) continue;
+
+        ImGui::SameLine(item_spacing / 2 + (button_size - max_text) / 2 + (button_size + item_spacing) * i);
         ImGui::PushID(i);
         Slic3r::GUI::BitmapCache::parse_color(colors[i], rgb);
         ImGui::PushStyleColor(ImGuiCol_Button, ImColor(rgb[0], rgb[1], rgb[2]).Value);
@@ -6450,21 +6454,78 @@ void GLCanvas3D::_render_paint_toolbar() const
             ImGui::PopItemFlag();
         ImGui::PopID();
     }
-
     for (int i = 0; i < extruder_num; i++){
         if (filament_types.size() <= i) continue;
         //TODO use filament type from filament management, current use PLA by default
-        std::string item_text = (boost::format("%1% %2%") % (i + 1) % filament_types[i]).str();
+        std::string item_text = (boost::format("%1%%2%") % (i + 1) % filament_types[i]).str();
         const ImVec2 label_size = ImGui::CalcTextSize(item_text.c_str(), NULL, true);
 
-        ImGui::SameLine(item_spacing + (button_size - label_size.x) / 2 + (button_size + item_spacing) * i);
+        int len = strlen(filament_types[i].c_str());
 
+        ImGui::SameLine(item_spacing / 2 + (button_size - max_text) / 2 + (button_size + item_spacing) * i);
+
+        int count = 0;
+        if (label_size.x > button_size)
+        {
+            for (int j = 0; j < filament_types[i].size(); j++)
+            {
+                 if(std::isalpha(filament_types[i][j]))
+                    count++;
+                 else
+                     break;
+            }
+        }
+
+        if (i > 8)
+        {
+            if (label_size.x > button_size)
+            {
+                if(count * ImGui::GetFontSize() > button_size){
+                    if ((len - (count + 1)) <= 3)
+                        item_text = "\t" + std::to_string(i + 1) + "\n" + filament_types[i].substr(0, count) + "\n" + "\t" + filament_types[i].substr(count, len);
+                    else
+                        item_text = "\t" + std::to_string(i + 1) + "\n" + filament_types[i].substr(0, count + 1) + "\n"+ filament_types[i].substr(count + 1, len);
+                } else {
+                    if (count <= 4)
+                        item_text = "\t" + std::to_string(i + 1) + "\n" + "   " + filament_types[i].substr(0, count + 1) + "\n" + filament_types[i].substr(count + 1, len);
+                    else
+                        item_text = "\t" + std::to_string(i + 1) + "\n" + filament_types[i].substr(0, count + 1) + "\n" + filament_types[i].substr(count + 1, len);
+                }
+            }
+            else
+            {
+                item_text = (boost::format("\t%1%\n   %2%") % (i + 1) % filament_types[i]).str();
+            }
+        }
+        else
+        {
+            if (label_size.x > button_size)
+            {
+                if(count * ImGui::GetFontSize() > button_size){
+                    if ((len - (count + 1)) <= 3)
+                        item_text = "\t " + std::to_string(i + 1) + "\n" + filament_types[i].substr(0, count) + "\n" + "\t" + filament_types[i].substr(count, len);
+                    else
+                        item_text = "\t " + std::to_string(i + 1) + "\n" + filament_types[i].substr(0, count + 1) + "\n"+ filament_types[i].substr(count + 1, len);
+                } else {
+                    if (count <= 4)
+                        item_text = "\t " + std::to_string(i + 1) + "\n" + "   " + filament_types[i].substr(0, count + 1) + "\n" + filament_types[i].substr(count + 1, len);
+                    else
+                        item_text = "\t " + std::to_string(i + 1) + "\n" + filament_types[i].substr(0, count + 1) + "\n" + filament_types[i].substr(count + 1, len);
+                }
+            }
+            else
+            {
+               item_text = (boost::format("\t  %1%\n\t%2%") % (i + 1) % filament_types[i]).str();
+            }
+        }
         Slic3r::GUI::BitmapCache::parse_color(colors[i], rgb);
         float gray = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
-        if (gray < 80)
-            ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), item_text.c_str());
-        else
-            ImGui::TextColored(ImVec4(0.0f, 0.0f, 0.0f, 1.0f), item_text.c_str());
+
+        if (gray < 80){
+                ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), item_text.c_str());   
+        } else{
+                ImGui::TextColored(ImVec4(0.0f, 0.0f, 0.0f, 1.0f), item_text.c_str());
+        } 
     }
     ImGui::AlignTextToFramePadding();
     imgui.end();
@@ -7468,8 +7529,8 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::SlaSupportsOutside: text = ("SLA supports outside the print area were detected."); error = ErrorType::PLATER_ERROR; break;
     case EWarning::SomethingNotShown:  text = _u8L("Only the object being edit is visible."); break;
     case EWarning::ObjectClashed:
-        text = _u8L("An object is layed over the boundary of plate.\n"
-            "Please solve the problem by moving it totally inside or outside plate.");
+        text = _u8L("An object is laid over the boundary of plate or exceeds the height limit.\n"
+            "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.");
         error = ErrorType::PLATER_ERROR;
         break;
     }

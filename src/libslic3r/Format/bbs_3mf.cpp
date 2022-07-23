@@ -232,6 +232,7 @@ static constexpr const char* LOCK_ATTR = "locked";
 static constexpr const char* GCODE_FILE_ATTR = "gcode_file";
 static constexpr const char* THUMBNAIL_FILE_ATTR = "thumbnail_file";
 static constexpr const char* PATTERN_FILE_ATTR = "pattern_file";
+static constexpr const char* PATTERN_BBOX_FILE_ATTR = "pattern_bbox_file";
 static constexpr const char* OBJECT_ID_ATTR = "object_id";
 static constexpr const char* INSTANCEID_ATTR = "instance_id";
 static constexpr const char* PLATERID_ATTR = "plater_id";
@@ -451,7 +452,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         info.id     = it->first;
         info.used_m = used_filament_m;
         info.used_g = used_filament_g;
-        slice_flaments_info.push_back(info);
+        slice_filaments_info.push_back(info);
     }
 }
 
@@ -1464,9 +1465,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->gcode_prediction = it->second->gcode_prediction;
             plate_data_list[it->first-1]->gcode_weight = it->second->gcode_weight;
             plate_data_list[it->first-1]->toolpath_outside = it->second->toolpath_outside;
-            plate_data_list[it->first-1]->slice_flaments_info = it->second->slice_flaments_info;
+            plate_data_list[it->first-1]->slice_filaments_info = it->second->slice_filaments_info;
             plate_data_list[it->first-1]->thumbnail_file = (m_load_restore || it->second->thumbnail_file.empty()) ? it->second->thumbnail_file : m_backup_path + "/" + it->second->thumbnail_file;
             plate_data_list[it->first-1]->pattern_file = (m_load_restore || it->second->pattern_file.empty()) ? it->second->pattern_file : m_backup_path + "/" + it->second->pattern_file;
+            plate_data_list[it->first-1]->pattern_bbox_file = (m_load_restore || it->second->pattern_bbox_file.empty()) ? it->second->pattern_bbox_file : m_backup_path + "/" + it->second->pattern_bbox_file;
             it++;
         }
 
@@ -3039,6 +3041,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             {
                 m_curr_plater->pattern_file = value;
             }
+            else if (key == PATTERN_BBOX_FILE_ATTR)
+            {
+                m_curr_plater->pattern_bbox_file = value;
+            }
             else if (key == INSTANCEID_ATTR)
             {
                 m_curr_instance.instance_id = atoi(value.c_str());
@@ -3110,7 +3116,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             filament_info.color = color;
             filament_info.used_m = atof(used_m.c_str());
             filament_info.used_g = atof(used_g.c_str());
-            m_curr_plater->slice_flaments_info.push_back(filament_info);
+            m_curr_plater->slice_filaments_info.push_back(filament_info);
         }
         return true;
     }
@@ -5327,9 +5333,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << THUMBNAIL_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << thumbnail_file_in_3mf << "\"/>\n";
                 }
 
-                if (plate_data->pattern_thumbnail.is_valid()) {
+                if (!plate_data->pattern_file.empty()) {
                     std::string pattern_file_in_3mf = (boost::format(PATTERN_FILE_FORMAT) % (plate_data->plate_index + 1)).str();
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PATTERN_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << pattern_file_in_3mf << "\"/>\n";
+                }
+                if (!plate_data->pattern_bbox_file.empty()) {
+                    std::string pattern_bbox_file_in_3mf = (boost::format(PATTERN_CONFIG_FILE_FORMAT) % (plate_data->plate_index + 1)).str();
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PATTERN_BBOX_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << pattern_bbox_file_in_3mf << "\"/>\n";
                 }
 
                 if (instance_size > 0)
@@ -5430,7 +5440,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SLICE_WEIGHT_ATTR      << "\" " << VALUE_ATTR << "=\"" <<  plate_data->get_gcode_weight_str() << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << OUTSIDE_ATTR      << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->toolpath_outside << "\"/>\n";
 
-                for (auto it = plate_data->slice_flaments_info.begin(); it != plate_data->slice_flaments_info.end(); it++)
+                for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++)
                 {
                     stream << "    <" << FILAMENT_TAG << " " << FILAMENT_ID_TAG << "=\"" << std::to_string(it->id + 1) << "\" "
                            << FILAMENT_TYPE_TAG << "=\"" << it->type << "\" "
@@ -5903,7 +5913,8 @@ private:
                 break;
             case AddObject: {
                 {
-                    _BBS_3MF_Exporter e;
+                    CNumericLocalesSetter locales_setter;
+                    _BBS_3MF_Exporter     e;
                     e.save_object_mesh(t.path, *t.object, (int) t.id);
                     // response to delete cloned object
                 }

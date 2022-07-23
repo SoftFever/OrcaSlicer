@@ -118,10 +118,11 @@ inline bool equal_layering(const SlicingParameters &sp1, const SlicingParameters
             sp1.first_print_layer_height            == sp2.first_print_layer_height             &&
             sp1.first_object_layer_height           == sp2.first_object_layer_height            &&
             sp1.first_object_layer_bridging         == sp2.first_object_layer_bridging          &&
+            // BBS: following  are not required for equal layer height.
+            // Since the z-gap diff may be multiple of layer height.
+#if 0
             sp1.soluble_interface                   == sp2.soluble_interface                    &&
             sp1.gap_raft_object                     == sp2.gap_raft_object                      &&
-            // BBS
-#if 0
             sp1.gap_object_support                  == sp2.gap_object_support                   &&
             sp1.gap_support_object                  == sp2.gap_support_object                   &&
 #endif

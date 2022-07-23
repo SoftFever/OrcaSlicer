@@ -1274,6 +1274,9 @@ public:
         ImportStepProgressFn stepFn = nullptr, StepIsUtf8Fn stepIsUtf8Fn = nullptr, BBLProject* project = nullptr);
     // BBS
     static double findMaxSpeed(const ModelObject* object);
+    static double getThermalLength(const ModelVolume* modelVolumePtr);
+    static double getThermalLength(const std::vector<ModelVolume*> modelVolumePtrs);
+
     // BBS: backup
     static Model read_from_archive(
         const std::string& input_file,

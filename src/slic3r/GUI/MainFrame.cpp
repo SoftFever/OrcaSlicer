@@ -157,7 +157,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 #ifdef __WXOSX__
     set_miniaturizable(GetHandle());
 #endif
-    
+
     //reset developer_mode to false  and user_mode to comAdvanced
     wxGetApp().app_config->set_bool("developer_mode", false);
     if (wxGetApp().app_config->get("user_mode") == "develop") {
@@ -178,17 +178,17 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     // Fonts were created by the DPIFrame constructor for the monitor, on which the window opened.
     wxGetApp().update_fonts(this);
 
-    #ifdef __WINDOWS__
-        m_topbar         = new BBLTopbar(this);
-    #else
+#ifdef __WINDOWS__
+    m_topbar         = new BBLTopbar(this);
+#else
     auto panel_topbar = new wxPanel(this, wxID_ANY);
     panel_topbar->SetBackgroundColour(wxColour(38, 46, 48));
     auto sizer_tobar = new wxBoxSizer(wxVERTICAL);
-    m_topbar         = new BBLTopbar(panel_topbar, this);
+    m_topbar         = new BBLTopbar(this);
     sizer_tobar->Add(m_topbar, 0, wxEXPAND);
     panel_topbar->SetSizer(sizer_tobar);
     panel_topbar->Layout();
-    #endif
+#endif
 
 
 
@@ -326,11 +326,11 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     // initialize layout
     m_main_sizer = new wxBoxSizer(wxVERTICAL);
     wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-    #ifdef __WINDOWS__
+#ifdef __WINDOWS__
      sizer->Add(m_topbar, 0, wxEXPAND);
-    #else
+#else
      sizer->Add(panel_topbar, 0, wxEXPAND);
-    #endif // __WINDOWS__
+#endif // __WINDOWS__
 
 
     sizer->Add(m_main_sizer, 1, wxEXPAND);
@@ -357,14 +357,10 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     Fit();
 
     const wxSize min_size = wxGetApp().get_min_size(); //wxSize(76*wxGetApp().em_unit(), 49*wxGetApp().em_unit());
-#ifdef __APPLE__
-    // Using SetMinSize() on Mac messes up the window position in some cases
-    // cf. https://groups.google.com/forum/#!topic/wx-users/yUKPBBfXWO0
-    SetSize(min_size/*wxSize(760, 490)*/);
-#else
+
     SetMinSize(min_size/*wxSize(760, 490)*/);
     SetSize(wxSize(FromDIP(1200), FromDIP(800)));
-#endif
+
     Layout();
 
     update_title();
@@ -747,6 +743,29 @@ void MainFrame::init_tabpanel()
     m_tabpanel->Hide();
     m_settings_dialog.set_tabpanel(m_tabpanel);
 
+    m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent& e) {
+        int old_sel = e.GetOldSelection();
+        int new_sel = e.GetSelection();
+        if (new_sel == tpMonitor) {
+            if (!wxGetApp().getAgent()) {
+                e.Veto();
+                BOOST_LOG_TRIVIAL(info) << boost::format("skipped tab switch from %1% to %2%, lack of network plugins")%old_sel %new_sel;
+                if (m_plater) {
+                    wxCommandEvent *evt = new wxCommandEvent(EVT_INSTALL_PLUGIN_HINT);
+                    wxQueueEvent(m_plater, evt);
+                }
+            }
+        }
+        else if (new_sel == tp3DEditor) {
+            if (m_plater && (m_plater->only_gcode_mode() || (m_plater->using_exported_file()))) {
+                e.Veto();
+                BOOST_LOG_TRIVIAL(info) << boost::format("skipped tab switch from %1% to %2% in preview mode")%old_sel %new_sel;
+                wxCommandEvent *evt = new wxCommandEvent(EVT_PREVIEW_ONLY_MODE_HINT);
+                wxQueueEvent(m_plater, evt);
+            }
+        }
+    });
+
 #ifdef __WXMSW__
     m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent& e) {
 #else
@@ -758,12 +777,11 @@ void MainFrame::init_tabpanel()
         //wxString page_text = m_tabpanel->GetPageText(sel);
         m_last_selected_tab = m_tabpanel->GetSelection();
         if (panel == m_plater) {
-            if (m_with_3dEditor && (sel == tp3DEditor)) {
+            if (sel == tp3DEditor) {
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
                 m_param_panel->OnActivate();
             }
-            else if ((m_with_3dEditor&&(sel == tpPreview))
-                || (!m_with_3dEditor&&(sel == tp3DEditor))){
+            else if (sel == tpPreview) {
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW));
                 m_param_panel->OnActivate();
             }
@@ -774,7 +792,7 @@ void MainFrame::init_tabpanel()
             //monitor
         }
 
-        if (m_with_3dEditor && (sel == tp3DEditor)) {
+        if (sel == tp3DEditor) {
             m_topbar->EnableUndoRedoItems();
         }
         else {
@@ -1672,10 +1690,13 @@ void MainFrame::init_menubar_as_editor()
         append_menu_item(export_menu, wxID_ANY, _L("Export all objects as STL") + dots, _L("Export all objects as STL"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(); }, "menu_export_stl", nullptr,
             [this](){return can_export_model(); }, this);
-        // BBS export Gcode
-        wxMenuItem* item_export_gcode = append_menu_item(export_menu, wxID_ANY, _L("Export Sliced File") + dots/* + "\tCtrl+G"*/, _L("Export current Sliced file"),
+        // BBS export .gcode.3mf
+        append_menu_item(export_menu, wxID_ANY, _L("Export Sliced File") + dots/* + "\tCtrl+G"*/, _L("Export current Sliced file"),
             [this](wxCommandEvent&) { if (m_plater) wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE)); }, "menu_export_sliced_file", nullptr,
             [this](){return can_export_gcode(); }, this);
+        append_menu_item(export_menu, wxID_ANY, _L("Export G-code") + dots/* + "\tCtrl+G"*/, _L("Export current plate as G-code"),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(false); }, "menu_export_gcode", nullptr,
+            [this]() {return can_export_gcode(); }, this);
 
         append_submenu(fileMenu, export_menu, wxID_ANY, _L("Export"), "");
 
@@ -1788,20 +1809,20 @@ void MainFrame::init_menubar_as_editor()
         append_menu_item(editMenu, wxID_ANY, _L("Deselect all") + "\tEsc",
             _L("Deselects all objects"), [this](wxCommandEvent&) { m_plater->deselect_all(); },
             "", nullptr, [this](){return can_deselect(); }, this);
-        editMenu->AppendSeparator();
-        append_menu_check_item(editMenu, wxID_ANY, _L("Show Model Mesh(TODO)"),
-            _L("Display triangles of models"), [this](wxCommandEvent& evt) {
-                wxGetApp().app_config->set_bool("show_model_mesh", evt.GetInt() == 1);
-            }, nullptr, [this]() {return can_select(); }, [this]() { return wxGetApp().app_config->get("show_model_mesh").compare("true") == 0; }, this);
-        append_menu_check_item(editMenu, wxID_ANY, _L("Show Model Shadow(TODO)"), _L("Display shadow of objects"),
-            [this](wxCommandEvent& evt) {
-                wxGetApp().app_config->set_bool("show_model_shadow", evt.GetInt() == 1);
-            }, nullptr, [this]() {return can_select(); }, [this]() { return wxGetApp().app_config->get("show_model_shadow").compare("true") == 0; }, this);
-        editMenu->AppendSeparator();
-        append_menu_check_item(editMenu, wxID_ANY, _L("Show Printable Box(TODO)"), _L("Display printable box"),
-            [this](wxCommandEvent& evt) {
-                wxGetApp().app_config->set_bool("show_printable_box", evt.GetInt() == 1);
-            }, nullptr, [this]() {return can_select(); }, [this]() { return wxGetApp().app_config->get("show_printable_box").compare("true") == 0; }, this);
+        //editMenu->AppendSeparator();
+        //append_menu_check_item(editMenu, wxID_ANY, _L("Show Model Mesh(TODO)"),
+        //    _L("Display triangles of models"), [this](wxCommandEvent& evt) {
+        //        wxGetApp().app_config->set_bool("show_model_mesh", evt.GetInt() == 1);
+        //    }, nullptr, [this]() {return can_select(); }, [this]() { return wxGetApp().app_config->get("show_model_mesh").compare("true") == 0; }, this);
+        //append_menu_check_item(editMenu, wxID_ANY, _L("Show Model Shadow(TODO)"), _L("Display shadow of objects"),
+        //    [this](wxCommandEvent& evt) {
+        //        wxGetApp().app_config->set_bool("show_model_shadow", evt.GetInt() == 1);
+        //    }, nullptr, [this]() {return can_select(); }, [this]() { return wxGetApp().app_config->get("show_model_shadow").compare("true") == 0; }, this);
+        //editMenu->AppendSeparator();
+        //append_menu_check_item(editMenu, wxID_ANY, _L("Show Printable Box(TODO)"), _L("Display printable box"),
+        //    [this](wxCommandEvent& evt) {
+        //        wxGetApp().app_config->set_bool("show_printable_box", evt.GetInt() == 1);
+        //    }, nullptr, [this]() {return can_select(); }, [this]() { return wxGetApp().app_config->get("show_printable_box").compare("true") == 0; }, this);
     }
 
     // BBS
@@ -2234,7 +2255,7 @@ void MainFrame::select_tab(wxPanel* panel)
 //BBS
 void MainFrame::jump_to_monitor(std::string dev_id)
 {
-    m_tabpanel->SetSelection(m_with_3dEditor? tpMonitor:(tpMonitor-1));
+    m_tabpanel->SetSelection(tpMonitor);
     ((MonitorPanel*)m_monitor)->select_machine(dev_id);
 }
 
@@ -2273,42 +2294,10 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
     select(false);
 }
 
-void MainFrame::enable_tab(size_t tab, bool enabled)
-{
-    if (tab != tp3DEditor)
-        //currently only support 3dEditor
-        return;
-
-    if ((enabled && m_with_3dEditor) || (!enabled && !m_with_3dEditor))
-        //already done
-        return;
-
-    Freeze();
-    if (enabled) {
-        int sel = m_tabpanel->GetSelection();
-        m_tabpanel->InsertPage(tab, m_plater, _L("Prepare"), std::string("tab_3d_active"), std::string("tab_3d_active"));
-        if (sel >= tab)
-            m_tabpanel->SetSelection(sel + 1);
-    }
-    else {
-        int sel = m_tabpanel->GetSelection();
-        m_tabpanel->RemovePage(tab);
-        if (sel >= tab)
-            m_tabpanel->SetSelection(sel - 1);
-    }
-    m_with_3dEditor = enabled;
-    m_plater->Show();
-    m_tabpanel->Show();
-    Thaw();
-}
-
 void MainFrame::request_select_tab(TabPosition pos)
 {
-    int position = pos;
-    if ((!m_with_3dEditor)&&(pos >= tpPreview))
-        position = (int)pos -1;
     wxCommandEvent* evt = new wxCommandEvent(EVT_SELECT_TAB);
-    evt->SetInt(position);
+    evt->SetInt(pos);
     wxQueueEvent(this, evt);
 }
 
@@ -2487,6 +2476,12 @@ void MainFrame::load_url(wxString url)
     wxQueueEvent(this, evt);
 }
 
+void MainFrame::refresh_plugin_tips()
+{
+    if (m_webview != nullptr)
+        m_webview->ShowNetpluginTip();
+}
+
 void MainFrame::RunScript(wxString js)
 {
     if (m_webview != nullptr)
@@ -2538,7 +2533,7 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
 {
     MessageDialog dialog(this,
                     _L("Do you want to synchronize your personal data from Bambu Cloud? \n"
-                        "Contains the following information:\n"
+                        "It contains the following information:\n"
                         "1. The Process presets\n"
                         "2. The Filament presets\n"
                         "3. The Printer presets\n"),

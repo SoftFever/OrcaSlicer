@@ -108,19 +108,23 @@ bool MarkdownTip::ShowTip(wxPoint pos, std::string const &tip, std::string const
             return false;
         if (pos.x) {
             _hide = true;
+            BOOST_LOG_TRIVIAL(info) << "MarkdownTip::ShowTip: hide soon on empty tip.";
             this->Hide();
         }
         else if (!_hide) {
             _hide = true;
+            BOOST_LOG_TRIVIAL(info) << "MarkdownTip::ShowTip: start hide timer (300)...";
             _timer->StartOnce(300);
         }
         return false;
     }
-    if (_lastTip != tip) {
+    bool tipChanged = _lastTip != tip;
+    if (tipChanged) {
         auto content = LoadTip(tip, tooltip);
         if (content.empty()) {
             _hide = true;
             this->Hide();
+            BOOST_LOG_TRIVIAL(info) << "MarkdownTip::ShowTip: hide soon on empty content.";
             return false;
         }
         auto script = "window.showMarkdown('" + url_encode(content) + "', true);";
@@ -140,8 +144,11 @@ bool MarkdownTip::ShowTip(wxPoint pos, std::string const &tip, std::string const
         if (pos.y + this->GetSize().y > size.y)
             pos.y = size.y - this->GetSize().y;
         this->SetPosition(pos);
-        _hide = false;
-        _timer->StartOnce(500);
+        if (tipChanged || _hide) {
+            _hide = false;
+            BOOST_LOG_TRIVIAL(info) << "MarkdownTip::ShowTip: start show timer (500)...";
+            _timer->StartOnce(500);
+        }
     }
     return true;
 }
@@ -264,11 +271,14 @@ void MarkdownTip::OnTimer(wxTimerEvent& event)
     if (_hide) {
         wxPoint pos = ScreenToClient(wxGetMousePosition());
         if (GetClientRect().Contains(pos)) {
+            BOOST_LOG_TRIVIAL(info) << "MarkdownTip::OnTimer: restart hide timer...";
             _timer->StartOnce();
             return;
         }
+        BOOST_LOG_TRIVIAL(info) << "MarkdownTip::OnTimer: hide.";
         this->Hide();
     } else {
+        BOOST_LOG_TRIVIAL(info) << "MarkdownTip::OnTimer: show.";
         this->Show();
     }
 }

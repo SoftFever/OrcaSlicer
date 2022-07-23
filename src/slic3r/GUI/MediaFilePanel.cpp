@@ -163,7 +163,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
     auto fs = m_image_grid->GetFileSystem();
     if (fs) {
         m_image_grid->SetFileSystem(nullptr);
-        fs->Unbind(EVT_MODE_CHANGED, &MediaFilePanel::fileChanged, this);
+        fs->Unbind(EVT_MODE_CHANGED, &MediaFilePanel::modeChanged, this);
         fs->Stop(true);
     }
     if (m_machine.empty()) {
@@ -171,7 +171,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
     } else {
         boost::shared_ptr<PrinterFileSystem> fs(new PrinterFileSystem);
         m_image_grid->SetFileSystem(fs);
-        fs->Bind(EVT_MODE_CHANGED, &MediaFilePanel::fileChanged, this);
+        fs->Bind(EVT_MODE_CHANGED, &MediaFilePanel::modeChanged, this);
         fs->Bind(EVT_STATUS_CHANGED, [this, wfs = boost::weak_ptr(fs)](auto &e) {
             boost::shared_ptr fs(wfs.lock());
             if (m_image_grid->GetFileSystem() != fs) // canceled
@@ -183,6 +183,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
             case PrinterFileSystem::Connecting: icon = m_bmp_loading.bmp(); msg = _L("Connecting..."); break;
             case PrinterFileSystem::Failed: icon = m_bmp_failed.bmp(); msg = _L("Connect failed [%d]!"); break;
             case PrinterFileSystem::ListSyncing: icon = m_bmp_loading.bmp(); msg = _L("Loading file list..."); break;
+            case PrinterFileSystem::ListReady: icon = m_bmp_empty.bmp(); msg = _L("No files"); break;
             }
             if (fs->GetCount() == 0)
                 m_image_grid->SetStatus(icon, msg);
@@ -192,7 +193,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         if (IsShown()) fs->Start();
     }
     wxCommandEvent e(EVT_MODE_CHANGED);
-    fileChanged(e);
+    modeChanged(e);
 }
 
 void MediaFilePanel::Rescale()
@@ -218,12 +219,10 @@ void MediaFilePanel::Rescale()
     m_image_grid->Rescale();
 }
 
-void MediaFilePanel::fileChanged(wxCommandEvent& e1)
+void MediaFilePanel::modeChanged(wxCommandEvent& e1)
 {
     e1.Skip();
     auto fs = m_image_grid->GetFileSystem();
-    if (fs)
-        m_image_grid->SetStatus(m_bmp_empty.bmp(), fs->GetCount() ? L"" : _L("No files"));
     auto mode = fs ? fs->GetGroupMode() : 0;
     if (m_last_mode == mode)
         return;
@@ -247,7 +246,7 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
             BOOST_LOG_TRIVIAL(info) << "MediaFilePanel::fetchUrl: camera_url: " << url;
             CallAfter([this, url, wfs] {
                 boost::shared_ptr fs(wfs.lock());
-                if (fs != m_image_grid->GetFileSystem()) return;
+                if (!fs || fs != m_image_grid->GetFileSystem()) return;
                 fs->SetUrl(url);
             });
         });

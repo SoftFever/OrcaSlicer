@@ -88,7 +88,7 @@ bool GLGizmoFdmSupports::on_init()
     m_desc["remove"]                = _L("Erase painting");
     m_desc["remove_all"]            = _L("Erase all painting");
     m_desc["highlight_by_angle"]    = _L("Highlight overhang areas") + ": ";
-    m_desc["fragment_filter"]       = _L("Fragment filter");
+    m_desc["fragment_filter"]       = _L("Gap fill");
     m_desc["perform_filter"]        = _L("Perform");
     m_desc["fragment_area"]         = _L("Fragment area");
     m_desc["brush_size"]            = _L("Set pen size");
@@ -246,7 +246,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("tool_type"));
     std::array<wchar_t, 4> tool_icons = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon, ImGui::FillButtonIcon, ImGui::FragmentFilterIcon };
-    std::array<wxString, 4> tool_tips = { _L("Circle"), _L("Sphere"), _L("Fill"), _L("Fragment Filter") };
+    std::array<wxString, 4> tool_tips = { _L("Circle"), _L("Sphere"), _L("Fill"), _L("Gap Fill") };
     for (int i = 0; i < tool_icons.size(); i++) {
         std::string  str_label = std::string("##");
         std::wstring btn_name = tool_icons[i] + boost::nowide::widen(str_label);

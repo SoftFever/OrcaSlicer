@@ -83,6 +83,8 @@ struct CurlGlobalInit
 
 std::unique_ptr<CurlGlobalInit> CurlGlobalInit::instance;
 
+std::map<std::string, std::string> extra_headers;
+
 struct Http::priv
 {
 	enum {
@@ -454,9 +456,10 @@ void Http::priv::http_perform()
 	}
 }
 
-Http::Http(const std::string &url) : p(new priv(url))
-{
-	;
+Http::Http(const std::string &url) : p(new priv(url)) {
+
+	for (auto it = extra_headers.begin(); it != extra_headers.end(); it++)
+		this->header(it->first, it->second);
 }
 
 
@@ -721,6 +724,11 @@ Http Http::del(std::string url)
 	Http http{ std::move(url) };
 	curl_easy_setopt(http.p->curl, CURLOPT_CUSTOMREQUEST, "DELETE");
 	return http;
+}
+
+void Http::set_extra_headers(std::map<std::string, std::string> headers)
+{
+	extra_headers.swap(headers);
 }
 
 bool Http::ca_file_supported()

@@ -12,7 +12,7 @@
     <script>
         const resizeOberver = new ResizeObserver((entities) => {
             const height = entities[0].contentRect.height
-            document.title = "" + height
+            document.title = height.toFixed()
         })
         resizeOberver.observe(document.querySelector('#contents'))
         window.showMarkdownFile = function (file) {

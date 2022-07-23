@@ -566,7 +566,7 @@ void PrintObject::clear_tree_support_layers()
 
 std::shared_ptr<TreeSupportData> PrintObject::alloc_tree_support_preview_cache()
 {
-    if (m_tree_support_preview_cache == nullptr) {
+    if (!m_tree_support_preview_cache) {
         const coordf_t layer_height = m_config.layer_height.value;
         const coordf_t xy_distance = m_config.support_object_xy_distance.value;
         const double angle = m_config.tree_support_branch_angle.value * M_PI / 180.;
@@ -787,7 +787,8 @@ bool PrintObject::invalidate_state_by_config_options(
             invalidated |= m_print->invalidate_step(psGCodeExport);
         } else if (
                opt_key == "flush_into_infill"
-            || opt_key == "flush_into_objects") {
+            || opt_key == "flush_into_objects"
+            || opt_key == "flush_into_support") {
             invalidated |= m_print->invalidate_step(psWipeTower);
             invalidated |= m_print->invalidate_step(psGCodeExport);
         } else {
@@ -827,7 +828,7 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
     }
 
     // Wipe tower depends on the ordering of extruders, which in turn depends on everything.
-    // It also decides about what the flush_into_infill / wipe_into_object features will do,
+    // It also decides about what the flush_into_infill / wipe_into_object / flush_into_support features will do,
     // and that too depends on many of the settings.
     invalidated |= m_print->invalidate_step(psWipeTower);
     // Invalidate G-code export in any case.
@@ -2297,7 +2298,8 @@ void PrintObject::remove_bridges_from_contacts(
     const Layer* current_layer,
     float extrusion_width,
     PolysType* overhang_regions,
-    float max_bridge_length)
+    float max_bridge_length,
+    bool break_bridge)
 {
     // Extrusion width accounts for the roundings of the extrudates.
     // It is the maximum widh of the extrudate.
@@ -2305,6 +2307,7 @@ void PrintObject::remove_bridges_from_contacts(
     Lines overhang_perimeters = to_lines(*overhang_regions);
     auto layer_regions = current_layer->regions();
     Polygons lower_layer_polygons = to_polygons(lower_layer->lslices);
+    const PrintObjectConfig& object_config = current_layer->object()->config();
 
     Polygons all_bridges;
     for (LayerRegion* layerm : layer_regions)
@@ -2321,7 +2324,7 @@ void PrintObject::remove_bridges_from_contacts(
             // since we're dealing with bridges, we can't assume width is larger than spacing,
             // so we take the largest value and also apply safety offset to be ensure no gaps
             // are left in between
-        Flow bridge_flow = layerm->bridging_flow(frPerimeter, g_config_thick_bridges);
+        Flow bridge_flow = layerm->bridging_flow(frPerimeter, object_config.thick_bridges);
         float w = float(std::max(bridge_flow.scaled_width(), bridge_flow.scaled_spacing()));
         for (Polyline& polyline : overhang_perimeters)
             if (polyline.is_straight()) {
@@ -2338,12 +2341,16 @@ void PrintObject::remove_bridges_from_contacts(
                 if (supported[0] && supported[1]) {
                     Polylines lines;
                     if (polyline.length() > max_bridge_length + 10) {
-                        // equally divide the polyline
-                        float len = polyline.length() / ceil(polyline.length() / max_bridge_length);
-                        lines = polyline.equally_spaced_lines(len);
-                        for (auto& line : lines) {
-                            line.clip_start(fw);
-                            line.clip_end(fw);
+                        if (break_bridge) {
+                            // equally divide the polyline
+                            float len = polyline.length() / ceil(polyline.length() / max_bridge_length);
+                            lines = polyline.equally_spaced_lines(len);
+                            for (auto& line : lines) {
+                                if (line.is_valid())
+                                    line.clip_start(fw);
+                                if (line.is_valid())
+                                    line.clip_end(fw);
+                            }
                         }
                     }
                     else
@@ -2357,8 +2364,52 @@ void PrintObject::remove_bridges_from_contacts(
         // remove the entire bridges and only support the unsupported edges
         //FIXME the brided regions are already collected as layerm->bridged. Use it?
         for (const Surface& surface : layerm->fill_surfaces.surfaces)
-            if (surface.surface_type == stBottomBridge && surface.bridge_angle != -1)
-                polygons_append(bridges, surface.expolygon);
+            if (surface.surface_type == stBottomBridge && surface.bridge_angle != -1) {
+                auto bbox      = get_extents(surface.expolygon);
+                auto bbox_size = bbox.size();
+                if (bbox_size[0] < max_bridge_length || bbox_size[1] < max_bridge_length)
+                    polygons_append(bridges, surface.expolygon);
+                else {
+                    if (break_bridge) {
+                        Polygons holes;
+                        int      x0 = bbox.min.x();
+                        int      x1 = bbox.max.x();
+                        int      y0 = bbox.min.y();
+                        int      y1 = bbox.max.y();         
+                        const int grid_lw = int(w/2); // grid line width
+                        
+#if 1
+                        if (fabs(surface.bridge_angle-0)<fabs(surface.bridge_angle-M_PI_2)) {
+                            int step = bbox_size(0) / ceil(bbox_size(0) / max_bridge_length);
+                            for (int x = x0 + step; x < x1; x += step) {
+                                Polygon poly;
+                                poly.points = {Point(x - grid_lw, y0), Point(x + grid_lw, y0), Point(x + grid_lw, y1), Point(x - grid_lw, y1)};
+                                holes.emplace_back(poly);
+                            }
+                        } else {
+                            int step = bbox_size(1) / ceil(bbox_size(1) / max_bridge_length);
+                            for (int y = y0 + step; y < y1; y += step) {
+                                Polygon poly;
+                                poly.points = {Point(x0, y - grid_lw), Point(x0, y + grid_lw), Point(x1, y + grid_lw), Point(x1, y - grid_lw)};
+                                holes.emplace_back(poly);
+                            }
+                        }
+#else
+                        int stepx = bbox_size(0) / ceil(bbox_size(0) / max_bridge_length);
+                        int stepy  = bbox_size(1) / ceil(bbox_size(1) / max_bridge_length);
+                        for (int x = x0 + stepx; x < x1; x += stepx)
+                            for (int y = y0 + stepy; y < y1; y += stepy) {
+                                Polygon poly;
+                                poly.points = {Point(x-grid_lw, y - grid_lw), Point(x+grid_lw, y - grid_lw), Point(x+grid_lw, y + grid_lw), Point(x-grid_lw, y + grid_lw)};
+                                holes.emplace_back(poly);
+                            }
+
+#endif
+                        auto expoly = diff_ex(surface.expolygon, holes);
+                        polygons_append(bridges, expoly);
+                    }
+                }
+            }
         //FIXME add the gap filled areas. Extrude the gaps with a bridge flow?
         // Remove the unsupported ends of the bridges from the bridged areas.
         //FIXME add supports at regular intervals to support long bridges!
@@ -2380,13 +2431,13 @@ template void PrintObject::remove_bridges_from_contacts<ExPolygons>(
     const Layer* current_layer,
     float extrusion_width,
     ExPolygons* overhang_regions,
-    float max_bridge_length);
+    float max_bridge_length, bool break_bridge);
 template void PrintObject::remove_bridges_from_contacts<Polygons>(
     const Layer* lower_layer,
     const Layer* current_layer,
     float extrusion_width,
     Polygons* overhang_regions,
-    float max_bridge_length);
+    float max_bridge_length, bool break_bridge);
 
 
 bool PrintObject::is_support_necessary()
@@ -2720,5 +2771,21 @@ const Layer *PrintObject::get_first_layer_bellow_printz(coordf_t print_z, coordf
     auto it = Slic3r::lower_bound_by_predicate(m_layers.begin(), m_layers.end(), [limit](const Layer *layer) { return layer->print_z < limit; });
     return (it == m_layers.begin()) ? nullptr : *(--it);
 }
+
+// BBS
+const Layer* PrintObject::get_layer_at_bottomz(coordf_t bottom_z, coordf_t epsilon) const {
+    coordf_t limit_upper = bottom_z + epsilon;
+    coordf_t limit_lower = bottom_z - epsilon;
+
+    for (const Layer* layer : m_layers) {
+        if (layer->bottom_z() > limit_lower)
+            return layer->bottom_z() < limit_upper ? layer : nullptr;
+    }
+
+    return nullptr;
+}
+
+Layer* PrintObject::get_layer_at_bottomz(coordf_t bottom_z, coordf_t epsilon) { return const_cast<Layer*>(std::as_const(*this).get_layer_at_bottomz(bottom_z, epsilon)); }
+
 
 } // namespace Slic3r

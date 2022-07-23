@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-15 10:25+0800\n"
+"POT-Creation-Date: 2022-07-22 18:39+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -51,7 +51,7 @@ msgstr ""
 msgid "Highlight overhang areas"
 msgstr ""
 
-msgid "Fragment filter"
+msgid "Gap fill"
 msgstr ""
 
 msgid "Perform"
@@ -84,7 +84,7 @@ msgstr ""
 msgid "Fill"
 msgstr ""
 
-msgid "Fragment Filter"
+msgid "Gap Fill"
 msgstr ""
 
 msgid "Highlight faces according to overhang angle."
@@ -232,13 +232,10 @@ msgstr ""
 msgid "°"
 msgstr ""
 
-msgid "Position:"
+msgid "Size"
 msgstr ""
 
 msgid "%"
-msgstr ""
-
-msgid "Size"
 msgstr ""
 
 msgid "uniform scale"
@@ -419,6 +416,13 @@ msgstr ""
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr ""
 
+msgid "Downloading Bambu Network plug-in"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Connect %s[SN:%s] failed!"
+msgstr ""
+
 msgid ""
 "BambuStudio configuration file may be corrupted and is not abled to be "
 "parsed.Please delete the file and try again."
@@ -440,10 +444,13 @@ msgstr ""
 msgid "Click to download new version in default browser: %s"
 msgstr ""
 
-msgid "New version of Bambu Studio"
+msgid "The Bambu Studio needs an upgrade"
 msgstr ""
 
-msgid "The Bambu Studio needs an upgrade"
+msgid "This is the newest version."
+msgstr ""
+
+msgid "Info"
 msgstr ""
 
 msgid "Loading user presets..."
@@ -467,18 +474,12 @@ msgstr ""
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr ""
 
-msgid "Login information expired. Please login again."
-msgstr ""
-
 msgid ""
 "The version of Bambu studio is too low and needs to be updated to the latest "
 "version before it can be used normally"
 msgstr ""
 
-msgid "This is the newest version."
-msgstr ""
-
-msgid "Info"
+msgid "Login information expired. Please login again."
 msgstr ""
 
 msgid "Loading"
@@ -976,9 +977,7 @@ msgstr ""
 msgid "No printer"
 msgstr ""
 
-msgid ""
-"Heat the nozzle to target \n"
-"temperature"
+msgid "Heat the nozzle to target temperature"
 msgstr ""
 
 msgid "Cut filament"
@@ -987,9 +986,7 @@ msgstr ""
 msgid "Pull back current filament"
 msgstr ""
 
-msgid ""
-"Push new filament \n"
-"into extruder"
+msgid "Push new filament into extruder"
 msgstr ""
 
 msgid "Purge old filament"
@@ -1054,9 +1051,6 @@ msgstr ""
 
 msgid ""
 "Arrange failed. Found some exceptions when processing object geometries."
-msgstr ""
-
-msgid "Arranging"
 msgstr ""
 
 msgid "Arranging canceled."
@@ -1154,11 +1148,38 @@ msgstr ""
 msgid "Sending print job through cloud service"
 msgstr ""
 
+msgid "Service Unavailable"
+msgstr ""
+
+msgid "Unkown Error."
+msgstr ""
+
 msgid "Sending print configuration"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Successfully sent.Will automatically jump to the device page in %s s"
+msgid "Successfully sent. Will automatically jump to the device page in %s s"
+msgstr ""
+
+msgid "An SD card needs to be inserted before printing via LAN."
+msgstr ""
+
+msgid "Downloading"
+msgstr ""
+
+msgid "Download failed"
+msgstr ""
+
+msgid "Cancelled"
+msgstr ""
+
+msgid "Finish"
+msgstr ""
+
+msgid "Installing"
+msgstr ""
+
+msgid "Install failed"
 msgstr ""
 
 msgid "Portions copyright"
@@ -1191,6 +1212,28 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "About %s"
+msgstr ""
+
+msgid ""
+"Bambu Studio is based on PrusaSlicer by PrusaResearch and SuperSlicer by "
+"Merill(supermerill)."
+msgstr ""
+
+msgid "PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."
+msgstr ""
+
+msgid ""
+"Slic3r was created by Alessandro Ranellucci with the help of many other "
+"contributors."
+msgstr ""
+
+msgid "Bambu Studio also referenced some ideas from Cura by Ultimaker."
+msgstr ""
+
+msgid ""
+"There many parts of the software that come from community contributions, so "
+"we're unable to list them one-by-one, and instead, they'll be attributed in "
+"the corresponding code comments."
 msgstr ""
 
 msgid "Colour"
@@ -1251,6 +1294,9 @@ msgid ""
 msgstr ""
 
 msgid "File"
+msgstr ""
+
+msgid "Close"
 msgstr ""
 
 msgid ""
@@ -1590,6 +1636,9 @@ msgstr ""
 msgid "Update failed."
 msgstr ""
 
+msgid "Failed to start printing job"
+msgstr ""
+
 msgid "N/A"
 msgstr ""
 
@@ -1877,8 +1926,9 @@ msgid "Only the object being edit is visible."
 msgstr ""
 
 msgid ""
-"An object is layed over the boundary of plate.\n"
-"Please solve the problem by moving it totally inside or outside plate."
+"An object is laid over the boundary of plate or exceeds the height limit.\n"
+"Please solve the problem by moving it totally on or off the plate, and "
+"confirming that the height is within the build volume."
 msgstr ""
 
 msgid "Calibration"
@@ -1897,6 +1947,9 @@ msgid "Calibration Flow"
 msgstr ""
 
 msgid "Start Calibration"
+msgstr ""
+
+msgid "Completed"
 msgstr ""
 
 msgid "Calibrating"
@@ -1919,36 +1972,6 @@ msgid ""
 "on the printer, as shown in the figure:"
 msgstr ""
 
-msgid "Creating"
-msgstr ""
-
-msgid "Uploading"
-msgstr ""
-
-msgid "Waiting"
-msgstr ""
-
-msgid "Sending"
-msgstr ""
-
-msgid "Finished"
-msgstr ""
-
-msgid "Please fill report first."
-msgstr ""
-
-msgid "Unable to create zip file"
-msgstr ""
-
-msgid "Enter a search term"
-msgstr ""
-
-msgid "Online"
-msgstr ""
-
-msgid "Offline"
-msgstr ""
-
 msgid "Application is closing"
 msgstr ""
 
@@ -1968,9 +1991,6 @@ msgid "Device"
 msgstr ""
 
 msgid "Project"
-msgstr ""
-
-msgid "Debug"
 msgstr ""
 
 msgid "Slice"
@@ -2090,6 +2110,12 @@ msgstr ""
 msgid "Export current Sliced file"
 msgstr ""
 
+msgid "Export G-code"
+msgstr ""
+
+msgid "Export current plate as G-code"
+msgstr ""
+
 msgid "Export"
 msgstr ""
 
@@ -2145,24 +2171,6 @@ msgid "Deselect all"
 msgstr ""
 
 msgid "Deselects all objects"
-msgstr ""
-
-msgid "Show Model Mesh(TODO)"
-msgstr ""
-
-msgid "Display triangles of models"
-msgstr ""
-
-msgid "Show Model Shadow(TODO)"
-msgstr ""
-
-msgid "Display shadow of objects"
-msgstr ""
-
-msgid "Show Printable Box(TODO)"
-msgstr ""
-
-msgid "Display printable box"
 msgstr ""
 
 msgid "Use Perspective View"
@@ -2234,7 +2242,7 @@ msgstr ""
 
 msgid ""
 "Do you want to synchronize your personal data from Bambu Cloud? \n"
-"Contains the following information:\n"
+"It contains the following information:\n"
 "1. The Process presets\n"
 "2. The Filament presets\n"
 "3. The Printer presets\n"
@@ -2290,10 +2298,10 @@ msgstr ""
 msgid "Swap Y/Z axes"
 msgstr ""
 
-msgid "Close"
+msgid "Camera"
 msgstr ""
 
-msgid "Monitoring"
+msgid "Video"
 msgstr ""
 
 msgid "Printing Progress"
@@ -2335,6 +2343,9 @@ msgstr ""
 msgid "Printing List"
 msgstr ""
 
+msgid "Downloading..."
+msgstr ""
+
 msgid "Resume"
 msgstr ""
 
@@ -2362,13 +2373,13 @@ msgstr ""
 msgid "HMS"
 msgstr ""
 
-msgid "Please upgrade your printer first"
-msgstr ""
-
 msgid "Failed to connect to the server"
 msgstr ""
 
 msgid "Failed to connect to the printer"
+msgstr ""
+
+msgid "Connecting..."
 msgstr ""
 
 msgid "OK"
@@ -2480,6 +2491,9 @@ msgid "Export ok."
 msgstr ""
 
 msgid " (Repair)"
+msgstr ""
+
+msgid " Click here to install it."
 msgstr ""
 
 msgid "WARNING:"
@@ -2673,11 +2687,6 @@ msgstr ""
 msgid "Object with multiple parts was detected"
 msgstr ""
 
-msgid ""
-"Preview only mode:\n"
-"The loaded file contains gcode only."
-msgstr ""
-
 msgid "The file does not contain any geometry data."
 msgstr ""
 
@@ -2715,6 +2724,15 @@ msgstr ""
 msgid "Please resolve the slicing errors and publish again."
 msgstr ""
 
+msgid ""
+"Network Plug-in is not detected. Network related features are unavailable."
+msgstr ""
+
+msgid ""
+"Preview only mode:\n"
+"The loaded file contains gcode only, Can not enter the Prepare page"
+msgstr ""
+
 msgid "Some presets are modified."
 msgstr ""
 
@@ -2730,9 +2748,6 @@ msgid "Creating a new project"
 msgstr ""
 
 msgid "Load project"
-msgstr ""
-
-msgid "Preview only mode for gcode file."
 msgstr ""
 
 msgid "The selected file"
@@ -2789,9 +2804,6 @@ msgstr ""
 msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-
-msgid "Export G-code"
 msgstr ""
 
 msgid "Send G-code"
@@ -3011,7 +3023,7 @@ msgstr ""
 msgid "DEBUG settings have saved successfully!"
 msgstr ""
 
-msgid "Swith cloud environment, Please login again!"
+msgid "Switch cloud environment, Please login again!"
 msgstr ""
 
 msgid "System presets"
@@ -3143,6 +3155,12 @@ msgstr ""
 msgid "Simply switch to \"%1%\""
 msgstr ""
 
+msgid "Online"
+msgstr ""
+
+msgid "Offline"
+msgstr ""
+
 msgid "My Device"
 msgstr ""
 
@@ -3150,6 +3168,9 @@ msgid "Other Device"
 msgstr ""
 
 msgid "Input access code"
+msgstr ""
+
+msgid "Log out successful."
 msgstr ""
 
 msgid "Busy"
@@ -3204,9 +3225,7 @@ msgstr ""
 msgid "The printer is busy on other print job"
 msgstr ""
 
-msgid ""
-"The firmware versions of printer and AMS are too low.Please update to the "
-"latest version before sending the print job"
+msgid "Printer firmware does not support material = >ams slot mapping."
 msgstr ""
 
 msgid ""
@@ -3244,9 +3263,6 @@ msgid "Please log in first."
 msgstr ""
 
 msgid "There was a problem connecting to the printer. Please try again."
-msgstr ""
-
-msgid "Log out successful."
 msgstr ""
 
 msgid "Failed to log out."
@@ -3308,7 +3324,7 @@ msgstr ""
 msgid "Special mode"
 msgstr ""
 
-msgid "Output file"
+msgid "G-code output"
 msgstr ""
 
 msgid "Frequent"
@@ -4506,6 +4522,18 @@ msgid ""
 "usually can be printing directly without support if not very long"
 msgstr ""
 
+msgid "Thick bridges"
+msgstr ""
+
+msgid "Layers and Perimeters"
+msgstr ""
+
+msgid ""
+"If enabled, bridges are more reliable, can bridge longer distances, but may "
+"look worse. If disabled, bridges look better but are reliable just for "
+"shorter bridged distances."
+msgstr ""
+
 msgid "Max bridge length"
 msgstr ""
 
@@ -5132,7 +5160,8 @@ msgstr ""
 
 msgid ""
 "Don't retract when the travel is in infill area absolutely. That means the "
-"oozing can't been seen"
+"oozing can't been seen. This can reduce times of retraction for complex "
+"model and save printing time, but make slicing and G-code generating slower"
 msgstr ""
 
 msgid "Enable"

@@ -2754,6 +2754,41 @@ double Model::findMaxSpeed(const ModelObject* object) {
     if (objMaxSpeed <= 0) objMaxSpeed = 250.;
     return objMaxSpeed;
 }
+
+// BBS: thermal length is calculated according to the material of a volume
+double Model::getThermalLength(const ModelVolume* modelVolumePtr) {
+    double thermalLength = 200.;
+    auto aa = modelVolumePtr->extruder_id();
+    if (Model::extruderParamsMap.find(aa) != Model::extruderParamsMap.end()) {
+        if (Model::extruderParamsMap.at(aa).materialName == "ABS" ||
+            Model::extruderParamsMap.at(aa).materialName == "PA-CF" ||
+            Model::extruderParamsMap.at(aa).materialName == "PET-CF") {
+            thermalLength = 100;
+        }
+        if (Model::extruderParamsMap.at(aa).materialName == "PC") {
+            thermalLength = 40;
+        }
+        if (Model::extruderParamsMap.at(aa).materialName == "TPU") {
+            thermalLength = 1000;
+        }
+
+    }
+    return thermalLength;
+}
+
+// BBS: thermal length calculation for a group of volumes
+double Model::getThermalLength(const std::vector<ModelVolume*> modelVolumePtrs)
+{
+    double thermalLength = 1250.;
+
+    for (const auto& modelVolumePtr : modelVolumePtrs) {
+        if (modelVolumePtr != nullptr) {
+            // the thermal length of a group is decided by the volume with shortest thermal length
+            thermalLength = std::min(thermalLength, getThermalLength(modelVolumePtr));
+        }
+    }
+    return thermalLength;
+}
 // max printing speed, difference in bed temperature and envirument temperature and bed adhension coefficients are considered 
 double ModelInstance::get_auto_brim_width(double deltaT, double adhension) const
 {
@@ -2763,9 +2798,10 @@ double ModelInstance::get_auto_brim_width(double deltaT, double adhension) const
     auto bbox_size = transform_bounding_box(raw_bbox).size();
     double height_to_area = std::max(bbox_size(2) / (bbox_size(0) * bbox_size(0) * bbox_size(1)),
         bbox_size(2) / (bbox_size(1) * bbox_size(1) * bbox_size(0)));
-    double thermalLength = std::max(bbox_size(0), bbox_size(1));
+    double thermalLength = sqrt(bbox_size(0)* bbox_size(0) + bbox_size(1)* bbox_size(1));
+    double thermalLengthRef = Model::getThermalLength(object->volumes);
 
-    double brim_width = adhension * std::min(std::min(std::max(height_to_area * 200 * maxSpeed/200, (deltaT-30)/75 * thermalLength * 0.15), 20.), 1.5 * thermalLength);
+    double brim_width = adhension * std::min(std::min(std::max(height_to_area * 200 * maxSpeed/200, thermalLength * 8. / thermalLengthRef * std::min(bbox_size(2), 30.) / 30.), 20.), 1.5 * thermalLength);
     // small brims are omitted
     if (brim_width < 5 && brim_width < 1.5 * thermalLength)
         brim_width = 0;

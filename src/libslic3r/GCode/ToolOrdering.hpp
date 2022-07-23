@@ -32,6 +32,8 @@ public:
 
     // This is called from GCode::process_layer - see implementation for further comments:
     const ExtruderPerCopy* get_extruder_overrides(const ExtrusionEntity* entity, int correct_extruder_id, size_t num_of_copies);
+    int get_support_extruder_overrides(const PrintObject* object);
+    int get_support_interface_extruder_overrides(const PrintObject* object);
 
     // This function goes through all infill entities, decides which ones will be used for wiping and
     // marks them by the extruder id. Returns volume that remains to be wiped on the wipe tower:
@@ -46,6 +48,22 @@ public:
     	return out;
     }
 
+    // BBS
+    bool is_support_overriddable(const ExtrusionRole role, const PrintObject& object) const;
+    bool is_support_overriddable_and_mark(const ExtrusionRole role, const PrintObject& object) {
+        bool out = this->is_support_overriddable(role, object);
+        this->something_overridable |= out;
+        return out;
+    }
+
+    bool is_support_overridden(const PrintObject* object) const {
+        return support_map.find(object) != support_map.end();
+    }
+
+    bool is_support_interface_overridden(const PrintObject* object) const {
+        return support_intf_map.find(object) != support_intf_map.end();
+    }
+
     void set_layer_tools_ptr(const LayerTools* lt) { m_layer_tools = lt; }
 
 private:
@@ -54,6 +72,9 @@ private:
 
     // This function is called from mark_wiping_extrusions and sets extruder that it should be printed with (-1 .. as usual)
     void set_extruder_override(const ExtrusionEntity* entity, size_t copy_id, int extruder, size_t num_of_copies);
+    // BBS
+    void set_support_extruder_override(const PrintObject* object, size_t copy_id, int extruder, size_t num_of_copies);
+    void set_support_interface_extruder_override(const PrintObject* object, size_t copy_id, int extruder, size_t num_of_copies);
 
     // Returns true in case that entity is not printed with its usual extruder for a given copy:
     bool is_entity_overridden(const ExtrusionEntity* entity, size_t copy_id) const {
@@ -62,6 +83,9 @@ private:
     }
 
     std::map<const ExtrusionEntity*, ExtruderPerCopy> entity_map;  // to keep track of who prints what
+    // BBS
+    std::map<const PrintObject*, int> support_map;
+    std::map<const PrintObject*, int> support_intf_map;
     bool something_overridable = false;
     bool something_overridden = false;
     const LayerTools* m_layer_tools = nullptr;    // so we know which LayerTools object this belongs to

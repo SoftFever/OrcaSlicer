@@ -30,17 +30,35 @@
 
 class StepIndicator;
 
-#define COMMAND_TIMEOUT         2
+#define COMMAND_TIMEOUT_U0      15
+#define COMMAND_TIMEOUT         5
 
 namespace Slic3r {
 namespace GUI {
 
 enum MonitorStatus {
-    MONITOR_UNKNOWN = 0,
-    MONITOR_NORMAL = 1 << 1,
-    MONITOR_NO_PRINTER = 1 << 2,
-    MONITOR_DISCONNECTED = 1 << 3,
+    MONITOR_UNKNOWN             = 0,
+    MONITOR_NORMAL              = 1 << 1,
+    MONITOR_NO_PRINTER          = 1 << 2,
+    MONITOR_DISCONNECTED        = 1 << 3,
     MONITOR_DISCONNECTED_SERVER = 1 << 4,
+    MONITOR_CONNECTING          = 1 << 5,
+};
+
+enum CameraRecordingStatus {
+    RECORDING_NONE,
+    RECORDING_OFF_NORMAL,
+    RECORDING_OFF_HOVER,
+    RECORDING_ON_NORMAL,
+    RECORDING_ON_HOVER,
+};
+
+enum CameraTimelapseStatus {
+    TIMELAPSE_NONE,
+    TIMELAPSE_OFF_NORMAL,
+    TIMELAPSE_OFF_HOVER,
+    TIMELAPSE_ON_NORMAL,
+    TIMELAPSE_ON_HOVER,
 };
 
 class StatusBasePanel : public wxScrolledWindow
@@ -60,7 +78,17 @@ protected:
     wxBitmap m_bitmap_fan_on;
     wxBitmap m_bitmap_fan_off;
     wxBitmap m_bitmap_extruder;
+
+    CameraRecordingStatus m_state_recording{CameraRecordingStatus::RECORDING_NONE};
+    CameraTimelapseStatus m_state_timelapse{CameraTimelapseStatus::TIMELAPSE_NONE};
+
+
+    CameraItem *m_timelapse_button;
+    CameraItem *m_recording_button;
+
     wxBitmap m_bitmap_camera;
+    wxBitmap m_bitmap_sdcard_state_on;
+    wxBitmap m_bitmap_sdcard_state_off;
 
     /* title panel */
     wxPanel *       media_ctrl_panel;
@@ -70,8 +98,12 @@ protected:
 
     wxStaticText *  m_staticText_monitoring;
     wxStaticText *  m_staticText_timelapse;
-    wxStaticBitmap* m_bitmap_camera_img;
     SwitchButton *  m_bmToggleBtn_timelapse;
+
+    wxStaticBitmap *m_bitmap_camera_img;
+    wxStaticBitmap *m_bitmap_recording_img;
+    wxStaticBitmap *m_bitmap_sdcard_on_img;
+    wxStaticBitmap *m_bitmap_sdcard_off_img;
 
 
     wxMediaCtrl2 *  m_media_ctrl;
@@ -186,6 +218,7 @@ public:
     wxBoxSizer *create_ams_group(wxWindow *parent);
 
     void show_ams_group(bool show = true);
+    void upodate_camera_state(bool recording, bool timelapse, bool has_sdcard);
 };
 
 
@@ -260,7 +293,8 @@ protected:
     void on_nozzle_fan_switch(wxCommandEvent &event);
     void on_thumbnail_enter(wxMouseEvent &event);
     void on_thumbnail_leave(wxMouseEvent &event);
-    void on_camera_enter(wxMouseEvent& event);
+    void on_switch_recording(wxMouseEvent &event);
+    void on_camera_enter(wxMouseEvent &event);
     void on_camera_leave(wxMouseEvent& event);
     void on_auto_leveling(wxCommandEvent &event);
     void on_xyz_abs(wxCommandEvent &event);
@@ -272,11 +306,11 @@ protected:
     /* update apis */
     void update(MachineObject* obj);
     void show_printing_status(bool ctrl_area = true, bool temp_area = true);
+    void update_left_time(int mc_left_time);
     void update_subtask(MachineObject *obj);
     void update_cloud_subtask(MachineObject *obj);
     void update_sdcard_subtask(MachineObject *obj);
     void update_temp_ctrl(MachineObject *obj);
-    void show_unload_ctrl();
     void update_misc_ctrl(MachineObject *obj);
     void update_ams(MachineObject* obj);
     void update_cali(MachineObject* obj);
@@ -311,10 +345,10 @@ public:
     void set_default();
     void show_status(int status);
 
+    void set_hold_count(int& count);
+
     void msw_rescale();
 };
-
-
 }
 }
 #endif

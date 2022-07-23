@@ -12,7 +12,7 @@
     "bridge_flow": "1",
     "line_width": "0.22",
     "outer_wall_line_width": "0.2",
-    "initial_layer_line_width": "0.21",
+    "initial_layer_line_width": "0.25",
     "sparse_infill_line_width": "0.22",
     "inner_wall_line_width": "0.22",
     "internal_solid_infill_line_width": "0.22",

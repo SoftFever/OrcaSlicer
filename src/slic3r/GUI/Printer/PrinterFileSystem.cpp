@@ -1,6 +1,8 @@
 #include "PrinterFileSystem.h"
 #include "libslic3r/Utils.hpp"
 
+#include "../../Utils/NetworkAgent.hpp"
+
 #include <boost/algorithm/hex.hpp>
 #include <boost/uuid/detail/md5.hpp>
 
@@ -39,8 +41,7 @@ PrinterFileSystem::PrinterFileSystem()
 }
 
 PrinterFileSystem::~PrinterFileSystem()
-{
-}
+{ m_recv_thread.detach(); }
 
 void PrinterFileSystem::SetFileType(FileType type)
 {
@@ -50,6 +51,8 @@ void PrinterFileSystem::SetFileType(FileType type)
     m_file_list.swap(m_file_list2);
     m_lock_start = m_lock_end = 0;
     SendChangedEvent(EVT_FILE_CHANGED);
+    m_status = Status::ListSyncing;
+    SendChangedEvent(EVT_STATUS_CHANGED, m_status);
     ListAllFiles();
 }
 
@@ -110,6 +113,7 @@ void PrinterFileSystem::ListAllFiles()
         }
         BuildGroups();
         m_status = Status::ListReady;
+        SendChangedEvent(EVT_STATUS_CHANGED, m_status);
         SendChangedEvent(EVT_FILE_CHANGED);
         return 0;
     });
@@ -271,13 +275,14 @@ void PrinterFileSystem::SetUrl(std::string const &url)
 void PrinterFileSystem::Stop(bool quit)
 {
     boost::unique_lock l(m_mutex);
-    if (m_stopped) return;
-    m_stopped = true;
     if (quit) {
         m_session.owner = nullptr;
         // let the thread delete this
         m_callbacks.push_back([thiz = shared_from_this()](int result, json const &, unsigned char const *) { (void) thiz; });
+    } else if (m_stopped) {
+        return;
     }
+    m_stopped = true;
     m_cond.notify_all();
 }
 
@@ -320,7 +325,7 @@ void PrinterFileSystem::DeleteFilesContinue()
     req["delete"] = arr;
     m_task_flags |= FF_DELETED;
     SendRequest<Void>(
-        FILE_DEL, req, nullptr, 
+        FILE_DEL, req, nullptr,
         [indexes, names, this](int, Void const &) {
             // TODO:
             for (size_t i = indexes.size() - 1; i >= 0; --i)
@@ -512,14 +517,15 @@ void PrinterFileSystem::FileRemoved(size_t index, std::string const &name)
 
 struct CallbackEvent : wxCommandEvent
 {
-    CallbackEvent(std::function<void(void)> const &callback) : wxCommandEvent(EVT_FILE_CALLBACK), callback(callback) {}
-    ~CallbackEvent(){ callback(); }
+    CallbackEvent(std::function<void(void)> const &callback, boost::weak_ptr<PrinterFileSystem> owner) : wxCommandEvent(EVT_FILE_CALLBACK), callback(callback), owner(owner) {}
+    ~CallbackEvent(){ if (!owner.expired()) callback(); }
     std::function<void(void)> const callback;
+    boost::weak_ptr<PrinterFileSystem> owner;
 };
 
 void PrinterFileSystem::PostCallback(std::function<void(void)> const& callback)
 {
-    wxCommandEvent *e = new CallbackEvent(callback);
+    wxCommandEvent *e = new CallbackEvent(callback, boost::weak_ptr(shared_from_this()));
     wxQueueEvent(this, e);
 }
 
@@ -719,7 +725,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
         if (c) c(result, r, nullptr);
     }
     m_messages.clear();
-    while (true) { 
+    while (true) {
         while (m_stopped) {
             if (m_session.owner == nullptr)
                 return;
@@ -796,25 +802,22 @@ StaticBambuLib &StaticBambuLib::get()
 {
     static StaticBambuLib lib;
     // first load the library
-#if defined(_MSC_VER) || defined(_WIN32)
-    module = LoadLibrary(L"BambuSource.dll");
-#elif defined(__WXMAC__)
-    module = dlopen("libBambuSource.dylib", RTLD_LAZY);
-#else
-    module = dlopen("libBambuSource.so", RTLD_LAZY);
-#endif
+
+    if (!module) {
+        module = Slic3r::NetworkAgent::get_bambu_source_entry();
+    }
 
     if (!module) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", can not Load Library";
     }
-    
+
     GET_FUNC(Bambu_Open);
     GET_FUNC(Bambu_StartStream);
     GET_FUNC(Bambu_SendMessage);
     GET_FUNC(Bambu_ReadSample);
     GET_FUNC(Bambu_Close);
     GET_FUNC(Bambu_FreeLogMsg);
-    
+
     if (!lib.Bambu_Open)
         lib.Bambu_Open = Fake_Bambu_Open;
     return lib;

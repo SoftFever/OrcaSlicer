@@ -80,7 +80,7 @@ CopyrightsDialog::CopyrightsDialog()
 
     SetSizer(sizer);
     sizer->SetSizeHints(this);
-
+    CenterOnParent();
 }
 
 void CopyrightsDialog::fill_entries()
@@ -88,6 +88,7 @@ void CopyrightsDialog::fill_entries()
     m_entries = {
         { "Admesh",                                         "",      "https://admesh.readthedocs.io/" },
         { "Anti-Grain Geometry",                            "",      "http://antigrain.com" },
+        { "ArcWelderLib",                                   "",      "https://plugins.octoprint.org/plugins/arc_welder" },
         { "Boost",                                          "",      "http://www.boost.org" },
         { "Cereal",                                         "",      "http://uscilab.github.io/cereal" },
         { "CGAL",                                           "",      "https://www.cgal.org" },
@@ -115,6 +116,7 @@ void CopyrightsDialog::fill_entries()
         { "Real-Time DXT1/DXT5 C compression library",      "",      "https://github.com/Cyan4973/RygsDXTc" },
         { "SemVer",                                         "",      "https://semver.org" },
         { "Shinyprofiler",                                  "",      "https://code.google.com/p/shinyprofiler" },
+        { "SuperSlicer",                                    "",      "https://github.com/supermerill/SuperSlicer" },
         { "TBB",                                            "",      "https://www.intel.cn/content/www/cn/zh/developer/tools/oneapi/onetbb.html" },
         { "wxWidgets",                                      "",      "https://www.wxwidgets.org" },
         { "zlib",                                           "",      "http://zlib.net" },
@@ -219,7 +221,7 @@ AboutDialog::AboutDialog()
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
-    wxPanel *m_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(430), FromDIP(237)), wxTAB_TRAVERSAL);
+    wxPanel *m_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(560), FromDIP(237)), wxTAB_TRAVERSAL);
 
     wxBoxSizer *panel_versizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *vesizer  = new wxBoxSizer(wxVERTICAL);
@@ -233,7 +235,7 @@ AboutDialog::AboutDialog()
     main_sizer->Add(ver_sizer, 0, wxEXPAND | wxALL, 0);
 
     // logo
-    m_logo_bitmap = ScalableBitmap(this, "BambuStudio_about", 240);
+    m_logo_bitmap = ScalableBitmap(this, "BambuStudio_about", 250);
     m_logo = new wxStaticBitmap(this, wxID_ANY, m_logo_bitmap.bmp(), wxDefaultPosition,wxDefaultSize, 0);
     m_logo->SetSizer(vesizer);
 
@@ -250,20 +252,70 @@ AboutDialog::AboutDialog()
         #else
             version_font.SetPointSize(11);
         #endif
-        version_font.SetPointSize(12);
+        version_font.SetPointSize(FromDIP(16));
         version->SetFont(version_font);
-        version->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT));
+        version->SetForegroundColour(wxColour(255, 255, 255));
         version->SetBackgroundColour(wxColour(0, 174, 66));
         vesizer->Add(version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
         vesizer->Add(0, 0, 1, wxEXPAND, FromDIP(5));
     }
 
-    wxStaticText *html_text = new wxStaticText(this, wxID_ANY, "Copyright(C) 2021-2022 Bambu Lab", wxDefaultPosition, wxDefaultSize);
-    ver_sizer->Add(0, 0, 0, wxTOP, FromDIP(38));
-    html_text->SetForegroundColour(wxColour(107, 107, 107));
-    ver_sizer->Add(html_text, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
+    wxBoxSizer *text_sizer_horiz = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *text_sizer = new wxBoxSizer(wxVERTICAL);
+    text_sizer_horiz->Add( 0, 0, 0, wxLEFT, FromDIP(23));
 
-    // text
+    std::vector<wxString> text_list;
+    text_list.push_back(_L("Bambu Studio is based on PrusaSlicer by PrusaResearch and SuperSlicer by Merill(supermerill)."));
+    text_list.push_back(_L("PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."));
+    text_list.push_back(_L("Slic3r was created by Alessandro Ranellucci with the help of many other contributors."));
+    text_list.push_back(_L("Bambu Studio also referenced some ideas from Cura by Ultimaker."));
+    text_list.push_back(_L("There many parts of the software that come from community contributions, so we're unable to list them one-by-one, and instead, they'll be attributed in the corresponding code comments."));
+
+    text_sizer->Add( 0, 0, 0, wxTOP, FromDIP(33));
+    bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
+    for (int i = 0; i < text_list.size(); i++)
+    {
+        auto staticText = new wxStaticText( this, wxID_ANY, wxEmptyString,wxDefaultPosition,wxSize(FromDIP(520), -1), wxALIGN_LEFT );
+        staticText->SetForegroundColour(wxColour(107, 107, 107));
+        staticText->SetMinSize(wxSize(FromDIP(520), -1));
+        staticText->SetFont(Label::Body_12);
+        if (is_zh) {
+            wxString find_txt = "";
+            wxString count_txt = "";
+            for (auto  o = 0; o < text_list[i].length(); o++) {
+                auto size = staticText->GetTextExtent(count_txt);
+                if (size.x < FromDIP(506)) {
+                    find_txt += text_list[i][o];
+                    count_txt += text_list[i][o];
+                } else {
+                    find_txt += std::string("\n") + text_list[i][o];
+                    count_txt = text_list[i][o];
+                }
+            }
+            staticText->SetLabel(find_txt);
+        } else {
+            staticText->SetLabel(text_list[i]);
+            staticText->Wrap(FromDIP(520));
+        }
+
+        text_sizer->Add( staticText, 0, wxUP | wxDOWN, FromDIP(3));
+    }
+
+    text_sizer_horiz->Add(text_sizer, 1, wxALL,0);
+    ver_sizer->Add(text_sizer_horiz, 0, wxALL,0);
+    ver_sizer->Add( 0, 0, 0, wxTOP, FromDIP(43));
+
+    wxBoxSizer *copyright_ver_sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *copyright_hor_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    copyright_hor_sizer->Add(copyright_ver_sizer, 0, wxALL,5);
+    copyright_hor_sizer->Add( 0, 0, 0, wxLEFT, FromDIP(120));
+
+    wxStaticText *html_text = new wxStaticText(this, wxID_ANY, "Copyright(C) 2021-2022 Bambu Lab", wxDefaultPosition, wxDefaultSize);
+    html_text->SetForegroundColour(wxColour(107, 107, 107));
+
+    copyright_ver_sizer->Add(html_text, 0, wxALL , 0);
+
     m_html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_NEVER /*NEVER*/);
       {
           wxFont font = get_default_font(this);
@@ -276,12 +328,12 @@ AboutDialog::AboutDialog()
               (boost::format(
               "<html>"
               "<body>"
-              "<p style=\"text-align:center\"><a  href=\"www.bambulab.com\">www.bambulab.com</ a></p>"
+              "<p style=\"text-align:left\"><a  href=\"www.bambulab.com\">www.bambulab.com</ a></p>"
               "</body>"
               "</html>")
             ).str());
           m_html->SetPage(text);
-          ver_sizer->Add(m_html, 0, wxEXPAND, 0);
+          copyright_ver_sizer->Add(m_html, 0, wxEXPAND, 0);
           m_html->Bind(wxEVT_HTML_LINK_CLICKED, &AboutDialog::onLinkClicked, this);
       }
     //Add "Portions copyright" button
@@ -298,14 +350,21 @@ AboutDialog::AboutDialog()
     button_portions->SetCornerRadius(FromDIP(12));
     button_portions->SetMinSize(wxSize(FromDIP(120), FromDIP(24)));
 
-    ver_sizer->Add( 0, 0, 0, wxTOP, FromDIP(22));
-    ver_sizer->Add(button_portions, 0, wxALIGN_CENTER_HORIZONTAL|wxALL,0);
-    ver_sizer->Add( 0, 0, 0, wxTOP, FromDIP(38));
+    wxBoxSizer *copyright_button_ver = new wxBoxSizer(wxVERTICAL);
+    copyright_button_ver->Add( 0, 0, 0, wxTOP, FromDIP(10));
+    copyright_button_ver->Add(button_portions, 0, wxALL,0);
+
+    copyright_hor_sizer->Add(copyright_button_ver, 0, wxALL,0);
+    copyright_hor_sizer->Add( 0, 0, 0, wxRIGHT, FromDIP(13));
+
+    ver_sizer->Add(copyright_hor_sizer, 0, wxALIGN_CENTER_HORIZONTAL|wxALL,0);
+    ver_sizer->Add( 0, 0, 0, wxTOP, FromDIP(30));
     button_portions->Bind(wxEVT_BUTTON, &AboutDialog::onCopyrightBtn, this);
 
-    m_panel->Layout();
 	SetSizer(main_sizer);
-	main_sizer->SetSizeHints(this);
+    Layout();
+    Fit();
+    CenterOnParent();
 }
 
 void AboutDialog::on_dpi_changed(const wxRect &suggested_rect)

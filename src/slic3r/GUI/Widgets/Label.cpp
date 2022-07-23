@@ -35,6 +35,33 @@ wxFont Label::Body_14 = Label::sysFont(14, false);
 wxFont Label::Body_13 = Label::sysFont(13, false);
 wxFont Label::Body_12 = Label::sysFont(12, false);
 wxFont Label::Body_10 = Label::sysFont(10, false);
+wxFont Label::Body_9 = Label::sysFont(9, false);
+
+wxSize Label::split_lines(wxDC &dc, int width, const wxString &text, wxString &multiline_text)
+{
+    multiline_text = text;
+    if (width > 0 && dc.GetTextExtent(text).x > width) {
+        size_t start   = 0;
+        while (true) {
+            size_t idx = size_t(-1);
+            for (size_t i = start; i < multiline_text.Len(); i++) {
+                if (multiline_text[i] == ' ') {
+                    if (dc.GetTextExtent(multiline_text.SubString(start, i)).x < width)
+                        idx = i;
+                    else {
+                        if (idx == size_t(-1)) idx = i;
+                        break;
+                    }
+                }
+            }
+            if (idx == size_t(-1)) break;
+            multiline_text[idx] = '\n';
+            start               = idx + 1;
+            if (dc.GetTextExtent(multiline_text.Mid(start)).x < width) break;
+        }
+    }
+    return dc.GetMultiLineTextExtent(multiline_text);
+}
 
 Label::Label(wxString const &text, wxWindow *parent) : Label(Body_16, text, parent) {}
 

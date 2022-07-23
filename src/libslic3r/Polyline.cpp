@@ -311,6 +311,54 @@ bool Polyline::is_straight() const
     return true;
 }
 
+void Polyline::append(const Polyline &src)
+{
+    if (!src.is_valid()) return;
+
+    if (this->points.empty()) {
+        this->points = src.points;
+        this->fitting_result = src.fitting_result;
+    } else {
+        //BBS: append the first point to create connection first, update the fitting date as well
+        this->append(src.points[0]);
+        //BBS: append a polyline which has fitting data to a polyline without fitting data.
+        //Then create a fake fitting data first, so that we can keep the fitting data in last polyline
+        if (this->fitting_result.empty() &&
+            !src.fitting_result.empty()) {
+            this->fitting_result.emplace_back(PathFittingData{ 0, this->points.size() - 1, EMovePathType::Linear_move, ArcSegment() });
+        }
+        //BBS: then append the remain points
+        MultiPoint::append(src.points.begin() + 1, src.points.end());
+        //BBS: finally append the fitting data
+        append_fitting_result_after_append_polyline(src);
+    }
+}
+
+void Polyline::append(Polyline &&src)
+{
+    if (!src.is_valid()) return;
+
+    if (this->points.empty()) {
+        this->points = std::move(src.points);
+        this->fitting_result = std::move(src.fitting_result);
+    } else {
+        //BBS: append the first point to create connection first, update the fitting date as well
+        this->append(src.points[0]);
+        //BBS: append a polyline which has fitting data to a polyline without fitting data.
+        //Then create a fake fitting data first, so that we can keep the fitting data in last polyline
+        if (this->fitting_result.empty() &&
+            !src.fitting_result.empty()) {
+            this->fitting_result.emplace_back(PathFittingData{ 0, this->points.size() - 1, EMovePathType::Linear_move, ArcSegment() });
+        }
+        //BBS: then append the remain points
+        MultiPoint::append(src.points.begin() + 1, src.points.end());
+        //BBS: finally append the fitting data
+        append_fitting_result_after_append_polyline(src);
+        src.points.clear();
+        src.fitting_result.clear();
+    }
+}
+
 void Polyline::append_fitting_result_after_append_points() {
     if (!fitting_result.empty()) {
         if (fitting_result.back().is_linear_move()) {
@@ -326,14 +374,6 @@ void Polyline::append_fitting_result_after_append_points() {
 
 void Polyline::append_fitting_result_after_append_polyline(const Polyline& src)
 {
-    //BBS: append a polyline which has fitting data to a polyline without fitting data.
-    //Then create a fake fitting data first, so that we can keep the fitting data in last polyline
-    if (this->fitting_result.empty() &&
-        !src.fitting_result.empty()) {
-        if (!this->points.empty())
-            this->fitting_result.emplace_back(PathFittingData{ 0, this->size() - 1, EMovePathType::Linear_move, ArcSegment() });
-    }
-
     if (!this->fitting_result.empty()) {
         //BBS: offset and save the fitting_result from src polyline
         if (!src.fitting_result.empty()) {
@@ -346,7 +386,7 @@ void Polyline::append_fitting_result_after_append_polyline(const Polyline& src)
             }
         } else {
             //BBS: the append polyline has no fitting data, then append as linear move directly
-            size_t new_start = fitting_result.back().end_point_index;
+            size_t new_start = this->fitting_result.back().end_point_index;
             size_t new_end = this->size() - 1;
             if (new_start != new_end)
                 this->fitting_result.emplace_back(PathFittingData{ new_start, new_end, EMovePathType::Linear_move, ArcSegment() });

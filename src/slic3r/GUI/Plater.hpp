@@ -82,6 +82,9 @@ wxDECLARE_EVENT(EVT_SLICING_UPDATE, Slic3r::SlicingStatusEvent);
 wxDECLARE_EVENT(EVT_PUBLISH,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_REPAIR_MODEL,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_FILAMENT_COLOR_CHANGED,        wxCommandEvent);
+wxDECLARE_EVENT(EVT_INSTALL_PLUGIN_NETWORKING,        wxCommandEvent);
+wxDECLARE_EVENT(EVT_INSTALL_PLUGIN_HINT,        wxCommandEvent);
+wxDECLARE_EVENT(EVT_PREVIEW_ONLY_MODE_HINT,        wxCommandEvent);
 
 
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
@@ -418,6 +421,7 @@ public:
 
     //BBS:
     void fill_color(int extruder_id);
+    bool can_add_timelapse_wt() const;
 
     bool can_delete() const;
     bool can_delete_all() const;

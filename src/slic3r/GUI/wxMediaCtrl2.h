@@ -17,19 +17,19 @@ class wxMediaCtrl2 : public wxWindow
 {
 public:
     wxMediaCtrl2(wxWindow * parent);
-    
+
     void Load(wxURI url);
-    
+
     void Play();
-    
+
     void Stop();
 
     void SetIdleImage(wxString const & image);
-    
+
     wxMediaState GetState() const;
-    
+
     wxSize GetVideoSize() const;
-    
+
     int GetLastError() const { return m_error; }
 
     static constexpr wxMediaState MEDIASTATE_BUFFERING = (wxMediaState) 6;
@@ -38,6 +38,7 @@ protected:
     void DoSetSize(int x, int y, int width, int height, int sizeFlags) override;
 
 private:
+    void create_player();
     void * m_player = nullptr;
     wxMediaState m_state = wxMEDIASTATE_STOPPED;
     int m_error = 0;
@@ -59,12 +60,12 @@ public:
     void SetIdleImage(wxString const & image);
 
     int GetLastError() const { return m_error; }
-    
+
     wxSize GetVideoSize() const;
 
 protected:
     wxSize DoGetBestSize() const override;
-    
+
     void DoSetSize(int x, int y, int width, int height, int sizeFlags) override;
 
 #ifdef __WIN32__

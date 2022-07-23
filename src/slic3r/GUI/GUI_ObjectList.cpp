@@ -264,6 +264,8 @@ ObjectList::ObjectList(wxWindow* parent) :
         // which seems to be working as of now.
         this->CallAfter([this](){ ensure_current_item_visible(); });
 #else
+        update_name_column_width();
+
         ensure_current_item_visible();
 #endif
         e.Skip();
@@ -768,17 +770,21 @@ void ObjectList::update_filament_colors()
 
 void ObjectList::update_name_column_width() const
 {
-    auto em = em_unit(const_cast<ObjectList*>(this));
-    int extra_width = 0;
+    wxSize client_size = this->GetClientSize();
+    bool p_vbar = this->GetParent()->HasScrollbar(wxVERTICAL);
+    bool p_hbar = this->GetParent()->HasScrollbar(wxHORIZONTAL);
 
+    auto em = em_unit(const_cast<ObjectList*>(this));
+    // BBS: walkaround for wxDataViewCtrl::HasScrollbar() does not return correct status
+    int others_width = 0;
     for (int cn = colName; cn < colCount; cn++) {
         if (cn != colName) {
-            if (GetColumn(cn)->IsHidden())
-                extra_width += m_columns_width[cn];
+            if (!GetColumn(cn)->IsHidden())
+                others_width += m_columns_width[cn];
         }
     }
 
-    GetColumn(colName)->SetWidth((m_columns_width[colName] + extra_width) * em);
+    GetColumn(colName)->SetWidth(client_size.x - (others_width)*em);
 }
 
 void ObjectList::set_filament_column_hidden(const bool hide) const
@@ -1145,6 +1151,8 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
                 GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
                 if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::FdmSupports)
                     gizmos_mgr.open_gizmo(GLGizmosManager::EType::FdmSupports);
+                else
+                    gizmos_mgr.reset_all_states();
             }
         }
         else if (col_num == colColorPaint) {
@@ -1153,6 +1161,8 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
                 GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
                 if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::MmuSegmentation)
                     gizmos_mgr.open_gizmo(GLGizmosManager::EType::MmuSegmentation);
+                else
+                    gizmos_mgr.reset_all_states();
             }
         }
         else if (col_num == colEditing) {
@@ -2028,12 +2038,15 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
     new_object->translate(-bb.center());
 
     if (is_timelapse_wt) {
-        new_object->instances[0]->set_offset( Vec3d(80.0, 230.0, -new_object->origin_translation.z()) );
         new_object->is_timelapse_wipe_tower = true;
         auto   curr_plate    = wxGetApp().plater()->get_partplate_list().get_curr_plate();
         int    highest_extruder = 0;
         double max_height = curr_plate->estimate_timelapse_wipe_tower_height(&highest_extruder);
         new_object->scale(1, 1, max_height / new_object->bounding_box().size()[2]);
+
+        // move to garbage bin of curr plate
+        auto offset = curr_plate->get_origin() + Vec3d(80.0, 230.0, -new_object->origin_translation.z());
+        new_object->instances[0]->set_offset(offset);
 
         new_object->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
         new_object->config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
@@ -2237,14 +2250,15 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
 
                 // update extruder color in ObjectList
                 wxDataViewItem obj_item = m_objects_model->GetItemById(obj_idx);
-                // BBS
-#if 0
                 if (obj_item) {
                     // BBS
+                    if (last_volume->config.has("extruder")) {
+                        int extruder_id = last_volume->config.opt_int("extruder");
+                        object->config.set("extruder", extruder_id);
+                    }
                     wxString extruder = object->config.has("extruder") ? wxString::Format("%d", object->config.extruder()) : _devL("1");
                     m_objects_model->SetExtruder(extruder, obj_item);
                 }
-#endif
                 // add settings to the object, if it has them
                 add_settings_item(obj_item, &object->config.get());
             }

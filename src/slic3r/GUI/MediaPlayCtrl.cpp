@@ -111,7 +111,7 @@ void MediaPlayCtrl::Stop()
         m_media_ctrl->InvalidateBestSize();
         m_button_play->SetIcon("media_play");
         boost::unique_lock lock(m_mutex);
-        m_tasks.push_back("");
+        m_tasks.push_back("<stop>");
         m_cond.notify_all();
     }
     m_last_state = MEDIASTATE_IDLE;
@@ -132,6 +132,11 @@ void MediaPlayCtrl::SetStatus(wxString const& msg2)
 {
     auto msg = wxString::Format(msg2, m_failed_code);
     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::SetStatus: " << msg.ToUTF8().data();
+#ifdef __WXMSW__
+    OutputDebugStringA("MediaPlayCtrl::SetStatus: ");
+    OutputDebugStringA(msg.ToUTF8().data());
+    OutputDebugStringA("\n");
+#endif // __WXMSW__
     m_label_status->SetLabel(msg);
     //m_label_status->SetForegroundColour(!msg.EndsWith("!") ? 0x42AE00 : 0x3B65E9);
     Layout();
@@ -147,10 +152,16 @@ void MediaPlayCtrl::media_proc()
         wxString url = m_tasks.front();
         lock.unlock();
         if (url.IsEmpty()) {
+            break;
+        }
+        else if (url == "<stop>") {
             m_media_ctrl->Stop();
         }
         else if (url == "<exit>") {
             break;
+        }
+        else if (url == "<play>") {
+            m_media_ctrl->Play();
         }
         else {
             BOOST_LOG_TRIVIAL(info) <<  "MediaPlayCtrl: start load";
@@ -193,10 +204,11 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: size: " << size.x << "x" << size.y;
         m_failed_code = m_media_ctrl->GetLastError();
         if (size.GetWidth() > 1000) {
-            m_media_ctrl->Play();
             SetStatus(_L("Playing..."));
             m_failed_retry = 0;
-            m_last_state = m_media_ctrl->GetState();
+            boost::unique_lock lock(m_mutex);
+            m_tasks.push_back("<play>");
+            m_cond.notify_all();
         }
         else if (event.GetId()) {
             Stop();

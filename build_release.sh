@@ -6,7 +6,7 @@ mkdir build
 cd build
 DEPS=$PWD/BambuStudio_dep
 cmake ../ -DDESTDIR="$DEPS" -DOPENSSL_ARCH="darwin64-arm64-cc"
-make -j
+# make -j
 
 cd $WD
 mkdir build

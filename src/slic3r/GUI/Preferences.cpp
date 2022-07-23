@@ -33,7 +33,7 @@ wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *paren
     m_title->SetForegroundColour(DESIGN_GRAY800_COLOR);
     m_title->SetFont(::Label::Head_13);
     m_title->Wrap(-1);
-    m_title->SetToolTip(tooltip);
+    //m_title->SetToolTip(tooltip);
 
     auto m_line = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m_line->SetBackgroundColour(DESIGN_GRAY400_COLOR);
@@ -244,12 +244,12 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
             return;
         } else {
             NetworkAgent *agent  = wxGetApp().getAgent();
+            wxGetApp().request_user_logout();
             AppConfig *             config = GUI::wxGetApp().app_config;
             if (agent) {
                 agent->set_country_code(area);
-                config->set("region", region.ToStdString());
             }
-            wxGetApp().request_user_logout();
+            config->set("region", region.ToStdString());
             EndModal(wxID_CANCEL);
         }
 
@@ -472,7 +472,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
         if (param == "sync_user_preset") {
             bool sync = app_config->get("sync_user_preset") == "true" ? true : false;
             if (sync) {
-                wxGetApp().start_sync_user_preset();
+                wxGetApp().start_sync_user_preset(true);
             } else {
                 wxGetApp().stop_sync_user_preset();
             }
@@ -870,7 +870,7 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
                     wxGetApp().request_user_logout();
                     agent->set_country_code(country_code);
                 }
-                wxMessageBox(_L("Swith cloud environment, Please login again!"));
+                wxMessageBox(_L("Switch cloud environment, Please login again!"));
             }
 
             // bbs  backup

@@ -85,7 +85,7 @@ size_t GLGizmosManager::get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const
     //if ((border <= (float)mouse_pos(0) && ((float)mouse_pos(0) <= border + icons_size))) {
     if (((top_y + border) <= (float)mouse_pos(1)) && ((float)mouse_pos(1) <= (top_y + border + icons_size))) {
         // which icon is it on?
-        size_t from_left = (size_t)((float)mouse_pos(0) - top_x) / stride_x;
+        int from_left = (float) mouse_pos(0) - top_x < 0 ? -1 : (int) ((float) mouse_pos(0) - top_x) / stride_x;
         if (from_left < 0)
             return Undefined;
         // is it really on the icon or already past the border?

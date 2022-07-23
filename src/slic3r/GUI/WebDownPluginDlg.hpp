@@ -30,15 +30,15 @@
 
 namespace Slic3r { namespace GUI {
 
-enum { SKIP_CHECKBOX };
-
-class DailytipFrame : public wxDialog
+class DownPluginFrame : public wxDialog
 {
 public:
-    DailytipFrame(GUI_App *pGUI);
-    virtual ~DailytipFrame();
+    DownPluginFrame(GUI_App *pGUI);
+    virtual ~DownPluginFrame();
 
-    void load_url(wxString &url);
+
+    // Web Function
+    void     load_url(wxString &url);
 
     void UpdateState();
     void OnIdle(wxIdleEvent &evt);
@@ -56,23 +56,16 @@ public:
     void OnScriptResponseMessage(wxCommandEvent &evt);
     void RunScript(const wxString &javascript);
 
-    bool IsTodayUsed();
-    bool IsSkip();
-    bool IsWhetherShow();
-    void UpdateShowTime();
-
-    void OnSkipClick(wxCommandEvent &evt);
+    // install plugin
+    int DownloadPlugin();
+    int InstallPlugin();
+    int ShowPluginStatus(int status, int percent, bool &cancel);
 
 private:
-    GUI_App *m_MainPtr;
+    GUI_App * m_MainPtr;
+    AppConfig m_appconfig_new;
 
-    wxWebView * m_browser;
-    wxCheckBox *m_SkipBtn;
-
-    wxString m_SectionName;
-
-    // User Config
-    bool PrivacyUse;
+    wxWebView *m_browser;
 
 #if wxUSE_WEBVIEW_IE
     wxMenuItem *m_script_object_el;

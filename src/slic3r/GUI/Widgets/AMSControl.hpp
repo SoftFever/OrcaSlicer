@@ -490,6 +490,7 @@ public:
     void on_ams_setting_click(wxCommandEvent &event);
     void on_clibration_again_click(wxMouseEvent &event);
     void on_clibration_cancel_click(wxMouseEvent &event);
+    void Reset();
 
     void post_event(wxEvent &&event);
 

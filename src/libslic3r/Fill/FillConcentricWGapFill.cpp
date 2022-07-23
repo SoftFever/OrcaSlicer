@@ -80,9 +80,8 @@ void FillConcentricWGapFill::fill_surface_extrusion(const Surface* surface, cons
 
             ThickPolylines polylines;
             for (ExPolygon& ex : gaps_ex_sorted) {
-                //BBS: medial axis algorithm can't handle duplicated points in expolygon.
-                //Use DP simplify to avoid duplicated points and accelerate medial-axis calculation as well.
-                ex.douglas_peucker(SCALED_RESOLUTION);
+                //BBS: Use DP simplify to avoid duplicated points and accelerate medial-axis calculation as well.
+                ex.douglas_peucker(SCALED_RESOLUTION * 0.1);
                 ex.medial_axis(max, min, &polylines);
             }
 
@@ -114,9 +113,8 @@ void FillConcentricWGapFill::fill_surface_extrusion(const Surface* surface, cons
 
         ThickPolylines polylines;
         for (ExPolygon& ex : external_gaps_collapsed) {
-            //BBS: medial axis algorithm can't handle duplicated points in expolygon.
-            //Use DP simplify to avoid duplicated points and accelerate medial-axis calculation as well.
-            ex.douglas_peucker(SCALED_RESOLUTION);
+            //BBS: Use DP simplify to avoid duplicated points and accelerate medial-axis calculation as well.
+            ex.douglas_peucker(SCALED_RESOLUTION * 0.1);
             ex.medial_axis(max, min, &polylines);
         }
 

@@ -127,6 +127,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 	std::vector<std::vector<const SurfaceFillParams*>> 	region_to_surface_params(layer.regions().size(), std::vector<const SurfaceFillParams*>());
     SurfaceFillParams									params;
     bool 												has_internal_voids = false;
+	const PrintObjectConfig&							object_config = layer.object()->config();
 	for (size_t region_id = 0; region_id < layer.regions().size(); ++ region_id) {
 		const LayerRegion  &layerm = *layer.regions()[region_id];
 		region_to_surface_params[region_id].assign(layerm.fill_surfaces.size(), nullptr);
@@ -163,7 +164,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        params.bridge = is_bridge || Fill::use_bridge_flow(params.pattern);
 				params.flow   = params.bridge ?
 					//BBS: always enable thick bridge for internal bridge
-					layerm.bridging_flow(extrusion_role, (surface.is_bridge() && !surface.is_external()) || g_config_thick_bridges) :
+					layerm.bridging_flow(extrusion_role, (surface.is_bridge() && !surface.is_external()) || object_config.thick_bridges) :
 					layerm.flow(extrusion_role, (surface.thickness == -1) ? layer.height : surface.thickness);
 
 				// Calculate flow spacing for infill pattern generation.

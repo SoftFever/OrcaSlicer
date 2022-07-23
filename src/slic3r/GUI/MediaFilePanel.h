@@ -38,7 +38,7 @@ public:
     void Rescale();
 
 private:
-    void fileChanged(wxCommandEvent & e);
+    void modeChanged(wxCommandEvent & e);
 
     void fetchUrl(boost::weak_ptr<PrinterFileSystem> fs);
 

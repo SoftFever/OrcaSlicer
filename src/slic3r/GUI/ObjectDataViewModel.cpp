@@ -1938,9 +1938,13 @@ wxDataViewItem  ObjectDataViewModel::GetObjectItem(const ModelObject* mo) const
 wxDataViewItem  ObjectDataViewModel::GetVolumeItem(const wxDataViewItem& parent, int vol_idx) const
 {
     ObjectDataViewModelNode* obj_node = (ObjectDataViewModelNode*)parent.GetID();
-    for (auto child : obj_node->GetChildren()) {
-        if (child->GetType() == itVolume && child->GetIdx() == vol_idx)
-            return wxDataViewItem(child);
+
+    // BBS
+    if (obj_node != nullptr) {
+        for (auto child : obj_node->GetChildren()) {
+            if (child->GetType() == itVolume && child->GetIdx() == vol_idx)
+                return wxDataViewItem(child);
+        }
     }
 
     return wxDataViewItem(nullptr);
