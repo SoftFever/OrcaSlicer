@@ -993,6 +993,9 @@ void AppConfig::update_last_backup_dir(const std::string& dir)
 
 std::string AppConfig::get_region()
 {
+#if BBL_RELEASE_TO_PUBLIC
+    return this->get("region");
+#else
     std::string sel = get("iot_environment");
     std::string region;
     if (sel == ENV_DEV_HOST)
@@ -1004,12 +1007,15 @@ std::string AppConfig::get_region()
     if (region.empty())
         return this->get("region");
     return region;
+#endif
 }
 
 std::string AppConfig::get_country_code()
 {
     std::string region = get_region();
+#if !BBL_RELEASE_TO_PUBLIC
     if (is_engineering_region()) { return region; }
+#endif
     if (region == "CHN" || region == "China")
         return "CN";
     else if (region == "USA")

@@ -647,10 +647,10 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
         for (int i = 0; i < filaments.size(); i++) {
             FilamentInfo info;
             info.id = filaments[i].id;
-            info.tray_id = -1;
+            info.tray_id = filaments[i].id;
             result.push_back(info);
         }
-        return 0;
+        return 1;
     }
 
     char buffer[256];
@@ -791,14 +791,33 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
 
 bool MachineObject::is_valid_mapping_result(std::vector<FilamentInfo>& result)
 {
-    bool valid_ams_mapping_result = true;
-    for (int i = 0; i < result.size(); i++) {
-        if (result[i].tray_id == -1) {
-            valid_ams_mapping_result = false;
-            break;
+    if (is_support_ams_mapping()) {
+        bool valid_ams_mapping_result = true;
+        for (int i = 0; i < result.size(); i++) {
+            if (result[i].tray_id == -1) {
+                valid_ams_mapping_result = false;
+                break;
+            }
         }
+        return valid_ams_mapping_result;
+    } else {
+        bool is_valid = true;
+        // invalid mapping result
+        if (result.empty()) return false;
+        for (int i = 0; i < result.size(); i++) {
+            // invalid mapping result
+            if (result[i].tray_id < 0)
+                return false;
+            else {
+                int ams_id = result[i].tray_id / 4;
+                if (amsList.find(std::to_string(ams_id)) == amsList.end()) {
+                    return false;
+                }
+            }
+        }
+        return is_valid;
     }
-    return valid_ams_mapping_result;
+    return true;
 }
 
 

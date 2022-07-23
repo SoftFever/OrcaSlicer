@@ -1105,8 +1105,22 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
             sync_ams_mapping_result(m_ams_mapping_result);
             BOOST_LOG_TRIVIAL(info) << "ams_mapping_array=" << ams_array;
         }
+        return obj_->is_valid_mapping_result(m_ams_mapping_result);
+    } else {
+        // do not support ams mapping try to use order mapping
+        bool is_valid = obj_->is_valid_mapping_result(m_ams_mapping_result);
+        if (!is_valid) {
+            // reset invalid result
+            for (int i = 0; i < m_ams_mapping_result.size(); i++) {
+                m_ams_mapping_result[i].tray_id = -1;
+                m_ams_mapping_result[i].distance = 99999;
+            }
+        }
+        sync_ams_mapping_result(m_ams_mapping_result);
+           return is_valid;
     }
-    return obj_->is_valid_mapping_result(m_ams_mapping_result);
+
+    return true;
 }
 
 bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str)
@@ -1292,13 +1306,13 @@ void SelectMachineDialog::show_status(PrintDialogStatus status)
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNeedUpgradingAms) {
-        wxString msg_text = _L("Printer firmware does not support material = >ams slot mapping.");
-        update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(true);
+        wxString msg_text = _L("The filament index exceeds the AMS's slot count and cannot send the print job.");
+        update_print_status_msg(msg_text, true, false);
+        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingSuccess){
         wxString msg_text = _L("Filaments to AMS slots mappings have been established. You can click a filament above to change its mapping AMS slot");
-        update_print_status_msg(msg_text, true, false);
+        update_print_status_msg(msg_text, false, false);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingInvalid) {
@@ -1326,7 +1340,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status)
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingByOrder) {
-        wxString msg_text = _L("Printer firmware does not support material = >ams slot mapping.");
+        wxString msg_text = _L("The printer firmware only supports sequential mapping of filament => AMS slot.");
         update_print_status_msg(msg_text, false, false);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
@@ -1768,7 +1782,11 @@ void SelectMachineDialog::update_show_status()
     }
 
     if (!obj_->is_support_ams_mapping()) {
-        show_status(PrintDialogStatus::PrintStatusNeedUpgradingAms);
+        if (obj_->is_valid_mapping_result(m_ams_mapping_result)) {
+            show_status(PrintDialogStatus::PrintStatusAmsMappingByOrder);
+        } else {
+            show_status(PrintDialogStatus::PrintStatusNeedUpgradingAms);
+        }
         return;
     }
 
