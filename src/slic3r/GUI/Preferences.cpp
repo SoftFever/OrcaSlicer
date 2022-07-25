@@ -237,20 +237,24 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
         else
             area = "Others";
 
-        MessageDialog msg_wingow(nullptr, _L("Changing the region will log out your account.\n") + "\n" + _L("Do you want to continue?"), L("Region selection"),
-                                 wxICON_QUESTION | wxOK | wxCANCEL);
-        if (msg_wingow.ShowModal() == wxID_CANCEL) {
-            combobox->SetSelection(current_region);
-            return;
-        } else {
-            NetworkAgent *agent  = wxGetApp().getAgent();
-            wxGetApp().request_user_logout();
-            AppConfig *             config = GUI::wxGetApp().app_config;
-            if (agent) {
-                agent->set_country_code(area);
+        NetworkAgent* agent = wxGetApp().getAgent();
+        AppConfig* config = GUI::wxGetApp().app_config;
+        if (agent) {
+            MessageDialog msg_wingow(this, _L("Changing the region will log out your account.\n") + "\n" + _L("Do you want to continue?"), L("Region selection"),
+                                     wxICON_QUESTION | wxOK | wxCANCEL);
+            if (msg_wingow.ShowModal() == wxID_CANCEL) {
+                combobox->SetSelection(current_region);
+                return;
+            } else {
+                wxGetApp().request_user_logout();
+                if (agent) {
+                    agent->set_country_code(area);
+                }
+                config->set("region", region.ToStdString());
+                EndModal(wxID_CANCEL);
             }
+        } else {
             config->set("region", region.ToStdString());
-            EndModal(wxID_CANCEL);
         }
 
         e.Skip();
