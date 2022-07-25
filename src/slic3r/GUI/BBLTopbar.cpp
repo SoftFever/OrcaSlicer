@@ -508,12 +508,17 @@ void BBLTopbar::OnCloseFrame(wxAuiToolBarEvent& event)
 
 void BBLTopbar::OnMouseLeftDClock(wxMouseEvent& mouse)
 {
+    wxPoint mouse_pos = ::wxGetMousePosition();
     // check whether mouse is not on any tool item
     if (this->FindToolByCurrentPosition() != NULL &&
         this->FindToolByCurrentPosition() != m_title_item) {
         mouse.Skip();
         return;
     }
+#ifdef __W1XMSW__
+    ::PostMessage((HWND) m_frame->GetHandle(), WM_NCLBUTTONDBLCLK, HTCAPTION, MAKELPARAM(mouse_pos.x, mouse_pos.y));
+    return;
+#endif //  __WXMSW__
 
     if (m_frame->IsMaximized()) {
         m_frame->Restore();
@@ -567,16 +572,23 @@ void BBLTopbar::OnMouseLeftDown(wxMouseEvent& event)
     wxPoint frame_pos = m_frame->GetScreenPosition();
     m_delta = mouse_pos - frame_pos;
 
-    if (FindToolByCurrentPosition() == NULL)
+    if (FindToolByCurrentPosition() == NULL 
+        || this->FindToolByCurrentPosition() == m_title_item)
     {
         CaptureMouse();
+#ifdef __WXMSW__
+        ReleaseMouse();
+        ::PostMessage((HWND) m_frame->GetHandle(), WM_NCLBUTTONDOWN, HTCAPTION, MAKELPARAM(mouse_pos.x, mouse_pos.y));
+        return;
+#endif //  __WXMSW__
     }
-
+    
     event.Skip();
 }
 
 void BBLTopbar::OnMouseLeftUp(wxMouseEvent& event)
 {
+    wxPoint mouse_pos = ::wxGetMousePosition();
     if (HasCapture())
     {
         ReleaseMouse();
@@ -587,7 +599,8 @@ void BBLTopbar::OnMouseLeftUp(wxMouseEvent& event)
 
 void BBLTopbar::OnMouseMotion(wxMouseEvent& event)
 {
-    wxPoint mouse_pos = event.GetPosition();
+    wxPoint mouse_pos = ::wxGetMousePosition();
+
     if (!HasCapture()) {
         //m_frame->OnMouseMotion(event);
 
@@ -597,7 +610,6 @@ void BBLTopbar::OnMouseMotion(wxMouseEvent& event)
 
     if (event.Dragging() && event.LeftIsDown())
     {
-        wxPoint mouse_pos = ::wxGetMousePosition();
         // leave max state and adjust position 
         if (m_frame->IsMaximized()) {
             wxRect rect = m_frame->GetRect();
