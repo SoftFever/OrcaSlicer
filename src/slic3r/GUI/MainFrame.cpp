@@ -206,7 +206,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     default:
     case GUI_App::EAppMode::Editor:
         m_taskbar_icon = std::make_unique<BambuStudioTaskBarIcon>(wxTBI_DOCK);
-        m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("BambuStudio-mac_128px.png"), wxBITMAP_TYPE_PNG), "BambuStudio");
+        m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("BambuStudio-mac_256px.ico"), wxBITMAP_TYPE_PNG), "BambuStudio");
         break;
     case GUI_App::EAppMode::GCodeViewer:
         break;
