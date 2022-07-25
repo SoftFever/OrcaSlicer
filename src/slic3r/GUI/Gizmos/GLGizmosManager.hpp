@@ -159,6 +159,8 @@ public:
 
     bool init_icon_textures();
 
+    float get_layout_scale();
+
     bool init_arrow(const BackgroundTexture::Metadata& arrow_texture);
 
     template<class Archive>

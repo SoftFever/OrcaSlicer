@@ -395,7 +395,10 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.0f, 10.0f));
     float get_cur_y = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     show_tooltip_information(caption_max, x, get_cur_y);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 5.0f));
+
+    float f_scale =m_parent.get_gizmos_manager().get_layout_scale();
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale));
+
     ImGui::SameLine();
 
     // Perform button is for gap fill

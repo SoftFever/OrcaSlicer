@@ -199,6 +199,11 @@ bool GLGizmosManager::init_icon_textures()
     return true;
 }
 
+float GLGizmosManager::get_layout_scale()
+{
+    return m_layout.scale;
+}
+
 bool GLGizmosManager::init_arrow(const BackgroundTexture::Metadata& arrow_texture)
 {
     if (m_arrow_texture.texture.get_id() != 0)
