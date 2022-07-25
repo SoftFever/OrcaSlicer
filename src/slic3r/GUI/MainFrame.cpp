@@ -352,6 +352,12 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         e.Skip();
         });
     setMaxSize();
+    this->Bind(wxEVT_MAXIMIZE, [this](auto &e) {
+        wxDisplay display(wxDisplay::GetFromWindow(this));
+        auto pos = display.GetClientArea().GetPosition();
+        Move(pos - wxPoint{8, 8});
+        e.Skip();
+    });
 #endif // WIN32
     // BBS
     Fit();
