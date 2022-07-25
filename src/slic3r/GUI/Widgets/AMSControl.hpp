@@ -95,7 +95,7 @@ enum FilamentStep {
 #define AMS_ITEM_CUBE_SIZE wxSize(FromDIP(14), FromDIP(14))
 #define AMS_ITEM_SIZE wxSize(FromDIP(82), FromDIP(27))
 #define AMS_ITEM_HUMIDITY_SIZE wxSize(FromDIP(150), FromDIP(27))
-#define AMS_CAN_LIB_SIZE wxSize(FromDIP(58), FromDIP(84))
+#define AMS_CAN_LIB_SIZE wxSize(FromDIP(58), FromDIP(80))
 #define AMS_CAN_ROAD_SIZE wxSize(FromDIP(66), FromDIP(60))
 #define AMS_CAN_ITEM_HEIGHT_SIZE FromDIP(27)
 #define AMS_CANS_SIZE wxSize(FromDIP(284), FromDIP(186))

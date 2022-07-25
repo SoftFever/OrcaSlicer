@@ -396,6 +396,10 @@ void AMSLib::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
 {
     wxWindow::Create(parent, id, pos, size);
 
+    SetSize(AMS_CAN_LIB_SIZE);
+    SetMinSize(AMS_CAN_LIB_SIZE);
+    SetMaxSize(AMS_CAN_LIB_SIZE);
+
     auto m_sizer_body = new wxBoxSizer(wxVERTICAL);
 
     wxBoxSizer *m_sizer_edit = new wxBoxSizer(wxHORIZONTAL);
@@ -1074,7 +1078,7 @@ void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan)
     auto m_panel_refresh = new AMSrefresh(amscan, wxID_ANY, m_can_count + 1, caninfo);
     m_sizer_ams->Add(m_panel_refresh, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_ams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(2));
-    auto m_panel_lib = new AMSLib(amscan, wxID_ANY, caninfo, wxDefaultPosition, AMS_CAN_LIB_SIZE);
+    auto m_panel_lib = new AMSLib(amscan, wxID_ANY, caninfo);
     m_panel_lib->Bind(wxEVT_LEFT_DOWN, [this, canindex](wxMouseEvent &ev) {
         m_canlib_selection = canindex;
         // m_canlib_id        = caninfo.can_id;
@@ -1098,7 +1102,7 @@ void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan)
 
     amscan->SetSizer(m_sizer_ams);
     amscan->Layout();
-    m_sizer_ams->Fit(amscan);
+    amscan->Fit();
     sizer_can->Add(amscan, 0, wxALL, 0);
 
     Canrefreshs *canrefresh = new Canrefreshs;
