@@ -264,8 +264,11 @@ void PrintConfigDef::init_common_params()
     //BBS: add "bed_exclude_area"
     def = this->add("bed_exclude_area", coPoints);
     def->label = L("Bed exclude area");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionPoints{});
+    def->tooltip = L("Bed exclude area that can't used as printable area in X-Y plane. For example, the bottom left area which is used to cut filament in X1 when printing multi colors with AMS. "
+                     "The area is expressed as polygon by points in following format: \"XxY, XxY, ...\"");
+    def->mode = comAdvanced;
+    def->gui_type = ConfigOptionDef::GUIType::one_string;
+    def->set_default_value(new ConfigOptionPoints{ Vec2d(0, 0) });
 
     def = this->add("elefant_foot_compensation", coFloat);
     def->label = L("Elephant foot compensation");
@@ -290,7 +293,6 @@ void PrintConfigDef::init_common_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->max = 1000;
-    def->readonly = true;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(100.0));
 

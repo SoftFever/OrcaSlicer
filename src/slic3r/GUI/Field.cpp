@@ -374,9 +374,17 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                     if (x_str.ToDouble(&x) && thumbnail.HasMoreTokens()) {
                         wxString y_str = thumbnail.GetNextToken();
                         if (y_str.ToDouble(&y) && !thumbnail.HasMoreTokens()) {
-                            if (0 < x && x < 1000 && 0 < y && y < 1000) {
-                                out_values.push_back(Vec2d(x, y));
-                                continue;
+                            if (m_opt_id == "bed_exclude_area") {
+                                if (0 <= x && x <= 256 && 0 <= y && y <= 256) {
+                                    out_values.push_back(Vec2d(x, y));
+                                    continue;
+                                }
+                            }
+                            else {
+                                if (0 < x && x < 1000 && 0 < y && y < 1000) {
+                                    out_values.push_back(Vec2d(x, y));
+                                    continue;
+                                }
                             }
                             out_of_range_val = true;
                             break;

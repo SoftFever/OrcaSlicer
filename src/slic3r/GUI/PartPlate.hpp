@@ -520,6 +520,7 @@ public:
 
     Vec3d get_current_plate_origin() { return compute_origin(m_current_plate, m_plate_cols); }
     Vec2d get_current_shape_position() { return compute_shape_position(m_current_plate, m_plate_cols); }
+    Pointfs get_exclude_area() { return m_exclude_areas; }
 
     //select plate
     int select_plate(int index);
