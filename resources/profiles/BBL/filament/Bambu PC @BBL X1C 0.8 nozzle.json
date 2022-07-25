@@ -6,7 +6,7 @@
     "instantiation": "true",
     "inherits": "Bambu PC @base",
     "nozzle_temperature": [
-        "270"
+        "260"
     ],
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.8 nozzle"
