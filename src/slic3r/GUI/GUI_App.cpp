@@ -1105,6 +1105,23 @@ GUI_App::GUI_App()
     reset_to_active();
 }
 
+void GUI_App::shutdown()
+{
+    m_is_closing = true;
+    stop_sync_user_preset();
+
+    if (m_device_manager) {
+        delete m_device_manager;
+        m_device_manager = nullptr;
+    }
+
+    if (m_agent) {
+        m_agent->start_discovery(false, false);
+        delete m_agent;
+        m_agent = nullptr;
+    }
+}
+
 
 std::string GUI_App::get_http_url(std::string country_code)
 {
@@ -2703,21 +2720,7 @@ void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_max
     const std::string name = into_u8(window->GetName());
 
     window->Bind(wxEVT_CLOSE_WINDOW, [=](wxCloseEvent &event) {
-        m_is_closing = true;
         window_pos_save(window, "mainframe");
-        //
-        stop_sync_user_preset();
-
-        if (m_device_manager) {
-            delete m_device_manager;
-            m_device_manager = nullptr;
-        }
-
-        if (m_agent) {
-            m_agent->start_discovery(false, false);
-            delete m_agent;
-            m_agent = nullptr;
-        }
         event.Skip();
     });
 
