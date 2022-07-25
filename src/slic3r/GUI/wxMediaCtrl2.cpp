@@ -2,8 +2,22 @@
 #include "I18N.hpp"
 
 wxMediaCtrl2::wxMediaCtrl2(wxWindow *parent)
-    : wxMediaCtrl(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxMEDIACTRLPLAYERCONTROLS_NONE)
 {
+#ifdef __WIN32__
+    auto hModExe = GetModuleHandle(NULL);
+    // BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl2: GetModuleHandle " << hModExe;
+    auto NvOptimusEnablement = (DWORD *) GetProcAddress(hModExe, "NvOptimusEnablement");
+    auto AmdPowerXpressRequestHighPerformance = (int *) GetProcAddress(hModExe, "AmdPowerXpressRequestHighPerformance");
+    if (NvOptimusEnablement) {
+        // BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl2: NvOptimusEnablement " << *NvOptimusEnablement;
+        *NvOptimusEnablement = 0;
+    }
+    if (AmdPowerXpressRequestHighPerformance) {
+        // BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl2: AmdPowerXpressRequestHighPerformance " << *AmdPowerXpressRequestHighPerformance;
+        *AmdPowerXpressRequestHighPerformance = 0;
+    }
+#endif
+    wxMediaCtrl::Create(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxMEDIACTRLPLAYERCONTROLS_NONE);
 }
 
 void wxMediaCtrl2::Load(wxURI url)
@@ -22,13 +36,6 @@ void wxMediaCtrl2::Load(wxURI url)
         wxPostEvent(this, event);
         return;
     }
-
-    auto hModExe = LoadLibrary(NULL);
-    auto NvOptimusEnablement = (DWORD *) GetProcAddress(hModExe, "NvOptimusEnablement");
-    auto AmdPowerXpressRequestHighPerformance = (int *) GetProcAddress(hModExe, "AmdPowerXpressRequestHighPerformance");
-    if (NvOptimusEnablement) *NvOptimusEnablement = 0;
-    if (AmdPowerXpressRequestHighPerformance) *AmdPowerXpressRequestHighPerformance = 0;
-
     url = wxURI(url.BuildURI().append("&hwnd=").append(
         boost::lexical_cast<std::string>(GetHandle())));
 #endif
