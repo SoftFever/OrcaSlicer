@@ -98,6 +98,16 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
     return webView;
 }
 
+void WebView::LoadUrl(wxWebView * webView, wxString const &url)
+{
+    auto url2  = url;
+#ifdef __WIN32__
+    url2.Replace("\\", "/");
+#endif
+    if (!url2.empty()) { url2 = wxURI(url2).BuildURI(); }
+    webView->LoadURL(url2);
+}
+
 bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
 {
     if (Slic3r::GUI::wxGetApp().get_mode() == Slic3r::comDevelop)

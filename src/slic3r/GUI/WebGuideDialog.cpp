@@ -111,7 +111,7 @@ void GuideFrame::load_url(wxString &url)
 {
     BOOST_LOG_TRIVIAL(trace) << "app_start: GuideFrame url=" << url.ToStdString();
     this->Show();
-    m_browser->LoadURL(url);
+    WebView::LoadUrl(m_browser, url);
     m_browser->SetFocus();
     UpdateState();
 }
