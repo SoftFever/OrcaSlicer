@@ -148,8 +148,6 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     Layout();
     Fit();
 
-    Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent &evt) { Hide(); });
-
     m_calibration_btn->Bind(wxEVT_LEFT_DOWN, &CalibrationDialog::on_start_calibration, this);
 }
 
