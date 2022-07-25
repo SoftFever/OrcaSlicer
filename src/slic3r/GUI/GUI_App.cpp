@@ -1519,10 +1519,13 @@ void GUI_App::init_networking_callbacks()
                                 obj->command_get_version();
                             } else if (state == ConnectStatus::ConnectStatusFailed || ConnectStatus::ConnectStatusLost) {
                                 obj->set_access_code("");
-                                wxString text = wxString::Format(_L("Connect %s[SN:%s] failed!"), from_u8(obj->dev_name), obj->dev_id);
-                                MessageDialog msg_dlg(nullptr, text, "", wxAPPLY | wxOK);
-                                if (msg_dlg.ShowModal() == wxOK) {
-                                    return;
+                                wxString text;
+                                if (msg == "5") {
+                                    text = wxString::Format(_L("Incorrect password"));
+                                    wxGetApp().show_dialog(text);
+                                } else {
+                                    text = wxString::Format(_L("Connect %s failed! [SN:%s, code=%s]"), from_u8(obj->dev_name), obj->dev_id, msg);
+                                    wxGetApp().show_dialog(text);
                                 }
                             } else {
                                 BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = " << state;
@@ -1960,13 +1963,13 @@ bool GUI_App::on_init_inner()
         });
 
         Bind(EVT_SHOW_DIALOG, [this](const wxCommandEvent& evt) {
-            /*wxString msg = evt.GetString();
+            wxString msg = evt.GetString();
             InfoDialog dlg(this->mainframe, _L("Info"), msg);
-            dlg.ShowModal();*/
+            dlg.ShowModal();
 
-            wxString text = evt.GetString();
+            /*wxString text = evt.GetString();
             Slic3r::GUI::MessageDialog msg_dlg(this->mainframe, text, "", wxAPPLY | wxOK);
-            msg_dlg.ShowModal();
+            msg_dlg.ShowModal();*/
         });
     }
     else {
