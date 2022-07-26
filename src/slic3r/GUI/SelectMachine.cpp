@@ -1406,11 +1406,26 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
         return;
     }
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << m_printer_last_select << std::endl;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", print_job: for send task, current printer id =  " << m_printer_last_select << std::endl;
     show_status(PrintDialogStatus::PrintStatusSending);
 
     m_status_bar->reset();
     m_status_bar->set_prog_block();
+    m_status_bar->set_cancel_callback_fina([this]() {
+        BOOST_LOG_TRIVIAL(info) << "print_job: enter canceled";
+        if (m_print_job) {
+            if (m_print_job->is_running()) {
+                BOOST_LOG_TRIVIAL(info) << "print_job: canceled";
+                m_print_job->cancel();
+            }
+            m_print_job->join();
+        }
+        wxCommandEvent* event = new wxCommandEvent(EVT_PRINT_JOB_CANCEL);
+        wxQueueEvent(this, event);
+    });
+
+    // enter sending mode
+    sending_mode();
 
     // get ams_mapping_result
     std::string ams_mapping_array;
@@ -1423,14 +1438,14 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
         m_export_3mf_cancel = cancel = cancelled;
     });
 
-    if (result < 0) {
-        wxString msg = _L("Abnormal print file data. Please slice again");
-        m_status_bar->set_status_text(msg);
+    if (m_export_3mf_cancel) {
+        m_status_bar->set_status_text(task_canceled_text);
         return;
     }
 
-    if (m_export_3mf_cancel) {
-        m_status_bar->set_status_text(task_canceled_text);
+    if (result < 0) {
+        wxString msg = _L("Abnormal print file data. Please slice again");
+        m_status_bar->set_status_text(msg);
         return;
     }
 
@@ -1467,12 +1482,6 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
         true);
 
     m_print_job->on_success([this]() { finish_mode(); });
-
-    m_status_bar->set_cancel_callback_fina([this]() {
-        m_print_job->cancel();
-        wxCommandEvent *event = new wxCommandEvent(EVT_PRINT_JOB_CANCEL);
-        wxQueueEvent(this, event);
-    });
 
     wxCommandEvent evt(m_plater->get_print_finished_event());
     m_print_job->start();
@@ -1542,8 +1551,9 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
 
 void SelectMachineDialog::on_print_job_cancel(wxCommandEvent &evt)
 {
-    if (m_print_job->is_running()) { m_print_job->join(5 * 1000); }
     show_status(PrintDialogStatus::PrintStatusSendingCanceled);
+    // enter prepare mode
+    prepare_mode();
 }
 
 std::vector<std::string> SelectMachineDialog::sort_string(std::vector<std::string> strArray)
