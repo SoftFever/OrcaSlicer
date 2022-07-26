@@ -4820,8 +4820,15 @@ void GUI_App::disassociate_files(std::wstring extend)
 
     bool is_new = false;
     is_new |= del_win_registry(HKEY_CURRENT_USER, reg_extension.c_str(), prog_id.c_str());
-    is_new |= del_win_registry(HKEY_CURRENT_USER, reg_prog_id.c_str(), prog_desc.c_str());
-    is_new |= del_win_registry(HKEY_CURRENT_USER, reg_prog_id_command.c_str(), prog_command.c_str());
+
+    bool is_associate_3mf  = app_config->get("associate_3mf") == "true";
+    bool is_associate_stl  = app_config->get("associate_stl") == "true";
+    bool is_associate_step = app_config->get("associate_step") == "true";
+    if (!is_associate_3mf && !is_associate_stl && !is_associate_step)
+    {
+        is_new |= del_win_registry(HKEY_CURRENT_USER, reg_prog_id.c_str(), prog_desc.c_str());
+        is_new |= del_win_registry(HKEY_CURRENT_USER, reg_prog_id_command.c_str(), prog_command.c_str());
+    }
 
     if (is_new)
        ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
