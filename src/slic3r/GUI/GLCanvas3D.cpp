@@ -27,6 +27,7 @@
 #include "slic3r/Utils/UndoRedo.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoPainterBase.hpp"
 #include "slic3r/GUI/BitmapCache.hpp"
+#include "slic3r/Utils/MacDarkMode.hpp"
 
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -2139,6 +2140,9 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_GESTURE_ZOOM, &GLCanvas3D::on_gesture, this);
         m_canvas->Bind(wxEVT_GESTURE_ROTATE, &GLCanvas3D::on_gesture, this);
         m_canvas->EnableTouchEvents(wxTOUCH_ZOOM_GESTURE | wxTOUCH_ROTATE_GESTURE);
+#if __WXOSX__
+        initGestures(m_canvas->GetHandle(), m_canvas); // for UIPanGestureRecognizer allowedScrollTypesMask
+#endif
     }
 }
 

@@ -6,6 +6,8 @@
 #import <Foundation/Foundation.h>
 #import <AppKit/NSScreen.h>
 
+#include <objc/runtime.h>
+
 @interface MacDarkMode : NSObject {}
 @end
 
@@ -76,6 +78,8 @@ void set_miniaturizable(void * window)
 
 @end
 
+/* edit column for wxTableView */
+
 #include <wx/dataview.h>
 #include <wx/osx/cocoa/dataview.h>
 #include <wx/osx/dataview.h>
@@ -98,6 +102,7 @@ void set_miniaturizable(void * window)
 
 @end
 
+/* remove focused border for wxTextCtrl */
 
 @implementation NSTextField (FocusRing)
 
@@ -107,3 +112,93 @@ void set_miniaturizable(void * window)
 }
 
 @end
+
+/* gesture handle for Canvas3D */
+
+@interface wxNSCustomOpenGLView : NSOpenGLView
+{
+}
+@end
+
+
+@implementation wxNSCustomOpenGLView (Gesture)
+
+wxEvtHandler * _gestureHandler = nullptr;
+
+- (void) onGestureMove: (NSPanGestureRecognizer*) gesture
+{
+    wxPanGestureEvent evt;
+    NSPoint tr = [gesture translationInView: self];
+    evt.SetDelta({(int) tr.x, (int) tr.y});
+    [self postEvent:evt withGesture:gesture];
+}
+
+- (void) onGestureScale: (NSMagnificationGestureRecognizer*) gesture
+{
+    wxZoomGestureEvent evt;
+    evt.SetZoomFactor(gesture.magnification + 1.0);
+    [self postEvent:evt withGesture:gesture];
+}
+
+- (void) onGestureRotate: (NSRotationGestureRecognizer*) gesture
+{
+    wxRotateGestureEvent evt;
+    evt.SetRotationAngle(-gesture.rotation);
+    [self postEvent:evt withGesture:gesture];
+}
+
+- (void) postEvent: (wxGestureEvent &) evt withGesture: (NSGestureRecognizer* ) gesture
+{
+    NSPoint pos = [gesture locationInView: self];
+    evt.SetPosition({(int) pos.x, (int) pos.y});
+    if (gesture.state == NSGestureRecognizerStateBegan)
+        evt.SetGestureStart();
+    else if (gesture.state == NSGestureRecognizerStateEnded)
+        evt.SetGestureEnd();
+    _gestureHandler->ProcessEvent(evt);
+}
+
+- (void) scrollWheel2:(NSEvent *)event
+{
+    if (_gestureHandler && event.hasPreciseScrollingDeltas) {
+        wxPanGestureEvent evt;
+        evt.SetDelta({(int)[event scrollingDeltaX], -(int)[event scrollingDeltaY]});
+        _gestureHandler->ProcessEvent(evt);
+    } else {
+        [self scrollWheel2: event];
+    }
+}
+
++ (void) load
+{
+    Method scrollWheel = class_getInstanceMethod([wxNSCustomOpenGLView class], @selector(scrollWheel:));
+    Method scrollWheel2 = class_getInstanceMethod([wxNSCustomOpenGLView class], @selector(scrollWheel2:));
+    method_exchangeImplementations(scrollWheel, scrollWheel2);
+}
+
+- (void) initGesturesWithHandler: (wxEvtHandler*) handler
+{
+//    NSPanGestureRecognizer * pan = [[NSPanGestureRecognizer alloc] initWithTarget: self action: @selector(onGestureMove:)];
+//    pan.numberOfTouchesRequired = 2;
+//    pan.allowedTouchTypes = 0;
+//    NSMagnificationGestureRecognizer * magnification = [[NSMagnificationGestureRecognizer alloc] initWithTarget: self action: @selector(onGestureScale:)];
+//    NSRotationGestureRecognizer * rotation = [[NSRotationGestureRecognizer alloc] initWithTarget: self action: @selector(onGestureRotate:)];
+//    [self addGestureRecognizer:pan];
+//    [self addGestureRecognizer:magnification];
+//    [self addGestureRecognizer:rotation];
+    _gestureHandler = handler;
+}
+
+@end
+
+namespace Slic3r {
+namespace GUI {
+
+void initGestures(void * view,  wxEvtHandler * handler)
+{
+    NSOpenGLView * glView = (NSOpenGLView *) view;
+    [glView initGesturesWithHandler: handler];
+}
+
+}
+}
