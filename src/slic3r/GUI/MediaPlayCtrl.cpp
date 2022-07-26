@@ -233,8 +233,10 @@ void wxMediaCtrl2::DoSetSize(int x, int y, int width, int height, int sizeFlags)
         BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl2::DoSetSize: width: " << width << ", height: " << height << ", maxHeight: " << maxHeight;
         SetMaxSize({-1, maxHeight});
         Slic3r::GUI::wxGetApp().CallAfter([this] {
-            GetParent()->Layout();
-            GetParent()->Refresh();
+            if (auto p = GetParent()) {
+                p->Layout();
+                p->Refresh();
+            }
         });
     }
 }
