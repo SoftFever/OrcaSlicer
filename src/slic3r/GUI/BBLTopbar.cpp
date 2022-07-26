@@ -493,6 +493,9 @@ void BBLTopbar::OnFullScreen(wxAuiToolBarEvent& event)
         m_frame->Restore();
     }
     else {
+        wxDisplay display(wxDisplay::GetFromWindow(this));
+        auto      size = display.GetClientArea().GetSize();
+        m_frame->SetMaxSize(size + wxSize{16, 16});
         m_normalRect = m_frame->GetRect();
         m_frame->Maximize();
     }
@@ -516,6 +519,9 @@ void BBLTopbar::OnMouseLeftDClock(wxMouseEvent& mouse)
         m_frame->Restore();
     }
     else {
+        wxDisplay display(wxDisplay::GetFromWindow(this));
+        auto      size = display.GetClientArea().GetSize();
+        m_frame->SetMaxSize(size + wxSize{16, 16});
         m_normalRect = m_frame->GetRect();
         m_frame->Maximize();
     }
