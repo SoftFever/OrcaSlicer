@@ -174,7 +174,7 @@ void TextInput::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     wxSize size = GetSize();
     wxPoint textPos = {5, 0};
     if (this->icon.bmp().IsOk()) {
-        wxSize szIcon = this->icon.bmp().GetSize();
+        wxSize szIcon = this->icon.GetBmpSize();
         textPos.x += szIcon.x;
     }
     bool align_right = GetWindowStyle() & wxRIGHT;

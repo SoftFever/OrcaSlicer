@@ -232,7 +232,7 @@ void SideButton::render(wxDC& dc)
             //BBS norrow size between text and icon
             szContent.x += 5;
         }
-        szIcon = icon.bmp().GetSize();
+        szIcon = icon.GetBmpSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y)
             szContent.y = szIcon.y;
@@ -284,7 +284,7 @@ void SideButton::messureSize()
         if (szContent.y > 0) {
             szContent.x += 5;
         }
-        wxSize szIcon = this->icon.bmp().GetSize();
+        wxSize szIcon = this->icon.GetBmpSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y)
             szContent.y = szIcon.y;

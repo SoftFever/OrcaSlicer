@@ -162,7 +162,7 @@ void Button::render(wxDC& dc)
             //BBS norrow size between text and icon
             szContent.x += padding;
         }
-        szIcon = icon.bmp().GetSize();
+        szIcon = icon.GetBmpSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y)
             szContent.y = szIcon.y;
@@ -211,7 +211,7 @@ void Button::messureSize()
             //BBS norrow size between text and icon
             szContent.x += 5;
         }
-        wxSize szIcon = this->active_icon.bmp().GetSize();
+        wxSize szIcon = this->active_icon.GetBmpSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y)
             szContent.y = szIcon.y;
