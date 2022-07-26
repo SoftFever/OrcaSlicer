@@ -141,7 +141,9 @@ int NetworkAgent::initialize_network_module()
         library = std::string("lib") + BAMBU_NETWORK_LIBRARY + ".so";
         #endif*/
         //netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", error, dlerror is %1%")%dlerror();
+        char* dll_error = dlerror();
+        printf("error, dlerror is %s\n", dll_error);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", error, dlerror is %1%")%dll_error;
     }
     printf("after dlopen, network_module is %p\n", netwoking_module);
 #endif
@@ -383,13 +385,13 @@ std::string NetworkAgent::get_version()
 #endif
     }
     if (!consistent) {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", inconsistent library，return 00.00.00.00!");
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", inconsistent library,return 00.00.00.00!");
         return "00.00.00.00";
     }
     if (get_version_ptr) {
         return get_version_ptr();
     }
-    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", get_version not supported，return 00.00.00.00!");
+    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", get_version not supported,return 00.00.00.00!");
     return "00.00.00.00";
 }
 

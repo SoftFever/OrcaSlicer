@@ -109,15 +109,18 @@ GuideFrame::~GuideFrame()
 
 void GuideFrame::load_url(wxString &url)
 {
-    BOOST_LOG_TRIVIAL(trace) << "app_start: GuideFrame url=" << url.ToStdString();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< " enter, url=" << url.ToStdString();
     this->Show();
     WebView::LoadUrl(m_browser, url);
     m_browser->SetFocus();
     UpdateState();
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< " exit";
 }
 
 wxString GuideFrame::SetStartPage(GuidePage startpage, bool load)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(" enter, load=%1%, start_page=%2%")%load%int(startpage);
     //wxLogMessage("GUIDE: webpage_1  %s", (boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string().c_str() );
     wxString TargetUrl = from_u8( (boost::filesystem::path(resources_dir()) / "web/guide/1/index.html").make_preferred().string() );
     //wxLogMessage("GUIDE: webpage_2  %s", TargetUrl.mb_str());
@@ -153,6 +156,7 @@ wxString GuideFrame::SetStartPage(GuidePage startpage, bool load)
     }
 
     std::string strlang = wxGetApp().app_config->get("language");
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(", strlang=%1%")%strlang;
     if (strlang != "")
         TargetUrl = wxString::Format("%s?lang=%s", w2s(TargetUrl), strlang);
 
@@ -160,6 +164,7 @@ wxString GuideFrame::SetStartPage(GuidePage startpage, bool load)
     if (load)
         load_url(TargetUrl);
 
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< " exit";
     return TargetUrl;
 }
 
@@ -353,8 +358,8 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             }
 
             this->EndModal(wxID_OK);
-  
-            if (InstallNetplugin) 
+
+            if (InstallNetplugin)
                 GUI::wxGetApp().CallAfter([this] { GUI::wxGetApp().ShowDownNetPluginDlg(); });
 
             if (bLogin)
@@ -365,7 +370,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             this->Close();
         } else if (strCmd == "save_region") {
             m_Region = j["region"];
-        } 
+        }
         else if (strCmd == "network_plugin_install") {
             std::string sAction = j["data"]["action"];
 
@@ -925,7 +930,7 @@ int GuideFrame::LoadProfile()
         //----region
         m_Region = wxGetApp().app_config->get("region");
         m_ProfileJson["region"] = m_Region;
-                                                                          
+
         m_ProfileJson["network_plugin_install"] = wxGetApp().app_config->get("app","installed_networking");
         m_ProfileJson["network_plugin_compability"] = wxGetApp().is_compatibility_version() ? "1" : "0";
     }
