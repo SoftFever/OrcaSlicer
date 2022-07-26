@@ -2133,7 +2133,6 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
         m_canvas->Bind(wxEVT_SET_FOCUS, &GLCanvas3D::on_set_focus, this);
-        m_canvas->Bind(wxEVT_KILL_FOCUS, &GLCanvas3D::on_kill_focus, this);
         m_event_handlers_bound = true;
     }
 }
@@ -2163,7 +2162,6 @@ void GLCanvas3D::unbind_event_handlers()
         m_canvas->Unbind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
         m_canvas->Unbind(wxEVT_SET_FOCUS, &GLCanvas3D::on_set_focus, this);
-        m_canvas->Unbind(wxEVT_KILL_FOCUS, &GLCanvas3D::on_kill_focus, this);
 
         m_event_handlers_bound = false;
     }
@@ -3484,17 +3482,12 @@ void GLCanvas3D::on_set_focus(wxFocusEvent& evt)
 {
     m_tooltip_enabled = false;
     if (m_canvas_type == ECanvasType::CanvasPreview) {
+        // update thumbnails and update plate toolbar
+        wxGetApp().plater()->update_platplate_thumbnails();
         _update_imgui_select_plate_toolbar();
     }
     _refresh_if_shown_on_screen();
     m_tooltip_enabled = true;
-}
-
-void GLCanvas3D::on_kill_focus(wxFocusEvent& evt)
-{
-    if (m_canvas_type == ECanvasType::CanvasView3D) {
-        wxGetApp().plater()->update_platplate_thumbnails();
-    }
 }
 
 Size GLCanvas3D::get_canvas_size() const

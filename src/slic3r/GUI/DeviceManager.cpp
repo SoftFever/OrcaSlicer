@@ -2360,6 +2360,8 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
                 if (plate_idx >= 0) {
                     plate_index = plate_idx;
                 } else {
+                    if (subtask_id.compare("0") == 0)
+                        return;
                     m_agent->get_task_plate_index(subtask_id, &plate_index);
                 }
 

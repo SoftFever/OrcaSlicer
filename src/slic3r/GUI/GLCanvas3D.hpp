@@ -767,7 +767,6 @@ public:
     void on_mouse(wxMouseEvent& evt);
     void on_paint(wxPaintEvent& evt);
     void on_set_focus(wxFocusEvent& evt);
-    void on_kill_focus(wxFocusEvent& evt);
 
     Size get_canvas_size() const;
     Vec2d get_local_mouse_position() const;
