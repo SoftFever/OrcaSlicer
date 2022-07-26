@@ -238,52 +238,52 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 #endif // _WIN32
 
     // BBS
-    wxAcceleratorEntry entries[13];
-    int index = 0;
-    entries[index++].Set(wxACCEL_CTRL, (int)'N', wxID_HIGHEST + wxID_NEW);
-    entries[index++].Set(wxACCEL_CTRL, (int)'O', wxID_HIGHEST + wxID_OPEN);
-    entries[index++].Set(wxACCEL_CTRL, (int)'S', wxID_HIGHEST + wxID_SAVE);
-    entries[index++].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int)'S', wxID_HIGHEST + wxID_SAVEAS);
-    entries[index++].Set(wxACCEL_CTRL, (int)'X', wxID_HIGHEST + wxID_CUT);
-    //entries[index++].Set(wxACCEL_CTRL, (int)'I', wxID_HIGHEST + wxID_ADD);
-    entries[index++].Set(wxACCEL_CTRL, (int)'A', wxID_HIGHEST + wxID_SELECTALL);
-    entries[index++].Set(wxACCEL_NORMAL, (int)27 /* escape */, wxID_HIGHEST + wxID_CANCEL);
-    entries[index++].Set(wxACCEL_CTRL, (int)'Z', wxID_HIGHEST + wxID_UNDO);
-    entries[index++].Set(wxACCEL_CTRL, (int)'Y', wxID_HIGHEST + wxID_REDO);
-    entries[index++].Set(wxACCEL_CTRL, (int)'C', wxID_HIGHEST + wxID_COPY);
-    entries[index++].Set(wxACCEL_CTRL, (int)'V', wxID_HIGHEST + wxID_PASTE);
-    entries[index++].Set(wxACCEL_CTRL, (int)'P', wxID_HIGHEST + wxID_PREFERENCES);
-    entries[index++].Set(wxACCEL_CTRL, (int)'I', wxID_HIGHEST + wxID_FILE6);
-    wxAcceleratorTable accel(sizeof(entries) / sizeof(entries[0]), entries);
-    SetAcceleratorTable(accel);
+    //wxAcceleratorEntry entries[13];
+    //int index = 0;
+    //entries[index++].Set(wxACCEL_CTRL, (int)'N', wxID_HIGHEST + wxID_NEW);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'O', wxID_HIGHEST + wxID_OPEN);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'S', wxID_HIGHEST + wxID_SAVE);
+    //entries[index++].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int)'S', wxID_HIGHEST + wxID_SAVEAS);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'X', wxID_HIGHEST + wxID_CUT);
+    ////entries[index++].Set(wxACCEL_CTRL, (int)'I', wxID_HIGHEST + wxID_ADD);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'A', wxID_HIGHEST + wxID_SELECTALL);
+    //entries[index++].Set(wxACCEL_NORMAL, (int)27 /* escape */, wxID_HIGHEST + wxID_CANCEL);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'Z', wxID_HIGHEST + wxID_UNDO);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'Y', wxID_HIGHEST + wxID_REDO);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'C', wxID_HIGHEST + wxID_COPY);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'V', wxID_HIGHEST + wxID_PASTE);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'P', wxID_HIGHEST + wxID_PREFERENCES);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'I', wxID_HIGHEST + wxID_FILE6);
+    //wxAcceleratorTable accel(sizeof(entries) / sizeof(entries[0]), entries);
+    //SetAcceleratorTable(accel);
 
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->new_project(); }, wxID_HIGHEST + wxID_NEW);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->load_project(); }, wxID_HIGHEST + wxID_OPEN);
-    // BBS: close save project
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(); }, wxID_HIGHEST + wxID_SAVE);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, wxID_HIGHEST + wxID_SAVEAS);
-    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, wxID_HIGHEST + wxID_ADD);
-    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->remove_selected(); }, wxID_HIGHEST + wxID_DELETE);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) {
-            if (!can_add_models())
-                return;
-            if (m_plater) {
-                m_plater->add_model();
-            }
-        }, wxID_HIGHEST + wxID_FILE6);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->select_all(); }, wxID_HIGHEST + wxID_SELECTALL);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->deselect_all(); }, wxID_HIGHEST + wxID_CANCEL);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) {
-        if (m_plater->is_view3D_shown())
-            m_plater->undo();
-        }, wxID_HIGHEST + wxID_UNDO);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) {
-        if (m_plater->is_view3D_shown())
-            m_plater->redo();
-        }, wxID_HIGHEST + wxID_REDO);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); }, wxID_HIGHEST + wxID_COPY);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); }, wxID_HIGHEST + wxID_PASTE);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->cut_selection_to_clipboard(); }, wxID_HIGHEST + wxID_CUT);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->new_project(); }, wxID_HIGHEST + wxID_NEW);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->load_project(); }, wxID_HIGHEST + wxID_OPEN);
+    //// BBS: close save project
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(); }, wxID_HIGHEST + wxID_SAVE);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, wxID_HIGHEST + wxID_SAVEAS);
+    ////Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, wxID_HIGHEST + wxID_ADD);
+    ////Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->remove_selected(); }, wxID_HIGHEST + wxID_DELETE);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) {
+    //        if (!can_add_models())
+    //            return;
+    //        if (m_plater) {
+    //            m_plater->add_model();
+    //        }
+    //    }, wxID_HIGHEST + wxID_FILE6);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->select_all(); }, wxID_HIGHEST + wxID_SELECTALL);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->deselect_all(); }, wxID_HIGHEST + wxID_CANCEL);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) {
+    //    if (m_plater->is_view3D_shown())
+    //        m_plater->undo();
+    //    }, wxID_HIGHEST + wxID_UNDO);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) {
+    //    if (m_plater->is_view3D_shown())
+    //        m_plater->redo();
+    //    }, wxID_HIGHEST + wxID_REDO);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); }, wxID_HIGHEST + wxID_COPY);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); }, wxID_HIGHEST + wxID_PASTE);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->cut_selection_to_clipboard(); }, wxID_HIGHEST + wxID_CUT);
     Bind(wxEVT_SIZE, [this](wxSizeEvent&) {
             BOOST_LOG_TRIVIAL(trace) << "mainframe: size changed, is maximized = " << this->IsMaximized();
             if (this->IsMaximized()) {
@@ -302,18 +302,18 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     });
     Bind(EVT_SYNC_CLOUD_PRESET, &MainFrame::on_select_default_preset, this);
 
-    Bind(wxEVT_MENU,
-        [this](wxCommandEvent&)
-        {
-            PreferencesDialog dlg(this);
-            dlg.ShowModal();
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-            if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
-#else
-            if (dlg.seq_top_layer_only_changed())
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-                plater()->refresh_print();
-        }, wxID_HIGHEST + wxID_PREFERENCES);
+//    Bind(wxEVT_MENU,
+//        [this](wxCommandEvent&)
+//        {
+//            PreferencesDialog dlg(this);
+//            dlg.ShowModal();
+//#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+//            if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
+//#else
+//            if (dlg.seq_top_layer_only_changed())
+//#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+//                plater()->refresh_print();
+//        }, wxID_HIGHEST + wxID_PREFERENCES);
 
 
     // set default tooltip timer in msec
@@ -474,6 +474,35 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             Slic3r::run_backup_ui_tasks();
             });
 ;    }
+
+    this->Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent &evt) {
+#ifdef __APPLE__
+        if (evt.CmdDown() && evt.GetKeyCode() == 'H') { this->Iconize(); return;}
+        if (evt.CmdDown() && evt.GetKeyCode() == 'Q') { wxPostEvent(this, wxCloseEvent(wxEVT_CLOSE_WINDOW)); return;}
+#endif
+        if (evt.CmdDown() && evt.GetKeyCode() == 'N') { m_plater->new_project(); return;}
+        if (evt.CmdDown() && evt.GetKeyCode() == 'O') { m_plater->load_project(); return;}
+        if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'S') { if (m_plater) m_plater->save_project(true); return;}
+        else if (evt.CmdDown() && evt.GetKeyCode() == 'S') { if (m_plater) m_plater->save_project(); return;}
+
+        if (evt.CmdDown() && evt.GetKeyCode() == 'P') {
+            PreferencesDialog dlg(this);
+            dlg.ShowModal();
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+            if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
+#else
+            if (dlg.seq_top_layer_only_changed())
+#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+                plater()->refresh_print();
+            return;
+        }
+        if (evt.CmdDown() && evt.GetKeyCode() == 'I') {
+            if (!can_add_models()) return;
+            if (m_plater) { m_plater->add_model(); }
+            return;
+        }
+        evt.Skip();
+    });
 }
 
 #ifdef __WIN32__

@@ -215,4 +215,16 @@ function BeginDownloadNetworkPlugin()
 	SendWXMessage( JSON.stringify(tSend) );		
 }
 
+function OutputKey(keyCode, isCtrlDown, isShiftDown, isCmdDown) {
+	var tSend = {};
+	tSend['sequence_id'] = Math.round(new Date() / 1000);
+	tSend['command'] = "get_web_shortcut";
+	tSend['key_event'] = {};
+	tSend['key_event']['key'] = keyCode;
+	tSend['key_event']['ctrl'] = isCtrlDown;
+	tSend['key_event']['shift'] = isShiftDown;
+	tSend['key_event']['cmd'] = isCmdDown;
+
+	SendWXMessage(JSON.stringify(tSend));
+}
 window.postMessage = HandleStudio;

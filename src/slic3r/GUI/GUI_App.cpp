@@ -2948,6 +2948,26 @@ std::string GUI_App::handle_web_request(std::string cmd)
             }
             else if (command_str.compare("begin_network_plugin_download") == 0) {
                 CallAfter([this] { wxGetApp().ShowDownNetPluginDlg(); });
+            } 
+            else if (command_str.compare("get_web_shortcut") == 0) {
+                if (root.get_child_optional("key_event") != boost::none) {
+                    pt::ptree key_event_node = root.get_child("key_event");
+                    auto keyCode = key_event_node.get<int>("key");
+                    auto ctrlKey = key_event_node.get<bool>("ctrl");
+                    auto shiftKey = key_event_node.get<bool>("shift");
+                    auto cmdKey = key_event_node.get<bool>("cmd");
+
+                    wxKeyEvent e(wxEVT_CHAR_HOOK);
+#ifdef __APPLE__
+                    e.SetControlDown(cmdKey);
+#else
+                    e.SetControlDown(ctrlKey);
+#endif
+                    e.SetShiftDown(shiftKey);
+                    e.m_keyCode = keyCode;
+                    e.SetEventObject(mainframe);
+                    wxPostEvent(mainframe, e);
+                }
             }
         }
     }
