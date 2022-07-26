@@ -98,7 +98,7 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
 
         if (m_world_coordinates) {
 			m_new_rotate_label_string = L("Rotate");
-			m_new_rotation = Vec3d::Zero();
+            m_new_rotation = volume->get_instance_rotation() * (180. / M_PI);
 			m_new_size     = selection.get_scaled_instance_bounding_box().size();
 			m_new_scale    = m_new_size.cwiseProduct(selection.get_unscaled_instance_bounding_box().size().cwiseInverse()) * 100.;
 		} 
