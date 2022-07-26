@@ -1107,6 +1107,9 @@ GUI_App::GUI_App()
 
 void GUI_App::shutdown()
 {
+    BOOST_LOG_TRIVIAL(info) << "shutdown";
+
+    if (m_is_recreating_gui) return;
     m_is_closing = true;
     stop_sync_user_preset();
 
