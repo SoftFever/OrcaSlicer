@@ -3096,7 +3096,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
     // Build missed extruder pages
     //for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx)
     auto extruder_idx = 0;
-    const wxString& page_name = wxString::Format("Extruder %d", int(extruder_idx + 1));
+    const wxString& page_name = (m_extruders_count > 1) ? wxString::Format("Extruder %d", int(extruder_idx + 1)) : wxString::Format("Extruder");
     bool page_exist = false;
     for (auto page_temp : m_pages) {
         if (page_temp->title() == page_name) {
