@@ -2134,6 +2134,11 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
         m_canvas->Bind(wxEVT_SET_FOCUS, &GLCanvas3D::on_set_focus, this);
         m_event_handlers_bound = true;
+        
+        m_canvas->Bind(wxEVT_GESTURE_PAN, &GLCanvas3D::on_gesture, this);
+        m_canvas->Bind(wxEVT_GESTURE_ZOOM, &GLCanvas3D::on_gesture, this);
+        m_canvas->Bind(wxEVT_GESTURE_ROTATE, &GLCanvas3D::on_gesture, this);
+        m_canvas->EnableTouchEvents(wxTOUCH_ZOOM_GESTURE | wxTOUCH_ROTATE_GESTURE);
     }
 }
 
@@ -2162,8 +2167,11 @@ void GLCanvas3D::unbind_event_handlers()
         m_canvas->Unbind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
         m_canvas->Unbind(wxEVT_SET_FOCUS, &GLCanvas3D::on_set_focus, this);
-
         m_event_handlers_bound = false;
+        
+        m_canvas->Unbind(wxEVT_GESTURE_PAN, &GLCanvas3D::on_gesture, this);
+        m_canvas->Unbind(wxEVT_GESTURE_ZOOM, &GLCanvas3D::on_gesture, this);
+        m_canvas->Unbind(wxEVT_GESTURE_ROTATE, &GLCanvas3D::on_gesture, this);
     }
 }
 
@@ -2932,6 +2940,37 @@ std::string format_mouse_event_debug_message(const wxMouseEvent &evt)
 	return out;
 }
 #endif /* SLIC3R_DEBUG_MOUSE_EVENTS */
+
+void GLCanvas3D::on_gesture(wxGestureEvent &evt)
+{
+    if (!m_initialized || !_set_current())
+        return;
+
+    auto & camera = wxGetApp().plater()->get_camera();
+    if (evt.GetEventType() == wxEVT_GESTURE_PAN) {
+        auto d = static_cast<wxPanGestureEvent&>(evt).GetDelta();
+        Vec3d delta{(double) d.x, (double) d.y, 0};
+        camera.set_target(camera.get_target() + delta);
+    } else if (evt.GetEventType() == wxEVT_GESTURE_ZOOM) {
+        static float zoom_start = 1;
+        if (evt.IsGestureStart())
+            zoom_start = camera.get_zoom();
+        camera.set_zoom(zoom_start * static_cast<wxZoomGestureEvent&>(evt).GetZoomFactor());
+    } else if (evt.GetEventType() == wxEVT_GESTURE_ROTATE) {
+        PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+        bool rotate_limit = current_printer_technology() != ptSLA;
+        static double last_rotate = 0;
+        if (evt.IsGestureStart())
+            last_rotate = 0;
+        auto rotate = static_cast<wxRotateGestureEvent&>(evt).GetRotationAngle() - last_rotate;
+        last_rotate += rotate;
+        if (plate)
+            camera.rotate_on_sphere_with_target(-rotate, 0, rotate_limit, plate->get_bounding_box().center());
+        else
+            camera.rotate_on_sphere(-rotate, 0, rotate_limit);
+    }
+    m_dirty = true;
+}
 
 void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 {

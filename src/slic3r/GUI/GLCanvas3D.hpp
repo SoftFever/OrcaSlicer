@@ -765,6 +765,7 @@ public:
     void on_timer(wxTimerEvent& evt);
     void on_render_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);
+    void on_gesture(wxGestureEvent& evt);
     void on_paint(wxPaintEvent& evt);
     void on_set_focus(wxFocusEvent& evt);
 
