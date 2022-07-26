@@ -1,0 +1,24 @@
+{
+    "type": "machine",
+    "name": "fdm_klipper_common",
+    "from": "system",
+    "instantiation": "false",
+    "inherits": "fdm_bbl_3dp_001_common",
+    "default_filament_profile": [
+        "Bambu PLA Basic @BBL X1C"
+    ],
+    "default_print_profile": "0.20mm Standard @Voron",
+    "nozzle_diameter": [
+        "0.4"
+    ],
+    "bed_exclude_area": [
+      "0x0"
+    ],
+    "machine_start_gcode": "PRINT_START EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer_single]",
+    "machine_end_gcode": "PRINT_END",
+    "layer_change_gcode": "",
+    "scan_first_layer": "0",
+    "nozzle_type": "hardened_steel",
+    "auxiliary_fan": "0"
+  }
+  
