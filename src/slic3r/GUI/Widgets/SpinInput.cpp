@@ -48,9 +48,10 @@ SpinInput::SpinInput(wxWindow *     parent,
     wxWindow::SetLabel(label);
     state_handler.attach({&border_color, &text_color, &background_color});
     state_handler.update_binds();
-    text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {20, 5}, wxDefaultSize,
+    text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {20, 4}, wxDefaultSize,
                                style | wxBORDER_NONE | wxTE_PROCESS_ENTER, wxTextValidator(wxFILTER_DIGITS));
     text_ctrl->SetFont(Label::Body_14);
+    text_ctrl->SetInitialSize(text_ctrl->GetBestSize());
     text_ctrl->Bind(wxEVT_SET_FOCUS, [this](auto &e) {
         e.SetId(GetId());
         ProcessEventLocally(e);
@@ -199,10 +200,7 @@ void SpinInput::messureSize()
 {
     wxSize size = GetSize();
     wxSize textSize = text_ctrl->GetSize();
-#ifdef __WXOSX__
-    textSize.y -= 3; // TODO:
-#endif
-    int h = textSize.y * 24 / 14;
+    int h = textSize.y + 8;
     if (size.y < h) {
         size.y = h;
         SetSize(size);
