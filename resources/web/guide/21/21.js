@@ -59,13 +59,17 @@ function HandleModelList( pVal )
 		//Add Vendor Html Node
 		if($(".OneVendorBlock[vendor='"+strVendor+"']").length==0)
 		{
+			let sVV=strVendor;
+			if( sVV=="BBL" )
+				sVV="Bambu Lab";
+			
 			let HtmlNewVendor='<div class="OneVendorBlock" Vendor="'+strVendor+'">'+
 '<div class="BlockBanner">'+
 '	<div class="BannerBtns">'+
 '		<div class="SmallBtn_Green trans" tid="t11" onClick="SelectPrinterAll('+"\'"+strVendor+"\'"+')">all</div>'+
 '		<div class="SmallBtn trans" tid="t12" onClick="SelectPrinterNone('+"\'"+strVendor+"\'"+')">none</div>'+
 '	</div>'+
-'	<a>Bambu Lab</a>'+
+'	<a>'+sVV+'</a>'+
 '</div>'+
 '<div class="PrinterArea">	'+
 '</div>'+
