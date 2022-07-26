@@ -1374,6 +1374,12 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "enable_prime_tower" || opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
         update_wiping_button_visibility();
 
+    //popup message dialog when first selected
+    if (opt_key == "timelapse_no_toolhead" && boost::any_cast<bool>(value))
+        show_timelapse_warning_dialog();
+    
+
+
     // BBS
 #if 0
     if (opt_key == "extruders_count")
@@ -1389,6 +1395,16 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     update();
     m_active_page->update_visibility(m_mode, true);
     m_page_view->GetParent()->Layout();
+}
+
+void Tab::show_timelapse_warning_dialog() {
+    if (!m_is_timelapse_wipe_tower_already_prompted) {
+        wxString      msg_text = _(L("When recording timelapse without toolhead, it is recommended to add a \"Timelapse Wipe Tower\" \n"
+                                "by right-click the empty position of build plate and choose \"Add Primitive\"->\"Timelapse Wipe Tower\".\n"));
+        MessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
+        dialog.ShowModal();
+        m_is_timelapse_wipe_tower_already_prompted = true;
+    }
 }
 
 // Show/hide the 'purging volumes' button
@@ -1502,7 +1518,6 @@ void Tab::apply_config_from_cache()
         update_dirty();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": exit, was_applied=%1%")%was_applied;
 }
-
 
 // Call a callback to update the selection of presets on the plater:
 // To update the content of the selection boxes,
