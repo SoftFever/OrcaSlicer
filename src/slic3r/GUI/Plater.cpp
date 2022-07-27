@@ -268,7 +268,7 @@ struct Sidebar::priv
 {
     Plater *plater;
 
-    wxScrolledWindow *scrolled;
+    wxPanel *scrolled;
     PlaterPresetComboBox *combo_print;
     std::vector<PlaterPresetComboBox*> combos_filament;
     int editing_filament = -1;
@@ -407,12 +407,12 @@ void Sidebar::priv::hide_rich_tip(wxButton* btn)
 Sidebar::Sidebar(Plater *parent)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(42 * wxGetApp().em_unit(), -1)), p(new priv(parent))
 {
-    p->scrolled = new wxScrolledWindow(this);
+    p->scrolled = new wxPanel(this);
 //    p->scrolled->SetScrollbars(0, 100, 1, 2); // ys_DELETE_after_testing. pixelsPerUnitY = 100
     // but this cause the bad layout of the sidebar, when all infoboxes appear.
     // As a result we can see the empty block at the bottom of the sidebar
     // But if we set this value to 5, layout will be better
-    p->scrolled->SetScrollRate(0, 5);
+    //p->scrolled->SetScrollRate(0, 5);
     p->scrolled->SetBackgroundColour(*wxWHITE);
 
 
@@ -724,7 +724,7 @@ Sidebar::Sidebar(Plater *parent)
     p->sizer_params = new wxBoxSizer(wxVERTICAL);
     p->m_object_list = new ObjectList(p->scrolled);
     p->sizer_params->Add(p->m_object_list, 1, wxEXPAND | wxTOP, 0);
-    scrolled_sizer->Add(p->sizer_params, 3, wxEXPAND | wxLEFT, 0);
+    scrolled_sizer->Add(p->sizer_params, 2, wxEXPAND | wxLEFT, 0);
     p->m_object_list->Hide();
 
     p->m_auxiliary_dialog = new AuxiliaryDialog(this);
@@ -737,7 +737,7 @@ Sidebar::Sidebar(Plater *parent)
 #else
     if (params_panel) {
         params_panel->Reparent(p->scrolled);
-        scrolled_sizer->Add(params_panel, 2, wxEXPAND);
+        scrolled_sizer->Add(params_panel, 3, wxEXPAND);
     }
 #endif
 
@@ -1202,7 +1202,7 @@ ObjectSettings* Sidebar::obj_settings()
     return p->object_settings;
 }
 
-wxScrolledWindow* Sidebar::scrolled_panel()
+wxPanel* Sidebar::scrolled_panel()
 {
     return p->scrolled;
 }

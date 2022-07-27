@@ -122,7 +122,7 @@ public:
 
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
-    wxScrolledWindow*       scrolled_panel();
+    wxPanel*                scrolled_panel();
     wxPanel* print_panel();
     wxPanel* filament_panel();
 

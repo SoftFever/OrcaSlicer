@@ -289,10 +289,14 @@ void ObjectList::update_min_height()
     wxDataViewItemArray all_items;
     m_objects_model->GetAllChildren(wxDataViewItem(nullptr), all_items);
     size_t items_cnt = all_items.Count();
+#if 0
     if (items_cnt < 7)
         items_cnt = 7;
     else if (items_cnt >= 15)
         items_cnt = 15;
+#else
+    items_cnt = 8;
+#endif
 
     if (m_items_count == items_cnt)
         return;
@@ -356,7 +360,7 @@ void ObjectList::create_objects_ctrl()
     bmp_choice_renderer->set_default_extruder_idx([this]() {
         return m_objects_model->GetDefaultExtruderIdx(GetSelection());
     });
-    AppendColumn(new wxDataViewColumn(_L(""), bmp_choice_renderer,
+    AppendColumn(new wxDataViewColumn(_L("Fila."), bmp_choice_renderer,
         colFilament, m_columns_width[colFilament] * em, wxALIGN_CENTER_HORIZONTAL, 0));
 
     // BBS
