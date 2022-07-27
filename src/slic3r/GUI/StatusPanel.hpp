@@ -17,6 +17,7 @@
 #include "MediaPlayCtrl.h"
 #include "AMSSetting.hpp"
 #include "Calibration.hpp"
+#include "PrintOptionsDialog.hpp"
 #include "AMSMaterialsSetting.hpp"
 #include "Widgets/SwitchButton.hpp"
 #include "Widgets/AxisCtrlButton.hpp"
@@ -172,6 +173,7 @@ protected:
     wxStaticText*   m_staticText_calibration_caption;
     wxStaticText*   m_staticText_calibration_caption_top;
     wxStaticText*   m_calibration_text;
+    Button*         m_options_btn;
     Button*         m_calibration_btn;
     StepIndicator*  m_calibration_flow;
 
@@ -220,6 +222,7 @@ public:
     void reset_temp_misc_control();
     int before_error_code = 0;
     wxBoxSizer *create_ams_group(wxWindow *parent);
+    wxBoxSizer *create_settings_group(wxWindow *parent);
 
     void show_ams_group(bool show = true);
     void upodate_camera_state(bool recording, bool timelapse, bool has_sdcard);
@@ -237,7 +240,8 @@ protected:
     std::shared_ptr<CameraPopup> m_camera_popup;
     std::vector<SliceInfoPanel *> slice_info_list;
     AMSSetting *m_ams_setting_dlg{nullptr};
-    CalibrationDialog*   calibration_dlg{nullptr};
+    PrintOptionsDialog*  print_options_dlg { nullptr };
+    CalibrationDialog*   calibration_dlg {nullptr};
     AMSMaterialsSetting *m_filament_setting_dlg{nullptr};
 
     wxString     m_request_url;
@@ -303,6 +307,9 @@ protected:
     void on_camera_leave(wxMouseEvent& event);
     void on_auto_leveling(wxCommandEvent &event);
     void on_xyz_abs(wxCommandEvent &event);
+
+    /* print options */
+    void on_show_print_options(wxCommandEvent &event);
 
     /* calibration */
     void on_start_calibration(wxCommandEvent &event);

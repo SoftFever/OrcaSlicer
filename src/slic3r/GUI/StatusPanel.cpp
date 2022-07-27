@@ -482,11 +482,19 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     m_staticText_control->SetFont(PAGE_TITLE_FONT);
     m_staticText_control->SetForegroundColour(PAGE_TITLE_FONT_COL);
 
-    m_calibration_btn = new Button(m_panel_control_title, _L("Start Calibration"));
     StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
     StateColor btn_bd_green(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Enabled));
 
+    m_options_btn = new Button(m_panel_control_title, _L("Print Options"));
+    m_options_btn->SetBackgroundColor(btn_bg_green);
+    m_options_btn->SetBorderColor(btn_bd_green);
+    m_options_btn->SetTextColor(*wxWHITE);
+    m_options_btn->SetSize(wxSize(FromDIP(128), FromDIP(26)));
+    m_options_btn->SetMinSize(wxSize(-1, FromDIP(26)));
+
+
+    m_calibration_btn = new Button(m_panel_control_title, _L("Calibration"));
     m_calibration_btn->SetBackgroundColor(btn_bg_green);
     m_calibration_btn->SetBorderColor(btn_bd_green);
     m_calibration_btn->SetTextColor(*wxWHITE);
@@ -495,6 +503,7 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
 
     bSizer_control_title->Add(m_staticText_control, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, PAGE_TITLE_LEFT_MARGIN);
     bSizer_control_title->Add(0, 0, 1, wxEXPAND, 0);
+    bSizer_control_title->Add(m_options_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
     bSizer_control_title->Add(m_calibration_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
 
     m_panel_control_title->SetSizer(bSizer_control_title);
@@ -975,6 +984,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
         }
     });
 
+
     // Connect Events
     //m_bitmap_thumbnail->Connect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_enter), NULL, this);
     //m_bitmap_thumbnail->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
@@ -1009,6 +1019,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
 
     m_switch_speed->Connect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_switch_speed), NULL, this);
     m_calibration_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_calibration), NULL, this);
+    m_options_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_print_options), NULL, this);
 }
 
 StatusPanel::~StatusPanel()
@@ -1036,6 +1047,7 @@ StatusPanel::~StatusPanel()
     m_bpButton_e_down_10->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_e_down_10), NULL, this);
     m_switch_speed->Disconnect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_switch_speed), NULL, this);
     m_calibration_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_calibration), NULL, this);
+    m_options_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_print_options), NULL, this);
     m_button_unload->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_unload), NULL, this);
 }
 
@@ -1205,6 +1217,7 @@ void StatusPanel::update(MachineObject *obj)
     update_ams(obj);
 
     update_cali(obj);
+
     if (obj) {
         if (calibration_dlg == nullptr) {
             calibration_dlg = new CalibrationDialog();
@@ -1214,6 +1227,14 @@ void StatusPanel::update(MachineObject *obj)
         }
         calibration_dlg->update_cali(obj);
 
+        if (print_options_dlg == nullptr) {
+            print_options_dlg = new PrintOptionsDialog(this);
+            print_options_dlg->update_machine_obj(obj);
+        } else {
+            print_options_dlg->update_machine_obj(obj);
+        }
+        print_options_dlg->update_options(obj);
+      
         update_error_message();
     }
 
@@ -1582,7 +1603,7 @@ void StatusPanel::update_cali(MachineObject *obj)
         }
     } else {
         // IDLE
-        m_calibration_btn->SetLabel(_L("Start Calibration"));
+        m_calibration_btn->SetLabel(_L("Calibration"));
         // disable in printing
         if (obj->is_in_printing()) {
             m_calibration_btn->Disable();
@@ -2145,6 +2166,21 @@ void StatusPanel::on_xyz_abs(wxCommandEvent &event)
     if (obj) obj->command_xyz_abs();
 }
 
+void StatusPanel::on_show_print_options(wxCommandEvent &event)
+{
+    if (obj) {
+        if (print_options_dlg == nullptr) {
+            print_options_dlg = new PrintOptionsDialog(this);
+            print_options_dlg->update_machine_obj(obj);
+            print_options_dlg->ShowModal();
+        }
+        else {
+            print_options_dlg->update_machine_obj(obj);
+            print_options_dlg->ShowModal();
+        }
+    }
+}
+
 void StatusPanel::on_start_calibration(wxCommandEvent &event)
 {
     if (obj) {
@@ -2209,9 +2245,11 @@ void StatusPanel::show_status(int status)
         m_text_tasklist_caption->SetForegroundColour(DISCONNECT_TEXT_COL);
         show_printing_status(false, false);
         m_calibration_btn->Disable();
+        m_options_btn->Disable();
     } else if ((status & (int) MonitorStatus::MONITOR_NORMAL) != 0) {
         show_printing_status(true, true);
         m_calibration_btn->Disable();
+        m_options_btn->Enable();
     }
 }
 
@@ -2288,6 +2326,9 @@ void StatusPanel::msw_rescale()
 
     m_calibration_btn->SetMinSize(wxSize(-1, FromDIP(26)));
     m_calibration_btn->Rescale();
+
+    m_options_btn->SetMinSize(wxSize(-1, FromDIP(26)));
+    m_options_btn->Rescale();
 
     Layout();
     Refresh();

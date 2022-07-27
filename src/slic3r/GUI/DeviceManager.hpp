@@ -21,6 +21,8 @@
 #define FILAMENT_DEF_TEMP       220
 #define FILAMENT_MIN_TEMP       120
 
+#define HOLD_COUNT_MAX          3
+
 inline int correct_filament_temperature(int filament_temp)
 {
     int temp = std::min(filament_temp, FILAMENT_MAX_TEMP);
@@ -159,7 +161,7 @@ public:
     AmsStep         step_state;
     AmsRfidState    rfid_state;
 
-    void set_hold_count() { hold_count = 3; }
+    void set_hold_count() { hold_count = HOLD_COUNT_MAX; }
     void update_color_from_str(std::string color);
     wxColour get_color();
 
@@ -453,6 +455,11 @@ public:
     bool camera_recording { false };
     bool camera_timelapse { false };
     bool camera_has_sdcard { false };
+    bool xcam_first_layer_inspector { false };
+    int  xcam_first_layer_hold_count = 0;
+    bool xcam_spaghetti_detector { false };
+    bool xcam_spaghetti_print_halt{ false };
+    int  xcam_spaghetti_hold_count = 0;
 
     /* HMS */
     std::vector<HMSItem>    hms_list;
@@ -526,6 +533,9 @@ public:
     // camera control
     int command_ipcam_record(bool on_off);
     int command_ipcam_timelapse(bool on_off);
+    int command_xcam_control(std::string module_name, bool on_off, bool print_halt);
+    int command_xcam_control_first_layer_inspector(bool on_off, bool print_halt);
+    int command_xcam_control_spaghetti_detector(bool on_off, bool print_halt);
 
     /* common apis */
     inline bool is_local() { return !dev_ip.empty(); }

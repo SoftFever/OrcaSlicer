@@ -1388,6 +1388,31 @@ int MachineObject::command_ipcam_timelapse(bool on_off)
     return this->publish_json(j.dump());
 }
 
+int MachineObject::command_xcam_control(std::string module_name, bool on_off, bool print_halt)
+{
+    json j;
+    j["xcam"]["command"] = "xcam_control_set";
+    j["xcam"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["xcam"]["module_name"] = module_name;
+    j["xcam"]["control"] = on_off;
+    j["xcam"]["print_halt"] = print_halt;
+    return this->publish_json(j.dump());
+}
+
+int MachineObject::command_xcam_control_first_layer_inspector(bool on_off, bool print_halt)
+{
+    xcam_first_layer_inspector = on_off;
+    xcam_first_layer_hold_count = HOLD_COUNT_MAX;
+    return command_xcam_control("first_layer_inspector", on_off, print_halt);
+}
+
+int MachineObject::command_xcam_control_spaghetti_detector(bool on_off, bool print_halt)
+{
+    xcam_spaghetti_detector = on_off;
+    xcam_spaghetti_print_halt = print_halt;
+    xcam_spaghetti_hold_count = HOLD_COUNT_MAX;
+    return command_xcam_control("spaghetti_detector", on_off, print_halt);
+}
 
 void MachineObject::set_bind_status(std::string status)
 {
@@ -1973,6 +1998,32 @@ int MachineObject::parse_json(std::string payload)
                     catch (...) {
                         ;
                     }
+
+                    try {
+                        if (jj.contains("xcam")) {
+                            if (xcam_first_layer_hold_count > 0)
+                                xcam_first_layer_hold_count--;
+                            else {
+                                if (jj["xcam"].contains("first_layer_inspector")) {
+                                    xcam_first_layer_inspector = jj["xcam"]["first_layer_inspector"].get<bool>();
+                                }
+                            }
+
+                            if (xcam_spaghetti_hold_count > 0) {
+                                xcam_spaghetti_hold_count--;
+                            } else {
+                                if (jj["xcam"].contains("spaghetti_detector")) {
+                                    xcam_spaghetti_detector = jj["xcam"]["spaghetti_detector"].get<bool>();
+                                }
+                                if (jj["xcam"].contains("print_halt")) {
+                                        xcam_spaghetti_print_halt = jj["xcam"]["print_halt"].get<bool>();
+                                }
+                            }
+                        }
+                    }
+                    catch (...) {
+                        ;
+                    }
 #pragma endregion
 
 #pragma region hms
@@ -2247,6 +2298,18 @@ int MachineObject::parse_json(std::string payload)
                             }
                         } else {
                             BOOST_LOG_TRIVIAL(warning) << "ams_filament_setting, can not find in amsList, ams_id=" << ams_id;
+                        }
+                    }
+                } else if (jj["command"].get<std::string>() == "xcam_control_set") {
+                    if (jj.contains("module_name") && jj.contains("control")) {
+                        if (jj["module_name"].get<std::string>() == "first_layer_inspector") {
+                            xcam_first_layer_inspector = jj["control"].get<bool>();
+                            xcam_first_layer_hold_count = HOLD_COUNT_MAX;
+                        } else if (jj["module_name"].get<std::string>() == "spaghetti_detector") {
+                            xcam_spaghetti_detector = jj["control"].get<bool>();
+                            xcam_spaghetti_hold_count = HOLD_COUNT_MAX;
+                            if (jj.contains("print_halt"))
+                                xcam_spaghetti_print_halt = jj["print_halt"].get<bool>();
                         }
                     }
                 }
