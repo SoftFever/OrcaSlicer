@@ -24,32 +24,46 @@ END_EVENT_TABLE()
  * calling Refresh()/Update().
  */
 
-SpinInput::SpinInput(wxWindow *     parent,
+SpinInput::SpinInput()
+    : state_handler(this)
+    , border_color(std::make_pair(0xDBDBDB, (int) StateColor::Disabled),
+                   std::make_pair(0x00AE42, (int) StateColor::Focused),
+                   std::make_pair(0x00AE42, (int) StateColor::Hovered),
+                   std::make_pair(0xDBDBDB, (int) StateColor::Normal))
+    , text_color(std::make_pair(0xACACAC, (int) StateColor::Disabled), std::make_pair(*wxBLACK, (int) StateColor::Normal))
+    , background_color(std::make_pair(0xF0F0F0, (int) StateColor::Disabled), std::make_pair(*wxWHITE, (int) StateColor::Normal))
+{
+    hover  = false;
+    radius = 0;
+}
+
+
+SpinInput::SpinInput(wxWindow *parent,
                      wxString       text,
                      wxString       label,
                      const wxPoint &pos,
                      const wxSize & size,
                      long           style,
                      int min, int max, int initial)
-    : wxWindow(parent, wxID_ANY, pos, size)
-    , state_handler(this)
-    , border_color(std::make_pair(0xDBDBDB, (int) StateColor::Disabled),
-                   std::make_pair(0x00AE42, (int) StateColor::Focused),
-                   std::make_pair(0x00AE42, (int) StateColor::Hovered),
-                   std::make_pair(0xDBDBDB, (int) StateColor::Normal))
-    , text_color(std::make_pair(0xACACAC, (int) StateColor::Disabled),
-                 std::make_pair(*wxBLACK, (int) StateColor::Normal))
-    , background_color(std::make_pair(0xF0F0F0, (int) StateColor::Disabled),
-                       std::make_pair(*wxWHITE, (int) StateColor::Normal))
+    : SpinInput()
 {
-    hover = false;
-    radius = 0;
+    Create(parent, text, label, pos, size, style, min, max, initial);
+}
+
+void SpinInput::Create(wxWindow *parent, 
+                     wxString       text,
+                     wxString       label,
+                     const wxPoint &pos,
+                     const wxSize & size,
+                     long           style,
+                     int min, int max, int initial)
+{
+    wxWindow::Create(parent, wxID_ANY, pos, size);
     SetFont(Label::Body_12);
     wxWindow::SetLabel(label);
     state_handler.attach({&border_color, &text_color, &background_color});
     state_handler.update_binds();
-    text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {20, 4}, wxDefaultSize,
-                               style | wxBORDER_NONE | wxTE_PROCESS_ENTER, wxTextValidator(wxFILTER_DIGITS));
+    text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {20, 4}, wxDefaultSize, style | wxBORDER_NONE | wxTE_PROCESS_ENTER, wxTextValidator(wxFILTER_DIGITS));
     text_ctrl->SetFont(Label::Body_14);
     text_ctrl->SetInitialSize(text_ctrl->GetBestSize());
     text_ctrl->Bind(wxEVT_SET_FOCUS, [this](auto &e) {
@@ -74,8 +88,7 @@ SpinInput::SpinInput(wxWindow *     parent,
     timer.Bind(wxEVT_TIMER, &SpinInput::onTimer, this);
 
     long initialFromText;
-    if ( text.ToLong(&initialFromText) )
-        initial = initialFromText;
+    if (text.ToLong(&initialFromText)) initial = initialFromText;
     SetRange(min, max);
     SetValue(initial);
     messureSize();

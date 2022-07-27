@@ -7,7 +7,7 @@
 
 class Button;
 
-class SpinInput : public wxWindow
+class SpinInput : public wxNavigationEnabled<wxWindow>
 {
 
     bool hover;
@@ -31,6 +31,8 @@ class SpinInput : public wxWindow
     static const int SpinInputHeight = 50;
 
 public:
+    SpinInput();
+
     SpinInput(wxWindow *     parent,
               wxString       text,
               wxString       label = "",
@@ -38,6 +40,16 @@ public:
               const wxSize & size  = wxDefaultSize,
               long           style = 0,
               int min = 0, int max = 100, int initial = 0);
+
+    void Create(wxWindow *     parent,
+              wxString       text,
+              wxString       label   = "",
+              const wxPoint &pos     = wxDefaultPosition,
+              const wxSize & size    = wxDefaultSize,
+              long           style   = 0,
+              int            min     = 0,
+              int            max     = 100,
+              int            initial = 0);
 
     void SetCornerRadius(double radius);
 

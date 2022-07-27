@@ -61,7 +61,6 @@ void TextInput::Create(wxWindow *     parent,
 {
     text_ctrl = nullptr;
     wxWindow::Create(parent, wxID_ANY, pos, size, style);
-        
     wxWindow::SetLabel(label);
     style &= ~wxRIGHT;
     state_handler.attach({&border_color, &text_color, &background_color});
@@ -246,6 +245,9 @@ void TextInput::messureSize()
     wxClientDC dc(this);
     labelSize = dc.GetTextExtent(wxWindow::GetLabel());
     wxSize textSize = text_ctrl->GetSize();
+#ifdef __WXOSX__
+    textSize.y -= 3; // TODO:
+#endif
     int h = textSize.y + 8;
     if (size.y < h) {
         size.y = h;

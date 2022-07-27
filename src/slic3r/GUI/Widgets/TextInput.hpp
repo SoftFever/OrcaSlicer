@@ -5,7 +5,7 @@
 #include "../wxExtensions.hpp"
 #include "StateHandler.hpp"
 
-class TextInput : public wxWindow
+class TextInput : public wxNavigationEnabled<wxWindow>
 {
 
     bool hover;
