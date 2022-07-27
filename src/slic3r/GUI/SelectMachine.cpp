@@ -102,15 +102,15 @@ MachineObjectPanel::MachineObjectPanel(wxWindow *parent, wxWindowID id, const wx
 
     SetBackgroundColour(*wxWHITE);
 
-    m_unbind_img        = create_scaled_bitmap("unbind", nullptr, 18);
-    m_edit_name_img     = create_scaled_bitmap("edit_button", nullptr, 18);
-    m_select_unbind_img = create_scaled_bitmap("unbind_selected", nullptr, 18);
+    m_unbind_img        = ScalableBitmap(this, "unbind", 18);
+    m_edit_name_img     = ScalableBitmap(this, "edit_button", 18);
+    m_select_unbind_img = ScalableBitmap(this, "unbind_selected", 18);
 
-    m_printer_status_offline = create_scaled_bitmap("printer_status_offline", nullptr, 12);
-    m_printer_status_busy    = create_scaled_bitmap("printer_status_busy", nullptr, 12);
-    m_printer_status_idle    = create_scaled_bitmap("printer_status_idle", nullptr, 12);
-    m_printer_status_lock    = create_scaled_bitmap("printer_status_lock", nullptr, 16);
-    m_printer_in_lan         = create_scaled_bitmap("printer_in_lan", nullptr, 16);
+    m_printer_status_offline = ScalableBitmap(this, "printer_status_offline", 12);
+    m_printer_status_busy    = ScalableBitmap(this, "printer_status_busy", 12);
+    m_printer_status_idle    = ScalableBitmap(this, "printer_status_idle", 12);
+    m_printer_status_lock    = ScalableBitmap(this, "printer_status_lock", 16);
+    m_printer_in_lan         = ScalableBitmap(this, "printer_in_lan", 16);
 
     this->Bind(wxEVT_ENTER_WINDOW, &MachineObjectPanel::on_mouse_enter, this);
     this->Bind(wxEVT_LEAVE_WINDOW, &MachineObjectPanel::on_mouse_leave, this);
@@ -188,9 +188,9 @@ void MachineObjectPanel::doRender(wxDC &dc)
     if (m_state == PrinterState::IN_LAN) { dwbitmap = m_printer_in_lan; }
 
     // dc.DrawCircle(left, size.y / 2, 3);
-    dc.DrawBitmap(dwbitmap, wxPoint(left, (size.y - dwbitmap.GetSize().y) / 2));
+    dc.DrawBitmap(dwbitmap.bmp(), wxPoint(left, (size.y - dwbitmap.GetBmpSize().y) / 2));
 
-    left += dwbitmap.GetSize().x + 8;
+    left += dwbitmap.GetBmpSize().x + 8;
     dc.SetFont(Label::Body_13);
     dc.SetBackgroundMode(wxTRANSPARENT);
     dc.SetTextForeground(SELECT_MACHINE_GREY900);
@@ -199,7 +199,7 @@ void MachineObjectPanel::doRender(wxDC &dc)
         dev_name = from_u8(m_info->dev_name);
     }
     auto        sizet        = dc.GetTextExtent(dev_name);
-    auto        text_end     = size.x - m_unbind_img.GetSize().x - 30;
+    auto        text_end     = size.x - m_unbind_img.GetBmpSize().x - 30;
     wxString finally_name =  dev_name;
     if (sizet.x > (text_end - left)) {
         auto limit_width = text_end - left - dc.GetTextExtent("...").x - 15;
@@ -221,13 +221,14 @@ void MachineObjectPanel::doRender(wxDC &dc)
 
         if (m_show_bind) {
             if (m_bind_state == ALLOW_UNBIND) { 
-                left = size.x - m_unbind_img.GetSize().x - 6;
-                dc.DrawBitmap(m_select_unbind_img, left, (size.y - m_unbind_img.GetSize().y) / 2); } 
+                left = size.x - m_unbind_img.GetBmpSize().x - 6;
+                dc.DrawBitmap(m_select_unbind_img.bmp(), left, (size.y - m_unbind_img.GetBmpSize().y) / 2);
+            } 
         }
 
         if (m_show_edit) {
-            left = size.x - m_unbind_img.GetSize().x - 6 - m_edit_name_img.GetSize().x - 6;
-            dc.DrawBitmap(m_edit_name_img, left, (size.y - m_edit_name_img.GetSize().y) / 2);
+            left = size.x - m_unbind_img.GetBmpSize().x - 6 - m_edit_name_img.GetBmpSize().x - 6;
+            dc.DrawBitmap(m_edit_name_img.bmp(), left, (size.y - m_edit_name_img.GetBmpSize().y) / 2);
         }
     }
 }
@@ -256,10 +257,10 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
     if (m_is_my_devices) {
         // show edit
         if (m_show_edit) {
-            auto edit_left   = GetSize().x - m_unbind_img.GetSize().x - 6 - m_edit_name_img.GetSize().x - 6;
-            auto edit_right  = edit_left + m_edit_name_img.GetSize().x;
-            auto edit_top    = (GetSize().y - m_edit_name_img.GetSize().y) / 2;
-            auto edit_bottom = (GetSize().y - m_edit_name_img.GetSize().y) / 2 + m_edit_name_img.GetSize().y;
+            auto edit_left   = GetSize().x - m_unbind_img.GetBmpSize().x - 6 - m_edit_name_img.GetBmpSize().x - 6;
+            auto edit_right  = edit_left + m_edit_name_img.GetBmpSize().x;
+            auto edit_top    = (GetSize().y - m_edit_name_img.GetBmpSize().y) / 2;
+            auto edit_bottom = (GetSize().y - m_edit_name_img.GetBmpSize().y) / 2 + m_edit_name_img.GetBmpSize().y;
             if ((evt.GetPosition().x >= edit_left && evt.GetPosition().x <= edit_right) && evt.GetPosition().y >= edit_top && evt.GetPosition().y <= edit_bottom) {
                 wxCommandEvent event(EVT_EDIT_PRINT_NAME);
                 event.SetEventObject(this);
@@ -268,10 +269,10 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
             }
         }
         if (m_show_bind) {
-            auto left   = GetSize().x - m_unbind_img.GetSize().x - 6;
-            auto right  = left + m_unbind_img.GetSize().x;
-            auto top    = (GetSize().y - m_unbind_img.GetSize().y) / 2;
-            auto bottom = (GetSize().y - m_unbind_img.GetSize().y) / 2 + m_unbind_img.GetSize().y;
+            auto left   = GetSize().x - m_unbind_img.GetBmpSize().x - 6;
+            auto right  = left + m_unbind_img.GetBmpSize().x;
+            auto top    = (GetSize().y - m_unbind_img.GetBmpSize().y) / 2;
+            auto bottom = (GetSize().y - m_unbind_img.GetBmpSize().y) / 2 + m_unbind_img.GetBmpSize().y;
 
             if ((evt.GetPosition().x >= left && evt.GetPosition().x <= right) && evt.GetPosition().y >= top && evt.GetPosition().y <= bottom) {
                 wxCommandEvent event(EVT_UNBIND_MACHINE, GetId());

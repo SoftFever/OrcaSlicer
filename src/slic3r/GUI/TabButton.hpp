@@ -9,7 +9,7 @@ class TabButton : public StaticBox
     wxSize   textSize;
     wxSize   minSize;
     wxSize   paddingSize;
-    wxBitmap icon;
+    ScalableBitmap icon;
 
     StateColor   text_color;
     StateColor   border_color;
@@ -18,9 +18,9 @@ class TabButton : public StaticBox
 public:
     TabButton();
 
-    TabButton(wxWindow *parent, wxString text, wxBitmap &icon, long style = 0, int iconSize = 0);
+    TabButton(wxWindow *parent, wxString text, ScalableBitmap &icon, long style = 0, int iconSize = 0);
 
-    bool Create(wxWindow *parent, wxString text, wxBitmap &icon, long style = 0, int iconSize = 0);
+    bool Create(wxWindow *parent, wxString text, ScalableBitmap &icon, long style = 0, int iconSize = 0);
 
     void SetLabel(const wxString& label) override;
 
@@ -34,7 +34,7 @@ public:
 
     void SetBGColor(StateColor const &color);
 
-    void SetBitmap(wxBitmap &bitmap);
+    void SetBitmap(ScalableBitmap &bitmap);
 
     bool Enable(bool enable = true);
 

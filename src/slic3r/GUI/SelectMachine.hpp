@@ -114,20 +114,19 @@ private:
     PrinterBindState   m_bind_state;
     PrinterState       m_state;
 
-    wxBitmap    m_unbind_img;
-    wxBitmap    m_edit_name_img;
-    wxBitmap    m_select_unbind_img;
+    ScalableBitmap m_unbind_img;
+    ScalableBitmap m_edit_name_img;
+    ScalableBitmap m_select_unbind_img;
 
-    wxBitmap m_printer_status_offline;
-    wxBitmap m_printer_status_busy;
-    wxBitmap m_printer_status_idle;
-    wxBitmap m_printer_status_lock;
-    wxBitmap m_printer_in_lan;
+    ScalableBitmap m_printer_status_offline;
+    ScalableBitmap m_printer_status_busy;
+    ScalableBitmap m_printer_status_idle;
+    ScalableBitmap m_printer_status_lock;
+    ScalableBitmap m_printer_in_lan;
 
     MachineObject *m_info;
 
 protected:
-    wxBitmap        m_bitmap_type;
     wxStaticBitmap *m_bitmap_info;
     wxStaticBitmap *m_bitmap_bind;
 

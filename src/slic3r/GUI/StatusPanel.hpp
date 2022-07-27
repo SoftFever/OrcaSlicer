@@ -70,13 +70,13 @@ protected:
     wxBitmap m_bitmap_item_prediction;
     wxBitmap m_bitmap_item_cost;
     wxBitmap m_bitmap_item_print;
-    wxBitmap m_bitmap_speed;
-    wxBitmap m_bitmap_speed_active;
-    wxBitmap m_bitmap_axis_home;
-    wxBitmap m_bitmap_lamp_on;
-    wxBitmap m_bitmap_lamp_off;
-    wxBitmap m_bitmap_fan_on;
-    wxBitmap m_bitmap_fan_off;
+    ScalableBitmap m_bitmap_speed;
+    ScalableBitmap m_bitmap_speed_active;
+    ScalableBitmap m_bitmap_axis_home;
+    ScalableBitmap m_bitmap_lamp_on;
+    ScalableBitmap m_bitmap_lamp_off;
+    ScalableBitmap m_bitmap_fan_on;
+    ScalableBitmap m_bitmap_fan_off;
     wxBitmap m_bitmap_extruder;
 
     CameraRecordingStatus m_state_recording{CameraRecordingStatus::RECORDING_NONE};

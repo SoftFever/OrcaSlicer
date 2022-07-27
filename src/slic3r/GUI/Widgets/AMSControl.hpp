@@ -160,9 +160,9 @@ protected:
 
     bool             m_play_loading = {false};
     bool             m_selected      = {false};
-    wxBitmap         m_bitmap_rotation;
-    wxBitmap         m_bitmap_normal;
-    wxBitmap         m_bitmap_selected;
+    ScalableBitmap   m_bitmap_rotation;
+    ScalableBitmap   m_bitmap_normal;
+    ScalableBitmap   m_bitmap_selected;
     wxString         m_text;
     wxBoxSizer *     m_size_body;
     virtual void     DoSetSize(int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
@@ -182,7 +182,7 @@ public:
 	void            render(wxDC &dc);
     bool            m_turn_on = {false};
     wxColour        m_colour;
-    wxBitmap        m_ams_extruder;
+    ScalableBitmap  m_ams_extruder;
     void            doRender(wxDC &dc);
     AMSextruderImage(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     ~AMSextruderImage();
@@ -200,7 +200,7 @@ public:
     wxBoxSizer *    m_bitmap_sizer{nullptr};
     wxPanel *       m_bitmap_panel{nullptr};
     AMSextruderImage *m_amsSextruder{nullptr};
-    wxBitmap        monitor_ams_extruder;
+    ScalableBitmap        monitor_ams_extruder;
     AMSextruder(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     ~AMSextruder();
 };
@@ -228,8 +228,8 @@ public:
 protected:
     wxStaticBitmap *m_edit_bitmp       = {nullptr};
     wxStaticBitmap *m_edit_bitmp_light = {nullptr};
-    wxBitmap        m_bitmap_editable;
-    wxBitmap        m_bitmap_editable_lifht;
+    ScalableBitmap  m_bitmap_editable;
+    ScalableBitmap  m_bitmap_editable_lifht;
     bool            m_unable_selected = {false};
     bool            m_enable          = {false};
     bool            m_selected        = {false};

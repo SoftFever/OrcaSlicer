@@ -12,10 +12,10 @@
 class ImageSwitchButton : public StaticBox
 {
 public:
-    ImageSwitchButton(wxWindow *parent, wxBitmap &img_on, wxBitmap &img_off, long style = 0);
+    ImageSwitchButton(wxWindow *parent, ScalableBitmap &img_on, ScalableBitmap &img_off, long style = 0);
 
 	void SetLabels(wxString const & lbl_on, wxString const & lbl_off);
-	void SetImages(wxBitmap &img_on, wxBitmap &img_off);
+    void SetImages(ScalableBitmap &img_on, ScalableBitmap &img_off);
     void SetTextColor(StateColor const &color);
 	void SetBorderColor(StateColor const &color);
 	void SetBgColor(StateColor const &color);
@@ -38,8 +38,8 @@ private:
 	DECLARE_EVENT_TABLE()
 
 private:
-    wxBitmap	   m_on;
-    wxBitmap       m_off;
+    ScalableBitmap m_on;
+    ScalableBitmap m_off;
     bool           m_on_off;
 	int            m_padding;	// size between icon and text
     bool           pressedDown = false;

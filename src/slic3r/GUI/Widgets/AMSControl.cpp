@@ -133,8 +133,8 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
     Bind(wxEVT_LEAVE_WINDOW, &AMSrefresh::OnLeaveWindow, this);
     Bind(wxEVT_LEFT_DOWN, &AMSrefresh::OnClick, this);
 
-    m_bitmap_normal   = create_scaled_bitmap("ams_refresh_normal", this, 26);
-    m_bitmap_selected = create_scaled_bitmap("ams_refresh_selected", this, 26);
+    m_bitmap_normal   = ScalableBitmap(this, "ams_refresh_normal", 26);
+    m_bitmap_selected = ScalableBitmap(this, "ams_refresh_selected", 26);
 
   /*  m_animationCtrl = new wxAnimationCtrl(this, wxID_ANY, wxNullAnimation, wxDefaultPosition, AMS_REFRESH_SIZE);
     auto path = (boost::format("%1%/images/refresh.gif") % resources_dir()).str();
@@ -213,17 +213,18 @@ void AMSrefresh::paintEvent(wxPaintEvent &evt)
     auto colour = AMS_CONTROL_GRAY700;
     if (!wxWindow::IsEnabled()) { colour = AMS_CONTROL_GRAY500; }
 
-    auto pot = wxPoint((size.x - m_bitmap_selected.GetSize().x) / 2, (size.y - m_bitmap_selected.GetSize().y) / 2);
+    auto pot = wxPoint((size.x - m_bitmap_selected.GetBmpSize().x) / 2, (size.y - m_bitmap_selected.GetBmpSize().y) / 2);
 
     if (!m_play_loading) {
-        dc.DrawBitmap(m_selected ? m_bitmap_selected : m_bitmap_normal, pot);
+        dc.DrawBitmap(m_selected ? m_bitmap_selected.bmp() : m_bitmap_normal.bmp(), pot);
     } else {
-        m_bitmap_rotation   = create_scaled_bitmap("ams_refresh_normal", this, 26);
-        auto image        = m_bitmap_rotation.ConvertToImage();
+        m_bitmap_rotation   = ScalableBitmap(this, "ams_refresh_normal", 26);
+        auto image        = m_bitmap_rotation.bmp().ConvertToImage();
         wxPoint offset;
         auto loading_img  = image.Rotate(m_rotation_angle, wxPoint(image.GetWidth() / 2, image.GetHeight() / 2), true, &offset);
-        auto loading_bitmap = wxBitmap(loading_img);
-        dc.DrawBitmap( loading_bitmap, offset.x , offset.y);
+        ScalableBitmap loading_bitmap;
+        loading_bitmap.bmp() = wxBitmap(loading_img);
+        dc.DrawBitmap(loading_bitmap.bmp(), offset.x , offset.y);
     }
 
     dc.SetPen(wxPen(colour));
@@ -246,8 +247,8 @@ void AMSrefresh::msw_rescale() { }
 void AMSrefresh::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
-    m_bitmap_normal   = create_scaled_bitmap("ams_refresh_normal", this, 26);
-    m_bitmap_selected = create_scaled_bitmap("ams_refresh_selected", this, 26);
+    m_bitmap_normal   = ScalableBitmap(this, "ams_refresh_normal", 26);
+    m_bitmap_selected = ScalableBitmap(this, "ams_refresh_selected", 26);
 }
 
 /*************************************************
@@ -269,7 +270,7 @@ void AMSextruderImage::msw_rescale()
 {
     //m_ams_extruder.SetSize(AMS_EXTRUDER_BITMAP_SIZE);
     //auto image     = m_ams_extruder.ConvertToImage();
-    m_ams_extruder = create_scaled_bitmap("monitor_ams_extruder", nullptr, 55);
+    m_ams_extruder = ScalableBitmap(this, "monitor_ams_extruder", 55);
     Refresh();
 }
 
@@ -306,7 +307,7 @@ void AMSextruderImage::doRender(wxDC &dc)
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(m_colour);
     dc.DrawRectangle(0, 0, size.x, size.y - FromDIP(5));
-    dc.DrawBitmap(m_ams_extruder, wxPoint( (size.x - m_ams_extruder.GetSize().x) / 2, (size.y - m_ams_extruder.GetSize().y) / 2 ));
+    dc.DrawBitmap(m_ams_extruder.bmp(), wxPoint((size.x - m_ams_extruder.GetBmpSize().x) / 2, (size.y - m_ams_extruder.GetBmpSize().y) / 2));
 }
 
 
@@ -315,7 +316,7 @@ AMSextruderImage::AMSextruderImage(wxWindow *parent, wxWindowID id, const wxPoin
     wxWindow::Create(parent, id, pos, AMS_EXTRUDER_BITMAP_SIZE); 
     SetBackgroundColour(*wxWHITE);
 
-    m_ams_extruder = create_scaled_bitmap("monitor_ams_extruder", nullptr,55);
+    m_ams_extruder = ScalableBitmap(this, "monitor_ams_extruder",55);
 
     SetSize(AMS_EXTRUDER_BITMAP_SIZE);
     SetMinSize(AMS_EXTRUDER_BITMAP_SIZE);
@@ -404,8 +405,8 @@ void AMSLib::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
 
     wxBoxSizer *m_sizer_edit = new wxBoxSizer(wxHORIZONTAL);
 
-    m_bitmap_editable       = create_scaled_bitmap("ams_editable", this, 14);
-    m_bitmap_editable_lifht = create_scaled_bitmap("ams_editable_light", this, 14);
+    m_bitmap_editable       = ScalableBitmap(this, "ams_editable", 14);
+    m_bitmap_editable_lifht = ScalableBitmap(this, "ams_editable_light", 14);
 
     m_sizer_body->Add(0, 0, 1, wxEXPAND, 0);
     m_sizer_body->Add(m_sizer_edit, 0, wxALIGN_CENTER, 0);
@@ -434,7 +435,7 @@ void AMSLib::on_left_down(wxMouseEvent &evt)
         auto size   = GetSize();
         auto pos    = evt.GetPosition();
         auto left   = FromDIP(20);
-        auto top    = (size.y - FromDIP(10) - m_bitmap_editable_lifht.GetSize().y);
+        auto top    = (size.y - FromDIP(10) - m_bitmap_editable_lifht.GetBmpSize().y);
         auto right  = size.x - FromDIP(20);
         auto bottom = size.y - FromDIP(10);
 
@@ -590,7 +591,7 @@ void AMSLib::doRender(wxDC &dc)
     // edit icon
     if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE
         && m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND ) {
-        dc.DrawBitmap(temp_bitmap, (size.x - m_bitmap_editable.GetSize().x) / 2, ( size.y - FromDIP(10) - temp_bitmap.GetSize().y) );
+        dc.DrawBitmap(temp_bitmap.bmp(), (size.x - m_bitmap_editable.GetBmpSize().x) / 2, (size.y - FromDIP(10) - temp_bitmap.GetBmpSize().y));
     }
 }
 

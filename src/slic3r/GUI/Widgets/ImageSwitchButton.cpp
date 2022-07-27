@@ -18,13 +18,13 @@ END_EVENT_TABLE()
 static const wxColour DEFAULT_HOVER_COL = wxColour(0, 174, 66);
 static const wxColour DEFAULT_PRESS_COL = wxColour(238, 238, 238);
 
-ImageSwitchButton::ImageSwitchButton(wxWindow *parent, wxBitmap &img_on, wxBitmap &img_off, long style)
+ImageSwitchButton::ImageSwitchButton(wxWindow *parent, ScalableBitmap &img_on, ScalableBitmap &img_off, long style)
     : text_color(std::make_pair(0x6B6B6B, (int) StateColor::Disabled), std::make_pair(*wxBLACK, (int) StateColor::Normal))
     , state_handler(this)
 {
     m_padding = 0;
-    m_on  = img_on.GetSubBitmap(wxRect(0, 0, img_on.GetWidth(), img_on.GetHeight()));
-    m_off = img_off.GetSubBitmap(wxRect(0, 0, img_off.GetWidth(), img_off.GetHeight()));
+    m_on         = img_on;
+    m_off        = img_off;
     bg_color     = StateColor(std::make_pair(DEFAULT_PRESS_COL, (int) StateColor::Pressed),
                               std::make_pair(*wxWHITE, (int) StateColor::Normal));
     border_color = StateColor(std::make_pair(DEFAULT_HOVER_COL, (int) StateColor::Hovered));
@@ -46,7 +46,7 @@ void ImageSwitchButton::SetLabels(wxString const &lbl_on, wxString const &lbl_of
     Refresh();
 }
 
-void ImageSwitchButton::SetImages(wxBitmap &img_on, wxBitmap &img_off)
+void ImageSwitchButton::SetImages(ScalableBitmap &img_on, ScalableBitmap &img_off)
 {
 	m_on = img_on;
 	m_off = img_off;
@@ -120,14 +120,14 @@ void ImageSwitchButton::render(wxDC& dc)
 
 	wxSize szIcon;
 	wxSize szContent = textSize;
-	wxBitmap &icon = GetValue() ? m_on: m_off;
+    ScalableBitmap &icon      = GetValue() ? m_on : m_off;
 	
-	int content_height = icon.GetHeight() + textSize.y + m_padding;
+	int content_height = icon.GetBmpHeight() + textSize.y + m_padding;
 
-	wxPoint pt = wxPoint((size.x - icon.GetWidth()) / 2, (size.y - content_height) / 2);
-	if (icon.IsOk()) {
-		dc.DrawBitmap(icon, pt);
-		pt.y += m_padding + icon.GetHeight();
+	wxPoint pt = wxPoint((size.x - icon.GetBmpWidth()) / 2, (size.y - content_height) / 2);
+	if (icon.bmp().IsOk()) {
+		dc.DrawBitmap(icon.bmp(), pt);
+		pt.y += m_padding + icon.GetBmpHeight();
 	}
 	pt.x = (size.x - textSize.x) / 2;
 	dc.SetFont(GetFont());
