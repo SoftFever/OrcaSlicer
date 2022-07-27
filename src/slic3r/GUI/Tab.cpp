@@ -3173,10 +3173,8 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             optgroup->append_single_option_line("min_layer_height", "", extruder_idx);
             optgroup->append_single_option_line("max_layer_height", "", extruder_idx);
 
-#if 0
-            //optgroup = page->new_optgroup(L("Position (for multi-extruder printers)"), -1, true);
-            //optgroup->append_single_option_line("extruder_offset", "", extruder_idx);
-#endif
+            optgroup = page->new_optgroup(L("Position"), -1, true);
+            optgroup->append_single_option_line("extruder_offset", "", extruder_idx);
 
             //BBS: don't show retract related config menu in machine page
             optgroup = page->new_optgroup(L("Retraction"));
