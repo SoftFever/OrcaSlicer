@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-23 18:15+0800\n"
-"PO-Revision-Date: 2022-07-22 13:28+0800\n"
+"POT-Creation-Date: 2022-07-27 15:03+0800\n"
+"PO-Revision-Date: 2022-07-27 15:05+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -56,8 +56,8 @@ msgstr "缝隙填充"
 msgid "Perform"
 msgstr "执行"
 
-msgid "Fragment area"
-msgstr "碎片面积阈值"
+msgid "Gap area"
+msgstr ""
 
 msgid "Set pen size"
 msgstr "设置画笔大小"
@@ -125,9 +125,6 @@ msgstr "选择耗材丝"
 
 msgid "Edge detection"
 msgstr "边沿检测"
-
-msgid "Clear all"
-msgstr "清除所有"
 
 msgid "Triangles"
 msgstr "三角形"
@@ -423,9 +420,12 @@ msgstr "Bambu Studio捕捉到一个未处理的异常：%1%"
 msgid "Downloading Bambu Network plug-in"
 msgstr "正在下载Bambu网络插件"
 
+msgid "Incorrect password"
+msgstr ""
+
 #, c-format, boost-format
-msgid "Connect %s[SN:%s] failed!"
-msgstr "连接 %s[SN:%s]失败."
+msgid "Connect %s failed! [SN:%s, code=%s]"
+msgstr ""
 
 msgid ""
 "BambuStudio configuration file may be corrupted and is not abled to be "
@@ -795,6 +795,9 @@ msgstr "锁定"
 msgid "Name"
 msgstr "名称"
 
+msgid "Fila."
+msgstr "耗材丝"
+
 #, c-format, boost-format
 msgid "%1$d error repaired"
 msgid_plural "%1$d errors repaired"
@@ -1054,6 +1057,9 @@ msgstr "自动摆放中..."
 msgid ""
 "Arrange failed. Found some exceptions when processing object geometries."
 msgstr "自动摆放失败，处理对象几何数据时遇到异常。"
+
+msgid "Arranging"
+msgstr ""
 
 msgid "Arranging canceled."
 msgstr "已取消自动摆放。"
@@ -1542,15 +1548,6 @@ msgstr ""
 "自动调整这些设置？\n"
 "是 - 自动调整这些设置并开启旋转模式\n"
 "否 - 暂不使用旋转模式"
-
-msgid ""
-"When recording timelapse without toolhead, it is recommended to add a "
-"\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\".\n"
-msgstr ""
-"在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
-"右键单击构建板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。\n"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -2046,6 +2043,9 @@ msgid ""
 msgstr ""
 "你可以在打印机“设置->网络->连接->访问码\"\n"
 "查看，如下图所示："
+
+msgid "Invalid input."
+msgstr ""
 
 msgid "Application is closing"
 msgstr "正在关闭应用程序"
@@ -3371,6 +3371,15 @@ msgstr "保存当前 %s"
 msgid "Delete this preset"
 msgstr "删除此预设"
 
+msgid ""
+"When recording timelapse without toolhead, it is recommended to add a "
+"\"Timelapse Wipe Tower\" \n"
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\".\n"
+msgstr ""
+"在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
+"右键单击构建板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。\n"
+
 msgid "Line width"
 msgstr "线宽"
 
@@ -4371,6 +4380,14 @@ msgstr "可打印区域"
 
 msgid "Bed exclude area"
 msgstr "不可打印区域"
+
+msgid ""
+"Unprintable area in XY plane. For example, X1 Series printers use the front "
+"left corner to cut filament during filament change. The area is expressed as "
+"polygon by points in following format: \"XxY, XxY, ...\""
+msgstr ""
+"XY平面上的不可打印区域。例如，X1系列打印机在换料过程中，会使用左前角区域来切"
+"断耗材丝。这个多边形区域由以下格式的点表示：“XxY，XxY，…”"
 
 msgid "Elephant foot compensation"
 msgstr "象脚补偿"
@@ -6056,6 +6073,16 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Fragment area"
+#~ msgstr "碎片面积阈值"
+
+#~ msgid "Clear all"
+#~ msgstr "清除所有"
+
+#, c-format, boost-format
+#~ msgid "Connect %s[SN:%s] failed!"
+#~ msgstr "连接 %s[SN:%s]失败."
 
 #~ msgid "Printer firmware does not support material = >ams slot mapping."
 #~ msgstr "打印机固件不支持材料=>AMS槽位映射"

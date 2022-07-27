@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-23 18:15+0800\n"
+"POT-Creation-Date: 2022-07-27 15:03+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -52,8 +52,8 @@ msgstr ""
 msgid "Perform"
 msgstr "Perform"
 
-msgid "Fragment area"
-msgstr "Fragment area"
+msgid "Gap area"
+msgstr ""
 
 msgid "Set pen size"
 msgstr "Set pen size"
@@ -122,9 +122,6 @@ msgstr "Choose filament"
 
 msgid "Edge detection"
 msgstr "Edge detection"
-
-msgid "Clear all"
-msgstr "Clear all"
 
 msgid "Triangles"
 msgstr "Triangles"
@@ -424,8 +421,11 @@ msgstr "BambuStudio got an unhandled exception: %1%"
 msgid "Downloading Bambu Network plug-in"
 msgstr ""
 
+msgid "Incorrect password"
+msgstr ""
+
 #, c-format, boost-format
-msgid "Connect %s[SN:%s] failed!"
+msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr ""
 
 msgid ""
@@ -801,6 +801,9 @@ msgstr "Lock"
 msgid "Name"
 msgstr "Name"
 
+msgid "Fila."
+msgstr ""
+
 #, c-format, boost-format
 msgid "%1$d error repaired"
 msgid_plural "%1$d errors repaired"
@@ -1075,6 +1078,9 @@ msgid ""
 "Arrange failed. Found some exceptions when processing object geometries."
 msgstr ""
 "Arrange failed. Found some exceptions when processing object geometries."
+
+msgid "Arranging"
+msgstr ""
 
 msgid "Arranging canceled."
 msgstr "Arranging canceled."
@@ -1594,13 +1600,6 @@ msgstr ""
 "No  - Give up using spiral mode this time"
 
 msgid ""
-"When recording timelapse without toolhead, it is recommended to add a "
-"\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\".\n"
-msgstr ""
-
-msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
 "Layer Height is on.\n"
 "Which do you want to keep?\n"
@@ -2093,6 +2092,9 @@ msgid ""
 msgstr ""
 "You can find it in \"Settings > Network > Connection code\"\n"
 "on the printer, as shown in the figure:"
+
+msgid "Invalid input."
+msgstr ""
 
 msgid "Application is closing"
 msgstr "Closing application"
@@ -3433,6 +3435,13 @@ msgstr "Save current %s"
 msgid "Delete this preset"
 msgstr "Delete this preset"
 
+msgid ""
+"When recording timelapse without toolhead, it is recommended to add a "
+"\"Timelapse Wipe Tower\" \n"
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\".\n"
+msgstr ""
+
 msgid "Line width"
 msgstr "Line width"
 
@@ -4481,6 +4490,12 @@ msgstr "Printable area"
 
 msgid "Bed exclude area"
 msgstr "Excluded bed area"
+
+msgid ""
+"Unprintable area in XY plane. For example, X1 Series printers use the front "
+"left corner to cut filament during filament change. The area is expressed as "
+"polygon by points in following format: \"XxY, XxY, ...\""
+msgstr ""
 
 msgid "Elephant foot compensation"
 msgstr "Elephant foot compensation"
@@ -6323,6 +6338,12 @@ msgstr "Support: fix holes at layer %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
+
+#~ msgid "Fragment area"
+#~ msgstr "Fragment area"
+
+#~ msgid "Clear all"
+#~ msgstr "Clear all"
 
 #~ msgid "Creating"
 #~ msgstr "Creating"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-23 18:15+0800\n"
+"POT-Creation-Date: 2022-07-27 15:03+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -57,7 +57,7 @@ msgstr ""
 msgid "Perform"
 msgstr ""
 
-msgid "Fragment area"
+msgid "Gap area"
 msgstr ""
 
 msgid "Set pen size"
@@ -124,9 +124,6 @@ msgid "Choose filament"
 msgstr ""
 
 msgid "Edge detection"
-msgstr ""
-
-msgid "Clear all"
 msgstr ""
 
 msgid "Triangles"
@@ -419,8 +416,11 @@ msgstr ""
 msgid "Downloading Bambu Network plug-in"
 msgstr ""
 
+msgid "Incorrect password"
+msgstr ""
+
 #, possible-c-format, possible-boost-format
-msgid "Connect %s[SN:%s] failed!"
+msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr ""
 
 msgid ""
@@ -790,6 +790,9 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
+msgid "Fila."
+msgstr ""
+
 #, possible-c-format, possible-boost-format
 msgid "%1$d error repaired"
 msgid_plural "%1$d errors repaired"
@@ -1051,6 +1054,9 @@ msgstr ""
 
 msgid ""
 "Arrange failed. Found some exceptions when processing object geometries."
+msgstr ""
+
+msgid "Arranging"
 msgstr ""
 
 msgid "Arranging canceled."
@@ -1493,13 +1499,6 @@ msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings and enable spiral mode automatically\n"
 "No  - Give up using spiral mode this time"
-msgstr ""
-
-msgid ""
-"When recording timelapse without toolhead, it is recommended to add a "
-"\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\".\n"
 msgstr ""
 
 msgid ""
@@ -1970,6 +1969,9 @@ msgstr ""
 msgid ""
 "You can find it in \"Settings > Network > Connection code\"\n"
 "on the printer, as shown in the figure:"
+msgstr ""
+
+msgid "Invalid input."
 msgstr ""
 
 msgid "Application is closing"
@@ -3283,6 +3285,13 @@ msgstr ""
 msgid "Delete this preset"
 msgstr ""
 
+msgid ""
+"When recording timelapse without toolhead, it is recommended to add a "
+"\"Timelapse Wipe Tower\" \n"
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\".\n"
+msgstr ""
+
 msgid "Line width"
 msgstr ""
 
@@ -4261,6 +4270,12 @@ msgid "Printable area"
 msgstr ""
 
 msgid "Bed exclude area"
+msgstr ""
+
+msgid ""
+"Unprintable area in XY plane. For example, X1 Series printers use the front "
+"left corner to cut filament during filament change. The area is expressed as "
+"polygon by points in following format: \"XxY, XxY, ...\""
 msgstr ""
 
 msgid "Elephant foot compensation"

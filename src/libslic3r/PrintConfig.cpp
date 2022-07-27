@@ -264,8 +264,8 @@ void PrintConfigDef::init_common_params()
     //BBS: add "bed_exclude_area"
     def = this->add("bed_exclude_area", coPoints);
     def->label = L("Bed exclude area");
-    def->tooltip = L("Bed exclude area that can't used as printable area in X-Y plane. For example, the bottom left area which is used to cut filament in X1 when printing multi colors with AMS. "
-                     "The area is expressed as polygon by points in following format: \"XxY, XxY, ...\"");
+    def->tooltip = L("Unprintable area in XY plane. For example, X1 Series printers use the front left corner to cut filament during filament change. "
+        "The area is expressed as polygon by points in following format: \"XxY, XxY, ...\"");
     def->mode = comAdvanced;
     def->gui_type = ConfigOptionDef::GUIType::one_string;
     def->set_default_value(new ConfigOptionPoints{ Vec2d(0, 0) });
