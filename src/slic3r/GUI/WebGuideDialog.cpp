@@ -48,7 +48,7 @@ GuideFrame::GuideFrame(GUI_App *pGUI, long style)
     wxBoxSizer *topsizer = new wxBoxSizer(wxVERTICAL);
 
     wxString TargetUrl = SetStartPage(BBL_WELCOME, false);
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  set start page to welcome ") << TargetUrl;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  set start page to welcome ");
 
     // Create the webview
     m_browser = WebView::CreateWebView(this, TargetUrl);
