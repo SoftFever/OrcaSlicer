@@ -696,6 +696,7 @@ static std::map<std::string, bool> filament_is_high_temp {
         {"ABS",     true},
         {"TPU",     false},
         {"PA",      true},
+        {"PA-CF",   true},
         {"PET-CF",  true},
         {"PC",      true},
         {"ASA",     true},
