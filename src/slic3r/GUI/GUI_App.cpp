@@ -2057,7 +2057,9 @@ bool GUI_App::on_init_inner()
     }
 
     // BBS:
+#ifdef __WINDOWS__
     mainframe->topbar()->SaveNormalRect();
+#endif
     mainframe->Show(true);
     BOOST_LOG_TRIVIAL(info) << "main frame firstly shown";
 

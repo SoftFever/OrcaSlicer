@@ -100,6 +100,11 @@ enum ConfigMenuIDs {
     ConfigMenuCnt,
 };
 
+enum BambuStudioMenuIDs {
+  BambuStudioMenuAbout,
+  BambuStudioMenuPreferences,
+};
+
 enum CameraMenuIDs {
     wxID_CAMERA_PERSPECTIVE,
     wxID_CAMERA_ORTHOGONAL,
