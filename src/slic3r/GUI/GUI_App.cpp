@@ -1066,6 +1066,9 @@ void GUI_App::post_init()
                     });
             }
         );
+        m_agent->set_on_http_error_fn([this](unsigned int status, std::string body) {
+            this->handle_http_error(status, body);
+        });
         m_agent->start_discovery(true, false);
     }
 
@@ -1421,6 +1424,9 @@ void GUI_App::restart_networking()
                     });
             }
         );
+        m_agent->set_on_http_error_fn([this](unsigned int status, std::string body) {
+            this->handle_http_error(status, body);
+        });
         m_agent->start_discovery(true, false);
         if (mainframe)
             mainframe->refresh_plugin_tips();
@@ -1538,10 +1544,6 @@ void GUI_App::init_networking_callbacks()
                     });
             }
         );
-
-        m_agent->set_on_http_error_fn([this](unsigned int status, std::string body) {
-            this->handle_http_error(status, body);
-            });
 
         auto message_arrive_fn = [this](std::string dev_id, std::string msg) {
             CallAfter([this, dev_id, msg] {
