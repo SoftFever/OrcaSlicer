@@ -162,7 +162,7 @@ wxEvtHandler * _gestureHandler = nullptr;
 {
     if (_gestureHandler && event.hasPreciseScrollingDeltas) {
         wxPanGestureEvent evt;
-        evt.SetDelta({(int)[event scrollingDeltaX], -(int)[event scrollingDeltaY]});
+        evt.SetDelta({-(int)[event scrollingDeltaX], (int)[event scrollingDeltaY]});
         _gestureHandler->ProcessEvent(evt);
     } else {
         [self scrollWheel2: event];
