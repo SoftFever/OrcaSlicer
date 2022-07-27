@@ -729,7 +729,7 @@ void PresetBundle::remove_users_preset(AppConfig& config)
         }
         printers.select_preset_by_name(default_printer_name, true);
     } else {
-        printers.select_preset_by_name(printer_selected_preset_name, true);
+        printers.select_preset_by_name(printer_selected_preset_name, false);
     }
     
     std::string selected_print_name = prints.get_selected_preset().name;
@@ -750,7 +750,7 @@ void PresetBundle::remove_users_preset(AppConfig& config)
         std::string default_print_profile_name = printers.get_selected_preset().config.opt_string("default_print_profile");
         prints.select_preset_by_name(default_print_profile_name, true);
     } else {
-        prints.select_preset_by_name(selected_print_name, true);
+        prints.select_preset_by_name(selected_print_name, false);
     }
 
     std::string selected_filament_name = filaments.get_selected_preset().name;
@@ -771,7 +771,7 @@ void PresetBundle::remove_users_preset(AppConfig& config)
         if (prefered_filament_profiles.size() > 0)
             filaments.select_preset_by_name(prefered_filament_profiles[0], true);
     } else {
-        filaments.select_preset_by_name(selected_filament_name, true);
+        filaments.select_preset_by_name(selected_filament_name, false);
     }
 
     /* set selected preset */
