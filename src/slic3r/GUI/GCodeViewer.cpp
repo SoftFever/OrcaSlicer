@@ -1070,7 +1070,6 @@ void GCodeViewer::reset()
     }
     m_paths_bounding_box = BoundingBoxf3();
     m_max_bounding_box = BoundingBoxf3();
-    m_shell_bounding_box = BoundingBoxf3();
     m_max_print_height = 0.0f;
     m_tools.m_tool_colors = std::vector<Color>();
     m_tools.m_tool_visibles = std::vector<bool>();

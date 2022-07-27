@@ -385,7 +385,8 @@ void PartPlate::render_logo(bool bottom) const
 
 			// starts generating the main texture, compression will run asynchronously
 			GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
-			if (!m_partplate_list->m_logo_texture.load_from_svg_file(m_partplate_list->m_logo_texture_filename, true, true, true, max_tex_size/8)) {
+			GLint logo_tex_size = (max_tex_size < 2048)?max_tex_size: 2048;
+			if (!m_partplate_list->m_logo_texture.load_from_svg_file(m_partplate_list->m_logo_texture_filename, true, true, true, logo_tex_size)) {
 				BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!")%m_partplate_list->m_logo_texture_filename;
 				return;
 			}
@@ -1838,7 +1839,7 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 
 		ExPolygon logo_poly;
 		generate_logo_polygon(logo_poly);
-		if (!m_logo_triangles.set_from_triangles(triangulate_expolygon_2f(logo_poly, NORMALS_UP), GROUND_Z+0.28f))
+		if (!m_logo_triangles.set_from_triangles(triangulate_expolygon_2f(logo_poly, NORMALS_UP), GROUND_Z+0.02f))
 		    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create plate triangles\n";
 
 		ExPolygon poly;
