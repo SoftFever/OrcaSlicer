@@ -160,9 +160,10 @@ wxEvtHandler * _gestureHandler = nullptr;
 
 - (void) scrollWheel2:(NSEvent *)event
 {
-    if (_gestureHandler && event.hasPreciseScrollingDeltas) {
+    bool shiftDown = [event modifierFlags] & NSShiftKeyMask;
+    if (_gestureHandler && shiftDown && event.hasPreciseScrollingDeltas) {
         wxPanGestureEvent evt;
-        evt.SetDelta({-(int)[event scrollingDeltaX], (int)[event scrollingDeltaY]});
+        evt.SetDelta({-(int)[event scrollingDeltaX], -	(int)[event scrollingDeltaY]});
         _gestureHandler->ProcessEvent(evt);
     } else {
         [self scrollWheel2: event];

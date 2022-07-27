@@ -2952,9 +2952,12 @@ void GLCanvas3D::on_gesture(wxGestureEvent &evt)
 
     auto & camera = wxGetApp().plater()->get_camera();
     if (evt.GetEventType() == wxEVT_GESTURE_PAN) {
+        auto p = evt.GetPosition();
         auto d = static_cast<wxPanGestureEvent&>(evt).GetDelta();
-        Vec3d delta{(double) d.x, (double) d.y, 0};
-        camera.set_target(camera.get_target() + delta);
+        float z = 0;
+        const Vec3d &p2 = _mouse_to_3d({p.x, p.y}, &z);
+        const Vec3d &p1 = _mouse_to_3d({p.x - d.x, p.y - d.y}, &z);
+        camera.set_target(camera.get_target() + p2 - p1);
     } else if (evt.GetEventType() == wxEVT_GESTURE_ZOOM) {
         static float zoom_start = 1;
         if (evt.IsGestureStart())
