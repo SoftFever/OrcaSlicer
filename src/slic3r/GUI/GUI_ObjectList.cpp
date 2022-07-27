@@ -646,6 +646,9 @@ void ObjectList::update_plate_values_for_items()
         if (plate_idx == old_plate_idx)
             continue;
 
+        // hotfix for wxDataViewCtrl selection not updated after wxDataViewModel::ItemDeleted()
+        Unselect(item);
+
         bool is_old_parent_expanded = IsExpanded(old_parent);
         bool is_expanded = IsExpanded(item);
         m_objects_model->OnPlateChange(plate_idx, item);
