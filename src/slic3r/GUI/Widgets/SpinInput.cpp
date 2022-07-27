@@ -157,6 +157,7 @@ bool SpinInput::Enable(bool enable)
         wxCommandEvent e(EVT_ENABLE_CHANGED);
         e.SetEventObject(this);
         GetEventHandler()->ProcessEvent(e);
+        text_ctrl->SetBackgroundColour(background_color.colorForStates(state_handler.states()));
     }
     return result;
 }
