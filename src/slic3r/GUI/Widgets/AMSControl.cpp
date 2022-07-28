@@ -133,13 +133,26 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
     Bind(wxEVT_LEAVE_WINDOW, &AMSrefresh::OnLeaveWindow, this);
     Bind(wxEVT_LEFT_DOWN, &AMSrefresh::OnClick, this);
 
-    m_bitmap_normal   = ScalableBitmap(this, "ams_refresh_normal", 26);
-    m_bitmap_selected = ScalableBitmap(this, "ams_refresh_selected", 26);
+    m_bitmap_normal   = ScalableBitmap(this, "ams_refresh_normal", 30);
+    m_bitmap_selected = ScalableBitmap(this, "ams_refresh_selected", 30);
 
-  /*  m_animationCtrl = new wxAnimationCtrl(this, wxID_ANY, wxNullAnimation, wxDefaultPosition, AMS_REFRESH_SIZE);
-    auto path = (boost::format("%1%/images/refresh.gif") % resources_dir()).str();
-    path      = encode_path(path.c_str());
-    if (m_animationCtrl->LoadFile(path)) m_animationCtrl->Hide();*/
+    m_bitmap_ams_rfid_0 = ScalableBitmap(this, "ams_rfid_0", 30);
+    m_bitmap_ams_rfid_1 = ScalableBitmap(this, "ams_rfid_1", 30);
+    m_bitmap_ams_rfid_2 = ScalableBitmap(this, "ams_rfid_2", 30);
+    m_bitmap_ams_rfid_3 = ScalableBitmap(this, "ams_rfid_3", 30);
+    m_bitmap_ams_rfid_4 = ScalableBitmap(this, "ams_rfid_4", 30);
+    m_bitmap_ams_rfid_5 = ScalableBitmap(this, "ams_rfid_5", 30);
+    m_bitmap_ams_rfid_6 = ScalableBitmap(this, "ams_rfid_6", 30);
+    m_bitmap_ams_rfid_7 = ScalableBitmap(this, "ams_rfid_7", 30);
+
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_0);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_1);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_2);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_3);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_4);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_5);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_6);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_7);
 
     m_playing_timer = new wxTimer();
     m_playing_timer->SetOwner(this);
@@ -147,35 +160,31 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
 
     SetSize(AMS_REFRESH_SIZE);
     SetMinSize(AMS_REFRESH_SIZE);
+    SetMaxSize(AMS_REFRESH_SIZE);
 }
 
 void AMSrefresh::on_timer(wxTimerEvent &event) 
 {
-    if (m_rotation_angle == 0) {
-        m_rotation_angle = 360;
-    } else {
-        m_rotation_angle--;
-    }
+    //if (m_rotation_angle >= m_rfid_bitmap_list.size()) {
+    //    m_rotation_angle = 0;
+    //} else {
+    //    m_rotation_angle++;
+    //}
     Refresh();
 }
 
 void AMSrefresh::PlayLoading()
 {
     if (m_play_loading)  return;
-    //this->m_animationCtrl->Show();
-    //this->m_animationCtrl->Play();
     m_play_loading = true;
-    m_rotation_angle = 360;
+    //m_rotation_angle = 0;
     m_playing_timer->Start(AMS_REFRESH_PLAY_LOADING_TIMER);
     Refresh();
 }
 
 void AMSrefresh::StopLoading()
 {
-   
     if (!m_play_loading) return;
-    //this->m_animationCtrl->Stop();
-    //this->m_animationCtrl->Hide();
     m_playing_timer->Stop();
     m_play_loading = false;
     Refresh();
@@ -218,13 +227,19 @@ void AMSrefresh::paintEvent(wxPaintEvent &evt)
     if (!m_play_loading) {
         dc.DrawBitmap(m_selected ? m_bitmap_selected.bmp() : m_bitmap_normal.bmp(), pot);
     } else {
-        m_bitmap_rotation   = ScalableBitmap(this, "ams_refresh_normal", 26);
-        auto image        = m_bitmap_rotation.bmp().ConvertToImage();
-        wxPoint offset;
-        auto loading_img  = image.Rotate(m_rotation_angle, wxPoint(image.GetWidth() / 2, image.GetHeight() / 2), true, &offset);
-        ScalableBitmap loading_bitmap;
-        loading_bitmap.bmp() = wxBitmap(loading_img);
-        dc.DrawBitmap(loading_bitmap.bmp(), offset.x , offset.y);
+        /* m_bitmap_rotation    = ScalableBitmap(this, "ams_refresh_normal", 30);
+         auto           image = m_bitmap_rotation.bmp().ConvertToImage();
+         wxPoint        offset;
+         auto           loading_img = image.Rotate(m_rotation_angle, wxPoint(image.GetWidth() / 2, image.GetHeight() / 2), true, &offset);
+         ScalableBitmap loading_bitmap;
+         loading_bitmap.bmp() = wxBitmap(loading_img);
+         dc.DrawBitmap(loading_bitmap.bmp(), offset.x , offset.y);*/
+        m_rotation_angle++;
+        if (m_rotation_angle >= m_rfid_bitmap_list.size()) {
+            m_rotation_angle = 0;
+        }
+        if (m_rfid_bitmap_list.size() <= 0)return;
+        dc.DrawBitmap(m_rfid_bitmap_list[m_rotation_angle].bmp(), pot);
     }
 
     dc.SetPen(wxPen(colour));
@@ -242,13 +257,32 @@ void AMSrefresh::Update(Caninfo info)
     StopLoading();
 }
 
-void AMSrefresh::msw_rescale() { }
+void AMSrefresh::msw_rescale() {
+    m_bitmap_normal     = ScalableBitmap(this, "ams_refresh_normal", 30);
+    m_bitmap_selected   = ScalableBitmap(this, "ams_refresh_selected", 30);
+    m_bitmap_ams_rfid_0 = ScalableBitmap(this, "ams_rfid_0", 30);
+    m_bitmap_ams_rfid_1 = ScalableBitmap(this, "ams_rfid_1", 30);
+    m_bitmap_ams_rfid_2 = ScalableBitmap(this, "ams_rfid_2", 30);
+    m_bitmap_ams_rfid_3 = ScalableBitmap(this, "ams_rfid_3", 30);
+    m_bitmap_ams_rfid_4 = ScalableBitmap(this, "ams_rfid_4", 30);
+    m_bitmap_ams_rfid_5 = ScalableBitmap(this, "ams_rfid_5", 30);
+    m_bitmap_ams_rfid_6 = ScalableBitmap(this, "ams_rfid_6", 30);
+    m_bitmap_ams_rfid_7 = ScalableBitmap(this, "ams_rfid_7", 30);
+
+    m_rfid_bitmap_list.clear();
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_0);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_1);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_2);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_3);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_4);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_5);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_6);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_7);
+}
 
 void AMSrefresh::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
-    m_bitmap_normal   = ScalableBitmap(this, "ams_refresh_normal", 26);
-    m_bitmap_selected = ScalableBitmap(this, "ams_refresh_selected", 26);
 }
 
 /*************************************************
