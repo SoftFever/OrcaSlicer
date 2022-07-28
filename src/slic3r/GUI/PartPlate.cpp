@@ -62,7 +62,7 @@ namespace GUI {
 
 class Bed3D;
 
-std::array<float, 4> PartPlate::SELECT_COLOR		= { 0.4196f, 0.4235f, 0.4235f, 1.0f };
+std::array<float, 4> PartPlate::SELECT_COLOR		= { 0.2666f, 0.2784f, 0.2784f, 1.0f }; //{ 0.4196f, 0.4235f, 0.4235f, 1.0f };
 std::array<float, 4> PartPlate::UNSELECT_COLOR		= { 0.82f, 0.82f, 0.82f, 1.0f };
 std::array<float, 4> PartPlate::DEFAULT_COLOR		= { 0.5f, 0.5f, 0.5f, 1.0f };
 std::array<float, 4> PartPlate::LINE_TOP_COLOR		= { 0.89f, 0.89f, 0.89f, 1.0f };
@@ -199,11 +199,11 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 		line.append(Point(x, pp_bbox.min(1)));
 		line.append(Point(x, pp_bbox.max(1)));
 
-		count ++;
 		if ( (count % 5) == 0 )
 			axes_lines_bolder.push_back(line);
 		else
 			axes_lines.push_back(line);
+		count ++;
 	}
 	count = 0;
 	for (coord_t y = pp_bbox.min(1); y <= pp_bbox.max(1); y += scale_(10.0)) {
@@ -212,11 +212,11 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 		line.append(Point(pp_bbox.max(0), y));
 		axes_lines.push_back(line);
 
-		count ++;
 		if ( (count % 5) == 0 )
 			axes_lines_bolder.push_back(line);
 		else
 			axes_lines.push_back(line);
+		count ++;
 	}
 
 	// clip with a slightly grown expolygon because our lines lay on the contours and may get erroneously clipped
