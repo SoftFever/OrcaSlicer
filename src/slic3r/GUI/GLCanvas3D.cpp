@@ -3180,7 +3180,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 return;
         }
 
-        if (evt.LeftDown() && (evt.ShiftDown() || evt.AltDown()) && m_picking_enabled) {
+        // BBS: define Alt key to enable volume selection mode
+        m_selection.set_volume_selection_mode(evt.AltDown() ? Selection::Volume : Selection::Instance);
+        if (evt.LeftDown() && evt.ShiftDown() && m_picking_enabled) {
             if (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports
              && m_gizmos.get_current_type() != GLGizmosManager::FdmSupports
              && m_gizmos.get_current_type() != GLGizmosManager::Seam
