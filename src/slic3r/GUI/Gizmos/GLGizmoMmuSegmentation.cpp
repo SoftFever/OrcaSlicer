@@ -94,7 +94,7 @@ void GLGizmoMmuSegmentation::init_extruders_data()
 bool GLGizmoMmuSegmentation::on_init()
 {
     // BBS
-    m_shortcut_key = WXK_NONE;
+    m_shortcut_key = WXK_CONTROL_N;
 
     m_desc["clipping_of_view"]     = _L("Section view") + ": ";
     m_desc["cursor_size"]          = _L("Pen size") + ": ";

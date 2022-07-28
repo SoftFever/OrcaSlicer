@@ -76,7 +76,7 @@ std::string GLGizmoFdmSupports::on_get_name() const
 bool GLGizmoFdmSupports::on_init()
 {
     // BBS
-    m_shortcut_key = WXK_NONE;
+    m_shortcut_key = WXK_CONTROL_L;
 
     m_desc["clipping_of_view"]      = _L("Section view") + ": ";
     m_desc["cursor_size"]           = _L("Pen size") + ": ";

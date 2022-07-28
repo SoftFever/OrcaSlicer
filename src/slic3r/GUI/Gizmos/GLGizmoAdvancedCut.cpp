@@ -174,7 +174,7 @@ bool GLGizmoAdvancedCut::on_init()
     if (!GLGizmoRotate3D::on_init())
         return false;
 
-    m_shortcut_key = WXK_NONE;
+    m_shortcut_key = WXK_CONTROL_C;
     return true;
 }
 
