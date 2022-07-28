@@ -239,7 +239,7 @@ Button *SpinInput::createButton(bool inc)
 {
     auto btn = new Button(this, "", inc ? "spin_inc" : "spin_dec", wxBORDER_NONE, 6);
     btn->SetCornerRadius(0);
-    btn->SetCanFocus(false);
+    btn->DisableFocusFromKeyboard();
     btn->Bind(wxEVT_LEFT_DOWN, [=](auto &e) {
         delta = inc ? 1 : -1;
         SetValue(val + delta);
