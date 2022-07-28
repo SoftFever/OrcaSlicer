@@ -1973,7 +1973,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(100));
 
     def = this->add("spiral_mode", coBool);
-    def->label = L("Spiral mode");
+    def->label = L("Spiral vase");
     def->tooltip = L("Spiralize smooths out the z moves of the outer contour. "
                      "And turns a solid model into a single walled print with solid bottom layers. "
                      "The final generated model has no seam");
