@@ -66,6 +66,7 @@ SpinInput::SpinInput(wxWindow *     parent,
     });
     text_ctrl->Bind(wxEVT_KILL_FOCUS, &SpinInput::onTextLostFocus, this);
     text_ctrl->Bind(wxEVT_TEXT_ENTER, &SpinInput::onTextEnter, this);
+    text_ctrl->Bind(wxEVT_KEY_DOWN, &SpinInput::keyPressed, this);
     text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu
     button_inc = createButton(true);
     button_dec = createButton(false);
@@ -313,7 +314,27 @@ void SpinInput::mouseWheelMoved(wxMouseEvent &event)
 
 // currently unused events
 void SpinInput::mouseMoved(wxMouseEvent& event) {}
-void SpinInput::keyPressed(wxKeyEvent& event) {}
+
+void SpinInput::keyPressed(wxKeyEvent &event)
+{
+    switch (event.GetKeyCode()) {
+    case WXK_UP:
+    case WXK_DOWN:
+        long value;
+        if (!text_ctrl->GetValue().ToLong(&value)) { value = val; }
+        if (event.GetKeyCode() == WXK_DOWN && value > min) {
+            --value;
+        } else if (event.GetKeyCode() == WXK_UP && value + 1 < max) {
+            ++value;
+        }
+        if (value != val) {
+            SetValue(value);
+            sendSpinEvent();
+        }
+        break;
+    default: event.Skip(); break;
+    }
+}
 void SpinInput::keyReleased(wxKeyEvent &event) {}
 
 void SpinInput::sendSpinEvent()
