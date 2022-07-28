@@ -3755,7 +3755,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool _add_project_config_file_to_archive(mz_zip_archive& archive, const DynamicPrintConfig &config, Model& model);
         //BBS: add project embedded preset files
         bool _add_project_embedded_presets_to_archive(mz_zip_archive& archive, Model& model, std::vector<Preset*> project_presets);
-        bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const IdToObjectDataMap &objects_data, int export_plate_idx = -1);
+        bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const IdToObjectDataMap &objects_data, int export_plate_idx = -1, bool save_gcode = true);
         bool _add_slice_info_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list);
         bool _add_gcode_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, Export3mfProgressFn proFn = nullptr);
         bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config);
@@ -4093,7 +4093,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         // This file contains all the attributes of all ModelObjects and their ModelVolumes (names, parameter overrides).
         // As there is just a single Indexed Triangle Set data stored per ModelObject, offsets of volumes into their respective Indexed Triangle Set data
         // is stored here as well.
-        if (!_add_model_config_file_to_archive(archive, model, plate_data_list, objects_data, export_plate_idx)) {
+        if (!_add_model_config_file_to_archive(archive, model, plate_data_list, objects_data, export_plate_idx, m_save_gcode)) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", _add_model_config_file_to_archive failed\n");
             return false;
         }
@@ -4414,13 +4414,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 region_code = project->project_country_code;
             }
 
-            stream << " <" << METADATA_TAG << " name=\"" << BBL_MODEL_NAME_TAG          << "\">" << name         << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_TAG            << "\">" << user_name    << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_USER_ID_TAG    << "\">" << user_id      << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_COVER_FILE_TAG << "\">" << design_cover << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"" << BBL_DESCRIPTION_TAG         << "\">" << description  << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"" << BBL_COPYRIGHT_TAG           << "\">" << copyright    << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"" << BBL_LICENSE_TAG             << "\">" << license      << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"" << BBL_MODEL_NAME_TAG          << "\">" << xml_escape(name)         << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_TAG            << "\">" << xml_escape(user_name)    << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_USER_ID_TAG    << "\">" << user_id                  << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_COVER_FILE_TAG << "\">" << xml_escape(design_cover) << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"" << BBL_DESCRIPTION_TAG         << "\">" << xml_escape(description)  << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"" << BBL_COPYRIGHT_TAG           << "\">" << xml_escape(copyright)    << "</" << METADATA_TAG << ">\n";
+            stream << " <" << METADATA_TAG << " name=\"" << BBL_LICENSE_TAG             << "\">" << xml_escape(license)      << "</" << METADATA_TAG << ">\n";
 
             /* save model info */
             if (!model_id.empty()) {
@@ -5199,7 +5199,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return true;
     }
 
-    bool _BBS_3MF_Exporter::_add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const IdToObjectDataMap &objects_data, int export_plate_idx)
+    bool _BBS_3MF_Exporter::_add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const IdToObjectDataMap &objects_data, int export_plate_idx, bool save_gcode)
     {
         std::stringstream stream;
         // Store mesh transformation in full precision, as the volumes are stored transformed and they need to be transformed back
@@ -5324,7 +5324,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 //plate index
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PLATERID_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->plate_index + 1 << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << LOCK_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->locked<< "\"/>\n";
-                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << GCODE_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << plate_data->gcode_file << "\"/>\n";
+                if (save_gcode)
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << GCODE_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << xml_escape(plate_data->gcode_file) << "\"/>\n";
                 if (!plate_data->gcode_file.empty()) {
                     gcode_paths.push_back(plate_data->gcode_file);
                 }
@@ -5363,8 +5364,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 stream << "  </" << PLATE_TAG << ">\n";
             }
         }
+
         // write model rels
-        _add_relationships_file_to_archive(archive, BBS_MODEL_CONFIG_RELS_FILE, gcode_paths, {"http://schemas.bambulab.com/package/2021/gcode"}, Slic3r::PackingTemporaryData(), export_plate_idx);
+        if (save_gcode)
+            _add_relationships_file_to_archive(archive, BBS_MODEL_CONFIG_RELS_FILE, gcode_paths, {"http://schemas.bambulab.com/package/2021/gcode"}, Slic3r::PackingTemporaryData(), export_plate_idx);
 
         //BBS: store assemble related info
         stream << "  <" << ASSEMBLE_TAG << ">\n";
