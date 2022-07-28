@@ -4482,7 +4482,14 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
                     preview->get_canvas3d()->render(true);
                 }
             }
-            this->partplate_list.select_plate_view();
+            //TODO: turn off this switch currently
+            /*auto canvas_w = float(preview->get_canvas3d()->get_canvas_size().get_width());
+            auto canvas_h = float(preview->get_canvas3d()->get_canvas_size().get_height());
+            Point screen_center(canvas_w/2, canvas_h/2);
+            auto center_point = preview->get_canvas3d()->_mouse_to_3d(screen_center);
+            center_point(2) = 0.f;
+            if (!current_plate->contains(center_point))
+                this->partplate_list.select_plate_view();*/
 
             // keeps current gcode preview, if any
             if (this->m_slice_all) {

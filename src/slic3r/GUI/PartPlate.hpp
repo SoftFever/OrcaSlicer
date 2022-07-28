@@ -114,7 +114,6 @@ private:
     Transform3d m_grabber_trans_matrix;
     Slic3r::Geometry::Transformation position;
     std::vector<Vec3f> positions;
-    Polygon m_polygon;
     unsigned int m_vbo_id{ 0 };
     GeometryBuffer m_triangles;
     GeometryBuffer m_exclude_triangles;
@@ -285,12 +284,11 @@ public:
     /*rendering related functions*/
     const Pointfs& get_shape() const { return m_shape; }
     bool set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Vec2d position, float height_to_lid, float height_to_rod);
-    bool contains(const Point& point) const;
+    bool contains(const Vec3d& point) const;
     bool contains(const GLVolume& v) const;
     bool contains(const BoundingBoxf3& bb) const;
     bool intersects(const BoundingBoxf3& bb) const;
 
-    Point point_projection(const Point& point) const;
     void render(bool bottom, bool only_body = false, bool force_background_color = false, HeightLimitMode mode = HEIGHT_LIMIT_NONE, int hover_id = -1);
     void render_for_picking() const { on_render_for_picking(); }
     void set_selected();

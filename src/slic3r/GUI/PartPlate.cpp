@@ -1840,7 +1840,7 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 		ExPolygon logo_poly;
 		generate_logo_polygon(logo_poly);
 		if (!m_logo_triangles.set_from_triangles(triangulate_expolygon_2f(logo_poly, NORMALS_UP), GROUND_Z+0.02f))
-		    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create plate triangles\n";
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create logo triangles\n";
 
 		ExPolygon poly;
 		/*for (const Vec2d& p : m_shape) {
@@ -1883,9 +1883,9 @@ const BoundingBox PartPlate::get_bounding_box_crd()
 	return plate_shape.bounding_box();
 }
 
-bool PartPlate::contains(const Point& point) const
+bool PartPlate::contains(const Vec3d& point) const
 {
-	return m_polygon.contains(point);
+	return m_bounding_box.contains(point);
 }
 
 bool PartPlate::contains(const GLVolume& v) const
@@ -1915,11 +1915,6 @@ bool PartPlate::intersects(const BoundingBoxf3& bb) const
 	print_volume.max(0) += Slic3r::BuildVolume::BedEpsilon;
 	print_volume.max(1) += Slic3r::BuildVolume::BedEpsilon;
 	return print_volume.intersects(bb);
-}
-
-Point PartPlate::point_projection(const Point& point) const
-{
-	return m_polygon.point_projection(point);
 }
 
 void PartPlate::render(bool bottom, bool only_body, bool force_background_color, HeightLimitMode mode, int hover_id)

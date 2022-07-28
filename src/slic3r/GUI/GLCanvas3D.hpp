@@ -909,6 +909,10 @@ public:
 
     bool is_object_sinking(int object_idx) const;
 
+    // Convert the screen space coordinate to an object space coordinate.
+    // If the Z screen space coordinate is not provided, a depth buffer value is substituted.
+    Vec3d _mouse_to_3d(const Point& mouse_pos, float* z = nullptr);
+
 private:
     bool _is_shown_on_screen() const;
 
@@ -980,10 +984,6 @@ private:
     void render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors, GLShaderProgram* shader, Camera::EType camera_type);
 
     void _update_volumes_hover_state();
-
-    // Convert the screen space coordinate to an object space coordinate.
-    // If the Z screen space coordinate is not provided, a depth buffer value is substituted.
-    Vec3d _mouse_to_3d(const Point& mouse_pos, float* z = nullptr);
 
     // Convert the screen space coordinate to world coordinate on the bed.
     Vec3d _mouse_to_bed_3d(const Point& mouse_pos);
