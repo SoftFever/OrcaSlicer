@@ -7,6 +7,7 @@ BEGIN_EVENT_TABLE(ComboBox, TextInput)
 
 EVT_LEFT_DOWN(ComboBox::mouseDown)
 //EVT_MOUSEWHEEL(ComboBox::mouseWheelMoved)
+EVT_KEY_DOWN(ComboBox::keyDown)
 
 // catch paint events
 END_EVENT_TABLE()
@@ -33,8 +34,7 @@ ComboBox::ComboBox(wxWindow *      parent,
     TextInput::Create(parent, "", value, (style & CB_NO_DROP_ICON) ? "" : "drop_down", pos, size,
                       style | wxTE_PROCESS_ENTER);
 
-    if (style & wxCB_READONLY)
-    {
+    if (style & wxCB_READONLY) {
         GetTextCtrl()->Hide();
         TextInput::SetFont(Label::Body_14);
         TextInput::SetBorderColor(StateColor(std::make_pair(0xDBDBDB, (int) StateColor::Disabled),
@@ -44,6 +44,8 @@ ComboBox::ComboBox(wxWindow *      parent,
         TextInput::SetBackgroundColor(StateColor(std::make_pair(0xF0F0F0, (int) StateColor::Disabled),
             std::make_pair(0xEDFAF2, (int) StateColor::Focused),
             std::make_pair(*wxWHITE, (int) StateColor::Normal)));
+    } else {
+        GetTextCtrl()->Bind(wxEVT_KEY_DOWN, &ComboBox::keyDown, this);
     }
     drop.Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
         SetSelection(e.GetInt());
@@ -56,7 +58,7 @@ ComboBox::ComboBox(wxWindow *      parent,
     drop.Bind(wxEVT_SHOW, [this](auto &e) {
         if (!e.IsShown()) {
             drop_down = false;
-            wxCommandEvent e(wxEVT_COMBOBOX_DROPDOWN);
+            wxCommandEvent e(wxEVT_COMBOBOX_CLOSEUP);
             GetEventHandler()->ProcessEvent(e);
         }
     });
@@ -212,9 +214,8 @@ void ComboBox::mouseDown(wxMouseEvent &event)
     } else if (drop.HasDismissLongTime()) {
         drop.autoPosition();
         drop_down = true;
-        drop.Show();
-        drop.Raise();
-        wxCommandEvent e(wxEVT_COMBOBOX_CLOSEUP);
+        drop.Popup(this);
+        wxCommandEvent e(wxEVT_COMBOBOX_DROPDOWN);
         GetEventHandler()->ProcessEvent(e);
     }
 }
@@ -231,11 +232,60 @@ void ComboBox::mouseWheelMoved(wxMouseEvent &event)
     }
 }
 
+void ComboBox::keyDown(wxKeyEvent& event) {
+    switch (event.GetKeyCode()) {
+        case WXK_RETURN:
+        case WXK_SPACE:
+            if (drop_down) {
+                drop.Hide();
+            } else if (drop.HasDismissLongTime()) {
+                drop.autoPosition();
+                drop_down = true;
+                drop.Popup(this);
+                wxCommandEvent e(wxEVT_COMBOBOX_DROPDOWN);
+                GetEventHandler()->ProcessEvent(e);
+            }
+            break;
+        case WXK_UP:
+        case WXK_DOWN:
+            if (event.GetKeyCode() == WXK_UP && GetSelection() > 0) {
+                SetSelection(GetSelection() - 1);
+            } else if (event.GetKeyCode() == WXK_DOWN && GetSelection() + 1 < texts.size()) {
+                SetSelection(GetSelection() + 1);
+            } else {
+                break;
+            }
+            {
+                wxCommandEvent e(wxEVT_COMBOBOX);
+                e.SetEventObject(this);
+                e.SetId(GetId());
+                e.SetInt(GetSelection());
+                GetEventHandler()->ProcessEvent(e);
+            }
+            break;
+        default:
+            event.Skip();
+            break;
+    }
+}
+
 void ComboBox::OnEdit()
 {
     auto value = GetTextCtrl()->GetValue();
     SetValue(value);
 }
+
+#ifdef __WIN32__
+
+WXLRESULT ComboBox::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
+{
+    if (nMsg == WM_GETDLGCODE) {
+        return DLGC_WANTALLKEYS;
+    }
+    return TextInput::MSWWindowProc(nMsg, wParam, lParam);
+}
+
+#endif
 
 void ComboBox::sendComboBoxEvent()
 {
