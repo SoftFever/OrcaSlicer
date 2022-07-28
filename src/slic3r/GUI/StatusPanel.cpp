@@ -1556,8 +1556,13 @@ void StatusPanel::update_subtask(MachineObject *obj)
                 m_button_pause_resume->SetLabel(_L("Resume"));
             else
                 m_button_pause_resume->SetLabel(_L("Pause"));
-            m_button_abort->Enable(true);
-            m_button_pause_resume->Enable(true);
+            if (obj->print_status == "FINISH") {
+                m_button_abort->Enable(false);
+                m_button_pause_resume->Enable(false);
+            } else {
+                m_button_abort->Enable(true);
+                m_button_pause_resume->Enable(true);
+            }
             // update printing stage
             m_printing_stage_value->SetLabelText(obj->get_curr_stage());
             update_left_time(obj->mc_left_time);
