@@ -17,6 +17,9 @@ public:
 
 	void Rescale();
 
+protected:
+    virtual State GetNormalState() const wxOVERRIDE;
+
 private:
 	void update();
 
@@ -27,6 +30,9 @@ private:
     ScalableBitmap m_on_disabled;
     ScalableBitmap m_half_disabled;
     ScalableBitmap m_off_disabled;
+    ScalableBitmap m_on_focused;
+    ScalableBitmap m_half_focused;
+    ScalableBitmap m_off_focused;
     bool m_half_checked = false;
 };
 
