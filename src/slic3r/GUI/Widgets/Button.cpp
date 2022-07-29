@@ -7,6 +7,8 @@ BEGIN_EVENT_TABLE(Button, StaticBox)
 
 EVT_LEFT_DOWN(Button::mouseDown)
 EVT_LEFT_UP(Button::mouseReleased)
+EVT_KEY_DOWN(Button::keyDownUp)
+EVT_KEY_UP(Button::keyDownUp)
 
 // catch paint events
 EVT_PAINT(Button::paintEvent)
@@ -241,9 +243,46 @@ void Button::mouseReleased(wxMouseEvent& event)
     }
 }
 
+void Button::keyDownUp(wxKeyEvent &event)
+{
+    if (event.GetKeyCode() == WXK_SPACE || event.GetKeyCode() == WXK_RETURN) {
+        wxMouseEvent evt(event.GetEventType() == wxEVT_KEY_UP ? wxEVT_LEFT_UP : wxEVT_LEFT_DOWN);
+        event.SetEventObject(this);
+        GetEventHandler()->ProcessEvent(evt);
+        return;
+    }
+    event.Skip();
+}
+
 void Button::sendButtonEvent()
 {
     wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, GetId());
     event.SetEventObject(this);
     GetEventHandler()->ProcessEvent(event);
 }
+
+#ifdef __WIN32__
+
+WXLRESULT Button::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
+{
+    if (nMsg == WM_GETDLGCODE) { return DLGC_WANTMESSAGE; }
+    if (nMsg == WM_KEYDOWN) {
+        wxKeyEvent event(CreateKeyEvent(wxEVT_KEY_DOWN, wParam, lParam));
+        switch (wParam) {
+        case WXK_RETURN: {
+            GetEventHandler()->ProcessEvent(event);
+            return 0;
+        }
+        case WXK_TAB:
+        case WXK_LEFT:
+        case WXK_RIGHT:
+        case WXK_UP:
+        case WXK_DOWN:
+            if (HandleAsNavigationKey(event))
+                return 0;
+        }
+    }
+    return wxWindow::MSWWindowProc(nMsg, wParam, lParam);
+}
+
+#endif

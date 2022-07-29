@@ -111,9 +111,9 @@ protected:
 
 private:
     void build(std::vector<Preset::Type> types, std::string suffix = "");
-    void on_select_cancel(wxMouseEvent &event);
+    void on_select_cancel(wxCommandEvent &event);
     void update_physical_printers(const std::string &preset_name);
-    void accept(wxMouseEvent &event);
+    void accept(wxCommandEvent &event);
 };
 
 } // namespace GUI

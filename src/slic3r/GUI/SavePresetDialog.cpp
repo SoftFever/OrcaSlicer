@@ -340,7 +340,7 @@ void SavePresetDialog::build(std::vector<Preset::Type> types, std::string suffix
     m_confirm->SetTextColor(wxColour(255, 255, 255));
     m_confirm->SetMinSize(SAVE_PRESET_DIALOG_BUTTON_SIZE);
     m_confirm->SetCornerRadius(12);
-    m_confirm->Bind(wxEVT_LEFT_DOWN, &SavePresetDialog::accept, this);
+    m_confirm->Bind(wxEVT_BUTTON, &SavePresetDialog::accept, this);
     btns->Add(m_confirm, 0, wxEXPAND, 0);
 
     auto block_middle = new wxWindow(this, -1);
@@ -351,7 +351,7 @@ void SavePresetDialog::build(std::vector<Preset::Type> types, std::string suffix
     m_cancel->SetMinSize(SAVE_PRESET_DIALOG_BUTTON_SIZE);
     m_cancel->SetTextColor(wxColour(107, 107, 107));
     m_cancel->SetCornerRadius(12);
-    m_cancel->Bind(wxEVT_LEFT_DOWN, &SavePresetDialog::on_select_cancel, this);
+    m_cancel->Bind(wxEVT_BUTTON, &SavePresetDialog::on_select_cancel, this);
     btns->Add(m_cancel, 0, wxEXPAND, 0);
 
     auto block_right = new wxWindow(this, -1);
@@ -372,7 +372,7 @@ void SavePresetDialog::build(std::vector<Preset::Type> types, std::string suffix
     this->Centre(wxBOTH);
 }
 
-void SavePresetDialog::on_select_cancel(wxMouseEvent &event)
+void SavePresetDialog::on_select_cancel(wxCommandEvent &event)
 {
     EndModal(wxID_CANCEL);
 }
@@ -511,7 +511,7 @@ void SavePresetDialog::update_physical_printers(const std::string &preset_name)
     }
 }
 
-void SavePresetDialog::accept(wxMouseEvent &event)
+void SavePresetDialog::accept(wxCommandEvent &event)
 {
     for (Item *item : m_items) {
         item->accept();

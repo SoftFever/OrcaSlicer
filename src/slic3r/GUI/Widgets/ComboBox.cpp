@@ -248,9 +248,11 @@ void ComboBox::keyDown(wxKeyEvent& event) {
             break;
         case WXK_UP:
         case WXK_DOWN:
-            if (event.GetKeyCode() == WXK_UP && GetSelection() > 0) {
+        case WXK_LEFT:
+        case WXK_RIGHT:
+            if ((event.GetKeyCode() == WXK_UP || event.GetKeyCode() == WXK_LEFT) && GetSelection() > 0) {
                 SetSelection(GetSelection() - 1);
-            } else if (event.GetKeyCode() == WXK_DOWN && GetSelection() + 1 < texts.size()) {
+            } else if ((event.GetKeyCode() == WXK_DOWN || event.GetKeyCode() == WXK_RIGHT) && GetSelection() + 1 < texts.size()) {
                 SetSelection(GetSelection() + 1);
             } else {
                 break;
@@ -262,6 +264,9 @@ void ComboBox::keyDown(wxKeyEvent& event) {
                 e.SetInt(GetSelection());
                 GetEventHandler()->ProcessEvent(e);
             }
+            break;
+        case WXK_TAB:
+            HandleAsNavigationKey(event);
             break;
         default:
             event.Skip();
