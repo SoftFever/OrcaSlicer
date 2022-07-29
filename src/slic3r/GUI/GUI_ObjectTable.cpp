@@ -2445,7 +2445,7 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
 
 int ObjectTablePanel::init_bitmap()
 {
-    m_undo_bitmap = create_scaled_bitmap("undo", nullptr, 24);
+    m_undo_bitmap = create_scaled_bitmap("lock_normal", nullptr, 24);
     m_color_bitmaps = get_extruder_color_icons();
 
     return 0;

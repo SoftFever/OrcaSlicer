@@ -196,7 +196,7 @@ void ObjectDataViewModelNode::set_printable_icon(PrintIndicator printable)
 void ObjectDataViewModelNode::set_action_icon(bool enable)
 {
     m_action_enable = enable;
-    auto undo = enable ? "undo" : "dot";
+    auto undo = enable ? "lock_normal" : "dot";
     m_action_icon_name = m_type & itPlate ? "dot" :
                          m_type & itObject ? undo :
                          m_type & (itVolume | itLayer) ? undo : /*m_type & itInstance*/ "set_separate_obj";
