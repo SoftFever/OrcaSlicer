@@ -1046,7 +1046,8 @@ void GUI_App::post_init()
             bool cw_showed = this->config_wizard_startup();
 
             std::string http_url = get_http_url(app_config->get_country_code());
-            this->preset_updater->sync(http_url, preset_bundle);
+            std::string language = GUI::into_u8(current_language_code());
+            this->preset_updater->sync(http_url, language, preset_bundle);
 
             //BBS: check new version
             this->check_new_version();
@@ -1541,7 +1542,7 @@ void GUI_App::init_networking_callbacks()
                             }
                         }
                     }
-                    });
+                });
             }
         );
 
@@ -2567,7 +2568,7 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 //     });
 
     m_is_recreating_gui = false;
-        
+
         CallAfter([this]() {
             mainframe->refresh_plugin_tips();
         });
@@ -2952,7 +2953,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
             }
             else if (command_str.compare("begin_network_plugin_download") == 0) {
                 CallAfter([this] { wxGetApp().ShowDownNetPluginDlg(); });
-            } 
+            }
             else if (command_str.compare("get_web_shortcut") == 0) {
                 if (root.get_child_optional("key_event") != boost::none) {
                     pt::ptree key_event_node = root.get_child("key_event");

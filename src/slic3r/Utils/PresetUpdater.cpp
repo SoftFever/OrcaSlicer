@@ -227,7 +227,7 @@ struct PresetUpdater::priv
 	void parse_version_string(const std::string& body) const;
     void sync_resources(std::string http_url, std::map<std::string, Resource> &resources);
     void sync_config(std::string http_url, const VendorMap vendors);
-    void sync_tooltip(std::string http_url);
+    void sync_tooltip(std::string http_url, std::string language);
 
 	//BBS: refine preset update logic
 	bool install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot) const;
@@ -268,36 +268,38 @@ void PresetUpdater::priv::set_download_prefs(AppConfig *app_config)
 // Downloads a file (http get operation). Cancels if the Updater is being destroyed.
 bool PresetUpdater::priv::get_file(const std::string &url, const fs::path &target_path) const
 {
-	bool res = false;
-	fs::path tmp_path = target_path;
-	tmp_path += format(".%1%%2%", get_current_pid(), TMP_EXTENSION);
+    bool res = false;
+    fs::path tmp_path = target_path;
+    tmp_path += format(".%1%%2%", get_current_pid(), TMP_EXTENSION);
 
-	BOOST_LOG_TRIVIAL(info) << format("[BBS Updater]download file `%1%`, stored to `%2%`, tmp path `%3%`",
-		url,
-		target_path.string(),
-		tmp_path.string());
+    BOOST_LOG_TRIVIAL(info) << format("[BBS Updater]download file `%1%`, stored to `%2%`, tmp path `%3%`",
+        url,
+        target_path.string(),
+        tmp_path.string());
 
     Slic3r::Http::get(url)
-        .on_progress([](Slic3r::Http::Progress, bool &cancel) {
-			if (cancel) { cancel = true; }
-		})
-		.on_error([&](std::string body, std::string error, unsigned http_status) {
-			(void)body;
-			BOOST_LOG_TRIVIAL(error) << format("[BBS Updater]getting: `%1%`: http status %2%, %3%",
-				url,
-				http_status,
-				error);
-		})
-		.on_complete([&](std::string body, unsigned /* http_status */) {
-			fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
-			file.write(body.c_str(), body.size());
-			file.close();
-			fs::rename(tmp_path, target_path);
-			res = true;
-		})
-		.perform_sync();
+        .on_progress([this](Slic3r::Http::Progress, bool &cancel_http) {
+            if (cancel) {
+                cancel_http = true;
+            }
+        })
+        .on_error([&](std::string body, std::string error, unsigned http_status) {
+            (void)body;
+            BOOST_LOG_TRIVIAL(error) << format("[BBS Updater]getting: `%1%`: http status %2%, %3%",
+                url,
+                http_status,
+                error);
+        })
+        .on_complete([&](std::string body, unsigned /* http_status */) {
+            fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
+            file.write(body.c_str(), body.size());
+            file.close();
+            fs::rename(tmp_path, target_path);
+            res = true;
+        })
+        .perform_sync();
 
-	return res;
+    return res;
 }
 
 //BBS: refine preset update logic
@@ -494,7 +496,12 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
     std::string url = http_url;
     url += query_params;
     Slic3r::Http http = Slic3r::Http::get(url);
-    http.on_complete([this, &resource_list, resources](std::string body, unsigned) {
+    http.on_progress([this](Slic3r::Http::Progress, bool &cancel_http) {
+            if (cancel) {
+                cancel_http = true;
+            }
+        })
+        .on_complete([this, &resource_list, resources](std::string body, unsigned) {
             try {
                 BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]: request_resources, body=" << body;
 
@@ -634,7 +641,12 @@ void PresetUpdater::priv::sync_config(std::string http_url, const VendorMap vend
     std::string url = http_url;
     url += query_params;
     Slic3r::Http http = Slic3r::Http::get(url);
-    http.on_complete(
+    http.on_progress([this](Slic3r::Http::Progress, bool &cancel_http) {
+            if (cancel) {
+                cancel_http = true;
+            }
+        })
+        .on_complete(
         [this, &vendor_list, &vendor_descriptions, vendors](std::string body, unsigned) {
             try {
                 BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]::body=" << body;
@@ -778,10 +790,9 @@ void PresetUpdater::priv::sync_config(std::string http_url, const VendorMap vend
     }
 }
 
-void PresetUpdater::priv::sync_tooltip(std::string http_url)
+void PresetUpdater::priv::sync_tooltip(std::string http_url, std::string language)
 {
     try {
-        std::string language = GUI::into_u8(GUI::wxGetApp().current_language_code());
         std::string common_version = "00.00.00.00";
         std::string language_version = "00.00.00.00";
         fs::path cache_root = fs::path(data_dir()) / "resources/tooltip";
@@ -1054,7 +1065,7 @@ PresetUpdater::~PresetUpdater()
 
 //BBS: change directories by design
 //BBS: refine the preset updater logic
-void PresetUpdater::sync(std::string http_url, PresetBundle *preset_bundle)
+void PresetUpdater::sync(std::string http_url, std::string language, PresetBundle *preset_bundle)
 {
 	//p->set_download_prefs(GUI::wxGetApp().app_config);
 	if (!p->enabled_version_check && !p->enabled_config_update) { return; }
@@ -1064,11 +1075,17 @@ void PresetUpdater::sync(std::string http_url, PresetBundle *preset_bundle)
 	// into the closure (but perhaps the compiler can elide this).
 	VendorMap vendors = preset_bundle->vendors;
 
-    p->thread = std::thread([this, vendors, http_url]() {
+    p->thread = std::thread([this, vendors, http_url, language]() {
 		this->p->prune_tmps();
+		if (p->cancel)
+			return;
 		this->p->sync_version();
+		if (p->cancel)
+			return;
 		this->p->sync_config(http_url, std::move(vendors));
-        this->p->sync_tooltip(http_url);
+		if (p->cancel)
+			return;
+        this->p->sync_tooltip(http_url, language);
     });
 }
 
