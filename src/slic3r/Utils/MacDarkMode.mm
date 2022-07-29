@@ -16,6 +16,8 @@
 namespace Slic3r {
 namespace GUI {
 
+NSTextField* mainframe_text_field;
+
 bool mac_dark_mode()
 {
     NSString *style = [[NSUserDefaults standardUserDefaults] stringForKey:@"AppleInterfaceStyle"];
@@ -43,9 +45,41 @@ void set_miniaturizable(void * window)
     [(NSView*) window window].titlebarAppearsTransparent = true;
     [(NSView*) window window].backgroundColor = [NSColor colorWithCalibratedRed:rFloat green:gFloat blue:bFloat alpha:1.0];
     [(NSView*) window window].styleMask |= NSMiniaturizableWindowMask;
+
+    NSEnumerator *viewEnum = [[[[[[[(NSView*) window window] contentView] superview] titlebarViewController] view] subviews] objectEnumerator];
+    NSView *viewObject;
+
+    while(viewObject = (NSView *)[viewEnum nextObject]) {
+        if([viewObject class] == [NSTextField self]) {
+            //[(NSTextField*)viewObject setTextColor :  NSColor.whiteColor];
+            mainframe_text_field = viewObject;
+        }
+    }
 }
 
 }
+}
+
+@end
+
+/* textColor for NSTextField */
+@implementation NSTextField (NSTextField_Extended)
+
+- (void)setTextColor2:(NSColor *)textColor
+{
+    if (Slic3r::GUI::mainframe_text_field != self){
+        [self setTextColor2: textColor];
+    }else{
+        [self setTextColor2 : NSColor.whiteColor];
+    }
+}
+
+
++ (void) load
+{
+    Method setTextColor = class_getInstanceMethod([NSTextField class], @selector(setTextColor:));
+    Method setTextColor2 = class_getInstanceMethod([NSTextField class], @selector(setTextColor2:));
+    method_exchangeImplementations(setTextColor, setTextColor2);
 }
 
 @end
