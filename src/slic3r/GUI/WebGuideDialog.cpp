@@ -145,10 +145,10 @@ wxString GuideFrame::SetStartPage(GuidePage startpage, bool load)
         else
             TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/21/index.html").make_preferred().string());
     } else if (startpage == BBL_FILAMENT_ONLY) {
-        SetTitle(_L("Filaments Selection"));
+        SetTitle(_L(""));
         TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/23/index.html").make_preferred().string());
     } else if (startpage == BBL_MODELS_ONLY) {
-        SetTitle(_L("Printer Selection"));
+        SetTitle(_L(""));
         TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/24/index.html").make_preferred().string());
     }
     else {
