@@ -58,7 +58,7 @@ static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::SliderFloatEditBtnIcon, "edit_button"                    },
 #endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     {ImGui::CircleButtonIcon       , "circle_paint"                  },
-    {ImGui::TriangleButtonIcon     , "Triangle_paint"                },
+    {ImGui::TriangleButtonIcon     , "triangle_paint"                },
     {ImGui::FillButtonIcon         , "fill_paint"                    },
     {ImGui::HeightRangeIcon        , "height_range"                  },
     {ImGui::GapFillIcon            , "gap_fill"                      },
@@ -196,7 +196,7 @@ bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const 
         mouse_wheel_responsive_region = ImRect(region.Min - ImVec2(0, handle_sz.y), region.Max + ImVec2(0, handle_sz.y));
     if (ImGui::ItemHoverable(mouse_wheel_responsive_region, id)) {
 #ifdef __APPLE__
-        if (io.KeyShift) 
+        if (io.KeyShift)
             v_new = ImClamp(*out_value - 5 * (ImS32) (context.IO.MouseWheel), v_min, v_max);
         else if (io.KeyCtrl)
             v_new = ImClamp(*out_value + 5 * (ImS32) (context.IO.MouseWheel), v_min, v_max);
@@ -236,7 +236,7 @@ bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const 
     {
         v_new = fixed_value;
     }
-    
+
 	// apply result, output value
 	if (*out_value != v_new)
 	{
@@ -606,7 +606,7 @@ bool ImGuiWrapper::bbl_slider_float_style(const std::string &label, float *v, fl
 
 bool ImGuiWrapper::bbl_slider_float(const std::string& label, float* v, float v_min, float v_max, const char* format, float power, bool clamp, const wxString& tooltip)
 {
-    
+
     const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
 
     // let the label string start with "##" to hide the automatic label from ImGui::SliderFloat()
@@ -969,7 +969,7 @@ bool ImGuiWrapper::combo(const wxString& label, const std::vector<std::string>& 
     return res;
 }
 
-// Scroll up for one item 
+// Scroll up for one item
 static void scroll_up()
 {
     ImGuiContext& g = *GImGui;
@@ -981,7 +981,7 @@ static void scroll_up()
     ImGui::SetScrollY(win_top - item_size_y);
 }
 
-// Scroll down for one item 
+// Scroll down for one item
 static void scroll_down()
 {
     ImGuiContext& g = *GImGui;
@@ -1229,7 +1229,7 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
 {
     int& hovered_id = view_params.hovered_id;
     // ImGui::ListBoxHeader("", size);
-    {   
+    {
         // rewrote part of function to add a TextInput instead of label Text
         ImGuiContext& g = *GImGui;
         ImGuiWindow* window = ImGui::GetCurrentWindow();
