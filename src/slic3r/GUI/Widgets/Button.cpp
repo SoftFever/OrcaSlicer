@@ -26,8 +26,9 @@ Button::Button()
     , text_color(*wxBLACK)
 {
     background_color = StateColor(
-        std::make_pair(*wxLIGHT_GREY, (int) StateColor::Checked),
-        std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered),
+        std::make_pair(0x00AE42, (int) StateColor::Checked),
+        std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered), 
+        std::make_pair(0x37EE7C, (int) StateColor::Hovered | StateColor::Checked),
         std::make_pair(*wxWHITE, (int) StateColor::Normal));
 }
 

@@ -27,7 +27,6 @@ END_EVENT_TABLE()
 SpinInput::SpinInput()
     : state_handler(this)
     , border_color(std::make_pair(0xDBDBDB, (int) StateColor::Disabled),
-                   std::make_pair(0x00AE42, (int) StateColor::Focused),
                    std::make_pair(0x00AE42, (int) StateColor::Hovered),
                    std::make_pair(0xDBDBDB, (int) StateColor::Normal))
     , text_color(std::make_pair(0xACACAC, (int) StateColor::Disabled), std::make_pair(*wxBLACK, (int) StateColor::Normal))

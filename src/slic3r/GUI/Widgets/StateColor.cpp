@@ -36,6 +36,9 @@ int StateColor::states() const
 {
     int states = 0;
     for (auto s : statesList_) states |= s;
+    states = (states & 0xffff) | (states >> 16);
+    if (takeFocusedAsHovered_ && (states & Hovered))
+        states |= Focused;
     return states;
 }
 
@@ -45,12 +48,20 @@ wxColour StateColor::defaultColor() {
 
 wxColour StateColor::colorForStates(int states)
 {
+    bool focused = takeFocusedAsHovered_ && (states & Focused);
     for (int i = 0; i < statesList_.size(); ++i) {
         int s = statesList_[i];
         int on = s & 0xffff;
         int off = s >> 16;
         if ((on & states) == on && (off & ~states) == off) {
             return colors_[i];
+        }
+        if (focused && (on & Hovered)) {
+            on |= Focused;
+            on &= ~Hovered;
+            if ((on & states) == on && (off & ~states) == off) {
+                return colors_[i];
+            }
         }
     }
     return wxColour(0, 0, 0, 0);
@@ -77,4 +88,6 @@ bool StateColor::setColorForStates(wxColour const &color, int states)
     }
     return false;
 }
+
+void StateColor::setTakeFocusedAsHovered(bool set) { takeFocusedAsHovered_ = set; }
 
