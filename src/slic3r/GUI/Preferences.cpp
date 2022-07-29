@@ -561,9 +561,14 @@ void PreferencesDialog::create()
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
     SetSizeHints(wxDefaultSize, wxDefaultSize);
 
+    auto main_sizer = new wxBoxSizer(wxVERTICAL);
+
+    m_scrolledWindow = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+    m_scrolledWindow->SetScrollRate(5, 5);
+
     m_sizer_body = new wxBoxSizer(wxVERTICAL);
 
-    auto m_top_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(DESIGN_RESOUTION_PREFERENCES.x, 1), wxTAB_TRAVERSAL);
+    auto m_top_line = new wxPanel(m_scrolledWindow, wxID_ANY, wxDefaultPosition, wxSize(DESIGN_RESOUTION_PREFERENCES.x, 1), wxTAB_TRAVERSAL);
     m_top_line->SetBackgroundColour(DESIGN_GRAY400_COLOR);
 
     m_sizer_body->Add(m_top_line, 0, wxEXPAND, 0);
@@ -576,16 +581,26 @@ void PreferencesDialog::create()
      create_sync_page();
      create_shortcuts_page();*/
 
-     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(28));
+    m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(28));
     m_sizer_body->Add(general_page, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(38));
 #if !BBL_RELEASE_TO_PUBLIC
     m_sizer_body->Add(debug_page, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(38));
 #endif
     m_sizer_body->Add(0, 0, 0, wxBOTTOM, FromDIP(28));
-    SetSizer(m_sizer_body);
+    m_scrolledWindow->SetSizerAndFit(m_sizer_body);
+
+    main_sizer->Add(m_scrolledWindow, 1, wxEXPAND);
+
+    SetSizer(main_sizer);
     Layout();
     Fit();
+    int screen_height = wxGetDisplaySize().GetY();
+    if (this->GetSize().GetY() > screen_height) 
+        this->SetSize(this->GetSize().GetX() + FromDIP(40), screen_height * 4 / 5);
+
     CenterOnParent();
+    wxPoint start_pos = this->GetPosition();
+    if (start_pos.y < 0) { this->SetPosition(wxPoint(start_pos.x, 0)); }
 
     //select first
     auto event = wxCommandEvent(EVT_PREFERENCES_SELECT_TAB);
@@ -625,7 +640,7 @@ void PreferencesDialog::Split(const std::string &src, const std::string &separat
 
 wxWindow* PreferencesDialog::create_general_page()
 {
-    auto page = new wxWindow(this, wxID_ANY);
+    auto page = new wxWindow(m_scrolledWindow, wxID_ANY);
     page->SetBackgroundColour(*wxWHITE);
     wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
 
@@ -782,19 +797,19 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
 
     wxBoxSizer *bSizer = new wxBoxSizer(wxVERTICAL);
 
-    auto title_develop_mode   = create_item_title(_L("Develop mode"), this, _L("Develop mode"));
-    auto item_develop_mode    = create_item_checkbox(_L("Develop mode"), this, _L("Develop mode"), 50, "developer_mode");
-    auto item_dump_video      = create_item_checkbox(_L("Dump video"), this, _L("Dump video"), 50, "dump_video");
+    auto title_develop_mode   = create_item_title(_L("Develop mode"), m_scrolledWindow, _L("Develop mode"));
+    auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), m_scrolledWindow, _L("Develop mode"), 50, "developer_mode");
+    auto item_dump_video      = create_item_checkbox(_L("Dump video"), m_scrolledWindow, _L("Dump video"), 50, "dump_video");
 
-    auto title_log_level   = create_item_title(_L("Log Level"), this, _L("Log Level"));
+    auto title_log_level = create_item_title(_L("Log Level"), m_scrolledWindow, _L("Log Level"));
     auto log_level_list  = std::vector<wxString>{_L("fatal"), _L("error"), _L("warning"), _L("info"), _L("debug"), _L("trace")};
-    auto loglevel_combox = create_item_loglevel_combobox(_L("Log Level"), this, _L("Log Level"), log_level_list);
+    auto loglevel_combox = create_item_loglevel_combobox(_L("Log Level"), m_scrolledWindow, _L("Log Level"), log_level_list);
 
-    auto title_host   = create_item_title(_L("Host Setting"), this, _L("Host Setting"));
-    auto radio1 = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), this, wxEmptyString, 50, 1, "dev_host");
-    auto radio2 = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"), this, wxEmptyString, 50, 1, "qa_host");
-    auto radio3 = create_item_radiobox(_L("PRE host: api-pre.bambu-lab.com/v1"), this, wxEmptyString, 50, 1, "pre_host");
-    auto radio4 = create_item_radiobox(_L("Product host"), this, wxEmptyString, 50, 1, "product_host");
+    auto title_host = create_item_title(_L("Host Setting"), m_scrolledWindow, _L("Host Setting"));
+    auto radio1     = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), m_scrolledWindow, wxEmptyString, 50, 1, "dev_host");
+    auto radio2     = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"), m_scrolledWindow, wxEmptyString, 50, 1, "qa_host");
+    auto radio3     = create_item_radiobox(_L("PRE host: api-pre.bambu-lab.com/v1"), m_scrolledWindow, wxEmptyString, 50, 1, "pre_host");
+    auto radio4     = create_item_radiobox(_L("Product host"), m_scrolledWindow, wxEmptyString, 50, 1, "product_host");
 
     if (m_iot_environment_def == ENV_DEV_HOST) {
         on_select_radio("dev_host");
@@ -806,7 +821,7 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
         on_select_radio("product_host");
     }
 
-    wxButton *debug_button = new wxButton(this, wxID_ANY, _L("debug save button"), wxDefaultPosition, wxDefaultSize, 0);
+    wxButton *debug_button = new wxButton(m_scrolledWindow, wxID_ANY, _L("debug save button"), wxDefaultPosition, wxDefaultSize, 0);
     debug_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         // success message box
         MessageDialog dialog(this, _L("save debug settings"), _L("DEBUG settings have saved successfully!"), wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION);
