@@ -577,6 +577,12 @@ enum class ConversionType : int {
     CONV_FROM_METER,
 };
 
+enum class En3mfType : int {
+    From_BBS,
+    From_Prusa,
+    From_Other
+};
+
 class FacetsAnnotation final : public ObjectWithTimestamp {
 public:
     // Assign the content if the timestamp differs, don't assign an ObjectID.
@@ -1280,8 +1286,8 @@ public:
     // BBS: backup
     static Model read_from_archive(
         const std::string& input_file,
-        DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions,
-        LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, std::vector<Preset*>* project_presets = nullptr, bool* is_bbl_3mf = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr, BBLProject* project = nullptr);
+        DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, En3mfType& out_file_type,
+        LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, std::vector<Preset*>* project_presets = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr, BBLProject* project = nullptr);
 
     // Add a new ModelObject to this Model, generate a new ID for this ModelObject.
     ModelObject* add_object();

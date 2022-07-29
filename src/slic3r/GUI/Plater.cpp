@@ -2642,11 +2642,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                     // BBS: add part plate related logic
                     PlateDataPtrs             plate_data;
-                    bool                      is_bbs_3mf;
+                    En3mfType                 en_3mf_file_type = En3mfType::From_BBS;
                     ConfigSubstitutionContext config_substitutions{ForwardCompatibilitySubstitutionRule::Enable};
                     std::vector<Preset *>     project_presets;
                     // BBS: backup & restore
-                    model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, strategy, &plate_data, &project_presets, &is_bbs_3mf,
+                    model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, en_3mf_file_type, strategy, &plate_data, &project_presets,
                                                              &file_version,
                                                              [this, &dlg, real_filename, progress_percent](int import_stage, int current, int total, bool &cancel) {
                                                                  bool     cont = true;
@@ -2657,11 +2657,40 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__
                                             << boost::format(", plate_data.size %1%, project_preset.size %2%, is_bbs_3mf %3%, file_version %4% \n") % plate_data.size() %
-                                                   project_presets.size() % is_bbs_3mf % file_version.to_string();
+                                                   project_presets.size() % (en_3mf_file_type == En3mfType::From_BBS) % file_version.to_string();
+
+                    // add extruder for prusa model if the number of existing extruders is not enough
+                    if (en_3mf_file_type == En3mfType::From_Prusa) {
+                        std::set<int> extruderIds;
+                        for (ModelObject *o : model.objects) {
+                            if (o->config.option("extruder")) extruderIds.insert(o->config.extruder());
+                            for (auto volume : o->volumes) {
+                                if (volume->config.option("extruder")) extruderIds.insert(volume->config.extruder());
+                                for (int extruder : volume->get_extruders()) { extruderIds.insert(extruder); }
+                            }
+                        }
+                        int size = extruderIds.size() == 0 ? 0 : *(extruderIds.rbegin());
+
+                        int filament_size = sidebar->combos_filament().size();
+                        while (filament_size < 16 && filament_size < size) {
+                            int         filament_count = filament_size + 1;
+                            wxColour    new_col        = Plater::get_next_color_for_filament();
+                            std::string new_color      = new_col.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+                            wxGetApp().preset_bundle->set_num_filaments(filament_count, new_color);
+                            wxGetApp().plater()->on_filaments_change(filament_count);
+                            ++filament_size;
+                        }
+                        wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
+                    }
 
                     // BBS: version check
                     Semver app_version = *(Semver::parse(SLIC3R_VERSION));
-                    if (load_config && (file_version.maj() != app_version.maj())) {
+                    if (en_3mf_file_type == En3mfType::From_Prusa) {
+                        // do not reset the model config
+                        load_config = false;
+                        show_info(q, _L("the 3mf is not compatible, load geometry data only!"), _L("Incompatible 3mf"));
+                    }
+                    else if (load_config && (file_version.maj() != app_version.maj())) {
                         // version mismatch, only load geometries
                         load_config = false;
                         if (!load_model) {
