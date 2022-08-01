@@ -44,6 +44,8 @@ ComboBox::ComboBox(wxWindow *      parent,
         TextInput::SetBackgroundColor(StateColor(std::make_pair(0xF0F0F0, (int) StateColor::Disabled),
             std::make_pair(0xEDFAF2, (int) StateColor::Focused),
             std::make_pair(*wxWHITE, (int) StateColor::Normal)));
+        TextInput::SetLabelColor(StateColor(std::make_pair(0x909090, (int) StateColor::Disabled),
+            std::make_pair(0x262E30, (int) StateColor::Normal)));
     } else {
         GetTextCtrl()->Bind(wxEVT_KEY_DOWN, &ComboBox::keyDown, this);
     }

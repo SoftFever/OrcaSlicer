@@ -14,6 +14,7 @@ class SpinInput : public wxNavigationEnabled<wxWindow>
     wxSize labelSize;
     double radius;
     StateHandler state_handler;
+    StateColor   label_color;
     StateColor   text_color;
     StateColor   border_color;
     StateColor   background_color;
@@ -55,7 +56,9 @@ public:
 
     void SetLabel(const wxString &label) wxOVERRIDE;
 
-    void SetTextColor(StateColor const & color);
+    void SetLabelColor(StateColor const &color);
+
+    void SetTextColor(StateColor const &color);
 
     void SetBackgroundColor(StateColor const & color);
 

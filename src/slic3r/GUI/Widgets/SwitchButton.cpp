@@ -80,7 +80,7 @@ void SwitchButton::Rescale()
 			if (size.x > thumbSize.x) thumbSize.x = size.x;
 			else size.x = thumbSize.x;
 			thumbSize.x += BS * 12;
-			thumbSize.y += BS * 2;
+			thumbSize.y += BS * 6;
 			trackSize.x = thumbSize.x + size.x + BS * 10;
 			trackSize.y = thumbSize.y + BS * 2;
             auto maxWidth = GetMaxWidth();

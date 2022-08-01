@@ -28,8 +28,10 @@ TextInput::TextInput()
     , border_color(std::make_pair(0xDBDBDB, (int) StateColor::Disabled),
                    std::make_pair(0x00AE42, (int) StateColor::Hovered),
                    std::make_pair(0xDBDBDB, (int) StateColor::Normal))
-    , text_color(std::make_pair(0xACACAC, (int) StateColor::Disabled),
-                 std::make_pair(0x363636, (int) StateColor::Normal))
+    , label_color(std::make_pair(0x909090, (int) StateColor::Disabled),
+                 std::make_pair(0x6B6B6B, (int) StateColor::Normal))
+    , text_color(std::make_pair(0x909090, (int) StateColor::Disabled),
+                 std::make_pair(0x262E30, (int) StateColor::Normal))
     , background_color(std::make_pair(0xF0F0F0, (int) StateColor::Disabled),
                  std::make_pair(*wxWHITE, (int) StateColor::Normal))
 {
@@ -62,11 +64,13 @@ void TextInput::Create(wxWindow *     parent,
     wxWindow::Create(parent, wxID_ANY, pos, size, style);
     wxWindow::SetLabel(label);
     style &= ~wxRIGHT;
-    state_handler.attach({&border_color, &text_color, &background_color});
+    state_handler.attach({&border_color, &label_color, & text_color, &background_color});
     state_handler.update_binds();
     text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {4, 4}, wxDefaultSize, style | wxBORDER_NONE);
     text_ctrl->SetFont(Label::Body_14);
     text_ctrl->SetInitialSize(text_ctrl->GetBestSize());
+    text_ctrl->SetBackgroundColour(background_color.colorForStates(state_handler.states()));
+    text_ctrl->SetForegroundColour(text_color.colorForStates(state_handler.states()));
     text_ctrl->Bind(wxEVT_SET_FOCUS, [this](auto &e) {
         e.SetId(GetId());
         ProcessEventLocally(e);
@@ -121,6 +125,12 @@ void TextInput::SetBorderColor(StateColor const& color)
     state_handler.update_binds();
 }
 
+void TextInput::SetLabelColor(StateColor const &color)
+{
+    label_color = color;
+    state_handler.update_binds();
+}
+
 void TextInput::SetTextColor(StateColor const& color)
 {
     text_color= color;
@@ -149,6 +159,7 @@ bool TextInput::Enable(bool enable)
         e.SetEventObject(this);
         GetEventHandler()->ProcessEvent(e);
         text_ctrl->SetBackgroundColour(background_color.colorForStates(state_handler.states()));
+        text_ctrl->SetForegroundColour(text_color.colorForStates(state_handler.states()));
     }
     return result;
 }
@@ -219,7 +230,7 @@ void TextInput::render(wxDC& dc)
         wxSize szIcon = icon.GetBmpSize();
         pt.y = (size.y - szIcon.y) / 2;
         dc.DrawBitmap(icon.bmp(), pt);
-        pt.x += szIcon.x + 5;
+        pt.x += szIcon.x + 0;
     }
     auto text = wxWindow::GetLabel();
     if (!text.IsEmpty()) {
@@ -232,7 +243,7 @@ void TextInput::render(wxDC& dc)
             pt.x += textSize.x;
             pt.y = (size.y + textSize.y) / 2 - labelSize.y;
         }
-        dc.SetTextForeground(text_color.colorForStates(states));
+        dc.SetTextForeground(label_color.colorForStates(states));
         dc.SetFont(GetFont());
         dc.DrawText(text, pt);
     }
@@ -244,9 +255,6 @@ void TextInput::messureSize()
     wxClientDC dc(this);
     labelSize = dc.GetTextExtent(wxWindow::GetLabel());
     wxSize textSize = text_ctrl->GetSize();
-#ifdef __WXOSX__
-    textSize.y -= 3; // TODO:
-#endif
     int h = textSize.y + 8;
     if (size.y < h) {
         size.y = h;

@@ -29,7 +29,8 @@ SpinInput::SpinInput()
     , border_color(std::make_pair(0xDBDBDB, (int) StateColor::Disabled),
                    std::make_pair(0x00AE42, (int) StateColor::Hovered),
                    std::make_pair(0xDBDBDB, (int) StateColor::Normal))
-    , text_color(std::make_pair(0xACACAC, (int) StateColor::Disabled), std::make_pair(*wxBLACK, (int) StateColor::Normal))
+    , label_color(std::make_pair(0x909090, (int) StateColor::Disabled), std::make_pair(0x6B6B6B, (int) StateColor::Normal))
+    , text_color(std::make_pair(0x909090, (int) StateColor::Disabled), std::make_pair(0x262E30, (int) StateColor::Normal))
     , background_color(std::make_pair(0xF0F0F0, (int) StateColor::Disabled), std::make_pair(*wxWHITE, (int) StateColor::Normal))
 {
     hover  = false;
@@ -60,10 +61,12 @@ void SpinInput::Create(wxWindow *parent,
     wxWindow::Create(parent, wxID_ANY, pos, size);
     SetFont(Label::Body_12);
     wxWindow::SetLabel(label);
-    state_handler.attach({&border_color, &text_color, &background_color});
+    state_handler.attach({&border_color, &label_color, &text_color, &background_color});
     state_handler.update_binds();
     text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {20, 4}, wxDefaultSize, style | wxBORDER_NONE | wxTE_PROCESS_ENTER, wxTextValidator(wxFILTER_DIGITS));
     text_ctrl->SetFont(Label::Body_14);
+    text_ctrl->SetBackgroundColour(background_color.colorForStates(state_handler.states()));
+    text_ctrl->SetForegroundColour(text_color.colorForStates(state_handler.states()));
     text_ctrl->SetInitialSize(text_ctrl->GetBestSize());
     text_ctrl->Bind(wxEVT_SET_FOCUS, [this](auto &e) {
         e.SetId(GetId());
@@ -104,6 +107,12 @@ void SpinInput::SetLabel(const wxString &label)
     wxWindow::SetLabel(label);
     messureSize();
     Refresh();
+}
+
+void SpinInput::SetLabelColor(StateColor const &color)
+{
+    label_color = color;
+    state_handler.update_binds();
 }
 
 void SpinInput::SetTextColor(StateColor const &color)
@@ -171,6 +180,9 @@ bool SpinInput::Enable(bool enable)
         e.SetEventObject(this);
         GetEventHandler()->ProcessEvent(e);
         text_ctrl->SetBackgroundColour(background_color.colorForStates(state_handler.states()));
+        text_ctrl->SetForegroundColour(text_color.colorForStates(state_handler.states()));
+        button_inc->Enable(enable);
+        button_dec->Enable(enable);
     }
     return result;
 }
@@ -205,7 +217,7 @@ void SpinInput::render(wxDC& dc)
         pt.x = size.x - labelSize.x - 5;
         pt.y = (size.y - labelSize.y) / 2;
         dc.SetFont(GetFont());
-        dc.SetTextForeground(text_color.colorForStates(states));
+        dc.SetTextForeground(label_color.colorForStates(states));
         dc.DrawText(text, pt);
     }
 }

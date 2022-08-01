@@ -13,6 +13,7 @@ class TextInput : public wxNavigationEnabled<wxWindow>
     ScalableBitmap icon;
     double radius;
     StateHandler   state_handler;
+    StateColor     label_color;
     StateColor     text_color;
     StateColor     border_color;
     StateColor     background_color;
@@ -48,6 +49,8 @@ public:
     void SetIcon(const wxBitmap & icon);
 
     void SetBorderColor(StateColor const & color);
+
+    void SetLabelColor(StateColor const &color);
 
     void SetTextColor(StateColor const &color);
 
