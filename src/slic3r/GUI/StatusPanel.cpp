@@ -170,8 +170,8 @@ void StatusBasePanel::init_bitmaps()
     m_bitmap_fan_off         = ScalableBitmap(this, "monitor_fan_off", 24);
     m_bitmap_speed           = ScalableBitmap(this, "monitor_speed", 24);
     m_bitmap_speed_active    = ScalableBitmap(this, "monitor_speed_active", 24);
-    m_thumbnail_placeholder  = create_scaled_bitmap("monitor_placeholder", nullptr, 120);
-    m_thumbnail_sdcard       = create_scaled_bitmap("monitor_sdcard_thumbnail", nullptr, 120);
+    m_thumbnail_placeholder  = ScalableBitmap(this, "monitor_placeholder", 120);
+    m_thumbnail_sdcard       = ScalableBitmap(this, "monitor_sdcard_thumbnail", 120);
     //m_bitmap_camera          = create_scaled_bitmap("monitor_camera", nullptr, 18);
     m_bitmap_extruder        = *cache.load_png("monitor_extruder", FromDIP(28), FromDIP(70), false, false);
     m_bitmap_sdcard_state_on    = create_scaled_bitmap("sdcard_state_on", nullptr, 16);
@@ -282,7 +282,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     m_printing_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_printing_sizer->SetMinSize(wxSize(PAGE_MIN_WIDTH, -1));
-    m_bitmap_thumbnail = new wxStaticBitmap(parent, wxID_ANY, m_thumbnail_placeholder, wxDefaultPosition, TASK_THUMBNAIL_SIZE, 0);
+    m_bitmap_thumbnail = new wxStaticBitmap(parent, wxID_ANY, m_thumbnail_placeholder.bmp(), wxDefaultPosition, TASK_THUMBNAIL_SIZE, 0);
 
     m_printing_sizer->Add(m_bitmap_thumbnail, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxLEFT, FromDIP(12));
 
@@ -1148,7 +1148,7 @@ void StatusPanel::on_webrequest_state(wxWebRequestEvent &evt)
     case wxWebRequest::State_Completed: {
         wxImage img(*evt.GetResponse().GetStream());
         img_list.insert(std::make_pair(m_request_url, img));
-        wxImage resize_img = img.Scale(m_bitmap_thumbnail->GetSize().x, m_bitmap_thumbnail->GetSize().y);
+        wxImage resize_img = img.Scale(m_bitmap_thumbnail->GetSize().x, m_bitmap_thumbnail->GetSize().y, wxIMAGE_QUALITY_HIGH);
         m_bitmap_thumbnail->SetBitmap(resize_img);
         break;
     }
@@ -1706,7 +1706,7 @@ void StatusPanel::update_sdcard_subtask(MachineObject *obj)
     if (!obj) return;
 
     if (!m_load_sdcard_thumbnail) {
-        m_bitmap_thumbnail->SetBitmap(m_thumbnail_sdcard);
+        m_bitmap_thumbnail->SetBitmap(m_thumbnail_sdcard.bmp());
         m_load_sdcard_thumbnail = true;
     }
 }
@@ -1721,7 +1721,7 @@ void StatusPanel::reset_printing_values()
     m_printing_stage_value->SetLabelText("");
     m_staticText_progress_left->SetLabelText(NA_STR);
     m_staticText_progress_percent->SetLabelText(NA_STR);
-    m_bitmap_thumbnail->SetBitmap(m_thumbnail_placeholder);
+    m_bitmap_thumbnail->SetBitmap(m_thumbnail_placeholder.bmp());
     m_start_loading_thumbnail = false;
     m_load_sdcard_thumbnail   = false;
     this->Layout();

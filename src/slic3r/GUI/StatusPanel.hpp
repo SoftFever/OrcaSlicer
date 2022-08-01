@@ -65,8 +65,8 @@ class StatusBasePanel : public wxScrolledWindow
 {
 protected:
     wxBitmap m_item_placeholder;
-    wxBitmap m_thumbnail_placeholder;
-    wxBitmap m_thumbnail_sdcard;
+    ScalableBitmap m_thumbnail_placeholder;
+    ScalableBitmap m_thumbnail_sdcard;
     wxBitmap m_bitmap_item_prediction;
     wxBitmap m_bitmap_item_cost;
     wxBitmap m_bitmap_item_print;
