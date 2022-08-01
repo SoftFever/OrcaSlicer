@@ -179,9 +179,9 @@ void MaterialItem::doRender(wxDC &dc)
  AmsMapingPopup::AmsMapingPopup(wxWindow *parent) 
     :wxPopupTransientWindow(parent, wxBORDER_NONE)
  {
-     SetSize(wxSize(FromDIP(220), -1));
-     SetMinSize(wxSize(FromDIP(220), -1));
-     SetMaxSize(wxSize(FromDIP(220), -1));
+     SetSize(wxSize(FromDIP(300), -1));
+     SetMinSize(wxSize(FromDIP(300), -1));
+     SetMaxSize(wxSize(FromDIP(300), -1));
      Bind(wxEVT_PAINT, &AmsMapingPopup::paintEvent, this);
 
 
@@ -294,9 +294,9 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
 
         // set button
         MappingItem *m_filament_name = new MappingItem(this);
-        m_filament_name->SetSize(wxSize(FromDIP(38), FromDIP(20)));
-        m_filament_name->SetMinSize(wxSize(FromDIP(38), FromDIP(20)));
-        m_filament_name->SetMaxSize(wxSize(FromDIP(38), FromDIP(20)));
+        m_filament_name->SetSize(wxSize(FromDIP(62), FromDIP(22)));
+        m_filament_name->SetMinSize(wxSize(FromDIP(62), FromDIP(22)));
+        m_filament_name->SetMaxSize(wxSize(FromDIP(62), FromDIP(22)));
         //m_filament_name->SetCornerRadius(5);
         m_filament_name->SetFont(::Label::Body_12);
         m_mapping_item_list.push_back(m_filament_name);
@@ -443,15 +443,15 @@ void MappingItem::render(wxDC &dc)
 #endif
 
     // materials name
-    dc.SetFont(::Label::Body_13);
+    dc.SetFont(::Label::Body_12);
 
     auto txt_colour = m_coloul.GetLuminance() < 0.5 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
     dc.SetTextForeground(txt_colour);
 
-    if (dc.GetTextExtent(m_name).x > GetSize().x - 10) {
+    /*if (dc.GetTextExtent(m_name).x > GetSize().x - 10) {
         dc.SetFont(::Label::Body_10);
         m_name = m_name.substr(0, 3) + "." + m_name.substr(m_name.length() - 1);
-    }
+    }*/
 
     auto txt_size = dc.GetTextExtent(m_name);
     dc.DrawText(m_name, wxPoint((GetSize().x - txt_size.x) / 2, (GetSize().y - txt_size.y) / 2));
