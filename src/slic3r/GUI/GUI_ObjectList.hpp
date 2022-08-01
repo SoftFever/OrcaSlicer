@@ -163,8 +163,6 @@ private:
 
     } m_dragged_data;
 
-    wxBoxSizer          *m_sizer {nullptr};
-
     ObjectDataViewModel         *m_objects_model{ nullptr };
     ModelConfig                 *m_config {nullptr};
     std::vector<ModelObject*>   *m_objects{ nullptr };
@@ -308,7 +306,6 @@ public:
     bool                can_merge_to_single_object() const;
 
     wxPoint             get_mouse_position_in_control() const { return wxGetMousePosition() - this->GetScreenPosition(); }
-    wxBoxSizer*         get_sizer() {return  m_sizer;}
     int                 get_selected_obj_idx() const;
     ModelConfig&        get_item_config(const wxDataViewItem& item) const;
 

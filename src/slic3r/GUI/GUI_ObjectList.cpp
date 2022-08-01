@@ -314,9 +314,6 @@ void ObjectList::create_objects_ctrl()
      */
     SetMinSize(wxSize(-1, 3000));
 
-    m_sizer = new wxBoxSizer(wxVERTICAL);
-    m_sizer->Add(this, 1, wxGROW);
-
     m_objects_model = new ObjectDataViewModel;
     AssociateModel(m_objects_model);
     m_objects_model->SetAssociatedControl(this);

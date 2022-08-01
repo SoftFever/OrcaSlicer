@@ -103,7 +103,6 @@
 #include "Widgets/ProgressDialog.hpp"
 #include "BBLStatusBar.hpp"
 #include "BitmapCache.hpp"
-#include "AuxiliaryDialog.hpp"
 #include "ParamsDialog.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/RoundedRectangle.hpp"
@@ -304,7 +303,6 @@ struct Sidebar::priv
     wxPanel* m_panel_printer_content = nullptr;
 
     ObjectList          *m_object_list{ nullptr };
-    AuxiliaryDialog     *m_auxiliary_dialog{ nullptr };
     ObjectSettings      *object_settings{ nullptr };
 
     wxButton *btn_export_gcode;
@@ -536,6 +534,7 @@ Sidebar::Sidebar(Plater *parent)
         scrolled_sizer->AddSpacer(FromDIP(20));
     }
 
+    {
     // add filament title
     p->m_panel_filament_title = new StaticBox(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE);
     p->m_panel_filament_title->SetBackgroundColor(title_bg);
@@ -703,7 +702,9 @@ Sidebar::Sidebar(Plater *parent)
     p->m_panel_filament_content->Layout();
     scrolled_sizer->Add(p->m_panel_filament_content, 0, wxTOP | wxEXPAND, FromDIP(5));
     scrolled_sizer->AddSpacer(FromDIP(20));
+    }
 
+    {
     //add project title
     auto params_panel = ((MainFrame*)parent->GetParent())->m_param_panel;
     if (params_panel) {
@@ -727,8 +728,6 @@ Sidebar::Sidebar(Plater *parent)
     scrolled_sizer->Add(p->sizer_params, 2, wxEXPAND | wxLEFT, 0);
     p->m_object_list->Hide();
 
-    p->m_auxiliary_dialog = new AuxiliaryDialog(this);
-
     // Frequently Object Settings
     p->object_settings = new ObjectSettings(p->scrolled);
 #if !NEW_OBJECT_SETTING
@@ -740,6 +739,7 @@ Sidebar::Sidebar(Plater *parent)
         scrolled_sizer->Add(params_panel, 3, wxEXPAND);
     }
 #endif
+    }
 
     auto *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(p->scrolled, 1, wxEXPAND);
@@ -1192,11 +1192,6 @@ ObjectList* Sidebar::obj_list()
     return p->m_object_list;
 }
 
-AuxiliaryList* Sidebar::aux_list()
-{
-    return p->m_auxiliary_dialog->aux_list();
-}
-
 ObjectSettings* Sidebar::obj_settings()
 {
     return p->object_settings;
@@ -1334,12 +1329,6 @@ bool Sidebar::show_object_list(bool show) const
         return false;
     p->scrolled->Layout();
     return true;
-}
-
-bool Sidebar::show_auxiliary_dialog() const
-{
-    p->m_auxiliary_dialog->Reparent(wxGetApp().mainframe);
-    return p->m_auxiliary_dialog->ShowModal();
 }
 
 std::vector<PlaterPresetComboBox*>& Sidebar::combos_filament()
@@ -3299,8 +3288,6 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 // BBS
 void Plater::priv::load_auxiliary_files()
 {
-    // AuxiliaryList* aux_list = dynamic_cast<AuxiliaryList*>(sidebar->aux_list());
-    // aux_list->reload(auxiliary_path);
     std::string auxiliary_path = encode_path(q->model().get_auxiliary_file_temp_path().c_str());
     wxGetApp().mainframe->m_auxiliary->Reload(auxiliary_path);
 }
