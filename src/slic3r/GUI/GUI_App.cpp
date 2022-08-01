@@ -1439,7 +1439,7 @@ void GUI_App::restart_networking()
 
 int GUI_App::updating_bambu_networking()
 {
-    DownloadProgressDialog dlg(_L("Downloading Bambu Network plug-in"));
+    DownloadProgressDialog dlg(_L("Downloading Bambu Network Plug-in"));
     dlg.ShowModal();
     return 0;
 }
@@ -2606,7 +2606,7 @@ void GUI_App::ShowUserGuide() {
 
 void GUI_App::ShowDownNetPluginDlg() {
     try {
-        DownloadProgressDialog dlg(_L("Downloading Bambu Network plug-in"));
+        DownloadProgressDialog dlg(_L("Downloading Bambu Network Plug-in"));
         dlg.ShowModal();
     } catch (std::exception &e) {
         ;
