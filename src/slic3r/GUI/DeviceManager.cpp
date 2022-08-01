@@ -1617,6 +1617,7 @@ void MachineObject::reset()
     iot_print_status = "";
     print_status = "";
     last_mc_print_stage = -1;
+    m_new_ver_list_exist = false;
 
     subtask_ = nullptr;
 
@@ -2067,6 +2068,29 @@ int MachineObject::parse_json(std::string payload)
                                     else {
                                         upgrade_display_state = (int)UpgradingDisplayState::UpgradingUnavaliable;
                                     }
+                                }
+                            }
+                            // new ver list
+                            if (jj["upgrade_state"].contains("new_ver_list")) {
+                                m_new_ver_list_exist = true;
+                                new_ver_list.clear();
+                                for (auto ver_item = jj["upgrade_state"]["new_ver_list"].begin(); ver_item != jj["upgrade_state"]["new_ver_list"].end(); ver_item++) {
+                                    ModuleVersionInfo ver_info;
+                                    if (ver_item->contains("name"))
+                                        ver_info.name = (*ver_item)["name"].get<std::string>();
+                                    else
+                                        continue;
+
+                                    if (ver_item->contains("cur_ver"))
+                                        ver_info.sw_ver = (*ver_item)["cur_ver"].get<std::string>();
+                                    if (ver_item->contains("new_ver"))
+                                        ver_info.sw_new_ver = (*ver_item)["new_ver"].get<std::string>();
+
+                                    if (ver_info.name == "ota") {
+                                        ota_new_version_number = ver_info.sw_new_ver;
+                                    }
+
+                                    new_ver_list.insert(std::make_pair(ver_info.name, ver_info));
                                 }
                             }
                         }

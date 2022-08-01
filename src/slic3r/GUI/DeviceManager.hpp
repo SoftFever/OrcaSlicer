@@ -296,6 +296,7 @@ public:
         std::string sn;
         std::string hw_ver;
         std::string sw_ver;
+        std::string sw_new_ver;
     };
 
     /* static members and functions */
@@ -413,6 +414,8 @@ public:
     std::string ota_new_version_number;
     std::string ahb_new_version_number;
     std::map<std::string, ModuleVersionInfo> module_vers;
+    std::map<std::string, ModuleVersionInfo> new_ver_list;
+    bool    m_new_ver_list_exist = false;
     int upgrade_err_code = 0;
     std::vector<FirmwareInfo> firmware_list;
 

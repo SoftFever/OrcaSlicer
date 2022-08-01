@@ -19,8 +19,6 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
 
     init_bitmaps();
 
-
-
     wxBoxSizer *m_top_sizer = new wxBoxSizer(wxVERTICAL);
 
     m_panel_caption = create_caption_panel(this);
@@ -345,7 +343,7 @@ void MachineInfoPanel::update_version_text(MachineObject* obj)
         }
         else {
             if (it != obj->module_vers.end()) {
-                wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Lastest version"));
+                wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
                 m_staticText_ver_val->SetLabelText(ver_text);
             }
             else {
@@ -391,24 +389,50 @@ void MachineInfoPanel::update_ams(MachineObject *obj)
                 // update ams img
                 wxString ams_text = wxString::Format("AMS%s", std::to_string(ams_index + 1));
                 ams_name = ams_text;
-                if (obj->upgrade_new_version
-                    && !obj->ams_new_version_number.empty()
-                    && obj->ams_new_version_number.compare(it->second.sw_ver) != 0) { 
-                    amspanel->m_ams_new_version_img->Show();
-                    wxString ver_text = wxString::Format("%s->%s", it->second.sw_ver, obj->ams_new_version_number);
-                    ams_ver = ver_text;
+
+                std::string ams_id = "ams/" + std::to_string(ams_index);
+                auto ver_item = obj->new_ver_list.find(ams_id);
+                if (obj->new_ver_list.empty() && !obj->m_new_ver_list_exist) {
+                    if (obj->upgrade_new_version
+                        && obj->ams_new_version_number.compare(it->second.sw_ver) != 0) { 
+                        amspanel->m_ams_new_version_img->Show();
+                        wxString ver_text = wxString::Format("%s->%s", it->second.sw_ver, obj->ams_new_version_number);
+                        ams_ver = ver_text;
+                    } else {
+                        amspanel->m_ams_new_version_img->Hide();
+                        if (obj->ams_new_version_number.empty()) {
+                            wxString ver_text = wxString::Format("%s", it->second.sw_ver);
+                            ams_ver = ver_text;
+                        } else {
+                            wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
+                            ams_ver = ver_text;
+                        }
+                    }
                 } else {
-                    amspanel->m_ams_new_version_img->Hide();
-                    wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Lastest version"));
-                    ams_ver = ver_text;
+                    if (ver_item == obj->new_ver_list.end()) {
+                        amspanel->m_ams_new_version_img->Hide();
+                        wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
+                        ams_ver = ver_text;
+                    } else {
+                        if (ver_item->second.sw_new_ver != ver_item->second.sw_ver) {
+                            amspanel->m_ams_new_version_img->Show();
+                            wxString ver_text = wxString::Format("%s->%s", ver_item->second.sw_ver, ver_item->second.sw_new_ver);
+                            ams_ver = ver_text;
+                        } else {
+                            amspanel->m_ams_new_version_img->Hide();
+                            wxString ver_text = wxString::Format("%s(%s)", ver_item->second.sw_ver, _L("Latest version"));
+                            ams_ver = ver_text;
+                        }
+                    }
                 }
+
                 // update ams sn
                 if (it->second.sn.empty()) {
                     ams_sn = "-";
                 } else {
                     wxString sn_text = it->second.sn;
                     ams_sn = sn_text.MakeUpper();
-                } 
+                }
             }
 
             amspanel->m_staticText_ams->SetLabelText(ams_name);
