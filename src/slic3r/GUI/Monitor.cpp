@@ -210,12 +210,6 @@ MonitorPanel::~MonitorPanel()
     m_hms_panel = new HMSPanel(m_tabpanel);
     m_tabpanel->AddPage(m_hms_panel, _L("HMS"),"", false);
 
-
-#if !BBL_RELEASE_TO_PUBLIC
-    m_debug_panel = new DebugPanel(m_tabpanel);
-    m_tabpanel->AddPage(m_debug_panel, _L("Debug"), "", false);
-#endif
-
     m_initialized = true;
     show_status((int)MonitorStatus::MONITOR_NO_PRINTER);
 }
@@ -436,12 +430,6 @@ void MonitorPanel::update_all()
     if (m_upgrade_panel->IsShown()) {
         m_upgrade_panel->update(obj);
     }
-
-#if !BBL_RELEASE_TO_PUBLIC
-    if (m_debug_panel->IsShown()) {
-        m_debug_panel->update(obj);
-    }
-#endif
 }
 
 bool MonitorPanel::Show(bool show)
