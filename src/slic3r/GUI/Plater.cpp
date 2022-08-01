@@ -3195,27 +3195,36 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 #endif /* AUTOPLACEMENT_ON_LOAD */
         }
 
-        //BBS: remove the auto scaled_down logic when load models
-        /*
+        //BBS: when the object is too large, let the user choose whether to scale it down
         for (size_t i = 0; i < object->instances.size(); ++i) {
             ModelInstance* instance = object->instances[i];
             const Vec3d size = object->instance_bounding_box(i).size();
             const Vec3d ratio = size.cwiseQuotient(bed_size);
             const double max_ratio = std::max(ratio(0), ratio(1));
             if (max_ratio > 10000) {
-                // the size of the object is too big -> this could lead to overflow when moving to clipper coordinates,
-                // so scale down the mesh
-                object->scale_mesh_after_creation(1. / max_ratio);
-                object->origin_translation = Vec3d::Zero();
-                object->center_around_origin();
-                scaled_down = true;
-                break;
+                MessageDialog dlg(q, _L("Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"), _L("Object too large"),
+                                  wxICON_QUESTION | wxYES_NO);
+                int           answer = dlg.ShowModal();
+                if (answer == wxID_YES) {
+                    // the size of the object is too big -> this could lead to overflow when moving to clipper coordinates,
+                    // so scale down the mesh
+                    object->scale_mesh_after_creation(1. / max_ratio);
+                    object->origin_translation = Vec3d::Zero();
+                    object->center_around_origin();
+                    scaled_down = true;
+                    break;
+                }
             }
-            else if (max_ratio > 5) {
-                instance->set_scaling_factor(instance->get_scaling_factor() / max_ratio);
-                scaled_down = true;
+            else if (max_ratio > 10) {
+                MessageDialog dlg(q, _L("Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"), _L("Object too large"),
+                                  wxICON_QUESTION | wxYES_NO);
+                int           answer = dlg.ShowModal();
+                if (answer == wxID_YES) {
+                    instance->set_scaling_factor(instance->get_scaling_factor() / max_ratio);
+                    scaled_down = true;
+                }
             }
-        }*/
+        }
 
         object->ensure_on_bed(allow_negative_z);
         if (!split_object) {
