@@ -740,6 +740,15 @@ void GLCanvas3D::set_as_dirty()
     m_dirty = true;
 }
 
+const float GLCanvas3D::get_scale() const
+{
+#if ENABLE_RETINA_GL
+    return m_retina_helper->get_scale_factor();
+#else
+    return 1.0f;
+#endif
+}
+
 unsigned int GLCanvas3D::get_volumes_count() const
 {
     return (unsigned int)m_volumes.volumes.size();
@@ -4404,7 +4413,7 @@ bool GLCanvas3D::_render_orient_menu(float left, float right, float bottom, floa
     //now change to left_up as {0,0}, and top is 0, bottom is canvas_h
 #if BBS_TOOLBAR_ON_TOP
     const float x = left * float(wxGetApp().plater()->get_camera().get_zoom()) + 0.5f * canvas_w;
-    ImGuiWrapper::push_toolbar_style();
+    ImGuiWrapper::push_toolbar_style(get_scale());
     imgui->set_next_window_pos(x, m_main_toolbar.get_height(), ImGuiCond_Always, 0.5f, 0.0f);
 #else
     const float x = canvas_w - m_main_toolbar.get_width();
@@ -4500,7 +4509,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
 #endif
 
     //BBS
-    ImGuiWrapper::push_toolbar_style();
+    ImGuiWrapper::push_toolbar_style(get_scale());
 
     imgui->begin(_L("Arrange options"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
@@ -6582,7 +6591,7 @@ void GLCanvas3D::_render_explosion_control() const
 
     ImGuiWrapper* imgui = wxGetApp().imgui();
 
-    ImGuiWrapper::push_toolbar_style();
+    ImGuiWrapper::push_toolbar_style(get_scale());
 
     auto canvas_w = float(get_canvas_size().get_width());
     auto canvas_h = float(get_canvas_size().get_height());
@@ -6652,7 +6661,7 @@ void GLCanvas3D::_render_assemble_info() const
     ImGui::PushFont(font);
     ImGui::PopFont();
     imgui->set_next_window_pos(canvas_w - window_width, 0.0f, ImGuiCond_Always, 0, 0);
-    ImGuiWrapper::push_toolbar_style();
+    ImGuiWrapper::push_toolbar_style(get_scale());
     imgui->begin(_L("Assembly Info"), ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
     font->Scale = origScale;
     ImGui::PushFont(font);

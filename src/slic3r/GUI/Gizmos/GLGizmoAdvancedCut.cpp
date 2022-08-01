@@ -414,7 +414,7 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
 
     GizmoImguiSetNextWIndowPos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
     
-    ImGuiWrapper::push_toolbar_style();
+    ImGuiWrapper::push_toolbar_style(m_parent.get_scale());
 
     GizmoImguiBegin(on_get_name(), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 

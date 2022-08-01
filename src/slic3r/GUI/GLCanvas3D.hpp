@@ -600,6 +600,7 @@ public:
     const GLVolumeCollection& get_volumes() const { return m_volumes; }
     void reset_volumes();
     ModelInstanceEPrintVolumeState check_volumes_outside_state() const;
+    const float get_scale() const;
 
     //BBS
     GCodeViewer& get_gcode_viewer() { return m_gcode_viewer; }

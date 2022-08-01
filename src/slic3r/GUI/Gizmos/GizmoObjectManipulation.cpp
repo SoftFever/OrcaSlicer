@@ -550,7 +550,7 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
 #endif
 
     // BBS
-    ImGuiWrapper::push_toolbar_style();
+    ImGuiWrapper::push_toolbar_style(m_glcanvas.get_scale());
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0, 6.0));
 
     std::string name = this->m_new_title_string + "##" + window_name;
@@ -664,7 +664,7 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
 #endif
 
     // BBS
-    ImGuiWrapper::push_toolbar_style();
+    ImGuiWrapper::push_toolbar_style(m_glcanvas.get_scale());
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0, 6.0));
 
     std::string name = this->m_new_title_string + "##" + window_name;
@@ -783,7 +783,7 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
 #endif
 
     //BBS
-    ImGuiWrapper::push_toolbar_style();
+    ImGuiWrapper::push_toolbar_style(m_glcanvas.get_scale());
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0, 6.0));
 
     std::string name = this->m_new_title_string + "##" + window_name;

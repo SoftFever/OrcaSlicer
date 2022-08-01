@@ -178,7 +178,7 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
 
     wchar_t old_tool = m_current_tool;
     //BBS
-    ImGuiWrapper::push_toolbar_style();
+    ImGuiWrapper::push_toolbar_style(m_parent.get_scale());
 
     GizmoImguiBegin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 

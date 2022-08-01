@@ -210,7 +210,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     GizmoImguiSetNextWIndowPos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
 
     //BBS
-    ImGuiWrapper::push_toolbar_style();
+    ImGuiWrapper::push_toolbar_style(m_parent.get_scale());
     GizmoImguiBegin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:

@@ -332,7 +332,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     wchar_t old_tool = m_current_tool;
 
     // BBS
-    ImGuiWrapper::push_toolbar_style();
+    ImGuiWrapper::push_toolbar_style(m_parent.get_scale());
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 16.0f));
     GizmoImguiBegin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
