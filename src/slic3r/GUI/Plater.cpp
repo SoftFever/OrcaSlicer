@@ -8737,7 +8737,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 
     GLCanvas3D* view3d_canvas = get_view3D_canvas3D();
     auto seq_print  = config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
-    if ( seq_print && view3d_canvas && view3d_canvas->is_rendering_enabled() ) {
+    if ( seq_print && view3d_canvas && view3d_canvas->is_initialized()  && view3d_canvas->is_rendering_enabled() ) {
         NotificationManager *notify_manager = get_notification_manager();
         if (seq_print->value == PrintSequence::ByObject) {
             std::string info_text = L("Print By Object: \nSuggest to use auto-arrange to avoid collisions when printing.");
