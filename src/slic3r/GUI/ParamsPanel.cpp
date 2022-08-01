@@ -402,6 +402,7 @@ void ParamsPanel::create_layout()
 
     //m_top_sizer->Add( m_right_sizer, 1, wxEXPAND, 5 );
     // BBS: new layout
+    m_left_sizer->AddSpacer(6 * em_unit(this) / 10);
 #if __WXOSX__
     m_left_sizer->Add(m_tmp_panel, 1, wxEXPAND | wxALL, 0);
     m_tmp_panel->GetSizer()->Add( m_page_view, 1, wxEXPAND );

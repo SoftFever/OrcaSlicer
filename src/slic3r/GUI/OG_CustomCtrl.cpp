@@ -848,7 +848,8 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
             //    is_url_string = false;
             //else if(opt == option_set.front())
             //    is_url_string = !suppress_hyperlinks && !og_line.label_path.empty();
-            h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label, field ? (field->blink() ? &blink_color : field->label_color()) : nullptr, ctrl->opt_group->sublabel_width * ctrl->m_em_unit);
+            static wxColor c("#6B6B6B");
+            h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label, field ? (field->blink() ? &blink_color : &c) : nullptr, ctrl->opt_group->sublabel_width * ctrl->m_em_unit);
             h_pos += 8;
         }
 

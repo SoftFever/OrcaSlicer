@@ -474,16 +474,16 @@ Sidebar::Sidebar(Plater *parent)
 
         // 1.2 Add spliters around title bar
         // add spliter 1
-        auto spliter_1 = new ::StaticLine(p->scrolled);
-        spliter_1->SetBackgroundColour("#A6A9AA");
-        scrolled_sizer->Add(spliter_1, 0, wxEXPAND);
+        //auto spliter_1 = new ::StaticLine(p->scrolled);
+        //spliter_1->SetBackgroundColour("#A6A9AA");
+        //scrolled_sizer->Add(spliter_1, 0, wxEXPAND);
 
         // add printer title
         scrolled_sizer->Add(p->m_panel_printer_title, 0, wxEXPAND | wxALL, 0);
 
         // add spliter 2
         auto spliter_2 = new ::StaticLine(p->scrolled);
-        spliter_2->SetBackgroundColour("#ACACAC");
+        spliter_2->SetLineColour("#CECECE");
         scrolled_sizer->Add(spliter_2, 0, wxEXPAND);
 
 
@@ -516,7 +516,7 @@ Sidebar::Sidebar(Plater *parent)
         wxStaticText* bed_type_title = new wxStaticText(p->m_panel_printer_content, wxID_ANY, _L("Bed type"));
         bed_type_title->Wrap(-1);
         bed_type_title->SetFont(Label::Body_14);
-        m_bed_type_list = new ComboBox(p->m_panel_printer_content, wxID_ANY, wxString(""), wxDefaultPosition, {-1, FromDIP(30)}, 0, nullptr, wxCB_READONLY);
+        m_bed_type_list = new ComboBox(p->m_panel_printer_content, wxID_ANY, wxString(""), wxDefaultPosition, {-1, FromDIP(24)}, 0, nullptr, wxCB_READONLY);
         const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
         if (bed_type_def && bed_type_def->enum_keys_map) {
             for (auto item : *bed_type_def->enum_keys_map)
@@ -530,8 +530,8 @@ Sidebar::Sidebar(Plater *parent)
 
         p->m_panel_printer_content->SetSizer(vsizer_printer);
         p->m_panel_printer_content->Layout();
-        scrolled_sizer->Add(p->m_panel_printer_content, 0, wxTOP | wxEXPAND, FromDIP(5));
-        scrolled_sizer->AddSpacer(FromDIP(20));
+        scrolled_sizer->Add(p->m_panel_printer_content, 0, wxTOP | wxEXPAND, FromDIP(14));
+        scrolled_sizer->AddSpacer(FromDIP(16));
     }
 
     {
@@ -555,11 +555,11 @@ Sidebar::Sidebar(Plater *parent)
     p->m_panel_filament_title->SetSizer( bSizer39 );
     p->m_panel_filament_title->Layout();
     auto spliter_1 = new ::StaticLine(p->scrolled);
-    spliter_1->SetBackgroundColour("#A6A9AA");
+    spliter_1->SetLineColour("#A6A9AA");
     scrolled_sizer->Add(spliter_1, 0, wxEXPAND);
     scrolled_sizer->Add(p->m_panel_filament_title, 0, wxEXPAND | wxALL, 0);
     auto spliter_2 = new ::StaticLine(p->scrolled);
-    spliter_2->SetBackgroundColour("#ACACAC");
+    spliter_2->SetLineColour("#CECECE");
     scrolled_sizer->Add(spliter_2, 0, wxEXPAND);
 
     // BBS
@@ -700,8 +700,8 @@ Sidebar::Sidebar(Plater *parent)
     //bSizer_filament_content->Add(p->sizer_filaments, 1, wxALIGN_CENTER | wxALL);
     p->m_panel_filament_content->SetSizer(p->sizer_filaments);
     p->m_panel_filament_content->Layout();
-    scrolled_sizer->Add(p->m_panel_filament_content, 0, wxTOP | wxEXPAND, FromDIP(5));
-    scrolled_sizer->AddSpacer(FromDIP(20));
+    scrolled_sizer->Add(p->m_panel_filament_content, 0, wxTOP | wxEXPAND, FromDIP(14));
+    scrolled_sizer->AddSpacer(FromDIP(16));
     }
 
     {
@@ -710,14 +710,11 @@ Sidebar::Sidebar(Plater *parent)
     if (params_panel) {
         params_panel->get_top_panel()->Reparent(p->scrolled);
         auto spliter_1 = new ::StaticLine(p->scrolled);
-        spliter_1->SetBackgroundColour("#A6A9AA");
-        scrolled_sizer->Add(spliter_1, 0, wxEXPAND);
-        spliter_1 = new ::StaticLine(p->scrolled); // double line
-        spliter_1->SetBackgroundColour("#A6A9AA");
+        spliter_1->SetLineColour("#A6A9AA");
         scrolled_sizer->Add(spliter_1, 0, wxEXPAND);
         scrolled_sizer->Add(params_panel->get_top_panel(), 0, wxEXPAND);
         auto spliter_2 = new ::StaticLine(p->scrolled);
-        spliter_2->SetBackgroundColour("#ACACAC");
+        spliter_2->SetLineColour("#CECECE");
         scrolled_sizer->Add(spliter_2, 0, wxEXPAND);
     }
 
@@ -1992,11 +1989,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     // BBS: move sidebar to left side
     hsizer->Add(sidebar, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
     auto spliter_1 = new ::StaticLine(q, true);
-    spliter_1->SetBackgroundColour("#A6A9AA");
+    spliter_1->SetLineColour("#A6A9AA");
     hsizer->Add(spliter_1, 0, wxEXPAND);
-    auto spliter_2 = new ::StaticLine(q, true);
-    spliter_2->SetBackgroundColour("#A6A9AA");
-    hsizer->Add(spliter_2, 0, wxEXPAND);
 
     panel_sizer = new wxBoxSizer(wxHORIZONTAL);
     panel_sizer->Add(view3D, 1, wxEXPAND | wxALL, 0);

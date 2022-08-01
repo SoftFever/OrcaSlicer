@@ -462,8 +462,8 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/
 		else {
 			// BBS: new layout
 			::StaticLine* stl = new ::StaticLine(m_parent, false, _(title));
-            stl->SetFont(wxGetApp().normal_font());
-            stl->SetForegroundColour("#6B6B6B");
+            stl->SetFont(Label::Head_14);
+            stl->SetForegroundColour("#262E30");
             sizer = new wxBoxSizer(wxVERTICAL);
             if (title.IsEmpty()) {
                 stl->Hide();

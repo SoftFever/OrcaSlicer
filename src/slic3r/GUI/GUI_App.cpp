@@ -187,9 +187,9 @@ public:
         scale_bitmap(m_main_bitmap, m_scale);
 
         // init constant texts and scale fonts
-        m_constant_text.init(get_default_font(this));
+        m_constant_text.init(Label::Body_16);
         scale_font(m_constant_text.title_font, 2.0f);
-        scale_font(m_constant_text.version_font, 1.5f);
+        scale_font(m_constant_text.version_font, 1.2f);
 
         // this font will be used for the action string
         m_action_font = m_constant_text.credits_font;
@@ -2268,11 +2268,11 @@ const wxColour GUI_App::get_label_default_clr_modified()
 void GUI_App::init_label_colours()
 {
     m_color_label_modified          = wxColour("#F1754E");
-    m_color_label_sys               = wxColour("#2B3436");
+    m_color_label_sys               = wxColour("#323A3D");
 
     bool is_dark_mode = dark_mode();
 #ifdef _WIN32
-    m_color_label_default           = is_dark_mode ? wxColour(250, 250, 250): wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+    m_color_label_default           = is_dark_mode ? wxColour(250, 250, 250) : m_color_label_sys; // wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     m_color_highlight_label_default = is_dark_mode ? wxColour(230, 230, 230): wxSystemSettings::GetColour(/*wxSYS_COLOUR_HIGHLIGHTTEXT*/wxSYS_COLOUR_WINDOWTEXT);
     m_color_highlight_default       = is_dark_mode ? wxColour(78, 78, 78)   : wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT);
     m_color_hovered_btn_label       = is_dark_mode ? wxColour(253, 111, 40) : wxColour(252, 77, 1);
