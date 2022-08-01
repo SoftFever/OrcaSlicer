@@ -1214,13 +1214,6 @@ void StatusPanel::update(MachineObject *obj)
         }
         calibration_dlg->update_cali(obj);
 
-        if (print_options_dlg == nullptr) {
-            print_options_dlg = new PrintOptionsDialog(this);
-            print_options_dlg->update_machine_obj(obj);
-        } else {
-            print_options_dlg->update_machine_obj(obj);
-        }
-        print_options_dlg->update_options(obj);
         update_error_message();
     }
 
