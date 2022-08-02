@@ -403,7 +403,7 @@ void ArrangeJob::prepare()
     int state = m_plater->get_prepare_state();
     if (state == Job::JobPrepareState::PREPARE_STATE_DEFAULT) {
         only_on_partplate = false;
-        prepare_selected();
+        prepare_all();
     }
     else if (state == Job::JobPrepareState::PREPARE_STATE_MENU) {
         only_on_partplate = true;   // only arrange items on current plate
@@ -508,16 +508,8 @@ void ArrangeJob::process()
 
 
     double skirt_distance = print.has_skirt() ? print.config().skirt_distance.value : 0;
-    bool is_auto_brim = print.has_auto_brim();
     double brim_max = 0;
-    if (is_auto_brim) {
-        brim_max = 0;
-        std::for_each(m_selected.begin(), m_selected.end(), [&](ArrangePolygon ap) {  brim_max = std::max(brim_max, ap.auto_brim_width); });
-    }
-    else {
-        brim_max = print.has_brim() ? print.default_object_config().brim_width : 0;
-        std::for_each(m_selected.begin(), m_selected.end(), [&](ArrangePolygon ap) {  brim_max = std::max(brim_max, ap.user_brim_width); });
-    }
+    std::for_each(m_selected.begin(), m_selected.end(), [&](ArrangePolygon ap) {  brim_max = std::max(brim_max, ap.brim_width); });
 
     // Note: skirt_distance is now defined between outermost brim and skirt, not the object and skirt.
     // So we can't do max but do adding instead.

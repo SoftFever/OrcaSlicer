@@ -2885,6 +2885,14 @@ double getTemperatureFromExtruder(const ModelVolumePtrs objectVolumes) {
 #endif
 }
 
+double ModelInstance::get_auto_brim_width() const
+{
+    double adhcoeff = getadhesionCoeff(object->volumes);
+    double DeltaT = getTemperatureFromExtruder(object->volumes);
+    // get auto brim width (Note even if the global brim_type=btOuterBrim, we can still go into this branch)
+    return get_auto_brim_width(DeltaT, adhcoeff);
+}
+
 void ModelInstance::get_arrange_polygon(void* ap) const
 {
 //    static const double SIMPLIFY_TOLERANCE_MM = 0.1;
@@ -2924,18 +2932,6 @@ void ModelInstance::get_arrange_polygon(void* ap) const
     ret.extrude_ids = volume->get_extruders();
     if (ret.extrude_ids.empty()) //the default extruder
         ret.extrude_ids.push_back(1);
-
-    // get user specified brim width per object
-    // Note: if global brim_type=btNoBrim or brAutoBrim, user can't set individual brim_width
-    if (object->config.has("brim_width"))
-        ret.user_brim_width = object->config.opt_float("brim_width");
-    else {
-        // BBS: get DeltaT, adhcoeff before calculating brim width
-        double adhcoeff = getadhesionCoeff(object->volumes);
-        double DeltaT = getTemperatureFromExtruder(object->volumes);
-        // get auto brim width (Note even if the global brim_type=btOuterBrim, we can still go into this branch)
-        ret.auto_brim_width = get_auto_brim_width(DeltaT, adhcoeff);
-    }
 }
 
 indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, EnforcerBlockerType type) const

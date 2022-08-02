@@ -144,8 +144,22 @@ ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::
         for (int i = 0; i < BedType::btCount; i++)
             ap.vitrify_temp += tmp * pow(100, BedType::btCount - i - 1);
     }
-    ap.height = instance->get_object()->bounding_box().size().z();
-    ap.name = instance->get_object()->name;
+
+    // get brim width
+    auto obj = instance->get_object();
+    ap.brim_width = instance->get_auto_brim_width();
+    auto brim_type_ptr = obj->get_config_value<ConfigOptionEnum<BrimType>>(config, "brim_type");
+    if (brim_type_ptr) {
+        auto brim_type = brim_type_ptr->getInt();
+        if (brim_type == btOuterOnly)
+            ap.brim_width = obj->get_config_value<ConfigOptionFloat>(config, "brim_width")->getFloat();
+        else if (brim_type == btNoBrim)
+            ap.brim_width = 0;
+    }        
+
+    
+    ap.height = obj->bounding_box().size().z();
+    ap.name = obj->name;
     return ap;
 }
 
