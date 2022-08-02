@@ -648,7 +648,20 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
         for (int i = 0; i < filaments.size(); i++) {
             FilamentInfo info;
             info.id = filaments[i].id;
-            info.tray_id = filaments[i].id;
+            int ams_id = filaments[i].id / 4;
+            auto ams_it = amsList.find(std::to_string(ams_id));
+            if (ams_it == amsList.end()) {
+                info.tray_id = -1;
+            } else {
+                info.tray_id = filaments[i].id;
+
+                int tray_id = filaments[i].id % 4;
+                auto tray_it = ams_it->second->trayList.find(std::to_string(tray_id));
+                if (tray_it != ams_it->second->trayList.end()) {
+                    info.color = tray_it->second->color;
+                    info.type = tray_it->second->type;
+                }
+            }
             result.push_back(info);
         }
         return 1;
@@ -808,11 +821,12 @@ bool MachineObject::is_valid_mapping_result(std::vector<FilamentInfo>& result)
         for (int i = 0; i < result.size(); i++) {
             // invalid mapping result
             if (result[i].tray_id < 0)
-                return false;
+                is_valid = false;
             else {
                 int ams_id = result[i].tray_id / 4;
                 if (amsList.find(std::to_string(ams_id)) == amsList.end()) {
-                    return false;
+                    result[i].tray_id = -1;
+                    is_valid = false;
                 }
             }
         }

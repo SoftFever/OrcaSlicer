@@ -1110,8 +1110,8 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
     } else {
         // do not support ams mapping try to use order mapping
         bool is_valid = obj_->is_valid_mapping_result(m_ams_mapping_result);
-        if (!is_valid) {
-            // reset invalid result
+        if (result != 1 && !is_valid) {
+            //reset invalid result
             for (int i = 0; i < m_ams_mapping_result.size(); i++) {
                 m_ams_mapping_result[i].tray_id = -1;
                 m_ams_mapping_result[i].distance = 99999;
@@ -1693,6 +1693,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     }
 
     if (obj) {
+        obj->command_get_version();
         dev->set_selected_machine(m_printer_last_select);
         update_select_layout(obj->printer_type);
     } else {
