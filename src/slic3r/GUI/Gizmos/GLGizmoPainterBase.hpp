@@ -78,7 +78,7 @@ public:
     void request_update_render_data(bool paint_changed = false)
     {
         m_update_render_data = true;
-        m_paint_changed = paint_changed;
+        m_paint_changed |= paint_changed;
     };
 
     // BBS

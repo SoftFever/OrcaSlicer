@@ -87,6 +87,7 @@ public:
 protected:
     // BBS
     std::array<float, 4> get_cursor_hover_color() const override;
+    void on_set_state() override;
 
     EnforcerBlockerType get_left_button_state_type() const override { return EnforcerBlockerType(m_selected_extruder_idx + 1); }
     EnforcerBlockerType get_right_button_state_type() const override { return EnforcerBlockerType::NONE; }

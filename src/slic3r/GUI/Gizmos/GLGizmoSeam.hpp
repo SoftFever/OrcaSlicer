@@ -13,6 +13,9 @@ public:
     void render_painter_gizmo() const override;
 
 protected:
+    // BBS
+    void on_set_state() override;
+
     wchar_t  m_current_tool = 0;
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;

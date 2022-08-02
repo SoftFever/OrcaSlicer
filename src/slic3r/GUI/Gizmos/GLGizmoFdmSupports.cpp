@@ -175,6 +175,10 @@ void GLGizmoFdmSupports::on_set_state()
     if (get_state() == On) {
         m_support_threshold_angle = -1;
     }
+    else if (get_state() == Off) {
+        ModelObject* mo = m_c->selection_info()->model_object();
+        if (mo) Slic3r::save_object_mesh(*mo);
+    }
 }
 
 static std::string into_u8(const wxString& str)
@@ -552,8 +556,6 @@ void GLGizmoFdmSupports::update_model_object()
         const ModelObjectPtrs& mos = wxGetApp().model().objects;
         wxGetApp().obj_list()->update_info_items(std::find(mos.begin(), mos.end(), mo) - mos.begin());
 
-        // BBS: backup
-        Slic3r::save_object_mesh(*mo);
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
     }
 

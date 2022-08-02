@@ -663,11 +663,7 @@ void GLGizmoMmuSegmentation::update_model_object()
     if (updated) {
         const ModelObjectPtrs &mos = wxGetApp().model().objects;
         wxGetApp().obj_list()->update_info_items(std::find(mos.begin(), mos.end(), mo) - mos.begin());
-        // BBS: backup
-        Slic3r::save_object_mesh(*mo);
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
-        // BBS
-        m_parent.post_event(SimpleEvent(EVT_GLCANVAS_FORCE_UPDATE));
     }
 }
 
@@ -754,6 +750,16 @@ std::array<float, 4> GLGizmoMmuSegmentation::get_cursor_hover_color() const
         return m_extruders_colors[m_selected_extruder_idx];
     else
         return m_extruders_colors[0];
+}
+
+void GLGizmoMmuSegmentation::on_set_state()
+{
+    GLGizmoPainterBase::on_set_state();
+
+    if (get_state() == Off) {
+        ModelObject* mo = m_c->selection_info()->model_object();
+        if (mo) Slic3r::save_object_mesh(*mo);
+    }
 }
 
 wxString GLGizmoMmuSegmentation::handle_snapshot_action_name(bool shift_down, GLGizmoPainterBase::Button button_down) const
