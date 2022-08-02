@@ -22,6 +22,7 @@ struct GUI_InitParams
 
     //BBS: remove start_as_gcodeviewer logic
 	//bool	                    start_as_gcodeviewer;
+	bool                        input_gcode { false };
 };
 
 int GUI_Run(GUI_InitParams &params);

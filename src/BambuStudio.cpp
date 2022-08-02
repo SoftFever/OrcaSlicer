@@ -189,7 +189,25 @@ int CLI::run(int argc, char **argv)
         params.argv = argv;
         params.load_configs = load_configs;
         params.extra_config = std::move(m_extra_config);
-        params.input_files  = std::move(m_input_files);
+
+        std::vector<std::string>    gcode_files;
+        std::vector<std::string>    non_gcode_files;
+        for (const auto& filename : m_input_files) {
+            if (is_gcode_file(filename))
+                gcode_files.emplace_back(filename);
+            else {
+                non_gcode_files.emplace_back(filename);
+            }
+        }
+        if (non_gcode_files.empty() && !gcode_files.empty()) {
+            params.input_gcode = true;
+            params.input_files  = std::move(gcode_files);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", gcode only, gcode_files size = "<<params.input_files.size();
+        }
+        else {
+            params.input_files  = std::move(m_input_files);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", normal mode, input_files size = "<<params.input_files.size();
+        }
         //BBS: remove GCodeViewer as seperate APP logic
         //params.start_as_gcodeviewer = start_as_gcodeviewer;
 

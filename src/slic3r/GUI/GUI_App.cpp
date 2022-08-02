@@ -930,23 +930,32 @@ void GUI_App::post_init()
 
     bool switch_to_3d = false;
     if (!this->init_params->input_files.empty()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", init with input files, size %1%, input_gcode %2%")
+            %this->init_params->input_files.size() %this->init_params->input_gcode;
         switch_to_3d = true;
-        mainframe->select_tab(size_t(MainFrame::tp3DEditor));
-        plater_->select_view_3D("3D");
-        const std::vector<size_t> res = this->plater()->load_files(this->init_params->input_files);
-        if (!res.empty()) {
-            if (this->init_params->input_files.size() == 1) {
-                // Update application titlebar when opening a project file
-                const std::string& filename = this->init_params->input_files.front();
-                //BBS: remove amf logic as project
-                if (boost::algorithm::iends_with(filename, ".3mf"))
-                    this->plater()->set_project_filename(from_u8(filename));
+        if (this->init_params->input_gcode) {
+            mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+            plater_->select_view_3D("3D");
+            this->plater()->load_gcode(from_u8(this->init_params->input_files.front()));
+        }
+        else {
+            mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+            plater_->select_view_3D("3D");
+            const std::vector<size_t> res = this->plater()->load_files(this->init_params->input_files);
+            if (!res.empty()) {
+                if (this->init_params->input_files.size() == 1) {
+                    // Update application titlebar when opening a project file
+                    const std::string& filename = this->init_params->input_files.front();
+                    //BBS: remove amf logic as project
+                    if (boost::algorithm::iends_with(filename, ".3mf"))
+                        this->plater()->set_project_filename(from_u8(filename));
+                }
             }
         }
     }
 #if BBL_HAS_FIRST_PAGE
     if (!switch_to_3d) {
-        BOOST_LOG_TRIVIAL(info) << "begin load_gl_resources";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", begin load_gl_resources";
         mainframe->Freeze();
         plater_->canvas3D()->enable_render(false);
         mainframe->select_tab(size_t(MainFrame::tp3DEditor));
@@ -954,26 +963,26 @@ void GUI_App::post_init()
         //BBS init the opengl resource here
         Size canvas_size = plater_->canvas3D()->get_canvas_size();
         wxGetApp().imgui()->set_display_size(static_cast<float>(canvas_size.get_width()), static_cast<float>(canvas_size.get_height()));
-        BOOST_LOG_TRIVIAL(info) << "start to init opengl";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to init opengl";
         wxGetApp().init_opengl();
 
-        BOOST_LOG_TRIVIAL(info) << "finished init opengl";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init opengl";
         plater_->canvas3D()->init();
 
-        BOOST_LOG_TRIVIAL(info) << "finished init canvas3D";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init canvas3D";
         wxGetApp().imgui()->new_frame();
 
-        BOOST_LOG_TRIVIAL(info) << "finished init imgui frame";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init imgui frame";
         plater_->canvas3D()->enable_render(true);
-        BOOST_LOG_TRIVIAL(info) << "start to render a first frame for test";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to render a first frame for test";
 
         plater_->canvas3D()->render(false);
-        BOOST_LOG_TRIVIAL(info) << "finished rendering a first frame for test";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished rendering a first frame for test";
         if (is_editor())
             mainframe->select_tab(size_t(0));
         mainframe->Thaw();
         plater_->trigger_restore_project(1);
-        BOOST_LOG_TRIVIAL(info) << "end load_gl_resources";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", end load_gl_resources";
     }
 #endif
 
@@ -2121,16 +2130,17 @@ bool GUI_App::on_init_inner()
         // BBS
         //this->obj_manipul()->update_if_dirty();
 
-        static bool update_gui_after_init = true;
+        //use m_post_initialized instead
+        //static bool update_gui_after_init = true;
 
         // An ugly solution to GH #5537 in which GUI_App::init_opengl (normally called from events wxEVT_PAINT
         // and wxEVT_SET_FOCUS before GUI_App::post_init is called) wasn't called before GUI_App::post_init and OpenGL wasn't initialized.
 #ifdef __linux__
-        if (update_gui_after_init && m_opengl_initialized) {
+        if (!m_post_initialized && m_opengl_initialized) {
 #else
-        if (update_gui_after_init) {
+        if (!m_post_initialized) {
 #endif
-            update_gui_after_init = false;
+            m_post_initialized = true;
 #ifdef WIN32
             this->mainframe->register_win32_callbacks();
 #endif
@@ -4321,6 +4331,7 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
     std::vector<std::string> files;
     std::vector<wxString>    gcode_files;
     std::vector<wxString>    non_gcode_files;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", open files, size " << fileNames.size();
     for (const auto& filename : fileNames) {
         if (is_gcode_file(into_u8(filename)))
             gcode_files.emplace_back(filename);
@@ -4341,21 +4352,27 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
     } else*/
     {
         if (! files.empty()) {
-            wxArrayString input_files;
-            for (size_t i = 0; i < non_gcode_files.size(); ++i) {
-                input_files.push_back(non_gcode_files[i]);
+            if (m_post_initialized) {
+                wxArrayString input_files;
+                for (size_t i = 0; i < non_gcode_files.size(); ++i) {
+                    input_files.push_back(non_gcode_files[i]);
+                }
+                this->plater()->load_files(input_files);
             }
-            this->plater()->load_files(input_files);
-            if (gcode_files.size() > 0) {
-                show_info(this->plater(), _L("G-code files can not be loaded with models together!"), _L("G-code loading"));
+            else {
+                for (size_t i = 0; i < files.size(); ++i) {
+                    this->init_params->input_files.emplace_back(files[i]);
+                }
             }
         }
         else {
-            wxArrayString input_files;
-            for (size_t i = 0; i < gcode_files.size(); ++i) {
-                input_files.push_back(gcode_files[i]);
+            if (m_post_initialized) {
+                this->plater()->load_gcode(gcode_files.front());
             }
-            this->plater()->load_files(input_files);
+            else {
+                this->init_params->input_gcode = true;
+                this->init_params->input_files = { into_u8(gcode_files.front()) };
+            }
         }
         /*for (const wxString &filename : gcode_files)
             start_new_gcodeviewer(&filename);*/
