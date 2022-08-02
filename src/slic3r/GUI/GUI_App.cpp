@@ -2578,10 +2578,6 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 //     });
 
     m_is_recreating_gui = false;
-
-        CallAfter([this]() {
-            mainframe->refresh_plugin_tips();
-        });
 }
 
 void GUI_App::system_info()
