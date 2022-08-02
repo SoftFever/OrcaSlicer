@@ -140,6 +140,11 @@ void WKWebView_evaluateJavaScript(void * web, wxString const & script, void (*ca
     method_exchangeImplementations(setBezelStyle, setBezelStyle2);
 }
 
+- (NSFocusRingType) focusRingType
+{
+    return NSFocusRingTypeNone;
+}
+
 @end
 
 /* edit column for wxTableView */

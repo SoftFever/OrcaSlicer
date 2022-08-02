@@ -17,9 +17,25 @@ public:
 
 	void Rescale();
 
-protected:
-    virtual State GetNormalState() const wxOVERRIDE;
+#ifdef __WXOSX__
+    virtual bool Enable(bool enable = true) wxOVERRIDE;
+#endif
 
+protected:
+#ifdef __WXMSW__
+    virtual State GetNormalState() const wxOVERRIDE;
+#endif
+    
+#ifdef __WXOSX__
+    virtual wxBitmap DoGetBitmap(State which) const wxOVERRIDE;
+    
+    void updateBitmap(wxEvent & evt);
+    
+    bool m_disable = false;
+    bool m_hover = false;
+    bool m_focus = false;
+#endif
+    
 private:
 	void update();
 
