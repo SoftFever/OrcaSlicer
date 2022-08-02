@@ -159,6 +159,7 @@ protected:
     wxStaticText *  m_ams_debug;
     bool            m_show_ams_group{false};
     AMSControl*     m_ams_control;
+    RoundedRectangle* m_ams_control_box;
     wxStaticBitmap *m_ams_extruder_img;
     wxStaticBitmap* m_bitmap_extruder_img;
     wxPanel *       m_panel_separator_right;

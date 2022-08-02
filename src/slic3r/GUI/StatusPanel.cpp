@@ -517,7 +517,7 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     bSizer_control->Add(temp_axis_ctrl_sizer, 0, wxEXPAND, 0);
 
     auto m_ams_ctrl_sizer = create_ams_group(parent);
-    bSizer_control->Add(m_ams_ctrl_sizer, 0, wxEXPAND, 0);
+    bSizer_control->Add(m_ams_ctrl_sizer, 0, wxEXPAND|wxBOTTOM, FromDIP(10));
 
     bSizer_right->Add(bSizer_control, 1, wxEXPAND | wxALL, 0);
 
@@ -868,36 +868,25 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
 {
     auto sizer     = new wxBoxSizer(wxVERTICAL);
     auto sizer_box = new wxBoxSizer(wxVERTICAL);
-    auto box       = new RoundedRectangle(parent, wxColour(0xEE, 0xEE, 0xEE), wxDefaultPosition, wxDefaultSize, 5, 1);
+    m_ams_control_box = new RoundedRectangle(parent, wxColour(0xEE, 0xEE, 0xEE), wxDefaultPosition, wxDefaultSize, 5, 1);
+    m_ams_control_box->SetMinSize(wxSize(FromDIP(530), FromDIP(286)));
+    m_ams_control_box->SetBackgroundColour(*wxWHITE);
 #if !BBL_RELEASE_TO_PUBLIC
-    m_ams_debug = new wxStaticText(box, wxID_ANY, _L("Debug Info"), wxDefaultPosition, wxDefaultSize, 0);
+    m_ams_debug = new wxStaticText(m_ams_control_box, wxID_ANY, _L("Debug Info"), wxDefaultPosition, wxDefaultSize, 0);
     sizer_box->Add(m_ams_debug, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_ams_debug->Hide();
 #endif
 
-    m_ams_control = new AMSControl(box, wxID_ANY);
-    m_ams_control->SetMinSize(m_ams_control->GetSize());
+    m_ams_control = new AMSControl(m_ams_control_box, wxID_ANY);
+    //m_ams_control->SetMinSize(wxSize(FromDIP(510), FromDIP(286)));
     m_ams_control->SetDoubleBuffered(true);
     sizer_box->Add(m_ams_control, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, FromDIP(10));
 
-    box->SetBackgroundColour(*wxWHITE);
-    box->SetSizer(sizer_box);
-    box->Layout();
-    sizer->Add(box, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, FromDIP(9));
-
-    // display demo, to be removed
-    // auto                 caninfo0_0 = Caninfo{"can0", _L("PLA1"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
-    // auto                 caninfo0_1 = Caninfo{"can1", _L("PLA2"), wxColour(255,192,203), AMSCanType::AMS_CAN_TYPE_BRAND};
-    // auto                 caninfo0_2 = Caninfo{"can2", _L("PLA3"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_THIRDBRAND};
-    // auto                 caninfo0_3 = Caninfo{"cam3", _L("PLA4"), *wxWHITE, AMSCanType::AMS_CAN_TYPE_THIRDBRAND};
-    // auto                 caninfo0_33 = Caninfo{"can43", _L("DDD"), wxColour(148,0,211), AMSCanType::AMS_CAN_TYPE_THIRDBRAND};
-
-    // AMSinfo              ams1       = AMSinfo{"ams0", std::vector<Caninfo>{caninfo0_0, caninfo0_1}};
-    // AMSinfo              ams2       = AMSinfo{"ams1", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2}};
-    // AMSinfo              ams3       = AMSinfo{"ams2", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    // AMSinfo              ams4       = AMSinfo{"ams3", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_33}};
-    // std::vector<AMSinfo> ams_info{ams1,ams2,ams3,ams4};
-    // m_ams_control->UpdateAms(ams_info);
+    m_ams_control_box->SetBackgroundColour(*wxWHITE);
+    m_ams_control_box->SetSizer(sizer_box);
+    m_ams_control_box->Layout();
+    m_ams_control_box->Fit();
+    sizer->Add(m_ams_control_box, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, FromDIP(0));
     return sizer;
 }
 
@@ -905,6 +894,8 @@ void StatusBasePanel::show_ams_group(bool show)
 {
     if (m_show_ams_group != show) {
         m_ams_control->Show(show);
+        m_ams_control_box->Show(show);
+        Fit();
     }
     m_show_ams_group = show;
 }
@@ -2226,6 +2217,7 @@ void StatusPanel::set_default()
 
     reset_temp_misc_control();
     m_ams_control->Hide();
+    m_ams_control_box->Hide();
     m_ams_control->Reset();
     clean_tasklist_info();
     m_staticline->Hide();
