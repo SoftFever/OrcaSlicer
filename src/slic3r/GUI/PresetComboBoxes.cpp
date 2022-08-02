@@ -892,10 +892,14 @@ void PlaterPresetComboBox::update()
         // BBS
         wxColor clr(filament_color);
         clr_picker->SetBackgroundColour(clr);
-        auto style = clr_picker->GetWindowStyle() & ~(wxBORDER_NONE | wxBORDER_SIMPLE);
         auto diff_clr = different_color(clr);
-        clr_picker->SetWindowStyle(clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224 ? (style | wxBORDER_SIMPLE) : (style | wxBORDER_NONE));
         clr_picker->SetForegroundColour(diff_clr);
+        auto style = clr_picker->GetWindowStyle() & ~(wxBORDER_NONE | wxBORDER_SIMPLE);
+        style = clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224 ? (style | wxBORDER_SIMPLE) : (style | wxBORDER_NONE);
+        clr_picker->SetWindowStyle(style);
+#ifdef __WXOSX__
+        clr_picker->SetLabel(clr_picker->GetLabel()); // Let setBezelStyle: be called
+#endif
         selected_filament_preset = m_collection->find_preset(m_preset_bundle->filament_presets[m_filament_idx]);
         if (!selected_filament_preset) {
             //can not find this filament, should be caused by project embedded presets, will be updated later

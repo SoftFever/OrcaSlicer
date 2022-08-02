@@ -115,6 +115,20 @@ void set_miniaturizable(void * window)
     [attrTitle release];
 }
 
+- (void)setBezelStyle2:(NSBezelStyle)bezelStyle
+{
+    if (bezelStyle != NSBezelStyleShadowlessSquare)
+        [self setBordered: YES];
+    [self setBezelStyle2: bezelStyle];
+}
+
++ (void) load
+{
+    Method setBezelStyle = class_getInstanceMethod([NSButton class], @selector(setBezelStyle:));
+    Method setBezelStyle2 = class_getInstanceMethod([NSButton class], @selector(setBezelStyle2:));
+    method_exchangeImplementations(setBezelStyle, setBezelStyle2);
+}
+
 @end
 
 /* edit column for wxTableView */
