@@ -71,9 +71,9 @@ public:
         Flatten,
         Cut,
         FdmSupports,
+        Seam,
         MmuSegmentation,
         Simplify,
-        Seam,
         SlaSupports,
         // BBS
         //FaceRecognition,

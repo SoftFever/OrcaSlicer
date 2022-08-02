@@ -38,7 +38,7 @@ bool GLGizmoSeam::on_init()
     m_desc["block"]            = _L("Block seam");
     m_desc["remove_caption"]   = _L("Shift + Left mouse button") + ": ";
     m_desc["remove"]           = _L("Remove selection");
-    m_desc["remove_all"]       = _L("Remove all selection");
+    m_desc["remove_all"]       = _L("Erase all painting");
     m_desc["circle"]           = _L("Circle");
     m_desc["sphere"]           = _L("Sphere");
 
@@ -307,7 +307,7 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
             if (mv->is_model_part()) {
                 ++idx;
                 m_triangle_selectors[idx]->reset();
-                m_triangle_selectors[idx]->request_update_render_data();
+                m_triangle_selectors[idx]->request_update_render_data(true);
             }
 
         update_model_object();
