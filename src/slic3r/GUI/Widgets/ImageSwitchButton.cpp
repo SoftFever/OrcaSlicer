@@ -42,6 +42,8 @@ void ImageSwitchButton::SetLabels(wxString const &lbl_on, wxString const &lbl_of
 {
 	labels[0] = lbl_on;
 	labels[1] = lbl_off;
+    auto fina_txt = GetValue() ? labels[0] : labels[1];
+    SetToolTip(fina_txt);
     messureSize();
     Refresh();
 }
@@ -135,7 +137,21 @@ void ImageSwitchButton::render(wxDC& dc)
         dc.SetTextForeground(text_color.colorForStates(StateColor::Disabled));
     else
         dc.SetTextForeground(text_color.colorForStates(states));
-	dc.DrawText(GetValue() ? labels[0] : labels[1], pt);
+
+    auto fina_txt = GetValue() ? labels[0] : labels[1];
+    if (dc.GetTextExtent(fina_txt).x > size.x) { 
+        wxString forment_txt = wxEmptyString;
+        for (auto i = 0; i < fina_txt.length(); i++) { 
+            forment_txt = fina_txt.SubString(0, i) + "...";
+            if (dc.GetTextExtent(forment_txt).x > size.x) {
+                pt.x = (size.x - dc.GetTextExtent(forment_txt).x) / 2;
+                dc.DrawText(forment_txt, pt);
+                break;
+            }
+        }
+    } else {
+        dc.DrawText(fina_txt, pt);
+    }  
 }
 
 void ImageSwitchButton::Rescale()
