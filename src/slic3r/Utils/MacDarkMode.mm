@@ -1,4 +1,5 @@
 #import "MacDarkMode.hpp"
+#include "wx/osx/core/cfstring.h"
 
 #import <algorithm>
 
@@ -57,6 +58,16 @@ void set_miniaturizable(void * window)
     }
 }
 
+void WKWebView_evaluateJavaScript(void * web, wxString const & script, void (*callback)(wxString const &))
+{
+    [(WKWebView*)web evaluateJavaScript:wxCFStringRef(script).AsNSString() completionHandler: ^(id result, NSError *error) {
+        if (callback && error != nil) {
+            wxString err = wxCFStringRef(error.localizedFailureReason).AsString();
+            callback(err);
+        }
+    }];
+}
+    
 }
 }
 
