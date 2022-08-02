@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-27 15:03+0800\n"
-"PO-Revision-Date: 2022-07-27 15:05+0800\n"
+"POT-Creation-Date: 2022-08-02 17:06+0800\n"
+"PO-Revision-Date: 2022-08-02 16:24+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Poedit 3.1\n"
 
 msgid "Supports Painting"
 msgstr "支撑绘制"
@@ -336,21 +336,6 @@ msgstr "外观面检测"
 msgid "Perform Recognition"
 msgstr "执行检测"
 
-msgid "Cube"
-msgstr "立方体"
-
-msgid "Cylinder"
-msgstr "圆柱体"
-
-msgid "Cone"
-msgstr "锥体"
-
-msgid "Timelapse Wipe Tower"
-msgstr "延时摄影擦料塔"
-
-msgid "Add Modifier"
-msgstr "添加修改器"
-
 msgid "Notice"
 msgstr "通知"
 
@@ -417,7 +402,7 @@ msgstr "严重错误"
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "Bambu Studio捕捉到一个未处理的异常：%1%"
 
-msgid "Downloading Bambu Network plug-in"
+msgid "Downloading Bambu Network Plug-in"
 msgstr "正在下载Bambu网络插件"
 
 msgid "Incorrect password"
@@ -425,7 +410,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Connect %s failed! [SN:%s, code=%s]"
-msgstr ""
+msgstr "连接 %s 失败 [SN:%s, code=%s]"
 
 msgid ""
 "BambuStudio configuration file may be corrupted and is not abled to be "
@@ -598,6 +583,18 @@ msgstr "删除所选对象"
 
 msgid "Load..."
 msgstr "加载..."
+
+msgid "Cube"
+msgstr "立方体"
+
+msgid "Cylinder"
+msgstr "圆柱体"
+
+msgid "Cone"
+msgstr "锥体"
+
+msgid "Timelapse Wipe Tower"
+msgstr "延时摄影擦料塔"
 
 msgid "Add settings"
 msgstr "添加设置"
@@ -845,6 +842,9 @@ msgstr "错误！"
 
 msgid "Generic"
 msgstr "通用"
+
+msgid "Add Modifier"
+msgstr "添加修改器"
 
 msgid "Deleting the last solid part is not allowed."
 msgstr "不允许删除对象的最后一个实体零件。"
@@ -1701,6 +1701,12 @@ msgstr "更新失败。"
 msgid "Failed to start printing job"
 msgstr "发起打印任务失败"
 
+msgid "default value"
+msgstr "默认值"
+
+msgid "parameter name"
+msgstr "参数名称"
+
 msgid "N/A"
 msgstr "N/A"
 
@@ -2263,6 +2269,18 @@ msgstr "视图"
 msgid "Help"
 msgstr "帮助"
 
+msgid "&File"
+msgstr ""
+
+msgid "&Edit"
+msgstr ""
+
+msgid "&View"
+msgstr ""
+
+msgid "&Help"
+msgstr ""
+
 msgid "&Open G-code"
 msgstr "打开G-code"
 
@@ -2292,15 +2310,6 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Quit %s"
-msgstr ""
-
-msgid "&File"
-msgstr ""
-
-msgid "&View"
-msgstr ""
-
-msgid "&Help"
 msgstr ""
 
 msgid "Save configuration as:"
@@ -2396,8 +2405,14 @@ msgstr "停止"
 msgid "0%"
 msgstr "0%"
 
+msgid "Clean"
+msgstr ""
+
 msgid "Control"
 msgstr "控制"
+
+msgid "Print Options"
+msgstr "打印选项"
 
 msgid "100%"
 msgstr "100%"
@@ -2710,14 +2725,14 @@ msgstr "恢复"
 msgid "Loading file: %s"
 msgstr "加载文件：%s"
 
-msgid "The Config is not compatible and can not be loaded."
-msgstr "该配置不兼容，无法被加载。"
+msgid "the 3mf is not compatible, load geometry data only!"
+msgstr "该3mf文件不兼容，仅加载几何数据！"
 
 msgid "Incompatible 3mf"
 msgstr "不兼容的3mf"
 
-msgid "the 3mf is not compatible, load geometry data only!"
-msgstr "该3mf文件不兼容，仅加载几何数据！"
+msgid "The Config is not compatible and can not be loaded."
+msgstr "该配置不兼容，无法被加载。"
 
 #, c-format, boost-format
 msgid ""
@@ -2769,6 +2784,14 @@ msgstr "检测到多零件对象"
 
 msgid "The file does not contain any geometry data."
 msgstr "此文件不包含任何几何数据。"
+
+msgid ""
+"Your object appears to be too large, Do you want to scale it down to fit the "
+"heat bed automatically?"
+msgstr "对象看起来太大，希望将对象自动缩小以适应热床吗？"
+
+msgid "Object too large"
+msgstr "对象太大"
 
 msgid "Export STL file:"
 msgstr "导出 STL 文件："
@@ -3822,12 +3845,6 @@ msgstr "到"
 
 msgid "Login"
 msgstr "登录"
-
-msgid "Filaments Selection"
-msgstr "材料选择"
-
-msgid "Printer Selection"
-msgstr "打印机选择"
 
 msgid "The configuration package is changed in previous Config Guide"
 msgstr "参数配置包在之前的配置向导中发生了变更"
@@ -5522,8 +5539,8 @@ msgstr "内部实心填充的线宽"
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr "内部实心填充的速度，不是顶面和底面。"
 
-msgid "Spiral mode"
-msgstr "旋转模式"
+msgid "Spiral vase"
+msgstr "旋转花瓶"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -6074,13 +6091,24 @@ msgstr "支撑：正在修补层%d的空洞"
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
 
+#~ msgid "Downloading Bambu Network plug-in"
+#~ msgstr "正在下载Bambu网络插件"
+
+#~ msgid "Filaments Selection"
+#~ msgstr "材料选择"
+
+#~ msgid "Printer Selection"
+#~ msgstr "打印机选择"
+
+#~ msgid "Spiral mode"
+#~ msgstr "旋转模式"
+
 #~ msgid "Fragment area"
 #~ msgstr "碎片面积阈值"
 
 #~ msgid "Clear all"
 #~ msgstr "清除所有"
 
-#, c-format, boost-format
 #~ msgid "Connect %s[SN:%s] failed!"
 #~ msgstr "连接 %s[SN:%s]失败."
 
@@ -7558,12 +7586,6 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ "Zero tree support collision resolution is invalid.\n"
 #~ "Reset to 0.2"
 #~ msgstr "树状支撑碰撞分辨率不可为0。将重置为0.2"
-
-#~ msgid "default value"
-#~ msgstr "默认值"
-
-#~ msgid "parameter name"
-#~ msgstr "参数名称"
 
 #~ msgid "Add..."
 #~ msgstr "添加..."

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-27 15:03+0800\n"
+"POT-Creation-Date: 2022-08-02 17:06+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -336,21 +336,6 @@ msgstr ""
 msgid "Perform Recognition"
 msgstr ""
 
-msgid "Cube"
-msgstr ""
-
-msgid "Cylinder"
-msgstr ""
-
-msgid "Cone"
-msgstr ""
-
-msgid "Timelapse Wipe Tower"
-msgstr ""
-
-msgid "Add Modifier"
-msgstr ""
-
 msgid "Notice"
 msgstr ""
 
@@ -413,7 +398,7 @@ msgstr ""
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr ""
 
-msgid "Downloading Bambu Network plug-in"
+msgid "Downloading Bambu Network Plug-in"
 msgstr ""
 
 msgid "Incorrect password"
@@ -592,6 +577,18 @@ msgid "Delete the selected object"
 msgstr ""
 
 msgid "Load..."
+msgstr ""
+
+msgid "Cube"
+msgstr ""
+
+msgid "Cylinder"
+msgstr ""
+
+msgid "Cone"
+msgstr ""
+
+msgid "Timelapse Wipe Tower"
 msgstr ""
 
 msgid "Add settings"
@@ -842,6 +839,9 @@ msgid "Error!"
 msgstr ""
 
 msgid "Generic"
+msgstr ""
+
+msgid "Add Modifier"
 msgstr ""
 
 msgid "Deleting the last solid part is not allowed."
@@ -1638,6 +1638,12 @@ msgstr ""
 msgid "Failed to start printing job"
 msgstr ""
 
+msgid "default value"
+msgstr ""
+
+msgid "parameter name"
+msgstr ""
+
 msgid "N/A"
 msgstr ""
 
@@ -2190,6 +2196,18 @@ msgstr ""
 msgid "Help"
 msgstr ""
 
+msgid "&File"
+msgstr ""
+
+msgid "&Edit"
+msgstr ""
+
+msgid "&View"
+msgstr ""
+
+msgid "&Help"
+msgstr ""
+
 msgid "&Open G-code"
 msgstr ""
 
@@ -2219,15 +2237,6 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "Quit %s"
-msgstr ""
-
-msgid "&File"
-msgstr ""
-
-msgid "&View"
-msgstr ""
-
-msgid "&Help"
 msgstr ""
 
 msgid "Save configuration as:"
@@ -2318,7 +2327,13 @@ msgstr ""
 msgid "0%"
 msgstr ""
 
+msgid "Clean"
+msgstr ""
+
 msgid "Control"
+msgstr ""
+
+msgid "Print Options"
 msgstr ""
 
 msgid "100%"
@@ -2634,13 +2649,13 @@ msgstr ""
 msgid "Loading file: %s"
 msgstr ""
 
-msgid "The Config is not compatible and can not be loaded."
+msgid "the 3mf is not compatible, load geometry data only!"
 msgstr ""
 
 msgid "Incompatible 3mf"
 msgstr ""
 
-msgid "the 3mf is not compatible, load geometry data only!"
+msgid "The Config is not compatible and can not be loaded."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -2690,6 +2705,14 @@ msgid "Object with multiple parts was detected"
 msgstr ""
 
 msgid "The file does not contain any geometry data."
+msgstr ""
+
+msgid ""
+"Your object appears to be too large, Do you want to scale it down to fit the "
+"heat bed automatically?"
+msgstr ""
+
+msgid "Object too large"
 msgstr ""
 
 msgid "Export STL file:"
@@ -3721,12 +3744,6 @@ msgid "To"
 msgstr ""
 
 msgid "Login"
-msgstr ""
-
-msgid "Filaments Selection"
-msgstr ""
-
-msgid "Printer Selection"
 msgstr ""
 
 msgid "The configuration package is changed in previous Config Guide"
@@ -5358,7 +5375,7 @@ msgstr ""
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr ""
 
-msgid "Spiral mode"
+msgid "Spiral vase"
 msgstr ""
 
 msgid ""

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-27 15:03+0800\n"
+"POT-Creation-Date: 2022-08-02 17:06+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -338,21 +338,6 @@ msgstr "Face recognition"
 msgid "Perform Recognition"
 msgstr "Perform Recognition"
 
-msgid "Cube"
-msgstr "Kubus"
-
-msgid "Cylinder"
-msgstr "Cilinder"
-
-msgid "Cone"
-msgstr "Kegel"
-
-msgid "Timelapse Wipe Tower"
-msgstr "Timelapse Wipe Tower"
-
-msgid "Add Modifier"
-msgstr "Aanpasser toevoegen"
-
 msgid "Notice"
 msgstr "Let op"
 
@@ -422,7 +407,7 @@ msgstr "Kritische fout"
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "Er is een onbekende uitzondering opgetreden in BambuStudio : %1%"
 
-msgid "Downloading Bambu Network plug-in"
+msgid "Downloading Bambu Network Plug-in"
 msgstr ""
 
 msgid "Incorrect password"
@@ -609,6 +594,18 @@ msgstr "Verwijder het geselecteerde object"
 
 msgid "Load..."
 msgstr "Laden..."
+
+msgid "Cube"
+msgstr "Kubus"
+
+msgid "Cylinder"
+msgstr "Cilinder"
+
+msgid "Cone"
+msgstr "Kegel"
+
+msgid "Timelapse Wipe Tower"
+msgstr "Timelapse Wipe Tower"
 
 msgid "Add settings"
 msgstr "Instellingen toevoegen"
@@ -871,6 +868,9 @@ msgstr "Fout!"
 
 msgid "Generic"
 msgstr "Algemeen"
+
+msgid "Add Modifier"
+msgstr "Aanpasser toevoegen"
 
 msgid "Deleting the last solid part is not allowed."
 msgstr "Het is niet toegestaand om het laaste vaste deel te verwijderen."
@@ -1787,6 +1787,12 @@ msgstr "Updaten mislukt."
 msgid "Failed to start printing job"
 msgstr ""
 
+msgid "default value"
+msgstr ""
+
+msgid "parameter name"
+msgstr ""
+
 msgid "N/A"
 msgstr "N/A"
 
@@ -2347,6 +2353,18 @@ msgstr "Weergave"
 msgid "Help"
 msgstr "Help"
 
+msgid "&File"
+msgstr "&File"
+
+msgid "&Edit"
+msgstr ""
+
+msgid "&View"
+msgstr "&View"
+
+msgid "&Help"
+msgstr "&Help"
+
 msgid "&Open G-code"
 msgstr "&Open G-code"
 
@@ -2377,15 +2395,6 @@ msgstr "&Quit"
 #, c-format, boost-format
 msgid "Quit %s"
 msgstr "Quit %s"
-
-msgid "&File"
-msgstr "&File"
-
-msgid "&View"
-msgstr "&View"
-
-msgid "&Help"
-msgstr "&Help"
 
 msgid "Save configuration as:"
 msgstr "Bewaar configuratie als:"
@@ -2475,8 +2484,14 @@ msgstr "Stop"
 msgid "0%"
 msgstr "0%"
 
+msgid "Clean"
+msgstr ""
+
 msgid "Control"
 msgstr "Control"
+
+msgid "Print Options"
+msgstr ""
 
 msgid "100%"
 msgstr "100%"
@@ -2808,15 +2823,15 @@ msgstr "Herstellen"
 msgid "Loading file: %s"
 msgstr "Bestand laden: %s"
 
-msgid "The Config is not compatible and can not be loaded."
-msgstr "De configuratie is niet compatibel en kan niet geladen worden!"
+msgid "the 3mf is not compatible, load geometry data only!"
+msgstr ""
+"Het 3mf bestand is niet compatibel, enkel de geometrische data wordt geladen!"
 
 msgid "Incompatible 3mf"
 msgstr "Onbruikbaar 3mf bestand"
 
-msgid "the 3mf is not compatible, load geometry data only!"
-msgstr ""
-"Het 3mf bestand is niet compatibel, enkel de geometrische data wordt geladen!"
+msgid "The Config is not compatible and can not be loaded."
+msgstr "De configuratie is niet compatibel en kan niet geladen worden!"
 
 #, c-format, boost-format
 msgid ""
@@ -2875,6 +2890,14 @@ msgstr "Er is een object met meerdere onderdelen gedetecteerd"
 
 msgid "The file does not contain any geometry data."
 msgstr "The file does not contain any geometry data."
+
+msgid ""
+"Your object appears to be too large, Do you want to scale it down to fit the "
+"heat bed automatically?"
+msgstr ""
+
+msgid "Object too large"
+msgstr ""
 
 msgid "Export STL file:"
 msgstr "Exporteer STL bestand:"
@@ -3991,12 +4014,6 @@ msgstr "Naar"
 
 msgid "Login"
 msgstr "Inloggen"
-
-msgid "Filaments Selection"
-msgstr "Filaments selectie"
-
-msgid "Printer Selection"
-msgstr "Printer selectie"
 
 msgid "The configuration package is changed in previous Config Guide"
 msgstr "Het configuratiebestand is aangepast in de vorige Config Guide"
@@ -5889,8 +5906,8 @@ msgstr ""
 "Dit is de snelheid voor de interne solide vulling (infill), bodem en "
 "bovenste oppervlakte zijn hiervan uitgezonderd"
 
-msgid "Spiral mode"
-msgstr "Spiraal modus"
+msgid "Spiral vase"
+msgstr ""
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -6502,6 +6519,15 @@ msgstr "Support: fix holes at layer %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
+
+#~ msgid "Filaments Selection"
+#~ msgstr "Filaments selectie"
+
+#~ msgid "Printer Selection"
+#~ msgstr "Printer selectie"
+
+#~ msgid "Spiral mode"
+#~ msgstr "Spiraal modus"
 
 #~ msgid "Fragment area"
 #~ msgstr "Fragment area"

@@ -3668,6 +3668,7 @@ bool GUI_App::load_language(wxString language, bool initial)
                         {"fr", wxString::FromUTF8("\x46\x72\x61\x6E\xC3\xA7\x61\x69\x73")},
                         {"it", wxString::FromUTF8("\x49\x74\x61\x6C\x69\x61\x6E\x6F")},
                         {"ru", wxString::FromUTF8("\xD1\x80\xD1\x83\xD1\x81\xD1\x81\xD0\xBA\xD0\xB8\xD0\xB9")},
+                        {"hu", wxString::FromUTF8("Magyar")}
                     };
                     for (auto l : language_descptions) {
                         const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(l.first);
@@ -3764,13 +3765,22 @@ bool GUI_App::load_language(wxString language, bool initial)
     else if (initial) {
         // bbs supported languages
         //TODO: use a global one with Preference
-        wxLanguage supported_languages[] {wxLANGUAGE_ENGLISH,  wxLANGUAGE_CHINESE_SIMPLIFIED, wxLANGUAGE_GERMAN, wxLANGUAGE_FRENCH, wxLANGUAGE_SPANISH,  wxLANGUAGE_SWEDISH, wxLANGUAGE_DUTCH };
+        wxLanguage supported_languages[] {
+            wxLANGUAGE_ENGLISH,
+            wxLANGUAGE_CHINESE_SIMPLIFIED,
+            wxLANGUAGE_GERMAN,
+            wxLANGUAGE_FRENCH,
+            wxLANGUAGE_SPANISH,
+            wxLANGUAGE_SWEDISH,
+            wxLANGUAGE_DUTCH,
+            wxLANGUAGE_HUNGARIAN };
         std::string cur_language = app_config->get("language");
         if (cur_language != "") {
             //cleanup the language wrongly set before
             const wxLanguageInfo *langinfo = nullptr;
             bool embedded_language = false;
-            for (auto index = 0; index < 7; index++) {
+            int language_num = sizeof(supported_languages) / sizeof(supported_languages[0]);
+            for (auto index = 0; index < language_num; index++) {
                 langinfo = wxLocale::GetLanguageInfo(supported_languages[index]);
                 std::string temp_lan = langinfo->CanonicalName.ToUTF8().data();
                 if (cur_language == temp_lan) {

@@ -10,7 +10,6 @@ src/slic3r/GUI/Gizmos/GizmoObjectManipulation.cpp
 src/slic3r/GUI/Gizmos/GLGizmoAdvancedCut.cpp
 src/slic3r/GUI/Gizmos/GLGizmoSimplify.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFaceDetector.cpp
-src/slic3r/GUI/Gizmos/GLGizmoModifier.cpp
 src/slic3r/GUI/GUI.cpp
 src/slic3r/GUI/GUI_App.cpp
 src/slic3r/GUI/GUI_Init.cpp

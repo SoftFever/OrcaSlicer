@@ -33,6 +33,11 @@
 				"type": "po",
 				"pattern": "bbl/i18n/nl/BambuStudio_nl.po",
 				"lang": "nl"
+			},
+			{
+				"type": "po",
+				"pattern": "bbl/i18n/hu/BambuStudio_hu.po",
+				"lang": "hu"
 			}
 		]
 	},

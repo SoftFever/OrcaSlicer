@@ -125,6 +125,9 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_FRENCH)) {
             language_name = wxString::FromUTF8("\x46\x72\x61\x6E\xC3\xA7\x61\x69\x73");
         }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_HUNGARIAN)) {
+            language_name = wxString::FromUTF8("Magyar");
+        }
 
         if (app_config->get(param) == vlist[i]->CanonicalName) {
             m_current_language_selected = i;
@@ -651,7 +654,15 @@ wxWindow* PreferencesDialog::create_general_page()
     auto title_general_settings = create_item_title(_L("General Settings"), page, _L("General Settings"));
 
     // bbs supported languages
-    wxLanguage supported_languages[]{wxLANGUAGE_ENGLISH,  wxLANGUAGE_CHINESE_SIMPLIFIED, wxLANGUAGE_GERMAN, wxLANGUAGE_FRENCH, wxLANGUAGE_SPANISH,  wxLANGUAGE_SWEDISH, wxLANGUAGE_DUTCH };
+    wxLanguage supported_languages[]{
+        wxLANGUAGE_ENGLISH,
+        wxLANGUAGE_CHINESE_SIMPLIFIED,
+        wxLANGUAGE_GERMAN,
+        wxLANGUAGE_FRENCH,
+        wxLANGUAGE_SPANISH,
+        wxLANGUAGE_SWEDISH,
+        wxLANGUAGE_DUTCH,
+        wxLANGUAGE_HUNGARIAN };
 
     auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
     std::vector<const wxLanguageInfo *> language_infos;
@@ -660,8 +671,8 @@ wxWindow* PreferencesDialog::create_general_page()
         const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(translations[i]);
 
         if (langinfo == nullptr) continue;
-
-        for (auto si = 0; si < 7; si++) {
+        int language_num = sizeof(supported_languages) / sizeof(supported_languages[0]);
+        for (auto si = 0; si < language_num; si++) {
             if (langinfo == wxLocale::GetLanguageInfo(supported_languages[si])) {
                 language_infos.emplace_back(langinfo);
             }
