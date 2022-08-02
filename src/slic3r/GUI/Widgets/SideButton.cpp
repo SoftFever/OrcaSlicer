@@ -19,9 +19,10 @@ SideButton::SideButton(wxWindow* parent, wxString text, wxString icon, long stly
     text_orientation = HO_Left;
     text_margin = 15;
 
+
     border_color.append(0x6B6B6B, StateColor::Disabled);
-    border_color.append(0x1B8844, StateColor::Pressed);
-    border_color.append(0xFFFFF, StateColor::Hovered);
+    border_color.append(wxColour(23, 129, 63), StateColor::Pressed);
+    border_color.append(wxColour(48,221,112), StateColor::Hovered);
     border_color.append(0x00AE42, StateColor::Normal);
 
     text_color.append(0xACACAC, StateColor::Disabled);
@@ -30,8 +31,8 @@ SideButton::SideButton(wxWindow* parent, wxString text, wxString icon, long stly
     text_color.append(0xFFFFFF, StateColor::Normal);
 
     background_color.append(0x6B6B6B, StateColor::Disabled);
-    background_color.append(0x1B8844, StateColor::Pressed);
-    background_color.append(0x00AE42, StateColor::Hovered);
+    background_color.append(wxColour(23, 129, 63), StateColor::Pressed);
+    background_color.append(wxColour(48, 221, 112), StateColor::Hovered);
     background_color.append(0x00AE42, StateColor::Normal);
 
     state_handler.attach({ &border_color, &text_color, &background_color });
