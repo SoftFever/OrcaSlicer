@@ -53,27 +53,18 @@ void AMSMaterialsSetting::create()
     m_clrData = new wxColourData();
     m_clrData->SetChooseFull(true);
     m_clrData->SetChooseAlpha(false);
-    m_clr_picker    = new wxButton(m_panel_body, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), wxBU_EXACTFIT | wxBORDER_NONE);
+#ifdef __APPLE__
+    m_clr_picker = new wxButton(m_panel_body, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(25), FromDIP(25)), wxBU_EXACTFIT | wxBORDER_NONE);
+#else
+    m_clr_picker = new Button(m_panel_body, "", "");
+    m_clr_picker->SetCanFocus(false);
+    m_clr_picker->SetSize(FromDIP(80), FromDIP(20));
+    m_clr_picker->SetMinSize(wxSize(FromDIP(25), FromDIP(25)));
+    m_clr_picker->SetCornerRadius(FromDIP(6));
+    m_clr_picker->SetBorderColor(wxColour(172, 172, 172));
+#endif
     m_clr_picker->Bind(wxEVT_BUTTON, &AMSMaterialsSetting::on_clr_picker, this);
     m_sizer_colour->Add(m_clr_picker, 0, 0, 0);
-
-
-    m_panel_SN = new wxPanel(m_panel_body, wxID_ANY);
-    wxBoxSizer *m_sizer_SN = new wxBoxSizer(wxHORIZONTAL);
-
-    auto m_title_SN = new wxStaticText(m_panel_SN, wxID_ANY, _L("SN"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
-    m_title_SN->SetFont(::Label::Body_13);
-    m_title_SN->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
-    m_title_SN->Wrap(-1);
-    m_sizer_SN->Add(m_title_SN, 0, wxALIGN_CENTER, 0);
-
-    m_sizer_SN->Add(0, 0, 0, wxEXPAND, 0);
-
-    m_sn_number = new wxStaticText(m_panel_SN, wxID_ANY, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH);
-    m_sizer_SN->Add(m_sn_number, 0, wxALIGN_CENTER, 0);
-    m_panel_SN->SetSizer(m_sizer_SN);
-    m_panel_SN->Layout();
-    m_panel_SN->Fit();
 
     wxBoxSizer *m_sizer_temperature = new wxBoxSizer(wxHORIZONTAL);
     m_title_temperature             = new wxStaticText(m_panel_body, wxID_ANY, _L("Nozzle\nTemperature"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
@@ -164,6 +155,28 @@ void AMSMaterialsSetting::create()
         e.Skip();
         });
 
+    m_panel_SN = new wxPanel(m_panel_body, wxID_ANY);
+    wxBoxSizer *m_sizer_SN = new wxBoxSizer(wxVERTICAL);
+    m_sizer_SN->AddSpacer(FromDIP(16));
+
+    wxBoxSizer *m_sizer_SN_inside = new wxBoxSizer(wxHORIZONTAL);
+
+    auto m_title_SN = new wxStaticText(m_panel_SN, wxID_ANY, _L("SN"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
+    m_title_SN->SetFont(::Label::Body_13);
+    m_title_SN->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
+    m_title_SN->Wrap(-1);
+    m_sizer_SN_inside->Add(m_title_SN, 0, wxALIGN_CENTER, 0);
+
+    m_sizer_SN_inside->Add(0, 0, 0, wxEXPAND, 0);
+
+    m_sn_number = new wxStaticText(m_panel_SN, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize);
+    m_sizer_SN_inside->Add(m_sn_number, 0, wxALIGN_CENTER, 0);
+    m_sizer_SN->Add(m_sizer_SN_inside);
+
+    m_panel_SN->SetSizer(m_sizer_SN);
+    m_panel_SN->Layout();
+    m_panel_SN->Fit();
+
     wxBoxSizer *m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_button->Add(0, 0, 1, wxEXPAND, 0);
 
@@ -175,7 +188,11 @@ void AMSMaterialsSetting::create()
     m_button_confirm->SetBorderColor(wxColour(0, 174, 66));
     m_button_confirm->SetTextColor(AMS_MATERIALS_SETTING_GREY200);
     m_button_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
-    m_button_confirm->SetCornerRadius(12);
+#ifdef __APPLE__
+    m_button_confirm->SetCornerRadius(FromDIP(10));
+#else
+    m_button_confirm->SetCornerRadius(FromDIP(12));
+#endif
     m_button_confirm->Bind(wxEVT_LEFT_DOWN, &AMSMaterialsSetting::on_select_ok, this);
     m_sizer_button->Add(m_button_confirm, 0, wxALIGN_CENTER, 0);
 
@@ -183,11 +200,10 @@ void AMSMaterialsSetting::create()
     m_sizer_body->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(16));
     m_sizer_body->Add(m_sizer_colour, 0, wxEXPAND, 0);
     m_sizer_body->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(16));
-    m_sizer_body->Add(m_panel_SN, 0, wxEXPAND, 0);
-    m_sizer_body->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(10));
     m_sizer_body->Add(m_sizer_temperature, 0, wxEXPAND, 0);
     m_sizer_body->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(5));
     m_sizer_body->Add(warning_text, 0, wxEXPAND, 0);
+    m_sizer_body->Add(m_panel_SN, 0, wxEXPAND, 0);
     m_sizer_body->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(24));
     m_sizer_body->Add(m_sizer_button, 0, wxEXPAND, 0);
 
@@ -281,6 +297,10 @@ void AMSMaterialsSetting::enable_confirm_button(bool en)
 
 void AMSMaterialsSetting::on_select_ok(wxMouseEvent &event)
 {
+    if (!m_is_third) {
+        wxPopupTransientWindow::Dismiss();
+        return;
+    }
     wxString nozzle_temp_min = m_input_nozzle_min->GetTextCtrl()->GetValue();
     auto     filament        = COMBOBOX_FILAMENT->GetValue();
 
@@ -320,11 +340,22 @@ void AMSMaterialsSetting::set_color(wxColour color)
 
 void AMSMaterialsSetting::on_clr_picker(wxCommandEvent & event) 
 {
+    if(!m_is_third)
+        return;
     auto clr_dialog = new wxColourDialog(this, m_clrData);
     show_flag = true;
     if (clr_dialog->ShowModal() == wxID_OK) {
         m_clrData = &(clr_dialog->GetColourData());
+#ifdef __APPLE__
         m_clr_picker->SetBackgroundColour(m_clrData->GetColour());
+        auto style = m_clr_picker->GetWindowStyle() & ~(wxBORDER_NONE | wxBORDER_SIMPLE);
+        auto clr   = m_clrData->GetColour();
+        style      = clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224 ? (style | wxBORDER_SIMPLE) : (style | wxBORDER_NONE);
+        m_clr_picker->SetWindowStyle(style);
+        m_clr_picker->SetLabel(m_clr_picker->GetLabel()); // Let setBezelStyle: be called
+#else
+        m_clr_picker->SetBackgroundColor(m_clrData->GetColour());
+#endif
     }
 }
 
@@ -353,27 +384,38 @@ bool AMSMaterialsSetting::Show(bool show)
     return wxPopupTransientWindow::Show(show); 
 }
 
-void AMSMaterialsSetting::Popup(bool show, bool third, wxString filament, wxColour colour, wxString sn, wxString tep)
+void AMSMaterialsSetting::Popup(bool show, wxString filament, wxString sn, wxString temp_min, wxString temp_max)
 {
-    if (!m_is_third) {
-        m_panel_SN->Show();
-        COMBOBOX_FILAMENT->SetValue(filament);
-        m_sn_number->SetLabelText(sn);
-        m_input_nozzle_min->GetTextCtrl()->SetValue(tep);
-        m_clrData->SetColour(colour);
-        COMBOBOX_FILAMENT->Disable();
+#ifdef __APPLE__
+    m_clr_picker->SetBackgroundColour(m_clrData->GetColour());
+#else
+    m_clr_picker->SetBackgroundColor(m_clrData->GetColour());
+#endif
 
-        m_input_nozzle_min->Disable();
+    if (!m_is_third) {
+        m_sn_number->SetLabel(sn);
+        m_panel_SN->Show();
+#ifdef __APPLE__
+        wxArrayString filament_only;
+        filament_only.push_back(filament);
+        COMBOBOX_FILAMENT->Set(filament_only);
+#endif
+        COMBOBOX_FILAMENT->Set(wxArrayString());
+        COMBOBOX_FILAMENT->SetValue(filament);
+
+        m_input_nozzle_min->GetTextCtrl()->SetValue(temp_min);
+        m_input_nozzle_max->GetTextCtrl()->SetValue(temp_max);
 
         wxPopupTransientWindow::Popup();
         Layout();
+        Fit();
         return;
     }
+
     m_panel_SN->Hide();
     Layout();
     Fit();
 
-    m_clr_picker->SetBackgroundColour(m_clrData->GetColour());
 
     int selection_idx = -1, idx = 0;
     wxArrayString filament_items;

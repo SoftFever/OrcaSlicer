@@ -1890,6 +1890,10 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
             m_filament_setting_dlg->ams_id  = ams_id_int;
             m_filament_setting_dlg->tray_id = tray_id_int;
 
+            std::string sn_number;
+            std::string filament;
+            std::string temp_max;
+            std::string temp_min;
             auto it = obj->amsList.find(ams_id);
             if (it != obj->amsList.end()) {
                 auto tray_it = it->second->trayList.find(tray_id);
@@ -1898,9 +1902,15 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
                     m_filament_setting_dlg->set_color(color);
                     m_filament_setting_dlg->ams_filament_id = tray_it->second->setting_id;
                     m_filament_setting_dlg->m_is_third      = !MachineObject::is_bbl_filament(tray_it->second->tag_uid);
+                    if (!m_filament_setting_dlg->m_is_third) {
+                        sn_number = tray_it->second->uuid;
+                        filament = tray_it->second->sub_brands;
+                        temp_max = tray_it->second->nozzle_temp_max;
+                        temp_min = tray_it->second->nozzle_temp_min;
+                    }
                 }
             }
-            m_filament_setting_dlg->Popup(true);
+            m_filament_setting_dlg->Popup(true, filament, sn_number, temp_min, temp_max);
             m_filament_setting_dlg->SetPosition(m_ams_control->GetScreenPosition());
         } catch (...) {
             ;

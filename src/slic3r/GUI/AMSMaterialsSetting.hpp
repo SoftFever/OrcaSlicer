@@ -19,7 +19,7 @@
 #define AMS_MATERIALS_SETTING_GREY700 wxColour(107, 107, 107)
 #define AMS_MATERIALS_SETTING_GREY300 wxColour(174,174,174)
 #define AMS_MATERIALS_SETTING_GREY200 wxColour(248, 248, 248)
-#define AMS_MATERIALS_SETTING_BODY_WIDTH FromDIP(340)
+#define AMS_MATERIALS_SETTING_BODY_WIDTH FromDIP(350)
 #define AMS_MATERIALS_SETTING_LABEL_WIDTH FromDIP(80)
 #define AMS_MATERIALS_SETTING_COMBOX_WIDTH wxSize(FromDIP(250), FromDIP(30))
 #define AMS_MATERIALS_SETTING_BUTTON_SIZE wxSize(FromDIP(90), FromDIP(24))
@@ -41,7 +41,7 @@ public:
     void enable_confirm_button(bool en);
     void Dismiss() override;
     bool Show(bool show) override;
-    void Popup(bool show, bool third = true, wxString filament = wxEmptyString, wxColour colour = *wxWHITE, wxString sn = wxEmptyString, wxString tep = wxEmptyString);
+    void Popup(bool show, wxString filament = wxEmptyString, wxString sn = wxEmptyString, wxString temp_min = wxEmptyString, wxString temp_max = wxEmptyString);
 
 	void post_select_event();
     void on_select_ok(wxMouseEvent &event);
@@ -78,7 +78,11 @@ protected:
     wxStaticText *      m_title_filament;
     ComboBox *          m_comboBox_filament;
     wxStaticText *      m_title_colour;
+#ifdef __APPLE__
     wxButton *          m_clr_picker;
+#else
+    Button *            m_clr_picker;
+#endif
     wxStaticText *      m_title_temperature;
     wxStaticText *      m_label_other;
     TextInput *         m_input_nozzle_min;

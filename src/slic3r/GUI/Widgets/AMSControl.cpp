@@ -464,16 +464,22 @@ void AMSLib::on_leave_window(wxMouseEvent &evt)
 void AMSLib::on_left_down(wxMouseEvent &evt)
 {
     //dc.DrawBitmap(temp_bitmap, (size.x - m_bitmap_editable.GetSize().x) / 2, ( size.y - FromDIP(10) - temp_bitmap.GetSize().y) );
-    if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE &&
-        m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND) {
-        auto size   = GetSize();
-        auto pos    = evt.GetPosition();
-        auto left   = FromDIP(20);
-        auto top    = (size.y - FromDIP(10) - m_bitmap_editable_lifht.GetBmpSize().y);
-        auto right  = size.x - FromDIP(20);
-        auto bottom = size.y - FromDIP(10);
+    if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE) {
+        auto size = GetSize();
+        auto pos  = evt.GetPosition();
+        if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND) {
+            auto left   = FromDIP(20);
+            auto top    = (size.y - FromDIP(10) - m_bitmap_editable_lifht.GetBmpSize().y);
+            auto right  = size.x - FromDIP(20);
+            auto bottom = size.y - FromDIP(10);
 
-        if (pos.x >= left && pos.x <= right && pos.y >= top && top <= bottom) { post_event(wxCommandEvent(EVT_AMS_ON_FILAMENT_EDIT)); }
+            if (pos.x >= left && pos.x <= right && pos.y >= top && top <= bottom) {
+                post_event(wxCommandEvent(EVT_AMS_ON_FILAMENT_EDIT)); 
+            }
+        }
+        if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_BRAND) {
+            post_event(wxCommandEvent(EVT_AMS_ON_FILAMENT_EDIT));
+        }
     }
 }
 
