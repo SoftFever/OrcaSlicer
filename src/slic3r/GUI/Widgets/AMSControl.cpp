@@ -1431,6 +1431,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_simplebook_right        = new wxSimplebook(amswin, wxID_ANY);
     m_simplebook_right->SetMinSize(AMS_STEP_SIZE);
     m_simplebook_right->SetSize(AMS_STEP_SIZE);
+    m_simplebook_right->SetBackgroundColour(*wxWHITE);
     m_sizer_right->Add(m_simplebook_right, 0, wxALL, 0);
 
     auto tip_right    = new wxPanel(m_simplebook_right, wxID_ANY, wxDefaultPosition, AMS_STEP_SIZE, wxTAB_TRAVERSAL);
@@ -1451,10 +1452,12 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_filament_load_step = new ::StepIndicator(m_simplebook_right, wxID_ANY);
     m_filament_load_step->SetMinSize(AMS_STEP_SIZE);
     m_filament_load_step->SetSize(AMS_STEP_SIZE);
+    m_filament_load_step->SetBackgroundColour(*wxWHITE);
 
     m_filament_unload_step = new ::StepIndicator(m_simplebook_right, wxID_ANY);
     m_filament_unload_step->SetMinSize(AMS_STEP_SIZE);
     m_filament_unload_step->SetSize(AMS_STEP_SIZE);
+    m_filament_unload_step->SetBackgroundColour(*wxWHITE);
 
     m_simplebook_right->AddPage(tip_right, wxEmptyString, false);
     m_simplebook_right->AddPage(m_filament_load_step, wxEmptyString, false);

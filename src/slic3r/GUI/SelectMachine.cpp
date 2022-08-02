@@ -743,6 +743,26 @@ void SelectMachineDialog::stripWhiteSpace(std::string& str)
     }
 }
 
+wxString SelectMachineDialog::format_text(wxString &m_msg)
+{
+    if (wxGetApp().app_config->get("language") != "zh_CN") {return m_msg; }
+
+    wxString out_txt      = m_msg;
+    wxString count_txt    = "";
+    int      new_line_pos = 0;
+
+    for (int i = 0; i < m_msg.length(); i++) {
+        auto text_size = m_statictext_ams_msg->GetTextExtent(count_txt);
+        if (text_size.x < (FromDIP(400))) {
+            count_txt += m_msg[i];
+        } else {
+            out_txt.insert(i - 1, '\n');
+            count_txt = "";
+        }
+    }
+    return out_txt;
+}
+
 SelectMachineDialog::SelectMachineDialog(Plater *plater)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Send print job to"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_plater(plater), m_export_3mf_cancel(false)
@@ -1065,7 +1085,7 @@ void SelectMachineDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &res
                     ams_col = AmsTray::decode_color(f->color);
                 } else {
                     // default color
-                    ams_col = wxColour(0xEE, 0xEE, 0xEE);
+                    ams_col = wxColour(0xCE, 0xCE, 0xCE);
                 }
 
                 m->set_ams_info(ams_col, ams_id);
@@ -1175,6 +1195,8 @@ void SelectMachineDialog::update_ams_status_msg(wxString msg, bool is_warning)
             Fit();
         }
     } else {
+        msg = format_text(msg);
+
         auto str_new = msg.ToStdString();
         stripWhiteSpace(str_new);
 
@@ -1208,6 +1230,8 @@ void SelectMachineDialog::update_priner_status_msg(wxString msg, bool is_warning
             Fit();
         }
     } else {
+        msg          = format_text(msg);
+
         auto str_new = msg.ToStdString();
         stripWhiteSpace(str_new);
 
@@ -2012,8 +2036,8 @@ void SelectMachineDialog::set_default()
 
                 if (obj_ && obj_->has_ams()) {
                     m_mapping_popup.set_current_filament_id(extruder);
-                    m_mapping_popup.update_ams_data(obj_->amsList);
                     m_mapping_popup.set_tag_texture(materials[extruder]);
+                    m_mapping_popup.update_ams_data(obj_->amsList);
                     m_mapping_popup.Popup();
                 }
             }

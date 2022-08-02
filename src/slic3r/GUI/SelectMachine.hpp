@@ -309,7 +309,8 @@ protected:
 
 
     void stripWhiteSpace(std::string& str);
-    void update_ams_status_msg(wxString msg, bool is_warning = false);
+    wxString format_text(wxString &m_msg);
+    void        update_ams_status_msg(wxString msg, bool is_warning = false);
     void update_priner_status_msg(wxString msg, bool is_warning = false);
     void update_print_status_msg(wxString msg, bool is_warning = false, bool is_printer = true);
 
