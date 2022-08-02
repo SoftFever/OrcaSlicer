@@ -641,7 +641,7 @@ double getadhesionCoeff(const PrintObject* printObject)
         for (auto iter = extrudersFirstLayer.begin(); iter != extrudersFirstLayer.end(); iter++)
             if (modelVolume->extruder_id() == *iter) {
                 if (Model::extruderParamsMap.find(modelVolume->extruder_id()) != Model::extruderParamsMap.end())
-                    if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PET") {
+                    if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PETG") {
                         adhesionCoeff = 2;
                     }
                     else if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU") {
