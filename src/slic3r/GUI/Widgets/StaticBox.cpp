@@ -35,9 +35,6 @@ StaticBox::StaticBox(wxWindow* parent,
 bool StaticBox::Create(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
 {
     wxWindow::Create(parent, id, pos, size, style);
-#ifdef __WXMSW__
-    SetBackgroundStyle(wxBG_STYLE_PAINT);
-#endif
     state_handler.attach({&border_color, &background_color, &background_color2});
     state_handler.update_binds();
     SetBackgroundColour(GetParentBackgroundColor(parent));
@@ -122,6 +119,11 @@ void StaticBox::paintEvent(wxPaintEvent& evt)
 void StaticBox::render(wxDC& dc)
 {
 #ifdef __WXMSW__
+    if (radius == 0) {
+        doRender(dc);
+        return;
+    }
+
 	wxSize size = GetSize();
     wxMemoryDC memdc;
     wxBitmap bmp(size.x, size.y);
@@ -149,10 +151,20 @@ void StaticBox::doRender(wxDC& dc)
         if ((border_width && border_color.count() > 0) || background_color.count() > 0) {
             wxRect rc(0, 0, size.x, size.y);
             if (border_width && border_color.count() > 0 && (GetWindowStyle() & wxBORDER_NONE) == 0) {
-#ifdef __WXOSX__
-                int d = ceil(border_width / 2.0);
-                rc.Deflate(d, d);
-#endif
+                if (dc.GetContentScaleFactor() == 1.0) {
+                    int d  = floor(border_width / 2.0);
+                    int d2 = floor(border_width - 1);
+                    rc.x += d;
+                    rc.width -= d2;
+                    rc.y += d;
+                    rc.height -= d2;
+                } else {
+                    int d  = 1;
+                    rc.x += d;
+                    rc.width -= d;
+                    rc.y += d;
+                    rc.height -= d;
+                }
                 dc.SetPen(wxPen(border_color.colorForStates(states), border_width));
             } else {
                 dc.SetPen(wxPen(background_color.colorForStates(states)));

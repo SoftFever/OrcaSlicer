@@ -38,7 +38,6 @@ ComboBox::ComboBox(wxWindow *      parent,
         GetTextCtrl()->Hide();
         TextInput::SetFont(Label::Body_14);
         TextInput::SetBorderColor(StateColor(std::make_pair(0xDBDBDB, (int) StateColor::Disabled),
-            std::make_pair(0xEDFAF2, (int) StateColor::Focused),
             std::make_pair(0x00AE42, (int) StateColor::Hovered),
             std::make_pair(0xDBDBDB, (int) StateColor::Normal)));
         TextInput::SetBackgroundColor(StateColor(std::make_pair(0xF0F0F0, (int) StateColor::Disabled),

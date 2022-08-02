@@ -2,21 +2,15 @@
 #define slic3r_GUI_TextInput_hpp_
 
 #include <wx/textctrl.h>
-#include "../wxExtensions.hpp"
-#include "StateHandler.hpp"
+#include "StaticBox.hpp"
 
-class TextInput : public wxNavigationEnabled<wxWindow>
+class TextInput : public wxNavigationEnabled<StaticBox>
 {
 
-    bool hover;
     wxSize labelSize;
     ScalableBitmap icon;
-    double radius;
-    StateHandler   state_handler;
     StateColor     label_color;
     StateColor     text_color;
-    StateColor     border_color;
-    StateColor     background_color;
     wxTextCtrl * text_ctrl;
 
     static const int TextInputWidth = 200;
@@ -48,13 +42,9 @@ public:
 
     void SetIcon(const wxBitmap & icon);
 
-    void SetBorderColor(StateColor const & color);
-
     void SetLabelColor(StateColor const &color);
 
     void SetTextColor(StateColor const &color);
-
-    void SetBackgroundColor(StateColor const &color);
 
     virtual void Rescale();
 
@@ -80,14 +70,6 @@ private:
     void render(wxDC& dc);
 
     void messureSize();
-
-    // some useful events
-    void mouseMoved(wxMouseEvent& event);
-    void mouseWheelMoved(wxMouseEvent& event);
-    void mouseEnterWindow(wxMouseEvent& event);
-    void mouseLeaveWindow(wxMouseEvent& event);
-    void keyPressed(wxKeyEvent& event);
-    void keyReleased(wxKeyEvent& event);
 
     DECLARE_EVENT_TABLE()
 };

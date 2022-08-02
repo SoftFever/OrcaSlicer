@@ -2,22 +2,15 @@
 #define slic3r_GUI_SpinInput_hpp_
 
 #include <wx/textctrl.h>
-#include "../wxExtensions.hpp"
-#include "StateHandler.hpp"
+#include "StaticBox.hpp"
 
 class Button;
 
-class SpinInput : public wxNavigationEnabled<wxWindow>
+class SpinInput : public wxNavigationEnabled<StaticBox>
 {
-
-    bool hover;
     wxSize labelSize;
-    double radius;
-    StateHandler state_handler;
     StateColor   label_color;
     StateColor   text_color;
-    StateColor   border_color;
-    StateColor   background_color;
     wxTextCtrl * text_ctrl;
     Button * button_inc;
     Button * button_dec;
@@ -60,8 +53,6 @@ public:
 
     void SetTextColor(StateColor const &color);
 
-    void SetBackgroundColor(StateColor const & color);
-
     void SetSize(wxSize const &size);
 
     void Rescale();
@@ -91,12 +82,8 @@ private:
     Button *createButton(bool inc);
 
     // some useful events
-    void mouseMoved(wxMouseEvent& event);
     void mouseWheelMoved(wxMouseEvent& event);
-    void mouseEnterWindow(wxMouseEvent& event);
-    void mouseLeaveWindow(wxMouseEvent& event);
     void keyPressed(wxKeyEvent& event);
-    void keyReleased(wxKeyEvent& event);
     void onTimer(wxTimerEvent &evnet);
     void onTextLostFocus(wxEvent &event);
     void onTextEnter(wxCommandEvent &event);

@@ -6,14 +6,9 @@
 
 BEGIN_EVENT_TABLE(SpinInput, wxPanel)
 
-EVT_MOTION(SpinInput::mouseMoved)
-EVT_ENTER_WINDOW(SpinInput::mouseEnterWindow)
-EVT_LEAVE_WINDOW(SpinInput::mouseLeaveWindow)
 EVT_KEY_DOWN(SpinInput::keyPressed)
-EVT_KEY_UP(SpinInput::keyReleased)
 EVT_MOUSEWHEEL(SpinInput::mouseWheelMoved)
 
-// catch paint events
 EVT_PAINT(SpinInput::paintEvent)
 
 END_EVENT_TABLE()
@@ -25,16 +20,14 @@ END_EVENT_TABLE()
  */
 
 SpinInput::SpinInput()
-    : state_handler(this)
-    , border_color(std::make_pair(0xDBDBDB, (int) StateColor::Disabled),
-                   std::make_pair(0x00AE42, (int) StateColor::Hovered),
-                   std::make_pair(0xDBDBDB, (int) StateColor::Normal))
-    , label_color(std::make_pair(0x909090, (int) StateColor::Disabled), std::make_pair(0x6B6B6B, (int) StateColor::Normal))
+    : label_color(std::make_pair(0x909090, (int) StateColor::Disabled), std::make_pair(0x6B6B6B, (int) StateColor::Normal))
     , text_color(std::make_pair(0x909090, (int) StateColor::Disabled), std::make_pair(0x262E30, (int) StateColor::Normal))
-    , background_color(std::make_pair(0xF0F0F0, (int) StateColor::Disabled), std::make_pair(*wxWHITE, (int) StateColor::Normal))
 {
-    hover  = false;
     radius = 0;
+    border_width     = 1;
+    border_color     = StateColor(std::make_pair(0xDBDBDB, (int) StateColor::Disabled), std::make_pair(0x00AE42, (int) StateColor::Hovered),
+                              std::make_pair(0xDBDBDB, (int) StateColor::Normal));
+    background_color = StateColor(std::make_pair(0xF0F0F0, (int) StateColor::Disabled), std::make_pair(*wxWHITE, (int) StateColor::Normal));
 }
 
 
@@ -58,10 +51,10 @@ void SpinInput::Create(wxWindow *parent,
                      long           style,
                      int min, int max, int initial)
 {
-    wxWindow::Create(parent, wxID_ANY, pos, size);
+    StaticBox::Create(parent, wxID_ANY, pos, size);
     SetFont(Label::Body_12);
     wxWindow::SetLabel(label);
-    state_handler.attach({&border_color, &label_color, &text_color, &background_color});
+    state_handler.attach({&label_color, &text_color});
     state_handler.update_binds();
     text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {20, 4}, wxDefaultSize, style | wxBORDER_NONE | wxTE_PROCESS_ENTER, wxTextValidator(wxFILTER_DIGITS));
     text_ctrl->SetFont(Label::Body_14);
@@ -118,12 +111,6 @@ void SpinInput::SetLabelColor(StateColor const &color)
 void SpinInput::SetTextColor(StateColor const &color)
 {
     text_color = color;
-    state_handler.update_binds();
-}
-
-void SpinInput::SetBackgroundColor(StateColor const& color)
-{
-    background_color = color;
     state_handler.update_binds();
 }
 
@@ -201,24 +188,22 @@ void SpinInput::paintEvent(wxPaintEvent& evt)
  */
 void SpinInput::render(wxDC& dc)
 {
+    StaticBox::render(dc);
     int    states = state_handler.states();
     wxSize size = GetSize();
-    dc.SetPen(wxPen(border_color.colorForStates(states)));
-    dc.SetBrush(wxBrush(background_color.colorForStates(states)));
-    dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
+    // draw seperator of buttons
     wxPoint pt = button_inc->GetPosition();
     pt.y = size.y / 2;
     dc.SetPen(wxPen(border_color.defaultColor()));
     dc.DrawLine(pt, pt + wxSize{button_inc->GetSize().x - 2, 0});
-    dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    // start draw
-    auto text = GetLabel();
-    if (!text.IsEmpty()) {
+    // draw label
+    auto label = GetLabel();
+    if (!label.IsEmpty()) {
         pt.x = size.x - labelSize.x - 5;
         pt.y = (size.y - labelSize.y) / 2;
         dc.SetFont(GetFont());
         dc.SetTextForeground(label_color.colorForStates(states));
-        dc.DrawText(text, pt);
+        dc.DrawText(label, pt);
     }
 }
 
@@ -275,24 +260,6 @@ Button *SpinInput::createButton(bool inc)
     return btn;
 }
 
-void SpinInput::mouseEnterWindow(wxMouseEvent& event)
-{
-    if (!hover)
-    {
-        hover = true;
-        Refresh();
-    }
-}
-
-void SpinInput::mouseLeaveWindow(wxMouseEvent& event)
-{
-    if (hover)
-    {
-        hover = false;
-        Refresh();
-    }
-}
-
 void SpinInput::onTimer(wxTimerEvent &evnet) {
     if (delta < -1 || delta > 1) {
         delta /= 2;
@@ -336,9 +303,6 @@ void SpinInput::mouseWheelMoved(wxMouseEvent &event)
     text_ctrl->SetFocus();
 }
 
-// currently unused events
-void SpinInput::mouseMoved(wxMouseEvent& event) {}
-
 void SpinInput::keyPressed(wxKeyEvent &event)
 {
     switch (event.GetKeyCode()) {
@@ -359,7 +323,6 @@ void SpinInput::keyPressed(wxKeyEvent &event)
     default: event.Skip(); break;
     }
 }
-void SpinInput::keyReleased(wxKeyEvent &event) {}
 
 void SpinInput::sendSpinEvent()
 {
