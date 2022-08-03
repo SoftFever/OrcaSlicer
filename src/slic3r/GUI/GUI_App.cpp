@@ -3038,6 +3038,11 @@ void GUI_App::request_project_download(std::string project_id)
 
 void GUI_App::request_open_project(std::string project_id)
 {
+    if (plater()->is_background_process_slicing()) {
+        Slic3r::GUI::show_info(nullptr, _L("new or open project file is not allowed during the slicing process!"), _L("Open Project"));
+        return;
+    }
+
     if (project_id == "<new>")
         plater()->new_project();
     else if (project_id.empty())
