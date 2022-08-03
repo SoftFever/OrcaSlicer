@@ -1066,10 +1066,10 @@ void GUI_App::post_init()
     if(!m_networking_need_update && m_agent) {
         m_agent->set_on_ssdp_msg_fn(
             [this](std::string json_str) {
+                if (m_is_closing) {
+                    return;
+                }
                 GUI::wxGetApp().CallAfter([this, json_str] {
-                    if (m_is_closing) {
-                        return;
-                    }
                     if (m_device_manager) {
                         m_device_manager->on_machine_alive(json_str);
                     }
@@ -1424,10 +1424,10 @@ void GUI_App::restart_networking()
         init_networking_callbacks();
         m_agent->set_on_ssdp_msg_fn(
             [this](std::string json_str) {
+                if (m_is_closing) {
+                    return;
+                }
                 GUI::wxGetApp().CallAfter([this, json_str] {
-                    if (m_is_closing) {
-                        return;
-                    }
                     if (m_device_manager) {
                         m_device_manager->on_machine_alive(json_str);
                     }
@@ -1493,20 +1493,20 @@ void GUI_App::init_networking_callbacks()
             });
 
         m_agent->set_on_server_connected_fn([this]() {
+            if (m_is_closing) {
+                return;
+            }
             GUI::wxGetApp().CallAfter([this] {
-                if (m_is_closing) {
-                    return;
-                }
                 BOOST_LOG_TRIVIAL(trace) << "static: server connected";
                 m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
                 });
             });
 
         m_agent->set_on_printer_connected_fn([this](std::string dev_id) {
+            if (m_is_closing) {
+                return;
+            }
             GUI::wxGetApp().CallAfter([this, dev_id] {
-                if (m_is_closing) {
-                    return;
-                }
                 /* request_pushing */
                 MachineObject* obj = m_device_manager->get_my_machine(dev_id);
                 if (obj) {
@@ -1525,6 +1525,9 @@ void GUI_App::init_networking_callbacks()
 
         m_agent->set_on_local_connect_fn(
             [this](int state, std::string dev_id, std::string msg) {
+                if (m_is_closing) {
+                    return;
+                }
                 CallAfter([this, state, dev_id, msg] {
                     if (m_is_closing) {
                         return;
@@ -1556,10 +1559,10 @@ void GUI_App::init_networking_callbacks()
         );
 
         auto message_arrive_fn = [this](std::string dev_id, std::string msg) {
+            if (m_is_closing) {
+                return;
+            }
             CallAfter([this, dev_id, msg] {
-                if (m_is_closing) {
-                    return;
-                }
                 MachineObject* obj = this->m_device_manager->get_user_machine(dev_id);
                 if (obj) {
                     obj->parse_json(msg);
@@ -1574,11 +1577,10 @@ void GUI_App::init_networking_callbacks()
         m_agent->set_on_message_fn(message_arrive_fn);
 
         auto lan_message_arrive_fn = [this](std::string dev_id, std::string msg) {
+            if (m_is_closing) {
+                return;
+            }
             CallAfter([this, dev_id, msg] {
-                if (m_is_closing) {
-                    return;
-                }
-
                 MachineObject* obj = m_device_manager->get_my_machine(dev_id);
                 if (!obj) {
                     obj = m_device_manager->get_local_machine(dev_id);
