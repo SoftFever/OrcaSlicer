@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-02 17:06+0800\n"
+"POT-Creation-Date: 2022-08-03 16:53+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -483,12 +483,6 @@ msgid "Language"
 msgstr ""
 
 msgid "*"
-msgstr ""
-
-msgid "G-code files can not be loaded with models together!"
-msgstr ""
-
-msgid "G-code loading"
 msgstr ""
 
 msgid "Select a G-code file:"
@@ -1245,9 +1239,6 @@ msgstr ""
 msgid "Colour"
 msgstr ""
 
-msgid "SN"
-msgstr ""
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -1261,6 +1252,9 @@ msgstr ""
 
 #, possible-boost-format
 msgid "The input value should be greater than %1% and less than %2%"
+msgstr ""
+
+msgid "SN"
 msgstr ""
 
 msgid "Confirm"
@@ -1882,7 +1876,10 @@ msgstr ""
 msgid "Auto orient"
 msgstr ""
 
-msgid "Auto arrange"
+msgid "Arrange all objects"
+msgstr ""
+
+msgid "Arrange objects on selected plates"
 msgstr ""
 
 msgid "Split to objects"
@@ -2799,6 +2796,12 @@ msgstr ""
 msgid "Only one G-code file can be opened at the same time."
 msgstr ""
 
+msgid "G-code loading"
+msgstr ""
+
+msgid "G-code files can not be loaded with models together!"
+msgstr ""
+
 msgid "Can not add models when in preview mode!"
 msgstr ""
 
@@ -3250,9 +3253,15 @@ msgstr ""
 msgid "The printer is busy on other print job"
 msgstr ""
 
+#, possible-c-format, possible-boost-format
 msgid ""
-"The filament index exceeds the AMS's slot count and cannot send the print "
-"job."
+"Filament index %s exceeds the number of AMS slots. Please update the printer "
+"firmware to support AMS slot assignment."
+msgstr ""
+
+msgid ""
+"Filament index exceeds the number of AMS slots. Please update the printer "
+"firmware to support AMS slot assignment."
 msgstr ""
 
 msgid ""
@@ -3263,6 +3272,17 @@ msgstr ""
 msgid ""
 "Please click each filament above to specify its mapping AMS slot before "
 "sending the print job"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"Filament index %s does not match the filament in AMS slot %s. Please update "
+"the printer firmware to support AMS slot assignment."
+msgstr ""
+
+msgid ""
+"Filament index does not match the filament in AMS slot. Please update the "
+"printer firmware to support AMS slot assignment."
 msgstr ""
 
 msgid ""
@@ -3761,49 +3781,16 @@ msgstr ""
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
 msgstr ""
 
-msgid "Select all objects"
-msgstr ""
-
 msgid "Copy to clipboard"
 msgstr ""
 
 msgid "Paste from clipboard"
 msgstr ""
 
-msgid "Camera view - Default"
-msgstr ""
-
-msgid "Camera view - Top"
-msgstr ""
-
-msgid "Camera view - Bottom"
-msgstr ""
-
-msgid "Camera view - Front"
-msgstr ""
-
-msgid "Camera view - Behind"
-msgstr ""
-
-msgid "Camera Angle - Left side"
-msgstr ""
-
-msgid "Camera Angle - Right side"
-msgstr ""
-
-msgid "keyboard 1-9: set filament for object/part"
-msgstr ""
-
 msgid "Show keyboard shortcuts list"
 msgstr ""
 
 msgid "Global shortcuts"
-msgstr ""
-
-msgid "Arrange all objects"
-msgstr ""
-
-msgid "Arrange objects on selected plates"
 msgstr ""
 
 msgid ""
@@ -3818,10 +3805,31 @@ msgid ""
 "all objects in the current disk."
 msgstr ""
 
+msgid "Collapse/Expand the sidebar"
+msgstr ""
+
+msgid "⌘+Any arrow"
+msgstr ""
+
+msgid "Movement in camera space"
+msgstr ""
+
+msgid "⌥+Left mouse button"
+msgstr ""
+
+msgid "Select a part"
+msgstr ""
+
 msgid "⌘+Left mouse button"
 msgstr ""
 
 msgid "Select multiple objects"
+msgstr ""
+
+msgid "Ctrl+Any arrow"
+msgstr ""
+
+msgid "Alt+Left mouse button"
 msgstr ""
 
 msgid "Ctrl+Left mouse button"
@@ -3863,16 +3871,31 @@ msgstr ""
 msgid "Movement step set to 1 mm"
 msgstr ""
 
-msgid "⌘+Any arrow"
+msgid "keyboard 1-9: set filament for object/part"
 msgstr ""
 
-msgid "Movement in camera space"
+msgid "Camera view - Default"
 msgstr ""
 
-msgid "Ctrl+Any arrow"
+msgid "Camera view - Top"
 msgstr ""
 
-msgid "Collapse/Expand the sidebar"
+msgid "Camera view - Bottom"
+msgstr ""
+
+msgid "Camera view - Front"
+msgstr ""
+
+msgid "Camera view - Behind"
+msgstr ""
+
+msgid "Camera Angle - Left side"
+msgstr ""
+
+msgid "Camera Angle - Right side"
+msgstr ""
+
+msgid "Select all objects"
 msgstr ""
 
 msgid "Plater"
@@ -5382,9 +5405,6 @@ msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
 "model into a single walled print with solid bottom layers. The final "
 "generated model has no seam"
-msgstr ""
-
-msgid "Timelapse without toolhead"
 msgstr ""
 
 msgid ""

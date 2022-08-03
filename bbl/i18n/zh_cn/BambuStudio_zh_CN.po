@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-02 17:06+0800\n"
+"POT-Creation-Date: 2022-08-03 16:53+0800\n"
 "PO-Revision-Date: 2022-08-02 16:24+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -489,12 +489,6 @@ msgstr "语言"
 
 msgid "*"
 msgstr "*"
-
-msgid "G-code files can not be loaded with models together!"
-msgstr "G-code文件不能和模型一起加载"
-
-msgid "G-code loading"
-msgstr "正在加载G-code文件"
 
 msgid "Select a G-code file:"
 msgstr "选择一个G-code文件："
@@ -1259,9 +1253,6 @@ msgstr ""
 msgid "Colour"
 msgstr "颜色"
 
-msgid "SN"
-msgstr ""
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -1276,6 +1267,9 @@ msgstr "最小"
 #, boost-format
 msgid "The input value should be greater than %1% and less than %2%"
 msgstr "输入的范围在 %1% 和 %2% 之间"
+
+msgid "SN"
+msgstr ""
 
 msgid "Confirm"
 msgstr "确定"
@@ -1949,8 +1943,11 @@ msgstr "添加新盘"
 msgid "Auto orient"
 msgstr "自动朝向"
 
-msgid "Auto arrange"
-msgstr "自动摆盘"
+msgid "Arrange all objects"
+msgstr "全局整理"
+
+msgid "Arrange objects on selected plates"
+msgstr "单盘整理"
 
 msgid "Split to objects"
 msgstr "拆分为对象"
@@ -2879,6 +2876,12 @@ msgstr "仅导入模型数据"
 msgid "Only one G-code file can be opened at the same time."
 msgstr "只能同时打开一个G-code文件。"
 
+msgid "G-code loading"
+msgstr "正在加载G-code文件"
+
+msgid "G-code files can not be loaded with models together!"
+msgstr "G-code文件不能和模型一起加载"
+
 msgid "Can not add models when in preview mode!"
 msgstr "在预览模式不允许添加模型"
 
@@ -3332,12 +3335,16 @@ msgstr "打印机正在执行指令，请在其结束后重新发起打印"
 msgid "The printer is busy on other print job"
 msgstr "打印机正在执行其他打印任务"
 
+#, c-format, boost-format
 msgid ""
-"The filament index exceeds the AMS's slot count and cannot send the print "
-"job."
+"Filament index %s exceeds the number of AMS slots. Please update the printer "
+"firmware to support AMS slot assignment."
 msgstr ""
-"打印机固件仅支持材料=>AMS槽位的顺序映射。材料编号超过AMS的槽位数量，无法发送"
-"打印任务。"
+
+msgid ""
+"Filament index exceeds the number of AMS slots. Please update the printer "
+"firmware to support AMS slot assignment."
+msgstr ""
 
 msgid ""
 "Filaments to AMS slots mappings have been established. You can click a "
@@ -3350,6 +3357,17 @@ msgid ""
 "Please click each filament above to specify its mapping AMS slot before "
 "sending the print job"
 msgstr "请在发送打印前点击上方各个耗材丝，指定其所对应的AMS槽位"
+
+#, c-format, boost-format
+msgid ""
+"Filament index %s does not match the filament in AMS slot %s. Please update "
+"the printer firmware to support AMS slot assignment."
+msgstr ""
+
+msgid ""
+"Filament index does not match the filament in AMS slot. Please update the "
+"printer firmware to support AMS slot assignment."
+msgstr ""
 
 msgid ""
 "The printer firmware only supports sequential mapping of filament => AMS "
@@ -3861,50 +3879,17 @@ msgstr "对象列表"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
 msgstr "从STL/STEP/3MF/OBJ/AMF文件中导入几何数据"
 
-msgid "Select all objects"
-msgstr "选择所有对象"
-
 msgid "Copy to clipboard"
 msgstr "复制到剪贴板"
 
 msgid "Paste from clipboard"
 msgstr "从剪切板粘贴"
 
-msgid "Camera view - Default"
-msgstr "摄像机视角 - 默认"
-
-msgid "Camera view - Top"
-msgstr "摄像机视角 - 顶部"
-
-msgid "Camera view - Bottom"
-msgstr "摄像机视角 - 底部"
-
-msgid "Camera view - Front"
-msgstr "摄像机视角 - 前面"
-
-msgid "Camera view - Behind"
-msgstr "摄像机视角 - 后面"
-
-msgid "Camera Angle - Left side"
-msgstr "摄像机视角 - 左面"
-
-msgid "Camera Angle - Right side"
-msgstr "摄像机视角 - 右面"
-
-msgid "keyboard 1-9: set filament for object/part"
-msgstr "按键1-9：设置对象/零件的耗材丝"
-
 msgid "Show keyboard shortcuts list"
 msgstr "显示键盘快捷键列表"
 
 msgid "Global shortcuts"
 msgstr "全局快捷键"
-
-msgid "Arrange all objects"
-msgstr "全局整理"
-
-msgid "Arrange objects on selected plates"
-msgstr "单盘整理"
 
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
@@ -3922,11 +3907,32 @@ msgstr ""
 "自动调整选定零件/所有零件的方向,\n"
 "有选定零件时调整选定零件的朝向,没有选择零件时调整当前盘所有零件的朝向"
 
+msgid "Collapse/Expand the sidebar"
+msgstr "收起/展开 侧边栏"
+
+msgid "⌘+Any arrow"
+msgstr "⌘+方向键"
+
+msgid "Movement in camera space"
+msgstr "沿相机视角移动对象"
+
+msgid "⌥+Left mouse button"
+msgstr "⌥+鼠标左键"
+
+msgid "Select a part"
+msgstr "选择单个零件"
+
 msgid "⌘+Left mouse button"
 msgstr "⌘+鼠标左键"
 
 msgid "Select multiple objects"
 msgstr "选择多个对象"
+
+msgid "Ctrl+Any arrow"
+msgstr "Ctrl+方向键"
+
+msgid "Alt+Left mouse button"
+msgstr "Alt+鼠标左键"
 
 msgid "Ctrl+Left mouse button"
 msgstr "Ctrl+鼠标左键"
@@ -3967,17 +3973,32 @@ msgstr "Shift+方向键"
 msgid "Movement step set to 1 mm"
 msgstr "沿X、Y轴以1mm为步进移动对象"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+方向键"
+msgid "keyboard 1-9: set filament for object/part"
+msgstr "按键1-9：设置对象/零件的耗材丝"
 
-msgid "Movement in camera space"
-msgstr "沿相机视角移动对象"
+msgid "Camera view - Default"
+msgstr "摄像机视角 - 默认"
 
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+方向键"
+msgid "Camera view - Top"
+msgstr "摄像机视角 - 顶部"
 
-msgid "Collapse/Expand the sidebar"
-msgstr "收起/展开 侧边栏"
+msgid "Camera view - Bottom"
+msgstr "摄像机视角 - 底部"
+
+msgid "Camera view - Front"
+msgstr "摄像机视角 - 前面"
+
+msgid "Camera view - Behind"
+msgstr "摄像机视角 - 后面"
+
+msgid "Camera Angle - Left side"
+msgstr "摄像机视角 - 左面"
+
+msgid "Camera Angle - Right side"
+msgstr "摄像机视角 - 右面"
+
+msgid "Select all objects"
+msgstr "选择所有对象"
 
 msgid "Plater"
 msgstr "准备"
@@ -5550,9 +5571,6 @@ msgstr ""
 "沿着对象的外轮廓螺旋上升，将实体模型转变为只有底面实心层和侧面单层墙壁的打"
 "印。最后生成的打印件没有接缝。"
 
-msgid "Timelapse without toolhead"
-msgstr "无工具头延时摄影"
-
 msgid ""
 "Record timelapse video of printing without showing toolhead. In this mode "
 "the toolhead docks near the excess chute at each layer change, and then a "
@@ -6090,6 +6108,19 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Auto arrange"
+#~ msgstr "自动摆盘"
+
+#~ msgid ""
+#~ "The filament index exceeds the AMS's slot count and cannot send the print "
+#~ "job."
+#~ msgstr ""
+#~ "打印机固件仅支持材料=>AMS槽位的顺序映射。材料编号超过AMS的槽位数量，无法发"
+#~ "送打印任务。"
+
+#~ msgid "Timelapse without toolhead"
+#~ msgstr "无工具头延时摄影"
 
 #~ msgid "Downloading Bambu Network plug-in"
 #~ msgstr "正在下载Bambu网络插件"

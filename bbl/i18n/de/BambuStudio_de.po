@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-02 17:06+0800\n"
+"POT-Creation-Date: 2022-08-03 16:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -503,12 +503,6 @@ msgstr "Spache"
 
 msgid "*"
 msgstr "*"
-
-msgid "G-code files can not be loaded with models together!"
-msgstr "G-Code-Dateien können nicht mit Modellen zusammen geladen werden!"
-
-msgid "G-code loading"
-msgstr "G-Code ladend"
 
 msgid "Select a G-code file:"
 msgstr "Wähle eine G-Code Datei:"
@@ -1309,9 +1303,6 @@ msgstr ""
 msgid "Colour"
 msgstr "Colour"
 
-msgid "SN"
-msgstr "SN"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -1328,6 +1319,9 @@ msgstr "min"
 #, boost-format
 msgid "The input value should be greater than %1% and less than %2%"
 msgstr "The input value should be greater than %1% and less than %2%"
+
+msgid "SN"
+msgstr "SN"
 
 msgid "Confirm"
 msgstr "Bestätigen"
@@ -2039,8 +2033,11 @@ msgstr "Druckplatte hinzufügen"
 msgid "Auto orient"
 msgstr "Automatische Orientierung"
 
-msgid "Auto arrange"
-msgstr "Automatische Anordnung"
+msgid "Arrange all objects"
+msgstr "Alle Objekte anordnen"
+
+msgid "Arrange objects on selected plates"
+msgstr "Objekte auf ausgewählten Druckplatten anordnen"
 
 msgid "Split to objects"
 msgstr "In Objekte trennen"
@@ -2981,6 +2978,12 @@ msgstr "Nur Geometrie importieren"
 msgid "Only one G-code file can be opened at the same time."
 msgstr "Es kann immer nur eine G-Code-Datei gleichzeitig geöffnet werden."
 
+msgid "G-code loading"
+msgstr "G-Code ladend"
+
+msgid "G-code files can not be loaded with models together!"
+msgstr "G-Code-Dateien können nicht mit Modellen zusammen geladen werden!"
+
 msgid "Can not add models when in preview mode!"
 msgstr "Unable to add models in preview mode"
 
@@ -3456,9 +3459,15 @@ msgstr ""
 msgid "The printer is busy on other print job"
 msgstr "The printer is busy with another print job."
 
+#, c-format, boost-format
 msgid ""
-"The filament index exceeds the AMS's slot count and cannot send the print "
-"job."
+"Filament index %s exceeds the number of AMS slots. Please update the printer "
+"firmware to support AMS slot assignment."
+msgstr ""
+
+msgid ""
+"Filament index exceeds the number of AMS slots. Please update the printer "
+"firmware to support AMS slot assignment."
 msgstr ""
 
 msgid ""
@@ -3474,6 +3483,17 @@ msgid ""
 msgstr ""
 "Please click each filament above to specify its mapping AMS slot before "
 "sending the print job"
+
+#, c-format, boost-format
+msgid ""
+"Filament index %s does not match the filament in AMS slot %s. Please update "
+"the printer firmware to support AMS slot assignment."
+msgstr ""
+
+msgid ""
+"Filament index does not match the filament in AMS slot. Please update the "
+"printer firmware to support AMS slot assignment."
+msgstr ""
 
 msgid ""
 "The printer firmware only supports sequential mapping of filament => AMS "
@@ -4025,50 +4045,17 @@ msgstr "Liste der Objekte"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
 msgstr "Importieren Sie Geometriedaten aus STL/STEP/3MF/OBJ/AMF-Dateien."
 
-msgid "Select all objects"
-msgstr "Alle Objekte auswählen"
-
 msgid "Copy to clipboard"
 msgstr "Zu Zwischenablage kopieren"
 
 msgid "Paste from clipboard"
 msgstr "Aus Zwischenablage einfügen"
 
-msgid "Camera view - Default"
-msgstr "Kameraperspektive - Standard"
-
-msgid "Camera view - Top"
-msgstr "Kameraperspektive - Oben"
-
-msgid "Camera view - Bottom"
-msgstr "Kameraperspektive - Unten"
-
-msgid "Camera view - Front"
-msgstr "Kameraperspektive - Vorderseite"
-
-msgid "Camera view - Behind"
-msgstr "Kameraperspektive - Hinten"
-
-msgid "Camera Angle - Left side"
-msgstr "Kameraperspektive - Links"
-
-msgid "Camera Angle - Right side"
-msgstr "Kameraperspektive - Rechts"
-
-msgid "keyboard 1-9: set filament for object/part"
-msgstr "Tastatur 1-9: Material für Objekt/Teil einstellen"
-
 msgid "Show keyboard shortcuts list"
 msgstr "Liste der Tastaturkürzel anzeigen"
 
 msgid "Global shortcuts"
 msgstr "Globale Tastaturkürzel"
-
-msgid "Arrange all objects"
-msgstr "Alle Objekte anordnen"
-
-msgid "Arrange objects on selected plates"
-msgstr "Objekte auf ausgewählten Druckplatten anordnen"
 
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
@@ -4087,11 +4074,32 @@ msgstr ""
 "ausgerichtet, andernfalls werden alle Objekte auf der aktuellen Druckplatte "
 "ausgerichtet."
 
+msgid "Collapse/Expand the sidebar"
+msgstr "Seitenleiste zu-/ausklappen"
+
+msgid "⌘+Any arrow"
+msgstr "⌘+beliebiger Pfeil"
+
+msgid "Movement in camera space"
+msgstr "Bewegung im Kameraraum"
+
+msgid "⌥+Left mouse button"
+msgstr ""
+
+msgid "Select a part"
+msgstr ""
+
 msgid "⌘+Left mouse button"
 msgstr ""
 
 msgid "Select multiple objects"
 msgstr "Mehrere Objekte auswählen"
+
+msgid "Ctrl+Any arrow"
+msgstr "Strg+beliebiger Pfeil"
+
+msgid "Alt+Left mouse button"
+msgstr ""
 
 msgid "Ctrl+Left mouse button"
 msgstr ""
@@ -4132,17 +4140,32 @@ msgstr "Umschalttaste+beliebiger Pfeil"
 msgid "Movement step set to 1 mm"
 msgstr "Bewegungsschritt auf 1 mm eingestellt"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+beliebiger Pfeil"
+msgid "keyboard 1-9: set filament for object/part"
+msgstr "Tastatur 1-9: Material für Objekt/Teil einstellen"
 
-msgid "Movement in camera space"
-msgstr "Bewegung im Kameraraum"
+msgid "Camera view - Default"
+msgstr "Kameraperspektive - Standard"
 
-msgid "Ctrl+Any arrow"
-msgstr "Strg+beliebiger Pfeil"
+msgid "Camera view - Top"
+msgstr "Kameraperspektive - Oben"
 
-msgid "Collapse/Expand the sidebar"
-msgstr "Seitenleiste zu-/ausklappen"
+msgid "Camera view - Bottom"
+msgstr "Kameraperspektive - Unten"
+
+msgid "Camera view - Front"
+msgstr "Kameraperspektive - Vorderseite"
+
+msgid "Camera view - Behind"
+msgstr "Kameraperspektive - Hinten"
+
+msgid "Camera Angle - Left side"
+msgstr "Kameraperspektive - Links"
+
+msgid "Camera Angle - Right side"
+msgstr "Kameraperspektive - Rechts"
+
+msgid "Select all objects"
+msgstr "Alle Objekte auswählen"
 
 msgid "Plater"
 msgstr "Druckplatte"
@@ -5896,9 +5919,6 @@ msgstr ""
 "Volumenmodell in einen einwandigen Druck mit soliden unteren Schichten. Das "
 "endgültig erzeugte Modell hat keine Naht"
 
-msgid "Timelapse without toolhead"
-msgstr ""
-
 msgid ""
 "Record timelapse video of printing without showing toolhead. In this mode "
 "the toolhead docks near the excess chute at each layer change, and then a "
@@ -6491,6 +6511,9 @@ msgstr "Support: fix holes at layer %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
+
+#~ msgid "Auto arrange"
+#~ msgstr "Automatische Anordnung"
 
 #~ msgid "Filaments Selection"
 #~ msgstr "Auswahl der Materialien"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-02 17:06+0800\n"
+"POT-Creation-Date: 2022-08-03 16:53+0800\n"
 "PO-Revision-Date: 2022-07-27 22:05+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -510,12 +510,6 @@ msgstr "Nyelv"
 
 msgid "*"
 msgstr "*"
-
-msgid "G-code files can not be loaded with models together!"
-msgstr "A G-code fájlokat nem lehet a modellekkel együtt betölteni!"
-
-msgid "G-code loading"
-msgstr "G-code betöltése"
 
 msgid "Select a G-code file:"
 msgstr "Válassz egy G-code fájlt:"
@@ -1322,9 +1316,6 @@ msgstr ""
 msgid "Colour"
 msgstr "Szín"
 
-msgid "SN"
-msgstr "SN"
-
 msgid ""
 "Nozzle\n"
 "Temperature"
@@ -1342,6 +1333,9 @@ msgstr "min"
 msgid "The input value should be greater than %1% and less than %2%"
 msgstr ""
 "A megadott értéknek nagyobbnak kell lennie, mint %1% és kisebbnek, mint %2%"
+
+msgid "SN"
+msgstr "SN"
 
 msgid "Confirm"
 msgstr "Megerősítés"
@@ -2022,8 +2016,11 @@ msgstr "Tálca hozzáadása"
 msgid "Auto orient"
 msgstr "Automatikus orientáció"
 
-msgid "Auto arrange"
-msgstr "Automatikus elrendezés"
+msgid "Arrange all objects"
+msgstr "Összes objektum elrendezése"
+
+msgid "Arrange objects on selected plates"
+msgstr "Objektumok elrendezése a kiválasztott tálcákon"
 
 msgid "Split to objects"
 msgstr "Felosztás objektumokra"
@@ -2951,6 +2948,12 @@ msgstr "Csak a geometria importálása"
 msgid "Only one G-code file can be opened at the same time."
 msgstr ""
 
+msgid "G-code loading"
+msgstr "G-code betöltése"
+
+msgid "G-code files can not be loaded with models together!"
+msgstr "A G-code fájlokat nem lehet a modellekkel együtt betölteni!"
+
 msgid "Can not add models when in preview mode!"
 msgstr "Előnézeti módban nem lehet modelleket hozzáadni!"
 
@@ -3418,9 +3421,15 @@ msgstr ""
 msgid "The printer is busy on other print job"
 msgstr ""
 
+#, c-format, boost-format
 msgid ""
-"The filament index exceeds the AMS's slot count and cannot send the print "
-"job."
+"Filament index %s exceeds the number of AMS slots. Please update the printer "
+"firmware to support AMS slot assignment."
+msgstr ""
+
+msgid ""
+"Filament index exceeds the number of AMS slots. Please update the printer "
+"firmware to support AMS slot assignment."
 msgstr ""
 
 msgid ""
@@ -3431,6 +3440,17 @@ msgstr ""
 msgid ""
 "Please click each filament above to specify its mapping AMS slot before "
 "sending the print job"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Filament index %s does not match the filament in AMS slot %s. Please update "
+"the printer firmware to support AMS slot assignment."
+msgstr ""
+
+msgid ""
+"Filament index does not match the filament in AMS slot. Please update the "
+"printer firmware to support AMS slot assignment."
 msgstr ""
 
 msgid ""
@@ -3963,50 +3983,17 @@ msgstr ""
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
 msgstr "Geometriai adatok importálása STL/STEP/3MF/OBJ/AMF fájlokból."
 
-msgid "Select all objects"
-msgstr "Összes objektum kijelölése"
-
 msgid "Copy to clipboard"
 msgstr "Másolás a vágólapra"
 
 msgid "Paste from clipboard"
 msgstr "Beillesztés a vágólapról"
 
-msgid "Camera view - Default"
-msgstr "Kameranézet - Alapértelmezett"
-
-msgid "Camera view - Top"
-msgstr "Kameranézet - Felülről"
-
-msgid "Camera view - Bottom"
-msgstr "Kameranézet - Alulról"
-
-msgid "Camera view - Front"
-msgstr "Kameranézet - Elölről"
-
-msgid "Camera view - Behind"
-msgstr "Kameranézet - Hátulról"
-
-msgid "Camera Angle - Left side"
-msgstr "Kameranézet - Bal oldal"
-
-msgid "Camera Angle - Right side"
-msgstr "Kameranézet - Jobb oldal"
-
-msgid "keyboard 1-9: set filament for object/part"
-msgstr "filament hozzárendelése az objektumhoz/tárgyhoz"
-
 msgid "Show keyboard shortcuts list"
 msgstr "Gyorsgombok listájának megjelenítése"
 
 msgid "Global shortcuts"
 msgstr "Globális gyorsbillentyűk"
-
-msgid "Arrange all objects"
-msgstr "Összes objektum elrendezése"
-
-msgid "Arrange objects on selected plates"
-msgstr "Objektumok elrendezése a kiválasztott tálcákon"
 
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
@@ -4026,11 +4013,32 @@ msgstr ""
 "tájolását. Ha vannak kijelölt objektumok, akkor csak a kijelölteket, "
 "ellenkező esetben az aktuális tálcán lévő összes objektumot orientálja."
 
+msgid "Collapse/Expand the sidebar"
+msgstr "Az oldalsáv összecsukása/kinyitása"
+
+msgid "⌘+Any arrow"
+msgstr "⌘+Bármilyen nyíl gomb"
+
+msgid "Movement in camera space"
+msgstr ""
+
+msgid "⌥+Left mouse button"
+msgstr ""
+
+msgid "Select a part"
+msgstr ""
+
 msgid "⌘+Left mouse button"
 msgstr "⌘+Bal egérgomb"
 
 msgid "Select multiple objects"
 msgstr "Több objektum kijelölése"
+
+msgid "Ctrl+Any arrow"
+msgstr "Ctrl+Bármelyik nyílgomb"
+
+msgid "Alt+Left mouse button"
+msgstr ""
 
 msgid "Ctrl+Left mouse button"
 msgstr "Ctrl+Bal egérgomb"
@@ -4071,17 +4079,32 @@ msgstr "Shift+Bármelyik nyílgomb"
 msgid "Movement step set to 1 mm"
 msgstr ""
 
-msgid "⌘+Any arrow"
-msgstr "⌘+Bármilyen nyíl gomb"
+msgid "keyboard 1-9: set filament for object/part"
+msgstr "filament hozzárendelése az objektumhoz/tárgyhoz"
 
-msgid "Movement in camera space"
-msgstr ""
+msgid "Camera view - Default"
+msgstr "Kameranézet - Alapértelmezett"
 
-msgid "Ctrl+Any arrow"
-msgstr "Ctrl+Bármelyik nyílgomb"
+msgid "Camera view - Top"
+msgstr "Kameranézet - Felülről"
 
-msgid "Collapse/Expand the sidebar"
-msgstr "Az oldalsáv összecsukása/kinyitása"
+msgid "Camera view - Bottom"
+msgstr "Kameranézet - Alulról"
+
+msgid "Camera view - Front"
+msgstr "Kameranézet - Elölről"
+
+msgid "Camera view - Behind"
+msgstr "Kameranézet - Hátulról"
+
+msgid "Camera Angle - Left side"
+msgstr "Kameranézet - Bal oldal"
+
+msgid "Camera Angle - Right side"
+msgstr "Kameranézet - Jobb oldal"
+
+msgid "Select all objects"
+msgstr "Összes objektum kijelölése"
 
 msgid "Plater"
 msgstr ""
@@ -5735,9 +5758,6 @@ msgstr ""
 "nyomatokká alakítja, tömör alsó rétegekkel. A végső modellen nincsenek "
 "varratok"
 
-msgid "Timelapse without toolhead"
-msgstr "Nyomtatófej nélküli timelapse"
-
 msgid ""
 "Record timelapse video of printing without showing toolhead. In this mode "
 "the toolhead docks near the excess chute at each layer change, and then a "
@@ -6283,6 +6303,12 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
+
+#~ msgid "Auto arrange"
+#~ msgstr "Automatikus elrendezés"
+
+#~ msgid "Timelapse without toolhead"
+#~ msgstr "Nyomtatófej nélküli timelapse"
 
 #~ msgid "Debug"
 #~ msgstr "Debug"

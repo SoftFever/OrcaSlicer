@@ -178,28 +178,10 @@ void KBShortcutsDialog::fill_shortcuts()
             // File>Import
             { ctrl + "I", L("Import geometry data from STL/STEP/3MF/OBJ/AMF files.") },
             // Edit
-            { ctrl + "A", L("Select all objects") },
-            { ctrl + "D", L("Delete all") },
-            { ctrl + "Z", L("Undo") },
-            { ctrl + "Y", L("Redo") },
             { ctrl + "X", L("Cut") },
             { ctrl + "C", L("Copy to clipboard") },
             { ctrl + "V", L("Paste from clipboard") },
-            { ctrl + "M", L("Clone selected")},
-            // Window
-            { ctrl + "0", L("Camera view - Default") },
-            { ctrl + "1", L("Camera view - Top") },
-            { ctrl + "2", L("Camera view - Bottom") },
-            { ctrl + "3", L("Camera view - Front") },
-            { ctrl + "4", L("Camera view - Behind") },
-            { ctrl + "5", L("Camera Angle - Left side") },
-            { ctrl + "6", L("Camera Angle - Right side") },
-            // Configuration
-            { ctrl + "P", L("Preferences") },
-            { "Esc", L("Deselect all") },
             { "Del", L("Delete selected") },
-            // View
-            { "1-9", L("keyboard 1-9: set filament for object/part") },
             // Help
             { "?", L("Show keyboard shortcuts list") }
         };
@@ -210,15 +192,19 @@ void KBShortcutsDialog::fill_shortcuts()
             { "Shift+A", L("Arrange objects on selected plates") },
 
             { "R", L("Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the project.") },
-
             {"Shift+R", L("Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the current disk.")},
 
-             #ifdef __APPLE__
+            {"Shift+Tab", L("Collapse/Expand the sidebar")},
+            #ifdef __APPLE__
+                {L("⌘+Any arrow"), L("Movement in camera space")},
+                {L("⌥+Left mouse button"), L("Select a part")},
                 {L("⌘+Left mouse button"), L("Select multiple objects")},
             #else
-		        {L("Ctrl+Left mouse button"), L("Select multiple objects")},
-            #endif
+                {L("Ctrl+Any arrow"), L("Movement in camera space")},
+                {L("Alt+Left mouse button"), L("Select a part")},
+                {L("Ctrl+Left mouse button"), L("Select multiple objects")},
 
+            #endif
             {L("Shift+Left mouse button"), L("Select objects by rectangle")},
             {L("Arrow Up"), L("Move selection 10 mm in positive Y direction")},
             {L("Arrow Down"), L("Move selection 10 mm in negative Y direction")},
@@ -226,12 +212,20 @@ void KBShortcutsDialog::fill_shortcuts()
             {L("Arrow Right"), L("Move selection 10 mm in positive X direction")},
             {L("Shift+Any arrow"), L("Movement step set to 1 mm")},
 
-            #ifdef __APPLE__
-                {L("⌘+Any arrow"), L("Movement in camera space")},
-            #else
-		        {L("Ctrl+Any arrow"), L("Movement in camera space")},
-            #endif
-            {"Shift+Tab", L("Collapse/Expand the sidebar")},
+            {"Esc", L("Deselect all")},
+            {"1-9", L("keyboard 1-9: set filament for object/part")},
+            {ctrl + "0", L("Camera view - Default")},
+            {ctrl + "1", L("Camera view - Top")},
+            {ctrl + "2", L("Camera view - Bottom")},
+            {ctrl + "3", L("Camera view - Front")},
+            {ctrl + "4", L("Camera view - Behind")},
+            {ctrl + "5", L("Camera Angle - Left side")},
+            {ctrl + "6", L("Camera Angle - Right side")},
+            {ctrl + "A", L("Select all objects")},
+            {ctrl + "D", L("Delete all")},
+            {ctrl + "Z", L("Undo")},
+            {ctrl + "Y", L("Redo")},
+            {ctrl + "M", L("Clone selected")},
         };
         m_full_shortcuts.push_back({ { _L("Plater"), "" }, plater_shortcuts });
 
@@ -305,34 +299,25 @@ wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const ShortcutsItem& s
         main_sizer->AddSpacer(FromDIP(10));
     }
 
-    static const int max_items_per_column = 20;
-    int columns_count = 1 + static_cast<int>(shortcuts.second.size()) / max_items_per_column;
-
-    wxScrolledWindow* scrollable_panel = new wxScrolledWindow(main_page);
+    int items_count = (int) shortcuts.second.size();
+    wxScrolledWindow *scrollable_panel = new wxScrolledWindow(main_page);
     wxGetApp().UpdateDarkUI(scrollable_panel);
     scrollable_panel->SetScrollbars(20, 20, 50, 50);
     scrollable_panel->SetInitialSize(wxSize(FromDIP(850), FromDIP(450)));
 
-    wxBoxSizer* scrollable_panel_sizer = new wxBoxSizer(wxVERTICAL);
-    wxFlexGridSizer* grid_sizer = new wxFlexGridSizer(3 * columns_count, 5, 15);
+    wxBoxSizer *     scrollable_panel_sizer = new wxBoxSizer(wxVERTICAL);
+    wxFlexGridSizer *grid_sizer             = new wxFlexGridSizer(items_count, 2, FromDIP(10), FromDIP(20));
 
-    int items_count = (int)shortcuts.second.size();
-    for (int i = 0; i < max_items_per_column; ++i) {
-        for (int j = 0; j < columns_count; ++j) {
-            int id = j * max_items_per_column + i;
-            if (id < items_count) {
-                const auto& [shortcut, description] = shortcuts.second[id];
-                auto key = new wxStaticText(scrollable_panel, wxID_ANY, _(shortcut));
-                key->SetFont(bold_font);
-                grid_sizer->Add(key, 0, wxALIGN_CENTRE_VERTICAL);
+    for (int i = 0; i < items_count; ++i) {
+        const auto &[shortcut, description] = shortcuts.second[i];
+        auto key                            = new wxStaticText(scrollable_panel, wxID_ANY, _(shortcut));
+        key->SetFont(bold_font);
+        grid_sizer->Add(key, 0, wxALIGN_CENTRE_VERTICAL);
 
-                grid_sizer->Add(new wxStaticText(scrollable_panel, wxID_ANY, "  "), 0, wxALIGN_CENTRE_VERTICAL);
-
-                auto desc = new wxStaticText(scrollable_panel, wxID_ANY, _(description));
-                desc->SetFont(font);
-                grid_sizer->Add(desc, 0, wxALIGN_CENTRE_VERTICAL);
-            }
-        }
+        auto desc = new wxStaticText(scrollable_panel, wxID_ANY, _(description));
+        desc->SetFont(font);
+        desc->Wrap(FromDIP(600));
+        grid_sizer->Add(desc, 0, wxALIGN_CENTRE_VERTICAL);
     }
 
     scrollable_panel_sizer->Add(grid_sizer, 1, wxEXPAND | wxALL, FromDIP(20));
