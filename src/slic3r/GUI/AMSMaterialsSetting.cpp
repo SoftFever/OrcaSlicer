@@ -11,7 +11,9 @@ static bool show_flag;
 #else
 #define COMBOBOX_FILAMENT (m_comboBox_filament)
 #endif
-AMSMaterialsSetting::AMSMaterialsSetting(wxWindow *parent, wxWindowID id) : wxPopupTransientWindow(parent, wxPU_CONTAINS_CONTROLS) {
+AMSMaterialsSetting::AMSMaterialsSetting(wxWindow *parent, wxWindowID id) 
+    : DPIDialog(parent, id, _L("AMSMaterialsSetting"), wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+{
     create();
 }
 
@@ -19,13 +21,15 @@ void AMSMaterialsSetting::create()
 {
     SetBackgroundColour(*wxWHITE);
     wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
+    SetSize(wxSize(AMS_MATERIALS_SETTING_BODY_WIDTH, -1));
+    SetMinSize(wxSize(AMS_MATERIALS_SETTING_BODY_WIDTH, -1));
+    SetMaxSize(wxSize(AMS_MATERIALS_SETTING_BODY_WIDTH, -1));
 
-    m_panel_body                 = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_BODY_WIDTH, -1), wxTAB_TRAVERSAL);
-    m_panel_body->SetBackgroundColour(*wxWHITE);
+
+
     wxBoxSizer *m_sizer_filament = new wxBoxSizer(wxHORIZONTAL);
 
-    m_title_filament = new wxStaticText(m_panel_body, wxID_ANY, _L("Filament"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
+    m_title_filament = new wxStaticText(this, wxID_ANY, _L("Filament"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
     m_title_filament->SetFont(::Label::Body_13);
     m_title_filament->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
     m_title_filament->Wrap(-1);
@@ -34,15 +38,15 @@ void AMSMaterialsSetting::create()
     m_sizer_filament->Add(0, 0, 0, wxEXPAND, 0);
 
 #ifdef __APPLE__
-    m_comboBox_filament_mac = new wxComboBox(m_panel_body, wxID_ANY, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, 0, nullptr, wxCB_READONLY);
+    m_comboBox_filament_mac = new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, 0, nullptr, wxCB_READONLY);
 #else
-    m_comboBox_filament = new ::ComboBox(m_panel_body, wxID_ANY, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, 0, nullptr, wxCB_READONLY);
+    m_comboBox_filament = new ::ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, 0, nullptr, wxCB_READONLY);
 #endif
 
     m_sizer_filament->Add(COMBOBOX_FILAMENT, 1, wxALIGN_CENTER, 0);
     wxBoxSizer *m_sizer_colour = new wxBoxSizer(wxHORIZONTAL);
 
-    m_title_colour = new wxStaticText(m_panel_body, wxID_ANY, _L("Colour"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
+    m_title_colour = new wxStaticText(this, wxID_ANY, _L("Colour"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
     m_title_colour->SetFont(::Label::Body_13);
     m_title_colour->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
     m_title_colour->Wrap(-1);
@@ -53,21 +57,18 @@ void AMSMaterialsSetting::create()
     m_clrData = new wxColourData();
     m_clrData->SetChooseFull(true);
     m_clrData->SetChooseAlpha(false);
-#ifdef __APPLE__
-    m_clr_picker = new wxButton(m_panel_body, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(25), FromDIP(25)), wxBU_EXACTFIT | wxBORDER_NONE);
-#else
-    m_clr_picker = new Button(m_panel_body, "", "");
+
+    m_clr_picker        = new Button(this, "", "");
     m_clr_picker->SetCanFocus(false);
-    m_clr_picker->SetSize(FromDIP(80), FromDIP(20));
-    m_clr_picker->SetMinSize(wxSize(FromDIP(25), FromDIP(25)));
+    m_clr_picker->SetSize(FromDIP(50), FromDIP(25));
+    m_clr_picker->SetMinSize(wxSize(FromDIP(50), FromDIP(25)));
     m_clr_picker->SetCornerRadius(FromDIP(6));
     m_clr_picker->SetBorderColor(wxColour(172, 172, 172));
-#endif
     m_clr_picker->Bind(wxEVT_BUTTON, &AMSMaterialsSetting::on_clr_picker, this);
     m_sizer_colour->Add(m_clr_picker, 0, 0, 0);
 
     wxBoxSizer *m_sizer_temperature = new wxBoxSizer(wxHORIZONTAL);
-    m_title_temperature             = new wxStaticText(m_panel_body, wxID_ANY, _L("Nozzle\nTemperature"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
+    m_title_temperature             = new wxStaticText(this, wxID_ANY, _L("Nozzle\nTemperature"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
     m_title_temperature->SetFont(::Label::Body_13);
     m_title_temperature->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
     m_title_temperature->Wrap(-1);
@@ -78,8 +79,8 @@ void AMSMaterialsSetting::create()
     wxBoxSizer *sizer_other           = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *sizer_tempinput       = new wxBoxSizer(wxHORIZONTAL);
 
-    m_input_nozzle_max = new ::TextInput(m_panel_body, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
-    m_input_nozzle_min = new ::TextInput(m_panel_body, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_input_nozzle_max = new ::TextInput(this, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_input_nozzle_min = new ::TextInput(this, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
     m_input_nozzle_max->Enable(false);
     m_input_nozzle_min->Enable(false);
 
@@ -88,8 +89,8 @@ void AMSMaterialsSetting::create()
     m_input_nozzle_min->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     m_input_nozzle_min->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
 
-    auto bitmap_max_degree = new wxStaticBitmap(m_panel_body, -1, create_scaled_bitmap("degree", nullptr, 16), wxDefaultPosition, wxDefaultSize);
-    auto bitmap_min_degree = new wxStaticBitmap(m_panel_body, -1, create_scaled_bitmap("degree", nullptr, 16), wxDefaultPosition, wxDefaultSize);
+    auto bitmap_max_degree = new wxStaticBitmap(this, -1, create_scaled_bitmap("degree", nullptr, 16), wxDefaultPosition, wxDefaultSize);
+    auto bitmap_min_degree = new wxStaticBitmap(this, -1, create_scaled_bitmap("degree", nullptr, 16), wxDefaultPosition, wxDefaultSize);
 
     sizer_tempinput->Add(m_input_nozzle_max, 1, wxALIGN_CENTER, 0);
     sizer_tempinput->Add(bitmap_min_degree, 0, wxALIGN_CENTER, 0);
@@ -98,10 +99,10 @@ void AMSMaterialsSetting::create()
     sizer_tempinput->Add(bitmap_max_degree, 0, wxALIGN_CENTER, 0);
 
     wxBoxSizer *sizer_temp_txt    = new wxBoxSizer(wxHORIZONTAL);
-    auto   m_title_max = new wxStaticText(m_panel_body, wxID_ANY, _L("max"), wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE);
+    auto        m_title_max    = new wxStaticText(this, wxID_ANY, _L("max"), wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE);
     m_title_max->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
     m_title_max->SetFont(::Label::Body_13);
-    auto   m_title_min = new wxStaticText(m_panel_body, wxID_ANY, _L("min"), wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE);
+    auto m_title_min = new wxStaticText(this, wxID_ANY, _L("min"), wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE);
     m_title_min->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
     m_title_min->SetFont(::Label::Body_13);
     sizer_temp_txt->Add(m_title_max, 1, wxALIGN_CENTER, 0);
@@ -117,7 +118,7 @@ void AMSMaterialsSetting::create()
 
     wxString warning_string = wxString::FromUTF8(
         (boost::format(_u8L("The input value should be greater than %1% and less than %2%")) % FILAMENT_MIN_TEMP % FILAMENT_MAX_TEMP).str());
-    warning_text = new wxStaticText(m_panel_body, wxID_ANY, warning_string, wxDefaultPosition, wxDefaultSize, 0);
+    warning_text = new wxStaticText(this, wxID_ANY, warning_string, wxDefaultPosition, wxDefaultSize, 0);
     warning_text->SetFont(::Label::Body_13);
     warning_text->SetForegroundColour(wxColour(255, 111, 0));
 
@@ -155,7 +156,7 @@ void AMSMaterialsSetting::create()
         e.Skip();
         });
 
-    m_panel_SN = new wxPanel(m_panel_body, wxID_ANY);
+    m_panel_SN             = new wxPanel(this, wxID_ANY);
     wxBoxSizer *m_sizer_SN = new wxBoxSizer(wxVERTICAL);
     m_sizer_SN->AddSpacer(FromDIP(16));
 
@@ -180,42 +181,46 @@ void AMSMaterialsSetting::create()
     wxBoxSizer *m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_button->Add(0, 0, 1, wxEXPAND, 0);
 
-    m_button_confirm = new Button(m_panel_body, _L("Confirm"));
+    m_button_confirm = new Button(this, _L("Confirm"));
     m_btn_bg_green   = StateColor(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
                             std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
-
     m_button_confirm->SetBackgroundColor(m_btn_bg_green);
     m_button_confirm->SetBorderColor(wxColour(0, 174, 66));
     m_button_confirm->SetTextColor(AMS_MATERIALS_SETTING_GREY200);
     m_button_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
-#ifdef __APPLE__
-    m_button_confirm->SetCornerRadius(FromDIP(10));
-#else
     m_button_confirm->SetCornerRadius(FromDIP(12));
-#endif
-    m_button_confirm->Bind(wxEVT_LEFT_DOWN, &AMSMaterialsSetting::on_select_ok, this);
-    m_sizer_button->Add(m_button_confirm, 0, wxALIGN_CENTER, 0);
+    m_button_confirm->Bind(wxEVT_BUTTON, &AMSMaterialsSetting::on_select_ok, this);
 
-    m_sizer_body->Add(m_sizer_filament, 0, wxEXPAND, 0);
-    m_sizer_body->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(16));
-    m_sizer_body->Add(m_sizer_colour, 0, wxEXPAND, 0);
-    m_sizer_body->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(16));
-    m_sizer_body->Add(m_sizer_temperature, 0, wxEXPAND, 0);
-    m_sizer_body->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(5));
-    m_sizer_body->Add(warning_text, 0, wxEXPAND, 0);
-    m_sizer_body->Add(m_panel_SN, 0, wxEXPAND, 0);
-    m_sizer_body->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(24));
-    m_sizer_body->Add(m_sizer_button, 0, wxEXPAND, 0);
+    m_button_close = new Button(this, _L("Close"));
+    m_btn_bg_gray  = StateColor(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(*wxWHITE, StateColor::Focused),
+        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                               std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+    m_button_close->SetBackgroundColor(m_btn_bg_gray);
+    m_button_close->SetBorderColor(AMS_MATERIALS_SETTING_GREY900);
+    m_button_close->SetTextColor(AMS_MATERIALS_SETTING_GREY900);
+    m_button_close->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
+    m_button_close->SetCornerRadius(FromDIP(12));
+    m_button_close->Bind(wxEVT_BUTTON, &AMSMaterialsSetting::on_select_close, this);
 
-    m_panel_body->SetSizer(m_sizer_body);
-    m_panel_body->Layout();
-    m_sizer_main->Add(m_panel_body, 0, wxALL | wxEXPAND, 24);
+    m_sizer_button->Add(m_button_confirm, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(20));
+    m_sizer_button->Add(m_button_close, 0, wxALIGN_CENTER, 0);
 
-    this->SetSizer(m_sizer_main);
-    this->Layout();
-    m_sizer_main->Fit(this);
+    m_sizer_main->Add(0, 0, 0,   wxTOP, FromDIP(16));
+    m_sizer_main->Add(m_sizer_filament, 0,   wxLEFT | wxRIGHT, FromDIP(20));
+    m_sizer_main->Add(0, 0, 0,  wxTOP, FromDIP(16));
+    m_sizer_main->Add(m_sizer_colour, 0,   wxLEFT | wxRIGHT, FromDIP(20));
+    m_sizer_main->Add(0, 0, 0,  wxTOP, FromDIP(16));
+    m_sizer_main->Add(m_sizer_temperature, 0,   wxLEFT | wxRIGHT, FromDIP(20));
+    m_sizer_main->Add(0, 0, 0,  wxTOP, FromDIP(5));
+    m_sizer_main->Add(warning_text, 0,  wxLEFT | wxRIGHT, FromDIP(20));
+    m_sizer_main->Add(m_panel_SN, 0, wxLEFT, FromDIP(20));
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(24));
+    m_sizer_main->Add(m_sizer_button, 0,  wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+    m_sizer_main->Add(0, 0, 0,  wxTOP, FromDIP(16));
 
-    this->Centre(wxBOTH);
+    SetSizer(m_sizer_main);
+    Layout();
+    Fit();
 
      Bind(wxEVT_PAINT, &AMSMaterialsSetting::paintEvent, this);
      COMBOBOX_FILAMENT->Connect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(AMSMaterialsSetting::on_select_filament), NULL, this);
@@ -234,7 +239,6 @@ AMSMaterialsSetting::~AMSMaterialsSetting()
 {
     COMBOBOX_FILAMENT->Disconnect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(AMSMaterialsSetting::on_select_filament), NULL, this);
 }
-
 
 void AMSMaterialsSetting::input_min_finish() 
 {
@@ -280,25 +284,27 @@ void AMSMaterialsSetting::update()
 
 void AMSMaterialsSetting::enable_confirm_button(bool en)
 {
-    if (!en) {
-        if (m_button_confirm->IsEnabled()) {
-            m_button_confirm->Disable();
-            m_button_confirm->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-            m_button_confirm->SetBorderColor(wxColour(0x90, 0x90, 0x90));
-        }
-    } else {
-        if (!m_button_confirm->IsEnabled()) {
-            m_button_confirm->Enable();
-            m_button_confirm->SetBackgroundColor(m_btn_bg_green);
-            m_button_confirm->SetBorderColor(m_btn_bg_green);
-        }
-    }
+    if (m_is_third) m_button_confirm->Show(en);
+    
+    //if (!en) {
+    //    if (m_button_confirm->IsEnabled()) {
+    //        m_button_confirm->Disable();
+    //        m_button_confirm->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+    //        m_button_confirm->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+    //    }
+    //} else {
+    //    if (!m_button_confirm->IsEnabled()) {
+    //        m_button_confirm->Enable();
+    //        m_button_confirm->SetBackgroundColor(m_btn_bg_green);
+    //        m_button_confirm->SetBorderColor(m_btn_bg_green);
+    //    }
+    //}
 }
 
-void AMSMaterialsSetting::on_select_ok(wxMouseEvent &event)
+void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 {
     if (!m_is_third) {
-        wxPopupTransientWindow::Dismiss();
+        Close();
         return;
     }
     wxString nozzle_temp_min = m_input_nozzle_min->GetTextCtrl()->GetValue();
@@ -330,7 +336,12 @@ void AMSMaterialsSetting::on_select_ok(wxMouseEvent &event)
             obj->command_ams_filament_settings(ams_id, tray_id, ams_filament_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
         }
     }
-    wxPopupTransientWindow::Dismiss();
+    Close();
+}
+
+void AMSMaterialsSetting::on_select_close(wxCommandEvent &event)
+{
+    Close();
 }
 
 void AMSMaterialsSetting::set_color(wxColour color)
@@ -346,31 +357,7 @@ void AMSMaterialsSetting::on_clr_picker(wxCommandEvent & event)
     show_flag = true;
     if (clr_dialog->ShowModal() == wxID_OK) {
         m_clrData = &(clr_dialog->GetColourData());
-#ifdef __APPLE__
-        m_clr_picker->SetBackgroundColour(m_clrData->GetColour());
-        auto style = m_clr_picker->GetWindowStyle() & ~(wxBORDER_NONE | wxBORDER_SIMPLE);
-        auto clr   = m_clrData->GetColour();
-        style      = clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224 ? (style | wxBORDER_SIMPLE) : (style | wxBORDER_NONE);
-        m_clr_picker->SetWindowStyle(style);
-        m_clr_picker->SetLabel(m_clr_picker->GetLabel()); // Let setBezelStyle: be called
-#else
         m_clr_picker->SetBackgroundColor(m_clrData->GetColour());
-#endif
-    }
-}
-
-void AMSMaterialsSetting::Dismiss() 
-{ 
-    if (show_flag) 
-    {
-        show_flag = false;
-    } else 
-    {
-#ifdef __APPLE__
-
-#else
-        wxPopupTransientWindow::Dismiss();
-#endif
     }
 }
 
@@ -381,37 +368,36 @@ bool AMSMaterialsSetting::Show(bool show)
         m_input_nozzle_max->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
         m_input_nozzle_min->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
     }
-    return wxPopupTransientWindow::Show(show); 
+    return DPIDialog::Show(show); 
 }
 
-void AMSMaterialsSetting::Popup(bool show, wxString filament, wxString sn, wxString temp_min, wxString temp_max)
+void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_min, wxString temp_max)
 {
-#ifdef __APPLE__
-    m_clr_picker->SetBackgroundColour(m_clrData->GetColour());
-#else
     m_clr_picker->SetBackgroundColor(m_clrData->GetColour());
-#endif
 
     if (!m_is_third) {
+        m_button_confirm->Hide();
         m_sn_number->SetLabel(sn);
         m_panel_SN->Show();
+
 #ifdef __APPLE__
         wxArrayString filament_only;
         filament_only.push_back(filament);
         COMBOBOX_FILAMENT->Set(filament_only);
-#endif
+#else
         COMBOBOX_FILAMENT->Set(wxArrayString());
+#endif
         COMBOBOX_FILAMENT->SetValue(filament);
 
         m_input_nozzle_min->GetTextCtrl()->SetValue(temp_min);
         m_input_nozzle_max->GetTextCtrl()->SetValue(temp_max);
 
-        wxPopupTransientWindow::Popup();
         Layout();
         Fit();
+        ShowModal();
         return;
     }
-
+    m_button_confirm->Show();
     m_panel_SN->Hide();
     Layout();
     Fit();
@@ -421,7 +407,6 @@ void AMSMaterialsSetting::Popup(bool show, wxString filament, wxString sn, wxStr
     wxArrayString filament_items;
     std::set<std::string> filament_id_set;
 
-    if (show) {
         PresetBundle* preset_bundle = wxGetApp().preset_bundle;
         if (preset_bundle) {
             BOOST_LOG_TRIVIAL(trace) << "system_preset_bundle filament number=" << preset_bundle->filaments.size();
@@ -478,18 +463,11 @@ void AMSMaterialsSetting::Popup(bool show, wxString filament, wxString sn, wxStr
                     }
                 }
             }
-        }
         COMBOBOX_FILAMENT->Set(filament_items);
-        if (selection_idx >= 0 && selection_idx < filament_items.size()) {
-            COMBOBOX_FILAMENT->SetSelection(selection_idx);
-            post_select_event();
-        }
-        else {
-            COMBOBOX_FILAMENT->SetSelection(selection_idx);
-            post_select_event();
-        }
+        COMBOBOX_FILAMENT->SetSelection(selection_idx);
+        post_select_event();
     }
-    wxPopupTransientWindow::Popup();
+    ShowModal();
 }
 
 void AMSMaterialsSetting::post_select_event() {
@@ -546,18 +524,6 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     }
 }
 
-bool AMSMaterialsSetting::ProcessLeftDown(wxMouseEvent &evt)
-{
-    wxPoint mouse_pos    = ClientToScreen(evt.GetPosition());
-    wxPoint top_left     = this->ClientToScreen(wxPoint(0, 0));
-    wxPoint range        = wxPoint(this->GetRect().width, this->GetRect().height);
-    wxPoint bottom_right = top_left + range;
-    if (mouse_pos.x > top_left.x && mouse_pos.y > top_left.y && mouse_pos.x < bottom_right.x && mouse_pos.y < bottom_right.y) {
-        return true;
-    } else {
-        wxPopupTransientWindow::Dismiss();
-        return false;
-    }
-}
+void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect) { this->Refresh(); }
 
 }} // namespace Slic3r::GUI

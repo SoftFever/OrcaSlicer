@@ -1917,8 +1917,8 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
                     }
                 }
             }
-            m_filament_setting_dlg->Popup(true, filament, sn_number, temp_min, temp_max);
             m_filament_setting_dlg->SetPosition(m_ams_control->GetScreenPosition());
+            m_filament_setting_dlg->Popup(filament, sn_number, temp_min, temp_max);
         } catch (...) {
             ;
         }
