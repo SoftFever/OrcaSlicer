@@ -3615,7 +3615,7 @@ std::string DynamicPrintConfig::get_filament_type(int id)
                     return "Support G";
                 }
                 else {
-                    return filament_type->get_at(id) + "-Support";
+                    return filament_type->get_at(id);
                 }
             }
             else {
@@ -3624,7 +3624,7 @@ std::string DynamicPrintConfig::get_filament_type(int id)
                 else if (filament_type->get_at(id) == "PA")
                     return "Support G";
                 else
-                    return filament_type->get_at(id) + "-Support";
+                    return filament_type->get_at(id);
             }
         }
         else {

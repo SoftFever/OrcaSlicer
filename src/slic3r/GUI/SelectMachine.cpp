@@ -1263,7 +1263,7 @@ void SelectMachineDialog::update_print_status_msg(wxString msg, bool is_warning,
     }
 }
 
-void SelectMachineDialog::show_status(PrintDialogStatus status)
+void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxString> params)
 {
     if (m_print_status != status)
         BOOST_LOG_TRIVIAL(info) << "select_machine_dialog: show_status = " << status;
@@ -1331,7 +1331,11 @@ void SelectMachineDialog::show_status(PrintDialogStatus status)
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNeedUpgradingAms) {
-        wxString msg_text = _L("The filament index exceeds the AMS's slot count and cannot send the print job.");
+        wxString msg_text;
+        if (params.size() > 0)
+            msg_text = wxString::Format(_L("Filament index %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."), params[0]);
+        else
+            msg_text = _L("Filament index exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment.");
         update_print_status_msg(msg_text, true, false);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
@@ -1342,6 +1346,15 @@ void SelectMachineDialog::show_status(PrintDialogStatus status)
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingInvalid) {
         wxString msg_text = _L("Please click each filament above to specify its mapping AMS slot before sending the print job");
+        update_print_status_msg(msg_text, true, false);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusAmsMappingU0Invalid) {
+        wxString msg_text;
+        if (params.size() > 1)
+            msg_text = wxString::Format(_L("Filament index %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."), params[0], params[1]);
+        else
+            msg_text = _L("Filament index does not match the filament in AMS slot. Please update the printer firmware to support AMS slot assignment.");
         update_print_status_msg(msg_text, true, false);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
@@ -1818,10 +1831,29 @@ void SelectMachineDialog::update_show_status()
     }
 
     if (!obj_->is_support_ams_mapping()) {
-        if (obj_->is_valid_mapping_result(m_ams_mapping_result)) {
-            show_status(PrintDialogStatus::PrintStatusAmsMappingByOrder);
+        int exceed_index = -1;
+        if (obj_->is_mapping_exceed_filament(m_ams_mapping_result, exceed_index)) {
+            std::vector<wxString> params;
+            params.push_back(wxString::Format("%02d", exceed_index+1));
+            show_status(PrintDialogStatus::PrintStatusNeedUpgradingAms, params);
         } else {
-            show_status(PrintDialogStatus::PrintStatusNeedUpgradingAms);
+            if (obj_->is_valid_mapping_result(m_ams_mapping_result)) {
+                show_status(PrintDialogStatus::PrintStatusAmsMappingByOrder);
+            } else {
+                int mismatch_index = -1;
+                for (int i = 0; i < m_ams_mapping_result.size(); i++) {
+                    if (m_ams_mapping_result[i].mapping_result == MappingResult::MAPPING_RESULT_TYPE_MISMATCH) {
+                        mismatch_index = m_ams_mapping_result[i].id;
+                        break;
+                    }
+                }
+                std::vector<wxString> params;
+                if (mismatch_index >= 0) {
+                    params.push_back(wxString::Format("%02d", mismatch_index+1));
+                    params.push_back(wxString::Format("%02d", mismatch_index+1));
+                }
+                show_status(PrintDialogStatus::PrintStatusAmsMappingU0Invalid, params);
+            }
         }
         return;
     }

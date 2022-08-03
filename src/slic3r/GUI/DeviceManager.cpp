@@ -148,6 +148,16 @@ bool AmsTray::is_tray_info_ready()
     return true;
 }
 
+bool AmsTray::is_unset_third_filament()
+{
+    if (this->is_bbl)
+        return false;
+
+    if (color.empty() || type.empty())
+        return true;
+    return false;
+}
+
 bool HMSItem::parse_hms_info(unsigned attr, unsigned code)
 {
     bool result = true;
@@ -652,14 +662,23 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
             auto ams_it = amsList.find(std::to_string(ams_id));
             if (ams_it == amsList.end()) {
                 info.tray_id = -1;
+                info.mapping_result = (int)MappingResult::MAPPING_RESULT_EXCEED;
             } else {
                 info.tray_id = filaments[i].id;
-
                 int tray_id = filaments[i].id % 4;
                 auto tray_it = ams_it->second->trayList.find(std::to_string(tray_id));
                 if (tray_it != ams_it->second->trayList.end()) {
-                    info.color = tray_it->second->color;
-                    info.type = tray_it->second->type;
+                    if (!tray_it->second->is_exists || tray_it->second->is_unset_third_filament()) {
+                        ;
+                    } else {
+                        if (filaments[i].type == tray_it->second->type) {
+                            info.color = tray_it->second->color;
+                            info.type = tray_it->second->type;
+                        } else {
+                            info.tray_id = -1;
+                            info.mapping_result = (int)MappingResult::MAPPING_RESULT_TYPE_MISMATCH;
+                        }
+                    }
                 }
             }
             result.push_back(info);
@@ -835,12 +854,32 @@ bool MachineObject::is_valid_mapping_result(std::vector<FilamentInfo>& result)
     return true;
 }
 
+bool MachineObject::is_mapping_exceed_filament(std::vector<FilamentInfo> & result, int &exceed_index)
+{
+    bool is_exceed = false;
+    for (int i = 0; i < result.size(); i++) {
+        int ams_id = result[i].tray_id / 4;
+        if (amsList.find(std::to_string(ams_id)) == amsList.end()) {
+            exceed_index = result[i].tray_id;
+            result[i].tray_id = -1;
+            is_exceed = true;
+            break;
+        }
+        if (result[i].mapping_result == MappingResult::MAPPING_RESULT_EXCEED) {
+            exceed_index = result[i].id;
+            is_exceed = true;
+            break;
+        }
+    }
+    return is_exceed;
+}
 
 void MachineObject::reset_mapping_result(std::vector<FilamentInfo>& result)
 {
     for (int i = 0; i < result.size(); i++) {
         result[i].tray_id = -1;
         result[i].distance = 99999;
+        result[i].mapping_result = 0;
     }
 }
 

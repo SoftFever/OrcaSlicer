@@ -27,6 +27,12 @@ enum MachineBedType {
     BED_TYPE_COUNT,
 };
 
+enum MappingResult {
+    MAPPING_RESULT_DEFAULT = 0,
+    MAPPING_RESULT_TYPE_MISMATCH = 1,
+    MAPPING_RESULT_EXCEED = 2
+};
+
 struct FilamentInfo
 {
     int         id;         // filament id = extruder id, start with 0.
@@ -36,6 +42,7 @@ struct FilamentInfo
     float       used_g;
     int         tray_id;    // start with 0
     float       distance;
+    int         mapping_result = 0;
 };
 
 class BBLSliceInfo {

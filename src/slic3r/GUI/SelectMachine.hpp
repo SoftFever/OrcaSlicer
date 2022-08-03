@@ -237,6 +237,7 @@ enum PrintDialogStatus {
     PrintStatusInPrinting,
     PrintStatusAmsMappingSuccess,
     PrintStatusAmsMappingInvalid,
+    PrintStatusAmsMappingU0Invalid,
     PrintStatusAmsMappingValid,
     PrintStatusAmsMappingByOrder,
     PrintStatusRefreshingMachineList,
@@ -328,7 +329,7 @@ public:
     bool      do_ams_mapping(MachineObject *obj_);
     bool      get_ams_mapping_result(std::string &mapping_array_str);
     void      prepare(int print_plate_idx);
-    void      show_status(PrintDialogStatus status);
+    void      show_status(PrintDialogStatus status, std::vector<wxString> params = std::vector<wxString>());
     PrintDialogStatus  get_status() { return m_print_status; }
 
     bool Show(bool show);

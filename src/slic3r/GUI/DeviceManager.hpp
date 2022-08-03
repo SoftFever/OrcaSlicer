@@ -166,6 +166,7 @@ public:
     wxColour get_color();
 
     bool is_tray_info_ready();
+    bool is_unset_third_filament();
 };
 
 
@@ -364,6 +365,8 @@ public:
 
     int ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<int> exclude_id = std::vector<int>());
     bool is_valid_mapping_result(std::vector<FilamentInfo>& result);
+    // exceed index start with 0
+    bool is_mapping_exceed_filament(std::vector<FilamentInfo>& result, int &exceed_index);
     void reset_mapping_result(std::vector<FilamentInfo>& result);
 
 
