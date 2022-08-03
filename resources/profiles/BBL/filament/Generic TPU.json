@@ -1,7 +1,7 @@
 {
     "type": "filament",
-    "filament_id": "GFR99",
-    "setting_id": "GFSR99",
+    "filament_id": "GFU99",
+    "setting_id": "GFSU99",
     "name": "Generic TPU",
     "from": "system",
     "instantiation": "true",
