@@ -1982,7 +1982,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("timelapse_no_toolhead", coBool);
-    def->label = L("Timelapse without toolhead");
+    def->label = L("Timelapse");
     def->tooltip = L("Record timelapse video of printing without showing toolhead. In this mode "
                     "the toolhead docks near the excess chute at each layer change, and then "
                     "a snapshot is taken with the chamber camera. When printing finishes a timelapse "
