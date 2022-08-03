@@ -219,7 +219,7 @@ body
 
 .MenuItem
 {
-	border: 1px solid #4CAA50;
+	border: 1px solid #EEEEEE;
 	border-radius: 12px;
 	height: 101px;
 	width: 253px;
@@ -233,6 +233,7 @@ body
 
 .MenuItem:hover
 {
+	border-color: #4CAA50;
 	background-color: #E0FCEB;
 }
 
