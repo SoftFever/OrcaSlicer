@@ -34,18 +34,18 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         evt.Skip();
     });
 
-    m_cb_spaqhetti->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
-        update_spaqhetti();
+    m_cb_spaghetti->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
+        update_spaghetti();
 
         if (obj) {
-            obj->command_xcam_control_spaghetti_detector(m_cb_spaqhetti->GetValue(), m_cb_spaqhetti_print_halt->GetValue());
+            obj->command_xcam_control_spaghetti_detector(m_cb_spaghetti->GetValue(), m_cb_spaghetti_print_halt->GetValue());
         }
         evt.Skip();
     });
 
-    m_cb_spaqhetti_print_halt->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent&evt) {
+    m_cb_spaghetti_print_halt->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent&evt) {
         if (obj) {
-            obj->command_xcam_control_spaghetti_detector(m_cb_spaqhetti->GetValue(), m_cb_spaqhetti_print_halt->GetValue());
+            obj->command_xcam_control_spaghetti_detector(m_cb_spaghetti->GetValue(), m_cb_spaghetti_print_halt->GetValue());
         }
         evt.Skip();
     });
@@ -60,15 +60,15 @@ void PrintOptionsDialog::on_dpi_changed(const wxRect &suggested_rect)
     Fit();
 }
 
-void PrintOptionsDialog::update_spaqhetti()
+void PrintOptionsDialog::update_spaghetti()
 {
-    if (m_cb_spaqhetti->GetValue()) {
-        m_cb_spaqhetti_print_halt->Enable();
-        text_spaqhetti_print_halt->Enable();
+    if (m_cb_spaghetti->GetValue()) {
+        m_cb_spaghetti_print_halt->Enable();
+        text_spaghetti_print_halt->Enable();
     }
     else {
-        m_cb_spaqhetti_print_halt->Disable();
-        text_spaqhetti_print_halt->Disable();
+        m_cb_spaghetti_print_halt->Disable();
+        text_spaghetti_print_halt->Disable();
     }
 }
 
@@ -76,10 +76,10 @@ void PrintOptionsDialog::update_options(MachineObject *obj_)
 {
     if (!obj_) return;
     this->Freeze();
-    m_cb_spaqhetti->SetValue(obj_->xcam_spaghetti_detector);
-    m_cb_spaqhetti_print_halt->SetValue(obj_->xcam_spaghetti_print_halt);
+    m_cb_spaghetti->SetValue(obj_->xcam_spaghetti_detector);
+    m_cb_spaghetti_print_halt->SetValue(obj_->xcam_spaghetti_print_halt);
     m_cb_first_layer->SetValue(obj_->xcam_first_layer_inspector);
-    update_spaqhetti();
+    update_spaghetti();
     this->Thaw();
 }
 
@@ -87,21 +87,21 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
 {
     auto sizer = new wxBoxSizer(wxVERTICAL);
     auto line_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_cb_spaqhetti = new CheckBox(parent);
-    auto text_spaqhetti = new wxStaticText(parent, wxID_ANY, _L("Spaqhetti Detection"));
-    text_spaqhetti->SetFont(Label::Body_14);
+    m_cb_spaghetti = new CheckBox(parent);
+    auto text_spaghetti = new wxStaticText(parent, wxID_ANY, _L("spaghetti Detection"));
+    text_spaghetti->SetFont(Label::Body_14);
     line_sizer->Add(FromDIP(5), 0, 0, 0);
-    line_sizer->Add(m_cb_spaqhetti, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    line_sizer->Add(text_spaqhetti, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(m_cb_spaghetti, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(text_spaghetti, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     sizer->Add(line_sizer, 0, wxEXPAND | wxALL, FromDIP(5));
 
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_cb_spaqhetti_print_halt = new CheckBox(parent);
-    text_spaqhetti_print_halt = new wxStaticText(parent, wxID_ANY, _L("Stop printing when Spaqhetti detected"));
-    text_spaqhetti_print_halt->SetFont(Label::Body_12);
+    m_cb_spaghetti_print_halt = new CheckBox(parent);
+    text_spaghetti_print_halt = new wxStaticText(parent, wxID_ANY, _L("Stop printing when spaghetti detected"));
+    text_spaghetti_print_halt->SetFont(Label::Body_12);
     line_sizer->Add(FromDIP(30), 0, 0, 0);
-    line_sizer->Add(m_cb_spaqhetti_print_halt, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    line_sizer->Add(text_spaqhetti_print_halt, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(m_cb_spaghetti_print_halt, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(text_spaghetti_print_halt, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     
     sizer->Add(line_sizer, 0, wxEXPAND | wxALL , 0);
 

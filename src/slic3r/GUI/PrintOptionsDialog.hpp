@@ -22,16 +22,16 @@ class PrintOptionsDialog : public DPIDialog
 protected:
     // settings
     CheckBox* m_cb_first_layer;
-    CheckBox* m_cb_spaqhetti;
-    CheckBox* m_cb_spaqhetti_print_halt;
-    wxStaticText* text_spaqhetti_print_halt;
+    CheckBox* m_cb_spaghetti;
+    CheckBox* m_cb_spaghetti_print_halt;
+    wxStaticText* text_spaghetti_print_halt;
     wxBoxSizer* create_settings_group(wxWindow* parent);
 
 public:
     PrintOptionsDialog(wxWindow* parent);
     ~PrintOptionsDialog();
     void on_dpi_changed(const wxRect &suggested_rect) override;
-    void update_spaqhetti();
+    void update_spaghetti();
 
     MachineObject *obj { nullptr };
 
