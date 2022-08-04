@@ -167,6 +167,8 @@ public:
 
     bool is_tray_info_ready();
     bool is_unset_third_filament();
+    std::string get_display_filament_type();
+    std::string get_filament_type();
 };
 
 

@@ -275,7 +275,7 @@ void AmsMapingPopup::on_left_down(wxMouseEvent &evt)
         auto left = item->GetSize();
 
         if (pos.x > p_rect.x && pos.y > p_rect.y && pos.x < (p_rect.x + item->GetSize().x) && pos.y < (p_rect.y + item->GetSize().y)) {
-            if (item->m_tray_data.type == TrayType::NORMAL  && !is_match_material(item->m_tray_data.name)) return;
+            if (item->m_tray_data.type == TrayType::NORMAL  && !is_match_material(item->m_tray_data.filament_type)) return;
             item->send_event(m_current_filament_id);
             Dismiss();
         }
@@ -318,7 +318,8 @@ void AmsMapingPopup::update_ams_data(std::map<std::string, Ams*> amsList)
                 } else {
                     td.type   = NORMAL;
                     td.colour = AmsTray::decode_color(tray_data->color);
-                    td.name   = tray_data->type;
+                    td.name   = tray_data->get_display_filament_type();
+                    td.filament_type = tray_data->get_filament_type();
                 }
             }
 
@@ -356,7 +357,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
         m_mapping_item_list.push_back(m_filament_name);
       
         if (tray_data[i].type == NORMAL) {
-            if (is_match_material(tray_data[i].name)) { 
+            if (is_match_material(tray_data[i].filament_type)) { 
                 m_filament_name->set_data(tray_data[i].colour, tray_data[i].name, tray_data[i]);
             } else {
                 m_filament_name->set_data(wxColour(0xEE,0xEE,0xEE), tray_data[i].name, tray_data[i], true);
@@ -364,7 +365,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
             }
 
             m_filament_name->Bind(wxEVT_LEFT_DOWN, [this, tray_data, i, m_filament_name](wxMouseEvent &e) {
-                if (!is_match_material(tray_data[i].name)) return;
+                if (!is_match_material(tray_data[i].filament_type)) return;
                 m_filament_name->send_event(m_current_filament_id);
                 Dismiss();
             });

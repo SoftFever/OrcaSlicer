@@ -508,7 +508,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
                     if (opt_type_strs) {
                         found_filament_type = true;
                         //m_filament_type = opt_type_strs->get_at(0);
-                        m_filament_type = it->config.get_filament_type();
+                        std::string display_filament_type;
+                        m_filament_type = it->config.get_filament_type(display_filament_type);
                     }
                 }
                 if (!found_filament_type)

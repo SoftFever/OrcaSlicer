@@ -295,7 +295,7 @@ public:
     bool                operator<(const Preset &other) const { return this->name < other.name; }
 
     // special for upport G and Support W
-    std::string get_filament_type();
+    std::string get_filament_type(std::string &display_filament_type);
 
     static const std::vector<std::string>&  print_options();
     static const std::vector<std::string>&  filament_options();

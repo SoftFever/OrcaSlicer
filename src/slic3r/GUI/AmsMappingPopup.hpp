@@ -54,6 +54,7 @@ struct TrayData
     TrayType        type;
     int             id;
     std::string     name;
+    std::string     filament_type;
     wxColour        colour;
 };
 

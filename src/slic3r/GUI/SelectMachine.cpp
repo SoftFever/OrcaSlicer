@@ -1994,12 +1994,16 @@ void SelectMachineDialog::set_default()
     //sizer_thumbnail->Layout();
 
     std::vector<std::string> materials;
+    std::vector<std::string> display_materials;
     {
         auto preset_bundle = wxGetApp().preset_bundle;
         for (auto filament_name : preset_bundle->filament_presets) {
             for (auto iter = preset_bundle->filaments.lbegin(); iter != preset_bundle->filaments.end(); iter++) {
                 if (filament_name.compare(iter->name) == 0) {
-                    materials.push_back(iter->config.get_filament_type());
+                    std::string display_filament_type;
+                    std::string filament_type = iter->config.get_filament_type(display_filament_type);
+                    display_materials.push_back(display_filament_type);
+                    materials.push_back(filament_type);
                 }
             }
         }
@@ -2030,9 +2034,9 @@ void SelectMachineDialog::set_default()
         bmcache.parse_color(colour, rgb);
 
         auto          colour_rgb = wxColour((int) rgb[0], (int) rgb[1], (int) rgb[2]);
-        if (extruder >= materials.size() || extruder < 0)
+        if (extruder >= materials.size() || extruder < 0 || extruder >= display_materials.size())
             continue;
-        MaterialItem *item = new MaterialItem(this, colour_rgb, _L(materials[extruder]));
+        MaterialItem *item = new MaterialItem(this, colour_rgb, _L(display_materials[extruder]));
         m_sizer_material->Add(item, 0, wxALL, FromDIP(4));
 
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {

@@ -158,6 +158,29 @@ bool AmsTray::is_unset_third_filament()
     return false;
 }
 
+std::string AmsTray::get_display_filament_type()
+{
+    if (type == "PLA-S")
+        return "Support W";
+    else if (type == "PA-S")
+        return "Support G";
+    else
+        return type;
+    return type;
+}
+
+std::string AmsTray::get_filament_type()
+{
+    if (type == "Support W") {
+        return "PLA-S";
+    } else if (type == "Support G") {
+        return "PA-S";
+    } else {
+        return type;
+    }
+    return type;
+}
+
 bool HMSItem::parse_hms_info(unsigned attr, unsigned code)
 {
     bool result = true;
@@ -632,7 +655,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
             if (tray->second->is_tray_info_ready()) {
                 FilamentInfo info;
                 info.color = tray->second->color;
-                info.type = tray->second->type;
+                info.type = tray->second->get_filament_type();
                 info.id = tray_index;
                 tray_filaments.emplace(std::make_pair(tray_index, info));
             }
@@ -649,7 +672,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                 info.id = atoi(tray_it->first.c_str()) + atoi(it->first.c_str()) * 4;
                 info.tray_id = atoi(tray_it->first.c_str()) + atoi(it->first.c_str()) * 4;
                 info.color = tray_it->second->color;
-                info.type = tray_it->second->type;
+                info.type = tray_it->second->get_filament_type();
             }
             else {
                 info.id = -1;
@@ -678,9 +701,9 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                     if (!tray_it->second->is_exists || tray_it->second->is_unset_third_filament()) {
                         ;
                     } else {
-                        if (filaments[i].type == tray_it->second->type) {
+                        if (filaments[i].type == tray_it->second->get_filament_type()) {
                             info.color = tray_it->second->color;
-                            info.type = tray_it->second->type;
+                            info.type = tray_it->second->get_filament_type();
                         } else {
                             info.tray_id = -1;
                             info.mapping_result = (int)MappingResult::MAPPING_RESULT_TYPE_MISMATCH;
@@ -2228,13 +2251,7 @@ int MachineObject::parse_json(std::string payload)
                                         if (tray_it->contains("tray_info_idx") && tray_it->contains("tray_type")) {
                                             curr_tray->setting_id       = (*tray_it)["tray_info_idx"].get<std::string>();
                                             std::string type            = (*tray_it)["tray_type"].get<std::string>();
-                                            if (curr_tray->setting_id == "GFS00") {
-                                                curr_tray->type = "Support W";
-                                            } else if (curr_tray->setting_id == "GFS01") {
-                                                curr_tray->type = "Support G";
-                                            } else {
-                                                curr_tray->type = type;
-                                            }
+                                            curr_tray->type = type;
                                         } else {
                                             curr_tray->setting_id = "";
                                             curr_tray->type       = "";

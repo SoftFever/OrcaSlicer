@@ -3587,7 +3587,7 @@ std::string DynamicPrintConfig::validate()
     }
 }
 
-std::string DynamicPrintConfig::get_filament_type(int id)
+std::string DynamicPrintConfig::get_filament_type(std::string &displayed_filament_type, int id)
 {
     auto* filament_id = dynamic_cast<const ConfigOptionStrings*>(this->option("filament_id"));
     auto* filament_type = dynamic_cast<const ConfigOptionStrings*>(this->option("filament_type"));
@@ -3598,9 +3598,11 @@ std::string DynamicPrintConfig::get_filament_type(int id)
 
     if (!filament_is_support) {
         if (filament_type) {
+            displayed_filament_type = filament_type->get_at(id);
             return filament_type->get_at(id);
         }
         else {
+            displayed_filament_type = "";
             return "";
         }
     }
@@ -3609,25 +3611,33 @@ std::string DynamicPrintConfig::get_filament_type(int id)
         if (is_support) {
             if (filament_id) {
                 if (filament_id->get_at(id) == "GFS00") {
-                    return "Support W";
+                    displayed_filament_type = "Support W";
+                    return "PLA-S";
                 }
                 else if (filament_id->get_at(id) == "GFS01") {
-                    return "Support G";
+                    displayed_filament_type = "Support G";
+                    return "PA-S";
                 }
                 else {
+                    displayed_filament_type = filament_type->get_at(id);
                     return filament_type->get_at(id);
                 }
             }
             else {
-                if (filament_type->get_at(id) == "PLA")
-                    return "Support W";
-                else if (filament_type->get_at(id) == "PA")
-                    return "Support G";
-                else
+                if (filament_type->get_at(id) == "PLA") {
+                    displayed_filament_type = "Support W";
+                    return "PLA-S";
+                } else if (filament_type->get_at(id) == "PA") {
+                    displayed_filament_type = "Support G";
+                    return "PA-S";
+                } else {
+                    displayed_filament_type = filament_type->get_at(id);
                     return filament_type->get_at(id);
+                }
             }
         }
         else {
+            displayed_filament_type = filament_type->get_at(id);
             return filament_type->get_at(id);
         }
     }

@@ -6454,7 +6454,9 @@ void GLCanvas3D::_render_paint_toolbar() const
        for (auto filament_name : preset_bundle->filament_presets) {
            for (auto iter = preset_bundle->filaments.lbegin(); iter != preset_bundle->filaments.end(); iter++) {
                if (filament_name.compare(iter->name) == 0) {
-                   filament_types.push_back(iter->config.get_filament_type());
+                   std::string display_filament_type;
+                   iter->config.get_filament_type(display_filament_type);
+                   filament_types.push_back(display_filament_type);
                }
            }
        }

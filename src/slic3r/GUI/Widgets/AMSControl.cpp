@@ -64,7 +64,7 @@ bool AMSinfo::parse_ams_info(Ams *ams)
         if (it != ams->trayList.end() && it->second->is_exists) {
             if (it->second->is_tray_info_ready()) {
                 info.can_id        = it->second->id;
-                info.material_name = it->second->type;
+                info.material_name = it->second->get_display_filament_type();
                 if (!it->second->color.empty()) {
                     info.material_colour = AmsTray::decode_color(it->second->color);
                 } else {

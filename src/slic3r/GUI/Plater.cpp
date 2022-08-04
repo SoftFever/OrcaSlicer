@@ -8205,7 +8205,8 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     for (int i = 0; i < plate_data_list.size(); i++) {
         PlateData *plate_data = plate_data_list[i];
         for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++) {
-            it->type  = cfg.get_filament_type(it->id);
+            std::string display_filament_type;
+            it->type  = cfg.get_filament_type(display_filament_type, it->id);
             it->color = filament_color ? filament_color->get_at(it->id) : "#FFFFFF";
             // save filament info used in curr plate
             int index = p->partplate_list.get_curr_plate_index();
