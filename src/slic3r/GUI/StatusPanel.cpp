@@ -1138,15 +1138,15 @@ void StatusPanel::on_subtask_abort(wxCommandEvent &event)
 
 void StatusPanel::error_info_reset()
 {
+    m_staticline->Hide();
+    m_panel_error_txt->Hide();
+    m_panel_error_txt->GetParent()->Layout();
     m_error_text->SetLabel("");
     before_error_code = 0;
 }
 
 void StatusPanel::on_subtask_clean(wxCommandEvent &event)
 {
-    m_staticline->Hide();
-    m_panel_error_txt->Hide();
-    m_panel_error_txt->GetParent()->Layout();
     error_info_reset();
 }
 
@@ -1250,20 +1250,21 @@ void StatusPanel::update_error_message()
 {
     if (obj->print_error <= 0) {
         before_error_code = obj->print_error;
+
+        if (m_panel_error_txt->IsShown())
+            error_info_reset();
         return;
     }
 
     if (before_error_code != obj->print_error) {
-        if (!get_error_message_thread) {
-            get_error_message_thread = new boost::thread(Slic3r::create_thread([&] {
-                std::string message = show_error_message(obj->print_error);
-                wxCommandEvent event(EVT_UPDATE_ERROR_MESSAGE);
-                event.SetString(wxString(message));
-                event.SetEventObject(this);
-                wxPostEvent(this, event);
-            }));
-        }
-        before_error_code = obj->print_error;
+        get_error_message_thread = new boost::thread(Slic3r::create_thread([&] {
+            std::string    message = show_error_message(obj->print_error);
+            wxCommandEvent event(EVT_UPDATE_ERROR_MESSAGE);
+            event.SetString(wxString(message));
+            event.SetEventObject(this);
+            wxPostEvent(this, event);
+        }));
+        before_error_code        = obj->print_error;
    }
 }
 
@@ -2236,8 +2237,6 @@ void StatusPanel::set_default()
     m_ams_control_box->Hide();
     m_ams_control->Reset();
     clean_tasklist_info();
-    m_staticline->Hide();
-    m_panel_error_txt->Hide();
     error_info_reset();
 }
 
