@@ -361,6 +361,13 @@ MachineObject::~MachineObject()
         subtask_ = nullptr;
     }
 
+    if (get_slice_info_thread) {
+        if (get_slice_info_thread->joinable()) {
+            get_slice_info_thread->join();
+            get_slice_info_thread = nullptr;
+        }
+    }
+
     if (slice_info) {
         delete slice_info;
         slice_info = nullptr;
@@ -2474,7 +2481,7 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
 
         BOOST_LOG_TRIVIAL(trace) << "slice_info: start";
         slice_info = new BBLSliceInfo();
-        auto get_slice_info_thread = boost::thread([this, project_id, profile_id, subtask_id, plate_idx] {
+        get_slice_info_thread = new boost::thread([this, project_id, profile_id, subtask_id, plate_idx] {
                 int plate_index = -1;
 
                 if (!m_agent) return;

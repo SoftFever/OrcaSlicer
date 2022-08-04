@@ -479,6 +479,8 @@ public:
     std::string  task_id_;
     std::string  subtask_id_;
     BBLSliceInfo* slice_info {nullptr};
+    boost::thread* get_slice_info_thread { nullptr };
+
     int plate_index { -1 };
     std::string m_gcode_file;
     int gcode_file_prepare_percent = 0;
