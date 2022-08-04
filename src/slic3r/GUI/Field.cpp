@@ -207,9 +207,7 @@ wxString Field::get_tooltip_text(const wxString &default_string)
     }
 
 	if (tooltip.length() > 0)
-        tooltip_text = tooltip + "\n" + _(L("default value")) + "\t: " +
-        (boost::iends_with(opt_id, "_gcode") ? "\n" : "") + default_string +
-        (boost::iends_with(opt_id, "_gcode") ? "" : "\n") +
+        tooltip_text = tooltip + "\n" + 
         _(L("parameter name")) + "\t: " + opt_id;
  #endif
 	return tooltip_text;
