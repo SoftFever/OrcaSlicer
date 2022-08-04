@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-03 16:53+0800\n"
+"POT-Creation-Date: 2022-08-04 11:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1325,6 +1325,13 @@ msgstr "SN"
 
 msgid "Confirm"
 msgstr "Bestätigen"
+
+msgid "AMS Slots"
+msgstr ""
+
+msgid ""
+"Note: Only the AMS slots loaded with the same material type can be selected."
+msgstr ""
 
 msgid "Insertion update"
 msgstr "Insertion update"
@@ -3461,13 +3468,13 @@ msgstr "The printer is busy with another print job."
 
 #, c-format, boost-format
 msgid ""
-"Filament index %s exceeds the number of AMS slots. Please update the printer "
+"Filament %s exceeds the number of AMS slots. Please update the printer "
 "firmware to support AMS slot assignment."
 msgstr ""
 
 msgid ""
-"Filament index exceeds the number of AMS slots. Please update the printer "
-"firmware to support AMS slot assignment."
+"Filament exceeds the number of AMS slots. Please update the printer firmware "
+"to support AMS slot assignment."
 msgstr ""
 
 msgid ""
@@ -3486,13 +3493,13 @@ msgstr ""
 
 #, c-format, boost-format
 msgid ""
-"Filament index %s does not match the filament in AMS slot %s. Please update "
-"the printer firmware to support AMS slot assignment."
+"Filament %s does not match the filament in AMS slot %s. Please update the "
+"printer firmware to support AMS slot assignment."
 msgstr ""
 
 msgid ""
-"Filament index does not match the filament in AMS slot. Please update the "
-"printer firmware to support AMS slot assignment."
+"Filament does not match the filament in AMS slot. Please update the printer "
+"firmware to support AMS slot assignment."
 msgstr ""
 
 msgid ""

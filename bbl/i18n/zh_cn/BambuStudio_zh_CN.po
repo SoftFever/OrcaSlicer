@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-03 16:53+0800\n"
-"PO-Revision-Date: 2022-08-02 16:24+0800\n"
+"POT-Creation-Date: 2022-08-04 11:33+0800\n"
+"PO-Revision-Date: 2022-08-04 11:34+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -1273,6 +1273,13 @@ msgstr ""
 
 msgid "Confirm"
 msgstr "确定"
+
+msgid "AMS Slots"
+msgstr "AMS舱内材料"
+
+msgid ""
+"Note: Only the AMS slots loaded with the same material type can be selected."
+msgstr "仅允许选择放入同种材质耗材丝的AMS槽位"
 
 msgid "Insertion update"
 msgstr "插入料时更新"
@@ -3337,14 +3344,14 @@ msgstr "打印机正在执行其他打印任务"
 
 #, c-format, boost-format
 msgid ""
-"Filament index %s exceeds the number of AMS slots. Please update the printer "
+"Filament %s exceeds the number of AMS slots. Please update the printer "
 "firmware to support AMS slot assignment."
-msgstr ""
+msgstr "材料编号%s超出AMS槽位数量，请更新打印机固件以支持AMS槽位映射功能"
 
 msgid ""
-"Filament index exceeds the number of AMS slots. Please update the printer "
-"firmware to support AMS slot assignment."
-msgstr ""
+"Filament exceeds the number of AMS slots. Please update the printer firmware "
+"to support AMS slot assignment."
+msgstr "材料编号超出AMS槽位数量，请更新打印机固件以支持AMS槽位映射功能"
 
 msgid ""
 "Filaments to AMS slots mappings have been established. You can click a "
@@ -3360,14 +3367,17 @@ msgstr "请在发送打印前点击上方各个耗材丝，指定其所对应的
 
 #, c-format, boost-format
 msgid ""
-"Filament index %s does not match the filament in AMS slot %s. Please update "
-"the printer firmware to support AMS slot assignment."
-msgstr ""
-
-msgid ""
-"Filament index does not match the filament in AMS slot. Please update the "
+"Filament %s does not match the filament in AMS slot %s. Please update the "
 "printer firmware to support AMS slot assignment."
 msgstr ""
+"材料编号%s和AMS槽位%s中的耗材丝材质不匹配，请更新打印机固件以支持AMS槽位映射"
+"功能"
+
+msgid ""
+"Filament does not match the filament in AMS slot. Please update the printer "
+"firmware to support AMS slot assignment."
+msgstr ""
+"材料编号和AMS槽位中的耗材丝材质不匹配，请更新打印机固件以支持AMS槽位映射功能"
 
 msgid ""
 "The printer firmware only supports sequential mapping of filament => AMS "

@@ -35,6 +35,7 @@ src/slic3r/GUI/Jobs/PrintJob.cpp
 src/slic3r/GUI/Jobs/UpgradeNetworkJob.cpp
 src/slic3r/GUI/AboutDialog.cpp
 src/slic3r/GUI/AMSMaterialsSetting.cpp
+src/slic3r/GUI/AMSMappingPopup.cpp
 src/slic3r/GUI/AMSSetting.cpp
 src/slic3r/GUI/BBLTopbar.cpp
 src/slic3r/GUI/DownloadProgressDialog.cpp

@@ -1333,9 +1333,9 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintDialogStatus::PrintStatusNeedUpgradingAms) {
         wxString msg_text;
         if (params.size() > 0)
-            msg_text = wxString::Format(_L("Filament index %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."), params[0]);
+            msg_text = wxString::Format(_L("Filament %s exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment."), params[0]);
         else
-            msg_text = _L("Filament index exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment.");
+            msg_text = _L("Filament exceeds the number of AMS slots. Please update the printer firmware to support AMS slot assignment.");
         update_print_status_msg(msg_text, true, false);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
@@ -1352,9 +1352,9 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingU0Invalid) {
         wxString msg_text;
         if (params.size() > 1)
-            msg_text = wxString::Format(_L("Filament index %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."), params[0], params[1]);
+            msg_text = wxString::Format(_L("Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."), params[0], params[1]);
         else
-            msg_text = _L("Filament index does not match the filament in AMS slot. Please update the printer firmware to support AMS slot assignment.");
+            msg_text = _L("Filament does not match the filament in AMS slot. Please update the printer firmware to support AMS slot assignment.");
         update_print_status_msg(msg_text, true, false);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
