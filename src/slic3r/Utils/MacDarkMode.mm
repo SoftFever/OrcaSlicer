@@ -58,6 +58,13 @@ void set_miniaturizable(void * window)
     }
 }
 
+void set_title_colour_after_set_title()
+{
+    if(mainframe_text_field){
+        [(NSTextField*)mainframe_text_field setTextColor :  NSColor.whiteColor];
+    }
+}
+
 void WKWebView_evaluateJavaScript(void * web, wxString const & script, void (*callback)(wxString const &))
 {
     [(WKWebView*)web evaluateJavaScript:wxCFStringRef(script).AsNSString() completionHandler: ^(id result, NSError *error) {

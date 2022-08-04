@@ -742,7 +742,14 @@ void MainFrame::shutdown()
 
 void MainFrame::update_title()
 {
-    return;
+    return; 
+}
+
+void MainFrame::update_title_colour_after_set_title() 
+{
+#ifdef __WXOSX__
+    set_title_colour_after_set_title();
+#endif
 }
 
 void MainFrame::show_option(bool show)
