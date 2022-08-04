@@ -214,19 +214,41 @@ void MaterialItem::doRender(wxDC &dc)
 
      m_sizer_list = new wxBoxSizer(wxVERTICAL);
 
-
-     m_warning_text = new wxStaticText(this, wxID_ANY, _L("Note: Only the AMS slots loaded with the same material type can be selected."));
+     m_warning_text = new wxStaticText(this, wxID_ANY, wxEmptyString);
      m_warning_text->SetForegroundColour(wxColour(0xFF, 0x6F, 0x00));
      m_warning_text->SetFont(::Label::Body_12);
+     auto cant_not_match_tip = _L("Note: Only the AMS slots loaded with the same material type can be selected.");
+     m_warning_text->SetLabel(format_text(cant_not_match_tip));
+     m_warning_text->SetMinSize(wxSize(FromDIP(280), FromDIP(-1)));
+     m_warning_text->Wrap(FromDIP(280));
 
      m_sizer_main->Add(title_panel, 0, wxEXPAND | wxALL, FromDIP(2));
      m_sizer_main->Add(m_sizer_list, 0, wxEXPAND | wxALL, FromDIP(0));
-     m_sizer_main->Add(m_warning_text, wxEXPAND, wxALL, FromDIP(10));
+     m_sizer_main->Add(m_warning_text, 0, wxEXPAND | wxALL, FromDIP(10));
 
      SetSizer(m_sizer_main);
      Layout();
  }
 
+ wxString AmsMapingPopup::format_text(wxString &m_msg)
+ {
+     if (wxGetApp().app_config->get("language") != "zh_CN") { return m_msg; }
+
+     wxString out_txt      = m_msg;
+     wxString count_txt    = "";
+     int      new_line_pos = 0;
+
+     for (int i = 0; i < m_msg.length(); i++) {
+         auto text_size = m_warning_text->GetTextExtent(count_txt);
+         if (text_size.x < (FromDIP(280))) {
+             count_txt += m_msg[i];
+         } else {
+             out_txt.insert(i - 1, '\n');
+             count_txt = "";
+         }
+     }
+     return out_txt;
+ }
 
 void AmsMapingPopup::update_materials_list(std::vector<std::string> list) 
 { 

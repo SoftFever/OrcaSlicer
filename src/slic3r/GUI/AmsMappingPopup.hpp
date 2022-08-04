@@ -109,7 +109,8 @@ class AmsMapingPopup : public wxPopupTransientWindow
 {
 public:
     AmsMapingPopup(wxWindow *parent);
-    ~AmsMapingPopup() {};
+    wxString format_text(wxString &m_msg);
+    ~AmsMapingPopup(){};
 
     wxStaticText *           m_warning_text{nullptr}; 
     std::vector<std::string> m_materials_list;
