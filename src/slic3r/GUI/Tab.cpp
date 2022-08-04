@@ -557,7 +557,7 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
         if (icon_idx == -1) {
             // Add a new icon to the icon list.
             m_scaled_icons_list.push_back(ScalableBitmap(this, icon, 32, false, true));
-            m_icons->Add(m_scaled_icons_list.back().bmp());
+            //m_icons->Add(m_scaled_icons_list.back().bmp());
             icon_idx = ++m_icon_count;
             m_icon_index[icon] = icon_idx;
         }
@@ -1180,7 +1180,7 @@ void Tab::msw_rescale()
     m_icons->RemoveAll();
     m_icons = new wxImageList(m_scaled_icons_list.front().bmp().GetWidth(), m_scaled_icons_list.front().bmp().GetHeight(), false);
     for (ScalableBitmap& bmp : m_scaled_icons_list)
-        m_icons->Add(bmp.bmp());
+        //m_icons->Add(bmp.bmp());
     m_tabctrl->AssignImageList(m_icons);
 
     // rescale options_groups
@@ -1214,7 +1214,7 @@ void Tab::sys_color_changed()
     m_icons->RemoveAll();
     m_icons = new wxImageList(m_scaled_icons_list.front().bmp().GetWidth(), m_scaled_icons_list.front().bmp().GetHeight(), false);
     for (ScalableBitmap& bmp : m_scaled_icons_list)
-        m_icons->Add(bmp.bmp());
+        //m_icons->Add(bmp.bmp());
     m_tabctrl->AssignImageList(m_icons);
 
     // Colors for ui "decoration"
