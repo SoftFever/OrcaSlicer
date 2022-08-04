@@ -450,11 +450,6 @@ private:
 	void OnEditingStarted(wxDataViewEvent &event);
     void OnEditingDone(wxDataViewEvent &event);
 
-    // BBS
-    void OnColumnHeadClicked(wxDataViewEvent& event);
-    void OnOrganizeObjects(OBJECT_ORGANIZE_TYPE type);
-    wxMenu m_object_org_menu;
-
     std::vector<int> m_columns_width;
 };
 

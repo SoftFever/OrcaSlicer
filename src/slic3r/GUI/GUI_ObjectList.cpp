@@ -71,9 +71,6 @@ static void take_snapshot(const std::string& snapshot_name)
         plater->take_snapshot(snapshot_name);
 }
 
-#define ID_OBJECT_ORG_MENU_ITEM_MODULE 11000
-#define ID_OBJECT_ORG_MENU_ITEM_PLATE 11001
-
 ObjectList::ObjectList(wxWindow* parent) :
     wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE)
 {
@@ -84,17 +81,6 @@ ObjectList::ObjectList(wxWindow* parent) :
 
     //BBS: add part plate related event
     //Bind(EVT_PARTPLATE_LIST_PLATE_SELECT, &ObjectList::on_select_plate, this);
-
-    // BBS
-    wxMenuItem* org_by_plate = new wxMenuItem(&m_object_org_menu, ID_OBJECT_ORG_MENU_ITEM_PLATE, "Organize By Plate");
-    m_object_org_menu.Append(org_by_plate);
-
-    wxMenuItem* org_by_module = new wxMenuItem(&m_object_org_menu, ID_OBJECT_ORG_MENU_ITEM_MODULE, "Organize By Module");
-    m_object_org_menu.Append(org_by_module);
-
-    //Bind(wxEVT_DATAVIEW_COLUMN_HEADER_CLICK, &ObjectList::OnColumnHeadClicked, this);
-    Bind(wxEVT_MENU, [this](wxCommandEvent& evt) { this->OnOrganizeObjects(ortByPlate); }, ID_OBJECT_ORG_MENU_ITEM_PLATE);
-    Bind(wxEVT_MENU, [this](wxCommandEvent& evt) { this->OnOrganizeObjects(ortByModule); }, ID_OBJECT_ORG_MENU_ITEM_MODULE);
 
     // describe control behavior
     Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxDataViewEvent& event) {
@@ -266,7 +252,8 @@ ObjectList::ObjectList(wxWindow* parent) :
 #else
         update_name_column_width();
 
-        ensure_current_item_visible();
+        // BBS
+        this->CallAfter([this]() { ensure_current_item_visible(); });
 #endif
         e.Skip();
 	}));
@@ -278,10 +265,13 @@ ObjectList::~ObjectList()
 
 void ObjectList::set_min_height()
 {
+    // BBS
+#if 0
     if (m_items_count == size_t(-1))
         m_items_count = 7;
     int list_min_height = lround(2.25 * (m_items_count + 1) * wxGetApp().em_unit()); // +1 is for height of control header
     this->SetMinSize(wxSize(1, list_min_height));
+#endif
 }
 
 void ObjectList::update_min_height()
@@ -308,11 +298,14 @@ void ObjectList::update_min_height()
 
 void ObjectList::create_objects_ctrl()
 {
+    // BBS
+#if 0
     /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
      * 1. set a height of the list to some big value
      * 2. change it to the normal(meaningful) min value after first whole Mainframe updating/layouting
      */
     SetMinSize(wxSize(-1, 3000));
+#endif
 
     m_objects_model = new ObjectDataViewModel;
     AssociateModel(m_objects_model);
@@ -663,20 +656,6 @@ void ObjectList::update_name_for_items()
     m_objects_model->UpdateItemNames();
 
     wxGetApp().plater()->update();
-}
-
-// BBS
-void ObjectList::OnColumnHeadClicked(wxDataViewEvent& event)
-{
-    int col = event.GetColumn();
-    if (col == 0) {
-        this->PopupMenu(&m_object_org_menu, 0, FromDIP(20));
-    }
-}
-
-void ObjectList::OnOrganizeObjects(OBJECT_ORGANIZE_TYPE type)
-{
-    printf("%d\n", type);
 }
 
 void ObjectList::object_config_options_changed(const ObjectVolumeID& ov_id)
