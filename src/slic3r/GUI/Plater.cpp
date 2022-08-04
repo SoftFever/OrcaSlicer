@@ -4750,7 +4750,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
     if (preset_type == Preset::TYPE_FILAMENT) {
         wxGetApp().preset_bundle->set_filament_preset(idx, preset_name);
-        wxGetApp().get_tab(preset_type)->select_preset(preset_name);
+        //wxGetApp().get_tab(preset_type)->select_preset(preset_name);
     }
 
     bool select_preset = !combo->selection_is_changed_according_to_physical_printers();
