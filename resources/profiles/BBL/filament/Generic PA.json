@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFN99",
-    "setting_id": "GFSN99",
+    "setting_id": "GFSN98",
     "name": "Generic PA",
     "from": "system",
     "instantiation": "true",

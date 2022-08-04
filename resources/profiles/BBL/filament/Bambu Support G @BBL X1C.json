@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "setting_id": "GFSS01_00",
+    "setting_id": "GFSS01",
     "name": "Bambu Support G @BBL X1C",
     "from": "system",
     "instantiation": "true",

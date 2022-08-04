@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "setting_id": "GFSU01_00",
+    "setting_id": "GFSU01",
     "name": "Bambu TPU 95A @BBL X1",
     "from": "system",
     "instantiation": "true",
