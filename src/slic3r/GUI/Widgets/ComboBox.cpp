@@ -215,7 +215,7 @@ void ComboBox::mouseDown(wxMouseEvent &event)
     } else if (drop.HasDismissLongTime()) {
         drop.autoPosition();
         drop_down = true;
-        drop.Show(); // Popup() will hung on MacOS
+        drop.Popup();
         wxCommandEvent e(wxEVT_COMBOBOX_DROPDOWN);
         GetEventHandler()->ProcessEvent(e);
     }
@@ -242,7 +242,7 @@ void ComboBox::keyDown(wxKeyEvent& event) {
             } else if (drop.HasDismissLongTime()) {
                 drop.autoPosition();
                 drop_down = true;
-                drop.Show(); // Popup() will hung on MacOS
+                drop.Popup();
                 wxCommandEvent e(wxEVT_COMBOBOX_DROPDOWN);
                 GetEventHandler()->ProcessEvent(e);
             }

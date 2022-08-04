@@ -3,7 +3,7 @@
 
 #include <wx/dcgraph.h>
 
-BEGIN_EVENT_TABLE(DropDown, wxPanel)
+BEGIN_EVENT_TABLE(DropDown, wxPopupTransientWindow)
 
 EVT_LEFT_DOWN(DropDown::mouseDown)
 EVT_LEFT_UP(DropDown::mouseReleased)
@@ -46,14 +46,6 @@ DropDown::DropDown(wxWindow *             parent,
 
     // BBS set default font
     SetFont(Label::Body_14);
-#ifdef __WXOSX__
-    Bind(wxEVT_ACTIVATE, [this](auto & e) {
-        if (!e.GetActive()) {
-            Hide();
-            OnDismiss();
-        }
-    });
-#endif
 }
 
 void DropDown::Invalidate(bool clear)
@@ -373,6 +365,7 @@ void DropDown::mouseReleased(wxMouseEvent& event)
         pressedDown = false;
         if (hover_item >= 0) // not moved
             sendDropDownEvent();
+        DismissAndNotify();
     }
 }
 
