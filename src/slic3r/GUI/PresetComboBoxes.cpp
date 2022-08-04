@@ -899,6 +899,7 @@ void PlaterPresetComboBox::update()
         clr_picker->SetWindowStyle(style);
 #ifdef __WXOSX__
         clr_picker->SetLabel(clr_picker->GetLabel()); // Let setBezelStyle: be called
+        clr_picker->Refresh();
 #endif
         selected_filament_preset = m_collection->find_preset(m_preset_bundle->filament_presets[m_filament_idx]);
         if (!selected_filament_preset) {
