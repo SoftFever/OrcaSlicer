@@ -225,9 +225,14 @@ int PresetComboBox::update_ams_color()
     if (m_filament_idx < 0) return -1;
     int idx = selected_ams_filament();
     if (idx < 0) return -1;
+    auto &ams_list = wxGetApp().preset_bundle->filament_ams_list;
+    if (idx >= ams_list.size()) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": ams %1% out of range %2%") % idx % ams_list.size();
+        return -1;
+    }
     DynamicPrintConfig *cfg        = &wxGetApp().preset_bundle->project_config;
     auto colors = static_cast<ConfigOptionStrings*>(cfg->option("filament_colour")->clone());
-    colors->values[m_filament_idx] = wxGetApp().preset_bundle->filament_ams_list[idx]
+    colors->values[m_filament_idx] = ams_list[idx]
         .opt_string("filament_colour", 0u);
     DynamicPrintConfig new_cfg;
     new_cfg.set_key_value("filament_colour", colors);
@@ -397,7 +402,7 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
             } else {
                 img.SetRGB(wxRect({0, 0}, img.GetSize()), clr.Red(), clr.Green(), clr.Blue());
             }
-            int item_id = Append(get_preset_name(*iter), img);
+            int item_id = Append(get_preset_name(*iter), img, &m_first_ams_filament + (&f - &m_preset_bundle->filament_ams_list.front()));
             //validate_selection(id->value == selected); // can not select
         }
         m_last_ams_filament = GetCount();
@@ -407,7 +412,7 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
 int PresetComboBox::selected_ams_filament() const
 {
     if (m_first_ams_filament && m_last_selected >= m_first_ams_filament && m_last_selected < m_last_ams_filament) {
-        return m_last_selected - m_first_ams_filament;
+        return reinterpret_cast<int *>(GetClientData(m_last_selected)) - &m_first_ams_filament;
     }
     return -1;
 }
