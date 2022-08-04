@@ -1229,7 +1229,7 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
                             for (auto sub_iter = iter.value().begin(); sub_iter != iter.value().end(); sub_iter++) {
                                 if (boost::iequals(sub_iter.key(), "type")) {
                                     type = sub_iter.value();
-                                    BOOST_LOG_TRIVIAL(info) << "[BBL Updater]: get version of settings's type, " << sub_iter.value();
+                                    BOOST_LOG_TRIVIAL(info) << "[download_plugin]: get version of settings's type, " << sub_iter.value();
                                 }
                                 else if (boost::iequals(sub_iter.key(), "version")) {
                                     version = *(Semver::parse(sub_iter.value()));
@@ -1241,22 +1241,22 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
                                     url = sub_iter.value();
                                 }
                             }
-                            BOOST_LOG_TRIVIAL(info) << "[download_plugin]: get type " << type << ", version " << version.to_string() << ", url " << url;
+                            BOOST_LOG_TRIVIAL(info) << "[download_plugin 1]: get type " << type << ", version " << version.to_string() << ", url " << url;
                             download_url = url;
                         }
                     }
                 }
                 else {
-                    BOOST_LOG_TRIVIAL(info) << "[download_plugin]: get version of plugin failed, body=" << body;
+                    BOOST_LOG_TRIVIAL(info) << "[download_plugin 1]: get version of plugin failed, body=" << body;
                 }
             }
             catch (...) {
-                BOOST_LOG_TRIVIAL(error) << "[download_plugin]: catch unknown exception";
+                BOOST_LOG_TRIVIAL(error) << "[download_plugin 1]: catch unknown exception";
                 ;
             }
         }).on_error(
             [&result](std::string body, std::string error, unsigned int status) {
-                BOOST_LOG_TRIVIAL(error) << "" << body;
+                BOOST_LOG_TRIVIAL(error) << "[download_plugin 1] on_error: " << error<<", body = " << body;
                 result = -1;
         }).perform_sync();
 
@@ -1268,7 +1268,7 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
 
 
     if (download_url.empty()) {
-        BOOST_LOG_TRIVIAL(info) << "[download_plugin]: no availaible plugin found for this app version: " << SLIC3R_VERSION;
+        BOOST_LOG_TRIVIAL(info) << "[download_plugin 1]: no availaible plugin found for this app version: " << SLIC3R_VERSION;
         if (pro_fn) pro_fn(InstallStatusDownloadFailed, 0, cancel);
         return -1;
     }
@@ -1277,10 +1277,10 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
     }
 
     if (m_networking_cancel_update || cancel) {
-        BOOST_LOG_TRIVIAL(info) << boost::format("download_plugin: %1%, cancelled by user") % __LINE__;
+        BOOST_LOG_TRIVIAL(info) << boost::format("[download_plugin 1]: %1%, cancelled by user") % __LINE__;
         return -1;
     }
-    BOOST_LOG_TRIVIAL(info) << "download_plugin, get_url = " << download_url;
+    BOOST_LOG_TRIVIAL(info) << "[download_plugin] get_url = " << download_url;
 
     // download
     Slic3r::Http http = Slic3r::Http::get(download_url);
@@ -1294,6 +1294,7 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
             if (pro_fn && ((percent - reported_percent) >= 10)) {
                 pro_fn(InstallStatusNormal, percent, was_cancel);
                 reported_percent = percent;
+                BOOST_LOG_TRIVIAL(info) << "[download_plugin 2] progress: " << reported_percent;
             }
             cancel = m_networking_cancel_update || was_cancel;
             if (cancel_fn)
@@ -1304,7 +1305,7 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
                 result = -1;
         })
         .on_complete([&pro_fn, tmp_path, target_file_path](std::string body, unsigned status) {
-            BOOST_LOG_TRIVIAL(info) << "download_plugin, completed";
+            BOOST_LOG_TRIVIAL(info) << "[download_plugin 2] completed";
             bool cancel = false;
             int percent = 0;
             fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
@@ -1316,6 +1317,7 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
         .on_error([&pro_fn, &result](std::string body, std::string error, unsigned int status) {
             bool cancel = false;
             if (pro_fn) pro_fn(InstallStatusDownloadFailed, 0, cancel);
+            BOOST_LOG_TRIVIAL(error) << "[download_plugin 2] on_error: " << error<<", body = " << body;
             result = -1;
         });
     http.perform_sync();
@@ -1326,14 +1328,17 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
 {
     bool cancel = false;
     std::string target_file_path = (fs::temp_directory_path() / "network_plugin.zip").string();
+
+    BOOST_LOG_TRIVIAL(info) << "[install_plugin] enter";
     // get plugin folder
     auto plugin_folder = boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins";
     if (!boost::filesystem::exists(plugin_folder)) {
+        BOOST_LOG_TRIVIAL(info) << "[install_plugin] will create directory "<<plugin_folder.string();
         boost::filesystem::create_directory(plugin_folder);
     }
 
     if (m_networking_cancel_update) {
-        BOOST_LOG_TRIVIAL(info) << boost::format("install_plugin: %1%, cancelled by user")%__LINE__;
+        BOOST_LOG_TRIVIAL(info) << boost::format("[install_plugin]: %1%, cancelled by user")%__LINE__;
         return -1;
     }
     if (pro_fn) {
@@ -1343,17 +1348,17 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
     mz_zip_archive archive;
     mz_zip_zero_struct(&archive);
     if (!open_zip_reader(&archive, target_file_path)) {
-        BOOST_LOG_TRIVIAL(error) << boost::format("install_plugin: %1%, open zip file failed")%__LINE__;
+        BOOST_LOG_TRIVIAL(error) << boost::format("[install_plugin]: %1%, open zip file failed")%__LINE__;
         if (pro_fn) pro_fn(InstallStatusDownloadFailed, 0, cancel);
         return InstallStatusUnzipFailed;
     }
 
     mz_uint num_entries = mz_zip_reader_get_num_files(&archive);
     mz_zip_archive_file_stat stat;
-    BOOST_LOG_TRIVIAL(error) << boost::format("install_plugin: %1%, got %2% files")%__LINE__ %num_entries;
+    BOOST_LOG_TRIVIAL(error) << boost::format("[install_plugin]: %1%, got %2% files")%__LINE__ %num_entries;
     for (mz_uint i = 0; i < num_entries; i++) {
         if (m_networking_cancel_update || cancel) {
-            BOOST_LOG_TRIVIAL(info) << boost::format("install_plugin: %1%, cancelled by user")%__LINE__;
+            BOOST_LOG_TRIVIAL(info) << boost::format("[install_plugin]: %1%, cancelled by user")%__LINE__;
             return -1;
         }
         if (mz_zip_reader_file_stat(&archive, i, &stat)) {
@@ -1404,7 +1409,7 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
             }
         }
         else {
-            BOOST_LOG_TRIVIAL(error) << boost::format("install_plugin: %1%, mz_zip_reader_file_stat for file %2% failed")%__LINE__%i;
+            BOOST_LOG_TRIVIAL(error) << boost::format("[install_plugin]: %1%, mz_zip_reader_file_stat for file %2% failed")%__LINE__%i;
         }
     }
 
@@ -1413,6 +1418,7 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
     if (pro_fn)
         pro_fn(InstallStatusInstallCompleted, 100, cancel);
     app_config->set_str("app", "installed_networking", "1");
+    BOOST_LOG_TRIVIAL(info) << "[install_plugin] success";
     return 0;
 }
 
