@@ -519,9 +519,9 @@ void AMSLib::render(wxDC &dc)
         temp_text_colour = AMS_CONTROL_GRAY800;
     }
 
-    if (!wxWindow::IsEnabled()) {
-        temp_text_colour = AMS_CONTROL_DISABLE_TEXT_COLOUR;
-    }
+    //if (!wxWindow::IsEnabled()) {
+        //temp_text_colour = AMS_CONTROL_DISABLE_TEXT_COLOUR;
+    //}
 
     dc.SetFont(::Label::Body_13);
     dc.SetTextForeground(temp_text_colour);
@@ -579,9 +579,9 @@ void AMSLib::doRender(wxDC &dc)
         temp_bitmap_brand = m_bitmap_readonly;
     }
 
-    if (!wxWindow::IsEnabled()) {
-        tmp_lib_colour   = AMS_CONTROL_DISABLE_COLOUR;
-    }
+    //if (!wxWindow::IsEnabled()) {
+        //tmp_lib_colour   = AMS_CONTROL_DISABLE_COLOUR;
+    //}
 
     // selected
     if (m_selected) {
