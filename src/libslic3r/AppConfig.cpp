@@ -44,7 +44,7 @@ static const std::string MODELS_STR = "models";
 const std::string AppConfig::SECTION_FILAMENTS = "filaments";
 const std::string AppConfig::SECTION_MATERIALS = "sla_materials";
 
-std::string AppConfig::get_langauge_code()
+std::string AppConfig::get_language_code()
 {
     std::string get_lang = get("language");
     if (get_lang.empty()) return "";

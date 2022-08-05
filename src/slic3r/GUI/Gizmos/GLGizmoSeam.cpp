@@ -8,6 +8,7 @@
 #include "slic3r/GUI/ImGuiWrapper.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
+#include "slic3r/GUI/GUI.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
 
 #include <GL/glew.h>
@@ -153,12 +154,6 @@ void GLGizmoSeam::tool_changed(wchar_t old_tool, wchar_t new_tool)
         TriangleSelectorPatch* tsp = dynamic_cast<TriangleSelectorPatch*>(selector_ptr.get());
         tsp->set_filter_state(new_tool == ImGui::GapFillIcon);
     }
-}
-
-static std::string into_u8(const wxString& str)
-{
-    auto buffer_utf8 = str.utf8_str();
-    return std::string(buffer_utf8.data());
 }
 
 void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)

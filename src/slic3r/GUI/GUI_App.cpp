@@ -1087,6 +1087,12 @@ void GUI_App::post_init()
             mainframe->refresh_plugin_tips();
         });
 
+    // update hms info
+    CallAfter([this] {
+            if (hms_query)
+                hms_query->check_hms_info();
+        });
+
     BOOST_LOG_TRIVIAL(info) << "finished post_init";
 //BBS: remove the single instance currently
 /*#ifdef _WIN32
@@ -1109,6 +1115,7 @@ GUI_App::GUI_App()
     , m_app_mode(EAppMode::Editor)
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
+    , hms_query(new HMSQuery())
 	//, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
 	//, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
 {
@@ -2604,6 +2611,10 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 
     obj_list()->set_min_height();
     update_mode();
+
+    //check hms info for different language
+    if (hms_query)
+        hms_query->check_hms_info();
 
     //BBS: trigger restore project logic here, and skip confirm
     plater_->trigger_restore_project(1);

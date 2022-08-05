@@ -240,6 +240,8 @@ public:
     HMSMessageLevel msg_level = HMS_UNKNOWN;
     int             msg_code = 0;
     bool parse_hms_info(unsigned attr, unsigned code);
+    std::string get_long_error_code();
+
     static wxString get_module_name(ModuleID module_id);
     static wxString get_hms_msg_level_str(HMSMessageLevel level);
 };

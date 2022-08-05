@@ -9,6 +9,7 @@
 #include "slic3r/GUI/format.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
 #include "slic3r/GUI/NotificationManager.hpp"
+#include "slic3r/GUI/GUI.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Model.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
@@ -289,12 +290,6 @@ static void render_extruders_combo(const std::string                       &labe
     ImGui::EndGroup();
 
     selection_idx = selection_out;
-}
-
-static std::string into_u8(const wxString& str)
-{
-    auto buffer_utf8 = str.utf8_str();
-    return std::string(buffer_utf8.data());
 }
 
 void GLGizmoMmuSegmentation::show_tooltip_information(float caption_max, float x, float y)

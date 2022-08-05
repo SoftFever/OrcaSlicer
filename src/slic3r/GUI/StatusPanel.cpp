@@ -1019,7 +1019,6 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     Bind(EVT_AMS_REFRESH_RFID, &StatusPanel::on_ams_refresh_rfid, this);
     Bind(EVT_AMS_ON_SELECTED, &StatusPanel::on_ams_selected, this);
     Bind(EVT_AMS_ON_FILAMENT_EDIT, &StatusPanel::on_filament_edit, this);
-    Bind(EVT_UPDATE_ERROR_MESSAGE, &StatusPanel::on_update_error_message, this);
 
     m_switch_speed->Connect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_switch_speed), NULL, this);
     m_calibration_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_calibration), NULL, this);
@@ -1246,9 +1245,9 @@ void StatusPanel::update(MachineObject *obj)
     m_machine_ctrl_panel->Thaw();
 }
 
-void StatusPanel::on_update_error_message(wxCommandEvent &event)
+void StatusPanel::show_error_message(wxString msg)
 {
-    m_error_text->SetLabel(event.GetString());
+    m_error_text->SetLabel(msg);
     m_staticline->Show();
     m_panel_error_txt->Show();
 }
@@ -1264,13 +1263,18 @@ void StatusPanel::update_error_message()
     }
 
     if (before_error_code != obj->print_error) {
-        get_error_message_thread = new boost::thread(Slic3r::create_thread([&] {
-            std::string    message = show_error_message(obj->print_error);
-            wxCommandEvent event(EVT_UPDATE_ERROR_MESSAGE);
-            event.SetString(wxString(message));
-            event.SetEventObject(this);
-            wxPostEvent(this, event);
-        }));
+        if (wxGetApp().get_hms_query()) {
+            char buf[32];
+            ::sprintf(buf, "%08X", obj->print_error);
+            std::string print_error_str = std::string(buf);
+            if (print_error_str.size() > 4) {
+                print_error_str.insert(4, " ");
+            }
+            wxString error_msg = wxString::Format("%s[%s]",
+                                 wxGetApp().get_hms_query()->query_print_error_msg(obj->print_error),
+                                 print_error_str);
+            show_error_message(error_msg);
+        }
         before_error_code        = obj->print_error;
    }
 }

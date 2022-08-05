@@ -2,6 +2,7 @@
 #include <slic3r/GUI/Widgets/Label.hpp>
 #include <slic3r/GUI/I18N.hpp>
 #include "GUI.hpp"
+#include "GUI_App.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -34,7 +35,7 @@ HMSPanel::HMSPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wx
 }
 
 HMSPanel::~HMSPanel() {
-
+    ;
 }
 
 void HMSPanel::update(MachineObject *obj)
@@ -42,12 +43,8 @@ void HMSPanel::update(MachineObject *obj)
     if (obj) {
         wxString hms_text;
         for (auto item : obj->hms_list) {
-            hms_text += wxString::Format("Module_ID = %s, module_num = %d,part_id = %d, msg level = %s msg code: 0x%x\n",
-                    HMSItem::get_module_name(item.module_id),
-                    item.module_num,
-                    item.part_id,
-                    HMSItem::get_hms_msg_level_str(item.msg_level),
-                    (unsigned)item.msg_code);
+            if (wxGetApp().get_hms_query())
+                hms_text += wxGetApp().get_hms_query()->query_hms_msg(item.get_long_error_code()) + "\n";    
         }
         m_hms_content->SetLabelText(hms_text);
     } else {
