@@ -43,9 +43,16 @@ void CheckBox::SetHalfChecked(bool value)
 
 void CheckBox::Rescale()
 {
-	m_on.msw_rescale();
-	m_off.msw_rescale();
-	SetSize(m_on.GetBmpSize());
+    m_on.msw_rescale();
+    m_half.msw_rescale();
+    m_off.msw_rescale();
+    m_on_disabled.msw_rescale();
+    m_half_disabled.msw_rescale();
+    m_off_disabled.msw_rescale();
+    m_on_focused.msw_rescale();
+    m_half_focused.msw_rescale();
+    m_off_focused.msw_rescale();
+    SetSize(m_on.GetBmpSize());
 	update();
 }
 

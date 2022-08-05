@@ -45,7 +45,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     time_sizer->Add(m_button_month, 0, wxALIGN_CENTER_VERTICAL);
     time_sizer->Add(m_button_all, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24);
     m_time_panel->SetSizer(time_sizer);
-    top_sizer->Add(m_time_panel, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND);
+    top_sizer->Add(m_time_panel, 1, wxEXPAND);
 
     // File type
     m_type_panel = new ::StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
@@ -74,7 +74,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     manage_sizer->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL)->Show(false);
     manage_sizer->Add(m_button_management, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24);
     m_manage_panel->SetSizer(manage_sizer);
-    top_sizer->Add(m_manage_panel, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND);
+    top_sizer->Add(m_manage_panel, 1, wxEXPAND);
 
     sizer->Add(top_sizer, 0, wxEXPAND);
 

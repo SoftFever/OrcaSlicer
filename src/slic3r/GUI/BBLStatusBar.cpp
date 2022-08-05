@@ -51,8 +51,8 @@ BBLStatusBar::BBLStatusBar(wxWindow *parent, int id)
     m_sizer->Add(m_object_info_sizer, 1, wxEXPAND | wxALL | wxALIGN_LEFT, 5);
     m_sizer->Add(m_slice_info_sizer, 1, wxEXPAND | wxALL | wxALIGN_LEFT, 5);
     m_sizer->Add(m_status_text, 1, wxEXPAND | wxALL | wxALIGN_LEFT, 5);
-    m_sizer->Add(m_prog, 0, wxEXPAND | wxLEFT | wxALL | wxALIGN_RIGHT, 5);
-    m_sizer->Add(m_cancelbutton, 0, wxEXPAND | wxALL | wxALIGN_RIGHT, 5);
+    m_sizer->Add(m_prog, 0, wxEXPAND | wxLEFT | wxALL, 5);
+    m_sizer->Add(m_cancelbutton, 0, wxEXPAND | wxALL, 5);
     m_sizer->SetSizeHints(m_self);
     m_self->SetSizer(m_sizer);
 

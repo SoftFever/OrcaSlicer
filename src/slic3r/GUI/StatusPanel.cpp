@@ -249,8 +249,8 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
 
     m_media_play_ctrl = new MediaPlayCtrl(this, m_media_ctrl, wxDefaultPosition, wxSize(-1, FromDIP(40)));
 
-    sizer->Add(m_media_ctrl, 1, wxEXPAND | wxALIGN_CENTER_HORIZONTAL | wxALL, 0);
-    sizer->Add(m_media_play_ctrl, 0, wxEXPAND | wxALIGN_CENTER_HORIZONTAL | wxALL, 0);
+    sizer->Add(m_media_ctrl, 1, wxEXPAND | wxALL, 0);
+    sizer->Add(m_media_play_ctrl, 0, wxEXPAND | wxALL, 0);
 //    media_ctrl_panel->SetSizer(bSizer_monitoring);
 //    media_ctrl_panel->Layout();
 //
@@ -306,7 +306,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
 
     bSizer_task_name->Add(m_staticText_subtask_value, 1, wxALL | wxEXPAND, 0);
     bSizer_task_name->Add(m_printing_stage_value, 1, wxALL | wxEXPAND, 0);
-    bSizer_subtask_info->Add(bSizer_task_name, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND, FromDIP(5));
+    bSizer_subtask_info->Add(bSizer_task_name, 1, wxEXPAND, FromDIP(5));
 
    /* wxFlexGridSizer *fgSizer_task = new wxFlexGridSizer(2, 2, 0, 0);
      fgSizer_task->AddGrowableCol(0);
@@ -330,7 +330,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     //m_panel_progress->SetMinSize(wxSize(FromDIP(574), -1));
     //m_panel_progress->SetMaxSize(wxSize(FromDIP(600), -1));
 
-    m_sizer_progressbar->Add(m_gauge_progress, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND, 0);
+    m_sizer_progressbar->Add(m_gauge_progress, 1, wxALIGN_CENTER_VERTICAL, 0);
     //fgSizer_task->Add(m_panel_progress, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND, 0);
 
     wxBoxSizer *bSizer_task_btn = new wxBoxSizer(wxHORIZONTAL);
@@ -609,7 +609,7 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
 
     wxBoxSizer *m_misc_ctrl_sizer = create_misc_control(parent);
 
-    sizer->Add(m_misc_ctrl_sizer, 0, wxEXPAND | wxALIGN_CENTER_VERTICAL, 0);
+    sizer->Add(m_misc_ctrl_sizer, 0, wxEXPAND, 0);
     return sizer;
 }
 
@@ -751,7 +751,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
     m_bpButton_z_10->SetMinSize(Z_BUTTON_SIZE);
     m_bpButton_z_10->SetCornerRadius(0);
 
-    bSizer_z_ctrl->Add(m_bpButton_z_10, 0, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
+    bSizer_z_ctrl->Add(m_bpButton_z_10, 0, wxEXPAND | wxALL, 0);
 
     m_bpButton_z_1 = new Button(panel, wxString(" 1"), "monitor_bed_up", 0, FromDIP(15));
     m_bpButton_z_1->SetFont(::Label::Body_13);
@@ -761,7 +761,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
     m_bpButton_z_1->SetMinSize(Z_BUTTON_SIZE);
     m_bpButton_z_1->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
 
-    bSizer_z_ctrl->Add(m_bpButton_z_1, 0, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
+    bSizer_z_ctrl->Add(m_bpButton_z_1, 0, wxEXPAND | wxALL, 0);
 
     bSizer_z_ctrl->Add(0, FromDIP(6), 0, wxEXPAND, 0);
 
@@ -773,7 +773,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
     m_bpButton_z_down_1->SetMinSize(Z_BUTTON_SIZE);
     m_bpButton_z_down_1->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
 
-    bSizer_z_ctrl->Add(m_bpButton_z_down_1, 0, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
+    bSizer_z_ctrl->Add(m_bpButton_z_down_1, 0, wxEXPAND | wxALL, 0);
 
     m_bpButton_z_down_10 = new Button(panel, wxString("10"), "monitor_bed_down", 0, FromDIP(15));
     m_bpButton_z_down_10->SetFont(::Label::Body_13);
@@ -783,7 +783,7 @@ wxBoxSizer *StatusBasePanel::create_bed_control(wxWindow *parent)
     m_bpButton_z_down_10->SetMinSize(Z_BUTTON_SIZE);
     m_bpButton_z_down_10->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
 
-    bSizer_z_ctrl->Add(m_bpButton_z_down_10, 0, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL, 0);
+    bSizer_z_ctrl->Add(m_bpButton_z_down_10, 0, wxEXPAND | wxALL, 0);
 
     bSizer_z_ctrl->Add(0, FromDIP(16), 0, wxEXPAND, 0);
 

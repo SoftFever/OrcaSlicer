@@ -27,7 +27,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
     Bind(wxEVT_RIGHT_UP, [this](auto & e) { wxClipboard & c = *wxTheClipboard; if (c.Open()) { c.SetData(new wxTextDataObject(m_url)); c.Close(); } });
 
     wxBoxSizer * sizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(m_button_play, 0, wxEXPAND | wxALIGN_CENTER_VERTICAL | wxALL, 0);
+    sizer->Add(m_button_play, 0, wxEXPAND | wxALL, 0);
     sizer->AddStretchSpacer(1);
     sizer->Add(m_label_status, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(25));
     SetSizer(sizer);

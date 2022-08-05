@@ -25,7 +25,7 @@ HMSPanel::HMSPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wx
 
     m_scrolledWindow->SetSizerAndFit(m_top_sizer);
 
-    m_main_sizer->Add(m_scrolledWindow, 1, wxALIGN_CENTER_HORIZONTAL | wxEXPAND, 0);
+    m_main_sizer->Add(m_scrolledWindow, 1, wxEXPAND, 0);
 
     this->SetSizerAndFit(m_main_sizer);
 

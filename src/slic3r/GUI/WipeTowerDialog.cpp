@@ -318,7 +318,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         param_sizer->Add(m_flush_multiplier_ebox);
         param_sizer->AddStretchSpacer(1);
         
-        m_sizer_advanced->Add(param_sizer, 0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, 10);
+        m_sizer_advanced->Add(param_sizer, 0, wxTOP | wxBOTTOM, 10);
     }
 
     m_page_advanced->Hide(); 

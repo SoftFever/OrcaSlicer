@@ -113,7 +113,7 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     
     calibration_panel->SetSizer(calibration_sizer);
     calibration_panel->Layout();
-    calibration_sizer->Add(m_calibration_flow, 0, wxALIGN_CENTER_HORIZONTAL | wxEXPAND, 0);
+    calibration_sizer->Add(m_calibration_flow, 0, wxEXPAND, 0);
 
     StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
                             std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
@@ -138,7 +138,7 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     cali_right_panel->SetSizer(cali_right_sizer_h);
     cali_right_panel->Layout();
 
-    sizer_body->Add(cali_right_panel, 0, wxALIGN_CENTER_HORIZONTAL | wxEXPAND, 0);
+    sizer_body->Add(cali_right_panel, 0, wxEXPAND, 0);
 
     body_panel->SetSizer(sizer_body);
     body_panel->Layout();

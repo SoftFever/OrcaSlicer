@@ -5,9 +5,9 @@
 #include "../wxExtensions.hpp"
 #include "StateHandler.hpp"
 
-#define DD_NO_CHECK_ICON    0x1000000
-#define DD_NO_TEXT          0x2000000
-#define DD_STYLE_MASK       0x3000000
+#define DD_NO_CHECK_ICON    0x0001
+#define DD_NO_TEXT          0x0002
+#define DD_STYLE_MASK       0x0003
 
 wxDECLARE_EVENT(EVT_DISMISS, wxCommandEvent);
 

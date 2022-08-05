@@ -245,7 +245,7 @@ void BBLTopbar::Init(wxFrame* parent)
     this->AddStretchSpacer(1);
 
     m_title_item = this->AddLabel(ID_TITLE, "", FromDIP(TOPBAR_TITLE_WIDTH));
-    m_title_item->SetAlignment(wxCENTER);
+    m_title_item->SetAlignment(wxALIGN_CENTRE);
 
     this->AddSpacer(FromDIP(10));
     this->AddStretchSpacer(1);
@@ -407,7 +407,7 @@ void BBLTopbar::SetTitle(wxString title)
     title = wxControl::Ellipsize(title, dc, wxELLIPSIZE_END, FromDIP(TOPBAR_TITLE_WIDTH));
 
     m_title_item->SetLabel(title);
-    m_title_item->SetAlignment(wxALIGN_CENTRE_HORIZONTAL);
+    m_title_item->SetAlignment(wxALIGN_CENTRE);
     this->Refresh();
 }
 

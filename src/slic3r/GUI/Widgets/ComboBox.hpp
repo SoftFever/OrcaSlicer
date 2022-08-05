@@ -4,8 +4,8 @@
 #include "TextInput.hpp"
 #include "DropDown.hpp"
 
-#define CB_NO_DROP_ICON 0x1000000
-#define CB_NO_TEXT      0x2000000
+#define CB_NO_DROP_ICON DD_NO_CHECK_ICON
+#define CB_NO_TEXT DD_NO_TEXT
 
 class ComboBox : public wxWindowWithItems<TextInput, wxItemContainer>
 {

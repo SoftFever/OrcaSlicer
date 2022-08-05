@@ -44,7 +44,7 @@ DownloadProgressDialog::DownloadProgressDialog(wxString title)
     m_panel_download->SetSize(wxSize(FromDIP(340), -1));
     m_panel_download->SetMinSize(wxSize(FromDIP(340), -1));
     m_panel_download->SetMaxSize(wxSize(FromDIP(340), -1));
-    m_sizer_main->Add(m_panel_download, 0, wxALIGN_CENTER_VERTICAL|wxALL, FromDIP(20));
+    m_sizer_main->Add(m_panel_download, 0, wxALL, FromDIP(20));
     m_sizer_main->Add(0, 0, 1, wxBOTTOM, 10);
 
     SetSizer(m_sizer_main);

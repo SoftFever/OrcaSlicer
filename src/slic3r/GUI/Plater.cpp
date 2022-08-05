@@ -522,7 +522,7 @@ Sidebar::Sidebar(Plater *parent)
 
         m_bed_type_list->Select(0);
         bed_type_sizer->Add(bed_type_title, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
-        bed_type_sizer->Add(m_bed_type_list, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND, FromDIP(10));
+        bed_type_sizer->Add(m_bed_type_list, 1, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(10));
         vsizer_printer->Add(bed_type_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
 
         p->m_panel_printer_content->SetSizer(vsizer_printer);
@@ -786,7 +786,7 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     auto side = filament_idx % 2;
     auto /***/sizer_filaments = this->p->sizer_filaments->GetItem(side)->GetSizer();
     if (side == 1 && filament_idx > 1) sizer_filaments->Remove(filament_idx / 2);
-    sizer_filaments->Add(combo_and_btn_sizer, 1, wxALIGN_CENTER | wxEXPAND);
+    sizer_filaments->Add(combo_and_btn_sizer, 1, wxEXPAND);
     if (side == 0) {
         sizer_filaments = this->p->sizer_filaments->GetItem(1)->GetSizer();
         sizer_filaments->AddStretchSpacer(1);

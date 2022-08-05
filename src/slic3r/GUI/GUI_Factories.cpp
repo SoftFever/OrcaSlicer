@@ -1392,8 +1392,8 @@ void MenuFactory::append_menu_item_locked(wxMenu* menu)
     m_parent->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent& evt) {
         PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
         assert(plate);
-        bool check = plate->is_locked();
-        evt.Check(check);
+        //bool check = plate->is_locked();
+        //evt.Check(check);
         plater()->set_current_canvas_as_dirty();
     }, item->GetId());
 }
