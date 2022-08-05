@@ -26,6 +26,7 @@
 #include <wx/progdlg.h>
 #include <wx/listbook.h>
 #include <wx/numformatter.h>
+#include <wx/headerctrl.h>
 
 #include "slic3r/Utils/FixModelByWin10.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
@@ -75,7 +76,11 @@ ObjectList::ObjectList(wxWindow* parent) :
     wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE)
 {
     wxGetApp().UpdateDVCDarkUI(this, true);
-
+    SetFont(Label::sysFont(13));
+#ifdef __WXMSW__
+    GenericGetHeader()->SetFont(Label::sysFont(13));
+#endif
+    
     // create control
     create_objects_ctrl();
 
