@@ -440,7 +440,9 @@ void AMSLib::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
     wxBoxSizer *m_sizer_edit = new wxBoxSizer(wxHORIZONTAL);
 
     m_bitmap_editable       = ScalableBitmap(this, "ams_editable", 14);
-    m_bitmap_editable_lifht = ScalableBitmap(this, "ams_editable_light", 14);
+    m_bitmap_editable_light = ScalableBitmap(this, "ams_editable_light", 14);
+    m_bitmap_readonly       = ScalableBitmap(this, "ams_readonly", 14);
+    m_bitmap_readonly_light = ScalableBitmap(this, "ams_readonly_light", 14);
 
     m_sizer_body->Add(0, 0, 1, wxEXPAND, 0);
     m_sizer_body->Add(m_sizer_edit, 0, wxALIGN_CENTER, 0);
@@ -467,18 +469,15 @@ void AMSLib::on_left_down(wxMouseEvent &evt)
     if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE) {
         auto size = GetSize();
         auto pos  = evt.GetPosition();
-        if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND) {
+        if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND || m_info.material_state == AMSCanType::AMS_CAN_TYPE_BRAND) {
             auto left   = FromDIP(20);
-            auto top    = (size.y - FromDIP(10) - m_bitmap_editable_lifht.GetBmpSize().y);
+            auto top    = (size.y - FromDIP(10) - m_bitmap_editable_light.GetBmpSize().y);
             auto right  = size.x - FromDIP(20);
             auto bottom = size.y - FromDIP(10);
 
             if (pos.x >= left && pos.x <= right && pos.y >= top && top <= bottom) {
                 post_event(wxCommandEvent(EVT_AMS_ON_FILAMENT_EDIT)); 
             }
-        }
-        if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_BRAND) {
-            post_event(wxCommandEvent(EVT_AMS_ON_FILAMENT_EDIT));
         }
     }
 }
@@ -569,13 +568,15 @@ void AMSLib::doRender(wxDC &dc)
 {
     wxSize size             = GetSize();
     auto   tmp_lib_colour   = m_info.material_colour;
-    auto   temp_bitmap      = m_bitmap_editable_lifht;
+    auto   temp_bitmap_third      = m_bitmap_editable_light;
+    auto   temp_bitmap_brand      = m_bitmap_readonly_light;
 
     if (tmp_lib_colour.GetLuminance() < 0.5) {
-        temp_bitmap      = m_bitmap_editable_lifht;
+        temp_bitmap_third = m_bitmap_editable_light;
+        temp_bitmap_brand = m_bitmap_readonly_light;
     } else {
-        temp_bitmap      = m_bitmap_editable;
-        
+        temp_bitmap_third = m_bitmap_editable;
+        temp_bitmap_brand = m_bitmap_readonly;
     }
 
     if (!wxWindow::IsEnabled()) {
@@ -629,9 +630,12 @@ void AMSLib::doRender(wxDC &dc)
     }
     
     // edit icon
-    if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE
-        && m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND ) {
-        dc.DrawBitmap(temp_bitmap.bmp(), (size.x - m_bitmap_editable.GetBmpSize().x) / 2, (size.y - FromDIP(10) - temp_bitmap.GetBmpSize().y));
+    if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE)
+    {
+        if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND)
+            dc.DrawBitmap(temp_bitmap_third.bmp(), (size.x - temp_bitmap_third.GetBmpSize().x) / 2, (size.y - FromDIP(10) - temp_bitmap_third.GetBmpSize().y));
+        if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_BRAND)
+            dc.DrawBitmap(temp_bitmap_brand.bmp(), (size.x - temp_bitmap_brand.GetBmpSize().x) / 2, (size.y - FromDIP(10) - temp_bitmap_brand.GetBmpSize().y));
     }
 }
 

@@ -236,7 +236,9 @@ protected:
     wxStaticBitmap *m_edit_bitmp       = {nullptr};
     wxStaticBitmap *m_edit_bitmp_light = {nullptr};
     ScalableBitmap  m_bitmap_editable;
-    ScalableBitmap  m_bitmap_editable_lifht;
+    ScalableBitmap  m_bitmap_editable_light;
+    ScalableBitmap  m_bitmap_readonly;
+    ScalableBitmap  m_bitmap_readonly_light;
     bool            m_unable_selected = {false};
     bool            m_enable          = {false};
     bool            m_selected        = {false};
