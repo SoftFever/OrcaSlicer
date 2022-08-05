@@ -88,7 +88,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     auto sizer = new wxBoxSizer(wxVERTICAL);
     auto line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_spaghetti = new CheckBox(parent);
-    auto text_spaghetti = new wxStaticText(parent, wxID_ANY, _L("spaghetti Detection"));
+    auto text_spaghetti = new wxStaticText(parent, wxID_ANY, _L("Spaghetti Detection"));
     text_spaghetti->SetFont(Label::Body_14);
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_spaghetti, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));

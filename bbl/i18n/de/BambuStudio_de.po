@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-04 11:33+0800\n"
+"POT-Creation-Date: 2022-08-05 12:00+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -475,6 +475,25 @@ msgstr "Wählen sie eine oder mer Dateien (3mf/step/stl/obj/amf):"
 
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr "Wählen sie eine Datei (gcode/.gco/.g/.ngc/ngc):"
+
+msgid "Some presets are modified."
+msgstr "Einige Voreinstellungen wurden geändert."
+
+msgid ""
+"You can keep the modifield presets to the new project, discard or save "
+"changes as new presets."
+msgstr ""
+"Sie können die geänderten Voreinstellungen in das neue Projekt übernehmen, "
+"verwerfen oder als neue Voreinstellungen speichern."
+
+msgid "User logged out"
+msgstr ""
+
+msgid "new or open project file is not allowed during the slicing process!"
+msgstr ""
+
+msgid "Open Project"
+msgstr "Projekt öffnen"
 
 msgid ""
 "The version of Bambu studio is too low and needs to be updated to the latest "
@@ -1300,6 +1319,9 @@ msgid ""
 "the corresponding code comments."
 msgstr ""
 
+msgid "AMSMaterialsSetting"
+msgstr ""
+
 msgid "Colour"
 msgstr "Colour"
 
@@ -1325,6 +1347,9 @@ msgstr "SN"
 
 msgid "Confirm"
 msgstr "Bestätigen"
+
+msgid "Close"
+msgstr "Schließen"
 
 msgid "AMS Slots"
 msgstr ""
@@ -1380,9 +1405,6 @@ msgstr ""
 
 msgid "File"
 msgstr "Datei"
-
-msgid "Close"
-msgstr "Schließen"
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
@@ -1791,9 +1813,6 @@ msgid "Update failed."
 msgstr "Update fehlgeschlagen."
 
 msgid "Failed to start printing job"
-msgstr ""
-
-msgid "default value"
 msgstr ""
 
 msgid "parameter name"
@@ -2251,9 +2270,6 @@ msgstr "Neues Projekt"
 
 msgid "Start a new project"
 msgstr "Ein neues Projekt beginnen"
-
-msgid "Open Project"
-msgstr "Projekt öffnen"
 
 msgid "Open a project file"
 msgstr "Öffne eine Projektdatei"
@@ -2736,6 +2752,15 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Untere"
 
+msgid "Spaghetti Detection"
+msgstr ""
+
+msgid "Stop printing when spaghetti detected"
+msgstr ""
+
+msgid "First Layer Inspection"
+msgstr ""
+
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr ""
 "Wechseln Sie in den objektbezogenen Einstellungsmodus, um die "
@@ -2940,20 +2965,10 @@ msgid ""
 "The loaded file contains gcode only, Can not enter the Prepare page"
 msgstr ""
 
-msgid "Some presets are modified."
-msgstr "Einige Voreinstellungen wurden geändert."
-
 msgid "You can keep the modified presets to the new project or discard them"
 msgstr ""
 "Sie können die geänderten Voreinstellungen in das neue Projekt übernehmen "
 "oder sie verwerfen"
-
-msgid ""
-"You can keep the modifield presets to the new project, discard or save "
-"changes as new presets."
-msgstr ""
-"Sie können die geänderten Voreinstellungen in das neue Projekt übernehmen, "
-"verwerfen oder als neue Voreinstellungen speichern."
 
 msgid "Creating a new project"
 msgstr "Neues Projekt erstellen"

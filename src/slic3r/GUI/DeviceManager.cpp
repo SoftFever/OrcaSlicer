@@ -2834,6 +2834,7 @@ void DeviceManager::clean_user_info()
     BOOST_LOG_TRIVIAL(trace) << "DeviceManager::clean_user_info";
     // reset selected_machine
     selected_machine = "";
+    local_selected_machine = "";
 
     // clean access code
     for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {

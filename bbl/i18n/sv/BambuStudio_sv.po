@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-04 11:33+0800\n"
+"POT-Creation-Date: 2022-08-05 12:00+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -468,6 +468,25 @@ msgstr "Välj en eller flera filer (3mf/step/stl/obj/amf):"
 
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr "Välj en fil (.gcode/.gco/.g/.ngc/ngc):"
+
+msgid "Some presets are modified."
+msgstr "Några inställningar har ändrats."
+
+msgid ""
+"You can keep the modifield presets to the new project, discard or save "
+"changes as new presets."
+msgstr ""
+"Fortsätt med redigerings inställningarna till nytt projekt, avfärda dem "
+"eller spara som ny inställning."
+
+msgid "User logged out"
+msgstr ""
+
+msgid "new or open project file is not allowed during the slicing process!"
+msgstr ""
+
+msgid "Open Project"
+msgstr "Öppna Projekt"
 
 msgid ""
 "The version of Bambu studio is too low and needs to be updated to the latest "
@@ -1281,6 +1300,9 @@ msgid ""
 "the corresponding code comments."
 msgstr ""
 
+msgid "AMSMaterialsSetting"
+msgstr ""
+
 msgid "Colour"
 msgstr "Colour"
 
@@ -1306,6 +1328,9 @@ msgstr "SN"
 
 msgid "Confirm"
 msgstr "Acceptera"
+
+msgid "Close"
+msgstr "Stäng"
 
 msgid "AMS Slots"
 msgstr ""
@@ -1361,9 +1386,6 @@ msgstr ""
 
 msgid "File"
 msgstr "Fil"
-
-msgid "Close"
-msgstr "Stäng"
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
@@ -1756,9 +1778,6 @@ msgid "Update failed."
 msgstr "Uppdatering misslyckades."
 
 msgid "Failed to start printing job"
-msgstr ""
-
-msgid "default value"
 msgstr ""
 
 msgid "parameter name"
@@ -2215,9 +2234,6 @@ msgstr "Nytt Pojekt"
 
 msgid "Start a new project"
 msgstr "Skapa nytt projekt"
-
-msgid "Open Project"
-msgstr "Öppna Projekt"
 
 msgid "Open a project file"
 msgstr "Öppna en projekt fil"
@@ -2699,6 +2715,15 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Bottenlager"
 
+msgid "Spaghetti Detection"
+msgstr ""
+
+msgid "Stop printing when spaghetti detected"
+msgstr ""
+
+msgid "First Layer Inspection"
+msgstr ""
+
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr "Ändra till per objekt inställningsläge till redigerings inställningar."
 
@@ -2897,19 +2922,9 @@ msgid ""
 "The loaded file contains gcode only, Can not enter the Prepare page"
 msgstr ""
 
-msgid "Some presets are modified."
-msgstr "Några inställningar har ändrats."
-
 msgid "You can keep the modified presets to the new project or discard them"
 msgstr ""
 "Fortsätt med redigerings inställningarna till nytt projekt eller avfärda dem"
-
-msgid ""
-"You can keep the modifield presets to the new project, discard or save "
-"changes as new presets."
-msgstr ""
-"Fortsätt med redigerings inställningarna till nytt projekt, avfärda dem "
-"eller spara som ny inställning."
 
 msgid "Creating a new project"
 msgstr "Skapar nytt projekt"

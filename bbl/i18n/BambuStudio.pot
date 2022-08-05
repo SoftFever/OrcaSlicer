@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-04 11:33+0800\n"
+"POT-Creation-Date: 2022-08-05 12:00+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -457,6 +457,23 @@ msgid "Choose one or more files (3mf/step/stl/obj/amf):"
 msgstr ""
 
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
+msgstr ""
+
+msgid "Some presets are modified."
+msgstr ""
+
+msgid ""
+"You can keep the modifield presets to the new project, discard or save "
+"changes as new presets."
+msgstr ""
+
+msgid "User logged out"
+msgstr ""
+
+msgid "new or open project file is not allowed during the slicing process!"
+msgstr ""
+
+msgid "Open Project"
 msgstr ""
 
 msgid ""
@@ -1236,6 +1253,9 @@ msgid ""
 "the corresponding code comments."
 msgstr ""
 
+msgid "AMSMaterialsSetting"
+msgstr ""
+
 msgid "Colour"
 msgstr ""
 
@@ -1258,6 +1278,9 @@ msgid "SN"
 msgstr ""
 
 msgid "Confirm"
+msgstr ""
+
+msgid "Close"
 msgstr ""
 
 msgid "AMS Slots"
@@ -1301,9 +1324,6 @@ msgid ""
 msgstr ""
 
 msgid "File"
-msgstr ""
-
-msgid "Close"
 msgstr ""
 
 msgid ""
@@ -1637,9 +1657,6 @@ msgid "Update failed."
 msgstr ""
 
 msgid "Failed to start printing job"
-msgstr ""
-
-msgid "default value"
 msgstr ""
 
 msgid "parameter name"
@@ -2087,9 +2104,6 @@ msgid "New Project"
 msgstr ""
 
 msgid "Start a new project"
-msgstr ""
-
-msgid "Open Project"
 msgstr ""
 
 msgid "Open a project file"
@@ -2569,6 +2583,15 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr ""
 
+msgid "Spaghetti Detection"
+msgstr ""
+
+msgid "Stop printing when spaghetti detected"
+msgstr ""
+
+msgid "First Layer Inspection"
+msgstr ""
+
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr ""
 
@@ -2762,15 +2785,7 @@ msgid ""
 "The loaded file contains gcode only, Can not enter the Prepare page"
 msgstr ""
 
-msgid "Some presets are modified."
-msgstr ""
-
 msgid "You can keep the modified presets to the new project or discard them"
-msgstr ""
-
-msgid ""
-"You can keep the modifield presets to the new project, discard or save "
-"changes as new presets."
 msgstr ""
 
 msgid "Creating a new project"

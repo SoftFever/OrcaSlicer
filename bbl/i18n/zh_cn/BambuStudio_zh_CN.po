@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-04 11:33+0800\n"
-"PO-Revision-Date: 2022-08-04 11:34+0800\n"
+"POT-Creation-Date: 2022-08-05 12:00+0800\n"
+"PO-Revision-Date: 2022-08-05 12:05+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -406,7 +406,7 @@ msgid "Downloading Bambu Network Plug-in"
 msgstr "正在下载Bambu网络插件"
 
 msgid "Incorrect password"
-msgstr ""
+msgstr "访问码不正确"
 
 #, c-format, boost-format
 msgid "Connect %s failed! [SN:%s, code=%s]"
@@ -463,6 +463,23 @@ msgstr "选择一个或多个文件（3mf/step/stl/obj/amf）："
 
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr "选择一个文件（gcode/.gco/.g/.ngc/ngc）："
+
+msgid "Some presets are modified."
+msgstr "预设已被修改。"
+
+msgid ""
+"You can keep the modifield presets to the new project, discard or save "
+"changes as new presets."
+msgstr "您可以保留未保存修改的预设应用到新项目中，或者选择忽略。"
+
+msgid "User logged out"
+msgstr "用户登出"
+
+msgid "new or open project file is not allowed during the slicing process!"
+msgstr "在切片过程不允许新建或打开项目文件！"
+
+msgid "Open Project"
+msgstr "打开项目"
 
 msgid ""
 "The version of Bambu studio is too low and needs to be updated to the latest "
@@ -1053,7 +1070,7 @@ msgid ""
 msgstr "自动摆放失败，处理对象几何数据时遇到异常。"
 
 msgid "Arranging"
-msgstr ""
+msgstr "自动摆盘中"
 
 msgid "Arranging canceled."
 msgstr "已取消自动摆放。"
@@ -1250,6 +1267,9 @@ msgstr ""
 "软件中的很多部分都来自于社区贡献,因此，我们无法逐一列出他们，相反的，他们将被"
 "注释于相应的代码中。"
 
+msgid "AMSMaterialsSetting"
+msgstr ""
+
 msgid "Colour"
 msgstr "颜色"
 
@@ -1273,6 +1293,9 @@ msgstr ""
 
 msgid "Confirm"
 msgstr "确定"
+
+msgid "Close"
+msgstr "关闭"
 
 msgid "AMS Slots"
 msgstr "AMS舱内材料"
@@ -1324,9 +1347,6 @@ msgstr "AMS不会在启动时自动读取耗材丝信息。它会使用上次关
 
 msgid "File"
 msgstr "文件"
-
-msgid "Close"
-msgstr "关闭"
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
@@ -1701,9 +1721,6 @@ msgstr "更新失败。"
 
 msgid "Failed to start printing job"
 msgstr "发起打印任务失败"
-
-msgid "default value"
-msgstr "默认值"
 
 msgid "parameter name"
 msgstr "参数名称"
@@ -2161,9 +2178,6 @@ msgstr "新建项目"
 
 msgid "Start a new project"
 msgstr "新建一个项目"
-
-msgid "Open Project"
-msgstr "打开项目"
 
 msgid "Open a project file"
 msgstr "打开项目文件"
@@ -2645,6 +2659,15 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "底部"
 
+msgid "Spaghetti Detection"
+msgstr "炒面检测"
+
+msgid "Stop printing when spaghetti detected"
+msgstr "当发生炒面时停止打印"
+
+msgid "First Layer Inspection"
+msgstr "首层扫描"
+
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr "切换到对象模式以编辑修改器的设置。"
 
@@ -2842,16 +2865,8 @@ msgstr ""
 "仅预览模式：\n"
 "被加载的文件仅包含G-Code，不支持进入准备页面"
 
-msgid "Some presets are modified."
-msgstr "预设已被修改。"
-
 msgid "You can keep the modified presets to the new project or discard them"
 msgstr "您可以保留修改的预设到新项目中或者忽略这些修改"
-
-msgid ""
-"You can keep the modifield presets to the new project, discard or save "
-"changes as new presets."
-msgstr "您可以保留未保存修改的预设应用到新项目中，或者选择忽略。"
 
 msgid "Creating a new project"
 msgstr "创建新项目"
@@ -6119,6 +6134,9 @@ msgstr "支撑：正在修补层%d的空洞"
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
 
+#~ msgid "default value"
+#~ msgstr "默认值"
+
 #~ msgid "Auto arrange"
 #~ msgstr "自动摆盘"
 
@@ -6403,9 +6421,6 @@ msgstr "支撑：正在生长层%d的树枝"
 
 #~ msgid "Vibration Calibration"
 #~ msgstr "振动校准"
-
-#~ msgid "First Layer Inspection"
-#~ msgstr "首层扫描"
 
 #~ msgid "Please select a printer first."
 #~ msgstr "请先选择一台打印机。"

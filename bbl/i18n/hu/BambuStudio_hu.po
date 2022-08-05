@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-04 11:33+0800\n"
+"POT-Creation-Date: 2022-08-05 12:00+0800\n"
 "PO-Revision-Date: 2022-07-27 22:05+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -482,6 +482,23 @@ msgstr "Válassz ki egy vagy több fájlt (3mf/step/stl/obj/amf):"
 
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr "Válassz ki egy fájlt (gcode/.gco/.g/.ngc/ngc):"
+
+msgid "Some presets are modified."
+msgstr "Néhány beállítás megváltozott."
+
+msgid ""
+"You can keep the modifield presets to the new project, discard or save "
+"changes as new presets."
+msgstr ""
+
+msgid "User logged out"
+msgstr ""
+
+msgid "new or open project file is not allowed during the slicing process!"
+msgstr ""
+
+msgid "Open Project"
+msgstr "Projekt megnyitása"
 
 msgid ""
 "The version of Bambu studio is too low and needs to be updated to the latest "
@@ -1313,6 +1330,9 @@ msgstr ""
 "őket egyenként felsorolni, ezért a megfelelő helyeken a kód kommentekben "
 "vannak feltüntetve."
 
+msgid "AMSMaterialsSetting"
+msgstr ""
+
 msgid "Colour"
 msgstr "Szín"
 
@@ -1339,6 +1359,9 @@ msgstr "SN"
 
 msgid "Confirm"
 msgstr "Megerősítés"
+
+msgid "Close"
+msgstr "Bezárás"
 
 msgid "AMS Slots"
 msgstr ""
@@ -1394,9 +1417,6 @@ msgstr ""
 
 msgid "File"
 msgstr "Fájl"
-
-msgid "Close"
-msgstr "Bezárás"
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
@@ -1778,9 +1798,6 @@ msgstr "A frissítés sikertelen."
 
 msgid "Failed to start printing job"
 msgstr "Nem sikerült elindítani a nyomtatási feladatot"
-
-msgid "default value"
-msgstr ""
 
 msgid "parameter name"
 msgstr ""
@@ -2232,9 +2249,6 @@ msgstr "Új projekt"
 
 msgid "Start a new project"
 msgstr "Új projekt indítása"
-
-msgid "Open Project"
-msgstr "Projekt megnyitása"
 
 msgid "Open a project file"
 msgstr "Projektfájl megnyitása"
@@ -2718,6 +2732,15 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Alsó"
 
+msgid "Spaghetti Detection"
+msgstr ""
+
+msgid "Stop printing when spaghetti detected"
+msgstr ""
+
+msgid "First Layer Inspection"
+msgstr ""
+
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr ""
 
@@ -2914,15 +2937,7 @@ msgstr ""
 "A betöltött fájl csak G-kódot tartalmaz, nem lehet továbblépni az "
 "Előkészítés fülre"
 
-msgid "Some presets are modified."
-msgstr "Néhány beállítás megváltozott."
-
 msgid "You can keep the modified presets to the new project or discard them"
-msgstr ""
-
-msgid ""
-"You can keep the modifield presets to the new project, discard or save "
-"changes as new presets."
 msgstr ""
 
 msgid "Creating a new project"
