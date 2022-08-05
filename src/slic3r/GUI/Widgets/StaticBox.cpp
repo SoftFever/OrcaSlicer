@@ -174,7 +174,7 @@ void StaticBox::doRender(wxDC& dc)
                 dc.DrawRectangle(rc);
             }
             else {
-                dc.DrawRoundedRectangle(rc, radius);
+                dc.DrawRoundedRectangle(rc, radius - border_width);
             }
         }
     }
