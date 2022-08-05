@@ -181,7 +181,11 @@ void KBShortcutsDialog::fill_shortcuts()
             { ctrl + "X", L("Cut") },
             { ctrl + "C", L("Copy to clipboard") },
             { ctrl + "V", L("Paste from clipboard") },
-            { "Del", L("Delete selected") },
+            #ifdef __APPLE__
+                {"fn+⌫", L("Delete selected")},
+            #else
+                {"Del", L("Delete selected")},
+            #endif
             // Help
             { "?", L("Show keyboard shortcuts list") }
         };
@@ -191,7 +195,7 @@ void KBShortcutsDialog::fill_shortcuts()
             { "A", L("Arrange all objects") },
             { "Shift+A", L("Arrange objects on selected plates") },
 
-            { "R", L("Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the project.") },
+            //{ "R", L("Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the project.") },
             {"Shift+R", L("Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the current disk.")},
 
             {"Shift+Tab", L("Collapse/Expand the sidebar")},
@@ -226,6 +230,13 @@ void KBShortcutsDialog::fill_shortcuts()
             {ctrl + "Z", L("Undo")},
             {ctrl + "Y", L("Redo")},
             {ctrl + "M", L("Clone selected")},
+            { "M", L("Gizmo move") },
+            { "S", L("Gizmo scale") },
+            { "R", L("Gizmo rotate") },
+            { "C", L("Gizmo cut") },
+            { "F", L("Gizmo Place face on bed") },
+            { "L", L("Gizmo SLA support points") },
+            { "P", L("Gizmo FDM paint-on seam") },
         };
         m_full_shortcuts.push_back({ { _L("Plater"), "" }, plater_shortcuts });
 
