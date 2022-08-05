@@ -467,6 +467,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         COMBOBOX_FILAMENT->SetSelection(selection_idx);
         post_select_event();
     }
+    update();
     ShowModal();
 }
 
