@@ -4741,9 +4741,7 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
     auto item = event.GetItem();
     if (!renderer->GetEditorCtrl()) {
         renderer->StartEditing(item, GetItemRect(item, column));
-        if (col == colFilament) // TODO: not handle KILL_FOCUS from ComboBox
-            renderer->GetEditorCtrl()->PopEventHandler();
-        else if (col == colName) // TODO: for colName editing, disable shortcuts
+        if (col == colName) // TODO: for colName editing, disable shortcuts
             SetAcceleratorTable(wxNullAcceleratorTable);
     }
 #endif //__WXMSW__

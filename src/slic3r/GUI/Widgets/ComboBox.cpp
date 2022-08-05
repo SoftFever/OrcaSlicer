@@ -26,13 +26,14 @@ ComboBox::ComboBox(wxWindow *      parent,
                    int             n,
                    const wxString  choices[],
                    long            style)
-    : drop(this, texts, icons, style & DD_STYLE_MASK)
+    : drop(texts, icons)
 {
     if (style & wxCB_READONLY)
         style |= wxRIGHT;
     text_off = style & CB_NO_TEXT;
     TextInput::Create(parent, "", value, (style & CB_NO_DROP_ICON) ? "" : "drop_down", pos, size,
                       style | wxTE_PROCESS_ENTER);
+    drop.Create(this, style & DD_STYLE_MASK);
 
     if (style & wxCB_READONLY) {
         GetTextCtrl()->Hide();
@@ -52,16 +53,12 @@ ComboBox::ComboBox(wxWindow *      parent,
         SetSelection(e.GetInt());
         e.SetEventObject(this);
         e.SetId(GetId());
-        wxMouseEvent e1;
-        mouseDown(e1);
         GetEventHandler()->ProcessEvent(e);
     });
-    drop.Bind(wxEVT_SHOW, [this](auto &e) {
-        if (!e.IsShown()) {
-            drop_down = false;
-            wxCommandEvent e(wxEVT_COMBOBOX_CLOSEUP);
-            GetEventHandler()->ProcessEvent(e);
-        }
+    drop.Bind(EVT_DISMISS, [this](auto &) {
+        drop_down = false;
+        wxCommandEvent e(wxEVT_COMBOBOX_CLOSEUP);
+        GetEventHandler()->ProcessEvent(e);
     });
     for (int i = 0; i < n; ++i) Append(choices[i]);
 }
@@ -209,7 +206,7 @@ void ComboBox::DoSetItemClientData(unsigned int n, void *data)
 
 void ComboBox::mouseDown(wxMouseEvent &event)
 {
-    SetFocus();
+    //SetFocus();
     if (drop_down) {
         drop.Hide();
     } else if (drop.HasDismissLongTime()) {
