@@ -1571,6 +1571,7 @@ void GUI_App::init_networking_callbacks()
             CallAfter([this, dev_id, msg] {
                 MachineObject* obj = this->m_device_manager->get_user_machine(dev_id);
                 if (obj) {
+                    obj->is_ams_need_update = false;
                     obj->parse_json(msg);
 
                     if (this->m_device_manager->get_selected_machine() == obj && obj->is_ams_need_update) {
