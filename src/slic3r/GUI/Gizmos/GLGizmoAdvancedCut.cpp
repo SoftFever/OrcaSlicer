@@ -154,6 +154,7 @@ void GLGizmoAdvancedCut::reset_cut_plane()
     m_cut_plane_points[3] = { min_x, max_y, 0 };
     m_movement = 0.0;
     m_height = box.size()[2] / 2.0;
+    m_buffered_height     = m_height;
     m_height_delta = 0;
     m_rotation.setZero();
     //m_current_base_rotation.setZero();
