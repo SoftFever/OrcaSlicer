@@ -1035,6 +1035,12 @@ void SelectMachineDialog::update_select_layout(PRINTER_TYPE type)
 
 void SelectMachineDialog::prepare_mode()
 {
+    if (m_print_job) {
+        m_print_job->join();
+    }
+    wxEndBusyCursor();
+    Enable_Send_Button(true);
+
     m_status_bar->reset();
     if (m_simplebook->GetSelection() != 0) {
         m_simplebook->SetSelection(0);
@@ -1430,6 +1436,8 @@ void SelectMachineDialog::on_cancel(wxCloseEvent &event)
 
 void SelectMachineDialog::on_ok(wxCommandEvent &event)
 {
+    Enable_Send_Button(false);
+
     int result = 0;
     if (m_printer_last_select.empty()) {
         return;
