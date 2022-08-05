@@ -478,7 +478,7 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
 {
     std::map<std::string, Resource>    resource_list;
 
-    BOOST_LOG_TRIVIAL(info) << format("[BBL Updater]: get preferred setting version for app version %1%, url: `%2%`", SLIC3R_APP_NAME, version_check_url);
+    BOOST_LOG_TRIVIAL(info) << boost::format("[BBL Updater]: sync_resources get preferred setting version for app version %1%, url: %2%")%SLIC3R_APP_NAME%http_url;
 
     std::string query_params = "?";
     bool        first        = true;
@@ -496,6 +496,7 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
     std::string url = http_url;
     url += query_params;
     Slic3r::Http http = Slic3r::Http::get(url);
+    BOOST_LOG_TRIVIAL(info) << boost::format("[BBL Updater]: sync_resources request_url: %1%")%url;
     http.on_progress([this](Slic3r::Http::Progress, bool &cancel_http) {
             if (cancel) {
                 cancel_http = true;
@@ -503,7 +504,7 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
         })
         .on_complete([this, &resource_list, resources](std::string body, unsigned) {
             try {
-                BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]: request_resources, body=" << body;
+                BOOST_LOG_TRIVIAL(info) << "[BBL Updater]: request_resources, body=" << body;
 
                 json        j       = json::parse(body);
                 std::string message = j["message"].get<std::string>();
@@ -528,22 +529,22 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
                                     url = sub_iter.value();
                                 }
                             }
-                            BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]: get type " << resource << ", version " << version << ", url " << url;
+                            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]: get type " << resource << ", version " << version << ", url " << url;
 
                             resource_list.emplace(resource, Resource{version, description, url});
                         }
                     }
                 } else {
-                    BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]: get version of settings failed, body=" << body;
+                    BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: get version of settings failed, body=" << body;
                 }
             } catch (std::exception &e) {
-                BOOST_LOG_TRIVIAL(trace) << (boost::format("[BBL Updater]: get version of settings failed, exception=%1% body=%2%") % e.what() % body).str();
+                BOOST_LOG_TRIVIAL(error) << (boost::format("[BBL Updater]: get version of settings failed, exception=%1% body=%2%") % e.what() % body).str();
             } catch (...) {
-                BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]: get version of settings failed,, body=" << body;
+                BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: get version of settings failed,, body=" << body;
             }
         })
         .on_error([&](std::string body, std::string error, unsigned status) {
-            BOOST_LOG_TRIVIAL(trace) << boost::format("[BBL Updater]: status=%1%, error=%2%, body=%3%") % status % error % body;
+            BOOST_LOG_TRIVIAL(error) << boost::format("[BBL Updater]: status=%1%, error=%2%, body=%3%") % status % error % body;
         })
         .perform_sync();
 
@@ -614,11 +615,11 @@ void PresetUpdater::priv::sync_config(std::string http_url, const VendorMap vend
 {
     std::map<std::string, std::pair<Semver, std::string>> vendor_list;
     std::map<std::string, std::string> vendor_descriptions;
-	BOOST_LOG_TRIVIAL(info) << "[BBL Updater]: Syncing configuration cache";
+	BOOST_LOG_TRIVIAL(info) << "[BBL Updater]: sync_config Syncing configuration cache";
 
 	if (!enabled_config_update) { return; }
 
-    BOOST_LOG_TRIVIAL(info) << format("[BBL Updater]: get preferred setting version for app version %1%, url: `%2%`", SLIC3R_APP_NAME, version_check_url);
+    BOOST_LOG_TRIVIAL(info) << boost::format("[BBL Updater]: sync_config get preferred setting version for app version %1%, http_url: %2%")%SLIC3R_APP_NAME%http_url;
 
     std::string query_params = "?";
     bool first = true;
@@ -641,6 +642,7 @@ void PresetUpdater::priv::sync_config(std::string http_url, const VendorMap vend
     std::string url = http_url;
     url += query_params;
     Slic3r::Http http = Slic3r::Http::get(url);
+    BOOST_LOG_TRIVIAL(info) << boost::format("[BBL Updater]: sync_config request_url: %1%")%url;
     http.on_progress([this](Slic3r::Http::Progress, bool &cancel_http) {
             if (cancel) {
                 cancel_http = true;
@@ -649,7 +651,7 @@ void PresetUpdater::priv::sync_config(std::string http_url, const VendorMap vend
         .on_complete(
         [this, &vendor_list, &vendor_descriptions, vendors](std::string body, unsigned) {
             try {
-                BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]::body=" << body;
+                BOOST_LOG_TRIVIAL(info) << "[BBL Updater]::body=" << body;
 
                 json j = json::parse(body);
                 std::string message = j["message"].get<std::string>();
@@ -678,7 +680,7 @@ void PresetUpdater::priv::sync_config(std::string http_url, const VendorMap vend
                                     url = sub_iter.value();
                                 }
                             }
-                            BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]: get type "<< type <<", version "<<version.to_string()<<", url " << url;
+                            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]: get type "<< type <<", version "<<version.to_string()<<", url " << url;
 
                             for (auto vendor_it :vendors) {
                                 const VendorProfile& vendor_profile = vendor_it.second;
@@ -697,21 +699,21 @@ void PresetUpdater::priv::sync_config(std::string http_url, const VendorMap vend
                     }
                 }
                 else {
-                    BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]: get version of settings failed, body=" << body;
+                    BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: get version of settings failed, body=" << body;
                 }
             }
             catch (std::exception& e) {
-                BOOST_LOG_TRIVIAL(trace) << (boost::format("[BBL Updater]: get version of settings failed, exception=%1% body=%2%")
+                BOOST_LOG_TRIVIAL(error) << (boost::format("[BBL Updater]: get version of settings failed, exception=%1% body=%2%")
                     % e.what()
                     % body).str();
             }
             catch (...) {
-                BOOST_LOG_TRIVIAL(trace) << "[BBL Updater]: get version of settings failed,, body=" << body;
+                BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: get version of settings failed,, body=" << body;
             }
         }
     )
     .on_error([&](std::string body, std::string error, unsigned status) {
-            BOOST_LOG_TRIVIAL(trace) << boost::format("[BBL Updater]: status=%1%, error=%2%, body=%3%")
+            BOOST_LOG_TRIVIAL(error) << boost::format("[BBL Updater]: status=%1%, error=%2%, body=%3%")
                 % status
                 % error
                 % body;
