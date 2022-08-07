@@ -1332,9 +1332,14 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
     BOOST_LOG_TRIVIAL(info) << "[install_plugin] enter";
     // get plugin folder
     auto plugin_folder = boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins";
+    auto backup_folder = plugin_folder/"backup";
     if (!boost::filesystem::exists(plugin_folder)) {
         BOOST_LOG_TRIVIAL(info) << "[install_plugin] will create directory "<<plugin_folder.string();
         boost::filesystem::create_directory(plugin_folder);
+    }
+    if (!boost::filesystem::exists(backup_folder)) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", will create directory %1%")%backup_folder.string();
+        boost::filesystem::create_directory(backup_folder);
     }
 
     if (m_networking_cancel_update) {
@@ -1394,6 +1399,21 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
                         if (pro_fn) {
                             pro_fn(InstallStatusNormal, 50 + i/num_entries, cancel);
                         }
+                        try {
+                            auto backup_path = boost::filesystem::path(backup_folder.string() + "/" + dest_file);
+                            if (fs::exists(backup_path))
+                                fs::remove(backup_path);
+                            std::string error_message;
+                            CopyFileResult cfr = copy_file(dest_path.string(), backup_path.string(), error_message, false);
+                            if (cfr != CopyFileResult::SUCCESS) {
+                                BOOST_LOG_TRIVIAL(error) << "Copying to backup failed(" << cfr << "): " << error_message;
+                            }
+                        }
+                        catch (const std::exception& e)
+                        {
+                            BOOST_LOG_TRIVIAL(error) << "Copying to backup failed: " << e.what();
+                            //continue
+                        }
                     }
                 }
                 catch (const std::exception& e)
@@ -1425,7 +1445,7 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
 void GUI_App::restart_networking()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(" enter, mainframe %1%")%mainframe;
-    on_init_network();
+    on_init_network(true);
     if(m_agent) {
         init_networking_callbacks();
         m_agent->set_on_ssdp_msg_fn(
@@ -2167,10 +2187,11 @@ bool GUI_App::on_init_inner()
     return true;
 }
 
-bool GUI_App::on_init_network()
+bool GUI_App::on_init_network(bool try_backup)
 {
     int load_agent_dll = Slic3r::NetworkAgent::initialize_network_module();
     bool create_network_agent = false;
+__retry:
     if (!load_agent_dll) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll ok";
         if (check_networking_version()) {
@@ -2185,6 +2206,13 @@ bool GUI_App::on_init_network()
             else
                 create_network_agent = true;
         } else {
+            if (try_backup) {
+                int result = Slic3r::NetworkAgent::unload_network_module();
+                BOOST_LOG_TRIVIAL(info) << "on_init_network, version mismatch, unload_network_module, result = " << result;
+                load_agent_dll = Slic3r::NetworkAgent::initialize_network_module(true);
+                try_backup = false;
+                goto __retry;
+            }
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, version dismatch, need upload network module";
             if (app_config->get("installed_networking") == "1") {
                 m_networking_need_update = true;

@@ -107,11 +107,15 @@ NetworkAgent::~NetworkAgent()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", this %1%, network_agent=%2%, destroy_agent_ptr=%3%, ret %4%")%this %network_agent %destroy_agent_ptr %ret;
 }
 
-int NetworkAgent::initialize_network_module()
+int NetworkAgent::initialize_network_module(bool using_backup)
 {
     //int ret = -1;
     std::string library;
     auto plugin_folder = boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins";
+
+    if (using_backup) {
+        plugin_folder = plugin_folder/"backup";
+    }
 
     //first load the library
 #if defined(_MSC_VER) || defined(_WIN32)

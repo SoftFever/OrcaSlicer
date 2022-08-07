@@ -518,7 +518,7 @@ public:
 private:
     int             updating_bambu_networking();
     bool            on_init_inner();
-    bool            on_init_network();
+    bool            on_init_network(bool try_backup = false);
     void            init_networking_callbacks();
     void            init_app_config();
     //BBS set extra header for http request
