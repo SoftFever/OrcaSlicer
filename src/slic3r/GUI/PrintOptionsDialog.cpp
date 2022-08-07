@@ -98,7 +98,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_spaghetti_print_halt = new CheckBox(parent);
     text_spaghetti_print_halt = new wxStaticText(parent, wxID_ANY, _L("Stop printing when spaghetti detected"));
-    text_spaghetti_print_halt->SetFont(Label::Body_12);
+    text_spaghetti_print_halt->SetFont(Label::Body_14);
     line_sizer->Add(FromDIP(30), 0, 0, 0);
     line_sizer->Add(m_cb_spaghetti_print_halt, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(text_spaghetti_print_halt, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));

@@ -175,6 +175,14 @@ std::string AmsTray::get_filament_type()
         return "PLA-S";
     } else if (type == "Support G") {
         return "PA-S";
+    } else if (type == "Support") {
+        if (setting_id == "GFS00") {
+            type = "PLA-S";
+        } else if (setting_id == "GFS01") {
+            type = "PA-S";
+        } else {
+            return "PLA-S";
+        }
     } else {
         return type;
     }
@@ -2251,7 +2259,14 @@ int MachineObject::parse_json(std::string payload)
                                         if (tray_it->contains("tray_info_idx") && tray_it->contains("tray_type")) {
                                             curr_tray->setting_id       = (*tray_it)["tray_info_idx"].get<std::string>();
                                             std::string type            = (*tray_it)["tray_type"].get<std::string>();
-                                            curr_tray->type = type;
+                                            if (curr_tray->setting_id == "GFS00") {
+                                                curr_tray->type = "PLA-S";
+                                            }
+                                            else if (curr_tray->setting_id == "GFS01") {
+                                                curr_tray->type = "PA-S";
+                                            } else {
+                                                curr_tray->type = type;
+                                            }
                                         } else {
                                             curr_tray->setting_id = "";
                                             curr_tray->type       = "";
