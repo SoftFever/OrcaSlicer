@@ -447,7 +447,7 @@ protected:
         return std::make_tuple(score, fullbb);
     }
     
-    std::function<double(const Item&)> get_objfn();
+    std::function<double(const Item&, const ItemGroup&)> get_objfn();
     
 public:
     AutoArranger(const TBin &                  bin,
@@ -508,7 +508,8 @@ public:
             bin_poly.contour.points.emplace_back(c0.x(), c1.y());
             return bin_poly;
         };
-
+        
+        // preload fixed items (and excluded regions) on plate
         m_pconf.on_preload = [this](const ItemGroup &items, PConfig &cfg) {
             if (items.empty()) return;
 
@@ -527,8 +528,12 @@ public:
                 }
             }
 
-            cfg.object_function = [this, bb, starting_point](const Item& item) {
-                return fixed_overfit_topright_sliding(objfunc(item, starting_point), bb);
+            cfg.object_function = [this, bb, starting_point](const Item& item, const ItemGroup& packed_items) {
+                bool packed_are_excluded_region = std::all_of(packed_items.begin(), packed_items.end(), [](Item& itm) { return itm.is_virt_object && !itm.is_wipe_tower; });
+                if(packed_are_excluded_region)
+                    return fixed_overfit_topright_sliding(objfunc(item, starting_point), bb);
+                else
+                    return fixed_overfit(objfunc(item, starting_point), bb);
             };
         };
 
@@ -597,11 +602,11 @@ public:
     }
 };
 
-template<> std::function<double(const Item&)> AutoArranger<Box>::get_objfn()
+template<> std::function<double(const Item&, const ItemGroup&)> AutoArranger<Box>::get_objfn()
 {
     auto origin_pack = m_pconf.starting_point == PConfig::Alignment::CENTER ? m_bin.center() : m_bin.minCorner();
 
-    return [this, origin_pack](const Item &itm) {
+    return [this, origin_pack](const Item &itm, const ItemGroup&) {
         auto result = objfunc(itm, origin_pack);
         
         double score = std::get<0>(result);
@@ -623,11 +628,11 @@ template<> std::function<double(const Item&)> AutoArranger<Box>::get_objfn()
     };
 }
 
-template<> std::function<double(const Item&)> AutoArranger<Circle>::get_objfn()
+template<> std::function<double(const Item&, const ItemGroup&)> AutoArranger<Circle>::get_objfn()
 {
     auto bb = sl::boundingBox(m_bin);
     auto origin_pack = m_pconf.starting_point == PConfig::Alignment::CENTER ? bb.center() : bb.minCorner();
-    return [this, origin_pack](const Item &item) {
+    return [this, origin_pack](const Item &item, const ItemGroup&) {
         
         auto result = objfunc(item, origin_pack);
         
@@ -653,11 +658,11 @@ template<> std::function<double(const Item&)> AutoArranger<Circle>::get_objfn()
 // Specialization for a generalized polygon.
 // Warning: this is much slower than with Box bed. Need further speedup.
 template<>
-std::function<double(const Item &)> AutoArranger<ExPolygon>::get_objfn()
+std::function<double(const Item &, const ItemGroup&)> AutoArranger<ExPolygon>::get_objfn()
 {
     auto bb = sl::boundingBox(m_bin);
     auto origin_pack = m_pconf.starting_point == PConfig::Alignment::CENTER ? bb.center() : bb.minCorner();
-    return [this, origin_pack](const Item &itm) {
+    return [this, origin_pack](const Item &itm, const ItemGroup&) {
         auto result = objfunc(itm, origin_pack);
 
         double score = std::get<0>(result);
