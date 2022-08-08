@@ -30,7 +30,11 @@ void ProjectDirtyStateManager::update_from_presets()
     if (!app.plater()->get_project_filename().IsEmpty()) {
         for (const auto &[type, name] : app.get_selected_presets()) { 
             if (type == Preset::Type::TYPE_FILAMENT) { 
-                m_presets_dirty |= m_initial_filament_presets != wxGetApp().preset_bundle->filament_presets;
+                m_presets_dirty |= m_initial_filament_presets_names != wxGetApp().preset_bundle->filament_presets;
+                if (ConfigOption *color_option = wxGetApp().preset_bundle->project_config.option("filament_colour")) {
+                    auto colors = static_cast<ConfigOptionStrings *>(color_option->clone());
+                    m_presets_dirty |= m_initial_filament_presets_colors != colors->values;
+                }
             } else {
                 m_presets_dirty |= !m_initial_presets[type].empty() && m_initial_presets[type] != name;
             }
@@ -57,7 +61,11 @@ void ProjectDirtyStateManager::reset_initial_presets()
     GUI_App &app = wxGetApp();
     for (const auto &[type, name] : app.get_selected_presets()) { 
         if (type == Preset::Type::TYPE_FILAMENT) {
-            m_initial_filament_presets = wxGetApp().preset_bundle->filament_presets;
+            m_initial_filament_presets_names = wxGetApp().preset_bundle->filament_presets;
+            if (ConfigOption *color_option = wxGetApp().preset_bundle->project_config.option("filament_colour")) {
+                auto colors = static_cast<ConfigOptionStrings *>(color_option->clone());
+                m_initial_filament_presets_colors = colors->values;
+            }
         } else {
             m_initial_presets[type] = name;
         }
