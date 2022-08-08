@@ -17,7 +17,7 @@
 namespace Slic3r {
 namespace GUI {
 
-NSTextField* mainframe_text_field;
+NSTextField* mainframe_text_field = nil;
 
 bool mac_dark_mode()
 {

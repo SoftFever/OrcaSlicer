@@ -5591,7 +5591,8 @@ void Plater::priv::set_project_name(const wxString& project_name)
     wxGetApp().mainframe->topbar()->SetTitle(m_project_name);
 #else
     wxGetApp().mainframe->SetTitle(m_project_name);
-    wxGetApp().mainframe->update_title_colour_after_set_title();
+    if (!m_project_name.IsEmpty())
+        wxGetApp().mainframe->update_title_colour_after_set_title();
 #endif
 }
 
