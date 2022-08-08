@@ -298,6 +298,7 @@ protected:
 
     StateColor btn_bg_enable;
     int        m_current_filament_id;
+    bool       m_is_in_sending_mode { false };
 
     wxGridSizer *m_sizer_select;
     wxBoxSizer * sizer_thumbnail;
@@ -338,6 +339,7 @@ public:
     wxObjectDataPtr<MachineListModel> machine_model;
     std::shared_ptr<BBLStatusBarSend> m_status_bar;
     bool                              m_export_3mf_cancel{false};
+    bool                              m_is_canceled { false };
 
 protected:
     std::vector<MachineObject *> m_list;

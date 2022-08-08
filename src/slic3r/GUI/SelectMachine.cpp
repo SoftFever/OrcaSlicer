@@ -1035,6 +1035,7 @@ void SelectMachineDialog::update_select_layout(PRINTER_TYPE type)
 
 void SelectMachineDialog::prepare_mode()
 {
+    m_is_in_sending_mode = false;
     if (m_print_job) {
         m_print_job->join();
     }
@@ -1051,6 +1052,7 @@ void SelectMachineDialog::prepare_mode()
 
 void SelectMachineDialog::sending_mode()
 {
+    m_is_in_sending_mode = true;
     if (m_simplebook->GetSelection() != 1){
         m_simplebook->SetSelection(1);
         Layout();
@@ -1060,6 +1062,7 @@ void SelectMachineDialog::sending_mode()
 
 void SelectMachineDialog::finish_mode()
 {
+    m_is_in_sending_mode = false;
     m_simplebook->SetSelection(2);
     Layout();
     Fit();
@@ -1436,7 +1439,11 @@ void SelectMachineDialog::on_cancel(wxCloseEvent &event)
 
 void SelectMachineDialog::on_ok(wxCommandEvent &event)
 {
+    BOOST_LOG_TRIVIAL(info) << "print_job: on_ok to send";
+    m_is_canceled = false;
     Enable_Send_Button(false);
+    if (m_is_in_sending_mode)
+        return;
 
     int result = 0;
     if (m_printer_last_select.empty()) {
@@ -1466,9 +1473,16 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
             }
             m_print_job->join();
         }
+        m_is_canceled = true;
         wxCommandEvent* event = new wxCommandEvent(EVT_PRINT_JOB_CANCEL);
         wxQueueEvent(this, event);
     });
+
+    if (m_is_canceled) {
+        BOOST_LOG_TRIVIAL(info) << "print_job: m_is_canceled";
+        m_status_bar->set_status_text(task_canceled_text);
+        return;
+    }
 
     // enter sending mode
     sending_mode();
@@ -1478,13 +1492,15 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     get_ams_mapping_result(ams_mapping_array);
 
     result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool &cancel) {
+        if (this->m_is_canceled) return;
         bool     cancelled = false;
         wxString msg       = _L("Preparing print job");
         m_status_bar->update_status(msg, cancelled, 10, true);
         m_export_3mf_cancel = cancel = cancelled;
     });
 
-    if (m_export_3mf_cancel) {
+    if (m_is_canceled || m_export_3mf_cancel) {
+        BOOST_LOG_TRIVIAL(info) << "print_job: m_export_3mf_cancel or m_is_canceled";
         m_status_bar->set_status_text(task_canceled_text);
         return;
     }
@@ -1502,6 +1518,11 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
             BOOST_LOG_TRIVIAL(trace) << "export_config_3mf failed, result = " << result;
             return;
         }
+    }
+    if (m_is_canceled || m_export_3mf_cancel) {
+        BOOST_LOG_TRIVIAL(info) << "print_job: m_export_3mf_cancel or m_is_canceled";
+        m_status_bar->set_status_text(task_canceled_text);
+        return;
     }
 
     m_print_job                = std::make_shared<PrintJob>(m_status_bar, m_plater, m_printer_last_select);
@@ -1531,6 +1552,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
 
     wxCommandEvent evt(m_plater->get_print_finished_event());
     m_print_job->start();
+    BOOST_LOG_TRIVIAL(info) << "print_job: start print job";
 }
 
 void SelectMachineDialog::update_user_machine_list()
@@ -1597,6 +1619,7 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
 
 void SelectMachineDialog::on_print_job_cancel(wxCommandEvent &evt)
 {
+    BOOST_LOG_TRIVIAL(info) << "print_job: canceled";
     show_status(PrintDialogStatus::PrintStatusSendingCanceled);
     // enter prepare mode
     prepare_mode();

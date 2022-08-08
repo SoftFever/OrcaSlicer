@@ -4461,12 +4461,16 @@ const Plater* GUI_App::plater() const
 
 ParamsPanel* GUI_App::params_panel()
 {
-    return mainframe->m_param_panel;
+    if (mainframe)
+        return mainframe->m_param_panel;
+    return nullptr;
 }
 
 ParamsDialog* GUI_App::params_dialog()
 {
-    return mainframe->m_param_dialog;
+    if (mainframe)
+        return mainframe->m_param_dialog;
+    return nullptr;
 }
 
 Model& GUI_App::model()
@@ -4476,22 +4480,28 @@ Model& GUI_App::model()
 
 void GUI_App::load_url(wxString url)
 {
-    return mainframe->load_url(url);
+    if (mainframe)
+        return mainframe->load_url(url);
 }
 
 void GUI_App::run_script(wxString js)
 {
-    return mainframe->RunScript(js);
+    if (mainframe)
+        return mainframe->RunScript(js);
 }
 
 Notebook* GUI_App::tab_panel() const
 {
-    return mainframe->m_tabpanel;
+    if (mainframe)
+        return mainframe->m_tabpanel;
+    return nullptr;
 }
 
 NotificationManager * GUI_App::notification_manager()
 {
-    return plater_->get_notification_manager();
+    if (plater_)
+        return plater_->get_notification_manager();
+    return nullptr;
 }
 
 // extruders count from selected printer preset
