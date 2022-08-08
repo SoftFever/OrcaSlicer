@@ -7209,7 +7209,7 @@ bool Plater::load_files(const wxArrayString& filenames)
         }
     }
 
-    Plater::TakeSnapshot snapshot(this, snapshot_label);
+    //Plater::TakeSnapshot snapshot(this, snapshot_label);
     //load_files(normal_paths, LoadStrategy::LoadModel);
 
     // BBS: check file types
@@ -7242,10 +7242,11 @@ bool Plater::load_files(const wxArrayString& filenames)
         open_3mf_file(normal_paths[0]);
         break;
 
-    case LoadFilesType::SingleOther:
+    case LoadFilesType::SingleOther: {
+        Plater::TakeSnapshot snapshot(this, snapshot_label);
         if (load_files(normal_paths, LoadStrategy::LoadModel, false).empty()) { res = false; }
         break;
-
+    }
     case LoadFilesType::Multiple3MF:
         first_file = std::vector<fs::path>{normal_paths[0]};
         for (auto i = 0; i < normal_paths.size(); i++) {
@@ -7256,9 +7257,11 @@ bool Plater::load_files(const wxArrayString& filenames)
         if (load_files(other_file, LoadStrategy::LoadModel).empty()) {  res = false;  }
         break;
 
-    case LoadFilesType::MultipleOther:
-        if (load_files(normal_paths, LoadStrategy::LoadModel, true).empty()) {  res = false;  }
+    case LoadFilesType::MultipleOther: {
+        Plater::TakeSnapshot snapshot(this, snapshot_label);
+        if (load_files(normal_paths, LoadStrategy::LoadModel, true).empty()) { res = false; }
         break;
+    }
 
     case LoadFilesType::Multiple3MFOther:
         for (const auto &path : normal_paths) {
@@ -7311,15 +7314,8 @@ bool Plater::open_3mf_file(const fs::path &file_path)
 
     if (load_type == LoadType::Unknown) return false;
 
-    struct AllowSnapshots {
-        AllowSnapshots(Plater *plater) : m_plater(plater) { m_plater->allow_snapshots(); }
-        ~AllowSnapshots() { m_plater->suppress_snapshots(); }
-		Plater *m_plater;
-    };
     switch (load_type) {
         case LoadType::OpenProject: {
-            // remove snapshot taken by load_files and add_file
-            AllowSnapshots as(this);
             if (wxGetApp().can_load_project())
                 load_project(from_path(file_path));
             break;
@@ -7370,8 +7366,6 @@ void Plater::add_file()
         snapshot_label += encode_path(paths[i].filename().string().c_str());
     }
 
-    Plater::TakeSnapshot snapshot(this, snapshot_label);
-
     // BBS: check file types
     auto loadfiles_type  = LoadFilesType::NoFile;
     auto amf_files_count = get_3mf_file_count(paths);
@@ -7392,10 +7386,11 @@ void Plater::add_file()
         open_3mf_file(paths[0]);
     	break;
 
-    case LoadFilesType::SingleOther:
+    case LoadFilesType::SingleOther: {
+        Plater::TakeSnapshot snapshot(this, snapshot_label);
         if (!load_files(paths, LoadStrategy::LoadModel, false).empty()) { wxGetApp().mainframe->update_title(); }
         break;
-
+    }
     case LoadFilesType::Multiple3MF:
         first_file = std::vector<fs::path>{paths[0]};
         for (auto i = 0; i < paths.size(); i++) {
@@ -7406,12 +7401,13 @@ void Plater::add_file()
         if (!load_files(other_file, LoadStrategy::LoadModel).empty()) { wxGetApp().mainframe->update_title(); }
         break;
 
-    case LoadFilesType::MultipleOther:
+    case LoadFilesType::MultipleOther: {
+        Plater::TakeSnapshot snapshot(this, snapshot_label);
         if (!load_files(paths, LoadStrategy::LoadModel, true).empty()) {
             wxGetApp().mainframe->update_title();
         }
         break;
-
+    }
     case LoadFilesType::Multiple3MFOther:
         for (const auto &path : paths) {
             if (wxString(encode_path(path.filename().string().c_str())).EndsWith("3mf")) {
