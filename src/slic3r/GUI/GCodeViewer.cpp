@@ -3946,6 +3946,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     //BBS: GUI refactor: move to the right
     imgui.set_next_window_pos(float(canvas_width - right_margin * m_scale), 0.0f, ImGuiCond_Always, 1.0f, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0,0.0));
     ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(1.0f,1.0f,1.0f,0.6f));
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
@@ -3979,8 +3980,15 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     const float percent_bar_size = 0;
 
     bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImVec2 pos_rect = ImGui::GetCursorScreenPos();
+    float window_padding = 4.0f * m_scale;
 
-    auto append_item = [icon_size, percent_bar_size, &imgui, imperial_units](EItemType type, const Color &color, const std::string &label,
+    draw_list->AddRectFilled(ImVec2(pos_rect.x,pos_rect.y - ImGui::GetStyle().WindowPadding.y),
+        ImVec2(pos_rect.x + ImGui::GetWindowWidth() + ImGui::GetFrameHeight(),pos_rect.y + ImGui::GetFrameHeight() + window_padding * 2.5),
+        ImGui::GetColorU32(ImVec4(0,0,0,0.3)));
+
+    auto append_item = [icon_size, percent_bar_size, &imgui, imperial_units,&window_padding,&draw_list,this](EItemType type, const Color &color, const std::string &label,
         bool visible = true, const std::string& time = "", float percent = 0.0f, float max_percent = 0.0f, const std::array<float, 4>& offsets = { 0.0f, 0.0f, 0.0f, 0.0f },
         double used_filament_m = 0.0, double used_filament_g = 0.0,
         std::function<void()> callback = nullptr) {
@@ -3989,13 +3997,13 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3333f);
         */
 
-        ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        ImVec2 pos = ImGui::GetCursorScreenPos();
-        float dummy_size = icon_size;
+        ImVec2 pos = ImVec2(ImGui::GetCursorScreenPos().x + window_padding * 3, ImGui::GetCursorScreenPos().y);
+        float dummy_size = icon_size * m_scale;
+
         switch (type) {
         default:
         case EItemType::Rect: {
-            draw_list->AddRectFilled({ pos.x + 1.0f, pos.y + 5.0f }, { pos.x + icon_size - 1.0f, pos.y + icon_size + 3.0f },
+            draw_list->AddRectFilled({ pos.x + 1.0f * m_scale, pos.y + 3.0f * m_scale }, { pos.x + icon_size - 1.0f * m_scale, pos.y + icon_size + 1.0f * m_scale },
                 ImGui::GetColorU32({ color[0], color[1], color[2], 1.0f }));
             break;
         }
@@ -4019,10 +4027,18 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         }
 
         // draw text
-        ImGui::Dummy({ dummy_size, dummy_size });
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(20.0, 6.0 * m_scale));
+        ImGui::Dummy({ dummy_size, 0.0 });
         ImGui::SameLine();
         if (callback != nullptr) {
-            if (ImGui::MenuItem(label.c_str()))
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * m_scale);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0 * m_scale,0.0));
+            ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(1.00f, 0.68f, 0.26f, 0.0f));
+            ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+            bool b_menu_item = ImGui::BBLMenuItem(label.c_str());
+            ImGui::PopStyleVar(2);
+            ImGui::PopStyleColor(2);
+            if (b_menu_item)
                 callback();
             else {
                 // show tooltip
@@ -4111,6 +4127,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 imgui.text(buf);
             }*/
         }
+        ImGui::PopStyleVar(1);
 
         /* BBS GUI refactor */
         /*if (!visible)
@@ -4230,6 +4247,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     };
 
     //BBS display Color Scheme
+    ImGui::Dummy({ window_padding, window_padding });
+    ImGui::Dummy({ window_padding, window_padding });
+    ImGui::SameLine();
     std::wstring btn_name;
     if (m_fold)
         btn_name = ImGui::UnfoldButtonIcon + boost::nowide::widen(std::string(""));
@@ -4249,8 +4269,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::SameLine();
     ImGui::Text(_u8L("Color Scheme").c_str());
     push_combo_style();
-    float combo_width = ImGui::GetContentRegionAvailWidth() - ImGui::CalcTextSize(_u8L("Color Scheme").c_str()).x - button_width - ImGui::GetStyle().FramePadding.x * 4;
-    ImGui::PushItemWidth(combo_width);
+
     ImGui::SameLine();
     const char* view_type_value = view_type_items_str[m_view_type_sel].c_str();
     ImGuiComboFlags flags = 0;
@@ -4276,11 +4295,13 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::EndCombo();
     }
     pop_combo_style();
+    ImGui::SameLine();
+    ImGui::Dummy({ window_padding, window_padding });
 
     if (m_fold) {
         imgui.end();
         ImGui::PopStyleColor(6);
-        ImGui::PopStyleVar();
+        ImGui::PopStyleVar(2);
         return;
     }
 
@@ -4355,6 +4376,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     }
 
     // extrusion paths section -> title
+    ImGui::Dummy({ window_padding, window_padding });
+    ImGui::SameLine();
     switch (m_view_type)
     {
     case EViewType::FeatureType:
@@ -4467,6 +4490,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     case EViewType::Feedrate:       {
         append_range(m_extrusions.ranges.feedrate, 0);
         ImGui::Spacing();
+        ImGui::Dummy({ window_padding, window_padding });
+        ImGui::SameLine();
         append_headers({_u8L("Options"), "", "", "", _u8L("Display")}, offsets);
         const bool travel_visible = m_buffers[buffer_id(EMoveType::Travel)].visible;
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 3.0f));
@@ -4962,6 +4987,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             }
         }
         ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
+        ImGui::Dummy({ window_padding, window_padding });
+        ImGui::SameLine();
         imgui.title(time_title);
         std::string filament_str = _u8L("Filament");
         std::string prepare_str = _u8L("Prepare time");
@@ -4976,6 +5003,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         }
 
         //BBS display filament cost
+        ImGui::Dummy({ window_padding, window_padding });
+        ImGui::SameLine();
         imgui.text(filament_str + ":");
         ImGui::SameLine(max_len);
 
@@ -4997,13 +5026,19 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         };
         //BBS: start gcode is prepeare time
         if (role_time(erCustom) != 0.0f) {
+            ImGui::Dummy({ window_padding, window_padding });
+            ImGui::SameLine();
             imgui.text(prepare_str + ":");
             ImGui::SameLine(max_len);
             imgui.text(short_time(get_time_dhms(role_time(erCustom))));
         }
+        ImGui::Dummy({ window_padding, window_padding });
+        ImGui::SameLine();
         imgui.text(print_str + ":");
         ImGui::SameLine(max_len);
         imgui.text(short_time(get_time_dhms(time_mode.time - role_time(erCustom))));
+        ImGui::Dummy({ window_padding, window_padding });
+        ImGui::SameLine();
         imgui.text(total_str + ":");
         ImGui::SameLine(max_len);
         imgui.text(short_time(get_time_dhms(time_mode.time)));
@@ -5035,16 +5070,17 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         }
     }
     legend_height = ImGui::GetCurrentWindow()->Size.y;
-
+    ImGui::Dummy({ window_padding, window_padding});
     imgui.end();
     ImGui::PopStyleColor(6);
-    ImGui::PopStyleVar();
+    ImGui::PopStyleVar(2);
 }
 
 void GCodeViewer::push_combo_style()
 {
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0,8.0));
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.3f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.0f, 0.0f, 0.0f, 0.3f));
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.0f, 0.0f, 0.0f, 0.3f));
@@ -5056,7 +5092,7 @@ void GCodeViewer::push_combo_style()
 }
 void GCodeViewer::pop_combo_style()
 {
-    ImGui::PopStyleVar(2);
+    ImGui::PopStyleVar(3);
     ImGui::PopStyleColor(8);
 }
 
