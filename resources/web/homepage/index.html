@@ -145,19 +145,18 @@
     document.onkeydown = function (event) {
 		var e = event || window.event || arguments.callee.caller.arguments[0];
 
+		if (e.ctrlKey && e.metaKey)
+			OutputKey(e.keyCode, true, false, true);
+		else if (e.ctrlKey)
+			OutputKey(e.keyCode, true, false, false);
+		else if (e.metaKey)
+			OutputKey(e.keyCode, false, false, true);
+
 		if (e.shiftKey && e.ctrlKey)
 			OutputKey(e.keyCode, true, true, false);
-		else if (e.ctrlKey)
-            OutputKey(e.keyCode, true, false, false);
-		else if (e.keyCode === 27) 
-            OutputKey(e.keyCode, false, false, false);
 
 		if (e.shiftKey && e.metaKey)
 			OutputKey(e.keyCode, false, true, true);
-		else if (e.metaKey)
-			OutputKey(e.keyCode, false, false, true);
-		else if (e.keyCode === 27)
-			OutputKey(e.keyCode, false, false, false);
 
 		if (window.event) {
 			try { e.keyCode = 0; } catch (e) { }

@@ -474,18 +474,36 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             Slic3r::run_backup_ui_tasks();
             });
 ;    }
-
     this->Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent &evt) {
 #ifdef __APPLE__
-        if (evt.CmdDown() && evt.GetKeyCode() == 'H') { this->Iconize(); return;}
+        if (evt.CmdDown() && (evt.GetKeyCode() == 'H')) {
+            //call parent_menu hide behavior
+            return;}
+        if (evt.CmdDown() && (evt.GetKeyCode() == 'M')) {
+            this->Iconize();
+            return;
+        }
         if (evt.CmdDown() && evt.GetKeyCode() == 'Q') { wxPostEvent(this, wxCloseEvent(wxEVT_CLOSE_WINDOW)); return;}
+        if (evt.CmdDown() && evt.RawControlDown() && evt.GetKeyCode() == 'F') { 
+            EnableFullScreenView(true);
+            if (IsFullScreen()) { 
+                ShowFullScreen(false);
+            } else {
+                ShowFullScreen(true);
+            }
+            return;}
 #endif
         if (evt.CmdDown() && evt.GetKeyCode() == 'N') { m_plater->new_project(); return;}
         if (evt.CmdDown() && evt.GetKeyCode() == 'O') { m_plater->load_project(); return;}
         if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'S') { if (m_plater) m_plater->save_project(true); return;}
         else if (evt.CmdDown() && evt.GetKeyCode() == 'S') { if (m_plater) m_plater->save_project(); return;}
 
-        if (evt.CmdDown() && evt.GetKeyCode() == 'P') {
+#ifdef __APPLE__
+        if (evt.CmdDown() && evt.GetKeyCode() == ',')
+#else
+        if (evt.CmdDown() && evt.GetKeyCode() == 'P') 
+#endif
+        {
             PreferencesDialog dlg(this);
             dlg.ShowModal();
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
@@ -496,6 +514,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 plater()->refresh_print();
             return;
         }
+
         if (evt.CmdDown() && evt.GetKeyCode() == 'I') {
             if (!can_add_models()) return;
             if (m_plater) { m_plater->add_model(); }
@@ -1150,24 +1169,28 @@ bool MainFrame::can_change_view() const
     }
 }
 
+bool MainFrame::can_clone() const {
+    return can_select() && !m_plater->is_selection_empty();
+}
+
 bool MainFrame::can_select() const
 {
-    return (m_plater != nullptr) && !m_plater->model().objects.empty();
+    return (m_plater != nullptr) && (m_tabpanel->GetSelection() == TabPosition::tp3DEditor) && !m_plater->model().objects.empty();
 }
 
 bool MainFrame::can_deselect() const
 {
-    return (m_plater != nullptr) && !m_plater->is_selection_empty();
+    return (m_plater != nullptr) && (m_tabpanel->GetSelection() == TabPosition::tp3DEditor) && !m_plater->is_selection_empty();
 }
 
 bool MainFrame::can_delete() const
 {
-    return (m_plater != nullptr) && !m_plater->is_selection_empty();
+    return (m_plater != nullptr) && (m_tabpanel->GetSelection() == TabPosition::tp3DEditor) && !m_plater->is_selection_empty(); 
 }
 
 bool MainFrame::can_delete_all() const
 {
-    return (m_plater != nullptr) && !m_plater->model().objects.empty();
+    return (m_plater != nullptr) && (m_tabpanel->GetSelection() == TabPosition::tp3DEditor) && !m_plater->model().objects.empty();
 }
 
 bool MainFrame::can_reslice() const
@@ -1795,7 +1818,7 @@ void MainFrame::init_menubar_as_editor()
             _L("Clone copies of selections"),[this](wxCommandEvent&) {
                 m_plater->clone_selection();
             },
-            "menu_remove", nullptr, [this](){return can_select(); }, this);
+            "menu_remove", nullptr, [this](){return can_clone(); }, this);
         editMenu->AppendSeparator();
 #else
         // BBS undo
@@ -1833,7 +1856,7 @@ void MainFrame::init_menubar_as_editor()
             _L("Clone copies of selections"),[this](wxCommandEvent&) {
                 m_plater->clone_selection();
             },
-            "", nullptr, [this](){return can_select(); }, this);
+            "", nullptr, [this](){return can_clone(); }, this);
         editMenu->AppendSeparator();
 #endif
 
@@ -1906,117 +1929,122 @@ void MainFrame::init_menubar_as_editor()
 #ifdef __APPLE__
     wxWindowID bambu_studio_id_base = wxWindow::NewControlId(int(2));
     wxMenu* parent_menu = m_menubar->OSXGetAppleMenu();
-    auto preference_item = new wxMenuItem(parent_menu, BambuStudioMenuPreferences + bambu_studio_id_base, _L("Preferences") + "\tCtrl+P", "");
+    auto preference_item = new wxMenuItem(parent_menu, BambuStudioMenuPreferences + bambu_studio_id_base, _L("Preferences") + "\tCtrl+,", "");
 #else
     wxMenu* parent_menu = m_topbar->GetTopMenu();
     auto preference_item = new wxMenuItem(parent_menu, ConfigMenuPreferences + config_id_base, _L("Preferences") + "\tCtrl+P", "");
+
 #endif
-    
     //auto printer_item = new wxMenuItem(parent_menu, ConfigMenuPrinter + config_id_base, _L("Printer"), "");
     //auto language_item = new wxMenuItem(parent_menu, ConfigMenuLanguage + config_id_base, _L("Switch Language"), "");
-    parent_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent& event) {
-        switch (event.GetId() - config_id_base) {
-        //case ConfigMenuLanguage:
-        //{
-        //    /* Before change application language, let's check unsaved changes on 3D-Scene
-        //     * and draw user's attention to the application restarting after a language change
-        //     */
-        //    {
-        //        // the dialog needs to be destroyed before the call to switch_language()
-        //        // or sometimes the application crashes into wxDialogBase() destructor
-        //        // so we put it into an inner scope
-        //        wxString title = _L("Language selection");
-        //        wxMessageDialog dialog(nullptr,
-        //            _L("Switching the language requires application restart.\n") + "\n\n" +
-        //            _L("Do you want to continue?"),
-        //            title,
-        //            wxICON_QUESTION | wxOK | wxCANCEL);
-        //        if (dialog.ShowModal() == wxID_CANCEL)
-        //            return;
-        //    }
-
-        //    wxGetApp().switch_language();
-        //    break;
-        //}
-        //case ConfigMenuWizard:
-        //{
-        //    wxGetApp().run_wizard(ConfigWizard::RR_USER);
-        //    break;
-        //}
-        case ConfigMenuPrinter:
-        {
-            wxGetApp().params_dialog()->Popup();
-            wxGetApp().get_tab(Preset::TYPE_PRINTER)->restore_last_select_item();
-            break;
-        }
-        case ConfigMenuPreferences:
-        {
-            wxGetApp().CallAfter([this] {
-                PreferencesDialog dlg(this);
-                dlg.ShowModal();
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-                if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
-#else
-                if (dlg.seq_top_layer_only_changed())
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-                    plater()->refresh_print();
-#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
-#ifdef _WIN32
-                /*
-                if (wxGetApp().app_config()->get("associate_3mf") == "true")
-                    wxGetApp().associate_3mf_files();
-                if (wxGetApp().app_config()->get("associate_stl") == "true")
-                    wxGetApp().associate_stl_files();
-                /*if (wxGetApp().app_config()->get("associate_step") == "true")
-                    wxGetApp().associate_step_files();*/
-#endif // _WIN32
-#endif
-            });
-            break;
-        }
-        default:
-            break;
-        }
-    });
+//    parent_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent& event) {
+//        switch (event.GetId() - config_id_base) {
+//        //case ConfigMenuLanguage:
+//        //{
+//        //    /* Before change application language, let's check unsaved changes on 3D-Scene
+//        //     * and draw user's attention to the application restarting after a language change
+//        //     */
+//        //    {
+//        //        // the dialog needs to be destroyed before the call to switch_language()
+//        //        // or sometimes the application crashes into wxDialogBase() destructor
+//        //        // so we put it into an inner scope
+//        //        wxString title = _L("Language selection");
+//        //        wxMessageDialog dialog(nullptr,
+//        //            _L("Switching the language requires application restart.\n") + "\n\n" +
+//        //            _L("Do you want to continue?"),
+//        //            title,
+//        //            wxICON_QUESTION | wxOK | wxCANCEL);
+//        //        if (dialog.ShowModal() == wxID_CANCEL)
+//        //            return;
+//        //    }
+//
+//        //    wxGetApp().switch_language();
+//        //    break;
+//        //}
+//        //case ConfigMenuWizard:
+//        //{
+//        //    wxGetApp().run_wizard(ConfigWizard::RR_USER);
+//        //    break;
+//        //}
+//        case ConfigMenuPrinter:
+//        {
+//            wxGetApp().params_dialog()->Popup();
+//            wxGetApp().get_tab(Preset::TYPE_PRINTER)->restore_last_select_item();
+//            break;
+//        }
+//        case ConfigMenuPreferences:
+//        {
+//            wxGetApp().CallAfter([this] {
+//                PreferencesDialog dlg(this);
+//                dlg.ShowModal();
+//#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+//                if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
+//#else
+//                if (dlg.seq_top_layer_only_changed())
+//#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+//                    plater()->refresh_print();
+//#if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+//#ifdef _WIN32
+//                /*
+//                if (wxGetApp().app_config()->get("associate_3mf") == "true")
+//                    wxGetApp().associate_3mf_files();
+//                if (wxGetApp().app_config()->get("associate_stl") == "true")
+//                    wxGetApp().associate_stl_files();
+//                /*if (wxGetApp().app_config()->get("associate_step") == "true")
+//                    wxGetApp().associate_step_files();*/
+//#endif // _WIN32
+//#endif
+//            });
+//            break;
+//        }
+//        default:
+//            break;
+//        }
+//    });
 
 #ifdef __APPLE__
     wxString about_title = wxString::Format(_L("&About %s"), SLIC3R_APP_FULL_NAME);
     auto about_item = new wxMenuItem(parent_menu, BambuStudioMenuAbout + bambu_studio_id_base, about_title, "");
-        parent_menu->Bind(wxEVT_MENU, [this, bambu_studio_id_base](wxEvent& event) {
-            switch (event.GetId() - bambu_studio_id_base) {
-                case BambuStudioMenuAbout:
-                    Slic3r::GUI::about();
-                    break;
-                case BambuStudioMenuPreferences:
-                    wxGetApp().CallAfter([this] {
-                        PreferencesDialog dlg(this);
-                        dlg.ShowModal();
-        #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-                        if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
-        #else
-                        if (dlg.seq_top_layer_only_changed())
-        #endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-                            plater()->refresh_print();
-        #if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
-        #ifdef _WIN32
-                        /*
-                        if (wxGetApp().app_config()->get("associate_3mf") == "true")
-                            wxGetApp().associate_3mf_files();
-                        if (wxGetApp().app_config()->get("associate_stl") == "true")
-                            wxGetApp().associate_stl_files();
-                        /*if (wxGetApp().app_config()->get("associate_step") == "true")
-                            wxGetApp().associate_step_files();*/
-        #endif // _WIN32
-        #endif
-                    });
-                    break;
-                default:
-                    break;
-            }
-        
-        });
-    parent_menu->Insert(0, about_item);
-    parent_menu->Insert(1, preference_item);
+        //parent_menu->Bind(wxEVT_MENU, [this, bambu_studio_id_base](wxEvent& event) {
+        //    switch (event.GetId() - bambu_studio_id_base) {
+        //        case BambuStudioMenuAbout:
+        //            Slic3r::GUI::about();
+        //            break;
+        //        case BambuStudioMenuPreferences:
+        //            wxGetApp().CallAfter([this] {
+        //                PreferencesDialog dlg(this);
+        //                dlg.ShowModal();
+        //#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+        //                if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
+        //#else
+        //                if (dlg.seq_top_layer_only_changed())
+        //#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+        //                    plater()->refresh_print();
+        //            });
+        //            break;
+        //        default:
+        //            break;
+        //    }
+        //});
+    //parent_menu->Insert(0, about_item);
+    append_menu_item(
+        parent_menu, wxID_ANY, _L("About") + "", _L(""),
+        [this](wxCommandEvent &) { Slic3r::GUI::about();},
+        "", nullptr, []() { return true; }, this, 0);
+    append_menu_item(
+        parent_menu, wxID_ANY, _L("Preferences") + "\tCtrl+'", _L(""),
+        [this](wxCommandEvent &) {
+            PreferencesDialog dlg(this);
+            dlg.ShowModal();
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+            if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
+#else
+            if (dlg.seq_top_layer_only_changed())
+#endif
+                plater()->refresh_print();
+        },
+        "", nullptr, []() { return true; }, this, 1);
+    //parent_menu->Insert(1, preference_item);
 #endif
     // Help menu
     auto helpMenu = generate_help_menu();
@@ -2029,7 +2057,21 @@ void MainFrame::init_menubar_as_editor()
     if (viewMenu)
         m_topbar->AddDropDownSubMenu(viewMenu, _L("View"));
     //BBS add Preference
-    m_topbar->AddDropDownMenuItem(preference_item);
+    
+    append_menu_item(
+        m_topbar->GetTopMenu(), wxID_ANY, _L("Preferences") + "\tCtrl+P", _L(""),
+        [this](wxCommandEvent &) {
+            PreferencesDialog dlg(this);
+            dlg.ShowModal();
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+            if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
+#else
+            if (dlg.seq_top_layer_only_changed())
+#endif
+                plater()->refresh_print();
+        },
+        "", nullptr, []() { return true; }, this);
+    //m_topbar->AddDropDownMenuItem(preference_item);
     //m_topbar->AddDropDownMenuItem(printer_item);
     //m_topbar->AddDropDownMenuItem(language_item);
     //m_topbar->AddDropDownMenuItem(config_item);

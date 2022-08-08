@@ -3014,10 +3014,12 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     wxKeyEvent e(wxEVT_CHAR_HOOK);
 #ifdef __APPLE__
                     e.SetControlDown(cmdKey);
+                    e.SetRawControlDown(ctrlKey);
 #else
                     e.SetControlDown(ctrlKey);
 #endif
                     e.SetShiftDown(shiftKey);
+                    keyCode     = keyCode == 188 ? ',' : keyCode;
                     e.m_keyCode = keyCode;
                     e.SetEventObject(mainframe);
                     wxPostEvent(mainframe, e);

@@ -9854,6 +9854,8 @@ bool Plater::can_split_to_volumes() const { return p->can_split_to_volumes(); }
 bool Plater::can_arrange() const { return p->can_arrange(); }
 bool Plater::can_paste_from_clipboard() const
 {
+    if (!IsShown() || !p->is_view3D_shown()) return false;
+
     const Selection& selection = p->view3D->get_canvas3d()->get_selection();
     const Selection::Clipboard& clipboard = selection.get_clipboard();
 
@@ -9883,6 +9885,9 @@ bool Plater::can_cut_to_clipboard() const
 
 bool Plater::can_copy_to_clipboard() const
 {
+    if (!IsShown() || !p->is_view3D_shown())
+        return false;
+
     if (is_selection_empty())
         return false;
 
@@ -9893,8 +9898,8 @@ bool Plater::can_copy_to_clipboard() const
     return true;
 }
 
-bool Plater::can_undo() const { return p->undo_redo_stack().has_undo_snapshot(); }
-bool Plater::can_redo() const { return p->undo_redo_stack().has_redo_snapshot(); }
+bool Plater::can_undo() const { return IsShown() && p->is_view3D_shown() && p->undo_redo_stack().has_undo_snapshot(); }
+bool Plater::can_redo() const { return IsShown() && p->is_view3D_shown() && p->undo_redo_stack().has_redo_snapshot(); }
 bool Plater::can_reload_from_disk() const { return p->can_reload_from_disk(); }
 //BBS
 bool Plater::can_fillcolor() const { return p->can_fillcolor(); }
