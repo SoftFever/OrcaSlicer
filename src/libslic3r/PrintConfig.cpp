@@ -722,7 +722,7 @@ void PrintConfigDef::init_fff_params()
     def->multiline = true;
     def->full_width = true;
     def->height = 120;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings { " " });
 
     auto def_top_fill_pattern = def = this->add("top_surface_pattern", coEnum);
@@ -2016,7 +2016,7 @@ void PrintConfigDef::init_fff_params()
     def->multiline = true;
     def->full_width = true;
     def->height = 12;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings { " " });
 
     def = this->add("single_extruder_multi_material", coBool);
