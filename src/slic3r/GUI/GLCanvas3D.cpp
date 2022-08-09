@@ -5869,6 +5869,9 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     m_assemble_view_toolbar.set_scale(sc);
     collapse_toolbar.set_scale(sc);
     size *= m_retina_helper->get_scale_factor();
+
+    auto *m_notification = wxGetApp().plater()->get_notification_manager();
+    m_notification->set_scale(sc);
 #else
     //BBS: GUI refactor: GLToolbar
     m_main_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size * scale);

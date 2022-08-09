@@ -20,6 +20,11 @@
 
 #include "GUI_App.hpp"
 
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+#include <imgui/imgui_internal.h>
+
 static constexpr float GAP_WIDTH = 10.0f;
 static constexpr float SPACE_RIGHT_PANEL = 10.0f;
 static constexpr float FADING_OUT_DURATION = 2.0f;
@@ -580,8 +585,17 @@ void NotificationManager::PopNotification::render_close_button(ImGuiWrapper& img
 void NotificationManager::PopNotification::bbl_render_left_sign(ImGuiWrapper &imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
     ImDrawList *draw_list = ImGui::GetWindowDrawList();
-    draw_list->AddRectFilled(ImVec2(win_pos_x - win_size_x, win_pos_y), ImVec2(win_pos_x - win_size_x + m_WindowRadius * 2, win_pos_y + win_size_y),ImGui::GetColorU32(ImVec4(m_CurrentColor.x, m_CurrentColor.y, m_CurrentColor.z,m_current_fade_opacity)), m_WindowRadius);
-    draw_list->AddRectFilled(ImVec2(win_pos_x - win_size_x-m_WindowRadius, win_pos_y), ImVec2(win_pos_x - win_size_x + 10, win_pos_y + win_size_y),ImGui::GetColorU32(ImVec4(m_CurrentColor.x, m_CurrentColor.y, m_CurrentColor.z, m_current_fade_opacity)), 0);
+
+	ImVec2 round_rect_pos = ImVec2(win_pos_x - win_size_x, win_pos_y);
+    ImVec2 round_rect_size = ImVec2(m_WindowRadius * 2, win_size_y);
+
+	ImVec2 rect_pos = round_rect_pos + ImVec2(m_WindowRadius, 0);
+    ImVec2 rect_size = ImVec2(m_WindowRadius + 2 * wxGetApp().plater()->get_current_canvas3D()->get_scale(), win_size_y);
+
+	ImU32 clr = ImGui::GetColorU32(ImVec4(m_CurrentColor.x, m_CurrentColor.y, m_CurrentColor.z, m_current_fade_opacity));
+
+    draw_list->AddRectFilled(round_rect_pos, round_rect_pos + round_rect_size, clr, m_WindowRadius);
+    draw_list->AddRectFilled(rect_pos, rect_pos + rect_size, clr, 0);
 }
 
 void NotificationManager::PopNotification::render_left_sign(ImGuiWrapper& imgui)
