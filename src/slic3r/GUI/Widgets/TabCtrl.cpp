@@ -284,9 +284,9 @@ void TabCtrl::doRender(wxDC& dc)
 
     auto x1 = btns[sel]->GetPosition().x;
     auto x2 = x1 + btns[sel]->GetSize().x;
-    const int BS = border_width / 2;
     const int BS2 = (1 + border_width) / 2;
 #if 0
+    const int BS = border_width / 2;
     x1 -= TAB_BUTTON_SPACE; x2 += TAB_BUTTON_SPACE;
     dc.SetPen(wxPen(border_color.colorForStates(states), border_width));
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
@@ -303,7 +303,7 @@ void TabCtrl::doRender(wxDC& dc)
     dc.SetPen(wxPen(border_color.colorForStates(states), border_width));
     dc.DrawLine(0, size.y - BS2, size.x, size.y - BS2);
     wxColor c(0x42AE00);
-    dc.SetPen(wxPen(c, 0));
+    dc.SetPen(wxPen(c, 1));
     dc.SetBrush(c);
     dc.DrawRoundedRectangle(x1 - radius, size.y - BS2 - border_width * 3, x2 + radius * 2 - x1, border_width * 3, radius);
 #endif
