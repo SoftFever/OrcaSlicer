@@ -5,7 +5,8 @@ wxDEFINE_EVENT( wxEVT_TAB_SEL_CHANGED, wxCommandEvent );
 
 BEGIN_EVENT_TABLE(TabCtrl, StaticBox)
 
-// catch paint events
+EVT_KEY_DOWN(TabCtrl::keyDown)
+
 END_EVENT_TABLE()
 
 /*
@@ -201,6 +202,16 @@ void TabCtrl::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     relayout();
 }
 
+#ifdef __WIN32__
+
+WXLRESULT TabCtrl::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
+{
+    if (nMsg == WM_GETDLGCODE) { return DLGC_WANTARROWS; }
+    return wxWindow::MSWWindowProc(nMsg, wParam, lParam);
+}
+
+#endif
+
 void TabCtrl::relayout()
 {
     int offset = 10;
@@ -243,9 +254,26 @@ void TabCtrl::relayout()
 
 void TabCtrl::buttonClicked(wxCommandEvent &event)
 {
-    auto btn = event.GetEventObject();
+    SetFocus();
+    auto btn  = event.GetEventObject();
     auto iter = std::find(btns.begin(), btns.end(), btn);
     SelectItem(iter == btns.end() ? -1 : iter - btns.begin());
+}
+
+void TabCtrl::keyDown(wxKeyEvent &event)
+{
+    switch (event.GetKeyCode()) {
+    case WXK_UP:
+    case WXK_DOWN:
+    case WXK_LEFT:
+    case WXK_RIGHT:
+        if ((event.GetKeyCode() == WXK_UP || event.GetKeyCode() == WXK_LEFT) && GetSelection() > 0) {
+            SelectItem(GetSelection() - 1);
+        } else if ((event.GetKeyCode() == WXK_DOWN || event.GetKeyCode() == WXK_RIGHT) && GetSelection() + 1 < btns.size()) {
+            SelectItem(GetSelection() + 1);
+        }
+        break;
+    }
 }
 
 void TabCtrl::doRender(wxDC& dc)

@@ -65,9 +65,14 @@ public:
 private:
     virtual void DoSetSize(int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
 
+#ifdef __WIN32__
+    WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) override;
+#endif
+
     void relayout();
 
     void buttonClicked(wxCommandEvent & event);
+    void keyDown(wxKeyEvent &event);
 
     void doRender(wxDC & dc) override;
 
