@@ -18,7 +18,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
 
     m_button_play = new Button(this, "", "media_play", wxBORDER_NONE);
 
-    m_label_status = new Label(Label::Body_14, this);
+    m_label_status = new Label(this);
 
     m_button_play->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto & e) { TogglePlay(); });
 
