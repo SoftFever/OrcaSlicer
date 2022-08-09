@@ -60,18 +60,7 @@ void TextInput::Create(wxWindow *     parent,
     text_ctrl->SetInitialSize(text_ctrl->GetBestSize());
     text_ctrl->SetBackgroundColour(background_color.colorForStates(state_handler.states()));
     text_ctrl->SetForegroundColour(text_color.colorForStates(state_handler.states()));
-    text_ctrl->Bind(wxEVT_SET_FOCUS, [this](auto &e) {
-        e.SetId(GetId());
-        ProcessEventLocally(e);
-    });
-    text_ctrl->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
-        e.SetId(GetId());
-        ProcessEventLocally(e);
-    });
-    text_ctrl->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
-        e.SetId(GetId());
-        ProcessEventLocally(e);
-    });
+    state_handler.attach_child(text_ctrl);
     text_ctrl->Bind(wxEVT_KILL_FOCUS, [this](auto &e) {
         OnEdit();
         e.SetId(GetId());
