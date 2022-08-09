@@ -2918,12 +2918,7 @@ GCode::LayerResult GCode::process_layer(
                         m_layer = layers[instance_to_print.layer_id].tree_support_layer;
                     }
                     m_object_layer_over_raft = false;
-                    // BBS. Keep paths order
-#if 0
-                    gcode += this->extrude_support(
-                        // support_extrusion_role is erSupportMaterial, erSupportTransition, erSupportMaterialInterface or erMixed for all extrusion paths.
-                        instance_to_print.object_by_extruder.support->chained_path_from(m_last_pos, instance_to_print.object_by_extruder.support_extrusion_role));
-#else
+
                     //BBS: print supports' brims first
                     if (this->m_objSupportsWithBrim.find(instance_to_print.print_object.id()) != this->m_objSupportsWithBrim.end() && !print_wipe_extrusions) {
                         this->set_origin(0., 0.);
@@ -2953,12 +2948,10 @@ GCode::LayerResult GCode::process_layer(
                     ExtrusionRole support_extrusion_role = instance_to_print.object_by_extruder.support_extrusion_role;
                     bool is_overridden = support_extrusion_role == erSupportMaterialInterface ? support_intf_overridden : support_overridden;
                     if (is_overridden == (print_wipe_extrusions != 0))
-                        support_eec.entities = filter_by_extrusion_role(instance_to_print.object_by_extruder.support->entities, instance_to_print.object_by_extruder.support_extrusion_role);
+                        gcode += this->extrude_support(
+                            // support_extrusion_role is erSupportMaterial, erSupportTransition, erSupportMaterialInterface or erMixed for all extrusion paths.
+                            instance_to_print.object_by_extruder.support->chained_path_from(m_last_pos, support_extrusion_role));
 
-                    for (auto& ptr : support_eec.entities)
-                        ptr = ptr->clone();
-                    gcode += this->extrude_support(support_eec);
-#endif
                     m_layer = layer_to_print.layer();
                     m_object_layer_over_raft = object_layer_over_raft;
                 }
