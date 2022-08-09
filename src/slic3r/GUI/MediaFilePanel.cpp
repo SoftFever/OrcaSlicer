@@ -154,6 +154,11 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     parent->GetParent()->Bind(wxEVT_SHOW, onShowHide);
 }
 
+MediaFilePanel::~MediaFilePanel()
+{
+    SetMachineObject(nullptr);
+}
+
 void MediaFilePanel::SetMachineObject(MachineObject* obj)
 {
     std::string machine = obj ? obj->dev_id : "";
