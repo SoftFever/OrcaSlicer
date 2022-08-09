@@ -367,6 +367,8 @@ SelectMachinePopup::SelectMachinePopup(wxWindow *parent)
     Bind(EVT_DISSMISS_MACHINE_LIST, &SelectMachinePopup::on_dissmiss_win, this);
 }
 
+SelectMachinePopup::~SelectMachinePopup() { delete m_refresh_timer; }
+
 void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
 {
     BOOST_LOG_TRIVIAL(trace) << "get_print_info: start";
@@ -2178,7 +2180,7 @@ bool SelectMachineDialog::Show(bool show)
 
 SelectMachineDialog::~SelectMachineDialog()
 {
-    ;
+    delete m_refresh_timer;
 }
 
 EditDevNameDialog::EditDevNameDialog(Plater *plater /*= nullptr*/)

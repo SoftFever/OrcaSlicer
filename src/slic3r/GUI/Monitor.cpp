@@ -129,7 +129,7 @@ MonitorPanel::~MonitorPanel()
 
     if (m_refresh_timer)
         m_refresh_timer->Stop();
-
+    delete m_refresh_timer;
 }
 
  void MonitorPanel::init_bitmap()

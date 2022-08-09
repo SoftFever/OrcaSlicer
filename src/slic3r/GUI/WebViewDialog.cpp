@@ -398,8 +398,11 @@ void WebViewPanel::OnClose(wxCloseEvent& evt)
     this->Hide();
 }
 
-void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event) {
-    Slic3r::GUI::wxGetApp().get_login_info();
+void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event)
+{
+    auto mainframe = Slic3r::GUI::wxGetApp().mainframe;
+    if (mainframe && mainframe->m_webview == this)
+        Slic3r::GUI::wxGetApp().get_login_info();
 }
 
 void WebViewPanel::SendRecentList(wxString const &sequence_id)

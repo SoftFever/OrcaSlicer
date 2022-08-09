@@ -83,6 +83,8 @@ MarkdownTip::MarkdownTip()
     _timer->Bind(wxEVT_TIMER, &MarkdownTip::OnTimer, this);
 }
 
+MarkdownTip::~MarkdownTip() { delete _timer; }
+
 void MarkdownTip::LoadStyle()
 {
     _language = GUI::into_u8(GUI::wxGetApp().current_language_code());
