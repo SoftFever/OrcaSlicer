@@ -253,7 +253,12 @@ void Button::keyDownUp(wxKeyEvent &event)
         GetEventHandler()->ProcessEvent(evt);
         return;
     }
-    event.Skip();
+    if (event.GetEventType() == wxEVT_KEY_DOWN &&
+        (event.GetKeyCode() == WXK_TAB || event.GetKeyCode() == WXK_LEFT || event.GetKeyCode() == WXK_RIGHT 
+        || event.GetKeyCode() == WXK_UP || event.GetKeyCode() == WXK_DOWN))
+        HandleAsNavigationKey(event);
+    else
+        event.Skip();
 }
 
 void Button::sendButtonEvent()
@@ -271,17 +276,10 @@ WXLRESULT Button::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
     if (nMsg == WM_KEYDOWN) {
         wxKeyEvent event(CreateKeyEvent(wxEVT_KEY_DOWN, wParam, lParam));
         switch (wParam) {
-        case WXK_RETURN: {
+        case WXK_RETURN: { // WXK_RETURN key is handled by default button
             GetEventHandler()->ProcessEvent(event);
             return 0;
         }
-        case WXK_TAB:
-        case WXK_LEFT:
-        case WXK_RIGHT:
-        case WXK_UP:
-        case WXK_DOWN:
-            if (HandleAsNavigationKey(event))
-                return 0;
         }
     }
     return wxWindow::MSWWindowProc(nMsg, wParam, lParam);
