@@ -83,6 +83,21 @@ std::vector<std::array<float, 4>> get_extruders_colors()
     return colors_out;
 }
 
+std::array<float, 4> adjust_color_for_rendering(const std::array<float, 4>& colors)
+{
+    if ((colors[0] < 0.1) && (colors[1] < 0.1) && (colors[2] < 0.1))
+    {
+        std::array<float, 4> new_color;
+        new_color[0] = 0.1;
+        new_color[1] = 0.1;
+        new_color[2] = 0.1;
+        new_color[3] = colors[3];
+        return new_color;
+    }
+
+    return colors;
+}
+
 namespace Slic3r {
 
 #if ENABLE_SMOOTH_NORMALS
@@ -488,8 +503,11 @@ void GLVolume::set_render_color()
         else if (is_outside && shader_outside_printer_detection_enabled)
             set_render_color(OUTSIDE_COLOR);
 #endif
-        else
-            set_render_color(color);
+        else {
+            //to make black not too hard too see
+            std::array<float, 4> new_color = adjust_color_for_rendering(color);
+            set_render_color(new_color);
+        }
     }
 
     if (force_transparent)
@@ -708,13 +726,24 @@ void GLVolume::render(bool with_outline) const
                         ModelObject* mo = model_objects[object_idx()];
                         ModelVolume* mv = mo->volumes[volume_idx()];
                         int extruder_id = mv->extruder_id();
-                        shader->set_uniform("uniform_color", colors[extruder_id - 1]);
+                        //shader->set_uniform("uniform_color", colors[extruder_id - 1]);
+                        //to make black not too hard too see
+                        std::array<float, 4> new_color = adjust_color_for_rendering(colors[extruder_id - 1]);
+                        shader->set_uniform("uniform_color", new_color);
                     }
                     else {
-                        if (idx <= colors.size())
-                            shader->set_uniform("uniform_color", colors[idx - 1]);
-                        else
-                            shader->set_uniform("uniform_color", colors[0]);
+                        if (idx <= colors.size()) {
+                            //shader->set_uniform("uniform_color", colors[idx - 1]);
+                            //to make black not too hard too see
+                            std::array<float, 4> new_color = adjust_color_for_rendering(colors[idx - 1]);
+                            shader->set_uniform("uniform_color", new_color);
+                        }
+                        else {
+                            //shader->set_uniform("uniform_color", colors[0]);
+                            //to make black not too hard too see
+                            std::array<float, 4> new_color = adjust_color_for_rendering(colors[0]);
+                            shader->set_uniform("uniform_color", new_color);
+                        }
                     }
                 }
                 iva.render(this->tverts_range, this->qverts_range);
@@ -913,13 +942,23 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
             if (shader) {
                 if (idx == 0) {
                     int extruder_id = model_volume->extruder_id();
-                    shader->set_uniform("uniform_color", extruder_colors[extruder_id - 1]);
+                    //to make black not too hard too see
+                    std::array<float, 4> new_color = adjust_color_for_rendering(extruder_colors[extruder_id - 1]);
+                    shader->set_uniform("uniform_color", new_color);
                 }
                 else {
-                    if (idx <= extruder_colors.size())
-                        shader->set_uniform("uniform_color", extruder_colors[idx - 1]);
-                    else
-                        shader->set_uniform("uniform_color", extruder_colors[0]);
+                    if (idx <= extruder_colors.size()) {
+                        //shader->set_uniform("uniform_color", extruder_colors[idx - 1]);
+                        //to make black not too hard too see
+                        std::array<float, 4> new_color = adjust_color_for_rendering(extruder_colors[idx - 1]);
+                        shader->set_uniform("uniform_color", new_color);
+                    }
+                    else {
+                        //shader->set_uniform("uniform_color", extruder_colors[0]);
+                        //to make black not too hard too see
+                        std::array<float, 4> new_color = adjust_color_for_rendering(extruder_colors[0]);
+                        shader->set_uniform("uniform_color", new_color);
+                    }
                 }
             }
             iva.render(this->tverts_range, this->qverts_range);
@@ -978,8 +1017,10 @@ void GLWipeTowerVolume::render(bool with_outline) const
 
     GLShaderProgram* shader = GUI::wxGetApp().get_current_shader();
     for (int i = 0; i < m_colors.size(); i++) {
-        if (shader)
-            shader->set_uniform("uniform_color", m_colors[i]);
+        if (shader) {
+            std::array<float, 4> new_color = adjust_color_for_rendering(m_colors[i]);
+            shader->set_uniform("uniform_color", new_color);
+        }
         this->iva_per_colors[i].render();
     }
 

@@ -31,6 +31,8 @@
     #define glcheck()
 #endif // HAS_GLSAFE
 extern std::vector<std::array<float, 4>> get_extruders_colors();
+extern std::array<float, 4> adjust_color_for_rendering(const std::array<float, 4>& colors);
+
 
 namespace Slic3r {
 class SLAPrintObject;
