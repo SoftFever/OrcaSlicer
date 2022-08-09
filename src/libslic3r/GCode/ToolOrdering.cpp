@@ -474,7 +474,8 @@ void ToolOrdering::reorder_extruders(std::vector<unsigned int> tool_order_layer0
     if (m_layer_tools.empty())
         return;
 
-    assert(!tool_order_layer0.empty());
+    if (tool_order_layer0.empty())
+        return;
 
     // Reorder the extruders of first layer
     {
