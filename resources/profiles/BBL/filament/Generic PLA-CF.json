@@ -18,6 +18,9 @@
     "slow_down_layer_time": [
         "7"
     ],
+    "additional_cooling_fan_speed": [
+        "0"
+    ],
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.4 nozzle"
     ]
