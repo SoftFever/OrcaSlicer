@@ -48,25 +48,21 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
     text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {5, 5}, wxDefaultSize, wxTE_PROCESS_ENTER | wxBORDER_NONE, wxTextValidator(wxFILTER_NUMERIC), wxTextCtrlNameStr);
     text_ctrl->SetMaxLength(3);
     state_handler.attach_child(text_ctrl);
-
     text_ctrl->Bind(wxEVT_SET_FOCUS, [this](auto &e) {
+        e.Skip();
         if (m_read_only) return;
-        e.SetId(GetId());
-        ProcessEventLocally(e);
-
-        //enter input mode
+        // enter input mode
         auto temp = text_ctrl->GetValue();
         if (temp.length() > 0 && temp[0] == (0x5f)) { 
             text_ctrl->SetValue(wxEmptyString);
         }
-
         if (wdialog != nullptr) { wdialog->Dismiss(); }
+    });
+    text_ctrl->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
+        if (m_read_only) { SetCursor(wxCURSOR_ARROW); }
     });
     text_ctrl->Bind(wxEVT_KILL_FOCUS, [this](auto &e) {
         OnEdit();
-        e.SetId(GetId());
-        ProcessEventLocally(e);
-
         auto temp = text_ctrl->GetValue();
         if (temp.ToStdString().empty()) {
             text_ctrl->SetValue(wxString("_"));
@@ -90,9 +86,6 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
     });
     text_ctrl->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent &e) {
         OnEdit();
-        e.SetId(GetId());
-        ProcessEventLocally(e);
-
         auto temp = text_ctrl->GetValue();
         if (temp.ToStdString().empty()) return;
         if (!AllisNum(temp.ToStdString())) return;
