@@ -1,511 +1,364 @@
 var cData={
-		"filament": {
-			"BBL PA-CF @BBL": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "BBL PA-CF @BBL",
-				"selected": 1,
-				"sub_path": "filament/BBL PA-CF @BBL.json",
-				"type": "PA6+CF",
-				"vendor": "BBL"
-			},
-			"Generic ABS": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "Generic ABS",
-				"selected": 1,
-				"sub_path": "filament/Generic ABS.json",
-				"type": "ABS",
-				"vendor": "Unknow"
-			},
-			"Generic PETG": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "Generic PETG",
-				"selected": 1,
-				"sub_path": "filament/Generic PETG.json",
-				"type": "PET",
-				"vendor": "Unknow"
-			},
-			"Generic PLA": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "Generic PLA",
-				"selected": 1,
-				"sub_path": "filament/Generic PLA.json",
-				"type": "PLA",
-				"vendor": "Unknow"
-			},
-			"Generic TPU": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "Generic TPU",
-				"selected": 0,
-				"sub_path": "filament/Generic TPU.json",
-				"type": "TPU",
-				"vendor": "Unknow"
-			},
-			"Generic TPU83": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "Generic TPU83",
-				"selected": 1,
-				"sub_path": "filament/Generic TPU83.json",
-				"type": "TPU",
-				"vendor": "Unknow"
-			},
-			"Generic TPU87": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "Generic TPU87",
-				"selected": 1,
-				"sub_path": "filament/Generic TPU87.json",
-				"type": "TPU",
-				"vendor": "Unknow"
-			},
-			"Generic TPU90": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "Generic TPU90",
-				"selected": 0,
-				"sub_path": "filament/Generic TPU90.json",
-				"type": "TPU",
-				"vendor": "Unknow"
-			},
-			"Generic TPU95": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "Generic TPU95",
-				"selected": 1,
-				"sub_path": "filament/Generic TPU95.json",
-				"type": "TPU",
-				"vendor": "Unknow"
-			},
-			"K5 ABS @Kexcelled": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "K5 ABS @Kexcelled",
-				"selected": 0,
-				"sub_path": "filament/K5 ABS @Kexcelled.json",
-				"type": "ABS",
-				"vendor": "Kexcelled"
-			},
-			"K5 ASA @Kexcelled": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "K5 ASA @Kexcelled",
-				"selected": 0,
-				"sub_path": "filament/K5 ASA @Kexcelled.json",
-				"type": "ABS",
-				"vendor": "Kexcelled"
-			},
-			"K5 PETG @Kexcelled": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "K5 PETG @Kexcelled",
-				"selected": 0,
-				"sub_path": "filament/K5 PETG @Kexcelled.json",
-				"type": "PET",
-				"vendor": "Kexcelled"
-			},
-			"K5 PLA Magic @Kexcelled": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "K5 PLA Magic @Kexcelled",
-				"selected": 0,
-				"sub_path": "filament/K5 PLA Magic @Kexcelled.json",
-				"type": "PLA",
-				"vendor": "Kexcelled"
-			},
-			"K5 PLA Wood @Kexcelled": {
-				"models": "",
-				"name": "K5 PLA Wood @Kexcelled",
-				"selected": 0,
-				"sub_path": "filament/K5 PLA Wood @Kexcelled.json",
-				"type": "PLA",
-				"vendor": "Kexcelled"
-			},
-			"K5 PLA~ @Kexcelled": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "K5 PLA~ @Kexcelled",
-				"selected": 0,
-				"sub_path": "filament/K5 PLA~ @Kexcelled.json",
-				"type": "PLA",
-				"vendor": "Kexcelled"
-			},
-			"K5 Silk PLA~ @Kexcelled": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "K5 Silk PLA~ @Kexcelled",
-				"selected": 0,
-				"sub_path": "filament/K5 Silk PLA~ @Kexcelled.json",
-				"type": "PLA",
-				"vendor": "Kexcelled"
-			},
-			"K5 Sparkle PLA @Kexcelled": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "K5 Sparkle PLA @Kexcelled",
-				"selected": 0,
-				"sub_path": "filament/K5 Sparkle PLA @Kexcelled.json",
-				"type": "PLA",
-				"vendor": "Kexcelled"
-			},
-			"K5M PLA~ @Kexcelled": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "K5M PLA~ @Kexcelled",
-				"selected": 0,
-				"sub_path": "filament/K5M PLA~ @Kexcelled.json",
-				"type": "PLA",
-				"vendor": "Kexcelled"
-			},
-			"K5P PLA~ @Kexcelled": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "K5P PLA~ @Kexcelled",
-				"selected": 0,
-				"sub_path": "filament/K5P PLA~ @Kexcelled.json",
-				"type": "PLA",
-				"vendor": "Kexcelled"
-			},
-			"K5T ABS @Kexcelled": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "K5T ABS @Kexcelled",
-				"selected": 0,
-				"sub_path": "filament/K5T ABS @Kexcelled.json",
-				"type": "ABS",
-				"vendor": "Kexcelled"
-			},
-			"K6 PETG @Kexcelled": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "K6 PETG @Kexcelled",
-				"selected": 0,
-				"sub_path": "filament/K6 PETG @Kexcelled.json",
-				"type": "PET",
-				"vendor": "Kexcelled"
-			},
-			"K6 PLA~ @Kexcelled": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "K6 PLA~ @Kexcelled",
-				"selected": 0,
-				"sub_path": "filament/K6 PLA~ @Kexcelled.json",
-				"type": "PLA",
-				"vendor": "Kexcelled"
-			},
-			"K6CF PLA~ @Kexcelled ": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "K6CF PLA~ @Kexcelled ",
-				"selected": 0,
-				"sub_path": "filament/K6CF PLA~ @Kexcelled.json",
-				"type": "PLA",
-				"vendor": "Kexcelled"
-			},
-			"K7 PC @Kexcelled ": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "K7 PC @Kexcelled ",
-				"selected": 0,
-				"sub_path": "filament/K7 PC @Kexcelled.json",
-				"type": "PC",
-				"vendor": "Kexcelled"
-			},
-			"K7CF PAHT @Kexcelled": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "K7CF PAHT @Kexcelled",
-				"selected": 0,
-				"sub_path": "filament/K7CF PAHT @Kexcelled.json",
-				"type": "PA6+CF",
-				"vendor": "Kexcelled"
-			},
-			"K7CF PET @Kexcelled": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "K7CF PET @Kexcelled",
-				"selected": 0,
-				"sub_path": "filament/K7CF PET @Kexcelled.json",
-				"type": "PET",
-				"vendor": "Kexcelled"
-			},
-			"K7CFLM PAHT @Kexcelled": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "K7CFLM PAHT @Kexcelled",
-				"selected": 0,
-				"sub_path": "filament/K7CFLM PAHT @Kexcelled.json",
-				"type": "PA6+CF",
-				"vendor": "Kexcelled"
-			},
-			"PLA Silk with Glue @ALL": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PLA Silk with Glue @ALL",
-				"selected": 0,
-				"sub_path": "filament/PLA Silk with Glue @ALL.json",
-				"type": "PLA",
-				"vendor": "ALL"
-			},
-			"PLA with Glue except Silk @ALL": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PLA with Glue except Silk @ALL",
-				"selected": 0,
-				"sub_path": "filament/PLA with Glue except Silk @ALL.json",
-				"type": "PLA",
-				"vendor": "ALL"
-			},
-			"PolyDissolve @Polymaker": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PolyDissolve @Polymaker",
-				"selected": 0,
-				"sub_path": "filament/PolyDissolve @Polymaker.json",
-				"type": "PLA",
-				"vendor": "Polymaker"
-			},
-			"PolyFlex TPU95HF @Polymaker": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PolyFlex TPU95HF @Polymaker",
-				"selected": 0,
-				"sub_path": "filament/PolyFlex TPU95HF @Polymaker.json",
-				"type": "TPU",
-				"vendor": "Polymaker"
-			},
-			"PolyLite ABS @Polymaker": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PolyLite ABS @Polymaker",
-				"selected": 0,
-				"sub_path": "filament/PolyLite ABS @Polymaker.json",
-				"type": "ABS",
-				"vendor": "Polymaker"
-			},
-			"PolyLite ASA @Polymaker": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PolyLite ASA @Polymaker",
-				"selected": 0,
-				"sub_path": "filament/PolyLite ASA @Polymaker.json",
-				"type": "ABS",
-				"vendor": "Polymaker"
-			},
-			"PolyLite PC @Polymaker": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PolyLite PC @Polymaker",
-				"selected": 0,
-				"sub_path": "filament/PolyLite PC @Polymaker.json",
-				"type": "PC",
-				"vendor": "Polymaker"
-			},
-			"PolyLite PETG @Polymaker": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PolyLite PETG @Polymaker",
-				"selected": 0,
-				"sub_path": "filament/PolyLite PETG @Polymaker.json",
-				"type": "PET",
-				"vendor": "Polymaker"
-			},
-			"PolyLite PLA Pro~ @Polymaker": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PolyLite PLA Pro~ @Polymaker",
-				"selected": 0,
-				"sub_path": "filament/PolyLite PLA Pro~ @Polymaker.json",
-				"type": "PLA",
-				"vendor": "Polymaker"
-			},
-			"PolyLite PLA Silk~ @Polymaker": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PolyLite PLA Silk~ @Polymaker",
-				"selected": 0,
-				"sub_path": "filament/PolyLite PLA Silk~ @Polymaker.json",
-				"type": "PLA",
-				"vendor": "Polymaker"
-			},
-			"PolyLite PLA~ @Polymaker": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PolyLite PLA~ @Polymaker",
-				"selected": 0,
-				"sub_path": "filament/PolyLite PLA~ @Polymaker.json",
-				"type": "PLA",
-				"vendor": "Polymaker"
-			},
-			"PolyMax PC @Polymaker": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PolyMax PC @Polymaker",
-				"selected": 0,
-				"sub_path": "filament/PolyMax PC @Polymaker.json",
-				"type": "PC",
-				"vendor": "Polymaker"
-			},
-			"PolyMax PETG @Polymaker": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PolyMax PETG @Polymaker",
-				"selected": 0,
-				"sub_path": "filament/PolyMax PETG @Polymaker.json",
-				"type": "PET",
-				"vendor": "Polymaker"
-			},
-			"PolyMax PLA~ @Polymaker": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PolyMax PLA~ @Polymaker",
-				"selected": 0,
-				"sub_path": "filament/PolyMax PLA~ @Polymaker.json",
-				"type": "PLA",
-				"vendor": "Polymaker"
-			},
-			"PolyMide CoPA @Polymaker": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PolyMide CoPA @Polymaker",
-				"selected": 0,
-				"sub_path": "filament/PolyMide CoPA @Polymaker.json",
-				"type": "PA6+CF",
-				"vendor": "Polymaker"
-			},
-			"PolyMide PA12-CF @Polymaker": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PolyMide PA12-CF @Polymaker",
-				"selected": 0,
-				"sub_path": "filament/PolyMide PA12-CF @Polymaker.json",
-				"type": "PA6+CF",
-				"vendor": "Polymaker"
-			},
-			"PolyMide PA6-CF @Polymaker": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PolyMide PA6-CF @Polymaker",
-				"selected": 0,
-				"sub_path": "filament/PolyMide PA6-CF @Polymaker.json",
-				"type": "PA6+CF",
-				"vendor": "Polymaker"
-			},
-			"PolyMide PA6-GF @Polymaker": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PolyMide PA6-GF @Polymaker",
-				"selected": 0,
-				"sub_path": "filament/PolyMide PA6-GF @Polymaker.json",
-				"type": "PA6+CF",
-				"vendor": "Polymaker"
-			},
-			"PolySupport @Polymaker": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PolySupport @Polymaker",
-				"selected": 0,
-				"sub_path": "filament/PolySupport @Polymaker.json",
-				"type": "PLA",
-				"vendor": "Polymaker"
-			},
-			"PolyTerra PLA~ @Polymaker": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PolyTerra PLA~ @Polymaker",
-				"selected": 0,
-				"sub_path": "filament/PolyTerra PLA~ @Polymaker.json",
-				"type": "PLA",
-				"vendor": "Polymaker"
-			},
-			"PolyWood PLA~ @Polymaker": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "PolyWood PLA~ @Polymaker",
-				"selected": 0,
-				"sub_path": "filament/PolyWood PLA~ @Polymaker.json",
-				"type": "PLA",
-				"vendor": "Polymaker"
-			},
-			"eSUN ABS @eSUN": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "eSUN ABS @eSUN",
-				"selected": 0,
-				"sub_path": "filament/eSUN ABS @eSUN.json",
-				"type": "ABS",
-				"vendor": "eSUN"
-			},
-			"eSUN ABS+ @eSUN": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "eSUN ABS+ @eSUN",
-				"selected": 0,
-				"sub_path": "filament/eSUN ABS+ @eSUN.json",
-				"type": "ABS",
-				"vendor": "eSUN"
-			},
-			"eSUN PETG @eSUN": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "eSUN PETG @eSUN",
-				"selected": 0,
-				"sub_path": "filament/eSUN PETG @eSUN.json",
-				"type": "PET",
-				"vendor": "eSUN"
-			},
-			"eSUN PLA @eSUN": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "eSUN PLA @eSUN",
-				"selected": 0,
-				"sub_path": "filament/eSUN PLA @eSUN.json",
-				"type": "PLA",
-				"vendor": "eSUN"
-			},
-			"eSUN PLA Matte~ @eSUN": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "eSUN PLA Matte~ @eSUN",
-				"selected": 0,
-				"sub_path": "filament/eSUN PLA Matte~ @eSUN.json",
-				"type": "PLA",
-				"vendor": "eSUN"
-			},
-			"eSUN PLA ST @eSUN": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "eSUN PLA ST @eSUN",
-				"selected": 0,
-				"sub_path": "filament/eSUN PLA ST @eSUN.json",
-				"type": "PLA",
-				"vendor": "eSUN"
-			},
-			"eSUN PLA Silk~ @eSUN": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "eSUN PLA Silk~ @eSUN",
-				"selected": 0,
-				"sub_path": "filament/eSUN PLA Silk~ @eSUN.json",
-				"type": "PLA",
-				"vendor": "eSUN"
-			},
-			"eSUN PLA+~ @eSUN": {
-				"models": "[BBL-3DP-V5NORMAL]",
-				"name": "eSUN PLA+~ @eSUN",
-				"selected": 0,
-				"sub_path": "filament/eSUN PLA+~ @eSUN.json",
-				"type": "PLA",
-				"vendor": "eSUN"
-			}
+	"filament": {
+		"Bambu ABS @BBL X1C": {
+			"models": "[Bambu Lab X1 Carbon++0.4][Bambu Lab X1++0.4][Bambu Lab X1 Carbon++0.6]",
+			"name": "Bambu ABS @BBL X1C",
+			"selected": 1,
+			"sub_path": "filament/Bambu ABS @BBL X1C.json",
+			"type": "ABS",
+			"vendor": "Bambu Lab"
 		},
-		"machine": [
-			{
-				"model": "BBL-3DP-V5NORMAL",
-				"name": "Bambulab BBL-3DP-001-V5-normal",
-				"sub_path": "machine/Bambulab BBL-3DP-001-V5-normal.json"
-			}
-		],
-		"model": [
-			{
-				"cover": "E:\\Document\\DevCode\\Slicer2\\bamboo_slicer\\build\\src\\Debug\\resources\\profiles\\BBL\\BBL-3DP-V5NORMAL_cover.png",
-				"materials": "Generic PLA;PolyDissolve @Polymaker;PolyFlex TPU95HF @Polymaker;K5 Sparkle PLA @Kexcelled;Rock PLA @Polymaker;Generic TPU95;Generic TPU90;Generic TPU87;Generic TPU83;PolyMide CoPA @Polymaker;PolyMide PA6-GF @Polymaker;PolyMide PA12-CF @Polymaker;PolyMide PA6-CF @Polymaker;PolyLite ASA @Polymaker;K5 ASA @Kexcelled;K5T ABS @Kexcelled;PLA with Glue except Silk @ALL;PLA Silk with Glue @ALL;PolyTerra PLA~ @Polymaker; PolyLite PLA~ @Polymaker; PolyLite PLA Pro~ @Polymaker; PolyLite PLA Silk~ @Polymaker; PolyMax PLA~ @Polymaker; PolyWood PLA~ @Polymaker;K5 Silk PLA~ @Kexcelled;K5 PLA~ @Kexcelled;K6 PLA~ @Kexcelled;K6CF PLA~ @Kexcelled;K5M PLA~ @Kexcelled;K5P PLA~ @Kexcelled;eSUN PLA @eSUN; eSUN PLA+~ @eSUN; eSUN PLA Matte~ @eSUN; eSUN PLA Silk~ @eSUN; eSUN PLA ST @eSUN; PolyLite ABS @Polymaker; K5 ABS @Kexcelled; eSUN ABS @eSUN; eSUN ABS+ @eSUN; K5 PETG @Kexcelled; K6 PETG @Kexcelled; PolyMax PETG @Polymaker; PolyLite PETG @Polymaker; eSUN PETG @eSUN; PolySupport @Polymaker;K7CF PET @Kexcelled;K7CFLM PAHT @Kexcelled;K7CF PAHT @Kexcelled; K7LM PAHT @Kexcelled; BBL PA-CF @BBL;K7 PC @Kexcelled; PolyLite PC @Polymaker; PolyMax PC @Polymaker;K5 PLA Magic @Kexcelled;",
-				"model": "BBL-3DP-V5NORMAL",
-				"nozzle_diameter": "0.4;0.2",
-				"nozzle_selected": "0.4",
-				"sub_path": "machine/BBL-3DP-V5NORMAL.json",
-				"vendor": "BBL"
-			}
-		],
-		"process": [
-			{
-				"name": "0.08mm SUPERDETAIL @BBL-3DP",
-				"sub_path": "process/0.08mm SUPERDETAIL @BBL-3DP.json"
-			},
-			{
-				"name": "0.10mm HIGHDETAIL @BBL-3DP",
-				"sub_path": "process/0.10mm HIGHDETAIL @BBL-3DP.json"
-			},
-			{
-				"name": "0.12mm DETAIL @BBL-3DP",
-				"sub_path": "process/0.12mm DETAIL @BBL-3DP.json"
-			},
-			{
-				"name": "0.16mm OPTIMAL @BBL-3DP",
-				"sub_path": "process/0.16mm OPTIMAL @BBL-3DP.json"
-			},
-			{
-				"name": "0.20mm NORMAL @BBL-3DP",
-				"sub_path": "process/0.20mm NORMAL @BBL-3DP.json"
-			},
-			{
-				"name": "0.24mm DRAFT @BBL-3DP",
-				"sub_path": "process/0.24mm DRAFT @BBL-3DP.json"
-			},
-			{
-				"name": "0.28mm SUPERDRAFT @BBL-3DP",
-				"sub_path": "process/0.28mm SUPERDRAFT @BBL-3DP.json"
-			},
-			{
-				"name": "0.20mm TreeSupport @BBL-3DP",
-				"sub_path": "process/0.20mm TreeSupport @BBL-3DP.json"
-			},
-			{
-				"name": "0.20mm PolySupport @BBL-3DP",
-				"sub_path": "process/0.20mm PolySupport @BBL-3DP.json"
-			}
-		]
-	};
+		"Bambu ABS @BBL X1C 0.2 nozzle": {
+			"models": "[Bambu Lab X1 Carbon++0.2]",
+			"name": "Bambu ABS @BBL X1C 0.2 nozzle",
+			"selected": 1,
+			"sub_path": "filament/Bambu ABS @BBL X1C 0.2 nozzle.json",
+			"type": "ABS",
+			"vendor": "Bambu Lab"
+		},
+		"Bambu ABS @BBL X1C 0.8 nozzle": {
+			"models": "[Bambu Lab X1 Carbon++0.8]",
+			"name": "Bambu ABS @BBL X1C 0.8 nozzle",
+			"selected": 1,
+			"sub_path": "filament/Bambu ABS @BBL X1C 0.8 nozzle.json",
+			"type": "ABS",
+			"vendor": "Bambu Lab"
+		},
+		"Bambu PA-CF @BBL X1C": {
+			"models": "[Bambu Lab X1 Carbon++0.4]",
+			"name": "Bambu PA-CF @BBL X1C",
+			"selected": 0,
+			"sub_path": "filament/Bambu PA-CF @BBL X1C.json",
+			"type": "PA-CF",
+			"vendor": "Bambu Lab"
+		},
+		"Bambu PC @BBL X1C": {
+			"models": "[Bambu Lab X1 Carbon++0.4][Bambu Lab X1++0.4][Bambu Lab X1 Carbon++0.6]",
+			"name": "Bambu PC @BBL X1C",
+			"selected": 1,
+			"sub_path": "filament/Bambu PC @BBL X1C.json",
+			"type": "PC",
+			"vendor": "Bambu Lab"
+		},
+		"Bambu PC @BBL X1C 0.8 nozzle": {
+			"models": "[Bambu Lab X1 Carbon++0.8]",
+			"name": "Bambu PC @BBL X1C 0.8 nozzle",
+			"selected": 1,
+			"sub_path": "filament/Bambu PC @BBL X1C 0.8 nozzle.json",
+			"type": "PC",
+			"vendor": "Bambu Lab"
+		},
+		"Bambu PLA Basic @BBL X1": {
+			"models": "[Bambu Lab X1++0.4]",
+			"name": "Bambu PLA Basic @BBL X1",
+			"selected": 1,
+			"sub_path": "filament/Bambu PLA Basic @BBL X1.json",
+			"type": "PLA",
+			"vendor": "Bambu Lab"
+		},
+		"Bambu PLA Basic @BBL X1C": {
+			"models": "[Bambu Lab X1 Carbon++0.4][Bambu Lab X1 Carbon++0.6]",
+			"name": "Bambu PLA Basic @BBL X1C",
+			"selected": 1,
+			"sub_path": "filament/Bambu PLA Basic @BBL X1C.json",
+			"type": "PLA",
+			"vendor": "Bambu Lab"
+		},
+		"Bambu PLA Basic @BBL X1C 0.2 nozzle": {
+			"models": "[Bambu Lab X1 Carbon++0.2]",
+			"name": "Bambu PLA Basic @BBL X1C 0.2 nozzle",
+			"selected": 1,
+			"sub_path": "filament/Bambu PLA Basic @BBL X1C 0.2 nozzle.json",
+			"type": "PLA",
+			"vendor": "Bambu Lab"
+		},
+		"Bambu PLA Basic @BBL X1C 0.8 nozzle": {
+			"models": "[Bambu Lab X1 Carbon++0.8]",
+			"name": "Bambu PLA Basic @BBL X1C 0.8 nozzle",
+			"selected": 1,
+			"sub_path": "filament/Bambu PLA Basic @BBL X1C 0.8 nozzle.json",
+			"type": "PLA",
+			"vendor": "Bambu Lab"
+		},
+		"Bambu PLA Matte @BBL X1": {
+			"models": "[Bambu Lab X1++0.4]",
+			"name": "Bambu PLA Matte @BBL X1",
+			"selected": 1,
+			"sub_path": "filament/Bambu PLA Matte @BBL X1.json",
+			"type": "PLA",
+			"vendor": "Bambu Lab"
+		},
+		"Bambu PLA Matte @BBL X1C": {
+			"models": "[Bambu Lab X1 Carbon++0.4][Bambu Lab X1 Carbon++0.6]",
+			"name": "Bambu PLA Matte @BBL X1C",
+			"selected": 1,
+			"sub_path": "filament/Bambu PLA Matte @BBL X1C.json",
+			"type": "PLA",
+			"vendor": "Bambu Lab"
+		},
+		"Bambu PLA Matte @BBL X1C 0.2 nozzle": {
+			"models": "[Bambu Lab X1 Carbon++0.2]",
+			"name": "Bambu PLA Matte @BBL X1C 0.2 nozzle",
+			"selected": 1,
+			"sub_path": "filament/Bambu PLA Matte @BBL X1C 0.2 nozzle.json",
+			"type": "PLA",
+			"vendor": "Bambu Lab"
+		},
+		"Bambu PLA Matte @BBL X1C 0.8 nozzle": {
+			"models": "[Bambu Lab X1 Carbon++0.8]",
+			"name": "Bambu PLA Matte @BBL X1C 0.8 nozzle",
+			"selected": 1,
+			"sub_path": "filament/Bambu PLA Matte @BBL X1C 0.8 nozzle.json",
+			"type": "PLA",
+			"vendor": "Bambu Lab"
+		},
+		"Bambu Support G @BBL X1C": {
+			"models": "[Bambu Lab X1 Carbon++0.4]",
+			"name": "Bambu Support G @BBL X1C",
+			"selected": 0,
+			"sub_path": "filament/Bambu Support G @BBL X1C.json",
+			"type": "PA",
+			"vendor": "Bambu Lab"
+		},
+		"Bambu Support W @BBL X1": {
+			"models": "[Bambu Lab X1++0.4]",
+			"name": "Bambu Support W @BBL X1",
+			"selected": 1,
+			"sub_path": "filament/Bambu Support W @BBL X1.json",
+			"type": "PLA",
+			"vendor": "Bambu Lab"
+		},
+		"Bambu Support W @BBL X1C": {
+			"models": "[Bambu Lab X1 Carbon++0.4]",
+			"name": "Bambu Support W @BBL X1C",
+			"selected": 1,
+			"sub_path": "filament/Bambu Support W @BBL X1C.json",
+			"type": "PLA",
+			"vendor": "Bambu Lab"
+		},
+		"Bambu TPU 95A @BBL X1": {
+			"models": "[Bambu Lab X1++0.4]",
+			"name": "Bambu TPU 95A @BBL X1",
+			"selected": 1,
+			"sub_path": "filament/Bambu TPU 95A @BBL X1.json",
+			"type": "TPU",
+			"vendor": "Bambu Lab"
+		},
+		"Bambu TPU 95A @BBL X1C": {
+			"models": "[Bambu Lab X1 Carbon++0.4][Bambu Lab X1 Carbon++0.6][Bambu Lab X1 Carbon++0.8]",
+			"name": "Bambu TPU 95A @BBL X1C",
+			"selected": 1,
+			"sub_path": "filament/Bambu TPU 95A @BBL X1C.json",
+			"type": "TPU",
+			"vendor": "Bambu Lab"
+		},
+		"Generic ABS": {
+			"models": "[Bambu Lab X1 Carbon++0.4][Bambu Lab X1++0.4]",
+			"name": "Generic ABS",
+			"selected": 0,
+			"sub_path": "filament/Generic ABS.json",
+			"type": "ABS",
+			"vendor": "Generic"
+		},
+		"Generic ASA": {
+			"models": "[Bambu Lab X1 Carbon++0.4][Bambu Lab X1++0.4]",
+			"name": "Generic ASA",
+			"selected": 0,
+			"sub_path": "filament/Generic ASA.json",
+			"type": "ASA",
+			"vendor": "Generic"
+		},
+		"Generic PA": {
+			"models": "[Bambu Lab X1 Carbon++0.4]",
+			"name": "Generic PA",
+			"selected": 0,
+			"sub_path": "filament/Generic PA.json",
+			"type": "PA",
+			"vendor": "Generic"
+		},
+		"Generic PA-CF": {
+			"models": "[Bambu Lab X1 Carbon++0.4]",
+			"name": "Generic PA-CF",
+			"selected": 0,
+			"sub_path": "filament/Generic PA-CF.json",
+			"type": "PA-CF",
+			"vendor": "Generic"
+		},
+		"Generic PC": {
+			"models": "[Bambu Lab X1 Carbon++0.4]",
+			"name": "Generic PC",
+			"selected": 0,
+			"sub_path": "filament/Generic PC.json",
+			"type": "PC",
+			"vendor": "Generic"
+		},
+		"Generic PETG": {
+			"models": "[Bambu Lab X1 Carbon++0.4][Bambu Lab X1++0.4]",
+			"name": "Generic PETG",
+			"selected": 0,
+			"sub_path": "filament/Generic PETG.json",
+			"type": "PETG",
+			"vendor": "Generic"
+		},
+		"Generic PLA": {
+			"models": "[Bambu Lab X1 Carbon++0.4][Bambu Lab X1++0.4]",
+			"name": "Generic PLA",
+			"selected": 1,
+			"sub_path": "filament/Generic PLA.json",
+			"type": "PLA",
+			"vendor": "Generic"
+		},
+		"Generic PLA-CF": {
+			"models": "[Bambu Lab X1 Carbon++0.4]",
+			"name": "Generic PLA-CF",
+			"selected": 0,
+			"sub_path": "filament/Generic PLA-CF.json",
+			"type": "PLA-CF",
+			"vendor": "Generic"
+		},
+		"Generic PVA": {
+			"models": "[Bambu Lab X1 Carbon++0.4][Bambu Lab X1++0.4]",
+			"name": "Generic PVA",
+			"selected": 0,
+			"sub_path": "filament/Generic PVA.json",
+			"type": "PVA",
+			"vendor": "Generic"
+		},
+		"Generic TPU": {
+			"models": "[Bambu Lab X1 Carbon++0.4][Bambu Lab X1++0.4]",
+			"name": "Generic TPU",
+			"selected": 0,
+			"sub_path": "filament/Generic TPU.json",
+			"type": "TPU",
+			"vendor": "Generic"
+		},
+		"PolyLite PLA @BBL X1": {
+			"models": "[Bambu Lab X1++0.4]",
+			"name": "PolyLite PLA @BBL X1",
+			"selected": 1,
+			"sub_path": "filament/PolyLite PLA @BBL X1.json",
+			"type": "PLA",
+			"vendor": "Polymaker"
+		},
+		"PolyLite PLA @BBL X1C": {
+			"models": "[Bambu Lab X1 Carbon++0.4]",
+			"name": "PolyLite PLA @BBL X1C",
+			"selected": 1,
+			"sub_path": "filament/PolyLite PLA @BBL X1C.json",
+			"type": "PLA",
+			"vendor": "Polymaker"
+		},
+		"PolyTerra PLA @BBL X1": {
+			"models": "[Bambu Lab X1++0.4]",
+			"name": "PolyTerra PLA @BBL X1",
+			"selected": 1,
+			"sub_path": "filament/PolyTerra PLA @BBL X1.json",
+			"type": "PLA",
+			"vendor": "Polymaker"
+		},
+		"PolyTerra PLA @BBL X1C": {
+			"models": "[Bambu Lab X1 Carbon++0.4]",
+			"name": "PolyTerra PLA @BBL X1C",
+			"selected": 1,
+			"sub_path": "filament/PolyTerra PLA @BBL X1C.json",
+			"type": "PLA",
+			"vendor": "Polymaker"
+		}
+	},
+	"machine": {
+		"Bambu Lab X1 0.4 nozzle": {
+			"model": "Bambu Lab X1",
+			"name": "Bambu Lab X1 0.4 nozzle",
+			"nozzle": "0.4",
+			"sub_path": "machine/Bambu Lab X1 0.4 nozzle.json"
+		},
+		"Bambu Lab X1 Carbon 0.2 nozzle": {
+			"model": "Bambu Lab X1 Carbon",
+			"name": "Bambu Lab X1 Carbon 0.2 nozzle",
+			"nozzle": "0.2",
+			"sub_path": "machine/Bambu Lab X1 Carbon 0.2 nozzle.json"
+		},
+		"Bambu Lab X1 Carbon 0.4 nozzle": {
+			"model": "Bambu Lab X1 Carbon",
+			"name": "Bambu Lab X1 Carbon 0.4 nozzle",
+			"nozzle": "0.4",
+			"sub_path": "machine/Bambu Lab X1 Carbon 0.4 nozzle.json"
+		},
+		"Bambu Lab X1 Carbon 0.6 nozzle": {
+			"model": "Bambu Lab X1 Carbon",
+			"name": "Bambu Lab X1 Carbon 0.6 nozzle",
+			"nozzle": "0.6",
+			"sub_path": "machine/Bambu Lab X1 Carbon 0.6 nozzle.json"
+		},
+		"Bambu Lab X1 Carbon 0.8 nozzle": {
+			"model": "Bambu Lab X1 Carbon",
+			"name": "Bambu Lab X1 Carbon 0.8 nozzle",
+			"nozzle": "0.8",
+			"sub_path": "machine/Bambu Lab X1 Carbon 0.8 nozzle.json"
+		}
+	},
+	"model": [
+		{
+			"cover": "C:\\Users\\zorro\\AppData\\Roaming\\BambuStudio\\system\\BBL\\Bambu Lab X1 Carbon_cover.png",
+			"materials": "Generic PLA;Bambu PLA Matte @BBL X1C;Bambu PLA Basic @BBL X1C;Bambu ABS @BBL X1C;Bambu PC @BBL X1C;Bambu Support W @BBL X1C;Bambu TPU 95A @BBL X1C;PolyTerra PLA @BBL X1C;PolyLite PLA @BBL X1C;",
+			"model": "Bambu Lab X1 Carbon",
+			"nozzle_diameter": "0.4;0.2;0.6;0.8",
+			"nozzle_selected": "0.2;0.6",
+			"sub_path": "machine/Bambu Lab X1 Carbon.json",
+			"vendor": "BBL"
+		},
+		{
+			"cover": "C:\\Users\\zorro\\AppData\\Roaming\\BambuStudio\\system\\BBL\\Bambu Lab X1_cover.png",
+			"materials": "Generic PLA;Bambu PLA Matte @BBL X1;Bambu PLA Basic @BBL X1;Bambu ABS @BBL X1C;Bambu PC @BBL X1C;Bambu Support W @BBL X1;Bambu TPU 95A @BBL X1;PolyTerra PLA @BBL X1;PolyLite PLA @BBL X1;",
+			"model": "Bambu Lab X1",
+			"nozzle_diameter": "0.4",
+			"nozzle_selected": "0.4",
+			"sub_path": "machine/Bambu Lab X1.json",
+			"vendor": "BBL"
+		}
+	],
+	"network_plugin_compability": "0",
+	"network_plugin_install": "1",
+	"process": [
+		{
+			"name": "0.08mm Extra Fine @BBL X1C",
+			"sub_path": "process/0.08mm Extra Fine @BBL X1C.json"
+		},
+		{
+			"name": "0.12mm Fine @BBL X1C",
+			"sub_path": "process/0.12mm Fine @BBL X1C.json"
+		},
+		{
+			"name": "0.16mm Optimal @BBL X1C",
+			"sub_path": "process/0.16mm Optimal @BBL X1C.json"
+		},
+		{
+			"name": "0.20mm Standard @BBL X1C",
+			"sub_path": "process/0.20mm Standard @BBL X1C.json"
+		},
+		{
+			"name": "0.24mm Draft @BBL X1C",
+			"sub_path": "process/0.24mm Draft @BBL X1C.json"
+		},
+		{
+			"name": "0.28mm Extra Draft @BBL X1C",
+			"sub_path": "process/0.28mm Extra Draft @BBL X1C.json"
+		},
+		{
+			"name": "0.10mm Standard @BBL X1C 0.2 nozzle",
+			"sub_path": "process/0.10mm Standard @BBL X1C 0.2 nozzle.json"
+		},
+		{
+			"name": "0.30mm Standard @BBL X1C 0.6 nozzle",
+			"sub_path": "process/0.30mm Standard @BBL X1C 0.6 nozzle.json"
+		},
+		{
+			"name": "0.40mm Standard @BBL X1C 0.8 nozzle",
+			"sub_path": "process/0.40mm Standard @BBL X1C 0.8 nozzle.json"
+		}
+	],
+	"region": "North America"
+};
 
 
 var mData={
