@@ -283,7 +283,15 @@ void ImGui::TextAlignCenter(const char *label)
     float item_width = ImGui::CalcItemWidth();
     float font_size  = ImGui::GetFontSize() * strlen(label) / 2;
     ImGui::SameLine(ImGui::GetCursorPos().x + (item_width - font_size) / 2);
-    ImGui::Text(label);
+
+    if ('X' == *label)
+        ImGui::TextColored(ImVec4(1.0, 0.0, 0.0, 1.0),label);
+    else if ('Y' == *label)
+        ImGui::TextColored(ImVec4(0.0, 0.6, 0.2, 1.0),label);
+    else if ('Z' == *label)
+        ImGui::TextColored(ImVec4(0.0, 0.0, 1.0, 1.0),label);
+    else
+        ImGui::Text(label);
 }
 
 void ImGui::TextV(const char* fmt, va_list args)
