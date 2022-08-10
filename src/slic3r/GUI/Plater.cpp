@@ -6968,7 +6968,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     m_confirm->SetTextColor(wxColour(255, 255, 255));
     m_confirm->SetSize(PROJECT_DROP_DIALOG_BUTTON_SIZE);
     m_confirm->SetMinSize(PROJECT_DROP_DIALOG_BUTTON_SIZE);
-    m_confirm->SetCornerRadius(12);
+    m_confirm->SetCornerRadius(FromDIP(12));
     m_confirm->Bind(wxEVT_LEFT_DOWN, &ProjectDropDialog::on_select_ok, this);
     m_sizer_right->Add(m_confirm, 0, wxALL, 5);
 
@@ -6976,7 +6976,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     m_cancel->SetTextColor(wxColour(107, 107, 107));
     m_cancel->SetSize(PROJECT_DROP_DIALOG_BUTTON_SIZE);
     m_cancel->SetMinSize(PROJECT_DROP_DIALOG_BUTTON_SIZE);
-    m_cancel->SetCornerRadius(12);
+    m_cancel->SetCornerRadius(FromDIP(12));
     m_cancel->Bind(wxEVT_LEFT_DOWN, &ProjectDropDialog::on_select_cancel, this);
     m_sizer_right->Add(m_cancel, 0, wxALL, 5);
 

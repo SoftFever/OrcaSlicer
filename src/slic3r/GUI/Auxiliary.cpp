@@ -502,7 +502,7 @@ AuFolderPanel::AuFolderPanel(wxWindow *parent, AuxiliaryFolderType type, wxWindo
     m_button_add->SetBackgroundColor(btn_bg_white);
     m_button_add->SetBorderColor(btn_bd_white);
     m_button_add->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_button_add->SetCornerRadius(12);
+    m_button_add->SetCornerRadius(FromDIP(12));
     m_button_add->SetFont(Label::Body_14);
     // m_button_add->Bind(wxEVT_LEFT_UP, &AuxiliaryPanel::on_add, this);
 

@@ -119,7 +119,7 @@ Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, con
         btn->SetMinSize(MSG_DIALOG_LONG_BUTTON_SIZE);
     }
     
-    btn->SetCornerRadius(12);
+    btn->SetCornerRadius(FromDIP(12));
     StateColor btn_bg_green(
         std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),

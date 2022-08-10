@@ -52,8 +52,8 @@ AddMachinePanel::AddMachinePanel(wxWindow* parent, wxWindowID id, const wxPoint&
     horiz_sizer->Add(0, 0, 538, 0, 0);
 
     wxBoxSizer* btn_sizer = new wxBoxSizer(wxVERTICAL);
-    m_button_add_machine = new Button(this, "", "monitor_add_machine", FromDIP(23));
-    m_button_add_machine->SetCornerRadius(10);
+    m_button_add_machine = new Button(this, "", "monitor_add_machine", FromDIP(24));
+    m_button_add_machine->SetCornerRadius(FromDIP(12));
     StateColor button_bg(
         std::pair<wxColour, int>(0xCECECE, StateColor::Pressed),
         std::pair<wxColour, int>(0xCECECE, StateColor::Hovered),

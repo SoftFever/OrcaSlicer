@@ -857,7 +857,7 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
     m_button_unload->SetTextColor(abort_text);
     m_button_unload->SetFont(Label::Body_10);
     m_button_unload->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_button_unload->SetCornerRadius(FromDIP(10));
+    m_button_unload->SetCornerRadius(FromDIP(12));
     bSizer_e_ctrl->Add(0, 0, 1, wxEXPAND, 0);
     bSizer_e_ctrl->Add(m_button_unload, 0, wxALIGN_CENTER_HORIZONTAL| wxTOP|wxBOTTOM, FromDIP(5));
 
@@ -1066,7 +1066,7 @@ void StatusPanel::init_scaled_buttons()
     m_button_clean->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
     m_button_clean->SetCornerRadius(FromDIP(12));
     m_button_unload->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_button_unload->SetCornerRadius(FromDIP(10));
+    m_button_unload->SetCornerRadius(FromDIP(12));
     m_bpButton_z_10->SetMinSize(Z_BUTTON_SIZE);
     m_bpButton_z_10->SetCornerRadius(0);
     m_bpButton_z_1->SetMinSize(Z_BUTTON_SIZE);

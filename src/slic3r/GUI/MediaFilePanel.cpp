@@ -50,7 +50,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     // File type
     m_type_panel = new ::StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_type_panel->SetBackgroundColor(*wxWHITE);
-    m_type_panel->SetCornerRadius(5);
+    m_type_panel->SetCornerRadius(FromDIP(5));
     m_type_panel->SetMinSize({-1, 48 * em_unit(this) / 10});
     m_button_timelapse = new ::Button(m_type_panel, _L("Timelapse"), "", wxBORDER_NONE);
     m_button_video     = new ::Button(m_type_panel, _L("Video"), "", wxBORDER_NONE);

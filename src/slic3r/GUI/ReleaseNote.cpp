@@ -147,6 +147,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_butto_ok->SetFont(Label::Body_12);
     m_butto_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_butto_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_butto_ok->SetCornerRadius(FromDIP(12));
 
     m_butto_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         EndModal(wxID_YES);
@@ -158,6 +159,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_button_cancel->SetFont(Label::Body_12);
     m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_cancel->SetCornerRadius(FromDIP(12));
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
         EndModal(wxID_NO); 

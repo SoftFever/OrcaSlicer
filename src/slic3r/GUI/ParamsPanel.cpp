@@ -67,7 +67,7 @@ TipsDialog::TipsDialog(wxWindow *parent, const wxString &title)
     m_confirm->SetTextColor(wxColour(255, 255, 255));
     m_confirm->SetSize(TIPS_DIALOG_BUTTON_SIZE);
     m_confirm->SetMinSize(TIPS_DIALOG_BUTTON_SIZE);
-    m_confirm->SetCornerRadius(12);
+    m_confirm->SetCornerRadius(FromDIP(12));
     m_confirm->Bind(wxEVT_LEFT_DOWN, &TipsDialog::on_ok, this);
     m_sizer_right->Add(m_confirm, 0, wxALL, FromDIP(5));
 
