@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-08 20:01+0800\n"
+"POT-Creation-Date: 2022-08-10 16:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2361,6 +2361,9 @@ msgstr "Use Orthogonal View"
 
 msgid "Preferences"
 msgstr "Preferences"
+
+msgid "About"
+msgstr ""
 
 msgid "View"
 msgstr "View"
