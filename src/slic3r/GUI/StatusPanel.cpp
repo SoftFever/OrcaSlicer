@@ -564,10 +564,11 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
 
     wxWindowID nozzle_id = wxWindow::NewControlId();
     m_tempCtrl_nozzle    = new TempInput(parent, nozzle_id, TEMP_BLANK_STR, TEMP_BLANK_STR, wxString("monitor_nozzle_temp"), wxString("monitor_nozzle_temp_active"),
-                                      wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER | wxBORDER_NONE);
+                                      wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
     m_tempCtrl_nozzle->SetMinSize(TEMP_CTRL_MIN_SIZE);
     m_tempCtrl_nozzle->SetMinTemp(nozzle_temp_range[0]);
     m_tempCtrl_nozzle->SetMaxTemp(nozzle_temp_range[1]);
+    m_tempCtrl_nozzle->SetBorderWidth(FromDIP(2));
     m_tempCtrl_nozzle->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
     m_tempCtrl_nozzle->SetBorderColor(StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Focused),
                                                  std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Hovered), std::make_pair(*wxWHITE, (int) StateColor::Normal)));
@@ -581,10 +582,11 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
 
     wxWindowID bed_id = wxWindow::NewControlId();
     m_tempCtrl_bed    = new TempInput(parent, bed_id, TEMP_BLANK_STR, TEMP_BLANK_STR, wxString("monitor_bed_temp"), wxString("monitor_bed_temp_active"), wxDefaultPosition,
-                                   wxDefaultSize, wxALIGN_CENTER | wxBORDER_NONE);
+                                   wxDefaultSize, wxALIGN_CENTER);
     m_tempCtrl_bed->SetMinTemp(bed_temp_range[0]);
     m_tempCtrl_bed->SetMaxTemp(bed_temp_range[1]);
     m_tempCtrl_bed->SetMinSize(TEMP_CTRL_MIN_SIZE);
+    m_tempCtrl_bed->SetBorderWidth(FromDIP(2));
     m_tempCtrl_bed->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
     m_tempCtrl_bed->SetBorderColor(StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Focused),
                                               std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Hovered), std::make_pair(*wxWHITE, (int) StateColor::Normal)));
@@ -596,9 +598,10 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
 
     wxWindowID frame_id = wxWindow::NewControlId();
     m_tempCtrl_frame    = new TempInput(parent, frame_id, TEMP_BLANK_STR, TEMP_BLANK_STR, wxString("monitor_frame_temp"), wxString("monitor_frame_temp"), wxDefaultPosition,
-                                     wxDefaultSize, wxALIGN_CENTER | wxBORDER_NONE);
+                                     wxDefaultSize, wxALIGN_CENTER);
     m_tempCtrl_frame->SetReadOnly(true);
     m_tempCtrl_frame->SetMinSize(TEMP_CTRL_MIN_SIZE);
+    m_tempCtrl_frame->SetBorderWidth(FromDIP(2));
     m_tempCtrl_frame->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
     m_tempCtrl_frame->SetBorderColor(StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Focused),
                                                 std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Hovered), std::make_pair(*wxWHITE, (int) StateColor::Normal)));
@@ -620,10 +623,11 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
     wxBoxSizer *line_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     /* create speed control */
-    m_switch_speed = new ImageSwitchButton(parent, m_bitmap_speed_active, m_bitmap_speed, wxBORDER_NONE);
+    m_switch_speed = new ImageSwitchButton(parent, m_bitmap_speed_active, m_bitmap_speed);
     m_switch_speed->SetLabels(_L("100%"), _L("100%"));
     m_switch_speed->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_speed->SetPadding(FromDIP(3));
+    m_switch_speed->SetBorderWidth(FromDIP(2));
     m_switch_speed->SetFont(Label::Head_13);
     m_switch_speed->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
     m_switch_speed->SetValue(false);
@@ -635,10 +639,11 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
     line_sizer->Add(line, 0, wxEXPAND | wxTOP | wxBOTTOM, 4);
 
     /* create lamp control */
-    m_switch_lamp = new ImageSwitchButton(parent, m_bitmap_lamp_on, m_bitmap_lamp_off, wxBORDER_NONE);
+    m_switch_lamp = new ImageSwitchButton(parent, m_bitmap_lamp_on, m_bitmap_lamp_off);
     m_switch_lamp->SetLabels(_L("Lamp"), _L("Lamp"));
     m_switch_lamp->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_lamp->SetPadding(FromDIP(3));
+    m_switch_lamp->SetBorderWidth(FromDIP(2));
     m_switch_lamp->SetFont(Label::Head_13);
     m_switch_lamp->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
     line_sizer->Add(m_switch_lamp, 1, wxALIGN_CENTER | wxALL, 0);
@@ -649,11 +654,12 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
     sizer->Add(line, 0, wxEXPAND | wxLEFT | wxRIGHT, 12);
 
     line_sizer          = new wxBoxSizer(wxHORIZONTAL);
-    m_switch_nozzle_fan = new ImageSwitchButton(parent, m_bitmap_fan_on, m_bitmap_fan_off, wxBORDER_NONE);
+    m_switch_nozzle_fan = new ImageSwitchButton(parent, m_bitmap_fan_on, m_bitmap_fan_off);
     m_switch_nozzle_fan->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_nozzle_fan->SetValue(false);
     m_switch_nozzle_fan->SetLabels(_L("Part Cooling"), _L("Part Cooling"));
     m_switch_nozzle_fan->SetPadding(FromDIP(3));
+    m_switch_nozzle_fan->SetBorderWidth(FromDIP(2));
     m_switch_nozzle_fan->SetFont(SWITCH_FONT);
     m_switch_nozzle_fan->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_FAN_TEXT_COL, (int) StateColor::Normal)));
 
@@ -662,10 +668,11 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
     line->SetLineColour(STATIC_BOX_LINE_COL);
     line_sizer->Add(line, 0, wxEXPAND | wxTOP | wxBOTTOM, 4);
 
-    m_switch_printing_fan = new ImageSwitchButton(parent, m_bitmap_fan_on, m_bitmap_fan_off, wxBORDER_NONE);
+    m_switch_printing_fan = new ImageSwitchButton(parent, m_bitmap_fan_on, m_bitmap_fan_off);
     m_switch_printing_fan->SetValue(false);
     m_switch_printing_fan->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_printing_fan->SetPadding(FromDIP(3));
+    m_switch_printing_fan->SetBorderWidth(FromDIP(2));
     m_switch_printing_fan->SetFont(SWITCH_FONT);
     m_switch_printing_fan->SetLabels(_L("Aux Cooling"), _L("Aux Cooling"));
     m_switch_printing_fan->SetTextColor(

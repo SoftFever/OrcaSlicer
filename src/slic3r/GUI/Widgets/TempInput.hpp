@@ -1,16 +1,15 @@
 #ifndef slic3r_GUI_TempInput_hpp_
 #define slic3r_GUI_TempInput_hpp_
 
-#include <wx/textctrl.h>
 #include "../wxExtensions.hpp"
-#include "StateHandler.hpp"
+#include <wx/textctrl.h>
+#include "StaticBox.hpp"
 
 wxDECLARE_EVENT(wxCUSTOMEVT_SET_TEMP_FINISH, wxCommandEvent);
 
-class TempInput : public wxWindow
+class TempInput : public wxNavigationEnabled<StaticBox>
 {
     bool   hover;
-    double radius;
 
     bool           m_read_only{false};
     wxSize         labelSize;
@@ -18,11 +17,8 @@ class TempInput : public wxWindow
     ScalableBitmap actice_icon;
     ScalableBitmap degree_icon;
 
-    StateHandler state_handler;
     StateColor   label_color;
     StateColor   text_color;
-    StateColor   border_color;
-    StateColor   background_color;
 
     wxTextCtrl *  text_ctrl;
     wxStaticText *warning_text;
@@ -93,17 +89,11 @@ public:
     wxString GetTagTemp() { return text_ctrl->GetValue(); }
     wxString GetCurrTemp() { return GetLabel(); }
 
-    void SetCornerRadius(double radius);
-
     void SetLabel(const wxString &label);
-
-    void SetBorderColor(StateColor const &color);
 
     void SetTextColor(StateColor const &color);
 
     void SetLabelColor(StateColor const &color);
-
-    void SetBackgroundColor(StateColor const &color);
 
     virtual void Rescale();
 

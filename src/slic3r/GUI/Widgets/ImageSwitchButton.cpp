@@ -20,20 +20,18 @@ static const wxColour DEFAULT_PRESS_COL = wxColour(238, 238, 238);
 
 ImageSwitchButton::ImageSwitchButton(wxWindow *parent, ScalableBitmap &img_on, ScalableBitmap &img_off, long style)
     : text_color(std::make_pair(0x6B6B6B, (int) StateColor::Disabled), std::make_pair(*wxBLACK, (int) StateColor::Normal))
-    , state_handler(this)
 {
+    radius = 0;
     m_padding = 0;
     m_on         = img_on;
     m_off        = img_off;
-    bg_color     = StateColor(std::make_pair(DEFAULT_PRESS_COL, (int) StateColor::Pressed),
-                              std::make_pair(*wxWHITE, (int) StateColor::Normal));
-    border_color = StateColor(std::make_pair(DEFAULT_HOVER_COL, (int) StateColor::Hovered));
+    background_color = StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(DEFAULT_PRESS_COL, (int) StateColor::Pressed),
+                                  std::make_pair(*wxWHITE, (int) StateColor::Normal));
+    border_color = StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(DEFAULT_HOVER_COL, (int) StateColor::Focused),
+                              std::make_pair(DEFAULT_HOVER_COL, (int) StateColor::Hovered), std::make_pair(*wxWHITE, (int) StateColor::Normal));
 
     StaticBox::Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
 
-    state_handler.attach({&bg_color});
-    state_handler.attach({&border_color});
-    state_handler.update_binds();
     messureSize();
     Refresh();
 }
@@ -60,19 +58,6 @@ void ImageSwitchButton::SetTextColor(StateColor const &color)
 {
 	text_color = color;
     state_handler.update_binds();
-    messureSize();
-    Refresh();
-}
-
-void ImageSwitchButton::SetBorderColor(StateColor const &color)
-{
-	border_color = color;
-    messureSize();
-    Refresh();
-}
-
-void ImageSwitchButton::SetBgColor(StateColor const &color) {
-	bg_color = color;
     messureSize();
     Refresh();
 }
@@ -109,16 +94,6 @@ void ImageSwitchButton::render(wxDC& dc)
 	StaticBox::render(dc);
     int states = state_handler.states();
 	wxSize size = GetSize();
-
-	if (pressedDown) {
-        dc.SetBrush(bg_color.colorForStates(StateColor::Pressed));
-        dc.DrawRectangle(wxRect(0, 0, size.x, size.y));
-    }
-
-    if (hover) {
-        dc.SetPen(border_color.colorForStates(StateColor::Hovered));
-        dc.DrawRectangle(wxRect(0, 0, size.x, size.y));
-    }
 
 	wxSize szIcon;
 	wxSize szContent = textSize;
