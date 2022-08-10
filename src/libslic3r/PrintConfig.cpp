@@ -482,7 +482,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Decrease this value slightly(for example 0.9) to reduce the amount of material for bridge, "
                      "to improve sag");
     def->min = 0;
-    def->max = 1;
+    def->max = 2.0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
