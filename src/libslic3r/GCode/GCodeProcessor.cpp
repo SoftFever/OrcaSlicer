@@ -2998,7 +2998,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
         block.role = m_extrusion_role;
         block.distance = delta_xyz;
         block.g1_line_id = m_g1_line_id;
-        block.layer_id = m_layer_id;
+        block.layer_id = std::max<unsigned int>(1, m_layer_id);
 
         // BBS: calculates block cruise feedrate
         // For arc move, we need to limite the cruise according to centripetal acceleration which is
