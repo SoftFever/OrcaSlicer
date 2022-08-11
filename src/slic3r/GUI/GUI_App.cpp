@@ -2206,6 +2206,7 @@ __retry:
             auto bambu_source = Slic3r::NetworkAgent::get_bambu_source_entry();
             if (!bambu_source) {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": can not get bambu source module!";
+                m_networking_compatible = false;
                 if (app_config->get("installed_networking") == "1") {
                     m_networking_need_update = true;
                 }
