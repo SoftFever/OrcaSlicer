@@ -42,6 +42,14 @@ enum class FuzzySkinType {
     All,
 };
 
+enum PrintHostType {
+    htPrusaLink, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS
+};
+
+enum AuthorizationType {
+    atKeyPassword, atUserPassword
+};
+
 #define HAS_LIGHTNING_INFILL 0
 
 enum InfillPattern : int {
