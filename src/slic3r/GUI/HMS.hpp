@@ -34,7 +34,7 @@ public:
 
 int get_hms_info_version(std::string &version);
 
-std::string get_hms_wiki_url(int code);
+std::string get_hms_wiki_url(std::string code);
 
 std::string get_error_message(int error_code);
 

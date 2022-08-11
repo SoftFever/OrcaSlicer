@@ -214,17 +214,14 @@ int HMSQuery::check_hms_info()
     return result;
 }
 
-std::string get_hms_wiki_url(int code)
+std::string get_hms_wiki_url(std::string error_code)
 {
     AppConfig* config = wxGetApp().app_config;
     if (!config) return "";
 
-    char buf[32];
-    ::sprintf(buf, "%08X", code);
-    std::string error_code = std::string(buf);
     std::string hms_host = wxGetApp().app_config->get_hms_host();
     std::string lang_code = wxGetApp().app_config->get_language_code();
-    std::string url = (boost::format("https://%1%/index.php?e=%2%&s=hms&lang=%3%")
+    std::string url = (boost::format("https://%1%/index.php?e=%2%&s=device_hms&lang=%3%")
                        % hms_host
                        % error_code
                        % lang_code).str();
