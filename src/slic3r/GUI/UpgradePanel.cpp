@@ -519,18 +519,18 @@ void MachineInfoPanel::on_show_release_note(wxMouseEvent &event)
     if (!dev) return;
 
 
-    std::string next_version_release_note = "";
-    std::string now_version_release_note  = "";
+    wxString next_version_release_note;
+    wxString now_version_release_note;
     std::string version_number            = "";
 
     for (auto iter : m_obj->firmware_list) {
         if (iter.version == m_obj->ota_new_version_number) {
             version_number            = m_obj->ota_new_version_number;
-            next_version_release_note = iter.description;
+            next_version_release_note = wxString::FromUTF8(iter.description);
         }
         if (iter.version == m_obj->get_ota_version()) { 
             version_number           = m_obj->get_ota_version();
-            now_version_release_note = iter.description;
+            now_version_release_note = wxString::FromUTF8(iter.description);
         }
     }
 

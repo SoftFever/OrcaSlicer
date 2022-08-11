@@ -79,7 +79,7 @@ void ReleaseNoteDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
 }
 
-void ReleaseNoteDialog::update_release_note(std::string release_note, std::string version) 
+void ReleaseNoteDialog::update_release_note(wxString release_note, std::string version) 
 { 
     m_text_up_info->SetLabel(wxString::Format("version %s update information :", version));
     wxBoxSizer * sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
