@@ -103,6 +103,11 @@ enum ConfigMenuIDs {
     ConfigMenuCnt,
 };
 
+enum BambuStudioMenuIDs {
+  BambuStudioMenuAbout,
+  BambuStudioMenuPreferences,
+};
+
 enum CameraMenuIDs {
     wxID_CAMERA_PERSPECTIVE,
     wxID_CAMERA_ORTHOGONAL,
@@ -192,7 +197,7 @@ public:
 class GUI_App : public wxApp
 {
 public:
-    
+
     //BBS: remove GCodeViewer as seperate APP logic
     enum class EAppMode : unsigned char
     {
@@ -202,6 +207,7 @@ public:
 
 private:
     bool            m_initialized { false };
+    bool            m_post_initialized { false };
     bool            m_app_conf_exists{ false };
     EAppMode        m_app_mode{ EAppMode::Editor };
     bool            m_is_recreating_gui{ false };
@@ -284,6 +290,7 @@ public:
     // Process command line parameters cached in this->init_params,
     // load configs, STLs etc.
     void            post_init();
+    void            shutdown();
     // If formatted for github, plaintext with OpenGL extensions enclosed into <details>.
     // Otherwise HTML formatted for the system info dialog.
     static std::string get_gl_info(bool for_github);
@@ -518,7 +525,7 @@ public:
 private:
     int             updating_bambu_networking();
     bool            on_init_inner();
-    bool            on_init_network();
+    bool            on_init_network(bool try_backup = false);
     void            init_networking_callbacks();
     void            init_app_config();
     //BBS set extra header for http request

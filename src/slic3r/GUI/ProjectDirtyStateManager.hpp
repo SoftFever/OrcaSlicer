@@ -31,6 +31,9 @@ private:
     // Keeps track of preset names selected at the time of last project save.
     std::array<std::string, Preset::TYPE_COUNT> m_initial_presets;
     DynamicPrintConfig                          m_initial_project_config;
+
+    // filament preset independent of the m_initial_presets
+    std::vector<std::string>                    m_initial_filament_presets;
 };
 
 } // namespace GUI

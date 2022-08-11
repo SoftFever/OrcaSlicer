@@ -74,7 +74,7 @@ bool GLGizmoScale3D::on_init()
 
     // BBS
     m_grabbers[4].enabled = false;
-    m_shortcut_key = WXK_NONE;
+    m_shortcut_key = WXK_CONTROL_S;
 
     return true;
 }

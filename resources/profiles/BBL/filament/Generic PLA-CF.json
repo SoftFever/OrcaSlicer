@@ -9,6 +9,9 @@
     "filament_flow_ratio": [
         "0.95"
     ],
+    "filament_type": [
+        "PLA-CF"
+    ],
     "filament_max_volumetric_speed": [
         "12"
     ],

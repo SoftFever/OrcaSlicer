@@ -22,7 +22,6 @@
 #include "slic3r/GUI/Gizmos/GLGizmoSeam.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSimplify.hpp"
-#include "slic3r/GUI/Gizmos/GLGizmoModifier.hpp"
 
 #include "libslic3r/format.hpp"
 #include "libslic3r/Model.hpp"
@@ -146,10 +145,9 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoFlatten(m_parent, "toolbar_flatten.svg", EType::Flatten));
     m_gizmos.emplace_back(new GLGizmoAdvancedCut(m_parent, "toolbar_cut.svg", EType::Cut));
     m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, "toolbar_support.svg", EType::FdmSupports));
+    m_gizmos.emplace_back(new GLGizmoSeam(m_parent, "toolbar_seam.svg", EType::Seam));
     m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, "mmu_segmentation.svg", EType::MmuSegmentation));
     m_gizmos.emplace_back(new GLGizmoSimplify(m_parent, "reduce_triangles.svg", EType::Simplify));
-    //m_gizmos.emplace_back(new GLGizmoModifier(m_parent, "toolbar_modifier.svg", EType::Modifier));
-    //m_gizmos.emplace_back(new GLGizmoSeam(m_parent, "toolbar_seam.svg", EType::Seam));
     //m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", sprite_id++));
     //m_gizmos.emplace_back(new GLGizmoFaceDetector(m_parent, "face recognition.svg", sprite_id++));
     //m_gizmos.emplace_back(new GLGizmoHollow(m_parent, "hollow.svg", sprite_id++));
@@ -197,6 +195,11 @@ bool GLGizmosManager::init_icon_textures()
         return false;
 
     return true;
+}
+
+float GLGizmosManager::get_layout_scale()
+{
+    return m_layout.scale;
 }
 
 bool GLGizmosManager::init_arrow(const BackgroundTexture::Metadata& arrow_texture)
@@ -515,12 +518,8 @@ void GLGizmosManager::set_painter_gizmo_data()
         return;
 
     dynamic_cast<GLGizmoFdmSupports*>(m_gizmos[FdmSupports].get())->set_painter_gizmo_data(m_parent.get_selection());
+    dynamic_cast<GLGizmoSeam*>(m_gizmos[Seam].get())->set_painter_gizmo_data(m_parent.get_selection());
     dynamic_cast<GLGizmoMmuSegmentation*>(m_gizmos[MmuSegmentation].get())->set_painter_gizmo_data(m_parent.get_selection());
-    if (Seam < m_gizmos.size()) {
-        GLGizmoSeam* gizmo_seam = dynamic_cast<GLGizmoSeam*>(m_gizmos[Seam].get());
-        if (gizmo_seam != nullptr)
-            gizmo_seam->set_painter_gizmo_data(m_parent.get_selection());
-    }
 }
 
 // Returns true if the gizmo used the event to do something, false otherwise.

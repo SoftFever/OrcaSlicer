@@ -101,10 +101,10 @@ void PrintJob::process()
     int curr_percent = 10;
 
     if (this->connection_type == "lan") {
-        msg = sending_over_lan_str;
+        msg = _L("Sending print job over LAN");
     }
     else {
-        msg = sending_over_cloud_str;
+        msg = _L("Sending print job through cloud service");
     }
 
     int result = -1;

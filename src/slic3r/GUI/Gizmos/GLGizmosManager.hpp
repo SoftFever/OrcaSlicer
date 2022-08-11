@@ -71,10 +71,9 @@ public:
         Flatten,
         Cut,
         FdmSupports,
+        Seam,
         MmuSegmentation,
         Simplify,
-        Modifier,
-        Seam,
         SlaSupports,
         // BBS
         //FaceRecognition,
@@ -158,6 +157,8 @@ public:
     bool init();
 
     bool init_icon_textures();
+
+    float get_layout_scale();
 
     bool init_arrow(const BackgroundTexture::Metadata& arrow_texture);
 

@@ -122,7 +122,7 @@ public:
 	virtual ~WarningDialog() = default;
 };
 
-#ifdef _WIN32
+#if 1
 // Generic static line, used intead of wxStaticLine
 class StaticLine: public wxTextCtrl
 {

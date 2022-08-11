@@ -7,6 +7,8 @@ BEGIN_EVENT_TABLE(Button, StaticBox)
 
 EVT_LEFT_DOWN(Button::mouseDown)
 EVT_LEFT_UP(Button::mouseReleased)
+EVT_KEY_DOWN(Button::keyDownUp)
+EVT_KEY_UP(Button::keyDownUp)
 
 // catch paint events
 EVT_PAINT(Button::paintEvent)
@@ -24,8 +26,10 @@ Button::Button()
     , text_color(*wxBLACK)
 {
     background_color = StateColor(
-        std::make_pair(*wxLIGHT_GREY, (int) StateColor::Checked),
-        std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered),
+        std::make_pair(0xF0F0F0, (int) StateColor::Disabled),
+        std::make_pair(0x00AE42, (int) StateColor::Checked),
+        std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered), 
+        std::make_pair(0x37EE7C, (int) StateColor::Hovered | StateColor::Checked),
         std::make_pair(*wxWHITE, (int) StateColor::Normal));
 }
 
@@ -162,7 +166,7 @@ void Button::render(wxDC& dc)
             //BBS norrow size between text and icon
             szContent.x += padding;
         }
-        szIcon = icon.bmp().GetSize();
+        szIcon = icon.GetBmpSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y)
             szContent.y = szIcon.y;
@@ -211,7 +215,7 @@ void Button::messureSize()
             //BBS norrow size between text and icon
             szContent.x += 5;
         }
-        wxSize szIcon = this->active_icon.bmp().GetSize();
+        wxSize szIcon = this->active_icon.GetBmpSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y)
             szContent.y = szIcon.y;
@@ -241,9 +245,46 @@ void Button::mouseReleased(wxMouseEvent& event)
     }
 }
 
+void Button::keyDownUp(wxKeyEvent &event)
+{
+    if (event.GetKeyCode() == WXK_SPACE || event.GetKeyCode() == WXK_RETURN) {
+        wxMouseEvent evt(event.GetEventType() == wxEVT_KEY_UP ? wxEVT_LEFT_UP : wxEVT_LEFT_DOWN);
+        event.SetEventObject(this);
+        GetEventHandler()->ProcessEvent(evt);
+        return;
+    }
+    event.Skip();
+}
+
 void Button::sendButtonEvent()
 {
     wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, GetId());
     event.SetEventObject(this);
     GetEventHandler()->ProcessEvent(event);
 }
+
+#ifdef __WIN32__
+
+WXLRESULT Button::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
+{
+    if (nMsg == WM_GETDLGCODE) { return DLGC_WANTMESSAGE; }
+    if (nMsg == WM_KEYDOWN) {
+        wxKeyEvent event(CreateKeyEvent(wxEVT_KEY_DOWN, wParam, lParam));
+        switch (wParam) {
+        case WXK_RETURN: {
+            GetEventHandler()->ProcessEvent(event);
+            return 0;
+        }
+        case WXK_TAB:
+        case WXK_LEFT:
+        case WXK_RIGHT:
+        case WXK_UP:
+        case WXK_DOWN:
+            if (HandleAsNavigationKey(event))
+                return 0;
+        }
+    }
+    return wxWindow::MSWWindowProc(nMsg, wParam, lParam);
+}
+
+#endif

@@ -21,6 +21,8 @@
 #define FILAMENT_DEF_TEMP       220
 #define FILAMENT_MIN_TEMP       120
 
+#define HOLD_COUNT_MAX          3
+
 inline int correct_filament_temperature(int filament_temp)
 {
     int temp = std::min(filament_temp, FILAMENT_MAX_TEMP);
@@ -159,11 +161,14 @@ public:
     AmsStep         step_state;
     AmsRfidState    rfid_state;
 
-    void set_hold_count() { hold_count = 3; }
+    void set_hold_count() { hold_count = HOLD_COUNT_MAX; }
     void update_color_from_str(std::string color);
     wxColour get_color();
 
     bool is_tray_info_ready();
+    bool is_unset_third_filament();
+    std::string get_display_filament_type();
+    std::string get_filament_type();
 };
 
 
@@ -362,6 +367,8 @@ public:
 
     int ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<int> exclude_id = std::vector<int>());
     bool is_valid_mapping_result(std::vector<FilamentInfo>& result);
+    // exceed index start with 0
+    bool is_mapping_exceed_filament(std::vector<FilamentInfo>& result, int &exceed_index);
     void reset_mapping_result(std::vector<FilamentInfo>& result);
 
 
@@ -426,6 +433,7 @@ public:
     int     mc_left_time;           /* left time in seconds */
     int     last_mc_print_stage;
     bool    is_system_printing();
+    int     print_error;
 
     std::vector<int> stage_list_info;
     int stage_curr = 0;
@@ -452,6 +460,11 @@ public:
     bool camera_recording { false };
     bool camera_timelapse { false };
     bool camera_has_sdcard { false };
+    bool xcam_first_layer_inspector { false };
+    int  xcam_first_layer_hold_count = 0;
+    bool xcam_spaghetti_detector { false };
+    bool xcam_spaghetti_print_halt{ false };
+    int  xcam_spaghetti_hold_count = 0;
 
     /* HMS */
     std::vector<HMSItem>    hms_list;
@@ -468,6 +481,8 @@ public:
     std::string  task_id_;
     std::string  subtask_id_;
     BBLSliceInfo* slice_info {nullptr};
+    boost::thread* get_slice_info_thread { nullptr };
+
     int plate_index { -1 };
     std::string m_gcode_file;
     int gcode_file_prepare_percent = 0;
@@ -525,6 +540,9 @@ public:
     // camera control
     int command_ipcam_record(bool on_off);
     int command_ipcam_timelapse(bool on_off);
+    int command_xcam_control(std::string module_name, bool on_off, bool print_halt);
+    int command_xcam_control_first_layer_inspector(bool on_off, bool print_halt);
+    int command_xcam_control_spaghetti_detector(bool on_off, bool print_halt);
 
     /* common apis */
     inline bool is_local() { return !dev_ip.empty(); }

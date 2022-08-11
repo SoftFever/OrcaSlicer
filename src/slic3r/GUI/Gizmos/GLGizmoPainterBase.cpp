@@ -1036,10 +1036,10 @@ void TriangleSelectorGUI::update_render_data()
 // BBS
 bool TrianglePatch::is_fragment() const
 {
-    return this->area < TriangleSelectorPatch::fragment_area;
+    return this->area < TriangleSelectorPatch::gap_area;
 }
 
-float TriangleSelectorPatch::fragment_area = TriangleSelectorPatch::FragmentAreaMin;
+float TriangleSelectorPatch::gap_area = TriangleSelectorPatch::GapAreaMin;
 
 void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
 {
@@ -1198,7 +1198,7 @@ void TriangleSelectorPatch::update_triangles_per_patch()
             visited[current_facet] = true;
         }
 
-        patch.area = calc_fragment_area(patch, FragmentAreaMax);
+        patch.area = calc_fragment_area(patch, GapAreaMax);
         patch.type = start_facet_state;
         m_triangle_patches.emplace_back(std::move(patch));
      }

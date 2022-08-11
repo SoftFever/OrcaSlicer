@@ -73,11 +73,16 @@ protected:
     
     void OnEdit() override;
 
+#ifdef __WIN32__
+    WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) override;
+#endif
+
 private:
 
     // some useful events
     void mouseDown(wxMouseEvent &event);
     void mouseWheelMoved(wxMouseEvent &event);
+    void keyDown(wxKeyEvent &event);
 
     void sendComboBoxEvent();
 

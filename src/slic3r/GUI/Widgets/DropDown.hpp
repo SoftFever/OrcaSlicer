@@ -9,6 +9,8 @@
 #define DD_NO_TEXT          0x2000000
 #define DD_STYLE_MASK       0x3000000
 
+wxDECLARE_EVENT(EVT_DISMISS, wxCommandEvent);
+
 class DropDown : public wxPopupTransientWindow
 {
     std::vector<wxString> &       texts;
@@ -39,11 +41,17 @@ class DropDown : public wxPopupTransientWindow
     wxPoint                  dragStart;
 
 public:
+    DropDown(std::vector<wxString> &texts,
+             std::vector<wxBitmap> &icons);
+    
     DropDown(wxWindow *     parent,
              std::vector<wxString> &texts,
              std::vector<wxBitmap> &icons,
              long           style     = 0);
-
+    
+    void Create(wxWindow *     parent,
+             long           style     = 0);
+    
 public:
     void Invalidate(bool clear = false);
 
@@ -73,6 +81,9 @@ public:
     void Rescale();
 
     bool HasDismissLongTime();
+    
+protected:
+    void OnDismiss() override;
 
 private:
     void paintEvent(wxPaintEvent& evt);
@@ -92,7 +103,6 @@ private:
 
     void sendDropDownEvent();
 
-    void OnDismiss() override;
 
     DECLARE_EVENT_TABLE()
 };

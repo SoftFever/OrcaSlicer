@@ -9,6 +9,7 @@
 #endif
 
 enum {BEFORE_SCROLLBAR, ON_SCROLLBAR, AFTER_SCROLLBAR, NOWHERE};
+#define SCROLL_D_MOTION 4
 
 class ScrolledWindow;
 

@@ -17,8 +17,8 @@ AboutDialogLogo::AboutDialogLogo(wxWindow* parent)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
     this->SetBackgroundColour(*wxWHITE);
-    this->logo = wxBitmap(from_u8(Slic3r::var("BambuStudio_192px.png")), wxBITMAP_TYPE_PNG);
-    this->SetMinSize(this->logo.GetSize());
+    this->logo = ScalableBitmap(this, Slic3r::var("BambuStudio_192px.png"), wxBITMAP_TYPE_PNG);
+    this->SetMinSize(this->logo.GetBmpSize());
 
     this->Bind(wxEVT_PAINT, &AboutDialogLogo::onRepaint, this);
 }
@@ -29,9 +29,9 @@ void AboutDialogLogo::onRepaint(wxEvent &event)
     dc.SetBackgroundMode(wxTRANSPARENT);
 
     wxSize size = this->GetSize();
-    int logo_w = this->logo.GetWidth();
-    int logo_h = this->logo.GetHeight();
-    dc.DrawBitmap(this->logo, (size.GetWidth() - logo_w)/2, (size.GetHeight() - logo_h)/2, true);
+    int logo_w = this->logo.GetBmpWidth();
+    int logo_h = this->logo.GetBmpHeight();
+    dc.DrawBitmap(this->logo.bmp(), (size.GetWidth() - logo_w)/2, (size.GetHeight() - logo_h)/2, true);
 
     event.Skip();
 }

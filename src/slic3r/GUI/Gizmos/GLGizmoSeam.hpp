@@ -8,17 +8,24 @@ namespace Slic3r::GUI {
 class GLGizmoSeam : public GLGizmoPainterBase
 {
 public:
-    GLGizmoSeam(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
-        : GLGizmoPainterBase(parent, icon_filename, sprite_id) {}
+    GLGizmoSeam(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
 
     void render_painter_gizmo() const override;
 
 protected:
+    // BBS
+    void on_set_state() override;
+
+    wchar_t  m_current_tool = 0;
     void on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
     PainterGizmoType get_painter_type() const override;
 
-    void render_triangles(const Selection& selection) const override;
+    void render_triangles(const Selection &selection) const override;
+
+    void show_tooltip_information(float caption_max, float x, float y);
+
+    void tool_changed(wchar_t old_tool, wchar_t new_tool);
 
     wxString handle_snapshot_action_name(bool shift_down, Button button_down) const override;
 

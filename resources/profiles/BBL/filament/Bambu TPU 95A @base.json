@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "filament_id": "GFU00",
+    "filament_id": "GFU01",
     "name": "Bambu TPU 95A @base",
     "from": "system",
     "instantiation": "false",
@@ -12,6 +12,9 @@
         "1.22"
     ],
     "nozzle_temperature_initial_layer": [
+        "230"
+    ],
+    "nozzle_temperature": [
         "230"
     ]
 }

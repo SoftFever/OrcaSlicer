@@ -3,7 +3,9 @@
 
 #include <wx/dcgraph.h>
 
-BEGIN_EVENT_TABLE(DropDown, wxPanel)
+wxDEFINE_EVENT(EVT_DISMISS, wxCommandEvent);
+
+BEGIN_EVENT_TABLE(DropDown, wxPopupTransientWindow)
 
 EVT_LEFT_DOWN(DropDown::mouseDown)
 EVT_LEFT_UP(DropDown::mouseReleased)
@@ -21,12 +23,9 @@ END_EVENT_TABLE()
  * calling Refresh()/Update().
  */
 
-DropDown::DropDown(wxWindow *             parent,
-                   std::vector<wxString> &texts,
-                   std::vector<wxBitmap> &icons,
-                   long           style)
-    : wxPopupTransientWindow(parent)
-    , texts(texts)
+DropDown::DropDown(std::vector<wxString> &texts,
+                   std::vector<wxBitmap> &icons)
+    : texts(texts)
     , icons(icons)
     , state_handler(this)
     , border_color(0xDBDBDB)
@@ -36,6 +35,21 @@ DropDown::DropDown(wxWindow *             parent,
     , selector_background_color(std::make_pair(0xEDFAF2, (int) StateColor::Checked),
         std::make_pair(*wxWHITE, (int) StateColor::Normal))
 {
+}
+
+DropDown::DropDown(wxWindow *             parent,
+                   std::vector<wxString> &texts,
+                   std::vector<wxBitmap> &icons,
+                   long           style)
+    : DropDown(texts, icons)
+{
+    Create(parent, style);
+}
+
+void DropDown::Create(wxWindow *     parent,
+         long           style)
+{
+    wxPopupTransientWindow::Create(parent);
     SetBackgroundStyle(wxBG_STYLE_PAINT);
     SetBackgroundColour(*wxWHITE);
     state_handler.attach({&border_color, &text_color, &selector_border_color, &selector_background_color});
@@ -47,12 +61,9 @@ DropDown::DropDown(wxWindow *             parent,
     // BBS set default font
     SetFont(Label::Body_14);
 #ifdef __WXOSX__
-    Bind(wxEVT_ACTIVATE, [this](auto & e) {
-        if (!e.GetActive()) {
-            Hide();
-            OnDismiss();
-        }
-    });
+    // wxPopupTransientWindow releases mouse on idle, which may cause various problems,
+    //  such as losting mouse move, and dismissing soon on first LEFT_DOWN event.
+    Bind(wxEVT_IDLE, [] (wxIdleEvent & evt) {});
 #endif
 }
 
@@ -71,7 +82,9 @@ void DropDown::SetSelection(int n)
     assert(n < (int) texts.size());
     if (n >= (int) texts.size())
         n = -1;
+    if (selection == n) return;
     selection = n;
+    paintNow();
 }
 
 wxString DropDown::GetValue() const
@@ -233,7 +246,7 @@ void DropDown::render(wxDC &dc)
     rcContent.x += 5;
     rcContent.width -= 5;
     if (check_bitmap.bmp().IsOk()) {
-        auto szBmp = check_bitmap.bmp().GetSize();
+        auto szBmp = check_bitmap.GetBmpSize();
         if (selection >= 0) {
             wxPoint pt = rcContent.GetLeftTop();
             pt.y += (rcContent.height - szBmp.y) / 2;
@@ -358,26 +371,31 @@ void DropDown::autoPosition()
 
 void DropDown::mouseDown(wxMouseEvent& event)
 {
+    // Receivce unexcepted LEFT_DOWN on Mac after OnDismiss
+    if (!IsShown())
+        return;
+    // force calc hover item again
+    mouseMove(event);
     pressedDown = true;
-    CaptureMouse();
     dragStart   = event.GetPosition();
 }
 
 void DropDown::mouseReleased(wxMouseEvent& event)
 {
     if (pressedDown) {
-        ReleaseMouse();
         dragStart = wxPoint();
         pressedDown = false;
-        if (hover_item >= 0) // not moved
+        if (hover_item >= 0) { // not moved
             sendDropDownEvent();
+            DismissAndNotify();
+        }
     }
 }
 
 void DropDown::mouseMove(wxMouseEvent &event)
 {
+    wxPoint pt  = event.GetPosition();
     if (pressedDown) {
-        wxPoint pt  = event.GetPosition();
         wxPoint pt2 = offset + pt - dragStart;
         dragStart = pt;
         if (pt2.y > 0)
@@ -392,7 +410,7 @@ void DropDown::mouseMove(wxMouseEvent &event)
         }
     }
     if (!pressedDown || hover_item >= 0) {
-        int hover = (event.GetPosition().y - offset.y) / rowSize.y;
+        int hover = (pt.y - offset.y) / rowSize.y;
         if (hover >= (int) texts.size()) hover = -1;
         if (hover == hover_item) return;
         hover_item = hover;
@@ -439,4 +457,6 @@ void DropDown::OnDismiss()
 {
     dismissTime = boost::posix_time::microsec_clock::universal_time();
     hover_item  = -1;
+    wxCommandEvent e(EVT_DISMISS);
+    GetEventHandler()->ProcessEvent(e);
 }

@@ -53,7 +53,16 @@ int GUI_Run(GUI_InitParams &params)
         GUI::GUI_App::SetInstance(gui);
         gui->init_params = &params;
 
-        return wxEntry(params.argc, params.argv);
+        if (params.argc > 1) {
+            // STUDIO-273 wxWidgets report error when opening some files with specific names
+            // wxWidgets does not handle parameters, so intercept parameters here, only keep the app name
+            int                 argc = 1;
+            std::vector<char *> argv;
+            argv.push_back(params.argv[0]);
+            return wxEntry(argc, argv.data());
+        } else {
+            return wxEntry(params.argc, params.argv);
+        }
     } catch (const Slic3r::Exception &ex) {
         BOOST_LOG_TRIVIAL(error) << ex.what() << std::endl;
         wxMessageBox(boost::nowide::widen(ex.what()), _L("Bambu Studio GUI initialization failed"), wxICON_STOP);

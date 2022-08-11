@@ -136,6 +136,25 @@ static double fixed_overfit(const std::tuple<double, Box>& result, const Box &bi
     return score;
 }
 
+// useful for arranging big circle objects
+static double fixed_overfit_topright_sliding(const std::tuple<double, Box>& result, const Box& binbb)
+{
+    double score = std::get<0>(result);
+    Box pilebb = std::get<1>(result);
+
+    auto shift = binbb.maxCorner() - pilebb.maxCorner();
+    shift.x() = std::max(0, shift.x()); // do not allow left shift
+    shift.y() = std::max(0, shift.y()); // do not allow bottom shift
+    pilebb.minCorner() += shift;
+    pilebb.maxCorner() += shift;
+
+    Box fullbb = sl::boundingBox(pilebb, binbb);
+    auto diff = double(fullbb.area()) - binbb.area();
+    if (diff > 0) score += diff;
+
+    return score;
+}
+
 // A class encapsulating the libnest2d Nester class and extending it with other
 // management and spatial index structures for acceleration.
 template<class TBin>
@@ -503,8 +522,9 @@ public:
                     break;
                 }
             }
+
             cfg.object_function = [this, bb, starting_point](const Item& item) {
-                return fixed_overfit(objfunc(item, starting_point), bb);
+                return fixed_overfit_topright_sliding(objfunc(item, starting_point), bb);
             };
         };
 

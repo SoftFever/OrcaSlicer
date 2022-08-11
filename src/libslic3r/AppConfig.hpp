@@ -39,6 +39,9 @@ public:
 		this->reset();
 	}
 
+	std::string get_langauge_code();
+	std::string get_hms_host();
+
 	// Clear and reset to defaults.
 	void 			   	reset();
 	// Override missing or keys with their defaults.

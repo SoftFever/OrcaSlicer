@@ -58,6 +58,8 @@ public:
 
     bool setColorForStates(wxColour const & color, int states);
 
+    void setTakeFocusedAsHovered(bool set);
+
 private:
     template<typename Color, typename ...Colors>
     void fill(std::pair<Color, int> color, std::pair<Colors, int>... colors) {
@@ -76,6 +78,7 @@ private:
 private:
     std::vector<int> statesList_;
     std::vector<wxColour> colors_;
+    bool takeFocusedAsHovered_ = true;
 };
 
 #endif // !slic3r_GUI_StateColor_hpp_

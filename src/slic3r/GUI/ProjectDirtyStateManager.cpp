@@ -28,8 +28,14 @@ void ProjectDirtyStateManager::update_from_presets()
     // check switching of the presets only for exist/loaded project, but not for new
     GUI_App &app = wxGetApp();
     if (!app.plater()->get_project_filename().IsEmpty()) {
-        for (const auto& [type, name] : app.get_selected_presets())
-            m_presets_dirty |= !m_initial_presets[type].empty() && m_initial_presets[type] != name;
+        for (const auto &[type, name] : app.get_selected_presets()) { 
+            if (type == Preset::Type::TYPE_FILAMENT) { 
+                m_presets_dirty |= m_initial_filament_presets != wxGetApp().preset_bundle->filament_presets;
+            } else {
+                m_presets_dirty |= !m_initial_presets[type].empty() && m_initial_presets[type] != name;
+            }
+        }
+
     }
     m_presets_dirty |= app.has_unsaved_preset_changes();
     m_project_config_dirty = m_initial_project_config != app.preset_bundle->project_config;
@@ -49,8 +55,13 @@ void ProjectDirtyStateManager::reset_initial_presets()
 {
     m_initial_presets.fill(std::string{});
     GUI_App &app = wxGetApp();
-    for (const auto& [type, name] : app.get_selected_presets())
-        m_initial_presets[type] = name;
+    for (const auto &[type, name] : app.get_selected_presets()) { 
+        if (type == Preset::Type::TYPE_FILAMENT) {
+            m_initial_filament_presets = wxGetApp().preset_bundle->filament_presets;
+        } else {
+            m_initial_presets[type] = name;
+        }
+    }
     m_initial_project_config = app.preset_bundle->project_config;
 }
 

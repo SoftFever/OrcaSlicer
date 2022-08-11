@@ -33,13 +33,13 @@ TabButton::TabButton()
         std::make_pair(*wxWHITE, (int) StateColor::Normal));
 }
 
-TabButton::TabButton(wxWindow *parent, wxString text, wxBitmap &bmp, long style, int iconSize)
+TabButton::TabButton(wxWindow *parent, wxString text, ScalableBitmap &bmp, long style, int iconSize)
     : TabButton()
 {
     Create(parent, text, bmp, style, iconSize);
 }
 
-bool TabButton::Create(wxWindow *parent, wxString text, wxBitmap &bmp, long style, int iconSize)
+bool TabButton::Create(wxWindow *parent, wxString text, ScalableBitmap &bmp, long style, int iconSize)
 {
     StaticBox::Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
     state_handler.attach({&text_color, &border_color});
@@ -47,7 +47,7 @@ bool TabButton::Create(wxWindow *parent, wxString text, wxBitmap &bmp, long styl
     //BBS set default font
     SetFont(Label::Body_14);
     wxWindow::SetLabel(text);
-    this->icon = bmp.GetSubBitmap(wxRect(0, 0, bmp.GetWidth(), bmp.GetHeight()));
+    this->icon = bmp;
     messureSize();
     return true;
 }
@@ -92,9 +92,9 @@ void TabButton::SetBGColor(StateColor const &color)
     Refresh();
 }
 
-void TabButton::SetBitmap(wxBitmap &bitmap)
+void TabButton::SetBitmap(ScalableBitmap &bitmap)
 {
-    this->icon = bitmap.GetSubBitmap(wxRect(0, 0, bitmap.GetWidth(), bitmap.GetHeight()));
+    this->icon = bitmap;
 }
 
 bool TabButton::Enable(bool enable)
@@ -138,12 +138,12 @@ void TabButton::render(wxDC &dc)
     // calc content size
     wxSize szIcon;
     wxSize szContent = textSize;
-    if (icon.IsOk()) {
+    if (icon.bmp().IsOk()) {
         if (szContent.y > 0) {
             // BBS norrow size between text and icon
             szContent.x += 5;
         }
-        szIcon = icon.GetSize();
+        szIcon = icon.GetBmpSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y) szContent.y = szIcon.y;
     }
@@ -163,10 +163,10 @@ void TabButton::render(wxDC &dc)
         dc.DrawText(text, pt);
     }
 
-    if (icon.IsOk()) {
-        pt.x = size.x - icon.GetWidth() - paddingSize.y;
-        pt.y = (size.y - icon.GetHeight()) / 2;
-        dc.DrawBitmap(icon, pt);
+    if (icon.bmp().IsOk()) {
+        pt.x = size.x - icon.GetBmpWidth() - paddingSize.y;
+        pt.y = (size.y - icon.GetBmpHeight()) / 2;
+        dc.DrawBitmap(icon.bmp(), pt);
     }
 }
 
@@ -179,12 +179,12 @@ void TabButton::messureSize()
         return;
     }
     wxSize szContent = textSize;
-    if (this->icon.IsOk()) {
+    if (this->icon.bmp().IsOk()) {
         if (szContent.y > 0) {
             // BBS norrow size between text and icon
             szContent.x += 5;
         }
-        wxSize szIcon = this->icon.GetSize();
+        wxSize szIcon = this->icon.GetBmpSize();
         szContent.x += szIcon.x;
         if (szIcon.y > szContent.y) szContent.y = szIcon.y;
     }

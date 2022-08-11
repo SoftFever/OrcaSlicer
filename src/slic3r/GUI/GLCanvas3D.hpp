@@ -361,7 +361,7 @@ public:
 //        float distance_seq_print = 6.;    // Used when sequential print is ON
 //        float distance_sla       = 6.;
         float accuracy           = 0.65f; // Unused currently
-        bool  enable_rotation    = true;
+        bool  enable_rotation    = false;
         bool  allow_multi_materials_on_same_plate = true;
         bool  avoid_extrusion_cali_region = true;
         //BBS: add more arrangeSettings
@@ -600,6 +600,7 @@ public:
     const GLVolumeCollection& get_volumes() const { return m_volumes; }
     void reset_volumes();
     ModelInstanceEPrintVolumeState check_volumes_outside_state() const;
+    const float get_scale() const;
 
     //BBS
     GCodeViewer& get_gcode_viewer() { return m_gcode_viewer; }
@@ -765,9 +766,9 @@ public:
     void on_timer(wxTimerEvent& evt);
     void on_render_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);
+    void on_gesture(wxGestureEvent& evt);
     void on_paint(wxPaintEvent& evt);
     void on_set_focus(wxFocusEvent& evt);
-    void on_kill_focus(wxFocusEvent& evt);
 
     Size get_canvas_size() const;
     Vec2d get_local_mouse_position() const;
@@ -909,6 +910,10 @@ public:
 
     bool is_object_sinking(int object_idx) const;
 
+    // Convert the screen space coordinate to an object space coordinate.
+    // If the Z screen space coordinate is not provided, a depth buffer value is substituted.
+    Vec3d _mouse_to_3d(const Point& mouse_pos, float* z = nullptr);
+
 private:
     bool _is_shown_on_screen() const;
 
@@ -980,10 +985,6 @@ private:
     void render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors, GLShaderProgram* shader, Camera::EType camera_type);
 
     void _update_volumes_hover_state();
-
-    // Convert the screen space coordinate to an object space coordinate.
-    // If the Z screen space coordinate is not provided, a depth buffer value is substituted.
-    Vec3d _mouse_to_3d(const Point& mouse_pos, float* z = nullptr);
 
     // Convert the screen space coordinate to world coordinate on the bed.
     Vec3d _mouse_to_bed_3d(const Point& mouse_pos);

@@ -148,7 +148,7 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
     m_TextColor      = ImVec4(.2f, .2f, .2f, 1.0f);
     m_HyperTextColor = ImVec4(0.03, 0.6, 0.18, 1);
 
-	m_WindowRadius = 4;
+	m_WindowRadius = 4.0f * wxGetApp().plater()->get_current_canvas3D()->get_scale();
 }
 
 

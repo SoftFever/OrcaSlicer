@@ -270,10 +270,13 @@ void MyScrollbar::OnMouseWheel(wxMouseEvent &event)
 {
 	int dMotion, actualDim;
 	if (event.GetWheelRotation() > 0)
-		dMotion = -m_pixelsPerUnit;
+		//dMotion = -m_pixelsPerUnit;
+        dMotion = -SCROLL_D_MOTION;
 	else 
-		dMotion = m_pixelsPerUnit;
-	m_previousMouse += dMotion;
+		// dMotion = m_pixelsPerUnit;
+        dMotion = SCROLL_D_MOTION;
+		
+	//m_previousMouse += dMotion;
 	actualDim = m_actualDim;
 
 	if (m_direction == wxVSCROLL)

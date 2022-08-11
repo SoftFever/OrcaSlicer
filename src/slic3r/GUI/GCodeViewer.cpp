@@ -1070,7 +1070,6 @@ void GCodeViewer::reset()
     }
     m_paths_bounding_box = BoundingBoxf3();
     m_max_bounding_box = BoundingBoxf3();
-    m_shell_bounding_box = BoundingBoxf3();
     m_max_print_height = 0.0f;
     m_tools.m_tool_colors = std::vector<Color>();
     m_tools.m_tool_visibles = std::vector<bool>();
@@ -4423,7 +4422,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         };
         const bool visible = m_buffers[buffer_id(type)].visible;
         if (type == EMoveType::Travel) {
-            //TODO display travel time, salt.wei
+            //TODO display travel time
             append_option_item_with_type(type, Travel_Colors[0], _u8L("Travel"), visible);
         }
         else if (type == EMoveType::Seam)

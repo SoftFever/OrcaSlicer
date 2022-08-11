@@ -66,8 +66,8 @@ ObjectTableSettings::ObjectTableSettings(wxWindow* parent, ObjectGridTable* tabl
     m_settings_list_sizer = new wxBoxSizer(wxVERTICAL);
     m_og->sizer->Add(m_settings_list_sizer, 1, wxEXPAND | wxLEFT, 5);
 
-    m_bmp_reset = ScalableBitmap(parent, "undo");
-    m_bmp_reset_focus = ScalableBitmap(parent, "undo");
+    m_bmp_reset = ScalableBitmap(parent, "lock_normal");
+    m_bmp_reset_focus = ScalableBitmap(parent, "lock_normal");
     //TODO, adjust later
     m_bmp_reset_disable = ScalableBitmap(parent, "dot");
 }

@@ -165,7 +165,7 @@ namespace ImGui
     const wchar_t FoldButtonIcon           = 0x0814;
     const wchar_t UnfoldButtonIcon         = 0x0815;
     const wchar_t SphereButtonIcon         = 0x0816;
-    const wchar_t FragmentFilterIcon       = 0x0817;
+    const wchar_t GapFillIcon              = 0x0817;
 
 //    void MyFunction(const char* name, const MyMatrix44& v);
 }

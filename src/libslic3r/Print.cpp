@@ -692,14 +692,15 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
 //BBS
 static std::map<std::string, bool> filament_is_high_temp {
         {"PLA",     false},
-        {"PET",     true},
+        {"PLA-CF",  false},
+        {"PETG",    true},
         {"ABS",     true},
         {"TPU",     false},
         {"PA",      true},
+        {"PA-CF",   true},
         {"PET-CF",  true},
         {"PC",      true},
-        {"ASA",     true},
-        {"PVA",     false}
+        {"ASA",     true}
 };
 
 //BBS: this function is used to check whether multi filament can be printed

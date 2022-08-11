@@ -203,6 +203,20 @@ public:
     inline Unit area() const BP2D_NOEXCEPT {
         return Unit(width())*height();
     }
+
+    _Box intersection(_Box other) {
+        _Box inter;
+        inter.p1.x() = std::max(p1.x(), other.p1.x());
+        inter.p1.y() = std::max(p1.y(), other.p1.y());
+        inter.p2.x() = std::min(p2.x(), other.p2.x());
+        inter.p2.y() = std::min(p2.y(), other.p2.y());
+        inter.defined = true;
+        if (inter.p2.y() < inter.p1.y() || inter.p2.x() < inter.p1.x()) {
+            inter.p2 = inter.p1;
+            inter.defined = false;
+        }            
+        return inter;
+    }
     
     static inline _Box infinite(const P &center = {TCoord<P>(0), TCoord<P>(0)});
 };

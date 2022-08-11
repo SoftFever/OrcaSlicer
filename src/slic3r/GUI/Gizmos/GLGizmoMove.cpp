@@ -56,7 +56,7 @@ bool GLGizmoMove3D::on_init()
         m_grabbers.push_back(Grabber());
     }
 
-    m_shortcut_key = WXK_NONE;
+    m_shortcut_key = WXK_CONTROL_M;
 
     return true;
 }

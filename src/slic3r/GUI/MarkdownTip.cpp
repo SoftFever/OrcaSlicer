@@ -293,6 +293,9 @@ MarkdownTip* MarkdownTip::markdownTip(bool create)
 
 bool MarkdownTip::ShowTip(std::string const& tip, std::string const & tooltip, wxPoint pos)
 {
+#ifdef NDEBUG
+    return false;
+#endif
     return markdownTip()->ShowTip(pos, tip, tooltip);
 }
 

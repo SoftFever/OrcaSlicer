@@ -272,6 +272,8 @@ protected:
 	bool				m_page_switch_running = false;
 	bool				m_page_switch_planned = false;
 
+    bool				m_is_timelapse_wipe_tower_already_prompted = false;
+
 public:
 	PresetBundle*		m_preset_bundle;
 	bool				m_show_btn_incompatible_presets = false;
@@ -389,6 +391,7 @@ public:
     void			apply_searcher();
 	void			cache_config_diff(const std::vector<std::string>& selected_options);
 	void			apply_config_from_cache();
+    void            show_timelapse_warning_dialog();
 
 	const std::map<wxString, std::string>& get_category_icon_map() { return m_category_icon; }
 	//BBS: GUI refactor

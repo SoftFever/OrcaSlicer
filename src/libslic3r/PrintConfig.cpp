@@ -264,8 +264,11 @@ void PrintConfigDef::init_common_params()
     //BBS: add "bed_exclude_area"
     def = this->add("bed_exclude_area", coPoints);
     def->label = L("Bed exclude area");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionPoints{});
+    def->tooltip = L("Unprintable area in XY plane. For example, X1 Series printers use the front left corner to cut filament during filament change. "
+        "The area is expressed as polygon by points in following format: \"XxY, XxY, ...\"");
+    def->mode = comAdvanced;
+    def->gui_type = ConfigOptionDef::GUIType::one_string;
+    def->set_default_value(new ConfigOptionPoints{ Vec2d(0, 0) });
 
     def = this->add("elefant_foot_compensation", coFloat);
     def->label = L("Elephant foot compensation");
@@ -290,7 +293,6 @@ void PrintConfigDef::init_common_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->max = 1000;
-    def->readonly = true;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(100.0));
 
@@ -720,7 +722,7 @@ void PrintConfigDef::init_fff_params()
     def->multiline = true;
     def->full_width = true;
     def->height = 120;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings { " " });
 
     auto def_top_fill_pattern = def = this->add("top_surface_pattern", coEnum);
@@ -951,13 +953,15 @@ void PrintConfigDef::init_fff_params()
     def->gui_type = ConfigOptionDef::GUIType::f_enum_open;
     def->gui_flags = "show_value";
     def->enum_values.push_back("PLA");
-    def->enum_values.push_back("PET");
     def->enum_values.push_back("ABS");
-    def->enum_values.push_back("TPU");
-    def->enum_values.push_back("PA");
-    def->enum_values.push_back("PET-CF");
-    def->enum_values.push_back("PC");
     def->enum_values.push_back("ASA");
+    def->enum_values.push_back("PETG");
+    def->enum_values.push_back("TPU");
+    def->enum_values.push_back("PC");
+    def->enum_values.push_back("PA");
+    def->enum_values.push_back("PA-CF");
+    def->enum_values.push_back("PLA-CF");
+    def->enum_values.push_back("PET-CF");
     def->enum_values.push_back("PVA");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionStrings { "PLA" });
@@ -1970,7 +1974,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(100));
 
     def = this->add("spiral_mode", coBool);
-    def->label = L("Spiral mode");
+    def->label = L("Spiral vase");
     def->tooltip = L("Spiralize smooths out the z moves of the outer contour. "
                      "And turns a solid model into a single walled print with solid bottom layers. "
                      "The final generated model has no seam");
@@ -1978,7 +1982,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("timelapse_no_toolhead", coBool);
-    def->label = L("Timelapse without toolhead");
+    def->label = L("Timelapse");
     def->tooltip = L("Record timelapse video of printing without showing toolhead. In this mode "
                     "the toolhead docks near the excess chute at each layer change, and then "
                     "a snapshot is taken with the chamber camera. When printing finishes a timelapse "
@@ -2012,7 +2016,7 @@ void PrintConfigDef::init_fff_params()
     def->multiline = true;
     def->full_width = true;
     def->height = 12;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings { " " });
 
     def = this->add("single_extruder_multi_material", coBool);
@@ -3583,7 +3587,7 @@ std::string DynamicPrintConfig::validate()
     }
 }
 
-std::string DynamicPrintConfig::get_filament_type(int id)
+std::string DynamicPrintConfig::get_filament_type(std::string &displayed_filament_type, int id)
 {
     auto* filament_id = dynamic_cast<const ConfigOptionStrings*>(this->option("filament_id"));
     auto* filament_type = dynamic_cast<const ConfigOptionStrings*>(this->option("filament_type"));
@@ -3594,9 +3598,11 @@ std::string DynamicPrintConfig::get_filament_type(int id)
 
     if (!filament_is_support) {
         if (filament_type) {
+            displayed_filament_type = filament_type->get_at(id);
             return filament_type->get_at(id);
         }
         else {
+            displayed_filament_type = "";
             return "";
         }
     }
@@ -3605,25 +3611,33 @@ std::string DynamicPrintConfig::get_filament_type(int id)
         if (is_support) {
             if (filament_id) {
                 if (filament_id->get_at(id) == "GFS00") {
-                    return "Support W";
+                    displayed_filament_type = "Support W";
+                    return "PLA-S";
                 }
                 else if (filament_id->get_at(id) == "GFS01") {
-                    return "Support G";
+                    displayed_filament_type = "Support G";
+                    return "PA-S";
                 }
                 else {
-                    return filament_type->get_at(id) + "-Support";
+                    displayed_filament_type = filament_type->get_at(id);
+                    return filament_type->get_at(id);
                 }
             }
             else {
-                if (filament_type->get_at(id) == "PLA")
-                    return "Support W";
-                else if (filament_type->get_at(id) == "PA")
-                    return "Support G";
-                else
-                    return filament_type->get_at(id) + "-Support";
+                if (filament_type->get_at(id) == "PLA") {
+                    displayed_filament_type = "Support W";
+                    return "PLA-S";
+                } else if (filament_type->get_at(id) == "PA") {
+                    displayed_filament_type = "Support G";
+                    return "PA-S";
+                } else {
+                    displayed_filament_type = filament_type->get_at(id);
+                    return filament_type->get_at(id);
+                }
             }
         }
         else {
+            displayed_filament_type = filament_type->get_at(id);
             return filament_type->get_at(id);
         }
     }

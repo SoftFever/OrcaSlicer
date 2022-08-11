@@ -3,6 +3,7 @@
 #include "StaticBox.hpp"
 
 #include "../wxExtensions.hpp"
+#include "../Utils/MacDarkMode.hpp"
 
 #include <wx/dcgraph.h>
 
@@ -56,11 +57,19 @@ void SwitchButton::Rescale()
 		m_off.msw_rescale();
 	}
 	else {
-		constexpr int BS = 1;
+#ifdef __WXOSX__
+        auto scale = Slic3r::GUI::mac_max_scaling_factor();
+        int BS = (int) scale;
+#else
+        constexpr int BS = 1;
+#endif
 		wxSize thumbSize;
 		wxSize trackSize;
 		wxClientDC dc(this);
-		wxSize textSize[2];
+#ifdef __WXOSX__
+        dc.SetFont(dc.GetFont().Scaled(scale));
+#endif
+        wxSize textSize[2];
 		{
 			textSize[0] = dc.GetTextExtent(labels[0]);
 			textSize[1] = dc.GetTextExtent(labels[1]);
@@ -70,11 +79,14 @@ void SwitchButton::Rescale()
 			auto size = textSize[1];
 			if (size.x > thumbSize.x) thumbSize.x = size.x;
 			else size.x = thumbSize.x;
-			thumbSize.x += 12;
-			thumbSize.y += 2;
-			trackSize.x = thumbSize.x + size.x + 10;
+			thumbSize.x += BS * 12;
+			thumbSize.y += BS * 6;
+			trackSize.x = thumbSize.x + size.x + BS * 10;
 			trackSize.y = thumbSize.y + BS * 2;
             auto maxWidth = GetMaxWidth();
+#ifdef __WXOSX__
+            maxWidth *= scale;
+#endif
 			if (trackSize.x > maxWidth) {
                 thumbSize.x -= (trackSize.x - maxWidth) / 2;
                 trackSize.x = maxWidth;
@@ -86,7 +98,7 @@ void SwitchButton::Rescale()
 			memdc.SelectObject(bmp);
 			memdc.SetBackground(wxBrush(GetBackgroundColour()));
 			memdc.Clear();
-            memdc.SetFont(GetFont());
+            memdc.SetFont(dc.GetFont());
 			auto state = i == 0 ? StateColor::Enabled : (StateColor::Checked | StateColor::Enabled);
             {
 #ifdef __WXMSW__
@@ -106,6 +118,9 @@ void SwitchButton::Rescale()
             memdc.SetTextForeground(text_color.colorForStates(state));
             memdc.DrawText(labels[1], {trackSize.x - thumbSize.x - BS + (thumbSize.x - textSize[1].x) / 2, BS + (thumbSize.y - textSize[1].y) / 2});
 			memdc.SelectObject(wxNullBitmap);
+#ifdef __WXOSX__
+            bmp = wxBitmap(bmp.ConvertToImage(), -1, scale);
+#endif
 			(i == 0 ? m_off : m_on).bmp() = bmp;
 		}
 	}

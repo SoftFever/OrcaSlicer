@@ -1238,7 +1238,7 @@ bool IMSlider::render(int canvas_width, int canvas_height)
 
 void IMSlider::render_menu()
 {
-    ImGuiWrapper::push_menu_style();
+    ImGuiWrapper::push_menu_style(m_scale);
     std::vector<std::string> colors = wxGetApp().plater()->get_extruder_colors_from_plater_config();
     int extruder_num = colors.size();
 
@@ -1246,24 +1246,25 @@ void IMSlider::render_menu()
         ImGui::OpenPopup("slider_menu_popup");
     }
 
+    ImGui::PushStyleVar(ImGuiStyleVar_::ImGuiStyleVar_ChildRounding, 4.0f * m_scale);
     if (ImGui::BeginPopup("slider_menu_popup")) {
-        bool selected = false;
-        ImGui::MenuItem(_u8L("Add Pause").c_str(), "", &selected);
-        if (selected) { add_code_as_tick(PausePrint); }
+        if(menu_item_with_icon(_u8L("Add Pause").c_str(), "")) { add_code_as_tick(PausePrint); }
 
         //BBS render this menu item only when extruder_num > 1
         if (extruder_num > 1) {
-            if (ImGui::BeginMenu(_u8L("Change Filament").c_str())) {
+            if (begin_menu(_u8L("Change Filament").c_str())) {
                 for (int i = 0; i < extruder_num; i++) {
                     std::array<float, 4> rgba     = decode_color_to_float_array(colors[i]);
                     ImU32                icon_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
-                    if (menu_item_with_icon((_u8L("Filament ") + std::to_string(i + 1)).c_str(), "", icon_clr, false, true)) add_code_as_tick(ToolChange, i + 1);
+                    if (menu_item_with_icon((_u8L("Filament ") + std::to_string(i + 1)).c_str(), "", ImVec2(14, 14) * m_scale, icon_clr)) add_code_as_tick(ToolChange, i + 1);
                 }
-                ImGui::EndMenu();
+                end_menu();
             }
         }
         ImGui::EndPopup();
     }
+    ImGui::PopStyleVar(1);
+
     ImGuiWrapper::pop_menu_style();
 }
 

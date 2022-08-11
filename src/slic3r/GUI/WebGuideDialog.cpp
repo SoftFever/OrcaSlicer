@@ -19,6 +19,7 @@
 
 #include <boost/cast.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/filesystem.hpp>
 
 #include "MainFrame.hpp"
 #include <boost/dll.hpp>
@@ -48,7 +49,7 @@ GuideFrame::GuideFrame(GUI_App *pGUI, long style)
     wxBoxSizer *topsizer = new wxBoxSizer(wxVERTICAL);
 
     wxString TargetUrl = SetStartPage(BBL_WELCOME, false);
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  set start page to welcome ") << TargetUrl;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  set start page to welcome ");
 
     // Create the webview
     m_browser = WebView::CreateWebView(this, TargetUrl);
@@ -109,15 +110,18 @@ GuideFrame::~GuideFrame()
 
 void GuideFrame::load_url(wxString &url)
 {
-    BOOST_LOG_TRIVIAL(trace) << "app_start: GuideFrame url=" << url.ToStdString();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< " enter, url=" << url.ToStdString();
     this->Show();
-    m_browser->LoadURL(url);
+    WebView::LoadUrl(m_browser, url);
     m_browser->SetFocus();
     UpdateState();
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< " exit";
 }
 
 wxString GuideFrame::SetStartPage(GuidePage startpage, bool load)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(" enter, load=%1%, start_page=%2%")%load%int(startpage);
     //wxLogMessage("GUIDE: webpage_1  %s", (boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string().c_str() );
     wxString TargetUrl = from_u8( (boost::filesystem::path(resources_dir()) / "web/guide/1/index.html").make_preferred().string() );
     //wxLogMessage("GUIDE: webpage_2  %s", TargetUrl.mb_str());
@@ -141,10 +145,10 @@ wxString GuideFrame::SetStartPage(GuidePage startpage, bool load)
         else
             TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/21/index.html").make_preferred().string());
     } else if (startpage == BBL_FILAMENT_ONLY) {
-        SetTitle(_L("Filaments Selection"));
+        SetTitle(_L(""));
         TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/23/index.html").make_preferred().string());
     } else if (startpage == BBL_MODELS_ONLY) {
-        SetTitle(_L("Printer Selection"));
+        SetTitle(_L(""));
         TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/24/index.html").make_preferred().string());
     }
     else {
@@ -153,6 +157,7 @@ wxString GuideFrame::SetStartPage(GuidePage startpage, bool load)
     }
 
     std::string strlang = wxGetApp().app_config->get("language");
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(", strlang=%1%")%strlang;
     if (strlang != "")
         TargetUrl = wxString::Format("%s?lang=%s", w2s(TargetUrl), strlang);
 
@@ -160,6 +165,7 @@ wxString GuideFrame::SetStartPage(GuidePage startpage, bool load)
     if (load)
         load_url(TargetUrl);
 
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< " exit";
     return TargetUrl;
 }
 
@@ -353,8 +359,8 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             }
 
             this->EndModal(wxID_OK);
-  
-            if (InstallNetplugin) 
+
+            if (InstallNetplugin)
                 GUI::wxGetApp().CallAfter([this] { GUI::wxGetApp().ShowDownNetPluginDlg(); });
 
             if (bLogin)
@@ -365,7 +371,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             this->Close();
         } else if (strCmd == "save_region") {
             m_Region = j["region"];
-        } 
+        }
         else if (strCmd == "network_plugin_install") {
             std::string sAction = j["data"]["action"];
 
@@ -845,25 +851,63 @@ int GuideFrame::LoadProfile()
         //} while (_findnext(handle, &findData) == 0); // 查找目录中的下一个文件
 
         // BBS: change directories by design
-        vendor_dir      = (boost::filesystem::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR).make_preferred();
-        rsrc_vendor_dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
-
-        // BBS: add BBL as default
-        // BBS: add json logic for vendor bundle
-        auto bbl_bundle_path = (vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".json");
-        bbl_bundle_rsrc = false;
-        if (!boost::filesystem::exists(bbl_bundle_path)) {
-            bbl_bundle_path = (rsrc_vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".json");
-            bbl_bundle_rsrc = true;
-        }
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  will load config from %1%.")% bbl_bundle_path;
+        //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  will load config from %1%.") % bbl_bundle_path;
         m_ProfileJson             = json::parse("{}");
         m_ProfileJson["model"]    = json::array();
         m_ProfileJson["machine"]  = json::array();
         m_ProfileJson["filament"] = json::object();
         m_ProfileJson["process"]  = json::array();
 
-        LoadProfileFamily(PresetBundle::BBL_BUNDLE, bbl_bundle_path.string());
+        vendor_dir      = (boost::filesystem::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR ).make_preferred();
+        rsrc_vendor_dir = (boost::filesystem::path(resources_dir()) / "profiles").make_preferred();
+
+        // BBS: add BBL as default
+        // BBS: add json logic for vendor bundle
+        auto bbl_bundle_path = vendor_dir;
+        bbl_bundle_rsrc = false;
+        if (!boost::filesystem::exists((vendor_dir / PresetBundle::BBL_BUNDLE).replace_extension(".json"))) {
+            bbl_bundle_path = rsrc_vendor_dir;
+            bbl_bundle_rsrc = true;
+        }
+
+        // intptr_t    handle;
+        //_finddata_t findData;
+
+        //handle = _findfirst((bbl_bundle_path / "*.json").make_preferred().string().c_str(), &findData); // 查找目录中的第一个文件
+        // if (handle == -1) { return -1; }
+
+        // do {
+        //    if (findData.attrib & _A_SUBDIR && strcmp(findData.name, ".") == 0 && strcmp(findData.name, "..") == 0) // 是否是子目录并且不为"."或".."
+        //    {
+        //        // cout << findData.name << "\t<dir>\n";
+        //    } else {
+        //        wxString strVendor = wxString(findData.name).BeforeLast('.');
+        //        LoadProfileFamily(w2s(strVendor), vendor_dir.make_preferred().string() + "\\"+ findData.name);
+        //    }
+
+        //} while (_findnext(handle, &findData) == 0); // 查找目录中的下一个文件
+
+
+        string                                targetPath = bbl_bundle_path.make_preferred().string();
+        boost::filesystem::path               myPath(targetPath);
+        boost::filesystem::directory_iterator endIter;
+        for (boost::filesystem::directory_iterator iter(myPath); iter != endIter; iter++) {
+            if (boost::filesystem::is_directory(*iter)) {
+                //cout << "is dir" << endl;
+                //cout << iter->path().string() << endl;
+            } else {
+                //cout << "is a file" << endl;
+                //cout << iter->path().string() << endl;
+                wxString strVendor = wxString(iter->path().string()).BeforeLast('.');
+                strVendor          = strVendor.AfterLast( '\\');
+                strVendor          = strVendor.AfterLast('\/');          
+
+                LoadProfileFamily(w2s(strVendor), iter->path().string());
+            }
+            }
+
+
+        //LoadProfileFamily(PresetBundle::BBL_BUNDLE, bbl_bundle_path.string());
 
         const auto enabled_filaments = wxGetApp().app_config->has_section(AppConfig::SECTION_FILAMENTS) ? wxGetApp().app_config->get_section(AppConfig::SECTION_FILAMENTS) : std::map<std::string, std::string>();
         m_appconfig_new.set_vendors(*wxGetApp().app_config);
@@ -925,7 +969,7 @@ int GuideFrame::LoadProfile()
         //----region
         m_Region = wxGetApp().app_config->get("region");
         m_ProfileJson["region"] = m_Region;
-                                                                          
+
         m_ProfileJson["network_plugin_install"] = wxGetApp().app_config->get("app","installed_networking");
         m_ProfileJson["network_plugin_compability"] = wxGetApp().is_compatibility_version() ? "1" : "0";
     }

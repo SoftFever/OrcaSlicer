@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "filament_id": "GFR99",
+    "filament_id": "GFU99",
     "setting_id": "GFSR99",
     "name": "Generic TPU",
     "from": "system",
@@ -8,9 +8,6 @@
     "inherits": "fdm_filament_tpu",
     "filament_max_volumetric_speed": [
         "3.2"
-    ],
-    "filament_start_gcode": [
-        "; filament start gcode\n{if (bed_temperature[current_extruder] > 60)||(bed_temperature_initial_layer[current_extruder]>60)}M106 P3 S255\n{endif};Prevent PETG from jamming"
     ],
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.4 nozzle",

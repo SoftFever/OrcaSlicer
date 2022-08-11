@@ -46,12 +46,12 @@ void UpgradeNetworkJob::process()
 {
     // downloading
     int result = 0;
-    
+
     AppConfig* app_config = wxGetApp().app_config;
     if (!app_config)
         return;
 
-    BOOST_LOG_TRIVIAL(info) << "[download_plugin]: enter";
+    BOOST_LOG_TRIVIAL(info) << "[UpgradeNetworkJob process]: enter";
 
     // get temp path
     fs::path target_file_path = (fs::temp_directory_path() / "network_plugin.zip");
@@ -74,7 +74,7 @@ void UpgradeNetworkJob::process()
             }
             curr_percent = percent;
         }, cancel_fn);
-    
+
     if (was_canceled()) {
         update_status(0, _L("Cancelled"));
         wxCommandEvent event(wxEVT_CLOSE_WINDOW);
@@ -84,7 +84,7 @@ void UpgradeNetworkJob::process()
     }
 
     if (result < 0) {
-        update_status(curr_percent, _L("Download failed"));
+        update_status(0, _L("Download failed"));
         wxCommandEvent event(EVT_UPGRADE_NETWORK_FAILED);
         event.SetEventObject(m_event_handle);
         wxPostEvent(m_event_handle, event);
@@ -108,7 +108,7 @@ void UpgradeNetworkJob::process()
     }
 
     if (result != 0) {
-        update_status(curr_percent, _L("Install failed"));
+        update_status(0, _L("Install failed"));
         wxCommandEvent event(EVT_UPGRADE_NETWORK_FAILED);
         event.SetEventObject(m_event_handle);
         wxPostEvent(m_event_handle, event);
@@ -118,6 +118,7 @@ void UpgradeNetworkJob::process()
     wxCommandEvent event(EVT_UPGRADE_NETWORK_SUCCESS);
     event.SetEventObject(m_event_handle);
     wxPostEvent(m_event_handle, event);
+    BOOST_LOG_TRIVIAL(info) << "[UpgradeNetworkJob process]: exit";
     return;
 }
 

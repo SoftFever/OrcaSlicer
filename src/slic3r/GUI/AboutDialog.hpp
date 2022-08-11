@@ -17,7 +17,7 @@ public:
     AboutDialogLogo(wxWindow* parent);
     
 private:
-    wxBitmap logo;
+    ScalableBitmap logo;
     void onRepaint(wxEvent &event);
 };
 

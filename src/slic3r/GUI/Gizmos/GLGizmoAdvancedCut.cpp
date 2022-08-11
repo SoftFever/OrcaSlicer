@@ -158,6 +158,10 @@ void GLGizmoAdvancedCut::reset_cut_plane()
     m_rotation.setZero();
     //m_current_base_rotation.setZero();
     m_rotate_cmds.clear();
+
+    m_buffered_movement = 0.0;
+    m_buffered_height = m_height;
+    m_buffered_rotation.setZero();
 }
 
 void GLGizmoAdvancedCut::reset_all()
@@ -174,7 +178,7 @@ bool GLGizmoAdvancedCut::on_init()
     if (!GLGizmoRotate3D::on_init())
         return false;
 
-    m_shortcut_key = WXK_NONE;
+    m_shortcut_key = WXK_CONTROL_C;
     return true;
 }
 
@@ -414,7 +418,7 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
 
     GizmoImguiSetNextWIndowPos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
     
-    ImGuiWrapper::push_toolbar_style();
+    ImGuiWrapper::push_toolbar_style(m_parent.get_scale());
 
     GizmoImguiBegin(on_get_name(), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 

@@ -745,7 +745,6 @@ bool doesVolumeIntersect(VolumeSlices& vs1, VolumeSlices& vs2)
     if (vs1.volume_id == vs2.volume_id) return true;
     if (vs1.slices.size() != vs2.slices.size()) return false;
 
-    double offsetValue = 0.4 / SCALING_FACTOR;
     for (int i = 0; i != vs1.slices.size(); ++i) {
 
         if (vs1.slices[i].empty()) continue;
@@ -766,7 +765,7 @@ bool groupingVolumes(std::vector<VolumeSlices> objSliceByVolume, std::vector<gro
     int existGroups = 0;
     std::vector<int> groupIndex(objSliceByVolume.size(), -1);
 
-    double offsetValue = 0.4 / SCALING_FACTOR;
+    double offsetValue = 0.15 / SCALING_FACTOR;
 
     for (int i = 0; i != objSliceByVolume.size(); ++i) {
         for (int j = 0; j != objSliceByVolume[i].slices.size(); ++j) {

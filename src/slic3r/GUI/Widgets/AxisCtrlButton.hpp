@@ -25,7 +25,7 @@ class AxisCtrlButton : public wxWindow
     StateColor      background_color;
 	StateColor      inner_background_color;
 
-    wxBitmap m_icon;
+    ScalableBitmap m_icon;
 
 	bool pressedDown = false;
 
@@ -45,7 +45,7 @@ class AxisCtrlButton : public wxWindow
     };
 
 public:
-    AxisCtrlButton(wxWindow *parent, wxBitmap &icon, long style = 0);
+    AxisCtrlButton(wxWindow *parent, ScalableBitmap &icon, long style = 0);
 
     void SetMinSize(const wxSize& size) override;
 
@@ -57,7 +57,7 @@ public:
 
     void SetInnerBackgroundColor(StateColor const& color);
 
-    void SetBitmap(wxBitmap &bmp);
+    void SetBitmap(ScalableBitmap &bmp);
 
     void Rescale();
 

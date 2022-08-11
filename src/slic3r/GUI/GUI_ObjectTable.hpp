@@ -40,7 +40,7 @@ public:
                       const wxRect& rect,
                       int row, int col,
                       bool isSelected) wxOVERRIDE;
-    
+
     virtual wxSize GetBestSize(wxGrid& WXUNUSED(grid),
                                wxGridCellAttr& attr,
                                wxDC& dc,
@@ -71,6 +71,8 @@ public:
     virtual wxGridCellEditor *Clone() const wxOVERRIDE;
 
     virtual void BeginEdit(int row, int col, wxGrid* grid) wxOVERRIDE;
+    virtual bool EndEdit(int row, int col, const wxGrid* grid,
+                         const wxString& oldval, wxString *newval) wxOVERRIDE;
 
     virtual wxGridActivationResult TryActivate(int row, int col, wxGrid* grid, const wxGridActivationSource& actSource) wxOVERRIDE;
     virtual void DoActivate(int row, int col, wxGrid* grid) wxOVERRIDE;
@@ -151,7 +153,7 @@ public:
 //ObjectGrid for the param setting table
 class ObjectGrid : public wxGrid
 {
-public:    
+public:
     ObjectGrid(wxWindow *parent,
         wxWindowID id,
         const wxPoint& pos = wxDefaultPosition,
@@ -377,7 +379,7 @@ public:
     virtual int GetNumberRows() wxOVERRIDE;
     virtual int GetNumberCols() wxOVERRIDE;
     virtual bool IsEmptyCell( int row, int col ) wxOVERRIDE;
-    
+
 
     //virtual wxString GetColLabelValue( int col ) wxOVERRIDE;
 
@@ -537,7 +539,7 @@ private:
 
     wxFloatingPointValidator<float> m_float_validator;
     wxBitmap           m_undo_bitmap;
-    std::vector<wxBitmap*> m_color_bitmaps; 
+    std::vector<wxBitmap*> m_color_bitmaps;
     ScalableBitmap     m_bmp_reset;
     ScalableBitmap     m_bmp_reset_disable;
 private:

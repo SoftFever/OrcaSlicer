@@ -1,14 +1,15 @@
 #include "WebView.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/Utils/MacDarkMode.hpp"
 
 #include <wx/webviewarchivehandler.h>
 #include <wx/webviewfshandler.h>
 #include <wx/msw/webview_edge.h>
 #include <wx/uri.h>
+#include "wx/private/jsscriptwrapper.h"
 
 #ifdef __WIN32__
 #include "../WebView2.h"
-#include "wx/private/jsscriptwrapper.h"
 #endif
 
 class FakeWebView : public wxWebView
@@ -65,6 +66,7 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
     url2.Replace("\\", "/");
 #endif
     if (!url2.empty()) { url2 = wxURI(url2).BuildURI(); }
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << url2.ToUTF8();
 
     auto webView = wxWebView::New();
     if (webView) {
@@ -93,9 +95,21 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
 #endif
         webView->EnableContextMenu(false);
     } else {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": failed. Use fake web view.";
         webView = new FakeWebView;
     }
     return webView;
+}
+
+void WebView::LoadUrl(wxWebView * webView, wxString const &url)
+{
+    auto url2  = url;
+#ifdef __WIN32__
+    url2.Replace("\\", "/");
+#endif
+    if (!url2.empty()) { url2 = wxURI(url2).BuildURI(); }
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << url2.ToUTF8();
+    webView->LoadURL(url2);
 }
 
 bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
@@ -111,6 +125,12 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
         int               count   = 0;
         wxJSScriptWrapper wrapJS(javascript, &count);
         return webView2->ExecuteScript(wrapJS.GetWrappedCode(), NULL) == 0;
+#elif defined __WXMAC__
+        WKWebView * wkWebView = (WKWebView *) webView->GetNativeBackend();
+        int               count   = 0;
+        wxJSScriptWrapper wrapJS(javascript, &count);
+        Slic3r::GUI::WKWebView_evaluateJavaScript(wkWebView, wrapJS.GetWrappedCode(), nullptr);
+        return true;
 #else
         wxString result;
         return webView->RunScript(javascript, &result);

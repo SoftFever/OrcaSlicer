@@ -71,9 +71,6 @@ static void take_snapshot(const std::string& snapshot_name)
         plater->take_snapshot(snapshot_name);
 }
 
-#define ID_OBJECT_ORG_MENU_ITEM_MODULE 11000
-#define ID_OBJECT_ORG_MENU_ITEM_PLATE 11001
-
 ObjectList::ObjectList(wxWindow* parent) :
     wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE)
 {
@@ -84,17 +81,6 @@ ObjectList::ObjectList(wxWindow* parent) :
 
     //BBS: add part plate related event
     //Bind(EVT_PARTPLATE_LIST_PLATE_SELECT, &ObjectList::on_select_plate, this);
-
-    // BBS
-    wxMenuItem* org_by_plate = new wxMenuItem(&m_object_org_menu, ID_OBJECT_ORG_MENU_ITEM_PLATE, "Organize By Plate");
-    m_object_org_menu.Append(org_by_plate);
-
-    wxMenuItem* org_by_module = new wxMenuItem(&m_object_org_menu, ID_OBJECT_ORG_MENU_ITEM_MODULE, "Organize By Module");
-    m_object_org_menu.Append(org_by_module);
-
-    //Bind(wxEVT_DATAVIEW_COLUMN_HEADER_CLICK, &ObjectList::OnColumnHeadClicked, this);
-    Bind(wxEVT_MENU, [this](wxCommandEvent& evt) { this->OnOrganizeObjects(ortByPlate); }, ID_OBJECT_ORG_MENU_ITEM_PLATE);
-    Bind(wxEVT_MENU, [this](wxCommandEvent& evt) { this->OnOrganizeObjects(ortByModule); }, ID_OBJECT_ORG_MENU_ITEM_MODULE);
 
     // describe control behavior
     Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxDataViewEvent& event) {
@@ -266,7 +252,8 @@ ObjectList::ObjectList(wxWindow* parent) :
 #else
         update_name_column_width();
 
-        ensure_current_item_visible();
+        // BBS
+        this->CallAfter([this]() { ensure_current_item_visible(); });
 #endif
         e.Skip();
 	}));
@@ -278,10 +265,13 @@ ObjectList::~ObjectList()
 
 void ObjectList::set_min_height()
 {
+    // BBS
+#if 0
     if (m_items_count == size_t(-1))
         m_items_count = 7;
     int list_min_height = lround(2.25 * (m_items_count + 1) * wxGetApp().em_unit()); // +1 is for height of control header
     this->SetMinSize(wxSize(1, list_min_height));
+#endif
 }
 
 void ObjectList::update_min_height()
@@ -289,10 +279,14 @@ void ObjectList::update_min_height()
     wxDataViewItemArray all_items;
     m_objects_model->GetAllChildren(wxDataViewItem(nullptr), all_items);
     size_t items_cnt = all_items.Count();
+#if 0
     if (items_cnt < 7)
         items_cnt = 7;
     else if (items_cnt >= 15)
         items_cnt = 15;
+#else
+    items_cnt = 8;
+#endif
 
     if (m_items_count == items_cnt)
         return;
@@ -304,14 +298,14 @@ void ObjectList::update_min_height()
 
 void ObjectList::create_objects_ctrl()
 {
+    // BBS
+#if 0
     /* Temporary workaround for the correct behavior of the Scrolled sidebar panel:
      * 1. set a height of the list to some big value
      * 2. change it to the normal(meaningful) min value after first whole Mainframe updating/layouting
      */
     SetMinSize(wxSize(-1, 3000));
-
-    m_sizer = new wxBoxSizer(wxVERTICAL);
-    m_sizer->Add(this, 1, wxGROW);
+#endif
 
     m_objects_model = new ObjectDataViewModel;
     AssociateModel(m_objects_model);
@@ -356,7 +350,7 @@ void ObjectList::create_objects_ctrl()
     bmp_choice_renderer->set_default_extruder_idx([this]() {
         return m_objects_model->GetDefaultExtruderIdx(GetSelection());
     });
-    AppendColumn(new wxDataViewColumn(_L(""), bmp_choice_renderer,
+    AppendColumn(new wxDataViewColumn(_L("Fila."), bmp_choice_renderer,
         colFilament, m_columns_width[colFilament] * em, wxALIGN_CENTER_HORIZONTAL, 0));
 
     // BBS
@@ -642,6 +636,9 @@ void ObjectList::update_plate_values_for_items()
         if (plate_idx == old_plate_idx)
             continue;
 
+        // hotfix for wxDataViewCtrl selection not updated after wxDataViewModel::ItemDeleted()
+        Unselect(item);
+
         bool is_old_parent_expanded = IsExpanded(old_parent);
         bool is_expanded = IsExpanded(item);
         m_objects_model->OnPlateChange(plate_idx, item);
@@ -659,20 +656,6 @@ void ObjectList::update_name_for_items()
     m_objects_model->UpdateItemNames();
 
     wxGetApp().plater()->update();
-}
-
-// BBS
-void ObjectList::OnColumnHeadClicked(wxDataViewEvent& event)
-{
-    int col = event.GetColumn();
-    if (col == 0) {
-        this->PopupMenu(&m_object_org_menu, 0, FromDIP(20));
-    }
-}
-
-void ObjectList::OnOrganizeObjects(OBJECT_ORGANIZE_TYPE type)
-{
-    printf("%d\n", type);
 }
 
 void ObjectList::object_config_options_changed(const ObjectVolumeID& ov_id)
@@ -1976,6 +1959,30 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     if (type == ModelVolumeType::MODEL_PART)
         // update printable state on canvas
         wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
+
+    // apply the instance transform to all volumes and reset instance transform except the offset
+    {
+        const Geometry::Transformation &instance_transformation  = model_object.instances[0]->get_transformation();
+        Vec3d                           original_instance_center = instance_transformation.get_offset();
+
+        const Transform3d &transformation_matrix = instance_transformation.get_matrix();
+        for (ModelVolume *volume : model_object.volumes) {
+            const Transform3d &volume_matrix = volume->get_matrix();
+            Transform3d        new_matrix    = transformation_matrix * volume_matrix;
+            volume->set_transformation(new_matrix);
+        }
+        model_object.instances[0]->set_transformation(Geometry::Transformation());
+
+        model_object.ensure_on_bed();
+        // keep new instance center the same as the original center
+        model_object.translate(-original_instance_center);
+        model_object.origin_translation += original_instance_center;
+        model_object.translate_instances(model_object.origin_translation);
+        model_object.origin_translation = Vec3d::Zero();
+
+        // update the cache data in selection to keep the data of ModelVolume and GLVolume are consistent
+        wxGetApp().plater()->update();
+    }
 
     selection_changed();
 
@@ -4734,9 +4741,7 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
     auto item = event.GetItem();
     if (!renderer->GetEditorCtrl()) {
         renderer->StartEditing(item, GetItemRect(item, column));
-        if (col == colFilament) // TODO: not handle KILL_FOCUS from ComboBox
-            renderer->GetEditorCtrl()->PopEventHandler();
-        else if (col == colName) // TODO: for colName editing, disable shortcuts
+        if (col == colName) // TODO: for colName editing, disable shortcuts
             SetAcceleratorTable(wxNullAcceleratorTable);
     }
 #endif //__WXMSW__

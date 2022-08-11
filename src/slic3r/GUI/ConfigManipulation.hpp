@@ -21,7 +21,6 @@ namespace GUI {
 class ConfigManipulation
 {
     bool                is_msg_dlg_already_exist{ false };
-    bool                is_timelapse_wipe_tower_already_prompted{false}; // BBS
     bool                m_is_initialized_support_material_overhangs_queried{ false };
     bool                m_support_material_overhangs_queried{ false };
 

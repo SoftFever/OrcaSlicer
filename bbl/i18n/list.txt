@@ -10,7 +10,8 @@ src/slic3r/GUI/Gizmos/GizmoObjectManipulation.cpp
 src/slic3r/GUI/Gizmos/GLGizmoAdvancedCut.cpp
 src/slic3r/GUI/Gizmos/GLGizmoSimplify.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFaceDetector.cpp
-src/slic3r/GUI/Gizmos/GLGizmoModifier.cpp
+src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp
+src/slic3r/GUI/Gizmos/GLGizmoSeam.hpp
 src/slic3r/GUI/GUI.cpp
 src/slic3r/GUI/GUI_App.cpp
 src/slic3r/GUI/GUI_Init.cpp
@@ -36,6 +37,7 @@ src/slic3r/GUI/Jobs/PrintJob.cpp
 src/slic3r/GUI/Jobs/UpgradeNetworkJob.cpp
 src/slic3r/GUI/AboutDialog.cpp
 src/slic3r/GUI/AMSMaterialsSetting.cpp
+src/slic3r/GUI/AMSMappingPopup.cpp
 src/slic3r/GUI/AMSSetting.cpp
 src/slic3r/GUI/BBLTopbar.cpp
 src/slic3r/GUI/DownloadProgressDialog.cpp
@@ -63,6 +65,7 @@ src/slic3r/GUI/NotificationManager.cpp
 src/slic3r/GUI/ObjectDataViewModel.cpp
 src/slic3r/GUI/OpenGLManager.cpp
 src/slic3r/GUI/OptionsGroup.cpp
+src/slic3r/GUI/PrintOptionsDialog.cpp
 src/slic3r/GUI/ParamsPanel.cpp
 src/slic3r/GUI/PartPlate.cpp
 src/slic3r/GUI/Plater.cpp

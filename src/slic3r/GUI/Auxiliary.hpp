@@ -81,9 +81,9 @@ public:
     wxString cover_text_right;
     wxString cover_text_cover;
     wxBitmap m_file_bitmap;
-    wxBitmap m_file_cover;
-    wxBitmap m_file_edit_mask;
-    wxBitmap m_file_delete;
+    ScalableBitmap m_file_cover;
+    ScalableBitmap m_file_edit_mask;
+    ScalableBitmap m_file_delete;
 
     wxBitmap m_bitmap_excel;
     wxBitmap m_bitmap_pdf;

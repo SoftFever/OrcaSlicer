@@ -213,6 +213,9 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
 
 WebViewPanel::~WebViewPanel()
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Start";
+    SetEvtHandlerEnabled(false);
+    
     delete m_tools_menu;
 
     if (m_LoginUpdateTimer != nullptr) {
@@ -220,7 +223,7 @@ WebViewPanel::~WebViewPanel()
         delete m_LoginUpdateTimer;
         m_LoginUpdateTimer = NULL;
     }
-
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " End";
 }
 
 
@@ -542,6 +545,7 @@ void WebViewPanel::OnScriptMessage(wxWebViewEvent& evt)
 {
     // update login status
     if (m_LoginUpdateTimer == nullptr) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Create Timer";
         m_LoginUpdateTimer = new wxTimer(this, LOGIN_INFO_UPDATE_TIMER_ID);
         m_LoginUpdateTimer->Start(2000);
     }

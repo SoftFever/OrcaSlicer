@@ -33,6 +33,7 @@
 
 // BBS: for segment
 #include "MeshBoolean.hpp"
+#include "Format/3mf.hpp"
 
 namespace Slic3r {
     // BBS initialization of static variables
@@ -202,7 +203,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
 //BBS: add part plate related logic
 // BBS: backup & restore
 // Loading model from a file (3MF or AMF), not from a simple geometry file (STL or OBJ).
-Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, LoadStrategy options, PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, bool *is_bbl_3mf, Semver* file_version, Import3mfProgressFn proFn, BBLProject *project)
+Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, En3mfType& out_file_type, LoadStrategy options, PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, Semver* file_version, Import3mfProgressFn proFn, BBLProject *project)
 {
     assert(config != nullptr);
     assert(config_substitutions != nullptr);
@@ -210,14 +211,27 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
     Model model;
 
     bool result = false;
-    if (boost::algorithm::iends_with(input_file, ".3mf"))
-        //BBS: add part plate related logic
-        // BBS: backup & restore
-        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, is_bbl_3mf, file_version, proFn, options, project);
+    bool is_bbl_3mf;
+    if (boost::algorithm::iends_with(input_file, ".3mf")) {
+        PrusaFileParser prusa_file_parser;
+        if (prusa_file_parser.check_3mf_from_prusa(input_file)) {
+            // for Prusa 3mf
+            result = load_3mf(input_file.c_str(), *config, *config_substitutions, &model, true);
+            out_file_type = En3mfType::From_Prusa;
+        } else {
+            // BBS: add part plate related logic
+            // BBS: backup & restore
+            result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, &is_bbl_3mf, file_version, proFn, options, project);
+        }
+    }
     else if (boost::algorithm::iends_with(input_file, ".zip.amf"))
-        result = load_amf(input_file.c_str(), config, config_substitutions, &model, is_bbl_3mf);
+        result = load_amf(input_file.c_str(), config, config_substitutions, &model, &is_bbl_3mf);
     else
         throw Slic3r::RuntimeError("Unknown file format. Input file must have .3mf or .zip.amf extension.");
+
+    if (out_file_type != En3mfType::From_Prusa) {
+        out_file_type = is_bbl_3mf ? En3mfType::From_BBS : En3mfType::From_Other;
+    }
 
     if (!result)
         throw Slic3r::RuntimeError("Loading of a model file failed.");
@@ -2837,7 +2851,7 @@ double getadhesionCoeff(const ModelVolumePtrs objectVolumes)
     double adhesionCoeff = 1;
     for (const ModelVolume* modelVolume : objectVolumes) {
         if (Model::extruderParamsMap.find(modelVolume->extruder_id()) != Model::extruderParamsMap.end())
-            if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PET") {
+            if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PETG") {
                 adhesionCoeff = 2;
             }
             else if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU") {
@@ -2869,6 +2883,14 @@ double getTemperatureFromExtruder(const ModelVolumePtrs objectVolumes) {
 #else
     return 0.f;
 #endif
+}
+
+double ModelInstance::get_auto_brim_width() const
+{
+    double adhcoeff = getadhesionCoeff(object->volumes);
+    double DeltaT = getTemperatureFromExtruder(object->volumes);
+    // get auto brim width (Note even if the global brim_type=btOuterBrim, we can still go into this branch)
+    return get_auto_brim_width(DeltaT, adhcoeff);
 }
 
 void ModelInstance::get_arrange_polygon(void* ap) const
@@ -2910,18 +2932,6 @@ void ModelInstance::get_arrange_polygon(void* ap) const
     ret.extrude_ids = volume->get_extruders();
     if (ret.extrude_ids.empty()) //the default extruder
         ret.extrude_ids.push_back(1);
-
-    // get user specified brim width per object
-    // Note: if global brim_type=btNoBrim or brAutoBrim, user can't set individual brim_width
-    if (object->config.has("brim_width"))
-        ret.user_brim_width = object->config.opt_float("brim_width");
-    else {
-        // BBS: get DeltaT, adhcoeff before calculating brim width
-        double adhcoeff = getadhesionCoeff(object->volumes);
-        double DeltaT = getTemperatureFromExtruder(object->volumes);
-        // get auto brim width (Note even if the global brim_type=btOuterBrim, we can still go into this branch)
-        ret.auto_brim_width = get_auto_brim_width(DeltaT, adhcoeff);
-    }
 }
 
 indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, EnforcerBlockerType type) const

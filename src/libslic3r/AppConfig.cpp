@@ -44,6 +44,41 @@ static const std::string MODELS_STR = "models";
 const std::string AppConfig::SECTION_FILAMENTS = "filaments";
 const std::string AppConfig::SECTION_MATERIALS = "sla_materials";
 
+std::string AppConfig::get_langauge_code()
+{
+    std::string get_lang = get("language");
+    if (get_lang.empty()) return "";
+
+    if (get_lang == "zh_CN")
+    {
+        get_lang = "zh-cn";
+    }
+    else
+    {
+        if (get_lang.length() >= 2) { get_lang = get_lang.substr(0, 2); }
+    }
+
+    return get_lang;
+}
+
+std::string AppConfig::get_hms_host()
+{
+    std::string sel = get("iot_environment");
+    std::string host = "";
+#if !BBL_RELEASE_TO_PUBLIC
+    if (sel == ENV_DEV_HOST)
+        host = "e-dev.bambu-lab.com";
+    else if (sel == ENV_QAT_HOST)
+        host = "e-qa.bambu-lab.com";
+    else if (sel == ENV_PRE_HOST)
+        host = "e-pre.bambu-lab.com";
+    else if (sel == ENV_PRODUCT_HOST)
+        host = "e.bambulab.com";
+    return host;
+#else
+    return "e.bambulab.com";
+#endif
+}
 
 void AppConfig::reset()
 {

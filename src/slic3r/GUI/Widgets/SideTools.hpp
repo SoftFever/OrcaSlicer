@@ -33,20 +33,19 @@ private:
     bool            m_none_printer{true};
     int             last_printer_signal = 0;
 
-    wxBitmap        m_printing_img;
-    wxBitmap        m_arrow_img;
+    ScalableBitmap  m_printing_img;
+    ScalableBitmap  m_arrow_img;
 
-    wxBitmap        m_none_printing_img;
-    wxBitmap        m_none_arrow_img;
-    wxBitmap        m_none_add_img;
+    ScalableBitmap  m_none_printing_img;
+    ScalableBitmap  m_none_arrow_img;
+    ScalableBitmap  m_none_add_img;
 
-    wxBitmap        m_wifi_none_img;
-    wxBitmap        m_wifi_weak_img;
-    wxBitmap        m_wifi_middle_img;
-    wxBitmap        m_wifi_strong_img;
+    ScalableBitmap  m_wifi_none_img;
+    ScalableBitmap  m_wifi_weak_img;
+    ScalableBitmap  m_wifi_middle_img;
+    ScalableBitmap  m_wifi_strong_img;
 
 protected:
-    wxBitmap        m_bitmap_type;
     wxStaticBitmap *m_bitmap_info;
     wxStaticBitmap *m_bitmap_bind;
     wxTimer *       m_intetval_timer{nullptr};

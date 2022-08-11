@@ -319,7 +319,12 @@ int DownPluginFrame::InstallPlugin()
 
 int DownPluginFrame::ShowPluginStatus(int status, int percent, bool &cancel)
 {
-    // TODO
+    static int nPercent = 0;
+    if (nPercent == percent) 
+        return 0;
+
+    nPercent = percent;
+
     json m_Data = json::object();
     m_Data["status"] = status;
     m_Data["percent"] = percent;

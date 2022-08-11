@@ -8,10 +8,11 @@
 .CName
 {
 	width:130px;
-	min-width: 80px;
 	font-weight: 700;
 	height: 100%;
 	text-align: right;
+	white-space: nowrap;
+	flex-shrink: 0;
 }
 
 .CValues

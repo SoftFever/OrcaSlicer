@@ -33,6 +33,7 @@ ConnectPrinterDialog::ConnectPrinterDialog(wxWindow *parent, wxWindowID id, cons
     sizer_connect = new wxBoxSizer(wxHORIZONTAL);
 
     m_textCtrl_code = new TextInput(this, wxEmptyString);
+    m_textCtrl_code->GetTextCtrl()->SetMaxLength(10);
     m_textCtrl_code->SetFont(Label::Body_14);
     m_textCtrl_code->SetCornerRadius(FromDIP(5));
     m_textCtrl_code->SetSize(wxSize(FromDIP(330), FromDIP(40)));
@@ -132,6 +133,12 @@ void ConnectPrinterDialog::on_input_enter(wxCommandEvent& evt)
 void ConnectPrinterDialog::on_button_confirm(wxCommandEvent &event) 
 {
     wxString code = m_textCtrl_code->GetTextCtrl()->GetValue();
+    for (char c : code) {
+        if (!('0' <= c && c <= '9' || 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z')) {
+            show_error(this, _L("Invalid input."));
+            return;
+        }
+    }
     if (m_obj) {
         m_obj->set_access_code(code.ToStdString());
     }
