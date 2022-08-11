@@ -1526,9 +1526,26 @@ void ImGuiWrapper::search_list(const ImVec2& size_, bool (*items_getter)(int, co
     //    check_box(_L("Search in English"), view_params.english);
 }
 
+void ImGuiWrapper::bold_text(const std::string& str)
+{
+    if (bold_font){
+        ImGui::PushFont(bold_font);
+        text(str);
+        ImGui::PopFont();
+    } else {
+        text(str);
+    }
+}
+
 void ImGuiWrapper::title(const std::string& str)
 {
-    text(str);
+    if (bold_font){
+        ImGui::PushFont(bold_font);
+        text(str);
+        ImGui::PopFont();
+    } else {
+        text(str);
+    }
     ImGui::Separator();
 }
 
@@ -1690,11 +1707,21 @@ void ImGuiWrapper::init_font(bool compress)
     //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, ranges.Data);
     //https://github.com/ocornut/imgui/issues/220
     ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Regular.ttf").c_str(), m_font_size, nullptr, ranges.Data);
+
     if (font == nullptr) {
         font = io.Fonts->AddFontDefault();
         if (font == nullptr) {
             throw Slic3r::RuntimeError("ImGui: Could not load deafult font");
         }
+    }
+
+    ImFontConfig cfg = ImFontConfig();
+    cfg.OversampleH  = 1;
+    bold_font        = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Bold.ttf").c_str(), m_font_size, &cfg);
+
+    if (bold_font == nullptr) {
+        bold_font = io.Fonts->AddFontDefault();
+        if (bold_font == nullptr) { throw Slic3r::RuntimeError("ImGui: Could not load deafult font"); }
     }
 
 #ifdef __APPLE__

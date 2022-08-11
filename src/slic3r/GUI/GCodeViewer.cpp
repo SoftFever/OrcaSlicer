@@ -4160,10 +4160,10 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     auto append_headers = [&imgui](const std::array<std::string, 5>& texts, const std::array<float, 4>& offsets) {
         size_t i = 0;
         for (; i < offsets.size(); i++) {
-            imgui.text(texts[i]);
+            imgui.bold_text(texts[i]);
             ImGui::SameLine(offsets[i]);
         }
-        imgui.text(texts[i]);
+        imgui.bold_text(texts[i]);
         ImGui::Separator();
     };
 
@@ -4267,7 +4267,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::PopStyleColor(3);
     ImGui::PopStyleVar(1);
     ImGui::SameLine();
-    ImGui::Text(_u8L("Color Scheme").c_str());
+    imgui.bold_text(_u8L("Color Scheme"));
     push_combo_style();
 
     ImGui::SameLine();
