@@ -47,6 +47,11 @@ public:
 
     void Rescale();
 
+protected:
+#ifdef __WIN32__
+    WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) override;
+#endif
+
 private:
     void paintEvent(wxPaintEvent& evt);
 
@@ -57,6 +62,7 @@ private:
     // some useful events
     void mouseDown(wxMouseEvent& event);
     void mouseReleased(wxMouseEvent& event);
+    void keyDownUp(wxKeyEvent &event);
 
     void sendButtonEvent();
 

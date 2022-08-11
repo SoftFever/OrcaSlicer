@@ -62,7 +62,7 @@ namespace GUI {
 
 class Bed3D;
 
-std::array<float, 4> PartPlate::SELECT_COLOR		= { 0.4196f, 0.4235f, 0.4235f, 1.0f };
+std::array<float, 4> PartPlate::SELECT_COLOR		= { 0.2666f, 0.2784f, 0.2784f, 1.0f }; //{ 0.4196f, 0.4235f, 0.4235f, 1.0f };
 std::array<float, 4> PartPlate::UNSELECT_COLOR		= { 0.82f, 0.82f, 0.82f, 1.0f };
 std::array<float, 4> PartPlate::DEFAULT_COLOR		= { 0.5f, 0.5f, 0.5f, 1.0f };
 std::array<float, 4> PartPlate::LINE_TOP_COLOR		= { 0.89f, 0.89f, 0.89f, 1.0f };
@@ -199,11 +199,11 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 		line.append(Point(x, pp_bbox.min(1)));
 		line.append(Point(x, pp_bbox.max(1)));
 
-		count ++;
 		if ( (count % 5) == 0 )
 			axes_lines_bolder.push_back(line);
 		else
 			axes_lines.push_back(line);
+		count ++;
 	}
 	count = 0;
 	for (coord_t y = pp_bbox.min(1); y <= pp_bbox.max(1); y += scale_(10.0)) {
@@ -212,11 +212,11 @@ void PartPlate::calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox
 		line.append(Point(pp_bbox.max(0), y));
 		axes_lines.push_back(line);
 
-		count ++;
 		if ( (count % 5) == 0 )
 			axes_lines_bolder.push_back(line);
 		else
 			axes_lines.push_back(line);
+		count ++;
 	}
 
 	// clip with a slightly grown expolygon because our lines lay on the contours and may get erroneously clipped
@@ -385,7 +385,8 @@ void PartPlate::render_logo(bool bottom) const
 
 			// starts generating the main texture, compression will run asynchronously
 			GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
-			if (!m_partplate_list->m_logo_texture.load_from_svg_file(m_partplate_list->m_logo_texture_filename, true, true, true, max_tex_size/8)) {
+			GLint logo_tex_size = (max_tex_size < 2048)?max_tex_size: 2048;
+			if (!m_partplate_list->m_logo_texture.load_from_svg_file(m_partplate_list->m_logo_texture_filename, true, true, true, logo_tex_size)) {
 				BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!")%m_partplate_list->m_logo_texture_filename;
 				return;
 			}
@@ -1838,8 +1839,8 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 
 		ExPolygon logo_poly;
 		generate_logo_polygon(logo_poly);
-		if (!m_logo_triangles.set_from_triangles(triangulate_expolygon_2f(logo_poly, NORMALS_UP), GROUND_Z+0.28f))
-		    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create plate triangles\n";
+		if (!m_logo_triangles.set_from_triangles(triangulate_expolygon_2f(logo_poly, NORMALS_UP), GROUND_Z+0.02f))
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create logo triangles\n";
 
 		ExPolygon poly;
 		/*for (const Vec2d& p : m_shape) {
@@ -1882,9 +1883,9 @@ const BoundingBox PartPlate::get_bounding_box_crd()
 	return plate_shape.bounding_box();
 }
 
-bool PartPlate::contains(const Point& point) const
+bool PartPlate::contains(const Vec3d& point) const
 {
-	return m_polygon.contains(point);
+	return m_bounding_box.contains(point);
 }
 
 bool PartPlate::contains(const GLVolume& v) const
@@ -1914,11 +1915,6 @@ bool PartPlate::intersects(const BoundingBoxf3& bb) const
 	print_volume.max(0) += Slic3r::BuildVolume::BedEpsilon;
 	print_volume.max(1) += Slic3r::BuildVolume::BedEpsilon;
 	return print_volume.intersects(bb);
-}
-
-Point PartPlate::point_projection(const Point& point) const
-{
-	return m_polygon.point_projection(point);
 }
 
 void PartPlate::render(bool bottom, bool only_body, bool force_background_color, HeightLimitMode mode, int hover_id)

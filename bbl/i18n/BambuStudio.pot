@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-23 18:15+0800\n"
+"POT-Creation-Date: 2022-08-08 20:01+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -57,7 +57,7 @@ msgstr ""
 msgid "Perform"
 msgstr ""
 
-msgid "Fragment area"
+msgid "Gap area"
 msgstr ""
 
 msgid "Set pen size"
@@ -124,9 +124,6 @@ msgid "Choose filament"
 msgstr ""
 
 msgid "Edge detection"
-msgstr ""
-
-msgid "Clear all"
 msgstr ""
 
 msgid "Triangles"
@@ -339,19 +336,34 @@ msgstr ""
 msgid "Perform Recognition"
 msgstr ""
 
-msgid "Cube"
+msgid "Reset direction"
 msgstr ""
 
-msgid "Cylinder"
+msgid "Brush size"
 msgstr ""
 
-msgid "Cone"
+msgid "Brush shape"
 msgstr ""
 
-msgid "Timelapse Wipe Tower"
+msgid "Enforce seam"
 msgstr ""
 
-msgid "Add Modifier"
+msgid "Block seam"
+msgstr ""
+
+msgid "Remove selection"
+msgstr ""
+
+msgid "Seam painting"
+msgstr ""
+
+msgid "Entering Seam painting"
+msgstr ""
+
+msgid "Leaving Seam painting"
+msgstr ""
+
+msgid "Paint-on seam editing"
 msgstr ""
 
 msgid "Notice"
@@ -416,11 +428,14 @@ msgstr ""
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr ""
 
-msgid "Downloading Bambu Network plug-in"
+msgid "Downloading Bambu Network Plug-in"
+msgstr ""
+
+msgid "Incorrect password"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Connect %s[SN:%s] failed!"
+msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr ""
 
 msgid ""
@@ -474,6 +489,23 @@ msgstr ""
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr ""
 
+msgid "Some presets are modified."
+msgstr ""
+
+msgid ""
+"You can keep the modifield presets to the new project, discard or save "
+"changes as new presets."
+msgstr ""
+
+msgid "User logged out"
+msgstr ""
+
+msgid "new or open project file is not allowed during the slicing process!"
+msgstr ""
+
+msgid "Open Project"
+msgstr ""
+
 msgid ""
 "The version of Bambu studio is too low and needs to be updated to the latest "
 "version before it can be used normally"
@@ -498,12 +530,6 @@ msgid "Language"
 msgstr ""
 
 msgid "*"
-msgstr ""
-
-msgid "G-code files can not be loaded with models together!"
-msgstr ""
-
-msgid "G-code loading"
 msgstr ""
 
 msgid "Select a G-code file:"
@@ -592,6 +618,18 @@ msgid "Delete the selected object"
 msgstr ""
 
 msgid "Load..."
+msgstr ""
+
+msgid "Cube"
+msgstr ""
+
+msgid "Cylinder"
+msgstr ""
+
+msgid "Cone"
+msgstr ""
+
+msgid "Timelapse Wipe Tower"
 msgstr ""
 
 msgid "Add settings"
@@ -790,6 +828,9 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
+msgid "Fila."
+msgstr ""
+
 #, possible-c-format, possible-boost-format
 msgid "%1$d error repaired"
 msgid_plural "%1$d errors repaired"
@@ -839,6 +880,9 @@ msgid "Error!"
 msgstr ""
 
 msgid "Generic"
+msgstr ""
+
+msgid "Add Modifier"
 msgstr ""
 
 msgid "Deleting the last solid part is not allowed."
@@ -1053,6 +1097,9 @@ msgid ""
 "Arrange failed. Found some exceptions when processing object geometries."
 msgstr ""
 
+msgid "Arranging"
+msgstr ""
+
 msgid "Arranging canceled."
 msgstr ""
 
@@ -1236,10 +1283,10 @@ msgid ""
 "the corresponding code comments."
 msgstr ""
 
-msgid "Colour"
+msgid "AMSMaterialsSetting"
 msgstr ""
 
-msgid "SN"
+msgid "Colour"
 msgstr ""
 
 msgid ""
@@ -1257,7 +1304,20 @@ msgstr ""
 msgid "The input value should be greater than %1% and less than %2%"
 msgstr ""
 
+msgid "SN"
+msgstr ""
+
 msgid "Confirm"
+msgstr ""
+
+msgid "Close"
+msgstr ""
+
+msgid "AMS Slots"
+msgstr ""
+
+msgid ""
+"Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr ""
 
 msgid "Insertion update"
@@ -1294,9 +1354,6 @@ msgid ""
 msgstr ""
 
 msgid "File"
-msgstr ""
-
-msgid "Close"
 msgstr ""
 
 msgid ""
@@ -1496,13 +1553,6 @@ msgid ""
 msgstr ""
 
 msgid ""
-"When recording timelapse without toolhead, it is recommended to add a "
-"\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\".\n"
-msgstr ""
-
-msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
 "Layer Height is on.\n"
 "Which do you want to keep?\n"
@@ -1637,6 +1687,9 @@ msgid "Update failed."
 msgstr ""
 
 msgid "Failed to start printing job"
+msgstr ""
+
+msgid "parameter name"
 msgstr ""
 
 msgid "N/A"
@@ -1877,7 +1930,10 @@ msgstr ""
 msgid "Auto orient"
 msgstr ""
 
-msgid "Auto arrange"
+msgid "Arrange all objects"
+msgstr ""
+
+msgid "Arrange objects on selected plates"
 msgstr ""
 
 msgid "Split to objects"
@@ -1970,6 +2026,9 @@ msgstr ""
 msgid ""
 "You can find it in \"Settings > Network > Connection code\"\n"
 "on the printer, as shown in the figure:"
+msgstr ""
+
+msgid "Invalid input."
 msgstr ""
 
 msgid "Application is closing"
@@ -2075,9 +2134,6 @@ msgid "New Project"
 msgstr ""
 
 msgid "Start a new project"
-msgstr ""
-
-msgid "Open Project"
 msgstr ""
 
 msgid "Open a project file"
@@ -2188,6 +2244,18 @@ msgstr ""
 msgid "Help"
 msgstr ""
 
+msgid "&File"
+msgstr ""
+
+msgid "&Edit"
+msgstr ""
+
+msgid "&View"
+msgstr ""
+
+msgid "&Help"
+msgstr ""
+
 msgid "&Open G-code"
 msgstr ""
 
@@ -2217,15 +2285,6 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "Quit %s"
-msgstr ""
-
-msgid "&File"
-msgstr ""
-
-msgid "&View"
-msgstr ""
-
-msgid "&Help"
 msgstr ""
 
 msgid "Save configuration as:"
@@ -2316,7 +2375,13 @@ msgstr ""
 msgid "0%"
 msgstr ""
 
+msgid "Clean"
+msgstr ""
+
 msgid "Control"
+msgstr ""
+
+msgid "Print Options"
 msgstr ""
 
 msgid "100%"
@@ -2548,6 +2613,15 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr ""
 
+msgid "Spaghetti Detection"
+msgstr ""
+
+msgid "Stop printing when spaghetti detected"
+msgstr ""
+
+msgid "First Layer Inspection"
+msgstr ""
+
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr ""
 
@@ -2632,13 +2706,16 @@ msgstr ""
 msgid "Loading file: %s"
 msgstr ""
 
-msgid "The Config is not compatible and can not be loaded."
+msgid "The 3mf is not from Bambu Lab, load geometry data only."
 msgstr ""
 
-msgid "Incompatible 3mf"
+msgid "Load 3mf"
 msgstr ""
 
-msgid "the 3mf is not compatible, load geometry data only!"
+msgid "The Config can not be loaded."
+msgstr ""
+
+msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -2651,6 +2728,12 @@ msgid "You'd better upgrade your software.\n"
 msgstr ""
 
 msgid "Newer 3mf version"
+msgstr ""
+
+msgid "The 3mf is not compatible, load geometry data only!"
+msgstr ""
+
+msgid "Incompatible 3mf"
 msgstr ""
 
 msgid "Name of components inside step file is not UTF8 format!"
@@ -2688,6 +2771,14 @@ msgid "Object with multiple parts was detected"
 msgstr ""
 
 msgid "The file does not contain any geometry data."
+msgstr ""
+
+msgid ""
+"Your object appears to be too large, Do you want to scale it down to fit the "
+"heat bed automatically?"
+msgstr ""
+
+msgid "Object too large"
 msgstr ""
 
 msgid "Export STL file:"
@@ -2733,15 +2824,7 @@ msgid ""
 "The loaded file contains gcode only, Can not enter the Prepare page"
 msgstr ""
 
-msgid "Some presets are modified."
-msgstr ""
-
 msgid "You can keep the modified presets to the new project or discard them"
-msgstr ""
-
-msgid ""
-"You can keep the modifield presets to the new project, discard or save "
-"changes as new presets."
 msgstr ""
 
 msgid "Creating a new project"
@@ -2772,6 +2855,12 @@ msgid "Import geometry only"
 msgstr ""
 
 msgid "Only one G-code file can be opened at the same time."
+msgstr ""
+
+msgid "G-code loading"
+msgstr ""
+
+msgid "G-code files can not be loaded with models together!"
 msgstr ""
 
 msgid "Can not add models when in preview mode!"
@@ -3225,9 +3314,15 @@ msgstr ""
 msgid "The printer is busy on other print job"
 msgstr ""
 
+#, possible-c-format, possible-boost-format
 msgid ""
-"The filament index exceeds the AMS's slot count and cannot send the print "
-"job."
+"Filament %s exceeds the number of AMS slots. Please update the printer "
+"firmware to support AMS slot assignment."
+msgstr ""
+
+msgid ""
+"Filament exceeds the number of AMS slots. Please update the printer firmware "
+"to support AMS slot assignment."
 msgstr ""
 
 msgid ""
@@ -3238,6 +3333,17 @@ msgstr ""
 msgid ""
 "Please click each filament above to specify its mapping AMS slot before "
 "sending the print job"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"Filament %s does not match the filament in AMS slot %s. Please update the "
+"printer firmware to support AMS slot assignment."
+msgstr ""
+
+msgid ""
+"Filament does not match the filament in AMS slot. Please update the printer "
+"firmware to support AMS slot assignment."
 msgstr ""
 
 msgid ""
@@ -3281,6 +3387,13 @@ msgid "Save current %s"
 msgstr ""
 
 msgid "Delete this preset"
+msgstr ""
+
+msgid ""
+"When recording timelapse without toolhead, it is recommended to add a "
+"\"Timelapse Wipe Tower\" \n"
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\".\n"
 msgstr ""
 
 msgid "Line width"
@@ -3714,12 +3827,6 @@ msgstr ""
 msgid "Login"
 msgstr ""
 
-msgid "Filaments Selection"
-msgstr ""
-
-msgid "Printer Selection"
-msgstr ""
-
 msgid "The configuration package is changed in previous Config Guide"
 msgstr ""
 
@@ -3735,37 +3842,10 @@ msgstr ""
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
 msgstr ""
 
-msgid "Select all objects"
-msgstr ""
-
 msgid "Copy to clipboard"
 msgstr ""
 
 msgid "Paste from clipboard"
-msgstr ""
-
-msgid "Camera view - Default"
-msgstr ""
-
-msgid "Camera view - Top"
-msgstr ""
-
-msgid "Camera view - Bottom"
-msgstr ""
-
-msgid "Camera view - Front"
-msgstr ""
-
-msgid "Camera view - Behind"
-msgstr ""
-
-msgid "Camera Angle - Left side"
-msgstr ""
-
-msgid "Camera Angle - Right side"
-msgstr ""
-
-msgid "keyboard 1-9: set filament for object/part"
 msgstr ""
 
 msgid "Show keyboard shortcuts list"
@@ -3774,28 +3854,37 @@ msgstr ""
 msgid "Global shortcuts"
 msgstr ""
 
-msgid "Arrange all objects"
-msgstr ""
-
-msgid "Arrange objects on selected plates"
-msgstr ""
-
-msgid ""
-"Auto orientates selected objects or all objects.If there are selected "
-"objects, it just orientates the selected ones.Otherwise, it will orientates "
-"all objects in the project."
-msgstr ""
-
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
 "all objects in the current disk."
 msgstr ""
 
+msgid "Collapse/Expand the sidebar"
+msgstr ""
+
+msgid "⌘+Any arrow"
+msgstr ""
+
+msgid "Movement in camera space"
+msgstr ""
+
+msgid "⌥+Left mouse button"
+msgstr ""
+
+msgid "Select a part"
+msgstr ""
+
 msgid "⌘+Left mouse button"
 msgstr ""
 
 msgid "Select multiple objects"
+msgstr ""
+
+msgid "Ctrl+Any arrow"
+msgstr ""
+
+msgid "Alt+Left mouse button"
 msgstr ""
 
 msgid "Ctrl+Left mouse button"
@@ -3837,16 +3926,52 @@ msgstr ""
 msgid "Movement step set to 1 mm"
 msgstr ""
 
-msgid "⌘+Any arrow"
+msgid "keyboard 1-9: set filament for object/part"
 msgstr ""
 
-msgid "Movement in camera space"
+msgid "Camera view - Default"
 msgstr ""
 
-msgid "Ctrl+Any arrow"
+msgid "Camera view - Top"
 msgstr ""
 
-msgid "Collapse/Expand the sidebar"
+msgid "Camera view - Bottom"
+msgstr ""
+
+msgid "Camera view - Front"
+msgstr ""
+
+msgid "Camera view - Behind"
+msgstr ""
+
+msgid "Camera Angle - Left side"
+msgstr ""
+
+msgid "Camera Angle - Right side"
+msgstr ""
+
+msgid "Select all objects"
+msgstr ""
+
+msgid "Gizmo move"
+msgstr ""
+
+msgid "Gizmo scale"
+msgstr ""
+
+msgid "Gizmo rotate"
+msgstr ""
+
+msgid "Gizmo cut"
+msgstr ""
+
+msgid "Gizmo Place face on bed"
+msgstr ""
+
+msgid "Gizmo SLA support points"
+msgstr ""
+
+msgid "Gizmo FDM paint-on seam"
 msgstr ""
 
 msgid "Plater"
@@ -4261,6 +4386,12 @@ msgid "Printable area"
 msgstr ""
 
 msgid "Bed exclude area"
+msgstr ""
+
+msgid ""
+"Unprintable area in XY plane. For example, X1 Series printers use the front "
+"left corner to cut filament during filament change. The area is expressed as "
+"polygon by points in following format: \"XxY, XxY, ...\""
 msgstr ""
 
 msgid "Elephant foot compensation"
@@ -5343,16 +5474,13 @@ msgstr ""
 msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr ""
 
-msgid "Spiral mode"
+msgid "Spiral vase"
 msgstr ""
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
 "model into a single walled print with solid bottom layers. The final "
 "generated model has no seam"
-msgstr ""
-
-msgid "Timelapse without toolhead"
 msgstr ""
 
 msgid ""

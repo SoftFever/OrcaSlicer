@@ -24,7 +24,7 @@ END_EVENT_TABLE()
 #define BLANK_SIZE      FromDIP(23)
 #define GAP_SIZE        FromDIP(4)
 
-AxisCtrlButton::AxisCtrlButton(wxWindow *parent, wxBitmap &icon, long stlye)
+AxisCtrlButton::AxisCtrlButton(wxWindow *parent, ScalableBitmap &icon, long stlye)
     : wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, stlye)
     , r_outer(OUTER_SIZE)
     , r_inner(INNER_SIZE)
@@ -36,7 +36,7 @@ AxisCtrlButton::AxisCtrlButton(wxWindow *parent, wxBitmap &icon, long stlye)
     , text_color(std::make_pair(0x6B6B6B, (int) StateColor::Disabled), std::make_pair(*wxBLACK, (int) StateColor::Normal))
 	, state_handler(this)
 {
-    m_icon = icon.GetSubBitmap(wxRect(0, 0, icon.GetWidth(), icon.GetHeight()));
+    m_icon = icon;
 	wxWindow::SetBackgroundColour(parent->GetBackgroundColour());
 
     border_color.append(bd, StateColor::Hovered);
@@ -119,9 +119,9 @@ void AxisCtrlButton::SetInnerBackgroundColor(StateColor const& color)
     Refresh();
 }
 
-void AxisCtrlButton::SetBitmap(wxBitmap &bmp)
+void AxisCtrlButton::SetBitmap(ScalableBitmap &bmp)
 {
-    m_icon = bmp.GetSubBitmap(wxRect(0, 0, bmp.GetWidth(), bmp.GetHeight()));
+    m_icon = bmp;
 }
 
 void AxisCtrlButton::Rescale() {
@@ -210,8 +210,8 @@ void AxisCtrlButton::render(wxDC& dc)
     }
     gc->DrawPath(home_path);
 
-    if (m_icon.IsOk()) {
-        gc->DrawBitmap(m_icon, -1 * m_icon.GetWidth() / 2, -1 * m_icon.GetHeight() / 2, m_icon.GetWidth(), m_icon.GetHeight());
+    if (m_icon.bmp().IsOk()) {
+        gc->DrawBitmap(m_icon.bmp(), -1 * m_icon.GetBmpWidth() / 2, -1 * m_icon.GetBmpHeight() / 2, m_icon.GetBmpWidth(), m_icon.GetBmpHeight());
     }
     gc->PopState();
 

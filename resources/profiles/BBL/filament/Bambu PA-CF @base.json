@@ -1,6 +1,6 @@
 {
     "type": "filament",
-    "filament_id": "GFN00",
+    "filament_id": "GFN03",
     "name": "Bambu PA-CF @base",
     "from": "system",
     "instantiation": "false",
@@ -16,6 +16,9 @@
     ],
     "nozzle_temperature_initial_layer": [
         "280"
+    ],
+    "filament_type": [
+        "PA-CF"
     ],
     "nozzle_temperature": [
         "280"

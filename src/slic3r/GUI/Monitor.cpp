@@ -148,6 +148,12 @@ MonitorPanel::~MonitorPanel()
     m_refresh_timer->SetOwner(this);
     m_refresh_timer->Start(REFRESH_INTERVAL);
     wxPostEvent(this, wxTimerEvent());
+
+    Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+    MachineObject *obj_ = dev->get_selected_machine();
+    if (obj_)
+        GUI::wxGetApp().sidebar().load_ams_list(obj_->amsList);
 }
 
  void MonitorPanel::init_tabpanel()

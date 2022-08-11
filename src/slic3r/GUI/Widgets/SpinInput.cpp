@@ -6,14 +6,9 @@
 
 BEGIN_EVENT_TABLE(SpinInput, wxPanel)
 
-EVT_MOTION(SpinInput::mouseMoved)
-EVT_ENTER_WINDOW(SpinInput::mouseEnterWindow)
-EVT_LEAVE_WINDOW(SpinInput::mouseLeaveWindow)
 EVT_KEY_DOWN(SpinInput::keyPressed)
-EVT_KEY_UP(SpinInput::keyReleased)
 EVT_MOUSEWHEEL(SpinInput::mouseWheelMoved)
 
-// catch paint events
 EVT_PAINT(SpinInput::paintEvent)
 
 END_EVENT_TABLE()
@@ -24,33 +19,48 @@ END_EVENT_TABLE()
  * calling Refresh()/Update().
  */
 
-SpinInput::SpinInput(wxWindow *     parent,
+SpinInput::SpinInput()
+    : label_color(std::make_pair(0x909090, (int) StateColor::Disabled), std::make_pair(0x6B6B6B, (int) StateColor::Normal))
+    , text_color(std::make_pair(0x909090, (int) StateColor::Disabled), std::make_pair(0x262E30, (int) StateColor::Normal))
+{
+    radius = 0;
+    border_width     = 1;
+    border_color     = StateColor(std::make_pair(0xDBDBDB, (int) StateColor::Disabled), std::make_pair(0x00AE42, (int) StateColor::Hovered),
+                              std::make_pair(0xDBDBDB, (int) StateColor::Normal));
+    background_color = StateColor(std::make_pair(0xF0F0F0, (int) StateColor::Disabled), std::make_pair(*wxWHITE, (int) StateColor::Normal));
+}
+
+
+SpinInput::SpinInput(wxWindow *parent,
                      wxString       text,
                      wxString       label,
                      const wxPoint &pos,
                      const wxSize & size,
                      long           style,
                      int min, int max, int initial)
-    : wxWindow(parent, wxID_ANY, pos, size)
-    , state_handler(this)
-    , border_color(std::make_pair(0xDBDBDB, (int) StateColor::Disabled),
-                   std::make_pair(0x00AE42, (int) StateColor::Focused),
-                   std::make_pair(0x00AE42, (int) StateColor::Hovered),
-                   std::make_pair(0xDBDBDB, (int) StateColor::Normal))
-    , text_color(std::make_pair(0xACACAC, (int) StateColor::Disabled),
-                 std::make_pair(*wxBLACK, (int) StateColor::Normal))
-    , background_color(std::make_pair(0xF0F0F0, (int) StateColor::Disabled),
-                       std::make_pair(*wxWHITE, (int) StateColor::Normal))
+    : SpinInput()
 {
-    hover = false;
-    radius = 0;
+    Create(parent, text, label, pos, size, style, min, max, initial);
+}
+
+void SpinInput::Create(wxWindow *parent, 
+                     wxString       text,
+                     wxString       label,
+                     const wxPoint &pos,
+                     const wxSize & size,
+                     long           style,
+                     int min, int max, int initial)
+{
+    StaticBox::Create(parent, wxID_ANY, pos, size);
     SetFont(Label::Body_12);
     wxWindow::SetLabel(label);
-    state_handler.attach({&border_color, &text_color, &background_color});
+    state_handler.attach({&label_color, &text_color});
     state_handler.update_binds();
-    text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {20, 5}, wxDefaultSize,
-                               style | wxBORDER_NONE | wxTE_PROCESS_ENTER, wxTextValidator(wxFILTER_DIGITS));
+    text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {20, 4}, wxDefaultSize, style | wxBORDER_NONE | wxTE_PROCESS_ENTER, wxTextValidator(wxFILTER_DIGITS));
     text_ctrl->SetFont(Label::Body_14);
+    text_ctrl->SetBackgroundColour(background_color.colorForStates(state_handler.states()));
+    text_ctrl->SetForegroundColour(text_color.colorForStates(state_handler.states()));
+    text_ctrl->SetInitialSize(text_ctrl->GetBestSize());
     text_ctrl->Bind(wxEVT_SET_FOCUS, [this](auto &e) {
         e.SetId(GetId());
         ProcessEventLocally(e);
@@ -65,6 +75,7 @@ SpinInput::SpinInput(wxWindow *     parent,
     });
     text_ctrl->Bind(wxEVT_KILL_FOCUS, &SpinInput::onTextLostFocus, this);
     text_ctrl->Bind(wxEVT_TEXT_ENTER, &SpinInput::onTextEnter, this);
+    text_ctrl->Bind(wxEVT_KEY_DOWN, &SpinInput::keyPressed, this);
     text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu
     button_inc = createButton(true);
     button_dec = createButton(false);
@@ -72,8 +83,7 @@ SpinInput::SpinInput(wxWindow *     parent,
     timer.Bind(wxEVT_TIMER, &SpinInput::onTimer, this);
 
     long initialFromText;
-    if ( text.ToLong(&initialFromText) )
-        initial = initialFromText;
+    if (text.ToLong(&initialFromText)) initial = initialFromText;
     SetRange(min, max);
     SetValue(initial);
     messureSize();
@@ -92,15 +102,15 @@ void SpinInput::SetLabel(const wxString &label)
     Refresh();
 }
 
-void SpinInput::SetTextColor(StateColor const &color)
+void SpinInput::SetLabelColor(StateColor const &color)
 {
-    text_color = color;
+    label_color = color;
     state_handler.update_binds();
 }
 
-void SpinInput::SetBackgroundColor(StateColor const& color)
+void SpinInput::SetTextColor(StateColor const &color)
 {
-    background_color = color;
+    text_color = color;
     state_handler.update_binds();
 }
 
@@ -156,6 +166,10 @@ bool SpinInput::Enable(bool enable)
         wxCommandEvent e(EVT_ENABLE_CHANGED);
         e.SetEventObject(this);
         GetEventHandler()->ProcessEvent(e);
+        text_ctrl->SetBackgroundColour(background_color.colorForStates(state_handler.states()));
+        text_ctrl->SetForegroundColour(text_color.colorForStates(state_handler.states()));
+        button_inc->Enable(enable);
+        button_dec->Enable(enable);
     }
     return result;
 }
@@ -174,24 +188,22 @@ void SpinInput::paintEvent(wxPaintEvent& evt)
  */
 void SpinInput::render(wxDC& dc)
 {
+    StaticBox::render(dc);
     int    states = state_handler.states();
     wxSize size = GetSize();
-    dc.SetPen(wxPen(border_color.colorForStates(states)));
-    dc.SetBrush(wxBrush(background_color.colorForStates(states)));
-    dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
+    // draw seperator of buttons
     wxPoint pt = button_inc->GetPosition();
     pt.y = size.y / 2;
     dc.SetPen(wxPen(border_color.defaultColor()));
     dc.DrawLine(pt, pt + wxSize{button_inc->GetSize().x - 2, 0});
-    dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    // start draw
-    auto text = GetLabel();
-    if (!text.IsEmpty()) {
+    // draw label
+    auto label = GetLabel();
+    if (!label.IsEmpty()) {
         pt.x = size.x - labelSize.x - 5;
         pt.y = (size.y - labelSize.y) / 2;
         dc.SetFont(GetFont());
-        dc.SetTextForeground(text_color.colorForStates(states));
-        dc.DrawText(text, pt);
+        dc.SetTextForeground(label_color.colorForStates(states));
+        dc.DrawText(label, pt);
     }
 }
 
@@ -199,10 +211,7 @@ void SpinInput::messureSize()
 {
     wxSize size = GetSize();
     wxSize textSize = text_ctrl->GetSize();
-#ifdef __WXOSX__
-    textSize.y -= 3; // TODO:
-#endif
-    int h = textSize.y * 24 / 14;
+    int h = textSize.y + 8;
     if (size.y < h) {
         size.y = h;
         SetSize(size);
@@ -227,7 +236,7 @@ Button *SpinInput::createButton(bool inc)
 {
     auto btn = new Button(this, "", inc ? "spin_inc" : "spin_dec", wxBORDER_NONE, 6);
     btn->SetCornerRadius(0);
-    btn->SetCanFocus(false);
+    btn->DisableFocusFromKeyboard();
     btn->Bind(wxEVT_LEFT_DOWN, [=](auto &e) {
         delta = inc ? 1 : -1;
         SetValue(val + delta);
@@ -249,24 +258,6 @@ Button *SpinInput::createButton(bool inc)
         delta = 0;
     });
     return btn;
-}
-
-void SpinInput::mouseEnterWindow(wxMouseEvent& event)
-{
-    if (!hover)
-    {
-        hover = true;
-        Refresh();
-    }
-}
-
-void SpinInput::mouseLeaveWindow(wxMouseEvent& event)
-{
-    if (hover)
-    {
-        hover = false;
-        Refresh();
-    }
 }
 
 void SpinInput::onTimer(wxTimerEvent &evnet) {
@@ -312,10 +303,26 @@ void SpinInput::mouseWheelMoved(wxMouseEvent &event)
     text_ctrl->SetFocus();
 }
 
-// currently unused events
-void SpinInput::mouseMoved(wxMouseEvent& event) {}
-void SpinInput::keyPressed(wxKeyEvent& event) {}
-void SpinInput::keyReleased(wxKeyEvent &event) {}
+void SpinInput::keyPressed(wxKeyEvent &event)
+{
+    switch (event.GetKeyCode()) {
+    case WXK_UP:
+    case WXK_DOWN:
+        long value;
+        if (!text_ctrl->GetValue().ToLong(&value)) { value = val; }
+        if (event.GetKeyCode() == WXK_DOWN && value > min) {
+            --value;
+        } else if (event.GetKeyCode() == WXK_UP && value + 1 < max) {
+            ++value;
+        }
+        if (value != val) {
+            SetValue(value);
+            sendSpinEvent();
+        }
+        break;
+    default: event.Skip(); break;
+    }
+}
 
 void SpinInput::sendSpinEvent()
 {

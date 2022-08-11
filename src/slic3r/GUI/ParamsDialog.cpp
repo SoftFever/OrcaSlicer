@@ -21,11 +21,10 @@ ParamsDialog::ParamsDialog(wxWindow * parent)
 	m_panel = new ParamsPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
 
 	auto* topsizer = new wxBoxSizer(wxVERTICAL);
-	topsizer->Add(m_panel, 1, wxALL | wxEXPAND, 5, NULL);
-	topsizer->Add(-1, 5);
+	topsizer->Add(m_panel, 1, wxALL | wxEXPAND, 0, NULL);
 
 	SetSizerAndFit(topsizer);
-	SetSize({100 * em_unit(), 60 * em_unit()});
+	SetSize({70 * em_unit(), 60 * em_unit()});
 
 	Layout();
 	Center();
@@ -70,7 +69,7 @@ void ParamsDialog::Popup()
 void ParamsDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
 	Fit();
-	SetSize({100 * em_unit(), 60 * em_unit()});
+	SetSize({70 * em_unit(), 60 * em_unit()});
 	m_panel->msw_rescale();
 	Refresh();
 }

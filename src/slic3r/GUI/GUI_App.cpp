@@ -187,9 +187,9 @@ public:
         scale_bitmap(m_main_bitmap, m_scale);
 
         // init constant texts and scale fonts
-        m_constant_text.init(get_default_font(this));
+        m_constant_text.init(Label::Body_16);
         scale_font(m_constant_text.title_font, 2.0f);
-        scale_font(m_constant_text.version_font, 1.5f);
+        scale_font(m_constant_text.version_font, 1.2f);
 
         // this font will be used for the action string
         m_action_font = m_constant_text.credits_font;
@@ -930,23 +930,32 @@ void GUI_App::post_init()
 
     bool switch_to_3d = false;
     if (!this->init_params->input_files.empty()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", init with input files, size %1%, input_gcode %2%")
+            %this->init_params->input_files.size() %this->init_params->input_gcode;
         switch_to_3d = true;
-        mainframe->select_tab(size_t(MainFrame::tp3DEditor));
-        plater_->select_view_3D("3D");
-        const std::vector<size_t> res = this->plater()->load_files(this->init_params->input_files);
-        if (!res.empty()) {
-            if (this->init_params->input_files.size() == 1) {
-                // Update application titlebar when opening a project file
-                const std::string& filename = this->init_params->input_files.front();
-                //BBS: remove amf logic as project
-                if (boost::algorithm::iends_with(filename, ".3mf"))
-                    this->plater()->set_project_filename(from_u8(filename));
+        if (this->init_params->input_gcode) {
+            mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+            plater_->select_view_3D("3D");
+            this->plater()->load_gcode(from_u8(this->init_params->input_files.front()));
+        }
+        else {
+            mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+            plater_->select_view_3D("3D");
+            const std::vector<size_t> res = this->plater()->load_files(this->init_params->input_files);
+            if (!res.empty()) {
+                if (this->init_params->input_files.size() == 1) {
+                    // Update application titlebar when opening a project file
+                    const std::string& filename = this->init_params->input_files.front();
+                    //BBS: remove amf logic as project
+                    if (boost::algorithm::iends_with(filename, ".3mf"))
+                        this->plater()->set_project_filename(from_u8(filename));
+                }
             }
         }
     }
 #if BBL_HAS_FIRST_PAGE
     if (!switch_to_3d) {
-        BOOST_LOG_TRIVIAL(info) << "begin load_gl_resources";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", begin load_gl_resources";
         mainframe->Freeze();
         plater_->canvas3D()->enable_render(false);
         mainframe->select_tab(size_t(MainFrame::tp3DEditor));
@@ -954,26 +963,26 @@ void GUI_App::post_init()
         //BBS init the opengl resource here
         Size canvas_size = plater_->canvas3D()->get_canvas_size();
         wxGetApp().imgui()->set_display_size(static_cast<float>(canvas_size.get_width()), static_cast<float>(canvas_size.get_height()));
-        BOOST_LOG_TRIVIAL(info) << "start to init opengl";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to init opengl";
         wxGetApp().init_opengl();
 
-        BOOST_LOG_TRIVIAL(info) << "finished init opengl";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init opengl";
         plater_->canvas3D()->init();
 
-        BOOST_LOG_TRIVIAL(info) << "finished init canvas3D";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init canvas3D";
         wxGetApp().imgui()->new_frame();
 
-        BOOST_LOG_TRIVIAL(info) << "finished init imgui frame";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init imgui frame";
         plater_->canvas3D()->enable_render(true);
-        BOOST_LOG_TRIVIAL(info) << "start to render a first frame for test";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to render a first frame for test";
 
         plater_->canvas3D()->render(false);
-        BOOST_LOG_TRIVIAL(info) << "finished rendering a first frame for test";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished rendering a first frame for test";
         if (is_editor())
             mainframe->select_tab(size_t(0));
         mainframe->Thaw();
         plater_->trigger_restore_project(1);
-        BOOST_LOG_TRIVIAL(info) << "end load_gl_resources";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", end load_gl_resources";
     }
 #endif
 
@@ -1046,7 +1055,8 @@ void GUI_App::post_init()
             bool cw_showed = this->config_wizard_startup();
 
             std::string http_url = get_http_url(app_config->get_country_code());
-            this->preset_updater->sync(http_url, preset_bundle);
+            std::string language = GUI::into_u8(current_language_code());
+            this->preset_updater->sync(http_url, language, preset_bundle);
 
             //BBS: check new version
             this->check_new_version();
@@ -1056,16 +1066,19 @@ void GUI_App::post_init()
     if(!m_networking_need_update && m_agent) {
         m_agent->set_on_ssdp_msg_fn(
             [this](std::string json_str) {
+                if (m_is_closing) {
+                    return;
+                }
                 GUI::wxGetApp().CallAfter([this, json_str] {
-                    if (m_is_closing) {
-                        return;
-                    }
                     if (m_device_manager) {
                         m_device_manager->on_machine_alive(json_str);
                     }
                     });
             }
         );
+        m_agent->set_on_http_error_fn([this](unsigned int status, std::string body) {
+            this->handle_http_error(status, body);
+        });
         m_agent->start_discovery(true, false);
     }
 
@@ -1103,6 +1116,26 @@ GUI_App::GUI_App()
     this->init_app_config();
 
     reset_to_active();
+}
+
+void GUI_App::shutdown()
+{
+    BOOST_LOG_TRIVIAL(info) << "shutdown";
+
+    if (m_is_recreating_gui) return;
+    m_is_closing = true;
+    stop_sync_user_preset();
+
+    if (m_device_manager) {
+        delete m_device_manager;
+        m_device_manager = nullptr;
+    }
+
+    if (m_agent) {
+        m_agent->start_discovery(false, false);
+        delete m_agent;
+        m_agent = nullptr;
+    }
 }
 
 
@@ -1196,7 +1229,7 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
                             for (auto sub_iter = iter.value().begin(); sub_iter != iter.value().end(); sub_iter++) {
                                 if (boost::iequals(sub_iter.key(), "type")) {
                                     type = sub_iter.value();
-                                    BOOST_LOG_TRIVIAL(info) << "[BBL Updater]: get version of settings's type, " << sub_iter.value();
+                                    BOOST_LOG_TRIVIAL(info) << "[download_plugin]: get version of settings's type, " << sub_iter.value();
                                 }
                                 else if (boost::iequals(sub_iter.key(), "version")) {
                                     version = *(Semver::parse(sub_iter.value()));
@@ -1208,22 +1241,22 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
                                     url = sub_iter.value();
                                 }
                             }
-                            BOOST_LOG_TRIVIAL(info) << "[download_plugin]: get type " << type << ", version " << version.to_string() << ", url " << url;
+                            BOOST_LOG_TRIVIAL(info) << "[download_plugin 1]: get type " << type << ", version " << version.to_string() << ", url " << url;
                             download_url = url;
                         }
                     }
                 }
                 else {
-                    BOOST_LOG_TRIVIAL(info) << "[download_plugin]: get version of plugin failed, body=" << body;
+                    BOOST_LOG_TRIVIAL(info) << "[download_plugin 1]: get version of plugin failed, body=" << body;
                 }
             }
             catch (...) {
-                BOOST_LOG_TRIVIAL(error) << "[download_plugin]: catch unknown exception";
+                BOOST_LOG_TRIVIAL(error) << "[download_plugin 1]: catch unknown exception";
                 ;
             }
         }).on_error(
             [&result](std::string body, std::string error, unsigned int status) {
-                BOOST_LOG_TRIVIAL(error) << "" << body;
+                BOOST_LOG_TRIVIAL(error) << "[download_plugin 1] on_error: " << error<<", body = " << body;
                 result = -1;
         }).perform_sync();
 
@@ -1235,7 +1268,7 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
 
 
     if (download_url.empty()) {
-        BOOST_LOG_TRIVIAL(info) << "[download_plugin]: no availaible plugin found for this app version: " << SLIC3R_VERSION;
+        BOOST_LOG_TRIVIAL(info) << "[download_plugin 1]: no availaible plugin found for this app version: " << SLIC3R_VERSION;
         if (pro_fn) pro_fn(InstallStatusDownloadFailed, 0, cancel);
         return -1;
     }
@@ -1244,10 +1277,10 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
     }
 
     if (m_networking_cancel_update || cancel) {
-        BOOST_LOG_TRIVIAL(info) << boost::format("download_plugin: %1%, cancelled by user") % __LINE__;
+        BOOST_LOG_TRIVIAL(info) << boost::format("[download_plugin 1]: %1%, cancelled by user") % __LINE__;
         return -1;
     }
-    BOOST_LOG_TRIVIAL(info) << "download_plugin, get_url = " << download_url;
+    BOOST_LOG_TRIVIAL(info) << "[download_plugin] get_url = " << download_url;
 
     // download
     Slic3r::Http http = Slic3r::Http::get(download_url);
@@ -1261,6 +1294,7 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
             if (pro_fn && ((percent - reported_percent) >= 10)) {
                 pro_fn(InstallStatusNormal, percent, was_cancel);
                 reported_percent = percent;
+                BOOST_LOG_TRIVIAL(info) << "[download_plugin 2] progress: " << reported_percent;
             }
             cancel = m_networking_cancel_update || was_cancel;
             if (cancel_fn)
@@ -1271,7 +1305,7 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
                 result = -1;
         })
         .on_complete([&pro_fn, tmp_path, target_file_path](std::string body, unsigned status) {
-            BOOST_LOG_TRIVIAL(info) << "download_plugin, completed";
+            BOOST_LOG_TRIVIAL(info) << "[download_plugin 2] completed";
             bool cancel = false;
             int percent = 0;
             fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
@@ -1283,6 +1317,7 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
         .on_error([&pro_fn, &result](std::string body, std::string error, unsigned int status) {
             bool cancel = false;
             if (pro_fn) pro_fn(InstallStatusDownloadFailed, 0, cancel);
+            BOOST_LOG_TRIVIAL(error) << "[download_plugin 2] on_error: " << error<<", body = " << body;
             result = -1;
         });
     http.perform_sync();
@@ -1293,14 +1328,22 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
 {
     bool cancel = false;
     std::string target_file_path = (fs::temp_directory_path() / "network_plugin.zip").string();
+
+    BOOST_LOG_TRIVIAL(info) << "[install_plugin] enter";
     // get plugin folder
     auto plugin_folder = boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins";
+    auto backup_folder = plugin_folder/"backup";
     if (!boost::filesystem::exists(plugin_folder)) {
+        BOOST_LOG_TRIVIAL(info) << "[install_plugin] will create directory "<<plugin_folder.string();
         boost::filesystem::create_directory(plugin_folder);
+    }
+    if (!boost::filesystem::exists(backup_folder)) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", will create directory %1%")%backup_folder.string();
+        boost::filesystem::create_directory(backup_folder);
     }
 
     if (m_networking_cancel_update) {
-        BOOST_LOG_TRIVIAL(info) << boost::format("install_plugin: %1%, cancelled by user")%__LINE__;
+        BOOST_LOG_TRIVIAL(info) << boost::format("[install_plugin]: %1%, cancelled by user")%__LINE__;
         return -1;
     }
     if (pro_fn) {
@@ -1310,17 +1353,17 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
     mz_zip_archive archive;
     mz_zip_zero_struct(&archive);
     if (!open_zip_reader(&archive, target_file_path)) {
-        BOOST_LOG_TRIVIAL(error) << boost::format("install_plugin: %1%, open zip file failed")%__LINE__;
+        BOOST_LOG_TRIVIAL(error) << boost::format("[install_plugin]: %1%, open zip file failed")%__LINE__;
         if (pro_fn) pro_fn(InstallStatusDownloadFailed, 0, cancel);
         return InstallStatusUnzipFailed;
     }
 
     mz_uint num_entries = mz_zip_reader_get_num_files(&archive);
     mz_zip_archive_file_stat stat;
-    BOOST_LOG_TRIVIAL(error) << boost::format("install_plugin: %1%, got %2% files")%__LINE__ %num_entries;
+    BOOST_LOG_TRIVIAL(error) << boost::format("[install_plugin]: %1%, got %2% files")%__LINE__ %num_entries;
     for (mz_uint i = 0; i < num_entries; i++) {
         if (m_networking_cancel_update || cancel) {
-            BOOST_LOG_TRIVIAL(info) << boost::format("install_plugin: %1%, cancelled by user")%__LINE__;
+            BOOST_LOG_TRIVIAL(info) << boost::format("[install_plugin]: %1%, cancelled by user")%__LINE__;
             return -1;
         }
         if (mz_zip_reader_file_stat(&archive, i, &stat)) {
@@ -1356,6 +1399,21 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
                         if (pro_fn) {
                             pro_fn(InstallStatusNormal, 50 + i/num_entries, cancel);
                         }
+                        try {
+                            auto backup_path = boost::filesystem::path(backup_folder.string() + "/" + dest_file);
+                            if (fs::exists(backup_path))
+                                fs::remove(backup_path);
+                            std::string error_message;
+                            CopyFileResult cfr = copy_file(dest_path.string(), backup_path.string(), error_message, false);
+                            if (cfr != CopyFileResult::SUCCESS) {
+                                BOOST_LOG_TRIVIAL(error) << "Copying to backup failed(" << cfr << "): " << error_message;
+                            }
+                        }
+                        catch (const std::exception& e)
+                        {
+                            BOOST_LOG_TRIVIAL(error) << "Copying to backup failed: " << e.what();
+                            //continue
+                        }
                     }
                 }
                 catch (const std::exception& e)
@@ -1371,7 +1429,7 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
             }
         }
         else {
-            BOOST_LOG_TRIVIAL(error) << boost::format("install_plugin: %1%, mz_zip_reader_file_stat for file %2% failed")%__LINE__%i;
+            BOOST_LOG_TRIVIAL(error) << boost::format("[install_plugin]: %1%, mz_zip_reader_file_stat for file %2% failed")%__LINE__%i;
         }
     }
 
@@ -1380,27 +1438,31 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
     if (pro_fn)
         pro_fn(InstallStatusInstallCompleted, 100, cancel);
     app_config->set_str("app", "installed_networking", "1");
+    BOOST_LOG_TRIVIAL(info) << "[install_plugin] success";
     return 0;
 }
 
 void GUI_App::restart_networking()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(" enter, mainframe %1%")%mainframe;
-    on_init_network();
+    on_init_network(true);
     if(m_agent) {
         init_networking_callbacks();
         m_agent->set_on_ssdp_msg_fn(
             [this](std::string json_str) {
+                if (m_is_closing) {
+                    return;
+                }
                 GUI::wxGetApp().CallAfter([this, json_str] {
-                    if (m_is_closing) {
-                        return;
-                    }
                     if (m_device_manager) {
                         m_device_manager->on_machine_alive(json_str);
                     }
                     });
             }
         );
+        m_agent->set_on_http_error_fn([this](unsigned int status, std::string body) {
+            this->handle_http_error(status, body);
+        });
         m_agent->start_discovery(true, false);
         if (mainframe)
             mainframe->refresh_plugin_tips();
@@ -1412,7 +1474,7 @@ void GUI_App::restart_networking()
 
 int GUI_App::updating_bambu_networking()
 {
-    DownloadProgressDialog dlg(_L("Downloading Bambu Network plug-in"));
+    DownloadProgressDialog dlg(_L("Downloading Bambu Network Plug-in"));
     dlg.ShowModal();
     return 0;
 }
@@ -1457,20 +1519,20 @@ void GUI_App::init_networking_callbacks()
             });
 
         m_agent->set_on_server_connected_fn([this]() {
+            if (m_is_closing) {
+                return;
+            }
             GUI::wxGetApp().CallAfter([this] {
-                if (m_is_closing) {
-                    return;
-                }
                 BOOST_LOG_TRIVIAL(trace) << "static: server connected";
                 m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
                 });
             });
 
         m_agent->set_on_printer_connected_fn([this](std::string dev_id) {
+            if (m_is_closing) {
+                return;
+            }
             GUI::wxGetApp().CallAfter([this, dev_id] {
-                if (m_is_closing) {
-                    return;
-                }
                 /* request_pushing */
                 MachineObject* obj = m_device_manager->get_my_machine(dev_id);
                 if (obj) {
@@ -1489,6 +1551,9 @@ void GUI_App::init_networking_callbacks()
 
         m_agent->set_on_local_connect_fn(
             [this](int state, std::string dev_id, std::string msg) {
+                if (m_is_closing) {
+                    return;
+                }
                 CallAfter([this, state, dev_id, msg] {
                     if (m_is_closing) {
                         return;
@@ -1502,31 +1567,31 @@ void GUI_App::init_networking_callbacks()
                                 obj->command_get_version();
                             } else if (state == ConnectStatus::ConnectStatusFailed || ConnectStatus::ConnectStatusLost) {
                                 obj->set_access_code("");
-                                wxString text = wxString::Format(_L("Connect %s[SN:%s] failed!"), from_u8(obj->dev_name), obj->dev_id);
-                                MessageDialog msg_dlg(nullptr, text, "", wxAPPLY | wxOK);
-                                if (msg_dlg.ShowModal() == wxOK) {
-                                    return;
+                                wxString text;
+                                if (msg == "5") {
+                                    text = wxString::Format(_L("Incorrect password"));
+                                    wxGetApp().show_dialog(text);
+                                } else {
+                                    text = wxString::Format(_L("Connect %s failed! [SN:%s, code=%s]"), from_u8(obj->dev_name), obj->dev_id, msg);
+                                    wxGetApp().show_dialog(text);
                                 }
                             } else {
                                 BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = " << state;
                             }
                         }
                     }
-                    });
+                });
             }
         );
 
-        m_agent->set_on_http_error_fn([this](unsigned int status, std::string body) {
-            this->handle_http_error(status, body);
-            });
-
         auto message_arrive_fn = [this](std::string dev_id, std::string msg) {
+            if (m_is_closing) {
+                return;
+            }
             CallAfter([this, dev_id, msg] {
-                if (m_is_closing) {
-                    return;
-                }
                 MachineObject* obj = this->m_device_manager->get_user_machine(dev_id);
                 if (obj) {
+                    obj->is_ams_need_update = false;
                     obj->parse_json(msg);
 
                     if (this->m_device_manager->get_selected_machine() == obj && obj->is_ams_need_update) {
@@ -1539,11 +1604,10 @@ void GUI_App::init_networking_callbacks()
         m_agent->set_on_message_fn(message_arrive_fn);
 
         auto lan_message_arrive_fn = [this](std::string dev_id, std::string msg) {
+            if (m_is_closing) {
+                return;
+            }
             CallAfter([this, dev_id, msg] {
-                if (m_is_closing) {
-                    return;
-                }
-
                 MachineObject* obj = m_device_manager->get_my_machine(dev_id);
                 if (!obj) {
                     obj = m_device_manager->get_local_machine(dev_id);
@@ -1943,13 +2007,13 @@ bool GUI_App::on_init_inner()
         });
 
         Bind(EVT_SHOW_DIALOG, [this](const wxCommandEvent& evt) {
-            /*wxString msg = evt.GetString();
+            wxString msg = evt.GetString();
             InfoDialog dlg(this->mainframe, _L("Info"), msg);
-            dlg.ShowModal();*/
+            dlg.ShowModal();
 
-            wxString text = evt.GetString();
+            /*wxString text = evt.GetString();
             Slic3r::GUI::MessageDialog msg_dlg(this->mainframe, text, "", wxAPPLY | wxOK);
-            msg_dlg.ShowModal();
+            msg_dlg.ShowModal();*/
         });
     }
     else {
@@ -2032,7 +2096,9 @@ bool GUI_App::on_init_inner()
     }
 
     // BBS:
+#ifdef __WINDOWS__
     mainframe->topbar()->SaveNormalRect();
+#endif
     mainframe->Show(true);
     BOOST_LOG_TRIVIAL(info) << "main frame firstly shown";
 
@@ -2093,16 +2159,17 @@ bool GUI_App::on_init_inner()
         // BBS
         //this->obj_manipul()->update_if_dirty();
 
-        static bool update_gui_after_init = true;
+        //use m_post_initialized instead
+        //static bool update_gui_after_init = true;
 
         // An ugly solution to GH #5537 in which GUI_App::init_opengl (normally called from events wxEVT_PAINT
         // and wxEVT_SET_FOCUS before GUI_App::post_init is called) wasn't called before GUI_App::post_init and OpenGL wasn't initialized.
 #ifdef __linux__
-        if (update_gui_after_init && m_opengl_initialized) {
+        if (!m_post_initialized && m_opengl_initialized) {
 #else
-        if (update_gui_after_init) {
+        if (!m_post_initialized) {
 #endif
-            update_gui_after_init = false;
+            m_post_initialized = true;
 #ifdef WIN32
             this->mainframe->register_win32_callbacks();
 #endif
@@ -2120,10 +2187,11 @@ bool GUI_App::on_init_inner()
     return true;
 }
 
-bool GUI_App::on_init_network()
+bool GUI_App::on_init_network(bool try_backup)
 {
     int load_agent_dll = Slic3r::NetworkAgent::initialize_network_module();
     bool create_network_agent = false;
+__retry:
     if (!load_agent_dll) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll ok";
         if (check_networking_version()) {
@@ -2138,6 +2206,13 @@ bool GUI_App::on_init_network()
             else
                 create_network_agent = true;
         } else {
+            if (try_backup) {
+                int result = Slic3r::NetworkAgent::unload_network_module();
+                BOOST_LOG_TRIVIAL(info) << "on_init_network, version mismatch, unload_network_module, result = " << result;
+                load_agent_dll = Slic3r::NetworkAgent::initialize_network_module(true);
+                try_backup = false;
+                goto __retry;
+            }
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, version dismatch, need upload network module";
             if (app_config->get("installed_networking") == "1") {
                 m_networking_need_update = true;
@@ -2240,11 +2315,11 @@ const wxColour GUI_App::get_label_default_clr_modified()
 void GUI_App::init_label_colours()
 {
     m_color_label_modified          = wxColour("#F1754E");
-    m_color_label_sys               = wxColour("#2B3436");
+    m_color_label_sys               = wxColour("#323A3D");
 
     bool is_dark_mode = dark_mode();
 #ifdef _WIN32
-    m_color_label_default           = is_dark_mode ? wxColour(250, 250, 250): wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+    m_color_label_default           = is_dark_mode ? wxColour(250, 250, 250) : m_color_label_sys; // wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     m_color_highlight_label_default = is_dark_mode ? wxColour(230, 230, 230): wxSystemSettings::GetColour(/*wxSYS_COLOUR_HIGHLIGHTTEXT*/wxSYS_COLOUR_WINDOWTEXT);
     m_color_highlight_default       = is_dark_mode ? wxColour(78, 78, 78)   : wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT);
     m_color_hovered_btn_label       = is_dark_mode ? wxColour(253, 111, 40) : wxColour(252, 77, 1);
@@ -2523,7 +2598,7 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
     dlg.Update(80, _L("Loading current presets") + dots);
     load_current_presets();
     mainframe->Show(true);
-    mainframe->refresh_plugin_tips();
+    //mainframe->refresh_plugin_tips();
 
     dlg.Update(90, _L("Loading a mode view") + dots);
 
@@ -2574,7 +2649,7 @@ void GUI_App::ShowUserGuide() {
 
 void GUI_App::ShowDownNetPluginDlg() {
     try {
-        DownloadProgressDialog dlg(_L("Downloading Bambu Network plug-in"));
+        DownloadProgressDialog dlg(_L("Downloading Bambu Network Plug-in"));
         dlg.ShowModal();
     } catch (std::exception &e) {
         ;
@@ -2699,21 +2774,7 @@ void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_max
     const std::string name = into_u8(window->GetName());
 
     window->Bind(wxEVT_CLOSE_WINDOW, [=](wxCloseEvent &event) {
-        m_is_closing = true;
         window_pos_save(window, "mainframe");
-        //
-        stop_sync_user_preset();
-
-        if (m_device_manager) {
-            delete m_device_manager;
-            m_device_manager = nullptr;
-        }
-
-        if (m_agent) {
-            m_agent->start_discovery(false, false);
-            delete m_agent;
-            m_agent = nullptr;
-        }
         event.Skip();
     });
 
@@ -2823,6 +2884,12 @@ void GUI_App::request_user_login(int online_login)
 void GUI_App::request_user_logout()
 {
     if (m_agent) {
+        bool     transfer_preset_changes = false;
+        wxString header = _L("Some presets are modified.") + "\n" +
+            _L("You can keep the modifield presets to the new project, discard or save changes as new presets.");
+        using ab        = UnsavedChangesDialog::ActionButtons;
+        wxGetApp().check_and_keep_current_preset_changes(_L("User logged out"), header, ab::KEEP | ab::SAVE, &transfer_preset_changes);
+
         m_agent->user_logout();
         m_agent->set_user_selected_machine("");
         /* delete old user settings */
@@ -2936,6 +3003,26 @@ std::string GUI_App::handle_web_request(std::string cmd)
             else if (command_str.compare("begin_network_plugin_download") == 0) {
                 CallAfter([this] { wxGetApp().ShowDownNetPluginDlg(); });
             }
+            else if (command_str.compare("get_web_shortcut") == 0) {
+                if (root.get_child_optional("key_event") != boost::none) {
+                    pt::ptree key_event_node = root.get_child("key_event");
+                    auto keyCode = key_event_node.get<int>("key");
+                    auto ctrlKey = key_event_node.get<bool>("ctrl");
+                    auto shiftKey = key_event_node.get<bool>("shift");
+                    auto cmdKey = key_event_node.get<bool>("cmd");
+
+                    wxKeyEvent e(wxEVT_CHAR_HOOK);
+#ifdef __APPLE__
+                    e.SetControlDown(cmdKey);
+#else
+                    e.SetControlDown(ctrlKey);
+#endif
+                    e.SetShiftDown(shiftKey);
+                    e.m_keyCode = keyCode;
+                    e.SetEventObject(mainframe);
+                    wxPostEvent(mainframe, e);
+                }
+            }
         }
     }
     catch (...) {
@@ -2992,6 +3079,11 @@ void GUI_App::request_project_download(std::string project_id)
 
 void GUI_App::request_open_project(std::string project_id)
 {
+    if (plater()->is_background_process_slicing()) {
+        Slic3r::GUI::show_info(nullptr, _L("new or open project file is not allowed during the slicing process!"), _L("Open Project"));
+        return;
+    }
+
     if (project_id == "<new>")
         plater()->new_project();
     else if (project_id.empty())
@@ -3624,6 +3716,7 @@ bool GUI_App::load_language(wxString language, bool initial)
                         {"fr", wxString::FromUTF8("\x46\x72\x61\x6E\xC3\xA7\x61\x69\x73")},
                         {"it", wxString::FromUTF8("\x49\x74\x61\x6C\x69\x61\x6E\x6F")},
                         {"ru", wxString::FromUTF8("\xD1\x80\xD1\x83\xD1\x81\xD1\x81\xD0\xBA\xD0\xB8\xD0\xB9")},
+                        {"hu", wxString::FromUTF8("Magyar")}
                     };
                     for (auto l : language_descptions) {
                         const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(l.first);
@@ -3720,13 +3813,22 @@ bool GUI_App::load_language(wxString language, bool initial)
     else if (initial) {
         // bbs supported languages
         //TODO: use a global one with Preference
-        wxLanguage supported_languages[] {wxLANGUAGE_ENGLISH,  wxLANGUAGE_CHINESE_SIMPLIFIED, wxLANGUAGE_GERMAN, wxLANGUAGE_FRENCH, wxLANGUAGE_SPANISH,  wxLANGUAGE_SWEDISH, wxLANGUAGE_DUTCH };
+        wxLanguage supported_languages[] {
+            wxLANGUAGE_ENGLISH,
+            wxLANGUAGE_CHINESE_SIMPLIFIED,
+            wxLANGUAGE_GERMAN,
+            wxLANGUAGE_FRENCH,
+            wxLANGUAGE_SPANISH,
+            wxLANGUAGE_SWEDISH,
+            wxLANGUAGE_DUTCH,
+            wxLANGUAGE_HUNGARIAN };
         std::string cur_language = app_config->get("language");
         if (cur_language != "") {
             //cleanup the language wrongly set before
             const wxLanguageInfo *langinfo = nullptr;
             bool embedded_language = false;
-            for (auto index = 0; index < 7; index++) {
+            int language_num = sizeof(supported_languages) / sizeof(supported_languages[0]);
+            for (auto index = 0; index < language_num; index++) {
                 langinfo = wxLocale::GetLanguageInfo(supported_languages[index]);
                 std::string temp_lan = langinfo->CanonicalName.ToUTF8().data();
                 if (cur_language == temp_lan) {
@@ -4283,6 +4385,7 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
     std::vector<std::string> files;
     std::vector<wxString>    gcode_files;
     std::vector<wxString>    non_gcode_files;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", open files, size " << fileNames.size();
     for (const auto& filename : fileNames) {
         if (is_gcode_file(into_u8(filename)))
             gcode_files.emplace_back(filename);
@@ -4303,21 +4406,27 @@ void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
     } else*/
     {
         if (! files.empty()) {
-            wxArrayString input_files;
-            for (size_t i = 0; i < non_gcode_files.size(); ++i) {
-                input_files.push_back(non_gcode_files[i]);
+            if (m_post_initialized) {
+                wxArrayString input_files;
+                for (size_t i = 0; i < non_gcode_files.size(); ++i) {
+                    input_files.push_back(non_gcode_files[i]);
+                }
+                this->plater()->load_files(input_files);
             }
-            this->plater()->load_files(input_files);
-            if (gcode_files.size() > 0) {
-                show_info(this->plater(), _L("G-code files can not be loaded with models together!"), _L("G-code loading"));
+            else {
+                for (size_t i = 0; i < files.size(); ++i) {
+                    this->init_params->input_files.emplace_back(files[i]);
+                }
             }
         }
         else {
-            wxArrayString input_files;
-            for (size_t i = 0; i < gcode_files.size(); ++i) {
-                input_files.push_back(gcode_files[i]);
+            if (m_post_initialized) {
+                this->plater()->load_gcode(gcode_files.front());
             }
-            this->plater()->load_files(input_files);
+            else {
+                this->init_params->input_gcode = true;
+                this->init_params->input_files = { into_u8(gcode_files.front()) };
+            }
         }
         /*for (const wxString &filename : gcode_files)
             start_new_gcodeviewer(&filename);*/
@@ -4352,12 +4461,16 @@ const Plater* GUI_App::plater() const
 
 ParamsPanel* GUI_App::params_panel()
 {
-    return mainframe->m_param_panel;
+    if (mainframe)
+        return mainframe->m_param_panel;
+    return nullptr;
 }
 
 ParamsDialog* GUI_App::params_dialog()
 {
-    return mainframe->m_param_dialog;
+    if (mainframe)
+        return mainframe->m_param_dialog;
+    return nullptr;
 }
 
 Model& GUI_App::model()
@@ -4367,22 +4480,28 @@ Model& GUI_App::model()
 
 void GUI_App::load_url(wxString url)
 {
-    return mainframe->load_url(url);
+    if (mainframe)
+        return mainframe->load_url(url);
 }
 
 void GUI_App::run_script(wxString js)
 {
-    return mainframe->RunScript(js);
+    if (mainframe)
+        return mainframe->RunScript(js);
 }
 
 Notebook* GUI_App::tab_panel() const
 {
-    return mainframe->m_tabpanel;
+    if (mainframe)
+        return mainframe->m_tabpanel;
+    return nullptr;
 }
 
 NotificationManager * GUI_App::notification_manager()
 {
-    return plater_->get_notification_manager();
+    if (plater_)
+        return plater_->get_notification_manager();
+    return nullptr;
 }
 
 // extruders count from selected printer preset
@@ -4807,8 +4926,15 @@ void GUI_App::disassociate_files(std::wstring extend)
 
     bool is_new = false;
     is_new |= del_win_registry(HKEY_CURRENT_USER, reg_extension.c_str(), prog_id.c_str());
-    is_new |= del_win_registry(HKEY_CURRENT_USER, reg_prog_id.c_str(), prog_desc.c_str());
-    is_new |= del_win_registry(HKEY_CURRENT_USER, reg_prog_id_command.c_str(), prog_command.c_str());
+
+    bool is_associate_3mf  = app_config->get("associate_3mf") == "true";
+    bool is_associate_stl  = app_config->get("associate_stl") == "true";
+    bool is_associate_step = app_config->get("associate_step") == "true";
+    if (!is_associate_3mf && !is_associate_stl && !is_associate_step)
+    {
+        is_new |= del_win_registry(HKEY_CURRENT_USER, reg_prog_id.c_str(), prog_desc.c_str());
+        is_new |= del_win_registry(HKEY_CURRENT_USER, reg_prog_id_command.c_str(), prog_command.c_str());
+    }
 
     if (is_new)
        ::SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);

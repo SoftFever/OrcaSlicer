@@ -139,10 +139,10 @@ CameraItem::CameraItem(wxWindow *parent,std::string off_normal, std::string on_n
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
 
-    m_bitmap_on_normal  = create_scaled_bitmap(on_normal, nullptr, 20);
-    m_bitmap_off_normal = create_scaled_bitmap(off_normal, nullptr, 20);
-    m_bitmap_on_hover   = create_scaled_bitmap(on_hover, nullptr, 20);
-    m_bitmap_off_hover  = create_scaled_bitmap(off_hover, nullptr, 20);
+    m_bitmap_on_normal  = ScalableBitmap(this, on_normal, 20);
+    m_bitmap_off_normal = ScalableBitmap(this, off_normal, 20);
+    m_bitmap_on_hover   = ScalableBitmap(this, on_hover, 20);
+    m_bitmap_off_hover  = ScalableBitmap(this, off_hover, 20);
 
     SetSize(wxSize(FromDIP(20), FromDIP(20)));
     SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
@@ -208,16 +208,16 @@ void CameraItem::doRender(wxDC &dc)
 {
     if (m_on) {
         if (m_hover) {
-            dc.DrawBitmap(m_bitmap_on_hover, wxPoint((GetSize().x - m_bitmap_on_hover.GetSize().x) / 2, (GetSize().y - m_bitmap_on_hover.GetSize().y) / 2));
+            dc.DrawBitmap(m_bitmap_on_hover.bmp(), wxPoint((GetSize().x - m_bitmap_on_hover.GetBmpSize().x) / 2, (GetSize().y - m_bitmap_on_hover.GetBmpSize().y) / 2));
         } else {
-            dc.DrawBitmap(m_bitmap_on_normal, wxPoint((GetSize().x - m_bitmap_on_normal.GetSize().x) / 2, (GetSize().y - m_bitmap_on_normal.GetSize().y) / 2));
+            dc.DrawBitmap(m_bitmap_on_normal.bmp(), wxPoint((GetSize().x - m_bitmap_on_normal.GetBmpSize().x) / 2, (GetSize().y - m_bitmap_on_normal.GetBmpSize().y) / 2));
         }
 
     } else {
         if (m_hover) {
-            dc.DrawBitmap(m_bitmap_off_hover, wxPoint((GetSize().x - m_bitmap_off_hover.GetSize().x) / 2, (GetSize().y - m_bitmap_off_hover.GetSize().y) / 2));
+            dc.DrawBitmap(m_bitmap_off_hover.bmp(), wxPoint((GetSize().x - m_bitmap_off_hover.GetBmpSize().x) / 2, (GetSize().y - m_bitmap_off_hover.GetBmpSize().y) / 2));
         } else {
-            dc.DrawBitmap(m_bitmap_off_normal, wxPoint((GetSize().x - m_bitmap_off_normal.GetSize().x) / 2, (GetSize().y - m_bitmap_off_normal.GetSize().y) / 2));
+            dc.DrawBitmap(m_bitmap_off_normal.bmp(), wxPoint((GetSize().x - m_bitmap_off_normal.GetBmpSize().x) / 2, (GetSize().y - m_bitmap_off_normal.GetBmpSize().y) / 2));
         }
     }
 }

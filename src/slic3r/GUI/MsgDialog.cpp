@@ -227,7 +227,7 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
 
     wxFont      font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     wxFont      monospace = wxGetApp().code_font();
-#ifdef _WIN32
+#if 1
     wxColour    text_clr = wxGetApp().get_label_clr_default();
 #else
     wxColour    text_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
@@ -318,7 +318,7 @@ WarningDialog::WarningDialog(wxWindow *parent,
     finalize();
 }
 
-#ifdef _WIN32
+#if 1
 // MessageDialog
 
 MessageDialog::MessageDialog(wxWindow* parent,

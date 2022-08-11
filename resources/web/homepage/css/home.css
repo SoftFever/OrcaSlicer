@@ -3,7 +3,7 @@
 	padding:0px;
 	border: 0px;
 	margin: 0px;
-	font-size: 16px;
+    font-family: "system-ui", "Segoe UI", Roboto, Oxygen, Ubuntu, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-sans;
 }
 
 html, body {
@@ -12,6 +12,7 @@ html, body {
     margin: 0px;
     padding: 0px;
 	line-height: 20px;
+    font-size: 16px;	
 }
 
 .RedFont
@@ -71,6 +72,12 @@ body
 	cursor:pointer;
 }
 
+#LoginBtn:hover
+{
+	font-size:17px;
+}
+
+
 #NoPluginTip
 {
 	position: absolute;
@@ -79,7 +86,7 @@ body
 	bottom: 0px;
 	right: 0px;
 	z-index: 1;
-	display: flex;
+	display: none;
 	flex-direction: column;
 	justify-content: flex-end;
 	padding: 5px;
@@ -212,7 +219,7 @@ body
 
 .MenuItem
 {
-	border: 1px solid #4CAA50;
+	border: 1px solid #EEEEEE;
 	border-radius: 12px;
 	height: 101px;
 	width: 253px;
@@ -226,6 +233,7 @@ body
 
 .MenuItem:hover
 {
+	border-color: #4CAA50;
 	background-color: #E0FCEB;
 }
 

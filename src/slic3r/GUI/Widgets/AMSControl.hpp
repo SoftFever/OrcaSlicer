@@ -95,13 +95,13 @@ enum FilamentStep {
 #define AMS_ITEM_CUBE_SIZE wxSize(FromDIP(14), FromDIP(14))
 #define AMS_ITEM_SIZE wxSize(FromDIP(82), FromDIP(27))
 #define AMS_ITEM_HUMIDITY_SIZE wxSize(FromDIP(150), FromDIP(27))
-#define AMS_CAN_LIB_SIZE wxSize(FromDIP(58), FromDIP(84))
+#define AMS_CAN_LIB_SIZE wxSize(FromDIP(58), FromDIP(80))
 #define AMS_CAN_ROAD_SIZE wxSize(FromDIP(66), FromDIP(60))
 #define AMS_CAN_ITEM_HEIGHT_SIZE FromDIP(27)
 #define AMS_CANS_SIZE wxSize(FromDIP(284), FromDIP(186))
 #define AMS_CANS_WINDOW_SIZE wxSize(FromDIP(264), FromDIP(186))
 #define AMS_STEP_SIZE wxSize(FromDIP(172), FromDIP(180))
-#define AMS_REFRESH_SIZE wxSize(FromDIP(26), FromDIP(26))
+#define AMS_REFRESH_SIZE wxSize(FromDIP(30), FromDIP(30))
 #define AMS_EXTRUDER_SIZE wxSize(FromDIP(66), FromDIP(55))
 #define AMS_EXTRUDER_BITMAP_SIZE wxSize(FromDIP(36), FromDIP(55))
 
@@ -130,7 +130,7 @@ public:
 /*************************************************
 Description:AMSrefresh
 **************************************************/
-#define AMS_REFRESH_PLAY_LOADING_TIMER 200
+#define AMS_REFRESH_PLAY_LOADING_TIMER 100
 class AMSrefresh : public wxWindow
 {
 public:
@@ -153,16 +153,23 @@ public:
 
 protected:
     wxTimer *m_playing_timer= {nullptr};
-    int      m_rotation_angle = {360};
-
-    wxAnimationCtrl *m_animationCtrl = {nullptr};
-    
+    int      m_rotation_angle = 0;
 
     bool             m_play_loading = {false};
     bool             m_selected      = {false};
-    wxBitmap         m_bitmap_rotation;
-    wxBitmap         m_bitmap_normal;
-    wxBitmap         m_bitmap_selected;
+
+    ScalableBitmap   m_bitmap_normal;
+    ScalableBitmap   m_bitmap_selected;
+    ScalableBitmap   m_bitmap_ams_rfid_0;
+    ScalableBitmap   m_bitmap_ams_rfid_1;
+    ScalableBitmap   m_bitmap_ams_rfid_2;
+    ScalableBitmap   m_bitmap_ams_rfid_3;
+    ScalableBitmap   m_bitmap_ams_rfid_4;
+    ScalableBitmap   m_bitmap_ams_rfid_5;
+    ScalableBitmap   m_bitmap_ams_rfid_6;
+    ScalableBitmap   m_bitmap_ams_rfid_7;
+    std::vector<ScalableBitmap> m_rfid_bitmap_list;
+
     wxString         m_text;
     wxBoxSizer *     m_size_body;
     virtual void     DoSetSize(int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
@@ -182,7 +189,7 @@ public:
 	void            render(wxDC &dc);
     bool            m_turn_on = {false};
     wxColour        m_colour;
-    wxBitmap        m_ams_extruder;
+    ScalableBitmap  m_ams_extruder;
     void            doRender(wxDC &dc);
     AMSextruderImage(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     ~AMSextruderImage();
@@ -200,7 +207,7 @@ public:
     wxBoxSizer *    m_bitmap_sizer{nullptr};
     wxPanel *       m_bitmap_panel{nullptr};
     AMSextruderImage *m_amsSextruder{nullptr};
-    wxBitmap        monitor_ams_extruder;
+    ScalableBitmap        monitor_ams_extruder;
     AMSextruder(wxWindow *parent, wxWindowID id, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     ~AMSextruder();
 };
@@ -228,8 +235,10 @@ public:
 protected:
     wxStaticBitmap *m_edit_bitmp       = {nullptr};
     wxStaticBitmap *m_edit_bitmp_light = {nullptr};
-    wxBitmap        m_bitmap_editable;
-    wxBitmap        m_bitmap_editable_lifht;
+    ScalableBitmap  m_bitmap_editable;
+    ScalableBitmap  m_bitmap_editable_light;
+    ScalableBitmap  m_bitmap_readonly;
+    ScalableBitmap  m_bitmap_readonly_light;
     bool            m_unable_selected = {false};
     bool            m_enable          = {false};
     bool            m_selected        = {false};

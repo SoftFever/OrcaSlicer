@@ -325,7 +325,7 @@ public:
         { PrintConfigDef::handle_legacy(opt_key, value); }
 
     //BBS special case Support G/ Support W
-    std::string get_filament_type(int id = 0);
+    std::string get_filament_type(std::string &displayed_filament_type, int id = 0);
 };
 
 void handle_legacy_sla(DynamicPrintConfig &config);

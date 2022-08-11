@@ -54,6 +54,7 @@ struct TrayData
     TrayType        type;
     int             id;
     std::string     name;
+    std::string     filament_type;
     wxColour        colour;
 };
 
@@ -96,11 +97,12 @@ public:
     wxColour m_coloul;
     wxString m_name;
     TrayData m_tray_data;
+    bool     m_unmatch{false};
 
     void msw_rescale();
     void paintEvent(wxPaintEvent &evt);
     void render(wxDC &dc);
-    void set_data(wxColour colour, wxString name, TrayData data);
+    void set_data(wxColour colour, wxString name, TrayData data, bool unmatch = false);
     void doRender(wxDC &dc);
 };
 
@@ -108,15 +110,19 @@ class AmsMapingPopup : public wxPopupTransientWindow
 {
 public:
     AmsMapingPopup(wxWindow *parent);
-    ~AmsMapingPopup() {};
+    wxString format_text(wxString &m_msg);
+    ~AmsMapingPopup(){};
 
+    wxStaticText *           m_warning_text{nullptr}; 
     std::vector<std::string> m_materials_list;
     std::vector<wxBoxSizer*>  m_amsmapping_sizer_list;
     std::vector<MappingItem*> m_mapping_item_list;
 
+    bool        m_has_unmatch_filament {false};
     int         m_current_filament_id;
     std::string m_tag_material;
     wxBoxSizer *m_sizer_main{nullptr}; 
+    wxBoxSizer *m_sizer_list{nullptr}; 
 
     void         update_materials_list(std::vector<std::string> list);
     void         set_tag_texture(std::string texture);

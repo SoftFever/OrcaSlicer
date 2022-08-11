@@ -2,16 +2,13 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-07-23 18:15+0800\n"
-"PO-Revision-Date: \n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"POT-Creation-Date: 2022-08-08 20:01+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Localazy (https://localazy.com)\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
-"X-Generator: Poedit 3.1\n"
 
 msgid "Supports Painting"
 msgstr "Supports aufmalen"
@@ -52,8 +49,8 @@ msgstr ""
 msgid "Perform"
 msgstr "Ausführen"
 
-msgid "Fragment area"
-msgstr "Fragment area"
+msgid "Gap area"
+msgstr ""
 
 msgid "Set pen size"
 msgstr "Pinselgröße festlegen"
@@ -77,7 +74,7 @@ msgid "Sphere"
 msgstr "Kugel"
 
 msgid "Fill"
-msgstr "Fill"
+msgstr "Ausfüllen"
 
 msgid "Gap Fill"
 msgstr ""
@@ -99,9 +96,9 @@ msgid ""
 "Filament count exceeds the maximum number that painting tool supports. only "
 "the first %1% filaments will be available in painting tool."
 msgstr ""
-"Die Anzahl der Materialien übersteigt die maximale Anzahl, die das "
-"Malwerkzeug unterstützt. Nur die ersten %1% der Materialien werden im "
-"Malwerkzeug verfügbar sein."
+"Die Anzahl der Filamente übersteigt die maximale Anzahl, die das Malwerkzeug "
+"unterstützt. Nur die ersten %1% der Filamente werden im Malwerkzeug "
+"verfügbar sein."
 
 msgid "Color Painting"
 msgstr "Farben malen"
@@ -119,19 +116,16 @@ msgid "Key 1~9"
 msgstr "Schlüssel 1~9"
 
 msgid "Choose filament"
-msgstr "Wähle Material"
+msgstr "Filament wählen"
 
 msgid "Edge detection"
 msgstr "Kantenerkennung"
-
-msgid "Clear all"
-msgstr "Alles löschen"
 
 msgid "Triangles"
 msgstr "Dreiecke"
 
 msgid "Filaments"
-msgstr "Materialien"
+msgstr "Filamente"
 
 msgid "Brush"
 msgstr "Pinsel"
@@ -149,17 +143,17 @@ msgid "Shortcut Key "
 msgstr "Shortcut Taste "
 
 msgid "Triangle"
-msgstr "Triangle"
+msgstr "Dreieck"
 
 msgid "Height Range"
-msgstr "Height Range"
+msgstr "Höhenreichweite"
 
 msgid "Remove painted color"
 msgstr "Gemalte Farbe entfernen"
 
 #, boost-format
 msgid "Painted using: Filament %1%"
-msgstr "Gemalt mit: Material %1%"
+msgstr "Gemalt mit: Filament %1%"
 
 msgid "Move"
 msgstr "Bewegen"
@@ -192,7 +186,7 @@ msgid "Position"
 msgstr "Position"
 
 msgid "Rotation"
-msgstr "Rotation"
+msgstr "Drehung"
 
 msgid "Scale ratios"
 msgstr "Skalierungsverhältnisse"
@@ -246,7 +240,7 @@ msgid "Movement:"
 msgstr "Bewegung:"
 
 msgid "Rotation:"
-msgstr "Rotation:"
+msgstr "Drehung:"
 
 msgid "Height:"
 msgstr "Höhe:"
@@ -307,7 +301,7 @@ msgid "High"
 msgstr "Hoch"
 
 msgid "Medium"
-msgstr "Medium"
+msgstr "Mittel"
 
 msgid "Low"
 msgstr "Niedrig"
@@ -336,25 +330,40 @@ msgid "Operation already cancelling. Please wait few seconds."
 msgstr "Operation wird bereits abgebrochen. Bitte warten Sie einige Sekunden."
 
 msgid "Face recognition"
-msgstr "Face recognition"
+msgstr "Gesichtserkennung"
 
 msgid "Perform Recognition"
-msgstr "Perform Recognition"
+msgstr "Erkennung durchführen"
 
-msgid "Cube"
-msgstr "Würfel"
+msgid "Reset direction"
+msgstr ""
 
-msgid "Cylinder"
-msgstr "Zylinder"
+msgid "Brush size"
+msgstr ""
 
-msgid "Cone"
-msgstr "Kegel"
+msgid "Brush shape"
+msgstr ""
 
-msgid "Timelapse Wipe Tower"
-msgstr "Timelapse Wipe Tower"
+msgid "Enforce seam"
+msgstr ""
 
-msgid "Add Modifier"
-msgstr "Modifizierer hinzufügen"
+msgid "Block seam"
+msgstr ""
+
+msgid "Remove selection"
+msgstr ""
+
+msgid "Seam painting"
+msgstr ""
+
+msgid "Entering Seam painting"
+msgstr ""
+
+msgid "Leaving Seam painting"
+msgstr ""
+
+msgid "Paint-on seam editing"
+msgstr ""
 
 msgid "Notice"
 msgstr "Hinweis"
@@ -381,7 +390,7 @@ msgid "Process"
 msgstr "Prozess"
 
 msgid "Filament"
-msgstr "Material"
+msgstr "Filament"
 
 msgid "Machine"
 msgstr "Maschine"
@@ -427,11 +436,14 @@ msgstr "Kritischer Fehler"
 msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "BambuStudio hat eine unbehandelte Ausnahme erhalten: %1%"
 
-msgid "Downloading Bambu Network plug-in"
+msgid "Downloading Bambu Network Plug-in"
+msgstr ""
+
+msgid "Incorrect password"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Connect %s[SN:%s] failed!"
+msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr ""
 
 msgid ""
@@ -468,7 +480,7 @@ msgid "This is the newest version."
 msgstr "Das ist die aktuellste Version."
 
 msgid "Info"
-msgstr "Info"
+msgstr "Infos"
 
 msgid "Loading user presets..."
 msgstr "Nutzervoreistellungen laden..."
@@ -491,12 +503,31 @@ msgstr "Wählen sie eine oder mer Dateien (3mf/step/stl/obj/amf):"
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr "Wählen sie eine Datei (gcode/.gco/.g/.ngc/ngc):"
 
+msgid "Some presets are modified."
+msgstr "Einige Voreinstellungen wurden geändert."
+
+msgid ""
+"You can keep the modifield presets to the new project, discard or save "
+"changes as new presets."
+msgstr ""
+"Sie können die geänderten Voreinstellungen in das neue Projekt übernehmen, "
+"verwerfen oder als neue Voreinstellungen speichern."
+
+msgid "User logged out"
+msgstr ""
+
+msgid "new or open project file is not allowed during the slicing process!"
+msgstr ""
+
+msgid "Open Project"
+msgstr "Projekt öffnen"
+
 msgid ""
 "The version of Bambu studio is too low and needs to be updated to the latest "
 "version before it can be used normally"
 msgstr ""
-"The version of Bambu studio is too low and needs to be updated to the latest "
-"version before it can be used normally"
+"Die Version von Bambu Studio ist zu niedrig und muss auf die neueste Version "
+"aktualisiert werden, bevor sie normal verwendet werden kann"
 
 msgid "Login information expired. Please login again."
 msgstr "Login abgelaufen. Bitte neu einloggen."
@@ -505,7 +536,7 @@ msgid "Loading"
 msgstr "Lade"
 
 msgid "Loading user preset"
-msgstr "Loading user preset"
+msgstr "Benutzervoreinstellung wird geladen"
 
 msgid "Switching application language"
 msgstr "Wechsel der Sprache"
@@ -519,17 +550,11 @@ msgstr "Spache"
 msgid "*"
 msgstr "*"
 
-msgid "G-code files can not be loaded with models together!"
-msgstr "G-Code-Dateien können nicht mit Modellen zusammen geladen werden!"
-
-msgid "G-code loading"
-msgstr "G-Code ladend"
-
 msgid "Select a G-code file:"
 msgstr "Wähle eine G-Code Datei:"
 
 msgid "Bambu Studio GUI initialization failed"
-msgstr "Bambu Studio GUI initialization failed"
+msgstr "Initialisierung der Bambu Studio GUI ist fehlgeschlagen"
 
 #, boost-format
 msgid "Fatal error, exception catched: %1%"
@@ -542,7 +567,7 @@ msgid "Shell"
 msgstr "Schale"
 
 msgid "Infill"
-msgstr "Infill"
+msgstr "Füllung"
 
 msgid "Support"
 msgstr "Support"
@@ -566,7 +591,7 @@ msgid "Bottom Minimum Shell Thickness"
 msgstr "Minimale Dicke der unteren Schichten"
 
 msgid "Ironing"
-msgstr "Ironing"
+msgstr "glätten"
 
 msgid "Fuzzy Skin"
 msgstr "Fuzzy Skin"
@@ -613,6 +638,18 @@ msgstr "Ausgewähltes Objekt löschen"
 msgid "Load..."
 msgstr "Laden..."
 
+msgid "Cube"
+msgstr "Würfel"
+
+msgid "Cylinder"
+msgstr "Zylinder"
+
+msgid "Cone"
+msgstr "Kegel"
+
+msgid "Timelapse Wipe Tower"
+msgstr "Zeitraffer-Wischturm"
+
 msgid "Add settings"
 msgstr "Einstellungen hinzufügen"
 
@@ -644,17 +681,17 @@ msgid "Reload items"
 msgstr "Elemente neu laden"
 
 msgid "Change filament"
-msgstr "Material wechseln"
+msgstr "Filament wechseln"
 
 msgid "Set filament for selected items"
-msgstr "Material für ausgewählte Objekte festlegen"
+msgstr "Filament für ausgewählte Elemente festlegen"
 
 msgid "Default"
 msgstr "Standard"
 
 #, c-format, boost-format
 msgid "Filament %d"
-msgstr "Material %d"
+msgstr "Filament %d"
 
 msgid "active"
 msgstr "aktiv"
@@ -788,10 +825,10 @@ msgid "Edit print parameters for a single object"
 msgstr "Druckparameter für ein einzelnes Objekt bearbeiten"
 
 msgid "Change Filament"
-msgstr "Material ändern"
+msgstr "Filament wechseln"
 
 msgid "Set Filament for selected items"
-msgstr "Materialfür ausgewählte Teile festlegen"
+msgstr "Filament für ausgewählte Elemente festlegen"
 
 msgid "current"
 msgstr "aktuell"
@@ -810,6 +847,9 @@ msgstr "Schließen"
 
 msgid "Name"
 msgstr "Name"
+
+msgid "Fila."
+msgstr ""
 
 #, c-format, boost-format
 msgid "%1$d error repaired"
@@ -873,6 +913,9 @@ msgstr "Fehler!"
 
 msgid "Generic"
 msgstr "Generisch"
+
+msgid "Add Modifier"
+msgstr "Modifizierer hinzufügen"
 
 msgid "Deleting the last solid part is not allowed."
 msgstr "Das Löschen des letzten festen Teils ist nicht erlaubt."
@@ -987,7 +1030,7 @@ msgid "Wall loops"
 msgstr "Wandschleifen"
 
 msgid "Infill density(%)"
-msgstr "Infill-Dichte(%)"
+msgstr "Füllungsdichte(%)"
 
 msgid "Auto Brim"
 msgstr "Automatische Umrandung"
@@ -1020,16 +1063,16 @@ msgid "Heat the nozzle to target temperature"
 msgstr ""
 
 msgid "Cut filament"
-msgstr "Material schneiden"
+msgstr "Material abschneiden"
 
 msgid "Pull back current filament"
-msgstr "Aktuelles Material zurückziehen"
+msgstr "Ziehen Sie das aktuelle Filament zurück"
 
 msgid "Push new filament into extruder"
 msgstr ""
 
 msgid "Purge old filament"
-msgstr "Purge old filament"
+msgstr "Altes Filament entfernen"
 
 msgid "?"
 msgstr "?"
@@ -1038,13 +1081,13 @@ msgid "Empty"
 msgstr "Leer"
 
 msgid "Click the pencil icon to edit the filament."
-msgstr "Das Stift-Symbol drücken um das Material zu bearbeiten."
+msgstr "Das Stift-Symbol drücken um das Filament zu bearbeiten."
 
 msgid "Load Filament"
-msgstr "Load"
+msgstr "Laden"
 
 msgid "Unload Filament"
-msgstr "Unload"
+msgstr "Entladen"
 
 msgid "Tips"
 msgstr "Tipps"
@@ -1071,7 +1114,7 @@ msgid ""
 "load or unload filiament."
 msgstr ""
 "Wählen Sie einen AMS-Slot und drücken Sie dann die Taste \"Laden\" oder "
-"\"Entladen\", um automatisch Material zu laden oder zu entladen."
+"\"Entladen\", um automatisch Filament zu laden oder zu entladen."
 
 msgid "Edit"
 msgstr "Bearbeiten"
@@ -1101,6 +1144,9 @@ msgid ""
 msgstr ""
 "Anordnen fehlgeschlagen. Bei der Verarbeitung von Objektgeometrien wurden "
 "einige Ausnahmen gefunden."
+
+msgid "Arranging"
+msgstr "Anordnen"
 
 msgid "Arranging canceled."
 msgstr "Anordnen abgebrochen."
@@ -1151,62 +1197,65 @@ msgid "Exception"
 msgstr "Ausnahme"
 
 msgid "Logging in"
-msgstr "Logging in"
+msgstr "Einloggen"
 
 msgid "Login failed"
-msgstr "Login failed"
+msgstr "Anmeldung fehlgeschlagen"
 
 msgid "The region parameter is incorrrect"
-msgstr "The region parameter is incorrrect."
+msgstr "Der Regionsparameter ist falsch."
 
 msgid "Failure of printer login"
-msgstr "Failure of printer login"
+msgstr "Druckeranmeldung fehlgeschlagen"
 
 msgid "Failed to get ticket"
-msgstr "Failed to get ticket"
+msgstr "Ticket konnte nicht abgerufen werden"
 
 msgid "User authorization timeout"
-msgstr "User authorization timeout"
+msgstr "Zeitüberschreitung der Benutzerautorisierung"
 
 msgid "Failure of bind"
-msgstr "Failure of bind"
+msgstr "Bindungsfehler"
 
 msgid "Unknown Failure"
-msgstr "Unknown Failure"
+msgstr "Unbekannter Fehler"
 
 msgid "Abnormal print file data. Please slice again"
-msgstr "Abnormal print file data. Please slice again"
+msgstr "Abnormale Daten in der Druckdatei. Bitte slicen Sie erneut"
 
 msgid "Task canceled"
-msgstr "Task canceled"
+msgstr "Auftrag abgebrochen"
 
 msgid "Upload task timed out. Please check the network problem and try again"
-msgstr "Upload task timed out. Please check the network problem and try again"
+msgstr ""
+"Upload-Aufgabe wurde abgebrochen. Bitte überprüfen Sie das Netzwerkproblem "
+"und versuchen Sie es erneut"
 
 msgid "Cloud service connection failed. Please try again."
-msgstr "Cloud service connection failed. Please try again."
+msgstr ""
+"Die Verbindung zum Cloud-Dienst ist fehlgeschlagen. Bitte versuche es erneut."
 
 msgid "Print file not found, please slice again"
-msgstr "Print file not found, please slice again"
+msgstr "Druckdatei nicht gefunden, bitte noch einmal probieren (erneut Slicen)"
 
 msgid ""
 "The print file exceeds the maximum allowable size (1GB). Please simplify the "
 "model and slice again"
 msgstr ""
-"The print file exceeds the maximum allowable size (1GB). Please simplify the "
-"model and slice again"
+"Die Druckdatei überschreitet die maximal zulässige Größe (1 GB). Bitte "
+"vereinfachen Sie das Modell und slicen Sie es erneut"
 
 msgid "Failed uploading print file"
-msgstr "Failed uploading print file"
+msgstr "Fehler beim Hochladen der Druckdatei"
 
 msgid "Wrong Access code"
-msgstr "Wrong Access code"
+msgstr "Falscher Zugangscode"
 
 msgid "Sending print job over LAN"
-msgstr "Sending print job over LAN"
+msgstr "Druckauftrag über LAN senden"
 
 msgid "Sending print job through cloud service"
-msgstr "Sending print job through cloud service"
+msgstr "Druckauftrag über den Cloud-Dienst senden"
 
 msgid "Service Unavailable"
 msgstr ""
@@ -1215,7 +1264,7 @@ msgid "Unkown Error."
 msgstr ""
 
 msgid "Sending print configuration"
-msgstr "Sending print configuration"
+msgstr "Druckkonfiguration senden"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the device page in %s s"
@@ -1252,7 +1301,7 @@ msgid "License"
 msgstr "Lizenz"
 
 msgid "Bambu Studio is licensed under "
-msgstr "Bambu Studio is licensed under "
+msgstr "Bambu Studio ist lizenziert unter "
 
 msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero General Public License, Version 3"
@@ -1261,18 +1310,18 @@ msgid ""
 "Bambu Studio is based on PrusaSlicer by Prusa Research, which is from Slic3r "
 "by Alessandro Ranellucci and the RepRap community"
 msgstr ""
-"Bambu Studio is based on PrusaSlicer by Prusa Research, which is from Slic3r "
-"by Alessandro Ranellucci and the RepRap community"
+"Bambu Studio basiert auf PrusaSlicer von Prusa Research, das von Slic3r von "
+"Alessandro Ranellucci und der RepRap Community stammt."
 
 msgid "Libraries"
-msgstr "Libraries"
+msgstr "Bibliotheken"
 
 msgid ""
 "This software uses open source components whose copyright and other "
 "proprietary rights belong to their respective owners"
 msgstr ""
-"This software uses open source components whose copyright and other "
-"proprietary rights belong to their respective owners"
+"Diese Software verwendet Open-Source-Komponenten, deren Urheberrechte und "
+"andere Eigentumsrechte den jeweiligen Eigentümern gehören."
 
 #, c-format, boost-format
 msgid "About %s"
@@ -1300,18 +1349,16 @@ msgid ""
 "the corresponding code comments."
 msgstr ""
 
-msgid "Colour"
-msgstr "Colour"
+msgid "AMSMaterialsSetting"
+msgstr ""
 
-msgid "SN"
-msgstr "SN"
+msgid "Colour"
+msgstr "Farbe"
 
 msgid ""
 "Nozzle\n"
 "Temperature"
-msgstr ""
-"Nozzle\n"
-"Temperature"
+msgstr "Druckdüsentemperatur"
 
 msgid "max"
 msgstr "max"
@@ -1321,61 +1368,73 @@ msgstr "min"
 
 #, boost-format
 msgid "The input value should be greater than %1% and less than %2%"
-msgstr "The input value should be greater than %1% and less than %2%"
+msgstr "Der Eingabewert sollte größer als %1% und kleiner als %2% sein"
+
+msgid "SN"
+msgstr "SN"
 
 msgid "Confirm"
 msgstr "Bestätigen"
 
+msgid "Close"
+msgstr "Schließen"
+
+msgid "AMS Slots"
+msgstr ""
+
+msgid ""
+"Note: Only the AMS slots loaded with the same material type can be selected."
+msgstr ""
+
 msgid "Insertion update"
-msgstr "Insertion update"
+msgstr "Update einfügen"
 
 msgid ""
 "The AMS will automatically read the filament information when inserting a "
 "new Bambu Lab filament. This takes about 20 seconds."
 msgstr ""
-"The AMS will automatically read the filament information when inserting a "
-"new Bambu Lab filament. This takes about 20 seconds."
+"Die AMS liest automatisch die Filamentinformationen, wenn ein neues Bambu "
+"Lab Filament eingesetzt wird. Dies dauert etwa 20 Sekunden."
 
 msgid ""
 "Note: if new filament is inserted during  printing, the AMS will not "
 "automatically read any information until printing is completed."
 msgstr ""
-"Note: if new filament is inserted during  printing, the AMS will not "
-"automatically read any information until printing is completed."
+"Hinweis: Wenn während des Drucks neues Filament eingelegt wird, liest das "
+"AMS nicht automatisch Informationen ein, bis der Druckvorgang abgeschlossen "
+"ist."
 
 msgid ""
 "When inserting a new filament, the AMS will not automatically read its "
 "information, leaving it blank for you to enter manually."
 msgstr ""
-"When inserting a new filament, the AMS will not automatically read its "
-"information, leaving it blank for you to enter manually."
+"Hinweis: Wenn während des Drucks neues Filament eingelegt wird, liest das "
+"AMS nicht automatisch Informationen ein, bis der Druckvorgang abgeschlossen "
+"ist."
 
 msgid "Power on update"
-msgstr "Power on update"
+msgstr "Update beim einschalten"
 
 msgid ""
 "The AMS will automatically read the information of inserted filament on "
 "start-up. It will take about 1 minute.The reading process will roll filament "
 "spools."
 msgstr ""
-"The AMS will automatically read the information of inserted filament on "
-"start-up. It will take about 1 minute.The reading process will roll filament "
-"spools."
+"Das AMS liest beim Einschalten automatisch die Informationen über das "
+"eingelegte Filament. Der Lesevorgang dauert ca. 1 Minute und lässt die "
+"Filamentspulen rotieren."
 
 msgid ""
 "The AMS will not automatically read information from inserted filament "
 "during startup and will continue to use the information recorded before the "
 "last shutdown."
 msgstr ""
-"The AMS will not automatically read information from inserted filament "
-"during startup and will continue to use the information recorded before the "
-"last shutdown."
+"Das AMS liest beim Start nicht automatisch Informationen vom eingesetzten "
+"Filament und verwendet weiterhin die vor dem letzten Herunterfahren "
+"aufgezeichneten Informationen."
 
 msgid "File"
 msgstr "Datei"
-
-msgid "Close"
-msgstr "Schließen"
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
@@ -1550,7 +1609,7 @@ msgid ""
 "This may cause nozzle blocked and printing failure"
 msgstr ""
 "Die Temperatur des Druckbett ist höher als die Verglasungstemperatur dieses "
-"Materials.\n"
+"Filaments.\n"
 "Dies kann zu einer Verstopfung der Düse und zu Druckfehlern führen"
 
 msgid ""
@@ -1617,10 +1676,9 @@ msgid ""
 "Spiral mode only works when wall loops is 1, \n"
 "support is disabled, top shell layers is 0 and sparse infill density is 0\n"
 msgstr ""
-"Der Spiralmodus funktioniert nur, wenn die Wandschleifen 1 Linienweite breit "
-"sind, \n"
-"Support idt deaktiviert, die oberen Schalenschichten sind 0 und die Dichte "
-"der dünnen Füllung ist 0\n"
+"Der Spiralmodus funktioniert nur, wenn die Wand 1 Linienweite breit sind, \n"
+"Support ist deaktiviert, die oberen Schalenschichten sind 0 und die Dichte "
+"der Füllung ist 0\n"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -1630,13 +1688,6 @@ msgstr ""
 "Diese Einstellungen automatisch ändern? \n"
 "Ja - Diese Einstellungen ändern und den Spiralmodus automatisch aktivieren\n"
 "Nein - Verzichten Sie dieses Mal auf den Spiralmodus"
-
-msgid ""
-"When recording timelapse without toolhead, it is recommended to add a "
-"\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\".\n"
-msgstr ""
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -1689,67 +1740,67 @@ msgstr ""
 "zurück\n"
 
 msgid "Auto bed leveling"
-msgstr "Auto bed leveling"
+msgstr "Automatische Druckbettnivellierung"
 
 msgid "Heatbed preheating"
-msgstr "Heatbed preheating"
+msgstr "Heizbett vorheitzen"
 
 msgid "Sweeping XY mech mode"
-msgstr "Sweeping XY mech mode"
+msgstr "Säubern von XY mechanisch Modus"
 
 msgid "Changing filament"
-msgstr "Changing filament"
+msgstr "Filament wechseln"
 
 msgid "M400 pause"
-msgstr "M400 pause"
+msgstr "M400 Pause"
 
 msgid "Paused due to filament runout"
-msgstr "Paused due to filament runout"
+msgstr "Angehalten wegen Filament-Auslauf"
 
 msgid "Heating hotend"
-msgstr "Heating hotend"
+msgstr "Heizen des Hotend"
 
 msgid "Calibrating extrusion"
-msgstr "Calibrating extrusion"
+msgstr "Kalibrierung der Extrusion"
 
 msgid "Scanning bed surface"
-msgstr "Scanning bed surface"
+msgstr "Scan der Druckbettoberfläche"
 
 msgid "Inspecting first layer"
-msgstr "Inspecting first layer"
+msgstr "Überprüfung der ersten Schicht"
 
 msgid "Identifying build plate type"
-msgstr "Identifying build plate type"
+msgstr "Identifikation der Bauplatte"
 
 msgid "Calibrating Micro Lidar"
-msgstr "Calibrating Micro Lidar"
+msgstr "Kalibrierung des Mikro-Lidars"
 
 msgid "Homing toolhead"
-msgstr "Homing toolhead"
+msgstr "Homing des Werkzeugkopfes"
 
 msgid "Cleaning nozzle tip"
-msgstr "Cleaning nozzle tip"
+msgstr "Reinigen der Druckdüsenspitze"
 
 msgid "Checking extruder temperature"
-msgstr "Checking extruder temperature"
+msgstr "Überprüfen der Extruder Temperatur"
 
 msgid "Printing was paused by the user"
-msgstr "Printing was paused by the user"
+msgstr "Der Druckvorgang wurde vom Benutzer angehalten"
 
 msgid "Pause of front cover falling"
-msgstr "Pause of front cover falling"
+msgstr "Pause, da die Abdeckung des Werkzeugkopfes abgefallen ist"
 
 msgid "Calibrating the micro lida"
-msgstr "Calibrating the micro lidar"
+msgstr "Kalibrierung des Mikro-Lidars"
 
 msgid "Calibrating extrusion flow"
-msgstr "Calibrating extrusion flow"
+msgstr "Kalibrieren des Materialflusses"
 
 msgid "Paused due to nozzle temperature malfunction"
-msgstr "Paused due to nozzle temperature malfunction"
+msgstr "Pausiert aufgrund einer Fehlfunktion der Düsentemperatur"
 
 msgid "Paused due to heat bed temperature malfunction"
-msgstr "Paused due to heat bed temperature malfunction"
+msgstr "Pausiert aufgrund einer Fehlfunktion der Heizbetttemperatur"
 
 msgid "MC"
 msgstr "MC"
@@ -1791,6 +1842,9 @@ msgid "Update failed."
 msgstr "Update fehlgeschlagen."
 
 msgid "Failed to start printing job"
+msgstr ""
+
+msgid "parameter name"
 msgstr ""
 
 msgid "N/A"
@@ -1879,7 +1933,7 @@ msgid "Time"
 msgstr "Zeit"
 
 msgid "Display"
-msgstr "Display"
+msgstr "Anzeigen"
 
 msgid "Line type"
 msgstr "Linientyp"
@@ -1903,10 +1957,10 @@ msgid "Volumetric flow rate (mm³/s)"
 msgstr "Volumetrische Flussrate (mm³/s)"
 
 msgid "Used filament"
-msgstr "Genutztes Material"
+msgstr "Genutztes Filament"
 
 msgid "Filament N XX"
-msgstr "Material N XX"
+msgstr "Filament N XX"
 
 msgid "Color Print"
 msgstr "Farbdruck"
@@ -1927,7 +1981,7 @@ msgid "Unretract"
 msgstr "Auseinzug"
 
 msgid "Filament Changes"
-msgstr "Materialwechsel"
+msgstr "Filamentwechsel"
 
 msgid "Wipe"
 msgstr "Reinigen"
@@ -1942,13 +1996,13 @@ msgid "Extruder"
 msgstr "Extruder"
 
 msgid "Filament 1"
-msgstr "Material 1"
+msgstr "Filament 1"
 
 msgid "Flushed filament"
-msgstr "Flushed filament"
+msgstr "gereinigtes Filament"
 
 msgid "Filament change times"
-msgstr "Filament change times"
+msgstr "Filamentwechselzeiten"
 
 msgid "Color change"
 msgstr "Farbwechsel"
@@ -2034,8 +2088,11 @@ msgstr "Druckplatte hinzufügen"
 msgid "Auto orient"
 msgstr "Automatische Orientierung"
 
-msgid "Auto arrange"
-msgstr "Automatische Anordnung"
+msgid "Arrange all objects"
+msgstr "Alle Objekte anordnen"
+
+msgid "Arrange objects on selected plates"
+msgstr "Objekte auf ausgewählten Druckplatten anordnen"
 
 msgid "Split to objects"
 msgstr "In Objekte trennen"
@@ -2053,7 +2110,7 @@ msgid "Assembly Return"
 msgstr "Zurücksetzen der Montage"
 
 msgid "return"
-msgstr "return"
+msgstr "Zurück"
 
 msgid "Paint Toolbar"
 msgstr "Malwerkzeuge"
@@ -2099,9 +2156,8 @@ msgid ""
 "minimize deviation.\n"
 "It keeps the device performing optimally."
 msgstr ""
-"The calibration program detects the status of your device automatically to "
-"minimize deviation.\n"
-"It keeps the device performing optimally."
+"Das Kalibrierungsprogramm erkennt den Status Ihres Geräts automatisch, um "
+"Abweichungen zu minimieren. Es sorgt für eine optimale Leistung des Geräts."
 
 msgid "Calibration Flow"
 msgstr "Flusskalibrierung"
@@ -2119,20 +2175,23 @@ msgid "Timelapse"
 msgstr "Zeitraffer"
 
 msgid "Monitoring Recording"
-msgstr "Monitoring Recording"
+msgstr "Überwachung der Aufzeichnung"
 
 msgid "ConnectPrinter(LAN)"
-msgstr "ConnectPrinter(LAN)"
+msgstr "Drucker anschließen (LAN)"
 
 msgid "Please input the printer access code:"
-msgstr "Please input the printer access code:"
+msgstr "Bitte geben Sie den Zugangscode zum Drucker ein:"
 
 msgid ""
 "You can find it in \"Settings > Network > Connection code\"\n"
 "on the printer, as shown in the figure:"
 msgstr ""
-"You can find it in \"Settings > Network > Connection code\"\n"
-"on the printer, as shown in the figure:"
+"Sie finden ihn unter \"Einstellungen > Netzwerk > Verbindungscode\".\n"
+"auf dem Drucker, wie in der Abbildung gezeigt:"
+
+msgid "Invalid input."
+msgstr ""
 
 msgid "Application is closing"
 msgstr "Anwendung schließt"
@@ -2151,7 +2210,7 @@ msgid "Preview"
 msgstr "Vorschau"
 
 msgid "Device"
-msgstr "Device"
+msgstr "Gerät"
 
 msgid "Project"
 msgstr "Projekt"
@@ -2239,9 +2298,6 @@ msgstr "Neues Projekt"
 
 msgid "Start a new project"
 msgstr "Ein neues Projekt beginnen"
-
-msgid "Open Project"
-msgstr "Projekt öffnen"
 
 msgid "Open a project file"
 msgstr "Öffne eine Projektdatei"
@@ -2351,6 +2407,18 @@ msgstr "Ansicht"
 msgid "Help"
 msgstr "Hilfe"
 
+msgid "&File"
+msgstr "&Datei"
+
+msgid "&Edit"
+msgstr ""
+
+msgid "&View"
+msgstr "&Anzeige"
+
+msgid "&Help"
+msgstr "&Hilfe"
+
 msgid "&Open G-code"
 msgstr "Öffne G-C&ode"
 
@@ -2382,15 +2450,6 @@ msgstr "&Beenden"
 msgid "Quit %s"
 msgstr "%s verlassen"
 
-msgid "&File"
-msgstr "&Datei"
-
-msgid "&View"
-msgstr "&Anzeige"
-
-msgid "&Help"
-msgstr "&Hilfe"
-
 msgid "Save configuration as:"
 msgstr "Konfiguration speichern unter:"
 
@@ -2401,7 +2460,7 @@ msgid "The project is no longer available."
 msgstr "Das Projekt ist nicht mehr verfügbar."
 
 msgid "Filament Settings"
-msgstr "Materialeinstellungen"
+msgstr "Filamenteinstellungen"
 
 msgid ""
 "Do you want to synchronize your personal data from Bambu Cloud? \n"
@@ -2450,7 +2509,7 @@ msgid "Translation"
 msgstr "Übersetzung"
 
 msgid "Zoom"
-msgstr "Zoom"
+msgstr "Vergrößern"
 
 msgid "Deadzone:"
 msgstr "Todeszone:"
@@ -2479,8 +2538,14 @@ msgstr "Stop"
 msgid "0%"
 msgstr "0%"
 
+msgid "Clean"
+msgstr ""
+
 msgid "Control"
-msgstr "Control"
+msgstr "Steuerung"
+
+msgid "Print Options"
+msgstr ""
 
 msgid "100%"
 msgstr "100%"
@@ -2579,7 +2644,7 @@ msgid "%s information"
 msgstr "%s Information"
 
 msgid "Download"
-msgstr "Download"
+msgstr "Herunterladen"
 
 msgid "Skip"
 msgstr "Überspringen"
@@ -2651,7 +2716,7 @@ msgid "Warning:"
 msgstr "Warnung:"
 
 msgid "Export ok."
-msgstr "Export ok."
+msgstr "Exportieren ok."
 
 msgid " (Repair)"
 msgstr " (Reparatur)"
@@ -2715,6 +2780,15 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Untere"
 
+msgid "Spaghetti Detection"
+msgstr ""
+
+msgid "Stop printing when spaghetti detected"
+msgstr ""
+
+msgid "First Layer Inspection"
+msgstr ""
+
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr ""
 "Wechseln Sie in den objektbezogenen Einstellungsmodus, um die "
@@ -2730,7 +2804,7 @@ msgid "Objects"
 msgstr "Objekte"
 
 msgid "Advance"
-msgstr "Fortfahren"
+msgstr "Fortgeschritten"
 
 msgid "Compare presets"
 msgstr "Voreinstellungen vergleichen"
@@ -2739,7 +2813,7 @@ msgid "View all object's settings"
 msgstr "Alle Einstellungen des Objekts anzeigen"
 
 msgid "Filament settings"
-msgstr "Material-Einstellungen"
+msgstr "Filamenteinstellungen"
 
 msgid "Printer settings"
 msgstr "Drucker-Einstellungen"
@@ -2755,13 +2829,13 @@ msgid "Sliced Info"
 msgstr "Slice-Info"
 
 msgid "Used Filament (m)"
-msgstr "Materialbedarf (Meter)"
+msgstr "Filamentbedarf (Meter)"
 
 msgid "Used Filament (mm³)"
-msgstr "Materialbedarf (mm³)"
+msgstr "Filamentbedarf (mm³)"
 
 msgid "Used Filament (g)"
-msgstr "Materialbedarf (g)"
+msgstr "Filamentbedarf (g)"
 
 msgid "Used Materials"
 msgstr "Genutztes Material"
@@ -2773,7 +2847,7 @@ msgid "Estimated time"
 msgstr "Geschätzte Zeit"
 
 msgid "Filament changes"
-msgstr "Materialwechsel"
+msgstr "Filamentwechsel"
 
 msgid "Click to edit preset"
 msgstr "Klicken zum Bearbeiten der Voreinstellung"
@@ -2782,7 +2856,7 @@ msgid "Bed type"
 msgstr "Druckbetttyp"
 
 msgid "Flushing volumes"
-msgstr "Spülvolumen"
+msgstr "Säuberungsvolumen"
 
 msgid "Untitled"
 msgstr "Unbenannt"
@@ -2803,14 +2877,17 @@ msgstr "Wiederherstellen"
 msgid "Loading file: %s"
 msgstr "Datei wird geladen: %s"
 
-msgid "The Config is not compatible and can not be loaded."
-msgstr "Die Konfiguration ist nicht kompatibel und kann nicht geladen werden."
+msgid "The 3mf is not from Bambu Lab, load geometry data only."
+msgstr ""
 
-msgid "Incompatible 3mf"
-msgstr "Inkompatible 3mf"
+msgid "Load 3mf"
+msgstr ""
 
-msgid "the 3mf is not compatible, load geometry data only!"
-msgstr "die 3mf ist nicht kompatibel, laden Sie nur Geometriedaten!"
+msgid "The Config can not be loaded."
+msgstr ""
+
+msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -2825,6 +2902,12 @@ msgstr "Sie sollten Ihre Software aktualisieren.\n"
 
 msgid "Newer 3mf version"
 msgstr "Neuere 3mf-Version"
+
+msgid "The 3mf is not compatible, load geometry data only!"
+msgstr ""
+
+msgid "Incompatible 3mf"
+msgstr "Inkompatible 3mf"
 
 msgid "Name of components inside step file is not UTF8 format!"
 msgstr "Der Name der Komponenten in der Step-Datei ist nicht im UTF8-Format!"
@@ -2866,7 +2949,15 @@ msgid "Object with multiple parts was detected"
 msgstr "Objekt mit mehreren Teilen wurde entdeckt"
 
 msgid "The file does not contain any geometry data."
-msgstr "The file does not contain any geometry data."
+msgstr "Die Datei enthält keine Geometriedaten."
+
+msgid ""
+"Your object appears to be too large, Do you want to scale it down to fit the "
+"heat bed automatically?"
+msgstr ""
+
+msgid "Object too large"
+msgstr ""
 
 msgid "Export STL file:"
 msgstr "Exportiere STL Datei:"
@@ -2911,20 +3002,10 @@ msgid ""
 "The loaded file contains gcode only, Can not enter the Prepare page"
 msgstr ""
 
-msgid "Some presets are modified."
-msgstr "Einige Voreinstellungen wurden geändert."
-
 msgid "You can keep the modified presets to the new project or discard them"
 msgstr ""
 "Sie können die geänderten Voreinstellungen in das neue Projekt übernehmen "
 "oder sie verwerfen"
-
-msgid ""
-"You can keep the modifield presets to the new project, discard or save "
-"changes as new presets."
-msgstr ""
-"Sie können die geänderten Voreinstellungen in das neue Projekt übernehmen, "
-"verwerfen oder als neue Voreinstellungen speichern."
 
 msgid "Creating a new project"
 msgstr "Neues Projekt erstellen"
@@ -2956,11 +3037,17 @@ msgstr "Nur Geometrie importieren"
 msgid "Only one G-code file can be opened at the same time."
 msgstr "Es kann immer nur eine G-Code-Datei gleichzeitig geöffnet werden."
 
+msgid "G-code loading"
+msgstr "G-Code ladend"
+
+msgid "G-code files can not be loaded with models together!"
+msgstr "G-Code-Dateien können nicht mit Modellen zusammen geladen werden!"
+
 msgid "Can not add models when in preview mode!"
-msgstr "Unable to add models in preview mode"
+msgstr "Modelle können im Vorschaumodus nicht hinzugefügt werden"
 
 msgid "Add Models"
-msgstr "Add Models"
+msgstr "Modelle hinzufügen"
 
 msgid "All objects will be removed, continue?"
 msgstr "Alle Objekte werden entfernt, fortfahren?"
@@ -3025,7 +3112,7 @@ msgstr "Größe: %1% x %2% x %3% mm\n"
 
 #, boost-format
 msgid "Volume: %1% in³\n"
-msgstr "Volume: %1% in³\n"
+msgstr "Volumen: %1% in³\n"
 
 #, boost-format
 msgid "Volume: %1% mm³\n"
@@ -3053,34 +3140,34 @@ msgid "Changing application language"
 msgstr "Wechsel der Sprache der Anwendung"
 
 msgid "Changing the region will log out your account.\n"
-msgstr "Changing the region will log you out of your account.\n"
+msgstr "Wenn Sie die Region ändern, werden Sie von Ihrem Konto abgemeldet.\n"
 
 msgid "Region selection"
-msgstr "Region selection"
+msgstr "Auswahl der Region"
 
 msgid "Second"
 msgstr "Sekunde"
 
 msgid "General Settings"
-msgstr "General Settings"
+msgstr "Allgemeine Einstellungen"
 
 msgid "Asia-Pacific"
-msgstr "Asia-Pacific"
+msgstr "Asien-Pazifik"
 
 msgid "China"
 msgstr "China"
 
 msgid "Europe"
-msgstr "Europe"
+msgstr "Europa"
 
 msgid "North America"
-msgstr "North America"
+msgstr "Nordamerika"
 
 msgid "Others"
 msgstr "Sonstige"
 
 msgid "Login Region"
-msgstr "Login Region"
+msgstr "Login-Region"
 
 msgid "Metric"
 msgstr "Metrisch"
@@ -3095,10 +3182,12 @@ msgid "User sync"
 msgstr "Benutzer-Synchronisation"
 
 msgid "Auto sync user presets(Printer/Filament/Process)"
-msgstr "Auto sync user presets(Printer/Filament/Process)"
+msgstr ""
+"Benutzervoreinstellungen automatisch synchronisieren (Drucker/Filament/"
+"Prozess)"
 
 msgid "User Sync"
-msgstr "User Sync"
+msgstr "Benutzer-Synchronisation"
 
 msgid "Associate files to BambuStudio"
 msgstr "Dateien mit BambuStudio verknüpfen"
@@ -3120,7 +3209,7 @@ msgstr ""
 "Dateien festgelegt"
 
 msgid "Associate .step/.stp files to BambuStudio"
-msgstr "Associate .step/.stp files to BambuStudio"
+msgstr "Verknüpfen Sie .step/.stp-Dateien mit BambuStudio"
 
 msgid "If enabled, sets BambuStudio as default application to open .step files"
 msgstr ""
@@ -3197,7 +3286,7 @@ msgid "trace"
 msgstr "Spurensuche"
 
 msgid "Host Setting"
-msgstr "Host Setting"
+msgstr "Host-Einstellung"
 
 msgid "DEV host: api-dev.bambu-lab.com/v1"
 msgstr "DEV host: api-dev.bambu-lab.com/v1"
@@ -3233,10 +3322,10 @@ msgid "Incompatible presets"
 msgstr "Inkompatible Voreinstellungen"
 
 msgid "AMS filaments"
-msgstr "AMS Materialien"
+msgstr "AMS Filament"
 
 msgid "Click to pick filament color"
-msgstr "Pressen um Materialfarbe zu wählen"
+msgstr "Klicken, um die Farbe des Filaments auszuwählen"
 
 msgid "Add/Remove presets"
 msgstr "Voreinstellungen hinzufügen/entfernen"
@@ -3248,7 +3337,8 @@ msgid "Project-inside presets"
 msgstr "Projektinterne Voreinstellungen"
 
 msgid "Slice all plate to obtain time and filament estimation"
-msgstr "Alle Bauplatten für Zeit- und Materialvorhersage slicen"
+msgstr ""
+"Slicen Sie alle Druckplatten, um Zeit- und Filamentschätzungen zu erhalten"
 
 msgid "Packing project data into 3mf file"
 msgstr "Packen der Projektdaten in eine 3mf-Datei"
@@ -3373,13 +3463,13 @@ msgid "Other Device"
 msgstr "Anderes Gerät"
 
 msgid "Input access code"
-msgstr "Input access code"
+msgstr "Zugangscode eingeben"
 
 msgid "Log out successful."
 msgstr "Abmeldung erfolgreich."
 
 msgid "Busy"
-msgstr "Busy"
+msgstr "Beschäftigt"
 
 msgid "Bambu Cool Plate"
 msgstr "Bambu kalte Druckplatte"
@@ -3388,13 +3478,13 @@ msgid "Bamabu Engineering Plate"
 msgstr "Bambu technische Druckplatte"
 
 msgid "Bamabu High Temperature Plate"
-msgstr "Bambu Hochtemperatur-Druckplatte"
+msgstr "Bambu Hochtemperaturdruckplatte"
 
 msgid "Send print job to"
 msgstr "Druckauftrag senden an"
 
 msgid "Refresh"
-msgstr "Refresh"
+msgstr "Aktualisieren"
 
 msgid "Bed Leveling"
 msgstr "Druckbettnivellierung"
@@ -3409,46 +3499,66 @@ msgid "send completed"
 msgstr "senden abgeschlossen"
 
 msgid "No login account, only printers in LAN mode are displayed"
-msgstr "No login account, only printers in LAN mode are displayed"
+msgstr "Kein Anmeldekonto, nur Drucker im LAN-Modus werden angezeigt"
 
 msgid "Connecting to server"
-msgstr "Connecting to server"
+msgstr "Verbindung zum Server wird hergestellt"
 
 msgid "Synchronizing device information"
-msgstr "Synchronizing device information"
+msgstr "Geräteinformationen synchronisieren"
 
 msgid "Synchronizing device information time out"
-msgstr "Synchronizing device information time out"
+msgstr "Zeitüberschreitung bei der Synchronisierung von Geräteinformationen"
 
 msgid "Cannot send the print task when the upgrade is in progress"
-msgstr "Cannot send the print task when the upgrade is in progress"
+msgstr ""
+"Die Druckaufgabe kann nicht gesendet werden, während das Upgrade ausgeführt "
+"wird"
 
 msgid ""
 "The printer is executing instructions. Please restart printing after it ends"
 msgstr ""
-"The printer is executing instructions. Please restart printing after it ends"
+"Der Drucker führt gerade Anweisungen aus. Bitte starten Sie den Druckvorgang "
+"nach deren Beendigung erneut"
 
 msgid "The printer is busy on other print job"
-msgstr "The printer is busy with another print job."
+msgstr "Der Drucker ist mit einem anderen Druckauftrag beschäftigt."
+
+#, c-format, boost-format
+msgid ""
+"Filament %s exceeds the number of AMS slots. Please update the printer "
+"firmware to support AMS slot assignment."
+msgstr ""
 
 msgid ""
-"The filament index exceeds the AMS's slot count and cannot send the print "
-"job."
+"Filament exceeds the number of AMS slots. Please update the printer firmware "
+"to support AMS slot assignment."
 msgstr ""
 
 msgid ""
 "Filaments to AMS slots mappings have been established. You can click a "
 "filament above to change its mapping AMS slot"
 msgstr ""
-"Filaments to AMS slots mappings have been established. You can click a "
-"filament above to change its mapping AMS slot"
+"Die Zuordnung von Filament zu AMS-Slots wurde eingerichtet. Sie können oben "
+"auf ein Filament klicken, um dessen Zuordnung zum AMS-Steckplatz zu ändern"
 
 msgid ""
 "Please click each filament above to specify its mapping AMS slot before "
 "sending the print job"
 msgstr ""
-"Please click each filament above to specify its mapping AMS slot before "
-"sending the print job"
+"Bitte klicken Sie oben auf jedes Filament, um den zugehörigen AMS-Slot "
+"anzugeben, bevor Sie den Druckauftrag abschicken."
+
+#, c-format, boost-format
+msgid ""
+"Filament %s does not match the filament in AMS slot %s. Please update the "
+"printer firmware to support AMS slot assignment."
+msgstr ""
+
+msgid ""
+"Filament does not match the filament in AMS slot. Please update the printer "
+"firmware to support AMS slot assignment."
+msgstr ""
 
 msgid ""
 "The printer firmware only supports sequential mapping of filament => AMS "
@@ -3456,10 +3566,10 @@ msgid ""
 msgstr ""
 
 msgid "Preparing print job"
-msgstr "Preparing print job"
+msgstr "Druckauftrag vorbereiten"
 
 msgid "Modifying the device name"
-msgstr "Modifying the device name"
+msgstr "Den Gerätenamen ändern"
 
 msgid "Log in printer"
 msgstr "Drucker anmelden"
@@ -3495,6 +3605,13 @@ msgstr "Speichere aktuelle %s"
 
 msgid "Delete this preset"
 msgstr "Lösche diese Voreinstellung"
+
+msgid ""
+"When recording timelapse without toolhead, it is recommended to add a "
+"\"Timelapse Wipe Tower\" \n"
+"by right-click the empty position of build plate and choose \"Add Primitive"
+"\"->\"Timelapse Wipe Tower\".\n"
+msgstr ""
 
 msgid "Line width"
 msgstr "Breite der Linie"
@@ -3537,13 +3654,13 @@ msgid "Acceleration"
 msgstr "Beschleunigung"
 
 msgid "Support filament"
-msgstr "Supportmaterial"
+msgstr "Supportfilament"
 
 msgid "Prime tower"
 msgstr "Prime-Turm"
 
 msgid "Flush options"
-msgstr "Flush options"
+msgstr "Optionen für die Druckdüsensäuberung"
 
 msgid "Special mode"
 msgstr "Spezialmodus"
@@ -3576,7 +3693,7 @@ msgid "Reserved keywords found"
 msgstr "Reservierte Schlüsselwörter gefunden"
 
 msgid "Setting Overrides"
-msgstr "Setting Overrides"
+msgstr "überschreiben der Einstellungen"
 
 msgid "Retraction"
 msgstr "Einzug"
@@ -3611,8 +3728,9 @@ msgid ""
 "Bed temperature when cool plate is installed. Value 0 means the filament "
 "does not support to print on the Cool Plate"
 msgstr ""
-"This is the bed temperature when the cool plate is installed. A value of 0 "
-"means the filament does not support printing on the Cool Plate."
+"Dies ist die Betttemperatur, wenn die cool plate installiert ist. Ein Wert "
+"von 0 bedeutet, dass das Filament das Drucken auf der cool plate nicht "
+"unterstützt."
 
 msgid "Engineering plate"
 msgstr "technische Druckplatte"
@@ -3621,8 +3739,9 @@ msgid ""
 "Bed temperature when engineering plate is installed. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
 msgstr ""
-"This is the bed temperature when the engineering plate is installed. A value "
-"of 0 means the filament does not support printing on the Engineering Plate."
+"Dies ist die Betttemperatur, wenn die technische Druckplatte installiert "
+"wird. Ein Wert von 0 bedeutet, dass das Filament das Drucken auf der "
+"technischen Druckplatte nicht unterstützt."
 
 msgid "High Temp Plate"
 msgstr "Hochtemperaturdruckplatte"
@@ -3631,9 +3750,9 @@ msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
 msgstr ""
-"This is the bed temperature when the high temperature plate is installed. A "
-"value of 0 means the filament does not support printing on the High Temp "
-"Plate."
+"Dies ist die Betttemperatur, wenn die Hochtemperaturdruckplatte installiert "
+"ist. Ein Wert von 0 bedeutet, dass das Filament das Drucken auf der "
+"Hochtemperaturdruckplatte nicht unterstützt."
 
 msgid "Volumetric speed limitation"
 msgstr "Volumetrische Geschwindigkeitsbegrenzung"
@@ -3676,10 +3795,10 @@ msgid "Auxiliary part cooling fan"
 msgstr "Hilfslüfter"
 
 msgid "Filament start G-code"
-msgstr "Material Start G-Code"
+msgstr "Filament Start G-Code"
 
 msgid "Filament end G-code"
-msgstr "Material Ende G-Code"
+msgstr "Filament End G-Code"
 
 msgid "Printable space"
 msgstr "Druckbarer Raum"
@@ -3703,7 +3822,7 @@ msgid "Layer change G-code"
 msgstr "Schichtwechsel G-Code"
 
 msgid "Change filament G-code"
-msgstr "Materialwechsel G-Code"
+msgstr "Filamentwechsel G-Code"
 
 msgid "Pause G-code"
 msgstr "Pausen G-Code"
@@ -3784,7 +3903,7 @@ msgid "New Value"
 msgstr "Neuer Wert"
 
 msgid "Transfer"
-msgstr "Transfer"
+msgstr "Übertragen"
 
 msgid "Don't save"
 msgstr "Nicht sichern"
@@ -3879,7 +3998,7 @@ msgid "The name \"%1%\" already exists."
 msgstr "Der Name \"%1%\" existiert bereits."
 
 msgid "Basic Info"
-msgstr "Basic Info"
+msgstr "Basis-Info"
 
 msgid "Pictures"
 msgstr "Bilder"
@@ -3901,7 +4020,7 @@ msgstr "Modellname"
 
 #, c-format, boost-format
 msgid "%s Update"
-msgstr "%s Update"
+msgstr "%s Aktualisieren"
 
 msgid "A new version is available"
 msgstr "Eine neue Version ist verfügbar"
@@ -3949,16 +4068,16 @@ msgid "The configuration is up to date."
 msgstr "Die Konfiguration ist auf dem neuesten Stand."
 
 msgid "Auto-Calc"
-msgstr "Auto-Calc"
+msgstr "Automatisch berechnen"
 
 msgid "Flushing volumes for filament change"
-msgstr "Spülvolumen für Materialwechsel"
+msgstr "Säuberungsvolumen für Filamentwechsel"
 
 msgid "Flushing volume (mm³) for each filament pair."
-msgstr "Spülvolumen (mm³) für jedes Materialpaar."
+msgstr "Säuberungvolumen (mm³) für jedes Filamentpaar."
 
 msgid "Flush multiplier"
-msgstr "Flush multiplier"
+msgstr "Multiplikator der Druckdüsensäuberung"
 
 msgid "unloaded"
 msgstr "entladen wird"
@@ -3967,7 +4086,7 @@ msgid "loaded"
 msgstr "geladen wird"
 
 msgid "Filament #"
-msgstr "Material #"
+msgstr "Filament #"
 
 msgid "From"
 msgstr "Von"
@@ -3976,13 +4095,7 @@ msgid "To"
 msgstr "Zu"
 
 msgid "Login"
-msgstr "Login"
-
-msgid "Filaments Selection"
-msgstr "Auswahl der Materialien"
-
-msgid "Printer Selection"
-msgstr "Auswahl der Drucker"
+msgstr "Anmelden"
 
 msgid "The configuration package is changed in previous Config Guide"
 msgstr "Das Konfigurationspaket wurde im vorherigen Config Guide geändert"
@@ -3999,58 +4112,17 @@ msgstr "Liste der Objekte"
 msgid "Import geometry data from STL/STEP/3MF/OBJ/AMF files."
 msgstr "Importieren Sie Geometriedaten aus STL/STEP/3MF/OBJ/AMF-Dateien."
 
-msgid "Select all objects"
-msgstr "Alle Objekte auswählen"
-
 msgid "Copy to clipboard"
 msgstr "Zu Zwischenablage kopieren"
 
 msgid "Paste from clipboard"
 msgstr "Aus Zwischenablage einfügen"
 
-msgid "Camera view - Default"
-msgstr "Kameraperspektive - Standard"
-
-msgid "Camera view - Top"
-msgstr "Kameraperspektive - Oben"
-
-msgid "Camera view - Bottom"
-msgstr "Kameraperspektive - Unten"
-
-msgid "Camera view - Front"
-msgstr "Kameraperspektive - Vorderseite"
-
-msgid "Camera view - Behind"
-msgstr "Kameraperspektive - Hinten"
-
-msgid "Camera Angle - Left side"
-msgstr "Kameraperspektive - Links"
-
-msgid "Camera Angle - Right side"
-msgstr "Kameraperspektive - Rechts"
-
-msgid "keyboard 1-9: set filament for object/part"
-msgstr "Tastatur 1-9: Material für Objekt/Teil einstellen"
-
 msgid "Show keyboard shortcuts list"
 msgstr "Liste der Tastaturkürzel anzeigen"
 
 msgid "Global shortcuts"
 msgstr "Globale Tastaturkürzel"
-
-msgid "Arrange all objects"
-msgstr "Alle Objekte anordnen"
-
-msgid "Arrange objects on selected plates"
-msgstr "Objekte auf ausgewählten Druckplatten anordnen"
-
-msgid ""
-"Auto orientates selected objects or all objects.If there are selected "
-"objects, it just orientates the selected ones.Otherwise, it will orientates "
-"all objects in the project."
-msgstr ""
-"Wenn es ausgewählte Objekte gibt, werden nur die ausgewählten Objekte "
-"ausgerichtet, ansonsten werden alle Objekte im Projekt ausgerichtet."
 
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
@@ -4061,11 +4133,32 @@ msgstr ""
 "ausgerichtet, andernfalls werden alle Objekte auf der aktuellen Druckplatte "
 "ausgerichtet."
 
+msgid "Collapse/Expand the sidebar"
+msgstr "Seitenleiste zu-/ausklappen"
+
+msgid "⌘+Any arrow"
+msgstr "⌘+beliebiger Pfeil"
+
+msgid "Movement in camera space"
+msgstr "Bewegung im Kameraraum"
+
+msgid "⌥+Left mouse button"
+msgstr ""
+
+msgid "Select a part"
+msgstr ""
+
 msgid "⌘+Left mouse button"
 msgstr ""
 
 msgid "Select multiple objects"
 msgstr "Mehrere Objekte auswählen"
+
+msgid "Ctrl+Any arrow"
+msgstr "Strg+beliebiger Pfeil"
+
+msgid "Alt+Left mouse button"
+msgstr ""
 
 msgid "Ctrl+Left mouse button"
 msgstr ""
@@ -4106,17 +4199,53 @@ msgstr "Umschalttaste+beliebiger Pfeil"
 msgid "Movement step set to 1 mm"
 msgstr "Bewegungsschritt auf 1 mm eingestellt"
 
-msgid "⌘+Any arrow"
-msgstr "⌘+beliebiger Pfeil"
+msgid "keyboard 1-9: set filament for object/part"
+msgstr "Tastatur 1-9: Filament für Objekt/Teil einstellen"
 
-msgid "Movement in camera space"
-msgstr "Bewegung im Kameraraum"
+msgid "Camera view - Default"
+msgstr "Kameraperspektive - Standard"
 
-msgid "Ctrl+Any arrow"
-msgstr "Strg+beliebiger Pfeil"
+msgid "Camera view - Top"
+msgstr "Kameraperspektive - Oben"
 
-msgid "Collapse/Expand the sidebar"
-msgstr "Seitenleiste zu-/ausklappen"
+msgid "Camera view - Bottom"
+msgstr "Kameraperspektive - Unten"
+
+msgid "Camera view - Front"
+msgstr "Kameraperspektive - Vorderseite"
+
+msgid "Camera view - Behind"
+msgstr "Kameraperspektive - Hinten"
+
+msgid "Camera Angle - Left side"
+msgstr "Kameraperspektive - Links"
+
+msgid "Camera Angle - Right side"
+msgstr "Kameraperspektive - Rechts"
+
+msgid "Select all objects"
+msgstr "Alle Objekte auswählen"
+
+msgid "Gizmo move"
+msgstr ""
+
+msgid "Gizmo scale"
+msgstr ""
+
+msgid "Gizmo rotate"
+msgstr ""
+
+msgid "Gizmo cut"
+msgstr ""
+
+msgid "Gizmo Place face on bed"
+msgstr ""
+
+msgid "Gizmo SLA support points"
+msgstr ""
+
+msgid "Gizmo FDM paint-on seam"
+msgstr ""
 
 msgid "Plater"
 msgstr "Druckplatte"
@@ -4309,7 +4438,7 @@ msgid "Overhang wall"
 msgstr "Überhang Wand"
 
 msgid "Sparse infill"
-msgstr "Spärliche Füllung"
+msgstr "Füllung"
 
 msgid "Internal solid infill"
 msgstr "Interne massive Füllung"
@@ -4450,11 +4579,12 @@ msgstr ""
 
 #, boost-format
 msgid "%1% is too close to others, and collisions may be caused."
-msgstr "%1% is too close to others, and collisions may be caused."
+msgstr ""
+"%1% ist zu nah an anderen, und es können Kollisionen verursacht werden."
 
 #, boost-format
 msgid "%1% is too tall, and collisions will be caused."
-msgstr "%1% is too tall, and collisions will be caused."
+msgstr "%1% ist zu hoch und es kommt zu Kollisionen."
 
 msgid " is too close to others, there will be collisions when printing.\n"
 msgstr " zu nahe an anderen, es kommt beim Drucken zu Kollisionen.\n"
@@ -4467,17 +4597,17 @@ msgid "Prime Tower"
 msgstr "Prime Turm"
 
 msgid " is too close to others, and collisions may be caused.\n"
-msgstr " is too close to others, and collisions may be caused.\n"
+msgstr " ist zu nah an anderen und es können Kollisionen verursacht werden.\n"
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
-msgstr " is too close to exclusion area, and collisions will be caused.\n"
+msgstr " ist zu nahe am Sperrgebiet und es werden Kollisionen verursacht.\n"
 
 msgid ""
 "Can not print multiple filaments which have large difference of temperature "
 "together. Otherwise, the extruder and nozzle may be blocked or damaged "
 "during printing"
 msgstr ""
-"Es können nicht mehrere Materialien mit einem großen Temperaturunterschied "
+"Es können nicht mehrere Filamente mit einem großen Temperaturunterschied "
 "zusammen gedruckt werden. Andernfalls können der Extruder und die Druckdüse "
 "während des Drucks blockiert oder beschädigt werden"
 
@@ -4554,7 +4684,7 @@ msgstr "Schichthöhe kann Druckdüsendurchmesser nicht überschreiten"
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s.\n"
-msgstr "Druckplatte %d: %s unterstützt kein Material %s.\n"
+msgstr "Druckplatte %d: %s unterstützt kein Filament %s.\n"
 
 msgid "Generating skirt & brim"
 msgstr "Erzeugen von Schürze und Rand (skirt & brim)"
@@ -4573,6 +4703,12 @@ msgstr "Druckbarer Bereich"
 
 msgid "Bed exclude area"
 msgstr "ausgenommene Druckbettfläche"
+
+msgid ""
+"Unprintable area in XY plane. For example, X1 Series printers use the front "
+"left corner to cut filament during filament change. The area is expressed as "
+"polygon by points in following format: \"XxY, XxY, ...\""
+msgstr ""
 
 msgid "Elephant foot compensation"
 msgstr "Elefantenfußkompensation"
@@ -4627,8 +4763,9 @@ msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Cool Plate"
 msgstr ""
-"This is the bed temperature for layers except for the initial one. A value "
-"of 0 means the filament does not support printing on the Cool Plate."
+"Dies ist die Betttemperatur für Schichten mit Ausnahme der Ersten. Ein Wert "
+"von 0 bedeutet, dass das Filament das Drucken auf der kalten Druckplatte "
+"nicht unterstützt."
 
 msgid "°C"
 msgstr "°C"
@@ -4640,15 +4777,17 @@ msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
 msgstr ""
-"This is the bed temperature for layers except for the initial one. A value "
-"of 0 means the filament does not support printing on the Engineering Plate."
+"Dies ist die Betttemperatur für Schichten mit Ausnahme der Ersten. Ein Wert "
+"von 0 bedeutet, dass das Filament das Drucken auf der technischen "
+"Druckplatte nicht unterstützt."
 
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
 msgstr ""
-"This is the bed temperature for layers except for the initial one. A value "
-"of 0 means the filament does not support printing on the High Temp Plate."
+"Dies ist die Betttemperatur für Schichten mit Ausnahme der Ersten. Ein Wert "
+"von 0 bedeutet, dass das Filament das Drucken auf der "
+"Hochtemperaturdruckplatte nicht unterstützt."
 
 msgid "Initial layer"
 msgstr "Erste Schicht"
@@ -4660,22 +4799,24 @@ msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Cool Plate"
 msgstr ""
-"This is the bed temperature of the initial layer. A value of 0 means the "
-"filament does not support printing on the Cool Plate."
+"Dies ist die Betttemperatur der Ausgangsschicht. Ein Wert von 0 bedeutet, "
+"dass das Filament das Drucken auf der kalten Druckplatte nicht unterstützt."
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the Engineering Plate"
 msgstr ""
-"This is the bed temperature of the initial layer. A value of 0 means the "
-"filament does not support printing on the Engineering Plate."
+"Dies ist die Betttemperatur der Ausgangsschicht. Ein Wert von 0 bedeutet, "
+"dass das Filament das Drucken auf der technischen Druckplatte nicht "
+"unterstützt."
 
 msgid ""
 "Bed temperature of the initial layer. Value 0 means the filament does not "
 "support to print on the High Temp Plate"
 msgstr ""
-"This is the bed temperature of the initial layer. A value of 0 means the "
-"filament does not support printing on the High Temp Plate."
+"Dies ist die Betttemperatur der Ausgangsschicht. Ein Wert von 0 bedeutet, "
+"dass das Filament das Drucken auf der Hochtemperaturdruckplatte nicht "
+"unterstützt."
 
 msgid "Bed types supported by the printer"
 msgstr "Vom Drucker unterstützte Druckbettypen"
@@ -4767,14 +4908,14 @@ msgstr ""
 "die Brücke zu verringern und den Durchhang zu verbessern"
 
 msgid "Only one wall on top surfaces"
-msgstr "Only one wall on top surfaces"
+msgstr "Nur eine Wand auf den oberen Flächen"
 
 msgid ""
 "Use only one wall on flat top surface, to give more space to the top infill "
 "pattern"
 msgstr ""
-"Use only one wall on flat top surface, to give more space to the top infill "
-"pattern"
+"Verwenden Sie nur eine Wand auf der flachen Oberseite, um mehr Platz für das "
+"obere Füllungsmuster zu schaffen."
 
 msgid "Slow down for overhang"
 msgstr "Verlangsamen bei Überhängen"
@@ -4872,10 +5013,10 @@ msgid "mm/s²"
 msgstr "mm/s²"
 
 msgid "Default filament profile"
-msgstr "Standard-Materialprofil"
+msgstr "Standard-Filamentprofil"
 
 msgid "Default filament profile when switch to this machine profile"
-msgstr "Standard-Materialprofil beim Wechsel zu diesem Maschinenprofil"
+msgstr "Standard-Filamentprofil beim Wechsel zu diesem Maschinenprofil"
 
 msgid "Default process profile"
 msgstr "Standard-Prozessprofil"
@@ -4928,9 +5069,9 @@ msgid ""
 "bridges to be supported, and set it to a very large value if you don't want "
 "any bridges to be supported."
 msgstr ""
-"Max length of bridges that don't need support. Set it to 0 if you want all "
-"bridges to be supported, and set it to a very large value if you don't want "
-"any bridges to be supported."
+"Maximale Länge der Brücken, die keine Unterstützung benötigen. Setzen Sie "
+"den Wert auf 0, wenn alle Brücken unterstützt werden sollen und legen Sie "
+"einen sehr großen Wert fest, wenn keine Brücken unterstützt werden sollen."
 
 msgid "End G-code"
 msgstr "G-Code am Ende"
@@ -4939,7 +5080,8 @@ msgid "End G-code when finish the whole printing"
 msgstr "End G-Code nach dem fertigstellen des kompletten Drucks"
 
 msgid "End G-code when finish the printing of this filament"
-msgstr "End G-Code nach Beendigung des Druckvorgangs mit diesem Material"
+msgstr ""
+"Fügen Sie den End-G-Code hinzu, wenn Sie den Druck dieses Filaments beenden."
 
 msgid "Top surface pattern"
 msgstr "Muster der oberen Oberfläche"
@@ -4957,7 +5099,7 @@ msgid "Monotonic"
 msgstr "Monotonisch"
 
 msgid "Monotonic line"
-msgstr "Monotonic line"
+msgstr "Monotone Linie"
 
 msgid "Bottom surface pattern"
 msgstr "Muster der unteren Oberfläche"
@@ -4977,7 +5119,7 @@ msgstr ""
 "Qualität zu erzielen."
 
 msgid "Order of inner wall/outer wall/infil"
-msgstr "Reihenfolge Innenwand/Außenwand/Infil"
+msgstr "Reihenfolge Innenwand/Außenwand/Füllung"
 
 msgid "Print sequence of inner wall, outer wall and infill. "
 msgstr "Druckreihenfolge von Innenwand, Außenwand und Füllung. "
@@ -5089,7 +5231,7 @@ msgstr ""
 "Diese Einstellung gibt an, wie viel Volumen an Material pro Sekunde "
 "geschmolzen und extrudiert werden kann. Die Druckgeschwindigkeit wird durch "
 "die maximale volumetrische Geschwindigkeit begrenzt, falls die Einstellung "
-"zu hoch und unangemessen ist. Null bedeutet keine Begrenzung"
+"zu hoch und unangemessen ist. Null bedeutet keine Begrenzung."
 
 msgid "mm³/s"
 msgstr "mm³/s"
@@ -5101,33 +5243,33 @@ msgid "mm³"
 msgstr "mm³"
 
 msgid "Filament load time"
-msgstr "Material Ladezeit"
+msgstr "Ladedauer des Filaments"
 
 msgid "Time to load new filament when switch filament. For statistics only"
 msgstr ""
-"Zeit zum Laden eines neuen Materials beim Wechsel des Materials. Nur für "
-"Statistiken"
+"Zeit zum Laden des neuen Filaments beim Wechseln des Filaments, nur für "
+"statistische Zwecke."
 
 msgid "Filament unload time"
-msgstr "Material Entladezeit"
+msgstr "Entladezeit des Filaments"
 
 msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr ""
-"Zeit zum Entladen des alten Materials beim Wechsel des Materials. Nur für "
-"Statistiken"
+"Zeit zum Entladen des alten Filaments beim Wechseln des Filaments, nur für "
+"statistische Zwecke."
 
 msgid ""
 "Filament diameter is used to calculate extrusion in gcode, so it's important "
 "and should be accurate"
 msgstr ""
-"Der Materialdurchmesser wird für die Berechnung der Extrusion im G-Code "
+"Der Filamentdurchmesser wird für die Berechnung der Extrusion im G-Code "
 "verwendet, er ist also wichtig und sollte genau sein"
 
 msgid "Density"
 msgstr "Dichte"
 
 msgid "Filament density. For statistics only"
-msgstr "Materialdichte. Nur für die Statistik"
+msgstr "Filamentdichte. Nur für die Statistik"
 
 msgid "g/cm³"
 msgstr "g/cm³"
@@ -5136,7 +5278,7 @@ msgid "Type"
 msgstr "Typ"
 
 msgid "The material type of filament"
-msgstr "Der Materialtyp des Materials"
+msgstr "Material des Filaments."
 
 msgid "Soluble material"
 msgstr "Lösliches Material"
@@ -5153,7 +5295,8 @@ msgstr "Stützmaterial"
 msgid ""
 "Support material is commonly used to print support and support interface"
 msgstr ""
-"Support material is commonly used to print support and support interface"
+"Stützmaterial wird üblicherweise zum Drucken von Stützen und "
+"Stützschnittstellen verwendet."
 
 msgid "Temperature of vitrificaiton"
 msgstr "Verglasungstemperatur"
@@ -5169,7 +5312,7 @@ msgid "Price"
 msgstr "Preis"
 
 msgid "Filament price. For statistics only"
-msgstr "Preis des Materials. Nur für die Statistik"
+msgstr "Filamentpreis, nur für statistische Zwecke."
 
 msgid "money/kg"
 msgstr "Kosten/kg"
@@ -5184,22 +5327,21 @@ msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
 "of line"
 msgstr ""
-"Winkel für das spärliche Infill-Muster, das die Anfangs- oder Hauptrichtung "
-"der Linie bestimmt"
+"Winkel für das Infill-Muster, das die Anfangs- oder Hauptrichtung der Linie "
+"bestimmt"
 
 msgid "Sparse infill density"
-msgstr "Dichte der spärlichen Füllung"
+msgstr "Dichte der Füllung"
 
-#, c-format
+#, fuzzy, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
-msgstr ""
-"Dichte der internen spärlichen Füllung, 100%% bedeutet durchgehend fest"
+msgstr "Dichte des internen Infill, 100% bedeutet durchgehend fest"
 
 msgid "Sparse infill pattern"
-msgstr "Muster der spärlichen Füllung"
+msgstr "Muster der Füllung"
 
 msgid "Line pattern for internal sparse infill"
-msgstr "Linienmuster für interne spärliche Füllung"
+msgstr "Linienmuster für interne Füllung."
 
 msgid "Grid"
 msgstr "Gitternetz"
@@ -5226,8 +5368,9 @@ msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
 msgstr ""
-"Acceleration of top surface infill. Using a lower value may improve top "
-"surface quality"
+"Dies ist die Beschleunigung der Füllung der oberen Oberfläche. Die "
+"Verwendung eines niedrigeren Werts kann die Qualität der oberen Oberfläche "
+"verbessern."
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
@@ -5280,7 +5423,7 @@ msgstr "Druckdüsentemperatur für die erste Schicht"
 msgid "Nozzle temperature to print initial layer when using this filament"
 msgstr ""
 "Druckdüsentemperatur zum Drucken der ersten Schicht bei Verwendung dieses "
-"Materials"
+"Filaments"
 
 msgid "Full fan speed at layer"
 msgstr "Volle Lüfterdrehzahl ab Schicht"
@@ -5326,7 +5469,7 @@ msgstr ""
 "unregelmäßige Linienbreite und sollte langsamer gedruckt werden"
 
 msgid "Arc fitting"
-msgstr "Arc fitting"
+msgstr "Bogenanpassung"
 
 msgid ""
 "Enable this to get a G-code file which has G2 and G3 moves. And the fitting "
@@ -5361,7 +5504,7 @@ msgid ""
 "nozzle, and what kind of filament can be printed"
 msgstr ""
 "Das metallische Material der Druckdüse. Dies bestimmt die Abriebfestigkeit "
-"der Druckdüse und welche Art von Material gedruckt werden kann"
+"der Druckdüse und welche Art von Filament gedruckt werden kann"
 
 msgid "Hardened steel"
 msgstr "Gehärteter Stahl"
@@ -5390,18 +5533,18 @@ msgid ""
 "Automatically Combine sparse infill of several layers to print together to "
 "reduce time. Wall is still printed with original layer height."
 msgstr ""
-"Kombinieren Sie automatisch spärliche Füllung aus mehreren Schichten, um "
-"gemeinsam zu drucken und die Zeit zu reduzieren. Die Wand wird weiterhin mit "
-"der ursprünglichen Schichthöhe gedruckt."
+"Kombinieren Sie automatisch das Infill aus mehreren Schichten, um gemeinsam "
+"zu drucken und die Zeit zu reduzieren. Die Wand wird weiterhin mit der "
+"ursprünglichen Schichthöhe gedruckt."
 
 msgid "Filament to print internal sparse infill."
-msgstr "Filament für den Druck von spärlicher interner Füllung."
+msgstr "Filament für den Druck von Infill."
 
 msgid "Line width of internal sparse infill"
-msgstr "Linienbreite der internen spärlichen Ausfüllung"
+msgstr "Linienbreite der internen Füllung"
 
 msgid "Infill/Wall overlap"
-msgstr "Füllung/Wand überstand"
+msgstr "Überstand Füllung/Wand"
 
 msgid ""
 "Infill area is enlarged slightly to overlap with wall for better bonding. "
@@ -5409,10 +5552,10 @@ msgid ""
 msgstr ""
 "Der Bereich der Füllung wird leicht vergrößert, damit er sich mit der Wand "
 "überschneidet, um eine bessere Haftung zu erreichen. Der Prozentwert bezieht "
-"sich auf die Linienbreite der spärlichen Füllung"
+"sich auf die Linienbreite der Füllung."
 
 msgid "Speed of internal sparse infill"
-msgstr "Geschwindigkeit der internen spärlichen Füllung"
+msgstr "Geschwindigkeit der internen Füllung."
 
 msgid "Ironing Type"
 msgstr "Glätten-Typ"
@@ -5592,7 +5735,7 @@ msgstr ""
 "Teilelüfter"
 
 msgid "Max"
-msgstr "Max"
+msgstr "Maximal"
 
 msgid ""
 "The largest printable layer height for extruder. Used tp limits the maximum "
@@ -5638,10 +5781,10 @@ msgid "Diameter of nozzle"
 msgstr "Druckdüsendurchmesser"
 
 msgid "Nozzle volume"
-msgstr "Nozzle volume"
+msgstr "Volumen der Druckdüse"
 
 msgid "Volume of nozzle between the cutter and the end of nozzle"
-msgstr "Volume of nozzle between the cutter and the end of nozzle"
+msgstr "Volumen der Düse zwischen dem Messer und dem Ende der Düse"
 
 msgid "Reduce infill retraction"
 msgstr "Rückzug bei der Füllung verringern"
@@ -5833,14 +5976,14 @@ msgstr ""
 "für diese Schichten zu erreichen"
 
 msgid "Minimum sparse infill threshold"
-msgstr "Mindestschwelle für spärliche Füllung"
+msgstr "Mindestschwelle für Füllung"
 
 msgid ""
 "Sparse infill area which is smaller than threshold value is replaced by "
 "internal solid infill"
 msgstr ""
-"Spärliche Füllbereiche, die kleiner als der Schwellenwert sind, werden durch "
-"interne massive Füllungen ersetzt"
+"Füllbereiche, die kleiner als der Schwellenwert sind, werden durch interne "
+"massive Füllungen ersetzt"
 
 msgid "mm²"
 msgstr "mm²"
@@ -5852,8 +5995,8 @@ msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr ""
 "Geschwindigkeit der inneren festen Füllung, nicht der Ober- und Unterseite"
 
-msgid "Spiral mode"
-msgstr "Spiralförmiger Modus"
+msgid "Spiral vase"
+msgstr ""
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid "
@@ -5864,15 +6007,16 @@ msgstr ""
 "Volumenmodell in einen einwandigen Druck mit soliden unteren Schichten. Das "
 "endgültig erzeugte Modell hat keine Naht"
 
-msgid "Timelapse without toolhead"
-msgstr ""
-
 msgid ""
 "Record timelapse video of printing without showing toolhead. In this mode "
 "the toolhead docks near the excess chute at each layer change, and then a "
 "snapshot is taken with the chamber camera. When printing finishes a "
 "timelapse video is composed of all the snapshots."
 msgstr ""
+"Record timelapse video of printing without showing the toolhead. In this "
+"mode the toolhead docks near the excess chute at each layer change, and then "
+"a snapshot is taken with the chamber camera. When printing finishes, a "
+"timelapse video is created from all the snapshots."
 
 msgid "Temperature variation"
 msgstr "Temperaturvariation"
@@ -5884,7 +6028,7 @@ msgid "Start G-code when start the whole printing"
 msgstr "G-Code starten, wenn der gesamte Druckvorgang beginnt"
 
 msgid "Start G-code when start the printing of this filament"
-msgstr "G-Code starten, wenn der Druck dieses Materials beginnt"
+msgstr "G-Code starten, wenn der Druck dieses Filaments beginnt"
 
 msgid "Enable support"
 msgstr "Support aktivieren"
@@ -5947,7 +6091,7 @@ msgid ""
 "Filament to print support and skirt. 0 means no specific filament for "
 "support and current filament is used"
 msgstr ""
-"Material für den Druck der Supports und der Schürze. 0 bedeutet, dass kein "
+"Filament für den Druck der Supports und der Umrandung. 0 bedeutet, dass kein "
 "spezielles Filament für den Support und das aktuelle Filament wird verwendet"
 
 msgid "Line width of support"
@@ -5966,9 +6110,9 @@ msgid ""
 "Filament to print support interface. 0 means no specific filament for "
 "support interface and current filament is used"
 msgstr ""
-"Material zum Drucken der Support-Schnittstelle. 0 bedeutet, dass kein "
-"spezielles Material für die Support-Schnittstelle vorhanden ist und das "
-"aktuelle Material verwendet wird"
+"Filament zum Drucken der Support-Schnittstelle. 0 bedeutet, dass kein "
+"spezielles Filament für die Support-Schnittstelle vorhanden ist und das "
+"aktuelle Filament verwendet wird"
 
 msgid "Top interface layers"
 msgstr "Obere Schnittstellenschichten"
@@ -6044,8 +6188,8 @@ msgid ""
 msgstr ""
 "Die Support-Schicht verwendet eine von der Objektschicht unabhängige "
 "Schichthöhe. Dies dient der Unterstützung benutzerdefinierter Supportlücken, "
-"kann aber zusätzliche Materialwechsel verursachen, wenn die Supportschicht "
-"von einem anderen Material gedruckt wird"
+"kann aber zusätzliche Filamentwechsel verursachen, wenn die Supportschicht "
+"von einem anderen Filament gedruckt wird"
 
 msgid "Threshold angle"
 msgstr "Schwellenwinkel"
@@ -6134,7 +6278,7 @@ msgid ""
 "This gcode is inserted when change filament, including T command to trigger "
 "tool change"
 msgstr ""
-"Dieser G-Code wird beim Materialwechsel eingefügt, einschließlich des T-"
+"Dieser G-Code wird beim Filamentwechsel eingefügt, einschließlich des T-"
 "Befehls zum Auslösen des Werkzeugwechsels"
 
 msgid "Line width for top surfaces"
@@ -6221,7 +6365,7 @@ msgid "Width of prime tower"
 msgstr "Breite des Prime-Turms"
 
 msgid "Flush into objects' infill"
-msgstr "Flush into objects' infill"
+msgstr "Druckdüse in der Füllung der Objekte säubern"
 
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
@@ -6229,31 +6373,33 @@ msgid ""
 "printed with transparent filament, the mixed color infill will be seen "
 "outside"
 msgstr ""
-"Purging after filament change will be done inside objects' infills. This may "
-"lower the amount of waste and decrease the print time. If the walls are "
-"printed with transparent filament, the mixed color infill will be visible."
+"Die Spülung der Druckdüse nach dem Filamentwechsel erfolgt innerhalb der "
+"Füllungen der Objekte. Dies kann die Abfallmenge verringern und die "
+"Druckzeit verkürzen. Wenn die Wände mit transparentem Filament gedruckt "
+"werden, ist die gemischte Farbe der Füllung sichtbar."
 
 msgid "Flush into objects' support"
-msgstr "Flush into objects' support"
+msgstr "Druckdüse in der Supportstruktur des Objekts säubern"
 
 msgid ""
 "Purging after filament change will be done inside objects' support. This may "
 "lower the amount of waste and decrease the print time"
 msgstr ""
-"Purging after filament change will be done inside objects' support. This may "
-"lower the amount of waste and decrease the print time."
+"Die Reinigung der Druckdüse nach dem Filamentwechsel erfolgt innerhalb des "
+"Objektsupport. Dies kann die Abfallmenge verringern und die Druckzeit "
+"verkürzen."
 
 msgid "Flush into this object"
-msgstr "Flush into this object"
+msgstr "Druckdüse in diesem Objekt säubern"
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
 "filament and decrease the print time. Colours of the objects will be mixed "
 "as a result"
 msgstr ""
-"This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colours of the objects will be mixed "
-"as a result"
+"Dieses Objekt wird verwendet, um die Düse nach einem Filamentwechsel zu "
+"säubern, um Filament zu sparen und die Druckzeit zu verkürzen. Die Farben "
+"der Objekte werden als Ergebnis gemischt"
 
 msgid "X-Y hole compensation"
 msgstr "X-Y-Loch-Kompensation"
@@ -6330,10 +6476,10 @@ msgid "Arrange options: 0-disable, 1-enable, others-auto"
 msgstr "Anordnungsoptionen: 0-deaktiviert; 1-aktiviert; andere-automatisch"
 
 msgid "Convert Unit"
-msgstr "Convert Unit"
+msgstr "Einheit umrechnen"
 
 msgid "Convert the units of model"
-msgstr "Convert the units of model"
+msgstr "Einheiten des Modells umrechnen"
 
 msgid "Orient the model"
 msgstr "Das Modell ausrichten"
@@ -6356,10 +6502,10 @@ msgid "Load process/machine settings from the specified file"
 msgstr "Laden von Prozess-/Maschineneinstellungen aus der angegebenen Datei"
 
 msgid "Load Filament Settings"
-msgstr "Lade Materialeinstellungen"
+msgstr "Filamenteinstellungen laden"
 
 msgid "Load filament settings from the specified file list"
-msgstr "Materialeinstellungen aus der angegebenen Dateiliste laden"
+msgstr "Filamenteinstellungen aus der angegebenen Dateiliste laden"
 
 msgid "Output directory"
 msgstr "Ausgabeverzeichnis"
@@ -6384,7 +6530,7 @@ msgid "Generating walls"
 msgstr "Erzeugen von Wänden"
 
 msgid "Generating infill regions"
-msgstr "Erzeugung von Füllregionen"
+msgstr "Generierung von Füllbereichen"
 
 msgid "Generating infill toolpath"
 msgstr "Füllwerkzeugweg generieren"
@@ -6431,73 +6577,34 @@ msgstr "Fehler auf Zeile %1%:\n"
 
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
-msgstr "Support: generate toolpath at layer %d"
+msgstr "Support: Werkzeugpfad auf Ebene %d erzeugen"
 
 msgid "Support: detect overhangs"
-msgstr "Support: detect overhangs"
+msgstr "Support: Überhänge erkennen"
 
 msgid "Support: generate contact points"
-msgstr "Support: generate contact points"
+msgstr "Support: Kontaktstellen erstellen"
 
 msgid "Support: propagate branches"
-msgstr "Support: propagate branches"
+msgstr "Support: Zweige vermehren"
 
 msgid "Support: draw polygons"
-msgstr "Support: draw polygons"
+msgstr "Support: Polygone zeichnen"
 
 msgid "Support: generate toolpath"
-msgstr "Support: generate toolpath"
+msgstr "Support: Werkzeugweg generieren"
 
 #, c-format, boost-format
 msgid "Support: generate polygons at layer %d"
-msgstr "Support: generate polygons at layer %d"
+msgstr "Support: Polygone auf Ebene %d erzeugen"
 
 #, c-format, boost-format
 msgid "Support: fix holes at layer %d"
-msgstr "Support: fix holes at layer %d"
+msgstr "Support: Löcher in Schicht %d repairieren"
 
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
-msgstr "Support: propagate branches at layer %d"
-
-#~ msgid "Creating"
-#~ msgstr "Creating"
-
-#~ msgid "Uploading"
-#~ msgstr "Lade hoch"
-
-#~ msgid "Waiting"
-#~ msgstr "Waiting"
-
-#~ msgid "Sending"
-#~ msgstr "Sending"
-
-#~ msgid "Finished"
-#~ msgstr "Fertig"
-
-#~ msgid "Please fill report first."
-#~ msgstr "Bitte füllen Sie zuerst den Bericht aus."
-
-#~ msgid "Unable to create zip file"
-#~ msgstr "Unable to create zip file"
-
-#~ msgid "Enter a search term"
-#~ msgstr "Suchbegriff eingeben"
-
-#~ msgid "Debug"
-#~ msgstr "Debuggen"
-
-#~ msgid "Monitoring"
-#~ msgstr "Überwachung"
-
-#~ msgid "Fragment filter"
-#~ msgstr "Fragment filter"
-
-#~ msgid "Fragment Filter"
-#~ msgstr "Fragment Filter"
-
-#~ msgid "Position:"
-#~ msgstr "Position:"
+msgstr "Support: Verbreiten von Zweigen auf Ebene %d"
 
 #~ msgid "Alt + Mouse wheel"
 #~ msgstr "Alt + Mausrad"
@@ -6510,14 +6617,31 @@ msgstr "Support: propagate branches at layer %d"
 #~ "Lösen Sie das Problem, indem Sie es vollständig innerhalb oder außerhalb "
 #~ "der Druckplatte verschieben."
 
-#~ msgid "Arranging"
-#~ msgstr "Anordnen"
+#~ msgid "Auto arrange"
+#~ msgstr "Automatische Anordnung"
+
+#~ msgid ""
+#~ "Auto orientates selected objects or all objects.If there are selected "
+#~ "objects, it just orientates the selected ones.Otherwise, it will "
+#~ "orientates all objects in the project."
+#~ msgstr ""
+#~ "Wenn es ausgewählte Objekte gibt, werden nur die ausgewählten Objekte "
+#~ "ausgerichtet, ansonsten werden alle Objekte im Projekt ausgerichtet."
+
+#~ msgid "Clear all"
+#~ msgstr "Alles löschen"
+
+#~ msgid "Creating"
+#~ msgstr "Wird erstellt..."
 
 #~ msgid "Ctrl + Any arrow"
 #~ msgstr "Strg + beliebiger Pfeil"
 
 #~ msgid "Ctrl + Left mouse button"
-#~ msgstr "Ctrl + Left mouse button"
+#~ msgstr "Strg + Linke Maustaste"
+
+#~ msgid "Debug"
+#~ msgstr "Debuggen"
 
 #~ msgid "Display printable box"
 #~ msgstr "Bedruckbare Box anzeigen"
@@ -6535,11 +6659,12 @@ msgstr "Support: propagate branches at layer %d"
 #~ "2. The Filament presets\n"
 #~ "3. The Printer presets\n"
 #~ msgstr ""
-#~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
-#~ "Contains the following information:\n"
-#~ "1. Process presets\n"
-#~ "2. Filament presets\n"
-#~ "3. Printer presets\n"
+#~ "Möchten Sie Ihre persönlichen Daten aus der Bambu Cloud "
+#~ "synchronisieren? \n"
+#~ "Enthält die folgenden Informationen:\n"
+#~ "1. Prozess-Voreinstellungen\n"
+#~ "2. Filament-Voreinstellungen\n"
+#~ "3. Drucker-Voreinstellungen\n"
 
 #~ msgid ""
 #~ "Don't retract when the travel is in infill area absolutely. That means "
@@ -6548,11 +6673,29 @@ msgstr "Support: propagate branches at layer %d"
 #~ "Ziehen Sie nicht zurück, wenn sich der Weg im Füllbereich befindet. Das "
 #~ "bedeutet, dass man die Quellung nicht sehen kann"
 
+#~ msgid "Enter a search term"
+#~ msgstr "Suchbegriff eingeben"
+
+#~ msgid "Filaments Selection"
+#~ msgstr "Auswahl der Filamente"
+
+#~ msgid "Finished"
+#~ msgstr "Fertig"
+
 #~ msgid "Fix model locally"
 #~ msgstr "Modell lokal reparieren"
 
 #~ msgid "Fix model through cloud"
 #~ msgstr "Modell durch die Cloud reparieren"
+
+#~ msgid "Fragment Filter"
+#~ msgstr "Fragment-Filter"
+
+#~ msgid "Fragment area"
+#~ msgstr "Fragment-Bereich"
+
+#~ msgid "Fragment filter"
+#~ msgstr "Fragment-Filter"
 
 #~ msgid ""
 #~ "Heat the nozzle to target \n"
@@ -6560,13 +6703,16 @@ msgstr "Support: propagate branches at layer %d"
 #~ msgstr "Die Druckdüse auf die Zieltemperatur heitzen"
 
 #~ msgid "In the calibration of extrusion flow"
-#~ msgstr "In the calibration of extrusion flow"
+#~ msgstr "Kalibrierung des Materialflusses"
 
 #~ msgid "In the calibration of laser scanner"
-#~ msgstr "In the calibration of laser scanner"
+#~ msgstr "Kalibrierung des Laser-Scanner"
 
 #~ msgid "Module"
 #~ msgstr "Modul"
+
+#~ msgid "Monitoring"
+#~ msgstr "Überwachung"
 
 #~ msgid "New version of Bambu Studio"
 #~ msgstr "Neue Version von Bambu Studio"
@@ -6575,31 +6721,43 @@ msgstr "Support: propagate branches at layer %d"
 #~ msgstr "Ausgabedatei"
 
 #~ msgid "Pause(heated bed temperature error)"
-#~ msgstr "Pause(heated bed temperature error)"
+#~ msgstr "Pause (Temperaturfehler beim Heizbett)"
 
 #~ msgid "Pause(hotend temperature error)"
-#~ msgstr "Pause(hotend temperature error)"
+#~ msgstr "Pause (Temperaturfehler im Hotend)"
 
 #~ msgid "Pause(toolhead shell off)"
-#~ msgstr "Pause(toolhead shell off)"
+#~ msgstr "Pause (Werkzeugkopfabdeckung abgefallen)"
+
+#~ msgid "Please fill report first."
+#~ msgstr "Bitte füllen Sie zuerst den Bericht aus."
 
 #~ msgid "Please upgrade your printer first"
-#~ msgstr "Please upgrade your printer first"
+#~ msgstr "Bitte aktualisieren Sie zuerst Ihren Drucker"
+
+#~ msgid "Position:"
+#~ msgstr "Position:"
 
 #~ msgid ""
 #~ "Preview only mode:\n"
 #~ "The loaded file contains gcode only."
 #~ msgstr ""
-#~ "Preview only mode:\n"
-#~ "The loaded file contains gcode only."
+#~ "Nur Vorschaumodus:\n"
+#~ "Die geladene Datei enthält nur G-Code."
 
 #~ msgid "Preview only mode for gcode file."
-#~ msgstr "Preview only mode for gcode file."
+#~ msgstr "Nur Vorschaumodus für Gcode-Datei."
+
+#~ msgid "Printer Selection"
+#~ msgstr "Auswahl der Drucker"
 
 #~ msgid ""
 #~ "Push new filament \n"
 #~ "into extruder"
 #~ msgstr "Neues Filament in den Extruder drücken"
+
+#~ msgid "Sending"
+#~ msgstr "Senden"
 
 #~ msgid "Shift + Any arrow"
 #~ msgstr "Umschalttaste + beliebiger Pfeil"
@@ -6616,19 +6774,38 @@ msgstr "Support: propagate branches at layer %d"
 #~ msgid "Show Printable Box(TODO)"
 #~ msgstr "Druckbare Box anzeigen(TODO)"
 
+#~ msgid "Spiral mode"
+#~ msgstr "Spiralförmiger Modus"
+
 #~ msgid "Successfully sent.Will automatically jump to the device page in %s s"
-#~ msgstr ""
-#~ "Successfully sent.Will automatically jump to the device page in %s s"
+#~ msgstr "Erfolgreich gesendet, springt automatisch zur Geräteseite in %s"
 
 #~ msgid "Swith cloud environment, Please login again!"
 #~ msgstr "Cloud-Umgebung wechseln, bitte erneut anmelden!"
+
+#~ msgid "The Config is not compatible and can not be loaded."
+#~ msgstr ""
+#~ "Die Konfiguration ist nicht kompatibel und kann nicht geladen werden."
 
 #~ msgid ""
 #~ "The firmware versions of printer and AMS are too low.Please update to the "
 #~ "latest version before sending the print job"
 #~ msgstr ""
-#~ "The firmware versions of printer and AMS are too low.Please update to the "
-#~ "latest version before sending the print job"
+#~ "Die Firmware-Versionen von Drucker und AMS sind zu niedrig. Bitte "
+#~ "aktualisieren Sie auf die neueste Version, bevor Sie den Druckauftrag "
+#~ "senden"
+
+#~ msgid "Unable to create zip file"
+#~ msgstr "ZIP-Datei kann nicht erstellt werden"
+
+#~ msgid "Uploading"
+#~ msgstr "Lade hoch"
 
 #~ msgid "User pause"
-#~ msgstr "User pause"
+#~ msgstr "Benutzerpause"
+
+#~ msgid "Waiting"
+#~ msgstr "Warten"
+
+#~ msgid "the 3mf is not compatible, load geometry data only!"
+#~ msgstr "die 3mf ist nicht kompatibel, laden Sie nur Geometriedaten!"

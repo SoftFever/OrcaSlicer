@@ -59,10 +59,10 @@ public:
     MachineObject *m_obj{nullptr};
     bool     m_on{false};
     bool     m_hover{false};
-    wxBitmap m_bitmap_on_normal;
-    wxBitmap m_bitmap_on_hover;
-    wxBitmap m_bitmap_off_normal;
-    wxBitmap m_bitmap_off_hover;
+    ScalableBitmap m_bitmap_on_normal;
+    ScalableBitmap m_bitmap_on_hover;
+    ScalableBitmap m_bitmap_off_normal;
+    ScalableBitmap m_bitmap_off_hover;
 
     void msw_rescale();
     void set_switch(bool is_on);

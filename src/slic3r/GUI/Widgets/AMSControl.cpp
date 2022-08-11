@@ -64,7 +64,7 @@ bool AMSinfo::parse_ams_info(Ams *ams)
         if (it != ams->trayList.end() && it->second->is_exists) {
             if (it->second->is_tray_info_ready()) {
                 info.can_id        = it->second->id;
-                info.material_name = it->second->type;
+                info.material_name = it->second->get_display_filament_type();
                 if (!it->second->color.empty()) {
                     info.material_colour = AmsTray::decode_color(it->second->color);
                 } else {
@@ -133,13 +133,26 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
     Bind(wxEVT_LEAVE_WINDOW, &AMSrefresh::OnLeaveWindow, this);
     Bind(wxEVT_LEFT_DOWN, &AMSrefresh::OnClick, this);
 
-    m_bitmap_normal   = create_scaled_bitmap("ams_refresh_normal", this, 26);
-    m_bitmap_selected = create_scaled_bitmap("ams_refresh_selected", this, 26);
+    m_bitmap_normal   = ScalableBitmap(this, "ams_refresh_normal", 30);
+    m_bitmap_selected = ScalableBitmap(this, "ams_refresh_selected", 30);
 
-  /*  m_animationCtrl = new wxAnimationCtrl(this, wxID_ANY, wxNullAnimation, wxDefaultPosition, AMS_REFRESH_SIZE);
-    auto path = (boost::format("%1%/images/refresh.gif") % resources_dir()).str();
-    path      = encode_path(path.c_str());
-    if (m_animationCtrl->LoadFile(path)) m_animationCtrl->Hide();*/
+    m_bitmap_ams_rfid_0 = ScalableBitmap(this, "ams_rfid_0", 30);
+    m_bitmap_ams_rfid_1 = ScalableBitmap(this, "ams_rfid_1", 30);
+    m_bitmap_ams_rfid_2 = ScalableBitmap(this, "ams_rfid_2", 30);
+    m_bitmap_ams_rfid_3 = ScalableBitmap(this, "ams_rfid_3", 30);
+    m_bitmap_ams_rfid_4 = ScalableBitmap(this, "ams_rfid_4", 30);
+    m_bitmap_ams_rfid_5 = ScalableBitmap(this, "ams_rfid_5", 30);
+    m_bitmap_ams_rfid_6 = ScalableBitmap(this, "ams_rfid_6", 30);
+    m_bitmap_ams_rfid_7 = ScalableBitmap(this, "ams_rfid_7", 30);
+
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_0);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_1);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_2);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_3);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_4);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_5);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_6);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_7);
 
     m_playing_timer = new wxTimer();
     m_playing_timer->SetOwner(this);
@@ -147,35 +160,31 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
 
     SetSize(AMS_REFRESH_SIZE);
     SetMinSize(AMS_REFRESH_SIZE);
+    SetMaxSize(AMS_REFRESH_SIZE);
 }
 
 void AMSrefresh::on_timer(wxTimerEvent &event) 
 {
-    if (m_rotation_angle == 0) {
-        m_rotation_angle = 360;
-    } else {
-        m_rotation_angle--;
-    }
+    //if (m_rotation_angle >= m_rfid_bitmap_list.size()) {
+    //    m_rotation_angle = 0;
+    //} else {
+    //    m_rotation_angle++;
+    //}
     Refresh();
 }
 
 void AMSrefresh::PlayLoading()
 {
     if (m_play_loading)  return;
-    //this->m_animationCtrl->Show();
-    //this->m_animationCtrl->Play();
     m_play_loading = true;
-    m_rotation_angle = 360;
+    //m_rotation_angle = 0;
     m_playing_timer->Start(AMS_REFRESH_PLAY_LOADING_TIMER);
     Refresh();
 }
 
 void AMSrefresh::StopLoading()
 {
-   
     if (!m_play_loading) return;
-    //this->m_animationCtrl->Stop();
-    //this->m_animationCtrl->Hide();
     m_playing_timer->Stop();
     m_play_loading = false;
     Refresh();
@@ -213,17 +222,24 @@ void AMSrefresh::paintEvent(wxPaintEvent &evt)
     auto colour = AMS_CONTROL_GRAY700;
     if (!wxWindow::IsEnabled()) { colour = AMS_CONTROL_GRAY500; }
 
-    auto pot = wxPoint((size.x - m_bitmap_selected.GetSize().x) / 2, (size.y - m_bitmap_selected.GetSize().y) / 2);
+    auto pot = wxPoint((size.x - m_bitmap_selected.GetBmpSize().x) / 2, (size.y - m_bitmap_selected.GetBmpSize().y) / 2);
 
     if (!m_play_loading) {
-        dc.DrawBitmap(m_selected ? m_bitmap_selected : m_bitmap_normal, pot);
+        dc.DrawBitmap(m_selected ? m_bitmap_selected.bmp() : m_bitmap_normal.bmp(), pot);
     } else {
-        m_bitmap_rotation   = create_scaled_bitmap("ams_refresh_normal", this, 26);
-        auto image        = m_bitmap_rotation.ConvertToImage();
-        wxPoint offset;
-        auto loading_img  = image.Rotate(m_rotation_angle, wxPoint(image.GetWidth() / 2, image.GetHeight() / 2), true, &offset);
-        auto loading_bitmap = wxBitmap(loading_img);
-        dc.DrawBitmap( loading_bitmap, offset.x , offset.y);
+        /* m_bitmap_rotation    = ScalableBitmap(this, "ams_refresh_normal", 30);
+         auto           image = m_bitmap_rotation.bmp().ConvertToImage();
+         wxPoint        offset;
+         auto           loading_img = image.Rotate(m_rotation_angle, wxPoint(image.GetWidth() / 2, image.GetHeight() / 2), true, &offset);
+         ScalableBitmap loading_bitmap;
+         loading_bitmap.bmp() = wxBitmap(loading_img);
+         dc.DrawBitmap(loading_bitmap.bmp(), offset.x , offset.y);*/
+        m_rotation_angle++;
+        if (m_rotation_angle >= m_rfid_bitmap_list.size()) {
+            m_rotation_angle = 0;
+        }
+        if (m_rfid_bitmap_list.size() <= 0)return;
+        dc.DrawBitmap(m_rfid_bitmap_list[m_rotation_angle].bmp(), pot);
     }
 
     dc.SetPen(wxPen(colour));
@@ -241,13 +257,32 @@ void AMSrefresh::Update(Caninfo info)
     StopLoading();
 }
 
-void AMSrefresh::msw_rescale() { }
+void AMSrefresh::msw_rescale() {
+    m_bitmap_normal     = ScalableBitmap(this, "ams_refresh_normal", 30);
+    m_bitmap_selected   = ScalableBitmap(this, "ams_refresh_selected", 30);
+    m_bitmap_ams_rfid_0 = ScalableBitmap(this, "ams_rfid_0", 30);
+    m_bitmap_ams_rfid_1 = ScalableBitmap(this, "ams_rfid_1", 30);
+    m_bitmap_ams_rfid_2 = ScalableBitmap(this, "ams_rfid_2", 30);
+    m_bitmap_ams_rfid_3 = ScalableBitmap(this, "ams_rfid_3", 30);
+    m_bitmap_ams_rfid_4 = ScalableBitmap(this, "ams_rfid_4", 30);
+    m_bitmap_ams_rfid_5 = ScalableBitmap(this, "ams_rfid_5", 30);
+    m_bitmap_ams_rfid_6 = ScalableBitmap(this, "ams_rfid_6", 30);
+    m_bitmap_ams_rfid_7 = ScalableBitmap(this, "ams_rfid_7", 30);
+
+    m_rfid_bitmap_list.clear();
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_0);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_1);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_2);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_3);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_4);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_5);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_6);
+    m_rfid_bitmap_list.push_back(m_bitmap_ams_rfid_7);
+}
 
 void AMSrefresh::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
-    m_bitmap_normal   = create_scaled_bitmap("ams_refresh_normal", this, 26);
-    m_bitmap_selected = create_scaled_bitmap("ams_refresh_selected", this, 26);
 }
 
 /*************************************************
@@ -269,7 +304,7 @@ void AMSextruderImage::msw_rescale()
 {
     //m_ams_extruder.SetSize(AMS_EXTRUDER_BITMAP_SIZE);
     //auto image     = m_ams_extruder.ConvertToImage();
-    m_ams_extruder = create_scaled_bitmap("monitor_ams_extruder", nullptr, 55);
+    m_ams_extruder = ScalableBitmap(this, "monitor_ams_extruder", 55);
     Refresh();
 }
 
@@ -306,7 +341,7 @@ void AMSextruderImage::doRender(wxDC &dc)
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(m_colour);
     dc.DrawRectangle(0, 0, size.x, size.y - FromDIP(5));
-    dc.DrawBitmap(m_ams_extruder, wxPoint( (size.x - m_ams_extruder.GetSize().x) / 2, (size.y - m_ams_extruder.GetSize().y) / 2 ));
+    dc.DrawBitmap(m_ams_extruder.bmp(), wxPoint((size.x - m_ams_extruder.GetBmpSize().x) / 2, (size.y - m_ams_extruder.GetBmpSize().y) / 2));
 }
 
 
@@ -315,7 +350,7 @@ AMSextruderImage::AMSextruderImage(wxWindow *parent, wxWindowID id, const wxPoin
     wxWindow::Create(parent, id, pos, AMS_EXTRUDER_BITMAP_SIZE); 
     SetBackgroundColour(*wxWHITE);
 
-    m_ams_extruder = create_scaled_bitmap("monitor_ams_extruder", nullptr,55);
+    m_ams_extruder = ScalableBitmap(this, "monitor_ams_extruder",55);
 
     SetSize(AMS_EXTRUDER_BITMAP_SIZE);
     SetMinSize(AMS_EXTRUDER_BITMAP_SIZE);
@@ -396,12 +431,18 @@ void AMSLib::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
 {
     wxWindow::Create(parent, id, pos, size);
 
+    SetSize(AMS_CAN_LIB_SIZE);
+    SetMinSize(AMS_CAN_LIB_SIZE);
+    SetMaxSize(AMS_CAN_LIB_SIZE);
+
     auto m_sizer_body = new wxBoxSizer(wxVERTICAL);
 
     wxBoxSizer *m_sizer_edit = new wxBoxSizer(wxHORIZONTAL);
 
-    m_bitmap_editable       = create_scaled_bitmap("ams_editable", this, 14);
-    m_bitmap_editable_lifht = create_scaled_bitmap("ams_editable_light", this, 14);
+    m_bitmap_editable       = ScalableBitmap(this, "ams_editable", 14);
+    m_bitmap_editable_light = ScalableBitmap(this, "ams_editable_light", 14);
+    m_bitmap_readonly       = ScalableBitmap(this, "ams_readonly", 14);
+    m_bitmap_readonly_light = ScalableBitmap(this, "ams_readonly_light", 14);
 
     m_sizer_body->Add(0, 0, 1, wxEXPAND, 0);
     m_sizer_body->Add(m_sizer_edit, 0, wxALIGN_CENTER, 0);
@@ -425,16 +466,19 @@ void AMSLib::on_leave_window(wxMouseEvent &evt)
 void AMSLib::on_left_down(wxMouseEvent &evt)
 {
     //dc.DrawBitmap(temp_bitmap, (size.x - m_bitmap_editable.GetSize().x) / 2, ( size.y - FromDIP(10) - temp_bitmap.GetSize().y) );
-    if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE &&
-        m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND) {
-        auto size   = GetSize();
-        auto pos    = evt.GetPosition();
-        auto left   = FromDIP(20);
-        auto top    = (size.y - FromDIP(10) - m_bitmap_editable_lifht.GetSize().y);
-        auto right  = size.x - FromDIP(20);
-        auto bottom = size.y - FromDIP(10);
+    if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE) {
+        auto size = GetSize();
+        auto pos  = evt.GetPosition();
+        if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND || m_info.material_state == AMSCanType::AMS_CAN_TYPE_BRAND) {
+            auto left   = FromDIP(20);
+            auto top    = (size.y - FromDIP(10) - m_bitmap_editable_light.GetBmpSize().y);
+            auto right  = size.x - FromDIP(20);
+            auto bottom = size.y - FromDIP(10);
 
-        if (pos.x >= left && pos.x <= right && pos.y >= top && top <= bottom) { post_event(wxCommandEvent(EVT_AMS_ON_FILAMENT_EDIT)); }
+            if (pos.x >= left && pos.x <= right && pos.y >= top && top <= bottom) {
+                post_event(wxCommandEvent(EVT_AMS_ON_FILAMENT_EDIT)); 
+            }
+        }
     }
 }
 
@@ -475,9 +519,9 @@ void AMSLib::render(wxDC &dc)
         temp_text_colour = AMS_CONTROL_GRAY800;
     }
 
-    if (!wxWindow::IsEnabled()) {
-        temp_text_colour = AMS_CONTROL_DISABLE_TEXT_COLOUR;
-    }
+    //if (!wxWindow::IsEnabled()) {
+        //temp_text_colour = AMS_CONTROL_DISABLE_TEXT_COLOUR;
+    //}
 
     dc.SetFont(::Label::Body_13);
     dc.SetTextForeground(temp_text_colour);
@@ -524,18 +568,20 @@ void AMSLib::doRender(wxDC &dc)
 {
     wxSize size             = GetSize();
     auto   tmp_lib_colour   = m_info.material_colour;
-    auto   temp_bitmap      = m_bitmap_editable_lifht;
+    auto   temp_bitmap_third      = m_bitmap_editable_light;
+    auto   temp_bitmap_brand      = m_bitmap_readonly_light;
 
     if (tmp_lib_colour.GetLuminance() < 0.5) {
-        temp_bitmap      = m_bitmap_editable_lifht;
+        temp_bitmap_third = m_bitmap_editable_light;
+        temp_bitmap_brand = m_bitmap_readonly_light;
     } else {
-        temp_bitmap      = m_bitmap_editable;
-        
+        temp_bitmap_third = m_bitmap_editable;
+        temp_bitmap_brand = m_bitmap_readonly;
     }
 
-    if (!wxWindow::IsEnabled()) {
-        tmp_lib_colour   = AMS_CONTROL_DISABLE_COLOUR;
-    }
+    //if (!wxWindow::IsEnabled()) {
+        //tmp_lib_colour   = AMS_CONTROL_DISABLE_COLOUR;
+    //}
 
     // selected
     if (m_selected) {
@@ -584,9 +630,12 @@ void AMSLib::doRender(wxDC &dc)
     }
     
     // edit icon
-    if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE
-        && m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND ) {
-        dc.DrawBitmap(temp_bitmap, (size.x - m_bitmap_editable.GetSize().x) / 2, ( size.y - FromDIP(10) - temp_bitmap.GetSize().y) );
+    if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE)
+    {
+        if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND)
+            dc.DrawBitmap(temp_bitmap_third.bmp(), (size.x - temp_bitmap_third.GetBmpSize().x) / 2, (size.y - FromDIP(10) - temp_bitmap_third.GetBmpSize().y));
+        if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_BRAND)
+            dc.DrawBitmap(temp_bitmap_brand.bmp(), (size.x - temp_bitmap_brand.GetBmpSize().x) / 2, (size.y - FromDIP(10) - temp_bitmap_brand.GetBmpSize().y));
     }
 }
 
@@ -1074,7 +1123,7 @@ void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan)
     auto m_panel_refresh = new AMSrefresh(amscan, wxID_ANY, m_can_count + 1, caninfo);
     m_sizer_ams->Add(m_panel_refresh, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_ams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(2));
-    auto m_panel_lib = new AMSLib(amscan, wxID_ANY, caninfo, wxDefaultPosition, AMS_CAN_LIB_SIZE);
+    auto m_panel_lib = new AMSLib(amscan, wxID_ANY, caninfo);
     m_panel_lib->Bind(wxEVT_LEFT_DOWN, [this, canindex](wxMouseEvent &ev) {
         m_canlib_selection = canindex;
         // m_canlib_id        = caninfo.can_id;
@@ -1098,7 +1147,7 @@ void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan)
 
     amscan->SetSizer(m_sizer_ams);
     amscan->Layout();
-    m_sizer_ams->Fit(amscan);
+    amscan->Fit();
     sizer_can->Add(amscan, 0, wxALL, 0);
 
     Canrefreshs *canrefresh = new Canrefreshs;
@@ -1369,13 +1418,15 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_extruder_feed->SetBorderColor(btn_bd_green);
     m_button_extruder_feed->SetTextColor(btn_text_green);
     m_button_extruder_feed->SetFont(Label::Body_13);
-    m_sizer_left_bottom->Add(m_button_extruder_feed, 0, wxTOP, FromDIP(20));
-    m_sizer_left_bottom->Add(0, 0, 0, wxALL | wxLEFT, FromDIP(10));
+   
 
     m_button_extruder_back = new Button(amswin, _L("Unload Filament"));
     m_button_extruder_back->SetBackgroundColor(btn_bg_white);
     m_button_extruder_back->SetBorderColor(btn_bd_white);
     m_button_extruder_back->SetFont(Label::Body_13);
+
+    m_sizer_left_bottom->Add(m_button_extruder_feed, 0, wxTOP, FromDIP(20));
+    m_sizer_left_bottom->Add(0, 0, 0, wxALL | wxLEFT, FromDIP(10));
     m_sizer_left_bottom->Add(m_button_extruder_back, 0, wxTOP, FromDIP(20));
 
     m_sizer_left->Add(m_sizer_left_bottom, 0, wxEXPAND, 0);
@@ -1386,6 +1437,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_simplebook_right        = new wxSimplebook(amswin, wxID_ANY);
     m_simplebook_right->SetMinSize(AMS_STEP_SIZE);
     m_simplebook_right->SetSize(AMS_STEP_SIZE);
+    m_simplebook_right->SetBackgroundColour(*wxWHITE);
     m_sizer_right->Add(m_simplebook_right, 0, wxALL, 0);
 
     auto tip_right    = new wxPanel(m_simplebook_right, wxID_ANY, wxDefaultPosition, AMS_STEP_SIZE, wxTAB_TRAVERSAL);
@@ -1406,10 +1458,12 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_filament_load_step = new ::StepIndicator(m_simplebook_right, wxID_ANY);
     m_filament_load_step->SetMinSize(AMS_STEP_SIZE);
     m_filament_load_step->SetSize(AMS_STEP_SIZE);
+    m_filament_load_step->SetBackgroundColour(*wxWHITE);
 
     m_filament_unload_step = new ::StepIndicator(m_simplebook_right, wxID_ANY);
     m_filament_unload_step->SetMinSize(AMS_STEP_SIZE);
     m_filament_unload_step->SetSize(AMS_STEP_SIZE);
+    m_filament_unload_step->SetBackgroundColour(*wxWHITE);
 
     m_simplebook_right->AddPage(tip_right, wxEmptyString, false);
     m_simplebook_right->AddPage(m_filament_load_step, wxEmptyString, false);

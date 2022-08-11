@@ -225,9 +225,14 @@ int PresetComboBox::update_ams_color()
     if (m_filament_idx < 0) return -1;
     int idx = selected_ams_filament();
     if (idx < 0) return -1;
+    auto &ams_list = wxGetApp().preset_bundle->filament_ams_list;
+    if (idx >= ams_list.size()) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": ams %1% out of range %2%") % idx % ams_list.size();
+        return -1;
+    }
     DynamicPrintConfig *cfg        = &wxGetApp().preset_bundle->project_config;
     auto colors = static_cast<ConfigOptionStrings*>(cfg->option("filament_colour")->clone());
-    colors->values[m_filament_idx] = wxGetApp().preset_bundle->filament_ams_list[idx]
+    colors->values[m_filament_idx] = ams_list[idx]
         .opt_string("filament_colour", 0u);
     DynamicPrintConfig new_cfg;
     new_cfg.set_key_value("filament_colour", colors);
@@ -397,7 +402,7 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
             } else {
                 img.SetRGB(wxRect({0, 0}, img.GetSize()), clr.Red(), clr.Green(), clr.Blue());
             }
-            int item_id = Append(get_preset_name(*iter), img);
+            int item_id = Append(get_preset_name(*iter), img, &m_first_ams_filament + (&f - &m_preset_bundle->filament_ams_list.front()));
             //validate_selection(id->value == selected); // can not select
         }
         m_last_ams_filament = GetCount();
@@ -407,7 +412,7 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
 int PresetComboBox::selected_ams_filament() const
 {
     if (m_first_ams_filament && m_last_selected >= m_first_ams_filament && m_last_selected < m_last_ams_filament) {
-        return m_last_selected - m_first_ams_filament;
+        return reinterpret_cast<int *>(GetClientData(m_last_selected)) - &m_first_ams_filament;
     }
     return -1;
 }
@@ -609,7 +614,7 @@ bool PresetComboBox::selection_is_changed_according_to_physical_printers()
 // ---------------------------------
 
 PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset_type) :
-    PresetComboBox(parent, preset_type, wxSize(15 * wxGetApp().em_unit(), 3 * wxGetApp().em_unit()))
+    PresetComboBox(parent, preset_type, wxSize(15 * wxGetApp().em_unit(), 24 * wxGetApp().em_unit() / 10))
 {
     GetDropDown().SetUseContentWidth(true);
 
@@ -892,10 +897,15 @@ void PlaterPresetComboBox::update()
         // BBS
         wxColor clr(filament_color);
         clr_picker->SetBackgroundColour(clr);
-        auto style = clr_picker->GetWindowStyle() & ~(wxBORDER_NONE | wxBORDER_SIMPLE);
         auto diff_clr = different_color(clr);
-        clr_picker->SetWindowStyle(clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224 ? (style | wxBORDER_SIMPLE) : (style | wxBORDER_NONE));
         clr_picker->SetForegroundColour(diff_clr);
+        auto style = clr_picker->GetWindowStyle() & ~(wxBORDER_NONE | wxBORDER_SIMPLE);
+        style = clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224 ? (style | wxBORDER_SIMPLE) : (style | wxBORDER_NONE);
+        clr_picker->SetWindowStyle(style);
+#ifdef __WXOSX__
+        clr_picker->SetLabel(clr_picker->GetLabel()); // Let setBezelStyle: be called
+        clr_picker->Refresh();
+#endif
         selected_filament_preset = m_collection->find_preset(m_preset_bundle->filament_presets[m_filament_idx]);
         if (!selected_filament_preset) {
             //can not find this filament, should be caused by project embedded presets, will be updated later
@@ -1092,7 +1102,7 @@ void PlaterPresetComboBox::update()
 void PlaterPresetComboBox::msw_rescale()
 {
     PresetComboBox::msw_rescale();
-    SetMinSize({-1, 3 * m_em_unit});
+    SetMinSize({-1, 24 * m_em_unit / 10});
 
     if (clr_picker)
         clr_picker->SetSize(20 * m_em_unit / 10, 20 * m_em_unit / 10);
@@ -1322,7 +1332,7 @@ void TabPresetComboBox::update()
 
 void TabPresetComboBox::msw_rescale()
 {
-    PresetComboBox::msw_rescale();
+    PresetComboBox::Rescale();
     // BBS: new layout
     wxSize sz = wxSize(20 * m_em_unit, GetSize().GetHeight());
     SetMinSize(sz);

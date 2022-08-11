@@ -60,6 +60,7 @@ private:
 
 protected:
     wxBoxSizer *  m_sizer_body;
+    wxScrolledWindow *m_scrolledWindow;
 
     // bool								m_settings_layout_changed {false};
     bool m_seq_top_layer_only_changed{false};

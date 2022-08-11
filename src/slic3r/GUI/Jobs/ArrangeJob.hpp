@@ -59,7 +59,8 @@ public:
 
     int status_range() const override
     {
-        return int(m_selected.size() + m_unprintable.size());
+        // ensure finalize() is called after all operations in process() is finished.
+        return int(m_selected.size() + m_unprintable.size() + 1);
     }
 
     void finalize() override;

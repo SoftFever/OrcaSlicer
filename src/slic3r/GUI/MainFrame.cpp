@@ -142,7 +142,7 @@ static wxIcon main_frame_icon(GUI_App::EAppMode app_mode)
 #ifdef __WINDOWS__
 #define BORDERLESS_FRAME_STYLE (wxRESIZE_BORDER | wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxCLOSE_BOX)
 #else
-#define BORDERLESS_FRAME_STYLE (wxRESIZE_BORDER)
+#define BORDERLESS_FRAME_STYLE (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxCLOSE_BOX)
 #endif
 
 wxDEFINE_EVENT(EVT_SYNC_CLOUD_PRESET,     SimpleEvent);
@@ -184,8 +184,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     auto panel_topbar = new wxPanel(this, wxID_ANY);
     panel_topbar->SetBackgroundColour(wxColour(38, 46, 48));
     auto sizer_tobar = new wxBoxSizer(wxVERTICAL);
-    m_topbar         = new BBLTopbar(this);
-    sizer_tobar->Add(m_topbar, 0, wxEXPAND);
     panel_topbar->SetSizer(sizer_tobar);
     panel_topbar->Layout();
 #endif
@@ -206,7 +204,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     default:
     case GUI_App::EAppMode::Editor:
         m_taskbar_icon = std::make_unique<BambuStudioTaskBarIcon>(wxTBI_DOCK);
-        m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("BambuStudio-mac_128px.png"), wxBITMAP_TYPE_PNG), "BambuStudio");
+        m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("BambuStudio-mac_256px.ico"), wxBITMAP_TYPE_ICO), "BambuStudio");
         break;
     case GUI_App::EAppMode::GCodeViewer:
         break;
@@ -238,61 +236,63 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 #endif // _WIN32
 
     // BBS
-    wxAcceleratorEntry entries[13];
-    int index = 0;
-    entries[index++].Set(wxACCEL_CTRL, (int)'N', wxID_HIGHEST + wxID_NEW);
-    entries[index++].Set(wxACCEL_CTRL, (int)'O', wxID_HIGHEST + wxID_OPEN);
-    entries[index++].Set(wxACCEL_CTRL, (int)'S', wxID_HIGHEST + wxID_SAVE);
-    entries[index++].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int)'S', wxID_HIGHEST + wxID_SAVEAS);
-    entries[index++].Set(wxACCEL_CTRL, (int)'X', wxID_HIGHEST + wxID_CUT);
-    //entries[index++].Set(wxACCEL_CTRL, (int)'I', wxID_HIGHEST + wxID_ADD);
-    entries[index++].Set(wxACCEL_CTRL, (int)'A', wxID_HIGHEST + wxID_SELECTALL);
-    entries[index++].Set(wxACCEL_NORMAL, (int)27 /* escape */, wxID_HIGHEST + wxID_CANCEL);
-    entries[index++].Set(wxACCEL_CTRL, (int)'Z', wxID_HIGHEST + wxID_UNDO);
-    entries[index++].Set(wxACCEL_CTRL, (int)'Y', wxID_HIGHEST + wxID_REDO);
-    entries[index++].Set(wxACCEL_CTRL, (int)'C', wxID_HIGHEST + wxID_COPY);
-    entries[index++].Set(wxACCEL_CTRL, (int)'V', wxID_HIGHEST + wxID_PASTE);
-    entries[index++].Set(wxACCEL_CTRL, (int)'P', wxID_HIGHEST + wxID_PREFERENCES);
-    entries[index++].Set(wxACCEL_CTRL, (int)'I', wxID_HIGHEST + wxID_FILE6);
-    wxAcceleratorTable accel(sizeof(entries) / sizeof(entries[0]), entries);
-    SetAcceleratorTable(accel);
+    //wxAcceleratorEntry entries[13];
+    //int index = 0;
+    //entries[index++].Set(wxACCEL_CTRL, (int)'N', wxID_HIGHEST + wxID_NEW);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'O', wxID_HIGHEST + wxID_OPEN);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'S', wxID_HIGHEST + wxID_SAVE);
+    //entries[index++].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int)'S', wxID_HIGHEST + wxID_SAVEAS);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'X', wxID_HIGHEST + wxID_CUT);
+    ////entries[index++].Set(wxACCEL_CTRL, (int)'I', wxID_HIGHEST + wxID_ADD);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'A', wxID_HIGHEST + wxID_SELECTALL);
+    //entries[index++].Set(wxACCEL_NORMAL, (int)27 /* escape */, wxID_HIGHEST + wxID_CANCEL);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'Z', wxID_HIGHEST + wxID_UNDO);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'Y', wxID_HIGHEST + wxID_REDO);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'C', wxID_HIGHEST + wxID_COPY);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'V', wxID_HIGHEST + wxID_PASTE);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'P', wxID_HIGHEST + wxID_PREFERENCES);
+    //entries[index++].Set(wxACCEL_CTRL, (int)'I', wxID_HIGHEST + wxID_FILE6);
+    //wxAcceleratorTable accel(sizeof(entries) / sizeof(entries[0]), entries);
+    //SetAcceleratorTable(accel);
 
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->new_project(); }, wxID_HIGHEST + wxID_NEW);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->load_project(); }, wxID_HIGHEST + wxID_OPEN);
-    // BBS: close save project
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(); }, wxID_HIGHEST + wxID_SAVE);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, wxID_HIGHEST + wxID_SAVEAS);
-    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, wxID_HIGHEST + wxID_ADD);
-    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->remove_selected(); }, wxID_HIGHEST + wxID_DELETE);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) {
-            if (!can_add_models())
-                return;
-            if (m_plater) {
-                m_plater->add_model();
-            }
-        }, wxID_HIGHEST + wxID_FILE6);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->select_all(); }, wxID_HIGHEST + wxID_SELECTALL);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->deselect_all(); }, wxID_HIGHEST + wxID_CANCEL);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) {
-        if (m_plater->is_view3D_shown())
-            m_plater->undo();
-        }, wxID_HIGHEST + wxID_UNDO);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) {
-        if (m_plater->is_view3D_shown())
-            m_plater->redo();
-        }, wxID_HIGHEST + wxID_REDO);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); }, wxID_HIGHEST + wxID_COPY);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); }, wxID_HIGHEST + wxID_PASTE);
-    Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->cut_selection_to_clipboard(); }, wxID_HIGHEST + wxID_CUT);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->new_project(); }, wxID_HIGHEST + wxID_NEW);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->load_project(); }, wxID_HIGHEST + wxID_OPEN);
+    //// BBS: close save project
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(); }, wxID_HIGHEST + wxID_SAVE);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, wxID_HIGHEST + wxID_SAVEAS);
+    ////Bind(wxEVT_MENU, [this](wxCommandEvent&) { if (m_plater) m_plater->add_model(); }, wxID_HIGHEST + wxID_ADD);
+    ////Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->remove_selected(); }, wxID_HIGHEST + wxID_DELETE);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) {
+    //        if (!can_add_models())
+    //            return;
+    //        if (m_plater) {
+    //            m_plater->add_model();
+    //        }
+    //    }, wxID_HIGHEST + wxID_FILE6);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->select_all(); }, wxID_HIGHEST + wxID_SELECTALL);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->deselect_all(); }, wxID_HIGHEST + wxID_CANCEL);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) {
+    //    if (m_plater->is_view3D_shown())
+    //        m_plater->undo();
+    //    }, wxID_HIGHEST + wxID_UNDO);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) {
+    //    if (m_plater->is_view3D_shown())
+    //        m_plater->redo();
+    //    }, wxID_HIGHEST + wxID_REDO);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); }, wxID_HIGHEST + wxID_COPY);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); }, wxID_HIGHEST + wxID_PASTE);
+    //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->cut_selection_to_clipboard(); }, wxID_HIGHEST + wxID_CUT);
     Bind(wxEVT_SIZE, [this](wxSizeEvent&) {
             BOOST_LOG_TRIVIAL(trace) << "mainframe: size changed, is maximized = " << this->IsMaximized();
+#ifdef __WINDOWS__
             if (this->IsMaximized()) {
                 m_topbar->SetWindowSize();
             } else {
                 m_topbar->SetMaximizedSize();
             }
-            Refresh();
-            Layout();
+#endif
+        Refresh();
+        Layout();
         });
 
     //BBS
@@ -302,18 +302,18 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     });
     Bind(EVT_SYNC_CLOUD_PRESET, &MainFrame::on_select_default_preset, this);
 
-    Bind(wxEVT_MENU,
-        [this](wxCommandEvent&)
-        {
-            PreferencesDialog dlg(this);
-            dlg.ShowModal();
-#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-            if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
-#else
-            if (dlg.seq_top_layer_only_changed())
-#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
-                plater()->refresh_print();
-        }, wxID_HIGHEST + wxID_PREFERENCES);
+//    Bind(wxEVT_MENU,
+//        [this](wxCommandEvent&)
+//        {
+//            PreferencesDialog dlg(this);
+//            dlg.ShowModal();
+//#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+//            if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
+//#else
+//            if (dlg.seq_top_layer_only_changed())
+//#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+//                plater()->refresh_print();
+//        }, wxID_HIGHEST + wxID_PREFERENCES);
 
 
     // set default tooltip timer in msec
@@ -352,6 +352,12 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         e.Skip();
         });
     setMaxSize();
+    this->Bind(wxEVT_MAXIMIZE, [this](auto &e) {
+        wxDisplay display(wxDisplay::GetFromWindow(this));
+        auto pos = display.GetClientArea().GetPosition();
+        Move(pos - wxPoint{8, 8});
+        e.Skip();
+    });
 #endif // WIN32
     // BBS
     Fit();
@@ -468,6 +474,35 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             Slic3r::run_backup_ui_tasks();
             });
 ;    }
+
+    this->Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent &evt) {
+#ifdef __APPLE__
+        if (evt.CmdDown() && evt.GetKeyCode() == 'H') { this->Iconize(); return;}
+        if (evt.CmdDown() && evt.GetKeyCode() == 'Q') { wxPostEvent(this, wxCloseEvent(wxEVT_CLOSE_WINDOW)); return;}
+#endif
+        if (evt.CmdDown() && evt.GetKeyCode() == 'N') { m_plater->new_project(); return;}
+        if (evt.CmdDown() && evt.GetKeyCode() == 'O') { m_plater->load_project(); return;}
+        if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'S') { if (m_plater) m_plater->save_project(true); return;}
+        else if (evt.CmdDown() && evt.GetKeyCode() == 'S') { if (m_plater) m_plater->save_project(); return;}
+
+        if (evt.CmdDown() && evt.GetKeyCode() == 'P') {
+            PreferencesDialog dlg(this);
+            dlg.ShowModal();
+#if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+            if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
+#else
+            if (dlg.seq_top_layer_only_changed())
+#endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+                plater()->refresh_print();
+            return;
+        }
+        if (evt.CmdDown() && evt.GetKeyCode() == 'I') {
+            if (!can_add_models()) return;
+            if (m_plater) { m_plater->add_model(); }
+            return;
+        }
+        evt.Skip();
+    });
 }
 
 #ifdef __WIN32__
@@ -700,13 +735,21 @@ void MainFrame::shutdown()
     // to avoid any manipulations with them from App->wxEVT_IDLE after of the mainframe closing
     wxGetApp().tabs_list.clear();
     wxGetApp().model_tabs_list.clear();
+    wxGetApp().shutdown();
     // BBS: why clear ?
     //wxGetApp().plater_ = nullptr;
 }
 
 void MainFrame::update_title()
 {
-    return;
+    return; 
+}
+
+void MainFrame::update_title_colour_after_set_title() 
+{
+#ifdef __WXOSX__
+    set_title_colour_after_set_title();
+#endif
 }
 
 void MainFrame::show_option(bool show)
@@ -792,13 +835,14 @@ void MainFrame::init_tabpanel()
             //monitor
         }
 
+#ifdef __WINDOWS__
         if (sel == tp3DEditor) {
             m_topbar->EnableUndoRedoItems();
         }
         else {
             m_topbar->DisableUndoRedoItems();
         }
-
+#endif
 
         /*switch (sel) {
         case TabPosition::tpHome:
@@ -1452,8 +1496,10 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
         dynamic_cast<Notebook*>(m_tabpanel)->Rescale();
 #endif
 
+#ifdef __WINDOWS__
     // BBS
     m_topbar->Rescale();
+#endif
 
     m_tabpanel->Rescale();
 
@@ -1573,9 +1619,11 @@ static wxMenu* generate_help_menu()
             return true;
         });
     // About
+#ifdef __WINDOWS__
     wxString about_title = wxString::Format(_L("&About %s"), SLIC3R_APP_FULL_NAME);
     append_menu_item(helpMenu, wxID_ANY, about_title, about_title,
             [](wxCommandEvent&) { Slic3r::GUI::about(); });
+#endif
     return helpMenu;
 }
 
@@ -1605,6 +1653,7 @@ void MainFrame::init_menubar_as_editor()
 {
 #ifdef __APPLE__
     wxMenuBar::SetAutoWindowMenu(false);
+    m_menubar = new wxMenuBar();
 #endif
 
     // File menu
@@ -1867,10 +1916,18 @@ void MainFrame::init_menubar_as_editor()
     //auto config_wizard_name = _(ConfigWizard::name(true) + "(Debug)");
     //const auto config_wizard_tooltip = from_u8((boost::format(_utf8(L("Run %s"))) % config_wizard_name).str());
     //auto config_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuWizard + config_id_base, config_wizard_name, config_wizard_tooltip);
-    auto preference_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuPreferences + config_id_base, _L("Preferences") + "\tCtrl+P", "");
-    //auto printer_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuPrinter + config_id_base, _L("Printer"), "");
-    //auto language_item = new wxMenuItem(m_topbar->GetTopMenu(), ConfigMenuLanguage + config_id_base, _L("Switch Language"), "");
-    m_topbar->GetTopMenu()->Bind(wxEVT_MENU, [this, config_id_base](wxEvent& event) {
+#ifdef __APPLE__
+    wxWindowID bambu_studio_id_base = wxWindow::NewControlId(int(2));
+    wxMenu* parent_menu = m_menubar->OSXGetAppleMenu();
+    auto preference_item = new wxMenuItem(parent_menu, BambuStudioMenuPreferences + bambu_studio_id_base, _L("Preferences") + "\tCtrl+P", "");
+#else
+    wxMenu* parent_menu = m_topbar->GetTopMenu();
+    auto preference_item = new wxMenuItem(parent_menu, ConfigMenuPreferences + config_id_base, _L("Preferences") + "\tCtrl+P", "");
+#endif
+    
+    //auto printer_item = new wxMenuItem(parent_menu, ConfigMenuPrinter + config_id_base, _L("Printer"), "");
+    //auto language_item = new wxMenuItem(parent_menu, ConfigMenuLanguage + config_id_base, _L("Switch Language"), "");
+    parent_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent& event) {
         switch (event.GetId() - config_id_base) {
         //case ConfigMenuLanguage:
         //{
@@ -1935,10 +1992,50 @@ void MainFrame::init_menubar_as_editor()
         }
     });
 
-
+#ifdef __APPLE__
+    wxString about_title = wxString::Format(_L("&About %s"), SLIC3R_APP_FULL_NAME);
+    auto about_item = new wxMenuItem(parent_menu, BambuStudioMenuAbout + bambu_studio_id_base, about_title, "");
+        parent_menu->Bind(wxEVT_MENU, [this, bambu_studio_id_base](wxEvent& event) {
+            switch (event.GetId() - bambu_studio_id_base) {
+                case BambuStudioMenuAbout:
+                    Slic3r::GUI::about();
+                    break;
+                case BambuStudioMenuPreferences:
+                    wxGetApp().CallAfter([this] {
+                        PreferencesDialog dlg(this);
+                        dlg.ShowModal();
+        #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+                        if (dlg.seq_top_layer_only_changed() || dlg.seq_seq_top_gcode_indices_changed())
+        #else
+                        if (dlg.seq_top_layer_only_changed())
+        #endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
+                            plater()->refresh_print();
+        #if ENABLE_CUSTOMIZABLE_FILES_ASSOCIATION_ON_WIN
+        #ifdef _WIN32
+                        /*
+                        if (wxGetApp().app_config()->get("associate_3mf") == "true")
+                            wxGetApp().associate_3mf_files();
+                        if (wxGetApp().app_config()->get("associate_stl") == "true")
+                            wxGetApp().associate_stl_files();
+                        /*if (wxGetApp().app_config()->get("associate_step") == "true")
+                            wxGetApp().associate_step_files();*/
+        #endif // _WIN32
+        #endif
+                    });
+                    break;
+                default:
+                    break;
+            }
+        
+        });
+    parent_menu->Insert(0, about_item);
+    parent_menu->Insert(1, preference_item);
+#endif
     // Help menu
     auto helpMenu = generate_help_menu();
 
+        
+#ifdef __WINDOWS__
     m_topbar->SetFileMenu(fileMenu);
     if (editMenu)
         m_topbar->AddDropDownSubMenu(editMenu, _L("Edit"));
@@ -1950,6 +2047,16 @@ void MainFrame::init_menubar_as_editor()
     //m_topbar->AddDropDownMenuItem(language_item);
     //m_topbar->AddDropDownMenuItem(config_item);
     m_topbar->AddDropDownSubMenu(helpMenu, _L("Help"));
+#else
+    m_menubar->Append(fileMenu, _L("&File"));
+    if (editMenu)
+        m_menubar->Append(editMenu, _L("&Edit"));
+    if (viewMenu)
+        m_menubar->Append(viewMenu, _L("&View"));
+    if (helpMenu)
+        m_menubar->Append(helpMenu, _L("&Help"));
+    SetMenuBar(m_menubar);
+#endif
 
 #ifdef _MSW_DARK_MODE
     if (wxGetApp().tabs_as_menu())
@@ -1959,12 +2066,12 @@ void MainFrame::init_menubar_as_editor()
 #ifdef __APPLE__
     // This fixes a bug on Mac OS where the quit command doesn't emit window close events
     // wx bug: https://trac.wxwidgets.org/ticket/18328
-    /* wxMenu* apple_menu = m_menubar->OSXGetAppleMenu();
+    wxMenu* apple_menu = m_menubar->OSXGetAppleMenu();
     if (apple_menu != nullptr) {
         apple_menu->Bind(wxEVT_MENU, [this](wxCommandEvent &) {
             Close();
         }, wxID_EXIT);
-    }*/
+    }
 #endif // __APPLE__
 }
 

@@ -68,6 +68,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/SideTools.hpp
     GUI/Widgets/WebView.cpp
     GUI/Widgets/WebView.hpp
+    GUI/Widgets/wxStaticText2.cpp
+    GUI/Widgets/wxStaticText2.hpp
     GUI/AboutDialog.cpp
     GUI/AboutDialog.hpp
     GUI/AuxiliaryDialog.cpp
@@ -125,8 +127,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoFaceDetector.hpp
     GUI/Gizmos/GLGizmoSeam.cpp
     GUI/Gizmos/GLGizmoSeam.hpp
-    GUI/Gizmos/GLGizmoModifier.cpp
-    GUI/Gizmos/GLGizmoModifier.hpp
     GUI/GLSelectionRectangle.cpp
     GUI/GLSelectionRectangle.hpp
     GUI/Gizmos/GizmoObjectManipulation.cpp
@@ -213,6 +213,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/MonitorPage.hpp
     GUI/StatusPanel.cpp
     GUI/StatusPanel.hpp
+    GUI/UpdateErrorMessage.cpp
+    GUI/UpdateErrorMessage.hpp
     GUI/SliceInfoPanel.cpp
     GUI/SliceInfoPanel.hpp
     GUI/CameraPopup.cpp
@@ -344,6 +346,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ReleaseNote.cpp
     GUI/Calibration.hpp
     GUI/Calibration.cpp
+    GUI/PrintOptionsDialog.hpp
+    GUI/PrintOptionsDialog.cpp
     Utils/json_diff.hpp
     Utils/json_diff.cpp
     GUI/KBShortcutsDialog.hpp

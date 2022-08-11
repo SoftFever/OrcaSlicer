@@ -37,7 +37,9 @@ bool button_with_pos(ImTextureID   user_texture_id,
                      const ImVec4 &bg_col        = ImVec4(0, 0, 0, 0),
                      const ImVec4 &tint_col      = ImVec4(1, 1, 1, 1),
                      const ImVec2 &margin        = ImVec2(0, 0));
-bool menu_item_with_icon(const char* label, const char* shortcut, ImU32 icon_color, bool selected, bool enabled = true);
+bool begin_menu(const char *label, bool enabled = true);
+void end_menu();
+bool menu_item_with_icon(const char *label, const char *shortcut, ImVec2 icon_size = ImVec2(0, 0), ImU32 icon_color = 0, bool selected = false, bool enabled = true);
 
 
 class ImGuiWrapper
@@ -181,9 +183,9 @@ public:
     static const ImVec4 COL_SEPARATOR;
 
     //BBS
-    static void push_toolbar_style();
+    static void push_toolbar_style(const float scale);
     static void pop_toolbar_style();
-    static void push_menu_style();
+    static void push_menu_style(const float scale);
     static void pop_menu_style();
 
     //BBS

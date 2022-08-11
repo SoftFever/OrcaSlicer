@@ -226,7 +226,8 @@ public:
 
     void        update_title();
 
-	void show_option(bool show);
+	void        update_title_colour_after_set_title();
+    void        show_option(bool show);
     void init_tabpanel();
     void        create_preset_tabs();
     //BBS: GUI refactor

@@ -955,7 +955,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
         (*btn)->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
         (*btn)->SetCornerRadius(12);
 
-        (*btn)->Bind(wxEVT_LEFT_DOWN, [this, close_act, dependent_presets](wxEvent &) {
+        (*btn)->Bind(wxEVT_BUTTON, [this, close_act, dependent_presets](wxEvent &) {
             bool save_names_and_types = close_act == Action::Save || (close_act == Action::Transfer && ActionButtons::KEEP & m_buttons);
             if (save_names_and_types && !save(dependent_presets, close_act == Action::Save)) return;
             close(close_act);

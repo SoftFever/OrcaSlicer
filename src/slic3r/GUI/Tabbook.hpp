@@ -5,6 +5,7 @@
 
 #include <wx/bookctrl.h>
 #include <wx/sizer.h>
+#include "wxExtensions.hpp"
 
 
 class ScalableButton;
@@ -33,8 +34,8 @@ private:
     wxWindow*                       m_parent;
     wxFlexGridSizer*                m_buttons_sizer;
     wxBoxSizer*                     m_sizer;
-    wxBitmap                        m_arrow_img;
-    std::vector<TabButton*>        m_pageButtons;
+    ScalableBitmap                  m_arrow_img;
+    std::vector<TabButton*>         m_pageButtons;
     int                             m_selection {-1};
     int                             m_btn_margin;
     int                             m_line_margin;

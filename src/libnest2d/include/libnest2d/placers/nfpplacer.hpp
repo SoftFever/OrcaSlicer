@@ -1083,9 +1083,13 @@ private:
         auto d = cb - ci;       
 
         // BBS TODO we assume the exclude region contains bottom left corner. If not, change the code below
-        if (!config_.m_excluded_regions.empty()) {
-            d.x() = d.x() < 0 ? 0 : d.x();
-            d.y() = d.y() < 0 ? 0 : d.y();
+        if (!config_.m_excluded_regions.empty()) { // do not move to left to much to avoid clash with excluded regions
+            if (d.x() < 0) {
+                d.x() = 0;// std::max(long(d.x()), long(bbin.maxCorner().x() - bb.maxCorner().x()));
+            }
+            if (d.y() < 0) {
+                d.y() = 0;// std::max(long(d.y()), long(bbin.maxCorner().y() - bb.maxCorner().y()));
+            }
         }
         for(Item& item : items_)
             if (!item.is_virt_object)

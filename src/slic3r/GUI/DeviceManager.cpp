@@ -148,6 +148,47 @@ bool AmsTray::is_tray_info_ready()
     return true;
 }
 
+bool AmsTray::is_unset_third_filament()
+{
+    if (this->is_bbl)
+        return false;
+
+    if (color.empty() || type.empty())
+        return true;
+    return false;
+}
+
+std::string AmsTray::get_display_filament_type()
+{
+    if (type == "PLA-S")
+        return "Support W";
+    else if (type == "PA-S")
+        return "Support G";
+    else
+        return type;
+    return type;
+}
+
+std::string AmsTray::get_filament_type()
+{
+    if (type == "Support W") {
+        return "PLA-S";
+    } else if (type == "Support G") {
+        return "PA-S";
+    } else if (type == "Support") {
+        if (setting_id == "GFS00") {
+            type = "PLA-S";
+        } else if (setting_id == "GFS01") {
+            type = "PA-S";
+        } else {
+            return "PLA-S";
+        }
+    } else {
+        return type;
+    }
+    return type;
+}
+
 bool HMSItem::parse_hms_info(unsigned attr, unsigned code)
 {
     bool result = true;
@@ -336,6 +377,7 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     /* printing */
     mc_print_stage = 0;
     mc_print_error_code = 0;
+    print_error = 0;
     mc_print_line_number = 0;
     mc_print_percent = 0;
     mc_print_sub_stage = 0;
@@ -348,6 +390,13 @@ MachineObject::~MachineObject()
     if (subtask_) {
         delete subtask_;
         subtask_ = nullptr;
+    }
+
+    if (get_slice_info_thread) {
+        if (get_slice_info_thread->joinable()) {
+            get_slice_info_thread->join();
+            get_slice_info_thread = nullptr;
+        }
     }
 
     if (slice_info) {
@@ -614,7 +663,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
             if (tray->second->is_tray_info_ready()) {
                 FilamentInfo info;
                 info.color = tray->second->color;
-                info.type = tray->second->type;
+                info.type = tray->second->get_filament_type();
                 info.id = tray_index;
                 tray_filaments.emplace(std::make_pair(tray_index, info));
             }
@@ -631,7 +680,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
                 info.id = atoi(tray_it->first.c_str()) + atoi(it->first.c_str()) * 4;
                 info.tray_id = atoi(tray_it->first.c_str()) + atoi(it->first.c_str()) * 4;
                 info.color = tray_it->second->color;
-                info.type = tray_it->second->type;
+                info.type = tray_it->second->get_filament_type();
             }
             else {
                 info.id = -1;
@@ -647,7 +696,29 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
         for (int i = 0; i < filaments.size(); i++) {
             FilamentInfo info;
             info.id = filaments[i].id;
-            info.tray_id = filaments[i].id;
+            int ams_id = filaments[i].id / 4;
+            auto ams_it = amsList.find(std::to_string(ams_id));
+            if (ams_it == amsList.end()) {
+                info.tray_id = -1;
+                info.mapping_result = (int)MappingResult::MAPPING_RESULT_EXCEED;
+            } else {
+                info.tray_id = filaments[i].id;
+                int tray_id = filaments[i].id % 4;
+                auto tray_it = ams_it->second->trayList.find(std::to_string(tray_id));
+                if (tray_it != ams_it->second->trayList.end()) {
+                    if (!tray_it->second->is_exists || tray_it->second->is_unset_third_filament()) {
+                        ;
+                    } else {
+                        if (filaments[i].type == tray_it->second->get_filament_type()) {
+                            info.color = tray_it->second->color;
+                            info.type = tray_it->second->get_filament_type();
+                        } else {
+                            info.tray_id = -1;
+                            info.mapping_result = (int)MappingResult::MAPPING_RESULT_TYPE_MISMATCH;
+                        }
+                    }
+                }
+            }
             result.push_back(info);
         }
         return 1;
@@ -807,11 +878,12 @@ bool MachineObject::is_valid_mapping_result(std::vector<FilamentInfo>& result)
         for (int i = 0; i < result.size(); i++) {
             // invalid mapping result
             if (result[i].tray_id < 0)
-                return false;
+                is_valid = false;
             else {
                 int ams_id = result[i].tray_id / 4;
                 if (amsList.find(std::to_string(ams_id)) == amsList.end()) {
-                    return false;
+                    result[i].tray_id = -1;
+                    is_valid = false;
                 }
             }
         }
@@ -820,12 +892,32 @@ bool MachineObject::is_valid_mapping_result(std::vector<FilamentInfo>& result)
     return true;
 }
 
+bool MachineObject::is_mapping_exceed_filament(std::vector<FilamentInfo> & result, int &exceed_index)
+{
+    bool is_exceed = false;
+    for (int i = 0; i < result.size(); i++) {
+        int ams_id = result[i].tray_id / 4;
+        if (amsList.find(std::to_string(ams_id)) == amsList.end()) {
+            exceed_index = result[i].tray_id;
+            result[i].tray_id = -1;
+            is_exceed = true;
+            break;
+        }
+        if (result[i].mapping_result == MappingResult::MAPPING_RESULT_EXCEED) {
+            exceed_index = result[i].id;
+            is_exceed = true;
+            break;
+        }
+    }
+    return is_exceed;
+}
 
 void MachineObject::reset_mapping_result(std::vector<FilamentInfo>& result)
 {
     for (int i = 0; i < result.size(); i++) {
         result[i].tray_id = -1;
         result[i].distance = 99999;
+        result[i].mapping_result = 0;
     }
 }
 
@@ -1387,6 +1479,31 @@ int MachineObject::command_ipcam_timelapse(bool on_off)
     return this->publish_json(j.dump());
 }
 
+int MachineObject::command_xcam_control(std::string module_name, bool on_off, bool print_halt)
+{
+    json j;
+    j["xcam"]["command"] = "xcam_control_set";
+    j["xcam"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["xcam"]["module_name"] = module_name;
+    j["xcam"]["control"] = on_off;
+    j["xcam"]["print_halt"] = print_halt;
+    return this->publish_json(j.dump());
+}
+
+int MachineObject::command_xcam_control_first_layer_inspector(bool on_off, bool print_halt)
+{
+    xcam_first_layer_inspector = on_off;
+    xcam_first_layer_hold_count = HOLD_COUNT_MAX;
+    return command_xcam_control("first_layer_inspector", on_off, print_halt);
+}
+
+int MachineObject::command_xcam_control_spaghetti_detector(bool on_off, bool print_halt)
+{
+    xcam_spaghetti_detector = on_off;
+    xcam_spaghetti_print_halt = print_halt;
+    xcam_spaghetti_hold_count = HOLD_COUNT_MAX;
+    return command_xcam_control("spaghetti_detector", on_off, print_halt);
+}
 
 void MachineObject::set_bind_status(std::string status)
 {
@@ -1680,8 +1797,6 @@ int MachineObject::parse_json(std::string payload)
                             mc_print_stage = jj["mc_print_stage"].get<int>();
                     }
                     if (jj.contains("mc_print_error_code")) {
-                        if (jj["mc_print_error_code"].is_string())
-                            mc_print_error_code = atoi(jj["mc_print_error_code"].get<std::string>().c_str());
                         if (jj["mc_print_error_code"].is_number())
                             mc_print_error_code = jj["mc_print_error_code"].get<int>();
 
@@ -1690,6 +1805,11 @@ int MachineObject::parse_json(std::string payload)
                         if (jj["mc_print_line_number"].is_string() && !jj["mc_print_line_number"].is_null())
                             mc_print_line_number = atoi(jj["mc_print_line_number"].get<std::string>().c_str());
                     }
+                    if (jj.contains("print_error")) {
+                        if (jj["print_error"].is_number())
+                            print_error = jj["print_error"].get<int>();
+                    }
+
 #pragma endregion
 
 #pragma region print_task
@@ -1750,6 +1870,8 @@ int MachineObject::parse_json(std::string payload)
 
                         }
                     }
+
+
 #pragma endregion
 
 #pragma region status
@@ -1967,6 +2089,32 @@ int MachineObject::parse_json(std::string payload)
                     catch (...) {
                         ;
                     }
+
+                    try {
+                        if (jj.contains("xcam")) {
+                            if (xcam_first_layer_hold_count > 0)
+                                xcam_first_layer_hold_count--;
+                            else {
+                                if (jj["xcam"].contains("first_layer_inspector")) {
+                                    xcam_first_layer_inspector = jj["xcam"]["first_layer_inspector"].get<bool>();
+                                }
+                            }
+
+                            if (xcam_spaghetti_hold_count > 0) {
+                                xcam_spaghetti_hold_count--;
+                            } else {
+                                if (jj["xcam"].contains("spaghetti_detector")) {
+                                    xcam_spaghetti_detector = jj["xcam"]["spaghetti_detector"].get<bool>();
+                                }
+                                if (jj["xcam"].contains("print_halt")) {
+                                        xcam_spaghetti_print_halt = jj["xcam"]["print_halt"].get<bool>();
+                                }
+                            }
+                        }
+                    }
+                    catch (...) {
+                        ;
+                    }
 #pragma endregion
 
 #pragma region hms
@@ -2112,9 +2260,10 @@ int MachineObject::parse_json(std::string payload)
                                             curr_tray->setting_id       = (*tray_it)["tray_info_idx"].get<std::string>();
                                             std::string type            = (*tray_it)["tray_type"].get<std::string>();
                                             if (curr_tray->setting_id == "GFS00") {
-                                                curr_tray->type = "Support W";
-                                            } else if (curr_tray->setting_id == "GFS01") {
-                                                curr_tray->type = "Support G";
+                                                curr_tray->type = "PLA-S";
+                                            }
+                                            else if (curr_tray->setting_id == "GFS01") {
+                                                curr_tray->type = "PA-S";
                                             } else {
                                                 curr_tray->type = type;
                                             }
@@ -2243,6 +2392,18 @@ int MachineObject::parse_json(std::string payload)
                             BOOST_LOG_TRIVIAL(warning) << "ams_filament_setting, can not find in amsList, ams_id=" << ams_id;
                         }
                     }
+                } else if (jj["command"].get<std::string>() == "xcam_control_set") {
+                    if (jj.contains("module_name") && jj.contains("control")) {
+                        if (jj["module_name"].get<std::string>() == "first_layer_inspector") {
+                            xcam_first_layer_inspector = jj["control"].get<bool>();
+                            xcam_first_layer_hold_count = HOLD_COUNT_MAX;
+                        } else if (jj["module_name"].get<std::string>() == "spaghetti_detector") {
+                            xcam_spaghetti_detector = jj["control"].get<bool>();
+                            xcam_spaghetti_hold_count = HOLD_COUNT_MAX;
+                            if (jj.contains("print_halt"))
+                                xcam_spaghetti_print_halt = jj["print_halt"].get<bool>();
+                        }
+                    }
                 }
             }
         }
@@ -2352,7 +2513,7 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
 
         BOOST_LOG_TRIVIAL(trace) << "slice_info: start";
         slice_info = new BBLSliceInfo();
-        auto get_slice_info_thread = boost::thread([this, project_id, profile_id, subtask_id, plate_idx] {
+        get_slice_info_thread = new boost::thread([this, project_id, profile_id, subtask_id, plate_idx] {
                 int plate_index = -1;
 
                 if (!m_agent) return;
@@ -2360,6 +2521,8 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
                 if (plate_idx >= 0) {
                     plate_index = plate_idx;
                 } else {
+                    if (subtask_id.compare("0") == 0)
+                        return;
                     m_agent->get_task_plate_index(subtask_id, &plate_index);
                 }
 
@@ -2686,6 +2849,7 @@ void DeviceManager::clean_user_info()
     BOOST_LOG_TRIVIAL(trace) << "DeviceManager::clean_user_info";
     // reset selected_machine
     selected_machine = "";
+    local_selected_machine = "";
 
     // clean access code
     for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {

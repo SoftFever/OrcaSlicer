@@ -3099,6 +3099,8 @@ void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, c
     FillParams params2 = params;
     params2.monotonic = true;
     params2.anchor_length_max = 0.0f;
+    //BBS: always don't adjust the spacing of top surface infill
+    params2.dont_adjust = true;
 
     //BBS: always use no overlap expolygons to avoid overflow in top surface
     for (const ExPolygon &rectilinear_area : this->no_overlap_expolygons) {
@@ -3188,14 +3190,14 @@ void FillMonotonicLineWGapFill::fill_surface_by_lines(const Surface* surface, co
     std::pair<float, Point> rotate_vector = this->_infill_direction(surface);
 
     assert(params.full_infill());
-    coord_t line_spacing = coord_t(scale_(this->spacing));
+    coord_t line_spacing = params.flow.scaled_spacing();
 
     // On the polygons of poly_with_offset, the infill lines will be connected.
     ExPolygonWithOffset poly_with_offset(
         surface->expolygon,
         - rotate_vector.first, 
-        float(scale_(0 - (0.5 - INFILL_OVERLAP_OVER_SPACING) * this->spacing)),
-        float(scale_(0 - 0.5f * this->spacing)));
+        float(scale_(0 - (0.5 - INFILL_OVERLAP_OVER_SPACING) * params.flow.spacing())),
+        float(scale_(0 - 0.5f * params.flow.spacing())));
     if (poly_with_offset.n_contours_inner == 0) {
         // Not a single infill line fits.
         //FIXME maybe one shall trigger the gap fill here?
@@ -3205,9 +3207,18 @@ void FillMonotonicLineWGapFill::fill_surface_by_lines(const Surface* surface, co
     BoundingBox bounding_box = poly_with_offset.bounding_box_src();
 
     // define flow spacing according to requested density
-    assert(!params.dont_adjust);
-    line_spacing = this->_adjust_solid_spacing(bounding_box.size()(0), line_spacing);
-    this->spacing = unscale<double>(line_spacing);
+    if (params.full_infill() && !params.dont_adjust) {
+        line_spacing = this->_adjust_solid_spacing(bounding_box.size()(0), line_spacing);
+        this->spacing = unscale<double>(line_spacing);
+    } else {
+        // extend bounding box so that our pattern will be aligned with other layers
+        // Transform the reference point to the rotated coordinate system.
+        Point refpt = rotate_vector.second.rotated(-rotate_vector.first);
+        bounding_box.merge(align_to_grid(
+            bounding_box.min,
+            Point(line_spacing, line_spacing),
+            refpt));
+    }
 
     // Intersect a set of euqally spaced vertical lines wiht expolygon.
     size_t  n_vlines = (bounding_box.max(0) - bounding_box.min(0) + line_spacing - 1) / line_spacing;

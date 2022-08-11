@@ -236,6 +236,25 @@ void GridCellFilamentsEditor::BeginEdit(int row, int col, wxGrid* grid)
     }
 }
 
+bool GridCellFilamentsEditor::EndEdit(int WXUNUSED(row),
+                                     int WXUNUSED(col),
+                                     const wxGrid* WXUNUSED(grid),
+                                     const wxString& WXUNUSED(oldval),
+                                     wxString *newval)
+{
+    const wxString value = Combo()->GetValue();
+    if ( value == m_value )
+        return false;
+
+    m_value = value;
+
+    if ( newval )
+        *newval = value;
+
+    return true;
+}
+
+
 wxGridActivationResult GridCellFilamentsEditor::TryActivate(int row, int col, wxGrid* grid, const wxGridActivationSource& actSource)
 {
     ObjectGridTable *table = dynamic_cast<ObjectGridTable *>(grid->GetTable());
@@ -2365,7 +2384,7 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
     SetSize(wxSize(-1, FromDIP(450)));
     SetMinSize(wxSize(-1, FromDIP(450)));
     SetMaxSize(wxSize(-1, FromDIP(450)));
-   
+
     //m_search_line = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
 
     init_bitmap();
@@ -2401,7 +2420,7 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
      m_page_top_sizer->Add(m_page_text, 0, wxEXPAND, 5);*/
 
 
-   
+
 
     //TODO, adjust later
     /*
@@ -2445,7 +2464,7 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
 
 int ObjectTablePanel::init_bitmap()
 {
-    m_undo_bitmap = create_scaled_bitmap("undo", nullptr, 24);
+    m_undo_bitmap = create_scaled_bitmap("lock_normal", nullptr, 24);
     m_color_bitmaps = get_extruder_color_icons();
 
     return 0;

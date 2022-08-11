@@ -403,7 +403,7 @@ void ArrangeJob::prepare()
     int state = m_plater->get_prepare_state();
     if (state == Job::JobPrepareState::PREPARE_STATE_DEFAULT) {
         only_on_partplate = false;
-        prepare_selected();
+        prepare_all();
     }
     else if (state == Job::JobPrepareState::PREPARE_STATE_MENU) {
         only_on_partplate = true;   // only arrange items on current plate
@@ -412,7 +412,7 @@ void ArrangeJob::prepare()
 
     //add the virtual object into unselect list if has
     m_plater->get_partplate_list().preprocess_exclude_areas(m_unselected, MAX_NUM_PLATES);
-
+    
 #if SAVE_ARRANGE_POLY
     if (1)
     { // subtract excluded region and get a polygon bed
@@ -508,16 +508,8 @@ void ArrangeJob::process()
 
 
     double skirt_distance = print.has_skirt() ? print.config().skirt_distance.value : 0;
-    bool is_auto_brim = print.has_auto_brim();
     double brim_max = 0;
-    if (is_auto_brim) {
-        brim_max = 0;
-        std::for_each(m_selected.begin(), m_selected.end(), [&](ArrangePolygon ap) {  brim_max = std::max(brim_max, ap.auto_brim_width); });
-    }
-    else {
-        brim_max = print.has_brim() ? print.default_object_config().brim_width : 0;
-        std::for_each(m_selected.begin(), m_selected.end(), [&](ArrangePolygon ap) {  brim_max = std::max(brim_max, ap.user_brim_width); });
-    }
+    std::for_each(m_selected.begin(), m_selected.end(), [&](ArrangePolygon ap) {  brim_max = std::max(brim_max, ap.brim_width); });
 
     // Note: skirt_distance is now defined between outermost brim and skirt, not the object and skirt.
     // So we can't do max but do adding instead.
@@ -558,10 +550,8 @@ void ArrangeJob::process()
 
     params.stopcondition = [this]() { return was_canceled(); };
 
-    auto count = unsigned(m_selected.size());// + m_unprintable.size());
-    params.progressind = [this, count](unsigned num_finished, std::string str="") {
-        // if (num_finished >= 0 && num_finished <= count)
-        //     update_status(int(float(num_finished) / count * 100), _L("Arranging") + " "+str);
+    params.progressind = [this](unsigned num_finished, std::string str="") {
+        update_status(num_finished, _L("Arranging") + " " + str);
     };
 
     if(!params.is_seq_print)
@@ -610,7 +600,7 @@ void ArrangeJob::process()
     }
 
     // finalize just here.
-    update_status(100,
+    update_status(status_range(),
         was_canceled() ? _(L("Arranging canceled.")) :
         we_have_unpackable_items ? _(L("Arranging is done but there are unpacked items. Reduce spacing and try again.")) : _(L("Arranging done.")));
 }

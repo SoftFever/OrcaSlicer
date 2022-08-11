@@ -271,6 +271,105 @@ namespace Slic3r {
 //! return same string
 #define L(s) (s)
 #define _(s) Slic3r::I18N::translate(s)
+void XMLCALL PrusaFileParser::start_element_handler(void *userData, const char *name, const char **attributes)
+{
+    PrusaFileParser *prusa_parser = (PrusaFileParser *) userData;
+    if (prusa_parser != nullptr) { prusa_parser->_start_element_handler(name, attributes); }
+}
+
+void XMLCALL PrusaFileParser::characters_handler(void *userData, const XML_Char *s, int len)
+{
+    PrusaFileParser *prusa_parser = (PrusaFileParser *) userData;
+    if (prusa_parser != nullptr) { prusa_parser->_characters_handler(s, len); }
+}
+
+bool PrusaFileParser::check_3mf_from_prusa(const std::string filename)
+{
+    mz_zip_archive archive;
+    mz_zip_zero_struct(&archive);
+    if (!open_zip_reader(&archive, filename)) {
+        // throw Slic3r::RuntimeError("Loading 3mf file failed.");
+        return false;
+    }
+
+    const std::string sub_relationship_file = "3D/_rels/3dmodel.model.rels";
+    int               sub_index             = mz_zip_reader_locate_file(&archive, sub_relationship_file.c_str(), nullptr, 0);
+    if (sub_index == -1) {
+        const std::string model_file       = "3D/3dmodel.model";
+        int               model_file_index = mz_zip_reader_locate_file(&archive, model_file.c_str(), nullptr, 0);
+        if (model_file_index != -1) {
+            int depth = 0;
+            m_parser  = XML_ParserCreate(nullptr);
+            XML_SetUserData(m_parser, (void *) this);
+            XML_SetElementHandler(m_parser, start_element_handler, nullptr);
+            XML_SetCharacterDataHandler(m_parser, characters_handler);
+
+            mz_zip_archive_file_stat stat;
+            if (!mz_zip_reader_file_stat(&archive, model_file_index, &stat)) goto EXIT;
+
+            void *parser_buffer = XML_GetBuffer(m_parser, (int) stat.m_uncomp_size);
+            if (parser_buffer == nullptr) goto EXIT;
+
+            mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, parser_buffer, (size_t) stat.m_uncomp_size, 0);
+            if (res == 0) goto EXIT;
+
+            XML_ParseBuffer(m_parser, (int) stat.m_uncomp_size, 1);
+        }
+    }
+
+EXIT:
+    close_zip_reader(&archive);
+    return m_from_prusa;
+}
+
+void PrusaFileParser::_characters_handler(const XML_Char *s, int len)
+{
+    if (m_is_application_key) {
+        std::string str(s, len);
+        if (!str.empty() && str.find("PrusaSlicer") != std::string::npos) m_from_prusa = true;
+    }
+}
+
+void PrusaFileParser::_start_element_handler(const char *name, const char **attributes)
+{
+    if (::strcmp(name, "metadata") == 0) {
+        unsigned int num_attributes = (unsigned int) XML_GetSpecifiedAttributeCount(m_parser);
+
+        std::string str_name = get_attribute_value_string(attributes, num_attributes, "name");
+        if (!str_name.empty() && str_name.find("Application") != std::string::npos) { m_is_application_key = true; }
+    }
+}
+
+const char *PrusaFileParser::get_attribute_value_charptr(const char **attributes, unsigned int attributes_size, const char *attribute_key)
+{
+    if ((attributes == nullptr) || (attributes_size == 0) || (attributes_size % 2 != 0) || (attribute_key == nullptr)) return nullptr;
+
+    for (unsigned int a = 0; a < attributes_size; a += 2) {
+        if (::strcmp(attributes[a], attribute_key) == 0) return attributes[a + 1];
+    }
+
+    return nullptr;
+}
+
+std::string PrusaFileParser::get_attribute_value_string(const char **attributes, unsigned int attributes_size, const char *attribute_key)
+{
+    const char *text = get_attribute_value_charptr(attributes, attributes_size, attribute_key);
+    return (text != nullptr) ? text : "";
+}
+
+ModelVolumeType type_from_string(const std::string &s)
+{
+    // Legacy support
+    if (s == "1") return ModelVolumeType::PARAMETER_MODIFIER;
+    // New type (supporting the support enforcers & blockers)
+    if (s == "ModelPart") return ModelVolumeType::MODEL_PART;
+    if (s == "NegativeVolume") return ModelVolumeType::NEGATIVE_VOLUME;
+    if (s == "ParameterModifier") return ModelVolumeType::PARAMETER_MODIFIER;
+    if (s == "SupportEnforcer") return ModelVolumeType::SUPPORT_ENFORCER;
+    if (s == "SupportBlocker") return ModelVolumeType::SUPPORT_BLOCKER;
+    // Default value if invalud type string received.
+    return ModelVolumeType::MODEL_PART;
+}
 
     // Base class with error messages management
     class _3MF_Base
@@ -668,6 +767,7 @@ namespace Slic3r {
                 std::string name(stat.m_filename);
                 std::replace(name.begin(), name.end(), '\\', '/');
 
+                /*
                 if (boost::algorithm::iequals(name, LAYER_HEIGHTS_PROFILE_FILE)) {
                     // extract slic3r layer heights profile file
                     _extract_layer_heights_profile_config_from_archive(archive, stat);
@@ -692,7 +792,9 @@ namespace Slic3r {
                     // extract slic3r layer config ranges file
                     _extract_custom_gcode_per_print_z_from_archive(archive, stat);
                 }
-                else if (boost::algorithm::iequals(name, MODEL_CONFIG_FILE)) {
+                */
+                // only read the model config for Prusa 3mf
+                if (boost::algorithm::iequals(name, MODEL_CONFIG_FILE)) {
                     // extract slic3r model config file
                     if (!_extract_model_config_from_archive(archive, stat, model)) {
                         close_zip_reader(&archive);
@@ -1913,6 +2015,27 @@ namespace Slic3r {
         std::string key = get_attribute_value_string(attributes, num_attributes, KEY_ATTR);
         std::string value = get_attribute_value_string(attributes, num_attributes, VALUE_ATTR);
 
+        // filter the prusa model config keys
+        std::vector<std::string> valid_keys = {
+            "name",
+            "volume_type",
+            "matrix",
+            "source_file",
+            "source_object_id",
+            "source_volume_id",
+            "source_offset_x",
+            "source_offset_y",
+            "source_offset_z",
+            "extruder",
+            "modifier"
+        };
+
+        auto itor = std::find(valid_keys.begin(), valid_keys.end(), key);
+        if (itor == valid_keys.end()) {
+            // do nothing if not valid keys
+            return true;
+        }
+
         if (type == OBJECT_TYPE)
             object->second.metadata.emplace_back(key, value);
         else if (type == VOLUME_TYPE) {
@@ -2044,7 +2167,7 @@ namespace Slic3r {
                 else if ((metadata.key == MODIFIER_KEY) && (metadata.value == "1"))
 					volume->set_type(ModelVolumeType::PARAMETER_MODIFIER);
                 else if (metadata.key == VOLUME_TYPE_KEY)
-                    volume->set_type(ModelVolume::type_from_string(metadata.value));
+                    volume->set_type(type_from_string(metadata.value));
                 else if (metadata.key == SOURCE_FILE_KEY)
                     volume->source.input_file = metadata.value;
                 else if (metadata.key == SOURCE_OBJECT_ID_KEY)

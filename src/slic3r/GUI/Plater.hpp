@@ -19,7 +19,6 @@
 #include "Search.hpp"
 #include "PartPlate.hpp"
 #include "GUI_App.hpp"
-#include "GUI_AuxiliaryList.hpp"
 #include "Jobs/PrintJob.hpp"
 #include "libslic3r/Model.hpp"
 
@@ -122,11 +121,9 @@ public:
 
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
-    wxScrolledWindow*       scrolled_panel();
+    wxPanel*                scrolled_panel();
     wxPanel* print_panel();
     wxPanel* filament_panel();
-
-    AuxiliaryList*          aux_list();
 
     ConfigOptionsGroup*     og_freq_chng_params(const bool is_fff);
     wxButton*               get_wiping_dialog_button();
@@ -147,7 +144,6 @@ public:
     void                    update_searcher();
     void                    update_ui_from_settings();
 	bool                    show_object_list(bool show) const;
-    bool                    show_auxiliary_dialog() const;
 
 #ifdef _MSW_DARK_MODE
     void                    show_mode_sizer(bool show);

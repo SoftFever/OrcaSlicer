@@ -26,7 +26,12 @@ TabCtrl::TabCtrl(wxWindow *      parent,
                    long            style)
     : StaticBox(parent, id, pos, size, style)
 {
+#if 0
     radius = 5;
+#else
+    radius = 1;
+#endif
+    border_width = 1;
     SetBorderColor(0xcecece);
     sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->AddSpacer(10);
@@ -247,16 +252,16 @@ void TabCtrl::doRender(wxDC& dc)
 {
     wxSize size = GetSize();
     int states = state_handler.states();
-    dc.SetPen(wxPen(border_color.colorForStates(states), border_width));
-    dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    
     if (sel < 0) { return; }
 
     auto x1 = btns[sel]->GetPosition().x;
     auto x2 = x1 + btns[sel]->GetSize().x;
-    x1 -= TAB_BUTTON_SPACE; x2 += TAB_BUTTON_SPACE;
     const int BS = border_width / 2;
     const int BS2 = (1 + border_width) / 2;
+#if 0
+    x1 -= TAB_BUTTON_SPACE; x2 += TAB_BUTTON_SPACE;
+    dc.SetPen(wxPen(border_color.colorForStates(states), border_width));
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
     dc.DrawLine(0, size.y - BS2, x1 - radius + BS2, size.y - BS2);
     dc.DrawArc(x1 - radius, size.y, x1, size.y - radius, x1 - radius, size.y - radius);
     dc.DrawLine(x1, size.y - radius, x1, radius);
@@ -266,6 +271,14 @@ void TabCtrl::doRender(wxDC& dc)
     dc.DrawLine(x2, radius, x2, size.y - radius);
     dc.DrawArc(x2, size.y - radius, x2 + radius, size.y, x2 + radius, size.y - radius);
     dc.DrawLine(x2 + radius - BS2, size.y - BS2, size.x, size.y - BS2);
+#else
+    dc.SetPen(wxPen(border_color.colorForStates(states), border_width));
+    dc.DrawLine(0, size.y - BS2, size.x, size.y - BS2);
+    wxColor c(0x42AE00);
+    dc.SetPen(wxPen(c, 0));
+    dc.SetBrush(c);
+    dc.DrawRoundedRectangle(x1 - radius, size.y - BS2 - border_width * 3, x2 + radius * 2 - x1, border_width * 3, radius);
+#endif
 }
 
 bool TabCtrl::sendTabCtrlEvent(bool changing)
