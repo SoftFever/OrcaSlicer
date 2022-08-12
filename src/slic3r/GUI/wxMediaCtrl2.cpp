@@ -3,6 +3,7 @@
 #include "GUI_App.hpp"
 #ifdef __WIN32__
 #include <versionhelpers.h>
+#include <wx/msw/registry.h>
 #endif
 
 wxMediaCtrl2::wxMediaCtrl2(wxWindow *parent)
@@ -43,6 +44,23 @@ void wxMediaCtrl2::Load(wxURI url)
         event.SetEventObject(this);
         wxPostEvent(this, event);
         return;
+    }
+    {
+        wxRegKey key(wxRegKey::HKCR, "CLSID\\{233E64FB-2041-4A6C-AFAB-FF9BCF83E7AA}\\InProcServer32");
+        wxString path = key.QueryDefaultValue();
+        wxRegKey key2(wxRegKey::HKCR, "bambu");
+        wxString clsid;
+        key2.QueryRawValue("Source Filter", clsid);
+        if (!wxFile::Exists(path) || clsid != L"{233E64FB-2041-4A6C-AFAB-FF9BCF83E7AA}") {
+            wxMessageBox(_L("Missing BambuSource component registered for media playing! Please re-install BambuStutio or seek after-sales help."), _L("Error"),
+                                    wxOK);
+            m_error = 3;
+            wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
+            event.SetId(GetId());
+            event.SetEventObject(this);
+            wxPostEvent(this, event);
+            return;
+        }
     }
     url = wxURI(url.BuildURI().append("&hwnd=").append(
         boost::lexical_cast<std::string>(GetHandle())));
