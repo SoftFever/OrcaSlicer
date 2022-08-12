@@ -3696,8 +3696,10 @@ void Plater::priv::process_validation_warning(StringObjectException const &warni
         auto action_fn = (mo || !warning.opt_key.empty()) ? [id = mo ? mo->id() : 0, opt = warning.opt_key](wxEvtHandler *) {
 		    auto & objects = wxGetApp().model().objects;
 		    auto iter = id.id ? std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; }) : objects.end();
-            if (iter != objects.end())
+            if (iter != objects.end()) {
+                wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
 			    wxGetApp().obj_list()->select_items({{*iter, nullptr}});
+            }
             if (!opt.empty()) {
                 if (iter != objects.end())
 				    wxGetApp().params_panel()->switch_to_object();
