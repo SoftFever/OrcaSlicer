@@ -35,6 +35,7 @@ void UpgradeNetworkJob::on_success(std::function<void()> success)
 
 void UpgradeNetworkJob::update_status(int st, const wxString &msg)
 {
+    BOOST_LOG_TRIVIAL(info) << "UpgradeNetworkJob: percent = " << st << "msg = " << msg;
     GUI::Job::update_status(st, msg);
     wxCommandEvent event(EVT_UPGRADE_UPDATE_MESSAGE);
     event.SetString(msg);
@@ -58,6 +59,8 @@ void UpgradeNetworkJob::process()
     fs::path tmp_path = target_file_path;
     auto path_str = tmp_path.string() + wxString::Format(".%d%s", get_current_pid(), ".tmp").ToStdString();
     tmp_path = fs::path(path_str);
+
+    BOOST_LOG_TRIVIAL(info) << "UpgradeNetworkJob: save netowrk_plugin to " << tmp_path.string();
 
     auto cancel_fn = [this]() {
         return was_canceled();

@@ -54,6 +54,7 @@
 #include "GUI_ObjectList.hpp"
 #include "NotificationManager.hpp"
 #include "MarkdownTip.hpp"
+#include "NetworkTestDialog.hpp"
 
 #ifdef _WIN32
 #include <dbt.h>
@@ -1634,6 +1635,12 @@ static wxMenu* generate_help_menu()
     append_menu_item(helpMenu, wxID_ANY, about_title, about_title,
             [](wxCommandEvent&) { Slic3r::GUI::about(); });
 #endif
+
+    append_menu_item(helpMenu, wxID_ANY, _L("Open Network Test"), _L("Open Network Test"), [](wxCommandEvent&) {
+            NetworkTestDialog dlg(wxGetApp().mainframe);
+            dlg.ShowModal();
+        });
+
     return helpMenu;
 }
 

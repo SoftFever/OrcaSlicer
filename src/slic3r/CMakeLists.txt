@@ -72,6 +72,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/wxStaticText2.hpp
     GUI/AboutDialog.cpp
     GUI/AboutDialog.hpp
+    GUI/NetworkTestDialog.cpp
+    GUI/NetworkTestDialog.hpp
     GUI/AuxiliaryDialog.cpp
     GUI/AuxiliaryDialog.hpp
     GUI/Auxiliary.cpp
