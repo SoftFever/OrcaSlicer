@@ -18,6 +18,8 @@
 #include "Format/bbs_3mf.hpp"
 //BBS: add step
 #include "Format/STEP.hpp"
+//BBS: add stl
+#include "Format/STL.hpp"
 
 #include <map>
 #include <memory>
@@ -1282,7 +1284,7 @@ public:
         DynamicPrintConfig* config = nullptr, ConfigSubstitutionContext* config_substitutions = nullptr,
         LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr,
         std::vector<Preset*>* project_presets = nullptr, bool* is_xxx = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr,
-        ImportStepProgressFn stepFn = nullptr, StepIsUtf8Fn stepIsUtf8Fn = nullptr, BBLProject* project = nullptr);
+        ImportstlProgressFn stlFn = nullptr, ImportStepProgressFn stepFn = nullptr, StepIsUtf8Fn stepIsUtf8Fn = nullptr, BBLProject* project = nullptr);
     // BBS
     static double findMaxSpeed(const ModelObject* object);
     static double getThermalLength(const ModelVolume* modelVolumePtr);

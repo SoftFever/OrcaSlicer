@@ -31,9 +31,6 @@
 const double STEP_TRANS_CHORD_ERROR = 0.005;
 const double STEP_TRANS_ANGLE_RES = 1;
 
-const int LOAD_STEP_STAGE_READ_FILE          = 0;
-const int LOAD_STEP_STAGE_GET_SOLID          = 1;
-const int LOAD_STEP_STAGE_GET_MESH           = 2;
 
 namespace Slic3r {
 
@@ -213,11 +210,11 @@ static void getNamedSolids(const TopLoc_Location& location, const std::string& p
     }
 }
 
-bool load_step(const char *path, Model *model, ImportStepProgressFn proFn, StepIsUtf8Fn isUtf8Fn)
+bool load_step(const char *path, Model *model, ImportStepProgressFn stepFn, StepIsUtf8Fn isUtf8Fn)
 {
     bool cb_cancel = false;
-    if (proFn) {
-        proFn(LOAD_STEP_STAGE_READ_FILE, 0, 1, cb_cancel);
+    if (stepFn) {
+        stepFn(LOAD_STEP_STAGE_READ_FILE, 0, 1, cb_cancel);
         if (cb_cancel)
             return false;
     }
@@ -245,9 +242,13 @@ bool load_step(const char *path, Model *model, ImportStepProgressFn proFn, StepI
 
     unsigned int id{1};
     Standard_Integer topShapeLength = topLevelShapes.Length() + 1;
+    auto stage_unit2 = topShapeLength / LOAD_STEP_STAGE_UNIT_NUM + 1;
+
     for (Standard_Integer iLabel = 1; iLabel < topShapeLength; ++iLabel) {
-        if (proFn) {
-            proFn(LOAD_STEP_STAGE_GET_SOLID, iLabel, topShapeLength, cb_cancel);
+        if (stepFn) {
+            if ((iLabel % stage_unit2) == 0) {
+                stepFn(LOAD_STEP_STAGE_GET_SOLID, iLabel, topShapeLength, cb_cancel);
+            }
             if (cb_cancel) {
                 shapeTool.reset(nullptr);
                 application->Close(document);
@@ -338,9 +339,13 @@ bool load_step(const char *path, Model *model, ImportStepProgressFn proFn, StepI
     const char * last_slash = strrchr(path, DIR_SEPARATOR);
     new_object->name.assign((last_slash == nullptr) ? path : last_slash + 1);
     new_object->input_file = path;
+
+    auto stage_unit3 = stl.size() / LOAD_STEP_STAGE_UNIT_NUM + 1;
     for (size_t i = 0; i < stl.size(); i++) {
-        if (proFn) {
-            proFn(LOAD_STEP_STAGE_GET_MESH, i, namedSolids.size(), cb_cancel);
+        if (stepFn) {
+            if ((i % stage_unit3) == 0) {
+                stepFn(LOAD_STEP_STAGE_GET_MESH, i, stl.size(), cb_cancel);
+            }
             if (cb_cancel) {
                 model->delete_object(new_object);
                 shapeTool.reset(nullptr);

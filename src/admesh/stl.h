@@ -45,6 +45,8 @@ typedef Eigen::Matrix<int,   3, 1, Eigen::DontAlign> stl_triangle_vertex_indices
 static_assert(sizeof(stl_vertex) == 12, "size of stl_vertex incorrect");
 static_assert(sizeof(stl_normal) == 12, "size of stl_normal incorrect");
 
+typedef std::function<void(int current, int total, bool& cancel)> ImportstlProgressFn;
+
 typedef enum {
     eNormal,  // normal face
     eSmallOverhang,  // small overhang
@@ -244,7 +246,7 @@ struct indexed_triangle_set
     }
 };
 
-extern bool stl_open(stl_file *stl, const char *file);
+extern bool stl_open(stl_file *stl, const char *file, ImportstlProgressFn stlFn = nullptr);
 extern void stl_stats_out(stl_file *stl, FILE *file, char *input_file);
 extern bool stl_print_neighbors(stl_file *stl, char *file);
 extern bool stl_write_ascii(stl_file *stl, const char *file, const char *label);
@@ -398,7 +400,7 @@ extern void stl_calculate_volume(stl_file *stl);
 extern void stl_repair(stl_file *stl, bool fixall_flag, bool exact_flag, bool tolerance_flag, float tolerance, bool increment_flag, float increment, bool nearby_flag, int iterations, bool remove_unconnected_flag, bool fill_holes_flag, bool normal_directions_flag, bool normal_values_flag, bool reverse_all_flag, bool verbose_flag);
 
 extern void stl_allocate(stl_file *stl);
-extern void stl_read(stl_file *stl, int first_facet, bool first);
+extern void stl_read(stl_file *stl, int first_facet, bool first, ImportstlProgressFn stlFn = nullptr);
 extern void stl_facet_stats(stl_file *stl, stl_facet facet, bool &first);
 extern void stl_reallocate(stl_file *stl);
 extern void stl_add_facet(stl_file *stl, const stl_facet *new_facet);

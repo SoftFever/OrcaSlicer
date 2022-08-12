@@ -137,7 +137,7 @@ Model::~Model()
 // Loading model from a file, it may be a simple geometry file as STL or OBJ, however it may be a project file as well.
 Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions,
                             LoadStrategy options, PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, bool *is_xxx, Semver* file_version, Import3mfProgressFn proFn,
-                            ImportStepProgressFn stepFn, StepIsUtf8Fn stepIsUtf8Fn, BBLProject* project)
+                            ImportstlProgressFn stlFn, ImportStepProgressFn stepFn, StepIsUtf8Fn stepIsUtf8Fn, BBLProject* project)
 {
     Model model;
 
@@ -163,7 +163,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
         boost::algorithm::iends_with(input_file, ".step"))
         result = load_step(input_file.c_str(), &model, stepFn, stepIsUtf8Fn);
     else if (boost::algorithm::iends_with(input_file, ".stl"))
-        result = load_stl(input_file.c_str(), &model);
+        result = load_stl(input_file.c_str(), &model, nullptr, stlFn);
     else if (boost::algorithm::iends_with(input_file, ".obj"))
         result = load_obj(input_file.c_str(), &model);
     //BBS: remove the old .amf.xml files

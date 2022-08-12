@@ -1,5 +1,4 @@
 #include "Plater.hpp"
-
 #include <cstddef>
 #include <algorithm>
 #include <numeric>
@@ -41,6 +40,7 @@
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Format/STL.hpp"
+#include "libslic3r/Format/STEP.hpp"
 #include "libslic3r/Format/AMF.hpp"
 //#include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
@@ -2576,7 +2576,39 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     int answer_convert_from_imperial_units  = wxOK_DEFAULT;
     int tolal_model_count                   = 0;
 
+    int progress_percent = 0;
+    int total_files = input_files.size();
+    const int stage_percent[IMPORT_STAGE_MAX+1] = {
+            5,      // IMPORT_STAGE_RESTORE
+            10,     // IMPORT_STAGE_OPEN
+            30,     // IMPORT_STAGE_READ_FILES
+            50,     // IMPORT_STAGE_EXTRACT
+            60,     // IMPORT_STAGE_LOADING_OBJECTS
+            70,     // IMPORT_STAGE_LOADING_PLATES
+            80,     // IMPORT_STAGE_FINISH
+            85,     // IMPORT_STAGE_ADD_INSTANCE
+            90,      // IMPORT_STAGE_UPDATE_GCODE
+            92,     // IMPORT_STAGE_CHECK_MODE_GCODE
+            95,     // UPDATE_GCODE_RESULT
+            98,     // IMPORT_LOAD_CONFIG
+            99,     // IMPORT_LOAD_MODEL_OBJECTS
+            100
+     };
+    const int step_percent[LOAD_STEP_STAGE_NUM+1] = {
+            5,     // LOAD_STEP_STAGE_READ_FILE
+            30,     // LOAD_STEP_STAGE_GET_SOLID
+            60,     // LOAD_STEP_STAGE_GET_MESH
+            100
+     };
+
+    const float INPUT_FILES_RATIO            = 0.7;
+    const float INIT_MODEL_RATIO             = 0.75;
+    const float CENTER_AROUND_ORIGIN_RATIO   = 0.8;
+    const float LOAD_MODEL_RATIO             = 0.9;
+
     for (size_t i = 0; i < input_files.size(); ++i) {
+        int file_percent = 0;
+
 #ifdef _WIN32
         auto path = input_files[i];
         // On Windows, we swap slashes to back slashes, see GH #6803 as read_from_file() does not understand slashes on Windows thus it assignes full path to names of loaded objects.
@@ -2586,14 +2618,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         const auto &path = input_files[i];
 #endif // _WIN32
         const auto filename         = path.filename();
-        int        progress_percent = static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(input_files.size()));
+        int  progress_percent = static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(input_files.size()));
         const auto real_filename    = (strategy & LoadStrategy::Restore) ? input_files[++i].filename() : filename;
         const auto dlg_info         = _L("Loading file") + ": " + from_path(real_filename);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": load file %1%") % filename;
         dlg_cont = dlg.Update(progress_percent, dlg_info);
         if (!dlg_cont) return empty_result;
-
-        dlg.Fit();
 
         const bool type_3mf = std::regex_match(path.string(), pattern_3mf);
         // const bool type_zip_amf = !type_3mf && std::regex_match(path.string(), pattern_zip_amf);
@@ -2625,13 +2655,15 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     // BBS: backup & restore
                     model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, en_3mf_file_type, strategy, &plate_data, &project_presets,
                                                              &file_version,
-                                                             [this, &dlg, real_filename, progress_percent](int import_stage, int current, int total, bool &cancel) {
+                                                             [this, &dlg, real_filename, &progress_percent, &file_percent, stage_percent, INPUT_FILES_RATIO, total_files, i](int import_stage, int current, int total, bool &cancel) {
                                                                  bool     cont = true;
+                                                                 float percent_float = (100.0f * (float)i / (float)total_files) + INPUT_FILES_RATIO * ((float)stage_percent[import_stage] + (float)current * (float)(stage_percent[import_stage + 1] - stage_percent[import_stage]) /(float) total) / (float)total_files;
+                                                                 BOOST_LOG_TRIVIAL(trace) << "load_3mf_file: percent(float)=" << percent_float << ", stage = " << import_stage << ", curr = " << current << ", total = " << total;
+                                                                 progress_percent = (int)percent_float;
                                                                  wxString msg  = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
                                                                  cont          = dlg.Update(progress_percent, msg);
                                                                  cancel        = !cont;
                                                              });
-
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__
                                             << boost::format(", plate_data.size %1%, project_preset.size %2%, is_bbs_3mf %3%, file_version %4% \n") % plate_data.size() %
                                                    project_presets.size() % (en_3mf_file_type == En3mfType::From_BBS) % file_version.to_string();
@@ -2866,11 +2898,25 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 Semver                file_version;
                 model = Slic3r::Model::read_from_file(
                     path.string(), nullptr, nullptr, strategy, &plate_data, &project_presets, &is_xxx, &file_version, nullptr,
-                    [&dlg, real_filename, progress_percent](int import_stage, int current, int total, bool &cancel) {
-                        bool     cont = true;
-                        wxString msg  = wxString::Format("Loading file: %s", from_path(real_filename));
-                        cont          = dlg.Update(progress_percent, msg);
-                        cancel        = !cont;
+                    [this, &dlg, real_filename, &progress_percent, &file_percent, INPUT_FILES_RATIO, total_files, i](int current, int total, bool &cancel)
+                    {
+                            bool     cont = true;
+                            float percent_float = (100.0f * (float)i / (float)total_files) + INPUT_FILES_RATIO * 100.0f * ((float)current / (float)total) / (float)total_files;
+                            BOOST_LOG_TRIVIAL(trace) << "load_stl_file: percent(float)=" << percent_float << ", curr = " << current << ", total = " << total;
+                            progress_percent = (int)percent_float;
+                            wxString msg  = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
+                            cont          = dlg.Update(progress_percent, msg);
+                            cancel        = !cont;
+                     },
+                    [this, &dlg, real_filename, &progress_percent, &file_percent, step_percent, INPUT_FILES_RATIO, total_files, i](int load_stage, int current, int total, bool &cancel)
+                    {
+                            bool     cont = true;
+                            float percent_float = (100.0f * (float)i / (float)total_files) + INPUT_FILES_RATIO * ((float)step_percent[load_stage] + (float)current * (float)(step_percent[load_stage + 1] - step_percent[load_stage]) / (float)total) / (float)total_files;
+                            BOOST_LOG_TRIVIAL(trace) << "load_step_file: percent(float)=" << percent_float << ", stage = " << load_stage << ", curr = " << current << ", total = " << total;
+                            progress_percent = (int)percent_float;
+                            wxString msg  = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
+                            cont          = dlg.Update(progress_percent, msg);
+                            cancel        = !cont;
                     },
                     [](int isUtf8StepFile) {
                         if (!isUtf8StepFile)
@@ -2911,6 +2957,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             GUI::show_error(q, e.what());
             continue;
         }
+
+        progress_percent = 100.0f * (float)i / (float)total_files + INIT_MODEL_RATIO * 100.0f / (float)total_files;
+        dlg_cont = dlg.Update(progress_percent);
+        if (!dlg_cont) return empty_result;
 
         if (load_model) {
             // The model should now be initialized
@@ -2988,6 +3038,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         //        return obj_idxs;
         //}
 
+        progress_percent = 100.0f * (float)i / (float)total_files + CENTER_AROUND_ORIGIN_RATIO * 100.0f / (float)total_files;
+        dlg_cont = dlg.Update(progress_percent);
+        if (!dlg_cont) return empty_result;
+
         int model_idx = 0;
         for (ModelObject *model_object : model.objects) {
             if (!type_3mf && !type_any_amf) model_object->center_around_origin(false);
@@ -3004,6 +3058,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
         tolal_model_count += model_idx;
 
+        progress_percent = 100.0f * (float)i / (float)total_files + LOAD_MODEL_RATIO * 100.0f / (float)total_files;
+        dlg_cont = dlg.Update(progress_percent);
+        if (!dlg_cont) return empty_result;
 
         if (one_by_one) {
             // BBS: add load_old_project logic
