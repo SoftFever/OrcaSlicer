@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-10 16:32+0800\n"
+"POT-Creation-Date: 2022-08-12 15:19+0800\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -4270,6 +4270,16 @@ msgstr "Déplacez le curseur 5 fois plus vite"
 msgid "Shift+Mouse wheel"
 msgstr ""
 
+msgid "Release Note"
+msgstr ""
+
+#, c-format, boost-format
+msgid "version %s update information :"
+msgstr ""
+
+msgid "New version of Bambu Studio"
+msgstr "Nouvelle version de Bambu Studio"
+
 msgid "Saving objects into the 3mf failed."
 msgstr "L'enregistrement d'objets dans le 3mf a échoué."
 
@@ -6669,9 +6679,6 @@ msgstr "Support: propagate branches at layer %d"
 
 #~ msgid "Monitoring"
 #~ msgstr "Surveillance"
-
-#~ msgid "New version of Bambu Studio"
-#~ msgstr "Nouvelle version de Bambu Studio"
 
 #~ msgid "Output file"
 #~ msgstr "Fichier de sortie"

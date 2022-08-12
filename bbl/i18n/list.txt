@@ -91,6 +91,8 @@ src/slic3r/GUI/WebUserLoginDialog.cpp
 src/slic3r/GUI/WebGuideDialog.cpp
 src/slic3r/GUI/KBShortcutsDialog.hpp
 src/slic3r/GUI/KBShortcutsDialog.cpp
+src/slic3r/GUI/ReleaseNote.cpp
+src/slic3r/GUI/ReleaseNote.hpp
 src/slic3r/Utils/FixModelByWin10.cpp
 src/slic3r/Utils/PresetUpdater.cpp
 src/slic3r/Utils/Http.cpp
