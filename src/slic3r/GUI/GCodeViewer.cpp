@@ -4621,6 +4621,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             max_len += std::max(ImGui::CalcTextSize(filament_change_str.c_str()).x, ImGui::CalcTextSize(flushed_filament_str.c_str()).x);
             //BBS: display total flushed filament
             {
+                ImGui::Dummy({window_padding, window_padding});
+                ImGui::SameLine();
                 imgui.text(flushed_filament_str + ":");
                 ImGui::SameLine(max_len);
                 char buf[64];
@@ -4632,6 +4634,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             }
             //BBS display filament change times
             {
+                ImGui::Dummy({window_padding, window_padding});
+                ImGui::SameLine();
                 imgui.text(filament_change_str + ":");
                 ImGui::SameLine(max_len);
                 char temp_buf[64];
