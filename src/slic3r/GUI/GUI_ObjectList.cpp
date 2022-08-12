@@ -2069,6 +2069,45 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
 #endif /* _DEBUG */
 }
 
+void ObjectList::load_mesh_part(const TriangleMesh& mesh, const wxString& name, bool center)
+{
+    wxDataViewItem item = GetSelection();
+    // we can add volumes for Object or Instance
+    if (!item || !(m_objects_model->GetItemType(item) & (itObject | itInstance)))
+        return;
+    const int obj_idx = m_objects_model->GetObjectIdByItem(item);
+
+    if (obj_idx < 0) return;
+
+    // Get object item, if Instance is selected
+    if (m_objects_model->GetItemType(item) & itInstance)
+        item = m_objects_model->GetItemById(obj_idx);
+
+    take_snapshot("Load Mesh Part");
+
+    ModelObject* mo = (*m_objects)[obj_idx];
+    ModelVolume* mv = mo->add_volume(mesh);
+    mv->name = name.ToStdString();
+
+    std::vector<ModelVolume*> volumes;
+    volumes.push_back(mv);
+    wxDataViewItemArray items = reorder_volumes_and_get_selection(obj_idx, [volumes](const ModelVolume* volume) {
+        return std::find(volumes.begin(), volumes.end(), volume) != volumes.end(); });
+
+    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
+
+    if (items.size() > 1) {
+        m_selection_mode = smVolume;
+        m_last_selected_item = wxDataViewItem(nullptr);
+    }
+    select_items(items);
+
+    selection_changed();
+
+    //BBS: notify partplate the modify
+    notify_instance_updated(obj_idx);
+}
+
 //BBS
 void ObjectList::del_object(const int obj_idx, bool refresh_immediately)
 {

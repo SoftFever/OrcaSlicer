@@ -315,7 +315,6 @@ set(lisbslic3r_sources
     SLA/Clustering.hpp
     SLA/Clustering.cpp
     SLA/ReprojectPointsOnMesh.hpp
-
     Arachne/BeadingStrategy/BeadingStrategy.hpp
     Arachne/BeadingStrategy/BeadingStrategy.cpp
     Arachne/BeadingStrategy/BeadingStrategyFactory.hpp
@@ -356,6 +355,8 @@ set(lisbslic3r_sources
     Arachne/SkeletalTrapezoidationJoint.hpp
     Arachne/WallToolPaths.hpp
     Arachne/WallToolPaths.cpp
+    Shape/TextShape.hpp
+    Shape/TextShape.cpp
 )
 
 if (APPLE)

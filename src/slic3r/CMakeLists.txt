@@ -129,6 +129,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoFaceDetector.hpp
     GUI/Gizmos/GLGizmoSeam.cpp
     GUI/Gizmos/GLGizmoSeam.hpp
+    GUI/Gizmos/GLGizmoText.cpp
+    GUI/Gizmos/GLGizmoText.hpp
     GUI/GLSelectionRectangle.cpp
     GUI/GLSelectionRectangle.hpp
     GUI/Gizmos/GizmoObjectManipulation.cpp

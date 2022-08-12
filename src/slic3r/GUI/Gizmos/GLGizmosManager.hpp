@@ -72,6 +72,8 @@ public:
         Cut,
         FdmSupports,
         Seam,
+        // BBS
+        Text,
         MmuSegmentation,
         Simplify,
         SlaSupports,
