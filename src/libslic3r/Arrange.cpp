@@ -436,10 +436,12 @@ protected:
             if (!params.allow_multi_materials_on_same_plate)
                 score += LARGE_COST_TO_REJECT * (item.extrude_id != p.extrude_id);
         }
+
         // for layered printing, we want extruder change as few as possible
+        // this has very weak effect, CAN NOT use a large weight
         if (!params.is_seq_print) {
             extruder_ids.insert(item.extrude_id);
-            score += 0.2 * LARGE_COST_TO_REJECT * std::max(0, ((int)extruder_ids.size() - 1));
+            score += 1 * std::max(0, ((int)extruder_ids.size() - 1));
         }
 
         return std::make_tuple(score, fullbb);

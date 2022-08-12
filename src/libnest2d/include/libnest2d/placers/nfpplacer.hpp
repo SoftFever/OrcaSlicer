@@ -922,27 +922,28 @@ private:
 
 #ifdef SVGTOOLS_HPP
         svg::SVGWriter<RawShape> svgwriter;
+        svgwriter.setSize(binbb);
         svgwriter.writeShape(box2RawShape(binbb), "none", "black");
         for (int i = 0; i < nfps.size(); i++)
             svgwriter.writeShape(nfps[i], "none", "blue");
         for (int i = 0; i < items_.size(); i++)
             svgwriter.writeItem(items_[i], "none", "black");
-        //for (int i = 0; i < merged_pile_.size(); i++)
-        //    svgwriter.writeShape(merged_pile_[i], "none", "yellow");
+        for (int i = 0; i < merged_pile_.size(); i++)
+            svgwriter.writeShape(merged_pile_[i], "none", "yellow");
+        svgwriter.writeItem(item, "none", "red", 2);
 
-        svgwriter.writeItem(item, "none", "red");
         std::stringstream ss;
         ss.setf(std::ios::fixed | std::ios::showpoint);
         ss.precision(1);
-        ss << "trans=" << round(item.translation().x() / 1e6) << "," << round(item.translation().y() / 1e6)
-            << "-rot=" << round(item.rotation().toDegrees())
-            << "-score=" << round(global_score);
+        ss << "t=" << round(item.translation().x() / 1e6) << "," << round(item.translation().y() / 1e6)
+            //<< "-rot=" << round(item.rotation().toDegrees())
+            << "-sco=" << round(global_score);
         svgwriter.draw_text(20, 20, ss.str(), "blue", 20);
         ss.str("");
         ss << "items.size=" << items_.size()
             << "-merged_pile.size=" << merged_pile_.size();
         svgwriter.draw_text(20, 40, ss.str(), "blue", 20);
-        svgwriter.save("SVG/nfpplacer_" + std::to_string(plate_id) + "_" + item.name + "_" + ss.str());
+        svgwriter.save(boost::filesystem::path("SVG")/ ("nfpplacer_" + std::to_string(plate_id) + "_" + ss.str() + "_" + item.name + ".svg"));
 #endif
 
         if(can_pack) {
