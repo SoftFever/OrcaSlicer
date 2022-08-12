@@ -2875,7 +2875,7 @@ void TabPrinter::build_fff()
 
     //    build_preset_description_line(optgroup.get());
 #endif
-
+    build_connection_page();
     build_unregular_pages(true);
 }
 
@@ -3035,6 +3035,18 @@ PageShp TabPrinter::build_kinematics_page()
     //optgroup = page->new_optgroup(L("Minimum feedrates"));
     //    append_option_line(optgroup, "machine_min_extruding_rate");
     //    append_option_line(optgroup, "machine_min_travel_rate");
+
+    return page;
+}
+
+PageShp TabPrinter::build_connection_page()
+{
+    auto page = add_options_page(L("Connection"), "printer");
+    auto optgroup = page->new_optgroup(L("Moonraker"));
+        Option option = optgroup->get_option("connection_moonraker_url");
+        option.opt.full_width = true;
+        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line("connection_port");
 
     return page;
 }
