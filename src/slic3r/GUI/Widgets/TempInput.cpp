@@ -49,6 +49,8 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
     text_ctrl->SetMaxLength(3);
     state_handler.attach_child(text_ctrl);
     text_ctrl->Bind(wxEVT_SET_FOCUS, [this](auto &e) {
+        e.SetId(GetId());
+        ProcessEventLocally(e);
         e.Skip();
         if (m_read_only) return;
         // enter input mode
@@ -62,6 +64,9 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
         if (m_read_only) { SetCursor(wxCURSOR_ARROW); }
     });
     text_ctrl->Bind(wxEVT_KILL_FOCUS, [this](auto &e) {
+        e.SetId(GetId());
+        ProcessEventLocally(e);
+        e.Skip();
         OnEdit();
         auto temp = text_ctrl->GetValue();
         if (temp.ToStdString().empty()) {
