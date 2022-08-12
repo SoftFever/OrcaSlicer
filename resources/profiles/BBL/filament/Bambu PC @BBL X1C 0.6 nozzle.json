@@ -1,0 +1,14 @@
+{
+    "type": "filament",
+    "setting_id": "GFSC00_01",
+    "name": "Bambu PC @BBL X1C 0.6 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Bambu PC @base",
+    "nozzle_temperature": [
+        "260"
+    ],
+    "compatible_printers": [
+      "Bambu Lab X1 Carbon 0.6 nozzle"
+    ]
+}
