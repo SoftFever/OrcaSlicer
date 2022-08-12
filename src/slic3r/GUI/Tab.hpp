@@ -547,6 +547,14 @@ private:
     std::vector<PageShp>			m_pages_fff;
     std::vector<PageShp>			m_pages_sla;
 
+	//SoftFever
+    ScalableButton*     m_add_preset_btn                {nullptr};
+    ScalableButton*     m_printhost_browse_btn          {nullptr};
+    ScalableButton*     m_printhost_test_btn            {nullptr};
+    ScalableButton*     m_printhost_cafile_browse_btn   {nullptr};
+    ScalableButton*     m_printhost_port_browse_btn     {nullptr};
+
+    wxBoxSizer*         m_presets_sizer                 {nullptr};
 public:
 	ScalableButton*	m_reset_to_filament_color = nullptr;
 
@@ -576,7 +584,6 @@ public:
     void        update_pages(); // update m_pages according to printer technology
 	void		extruders_count_changed(size_t extruders_count);
 	PageShp		build_kinematics_page();
-	PageShp		build_connection_page();
 	void		build_unregular_pages(bool from_initial_build = false);
 	void		on_preset_loaded() override;
 	void		init_options_list() override;
@@ -586,6 +593,13 @@ public:
 	//wxSizer*	create_bed_shape_widget(wxWindow* parent);
 	void		cache_extruder_cnt();
 	bool		apply_extruder_cnt_from_cache();
+
+	//SoftFever
+	void        update_host_type(bool printer_change);
+    void        update_printhost_buttons();
+    void        update_printers();
+	PageShp		build_print_host_page();
+
 };
 
 class TabSLAMaterial : public Tab

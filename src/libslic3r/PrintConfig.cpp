@@ -305,6 +305,29 @@ void PrintConfigDef::init_common_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionStrings());
 
+    def = this->add("host_type", coEnum);
+    def->label = L("Host Type");
+    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field must contain "
+                   "the kind of the host.");
+    def->enum_keys_map = &ConfigOptionEnum<PrintHostType>::get_enum_values();
+    def->enum_values.push_back("prusalink");
+    def->enum_values.push_back("octoprint");
+    def->enum_values.push_back("duet");
+    def->enum_values.push_back("flashair");
+    def->enum_values.push_back("astrobox");
+    def->enum_values.push_back("repetier");
+    def->enum_values.push_back("mks");
+    def->enum_labels.push_back("PrusaLink");
+    def->enum_labels.push_back("OctoPrint");
+    def->enum_labels.push_back("Duet");
+    def->enum_labels.push_back("FlashAir");
+    def->enum_labels.push_back("AstroBox");
+    def->enum_labels.push_back("Repetier");
+    def->enum_labels.push_back("MKS");
+    def->mode = comAdvanced;
+    def->cli = ConfigOptionDef::nocli;
+    def->set_default_value(new ConfigOptionEnum<PrintHostType>(htOctoPrint));
+    
     //SoftFever
     def = this->add("connection_moonraker_url", coString);
     def->label = L("Moonraker URL");
