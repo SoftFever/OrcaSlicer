@@ -342,7 +342,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     // BBS: fix taskbar overlay on windows
 #ifdef WIN32
     auto setMaxSize = [this]() {
-        wxDisplay display(wxDisplay::GetFromWindow(this));
+        wxDisplay display(this);
         auto size = display.GetClientArea().GetSize();
         // 8 pixels shadow
         SetMaxSize(size + wxSize{16, 16});
@@ -353,7 +353,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         });
     setMaxSize();
     this->Bind(wxEVT_MAXIMIZE, [this](auto &e) {
-        wxDisplay display(wxDisplay::GetFromWindow(this));
+        wxDisplay display(this);
         auto pos = display.GetClientArea().GetPosition();
         Move(pos - wxPoint{8, 8});
         e.Skip();
