@@ -270,6 +270,7 @@ void SpinInput::onTextLostFocus(wxEvent &event)
     // pass to outer
     event.SetId(GetId());
     ProcessEventLocally(event);
+    e.Skip();
 }
 
 void SpinInput::onTextEnter(wxCommandEvent &event)

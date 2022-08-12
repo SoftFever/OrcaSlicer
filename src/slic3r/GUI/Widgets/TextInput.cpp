@@ -65,6 +65,7 @@ void TextInput::Create(wxWindow *     parent,
         OnEdit();
         e.SetId(GetId());
         ProcessEventLocally(e);
+        e.Skip();
     });
     text_ctrl->Bind(wxEVT_TEXT_ENTER, [this](auto &e) {
         OnEdit();
