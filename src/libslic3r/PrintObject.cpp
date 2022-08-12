@@ -84,6 +84,14 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Transfor
     this->set_instances(std::move(instances));
 }
 
+PrintObject::~PrintObject()
+{
+    if (m_shared_regions && -- m_shared_regions->m_ref_cnt == 0) delete m_shared_regions;
+    clear_layers();
+    clear_support_layers();
+    clear_tree_support_layers();
+}
+
 PrintBase::ApplyStatus PrintObject::set_instances(PrintInstances &&instances)
 {
     for (PrintInstance &i : instances)
@@ -2375,9 +2383,9 @@ void PrintObject::remove_bridges_from_contacts(
                         int      x0 = bbox.min.x();
                         int      x1 = bbox.max.x();
                         int      y0 = bbox.min.y();
-                        int      y1 = bbox.max.y();         
+                        int      y1 = bbox.max.y();
                         const int grid_lw = int(w/2); // grid line width
-                        
+
 #if 1
                         if (fabs(surface.bridge_angle-0)<fabs(surface.bridge_angle-M_PI_2)) {
                             int step = bbox_size(0) / ceil(bbox_size(0) / max_bridge_length);

@@ -416,7 +416,7 @@ private:
     friend class Print;
 
 	PrintObject(Print* print, ModelObject* model_object, const Transform3d& trafo, PrintInstances&& instances);
-	~PrintObject() { if (m_shared_regions && -- m_shared_regions->m_ref_cnt == 0) delete m_shared_regions; }
+	~PrintObject();
 
     void                    config_apply(const ConfigBase &other, bool ignore_nonexistent = false) { m_config.apply(other, ignore_nonexistent); }
     void                    config_apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false) { m_config.apply_only(other, keys, ignore_nonexistent); }
