@@ -1,0 +1,57 @@
+#!/bin/bash
+
+export ROOT=$(echo $ROOT | grep . || pwd)
+export NCORES=`nproc --all`
+
+while getopts ":ih" opt; do
+  case ${opt} in
+    i )
+        export BUILD_IMAGE="1"
+        ;;
+    h ) echo "Usage: ./BuildLinuxImage.sh [-i]"
+        echo "   -i: Generate Appimage (optional)"
+        exit 0
+        ;;
+  esac
+done
+
+echo -n "[9/9] Generating Linux app..."
+#{
+    # create directory and copy into it
+    if [ -d "package" ]
+    then
+        rm -rf package/*
+        rm -rf package/.* 2&>/dev/null
+    else
+        mkdir package
+    fi
+    mkdir package/bin
+
+    # copy Resources
+    cp -Rf ../resources package/resources
+    cp -f src/@SLIC3R_APP_CMD@ package/bin/@SLIC3R_APP_CMD@
+    # remove unneeded po from resources
+    ## find package/resources/localization -name "*.po" -type f -delete ## FIXME: DD - do we need this?
+
+    # create bin
+    echo -e '#!/bin/bash\nDIR=$(readlink -f "$0" | xargs dirname)\nexport LD_LIBRARY_PATH="$DIR/bin"\nexec "$DIR/bin/@SLIC3R_APP_CMD@" "$@"' >@SLIC3R_APP_CMD@
+    chmod ug+x @SLIC3R_APP_CMD@
+    cp -f @SLIC3R_APP_CMD@ package/@SLIC3R_APP_CMD@
+    pushd package
+    tar -cvf ../@SLIC3R_APP_KEY@.tar .  &>/dev/null
+    popd
+#} &> $ROOT/Build.log # Capture all command output
+echo "done"
+
+if [[ -n "$BUILD_IMAGE" ]]
+then
+echo -n "Creating Appimage for distribution..."
+#{
+    pushd package
+    chmod +x ../build_appimage.sh
+    ../build_appimage.sh
+    popd
+    mv package/"@SLIC3R_APP_KEY@_ubu64.AppImage" "@SLIC3R_APP_KEY@_ubu64.AppImage"
+#} &> $ROOT/Build.log # Capture all command output
+echo "done"
+fi

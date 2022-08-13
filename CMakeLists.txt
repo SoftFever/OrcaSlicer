@@ -675,6 +675,11 @@ if(SLIC3R_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
+if (NOT WIN32 AND NOT APPLE)
+    set(SLIC3R_APP_CMD "bambu-studio")
+    configure_file(${LIBDIR}/platform/unix/build_appimage.sh.in ${CMAKE_CURRENT_BINARY_DIR}/build_appimage.sh @ONLY)
+endif()
+
 option(BUILD_BBS_TEST_TOOLS          "Build bbs test tools" OFF)
 if(BUILD_BBS_TEST_TOOLS)
     add_subdirectory(bbs_test_tools)

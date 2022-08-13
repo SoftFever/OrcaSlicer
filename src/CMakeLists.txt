@@ -118,6 +118,8 @@ endif (MINGW)
 if (NOT WIN32 AND NOT APPLE)
     # Binary name on unix like systems (Linux, Unix)
     set_target_properties(BambuStudio PROPERTIES OUTPUT_NAME "bambu-studio")
+    set(SLIC3R_APP_CMD "bambu-studio")
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/unix/BuildLinuxImage.sh.in ${CMAKE_CURRENT_BINARY_DIR}/BuildLinuxImage.sh @ONLY)
 endif ()
 
 target_link_libraries(BambuStudio libslic3r cereal)

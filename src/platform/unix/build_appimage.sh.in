@@ -1,0 +1,30 @@
+#!/bin/sh
+APPIMAGETOOLURL="https://github.com/AppImage/AppImageKit/releases/latest/download/appimagetool-x86_64.AppImage"
+
+
+APP_IMAGE="@SLIC3R_APP_KEY@_ubu64.AppImage"
+
+wget ${APPIMAGETOOLURL} -O ../appimagetool.AppImage
+chmod +x ../appimagetool.AppImage
+
+sed -i -e 's#/usr#././#g' bin/@SLIC3R_APP_CMD@
+mv @SLIC3R_APP_CMD@ AppRun
+chmod +x AppRun
+
+cp resources/images/@SLIC3R_APP_KEY@_192px.png @SLIC3R_APP_KEY@.png
+mkdir -p usr/share/icons/hicolor/192x192/apps
+cp resources/images/@SLIC3R_APP_KEY@_192px.png usr/share/icons/hicolor/192x192/apps/@SLIC3R_APP_KEY@.png
+cat <<EOF > @SLIC3R_APP_KEY@.desktop
+[Desktop Entry]
+Name=@SLIC3R_APP_KEY@
+Exec=AppRun %F
+Icon=@SLIC3R_APP_KEY@
+Type=Application
+Categories=Utility;
+MimeType=model/stl;application/vnd.ms-3mfdocument;application/prs.wavefront-obj;application/x-amf;
+EOF
+
+
+../appimagetool.AppImage . $([ ! -z "${container}" ] && echo '--appimage-extract-and-run')
+mv @SLIC3R_APP_KEY@-x86_64.AppImage ${APP_IMAGE}
+chmod +x ${APP_IMAGE}
