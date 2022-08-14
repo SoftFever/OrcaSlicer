@@ -3081,6 +3081,14 @@ void TabPrinter::update_host_type(bool printer_change)
     set_to_choice_and_config(htOctoPrint);
 }
 
+void TabPrinter::update_printhost_buttons()
+{
+    std::unique_ptr<PrintHost> host(PrintHost::get_print_host(m_config));
+    m_printhost_test_btn->Enable(!m_config->opt_string("print_host").empty() && host->can_test());
+    m_printhost_browse_btn->Enable(host->has_auto_discovery());
+}
+
+
 PageShp TabPrinter::build_print_host_page()
 {
     auto page = add_options_page(L("Connection"), "printer");
