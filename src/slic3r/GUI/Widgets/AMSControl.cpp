@@ -1311,18 +1311,17 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     // normal mode
     //Freeze();
     wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
-    auto        amswin       = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
-    amswin->SetBackgroundColour(*wxWHITE);
+    m_amswin                 = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
+    m_amswin->SetBackgroundColour(*wxWHITE);
     // top - ams tag
-    m_simplebook_amsitems = new wxSimplebook(amswin, wxID_ANY);
+    m_simplebook_amsitems = new wxSimplebook(m_amswin, wxID_ANY);
     m_simplebook_amsitems->SetSize(wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
     m_simplebook_amsitems->SetMinSize(wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
     auto m_sizer_amsitems = new wxBoxSizer(wxHORIZONTAL);
     m_simplebook_amsitems->SetSizer(m_sizer_amsitems);
     m_simplebook_amsitems->Layout();
     m_sizer_amsitems->Fit(m_simplebook_amsitems);
-    m_sizer_body->Add(m_simplebook_amsitems, 0, wxEXPAND, 0);
-
+    
     m_panel_top = new wxPanel(m_simplebook_amsitems, wxID_ANY, wxDefaultPosition, wxSize(-1, AMS_CAN_ITEM_HEIGHT_SIZE));
     m_sizer_top = new wxBoxSizer(wxHORIZONTAL);
     m_panel_top->SetSizer(m_sizer_top);
@@ -1338,12 +1337,11 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_simplebook_amsitems->AddPage(m_panel_top, wxEmptyString, false);
     m_simplebook_amsitems->AddPage(m_panel_top_empty, wxEmptyString, false);
 
-    m_sizer_body->Add(0, 0, 1, wxEXPAND | wxTOP, 18);
 
     wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *m_sizer_left   = new wxBoxSizer(wxVERTICAL);
 
-    m_panel_can = new StaticBox(amswin, wxID_ANY, wxDefaultPosition, AMS_CANS_SIZE, wxBORDER_NONE);
+    m_panel_can = new StaticBox(m_amswin, wxID_ANY, wxDefaultPosition, AMS_CANS_SIZE, wxBORDER_NONE);
     m_panel_can->SetMinSize(AMS_CANS_SIZE);
     m_panel_can->SetCornerRadius(FromDIP(10));
     m_panel_can->SetBackgroundColor(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
@@ -1389,7 +1387,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     wxBoxSizer *m_sizer_left_bottom = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *sizer_sextruder     = new wxBoxSizer(wxVERTICAL);
 
-    auto extruder_pane = new wxPanel(amswin, wxID_ANY, wxDefaultPosition, AMS_EXTRUDER_SIZE);
+    auto extruder_pane = new wxPanel(m_amswin, wxID_ANY, wxDefaultPosition, AMS_EXTRUDER_SIZE);
 
     extruder_pane->SetSizer(sizer_sextruder);
     extruder_pane->Layout();
@@ -1413,14 +1411,13 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     StateColor btn_bd_white(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
     StateColor btn_text_green(std::pair<wxColour, int>(*wxBLACK, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Enabled));
     m_sizer_left_bottom->AddStretchSpacer();
-    m_button_extruder_feed = new Button(amswin, _L("Load Filament"));
+    m_button_extruder_feed = new Button(m_amswin, _L("Load Filament"));
     m_button_extruder_feed->SetBackgroundColor(btn_bg_green);
     m_button_extruder_feed->SetBorderColor(btn_bd_green);
     m_button_extruder_feed->SetTextColor(btn_text_green);
     m_button_extruder_feed->SetFont(Label::Body_13);
    
-
-    m_button_extruder_back = new Button(amswin, _L("Unload Filament"));
+    m_button_extruder_back = new Button(m_amswin, _L("Unload Filament"));
     m_button_extruder_back->SetBackgroundColor(btn_bg_white);
     m_button_extruder_back->SetBorderColor(btn_bd_white);
     m_button_extruder_back->SetFont(Label::Body_13);
@@ -1434,7 +1431,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_sizer_bottom->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(43));
 
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxVERTICAL);
-    m_simplebook_right        = new wxSimplebook(amswin, wxID_ANY);
+    m_simplebook_right        = new wxSimplebook(m_amswin, wxID_ANY);
     m_simplebook_right->SetMinSize(AMS_STEP_SIZE);
     m_simplebook_right->SetSize(AMS_STEP_SIZE);
     m_simplebook_right->SetBackgroundColour(*wxWHITE);
@@ -1447,7 +1444,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_tip_right_top->SetForegroundColour(AMS_CONTROL_BRAND_COLOUR);
     m_tip_right_top->Wrap(AMS_STEP_SIZE.x);
     m_sizer_right_tip->Add(m_tip_right_top, 0, 0, 0);
-    m_sizer_right_tip->Add(0, 0, 0, wxTOP, 10);
+    m_sizer_right_tip->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_tip_load_info = new wxStaticText(tip_right, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
     m_tip_load_info->SetFont(::Label::Body_13);
     m_tip_load_info->SetForegroundColour(AMS_CONTROL_GRAY700);
@@ -1470,31 +1467,34 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_simplebook_right->AddPage(m_filament_unload_step, wxEmptyString, false);
 
     wxBoxSizer *m_sizer_right_bottom = new wxBoxSizer(wxHORIZONTAL);
-    m_sizer_right_bottom->Add(0, 0, 1, wxEXPAND, 5);
-    m_button_ams_setting = new Button(amswin, _L("AMS Settings"));
+    m_sizer_right_bottom->Add(0, 0, 1, wxEXPAND, FromDIP(5));
+    m_button_ams_setting = new Button(m_amswin, _L("AMS Settings"));
     m_button_ams_setting->SetBackgroundColor(btn_bg_white);
     m_button_ams_setting->SetBorderColor(btn_bd_white);
     m_button_ams_setting->SetFont(Label::Body_13);
     m_button_ams_setting->Hide();
-    m_sizer_right_bottom->Add(m_button_ams_setting, 0, wxTOP, 20);
-    m_sizer_right->Add(m_sizer_right_bottom, 0, wxEXPAND, 5);
-    m_sizer_bottom->Add(m_sizer_right, 0, wxEXPAND, 5);
-    m_sizer_body->Add(m_sizer_bottom, 0, wxEXPAND | wxLEFT, 11);
+    m_sizer_right_bottom->Add(m_button_ams_setting, 0, wxTOP, FromDIP(20));
+    m_sizer_right->Add(m_sizer_right_bottom, 0, wxEXPAND, FromDIP(5));
+    m_sizer_bottom->Add(m_sizer_right, 0, wxEXPAND, FromDIP(5));
+
+    m_sizer_body->Add(m_simplebook_amsitems, 0, wxEXPAND, 0);
+    m_sizer_body->Add(0, 0, 1, wxEXPAND | wxTOP, FromDIP(18));
+    m_sizer_body->Add(m_sizer_bottom, 0, wxEXPAND | wxLEFT, FromDIP(11));
 
     init_scaled_buttons();
-    amswin->SetSizer(m_sizer_body);
-    amswin->Layout();
-    amswin->Fit();
+    m_amswin->SetSizer(m_sizer_body);
+    m_amswin->Layout();
+    m_amswin->Fit();
     
     //Thaw();
 
-    SetSize(amswin->GetSize());
-    SetMinSize(amswin->GetSize());
+    SetSize(m_amswin->GetSize());
+    SetMinSize(m_amswin->GetSize());
 
     // calibration mode
-    m_simplebook_calibration = new wxSimplebook(this, wxID_ANY, wxDefaultPosition, amswin->GetSize(), wxTAB_TRAVERSAL);
+    m_simplebook_calibration = new wxSimplebook(this, wxID_ANY, wxDefaultPosition, m_amswin->GetSize(), wxTAB_TRAVERSAL);
 
-    auto m_in_calibration_panel = new wxWindow(m_simplebook_calibration, wxID_ANY, wxDefaultPosition, amswin->GetSize(), wxTAB_TRAVERSAL);
+    auto m_in_calibration_panel = new wxWindow(m_simplebook_calibration, wxID_ANY, wxDefaultPosition, m_amswin->GetSize(), wxTAB_TRAVERSAL);
     m_in_calibration_panel->SetBackgroundColour(AMS_CONTROL_WHITE_COLOUR);
     wxBoxSizer *sizer_calibration_h = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *sizer_calibration_v = new wxBoxSizer(wxVERTICAL);
@@ -1506,15 +1506,15 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_text_calibration_tip->SetFont(::Label::Body_14);
     m_text_calibration_tip->SetForegroundColour(AMS_CONTROL_GRAY700);
     sizer_calibration_v->Add(thumbnail, 0, wxALIGN_CENTER, 0);
-    sizer_calibration_v->Add(0, 0, 0, wxTOP, 16);
+    sizer_calibration_v->Add(0, 0, 0, wxTOP, FromDIP(16));
     sizer_calibration_v->Add(m_text_calibration_percent, 0, wxALIGN_CENTER, 0);
-    sizer_calibration_v->Add(0, 0, 0, wxTOP, 8);
+    sizer_calibration_v->Add(0, 0, 0, wxTOP, FromDIP(8));
     sizer_calibration_v->Add(m_text_calibration_tip, 0, wxALIGN_CENTER, 0);
     sizer_calibration_h->Add(sizer_calibration_v, 1, wxALIGN_CENTER, 0);
     m_in_calibration_panel->SetSizer(sizer_calibration_h);
     m_in_calibration_panel->Layout();
 
-    auto m_calibration_err_panel = new wxWindow(m_simplebook_calibration, wxID_ANY, wxDefaultPosition, amswin->GetSize(), wxTAB_TRAVERSAL);
+    auto m_calibration_err_panel = new wxWindow(m_simplebook_calibration, wxID_ANY, wxDefaultPosition, m_amswin->GetSize(), wxTAB_TRAVERSAL);
     m_calibration_err_panel->SetBackgroundColour(AMS_CONTROL_WHITE_COLOUR);
     wxBoxSizer *sizer_err_calibration_h = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *sizer_err_calibration_v = new wxBoxSizer(wxVERTICAL);
@@ -1547,10 +1547,10 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     sizer_button->Add(m_button_calibration_cancel, 0, wxALL, 5);
 
     sizer_err_calibration_v->Add(m_hyperlink, 0, wxALIGN_CENTER, 0);
-    sizer_err_calibration_v->Add(0, 0, 0, wxTOP, 6);
+    sizer_err_calibration_v->Add(0, 0, 0, wxTOP, FromDIP(6));
     sizer_err_calibration_v->Add(m_tip_calibration_err, 0, wxALIGN_CENTER, 0);
-    sizer_err_calibration_v->Add(0, 0, 0, wxTOP, 8);
-    sizer_err_calibration_v->Add(sizer_button, 0, wxALIGN_CENTER | wxTOP, 18);
+    sizer_err_calibration_v->Add(0, 0, 0, wxTOP, FromDIP(8));
+    sizer_err_calibration_v->Add(sizer_button, 0, wxALIGN_CENTER | wxTOP, FromDIP(18));
     sizer_err_calibration_h->Add(sizer_err_calibration_v, 1, wxALIGN_CENTER, 0);
     m_calibration_err_panel->SetSizer(sizer_err_calibration_h);
     m_calibration_err_panel->Layout();
@@ -1558,7 +1558,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_simplebook_calibration->AddPage(m_in_calibration_panel, wxEmptyString, false);
     m_simplebook_calibration->AddPage(m_calibration_err_panel, wxEmptyString, false);
 
-    AddPage(amswin, wxEmptyString, false);
+    AddPage(m_amswin, wxEmptyString, false);
     AddPage(m_simplebook_calibration, wxEmptyString, false);
 
     UpdateStepCtrl();
@@ -1778,8 +1778,23 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection)
         if (i < info.size() && info.size() > 1) {
             item->amsItem->Update(m_ams_info[i]);
             item->amsItem->Open();
+
+            if (!m_simplebook_amsitems->IsShown()) {
+                m_simplebook_amsitems->Show();
+                m_amswin->Layout();
+                m_amswin->Fit();
+                SetSize(m_amswin->GetSize());
+                SetMinSize(m_amswin->GetSize());
+            }
         } else {
             item->amsItem->Close();
+            if (m_simplebook_amsitems->IsShown()) {
+                m_simplebook_amsitems->Hide();
+                m_amswin->Layout();
+                m_amswin->Fit();
+                SetSize(m_amswin->GetSize());
+                SetMinSize(m_amswin->GetSize());
+            }
         }
     }
 

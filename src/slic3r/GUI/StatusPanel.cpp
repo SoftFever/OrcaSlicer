@@ -882,7 +882,7 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
     auto sizer     = new wxBoxSizer(wxVERTICAL);
     auto sizer_box = new wxBoxSizer(wxVERTICAL);
     m_ams_control_box = new RoundedRectangle(parent, wxColour(0xEE, 0xEE, 0xEE), wxDefaultPosition, wxDefaultSize, 5, 1);
-    m_ams_control_box->SetMinSize(wxSize(FromDIP(530), FromDIP(310)));
+    m_ams_control_box->SetMinSize(wxSize(FromDIP(530), -1));
     m_ams_control_box->SetBackgroundColour(*wxWHITE);
 #if !BBL_RELEASE_TO_PUBLIC
     m_ams_debug = new wxStaticText(m_ams_control_box, wxID_ANY, _L("Debug Info"), wxDefaultPosition, wxDefaultSize, 0);

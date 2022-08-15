@@ -449,6 +449,7 @@ protected:
     wxStaticText *m_text_calibration_percent = {nullptr};
     wxWindow *    m_none_ams_panel           = {nullptr};
     wxWindow *    m_panel_top                = {nullptr};
+    wxWindow *    m_amswin                   = {nullptr}; 
 
     StaticBox * m_panel_can       = {nullptr};
     wxBoxSizer *m_sizer_top       = {nullptr};
