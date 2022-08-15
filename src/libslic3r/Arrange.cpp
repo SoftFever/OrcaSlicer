@@ -208,7 +208,7 @@ protected:
         double dist_corner_x = ibb.minCorner().x() - origin_pack.x();
         if (dist_corner_y < 0 || dist_corner_x<0)
             return LARGE_COST_TO_REJECT;
-        double bindist = norm(dist_corner_y + 0.1 * dist_corner_x
+        double bindist = norm(dist_corner_y + 1 * dist_corner_x
             + 1 * double(ibb.maxCorner().y() - ibb.minCorner().y()));  // occupy as few rows as possible
         return bindist;
     }
@@ -393,7 +393,9 @@ protected:
                 auto py2 = p.boundingBox().maxCorner().y();
                 auto inter_min = std::max(iy1, py1); // min y of intersection
                 auto inter_max = std::min(iy2, py2); // max y of intersection. length=max_y-min_y>0 means intersection exists
-                if (inter_max - inter_min > 0) {
+                // if this item is lower than existing ones, this item will be printed first, so should not exceed height_to_rod
+                if (iy2 < py1) { hasRowHeightConflict |= (item.height > clearance_height_to_rod); }
+                else if (inter_max - inter_min > 0) {
                     // if they inter, the one on the left will be printed first
                     double h = ix1 < px1 ? item.height : p.height;
                     hasRowHeightConflict |= (h > clearance_height_to_rod);
