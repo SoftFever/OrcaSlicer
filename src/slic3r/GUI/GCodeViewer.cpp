@@ -4998,6 +4998,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ImGui::SameLine();
         imgui.title(time_title);
         std::string filament_str = _u8L("Filament");
+        std::string cost_str = _u8L("Cost");
         std::string prepare_str = _u8L("Prepare time");
         std::string print_str = _u8L("Model printing time");
         std::string total_str = _u8L("Total");
@@ -5006,7 +5007,10 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         if (time_mode.layers_times.empty())
             max_len += ImGui::CalcTextSize(total_str.c_str()).x;
         else {
-            max_len += std::max(ImGui::CalcTextSize(print_str.c_str()).x ,std::max(std::max(ImGui::CalcTextSize(prepare_str.c_str()).x, ImGui::CalcTextSize(total_str.c_str()).x), ImGui::CalcTextSize(filament_str.c_str()).x));
+            max_len += std::max(ImGui::CalcTextSize(cost_str.c_str()).x,
+                                std::max(ImGui::CalcTextSize(print_str.c_str()).x,
+                                         std::max(std::max(ImGui::CalcTextSize(prepare_str.c_str()).x, ImGui::CalcTextSize(total_str.c_str()).x),
+                                                  ImGui::CalcTextSize(filament_str.c_str()).x)));
         }
 
         //BBS display filament cost
@@ -5031,6 +5035,17 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             auto it = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [role](const std::pair<ExtrusionRole, float>& item) { return role == item.first; });
             return (it != time_mode.roles_times.end()) ? it->second : 0.0f;
         };
+
+        //BBS: display cost of filaments
+        ImGui::Dummy({window_padding, window_padding});
+        ImGui::SameLine();
+        imgui.text(cost_str + ":");
+        ImGui::SameLine(max_len);
+
+        //char   buf[64];
+        ::sprintf(buf, "%.2f", ps.total_cost);
+        imgui.text(buf);
+
         //BBS: start gcode is prepeare time
         if (role_time(erCustom) != 0.0f) {
             ImGui::Dummy({ window_padding, window_padding });
