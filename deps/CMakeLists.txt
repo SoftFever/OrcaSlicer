@@ -191,6 +191,7 @@ include(JPEG/JPEG.cmake)
 include(TIFF/TIFF.cmake)
 include(wxWidgets/wxWidgets.cmake)
 include(OCCT/OCCT.cmake)
+include(FREETYPE/FREETYPE.cmake)
 
 set(_dep_list
     dep_Boost
@@ -219,6 +220,7 @@ else()
 endif()
 
 list(APPEND _dep_list "dep_OCCT")
+list(APPEND _dep_list "dep_FREETYPE")
 
 add_custom_target(deps ALL DEPENDS ${_dep_list})
 

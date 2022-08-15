@@ -445,6 +445,11 @@ set(OCCT_LIBS
     TKernel
 )
 
+if(APPLE)
+    target_link_libraries(libslic3r freetype)
+endif()
+
+
 target_link_libraries(libslic3r
     libnest2d
     admesh
