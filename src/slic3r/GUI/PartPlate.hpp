@@ -74,7 +74,7 @@ public:
     };
 
 private:
-    PartPlateList* m_partplate_list;
+    PartPlateList* m_partplate_list {nullptr };
     Plater* m_plater; //Plater reference, not own it
     Model* m_model; //Model reference, not own it
     PrinterTechnology  printer_technology;
@@ -507,7 +507,7 @@ public:
         m_height_limit_mode = mode;
     }
 
-    int get_curr_plate_index() { return m_current_plate; }
+    int get_curr_plate_index() const { return m_current_plate; }
     PartPlate* get_curr_plate() { return m_plate_list[m_current_plate]; }
 
     PartPlate* get_selected_plate();

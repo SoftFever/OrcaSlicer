@@ -1821,6 +1821,7 @@ struct Plater::priv
     // returns the path to project file with the given extension (none if extension == wxEmptyString)
     // extension should contain the leading dot, i.e.: ".3mf"
     wxString get_project_filename(const wxString& extension = wxEmptyString) const;
+    wxString get_export_gcode_filename(const wxString& extension = wxEmptyString, bool only_filename = false) const;
     void set_project_filename(const wxString& filename);
 
     //BBS store bbs project name
@@ -5568,8 +5569,30 @@ PlateBBoxData Plater::priv::generate_first_layer_bbox()
 
 wxString Plater::priv::get_project_filename(const wxString& extension) const
 {
-    auto full_filename = m_project_folder / std::string((m_project_name + extension).mb_str(wxConvUTF8));
-    return m_project_folder.empty() ? "" : from_path(full_filename);
+    if (m_project_name.empty())
+        return "";
+    else {
+        auto full_filename = m_project_folder / std::string((m_project_name + extension).mb_str(wxConvUTF8));
+        return m_project_folder.empty() ? "" : from_path(full_filename);
+    }
+}
+
+wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool only_filename) const
+{
+    std::string plate_index_str = (boost::format("_plate_%1%") % std::to_string(partplate_list.get_curr_plate_index() + 1)).str();
+    if (!m_project_folder.empty()) {
+        if (!only_filename) {
+            auto full_filename = m_project_folder / std::string((m_project_name + plate_index_str + extension).mb_str(wxConvUTF8));
+            return from_path(full_filename);
+        } else {
+            return m_project_name + wxString(plate_index_str) + extension;
+        }
+    } else {
+        if (only_filename)
+            return m_project_name + wxString(plate_index_str) + extension;
+        else
+            return "";
+    }
 }
 
 wxString Plater::priv::get_project_name()
@@ -7869,16 +7892,28 @@ void Plater::export_gcode_3mf()
 
     //calc default_output_file, get default output file from background process
     fs::path default_output_file;
-    default_output_file = into_path(get_project_filename(".3mf"));
-    if (default_output_file.empty())
-        default_output_file = into_path(get_project_name() + ".3mf");
+    AppConfig& appconfig = *wxGetApp().app_config;
+    std::string start_dir;
+    default_output_file = into_path(get_export_gcode_filename(".3mf"));
+    if (default_output_file.empty()) {
+        try {
+            start_dir = appconfig.get_last_output_dir("", false);
+            wxString filename = get_export_gcode_filename(".3mf", true);
+            std::string full_filename = start_dir + "/" + filename.utf8_string();
+            default_output_file = boost::filesystem::path(full_filename);
+        } catch(...) {
+            ;
+        }
+    }
 
     //BBS replace gcode extension to .gcode.3mf
     default_output_file = default_output_file.replace_extension(".gcode.3mf");
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
-    AppConfig &appconfig = *wxGetApp().app_config;
+
     //Get a last save path
-    std::string start_dir = appconfig.get_last_output_dir(default_output_file.parent_path().string(), false);
+    start_dir = appconfig.get_last_output_dir(default_output_file.parent_path().string(), false);
+
+
     fs::path output_path;
     {
         std::string ext = default_output_file.extension().string();
@@ -8852,6 +8887,11 @@ std::vector<std::string> Plater::get_colors_for_color_print(const GCodeProcessor
 wxString Plater::get_project_filename(const wxString& extension) const
 {
     return p->get_project_filename(extension);
+}
+
+wxString Plater::get_export_gcode_filename(const wxString & extension, bool only_filename) const
+{
+    return p->get_export_gcode_filename(extension, only_filename);
 }
 
 void Plater::set_project_filename(const wxString& filename)
