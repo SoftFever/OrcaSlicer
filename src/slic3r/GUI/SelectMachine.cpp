@@ -194,7 +194,7 @@ void MachineObjectPanel::doRender(wxDC &dc)
     dc.SetFont(Label::Body_13);
     dc.SetBackgroundMode(wxTRANSPARENT);
     dc.SetTextForeground(SELECT_MACHINE_GREY900);
-    wxString dev_name;
+    wxString dev_name = "";
     if (m_info) {
         dev_name = from_u8(m_info->dev_name);
     }
@@ -539,6 +539,7 @@ void SelectMachinePopup::update_other_devices()
     }
 
     for (int j = i; j < m_other_list_machine_panel.size(); j++) {
+        m_other_list_machine_panel[j]->mPanel->update_machine_info(nullptr);
         m_other_list_machine_panel[j]->mPanel->Hide();
     }
     m_sizer_other_devices->Layout();
@@ -655,6 +656,7 @@ void SelectMachinePopup::update_user_devices()
     }
 
     for (int j = i; j < m_user_list_machine_panel.size(); j++) {
+        m_user_list_machine_panel[j]->mPanel->update_machine_info(nullptr);
         m_user_list_machine_panel[j]->mPanel->Hide();
     }
     //m_sizer_my_devices->Layout();
