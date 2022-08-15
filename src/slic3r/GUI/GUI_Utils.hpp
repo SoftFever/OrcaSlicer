@@ -189,6 +189,19 @@ public:
             event.Skip();
             on_sys_color_changed();
         });
+
+        if (std::is_same<wxDialog, P>::value) {
+            this->Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent& e) {
+                if (e.GetKeyCode() == WXK_ESCAPE) {
+                    //if (this->IsModal())
+                    //    this->EndModal(wxID_CANCEL);
+                    //else
+                        this->Close();
+                }
+                else
+                    e.Skip();
+                });
+        }
     }
 
     virtual ~DPIAware() {}

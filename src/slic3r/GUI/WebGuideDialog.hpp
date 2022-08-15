@@ -47,7 +47,7 @@ public:
         BBL_FILAMENTS,
         BBL_FILAMENT_ONLY,
         BBL_MODELS_ONLY
-    };
+    }m_page;
 
     //Web Function
     void load_url(wxString &url);

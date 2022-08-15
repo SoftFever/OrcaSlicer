@@ -172,6 +172,16 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
         this->FindWindowById(wxID_RESET, this)->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { m_panel_wiping->calc_flushing_volumes(); });
     }
     this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& e) { EndModal(wxCANCEL); });
+    this->Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent& e) {
+        if (e.GetKeyCode() == WXK_ESCAPE) {
+            if (this->IsModal())
+                this->EndModal(wxID_CANCEL);
+            else 
+                this->Close();
+        }
+        else
+            e.Skip();
+        });
 }
 
 void WipingPanel::create_panels(wxWindow* parent, const int num) {

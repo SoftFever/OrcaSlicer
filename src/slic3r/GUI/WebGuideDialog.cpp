@@ -77,7 +77,18 @@ GuideFrame::GuideFrame(GUI_App *pGUI, long style)
     //int screenwidth  = wxSystemSettings::GetMetric(wxSYS_SCREEN_X, NULL);
     //int MaxY         = (screenheight - pSize.y) > 0 ? (screenheight - pSize.y) / 2 : 0;
     //MoveWindow(this->m_hWnd, (screenwidth - pSize.x) / 2, MaxY, pSize.x, pSize.y, TRUE);
-
+#ifdef __WXMSW__
+    this->Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent& e) {
+        if ((m_page == BBL_FILAMENT_ONLY || m_page == BBL_MODELS_ONLY) && e.GetKeyCode() == WXK_ESCAPE) {
+            if (this->IsModal())
+                this->EndModal(wxID_CANCEL);
+            else
+                this->Close();
+        }
+        else
+            e.Skip();
+        });
+#endif
     // Connect the webview events
     Bind(wxEVT_WEBVIEW_NAVIGATING, &GuideFrame::OnNavigationRequest, this, m_browser->GetId());
     Bind(wxEVT_WEBVIEW_NAVIGATED, &GuideFrame::OnNavigationComplete, this, m_browser->GetId());
@@ -121,6 +132,7 @@ void GuideFrame::load_url(wxString &url)
 
 wxString GuideFrame::SetStartPage(GuidePage startpage, bool load)
 {
+    m_page = startpage;
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(" enter, load=%1%, start_page=%2%")%load%int(startpage);
     //wxLogMessage("GUIDE: webpage_1  %s", (boost::filesystem::path(resources_dir()) / "web\\guide\\1\\index.html").make_preferred().string().c_str() );
     wxString TargetUrl = from_u8( (boost::filesystem::path(resources_dir()) / "web/guide/1/index.html").make_preferred().string() );
@@ -274,7 +286,9 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
         json     j        = json::parse(strInput);
 
         wxString strCmd = j["command"];
-
+        if (strCmd == "close_page") {
+            this->EndModal(wxID_CANCEL);
+        }
         if (strCmd == "user_clause") {
             wxString strAction = j["data"]["action"];
 
