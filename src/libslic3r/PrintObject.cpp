@@ -419,11 +419,17 @@ void PrintObject::generate_support_material()
             m_print->throw_if_canceled();
         } else {
             // BBS: pop a warning if objects have significant amount of overhangs but support material is not enabled
-            if (this->is_support_necessary()) {
+            SupportNecessaryType sntype = this->is_support_necessary();
+            if (sntype != NoNeedSupp) {
                 m_print->set_status(50, L("Checking support necessity"));
-
-                std::string warning_message = format(L("It seems object %s needs support to print. Please enable support generation."), this->model_object()->name);
-                this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning_message, PrintStateBase::SlicingNeedSupportOn);
+                if (sntype == SharpTail) {
+                    std::string warning_message = format(L("It seems object %s has completely floating regions. Please re-orient the object or enable support generation."),
+                                                         this->model_object()->name);
+                    this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning_message, PrintStateBase::SlicingNeedSupportOn);
+                } else {
+                    std::string warning_message = format(L("It seems object %s has large overhangs. Please enable support generation."), this->model_object()->name);
+                    this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning_message, PrintStateBase::SlicingNeedSupportOn);
+                }
             }
 
 #if 0
@@ -2447,7 +2453,7 @@ template void PrintObject::remove_bridges_from_contacts<Polygons>(
     float max_bridge_length, bool break_bridge);
 
 
-bool PrintObject::is_support_necessary()
+SupportNecessaryType PrintObject::is_support_necessary()
 {
     static const double super_overhang_area_threshold = SQ(scale_(5.0));
 
@@ -2470,7 +2476,7 @@ bool PrintObject::is_support_necessary()
             for (const ExPolygon& expoly : layerm->raw_slices) {
                 // detect sharp tail
                 if (intersection_ex({ expoly }, lower_layer_offseted).empty())
-                    return true;
+                    return SharpTail;
             }
         }
 
@@ -2502,18 +2508,19 @@ bool PrintObject::is_support_necessary()
         double super_overhang_area = 0.0;
         for (Polygon& poly : super_overhang_polys) {
             bool is_ccw = poly.is_counter_clockwise();
+            double area_  = poly.area();
             if (is_ccw) {
-                if (super_overhang_area > super_overhang_area_threshold)
-                    return true;
-                super_overhang_area = poly.area();
+                if (area_ > super_overhang_area_threshold)
+                    return LargeOverhang;
+                super_overhang_area += area_;
             }
             else {
-                super_overhang_area -= poly.area();
+                super_overhang_area -= area_;
             }
         }
 
-        if (super_overhang_area > super_overhang_area_threshold)
-            return true;
+        //if (super_overhang_area > super_overhang_area_threshold)
+        //    return LargeOverhang;
 
         // 3. check overhang distance
         const double distance_threshold_scaled = extrusion_width_scaled * 2;
@@ -2528,10 +2535,10 @@ bool PrintObject::is_support_necessary()
             }),
             exceed_overhang.end());
         if (!exceed_overhang.empty())
-            return true;
+            return LargeOverhang;
     }
 
-    return false;
+    return NoNeedSupp;
 }
 
 static void project_triangles_to_slabs(ConstLayerPtrsAdaptor layers, const indexed_triangle_set &custom_facets, const Transform3f &tr, bool seam, std::vector<Polygons> &out)

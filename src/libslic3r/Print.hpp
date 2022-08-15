@@ -49,6 +49,12 @@ struct groupedVolumeSlices
     ExPolygons              slices;
 };
 
+enum SupportNecessaryType {
+    NoNeedSupp=0,
+    SharpTail,
+    LargeOverhang,
+};
+
 namespace FillAdaptive {
     struct Octree;
     struct OctreeDeleter;
@@ -457,7 +463,7 @@ private:
     std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> prepare_adaptive_infill_data();
 
     // BBS
-    bool is_support_necessary();
+    SupportNecessaryType is_support_necessary();
 
     // XYZ in scaled coordinates
     Vec3crd									m_size;
