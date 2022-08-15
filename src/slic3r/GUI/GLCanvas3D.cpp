@@ -1925,7 +1925,11 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         bool wt = dynamic_cast<const ConfigOptionBool*>(m_config->option("enable_prime_tower"))->value;
         auto co = dynamic_cast<const ConfigOptionEnum<PrintSequence>*>(m_config->option<ConfigOptionEnum<PrintSequence>>("print_sequence"));
 
-        if (filaments_count > 1 && wt && co != nullptr && co->value != PrintSequence::ByObject) {
+        const DynamicPrintConfig &dconfig           = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+        const ConfigOption *      option            = dconfig.option("timelapse_no_toolhead");
+        bool                      timelapse_enabled = option ? option->getBool() : false;
+
+        if (timelapse_enabled || (filaments_count > 1 && wt && co != nullptr && co->value != PrintSequence::ByObject)) {
             for (int plate_id = 0; plate_id < n_plates; plate_id++) {
                 DynamicPrintConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
                 float x = dynamic_cast<const ConfigOptionFloats*>(proj_cfg.option("wipe_tower_x"))->get_at(plate_id);
@@ -3826,32 +3830,6 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
             model_object->invalidate_bounding_box();
         }
     }
-
-#if 1
-    // BBS: update Timelapse Wipe Tower according to max height
-    for (unsigned int obj_idx = 0; obj_idx < (unsigned int) m_model->objects.size(); ++obj_idx) {
-        ModelObject *model_object = m_model->objects[obj_idx];
-        if (model_object->is_timelapse_wipe_tower) {
-            for (GLVolume *volume : m_volumes.volumes) {
-                if (volume->composite_id.object_id == obj_idx) {
-                    int    instance_idx = volume->instance_idx();
-                    auto   curr_plate   = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-                    double max_height = curr_plate->estimate_timelapse_wipe_tower_height();
-                    float  z_factor   = max_height / model_object->raw_mesh_bounding_box().size()[2];
-                    volume->set_instance_scaling_factor(Vec3d(1.0, 1.0, z_factor));
-                    model_object->instances[instance_idx]->set_scaling_factor(Vec3d(1.0, 1.0, z_factor));
-                    volume->is_timelapse_wipe_tower = true;
-                    break;
-                }
-            }
-
-            ensure_on_bed(obj_idx, false);
-            model_object->invalidate_bounding_box();
-            break;
-        }
-    }
-#endif
-
 
     //BBS: notify instance updates to part plater list
     m_selection.notify_instance_update(-1, -1);

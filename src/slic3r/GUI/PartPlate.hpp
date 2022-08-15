@@ -238,7 +238,6 @@ public:
 
     Vec3d get_origin() { return m_origin; }
     Vec3d estimate_wipe_tower_size(const double w, const double wipe_volume) const;
-    double estimate_timelapse_wipe_tower_height(int* highest_extruder_id=NULL) const;
     std::vector<int> get_extruders() const;
 
     /* instance related operations*/
@@ -277,9 +276,6 @@ public:
 
     //move instances to left or right PartPlate
     void move_instances_to(PartPlate& left_plate, PartPlate& right_plate, BoundingBoxf3* bounding_box = nullptr);
-
-    //can add timelapse object
-    bool can_add_timelapse_object();
 
     /*rendering related functions*/
     const Pointfs& get_shape() const { return m_shape; }

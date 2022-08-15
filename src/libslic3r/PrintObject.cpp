@@ -666,8 +666,7 @@ bool PrintObject::invalidate_state_by_config_options(
             //BBS
             || opt_key == "adaptive_layer_height"
             || opt_key == "raft_layers"
-            || opt_key == "raft_contact_distance"
-            || opt_key == "timelapse_no_toolhead") {
+            || opt_key == "raft_contact_distance") {
             steps.emplace_back(posSlice);
 		} else if (
                opt_key == "elefant_foot_compensation"

@@ -1374,11 +1374,9 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "enable_prime_tower" || opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
         update_wiping_button_visibility();
 
-    //popup message dialog when first selected
-    if (opt_key == "timelapse_no_toolhead" && boost::any_cast<bool>(value))
-        show_timelapse_warning_dialog();
-    
-
+    // reload scene to update timelapse wipe tower
+    if (opt_key == "timelapse_no_toolhead")
+        wxGetApp().plater()->update();
 
     // BBS
 #if 0

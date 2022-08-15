@@ -1869,7 +1869,7 @@ static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf
     const double side = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.1);
 
     indexed_triangle_set mesh;
-    if (type_name == "Cube" || type_name == "Timelapse Wipe Tower")
+    if (type_name == "Cube")
         // Sitting on the print bed, left front front corner at (0, 0).
         mesh = its_make_cube(side, side, side);
     else if (type_name == "Cylinder")
@@ -1895,10 +1895,6 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
 
     if (type == ModelVolumeType::INVALID) {
         load_shape_object(type_name);
-        return;
-    }
-    else if (type == ModelVolumeType::TIMELAPSE_WIPE_TOWER) {
-        load_shape_object(type_name, true);
         return;
     }
 
@@ -2004,7 +2000,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     }
 }
 
-void ObjectList::load_shape_object(const std::string &type_name, bool is_timelapse_wt)
+void ObjectList::load_shape_object(const std::string &type_name)
 {
     const Selection& selection = wxGetApp().plater()->canvas3D()->get_selection();
     //assert(selection.get_object_idx() == -1); // Add nothing is something is selected on 3DScene
@@ -2021,11 +2017,11 @@ void ObjectList::load_shape_object(const std::string &type_name, bool is_timelap
     BoundingBoxf3 bb;
     TriangleMesh mesh = create_mesh(type_name, bb);
     // BBS: remove "Shape" prefix
-    load_mesh_object(mesh, _(type_name), true, is_timelapse_wt);
+    load_mesh_object(mesh, _(type_name));
     wxGetApp().mainframe->update_title();
 }
 
-void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center, bool is_timelapse_wt)
+void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center)
 {
     // Add mesh to model as a new object
     Model& model = wxGetApp().plater()->model();
@@ -2049,27 +2045,11 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
     new_object->invalidate_bounding_box();
     new_object->translate(-bb.center());
 
-    if (is_timelapse_wt) {
-        new_object->is_timelapse_wipe_tower = true;
-        auto   curr_plate    = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-        int    highest_extruder = 0;
-        double max_height = curr_plate->estimate_timelapse_wipe_tower_height(&highest_extruder);
-        new_object->scale(1, 1, max_height / new_object->bounding_box().size()[2]);
+    // BBS: find an empty cell to put the copied object
+    auto start_point = wxGetApp().plater()->build_volume().bounding_volume2d().center();
+    auto empty_cell  = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({start_point(0), start_point(1)});
 
-        // move to garbage bin of curr plate
-        auto offset = curr_plate->get_origin() + Vec3d(80.0, 230.0, -new_object->origin_translation.z());
-        new_object->instances[0]->set_offset(offset);
-
-        new_object->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(0));
-        new_object->config.set_key_value("top_shell_layers", new ConfigOptionInt(0));
-        new_object->config.set("extruder", highest_extruder);
-    } else {
-        // BBS: find an empty cell to put the copied object
-        auto start_point = wxGetApp().plater()->build_volume().bounding_volume2d().center();
-        auto empty_cell  = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({start_point(0), start_point(1)});
-
-        new_object->instances[0]->set_offset(center ? to_3d(Vec2d(empty_cell(0), empty_cell(1)), -new_object->origin_translation.z()) : bb.center());
-    }
+    new_object->instances[0]->set_offset(center ? to_3d(Vec2d(empty_cell(0), empty_cell(1)), -new_object->origin_translation.z()) : bb.center());
 
     new_object->ensure_on_bed();
 
@@ -2764,11 +2744,6 @@ bool ObjectList::can_merge_to_multipart_object() const
     // should be selected just objects
     for (wxDataViewItem item : sels) {
         if (!(m_objects_model->GetItemType(item) & (itObject | itInstance)))
-            return false;
-
-        // BBS: do not support to merge timelapse wipe tower with other objects
-        ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(item.GetID());
-        if (node != nullptr && node->IsTimelapseWipeTower())
             return false;
     }
 
