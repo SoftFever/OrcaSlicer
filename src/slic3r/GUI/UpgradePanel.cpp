@@ -379,15 +379,19 @@ void MachineInfoPanel::update_ams(MachineObject *obj)
 
 
             auto it = ver_list.find(atoi(iter->first.c_str()));
+            auto ams_id = std::stoi(iter->second->id);
+
+
             if (it == ver_list.end()) {
                 // hide this ams
-                wxString ams_text = wxString::Format("AMS%s", std::to_string(ams_index + 1));
+                wxString ams_text = wxString::Format("AMS%s", std::to_string(ams_id + 1));
+                
                 ams_name          = ams_text;
                 ams_sn   = "-";
                 ams_ver  = "-";
             } else {
                 // update ams img
-                wxString ams_text = wxString::Format("AMS%s", std::to_string(ams_index + 1));
+                wxString ams_text = wxString::Format("AMS%s", std::to_string(ams_id + 1));
                 ams_name = ams_text;
 
                 std::string ams_id = "ams/" + std::to_string(ams_index);

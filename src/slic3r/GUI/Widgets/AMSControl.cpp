@@ -1747,7 +1747,20 @@ void AMSControl::CreateAms()
 
 void AMSControl::Reset() 
 {
-    m_current_ams = ""; 
+    auto caninfo0_0 = Caninfo{"def_can_0", L(""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_1 = Caninfo{"def_can_1", L(""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_2 = Caninfo{"def_can_2", L(""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+    auto caninfo0_3 = Caninfo{"def_can_3", L(""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
+
+    AMSinfo ams1 = AMSinfo{"def_ams_0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo ams2 = AMSinfo{"def_ams_1", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo ams3 = AMSinfo{"def_ams_2", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo ams4 = AMSinfo{"def_ams_3", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+
+    std::vector<AMSinfo>           ams_info{ams1, ams2, ams3, ams4};
+    std::vector<AMSinfo>::iterator it;
+    UpdateAms(ams_info, false);
+    m_current_ams    = "";
     m_current_senect = "";
 }
 
