@@ -1647,7 +1647,10 @@ static wxMenu* generate_help_menu()
 static void add_common_view_menu_items(wxMenu* view_menu, MainFrame* mainFrame, std::function<bool(void)> can_change_view)
 {
     // The camera control accelerators are captured by GLCanvas3D::on_char().
-    append_menu_item(view_menu, wxID_ANY, _L("Default View") + "\tCtrl+0", _L("Default View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("topfront"); },
+    append_menu_item(view_menu, wxID_ANY, _L("Default View") + "\tCtrl+0", _L("Default View"), [mainFrame](wxCommandEvent&) {
+        mainFrame->select_view("plate");
+        mainFrame->plater()->get_current_canvas3D()->zoom_to_bed();
+        },
         "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
     //view_menu->AppendSeparator();
     //TRN To be shown in the main menu View->Top

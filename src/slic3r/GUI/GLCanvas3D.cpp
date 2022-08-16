@@ -2369,7 +2369,10 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         break;
 
         // BBS
-        case '0': { select_view("topfront"); break; }
+        case '0': {
+            select_view("plate");
+            zoom_to_bed();
+            break; }
         case '1': { select_view("top"); break; }
         case '2': { select_view("bottom"); break; }
         case '3': { select_view("front"); break; }
@@ -2712,7 +2715,10 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     switch (keyCode) {
                         case '0':
                         case WXK_NUMPAD0: //0 on numpad
-                            { select_view("topfront"); break; }
+                            { select_view("plate");
+                              zoom_to_bed();
+                            break;
+                        }
                         case '1':
                         case WXK_NUMPAD1: //1 on numpad
                             { select_view("top"); break; }
