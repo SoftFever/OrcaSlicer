@@ -991,6 +991,7 @@ void MenuFactory::create_bbl_part_menu()
         []() { return plater()->can_split(true); }, m_parent);
     menu->AppendSeparator();
     append_menu_item_per_object_settings(menu);
+    append_menu_item_change_type(menu);
 }
 
 void MenuFactory::create_bbl_assemble_part_menu()
