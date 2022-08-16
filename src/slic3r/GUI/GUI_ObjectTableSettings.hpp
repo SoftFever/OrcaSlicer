@@ -76,7 +76,8 @@ public:
     void        resetAllValues(int row, bool is_object, ModelObject* object, ModelConfig* config, const std::string& category);
     void        msw_rescale();
 };
-
+wxDECLARE_EVENT(EVT_LOCK_DISABLE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_LOCK_ENABLE, wxCommandEvent);
 }}
 
 #endif // slic3r_GUI_ObjectTableSettings_hpp_
