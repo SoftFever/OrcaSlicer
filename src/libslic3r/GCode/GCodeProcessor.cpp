@@ -3685,7 +3685,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
             m_interpolation_points[i] =
                 Vec3f(m_interpolation_points[i].x() + m_x_offset,
                       m_interpolation_points[i].y() + m_y_offset,
-                      m_interpolation_points[i].z()) +
+                      m_processing_start_custom_gcode ? m_first_layer_height : m_interpolation_points[i].z()) +
                 m_extruder_offsets[m_extruder_id];
     }
 
