@@ -3092,13 +3092,13 @@ void TabPrinter::update_printhost_buttons()
 PageShp TabPrinter::build_print_host_page()
 {
     auto page = add_options_page(L("Connection"), "printer");
-    #if 0
+    #if 1
     auto optgroup = page->new_optgroup(L("Moonraker"));
         Option option = optgroup->get_option("connection_moonraker_url");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
         optgroup->append_single_option_line("connection_port");
-    #endif
+    #else
     auto optgroup = page->new_optgroup(L("Print Host upload"));
     optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
         if (opt_key == "host_type" || opt_key == "printhost_authorization_type")
@@ -3281,11 +3281,12 @@ PageShp TabPrinter::build_print_host_page()
     // Always fill in the "printhost_port" combo box from the config and select it.
     {
         Choice* choice = dynamic_cast<Choice*>(optgroup->get_field("printhost_port"));
-        choice->set_values({ m_config->opt_string("printhost_port") });
+        // choice->set_values({ m_config->opt_string("printhost_port") });
         choice->set_selection();
     }
 
-    update();
+    // update();
+    #endif
     return page;
 }
 
