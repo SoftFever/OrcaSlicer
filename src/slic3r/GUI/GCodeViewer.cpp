@@ -3064,8 +3064,10 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         case EViewType::ColorPrint:     {
             if (path.cp_color_id >= static_cast<unsigned char>(m_tools.m_tool_colors.size()))
                 color = { 0.5f, 0.5f, 0.5f, 1.0f };
-            else
+            else {
                 color = m_tools.m_tool_colors[path.cp_color_id];
+                color = adjust_color_for_rendering(color);
+            }
             break;
         }
         case EViewType::FilamentId: {
