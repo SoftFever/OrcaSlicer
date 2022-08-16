@@ -293,7 +293,7 @@ struct Sidebar::priv
     wxStaticLine* m_staticline2;
     wxPanel* m_panel_project_title;
     ScalableButton* m_filament_icon = nullptr;
-    ScalableButton * m_flushing_volume_btn = nullptr;
+    Button * m_flushing_volume_btn = nullptr;
 
     // BBS printer config
     StaticBox* m_panel_printer_title = nullptr;
@@ -556,11 +556,34 @@ Sidebar::Sidebar(Plater *parent)
     spliter_2->SetLineColour("#CECECE");
     scrolled_sizer->Add(spliter_2, 0, wxEXPAND);
 
+    bSizer39->AddStretchSpacer(1);
+
     // BBS
     // add wiping dialog
-    p->m_flushing_volume_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "flush_volumes");
-    p->m_flushing_volume_btn->SetToolTip(_L("Flushing volumes"));
     //wiping_dialog_button->SetFont(wxGetApp().normal_font());
+    p->m_flushing_volume_btn = new Button(p->m_panel_filament_title, _L("Flushing volumes"));
+    p->m_flushing_volume_btn->SetFont(Label::Body_10);
+    p->m_flushing_volume_btn->SetPaddingSize(wxSize(FromDIP(8),FromDIP(3)));
+    p->m_flushing_volume_btn->SetCornerRadius(FromDIP(8));
+
+    StateColor flush_bg_col(std::pair<wxColour, int>(wxColour(219, 253, 231), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
+
+    StateColor flush_fg_col(std::pair<wxColour, int>(wxColour(107, 107, 107), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(107, 107, 107), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(107, 107, 107), StateColor::Normal));
+
+    StateColor flush_bd_col(std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
+
+    p->m_flushing_volume_btn->SetBackgroundColor(flush_bg_col);
+    p->m_flushing_volume_btn->SetBorderColor(flush_bd_col);
+    p->m_flushing_volume_btn->SetTextColor(flush_fg_col);
+    p->m_flushing_volume_btn->SetFocus();
+    p->m_flushing_volume_btn->SetId(wxID_RESET);
+    p->m_flushing_volume_btn->Rescale();
 
     p->m_flushing_volume_btn->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent &e)
         {
@@ -590,10 +613,9 @@ Sidebar::Sidebar(Plater *parent)
                 wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
             }
         }));
-    bSizer39->Add(p->m_flushing_volume_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, em);
+    bSizer39->Add(p->m_flushing_volume_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5));
     bSizer39->Hide(p->m_flushing_volume_btn);
-
-    bSizer39->AddStretchSpacer(1);
+    bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
 
     ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
     add_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent& e){
@@ -953,7 +975,7 @@ void Sidebar::msw_rescale()
     p->m_bpButton_add_filament->msw_rescale();
     p->m_bpButton_del_filament->msw_rescale();
     p->m_bpButton_set_filament->msw_rescale();
-    p->m_flushing_volume_btn->msw_rescale();
+    p->m_flushing_volume_btn->Rescale();
     //BBS
     m_bed_type_list->Rescale();
     m_bed_type_list->SetMinSize({-1, 3 * wxGetApp().em_unit()});
