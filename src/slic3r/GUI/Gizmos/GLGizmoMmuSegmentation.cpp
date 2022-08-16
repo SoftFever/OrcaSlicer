@@ -383,7 +383,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     float start_pos_x = ImGui::GetCursorPos().x;
     const ImVec2 max_label_size = ImGui::CalcTextSize("99", NULL, true);
     const float item_spacing = m_imgui->scaled(0.8f);
-    for (int extruder_idx = 0; extruder_idx < m_extruders_colors.size(); extruder_idx++) {
+    size_t n_extruder_colors = std::min((size_t)EnforcerBlockerType::ExtruderMax, m_extruders_colors.size());
+    for (int extruder_idx = 0; extruder_idx < n_extruder_colors; extruder_idx++) {
         const std::array<float, 4> &extruder_color = m_extruders_colors[extruder_idx];
         ImVec4 color_vec(extruder_color[0], extruder_color[1], extruder_color[2], extruder_color[3]);
         std::string color_label = std::string("##extruder color ") + std::to_string(extruder_idx);
@@ -689,7 +690,7 @@ void GLGizmoMmuSegmentation::init_model_triangle_selectors()
         const TriangleMesh* mesh = &mv->mesh();
         m_triangle_selectors.emplace_back(std::make_unique<TriangleSelectorPatch>(*mesh, ebt_colors, 0.2));
         // Reset of TriangleSelector is done inside TriangleSelectorMmGUI's constructor, so we don't need it to perform it again in deserialize().
-        m_triangle_selectors.back()->deserialize(mv->mmu_segmentation_facets.get_data(), false);
+        m_triangle_selectors.back()->deserialize(mv->mmu_segmentation_facets.get_data(), false, (EnforcerBlockerType)m_extruders_colors.size());
         m_triangle_selectors.back()->request_update_render_data();
         m_volumes_extruder_idxs.push_back(mv->extruder_id());
     }
