@@ -2292,30 +2292,25 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case WXK_CONTROL_M:
 #endif /* __APPLE__ */
         {
-//#ifdef _WIN32
-//            if (wxGetApp().app_config->get("use_legacy_3DConnexion") == "1") {
-//#endif //_WIN32
-//#ifdef __APPLE__
-//            // On OSX use Cmd+Shift+M to "Show/Hide 3Dconnexion devices settings dialog"
-//            if ((evt.GetModifiers() & shiftMask) != 0) {
-//#endif // __APPLE__
-//
-//#ifdef SUPPORT_3D_CONNEXION
-//                Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
-//                controller.show_settings_dialog(!controller.is_settings_dialog_shown());
-//                m_dirty = true;
-//#endif
-
-//#ifdef __APPLE__
-//            }
-//            else
-//            // and Cmd+M to minimize application
-//                wxGetApp().mainframe->Iconize();
-//#endif // __APPLE__
-//#ifdef _WIN32
-//            }
-//#endif //_WIN32
-            post_event(SimpleEvent(EVT_GLTOOLBAR_CLONE));
+#ifdef _WIN32
+            if (wxGetApp().app_config->get("use_legacy_3DConnexion") == "true") {
+#endif //_WIN32
+#ifdef __APPLE__
+            // On OSX use Cmd+Shift+M to "Show/Hide 3Dconnexion devices settings dialog"
+            if ((evt.GetModifiers() & shiftMask) != 0) {
+#endif // __APPLE__
+                Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
+                controller.show_settings_dialog(!controller.is_settings_dialog_shown());
+                m_dirty = true;
+#ifdef __APPLE__
+            }
+            else
+            // and Cmd+M to minimize application
+                wxGetApp().mainframe->Iconize();
+#endif // __APPLE__
+#ifdef _WIN32
+            }
+#endif //_WIN32
             break;
         }
 #ifdef __APPLE__

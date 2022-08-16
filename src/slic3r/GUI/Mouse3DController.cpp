@@ -448,9 +448,24 @@ void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     imgui.set_next_window_pos(0.5f * (float)cnv_size.get_width(), 0.5f * (float)cnv_size.get_height(), ImGuiCond_Always, 0.5f, 0.5f);
 
+    float space_size = imgui.get_style_scaling() * 8;
+
+    float speed_size = imgui.calc_text_size(_L("Speed:")).x + imgui.scaled(1.5f);
+    float dead_size = imgui.calc_text_size(_L("Deadzone:")).x + imgui.scaled(1.5f);
+    float option_size = imgui.calc_text_size(_L("Options:")).x + imgui.scaled(1.5f);
+    float max_left_size = std::max(speed_size,std::max(dead_size,option_size)) + space_size;
+
+    float trans_size = imgui.calc_text_size(_L("Translate")).x + space_size;
+    float zoom_size = imgui.calc_text_size(_L("Zoom")).x + space_size;
+    float rota_size = imgui.calc_text_size(_L("Rotation")).x + space_size;
+    float trasn_zoom_size = imgui.calc_text_size(_L("Translation/Zoom")).x + space_size;
+    float max_slider_txt_size = std::max(std::max(trans_size,zoom_size),std::max(rota_size,trasn_zoom_size));
+
+    ImGuiWrapper::push_toolbar_style(wxGetApp().plater()->canvas3D()->get_scale());
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 20.0f));
     static ImVec2 last_win_size(0.0f, 0.0f);
     bool shown = true;
-    if (imgui.begin(_L("3Dconnexion settings"), &shown, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse)) {
+    if (imgui.begin(_L("3Dconnexion settings"), &shown, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse || ImGuiWindowFlags_NoTitleBar)) {
         if (shown) {
             ImVec2 win_size = ImGui::GetWindowSize();
             if (last_win_size.x != win_size.x || last_win_size.y != win_size.y) {
@@ -460,52 +475,109 @@ void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
                 canvas.request_extra_frame();
             }
 
-            const ImVec4& color = ImGui::GetStyleColorVec4(ImGuiCol_Separator);
-            imgui.text_colored(color, _L("Device:"));
+            const ImVec4& color = ImVec4(0.56f, 0.56f, 0.56f, 1.00f);
+            /*imgui.text(_L("Device:"));
             ImGui::SameLine();
-            imgui.text(m_device_str);
+            imgui.text(m_device_str);*/
+            ImGui::AlignTextToFramePadding();
+            imgui.text_colored(color,_L("Speed:"));
+            ImGui::SameLine(max_left_size + max_slider_txt_size - trans_size);
+            imgui.text(_L("Translate"));
+            ImGui::SameLine(max_left_size + max_slider_txt_size);
 
-            ImGui::Separator();
-            imgui.text_colored(color, _L("Speed:"));
-
+            ImGui::PushItemWidth(imgui.scaled(6.0f));
             float translation_scale = float(params_copy.translation.scale) / float(Params::DefaultTranslationScale);
-            if (imgui.slider_float(_L("Translation"), &translation_scale, float(Params::MinTranslationScale), float(Params::MaxTranslationScale), "%.1f")) {
+            bool b_translation = imgui.bbl_slider_float_style("##Translate", &translation_scale, float(Params::MinTranslationScale), float(Params::MaxTranslationScale), "%.1f");
+            ImGui::SameLine();
+            ImGui::PushItemWidth(imgui.scaled(3.0f));
+            bool b_translation_dragfloat = ImGui::BBLDragFloat("##Translate_input", &translation_scale, float(Params::MinTranslationScale), float(Params::MaxTranslationScale),0.0, "%.1f");
+            if (b_translation || b_translation_dragfloat) {
                 params_copy.translation.scale = Params::DefaultTranslationScale * double(translation_scale);
             	params_changed = true;
             }
+            ImGui::SameLine();
+            ImGui::Dummy({space_size, 0.0});
 
+            ImGui::Dummy({0.0, 0.0});
+            ImGui::SameLine(max_left_size + max_slider_txt_size - rota_size);
+            ImGui::AlignTextToFramePadding();
+            imgui.text(_L("Rotation"));
+            ImGui::SameLine(max_left_size + max_slider_txt_size);
+            ImGui::PushItemWidth(imgui.scaled(6.0f));
             float rotation_scale = params_copy.rotation.scale / Params::DefaultRotationScale;
-            if (imgui.slider_float(_L("Rotation") + "##1", &rotation_scale, 0.1f, 10.0f, "%.1f")) {
+            bool  b_rotation1     = imgui.bbl_slider_float_style("##Rotation1", &rotation_scale, 0.1f, 10.0f, "%.1f");
+            ImGui::SameLine();
+            ImGui::PushItemWidth(imgui.scaled(3.0f));
+            bool b_rotation1_dragfloat = ImGui::BBLDragFloat("##Rotation1_input", &rotation_scale, 0.1f, 10.0f, 0.0, "%.1f");
+            if (b_rotation1 || b_rotation1_dragfloat) {
             	params_copy.rotation.scale = Params::DefaultRotationScale * rotation_scale;
             	params_changed = true;
             }
+            ImGui::SameLine();
+            ImGui::Dummy({space_size, 0.0});
 
+            ImGui::Dummy({0.0, 0.0});
+            ImGui::SameLine(max_left_size + max_slider_txt_size - zoom_size);
+            ImGui::AlignTextToFramePadding();
+            imgui.text(_L("Zoom"));
+            ImGui::SameLine(max_left_size + max_slider_txt_size);
+            ImGui::PushItemWidth(imgui.scaled(6.0f));
             float zoom_scale = params_copy.zoom.scale / Params::DefaultZoomScale;
-            if (imgui.slider_float(_L("Zoom"), &zoom_scale, 0.1f, 10.0f, "%.1f")) {
+            bool  b_zoom = imgui.bbl_slider_float_style("##Zoom", &zoom_scale, 0.1f, 10.0f, "%.1f");
+            ImGui::SameLine();
+            ImGui::PushItemWidth(imgui.scaled(3.0f));
+            bool b_zoom_dragfloat = ImGui::BBLDragFloat("##Zoom_input", &zoom_scale, 0.1f, 10.0f, 0.0, "%.1f");
+            if (b_zoom || b_zoom_dragfloat) {
             	params_copy.zoom.scale = Params::DefaultZoomScale * zoom_scale;
             	params_changed = true;
             }
 
             ImGui::Separator();
-            imgui.text_colored(color, _L("Deadzone:"));
+            ImGui::AlignTextToFramePadding();
+            imgui.text_colored(color,_L("Deadzone:"));
+            ImGui::SameLine(max_left_size + max_slider_txt_size - trasn_zoom_size);
+            imgui.text(_L("Translation/Zoom"));
+            ImGui::SameLine(max_left_size + max_slider_txt_size);
 
-            float translation_deadzone = (float)params_copy.translation.deadzone;
-            if (imgui.slider_float(_L("Translation") + "/" + _L("Zoom"), &translation_deadzone, 0.0f, (float)Params::MaxTranslationDeadzone, "%.2f")) {
-            	params_copy.translation.deadzone = (double)translation_deadzone;
-            	params_changed = true;
+            ImGui::PushItemWidth(imgui.scaled(6.0f));
+            float translation_deadzone = (float) params_copy.translation.deadzone;
+            bool  b_tran_zoom = imgui.bbl_slider_float_style("##Translation/Zoom", &translation_deadzone, 0.0f, (float) Params::MaxTranslationDeadzone, "%.2f");
+            ImGui::SameLine();
+            ImGui::PushItemWidth(imgui.scaled(3.0f));
+            bool b_tran_zoom_dragfloat = ImGui::BBLDragFloat("##Translation/Zoom_input", &translation_deadzone, 0.0f, (float) Params::MaxTranslationDeadzone, 0.0, "%.1f");
+            if (b_tran_zoom || b_tran_zoom_dragfloat) {
+                params_copy.translation.deadzone = (double) translation_deadzone;
+                params_changed = true;
             }
+            ImGui::SameLine();
+            ImGui::Dummy({space_size, 0.0});
 
+            ImGui::Dummy({0.0, 0.0});
+            ImGui::SameLine(max_left_size + max_slider_txt_size - rota_size);
+            ImGui::AlignTextToFramePadding();
+            imgui.text(_L("Rotation"));
+            ImGui::SameLine(max_left_size + max_slider_txt_size);
+            ImGui::PushItemWidth(imgui.scaled(6.0f));
             float rotation_deadzone = params_copy.rotation.deadzone;
-            if (imgui.slider_float(_L("Rotation") + "##2", &rotation_deadzone, 0.0f, Params::MaxRotationDeadzone, "%.2f")) {
-            	params_copy.rotation.deadzone = rotation_deadzone;
-            	params_changed = true;
+            bool  b_rotation2 = imgui.bbl_slider_float_style("##Rotation2", &rotation_deadzone, 0.0f, Params::MaxRotationDeadzone, "%.2f");
+            ImGui::SameLine();
+            ImGui::PushItemWidth(imgui.scaled(3.0f));
+            bool b_rotation2_dragfloat = ImGui::BBLDragFloat("##Rotation2_input", &rotation_deadzone, 0.0f, Params::MaxRotationDeadzone, 0.0, "%.1f");
+            if (b_rotation2 || b_rotation2_dragfloat) {
+                params_copy.rotation.deadzone = rotation_deadzone;
+                params_changed = true;
             }
+            ImGui::SameLine();
+            ImGui::Dummy({space_size, 0.0});
+            ImGui::PopItemWidth();
 
             ImGui::Separator();
-            imgui.text_colored(color, _L("Options:"));
+            ImGui::AlignTextToFramePadding();
+            imgui.text_colored(color,_L("Options:"));
+            ImGui::SameLine(max_left_size + max_slider_txt_size - imgui.get_slider_icon_size().x + + space_size);
 
             bool swap_yz = params_copy.swap_yz;
-            if (imgui.checkbox(_L("Swap Y/Z axes"), swap_yz)) {
+            if (imgui.bbl_checkbox(_L("Swap Y/Z axes"), swap_yz)) {
                 params_copy.swap_yz = swap_yz;
                 params_changed = true;
             }
@@ -540,6 +612,9 @@ void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
 #endif // ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
 
             ImGui::Separator();
+            float window_width = ImGui::GetWindowWidth();
+            ImGui::Dummy({0.0, 0.0});
+            ImGui::SameLine((window_width - imgui.calc_text_size(_L("Close")).x)/2);
             if (imgui.button(_L("Close"))) {
                 // the user clicked on the [Close] button
                 m_settings_dialog_closed_by_user = true;
@@ -554,7 +629,8 @@ void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
     }
 
     imgui.end();
-
+    ImGui::PopStyleVar(1);
+    ImGuiWrapper::pop_toolbar_style();
     if (params_changed) {
         // Synchronize front end parameters to back end.
     	std::scoped_lock<std::mutex> lock(m_params_ui_mutex);

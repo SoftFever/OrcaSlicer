@@ -3767,16 +3767,18 @@ bool ImGui::BBLSliderScalar(const char *label, ImGuiDataType data_type, void *p_
 
     // Render grab
     if (grab_bb.Max.x > grab_bb.Min.x) {
-        float  offset = 1.0f;
-        ImVec2 p1 = ImVec2((grab_bb.Min.x + grab_bb.Max.x) / 2, (grab_bb.Min.y + grab_bb.Max.y) / 2 - offset);
-        ImVec2 p2 = ImVec2(grab_bb.Min.x, grab_bb.Max.y);
-        ImVec2 p3 = ImVec2(grab_bb.Max.x, grab_bb.Max.y);
+        float line_high = 2.0f;
+        const float offset = 2.0f;
+
+        ImVec2 p1 = ImVec2((grab_bb.Min.x + grab_bb.Max.x) / 2, (grab_bb.Min.y + grab_bb.Max.y) / 2 + offset);
+        ImVec2 p2 = ImVec2(grab_bb.Min.x, grab_bb.Max.y + offset);
+        ImVec2 p3 = ImVec2(grab_bb.Max.x, grab_bb.Max.y + offset);
         window->DrawList->AddTriangleFilled(p1, p2, p3, GetColorU32(ImGuiCol_SliderGrabActive));
         ImVec2 start_pos = ImVec2(frame_bb.Min.x, frame_bb.GetCenter().y - offset);
-        ImVec2 curr_pos  = ImVec2(grab_bb.GetCenter().x, frame_bb.GetCenter().y + offset);
-        ImVec2 end_pos   = ImVec2(frame_bb.Max.x, frame_bb.GetCenter().y + offset);
-        window->DrawList->AddRectFilled(start_pos, curr_pos, GetColorU32(ImGuiCol_SliderGrabActive), style.GrabRounding);
+        ImVec2 curr_pos  = ImVec2(grab_bb.GetCenter().x, frame_bb.GetCenter().y + line_high - offset);
+        ImVec2 end_pos   = ImVec2(frame_bb.Max.x, frame_bb.GetCenter().y + line_high - offset);
         window->DrawList->AddRectFilled(start_pos, end_pos, GetColorU32(ImGuiCol_SliderGrab), style.GrabRounding);
+        window->DrawList->AddRectFilled(start_pos, curr_pos, GetColorU32(ImGuiCol_SliderGrabActive), style.GrabRounding);
     }
 
     if (label_size.x > 0.0f) RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, frame_bb.Min.y + style.FramePadding.y), label);
