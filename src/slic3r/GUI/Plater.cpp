@@ -510,7 +510,7 @@ Sidebar::Sidebar(Plater *parent)
         connection_btn->SetToolTip(_L("Print connection"));
         connection_btn->Bind(wxEVT_BUTTON, [this, combo_printer](wxCommandEvent)
                              {
-                                auto preset_name = combo_printer->GetString(combo_printer->GetSelection()).ToUTF8().data();
+                                auto preset_name = into_u8(combo_printer->GetString(combo_printer->GetSelection()));
                                 auto printer_name =  from_u8(PhysicalPrinter::get_short_name(preset_name)+"-printer");
                                  PhysicalPrinterDialog dlg(this->GetParent(),printer_name);
                                  dlg.ShowModal();
