@@ -1427,7 +1427,7 @@ void TriangleSelector::get_facets(std::vector<indexed_triangle_set>& facets_per_
 {
     facets_per_type.clear();
 
-    for (int type = (int)EnforcerBlockerType::NONE; type < (int)EnforcerBlockerType::Extruder15; type++) {
+    for (int type = (int)EnforcerBlockerType::NONE; type <= (int)EnforcerBlockerType::ExtruderMax; type++) {
         facets_per_type.emplace_back();
         indexed_triangle_set& its = facets_per_type.back();
         std::vector<int> vertex_map(m_vertices.size(), -1);

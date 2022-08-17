@@ -7,11 +7,9 @@
 #include <cfloat>
 #include "Point.hpp"
 #include "TriangleMesh.hpp"
+#include "libslic3r/Model.hpp"
 
 namespace Slic3r {
-
-enum class EnforcerBlockerType : int8_t;
-
 
 // Following class holds information about selected triangles. It also has power
 // to recursively subdivide the triangles and make the selection finer.
@@ -275,7 +273,7 @@ public:
     std::pair<std::vector<std::pair<int, int>>, std::vector<bool>> serialize() const;
 
     // Load serialized data. Assumes that correct mesh is loaded.
-    void deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>>& data, bool needs_reset = true, EnforcerBlockerType max_ebt = (EnforcerBlockerType)std::numeric_limits<int8_t>::max());
+    void deserialize(const std::pair<std::vector<std::pair<int, int>>, std::vector<bool>>& data, bool needs_reset = true, EnforcerBlockerType max_ebt = EnforcerBlockerType::ExtruderMax);
 
     // For all triangles, remove the flag indicating that the triangle was selected by seed fill.
     void seed_fill_unselect_all_triangles();
@@ -312,7 +310,7 @@ protected:
         void set_division(int sides_to_split, int special_side_idx);
 
         // Get/set current state.
-        void set_state(EnforcerBlockerType type) { assert(! is_split()); state = type; }
+        void set_state(EnforcerBlockerType type) { assert(!is_split()); state = type; }
         EnforcerBlockerType get_state() const { assert(! is_split()); return state; }
 
         // Set if the triangle has been selected or unselected by seed fill.
