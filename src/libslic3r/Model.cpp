@@ -1538,7 +1538,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
     bool keep_lower = attributes.has(ModelObjectCutAttribute::KeepLower);
     bool cut_to_parts = attributes.has(ModelObjectCutAttribute::CutToParts);
     ModelObject* upper = keep_upper ? ModelObject::new_clone(*this) : nullptr;
-    ModelObject* lower = cut_to_parts ? upper : (keep_lower ? ModelObject::new_clone(*this) : nullptr);
+    ModelObject* lower = (cut_to_parts&&upper!=nullptr) ? upper : (keep_lower ? ModelObject::new_clone(*this) : nullptr);
 
     if (attributes.has(ModelObjectCutAttribute::KeepUpper)) {
         upper->set_model(nullptr);
