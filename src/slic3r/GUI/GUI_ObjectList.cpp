@@ -587,6 +587,11 @@ ModelConfig& ObjectList::get_item_config(const wxDataViewItem& item) const
                             (*m_objects)[obj_idx]->config;
 }
 
+ItemType ObjectList::get_item_type(const wxDataViewItem& item) const
+{
+    return m_objects_model->GetItemType(item);
+}
+
 void ObjectList::update_filament_values_for_items(const size_t filaments_count)
 {
     for (size_t i = 0; i < m_objects->size(); ++i)
@@ -1364,7 +1369,7 @@ void ObjectList::key_event(wxKeyEvent& event)
     //else if (event.GetUnicodeKey() == 'p')
     //    toggle_printable_state();
     else if (filaments_count() > 1) {
-        std::vector<wxChar> numbers = { '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+        std::vector<wxChar> numbers = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
         wxChar key_char = event.GetUnicodeKey();
         if (std::find(numbers.begin(), numbers.end(), key_char) != numbers.end()) {
             long extruder_number;
@@ -1841,8 +1846,7 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
         ModelVolume* new_volume = model_object.add_volume(std::move(mesh), type);
         new_volume->name = boost::filesystem::path(input_file).filename().string();
         // set a default extruder value, since user can't add it manually
-        // BBS
-        new_volume->config.set_key_value("extruder", new ConfigOptionInt(1));
+        new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
         // update source data
         new_volume->source.input_file = input_file;
         new_volume->source.object_idx = obj_idx;
@@ -1944,8 +1948,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     const wxString name = _L("Generic") + "-" + _(type_name);
     new_volume->name = into_u8(name);
     // set a default extruder value, since user can't add it manually
-    // BBS
-    new_volume->config.set_key_value("extruder", new ConfigOptionInt(1));
+    new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
     new_volume->source.is_from_builtin_objects = true;
 
     select_item([this, obj_idx, new_volume]() {
@@ -4718,7 +4721,7 @@ void ObjectList::ItemValueChanged(wxDataViewEvent &event)
     else if (event.GetColumn() == colFilament) {
         wxDataViewItem item = event.GetItem();
         if (m_objects_model->GetItemType(item) == itObject)
-            m_objects_model->UpdateVolumesExtruderBitmap(item, true);
+            m_objects_model->UpdateVolumesExtruderBitmap(item);
         update_filament_in_config(item);
     }
 }
@@ -4798,13 +4801,17 @@ void ObjectList::set_extruder_for_selected_items(const int extruder)
         wxDataViewItem item = (sel_item_type & itInstance) ? m_objects_model->GetObject(item) : sel_item;
         ItemType type = m_objects_model->GetItemType(item);
 
+        // ignore extruder 0 for object
+        if ((sel_item_type & (itObject | itInstance)) && extruder == 0)
+            continue;
+
         ModelConfig& config = get_item_config(item);
         if (config.has("extruder"))
             config.set("extruder", extruder);
         else
             config.set_key_value("extruder", new ConfigOptionInt(extruder));
 
-        // for object, clear all its volume's extruder config
+        // BBS: for object, clear all its volume's extruder config
         if (type & itObject) {
             ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
             for (ModelVolume* mv : node->m_model_object->volumes) {

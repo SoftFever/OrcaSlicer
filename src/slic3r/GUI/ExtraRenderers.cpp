@@ -313,11 +313,16 @@ wxWindow* BitmapChoiceRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelR
         labelRect.GetTopLeft(), wxSize(labelRect.GetWidth(), -1),
         0, nullptr, wxCB_READONLY | CB_NO_DROP_ICON | CB_NO_TEXT);
     c_editor->GetDropDown().SetUseContentWidth(true);
+
     // BBS
+    int def_id = get_default_extruder_idx ? get_default_extruder_idx() : 0;
+    wxBitmap* default_icon = get_extruder_color_icon(def_id, true);
+    if (is_volume_selected())
+        c_editor->Append("default", *default_icon);
     for (size_t i = 0; i < icons.size(); i++)
         c_editor->Append(wxString::Format("%d", i+1), *icons[i]);
 
-    c_editor->SetSelection(atoi(data.GetText().c_str()) - 1);
+    c_editor->SetSelection(atoi(data.GetText().c_str()));
 
     
 #ifdef __linux__

@@ -343,11 +343,16 @@ void ObjectDataViewModelNode::UpdateExtruderAndColorIcon(wxString extruder /*= "
         m_extruder = extruder; // update extruder
 
     // update color icon
+    bool as_default = false;
     size_t extruder_idx = atoi(extruder.c_str());
     if (extruder_idx == 0) {
-        if (m_type & itObject);
-        else if (m_type & itVolume && m_volume_type == ModelVolumeType::MODEL_PART) {
+        if (m_type & itObject) {
+            // Do nothing
+        }
+        else if (m_type & itVolume) {
+            // m_volume_type should be MODEL_PART or PARAMETER_MODIFIER type
             extruder_idx = atoi(m_parent->GetExtruder().c_str());
+            as_default = true;
         }
         else {
             m_extruder_bmp = wxNullBitmap;
@@ -355,15 +360,8 @@ void ObjectDataViewModelNode::UpdateExtruderAndColorIcon(wxString extruder /*= "
         }
     }
 
-    if (extruder_idx > 0) --extruder_idx;
-    // Create the bitmap with color bars.
-    std::vector<wxBitmap*> bmps = get_extruder_color_icons(false);// use wide icons
-    if (bmps.empty()) {
-        m_extruder_bmp = wxNullBitmap;
-        return;
-    }
-
-    m_extruder_bmp = *bmps[extruder_idx >= bmps.size() ? 0 : extruder_idx];
+    wxBitmap* bitmap = get_extruder_color_icon(extruder_idx, as_default);
+    m_extruder_bmp = bitmap ? *bitmap : wxNullBitmap;
 }
 
 // *****************************************************************************
@@ -549,7 +547,7 @@ wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent
     wxString extruder_str = extruder == 0 ? _(L("default")) : wxString::Format("%d", extruder);
 
     const auto node = new ObjectDataViewModelNode(root, name, volume_type, GetVolumeIcon(volume_type, warning_icon_name),
-        extruder == 0 ? root->m_extruder : extruder_str, root->m_volumes_cnt, warning_icon_name);
+        extruder_str, root->m_volumes_cnt, warning_icon_name);
     insert_position < 0 ? root->Append(node) : root->Insert(node, insert_position);
 
     // if part with errors is added, but object wasn't marked, then mark it
@@ -1372,26 +1370,33 @@ void ObjectDataViewModel::UpdateItemNames()
 }
 
 // BBS: add use_obj_extruder
-void ObjectDataViewModel::UpdateVolumesExtruderBitmap(wxDataViewItem obj_item, bool use_obj_extruder)
+void ObjectDataViewModel::UpdateVolumesExtruderBitmap(wxDataViewItem obj_item)
 {
     if (!obj_item.IsOk() || GetItemType(obj_item) != itObject)
         return;
     ObjectDataViewModelNode* obj_node = static_cast<ObjectDataViewModelNode*>(obj_item.GetID());
+    ModelObject* mo = obj_node->m_model_object;
     for (auto child : obj_node->GetChildren())
-        if (child->GetVolumeType() == ModelVolumeType::MODEL_PART)
-            child->UpdateExtruderAndColorIcon(use_obj_extruder ? obj_node->GetExtruder() : "");
+        // BBS: also update PARAMETER_MODIFIER
+        if (child->GetVolumeType() == ModelVolumeType::MODEL_PART || child->GetVolumeType() == ModelVolumeType::PARAMETER_MODIFIER) {
+            int vol_idx = child->GetIdx();
+            ModelVolume* mv = mo->volumes[vol_idx];
+            const ConfigOption* opt = mv->config.option("extruder");
+            int vol_extr = opt ? opt->getInt() : 0;
+            child->UpdateExtruderAndColorIcon(std::to_string(vol_extr));
+        }
 }
 
 int ObjectDataViewModel::GetDefaultExtruderIdx(wxDataViewItem item)
 {
     ItemType type = GetItemType(item);
     if (type == itObject)
-        return 0;
+        return 1;
 
-    if (type == itVolume && GetVolumeType(item) == ModelVolumeType::MODEL_PART) {
+    if (type == itVolume && (GetVolumeType(item) == ModelVolumeType::MODEL_PART || GetVolumeType(item) == ModelVolumeType::PARAMETER_MODIFIER)) {
         wxDataViewItem obj_item = GetParent(item);
         int extruder_id = GetExtruderNumber(obj_item);
-        if (extruder_id > 0) extruder_id--;
+        //if (extruder_id > 0) extruder_id--;
         return extruder_id;
     }
 
@@ -1582,7 +1587,7 @@ void ObjectDataViewModel::SetExtruder(const wxString& extruder, wxDataViewItem i
 
     node->UpdateExtruderAndColorIcon(extruder);
     if (node->GetType() == itObject)
-        UpdateVolumesExtruderBitmap(item, true);
+        UpdateVolumesExtruderBitmap(item);
 
     // BBS
     ItemChanged(item);

@@ -64,7 +64,10 @@ wxBitmap create_scaled_bitmap(const std::string& bmp_name, wxWindow *win = nullp
     const int px_cnt = 16, const bool grayscale = false, const bool resize = false);
 #endif
 
+// BBS
+wxBitmap* get_extruder_color_icon(int extruder_id, bool as_default, bool thin_icon = false);
 std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon = false);
+bool is_volume_selected();
 
 namespace Slic3r {
 namespace GUI {
