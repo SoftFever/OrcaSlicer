@@ -257,12 +257,88 @@ bool load_step(const char *path, Model *model, ImportStepProgressFn proFn, StepI
         getNamedSolids(TopLoc_Location{}, "", id, shapeTool, topLevelShapes.Value(iLabel), namedSolids);
     }
 
-    ModelObject* new_object = model->add_object();
-    const char *last_slash = strrchr(path, DIR_SEPARATOR);
+    std::vector<stl_file> stl;
+    stl.resize(namedSolids.size());
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, namedSolids.size()), [&](const tbb::blocked_range<size_t> &range) {
+        for (size_t i = range.begin(); i < range.end(); i++) {
+            BRepMesh_IncrementalMesh mesh(namedSolids[i].solid, STEP_TRANS_CHORD_ERROR, false, STEP_TRANS_ANGLE_RES, true);
+            // BBS: calculate total number of the nodes and triangles
+            int aNbNodes     = 0;
+            int aNbTriangles = 0;
+            for (TopExp_Explorer anExpSF(namedSolids[i].solid, TopAbs_FACE); anExpSF.More(); anExpSF.Next()) {
+                TopLoc_Location aLoc;
+                Handle(Poly_Triangulation) aTriangulation = BRep_Tool::Triangulation(TopoDS::Face(anExpSF.Current()), aLoc);
+                if (!aTriangulation.IsNull()) {
+                    aNbNodes += aTriangulation->NbNodes();
+                    aNbTriangles += aTriangulation->NbTriangles();
+                }
+            }
+
+            if (aNbTriangles == 0)
+                // BBS: No triangulation on the shape.
+                continue;
+
+            stl[i].stats.type                = inmemory;
+            stl[i].stats.number_of_facets    = (uint32_t) aNbTriangles;
+            stl[i].stats.original_num_facets = stl[i].stats.number_of_facets;
+            stl_allocate(&stl[i]);
+
+            std::vector<Vec3f> points;
+            points.reserve(aNbNodes);
+            // BBS: count faces missing triangulation
+            Standard_Integer aNbFacesNoTri = 0;
+            // BBS: fill temporary triangulation
+            Standard_Integer aNodeOffset    = 0;
+            Standard_Integer aTriangleOffet = 0;
+            for (TopExp_Explorer anExpSF(namedSolids[i].solid, TopAbs_FACE); anExpSF.More(); anExpSF.Next()) {
+                const TopoDS_Shape &aFace = anExpSF.Current();
+                TopLoc_Location     aLoc;
+                Handle(Poly_Triangulation) aTriangulation = BRep_Tool::Triangulation(TopoDS::Face(aFace), aLoc);
+                if (aTriangulation.IsNull()) {
+                    ++aNbFacesNoTri;
+                    continue;
+                }
+                // BBS: copy nodes
+                gp_Trsf aTrsf = aLoc.Transformation();
+                for (Standard_Integer aNodeIter = 1; aNodeIter <= aTriangulation->NbNodes(); ++aNodeIter) {
+                    gp_Pnt aPnt = aTriangulation->Node(aNodeIter);
+                    aPnt.Transform(aTrsf);
+                    points.emplace_back(std::move(Vec3f(aPnt.X(), aPnt.Y(), aPnt.Z())));
+                }
+                // BBS: copy triangles
+                const TopAbs_Orientation anOrientation = anExpSF.Current().Orientation();
+                Standard_Integer anId[3];
+                for (Standard_Integer aTriIter = 1; aTriIter <= aTriangulation->NbTriangles(); ++aTriIter) {
+                    Poly_Triangle aTri = aTriangulation->Triangle(aTriIter);
+
+                    aTri.Get(anId[0], anId[1], anId[2]);
+                    if (anOrientation == TopAbs_REVERSED)
+                        std::swap(anId[1], anId[2]);
+                    // BBS: save triangles facets
+                    stl_facet facet;
+                    facet.vertex[0] = points[anId[0] + aNodeOffset - 1].cast<float>();
+                    facet.vertex[1] = points[anId[1] + aNodeOffset - 1].cast<float>();
+                    facet.vertex[2] = points[anId[2] + aNodeOffset - 1].cast<float>();
+                    facet.extra[0]  = 0;
+                    facet.extra[1]  = 0;
+                    stl_normal normal;
+                    stl_calculate_normal(normal, &facet);
+                    stl_normalize_vector(normal);
+                    facet.normal                                      = normal;
+                    stl[i].facet_start[aTriangleOffet + aTriIter - 1] = facet;
+                }
+
+                aNodeOffset += aTriangulation->NbNodes();
+                aTriangleOffet += aTriangulation->NbTriangles();
+            }
+        }
+    });
+
+    ModelObject *new_object = model->add_object();
+    const char * last_slash = strrchr(path, DIR_SEPARATOR);
     new_object->name.assign((last_slash == nullptr) ? path : last_slash + 1);
     new_object->input_file = path;
-
-    for (size_t i = 0; i < namedSolids.size(); ++i) {
+    for (size_t i = 0; i < stl.size(); i++) {
         if (proFn) {
             proFn(LOAD_STEP_STAGE_GET_MESH, i, namedSolids.size(), cb_cancel);
             if (cb_cancel) {
@@ -273,94 +349,13 @@ bool load_step(const char *path, Model *model, ImportStepProgressFn proFn, StepI
             }
         }
 
-        BRepMesh_IncrementalMesh mesh(namedSolids[i].solid, STEP_TRANS_CHORD_ERROR, false, STEP_TRANS_ANGLE_RES, true);
-        //BBS: calculate total number of the nodes and triangles
-        int aNbNodes = 0;
-        int aNbTriangles = 0;
-        for (TopExp_Explorer anExpSF(namedSolids[i].solid, TopAbs_FACE); anExpSF.More(); anExpSF.Next()) {
-            TopLoc_Location aLoc;
-            Handle(Poly_Triangulation) aTriangulation = BRep_Tool::Triangulation(TopoDS::Face(anExpSF.Current()), aLoc);
-            if (!aTriangulation.IsNull()) {
-                aNbNodes += aTriangulation->NbNodes();
-                aNbTriangles += aTriangulation->NbTriangles();
-            }
-        }
-
-        if (aNbTriangles == 0) {
-            //BBS: No triangulation on the shape.
-            continue;
-        }
-
-        stl_file stl;
-        stl.stats.type = inmemory;
-        stl.stats.number_of_facets = (uint32_t)aNbTriangles;
-        stl.stats.original_num_facets = stl.stats.number_of_facets;
-        stl_allocate(&stl);
-
-        std::vector<Vec3f> points;
-        points.reserve(aNbNodes);
-        //BBS: count faces missing triangulation
-        Standard_Integer aNbFacesNoTri = 0;
-        //BBS: fill temporary triangulation
-        Standard_Integer aNodeOffset = 0;
-        Standard_Integer aTriangleOffet = 0;
-        for (TopExp_Explorer anExpSF(namedSolids[i].solid, TopAbs_FACE); anExpSF.More(); anExpSF.Next()) {
-            const TopoDS_Shape& aFace = anExpSF.Current();
-            TopLoc_Location aLoc;
-            Handle(Poly_Triangulation) aTriangulation = BRep_Tool::Triangulation(TopoDS::Face(aFace), aLoc);
-            if (aTriangulation.IsNull()) {
-                ++aNbFacesNoTri;
-                continue;
-            }
-            //BBS: copy nodes
-            gp_Trsf aTrsf = aLoc.Transformation();
-            for (Standard_Integer aNodeIter = 1; aNodeIter <= aTriangulation->NbNodes(); ++aNodeIter) {
-                gp_Pnt aPnt = aTriangulation->Node(aNodeIter);
-                aPnt.Transform(aTrsf);
-                points.emplace_back(std::move(Vec3f(aPnt.X(), aPnt.Y(), aPnt.Z())));
-            }
-            //BBS: copy triangles
-            const TopAbs_Orientation anOrientation = anExpSF.Current().Orientation();
-            for (Standard_Integer aTriIter = 1; aTriIter <= aTriangulation->NbTriangles(); ++aTriIter) {
-                Poly_Triangle aTri = aTriangulation->Triangle(aTriIter);
-
-                Standard_Integer anId[3];
-                aTri.Get(anId[0], anId[1], anId[2]);
-                if (anOrientation == TopAbs_REVERSED) {
-                    //BBS: swap 1, 2.
-                    Standard_Integer aTmpIdx = anId[1];
-                    anId[1] = anId[2];
-                    anId[2] = aTmpIdx;
-                }
-                //BBS: Update nodes according to the offset.
-                anId[0] += aNodeOffset;
-                anId[1] += aNodeOffset;
-                anId[2] += aNodeOffset;
-                //BBS: save triangles facets
-                stl_facet facet;
-                facet.vertex[0] = points[anId[0] - 1].cast<float>();
-                facet.vertex[1] = points[anId[1] - 1].cast<float>();
-                facet.vertex[2] = points[anId[2] - 1].cast<float>();
-                facet.extra[0] = 0;
-                facet.extra[1] = 0;
-                stl_normal normal;
-                stl_calculate_normal(normal, &facet);
-                stl_normalize_vector(normal);
-                facet.normal = normal;
-                stl.facet_start[aTriangleOffet + aTriIter - 1] = facet;
-            }
-
-            aNodeOffset += aTriangulation->NbNodes();
-            aTriangleOffet += aTriangulation->NbTriangles();
-        }
-
         TriangleMesh triangle_mesh;
-        triangle_mesh.from_stl(stl);
-        ModelVolume* new_volume = new_object->add_volume(std::move(triangle_mesh));
-        new_volume->name = namedSolids[i].name;
+        triangle_mesh.from_stl(stl[i]);
+        ModelVolume *new_volume       = new_object->add_volume(std::move(triangle_mesh));
+        new_volume->name              = namedSolids[i].name;
         new_volume->source.input_file = path;
-        new_volume->source.object_idx = (int)model->objects.size() - 1;
-        new_volume->source.volume_idx = (int)new_object->volumes.size() - 1;
+        new_volume->source.object_idx = (int) model->objects.size() - 1;
+        new_volume->source.volume_idx = (int) new_object->volumes.size() - 1;
     }
 
     shapeTool.reset(nullptr);
