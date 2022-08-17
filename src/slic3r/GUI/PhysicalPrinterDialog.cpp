@@ -206,7 +206,7 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent, wxString printer_
     update_full_printer_names();
 
     m_config = &m_printer.config;
-
+    m_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     m_optgroup = new ConfigOptionsGroup(this, _L("Print Host upload"), m_config);
     build_printhost_settings(m_optgroup);
 
