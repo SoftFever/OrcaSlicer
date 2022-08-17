@@ -174,7 +174,7 @@ private:
 
     void SendChangedEvent(wxEventType type, size_t index = (size_t)-1, std::string const &str = {}, long extra = 0);
 
-    static void DumpLog(Bambu_Session *session, int level, Bambu_Message const *msg);
+    static void DumpLog(void* context, int level, tchar const *msg);
 
 private:
     template<typename T> using Translator = std::function<int(json const &, T &, unsigned char const *)>;
@@ -265,8 +265,9 @@ private:
     int m_task_flags = 0;
 
 private:
-    struct Session : Bambu_Session
+    struct Session
     {
+        Bambu_Tunnel tunnel = nullptr;
         PrinterFileSystem * owner;
     };
     Session m_session;

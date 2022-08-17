@@ -10,6 +10,8 @@
 
 #include <cstring>
 
+//#define PRINTER_FILE_SYSTEM_TEST
+
 wxDEFINE_EVENT(EVT_STATUS_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_MODE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_FILE_CHANGED, wxCommandEvent);
@@ -22,7 +24,7 @@ static wxBitmap default_thumbnail;
 
 struct StaticBambuLib : BambuLib {
     static StaticBambuLib & get();
-    static int Fake_Bambu_Open(Bambu_Session * session, char const* uid) { return -2; }
+    static int Fake_Bambu_Create(Bambu_Tunnel*, char const*) { return -2; }
 };
 
 PrinterFileSystem::PrinterFileSystem()
@@ -31,12 +33,16 @@ PrinterFileSystem::PrinterFileSystem()
     if (!default_thumbnail.IsOk())
         default_thumbnail = wxImage(Slic3r::encode_path(Slic3r::var("live_stream_default.png").c_str()));
     m_session.owner = this;
-    //auto time = wxDateTime::Now();
-    //for (int i = 0; i < 240; ++i) {
-    //    m_file_list.push_back({"", time.GetTicks(), 0, default_thumbnail, FF_DOWNLOAD, i - 130});
-    //    time.Add(wxDateSpan::Days(-1));
-    //}
-    //BuildGroups();
+#ifdef PRINTER_FILE_SYSTEM_TEST
+    auto time = wxDateTime::Now();
+    for (int i = 0; i < 800; ++i) {
+        auto name = wxString::Format(L"img-%03d.jpg", i + 1);
+        wxImage im(L"D:\\work\\pic\\" + name);
+        m_file_list.push_back({name.ToUTF8().data(), time.GetTicks(), 0, im, i < 20 ? FF_DOWNLOAD : 0, i * 10 - 40});
+        time.Add(wxDateSpan::Days(-1));
+    }
+    BuildGroups();
+#endif
 }
 
 PrinterFileSystem::~PrinterFileSystem()
@@ -234,7 +240,7 @@ int PrinterFileSystem::RecvData(std::function<int(Bambu_Sample& sample)> const &
     int result = 0;
     while (true) {
         Bambu_Sample sample;
-        result = Bambu_ReadSample(&m_session, &sample);
+        result = Bambu_ReadSample(m_session.tunnel, &sample);
         if (result == Bambu_success) {
             result = callback(sample);
             if (result == 1)
@@ -556,15 +562,15 @@ void PrinterFileSystem::SendChangedEvent(wxEventType type, size_t index, std::st
         wxPostEvent(this, event);
 }
 
-void PrinterFileSystem::DumpLog(Bambu_Session *session, int level, Bambu_Message const *msg)
+void PrinterFileSystem::DumpLog(void * thiz, int, tchar const *msg)
 {
     BOOST_LOG_TRIVIAL(info) << "PrinterFileSystem: " << msg;
-    StaticBambuLib::get().Bambu_FreeLogMsg(msg);
+    static_cast<PrinterFileSystem*>(thiz)->Bambu_FreeLogMsg(msg);
 }
 
 boost::uint32_t PrinterFileSystem::SendRequest(int type, json const &req, callback_t2 const &callback)
 {
-    if (m_session.gSID < 0) {
+    if (m_session.tunnel == nullptr) {
         boost::unique_lock l(m_mutex);
         m_cond.notify_all();
         return 0;
@@ -640,7 +646,7 @@ void PrinterFileSystem::RecvMessageThread()
         if (!m_messages.empty()) {
             auto & msg = m_messages.front();
             l.unlock();
-            int n = Bambu_SendMessage(&m_session, CTRL_TYPE, msg.c_str(), msg.length());
+            int n = Bambu_SendMessage(m_session.tunnel, CTRL_TYPE, msg.c_str(), msg.length());
             l.lock();
             if (n == 0)
                 m_messages.pop_front();
@@ -650,7 +656,7 @@ void PrinterFileSystem::RecvMessageThread()
             }
         }
         l.unlock();
-        int n = Bambu_ReadSample(&m_session, &sample);
+        int n = Bambu_ReadSample(m_session.tunnel, &sample);
         l.lock();
         if (n == 0) {
             HandleResponse(l, sample);
@@ -726,9 +732,12 @@ void PrinterFileSystem::HandleResponse(boost::unique_lock<boost::mutex> &l, Bamb
 
 void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int result)
 {
-    if (m_session.gSID >= 0) {
+    if (m_session.tunnel) {
+        auto tunnel = m_session.tunnel;
+        m_session.tunnel = nullptr;
         l.unlock();
-        Bambu_Close(&m_session);
+        Bambu_Close(tunnel);
+        Bambu_Destroy(tunnel);
         l.lock();
     }
     if (m_session.owner == nullptr)
@@ -761,11 +770,16 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
             l.unlock();
             m_status = Status::Connecting;
             SendChangedEvent(EVT_STATUS_CHANGED, m_status);
-            m_session.logger = &PrinterFileSystem::DumpLog;
-            int ret          = Bambu_Open(&m_session, url.c_str() + 9); // skip bambu:/// sync
+            Bambu_Tunnel tunnel = nullptr;
+            int ret = Bambu_Create(&tunnel, url.c_str());
+            if (ret == 0) {
+                Bambu_SetLogger(tunnel, DumpLog, this);
+                ret = Bambu_Open(tunnel);
+            }
             if (ret == 0)
-                ret = Bambu_StartStream(&m_session);
+                ret = Bambu_StartStream(tunnel, false);
             l.lock();
+            m_session.tunnel = tunnel;
             if (ret == 0)
                 break;
             m_last_error = ret;
@@ -776,7 +790,9 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
     }
     m_status = Status::ListSyncing;
     SendChangedEvent(EVT_STATUS_CHANGED, m_status);
+#ifndef PRINTER_FILE_SYSTEM_TEST
     PostCallback([this] { ListAllFiles(); });
+#endif
 }
 
 
@@ -818,6 +834,9 @@ StaticBambuLib &StaticBambuLib::get()
 {
     static StaticBambuLib lib;
     // first load the library
+    
+    if (lib.Bambu_Open)
+        return lib;
 
     if (!module) {
         module = Slic3r::NetworkAgent::get_bambu_source_entry();
@@ -827,14 +846,17 @@ StaticBambuLib &StaticBambuLib::get()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", can not Load Library";
     }
 
+    GET_FUNC(Bambu_Create);
     GET_FUNC(Bambu_Open);
     GET_FUNC(Bambu_StartStream);
     GET_FUNC(Bambu_SendMessage);
     GET_FUNC(Bambu_ReadSample);
     GET_FUNC(Bambu_Close);
+    GET_FUNC(Bambu_Destroy);
+    GET_FUNC(Bambu_SetLogger);
     GET_FUNC(Bambu_FreeLogMsg);
 
     if (!lib.Bambu_Open)
-        lib.Bambu_Open = Fake_Bambu_Open;
+        lib.Bambu_Create = Fake_Bambu_Create;
     return lib;
 }
