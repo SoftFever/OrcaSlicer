@@ -2757,31 +2757,31 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             check_painting_version(m_mm_painting_version, MM_PAINTING_VERSION,
                 _(L("The selected 3MF contains multi-material painted object using a newer version of BambuStudio and is not compatible.")));*/
         } else if (m_curr_metadata_name == BBL_MODEL_ID_TAG) {
-            m_model_id = m_curr_characters;
+            m_model_id = xml_unescape(m_curr_characters);
         } else if (m_curr_metadata_name == BBL_MODEL_NAME_TAG) {
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found model name = " << m_curr_characters;
-            model_info.model_name = m_curr_characters;
+            model_info.model_name = xml_unescape(m_curr_characters);
         } else if (m_curr_metadata_name == BBL_DESIGNER_TAG) {
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found designer = " << m_curr_characters;
-            m_designer = m_curr_characters;
+            m_designer = xml_unescape(m_curr_characters);
         } else if (m_curr_metadata_name == BBL_DESIGNER_USER_ID_TAG) {
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found designer_user_id = " << m_curr_characters;
-            m_designer_user_id = m_curr_characters;
+            m_designer_user_id = xml_unescape(m_curr_characters);
         } else if (m_curr_metadata_name == BBL_DESIGNER_COVER_FILE_TAG) {
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found designer_cover = " << m_curr_characters;
-            model_info.cover_file = m_curr_characters;
+            model_info.cover_file = xml_unescape(m_curr_characters);
         } else if (m_curr_metadata_name == BBL_DESCRIPTION_TAG) {
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found description = " << m_curr_characters;
-            model_info.description = m_curr_characters;
+            model_info.description = xml_unescape(m_curr_characters);
         } else if (m_curr_metadata_name == BBL_LICENSE_TAG) {
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found license = " << m_curr_characters;
-            model_info.license = m_curr_characters;
+            model_info.license = xml_unescape(m_curr_characters);
         } else if (m_curr_metadata_name == BBL_COPYRIGHT_TAG) {
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found copyright = " << m_curr_characters;
-            model_info.copyright = m_curr_characters;
+            model_info.copyright = xml_unescape(m_curr_characters);
         } else if (m_curr_metadata_name == BBL_REGION_TAG) {
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found region = " << m_curr_characters;
-            m_contry_code = m_curr_characters;
+            m_contry_code = xml_unescape(m_curr_characters);
         }
 
         return true;
@@ -4363,6 +4363,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             return false;
         }
 
+
         {
             std::stringstream stream;
             reset_stream(stream);
@@ -4413,27 +4414,29 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 model_id = project->project_model_id;
                 region_code = project->project_country_code;
             }
+            if (!sub_model) {
+                stream << " <" << METADATA_TAG << " name=\"" << BBL_MODEL_NAME_TAG          << "\">" << xml_escape(name)         << "</" << METADATA_TAG << ">\n";
+                stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_TAG            << "\">" << xml_escape(user_name)    << "</" << METADATA_TAG << ">\n";
+                stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_USER_ID_TAG    << "\">" << user_id                  << "</" << METADATA_TAG << ">\n";
+                stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_COVER_FILE_TAG << "\">" << xml_escape(design_cover) << "</" << METADATA_TAG << ">\n";
+                stream << " <" << METADATA_TAG << " name=\"" << BBL_DESCRIPTION_TAG         << "\">" << xml_escape(description)  << "</" << METADATA_TAG << ">\n";
+                stream << " <" << METADATA_TAG << " name=\"" << BBL_COPYRIGHT_TAG           << "\">" << xml_escape(copyright)    << "</" << METADATA_TAG << ">\n";
+                stream << " <" << METADATA_TAG << " name=\"" << BBL_LICENSE_TAG             << "\">" << xml_escape(license)      << "</" << METADATA_TAG << ">\n";
 
-            stream << " <" << METADATA_TAG << " name=\"" << BBL_MODEL_NAME_TAG          << "\">" << xml_escape(name)         << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_TAG            << "\">" << xml_escape(user_name)    << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_USER_ID_TAG    << "\">" << user_id                  << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_COVER_FILE_TAG << "\">" << xml_escape(design_cover) << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"" << BBL_DESCRIPTION_TAG         << "\">" << xml_escape(description)  << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"" << BBL_COPYRIGHT_TAG           << "\">" << xml_escape(copyright)    << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"" << BBL_LICENSE_TAG             << "\">" << xml_escape(license)      << "</" << METADATA_TAG << ">\n";
+                /* save model info */
+                if (!model_id.empty()) {
+                    stream << " <" << METADATA_TAG << " name=\"" << BBL_MODEL_ID_TAG << "\">" << model_id    << "</" << METADATA_TAG << ">\n";
+                    stream << " <" << METADATA_TAG << " name=\"" << BBL_REGION_TAG << "\">"   << region_code << "</" << METADATA_TAG << ">\n";
+                }
 
-            /* save model info */
-            if (!model_id.empty()) {
-                stream << " <" << METADATA_TAG << " name=\"" << BBL_MODEL_ID_TAG << "\">" << model_id    << "</" << METADATA_TAG << ">\n";
-                stream << " <" << METADATA_TAG << " name=\"" << BBL_REGION_TAG << "\">"   << region_code << "</" << METADATA_TAG << ">\n";
+                std::string date = Slic3r::Utils::utc_timestamp(Slic3r::Utils::get_current_time_utc());
+                // keep only the date part of the string
+                date = date.substr(0, 10);
+                stream << " <" << METADATA_TAG << " name=\"CreationDate\">" << date << "</" << METADATA_TAG << ">\n";
+                stream << " <" << METADATA_TAG << " name=\"ModificationDate\">" << date << "</" << METADATA_TAG << ">\n";
+                stream << " <" << METADATA_TAG << " name=\"Application\">" << SLIC3R_APP_KEY << "-" << SLIC3R_VERSION << "</" << METADATA_TAG << ">\n";
             }
 
-            std::string date = Slic3r::Utils::utc_timestamp(Slic3r::Utils::get_current_time_utc());
-            // keep only the date part of the string
-            date = date.substr(0, 10);
-            stream << " <" << METADATA_TAG << " name=\"CreationDate\">" << date << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"ModificationDate\">" << date << "</" << METADATA_TAG << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"Application\">" << SLIC3R_APP_KEY << "-" << SLIC3R_VERSION << "</" << METADATA_TAG << ">\n";
             stream << " <" << RESOURCES_TAG << ">\n";
             std::string buf = stream.str();
             if (! buf.empty() && ! mz_zip_writer_add_staged_data(&context, buf.data(), buf.size())) {
