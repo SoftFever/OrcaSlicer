@@ -1824,9 +1824,12 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
 
 Preset& PresetCollection::load_preset(const std::string &path, const std::string &name, DynamicPrintConfig &&config, bool select)
 {
+    lock();
     auto it = this->find_preset_internal(name);
     if (it == m_presets.end() || it->name != name) {
         // The preset was not found. Create a new preset.
+        if (m_presets.begin() + m_idx_selected >= it)
+            ++m_idx_selected;
         it = m_presets.emplace(it, Preset(m_type, name, false));
     }
     Preset &preset = *it;
@@ -1836,6 +1839,7 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
     preset.is_dirty = false;
     if (select)
         this->select_preset_by_name(name, true);
+    unlock();
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", preset type %1%, name %2%, path %3%, is_system %4%, is_default %5% is_visible %6%")%Preset::get_type_string(m_type) %preset.name %preset.file %preset.is_system %preset.is_default %preset.is_visible;
     return preset;

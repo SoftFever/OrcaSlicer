@@ -1737,18 +1737,24 @@ void MainFrame::init_menubar_as_editor()
 
         fileMenu->AppendSeparator();
 
-        //BBS
+        // BBS
+        wxMenu *import_menu = new wxMenu();
 #ifdef __WINDOWS__
-        append_menu_item(fileMenu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots + "\tCtrl+I", _L("Load a model"),
+        append_menu_item(import_menu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots + "\tCtrl+I", _L("Load a model"),
             [this](wxCommandEvent&) { if (m_plater) {
             m_plater->add_model();
         } }, "menu_import", nullptr,
             [this](){return can_add_models(); }, this);
 #else
-        append_menu_item(fileMenu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots + "\tCtrl+I", _L("Load a model"),
+        append_menu_item(import_menu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots + "\tCtrl+I", _L("Load a model"),
             [this](wxCommandEvent&) { if (m_plater) { m_plater->add_model(); } }, "", nullptr,
             [this](){return can_add_models(); }, this);
 #endif
+        append_menu_item(import_menu, wxID_ANY, _L("Import Configs") + dots /*+ "\tCtrl+I"*/, _L("Load configs"),
+            [this](wxCommandEvent&) { load_config_file(); }, "menu_import", nullptr,
+            [this](){return true; }, this);
+
+        append_submenu(fileMenu, import_menu, wxID_ANY, _L("Import"), "");
 
 
         wxMenu* export_menu = new wxMenu();
@@ -1763,6 +1769,11 @@ void MainFrame::init_menubar_as_editor()
         append_menu_item(export_menu, wxID_ANY, _L("Export G-code") + dots/* + "\tCtrl+G"*/, _L("Export current plate as G-code"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(false); }, "menu_export_gcode", nullptr,
             [this]() {return can_export_gcode(); }, this);
+        append_menu_item(
+            export_menu, wxID_ANY, _L("Export &Configs") + dots /* + "\tCtrl+E"*/, _L("Export current configuration to files"), 
+            [this](wxCommandEvent &) { export_config(); },
+            "menu_export_config", nullptr, 
+            []() { return true; }, this);
 
         append_submenu(fileMenu, export_menu, wxID_ANY, _L("Export"), "");
 
@@ -2213,28 +2224,48 @@ void MainFrame::reslice_now()
         m_plater->reslice();
 }
 
+struct ConfigsOverwriteConfirmDialog : MessageDialog
+{
+    ConfigsOverwriteConfirmDialog(wxWindow *parent, wxString name, bool exported)
+        : MessageDialog(parent,
+                        wxString::Format(exported ? _("A file exists with the same name: %s, do you wan't to override it.") :
+                                                  _("A config exists with the same name: %s, do you wan't to override it."),
+                                         name),
+                        _L(exported ? "Overwrite file" : "Overwrite config"),
+                        wxYES_NO | wxNO_DEFAULT)
+    {
+        add_button(wxID_YESTOALL, false, _L("Yes to All"));
+        add_button(wxID_NOTOALL, false, _L("No to All"));
+    }
+};
+
 void MainFrame::export_config()
 {
     // Generate a cummulative configuration for the selected print, filaments and printer.
-    auto config = wxGetApp().preset_bundle->full_config();
-    // Validate the cummulative configuration.
-    auto valid = config.validate();
-    if (! valid.empty()) {
-        show_error(this, valid);
-        return;
-    }
-    // Ask user for the file name for the config file.
-    wxFileDialog dlg(this, _L("Save configuration as:"),
-        !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
-        !m_last_config.IsEmpty() ? get_base_name(m_last_config) : "config.ini",
-        file_wildcards(FT_INI), wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    wxString file;
+    wxDirDialog dlg(this, _L("Choose a directory"),
+        from_u8(!m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir()), wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+    wxString path;
     if (dlg.ShowModal() == wxID_OK)
-        file = dlg.GetPath();
-    if (!file.IsEmpty()) {
-        wxGetApp().app_config->update_config_dir(get_dir_name(file));
-        m_last_config = file;
-        config.save(file.ToUTF8().data());
+        path = dlg.GetPath();
+    if (!path.IsEmpty()) {
+        // Export the config bundle.
+        wxGetApp().app_config->update_config_dir(into_u8(path));
+        try {
+            auto files = wxGetApp().preset_bundle->export_current_configs(into_u8(path), [this](std::string const & name) {
+                    ConfigsOverwriteConfirmDialog dlg(this, from_u8(name), true);
+                    int res = dlg.ShowModal();
+                    int ids[]{wxID_NO, wxID_YES, wxID_NOTOALL, wxID_YESTOALL};
+                    return std::find(ids, ids + 4, res) - ids;
+            }, false);
+            if (!files.empty())
+                m_last_config = from_u8(files.back());
+            MessageDialog dlg(this, wxString::Format(_L_PLURAL("There is %d config exported. (Only non-system configs)", 
+                "There are %d configs exported. (Only non-system configs)", files.size()), files.size()),
+                              _L("Export result"), wxOK);
+            dlg.ShowModal();
+        } catch (const std::exception &ex) {
+            show_error(this, ex.what());
+        }
     }
 }
 
@@ -2244,16 +2275,34 @@ void MainFrame::load_config_file()
     //BBS do not load config file
  //   if (!wxGetApp().check_and_save_current_preset_changes(_L("Loading profile file"), "", false))
  //       return;
- //   wxFileDialog dlg(this, _L("Select profile to load:"),
- //       !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
- //       "config.json", "INI files (*.ini, *.gcode)|*.json;;*.gcode;*.g", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
- //    wxString file;
- //   if (dlg.ShowModal() == wxID_OK)
- //       file = dlg.GetPath();
- //   if (! file.IsEmpty() && this->load_config_file(file.ToUTF8().data())) {
- //       wxGetApp().app_config->update_config_dir(get_dir_name(file));
- //       m_last_config = file;
- //   }
+    wxFileDialog dlg(this, _L("Select profile to load:"),
+        !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
+        "config.json", "Config files (*.json)|*.json", wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
+     wxArrayString files;
+    if (dlg.ShowModal() != wxID_OK)
+        return;
+    dlg.GetPaths(files);
+    std::vector<std::string> cfiles;
+    for (auto file : files) {
+        cfiles.push_back(into_u8(file));
+        m_last_config = file;
+    }
+    bool update = false;
+    wxGetApp().preset_bundle->import_presets(cfiles, [this](std::string const & name) {
+            ConfigsOverwriteConfirmDialog dlg(this, from_u8(name), false);
+            int           res = dlg.ShowModal();
+            int           ids[]{wxID_NO, wxID_YES, wxID_NOTOALL, wxID_YESTOALL};
+            return std::find(ids, ids + 4, res) - ids;
+        },
+        ForwardCompatibilitySubstitutionRule::Enable);
+    if (!cfiles.empty()) {
+        wxGetApp().app_config->update_config_dir(get_dir_name(cfiles.back()));
+        wxGetApp().load_current_presets();
+    }
+    MessageDialog dlg2(this, wxString::Format(_L_PLURAL("There is %d config imported. (Only non-system and compatible configs)", 
+        "There are %d configs imported. (Only non-system and compatible configs)", cfiles.size()), cfiles.size()),
+                        _L("Import result"), wxOK);
+    dlg2.ShowModal();
 }
 
 // Load a config file containing a Print, Filament & Printer preset from command line.
@@ -2737,7 +2786,7 @@ std::string MainFrame::get_base_name(const wxString &full_name, const char *exte
 
 std::string MainFrame::get_dir_name(const wxString &full_name) const
 {
-    return boost::filesystem::path(full_name.wx_str()).parent_path().string();
+    return boost::filesystem::path(into_u8(full_name)).parent_path().string();
 }
 
 
