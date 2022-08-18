@@ -2084,13 +2084,13 @@ void MainFrame::init_menubar_as_editor()
     //m_topbar->AddDropDownMenuItem(config_item);
     m_topbar->AddDropDownSubMenu(helpMenu, _L("Help"));
 #else
-    m_menubar->Append(fileMenu, _L("&File"));
+    m_menubar->Append(fileMenu, wxString::Format("&%s", _L("File")));
     if (editMenu)
-        m_menubar->Append(editMenu, _L("&Edit"));
+        m_menubar->Append(editMenu, wxString::Format("&%s", _L("Edit")));
     if (viewMenu)
-        m_menubar->Append(viewMenu, _L("&View"));
+        m_menubar->Append(viewMenu, wxString::Format("&%s", _L("View")));
     if (helpMenu)
-        m_menubar->Append(helpMenu, _L("&Help"));
+        m_menubar->Append(helpMenu, wxString::Format("&%s", _L("Help")));
     SetMenuBar(m_menubar);
 #endif
 
