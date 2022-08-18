@@ -1130,6 +1130,46 @@ void Print::auto_assign_extruders(ModelObject* model_object) const
     }
 }
 
+void  PrintObject::set_shared_object(PrintObject *object)
+{
+    m_shared_object = object;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, found shared object from %2%")%this%m_shared_object;
+}
+
+void  PrintObject::clear_shared_object()
+{
+    if (m_shared_object) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, clear previous shared object data %2%")%this %m_shared_object;
+        m_layers.clear();
+        m_support_layers.clear();
+        m_tree_support_layers.clear();
+
+        m_shared_object = nullptr;
+
+        invalidate_all_steps_without_cancel();
+    }
+}
+
+void  PrintObject::copy_layers_from_shared_object()
+{
+    if (m_shared_object) {
+        m_layers.clear();
+        m_support_layers.clear();
+        m_tree_support_layers.clear();
+
+        firstLayerObjSliceByVolume.clear();
+        firstLayerObjSliceByGroups.clear();
+
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, copied layers from object %2%")%this%m_shared_object;
+        m_layers = m_shared_object->layers();
+        m_support_layers = m_shared_object->support_layers();
+        m_tree_support_layers = m_shared_object->tree_support_layers();
+
+        firstLayerObjSliceByVolume = m_shared_object->firstLayerObjSlice();
+        firstLayerObjSliceByGroups = m_shared_object->firstLayerObjGroups();
+    }
+}
+
 // BBS
 BoundingBox PrintObject::get_first_layer_bbox(float& a, float& layer_height, std::string& name)
 {
@@ -1179,15 +1219,115 @@ void Print::process()
 {
     name_tbb_thread_pool_threads_set_locale();
 
+    //compute the PrintObject with the same geometries
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, enter")%this;
+    for (PrintObject *obj : m_objects)
+        obj->clear_shared_object();
+
+    //add the print_object share check logic
+    auto is_print_object_the_same = [this](const PrintObject* object1, const PrintObject* object2) -> bool{
+        if (object1->trafo().matrix() != object2->trafo().matrix())
+            return false;
+        const ModelObject* model_obj1 = object1->model_object();
+        const ModelObject* model_obj2 = object2->model_object();
+        if (model_obj1->volumes.size() != model_obj2->volumes.size())
+            return false;
+        bool has_extruder1 = model_obj1->config.has("extruder");
+        bool has_extruder2 = model_obj2->config.has("extruder");
+        if ((has_extruder1 != has_extruder2)
+            || (has_extruder1 && model_obj1->config.extruder() != model_obj2->config.extruder()))
+            return false;
+        for (int index = 0; index < model_obj1->volumes.size(); index++) {
+            const ModelVolume &model_volume1 = *model_obj1->volumes[index];
+            const ModelVolume &model_volume2 = *model_obj2->volumes[index];
+            if (model_volume1.type() != model_volume2.type())
+                return false;
+            if (model_volume1.mesh_ptr() != model_volume2.mesh_ptr())
+                return false;
+            has_extruder1 = model_volume1.config.has("extruder");
+            has_extruder2 = model_volume2.config.has("extruder");
+            if ((has_extruder1 != has_extruder2)
+                || (has_extruder1 && model_volume1.config.extruder() != model_volume2.config.extruder()))
+                return false;
+            if (!model_volume1.supported_facets.equals(model_volume2.supported_facets))
+                return false;
+            if (!model_volume1.seam_facets.equals(model_volume2.seam_facets))
+                return false;
+            if (!model_volume1.mmu_segmentation_facets.equals(model_volume2.mmu_segmentation_facets))
+                return false;
+            if (model_volume1.config.get() != model_volume2.config.get())
+                return false;
+        }
+        //if (!object1->config().equals(object2->config()))
+        //    return false;
+        if (model_obj1->config.get() != model_obj2->config.get())
+            return false;
+        return true;
+    };
+    int object_count = m_objects.size();
+    std::set<PrintObject*> need_slicing_objects;
+    for (int index = 0; index < object_count; index++)
+    {
+        PrintObject *obj =  m_objects[index];
+        for (PrintObject *slicing_obj : need_slicing_objects)
+        {
+            if (is_print_object_the_same(obj, slicing_obj)) {
+                obj->set_shared_object(slicing_obj);
+                break;
+            }
+        }
+        if (!obj->get_shared_object())
+            need_slicing_objects.insert(obj);
+    }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": total object counts %1% in current print, need to slice %2%")%m_objects.size()%need_slicing_objects.size();
     BOOST_LOG_TRIVIAL(info) << "Starting the slicing process." << log_memory_info();
+    for (PrintObject *obj : m_objects) {
+        if (need_slicing_objects.count(obj) != 0) {
+            obj->make_perimeters();
+        }
+        else {
+            if (obj->set_started(posSlice))
+                obj->set_done(posSlice);
+            if (obj->set_started(posPerimeters))
+                obj->set_done(posPerimeters);
+        }
+    }
+    for (PrintObject *obj : m_objects) {
+        if (need_slicing_objects.count(obj) != 0) {
+            obj->infill();
+        }
+        else {
+            if (obj->set_started(posPrepareInfill))
+                obj->set_done(posPrepareInfill);
+            if (obj->set_started(posInfill))
+                obj->set_done(posInfill);
+        }
+    }
+    for (PrintObject *obj : m_objects) {
+        if (need_slicing_objects.count(obj) != 0) {
+            obj->ironing();
+        }
+        else {
+            if (obj->set_started(posIroning))
+                obj->set_done(posIroning);
+        }
+    }
+    for (PrintObject *obj : m_objects) {
+        if (need_slicing_objects.count(obj) != 0) {
+            obj->generate_support_material();
+        }
+        else {
+            if (obj->set_started(posSupportMaterial))
+                obj->set_done(posSupportMaterial);
+        }
+    }
+
     for (PrintObject *obj : m_objects)
-        obj->make_perimeters();
-    for (PrintObject *obj : m_objects)
-        obj->infill();
-    for (PrintObject *obj : m_objects)
-        obj->ironing();
-    for (PrintObject *obj : m_objects)
-        obj->generate_support_material();
+    {
+        if (need_slicing_objects.count(obj) == 0)
+            obj->copy_layers_from_shared_object();
+    }
     if (this->set_started(psWipeTower)) {
         m_wipe_tower_data.clear();
         m_tool_ordering.clear();
@@ -1290,8 +1430,17 @@ void Print::process()
         this->set_done(psSkirtBrim);
     }
     //BBS
-    for (PrintObject *obj : m_objects)
-        obj->simplify_extrusion_path();
+    for (PrintObject *obj : m_objects) {
+        if (need_slicing_objects.count(obj) != 0) {
+            obj->simplify_extrusion_path();
+        }
+        else {
+            if (obj->set_started(posSimplifyPath))
+                obj->set_done(posSimplifyPath);
+            if (obj->set_started(posSimplifySupportPath))
+                obj->set_done(posSimplifySupportPath);
+        }
+    }
 
     BOOST_LOG_TRIVIAL(info) << "Slicing process finished." << log_memory_info();
 }
@@ -1632,7 +1781,7 @@ void Print::_make_wipe_tower()
         for (LayerTools& layer_tools : layer_tools_array) {
             layer_tools.has_wipe_tower = true;
             if (layer_tools.wipe_tower_partitions == 0) {
-                layer_tools.wipe_tower_partitions = 1; 
+                layer_tools.wipe_tower_partitions = 1;
             }
         }
     }

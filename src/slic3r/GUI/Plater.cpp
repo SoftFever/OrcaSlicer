@@ -2740,6 +2740,14 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             context += append;
                             show_info(q, context, _L("Newer 3mf version"));
                         }
+                        else {
+                            //if the minor version is not matched
+                            if (file_version.min() != app_version.min()) {
+                                wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your software.\n"),
+                                                 file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
+                                show_info(q, text, _L("Newer 3mf version"));
+                            }
+                        }
                     } else if (!load_config) {
                         for (ModelObject *model_object : model.objects) {
                             model_object->config.reset();

@@ -152,10 +152,14 @@ public:
 
     const TriangleMeshStats& stats() const { return m_stats; }
 
+    void set_init_shift(const Vec3d &offset) { m_init_shift = offset; }
+    Vec3d get_init_shift() const { return m_init_shift; }
+
     indexed_triangle_set its;
 
 private:
     TriangleMeshStats m_stats;
+    Vec3d m_init_shift {0.0, 0.0, 0.0};
 };
 
 // Index of face indices incident with a vertex index.

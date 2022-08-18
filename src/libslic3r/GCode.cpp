@@ -667,6 +667,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
             --idx_tree_support_layer;
         }
 
+        layer_to_print.original_object = &object;
         layers_to_print.push_back(layer_to_print);
 
         bool has_extrusions = (layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
@@ -2151,7 +2152,9 @@ std::vector<GCode::InstanceToPrint> GCode::sort_print_object_instances(
         // Sequential print, single object is being printed.
         for (ObjectByExtruder &object_by_extruder : objects_by_extruder) {
             const size_t       layer_id     = &object_by_extruder - objects_by_extruder.data();
-            const PrintObject *print_object = layers[layer_id].object();
+            //BBS:add the support of shared print object
+            const PrintObject *print_object = layers[layer_id].original_object;
+            //const PrintObject *print_object = layers[layer_id].object();
             if (print_object)
                 out.emplace_back(object_by_extruder, layer_id, *print_object, single_object_instance_idx);
         }
@@ -2161,7 +2164,9 @@ std::vector<GCode::InstanceToPrint> GCode::sort_print_object_instances(
         sorted.reserve(objects_by_extruder.size());
         for (ObjectByExtruder &object_by_extruder : objects_by_extruder) {
             const size_t       layer_id     = &object_by_extruder - objects_by_extruder.data();
-            const PrintObject *print_object = layers[layer_id].object();
+            //BBS:add the support of shared print object
+            const PrintObject *print_object = layers[layer_id].original_object;
+            //const PrintObject *print_object = layers[layer_id].object();
             if (print_object)
                 sorted.emplace_back(print_object, &object_by_extruder);
         }
@@ -2171,6 +2176,10 @@ std::vector<GCode::InstanceToPrint> GCode::sort_print_object_instances(
             out.reserve(sorted.size());
             for (const PrintInstance *instance : *ordering) {
                 const PrintObject &print_object = *instance->print_object;
+                //BBS:add the support of shared print object
+                //const PrintObject* print_obj_ptr = &print_object;
+                //if (print_object.get_shared_object())
+                //    print_obj_ptr = print_object.get_shared_object();
                 std::pair<const PrintObject*, ObjectByExtruder*> key(&print_object, nullptr);
                 auto it = std::lower_bound(sorted.begin(), sorted.end(), key);
                 if (it != sorted.end() && it->first == &print_object)

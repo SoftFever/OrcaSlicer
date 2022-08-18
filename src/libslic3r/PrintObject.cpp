@@ -86,6 +86,7 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Transfor
 
 PrintObject::~PrintObject()
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, m_shared_object %2%")%this%m_shared_object;
     if (m_shared_regions && -- m_shared_regions->m_ref_cnt == 0) delete m_shared_regions;
     clear_layers();
     clear_support_layers();
@@ -535,9 +536,11 @@ std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> PrintObject::prepare
 
 void PrintObject::clear_layers()
 {
-    for (Layer *l : m_layers)
-        delete l;
-    m_layers.clear();
+    if (!m_shared_object) {
+        for (Layer *l : m_layers)
+            delete l;
+        m_layers.clear();
+    }
 }
 
 Layer* PrintObject::add_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z)
@@ -573,9 +576,11 @@ SupportLayer* PrintObject::get_support_layer_at_printz(coordf_t print_z, coordf_
 
 void PrintObject::clear_tree_support_layers()
 {
-    for (TreeSupportLayer* l : m_tree_support_layers)
-        delete l;
-    m_tree_support_layers.clear();
+    if (!m_shared_object) {
+        for (TreeSupportLayer* l : m_tree_support_layers)
+            delete l;
+        m_tree_support_layers.clear();
+    }
 }
 
 std::shared_ptr<TreeSupportData> PrintObject::alloc_tree_support_preview_cache()
@@ -602,9 +607,11 @@ TreeSupportLayer* PrintObject::add_tree_support_layer(int id, coordf_t height, c
 
 void PrintObject::clear_support_layers()
 {
-    for (Layer *l : m_support_layers)
-        delete l;
-    m_support_layers.clear();
+    if (!m_shared_object) {
+        for (Layer *l : m_support_layers)
+            delete l;
+        m_support_layers.clear();
+    }
 }
 
 SupportLayer* PrintObject::add_support_layer(int id, int interface_id, coordf_t height, coordf_t print_z)

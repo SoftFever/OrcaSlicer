@@ -258,6 +258,8 @@ static constexpr const char* SOURCE_OFFSET_Z_KEY = "source_offset_z";
 static constexpr const char* SOURCE_IN_INCHES    = "source_in_inches";
 static constexpr const char* SOURCE_IN_METERS    = "source_in_meters";
 
+static constexpr const char* MESH_SHARED_KEY = "mesh_shared";
+
 static constexpr const char* MESH_STAT_EDGES_FIXED          = "edges_fixed";
 static constexpr const char* MESH_STAT_DEGENERATED_FACETS   = "degenerate_facets";
 static constexpr const char* MESH_STAT_FACETS_REMOVED       = "facets_removed";
@@ -702,6 +704,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         std::string m_thumbnail_path;
         std::vector<std::string> m_sub_model_paths;
 
+        std::map<int, ModelVolume*> m_shared_meshes;
+
         //BBS: plater related structures
         bool m_is_bbl_3mf { false };
         bool m_parsing_slice_info { false };
@@ -847,8 +851,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         bool _handle_start_relationship(const char** attributes, unsigned int num_attributes);
 
-        void _generate_current_object_list(std::vector<Id> &sub_objects, Id object_id, IdToCurrentObjectMap current_objects);
-        bool _generate_volumes_new(ModelObject& object, const std::vector<Id> &sub_objects, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions);
+        void _generate_current_object_list(std::vector<Component> &sub_objects, Id object_id, IdToCurrentObjectMap current_objects);
+        bool _generate_volumes_new(ModelObject& object, const std::vector<Component> &sub_objects, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions);
         bool _generate_volumes(ModelObject& object, const Geometry& geometry, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions);
 
         // callbacks to parse the .model file
@@ -1281,7 +1285,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         add_error("3rd 3mf, can not find object, id " + std::to_string(object.first.second));
                         return false;
                     }
-                    std::vector<Id> object_id_list;
+                    std::vector<Component> object_id_list;
                     _generate_current_object_list(object_id_list, object.first, m_current_objects);
 
                     ObjectMetadata::VolumeMetadataList volumes;
@@ -1289,7 +1293,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                     for (int k = 0; k < object_id_list.size(); k++)
                     {
-                        Id object_id = object_id_list[k];
+                        Id object_id = object_id_list[k].object_id;
                         volumes.emplace_back(object_id.second);
                     }
 
@@ -1344,7 +1348,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 model_object->sla_drain_holes = std::move(obj_drain_holes->second);
             }*/
 
-            std::vector<Id> object_id_list;
+            std::vector<Component> object_id_list;
             _generate_current_object_list(object_id_list, object.first, m_current_objects);
 
             ObjectMetadata::VolumeMetadataList volumes;
@@ -1375,7 +1379,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 //volumes.emplace_back(0, (int)obj_geometry->second.triangles.size() - 1);
                 for (int k = 0; k < object_id_list.size(); k++)
                 {
-                    Id object_id = object_id_list[k];
+                    Id object_id = object_id_list[k].object_id;
                     volumes.emplace_back(object_id.second);
                 }
 
@@ -3279,34 +3283,34 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return true;
     }
 
-    void _BBS_3MF_Importer::_generate_current_object_list(std::vector<Id> &sub_objects, Id object_id, IdToCurrentObjectMap current_objects)
+    void _BBS_3MF_Importer::_generate_current_object_list(std::vector<Component> &sub_objects, Id object_id, IdToCurrentObjectMap current_objects)
     {
-        std::list<Id> id_list;
-        id_list.push_back(object_id);
+        std::list<Component> id_list;
+        id_list.push_back({ object_id, Transform3d::Identity() });
 
         while (!id_list.empty())
         {
-            Id current_id = id_list.front();
+            Component current_id = id_list.front();
             id_list.pop_front();
-            IdToCurrentObjectMap::iterator current_object = current_objects.find(current_id);
+            IdToCurrentObjectMap::iterator current_object = current_objects.find(current_id.object_id);
             if (current_object != current_objects.end()) {
                 //found one
                 if (!current_object->second.components.empty()) {
                     for (const Component& comp: current_object->second.components)
                     {
-                        id_list.push_back(comp.object_id);
+                        id_list.push_back(comp);
                     }
                 }
                 else if (!(current_object->second.geometry.empty())) {
                     //CurrentObject* ptr = &(current_objects[current_id]);
                     //CurrentObject* ptr2 = &(current_object->second);
-                    sub_objects.push_back(current_object->first);
+                    sub_objects.push_back({ current_object->first, current_id.transform });
                 }
             }
         }
     }
 
-    bool _BBS_3MF_Importer::_generate_volumes_new(ModelObject& object, const std::vector<Id> &sub_objects, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions)
+    bool _BBS_3MF_Importer::_generate_volumes_new(ModelObject& object, const std::vector<Component> &sub_objects, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions)
     {
         if (!object.volumes.empty()) {
             add_error("object already built with parts");
@@ -3319,7 +3323,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         for (unsigned int index = 0; index < sub_objects.size(); index++)
         {
             //find the volume metadata firstly
-            Id object_id = sub_objects[index];
+            Component sub_comp = sub_objects[index];
+            Id object_id = sub_comp.object_id;
             IdToCurrentObjectMap::iterator current_object = m_current_objects.find(object_id);
             if (current_object == m_current_objects.end()) {
                 add_error("sub_objects can not be found, id=" + std::to_string(object_id.second));
@@ -3338,67 +3343,111 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             Transform3d volume_matrix_to_object = Transform3d::Identity();
             bool        has_transform 		    = false;
+            int         shared_mesh_id = -1;
             if (volume_data)
             {
+                int found_count = 0;
                 // extract the volume transformation from the volume's metadata, if present
                 for (const Metadata& metadata : volume_data->metadata) {
                     if (metadata.key == MATRIX_KEY) {
                         volume_matrix_to_object = Slic3r::Geometry::transform3d_from_string(metadata.value);
                         has_transform 			= ! volume_matrix_to_object.isApprox(Transform3d::Identity(), 1e-10);
-                        break;
+                        found_count++;
                     }
+                    else if (metadata.key == MESH_SHARED_KEY){
+                        //add the shared mesh logic
+                        shared_mesh_id = ::atoi(metadata.value.c_str());
+                        found_count++;
+                    }
+
+                    if (found_count >= 2)
+                        break;
                 }
             }
             else {
                 //create a volume_data
                 volume_data = &default_volume_data;
             }
-            // splits volume out of imported geometry
-            indexed_triangle_set its;
-            its.indices.assign(sub_object->geometry.triangles.begin(), sub_object->geometry.triangles.end());
-            const size_t triangles_count = its.indices.size();
+
+            ModelVolume* volume = nullptr;
+            ModelVolume *shared_volume = nullptr;
+            if (shared_mesh_id != -1) {
+                std::map<int, ModelVolume*>::iterator iter = m_shared_meshes.find(shared_mesh_id);
+                if (iter != m_shared_meshes.end()) {
+                    shared_volume = iter->second;
+                }
+            }
+
+            const size_t triangles_count = sub_object->geometry.triangles.size();
             if (triangles_count == 0) {
                 add_error("found no trianges in the object " + std::to_string(sub_object->id));
                 return false;
             }
-            for (const Vec3i& face : its.indices) {
-                for (const int tri_id : face) {
-                    if (tri_id < 0 || tri_id >= int(sub_object->geometry.vertices.size())) {
-                        add_error("invalid vertex id in object " + std::to_string(sub_object->id));
-                        return false;
+            if (!shared_volume){
+                // splits volume out of imported geometry
+                indexed_triangle_set its;
+                its.indices.assign(sub_object->geometry.triangles.begin(), sub_object->geometry.triangles.end());
+                //const size_t triangles_count = its.indices.size();
+                //if (triangles_count == 0) {
+                //    add_error("found no trianges in the object " + std::to_string(sub_object->id));
+                //    return false;
+                //}
+                for (const Vec3i& face : its.indices) {
+                    for (const int tri_id : face) {
+                        if (tri_id < 0 || tri_id >= int(sub_object->geometry.vertices.size())) {
+                            add_error("invalid vertex id in object " + std::to_string(sub_object->id));
+                            return false;
+                        }
                     }
                 }
-            }
 
-            its.vertices.assign(sub_object->geometry.vertices.begin(), sub_object->geometry.vertices.end());
+                its.vertices.assign(sub_object->geometry.vertices.begin(), sub_object->geometry.vertices.end());
 
-            // BBS
-            for (const std::string prop_str : sub_object->geometry.face_properties) {
-                FaceProperty face_prop;
-                face_prop.from_string(prop_str);
-                its.properties.push_back(face_prop);
-            }
-
-            TriangleMesh triangle_mesh(std::move(its), volume_data->mesh_stats);
-
-            if (m_version == 0) {
-                // if the 3mf was not produced by BambuStudio and there is only one instance,
-                // bake the transformation into the geometry to allow the reload from disk command
-                // to work properly
-                if (object.instances.size() == 1) {
-                    triangle_mesh.transform(object.instances.front()->get_transformation().get_matrix(), false);
-                    object.instances.front()->set_transformation(Slic3r::Geometry::Transformation());
-                    //FIXME do the mesh fixing?
+                // BBS
+                for (const std::string prop_str : sub_object->geometry.face_properties) {
+                    FaceProperty face_prop;
+                    face_prop.from_string(prop_str);
+                    its.properties.push_back(face_prop);
                 }
-            }
-            if (triangle_mesh.volume() < 0)
-                triangle_mesh.flip_triangles();
 
-			ModelVolume* volume = object.add_volume(std::move(triangle_mesh));
+                TriangleMesh triangle_mesh(std::move(its), volume_data->mesh_stats);
+
+                if (m_version == 0) {
+                    // if the 3mf was not produced by BambuStudio and there is only one instance,
+                    // bake the transformation into the geometry to allow the reload from disk command
+                    // to work properly
+                    if (object.instances.size() == 1) {
+                        triangle_mesh.transform(object.instances.front()->get_transformation().get_matrix(), false);
+                        object.instances.front()->set_transformation(Slic3r::Geometry::Transformation());
+                        //FIXME do the mesh fixing?
+                    }
+                }
+                if (triangle_mesh.volume() < 0)
+                    triangle_mesh.flip_triangles();
+
+                volume = object.add_volume(std::move(triangle_mesh));
+
+                m_shared_meshes[sub_object->id] = volume;
+            }
+            else {
+                //create volume to use shared mesh
+                volume = object.add_volume_with_shared_mesh(*shared_volume);
+            }
             // stores the volume matrix taken from the metadata, if present
             if (has_transform)
                 volume->source.transform = Slic3r::Geometry::Transformation(volume_matrix_to_object);
+
             volume->calculate_convex_hull();
+
+            //set transform from 3mf
+            Slic3r::Geometry::Transformation comp_transformatino(sub_comp.transform);
+            volume->set_transformation(volume->get_transformation() * comp_transformatino);
+            if (shared_volume) {
+                const TriangleMesh& trangle_mesh = volume->mesh();
+                Vec3d shift = trangle_mesh.get_init_shift();
+                if (!shift.isApprox(Vec3d::Zero()))
+                    volume->translate(shift);
+            }
 
             // recreate custom supports, seam and mmu segmentation from previously loaded attribute
             if (m_load_config) {
@@ -3448,7 +3497,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     volume->source.is_converted_from_inches = metadata.value == "1";
                 else if (metadata.key == SOURCE_IN_METERS)
                     volume->source.is_converted_from_meters = metadata.value == "1";
-                else if (metadata.key == MATRIX_KEY)
+                else if ((metadata.key == MATRIX_KEY) || (metadata.key == MESH_SHARED_KEY))
                     continue;
                 else
                     volume->config.set_deserialize(metadata.key, metadata.value, config_substitutions);
@@ -4648,12 +4697,37 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 if (m_from_backup_save) {
                     for (unsigned int index = 1; index <= object.volumes.size(); index ++) {
                         unsigned int ref_id = object_id | (index << 16);
-                        stream << "    <" << COMPONENT_TAG << " objectid=\"" << ref_id << "\"/>\n";
+                        stream << "    <" << COMPONENT_TAG << " objectid=\"" << ref_id; // << "\"/>\n";
+                        //add the transform of the volume
+                        ModelVolume* volume = object.volumes[index - 1];
+                        const Transform3d& transf = volume->get_matrix();
+                        stream << "\" " << TRANSFORM_ATTR << "=\"";
+                        for (unsigned c = 0; c < 4; ++c) {
+                            for (unsigned r = 0; r < 3; ++r) {
+                                stream << transf(r, c);
+                                if (r != 2 || c != 3)
+                                    stream << " ";
+                            }
+                        }
+                        stream << "\"/>\n";
                     }
                 }
                 else {
-                    for (unsigned int index = object_id; index < volume_start_id; index ++)
-                        stream << "    <" << COMPONENT_TAG << " objectid=\"" << index << "\"/>\n";
+                    for (unsigned int index = object_id; index < volume_start_id; index ++) {
+                        stream << "    <" << COMPONENT_TAG << " objectid=\"" << index; // << "\"/>\n";
+                        //add the transform of the volume
+                        ModelVolume* volume = object.volumes[index - object_id];
+                        const Transform3d& transf = volume->get_matrix();
+                        stream << "\" " << TRANSFORM_ATTR << "=\"";
+                        for (unsigned c = 0; c < 4; ++c) {
+                            for (unsigned r = 0; r < 3; ++r) {
+                                stream << transf(r, c);
+                                if (r != 2 || c != 3)
+                                    stream << " ";
+                            }
+                        }
+                        stream << "\"/>\n";
+                    }
                 }
             }
             else {
@@ -4803,7 +4877,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             const Transform3d& matrix = volume->get_matrix();
 
             for (size_t i = 0; i < its.vertices.size(); ++i) {
-                Vec3f v = (matrix * its.vertices[i].cast<double>()).cast<float>();
+                //don't save the volume's matrix into vertex data
+                //add the shared mesh logic
+                //Vec3f v = (matrix * its.vertices[i].cast<double>()).cast<float>();
+                Vec3f v = its.vertices[i];
                 char* ptr = buf;
                 boost::spirit::karma::generate(ptr, boost::spirit::lit("     <") << VERTEX_TAG << " x=\"");
                 ptr = format_coordinate(v.x(), ptr);
@@ -5205,6 +5282,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     bool _BBS_3MF_Exporter::_add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const IdToObjectDataMap &objects_data, int export_plate_idx, bool save_gcode)
     {
         std::stringstream stream;
+        std::map<const TriangleMesh*, int> shared_meshes;
         // Store mesh transformation in full precision, as the volumes are stored transformed and they need to be transformed back
         // when loaded as accurately as possible.
 		stream << std::setprecision(std::numeric_limits<double>::max_digits10);
@@ -5295,6 +5373,17 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                             // stores volume's config data
                             for (const std::string& key : volume->config.keys()) {
                                 stream << "      <" << METADATA_TAG << " "<< KEY_ATTR << "=\"" << key << "\" " << VALUE_ATTR << "=\"" << volume->config.opt_serialize(key) << "\"/>\n";
+                            }
+
+                            //add the shared mesh logic
+                            const TriangleMesh* current_mesh = volume->mesh_ptr();
+                            std::map<const TriangleMesh*,int>::iterator mesh_iter;
+                            mesh_iter = shared_meshes.find(current_mesh);
+                            if (mesh_iter != shared_meshes.end()) {
+                                stream << "      <" << METADATA_TAG << " "<< KEY_ATTR << "=\"" << MESH_SHARED_KEY << "\" " << VALUE_ATTR << "=\"" << mesh_iter->second << "\"/>\n";
+                            }
+                            else {
+                                shared_meshes[current_mesh] = it->second;
                             }
 
                             // stores mesh's statistics

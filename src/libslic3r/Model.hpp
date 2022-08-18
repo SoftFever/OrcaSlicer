@@ -308,6 +308,7 @@ public:
     ModelVolume*            add_volume(TriangleMesh &&mesh, ModelVolumeType type = ModelVolumeType::MODEL_PART);
     ModelVolume*            add_volume(const ModelVolume &volume, ModelVolumeType type = ModelVolumeType::INVALID);
     ModelVolume*            add_volume(const ModelVolume &volume, TriangleMesh &&mesh);
+    ModelVolume*            add_volume_with_shared_mesh(const ModelVolume &other, ModelVolumeType type = ModelVolumeType::MODEL_PART);
     void                    delete_volume(size_t idx);
     void                    clear_volumes();
     void                    sort_volumes(bool full_sort);
@@ -617,6 +618,7 @@ public:
     void set_triangle_from_string(int triangle_id, const std::string& str);
     // After deserializing the last triangle, shrink data to fit.
     void shrink_to_fit() { m_data.first.shrink_to_fit(); m_data.second.shrink_to_fit(); }
+    bool equals(const FacetsAnnotation &other) const;
 
 private:
     // Constructors to be only called by derived classes.
@@ -676,6 +678,7 @@ public:
 
     // The triangular model.
     const TriangleMesh& mesh() const { return *m_mesh.get(); }
+    const TriangleMesh* mesh_ptr() const { return m_mesh.get(); }
     void                set_mesh(const TriangleMesh &mesh) { m_mesh = std::make_shared<const TriangleMesh>(mesh); }
     void                set_mesh(TriangleMesh &&mesh) { m_mesh = std::make_shared<const TriangleMesh>(std::move(mesh)); }
     void                set_mesh(const indexed_triangle_set &mesh) { m_mesh = std::make_shared<const TriangleMesh>(mesh); }
@@ -858,6 +861,18 @@ private:
         assert(this->id() != this->mmu_segmentation_facets.id());
         if (mesh.facets_count() > 1)
             calculate_convex_hull();
+    }
+    ModelVolume(ModelObject *object, const std::shared_ptr<const TriangleMesh> &mesh, ModelVolumeType type = ModelVolumeType::MODEL_PART) : m_mesh(mesh), m_type(type), object(object)
+    {
+		assert(this->id().valid());
+        assert(this->config.id().valid());
+        assert(this->supported_facets.id().valid());
+        assert(this->seam_facets.id().valid());
+        assert(this->mmu_segmentation_facets.id().valid());
+        assert(this->id() != this->config.id());
+        assert(this->id() != this->supported_facets.id());
+        assert(this->id() != this->seam_facets.id());
+        assert(this->id() != this->mmu_segmentation_facets.id());
     }
     ModelVolume(ModelObject *object, TriangleMesh &&mesh, TriangleMesh &&convex_hull, ModelVolumeType type = ModelVolumeType::MODEL_PART) :
 		m_mesh(new TriangleMesh(std::move(mesh))), m_convex_hull(new TriangleMesh(std::move(convex_hull))), m_type(type), object(object) {

@@ -270,7 +270,7 @@ static ExPolygons top_level_outer_brim_area(const Print                   &print
     return diff_ex(brim_area, no_brim_area);
 }
 
-// BBS: the brims of different objs will not overlapped with each other, and are stored by objs and by extruders 
+// BBS: the brims of different objs will not overlapped with each other, and are stored by objs and by extruders
 static ExPolygons top_level_outer_brim_area(const Print& print, const ConstPrintObjectPtrs& top_level_objects_with_brim,
     const float no_brim_offset, double& brim_width_max, std::map<ObjectID, double>& brim_width_map,
     std::map<ObjectID, ExPolygons>& brimAreaMap,
@@ -453,7 +453,7 @@ static ExPolygons inner_brim_area(const Print                   &print,
     return diff_ex(intersection_ex(to_polygons(std::move(brim_area)), holes), no_brim_area);
 }
 
-// BBS: the brims of different objs will not overlapped with each other, and are stored by objs and by extruders 
+// BBS: the brims of different objs will not overlapped with each other, and are stored by objs and by extruders
 static ExPolygons inner_brim_area(const Print& print, const ConstPrintObjectPtrs& top_level_objects_with_brim,
     const float no_brim_offset, std::map<ObjectID, ExPolygons>& brimAreaMap,
     std::map<ObjectID, ExPolygons>& supportBrimAreaMap,
@@ -906,7 +906,11 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                     std::vector<ModelVolume*> groupVolumePtrs;
                     for (auto& volumeID : volumeGroup.volume_ids) {
                         ModelVolume* currentModelVolumePtr = nullptr;
-                        for (auto volumePtr : object->model_object()->volumes) {
+                        //BBS: support shared object logic
+                        const PrintObject* shared_object = object->get_shared_object();
+                        if (!shared_object)
+                            shared_object = object;
+                        for (auto volumePtr : shared_object->model_object()->volumes) {
                             if (volumePtr->id() == volumeID) {
                                 currentModelVolumePtr = volumePtr;
                                 break;
@@ -1066,7 +1070,7 @@ static void optimize_polylines_by_reversing(Polylines *polylines)
             double dist_to_start = (next.first_point() - prev.last_point()).cast<double>().norm();
             double dist_to_end   = (next.last_point() - prev.last_point()).cast<double>().norm();
 
-            if (dist_to_end < dist_to_start) 
+            if (dist_to_end < dist_to_start)
                 next.reverse();
         }
     }
