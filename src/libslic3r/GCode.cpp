@@ -1567,7 +1567,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     print.throw_if_canceled();
 
     // Collect custom seam data from all objects.
-    m_seam_placer.init(print);
+    std::function<void(void)> throw_if_canceled_func = [&print]() { print.throw_if_canceled(); };
+    m_seam_placer.init(print, throw_if_canceled_func);
 
     // BBS: priming logic is removed, always set first extruer here.
     //if (! (has_wipe_tower && print.config().single_extruder_multi_material_priming))
@@ -2792,7 +2793,6 @@ GCode::LayerResult GCode::process_layer(
         m_wipe_tower->set_is_first_print(true);
 
     // Extrude the skirt, brim, support, perimeters, infill ordered by the extruders.
-    std::vector<std::unique_ptr<EdgeGrid::Grid>> lower_layer_edge_grids(layers.size());
     for (unsigned int extruder_id : layer_tools.extruders)
     {
         gcode += (layer_tools.has_wipe_tower && m_wipe_tower) ?
@@ -2981,9 +2981,9 @@ GCode::LayerResult GCode::process_layer(
                     //This behaviour is same with cura
                     if (is_infill_first && !first_layer) {
                         gcode += this->extrude_infill(print, by_region_specific, false);
-                        gcode += this->extrude_perimeters(print, by_region_specific, lower_layer_edge_grids[instance_to_print.layer_id]);
+                        gcode += this->extrude_perimeters(print, by_region_specific);
                     } else {
-                        gcode += this->extrude_perimeters(print, by_region_specific, lower_layer_edge_grids[instance_to_print.layer_id]);
+                        gcode += this->extrude_perimeters(print, by_region_specific);
                         gcode += this->extrude_infill(print,by_region_specific, false);
                     }
                     // ironing
@@ -3161,13 +3161,10 @@ static std::unique_ptr<EdgeGrid::Grid> calculate_layer_edge_grid(const Layer& la
 }
 
 
-std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, double speed, std::unique_ptr<EdgeGrid::Grid> *lower_layer_edge_grid)
+std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, double speed)
 {
     // get a copy; don't modify the orientation of the original loop object otherwise
     // next copies (if any) would not detect the correct orientation
-
-    if (m_layer->lower_layer && lower_layer_edge_grid != nullptr && ! *lower_layer_edge_grid)
-        *lower_layer_edge_grid = calculate_layer_edge_grid(*m_layer->lower_layer);
 
     //BBS: extrude contour of wall ccw, hole of wall cw, except spiral mode
     bool was_clockwise = loop.is_clockwise();
@@ -3178,17 +3175,13 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     // find the point of the loop that is closest to the current extruder position
     // or randomize if requested
     Point last_pos = this->last_pos();
-    if (m_config.spiral_mode) {
+    if (!m_config.spiral_mode && description == "perimeter") {
+        assert(m_layer != nullptr);
+        bool is_outer_wall_first = m_config.wall_infill_order == WallInfillOrder::OuterInnerInfill
+                                || m_config.wall_infill_order == WallInfillOrder::InfillOuterInner;
+        m_seam_placer.place_seam(m_layer, loop, is_outer_wall_first, this->last_pos());
+    } else
         loop.split_at(last_pos, false);
-    }
-    else {
-        //BBS
-        bool is_outer_wall_first =
-                m_config.wall_infill_order == WallInfillOrder::OuterInnerInfill ||
-                m_config.wall_infill_order == WallInfillOrder::InfillOuterInner;
-        m_seam_placer.place_seam(loop, this->last_pos(), is_outer_wall_first,
-            EXTRUDER_CONFIG(nozzle_diameter), lower_layer_edge_grid ? lower_layer_edge_grid->get() : nullptr);
-    }
 
     // clip the path to avoid the extruder to get exactly on the first point of the loop;
     // if polyline was shorter than the clipping distance we'd get a null polyline, so
@@ -3298,14 +3291,14 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
     return gcode;
 }
 
-std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string description, double speed, std::unique_ptr<EdgeGrid::Grid> *lower_layer_edge_grid)
+std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string description, double speed)
 {
     if (const ExtrusionPath* path = dynamic_cast<const ExtrusionPath*>(&entity))
         return this->extrude_path(*path, description, speed);
     else if (const ExtrusionMultiPath* multipath = dynamic_cast<const ExtrusionMultiPath*>(&entity))
         return this->extrude_multi_path(*multipath, description, speed);
     else if (const ExtrusionLoop* loop = dynamic_cast<const ExtrusionLoop*>(&entity))
-        return this->extrude_loop(*loop, description, speed, lower_layer_edge_grid);
+        return this->extrude_loop(*loop, description, speed);
     else
         throw Slic3r::InvalidArgument("Invalid argument supplied to extrude()");
     return "";
@@ -3327,24 +3320,15 @@ std::string GCode::extrude_path(ExtrusionPath path, std::string description, dou
 }
 
 // Extrude perimeters: Decide where to put seams (hide or align seams).
-std::string GCode::extrude_perimeters(const Print &print, const std::vector<ObjectByExtruder::Island::Region> &by_region, std::unique_ptr<EdgeGrid::Grid> &lower_layer_edge_grid)
+std::string GCode::extrude_perimeters(const Print &print, const std::vector<ObjectByExtruder::Island::Region> &by_region)
 {
     std::string gcode;
     for (const ObjectByExtruder::Island::Region &region : by_region)
         if (! region.perimeters.empty()) {
             m_config.apply(print.get_print_region(&region - &by_region.front()).config());
 
-            // plan_perimeters tries to place seams, it needs to have the lower_layer_edge_grid calculated already.
-            if (m_layer->lower_layer && ! lower_layer_edge_grid)
-                lower_layer_edge_grid = calculate_layer_edge_grid(*m_layer->lower_layer);
-
-            m_seam_placer.plan_perimeters(std::vector<const ExtrusionEntity*>(region.perimeters.begin(), region.perimeters.end()),
-                *m_layer, m_config.seam_position, this->last_pos(), EXTRUDER_CONFIG(nozzle_diameter),
-                (m_layer == NULL ? nullptr : m_layer->object()),
-                (lower_layer_edge_grid ? lower_layer_edge_grid.get() : nullptr));
-
             for (const ExtrusionEntity* ee : region.perimeters)
-                gcode += this->extrude_entity(*ee, "perimeter", -1., &lower_layer_edge_grid);
+                gcode += this->extrude_entity(*ee, "perimeter", -1.);
         }
     return gcode;
 }

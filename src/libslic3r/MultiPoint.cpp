@@ -63,6 +63,23 @@ int MultiPoint::find_point(const Point &point) const
     return -1;  // not found
 }
 
+int MultiPoint::find_point(const Point &point, double scaled_epsilon) const
+{
+    if (scaled_epsilon == 0) return this->find_point(point);
+
+    auto dist2_min = std::numeric_limits<double>::max();
+    auto eps2      = scaled_epsilon * scaled_epsilon;
+    int  idx_min   = -1;
+    for (const Point &pt : this->points) {
+        double d2 = (pt - point).cast<double>().squaredNorm();
+        if (d2 < dist2_min) {
+            idx_min   = int(&pt - &this->points.front());
+            dist2_min = d2;
+        }
+    }
+    return dist2_min < eps2 ? idx_min : -1;
+}
+
 bool MultiPoint::has_boundary_point(const Point &point) const
 {
     double dist = (point.projection_onto(*this) - point).cast<double>().norm();

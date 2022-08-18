@@ -446,6 +446,57 @@ namespace detail {
 		}
 	}
 
+    // Real-time collision detection, Ericson, Chapter 5
+    template<typename Vector>
+    static inline Vector closest_point_to_triangle(const Vector &p, const Vector &a, const Vector &b, const Vector &c)
+    {
+        using Scalar = typename Vector::Scalar;
+        // Check if P in vertex region outside A
+        Vector ab = b - a;
+        Vector ac = c - a;
+        Vector ap = p - a;
+        Scalar d1 = ab.dot(ap);
+        Scalar d2 = ac.dot(ap);
+        if (d1 <= 0 && d2 <= 0)
+          return a;
+        // Check if P in vertex region outside B
+        Vector bp = p - b;
+        Scalar d3 = ab.dot(bp);
+        Scalar d4 = ac.dot(bp);
+        if (d3 >= 0 && d4 <= d3)
+          return b;
+        // Check if P in edge region of AB, if so return projection of P onto AB
+        Scalar vc = d1*d4 - d3*d2;
+        if (a != b && vc <= 0 && d1 >= 0 && d3 <= 0) {
+            Scalar v = d1 / (d1 - d3);
+            return a + v * ab;
+        }
+        // Check if P in vertex region outside C
+        Vector cp = p - c;
+        Scalar d5 = ab.dot(cp);
+        Scalar d6 = ac.dot(cp);
+        if (d6 >= 0 && d5 <= d6)
+          return c;
+        // Check if P in edge region of AC, if so return projection of P onto AC
+        Scalar vb = d5*d2 - d1*d6;
+        if (vb <= 0 && d2 >= 0 && d6 <= 0) {
+          Scalar w = d2 / (d2 - d6);
+          return a + w * ac;
+        }
+        // Check if P in edge region of BC, if so return projection of P onto BC
+        Scalar va = d3*d6 - d5*d4;
+        if (va <= 0 && (d4 - d3) >= 0 && (d5 - d6) >= 0) {
+          Scalar w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+          return b + w * (c - b);
+        }
+        // P inside face region. Compute Q through its barycentric coordinates (u,v,w)
+        Scalar denom = Scalar(1.0) / (va + vb + vc);
+        Scalar v = vb * denom;
+        Scalar w = vc * denom;
+        return a + ab * v + ac * w; // = u*a + v*b + w*c, u = va * denom = 1.0-v-w
+    };
+
+
 	// Nothing to do with COVID-19 social distancing.
 	template<typename AVertexType, typename AIndexedFaceType, typename ATreeType, typename AVectorType>
 	struct IndexedTriangleSetDistancer {
@@ -453,74 +504,36 @@ namespace detail {
 		using IndexedFaceType 	= AIndexedFaceType;
 		using TreeType			= ATreeType;
 		using VectorType 		= AVectorType;
+		using ScalarType 		= typename VectorType::Scalar;
 
 		const std::vector<VertexType> 		&vertices;
 		const std::vector<IndexedFaceType> 	&faces;
 		const TreeType 						&tree;
 
 		const VectorType					 origin;
+
+		inline VectorType closest_point_to_origin(size_t primitive_index,
+		        ScalarType& squared_distance){
+		    const auto &triangle = this->faces[primitive_index];
+		    VectorType closest_point = closest_point_to_triangle<VectorType>(origin,
+		            this->vertices[triangle(0)].template cast<ScalarType>(),
+		            this->vertices[triangle(1)].template cast<ScalarType>(),
+		            this->vertices[triangle(2)].template cast<ScalarType>());
+		    squared_distance = (origin - closest_point).squaredNorm();
+		    return closest_point;
+		}
 	};
 
-	// Real-time collision detection, Ericson, Chapter 5
-	template<typename Vector>
-	static inline Vector closest_point_to_triangle(const Vector &p, const Vector &a, const Vector &b, const Vector &c)
-	{
-		using Scalar = typename Vector::Scalar;
-		// Check if P in vertex region outside A
-		Vector ab = b - a;
-		Vector ac = c - a;
-		Vector ap = p - a;
-		Scalar d1 = ab.dot(ap);
-		Scalar d2 = ac.dot(ap);
-		if (d1 <= 0 && d2 <= 0)
-		  return a;
-		// Check if P in vertex region outside B
-		Vector bp = p - b;
-		Scalar d3 = ab.dot(bp);
-		Scalar d4 = ac.dot(bp);
-		if (d3 >= 0 && d4 <= d3)
-		  return b;
-		// Check if P in edge region of AB, if so return projection of P onto AB
-		Scalar vc = d1*d4 - d3*d2;
-		if (a != b && vc <= 0 && d1 >= 0 && d3 <= 0) {
-		    Scalar v = d1 / (d1 - d3);
-		    return a + v * ab;
-		}
-		// Check if P in vertex region outside C
-		Vector cp = p - c;
-		Scalar d5 = ab.dot(cp);
-		Scalar d6 = ac.dot(cp);
-		if (d6 >= 0 && d5 <= d6)
-		  return c;
-		// Check if P in edge region of AC, if so return projection of P onto AC
-		Scalar vb = d5*d2 - d1*d6;
-		if (vb <= 0 && d2 >= 0 && d6 <= 0) {
-		  Scalar w = d2 / (d2 - d6);
-		  return a + w * ac;
-		}
-		// Check if P in edge region of BC, if so return projection of P onto BC
-		Scalar va = d3*d6 - d5*d4;
-		if (va <= 0 && (d4 - d3) >= 0 && (d5 - d6) >= 0) {
-		  Scalar w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
-		  return b + w * (c - b);
-		}
-		// P inside face region. Compute Q through its barycentric coordinates (u,v,w)
-		Scalar denom = Scalar(1.0) / (va + vb + vc);
-		Scalar v = vb * denom;
-		Scalar w = vc * denom;
-		return a + ab * v + ac * w; // = u*a + v*b + w*c, u = va * denom = 1.0-v-w
-	};
-
-	template<typename IndexedTriangleSetDistancerType, typename Scalar>
-    static inline Scalar squared_distance_to_indexed_triangle_set_recursive(
-        IndexedTriangleSetDistancerType	&distancer,
+	template<typename IndexedPrimitivesDistancerType, typename Scalar>
+    static inline Scalar squared_distance_to_indexed_primitives_recursive(
+        IndexedPrimitivesDistancerType	&distancer,
 		size_t 							 node_idx,
 		Scalar 							 low_sqr_d,
   		Scalar 							 up_sqr_d,
 		size_t 							&i,
-  		Eigen::PlainObjectBase<typename IndexedTriangleSetDistancerType::VectorType> &c)
+  		Eigen::PlainObjectBase<typename IndexedPrimitivesDistancerType::VectorType> &c)
 	{
-		using Vector = typename IndexedTriangleSetDistancerType::VectorType;
+		using Vector = typename IndexedPrimitivesDistancerType::VectorType;
 
   		if (low_sqr_d > up_sqr_d)
 			return low_sqr_d;
@@ -538,13 +551,9 @@ namespace detail {
 		assert(node.is_valid());
   		if (node.is_leaf()) 
   		{
-            const auto &triangle = distancer.faces[node.idx];
-            Vector c_candidate = closest_point_to_triangle<Vector>(
-				distancer.origin, 
-                distancer.vertices[triangle(0)].template cast<Scalar>(),
-                distancer.vertices[triangle(1)].template cast<Scalar>(),
-                distancer.vertices[triangle(2)].template cast<Scalar>());
-            set_min((c_candidate - distancer.origin).squaredNorm(), node.idx, c_candidate);
+            Scalar sqr_dist;
+            Vector c_candidate = distancer.closest_point_to_origin(node.idx, sqr_dist);
+            set_min(sqr_dist, node.idx, c_candidate);
   		} 
   		else
   		{
@@ -561,7 +570,7 @@ namespace detail {
 			{
                 size_t	i_left;
                 Vector 	c_left = c;
-                Scalar	sqr_d_left = squared_distance_to_indexed_triangle_set_recursive(distancer, left_node_idx, low_sqr_d, up_sqr_d, i_left, c_left);
+                Scalar	sqr_d_left = squared_distance_to_indexed_primitives_recursive(distancer, left_node_idx, low_sqr_d, up_sqr_d, i_left, c_left);
 				set_min(sqr_d_left, i_left, c_left);
 				looked_left = true;
 			};
@@ -569,13 +578,13 @@ namespace detail {
 			{
                 size_t	i_right;
                 Vector	c_right = c;
-                Scalar	sqr_d_right = squared_distance_to_indexed_triangle_set_recursive(distancer, right_node_idx, low_sqr_d, up_sqr_d, i_right, c_right);
+                Scalar	sqr_d_right = squared_distance_to_indexed_primitives_recursive(distancer, right_node_idx, low_sqr_d, up_sqr_d, i_right, c_right);
 				set_min(sqr_d_right, i_right, c_right);
 				looked_right = true;
 			};
 
 			// must look left or right if in box
-            using BBoxScalar = typename IndexedTriangleSetDistancerType::TreeType::BoundingBox::Scalar;
+            using BBoxScalar = typename IndexedPrimitivesDistancerType::TreeType::BoundingBox::Scalar;
             if (node_left.bbox.contains(distancer.origin.template cast<BBoxScalar>()))
 			  	look_left();
             if (node_right.bbox.contains(distancer.origin.template cast<BBoxScalar>()))
@@ -709,10 +718,15 @@ inline bool intersect_ray_all_hits(
         origin, dir, VectorType(dir.cwiseInverse()),
         eps }
 	};
-	if (! tree.empty()) {
+	if (tree.empty()) {
+		hits.clear();
+	} else {
+		// Reusing the output memory if there is some memory already pre-allocated.
+        ray_intersector.hits = std::move(hits);
+        ray_intersector.hits.clear();
         ray_intersector.hits.reserve(8);
 		detail::intersect_ray_recursive_all_hits(ray_intersector, 0);
-		std::swap(hits, ray_intersector.hits);
+		hits = std::move(ray_intersector.hits);
 	    std::sort(hits.begin(), hits.end(), [](const auto &l, const auto &r) { return l.t < r.t; });
 	}
 	return ! hits.empty();
@@ -742,7 +756,7 @@ inline typename VectorType::Scalar squared_distance_to_indexed_triangle_set(
     auto distancer = detail::IndexedTriangleSetDistancer<VertexType, IndexedFaceType, TreeType, VectorType>
         { vertices, faces, tree, point };
     return tree.empty() ? Scalar(-1) : 
-    	detail::squared_distance_to_indexed_triangle_set_recursive(distancer, size_t(0), Scalar(0), std::numeric_limits<Scalar>::infinity(), hit_idx_out, hit_point_out);
+    	detail::squared_distance_to_indexed_primitives_recursive(distancer, size_t(0), Scalar(0), std::numeric_limits<Scalar>::infinity(), hit_idx_out, hit_point_out);
 }
 
 // Decides if exists some triangle in defined radius on a 3D indexed triangle set using a pre-built AABBTreeIndirect::Tree.
@@ -759,22 +773,22 @@ inline bool is_any_triangle_in_radius(
         const TreeType 						&tree,
         // Point to which the closest point on the indexed triangle set is searched for.
         const VectorType					&point,
-        // Maximum distance in which triangle is search for
-        typename VectorType::Scalar &max_distance)
+        //Square of maximum distance in which triangle is searched for
+        typename VectorType::Scalar &max_distance_squared)
 {
     using Scalar = typename VectorType::Scalar;
     auto distancer = detail::IndexedTriangleSetDistancer<VertexType, IndexedFaceType, TreeType, VectorType>
             { vertices, faces, tree, point };
 
-	size_t hit_idx;
-	VectorType hit_point = VectorType::Ones() * (std::nan(""));
+    size_t hit_idx;
+    VectorType hit_point = VectorType::Ones() * (NaN<typename VectorType::Scalar>);
 
 	if(tree.empty())
 	{
 		return false;
 	}
 
-	detail::squared_distance_to_indexed_triangle_set_recursive(distancer, size_t(0), Scalar(0), max_distance, hit_idx, hit_point);
+	detail::squared_distance_to_indexed_primitives_recursive(distancer, size_t(0), Scalar(0), max_distance_squared, hit_idx, hit_point);
 
     return hit_point.allFinite();
 }

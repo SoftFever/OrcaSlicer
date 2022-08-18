@@ -142,10 +142,12 @@ set(lisbslic3r_sources
     GCodeWriter.hpp
     Geometry.cpp
     Geometry.hpp
+    Geometry/Bicubic.hpp
     Geometry/Circle.cpp
     Geometry/Circle.hpp
     Geometry/ConvexHull.cpp
     Geometry/ConvexHull.hpp
+    Geometry/Curves.hpp
     Geometry/MedialAxis.cpp
     Geometry/MedialAxis.hpp
     Geometry/Voronoi.hpp
@@ -176,6 +178,8 @@ set(lisbslic3r_sources
     CustomGCode.hpp
     Arrange.hpp
     Arrange.cpp
+    NormalUtils.cpp
+    NormalUtils.hpp
     Orient.hpp
     Orient.cpp
     MultiPoint.cpp
@@ -222,6 +226,8 @@ set(lisbslic3r_sources
     QuadricEdgeCollapse.cpp
     QuadricEdgeCollapse.hpp
     Semver.cpp
+    ShortEdgeCollapse.cpp
+    ShortEdgeCollapse.hpp
     ShortestPath.cpp
     ShortestPath.hpp
     SLAPrint.cpp
@@ -264,6 +270,8 @@ set(lisbslic3r_sources
     Thread.hpp
     TriangleSelector.cpp
     TriangleSelector.hpp
+    TriangleSetSampling.cpp
+    TriangleSetSampling.hpp
     MTUtils.hpp
     VariableWidth.cpp
     VariableWidth.hpp

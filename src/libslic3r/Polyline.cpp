@@ -517,6 +517,28 @@ bool remove_degenerate(Polylines &polylines)
     return modified;
 }
 
+std::pair<int, Point> foot_pt(const Points &polyline, const Point &pt)
+{
+    if (polyline.size() < 2) return std::make_pair(-1, Point(0, 0));
+
+    auto  d2_min = std::numeric_limits<double>::max();
+    Point foot_pt_min;
+    Point prev    = polyline.front();
+    auto  it      = polyline.begin();
+    auto  it_proj = polyline.begin();
+    for (++it; it != polyline.end(); ++it) {
+        Point  foot_pt = pt.projection_onto(Line(prev, *it));
+        double d2      = (foot_pt - pt).cast<double>().squaredNorm();
+        if (d2 < d2_min) {
+            d2_min      = d2;
+            foot_pt_min = foot_pt;
+            it_proj     = it;
+        }
+        prev = *it;
+    }
+    return std::make_pair(int(it_proj - polyline.begin()) - 1, foot_pt_min);
+}
+
 ThickLines ThickPolyline::thicklines() const
 {
     ThickLines lines;
