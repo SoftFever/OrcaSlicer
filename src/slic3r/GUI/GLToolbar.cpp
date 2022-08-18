@@ -537,7 +537,7 @@ bool GLToolbar::update_items_state()
     return ret;
 }
 
-void GLToolbar::render(const GLCanvas3D& parent)
+void GLToolbar::render(const GLCanvas3D& parent,GLToolbarItem::EType type)
 {
     if (!m_enabled || m_items.empty())
         return;
@@ -548,7 +548,7 @@ void GLToolbar::render(const GLCanvas3D& parent)
     switch (m_layout.type)
     {
     default:
-    case Layout::Horizontal: { render_horizontal(parent); break; }
+    case Layout::Horizontal: { render_horizontal(parent,type); break; }
     case Layout::Vertical: { render_vertical(parent); break; }
     }
 }
@@ -1385,7 +1385,7 @@ void GLToolbar::render_arrow(const GLCanvas3D& parent, GLToolbarItem* highlighte
     }
 }
 
-void GLToolbar::render_horizontal(const GLCanvas3D& parent)
+void GLToolbar::render_horizontal(const GLCanvas3D& parent,GLToolbarItem::EType type)
 {
     float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
     float factor = inv_zoom * m_layout.scale;
@@ -1403,6 +1403,8 @@ void GLToolbar::render_horizontal(const GLCanvas3D& parent)
     float left = m_layout.left;
     float top = m_layout.top;
     float right = left + scaled_width;
+    if (type == GLToolbarItem::SeparatorLine)
+        right = left + scaled_width * 0.5;
     float bottom = top - scaled_height;
 
     render_background(left, top, right, bottom, scaled_border);

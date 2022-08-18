@@ -2534,21 +2534,21 @@ float GUI_App::toolbar_icon_scale(const bool is_limited/* = false*/) const
     const float icon_sc = m_em_unit * 0.1f;
 #endif // __APPLE__
 
-    return icon_sc;
+    //return icon_sc;
 
-    //const std::string& auto_val = app_config->get("toolkit_size");
+    const std::string& auto_val = app_config->get("toolkit_size");
 
-    //if (auto_val.empty())
-    //    return icon_sc;
+    if (auto_val.empty())
+        return icon_sc;
 
-    //int int_val =  100;
-    //// correct value in respect to toolkit_size
-    //int_val = std::min(atoi(auto_val.c_str()), int_val);
+    int int_val =  100;
+    // correct value in respect to toolkit_size
+    int_val = std::min(atoi(auto_val.c_str()), int_val);
 
-    //if (is_limited && int_val < 50)
-    //    int_val = 50;
+    if (is_limited && int_val < 50)
+        int_val = 50;
 
-    //return 0.01f * int_val * icon_sc;
+    return 0.01f * int_val * icon_sc;
 }
 
 void GUI_App::set_auto_toolbar_icon_scale(float scale) const

@@ -78,6 +78,7 @@ bool View3D::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig
     //BBS: GUI refactor: GLToolbar
     m_canvas->enable_select_plate_toolbar(false);
     m_canvas->enable_assemble_view_toolbar(true);
+    m_canvas->enable_separator_toolbar(true);
     m_canvas->enable_labels(true);
     m_canvas->enable_slope(true);
 
@@ -763,6 +764,7 @@ bool AssembleView::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrint
     //BBS: GUI refactor: GLToolbar
     m_canvas->enable_assemble_view_toolbar(false);
     m_canvas->enable_return_toolbar(true);
+    m_canvas->enable_separator_toolbar(false);
 
     // BBS: set volume_selection_mode to Volume
     m_canvas->get_selection().set_volume_selection_mode(Selection::Volume);
