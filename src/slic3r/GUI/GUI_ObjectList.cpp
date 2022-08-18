@@ -1962,28 +1962,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
         wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
 
     // apply the instance transform to all volumes and reset instance transform except the offset
-    {
-        const Geometry::Transformation &instance_transformation  = model_object.instances[0]->get_transformation();
-        Vec3d                           original_instance_center = instance_transformation.get_offset();
-
-        const Transform3d &transformation_matrix = instance_transformation.get_matrix();
-        for (ModelVolume *volume : model_object.volumes) {
-            const Transform3d &volume_matrix = volume->get_matrix();
-            Transform3d        new_matrix    = transformation_matrix * volume_matrix;
-            volume->set_transformation(new_matrix);
-        }
-        model_object.instances[0]->set_transformation(Geometry::Transformation());
-
-        model_object.ensure_on_bed();
-        // keep new instance center the same as the original center
-        model_object.translate(-original_instance_center);
-        model_object.origin_translation += original_instance_center;
-        model_object.translate_instances(model_object.origin_translation);
-        model_object.origin_translation = Vec3d::Zero();
-
-        // update the cache data in selection to keep the data of ModelVolume and GLVolume are consistent
-        wxGetApp().plater()->update();
-    }
+    apply_object_instance_transfrom_to_all_volumes(&model_object);
 
     selection_changed();
 
@@ -2086,6 +2065,10 @@ void ObjectList::load_mesh_part(const TriangleMesh& mesh, const wxString& name, 
     take_snapshot("Load Mesh Part");
 
     ModelObject* mo = (*m_objects)[obj_idx];
+
+    // apply the instance transform to all volumes and reset instance transform except the offset
+    apply_object_instance_transfrom_to_all_volumes(mo);
+
     ModelVolume* mv = mo->add_volume(mesh);
     mv->name = name.ToStdString();
 
@@ -5043,6 +5026,29 @@ ModelObject* ObjectList::object(const int obj_idx) const
 bool ObjectList::has_paint_on_segmentation()
 {
     return m_objects_model->HasInfoItem(InfoItemType::MmuSegmentation);
+}
+
+void ObjectList::apply_object_instance_transfrom_to_all_volumes(ModelObject *model_object) {
+    const Geometry::Transformation &instance_transformation  = model_object->instances[0]->get_transformation();
+    Vec3d                           original_instance_center = instance_transformation.get_offset();
+
+    const Transform3d &transformation_matrix = instance_transformation.get_matrix();
+    for (ModelVolume *volume : model_object->volumes) {
+        const Transform3d &volume_matrix = volume->get_matrix();
+        Transform3d        new_matrix    = transformation_matrix * volume_matrix;
+        volume->set_transformation(new_matrix);
+    }
+    model_object->instances[0]->set_transformation(Geometry::Transformation());
+
+    model_object->ensure_on_bed();
+    // keep new instance center the same as the original center
+    model_object->translate(-original_instance_center);
+    model_object->origin_translation += original_instance_center;
+    model_object->translate_instances(model_object->origin_translation);
+    model_object->origin_translation = Vec3d::Zero();
+
+    // update the cache data in selection to keep the data of ModelVolume and GLVolume are consistent
+    wxGetApp().plater()->update();
 }
 
 } //namespace GUI
