@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-12 15:19+0800\n"
+"POT-Creation-Date: 2022-08-19 14:51+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -627,9 +627,6 @@ msgid "Cylinder"
 msgstr ""
 
 msgid "Cone"
-msgstr ""
-
-msgid "Timelapse Wipe Tower"
 msgstr ""
 
 msgid "Add settings"
@@ -1867,6 +1864,9 @@ msgstr ""
 msgid "Normal mode"
 msgstr ""
 
+msgid "Cost"
+msgstr ""
+
 msgid "Prepare time"
 msgstr ""
 
@@ -2089,6 +2089,9 @@ msgstr ""
 msgid "&About %s"
 msgstr ""
 
+msgid "Open Network Test"
+msgstr ""
+
 msgid "Default View"
 msgstr ""
 
@@ -2238,25 +2241,10 @@ msgstr ""
 msgid "Preferences"
 msgstr ""
 
-msgid "About"
-msgstr ""
-
 msgid "View"
 msgstr ""
 
 msgid "Help"
-msgstr ""
-
-msgid "&File"
-msgstr ""
-
-msgid "&Edit"
-msgstr ""
-
-msgid "&View"
-msgstr ""
-
-msgid "&Help"
 msgstr ""
 
 msgid "&Open G-code"
@@ -2288,6 +2276,15 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "Quit %s"
+msgstr ""
+
+msgid "&File"
+msgstr ""
+
+msgid "&View"
+msgstr ""
+
+msgid "&Help"
 msgstr ""
 
 msgid "Save configuration as:"
@@ -2336,25 +2333,22 @@ msgstr ""
 msgid "Load failed [%d]!"
 msgstr ""
 
-msgid "3Dconnexion settings"
-msgstr ""
-
-msgid "Device:"
-msgstr ""
-
 msgid "Speed:"
-msgstr ""
-
-msgid "Translation"
-msgstr ""
-
-msgid "Zoom"
 msgstr ""
 
 msgid "Deadzone:"
 msgstr ""
 
 msgid "Options:"
+msgstr ""
+
+msgid "Zoom"
+msgstr ""
+
+msgid "Translation/Zoom"
+msgstr ""
+
+msgid "3Dconnexion settings"
 msgstr ""
 
 msgid "Swap Y/Z axes"
@@ -2672,9 +2666,6 @@ msgid "Used Filament (g)"
 msgstr ""
 
 msgid "Used Materials"
-msgstr ""
-
-msgid "Cost"
 msgstr ""
 
 msgid "Estimated time"
@@ -3851,6 +3842,9 @@ msgstr ""
 msgid "Paste from clipboard"
 msgstr ""
 
+msgid "Show/Hide 3Dconnexion devices settings dialog"
+msgstr ""
+
 msgid "Show keyboard shortcuts list"
 msgstr ""
 
@@ -3987,6 +3981,9 @@ msgid "⌘+Mouse wheel"
 msgstr ""
 
 msgid "Support/Color Painting: adjust pen radius"
+msgstr ""
+
+msgid "⌥+Mouse wheel"
 msgstr ""
 
 msgid "Support/Color Painting: adjust section position"
@@ -5941,7 +5938,13 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid ""
-"It seems object %s needs support to print. Please enable support generation."
+"It seems object %s has completely floating regions. Please re-orient the "
+"object or enable support generation."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"It seems object %s has large overhangs. Please enable support generation."
 msgstr ""
 
 msgid "Optimizing toolpath"

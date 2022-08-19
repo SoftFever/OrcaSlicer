@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-12 15:19+0800\n"
+"POT-Creation-Date: 2022-08-19 14:51+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -641,9 +641,6 @@ msgstr "Cylinder"
 
 msgid "Cone"
 msgstr "Cone"
-
-msgid "Timelapse Wipe Tower"
-msgstr "Timelapse Wipe Tower"
 
 msgid "Add settings"
 msgstr "Add Settings"
@@ -1986,6 +1983,9 @@ msgstr "Total estimation"
 msgid "Normal mode"
 msgstr "Normal mode"
 
+msgid "Cost"
+msgstr "Cost"
+
 msgid "Prepare time"
 msgstr "Prepare time"
 
@@ -2213,6 +2213,9 @@ msgstr "Check for Updates"
 msgid "&About %s"
 msgstr "&About %s"
 
+msgid "Open Network Test"
+msgstr ""
+
 msgid "Default View"
 msgstr "Default View"
 
@@ -2362,26 +2365,11 @@ msgstr "Use Orthogonal View"
 msgid "Preferences"
 msgstr "Preferences"
 
-msgid "About"
-msgstr ""
-
 msgid "View"
 msgstr "View"
 
 msgid "Help"
 msgstr "Help"
-
-msgid "&File"
-msgstr "&File"
-
-msgid "&Edit"
-msgstr ""
-
-msgid "&View"
-msgstr "&View"
-
-msgid "&Help"
-msgstr "&Help"
 
 msgid "&Open G-code"
 msgstr "&Open G-code"
@@ -2413,6 +2401,15 @@ msgstr "&Quit"
 #, c-format, boost-format
 msgid "Quit %s"
 msgstr "Quit %s"
+
+msgid "&File"
+msgstr "&File"
+
+msgid "&View"
+msgstr "&View"
+
+msgid "&Help"
+msgstr "&Help"
 
 msgid "Save configuration as:"
 msgstr "Save configuration as:"
@@ -2460,26 +2457,23 @@ msgstr "Playing..."
 msgid "Load failed [%d]!"
 msgstr "Loading failed [%d]!"
 
-msgid "3Dconnexion settings"
-msgstr "3Dconnexion settings"
-
-msgid "Device:"
-msgstr "Device:"
-
 msgid "Speed:"
 msgstr "Speed:"
-
-msgid "Translation"
-msgstr "Translation"
-
-msgid "Zoom"
-msgstr "Zoom"
 
 msgid "Deadzone:"
 msgstr "Deadzone:"
 
 msgid "Options:"
 msgstr "Options:"
+
+msgid "Zoom"
+msgstr "Zoom"
+
+msgid "Translation/Zoom"
+msgstr ""
+
+msgid "3Dconnexion settings"
+msgstr "3Dconnexion settings"
 
 msgid "Swap Y/Z axes"
 msgstr "Swap Y/Z axes"
@@ -2801,9 +2795,6 @@ msgstr "Used Filament (g)"
 
 msgid "Used Materials"
 msgstr "Used Materials"
-
-msgid "Cost"
-msgstr "Cost"
 
 msgid "Estimated time"
 msgstr "Estimated time"
@@ -4038,6 +4029,9 @@ msgstr "Copy to clipboard"
 msgid "Paste from clipboard"
 msgstr "Paste from clipboard"
 
+msgid "Show/Hide 3Dconnexion devices settings dialog"
+msgstr ""
+
 msgid "Show keyboard shortcuts list"
 msgstr "Show keyboard shortcuts list"
 
@@ -4178,6 +4172,9 @@ msgstr ""
 
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Support/Color Painting: adjust pen radius"
+
+msgid "⌥+Mouse wheel"
+msgstr ""
 
 msgid "Support/Color Painting: adjust section position"
 msgstr "Support/Color Painting: adjust section position"
@@ -6402,9 +6399,14 @@ msgstr "Checking support necessity"
 
 #, c-format, boost-format
 msgid ""
-"It seems object %s needs support to print. Please enable support generation."
+"It seems object %s has completely floating regions. Please re-orient the "
+"object or enable support generation."
 msgstr ""
-"It seems object %s needs support to print. Please enable support generation."
+
+#, c-format, boost-format
+msgid ""
+"It seems object %s has large overhangs. Please enable support generation."
+msgstr ""
 
 msgid "Optimizing toolpath"
 msgstr "Optimizing toolpath"
@@ -6461,6 +6463,23 @@ msgstr "Support: fix holes at layer %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
+
+#~ msgid "Timelapse Wipe Tower"
+#~ msgstr "Timelapse Wipe Tower"
+
+#~ msgid "Device:"
+#~ msgstr "Device:"
+
+#~ msgid "Translation"
+#~ msgstr "Translation"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s needs support to print. Please enable support "
+#~ "generation."
+#~ msgstr ""
+#~ "It seems object %s needs support to print. Please enable support "
+#~ "generation."
 
 #~ msgid "the 3mf is not compatible, load geometry data only!"
 #~ msgstr "The 3mf is not compatible, loading geometry data only!"

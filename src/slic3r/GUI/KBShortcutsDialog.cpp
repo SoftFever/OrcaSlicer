@@ -181,6 +181,11 @@ void KBShortcutsDialog::fill_shortcuts()
             { ctrl + "X", L("Cut") },
             { ctrl + "C", L("Copy to clipboard") },
             { ctrl + "V", L("Paste from clipboard") },
+            // Configuration
+            { ctrl + "P", L("Preferences") },
+            //3D control
+            { ctrl + "M", L("Show/Hide 3Dconnexion devices settings dialog") },
+            //DEL
             #ifdef __APPLE__
                 {"fn+⌫", L("Delete selected")},
             #else
@@ -215,7 +220,6 @@ void KBShortcutsDialog::fill_shortcuts()
             {L("Arrow Left"), L("Move selection 10 mm in negative X direction")},
             {L("Arrow Right"), L("Move selection 10 mm in positive X direction")},
             {L("Shift+Any arrow"), L("Movement step set to 1 mm")},
-
             {"Esc", L("Deselect all")},
             {"1-9", L("keyboard 1-9: set filament for object/part")},
             {ctrl + "0", L("Camera view - Default")},
@@ -225,11 +229,11 @@ void KBShortcutsDialog::fill_shortcuts()
             {ctrl + "4", L("Camera view - Behind")},
             {ctrl + "5", L("Camera Angle - Left side")},
             {ctrl + "6", L("Camera Angle - Right side")},
+
             {ctrl + "A", L("Select all objects")},
             {ctrl + "D", L("Delete all")},
             {ctrl + "Z", L("Undo")},
             {ctrl + "Y", L("Redo")},
-            {ctrl + "M", L("Clone selected")},
             { "M", L("Gizmo move") },
             { "S", L("Gizmo scale") },
             { "R", L("Gizmo rotate") },
@@ -237,6 +241,7 @@ void KBShortcutsDialog::fill_shortcuts()
             { "F", L("Gizmo Place face on bed") },
             { "L", L("Gizmo SLA support points") },
             { "P", L("Gizmo FDM paint-on seam") },
+
         };
         m_full_shortcuts.push_back({ { _L("Plater"), "" }, plater_shortcuts });
 
@@ -245,13 +250,11 @@ void KBShortcutsDialog::fill_shortcuts()
             {"Shift+", L("Move: press to snap by 1mm") },
             #ifdef __APPLE__
                 {L("⌘+Mouse wheel"), L("Support/Color Painting: adjust pen radius")},
-                {L("⌘+Mouse wheel"), L("Support/Color Painting: adjust section position")},
+                {L("⌥+Mouse wheel"), L("Support/Color Painting: adjust section position")},
             #else
 		        {L("Ctrl+Mouse wheel"), L("Support/Color Painting: adjust pen radius")},
                 {L("Alt+Mouse wheel"), L("Support/Color Painting: adjust section position")},
             #endif
-
-            
         };
         m_full_shortcuts.push_back({{_L("Gizmo"), ""}, gizmos_shortcuts});
 
@@ -292,7 +295,6 @@ void KBShortcutsDialog::fill_shortcuts()
     };
     m_full_shortcuts.push_back({ { _L("Preview"), "" }, preview_shortcuts });
 }
-
 
 wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const ShortcutsItem& shortcuts, const wxFont& font, const wxFont& bold_font)
 {

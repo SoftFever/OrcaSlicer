@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-12 15:19+0800\n"
+"POT-Creation-Date: 2022-08-19 14:51+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -645,9 +645,6 @@ msgstr "Henger"
 
 msgid "Cone"
 msgstr "Kúp"
-
-msgid "Timelapse Wipe Tower"
-msgstr "Timelapse törlő torony"
 
 msgid "Add settings"
 msgstr "Beállítások hozzáadása"
@@ -2014,6 +2011,9 @@ msgstr "Összesített becslés"
 msgid "Normal mode"
 msgstr "Normal mode"
 
+msgid "Cost"
+msgstr "Költség"
+
 msgid "Prepare time"
 msgstr "Előkészítési idő"
 
@@ -2245,6 +2245,9 @@ msgstr "Frissítés keresése"
 msgid "&About %s"
 msgstr "&%s névjegye"
 
+msgid "Open Network Test"
+msgstr ""
+
 msgid "Default View"
 msgstr "Alapértelmezett nézet"
 
@@ -2394,26 +2397,11 @@ msgstr "Ortogonális nézet használata"
 msgid "Preferences"
 msgstr "Beállítások"
 
-msgid "About"
-msgstr ""
-
 msgid "View"
 msgstr "Nézet"
 
 msgid "Help"
 msgstr "Segítség"
-
-msgid "&File"
-msgstr "&File"
-
-msgid "&Edit"
-msgstr ""
-
-msgid "&View"
-msgstr "&View"
-
-msgid "&Help"
-msgstr "&Help"
 
 msgid "&Open G-code"
 msgstr "&Open G-code"
@@ -2445,6 +2433,15 @@ msgstr "&Kilépés"
 #, c-format, boost-format
 msgid "Quit %s"
 msgstr "Kilépés %s"
+
+msgid "&File"
+msgstr "&File"
+
+msgid "&View"
+msgstr "&View"
+
+msgid "&Help"
+msgstr "&Help"
 
 msgid "Save configuration as:"
 msgstr "Konfiguráció mentése mint:"
@@ -2497,26 +2494,23 @@ msgstr "Lejátszás..."
 msgid "Load failed [%d]!"
 msgstr "Loading failed [%d]!"
 
-msgid "3Dconnexion settings"
-msgstr "3Dconnexion beállítások"
-
-msgid "Device:"
-msgstr "Eszköz:"
-
 msgid "Speed:"
 msgstr "Sebesség:"
-
-msgid "Translation"
-msgstr "Translation"
-
-msgid "Zoom"
-msgstr "Zoom"
 
 msgid "Deadzone:"
 msgstr "Tiltott zóna:"
 
 msgid "Options:"
 msgstr "Opciók:"
+
+msgid "Zoom"
+msgstr "Zoom"
+
+msgid "Translation/Zoom"
+msgstr ""
+
+msgid "3Dconnexion settings"
+msgstr "3Dconnexion beállítások"
 
 msgid "Swap Y/Z axes"
 msgstr "Swap Y/Z axes"
@@ -2838,9 +2832,6 @@ msgstr "Used Filament (g)"
 
 msgid "Used Materials"
 msgstr "Used Materials"
-
-msgid "Cost"
-msgstr "Költség"
 
 msgid "Estimated time"
 msgstr "Becsült idő"
@@ -4088,6 +4079,9 @@ msgstr "Másolás a vágólapra"
 msgid "Paste from clipboard"
 msgstr "Beillesztés a vágólapról"
 
+msgid "Show/Hide 3Dconnexion devices settings dialog"
+msgstr ""
+
 msgid "Show keyboard shortcuts list"
 msgstr "Gyorsgombok listájának megjelenítése"
 
@@ -4228,6 +4222,9 @@ msgstr "⌘+Egérgörgő"
 
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Support/Color Painting: adjust pen radius"
+
+msgid "⌥+Mouse wheel"
+msgstr ""
 
 msgid "Support/Color Painting: adjust section position"
 msgstr "Support/Color Painting: adjust section position"
@@ -6502,10 +6499,14 @@ msgstr "Támasz szükségességének ellenőrzése"
 
 #, c-format, boost-format
 msgid ""
-"It seems object %s needs support to print. Please enable support generation."
+"It seems object %s has completely floating regions. Please re-orient the "
+"object or enable support generation."
 msgstr ""
-"Úgy tűnik %s objektumnak támaszra lenne szüksége a nyomtatáshoz. Kérjük, "
-"engedélyezd a támasz generálását."
+
+#, c-format, boost-format
+msgid ""
+"It seems object %s has large overhangs. Please enable support generation."
+msgstr ""
 
 msgid "Optimizing toolpath"
 msgstr "Szerszámút optimalizálása"
@@ -6562,6 +6563,23 @@ msgstr "Support: fix holes at layer %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
+
+#~ msgid "Timelapse Wipe Tower"
+#~ msgstr "Timelapse törlő torony"
+
+#~ msgid "Device:"
+#~ msgstr "Eszköz:"
+
+#~ msgid "Translation"
+#~ msgstr "Translation"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s needs support to print. Please enable support "
+#~ "generation."
+#~ msgstr ""
+#~ "Úgy tűnik %s objektumnak támaszra lenne szüksége a nyomtatáshoz. Kérjük, "
+#~ "engedélyezd a támasz generálását."
 
 #~ msgid "Alt + Mouse wheel"
 #~ msgstr "Alt + Mouse wheel"

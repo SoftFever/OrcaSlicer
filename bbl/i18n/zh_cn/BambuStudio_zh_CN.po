@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-12 15:19+0800\n"
+"POT-Creation-Date: 2022-08-19 14:51+0800\n"
 "PO-Revision-Date: 2022-08-07 21:57+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -633,9 +633,6 @@ msgstr "圆柱体"
 
 msgid "Cone"
 msgstr "锥体"
-
-msgid "Timelapse Wipe Tower"
-msgstr "延时摄影擦料塔"
 
 msgid "Add settings"
 msgstr "添加设置"
@@ -1933,6 +1930,9 @@ msgstr "总预估"
 msgid "Normal mode"
 msgstr "普通模式"
 
+msgid "Cost"
+msgstr "成本"
+
 msgid "Prepare time"
 msgstr "准备时间"
 
@@ -2162,6 +2162,9 @@ msgstr "检查新版本"
 msgid "&About %s"
 msgstr "关于 %s"
 
+msgid "Open Network Test"
+msgstr ""
+
 msgid "Default View"
 msgstr "默认视图"
 
@@ -2311,26 +2314,11 @@ msgstr "使用正交视角"
 msgid "Preferences"
 msgstr "偏好设置"
 
-msgid "About"
-msgstr ""
-
 msgid "View"
 msgstr "视图"
 
 msgid "Help"
 msgstr "帮助"
-
-msgid "&File"
-msgstr ""
-
-msgid "&Edit"
-msgstr ""
-
-msgid "&View"
-msgstr ""
-
-msgid "&Help"
-msgstr ""
 
 msgid "&Open G-code"
 msgstr "打开G-code"
@@ -2361,6 +2349,15 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Quit %s"
+msgstr ""
+
+msgid "&File"
+msgstr ""
+
+msgid "&View"
+msgstr ""
+
+msgid "&Help"
 msgstr ""
 
 msgid "Save configuration as:"
@@ -2414,26 +2411,23 @@ msgstr "正在播放中……"
 msgid "Load failed [%d]!"
 msgstr "加载失败 [%d]！"
 
-msgid "3Dconnexion settings"
-msgstr "3Dconnexion设置"
-
-msgid "Device:"
-msgstr "设备："
-
 msgid "Speed:"
 msgstr "速度："
-
-msgid "Translation"
-msgstr "翻译"
-
-msgid "Zoom"
-msgstr "视角缩放"
 
 msgid "Deadzone:"
 msgstr "死区："
 
 msgid "Options:"
 msgstr "选项："
+
+msgid "Zoom"
+msgstr "视角缩放"
+
+msgid "Translation/Zoom"
+msgstr "平移/缩放"
+
+msgid "3Dconnexion settings"
+msgstr "3Dconnexion设置"
 
 msgid "Swap Y/Z axes"
 msgstr "交换Y/Z轴"
@@ -2749,9 +2743,6 @@ msgstr "耗材丝消耗重量(g)"
 
 msgid "Used Materials"
 msgstr "材料消耗"
-
-msgid "Cost"
-msgstr "成本"
 
 msgid "Estimated time"
 msgstr "预估打印时间"
@@ -3952,6 +3943,9 @@ msgstr "复制到剪贴板"
 msgid "Paste from clipboard"
 msgstr "从剪切板粘贴"
 
+msgid "Show/Hide 3Dconnexion devices settings dialog"
+msgstr "显示/隐藏 3Dconnexion设备的设置对话框"
+
 msgid "Show keyboard shortcuts list"
 msgstr "显示键盘快捷键列表"
 
@@ -4091,6 +4085,9 @@ msgstr "⌘+鼠标滚轮"
 
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "支撑/颜色绘制：调节画笔半径"
+
+msgid "⌥+Mouse wheel"
+msgstr "⌥+鼠标滚轮"
 
 msgid "Support/Color Painting: adjust section position"
 msgstr "支撑/色彩绘制：调节剖面位置"
@@ -6141,8 +6138,14 @@ msgstr "正在检查支撑必要性"
 
 #, c-format, boost-format
 msgid ""
-"It seems object %s needs support to print. Please enable support generation."
-msgstr "对象“%s”可能需要添加支撑才能打印。建议开启支撑生成。"
+"It seems object %s has completely floating regions. Please re-orient the "
+"object or enable support generation."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"It seems object %s has large overhangs. Please enable support generation."
+msgstr ""
 
 msgid "Optimizing toolpath"
 msgstr "正在优化走线"
@@ -6198,6 +6201,21 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Timelapse Wipe Tower"
+#~ msgstr "延时摄影擦料塔"
+
+#~ msgid "Device:"
+#~ msgstr "设备："
+
+#~ msgid "Translation"
+#~ msgstr "翻译"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s needs support to print. Please enable support "
+#~ "generation."
+#~ msgstr "对象“%s”可能需要添加支撑才能打印。建议开启支撑生成。"
 
 #~ msgid "Clipping of view"
 #~ msgstr "剪切视图"
@@ -6392,9 +6410,6 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ "Don't retract when the travel is in infill area absolutely. That means "
 #~ "the oozing can't been seen"
 #~ msgstr "当完全在填充区域内部空驶时不会抽，即便渗出滴料也是不可见的。"
-
-#~ msgid "⌥+Mouse wheel"
-#~ msgstr "⌥+鼠标滚轮"
 
 #~ msgid "sdfsadf Any arrow"
 #~ msgstr "方向键"

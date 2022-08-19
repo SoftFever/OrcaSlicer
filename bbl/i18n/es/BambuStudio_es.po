@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-12 15:19+0800\n"
+"POT-Creation-Date: 2022-08-19 14:51+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -648,9 +648,6 @@ msgstr "Cilindro"
 
 msgid "Cone"
 msgstr "Cono"
-
-msgid "Timelapse Wipe Tower"
-msgstr "Timelapse Torre de limpieza"
 
 msgid "Add settings"
 msgstr "Añadir ajustes"
@@ -2023,6 +2020,9 @@ msgstr "Estimación total"
 msgid "Normal mode"
 msgstr "Modo normal"
 
+msgid "Cost"
+msgstr "Coste"
+
 msgid "Prepare time"
 msgstr "Planificar tiempo"
 
@@ -2250,6 +2250,9 @@ msgstr "Comprobar Actualicaciones"
 msgid "&About %s"
 msgstr "&Acerca de %s"
 
+msgid "Open Network Test"
+msgstr ""
+
 msgid "Default View"
 msgstr "Vista por Defecto"
 
@@ -2399,26 +2402,11 @@ msgstr "Utilizar Vista Ortogonal"
 msgid "Preferences"
 msgstr "Preferencias"
 
-msgid "About"
-msgstr ""
-
 msgid "View"
 msgstr "Vista"
 
 msgid "Help"
 msgstr "Ayuda"
-
-msgid "&File"
-msgstr "&Archivo"
-
-msgid "&Edit"
-msgstr ""
-
-msgid "&View"
-msgstr "Ve&r"
-
-msgid "&Help"
-msgstr "Ayu&da"
 
 msgid "&Open G-code"
 msgstr "Abrir código G (&O)"
@@ -2450,6 +2438,15 @@ msgstr "Sa&lir"
 #, c-format, boost-format
 msgid "Quit %s"
 msgstr "Cerrar %s"
+
+msgid "&File"
+msgstr "&Archivo"
+
+msgid "&View"
+msgstr "Ve&r"
+
+msgid "&Help"
+msgstr "Ayu&da"
 
 msgid "Save configuration as:"
 msgstr "Guardar la configuración como:"
@@ -2497,26 +2494,23 @@ msgstr "Reproduciendo..."
 msgid "Load failed [%d]!"
 msgstr "¡La carga ha fallado [%d]!"
 
-msgid "3Dconnexion settings"
-msgstr "Ajustes de conexión 3D"
-
-msgid "Device:"
-msgstr "Dispositivo:"
-
 msgid "Speed:"
 msgstr "Velocidad:"
-
-msgid "Translation"
-msgstr "Translación"
-
-msgid "Zoom"
-msgstr "Zoom"
 
 msgid "Deadzone:"
 msgstr "Punto muerto:"
 
 msgid "Options:"
 msgstr "Opciones:"
+
+msgid "Zoom"
+msgstr "Zoom"
+
+msgid "Translation/Zoom"
+msgstr ""
+
+msgid "3Dconnexion settings"
+msgstr "Ajustes de conexión 3D"
 
 msgid "Swap Y/Z axes"
 msgstr "Intercambiar los ejes Y/Z"
@@ -2842,9 +2836,6 @@ msgstr "Filamento Usado (g)"
 
 msgid "Used Materials"
 msgstr "Materiales usados"
-
-msgid "Cost"
-msgstr "Coste"
 
 msgid "Estimated time"
 msgstr "Tiempo estimado"
@@ -4110,6 +4101,9 @@ msgstr "Copiar al portapapeles"
 msgid "Paste from clipboard"
 msgstr "Pegar desde el portapapeles"
 
+msgid "Show/Hide 3Dconnexion devices settings dialog"
+msgstr ""
+
 msgid "Show keyboard shortcuts list"
 msgstr "Muestra lista de atajos de teclado"
 
@@ -4250,6 +4244,9 @@ msgstr "⌘+Rueda del ratón"
 
 msgid "Support/Color Painting: adjust pen radius"
 msgstr "Soporte/Pintado en color: ajuste del radio de la pluma"
+
+msgid "⌥+Mouse wheel"
+msgstr ""
 
 msgid "Support/Color Painting: adjust section position"
 msgstr "Soporte/Pintado de color: ajuste de la posición de la sección"
@@ -6541,10 +6538,14 @@ msgstr "Comprobación de la necesidad de soporte"
 
 #, c-format, boost-format
 msgid ""
-"It seems object %s needs support to print. Please enable support generation."
+"It seems object %s has completely floating regions. Please re-orient the "
+"object or enable support generation."
 msgstr ""
-"Parece que el objeto %s necesita soporte para imprimir. Por favor, active la "
-"generación de soporte."
+
+#, c-format, boost-format
+msgid ""
+"It seems object %s has large overhangs. Please enable support generation."
+msgstr ""
 
 msgid "Optimizing toolpath"
 msgstr "Optimización de la trayectoria de la herramienta"
@@ -6602,6 +6603,23 @@ msgstr "Soporte: arreglar huecos en la capa %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Soporte: propagar ramas en la capa %d"
+
+#~ msgid "Timelapse Wipe Tower"
+#~ msgstr "Timelapse Torre de limpieza"
+
+#~ msgid "Device:"
+#~ msgstr "Dispositivo:"
+
+#~ msgid "Translation"
+#~ msgstr "Translación"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "It seems object %s needs support to print. Please enable support "
+#~ "generation."
+#~ msgstr ""
+#~ "Parece que el objeto %s necesita soporte para imprimir. Por favor, active "
+#~ "la generación de soporte."
 
 #~ msgid "Alt + Mouse wheel"
 #~ msgstr "Alt + Rueda del ratón"
