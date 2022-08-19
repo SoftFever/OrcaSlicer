@@ -1394,7 +1394,7 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
 
     //filament_id
     std::string cloud_filament_id;
-    if ((m_type == Preset::TYPE_FILAMENT) && preset_values.find(BBL_JSON_KEY_FILAMENT_ID) == preset_values.end()) {
+    if ((m_type == Preset::TYPE_FILAMENT) && preset_values.find(BBL_JSON_KEY_FILAMENT_ID) != preset_values.end()) {
         cloud_filament_id = preset_values[BBL_JSON_KEY_FILAMENT_ID];
     }
 
