@@ -2916,7 +2916,9 @@ int GUI_App::request_user_unbind(std::string dev_id)
 {
     int result = -1;
     if (m_agent) {
-        return m_agent->unbind(dev_id);
+        result = m_agent->unbind(dev_id);
+        BOOST_LOG_TRIVIAL(info) << "request_user_unbind, dev_id = " << dev_id << ", result = " << result;
+        return result;
     }
     return result;
 }
