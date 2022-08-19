@@ -374,6 +374,9 @@ public:
     bool is_mapping_exceed_filament(std::vector<FilamentInfo>& result, int &exceed_index);
     void reset_mapping_result(std::vector<FilamentInfo>& result);
 
+    /*online*/
+    bool   online_rfid;
+    bool   online_ahb;
 
     /* temperature */
     float  nozzle_temp;

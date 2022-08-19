@@ -1825,6 +1825,30 @@ int MachineObject::parse_json(std::string payload)
 
 #pragma endregion
 
+#pragma region online
+                    // parse online info
+                    try {
+                        if (jj.contains("online")) {
+                            if (jj["online"].contains("ahb")) {
+                                if (jj["online"]["ahb"].get<bool>()) {
+                                    online_ahb = true;
+                                } else {
+                                    online_ahb = false;
+                                }
+                            }
+                            if (jj["online"].contains("rfid")) {
+                                if (jj["online"]["rfid"].get<bool>()) {
+                                    online_rfid = true;
+                                } else {
+                                    online_rfid = false;
+                                }
+                            }
+                        }
+                    } catch (...) {
+                        ;
+                    }
+#pragma endregion
+
 #pragma region print_task
                     if (jj.contains("printer_type")) {
                         printer_type = parse_printer_type(jj["printer_type"].get<std::string>());
@@ -2092,6 +2116,8 @@ int MachineObject::parse_json(std::string payload)
 
                                     new_ver_list.insert(std::make_pair(ver_info.name, ver_info));
                                 }
+                            } else {
+                                new_ver_list.clear();
                             }
                         }
                     }
