@@ -51,6 +51,8 @@ DownloadProgressDialog::DownloadProgressDialog(wxString title)
     Layout();
     Fit();
     CentreOnParent();
+
+    Bind(wxEVT_CLOSE_WINDOW, &DownloadProgressDialog::on_close, this);
 }
 
 bool DownloadProgressDialog::Show(bool show)
@@ -89,6 +91,15 @@ bool DownloadProgressDialog::Show(bool show)
         m_upgrade_job->start();
     }
     return DPIDialog::Show(show);
+}
+
+void DownloadProgressDialog::on_close(wxCloseEvent& event)
+{
+    if (m_upgrade_job) {
+        m_upgrade_job->cancel();
+        m_upgrade_job->join();
+    }
+    event.Skip();
 }
 
  DownloadProgressDialog::~DownloadProgressDialog() {}

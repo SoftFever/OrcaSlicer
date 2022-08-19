@@ -33,6 +33,7 @@ class DownloadProgressDialog : public DPIDialog
 {
 protected:
     bool Show(bool show) override;
+    void on_close(wxCloseEvent& event);
 
 public:
     DownloadProgressDialog(wxString title);
@@ -42,7 +43,7 @@ public:
     void update_release_note(std::string release_note, std::string version);
 
 	std::shared_ptr<BBLStatusBarSend> m_status_bar;
-    std::shared_ptr<UpgradeNetworkJob> m_upgrade_job;
+    std::shared_ptr<UpgradeNetworkJob> m_upgrade_job { nullptr };
     wxPanel *                         m_panel_download;
 
 
