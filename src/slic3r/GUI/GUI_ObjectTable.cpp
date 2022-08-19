@@ -644,7 +644,58 @@ void GridCellSupportRenderer::Draw(wxGrid& grid,
         wxRendererNative::Get().DrawCheckBox( &grid, dc, text_rect, flags );
     }*/
 
-    wxGridCellBoolRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
+   
+    //wxGridCellBoolRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
+
+    ObjectGridTable *               table      = dynamic_cast<ObjectGridTable *>(grid.GetTable());
+    ObjectGridTable::ObjectGridCol *grid_col   = table->get_grid_col(col);
+    ObjectGridTable::ObjectGridRow *grid_row   = table->get_grid_row(row - 1);
+    ConfigOptionBool &              cur_option = dynamic_cast<ConfigOptionBool &>((*grid_row)[(ObjectGridTable::GridColType) col]);
+    
+    auto height = grid.GetRowSize(row);
+    auto width  = grid.GetColSize(col);
+
+    wxGridCellRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
+    if (cur_option.value) {
+
+        auto check_on = create_scaled_bitmap("check_on", nullptr, 18);
+        dc.SetPen(*wxTRANSPARENT_PEN);
+
+        auto offsetx = 0;
+        auto offsety = 0;
+
+        #ifdef  __WXOSX_MAC__
+        offsetx = (width - 18) / 2;
+        offsety = (height - 18) / 2;
+        #else
+        offsetx = (width - check_on.GetSize().x) / 2;
+        offsety = (height - check_on.GetSize().y) / 2;
+        #endif //  __WXOSX_MAC__
+
+        dc.DrawBitmap(check_on, rect.x + offsetx, rect.y + offsety);
+        //dc.SetBrush(wxBrush(wxColour(0x00, 0xAE, 0x42)));
+        //dc.DrawBitmap(check_on, (width - check_on.GetSize().x) / 2, (height - check_on.GetSize().y) / 2);
+    } else {
+        auto check_off = create_scaled_bitmap("check_off_focused", nullptr, 18);
+        dc.SetPen(*wxTRANSPARENT_PEN);
+
+        auto offsetx = 0;
+        auto offsety = 0;
+
+        #ifdef __WXOSX_MAC__
+        offsetx = (width - 18) / 2;
+        offsety = (height - 18) / 2;
+        #else
+        offsetx = (width - check_off.GetSize().x) / 2;
+        offsety = (height - check_off.GetSize().y) / 2;
+        #endif //  __WXOSX_MAC__
+
+       
+
+        dc.DrawBitmap(check_off, rect.x + offsetx, rect.y + offsety);
+        //dc.SetBrush(wxBrush(wxColour(0x00, 0xAE, 0x42)));
+        //dc.DrawBitmap(check_off, (width - check_off.GetSize().x) / 2, (height - check_off.GetSize().y) / 2);
+    }
 }
 
 wxSize GridCellSupportRenderer::GetBestSize(wxGrid& grid,
@@ -2108,7 +2159,7 @@ void ObjectGridTable::update_row_properties()
                             grid_table->SetCellEditor(row, col, new GridCellSupportEditor());
                             //grid_table->SetCellEditor(row, col, new wxGridCellBoolEditor());
                             //grid_table->SetCellRenderer(row, col, new GridCellSupportRenderer());
-                            grid_table->SetCellRenderer(row, col, new wxGridCellBoolRenderer());
+                            grid_table->SetCellRenderer(row, col, new GridCellSupportRenderer());
                             break;
                         case coInt:
                             grid_table->SetCellEditor(row, col, new GridCellTextEditor());
@@ -2808,7 +2859,7 @@ void ObjectTablePanel::load_data()
                         m_object_grid->SetCellEditor(row, col, new GridCellSupportEditor());
                         //m_object_grid->SetCellEditor(row, col, new wxGridCellBoolEditor());
                         //m_object_grid->SetCellRenderer(row, col, new GridCellSupportRenderer());
-                        m_object_grid->SetCellRenderer(row, col, new wxGridCellBoolRenderer());
+                        m_object_grid->SetCellRenderer(row, col, new GridCellSupportRenderer());
                         break;
                     case coInt:
                         m_object_grid->SetCellEditor(row, col, new GridCellTextEditor());
