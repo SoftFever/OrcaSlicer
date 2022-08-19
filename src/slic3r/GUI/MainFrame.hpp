@@ -173,6 +173,7 @@ class MainFrame : public DPIFrame
         ePrintPlate = 1,
         eExportSlicedFile = 2,
         eExportGcode = 3,
+        eSendGcode = 4,
 
     };
 

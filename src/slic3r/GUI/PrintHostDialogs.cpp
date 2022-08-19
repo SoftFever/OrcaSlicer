@@ -37,7 +37,7 @@ static const char *CONFIG_KEY_PATH  = "printhost_path";
 static const char *CONFIG_KEY_GROUP = "printhost_group";
 
 PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUploadActions post_actions, const wxArrayString &groups)
-    : MsgDialog(static_cast<wxWindow*>(wxGetApp().mainframe), _L("Send G-Code to printer host"), _L("Upload to Printer Host with the following filename:"))
+    : MsgDialog(static_cast<wxWindow*>(wxGetApp().mainframe), _L("Send G-Code to printer host"), _L("Upload to Printer Host with the following filename:"),0)
     , txt_filename(new wxTextCtrl(this, wxID_ANY))
     , combo_groups(!groups.IsEmpty() ? new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, groups, wxCB_READONLY) : nullptr)
     , post_upload_action(PrintHostPostUploadAction::None)
@@ -87,6 +87,14 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUplo
         return true;
     };
 
+    auto* btn_upload = add_button(wxID_YES, false, _L("Upload"));
+    btn_upload->Bind(wxEVT_BUTTON, [this, validate_path](wxCommandEvent&) {
+        if (validate_path(txt_filename->GetValue())) {
+            post_upload_action = PrintHostPostUploadAction::None;
+            EndDialog(wxID_OK);
+        }
+    });
+
     if (post_actions.has(PrintHostPostUploadAction::StartPrint)) {
         auto* btn_print = add_button(wxID_YES, false, _L("Upload and Print"));
         btn_print->Bind(wxEVT_BUTTON, [this, validate_path](wxCommandEvent&) {
@@ -108,17 +116,7 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUplo
         });
     }
 
-    add_button(wxID_CANCEL);
-
-    if (auto* btn_ok = get_button(wxID_OK); btn_ok != NULL) {
-        btn_ok->SetLabel(_L("Upload"));
-        btn_ok->Bind(wxEVT_BUTTON, [this, validate_path](wxCommandEvent&) {
-            if (validate_path(txt_filename->GetValue())) {
-                post_upload_action = PrintHostPostUploadAction::None;
-                EndDialog(wxID_OK);
-            }
-        });
-    }
+    add_button(wxID_CANCEL,false,"Cancel");
     finalize();
 
 #ifdef __linux__

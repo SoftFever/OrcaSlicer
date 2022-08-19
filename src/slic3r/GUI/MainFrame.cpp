@@ -1113,11 +1113,13 @@ bool MainFrame::can_export_gcode() const
 
 bool MainFrame::can_send_gcode() const
 {
-    if (m_plater && ! m_plater->model().objects.empty())
-        if (const DynamicPrintConfig *cfg = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config(); cfg)
-            if (const auto *print_host_opt = cfg->option<ConfigOptionString>("print_host"); print_host_opt)
-                return ! print_host_opt->value.empty();
-    return false;
+    if (m_plater && !m_plater->model().objects.empty())
+    {
+        auto cfg = wxGetApp().preset_bundle->printers.get_selected_preset().config;
+        if (const auto *print_host_opt = cfg.option<ConfigOptionString>("print_host"); print_host_opt)
+            return !print_host_opt->value.empty();
+    }
+    return true;
 }
 
 /*bool MainFrame::can_export_gcode_sd() const
@@ -1241,6 +1243,8 @@ wxBoxSizer* MainFrame::create_side_tools()
         }
         else if (m_print_select == eExportGcode)
             wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_GCODE));
+        else if (m_print_select == eSendGcode)
+            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_GCODE));
         else if (m_print_select == eExportSlicedFile)
             wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE));
     });
@@ -1328,6 +1332,17 @@ wxBoxSizer* MainFrame::create_side_tools()
                     this->Layout();
                     p->Dismiss();
                 });
+            SideButton* send_gcode_btn = new SideButton(p, _L("Send sliced file (.gcode)"), "");
+            send_gcode_btn->SetCornerRadius(0);
+            send_gcode_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+                    m_print_btn->SetLabel(_L("Send Sliced File (.gcode)"));
+                    m_print_select = eSendGcode;
+                    if (m_print_enable)
+                        m_print_enable = get_enable_print_status() && can_send_gcode();
+                    m_print_btn->Enable(m_print_enable);
+                    this->Layout();
+                    p->Dismiss();
+                });
 
 #if ENABEL_PRINT_ALL
             p->append_button(print_all_btn);
@@ -1335,6 +1350,7 @@ wxBoxSizer* MainFrame::create_side_tools()
             p->append_button(print_plate_btn);
             p->append_button(export_sliced_file_3mf_btn);
             p->append_button(export_sliced_file_gcode_btn);
+            p->append_button(send_gcode_btn);
             p->Popup(m_print_btn);
         }
     );

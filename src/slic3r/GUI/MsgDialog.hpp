@@ -29,6 +29,7 @@ enum ButtonSizeType{
 #define MSG_DIALOG_BUTTON_SIZE wxSize(FromDIP(58), FromDIP(24))
 #define MSG_DIALOG_MIDDLE_BUTTON_SIZE wxSize(FromDIP(76), FromDIP(24))
 #define MSG_DIALOG_LONG_BUTTON_SIZE wxSize(FromDIP(90), FromDIP(24))
+#define MSG_DIALOG_LONGER_BUTTON_SIZE wxSize(FromDIP(120), FromDIP(24))
 
 
 namespace Slic3r {
