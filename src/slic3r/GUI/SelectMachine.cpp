@@ -341,6 +341,15 @@ SelectMachinePopup::SelectMachinePopup(wxWindow *parent)
     m_scrolledWindow->Layout();
     m_sizxer_scrolledWindow->Fit(m_scrolledWindow);
 
+#if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
+    m_sizer_search_bar = new wxBoxSizer(wxVERTICAL);
+    m_search_bar = new wxSearchCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_search_bar->ShowSearchButton( true );
+	m_search_bar->ShowCancelButton( false );
+	m_sizer_search_bar->Add( m_search_bar, 1, wxALL| wxEXPAND, 1 );
+    m_sizer_main->Add(m_sizer_search_bar, 0, wxALL | wxEXPAND, FromDIP(2));
+    m_search_bar->Bind( wxEVT_COMMAND_TEXT_UPDATED, &SelectMachinePopup::update_machine_list, this );
+#endif
     auto own_title        = create_title_panel(_L("My Device"));
     m_sizer_my_devices    = new wxBoxSizer(wxVERTICAL);
     auto other_title      = create_title_panel(_L("Other Device"));
@@ -505,6 +514,11 @@ void SelectMachinePopup::update_other_devices()
         if (i < m_other_list_machine_panel.size()) {
             op = m_other_list_machine_panel[i]->mPanel;
             op->Show();
+#if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
+            if (!search_for_printer(mobj)) {
+               op->Hide();
+            }
+#endif
         } else {
             op = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
             MachinePanel* mpanel = new MachinePanel();
@@ -590,6 +604,11 @@ void SelectMachinePopup::update_user_devices()
         if (i < m_user_list_machine_panel.size()) {
             op = m_user_list_machine_panel[i]->mPanel;
             op->Show();
+#if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
+            if (!search_for_printer(mobj)) {
+               op->Hide();
+            }
+#endif
         } else {
             op = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
             MachinePanel* mpanel = new MachinePanel();
@@ -681,6 +700,23 @@ void SelectMachinePopup::update_user_devices()
     Layout();
     Fit();
     this->Thaw();
+}
+
+bool SelectMachinePopup::search_for_printer(MachineObject* obj)
+{
+    std::string search_text = std::string((m_search_bar->GetValue()).mb_str());
+    if (search_text.empty()) {
+        return true;
+    }
+    auto name = obj->dev_name;
+    auto ip = obj->dev_ip;
+    auto name_it = name.find(search_text);
+    auto ip_it = ip.find(search_text);
+    if ((name_it != std::string::npos)||(ip_it != std::string::npos)) {
+        return true;
+    }
+
+    return false;
 }
 
 void SelectMachinePopup::on_dissmiss_win(wxCommandEvent &event) 

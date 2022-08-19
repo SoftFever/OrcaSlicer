@@ -22,6 +22,7 @@
 #include <wx/spinctrl.h>
 #include <wx/artprov.h>
 #include <wx/wrapsizer.h>
+#include <wx/srchctrl.h>
 
 #include "AmsMappingPopup.hpp"
 #include "GUI_Utils.hpp"
@@ -197,6 +198,8 @@ private:
     wxBoxSizer *                      m_sizer_body{nullptr};
     wxBoxSizer *                      m_sizer_my_devices{nullptr};
     wxBoxSizer *                      m_sizer_other_devices{nullptr};
+    wxBoxSizer *                      m_sizer_search_bar{nullptr};
+    wxSearchCtrl*                     m_search_bar{nullptr};
     wxScrolledWindow *                m_scrolledWindow{nullptr};
     wxWindow *                        m_panel_body{nullptr};
     wxTimer *                         m_refresh_timer{nullptr};
@@ -215,6 +218,7 @@ private:
 
 	void      update_other_devices();
     void      update_user_devices();
+    bool      search_for_printer(MachineObject* obj);
     void      on_dissmiss_win(wxCommandEvent &event);
     wxWindow *create_title_panel(wxString text);
 };
