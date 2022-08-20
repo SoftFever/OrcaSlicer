@@ -25,6 +25,7 @@
 #include "ProgressStatusBar.hpp"
 #include "3DScene.hpp"
 #include "ParamsDialog.hpp"
+#include "PrintHostDialogs.hpp"
 #include "wxExtensions.hpp"
 #include "GUI_ObjectList.hpp"
 #include "Mouse3DController.hpp"
@@ -149,6 +150,7 @@ wxDEFINE_EVENT(EVT_SYNC_CLOUD_PRESET,     SimpleEvent);
 
 MainFrame::MainFrame() :
 DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_STYLE, "mainframe")
+    , m_printhost_queue_dlg(new PrintHostQueueDialog(this))
     // BBS
     , m_recent_projects(9)
     , m_settings_dialog(this)
@@ -397,6 +399,10 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         if (event.CanVeto() && ((result = m_plater->close_with_confirm(check)) == wxID_CANCEL)) {
             event.Veto();
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< "cancelled by close_with_confirm selection";
+            return;
+        }
+        if (event.CanVeto() && !wxGetApp().check_print_host_queue()) {
+            event.Veto();
             return;
         }
 
@@ -1103,6 +1109,15 @@ bool MainFrame::can_export_gcode() const
         return false;
 
     return true;
+}
+
+bool MainFrame::can_send_gcode() const
+{
+    if (m_plater && ! m_plater->model().objects.empty())
+        if (const DynamicPrintConfig *cfg = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config(); cfg)
+            if (const auto *print_host_opt = cfg->option<ConfigOptionString>("print_host"); print_host_opt)
+                return ! print_host_opt->value.empty();
+    return false;
 }
 
 /*bool MainFrame::can_export_gcode_sd() const

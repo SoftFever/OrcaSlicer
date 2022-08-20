@@ -22,6 +22,7 @@
 #define PRESET_SLA_MATERIALS_NAME "sla_materials"
 
 //BBS: iot preset type strings
+#define PRESET_IOT_PHYSICAL_PRINTER_TYPE     "physical_printer"
 #define PRESET_IOT_PRINTER_TYPE     "printer"
 #define PRESET_IOT_FILAMENT_TYPE    "filament"
 #define PRESET_IOT_PRINT_TYPE       "print"
