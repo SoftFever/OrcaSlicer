@@ -227,6 +227,9 @@ void BackgroundSlicingProcess::process_fff()
 	    if (! m_export_path.empty()) {
 			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
 			finalize_gcode();
+	    } else if (! m_upload_job.empty()) {
+			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_export_began_id));
+			prepare_upload();
 	    } else {
 			m_print->set_status(100, _utf8(L("Slicing complete")));
 	    }
@@ -684,6 +687,19 @@ void BackgroundSlicingProcess::schedule_export(const std::string &path, bool exp
 	m_export_path_on_removable_media = export_path_on_removable_media;
 }
 
+void BackgroundSlicingProcess::schedule_upload(Slic3r::PrintHostJob upload_job)
+{
+	assert(m_export_path.empty());
+	if (! m_export_path.empty())
+		return;
+
+	// Guard against entering the export step before changing the export path.
+	std::scoped_lock<std::mutex> lock(m_print->state_mutex());
+	this->invalidate_step(bspsGCodeFinalize);
+	m_export_path.clear();
+	m_upload_job = std::move(upload_job);
+}
+
 void BackgroundSlicingProcess::reset_export()
 {
 	assert(! this->running());
@@ -800,6 +816,45 @@ void BackgroundSlicingProcess::finalize_gcode()
 	m_print->set_status(100, (boost::format(_utf8(L("Succeed to export G-code to %1%"))) % export_path).str());
 }
 
+// A print host upload job has been scheduled, enqueue it to the printhost job queue
+void BackgroundSlicingProcess::prepare_upload()
+{
+	// Generate a unique temp path to which the gcode/zip file is copied/exported
+	boost::filesystem::path source_path = boost::filesystem::temp_directory_path()
+		/ boost::filesystem::unique_path("." SLIC3R_APP_KEY ".upload.%%%%-%%%%-%%%%-%%%%");
+
+	if (m_print == m_fff_print) {
+		m_print->set_status(95, _utf8(L("Running post-processing scripts")));
+		std::string error_message;
+		if (copy_file(m_temp_output_path, source_path.string(), error_message) != SUCCESS)
+			throw Slic3r::RuntimeError(_utf8(L("Copying of the temporary G-code to the output G-code failed")));
+        m_upload_job.upload_data.upload_path = m_fff_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
+        // Make a copy of the source path, as run_post_process_scripts() is allowed to change it when making a copy of the source file
+        // (not here, but when the final target is a file). 
+        std::string source_path_str = source_path.string();
+        std::string output_name_str = m_upload_job.upload_data.upload_path.string();
+		if (run_post_process_scripts(source_path_str, false, m_upload_job.printhost->get_name(), output_name_str, m_fff_print->full_print_config()))
+			m_upload_job.upload_data.upload_path = output_name_str;
+    } else {
+        m_upload_job.upload_data.upload_path = m_sla_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
+        
+        ThumbnailsList thumbnails = this->render_thumbnails(
+        	ThumbnailsParams{current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, true, true});
+																												 // true, false, true, true); // renders also supports and pad
+        Zipper zipper{source_path.string()};
+        m_sla_archive.export_print(zipper, *m_sla_print, m_upload_job.upload_data.upload_path.string());
+        for (const ThumbnailData& data : thumbnails)
+	        if (data.is_valid())
+	            write_thumbnail(zipper, data);
+        zipper.finalize();
+    }
+
+    m_print->set_status(100, (boost::format(_utf8(L("Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"))) % m_upload_job.printhost->get_host()).str());
+
+	m_upload_job.upload_data.source_path = std::move(source_path);
+
+	GUI::wxGetApp().printhost_job_queue().enqueue(std::move(m_upload_job));
+}
 // Executed by the background thread, to start a task on the UI thread.
 ThumbnailsList BackgroundSlicingProcess::render_thumbnails(const ThumbnailsParams &params)
 {

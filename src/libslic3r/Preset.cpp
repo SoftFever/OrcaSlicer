@@ -724,7 +724,13 @@ static std::vector<std::string> s_Preset_printer_options {
     "silent_mode",
     // BBS
     "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode",
-    "nozzle_type", "auxiliary_fan", "nozzle_volume"
+    "nozzle_type", "auxiliary_fan", "nozzle_volume",
+    //SoftFever
+    "connection_moonraker_url","connection_port", "host_type", "print_host", "printhost_apikey", 
+    "printhost_cafile","printhost_port","printhost_authorization_type",
+        "printhost_user",
+    "printhost_password",
+    "printhost_ssl_ignore_revoke"
 };
 
 static std::vector<std::string> s_Preset_sla_print_options {
@@ -2189,6 +2195,21 @@ void add_correct_opts_to_diff(const std::string &opt_key, t_config_option_keys& 
     }
 }
 
+// template<class T>
+// void add_correct_opt_to_diff(const std::string &opt_key, t_config_option_keys& vec, const ConfigBase &other, const ConfigBase &this_c)
+// {
+//     const T* opt_init = static_cast<const T*>(other.option(opt_key));
+//     const T* opt_cur = static_cast<const T*>(this_c.option(opt_key));
+//     int opt_init_max_id = opt_init->values.size() - 1;
+//     for (int i = 0; i < int(opt_cur->values.size()); i++)
+//     {
+//         int init_id = i <= opt_init_max_id ? i : 0;
+//         if (opt_cur->values[i] != opt_init->values[init_id])
+//             vec.emplace_back(opt_key + "#" + std::to_string(i));
+//     }
+// }
+
+
 // Use deep_diff to correct return of changed options, considering individual options for each extruder.
 inline t_config_option_keys deep_diff(const ConfigBase &config_this, const ConfigBase &config_other)
 {
@@ -2212,6 +2233,7 @@ inline t_config_option_keys deep_diff(const ConfigBase &config_this, const Confi
                 case coBools:   add_correct_opts_to_diff<ConfigOptionBools      >(opt_key, diff, config_other, config_this);  break;
                 case coFloats:  add_correct_opts_to_diff<ConfigOptionFloats     >(opt_key, diff, config_other, config_this);  break;
                 case coStrings: add_correct_opts_to_diff<ConfigOptionStrings    >(opt_key, diff, config_other, config_this);  break;
+                // case coString:  add_correct_opts_to_diff<ConfigOptionString     >(opt_key, diff, config_other, config_this);  break;
                 case coPercents:add_correct_opts_to_diff<ConfigOptionPercents   >(opt_key, diff, config_other, config_this);  break;
                 case coPoints:  add_correct_opts_to_diff<ConfigOptionPoints     >(opt_key, diff, config_other, config_this);  break;
                 // BBS
@@ -2519,6 +2541,16 @@ static std::vector<std::string> s_PhysicalPrinter_opts {
     "preset_name", // temporary option to compatibility with older Slicer
     "preset_names",
     "printer_technology",
+    "host_type",
+    "print_host",
+    "printhost_apikey",
+    "printhost_cafile",
+    "printhost_port",
+    "printhost_authorization_type",
+    // HTTP digest authentization (RFC 2617)
+    "printhost_user",
+    "printhost_password",
+    "printhost_ssl_ignore_revoke"
 };
 
 const std::vector<std::string>& PhysicalPrinter::printer_options()
@@ -2682,6 +2714,8 @@ void PhysicalPrinterCollection::load_printers(
     // see https://github.com/prusa3d/PrusaSlicer/issues/732
     boost::filesystem::path dir = boost::filesystem::absolute(boost::filesystem::path(dir_path) / subdir).make_preferred();
     m_dir_path = dir.string();
+    if(!boost::filesystem::exists(dir))
+        return;
     std::string errors_cummulative;
     // Store the loaded printers into a new vector, otherwise the binary search for already existing presets would be broken.
     std::deque<PhysicalPrinter> printers_loaded;

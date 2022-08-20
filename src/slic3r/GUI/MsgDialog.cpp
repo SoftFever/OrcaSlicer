@@ -114,9 +114,13 @@ Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, con
     else if (label.length() >= 5 && label.length() < 8) {
         type = ButtonSizeMiddle;
         btn->SetMinSize(MSG_DIALOG_MIDDLE_BUTTON_SIZE);
+    } 
+    else if (label.length() >= 8 && label.length() < 12) {
+        type = ButtonSizeMiddle;
+        btn->SetMinSize(MSG_DIALOG_LONG_BUTTON_SIZE);
     } else {
         type = ButtonSizeLong;
-        btn->SetMinSize(MSG_DIALOG_LONG_BUTTON_SIZE);
+        btn->SetMinSize(MSG_DIALOG_LONGER_BUTTON_SIZE);
     }
     
     btn->SetCornerRadius(12);

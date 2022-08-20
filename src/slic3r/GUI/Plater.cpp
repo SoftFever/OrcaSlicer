@@ -124,6 +124,9 @@
 #include "libslic3r/Platform.hpp"
 #include "nlohmann/json.hpp"
 
+#include "PhysicalPrinterDialog.hpp"
+#include "PrintHostDialogs.hpp"
+
 using boost::optional;
 namespace fs = boost::filesystem;
 using Slic3r::_3DScene;
@@ -503,11 +506,22 @@ Sidebar::Sidebar(Plater *parent)
         combo_printer->edit_btn = edit_btn;
         p->combo_printer = combo_printer;
 
-        wxBoxSizer* vsizer_printer = new wxBoxSizer(wxVERTICAL);
-        wxBoxSizer* hsizer_printer = new wxBoxSizer(wxHORIZONTAL);
+        ScalableButton* connection_btn = new ScalableButton(p->m_panel_printer_content, wxID_ANY, "monitor_signal_strong");
+        connection_btn->SetBackgroundColour(wxColour(255, 255, 255));
+        connection_btn->SetToolTip(_L("Connection"));
+        connection_btn->Bind(wxEVT_BUTTON, [this, combo_printer](wxCommandEvent)
+                             {
+                                 PhysicalPrinterDialog dlg(this->GetParent());
+                                 dlg.ShowModal();
+                             });
+
+        wxBoxSizer *vsizer_printer = new wxBoxSizer(wxVERTICAL);
+        wxBoxSizer *hsizer_printer = new wxBoxSizer(wxHORIZONTAL);
 
         hsizer_printer->Add(combo_printer, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
         hsizer_printer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
+        hsizer_printer->Add(FromDIP(8), 0, 0, 0, 0);
+        hsizer_printer->Add(connection_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
         hsizer_printer->Add(FromDIP(8), 0, 0, 0, 0);
         vsizer_printer->Add(hsizer_printer, 0, wxEXPAND, 0);
 
@@ -1718,6 +1732,8 @@ struct Plater::priv
         }
     }
     void export_gcode(fs::path output_path, bool output_path_on_removable_media);
+    void export_gcode(fs::path output_path, bool output_path_on_removable_media, PrintHostJob upload_job);
+
     void reload_from_disk();
     bool replace_volume_with_stl(int object_idx, int volume_idx, const fs::path& new_path, const std::string& snapshot = "");
     void replace_with_stl();
@@ -1774,6 +1790,7 @@ struct Plater::priv
     void on_action_print_plate(SimpleEvent&);
     void on_action_print_all(SimpleEvent&);
     void on_action_export_gcode(SimpleEvent&);
+    void on_action_send_gcode(SimpleEvent&);
     void on_action_export_sliced_file(SimpleEvent&);
     void on_action_select_sliced_plate(wxCommandEvent& evt);
 
@@ -2162,6 +2179,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLTOOLBAR_SELECT_SLICED_PLATE, &priv::on_action_select_sliced_plate, this);
         q->Bind(EVT_GLTOOLBAR_PRINT_ALL, &priv::on_action_print_all, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_GCODE, &priv::on_action_export_gcode, this);
+        q->Bind(EVT_GLTOOLBAR_SEND_GCODE, &priv::on_action_send_gcode, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_SLICED_FILE, &priv::on_action_export_sliced_file, this);
         q->Bind(EVT_GLCANVAS_PLATE_SELECT, &priv::on_plate_selected, this);
         q->Bind(EVT_DOWNLOAD_PROJECT, &priv::on_action_download_project, this);
@@ -3994,7 +4012,38 @@ void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_remova
     this->background_process.set_task(PrintBase::TaskParams());
     this->restart_background_process(priv::UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT);
 }
+void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_removable_media, PrintHostJob upload_job)
+{
+    wxCHECK_RET(!(output_path.empty() && upload_job.empty()), "export_gcode: output_path and upload_job empty");
 
+    if (model.objects.empty())
+        return;
+
+    if (background_process.is_export_scheduled()) {
+        GUI::show_error(q, _L("Another export job is currently running."));
+        return;
+    }
+
+    // bitmask of UpdateBackgroundProcessReturnState
+    unsigned int state = update_background_process(true);
+    if (state & priv::UPDATE_BACKGROUND_PROCESS_REFRESH_SCENE)
+        view3D->reload_scene(false);
+
+    if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
+        return;
+
+    show_warning_dialog = true;
+    if (! output_path.empty()) {
+        background_process.schedule_export(output_path.string(), output_path_on_removable_media);
+        notification_manager->push_delayed_notification(NotificationType::ExportOngoing, []() {return true; }, 1000, 0);
+    } else {
+        background_process.schedule_upload(std::move(upload_job));
+    }
+
+    // If the SLA processing of just a single object's supports is running, restart slicing for the whole object.
+    this->background_process.set_task(PrintBase::TaskParams());
+    this->restart_background_process(priv::UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT);
+}
 unsigned int Plater::priv::update_restart_background_process(bool force_update_scene, bool force_update_preview)
 {
     bool switch_print = true;
@@ -5298,6 +5347,14 @@ void Plater::priv::on_action_export_gcode(SimpleEvent&)
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received export gcode event\n" ;
         q->export_gcode(false);
+    }
+}
+
+void Plater::priv::on_action_send_gcode(SimpleEvent&)
+{
+    if (q != nullptr) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received export gcode event\n" ;
+        q->send_gcode_legacy();
     }
 }
 
@@ -8482,7 +8539,53 @@ void Plater::reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &
     // and let the background processing start.
     this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
 }
+void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
+{
+    // if physical_printer is selected, send gcode for this printer
+    // DynamicPrintConfig* physical_printer_config = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config();
+    DynamicPrintConfig* physical_printer_config = &Slic3r::GUI::wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    if (! physical_printer_config || p->model.objects.empty())
+        return;
 
+    PrintHostJob upload_job(physical_printer_config);
+    if (upload_job.empty())
+        return;
+
+    // Obtain default output path
+    fs::path default_output_file;
+    try {
+        // Update the background processing, so that the placeholder parser will get the correct values for the ouput file template.
+        // Also if there is something wrong with the current configuration, a pop-up dialog will be shown and the export will not be performed.
+        unsigned int state = this->p->update_restart_background_process(false, false);
+        if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
+            return;
+        default_output_file = this->p->background_process.output_filepath_for_project(into_path(get_project_filename(".3mf")));
+    } catch (const Slic3r::PlaceholderParserError& ex) {
+        // Show the error with monospaced font.
+        show_error(this, ex.what(), true);
+        return;
+    } catch (const std::exception& ex) {
+        show_error(this, ex.what(), false);
+        return;
+    }
+    default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
+
+    // Repetier specific: Query the server for the list of file groups.
+    wxArrayString groups;
+    {
+        wxBusyCursor wait;
+        upload_job.printhost->get_groups(groups);
+    }
+    
+    PrintHostSendDialog dlg(default_output_file, upload_job.printhost->get_post_upload_actions(), groups);
+    if (dlg.ShowModal() == wxID_OK) {
+        upload_job.upload_data.upload_path = dlg.filename();
+        upload_job.upload_data.post_action = dlg.post_action();
+        upload_job.upload_data.group       = dlg.group();
+
+        p->export_gcode(fs::path(), false, std::move(upload_job));
+    }
+}
 int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
 {
     int result = 0;

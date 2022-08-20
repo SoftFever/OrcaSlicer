@@ -1245,8 +1245,10 @@ DynamicPrintConfig PresetBundle::full_config() const
 DynamicPrintConfig PresetBundle::full_config_secure() const
 {
     DynamicPrintConfig config = this->full_config();
-    //BBS example: config.erase("print_host");
-    return config;
+    //FIXME legacy, the keys should not be there after conversion to a Physical Printer profile.
+    config.erase("print_host");
+    config.erase("printhost_apikey");
+    config.erase("printhost_cafile");    return config;
 }
 
 const std::set<std::string> ignore_settings_list ={

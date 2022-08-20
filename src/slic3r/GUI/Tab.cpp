@@ -43,6 +43,7 @@
 #include "MarkdownTip.hpp"
 #include "Search.hpp"
 
+// #include "BonjourDialog.hpp"
 #ifdef WIN32
 	#include <commctrl.h>
 #endif // WIN32
@@ -2875,7 +2876,6 @@ void TabPrinter::build_fff()
 
     //    build_preset_description_line(optgroup.get());
 #endif
-
     build_unregular_pages(true);
 }
 

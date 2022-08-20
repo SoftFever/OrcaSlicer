@@ -7,11 +7,13 @@
 #include "ConfigWizard.hpp"
 #include "OpenGLManager.hpp"
 #include "libslic3r/Preset.hpp"
+#include "wxExtensions.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include "slic3r/GUI/WebViewDialog.hpp"
 #include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
+#include "../Utils/PrintHost.hpp"
 
 #include <wx/app.h>
 #include <wx/colour.h>
@@ -42,6 +44,7 @@ class AppConfig;
 class PresetBundle;
 class PresetUpdater;
 class ModelObject;
+// class PrintHostJobQueue;
 class Model;
 class DeviceManager;
 class NetworkAgent;
@@ -244,6 +247,7 @@ private:
     //std::unique_ptr<RemovableDriveManager> m_removable_drive_manager;
 
     std::unique_ptr<ImGuiWrapper> m_imgui;
+    std::unique_ptr<PrintHostJobQueue> m_printhost_job_queue;
 	//std::unique_ptr <OtherInstanceMessageHandler> m_other_instance_message_handler;
     //std::unique_ptr <wxSingleInstanceChecker> m_single_instance_checker;
     //std::string m_instance_hash_string;
@@ -416,6 +420,7 @@ public:
     void            apply_keeped_preset_modifications();
     bool            check_and_keep_current_preset_changes(const wxString& caption, const wxString& header, int action_buttons, bool* postponed_apply_of_keeped_changes = nullptr);
     bool            can_load_project();
+    bool            check_print_host_queue();
     bool            checked_tab(Tab* tab);
     //BBS: add preset combox re-active logic
     void            load_current_presets(bool active_preset_combox = false, bool check_printer_presets = true);
@@ -482,6 +487,8 @@ public:
 	//size_t      get_instance_hash_int ()              { return m_instance_hash_int; }
 
     ImGuiWrapper* imgui() { return m_imgui.get(); }
+
+    PrintHostJobQueue& printhost_job_queue() { return *m_printhost_job_queue.get(); }
 
     void            open_web_page_localized(const std::string &http_address);
     bool            may_switch_to_SLA_preset(const wxString& caption);
