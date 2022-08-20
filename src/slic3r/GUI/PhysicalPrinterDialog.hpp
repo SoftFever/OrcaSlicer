@@ -39,7 +39,7 @@ class PhysicalPrinterDialog : public DPIDialog
     void OnOK(wxEvent& event);
 
 public:
-    PhysicalPrinterDialog(wxWindow* parent, wxString printer_name);
+    PhysicalPrinterDialog(wxWindow* parent);
     ~PhysicalPrinterDialog();
 
     void        update(bool printer_change = false);

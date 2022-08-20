@@ -42,7 +42,7 @@ namespace GUI {
 //          PhysicalPrinterDialog
 //------------------------------------------
 
-PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent, wxString printer_name) :
+PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
     DPIDialog(parent, wxID_ANY, _L("Physical Printer"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), -1), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     SetFont(wxGetApp().normal_font());

@@ -506,16 +506,13 @@ Sidebar::Sidebar(Plater *parent)
         combo_printer->edit_btn = edit_btn;
         p->combo_printer = combo_printer;
 
-        ScalableButton* connection_btn = new ScalableButton(p->m_panel_printer_content, wxID_ANY, "printer");
+        ScalableButton* connection_btn = new ScalableButton(p->m_panel_printer_content, wxID_ANY, "monitor_signal_strong");
         connection_btn->SetBackgroundColour(wxColour(255, 255, 255));
-        connection_btn->SetToolTip(_L("Print connection"));
+        connection_btn->SetToolTip(_L("Connection"));
         connection_btn->Bind(wxEVT_BUTTON, [this, combo_printer](wxCommandEvent)
                              {
-                                auto preset_name = into_u8(combo_printer->GetString(combo_printer->GetSelection()));
-                                auto printer_name =  from_u8(PhysicalPrinter::get_short_name(preset_name)+"-printer");
-                                 PhysicalPrinterDialog dlg(this->GetParent(),printer_name);
+                                 PhysicalPrinterDialog dlg(this->GetParent());
                                  dlg.ShowModal();
-                                //  wxMessageBox("Connection support WIP", "INFO", wxOK | wxICON_INFORMATION);
                              });
 
         wxBoxSizer *vsizer_printer = new wxBoxSizer(wxVERTICAL);
