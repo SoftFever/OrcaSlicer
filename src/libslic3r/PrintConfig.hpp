@@ -42,14 +42,6 @@ enum class FuzzySkinType {
     All,
 };
 
-enum PrintHostType {
-    htPrusaLink, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS
-};
-
-enum AuthorizationType {
-    atKeyPassword, atUserPassword
-};
-
 #define HAS_LIGHTNING_INFILL 0
 
 enum InfillPattern : int {
@@ -243,9 +235,6 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BrimType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BedType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(DraftShield)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
-
-CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrintHostType)
-CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AuthorizationType)
 
 #undef CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS
 
@@ -766,10 +755,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     //BBS
     ((ConfigOptionEnum<NozzleType>,    nozzle_type))
     ((ConfigOptionBool,                auxiliary_fan))
-    //SoftFever
-    ((ConfigOptionString,             connection_moonraker_url))
-    ((ConfigOptionString,             connection_port))
-
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.

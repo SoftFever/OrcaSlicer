@@ -177,10 +177,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/SavePresetDialog.cpp
     GUI/GUI_Colors.hpp
     GUI/GUI_Colors.cpp
-    GUI/PhysicalPrinterDialog.hpp
-    GUI/PhysicalPrinterDialog.cpp
-    GUI/PrintHostDialogs.cpp
-    GUI/PrintHostDialogs.hpp
     GUI/GUI_Factories.cpp
     GUI/GUI_Factories.hpp
     GUI/GUI_ObjectList.cpp
@@ -352,8 +348,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/Calibration.cpp
     GUI/PrintOptionsDialog.hpp
     GUI/PrintOptionsDialog.cpp
-    GUI/BonjourDialog.hpp
-    GUI/BonjourDialog.cpp
     Utils/json_diff.hpp
     Utils/json_diff.cpp
     GUI/KBShortcutsDialog.hpp
@@ -381,22 +375,6 @@ set(SLIC3R_GUI_SOURCES
     Utils/ColorSpaceConvert.cpp
     Utils/NetworkAgent.cpp
     Utils/NetworkAgent.hpp
-    Utils/OctoPrint.cpp
-    Utils/OctoPrint.hpp
-    Utils/PrintHost.cpp
-    Utils/PrintHost.hpp
-    Utils/Serial.cpp
-    Utils/Serial.hpp
-    Utils/MKS.hpp
-    Utils/MKS.cpp
-    Utils/Duet.cpp
-    Utils/Duet.hpp
-    Utils/FlashAir.cpp
-    Utils/FlashAir.hpp
-    Utils/AstroBox.cpp
-    Utils/AstroBox.hpp
-    Utils/Repetier.cpp
-    Utils/Repetier.hpp
 )
 
 if (APPLE)

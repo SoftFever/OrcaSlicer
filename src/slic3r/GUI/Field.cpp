@@ -1225,9 +1225,7 @@ void Choice::set_value(const boost::any& value, bool change_event)
     // BBS
     case coEnums: {
 		int val = boost::any_cast<int>(value);
-        if (m_opt_id.compare("host_type") == 0 && val != 0 && 
-			m_opt.enum_values.size() > field->GetCount()) // for case, when PrusaLink isn't used as a HostType
-			val--;
+
 		if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "sparse_infill_pattern")
 		{
 			std::string key;
@@ -1307,11 +1305,7 @@ boost::any& Choice::get_value()
     // BBS
 	if (m_opt.type == coEnum || m_opt.type == coEnums)
 	{
-        if (m_opt_id.compare("host_type") == 0 && m_opt.enum_values.size() > field->GetCount()) {
-			// for case, when PrusaLink isn't used as a HostType
-			m_value = field->GetSelection()+1;
-		} 
-		else if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "sparse_infill_pattern") {
+		if (m_opt_id == "top_surface_pattern" || m_opt_id == "bottom_surface_pattern" || m_opt_id == "sparse_infill_pattern") {
 			const std::string& key = m_opt.enum_values[field->GetSelection()];
 			m_value = int(ConfigOptionEnum<InfillPattern>::get_enum_values().at(key));
 		}

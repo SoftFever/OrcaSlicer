@@ -43,23 +43,6 @@ static t_config_enum_values s_keys_map_PrinterTechnology {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrinterTechnology)
 
-static t_config_enum_values s_keys_map_PrintHostType {
-    { "prusalink",      htPrusaLink },
-    { "octoprint",      htOctoPrint },
-    { "duet",           htDuet },
-    { "flashair",       htFlashAir },
-    { "astrobox",       htAstroBox },
-    { "repetier",       htRepetier },
-    { "mks",            htMKS }
-};
-CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrintHostType)
-
-static t_config_enum_values s_keys_map_AuthorizationType {
-    { "key",            atKeyPassword },
-    { "user",           atUserPassword }
-};
-CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(AuthorizationType)
-
 static t_config_enum_values s_keys_map_GCodeFlavor {
     { "marlin",         gcfMarlinLegacy },
     { "reprap",         gcfRepRapSprinter },
@@ -274,7 +257,6 @@ void PrintConfigDef::init_common_params()
 
     def = this->add("printable_area", coPoints);
     def->label = L("Printable area");
-
     //BBS
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionPoints{ Vec2d(0, 0), Vec2d(200, 0), Vec2d(200, 200), Vec2d(0, 200) });
@@ -321,98 +303,6 @@ void PrintConfigDef::init_common_params()
     //def->tooltip = L("Names of presets related to the physical printer");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionStrings());
-
-    //SoftFever
-    def = this->add("connection_moonraker_url", coString);
-    def->label = L("Moonraker URL");
-    //def->tooltip = L("Names of presets related to the physical printer");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString("http://"));
-
-    def = this->add("connection_port", coString);
-    def->label = L("Connection port");
-    //def->tooltip = L("Names of presets related to the physical printer");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString("7125"));
-
-
-
-    def = this->add("print_host", coString);
-    def->label = L("Hostname, IP or URL");
-    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
-                   "the hostname, IP address or URL of the printer host instance. "
-                   "Print host behind HAProxy with basic auth enabled can be accessed by putting the user name and password into the URL "
-                   "in the following format: https://username:password@your-octopi-address/");
-    def->mode = comAdvanced;
-    def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionString(""));
-
-    def = this->add("printhost_apikey", coString);
-    def->label = L("API Key / Password");
-    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
-                   "the API Key or the password required for authentication.");
-    def->mode = comAdvanced;
-    def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionString(""));
-    
-    def = this->add("printhost_port", coString);
-    def->label = L("Printer");
-    def->tooltip = L("Name of the printer");
-    def->gui_type = ConfigOptionDef::GUIType::select_open;
-    def->mode = comAdvanced;
-    def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionString(""));
-    
-    def = this->add("printhost_cafile", coString);
-    def->label = L("HTTPS CA File");
-    def->tooltip = L("Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. "
-                   "If left blank, the default OS CA certificate repository is used.");
-    def->mode = comAdvanced;
-    def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionString(""));
-    
-    // Options used by physical printers
-    
-    def = this->add("printhost_user", coString);
-    def->label = L("User");
-//    def->tooltip = L("");
-    def->mode = comAdvanced;
-    def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionString(""));
-    
-    def = this->add("printhost_password", coString);
-    def->label = L("Password");
-//    def->tooltip = L("");
-    def->mode = comAdvanced;
-    def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionString(""));
-
-    // Only available on Windows.
-    def = this->add("printhost_ssl_ignore_revoke", coBool);
-    def->label = L("Ignore HTTPS certificate revocation checks");
-    def->tooltip = L("Ignore HTTPS certificate revocation checks in case of missing or offline distribution points. "
-                     "One may want to enable this option for self signed certificates if connection fails.");
-    def->mode = comAdvanced;
-    def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionBool(false));
-    
-    def = this->add("preset_names", coStrings);
-    def->label = L("Printer preset names");
-    def->tooltip = L("Names of presets related to the physical printer");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionStrings());
-
-    def = this->add("printhost_authorization_type", coEnum);
-    def->label = L("Authorization Type");
-//    def->tooltip = L("");
-    def->enum_keys_map = &ConfigOptionEnum<AuthorizationType>::get_enum_values();
-    def->enum_values.push_back("key");
-    def->enum_values.push_back("user");
-    def->enum_labels.push_back(L("API key"));
-    def->enum_labels.push_back(L("HTTP digest"));
-    def->mode = comAdvanced;
-    def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionEnum<AuthorizationType>(atKeyPassword));
 
     // temporary workaround for compatibility with older Slicer
     {
@@ -1733,30 +1623,6 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats { 0.4 });
-
-    def = this->add("host_type", coEnum);
-    def->label = L("Host Type");
-    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field must contain "
-                   "the kind of the host.");
-    def->enum_keys_map = &ConfigOptionEnum<PrintHostType>::get_enum_values();
-    def->enum_values.push_back("prusalink");
-    def->enum_values.push_back("octoprint");
-    def->enum_values.push_back("duet");
-    def->enum_values.push_back("flashair");
-    def->enum_values.push_back("astrobox");
-    def->enum_values.push_back("repetier");
-    def->enum_values.push_back("mks");
-    def->enum_labels.push_back("PrusaLink");
-    def->enum_labels.push_back("OctoPrint");
-    def->enum_labels.push_back("Duet");
-    def->enum_labels.push_back("FlashAir");
-    def->enum_labels.push_back("AstroBox");
-    def->enum_labels.push_back("Repetier");
-    def->enum_labels.push_back("MKS");
-    def->mode = comAdvanced;
-    def->cli = ConfigOptionDef::nocli;
-    def->set_default_value(new ConfigOptionEnum<PrintHostType>(htOctoPrint));
-    
 
     def = this->add("nozzle_volume", coFloat);
     def->label = L("Nozzle volume");

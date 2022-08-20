@@ -90,7 +90,7 @@ PresetBundle::PresetBundle()
     for (size_t i = 0; i < 1; ++i) {
         // The following ugly switch is to avoid printers.preset(0) to return the edited instance, as the 0th default is the current one.
         Preset &preset = this->printers.default_preset(i);
-        for (const char *key : {"printer_settings_id", "printer_model", "printer_variant","physical_printer_settings_id"}) preset.config.optptr(key, true);
+        for (const char *key : {"printer_settings_id", "printer_model", "printer_variant"}) preset.config.optptr(key, true);
         //if (i == 0) {
             preset.config.optptr("default_print_profile", true);
             preset.config.option<ConfigOptionStrings>("default_filament_profile", true);
@@ -265,11 +265,6 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
     }
     try {
         this->printers.load_presets(dir_user_presets, PRESET_PRINTER_NAME, substitutions, substitution_rule);
-    } catch (const std::runtime_error &err) {
-        errors_cummulative += err.what();
-    }
-    try {
-        this->physical_printers.load_printers(dir_user_presets, "physical_printer", substitutions, substitution_rule);
     } catch (const std::runtime_error &err) {
         errors_cummulative += err.what();
     }
@@ -537,7 +532,7 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &config, st
     // First load the vendor specific system presets.
     PresetsConfigSubstitutions substitutions;
     std::string errors_cummulative;
-    bool process_added = false, filament_added = false, machine_added = false, physical_printer_added = false;
+    bool process_added = false, filament_added = false, machine_added = false;
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" enter, substitution_rule %1%, preset toltal count %2%")%substitution_rule%my_presets.size();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" print's selected_idx %1%, selected_name %2%") %prints.get_selected_idx() %prints.get_selected_preset_name();
@@ -566,11 +561,6 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &config, st
             else if (type_iter->second == PRESET_IOT_PRINTER_TYPE) {
                 preset_collection = &(this->printers);
                 machine_added |= preset_collection->load_user_preset(name, value_map, substitutions, substitution_rule);
-            }
-            else if(type_iter->second == PRESET_IOT_PHYSICAL_PRINTER_TYPE){
-                preset_collection = &(this->printers);
-                physical_printer_added |= preset_collection->load_user_preset(name, value_map, substitutions, substitution_rule);
-
             }
             else {
                 BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("invalid type %1% for setting %2%") %type_iter->second %name;
@@ -655,6 +645,9 @@ void PresetBundle::update_system_preset_setting_ids(std::map<std::string, std::m
         else if (type_iter->second == PRESET_IOT_PRINTER_TYPE) {
             preset_collection = &(this->printers);
         }
+        else if (type_iter->second == PRESET_IOT_PRINTER_TYPE) {
+            preset_collection = &(this->printers);
+        }
         else {
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("invalid type %1% for setting %2%") %type_iter->second %name;
             continue;
@@ -687,7 +680,7 @@ void PresetBundle::update_system_preset_setting_ids(std::map<std::string, std::m
 bool PresetBundle::validate_printers(const std::string &name, DynamicPrintConfig& config)
 {
     // BBS TODO:
-#if 1
+#if 0
     std::vector<std::string> inherits_values;
     PrinterTechnology printer_technology = Preset::printer_technology(config);
     size_t num_extruders = (printer_technology == ptFFF) ?
@@ -1184,7 +1177,7 @@ void PresetBundle::export_selections(AppConfig &config)
     // BBS
     //config.set("presets", "sla_print",    sla_prints.get_selected_preset_name());
     //config.set("presets", "sla_material", sla_materials.get_selected_preset_name());
-    config.set("presets", "physical_printer", physical_printers.get_selected_full_printer_name());
+    //config.set("presets", "physical_printer", physical_printers.get_selected_full_printer_name());
     //BBS: add config related log
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": printer %1%, print %2%, filaments[0] %3% ")%printers.get_selected_preset_name() % prints.get_selected_preset_name() %filament_presets[0];
 }
@@ -1252,15 +1245,13 @@ DynamicPrintConfig PresetBundle::full_config() const
 DynamicPrintConfig PresetBundle::full_config_secure() const
 {
     DynamicPrintConfig config = this->full_config();
-    //FIXME legacy, the keys should not be there after conversion to a Physical Printer profile.
-    config.erase("print_host");
-    config.erase("printhost_apikey");
-    config.erase("printhost_cafile");    return config;
+    //BBS example: config.erase("print_host");
+    return config;
 }
 
 const std::set<std::string> ignore_settings_list ={
     "inherits",
-    "print_settings_id", "filament_settings_id", "printer_settings_id","physical_printer_settings_id"
+    "print_settings_id", "filament_settings_id", "printer_settings_id"
 };
 
 DynamicPrintConfig PresetBundle::full_fff_config() const
@@ -1441,7 +1432,6 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
     out.option<ConfigOptionStrings>("filament_settings_id", true)->values = this->filament_presets;
     out.option<ConfigOptionString >("printer_settings_id",  true)->value  = this->printers.get_selected_preset_name();
     out.option<ConfigOptionStrings>("filament_ids", true)->values = filament_ids;
-    // out.option<ConfigOptionString >("physical_printer_settings_id", true)->value = this->physical_printers.get_selected_printer_preset_name();
     // Serialize the collected "compatible_printers_condition" and "inherits" fields.
     // There will be 1 + num_exturders fields for "inherits" and 2 + num_extruders for "compatible_printers_condition" stored.
     // The vector will not be stored if all fields are empty strings.
@@ -1820,7 +1810,8 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 	this->update_compatible(PresetSelectCompatibleType::Never);
 
     //BBS
-    const std::string &physical_printer = config.option<ConfigOptionString>("physical_printer_settings_id", true)->value;
+    //const std::string &physical_printer = config.option<ConfigOptionString>("physical_printer_settings_id", true)->value;
+    const std::string physical_printer;
     if (this->printers.get_edited_preset().is_external || physical_printer.empty()) {
         this->physical_printers.unselect_printer();
     } else {
