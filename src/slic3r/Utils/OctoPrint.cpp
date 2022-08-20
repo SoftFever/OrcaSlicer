@@ -192,7 +192,7 @@ bool OctoPrint::upload(PrintHostUpload upload_data, ProgressFn prorgess_fn, Erro
 
 #ifdef WIN32
     // Workaround for Windows 10/11 mDNS resolve issue, where two mDNS resolves in succession fail.
-    if (m_host.find("https://") == 0 || test_msg_or_host_ip.empty() || GUI::get_app_config()->get("allow_ip_resolve") != "1")
+    if (m_host.find("https://") == 0 || test_msg_or_host_ip.empty())
 #endif // _WIN32
     {
         // If https is entered we assume signed ceritificate is being used
