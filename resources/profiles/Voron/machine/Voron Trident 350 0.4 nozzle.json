@@ -1,7 +1,7 @@
 {
   "type": "machine",
-  "setting_id": "VORON-004",
-  "name": "Voron 2.4 350 0.4 nozzle",
+  "setting_id": "VORON-007",
+  "name": "Voron Trident 350 0.4 nozzle",
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_klipper_common",

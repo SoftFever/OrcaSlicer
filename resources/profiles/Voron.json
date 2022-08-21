@@ -17,6 +17,18 @@
             "sub_path": "machine/Voron 2.4 350.json"
         },
         {
+            "name": "Voron Trident 250",
+            "sub_path": "machine/Voron Trident 250.json"
+        },
+        {
+            "name": "Voron Trident 300",
+            "sub_path": "machine/Voron Trident 300.json"
+        },
+        {
+            "name": "Voron Trident 350",
+            "sub_path": "machine/Voron Trident 350.json"
+        },
+        {
             "name": "Voron 0.1",
             "sub_path": "machine/Voron 0.1.json"
         }
@@ -139,10 +151,6 @@
             "sub_path": "machine/fdm_machine_common.json"
         },
         {
-            "name": "fdm_bbl_3dp_001_common",
-            "sub_path": "machine/fdm_bbl_3dp_001_common.json"
-        },
-        {
             "name": "fdm_klipper_common",
             "sub_path": "machine/fdm_klipper_common.json"
         },
@@ -157,6 +165,18 @@
         {
             "name": "Voron 2.4 350 0.4 nozzle",
             "sub_path": "machine/Voron 2.4 350 0.4 nozzle.json"
+        },
+        {
+            "name": "Voron Trident 250 0.4 nozzle",
+            "sub_path": "machine/Voron Trident 250 0.4 nozzle.json"
+        },
+        {
+            "name": "Voron Trident 300 0.4 nozzle",
+            "sub_path": "machine/Voron Trident 300 0.4 nozzle.json"
+        },
+        {
+            "name": "Voron Trident 350 0.4 nozzle",
+            "sub_path": "machine/Voron Trident 350 0.4 nozzle.json"
         },
         {
             "name": "Voron 0.1 0.4 nozzle",

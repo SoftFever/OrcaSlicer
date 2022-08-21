@@ -1,7 +1,7 @@
 {
     "type": "machine_model",
-    "name": "Voron 2.4 350",
-    "model_id": "Voron2-350",
+    "name": "Voron Trident 350",
+    "model_id": "Voron2Trident-350",
     "nozzle_diameter": "0.4",
     "machine_tech": "FFF",
     "family": "VoronDesign",
