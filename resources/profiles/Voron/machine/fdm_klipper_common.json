@@ -5,7 +5,7 @@
     "instantiation": "false",
     "inherits": "fdm_bbl_3dp_001_common",
     "default_filament_profile": [
-        "Bambu PLA Basic @BBL X1C"
+        "Voron Generic ABS"
     ],
     "default_print_profile": "0.20mm Standard @Voron",
     "nozzle_diameter": [

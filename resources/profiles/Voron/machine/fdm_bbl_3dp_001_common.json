@@ -20,9 +20,9 @@
         "0x256"
     ],
     "default_filament_profile": [
-        "Bambu PLA Basic @BBL X1C"
+        "Voron Generic ABS"
     ],
-    "default_print_profile": "0.16mm Optimal @BBL X1C",
+    "default_print_profile": "0.20mm Standard @Voron",
     "deretraction_speed": [
         "0"
     ],
