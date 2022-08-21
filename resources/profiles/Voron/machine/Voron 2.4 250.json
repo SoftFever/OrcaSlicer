@@ -1,0 +1,13 @@
+{
+    "type": "machine_model",
+    "name": "Voron 2.4 250",
+    "model_id": "BL-P002",
+    "url": "http://www.bambulab.com/Parameters/printer_model/Bambu Lab X1.json",
+    "nozzle_diameter": "0.4",
+    "machine_tech": "FFF",
+    "family": "BBL-3DP",
+    "bed_model": "",
+    "bed_texture": "voron_textured.png",
+    "hotend_model": "bbl-3dp-hotend.stl",
+    "default_materials": "Generic PLA;Bambu PLA Matte @BBL X1;Bambu PLA Basic @BBL X1;Bambu ABS @BBL X1C;Bambu PC @BBL X1C;Bambu Support W @BBL X1;Bambu TPU 95A @BBL X1;PolyTerra PLA @BBL X1;PolyLite PLA @BBL X1;"
+}
