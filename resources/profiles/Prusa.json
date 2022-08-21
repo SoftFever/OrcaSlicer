@@ -11,6 +11,10 @@
     ],
     "process_list": [
         {
+            "name": "fdm_process_common",
+            "sub_path": "process/fdm_process_common.json"
+        },
+        {
             "name": "0.20mm Standard @MK3S",
             "sub_path": "process/0.20mm Standard @MK3S.json"
         }
@@ -53,44 +57,44 @@
             "sub_path": "filament/fdm_filament_pa.json"
         },
         {
-            "name": "Voron Generic PLA",
-            "sub_path": "filament/Voron Generic PLA.json"
+            "name": "Prusa Generic PLA",
+            "sub_path": "filament/Prusa Generic PLA.json"
         },
         {
-            "name": "Voron Generic PLA-CF",
-            "sub_path": "filament/Voron Generic PLA-CF.json"
+            "name": "Prusa Generic PLA-CF",
+            "sub_path": "filament/Prusa Generic PLA-CF.json"
         },
         {
-            "name": "Voron Generic PETG",
-            "sub_path": "filament/Voron Generic PETG.json"
+            "name": "Prusa Generic PETG",
+            "sub_path": "filament/Prusa Generic PETG.json"
         },
         {
-            "name": "Voron Generic ABS",
-            "sub_path": "filament/Voron Generic ABS.json"
+            "name": "Prusa Generic ABS",
+            "sub_path": "filament/Prusa Generic ABS.json"
         },
         {
-            "name": "Voron Generic TPU",
-            "sub_path": "filament/Voron Generic TPU.json"
+            "name": "Prusa Generic TPU",
+            "sub_path": "filament/Prusa Generic TPU.json"
         },
         {
-            "name": "Voron Generic ASA",
-            "sub_path": "filament/Voron Generic ASA.json"
+            "name": "Prusa Generic ASA",
+            "sub_path": "filament/Prusa Generic ASA.json"
         },
         {
-            "name": "Voron Generic PC",
-            "sub_path": "filament/Voron Generic PC.json"
+            "name": "Prusa Generic PC",
+            "sub_path": "filament/Prusa Generic PC.json"
         },
         {
-            "name": "Voron Generic PVA",
-            "sub_path": "filament/Voron Generic PVA.json"
+            "name": "Prusa Generic PVA",
+            "sub_path": "filament/Prusa Generic PVA.json"
         },
         {
-            "name": "Voron Generic PA",
-            "sub_path": "filament/Voron Generic PA.json"
+            "name": "Prusa Generic PA",
+            "sub_path": "filament/Prusa Generic PA.json"
         },
         {
-            "name": "Voron Generic PA-CF",
-            "sub_path": "filament/Voron Generic PA-CF.json"
+            "name": "Prusa Generic PA-CF",
+            "sub_path": "filament/Prusa Generic PA-CF.json"
         }
     ],
     "machine_list": [
