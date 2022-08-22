@@ -898,7 +898,7 @@ int GuideFrame::LoadProfile()
             } else {
                 //cout << "is a file" << endl;
                 //cout << iter->path().string() << endl;
-                wxString strVendor = wxString(iter->path().string()).BeforeLast('.');
+                wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
                 strVendor          = strVendor.AfterLast( '\\');
                 strVendor          = strVendor.AfterLast('\/');          
 
