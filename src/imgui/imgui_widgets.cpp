@@ -1205,6 +1205,40 @@ bool ImGui::ImageButtonEx3(ImGuiID id,ImTextureID   texture_id,ImTextureID   tex
     return pressed;
 }
 
+bool ImGui::BBLImageButtonEx(ImGuiID id,ImTextureID   texture_id,ImTextureID texture_id_hover, ImTextureID texture_id_press, const ImVec2 &size, bool &value,const ImVec2 &uv0,const ImVec2 &uv1,const ImVec2 &padding,const ImVec4 &bg_col,const ImVec4 &tint_col,const ImVec2 &margin)
+{
+    ImGuiContext &g      = *GImGui;
+    ImGuiWindow * window = GetCurrentWindow();
+    if (window->SkipItems) return false;
+
+    const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size + padding * 2 + margin * 2);
+    ItemSize(bb);
+    if (!ItemAdd(bb, id)) return false;
+
+    bool hovered, held;
+    bool pressed = ButtonBehavior(bb, id, &hovered, &held);
+    if (pressed) value = !value;
+
+    // Render
+    const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+    RenderNavHighlight(bb, id);
+
+    const float border_size = g.Style.FrameBorderSize;
+    if (border_size > 0.0f) {
+        window->DrawList->AddRect(bb.Min + ImVec2(1, 1), bb.Max + ImVec2(1, 1), col, g.Style.FrameRounding, 0, border_size);
+        window->DrawList->AddRect(bb.Min, bb.Max, col, g.Style.FrameRounding, 0, border_size);
+    }
+
+    if (bg_col.w > 0.0f) window->DrawList->AddRectFilled(bb.Min + padding, bb.Max - padding, GetColorU32(bg_col));
+
+    window->DrawList->AddImage(texture_id, bb.Min + padding + margin, bb.Max - padding - margin, uv0, uv1, GetColorU32(tint_col));
+
+    if (hovered)window->DrawList->AddImage(texture_id_hover, bb.Min + padding + margin, bb.Max - padding - margin, uv0, uv1, GetColorU32(tint_col));
+
+    if (value)window->DrawList->AddImage(texture_id_press, bb.Min + padding + margin, bb.Max - padding - margin, uv0, uv1, GetColorU32(tint_col));
+
+    return pressed;
+}
 
 bool ImGui::ImageButton(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col, const ImVec4& tint_col)
 {
@@ -1256,6 +1290,20 @@ bool ImGui::ImageButton3(ImTextureID user_texture_id,ImTextureID user_texture_id
     return ImageButtonEx3(id, user_texture_id, user_texture_id_hover, size, uv0, uv1, padding, bg_col, tint_col, margin);
 }
 
+bool ImGui::BBLImageButton(ImTextureID user_texture_id,ImTextureID user_texture_id_hover, ImTextureID user_texture_id_press, const ImVec2 &size, bool &value, const ImVec2 &uv0, const ImVec2 &uv1, int frame_padding, const ImVec4 &bg_col, const ImVec4 &tint_col, const ImVec2 &margin)
+{
+    ImGuiContext &g      = *GImGui;
+    ImGuiWindow * window = g.CurrentWindow;
+    if (window->SkipItems) return false;
+
+    // Default to using texture ID as ID. User can still push string/integer prefixes.
+    PushID((void *) (intptr_t) user_texture_id);
+    const ImGuiID id = window->GetID("#image");
+    PopID();
+
+    const ImVec2 padding = (frame_padding >= 0) ? ImVec2((float) frame_padding, (float) frame_padding) : g.Style.FramePadding;
+    return BBLImageButtonEx(id, user_texture_id, user_texture_id_hover, user_texture_id_press, size,value, uv0, uv1, padding, bg_col, tint_col, margin);
+}
 
 bool ImGui::ImageTextButton(const ImVec2& button_size, const char* text, ImTextureID user_texture_id, const ImVec2& image_size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col, const ImVec4& tint_col, const ImVec2& margin)
 {

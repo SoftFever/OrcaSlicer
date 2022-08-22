@@ -63,24 +63,59 @@ void GLGizmoText::on_render_for_picking()
     // TODO:
 }
 
+void GLGizmoText::push_combo_style()
+{
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+    ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG);
+    ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 0.0f));
+    ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG);
+    ImGui::PushStyleColor(ImGuiCol_Button, { 1.00f, 1.00f, 1.00f, 0.0f });
+}
+
+void GLGizmoText::pop_combo_style()
+{
+    ImGui::PopStyleVar(2);
+    ImGui::PopStyleColor(7);
+}
+
 // BBS
 void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 {
+    const float win_h = ImGui::GetWindowHeight();
+    y = std::min(y, bottom_limit - win_h);
+    GizmoImguiSetNextWIndowPos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
+
     static float last_y = 0.0f;
     static float last_h = 0.0f;
 
-    float space_size = m_imgui->get_style_scaling() * 8;
-    float font_cap = m_imgui->calc_text_size("Font ").x;
-    float size_cap = m_imgui->calc_text_size("Size ").x;
-    float thickness_cap = m_imgui->calc_text_size("Thickness ").x;
-    float caption_size = std::max(std::max(font_cap, size_cap), thickness_cap) + 2 * space_size;
+    ImGuiWrapper::push_toolbar_style(m_parent.get_scale());
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {4.0,5.0});
+    GizmoImguiBegin("Text", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
-    m_imgui->begin(_L("Text"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    float space_size = m_imgui->get_style_scaling() * 8;
+    float font_cap = m_imgui->calc_text_size(_L("Font")).x;
+    float size_cap = m_imgui->calc_text_size(_L("Size")).x;
+    float thickness_cap = m_imgui->calc_text_size(_L("Thickness")).x;
+    float input_cap = m_imgui->calc_text_size(_L("Input text")).x;
+    float caption_size = std::max(std::max(font_cap, size_cap), std::max(thickness_cap, input_cap)) + space_size + ImGui::GetStyle().WindowPadding.x;
+
+    float input_text_size = m_imgui->scaled(12.0f);
+    float button_size = m_imgui->scaled(1.4f);
+    float input_size = input_text_size - button_size * 2 - ImGui::GetStyle().ItemSpacing.x * 4;
+
+    ImTextureID normal_B = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TEXT_B);
+    ImTextureID press_B_hover = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TEXT_B_HOVER);
+    ImTextureID press_B_press = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TEXT_B_PRESS);
+
+    ImTextureID normal_T = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TEXT_T);
+    ImTextureID press_T_hover = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TEXT_T_HOVER);
+    ImTextureID press_T_press = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TEXT_T_PRESS);
 
     // adjust window position to avoid overlap the view toolbar
-    const float win_h = ImGui::GetWindowHeight();
-    y = std::min(y, bottom_limit - win_h);
-    ImGui::SetWindowPos(ImVec2(x, y), ImGuiCond_Always);
     if (last_h != win_h || last_y != y) {
         // ask canvas for another frame to render the window in the correct position
         m_imgui->set_requires_extra_frame();
@@ -96,32 +131,61 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     for (int i = 0; i < m_avail_font_names.size(); i++)
         cstr_font_names[i] = m_avail_font_names[i].c_str();
 
+    m_imgui->text(_L("Font"));
+    ImGui::SameLine(caption_size);
+    ImGui::PushItemWidth(input_text_size + ImGui::GetFrameHeight() * 2);
+    push_combo_style();
+    if (ImGui::BBLBeginCombo("##Font", cstr_font_names[m_curr_font_idx], 0)) {
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 0.0f));
+        for (int i = 0; i < m_avail_font_names.size(); i++) {
+            const bool is_selected = (m_curr_font_idx == i);
+            if (ImGui::BBLSelectable(cstr_font_names[i], is_selected)) {
+                m_curr_font_idx = i;
+            }
+            if (is_selected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::PopStyleVar(2);
+        ImGui::EndCombo();
+    }
+
+    ImGui::AlignTextToFramePadding();
+    pop_combo_style();
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+    m_imgui->text(_L("Size"));
+    ImGui::SameLine(caption_size);
+    ImGui::PushItemWidth(input_size);
+    ImGui::InputFloat("###font_size", &m_font_size, 0.0f, 0.0f, "%.2f");
+    if (m_font_size < 3.0f)m_font_size = 3.0f;
+    ImGui::PopStyleVar(1);
+    ImGui::SameLine();
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
+    ImGui::BBLImageButton(normal_B,press_B_hover,press_B_press,{button_size,button_size},m_bold);
+    ImGui::SameLine();
+    ImGui::BBLImageButton(normal_T,press_T_hover,press_T_press,{button_size,button_size},m_italic);
+    ImGui::PopStyleVar();
+
+    ImGui::AlignTextToFramePadding();
+    m_imgui->text(_L("Thickness"));
+    ImGui::SameLine(caption_size);
+    ImGui::PushItemWidth(input_text_size);
+    ImGui::InputFloat("###text_thickness", &m_thickness,0.0f, 0.0f, "%.2f");
+    if (m_thickness < 0.1f)m_thickness = 0.1f;
+
+    ImGui::AlignTextToFramePadding();
+    m_imgui->text(_L("Input text"));
+    ImGui::SameLine(caption_size);
+    ImGui::PushItemWidth(input_text_size);
     ImGui::InputText("", m_text, sizeof(m_text));
-
-    ImGui::PushItemWidth(caption_size);
-    ImGui::Text("Font ");
-    ImGui::SameLine();
-    ImGui::PushItemWidth(150);
-    ImGui::Combo("##Font", &m_curr_font_idx, cstr_font_names, m_avail_font_names.size());
-
-    ImGui::PushItemWidth(caption_size);
-    ImGui::Text("Size ");
-    ImGui::SameLine();
-    ImGui::PushItemWidth(150);
-    ImGui::InputFloat("###font_size", &m_font_size);
-
-    ImGui::PushItemWidth(caption_size);
-    ImGui::Text("Thickness ");
-    ImGui::SameLine();
-    ImGui::PushItemWidth(150);
-    ImGui::InputFloat("###text_thickness", &m_thickness);
-
-    ImGui::Checkbox("Bold", &m_bold);
-    ImGui::SameLine();
-    ImGui::Checkbox("Italic", &m_italic);
-
+    
     ImGui::Separator();
-
+    m_imgui->disabled_begin(m_text[0] == '\0' || m_text[0] == ' ');
+    float offset =  caption_size + input_text_size -  m_imgui->calc_text_size(_L("Add")).x - space_size;
+    ImGui::Dummy({0.0, 0.0});
+    ImGui::SameLine(offset);
     bool add_clicked = m_imgui->button(_L("Add"));
     if (add_clicked) {
         TriangleMesh mesh;
@@ -129,8 +193,11 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         ObjectList* obj_list = wxGetApp().obj_list();
         obj_list->load_mesh_part(mesh, "text_shape");
     }
+    m_imgui->disabled_end();
 
-    m_imgui->end();
+    GizmoImguiEnd();
+    ImGui::PopStyleVar();
+    ImGuiWrapper::pop_toolbar_style();
 }
 
 } // namespace GUI

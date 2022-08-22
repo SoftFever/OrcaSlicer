@@ -151,6 +151,12 @@ public:
         IC_TOOLBAR_RESET_HOVER,
         IC_TOOLBAR_TOOLTIP,
         IC_TOOLBAR_TOOLTIP_HOVER,
+        IC_TEXT_B,
+        IC_TEXT_B_HOVER,
+        IC_TEXT_B_PRESS,
+        IC_TEXT_T,
+        IC_TEXT_T_HOVER,
+        IC_TEXT_T_PRESS,
         IC_NAME_COUNT,
     };
 
