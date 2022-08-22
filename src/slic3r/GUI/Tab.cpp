@@ -2413,6 +2413,10 @@ void TabFilament::build()
         optgroup = page->new_optgroup(L("Print temperature"));
         optgroup->split_multi_line = true;
         optgroup->option_label_at_right = true;
+        line = { L("Chamber"), L("Chamber temperature") };
+        line.append_option(optgroup->get_option("chamber_temperature"));
+        optgroup->append_line(line);
+
         line = { L("Nozzle"), L("Nozzle temperature when printing") };
         line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
         line.append_option(optgroup->get_option("nozzle_temperature"));

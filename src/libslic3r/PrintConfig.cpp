@@ -2476,6 +2476,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("chamber_temperature", coInt);
+    def->label = L("Chamber temperature");
+    def->tooltip = L("Target chamber temperature");
+    def->sidetext = L("°C");
+    def->full_label = L("Chamber temperature");
+    def->min = 0;
+    def->max = max_temp;
+    def->set_default_value(new ConfigOptionInt(0));
+
     def = this->add("nozzle_temperature", coInts);
     def->label = L("Other layers");
     def->tooltip = L("Nozzle temperature for layers after the initial one");
