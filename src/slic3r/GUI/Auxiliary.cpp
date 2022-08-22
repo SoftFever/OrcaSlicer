@@ -378,14 +378,15 @@ void AuFile::on_set_cover()
     }
 
     bool result = true;
-    wxImage thumbnail_img;;
+    wxImage thumbnail_img;
+
     result = generate_image(m_file_path.string(), thumbnail_img, _3MF_COVER_SIZE);
     if (result) {
         auto cover_img_path = dir_path.string() + "/thumbnail_3mf.png";
         thumbnail_img.SaveFile(encode_path(cover_img_path.c_str()));
     }
 
-    result = generate_image(m_file_path.string(), thumbnail_img, PRINTER_THUMBNAIL_SMALL_SIZE, GERNERATE_IMAGE_CROP_VERTICAL);
+    result = generate_image(m_file_path.string(), thumbnail_img, PRINTER_THUMBNAIL_SMALL_SIZE);
     if (result) {
         auto small_img_path = dir_path.string() + "/thumbnail_small.png";
         thumbnail_img.SaveFile(encode_path(small_img_path.c_str()));

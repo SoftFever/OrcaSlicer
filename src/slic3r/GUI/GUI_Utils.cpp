@@ -450,7 +450,7 @@ bool generate_image(const std::string &filename, wxImage &image, wxSize img_size
     if (method == GERNERATE_IMAGE_RESIZE) {
         float h_factor   = img.GetHeight() / (float) image.GetHeight();
         float w_factor   = img.GetWidth() / (float) image.GetWidth();
-        float factor     = std::max(h_factor, w_factor);
+        float factor     = std::min(h_factor, w_factor);
         int   tar_height = (int) ((float) img.GetHeight() / factor);
         int   tar_width  = (int) ((float) img.GetWidth() / factor);
         img              = img.Rescale(tar_width, tar_height);
@@ -465,7 +465,7 @@ bool generate_image(const std::string &filename, wxImage &image, wxSize img_size
         return false;
     }
 
-    image.ConvertAlphaToMask(image.GetMaskRed(), image.GetMaskGreen(), image.GetMaskBlue());
+    //image.ConvertAlphaToMask(image.GetMaskRed(), image.GetMaskGreen(), image.GetMaskBlue());
     return true;
 }
 
