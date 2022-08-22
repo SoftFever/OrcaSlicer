@@ -1745,6 +1745,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("wall_infill_order");
         optgroup->append_single_option_line("bridge_flow");
         optgroup->append_single_option_line("only_one_wall_top");
+        optgroup->append_single_option_line("only_one_wall_first_layer");
         optgroup->append_single_option_line("detect_overhang_wall");
         optgroup->append_single_option_line("reduce_crossing_wall");
         optgroup->append_single_option_line("max_travel_detour_distance");
@@ -2413,7 +2414,7 @@ void TabFilament::build()
         optgroup = page->new_optgroup(L("Print temperature"));
         optgroup->split_multi_line = true;
         optgroup->option_label_at_right = true;
-        line = { L("Chamber"), L("Chamber temperature") };
+        line = { L("Chamber temperature"), L("Chamber temperature") };
         line.append_option(optgroup->get_option("chamber_temperature"));
         optgroup->append_line(line);
 

@@ -602,6 +602,12 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Use only one wall on flat top surface, to give more space to the top infill pattern");
     def->set_default_value(new ConfigOptionBool(true));
 
+    def = this->add("only_one_wall_first_layer", coBool);
+    def->label = L("Only one wall on first layer");
+    def->category = L("Quality");
+    def->tooltip = L("Use only one wall on first layer, to give more space to the bottom infill pattern");
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("enable_overhang_speed", coBool);
     def->label = L("Slow down for overhang");
     def->category = L("Speed");

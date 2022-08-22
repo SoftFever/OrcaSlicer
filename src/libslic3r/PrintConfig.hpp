@@ -682,6 +682,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                overhang_3_4_speed))
     ((ConfigOptionFloat,                overhang_4_4_speed))
     ((ConfigOptionBool,                 only_one_wall_top))
+    ((ConfigOptionBool,                 only_one_wall_first_layer))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
