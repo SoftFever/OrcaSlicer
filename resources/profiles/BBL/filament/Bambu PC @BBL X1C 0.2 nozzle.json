@@ -1,12 +1,15 @@
 {
     "type": "filament",
-    "setting_id": "GFSB00_00",
-    "name": "Bambu ABS @BBL X1C 0.2 nozzle",
+    "setting_id": "GFSC00_02",
+    "name": "Bambu PC @BBL X1C 0.2 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "Bambu ABS @base",
+    "inherits": "Bambu PC @base",
     "filament_max_volumetric_speed": [
-        "4"
+        "1"
+    ],
+    "nozzle_temperature": [
+        "260"
     ],
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.2 nozzle"

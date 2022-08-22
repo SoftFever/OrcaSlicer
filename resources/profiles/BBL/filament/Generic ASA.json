@@ -1,17 +1,10 @@
 {
     "type": "filament",
-    "filament_id": "GFB98",
     "setting_id": "GFSB98",
     "name": "Generic ASA",
     "from": "system",
     "instantiation": "true",
-    "inherits": "fdm_filament_asa",
-    "filament_flow_ratio": [
-        "0.95"
-    ],
-    "filament_max_volumetric_speed": [
-        "12"
-    ],
+    "inherits": "Generic ASA @base",
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.4 nozzle",
       "Bambu Lab X1 0.4 nozzle",
