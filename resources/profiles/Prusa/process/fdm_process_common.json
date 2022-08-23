@@ -14,7 +14,7 @@
     "compatible_printers": [],
     "compatible_printers_condition": "",
     "print_sequence": "by layer",
-    "default_acceleration": "10000",
+    "default_acceleration": "1000",
     "bridge_no_support": "0",
     "draft_shield": "disabled",
     "elefant_foot_compensation": "0",
