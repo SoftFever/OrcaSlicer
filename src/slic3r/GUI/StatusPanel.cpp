@@ -518,7 +518,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     wxBoxSizer *text_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_error_text = new wxStaticText2(m_panel_error_txt);
-    m_error_text->SetForegroundColour(PAGE_TITLE_FONT_COL);
+    m_error_text->SetForegroundColour(wxColour(255, 0, 0));
     text_sizer->Add(m_error_text, 1, wxEXPAND|wxLEFT, FromDIP(17));
 
     m_button_clean = new Button(m_panel_error_txt, _L("Clean"));

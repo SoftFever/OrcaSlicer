@@ -32,7 +32,7 @@ protected:
     virtual bool on_is_activable() const override;
     virtual void on_render() override;
     virtual void on_render_for_picking() override;
-    void push_combo_style();
+    void push_combo_style(const float scale);
     void pop_combo_style();
     virtual void on_set_state() override;
     virtual CommonGizmosDataID on_get_requirements() const override;

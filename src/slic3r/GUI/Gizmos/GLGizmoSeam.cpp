@@ -222,17 +222,22 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
         std::wstring btn_name = tool_icons[i] + boost::nowide::widen(str_label);
 
         if (i != 0) ImGui::SameLine((empty_button_width + m_imgui->scaled(1.75f)) * i + m_imgui->scaled(1.3f));
-
-        if (m_current_tool == tool_icons[i]) {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.81f, 0.81f, 0.81f, 1.0f)); // r, g, b, a
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.81f, 0.81f, 0.81f, 1.0f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.81f, 0.81f, 0.81f, 1.0f));
-        }
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
+        if (m_current_tool == tool_icons[i]) {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.86f, 0.99f, 0.91f, 1.00f)); // r, g, b, a
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0);
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0);
+        }
         bool btn_clicked = ImGui::Button(into_u8(btn_name).c_str());
+        if (m_current_tool == tool_icons[i])
+        {
+            ImGui::PopStyleColor(4);
+            ImGui::PopStyleVar(2);
+        }
         ImGui::PopStyleVar(1);
-        if (m_current_tool == tool_icons[i])ImGui::PopStyleColor(3);
-
         if (btn_clicked && m_current_tool != tool_icons[i]) {
             m_current_tool = tool_icons[i];
             for (auto& triangle_selector : m_triangle_selectors) {

@@ -15,6 +15,11 @@
 
 #include <GL/glew.h>
 
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+#include <imgui/imgui_internal.h>
+
 namespace Slic3r {
 namespace GUI {
 
@@ -63,10 +68,10 @@ void GLGizmoText::on_render_for_picking()
     // TODO:
 }
 
-void GLGizmoText::push_combo_style()
+void GLGizmoText::push_combo_style(const float scale)
 {
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f * scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
     ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG);
     ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
     ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 0.0f));
@@ -92,8 +97,9 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     static float last_y = 0.0f;
     static float last_h = 0.0f;
 
-    ImGuiWrapper::push_toolbar_style(m_parent.get_scale());
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {4.0,5.0});
+    const float currt_scale = m_parent.get_scale();
+    ImGuiWrapper::push_toolbar_style(currt_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0,5.0) * currt_scale);
     GizmoImguiBegin("Text", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
     float space_size = m_imgui->get_style_scaling() * 8;
@@ -134,10 +140,10 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     m_imgui->text(_L("Font"));
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(input_text_size + ImGui::GetFrameHeight() * 2);
-    push_combo_style();
+    push_combo_style(currt_scale);
     if (ImGui::BBLBeginCombo("##Font", cstr_font_names[m_curr_font_idx], 0)) {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 0.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 0.0f) * currt_scale);
         for (int i = 0; i < m_avail_font_names.size(); i++) {
             const bool is_selected = (m_curr_font_idx == i);
             if (ImGui::BBLSelectable(cstr_font_names[i], is_selected)) {
@@ -153,13 +159,11 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 
     ImGui::AlignTextToFramePadding();
     pop_combo_style();
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
     m_imgui->text(_L("Size"));
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(input_size);
     ImGui::InputFloat("###font_size", &m_font_size, 0.0f, 0.0f, "%.2f");
     if (m_font_size < 3.0f)m_font_size = 3.0f;
-    ImGui::PopStyleVar(1);
     ImGui::SameLine();
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
