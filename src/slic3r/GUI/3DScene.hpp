@@ -371,6 +371,7 @@ public:
 	    bool                shader_outside_printer_detection_enabled : 1;
 	    // Wheter or not this volume is outside print volume.
 	    bool                is_outside : 1;
+        bool                partly_inside : 1;
 	    // Wheter or not this volume has been generated from a modifier
 	    bool                is_modifier : 1;
 	    // Wheter or not this volume has been generated from the wipe tower

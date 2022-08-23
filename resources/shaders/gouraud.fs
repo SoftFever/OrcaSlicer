@@ -64,6 +64,23 @@ void main()
         alpha = 1.0;
     }
 	
+    // if the fragment is outside the print volume -> use darker color
+    vec3 pv_check_min = ZERO;
+    vec3 pv_check_max = ZERO;
+    if (print_volume.type == 0) {
+        // rectangle
+        pv_check_min = world_pos.xyz - vec3(print_volume.xy_data.x, print_volume.xy_data.y, print_volume.z_data.x);
+        pv_check_max = world_pos.xyz - vec3(print_volume.xy_data.z, print_volume.xy_data.w, print_volume.z_data.y);
+        color = (any(lessThan(pv_check_min, ZERO)) || any(greaterThan(pv_check_max, ZERO))) ? mix(color, ZERO, 0.3333) : color;
+    }
+    else if (print_volume.type == 1) {
+        // circle
+        float delta_radius = print_volume.xy_data.z - distance(world_pos.xy, print_volume.xy_data.xy);
+        pv_check_min = vec3(delta_radius, 0.0, world_pos.z - print_volume.z_data.x);
+        pv_check_max = vec3(0.0, 0.0, world_pos.z - print_volume.z_data.y);
+        color = (any(lessThan(pv_check_min, ZERO)) || any(greaterThan(pv_check_max, ZERO))) ? mix(color, ZERO, 0.3333) : color;
+    }
+
 	//BBS: add outline_color
 	if (is_outline)
 		gl_FragColor = uniform_color;
