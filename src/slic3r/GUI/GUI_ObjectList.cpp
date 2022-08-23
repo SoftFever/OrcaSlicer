@@ -1842,7 +1842,10 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
         new_volume->name = boost::filesystem::path(input_file).filename().string();
         // set a default extruder value, since user can't add it manually
         // BBS
-        new_volume->config.set_key_value("extruder", new ConfigOptionInt(1));
+        int extruder_id = 0;
+        if (model_object.config.has("extruder"))
+            extruder_id = model_object.config.opt_int("extruder");
+        new_volume->config.set_key_value("extruder", new ConfigOptionInt(extruder_id));
         // update source data
         new_volume->source.input_file = input_file;
         new_volume->source.object_idx = obj_idx;
@@ -1945,7 +1948,10 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     new_volume->name = into_u8(name);
     // set a default extruder value, since user can't add it manually
     // BBS
-    new_volume->config.set_key_value("extruder", new ConfigOptionInt(1));
+    int extruder_id = 0;
+    if (model_object.config.has("extruder"))
+        extruder_id = model_object.config.opt_int("extruder");
+    new_volume->config.set_key_value("extruder", new ConfigOptionInt(extruder_id));
     new_volume->source.is_from_builtin_objects = true;
 
     select_item([this, obj_idx, new_volume]() {
