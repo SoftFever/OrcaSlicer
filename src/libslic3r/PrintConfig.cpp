@@ -1983,10 +1983,12 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("timelapse_no_toolhead", coBool);
     def->label = L("Timelapse");
-    def->tooltip = L("Record timelapse video of printing without showing toolhead. In this mode "
-                    "the toolhead docks near the excess chute at each layer change, and then "
-                    "a snapshot is taken with the chamber camera. When printing finishes a timelapse "
-                    "video is composed of all the snapshots.");
+    def->tooltip = L("If enabled, a timelapse video will be generated for each print. "
+                     "After each layer is printed, the toolhead will move to the excess chute, "
+                     "and then a snapshot is taken with the chamber camera. "
+                     "All of these snapshots are composed into a timelapse video when printing completes. "
+                     "Since the melt filament may leak from the nozzle during the process of taking a snapshot, "
+                     "prime tower is required for nozzle priming.");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 

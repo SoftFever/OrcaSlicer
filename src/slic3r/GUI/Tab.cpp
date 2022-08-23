@@ -1371,12 +1371,50 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
-    if (opt_key == "enable_prime_tower" || opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
+    if (opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
         update_wiping_button_visibility();
 
+    if (opt_key == "enable_prime_tower") {
+        bool timelapse_enabled = m_config->option<ConfigOptionBool>("timelapse_no_toolhead")->value;
+        if (!boost::any_cast<bool>(value) && timelapse_enabled) {
+            MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required by timeplase. Are you sure you want to disable both of them?"),
+                              _L("Warning"), wxICON_WARNING | wxYES | wxNO);
+            if (dlg.ShowModal() == wxID_YES) {
+                DynamicPrintConfig new_conf = *m_config;
+                new_conf.set_key_value("timelapse_no_toolhead", new ConfigOptionBool(false));
+                m_config_manipulation.apply(m_config, &new_conf);
+                wxGetApp().plater()->update();
+            }
+            else {
+                DynamicPrintConfig new_conf = *m_config;
+                new_conf.set_key_value("enable_prime_tower", new ConfigOptionBool(true));
+                m_config_manipulation.apply(m_config, &new_conf);
+            }
+        }
+        update_wiping_button_visibility();
+    }
+
     // reload scene to update timelapse wipe tower
-    if (opt_key == "timelapse_no_toolhead")
-        wxGetApp().plater()->update();
+    if (opt_key == "timelapse_no_toolhead") {
+        bool wipe_tower_enabled = m_config->option<ConfigOptionBool>("enable_prime_tower")->value;
+        if (!wipe_tower_enabled && boost::any_cast<bool>(value)) {
+            MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required by timelapse. Do you want to enable both of them?"),
+                              _L("Warning"), wxICON_WARNING | wxYES | wxNO);
+            if (dlg.ShowModal() == wxID_YES) {
+                DynamicPrintConfig new_conf = *m_config;
+                new_conf.set_key_value("enable_prime_tower", new ConfigOptionBool(true));
+                m_config_manipulation.apply(m_config, &new_conf);
+                wxGetApp().plater()->update();
+            }
+            else {
+                DynamicPrintConfig new_conf = *m_config;
+                new_conf.set_key_value("timelapse_no_toolhead", new ConfigOptionBool(false));
+                m_config_manipulation.apply(m_config, &new_conf);
+            }
+        } else {
+            wxGetApp().plater()->update();
+        }
+    }
 
     // BBS
 #if 0
