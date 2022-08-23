@@ -27,7 +27,12 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
     Bind(wxEVT_RIGHT_UP, [this](auto & e) { wxClipboard & c = *wxTheClipboard; if (c.Open()) { c.SetData(new wxTextDataObject(m_url)); c.Close(); } });
 
     wxBoxSizer * sizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(m_button_play, 0, wxEXPAND | wxALL, 0);
+    sizer->Add(m_button_play, 0, wxEXPAND | wxALL, 0)
+#if BBL_RELEASE_TO_PUBLIC
+        ->Show(false);
+#else
+        ;
+#endif
     sizer->AddStretchSpacer(1);
     sizer->Add(m_label_status, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(25));
     SetSizer(sizer);
@@ -59,8 +64,11 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     m_failed_retry = 0;
     if (m_last_state != MEDIASTATE_IDLE)
         Stop();
-    //Play();
+#if BBL_RELEASE_TO_PUBLIC
+    Play();
+#else
     SetStatus("");
+#endif
 }
 
 void MediaPlayCtrl::Play()
@@ -117,7 +125,9 @@ void MediaPlayCtrl::Stop()
     m_last_state = MEDIASTATE_IDLE;
     SetStatus(_L("Stopped."));
     ++m_failed_retry;
-    //m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(5 * m_failed_retry);
+#if BBL_RELEASE_TO_PUBLIC
+    m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(5 * m_failed_retry);
+#endif
 }
 
 void MediaPlayCtrl::TogglePlay()
