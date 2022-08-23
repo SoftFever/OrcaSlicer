@@ -311,9 +311,6 @@ public:
     int                 get_selected_obj_idx() const;
     ModelConfig&        get_item_config(const wxDataViewItem& item) const;
 
-    // BBS
-    ItemType            get_item_type(const wxDataViewItem& item) const;
-
     void                changed_object(const int obj_idx = -1) const;
     void                part_selection_changed();
 

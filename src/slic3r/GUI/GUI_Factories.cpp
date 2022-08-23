@@ -689,9 +689,7 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
         initial_extruder = config.has("extruder") ? config.extruder() : 1;
     }
 
-    ItemType sel_type = obj_list()->get_item_type(sels[0]);
-    int i = (sel_type & ItemType::itVolume) ? 0 : 1;
-    for (; i < filaments_cnt; i++)
+    for (int i = 0; i <= filaments_cnt; i++)
     {
         bool is_active_extruder = i == initial_extruder;
         int icon_idx = i == 0 ? 0 : i - 1;

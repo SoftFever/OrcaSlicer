@@ -462,14 +462,16 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
     return *bmp;
 }
 
-wxBitmap* get_extruder_color_icon(int extruder_id, bool as_default, bool thin_icon/* = false*/)
+std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
 {
     static Slic3r::GUI::BitmapCache bmp_cache;
 
-    bool dark_mode = Slic3r::GUI::wxGetApp().dark_mode();
+    // Create the bitmap with color bars.
+    std::vector<wxBitmap*> bmps;
     std::vector<std::string> colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
-    if (colors.empty() || extruder_id > colors.size())
-        return nullptr;
+
+    if (colors.empty())
+        return bmps;
 
     unsigned char rgb[3];
 
@@ -481,65 +483,44 @@ wxBitmap* get_extruder_color_icon(int extruder_id, bool as_default, bool thin_ic
     const int icon_width = lround((thin_icon ? 2 : 4.5) * em);
     const int icon_height = lround(2 * em);
 
+    bool dark_mode = Slic3r::GUI::wxGetApp().dark_mode();
+
+    int index = 0;
     wxClientDC cdc((wxWindow*)Slic3r::GUI::wxGetApp().mainframe);
     wxMemoryDC dc(&cdc);
     dc.SetFont(::Label::Body_12);
-    std::string color = colors[extruder_id - 1];
-    auto cache_label = as_default ? "default" : std::to_string(extruder_id);
-    std::string bitmap_key = color + "-h" + std::to_string(icon_height) + "-w" + std::to_string(icon_width)
-        + "-i" + cache_label;
-
-    auto disp_label = as_default ? _L("default") : std::to_string(extruder_id);
-    wxBitmap* bitmap = bmp_cache.find(bitmap_key);
-    if (bitmap == nullptr) {
-        // Paint the color icon.
-        //Slic3r::GUI::BitmapCache::parse_color(color, rgb);
-        // there is no neede to scale created solid bitmap
-        wxColor clr(color);
-        bitmap = bmp_cache.insert(bitmap_key, wxBitmap(icon_width, icon_height));
-        dc.SelectObject(*bitmap);
-        dc.SetBackground(wxBrush(clr));
-        dc.Clear();
-        if (clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224) {
-            dc.SetBrush(wxBrush(clr));
-            dc.SetPen(*wxGREY_PEN);
-            dc.DrawRectangle(0, 0, icon_width, icon_height);
-        }
-        auto size = dc.GetTextExtent(disp_label);
-        dc.SetTextForeground(clr.GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);
-        dc.DrawText(disp_label, (icon_width - size.x) / 2, (icon_height - size.y) / 2);
-        dc.SelectObject(wxNullBitmap);
-    }
-
-    return bitmap;
-}
-
-std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
-{
-    // Create the bitmap with color bars.
-    std::vector<wxBitmap*> bmps;
-    int index = 0;
-    std::vector<std::string> colors = Slic3r::GUI::wxGetApp().plater()->get_extruder_colors_from_plater_config();
     for (const std::string &color : colors)
     {
-        wxBitmap* bitmap = get_extruder_color_icon(++index, false, thin_icon);
+        auto label = std::to_string(++index);
+        std::string bitmap_key = color + "-h" + std::to_string(icon_height) + "-w" + std::to_string(icon_width) 
+                + "-i" + label;
+
+        wxBitmap* bitmap = bmp_cache.find(bitmap_key);
+        if (bitmap == nullptr) {
+            // Paint the color icon.
+            //Slic3r::GUI::BitmapCache::parse_color(color, rgb);
+            // there is no neede to scale created solid bitmap
+            wxColor clr(color);
+            bitmap = bmp_cache.insert(bitmap_key, wxBitmap(icon_width, icon_height));
+            dc.SelectObject(*bitmap);
+            dc.SetBackground(wxBrush(clr));
+            dc.Clear();
+            if (clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224) {
+                dc.SetBrush(wxBrush(clr));
+                dc.SetPen(*wxGREY_PEN);
+                dc.DrawRectangle(0, 0, icon_width, icon_height);
+            }
+            auto size = dc.GetTextExtent(wxString(label));
+            dc.SetTextForeground(clr.GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);
+            dc.DrawText(label, (icon_width - size.x) / 2, (icon_height - size.y) / 2);
+            dc.SelectObject(wxNullBitmap);
+        }
         bmps.emplace_back(bitmap);
     }
 
     return bmps;
 }
 
-bool is_volume_selected()
-{
-    Slic3r::GUI::ObjectList* obj_list = Slic3r::GUI::wxGetApp().obj_list();
-
-    wxDataViewItemArray sels;
-    obj_list->GetSelections(sels);
-    if (sels.IsEmpty())
-        return false;
-
-    return (obj_list->get_item_type(sels[0]) & Slic3r::GUI::ItemType::itVolume) != 0;
-}
 
 void apply_extruder_selector(Slic3r::GUI::BitmapComboBox** ctrl, 
                              wxWindow* parent,
