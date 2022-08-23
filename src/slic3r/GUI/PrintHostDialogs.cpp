@@ -37,7 +37,7 @@ static const char *CONFIG_KEY_PATH  = "printhost_path";
 static const char *CONFIG_KEY_GROUP = "printhost_group";
 
 PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUploadActions post_actions, const wxArrayString &groups)
-    : MsgDialog(static_cast<wxWindow*>(wxGetApp().mainframe), _L("Send G-Code to printer host"), _L("Upload to Printer Host with the following filename:"),0)
+    : MsgDialog(static_cast<wxWindow*>(wxGetApp().mainframe), _L("Send to print"), _L("Upload to Printer Host with the following filename:"),0)
     , txt_filename(new wxTextCtrl(this, wxID_ANY))
     , combo_groups(!groups.IsEmpty() ? new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, groups, wxCB_READONLY) : nullptr)
     , post_upload_action(PrintHostPostUploadAction::None)
