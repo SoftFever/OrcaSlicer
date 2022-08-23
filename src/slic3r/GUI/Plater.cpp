@@ -2668,8 +2668,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                             << boost::format(", plate_data.size %1%, project_preset.size %2%, is_bbs_3mf %3%, file_version %4% \n") % plate_data.size() %
                                                    project_presets.size() % (en_3mf_file_type == En3mfType::From_BBS) % file_version.to_string();
 
-                    // add extruder for prusa model if the number of existing extruders is not enough
-                    if (en_3mf_file_type == En3mfType::From_Prusa) {
+                    // 1. add extruder for prusa model if the number of existing extruders is not enough
+                    // 2. add extruder for BBS model if only import geometry
+                    if (en_3mf_file_type == En3mfType::From_Prusa || (en_3mf_file_type == En3mfType::From_BBS && load_model && !load_config)) {
                         std::set<int> extruderIds;
                         for (ModelObject *o : model.objects) {
                             if (o->config.option("extruder")) extruderIds.insert(o->config.extruder());
@@ -2749,10 +2750,27 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             }
                         }
                     } else if (!load_config) {
+                        // reset config except color
                         for (ModelObject *model_object : model.objects) {
+                            bool has_extruder = model_object->config.has("extruder");
+                            int  extruder_id  = -1;
+                            // save the extruder information before reset
+                            if (has_extruder) { extruder_id = model_object->config.extruder(); }
+
                             model_object->config.reset();
+
+                            // restore the extruder after reset
+                            if (has_extruder) { model_object->config.set("extruder", extruder_id); }
+                            
                             // Is there any modifier or advanced config data?
-                            for (ModelVolume *model_volume : model_object->volumes) model_volume->config.reset();
+                            for (ModelVolume *model_volume : model_object->volumes) {
+                                has_extruder = model_volume->config.has("extruder");
+                                if (has_extruder) { extruder_id = model_volume->config.extruder(); }
+
+                                model_volume->config.reset();
+
+                                if (has_extruder) { model_volume->config.set("extruder", extruder_id); }
+                            }
                         }
                     }
 

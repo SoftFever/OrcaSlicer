@@ -3450,7 +3450,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
 
             // recreate custom supports, seam and mmu segmentation from previously loaded attribute
-            if (m_load_config) {
+            {
                 volume->supported_facets.reserve(triangles_count);
                 volume->seam_facets.reserve(triangles_count);
                 volume->mmu_segmentation_facets.reserve(triangles_count);
