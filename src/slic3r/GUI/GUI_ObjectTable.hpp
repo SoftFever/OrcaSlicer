@@ -61,6 +61,7 @@ public:
     ~GridCellTextEditor();
 
     virtual void Create(wxWindow *parent, wxWindowID id, wxEvtHandler *evtHandler) wxOVERRIDE;
+    void         StartingKey(wxKeyEvent &event) wxOVERRIDE;
     virtual void SetSize(const wxRect &rect) wxOVERRIDE;
     virtual void BeginEdit(int row, int col, wxGrid *grid) wxOVERRIDE;
     virtual bool EndEdit(int row, int col, const wxGrid *grid, const wxString &oldval, wxString *newval) wxOVERRIDE;
