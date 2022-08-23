@@ -767,10 +767,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     //BBS
     ((ConfigOptionEnum<NozzleType>,    nozzle_type))
     ((ConfigOptionBool,                auxiliary_fan))
-    //SoftFever
-    ((ConfigOptionString,             connection_moonraker_url))
-    ((ConfigOptionString,             connection_port))
-
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.

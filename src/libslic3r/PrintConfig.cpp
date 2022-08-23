@@ -322,21 +322,6 @@ void PrintConfigDef::init_common_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionStrings());
 
-    //SoftFever
-    def = this->add("connection_moonraker_url", coString);
-    def->label = L("Moonraker URL");
-    //def->tooltip = L("Names of presets related to the physical printer");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString("http://"));
-
-    def = this->add("connection_port", coString);
-    def->label = L("Connection port");
-    //def->tooltip = L("Names of presets related to the physical printer");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString("7125"));
-
-
-
     def = this->add("print_host", coString);
     def->label = L("Hostname, IP or URL");
     def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "

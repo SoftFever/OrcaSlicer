@@ -726,7 +726,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode",
     "nozzle_type", "auxiliary_fan", "nozzle_volume",
     //SoftFever
-    "connection_moonraker_url","connection_port", "host_type", "print_host", "printhost_apikey", 
+    "host_type", "print_host", "printhost_apikey", 
     "printhost_cafile","printhost_port","printhost_authorization_type",
         "printhost_user",
     "printhost_password",
