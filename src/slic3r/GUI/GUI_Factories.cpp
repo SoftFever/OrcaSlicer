@@ -1321,7 +1321,9 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
 
     for (int i = 1; i <= filaments_cnt; i++)
     {
-        bool is_active_extruder = i == initial_extruder;
+        // BBS
+        //bool is_active_extruder = i == initial_extruder;
+        bool is_active_extruder = false;
         int icon_idx = i == 0 ? 0 : i - 1;
 
         const wxString& item_name = wxString::Format(_L("Filament %d"), i) +
