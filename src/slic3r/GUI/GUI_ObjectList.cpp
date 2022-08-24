@@ -2076,6 +2076,9 @@ void ObjectList::load_mesh_part(const TriangleMesh& mesh, const wxString& name, 
     apply_object_instance_transfrom_to_all_volumes(mo);
 
     ModelVolume* mv = mo->add_volume(mesh);
+    Vec3d instance_bbox = mo->mesh().bounding_box().size();
+    Vec3d offset = mv->get_offset() + Vec3d(0, 0, instance_bbox[2] / 2);
+    mv->set_offset(offset);
     mv->name = name.ToStdString();
 
     std::vector<ModelVolume*> volumes;
