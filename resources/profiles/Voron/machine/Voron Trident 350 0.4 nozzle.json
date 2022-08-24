@@ -5,7 +5,7 @@
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_klipper_common",
-  "printer_model": "Voron 2.4 350",
+  "printer_model": "Voron Trident 350",
   "printable_area": [
     "0x0",
     "350x0",
