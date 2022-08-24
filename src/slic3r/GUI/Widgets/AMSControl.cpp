@@ -1773,28 +1773,28 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection)
 
     // update item
     m_ams_info = info;
+
+    if (info.size() > 1) {
+        m_simplebook_amsitems->Show();
+        m_amswin->Layout();
+        m_amswin->Fit();
+        SetSize(m_amswin->GetSize());
+        SetMinSize(m_amswin->GetSize());
+    } else {
+        m_simplebook_amsitems->Hide();
+        m_amswin->Layout();
+        m_amswin->Fit();
+        SetSize(m_amswin->GetSize());
+        SetMinSize(m_amswin->GetSize());
+    }
+
     for (auto i = 0; i < m_ams_item_list.GetCount(); i++) {
         AmsItems *item = m_ams_item_list[i];
         if (i < info.size() && info.size() > 1) {
             item->amsItem->Update(m_ams_info[i]);
             item->amsItem->Open();
-
-            if (!m_simplebook_amsitems->IsShown()) {
-                m_simplebook_amsitems->Show();
-                m_amswin->Layout();
-                m_amswin->Fit();
-                SetSize(m_amswin->GetSize());
-                SetMinSize(m_amswin->GetSize());
-            }
         } else {
             item->amsItem->Close();
-            if (m_simplebook_amsitems->IsShown()) {
-                m_simplebook_amsitems->Hide();
-                m_amswin->Layout();
-                m_amswin->Fit();
-                SetSize(m_amswin->GetSize());
-                SetMinSize(m_amswin->GetSize());
-            }
         }
     }
 
