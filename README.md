@@ -25,8 +25,10 @@ It has following changes:
 
 Video: https://youtu.be/zCc7mVwu2xQ  
  
-# NOTE: for Voron machines, gcode_arcs(G2/G3) has to be enabled to use this slicer.
-You can turn on arc movement support in Klipper by adding following section into you printer.cfg file:
+# NOTE: 
+BambuStudio use G2/G3 commands by default. You need to turn on ARC support in your printer's firmware use with this slicer.
+- For Voron and any Klipper based printers:  
+You can enable gcode_arcs(G2/G3) support by adding following section into you printer.cfg file:  
 ```
 [gcode_arcs]
 resolution: 0.1
@@ -51,6 +53,10 @@ gcode:
 [gcode_macro M1003]
 gcode:
 ```
+
+- For Prusa MK3S:  
+ARC movement are supported by default.
+
 
 # Gallery
 ![image](./SoftFever_doc/printers1.png)  
