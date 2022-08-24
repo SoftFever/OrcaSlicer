@@ -23,10 +23,14 @@ It has following changes:
     <img src="./SoftFever_doc/chamber_temperature_custom_gcode.png" width="686">
 - ## Thumbview is supported
 
-Video: https://youtu.be/zCc7mVwu2xQ  
+Demo video: https://youtu.be/vSNE9iGj2II  
  
 # NOTE: 
-BambuStudio use G2/G3 commands by default. You need to turn on ARC support in your printer's firmware use with this slicer.
+## - If you have troubles to run the build, you might need to install following runtimes:  
+- [MicrosoftEdgeWebView2RuntimeInstallerX64](https://github.com/SoftFever/BambuStudio-SoftFever/releases/download/v1.0.10-sf2/MicrosoftEdgeWebView2RuntimeInstallerX64.exe)  
+- [vcredist2019_x64](https://github.com/SoftFever/BambuStudio-SoftFever/releases/download/v1.0.10-sf2/vcredist2019_x64.exe)  
+
+## - BambuStudio use G2/G3 commands by default. You need to turn on ARC support in your printer's firmware use with this slicer.
 - For Voron and any Klipper based printers:  
 You can enable gcode_arcs(G2/G3) support by adding following section into you printer.cfg file:  
 ```
