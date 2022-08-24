@@ -48,8 +48,17 @@
 #include "Widgets/SideTools.hpp"
 
 #define AUFILE_GREY700 wxColour(107, 107, 107)
+#define AUFILE_GREY500 wxColour(158, 158, 158)
 #define AUFILE_GREY300 wxColour(238, 238, 238)
 #define AUFILE_GREY200 wxColour(248, 248, 248)
+#define AUFILE_BRAND wxColour(0, 174, 66)
+#define AUFILE_BRAND_TRANSPARENT wxColour(215, 232, 222)
+#define AUFILE_PICTURES_SIZE wxSize(FromDIP(300), FromDIP(300))
+#define AUFILE_PICTURES_PANEL_SIZE wxSize(FromDIP(300), FromDIP(340))
+#define AUFILE_SIZE wxSize(FromDIP(168), FromDIP(168))
+#define AUFILE_PANEL_SIZE wxSize(FromDIP(168), FromDIP(208))
+#define AUFILE_TEXT_HEIGHT FromDIP(40)
+#define AUFILE_ROUNDING FromDIP(5)
 
 enum AuxiliaryFolderType {
     MODEL_PICTURE,
@@ -58,6 +67,7 @@ enum AuxiliaryFolderType {
     OTHERS,
     THUMBNAILS,
     DESIGNER,
+    AddFileButton,
 };
 
 const static std::array<wxString, 5> s_default_folders = {("Model Pictures"), ("Bill of Materials"), ("Assembly Guide"), ("Others"), (".thumbnails")};
@@ -76,6 +86,7 @@ public:
     wxStaticText*       m_text_name {nullptr};
     ::TextInput*        m_input_name {nullptr};
     fs::path m_file_path;
+    wxString m_add_file;
     wxString m_file_name;
     wxString cover_text_left;
     wxString cover_text_right;
@@ -144,12 +155,13 @@ public:
 public:
     AuxiliaryFolderType m_type;
     wxScrolledWindow *  m_scrolledWindow{nullptr};
-    wxGridSizer *       m_gsizer_content{nullptr};
+    wxWrapSizer *       m_gsizer_content{nullptr};
     Button *            m_button_add{nullptr};
     Button *            m_button_del{nullptr};
+    AuFile *            m_big_button_add{ nullptr };
     AuFilesHash         m_aufiles_list;
 
-    void on_add(wxCommandEvent &event);
+    void on_add(wxCommandEvent& event);
     void on_delete(wxCommandEvent &event);
 };
 
