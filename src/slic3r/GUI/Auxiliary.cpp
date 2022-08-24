@@ -75,15 +75,9 @@ AuFile::AuFile(wxWindow *parent, fs::path file_path, wxString file_name, Auxilia
         image->Rescale(size.x, size.y);
         m_file_bitmap = wxBitmap(*image);
     } else {
-<<<<<<< HEAD   (40727c FIX: Slicing process crashes when enable timelapse)
-        m_bitmap_excel = create_scaled_bitmap("placeholder_excel", nullptr, 300);
-        m_bitmap_pdf   = create_scaled_bitmap("placeholder_pdf", nullptr, 300);
-        m_bitmap_txt   = create_scaled_bitmap("placeholder_txt", nullptr, 300);
-=======
-        m_bitmap_excel = ScalableBitmap(this, "placeholder_excel", 168);
-        m_bitmap_pdf   = ScalableBitmap(this, "placeholder_pdf", 168);
-        m_bitmap_txt   = ScalableBitmap(this, "placeholder_txt", 168);
->>>>>>> CHANGE (3c1599 ENH: Auxiliary GUI)
+        m_bitmap_excel = create_scaled_bitmap("placeholder_excel", nullptr, 168);
+        m_bitmap_pdf   = create_scaled_bitmap("placeholder_pdf", nullptr, 168);
+        m_bitmap_txt   = create_scaled_bitmap("placeholder_txt", nullptr, 168);
 
         if (m_type == OTHERS) {m_file_bitmap = m_bitmap_txt;}
         if (m_type == BILL_OF_MATERIALS) {
@@ -191,13 +185,6 @@ void AuFile::PaintBackground(wxDC &dc)
     dc.DrawRectangle(windowRect);
 
 
-<<<<<<< HEAD   (40727c FIX: Slicing process crashes when enable timelapse)
-    wxSize size = wxSize(FromDIP(300), FromDIP(300));
-    dc.SetPen(AUFILE_GREY200);
-    dc.SetBrush(AUFILE_GREY200);
-    dc.DrawRectangle(0,0,size.x,size.y);
-    dc.DrawBitmap(m_file_bitmap, (size.x - m_file_bitmap.GetSize().x) / 2, (size.y - m_file_bitmap.GetSize().y) / 2);
-=======
     wxSize size = m_type == MODEL_PICTURE ? AUFILE_PICTURES_SIZE : AUFILE_SIZE;
 
     if (m_type == AddFileButton)
@@ -223,9 +210,8 @@ void AuFile::PaintBackground(wxDC &dc)
         dc.SetPen(AUFILE_GREY200);
         dc.SetBrush(AUFILE_GREY200);
         dc.DrawRoundedRectangle(0, 0, size.x, size.y, AUFILE_ROUNDING);
-        dc.DrawBitmap(m_file_bitmap.bmp(), (size.x - m_file_bitmap.GetBmpWidth()) / 2, (size.y - m_file_bitmap.GetBmpHeight()) / 2);
+        dc.DrawBitmap(m_file_bitmap, (size.x - m_file_bitmap.GetSize().x) / 2, (size.y - m_file_bitmap.GetSize().y) / 2);
     }
->>>>>>> CHANGE (3c1599 ENH: Auxiliary GUI)
 }
 
 void AuFile::OnEraseBackground(wxEraseEvent &evt) {}
@@ -556,15 +542,9 @@ void AuFile::msw_rescale()
         image->Rescale(size.x, size.y);
         m_file_bitmap = wxBitmap(*image);
     } else {
-<<<<<<< HEAD   (40727c FIX: Slicing process crashes when enable timelapse)
-        m_bitmap_excel = create_scaled_bitmap("placeholder_excel", nullptr, 300);
-        m_bitmap_pdf   = create_scaled_bitmap("placeholder_pdf", nullptr, 300);
-        m_bitmap_txt   = create_scaled_bitmap("placeholder_txt", nullptr, 300);
-=======
-        m_bitmap_excel = ScalableBitmap(this, "placeholder_excel", 168);
-        m_bitmap_pdf   = ScalableBitmap(this, "placeholder_pdf", 168);
-        m_bitmap_txt   = ScalableBitmap(this, "placeholder_txt", 168);
->>>>>>> CHANGE (3c1599 ENH: Auxiliary GUI)
+        m_bitmap_excel = create_scaled_bitmap("placeholder_excel", nullptr, 168);
+        m_bitmap_pdf   = create_scaled_bitmap("placeholder_pdf", nullptr, 168);
+        m_bitmap_txt   = create_scaled_bitmap("placeholder_txt", nullptr, 168);
 
         if (m_type == OTHERS) { m_file_bitmap = m_bitmap_txt; }
         if (m_type == BILL_OF_MATERIALS) { m_file_bitmap = m_bitmap_excel; }
@@ -737,7 +717,7 @@ AuxiliaryPanel::AuxiliaryPanel(wxWindow *parent, wxWindowID id, const wxPoint &p
         if (iter != m_paths_list.end()) {
             auto list = iter->second;
             for (auto i = 0; i < list.size(); i++) {
-                if (list[i] == name) {
+                if (list[i].wstring() == name) {
                     list.erase(std::begin(list) + i);
                     break;
                 }
@@ -768,8 +748,8 @@ AuxiliaryPanel::AuxiliaryPanel(wxWindow *parent, wxWindowID id, const wxPoint &p
         if (iter != m_paths_list.end()) {
             auto list = iter->second;
             for (auto i = 0; i < list.size(); i++) {
-                if (list[i] == old_name) {
-                    list[i] = new_name;
+                if (list[i].wstring() == old_name) {
+                    list[i] = fs::path(new_name.c_str());
                     break;
                 }
             }
