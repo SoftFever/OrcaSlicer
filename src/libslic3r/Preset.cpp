@@ -682,14 +682,14 @@ static std::vector<std::string> s_Preset_print_options {
      "detect_narrow_internal_solid_infill",
      "gcode_add_line_number", "enable_arc_fitting", "infill_combination", "adaptive_layer_height",
      "support_bottom_interface_spacing", "enable_overhang_speed", "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed",
-     "initial_layer_infill_speed", "only_one_wall_top", 
+     "initial_layer_infill_speed", "only_one_wall_top", "only_one_wall_first_layer",
      "timelapse_no_toolhead"
 };
 
 static std::vector<std::string> s_Preset_filament_options {
     /*"filament_colour", */"filament_diameter", "filament_type", "filament_soluble", "filament_is_support", "filament_max_volumetric_speed",
     "filament_flow_ratio", "filament_density", "filament_cost", "filament_minimal_purge_on_wipe_tower",
-    "nozzle_temperature", "nozzle_temperature_initial_layer",
+    "chamber_temperature", "nozzle_temperature", "nozzle_temperature_initial_layer",
     // BBS
     "cool_plate_temp", "eng_plate_temp", "hot_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp_initial_layer", "hot_plate_temp_initial_layer",
     // "bed_type",
@@ -726,7 +726,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode",
     "nozzle_type", "auxiliary_fan", "nozzle_volume",
     //SoftFever
-    "connection_moonraker_url","connection_port", "host_type", "print_host", "printhost_apikey", 
+    "host_type", "print_host", "printhost_apikey", 
     "printhost_cafile","printhost_port","printhost_authorization_type",
         "printhost_user",
     "printhost_password",

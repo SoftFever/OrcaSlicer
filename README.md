@@ -1,26 +1,78 @@
 
+# Bambu Studio - SoftFever
 A modified version of Bambu Studio.   
 It has following changes:
 
-- Support third-party machines:
+- ## Support third-party printers:
     - Voron 2.4
     - Voron Trident
     - Voron 0.1
     - Prusa MK3S
-- Export to to .gcode file.
+- ## Export to to .gcode file.  
+    ![image](./SoftFever_doc/export_gcode.png)  
 
-Video: https://youtu.be/zCc7mVwu2xQ  
+- ## Send gcode file to printer  
+    1. Setup connection  
+        <img src="./SoftFever_doc/print_host.png" width="1024">
+    2. Send to print  
+        <img src="./SoftFever_doc/send_to_print.png" width="1024">
+- ## Support single wall mode on first layer  
+    ![image](./SoftFever_doc/single_wall_first_layer.png)  
+- ## Support Chamber temperature. This setting can be use in machine start G-Gcode  
+    ![image](./SoftFever_doc/chamber_temperature.png)  
+    <img src="./SoftFever_doc/chamber_temperature_custom_gcode.png" width="686">
+- ## Thumbview is supported
+
+Demo video: https://youtu.be/vSNE9iGj2II  
  
-![image](https://user-images.githubusercontent.com/103989404/179447873-b7b2a200-7a00-409d-b9d5-b0522f5f2ec8.png)
-![image](https://user-images.githubusercontent.com/103989404/179447890-a124bd43-dab2-46b7-b0da-ef6c67783d9c.png)
-![image](https://user-images.githubusercontent.com/103989404/179396355-fc07135a-fd08-430c-aa8d-dc1060ae94d1.png)
-![image](https://user-images.githubusercontent.com/103989404/179447933-7752235a-a6eb-468c-a304-6eb0875c4c95.png)
-![image](https://user-images.githubusercontent.com/103989404/179396363-d9868dfc-f8d5-4227-ad19-a439dfc31ce5.png)
-![image](https://user-images.githubusercontent.com/103989404/179398283-f71ea1bd-18a8-4526-9678-a3c63bc36964.png)
+# NOTE: 
+## - If you have troubles to run the build, you might need to install following runtimes:  
+- [MicrosoftEdgeWebView2RuntimeInstallerX64](https://github.com/SoftFever/BambuStudio-SoftFever/releases/download/v1.0.10-sf2/MicrosoftEdgeWebView2RuntimeInstallerX64.exe)  
+- [vcredist2019_x64](https://github.com/SoftFever/BambuStudio-SoftFever/releases/download/v1.0.10-sf2/vcredist2019_x64.exe)  
+
+## - BambuStudio use G2/G3 commands by default. You need to turn on ARC support in your printer's firmware use with this slicer.
+- For Voron and any Klipper based printers:  
+You can enable gcode_arcs(G2/G3) support by adding following section into you printer.cfg file:  
+```
+[gcode_arcs]
+resolution: 0.1
+
+[gcode_macro M205]
+gcode:
+    {% set x_jerk = params.X|default(5)|float %}
+    {% set y_jerk = params.Y|default(5)|float %}
+    SET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY={x_jerk}
+
+```
+
+It's also recommended to add followinging dummy macros to make Klipper happy
+```
+# Make BambuStudio happy
+[gcode_macro G17]
+gcode:
+
+[gcode_macro M981]
+gcode:
+
+[gcode_macro M1003]
+gcode:
+```
+
+- For Prusa MK3S:  
+ARC movement are supported by default.
+
+
+# Gallery
+![image](./SoftFever_doc/printers1.png)  
+![image](./SoftFever_doc/printers2.png)  
+![image](./SoftFever_doc/printers3.png)  
+![image](./SoftFever_doc/printers4.png)  
+![image](./SoftFever_doc/voron.png)  
+
+
 
 Image credits: 
- 1. Voron 2.4: vorondesign.com
- 2. Voron bed texture: VoronUsers/bryansj
+ 1. Voron 2.4 and Trident: vorondesign.com
  3. Voron 0.1: myself
  4. Prusa MK3S: Prusa3d  
 

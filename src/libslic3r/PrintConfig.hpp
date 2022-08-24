@@ -682,6 +682,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                overhang_3_4_speed))
     ((ConfigOptionFloat,                overhang_4_4_speed))
     ((ConfigOptionBool,                 only_one_wall_top))
+    ((ConfigOptionBool,                 only_one_wall_first_layer))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
@@ -766,10 +767,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     //BBS
     ((ConfigOptionEnum<NozzleType>,    nozzle_type))
     ((ConfigOptionBool,                auxiliary_fan))
-    //SoftFever
-    ((ConfigOptionString,             connection_moonraker_url))
-    ((ConfigOptionString,             connection_port))
-
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.
@@ -839,6 +836,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               spiral_mode))
     ((ConfigOptionInt,                standby_temperature_delta))
     ((ConfigOptionInts,               nozzle_temperature))
+    ((ConfigOptionInt ,               chamber_temperature))
     ((ConfigOptionBools,              wipe))
     // BBS
     ((ConfigOptionInts,               bed_temperature_difference))

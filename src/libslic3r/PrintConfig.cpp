@@ -322,21 +322,6 @@ void PrintConfigDef::init_common_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionStrings());
 
-    //SoftFever
-    def = this->add("connection_moonraker_url", coString);
-    def->label = L("Moonraker URL");
-    //def->tooltip = L("Names of presets related to the physical printer");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString("http://"));
-
-    def = this->add("connection_port", coString);
-    def->label = L("Connection port");
-    //def->tooltip = L("Names of presets related to the physical printer");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString("7125"));
-
-
-
     def = this->add("print_host", coString);
     def->label = L("Hostname, IP or URL");
     def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
@@ -601,6 +586,12 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("Use only one wall on flat top surface, to give more space to the top infill pattern");
     def->set_default_value(new ConfigOptionBool(true));
+
+    def = this->add("only_one_wall_first_layer", coBool);
+    def->label = L("Only one wall on first layer");
+    def->category = L("Quality");
+    def->tooltip = L("Use only one wall on first layer, to give more space to the bottom infill pattern");
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("enable_overhang_speed", coBool);
     def->label = L("Slow down for overhang");
@@ -2475,6 +2466,15 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("This setting specifies whether to add infill inside large hollows of tree support");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("chamber_temperature", coInt);
+    def->label = L("Chamber temperature");
+    def->tooltip = L("Target chamber temperature");
+    def->sidetext = L("°C");
+    def->full_label = L("Chamber temperature");
+    def->min = 0;
+    def->max = max_temp;
+    def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("nozzle_temperature", coInts);
     def->label = L("Other layers");

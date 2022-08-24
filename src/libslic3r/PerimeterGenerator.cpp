@@ -394,7 +394,10 @@ void PerimeterGenerator::process()
     for (const Surface &surface : this->slices->surfaces) {
         // detect how many perimeters must be generated for this island
         int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1;  // 0-indexed loops
-        //BBS: force the topmost layer to be one wall
+        if (this->layer_id == 0 && this->config->only_one_wall_first_layer)
+            loop_number = 0;
+            
+        // BBS: force the topmost layer to be one wall
         if (loop_number > 0 && this->upper_slices == nullptr)
             loop_number = 0;
 

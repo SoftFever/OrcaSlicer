@@ -4660,13 +4660,21 @@ msgid ""
 "material for bridge, to improve sag"
 msgstr "稍微减小这个数值（比如0.9）可以减小桥接的材料量，来改善下垂。"
 
-msgid "Only one wall on top surfaces"
-msgstr "顶面单层墙"
+msgid "Only one wall on first layer"
+msgstr "首层单层墙"
 
 msgid ""
 "Use only one wall on flat top surface, to give more space to the top infill "
 "pattern"
 msgstr "顶面只使用单层墙，从而更多的空间能够使用顶部填充图案"
+
+msgid "Only one wall on top surfaces"
+msgstr "顶面单层墙"
+
+msgid ""
+"Use only one wall on first layer, to give more space to the bottom infill pattern "
+"pattern"
+msgstr "首层只使用单层墙，从而更多的空间能够使用底部填充图案"
 
 msgid "Slow down for overhang"
 msgstr "悬垂降速"
@@ -5865,6 +5873,9 @@ msgstr "除首层外的其它层的喷嘴温度"
 
 msgid "Nozzle temperature"
 msgstr "喷嘴温度"
+
+msgid "Chamber temperature"
+msgstr "机箱温度"
 
 msgid "Bed temperature difference"
 msgstr "热床温差"

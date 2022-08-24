@@ -1510,6 +1510,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_placeholder_parser.set("bed_temperature", new ConfigOptionInts(*bed_temp_opt));
         m_placeholder_parser.set("bed_temperature_initial_layer_single", new ConfigOptionInt(first_bed_temp_opt->get_at(initial_extruder_id)));
         m_placeholder_parser.set("bed_temperature_initial_layer_vector", new ConfigOptionString(""));
+        m_placeholder_parser.set("chamber_temperature",new ConfigOptionInt(m_config.chamber_temperature));
 
         //BBS: calculate the volumetric speed of outer wall. Ignore pre-object setting and multi-filament, and just use the default setting
         {

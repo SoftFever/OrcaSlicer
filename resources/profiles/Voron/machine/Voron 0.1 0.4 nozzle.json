@@ -1,0 +1,19 @@
+{
+  "type": "machine",
+  "setting_id": "VORON-001",
+  "name": "Voron 0.1 0.4 nozzle",
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "fdm_klipper_common",
+  "printer_model": "Voron 0.1",
+  "default_print_profile": "0.20mm Standard @Voron",
+  "printable_area": [
+    "0x0",
+    "120x0",
+    "120x120",
+    "0x120"
+  ],
+  "printable_height": "120",
+  "nozzle_type": "hardened_steel",
+  "auxiliary_fan": "0"
+}

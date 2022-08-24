@@ -395,7 +395,8 @@ void PhysicalPrinterDialog::on_dpi_changed(const wxRect& suggested_rect)
 
 void PhysicalPrinterDialog::OnOK(wxEvent& event)
 {
-       event.Skip();
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->save_preset();
+    event.Skip();
 }
 
 }}    // namespace Slic3r::GUI

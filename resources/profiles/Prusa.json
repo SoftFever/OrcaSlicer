@@ -1,0 +1,110 @@
+{
+    "name": "Voron",
+    "version": "01.01.01.02",
+    "force_update": "0",
+    "description": "Prusa configurations",
+    "machine_model_list": [
+        {
+            "name": "Prusa MK3S",
+            "sub_path": "machine/Prusa MK3S.json"
+        }
+    ],
+    "process_list": [
+        {
+            "name": "fdm_process_common",
+            "sub_path": "process/fdm_process_common.json"
+        },
+        {
+            "name": "0.20mm Standard @MK3S",
+            "sub_path": "process/0.20mm Standard @MK3S.json"
+        }
+    ],
+    "filament_list": [
+        {
+            "name": "fdm_filament_common",
+            "sub_path": "filament/fdm_filament_common.json"
+        },
+        {
+            "name": "fdm_filament_pla",
+            "sub_path": "filament/fdm_filament_pla.json"
+        },
+        {
+            "name": "fdm_filament_tpu",
+            "sub_path": "filament/fdm_filament_tpu.json"
+        },
+        {
+            "name": "fdm_filament_pet",
+            "sub_path": "filament/fdm_filament_pet.json"
+        },
+        {
+            "name": "fdm_filament_abs",
+            "sub_path": "filament/fdm_filament_abs.json"
+        },
+        {
+            "name": "fdm_filament_pc",
+            "sub_path": "filament/fdm_filament_pc.json"
+        },
+        {
+            "name": "fdm_filament_asa",
+            "sub_path": "filament/fdm_filament_asa.json"
+        },
+        {
+            "name": "fdm_filament_pva",
+            "sub_path": "filament/fdm_filament_pva.json"
+        },
+        {
+            "name": "fdm_filament_pa",
+            "sub_path": "filament/fdm_filament_pa.json"
+        },
+        {
+            "name": "Prusa Generic PLA",
+            "sub_path": "filament/Prusa Generic PLA.json"
+        },
+        {
+            "name": "Prusa Generic PLA-CF",
+            "sub_path": "filament/Prusa Generic PLA-CF.json"
+        },
+        {
+            "name": "Prusa Generic PETG",
+            "sub_path": "filament/Prusa Generic PETG.json"
+        },
+        {
+            "name": "Prusa Generic ABS",
+            "sub_path": "filament/Prusa Generic ABS.json"
+        },
+        {
+            "name": "Prusa Generic TPU",
+            "sub_path": "filament/Prusa Generic TPU.json"
+        },
+        {
+            "name": "Prusa Generic ASA",
+            "sub_path": "filament/Prusa Generic ASA.json"
+        },
+        {
+            "name": "Prusa Generic PC",
+            "sub_path": "filament/Prusa Generic PC.json"
+        },
+        {
+            "name": "Prusa Generic PVA",
+            "sub_path": "filament/Prusa Generic PVA.json"
+        },
+        {
+            "name": "Prusa Generic PA",
+            "sub_path": "filament/Prusa Generic PA.json"
+        },
+        {
+            "name": "Prusa Generic PA-CF",
+            "sub_path": "filament/Prusa Generic PA-CF.json"
+        }
+    ],
+    "machine_list": [
+        {
+            "name": "fdm_machine_common",
+            "sub_path": "machine/fdm_machine_common.json"
+        },
+        {
+            "name": "Prusa MK3S 0.4 nozzle",
+            "sub_path": "machine/Prusa MK3S 0.4 nozzle.json"
+        }
+    ]
+}
