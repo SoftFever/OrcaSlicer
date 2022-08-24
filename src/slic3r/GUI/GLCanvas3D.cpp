@@ -3333,8 +3333,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     else
                         rotate_target = volumes_bounding_box().center();
                     //BBS do not limit rotate in assemble view
-                    //camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
-                    camera.rotate_on_sphere_with_target(rot.x(), rot.y(), true, rotate_target);
+                    camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
+                    //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), false, rotate_target);
                 }
                 else {
 #ifdef SUPPORT_FEEE_CAMERA
