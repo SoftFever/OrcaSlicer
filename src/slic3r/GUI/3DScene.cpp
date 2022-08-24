@@ -1386,6 +1386,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     const std::vector<BoundingBoxf3>& exclude_areas = curr_plate->get_exclude_areas();
 
     for (GLVolume* volume : this->volumes)
+    {
         if (! volume->is_modifier && (volume->shader_outside_printer_detection_enabled || (! volume->is_wipe_tower && volume->composite_id.volume_id >= 0))) {
             BuildVolume::ObjectState state;
             const BoundingBoxf3& bb = volume_bbox(*volume);
@@ -1413,7 +1414,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
 
             int64_t comp_id = ((int64_t)volume->composite_id.object_id << 32) | ((int64_t)volume->composite_id.instance_id);
             volume->is_outside = state != BuildVolume::ObjectState::Inside;
-            volume->partly_inside = (state == BuildVolume::ObjectState::Colliding);
+            //volume->partly_inside = (state == BuildVolume::ObjectState::Colliding);
             if (volume->printable) {
                 if (overall_state == ModelInstancePVS_Inside && volume->is_outside) {
                     overall_state = ModelInstancePVS_Fully_Outside;
@@ -1457,6 +1458,23 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                 BOOST_LOG_TRIVIAL(debug) << "instance includes " << volume->name << " is partially outside of bed";
             }
         }
+    }
+
+    for (GLVolume* volume : this->volumes)
+    {
+        if (! volume->is_modifier && (volume->shader_outside_printer_detection_enabled || (! volume->is_wipe_tower && volume->composite_id.volume_id >= 0)))
+        {
+            int64_t comp_id = ((int64_t)volume->composite_id.object_id << 32) | ((int64_t)volume->composite_id.instance_id);
+            if (model_state.find(comp_id) != model_state.end())
+            {
+                if (model_state[comp_id] == ModelInstancePVS_Partly_Outside) {
+                    volume->partly_inside = true;
+                }
+                else
+                    volume->partly_inside = false;
+            }
+        }
+    }
 
     if (out_state != nullptr)
         *out_state = overall_state;
