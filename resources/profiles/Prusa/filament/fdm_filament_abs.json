@@ -5,22 +5,22 @@
     "instantiation": "false",
     "inherits": "fdm_filament_common",
     "cool_plate_temp" : [
-        "90"
+        "105"
     ],
     "eng_plate_temp" : [
-        "90"
+        "105"
     ],
     "hot_plate_temp" : [
-        "90"
+        "105"
     ],
     "cool_plate_temp_initial_layer" : [
-        "90"
+        "105"
     ],
     "eng_plate_temp_initial_layer" : [
-        "90"
+        "105"
     ],
     "hot_plate_temp_initial_layer" : [
-        "90"
+        "105"
     ],
     "slow_down_for_layer_cooling": [
         "1"
@@ -62,7 +62,7 @@
         "80"
     ],
     "nozzle_temperature": [
-        "270"
+        "260"
     ],
     "temperature_vitrification": [
         "100"
