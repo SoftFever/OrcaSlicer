@@ -2468,6 +2468,11 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("hot_plate_temp"));
         optgroup->append_line(line);
 
+        line = {L("Textured PEI Plate"), L("Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate")};
+        line.append_option(optgroup->get_option("textured_plate_temp_initial_layer"));
+        line.append_option(optgroup->get_option("textured_plate_temp"));
+        optgroup->append_line(line);
+
         optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value)
         {
             DynamicPrintConfig& filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
@@ -2481,6 +2486,9 @@ void TabFilament::build()
             }
             else if (opt_key == "hot_plate_temp" || opt_key == "hot_plate_temp_initial_layer") {
                 m_config_manipulation.check_bed_temperature_difference(BedType::btPEI, &filament_config);
+            }
+            else if (opt_key == "textured_plate_temp" || opt_key == "textured_plate_temp_initial_layer") {
+                m_config_manipulation.check_bed_temperature_difference(BedType::btPTE, &filament_config);
             }
             else if (opt_key == "nozzle_temperature") {
                 m_config_manipulation.check_nozzle_temperature_range(&filament_config);

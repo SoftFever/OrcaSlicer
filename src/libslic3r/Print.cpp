@@ -96,6 +96,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "cool_plate_temp_initial_layer",
         "eng_plate_temp_initial_layer",
         "hot_plate_temp_initial_layer",
+        "textured_plate_temp_initial_layer",
         "gcode_add_line_number",
         "layer_change_gcode",
         "fan_min_speed",
@@ -173,6 +174,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "cool_plate_temp"
             || opt_key == "eng_plate_temp"
             || opt_key == "hot_plate_temp"
+            || opt_key == "textured_plate_temp"
             || opt_key == "enable_prime_tower"
             || opt_key == "prime_tower_width"
             || opt_key == "prime_tower_brim_width"

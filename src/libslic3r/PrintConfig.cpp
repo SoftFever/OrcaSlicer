@@ -213,7 +213,8 @@ static const t_config_enum_values s_keys_map_OverhangFanThreshold = {
 static const t_config_enum_values s_keys_map_BedType = {
     { "Cool Plate",         btPC },
     { "Engineering Plate",  btEP  },
-    { "High Temp Plate",    btPEI  }
+    { "High Temp Plate",    btPEI  },
+    { "Textured PEI Plate",      btPTE }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BedType)
 
@@ -367,6 +368,16 @@ void PrintConfigDef::init_fff_params()
     def->max = 120;
     def->set_default_value(new ConfigOptionInts{ 45 });
 
+    def             = this->add("textured_plate_temp", coInts);
+    def->label      = L("Other layers");
+    def->tooltip    = L("Bed temperature for layers except the initial one. "
+                     "Value 0 means the filament does not support to print on the Textured PEI Plate");
+    def->sidetext   = L("°C");
+    def->full_label = L("Bed temperature");
+    def->min        = 0;
+    def->max        = 120;
+    def->set_default_value(new ConfigOptionInts{45});
+
     def = this->add("cool_plate_temp_initial_layer", coInts);
     def->label = L("Initial layer");
     def->full_label = L("Initial layer bed temperature");
@@ -397,6 +408,15 @@ void PrintConfigDef::init_fff_params()
     def->max = 120;
     def->set_default_value(new ConfigOptionInts{ 45 });
 
+    def             = this->add("textured_plate_temp_initial_layer", coInts);
+    def->label      = L("Initial layer");
+    def->full_label = L("Initial layer bed temperature");
+    def->tooltip    = L("Bed temperature of the initial layer. "
+                     "Value 0 means the filament does not support to print on the Textured PEI Plate");
+    def->sidetext   = L("°C");
+    def->max        = 0;
+    def->max        = 120;
+    def->set_default_value(new ConfigOptionInts{45});
 
     def = this->add("curr_bed_type", coEnums);
     def->label = L("Bed type");
@@ -406,9 +426,11 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.emplace_back("Cool Plate");
     def->enum_values.emplace_back("Engineering Plate");
     def->enum_values.emplace_back("High Temp Plate");
+    def->enum_values.emplace_back("Textured PEI Plate");
     def->enum_labels.emplace_back(L("Cool Plate"));
     def->enum_labels.emplace_back(L("Engineering Plate"));
     def->enum_labels.emplace_back(L("High Temp Plate"));
+    def->enum_labels.emplace_back(L("Textured PEI Plate"));
     def->set_default_value(new ConfigOptionEnum<BedType>(btPC));
 
     def = this->add("before_layer_change_gcode", coString);
@@ -2283,8 +2305,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("independent_support_layer_height", coBool);
     def->label = L("Independent support layer height");
     def->category = L("Support");
-    def->tooltip = L("Support layer uses layer height independent with object layer. This is to support custom support gap,"
-                   "but may cause extra filament switches if support is specified as different extruder with object");
+    def->tooltip = L("Support layer uses layer height independent with object layer. This is to support customizing z-gap and save print time.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 

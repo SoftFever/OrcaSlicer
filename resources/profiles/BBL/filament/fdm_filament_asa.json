@@ -13,6 +13,9 @@
     "hot_plate_temp" : [
         "90"
     ],
+    "textured_plate_temp" : [
+        "90"
+    ],
     "cool_plate_temp_initial_layer" : [
         "90"
     ],
@@ -20,6 +23,9 @@
         "90"
     ],
     "hot_plate_temp_initial_layer" : [
+        "90"
+    ],
+    "textured_plate_temp_initial_layer" : [
         "90"
     ],
     "slow_down_for_layer_cooling": [
