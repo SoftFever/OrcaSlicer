@@ -7045,12 +7045,13 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 10);
 
     wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer *m_sizer_left = new wxBoxSizer(wxHORIZONTAL);
+    // hide the "Don't show again" checkbox
+    //wxBoxSizer *m_sizer_left = new wxBoxSizer(wxHORIZONTAL);
 
-    auto dont_show_again = create_item_checkbox(_L("Don't show again"), this, _L("Don't show again"), "show_drop_project_dialog");
-    m_sizer_left->Add(dont_show_again, 0, wxALL, 5);
+    //auto dont_show_again = create_item_checkbox(_L("Don't show again"), this, _L("Don't show again"), "show_drop_project_dialog");
+    //m_sizer_left->Add(dont_show_again, 0, wxALL, 5);
 
-    m_sizer_bottom->Add(m_sizer_left, 0, wxEXPAND, 5);
+    //m_sizer_bottom->Add(m_sizer_left, 0, wxEXPAND, 5);
 
     m_sizer_bottom->Add(0, 0, 1, wxEXPAND, 5);
 
