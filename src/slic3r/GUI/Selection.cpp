@@ -2624,9 +2624,11 @@ void Selection::paste_objects_from_clipboard()
         PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
         bool in_current = plate->intersects(bbox);
 
-        auto start_point = in_current?src_object->instances.front()->get_offset():plate->get_build_volume().center();
+        auto start_offset = in_current?src_object->instances.front()->get_offset():plate->get_build_volume().center();
+        auto start_point = in_current?bbox.center():plate->get_build_volume().center();
+        auto point_offset = start_offset - start_point;
         auto empty_cell = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({start_point(0), start_point(1)});
-        Vec3d displacement = { empty_cell.x(),empty_cell.y(),start_point(2) };
+        Vec3d displacement = { empty_cell.x() + point_offset.x(), empty_cell.y() + point_offset.y(), start_point(2) };
         for (ModelInstance* inst : dst_object->instances)
             inst->set_offset(displacement);
 
