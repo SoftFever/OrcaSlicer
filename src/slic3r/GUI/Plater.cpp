@@ -6259,8 +6259,7 @@ void Plater::priv::undo()
     // BBS: undo-redo until modify record
     while (--it_current != snapshots.begin() && !snapshot_modifies_project(*it_current));
     if (it_current == snapshots.begin()) return;
-    while (--it_current != snapshots.begin() && !snapshot_modifies_project(*it_current));
-    this->undo_redo_to(++it_current);
+    this->undo_redo_to(it_current);
 }
 
 void Plater::priv::redo()
@@ -6269,8 +6268,10 @@ void Plater::priv::redo()
     auto it_current = std::lower_bound(snapshots.begin(), snapshots.end(), UndoRedo::Snapshot(this->undo_redo_stack().active_snapshot_time()));
     // BBS: undo-redo until modify record
     while (it_current != snapshots.end() && !snapshot_modifies_project(*it_current++));
-    if (it_current != snapshots.end())
-        this->undo_redo_to(it_current);
+    if (it_current != snapshots.end()) {
+        while (it_current != snapshots.end() && !snapshot_modifies_project(*it_current++));
+        this->undo_redo_to(--it_current);
+    }
 }
 
 void Plater::priv::undo_redo_to(size_t time_to_load)
@@ -6407,6 +6408,9 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
             }
 
             if (need_update) {
+                // update print to current plate (preview->m_process)
+                this->partplate_list.update_slice_context_to_current_plate(this->background_process);
+                this->preview->update_gcode_result(this->partplate_list.get_current_slice_result());
                 this->update();
             }
         }
