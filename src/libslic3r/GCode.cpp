@@ -554,6 +554,9 @@ bool GCode::gcode_label_objects = false;
     {
         std::string gcode;
 
+        assert(m_layer_idx >= 0);
+        if (m_layer_idx >= (int) m_tool_changes.size()) return gcode;
+
         // Calculate where the wipe tower layer will be printed. -1 means that print z will not change,
         // resulting in a wipe tower with sparse layers.
         double wipe_tower_z  = -1;
@@ -571,16 +574,12 @@ bool GCode::gcode_label_objects = false;
             m_is_first_print = false;
         }
 
-        assert(m_layer_idx >= 0);
         if (gcodegen.writer().need_toolchange(extruder_id) || finish_layer) {
-            if (m_layer_idx < (int)m_tool_changes.size()) {
-                if (!(size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size()))
-                    throw Slic3r::RuntimeError("Wipe tower generation failed, possibly due to empty first layer.");
+            if (!(size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size())) throw Slic3r::RuntimeError("Wipe tower generation failed, possibly due to empty first layer.");
 
-                if (!ignore_sparse) {
-                    gcode += append_tcr(gcodegen, m_tool_changes[m_layer_idx][m_tool_change_idx++], extruder_id, wipe_tower_z);
-                    m_last_wipe_tower_print_z = wipe_tower_z;
-                }
+            if (!ignore_sparse) {
+                gcode += append_tcr(gcodegen, m_tool_changes[m_layer_idx][m_tool_change_idx++], extruder_id, wipe_tower_z);
+                m_last_wipe_tower_print_z = wipe_tower_z;
             }
         }
 
