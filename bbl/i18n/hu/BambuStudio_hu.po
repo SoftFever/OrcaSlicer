@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-24 18:21+0800\n"
+"POT-Creation-Date: 2022-08-25 15:20+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -364,6 +364,21 @@ msgstr ""
 
 msgid "Paint-on seam editing"
 msgstr ""
+
+msgid "Text shape"
+msgstr ""
+
+msgid "Font"
+msgstr ""
+
+msgid "Thickness"
+msgstr ""
+
+msgid "Input text"
+msgstr ""
+
+msgid "Add"
+msgstr "Hozzáadás"
 
 msgid "Notice"
 msgstr "Megjegyzés"
@@ -2068,9 +2083,6 @@ msgstr "Többféle anyag használata egy tálcán"
 msgid "Avoid extrusion calibration region"
 msgstr "Extrudáláskalibráció környékének elkerülése"
 
-msgid "Add"
-msgstr "Hozzáadás"
-
 msgid "Add plate"
 msgstr "Tálca hozzáadása"
 
@@ -2524,14 +2536,14 @@ msgstr ""
 msgid "Printing Progress"
 msgstr "Nyomtatás folyamata"
 
-msgid "Report"
-msgstr "Report"
+msgid "Resume"
+msgstr "Folytatás"
 
-msgid "Stop"
-msgstr "Állj"
+msgid "Abort"
+msgstr ""
 
-msgid "0%"
-msgstr "0%"
+msgid "0"
+msgstr ""
 
 msgid "Clean"
 msgstr ""
@@ -2568,9 +2580,6 @@ msgstr "Nyomtatási lista"
 
 msgid "Downloading..."
 msgstr "Letöltés..."
-
-msgid "Resume"
-msgstr "Folytatás"
 
 msgid "Silent"
 msgstr "Csendes"
@@ -6589,6 +6598,15 @@ msgstr "Support: fix holes at layer %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
+
+#~ msgid "Report"
+#~ msgstr "Report"
+
+#~ msgid "Stop"
+#~ msgstr "Állj"
+
+#~ msgid "0%"
+#~ msgstr "0%"
 
 #~ msgid "Timelapse Wipe Tower"
 #~ msgstr "Timelapse törlő torony"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-24 18:21+0800\n"
+"POT-Creation-Date: 2022-08-25 15:20+0800\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -365,6 +365,21 @@ msgstr ""
 
 msgid "Paint-on seam editing"
 msgstr ""
+
+msgid "Text shape"
+msgstr ""
+
+msgid "Font"
+msgstr ""
+
+msgid "Thickness"
+msgstr ""
+
+msgid "Input text"
+msgstr ""
+
+msgid "Add"
+msgstr "Añadir"
 
 msgid "Notice"
 msgstr "Date cuenta"
@@ -2077,9 +2092,6 @@ msgstr "Permitir varios materiales en la misma placa"
 msgid "Avoid extrusion calibration region"
 msgstr "Evitar la zona de calibración del extrusor"
 
-msgid "Add"
-msgstr "Añadir"
-
 msgid "Add plate"
 msgstr "Añadir placa"
 
@@ -2524,14 +2536,14 @@ msgstr ""
 msgid "Printing Progress"
 msgstr "Progreso de impresión"
 
-msgid "Report"
-msgstr "Informe"
+msgid "Resume"
+msgstr "Reanudar"
 
-msgid "Stop"
-msgstr "Detener"
+msgid "Abort"
+msgstr ""
 
-msgid "0%"
-msgstr "0%"
+msgid "0"
+msgstr ""
 
 msgid "Clean"
 msgstr ""
@@ -2568,9 +2580,6 @@ msgstr "Imprimiendo Lista"
 
 msgid "Downloading..."
 msgstr ""
-
-msgid "Resume"
-msgstr "Reanudar"
 
 msgid "Silent"
 msgstr "Silencio"
@@ -6629,6 +6638,15 @@ msgstr "Soporte: arreglar huecos en la capa %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Soporte: propagar ramas en la capa %d"
+
+#~ msgid "Report"
+#~ msgstr "Informe"
+
+#~ msgid "Stop"
+#~ msgstr "Detener"
+
+#~ msgid "0%"
+#~ msgstr "0%"
 
 #~ msgid "Timelapse Wipe Tower"
 #~ msgstr "Timelapse Torre de limpieza"

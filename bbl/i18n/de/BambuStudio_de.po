@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-24 18:21+0800\n"
+"POT-Creation-Date: 2022-08-25 15:20+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -364,6 +364,21 @@ msgstr ""
 
 msgid "Paint-on seam editing"
 msgstr ""
+
+msgid "Text shape"
+msgstr ""
+
+msgid "Font"
+msgstr ""
+
+msgid "Thickness"
+msgstr ""
+
+msgid "Input text"
+msgstr ""
+
+msgid "Add"
+msgstr "Hinzufügen"
 
 msgid "Notice"
 msgstr "Hinweis"
@@ -2079,9 +2094,6 @@ msgstr "Erlaube mehrere Materialien auf einer Druckplatte"
 msgid "Avoid extrusion calibration region"
 msgstr "Vermeiden Sie den Bereich der Extrusionskalibrierung"
 
-msgid "Add"
-msgstr "Hinzufügen"
-
 msgid "Add plate"
 msgstr "Druckplatte hinzufügen"
 
@@ -2526,14 +2538,14 @@ msgstr ""
 msgid "Printing Progress"
 msgstr "Druckprozess"
 
-msgid "Report"
-msgstr "Bericht"
+msgid "Resume"
+msgstr "Fortsetzen"
 
-msgid "Stop"
-msgstr "Stop"
+msgid "Abort"
+msgstr ""
 
-msgid "0%"
-msgstr "0%"
+msgid "0"
+msgstr ""
 
 msgid "Clean"
 msgstr ""
@@ -2570,9 +2582,6 @@ msgstr "Druckliste"
 
 msgid "Downloading..."
 msgstr ""
-
-msgid "Resume"
-msgstr "Fortsetzen"
 
 msgid "Silent"
 msgstr "Leise"
@@ -6645,6 +6654,15 @@ msgstr "Support: Löcher in Schicht %d repairieren"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: Verbreiten von Zweigen auf Ebene %d"
+
+#~ msgid "Report"
+#~ msgstr "Bericht"
+
+#~ msgid "Stop"
+#~ msgstr "Stop"
+
+#~ msgid "0%"
+#~ msgstr "0%"
 
 #~ msgid "Timelapse Wipe Tower"
 #~ msgstr "Zeitraffer-Wischturm"

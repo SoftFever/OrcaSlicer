@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-24 18:21+0800\n"
+"POT-Creation-Date: 2022-08-25 15:20+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -363,6 +363,21 @@ msgstr ""
 
 msgid "Paint-on seam editing"
 msgstr ""
+
+msgid "Text shape"
+msgstr ""
+
+msgid "Font"
+msgstr ""
+
+msgid "Thickness"
+msgstr ""
+
+msgid "Input text"
+msgstr ""
+
+msgid "Add"
+msgstr "Lägg till"
 
 msgid "Notice"
 msgstr "Iakttag"
@@ -2043,9 +2058,6 @@ msgstr "Tillåt multipla material på samma byggplatta"
 msgid "Avoid extrusion calibration region"
 msgstr "Undvik kalibrerings området"
 
-msgid "Add"
-msgstr "Lägg till"
-
 msgid "Add plate"
 msgstr "Lägg till byggplata"
 
@@ -2490,14 +2502,14 @@ msgstr ""
 msgid "Printing Progress"
 msgstr "Utskriftsförlopp"
 
-msgid "Report"
-msgstr "Rapportera"
+msgid "Resume"
+msgstr "Återuppta"
 
-msgid "Stop"
-msgstr "Stopp"
+msgid "Abort"
+msgstr ""
 
-msgid "0%"
-msgstr "0%"
+msgid "0"
+msgstr ""
 
 msgid "Clean"
 msgstr ""
@@ -2534,9 +2546,6 @@ msgstr "Utskrifts Lista"
 
 msgid "Downloading..."
 msgstr ""
-
-msgid "Resume"
-msgstr "Återuppta"
 
 msgid "Silent"
 msgstr "Tyst"
@@ -6070,8 +6079,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
-"(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för "
+"lösligt(material) stödgränssnittet är koncentriskt"
 
 msgid "Base pattern spacing"
 msgstr "Basens mönster mellanrum"
@@ -6497,6 +6506,15 @@ msgstr "Support: åtgärda hål vid lager %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: föröka grenar vid lager %d"
+
+#~ msgid "Report"
+#~ msgstr "Rapportera"
+
+#~ msgid "Stop"
+#~ msgstr "Stopp"
+
+#~ msgid "0%"
+#~ msgstr "0%"
 
 #~ msgid "Timelapse Wipe Tower"
 #~ msgstr "Timelapse Wipe Tower"

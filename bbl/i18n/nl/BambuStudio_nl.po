@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-24 18:21+0800\n"
+"POT-Creation-Date: 2022-08-25 15:20+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -364,6 +364,21 @@ msgstr ""
 
 msgid "Paint-on seam editing"
 msgstr ""
+
+msgid "Text shape"
+msgstr ""
+
+msgid "Font"
+msgstr ""
+
+msgid "Thickness"
+msgstr ""
+
+msgid "Input text"
+msgstr ""
+
+msgid "Add"
+msgstr "Toevoegen"
 
 msgid "Notice"
 msgstr "Let op"
@@ -2069,9 +2084,6 @@ msgstr "Sta verschillende materiaalsoorten op hetzelfde printbed toe"
 msgid "Avoid extrusion calibration region"
 msgstr "Vermijd het extrusie kalibratie gebied"
 
-msgid "Add"
-msgstr "Toevoegen"
-
 msgid "Add plate"
 msgstr "Printbed toevoegen"
 
@@ -2516,14 +2528,14 @@ msgstr ""
 msgid "Printing Progress"
 msgstr "Print voortgang"
 
-msgid "Report"
-msgstr "Rapport"
+msgid "Resume"
+msgstr "Hervatten"
 
-msgid "Stop"
-msgstr "Stop"
+msgid "Abort"
+msgstr ""
 
-msgid "0%"
-msgstr "0%"
+msgid "0"
+msgstr ""
 
 msgid "Clean"
 msgstr ""
@@ -2560,9 +2572,6 @@ msgstr "Print lijst"
 
 msgid "Downloading..."
 msgstr ""
-
-msgid "Resume"
-msgstr "Hervatten"
 
 msgid "Silent"
 msgstr "Stille"
@@ -6647,6 +6656,15 @@ msgstr "Support: fix holes at layer %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
+
+#~ msgid "Report"
+#~ msgstr "Rapport"
+
+#~ msgid "Stop"
+#~ msgstr "Stop"
+
+#~ msgid "0%"
+#~ msgstr "0%"
 
 #~ msgid "Timelapse Wipe Tower"
 #~ msgstr "Timelapse Wipe Tower"

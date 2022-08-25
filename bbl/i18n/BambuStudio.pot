@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-24 18:21+0800\n"
+"POT-Creation-Date: 2022-08-25 15:20+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -364,6 +364,21 @@ msgid "Leaving Seam painting"
 msgstr ""
 
 msgid "Paint-on seam editing"
+msgstr ""
+
+msgid "Text shape"
+msgstr ""
+
+msgid "Font"
+msgstr ""
+
+msgid "Thickness"
+msgstr ""
+
+msgid "Input text"
+msgstr ""
+
+msgid "Add"
 msgstr ""
 
 msgid "Notice"
@@ -1921,9 +1936,6 @@ msgstr ""
 msgid "Avoid extrusion calibration region"
 msgstr ""
 
-msgid "Add"
-msgstr ""
-
 msgid "Add plate"
 msgstr ""
 
@@ -2363,13 +2375,13 @@ msgstr ""
 msgid "Printing Progress"
 msgstr ""
 
-msgid "Report"
+msgid "Resume"
 msgstr ""
 
-msgid "Stop"
+msgid "Abort"
 msgstr ""
 
-msgid "0%"
+msgid "0"
 msgstr ""
 
 msgid "Clean"
@@ -2406,9 +2418,6 @@ msgid "Printing List"
 msgstr ""
 
 msgid "Downloading..."
-msgstr ""
-
-msgid "Resume"
 msgstr ""
 
 msgid "Silent"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-24 18:21+0800\n"
+"POT-Creation-Date: 2022-08-25 15:20+0800\n"
 "PO-Revision-Date: 2022-08-07 21:57+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -365,6 +365,21 @@ msgstr "推出Z缝绘制"
 
 msgid "Paint-on seam editing"
 msgstr ""
+
+msgid "Text shape"
+msgstr "文本形状"
+
+msgid "Font"
+msgstr "字体"
+
+msgid "Thickness"
+msgstr "厚度"
+
+msgid "Input text"
+msgstr "输入文本"
+
+msgid "Add"
+msgstr "添加"
 
 msgid "Notice"
 msgstr "通知"
@@ -1988,9 +2003,6 @@ msgstr "允许同一盘中包含多种材料"
 msgid "Avoid extrusion calibration region"
 msgstr "避开挤出标定区域"
 
-msgid "Add"
-msgstr "添加"
-
 msgid "Add plate"
 msgstr "添加新盘"
 
@@ -2441,14 +2453,14 @@ msgstr "录像"
 msgid "Printing Progress"
 msgstr "打印进度"
 
-msgid "Report"
-msgstr "报告"
+msgid "Resume"
+msgstr "继续"
 
-msgid "Stop"
-msgstr "停止"
+msgid "Abort"
+msgstr "终止"
 
-msgid "0%"
-msgstr "0%"
+msgid "0"
+msgstr ""
 
 msgid "Clean"
 msgstr "清除"
@@ -2485,9 +2497,6 @@ msgstr "项目切片"
 
 msgid "Downloading..."
 msgstr "下载中..."
-
-msgid "Resume"
-msgstr "继续"
 
 msgid "Silent"
 msgstr "静音"
@@ -6236,6 +6245,15 @@ msgstr "支撑：正在修补层%d的空洞"
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
 
+#~ msgid "Report"
+#~ msgstr "报告"
+
+#~ msgid "Stop"
+#~ msgstr "停止"
+
+#~ msgid "0%"
+#~ msgstr "0%"
+
 #~ msgid "Timelapse Wipe Tower"
 #~ msgstr "延时摄影擦料塔"
 
@@ -7408,9 +7426,6 @@ msgstr "支撑：正在生长层%d的树枝"
 
 #~ msgid "Unable to get printer status"
 #~ msgstr "无法获取打印机状态"
-
-#~ msgid "Abort"
-#~ msgstr "终止"
 
 #~ msgid "Tip: Click the button to edit your filament"
 #~ msgstr "提示：点击此按钮以编辑耗材丝"
