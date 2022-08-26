@@ -1224,6 +1224,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
     {
         //this->m_plater->select_view_3D("Preview");
+        m_plater->update();
         if (m_slice_select == eSliceAll)
             wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
         else
