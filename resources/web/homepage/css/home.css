@@ -34,6 +34,12 @@ html, body {
 }
 
 /*------------------*/
+#DebugText
+{
+	height:30px;
+}
+
+/*------------------*/
 body
 {
 	display:flex;
@@ -208,6 +214,7 @@ body
 	padding: 0px 40px;
 	display: flex;
 	flex-direction: column;
+	position: relative;
 }
 
 #MenuArea
@@ -274,9 +281,31 @@ body
 	flex-direction: column;
 }
 
+#RecentTitleBlock
+{
+	display:flex;
+	align-items: center;
+	padding: 6px;
+    border-bottom: 1px solid #D9D9D9;	
+}
+
+#RecentClearAllBtn
+{
+	border: 1px solid #C4C4C4;
+	padding: 0px 10px;
+	border-radius: 6px;
+	line-height: 26px;
+	height: 26px;
+	margin-left: 20px;
+	cursor: pointer;
+	background-color: #00AE42;
+	color: #fff;
+	display: inline;
+}
+
 #RecentTitle
 {
-	border-bottom: 1px solid #D9D9D9;
+	
 }
 
 #FileList
@@ -331,6 +360,68 @@ body
 	color: #A8A8A8;
 }
 
+#recnet_context_menu
+{
+	position: absolute;
+	margin: 0px;
+	padding: 0px;
+	border: 0px;
+	min-width: 100px;
+    top: 800px;
+	border: 1px solid #C5C5C5;
+	border-radius: 6px;
+	background-color: #fff;
+}
+
+.CT_Item
+{
+	line-height:30px;
+	padding: 0px 10px;
+	display: flex;
+	flex-direction: row;
+	align-content: center;
+	align-items: center;
+}
+
+.CT_Item:hover
+{
+	background-color: #E9E9E9;
+	cursor: pointer;
+}
+
+
+.CT_Icon
+{
+	margin-right: 6px;
+	width: 16px;
+	height: 16px;		
+}
+
+.CT_Delete
+{
+	background: url("../img/delete.png");
+	background-repeat: no-repeat;
+	background-size: contain;	
+}
+
+.CT_Explore
+{
+	background: url("../img/folder.png");
+	background-repeat: no-repeat;
+	background-size: contain;		
+}
+
+
+.CT_Seperate
+{
+	border-bottom:1px solid  #C5C5C5;
+}
+
+.CT_Text
+{
+
+}
+
 /*--------Mall------*/
 #MallBoard
 {
@@ -364,3 +455,58 @@ body
 	height: 95%;
 	border: 1px solid #D9D9D9;
 }
+
+
+/*---------Wiki----------*/
+#WikiGuideBigBoard
+{
+	display:none;
+}
+
+
+#WikiGuideBoard
+{
+	display: flex;
+	flex-wrap: wrap;
+	align-content: flex-start;
+	overflow-y: auto;
+	padding: 50px;
+}
+
+.GuideBlock
+{
+	width: 320px;
+	margin: 0px;
+	margin: 0px 12px 30px 12px;
+	cursor: pointer;
+}
+
+.UG_IMG
+{
+	width: 320px;
+	height: 200px;	
+}
+
+.UG_IMG img
+{
+	width: 320px;
+	height: 200px;
+}
+
+.UG_TITLE
+{
+	font-size: 16px;
+	line-height: 20px;
+	width: 320px;
+	margin-top: 6px;
+}
+
+.UG_DESC
+{
+	width: 320px;
+	line-height: 18px;
+	color: #C4C4C4;
+	font-size: 14px;
+}
+
+

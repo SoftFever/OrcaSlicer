@@ -14,6 +14,68 @@ function OnInit()
 	SendMsg_GetRecentFile();
 }
 
+//------最佳打开文件的右键菜单功能----------
+var RightBtnFilePath='';
+
+var MousePosX=0;
+var MousePosY=0;
+
+function Set_RecentFile_MouseRightBtn_Event()
+{
+	$(".FileItem").mousedown(
+		function(e)
+		{			
+			//FilePath
+			RightBtnFilePath=$(this).attr('fpath');
+			
+			if(e.which == 3){
+				//鼠标点击了右键+$(this).attr('ff') );
+				ShowRecnetFileContextMenu();
+			}else if(e.which == 2){
+				//鼠标点击了中键
+			}else if(e.which == 1){
+				//鼠标点击了左键
+				OnOpenRecentFile( encodeURI(RightBtnFilePath) );
+			}
+		});
+
+	$(document).bind("contextmenu",function(e){
+		//在这里书写代码，构建个性右键化菜单
+		return false;
+	});	
+	
+    $(document).mousemove( function(e){
+		MousePosX=e.pageX;
+		MousePosY=e.pageY;
+		
+		let ContextMenuWidth=$('#recnet_context_menu').width();
+		let ContextMenuHeight=$('#recnet_context_menu').height();
+	
+		let DocumentWidth=$(document).width();
+		let DocumentHeight=$(document).height();
+		
+		//$("#DebugText").text( ContextMenuWidth+' - '+ContextMenuHeight+'<br/>'+
+		//					 DocumentWidth+' - '+DocumentHeight+'<br/>'+
+		//					 MousePosX+' - '+MousePosY +'<br/>' );
+	} );
+	
+
+	$(document).click( function(){		
+		var e = e || window.event;
+        var elem = e.target || e.srcElement;
+        while (elem) {
+			if (elem.id && elem.id == 'recnet_context_menu') {
+                    return;
+			}
+			elem = elem.parentNode;
+		}		
+		
+		$("#recnet_context_menu").hide();
+	} );
+
+	
+}
+
 
 function HandleStudio( pVal )
 {
@@ -123,7 +185,7 @@ function ShowRecentFileList( pList )
 		//let index=sPath.lastIndexOf('\\')>0?sPath.lastIndexOf('\\'):sPath.lastIndexOf('\/');
 		//let sShortName=sPath.substring(index+1,sPath.length);
 		
-		let TmpHtml='<div class="FileItem"  onClick="OnOpenRecentFile(\''+ encodeURI(sPath)+'\')"  >'+
+		let TmpHtml='<div class="FileItem"  fpath="'+sPath+'"  >'+
 				'<a class="FileTip" title="'+sPath+'"></a>'+
 				'<div class="FileImg" ><img src="'+sImg+'" onerror="this.onerror=null;this.src=\'img/d.png\';"  alt="No Image"  /></div>'+
 				'<a>'+sName+'</a>'+
@@ -134,10 +196,33 @@ function ShowRecentFileList( pList )
 	}
 	
 	$("#FileList").html(strHtml);	
+	
+    Set_RecentFile_MouseRightBtn_Event();
+	UpdateRecentClearBtnDisplay();
 }
 
+function ShowRecnetFileContextMenu()
+{
+	$('#recnet_context_menu').show();
+	
+	let ContextMenuWidth=$('#recnet_context_menu').width();
+	let ContextMenuHeight=$('#recnet_context_menu').height();
+	
+    let DocumentWidth=$(document).width();
+	let DocumentHeight=$(document).height();
 
-/*-------MX Message------*/
+	let RealX=MousePosX;
+	let RealY=MousePosY;
+	
+	if( MousePosX + ContextMenuWidth >DocumentWidth )
+		RealX=MousePosX-ContextMenuWidth;
+	if( MousePosY+ContextMenuHeight>DocumentHeight )
+		RealY=MousePosY-ContextMenuHeight;
+	
+	$("#recnet_context_menu").offset({top: RealY, left:RealX});
+}
+
+/*-------RecentFile MX Message------*/
 function SendMsg_GetLoginInfo()
 {
 	var tSend={};
@@ -197,6 +282,69 @@ function OnOpenRecentFile( strPath )
 	SendWXMessage( JSON.stringify(tSend) );	
 }
 
+function OnDeleteRecentFile( )
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_delete_recentfile";
+	tSend['data']={};
+	tSend['data']['path']=decodeURI(RightBtnFilePath);
+	
+	SendWXMessage( JSON.stringify(tSend) );	
+
+	$("#recnet_context_menu").hide();
+	
+	let AllFile=$(".FileItem");
+	let nFile=AllFile.length;
+	for(let p=0;p<nFile;p++)
+	{
+		let pp=AllFile[p].getAttribute("fpath");
+		if(pp==RightBtnFilePath)
+			$(AllFile[p]).remove();
+	}	
+	
+	UpdateRecentClearBtnDisplay();
+}
+
+function OnDeleteAllRecentFiles()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_delete_all_recentfile";
+	
+	SendWXMessage( JSON.stringify(tSend) );		
+	
+	$('#FileList').html('');
+	
+	UpdateRecentClearBtnDisplay();
+}
+
+function UpdateRecentClearBtnDisplay()
+{
+    let AllFile=$(".FileItem");
+	let nFile=AllFile.length;	
+	if( nFile>0 )
+		$("#RecentClearAllBtn").show();
+	else
+		$("#RecentClearAllBtn").hide();
+}
+
+
+
+
+function OnExploreRecentFile( )
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_explore_recentfile";
+	tSend['data']={};
+	tSend['data']['path']=decodeURI(RightBtnFilePath);
+	
+	SendWXMessage( JSON.stringify(tSend) );	
+	
+	$("#recnet_context_menu").hide();
+}
+
 function OnLogOut()
 {
 	var tSend={};
@@ -227,4 +375,20 @@ function OutputKey(keyCode, isCtrlDown, isShiftDown, isCmdDown) {
 
 	SendWXMessage(JSON.stringify(tSend));
 }
+
+//-------------User Manual------------
+
+function OpenWikiUrl( strUrl )
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="userguide_wiki_open";
+	tSend['data']={};
+	tSend['data']['url']=strUrl;
+	
+	SendWXMessage( JSON.stringify(tSend) );	
+}
+
+
+//---------------Global-----------------
 window.postMessage = HandleStudio;

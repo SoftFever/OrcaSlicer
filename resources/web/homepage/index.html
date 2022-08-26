@@ -10,7 +10,7 @@
 <script type="text/javascript" src="../data/text.js"></script>	
 <script type="text/javascript" src="js/json2.js"></script>
 <script type="text/javascript" src="js/globalapi.js"></script>
-<script type="text/javascript" src="js/home.js"></script>
+<script type="text/javascript" src="js/home.js"></script>	
 </head>
 <body onLoad="OnInit()">
 <div id="LeftBoard">
@@ -39,8 +39,11 @@
 			<div class="BtnIcon "><img class="LeftIcon" src="img/i2.png" /></div>
 			<div class="trans" tid="t28">recent</div> 
 		</div>	
+	    <div menu="wikiguide" class="BtnItem" onClick="GotoMenu('wikiguide')">
+			<div class="BtnIcon "><img class="LeftIcon" src="img/i1.png" /></div>
+			<div class="trans" tid="t87">UserGuide</div> 
+		</div>		
 	</div>
-	
 </div>
 
 <div id="RightBoard">
@@ -63,16 +66,21 @@
 		</div>		
 	</div>
 	
+	<div id="DebugText"></div>
+	
 	<div id="RecentFileArea">
-		<div id="RecentTitle" class="Content-Title trans" tid="t35">recent open</div>
+		<div id="RecentTitleBlock">
+		    <div id="RecentTitle" class="Content-Title trans" tid="t35">recent open</div>
+			<div id="RecentClearAllBtn" class="trans" tid="t12" onClick="OnDeleteAllRecentFiles()">Clear all</div>
+		</div>
 		<div id="FileList">
-<!--		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')">
+<!--		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
 				<a class="FileTip" title="d:\model\11.3mf"></a>
 				<div class="FileImg"><img src="img/b.jpg"/></div>
 				<a>abcd12334.3mf</a>
 				<div class="FileDate">2021/12/27 09:22</div>
 			</div>
-		    <div class="FileItem">
+		    <div class="FileItem" fpath='d:\model\22.3mf'>
 				<a class="FileTip" title="d:\model\11.3mf"></a>
 				<div class="FileImg"><img src="img/b.jpg"/></div>
 				<a>abcd12334.3mf</a>
@@ -131,11 +139,89 @@
 				<div class="FileImg"><img src="img/b.jpg"/></div>
 				<a>abcd12334.3mf</a>
 				<div class="FileDate">2021/12/27 09:22</div>
-			</div>-->				
+			</div>	-->			
 		</div>
 	</div>
 	
     <div style="height: 14px;"></div>	
+	
+	<div id="recnet_context_menu">
+		<div class="CT_Item" onClick="OnDeleteRecentFile()">
+			<div class="CT_Icon CT_Delete"></div>
+			<div class="CT_Text trans" tid="t88">clear</div>
+		</div>
+		<div class="CT_Item " onClick="OnExploreRecentFile()" >
+			<div class="CT_Icon CT_Explore"></div>
+			<div class="CT_Text trans" tid="t89">open in explorer </div>
+		</div>				
+    </div>
+	
+	
+</div>
+	
+<div id="WikiGuideBigBoard" board="wikiguide">
+<div id="WikiGuideBoard" >
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://www.bambulab.com')">
+		<div class="UG_IMG"><img src="img/wiki.png" /></div>
+		<div class="UG_TITLE trans" tid="wk1">Wiki Title XXXXXXX  XXXXXX XXXXX XXXXX XXXXXX</div>
+		<div class="UG_DESC trans" tid="wk2">This is a long long long long long longlong long long long long longlong long long long long longlong long long long long longlong long long long long long text</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://www.bambulab.com')">
+		<div class="UG_IMG"><img src="img/wiki2.png" /></div>
+		<div class="UG_TITLE trans" tid="wk1">Wiki Title XXXXXXX  XXXXXX XXXXX XXXXX XXXXXX</div>
+		<div class="UG_DESC trans" tid="wk2">This is a long long long long long longlong long long long long longlong long long long long longlong long long long long longlong long long long long long text</div>
+	</div>	
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://www.bambulab.com')">
+		<div class="UG_IMG"><img src="img/wiki3.png" /></div>
+		<div class="UG_TITLE trans" tid="wk1">Wiki Title XXXXXXX  XXXXXX XXXXX XXXXX XXXXXX</div>
+		<div class="UG_DESC trans" tid="wk2">This is a long long long long long longlong long long long long longlong long long long long longlong long long long long longlong long long long long long text</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://www.bambulab.com')">
+		<div class="UG_IMG"><img src="img/wiki3.png" /></div>
+		<div class="UG_TITLE trans" tid="wk1">Wiki Title XXXXXXX  XXXXXX XXXXX XXXXX XXXXXX</div>
+		<div class="UG_DESC trans" tid="wk2">This is a long long long long long longlong long long long long longlong long long long long longlong long long long long longlong long long long long long text</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://www.bambulab.com')">
+		<div class="UG_IMG"><img src="img/wiki.png" /></div>
+		<div class="UG_TITLE trans" tid="wk1">Wiki Title XXXXXXX  XXXXXX XXXXX XXXXX XXXXXX</div>
+		<div class="UG_DESC trans" tid="wk2">This is a long long long long long longlong long long long long longlong long long long long longlong long long long long longlong long long long long long text</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://www.bambulab.com')">
+		<div class="UG_IMG"><img src="img/wiki3.png" /></div>
+		<div class="UG_TITLE trans" tid="wk1">Wiki Title XXXXXXX  XXXXXX XXXXX XXXXX XXXXXX</div>
+		<div class="UG_DESC trans" tid="wk2">This is a long long long long long longlong long long long long longlong long long long long longlong long long long long longlong long long long long long text</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://www.bambulab.com')">
+		<div class="UG_IMG"><img src="img/wiki2.png" /></div>
+		<div class="UG_TITLE trans" tid="wk1">Wiki Title XXXXXXX  XXXXXX XXXXX XXXXX XXXXXX</div>
+		<div class="UG_DESC trans" tid="wk2">This is a long long long long long longlong long long long long longlong long long long long longlong long long long long longlong long long long long long text</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://www.bambulab.com')">
+		<div class="UG_IMG"><img src="img/wiki.png" /></div>
+		<div class="UG_TITLE trans" tid="wk1">Wiki Title XXXXXXX  XXXXXX XXXXX XXXXX XXXXXX</div>
+		<div class="UG_DESC trans" tid="wk2">This is a long long long long long longlong long long long long longlong long long long long longlong long long long long longlong long long long long long text</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://www.bambulab.com')">
+		<div class="UG_IMG"><img src="img/wiki2.png" /></div>
+		<div class="UG_TITLE trans" tid="wk1">Wiki Title XXXXXXX  XXXXXX XXXXX XXXXX XXXXXX</div>
+		<div class="UG_DESC trans" tid="wk2">This is a long long long long long longlong long long long long longlong long long long long longlong long long long long longlong long long long long long text</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://www.bambulab.com')">
+		<div class="UG_IMG"><img src="img/wiki.png" /></div>
+		<div class="UG_TITLE trans" tid="wk1">Wiki Title XXXXXXX  XXXXXX XXXXX XXXXX XXXXXX</div>
+		<div class="UG_DESC trans" tid="wk2">This is a long long long long long longlong long long long long longlong long long long long longlong long long long long longlong long long long long long text</div>
+	</div>
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://www.bambulab.com')">
+		<div class="UG_IMG"><img src="img/wiki2.png" /></div>
+		<div class="UG_TITLE trans" tid="wk1">Wiki Title XXXXXXX  XXXXXX XXXXX XXXXX XXXXXX</div>
+		<div class="UG_DESC trans" tid="wk2">This is a long long long long long longlong long long long long longlong long long long long longlong long long long long longlong long long long long long text</div>
+	</div>	
+	<div class="GuideBlock" onClick="OpenWikiUrl('https://www.bambulab.com')">
+		<div class="UG_IMG"><img src="img/wiki3.png" /></div>
+		<div class="UG_TITLE trans" tid="wk1">Wiki Title XXXXXXX  XXXXXX XXXXX XXXXX XXXXXX</div>
+		<div class="UG_DESC trans" tid="wk2">This is a long long long long long longlong long long long long longlong long long long long longlong long long long long longlong long long long long long text</div>
+	</div>		
+</div>
 </div>
 	
 </div>	

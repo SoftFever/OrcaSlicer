@@ -2611,6 +2611,28 @@ void MainFrame::open_recent_project(size_t file_id, wxString const & filename)
     }
 }
 
+void MainFrame::remove_recent_project(size_t file_id, wxString const &filename)
+{
+    if (file_id == size_t(-1)) {
+        if (filename.IsEmpty())
+            while (m_recent_projects.GetCount() > 0)
+                m_recent_projects.RemoveFileFromHistory(0);
+        else
+            file_id = m_recent_projects.FindFileInHistory(filename);
+    }
+    if (file_id != size_t(-1))
+        m_recent_projects.RemoveFileFromHistory(file_id);
+    std::vector<std::string> recent_projects;
+    size_t count = m_recent_projects.GetCount();
+    for (size_t i = 0; i < count; ++i)
+    {
+        recent_projects.push_back(into_u8(m_recent_projects.GetHistoryFile(i)));
+    }
+    wxGetApp().app_config->set_recent_projects(recent_projects);
+    wxGetApp().app_config->save();
+    m_webview->SendRecentList("");
+}
+
 void MainFrame::load_url(wxString url)
 {
     BOOST_LOG_TRIVIAL(trace) << "load_url:" << url;
