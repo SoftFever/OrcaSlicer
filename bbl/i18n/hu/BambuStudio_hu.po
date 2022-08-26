@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-25 15:20+0800\n"
+"POT-Creation-Date: 2022-08-26 14:09+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1936,9 +1936,6 @@ msgstr "Idő"
 msgid "Display"
 msgstr "Megjelenítés"
 
-msgid "Line type"
-msgstr "Vonal típusa"
-
 msgid "Layer Height (mm)"
 msgstr "Rétegmagasság (mm)"
 
@@ -2539,8 +2536,8 @@ msgstr "Nyomtatás folyamata"
 msgid "Resume"
 msgstr "Folytatás"
 
-msgid "Abort"
-msgstr ""
+msgid "Stop"
+msgstr "Állj"
 
 msgid "0"
 msgstr ""
@@ -3980,6 +3977,15 @@ msgstr "Általános"
 msgid "Capabilities"
 msgstr "Képességek"
 
+msgid "Show all presets (including incompatible)"
+msgstr ""
+
+msgid "Compare Presets"
+msgstr ""
+
+msgid "Add File"
+msgstr ""
+
 msgid "Set as cover"
 msgstr "Beállítás borítóként"
 
@@ -4005,8 +4011,8 @@ msgstr "Összeszerelési útmutató"
 msgid "Choose files"
 msgstr "Fájlok kiválasztása"
 
-msgid "Designer"
-msgstr "Tervező"
+msgid "Author"
+msgstr ""
 
 msgid "Model Name"
 msgstr "Model Name"
@@ -6599,11 +6605,14 @@ msgstr "Support: fix holes at layer %d"
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
 
+#~ msgid "Line type"
+#~ msgstr "Vonal típusa"
+
+#~ msgid "Designer"
+#~ msgstr "Tervező"
+
 #~ msgid "Report"
 #~ msgstr "Report"
-
-#~ msgid "Stop"
-#~ msgstr "Állj"
 
 #~ msgid "0%"
 #~ msgstr "0%"

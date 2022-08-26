@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-25 15:20+0800\n"
+"POT-Creation-Date: 2022-08-26 14:09+0800\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1947,9 +1947,6 @@ msgstr "Zeit"
 msgid "Display"
 msgstr "Anzeigen"
 
-msgid "Line type"
-msgstr "Linientyp"
-
 msgid "Layer Height (mm)"
 msgstr "Schichthöhe (mm)"
 
@@ -2541,8 +2538,8 @@ msgstr "Druckprozess"
 msgid "Resume"
 msgstr "Fortsetzen"
 
-msgid "Abort"
-msgstr ""
+msgid "Stop"
+msgstr "Stop"
 
 msgid "0"
 msgstr ""
@@ -4013,6 +4010,15 @@ msgstr "Allgemein"
 msgid "Capabilities"
 msgstr "Fähigkeiten"
 
+msgid "Show all presets (including incompatible)"
+msgstr ""
+
+msgid "Compare Presets"
+msgstr ""
+
+msgid "Add File"
+msgstr ""
+
 msgid "Set as cover"
 msgstr "Als Abdeckung einstellen"
 
@@ -4038,8 +4044,8 @@ msgstr "Montageanleitung"
 msgid "Choose files"
 msgstr "Dateien auswählen"
 
-msgid "Designer"
-msgstr "Designer"
+msgid "Author"
+msgstr ""
 
 msgid "Model Name"
 msgstr "Modellname"
@@ -6655,11 +6661,14 @@ msgstr "Support: Löcher in Schicht %d repairieren"
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: Verbreiten von Zweigen auf Ebene %d"
 
+#~ msgid "Line type"
+#~ msgstr "Linientyp"
+
+#~ msgid "Designer"
+#~ msgstr "Designer"
+
 #~ msgid "Report"
 #~ msgstr "Bericht"
-
-#~ msgid "Stop"
-#~ msgstr "Stop"
 
 #~ msgid "0%"
 #~ msgstr "0%"

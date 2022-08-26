@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-25 15:20+0800\n"
+"POT-Creation-Date: 2022-08-26 14:09+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1911,9 +1911,6 @@ msgstr "Tid"
 msgid "Display"
 msgstr "Visa"
 
-msgid "Line type"
-msgstr "Linje typ"
-
 msgid "Layer Height (mm)"
 msgstr "Lagerhöjd (mm)"
 
@@ -2505,8 +2502,8 @@ msgstr "Utskriftsförlopp"
 msgid "Resume"
 msgstr "Återuppta"
 
-msgid "Abort"
-msgstr ""
+msgid "Stop"
+msgstr "Stopp"
 
 msgid "0"
 msgstr ""
@@ -3941,6 +3938,15 @@ msgstr "Allmän"
 msgid "Capabilities"
 msgstr "Förmågor"
 
+msgid "Show all presets (including incompatible)"
+msgstr ""
+
+msgid "Compare Presets"
+msgstr ""
+
+msgid "Add File"
+msgstr ""
+
 msgid "Set as cover"
 msgstr "Ställ in som skydd"
 
@@ -3966,8 +3972,8 @@ msgstr "Monterings Guide"
 msgid "Choose files"
 msgstr "Välj filer"
 
-msgid "Designer"
-msgstr "Designer"
+msgid "Author"
+msgstr ""
 
 msgid "Model Name"
 msgstr "Modell Namn"
@@ -6507,11 +6513,14 @@ msgstr "Support: åtgärda hål vid lager %d"
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: föröka grenar vid lager %d"
 
+#~ msgid "Line type"
+#~ msgstr "Linje typ"
+
+#~ msgid "Designer"
+#~ msgstr "Designer"
+
 #~ msgid "Report"
 #~ msgstr "Rapportera"
-
-#~ msgid "Stop"
-#~ msgstr "Stopp"
 
 #~ msgid "0%"
 #~ msgstr "0%"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-25 15:20+0800\n"
+"POT-Creation-Date: 2022-08-26 14:09+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1789,9 +1789,6 @@ msgstr ""
 msgid "Display"
 msgstr ""
 
-msgid "Line type"
-msgstr ""
-
 msgid "Layer Height (mm)"
 msgstr ""
 
@@ -2378,7 +2375,7 @@ msgstr ""
 msgid "Resume"
 msgstr ""
 
-msgid "Abort"
+msgid "Stop"
 msgstr ""
 
 msgid "0"
@@ -3748,6 +3745,15 @@ msgstr ""
 msgid "Capabilities"
 msgstr ""
 
+msgid "Show all presets (including incompatible)"
+msgstr ""
+
+msgid "Compare Presets"
+msgstr ""
+
+msgid "Add File"
+msgstr ""
+
 msgid "Set as cover"
 msgstr ""
 
@@ -3773,7 +3779,7 @@ msgstr ""
 msgid "Choose files"
 msgstr ""
 
-msgid "Designer"
+msgid "Author"
 msgstr ""
 
 msgid "Model Name"

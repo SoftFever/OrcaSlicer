@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-25 15:20+0800\n"
+"POT-Creation-Date: 2022-08-26 14:09+0800\n"
 "PO-Revision-Date: 2022-08-07 21:57+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1855,9 +1855,6 @@ msgstr "时间"
 msgid "Display"
 msgstr "显示"
 
-msgid "Line type"
-msgstr "走线类型"
-
 msgid "Layer Height (mm)"
 msgstr "层高（mm）"
 
@@ -2456,8 +2453,8 @@ msgstr "打印进度"
 msgid "Resume"
 msgstr "继续"
 
-msgid "Abort"
-msgstr "终止"
+msgid "Stop"
+msgstr "停止"
 
 msgid "0"
 msgstr ""
@@ -3847,6 +3844,15 @@ msgstr "常规"
 msgid "Capabilities"
 msgstr "能力"
 
+msgid "Show all presets (including incompatible)"
+msgstr "显示所有预设(包括不兼容的)"
+
+msgid "Compare Presets"
+msgstr ""
+
+msgid "Add File"
+msgstr ""
+
 msgid "Set as cover"
 msgstr "设置为封面"
 
@@ -3872,8 +3878,8 @@ msgstr "组装指南"
 msgid "Choose files"
 msgstr "选择文件"
 
-msgid "Designer"
-msgstr "设计师"
+msgid "Author"
+msgstr "作者"
 
 msgid "Model Name"
 msgstr "模型名字"
@@ -6245,11 +6251,17 @@ msgstr "支撑：正在修补层%d的空洞"
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
 
+#~ msgid "Line type"
+#~ msgstr "走线类型"
+
+#~ msgid "Abort"
+#~ msgstr "终止"
+
+#~ msgid "Designer"
+#~ msgstr "设计师"
+
 #~ msgid "Report"
 #~ msgstr "报告"
-
-#~ msgid "Stop"
-#~ msgstr "停止"
 
 #~ msgid "0%"
 #~ msgstr "0%"

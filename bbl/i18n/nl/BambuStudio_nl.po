@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-25 15:20+0800\n"
+"POT-Creation-Date: 2022-08-26 14:09+0800\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1937,9 +1937,6 @@ msgstr "Tijd"
 msgid "Display"
 msgstr "Tonen"
 
-msgid "Line type"
-msgstr "Lijn-type"
-
 msgid "Layer Height (mm)"
 msgstr "Laaghoogte (mm)"
 
@@ -2531,8 +2528,8 @@ msgstr "Print voortgang"
 msgid "Resume"
 msgstr "Hervatten"
 
-msgid "Abort"
-msgstr ""
+msgid "Stop"
+msgstr "Stop"
 
 msgid "0"
 msgstr ""
@@ -4006,6 +4003,15 @@ msgstr "Algemeen"
 msgid "Capabilities"
 msgstr "Mogelijkheden"
 
+msgid "Show all presets (including incompatible)"
+msgstr ""
+
+msgid "Compare Presets"
+msgstr ""
+
+msgid "Add File"
+msgstr ""
+
 msgid "Set as cover"
 msgstr "Instellen als dekking"
 
@@ -4031,8 +4037,8 @@ msgstr "Montagehandleiding"
 msgid "Choose files"
 msgstr "Kies bestanden"
 
-msgid "Designer"
-msgstr "Ontwerper"
+msgid "Author"
+msgstr ""
 
 msgid "Model Name"
 msgstr "Model naam"
@@ -6657,11 +6663,14 @@ msgstr "Support: fix holes at layer %d"
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
 
+#~ msgid "Line type"
+#~ msgstr "Lijn-type"
+
+#~ msgid "Designer"
+#~ msgstr "Ontwerper"
+
 #~ msgid "Report"
 #~ msgstr "Rapport"
-
-#~ msgid "Stop"
-#~ msgstr "Stop"
 
 #~ msgid "0%"
 #~ msgstr "0%"

@@ -4385,7 +4385,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     {
     case EViewType::FeatureType:
     {
-        append_headers({_u8L("Line type"), _u8L("Time"), _u8L("Percent"), "", _u8L("Display")}, offsets);
+        append_headers({_u8L("Line Type"), _u8L("Time"), _u8L("Percent"), "", _u8L("Display")}, offsets);
         break;
     }
     case EViewType::Height:         { imgui.title(_u8L("Layer Height (mm)")); break; }

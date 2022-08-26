@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-25 15:20+0800\n"
+"POT-Creation-Date: 2022-08-26 14:09+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1046,7 +1046,7 @@ msgid "Multicolor Print"
 msgstr "Multicolor Print"
 
 msgid "Line Type"
-msgstr "Line type"
+msgstr "Line Type"
 
 msgid "No printer"
 msgstr "No printer"
@@ -1908,9 +1908,6 @@ msgstr "Time"
 msgid "Display"
 msgstr "Display"
 
-msgid "Line type"
-msgstr "Line type"
-
 msgid "Layer Height (mm)"
 msgstr "Layer height (mm)"
 
@@ -2502,8 +2499,8 @@ msgstr "Printing progress"
 msgid "Resume"
 msgstr "Resume"
 
-msgid "Abort"
-msgstr ""
+msgid "Stop"
+msgstr "Stop"
 
 msgid "0"
 msgstr ""
@@ -3930,6 +3927,15 @@ msgstr "General"
 msgid "Capabilities"
 msgstr "Capabilities"
 
+msgid "Show all presets (including incompatible)"
+msgstr ""
+
+msgid "Compare Presets"
+msgstr ""
+
+msgid "Add File"
+msgstr ""
+
 msgid "Set as cover"
 msgstr "Set as cover"
 
@@ -3955,8 +3961,8 @@ msgstr "Assembly Guide"
 msgid "Choose files"
 msgstr "Choose files"
 
-msgid "Designer"
-msgstr "Designer"
+msgid "Author"
+msgstr ""
 
 msgid "Model Name"
 msgstr "Model Name"
@@ -6504,11 +6510,14 @@ msgstr "Support: fix holes at layer %d"
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
 
+#~ msgid "Line type"
+#~ msgstr "Line type"
+
+#~ msgid "Designer"
+#~ msgstr "Designer"
+
 #~ msgid "Report"
 #~ msgstr "Report"
-
-#~ msgid "Stop"
-#~ msgstr "Stop"
 
 #~ msgid "0%"
 #~ msgstr "0%"

@@ -2762,24 +2762,24 @@ void ObjectTablePanel::load_data()
 #if HAS_COL_HEADER
     m_object_grid->SetColLabelAlignment(wxALIGN_LEFT, wxALIGN_CENTER);
    
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_printable, L("Printable"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_printable, _L("Printable"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_printable_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_plate_index, L("Plate"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_plate_index, _L("Plate"));
     /*m_object_grid->SetColLabelValue(ObjectGridTable::col_assemble_name, L("Module"));*/
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_name, L("Name"));
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments, L("Filament"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_name, _L("Name"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments, _L("Filament"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_layer_height, L("Layer height"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_layer_height, _L("Layer height"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_layer_height_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_wall_loops, L("Wall loops"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_wall_loops, _L("Wall loops"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_wall_loops_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_fill_density, L("Infill density(%)"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_fill_density, _L("Infill density(%)"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_fill_density_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_enable_support, L("Support"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_enable_support, _L("Support"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_enable_support_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_brim_type, L("Brim"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_brim_type, _L("Brim"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_brim_type_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_speed_perimeter, L("Inner wall speed"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_speed_perimeter, _L("Inner wall speed"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_speed_perimeter_reset, "");
     m_object_grid->SetLabelFont(Label::Head_13);
     m_object_grid->SetLabelTextColour(wxColour(0x30,0x3a,0x3c));

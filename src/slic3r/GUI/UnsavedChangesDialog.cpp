@@ -1822,7 +1822,7 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
         });
     }
 
-    m_show_all_presets = new wxCheckBox(this, wxID_ANY, "Show all presets (including incompatible)");
+    m_show_all_presets = new wxCheckBox(this, wxID_ANY, _L("Show all presets (including incompatible)"));
     m_show_all_presets->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
         bool show_all = m_show_all_presets->GetValue();
         for (auto preset_combos : m_preset_combos) {
@@ -1883,7 +1883,7 @@ void DiffPresetDialog::update_bundles_from_app()
 
 void DiffPresetDialog::show(Preset::Type type /* = Preset::TYPE_INVALID*/)
 {
-    this->SetTitle("Compare Presets");
+    this->SetTitle(_L("Compare presets"));
     m_view_type = type;
 
     update_bundles_from_app();

@@ -411,7 +411,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     });
 
     m_button_abort = new ScalableButton(m_panel_progress, wxID_ANY, "print_control_stop", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
-    m_button_abort->SetToolTip(_L("Abort"));
+    m_button_abort->SetToolTip(_L("Stop"));
 
     m_button_abort->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { 
         m_button_abort->SetBitmap_("print_control_stop_hover");
