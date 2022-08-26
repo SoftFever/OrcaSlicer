@@ -341,7 +341,7 @@ body
 .FileImg
 {
 	text-align: center;
-	background-color: #E4E4E4;
+	background-color: #F5F5F5;
 	border-radius: 8px;
 	width: 184px;
 	height: 184px;	
@@ -371,6 +371,7 @@ body
 	border: 1px solid #C5C5C5;
 	border-radius: 6px;
 	background-color: #fff;
+	display: none;
 }
 
 .CT_Item
