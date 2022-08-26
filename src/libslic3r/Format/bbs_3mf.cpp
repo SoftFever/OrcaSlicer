@@ -3863,18 +3863,38 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         auto filename = boost::format("3D/Objects/%s_%d.model") % object.name % obj_id;
         std::string filepath = temp_path + "/" + filename.str();
-        if (!open_zip_writer(&archive, filepath)) {
+        std::string filepath_tmp = filepath + ".tmp";
+        boost::system::error_code ec;
+        boost::filesystem::remove(filepath_tmp, ec);
+        if (!open_zip_writer(&archive, filepath_tmp)) {
             add_error("Unable to open the file");
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to open the file\n");
             return false;
         }
+
+        struct close_lock
+        {
+            mz_zip_archive & archive;
+            std::string const * filename;
+            void close() {
+                close_zip_writer(&archive);
+                filename = nullptr;
+            }
+            ~close_lock() {
+                if (filename) {
+                    close_zip_writer(&archive);
+                    boost::filesystem::remove(*filename);
+                }
+            }
+        } lock{archive, &filepath_tmp};
 
         IdToObjectDataMap objects_data;
         objects_data.insert({obj_id, {&object, obj_id}});
         _add_model_file_to_archive(filename.str(), archive, model, objects_data);
 
         mz_zip_writer_finalize_archive(&archive);
-        close_zip_writer(&archive);
+        lock.close();
+        boost::filesystem::rename(filepath_tmp, filepath, ec);
         return true;
     }
 
