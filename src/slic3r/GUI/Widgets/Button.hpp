@@ -15,7 +15,8 @@ class Button : public StaticBox
     StateColor   text_color;
 
     bool pressedDown = false;
-    bool m_selected = true;
+    bool m_selected  = true;
+    bool canFocus  = true;
 
     static const int buttonWidth = 200;
     static const int buttonHeight = 50;
@@ -43,7 +44,9 @@ public:
 
     void SetSelected(bool selected = true) { m_selected = selected; }
 
-    bool Enable(bool enable = true);
+    bool Enable(bool enable = true) override;
+
+    void SetCanFocus(bool canFocus) override;
 
     void Rescale();
 
@@ -51,6 +54,8 @@ protected:
 #ifdef __WIN32__
     WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) override;
 #endif
+
+    bool AcceptsFocus() const override;
 
 private:
     void paintEvent(wxPaintEvent& evt);

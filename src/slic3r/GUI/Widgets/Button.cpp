@@ -122,6 +122,8 @@ bool Button::Enable(bool enable)
     return result;
 }
 
+void Button::SetCanFocus(bool canFocus) { this->canFocus = canFocus; }
+
 void Button::Rescale()
 {
     if (this->active_icon.bmp().IsOk())
@@ -230,7 +232,8 @@ void Button::mouseDown(wxMouseEvent& event)
 {
     event.Skip();
     pressedDown = true;
-    SetFocus();
+    if (canFocus)
+        SetFocus();
     CaptureMouse();
 }
 
@@ -286,3 +289,5 @@ WXLRESULT Button::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 }
 
 #endif
+
+bool Button::AcceptsFocus() const { return canFocus; }
