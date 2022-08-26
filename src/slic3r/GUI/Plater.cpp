@@ -8033,8 +8033,12 @@ void Plater::export_gcode_3mf()
             GUI::file_wildcards(FT_3MF, ext),
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT
         );
-        if (dlg.ShowModal() == wxID_OK)
+        if (dlg.ShowModal() == wxID_OK) {
             output_path = into_path(dlg.GetPath());
+            ext = output_path.extension().string();
+            if (ext != ".3mf")
+                output_path = output_path.string() + ".3mf";
+        }
     }
 
     if (!output_path.empty()) {
