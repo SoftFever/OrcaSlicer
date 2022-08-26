@@ -104,6 +104,8 @@ struct DpiChangedEvent : public wxEvent {
 wxDECLARE_EVENT(EVT_DPI_CHANGED_SLICER, DpiChangedEvent);
 #endif // !wxVERSION_EQUAL_OR_GREATER_THAN
 
+extern std::vector<wxDialog*> dialogStack;
+
 template<class P> class DPIAware : public P
 {
 public:
@@ -221,6 +223,14 @@ public:
         on_sys_color_changed();
     }
 #endif
+    
+    int ShowModal()
+    {
+        dialogStack.push_back(this);
+        int r = wxDialog::ShowModal();
+        dialogStack.pop_back();
+        return r;
+    }
 
 protected:
     virtual void on_dpi_changed(const wxRect &suggested_rect) = 0;

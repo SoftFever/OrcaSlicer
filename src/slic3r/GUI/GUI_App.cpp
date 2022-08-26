@@ -1835,6 +1835,11 @@ bool GUI_App::on_init_inner()
     //BBS set crash log folder
     CBaseException::set_log_folder(data_dir());
 #endif
+    
+    wxGetApp().Bind(wxEVT_QUERY_END_SESSION, [](auto & e) {
+        for (auto d : dialogStack)
+            d->EndModal(1);
+    });
 
     std::map<std::string, std::string> extra_headers = get_extra_header();
     Slic3r::Http::set_extra_headers(extra_headers);

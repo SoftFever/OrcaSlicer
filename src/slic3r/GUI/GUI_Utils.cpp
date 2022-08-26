@@ -469,5 +469,7 @@ bool generate_image(const std::string &filename, wxImage &image, wxSize img_size
     return true;
 }
 
+std::vector<wxDialog*> dialogStack;
+
 }
 }
