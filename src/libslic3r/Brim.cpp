@@ -875,7 +875,7 @@ static ExPolygons outer_inner_brim_area(const Print& print,
     for (const auto& objectWithExtruder : objPrintVec)
         brimToWrite.insert({ objectWithExtruder.first, {true,true} });
 
-    std::map<ObjectID, ExPolygons> objectIslandMap;
+    ExPolygons objectIslands;
 
     for (unsigned int extruderNo : printExtruders) {
         ++extruderNo;
@@ -972,7 +972,7 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                         append_and_translate(brim_area, brim_area_object, instance, print, brimAreaMap);
                     append_and_translate(no_brim_area, no_brim_area_object, instance);
                     append_and_translate(holes, holes_object, instance);
-                    append_and_translate(objectIslandMap[instance.print_object->id()], objectIsland, instance);
+                    append_and_translate(objectIslands, objectIsland, instance);
 
                 }
                 if (brimAreaMap.find(object->id()) != brimAreaMap.end())
@@ -1036,27 +1036,44 @@ static ExPolygons outer_inner_brim_area(const Print& print,
             }
         }
     }
-    for (const PrintObject* object : print.objects()) {
+    for (const PrintObject* object : print.objects()) 
         if (brimAreaMap.find(object->id()) != brimAreaMap.end()) {
             brimAreaMap[object->id()] = diff_ex(brimAreaMap[object->id()], no_brim_area);
-
-            // BBS: brim should be contacted to at least one object island
-            if (objectIslandMap.find(object->id()) != objectIslandMap.end() && !objectIslandMap[object->id()].empty()) {
-                auto tempArea = brimAreaMap[object->id()];
-                brimAreaMap[object->id()].clear();
-                // the error bound is set to 2x flow width
-                for (auto& ta : tempArea) {
-                    auto offsetedTa = offset_ex(ta, print.brim_flow().scaled_spacing() * 2, jtRound, SCALED_RESOLUTION);
-                    if (!intersection_ex(offsetedTa, objectIslandMap[object->id()]).empty())
-                        brimAreaMap[object->id()].push_back(ta);
-                }
-            }
-        }
 
         if (supportBrimAreaMap.find(object->id()) != supportBrimAreaMap.end())
             supportBrimAreaMap[object->id()] = diff_ex(supportBrimAreaMap[object->id()], no_brim_area);
     }
-    //brim_area = diff_ex(brim_area, no_brim_area);
+
+    brim_area.clear();
+    for (const PrintObject* object : print.objects()) {
+        // BBS: brim should be contacted to at least one object's island or brim area
+        if (brimAreaMap.find(object->id()) != brimAreaMap.end()) {
+            // find other objects' brim area
+            ExPolygons otherExPolys;
+            for (const PrintObject* otherObject : print.objects()) {
+                if ((otherObject->id() != object->id()) && (brimAreaMap.find(otherObject->id()) != brimAreaMap.end())) {
+                    expolygons_append(otherExPolys, brimAreaMap[otherObject->id()]);
+                }
+            }
+
+            auto tempArea = brimAreaMap[object->id()];
+            brimAreaMap[object->id()].clear();
+
+            for (int ia = 0; ia != tempArea.size(); ++ia) {
+                // find this object's other brim area
+                ExPolygons otherExPoly;
+                for (int iao = 0; iao != tempArea.size(); ++iao)
+                    if (iao != ia) otherExPoly.push_back(tempArea[iao]);
+
+                auto offsetedTa = offset_ex(tempArea[ia], print.brim_flow().scaled_spacing() * 2, jtRound, SCALED_RESOLUTION);
+                if (!intersection_ex(offsetedTa, objectIslands).empty() ||
+                    !intersection_ex(offsetedTa, otherExPoly).empty() ||
+                    !intersection_ex(offsetedTa, otherExPolys).empty())
+                    brimAreaMap[object->id()].push_back(tempArea[ia]);
+            }
+            expolygons_append(brim_area, brimAreaMap[object->id()]);
+        }
+    }
     return brim_area;
 }
 // Flip orientation of open polylines to minimize travel distance.
