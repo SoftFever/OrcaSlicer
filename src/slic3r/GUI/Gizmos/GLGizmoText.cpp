@@ -148,6 +148,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
             const bool is_selected = (m_curr_font_idx == i);
             if (ImGui::BBLSelectable(cstr_font_names[i], is_selected)) {
                 m_curr_font_idx = i;
+                m_font_name = cstr_font_names[m_curr_font_idx];
             }
             if (is_selected) {
                 ImGui::SetItemDefaultFocus();
