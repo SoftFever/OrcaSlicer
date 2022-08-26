@@ -391,7 +391,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         std::string item_text = std::to_string(extruder_idx + 1);
         const ImVec2 label_size = ImGui::CalcTextSize(item_text.c_str(), NULL, true);
         
-        const ImVec2 button_size(max_label_size.x + m_imgui->scaled(0.6f),max_label_size.y + m_imgui->scaled(0.55f));
+        const ImVec2 button_size(max_label_size.x + m_imgui->scaled(0.5f),0.f);
 
         float button_offset = start_pos_x;
         if (extruder_idx % max_filament_items_per_line != 0) {
