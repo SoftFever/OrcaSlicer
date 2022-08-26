@@ -1765,6 +1765,9 @@ void MainFrame::init_menubar_as_editor()
         append_menu_item(export_menu, wxID_ANY, _L("Export all objects as STL") + dots, _L("Export all objects as STL"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(); }, "menu_export_stl", nullptr,
             [this](){return can_export_model(); }, this);
+        append_menu_item(export_menu, wxID_ANY, _L("Export Generic 3MF") + dots/* + "\tCtrl+G"*/, _L("Export 3mf file without using some 3mf-extensions"),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_core_3mf(); }, "menu_export_sliced_file", nullptr,
+            [this](){return can_export_model(); }, this);
         // BBS export .gcode.3mf
         append_menu_item(export_menu, wxID_ANY, _L("Export Sliced File") + dots/* + "\tCtrl+G"*/, _L("Export current Sliced file"),
             [this](wxCommandEvent&) { if (m_plater) wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE)); }, "menu_export_sliced_file", nullptr,

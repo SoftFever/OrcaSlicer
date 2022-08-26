@@ -8057,6 +8057,14 @@ void Plater::export_gcode_3mf()
     }
 }
 
+void Plater::export_core_3mf()
+{
+    wxString path = p->get_export_file(FT_3MF);
+    if (path.empty()) { return; }
+    const std::string path_u8 = into_u8(path);
+    export_3mf(path_u8, SaveStrategy::Silence);
+}
+
 void Plater::export_stl(bool extended, bool selection_only)
 {
     if (p->model.objects.empty()) { return; }

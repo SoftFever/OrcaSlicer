@@ -297,6 +297,7 @@ public:
 
     void export_gcode(bool prefer_removable);
     void export_gcode_3mf();
+    void export_core_3mf();
     void export_stl(bool extended = false, bool selection_only = false);
     //BBS: remove amf
     //void export_amf();
