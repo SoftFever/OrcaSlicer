@@ -69,6 +69,8 @@ set(lisbslic3r_sources
     Fill/FillConcentric.hpp
     Fill/FillConcentricWGapFill.cpp
     Fill/FillConcentricWGapFill.hpp
+    Fill/FillConcentricInternal.cpp
+    Fill/FillConcentricInternal.hpp
     Fill/FillHoneycomb.cpp
     Fill/FillHoneycomb.hpp
     Fill/FillGyroid.cpp
@@ -313,6 +315,47 @@ set(lisbslic3r_sources
     SLA/Clustering.hpp
     SLA/Clustering.cpp
     SLA/ReprojectPointsOnMesh.hpp
+
+    Arachne/BeadingStrategy/BeadingStrategy.hpp
+    Arachne/BeadingStrategy/BeadingStrategy.cpp
+    Arachne/BeadingStrategy/BeadingStrategyFactory.hpp
+    Arachne/BeadingStrategy/BeadingStrategyFactory.cpp
+    Arachne/BeadingStrategy/DistributedBeadingStrategy.hpp
+    Arachne/BeadingStrategy/DistributedBeadingStrategy.cpp
+    Arachne/BeadingStrategy/LimitedBeadingStrategy.hpp
+    Arachne/BeadingStrategy/LimitedBeadingStrategy.cpp
+    Arachne/BeadingStrategy/OuterWallInsetBeadingStrategy.hpp
+    Arachne/BeadingStrategy/OuterWallInsetBeadingStrategy.cpp
+    Arachne/BeadingStrategy/RedistributeBeadingStrategy.hpp
+    Arachne/BeadingStrategy/RedistributeBeadingStrategy.cpp
+    Arachne/BeadingStrategy/WideningBeadingStrategy.hpp
+    Arachne/BeadingStrategy/WideningBeadingStrategy.cpp
+    Arachne/utils/ExtrusionJunction.hpp
+    Arachne/utils/ExtrusionJunction.cpp
+    Arachne/utils/ExtrusionLine.hpp
+    Arachne/utils/ExtrusionLine.cpp
+    Arachne/utils/HalfEdge.hpp
+    Arachne/utils/HalfEdgeGraph.hpp
+    Arachne/utils/HalfEdgeNode.hpp
+    Arachne/utils/SparseGrid.hpp
+    Arachne/utils/SparsePointGrid.hpp
+    Arachne/utils/SparseLineGrid.hpp
+    Arachne/utils/SquareGrid.hpp
+    Arachne/utils/SquareGrid.cpp
+    Arachne/utils/PolygonsPointIndex.hpp
+    Arachne/utils/PolygonsSegmentIndex.hpp
+    Arachne/utils/PolylineStitcher.hpp
+    Arachne/utils/PolylineStitcher.cpp
+    Arachne/utils/VoronoiUtils.hpp
+    Arachne/utils/VoronoiUtils.cpp
+    Arachne/SkeletalTrapezoidation.hpp
+    Arachne/SkeletalTrapezoidation.cpp
+    Arachne/SkeletalTrapezoidationEdge.hpp
+    Arachne/SkeletalTrapezoidationGraph.hpp
+    Arachne/SkeletalTrapezoidationGraph.cpp
+    Arachne/SkeletalTrapezoidationJoint.hpp
+    Arachne/WallToolPaths.hpp
+    Arachne/WallToolPaths.cpp
 )
 
 if (APPLE)
@@ -401,6 +444,11 @@ set(OCCT_LIBS
     TKMath
     TKernel
 )
+
+if(APPLE)
+    target_link_libraries(libslic3r freetype)
+endif()
+
 
 target_link_libraries(libslic3r
     libnest2d

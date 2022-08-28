@@ -11,6 +11,7 @@
 
 #include "FillBase.hpp"
 #include "FillRectilinear.hpp"
+#include "FillConcentricInternal.hpp"
 
 #define NARROW_INFILL_AREA_THRESHOLD 3
 
@@ -303,7 +304,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		}
     }
 
-	// BBS: detect narrow internal solid infill area and use ipConcentricGapFill pattern instead
+	// BBS: detect narrow internal solid infill area and use ipConcentricInternal pattern instead
 	if (layer.object()->config().detect_narrow_internal_solid_infill) {
 		size_t surface_fills_size = surface_fills.size();
 		for (size_t i = 0; i < surface_fills_size; i++) {
@@ -324,12 +325,12 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 			}
 			else if (narrow_expolygons_index.size() == expolygons_size) {
 				// BBS: all expolygons are narrow, directly change the fill pattern
-				surface_fills[i].params.pattern = ipConcentricGapFill;
+				surface_fills[i].params.pattern = ipConcentricInternal;
 			}
 			else {
 				// BBS: some expolygons are narrow, spilit surface_fills[i] and rearrange the expolygons
 				params = surface_fills[i].params;
-				params.pattern = ipConcentricGapFill;
+				params.pattern = ipConcentricInternal;
 				surface_fills.emplace_back(params);
 				surface_fills.back().region_id = surface_fills[i].region_id;
 				surface_fills.back().surface.surface_type = stInternalSolid;
@@ -400,6 +401,13 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         f->z 		= this->print_z;
         f->angle 	= surface_fill.params.angle;
         f->adapt_fill_octree = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
+
+		if (surface_fill.params.pattern == ipConcentricInternal) {
+            FillConcentricInternal *fill_concentric = dynamic_cast<FillConcentricInternal *>(f.get());
+            assert(fill_concentric != nullptr);
+            fill_concentric->print_config        = &this->object()->print()->config();
+            fill_concentric->print_object_config = &this->object()->config();
+        }
 
         // calculate flow spacing for infill pattern generation
         bool using_internal_flow = ! surface_fill.surface.is_solid() && ! surface_fill.params.bridge;

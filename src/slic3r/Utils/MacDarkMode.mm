@@ -1,4 +1,6 @@
 #import "MacDarkMode.hpp"
+#include "../GUI/Widgets/Label.hpp"
+
 #include "wx/osx/core/cfstring.h"
 
 #import <algorithm>
@@ -74,7 +76,7 @@ void WKWebView_evaluateJavaScript(void * web, wxString const & script, void (*ca
         }
     }];
 }
-    
+
 }
 }
 
@@ -174,6 +176,17 @@ void WKWebView_evaluateJavaScript(void * web, wxString const & script, void (*ca
     if( !event.IsAllowed() )
         return NO;
     return YES;
+}
+
+@end
+
+/* Font for wxTextCtrl */
+
+@implementation NSTableHeaderCell (Font)
+
+- (NSFont*) font
+{
+    return Label::sysFont(13).OSXGetNSFont();
 }
 
 @end

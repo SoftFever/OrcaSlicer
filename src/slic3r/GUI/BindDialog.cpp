@@ -32,7 +32,7 @@ namespace GUI {
 
      m_panel_left = new StaticBox(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(201), FromDIP(212)), wxBORDER_NONE);
      m_panel_left->SetMinSize(wxSize(FromDIP(201), FromDIP(212)));
-     m_panel_left->SetCornerRadius(8);
+     m_panel_left->SetCornerRadius(FromDIP(8));
      m_panel_left->SetBackgroundColor(BIND_DIALOG_GREY200);
      wxBoxSizer *m_sizere_left_h = new wxBoxSizer(wxHORIZONTAL);
      wxBoxSizer *m_sizere_left_v= new wxBoxSizer(wxVERTICAL);
@@ -55,7 +55,7 @@ namespace GUI {
 
      m_panel_right = new StaticBox(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(201), FromDIP(212)), wxBORDER_NONE);
      m_panel_right->SetMinSize(wxSize(FromDIP(201), FromDIP(212)));
-     m_panel_right->SetCornerRadius(8);
+     m_panel_right->SetCornerRadius(FromDIP(8));
      m_panel_right->SetBackgroundColor(BIND_DIALOG_GREY200);
 
      m_user_name = new wxStaticText(m_panel_right, wxID_ANY, wxEmptyString);
@@ -136,7 +136,7 @@ namespace GUI {
      m_button_bind->SetTextColor(*wxWHITE);
      m_button_bind->SetSize(BIND_DIALOG_BUTTON_SIZE);
      m_button_bind->SetMinSize(BIND_DIALOG_BUTTON_SIZE);
-     m_button_bind->SetCornerRadius(10);
+     m_button_bind->SetCornerRadius(FromDIP(12));
 
 
      StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Hovered),
@@ -148,7 +148,7 @@ namespace GUI {
      m_button_cancel->SetSize(BIND_DIALOG_BUTTON_SIZE);
      m_button_cancel->SetMinSize(BIND_DIALOG_BUTTON_SIZE);
      m_button_cancel->SetTextColor(BIND_DIALOG_GREY900);
-     m_button_cancel->SetCornerRadius(10);
+     m_button_cancel->SetCornerRadius(FromDIP(12));
 
      m_sizer_button->Add(m_button_bind, 0, wxALIGN_CENTER, 0);
      m_sizer_button->Add(0, 0, 0, wxLEFT, FromDIP(13));
@@ -273,7 +273,7 @@ UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/)
 
      auto  m_panel_left = new StaticBox(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(201), FromDIP(212)), wxBORDER_NONE);
      m_panel_left->SetMinSize(wxSize(FromDIP(201), FromDIP(212)));
-     m_panel_left->SetCornerRadius(8);
+     m_panel_left->SetCornerRadius(FromDIP(8));
      m_panel_left->SetBackgroundColor(BIND_DIALOG_GREY200);
      wxBoxSizer *m_sizere_left_h = new wxBoxSizer(wxHORIZONTAL);
      wxBoxSizer *m_sizere_left_v= new wxBoxSizer(wxVERTICAL);
@@ -297,7 +297,7 @@ UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/)
 
      auto m_panel_right = new StaticBox(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(201), FromDIP(212)), wxBORDER_NONE);
      m_panel_right->SetMinSize(wxSize(FromDIP(201), FromDIP(212)));
-     m_panel_right->SetCornerRadius(8);
+     m_panel_right->SetCornerRadius(FromDIP(8));
      m_panel_right->SetBackgroundColor(BIND_DIALOG_GREY200);
      m_user_name = new wxStaticText(m_panel_right, wxID_ANY, wxEmptyString);
      m_user_name->SetBackgroundColour(BIND_DIALOG_GREY200);
@@ -374,7 +374,7 @@ UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/)
      m_button_unbind->SetTextColor(*wxWHITE);
      m_button_unbind->SetSize(BIND_DIALOG_BUTTON_SIZE);
      m_button_unbind->SetMinSize(BIND_DIALOG_BUTTON_SIZE);
-     m_button_unbind->SetCornerRadius(10);
+     m_button_unbind->SetCornerRadius(FromDIP(12));
 
 
      StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Hovered),
@@ -386,7 +386,7 @@ UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/)
      m_button_cancel->SetSize(BIND_DIALOG_BUTTON_SIZE);
      m_button_cancel->SetMinSize(BIND_DIALOG_BUTTON_SIZE);
      m_button_cancel->SetTextColor(BIND_DIALOG_GREY900);
-     m_button_cancel->SetCornerRadius(10);
+     m_button_cancel->SetCornerRadius(FromDIP(12));
 
      m_sizer_button->Add(m_button_unbind, 0, wxALIGN_CENTER, 0);
      m_sizer_button->Add(0, 0, 0, wxLEFT, FromDIP(13));

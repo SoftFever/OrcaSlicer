@@ -451,10 +451,7 @@ Sidebar::Sidebar(Plater *parent)
         p->m_panel_printer_title->SetBackgroundColor2(0xF1F1F1);
 
         p->m_printer_icon = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "printer");
-        p->m_text_printer_settings = new wxStaticText(p->m_panel_printer_title, wxID_ANY, _L("Printer"), wxDefaultPosition, wxDefaultSize, 0);
-        p->m_text_printer_settings->Wrap(-1);
-        p->m_text_printer_settings->SetFont(Label::Body_14);
-        p->m_text_printer_settings->SetBackgroundColour(0xF1F1F1);
+        p->m_text_printer_settings = new Label(p->m_panel_printer_title, _L("Printer"));
 
         p->m_printer_setting = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "settings");
         p->m_printer_setting->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
@@ -539,7 +536,7 @@ Sidebar::Sidebar(Plater *parent)
 
         m_bed_type_list->Select(0);
         bed_type_sizer->Add(bed_type_title, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
-        bed_type_sizer->Add(m_bed_type_list, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND, FromDIP(10));
+        bed_type_sizer->Add(m_bed_type_list, 1, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(10));
         vsizer_printer->Add(bed_type_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
 
         p->m_panel_printer_content->SetSizer(vsizer_printer);
@@ -557,10 +554,7 @@ Sidebar::Sidebar(Plater *parent)
     wxBoxSizer* bSizer39;
     bSizer39 = new wxBoxSizer( wxHORIZONTAL );
     p->m_filament_icon = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "filament");
-    p->m_staticText_filament_settings = new wxStaticText( p->m_panel_filament_title, wxID_ANY, _L("Filament"), wxDefaultPosition, wxDefaultSize, 0 );
-    p->m_staticText_filament_settings->Wrap( -1 );
-    p->m_staticText_filament_settings->SetFont(Label::Body_14);
-    p->m_staticText_filament_settings->SetBackgroundColour(0xF1F1F1);
+    p->m_staticText_filament_settings = new Label(p->m_panel_filament_title, _L("Filament"));
     bSizer39->Add(p->m_filament_icon, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(10));
     bSizer39->Add( p->m_staticText_filament_settings, 0, wxALIGN_CENTER );
     bSizer39->Add(FromDIP(10), 0, 0, 0, 0);
@@ -806,7 +800,7 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     auto side = filament_idx % 2;
     auto /***/sizer_filaments = this->p->sizer_filaments->GetItem(side)->GetSizer();
     if (side == 1 && filament_idx > 1) sizer_filaments->Remove(filament_idx / 2);
-    sizer_filaments->Add(combo_and_btn_sizer, 1, wxALIGN_CENTER | wxEXPAND);
+    sizer_filaments->Add(combo_and_btn_sizer, 1, wxEXPAND);
     if (side == 0) {
         sizer_filaments = this->p->sizer_filaments->GetItem(1)->GetSizer();
         sizer_filaments->AddStretchSpacer(1);
@@ -1808,7 +1802,6 @@ struct Plater::priv
     // Sets m_bed.m_polygon to limit the object placement.
     //BBS: add bed exclude area
     void set_bed_shape(const Pointfs& shape, const Pointfs& exclude_areas, const double printable_height, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom = false);
-    bool can_add_timelapse_wt() const;
 
     bool can_delete() const;
     bool can_delete_all() const;
@@ -3720,8 +3713,10 @@ void Plater::priv::process_validation_warning(StringObjectException const &warni
         auto action_fn = (mo || !warning.opt_key.empty()) ? [id = mo ? mo->id() : 0, opt = warning.opt_key](wxEvtHandler *) {
 		    auto & objects = wxGetApp().model().objects;
 		    auto iter = id.id ? std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; }) : objects.end();
-            if (iter != objects.end())
+            if (iter != objects.end()) {
+                wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
 			    wxGetApp().obj_list()->select_items({{*iter, nullptr}});
+            }
             if (!opt.empty()) {
                 if (iter != objects.end())
 				    wxGetApp().params_panel()->switch_to_object();
@@ -4802,7 +4797,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
     if (preset_type == Preset::TYPE_FILAMENT) {
         wxGetApp().preset_bundle->set_filament_preset(idx, preset_name);
-        //wxGetApp().get_tab(preset_type)->select_preset(preset_name);
+        wxGetApp().plater()->update_project_dirty_from_presets();
     }
 
     bool select_preset = !combo->selection_is_changed_according_to_physical_printers();
@@ -5991,16 +5986,6 @@ void Plater::priv::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_ar
     }
 }
 
-bool Plater::priv::can_add_timelapse_wt() const {
-    const DynamicPrintConfig &dconfig = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-    const ConfigOption* option = dconfig.option("timelapse_no_toolhead");
-    bool timelapse_enabled = option?option->getBool():false;
-
-    PartPlate* curr_plate = q->get_partplate_list().get_curr_plate();
-
-    return timelapse_enabled && curr_plate->can_add_timelapse_object();
-}
-
 bool Plater::priv::can_delete() const
 {
     return !get_selection().is_empty() && !get_selection().is_wipe_tower();
@@ -7031,7 +7016,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     m_confirm->SetTextColor(wxColour(255, 255, 255));
     m_confirm->SetSize(PROJECT_DROP_DIALOG_BUTTON_SIZE);
     m_confirm->SetMinSize(PROJECT_DROP_DIALOG_BUTTON_SIZE);
-    m_confirm->SetCornerRadius(12);
+    m_confirm->SetCornerRadius(FromDIP(12));
     m_confirm->Bind(wxEVT_LEFT_DOWN, &ProjectDropDialog::on_select_ok, this);
     m_sizer_right->Add(m_confirm, 0, wxALL, 5);
 
@@ -7039,7 +7024,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     m_cancel->SetTextColor(wxColour(107, 107, 107));
     m_cancel->SetSize(PROJECT_DROP_DIALOG_BUTTON_SIZE);
     m_cancel->SetMinSize(PROJECT_DROP_DIALOG_BUTTON_SIZE);
-    m_cancel->SetCornerRadius(12);
+    m_cancel->SetCornerRadius(FromDIP(12));
     m_cancel->Bind(wxEVT_LEFT_DOWN, &ProjectDropDialog::on_select_cancel, this);
     m_sizer_right->Add(m_cancel, 0, wxALL, 5);
 
@@ -7272,7 +7257,7 @@ bool Plater::load_files(const wxArrayString& filenames)
         }
     }
 
-    Plater::TakeSnapshot snapshot(this, snapshot_label);
+    //Plater::TakeSnapshot snapshot(this, snapshot_label);
     //load_files(normal_paths, LoadStrategy::LoadModel);
 
     // BBS: check file types
@@ -7305,10 +7290,11 @@ bool Plater::load_files(const wxArrayString& filenames)
         open_3mf_file(normal_paths[0]);
         break;
 
-    case LoadFilesType::SingleOther:
+    case LoadFilesType::SingleOther: {
+        Plater::TakeSnapshot snapshot(this, snapshot_label);
         if (load_files(normal_paths, LoadStrategy::LoadModel, false).empty()) { res = false; }
         break;
-
+    }
     case LoadFilesType::Multiple3MF:
         first_file = std::vector<fs::path>{normal_paths[0]};
         for (auto i = 0; i < normal_paths.size(); i++) {
@@ -7319,9 +7305,11 @@ bool Plater::load_files(const wxArrayString& filenames)
         if (load_files(other_file, LoadStrategy::LoadModel).empty()) {  res = false;  }
         break;
 
-    case LoadFilesType::MultipleOther:
-        if (load_files(normal_paths, LoadStrategy::LoadModel, true).empty()) {  res = false;  }
+    case LoadFilesType::MultipleOther: {
+        Plater::TakeSnapshot snapshot(this, snapshot_label);
+        if (load_files(normal_paths, LoadStrategy::LoadModel, true).empty()) { res = false; }
         break;
+    }
 
     case LoadFilesType::Multiple3MFOther:
         for (const auto &path : normal_paths) {
@@ -7374,15 +7362,8 @@ bool Plater::open_3mf_file(const fs::path &file_path)
 
     if (load_type == LoadType::Unknown) return false;
 
-    struct AllowSnapshots {
-        AllowSnapshots(Plater *plater) : m_plater(plater) { m_plater->allow_snapshots(); }
-        ~AllowSnapshots() { m_plater->suppress_snapshots(); }
-		Plater *m_plater;
-    };
     switch (load_type) {
         case LoadType::OpenProject: {
-            // remove snapshot taken by load_files and add_file
-            AllowSnapshots as(this);
             if (wxGetApp().can_load_project())
                 load_project(from_path(file_path));
             break;
@@ -7433,8 +7414,6 @@ void Plater::add_file()
         snapshot_label += encode_path(paths[i].filename().string().c_str());
     }
 
-    Plater::TakeSnapshot snapshot(this, snapshot_label);
-
     // BBS: check file types
     auto loadfiles_type  = LoadFilesType::NoFile;
     auto amf_files_count = get_3mf_file_count(paths);
@@ -7455,10 +7434,11 @@ void Plater::add_file()
         open_3mf_file(paths[0]);
     	break;
 
-    case LoadFilesType::SingleOther:
+    case LoadFilesType::SingleOther: {
+        Plater::TakeSnapshot snapshot(this, snapshot_label);
         if (!load_files(paths, LoadStrategy::LoadModel, false).empty()) { wxGetApp().mainframe->update_title(); }
         break;
-
+    }
     case LoadFilesType::Multiple3MF:
         first_file = std::vector<fs::path>{paths[0]};
         for (auto i = 0; i < paths.size(); i++) {
@@ -7469,12 +7449,13 @@ void Plater::add_file()
         if (!load_files(other_file, LoadStrategy::LoadModel).empty()) { wxGetApp().mainframe->update_title(); }
         break;
 
-    case LoadFilesType::MultipleOther:
+    case LoadFilesType::MultipleOther: {
+        Plater::TakeSnapshot snapshot(this, snapshot_label);
         if (!load_files(paths, LoadStrategy::LoadModel, true).empty()) {
             wxGetApp().mainframe->update_title();
         }
         break;
-
+    }
     case LoadFilesType::Multiple3MFOther:
         for (const auto &path : paths) {
             if (wxString(encode_path(path.filename().string().c_str())).EndsWith("3mf")) {
@@ -9947,7 +9928,6 @@ void Plater::show_status_message(std::string s)
     BOOST_LOG_TRIVIAL(trace) << "show_status_message:" << s;
 }
 
-bool Plater::can_add_timelapse_wt() const { return p->can_add_timelapse_wt(); } // BBS
 bool Plater::can_delete() const { return p->can_delete(); }
 bool Plater::can_delete_all() const { return p->can_delete_all(); }
 bool Plater::can_add_model() const { return !is_background_process_slicing(); }
@@ -9963,6 +9943,8 @@ bool Plater::can_split_to_volumes() const { return p->can_split_to_volumes(); }
 bool Plater::can_arrange() const { return p->can_arrange(); }
 bool Plater::can_paste_from_clipboard() const
 {
+    if (!IsShown() || !p->is_view3D_shown()) return false;
+
     const Selection& selection = p->view3D->get_canvas3d()->get_selection();
     const Selection::Clipboard& clipboard = selection.get_clipboard();
 
@@ -9992,6 +9974,9 @@ bool Plater::can_cut_to_clipboard() const
 
 bool Plater::can_copy_to_clipboard() const
 {
+    if (!IsShown() || !p->is_view3D_shown())
+        return false;
+
     if (is_selection_empty())
         return false;
 
@@ -10002,8 +9987,8 @@ bool Plater::can_copy_to_clipboard() const
     return true;
 }
 
-bool Plater::can_undo() const { return p->undo_redo_stack().has_undo_snapshot(); }
-bool Plater::can_redo() const { return p->undo_redo_stack().has_redo_snapshot(); }
+bool Plater::can_undo() const { return IsShown() && p->is_view3D_shown() && p->undo_redo_stack().has_undo_snapshot(); }
+bool Plater::can_redo() const { return IsShown() && p->is_view3D_shown() && p->undo_redo_stack().has_redo_snapshot(); }
 bool Plater::can_reload_from_disk() const { return p->can_reload_from_disk(); }
 //BBS
 bool Plater::can_fillcolor() const { return p->can_fillcolor(); }

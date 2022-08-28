@@ -267,7 +267,7 @@ void Tab::create_preset_tab()
     m_search_input->SetFont(wxGetApp().bold_font());
 
     search_sizer->Add(new wxWindow(m_search_item, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND | wxLEFT, 16);
-    search_sizer->Add(m_search_input, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL | wxALL, wxGetApp().em_unit() / 2);
+    search_sizer->Add(m_search_input, 1, wxEXPAND | wxALL, wxGetApp().em_unit() / 2);
     search_sizer->Add(new wxWindow(m_search_input, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND | wxLEFT, 16);
 
 
@@ -335,7 +335,7 @@ void Tab::create_preset_tab()
     // BBS: model config
     if (m_presets_choice) {
         m_presets_choice->Reparent(m_top_panel);
-        m_top_sizer->Add(m_presets_choice, 1, wxLEFT | wxRIGHT | wxEXPAND | wxALIGN_CENTER_VERTICAL, 10);
+        m_top_sizer->Add(m_presets_choice, 1, wxLEFT | wxRIGHT | wxEXPAND, 10);
     } else {
         m_top_sizer->AddSpacer(10);
         m_top_sizer->AddStretchSpacer(1);
@@ -353,7 +353,7 @@ void Tab::create_preset_tab()
     m_top_sizer->Add( m_search_item, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT , 8 );
 
     if (dynamic_cast<TabPrint*>(this) == nullptr) {
-        m_static_title = new Label(Label::Body_12, _L("Advance"), m_top_panel);
+        m_static_title = new Label(m_top_panel, Label::Body_12, _L("Advance"));
         m_static_title->Wrap( -1 );
         // BBS: open this tab by select first
         m_static_title->Bind(wxEVT_LEFT_UP, [this](auto& e) {
@@ -1375,11 +1375,9 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "enable_prime_tower" || opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
         update_wiping_button_visibility();
 
-    //popup message dialog when first selected
-    if (opt_key == "timelapse_no_toolhead" && boost::any_cast<bool>(value))
-        show_timelapse_warning_dialog();
-    
-
+    // reload scene to update timelapse wipe tower
+    if (opt_key == "timelapse_no_toolhead")
+        wxGetApp().plater()->update();
 
     // BBS
 #if 0

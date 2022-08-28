@@ -79,9 +79,9 @@ void ReleaseNoteDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
 }
 
-void ReleaseNoteDialog::update_release_note(std::string release_note, std::string version) 
+void ReleaseNoteDialog::update_release_note(wxString release_note, std::string version) 
 { 
-    m_text_up_info->SetLabel(wxString::Format("version %s update information :", version));
+    m_text_up_info->SetLabel(wxString::Format(_L("version %s update information :"), version));
     wxBoxSizer * sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
     auto        m_staticText_release_note = new wxStaticText(m_scrollwindw_release_note, wxID_ANY, release_note, wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_release_note->Wrap(FromDIP(530));
@@ -147,6 +147,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_butto_ok->SetFont(Label::Body_12);
     m_butto_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_butto_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_butto_ok->SetCornerRadius(FromDIP(12));
 
     m_butto_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         EndModal(wxID_YES);
@@ -158,6 +159,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_button_cancel->SetFont(Label::Body_12);
     m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_cancel->SetCornerRadius(FromDIP(12));
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { 
         EndModal(wxID_NO); 
@@ -188,7 +190,7 @@ void UpdateVersionDialog::on_dpi_changed(const wxRect &suggested_rect) {
 
 void UpdateVersionDialog::update_version_info(wxString release_note, wxString version)
 { 
-   m_text_up_info->SetLabel(wxString::Format("Click to download new version in default browser: %s", version));
+   m_text_up_info->SetLabel(wxString::Format(_L("Click to download new version in default browser: %s"), version));
     wxBoxSizer *sizer_text_release_note   = new wxBoxSizer(wxVERTICAL);
     auto        m_staticText_release_note = new wxStaticText(m_scrollwindw_release_note, wxID_ANY, release_note, wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_release_note->Wrap(FromDIP(530));

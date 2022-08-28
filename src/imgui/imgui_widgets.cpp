@@ -283,7 +283,15 @@ void ImGui::TextAlignCenter(const char *label)
     float item_width = ImGui::CalcItemWidth();
     float font_size  = ImGui::GetFontSize() * strlen(label) / 2;
     ImGui::SameLine(ImGui::GetCursorPos().x + (item_width - font_size) / 2);
-    ImGui::Text(label);
+
+    if ('X' == *label)
+        ImGui::TextColored(ImVec4(1.0, 0.0, 0.0, 1.0),label);
+    else if ('Y' == *label)
+        ImGui::TextColored(ImVec4(0.0, 0.6, 0.2, 1.0),label);
+    else if ('Z' == *label)
+        ImGui::TextColored(ImVec4(0.0, 0.0, 1.0, 1.0),label);
+    else
+        ImGui::Text(label);
 }
 
 void ImGui::TextV(const char* fmt, va_list args)
@@ -2070,7 +2078,7 @@ bool ImGui::BBLBeginCombo(const char *label, const char *preview_value, ImGuiCom
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
     const float  expected_w = CalcItemWidth();
     const float  w  = (flags & ImGuiComboFlags_NoPreview) ? arrow_size : expected_w;
-    const ImRect frame_bb(window->DC.CursorPos - ImVec2(0.0, style.FramePadding.y), window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y));
+    const ImRect frame_bb(window->DC.CursorPos - ImVec2(0.0, style.FramePadding.y), window->DC.CursorPos + ImVec2(w - arrow_size * 2, label_size.y + style.FramePadding.y));
     const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
     ItemSize(total_bb, style.FramePadding.y);
     if (!ItemAdd(total_bb, id, &frame_bb)) return false;
@@ -2128,7 +2136,7 @@ bool ImGui::BBLBeginCombo(const char *label, const char *preview_value, ImGuiCom
             popup_max_height_in_items = 4;
         else if (flags & ImGuiComboFlags_HeightLarge)
             popup_max_height_in_items = 20;
-        SetNextWindowSizeConstraints(ImVec2(w, 0.0f), ImVec2(FLT_MAX, CalcMaxPopupHeightFromItemCount(popup_max_height_in_items)));
+         SetNextWindowSizeConstraints(ImVec2(w - arrow_size * 2, 0.0f), ImVec2(FLT_MAX, CalcMaxPopupHeightFromItemCount(popup_max_height_in_items)));
     }
 
     char name[16];
@@ -7096,7 +7104,11 @@ bool ImGui::BBLSelectable(const char *label, bool selected, ImGuiSelectableFlags
     bool       pressed = ButtonBehavior(bb, id, &hovered, &held, button_flags);
     if (hovered || g.ActiveId == id) {
         ImGui::PushStyleColor(ImGuiCol_Border, GetColorU32(ImGuiCol_BorderActive));
-        RenderFrameBorder(ImVec2(bb.Min.x + style.ItemSpacing.x,bb.Min.y), ImVec2(bb.Max.x - style.ItemSpacing.x,bb.Max.y), style.FrameRounding);
+        if(arrow_size == 0) {
+            RenderFrameBorder(bb.Min, ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), style.FrameRounding);
+        } else {
+            RenderFrameBorder(ImVec2(bb.Min.x + style.WindowPadding.x,bb.Min.y), ImVec2(bb.Max.x - style.WindowPadding.x,bb.Max.y), style.FrameRounding);
+        }
         ImGui::PopStyleColor(1);
     }
     // Update NavId when clicking or when Hovering (this doesn't happen on most widgets), so navigation can be resumed with gamepad/keyboard
@@ -7118,7 +7130,11 @@ bool ImGui::BBLSelectable(const char *label, bool selected, ImGuiSelectableFlags
     if (held && (flags & ImGuiSelectableFlags_DrawHoveredWhenHeld)) hovered = true;
     if (hovered || selected) {
         const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
-        RenderFrame(ImVec2(bb.Min.x + style.ItemSpacing.x, bb.Min.y), ImVec2(bb.Max.x - style.ItemSpacing.x, bb.Max.y), col, false, 0.0f);
+        if(arrow_size == 0) {
+            RenderFrame(bb.Min, ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), col, false, 0.0f);
+        } else {
+            RenderFrame(ImVec2(bb.Min.x + style.WindowPadding.x, bb.Min.y), ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), col, false, 0.0f);
+        }
         RenderNavHighlight(bb, id, ImGuiNavHighlightFlags_TypeThin | ImGuiNavHighlightFlags_NoRounding);
     }
 
@@ -7849,6 +7865,55 @@ void ImGui::EndMenu()
     }
 
     EndPopup();
+}
+
+bool ImGui::BBLMenuItem(const char* label, const char* shortcut, bool selected, bool enabled)
+{
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    ImGuiContext& g = *GImGui;
+    ImGuiStyle& style = g.Style;
+    ImVec2 pos = window->DC.CursorPos;
+    ImVec2 label_size = CalcTextSize(label, NULL, true);
+
+    // We've been using the equivalent of ImGuiSelectableFlags_SetNavIdOnHover on all Selectable() since early Nav system days (commit 43ee5d73),
+    // but I am unsure whether this should be kept at all. For now moved it to be an opt-in feature used by menus only.
+    ImGuiSelectableFlags flags = ImGuiSelectableFlags_SelectOnRelease | ImGuiSelectableFlags_SetNavIdOnHover | (enabled ? 0 : ImGuiSelectableFlags_Disabled);
+    bool pressed;
+    if (window->DC.LayoutType == ImGuiLayoutType_Horizontal)
+    {
+        // Mimic the exact layout spacing of BeginMenu() to allow MenuItem() inside a menu bar, which is a little misleading but may be useful
+        // Note that in this situation: we don't render the shortcut, we render a highlight instead of the selected tick mark.
+        float w = label_size.x;
+        window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * 0.5f);
+        PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(style.ItemSpacing.x * 2.0f, style.ItemSpacing.y));
+        pressed = BBLSelectable(label, selected, flags, ImVec2(w, 0.0f));
+        PopStyleVar();
+        window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * (-1.0f + 0.5f)); // -1 spacing to compensate the spacing added when Selectable() did a SameLine(). It would also work to call SameLine() ourselves after the PopStyleVar().
+    }
+    else
+    {
+        // Menu item inside a vertical menu
+        // (In a typical menu window where all items are BeginMenu() or MenuItem() calls, extra_w will always be 0.0f.
+        //  Only when they are other items sticking out we're going to add spacing, yet only register minimum width into the layout system.
+        float shortcut_w = shortcut ? CalcTextSize(shortcut, NULL).x : 0.0f;
+        float min_w = window->DC.MenuColumns.DeclColumns(label_size.x, shortcut_w, IM_FLOOR(g.FontSize * 1.20f)); // Feedback for next frame
+        float extra_w = ImMax(0.0f, GetContentRegionAvail().x - min_w);
+        pressed = BBLSelectable(label, false, flags | ImGuiSelectableFlags_SpanAvailWidth | ImGuiComboFlags_NoArrowButton, ImVec2(min_w, 0.0f));
+        if (shortcut_w > 0.0f)
+        {
+            PushStyleColor(ImGuiCol_Text, g.Style.Colors[ImGuiCol_TextDisabled]);
+            RenderText(pos + ImVec2(window->DC.MenuColumns.Pos[1] + extra_w, 0.0f), shortcut, NULL, false);
+            PopStyleColor();
+        }
+        if (selected)
+            RenderCheckMark(window->DrawList, pos + ImVec2(window->DC.MenuColumns.Pos[2] + extra_w + g.FontSize * 0.40f, g.FontSize * 0.134f * 0.5f), GetColorU32(enabled ? ImGuiCol_Text : ImGuiCol_TextDisabled), g.FontSize  * 0.866f);
+    }
+
+    IMGUI_TEST_ENGINE_ITEM_INFO(window->DC.LastItemId, label, window->DC.LastItemStatusFlags | ImGuiItemStatusFlags_Checkable | (selected ? ImGuiItemStatusFlags_Checked : 0));
+    return pressed;
 }
 
 bool ImGui::MenuItem(const char* label, const char* shortcut, bool selected, bool enabled)

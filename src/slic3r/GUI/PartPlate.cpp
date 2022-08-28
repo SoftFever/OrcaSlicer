@@ -1103,8 +1103,12 @@ Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double wipe_volu
 	}
 	wipe_tower_size(2) = max_height;
 
+	const DynamicPrintConfig &dconfig = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    const ConfigOption* option = dconfig.option("timelapse_no_toolhead");
+    bool timelapse_enabled = option ? option->getBool() : false;
+
 	double depth = wipe_volume * (plate_extruders.size() - 1) / (layer_height * w);
-	if (depth > EPSILON) {
+    if (timelapse_enabled || depth > EPSILON) {
 		float min_wipe_tower_depth = 0.f;
 		auto iter = WipeTower::min_depth_per_height.begin();
 		while (iter != WipeTower::min_depth_per_height.end()) {
@@ -1140,26 +1144,6 @@ Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double wipe_volu
 	}
 	wipe_tower_size(1) = depth;
 	return wipe_tower_size;
-}
-
-double PartPlate::estimate_timelapse_wipe_tower_height(int *highest_extruder_id) const
-{
-	double max_height = 0;
-	int    highest_extruder = 0;
-
-	// auto  m_model    = wxGetApp().plater()->get_obj
-	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
-		if (!contain_instance_totally(obj_idx, 0)) continue;
-		if (m_model->objects[obj_idx]->is_timelapse_wipe_tower) continue;
-
-		BoundingBoxf3 bbox = m_model->objects[obj_idx]->bounding_box();
-        if (bbox.size().z() > max_height) {
-            max_height    = bbox.size().z();
-            highest_extruder = m_model->objects[obj_idx]->config.opt_int("extruder");
-        }
-	}
-    if (highest_extruder_id) *highest_extruder_id = highest_extruder;
-	return max_height;
 }
 
 bool PartPlate::operator<(PartPlate& plate) const
@@ -1634,33 +1618,6 @@ void PartPlate::move_instances_to(PartPlate& left_plate, PartPlate& right_plate,
 	}
 
 	return;
-}
-
-//can add timelapse object
-bool PartPlate::can_add_timelapse_object()
-{
-	bool result = true;
-
-	if (obj_to_instance_set.size() == 0)
-		return false;
-
-	for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
-	{
-		int obj_id = it->first;
-
-		if (obj_id >= m_model->objects.size())
-			continue;
-
-		ModelObject* object = m_model->objects[obj_id];
-
-		if (object->is_timelapse_wipe_tower)
-		{
-			result = false;
-			break;
-		}
-	}
-
-	return result;
 }
 
 void PartPlate::generate_logo_polygon(ExPolygon &logo_polygon)

@@ -209,6 +209,18 @@ bool HMSItem::parse_hms_info(unsigned attr, unsigned code)
     return result;
 }
 
+std::string HMSItem::get_long_error_code()
+{
+    char buf[64];
+    ::sprintf(buf, "%02X%02X%02X00000%1X%04X",
+        this->module_id,
+        this->module_num,
+        this->part_id,
+        (int)this->msg_level,
+        this->msg_code);
+    return std::string(buf);
+}
+
 wxString HMSItem::get_module_name(ModuleID module_id)
 {
     switch (module_id)

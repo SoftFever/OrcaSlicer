@@ -43,7 +43,7 @@ public:
     ~ReleaseNoteDialog();
 
     void on_dpi_changed(const wxRect &suggested_rect) override;
-    void update_release_note(std::string release_note, std::string version);
+    void update_release_note(wxString release_note, std::string version);
 
     wxStaticText *    m_text_up_info{nullptr};
     wxScrolledWindow *m_scrollwindw_release_note {nullptr};

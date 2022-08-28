@@ -333,18 +333,6 @@ void ObjectDataViewModelNode::SetPlateIdx(const int& idx)
     m_plate_idx = idx;
 }
 
-// BBS
-bool ObjectDataViewModelNode::IsTimelapseWipeTower() const
-{
-    if (m_model_object == nullptr)
-        return false;
-
-    if (!(m_type & itObject) && !(m_type & itInstance))
-        return false;
-
-    return m_model_object->is_timelapse_wipe_tower;
-}
-
 void ObjectDataViewModelNode::UpdateExtruderAndColorIcon(wxString extruder /*= ""*/)
 {
     if (m_type == itVolume && m_volume_type != ModelVolumeType::MODEL_PART && m_volume_type != ModelVolumeType::PARAMETER_MODIFIER)

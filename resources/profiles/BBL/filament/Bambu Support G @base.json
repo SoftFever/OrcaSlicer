@@ -19,5 +19,11 @@
     ],
     "nozzle_temperature": [
         "280"
+    ],
+    "fan_cooling_layer_time": [
+        "10"
+    ],
+    "slow_down_layer_time":[
+        "6"
     ]
 }

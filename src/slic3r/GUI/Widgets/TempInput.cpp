@@ -19,18 +19,14 @@ END_EVENT_TABLE()
 
 
 TempInput::TempInput()
-    : state_handler(this)
-    , border_color(std::make_pair(*wxWHITE, (int) StateColor::Disabled),
-                   std::make_pair(0x00AE42, (int) StateColor::Focused),
-                   std::make_pair(0x00AE42, (int) StateColor::Hovered),
-                   std::make_pair(*wxWHITE, (int) StateColor::Normal))
-    , label_color(std::make_pair(wxColour(0xAC,0xAC,0xAC), (int) StateColor::Disabled),std::make_pair(0x323A3D, (int) StateColor::Normal))
+    : label_color(std::make_pair(wxColour(0xAC,0xAC,0xAC), (int) StateColor::Disabled),std::make_pair(0x323A3D, (int) StateColor::Normal))
     , text_color(std::make_pair(wxColour(0xAC,0xAC,0xAC), (int) StateColor::Disabled), std::make_pair(0x6B6B6B, (int) StateColor::Normal))
-    , background_color(std::make_pair(*wxWHITE, (int) StateColor::Disabled),
-                       std::make_pair(*wxWHITE, (int) StateColor::Normal))
 {
     hover  = false;
     radius = 0;
+    border_color = StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(0x00AE42, (int) StateColor::Focused), std::make_pair(0x00AE42, (int) StateColor::Hovered),
+                 std::make_pair(*wxWHITE, (int) StateColor::Normal));
+    background_color = StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(*wxWHITE, (int) StateColor::Normal));
     SetFont(Label::Body_12);
 }
 
@@ -44,41 +40,34 @@ TempInput::TempInput(wxWindow *parent, int type, wxString text, wxString label, 
 
 void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString normal_icon, wxString actice_icon, const wxPoint &pos, const wxSize &size, long style)
 {
-    wxWindow::Create(parent, wxID_ANY, pos, size, style);
+    StaticBox::Create(parent, wxID_ANY, pos, size, style);
     wxWindow::SetLabel(label);
     style &= ~wxALIGN_CENTER_HORIZONTAL;
-    state_handler.attach({&border_color, &text_color, &background_color});
+    state_handler.attach({&label_color, &text_color});
     state_handler.update_binds();
-
     text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {5, 5}, wxDefaultSize, wxTE_PROCESS_ENTER | wxBORDER_NONE, wxTextValidator(wxFILTER_NUMERIC), wxTextCtrlNameStr);
     text_ctrl->SetMaxLength(3);
-
+    state_handler.attach_child(text_ctrl);
     text_ctrl->Bind(wxEVT_SET_FOCUS, [this](auto &e) {
         e.SetId(GetId());
         ProcessEventLocally(e);
-
-        //enter input mode
+        e.Skip();
+        if (m_read_only) return;
+        // enter input mode
         auto temp = text_ctrl->GetValue();
         if (temp.length() > 0 && temp[0] == (0x5f)) { 
             text_ctrl->SetValue(wxEmptyString);
         }
-
         if (wdialog != nullptr) { wdialog->Dismiss(); }
     });
     text_ctrl->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
-        if (m_read_only) {SetCursor(wxCURSOR_ARROW);}
-        e.SetId(GetId());
-        ProcessEventLocally(e);
-    });
-    text_ctrl->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
-        e.SetId(GetId());
-        ProcessEventLocally(e);
+        if (m_read_only) { SetCursor(wxCURSOR_ARROW); }
     });
     text_ctrl->Bind(wxEVT_KILL_FOCUS, [this](auto &e) {
-        OnEdit();
         e.SetId(GetId());
         ProcessEventLocally(e);
-
+        e.Skip();
+        OnEdit();
         auto temp = text_ctrl->GetValue();
         if (temp.ToStdString().empty()) {
             text_ctrl->SetValue(wxString("_"));
@@ -102,9 +91,6 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
     });
     text_ctrl->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent &e) {
         OnEdit();
-        e.SetId(GetId());
-        ProcessEventLocally(e);
-
         auto temp = text_ctrl->GetValue();
         if (temp.ToStdString().empty()) return;
         if (!AllisNum(temp.ToStdString())) return;
@@ -271,23 +257,11 @@ void TempInput::SetMaxTemp(int temp) { max_temp = temp; }
 
 void TempInput::SetMinTemp(int temp) { min_temp = temp; }
 
-void TempInput::SetCornerRadius(double radius)
-{
-    this->radius = radius;
-    Refresh();
-}
-
 void TempInput::SetLabel(const wxString &label)
 {
     wxWindow::SetLabel(label);
     messureSize();
     Refresh();
-}
-
-void TempInput::SetBorderColor(StateColor const &color)
-{
-    border_color = color;
-    state_handler.update_binds();
 }
 
 void TempInput::SetTextColor(StateColor const &color)
@@ -299,12 +273,6 @@ void TempInput::SetTextColor(StateColor const &color)
 void TempInput::SetLabelColor(StateColor const &color)
 {
     label_color = color;
-    state_handler.update_binds();
-}
-
-void TempInput::SetBackgroundColor(StateColor const &color)
-{
-    background_color = color;
     state_handler.update_binds();
 }
 
@@ -393,18 +361,18 @@ void TempInput::paintEvent(wxPaintEvent &evt)
  */
 void TempInput::render(wxDC &dc)
 {
+    StaticBox::render(dc);
     int    states      = state_handler.states();
     wxSize size        = GetSize();
     bool   align_right = GetWindowStyle() & wxRIGHT;
 
     if (warning_mode) {
-        dc.SetPen(wxPen(wxColour(255, 111, 0)));
+        border_color = wxColour(255, 111, 0);
     } else {
-        dc.SetPen(wxPen(border_color.colorForStates(states)));
+        border_color = StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(0x00AE42, (int) StateColor::Focused),
+                                  std::make_pair(0x00AE42, (int) StateColor::Hovered), std::make_pair(*wxWHITE, (int) StateColor::Normal));
     }
 
-    dc.SetBrush(wxBrush(background_color.colorForStates(states)));
-    dc.DrawRoundedRectangle(0, 0, size.x, size.y, radius);
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     // start draw
     wxPoint pt = {padding_left, 0};

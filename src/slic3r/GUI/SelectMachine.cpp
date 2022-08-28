@@ -194,7 +194,7 @@ void MachineObjectPanel::doRender(wxDC &dc)
     dc.SetFont(Label::Body_13);
     dc.SetBackgroundMode(wxTRANSPARENT);
     dc.SetTextForeground(SELECT_MACHINE_GREY900);
-    wxString dev_name;
+    wxString dev_name = "";
     if (m_info) {
         dev_name = from_u8(m_info->dev_name);
     }
@@ -367,6 +367,8 @@ SelectMachinePopup::SelectMachinePopup(wxWindow *parent)
     Bind(EVT_DISSMISS_MACHINE_LIST, &SelectMachinePopup::on_dissmiss_win, this);
 }
 
+SelectMachinePopup::~SelectMachinePopup() { delete m_refresh_timer; }
+
 void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
 {
     BOOST_LOG_TRIVIAL(trace) << "get_print_info: start";
@@ -537,6 +539,7 @@ void SelectMachinePopup::update_other_devices()
     }
 
     for (int j = i; j < m_other_list_machine_panel.size(); j++) {
+        m_other_list_machine_panel[j]->mPanel->update_machine_info(nullptr);
         m_other_list_machine_panel[j]->mPanel->Hide();
     }
     m_sizer_other_devices->Layout();
@@ -653,6 +656,7 @@ void SelectMachinePopup::update_user_devices()
     }
 
     for (int j = i; j < m_user_list_machine_panel.size(); j++) {
+        m_user_list_machine_panel[j]->mPanel->update_machine_info(nullptr);
         m_user_list_machine_panel[j]->mPanel->Hide();
     }
     //m_sizer_my_devices->Layout();
@@ -897,7 +901,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_button_ensure->SetTextColor(*wxWHITE);
     m_button_ensure->SetSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
-    m_button_ensure->SetCornerRadius(FromDIP(10));
+    m_button_ensure->SetCornerRadius(FromDIP(12));
 
     m_button_ensure->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_ok, this);
     m_sizer_pcont->Add(m_button_ensure, 0, wxEXPAND | wxBOTTOM, FromDIP(10));
@@ -1954,9 +1958,9 @@ void SelectMachineDialog::Enable_Send_Button(bool en)
 void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
     m_button_refresh->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
-    m_button_refresh->SetCornerRadius(FromDIP(10));
+    m_button_refresh->SetCornerRadius(FromDIP(12));
     m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
-    m_button_ensure->SetCornerRadius(FromDIP(10));
+    m_button_ensure->SetCornerRadius(FromDIP(12));
     m_status_bar->msw_rescale();
     Fit();
     Refresh();
@@ -2178,7 +2182,7 @@ bool SelectMachineDialog::Show(bool show)
 
 SelectMachineDialog::~SelectMachineDialog()
 {
-    ;
+    delete m_refresh_timer;
 }
 
 EditDevNameDialog::EditDevNameDialog(Plater *plater /*= nullptr*/)
@@ -2212,7 +2216,7 @@ EditDevNameDialog::EditDevNameDialog(Plater *plater /*= nullptr*/)
     m_button_confirm->SetTextColor(wxColour(255, 255, 255));
     m_button_confirm->SetSize(wxSize(FromDIP(72), FromDIP(24)));
     m_button_confirm->SetMinSize(wxSize(FromDIP(72), FromDIP(24)));
-    m_button_confirm->SetCornerRadius(12);
+    m_button_confirm->SetCornerRadius(FromDIP(12));
     m_button_confirm->Bind(wxEVT_BUTTON, &EditDevNameDialog::on_edit_name, this);
 
     m_sizer_main->Add(m_button_confirm, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(10));

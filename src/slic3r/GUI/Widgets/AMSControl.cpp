@@ -1345,7 +1345,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     m_panel_can = new StaticBox(amswin, wxID_ANY, wxDefaultPosition, AMS_CANS_SIZE, wxBORDER_NONE);
     m_panel_can->SetMinSize(AMS_CANS_SIZE);
-    m_panel_can->SetCornerRadius(10);
+    m_panel_can->SetCornerRadius(FromDIP(10));
     m_panel_can->SetBackgroundColor(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
 
     m_sizer_cans = new wxBoxSizer(wxHORIZONTAL);
@@ -1532,7 +1532,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_calibration_again->SetBorderColor(AMS_CONTROL_BRAND_COLOUR);
     m_button_calibration_again->SetTextColor(AMS_CONTROL_WHITE_COLOUR);
     m_button_calibration_again->SetMinSize(AMS_CONTRO_CALIBRATION_BUTTON_SIZE);
-    m_button_calibration_again->SetCornerRadius(12);
+    m_button_calibration_again->SetCornerRadius(FromDIP(12));
     m_button_calibration_again->Bind(wxEVT_LEFT_DOWN, &AMSControl::on_clibration_again_click, this);
 
     sizer_button->Add(m_button_calibration_again, 0, wxALL, 5);
@@ -1542,7 +1542,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_calibration_cancel->SetBorderColor(AMS_CONTROL_GRAY700);
     m_button_calibration_cancel->SetTextColor(AMS_CONTROL_GRAY800);
     m_button_calibration_cancel->SetMinSize(AMS_CONTRO_CALIBRATION_BUTTON_SIZE);
-    m_button_calibration_cancel->SetCornerRadius(12);
+    m_button_calibration_cancel->SetCornerRadius(FromDIP(12));
     m_button_calibration_cancel->Bind(wxEVT_LEFT_DOWN, &AMSControl::on_clibration_cancel_click, this);
     sizer_button->Add(m_button_calibration_cancel, 0, wxALL, 5);
 
@@ -1575,9 +1575,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 void AMSControl::init_scaled_buttons()
 {
     m_button_extruder_feed->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_button_extruder_feed->SetCornerRadius(FromDIP(11));
+    m_button_extruder_feed->SetCornerRadius(FromDIP(12));
     m_button_extruder_back->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_button_extruder_back->SetCornerRadius(FromDIP(11));
+    m_button_extruder_back->SetCornerRadius(FromDIP(12));
     m_button_ams_setting->SetMinSize(wxSize(-1, FromDIP(33)));
     m_button_ams_setting->SetCornerRadius(FromDIP(12));
 }

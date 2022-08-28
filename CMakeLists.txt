@@ -613,6 +613,7 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
             ${CMAKE_PREFIX_PATH}/bin/occt/TKXCAF.dll
             ${CMAKE_PREFIX_PATH}/bin/occt/TKXDESTEP.dll
             ${CMAKE_PREFIX_PATH}/bin/occt/TKXSBase.dll
+            ${CMAKE_PREFIX_PATH}/bin/freetype.dll
          DESTINATION ${_out_dir})
 
     set(${output_dlls}
@@ -646,6 +647,8 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
         ${_out_dir}/TKXCAF.dll
         ${_out_dir}/TKXDESTEP.dll
         ${_out_dir}/TKXSBase.dll
+
+        ${_out_dir}/freetype.dll
 
         PARENT_SCOPE
     )

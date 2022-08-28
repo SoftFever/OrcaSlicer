@@ -46,7 +46,7 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     m_cancelbutton->SetMinSize(wxSize(m_self->FromDIP(64), m_self->FromDIP(24)));
     m_cancelbutton->SetTextColor(wxColour(107, 107, 107));
     m_cancelbutton->SetBackgroundColor(wxColour(255, 255, 255));
-    m_cancelbutton->SetCornerRadius(12);
+    m_cancelbutton->SetCornerRadius(m_self->FromDIP(12));
     m_cancelbutton->Bind(wxEVT_BUTTON, 
         [this](wxCommandEvent &evt) {
         m_was_cancelled = true;

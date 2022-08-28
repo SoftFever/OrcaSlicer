@@ -544,7 +544,8 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_travel_speed(config.travel_speed),
     m_current_tool(initial_tool),
     //wipe_volumes(flush_matrix)
-    m_wipe_volume(prime_volume)
+    m_wipe_volume(prime_volume),
+    m_enable_timelapse_print(config.timelapse_no_toolhead.value)
 {
     // Read absolute value of first layer speed, if given as percentage,
     // it is taken over following default. Speeds from config are not
@@ -1304,7 +1305,10 @@ void WipeTower::plan_tower()
         }
     }
 
-    { 
+    {
+        if (m_enable_timelapse_print && max_depth < EPSILON)
+            max_depth = min_wipe_tower_depth;
+
         if (max_depth + EPSILON < min_wipe_tower_depth)
             m_extra_spacing = min_wipe_tower_depth / max_depth;
         else
@@ -1343,9 +1347,13 @@ void WipeTower::plan_tower()
 	for (auto& layer : m_plan)
 		layer.depth = 0.f;
 	
+    float max_depth_for_all = 0;
     for (int layer_index = int(m_plan.size()) - 1; layer_index >= 0; --layer_index)
 	{
 		float this_layer_depth = std::max(m_plan[layer_index].depth, m_plan[layer_index].toolchanges_depth());
+        if (m_enable_timelapse_print && this_layer_depth < EPSILON)
+            this_layer_depth = min_wipe_tower_depth;
+
 		m_plan[layer_index].depth = this_layer_depth;
 		
 		if (this_layer_depth > m_wipe_tower_depth - m_perimeter_width)
@@ -1356,7 +1364,16 @@ void WipeTower::plan_tower()
 			if (m_plan[i].depth - this_layer_depth < 2*m_perimeter_width )
 				m_plan[i].depth = this_layer_depth;
 		}
-	}
+
+        if (m_enable_timelapse_print && layer_index == 0) 
+            max_depth_for_all = m_plan[0].depth;
+    }
+
+    if (m_enable_timelapse_print) {
+        for (int i = int(m_plan.size()) - 1; i >= 0; i--) {
+            m_plan[i].depth = max_depth_for_all;
+        }
+    }
 }
 
 void WipeTower::save_on_last_wipe()
@@ -1474,17 +1491,25 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
         // BBS: consider both soluable and support properties
         int idx = first_toolchange_to_nonsoluble_nonsupport (layer.tool_changes);
         ToolChangeResult finish_layer_tcr;
+        ToolChangeResult timelapse_wall;
 
         if (idx == -1) {
             // if there is no toolchange switching to non-soluble, finish layer
             // will be called at the very beginning. That's the last possibility
             // where a nonsoluble tool can be.
-            finish_layer_tcr = finish_layer();
+            if (m_enable_timelapse_print) { 
+                timelapse_wall = only_generate_out_wall();
+            }
+            finish_layer_tcr = finish_layer(m_enable_timelapse_print ? false : true);
         }
 
         for (int i=0; i<int(layer.tool_changes.size()); ++i) {
+            if (i == 0 && m_enable_timelapse_print) { 
+                timelapse_wall = only_generate_out_wall();
+            }
+
             if (i == idx) {
-                layer_result.emplace_back(tool_change(layer.tool_changes[i].new_tool, true));
+                layer_result.emplace_back(tool_change(layer.tool_changes[i].new_tool, m_enable_timelapse_print ? false : true));
                 // finish_layer will be called after this toolchange
                 finish_layer_tcr = finish_layer(false);
             }
@@ -1504,8 +1529,57 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
                 layer_result[idx] = merge_tcr(layer_result[idx], finish_layer_tcr);
         }
 
+        if (m_enable_timelapse_print) {
+            layer_result.insert(layer_result.begin(), std::move(timelapse_wall));
+        }
+
 		result.emplace_back(std::move(layer_result));
 	}
+}
+
+WipeTower::ToolChangeResult WipeTower::only_generate_out_wall()
+{
+    size_t old_tool = m_current_tool;
+
+    m_extrusion_flow = 0.038f;  // hard code
+    WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
+    writer.set_extrusion_flow(m_extrusion_flow)
+        .set_z(m_z_pos)
+        .set_initial_tool(m_current_tool)
+        .set_y_shift(m_y_shift - (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f));
+
+    // Slow down on the 1st layer.
+    bool first_layer = is_first_layer();
+    // BBS: speed up perimeter speed to 90mm/s for non-first layer
+    float           feedrate   = first_layer ? std::min(m_first_layer_speed * 60.f, 5400.f) : 5400.f;
+    float           fill_box_y = m_layer_info->toolchanges_depth() + m_perimeter_width;
+    box_coordinates fill_box(Vec2f(m_perimeter_width, fill_box_y), m_wipe_tower_width - 2 * m_perimeter_width, m_layer_info->depth - fill_box_y);
+
+    writer.set_initial_position((m_left_to_right ? fill_box.ru : fill_box.lu), // so there is never a diagonal travel
+                                m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
+
+    bool toolchanges_on_layer = m_layer_info->toolchanges_depth() > WT_EPSILON;
+
+    // we are in one of the corners, travel to ld along the perimeter:
+    if (writer.x() > fill_box.ld.x() + EPSILON) writer.travel(fill_box.ld.x(), writer.y());
+    if (writer.y() > fill_box.ld.y() + EPSILON) writer.travel(writer.x(), fill_box.ld.y());
+
+    // outer perimeter (always):
+    // BBS
+    box_coordinates wt_box(Vec2f(0.f, (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f)), m_wipe_tower_width, m_layer_info->depth + m_perimeter_width);
+    wt_box = align_perimeter(wt_box);
+    writer.rectangle(wt_box, feedrate);
+
+    // Now prepare future wipe. box contains rectangle that was extruded last (ccw).
+    Vec2f target = (writer.pos() == wt_box.ld ? wt_box.rd : (writer.pos() == wt_box.rd ? wt_box.ru : (writer.pos() == wt_box.ru ? wt_box.lu : wt_box.ld)));
+    writer.add_wipe_point(writer.pos()).add_wipe_point(target);
+
+    // Ask our writer about how much material was consumed.
+    // Skip this in case the layer is sparse and config option to not print sparse layers is enabled.
+    if (!m_no_sparse_layers || toolchanges_on_layer)
+        if (m_current_tool < m_used_filament_length.size()) m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
+
+    return construct_tcr(writer, false, old_tool, true, 0.f);
 }
 
 } // namespace Slic3r

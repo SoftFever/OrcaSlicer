@@ -206,7 +206,7 @@ void ComboBox::DoSetItemClientData(unsigned int n, void *data)
 
 void ComboBox::mouseDown(wxMouseEvent &event)
 {
-    //SetFocus();
+    SetFocus();
     if (drop_down) {
         drop.Hide();
     } else if (drop.HasDismissLongTime()) {
@@ -230,7 +230,8 @@ void ComboBox::mouseWheelMoved(wxMouseEvent &event)
     }
 }
 
-void ComboBox::keyDown(wxKeyEvent& event) {
+void ComboBox::keyDown(wxKeyEvent& event)
+{
     switch (event.GetKeyCode()) {
         case WXK_RETURN:
         case WXK_SPACE:

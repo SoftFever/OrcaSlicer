@@ -82,7 +82,9 @@ public:
         m_layer_idx(-1),
         m_tool_change_idx(0),
         m_plate_origin(plate_origin),
-        m_single_extruder_multi_material(print_config.single_extruder_multi_material)
+        m_single_extruder_multi_material(print_config.single_extruder_multi_material),
+        m_enable_timelapse_print(print_config.timelapse_no_toolhead.value),
+        m_is_first_print(true)
     {}
 
     std::string prime(GCode &gcodegen);
@@ -90,6 +92,11 @@ public:
     std::string tool_change(GCode &gcodegen, int extruder_id, bool finish_layer);
     std::string finalize(GCode &gcodegen);
     std::vector<float> used_filament_length() const;
+
+    bool is_first_print() const { return m_is_first_print;}
+    void set_is_first_print(bool is) { m_is_first_print = is; }
+
+    bool enable_timelapse_print() const { return m_enable_timelapse_print; }
 
 private:
     WipeTowerIntegration& operator=(const WipeTowerIntegration&);
@@ -117,6 +124,8 @@ private:
     // BBS
     Vec3d                                                        m_plate_origin;
     bool                                                         m_single_extruder_multi_material;
+    bool                                                         m_enable_timelapse_print;
+    bool                                                         m_is_first_print;
 };
 
 class ColorPrintColors

@@ -1,3 +1,19 @@
+diff --git a/build/cmake/init.cmake b/build/cmake/init.cmake
+index 0bc4f934b9..479431a69c 100644
+--- a/build/cmake/init.cmake
++++ b/build/cmake/init.cmake
+@@ -413,7 +413,11 @@ if(wxUSE_GUI)
+         else()
+             find_package(OpenGL)
+             if(WXGTK3 AND OpenGL_EGL_FOUND AND wxUSE_GLCANVAS_EGL)
++                if(UNIX AND NOT APPLE)
++                set(OPENGL_LIBRARIES OpenGL EGL)
++                else()
+                 set(OPENGL_LIBRARIES OpenGL::OpenGL OpenGL::EGL)
++                endif()
+                 find_package(WAYLANDEGL)
+                 if(WAYLANDEGL_FOUND AND wxHAVE_GDK_WAYLAND)
+                     list(APPEND OPENGL_LIBRARIES ${WAYLANDEGL_LIBRARIES})
 diff --git a/include/wx/fontutil.h b/include/wx/fontutil.h
 index 09ad8c8ef3..3c0c2d8f7e 100644
 --- a/include/wx/fontutil.h

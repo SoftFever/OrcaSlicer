@@ -45,12 +45,12 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     time_sizer->Add(m_button_month, 0, wxALIGN_CENTER_VERTICAL);
     time_sizer->Add(m_button_all, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24);
     m_time_panel->SetSizer(time_sizer);
-    top_sizer->Add(m_time_panel, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND);
+    top_sizer->Add(m_time_panel, 1, wxEXPAND);
 
     // File type
     m_type_panel = new ::StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_type_panel->SetBackgroundColor(*wxWHITE);
-    m_type_panel->SetCornerRadius(5);
+    m_type_panel->SetCornerRadius(FromDIP(5));
     m_type_panel->SetMinSize({-1, 48 * em_unit(this) / 10});
     m_button_timelapse = new ::Button(m_type_panel, _L("Timelapse"), "", wxBORDER_NONE);
     m_button_video     = new ::Button(m_type_panel, _L("Video"), "", wxBORDER_NONE);
@@ -74,7 +74,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     manage_sizer->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL)->Show(false);
     manage_sizer->Add(m_button_management, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24);
     m_manage_panel->SetSizer(manage_sizer);
-    top_sizer->Add(m_manage_panel, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND);
+    top_sizer->Add(m_manage_panel, 1, wxEXPAND);
 
     sizer->Add(top_sizer, 0, wxEXPAND);
 
@@ -152,6 +152,11 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     };
     Bind(wxEVT_SHOW, onShowHide);
     parent->GetParent()->Bind(wxEVT_SHOW, onShowHide);
+}
+
+MediaFilePanel::~MediaFilePanel()
+{
+    SetMachineObject(nullptr);
 }
 
 void MediaFilePanel::SetMachineObject(MachineObject* obj)

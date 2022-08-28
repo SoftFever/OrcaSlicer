@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-08 20:01+0800\n"
+"POT-Creation-Date: 2022-08-12 15:19+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2238,6 +2238,9 @@ msgstr ""
 msgid "Preferences"
 msgstr ""
 
+msgid "About"
+msgstr ""
+
 msgid "View"
 msgstr ""
 
@@ -4038,6 +4041,16 @@ msgid "Move slider 5x faster"
 msgstr ""
 
 msgid "Shift+Mouse wheel"
+msgstr ""
+
+msgid "Release Note"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "version %s update information :"
+msgstr ""
+
+msgid "New version of Bambu Studio"
 msgstr ""
 
 msgid "Saving objects into the 3mf failed."

@@ -22,6 +22,7 @@
 #include "FillLightning.hpp"
 // BBS: new infill pattern header
 #include "FillConcentricWGapFill.hpp"
+#include "FillConcentricInternal.hpp"
 
 // #define INFILL_DEBUG_OUTPUT
 
@@ -58,6 +59,7 @@ Fill* Fill::new_from_type(const InfillPattern type)
 #endif // HAS_LIGHTNING_INFILL
     // BBS: for internal solid infill only
     case ipConcentricGapFill:   return new FillConcentricWGapFill();
+    case ipConcentricInternal:  return new FillConcentricInternal();
     // BBS: for bottom and top surface only
     case ipMonotonicLine:       return new FillMonotonicLineWGapFill();
     default: throw Slic3r::InvalidArgument("unknown type");

@@ -67,7 +67,7 @@ TipsDialog::TipsDialog(wxWindow *parent, const wxString &title)
     m_confirm->SetTextColor(wxColour(255, 255, 255));
     m_confirm->SetSize(TIPS_DIALOG_BUTTON_SIZE);
     m_confirm->SetMinSize(TIPS_DIALOG_BUTTON_SIZE);
-    m_confirm->SetCornerRadius(12);
+    m_confirm->SetCornerRadius(FromDIP(12));
     m_confirm->Bind(wxEVT_LEFT_DOWN, &TipsDialog::on_ok, this);
     m_sizer_right->Add(m_confirm, 0, wxALL, FromDIP(5));
 
@@ -210,8 +210,7 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
 
         m_process_icon = new ScalableButton(m_top_panel, wxID_ANY, "process");
 
-        m_title_label = new Label(Label::Body_14, _L("Process"), m_top_panel);
-        m_title_label->Wrap( -1 );
+        m_title_label = new Label(m_top_panel, _L("Process"));
 
         //int width, height;
         // BBS: new layout
@@ -222,8 +221,7 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         m_tips_arrow = new wxStaticBitmap(m_top_panel, wxID_ANY, m_tips_arrow_icon);
         m_tips_arrow->Hide();
 
-        m_title_view = new Label(Label::Body_14, _L("Advance"), m_top_panel);
-        m_title_view->Wrap( -1 );
+        m_title_view = new Label(m_top_panel, _L("Advance"));
         m_mode_view = new SwitchButton(m_top_panel, wxID_ABOUT);
 
         // BBS: new layout

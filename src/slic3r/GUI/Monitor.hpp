@@ -105,7 +105,7 @@ private:
     wxBitmap m_arrow_img;
 
     int last_wifi_signal = -1;
-    wxTimer* m_refresh_timer;
+    wxTimer* m_refresh_timer = nullptr;
     int last_status;
     bool m_initialized { false };
 

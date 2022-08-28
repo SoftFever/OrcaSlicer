@@ -76,7 +76,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     m_staticText_ver = new wxStaticText(this, wxID_ANY, _L("Version:"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_ver->Wrap(-1);
     m_staticText_ver->SetFont(Label::Head_14);
-    m_ota_ver_sizer->Add(m_staticText_ver, 0, wxALIGN_RIGHT | wxALL, FromDIP(5));
+    m_ota_ver_sizer->Add(m_staticText_ver, 0, wxALL, FromDIP(5));
 
     m_ota_info_sizer->Add(m_ota_ver_sizer, 0, wxEXPAND, 0);
 
@@ -519,18 +519,18 @@ void MachineInfoPanel::on_show_release_note(wxMouseEvent &event)
     if (!dev) return;
 
 
-    std::string next_version_release_note = "";
-    std::string now_version_release_note  = "";
+    wxString next_version_release_note;
+    wxString now_version_release_note;
     std::string version_number            = "";
 
     for (auto iter : m_obj->firmware_list) {
         if (iter.version == m_obj->ota_new_version_number) {
             version_number            = m_obj->ota_new_version_number;
-            next_version_release_note = iter.description;
+            next_version_release_note = wxString::FromUTF8(iter.description);
         }
         if (iter.version == m_obj->get_ota_version()) { 
             version_number           = m_obj->get_ota_version();
-            now_version_release_note = iter.description;
+            now_version_release_note = wxString::FromUTF8(iter.description);
         }
     }
 
@@ -563,7 +563,7 @@ UpgradePanel::UpgradePanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 
     m_scrolledWindow->SetSizerAndFit(m_machine_list_sizer);
 
-    m_main_sizer->Add(m_scrolledWindow, 1, wxALIGN_CENTER_HORIZONTAL | wxEXPAND, 0);
+    m_main_sizer->Add(m_scrolledWindow, 1, wxEXPAND, 0);
 
     this->SetSizerAndFit(m_main_sizer);
 
@@ -679,7 +679,7 @@ bool UpgradePanel::Show(bool show)
      auto m_staticText_ams_ver = new wxStaticText(this, wxID_ANY, _L("Version:"), wxDefaultPosition, wxDefaultSize, 0);
      m_staticText_ams_ver->Wrap(-1);
      m_staticText_ams_ver->SetFont(Label::Head_14);
-     m_ams_ver_sizer->Add(m_staticText_ams_ver, 0, wxALIGN_RIGHT | wxALL, FromDIP(5));
+     m_ams_ver_sizer->Add(m_staticText_ams_ver, 0, wxALL, FromDIP(5));
 
      m_staticText_ams_ver_val = new wxStaticText(this, wxID_ANY, "-", wxDefaultPosition, wxDefaultSize, 0);
      m_staticText_ams_ver_val->Wrap(-1);

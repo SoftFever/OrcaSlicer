@@ -27,7 +27,7 @@
 #include "Widgets/ProgressBar.hpp"
 #include "Widgets/ImageSwitchButton.hpp"
 #include "Widgets/AMSControl.hpp"
-#include "UpdateErrorMessage.hpp"
+#include "HMS.hpp"
 #include "Widgets/wxStaticText2.hpp"
 class StepIndicator;
 
@@ -268,7 +268,7 @@ protected:
     void on_subtask_pause_resume(wxCommandEvent &event);
     void on_subtask_abort(wxCommandEvent &event);
     void on_subtask_clean(wxCommandEvent &event);
-    void on_update_error_message(wxCommandEvent &event);
+    void show_error_message(wxString msg);
     void error_info_reset();
 
     /* axis control */
@@ -352,7 +352,6 @@ public:
     long           last_ams_version { -1 };
 
     std::vector<int> last_stage_list_info;
-    boost::thread *  get_error_message_thread{nullptr};
 
     bool is_stage_list_info_changed(MachineObject* obj);
 

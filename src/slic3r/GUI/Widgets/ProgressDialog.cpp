@@ -221,6 +221,7 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
         m_button_cancel = new Button(this, _L("Cancel"));
         m_button_cancel->SetTextColor(PROGRESSDIALOG_GREY_700);
         m_button_cancel->SetMinSize(PROGRESSDIALOG_CANCEL_BUTTON_SIZE);
+        m_button_cancel->SetCornerRadius(PROGRESSDIALOG_CANCEL_BUTTON_SIZE.y / 2);
         m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
             if (m_state == Finished) {
                 event.Skip();

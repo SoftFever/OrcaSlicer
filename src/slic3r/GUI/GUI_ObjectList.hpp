@@ -279,8 +279,8 @@ public:
     //void                load_part(ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery = false);
     void                load_modifier(const wxArrayString& input_files, ModelObject& model_object, std::vector<ModelVolume*>& added_volumes, ModelVolumeType type, bool from_galery = false);
     void                load_generic_subobject(const std::string& type_name, const ModelVolumeType type);
-    void                load_shape_object(const std::string &type_name, bool is_timelapse_wt = false);
-    void                load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center = true, bool is_timelapse_wt = false);
+    void                load_shape_object(const std::string &type_name);
+    void                load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center = true);
     void                del_object(const int obj_idx, bool refresh_immediately = true);
     void                del_subobject_item(wxDataViewItem& item);
     void                del_settings_from_config(const wxDataViewItem& parent_item);

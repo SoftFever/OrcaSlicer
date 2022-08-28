@@ -1,0 +1,23 @@
+if(WIN32)
+    set(library_build_shared "1")
+else()
+    set(library_build_shared "0")
+endif()
+
+bambustudio_add_cmake_project(FREETYPE
+    URL https://mirror.ossplanet.net/nongnu/freetype/freetype-2.12.1.tar.gz
+    URL_HASH SHA256=efe71fd4b8246f1b0b1b9bfca13cfff1c9ad85930340c27df469733bbb620938
+    #DEPENDS ${ZLIB_PKG}
+    #"${_patch_step}"
+    CMAKE_ARGS
+	-D BUILD_SHARED_LIBS=${library_build_shared}
+        -D FT_DISABLE_ZLIB=TRUE
+        -D FT_DISABLE_BZIP2=TRUE
+        -D FT_DISABLE_PNG=TRUE
+        -D FT_DISABLE_HARFBUZZ=TRUE
+        -D FT_DISABLE_BROTLI=TRUE
+)
+
+if(MSVC)
+    add_debug_dep(dep_FREETYPE)
+endif()

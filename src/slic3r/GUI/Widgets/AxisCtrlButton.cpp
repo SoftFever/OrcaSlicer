@@ -3,7 +3,7 @@
 
 #include <wx/dcgraph.h>
 
-static const wxColour bd = wxColour(0x00AE42);
+static const wxColour bd = wxColour(0, 174, 66);
 static const wxColour BUTTON_BG_COL = wxColour(238, 238, 238);
 static const wxColour BUTTON_IN_BG_COL = wxColour(206, 206, 206);
 static const wxColour blank_bg = wxColour(0xFFFFFF);
@@ -21,7 +21,7 @@ END_EVENT_TABLE()
 #define OUTER_SIZE      FromDIP(105)
 #define INNER_SIZE      FromDIP(58)
 #define HOME_SIZE       FromDIP(23)
-#define BLANK_SIZE      FromDIP(23)
+#define BLANK_SIZE      FromDIP(24)
 #define GAP_SIZE        FromDIP(4)
 
 AxisCtrlButton::AxisCtrlButton(wxWindow *parent, ScalableBitmap &icon, long stlye)

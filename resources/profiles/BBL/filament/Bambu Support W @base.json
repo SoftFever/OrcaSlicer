@@ -25,5 +25,8 @@
     ],
     "hot_plate_temp_initial_layer": [
         "40"
+    ],
+    "slow_down_layer_time": [
+        "8"
     ]
 }

@@ -61,18 +61,7 @@ void SpinInput::Create(wxWindow *parent,
     text_ctrl->SetBackgroundColour(background_color.colorForStates(state_handler.states()));
     text_ctrl->SetForegroundColour(text_color.colorForStates(state_handler.states()));
     text_ctrl->SetInitialSize(text_ctrl->GetBestSize());
-    text_ctrl->Bind(wxEVT_SET_FOCUS, [this](auto &e) {
-        e.SetId(GetId());
-        ProcessEventLocally(e);
-    });
-    text_ctrl->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
-        e.SetId(GetId());
-        ProcessEventLocally(e);
-    });
-    text_ctrl->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
-        e.SetId(GetId());
-        ProcessEventLocally(e);
-    });
+    state_handler.attach_child(text_ctrl);
     text_ctrl->Bind(wxEVT_KILL_FOCUS, &SpinInput::onTextLostFocus, this);
     text_ctrl->Bind(wxEVT_TEXT_ENTER, &SpinInput::onTextEnter, this);
     text_ctrl->Bind(wxEVT_KEY_DOWN, &SpinInput::keyPressed, this);
@@ -281,6 +270,7 @@ void SpinInput::onTextLostFocus(wxEvent &event)
     // pass to outer
     event.SetId(GetId());
     ProcessEventLocally(event);
+    e.Skip();
 }
 
 void SpinInput::onTextEnter(wxCommandEvent &event)

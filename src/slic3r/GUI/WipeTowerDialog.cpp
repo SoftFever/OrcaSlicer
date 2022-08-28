@@ -97,7 +97,7 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
     if (flags & wxRESET) {
         Button* calc_btn = new Button(this, _L("Auto-Calc"));
         calc_btn->SetMinSize(wxSize(FromDIP(75), FromDIP(24)));
-        calc_btn->SetCornerRadius(12);
+        calc_btn->SetCornerRadius(FromDIP(12));
         calc_btn->SetBackgroundColor(ok_btn_bg);
         calc_btn->SetBorderColor(ok_btn_bd);
         calc_btn->SetTextColor(ok_btn_text);
@@ -109,7 +109,7 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
     if (flags & wxOK) {
         Button* ok_btn = new Button(this, _L("OK"));
         ok_btn->SetMinSize(BTN_SIZE);
-        ok_btn->SetCornerRadius(12);
+        ok_btn->SetCornerRadius(FromDIP(12));
         ok_btn->SetBackgroundColor(ok_btn_bg);
         ok_btn->SetBorderColor(ok_btn_bd);
         ok_btn->SetTextColor(ok_btn_text);
@@ -120,7 +120,7 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
     if (flags & wxCANCEL) {
         Button* cancel_btn = new Button(this, _L("Cancel"));
         cancel_btn->SetMinSize(BTN_SIZE);
-        cancel_btn->SetCornerRadius(12);
+        cancel_btn->SetCornerRadius(FromDIP(12));
         cancel_btn->SetBackgroundColor(cancel_btn_bg);
         cancel_btn->SetBorderColor(cancel_btn_bd_);
         cancel_btn->SetTextColor(cancel_btn_text);
@@ -318,7 +318,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
         param_sizer->Add(m_flush_multiplier_ebox);
         param_sizer->AddStretchSpacer(1);
         
-        m_sizer_advanced->Add(param_sizer, 0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, 10);
+        m_sizer_advanced->Add(param_sizer, 0, wxTOP | wxBOTTOM, 10);
     }
 
     m_page_advanced->Hide(); 

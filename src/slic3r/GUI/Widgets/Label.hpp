@@ -6,11 +6,9 @@
 class Label : public wxStaticText
 {
 public:
-	Label(wxString const& text, wxWindow* parent = NULL);
+    Label(wxWindow *parent, wxString const &text = {});
 
-	Label(wxFont const& font, wxWindow* parent = NULL);
-
-	Label(wxFont const& font, wxString const& text, wxWindow* parent = NULL);
+	Label(wxWindow *parent, wxFont const &font, wxString const &text = {});
 
 public:
 	static wxFont Head_24;

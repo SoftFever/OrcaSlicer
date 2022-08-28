@@ -181,7 +181,7 @@ class SelectMachinePopup : public wxPopupTransientWindow
 {
 public:
     SelectMachinePopup(wxWindow *parent);
-    ~SelectMachinePopup() {}
+    ~SelectMachinePopup();
 
     // wxPopupTransientWindow virtual methods are all overridden to log them
     virtual void Popup(wxWindow *focus = NULL) wxOVERRIDE;
@@ -359,7 +359,7 @@ protected:
     void                         reset_ams_material();
     void                         update_show_status();
 
-    wxTimer *m_refresh_timer;
+    wxTimer *m_refresh_timer { nullptr };
 
     std::shared_ptr<PrintJob> m_print_job;
 

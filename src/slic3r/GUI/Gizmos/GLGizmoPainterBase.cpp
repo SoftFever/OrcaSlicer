@@ -1064,7 +1064,10 @@ void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
                 size_t color_idx = (size_t)patch.type;
                 color = m_ebt_colors[color_idx];
             }
-            shader->set_uniform("uniform_color", color);
+            //to make black not too hard too see
+            std::array<float, 4> new_color = adjust_color_for_rendering(color);
+            shader->set_uniform("uniform_color", new_color);
+            //shader->set_uniform("uniform_color", color);
             this->render(buffer_idx);
         }
     }

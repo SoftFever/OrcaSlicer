@@ -143,7 +143,7 @@ int CLI::run(int argc, char **argv)
         return 1;
     }
     BOOST_LOG_TRIVIAL(info) << "finished setup params, argc="<< argc << std::endl;
-    std::string temp_path = wxStandardPaths::Get().GetTempDir().utf8_str().data();
+    std::string temp_path = wxFileName::GetTempDir().utf8_str().data();
     set_temporary_dir(temp_path);
 
     m_extra_config.apply(m_config, true);

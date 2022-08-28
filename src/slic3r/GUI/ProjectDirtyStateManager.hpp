@@ -33,7 +33,8 @@ private:
     DynamicPrintConfig                          m_initial_project_config;
 
     // filament preset independent of the m_initial_presets
-    std::vector<std::string>                    m_initial_filament_presets;
+    std::vector<std::string>                    m_initial_filament_presets_names;   // all filament preset type name
+    std::vector<std::string>                    m_initial_filament_presets_colors;    // all filament preset color
 };
 
 } // namespace GUI

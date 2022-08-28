@@ -63,12 +63,11 @@ wxSize Label::split_lines(wxDC &dc, int width, const wxString &text, wxString &m
     return dc.GetMultiLineTextExtent(multiline_text);
 }
 
-Label::Label(wxString const &text, wxWindow *parent) : Label(Body_16, text, parent) {}
+Label::Label(wxWindow *parent, wxString const &text) : Label(parent, Body_14, text) {}
 
-Label::Label(wxFont const &font, wxWindow *parent) : Label(font, "", parent) {}
-
-Label::Label(wxFont const &font, wxString const &text, wxWindow *parent) : wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, wxDefaultSize, 0)
+Label::Label(wxWindow *parent, wxFont const &font, wxString const &text)
+    : wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, wxDefaultSize, 0)
 {
-    SetBackgroundColour(StaticBox::GetParentBackgroundColor(parent));
     SetFont(font);
+    SetBackgroundColour(StaticBox::GetParentBackgroundColor(parent));
 }

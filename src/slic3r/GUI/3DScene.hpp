@@ -31,6 +31,8 @@
     #define glcheck()
 #endif // HAS_GLSAFE
 extern std::vector<std::array<float, 4>> get_extruders_colors();
+extern std::array<float, 4> adjust_color_for_rendering(const std::array<float, 4>& colors);
+
 
 namespace Slic3r {
 class SLAPrintObject;
@@ -373,7 +375,6 @@ public:
 	    bool                is_modifier : 1;
 	    // Wheter or not this volume has been generated from the wipe tower
         bool                is_wipe_tower : 1;
-        bool                is_timelapse_wipe_tower : 1;
 	    // Wheter or not this volume has been generated from an extrusion path
 	    bool                is_extrusion_path : 1;
 	    // Wheter or not to always render this volume using its own alpha

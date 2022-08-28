@@ -2911,7 +2911,7 @@ ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model 
     wxSize panel_size = m_obj_panel->get_init_size();
     g_max_size_from_parent = maxSize;
     if ((maxSize.GetWidth() == -1) || (maxSize.GetHeight() == -1)) {
-        wxDisplay display(wxDisplay::GetFromWindow(this));
+        wxDisplay display(this);
         //auto drect = display.GetGeometry();
         wxRect 	client_area = display.GetClientArea ();
         g_max_size_from_parent.SetWidth(client_area.GetWidth());

@@ -237,8 +237,7 @@ enum class ModelVolumeType : int {
     NEGATIVE_VOLUME,
     PARAMETER_MODIFIER,
     SUPPORT_BLOCKER,
-    SUPPORT_ENFORCER,
-    TIMELAPSE_WIPE_TOWER
+    SUPPORT_ENFORCER
 };
 
 enum class ModelObjectCutAttribute : int { KeepUpper, KeepLower, FlipLower, CutToParts };
@@ -271,7 +270,6 @@ public:
     LayerHeightProfile      layer_height_profile;
     // Whether or not this object is printable
     bool                    printable;
-    bool                    is_timelapse_wipe_tower = false;
 
     // This vector holds position of selected support points for SLA. The data are
     // saved in mesh coordinates to allow using them for several instances.

@@ -354,7 +354,7 @@ void DropDown::autoPosition()
     }
     if (GetPosition().y > pos.y) {
         // may exceed
-        auto drect = wxDisplay(wxDisplay::GetFromWindow(GetParent())).GetGeometry();
+        auto drect = wxDisplay(GetParent()).GetGeometry();
         if (GetPosition().y + size.y + 10 > drect.GetBottom()) {
             if (use_content_width && texts.size() <= 15) size.x += 6;
             size.y = drect.GetBottom() - GetPosition().y - 10;

@@ -28,6 +28,8 @@ private:
 
     MarkdownTip();
 
+    ~MarkdownTip();
+
     void LoadStyle();
 
     bool ShowTip(wxPoint pos, std::string const &tip, std::string const & tooltip);
@@ -48,13 +50,13 @@ private:
     void OnTimer(wxTimerEvent& event);
     
 private:
-    wxWebView* _tipView = NULL;
+    wxWebView * _tipView = nullptr;
     std::string _lastTip;
     std::string _pendingScript = " ";
     std::string _language;
     wxPoint _requestPos;
     double _lastHeight = 0;
-    wxTimer* _timer;
+    wxTimer* _timer = nullptr;
     bool _hide = false;
     bool _data_dir = false;
 };

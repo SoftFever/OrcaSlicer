@@ -459,15 +459,6 @@ wxMenu* MenuFactory::append_submenu_add_generic(wxMenu* menu, ModelVolumeType ty
             [type, item](wxCommandEvent&) { obj_list()->load_generic_subobject(item, type); }, "", menu);
     }
 
-    // BBS: only add timelapse tower item for plate
-    if (type == ModelVolumeType::INVALID) {
-        auto item = L("Timelapse Wipe Tower");
-        type      = ModelVolumeType::TIMELAPSE_WIPE_TOWER;
-        append_menu_item(sub_menu, wxID_ANY, _(item), "",
-            [type, item](wxCommandEvent &) { obj_list()->load_generic_subobject(item, type); }, "", menu,
-            []() { return plater()->can_add_timelapse_wt(); }, m_parent);
-    }
-
     return sub_menu;
 }
 
@@ -1392,8 +1383,8 @@ void MenuFactory::append_menu_item_locked(wxMenu* menu)
     m_parent->Bind(wxEVT_UPDATE_UI, [](wxUpdateUIEvent& evt) {
         PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
         assert(plate);
-        bool check = plate->is_locked();
-        evt.Check(check);
+        //bool check = plate->is_locked();
+        //evt.Check(check);
         plater()->set_current_canvas_as_dirty();
     }, item->GetId());
 }

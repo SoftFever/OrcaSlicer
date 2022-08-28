@@ -245,7 +245,7 @@ void BBLTopbar::Init(wxFrame* parent)
     this->AddStretchSpacer(1);
 
     m_title_item = this->AddLabel(ID_TITLE, "", FromDIP(TOPBAR_TITLE_WIDTH));
-    m_title_item->SetAlignment(wxCENTER);
+    m_title_item->SetAlignment(wxALIGN_CENTRE);
 
     this->AddSpacer(FromDIP(10));
     this->AddStretchSpacer(1);
@@ -407,7 +407,7 @@ void BBLTopbar::SetTitle(wxString title)
     title = wxControl::Ellipsize(title, dc, wxELLIPSIZE_END, FromDIP(TOPBAR_TITLE_WIDTH));
 
     m_title_item->SetLabel(title);
-    m_title_item->SetAlignment(wxALIGN_CENTRE_HORIZONTAL);
+    m_title_item->SetAlignment(wxALIGN_CENTRE);
     this->Refresh();
 }
 
@@ -493,7 +493,7 @@ void BBLTopbar::OnFullScreen(wxAuiToolBarEvent& event)
         m_frame->Restore();
     }
     else {
-        wxDisplay display(wxDisplay::GetFromWindow(this));
+        wxDisplay display(this);
         auto      size = display.GetClientArea().GetSize();
         m_frame->SetMaxSize(size + wxSize{16, 16});
         m_normalRect = m_frame->GetRect();
@@ -524,7 +524,7 @@ void BBLTopbar::OnMouseLeftDClock(wxMouseEvent& mouse)
         m_frame->Restore();
     }
     else {
-        wxDisplay display(wxDisplay::GetFromWindow(this));
+        wxDisplay display(this);
         auto      size = display.GetClientArea().GetSize();
         m_frame->SetMaxSize(size + wxSize{16, 16});
         m_normalRect = m_frame->GetRect();

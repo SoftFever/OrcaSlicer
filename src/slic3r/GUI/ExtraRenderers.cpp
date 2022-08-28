@@ -171,7 +171,10 @@ wxSize BitmapTextRenderer::GetSize() const
         }
         else
 #endif // SUPPORTS_MARKUP && wxHAS_GENERIC_DATAVIEWCTRL
+        {
             size = GetTextExtent(m_value.GetText());
+            size.x = size.x * 9 / 8;
+        }
 
         if (m_value.GetBitmap().IsOk())
             size.x += m_value.GetBitmap().GetWidth() + 4;

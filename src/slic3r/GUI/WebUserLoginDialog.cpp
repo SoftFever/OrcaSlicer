@@ -65,7 +65,7 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
         TargetUrl = host_url + "/" + strlang + "/sign-in";
     }
 
-    BOOST_LOG_TRIVIAL(trace) << "login url = " << TargetUrl.ToStdString();
+    BOOST_LOG_TRIVIAL(info) << "login url = " << TargetUrl.ToStdString();
 
     m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION);
 

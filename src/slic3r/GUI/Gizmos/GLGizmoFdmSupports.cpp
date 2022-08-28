@@ -12,6 +12,7 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
 #include "slic3r/GUI/format.hpp"
+#include "slic3r/GUI/GUI.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
 
 
@@ -179,12 +180,6 @@ void GLGizmoFdmSupports::on_set_state()
         ModelObject* mo = m_c->selection_info()->model_object();
         if (mo) Slic3r::save_object_mesh(*mo);
     }
-}
-
-static std::string into_u8(const wxString& str)
-{
-    auto buffer_utf8 = str.utf8_str();
-    return std::string(buffer_utf8.data());
 }
 
 void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_limit)

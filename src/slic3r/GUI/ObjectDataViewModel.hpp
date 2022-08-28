@@ -227,7 +227,6 @@ public:
     bool            HasSupportPainting() const      { return m_support_enable; }
     bool            IsActionEnabled() const         { return m_action_enable; }
     void            UpdateExtruderAndColorIcon(wxString extruder = "");
-    bool            IsTimelapseWipeTower() const;
 
     // use this function only for childrens
     void AssignAllVal(ObjectDataViewModelNode& from_node)

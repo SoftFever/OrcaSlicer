@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-08 20:01+0800\n"
+"POT-Creation-Date: 2022-08-12 15:19+0800\n"
 "PO-Revision-Date: 2022-08-07 21:57+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1275,8 +1275,8 @@ msgid ""
 "Bambu Studio is based on PrusaSlicer by PrusaResearch and SuperSlicer by "
 "Merill(supermerill)."
 msgstr ""
-"Bambu Studio是以PrusaResearch的PrusaSlicer和Merill（supermerill）的"
-"SuperSlicer为基础的。"
+"Bambu Studio是以PrusaResearch的PrusaSlicer和Merill(supermerill)的SuperSlicer"
+"为基础的。"
 
 msgid "PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."
 msgstr "MerillPrusasicle最初是以Alessandro Ranellucci为基础的Slic3r。"
@@ -1294,8 +1294,8 @@ msgid ""
 "we're unable to list them one-by-one, and instead, they'll be attributed in "
 "the corresponding code comments."
 msgstr ""
-"软件中的很多部分都来自于社区贡献,因此，我们无法逐一列出他们，相反的，他们将被"
-"注释于相应的代码中。"
+"软件中的很多部分都来自于社区贡献，因此，我们无法逐一列出他们，相反的，他们将"
+"被注释于相应的代码中。"
 
 msgid "AMSMaterialsSetting"
 msgstr ""
@@ -2310,6 +2310,9 @@ msgstr "使用正交视角"
 
 msgid "Preferences"
 msgstr "偏好设置"
+
+msgid "About"
+msgstr ""
 
 msgid "View"
 msgstr "视图"
@@ -4142,6 +4145,16 @@ msgstr "5倍速移动滑动条"
 
 msgid "Shift+Mouse wheel"
 msgstr "Shift+鼠标滚轮"
+
+msgid "Release Note"
+msgstr ""
+
+#, c-format, boost-format
+msgid "version %s update information :"
+msgstr "版本 %s 更新信息"
+
+msgid "New version of Bambu Studio"
+msgstr "新版本的Bambu Studio"
 
 msgid "Saving objects into the 3mf failed."
 msgstr "保存对象到3mf失败。"
@@ -6336,9 +6349,6 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ "1. 工艺预设\n"
 #~ "2. 打印丝预设\n"
 #~ "3. 打印机预设\n"
-
-#~ msgid "New version of Bambu Studio"
-#~ msgstr "新版本的Bambu Studio"
 
 #~ msgid "Fix model through cloud"
 #~ msgstr "通过云端修复模型"

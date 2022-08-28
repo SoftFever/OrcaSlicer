@@ -36,7 +36,7 @@ namespace Slic3r { namespace GUI {
     this->Bind(wxEVT_LEFT_UP, &SideTools::on_mouse_left_up, this);
 }
 
-SideTools::~SideTools() {}
+SideTools::~SideTools() { delete m_intetval_timer; }
 
 void SideTools::set_none_printer_mode() 
 { 

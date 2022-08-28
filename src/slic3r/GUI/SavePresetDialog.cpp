@@ -339,7 +339,7 @@ void SavePresetDialog::build(std::vector<Preset::Type> types, std::string suffix
     m_confirm->SetBorderColor(wxColour(0, 174, 66));
     m_confirm->SetTextColor(wxColour(255, 255, 255));
     m_confirm->SetMinSize(SAVE_PRESET_DIALOG_BUTTON_SIZE);
-    m_confirm->SetCornerRadius(12);
+    m_confirm->SetCornerRadius(FromDIP(12));
     m_confirm->Bind(wxEVT_BUTTON, &SavePresetDialog::accept, this);
     btns->Add(m_confirm, 0, wxEXPAND, 0);
 
@@ -350,7 +350,7 @@ void SavePresetDialog::build(std::vector<Preset::Type> types, std::string suffix
     m_cancel = new Button(this, _L("Cancel"));
     m_cancel->SetMinSize(SAVE_PRESET_DIALOG_BUTTON_SIZE);
     m_cancel->SetTextColor(wxColour(107, 107, 107));
-    m_cancel->SetCornerRadius(12);
+    m_cancel->SetCornerRadius(FromDIP(12));
     m_cancel->Bind(wxEVT_BUTTON, &SavePresetDialog::on_select_cancel, this);
     btns->Add(m_cancel, 0, wxEXPAND, 0);
 

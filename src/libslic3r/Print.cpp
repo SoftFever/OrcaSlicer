@@ -1577,6 +1577,9 @@ void Print::finalize_first_layer_convex_hull()
 // Wipe tower support.
 bool Print::has_wipe_tower() const
 {
+    if (enable_timelapse_print())
+        return true;
+
     return
         ! m_config.spiral_mode.value &&
         m_config.enable_prime_tower.value &&
@@ -1591,18 +1594,25 @@ const WipeTowerData& Print::wipe_tower_data(size_t filaments_cnt) const
         double width = m_config.prime_tower_width;
         double layer_height = 0.2; // hard code layer height
         double wipe_volume = m_config.prime_volume;
-        const_cast<Print*>(this)->m_wipe_tower_data.depth = wipe_volume * (filaments_cnt - 1) / (layer_height * width);
+        if (filaments_cnt == 1 && enable_timelapse_print()) {
+            const_cast<Print *>(this)->m_wipe_tower_data.depth = wipe_volume / (layer_height * width);
+        } else {
+            const_cast<Print *>(this)->m_wipe_tower_data.depth = wipe_volume * (filaments_cnt - 1) / (layer_height * width);
+        }
         const_cast<Print*>(this)->m_wipe_tower_data.brim_width = m_config.prime_tower_brim_width;
     }
 
     return m_wipe_tower_data;
 }
 
+bool Print::enable_timelapse_print() const
+{
+    return m_config.timelapse_no_toolhead.value;
+}
+
 void Print::_make_wipe_tower()
 {
     m_wipe_tower_data.clear();
-    if (! this->has_wipe_tower())
-        return;
 
     // Get wiping matrix to get number of extruders and convert vector<double> to vector<float>:
     std::vector<float> flush_matrix(cast<float>(m_config.flush_volumes_matrix.values));
@@ -1618,7 +1628,18 @@ void Print::_make_wipe_tower()
     // BBS: priming logic is removed, so don't consider it in tool ordering
     m_wipe_tower_data.tool_ordering = ToolOrdering(*this, (unsigned int)-1, false);
 
-    if (! m_wipe_tower_data.tool_ordering.has_wipe_tower())
+    // if enable_timelapse_print(), update all layer_tools parameters(has_wipe_tower, wipe_tower_partitions)
+    if (enable_timelapse_print()) {
+        std::vector<LayerTools>& layer_tools_array = m_wipe_tower_data.tool_ordering.layer_tools();
+        for (LayerTools& layer_tools : layer_tools_array) {
+            layer_tools.has_wipe_tower = true;
+            if (layer_tools.wipe_tower_partitions == 0) {
+                layer_tools.wipe_tower_partitions = 1; 
+            }
+        }
+    }
+
+    if (!m_wipe_tower_data.tool_ordering.has_wipe_tower())
         // Don't generate any wipe tower.
         return;
 
@@ -1707,6 +1728,11 @@ void Print::_make_wipe_tower()
                 }
             }
             layer_tools.wiping_extrusions().ensure_perimeters_infills_order(*this);
+
+            // if enable timelapse, slice all layer
+            if (enable_timelapse_print())
+                continue;
+
             if (&layer_tools == &m_wipe_tower_data.tool_ordering.back() || (&layer_tools + 1)->wipe_tower_partitions == 0)
                 break;
         }

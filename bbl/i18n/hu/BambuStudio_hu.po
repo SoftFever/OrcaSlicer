@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-08 20:01+0800\n"
+"POT-Creation-Date: 2022-08-12 15:19+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2394,6 +2394,9 @@ msgstr "Ortogonális nézet használata"
 msgid "Preferences"
 msgstr "Beállítások"
 
+msgid "About"
+msgstr ""
+
 msgid "View"
 msgstr "Nézet"
 
@@ -4283,6 +4286,16 @@ msgstr "Move slider 5x faster"
 
 msgid "Shift+Mouse wheel"
 msgstr "Shift+Egérgörgő"
+
+msgid "Release Note"
+msgstr ""
+
+#, c-format, boost-format
+msgid "version %s update information :"
+msgstr ""
+
+msgid "New version of Bambu Studio"
+msgstr "New version of Bambu Studio"
 
 msgid "Saving objects into the 3mf failed."
 msgstr "Az objektumok mentése a 3mf-be sikertelen volt."
@@ -6661,9 +6674,6 @@ msgstr "Support: propagate branches at layer %d"
 
 #~ msgid "Monitoring"
 #~ msgstr "Monitoring"
-
-#~ msgid "New version of Bambu Studio"
-#~ msgstr "New version of Bambu Studio"
 
 #~ msgid "Output file"
 #~ msgstr "Output file"

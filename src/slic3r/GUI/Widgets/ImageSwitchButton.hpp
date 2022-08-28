@@ -17,8 +17,6 @@ public:
 	void SetLabels(wxString const & lbl_on, wxString const & lbl_off);
     void SetImages(ScalableBitmap &img_on, ScalableBitmap &img_off);
     void SetTextColor(StateColor const &color);
-	void SetBorderColor(StateColor const &color);
-	void SetBgColor(StateColor const &color);
 	void SetValue(bool value);
 	void SetPadding(int padding);
 
@@ -50,9 +48,6 @@ private:
 
 	wxString labels[2];
     StateColor   text_color;
-	StateColor   bg_color;
-	StateColor   border_color;
-    StateHandler state_handler;
 };
 
 #endif // !slic3r_GUI_SwitchButton_hpp_

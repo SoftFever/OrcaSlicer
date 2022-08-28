@@ -284,7 +284,6 @@ wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxW
 
     std::vector<wxString>::iterator iter;
     for (iter = vlist.begin(); iter != vlist.end(); iter++) { combobox->Append(*iter); }
-    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
 
     auto severity_level = app_config->get("severity_level");
     if (!severity_level.empty()) { combobox->SetValue(severity_level); }
