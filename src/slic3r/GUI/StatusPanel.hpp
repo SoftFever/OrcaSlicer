@@ -28,7 +28,7 @@
 #include "Widgets/ImageSwitchButton.hpp"
 #include "Widgets/AMSControl.hpp"
 #include "HMS.hpp"
-#include "Widgets/wxStaticText2.hpp"
+#include "Widgets/ErrorMsgStaticText.hpp"
 class StepIndicator;
 
 #define COMMAND_TIMEOUT_U0      15
@@ -177,7 +177,7 @@ protected:
     wxBoxSizer *    m_tasklist_caption_sizer;
     wxPanel*        m_panel_error_txt;
     wxPanel*        m_staticline;
-    wxStaticText2 *  m_error_text;
+    ErrorMsgStaticText *  m_error_text;
     wxStaticText*   m_staticText_calibration_caption;
     wxStaticText*   m_staticText_calibration_caption_top;
     wxStaticText*   m_calibration_text;

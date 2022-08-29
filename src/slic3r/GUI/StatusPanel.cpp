@@ -517,7 +517,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     wxBoxSizer *static_text_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *text_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_error_text = new wxStaticText2(m_panel_error_txt);
+    m_error_text = new ErrorMsgStaticText(m_panel_error_txt);
     m_error_text->SetForegroundColour(wxColour(255, 0, 0));
     text_sizer->Add(m_error_text, 1, wxEXPAND|wxLEFT, FromDIP(17));
 
@@ -535,9 +535,9 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     m_button_clean->SetFont(Label::Body_10);
     m_button_clean->SetMinSize(TASK_BUTTON_SIZE2);
 
-    static_text_sizer->Add(text_sizer, 1, wxEXPAND|wxTOP, FromDIP(7));
+    static_text_sizer->Add(text_sizer, 1, wxEXPAND, 0);
     static_text_sizer->Add( FromDIP(10), 0, 0, 0, 0 );
-    static_text_sizer->Add(m_button_clean, 0, wxALIGN_CENTRE_VERTICAL|wxRIGHT,FromDIP(5));
+    static_text_sizer->Add(m_button_clean, 0, wxALIGN_CENTRE_VERTICAL|wxRIGHT, FromDIP(5));
 
     m_panel_error_txt->SetSizer(static_text_sizer);
     m_panel_error_txt->Hide();

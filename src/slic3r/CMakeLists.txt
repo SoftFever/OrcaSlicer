@@ -68,8 +68,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/SideTools.hpp
     GUI/Widgets/WebView.cpp
     GUI/Widgets/WebView.hpp
-    GUI/Widgets/wxStaticText2.cpp
-    GUI/Widgets/wxStaticText2.hpp
+    GUI/Widgets/ErrorMsgStaticText.cpp
+    GUI/Widgets/ErrorMsgStaticText.hpp
     GUI/AboutDialog.cpp
     GUI/AboutDialog.hpp
     GUI/NetworkTestDialog.cpp
