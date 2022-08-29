@@ -799,7 +799,13 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
 
-    m_panel_image = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_scrollable_view   = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    m_sizer_scrollable_view = new wxBoxSizer(wxVERTICAL); 
+
+    m_scrollable_region       = new wxPanel(m_scrollable_view, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_sizer_scrollable_region = new wxBoxSizer(wxVERTICAL); 
+
+    m_panel_image = new wxPanel(m_scrollable_region, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_panel_image->SetBackgroundColour(m_colour_def_color);
 
     sizer_thumbnail = new wxBoxSizer(wxVERTICAL);
@@ -815,16 +821,16 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     wxBoxSizer *m_sizer_basic_weight = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *m_sizer_basic_time   = new wxBoxSizer(wxHORIZONTAL);
 
-    auto timeimg = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("print-time", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
+    auto timeimg = new wxStaticBitmap(m_scrollable_region, wxID_ANY, create_scaled_bitmap("print-time", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
     m_sizer_basic_weight->Add(timeimg, 1, wxEXPAND | wxALL, FromDIP(5));
-    m_stext_time = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
+    m_stext_time = new wxStaticText(m_scrollable_region, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
     m_sizer_basic_weight->Add(m_stext_time, 0, wxALL, FromDIP(5));
     m_sizer_basic->Add(m_sizer_basic_weight, 0, wxALIGN_CENTER, 0);
     m_sizer_basic->Add(0, 0, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
 
-    auto weightimg = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("print-weight", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
+    auto weightimg = new wxStaticBitmap(m_scrollable_region, wxID_ANY, create_scaled_bitmap("print-weight", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
     m_sizer_basic_time->Add(weightimg, 1, wxEXPAND | wxALL, FromDIP(5));
-    m_stext_weight = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    m_stext_weight = new wxStaticText(m_scrollable_region, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
     m_sizer_basic_time->Add(m_stext_weight, 0, wxALL, FromDIP(5));
     m_sizer_basic->Add(m_sizer_basic_time, 0, wxALIGN_CENTER, 0);
 
@@ -947,12 +953,22 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     Bind(EVT_PRINT_JOB_CANCEL, &SelectMachineDialog::on_print_job_cancel, this);
     Bind(EVT_SET_FINISH_MAPPING, &SelectMachineDialog::on_set_finish_mapping, this);
 
+
+    m_sizer_scrollable_region->Add(m_panel_image, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_scrollable_region->Add(0, 0, 0, wxTOP, FromDIP(10));
+    m_sizer_scrollable_region->Add(m_sizer_basic, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_scrollable_region->Add(m_sizer_material, 0, wxALIGN_CENTER_HORIZONTAL);
+
+    m_scrollable_region->SetSizer(m_sizer_scrollable_region);
+    m_scrollable_region->Layout();
+
+    m_scrollable_view->SetSizer(m_sizer_scrollable_view);
+    m_scrollable_view->Layout();
+    m_sizer_scrollable_view->Add(m_scrollable_region, 0, wxEXPAND, 0);
+
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(22));
-    m_sizer_main->Add(m_panel_image, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
-    m_sizer_main->Add(m_sizer_basic, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-    m_sizer_main->Add(m_sizer_material, 0, wxALIGN_CENTER_HORIZONTAL);
+    m_sizer_main->Add(m_scrollable_view, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
     m_sizer_main->Add(m_statictext_ams_msg, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
@@ -2073,7 +2089,7 @@ void SelectMachineDialog::set_default()
         auto          colour_rgb = wxColour((int) rgb[0], (int) rgb[1], (int) rgb[2]);
         if (extruder >= materials.size() || extruder < 0 || extruder >= display_materials.size())
             continue;
-        MaterialItem *item = new MaterialItem(this, colour_rgb, _L(display_materials[extruder]));
+        MaterialItem *item = new MaterialItem(m_scrollable_region, colour_rgb, _L(display_materials[extruder]));
         m_sizer_material->Add(item, 0, wxALL, FromDIP(4));
 
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {
@@ -2133,13 +2149,42 @@ void SelectMachineDialog::set_default()
 
     if (extruders.size() <= 4) {
         m_sizer_material->SetCols(extruders.size()); 
-        Layout();
-        Fit();
     } else {
         m_sizer_material->SetCols(4);
-        Layout();
-        Fit();
     }
+
+    m_scrollable_region->Layout();
+    m_scrollable_region->Fit();
+
+    //m_scrollable_view->Layout();
+    //m_scrollable_view->Fit();
+
+    m_scrollable_view->SetSize(m_scrollable_region->GetSize());
+    m_scrollable_view->SetMinSize(m_scrollable_region->GetSize());
+    m_scrollable_view->SetMaxSize(m_scrollable_region->GetSize());
+
+    Layout();
+    Fit();
+
+  
+    wxSize screenSize = wxGetDisplaySize();
+    auto dialogSize = this->GetSize();
+
+    #ifdef __WINDOWS__
+    if (screenSize.y < dialogSize.y) {
+        m_need_adaptation_screen = true;
+        m_scrollable_view->SetScrollRate(0, 5);
+        m_scrollable_view->SetSize(wxSize(-1, FromDIP(220)));
+        m_scrollable_view->SetMinSize(wxSize(-1, FromDIP(220)));
+        m_scrollable_view->SetMaxSize(wxSize(-1, FromDIP(220)));
+    } else {
+        /* m_scrollable_view->SetSize(m_scrollable_region->GetSize());
+         m_scrollable_view->SetMinSize(m_scrollable_region->GetSize());
+         m_scrollable_view->SetMaxSize(m_scrollable_region->GetSize());*/
+        m_scrollable_view->SetScrollRate(0, 0);
+    }
+    #endif // __WXOSX_MAC__
+
 
     reset_ams_material();
 
@@ -2175,10 +2220,9 @@ bool SelectMachineDialog::Show(bool show)
         m_refresh_timer->Stop();
     }
 
-    if (show) { CenterOnParent(); }
-
     Layout();
     Fit();
+    if (show) { CenterOnParent(); }
     return DPIDialog::Show(show);
 }
 

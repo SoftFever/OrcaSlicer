@@ -306,6 +306,13 @@ protected:
     wxBoxSizer * m_sizer_main;
     wxBoxSizer * m_sizer_bottom;
 
+    bool              m_need_adaptation_screen {false};
+    wxScrolledWindow *   m_scrollable_view;
+    wxBoxSizer *      m_sizer_scrollable_view; 
+
+    wxPanel* m_scrollable_region;
+    wxBoxSizer* m_sizer_scrollable_region; 
+
     wxWindow *select_bed{nullptr};
     wxWindow *select_flow{nullptr};
 
