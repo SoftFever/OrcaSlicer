@@ -113,6 +113,7 @@ struct PrintParams {
     std::string     ftp_file_md5;
     std::string     ams_mapping;
     std::string     connection_type;
+    std::string     comments;
 
     /* access options */
     std::string     dev_ip;
