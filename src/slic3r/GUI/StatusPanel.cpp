@@ -1725,17 +1725,10 @@ void StatusPanel::update_left_time(int mc_left_time)
 void StatusPanel::update_basic_print_data(bool def) 
 {
     if (def) {
-        auto       aprint_stats = wxGetApp().plater()->get_partplate_list().get_current_fff_print().print_statistics();
-        wxString   time;
-        PartPlate *plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-        if (plate) {
-            if (plate->get_slice_result()) { time = wxString::Format("%s", get_bbl_monitor_time_dhm(plate->get_slice_result()->print_statistics.modes[0].time)); }
-        }
+        wxString prediction = wxString::Format("%s", get_bbl_time_dhms(obj->slice_info->prediction));
+        wxString weight = wxString::Format("%.2fg", obj->slice_info->weight);
 
-        char weight[64];
-        ::sprintf(weight, "  %.2f g", aprint_stats.total_weight);
-
-        m_staticText_consumption_of_time->SetLabelText(time);
+        m_staticText_consumption_of_time->SetLabelText(prediction);
         m_staticText_consumption_of_weight->SetLabelText(weight);
     } else {
         m_staticText_consumption_of_time->SetLabelText("0m");
