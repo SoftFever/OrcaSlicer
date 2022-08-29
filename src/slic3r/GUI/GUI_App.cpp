@@ -2906,6 +2906,7 @@ void GUI_App::request_user_logout()
         m_agent->set_user_selected_machine("");
         /* delete old user settings */
         m_device_manager->clean_user_info();
+        GUI::wxGetApp().sidebar().load_ams_list({});
         GUI::wxGetApp().remove_user_presets();
         GUI::wxGetApp().stop_sync_user_preset();
     }
