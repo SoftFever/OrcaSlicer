@@ -521,6 +521,11 @@ Info IMSlider::GetTicksValues() const
 
 void IMSlider::SetTicksValues(const Info &custom_gcode_per_print_z)
 {
+    if (!m_can_change_color) {
+        m_ticks.erase_all_ticks_with_code(ToolChange);
+        return;
+    }
+
     if (m_values.empty()) {
         m_ticks.mode = m_mode;
         return;
@@ -584,7 +589,7 @@ void IMSlider::SetDrawMode(bool is_sequential_print)
                                           dmRegular; 
 }
 
-void IMSlider::SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, const int only_extruder)
+void IMSlider::SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, const int only_extruder, bool can_change_color)
 {
     m_mode = !is_one_extruder_printed_model ? MultiExtruder : only_extruder < 0 ? SingleExtruder : MultiAsSingle;
     if (!m_ticks.mode || (m_ticks.empty() && m_ticks.mode != m_mode)) m_ticks.mode = m_mode;
@@ -593,6 +598,8 @@ void IMSlider::SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, 
     UseDefaultColors(m_mode == SingleExtruder);
 
     m_is_wipe_tower = m_mode != SingleExtruder;
+
+    m_can_change_color = can_change_color;
 }
 
 void IMSlider::SetExtruderColors( const std::vector<std::string>& extruder_colors)
@@ -1252,7 +1259,10 @@ void IMSlider::render_menu()
 
         //BBS render this menu item only when extruder_num > 1
         if (extruder_num > 1) {
-            if (begin_menu(_u8L("Change Filament").c_str())) {
+            if (!m_can_change_color) {
+                begin_menu(_u8L("Change Filament").c_str(), false);
+            }
+            else if (begin_menu(_u8L("Change Filament").c_str())) {
                 for (int i = 0; i < extruder_num; i++) {
                     std::array<float, 4> rgba     = decode_color_to_float_array(colors[i]);
                     ImU32                icon_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);

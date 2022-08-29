@@ -447,40 +447,45 @@ void Preview::update_layers_slider_mode()
     //             multi-extruder printer profile , but whole model is printed by only one extruder
     //    false -> multi-extruder printer profile , and model is printed by several extruders
     bool one_extruder_printed_model = true;
-
+    bool can_change_color = true;
     // extruder used for whole model for multi-extruder printer profile
     int only_extruder = -1;
 
     // BBS
     if (wxGetApp().filaments_cnt() > 1) {
-        const ModelObjectPtrs &objects = wxGetApp().plater()->model().objects;
-
+        //const ModelObjectPtrs& objects = wxGetApp().plater()->model().objects;
+        auto plate_extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_extruders();
+        for (auto extruder : plate_extruders) {
+            if (extruder != plate_extruders[0])
+                can_change_color = false;
+        }
         // check if whole model uses just only one extruder
-        if (!objects.empty()) {
-            const int extruder = objects[0]->config.has("extruder") ? objects[0]->config.option("extruder")->getInt() : 0;
+        if (!plate_extruders.empty()) {
+            //const int extruder = objects[0]->config.has("extruder") ? objects[0]->config.option("extruder")->getInt() : 0;
+            const int extruder = plate_extruders[0];
+            only_extruder = extruder;
+        //    auto is_one_extruder_printed_model = [objects, extruder]() {
+        //        for (ModelObject *object : objects) {
+        //            if (object->config.has("extruder") && object->config.option("extruder")->getInt() != extruder) /*return false*/;
 
-            auto is_one_extruder_printed_model = [objects, extruder]() {
-                for (ModelObject *object : objects) {
-                    if (object->config.has("extruder") && object->config.option("extruder")->getInt() != extruder) return false;
+        //            for (ModelVolume *volume : object->volumes)
+        //                if ((volume->config.has("extruder") && volume->config.option("extruder")->getInt() != extruder) || !volume->mmu_segmentation_facets.empty()) return false;
 
-                    for (ModelVolume *volume : object->volumes)
-                        if ((volume->config.has("extruder") && volume->config.option("extruder")->getInt() != extruder) || !volume->mmu_segmentation_facets.empty()) return false;
+        //            for (const auto &range : object->layer_config_ranges)
+        //                if (range.second.has("extruder") && range.second.option("extruder")->getInt() != extruder) return false;
+        //        }
+        //        return true;
+        //    };
 
-                    for (const auto &range : object->layer_config_ranges)
-                        if (range.second.has("extruder") && range.second.option("extruder")->getInt() != extruder) return false;
-                }
-                return true;
-            };
-
-            if (is_one_extruder_printed_model())
-                only_extruder = extruder;
-            else
-                one_extruder_printed_model = false;
+        //    if (is_one_extruder_printed_model())
+        //        only_extruder = extruder;
+        //    else
+        //        one_extruder_printed_model = false;
         }
     }
 
     IMSlider *m_layers_slider = m_canvas->get_gcode_viewer().get_layers_slider();
-    m_layers_slider->SetModeAndOnlyExtruder(one_extruder_printed_model, only_extruder);
+    m_layers_slider->SetModeAndOnlyExtruder(one_extruder_printed_model, only_extruder, can_change_color);
 }
 
 void Preview::update_layers_slider_from_canvas(wxKeyEvent &event)

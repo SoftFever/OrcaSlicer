@@ -245,7 +245,7 @@ public:
     void SetExtraStyle(long style) { m_extra_style = style; }
     void SetManipulationMode(Mode mode) { m_mode = mode; }
     Mode GetManipulationMode() const { return m_mode; }
-    void SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, const int only_extruder);
+    void SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, const int only_extruder, bool can_change_color);
     void SetExtruderColors(const std::vector<std::string> &extruder_colors);
 
     bool IsNewPrint();
@@ -360,6 +360,7 @@ private:
     std::vector<double>      m_layers_times;
     std::vector<double>      m_layers_values;
     std::vector<std::string> m_extruder_colors;
+    bool                     m_can_change_color;
     std::string              m_print_obj_idxs;
     bool                     m_is_need_post_tick_changed_event { false };
     Type                     m_tick_change_event_type;
