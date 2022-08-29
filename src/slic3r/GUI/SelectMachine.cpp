@@ -279,7 +279,9 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
                 event.SetEventObject(this);
                 GetEventHandler()->ProcessEvent(event);
             } else {
-                wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
+                if (m_info) {
+                    wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
+                }
                 //wxGetApp().mainframe->SetFocus();
                 wxCommandEvent event(EVT_DISSMISS_MACHINE_LIST);
                 event.SetEventObject(this->GetParent());
@@ -287,7 +289,7 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
             }
             return;
         }
-        if (m_info->is_lan_mode_printer()) {
+        if (m_info && m_info->is_lan_mode_printer()) {
             if (m_info->has_access_right() && m_info->is_avaliable()) {
                 wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
             } else {
@@ -299,7 +301,7 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
             wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
         }
     } else {
-        if (m_info->is_lan_mode_printer()) {
+        if (m_info && m_info->is_lan_mode_printer()) {
             wxCommandEvent event(EVT_CONNECT_LAN_PRINT);
             event.SetEventObject(this);
             wxPostEvent(this, event);
@@ -2233,7 +2235,8 @@ EditDevNameDialog::~EditDevNameDialog() {}
 void EditDevNameDialog::set_machine_obj(MachineObject *obj)
 {
     m_info = obj;
-    m_textCtr->GetTextCtrl()->SetValue(from_u8(m_info->dev_name));
+    if (m_info)
+        m_textCtr->GetTextCtrl()->SetValue(from_u8(m_info->dev_name));
 }
 
 void EditDevNameDialog::on_dpi_changed(const wxRect &suggested_rect)
@@ -2291,7 +2294,8 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
         if (dev) {
             auto           utf8_str = new_dev_name.ToUTF8();
             auto           name     = std::string(utf8_str.data(), utf8_str.length());
-            dev->modify_device_name(m_info->dev_id, name);
+            if (m_info)
+                dev->modify_device_name(m_info->dev_id, name);
         }
         DPIDialog::EndModal(wxID_CLOSE);
     }

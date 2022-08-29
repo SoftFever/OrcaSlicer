@@ -2981,11 +2981,15 @@ std::map<std::string, MachineObject*> DeviceManager::get_my_machine_list()
     std::map<std::string, MachineObject*> result;
 
     for (auto it = userMachineList.begin(); it != userMachineList.end(); it++) {
+        if (!it->second)
+            continue;
         if (!it->second->is_lan_mode_printer())
             result.insert(std::make_pair(it->first, it->second));
     }
 
     for (auto it = localMachineList.begin(); it != localMachineList.end(); it++) {
+        if (!it->second)
+            continue;
         if (it->second->has_access_right() && it->second->is_avaliable() && it->second->is_lan_mode_printer()) {
             // remove redundant in userMachineList
             if (result.find(it->first) == result.end()) {
