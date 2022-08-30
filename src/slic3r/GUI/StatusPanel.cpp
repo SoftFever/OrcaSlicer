@@ -1725,6 +1725,7 @@ void StatusPanel::update_left_time(int mc_left_time)
 void StatusPanel::update_basic_print_data(bool def) 
 {
     if (def) {
+        if (!obj) return;
         wxString prediction = wxString::Format("%s", get_bbl_time_dhms(obj->slice_info->prediction));
         wxString weight = wxString::Format("%.2fg", obj->slice_info->weight);
 
