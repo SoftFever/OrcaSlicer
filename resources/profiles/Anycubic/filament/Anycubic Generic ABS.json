@@ -1,0 +1,18 @@
+{
+    "type": "filament",
+    "filament_id": "GFB99",
+    "setting_id": "GFSB99",
+    "name": "Anycubic Generic ABS",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_abs",
+    "filament_flow_ratio": [
+        "0.926"
+    ],
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
+    "compatible_printers": [
+      "Anycubic 4Max Pro 0.4 nozzle"
+    ]
+}
