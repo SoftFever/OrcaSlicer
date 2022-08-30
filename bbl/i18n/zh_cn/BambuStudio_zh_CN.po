@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-26 14:09+0800\n"
-"PO-Revision-Date: 2022-08-07 21:57+0800\n"
+"POT-Creation-Date: 2022-08-30 14:28+0800\n"
+"PO-Revision-Date: 2022-08-05 11:49+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Poedit 3.1\n"
 
 msgid "Supports Painting"
 msgstr "支撑绘制"
@@ -57,7 +57,7 @@ msgid "Perform"
 msgstr "执行"
 
 msgid "Gap area"
-msgstr ""
+msgstr "间隙面积"
 
 msgid "Set pen size"
 msgstr "设置画笔大小"
@@ -336,6 +336,9 @@ msgstr "外观面检测"
 msgid "Perform Recognition"
 msgstr "执行检测"
 
+msgid "Clipping of view"
+msgstr "剪切视图"
+
 msgid "Reset direction"
 msgstr "重置方向"
 
@@ -455,7 +458,7 @@ msgstr "访问码不正确"
 
 #, c-format, boost-format
 msgid "Connect %s failed! [SN:%s, code=%s]"
-msgstr "连接 %s 失败 [SN:%s, code=%s]"
+msgstr "连接 %s 失败。[SN:%s, code=%s]"
 
 msgid ""
 "BambuStudio configuration file may be corrupted and is not abled to be "
@@ -1112,7 +1115,7 @@ msgid ""
 msgstr "自动摆放失败，处理对象几何数据时遇到异常。"
 
 msgid "Arranging"
-msgstr "自动摆盘中"
+msgstr "自动摆放"
 
 msgid "Arranging canceled."
 msgstr "已取消自动摆放。"
@@ -1220,6 +1223,9 @@ msgstr "服务不可用"
 
 msgid "Unkown Error."
 msgstr "未知错误"
+
+msgid "Please Fill Task Report."
+msgstr "请填写打印报告"
 
 msgid "Sending print configuration"
 msgstr "正在发送打印配置"
@@ -2113,6 +2119,15 @@ msgstr ""
 msgid "Invalid input."
 msgstr ""
 
+msgid "Enter a search term"
+msgstr "输入搜索内容"
+
+msgid "Online"
+msgstr "在线"
+
+msgid "Offline"
+msgstr "离线"
+
 msgid "Application is closing"
 msgstr "正在关闭应用程序"
 
@@ -2133,6 +2148,9 @@ msgstr "设备"
 
 msgid "Project"
 msgstr "项目"
+
+msgid "Debug"
+msgstr "调试"
 
 msgid "Slice"
 msgstr "切片"
@@ -2170,6 +2188,9 @@ msgstr "检查新版本"
 #, c-format, boost-format
 msgid "&About %s"
 msgstr "关于 %s"
+
+msgid "Show Log"
+msgstr ""
 
 msgid "Open Network Test"
 msgstr ""
@@ -2245,8 +2266,23 @@ msgstr "导入 3MF/STL/STEP/OBJ/AMF"
 msgid "Load a model"
 msgstr "加载模型"
 
+msgid "Import Configs"
+msgstr "导入配置"
+
+msgid "Load configs"
+msgstr ""
+
+msgid "Import"
+msgstr "导入"
+
 msgid "Export all objects as STL"
 msgstr "导出所有对象为STL"
+
+msgid "Export Generic 3MF"
+msgstr "导出通用 3MF"
+
+msgid "Export 3mf file without using some 3mf-extensions"
+msgstr "导出不含 3mf 扩展的 3mf 文件"
 
 msgid "Export current Sliced file"
 msgstr "导出当前已切片的文件"
@@ -2256,6 +2292,12 @@ msgstr "导出 G-code"
 
 msgid "Export current plate as G-code"
 msgstr "导出当前盘的G-code"
+
+msgid "Export &Configs"
+msgstr "导出配置"
+
+msgid "Export current configuration to files"
+msgstr ""
 
 msgid "Export"
 msgstr "导出"
@@ -2369,8 +2411,37 @@ msgstr ""
 msgid "&Help"
 msgstr ""
 
-msgid "Save configuration as:"
-msgstr "预设另存为："
+msgid "Overwrite file"
+msgstr "覆盖文件"
+
+msgid "Yes to All"
+msgstr "全是"
+
+msgid "No to All"
+msgstr "全否"
+
+msgid "Choose a directory"
+msgstr "选择目录"
+
+#, c-format, boost-format
+msgid "There is %d config exported. (Only non-system configs)"
+msgid_plural "There are %d configs exported. (Only non-system configs)"
+msgstr[0] "共导出 %d 个配置（仅包含非系统配置）"
+
+msgid "Export result"
+msgstr "导出结果"
+
+msgid "Select profile to load:"
+msgstr ""
+
+#, c-format, boost-format
+msgid "There is %d config imported. (Only non-system and compatible configs)"
+msgid_plural ""
+"There are %d configs imported. (Only non-system and compatible configs)"
+msgstr[0] "共导入 %d 个配置（仅包含非系统且兼容的配置）"
+
+msgid "Import result"
+msgstr "导入结果"
 
 msgid "File is missing"
 msgstr "文件丢失"
@@ -2420,6 +2491,58 @@ msgstr "正在播放中……"
 msgid "Load failed [%d]!"
 msgstr "加载失败 [%d]！"
 
+msgid "Year"
+msgstr "年"
+
+msgid "Month"
+msgstr "月"
+
+msgid "All Files"
+msgstr "所有文件"
+
+msgid "Video"
+msgstr "录像"
+
+msgid "Download"
+msgstr "下载"
+
+msgid "Management"
+msgstr "管理"
+
+msgid "No printers."
+msgstr "未选择打印机"
+
+msgid "Connecting..."
+msgstr "连接中..."
+
+#, c-format, boost-format
+msgid "Connect failed [%d]!"
+msgstr "连接失败 [%d]！"
+
+msgid "Loading file list..."
+msgstr "加载文件列表..."
+
+msgid "No files"
+msgstr "文件列表为空"
+
+msgid "Choose save directory"
+msgstr "选择保存目录"
+
+msgid "Waiting"
+msgstr "等待中"
+
+msgid "Retry"
+msgstr "重试"
+
+msgid "Failed"
+msgstr "失败"
+
+msgid "Open"
+msgstr "打开"
+
+msgid "Finished"
+msgstr "完成"
+
 msgid "Speed:"
 msgstr "速度："
 
@@ -2443,9 +2566,6 @@ msgstr "交换Y/Z轴"
 
 msgid "Camera"
 msgstr "摄像机"
-
-msgid "Video"
-msgstr "录像"
 
 msgid "Printing Progress"
 msgstr "打印进度"
@@ -2525,9 +2645,6 @@ msgstr "无法连接服务器"
 msgid "Failed to connect to the printer"
 msgstr "无法连接打印机"
 
-msgid "Connecting..."
-msgstr "连接中..."
-
 msgid "OK"
 msgstr "确认"
 
@@ -2560,9 +2677,6 @@ msgstr "%s 信息"
 #, c-format, boost-format
 msgid "%s information"
 msgstr "%s 信息"
-
-msgid "Download"
-msgstr "下载"
 
 msgid "Skip"
 msgstr "跳过"
@@ -2782,11 +2896,11 @@ msgstr "恢复"
 msgid "Loading file: %s"
 msgstr "加载文件：%s"
 
-msgid "The 3mf is not from Bambu Lab, load geometry data only."
-msgstr "该3mf文件不兼容，仅加载几何数据。"
+msgid "The 3mf is not from Bambu lab, load geometry data only."
+msgstr ""
 
 msgid "Load 3mf"
-msgstr "加载3mf"
+msgstr ""
 
 msgid "The Config can not be loaded."
 msgstr ""
@@ -2812,8 +2926,8 @@ msgid ""
 "software.\n"
 msgstr ""
 
-msgid "The 3mf is not compatible, load geometry data only!"
-msgstr ""
+msgid "the 3mf is not compatible, load geometry data only!"
+msgstr "该3mf文件不兼容，仅加载几何数据！"
 
 msgid "Incompatible 3mf"
 msgstr "不兼容的3mf"
@@ -3332,12 +3446,6 @@ msgstr "为“%1%”，添加“%2%”为一个新预设"
 msgid "Simply switch to \"%1%\""
 msgstr "直接切换到“%1%”"
 
-msgid "Online"
-msgstr "在线"
-
-msgid "Offline"
-msgstr "离线"
-
 msgid "My Device"
 msgstr "我的设备"
 
@@ -3442,7 +3550,9 @@ msgstr ""
 msgid ""
 "The printer firmware only supports sequential mapping of filament => AMS "
 "slot."
-msgstr "打印机固件版本仅支持材料=>AMS槽位的顺序映射。"
+msgstr ""
+"已自动建立 \"耗材丝列表=>AMS槽位\" 的映射关系。 可点击上方具体的耗材丝手动设"
+"置其所对应的AMS槽位"
 
 msgid "Preparing print job"
 msgstr "正在准备打印任务"
@@ -3847,9 +3957,6 @@ msgstr "能力"
 msgid "Show all presets (including incompatible)"
 msgstr "显示所有预设(包括不兼容的)"
 
-msgid "Compare Presets"
-msgstr ""
-
 msgid "Add File"
 msgstr ""
 
@@ -4092,16 +4199,16 @@ msgid "Select all objects"
 msgstr "选择所有对象"
 
 msgid "Gizmo move"
-msgstr "移动工具"
+msgstr "线框移动"
 
 msgid "Gizmo scale"
-msgstr "缩放工具"
+msgstr "线框缩放"
 
 msgid "Gizmo rotate"
-msgstr "旋转工具"
+msgstr "旋转物件"
 
 msgid "Gizmo cut"
-msgstr "剪切工具"
+msgstr "剪切物件"
 
 msgid "Gizmo Place face on bed"
 msgstr "选择底面"
@@ -4110,7 +4217,7 @@ msgid "Gizmo SLA support points"
 msgstr "SLA支撑点"
 
 msgid "Gizmo FDM paint-on seam"
-msgstr "FDM绘制接缝"
+msgstr "FDM涂装接缝"
 
 msgid "Plater"
 msgstr "准备"
@@ -4615,7 +4722,7 @@ msgstr "非首层热床温度。0值表示这个耗材丝不支持高温打印�
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Textured PEI Plate"
-msgstr "非首层热床温度。0值表示这个耗材丝不支持低温打印热床"
+msgstr "非首层热床温度。0值表示这个耗材丝不支持纹理PEI热床"
 
 msgid "Initial layer"
 msgstr "首层"
@@ -5660,6 +5767,9 @@ msgstr "对齐"
 msgid "Back"
 msgstr "背面"
 
+msgid "Random"
+msgstr ""
+
 msgid "Skirt distance"
 msgstr "Skirt距离"
 
@@ -6202,13 +6312,8 @@ msgstr "正在优化走线"
 msgid "Empty layers around bottom are replaced by nearest normal layers."
 msgstr "底部出现空层，已被最近的正常层替换。"
 
-msgid ""
-"The model has overlapping or self-intersecting facets. I tried to repair it, "
-"however you might want to check the results or repair the input file and "
-"retry."
+msgid "The model has too many empty layers."
 msgstr ""
-"模型有重叠或自交的面片。已尝试修复，请检查结果是否正确，或修复输入文件后重"
-"试。"
 
 msgid "Slicing mesh"
 msgstr "正在切片网格"
@@ -6251,6 +6356,9 @@ msgstr "支撑：正在修补层%d的空洞"
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
 
+#~ msgid "Save configuration as:"
+#~ msgstr "预设另存为："
+
 #~ msgid "Line type"
 #~ msgstr "走线类型"
 
@@ -6280,11 +6388,13 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ "generation."
 #~ msgstr "对象“%s”可能需要添加支撑才能打印。建议开启支撑生成。"
 
-#~ msgid "Clipping of view"
-#~ msgstr "剪切视图"
-
-#~ msgid "the 3mf is not compatible, load geometry data only!"
-#~ msgstr "该3mf文件不兼容，仅加载几何数据！"
+#~ msgid ""
+#~ "The model has overlapping or self-intersecting facets. I tried to repair "
+#~ "it, however you might want to check the results or repair the input file "
+#~ "and retry."
+#~ msgstr ""
+#~ "模型有重叠或自交的面片。已尝试修复，请检查结果是否正确，或修复输入文件后重"
+#~ "试。"
 
 #~ msgid ""
 #~ "Auto orientates selected objects or all objects.If there are selected "
@@ -6300,9 +6410,6 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ msgid "default value"
 #~ msgstr "默认值"
 
-#~ msgid "Auto arrange"
-#~ msgstr "自动摆盘"
-
 #~ msgid ""
 #~ "The filament index exceeds the AMS's slot count and cannot send the print "
 #~ "job."
@@ -6316,41 +6423,14 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ msgid "Downloading Bambu Network plug-in"
 #~ msgstr "正在下载Bambu网络插件"
 
-#~ msgid "Filaments Selection"
-#~ msgstr "材料选择"
-
-#~ msgid "Printer Selection"
-#~ msgstr "打印机选择"
-
-#~ msgid "Spiral mode"
-#~ msgstr "旋转模式"
-
-#~ msgid "Fragment area"
-#~ msgstr "碎片面积阈值"
-
-#~ msgid "Clear all"
-#~ msgstr "清除所有"
-
-#~ msgid "Connect %s[SN:%s] failed!"
-#~ msgstr "连接 %s[SN:%s]失败."
-
-#~ msgid "Printer firmware does not support material = >ams slot mapping."
-#~ msgstr "打印机固件不支持材料=>AMS槽位映射"
-
 #~ msgid "Creating"
 #~ msgstr "正在创建"
 
 #~ msgid "Uploading"
 #~ msgstr "正在上传"
 
-#~ msgid "Waiting"
-#~ msgstr "等待中"
-
 #~ msgid "Sending"
 #~ msgstr "发送中"
-
-#~ msgid "Finished"
-#~ msgstr "完成"
 
 #~ msgid "Please fill report first."
 #~ msgstr "请先填写报告。"
@@ -6358,11 +6438,37 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ msgid "Unable to create zip file"
 #~ msgstr "无法创建zip压缩文件"
 
-#~ msgid "Enter a search term"
-#~ msgstr "输入搜索内容"
+#~ msgid "Printer firmware does not support material = >ams slot mapping."
+#~ msgstr "打印机固件不支持材料=>AMS槽位映射"
 
-#~ msgid "Debug"
-#~ msgstr "调试"
+#~ msgid "Filaments Selection"
+#~ msgstr "材料选择"
+
+#~ msgid "Printer Selection"
+#~ msgstr "打印机选择"
+
+#~ msgid "Auto arrange"
+#~ msgstr "自动摆盘"
+
+#~ msgid "Spiral mode"
+#~ msgstr "旋转模式"
+
+#~ msgid ""
+#~ "Unprintable area in XY plane. For example, X1 Series printers use the "
+#~ "front left corner to cut filament in multi-material printing. The area is "
+#~ "expressed as polygon by points in following format: \"XxY, XxY, ...\""
+#~ msgstr ""
+#~ "XY平面上的不可打印区域。例如，X1系列打印机在换料过程中，会使用左前角区域来"
+#~ "切断耗材丝。这个多边形区域由以下格式的点表示：“XxY，XxY，…”"
+
+#~ msgid "Connect %s[SN:%s] failed!"
+#~ msgstr "连接 %s[SN:%s]失败."
+
+#~ msgid "Fragment area"
+#~ msgstr "碎片面积阈值"
+
+#~ msgid "Clear all"
+#~ msgstr "清除所有"
 
 #~ msgid "Monitoring"
 #~ msgstr "实时视频"
@@ -7489,9 +7595,6 @@ msgstr "支撑：正在生长层%d的树枝"
 
 #~ msgid "Current bed type do not support filament "
 #~ msgstr "当前热床不支持耗材丝"
-
-#~ msgid "Open"
-#~ msgstr "打开"
 
 #~ msgid "Load from disk"
 #~ msgstr "从硬盘加载"
@@ -9411,9 +9514,6 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ "创建于 <b>%1% %2%</b>.\n"
 #~ "\n"
 #~ "是否导入这个配置?"
-
-#~ msgid "Import"
-#~ msgstr "导入"
 
 #~ msgid "Don't import"
 #~ msgstr "不导入"

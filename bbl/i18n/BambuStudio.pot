@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-26 14:09+0800\n"
+"POT-Creation-Date: 2022-08-30 14:28+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -334,6 +334,9 @@ msgid "Face recognition"
 msgstr ""
 
 msgid "Perform Recognition"
+msgstr ""
+
+msgid "Clipping of view"
 msgstr ""
 
 msgid "Reset direction"
@@ -1213,6 +1216,9 @@ msgstr ""
 msgid "Unkown Error."
 msgstr ""
 
+msgid "Please Fill Task Report."
+msgstr ""
+
 msgid "Sending print configuration"
 msgstr ""
 
@@ -2040,6 +2046,15 @@ msgstr ""
 msgid "Invalid input."
 msgstr ""
 
+msgid "Enter a search term"
+msgstr ""
+
+msgid "Online"
+msgstr ""
+
+msgid "Offline"
+msgstr ""
+
 msgid "Application is closing"
 msgstr ""
 
@@ -2059,6 +2074,9 @@ msgid "Device"
 msgstr ""
 
 msgid "Project"
+msgstr ""
+
+msgid "Debug"
 msgstr ""
 
 msgid "Slice"
@@ -2096,6 +2114,9 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "&About %s"
+msgstr ""
+
+msgid "Show Log"
 msgstr ""
 
 msgid "Open Network Test"
@@ -2172,7 +2193,22 @@ msgstr ""
 msgid "Load a model"
 msgstr ""
 
+msgid "Import Configs"
+msgstr ""
+
+msgid "Load configs"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
 msgid "Export all objects as STL"
+msgstr ""
+
+msgid "Export Generic 3MF"
+msgstr ""
+
+msgid "Export 3mf file without using some 3mf-extensions"
 msgstr ""
 
 msgid "Export current Sliced file"
@@ -2182,6 +2218,12 @@ msgid "Export G-code"
 msgstr ""
 
 msgid "Export current plate as G-code"
+msgstr ""
+
+msgid "Export &Configs"
+msgstr ""
+
+msgid "Export current configuration to files"
 msgstr ""
 
 msgid "Export"
@@ -2296,7 +2338,38 @@ msgstr ""
 msgid "&Help"
 msgstr ""
 
-msgid "Save configuration as:"
+msgid "Overwrite file"
+msgstr ""
+
+msgid "Yes to All"
+msgstr ""
+
+msgid "No to All"
+msgstr ""
+
+msgid "Choose a directory"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "There is %d config exported. (Only non-system configs)"
+msgid_plural "There are %d configs exported. (Only non-system configs)"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Export result"
+msgstr ""
+
+msgid "Select profile to load:"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "There is %d config imported. (Only non-system and compatible configs)"
+msgid_plural ""
+"There are %d configs imported. (Only non-system and compatible configs)"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Import result"
 msgstr ""
 
 msgid "File is missing"
@@ -2342,6 +2415,58 @@ msgstr ""
 msgid "Load failed [%d]!"
 msgstr ""
 
+msgid "Year"
+msgstr ""
+
+msgid "Month"
+msgstr ""
+
+msgid "All Files"
+msgstr ""
+
+msgid "Video"
+msgstr ""
+
+msgid "Download"
+msgstr ""
+
+msgid "Management"
+msgstr ""
+
+msgid "No printers."
+msgstr ""
+
+msgid "Connecting..."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Connect failed [%d]!"
+msgstr ""
+
+msgid "Loading file list..."
+msgstr ""
+
+msgid "No files"
+msgstr ""
+
+msgid "Choose save directory"
+msgstr ""
+
+msgid "Waiting"
+msgstr ""
+
+msgid "Retry"
+msgstr ""
+
+msgid "Failed"
+msgstr ""
+
+msgid "Open"
+msgstr ""
+
+msgid "Finished"
+msgstr ""
+
 msgid "Speed:"
 msgstr ""
 
@@ -2364,9 +2489,6 @@ msgid "Swap Y/Z axes"
 msgstr ""
 
 msgid "Camera"
-msgstr ""
-
-msgid "Video"
 msgstr ""
 
 msgid "Printing Progress"
@@ -2447,9 +2569,6 @@ msgstr ""
 msgid "Failed to connect to the printer"
 msgstr ""
 
-msgid "Connecting..."
-msgstr ""
-
 msgid "OK"
 msgstr ""
 
@@ -2481,9 +2600,6 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "%s information"
-msgstr ""
-
-msgid "Download"
 msgstr ""
 
 msgid "Skip"
@@ -2706,7 +2822,7 @@ msgstr ""
 msgid "Loading file: %s"
 msgstr ""
 
-msgid "The 3mf is not from Bambu Lab, load geometry data only."
+msgid "The 3mf is not from Bambu lab, load geometry data only."
 msgstr ""
 
 msgid "Load 3mf"
@@ -2736,7 +2852,7 @@ msgid ""
 "software.\n"
 msgstr ""
 
-msgid "The 3mf is not compatible, load geometry data only!"
+msgid "the 3mf is not compatible, load geometry data only!"
 msgstr ""
 
 msgid "Incompatible 3mf"
@@ -3250,12 +3366,6 @@ msgstr ""
 msgid "Simply switch to \"%1%\""
 msgstr ""
 
-msgid "Online"
-msgstr ""
-
-msgid "Offline"
-msgstr ""
-
 msgid "My Device"
 msgstr ""
 
@@ -3746,9 +3856,6 @@ msgid "Capabilities"
 msgstr ""
 
 msgid "Show all presets (including incompatible)"
-msgstr ""
-
-msgid "Compare Presets"
 msgstr ""
 
 msgid "Add File"
@@ -5498,6 +5605,9 @@ msgstr ""
 msgid "Back"
 msgstr ""
 
+msgid "Random"
+msgstr ""
+
 msgid "Skirt distance"
 msgstr ""
 
@@ -6002,10 +6112,7 @@ msgstr ""
 msgid "Empty layers around bottom are replaced by nearest normal layers."
 msgstr ""
 
-msgid ""
-"The model has overlapping or self-intersecting facets. I tried to repair it, "
-"however you might want to check the results or repair the input file and "
-"retry."
+msgid "The model has too many empty layers."
 msgstr ""
 
 msgid "Slicing mesh"

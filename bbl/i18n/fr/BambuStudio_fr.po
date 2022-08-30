@@ -2,13 +2,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-26 14:09+0800\n"
+"POT-Creation-Date: 2022-08-30 14:28+0800\n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Localazy (https://localazy.com)\n"
 "Plural-Forms: nplurals=2; plural=(n==0 || n==1) ? 0 : 1;\n"
+"X-Generator: Poedit 3.1\n"
 
 msgid "Supports Painting"
 msgstr "Prend en charge la peinture"
@@ -334,6 +337,9 @@ msgstr "Face recognition"
 
 msgid "Perform Recognition"
 msgstr "Perform Recognition"
+
+msgid "Clipping of view"
+msgstr ""
 
 msgid "Reset direction"
 msgstr ""
@@ -869,11 +875,13 @@ msgstr ""
 msgid "%1$d error repaired"
 msgid_plural "%1$d errors repaired"
 msgstr[0] "%1$d erreur réparée"
+msgstr[1] ""
 
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold edge."
 msgid_plural "Error: %1$d non-manifold edges."
 msgstr[0] "Erreur : %1$d arête non multiple."
+msgstr[1] ""
 
 msgid "Remaining errors"
 msgstr "Erreurs restantes"
@@ -882,6 +890,7 @@ msgstr "Erreurs restantes"
 msgid "%1$d non-manifold edge"
 msgid_plural "%1$d non-manifold edges"
 msgstr[0] "%1$d arête non multiple"
+msgstr[1] ""
 
 msgid "Right click the icon to fix model object"
 msgstr "Cliquez avec le bouton droit sur l'icône pour fixer l'objet modèle"
@@ -989,10 +998,12 @@ msgstr "Réparer l'objet modèle"
 msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
 msgstr[0] "L'objet modèle suivant a été réparé"
+msgstr[1] ""
 
 msgid "Failed to repair folowing model object"
 msgid_plural "Failed to repair folowing model objects"
 msgstr[0] "Échec de la réparation de l'objet modèle suivant"
+msgstr[1] ""
 
 msgid "Repairing was canceled"
 msgstr "La réparation a été annulée"
@@ -1087,7 +1098,7 @@ msgid "Click the pencil icon to edit the filament."
 msgstr "Cliquez sur l'icône du crayon pour modifier le filament."
 
 msgid "Load Filament"
-msgstr "Charger le filament"
+msgstr "Load"
 
 msgid "Unload Filament"
 msgstr "Unload"
@@ -1260,6 +1271,9 @@ msgid "Service Unavailable"
 msgstr ""
 
 msgid "Unkown Error."
+msgstr ""
+
+msgid "Please Fill Task Report."
 msgstr ""
 
 msgid "Sending print configuration"
@@ -1754,7 +1768,7 @@ msgid "Identifying build plate type"
 msgstr "Identifying build plate type"
 
 msgid "Calibrating Micro Lidar"
-msgstr "Calibrage du Micro-Lidar"
+msgstr "Calibrating Micro Lidar"
 
 msgid "Homing toolhead"
 msgstr "Homing toolhead"
@@ -2169,6 +2183,15 @@ msgstr ""
 msgid "Invalid input."
 msgstr ""
 
+msgid "Enter a search term"
+msgstr "Entrer un terme de recherche"
+
+msgid "Online"
+msgstr "En ligne"
+
+msgid "Offline"
+msgstr "Hors ligne"
+
 msgid "Application is closing"
 msgstr "L'application se ferme"
 
@@ -2190,6 +2213,9 @@ msgstr "Device"
 
 msgid "Project"
 msgstr "Projet"
+
+msgid "Debug"
+msgstr "Déboguer"
 
 msgid "Slice"
 msgstr "Découper"
@@ -2227,6 +2253,9 @@ msgstr "Vérifier la mise à jour"
 #, c-format, boost-format
 msgid "&About %s"
 msgstr "&Au sujet de %s"
+
+msgid "Show Log"
+msgstr ""
 
 msgid "Open Network Test"
 msgstr ""
@@ -2302,8 +2331,23 @@ msgstr "Importer 3MF/STL/STEP/OBJ/AMF"
 msgid "Load a model"
 msgstr "Charger un modèle"
 
+msgid "Import Configs"
+msgstr ""
+
+msgid "Load configs"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
 msgid "Export all objects as STL"
 msgstr "Exporter tous les objets au format STL"
+
+msgid "Export Generic 3MF"
+msgstr ""
+
+msgid "Export 3mf file without using some 3mf-extensions"
+msgstr ""
 
 msgid "Export current Sliced file"
 msgstr "Exporter le fichier en tranches actuel"
@@ -2312,6 +2356,12 @@ msgid "Export G-code"
 msgstr "Exporter le G-code"
 
 msgid "Export current plate as G-code"
+msgstr ""
+
+msgid "Export &Configs"
+msgstr ""
+
+msgid "Export current configuration to files"
 msgstr ""
 
 msgid "Export"
@@ -2426,8 +2476,39 @@ msgstr "&View"
 msgid "&Help"
 msgstr "&Help"
 
-msgid "Save configuration as:"
-msgstr "Enregistrer la configuration sous :"
+msgid "Overwrite file"
+msgstr ""
+
+msgid "Yes to All"
+msgstr ""
+
+msgid "No to All"
+msgstr ""
+
+msgid "Choose a directory"
+msgstr ""
+
+#, c-format, boost-format
+msgid "There is %d config exported. (Only non-system configs)"
+msgid_plural "There are %d configs exported. (Only non-system configs)"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Export result"
+msgstr ""
+
+msgid "Select profile to load:"
+msgstr ""
+
+#, c-format, boost-format
+msgid "There is %d config imported. (Only non-system and compatible configs)"
+msgid_plural ""
+"There are %d configs imported. (Only non-system and compatible configs)"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Import result"
+msgstr ""
 
 msgid "File is missing"
 msgstr "Le fichier est manquant"
@@ -2472,6 +2553,58 @@ msgstr "En jouant..."
 msgid "Load failed [%d]!"
 msgstr "Le chargement a échoué [%d] !"
 
+msgid "Year"
+msgstr ""
+
+msgid "Month"
+msgstr ""
+
+msgid "All Files"
+msgstr ""
+
+msgid "Video"
+msgstr ""
+
+msgid "Download"
+msgstr "Télécharger"
+
+msgid "Management"
+msgstr ""
+
+msgid "No printers."
+msgstr ""
+
+msgid "Connecting..."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Connect failed [%d]!"
+msgstr ""
+
+msgid "Loading file list..."
+msgstr ""
+
+msgid "No files"
+msgstr ""
+
+msgid "Choose save directory"
+msgstr ""
+
+msgid "Waiting"
+msgstr "Waiting"
+
+msgid "Retry"
+msgstr ""
+
+msgid "Failed"
+msgstr ""
+
+msgid "Open"
+msgstr ""
+
+msgid "Finished"
+msgstr "Terminé"
+
 msgid "Speed:"
 msgstr "Vitesse:"
 
@@ -2494,9 +2627,6 @@ msgid "Swap Y/Z axes"
 msgstr "Permuter les axes Y/Z"
 
 msgid "Camera"
-msgstr ""
-
-msgid "Video"
 msgstr ""
 
 msgid "Printing Progress"
@@ -2577,9 +2707,6 @@ msgstr "Impossible de se connecter au serveur"
 msgid "Failed to connect to the printer"
 msgstr "Échec de la connexion à l'imprimante"
 
-msgid "Connecting..."
-msgstr ""
-
 msgid "OK"
 msgstr "OK"
 
@@ -2612,9 +2739,6 @@ msgstr "%s infos"
 #, c-format, boost-format
 msgid "%s information"
 msgstr "Information de %s"
-
-msgid "Download"
-msgstr "Télécharger"
 
 msgid "Skip"
 msgstr "Sauter"
@@ -2659,11 +2783,13 @@ msgstr "Ouvrir un répertoire."
 msgid "%1$d Object has custom supports."
 msgid_plural "%1$d Objects have custom supports."
 msgstr[0] "L'objet %1$d a des supports personnalisés."
+msgstr[1] ""
 
 #, c-format, boost-format
 msgid "%1$d Object has color painting."
 msgid_plural "%1$d Objects have color painting."
 msgstr[0] "%1$d L'objet est peint en couleur."
+msgstr[1] ""
 
 msgid "Slice ok."
 msgstr "Slice complete"
@@ -2839,7 +2965,7 @@ msgstr "Restaurer"
 msgid "Loading file: %s"
 msgstr "Chargement du fichier : %s"
 
-msgid "The 3mf is not from Bambu Lab, load geometry data only."
+msgid "The 3mf is not from Bambu lab, load geometry data only."
 msgstr ""
 
 msgid "Load 3mf"
@@ -2871,8 +2997,9 @@ msgid ""
 "software.\n"
 msgstr ""
 
-msgid "The 3mf is not compatible, load geometry data only!"
+msgid "the 3mf is not compatible, load geometry data only!"
 msgstr ""
+"le 3mf n'est pas compatible, chargez uniquement les données de géométrie !"
 
 msgid "Incompatible 3mf"
 msgstr "Incompatible 3mf"
@@ -3416,12 +3543,6 @@ msgstr "Pour \"%1%\", ajoutez \"%2%\" comme nouveau préréglage"
 msgid "Simply switch to \"%1%\""
 msgstr "Passez simplement à \"%1%\""
 
-msgid "Online"
-msgstr "En ligne"
-
-msgid "Offline"
-msgstr "Hors ligne"
-
 msgid "My Device"
 msgstr "Mon appareil"
 
@@ -3656,6 +3777,7 @@ msgstr[0] ""
 "La ligne suivante %s contient des mots clés réservés. Veuillez le supprimer, "
 "ou il battra la visualisation du code G et l'estimation du temps "
 "d'impression."
+msgstr[1] ""
 
 msgid "Reserved keywords found"
 msgstr "Mots clés réservés trouvés"
@@ -3829,6 +3951,7 @@ msgstr "Détaché"
 msgid "Following preset will be deleted too."
 msgid_plural "Following presets will be deleted too."
 msgstr[0] "Le préréglage suivant sera également supprimé."
+msgstr[1] ""
 
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
@@ -3958,9 +4081,6 @@ msgid "Capabilities"
 msgstr "Fonctionnalités"
 
 msgid "Show all presets (including incompatible)"
-msgstr ""
-
-msgid "Compare Presets"
 msgstr ""
 
 msgid "Add File"
@@ -4575,12 +4695,11 @@ msgstr ""
 
 #, boost-format
 msgid "%1% is too close to others, and collisions may be caused."
-msgstr ""
-"%1% est trop proche des autres, cela pourrait provoquer des collisions."
+msgstr "%1% is too close to others, and collisions may be caused."
 
 #, boost-format
 msgid "%1% is too tall, and collisions will be caused."
-msgstr "%1% est trop grand, cela pourrait provoquer des collisions."
+msgstr "%1% is too tall, and collisions will be caused."
 
 msgid " is too close to others, there will be collisions when printing.\n"
 msgstr ""
@@ -5374,8 +5493,8 @@ msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
 msgstr ""
-"This is the acceleration of top surface infill. Using a lower value may "
-"improve top surface quality."
+"Acceleration of top surface infill. Using a lower value may improve top "
+"surface quality"
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
@@ -5968,6 +6087,9 @@ msgstr "Aligné"
 
 msgid "Back"
 msgstr "Retour"
+
+msgid "Random"
+msgstr ""
 
 msgid "Skirt distance"
 msgstr "Distance jupe"
@@ -6565,13 +6687,8 @@ msgstr ""
 "Les calques vides autour du bas sont remplacés par les calques normaux les "
 "plus proches."
 
-msgid ""
-"The model has overlapping or self-intersecting facets. I tried to repair it, "
-"however you might want to check the results or repair the input file and "
-"retry."
+msgid "The model has too many empty layers."
 msgstr ""
-"La vitesse d'impression minimale lors du ralentissement pour le "
-"refroidissement"
 
 msgid "Slicing mesh"
 msgstr "Maillage de tranchage"
@@ -6614,6 +6731,9 @@ msgstr "Support: fix holes at layer %d"
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
 
+#~ msgid "Save configuration as:"
+#~ msgstr "Enregistrer la configuration sous :"
+
 #~ msgid "Line type"
 #~ msgstr "Type de ligne"
 
@@ -6642,6 +6762,53 @@ msgstr "Support: propagate branches at layer %d"
 #~ "Il semble que l'objet %s ait besoin d'aide pour imprimer. Veuillez "
 #~ "activer la génération de support."
 
+#~ msgid ""
+#~ "The model has overlapping or self-intersecting facets. I tried to repair "
+#~ "it, however you might want to check the results or repair the input file "
+#~ "and retry."
+#~ msgstr ""
+#~ "La vitesse d'impression minimale lors du ralentissement pour le "
+#~ "refroidissement"
+
+#~ msgid ""
+#~ "Auto orientates selected objects or all objects.If there are selected "
+#~ "objects, it just orientates the selected ones.Otherwise, it will "
+#~ "orientates all objects in the project."
+#~ msgstr ""
+#~ "Oriente automatiquement les objets sélectionnés ou tous les objets. S'il "
+#~ "y a des objets sélectionnés, il oriente uniquement ceux qui sont "
+#~ "sélectionnés. Sinon, il oriente tous les objets du projet."
+
+#~ msgid "The Config is not compatible and can not be loaded."
+#~ msgstr "La Config n'est pas compatible et ne peut pas être chargée."
+
+#~ msgid "Creating"
+#~ msgstr "Creating"
+
+#~ msgid "Uploading"
+#~ msgstr "Téléchargement"
+
+#~ msgid "Sending"
+#~ msgstr "Sending"
+
+#~ msgid "Please fill report first."
+#~ msgstr "Veuillez d'abord remplir le rapport."
+
+#~ msgid "Unable to create zip file"
+#~ msgstr "Unable to create zip file"
+
+#~ msgid "Filaments Selection"
+#~ msgstr "Sélection de filaments"
+
+#~ msgid "Printer Selection"
+#~ msgstr "Sélection de l'imprimante"
+
+#~ msgid "Auto arrange"
+#~ msgstr "Organisation automatique"
+
+#~ msgid "Spiral mode"
+#~ msgstr "Mode spirale"
+
 #~ msgid "Alt + Mouse wheel"
 #~ msgstr "Alt + molette de la souris"
 
@@ -6653,32 +6820,14 @@ msgstr "Support: propagate branches at layer %d"
 #~ "problème en le déplaçant totalement à l'intérieur ou à l'extérieur de la "
 #~ "plaque."
 
-#~ msgid "Auto arrange"
-#~ msgstr "Organisation automatique"
-
-#~ msgid ""
-#~ "Auto orientates selected objects or all objects.If there are selected "
-#~ "objects, it just orientates the selected ones.Otherwise, it will "
-#~ "orientates all objects in the project."
-#~ msgstr ""
-#~ "Oriente automatiquement les objets sélectionnés ou tous les objets. S'il "
-#~ "y a des objets sélectionnés, il oriente uniquement ceux qui sont "
-#~ "sélectionnés. Sinon, il oriente tous les objets du projet."
-
 #~ msgid "Clear all"
 #~ msgstr "Tout effacer"
-
-#~ msgid "Creating"
-#~ msgstr "Creating"
 
 #~ msgid "Ctrl + Any arrow"
 #~ msgstr "Ctrl + n'importe quelle flèche"
 
 #~ msgid "Ctrl + Left mouse button"
 #~ msgstr "Ctrl + Left mouse button"
-
-#~ msgid "Debug"
-#~ msgstr "Déboguer"
 
 #~ msgid "Display printable box"
 #~ msgstr "Afficher la boîte imprimable"
@@ -6708,15 +6857,6 @@ msgstr "Support: propagate branches at layer %d"
 #~ msgstr ""
 #~ "Ne vous rétractez absolument pas lorsque le déplacement est dans la zone "
 #~ "de remplissage. Cela signifie que le suintement ne peut pas être vu"
-
-#~ msgid "Enter a search term"
-#~ msgstr "Entrer un terme de recherche"
-
-#~ msgid "Filaments Selection"
-#~ msgstr "Sélection de filaments"
-
-#~ msgid "Finished"
-#~ msgstr "Terminé"
 
 #~ msgid "Fix model locally"
 #~ msgstr "Corriger le modèle localement"
@@ -6762,9 +6902,6 @@ msgstr "Support: propagate branches at layer %d"
 #~ msgid "Pause(toolhead shell off)"
 #~ msgstr "Pause(toolhead shell off)"
 
-#~ msgid "Please fill report first."
-#~ msgstr "Veuillez d'abord remplir le rapport."
-
 #~ msgid "Please upgrade your printer first"
 #~ msgstr "Please upgrade your printer first"
 
@@ -6781,16 +6918,10 @@ msgstr "Support: propagate branches at layer %d"
 #~ msgid "Preview only mode for gcode file."
 #~ msgstr "Preview only mode for G-code file."
 
-#~ msgid "Printer Selection"
-#~ msgstr "Sélection de l'imprimante"
-
 #~ msgid ""
 #~ "Push new filament \n"
 #~ "into extruder"
 #~ msgstr "Poussez le nouveau filament dans l'extruder"
-
-#~ msgid "Sending"
-#~ msgstr "Sending"
 
 #~ msgid "Shift + Any arrow"
 #~ msgstr "Maj + n'importe quelle flèche"
@@ -6807,18 +6938,12 @@ msgstr "Support: propagate branches at layer %d"
 #~ msgid "Show Printable Box(TODO)"
 #~ msgstr "Afficher la boîte imprimable (TODO)"
 
-#~ msgid "Spiral mode"
-#~ msgstr "Mode spirale"
-
 #~ msgid "Successfully sent.Will automatically jump to the device page in %s s"
 #~ msgstr ""
 #~ "Successfully sent. Will automatically jump to the device page in %s s"
 
 #~ msgid "Swith cloud environment, Please login again!"
 #~ msgstr "Changez d'environnement cloud, veuillez vous reconnecter !"
-
-#~ msgid "The Config is not compatible and can not be loaded."
-#~ msgstr "La Config n'est pas compatible et ne peut pas être chargée."
 
 #~ msgid ""
 #~ "The firmware versions of printer and AMS are too low.Please update to the "
@@ -6827,18 +6952,5 @@ msgstr "Support: propagate branches at layer %d"
 #~ "The firmware versions of the printer and AMS are too low. Please update "
 #~ "them to the latest version before sending any print jobs."
 
-#~ msgid "Unable to create zip file"
-#~ msgstr "Unable to create zip file"
-
-#~ msgid "Uploading"
-#~ msgstr "Téléchargement"
-
 #~ msgid "User pause"
 #~ msgstr "User pause"
-
-#~ msgid "Waiting"
-#~ msgstr "Waiting"
-
-#~ msgid "the 3mf is not compatible, load geometry data only!"
-#~ msgstr ""
-#~ "le 3mf n'est pas compatible, chargez uniquement les données de géométrie !"
