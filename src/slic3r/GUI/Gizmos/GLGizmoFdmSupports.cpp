@@ -209,6 +209,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     GizmoImguiBegin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
+    const float space_size = m_imgui->get_style_scaling() * 8;
     const float clipping_slider_left    = m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x + m_imgui->scaled(1.5f);
     const float cursor_slider_left      = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.5f);
     const float gap_fill_slider_left    = m_imgui->calc_text_size(m_desc.at("gap_fill")).x + m_imgui->scaled(1.5f);
@@ -220,7 +221,6 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     const float tips_width           = m_imgui->calc_text_size(_L("Auto support threshold angle: ") + " 90 ").x + m_imgui->scaled(1.5f);
     const float minimal_slider_width = m_imgui->scaled(4.f);
-    float slider_width_times = 1.5;
 
     float caption_max    = 0.f;
     float total_text_max = 0.f;
@@ -233,12 +233,10 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     const float sliders_left_width = std::max(std::max(cursor_slider_left, clipping_slider_left), std::max(highlight_slider_left, gap_fill_slider_left));
     const float slider_icon_width  = m_imgui->get_slider_icon_size().x;
-    float       window_width       = minimal_slider_width + sliders_left_width + slider_icon_width;
     const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
 
-    window_width = std::max(window_width, total_text_max);
-    window_width = std::max(window_width, buttons_width);
-    window_width = std::max(window_width, tips_width);
+    const float sliders_width = m_imgui->scaled(7.0f);
+    const float drag_left_width = ImGui::GetStyle().WindowPadding.x + sliders_left_width + sliders_width - space_size;
 
     float drag_pos_times     = 0.7;
 
@@ -294,9 +292,9 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("cursor_size"));
         ImGui::SameLine(sliders_left_width);
-        ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
+        ImGui::PushItemWidth(sliders_width);
         m_imgui->bbl_slider_float_style("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true);
-        ImGui::SameLine(window_width - drag_pos_times * slider_icon_width);
+        ImGui::SameLine(drag_left_width);
         ImGui::PushItemWidth(1.5 * slider_icon_width);
         ImGui::BBLDragFloat("##cursor_radius_input", &m_cursor_radius, 0.05f, 0.0f, 0.0f, "%.2f");
     } else if (m_current_tool == ImGui::SphereButtonIcon) {
@@ -306,9 +304,9 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc.at("cursor_size"));
         ImGui::SameLine(sliders_left_width);
-        ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
+        ImGui::PushItemWidth(sliders_width);
         m_imgui->bbl_slider_float_style("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true);
-        ImGui::SameLine(window_width - drag_pos_times * slider_icon_width);
+        ImGui::SameLine(drag_left_width);
         ImGui::PushItemWidth(1.5 * slider_icon_width);
         ImGui::BBLDragFloat("##cursor_radius_input", &m_cursor_radius, 0.05f, 0.0f, 0.0f, "%.2f");
     } else if (m_current_tool == ImGui::FillButtonIcon) {
@@ -319,13 +317,13 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         m_imgui->text(m_desc.at("smart_fill_angle"));
         std::string format_str = std::string("%.f") + I18N::translate_utf8("", "Face angle threshold, placed after the number with no whitespace in between.");
         ImGui::SameLine(sliders_left_width);
-        ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
+        ImGui::PushItemWidth(sliders_width);
         if (m_imgui->bbl_slider_float_style("##smart_fill_angle", &m_smart_fill_angle, SmartFillAngleMin, SmartFillAngleMax, format_str.data(), 1.0f, true))
             for (auto& triangle_selector : m_triangle_selectors) {
                 triangle_selector->seed_fill_unselect_all_triangles();
                 triangle_selector->request_update_render_data();
             }
-        ImGui::SameLine(window_width - drag_pos_times * slider_icon_width);
+        ImGui::SameLine(drag_left_width);
         ImGui::PushItemWidth(1.5 * slider_icon_width);
         ImGui::BBLDragFloat("##smart_fill_angle_input", &m_smart_fill_angle, 0.05f, 0.0f, 0.0f, "%.2f");
     } else if (m_current_tool == ImGui::GapFillIcon) {
@@ -335,10 +333,10 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc["gap_area"] + ":");
         ImGui::SameLine(sliders_left_width);
-        ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
+        ImGui::PushItemWidth(sliders_width);
         std::string format_str = std::string("%.2f") + I18N::translate_utf8("", "Triangle patch area threshold,""triangle patch will be merged to neighbor if its area is less than threshold");
         m_imgui->bbl_slider_float_style("##gap_area", &TriangleSelectorPatch::gap_area, TriangleSelectorPatch::GapAreaMin, TriangleSelectorPatch::GapAreaMax, format_str.data(), 1.0f, true);
-        ImGui::SameLine(window_width - drag_pos_times * slider_icon_width);
+        ImGui::SameLine(drag_left_width);
         ImGui::PushItemWidth(1.5 * slider_icon_width);
         ImGui::BBLDragFloat("##gap_area_input", &TriangleSelectorPatch::gap_area, 0.05f, 0.0f, 0.0f, "%.2f");
     }
@@ -356,7 +354,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     ImGui::SetCursorPosY(slider_start_position_y);
 
     std::string format_str = std::string("%.f");
-    ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
+    ImGui::PushItemWidth(sliders_width);
     wxString tooltip = _L("Highlight faces according to overhang angle.");
     if (m_imgui->bbl_slider_float_style("##angle_threshold_deg", &m_highlight_by_angle_threshold_deg, 0.f, 90.f, format_str.data(), 1.0f, true, tooltip)) {
         m_parent.set_slope_normal_angle(90.f - m_highlight_by_angle_threshold_deg);
@@ -376,7 +374,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         }
         ImGui::EndTooltip();
     }
-    ImGui::SameLine(window_width - drag_pos_times * slider_icon_width);
+    ImGui::SameLine(drag_left_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
     ImGui::BBLDragFloat("##angle_threshold_deg_input", &m_highlight_by_angle_threshold_deg, 0.05f, 0.0f, 0.0f, "%.2f");
     
@@ -387,10 +385,10 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
         auto clp_dist = float(m_c->object_clipper()->get_position());
         ImGui::SameLine(sliders_left_width);
-        ImGui::PushItemWidth(window_width - sliders_left_width - slider_icon_width);
+        ImGui::PushItemWidth(sliders_width);
         bool b_bbl_slider_float = m_imgui->bbl_slider_float_style("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true);
 
-        ImGui::SameLine(window_width - drag_pos_times * slider_icon_width);
+        ImGui::SameLine(drag_left_width);
         ImGui::PushItemWidth(1.5 * slider_icon_width);
         bool b_drag_input = ImGui::BBLDragFloat("##clp_dist_input", &clp_dist, 0.05f, 0.0f, 0.0f, "%.2f");
 

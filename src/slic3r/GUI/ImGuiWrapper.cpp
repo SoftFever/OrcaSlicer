@@ -1643,6 +1643,7 @@ void ImGuiWrapper::push_toolbar_style(const float scale)
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 10.0f) * scale);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 3.0f * scale);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f * scale);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10.0f, 10.0f) * scale);
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(50/255.0f, 58/255.0f, 61/255.0f, 1.00f));       // 1
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGuiWrapper::COL_WINDOW_BG);          // 2
@@ -1665,7 +1666,7 @@ void ImGuiWrapper::pop_toolbar_style()
 {
     // size in push toolbar style
     ImGui::PopStyleColor(15);
-    ImGui::PopStyleVar(5);
+    ImGui::PopStyleVar(6);
 }
 
 void ImGuiWrapper::push_menu_style(const float scale)

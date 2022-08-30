@@ -110,7 +110,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     float caption_size = std::max(std::max(font_cap, size_cap), std::max(thickness_cap, input_cap)) + space_size + ImGui::GetStyle().WindowPadding.x;
 
     float input_text_size = m_imgui->scaled(12.0f);
-    float button_size = m_imgui->scaled(1.4f);
+    float button_size = ImGui::GetFrameHeight();
     float input_size = input_text_size - button_size * 2 - ImGui::GetStyle().ItemSpacing.x * 4;
 
     ImTextureID normal_B = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TEXT_B);
@@ -158,8 +158,8 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         ImGui::EndCombo();
     }
 
-    ImGui::AlignTextToFramePadding();
     pop_combo_style();
+    ImGui::AlignTextToFramePadding();
     m_imgui->text(_L("Size"));
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(input_size);
@@ -168,10 +168,11 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::SameLine();
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0.0,0.0});
     ImGui::BBLImageButton(normal_B,press_B_hover,press_B_press,{button_size,button_size},m_bold);
     ImGui::SameLine();
     ImGui::BBLImageButton(normal_T,press_T_hover,press_T_press,{button_size,button_size},m_italic);
-    ImGui::PopStyleVar();
+    ImGui::PopStyleVar(2);
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(_L("Thickness"));
