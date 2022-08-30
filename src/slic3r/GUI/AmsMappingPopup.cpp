@@ -393,7 +393,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
 
         sizer_mapping_item->Add(number, 0, wxALIGN_CENTER_HORIZONTAL, 0);
         sizer_mapping_item->Add(m_filament_name, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-        sizer_mapping_list->Add(sizer_mapping_item, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, FromDIP(5));
+        sizer_mapping_list->Add(sizer_mapping_item, 0, wxALL, FromDIP(5));
         m_amsmapping_sizer_list.push_back(sizer_mapping_list);
     }
     m_sizer_list->Add(sizer_mapping_list, 0, wxALIGN_CENTER_HORIZONTAL, 0);
