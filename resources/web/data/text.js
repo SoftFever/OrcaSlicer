@@ -79,7 +79,7 @@ var LangText={
 		"t84":"3, Delete all files under the plug-in directory",
 		"t85":"4, Reopen Bambu studio and install the plug-in again",
 		"t86":"Close",
-		"t87":"User manual",
+		"t87":"User Manual",
 		"t88":"clear",
 		"t89":"show in explorer"
 	},
