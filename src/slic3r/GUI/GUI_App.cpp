@@ -1092,7 +1092,7 @@ void GUI_App::post_init()
             if (hms_query)
                 hms_query->check_hms_info();
         });
-        
+
     std::string functional_config_file = Slic3r::resources_dir() + "/config.json";
     DeviceManager::load_functional_config(encode_path(functional_config_file.c_str()));
 
@@ -1482,6 +1482,19 @@ void GUI_App::restart_networking()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(" exit, m_agent=%1%")%m_agent;
 }
 
+void GUI_App::remove_old_networking_plugins()
+{
+    auto plugin_folder = boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins";
+    if (boost::filesystem::exists(plugin_folder)) {
+        BOOST_LOG_TRIVIAL(info) << "[remove_old_networking_plugins] remove the directory "<<plugin_folder.string();
+        try {
+            fs::remove_all(plugin_folder);
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(error) << "Failed  removing the plugins directory " << plugin_folder.string();
+        }
+    }
+}
+
 int GUI_App::updating_bambu_networking()
 {
     DownloadProgressDialog dlg(_L("Downloading Bambu Network Plug-in"));
@@ -1838,7 +1851,7 @@ bool GUI_App::on_init_inner()
     //BBS set crash log folder
     CBaseException::set_log_folder(data_dir());
 #endif
-    
+
     wxGetApp().Bind(wxEVT_QUERY_END_SESSION, [this](auto & e) {
         if (mainframe) {
             wxCloseEvent e2(wxEVT_CLOSE_WINDOW);
@@ -1911,10 +1924,20 @@ bool GUI_App::on_init_inner()
     init_fonts();
 
     if (m_last_config_version) {
-        if (*m_last_config_version < *Semver::parse(SLIC3R_VERSION))
-            check_older_app_config(*m_last_config_version, true);
-    } else {
-        check_older_app_config(Semver(), false);
+        int last_major = m_last_config_version->maj();
+        int last_minor = m_last_config_version->min();
+        int last_patch = m_last_config_version->patch()/100;
+        std::string studio_ver = SLIC3R_VERSION;
+        int cur_major = atoi(studio_ver.substr(0,2).c_str());
+        int cur_minor = atoi(studio_ver.substr(3,2).c_str());
+        int cur_patch = atoi(studio_ver.substr(6,2).c_str());
+        BOOST_LOG_TRIVIAL(info) << boost::format("last app version {%1%.%2%.%3%}, current version {%4%.%5%.%6%}")
+            %last_major%last_minor%last_patch%cur_major%cur_minor%cur_patch;
+        if ((last_major != cur_major)
+            ||(last_minor != cur_minor)
+            ||(last_patch != cur_patch)) {
+            remove_old_networking_plugins();
+        }
     }
 
     app_config->set("version", SLIC3R_VERSION);
@@ -3022,16 +3045,16 @@ std::string GUI_App::handle_web_request(std::string cmd)
                         this->request_open_project(path.value());
                     }
                 }
-            } 
+            }
             else if (command_str.compare("homepage_delete_recentfile") == 0) {
                 if (root.get_child_optional("data") != boost::none) {
                     pt::ptree                    data_node = root.get_child("data");
                     boost::optional<std::string> path      = data_node.get_optional<std::string>("path");
-                    if (path.has_value()) { 
+                    if (path.has_value()) {
                         this->request_remove_project(path.value());
                     }
                 }
-            } 
+            }
             else if (command_str.compare("homepage_delete_all_recentfile") == 0) {
                 this->request_remove_project("");
             }
@@ -3039,8 +3062,8 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 if (root.get_child_optional("data") != boost::none) {
                     pt::ptree                    data_node = root.get_child("data");
                     boost::optional<std::string> path      = data_node.get_optional<std::string>("path");
-                    if (path.has_value()) 
-                    { 
+                    if (path.has_value())
+                    {
                         boost::filesystem::path NowFile(path.value());
 
                         std::string FolderPath = NowFile.parent_path().make_preferred().string();
@@ -3081,7 +3104,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     e.SetEventObject(mainframe);
                     wxPostEvent(mainframe, e);
                 }
-            } 
+            }
             else if (command_str.compare("userguide_wiki_open") == 0) {
                 if (root.get_child_optional("data") != boost::none) {
                     pt::ptree                    data_node = root.get_child("data");
@@ -3089,9 +3112,9 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     if (path.has_value()) {
                         wxLaunchDefaultBrowser(path.value());
                     }
-                }                
+                }
             }
-                
+
         }
     }
     catch (...) {
