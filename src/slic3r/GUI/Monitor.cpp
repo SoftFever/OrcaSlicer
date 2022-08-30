@@ -198,18 +198,22 @@ MonitorPanel::~MonitorPanel()
     });
 
     //m_status_add_machine_panel = new AddMachinePanel(m_tabpanel);
-    m_status_info_panel        = new StatusPanel(m_tabpanel);
-    m_media_file_panel = new MediaFilePanel(m_tabpanel);
+    m_status_info_panel = new StatusPanel(m_tabpanel);
     m_tabpanel->AddPage(m_status_info_panel, _L("Status"), "", true);
 
-#if !BBL_RELEASE_TO_PUBLIC
+    m_media_file_panel = new MediaFilePanel(m_tabpanel);
     m_tabpanel->AddPage(m_media_file_panel, _L("Media"), "", false);
     
     m_upgrade_panel = new UpgradePanel(m_tabpanel);
     m_tabpanel->AddPage(m_upgrade_panel, _L("Update"), "", false);
 
     m_hms_panel = new HMSPanel(m_tabpanel);
-    m_tabpanel->AddPage(m_hms_panel,         _L("HMS"),    "", false);
+    m_tabpanel->AddPage(m_hms_panel, _L("HMS"),"", false);
+
+
+#if !BBL_RELEASE_TO_PUBLIC
+    m_debug_panel = new DebugPanel(m_tabpanel);
+    m_tabpanel->AddPage(m_debug_panel, _L("Debug"), "", false);
 #endif
 
     m_initialized = true;
@@ -258,10 +262,8 @@ void MonitorPanel::msw_rescale()
     //m_status_add_machine_panel->msw_rescale();
     m_status_info_panel->msw_rescale();
     m_media_file_panel->Rescale();
-#if !BBL_RELEASE_TO_PUBLIC
     m_upgrade_panel->msw_rescale();
     m_hms_panel->msw_rescale();
-#endif
 
     m_connection_info->SetCornerRadius(0);
     m_connection_info->SetSize(wxSize(FromDIP(220), FromDIP(25)));
@@ -394,16 +396,11 @@ void MonitorPanel::update_all()
     }
 
     m_status_info_panel->obj = obj;
-
-#if !BBL_RELEASE_TO_PUBLIC
     m_upgrade_panel->update(obj);
-#endif
 
     
     m_status_info_panel->m_media_play_ctrl->SetMachineObject(IsShown() ? obj : nullptr);
-#if !BBL_RELEASE_TO_PUBLIC
     m_media_file_panel->SetMachineObject(obj);
-#endif
     update_status(obj);
     
     if (!obj) {
@@ -433,12 +430,16 @@ void MonitorPanel::update_all()
         m_status_info_panel->update(obj);
     }
 
-#if !BBL_RELEASE_TO_PUBLIC
     if (m_hms_panel->IsShown()) {
         m_hms_panel->update(obj);
     }
     if (m_upgrade_panel->IsShown()) {
         m_upgrade_panel->update(obj);
+    }
+
+#if !BBL_RELEASE_TO_PUBLIC
+    if (m_debug_panel->IsShown()) {
+        m_debug_panel->update(obj);
     }
 #endif
 }

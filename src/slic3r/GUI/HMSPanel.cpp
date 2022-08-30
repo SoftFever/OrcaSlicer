@@ -83,9 +83,8 @@ HMSNotifyItem::HMSNotifyItem(wxWindow *parent, HMSItem& item)
         }
         });
     m_hms_content->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &e) {
-        if(!m_url.empty())
-            wxLaunchDefaultBrowser(get_hms_wiki_url(m_hms_item.get_long_error_code()));
-        });
+        if (!m_url.empty()) wxLaunchDefaultBrowser(m_url);
+    });
 }
 HMSNotifyItem ::~HMSNotifyItem() {
     ;
