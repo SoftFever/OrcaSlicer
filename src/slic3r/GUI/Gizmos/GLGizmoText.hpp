@@ -14,8 +14,8 @@ namespace GUI {
 class GLGizmoText : public GLGizmoBase
 {
 private:
-    std::vector<std::string> m_avail_font_names;
-    char m_text[256] = { 0 };
+    //std::vector<std::string> m_avail_font_names;
+    char m_text[1024] = { 0 };
     std::string m_font_name;
     float m_font_size = 16.f;
     int m_curr_font_idx = 0;

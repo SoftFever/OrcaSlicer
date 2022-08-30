@@ -27,6 +27,7 @@
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Shape/TextShape.hpp"
 #include "3DScene.hpp"
 #include "GUI.hpp"
 #include "I18N.hpp"
@@ -353,18 +354,24 @@ void ImGuiWrapper::set_language(const std::string &language)
             ImGui::GetIO().Fonts->GetGlyphRangesChineseFull() :
             // Simplified Chinese
             // Default + Half-Width + Japanese Hiragana/Katakana + set of 2500 CJK Unified Ideographs for common simplified Chinese
-            ImGui::GetIO().Fonts->GetGlyphRangesChineseFull();
+            ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon();
         m_font_cjk = true;
     } else if (lang == "th") {
         ranges = ImGui::GetIO().Fonts->GetGlyphRangesThai(); // Default + Thai characters
-    } else {
-        ranges = ImGui::GetIO().Fonts->GetGlyphRangesDefault(); // Basic Latin, Extended Latin
+    }
+    else if (lang == "en") {
+        ranges = ImGui::GetIO().Fonts->GetGlyphRangesEnglish(); // Basic Latin
+    } 
+    else{
+        ranges = ImGui::GetIO().Fonts->GetGlyphRangesOthers();
     }
 
     if (ranges != m_glyph_ranges) {
         m_glyph_ranges = ranges;
         destroy_font();
     }
+
+    m_glyph_basic_ranges = ImGui::GetIO().Fonts->GetGlyphRangesBasic();
 }
 
 void ImGuiWrapper::set_display_size(float w, float h)
@@ -1537,6 +1544,31 @@ void ImGuiWrapper::bold_text(const std::string& str)
     }
 }
 
+bool ImGuiWrapper::push_font_by_name(std::string font_name)
+{
+    auto sys_font = im_fonts_map.find(font_name);
+    if (sys_font != im_fonts_map.end()) {
+        ImFont* font = sys_font->second;
+        if (font && font->ContainerAtlas && font->Glyphs.Size > 4)
+            ImGui::PushFont(font);
+        else {
+            ImGui::PushFont(default_font);
+        }
+        return true;
+    }
+    return false;
+}
+
+bool ImGuiWrapper::pop_font_by_name(std::string font_name)
+{
+    auto sys_font = im_fonts_map.find(font_name);
+    if (sys_font != im_fonts_map.end()) {
+        ImGui::PopFont();
+        return true;
+    }
+    return false;
+}
+
 void ImGuiWrapper::title(const std::string& str)
 {
     if (bold_font){
@@ -1757,6 +1789,7 @@ void ImGuiWrapper::init_font(bool compress)
 
     // Create ranges of characters from m_glyph_ranges, possibly adding some OS specific special characters.
     ImVector<ImWchar> ranges;
+    ImVector<ImWchar> basic_ranges;
     ImFontAtlas::GlyphRangesBuilder builder;
     builder.AddRanges(m_glyph_ranges);
 #ifdef __APPLE__
@@ -1771,19 +1804,42 @@ void ImGuiWrapper::init_font(bool compress)
     cfg.OversampleH = cfg.OversampleV = 1;
     //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, ranges.Data);
     //https://github.com/ocornut/imgui/issues/220
-    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Regular.ttf").c_str(), m_font_size, &cfg, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
-    if (font == nullptr) {
-        font = io.Fonts->AddFontDefault();
-        if (font == nullptr) {
+    default_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Regular.ttf").c_str(), m_font_size, &cfg, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+    if (default_font == nullptr) {
+        default_font = io.Fonts->AddFontDefault();
+        if (default_font == nullptr) {
             throw Slic3r::RuntimeError("ImGui: Could not load deafult font");
         }
     }
 
-    bold_font        = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Bold.ttf").c_str(), m_font_size, &cfg, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+    bold_font        = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Bold.ttf").c_str(), m_font_size, &cfg, ranges.Data);
     if (bold_font == nullptr) {
         bold_font = io.Fonts->AddFontDefault();
         if (bold_font == nullptr) { throw Slic3r::RuntimeError("ImGui: Could not load deafult font"); }
     }
+
+    // Add System Font
+    builder.Clear();
+    builder.AddRanges(m_glyph_basic_ranges);
+    builder.BuildRanges(&basic_ranges);
+
+    std::map<std::string, std::string> sys_fonts_map = get_occt_fonts_maps(); //map<font name, font path>
+    im_fonts_map.clear(); //map<font name, ImFont*>
+    BOOST_LOG_TRIVIAL(info) << "init_im_font start";
+    for (auto sys_font : sys_fonts_map) {
+        boost::filesystem::path font_path(sys_font.second);
+        if (!boost::filesystem::exists(font_path)) {
+            BOOST_LOG_TRIVIAL(trace) << "load font = " << sys_font.first << ", path = " << font_path << " is not exists";
+            continue;
+        }
+        ImFont* im_font = io.Fonts->AddFontFromFileTTF(sys_font.second.c_str(), m_font_size, &cfg, basic_ranges.Data);
+        if (im_font == nullptr) {
+            BOOST_LOG_TRIVIAL(trace) << "load font = " << sys_font.first << " failed, path = " << font_path << " is not exists";
+            continue;
+        }
+        im_fonts_map.insert({ sys_font.first, im_font });
+    }
+    BOOST_LOG_TRIVIAL(info) << "init_im_font end";
 
 #ifdef __APPLE__
     ImFontConfig config;
@@ -1801,11 +1857,11 @@ void ImGuiWrapper::init_font(bool compress)
     int rect_id = io.Fonts->CustomRects.Size;  // id of the rectangle added next
     // add rectangles for the icons to the font atlas
     for (auto& icon : font_icons)
-        io.Fonts->AddCustomRectFontGlyph(font, icon.first, icon_sz, icon_sz, 3.0 * font_scale + icon_sz);
+        io.Fonts->AddCustomRectFontGlyph(default_font, icon.first, icon_sz, icon_sz, 3.0 * font_scale + icon_sz);
     for (auto& icon : font_icons_large)
-        io.Fonts->AddCustomRectFontGlyph(font, icon.first, icon_sz * 2, icon_sz * 2, 3.0 * font_scale + icon_sz * 2);
+        io.Fonts->AddCustomRectFontGlyph(default_font, icon.first, icon_sz * 2, icon_sz * 2, 3.0 * font_scale + icon_sz * 2);
     for (auto& icon : font_icons_extra_large)
-        io.Fonts->AddCustomRectFontGlyph(font, icon.first, icon_sz * 4, icon_sz * 4, 3.0 * font_scale + icon_sz * 4);
+        io.Fonts->AddCustomRectFontGlyph(default_font, icon.first, icon_sz * 4, icon_sz * 4, 3.0 * font_scale + icon_sz * 4);
 
     // Build texture atlas
     unsigned char* pixels;
@@ -1858,6 +1914,21 @@ void ImGuiWrapper::init_font(bool compress)
             }
         }
         rect_id++;
+    }
+
+    if (m_fonts_names.size() == 0) {
+        std::vector<std::string> to_delete_fonts;
+        for (auto im_font : im_fonts_map) {
+            if (im_font.second->Glyphs.Size < 4) {
+                to_delete_fonts.push_back(im_font.first);
+            }
+        }
+        for (auto to_delete_font : to_delete_fonts) {
+            sys_fonts_map.erase(to_delete_font);
+            im_fonts_map.erase(to_delete_font);
+        }
+        for (auto im_font : im_fonts_map)
+            m_fonts_names.push_back(im_font.first);
     }
 
     // Upload texture to graphics system

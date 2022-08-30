@@ -32,7 +32,7 @@ GLGizmoText::GLGizmoText(GLCanvas3D& parent, const std::string& icon_filename, u
 
 bool GLGizmoText::on_init()
 {
-    m_avail_font_names = init_occt_fonts();
+    init_occt_fonts();
     m_shortcut_key = WXK_CONTROL_T;
     return true;
 }
@@ -90,6 +90,8 @@ void GLGizmoText::pop_combo_style()
 // BBS
 void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 {
+    static std::vector<std::string> m_avail_font_names = wxGetApp().imgui()->get_fonts_names();
+
     const float win_h = ImGui::GetWindowHeight();
     y = std::min(y, bottom_limit - win_h);
     GizmoImguiSetNextWIndowPos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
@@ -141,22 +143,27 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(input_text_size + ImGui::GetFrameHeight() * 2);
     push_combo_style(currt_scale);
+    int font_index = m_curr_font_idx;
+    m_imgui->push_font_by_name(cstr_font_names[font_index]);
     if (ImGui::BBLBeginCombo("##Font", cstr_font_names[m_curr_font_idx], 0)) {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 0.0f) * currt_scale);
         for (int i = 0; i < m_avail_font_names.size(); i++) {
+            m_imgui->push_font_by_name(m_avail_font_names[i]);
             const bool is_selected = (m_curr_font_idx == i);
-            if (ImGui::BBLSelectable(cstr_font_names[i], is_selected)) {
+            if (ImGui::BBLSelectable((cstr_font_names[i] + std::string("##") + std::to_string(i)).c_str(), is_selected, 0, {input_text_size + ImGui::GetFrameHeight() * 2 , 0.0f})) {
                 m_curr_font_idx = i;
                 m_font_name = cstr_font_names[m_curr_font_idx];
             }
             if (is_selected) {
                 ImGui::SetItemDefaultFocus();
             }
+            m_imgui->pop_font_by_name(m_avail_font_names[i]);
         }
         ImGui::PopStyleVar(2);
         ImGui::EndCombo();
     }
+    m_imgui->pop_font_by_name(cstr_font_names[font_index]);
 
     pop_combo_style();
     ImGui::AlignTextToFramePadding();
@@ -185,6 +192,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     m_imgui->text(_L("Input text"));
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(input_text_size);
+
     ImGui::InputText("", m_text, sizeof(m_text));
     
     ImGui::Separator();
@@ -200,6 +208,15 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         obj_list->load_mesh_part(mesh, "text_shape");
     }
     m_imgui->disabled_end();
+
+#if 0
+    ImGuiIO& io = ImGui::GetIO();
+    ImFontAtlas* atlas = io.Fonts;
+    ImVec4 tint_col = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
+    ImVec4 border_col = ImVec4(0.0f, 0.0f, 0.0f, 0.8f);
+    m_imgui->text(wxString("") << atlas->TexWidth << " * " << atlas->TexHeight);
+    ImGui::Image(atlas->TexID, ImVec2((float)atlas->TexWidth, (float)atlas->TexHeight), ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), tint_col, border_col);
+#endif
 
     GizmoImguiEnd();
     ImGui::PopStyleVar();

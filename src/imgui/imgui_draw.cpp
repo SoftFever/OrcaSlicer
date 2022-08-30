@@ -2806,12 +2806,49 @@ void ImFontAtlasBuildFinish(ImFontAtlas* atlas)
     }
 }
 
+const ImWchar* ImFontAtlas::GetGlyphRangesBasic()
+{
+    static const ImWchar ranges[] =
+    {
+        0x0041, 0x005A, // A-Z
+        0x0061, 0x007A, // a-z
+        0x0020, 0x0021,
+        0,
+    };
+    return &ranges[0];
+}
+
+const ImWchar* ImFontAtlas::GetGlyphRangesEnglish()
+{
+    static const ImWchar ranges[] =
+    {
+        0x0020, 0x00FF, // Basic Latin + Latin Supplement
+        0,
+    };
+    return &ranges[0];
+}
+
+// Retrieve list of range (2 int per range, values are inclusive)
+const ImWchar* ImFontAtlas::GetGlyphRangesOthers()
+{
+    static const ImWchar ranges[] =
+    {
+        0x0020, 0x00FF, // Basic Latin + Latin Supplement
+        0x0100, 0x017F, // Latin Extended-A
+        0x0180, 0x024F, // Latin Extended-B
+        0x2000, 0x206F, // General Punctuation
+        0xFF00, 0xFFEF, // Half-width characters
+        0,
+    };
+    return &ranges[0];
+}
+
 // Retrieve list of range (2 int per range, values are inclusive)
 const ImWchar*   ImFontAtlas::GetGlyphRangesDefault()
 {
     static const ImWchar ranges[] =
     {
-        0x0020, 0x01FF, // Basic Latin + Latin Supplement
+        0x0020, 0x00FF, // Basic Latin + Latin Supplement
         0x2000, 0x206F, // General Punctuation
         0x3000, 0x30FF, // CJK Symbols and Punctuations, Hiragana, Katakana
         0x31F0, 0x31FF, // Katakana Phonetic Extensions
@@ -2862,8 +2899,7 @@ static void UnpackAccumulativeOffsetsIntoRanges(int base_codepoint, const short*
 //-------------------------------------------------------------------------
 // [SECTION] ImFontAtlas glyph ranges helpers
 //-------------------------------------------------------------------------
-
-const ImWchar*  ImFontAtlas::GetGlyphRangesChineseSimplifiedCommon()
+const ImWchar*  ImFontAtlas::GetGlyphRangesChineseSimplifiedCommon() // used in bold_font only 
 {
     // Store 2500 regularly used characters for Simplified Chinese.
     // Sourced from https://zh.wiktionary.org/wiki/%E9%99%84%E5%BD%95:%E7%8E%B0%E4%BB%A3%E6%B1%89%E8%AF%AD%E5%B8%B8%E7%94%A8%E5%AD%97%E8%A1%A8
@@ -2919,14 +2955,14 @@ const ImWchar*  ImFontAtlas::GetGlyphRangesChineseSimplifiedCommon()
         0x2000, 0x206F, // General Punctuation
         0x3000, 0x30FF, // CJK Symbols and Punctuations, Hiragana, Katakana
         0x31F0, 0x31FF, // Katakana Phonetic Extensions
-        0x4e00, 0x9FAF, // CJK Ideograms
-        0xFF00, 0xFFEF  // Half-width characters
+        0xFF00, 0xFFEF,  // Half-width characters
+        0X5C4F, 0X5C50
     };
     static ImWchar full_ranges[IM_ARRAYSIZE(base_ranges) + IM_ARRAYSIZE(accumulative_offsets_from_0x4E00) * 2 + 1] = { 0 };
     if (!full_ranges[0])
     {
         memcpy(full_ranges, base_ranges, sizeof(base_ranges));
-        //UnpackAccumulativeOffsetsIntoRanges(0x4E00, accumulative_offsets_from_0x4E00, IM_ARRAYSIZE(accumulative_offsets_from_0x4E00), full_ranges + IM_ARRAYSIZE(base_ranges));
+        UnpackAccumulativeOffsetsIntoRanges(0x4E00, accumulative_offsets_from_0x4E00, IM_ARRAYSIZE(accumulative_offsets_from_0x4E00), full_ranges + IM_ARRAYSIZE(base_ranges));
     }
     return &full_ranges[0];
 }

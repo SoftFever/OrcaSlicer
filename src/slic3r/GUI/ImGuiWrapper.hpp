@@ -45,6 +45,7 @@ bool menu_item_with_icon(const char *label, const char *shortcut, ImVec2 icon_si
 class ImGuiWrapper
 {
     const ImWchar* m_glyph_ranges{ nullptr };
+    const ImWchar* m_glyph_basic_ranges { nullptr };
     // Chinese, Japanese, Korean
     bool m_font_cjk{ false };
     float m_font_size{ 18.0 };
@@ -155,6 +156,11 @@ public:
     void bold_text(const std::string &str);
     void title(const std::string& str);
 
+    // set font
+    const std::vector<std::string> get_fonts_names() const { return m_fonts_names; }
+    bool push_font_by_name(std::string font_name);
+    bool pop_font_by_name(std::string font_name);
+
     void disabled_begin(bool disabled);
     void disabled_end();
 
@@ -217,7 +223,10 @@ private:
     static void clipboard_set(void* user_data, const char* text);
 
     LastSliderStatus m_last_slider_status;
+    ImFont* default_font = nullptr;
     ImFont* bold_font = nullptr;
+    std::map<std::string, ImFont*> im_fonts_map;
+    std::vector<std::string> m_fonts_names;
 };
 
 class IMTexture
