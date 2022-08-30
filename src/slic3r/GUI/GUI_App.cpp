@@ -1836,7 +1836,16 @@ bool GUI_App::on_init_inner()
     CBaseException::set_log_folder(data_dir());
 #endif
     
-    wxGetApp().Bind(wxEVT_QUERY_END_SESSION, [](auto & e) {
+    wxGetApp().Bind(wxEVT_QUERY_END_SESSION, [this](auto & e) {
+        if (mainframe) {
+            wxCloseEvent e2(wxEVT_CLOSE_WINDOW);
+            e2.SetCanVeto(true);
+            mainframe->GetEventHandler()->ProcessEvent(e2);
+            if (e2.GetVeto()) {
+                e.Veto();
+                return;
+            }
+        }
         for (auto d : dialogStack)
             d->EndModal(1);
     });

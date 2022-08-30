@@ -104,7 +104,7 @@ struct DpiChangedEvent : public wxEvent {
 wxDECLARE_EVENT(EVT_DPI_CHANGED_SLICER, DpiChangedEvent);
 #endif // !wxVERSION_EQUAL_OR_GREATER_THAN
 
-extern std::vector<wxDialog*> dialogStack;
+extern std::deque<wxDialog*> dialogStack;
 
 template<class P> class DPIAware : public P
 {
@@ -226,9 +226,9 @@ public:
     
     int ShowModal()
     {
-        dialogStack.push_back(this);
+        dialogStack.push_front(this);
         int r = wxDialog::ShowModal();
-        dialogStack.pop_back();
+        dialogStack.pop_front();
         return r;
     }
 
