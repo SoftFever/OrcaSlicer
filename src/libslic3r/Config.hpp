@@ -2336,10 +2336,10 @@ public:
     // Optional width of an input field.
     int                                 width           = -1;
     // <min, max> limit of a numeric input.
-    // If not set, the <min, max> is set to <INT_MIN, INT_MAX>
+    // If not set, the <min, max> is set to <-FLT_MAX, FLT_MAX>
     // By setting min=0, only nonnegative input is allowed.
-    int                                 min = INT_MIN;
-    int                                 max = INT_MAX;
+    float                               min = -FLT_MAX;
+    float                               max =  FLT_MAX;
     // To check if it's not a typo and a % is missing
     double                              max_literal = 1;
     ConfigOptionMode                    mode = comSimple;
