@@ -221,11 +221,11 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_bitmap_sdcard_on_img->Hide();
    
     m_timelapse_button = new CameraItem(m_panel_monitoring_title, "timelapse_off_normal", "timelapse_on_normal", "timelapse_off_hover", "timelapse_on_hover");
-    m_timelapse_button->SetMinSize(wxSize(38, 24));
+    m_timelapse_button->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
     m_timelapse_button->SetBackgroundColour(STATUS_TITLE_BG);
 
     m_recording_button = new CameraItem(m_panel_monitoring_title, "recording_off_normal", "recording_on_normal", "recording_off_hover", "recording_on_hover");
-    m_recording_button->SetMinSize(wxSize(38, 24));
+    m_recording_button->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
     m_recording_button->SetBackgroundColour(STATUS_TITLE_BG);
 
     m_timelapse_button->SetToolTip(_L("Timelapse"));
