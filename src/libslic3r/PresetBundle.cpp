@@ -722,6 +722,17 @@ void PresetBundle::update_user_presets_directory(const std::string preset_folder
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished");
 }
 
+void PresetBundle::remove_user_presets_directory(const std::string preset_folder)
+{
+    const std::string dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/" + preset_folder;
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, delete directory : %1%") % dir_user_presets;
+    fs::path folder(dir_user_presets);
+    if (fs::exists(folder)) {
+        fs::remove_all(folder);
+    }
+}
+
 void PresetBundle::update_system_preset_setting_ids(std::map<std::string, std::map<std::string, std::string>>& system_presets)
 {
     for (auto iterator: system_presets)

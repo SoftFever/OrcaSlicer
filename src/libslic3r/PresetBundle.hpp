@@ -49,7 +49,8 @@ public:
     PresetsConfigSubstitutions import_presets(std::vector<std::string> &files, std::function<int(std::string const &)> override_confirm, ForwardCompatibilitySubstitutionRule rule);
     void save_user_presets(AppConfig& config, std::vector<std::string>& need_to_delete_list);
     void remove_users_preset(AppConfig &config);
-    void  update_user_presets_directory(const std::string preset_folder);
+    void update_user_presets_directory(const std::string preset_folder);
+    void remove_user_presets_directory(const std::string preset_folder);
     void update_system_preset_setting_ids(std::map<std::string, std::map<std::string, std::string>>& system_presets);
 
     //BBS: add API to get previous machine

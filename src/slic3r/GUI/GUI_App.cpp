@@ -3387,6 +3387,10 @@ void GUI_App::remove_user_presets()
 {
     if (preset_bundle && m_agent) {
         preset_bundle->remove_users_preset(*app_config);
+
+        std::string user_id = m_agent->get_user_id();
+        preset_bundle->remove_user_presets_directory(user_id);
+
         //update ui
         mainframe->update_side_preset_ui();
     }
