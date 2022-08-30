@@ -290,6 +290,8 @@ void PrinterFileSystem::BuildGroups()
 {
     if (m_file_list.empty())
         return;
+    m_group_year.clear();
+    m_group_month.clear();
     wxDateTime t = wxDateTime((time_t) m_file_list.front().time);
     m_group_year.push_back(0);
     m_group_month.push_back(0);
@@ -451,10 +453,11 @@ void PrinterFileSystem::UpdateFocusThumbnail()
             wxString            mimetype  = resp.value("mimetype", "image/jpeg");
             std::string         thumbnail = resp["thumbnail"];
             boost::uint32_t     size      = resp["size"];
-            wxMemoryInputStream mis(data, size);
-            wxImage             image(mis, mimetype);
-            thumb.name      = thumbnail;
-            thumb.thumbnail = image;
+            thumb.name = thumbnail;
+            if (size > 0) {
+                wxMemoryInputStream mis(data, size);
+                thumb.thumbnail = wxImage(mis, mimetype);
+            }
             return 0;
         },
         [this](int result, Thumbnail const &thumb) {
