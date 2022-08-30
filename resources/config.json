@@ -1,0 +1,14 @@
+{
+    "printers": [
+        {
+            "display_name": "Bambu Lab X1",
+            "model_id": "BL-P002",
+            "printer_type": "3DPrinter-X1"
+        },
+        {
+            "display_name": "Bambu Lab X1 Carbon",
+            "model_id": "BL-P001",
+            "printer_type": "3DPrinter-X1-Carbon"
+        }
+    ]
+}
