@@ -93,7 +93,7 @@ void BBLStatusBarSend::set_progress(int val)
         return;
 
     //add the logic for arrange/orient jobs, which don't call stop_busy
-    if (!m_sizer->IsShown(m_prog)) {
+    if (!m_prog->IsShown()) {
         m_sizer->Show(m_prog);
         m_sizer->Show(m_cancelbutton);
     }
