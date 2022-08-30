@@ -369,7 +369,7 @@ SelectMachinePopup::SelectMachinePopup(wxWindow *parent)
     Bind(EVT_DISSMISS_MACHINE_LIST, &SelectMachinePopup::on_dissmiss_win, this);
 }
 
-SelectMachinePopup::~SelectMachinePopup() { delete m_refresh_timer; }
+SelectMachinePopup::~SelectMachinePopup() { delete m_refresh_timer;}
 
 void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
 {
@@ -429,7 +429,20 @@ bool SelectMachinePopup::ProcessLeftDown(wxMouseEvent &event) {
     return wxPopupTransientWindow::ProcessLeftDown(event); 
 }
 
-bool SelectMachinePopup::Show(bool show) { return wxPopupTransientWindow::Show(show); }
+bool SelectMachinePopup::Show(bool show) { 
+    if (show) {
+        for (int i = 0; i < m_user_list_machine_panel.size(); i++) {
+            m_user_list_machine_panel[i]->mPanel->update_machine_info(nullptr);
+            m_user_list_machine_panel[i]->mPanel->Hide();
+        }
+
+         for (int j = 0; j < m_other_list_machine_panel.size(); j++) {
+            m_other_list_machine_panel[j]->mPanel->update_machine_info(nullptr);
+            m_other_list_machine_panel[j]->mPanel->Hide();
+        }
+    }
+    return wxPopupTransientWindow::Show(show); 
+}
 
 wxWindow *SelectMachinePopup::create_title_panel(wxString text)
 {
