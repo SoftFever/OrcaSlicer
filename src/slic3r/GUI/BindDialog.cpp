@@ -15,7 +15,7 @@
 namespace Slic3r {
 namespace GUI {
 
- BindMachineDilaog::BindMachineDilaog(Plater *plater /*= nullptr*/)
+ BindMachineDialog::BindMachineDialog(Plater *plater /*= nullptr*/)
      : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Log in printer"), wxDefaultPosition, wxDefaultSize, wxCAPTION)
  {
      std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
@@ -172,23 +172,25 @@ namespace GUI {
      Fit();
      Centre(wxBOTH);
 
-     Bind(wxEVT_SHOW, &BindMachineDilaog::on_show, this);
+     Bind(wxEVT_SHOW, &BindMachineDialog::on_show, this);
 
-     m_button_bind->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindMachineDilaog::on_bind_printer), NULL, this);
-     m_button_cancel->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindMachineDilaog::on_cancel), NULL, this);
-     this->Connect(EVT_BIND_MACHINE_FAIL, wxCommandEventHandler(BindMachineDilaog::on_bind_fail), NULL, this);
-     this->Connect(EVT_BIND_MACHINE_SUCCESS, wxCommandEventHandler(BindMachineDilaog::on_bind_success), NULL, this);
-     this->Connect(EVT_BIND_UPDATE_MESSAGE, wxCommandEventHandler(BindMachineDilaog::on_update_message), NULL, this);
+     Bind(wxEVT_CLOSE_WINDOW, &BindMachineDialog::on_close, this);
+
+     m_button_bind->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindMachineDialog::on_bind_printer), NULL, this);
+     m_button_cancel->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindMachineDialog::on_cancel), NULL, this);
+     this->Connect(EVT_BIND_MACHINE_FAIL, wxCommandEventHandler(BindMachineDialog::on_bind_fail), NULL, this);
+     this->Connect(EVT_BIND_MACHINE_SUCCESS, wxCommandEventHandler(BindMachineDialog::on_bind_success), NULL, this);
+     this->Connect(EVT_BIND_UPDATE_MESSAGE, wxCommandEventHandler(BindMachineDialog::on_update_message), NULL, this);
      m_simplebook->SetSelection(1);
  }
 
- BindMachineDilaog::~BindMachineDilaog()
+ BindMachineDialog::~BindMachineDialog()
  {
-     m_button_bind->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindMachineDilaog::on_bind_printer), NULL, this);
-     m_button_cancel->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindMachineDilaog::on_cancel), NULL, this);
-     this->Disconnect(EVT_BIND_MACHINE_FAIL, wxCommandEventHandler(BindMachineDilaog::on_bind_fail), NULL, this);
-     this->Disconnect(EVT_BIND_MACHINE_SUCCESS, wxCommandEventHandler(BindMachineDilaog::on_bind_success), NULL, this);
-     this->Disconnect(EVT_BIND_UPDATE_MESSAGE, wxCommandEventHandler(BindMachineDilaog::on_update_message), NULL, this);
+     m_button_bind->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindMachineDialog::on_bind_printer), NULL, this);
+     m_button_cancel->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(BindMachineDialog::on_cancel), NULL, this);
+     this->Disconnect(EVT_BIND_MACHINE_FAIL, wxCommandEventHandler(BindMachineDialog::on_bind_fail), NULL, this);
+     this->Disconnect(EVT_BIND_MACHINE_SUCCESS, wxCommandEventHandler(BindMachineDialog::on_bind_success), NULL, this);
+     this->Disconnect(EVT_BIND_UPDATE_MESSAGE, wxCommandEventHandler(BindMachineDialog::on_update_message), NULL, this);
  }
 
  //static  size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
@@ -205,30 +207,43 @@ namespace GUI {
  //}
 
 
- void BindMachineDilaog::on_cancel(wxCommandEvent &event)
+ void BindMachineDialog::on_cancel(wxCommandEvent &event)
  {
-      EndModal(wxID_CANCEL);
+     if (m_bind_job) {
+         m_bind_job->cancel();
+         m_bind_job->join();
+     }
+     EndModal(wxID_CANCEL);
  }
 
- void BindMachineDilaog::on_bind_fail(wxCommandEvent &event)
+ void BindMachineDialog::on_close(wxCloseEvent &event)
+ {
+     if (m_bind_job) {
+         m_bind_job->cancel();
+         m_bind_job->join();
+     }
+     event.Skip();
+ }
+
+ void BindMachineDialog::on_bind_fail(wxCommandEvent &event)
  {
     //m_status_text->SetLabel(_L("Would you like to log in this printer with current account?"));
     m_simplebook->SetSelection(1);
  }
 
- void BindMachineDilaog::on_update_message(wxCommandEvent &event)
+ void BindMachineDialog::on_update_message(wxCommandEvent &event)
  {
      m_status_text->SetLabelText(event.GetString());
  }
 
- void BindMachineDilaog::on_bind_success(wxCommandEvent &event)
+ void BindMachineDialog::on_bind_success(wxCommandEvent &event)
  {
      EndModal(wxID_OK);
      MessageDialog msg_wingow(nullptr, _L("Log in successful."), "", wxAPPLY | wxOK);
      if (msg_wingow.ShowModal() == wxOK) { return; }
  }
 
- void BindMachineDilaog::on_bind_printer(wxCommandEvent &event)
+ void BindMachineDialog::on_bind_printer(wxCommandEvent &event)
  {
      //check isset info
      if (m_machine_info == nullptr || m_machine_info == NULL) return;
@@ -242,13 +257,13 @@ namespace GUI {
      m_bind_job->start();
  }
 
-void BindMachineDilaog::on_dpi_changed(const wxRect &suggested_rect)
+void BindMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
     m_button_bind->SetMinSize(BIND_DIALOG_BUTTON_SIZE);
     m_button_cancel->SetMinSize(BIND_DIALOG_BUTTON_SIZE);
 }
 
-void BindMachineDilaog::on_show(wxShowEvent &event)
+void BindMachineDialog::on_show(wxShowEvent &event)
 {
     //m_printer_name->SetLabelText(m_machine_info->get_printer_type_string());
     m_printer_name->SetLabelText(from_u8(m_machine_info->dev_name));
@@ -256,7 +271,7 @@ void BindMachineDilaog::on_show(wxShowEvent &event)
 }
 
 
-UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/)
+UnBindMachineDialog::UnBindMachineDialog(Plater *plater /*= nullptr*/)
      : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Log out printer"), wxDefaultPosition, wxDefaultSize, wxCAPTION)
  {
      std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
@@ -402,24 +417,24 @@ UnBindMachineDilaog::UnBindMachineDilaog(Plater *plater /*= nullptr*/)
      Fit();
      Centre(wxBOTH);
 
-     Bind(wxEVT_SHOW, &UnBindMachineDilaog::on_show, this);
-     m_button_unbind->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDilaog::on_unbind_printer), NULL, this);
-     m_button_cancel->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDilaog::on_cancel), NULL, this);
+     Bind(wxEVT_SHOW, &UnBindMachineDialog::on_show, this);
+     m_button_unbind->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDialog::on_unbind_printer), NULL, this);
+     m_button_cancel->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDialog::on_cancel), NULL, this);
  }
 
- UnBindMachineDilaog::~UnBindMachineDilaog()
+ UnBindMachineDialog::~UnBindMachineDialog()
  {
-     m_button_unbind->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDilaog::on_unbind_printer), NULL, this);
-     m_button_cancel->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDilaog::on_cancel), NULL, this);
+     m_button_unbind->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDialog::on_unbind_printer), NULL, this);
+     m_button_cancel->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDialog::on_cancel), NULL, this);
  }
 
 
-void UnBindMachineDilaog::on_cancel(wxCommandEvent &event)
+void UnBindMachineDialog::on_cancel(wxCommandEvent &event)
 {
     EndModal(wxID_CANCEL);
 }
 
-void UnBindMachineDilaog::on_unbind_printer(wxCommandEvent &event)
+void UnBindMachineDialog::on_unbind_printer(wxCommandEvent &event)
 {
     if (!wxGetApp().is_user_login()) {
         m_status_text->SetLabelText(_L("Please log in first."));
@@ -455,13 +470,13 @@ void UnBindMachineDilaog::on_unbind_printer(wxCommandEvent &event)
     }
 }
 
- void UnBindMachineDilaog::on_dpi_changed(const wxRect &suggested_rect)
+ void UnBindMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
       m_button_unbind->SetMinSize(BIND_DIALOG_BUTTON_SIZE);
       m_button_cancel->SetMinSize(BIND_DIALOG_BUTTON_SIZE);
 }
 
-void UnBindMachineDilaog::on_show(wxShowEvent &event)
+void UnBindMachineDialog::on_show(wxShowEvent &event)
 {
     //m_printer_name->SetLabelText(m_machine_info->get_printer_type_string());
     m_printer_name->SetLabelText(from_u8(m_machine_info->dev_name));

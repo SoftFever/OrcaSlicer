@@ -42,7 +42,7 @@ struct MemoryStruct
     size_t size;
 };
 
-class BindMachineDilaog : public DPIDialog
+class BindMachineDialog : public DPIDialog
 {
 private:
     wxStaticText * m_printer_name;
@@ -60,8 +60,8 @@ private:
     std::shared_ptr<BBLStatusBarBind> m_status_bar;
 
 public:
-    BindMachineDilaog(Plater *plater = nullptr);
-    ~BindMachineDilaog();
+    BindMachineDialog(Plater *plater = nullptr);
+    ~BindMachineDialog();
     void     on_cancel(wxCommandEvent &event);
     void     on_bind_fail(wxCommandEvent &event);
     void     on_update_message(wxCommandEvent &event);
@@ -70,9 +70,10 @@ public:
     void     on_dpi_changed(const wxRect &suggested_rect) override;
     void     update_machine_info(MachineObject *info) { m_machine_info = info; };
     void     on_show(wxShowEvent &event);
+    void     on_close(wxCloseEvent& event);
 };
 
-class UnBindMachineDilaog : public DPIDialog
+class UnBindMachineDialog : public DPIDialog
 {
 protected:
     wxStaticText *  m_printer_name;
@@ -84,8 +85,8 @@ protected:
     wxStaticBitmap *m_avatar;
 
 public:
-    UnBindMachineDilaog(Plater *plater = nullptr);
-    ~UnBindMachineDilaog();
+    UnBindMachineDialog(Plater *plater = nullptr);
+    ~UnBindMachineDialog();
 
     void on_cancel(wxCommandEvent &event);
     void on_unbind_printer(wxCommandEvent &event);

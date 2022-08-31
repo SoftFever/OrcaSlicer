@@ -122,7 +122,7 @@ MachineObjectPanel::~MachineObjectPanel() {}
 void MachineObjectPanel::show_bind_dialog()
 {
     if (wxGetApp().is_user_login()) {
-        BindMachineDilaog dlg;
+        BindMachineDialog dlg;
         dlg.update_machine_info(m_info);
         dlg.ShowModal();
     }
@@ -559,7 +559,7 @@ void SelectMachinePopup::update_other_devices()
         });
 
         op->Bind(EVT_BIND_MACHINE, [this, mobj](wxCommandEvent &e) {
-            BindMachineDilaog dlg;
+            BindMachineDialog dlg;
             dlg.update_machine_info(mobj);
             int dlg_result = wxID_CANCEL;
             dlg_result     = dlg.ShowModal();
@@ -647,7 +647,7 @@ void SelectMachinePopup::update_user_devices()
             op->show_printer_bind(true, PrinterBindState::ALLOW_UNBIND);
             op->Bind(EVT_UNBIND_MACHINE, [this, mobj, dev](wxCommandEvent& e) {
                 // show_unbind_dialog
-                UnBindMachineDilaog dlg;
+                UnBindMachineDialog dlg;
                 dlg.update_machine_info(mobj);
                 if (dlg.ShowModal() == wxID_OK) {
                     dev->set_selected_machine("");
