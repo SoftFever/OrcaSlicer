@@ -1271,7 +1271,7 @@ void MenuFactory::append_menu_item_simplify(wxMenu* menu)
 
 void MenuFactory::append_menu_item_per_object_settings(wxMenu* menu)
 {
-    const std::vector<wxString> names = { _L("Per object edit"), _L("Edit print parameters for a single object") };
+    const std::vector<wxString> names = { _L("Edit in Parameter Table"), _L("Edit print parameters for a single object") };
     // Delete old menu item
     for (const wxString& name : names) {
         const int item_id = menu->FindItem(name);

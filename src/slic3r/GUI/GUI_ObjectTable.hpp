@@ -250,6 +250,10 @@ public:
     //set ObjectGridTable and ObjectTablePanel as friend
     friend class     ObjectGridTable;
     friend class     ObjectTablePanel;
+
+    wxString  input_string;
+    wxString  m_cell_data;
+
 protected:
     //void OnSize( wxSizeEvent& );
     void OnKeyDown( wxKeyEvent& );
@@ -258,7 +262,6 @@ protected:
 
 private:
     wxDECLARE_EVENT_TABLE();
-
     wxGridBlockCoords   m_selected_block;
     void paste_data( wxTextDataObject& text_data );
 };
@@ -628,6 +631,7 @@ public:
     ~ObjectTableDialog();
     void Popup(int obj_idx = -1, int vol_idx = -1, wxPoint position = wxDefaultPosition);
     void OnClose(wxCloseEvent &evt);
+    void OnText(wxKeyEvent &evt);
     void OnSize(wxSizeEvent& event);
 
 protected:
