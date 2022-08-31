@@ -36,7 +36,7 @@ namespace BBL {
 
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
-#define BAMBU_NETWORK_AGENT_VERSION         "01.01.02.01"
+#define BAMBU_NETWORK_AGENT_VERSION         "01.02.00.01"
 
 
 //iot preset type strings
@@ -126,6 +126,7 @@ struct PrintParams {
     bool            task_vibration_cali;    /* vibration calibration of task */
     bool            task_layer_inspect;     /* first layer inspection of task */
     bool            task_record_timelapse;  /* record timelapse of task */
+    bool            task_use_ams;
 };
 
 }
