@@ -50,6 +50,7 @@ public:
     std::string connection_type;
     bool        cloud_print_only { false };
     bool        has_sdcard { false };
+    bool        task_use_ams { true };
 
     void set_print_config(std::string bed_type, bool bed_leveling, bool flow_cali, bool vabration_cali, bool record_timelapse, bool layer_inspect) 
     {

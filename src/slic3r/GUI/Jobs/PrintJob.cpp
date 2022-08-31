@@ -152,6 +152,7 @@ void PrintJob::process()
     params.task_record_timelapse= this->task_record_timelapse;
     params.ams_mapping          = this->task_ams_mapping;
     params.connection_type      = this->connection_type;
+    params.task_use_ams         = this->task_use_ams;
 
     // local print access
     params.dev_ip = m_dev_ip;

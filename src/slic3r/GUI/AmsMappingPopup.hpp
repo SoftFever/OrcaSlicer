@@ -137,6 +137,27 @@ public:
     void paintEvent(wxPaintEvent &evt);
 };
 
+class AmsMapingTipPopup : public wxPopupTransientWindow
+{
+public:
+    AmsMapingTipPopup(wxWindow *parent);
+    ~AmsMapingTipPopup(){};
+    void paintEvent(wxPaintEvent &evt);
+
+    virtual void OnDismiss() wxOVERRIDE;
+    virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;
+
+public:
+    wxPanel *        m_panel_enable_ams;
+    wxStaticText *   m_title_enable_ams;
+    wxStaticText *   m_tip_enable_ams;
+    wxPanel *        m_split_lines;
+    wxPanel *        m_panel_disable_ams;
+    wxStaticText *   m_title_disable_ams;
+    wxStaticText *   m_tip_disable_ams;
+};
+
+
 wxDECLARE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
 
 }} // namespace Slic3r::GUI

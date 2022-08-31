@@ -822,6 +822,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Send print job to"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_plater(plater), m_export_3mf_cancel(false)
     , m_mapping_popup(AmsMapingPopup(this))
+    , m_mapping_tip_popup(AmsMapingTipPopup(this))
 {
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
@@ -928,13 +929,15 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_select = new wxGridSizer(1, 2, 0, 0);
     select_bed     = create_item_checkbox(_L("Bed Leveling"), this, _L("Bed Leveling"), "bed_leveling");
     select_flow    = create_item_checkbox(_L("Flow Calibration"), this, _L("Flow Calibration"), "flow_cali");
-
-
-    select_bed->Show(true);
-    select_flow->Show(true);
+    select_use_ams = create_ams_checkbox(_L("Enable AMS"), this, _L("Enable AMS"));
 
     m_sizer_select->Add(select_bed);
     m_sizer_select->Add(select_flow);
+    m_sizer_select->Add(select_use_ams);
+
+    select_bed->Show(true);
+    select_flow->Show(true);
+    select_use_ams->Show(true);
 
     // line schedule
     m_line_schedule = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
@@ -1044,6 +1047,52 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     init_timer();
     // CenterOnParent();
     Centre(wxBOTH);
+}
+
+wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *parent, wxString tooltip)
+{
+    auto checkbox = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    checkbox->SetBackgroundColour(m_colour_def_color);
+
+    wxBoxSizer *sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *sizer_check    = new wxBoxSizer(wxVERTICAL);
+
+    ams_check = new ::CheckBox(checkbox);
+
+    sizer_check->Add(ams_check, 0, wxBOTTOM | wxEXPAND | wxTOP, FromDIP(5));
+
+    sizer_checkbox->Add(sizer_check, 0, wxEXPAND, FromDIP(5));
+    sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(11));
+
+    auto text = new wxStaticText(checkbox, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
+    text->SetFont(::Label::Body_13);
+    text->SetForegroundColour(wxColour(107, 107, 107));
+    text->Wrap(-1);
+    sizer_checkbox->Add(text, 0, wxALIGN_CENTER, FromDIP(5));
+
+    auto img_ams_tip = new wxStaticBitmap(checkbox, wxID_ANY, create_scaled_bitmap("enable_ams", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+    sizer_checkbox->Add(img_ams_tip, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
+
+    img_ams_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_ams_tip](auto &e) {
+        wxPoint pos = img_ams_tip->ClientToScreen(wxPoint(0, 0));
+        pos.y += img_ams_tip->GetRect().height;
+        m_mapping_tip_popup.Position(pos, wxSize(0, 0));
+        m_mapping_tip_popup.Popup();
+    });
+
+    img_ams_tip->Bind(wxEVT_LEAVE_WINDOW, [this, img_ams_tip](auto &e) {
+        m_mapping_tip_popup.Dismiss();
+    });
+
+    checkbox->SetSizer(sizer_checkbox);
+    checkbox->Layout();
+    sizer_checkbox->Fit(checkbox);
+
+    checkbox->SetToolTip(tooltip);
+    text->SetToolTip(tooltip);
+
+    text->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) { ams_check->SetValue(ams_check->GetValue() ? false : true); });
+    return checkbox;
 }
 
 wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param)
@@ -1614,6 +1663,12 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
         false,
         true);
 
+    if (obj_->has_ams()) {
+        m_print_job->task_use_ams = ams_check->GetValue();
+    } else {
+        m_print_job->task_use_ams = false;
+    }
+
     m_print_job->on_success([this]() { finish_mode(); });
 
     wxCommandEvent evt(m_plater->get_print_finished_event());
@@ -2067,6 +2122,7 @@ void SelectMachineDialog::set_default()
     // checkbox default values
     m_checkbox_list["bed_leveling"]->SetValue(true);
     m_checkbox_list["flow_cali"]->SetValue(true);
+    ams_check->SetValue(true);
 
     // thumbmail
     //wxBitmap bitmap;

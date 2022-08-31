@@ -1472,7 +1472,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_ams_setting->SetBackgroundColor(btn_bg_white);
     m_button_ams_setting->SetBorderColor(btn_bd_white);
     m_button_ams_setting->SetFont(Label::Body_13);
-    m_button_ams_setting->Hide();
+    //m_button_ams_setting->Hide();
     m_sizer_right_bottom->Add(m_button_ams_setting, 0, wxTOP, FromDIP(20));
     m_sizer_right->Add(m_sizer_right_bottom, 0, wxEXPAND, FromDIP(5));
     m_sizer_bottom->Add(m_sizer_right, 0, wxEXPAND, FromDIP(5));

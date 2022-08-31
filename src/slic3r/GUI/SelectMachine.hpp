@@ -319,6 +319,8 @@ protected:
 
     wxWindow *select_bed{nullptr};
     wxWindow *select_flow{nullptr};
+    wxWindow *select_use_ams{nullptr};
+    CheckBox *ams_check{nullptr};
 
 
     void stripWhiteSpace(std::string& str);
@@ -329,6 +331,7 @@ protected:
 
 public:
     SelectMachineDialog(Plater *plater = nullptr);
+    wxWindow *create_ams_checkbox(wxString title, wxWindow *parent, wxString tooltip);
     ~SelectMachineDialog();
 
     wxWindow *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param);
@@ -361,6 +364,7 @@ protected:
     wxPanel *                    m_panel_status{nullptr};
     wxButton *                   m_button_cancel{nullptr};
     AmsMapingPopup               m_mapping_popup{nullptr};
+    AmsMapingTipPopup            m_mapping_tip_popup{nullptr};
 
     std::string                  m_print_info;
     int                          timeout_count = 0;
