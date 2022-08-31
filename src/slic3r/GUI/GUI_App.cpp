@@ -1863,7 +1863,7 @@ bool GUI_App::on_init_inner()
             }
         }
         for (auto d : dialogStack)
-            d->EndModal(1);
+            d->EndModal(wxID_CANCEL);
     });
 
     std::map<std::string, std::string> extra_headers = get_extra_header();
