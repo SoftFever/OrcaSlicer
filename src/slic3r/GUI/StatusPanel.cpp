@@ -1532,7 +1532,13 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
 void StatusPanel::update_ams(MachineObject *obj)
 {
     // update obj in sub dlg
-    if (m_ams_setting_dlg) { m_ams_setting_dlg->obj = obj; }
+    if (m_ams_setting_dlg) {
+        m_ams_setting_dlg->obj = obj;
+        if (obj && m_ams_setting_dlg->IsShown()) {
+            m_ams_setting_dlg->update_insert_material_read_mode(obj->ams_insert_flag);
+            m_ams_setting_dlg->update_starting_read_mode(obj->ams_power_on_flag);
+        }
+    }
     if (m_filament_setting_dlg) { m_filament_setting_dlg->obj = obj; }
 
     if (!obj || !obj->is_connected()) {
@@ -1540,6 +1546,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         last_ams_exist_bits   = -1;
         last_tray_is_bbl_bits = -1;
         last_read_done_bits   = -1;
+        last_reading_bits     = -1;
         last_ams_version      = -1;
         m_ams_control->EnterNoneAMSMode();
         show_ams_group(false);
@@ -1583,6 +1590,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         last_ams_exist_bits   = obj->ams_exist_bits;
         last_tray_is_bbl_bits = obj->tray_is_bbl_bits;
         last_read_done_bits   = obj->tray_read_done_bits;
+        last_reading_bits     = obj->tray_reading_bits;
         last_ams_version      = obj->ams_version;
     }
 
@@ -1683,10 +1691,20 @@ void StatusPanel::update_ams(MachineObject *obj)
             for (auto tray_it = ams_it->second->trayList.begin(); tray_it != ams_it->second->trayList.end(); tray_it++) {
                 std::string tray_id     = tray_it->first;
                 int         tray_id_int = atoi(tray_id.c_str());
-                if ((obj->tray_read_done_bits & (1 << (ams_id_int * 4 + tray_id_int))) == 0) {
-                    m_ams_control->PlayRridLoading(ams_id, tray_id);
+                if (obj->ams_insert_flag < 0) {
+                    // old protocol
+                    if ((obj->tray_read_done_bits & (1 << (ams_id_int * 4 + tray_id_int))) == 0) {
+                        m_ams_control->PlayRridLoading(ams_id, tray_id);
+                    } else {
+                        m_ams_control->StopRridLoading(ams_id, tray_id);
+                    }
                 } else {
-                    m_ams_control->StopRridLoading(ams_id, tray_id);
+                    // new protocol
+                    if ((obj->tray_reading_bits & (1 << (ams_id_int * 4 + tray_id_int))) != 0) {
+                        m_ams_control->PlayRridLoading(ams_id, tray_id);
+                    } else {
+                        m_ams_control->StopRridLoading(ams_id, tray_id);
+                    }
                 }
             }
         } catch (...) {}
@@ -2028,8 +2046,8 @@ void StatusPanel::on_ams_setting_click(SimpleEvent &event)
 {
     if (!m_ams_setting_dlg) m_ams_setting_dlg = new AMSSetting((wxWindow *) this, wxID_ANY);
     if (obj) {
-        m_ams_setting_dlg->update_insert_material_read_mode(true);
-        m_ams_setting_dlg->update_starting_read_mode(true);
+        m_ams_setting_dlg->update_insert_material_read_mode(obj->ams_insert_flag);
+        m_ams_setting_dlg->update_starting_read_mode(obj->ams_power_on_flag);
         std::string ams_id = m_ams_control->GetCurentAms();
         try {
             int ams_id_int            = atoi(ams_id.c_str());

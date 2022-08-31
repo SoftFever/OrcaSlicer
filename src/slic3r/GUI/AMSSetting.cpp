@@ -188,10 +188,6 @@ void AMSSetting::create()
     m_sizer_main->Fit(this);
 
     this->Centre(wxBOTH);
-
-    // set mode
-    update_insert_material_read_mode(true);
-    update_starting_read_mode(false);
 }
 
 void AMSSetting::update_insert_material_read_mode(bool selected)

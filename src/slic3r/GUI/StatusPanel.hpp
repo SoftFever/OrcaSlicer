@@ -357,6 +357,7 @@ public:
     long           last_ams_exist_bits { -1 };
     long           last_tray_is_bbl_bits{ -1 };
     long           last_read_done_bits{ -1 };
+    long           last_reading_bits { -1 };
     long           last_ams_version { -1 };
 
     std::vector<int> last_stage_list_info;

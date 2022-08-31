@@ -328,7 +328,11 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     ams_exist_bits = 0;
     tray_exist_bits = 0;
     tray_is_bbl_bits = 0;
+    ams_rfid_status = 0;
     is_ams_need_update = false;
+    ams_insert_flag = false;
+    ams_power_on_flag = false;
+    ams_support_use_ams = false;
 
     /* signals */
     wifi_signal = "";
@@ -2240,6 +2244,10 @@ int MachineObject::parse_json(std::string payload)
                             if (jj["ams"].contains("tray_read_done_bits")) {
                                 tray_read_done_bits = stol(jj["ams"]["tray_read_done_bits"].get<std::string>(), nullptr, 16);
                             }
+                            if (jj["ams"].contains("tray_reading_bits")) {
+                                tray_reading_bits = stol(jj["ams"]["tray_reading_bits"].get<std::string>(), nullptr, 16);
+                                ams_support_use_ams = true;
+                            }
                             if (jj["ams"].contains("tray_is_bbl_bits")) {
                                 tray_is_bbl_bits = stol(jj["ams"]["tray_is_bbl_bits"].get<std::string>(), nullptr, 16);
                             }
@@ -2252,6 +2260,15 @@ int MachineObject::parse_json(std::string payload)
                             }
                             if (jj["ams"].contains("tray_tar")) {
                                 m_tray_tar = jj["ams"]["tray_tar"].get<std::string>();
+                            }
+                            if (jj["ams"].contains("insert_flag")) {
+                                ams_insert_flag = jj["ams"]["insert_flag"].get<bool>();
+                            }
+                            if (jj["ams"].contains("ams_rfid_status"))
+                                ams_rfid_status = jj["ams"]["ams_rfid_status"].get<int>();
+
+                            if (jj["ams"].contains("power_on_flag")) {
+                                ams_power_on_flag = jj["ams"]["power_on_flag"].get<bool>();
                             }
 
                             if (ams_exist_bits != last_ams_exist_bits

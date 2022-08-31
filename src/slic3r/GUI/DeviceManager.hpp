@@ -111,6 +111,16 @@ enum AmsStatusMain {
     AMS_STATUS_MAIN_UNKNOWN             = 0xFF,
 };
 
+enum AmsRfidStatus {
+    AMS_RFID_IDLE           = 0,
+    AMS_RFID_READING        = 1,
+    AMS_RFID_GCODE_TRANS    = 2,
+    AMS_RFID_GCODE_RUNNING  = 3,
+    AMS_RFID_ASSITANT       = 4,
+    AMS_RFID_SWITCH_FILAMENT= 5,
+    AMS_RFID_HAS_FILAMENT   = 6
+};
+
 class AmsTray {
 public:
     AmsTray(std::string tray_id) {
@@ -349,6 +359,11 @@ public:
     long  tray_exist_bits = 0;
     long  tray_is_bbl_bits = 0;
     long  tray_read_done_bits = 0;
+    long  tray_reading_bits = 0;
+    int   ams_rfid_status = 0;
+    bool  ams_insert_flag { false };
+    bool  ams_power_on_flag { false };
+    bool  ams_support_use_ams { false };
     AmsStatusMain ams_status_main;
     int   ams_status_sub;
     int   ams_version = 0;

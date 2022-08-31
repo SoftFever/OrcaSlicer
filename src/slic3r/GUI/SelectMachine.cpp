@@ -1091,7 +1091,9 @@ wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *par
     checkbox->SetToolTip(tooltip);
     text->SetToolTip(tooltip);
 
-    text->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) { ams_check->SetValue(ams_check->GetValue() ? false : true); });
+    text->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) {
+            ams_check->SetValue(ams_check->GetValue() ? false : true);
+        });
     return checkbox;
 }
 
@@ -1452,6 +1454,10 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintDialogStatus::PrintStatusInPrinting) {
         wxString msg_text = _L("The printer is busy on other print job");
         update_print_status_msg(msg_text, true, true);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusDisableAms) {
+        update_print_status_msg(wxEmptyString, false, false);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNeedUpgradingAms) {
@@ -1895,6 +1901,15 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     update_show_status();
 }
 
+void SelectMachineDialog::update_ams_check(MachineObject* obj)
+{
+    if (obj && obj->ams_support_use_ams) {
+        ams_check->Show();
+    } else {
+        ams_check->Hide();
+    }
+}
+
 void SelectMachineDialog::update_show_status()
 {
     // refreshing return
@@ -1948,6 +1963,7 @@ void SelectMachineDialog::update_show_status()
     }
 
     reset_timeout();
+    update_ams_check(obj_);
 
     // reading done
     if (obj_->is_in_upgrading()) {
@@ -1975,6 +1991,14 @@ void SelectMachineDialog::update_show_status()
     if (!obj_->has_ams()) {
         show_status(PrintDialogStatus::PrintStatusReadingFinished);
         return;
+    }
+
+    if (obj_->ams_support_use_ams) {
+        if (!ams_check->GetValue()) {
+            m_ams_mapping_result.clear();
+            show_status(PrintDialogStatus::PrintStatusDisableAms);
+            return;
+        }
     }
 
     // do ams mapping if no ams result
