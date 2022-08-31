@@ -524,8 +524,8 @@ void MachineInfoPanel::update_ams(MachineObject *obj)
                         }
                     }
                 } else {
-                    std::string ams_id   = "ams/" + std::to_string(ams_index);
-                    auto        ver_item = obj->new_ver_list.find(ams_id);
+                    std::string ams_idx = (boost::format("ams/%1%") % ams_id).str();
+                    auto        ver_item = obj->new_ver_list.find(ams_idx);
 
                     if (ver_item == obj->new_ver_list.end()) {
                         amspanel->m_ams_new_version_img->Hide();
