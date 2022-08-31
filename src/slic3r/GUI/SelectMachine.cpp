@@ -1066,7 +1066,10 @@ void SelectMachineDialog::prepare_mode()
     if (m_print_job) {
         m_print_job->join();
     }
-    wxEndBusyCursor();
+
+    if (wxIsBusy())
+        wxEndBusyCursor();
+
     Enable_Send_Button(true);
 
     m_status_bar->reset();
