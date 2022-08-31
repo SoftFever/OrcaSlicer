@@ -371,6 +371,15 @@ void MonitorPanel::update_all()
         return;
     obj = dev->get_selected_machine();
 
+    // check valid machine
+    if (obj && dev->get_my_machine(obj->dev_id) == nullptr) {
+        dev->set_selected_machine("");
+        if (m_agent)
+            m_agent->set_user_selected_machine("");
+        show_status((int)MONITOR_NO_PRINTER);
+        return;
+    }
+
     //BBS check mqtt connections if user is login
     if (wxGetApp().is_user_login()) {
         // check mqtt connection and reconnect if disconnected
