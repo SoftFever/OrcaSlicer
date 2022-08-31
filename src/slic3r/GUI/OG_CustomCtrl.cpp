@@ -768,9 +768,9 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
                 break;
             }
         }
-        //is_url_string = !suppress_hyperlinks && !og_line.label_path.empty();
+        is_url_string = !suppress_hyperlinks && !og_line.label_path.empty();
         // BBS
-        h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label /* + ":" */, text_clr, ctrl->opt_group->label_width * ctrl->m_em_unit, true);
+        h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label /* + ":" */, text_clr, ctrl->opt_group->label_width * ctrl->m_em_unit, is_url_string, true);
     }
 
     // If there's a widget, build it and set result to the correct position.
@@ -844,12 +844,12 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
             //if (!ctrl->opt_group->option_label_at_right) // BBS
                 //label += ":";
 
-            //if (is_url_string)
-            //    is_url_string = false;
-            //else if(opt == option_set.front())
-            //    is_url_string = !suppress_hyperlinks && !og_line.label_path.empty();
+            if (is_url_string)
+                is_url_string = false;
+            else if(opt == option_set.front())
+                is_url_string = !suppress_hyperlinks && !og_line.label_path.empty();
             static wxColor c("#6B6B6B");
-            h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label, field ? (field->blink() ? &blink_color : &c) : nullptr, ctrl->opt_group->sublabel_width * ctrl->m_em_unit);
+            h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label, field ? (field->blink() ? &blink_color : &c) : nullptr, ctrl->opt_group->sublabel_width * ctrl->m_em_unit, is_url_string);
             h_pos += 8;
         }
 
@@ -884,7 +884,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
     }
 }
 
-wxCoord    OG_CustomCtrl::CtrlLine::draw_text(wxDC& dc, wxPoint pos, const wxString& text, const wxColour* color, int width, bool is_main/* = false*/)
+wxCoord OG_CustomCtrl::CtrlLine::draw_text(wxDC &dc, wxPoint pos, const wxString &text, const wxColour *color, int width, bool is_url/* = false*/, bool is_main/* = false*/)
 {
     wxString multiline_text;
     auto size = Label::split_lines(dc, width, text, multiline_text);
@@ -903,13 +903,16 @@ wxCoord    OG_CustomCtrl::CtrlLine::draw_text(wxDC& dc, wxPoint pos, const wxStr
 
         wxColour old_clr = dc.GetTextForeground();
         wxFont old_font = dc.GetFont();
-//        if (is_focused && is_url)
-//        // temporary workaround for the OSX because of strange Bold font behavior on BigSerf
-//#ifdef __APPLE__
-//            dc.SetFont(old_font.Underlined());
-//#else
-//            dc.SetFont(old_font.Bold().Underlined());
-//#endif            
+        static wxColor clr_url("#00AE42");
+        if (is_focused && is_url) {
+        // temporary workaround for the OSX because of strange Bold font behavior on BigSerf
+#ifdef __APPLE__
+            dc.SetFont(old_font.Underlined());
+#else
+            dc.SetFont(old_font.Bold().Underlined());
+#endif            
+            color = &clr_url;
+        }
         dc.SetTextForeground(color ? *color :
 #ifdef _WIN32
             wxGetApp().get_label_clr_default());
@@ -983,7 +986,7 @@ bool OG_CustomCtrl::CtrlLine::launch_browser() const
     if (!is_focused || og_line.label_path.empty())
         return false;
 
-    return true;
+    return OptionsGroup::launch_browser(og_line.label_path);
 }
 
 } // GUI
