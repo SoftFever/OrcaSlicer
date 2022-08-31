@@ -336,26 +336,47 @@ void MachineInfoPanel::update_version_text(MachineObject* obj)
     } else {
         // update version text
         auto it = obj->module_vers.find("ota");
-        if (obj->upgrade_new_version
-            && !obj->ota_new_version_number.empty()) {
-            if (it != obj->module_vers.end()) {
-                wxString ver_text = wxString::Format("%s->%s", it->second.sw_ver, obj->ota_new_version_number);
-                m_staticText_ver_val->SetLabelText(ver_text);
+
+        // old protocol
+        if (obj->new_ver_list.empty() && !obj->m_new_ver_list_exist) {
+            if (obj->upgrade_new_version
+                && !obj->ota_new_version_number.empty()) {
+                if (it != obj->module_vers.end()) {
+                    wxString ver_text = wxString::Format("%s->%s", it->second.sw_ver, obj->ota_new_version_number);
+                    m_staticText_ver_val->SetLabelText(ver_text);
+                }
+                else {
+                    m_staticText_ver_val->SetLabelText("-");
+                }
+                m_ota_new_version_img->Show();
             }
             else {
-                m_staticText_ver_val->SetLabelText("-");
+                if (it != obj->module_vers.end()) {
+                    wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
+                    m_staticText_ver_val->SetLabelText(ver_text);
+                }
+                else {
+                    m_staticText_ver_val->SetLabelText("-");
+                }
+                m_ota_new_version_img->Hide();
             }
-            m_ota_new_version_img->Show();
-        }
-        else {
-            if (it != obj->module_vers.end()) {
+        } else {
+            auto ota_it = obj->new_ver_list.find("ota");
+            if (ota_it == obj->new_ver_list.end()) {
                 wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
                 m_staticText_ver_val->SetLabelText(ver_text);
+                m_ota_new_version_img->Hide();
+            } else {
+                if (ota_it->second.sw_new_ver != ota_it->second.sw_ver) {
+                    m_ota_new_version_img->Show();
+                    wxString ver_text = wxString::Format("%s->%s", ota_it->second.sw_ver, ota_it->second.sw_new_ver);
+                    m_staticText_ver_val->SetLabelText(ver_text);
+                } else {
+                    m_ota_new_version_img->Hide();
+                    wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
+                    m_staticText_ver_val->SetLabelText(ver_text);
+                }
             }
-            else {
-                m_staticText_ver_val->SetLabelText("-");
-            }
-            m_ota_new_version_img->Hide();
         }
     }
 }
