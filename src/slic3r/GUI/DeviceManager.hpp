@@ -459,6 +459,7 @@ public:
     int     mc_print_percent;       /* left print progess in percent */
     int     mc_left_time;           /* left time in seconds */
     int     last_mc_print_stage;
+    int     home_flag;
     bool    is_system_printing();
     int     print_error;
 
@@ -466,6 +467,8 @@ public:
     int stage_curr = 0;
     int m_push_count = 0;
     bool calibration_done { false };
+
+    bool is_axis_at_home(std::string axis);
 
     wxString get_curr_stage();
     // return curr stage index of stage list

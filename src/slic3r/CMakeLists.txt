@@ -340,6 +340,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/DesktopIntegrationDialog.hpp
     GUI/PublishDialog.cpp
     GUI/PublishDialog.hpp
+	GUI/RecenterDialog.cpp
+    GUI/RecenterDialog.hpp
     GUI/BindDialog.cpp
     GUI/BindDialog.hpp
     GUI/SelectMachine.hpp

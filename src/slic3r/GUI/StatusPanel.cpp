@@ -9,7 +9,7 @@
 
 #include "slic3r/Utils/Http.hpp"
 #include "libslic3r/Thread.hpp"
-
+#include "RecenterDialog.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -1355,6 +1355,12 @@ void StatusPanel::update(MachineObject *obj)
     m_machine_ctrl_panel->Thaw();
 }
 
+void StatusPanel::show_recenter_dialog() {
+    RecenterDialog dlg(this);
+    if (dlg.ShowModal() == wxID_OK)
+        obj->command_go_home();
+}
+
 void StatusPanel::show_error_message(wxString msg)
 {
     m_error_text->SetLabel(msg);
@@ -1944,6 +1950,27 @@ void StatusPanel::reset_printing_values()
 void StatusPanel::on_axis_ctrl_xy(wxCommandEvent &event)
 {
     if (!obj) return;
+
+    //check is at home
+    if (event.GetInt() == 1
+        || event.GetInt() == 3
+        || event.GetInt() == 5
+        || event.GetInt() == 7) {
+        if (!obj->is_axis_at_home("X")) {
+            BOOST_LOG_TRIVIAL(info) << "axis x is not at home";
+            show_recenter_dialog();
+            return;
+        }
+    } else if (event.GetInt() == 0
+               || event.GetInt() == 2
+               || event.GetInt() == 4
+               || event.GetInt() == 6) {
+        if (!obj->is_axis_at_home("Y")) {
+            BOOST_LOG_TRIVIAL(info) << "axis y is not at home";
+            show_recenter_dialog();
+            return;
+        }
+    }
     if (event.GetInt() == 0) { obj->command_axis_control("Y", 1.0, 10.0f, 3000); }
     if (event.GetInt() == 1) { obj->command_axis_control("X", 1.0, -10.0f, 3000); }
     if (event.GetInt() == 2) { obj->command_axis_control("Y", 1.0, -10.0f, 3000); }
@@ -1955,24 +1982,53 @@ void StatusPanel::on_axis_ctrl_xy(wxCommandEvent &event)
     if (event.GetInt() == 8) { obj->command_go_home(); }
 }
 
+bool StatusPanel::check_axis_z_at_home(MachineObject* obj)
+{
+    if (obj) {
+        if (!obj->is_axis_at_home("Z")) {
+            BOOST_LOG_TRIVIAL(info) << "axis z is not at home";
+            show_recenter_dialog();
+            return false;
+        }
+        return true;
+    }
+    return false;
+}
+
 void StatusPanel::on_axis_ctrl_z_up_10(wxCommandEvent &event)
 {
-    if (obj) obj->command_axis_control("Z", 1.0, -10.0f, 900);
+    if (obj) {
+        if (!check_axis_z_at_home(obj))
+            return;
+        obj->command_axis_control("Z", 1.0, -10.0f, 900);
+    }
 }
 
 void StatusPanel::on_axis_ctrl_z_up_1(wxCommandEvent &event)
 {
-    if (obj) obj->command_axis_control("Z", 1.0, -1.0f, 900);
+    if (obj) {
+        if (!check_axis_z_at_home(obj))
+            return;
+        obj->command_axis_control("Z", 1.0, -1.0f, 900);
+    }
 }
 
 void StatusPanel::on_axis_ctrl_z_down_1(wxCommandEvent &event)
 {
-    if (obj) obj->command_axis_control("Z", 1.0, 1.0f, 900);
+    if (obj) {
+        if (!check_axis_z_at_home(obj))
+            return;
+        obj->command_axis_control("Z", 1.0, 1.0f, 900);
+    }
 }
 
 void StatusPanel::on_axis_ctrl_z_down_10(wxCommandEvent &event)
 {
-    if (obj) obj->command_axis_control("Z", 1.0, 10.0f, 900);
+    if (obj) {
+        if (!check_axis_z_at_home(obj))
+            return;
+        obj->command_axis_control("Z", 1.0, 10.0f, 900);
+    }
 }
 
 void StatusPanel::on_axis_ctrl_e_up_10(wxCommandEvent &event)

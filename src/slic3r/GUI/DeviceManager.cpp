@@ -356,6 +356,7 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     mc_print_percent = 0;
     mc_print_sub_stage = 0;
     mc_left_time = 0;
+    home_flag = -1;
     printing_speed_lvl   = PrintingSpeedLevel::SPEED_LEVEL_INVALID;
 }
 
@@ -1026,6 +1027,22 @@ bool MachineObject::is_system_printing()
     return false;
 }
 
+bool MachineObject::is_axis_at_home(std::string axis)
+{
+    if (home_flag < 0)
+        return true;
+
+    if (axis == "X") {
+        return home_flag & 1 == 1;
+    } else if (axis == "Y") {
+        return home_flag >> 1 & 1 == 1;
+    } else if (axis == "Z") {
+        return home_flag >> 2 & 1 == 1;
+    } else {
+        return true;
+    }
+}
+
 wxString MachineObject::get_curr_stage()
 {
     if (stage_list_info.empty()) {
@@ -1399,11 +1416,11 @@ int MachineObject::command_set_printing_speed(PrintingSpeedLevel lvl)
 
 int MachineObject::command_axis_control(std::string axis, double unit, double value, int speed)
 {
-    char cmd[64];
+    char cmd[256];
     if (axis.compare("X") == 0
         || axis.compare("Y") == 0
         || axis.compare("Z") == 0) {
-        sprintf(cmd, "G91 \nG0 %s%0.1f F%d\n", axis.c_str(), value * unit, speed);
+        sprintf(cmd, "M211 S \nM211 X1 Y1 Z1\nM1002 push_ref_mode\nG91 \nG1 %s%0.1f F%d\nM1002 pop_ref_mode\nM211 R\n", axis.c_str(), value * unit, speed);
     }
     else if (axis.compare("E") == 0) {
         sprintf(cmd, "M83 \nG0 %s%0.1f F%d\n", axis.c_str(), value * unit, speed);
@@ -1797,6 +1814,10 @@ int MachineObject::parse_json(std::string payload)
                     // U0 firmware
                     if (jj.contains("print_type")) {
                         print_type = jj["print_type"].get<std::string>();
+                    }
+
+                    if (jj.contains("home_flag")) {
+                        home_flag = jj["home_flag"].get<int>();
                     }
 
                     if (jj.contains("mc_remaining_time")) {
