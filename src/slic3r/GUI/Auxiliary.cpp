@@ -239,7 +239,12 @@ void AuFile::PaintForeground(wxDC &dc)
             dc.DrawText(m_add_file, pos);
             return;
         }
-        dc.DrawBitmap(m_file_edit_mask.bmp(), 0, size.y - m_file_edit_mask.GetBmpSize().y);
+
+        if (m_type == MODEL_PICTURE) {
+            dc.DrawBitmap(m_file_edit_mask.bmp(), 0, size.y - m_file_edit_mask.GetBmpSize().y); 
+        }
+
+
         dc.SetFont(Label::Body_14);
         dc.SetTextForeground(*wxWHITE);
         if (m_type == MODEL_PICTURE) {
@@ -266,11 +271,11 @@ void AuFile::PaintForeground(wxDC &dc)
             dc.DrawRectangle(pos.x, pos.y, 2, FromDIP(30));
         } else {
             // right text
-            auto sizet = dc.GetTextExtent(cover_text_right);
+           /* auto sizet = dc.GetTextExtent(cover_text_right);
             auto pos   = wxPoint(0, 0);
-            pos.x = (size.x  - sizet.x) / 2;
-            pos.y = (size.y - (m_file_edit_mask.GetBmpSize().y + sizet.y) / 2);
-            dc.DrawText(cover_text_right, pos);
+            pos.x      = (size.x - sizet.x) / 2;
+            pos.y      = (size.y - (m_file_edit_mask.GetBmpSize().y + sizet.y) / 2);
+            dc.DrawText(cover_text_right, pos);*/
         }       
     }
 
@@ -409,8 +414,8 @@ void AuFile::on_mouse_left_up(wxMouseEvent &evt)
     if (pos.x > cover_left && pos.x < cover_right && pos.y > cover_top && pos.y < cover_bottom) { 
         if(m_type == MODEL_PICTURE)
             on_set_cover(); 
-        else
-            on_set_rename();
+       /* else
+             on_set_rename();*/
         return;
     }
 
