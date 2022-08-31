@@ -146,9 +146,10 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_delete->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) { m_image_grid->DoActionOnSelection(0); });
 
     auto onShowHide = [this](auto &e) {
+        e.Skip();
         if (m_isBeingDeleted) return;
         auto fs = m_image_grid ? m_image_grid->GetFileSystem() : nullptr;
-        if (fs) e.IsShown() && IsShown() ? fs->Start() : fs->Stop();
+        if (fs) IsShownOnScreen() ? fs->Start() : fs->Stop();
     };
     Bind(wxEVT_SHOW, onShowHide);
     parent->GetParent()->Bind(wxEVT_SHOW, onShowHide);

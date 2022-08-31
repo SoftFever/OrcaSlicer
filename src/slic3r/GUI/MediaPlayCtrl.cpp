@@ -40,6 +40,14 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
 #if BBL_RELEASE_TO_PUBLIC
     m_next_retry = wxDateTime::Now();
 #endif
+
+    auto onShowHide = [this](auto &e) {
+        e.Skip();
+        if (m_isBeingDeleted) return;
+        IsShownOnScreen() ? Play() : Stop();
+    };
+    parent->Bind(wxEVT_SHOW, onShowHide);
+    parent->GetParent()->GetParent()->Bind(wxEVT_SHOW, onShowHide);
 }
 
 MediaPlayCtrl::~MediaPlayCtrl()
@@ -72,6 +80,10 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
 
 void MediaPlayCtrl::Play()
 {
+    if (!m_next_retry.IsValid())
+        return;
+    if (!IsShownOnScreen())
+        return;
     if (m_machine.empty()) {
         Stop();
         SetStatus(_L("Initialize failed (No Device)!"));

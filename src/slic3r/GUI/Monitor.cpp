@@ -402,7 +402,7 @@ void MonitorPanel::update_all()
     m_upgrade_panel->update(obj);
 
     
-    m_status_info_panel->m_media_play_ctrl->SetMachineObject(IsShown() ? obj : nullptr);
+    m_status_info_panel->m_media_play_ctrl->SetMachineObject(obj);
     m_media_file_panel->SetMachineObject(obj);
     update_status(obj);
     
@@ -466,7 +466,6 @@ bool MonitorPanel::Show(bool show)
         }
     } else {
         m_refresh_timer->Stop();
-        m_status_info_panel->m_media_play_ctrl->SetMachineObject(nullptr);
     }
     return wxPanel::Show(show);
 }
