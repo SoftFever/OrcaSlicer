@@ -471,40 +471,40 @@ body
 	flex-wrap: wrap;
 	align-content: flex-start;
 	overflow-y: auto;
-	padding: 50px;
+	padding: 50px 80px;
 }
 
 .GuideBlock
 {
-	width: 320px;
-	margin: 0px;
-	margin: 0px 12px 30px 12px;
+	width: 400px;
+	margin: 0px 20px 40px 20px;
 	cursor: pointer;
 }
 
 .UG_IMG
 {
-	width: 320px;
-	height: 200px;	
+	width: 400px;
+	height: 250px;	
 }
 
 .UG_IMG img
 {
-	width: 320px;
-	height: 200px;
+	width: 400px;
+	height: 250px;
 }
 
 .UG_TITLE
 {
 	font-size: 16px;
 	line-height: 20px;
-	width: 320px;
-	margin-top: 6px;
+	width: 400px;
+	margin-top: 20px;
+	margin-bottom: 10px; 
 }
 
 .UG_DESC
 {
-	width: 320px;
+	width: 400px;
 	line-height: 18px;
 	color: #C4C4C4;
 	font-size: 14px;
