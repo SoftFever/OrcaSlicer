@@ -1775,9 +1775,29 @@ void StatusPanel::update_basic_print_data(bool def)
         wxString prediction = wxString::Format("%s", get_bbl_time_dhms(obj->slice_info->prediction));
         wxString weight = wxString::Format("%.2fg", obj->slice_info->weight);
 
+        if (!m_staticText_consumption_of_time->IsShown()) {
+            m_bitmap_static_use_time->Show();
+            m_staticText_consumption_of_time->Show();
+        }
+
+        if (!m_staticText_consumption_of_weight->IsShown()) { 
+            m_bitmap_static_use_weight->Show();
+            m_staticText_consumption_of_weight->Show();
+        }
+            
         m_staticText_consumption_of_time->SetLabelText(prediction);
-        m_staticText_consumption_of_weight->SetLabelText(weight);
+        m_staticText_consumption_of_weight->SetLabelText(weight); 
     } else {
+        if (m_staticText_consumption_of_time->IsShown()) { 
+            m_bitmap_static_use_time->Hide();
+            m_staticText_consumption_of_time->Hide();
+        }
+
+        if (m_staticText_consumption_of_weight->IsShown()) { 
+            m_bitmap_static_use_weight->Hide();
+            m_staticText_consumption_of_weight->Hide();
+        }
+
         m_staticText_consumption_of_time->SetLabelText("0m");
         m_staticText_consumption_of_weight->SetLabelText("0g");
     }
@@ -1808,7 +1828,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
             m_staticText_progress_left->SetLabelText(NA_STR);
             wxString subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
             m_staticText_subtask_value->SetLabelText(subtask_text);
-            update_basic_print_data(true);
+            update_basic_print_data(false);
         } else {
             if (obj->can_resume()) {
                 m_button_pause_resume->SetBitmap_("print_control_resume");
@@ -1817,8 +1837,6 @@ void StatusPanel::update_subtask(MachineObject *obj)
                 m_button_pause_resume->SetBitmap_("print_control_pause");
                 if (m_button_pause_resume->GetToolTipText() != _L("Pause")) { m_button_pause_resume->SetToolTip(_L("Pause")); }
             }
-                
-
             if (obj->print_status == "FINISH") {
                 m_button_abort->Enable(false);
                 m_button_abort->SetBitmap_("print_control_stop_disable");
@@ -1844,11 +1862,12 @@ void StatusPanel::update_subtask(MachineObject *obj)
         }
         wxString subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
         m_staticText_subtask_value->SetLabelText(subtask_text);
-        update_basic_print_data(true);
         //update thumbnail
         if (obj->is_sdcard_printing()) {
+            update_basic_print_data(false);
             update_sdcard_subtask(obj);
         } else {
+            update_basic_print_data(true);
             update_cloud_subtask(obj);
         }
     } else {

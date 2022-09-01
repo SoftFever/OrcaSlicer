@@ -51,6 +51,7 @@ public:
     {
         profile_ = profile;
         prediction = 0;
+        weight = 0.0f;
     }
 
     BBLSliceInfo(const BBLSliceInfo& obj) {
