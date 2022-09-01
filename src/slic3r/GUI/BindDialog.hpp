@@ -16,6 +16,7 @@
 #include <wx/icon.h>
 #include <wx/dialog.h>
 #include <curl/curl.h>
+#include <wx/webrequest.h>
 #include "wxExtensions.hpp"
 #include "Plater.hpp"
 #include "Widgets/StepCtrl.hpp"
@@ -54,6 +55,7 @@ private:
     Button *      m_button_cancel;
     wxSimplebook *m_simplebook;
     wxStaticBitmap *m_avatar;
+    wxWebRequest  web_request;
 
     MachineObject *                   m_machine_info{nullptr};
     std::shared_ptr<BindJob>          m_bind_job;
@@ -71,6 +73,7 @@ public:
     void     update_machine_info(MachineObject *info) { m_machine_info = info; };
     void     on_show(wxShowEvent &event);
     void     on_close(wxCloseEvent& event);
+    void     on_destroy();
 };
 
 class UnBindMachineDialog : public DPIDialog

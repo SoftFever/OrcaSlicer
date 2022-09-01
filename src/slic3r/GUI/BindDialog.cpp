@@ -92,12 +92,12 @@ namespace GUI {
 
          m_avatar = new wxStaticBitmap(m_panel_right, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(60), FromDIP(60)), 0);
 
-         wxWebRequest request = wxWebSession::GetDefault().CreateRequest(this, wxGetApp().getAgent()->get_user_avatar());
-         if (!request.IsOk()) {
+         web_request = wxWebSession::GetDefault().CreateRequest(this, wxGetApp().getAgent()->get_user_avatar());
+         if (!web_request.IsOk()) {
              // todo request fail
          }
          // Start the request
-         request.Start();
+         web_request.Start();
      }
 
      m_sizer_right_v->Add(m_avatar, 0, wxALIGN_CENTER, 0);
@@ -209,19 +209,25 @@ namespace GUI {
 
  void BindMachineDialog::on_cancel(wxCommandEvent &event)
  {
-     if (m_bind_job) {
-         m_bind_job->cancel();
-         m_bind_job->join();
-     }
+     on_destroy();
      EndModal(wxID_CANCEL);
  }
 
- void BindMachineDialog::on_close(wxCloseEvent &event)
+ void BindMachineDialog::on_destroy()
  {
      if (m_bind_job) {
          m_bind_job->cancel();
          m_bind_job->join();
      }
+
+     if (web_request.IsOk()) {
+         web_request.Cancel();
+     }
+ }
+
+ void BindMachineDialog::on_close(wxCloseEvent &event)
+ {
+     on_destroy();
      event.Skip();
  }
 
