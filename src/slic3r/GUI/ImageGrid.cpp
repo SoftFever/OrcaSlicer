@@ -138,7 +138,7 @@ void Slic3r::GUI::ImageGrid::DoAction(size_t index, int action)
     if (action == 0) {
         m_file_sys->DeleteFiles(index);
     } else {
-        if (index >= 0) {
+        if (index != -1) {
             auto &file = m_file_sys->GetFile(index);
             if (file.IsDownload() && file.progress >= -1) {
                 if (file.progress >= 100) {

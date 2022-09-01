@@ -53,19 +53,23 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_type_panel->SetCornerRadius(FromDIP(5));
     m_type_panel->SetMinSize({-1, 48 * em_unit(this) / 10});
     m_button_timelapse = new ::Button(m_type_panel, _L("Timelapse"), "", wxBORDER_NONE);
-    m_button_video     = new ::Button(m_type_panel, _L("Video"), "", wxBORDER_NONE);
+    m_button_timelapse->SetCanFocus(false);
+    m_button_video = new ::Button(m_type_panel, _L("Video"), "", wxBORDER_NONE);
+    m_button_video->SetCanFocus(false);
 
     wxBoxSizer *type_sizer = new wxBoxSizer(wxHORIZONTAL);
     type_sizer->Add(m_button_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24);
     type_sizer->Add(m_button_video, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 24);
     m_type_panel->SetSizer(type_sizer);
-    top_sizer->Add(m_type_panel, 0, wxALIGN_CENTER_VERTICAL);
+    //top_sizer->Add(m_type_panel, 0, wxALIGN_CENTER_VERTICAL);
 
     // File management
     m_manage_panel      = new ::StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_manage_panel->SetBackgroundColor(StateColor());
     m_button_delete     = new ::Button(m_manage_panel, _L("Delete"));
-    m_button_download   = new ::Button(m_manage_panel, _L("Download"));
+    m_button_delete->SetCanFocus(false);
+    m_button_download = new ::Button(m_manage_panel, _L("Download"));
+    m_button_download->SetCanFocus(false);
     m_button_management = new ::Button(m_manage_panel, _L("Management"));
 
     wxBoxSizer *manage_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -110,7 +114,10 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
         auto b    = dynamic_cast<Button *>(e.GetEventObject());
         if (b == m_button_video)
             type = PrinterFileSystem::F_VIDEO;
+        if (m_last_type == type)
+            return;
         m_image_grid->SetFileType(type);
+        m_last_type = type;
         {
             wxCommandEvent e(wxEVT_CHECKBOX);
             e.SetEventObject(m_button_timelapse);
@@ -176,6 +183,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         m_image_grid->SetStatus(m_bmp_failed.bmp(), _L("No printers."));    
     } else {
         boost::shared_ptr<PrinterFileSystem> fs(new PrinterFileSystem);
+        m_image_grid->SetFileType(m_last_type);
         m_image_grid->SetFileSystem(fs);
         fs->Bind(EVT_MODE_CHANGED, &MediaFilePanel::modeChanged, this);
         fs->Bind(EVT_STATUS_CHANGED, [this, wfs = boost::weak_ptr(fs)](auto &e) {

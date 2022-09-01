@@ -68,6 +68,7 @@ private:
     ImageGrid * m_image_grid = nullptr;
 
     int m_last_mode = 0;
+    int m_last_type = 0;
 };
 
 
