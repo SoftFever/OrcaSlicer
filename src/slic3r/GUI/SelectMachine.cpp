@@ -549,11 +549,13 @@ void SelectMachinePopup::update_other_devices()
         }
 
         op->Bind(EVT_CONNECT_LAN_PRINT, [this, mobj](wxCommandEvent &e) {
-            if (mobj->is_lan_mode_printer()) {
-                ConnectPrinterDialog dlg(wxGetApp().mainframe, wxID_ANY, _L("Input access code"));
-                dlg.set_machine_object(mobj);
-                if (dlg.ShowModal() == wxID_OK) {
-                    wxGetApp().mainframe->jump_to_monitor(mobj->dev_id);
+            if (mobj) {
+                if (mobj->is_lan_mode_printer()) {
+                    ConnectPrinterDialog dlg(wxGetApp().mainframe, wxID_ANY, _L("Input access code"));
+                    dlg.set_machine_object(mobj);
+                    if (dlg.ShowModal() == wxID_OK) {
+                        wxGetApp().mainframe->jump_to_monitor(mobj->dev_id);
+                    }
                 }
             }
         });
@@ -638,7 +640,8 @@ void SelectMachinePopup::update_user_devices()
             }
             op->Bind(EVT_UNBIND_MACHINE, [this, dev, mobj](wxCommandEvent& e) {
                 dev->set_selected_machine("");
-                mobj->set_access_code("");
+                if (mobj)
+                    mobj->set_access_code("");
                 MessageDialog msg_wingow(nullptr, _L("Log out successful."), "", wxAPPLY | wxOK);
                 if (msg_wingow.ShowModal() == wxOK) { return; }
                 });
@@ -673,11 +676,13 @@ void SelectMachinePopup::update_user_devices()
         }
 
         op->Bind(EVT_CONNECT_LAN_PRINT, [this, mobj](wxCommandEvent &e) {
-            if (mobj->is_lan_mode_printer()) {
-                ConnectPrinterDialog dlg(wxGetApp().mainframe, wxID_ANY, _L("Input access code"));
-                dlg.set_machine_object(mobj);
-                if (dlg.ShowModal() == wxID_OK) {
-                    wxGetApp().mainframe->jump_to_monitor(mobj->dev_id);
+            if (mobj) {
+                if (mobj->is_lan_mode_printer()) {
+                    ConnectPrinterDialog dlg(wxGetApp().mainframe, wxID_ANY, _L("Input access code"));
+                    dlg.set_machine_object(mobj);
+                    if (dlg.ShowModal() == wxID_OK) {
+                        wxGetApp().mainframe->jump_to_monitor(mobj->dev_id);
+                    }
                 }
             }
         });
