@@ -1192,6 +1192,7 @@ void GCodeProcessor::reset()
     }
 
     m_extruded_last_z = 0.0f;
+    m_zero_layer_height = 0.0f;
     m_first_layer_height = 0.0f;
     m_processing_start_custom_gcode = false;
     m_g1_line_id = 0;
@@ -3694,7 +3695,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         m_extruder_id,
         m_cp_color.current,
         //BBS: add plate's offset to the rendering vertices
-        Vec3f(m_end_position[X] + m_x_offset, m_end_position[Y] + m_y_offset, m_processing_start_custom_gcode ? m_first_layer_height : m_end_position[Z]) + m_extruder_offsets[m_extruder_id],
+        Vec3f(m_end_position[X] + m_x_offset, m_end_position[Y] + m_y_offset, m_processing_start_custom_gcode ? m_zero_layer_height : m_end_position[Z]) + m_extruder_offsets[m_extruder_id],
         static_cast<float>(m_end_position[E] - m_start_position[E]),
         m_feedrate,
         m_width,
