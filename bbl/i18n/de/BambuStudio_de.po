@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-30 14:28+0800\n"
+"POT-Creation-Date: 2022-09-01 09:20+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -337,9 +337,6 @@ msgstr "Face recognition"
 
 msgid "Perform Recognition"
 msgstr "Perform Recognition"
-
-msgid "Clipping of view"
-msgstr ""
 
 msgid "Reset direction"
 msgstr ""
@@ -1404,6 +1401,18 @@ msgstr ""
 
 msgid ""
 "Note: Only the AMS slots loaded with the same material type can be selected."
+msgstr ""
+
+msgid "Enable AMS"
+msgstr ""
+
+msgid "Print with filaments in the AMS"
+msgstr ""
+
+msgid "Disable AMS"
+msgstr ""
+
+msgid "Print with the filament mounted on the back of chassis"
 msgstr ""
 
 msgid "Insertion update"
@@ -2995,7 +3004,7 @@ msgstr "Wiederherstellen"
 msgid "Loading file: %s"
 msgstr "Datei wird geladen: %s"
 
-msgid "The 3mf is not from Bambu lab, load geometry data only."
+msgid "The 3mf is not from Bambu Lab, load geometry data only."
 msgstr ""
 
 msgid "Load 3mf"
@@ -3027,8 +3036,8 @@ msgid ""
 "software.\n"
 msgstr ""
 
-msgid "the 3mf is not compatible, load geometry data only!"
-msgstr "die 3mf ist nicht kompatibel, laden Sie nur Geometriedaten!"
+msgid "The 3mf is not compatible, load geometry data only!"
+msgstr ""
 
 msgid "Incompatible 3mf"
 msgstr "Inkompatible 3mf"
@@ -6748,6 +6757,9 @@ msgstr "Support: fix holes at layer %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
+
+#~ msgid "the 3mf is not compatible, load geometry data only!"
+#~ msgstr "die 3mf ist nicht kompatibel, laden Sie nur Geometriedaten!"
 
 #~ msgid "Save configuration as:"
 #~ msgstr "Konfiguration speichern unter:"

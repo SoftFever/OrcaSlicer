@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-30 14:28+0800\n"
+"POT-Creation-Date: 2022-09-01 09:20+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -332,9 +332,6 @@ msgstr "Face recognition"
 
 msgid "Perform Recognition"
 msgstr "Perform Recognition"
-
-msgid "Clipping of view"
-msgstr ""
 
 msgid "Reset direction"
 msgstr ""
@@ -1377,6 +1374,18 @@ msgid ""
 "Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr ""
 
+msgid "Enable AMS"
+msgstr ""
+
+msgid "Print with filaments in the AMS"
+msgstr ""
+
+msgid "Disable AMS"
+msgstr ""
+
+msgid "Print with the filament mounted on the back of chassis"
+msgstr ""
+
 msgid "Insertion update"
 msgstr "Insertion update"
 
@@ -2315,7 +2324,7 @@ msgid "Load a model"
 msgstr "Load a model"
 
 msgid "Import Configs"
-msgstr ""
+msgstr "Import Presets"
 
 msgid "Load configs"
 msgstr ""
@@ -2342,7 +2351,7 @@ msgid "Export current plate as G-code"
 msgstr ""
 
 msgid "Export &Configs"
-msgstr ""
+msgstr "Export Presets"
 
 msgid "Export current configuration to files"
 msgstr ""
@@ -2474,8 +2483,8 @@ msgstr ""
 #, c-format, boost-format
 msgid "There is %d config exported. (Only non-system configs)"
 msgid_plural "There are %d configs exported. (Only non-system configs)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "There is %d preset exported. (Only non-system and currently used presets)"
+msgstr[1] "There are %d presets exported. (Only non-system and currently used presets)"
 
 msgid "Export result"
 msgstr ""
@@ -2487,8 +2496,8 @@ msgstr ""
 msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural ""
 "There are %d configs imported. (Only non-system and compatible configs)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "There is %d preset imported. (Only non-system and compatible presets)"
+msgstr[1] "There are %d presets imported. (Only non-system and compatible presets)"
 
 msgid "Import result"
 msgstr ""
@@ -2948,7 +2957,7 @@ msgstr "Restore"
 msgid "Loading file: %s"
 msgstr "Loading file: %s"
 
-msgid "The 3mf is not from Bambu lab, load geometry data only."
+msgid "The 3mf is not from Bambu Lab, load geometry data only."
 msgstr ""
 
 msgid "Load 3mf"
@@ -2980,8 +2989,8 @@ msgid ""
 "software.\n"
 msgstr ""
 
-msgid "the 3mf is not compatible, load geometry data only!"
-msgstr "The 3mf is not compatible, loading geometry data only!"
+msgid "The 3mf is not compatible, load geometry data only!"
+msgstr ""
 
 msgid "Incompatible 3mf"
 msgstr "Incompatible 3mf"
@@ -6617,6 +6626,9 @@ msgstr "Support: fix holes at layer %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
+
+#~ msgid "the 3mf is not compatible, load geometry data only!"
+#~ msgstr "The 3mf is not compatible, loading geometry data only!"
 
 #~ msgid "Save configuration as:"
 #~ msgstr "Save configuration as:"

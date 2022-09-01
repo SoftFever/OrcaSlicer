@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-30 14:28+0800\n"
+"POT-Creation-Date: 2022-09-01 09:20+0800\n"
 "PO-Revision-Date: 2022-08-05 11:49+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -335,9 +335,6 @@ msgstr "外观面检测"
 
 msgid "Perform Recognition"
 msgstr "执行检测"
-
-msgid "Clipping of view"
-msgstr "剪切视图"
 
 msgid "Reset direction"
 msgstr "重置方向"
@@ -1352,6 +1349,18 @@ msgid ""
 "Note: Only the AMS slots loaded with the same material type can be selected."
 msgstr "仅允许选择放入同种材质耗材丝的AMS槽位"
 
+msgid "Enable AMS"
+msgstr ""
+
+msgid "Print with filaments in the AMS"
+msgstr ""
+
+msgid "Disable AMS"
+msgstr ""
+
+msgid "Print with the filament mounted on the back of chassis"
+msgstr ""
+
 msgid "Insertion update"
 msgstr "插入料时更新"
 
@@ -2267,7 +2276,7 @@ msgid "Load a model"
 msgstr "加载模型"
 
 msgid "Import Configs"
-msgstr "导入配置"
+msgstr "导入预设"
 
 msgid "Load configs"
 msgstr ""
@@ -2294,10 +2303,10 @@ msgid "Export current plate as G-code"
 msgstr "导出当前盘的G-code"
 
 msgid "Export &Configs"
-msgstr "导出配置"
+msgstr "导出预设"
 
 msgid "Export current configuration to files"
-msgstr ""
+msgstr "导出当前选择的预设"
 
 msgid "Export"
 msgstr "导出"
@@ -2426,7 +2435,7 @@ msgstr "选择目录"
 #, c-format, boost-format
 msgid "There is %d config exported. (Only non-system configs)"
 msgid_plural "There are %d configs exported. (Only non-system configs)"
-msgstr[0] "共导出 %d 个配置（仅包含非系统配置）"
+msgstr[0] "共导出 %d 组预设（仅包含当前使用的非系统的预设）"
 
 msgid "Export result"
 msgstr "导出结果"
@@ -2438,7 +2447,7 @@ msgstr ""
 msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural ""
 "There are %d configs imported. (Only non-system and compatible configs)"
-msgstr[0] "共导入 %d 个配置（仅包含非系统且兼容的配置）"
+msgstr[0] "共导入 %d 组预设（仅包含非系统且与当前配置兼容的预设）"
 
 msgid "Import result"
 msgstr "导入结果"
@@ -2896,7 +2905,7 @@ msgstr "恢复"
 msgid "Loading file: %s"
 msgstr "加载文件：%s"
 
-msgid "The 3mf is not from Bambu lab, load geometry data only."
+msgid "The 3mf is not from Bambu Lab, load geometry data only."
 msgstr ""
 
 msgid "Load 3mf"
@@ -2926,8 +2935,8 @@ msgid ""
 "software.\n"
 msgstr ""
 
-msgid "the 3mf is not compatible, load geometry data only!"
-msgstr "该3mf文件不兼容，仅加载几何数据！"
+msgid "The 3mf is not compatible, load geometry data only!"
+msgstr ""
 
 msgid "Incompatible 3mf"
 msgstr "不兼容的3mf"
@@ -6355,6 +6364,12 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Clipping of view"
+#~ msgstr "剪切视图"
+
+#~ msgid "the 3mf is not compatible, load geometry data only!"
+#~ msgstr "该3mf文件不兼容，仅加载几何数据！"
 
 #~ msgid "Save configuration as:"
 #~ msgstr "预设另存为："
