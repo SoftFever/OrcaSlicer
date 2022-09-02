@@ -540,7 +540,10 @@ void PrinterFileSystem::SendChangedEvent(wxEventType type, size_t index, std::st
     if (!str.empty())
         event.SetString(wxString::FromUTF8(str.c_str()));
     event.SetExtraLong(extra);
-    wxPostEvent(this, event);
+    if (wxThread::IsMain())
+        ProcessEventLocally(event);
+    else
+        wxPostEvent(this, event);
 }
 
 void PrinterFileSystem::DumpLog(Bambu_Session *session, int level, Bambu_Message const *msg)

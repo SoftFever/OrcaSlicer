@@ -31,6 +31,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_year = new ::Button(m_time_panel, _L("Year"), "", wxBORDER_NONE);
     m_button_month = new ::Button(m_time_panel, _L("Month"), "", wxBORDER_NONE);
     m_button_all = new ::Button(m_time_panel, _L("All Files"), "", wxBORDER_NONE);
+    m_button_all->SetFont(Label::Head_14); // sync with m_last_mode
     for (auto b : {m_button_year, m_button_month, m_button_all}) {
         b->SetBackgroundColor(StateColor());
         b->SetTextColor(StateColor(
@@ -67,10 +68,13 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_manage_panel      = new ::StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_manage_panel->SetBackgroundColor(StateColor());
     m_button_delete     = new ::Button(m_manage_panel, _L("Delete"));
+    m_button_delete->SetBackgroundColor(StateColor());
     m_button_delete->SetCanFocus(false);
     m_button_download = new ::Button(m_manage_panel, _L("Download"));
+    m_button_download->SetBackgroundColor(StateColor());
     m_button_download->SetCanFocus(false);
     m_button_management = new ::Button(m_manage_panel, _L("Management"));
+    m_button_management->SetBackgroundColor(StateColor());
 
     wxBoxSizer *manage_sizer = new wxBoxSizer(wxHORIZONTAL);
     manage_sizer->AddStretchSpacer(1);
@@ -243,9 +247,11 @@ void MediaFilePanel::modeChanged(wxCommandEvent& e1)
     ::Button* buttons[] = {m_button_all, m_button_month, m_button_year};
     wxCommandEvent e(wxEVT_CHECKBOX);
     auto b = buttons[m_last_mode];
+    b->SetFont(Label::Body_14);
     e.SetEventObject(b);
     b->GetEventHandler()->ProcessEvent(e);
     b = buttons[mode];
+    b->SetFont(Label::Head_14);
     e.SetEventObject(b);
     b->GetEventHandler()->ProcessEvent(e);
     m_last_mode = mode;
