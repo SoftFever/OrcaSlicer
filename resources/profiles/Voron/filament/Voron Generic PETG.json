@@ -40,7 +40,7 @@
         "10"
     ],
     "filament_start_gcode": [
-        "; filament start gcode\n"
+        "; filament start gcode\n{if (bed_temperature[current_extruder] >45)||(bed_temperature_initial_layer[current_extruder] >45)}M106 P3 S180\n{elsif (bed_temperature[current_extruder] >60)||(bed_temperature_initial_layer[current_extruder] >60)}M106 P3 S255\n{endif};Prevent PETG from jamming"
     ],
     "compatible_printers": [
       "Voron 2.4 250 0.4 nozzle",

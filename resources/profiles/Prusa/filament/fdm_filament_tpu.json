@@ -77,6 +77,6 @@
         "250"
     ],
     "filament_start_gcode": [
-        "; filament start gcode\n"
+        "; filament start gcode\n{if (bed_temperature[current_extruder] >30)||(bed_temperature_initial_layer[current_extruder]>30)}M106 P3 S255\n{endif};Prevent TPU from jamming"
     ]
 }
