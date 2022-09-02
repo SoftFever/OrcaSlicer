@@ -2264,6 +2264,12 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         return;
     }
 
+    bool is_in_painting_mode = false;
+    GLGizmoPainterBase *current_gizmo_painter = dynamic_cast<GLGizmoPainterBase *>(get_gizmos_manager().get_current());
+    if (current_gizmo_painter != nullptr) {
+        is_in_painting_mode = true;
+    }
+
     //BBS: add orient deactivate logic
     if (keyCode == WXK_ESCAPE
         && (_deactivate_arrange_menu() || _deactivate_orient_menu()))
@@ -2281,7 +2287,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #else /* __APPLE__ */
         case WXK_CONTROL_A:
 #endif /* __APPLE__ */
-            post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL));
+            if (!is_in_painting_mode)
+                post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL));
         break;
 #ifdef __APPLE__
         case 'c':
@@ -2289,7 +2296,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #else /* __APPLE__ */
         case WXK_CONTROL_C:
 #endif /* __APPLE__ */
-            post_event(SimpleEvent(EVT_GLTOOLBAR_COPY));
+            if (!is_in_painting_mode)
+                post_event(SimpleEvent(EVT_GLTOOLBAR_COPY));
         break;
 #ifdef __APPLE__
         case 'm':
@@ -2325,7 +2333,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #else /* __APPLE__ */
         case WXK_CONTROL_V:
 #endif /* __APPLE__ */
-            post_event(SimpleEvent(EVT_GLTOOLBAR_PASTE));
+            if (!is_in_painting_mode)
+                post_event(SimpleEvent(EVT_GLTOOLBAR_PASTE));
         break;
 
 #ifdef __APPLE__
@@ -2334,7 +2343,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #else /* __APPLE__ */
         case WXK_CONTROL_X:
 #endif /* __APPLE__ */
-            post_event(SimpleEvent(EVT_GLTOOLBAR_CUT));
+            if (!is_in_painting_mode)
+                post_event(SimpleEvent(EVT_GLTOOLBAR_CUT));
         break;
 
 #ifdef __APPLE__
