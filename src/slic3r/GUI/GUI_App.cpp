@@ -4483,6 +4483,12 @@ void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
 // wxWidgets override to get an event on open files.
 void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
 {
+    if (m_post_initialized) {
+        std::vector<wxString> names;
+        for (auto & n : fileNames) names.push_back(n);
+        start_new_slicer(names);
+        return;
+    }
     std::vector<std::string> files;
     std::vector<wxString>    gcode_files;
     std::vector<wxString>    non_gcode_files;

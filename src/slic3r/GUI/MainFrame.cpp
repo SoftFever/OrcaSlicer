@@ -84,19 +84,18 @@ class BambuStudioTaskBarIcon : public wxTaskBarIcon
 {
 public:
     BambuStudioTaskBarIcon(wxTaskBarIconType iconType = wxTBI_DEFAULT_TYPE) : wxTaskBarIcon(iconType) {}
-    //wxMenu *CreatePopupMenu() override {
-        //wxMenu *menu = new wxMenu;
-        //BBS do not support multi instances in mac
-        //if(wxGetApp().app_config->get("single_instance") == "0") {
-        //    // Only allow opening a new PrusaSlicer instance on OSX if "single_instance" is disabled,
-        //    // as starting new instances would interfere with the locking mechanism of "single_instance" support.
-        //    append_menu_item(menu, wxID_ANY, _L("Open new instance"), _L("Open a new PrusaSlicer instance"),
-        //    [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr);
+    wxMenu *CreatePopupMenu() override {
+        wxMenu *menu = new wxMenu;
+        //if (wxGetApp().app_config->get("single_instance") == "false") {
+            // Only allow opening a new PrusaSlicer instance on OSX if "single_instance" is disabled,
+            // as starting new instances would interfere with the locking mechanism of "single_instance" support.
+            append_menu_item(menu, wxID_ANY, _L("New Window"), _L("Open a new window"),
+            [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr);
         //}
-        //append_menu_item(menu, wxID_ANY, _L("G-code Viewer") + dots, _L("Open G-code Viewer"),
-        //    [](wxCommandEvent&) { start_new_gcodeviewer_open_file(); }, "", nullptr);
-        //return menu;
-    //}
+//        append_menu_item(menu, wxID_ANY, _L("G-code Viewer") + dots, _L("Open G-code Viewer"),
+//            [](wxCommandEvent&) { start_new_gcodeviewer_open_file(); }, "", nullptr);
+        return menu;
+    }
 };
 /*class GCodeViewerTaskBarIcon : public wxTaskBarIcon
 {
@@ -1680,6 +1679,12 @@ void MainFrame::init_menubar_as_editor()
     // File menu
     wxMenu* fileMenu = new wxMenu;
     {
+#ifdef __APPLE__
+        // New Window
+        append_menu_item(fileMenu, wxID_ANY, _L("New Window") + "\tCtrl+N", _L("Start a new window"),
+                         [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr,
+                         []{ return true; }, this);
+#endif
         // New Project
         append_menu_item(fileMenu, wxID_ANY, _L("New Project") + "\tCtrl+N", _L("Start a new project"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->new_project(); }, "", nullptr,
