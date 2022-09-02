@@ -1,6 +1,6 @@
 {
     "type": "machine_model",
-    "name": "Voron 2.4 250",
+    "name": "Voron 0.1",
     "model_id": "Voron0",
     "nozzle_diameter": "0.4",
     "machine_tech": "FFF",
