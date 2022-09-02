@@ -198,14 +198,16 @@ MonitorPanel::~MonitorPanel()
     });
 
     //m_status_add_machine_panel = new AddMachinePanel(m_tabpanel);
-    m_status_info_panel = new StatusPanel(m_tabpanel);
+    m_status_info_panel        = new StatusPanel(m_tabpanel);
     m_tabpanel->AddPage(m_status_info_panel, _L("Status"), "", true);
 
+#if !BBL_RELEASE_TO_PUBLIC
     m_media_file_panel = new MediaFilePanel(m_tabpanel);
     m_tabpanel->AddPage(m_media_file_panel, _L("Media"), "", false);
-    
+
     m_upgrade_panel = new UpgradePanel(m_tabpanel);
     m_tabpanel->AddPage(m_upgrade_panel, _L("Update"), "", false);
+#endif
 
     m_hms_panel = new HMSPanel(m_tabpanel);
     m_tabpanel->AddPage(m_hms_panel, _L("HMS"),"", false);
@@ -225,8 +227,10 @@ void MonitorPanel::set_default()
     /* reset side tool*/
     //m_bitmap_wifi_signal->SetBitmap(wxNullBitmap);
 
+#if !BBL_RELEASE_TO_PUBLIC
     /* reset time lapse panel */
     m_media_file_panel->SetMachineObject(nullptr);
+#endif
 
     wxGetApp().sidebar().load_ams_list({});
 }
@@ -255,8 +259,10 @@ void MonitorPanel::msw_rescale()
     m_tabpanel->Rescale();
     //m_status_add_machine_panel->msw_rescale();
     m_status_info_panel->msw_rescale();
+#if !BBL_RELEASE_TO_PUBLIC
     m_media_file_panel->Rescale();
     m_upgrade_panel->msw_rescale();
+#endif
     m_hms_panel->msw_rescale();
 
     m_connection_info->SetCornerRadius(0);
@@ -399,11 +405,16 @@ void MonitorPanel::update_all()
     }
 
     m_status_info_panel->obj = obj;
+#if !BBL_RELEASE_TO_PUBLIC
     m_upgrade_panel->update(obj);
+#endif
 
     
     m_status_info_panel->m_media_play_ctrl->SetMachineObject(obj);
+#if !BBL_RELEASE_TO_PUBLIC
     m_media_file_panel->SetMachineObject(obj);
+#endif
+
     update_status(obj);
     
     if (!obj) {
@@ -436,9 +447,11 @@ void MonitorPanel::update_all()
     if (m_hms_panel->IsShown()) {
         m_hms_panel->update(obj);
     }
+#if !BBL_RELEASE_TO_PUBLIC
     if (m_upgrade_panel->IsShown()) {
         m_upgrade_panel->update(obj);
     }
+#endif
 }
 
 bool MonitorPanel::Show(bool show)
