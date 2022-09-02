@@ -75,6 +75,26 @@ void PrintOptionsDialog::update_spaghetti()
 void PrintOptionsDialog::update_options(MachineObject *obj_)
 {
     if (!obj_) return;
+    if (obj_->is_function_supported(PrinterFunction::FUNC_FIRSTLAYER_INSPECT)) {
+        text_first_layer->Show();
+        m_cb_first_layer->Show();
+    } else {
+        text_first_layer->Hide();
+        m_cb_first_layer->Hide();
+    }
+
+    if (obj_->is_function_supported(PrinterFunction::FUNC_SPAGHETTI)) {
+        text_spaghetti->Show();
+        m_cb_spaghetti->Show();
+        m_cb_spaghetti_print_halt->Show();
+        text_spaghetti_print_halt->Show();
+    }else {
+        text_spaghetti->Hide();
+        m_cb_spaghetti->Hide();
+        m_cb_spaghetti_print_halt->Hide();
+        text_spaghetti_print_halt->Hide();
+    }
+
     this->Freeze();
     m_cb_spaghetti->SetValue(obj_->xcam_spaghetti_detector);
     m_cb_spaghetti_print_halt->SetValue(obj_->xcam_spaghetti_print_halt);
@@ -88,7 +108,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     auto sizer = new wxBoxSizer(wxVERTICAL);
     auto line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_spaghetti = new CheckBox(parent);
-    auto text_spaghetti = new wxStaticText(parent, wxID_ANY, _L("Spaghetti Detection"));
+    text_spaghetti = new wxStaticText(parent, wxID_ANY, _L("Spaghetti Detection"));
     text_spaghetti->SetFont(Label::Body_14);
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_spaghetti, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -112,7 +132,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
 
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_first_layer = new CheckBox(parent);
-    auto text_first_layer = new wxStaticText(parent, wxID_ANY, _L("First Layer Inspection"));
+    text_first_layer = new wxStaticText(parent, wxID_ANY, _L("First Layer Inspection"));
     text_first_layer->SetFont(Label::Body_14);
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_first_layer, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));

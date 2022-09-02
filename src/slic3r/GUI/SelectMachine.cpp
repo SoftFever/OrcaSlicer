@@ -1043,26 +1043,18 @@ wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *pa
     return checkbox;
 }
 
-void SelectMachineDialog::update_select_layout(PRINTER_TYPE type)
+void SelectMachineDialog::update_select_layout(MachineObject *obj)
 {
-    if (type == PRINTER_TYPE::PRINTER_3DPrinter_UKNOWN) {
-        select_bed->Show();
+    if (obj && obj->is_function_supported(PrinterFunction::FUNC_FLOW_CALIBRATION)) {
         select_flow->Show();
-    } else if (type == PRINTER_TYPE::PRINTER_3DPrinter_X1) {
-        select_bed->Show();
-        select_flow->Show();
-    } else if (type == PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon) {
-        select_bed->Show();
-        select_flow->Show();
-    } else if (type == PRINTER_TYPE::PRINTER_3DPrinter_P1) {
-        select_bed->Show();
-        select_flow->Show(false);
-    } else if (type == PRINTER_TYPE::PRINTER_3DPrinter_NONE) {
-        select_bed->Hide();
-        select_flow->Hide();
     } else {
+        select_flow->Hide();
+    }
+
+    if (obj && obj->is_function_supported(PrinterFunction::FUNC_AUTO_LEVELING)) {
         select_bed->Show();
-        select_flow->Show();
+    } else {
+        select_bed->Hide();
     }
 
     Fit();
@@ -1753,7 +1745,7 @@ void SelectMachineDialog::update_user_printer()
     }
     else {
         m_printer_last_select = "";
-        update_select_layout(PRINTER_TYPE::PRINTER_3DPrinter_NONE);
+        update_select_layout(nullptr);
         m_comboBox_printer->SetTextLabel("");
     }
 
@@ -1798,7 +1790,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     if (obj) {
         obj->command_get_version();
         dev->set_selected_machine(m_printer_last_select);
-        update_select_layout(obj->printer_type);
+        update_select_layout(obj);
     } else {
         BOOST_LOG_TRIVIAL(error) << "on_selection_changed dev_id not found";
         return;

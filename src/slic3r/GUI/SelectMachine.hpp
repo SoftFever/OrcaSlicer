@@ -328,7 +328,7 @@ public:
     ~SelectMachineDialog();
 
     wxWindow *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param);
-    void      update_select_layout(PRINTER_TYPE type);
+    void      update_select_layout(MachineObject *obj);
     void      prepare_mode();
     void      sending_mode();
     void      finish_mode();

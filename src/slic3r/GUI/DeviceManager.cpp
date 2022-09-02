@@ -11,7 +11,6 @@
 #include "MsgDialog.hpp"
 #include "Plater.hpp"
 #include "GUI_App.hpp"
-#include "nlohmann/json.hpp"
 #include <thread>
 #include <mutex>
 #include <codecvt>
@@ -21,7 +20,6 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
-using namespace nlohmann;
 
 namespace pt = boost::property_tree;
 
@@ -259,63 +257,34 @@ wxString HMSItem::get_hms_msg_level_str(HMSMessageLevel level)
     return "";
 }
 
-PRINTER_TYPE MachineObject::parse_printer_type(std::string type_str)
+std::string MachineObject::parse_printer_type(std::string type_str)
 {
-    if (type_str.compare("3DPrinter-P1") == 0) {
-        return PRINTER_TYPE::PRINTER_3DPrinter_P1;
-    } else if (type_str.compare("3DPrinter-X1") == 0) {
-        return PRINTER_TYPE::PRINTER_3DPrinter_X1;
+    if (type_str.compare("3DPrinter-X1") == 0) {
+        return "BL-P002";
     } else if (type_str.compare("3DPrinter-X1-Carbon") == 0) {
-        return PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon;
-    }
-
-    BOOST_LOG_TRIVIAL(trace) << "unknown printer type: " << type_str;
-    return PRINTER_TYPE::PRINTER_3DPrinter_UKNOWN;
-}
-
-PRINTER_TYPE MachineObject::parse_iot_printer_type(std::string type_str)
-{
-    if (type_str.compare("BL-P003") == 0) {
-        return PRINTER_TYPE::PRINTER_3DPrinter_P1;
-    } else if (type_str.compare("BL-P002") == 0) {
-        return PRINTER_TYPE::PRINTER_3DPrinter_X1;
+        return "BL-P001";
     } else if (type_str.compare("BL-P001") == 0) {
-        return PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon;
-    }
-
-    BOOST_LOG_TRIVIAL(trace) << "unknown printer type: " << type_str;
-    return PRINTER_TYPE::PRINTER_3DPrinter_UKNOWN;
-}
-
-PRINTER_TYPE MachineObject::parse_preset_printer_type(std::string type_str)
-{
-    return parse_iot_printer_type(type_str);
-}
-
-std::string MachineObject::get_preset_printer_model_name(PRINTER_TYPE printer_type)
-{
-    if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_P1) {
-        return "Bambu Lab P1";
-    } else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1) {
-        return "Bambu Lab X1";
-    } else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon) {
-        return "Bambu Lab X1 Carbon";
+        return type_str;
+    } else if (type_str.compare("BL-P003") == 0) {
+        return type_str;
     } else {
-        return "";
+        return DeviceManager::parse_printer_type(type_str);
     }
+    return "";
 }
 
-
+std::string MachineObject::get_preset_printer_model_name(std::string printer_type)
+{
+    return DeviceManager::get_printer_display_name(printer_type);
+}
 
 wxString MachineObject::get_printer_type_display_str()
 {
-    if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_P1)
-        return "Bambu Lab P1";
-    else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1)
-        return "Bambu Lab X1";
-    else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon)
-        return "Bambu Lab X1 Carbon";
-    return _L("Unknown");
+    std::string display_name = get_preset_printer_model_name(printer_type);
+    if (!display_name.empty())
+        return display_name;
+    else
+        return _L("Unknown");
 }
 
 void MachineObject::set_access_code(std::string code)
@@ -333,17 +302,6 @@ bool MachineObject::is_lan_mode_printer()
     if (connection_type() == "lan")
         return true;
     return result;
-}
-
-std::string MachineObject::get_printer_type_string()
-{
-    if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_P1)
-        return "3DPrinter-P1";
-    else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1)
-        return "3DPrinter-X1";
-    else if (printer_type == PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon)
-        return "3DPrinter-X1-Carbon";
-    return "3DPrinter";
 }
 
 MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string id, std::string ip)
@@ -1693,6 +1651,40 @@ bool MachineObject::is_info_ready()
         return true;
     }
     return false;
+}
+
+bool MachineObject::is_function_supported(PrinterFunction func)
+{
+    std::string func_name;
+    switch (func) {
+    case FUNC_MONITORING:
+        func_name = "FUNC_MONITORING";
+        break;
+    case FUNC_TIMELAPSE:
+        func_name = "FUNC_TIMELAPSE";
+        break;
+    case FUNC_RECORDING:
+        func_name = "FUNC_RECORDING";
+        break;
+    case FUNC_FIRSTLAYER_INSPECT:
+        func_name = "FUNC_FIRSTLAYER_INSPECT";
+        break;
+    case FUNC_SPAGHETTI:
+        func_name = "FUNC_SPAGHETTI";
+        break;
+    case FUNC_FLOW_CALIBRATION:
+        func_name = "FUNC_FLOW_CALIBRATION";
+        break;
+    case FUNC_AUTO_LEVELING:
+        func_name = "FUNC_AUTO_LEVELING";
+        break;
+    case FUNC_CHAMBER_TEMP:
+        func_name = "FUNC_CHAMBER_TEMP";
+        break;
+    default:
+        return true;
+    }
+    return DeviceManager::is_function_supported(printer_type, func_name);
 }
 
 int MachineObject::publish_json(std::string json_str, int qos)
@@ -3058,7 +3050,7 @@ void DeviceManager::parse_user_print_info(std::string body)
                 if (!elem["dev_online"].is_null())
                     obj->m_is_online = elem["dev_online"].get<bool>();
                 if (elem.contains("dev_model_name") && !elem["dev_model_name"].is_null())
-                    obj->printer_type = MachineObject::parse_iot_printer_type(elem["dev_model_name"].get<std::string>());
+                    obj->printer_type = elem["dev_model_name"].get<std::string>();
                 if (!elem["task_status"].is_null())
                     obj->iot_print_status = elem["task_status"].get<std::string>();
                 if (elem.contains("dev_product_name") && !elem["dev_product_name"].is_null())
@@ -3135,6 +3127,69 @@ void DeviceManager::load_last_machine()
                 this->set_selected_machine(userMachineList.begin()->second->dev_id);
         }
     }
+}
+
+json DeviceManager::function_table = json::object();
+
+std::string DeviceManager::parse_printer_type(std::string type_str)
+{
+    if (DeviceManager::function_table.contains("printers")) {
+        for (auto printer : DeviceManager::function_table["printers"]) {
+            if (printer.contains("model_id") && printer["model_id"].get<std::string>() == type_str) {
+                if (printer.contains("printer_type")) {
+                    return printer["printer_type"].get<std::string>();
+                }
+            }
+        }
+    }
+    return "";
+}
+
+std::string DeviceManager::get_printer_display_name(std::string type_str)
+{
+    if (DeviceManager::function_table.contains("printers")) {
+        for (auto printer : DeviceManager::function_table["printers"]) {
+            if (printer.contains("model_id") && printer["model_id"].get<std::string>() == type_str) {
+                if (printer.contains("display_name")) {
+                    return printer["display_name"].get<std::string>();
+                }
+            }
+        }
+    }
+    return "";
+}
+
+bool DeviceManager::is_function_supported(std::string type_str, std::string function_name)
+{
+    if (DeviceManager::function_table.contains("printers")) {
+        for (auto printer : DeviceManager::function_table["printers"]) {
+            if (printer.contains("model_id") && printer["model_id"].get<std::string>() == type_str) {
+                if (printer.contains("func")) {
+                    if (printer["func"].contains(function_name))
+                        return printer["func"][function_name].get<bool>();
+                }
+            }
+        }
+    }
+    return true;
+}
+
+bool DeviceManager::load_functional_config(std::string config_file)
+{
+    std::ifstream json_file(config_file.c_str());
+    try {
+        if (json_file.is_open()) {
+            json_file >> DeviceManager::function_table;
+            return true;
+        } else {
+            BOOST_LOG_TRIVIAL(error) << "load functional config failed, file = " << config_file;
+        }
+    }
+    catch(...) {
+        BOOST_LOG_TRIVIAL(error) << "load functional config failed, file = " << config_file;
+        return false;
+    }
+    return true;
 }
 
 } // namespace Slic3r

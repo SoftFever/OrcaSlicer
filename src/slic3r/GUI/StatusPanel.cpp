@@ -1313,14 +1313,41 @@ void StatusPanel::update(MachineObject *obj)
         }
         calibration_dlg->update_cali(obj);
 
-        if (print_options_dlg == nullptr) {
-            print_options_dlg = new PrintOptionsDialog(this);
-            print_options_dlg->update_machine_obj(obj);
+
+        if (obj->is_function_supported(PrinterFunction::FUNC_FIRSTLAYER_INSPECT)
+            || obj->is_function_supported(PrinterFunction::FUNC_SPAGHETTI)) {
+            m_options_btn->Show();
+            if (print_options_dlg == nullptr) {
+                print_options_dlg = new PrintOptionsDialog(this);
+                print_options_dlg->update_machine_obj(obj);
+            } else {
+                print_options_dlg->update_machine_obj(obj);
+            }
+            print_options_dlg->update_options(obj);
         } else {
-            print_options_dlg->update_machine_obj(obj);
+            m_options_btn->Hide();
         }
-        print_options_dlg->update_options(obj);
-      
+
+        if (obj->is_function_supported(PrinterFunction::FUNC_TIMELAPSE)) {
+            m_timelapse_button->Show();
+        } else {
+            m_timelapse_button->Hide();
+        }
+
+        if (obj->is_function_supported(PrinterFunction::FUNC_RECORDING)) {
+            m_recording_button->Show();
+        } else {
+            m_recording_button->Hide();
+        }
+
+        if (obj->is_function_supported(PrinterFunction::FUNC_CHAMBER_TEMP)) {
+            m_tempCtrl_frame->Enable();
+        } else {
+            m_tempCtrl_frame->SetLabel(TEMP_BLANK_STR);
+            m_tempCtrl_frame->GetTextCtrl()->SetLabel(TEMP_BLANK_STR);
+            m_tempCtrl_frame->Disable();
+        }
+
         update_error_message();
     }
 
@@ -2361,6 +2388,11 @@ void StatusPanel::set_default()
     m_switch_printing_fan_timeout = 0;
     m_show_ams_group = false;
     reset_printing_values();
+
+    m_timelapse_button->Show();
+    m_recording_button->Show();
+    m_tempCtrl_frame->Show();
+    m_options_btn->Show();
 
     reset_temp_misc_control();
     m_ams_control->Hide();

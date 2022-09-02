@@ -1092,6 +1092,9 @@ void GUI_App::post_init()
             if (hms_query)
                 hms_query->check_hms_info();
         });
+        
+    std::string functional_config_file = Slic3r::resources_dir() + "/config.json";
+    DeviceManager::load_functional_config(encode_path(functional_config_file.c_str()));
 
     BOOST_LOG_TRIVIAL(info) << "finished post_init";
 //BBS: remove the single instance currently

@@ -73,11 +73,11 @@ AuFile::AuFile(wxWindow *parent, fs::path file_path, wxString file_name, Auxilia
         }
 
         image->Rescale(size.x, size.y);
-        m_file_bitmap = wxBitmap(*image);
+        m_file_bitmap.bmp() = wxBitmap(*image);
     } else {
-        m_bitmap_excel = create_scaled_bitmap("placeholder_excel", nullptr, 168);
-        m_bitmap_pdf   = create_scaled_bitmap("placeholder_pdf", nullptr, 168);
-        m_bitmap_txt   = create_scaled_bitmap("placeholder_txt", nullptr, 168);
+        m_bitmap_excel = ScalableBitmap(this, "placeholder_excel", 168);
+        m_bitmap_pdf   = ScalableBitmap(this, "placeholder_pdf", 168);
+        m_bitmap_txt   = ScalableBitmap(this, "placeholder_txt", 168);
 
         if (m_type == OTHERS) {m_file_bitmap = m_bitmap_txt;}
         if (m_type == BILL_OF_MATERIALS) {
@@ -210,7 +210,7 @@ void AuFile::PaintBackground(wxDC &dc)
         dc.SetPen(AUFILE_GREY200);
         dc.SetBrush(AUFILE_GREY200);
         dc.DrawRoundedRectangle(0, 0, size.x, size.y, AUFILE_ROUNDING);
-        dc.DrawBitmap(m_file_bitmap, (size.x - m_file_bitmap.GetSize().x) / 2, (size.y - m_file_bitmap.GetSize().y) / 2);
+        dc.DrawBitmap(m_file_bitmap.bmp(), (size.x - m_file_bitmap.GetBmpWidth()) / 2, (size.y - m_file_bitmap.GetBmpHeight()) / 2);
     }
 }
 
@@ -328,7 +328,7 @@ void AuFile::on_input_enter(wxCommandEvent &evt)
 
     
     wxString new_fullname_path = dir.wstring() + "/" + new_fullname;
-    fs::path new_dir_path(new_fullname_path);
+    fs::path new_dir_path(new_fullname_path.c_str());
     
 
     if (fs::exists(new_dir_path)) existing = true;
@@ -540,11 +540,11 @@ void AuFile::msw_rescale()
         }
 
         image->Rescale(size.x, size.y);
-        m_file_bitmap = wxBitmap(*image);
+        m_file_bitmap.bmp() = wxBitmap(*image);
     } else {
-        m_bitmap_excel = create_scaled_bitmap("placeholder_excel", nullptr, 168);
-        m_bitmap_pdf   = create_scaled_bitmap("placeholder_pdf", nullptr, 168);
-        m_bitmap_txt   = create_scaled_bitmap("placeholder_txt", nullptr, 168);
+        m_bitmap_excel = ScalableBitmap(this, "placeholder_excel", 168);
+        m_bitmap_pdf   = ScalableBitmap(this, "placeholder_pdf", 168);
+        m_bitmap_txt   = ScalableBitmap(this, "placeholder_txt", 168);
 
         if (m_type == OTHERS) { m_file_bitmap = m_bitmap_txt; }
         if (m_type == BILL_OF_MATERIALS) { m_file_bitmap = m_bitmap_excel; }

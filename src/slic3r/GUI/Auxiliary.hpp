@@ -91,14 +91,14 @@ public:
     wxString cover_text_left;
     wxString cover_text_right;
     wxString cover_text_cover;
-    wxBitmap m_file_bitmap;
+    ScalableBitmap m_file_bitmap;
     ScalableBitmap m_file_cover;
     ScalableBitmap m_file_edit_mask;
     ScalableBitmap m_file_delete;
 
-    wxBitmap m_bitmap_excel;
-    wxBitmap m_bitmap_pdf;
-    wxBitmap m_bitmap_txt;
+    ScalableBitmap m_bitmap_excel;
+    ScalableBitmap m_bitmap_pdf;
+    ScalableBitmap m_bitmap_txt;
 
 public:
     AuFile(wxWindow *parent, fs::path file_path, wxString file_name, AuxiliaryFolderType type, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
