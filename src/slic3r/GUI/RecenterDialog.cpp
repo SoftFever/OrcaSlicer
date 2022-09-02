@@ -7,12 +7,14 @@
 #define BORDER FromDIP(25)
 #define DRAW_PANEL_SIZE wxSize(FromDIP(475), FromDIP(100))
 
-wxString hint1 = _L("Please perform \"recenter ");
-wxString hint2 = _L("\" action to locate the current position of the extruder to prevent device breakdown by moving the axis out of line.");
+const wxColour text_color(107, 107, 107);
+
+wxString hint1 = _L("Please home all axes (click ");
+wxString hint2 = _L(") to locate the toolhead's position. This prevents device moving beyond the printable boundary and causing equipment wear.");
 
 namespace Slic3r { namespace GUI {
 RecenterDialog::RecenterDialog(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
-      : DPIDialog(parent, id, _L("Reminder"), pos, size, style)
+      : DPIDialog(parent, id, _L("Confirm"), pos, size, style)
 {
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -25,8 +27,8 @@ RecenterDialog::RecenterDialog(wxWindow* parent, wxWindowID id, const wxString& 
     wxPanel* m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
 
-    m_button_confirm = new Button(this, _L("Center"));
-    m_button_confirm->SetFont(Label::Body_12);
+    m_button_confirm = new Button(this, _L("Home"));
+    m_button_confirm->SetFont(Label::Body_14);
     m_button_confirm->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_confirm->SetCornerRadius(FromDIP(12));
     StateColor confirm_btn_bg(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
@@ -36,7 +38,7 @@ RecenterDialog::RecenterDialog(wxWindow* parent, wxWindowID id, const wxString& 
     m_button_confirm->SetTextColor(*wxWHITE);
 
     m_button_close = new Button(this, _L("Close"));
-    m_button_close->SetFont(Label::Body_12);
+    m_button_close->SetFont(Label::Body_14);
     m_button_close->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_close->SetCornerRadius(FromDIP(12));
     StateColor close_btn_bg(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Hovered),
@@ -60,6 +62,7 @@ RecenterDialog::RecenterDialog(wxWindow* parent, wxWindowID id, const wxString& 
 
     this->SetSize(wxSize(DRAW_PANEL_SIZE.x, -1));
     this->SetMinSize(wxSize(DRAW_PANEL_SIZE.x, -1));
+    Layout();
     Fit();
     this->Bind(wxEVT_PAINT, &RecenterDialog::OnPaint, this);
     m_button_confirm->Bind(wxEVT_BUTTON, &RecenterDialog::on_button_confirm, this);
@@ -69,20 +72,19 @@ RecenterDialog::RecenterDialog(wxWindow* parent, wxWindowID id, const wxString& 
 RecenterDialog::~RecenterDialog() {}
 
 void RecenterDialog::init_bitmap() {
-    m_home_bmp = ScalableBitmap(this, "monitor_axis_home_icon", 30);
+    m_home_bmp = ScalableBitmap(this, "monitor_axis_home_icon", 24);
 }
 
 void RecenterDialog::OnPaint(wxPaintEvent& event){
     wxPaintDC dc(this);
-    wxGCDC dc2(dc);
-    render(dc2);
+    render(dc);
 }
   
 void RecenterDialog::render(wxDC& dc) {
     wxSize     size = GetSize();
 
     dc.SetFont(Label::Body_14);
-    dc.SetTextForeground(*wxBLACK);
+    dc.SetTextForeground(text_color);
     wxPoint pos_start = wxPoint(BORDER, BORDER);
 
     wxSize hint1_size = dc.GetTextExtent(hint1);
@@ -178,6 +180,7 @@ void RecenterDialog::on_dpi_changed(const wxRect& suggested_rect) {
     m_button_confirm->SetCornerRadius(FromDIP(12));
     m_button_close->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_close->SetCornerRadius(FromDIP(12));
+    Layout();
 }
 
 }} // namespace Slic3r::GUI
