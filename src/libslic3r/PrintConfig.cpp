@@ -3521,9 +3521,12 @@ void DynamicPrintConfig::normalize_fdm(int used_filaments)
         ConfigOptionBool* islh_opt = this->option<ConfigOptionBool>("independent_support_layer_height", true);
         ConfigOptionBool* alh_opt = this->option<ConfigOptionBool>("adaptive_layer_height");
         ConfigOptionEnum<PrintSequence>* ps_opt = this->option<ConfigOptionEnum<PrintSequence>>("print_sequence");
-
-        if (used_filaments == 1 || ps_opt->value == PrintSequence::ByObject)
-            ept_opt->value = false;
+        
+        ConfigOptionBool *timelapse_opt = this->option<ConfigOptionBool>("timelapse_no_toolhead");
+        if (timelapse_opt && timelapse_opt->value == false) {
+            if (used_filaments == 1 || ps_opt->value == PrintSequence::ByObject)
+                ept_opt->value = false;
+        }
 
         if (ept_opt->value) {
             if (islh_opt)
