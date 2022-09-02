@@ -1909,9 +1909,9 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 void SelectMachineDialog::update_ams_check(MachineObject* obj)
 {
     if (obj && obj->ams_support_use_ams) {
-        ams_check->Show();
+        select_use_ams->Show();
     } else {
-        ams_check->Hide();
+        select_use_ams->Hide();
     }
 }
 
