@@ -1705,10 +1705,12 @@ void ImGuiWrapper::init_font(bool compress)
 #endif
     builder.BuildRanges(&ranges); // Build the final result (ordered ranges with all the unique characters submitted)
 
+    io.Fonts->Flags |= ImFontAtlasFlags_NoPowerOfTwoHeight;
+    ImFontConfig cfg = ImFontConfig();
+    cfg.OversampleH = cfg.OversampleV = 1;
     //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, ranges.Data);
     //https://github.com/ocornut/imgui/issues/220
-    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Regular.ttf").c_str(), m_font_size, nullptr, ranges.Data);
-
+    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Regular.ttf").c_str(), m_font_size, &cfg, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
     if (font == nullptr) {
         font = io.Fonts->AddFontDefault();
         if (font == nullptr) {
@@ -1716,10 +1718,7 @@ void ImGuiWrapper::init_font(bool compress)
         }
     }
 
-    ImFontConfig cfg = ImFontConfig();
-    cfg.OversampleH  = 1;
-    bold_font        = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Bold.ttf").c_str(), m_font_size, &cfg);
-
+    bold_font        = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Bold.ttf").c_str(), m_font_size, &cfg, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
     if (bold_font == nullptr) {
         bold_font = io.Fonts->AddFontDefault();
         if (bold_font == nullptr) { throw Slic3r::RuntimeError("ImGui: Could not load deafult font"); }
