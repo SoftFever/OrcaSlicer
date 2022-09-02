@@ -291,16 +291,20 @@ body
 
 #RecentClearAllBtn
 {
-	border: 1px solid #C4C4C4;
+	border: 1px solid #000;
 	padding: 0px 10px;
 	border-radius: 6px;
 	line-height: 26px;
 	height: 26px;
 	margin-left: 20px;
 	cursor: pointer;
-	background-color: #00AE42;
-	color: #fff;
-	display: inline;
+	color: #000;
+	display: none;
+}
+
+#RecentClearAllBtn:hover
+{
+	background-color:#CDCECE;
 }
 
 #RecentTitle
@@ -341,7 +345,7 @@ body
 .FileImg
 {
 	text-align: center;
-	background-color: #F5F5F5;
+	background-color: #E4E4E4;
 	border-radius: 8px;
 	width: 184px;
 	height: 184px;	
@@ -368,26 +372,26 @@ body
 	border: 0px;
 	min-width: 100px;
     top: 800px;
-	border: 1px solid #C5C5C5;
-	border-radius: 6px;
+	border: 1px solid #C3C3C3;
+	color: #323A3D;
 	background-color: #fff;
-	display: none;
+        display: none;
 }
 
 .CT_Item
 {
-	line-height:30px;
-	padding: 0px 10px;
+	padding: 2px 10px;
 	display: flex;
 	flex-direction: row;
 	align-content: center;
 	align-items: center;
+	border: 2px solid #fff;
 }
 
 .CT_Item:hover
 {
-	background-color: #E9E9E9;
 	cursor: pointer;
+	border: 2px solid #00AE42;
 }
 
 
@@ -490,23 +494,25 @@ body
 .UG_IMG img
 {
 	width: 400px;
-	height: 250px;
+	height: 250px;	
+	border-radius: 5px 5px 0px 0px;
 }
 
 .UG_TITLE
 {
-	font-size: 16px;
+	font-size: 18px;
+	font-weight: 700;
 	line-height: 20px;
 	width: 400px;
 	margin-top: 20px;
-	margin-bottom: 10px; 
+	margin-bottom: 4px;
 }
 
 .UG_DESC
 {
 	width: 400px;
 	line-height: 18px;
-	color: #C4C4C4;
+	color: #4E5454;
 	font-size: 14px;
 }
 
