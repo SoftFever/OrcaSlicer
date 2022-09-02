@@ -1182,6 +1182,42 @@ std::string xml_escape(std::string text, bool is_marked/* = false*/)
     return text;
 }
 
+std::string xml_unescape(std::string s)
+{
+	std::string ret;
+	std::string::size_type i = 0;
+	std::string::size_type pos = 0;
+	while (i < s.size()) {
+		std::string rep;
+		if (s[i] == '&') {
+			if (s.substr(i, 4) == "&lt;") {
+				ret += s.substr(pos, i - pos) + "<";
+				i += 4;
+				pos = i;
+			}
+			else if (s.substr(i, 4) == "&gt;") {
+				ret += s.substr(pos, i - pos) + ">";
+				i += 4;
+				pos = i;
+			}
+			else if (s.substr(i, 5) == "&amp;") {
+				ret += s.substr(pos, i - pos) + "&";
+				i += 5;
+				pos = i;
+			}
+			else {
+				++i;
+			}
+		}
+		else {
+			++i;
+		}
+	}
+
+	ret += s.substr(pos);
+	return ret;
+}
+
 std::string format_memsize_MB(size_t n)
 {
     std::string out;

@@ -43,7 +43,12 @@ public:
     double length() const;
     bool   is_valid() const { return this->points.size() >= 2; }
 
+    // Return index of a polygon point exactly equal to point.
+    // Return -1 if no such point exists.
     int  find_point(const Point &point) const;
+    // Return index of the closest point to point closer than scaled_epsilon.
+    // Return -1 if no such point exists.
+    int  find_point(const Point &point, const double scaled_epsilon) const;
     bool has_boundary_point(const Point &point) const;
     int  closest_point_index(const Point &point) const {
         int idx = -1;

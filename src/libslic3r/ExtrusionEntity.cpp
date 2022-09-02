@@ -158,11 +158,10 @@ double ExtrusionLoop::length() const
     return len;
 }
 
-bool ExtrusionLoop::split_at_vertex(const Point &point)
+bool ExtrusionLoop::split_at_vertex(const Point &point, const double scaled_epsilon)
 {
     for (ExtrusionPaths::iterator path = this->paths.begin(); path != this->paths.end(); ++path) {
-        int idx = path->polyline.find_point(point);
-        if (idx != -1) {
+        if (int idx = path->polyline.find_point(point, scaled_epsilon); idx != -1) {
             if (this->paths.size() == 1) {
                 // just change the order of points
                 Polyline p1, p2;
@@ -207,46 +206,57 @@ bool ExtrusionLoop::split_at_vertex(const Point &point)
     return false;
 }
 
-std::pair<size_t, Point> ExtrusionLoop::get_closest_path_and_point(const Point& point, bool prefer_non_overhang) const
+ExtrusionLoop::ClosestPathPoint ExtrusionLoop::get_closest_path_and_point(const Point &point, bool prefer_non_overhang) const
 {
     // Find the closest path and closest point belonging to that path. Avoid overhangs, if asked for.
-    size_t path_idx = 0;
-    Point  p;
-    {
-        double min = std::numeric_limits<double>::max();
-        Point  p_non_overhang;
-        size_t path_idx_non_overhang = 0;
-        double min_non_overhang = std::numeric_limits<double>::max();
-        for (const ExtrusionPath& path : this->paths) {
-            Point p_tmp = point.projection_onto(path.polyline);
-            double dist = (p_tmp - point).cast<double>().norm();
-            if (dist < min) {
-                p = p_tmp;
-                min = dist;
-                path_idx = &path - &this->paths.front();
-            }
-            if (prefer_non_overhang && !is_bridge(path.role()) && dist < min_non_overhang) {
-                p_non_overhang = p_tmp;
-                min_non_overhang = dist;
-                path_idx_non_overhang = &path - &this->paths.front();
-            }
+    ClosestPathPoint out{0, 0};
+    double           min2 = std::numeric_limits<double>::max();
+    ClosestPathPoint best_non_overhang{0, 0};
+    double           min2_non_overhang = std::numeric_limits<double>::max();
+    for (const ExtrusionPath &path : this->paths) {
+        std::pair<int, Point> foot_pt_ = foot_pt(path.polyline.points, point);
+        double                d2       = (foot_pt_.second - point).cast<double>().squaredNorm();
+        if (d2 < min2) {
+            out.foot_pt     = foot_pt_.second;
+            out.path_idx    = &path - &this->paths.front();
+            out.segment_idx = foot_pt_.first;
+            min2            = d2;
         }
-        if (prefer_non_overhang && min_non_overhang != std::numeric_limits<double>::max()) {
-            // Only apply the non-overhang point if there is one.
-            path_idx = path_idx_non_overhang;
-            p = p_non_overhang;
+        if (prefer_non_overhang && !is_bridge(path.role()) && d2 < min2_non_overhang) {
+            best_non_overhang.foot_pt     = foot_pt_.second;
+            best_non_overhang.path_idx    = &path - &this->paths.front();
+            best_non_overhang.segment_idx = foot_pt_.first;
+            min2_non_overhang             = d2;
         }
     }
-    return std::make_pair(path_idx, p);
+    if (prefer_non_overhang && min2_non_overhang != std::numeric_limits<double>::max())
+        // Only apply the non-overhang point if there is one.
+        out = best_non_overhang;
+    return out;
 }
 
 // Splitting an extrusion loop, possibly made of multiple segments, some of the segments may be bridging.
-void ExtrusionLoop::split_at(const Point &point, bool prefer_non_overhang)
+void ExtrusionLoop::split_at(const Point &point, bool prefer_non_overhang, const double scaled_epsilon)
 {
     if (this->paths.empty())
         return;
     
-    auto [path_idx, p] = get_closest_path_and_point(point, prefer_non_overhang);
+    auto [path_idx, segment_idx, p] = get_closest_path_and_point(point, prefer_non_overhang);
+
+    // Snap p to start or end of segment_idx if closer than scaled_epsilon.
+    {
+        const Point *p1 = this->paths[path_idx].polyline.points.data() + segment_idx;
+        const Point *p2 = p1;
+        ++p2;
+        double       d2_1 = (point - *p1).cast<double>().squaredNorm();
+        double       d2_2 = (point - *p2).cast<double>().squaredNorm();
+        const double thr2 = scaled_epsilon * scaled_epsilon;
+        if (d2_1 < d2_2) {
+            if (d2_1 < thr2) p = *p1;
+        } else {
+            if (d2_2 < thr2) p = *p2;
+        }
+    }
     
     // now split path_idx in two parts
     const ExtrusionPath &path = this->paths[path_idx];

@@ -297,6 +297,7 @@ public:
 
     void export_gcode(bool prefer_removable);
     void export_gcode_3mf();
+    void export_core_3mf();
     void export_stl(bool extended = false, bool selection_only = false);
     //BBS: remove amf
     //void export_amf();
@@ -371,6 +372,7 @@ public:
     //void show_action_buttons(const bool is_ready_to_slice) const;
 
     wxString get_project_filename(const wxString& extension = wxEmptyString) const;
+    wxString get_export_gcode_filename(const wxString& extension = wxEmptyString, bool only_filename = false) const;
     void set_project_filename(const wxString& filename);
 
     bool is_export_gcode_scheduled() const;

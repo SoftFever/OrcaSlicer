@@ -1091,7 +1091,7 @@ void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
 
 void TriangleSelectorPatch::update_triangles_per_type()
 {
-    m_triangle_patches.resize((int)EnforcerBlockerType::ExtruderMax);
+    m_triangle_patches.resize((int)EnforcerBlockerType::ExtruderMax + 1);
     for (int i = 0; i < m_triangle_patches.size(); i++) {
         auto& patch = m_triangle_patches[i];
         patch.type = (EnforcerBlockerType)i;

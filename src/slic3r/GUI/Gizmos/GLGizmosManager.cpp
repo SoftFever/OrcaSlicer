@@ -22,6 +22,7 @@
 #include "slic3r/GUI/Gizmos/GLGizmoSeam.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSimplify.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoText.hpp"
 
 #include "libslic3r/format.hpp"
 #include "libslic3r/Model.hpp"
@@ -146,6 +147,7 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoAdvancedCut(m_parent, "toolbar_cut.svg", EType::Cut));
     m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, "toolbar_support.svg", EType::FdmSupports));
     m_gizmos.emplace_back(new GLGizmoSeam(m_parent, "toolbar_seam.svg", EType::Seam));
+    m_gizmos.emplace_back(new GLGizmoText(m_parent, "toolbar_text.svg", EType::Text));
     m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, "mmu_segmentation.svg", EType::MmuSegmentation));
     m_gizmos.emplace_back(new GLGizmoSimplify(m_parent, "reduce_triangles.svg", EType::Simplify));
     //m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", sprite_id++));
@@ -191,6 +193,37 @@ bool GLGizmosManager::init_icon_textures()
 
     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/toolbar_tooltip_hover.svg", 30, 22, texture_id))
         icon_list.insert(std::make_pair((int)IC_TOOLBAR_TOOLTIP_HOVER, texture_id));
+    else
+        return false;
+
+
+     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_B.svg", 20, 20, texture_id))
+        icon_list.insert(std::make_pair((int)IC_TEXT_B, texture_id));
+    else
+        return false;
+
+     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_B_hover.svg", 20, 20, texture_id))
+        icon_list.insert(std::make_pair((int)IC_TEXT_B_HOVER, texture_id));
+    else
+        return false;
+
+     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_B_press.svg", 20, 20, texture_id))
+        icon_list.insert(std::make_pair((int)IC_TEXT_B_PRESS, texture_id));
+    else
+        return false;
+
+     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_T.svg", 20, 20, texture_id))
+        icon_list.insert(std::make_pair((int)IC_TEXT_T, texture_id));
+    else
+        return false;
+
+     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_T_hover.svg", 20, 20, texture_id))
+        icon_list.insert(std::make_pair((int)IC_TEXT_T_HOVER, texture_id));
+    else
+        return false;
+
+     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_T_press.svg", 20, 20, texture_id))
+        icon_list.insert(std::make_pair((int)IC_TEXT_T_PRESS, texture_id));
     else
         return false;
 
@@ -1379,7 +1412,8 @@ void GLGizmosManager::update_on_off_state(const Vec2d& mouse_pos)
     size_t idx = get_gizmo_idx_from_mouse(mouse_pos);
     if (idx != Undefined && m_gizmos[idx]->is_activable() && m_hover == idx) {
         activate_gizmo(m_current == idx ? Undefined : (EType)idx);
-        wxGetApp().obj_list()->select_object_item((EType)idx <= Rotate);
+        // BBS
+        wxGetApp().obj_list()->select_object_item((EType)idx <= Scale);
     }
 }
 

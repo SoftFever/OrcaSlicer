@@ -1842,7 +1842,10 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
         new_volume->name = boost::filesystem::path(input_file).filename().string();
         // set a default extruder value, since user can't add it manually
         // BBS
-        new_volume->config.set_key_value("extruder", new ConfigOptionInt(1));
+        int extruder_id = 0;
+        if (model_object.config.has("extruder"))
+            extruder_id = model_object.config.opt_int("extruder");
+        new_volume->config.set_key_value("extruder", new ConfigOptionInt(extruder_id));
         // update source data
         new_volume->source.input_file = input_file;
         new_volume->source.object_idx = obj_idx;
@@ -1945,7 +1948,10 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     new_volume->name = into_u8(name);
     // set a default extruder value, since user can't add it manually
     // BBS
-    new_volume->config.set_key_value("extruder", new ConfigOptionInt(1));
+    int extruder_id = 0;
+    if (model_object.config.has("extruder"))
+        extruder_id = model_object.config.opt_int("extruder");
+    new_volume->config.set_key_value("extruder", new ConfigOptionInt(extruder_id));
     new_volume->source.is_from_builtin_objects = true;
 
     select_item([this, obj_idx, new_volume]() {
@@ -1962,28 +1968,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
         wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
 
     // apply the instance transform to all volumes and reset instance transform except the offset
-    {
-        const Geometry::Transformation &instance_transformation  = model_object.instances[0]->get_transformation();
-        Vec3d                           original_instance_center = instance_transformation.get_offset();
-
-        const Transform3d &transformation_matrix = instance_transformation.get_matrix();
-        for (ModelVolume *volume : model_object.volumes) {
-            const Transform3d &volume_matrix = volume->get_matrix();
-            Transform3d        new_matrix    = transformation_matrix * volume_matrix;
-            volume->set_transformation(new_matrix);
-        }
-        model_object.instances[0]->set_transformation(Geometry::Transformation());
-
-        model_object.ensure_on_bed();
-        // keep new instance center the same as the original center
-        model_object.translate(-original_instance_center);
-        model_object.origin_translation += original_instance_center;
-        model_object.translate_instances(model_object.origin_translation);
-        model_object.origin_translation = Vec3d::Zero();
-
-        // update the cache data in selection to keep the data of ModelVolume and GLVolume are consistent
-        wxGetApp().plater()->update();
-    }
+    apply_object_instance_transfrom_to_all_volumes(&model_object);
 
     selection_changed();
 
@@ -2067,6 +2052,52 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
 #ifdef _DEBUG
     check_model_ids_validity(model);
 #endif /* _DEBUG */
+}
+
+void ObjectList::load_mesh_part(const TriangleMesh& mesh, const wxString& name, bool center)
+{
+    wxDataViewItem item = GetSelection();
+    // we can add volumes for Object or Instance
+    if (!item || !(m_objects_model->GetItemType(item) & (itObject | itInstance)))
+        return;
+    const int obj_idx = m_objects_model->GetObjectIdByItem(item);
+
+    if (obj_idx < 0) return;
+
+    // Get object item, if Instance is selected
+    if (m_objects_model->GetItemType(item) & itInstance)
+        item = m_objects_model->GetItemById(obj_idx);
+
+    take_snapshot("Load Mesh Part");
+
+    ModelObject* mo = (*m_objects)[obj_idx];
+
+    // apply the instance transform to all volumes and reset instance transform except the offset
+    apply_object_instance_transfrom_to_all_volumes(mo);
+
+    ModelVolume* mv = mo->add_volume(mesh);
+    Vec3d instance_bbox = mo->mesh().bounding_box().size();
+    Vec3d offset = mv->get_offset() + Vec3d(0, 0, instance_bbox[2] / 2);
+    mv->set_offset(offset);
+    mv->name = name.ToStdString();
+
+    std::vector<ModelVolume*> volumes;
+    volumes.push_back(mv);
+    wxDataViewItemArray items = reorder_volumes_and_get_selection(obj_idx, [volumes](const ModelVolume* volume) {
+        return std::find(volumes.begin(), volumes.end(), volume) != volumes.end(); });
+
+    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
+
+    if (items.size() > 1) {
+        m_selection_mode = smVolume;
+        m_last_selected_item = wxDataViewItem(nullptr);
+    }
+    select_items(items);
+
+    selection_changed();
+
+    //BBS: notify partplate the modify
+    notify_instance_updated(obj_idx);
 }
 
 //BBS
@@ -5004,6 +5035,29 @@ ModelObject* ObjectList::object(const int obj_idx) const
 bool ObjectList::has_paint_on_segmentation()
 {
     return m_objects_model->HasInfoItem(InfoItemType::MmuSegmentation);
+}
+
+void ObjectList::apply_object_instance_transfrom_to_all_volumes(ModelObject *model_object) {
+    const Geometry::Transformation &instance_transformation  = model_object->instances[0]->get_transformation();
+    Vec3d                           original_instance_center = instance_transformation.get_offset();
+
+    const Transform3d &transformation_matrix = instance_transformation.get_matrix();
+    for (ModelVolume *volume : model_object->volumes) {
+        const Transform3d &volume_matrix = volume->get_matrix();
+        Transform3d        new_matrix    = transformation_matrix * volume_matrix;
+        volume->set_transformation(new_matrix);
+    }
+    model_object->instances[0]->set_transformation(Geometry::Transformation());
+
+    model_object->ensure_on_bed();
+    // keep new instance center the same as the original center
+    model_object->translate(-original_instance_center);
+    model_object->origin_translation += original_instance_center;
+    model_object->translate_instances(model_object->origin_translation);
+    model_object->origin_translation = Vec3d::Zero();
+
+    // update the cache data in selection to keep the data of ModelVolume and GLVolume are consistent
+    wxGetApp().plater()->update();
 }
 
 } //namespace GUI

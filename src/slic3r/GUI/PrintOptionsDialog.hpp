@@ -24,6 +24,8 @@ protected:
     CheckBox* m_cb_first_layer;
     CheckBox* m_cb_spaghetti;
     CheckBox* m_cb_spaghetti_print_halt;
+    wxStaticText* text_first_layer;
+    wxStaticText* text_spaghetti;
     wxStaticText* text_spaghetti_print_halt;
     wxBoxSizer* create_settings_group(wxWindow* parent);
 

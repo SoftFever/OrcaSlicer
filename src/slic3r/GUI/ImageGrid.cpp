@@ -138,7 +138,7 @@ void Slic3r::GUI::ImageGrid::DoAction(size_t index, int action)
     if (action == 0) {
         m_file_sys->DeleteFiles(index);
     } else {
-        if (index >= 0) {
+        if (index != -1) {
             auto &file = m_file_sys->GetFile(index);
             if (file.IsDownload() && file.progress >= -1) {
                 if (file.progress >= 100) {
@@ -480,13 +480,13 @@ void ImageGrid::render(wxDC& dc)
                 if (file.IsDownload()) {
                     if (file.progress == -1) {
                         secondAction = _L("Cancel");
-                        dc.DrawText(_L("Waiting"), pt + wxPoint{24, m_image_size.GetHeight() - 36});
+                        dc.DrawText(_L("Waiting"), pt + wxPoint{24, m_image_size.GetHeight() - 64});
                     } else if (file.progress < 0) {
                         secondAction = _L("Retry");
-                        dc.DrawText(_L("Failed"), pt + wxPoint{24, m_image_size.GetHeight() - 36});
+                        dc.DrawText(_L("Failed"), pt + wxPoint{24, m_image_size.GetHeight() - 64});
                     } else if (file.progress >= 100) {
                         secondAction = _L("Open");
-                        dc.DrawText(_L("Finished"), pt + wxPoint{24, m_image_size.GetHeight() - 36});
+                        dc.DrawText(_L("Finished"), pt + wxPoint{24, m_image_size.GetHeight() - 64});
                     } else {
                         secondAction = _L("Cancel");
                         if (file.progress != m_background_progress) {
@@ -567,7 +567,7 @@ void Slic3r::GUI::ImageGrid::renderButtons(wxDC &dc, wxStringList const &texts, 
     wxRect rect(rect2);
     rect.SetWidth(rect.GetWidth() / texts.size());
     int state = m_pressed ? StateColor::Pressed : StateColor::Hovered;
-    dc.SetFont(Label::Body_12);
+    dc.SetFont(Label::Body_14);
     //mdc.SelectObject(m_button_background);
     for (size_t i = 0; i < texts.size(); ++i) {
         int states = hit == i ? state : 0;

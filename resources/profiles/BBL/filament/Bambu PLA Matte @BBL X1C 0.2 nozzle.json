@@ -6,7 +6,7 @@
     "instantiation": "true",
     "inherits": "Bambu PLA Matte @base",
     "filament_max_volumetric_speed": [
-        "2.5"
+        "4"
     ],
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.2 nozzle"

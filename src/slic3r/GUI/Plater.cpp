@@ -1,5 +1,4 @@
 #include "Plater.hpp"
-
 #include <cstddef>
 #include <algorithm>
 #include <numeric>
@@ -41,6 +40,7 @@
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Format/STL.hpp"
+#include "libslic3r/Format/STEP.hpp"
 #include "libslic3r/Format/AMF.hpp"
 //#include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
@@ -296,7 +296,7 @@ struct Sidebar::priv
     wxStaticLine* m_staticline2;
     wxPanel* m_panel_project_title;
     ScalableButton* m_filament_icon = nullptr;
-    ScalableButton * m_flushing_volume_btn = nullptr;
+    Button * m_flushing_volume_btn = nullptr;
 
     // BBS printer config
     StaticBox* m_panel_printer_title = nullptr;
@@ -570,11 +570,34 @@ Sidebar::Sidebar(Plater *parent)
     spliter_2->SetLineColour("#CECECE");
     scrolled_sizer->Add(spliter_2, 0, wxEXPAND);
 
+    bSizer39->AddStretchSpacer(1);
+
     // BBS
     // add wiping dialog
-    p->m_flushing_volume_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "flush_volumes");
-    p->m_flushing_volume_btn->SetToolTip(_L("Flushing volumes"));
     //wiping_dialog_button->SetFont(wxGetApp().normal_font());
+    p->m_flushing_volume_btn = new Button(p->m_panel_filament_title, _L("Flushing volumes"));
+    p->m_flushing_volume_btn->SetFont(Label::Body_10);
+    p->m_flushing_volume_btn->SetPaddingSize(wxSize(FromDIP(8),FromDIP(3)));
+    p->m_flushing_volume_btn->SetCornerRadius(FromDIP(8));
+
+    StateColor flush_bg_col(std::pair<wxColour, int>(wxColour(219, 253, 231), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
+
+    StateColor flush_fg_col(std::pair<wxColour, int>(wxColour(107, 107, 107), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(107, 107, 107), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(107, 107, 107), StateColor::Normal));
+
+    StateColor flush_bd_col(std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(172, 172, 172), StateColor::Normal));
+
+    p->m_flushing_volume_btn->SetBackgroundColor(flush_bg_col);
+    p->m_flushing_volume_btn->SetBorderColor(flush_bd_col);
+    p->m_flushing_volume_btn->SetTextColor(flush_fg_col);
+    p->m_flushing_volume_btn->SetFocus();
+    p->m_flushing_volume_btn->SetId(wxID_RESET);
+    p->m_flushing_volume_btn->Rescale();
 
     p->m_flushing_volume_btn->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent &e)
         {
@@ -604,10 +627,9 @@ Sidebar::Sidebar(Plater *parent)
                 wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
             }
         }));
-    bSizer39->Add(p->m_flushing_volume_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, em);
+    bSizer39->Add(p->m_flushing_volume_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5));
     bSizer39->Hide(p->m_flushing_volume_btn);
-
-    bSizer39->AddStretchSpacer(1);
+    bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
 
     ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
     add_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent& e){
@@ -967,7 +989,7 @@ void Sidebar::msw_rescale()
     p->m_bpButton_add_filament->msw_rescale();
     p->m_bpButton_del_filament->msw_rescale();
     p->m_bpButton_set_filament->msw_rescale();
-    p->m_flushing_volume_btn->msw_rescale();
+    p->m_flushing_volume_btn->Rescale();
     //BBS
     m_bed_type_list->Rescale();
     m_bed_type_list->SetMinSize({-1, 3 * wxGetApp().em_unit()});
@@ -1838,6 +1860,7 @@ struct Plater::priv
     // returns the path to project file with the given extension (none if extension == wxEmptyString)
     // extension should contain the leading dot, i.e.: ".3mf"
     wxString get_project_filename(const wxString& extension = wxEmptyString) const;
+    wxString get_export_gcode_filename(const wxString& extension = wxEmptyString, bool only_filename = false) const;
     void set_project_filename(const wxString& filename);
 
     //BBS store bbs project name
@@ -2593,7 +2616,39 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     int answer_convert_from_imperial_units  = wxOK_DEFAULT;
     int tolal_model_count                   = 0;
 
+    int progress_percent = 0;
+    int total_files = input_files.size();
+    const int stage_percent[IMPORT_STAGE_MAX+1] = {
+            5,      // IMPORT_STAGE_RESTORE
+            10,     // IMPORT_STAGE_OPEN
+            30,     // IMPORT_STAGE_READ_FILES
+            50,     // IMPORT_STAGE_EXTRACT
+            60,     // IMPORT_STAGE_LOADING_OBJECTS
+            70,     // IMPORT_STAGE_LOADING_PLATES
+            80,     // IMPORT_STAGE_FINISH
+            85,     // IMPORT_STAGE_ADD_INSTANCE
+            90,      // IMPORT_STAGE_UPDATE_GCODE
+            92,     // IMPORT_STAGE_CHECK_MODE_GCODE
+            95,     // UPDATE_GCODE_RESULT
+            98,     // IMPORT_LOAD_CONFIG
+            99,     // IMPORT_LOAD_MODEL_OBJECTS
+            100
+     };
+    const int step_percent[LOAD_STEP_STAGE_NUM+1] = {
+            5,     // LOAD_STEP_STAGE_READ_FILE
+            30,     // LOAD_STEP_STAGE_GET_SOLID
+            60,     // LOAD_STEP_STAGE_GET_MESH
+            100
+     };
+
+    const float INPUT_FILES_RATIO            = 0.7;
+    const float INIT_MODEL_RATIO             = 0.75;
+    const float CENTER_AROUND_ORIGIN_RATIO   = 0.8;
+    const float LOAD_MODEL_RATIO             = 0.9;
+
     for (size_t i = 0; i < input_files.size(); ++i) {
+        int file_percent = 0;
+
 #ifdef _WIN32
         auto path = input_files[i];
         // On Windows, we swap slashes to back slashes, see GH #6803 as read_from_file() does not understand slashes on Windows thus it assignes full path to names of loaded objects.
@@ -2603,14 +2658,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         const auto &path = input_files[i];
 #endif // _WIN32
         const auto filename         = path.filename();
-        int        progress_percent = static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(input_files.size()));
+        int  progress_percent = static_cast<int>(100.0f * static_cast<float>(i) / static_cast<float>(input_files.size()));
         const auto real_filename    = (strategy & LoadStrategy::Restore) ? input_files[++i].filename() : filename;
         const auto dlg_info         = _L("Loading file") + ": " + from_path(real_filename);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": load file %1%") % filename;
         dlg_cont = dlg.Update(progress_percent, dlg_info);
         if (!dlg_cont) return empty_result;
-
-        dlg.Fit();
 
         const bool type_3mf = std::regex_match(path.string(), pattern_3mf);
         // const bool type_zip_amf = !type_3mf && std::regex_match(path.string(), pattern_zip_amf);
@@ -2642,19 +2695,22 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     // BBS: backup & restore
                     model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, en_3mf_file_type, strategy, &plate_data, &project_presets,
                                                              &file_version,
-                                                             [this, &dlg, real_filename, progress_percent](int import_stage, int current, int total, bool &cancel) {
+                                                             [this, &dlg, real_filename, &progress_percent, &file_percent, stage_percent, INPUT_FILES_RATIO, total_files, i](int import_stage, int current, int total, bool &cancel) {
                                                                  bool     cont = true;
+                                                                 float percent_float = (100.0f * (float)i / (float)total_files) + INPUT_FILES_RATIO * ((float)stage_percent[import_stage] + (float)current * (float)(stage_percent[import_stage + 1] - stage_percent[import_stage]) /(float) total) / (float)total_files;
+                                                                 BOOST_LOG_TRIVIAL(trace) << "load_3mf_file: percent(float)=" << percent_float << ", stage = " << import_stage << ", curr = " << current << ", total = " << total;
+                                                                 progress_percent = (int)percent_float;
                                                                  wxString msg  = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
                                                                  cont          = dlg.Update(progress_percent, msg);
                                                                  cancel        = !cont;
                                                              });
-
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__
                                             << boost::format(", plate_data.size %1%, project_preset.size %2%, is_bbs_3mf %3%, file_version %4% \n") % plate_data.size() %
                                                    project_presets.size() % (en_3mf_file_type == En3mfType::From_BBS) % file_version.to_string();
 
-                    // add extruder for prusa model if the number of existing extruders is not enough
-                    if (en_3mf_file_type == En3mfType::From_Prusa) {
+                    // 1. add extruder for prusa model if the number of existing extruders is not enough
+                    // 2. add extruder for BBS model if only import geometry
+                    if (en_3mf_file_type == En3mfType::From_Prusa || (en_3mf_file_type == En3mfType::From_BBS && load_model && !load_config)) {
                         std::set<int> extruderIds;
                         for (ModelObject *o : model.objects) {
                             if (o->config.option("extruder")) extruderIds.insert(o->config.extruder());
@@ -2725,11 +2781,36 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             context += append;
                             show_info(q, context, _L("Newer 3mf version"));
                         }
+                        else {
+                            //if the minor version is not matched
+                            if (file_version.min() != app_version.min()) {
+                                wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your software.\n"),
+                                                 file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
+                                show_info(q, text, _L("Newer 3mf version"));
+                            }
+                        }
                     } else if (!load_config) {
+                        // reset config except color
                         for (ModelObject *model_object : model.objects) {
+                            bool has_extruder = model_object->config.has("extruder");
+                            int  extruder_id  = -1;
+                            // save the extruder information before reset
+                            if (has_extruder) { extruder_id = model_object->config.extruder(); }
+
                             model_object->config.reset();
+
+                            // restore the extruder after reset
+                            if (has_extruder) { model_object->config.set("extruder", extruder_id); }
+                            
                             // Is there any modifier or advanced config data?
-                            for (ModelVolume *model_volume : model_object->volumes) model_volume->config.reset();
+                            for (ModelVolume *model_volume : model_object->volumes) {
+                                has_extruder = model_volume->config.has("extruder");
+                                if (has_extruder) { extruder_id = model_volume->config.extruder(); }
+
+                                model_volume->config.reset();
+
+                                if (has_extruder) { model_volume->config.set("extruder", extruder_id); }
+                            }
                         }
                     }
 
@@ -2883,11 +2964,25 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 Semver                file_version;
                 model = Slic3r::Model::read_from_file(
                     path.string(), nullptr, nullptr, strategy, &plate_data, &project_presets, &is_xxx, &file_version, nullptr,
-                    [&dlg, real_filename, progress_percent](int import_stage, int current, int total, bool &cancel) {
-                        bool     cont = true;
-                        wxString msg  = wxString::Format("Loading file: %s", from_path(real_filename));
-                        cont          = dlg.Update(progress_percent, msg);
-                        cancel        = !cont;
+                    [this, &dlg, real_filename, &progress_percent, &file_percent, INPUT_FILES_RATIO, total_files, i](int current, int total, bool &cancel)
+                    {
+                            bool     cont = true;
+                            float percent_float = (100.0f * (float)i / (float)total_files) + INPUT_FILES_RATIO * 100.0f * ((float)current / (float)total) / (float)total_files;
+                            BOOST_LOG_TRIVIAL(trace) << "load_stl_file: percent(float)=" << percent_float << ", curr = " << current << ", total = " << total;
+                            progress_percent = (int)percent_float;
+                            wxString msg  = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
+                            cont          = dlg.Update(progress_percent, msg);
+                            cancel        = !cont;
+                     },
+                    [this, &dlg, real_filename, &progress_percent, &file_percent, step_percent, INPUT_FILES_RATIO, total_files, i](int load_stage, int current, int total, bool &cancel)
+                    {
+                            bool     cont = true;
+                            float percent_float = (100.0f * (float)i / (float)total_files) + INPUT_FILES_RATIO * ((float)step_percent[load_stage] + (float)current * (float)(step_percent[load_stage + 1] - step_percent[load_stage]) / (float)total) / (float)total_files;
+                            BOOST_LOG_TRIVIAL(trace) << "load_step_file: percent(float)=" << percent_float << ", stage = " << load_stage << ", curr = " << current << ", total = " << total;
+                            progress_percent = (int)percent_float;
+                            wxString msg  = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
+                            cont          = dlg.Update(progress_percent, msg);
+                            cancel        = !cont;
                     },
                     [](int isUtf8StepFile) {
                         if (!isUtf8StepFile)
@@ -2928,6 +3023,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             GUI::show_error(q, e.what());
             continue;
         }
+
+        progress_percent = 100.0f * (float)i / (float)total_files + INIT_MODEL_RATIO * 100.0f / (float)total_files;
+        dlg_cont = dlg.Update(progress_percent);
+        if (!dlg_cont) return empty_result;
 
         if (load_model) {
             // The model should now be initialized
@@ -3005,6 +3104,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         //        return obj_idxs;
         //}
 
+        progress_percent = 100.0f * (float)i / (float)total_files + CENTER_AROUND_ORIGIN_RATIO * 100.0f / (float)total_files;
+        dlg_cont = dlg.Update(progress_percent);
+        if (!dlg_cont) return empty_result;
+
         int model_idx = 0;
         for (ModelObject *model_object : model.objects) {
             if (!type_3mf && !type_any_amf) model_object->center_around_origin(false);
@@ -3021,6 +3124,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
         tolal_model_count += model_idx;
 
+        progress_percent = 100.0f * (float)i / (float)total_files + LOAD_MODEL_RATIO * 100.0f / (float)total_files;
+        dlg_cont = dlg.Update(progress_percent);
+        if (!dlg_cont) return empty_result;
 
         if (one_by_one) {
             // BBS: add load_old_project logic
@@ -5625,8 +5731,30 @@ PlateBBoxData Plater::priv::generate_first_layer_bbox()
 
 wxString Plater::priv::get_project_filename(const wxString& extension) const
 {
-    auto full_filename = m_project_folder / std::string((m_project_name + extension).mb_str(wxConvUTF8));
-    return m_project_folder.empty() ? "" : from_path(full_filename);
+    if (m_project_name.empty())
+        return "";
+    else {
+        auto full_filename = m_project_folder / std::string((m_project_name + extension).mb_str(wxConvUTF8));
+        return m_project_folder.empty() ? "" : from_path(full_filename);
+    }
+}
+
+wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool only_filename) const
+{
+    std::string plate_index_str = (boost::format("_plate_%1%") % std::to_string(partplate_list.get_curr_plate_index() + 1)).str();
+    if (!m_project_folder.empty()) {
+        if (!only_filename) {
+            auto full_filename = m_project_folder / std::string((m_project_name + plate_index_str + extension).mb_str(wxConvUTF8));
+            return from_path(full_filename);
+        } else {
+            return m_project_name + wxString(plate_index_str) + extension;
+        }
+    } else {
+        if (only_filename)
+            return m_project_name + wxString(plate_index_str) + extension;
+        else
+            return "";
+    }
 }
 
 wxString Plater::priv::get_project_name()
@@ -6188,8 +6316,7 @@ void Plater::priv::undo()
     // BBS: undo-redo until modify record
     while (--it_current != snapshots.begin() && !snapshot_modifies_project(*it_current));
     if (it_current == snapshots.begin()) return;
-    while (--it_current != snapshots.begin() && !snapshot_modifies_project(*it_current));
-    this->undo_redo_to(++it_current);
+    this->undo_redo_to(it_current);
 }
 
 void Plater::priv::redo()
@@ -6198,8 +6325,10 @@ void Plater::priv::redo()
     auto it_current = std::lower_bound(snapshots.begin(), snapshots.end(), UndoRedo::Snapshot(this->undo_redo_stack().active_snapshot_time()));
     // BBS: undo-redo until modify record
     while (it_current != snapshots.end() && !snapshot_modifies_project(*it_current++));
-    if (it_current != snapshots.end())
-        this->undo_redo_to(it_current);
+    if (it_current != snapshots.end()) {
+        while (it_current != snapshots.end() && !snapshot_modifies_project(*it_current++));
+        this->undo_redo_to(--it_current);
+    }
 }
 
 void Plater::priv::undo_redo_to(size_t time_to_load)
@@ -6336,6 +6465,9 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
             }
 
             if (need_update) {
+                // update print to current plate (preview->m_process)
+                this->partplate_list.update_slice_context_to_current_plate(this->background_process);
+                this->preview->update_gcode_result(this->partplate_list.get_current_slice_result());
                 this->update();
             }
         }
@@ -6996,12 +7128,13 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 10);
 
     wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer *m_sizer_left = new wxBoxSizer(wxHORIZONTAL);
+    // hide the "Don't show again" checkbox
+    //wxBoxSizer *m_sizer_left = new wxBoxSizer(wxHORIZONTAL);
 
-    auto dont_show_again = create_item_checkbox(_L("Don't show again"), this, _L("Don't show again"), "show_drop_project_dialog");
-    m_sizer_left->Add(dont_show_again, 0, wxALL, 5);
+    //auto dont_show_again = create_item_checkbox(_L("Don't show again"), this, _L("Don't show again"), "show_drop_project_dialog");
+    //m_sizer_left->Add(dont_show_again, 0, wxALL, 5);
 
-    m_sizer_bottom->Add(m_sizer_left, 0, wxEXPAND, 5);
+    //m_sizer_bottom->Add(m_sizer_left, 0, wxEXPAND, 5);
 
     m_sizer_bottom->Add(0, 0, 1, wxEXPAND, 5);
 
@@ -7926,16 +8059,28 @@ void Plater::export_gcode_3mf()
 
     //calc default_output_file, get default output file from background process
     fs::path default_output_file;
-    default_output_file = into_path(get_project_filename(".3mf"));
-    if (default_output_file.empty())
-        default_output_file = into_path(get_project_name() + ".3mf");
+    AppConfig& appconfig = *wxGetApp().app_config;
+    std::string start_dir;
+    default_output_file = into_path(get_export_gcode_filename(".3mf"));
+    if (default_output_file.empty()) {
+        try {
+            start_dir = appconfig.get_last_output_dir("", false);
+            wxString filename = get_export_gcode_filename(".3mf", true);
+            std::string full_filename = start_dir + "/" + filename.utf8_string();
+            default_output_file = boost::filesystem::path(full_filename);
+        } catch(...) {
+            ;
+        }
+    }
 
     //BBS replace gcode extension to .gcode.3mf
     default_output_file = default_output_file.replace_extension(".gcode.3mf");
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
-    AppConfig &appconfig = *wxGetApp().app_config;
+
     //Get a last save path
-    std::string start_dir = appconfig.get_last_output_dir(default_output_file.parent_path().string(), false);
+    start_dir = appconfig.get_last_output_dir(default_output_file.parent_path().string(), false);
+
+
     fs::path output_path;
     {
         std::string ext = default_output_file.extension().string();
@@ -7945,8 +8090,12 @@ void Plater::export_gcode_3mf()
             GUI::file_wildcards(FT_3MF, ext),
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT
         );
-        if (dlg.ShowModal() == wxID_OK)
+        if (dlg.ShowModal() == wxID_OK) {
             output_path = into_path(dlg.GetPath());
+            ext = output_path.extension().string();
+            if (ext != ".3mf")
+                output_path = output_path.string() + ".3mf";
+        }
     }
 
     if (!output_path.empty()) {
@@ -7963,6 +8112,14 @@ void Plater::export_gcode_3mf()
         appconfig.update_last_output_dir(output_path.parent_path().string(), false);
         p->notification_manager->push_exporting_finished_notification(output_path.string(), p->last_output_dir_path, false);
     }
+}
+
+void Plater::export_core_3mf()
+{
+    wxString path = p->get_export_file(FT_3MF);
+    if (path.empty()) { return; }
+    const std::string path_u8 = into_u8(path);
+    export_3mf(path_u8, SaveStrategy::Silence);
 }
 
 void Plater::export_stl(bool extended, bool selection_only)
@@ -8955,6 +9112,11 @@ std::vector<std::string> Plater::get_colors_for_color_print(const GCodeProcessor
 wxString Plater::get_project_filename(const wxString& extension) const
 {
     return p->get_project_filename(extension);
+}
+
+wxString Plater::get_export_gcode_filename(const wxString & extension, bool only_filename) const
+{
+    return p->get_export_gcode_filename(extension, only_filename);
 }
 
 void Plater::set_project_filename(const wxString& filename)

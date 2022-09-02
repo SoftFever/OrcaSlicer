@@ -14,6 +14,9 @@
     "nozzle_temperature_initial_layer": [
         "230"
     ],
+    "filament_cost": [
+        "36.99"
+    ],
     "nozzle_temperature": [
         "230"
     ]

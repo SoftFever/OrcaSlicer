@@ -48,7 +48,7 @@ protected:
     wxStaticText *  m_staticText_ver_val;
     wxStaticLine *  m_staticline;
     wxStaticBitmap *m_ams_img;
-
+    AmsPanel*       m_ahb_panel;
    
 
     wxGridSizer *   m_ams_info_sizer;
@@ -75,6 +75,7 @@ protected:
     wxBitmap upgrade_green_icon;
     wxBitmap upgrade_yellow_icon;
     int last_status = -1;
+    std::string last_status_str = "";
 
     void upgrade_firmware_internal();
     void on_upgrade_firmware(wxCommandEvent &event);
@@ -94,7 +95,7 @@ public:
     void update(MachineObject *obj);
     void update_version_text(MachineObject *obj);
     void update_ams(MachineObject *obj);
-    void show_status(int status);
+    void show_status(int status, std::string upgrade_status_str = "");
     void show_ams(bool show = false, bool force_update = false);
 
     MachineObject *m_obj{nullptr};

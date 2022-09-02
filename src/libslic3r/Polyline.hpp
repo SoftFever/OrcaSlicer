@@ -222,6 +222,9 @@ const Point& leftmost_point(const Polylines &polylines);
 
 bool remove_degenerate(Polylines &polylines);
 
+// Returns index of a segment of a polyline and foot point of pt on polyline.
+std::pair<int, Point> foot_pt(const Points &polyline, const Point &pt);
+
 class ThickPolyline : public Polyline {
 public:
     ThickPolyline() : endpoints(std::make_pair(false, false)) {}

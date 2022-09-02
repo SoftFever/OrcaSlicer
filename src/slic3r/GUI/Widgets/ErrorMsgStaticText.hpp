@@ -1,18 +1,18 @@
 
-#ifndef _WX_STATTEXT2_H_
-#define _WX_STATTEXT2_H_
+#ifndef _WX_ERRORMSGSTATTEXT_H_
+#define _WX_ERRORMSGSTATTEXT_H_
 
 #include "wx/stattext.h"
 
-class WXDLLIMPEXP_CORE wxStaticText2 : public wxPanel
+class WXDLLIMPEXP_CORE ErrorMsgStaticText : public wxPanel
 {
 public:
     wxString m_msg;
-    wxStaticText2();
-    wxStaticText2(wxWindow *parent,
+    ErrorMsgStaticText();
+    ErrorMsgStaticText(wxWindow *parent,
                  wxWindowID id = wxID_ANY,
                  const wxPoint& pos = wxDefaultPosition,
-                 const wxSize& size = wxSize(200,200));
+                 const wxSize& size = wxSize(0,0));
 
     void paintEvent(wxPaintEvent &evt);
 

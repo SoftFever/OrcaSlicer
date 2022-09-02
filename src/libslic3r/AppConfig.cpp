@@ -184,10 +184,10 @@ void AppConfig::set_defaults()
 
 #ifdef _WIN32
 
-#ifdef SUPPORT_3D_CONNEXION
+//#ifdef SUPPORT_3D_CONNEXION
     if (get("use_legacy_3DConnexion").empty())
-        set_bool("use_legacy_3DConnexion", false);
-#endif
+        set_bool("use_legacy_3DConnexion", true);
+//#endif
 
 #ifdef SUPPORT_DARK_MODE
     if (get("dark_color_mode").empty())

@@ -1095,6 +1095,9 @@ void GUI_App::post_init()
                 hms_query->check_hms_info();
         });
 
+    std::string functional_config_file = Slic3r::resources_dir() + "/config.json";
+    DeviceManager::load_functional_config(encode_path(functional_config_file.c_str()));
+
     BOOST_LOG_TRIVIAL(info) << "finished post_init";
 //BBS: remove the single instance currently
 /*#ifdef _WIN32
@@ -1481,6 +1484,19 @@ void GUI_App::restart_networking()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(" exit, m_agent=%1%")%m_agent;
 }
 
+void GUI_App::remove_old_networking_plugins()
+{
+    auto plugin_folder = boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins";
+    if (boost::filesystem::exists(plugin_folder)) {
+        BOOST_LOG_TRIVIAL(info) << "[remove_old_networking_plugins] remove the directory "<<plugin_folder.string();
+        try {
+            fs::remove_all(plugin_folder);
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(error) << "Failed  removing the plugins directory " << plugin_folder.string();
+        }
+    }
+}
+
 int GUI_App::updating_bambu_networking()
 {
     DownloadProgressDialog dlg(_L("Downloading Bambu Network Plug-in"));
@@ -1838,6 +1854,20 @@ bool GUI_App::on_init_inner()
     CBaseException::set_log_folder(data_dir());
 #endif
 
+    wxGetApp().Bind(wxEVT_QUERY_END_SESSION, [this](auto & e) {
+        if (mainframe) {
+            wxCloseEvent e2(wxEVT_CLOSE_WINDOW);
+            e2.SetCanVeto(true);
+            mainframe->GetEventHandler()->ProcessEvent(e2);
+            if (e2.GetVeto()) {
+                e.Veto();
+                return;
+            }
+        }
+        for (auto d : dialogStack)
+            d->EndModal(wxID_CANCEL);
+    });
+
     std::map<std::string, std::string> extra_headers = get_extra_header();
     Slic3r::Http::set_extra_headers(extra_headers);
 
@@ -1896,10 +1926,20 @@ bool GUI_App::on_init_inner()
     init_fonts();
 
     if (m_last_config_version) {
-        if (*m_last_config_version < *Semver::parse(SLIC3R_VERSION))
-            check_older_app_config(*m_last_config_version, true);
-    } else {
-        check_older_app_config(Semver(), false);
+        int last_major = m_last_config_version->maj();
+        int last_minor = m_last_config_version->min();
+        int last_patch = m_last_config_version->patch()/100;
+        std::string studio_ver = SLIC3R_VERSION;
+        int cur_major = atoi(studio_ver.substr(0,2).c_str());
+        int cur_minor = atoi(studio_ver.substr(3,2).c_str());
+        int cur_patch = atoi(studio_ver.substr(6,2).c_str());
+        BOOST_LOG_TRIVIAL(info) << boost::format("last app version {%1%.%2%.%3%}, current version {%4%.%5%.%6%}")
+            %last_major%last_minor%last_patch%cur_major%cur_minor%cur_patch;
+        if ((last_major != cur_major)
+            ||(last_minor != cur_minor)
+            ||(last_patch != cur_patch)) {
+            remove_old_networking_plugins();
+        }
     }
 
     app_config->set("version", SLIC3R_VERSION);
@@ -2538,21 +2578,21 @@ float GUI_App::toolbar_icon_scale(const bool is_limited/* = false*/) const
     const float icon_sc = m_em_unit * 0.1f;
 #endif // __APPLE__
 
-    return icon_sc;
+    //return icon_sc;
 
-    //const std::string& auto_val = app_config->get("toolkit_size");
+    const std::string& auto_val = app_config->get("toolkit_size");
 
-    //if (auto_val.empty())
-    //    return icon_sc;
+    if (auto_val.empty())
+        return icon_sc;
 
-    //int int_val =  100;
-    //// correct value in respect to toolkit_size
-    //int_val = std::min(atoi(auto_val.c_str()), int_val);
+    int int_val =  100;
+    // correct value in respect to toolkit_size
+    int_val = std::min(atoi(auto_val.c_str()), int_val);
 
-    //if (is_limited && int_val < 50)
-    //    int_val = 50;
+    if (is_limited && int_val < 50)
+        int_val = 50;
 
-    //return 0.01f * int_val * icon_sc;
+    return 0.01f * int_val * icon_sc;
 }
 
 void GUI_App::set_auto_toolbar_icon_scale(float scale) const
@@ -2911,6 +2951,7 @@ void GUI_App::request_user_logout()
         m_agent->set_user_selected_machine("");
         /* delete old user settings */
         m_device_manager->clean_user_info();
+        GUI::wxGetApp().sidebar().load_ams_list({});
         GUI::wxGetApp().remove_user_presets();
         GUI::wxGetApp().stop_sync_user_preset();
     }
@@ -2920,7 +2961,9 @@ int GUI_App::request_user_unbind(std::string dev_id)
 {
     int result = -1;
     if (m_agent) {
-        return m_agent->unbind(dev_id);
+        result = m_agent->unbind(dev_id);
+        BOOST_LOG_TRIVIAL(info) << "request_user_unbind, dev_id = " << dev_id << ", result = " << result;
+        return result;
     }
     return result;
 }
@@ -3008,6 +3051,31 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     }
                 }
             }
+            else if (command_str.compare("homepage_delete_recentfile") == 0) {
+                if (root.get_child_optional("data") != boost::none) {
+                    pt::ptree                    data_node = root.get_child("data");
+                    boost::optional<std::string> path      = data_node.get_optional<std::string>("path");
+                    if (path.has_value()) {
+                        this->request_remove_project(path.value());
+                    }
+                }
+            }
+            else if (command_str.compare("homepage_delete_all_recentfile") == 0) {
+                this->request_remove_project("");
+            }
+            else if (command_str.compare("homepage_explore_recentfile") == 0) {
+                if (root.get_child_optional("data") != boost::none) {
+                    pt::ptree                    data_node = root.get_child("data");
+                    boost::optional<std::string> path      = data_node.get_optional<std::string>("path");
+                    if (path.has_value())
+                    {
+                        boost::filesystem::path NowFile(path.value());
+
+                        std::string FolderPath = NowFile.parent_path().make_preferred().string();
+                        desktop_open_any_folder(FolderPath);
+                    }
+                }
+            }
             else if (command_str.compare("homepage_open_hotspot") == 0) {
                 if (root.get_child_optional("data") != boost::none) {
                     pt::ptree data_node = root.get_child("data");
@@ -3042,6 +3110,16 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     wxPostEvent(mainframe, e);
                 }
             }
+            else if (command_str.compare("userguide_wiki_open") == 0) {
+                if (root.get_child_optional("data") != boost::none) {
+                    pt::ptree                    data_node = root.get_child("data");
+                    boost::optional<std::string> path      = data_node.get_optional<std::string>("url");
+                    if (path.has_value()) {
+                        wxLaunchDefaultBrowser(path.value());
+                    }
+                }
+            }
+
         }
     }
     catch (...) {
@@ -3114,6 +3192,11 @@ void GUI_App::request_open_project(std::string project_id)
         ;
     else
         CallAfter([this, project_id] { mainframe->open_recent_project(-1, wxString::FromUTF8(project_id)); });
+}
+
+void GUI_App::request_remove_project(std::string project_id)
+{
+    mainframe->remove_recent_project(-1, wxString::FromUTF8(project_id));
 }
 
 void GUI_App::handle_http_error(unsigned int status, std::string body)
@@ -3335,6 +3418,10 @@ void GUI_App::remove_user_presets()
 {
     if (preset_bundle && m_agent) {
         preset_bundle->remove_users_preset(*app_config);
+
+        std::string user_id = m_agent->get_user_id();
+        preset_bundle->remove_user_presets_directory(user_id);
+
         //update ui
         mainframe->update_side_preset_ui();
     }

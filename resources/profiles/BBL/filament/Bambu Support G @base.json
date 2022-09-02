@@ -23,6 +23,9 @@
     "fan_cooling_layer_time": [
         "10"
     ],
+    "filament_cost": [
+        "34.99"
+    ],
     "slow_down_layer_time":[
         "6"
     ]

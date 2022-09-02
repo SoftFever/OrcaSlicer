@@ -393,7 +393,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
 
         sizer_mapping_item->Add(number, 0, wxALIGN_CENTER_HORIZONTAL, 0);
         sizer_mapping_item->Add(m_filament_name, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-        sizer_mapping_list->Add(sizer_mapping_item, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, FromDIP(5));
+        sizer_mapping_list->Add(sizer_mapping_item, 0, wxALL, FromDIP(5));
         m_amsmapping_sizer_list.push_back(sizer_mapping_list);
     }
     m_sizer_list->Add(sizer_mapping_list, 0, wxALIGN_CENTER_HORIZONTAL, 0);
@@ -513,5 +513,102 @@ void MappingItem::doRender(wxDC &dc)
         dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 5);
     } 
 }
+
+AmsMapingTipPopup::AmsMapingTipPopup(wxWindow *parent) 
+    :wxPopupTransientWindow(parent, wxBORDER_NONE)
+{
+    SetBackgroundColour(*wxWHITE);
+    wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
+
+    m_sizer_main->Add(0, 0, 1, wxTOP, FromDIP(28));
+
+    wxBoxSizer *m_sizer_body = new wxBoxSizer(wxHORIZONTAL);
+
+    m_sizer_body->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(20));
+
+    m_panel_enable_ams = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(200, -1), wxTAB_TRAVERSAL);
+    m_panel_enable_ams->SetBackgroundColour(*wxWHITE);
+    wxBoxSizer *sizer_enable_ams = new wxBoxSizer(wxVERTICAL);
+
+    m_title_enable_ams = new wxStaticText(m_panel_enable_ams, wxID_ANY, _L("Enable AMS"), wxDefaultPosition, wxDefaultSize, 0);
+    m_title_enable_ams->SetBackgroundColour(*wxWHITE);
+    m_title_enable_ams->Wrap(-1);
+    sizer_enable_ams->Add(m_title_enable_ams, 0, 0, 0);
+
+    m_tip_enable_ams = new wxStaticText(m_panel_enable_ams, wxID_ANY, _L("Print with filaments in the AMS"), wxDefaultPosition, wxDefaultSize, 0);
+    m_tip_enable_ams->SetBackgroundColour(*wxWHITE);
+    m_tip_enable_ams->Wrap(-1);
+    sizer_enable_ams->Add(m_tip_enable_ams, 0, wxTOP, 8);
+
+    wxBoxSizer *sizer_enable_ams_img;
+    sizer_enable_ams_img = new wxBoxSizer(wxVERTICAL);
+
+    auto img_enable_ams = new wxStaticBitmap(m_panel_enable_ams, wxID_ANY, create_scaled_bitmap("monitor_upgrade_ams", this, 108), wxDefaultPosition,
+                                             wxSize(FromDIP(118), FromDIP(108)), 0);
+    sizer_enable_ams_img->Add(img_enable_ams, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+
+    sizer_enable_ams->Add(sizer_enable_ams_img, 1, wxEXPAND | wxTOP, FromDIP(20));
+
+    m_panel_enable_ams->SetSizer(sizer_enable_ams);
+    m_panel_enable_ams->Layout();
+    m_sizer_body->Add(m_panel_enable_ams, 0, 0, 0);
+
+    m_split_lines = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(1, FromDIP(150)), wxTAB_TRAVERSAL);
+    m_split_lines->SetBackgroundColour(wxColour(238, 238, 238));
+
+    m_sizer_body->Add(m_split_lines, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(10));
+
+    m_panel_disable_ams = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(200, -1), wxTAB_TRAVERSAL);
+    m_panel_disable_ams->SetBackgroundColour(*wxWHITE);
+    wxBoxSizer *sizer_disable_ams;
+    sizer_disable_ams = new wxBoxSizer(wxVERTICAL);
+
+    m_title_disable_ams = new wxStaticText(m_panel_disable_ams, wxID_ANY, _L("Disable AMS"), wxDefaultPosition, wxDefaultSize, 0);
+    m_title_disable_ams->SetBackgroundColour(*wxWHITE);
+    m_title_disable_ams->Wrap(-1);
+    sizer_disable_ams->Add(m_title_disable_ams, 0, 0, 0);
+
+    m_tip_disable_ams = new wxStaticText(m_panel_disable_ams, wxID_ANY, _L("Print with the filament mounted on the back of chassis"), wxDefaultPosition, wxDefaultSize, 0);
+    m_tip_disable_ams->SetBackgroundColour(*wxWHITE);
+    m_tip_disable_ams->Wrap(-1);
+    sizer_disable_ams->Add(m_tip_disable_ams, 0, wxTOP, FromDIP(8));
+
+    wxBoxSizer *sizer_disable_ams_img;
+    sizer_disable_ams_img = new wxBoxSizer(wxVERTICAL);
+
+    auto img_disable_ams = new wxStaticBitmap(m_panel_disable_ams, wxID_ANY, create_scaled_bitmap("disable_ams_demo_icon", this, 95), wxDefaultPosition,
+                                              wxSize(FromDIP(95), FromDIP(109)), 0);
+    sizer_disable_ams_img->Add(img_disable_ams, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+
+    sizer_disable_ams->Add(sizer_disable_ams_img, 1, wxEXPAND | wxTOP, FromDIP(20));
+
+    m_panel_disable_ams->SetSizer(sizer_disable_ams);
+    m_panel_disable_ams->Layout();
+    m_sizer_body->Add(m_panel_disable_ams, 0, 0, 0);
+
+    m_sizer_body->Add(0, 0, 0, wxEXPAND | wxRIGHT, FromDIP(20));
+
+    m_sizer_main->Add(m_sizer_body, 0, wxEXPAND, 0);
+
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(28));
+
+    this->SetSizer(m_sizer_main);
+    this->Layout();
+    this->Fit();
+    Bind(wxEVT_PAINT, &AmsMapingTipPopup::paintEvent, this);
+}
+
+void AmsMapingTipPopup::paintEvent(wxPaintEvent &evt)
+{
+    wxPaintDC dc(this);
+    dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
+}
+
+void AmsMapingTipPopup::OnDismiss() {}
+
+bool AmsMapingTipPopup::ProcessLeftDown(wxMouseEvent &event) { 
+    return wxPopupTransientWindow::ProcessLeftDown(event); }
 
 }} // namespace Slic3r::GUI

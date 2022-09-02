@@ -22,6 +22,7 @@
 #include <wx/spinctrl.h>
 #include <wx/artprov.h>
 #include <wx/wrapsizer.h>
+#include <wx/srchctrl.h>
 
 #include "AmsMappingPopup.hpp"
 #include "GUI_Utils.hpp"
@@ -197,6 +198,8 @@ private:
     wxBoxSizer *                      m_sizer_body{nullptr};
     wxBoxSizer *                      m_sizer_my_devices{nullptr};
     wxBoxSizer *                      m_sizer_other_devices{nullptr};
+    wxBoxSizer *                      m_sizer_search_bar{nullptr};
+    wxSearchCtrl*                     m_search_bar{nullptr};
     wxScrolledWindow *                m_scrolledWindow{nullptr};
     wxWindow *                        m_panel_body{nullptr};
     wxTimer *                         m_refresh_timer{nullptr};
@@ -215,6 +218,7 @@ private:
 
 	void      update_other_devices();
     void      update_user_devices();
+    bool      search_for_printer(MachineObject* obj);
     void      on_dissmiss_win(wxCommandEvent &event);
     wxWindow *create_title_panel(wxString text);
 };
@@ -235,6 +239,7 @@ enum PrintDialogStatus {
     PrintStatusNeedUpgradingAms,
     PrintStatusInSystemPrinting,
     PrintStatusInPrinting,
+    PrintStatusDisableAms,
     PrintStatusAmsMappingSuccess,
     PrintStatusAmsMappingInvalid,
     PrintStatusAmsMappingU0Invalid,
@@ -306,8 +311,17 @@ protected:
     wxBoxSizer * m_sizer_main;
     wxBoxSizer * m_sizer_bottom;
 
+    bool              m_need_adaptation_screen {false};
+    wxScrolledWindow *   m_scrollable_view;
+    wxBoxSizer *      m_sizer_scrollable_view; 
+
+    wxPanel* m_scrollable_region;
+    wxBoxSizer* m_sizer_scrollable_region; 
+
     wxWindow *select_bed{nullptr};
     wxWindow *select_flow{nullptr};
+    wxWindow *select_use_ams{nullptr};
+    CheckBox *ams_check{nullptr};
 
 
     void stripWhiteSpace(std::string& str);
@@ -318,10 +332,11 @@ protected:
 
 public:
     SelectMachineDialog(Plater *plater = nullptr);
+    wxWindow *create_ams_checkbox(wxString title, wxWindow *parent, wxString tooltip);
     ~SelectMachineDialog();
 
     wxWindow *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param);
-    void      update_select_layout(PRINTER_TYPE type);
+    void      update_select_layout(MachineObject *obj);
     void      prepare_mode();
     void      sending_mode();
     void      finish_mode();
@@ -350,6 +365,7 @@ protected:
     wxPanel *                    m_panel_status{nullptr};
     wxButton *                   m_button_cancel{nullptr};
     AmsMapingPopup               m_mapping_popup{nullptr};
+    AmsMapingTipPopup            m_mapping_tip_popup{nullptr};
 
     std::string                  m_print_info;
     int                          timeout_count = 0;
@@ -358,6 +374,7 @@ protected:
     void                         update_user_printer();
     void                         reset_ams_material();
     void                         update_show_status();
+    void                         update_ams_check(MachineObject* obj);
 
     wxTimer *m_refresh_timer { nullptr };
 

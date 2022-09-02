@@ -7,6 +7,7 @@
 #include <memory>
 #include <chrono>
 #include <boost/thread.hpp>
+#include "nlohmann/json.hpp"
 #include "libslic3r/ProjectTask.hpp"
 #include "slic3r/Utils/json_diff.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
@@ -32,16 +33,9 @@ inline int correct_filament_temperature(int filament_temp)
 
 wxString get_stage_string(int stage);
 
+using namespace nlohmann;
 
 namespace Slic3r {
-
-enum PRINTER_TYPE {
-    PRINTER_3DPrinter_UKNOWN,
-    PRINTER_3DPrinter_NONE,
-    PRINTER_3DPrinter_X1_Carbon,    // BL-P001
-    PRINTER_3DPrinter_X1,           // BL-P002
-    PRINTER_3DPrinter_P1,           // BL-P003
-};
 
 enum PRINTING_STAGE {
     PRINTING_STAGE_PRINTING = 0,
@@ -60,6 +54,18 @@ enum PRINTING_STAGE {
     PRINTING_STAGE_TOOHEAD_HOMING,
     PRINTING_STAGE_NOZZLE_TIP_CLEANING,
     PRINTING_STAGE_COUNT
+};
+
+enum PrinterFunction {
+    FUNC_MONITORING = 0,
+    FUNC_TIMELAPSE,
+    FUNC_RECORDING,
+    FUNC_FIRSTLAYER_INSPECT,
+    FUNC_SPAGHETTI,
+    FUNC_FLOW_CALIBRATION,
+    FUNC_AUTO_LEVELING,
+    FUNC_CHAMBER_TEMP,
+    FUNC_MAX
 };
 
 
@@ -103,6 +109,16 @@ enum AmsStatusMain {
     AMS_STATUS_MAIN_SELF_CHECK          = 0x10,
     AMS_STATUS_MAIN_DEBUG               = 0x20,
     AMS_STATUS_MAIN_UNKNOWN             = 0xFF,
+};
+
+enum AmsRfidStatus {
+    AMS_RFID_IDLE           = 0,
+    AMS_RFID_READING        = 1,
+    AMS_RFID_GCODE_TRANS    = 2,
+    AMS_RFID_GCODE_RUNNING  = 3,
+    AMS_RFID_ASSITANT       = 4,
+    AMS_RFID_SWITCH_FILAMENT= 5,
+    AMS_RFID_HAS_FILAMENT   = 6
 };
 
 class AmsTray {
@@ -296,14 +312,13 @@ public:
         std::string sn;
         std::string hw_ver;
         std::string sw_ver;
+        std::string sw_new_ver;
     };
 
     /* static members and functions */
     static inline int m_sequence_id = 20000;
-    static PRINTER_TYPE parse_printer_type(std::string type_str);
-    static PRINTER_TYPE parse_iot_printer_type(std::string type_str);
-    static PRINTER_TYPE parse_preset_printer_type(std::string type_str);
-    static std::string get_preset_printer_model_name(PRINTER_TYPE printer_type);
+    static std::string parse_printer_type(std::string type_str);
+    static std::string get_preset_printer_model_name(std::string printer_type);
     static bool is_bbl_filament(std::string tag_uid);
 
     typedef std::function<void()> UploadedFn;
@@ -321,8 +336,8 @@ public:
     bool has_access_right() { return !access_code.empty(); }
     void set_access_code(std::string code);
     bool is_lan_mode_printer();
-    PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
-    std::string get_printer_type_string();
+    //PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
+    std::string printer_type;       /* model_id */
     wxString get_printer_type_display_str();
 
     std::string product_name;       // set by iot service, get /user/print
@@ -344,6 +359,11 @@ public:
     long  tray_exist_bits = 0;
     long  tray_is_bbl_bits = 0;
     long  tray_read_done_bits = 0;
+    long  tray_reading_bits = 0;
+    int   ams_rfid_status = 0;
+    bool  ams_insert_flag { false };
+    bool  ams_power_on_flag { false };
+    bool  ams_support_use_ams { false };
     AmsStatusMain ams_status_main;
     int   ams_status_sub;
     int   ams_version = 0;
@@ -373,6 +393,9 @@ public:
     bool is_mapping_exceed_filament(std::vector<FilamentInfo>& result, int &exceed_index);
     void reset_mapping_result(std::vector<FilamentInfo>& result);
 
+    /*online*/
+    bool   online_rfid;
+    bool   online_ahb;
 
     /* temperature */
     float  nozzle_temp;
@@ -413,6 +436,8 @@ public:
     std::string ota_new_version_number;
     std::string ahb_new_version_number;
     std::map<std::string, ModuleVersionInfo> module_vers;
+    std::map<std::string, ModuleVersionInfo> new_ver_list;
+    bool    m_new_ver_list_exist = false;
     int upgrade_err_code = 0;
     std::vector<FirmwareInfo> firmware_list;
 
@@ -568,6 +593,7 @@ public:
     void set_online_state(bool on_off);
     bool is_online() { return m_is_online; }
     bool is_info_ready();
+    bool is_function_supported(PrinterFunction func);
 
 
     /* Msg for display MsgFn */
@@ -630,6 +656,13 @@ public:
     // get alive machine
     std::map<std::string, MachineObject*> get_local_machine_list();
     void load_last_machine();
+
+    static json function_table;
+    static std::string parse_printer_type(std::string type_str);
+    static std::string get_printer_display_name(std::string type_str);
+    static bool is_function_supported(std::string type_str, std::string function_name);
+
+    static bool load_functional_config(std::string config_file);
 };
 
 } // namespace Slic3r

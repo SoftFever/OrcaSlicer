@@ -434,6 +434,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , zoom_to_volumes(true)
     , shader_outside_printer_detection_enabled(false)
     , is_outside(false)
+    , partly_inside(false)
     , hover(HS_None)
     , is_modifier(false)
     , is_wipe_tower(false)
@@ -679,7 +680,7 @@ void GLVolume::render(bool with_outline) const
         bool color_volume = false;
         ModelObjectPtrs& model_objects = GUI::wxGetApp().model().objects;
         do {
-            if (object_idx() >= model_objects.size())
+            if ((!printable) || object_idx() >= model_objects.size())
                 break;
 
             ModelObject* mo = model_objects[object_idx()];
@@ -907,7 +908,7 @@ void GLVolume::simple_render(GLShaderProgram* shader, ModelObjectPtrs& model_obj
     ModelObject* model_object = nullptr;
     ModelVolume* model_volume = nullptr;
     do {
-        if (object_idx() >= model_objects.size())
+        if ((!printable) || object_idx() >= model_objects.size())
             break;
         model_object = model_objects[object_idx()];
 
@@ -1290,9 +1291,16 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType type, bool disab
         //shader->set_uniform("print_volume.xy_data", m_render_volume.data);
         //shader->set_uniform("print_volume.z_data", m_render_volume.zs);
 
-        /*shader->set_uniform("print_volume.type", static_cast<int>(m_print_volume.type));
-        shader->set_uniform("print_volume.xy_data", m_print_volume.data);
-        shader->set_uniform("print_volume.z_data", m_print_volume.zs);*/
+        if (volume.first->partly_inside) {
+            //only partly inside volume need to be painted with boundary check
+            shader->set_uniform("print_volume.type", static_cast<int>(m_print_volume.type));
+            shader->set_uniform("print_volume.xy_data", m_print_volume.data);
+            shader->set_uniform("print_volume.z_data", m_print_volume.zs);
+        }
+        else {
+            //use -1 ad a invalid type
+            shader->set_uniform("print_volume.type", -1);
+        }
         shader->set_uniform("volume_world_matrix", volume.first->world_matrix());
         shader->set_uniform("slope.actived", m_slope.active && !volume.first->is_modifier && !volume.first->is_wipe_tower);
         shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(volume.first->world_matrix().matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));
@@ -1378,6 +1386,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     const std::vector<BoundingBoxf3>& exclude_areas = curr_plate->get_exclude_areas();
 
     for (GLVolume* volume : this->volumes)
+    {
         if (! volume->is_modifier && (volume->shader_outside_printer_detection_enabled || (! volume->is_wipe_tower && volume->composite_id.volume_id >= 0))) {
             BuildVolume::ObjectState state;
             const BoundingBoxf3& bb = volume_bbox(*volume);
@@ -1405,6 +1414,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
 
             int64_t comp_id = ((int64_t)volume->composite_id.object_id << 32) | ((int64_t)volume->composite_id.instance_id);
             volume->is_outside = state != BuildVolume::ObjectState::Inside;
+            //volume->partly_inside = (state == BuildVolume::ObjectState::Colliding);
             if (volume->printable) {
                 if (overall_state == ModelInstancePVS_Inside && volume->is_outside) {
                     overall_state = ModelInstancePVS_Fully_Outside;
@@ -1448,6 +1458,23 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
                 BOOST_LOG_TRIVIAL(debug) << "instance includes " << volume->name << " is partially outside of bed";
             }
         }
+    }
+
+    for (GLVolume* volume : this->volumes)
+    {
+        if (! volume->is_modifier && (volume->shader_outside_printer_detection_enabled || (! volume->is_wipe_tower && volume->composite_id.volume_id >= 0)))
+        {
+            int64_t comp_id = ((int64_t)volume->composite_id.object_id << 32) | ((int64_t)volume->composite_id.instance_id);
+            if (model_state.find(comp_id) != model_state.end())
+            {
+                if (model_state[comp_id] == ModelInstancePVS_Partly_Outside) {
+                    volume->partly_inside = true;
+                }
+                else
+                    volume->partly_inside = false;
+            }
+        }
+    }
 
     if (out_state != nullptr)
         *out_state = overall_state;
@@ -1459,8 +1486,10 @@ void GLVolumeCollection::reset_outside_state()
 {
     for (GLVolume* volume : this->volumes)
     {
-        if (volume != nullptr)
+        if (volume != nullptr) {
             volume->is_outside = false;
+            volume->partly_inside = false;
+        }
     }
 }
 

@@ -49,6 +49,12 @@ struct groupedVolumeSlices
     ExPolygons              slices;
 };
 
+enum SupportNecessaryType {
+    NoNeedSupp=0,
+    SharpTail,
+    LargeOverhang,
+};
+
 namespace FillAdaptive {
     struct Octree;
     struct OctreeDeleter;
@@ -409,6 +415,11 @@ public:
     //BBS
     BoundingBox get_first_layer_bbox(float& area, float& layer_height, std::string& name);
 
+    PrintObject* get_shared_object() const { return m_shared_object; }
+    void         set_shared_object(PrintObject *object);
+    void         clear_shared_object();
+    void         copy_layers_from_shared_object();
+
     // BBS: Boundingbox of the first layer
     BoundingBox                 firstLayerObjectBrimBoundingBox;
 private:
@@ -457,7 +468,7 @@ private:
     std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> prepare_adaptive_infill_data();
 
     // BBS
-    bool is_support_necessary();
+    SupportNecessaryType is_support_necessary();
 
     // XYZ in scaled coordinates
     Vec3crd									m_size;
@@ -488,6 +499,8 @@ private:
     std::vector<groupedVolumeSlices>        firstLayerObjSliceByGroups;
     // BBS: per object skirt
     ExtrusionEntityCollection               m_skirt;
+
+    PrintObject*                            m_shared_object{ nullptr };
 
  public:
     //BBS: When printing multi-material objects, this settings will make slicer to clip the overlapping object parts one by the other.

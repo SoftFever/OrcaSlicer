@@ -12,6 +12,8 @@ src/slic3r/GUI/Gizmos/GLGizmoSimplify.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFaceDetector.cpp
 src/slic3r/GUI/Gizmos/GLGizmoSeam.cpp
 src/slic3r/GUI/Gizmos/GLGizmoSeam.hpp
+src/slic3r/GUI/Gizmos/GLGizmoText.cpp
+src/slic3r/GUI/Gizmos/GLGizmoText.hpp
 src/slic3r/GUI/GUI.cpp
 src/slic3r/GUI/GUI_App.cpp
 src/slic3r/GUI/GUI_Init.cpp
@@ -56,6 +58,9 @@ src/slic3r/GUI/ConnectPrinter.cpp
 src/slic3r/GUI/HMSPanel.cpp
 src/slic3r/GUI/MainFrame.cpp
 src/slic3r/GUI/MediaPlayCtrl.cpp
+src/slic3r/GUI/MediaFilePanel.cpp
+src/slic3r/GUI/ImageGrid.cpp
+src/slic3r/GUI/Printer/PrinterFileSystem.cpp
 src/slic3r/GUI/Mouse3DController.cpp
 src/slic3r/GUI/StatusPanel.cpp
 src/slic3r/GUI/Monitor.cpp

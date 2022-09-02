@@ -691,7 +691,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_flow_ratio", "filament_density", "filament_cost", "filament_minimal_purge_on_wipe_tower",
     "chamber_temperature", "nozzle_temperature", "nozzle_temperature_initial_layer",
     // BBS
-    "cool_plate_temp", "eng_plate_temp", "hot_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp_initial_layer", "hot_plate_temp_initial_layer",
+    "cool_plate_temp", "eng_plate_temp", "hot_plate_temp", "textured_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp_initial_layer", "hot_plate_temp_initial_layer","textured_plate_temp_initial_layer",
     // "bed_type",
     //BBS:temperature_vitrification
     "temperature_vitrification", "reduce_fan_stop_start_freq", "slow_down_for_layer_cooling", "fan_min_speed",
@@ -1400,7 +1400,7 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
 
     //filament_id
     std::string cloud_filament_id;
-    if ((m_type == Preset::TYPE_FILAMENT) && preset_values.find(BBL_JSON_KEY_FILAMENT_ID) == preset_values.end()) {
+    if ((m_type == Preset::TYPE_FILAMENT) && preset_values.find(BBL_JSON_KEY_FILAMENT_ID) != preset_values.end()) {
         cloud_filament_id = preset_values[BBL_JSON_KEY_FILAMENT_ID];
     }
 
@@ -1830,9 +1830,12 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
 
 Preset& PresetCollection::load_preset(const std::string &path, const std::string &name, DynamicPrintConfig &&config, bool select)
 {
+    lock();
     auto it = this->find_preset_internal(name);
     if (it == m_presets.end() || it->name != name) {
         // The preset was not found. Create a new preset.
+        if (m_presets.begin() + m_idx_selected >= it)
+            ++m_idx_selected;
         it = m_presets.emplace(it, Preset(m_type, name, false));
     }
     Preset &preset = *it;
@@ -1842,6 +1845,7 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
     preset.is_dirty = false;
     if (select)
         this->select_preset_by_name(name, true);
+    unlock();
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", preset type %1%, name %2%, path %3%, is_system %4%, is_default %5% is_visible %6%")%Preset::get_type_string(m_type) %preset.name %preset.file %preset.is_system %preset.is_default %preset.is_visible;
     return preset;

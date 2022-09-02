@@ -1241,6 +1241,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
     {
         //this->m_plater->select_view_3D("Preview");
+        m_plater->update();
         if (m_slice_select == eSliceAll)
             wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
         else
@@ -1692,7 +1693,10 @@ static wxMenu* generate_help_menu()
 static void add_common_view_menu_items(wxMenu* view_menu, MainFrame* mainFrame, std::function<bool(void)> can_change_view)
 {
     // The camera control accelerators are captured by GLCanvas3D::on_char().
-    append_menu_item(view_menu, wxID_ANY, _L("Default View") + "\tCtrl+0", _L("Default View"), [mainFrame](wxCommandEvent&) { mainFrame->select_view("topfront"); },
+    append_menu_item(view_menu, wxID_ANY, _L("Default View") + "\tCtrl+0", _L("Default View"), [mainFrame](wxCommandEvent&) {
+        mainFrame->select_view("plate");
+        mainFrame->plater()->get_current_canvas3D()->zoom_to_bed();
+        },
         "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
     //view_menu->AppendSeparator();
     //TRN To be shown in the main menu View->Top
@@ -1782,24 +1786,33 @@ void MainFrame::init_menubar_as_editor()
 
         fileMenu->AppendSeparator();
 
-        //BBS
+        // BBS
+        wxMenu *import_menu = new wxMenu();
 #ifdef __WINDOWS__
-        append_menu_item(fileMenu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots + "\tCtrl+I", _L("Load a model"),
+        append_menu_item(import_menu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots + "\tCtrl+I", _L("Load a model"),
             [this](wxCommandEvent&) { if (m_plater) {
             m_plater->add_model();
         } }, "menu_import", nullptr,
             [this](){return can_add_models(); }, this);
 #else
-        append_menu_item(fileMenu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots + "\tCtrl+I", _L("Load a model"),
+        append_menu_item(import_menu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots + "\tCtrl+I", _L("Load a model"),
             [this](wxCommandEvent&) { if (m_plater) { m_plater->add_model(); } }, "", nullptr,
             [this](){return can_add_models(); }, this);
 #endif
+        append_menu_item(import_menu, wxID_ANY, _L("Import Configs") + dots /*+ "\tCtrl+I"*/, _L("Load configs"),
+            [this](wxCommandEvent&) { load_config_file(); }, "menu_import", nullptr,
+            [this](){return true; }, this);
+
+        append_submenu(fileMenu, import_menu, wxID_ANY, _L("Import"), "");
 
 
         wxMenu* export_menu = new wxMenu();
         // BBS export as STL
         append_menu_item(export_menu, wxID_ANY, _L("Export all objects as STL") + dots, _L("Export all objects as STL"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_stl(); }, "menu_export_stl", nullptr,
+            [this](){return can_export_model(); }, this);
+        append_menu_item(export_menu, wxID_ANY, _L("Export Generic 3MF") + dots/* + "\tCtrl+G"*/, _L("Export 3mf file without using some 3mf-extensions"),
+            [this](wxCommandEvent&) { if (m_plater) m_plater->export_core_3mf(); }, "menu_export_sliced_file", nullptr,
             [this](){return can_export_model(); }, this);
         // BBS export .gcode.3mf
         append_menu_item(export_menu, wxID_ANY, _L("Export Sliced File") + dots/* + "\tCtrl+G"*/, _L("Export current Sliced file"),
@@ -1808,6 +1821,11 @@ void MainFrame::init_menubar_as_editor()
         append_menu_item(export_menu, wxID_ANY, _L("Export G-code") + dots/* + "\tCtrl+G"*/, _L("Export current plate as G-code"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->export_gcode(false); }, "menu_export_gcode", nullptr,
             [this]() {return can_export_gcode(); }, this);
+        append_menu_item(
+            export_menu, wxID_ANY, _L("Export &Configs") + dots /* + "\tCtrl+E"*/, _L("Export current configuration to files"), 
+            [this](wxCommandEvent &) { export_config(); },
+            "menu_export_config", nullptr, 
+            []() { return true; }, this);
 
         append_submenu(fileMenu, export_menu, wxID_ANY, _L("Export"), "");
 
@@ -1866,7 +1884,7 @@ void MainFrame::init_menubar_as_editor()
             "menu_remove", nullptr, [this](){return can_delete_all(); }, this);
         editMenu->AppendSeparator();
         // BBS Clone Selected
-        append_menu_item(editMenu, wxID_ANY, _L("Clone selected") + "\tCtrl+M",
+        append_menu_item(editMenu, wxID_ANY, _L("Clone selected") /*+ "\tCtrl+M"*/,
             _L("Clone copies of selections"),[this](wxCommandEvent&) {
                 m_plater->clone_selection();
             },
@@ -1981,7 +1999,7 @@ void MainFrame::init_menubar_as_editor()
 #ifdef __APPLE__
     wxWindowID bambu_studio_id_base = wxWindow::NewControlId(int(2));
     wxMenu* parent_menu = m_menubar->OSXGetAppleMenu();
-    auto preference_item = new wxMenuItem(parent_menu, BambuStudioMenuPreferences + bambu_studio_id_base, _L("Preferences") + "\tCtrl+,", "");
+    //auto preference_item = new wxMenuItem(parent_menu, BambuStudioMenuPreferences + bambu_studio_id_base, _L("Preferences") + "\tCtrl+,", "");
 #else
     wxMenu* parent_menu = m_topbar->GetTopMenu();
     auto preference_item = new wxMenuItem(parent_menu, ConfigMenuPreferences + config_id_base, _L("Preferences") + "\tCtrl+P", "");
@@ -2056,7 +2074,7 @@ void MainFrame::init_menubar_as_editor()
 
 #ifdef __APPLE__
     wxString about_title = wxString::Format(_L("&About %s"), SLIC3R_APP_FULL_NAME);
-    auto about_item = new wxMenuItem(parent_menu, BambuStudioMenuAbout + bambu_studio_id_base, about_title, "");
+    //auto about_item = new wxMenuItem(parent_menu, BambuStudioMenuAbout + bambu_studio_id_base, about_title, "");
         //parent_menu->Bind(wxEVT_MENU, [this, bambu_studio_id_base](wxEvent& event) {
         //    switch (event.GetId() - bambu_studio_id_base) {
         //        case BambuStudioMenuAbout:
@@ -2080,11 +2098,11 @@ void MainFrame::init_menubar_as_editor()
         //});
     //parent_menu->Insert(0, about_item);
     append_menu_item(
-        parent_menu, wxID_ANY, _L("About") + "", _L(""),
+        parent_menu, wxID_ANY, _L(about_title), _L(""),
         [this](wxCommandEvent &) { Slic3r::GUI::about();},
         "", nullptr, []() { return true; }, this, 0);
     append_menu_item(
-        parent_menu, wxID_ANY, _L("Preferences") + "\tCtrl+'", _L(""),
+        parent_menu, wxID_ANY, _L("Preferences") + "\tCtrl+,", _L(""),
         [this](wxCommandEvent &) {
             PreferencesDialog dlg(this);
             dlg.ShowModal();
@@ -2129,13 +2147,13 @@ void MainFrame::init_menubar_as_editor()
     //m_topbar->AddDropDownMenuItem(config_item);
     m_topbar->AddDropDownSubMenu(helpMenu, _L("Help"));
 #else
-    m_menubar->Append(fileMenu, _L("&File"));
+    m_menubar->Append(fileMenu, wxString::Format("&%s", _L("File")));
     if (editMenu)
-        m_menubar->Append(editMenu, _L("&Edit"));
+        m_menubar->Append(editMenu, wxString::Format("&%s", _L("Edit")));
     if (viewMenu)
-        m_menubar->Append(viewMenu, _L("&View"));
+        m_menubar->Append(viewMenu, wxString::Format("&%s", _L("View")));
     if (helpMenu)
-        m_menubar->Append(helpMenu, _L("&Help"));
+        m_menubar->Append(helpMenu, wxString::Format("&%s", _L("Help")));
     SetMenuBar(m_menubar);
 #endif
 
@@ -2258,28 +2276,48 @@ void MainFrame::reslice_now()
         m_plater->reslice();
 }
 
+struct ConfigsOverwriteConfirmDialog : MessageDialog
+{
+    ConfigsOverwriteConfirmDialog(wxWindow *parent, wxString name, bool exported)
+        : MessageDialog(parent,
+                        wxString::Format(exported ? _("A file exists with the same name: %s, do you wan't to override it.") :
+                                                  _("A config exists with the same name: %s, do you wan't to override it."),
+                                         name),
+                        _L(exported ? "Overwrite file" : "Overwrite config"),
+                        wxYES_NO | wxNO_DEFAULT)
+    {
+        add_button(wxID_YESTOALL, false, _L("Yes to All"));
+        add_button(wxID_NOTOALL, false, _L("No to All"));
+    }
+};
+
 void MainFrame::export_config()
 {
     // Generate a cummulative configuration for the selected print, filaments and printer.
-    auto config = wxGetApp().preset_bundle->full_config();
-    // Validate the cummulative configuration.
-    auto valid = config.validate();
-    if (! valid.empty()) {
-        show_error(this, valid);
-        return;
-    }
-    // Ask user for the file name for the config file.
-    wxFileDialog dlg(this, _L("Save configuration as:"),
-        !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
-        !m_last_config.IsEmpty() ? get_base_name(m_last_config) : "config.ini",
-        file_wildcards(FT_INI), wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    wxString file;
+    wxDirDialog dlg(this, _L("Choose a directory"),
+        from_u8(!m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir()), wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+    wxString path;
     if (dlg.ShowModal() == wxID_OK)
-        file = dlg.GetPath();
-    if (!file.IsEmpty()) {
-        wxGetApp().app_config->update_config_dir(get_dir_name(file));
-        m_last_config = file;
-        config.save(file.ToUTF8().data());
+        path = dlg.GetPath();
+    if (!path.IsEmpty()) {
+        // Export the config bundle.
+        wxGetApp().app_config->update_config_dir(into_u8(path));
+        try {
+            auto files = wxGetApp().preset_bundle->export_current_configs(into_u8(path), [this](std::string const & name) {
+                    ConfigsOverwriteConfirmDialog dlg(this, from_u8(name), true);
+                    int res = dlg.ShowModal();
+                    int ids[]{wxID_NO, wxID_YES, wxID_NOTOALL, wxID_YESTOALL};
+                    return std::find(ids, ids + 4, res) - ids;
+            }, false);
+            if (!files.empty())
+                m_last_config = from_u8(files.back());
+            MessageDialog dlg(this, wxString::Format(_L_PLURAL("There is %d config exported. (Only non-system configs)", 
+                "There are %d configs exported. (Only non-system configs)", files.size()), files.size()),
+                              _L("Export result"), wxOK);
+            dlg.ShowModal();
+        } catch (const std::exception &ex) {
+            show_error(this, ex.what());
+        }
     }
 }
 
@@ -2289,16 +2327,34 @@ void MainFrame::load_config_file()
     //BBS do not load config file
  //   if (!wxGetApp().check_and_save_current_preset_changes(_L("Loading profile file"), "", false))
  //       return;
- //   wxFileDialog dlg(this, _L("Select profile to load:"),
- //       !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
- //       "config.json", "INI files (*.ini, *.gcode)|*.json;;*.gcode;*.g", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
- //    wxString file;
- //   if (dlg.ShowModal() == wxID_OK)
- //       file = dlg.GetPath();
- //   if (! file.IsEmpty() && this->load_config_file(file.ToUTF8().data())) {
- //       wxGetApp().app_config->update_config_dir(get_dir_name(file));
- //       m_last_config = file;
- //   }
+    wxFileDialog dlg(this, _L("Select profile to load:"),
+        !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
+        "config.json", "Config files (*.json)|*.json", wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
+     wxArrayString files;
+    if (dlg.ShowModal() != wxID_OK)
+        return;
+    dlg.GetPaths(files);
+    std::vector<std::string> cfiles;
+    for (auto file : files) {
+        cfiles.push_back(into_u8(file));
+        m_last_config = file;
+    }
+    bool update = false;
+    wxGetApp().preset_bundle->import_presets(cfiles, [this](std::string const & name) {
+            ConfigsOverwriteConfirmDialog dlg(this, from_u8(name), false);
+            int           res = dlg.ShowModal();
+            int           ids[]{wxID_NO, wxID_YES, wxID_NOTOALL, wxID_YESTOALL};
+            return std::find(ids, ids + 4, res) - ids;
+        },
+        ForwardCompatibilitySubstitutionRule::Enable);
+    if (!cfiles.empty()) {
+        wxGetApp().app_config->update_config_dir(get_dir_name(cfiles.back()));
+        wxGetApp().load_current_presets();
+    }
+    MessageDialog dlg2(this, wxString::Format(_L_PLURAL("There is %d config imported. (Only non-system and compatible configs)", 
+        "There are %d configs imported. (Only non-system and compatible configs)", cfiles.size()), cfiles.size()),
+                        _L("Import result"), wxOK);
+    dlg2.ShowModal();
 }
 
 // Load a config file containing a Print, Filament & Printer preset from command line.
@@ -2656,6 +2712,28 @@ void MainFrame::open_recent_project(size_t file_id, wxString const & filename)
     }
 }
 
+void MainFrame::remove_recent_project(size_t file_id, wxString const &filename)
+{
+    if (file_id == size_t(-1)) {
+        if (filename.IsEmpty())
+            while (m_recent_projects.GetCount() > 0)
+                m_recent_projects.RemoveFileFromHistory(0);
+        else
+            file_id = m_recent_projects.FindFileInHistory(filename);
+    }
+    if (file_id != size_t(-1))
+        m_recent_projects.RemoveFileFromHistory(file_id);
+    std::vector<std::string> recent_projects;
+    size_t count = m_recent_projects.GetCount();
+    for (size_t i = 0; i < count; ++i)
+    {
+        recent_projects.push_back(into_u8(m_recent_projects.GetHistoryFile(i)));
+    }
+    wxGetApp().app_config->set_recent_projects(recent_projects);
+    wxGetApp().app_config->save();
+    m_webview->SendRecentList("");
+}
+
 void MainFrame::load_url(wxString url)
 {
     BOOST_LOG_TRIVIAL(trace) << "load_url:" << url;
@@ -2760,7 +2838,7 @@ std::string MainFrame::get_base_name(const wxString &full_name, const char *exte
 
 std::string MainFrame::get_dir_name(const wxString &full_name) const
 {
-    return boost::filesystem::path(full_name.wx_str()).parent_path().string();
+    return boost::filesystem::path(into_u8(full_name)).parent_path().string();
 }
 
 

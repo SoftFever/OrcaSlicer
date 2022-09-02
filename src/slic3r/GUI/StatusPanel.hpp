@@ -28,7 +28,7 @@
 #include "Widgets/ImageSwitchButton.hpp"
 #include "Widgets/AMSControl.hpp"
 #include "HMS.hpp"
-#include "Widgets/wxStaticText2.hpp"
+#include "Widgets/ErrorMsgStaticText.hpp"
 class StepIndicator;
 
 #define COMMAND_TIMEOUT_U0      15
@@ -78,6 +78,8 @@ protected:
     ScalableBitmap m_bitmap_lamp_off;
     ScalableBitmap m_bitmap_fan_on;
     ScalableBitmap m_bitmap_fan_off;
+    ScalableBitmap m_bitmap_use_time;
+    ScalableBitmap m_bitmap_use_weight;
     wxBitmap m_bitmap_extruder;
 
     CameraRecordingStatus m_state_recording{CameraRecordingStatus::RECORDING_NONE};
@@ -97,6 +99,8 @@ protected:
     wxPanel *       m_panel_printing_title;
     wxPanel *       m_panel_control_title;
 
+    wxStaticText*   m_staticText_consumption_of_time;
+    wxStaticText *  m_staticText_consumption_of_weight;
     wxStaticText *  m_staticText_monitoring;
     wxStaticText *  m_staticText_timelapse;
     SwitchButton *  m_bmToggleBtn_timelapse;
@@ -105,6 +109,8 @@ protected:
     wxStaticBitmap *m_bitmap_recording_img;
     wxStaticBitmap *m_bitmap_sdcard_on_img;
     wxStaticBitmap *m_bitmap_sdcard_off_img;
+    wxStaticBitmap *m_bitmap_static_use_time;
+    wxStaticBitmap *m_bitmap_static_use_weight;
 
 
     wxMediaCtrl2 *  m_media_ctrl;
@@ -116,10 +122,11 @@ protected:
     wxStaticText *  m_printing_stage_value;
     ProgressBar*    m_gauge_progress;
     wxStaticText *  m_staticText_progress_percent;
+    wxStaticText *  m_staticText_progress_percent_icon;
     wxStaticText *  m_staticText_progress_left;
     Button *        m_button_report;
-    Button *        m_button_pause_resume;
-    Button *        m_button_abort;
+    ScalableButton *m_button_pause_resume;
+    ScalableButton *m_button_abort;
     Button *        m_button_clean;
 
     wxStaticText *  m_text_tasklist_caption;
@@ -170,7 +177,7 @@ protected:
     wxBoxSizer *    m_tasklist_caption_sizer;
     wxPanel*        m_panel_error_txt;
     wxPanel*        m_staticline;
-    wxStaticText2 *  m_error_text;
+    ErrorMsgStaticText *  m_error_text;
     wxStaticText*   m_staticText_calibration_caption;
     wxStaticText*   m_staticText_calibration_caption_top;
     wxStaticText*   m_calibration_text;
@@ -320,6 +327,7 @@ protected:
     void update(MachineObject* obj);
     void show_printing_status(bool ctrl_area = true, bool temp_area = true);
     void update_left_time(int mc_left_time);
+    void update_basic_print_data(bool def = false);
     void update_subtask(MachineObject *obj);
     void update_cloud_subtask(MachineObject *obj);
     void update_sdcard_subtask(MachineObject *obj);
@@ -349,6 +357,7 @@ public:
     long           last_ams_exist_bits { -1 };
     long           last_tray_is_bbl_bits{ -1 };
     long           last_read_done_bits{ -1 };
+    long           last_reading_bits { -1 };
     long           last_ams_version { -1 };
 
     std::vector<int> last_stage_list_info;

@@ -9,7 +9,7 @@
 #include "Execution/ExecutionTBB.hpp"
 #include "Execution/ExecutionSeq.hpp"
 #include "Utils.hpp"
-
+#include "Format/STL.hpp"
 #include <libqhullcpp/Qhull.h>
 #include <libqhullcpp/QhullFacetList.h>
 #include <libqhullcpp/QhullVertexSet.h>
@@ -208,10 +208,10 @@ bool TriangleMesh::from_stl(stl_file& stl, bool repair)
     return true;
 }
 
-bool TriangleMesh::ReadSTLFile(const char* input_file, bool repair)
+bool TriangleMesh::ReadSTLFile(const char* input_file, bool repair, ImportstlProgressFn stlFn)
 { 
     stl_file stl;
-    if (! stl_open(&stl, input_file))
+    if (! stl_open(&stl, input_file, stlFn))
         return false;
     return from_stl(stl, repair);
 }

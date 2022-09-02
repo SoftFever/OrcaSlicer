@@ -22,6 +22,10 @@ namespace Slic3r
 namespace GUI
 {
 
+wxDEFINE_EVENT(EVT_LOCK_DISABLE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_LOCK_ENABLE, wxCommandEvent);
+
+
 OTG_Settings::OTG_Settings(wxWindow* parent, const bool staticbox) :
     m_parent(parent)
 {
@@ -162,10 +166,23 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
 
             auto btn = new ScalableButton(parent, wxID_ANY, m_bmp_reset);
             btn->SetToolTip(_(L("Reset parameter")));
+
+            #ifdef __WINDOWS__
             btn->SetBackgroundColour(*wxWHITE);
+            #endif // DEBUG
+
+            
             btn->SetBitmapFocus(m_bmp_reset_focus.bmp());
             btn->SetBitmapHover(m_bmp_reset_focus.bmp());
+
+            #ifdef __WINDOWS__
             btn->SetBitmapDisabled(m_bmp_reset_disable.bmp());
+            #endif
+            
+            #ifdef __WXOSX_MAC__
+            btn->Bind(EVT_LOCK_DISABLE, [this, btn](auto &e) { btn->SetBitmap(m_bmp_reset_disable.bmp()); });
+            btn->Bind(EVT_LOCK_ENABLE, [this, btn](auto &e) { btn->SetBitmap(m_bmp_reset_focus.bmp()); });
+            #endif
 
             btn->Bind(wxEVT_BUTTON, [btn, opt_key, this, is_object, object, config, group_category](wxEvent &event) {
                 //wxGetApp().plater()->take_snapshot(from_u8((boost::format(_utf8(L("Reset Option %s"))) % opt_key).str()));
@@ -185,6 +202,14 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
                 m_current_config.apply(config->get(), true);
                 update_config_values(is_object, object, config, group_category);
                 this->m_parent->Thaw();
+
+                #ifdef __WXOSX_MAC__
+                if (!btn->IsEnabled()) {
+                    btn->SetBitmap(m_bmp_reset_disable.bmp());
+                } else {
+                    btn->SetBitmap(m_bmp_reset_focus.bmp());
+                }
+                #endif
             });
             (const_cast<Line&>(line)).extra_widget_win = btn;
             return btn;
@@ -211,7 +236,9 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
             ctrl->SetBitmap_(m_bmp_reset);
             ctrl->SetBitmapFocus(m_bmp_reset_focus.bmp()); 
             ctrl->SetBitmapHover(m_bmp_reset_focus.bmp());
+            #ifdef __WINDOWS__  
             ctrl->SetBitmapDisabled(m_bmp_reset_disable.bmp());
+            #endif
         };
 
         const bool is_extruders_cat = cat.first == "Extruders";
@@ -308,10 +335,22 @@ int ObjectTableSettings::update_extra_column_visible_status(ConfigOptionsGroup* 
         if (line) {
             if ((config->has(opt.name)) && reset_window&&reset_window->IsEnabled()) {
                 line->extra_widget_win->Enable();
+
+                #ifdef __WXOSX_MAC__
+                wxCommandEvent event(EVT_LOCK_ENABLE);
+                event.SetEventObject(line->extra_widget_win);
+                wxPostEvent(line->extra_widget_win, event);
+                #endif
+
                 count++;
-            }
-            else
+            } else {
                 line->extra_widget_win->Disable();
+                #ifdef __WXOSX_MAC__
+                wxCommandEvent event(EVT_LOCK_DISABLE);
+                event.SetEventObject(line->extra_widget_win);
+                wxPostEvent(line->extra_widget_win, event);
+                #endif
+            }
         }
     }
     wxGridSizer* grid_sizer = option_group->get_grid_sizer();

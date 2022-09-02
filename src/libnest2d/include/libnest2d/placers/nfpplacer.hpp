@@ -67,7 +67,7 @@ struct NfpPConfig {
      * the already packed items.
      *
      */
-    std::function<double(const _Item<RawShape>&)> object_function;
+    std::function<double(const _Item<RawShape>&, const ItemGroup&)> object_function;
 
     /**
      * @brief The quality of search for an optimal placement.
@@ -666,7 +666,7 @@ private:
         // This is the kernel part of the object function that is
         // customizable by the library client
         std::function<double(const Item&)> _objfunc;
-        if(config_.object_function) _objfunc = config_.object_function;
+        if (config_.object_function) _objfunc = [this](const Item& item) {return config_.object_function(item, this->items_); };
         else {
 
             // Inside check has to be strict if no alignment was enabled

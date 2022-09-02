@@ -178,17 +178,11 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     GizmoImguiBegin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
+    const float space_size = m_imgui->get_style_scaling() * 8;
     const float clipping_slider_left = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x,
                                                 m_imgui->calc_text_size(m_desc.at("reset_direction")).x)
                                            + m_imgui->scaled(1.5f);
     const float cursor_size_slider_left = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.f);
-
-    const float cursor_type_radio_left   = m_imgui->calc_text_size(m_desc["cursor_type"]).x + m_imgui->scaled(1.f);
-    const float cursor_type_radio_sphere = m_imgui->calc_text_size(m_desc["sphere"]).x + m_imgui->scaled(2.5f);
-    const float cursor_type_radio_circle = m_imgui->calc_text_size(m_desc["circle"]).x + m_imgui->scaled(2.5f);
-
-    const float button_width = m_imgui->calc_text_size(m_desc.at("remove_all")).x + m_imgui->scaled(1.f);
-    const float minimal_slider_width = m_imgui->scaled(4.f);
     const float empty_button_width      = m_imgui->calc_button_size("").x;
 
     float caption_max    = 0.f;
@@ -197,19 +191,12 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
         caption_max    = std::max(caption_max, m_imgui->calc_text_size(m_desc[t + "_caption"]).x);
         total_text_max = std::max(total_text_max, m_imgui->calc_text_size(m_desc[t]).x);
     }
-    total_text_max += caption_max + m_imgui->scaled(1.f);
-    caption_max    += m_imgui->scaled(1.f);
-    float slider_width_times = 1.5;
+
     const float sliders_left_width = std::max(cursor_size_slider_left, clipping_slider_left);
-#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     const float slider_icon_width  = m_imgui->get_slider_icon_size().x;
-    float       window_width       = minimal_slider_width + sliders_left_width + slider_icon_width;
-#else
-    float       window_width       = minimal_slider_width + sliders_left_width;
-#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
-    window_width = std::max(window_width, total_text_max);
-    window_width = std::max(window_width, button_width);
-    window_width = std::max(window_width, cursor_type_radio_left + cursor_type_radio_sphere + cursor_type_radio_circle);
+
+    const float sliders_width = m_imgui->scaled(7.0f);
+    const float drag_left_width = ImGui::GetStyle().WindowPadding.x + sliders_left_width + sliders_width - space_size;
 
     const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
 
@@ -222,17 +209,22 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
         std::wstring btn_name = tool_icons[i] + boost::nowide::widen(str_label);
 
         if (i != 0) ImGui::SameLine((empty_button_width + m_imgui->scaled(1.75f)) * i + m_imgui->scaled(1.3f));
-
-        if (m_current_tool == tool_icons[i]) {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.81f, 0.81f, 0.81f, 1.0f)); // r, g, b, a
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.81f, 0.81f, 0.81f, 1.0f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.81f, 0.81f, 0.81f, 1.0f));
-        }
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
+        if (m_current_tool == tool_icons[i]) {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.86f, 0.99f, 0.91f, 1.00f)); // r, g, b, a
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0);
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0);
+        }
         bool btn_clicked = ImGui::Button(into_u8(btn_name).c_str());
+        if (m_current_tool == tool_icons[i])
+        {
+            ImGui::PopStyleColor(4);
+            ImGui::PopStyleVar(2);
+        }
         ImGui::PopStyleVar(1);
-        if (m_current_tool == tool_icons[i])ImGui::PopStyleColor(3);
-
         if (btn_clicked && m_current_tool != tool_icons[i]) {
             m_current_tool = tool_icons[i];
             for (auto& triangle_selector : m_triangle_selectors) {
@@ -263,9 +255,9 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     m_imgui->text(m_desc.at("cursor_size"));
     ImGui::SameLine(sliders_left_width);
 
-    ImGui::PushItemWidth(window_width - sliders_left_width - slider_width_times * slider_icon_width);
+    ImGui::PushItemWidth(sliders_width);
     m_imgui->bbl_slider_float_style("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true);
-    ImGui::SameLine(window_width - slider_icon_width);
+    ImGui::SameLine(drag_left_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
     ImGui::BBLDragFloat("##cursor_radius_input", &m_cursor_radius, 0.05f, 0.0f, 0.0f, "%.2f");
 
@@ -275,10 +267,10 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     auto clp_dist = float(m_c->object_clipper()->get_position());
     ImGui::SameLine(sliders_left_width);
 
-    ImGui::PushItemWidth(window_width - sliders_left_width - slider_width_times * slider_icon_width);
+    ImGui::PushItemWidth(sliders_width);
     bool slider_clp_dist = m_imgui->bbl_slider_float_style("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true);
 
-    ImGui::SameLine(window_width - slider_icon_width);
+    ImGui::SameLine(drag_left_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
     bool b_clp_dist_input = ImGui::BBLDragFloat("##clp_dist_input", &clp_dist, 0.05f, 0.0f, 0.0f, "%.2f");
     if (slider_clp_dist || b_clp_dist_input) { m_c->object_clipper()->set_position(clp_dist, true); }

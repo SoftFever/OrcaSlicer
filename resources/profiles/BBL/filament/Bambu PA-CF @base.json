@@ -20,6 +20,9 @@
     "filament_type": [
         "PA-CF"
     ],
+    "filament_cost": [
+        "44.99"
+    ],
     "nozzle_temperature": [
         "280"
     ]

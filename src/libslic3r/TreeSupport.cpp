@@ -1421,6 +1421,15 @@ void TreeSupport::generate_toolpaths()
     bool obj_is_vertical = obj_size.x() < obj_size.y();
     int num_layers_to_change_infill_direction = int(HEIGHT_TO_SWITCH_INFILL_DIRECTION / object_config.layer_height.value);  // change direction every 30mm
 
+    std::shared_ptr<Fill> filler_interface = std::shared_ptr<Fill>(Fill::new_from_type(m_support_params.contact_fill_pattern));
+    std::shared_ptr<Fill> filler_Roof1stLayer = std::shared_ptr<Fill>(Fill::new_from_type(ipRectilinear));
+    std::shared_ptr<Fill> filler_support = std::shared_ptr<Fill>(Fill::new_from_type(m_support_params.base_fill_pattern));
+    filler_interface->set_bounding_box(bbox_object);
+    filler_Roof1stLayer->set_bounding_box(bbox_object);
+    filler_support->set_bounding_box(bbox_object);
+    filler_interface->angle = Geometry::deg2rad(object_config.support_angle.value + 90.);//(1 - obj_is_vertical) * M_PI_2;//((1-obj_is_vertical) + int(layer_id / num_layers_to_change_infill_direction)) * M_PI_2;;//layer_id % 2 ? 0 : M_PI_2;
+    filler_Roof1stLayer->angle = Geometry::deg2rad(object_config.support_angle.value + 90.);
+
     // generate tree support tool paths
     tbb::parallel_for(
         tbb::blocked_range<size_t>(m_raft_layers, m_object->tree_support_layer_count()),
@@ -1434,12 +1443,7 @@ void TreeSupport::generate_toolpaths()
 
                 TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_id);
                 Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
-                std::unique_ptr<Fill> filler_interface = std::unique_ptr<Fill>(Fill::new_from_type(m_support_params.contact_fill_pattern));
-                std::unique_ptr<Fill> filler_support   = std::unique_ptr<Fill>(Fill::new_from_type(m_support_params.base_fill_pattern));
-                filler_interface->set_bounding_box(bbox_object);
-                filler_support->set_bounding_box(bbox_object);
 
-                filler_interface->angle = Geometry::deg2rad(object_config.support_angle.value + 90.);//(1 - obj_is_vertical) * M_PI_2;//((1-obj_is_vertical) + int(layer_id / num_layers_to_change_infill_direction)) * M_PI_2;;//layer_id % 2 ? 0 : M_PI_2;
 
                 for (auto& area_group : ts_layer->area_groups) {
                     ExPolygon& poly = *area_group.first;
@@ -1465,9 +1469,9 @@ void TreeSupport::generate_toolpaths()
                         // roof_1st_layer
                         fill_params.density = interface_density;
                         // Note: spacing means the separation between two lines as if they are tightly extruded
-                        filler_interface->spacing = m_support_material_interface_flow.spacing();
-                        fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys), filler_interface.get(), fill_params, erSupportMaterial,
-                                                       m_support_material_interface_flow);                        
+                        filler_Roof1stLayer->spacing = m_support_material_interface_flow.spacing();
+                        fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys), filler_Roof1stLayer.get(), fill_params, erSupportMaterial,
+                                                       m_support_material_interface_flow);
                     } else if (area_group.second == TreeSupportLayer::FloorType) {
                         // floor_areas
                         fill_params.density = bottom_interface_density;
@@ -2670,7 +2674,7 @@ void TreeSupport::adjust_layer_heights(std::vector<std::vector<Node*>>& contact_
     for (int layer_nr = 1; layer_nr < contact_nodes.size(); layer_nr++) {
         std::vector<Node*>& curr_layer_nodes = contact_nodes[layer_nr];
         for (Node* node : curr_layer_nodes) {
-            if (node->support_roof_layers_below == top_intf_layers || node->support_floor_layers_above == bot_intf_layers) {
+            if (node->support_roof_layers_below >0 || node->support_floor_layers_above == bot_intf_layers) {
                 extremes.push_back(layer_nr);
                 break;
             }

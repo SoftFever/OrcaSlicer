@@ -16,6 +16,7 @@
 #include <wx/icon.h>
 #include <wx/dialog.h>
 #include <curl/curl.h>
+#include <wx/webrequest.h>
 #include "wxExtensions.hpp"
 #include "Plater.hpp"
 #include "Widgets/StepCtrl.hpp"
@@ -42,7 +43,7 @@ struct MemoryStruct
     size_t size;
 };
 
-class BindMachineDilaog : public DPIDialog
+class BindMachineDialog : public DPIDialog
 {
 private:
     wxStaticText * m_printer_name;
@@ -54,14 +55,15 @@ private:
     Button *      m_button_cancel;
     wxSimplebook *m_simplebook;
     wxStaticBitmap *m_avatar;
+    wxWebRequest  web_request;
 
     MachineObject *                   m_machine_info{nullptr};
     std::shared_ptr<BindJob>          m_bind_job;
     std::shared_ptr<BBLStatusBarBind> m_status_bar;
 
 public:
-    BindMachineDilaog(Plater *plater = nullptr);
-    ~BindMachineDilaog();
+    BindMachineDialog(Plater *plater = nullptr);
+    ~BindMachineDialog();
     void     on_cancel(wxCommandEvent &event);
     void     on_bind_fail(wxCommandEvent &event);
     void     on_update_message(wxCommandEvent &event);
@@ -70,9 +72,11 @@ public:
     void     on_dpi_changed(const wxRect &suggested_rect) override;
     void     update_machine_info(MachineObject *info) { m_machine_info = info; };
     void     on_show(wxShowEvent &event);
+    void     on_close(wxCloseEvent& event);
+    void     on_destroy();
 };
 
-class UnBindMachineDilaog : public DPIDialog
+class UnBindMachineDialog : public DPIDialog
 {
 protected:
     wxStaticText *  m_printer_name;
@@ -84,8 +88,8 @@ protected:
     wxStaticBitmap *m_avatar;
 
 public:
-    UnBindMachineDilaog(Plater *plater = nullptr);
-    ~UnBindMachineDilaog();
+    UnBindMachineDialog(Plater *plater = nullptr);
+    ~UnBindMachineDialog();
 
     void on_cancel(wxCommandEvent &event);
     void on_unbind_printer(wxCommandEvent &event);

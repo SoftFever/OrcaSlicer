@@ -10,7 +10,7 @@
 #include "Point.hpp"
 #include "Polygon.hpp"
 #include "ExPolygon.hpp"
-
+#include "Format/STL.hpp"
 namespace Slic3r {
 
 class TriangleMesh;
@@ -94,7 +94,7 @@ public:
     explicit TriangleMesh(indexed_triangle_set &&M, const RepairedMeshErrors& repaired_errors = RepairedMeshErrors());
     void clear() { this->its.clear(); this->m_stats.clear(); }
     bool from_stl(stl_file& stl, bool repair = true);
-    bool ReadSTLFile(const char* input_file, bool repair = true);
+    bool ReadSTLFile(const char* input_file, bool repair = true, ImportstlProgressFn stlFn = nullptr);
     bool write_ascii(const char* output_file);
     bool write_binary(const char* output_file);
     float volume();
@@ -152,10 +152,14 @@ public:
 
     const TriangleMeshStats& stats() const { return m_stats; }
 
+    void set_init_shift(const Vec3d &offset) { m_init_shift = offset; }
+    Vec3d get_init_shift() const { return m_init_shift; }
+
     indexed_triangle_set its;
 
 private:
     TriangleMeshStats m_stats;
+    Vec3d m_init_shift {0.0, 0.0, 0.0};
 };
 
 // Index of face indices incident with a vertex index.

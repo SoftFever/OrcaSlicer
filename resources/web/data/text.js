@@ -78,7 +78,10 @@ var LangText={
 		"t83":"2, Close all open Bambu Studio",
 		"t84":"3, Delete all files under the plug-in directory",
 		"t85":"4, Reopen Bambu studio and install the plug-in again",
-		"t86":"Close"
+		"t86":"Close",
+		"t87":"User Manual",
+		"t88":"clear",
+		"t89":"show in explorer"
 	},
 	"zh_CN":{
 		"t1":"欢迎使用Bambu Studio",
@@ -159,7 +162,10 @@ var LangText={
 		"t83":"2, 关闭所有Bambu Studio",
 		"t84":"3, 删除插件所在目录下的所有文件",
 		"t85":"4, 重新启动Bambu Studio并尝试安装插件",
-		"t86":"关闭"
+		"t86":"关闭",
+		"t87":"使用引导",
+		"t88":"清除",
+		"t89":"打开文件所在路径"
 	}
 };
 

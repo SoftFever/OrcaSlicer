@@ -1,17 +1,17 @@
-#include "wxStaticText2.hpp"
+#include "ErrorMsgStaticText.hpp"
 
-wxStaticText2::wxStaticText2() {}
+ErrorMsgStaticText::ErrorMsgStaticText() {}
 
-wxStaticText2::wxStaticText2(wxWindow *      parent,
+ErrorMsgStaticText::ErrorMsgStaticText(wxWindow *      parent,
                              wxWindowID      id,
                              const wxPoint & pos,
                              const wxSize &  size)
 {
     Create(parent, id, pos, size);
-    Bind(wxEVT_PAINT, &wxStaticText2::paintEvent, this);
+    Bind(wxEVT_PAINT, &ErrorMsgStaticText::paintEvent, this);
 }
 
-void wxStaticText2::paintEvent(wxPaintEvent &evt)
+void ErrorMsgStaticText::paintEvent(wxPaintEvent &evt)
 {
     auto size = GetSize();
     wxPaintDC dc(this);

@@ -122,7 +122,7 @@ MachineObjectPanel::~MachineObjectPanel() {}
 void MachineObjectPanel::show_bind_dialog()
 {
     if (wxGetApp().is_user_login()) {
-        BindMachineDilaog dlg;
+        BindMachineDialog dlg;
         dlg.update_machine_info(m_info);
         dlg.ShowModal();
     }
@@ -279,7 +279,9 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
                 event.SetEventObject(this);
                 GetEventHandler()->ProcessEvent(event);
             } else {
-                wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
+                if (m_info) {
+                    wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
+                }
                 //wxGetApp().mainframe->SetFocus();
                 wxCommandEvent event(EVT_DISSMISS_MACHINE_LIST);
                 event.SetEventObject(this->GetParent());
@@ -287,7 +289,7 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
             }
             return;
         }
-        if (m_info->is_lan_mode_printer()) {
+        if (m_info && m_info->is_lan_mode_printer()) {
             if (m_info->has_access_right() && m_info->is_avaliable()) {
                 wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
             } else {
@@ -299,7 +301,7 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
             wxGetApp().mainframe->jump_to_monitor(m_info->dev_id);
         }
     } else {
-        if (m_info->is_lan_mode_printer()) {
+        if (m_info && m_info->is_lan_mode_printer()) {
             wxCommandEvent event(EVT_CONNECT_LAN_PRINT);
             event.SetEventObject(this);
             wxPostEvent(this, event);
@@ -339,6 +341,15 @@ SelectMachinePopup::SelectMachinePopup(wxWindow *parent)
     m_scrolledWindow->Layout();
     m_sizxer_scrolledWindow->Fit(m_scrolledWindow);
 
+#if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
+    m_sizer_search_bar = new wxBoxSizer(wxVERTICAL);
+    m_search_bar = new wxSearchCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_search_bar->ShowSearchButton( true );
+	m_search_bar->ShowCancelButton( false );
+	m_sizer_search_bar->Add( m_search_bar, 1, wxALL| wxEXPAND, 1 );
+    m_sizer_main->Add(m_sizer_search_bar, 0, wxALL | wxEXPAND, FromDIP(2));
+    m_search_bar->Bind( wxEVT_COMMAND_TEXT_UPDATED, &SelectMachinePopup::update_machine_list, this );
+#endif
     auto own_title        = create_title_panel(_L("My Device"));
     m_sizer_my_devices    = new wxBoxSizer(wxVERTICAL);
     auto other_title      = create_title_panel(_L("Other Device"));
@@ -367,7 +378,7 @@ SelectMachinePopup::SelectMachinePopup(wxWindow *parent)
     Bind(EVT_DISSMISS_MACHINE_LIST, &SelectMachinePopup::on_dissmiss_win, this);
 }
 
-SelectMachinePopup::~SelectMachinePopup() { delete m_refresh_timer; }
+SelectMachinePopup::~SelectMachinePopup() { delete m_refresh_timer;}
 
 void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
 {
@@ -427,7 +438,20 @@ bool SelectMachinePopup::ProcessLeftDown(wxMouseEvent &event) {
     return wxPopupTransientWindow::ProcessLeftDown(event); 
 }
 
-bool SelectMachinePopup::Show(bool show) { return wxPopupTransientWindow::Show(show); }
+bool SelectMachinePopup::Show(bool show) { 
+    if (show) {
+        for (int i = 0; i < m_user_list_machine_panel.size(); i++) {
+            m_user_list_machine_panel[i]->mPanel->update_machine_info(nullptr);
+            m_user_list_machine_panel[i]->mPanel->Hide();
+        }
+
+         for (int j = 0; j < m_other_list_machine_panel.size(); j++) {
+            m_other_list_machine_panel[j]->mPanel->update_machine_info(nullptr);
+            m_other_list_machine_panel[j]->mPanel->Hide();
+        }
+    }
+    return wxPopupTransientWindow::Show(show); 
+}
 
 wxWindow *SelectMachinePopup::create_title_panel(wxString text)
 {
@@ -490,6 +514,11 @@ void SelectMachinePopup::update_other_devices()
         if (i < m_other_list_machine_panel.size()) {
             op = m_other_list_machine_panel[i]->mPanel;
             op->Show();
+#if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
+            if (!search_for_printer(mobj)) {
+               op->Hide();
+            }
+#endif
         } else {
             op = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
             MachinePanel* mpanel = new MachinePanel();
@@ -520,17 +549,19 @@ void SelectMachinePopup::update_other_devices()
         }
 
         op->Bind(EVT_CONNECT_LAN_PRINT, [this, mobj](wxCommandEvent &e) {
-            if (mobj->is_lan_mode_printer()) {
-                ConnectPrinterDialog dlg(wxGetApp().mainframe, wxID_ANY, _L("Input access code"));
-                dlg.set_machine_object(mobj);
-                if (dlg.ShowModal() == wxID_OK) {
-                    wxGetApp().mainframe->jump_to_monitor(mobj->dev_id);
+            if (mobj) {
+                if (mobj->is_lan_mode_printer()) {
+                    ConnectPrinterDialog dlg(wxGetApp().mainframe, wxID_ANY, _L("Input access code"));
+                    dlg.set_machine_object(mobj);
+                    if (dlg.ShowModal() == wxID_OK) {
+                        wxGetApp().mainframe->jump_to_monitor(mobj->dev_id);
+                    }
                 }
             }
         });
 
         op->Bind(EVT_BIND_MACHINE, [this, mobj](wxCommandEvent &e) {
-            BindMachineDilaog dlg;
+            BindMachineDialog dlg;
             dlg.update_machine_info(mobj);
             int dlg_result = wxID_CANCEL;
             dlg_result     = dlg.ShowModal();
@@ -575,6 +606,11 @@ void SelectMachinePopup::update_user_devices()
         if (i < m_user_list_machine_panel.size()) {
             op = m_user_list_machine_panel[i]->mPanel;
             op->Show();
+#if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
+            if (!search_for_printer(mobj)) {
+               op->Hide();
+            }
+#endif
         } else {
             op = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
             MachinePanel* mpanel = new MachinePanel();
@@ -604,7 +640,8 @@ void SelectMachinePopup::update_user_devices()
             }
             op->Bind(EVT_UNBIND_MACHINE, [this, dev, mobj](wxCommandEvent& e) {
                 dev->set_selected_machine("");
-                mobj->set_access_code("");
+                if (mobj)
+                    mobj->set_access_code("");
                 MessageDialog msg_wingow(nullptr, _L("Log out successful."), "", wxAPPLY | wxOK);
                 if (msg_wingow.ShowModal() == wxOK) { return; }
                 });
@@ -613,7 +650,7 @@ void SelectMachinePopup::update_user_devices()
             op->show_printer_bind(true, PrinterBindState::ALLOW_UNBIND);
             op->Bind(EVT_UNBIND_MACHINE, [this, mobj, dev](wxCommandEvent& e) {
                 // show_unbind_dialog
-                UnBindMachineDilaog dlg;
+                UnBindMachineDialog dlg;
                 dlg.update_machine_info(mobj);
                 if (dlg.ShowModal() == wxID_OK) {
                     dev->set_selected_machine("");
@@ -639,11 +676,13 @@ void SelectMachinePopup::update_user_devices()
         }
 
         op->Bind(EVT_CONNECT_LAN_PRINT, [this, mobj](wxCommandEvent &e) {
-            if (mobj->is_lan_mode_printer()) {
-                ConnectPrinterDialog dlg(wxGetApp().mainframe, wxID_ANY, _L("Input access code"));
-                dlg.set_machine_object(mobj);
-                if (dlg.ShowModal() == wxID_OK) {
-                    wxGetApp().mainframe->jump_to_monitor(mobj->dev_id);
+            if (mobj) {
+                if (mobj->is_lan_mode_printer()) {
+                    ConnectPrinterDialog dlg(wxGetApp().mainframe, wxID_ANY, _L("Input access code"));
+                    dlg.set_machine_object(mobj);
+                    if (dlg.ShowModal() == wxID_OK) {
+                        wxGetApp().mainframe->jump_to_monitor(mobj->dev_id);
+                    }
                 }
             }
         });
@@ -666,6 +705,23 @@ void SelectMachinePopup::update_user_devices()
     Layout();
     Fit();
     this->Thaw();
+}
+
+bool SelectMachinePopup::search_for_printer(MachineObject* obj)
+{
+    std::string search_text = std::string((m_search_bar->GetValue()).mb_str());
+    if (search_text.empty()) {
+        return true;
+    }
+    auto name = obj->dev_name;
+    auto ip = obj->dev_ip;
+    auto name_it = name.find(search_text);
+    auto ip_it = ip.find(search_text);
+    if ((name_it != std::string::npos)||(ip_it != std::string::npos)) {
+        return true;
+    }
+
+    return false;
 }
 
 void SelectMachinePopup::on_dissmiss_win(wxCommandEvent &event) 
@@ -771,6 +827,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Send print job to"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_plater(plater), m_export_3mf_cancel(false)
     , m_mapping_popup(AmsMapingPopup(this))
+    , m_mapping_tip_popup(AmsMapingTipPopup(this))
 {
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
@@ -797,7 +854,13 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
 
-    m_panel_image = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_scrollable_view   = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    m_sizer_scrollable_view = new wxBoxSizer(wxVERTICAL); 
+
+    m_scrollable_region       = new wxPanel(m_scrollable_view, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_sizer_scrollable_region = new wxBoxSizer(wxVERTICAL); 
+
+    m_panel_image = new wxPanel(m_scrollable_region, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_panel_image->SetBackgroundColour(m_colour_def_color);
 
     sizer_thumbnail = new wxBoxSizer(wxVERTICAL);
@@ -813,16 +876,16 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     wxBoxSizer *m_sizer_basic_weight = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *m_sizer_basic_time   = new wxBoxSizer(wxHORIZONTAL);
 
-    auto timeimg = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("print-time", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
+    auto timeimg = new wxStaticBitmap(m_scrollable_region, wxID_ANY, create_scaled_bitmap("print-time", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
     m_sizer_basic_weight->Add(timeimg, 1, wxEXPAND | wxALL, FromDIP(5));
-    m_stext_time = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
+    m_stext_time = new wxStaticText(m_scrollable_region, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
     m_sizer_basic_weight->Add(m_stext_time, 0, wxALL, FromDIP(5));
     m_sizer_basic->Add(m_sizer_basic_weight, 0, wxALIGN_CENTER, 0);
     m_sizer_basic->Add(0, 0, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
 
-    auto weightimg = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("print-weight", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
+    auto weightimg = new wxStaticBitmap(m_scrollable_region, wxID_ANY, create_scaled_bitmap("print-weight", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
     m_sizer_basic_time->Add(weightimg, 1, wxEXPAND | wxALL, FromDIP(5));
-    m_stext_weight = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    m_stext_weight = new wxStaticText(m_scrollable_region, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
     m_sizer_basic_time->Add(m_stext_weight, 0, wxALL, FromDIP(5));
     m_sizer_basic->Add(m_sizer_basic_time, 0, wxALIGN_CENTER, 0);
 
@@ -871,13 +934,15 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_select = new wxGridSizer(1, 2, 0, 0);
     select_bed     = create_item_checkbox(_L("Bed Leveling"), this, _L("Bed Leveling"), "bed_leveling");
     select_flow    = create_item_checkbox(_L("Flow Calibration"), this, _L("Flow Calibration"), "flow_cali");
-
-
-    select_bed->Show(true);
-    select_flow->Show(true);
+    select_use_ams = create_ams_checkbox(_L("Enable AMS"), this, _L("Enable AMS"));
 
     m_sizer_select->Add(select_bed);
     m_sizer_select->Add(select_flow);
+    m_sizer_select->Add(select_use_ams);
+
+    select_bed->Show(true);
+    select_flow->Show(true);
+    select_use_ams->Show(true);
 
     // line schedule
     m_line_schedule = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
@@ -945,12 +1010,22 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     Bind(EVT_PRINT_JOB_CANCEL, &SelectMachineDialog::on_print_job_cancel, this);
     Bind(EVT_SET_FINISH_MAPPING, &SelectMachineDialog::on_set_finish_mapping, this);
 
+
+    m_sizer_scrollable_region->Add(m_panel_image, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_scrollable_region->Add(0, 0, 0, wxTOP, FromDIP(10));
+    m_sizer_scrollable_region->Add(m_sizer_basic, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_scrollable_region->Add(m_sizer_material, 0, wxALIGN_CENTER_HORIZONTAL);
+
+    m_scrollable_region->SetSizer(m_sizer_scrollable_region);
+    m_scrollable_region->Layout();
+
+    m_scrollable_view->SetSizer(m_sizer_scrollable_view);
+    m_scrollable_view->Layout();
+    m_sizer_scrollable_view->Add(m_scrollable_region, 0, wxEXPAND, 0);
+
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(22));
-    m_sizer_main->Add(m_panel_image, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
-    m_sizer_main->Add(m_sizer_basic, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-    m_sizer_main->Add(m_sizer_material, 0, wxALIGN_CENTER_HORIZONTAL);
+    m_sizer_main->Add(m_scrollable_view, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
     m_sizer_main->Add(m_statictext_ams_msg, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
@@ -977,6 +1052,54 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     init_timer();
     // CenterOnParent();
     Centre(wxBOTH);
+}
+
+wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *parent, wxString tooltip)
+{
+    auto checkbox = new wxWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    checkbox->SetBackgroundColour(m_colour_def_color);
+
+    wxBoxSizer *sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *sizer_check    = new wxBoxSizer(wxVERTICAL);
+
+    ams_check = new ::CheckBox(checkbox);
+
+    sizer_check->Add(ams_check, 0, wxBOTTOM | wxEXPAND | wxTOP, FromDIP(5));
+
+    sizer_checkbox->Add(sizer_check, 0, wxEXPAND, FromDIP(5));
+    sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(11));
+
+    auto text = new wxStaticText(checkbox, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
+    text->SetFont(::Label::Body_13);
+    text->SetForegroundColour(wxColour(107, 107, 107));
+    text->Wrap(-1);
+    sizer_checkbox->Add(text, 0, wxALIGN_CENTER, FromDIP(5));
+
+    auto img_ams_tip = new wxStaticBitmap(checkbox, wxID_ANY, create_scaled_bitmap("enable_ams", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+    sizer_checkbox->Add(img_ams_tip, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
+
+    img_ams_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_ams_tip](auto &e) {
+        wxPoint pos = img_ams_tip->ClientToScreen(wxPoint(0, 0));
+        pos.y += img_ams_tip->GetRect().height;
+        m_mapping_tip_popup.Position(pos, wxSize(0, 0));
+        m_mapping_tip_popup.Popup();
+    });
+
+    img_ams_tip->Bind(wxEVT_LEAVE_WINDOW, [this, img_ams_tip](auto &e) {
+        m_mapping_tip_popup.Dismiss();
+    });
+
+    checkbox->SetSizer(sizer_checkbox);
+    checkbox->Layout();
+    sizer_checkbox->Fit(checkbox);
+
+    checkbox->SetToolTip(tooltip);
+    text->SetToolTip(tooltip);
+
+    text->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) {
+            ams_check->SetValue(ams_check->GetValue() ? false : true);
+        });
+    return checkbox;
 }
 
 wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param)
@@ -1012,26 +1135,18 @@ wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *pa
     return checkbox;
 }
 
-void SelectMachineDialog::update_select_layout(PRINTER_TYPE type)
+void SelectMachineDialog::update_select_layout(MachineObject *obj)
 {
-    if (type == PRINTER_TYPE::PRINTER_3DPrinter_UKNOWN) {
-        select_bed->Show();
+    if (obj && obj->is_function_supported(PrinterFunction::FUNC_FLOW_CALIBRATION)) {
         select_flow->Show();
-    } else if (type == PRINTER_TYPE::PRINTER_3DPrinter_X1) {
-        select_bed->Show();
-        select_flow->Show();
-    } else if (type == PRINTER_TYPE::PRINTER_3DPrinter_X1_Carbon) {
-        select_bed->Show();
-        select_flow->Show();
-    } else if (type == PRINTER_TYPE::PRINTER_3DPrinter_P1) {
-        select_bed->Show();
-        select_flow->Show(false);
-    } else if (type == PRINTER_TYPE::PRINTER_3DPrinter_NONE) {
-        select_bed->Hide();
-        select_flow->Hide();
     } else {
+        select_flow->Hide();
+    }
+
+    if (obj && obj->is_function_supported(PrinterFunction::FUNC_AUTO_LEVELING)) {
         select_bed->Show();
-        select_flow->Show();
+    } else {
+        select_bed->Hide();
     }
 
     Fit();
@@ -1043,7 +1158,10 @@ void SelectMachineDialog::prepare_mode()
     if (m_print_job) {
         m_print_job->join();
     }
-    wxEndBusyCursor();
+
+    if (wxIsBusy())
+        wxEndBusyCursor();
+
     Enable_Send_Button(true);
 
     m_status_bar->reset();
@@ -1343,6 +1461,10 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusDisableAms) {
+        update_print_status_msg(wxEmptyString, false, false);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNeedUpgradingAms) {
         wxString msg_text;
         if (params.size() > 0)
@@ -1552,6 +1674,12 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
         false,
         true);
 
+    if (obj_->has_ams()) {
+        m_print_job->task_use_ams = ams_check->GetValue();
+    } else {
+        m_print_job->task_use_ams = false;
+    }
+
     m_print_job->on_success([this]() { finish_mode(); });
 
     wxCommandEvent evt(m_plater->get_print_finished_event());
@@ -1722,7 +1850,7 @@ void SelectMachineDialog::update_user_printer()
     }
     else {
         m_printer_last_select = "";
-        update_select_layout(PRINTER_TYPE::PRINTER_3DPrinter_NONE);
+        update_select_layout(nullptr);
         m_comboBox_printer->SetTextLabel("");
     }
 
@@ -1767,7 +1895,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     if (obj) {
         obj->command_get_version();
         dev->set_selected_machine(m_printer_last_select);
-        update_select_layout(obj->printer_type);
+        update_select_layout(obj);
     } else {
         BOOST_LOG_TRIVIAL(error) << "on_selection_changed dev_id not found";
         return;
@@ -1776,6 +1904,15 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     reset_ams_material();
 
     update_show_status();
+}
+
+void SelectMachineDialog::update_ams_check(MachineObject* obj)
+{
+    if (obj && obj->ams_support_use_ams) {
+        ams_check->Show();
+    } else {
+        ams_check->Hide();
+    }
 }
 
 void SelectMachineDialog::update_show_status()
@@ -1831,6 +1968,7 @@ void SelectMachineDialog::update_show_status()
     }
 
     reset_timeout();
+    update_ams_check(obj_);
 
     // reading done
     if (obj_->is_in_upgrading()) {
@@ -1858,6 +1996,14 @@ void SelectMachineDialog::update_show_status()
     if (!obj_->has_ams()) {
         show_status(PrintDialogStatus::PrintStatusReadingFinished);
         return;
+    }
+
+    if (obj_->ams_support_use_ams) {
+        if (!ams_check->GetValue()) {
+            m_ams_mapping_result.clear();
+            show_status(PrintDialogStatus::PrintStatusDisableAms);
+            return;
+        }
     }
 
     // do ams mapping if no ams result
@@ -2005,6 +2151,7 @@ void SelectMachineDialog::set_default()
     // checkbox default values
     m_checkbox_list["bed_leveling"]->SetValue(true);
     m_checkbox_list["flow_cali"]->SetValue(true);
+    ams_check->SetValue(true);
 
     // thumbmail
     //wxBitmap bitmap;
@@ -2071,7 +2218,7 @@ void SelectMachineDialog::set_default()
         auto          colour_rgb = wxColour((int) rgb[0], (int) rgb[1], (int) rgb[2]);
         if (extruder >= materials.size() || extruder < 0 || extruder >= display_materials.size())
             continue;
-        MaterialItem *item = new MaterialItem(this, colour_rgb, _L(display_materials[extruder]));
+        MaterialItem *item = new MaterialItem(m_scrollable_region, colour_rgb, _L(display_materials[extruder]));
         m_sizer_material->Add(item, 0, wxALL, FromDIP(4));
 
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {
@@ -2131,13 +2278,42 @@ void SelectMachineDialog::set_default()
 
     if (extruders.size() <= 4) {
         m_sizer_material->SetCols(extruders.size()); 
-        Layout();
-        Fit();
     } else {
         m_sizer_material->SetCols(4);
-        Layout();
-        Fit();
     }
+
+    m_scrollable_region->Layout();
+    m_scrollable_region->Fit();
+
+    //m_scrollable_view->Layout();
+    //m_scrollable_view->Fit();
+
+    m_scrollable_view->SetSize(m_scrollable_region->GetSize());
+    m_scrollable_view->SetMinSize(m_scrollable_region->GetSize());
+    m_scrollable_view->SetMaxSize(m_scrollable_region->GetSize());
+
+    Layout();
+    Fit();
+
+  
+    wxSize screenSize = wxGetDisplaySize();
+    auto dialogSize = this->GetSize();
+
+    #ifdef __WINDOWS__
+    if (screenSize.y < dialogSize.y) {
+        m_need_adaptation_screen = true;
+        m_scrollable_view->SetScrollRate(0, 5);
+        m_scrollable_view->SetSize(wxSize(-1, FromDIP(220)));
+        m_scrollable_view->SetMinSize(wxSize(-1, FromDIP(220)));
+        m_scrollable_view->SetMaxSize(wxSize(-1, FromDIP(220)));
+    } else {
+        /* m_scrollable_view->SetSize(m_scrollable_region->GetSize());
+         m_scrollable_view->SetMinSize(m_scrollable_region->GetSize());
+         m_scrollable_view->SetMaxSize(m_scrollable_region->GetSize());*/
+        m_scrollable_view->SetScrollRate(0, 0);
+    }
+    #endif // __WXOSX_MAC__
+
 
     reset_ams_material();
 
@@ -2173,10 +2349,9 @@ bool SelectMachineDialog::Show(bool show)
         m_refresh_timer->Stop();
     }
 
-    if (show) { CenterOnParent(); }
-
     Layout();
     Fit();
+    if (show) { CenterOnParent(); }
     return DPIDialog::Show(show);
 }
 
@@ -2233,7 +2408,8 @@ EditDevNameDialog::~EditDevNameDialog() {}
 void EditDevNameDialog::set_machine_obj(MachineObject *obj)
 {
     m_info = obj;
-    m_textCtr->GetTextCtrl()->SetValue(from_u8(m_info->dev_name));
+    if (m_info)
+        m_textCtr->GetTextCtrl()->SetValue(from_u8(m_info->dev_name));
 }
 
 void EditDevNameDialog::on_dpi_changed(const wxRect &suggested_rect)
@@ -2291,7 +2467,8 @@ void EditDevNameDialog::on_edit_name(wxCommandEvent &e)
         if (dev) {
             auto           utf8_str = new_dev_name.ToUTF8();
             auto           name     = std::string(utf8_str.data(), utf8_str.length());
-            dev->modify_device_name(m_info->dev_id, name);
+            if (m_info)
+                dev->modify_device_name(m_info->dev_id, name);
         }
         DPIDialog::EndModal(wxID_CLOSE);
     }

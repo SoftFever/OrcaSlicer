@@ -1,0 +1,14 @@
+{
+    "type": "filament",
+    "setting_id": "GFSS00_00",
+    "name": "Bambu Support W @BBL X1C 0.2 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Bambu Support W @base",
+    "filament_max_volumetric_speed": [
+        "2"
+    ],
+    "compatible_printers": [
+      "Bambu Lab X1 Carbon 0.2 nozzle"
+    ]
+}

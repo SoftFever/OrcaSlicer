@@ -399,6 +399,7 @@ private:
     GLGizmosManager m_gizmos;
     //BBS: GUI refactor: GLToolbar
     mutable GLToolbar m_main_toolbar;
+    mutable GLToolbar m_separator_toolbar;
     mutable IMToolbar m_sel_plate_toolbar;
     mutable GLToolbar m_assemble_view_toolbar;
     mutable IMReturnToolbar m_return_toolbar;
@@ -667,6 +668,7 @@ public:
     void enable_select_plate_toolbar(bool enable);
     void enable_assemble_view_toolbar(bool enable);
     void enable_return_toolbar(bool enable);
+    void enable_separator_toolbar(bool enable);
     void enable_dynamic_background(bool enable);
     void enable_labels(bool enable) { m_labels.enable(enable); }
     void enable_slope(bool enable) { m_slope.enable(enable); }
@@ -686,6 +688,8 @@ public:
     float get_main_toolbar_width() { return m_main_toolbar.get_width();}
     float get_assemble_view_toolbar_width() { return m_assemble_view_toolbar.get_width(); }
     float get_assemble_view_toolbar_height() { return m_assemble_view_toolbar.get_height(); }
+    float get_separator_toolbar_width() { return m_separator_toolbar.get_width(); }
+    float get_separator_toolbar_height() { return m_separator_toolbar.get_height(); }
     float get_collapse_toolbar_width();
     float get_collapse_toolbar_height();
 
@@ -923,6 +927,7 @@ private:
     bool _update_imgui_select_plate_toolbar();
     bool _init_assemble_view_toolbar();
     bool _init_return_toolbar();
+    bool _init_separator_toolbar();
     // BBS
     //bool _init_view_toolbar();
     bool _init_collapse_toolbar();
@@ -967,6 +972,8 @@ private:
     void _render_imgui_select_plate_toolbar() const;
     void _render_assemble_view_toolbar() const;
     void _render_return_toolbar() const;
+    void _render_separator_toolbar_right() const;
+    void _render_separator_toolbar_left() const;
     void _render_collapse_toolbar() const;
     // BBS
     //void _render_view_toolbar() const;

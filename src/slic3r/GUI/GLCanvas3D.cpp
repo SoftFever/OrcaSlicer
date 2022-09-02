@@ -595,6 +595,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
 #endif
     , m_in_render(false)
     , m_main_toolbar(GLToolbar::Normal, "Main")
+    , m_separator_toolbar(GLToolbar::Normal, "Separator")
     , m_assemble_view_toolbar(GLToolbar::Normal, "Assembly_View")
     , m_return_toolbar()
     , m_canvas_type(ECanvasType::CanvasView3D)
@@ -1019,6 +1020,11 @@ void GLCanvas3D::enable_assemble_view_toolbar(bool enable)
 void GLCanvas3D::enable_return_toolbar(bool enable)
 {
     m_return_toolbar.set_enabled(enable);
+}
+
+void GLCanvas3D::enable_separator_toolbar(bool enable)
+{
+    m_separator_toolbar.set_enabled(enable);
 }
 
 void GLCanvas3D::enable_dynamic_background(bool enable)
@@ -2147,7 +2153,7 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
         m_canvas->Bind(wxEVT_SET_FOCUS, &GLCanvas3D::on_set_focus, this);
         m_event_handlers_bound = true;
-        
+
         m_canvas->Bind(wxEVT_GESTURE_PAN, &GLCanvas3D::on_gesture, this);
         m_canvas->Bind(wxEVT_GESTURE_ZOOM, &GLCanvas3D::on_gesture, this);
         m_canvas->Bind(wxEVT_GESTURE_ROTATE, &GLCanvas3D::on_gesture, this);
@@ -2184,7 +2190,7 @@ void GLCanvas3D::unbind_event_handlers()
         m_canvas->Unbind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
         m_canvas->Unbind(wxEVT_SET_FOCUS, &GLCanvas3D::on_set_focus, this);
         m_event_handlers_bound = false;
-        
+
         m_canvas->Unbind(wxEVT_GESTURE_PAN, &GLCanvas3D::on_gesture, this);
         m_canvas->Unbind(wxEVT_GESTURE_ZOOM, &GLCanvas3D::on_gesture, this);
         m_canvas->Unbind(wxEVT_GESTURE_ROTATE, &GLCanvas3D::on_gesture, this);
@@ -2292,30 +2298,25 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case WXK_CONTROL_M:
 #endif /* __APPLE__ */
         {
-//#ifdef _WIN32
-//            if (wxGetApp().app_config->get("use_legacy_3DConnexion") == "1") {
-//#endif //_WIN32
-//#ifdef __APPLE__
-//            // On OSX use Cmd+Shift+M to "Show/Hide 3Dconnexion devices settings dialog"
-//            if ((evt.GetModifiers() & shiftMask) != 0) {
-//#endif // __APPLE__
-//
-//#ifdef SUPPORT_3D_CONNEXION
-//                Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
-//                controller.show_settings_dialog(!controller.is_settings_dialog_shown());
-//                m_dirty = true;
-//#endif
-
-//#ifdef __APPLE__
-//            }
-//            else
-//            // and Cmd+M to minimize application
-//                wxGetApp().mainframe->Iconize();
-//#endif // __APPLE__
-//#ifdef _WIN32
-//            }
-//#endif //_WIN32
-            post_event(SimpleEvent(EVT_GLTOOLBAR_CLONE));
+#ifdef _WIN32
+            if (wxGetApp().app_config->get("use_legacy_3DConnexion") == "true") {
+#endif //_WIN32
+#ifdef __APPLE__
+            // On OSX use Cmd+Shift+M to "Show/Hide 3Dconnexion devices settings dialog"
+            if ((evt.GetModifiers() & shiftMask) != 0) {
+#endif // __APPLE__
+                Mouse3DController& controller = wxGetApp().plater()->get_mouse3d_controller();
+                controller.show_settings_dialog(!controller.is_settings_dialog_shown());
+                m_dirty = true;
+#ifdef __APPLE__
+            }
+            else
+            // and Cmd+M to minimize application
+                wxGetApp().mainframe->Iconize();
+#endif // __APPLE__
+#ifdef _WIN32
+            }
+#endif //_WIN32
             break;
         }
 #ifdef __APPLE__
@@ -2368,7 +2369,10 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         break;
 
         // BBS
-        case '0': { select_view("topfront"); break; }
+        case '0': {
+            select_view("plate");
+            zoom_to_bed();
+            break; }
         case '1': { select_view("top"); break; }
         case '2': { select_view("bottom"); break; }
         case '3': { select_view("front"); break; }
@@ -2711,7 +2715,10 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     switch (keyCode) {
                         case '0':
                         case WXK_NUMPAD0: //0 on numpad
-                            { select_view("topfront"); break; }
+                            { select_view("plate");
+                              zoom_to_bed();
+                            break;
+                        }
                         case '1':
                         case WXK_NUMPAD1: //1 on numpad
                             { select_view("top"); break; }
@@ -3332,8 +3339,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     else
                         rotate_target = volumes_bounding_box().center();
                     //BBS do not limit rotate in assemble view
-                    //camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
-                    camera.rotate_on_sphere_with_target(rot.x(), rot.y(), true, rotate_target);
+                    camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
+                    //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), false, rotate_target);
                 }
                 else {
 #ifdef SUPPORT_FEEE_CAMERA
@@ -4994,6 +5001,9 @@ bool GLCanvas3D::_init_toolbars()
     if (!_init_return_toolbar())
         return false;
 
+    if (!_init_separator_toolbar())
+        return false;
+
 #if 0
     if (!_init_view_toolbar())
         return false;
@@ -5134,16 +5144,6 @@ bool GLCanvas3D::_init_main_toolbar()
     if (!m_main_toolbar.add_item(item))
         return false;
 
-    GLToolbarItem::Data sperate_item;
-    sperate_item.name = "seperatetag";
-    sperate_item.icon_filename = "seperator.svg";
-    sperate_item.sprite_id = ++item.sprite_id;
-    sperate_item.left.action_callback = [this]() { };
-    sperate_item.visibility_callback = []()->bool { return true; };
-    sperate_item.enabling_callback = []()->bool { return false; };
-    if (!m_main_toolbar.add_item(sperate_item))
-        return false;
-
     return true;
 }
 
@@ -5207,16 +5207,6 @@ bool GLCanvas3D::_init_assemble_view_toolbar()
     m_assemble_view_toolbar.set_separator_size(10);
     m_assemble_view_toolbar.set_gap_size(4);
 
-    GLToolbarItem::Data sperate_item;
-    sperate_item.name = "start_seperator";
-    sperate_item.icon_filename = "seperator.svg";
-    sperate_item.sprite_id = 0;
-    sperate_item.left.action_callback = [this]() {};
-    sperate_item.visibility_callback = []()->bool { return true; };
-    sperate_item.enabling_callback = []()->bool { return false; };
-    if (!m_assemble_view_toolbar.add_item(sperate_item))
-        return false;
-
     GLToolbarItem::Data item;
     item.name = "assembly_view";
     item.icon_filename = "toolbar_assemble.svg";
@@ -5243,6 +5233,45 @@ bool GLCanvas3D::_init_return_toolbar()
         return true;
 
     return m_return_toolbar.init();
+}
+
+bool GLCanvas3D::_init_separator_toolbar()
+{
+    if (!m_separator_toolbar.is_enabled())
+        return true;
+
+
+    BackgroundTexture::Metadata background_data;
+    background_data.filename = "toolbar_background.png";
+    background_data.left = 0;
+    background_data.top = 0;
+    background_data.right = 0;
+    background_data.bottom = 0;
+
+    if (!m_separator_toolbar.init(background_data))
+    {
+        // unable to init the toolbar texture, disable it
+        m_separator_toolbar.set_enabled(false);
+        return true;
+    }
+
+    m_separator_toolbar.set_layout_type(GLToolbar::Layout::Horizontal);
+    //BBS: assemble toolbar is at the top and right, we don't need the rounded-corner effect at the left side and the top side
+    m_separator_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Left);
+    m_separator_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
+    m_separator_toolbar.set_border(5.0f);
+
+    GLToolbarItem::Data sperate_item;
+    sperate_item.name = "start_seperator";
+    sperate_item.icon_filename = "seperator.svg";
+    sperate_item.sprite_id = 0;
+    sperate_item.left.action_callback = [this]() {};
+    sperate_item.visibility_callback = []()->bool { return true; };
+    sperate_item.enabling_callback = []()->bool { return false; };
+    if (!m_separator_toolbar.add_item(sperate_item))
+        return false;
+
+     return true;
 }
 
 
@@ -5647,13 +5676,13 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
         switch (build_volume.type()) {
         case BuildVolume::Type::Rectangle: {
             const BoundingBox3Base<Vec3d> bed_bb = build_volume.bounding_volume().inflated(BuildVolume::SceneEpsilon);
-            m_volumes.set_print_volume({ 0, // circle
+            m_volumes.set_print_volume({ 0, // Rectangle
                 { float(bed_bb.min.x()), float(bed_bb.min.y()), float(bed_bb.max.x()), float(bed_bb.max.y()) },
                 { 0.0f, float(build_volume.printable_height()) } });
             break;
         }
         case BuildVolume::Type::Circle: {
-            m_volumes.set_print_volume({ 1, // rectangle
+            m_volumes.set_print_volume({ 1, // Circle
                 { unscaled<float>(build_volume.circle().center.x()), unscaled<float>(build_volume.circle().center.y()), unscaled<float>(build_volume.circle().radius + BuildVolume::SceneEpsilon), 0.0f },
                 { 0.0f, float(build_volume.printable_height() + BuildVolume::SceneEpsilon) } });
             break;
@@ -5844,6 +5873,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     //BBS: GUI refactor: GLToolbar
     m_main_toolbar.set_scale(sc);
     m_assemble_view_toolbar.set_scale(sc);
+    m_separator_toolbar.set_scale(sc);
     collapse_toolbar.set_scale(sc);
     size *= m_retina_helper->get_scale_factor();
 
@@ -5853,15 +5883,16 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     //BBS: GUI refactor: GLToolbar
     m_main_toolbar.set_icons_size(GLGizmosManager::Default_Icons_Size * scale);
     m_assemble_view_toolbar.set_icons_size(size);
+    m_separator_toolbar.set_icons_size(size);
     collapse_toolbar.set_icons_size(size);
 #endif // ENABLE_RETINA_GL
 
     //BBS: GUI refactor: GLToolbar
 #if BBS_TOOLBAR_ON_TOP
-    float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
+    float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : GLToolbar::Default_Icons_Size;
 
-    float top_tb_width = m_main_toolbar.get_width() + m_gizmos.get_scaled_total_width() + m_assemble_view_toolbar.get_width() + collapse_toolbar_width;
-    int   items_cnt = m_main_toolbar.get_visible_items_cnt() + m_gizmos.get_selectable_icons_cnt() + m_assemble_view_toolbar.get_visible_items_cnt() + collapse_toolbar.get_visible_items_cnt();
+    float top_tb_width = m_main_toolbar.get_width() + m_gizmos.get_scaled_total_width() + m_assemble_view_toolbar.get_width() + m_separator_toolbar.get_width() + collapse_toolbar_width;
+    int   items_cnt = m_main_toolbar.get_visible_items_cnt() + m_gizmos.get_selectable_icons_cnt() + m_assemble_view_toolbar.get_visible_items_cnt() +  m_separator_toolbar.get_visible_items_cnt() + collapse_toolbar.get_visible_items_cnt();
     float noitems_width = top_tb_width - size * items_cnt; // width of separators and borders in top toolbars
 
     // calculate scale needed for items in all top toolbars
@@ -5917,6 +5948,7 @@ void GLCanvas3D::_render_overlays()
     //BBS: GUI refactor: GLToolbar
     m_main_toolbar.set_scale(scale);
     m_assemble_view_toolbar.set_scale(scale);
+    m_separator_toolbar.set_scale(scale);
     wxGetApp().plater()->get_collapse_toolbar().set_scale(scale);
     m_gizmos.set_overlay_scale(scale);
 #else
@@ -5929,10 +5961,13 @@ void GLCanvas3D::_render_overlays()
     //BBS: GUI refactor: GLToolbar
     m_main_toolbar.set_icons_size(gizmo_size);
     m_assemble_view_toolbar.set_icons_size(gizmo_size);
+    m_separator_toolbar.set_icons_size(gizmo_size);
     wxGetApp().plater()->get_collapse_toolbar().set_icons_size(size);
     m_gizmos.set_overlay_icon_size(gizmo_size);
 #endif // ENABLE_RETINA_GL
 
+    _render_separator_toolbar_right();
+    _render_separator_toolbar_left();
     _render_main_toolbar();
     //BBS: GUI refactor: GLToolbar
     _render_imgui_select_plate_toolbar();
@@ -6135,8 +6170,9 @@ void GLCanvas3D::_render_main_toolbar()
     float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
     float gizmo_width = m_gizmos.get_scaled_total_width();
     float assemble_width = m_assemble_view_toolbar.get_width();
+    float separator_width = m_separator_toolbar.get_width();
     float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-    float left = std::max(-0.5f * cnv_size.get_width(), -0.5f * (m_main_toolbar.get_width() + gizmo_width + assemble_width - collapse_toolbar_width)) * inv_zoom;
+    float left = std::max(-0.5f * cnv_size.get_width(), -0.5f * (m_main_toolbar.get_width() + separator_width + gizmo_width + assemble_width - collapse_toolbar_width)) * inv_zoom;
 #else
     float gizmo_height = m_gizmos.get_scaled_total_height();
     float space_height = GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale();
@@ -6327,8 +6363,9 @@ void GLCanvas3D::_render_assemble_view_toolbar() const
     float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
     float gizmo_width = m_gizmos.get_scaled_total_width();
     float assemble_width = m_assemble_view_toolbar.get_width();
+    float separator_width = m_separator_toolbar.get_width();
     float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
-    float main_toolbar_left = std::max(-0.5f * cnv_size.get_width(), -0.5f * (m_main_toolbar.get_width() + gizmo_width + assemble_width - collapse_toolbar_width)) * inv_zoom;
+    float main_toolbar_left = std::max(-0.5f * cnv_size.get_width(), -0.5f * (m_main_toolbar.get_width() + gizmo_width + assemble_width - separator_width - collapse_toolbar_width)) * inv_zoom;
     float left = main_toolbar_left + (m_main_toolbar.get_width() + gizmo_width) * inv_zoom;
     //float left = 0.5f * (m_main_toolbar.get_width() + gizmo_width - m_assemble_view_toolbar.get_width() + collapse_toolbar_width) * inv_zoom;
 #else
@@ -6395,6 +6432,48 @@ void GLCanvas3D::_render_return_toolbar() const
     ImGui::PopStyleVar(1);
 
     imgui.end();
+}
+
+void GLCanvas3D::_render_separator_toolbar_right() const
+{
+    if (!m_separator_toolbar.is_enabled())
+        return;
+
+    Size cnv_size = get_canvas_size();
+    float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
+
+    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+    float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
+    float gizmo_width = m_gizmos.get_scaled_total_width();
+    float assemble_width = m_assemble_view_toolbar.get_width();
+    float separator_width = m_separator_toolbar.get_width();
+    float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
+    float main_toolbar_left = std::max(-0.5f * cnv_size.get_width(), -0.5f * (m_main_toolbar.get_width() + gizmo_width + assemble_width - collapse_toolbar_width)) * inv_zoom;
+    float left = main_toolbar_left + (m_main_toolbar.get_width() + gizmo_width) * inv_zoom;
+
+    m_separator_toolbar.set_position(top, left);
+    m_separator_toolbar.render(*this,GLToolbarItem::SeparatorLine);
+}
+
+void GLCanvas3D::_render_separator_toolbar_left() const
+{
+    if (!m_separator_toolbar.is_enabled())
+        return;
+
+    Size cnv_size = get_canvas_size();
+    float inv_zoom = (float)wxGetApp().plater()->get_camera().get_inv_zoom();
+
+    GLToolbar& collapse_toolbar = wxGetApp().plater()->get_collapse_toolbar();
+    float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : 0.0f;
+    float gizmo_width = m_gizmos.get_scaled_total_width();
+    float assemble_width = m_assemble_view_toolbar.get_width();
+    float separator_width = m_separator_toolbar.get_width();
+    float top = 0.5f * (float)cnv_size.get_height() * inv_zoom;
+    float main_toolbar_left = std::max(-0.5f * cnv_size.get_width(), -0.5f * (m_main_toolbar.get_width() + gizmo_width + assemble_width + separator_width - collapse_toolbar_width)) * inv_zoom;
+    float left = main_toolbar_left + (m_main_toolbar.get_width()) * inv_zoom;
+
+    m_separator_toolbar.set_position(top, left);
+    m_separator_toolbar.render(*this,GLToolbarItem::SeparatorLine);
 }
 
 void GLCanvas3D::_render_collapse_toolbar() const
@@ -6554,10 +6633,10 @@ void GLCanvas3D::_render_paint_toolbar() const
         float gray = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
 
         if (gray < 80){
-                ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), item_text.c_str());   
+                ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), item_text.c_str());
         } else{
                 ImGui::TextColored(ImVec4(0.0f, 0.0f, 0.0f, 1.0f), item_text.c_str());
-        } 
+        }
     }
     ImGui::AlignTextToFramePadding();
     imgui.end();

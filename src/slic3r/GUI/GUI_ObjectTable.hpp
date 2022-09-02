@@ -23,6 +23,10 @@
 #include "OptionsGroup.hpp"
 #include "GUI_Factories.hpp"
 #include "GUI_ObjectTableSettings.hpp"
+#include "Widgets/TextInput.hpp"
+
+class ComboBox;
+class TextInput;
 
 namespace Slic3r {
 
@@ -50,11 +54,31 @@ public:
     virtual GridCellIconRenderer *Clone() const wxOVERRIDE;
 };
 
-// the editor for string data allowing to choose from the list of strings
+class GridCellTextEditor : public wxGridCellTextEditor
+{
+public:
+    GridCellTextEditor();
+    ~GridCellTextEditor();
+
+    virtual void Create(wxWindow *parent, wxWindowID id, wxEvtHandler *evtHandler) wxOVERRIDE;
+    void         StartingKey(wxKeyEvent &event) wxOVERRIDE;
+    virtual void SetSize(const wxRect &rect) wxOVERRIDE;
+    virtual void BeginEdit(int row, int col, wxGrid *grid) wxOVERRIDE;
+    virtual bool EndEdit(int row, int col, const wxGrid *grid, const wxString &oldval, wxString *newval) wxOVERRIDE;
+    virtual void ApplyEdit(int row, int col, wxGrid *grid) wxOVERRIDE;
+
+protected:
+    ::TextInput *Text() const { return (::TextInput *) m_control; }
+    wxDECLARE_NO_COPY_CLASS(GridCellTextEditor);
+
+private:
+    wxString m_value;
+};
+
+
 class  GridCellFilamentsEditor : public wxGridCellChoiceEditor
 {
 public:
-    // if !allowOthers, user can't type a string not in choices array
     GridCellFilamentsEditor(size_t count = 0,
                            const wxString choices[] = NULL,
                            bool allowOthers = false,
@@ -78,7 +102,7 @@ public:
     virtual void DoActivate(int row, int col, wxGrid* grid) wxOVERRIDE;
 
 protected:
-    wxBitmapComboBox *Combo() const { return (wxBitmapComboBox *)m_control; }
+    ::ComboBox *Combo() const { return (::ComboBox *)m_control; }
     void OnComboCloseUp(wxCommandEvent& evt);
 
     std::vector<wxBitmap*>* m_icons;
@@ -108,6 +132,44 @@ public:
     virtual GridCellFilamentsRenderer *Clone() const wxOVERRIDE;
 };
 
+
+class GridCellChoiceEditor : public wxGridCellChoiceEditor
+{
+public:
+    GridCellChoiceEditor(size_t count = 0, const wxString choices[] = NULL);
+    GridCellChoiceEditor(const wxArrayString &choices);
+
+    virtual void Create(wxWindow *parent, wxWindowID id, wxEvtHandler *evtHandler) wxOVERRIDE;
+    virtual void SetSize(const wxRect &rect) wxOVERRIDE;
+
+    virtual wxGridCellEditor *Clone() const wxOVERRIDE;
+
+    virtual void BeginEdit(int row, int col, wxGrid *grid) wxOVERRIDE;
+    virtual bool EndEdit(int row, int col, const wxGrid *grid, const wxString &oldval, wxString *newval) wxOVERRIDE;
+
+    virtual wxGridActivationResult TryActivate(int row, int col, wxGrid *grid, const wxGridActivationSource &actSource) wxOVERRIDE;
+    virtual void                   DoActivate(int row, int col, wxGrid *grid) wxOVERRIDE;
+
+protected:
+    ::ComboBox *Combo() const { return (::ComboBox *) m_control; }
+    void        OnComboCloseUp(wxCommandEvent &evt);
+    wxDECLARE_NO_COPY_CLASS(GridCellChoiceEditor);
+
+private:
+    int m_cached_value{-1};
+};
+
+
+class GridCellComboBoxRenderer : public wxGridCellChoiceRenderer
+{
+public:
+    virtual void Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc, const wxRect &rect, int row, int col, bool isSelected) wxOVERRIDE;
+
+    virtual wxSize GetBestSize(wxGrid &WXUNUSED(grid), wxGridCellAttr &attr, wxDC &dc, int WXUNUSED(row), int WXUNUSED(col)) wxOVERRIDE;
+
+    virtual GridCellComboBoxRenderer *Clone() const wxOVERRIDE;
+};
+
 class GridCellSupportEditor : public wxGridCellBoolEditor
 {
 public:
@@ -115,7 +177,6 @@ public:
     virtual void DoActivate(int row, int col, wxGrid* grid) wxOVERRIDE;
 
 private:
-    // These functions modify or use m_value.
     void SetValueFromGrid(int row, int col, wxGrid* grid);
     void SetGridFromValue(int row, int col, wxGrid* grid) const;
 
@@ -149,6 +210,7 @@ public:
 
     virtual GridCellSupportRenderer *Clone() const wxOVERRIDE;
 };
+
 
 //ObjectGrid for the param setting table
 class ObjectGrid : public wxGrid

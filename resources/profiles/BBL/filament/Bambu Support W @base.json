@@ -20,11 +20,20 @@
     "hot_plate_temp": [
         "40"
     ],
+    "textured_plate_temp": [
+        "40"
+    ],
     "cool_plate_temp_initial_layer": [
         "40"
     ],
     "hot_plate_temp_initial_layer": [
         "40"
+    ],
+    "textured_plate_temp_initial_layer": [
+        "40"
+    ],
+    "filament_cost": [
+        "29.99"
     ],
     "slow_down_layer_time": [
         "8"

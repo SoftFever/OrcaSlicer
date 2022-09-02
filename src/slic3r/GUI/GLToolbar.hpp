@@ -68,6 +68,7 @@ public:
         //BBS: GUI refactor: GLToolbar
         ActionWithText,
         ActionWithTextImage,
+        SeparatorLine,
         Num_Types
     };
 
@@ -400,7 +401,7 @@ public:
     // returns true if any item changed its state
     bool update_items_state();
 
-    void render(const GLCanvas3D& parent);
+    void render(const GLCanvas3D& parent,GLToolbarItem::EType type = GLToolbarItem::Action);
     void render_arrow(const GLCanvas3D& parent, GLToolbarItem* highlighted_item);
 
     bool on_mouse(wxMouseEvent& evt, GLCanvas3D& parent);
@@ -429,7 +430,7 @@ private:
     int contains_mouse_vertical(const Vec2d& mouse_pos, const GLCanvas3D& parent) const;
 
     void render_background(float left, float top, float right, float bottom, float border) const;
-    void render_horizontal(const GLCanvas3D& parent);
+    void render_horizontal(const GLCanvas3D& parent,GLToolbarItem::EType type);
     void render_vertical(const GLCanvas3D& parent);
 
     bool generate_icons_texture();

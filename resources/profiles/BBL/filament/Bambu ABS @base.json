@@ -8,6 +8,9 @@
     "filament_flow_ratio": [
         "0.95"
     ],
+    "filament_cost": [
+        "24.99"
+    ],
     "filament_vendor": [
         "Bambu Lab"
     ]

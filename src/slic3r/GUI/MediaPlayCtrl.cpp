@@ -17,6 +17,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
     m_media_ctrl->Bind(wxEVT_MEDIA_STATECHANGED, &MediaPlayCtrl::onStateChanged, this);
 
     m_button_play = new Button(this, "", "media_play", wxBORDER_NONE);
+    m_button_play->SetCanFocus(false);
 
     m_label_status = new Label(this);
 
@@ -35,6 +36,18 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
     m_thread = boost::thread([this] {
         media_proc();
     });
+
+#if BBL_RELEASE_TO_PUBLIC
+    m_next_retry = wxDateTime::Now();
+#endif
+
+    auto onShowHide = [this](auto &e) {
+        e.Skip();
+        if (m_isBeingDeleted) return;
+        IsShownOnScreen() ? Play() : Stop();
+    };
+    parent->Bind(wxEVT_SHOW, onShowHide);
+    parent->GetParent()->GetParent()->Bind(wxEVT_SHOW, onShowHide);
 }
 
 MediaPlayCtrl::~MediaPlayCtrl()
@@ -59,13 +72,20 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     m_failed_retry = 0;
     if (m_last_state != MEDIASTATE_IDLE)
         Stop();
-    //Play();
-    SetStatus("");
+    if (m_next_retry.IsValid())
+        Play();
+    else
+        SetStatus("");
 }
 
 void MediaPlayCtrl::Play()
 {
+    if (!m_next_retry.IsValid())
+        return;
+    if (!IsShownOnScreen())
+        return;
     if (m_machine.empty()) {
+        Stop();
         SetStatus(_L("Initialize failed (No Device)!"));
         return;
     }
@@ -113,19 +133,24 @@ void MediaPlayCtrl::Stop()
         boost::unique_lock lock(m_mutex);
         m_tasks.push_back("<stop>");
         m_cond.notify_all();
+        m_last_state = MEDIASTATE_IDLE;
+        SetStatus(_L("Stopped."));
     }
-    m_last_state = MEDIASTATE_IDLE;
-    SetStatus(_L("Stopped."));
     ++m_failed_retry;
-    //m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(5 * m_failed_retry);
+    if (m_next_retry.IsValid())
+        m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(5 * m_failed_retry);
 }
 
 void MediaPlayCtrl::TogglePlay()
 {
-    if (m_last_state != MEDIASTATE_IDLE)
+    if (m_last_state != MEDIASTATE_IDLE) {
+        m_next_retry = wxDateTime();
         Stop();
-    else
+    } else {
+        m_failed_retry = 0;
+        m_next_retry   = wxDateTime::Now();
         Play();
+    }
 }
 
 void MediaPlayCtrl::SetStatus(wxString const& msg2)
@@ -193,7 +218,6 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
     if (last_state == MEDIASTATE_IDLE && state == wxMEDIASTATE_STOPPED) {
         return;
     }
-    m_last_state = state;
     if ((last_state == wxMEDIASTATE_PAUSED || last_state == wxMEDIASTATE_PLAYING)  &&
         state == wxMEDIASTATE_STOPPED) {
         Stop();
@@ -204,6 +228,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: size: " << size.x << "x" << size.y;
         m_failed_code = m_media_ctrl->GetLastError();
         if (size.GetWidth() > 1000) {
+            m_last_state = state;
             SetStatus(_L("Playing..."));
             m_failed_retry = 0;
             boost::unique_lock lock(m_mutex);

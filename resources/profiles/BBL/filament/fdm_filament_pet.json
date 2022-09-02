@@ -13,6 +13,9 @@
     "hot_plate_temp" : [
         "80"
     ],
+    "textured_plate_temp" : [
+        "80"
+    ],
     "cool_plate_temp_initial_layer" : [
         "60"
     ],
@@ -20,6 +23,9 @@
         "0"
     ],
     "hot_plate_temp_initial_layer" : [
+        "80"
+    ],
+    "textured_plate_temp_initial_layer" : [
         "80"
     ],
     "slow_down_for_layer_cooling": [

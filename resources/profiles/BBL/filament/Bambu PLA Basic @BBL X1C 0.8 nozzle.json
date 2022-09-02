@@ -9,7 +9,7 @@
         "21"
     ],
     "slow_down_min_speed": [
-        "30"
+        "20"
     ],
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.8 nozzle"

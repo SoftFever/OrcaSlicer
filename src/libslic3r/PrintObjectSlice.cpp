@@ -474,9 +474,7 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
 
         if (layers[idx_layer]->slicing_errors) {
             buggy_layers.push_back(idx_layer);
-            //BBS
-            error_msg = L("Empty layers around bottom are replaced by nearest normal layers.");
-            }
+        }
         else
             break; // only detect empty layers near bed
     }
@@ -484,14 +482,15 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - fixing slicing errors in parallel - begin";
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, buggy_layers.size()),
-        [&layers, &throw_if_canceled, &buggy_layers](const tbb::blocked_range<size_t>& range) {
+        [&layers, &throw_if_canceled, &buggy_layers, &error_msg](const tbb::blocked_range<size_t>& range) {
             for (size_t buggy_layer_idx = range.begin(); buggy_layer_idx < range.end(); ++ buggy_layer_idx) {
                 throw_if_canceled();
                 size_t idx_layer = buggy_layers[buggy_layer_idx];
-                // BBS: only replace empty first layer
-                if (idx_layer > 0)
+                // BBS: only replace empty layers lower than 1mm
+                const coordf_t thresh_empty_layer_height = 1;
+                Layer* layer = layers[idx_layer];
+                if (layer->print_z>= thresh_empty_layer_height)
                     continue;
-                Layer *layer     = layers[idx_layer];
                 assert(layer->slicing_errors);
                 // Try to repair the layer surfaces by merging all contours and all holes from neighbor layers.
                 // BOOST_LOG_TRIVIAL(trace) << "Attempting to repair layer" << idx_layer;
@@ -500,42 +499,39 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
                     // Find the first valid layer below / above the current layer.
                     const Surfaces *upper_surfaces = nullptr;
                     const Surfaces *lower_surfaces = nullptr;
-                    //BBS: only repair first layer if the 2nd layer is Good
-                    for (size_t j = idx_layer + 1; j < /*layers.size()*/2; ++ j)
-                        if (! layers[j]->slicing_errors) {
+                    //BBS: only repair empty layers lowers than 1mm
+                    for (size_t j = idx_layer + 1; j < layers.size(); ++j) {
+                        if (!layers[j]->slicing_errors) {
                             upper_surfaces = &layers[j]->regions()[region_id]->slices.surfaces;
                             break;
                         }
-                    for (int j = /*int(idx_layer) -*/ 1; j >= 0; -- j)
-                        if (! layers[j]->slicing_errors) {
+                        if (layers[j]->print_z >= thresh_empty_layer_height) break;
+                    }
+                    for (int j = int(idx_layer) - 1; j >= 0; --j) {
+                        if (layers[j]->print_z >= thresh_empty_layer_height) continue;
+                        if (!layers[j]->slicing_errors) {
                             lower_surfaces = &layers[j]->regions()[region_id]->slices.surfaces;
                             break;
                         }
+                    }
                     // Collect outer contours and holes from the valid layers above & below.
-                    Polygons outer;
-                    outer.reserve(
+                    ExPolygons expolys;
+                    expolys.reserve(
                         ((upper_surfaces == nullptr) ? 0 : upper_surfaces->size()) +
                         ((lower_surfaces == nullptr) ? 0 : lower_surfaces->size()));
-                    size_t num_holes = 0;
                     if (upper_surfaces)
                         for (const auto &surface : *upper_surfaces) {
-                            outer.push_back(surface.expolygon.contour);
-                            num_holes += surface.expolygon.holes.size();
+                            expolys.emplace_back(surface.expolygon);
                         }
                     if (lower_surfaces)
                         for (const auto &surface : *lower_surfaces) {
-                            outer.push_back(surface.expolygon.contour);
-                            num_holes += surface.expolygon.holes.size();
+                            expolys.emplace_back(surface.expolygon);
                         }
-                    Polygons holes;
-                    holes.reserve(num_holes);
-                    if (upper_surfaces)
-                        for (const auto &surface : *upper_surfaces)
-                            polygons_append(holes, surface.expolygon.holes);
-                    if (lower_surfaces)
-                        for (const auto &surface : *lower_surfaces)
-                            polygons_append(holes, surface.expolygon.holes);
-                    layerm->slices.set(diff_ex(union_(outer), holes), stInternal);
+                    if (!expolys.empty()) {
+                        //BBS
+                        error_msg = L("Empty layers around bottom are replaced by nearest normal layers.");
+                        layerm->slices.set(union_ex(expolys), stInternal);
+                    }
                 }
                 // Update layer slices after repairing the single regions.
                 layer->make_slices();
@@ -555,8 +551,7 @@ std::string fix_slicing_errors(PrintObject* object, LayerPtrs &layers, const std
 
     //BBS
     if(error_msg.empty() && !buggy_layers.empty())
-        error_msg = L("The model has overlapping or self-intersecting facets. I tried to repair it, "
-            "however you might want to check the results or repair the input file and retry.");
+        error_msg = L("The model has too many empty layers.");
     return error_msg;
 }
 

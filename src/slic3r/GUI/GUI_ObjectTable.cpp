@@ -73,16 +73,26 @@ void GridCellIconRenderer::Draw(wxGrid& grid,
             //not changed
             return;
         }
-        if (!table->m_icon_col_width) {
+        //if (!table->m_icon_col_width) {
             table->m_icon_row_height = grid.GetRowSize(row);
             table->m_icon_col_width = grid.GetColSize(col);
-        }
+        //}
         wxBitmap& bitmap = table->get_undo_bitmap();
         int bitmap_width = bitmap.GetWidth();
         int bitmap_height = bitmap.GetHeight();
         int offset_x = (table->m_icon_col_width - bitmap_width)/2;
         int offset_y = (table->m_icon_row_height - bitmap_height)/2;
+        
+    #ifdef __WXOSX_COCOA__
+        auto lock_pos = wxPoint(rect.x + offset_x, rect.y + offset_y);
+        auto left     = (28 - 12) / 2;
+        auto top      = (32 - 12) / 2;
+        lock_pos.x += left;
+        lock_pos.y += top;
+        dc.DrawBitmap(bitmap, lock_pos);
+    #else
         dc.DrawBitmap(bitmap, wxPoint(rect.x + offset_x, rect.y + offset_y));
+    #endif
 
         //dc.SetPen(*wxGREEN_PEN);
         //dc.SetBrush(*wxTRANSPARENT_BRUSH);
@@ -148,17 +158,15 @@ void GridCellFilamentsEditor::Create(wxWindow* parent,
 
     if ( !m_allowOthers )
         style |= wxCB_READONLY;
-    wxBitmapComboBox *bitmap_combo = new wxBitmapComboBox(parent, id, wxEmptyString,
-                               wxDefaultPosition, wxDefaultSize,
-                               m_choices,
-                               style);
+    ::ComboBox *bitmap_combo = new ComboBox(parent, id, wxEmptyString,
+                               wxDefaultPosition, wxSize(((*m_icons)[0])->GetWidth() + 10, -1), 0, nullptr, CB_NO_DROP_ICON | CB_NO_TEXT | wxCB_READONLY);
     if (m_icons) {
         int array_count = m_choices.GetCount();
         int icon_count = m_icons->size();
         for (int i = 0; i < array_count; i++)
         {
             wxBitmap* bitmap = (i < icon_count) ? (*m_icons)[i] : (*m_icons)[0];
-            bitmap_combo->SetItemBitmap(i, *bitmap);
+            bitmap_combo->Append(m_choices[i], *bitmap);
         }
     }
     m_control = bitmap_combo;
@@ -214,7 +222,10 @@ void GridCellFilamentsEditor::BeginEdit(int row, int col, wxGrid* grid)
     }
     //m_value = grid->GetTable()->GetValue(row, col);
 
-    Reset(); // this updates combo box to correspond to m_value
+    //Reset(); // this updates combo box to correspond to m_value
+    int pos = Combo()->FindString(m_value);
+    if (pos == wxNOT_FOUND) pos = 0;
+    Combo()->SetSelection(pos);
 
     Combo()->SetFocus();
 
@@ -223,7 +234,7 @@ void GridCellFilamentsEditor::BeginEdit(int row, int col, wxGrid* grid)
     // choice is made in it under OS X. The bug is almost certainly due to a
     // problem in focus events generation logic but it's not obvious to fix and
     // for now this at least allows to use wxGrid.
-    Combo()->Popup();
+    //Combo()->Popup();
 #endif
 
     if (evtHandler)
@@ -253,7 +264,6 @@ bool GridCellFilamentsEditor::EndEdit(int WXUNUSED(row),
 
     return true;
 }
-
 
 wxGridActivationResult GridCellFilamentsEditor::TryActivate(int row, int col, wxGrid* grid, const wxGridActivationSource& actSource)
 {
@@ -305,55 +315,222 @@ void GridCellFilamentsEditor::DoActivate(int row, int col, wxGrid* grid)
     }
 }
 
-// ----------------------------------------------------------------------------
-// GridCellFilamentsRenderer
-// ----------------------------------------------------------------------------
-void GridCellFilamentsRenderer::Draw(wxGrid& grid,
-                              wxGridCellAttr& attr,
-                              wxDC& dc,
-                              const wxRect& rect,
-                              int row, int col,
-                              bool isSelected)
+void GridCellFilamentsRenderer::Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc, const wxRect &rect, int row, int col, bool isSelected)
 {
-    ObjectGridTable *table = dynamic_cast<ObjectGridTable *>(grid.GetTable());
-    wxRect text_rect = rect;
+    ObjectGridTable *table     = dynamic_cast<ObjectGridTable *>(grid.GetTable());
+    wxRect           text_rect = rect;
 
     if (table) {
-        ObjectGridTable::ObjectGridCol* grid_col = table->get_grid_col(col);
-        ObjectGridTable::ObjectGridRow* grid_row = table->get_grid_row(row - 1);
-        ConfigOptionInt& cur_option = dynamic_cast<ConfigOptionInt&>((*grid_row)[(ObjectGridTable::GridColType)col]);
+        ObjectGridTable::ObjectGridCol *grid_col   = table->get_grid_col(col);
+        ObjectGridTable::ObjectGridRow *grid_row   = table->get_grid_row(row - 1);
+        ConfigOptionInt &               cur_option = dynamic_cast<ConfigOptionInt &>((*grid_row)[(ObjectGridTable::GridColType) col]);
 
-        wxBitmap* bitmap = table->get_color_bitmap((cur_option.value >= 1)?cur_option.value-1:cur_option.value);
-        int bitmap_width = bitmap->GetWidth();
-        int bitmap_height = bitmap->GetHeight();
-        int offset_x = grid_cell_border_width;
-        int offset_y = (rect.height > bitmap_height)?(rect.height - bitmap_height)/2 : grid_cell_border_height;
+        wxBitmap *bitmap        = table->get_color_bitmap((cur_option.value >= 1) ? cur_option.value - 1 : cur_option.value);
+        int       bitmap_width  = bitmap->GetWidth();
+        int       bitmap_height = bitmap->GetHeight();
+        int       offset_x      = grid_cell_border_width;
+        int       offset_y      = (rect.height > bitmap_height) ? (rect.height - bitmap_height) / 2 : grid_cell_border_height;
 
         dc.SetPen(*wxTRANSPARENT_PEN);
         dc.SetBrush(wxBrush(attr.GetBackgroundColour()));
         dc.DrawRectangle(rect);
         dc.DrawBitmap(*bitmap, wxPoint(rect.x + offset_x, rect.y + offset_y));
-        text_rect.x += bitmap_width + grid_cell_border_width *2;
-        text_rect.width -= (bitmap_width + grid_cell_border_width *2);
+        text_rect.x += bitmap_width + grid_cell_border_width * 2;
+        text_rect.width -= (bitmap_width + grid_cell_border_width * 2);
+    }
+
+    //wxGridCellChoiceRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
+}
+
+wxSize GridCellFilamentsRenderer::GetBestSize(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc, int WXUNUSED(row), int WXUNUSED(col))
+{
+    wxSize size{48, -1};
+    return size;
+}
+
+GridCellFilamentsRenderer *GridCellFilamentsRenderer::Clone() const { return new GridCellFilamentsRenderer(); }
+
+// ----------------------------------------------------------------------------
+// GridCellFilamentsRenderer
+// ----------------------------------------------------------------------------
+
+// ----------------------------------------------------------------------------
+// GridCellChoiceEditor
+// ----------------------------------------------------------------------------
+
+GridCellChoiceEditor::GridCellChoiceEditor(const wxArrayString &choices)
+    : wxGridCellChoiceEditor(choices)
+{}
+
+GridCellChoiceEditor::GridCellChoiceEditor(size_t count, const wxString choices[])
+    : wxGridCellChoiceEditor(count, choices)
+{}
+
+wxGridCellEditor *GridCellChoiceEditor::Clone() const
+{
+    GridCellChoiceEditor *editor  = new GridCellChoiceEditor;
+    editor->m_allowOthers           = m_allowOthers;
+    editor->m_choices               = m_choices;
+
+    return editor;
+}
+
+void GridCellChoiceEditor::Create(wxWindow *parent, wxWindowID id, wxEvtHandler *evtHandler)
+{
+    int style = wxTE_PROCESS_ENTER | wxTE_PROCESS_TAB | wxBORDER_NONE;
+
+    if (!m_allowOthers) style |= wxCB_READONLY;
+    ::ComboBox *bitmap_combo = new ComboBox(parent, id, wxEmptyString, wxDefaultPosition, wxSize(100, -1), 0, nullptr, wxCB_READONLY);
+    bitmap_combo->SetFont(::Label::Body_12);
+    int         array_count  = m_choices.GetCount();
+    for (int i = 0; i < array_count; i++) {
+        bitmap_combo->Append(m_choices[i]);
+    }
+    m_control = bitmap_combo;
+    wxGridCellEditor::Create(parent, id, evtHandler);
+}
+
+void GridCellChoiceEditor::SetSize(const wxRect &rect)
+{
+    wxGridCellChoiceEditor::SetSize(rect);
+}
+
+void GridCellChoiceEditor::OnComboCloseUp(wxCommandEvent &evt) { wxGridCellChoiceEditor::OnComboCloseUp(evt); }
+
+void GridCellChoiceEditor::BeginEdit(int row, int col, wxGrid *grid)
+{
+    wxGridCellEditorEvtHandler *evtHandler = NULL;
+    if (m_control) {
+        // This event handler is needed to properly dismiss the editor when the popup is closed
+        m_control->Bind(wxEVT_COMBOBOX_CLOSEUP, &GridCellChoiceEditor::OnComboCloseUp, this);
+        evtHandler = wxDynamicCast(m_control->GetEventHandler(), wxGridCellEditorEvtHandler);
+    }
+
+    // Don't immediately end if we get a kill focus event within BeginEdit
+    if (evtHandler) evtHandler->SetInSetFocus(true);
+
+    m_value = grid->GetTable()->GetValue(row, col);
+
+    // Reset(); // this updates combo box to correspond to m_value
+    int pos = Combo()->FindString(m_value);
+    if (pos == wxNOT_FOUND) pos = 0;
+    Combo()->SetSelection(pos);
+
+    Combo()->SetFocus();
+
+#ifdef __WXOSX_COCOA__
+    // This is a work around for the combobox being simply dismissed when a
+    // choice is made in it under OS X. The bug is almost certainly due to a
+    // problem in focus events generation logic but it's not obvious to fix and
+    // for now this at least allows to use wxGrid.
+    //Combo()->Popup();
+#endif
+
+    if (evtHandler) {
+        // When dropping down the menu, a kill focus event
+        // happens after this point, so we can't reset the flag yet.
+#if !defined(__WXGTK20__)
+        evtHandler->SetInSetFocus(false);
+#endif
+    }
+}
+
+bool GridCellChoiceEditor::EndEdit(int WXUNUSED(row), int WXUNUSED(col), const wxGrid *WXUNUSED(grid), const wxString &WXUNUSED(oldval), wxString *newval)
+{
+    const wxString value = Combo()->GetValue();
+    if (value == m_value) return false;
+
+    m_value = value;
+
+    if (newval) *newval = value;
+
+    return true;
+}
+
+wxGridActivationResult GridCellChoiceEditor::TryActivate(int row, int col, wxGrid *grid, const wxGridActivationSource &actSource)
+{
+    ObjectGridTable *               table    = dynamic_cast<ObjectGridTable *>(grid->GetTable());
+    ObjectGridTable::ObjectGridCol *grid_col = table->get_grid_col(col);
+    ObjectGridTable::ObjectGridRow *grid_row = table->get_grid_row(row - 1);
+
+    if (actSource.GetOrigin() == wxGridActivationSource::Key) {
+        const wxKeyEvent &key_event = actSource.GetKeyEvent();
+        int               keyCode   = key_event.GetKeyCode();
+        wxString          choice;
+
+        int digital_value = keyCode - '0';
+        if ((digital_value >= 1) && (digital_value <= 9))
+            m_cached_value = digital_value;
+        else
+            m_cached_value = -1;
+
+        if (m_cached_value != -1) {
+            if (m_cached_value <= grid_col->choice_count) {
+                choice = grid_col->choices[m_cached_value - 1];
+                return wxGridActivationResult::DoChange(choice);
+            } else {
+                return wxGridActivationResult::DoNothing();
+            }
+        } else
+            return wxGridActivationResult::DoNothing();
+    } else {
+        m_cached_value = -1;
+        return wxGridActivationResult::DoEdit();
+    }
+}
+
+void GridCellChoiceEditor::DoActivate(int row, int col, wxGrid *grid)
+{
+    if (m_cached_value != -1) {
+        ObjectGridTable *               table    = dynamic_cast<ObjectGridTable *>(grid->GetTable());
+        ObjectGridTable::ObjectGridCol *grid_col = table->get_grid_col(col);
+        ObjectGridTable::ObjectGridRow *grid_row = table->get_grid_row(row - 1);
+        if (m_cached_value <= grid_col->choice_count) {
+            wxString choice = grid_col->choices[m_cached_value - 1];
+            table->SetValue(row, col, choice);
+            // Combo()->SetValue(choice);
+        }
+        m_cached_value = -1;
+    }
+}
+
+void GridCellComboBoxRenderer::Draw(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc, const wxRect &rect, int row, int col, bool isSelected)
+{
+    ObjectGridTable *table     = dynamic_cast<ObjectGridTable *>(grid.GetTable());
+    wxRect           text_rect = rect;
+
+    if (table) {
+        ObjectGridTable::ObjectGridCol *grid_col   = table->get_grid_col(col);
+        ObjectGridTable::ObjectGridRow *grid_row   = table->get_grid_row(row - 1);
+        ConfigOptionInt &               cur_option = dynamic_cast<ConfigOptionInt &>((*grid_row)[(ObjectGridTable::GridColType) col]);
+
+        wxBitmap *bitmap        = table->get_color_bitmap((cur_option.value >= 1) ? cur_option.value - 1 : cur_option.value);
+        int       bitmap_width  = bitmap->GetWidth();
+        int       bitmap_height = bitmap->GetHeight();
+        int       offset_x      = grid_cell_border_width;
+        int       offset_y      = (rect.height > bitmap_height) ? (rect.height - bitmap_height) / 2 : grid_cell_border_height;
+
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(wxBrush(attr.GetBackgroundColour()));
+        dc.DrawRectangle(rect);
+        dc.DrawBitmap(*bitmap, wxPoint(rect.x + offset_x, rect.y + offset_y));
+        text_rect.x += bitmap_width + grid_cell_border_width * 2;
+        text_rect.width -= (bitmap_width + grid_cell_border_width * 2);
     }
 
     wxGridCellChoiceRenderer::Draw(grid, attr, dc, text_rect, row, col, isSelected);
 }
 
-wxSize GridCellFilamentsRenderer::GetBestSize(wxGrid& grid,
-                               wxGridCellAttr& attr,
-                               wxDC& dc,
-                               int WXUNUSED(row),
-                               int WXUNUSED(col))
+wxSize GridCellComboBoxRenderer::GetBestSize(wxGrid &grid, wxGridCellAttr &attr, wxDC &dc, int WXUNUSED(row), int WXUNUSED(col))
 {
-    wxSize size{128, -1};
+    wxSize size{48, -1};
     return size;
 }
 
-GridCellFilamentsRenderer *GridCellFilamentsRenderer::Clone() const
-{
-    return new GridCellFilamentsRenderer();
-}
+GridCellComboBoxRenderer *GridCellComboBoxRenderer::Clone() const { return new GridCellComboBoxRenderer(); }
+
+
+
 
 // ----------------------------------------------------------------------------
 // wxGridCellSupportEditor
@@ -466,7 +643,58 @@ void GridCellSupportRenderer::Draw(wxGrid& grid,
         wxRendererNative::Get().DrawCheckBox( &grid, dc, text_rect, flags );
     }*/
 
-    wxGridCellBoolRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
+   
+    //wxGridCellBoolRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
+
+    ObjectGridTable *               table      = dynamic_cast<ObjectGridTable *>(grid.GetTable());
+    ObjectGridTable::ObjectGridCol *grid_col   = table->get_grid_col(col);
+    ObjectGridTable::ObjectGridRow *grid_row   = table->get_grid_row(row - 1);
+    ConfigOptionBool &              cur_option = dynamic_cast<ConfigOptionBool &>((*grid_row)[(ObjectGridTable::GridColType) col]);
+    
+    auto height = grid.GetRowSize(row);
+    auto width  = grid.GetColSize(col);
+
+    wxGridCellRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
+    if (cur_option.value) {
+
+        auto check_on = create_scaled_bitmap("check_on", nullptr, 18);
+        dc.SetPen(*wxTRANSPARENT_PEN);
+
+        auto offsetx = 0;
+        auto offsety = 0;
+
+        #ifdef  __WXOSX_MAC__
+        offsetx = (width - 18) / 2;
+        offsety = (height - 18) / 2;
+        #else
+        offsetx = (width - check_on.GetSize().x) / 2;
+        offsety = (height - check_on.GetSize().y) / 2;
+        #endif //  __WXOSX_MAC__
+
+        dc.DrawBitmap(check_on, rect.x + offsetx, rect.y + offsety);
+        //dc.SetBrush(wxBrush(wxColour(0x00, 0xAE, 0x42)));
+        //dc.DrawBitmap(check_on, (width - check_on.GetSize().x) / 2, (height - check_on.GetSize().y) / 2);
+    } else {
+        auto check_off = create_scaled_bitmap("check_off_focused", nullptr, 18);
+        dc.SetPen(*wxTRANSPARENT_PEN);
+
+        auto offsetx = 0;
+        auto offsety = 0;
+
+        #ifdef __WXOSX_MAC__
+        offsetx = (width - 18) / 2;
+        offsety = (height - 18) / 2;
+        #else
+        offsetx = (width - check_off.GetSize().x) / 2;
+        offsety = (height - check_off.GetSize().y) / 2;
+        #endif //  __WXOSX_MAC__
+
+       
+
+        dc.DrawBitmap(check_off, rect.x + offsetx, rect.y + offsety);
+        //dc.SetBrush(wxBrush(wxColour(0x00, 0xAE, 0x42)));
+        //dc.DrawBitmap(check_off, (width - check_off.GetSize().x) / 2, (height - check_off.GetSize().y) / 2);
+    }
 }
 
 wxSize GridCellSupportRenderer::GetBestSize(wxGrid& grid,
@@ -1497,6 +1725,7 @@ wxString ObjectGridTable::convert_filament_string(int index, wxString& filament_
     else
         result_str = filament_str;
 
+    result_str = "";
     return result_str;
 }
 
@@ -1515,12 +1744,12 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
 
 
     // printable for object
-    ObjectGridCol* col       = new ObjectGridCol(coBool, "printable", ObjectGridTable::category_all, true, false, true, false, wxALIGN_CENTRE);
+    ObjectGridCol *col = new ObjectGridCol(coBool, "printable", ObjectGridTable::category_all, true, false, true, false, wxALIGN_CENTRE);
     col->size = object_grid->GetTextExtent(L("Printable")).x;
     m_col_data.push_back(col);
 
     // reset icon for printable
-    col = new ObjectGridCol(coBool, "printable_reset", ObjectGridTable::category_all, true, true, false, false, wxALIGN_CENTRE);
+    col = new ObjectGridCol(coBool, "printable_reset", ObjectGridTable::category_all, true, true, false, false, wxALIGN_LEFT);
     m_col_data.push_back(col);
 
     //first column for plate_index
@@ -1532,7 +1761,7 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     m_col_data.push_back(col);*/
 
     //3th column: for object/volume name
-    col = new ObjectGridCol(coString, "name", ObjectGridTable::category_all, false, false, true, false, wxALIGN_CENTRE);
+    col       = new ObjectGridCol(coString, "name", ObjectGridTable::category_all, false, false, true, false, wxALIGN_LEFT);
     col->size = 200;
     m_col_data.push_back(col);
 
@@ -1549,21 +1778,21 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     m_col_data.push_back(col);
 
     //object layer height
-    col = new ObjectGridCol(coFloat, "layer_height", L("Quality"), true, false, true, true, wxALIGN_CENTRE);
-    col->size = object_grid->GetTextExtent(L("Layer height")).x;
+    col       = new ObjectGridCol(coFloat, "layer_height", L("Quality"), true, false, true, true, wxALIGN_CENTRE);
+    col->size = object_grid->GetTextExtent(L("Layer height")).x - 28;
     m_col_data.push_back(col);
 
     //reset icon for extruder_id
-    col = new ObjectGridCol(coFloat, "layer_height_reset", L("Quality"), true, true, false, false, wxALIGN_CENTRE);
+    col = new ObjectGridCol(coFloat, "layer_height_reset", L("Quality"), true, true, false, false, wxALIGN_LEFT);
     m_col_data.push_back(col);
 
     //object/volume perimeters
-    col = new ObjectGridCol(coInt, "wall_loops", L("Strength"), false, false, true, true, wxALIGN_CENTRE);
+    col       = new ObjectGridCol(coInt, "wall_loops", L("Strength"), false, false, true, true, wxALIGN_CENTRE);
     col->size = object_grid->GetTextExtent(L("Wall loops")).x;
     m_col_data.push_back(col);
 
     //reset icon for perimeters
-    col = new ObjectGridCol(coInt, "wall_loops_reset", L("Strength"), false, true, false, false, wxALIGN_CENTRE);
+    col = new ObjectGridCol(coInt, "wall_loops_reset", L("Strength"), false, true, false, false, wxALIGN_LEFT);
     m_col_data.push_back(col);
 
     //object/volume fill density
@@ -1572,7 +1801,7 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     m_col_data.push_back(col);
 
     //reset icon for fill density
-    col = new ObjectGridCol(coPercent, "fill_density_reset", L("Strength"), false, true, false, false, wxALIGN_CENTRE);
+    col = new ObjectGridCol(coPercent, "fill_density_reset", L("Strength"), false, true, false, false, wxALIGN_LEFT);
     m_col_data.push_back(col);
 
     //support material
@@ -1585,23 +1814,23 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     m_col_data.push_back(col);
 
     //Bed Adhesion
-    col = new ObjectGridCol(coEnum, "brim_type", L("Support"), true, false, true, true, wxALIGN_CENTRE);
+    col               = new ObjectGridCol(coEnum, "brim_type", L("Support"), true, false, true, true, wxALIGN_LEFT);
     col->size = object_grid->GetTextExtent(L("Auto Brim")).x + 8; //add 8 for border
     col->choices = brim_choices;
     col->choice_count = WXSIZEOF(brim_choices);
     m_col_data.push_back(col);
 
     //reset icon for Bed Adhesion
-    col = new ObjectGridCol(coEnum, "brim_type_reset", L("Support"), true, true, false, false, wxALIGN_CENTRE);
+    col = new ObjectGridCol(coEnum, "brim_type_reset", L("Support"), true, true, false, false, wxALIGN_LEFT);
     m_col_data.push_back(col);
 
     //object/volume speed
-    col = new ObjectGridCol(coFloat, "inner_wall_speed", L("Speed"), false, false, true, true, wxALIGN_CENTRE);
+    col       = new ObjectGridCol(coFloat, "inner_wall_speed", L("Speed"), false, false, true, true, wxALIGN_LEFT);
     col->size = object_grid->GetTextExtent(L("Inner wall speed")).x;
     m_col_data.push_back(col);
 
     //reset icon for speed
-    col = new ObjectGridCol(coFloat, "inner_wall_speed_reset", L("Speed"), false, true, false, false, wxALIGN_CENTRE);
+    col = new ObjectGridCol(coFloat, "inner_wall_speed_reset", L("Speed"), false, true, false, false, wxALIGN_LEFT);
     m_col_data.push_back(col);
 
     return;
@@ -1922,17 +2151,20 @@ void ObjectGridTable::update_row_properties()
                     switch (grid_col->type)
                     {
                         case coString:
-                            grid_table->SetCellEditor(row, col, new wxGridCellAutoWrapStringEditor());
-                            grid_table->SetCellRenderer(row, col, new wxGridCellAutoWrapStringRenderer());
+                            if (col == ObjectGridTable::col_plate_index)
+                                grid_table->SetReadOnly(row, col);
+                            grid_table->SetCellEditor(row, col, new GridCellTextEditor());
+                            //grid_table->SetCellRenderer(row, col, new wxGridCellAutoWrapStringRenderer());
+                            grid_table->SetCellFitMode(row, col, wxGridFitMode::Ellipsize());
                             break;
                         case coBool:
                             grid_table->SetCellEditor(row, col, new GridCellSupportEditor());
                             //grid_table->SetCellEditor(row, col, new wxGridCellBoolEditor());
                             //grid_table->SetCellRenderer(row, col, new GridCellSupportRenderer());
-                            grid_table->SetCellRenderer(row, col, new wxGridCellBoolRenderer());
+                            grid_table->SetCellRenderer(row, col, new GridCellSupportRenderer());
                             break;
                         case coInt:
-                            grid_table->SetCellEditor(row, col, new wxGridCellNumberEditor());
+                            grid_table->SetCellEditor(row, col, new GridCellTextEditor());
                             grid_table->SetCellRenderer(row, col, new  wxGridCellNumberRenderer());
                             break;
                         case coEnum:
@@ -1940,26 +2172,21 @@ void ObjectGridTable::update_row_properties()
                                 GridCellFilamentsEditor *filament_editor = new GridCellFilamentsEditor(grid_col->choice_count, grid_col->choices, false, &m_panel->m_color_bitmaps);
                                 grid_table->SetCellEditor(row, col, filament_editor);
                                 grid_table->SetCellRenderer(row, col, new GridCellFilamentsRenderer());
-                            }
-                            else
-                                grid_table->SetCellEditor(row, col, new wxGridCellChoiceEditor(grid_col->choice_count, grid_col->choices));
+                            } else {
+                                GridCellChoiceEditor *combo_editor = new GridCellChoiceEditor(grid_col->choice_count, grid_col->choices);
+                                grid_table->SetCellEditor(row, col, combo_editor);
+                                grid_table->SetCellRenderer(row, col, new wxGridCellChoiceRenderer());
+                                //new wxGridCellChoiceEditor(grid_col->choice_count, grid_col->choices));
+                            }  
                             break;
                         case coFloat:
-                            grid_table->SetCellEditor(row, col, new wxGridCellFloatEditor(6,2));
-                            grid_table->SetCellRenderer(row, col, new wxGridCellFloatRenderer(6,2));
+                            grid_table->SetCellEditor(row, col, new GridCellTextEditor());
+                            grid_table->SetCellRenderer(row, col, new wxGridCellFloatRenderer(6,1));
                             break;
                         case coPercent:
                         {
-                            /*wxGridCellFloatEditor *float_editor = new wxGridCellFloatEditor(6,2);
-                            wxFloatingPointValidator<float> *float_validator = new wxFloatingPointValidator<float>(3, nullptr, wxNUM_VAL_ZERO_AS_BLANK);
-                            float_validator->SetRange(0.f, 100.f);
-                            float_editor->SetValidator(*float_validator);
-
-                            if (rows < 3)
-                                m_object_grid->SetCellEditor(row, col, float_editor);
-                            else*/
-                                grid_table->SetCellEditor(row, col, new wxGridCellFloatEditor(6,2));
-                            grid_table->SetCellRenderer(row, col, new wxGridCellFloatRenderer(6,2));
+                            grid_table->SetCellEditor(row, col, new GridCellTextEditor());
+                            grid_table->SetCellRenderer(row, col, new wxGridCellFloatRenderer(6,1));
                             break;
                         }
                         default:
@@ -2049,7 +2276,7 @@ void ObjectGridTable::sort_row_data(compare_row_func sort_func)
     std::copy(new_grid_rows.begin(), new_grid_rows.end(), m_grid_data.begin());
     new_grid_rows.clear();
 
-    update_row_properties();
+    //update_row_properties();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" finished, this %1%, row_data size %2%") %this % m_grid_data.size();
 }
 
@@ -2165,7 +2392,7 @@ bool ObjectGridTable::OnCellLeftClick(int row, int col, ConfigOptionType &type)
 
     if (row == 0) {
         sort_by_col(col);
-    } else if (col >= col_name) {
+    } else if (col >= col_printable_reset) {
         ObjectGridRow *grid_row   = m_grid_data[row - 1];
         ObjectGridCol* grid_col = m_col_data[col];
         ObjectGridCol* grid_col_2 = m_col_data[col - 1];
@@ -2401,11 +2628,10 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
     //m_object_grid_table->SetAttrProvider(new MyGridCellAttrProvider);
     //m_object_grid->AssignTable(m_object_grid_table);
 
-
-    m_side_window = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(460),FromDIP(480)), wxVSCROLL);
+    m_side_window = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(440),FromDIP(480)), wxVSCROLL);
     m_side_window->SetScrollRate( 0, 5 );
     m_page_sizer = new wxBoxSizer(wxVERTICAL);
-    m_page_top_sizer = new wxBoxSizer(wxHORIZONTAL);
+    //m_page_top_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_side_window->SetBackgroundColour(wxColour(0xff, 0xff, 0xff));
     m_side_window->SetSizer(m_page_sizer);
     m_side_window->SetScrollbars(1, 20, 1, 2);
@@ -2444,7 +2670,7 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
     m_side_window->SetFont(::Label::Body_12);
     m_object_settings = new ObjectTableSettings(m_side_window, m_object_grid_table);
     m_object_settings->Hide();
-    m_page_sizer->Add(m_page_top_sizer, 0, wxEXPAND | wxALIGN_CENTER_HORIZONTAL, 0);
+    //m_page_sizer->Add(m_page_top_sizer, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_page_sizer->Add(m_object_settings->get_sizer(), 1, wxEXPAND | wxALL, 2 );
 
     auto m_line_left = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(1,-1), wxTAB_TRAVERSAL);
@@ -2464,7 +2690,7 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
 
 int ObjectTablePanel::init_bitmap()
 {
-    m_undo_bitmap = create_scaled_bitmap("lock_normal", nullptr, 24);
+    m_undo_bitmap = create_scaled_bitmap("lock_normal", nullptr, 18);
     m_color_bitmaps = get_extruder_color_icons();
 
     return 0;
@@ -2535,33 +2761,39 @@ void ObjectTablePanel::load_data()
     //construct tables
     //m_object_grid->CreateGrid(rows, cols, wxGridSelectCells);
 #if HAS_COL_HEADER
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_printable, L("Printable"));
+    m_object_grid->SetColLabelAlignment(wxALIGN_LEFT, wxALIGN_CENTER);
+   
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_printable, _L("Printable"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_printable_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_plate_index, L("Plate"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_plate_index, _L("Plate"));
     /*m_object_grid->SetColLabelValue(ObjectGridTable::col_assemble_name, L("Module"));*/
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_name, L("Name"));
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments, L("Filament"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_name, _L("Name"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments, _L("Filament"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_layer_height, L("Layer height"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_layer_height, _L("Layer height"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_layer_height_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_wall_loops, L("Wall loops"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_wall_loops, _L("Wall loops"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_wall_loops_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_fill_density, L("Infill density(%)"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_fill_density, _L("Infill density(%)"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_fill_density_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_enable_support, L("Support"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_enable_support, _L("Support"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_enable_support_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_brim_type, L("Brim"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_brim_type, _L("Brim"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_brim_type_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_speed_perimeter, L("Inner wall speed"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_speed_perimeter, _L("Inner wall speed"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_speed_perimeter_reset, "");
     m_object_grid->SetLabelFont(Label::Head_13);
     m_object_grid->SetLabelTextColour(wxColour(0x30,0x3a,0x3c));
-    m_object_grid->SetLabelBackgroundColour(wxColour(0xff,0xff,0xff));
+    m_object_grid->SetLabelBackgroundColour(wxColour(0xff, 0xff, 0xff));
 #else
     m_object_grid->HideColLabels();
 #endif
     m_object_grid->HideRowLabels();
-    m_object_grid->EnableGridLines (true);
+
+    m_object_grid->EnableGridLines (false);
+    m_object_grid->EnableDragColSize(false);
+    m_object_grid->EnableDragGridSize(false);
+    m_object_grid->EnableDragRowSize(false);
 
     /*set the first row as label*/
     //format
@@ -2570,7 +2802,7 @@ void ObjectTablePanel::load_data()
     //attr->SetBackgroundColour(wxColour(191, 191, 255));
     attr->SetBackgroundColour(*wxWHITE);
     attr->SetTextColour(*wxBLACK);
-    attr->SetAlignment(wxALIGN_CENTRE, wxALIGN_CENTRE);
+    attr->SetAlignment(wxALIGN_LEFT, wxALIGN_CENTRE);
     attr->SetReadOnly(true);
     m_object_grid->SetRowAttr (0, attr);
 #if HAS_COL_HEADER
@@ -2580,7 +2812,7 @@ void ObjectTablePanel::load_data()
     m_object_grid->SetCellSize(0, ObjectGridTable::col_printable, 1, 2);
     //m_object_grid->SetCellSize(0, ObjectGridTable::col_assemble_name, 1, 1);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_name, 1, 1);
-    m_object_grid->SetCellSize(0, ObjectGridTable::col_filaments, 1, 2);
+    m_object_grid->SetCellSize(0, ObjectGridTable::col_filaments, 1, 1);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_layer_height, 1, 2);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_wall_loops, 1, 2);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_fill_density, 1, 2);
@@ -2588,14 +2820,8 @@ void ObjectTablePanel::load_data()
     m_object_grid->SetCellSize(0, ObjectGridTable::col_brim_type, 1, 2);
     m_object_grid->SetCellSize(0, ObjectGridTable::col_speed_perimeter, 1, 2);
 
-    //m_object_grid->SetSelectionForeground(wxColour(255, 0, 0));
-    //m_object_grid->SetSelectionBackground(wxColour(0, 255, 0));
-    //wxGridCellAutoWrapStringEditor* string_editor = new wxGridCellAutoWrapStringEditor();
-    //wxGridCellBoolEditor* bool_editor = new wxGridCellBoolEditor();
-    //wxGridCellFloatEditor* float_editor = new wxGridCellFloatEditor();
-    //wxGridCellNumberEditor* number_editor = new wxGridCellNumberEditor();
-    //wxGridCellChoiceEditor* choice_editor = new wxGridCellChoiceEditor();
-    //wxGridCellEnumEditor* enum_editor = new wxGridCellEnumEditor();
+    //m_object_grid->SetSelectionForeground(wxColour(0xDB,0xFD,0xE7));
+    //m_object_grid->SetSelectionBackground(*wxWHITE);
 
     for (int col = 0; col < cols; col++)
     {
@@ -2627,45 +2853,39 @@ void ObjectTablePanel::load_data()
                 switch (grid_col->type)
                 {
                     case coString:
-                        m_object_grid->SetCellEditor(row, col, new wxGridCellAutoWrapStringEditor());
-                        m_object_grid->SetCellRenderer(row, col, new wxGridCellAutoWrapStringRenderer());
+                        m_object_grid->SetCellEditor(row, col, new GridCellTextEditor());
+                        //m_object_grid->SetCellRenderer(row, col, new wxGridCellAutoWrapStringRenderer());
+                        m_object_grid->SetCellFitMode(row, col, wxGridFitMode::Ellipsize());
                         break;
                     case coBool:
                         m_object_grid->SetCellEditor(row, col, new GridCellSupportEditor());
                         //m_object_grid->SetCellEditor(row, col, new wxGridCellBoolEditor());
                         //m_object_grid->SetCellRenderer(row, col, new GridCellSupportRenderer());
-                        m_object_grid->SetCellRenderer(row, col, new wxGridCellBoolRenderer());
+                        m_object_grid->SetCellRenderer(row, col, new GridCellSupportRenderer());
                         break;
                     case coInt:
-                        m_object_grid->SetCellEditor(row, col, new wxGridCellNumberEditor());
+                        m_object_grid->SetCellEditor(row, col, new GridCellTextEditor());
                         m_object_grid->SetCellRenderer(row, col, new  wxGridCellNumberRenderer());
                         break;
                     case coEnum:
                         if (col == ObjectGridTable::col_filaments) {
                             GridCellFilamentsEditor *filament_editor = new GridCellFilamentsEditor(grid_col->choice_count, grid_col->choices, false, &m_color_bitmaps);
                             m_object_grid->SetCellEditor(row, col, filament_editor);
-                            //m_object_grid->SetCellEditor(row, col, new wxGridCellChoiceEditor(grid_col->choice_count, grid_col->choices));
                             m_object_grid->SetCellRenderer(row, col, new GridCellFilamentsRenderer());
+                        } else {
+                            GridCellChoiceEditor *combo_editor = new GridCellChoiceEditor(grid_col->choice_count, grid_col->choices);
+                            m_object_grid->SetCellEditor(row, col, combo_editor);
+                            m_object_grid->SetCellRenderer(row, col, new wxGridCellChoiceRenderer());
                         }
-                        else
-                            m_object_grid->SetCellEditor(row, col, new wxGridCellChoiceEditor(grid_col->choice_count, grid_col->choices));
                         break;
                     case coFloat:
-                        m_object_grid->SetCellEditor(row, col, new wxGridCellFloatEditor(6,2));
-                        m_object_grid->SetCellRenderer(row, col, new wxGridCellFloatRenderer(6,2));
+                        m_object_grid->SetCellEditor(row, col, new GridCellTextEditor());
+                        m_object_grid->SetCellRenderer(row, col, new wxGridCellFloatRenderer(6,1));
                         break;
                     case coPercent:
                     {
-                        /*wxGridCellFloatEditor *float_editor = new wxGridCellFloatEditor(6,2);
-                        wxFloatingPointValidator<float> *float_validator = new wxFloatingPointValidator<float>(3, nullptr, wxNUM_VAL_ZERO_AS_BLANK);
-                        float_validator->SetRange(0.f, 100.f);
-                        float_editor->SetValidator(*float_validator);
-
-                        if (rows < 3)
-                            m_object_grid->SetCellEditor(row, col, float_editor);
-                        else*/
-                            m_object_grid->SetCellEditor(row, col, new wxGridCellFloatEditor(6,2));
-                        m_object_grid->SetCellRenderer(row, col, new wxGridCellFloatRenderer(6,2));
+                        m_object_grid->SetCellEditor(row, col, new GridCellTextEditor());
+                        m_object_grid->SetCellRenderer(row, col, new wxGridCellFloatRenderer(6,1));
                         break;
                     }
                     default:
@@ -2681,34 +2901,98 @@ void ObjectTablePanel::load_data()
             }
         }
     }
-    m_object_grid->Fit();
+    
     for (int i = 0; i < ObjectGridTable::col_max; i++)
     {
         ObjectGridTable::ObjectGridCol *grid_col = m_object_grid_table->get_grid_col(i);
         if (grid_col->size > 0) {
             int fit_size1 = m_object_grid->GetColSize(i);
             m_object_grid->SetColSize(i, grid_col->size);
-            //if (grid_col->size < fit_size1) m_object_grid->SetColSize(i, grid_col->size);
+        }
+    }
+    m_object_grid->Fit();
+
+    for (int i = 0; i < ObjectGridTable::col_max; i++) {
+        switch (i) {
+        case ObjectGridTable::col_printable: {
+            m_object_grid->SetColSize(i, m_object_grid->GetColSize(i) - FromDIP(28));
+            break;
         }
 
-        //else {
-            //adjust the left col
-            //int delta = grid_col->size - fit_size1;
-            //grid_col = m_object_grid_table->get_grid_col(i - 1);
-            //int fit_size2 = m_object_grid->GetColSize(i-1);
-            //grid_col->size = fit_size2 - delta;
-            //m_object_grid->SetColSize(i, grid_col->size);
-        //}
+        case ObjectGridTable::col_printable_reset:
+            m_object_grid->SetColSize(i, FromDIP(28));
+            break;
+
+        case ObjectGridTable::col_name: 
+            m_object_grid->SetColSize(i, FromDIP(100)); 
+            break;
+
+        case ObjectGridTable::col_filaments: 
+            m_object_grid->SetColSize(i, FromDIP(52));
+            break;
+
+        case ObjectGridTable::col_filaments_reset: 
+            m_object_grid->SetColSize(i, FromDIP(28));
+            break;
+
+        case ObjectGridTable::col_layer_height: {
+            auto width = m_object_grid->GetColSize(i) - FromDIP(28);
+            if (width < m_object_grid->GetTextExtent(("000.00")).x) { 
+                width = m_object_grid->GetTextExtent(("000.00")).x; 
+            }
+            m_object_grid->SetColSize(i, width);
+            break;
+        }
+
+        case ObjectGridTable::col_layer_height_reset:
+            m_object_grid->SetColSize(i, FromDIP(28)); 
+            break;
+
+        case ObjectGridTable::col_wall_loops: 
+            m_object_grid->SetColSize(i, m_object_grid->GetColSize(i) - FromDIP(28)); 
+            break;
+
+        case ObjectGridTable::col_wall_loops_reset: 
+            m_object_grid->SetColSize(i, FromDIP(28)); 
+            break;
+
+        case ObjectGridTable::col_fill_density: 
+            m_object_grid->SetColSize(i, m_object_grid->GetColSize(i) - FromDIP(28));
+            break;
+
+        case ObjectGridTable::col_fill_density_reset: 
+            m_object_grid->SetColSize(i, FromDIP(28));
+            break;
+
+        case ObjectGridTable::col_enable_support: 
+            m_object_grid->SetColSize(i, m_object_grid->GetColSize(i) - FromDIP(28)); 
+            break;
+
+        case ObjectGridTable::col_enable_support_reset: 
+            m_object_grid->SetColSize(i, FromDIP(28)); 
+            break; 
+        
+        case ObjectGridTable::col_brim_type: 
+            m_object_grid->SetColSize(i, FromDIP(56)); 
+            break;
+
+        case ObjectGridTable::col_brim_type_reset: 
+            m_object_grid->SetColSize(i, FromDIP(28)); 
+            break;
+        case ObjectGridTable::col_speed_perimeter: {
+            auto width = m_object_grid->GetColSize(i) - FromDIP(28);
+            if (width < m_object_grid->GetTextExtent(("000.00")).x) { width = m_object_grid->GetTextExtent(("000.00")).x; }
+            m_object_grid->SetColSize(i, width);
+            break;
+        }
+        case ObjectGridTable::col_speed_perimeter_reset: 
+            m_object_grid->SetColSize(i, FromDIP(28));
+            break;
+        }
     }
 
-    //set col size after fit
-   /* ObjectGridTable::ObjectGridCol* grid_col = m_object_grid_table->get_grid_col(ObjectGridTable::col_brim_type);
-    grid_col->size = m_object_grid->GetTextExtent(grid_col->choices[0]).x + 30;
-    m_object_grid->SetColSize(ObjectGridTable::col_brim_type, grid_col->size);
 
-    grid_col = m_object_grid_table->get_grid_col(ObjectGridTable::col_filaments);
-    grid_col->size = 128;
-    m_object_grid->SetColSize(ObjectGridTable::col_filaments, grid_col->size);*/
+    m_object_grid->SetGridLineColour(*wxWHITE);
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", finished, got %1% rows, %2% cols") %m_object_grid_table->GetNumberRows() %m_object_grid_table->GetNumberCols() ;
 }
 
@@ -2794,7 +3078,6 @@ void ObjectTablePanel::OnSelectCell( wxGridEvent& ev )
 
     m_cur_row = row;
     m_cur_col = col;
-
     ev.Skip();
 }
 
@@ -2866,7 +3149,7 @@ void ObjectTablePanel::resetAllValuesInSideWindow(int row, bool is_object, Model
 // ObjectTableDialog
 // ----------------------------------------------------------------------------
 ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model *modelObj, wxSize maxSize)
-    : GUI::DPIDialog(parent, wxID_ANY, _L("Object/Part Setting"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
+    : GUI::DPIDialog(parent, wxID_ANY, _L("Object/Part Setting"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     ,
     m_model(modelObj), m_plater(platerObj)
 {
@@ -2906,6 +3189,7 @@ ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model 
     m_main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
 
     m_obj_panel = new ObjectTablePanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE, wxEmptyString, m_plater, m_model);
+    m_obj_panel->SetBackgroundColour(wxColour(0x00,0xAE,0x42));
     //m_top_sizer->Add(m_obj_panel, 1, wxALL | wxEXPAND, 5);
 
     wxSize panel_size = m_obj_panel->get_init_size();
@@ -2937,19 +3221,20 @@ ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model 
     //this->Layout();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", created, this %1%, m_obj_panel %2%") %this % m_obj_panel;
 
-    m_main_sizer->Add(m_obj_panel, 1, wxEXPAND|wxTOP,2);
+    m_main_sizer->Add(m_obj_panel, 1, wxEXPAND|wxLEFT,FromDIP(10));
     SetSizer(m_main_sizer);
-    Layout();
     Fit();
+    Layout();
 }
 
 ObjectTableDialog::~ObjectTableDialog()
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", this %1%, m_obj_panel %2%") %this % m_obj_panel;
+    #ifdef __WXOSX_MAC__
     if (m_obj_panel) {
         delete m_obj_panel;
         m_obj_panel = nullptr;
     }
+    #endif
 }
 
 void ObjectTableDialog::Popup(int obj_idx, int vol_idx, wxPoint position /*= wxDefaultPosition*/)
@@ -2957,7 +3242,8 @@ void ObjectTableDialog::Popup(int obj_idx, int vol_idx, wxPoint position /*= wxD
     m_obj_panel->sort_by_default();
     m_obj_panel->SetSelection(obj_idx, vol_idx);
 
-    this->SetPosition(position);
+    //this->SetPosition(position);
+    Centre(wxBOTH);
     this->ShowModal();
 }
 
@@ -2981,23 +3267,88 @@ void ObjectTableDialog::on_sys_color_changed()
 void ObjectTableDialog::OnClose(wxCloseEvent &evt)
 {
     this->GetSize(&g_dialog_width, &g_dialog_height);
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", g_dialog_width %1%, g_dialog_height %2%") %g_dialog_width % g_dialog_height;
+
+    #ifdef __WINDOWS__
+    if (m_obj_panel) {
+        delete m_obj_panel;
+        m_obj_panel = nullptr;
+    }
+
+    DestroyChildren();
+    Destroy();
+    #endif
+
+    #ifdef __WXOSX_MAC__
     evt.Skip();
+    #endif
 }
 
 void ObjectTableDialog::OnSize(wxSizeEvent& event)
 {
-    SetSize(wxSize(-1, FromDIP(480)));
-    SetMinSize(wxSize(-1, FromDIP(480)));
-    SetMaxSize(wxSize(-1, FromDIP(480)));
-    return;
-    wxSize new_size = event.GetSize();
-    if ((new_size.GetWidth() > g_dialog_max_width) || (new_size.GetHeight() > g_dialog_max_height)) {
-        int width = (new_size.GetWidth() > g_dialog_max_width)?new_size.GetWidth():g_dialog_max_width;
-        int height = (new_size.GetHeight() > g_dialog_max_height)?new_size.GetHeight():g_dialog_max_height;
-        this->SetMaxSize(wxSize(width, height));
-    }
-    event.Skip();
+    //SetSize(wxSize(-1, FromDIP(480)));
+    //SetMinSize(wxSize(-1, FromDIP(480)));
+    //SetMaxSize(wxSize(-1, FromDIP(480)));
+    //return;
+    //wxSize new_size = event.GetSize();
+    //if ((new_size.GetWidth() > g_dialog_max_width) || (new_size.GetHeight() > g_dialog_max_height)) {
+    //    int width = (new_size.GetWidth() > g_dialog_max_width)?new_size.GetWidth():g_dialog_max_width;
+    //    int height = (new_size.GetHeight() > g_dialog_max_height)?new_size.GetHeight():g_dialog_max_height;
+    //    this->SetMaxSize(wxSize(width, height));
+    //}
+    //event.Skip();
+}
+
+// ----------------------------------------------------------------------------
+// GridCellTextEditor
+// ----------------------------------------------------------------------------
+
+GridCellTextEditor::GridCellTextEditor() : wxGridCellTextEditor() {}
+
+GridCellTextEditor::~GridCellTextEditor() {}
+
+void GridCellTextEditor::Create(wxWindow *parent, wxWindowID id, wxEvtHandler *evtHandler)
+{
+    ::TextInput *text_input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(-1, -1), wxTE_PROCESS_ENTER);
+    m_control               = text_input;
+    wxGridCellEditor::Create(parent, id, evtHandler);
+}
+
+void GridCellTextEditor::StartingKey(wxKeyEvent &event) {}
+
+void GridCellTextEditor::SetSize(const wxRect &rect) { wxGridCellTextEditor::SetSize(rect); }
+
+void GridCellTextEditor::BeginEdit(int row, int col, wxGrid *grid) 
+{
+    ObjectGridTable *               table    = dynamic_cast<ObjectGridTable *>(grid->GetTable());
+    ObjectGridTable::ObjectGridCol *grid_col = table->get_grid_col(col);
+    ObjectGridTable::ObjectGridRow *grid_row = table->get_grid_row(row - 1);
+
+    auto val = table->GetValue(row, col);
+    Text()->GetTextCtrl()->SetValue(val);
+    Text()->SetFocus(); 
+}
+
+bool GridCellTextEditor::EndEdit(int row, int col, const wxGrid *grid, const wxString &WXUNUSED(oldval), wxString *newval)
+{
+    ObjectGridTable *               table    = dynamic_cast<ObjectGridTable *>(grid->GetTable());
+    ObjectGridTable::ObjectGridCol *grid_col = table->get_grid_col(col);
+    ObjectGridTable::ObjectGridRow *grid_row = table->get_grid_row(row - 1);
+
+    wxCHECK_MSG(m_control, false, "wxGridCellTextEditor must be created first!");
+
+    const wxString value = Text()->GetTextCtrl()->GetValue();
+    if (value == m_value) return false;
+
+    m_value = value;
+
+    if (newval) *newval = m_value;
+    return true;
+}
+
+void GridCellTextEditor::ApplyEdit(int row, int col, wxGrid *grid)
+{
+    grid->GetTable()->SetValue(row, col, m_value);
+    m_value.clear();
 }
 
 } // namespace GUI

@@ -31,6 +31,7 @@
 #include <boost/predef/other/endian.h>
 
 #include "stl.h"
+#include "libslic3r/Format/STL.hpp"
 
 #include "libslic3r/LocalesUtils.hpp"
 
@@ -41,6 +42,8 @@
 #if BOOST_ENDIAN_BIG_BYTE
 extern void stl_internal_reverse_quads(char *buf, size_t cnt);
 #endif /* BOOST_ENDIAN_BIG_BYTE */
+
+const int LOAD_STL_UNIT_NUM           = 5;
 
 static FILE* stl_open_count_facets(stl_file *stl, const char *file) 
 {
@@ -145,7 +148,7 @@ static FILE* stl_open_count_facets(stl_file *stl, const char *file)
 /* Reads the contents of the file pointed to by fp into the stl structure,
    starting at facet first_facet.  The second argument says if it's our first
    time running this for the stl and therefore we should reset our max and min stats. */
-static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first)
+static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, ImportstlProgressFn stlFn)
 {
 	if (stl->stats.type == binary)
     	fseek(fp, HEADER_SIZE, SEEK_SET);
@@ -153,7 +156,19 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first)
     	rewind(fp);
 
   	char normal_buf[3][32];
-  	for (uint32_t i = first_facet; i < stl->stats.number_of_facets; ++ i) {
+
+	uint32_t facets_num = stl->stats.number_of_facets;
+	uint32_t unit = facets_num / LOAD_STL_UNIT_NUM + 1;
+    for (uint32_t i = first_facet; i < facets_num; ++ i) {
+		if ((i % unit) == 0) {
+				bool cb_cancel = false;
+				if (stlFn) {
+					stlFn(i, facets_num, cb_cancel);
+					if (cb_cancel)
+						return false;
+				}
+		}
+
   	  	stl_facet facet;
 
     	if (stl->stats.type == binary) {
@@ -232,7 +247,7 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first)
   	return true;
 }
 
-bool stl_open(stl_file *stl, const char *file)
+bool stl_open(stl_file *stl, const char *file, ImportstlProgressFn stlFn)
 {
     Slic3r::CNumericLocalesSetter locales_setter;
 	stl->clear();
@@ -240,7 +255,7 @@ bool stl_open(stl_file *stl, const char *file)
 	if (fp == nullptr)
 		return false;
 	stl_allocate(stl);
-	bool result = stl_read(stl, fp, 0, true);
+	bool result = stl_read(stl, fp, 0, true, stlFn);
   	fclose(fp);
   	return result;
 }

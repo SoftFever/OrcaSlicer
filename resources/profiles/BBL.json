@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.01.01.03",
+    "version": "01.02.00.00",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -92,8 +92,16 @@
             "sub_path": "process/0.30mm Standard @BBL X1C 0.6 nozzle.json"
         },
         {
+            "name": "0.30mm Standard @BBL X1 0.6 nozzle",
+            "sub_path": "process/0.30mm Standard @BBL X1 0.6 nozzle.json"
+        },
+        {
             "name": "0.40mm Standard @BBL X1C 0.8 nozzle",
             "sub_path": "process/0.40mm Standard @BBL X1C 0.8 nozzle.json"
+        },
+        {
+            "name": "0.40mm Standard @BBL X1 0.8 nozzle",
+            "sub_path": "process/0.40mm Standard @BBL X1 0.8 nozzle.json"
         }
     ],
     "filament_list": [
@@ -186,28 +194,68 @@
             "sub_path": "filament/PolyLite PLA @base.json"
         },
         {
+            "name": "Generic PLA @base",
+            "sub_path": "filament/Generic PLA @base.json"
+        },
+        {
             "name": "Generic PLA",
             "sub_path": "filament/Generic PLA.json"
         },
         {
+            "name": "Generic PLA @0.2 nozzle",
+            "sub_path": "filament/Generic PLA @0.2 nozzle.json"
+        },   
+        {
             "name": "Generic PLA-CF",
             "sub_path": "filament/Generic PLA-CF.json"
+        },
+        {
+            "name": "Generic PETG @base",
+            "sub_path": "filament/Generic PETG @base.json"
+        },
+        {
+            "name": "Generic PETG @0.2 nozzle",
+            "sub_path": "filament/Generic PETG @0.2 nozzle.json"
         },
         {
             "name": "Generic PETG",
             "sub_path": "filament/Generic PETG.json"
         },
         {
+            "name": "Generic ABS @base",
+            "sub_path": "filament/Generic ABS @base.json"
+        },
+        {
             "name": "Generic ABS",
             "sub_path": "filament/Generic ABS.json"
+        },
+        {
+            "name": "Generic ABS @0.2 nozzle",
+            "sub_path": "filament/Generic ABS @0.2 nozzle.json"
         },
         {
             "name": "Generic TPU",
             "sub_path": "filament/Generic TPU.json"
         },
         {
+            "name": "Generic ASA @base",
+            "sub_path": "filament/Generic ASA @base.json"
+        },
+        {
+            "name": "Generic ASA @0.2 nozzle",
+            "sub_path": "filament/Generic ASA @0.2 nozzle.json"
+        },
+        {
             "name": "Generic ASA",
             "sub_path": "filament/Generic ASA.json"
+        },
+        {
+            "name": "Generic PC @base",
+            "sub_path": "filament/Generic PC @base.json"
+        },
+        {
+            "name": "Generic PC @0.2 nozzle",
+            "sub_path": "filament/Generic PC @0.2 nozzle.json"
         },
         {
             "name": "Generic PC",
@@ -228,6 +276,10 @@
         {
             "name": "Bambu TPU 95A @BBL X1C",
             "sub_path": "filament/Bambu TPU 95A @BBL X1C.json"
+        },
+        {
+            "name": "Bambu TPU 95A @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/Bambu TPU 95A @BBL X1C 0.2 nozzle.json"
         },
         {
             "name": "Bambu TPU 95A @BBL X1",
@@ -282,6 +334,10 @@
             "sub_path": "filament/Bambu Support W @BBL X1C.json"
         },
         {
+            "name": "Bambu Support W @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/Bambu Support W @BBL X1C 0.2 nozzle.json"
+        },
+        {
             "name": "Bambu Support W @BBL X1",
             "sub_path": "filament/Bambu Support W @BBL X1.json"
         },
@@ -296,6 +352,10 @@
         {
             "name": "Bambu PC @BBL X1C",
             "sub_path": "filament/Bambu PC @BBL X1C.json"
+        },
+        {
+            "name": "Bambu PC @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/Bambu PC @BBL X1C 0.2 nozzle.json"
         },
         {
             "name": "Bambu PC @BBL X1C 0.8 nozzle",
@@ -338,6 +398,14 @@
         {
             "name": "Bambu Lab X1 0.4 nozzle",
             "sub_path": "machine/Bambu Lab X1 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu Lab X1 0.8 nozzle",
+            "sub_path": "machine/Bambu Lab X1 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu Lab X1 0.6 nozzle",
+            "sub_path": "machine/Bambu Lab X1 0.6 nozzle.json"
         },
         {
             "name": "Bambu Lab X1 Carbon 0.2 nozzle",

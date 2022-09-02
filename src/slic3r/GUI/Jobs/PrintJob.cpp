@@ -152,6 +152,7 @@ void PrintJob::process()
     params.task_record_timelapse= this->task_record_timelapse;
     params.ams_mapping          = this->task_ams_mapping;
     params.connection_type      = this->connection_type;
+    params.task_use_ams         = this->task_use_ams;
 
     // local print access
     params.dev_ip = m_dev_ip;
@@ -221,9 +222,19 @@ void PrintJob::process()
             return was_canceled();
         };
 
+
     NetworkAgent* m_agent = wxGetApp().getAgent();
 
     if (params.connection_type != "lan") {
+        if (params.dev_ip.empty())
+            params.comments = "no_ip";
+        else if (this->cloud_print_only)
+            params.comments = "low_version";
+        else if (!this->has_sdcard)
+            params.comments = "no_sdcard";
+        else if (params.password.empty())
+            params.comments = "no_password";
+
         if (!this->cloud_print_only
             && !params.password.empty() 
             && !params.dev_ip.empty()
@@ -232,6 +243,13 @@ void PrintJob::process()
             BOOST_LOG_TRIVIAL(info) << "print_job: try to start local print with record";
             this->update_status(curr_percent, _L("Sending print job over LAN"));
             result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn);
+            if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
+                params.comments = "wrong_code";
+            } else if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
+                params.comments = "upload_failed";
+            } else {
+                params.comments = (boost::format("failed(%1%)") % result).str();
+            }
             if (result < 0) {
                 // try to send with cloud
                 BOOST_LOG_TRIVIAL(warning) << "print_job: try to send with cloud";

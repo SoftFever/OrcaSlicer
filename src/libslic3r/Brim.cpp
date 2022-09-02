@@ -270,7 +270,7 @@ static ExPolygons top_level_outer_brim_area(const Print                   &print
     return diff_ex(brim_area, no_brim_area);
 }
 
-// BBS: the brims of different objs will not overlapped with each other, and are stored by objs and by extruders 
+// BBS: the brims of different objs will not overlapped with each other, and are stored by objs and by extruders
 static ExPolygons top_level_outer_brim_area(const Print& print, const ConstPrintObjectPtrs& top_level_objects_with_brim,
     const float no_brim_offset, double& brim_width_max, std::map<ObjectID, double>& brim_width_map,
     std::map<ObjectID, ExPolygons>& brimAreaMap,
@@ -453,7 +453,7 @@ static ExPolygons inner_brim_area(const Print                   &print,
     return diff_ex(intersection_ex(to_polygons(std::move(brim_area)), holes), no_brim_area);
 }
 
-// BBS: the brims of different objs will not overlapped with each other, and are stored by objs and by extruders 
+// BBS: the brims of different objs will not overlapped with each other, and are stored by objs and by extruders
 static ExPolygons inner_brim_area(const Print& print, const ConstPrintObjectPtrs& top_level_objects_with_brim,
     const float no_brim_offset, std::map<ObjectID, ExPolygons>& brimAreaMap,
     std::map<ObjectID, ExPolygons>& supportBrimAreaMap,
@@ -875,7 +875,7 @@ static ExPolygons outer_inner_brim_area(const Print& print,
     for (const auto& objectWithExtruder : objPrintVec)
         brimToWrite.insert({ objectWithExtruder.first, {true,true} });
 
-    std::map<ObjectID, ExPolygons> objectIslandMap;
+    ExPolygons objectIslands;
 
     for (unsigned int extruderNo : printExtruders) {
         ++extruderNo;
@@ -906,7 +906,11 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                     std::vector<ModelVolume*> groupVolumePtrs;
                     for (auto& volumeID : volumeGroup.volume_ids) {
                         ModelVolume* currentModelVolumePtr = nullptr;
-                        for (auto volumePtr : object->model_object()->volumes) {
+                        //BBS: support shared object logic
+                        const PrintObject* shared_object = object->get_shared_object();
+                        if (!shared_object)
+                            shared_object = object;
+                        for (auto volumePtr : shared_object->model_object()->volumes) {
                             if (volumePtr->id() == volumeID) {
                                 currentModelVolumePtr = volumePtr;
                                 break;
@@ -968,7 +972,7 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                         append_and_translate(brim_area, brim_area_object, instance, print, brimAreaMap);
                     append_and_translate(no_brim_area, no_brim_area_object, instance);
                     append_and_translate(holes, holes_object, instance);
-                    append_and_translate(objectIslandMap[instance.print_object->id()], objectIsland, instance);
+                    append_and_translate(objectIslands, objectIsland, instance);
 
                 }
                 if (brimAreaMap.find(object->id()) != brimAreaMap.end())
@@ -1032,27 +1036,44 @@ static ExPolygons outer_inner_brim_area(const Print& print,
             }
         }
     }
-    for (const PrintObject* object : print.objects()) {
+    for (const PrintObject* object : print.objects()) 
         if (brimAreaMap.find(object->id()) != brimAreaMap.end()) {
             brimAreaMap[object->id()] = diff_ex(brimAreaMap[object->id()], no_brim_area);
-
-            // BBS: brim should be contacted to at least one object island
-            if (objectIslandMap.find(object->id()) != objectIslandMap.end() && !objectIslandMap[object->id()].empty()) {
-                auto tempArea = brimAreaMap[object->id()];
-                brimAreaMap[object->id()].clear();
-                // the error bound is set to 2x flow width
-                for (auto& ta : tempArea) {
-                    auto offsetedTa = offset_ex(ta, print.brim_flow().scaled_spacing() * 2, jtRound, SCALED_RESOLUTION);
-                    if (!intersection_ex(offsetedTa, objectIslandMap[object->id()]).empty())
-                        brimAreaMap[object->id()].push_back(ta);
-                }
-            }
-        }
 
         if (supportBrimAreaMap.find(object->id()) != supportBrimAreaMap.end())
             supportBrimAreaMap[object->id()] = diff_ex(supportBrimAreaMap[object->id()], no_brim_area);
     }
-    //brim_area = diff_ex(brim_area, no_brim_area);
+
+    brim_area.clear();
+    for (const PrintObject* object : print.objects()) {
+        // BBS: brim should be contacted to at least one object's island or brim area
+        if (brimAreaMap.find(object->id()) != brimAreaMap.end()) {
+            // find other objects' brim area
+            ExPolygons otherExPolys;
+            for (const PrintObject* otherObject : print.objects()) {
+                if ((otherObject->id() != object->id()) && (brimAreaMap.find(otherObject->id()) != brimAreaMap.end())) {
+                    expolygons_append(otherExPolys, brimAreaMap[otherObject->id()]);
+                }
+            }
+
+            auto tempArea = brimAreaMap[object->id()];
+            brimAreaMap[object->id()].clear();
+
+            for (int ia = 0; ia != tempArea.size(); ++ia) {
+                // find this object's other brim area
+                ExPolygons otherExPoly;
+                for (int iao = 0; iao != tempArea.size(); ++iao)
+                    if (iao != ia) otherExPoly.push_back(tempArea[iao]);
+
+                auto offsetedTa = offset_ex(tempArea[ia], print.brim_flow().scaled_spacing() * 2, jtRound, SCALED_RESOLUTION);
+                if (!intersection_ex(offsetedTa, objectIslands).empty() ||
+                    !intersection_ex(offsetedTa, otherExPoly).empty() ||
+                    !intersection_ex(offsetedTa, otherExPolys).empty())
+                    brimAreaMap[object->id()].push_back(tempArea[ia]);
+            }
+            expolygons_append(brim_area, brimAreaMap[object->id()]);
+        }
+    }
     return brim_area;
 }
 // Flip orientation of open polylines to minimize travel distance.
@@ -1066,7 +1087,7 @@ static void optimize_polylines_by_reversing(Polylines *polylines)
             double dist_to_start = (next.first_point() - prev.last_point()).cast<double>().norm();
             double dist_to_end   = (next.last_point() - prev.last_point()).cast<double>().norm();
 
-            if (dist_to_end < dist_to_start) 
+            if (dist_to_end < dist_to_start)
                 next.reverse();
         }
     }

@@ -281,6 +281,8 @@ public:
     void                load_generic_subobject(const std::string& type_name, const ModelVolumeType type);
     void                load_shape_object(const std::string &type_name);
     void                load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center = true);
+    // BBS
+    void                load_mesh_part(const TriangleMesh& mesh, const wxString& name, bool center = true);
     void                del_object(const int obj_idx, bool refresh_immediately = true);
     void                del_subobject_item(wxDataViewItem& item);
     void                del_settings_from_config(const wxDataViewItem& parent_item);
@@ -449,6 +451,9 @@ private:
     // Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.
 	void OnEditingStarted(wxDataViewEvent &event);
     void OnEditingDone(wxDataViewEvent &event);
+
+    // apply the instance transform to all volumes and reset instance transform except the offset
+    void apply_object_instance_transfrom_to_all_volumes(ModelObject *model_object);
 
     std::vector<int> m_columns_width;
 };

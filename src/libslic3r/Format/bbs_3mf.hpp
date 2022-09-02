@@ -166,6 +166,7 @@ const int IMPORT_STAGE_CHECK_MODE_GCODE = 9;
 const int UPDATE_GCODE_RESULT           = 10;
 const int IMPORT_LOAD_CONFIG            = 11;
 const int IMPORT_LOAD_MODEL_OBJECTS     = 12;
+const int IMPORT_STAGE_MAX              = 13;
 
 //BBS export 3mf progress
 typedef std::function<void(int export_stage, int current, int total, bool& cancel)> Export3mfProgressFn;

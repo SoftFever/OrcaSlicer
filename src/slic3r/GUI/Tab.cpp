@@ -1372,12 +1372,50 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
-    if (opt_key == "enable_prime_tower" || opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
+    if (opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
         update_wiping_button_visibility();
 
+    if (opt_key == "enable_prime_tower") {
+        bool timelapse_enabled = m_config->option<ConfigOptionBool>("timelapse_no_toolhead")->value;
+        if (!boost::any_cast<bool>(value) && timelapse_enabled) {
+            MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required by timeplase. Are you sure you want to disable both of them?"),
+                              _L("Warning"), wxICON_WARNING | wxYES | wxNO);
+            if (dlg.ShowModal() == wxID_YES) {
+                DynamicPrintConfig new_conf = *m_config;
+                new_conf.set_key_value("timelapse_no_toolhead", new ConfigOptionBool(false));
+                m_config_manipulation.apply(m_config, &new_conf);
+                wxGetApp().plater()->update();
+            }
+            else {
+                DynamicPrintConfig new_conf = *m_config;
+                new_conf.set_key_value("enable_prime_tower", new ConfigOptionBool(true));
+                m_config_manipulation.apply(m_config, &new_conf);
+            }
+        }
+        update_wiping_button_visibility();
+    }
+
     // reload scene to update timelapse wipe tower
-    if (opt_key == "timelapse_no_toolhead")
-        wxGetApp().plater()->update();
+    if (opt_key == "timelapse_no_toolhead") {
+        bool wipe_tower_enabled = m_config->option<ConfigOptionBool>("enable_prime_tower")->value;
+        if (!wipe_tower_enabled && boost::any_cast<bool>(value)) {
+            MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required by timelapse. Do you want to enable both of them?"),
+                              _L("Warning"), wxICON_WARNING | wxYES | wxNO);
+            if (dlg.ShowModal() == wxID_YES) {
+                DynamicPrintConfig new_conf = *m_config;
+                new_conf.set_key_value("enable_prime_tower", new ConfigOptionBool(true));
+                m_config_manipulation.apply(m_config, &new_conf);
+                wxGetApp().plater()->update();
+            }
+            else {
+                DynamicPrintConfig new_conf = *m_config;
+                new_conf.set_key_value("timelapse_no_toolhead", new ConfigOptionBool(false));
+                m_config_manipulation.apply(m_config, &new_conf);
+            }
+        } else {
+            wxGetApp().plater()->update();
+        }
+    }
 
     // BBS
 #if 0
@@ -1711,7 +1749,7 @@ void TabPrint::build()
         auto optgroup = page->new_optgroup(L("Layer height"));
         optgroup->append_single_option_line("layer_height");
         optgroup->append_single_option_line("initial_layer_print_height");
-        optgroup->append_single_option_line("adaptive_layer_height");
+        optgroup->append_single_option_line("adaptive_layer_height", "adaptive-layer-height");
 
         optgroup = page->new_optgroup(L("Line width"));
         optgroup->append_single_option_line("line_width");
@@ -1724,7 +1762,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_line_width");
 
         optgroup = page->new_optgroup(L("Seam"));
-        optgroup->append_single_option_line("seam_position");
+        optgroup->append_single_option_line("seam_position", "Seam");
 
         optgroup = page->new_optgroup(L("Precision"));
         optgroup->append_single_option_line("resolution");
@@ -1782,8 +1820,9 @@ void TabPrint::build()
         optgroup->append_single_option_line("sparse_infill_speed");
         optgroup->append_single_option_line("internal_solid_infill_speed");
         optgroup->append_single_option_line("top_surface_speed");
-        optgroup->append_single_option_line("enable_overhang_speed");
+        optgroup->append_single_option_line("enable_overhang_speed", "slow-down-for-overhang");
         Line line = { L("Overhang speed"), L("This is the speed for various overhang degrees. Overhang degrees are expressed as a percentage of line width. 0 speed means no slowing down for the overhang degree range and wall speed is used") };
+        line.label_path = "slow-down-for-overhang";
         line.append_option(optgroup->get_option("overhang_1_4_speed"));
         line.append_option(optgroup->get_option("overhang_2_4_speed"));
         line.append_option(optgroup->get_option("overhang_3_4_speed"));
@@ -1809,41 +1848,41 @@ void TabPrint::build()
 
     page = add_options_page(L("Support"), "support");
         optgroup = page->new_optgroup(L("Support"));
-        optgroup->append_single_option_line("enable_support");
-        optgroup->append_single_option_line("support_type");
-        optgroup->append_single_option_line("support_threshold_angle");
+    optgroup->append_single_option_line("enable_support", "support");
+        optgroup->append_single_option_line("support_type", "support");
+        optgroup->append_single_option_line("support_threshold_angle", "support");
         optgroup->append_single_option_line("support_on_build_plate_only");
         //optgroup->append_single_option_line("enforce_support_layers");
 
         optgroup = page->new_optgroup(L("Support filament"));
-        optgroup->append_single_option_line("support_filament");
-        optgroup->append_single_option_line("support_interface_filament");
+        optgroup->append_single_option_line("support_filament", "support");
+        optgroup->append_single_option_line("support_interface_filament", "support");
 
         //optgroup = page->new_optgroup(L("Options for support material and raft"));
         //optgroup->append_single_option_line("support_style");
 
         //BBS
         optgroup = page->new_optgroup(L("Advanced"));
-        optgroup->append_single_option_line("tree_support_branch_distance");
-        optgroup->append_single_option_line("tree_support_branch_diameter");
-        optgroup->append_single_option_line("tree_support_branch_angle");
+        optgroup->append_single_option_line("tree_support_branch_distance", "support");
+        optgroup->append_single_option_line("tree_support_branch_diameter", "support");
+        optgroup->append_single_option_line("tree_support_branch_angle", "support");
         optgroup->append_single_option_line("tree_support_wall_count");
         optgroup->append_single_option_line("tree_support_with_infill");
-        optgroup->append_single_option_line("support_top_z_distance");
-        optgroup->append_single_option_line("support_base_pattern");
-        optgroup->append_single_option_line("support_base_pattern_spacing");
+        optgroup->append_single_option_line("support_top_z_distance", "support");
+        optgroup->append_single_option_line("support_base_pattern", "support");
+        optgroup->append_single_option_line("support_base_pattern_spacing", "support");
         //optgroup->append_single_option_line("support_angle");
-        optgroup->append_single_option_line("support_interface_top_layers");
-        optgroup->append_single_option_line("support_interface_bottom_layers");
-        optgroup->append_single_option_line("support_interface_pattern");
-        optgroup->append_single_option_line("support_interface_spacing");
+        optgroup->append_single_option_line("support_interface_top_layers", "support");
+        optgroup->append_single_option_line("support_interface_bottom_layers", "support");
+        optgroup->append_single_option_line("support_interface_pattern", "support");
+        optgroup->append_single_option_line("support_interface_spacing", "support");
         optgroup->append_single_option_line("support_bottom_interface_spacing");
         //optgroup->append_single_option_line("support_interface_loop_pattern");
 
-        optgroup->append_single_option_line("support_object_xy_distance");
-        optgroup->append_single_option_line("bridge_no_support");
-        optgroup->append_single_option_line("max_bridge_length");
-        optgroup->append_single_option_line("thick_bridges");
+        optgroup->append_single_option_line("support_object_xy_distance", "support");
+        optgroup->append_single_option_line("bridge_no_support", "support");
+        optgroup->append_single_option_line("max_bridge_length", "support");
+        optgroup->append_single_option_line("thick_bridges", "support");
         //optgroup->append_single_option_line("independent_support_layer_height");
 
     page = add_options_page(L("Others"), "advanced");
@@ -1851,9 +1890,9 @@ void TabPrint::build()
         optgroup->append_single_option_line("skirt_loops");
         optgroup->append_single_option_line("skirt_distance");
         //optgroup->append_single_option_line("draft_shield");
-        optgroup->append_single_option_line("brim_type");
-        optgroup->append_single_option_line("brim_width");
-        optgroup->append_single_option_line("brim_object_gap");
+        optgroup->append_single_option_line("brim_type", "auto-brim");
+        optgroup->append_single_option_line("brim_width", "auto-brim");
+        optgroup->append_single_option_line("brim_object_gap", "auto-brim");
         optgroup->append_single_option_line("raft_layers");
         //optgroup->append_single_option_line("raft_first_layer_density");
         //optgroup->append_single_option_line("raft_first_layer_expansion");
@@ -1865,14 +1904,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("prime_tower_brim_width");
 
         optgroup = page->new_optgroup(L("Flush options"));
-        optgroup->append_single_option_line("flush_into_infill");
-        optgroup->append_single_option_line("flush_into_objects");
-        optgroup->append_single_option_line("flush_into_support");
+        optgroup->append_single_option_line("flush_into_infill", "reduce-wasting-during-filament-change");
+        optgroup->append_single_option_line("flush_into_objects", "reduce-wasting-during-filament-change");
+        optgroup->append_single_option_line("flush_into_support", "reduce-wasting-during-filament-change");
 
         optgroup = page->new_optgroup(L("Special mode"));
         optgroup->append_single_option_line("print_sequence");
-        optgroup->append_single_option_line("spiral_mode");
-        optgroup->append_single_option_line("timelapse_no_toolhead");
+        optgroup->append_single_option_line("spiral_mode", "spiral-vase");
+        optgroup->append_single_option_line("timelapse_no_toolhead", "Timelapse");
         //BBS: todo remove clearance to machine
 #if 0
         //line = { L("Extruder radius"), "" };
@@ -2039,7 +2078,7 @@ void TabPrintModel::build()
             optgroup->append_single_option_line("layer_height");
             optgroup->append_single_option_line("sparse_infill_density");
             optgroup->append_single_option_line("wall_loops");
-            optgroup->append_single_option_line("enable_support");
+            optgroup->append_single_option_line("enable_support", "support");
     m_pages.pop_back();
     m_pages.insert(m_pages.begin(), page);
 
@@ -2436,6 +2475,11 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("hot_plate_temp"));
         optgroup->append_line(line);
 
+        line = {L("Textured PEI Plate"), L("Bed temperature when Textured PEI Plate is installed. Value 0 means the filament does not support to print on the Textured PEI Plate")};
+        line.append_option(optgroup->get_option("textured_plate_temp_initial_layer"));
+        line.append_option(optgroup->get_option("textured_plate_temp"));
+        optgroup->append_line(line);
+
         optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value)
         {
             DynamicPrintConfig& filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
@@ -2449,6 +2493,9 @@ void TabFilament::build()
             }
             else if (opt_key == "hot_plate_temp" || opt_key == "hot_plate_temp_initial_layer") {
                 m_config_manipulation.check_bed_temperature_difference(BedType::btPEI, &filament_config);
+            }
+            else if (opt_key == "textured_plate_temp" || opt_key == "textured_plate_temp_initial_layer") {
+                m_config_manipulation.check_bed_temperature_difference(BedType::btPTE, &filament_config);
             }
             else if (opt_key == "nozzle_temperature") {
                 m_config_manipulation.check_nozzle_temperature_range(&filament_config);
@@ -2480,25 +2527,27 @@ void TabFilament::build()
         //};
         //optgroup->append_line(line);
         optgroup = page->new_optgroup(L("Cooling for specific layer"));
-        optgroup->append_single_option_line("close_fan_the_first_x_layers");
+    optgroup->append_single_option_line("close_fan_the_first_x_layers", "auto-cooling");
         //optgroup->append_single_option_line("full_fan_speed_layer");
 
         optgroup = page->new_optgroup(L("Part cooling fan"));
         line = { L("Min fan speed threshold"), L("Part cooling fan speed will start to run at min speed when the estimated layer time is no longer than the layer time in setting. When layer time is shorter than threshold, fan speed is interpolated between the minimum and maximum fan speed according to layer printing time") };
+        line.label_path = "auto-cooling";
         line.append_option(optgroup->get_option("fan_min_speed"));
         line.append_option(optgroup->get_option("fan_cooling_layer_time"));
         optgroup->append_line(line);
         line = { L("Max fan speed threshold"), L("Part cooling fan speed will be max when the estimated layer time is shorter than the setting value") };
+        line.label_path = "auto-cooling";
         line.append_option(optgroup->get_option("fan_max_speed"));
         line.append_option(optgroup->get_option("slow_down_layer_time"));
         optgroup->append_line(line);
         optgroup->append_single_option_line("reduce_fan_stop_start_freq");
-        optgroup->append_single_option_line("slow_down_for_layer_cooling");
+        optgroup->append_single_option_line("slow_down_for_layer_cooling", "auto-cooling");
         optgroup->append_single_option_line("slow_down_min_speed");
 
-        optgroup->append_single_option_line("enable_overhang_bridge_fan");
-        optgroup->append_single_option_line("overhang_fan_threshold");
-        optgroup->append_single_option_line("overhang_fan_speed");
+        optgroup->append_single_option_line("enable_overhang_bridge_fan", "auto-cooling");
+        optgroup->append_single_option_line("overhang_fan_threshold", "auto-cooling");
+        optgroup->append_single_option_line("overhang_fan_speed", "auto-cooling");
 
         optgroup = page->new_optgroup(L("Auxiliary part cooling fan"));
         optgroup->append_single_option_line("additional_cooling_fan_speed");

@@ -1378,7 +1378,7 @@ void ObjectDataViewModel::UpdateVolumesExtruderBitmap(wxDataViewItem obj_item, b
         return;
     ObjectDataViewModelNode* obj_node = static_cast<ObjectDataViewModelNode*>(obj_item.GetID());
     for (auto child : obj_node->GetChildren())
-        if (child->GetVolumeType() == ModelVolumeType::MODEL_PART)
+        if (child->GetVolumeType() == ModelVolumeType::MODEL_PART || child->GetVolumeType() == ModelVolumeType::PARAMETER_MODIFIER)
             child->UpdateExtruderAndColorIcon(use_obj_extruder ? obj_node->GetExtruder() : "");
 }
 

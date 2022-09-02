@@ -592,6 +592,102 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &config, st
     return substitutions;
 }
 
+PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string> &              files,
+                                                        std::function<int(std::string const &)> override_confirm,
+                                                        ForwardCompatibilitySubstitutionRule    rule)
+{
+    PresetsConfigSubstitutions substitutions;
+    int overwrite = 0;
+    std::vector<std::string>   result;
+    for (auto &file : files) {
+        if (Slic3r::is_json_file(file)) {
+            try {
+                DynamicPrintConfig config;
+                // BBS: change to json format
+                // ConfigSubstitutions config_substitutions = config.load_from_ini(preset.file, substitution_rule);
+                std::map<std::string, std::string> key_values;
+                std::string                        reason;
+                ConfigSubstitutions                config_substitutions = config.load_from_json(file, rule, key_values, reason);
+                std::string name = key_values[BBL_JSON_KEY_NAME];
+                std::string version_str = key_values[BBL_JSON_KEY_VERSION];
+                boost::optional<Semver> version = Semver::parse(version_str);
+                if (!version) continue;
+                Semver app_version = *(Semver::parse(SLIC3R_VERSION));
+                if (version->maj() != app_version.maj()) {
+                    BOOST_LOG_TRIVIAL(warning) << "Preset incompatibla, not loading: " << name;
+                    continue;
+                }
+
+                PresetCollection * collection = nullptr;
+                if (config.has("printer_settings_id"))
+                    collection = &printers;
+                else if (config.has("print_settings_id"))
+                    collection = &prints;
+                else if (config.has("filament_settings_id"))
+                    collection = &filaments;
+                if (collection == nullptr) {
+                    BOOST_LOG_TRIVIAL(warning) << "Preset type is unknown, not loading: " << name;
+                    continue;
+                }
+                if (auto p = collection->find_preset(name, false)) {
+                    if (p->is_default || p->is_system) {
+                        BOOST_LOG_TRIVIAL(warning) << "Preset already present and is system preset, not loading: " << name;
+                        continue;
+                    }
+                    overwrite = override_confirm(name);
+                    if (overwrite == 0 || overwrite == 2) {
+                        BOOST_LOG_TRIVIAL(warning) << "Preset already present, not loading: " << name;
+                        continue;
+                    }
+                }
+
+                DynamicPrintConfig new_config;
+                Preset *      inherit_preset  = nullptr;
+                ConfigOption *inherits_config = config.option(BBL_JSON_KEY_INHERITS);
+                if (inherits_config) {
+                    ConfigOptionString *option_str     = dynamic_cast<ConfigOptionString *>(inherits_config);
+                    std::string         inherits_value = option_str->value;
+                    inherit_preset = collection->find_preset(inherits_value, false, true);
+                }
+                if (inherit_preset) {
+                    new_config = inherit_preset->config;
+                } else {
+                    // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
+                    // new_config = default_preset.config;
+                    // we should skip this preset here
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", can not find inherit preset for user preset %1%, just skip") % name;
+                    continue;
+                }
+                new_config.apply(std::move(config));
+                
+                Preset &preset     = collection->load_preset(collection->path_from_name(name), name, std::move(new_config), false);
+                preset.is_external = true;
+                preset.version     = *version;
+                if (inherit_preset)
+                    preset.base_id     = inherit_preset->setting_id;
+                Preset::normalize(preset.config);
+                // Report configuration fields, which are misplaced into a wrong group.
+                const Preset &default_preset = collection->default_preset_for(new_config);
+                std::string incorrect_keys = Preset::remove_invalid_keys(preset.config, default_preset.config);
+                if (!incorrect_keys.empty())
+                    BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" << preset.file << "\" contains the following incorrect keys: " << incorrect_keys
+                                                << ", which were removed";
+                if (!config_substitutions.empty())
+                    substitutions.push_back({name, collection->type(), PresetConfigSubstitutions::Source::UserFile, file, std::move(config_substitutions)});
+
+                preset.save(inherit_preset ? &inherit_preset->config : nullptr);
+                result.push_back(file);
+            } catch (const std::ifstream::failure &err) {
+                BOOST_LOG_TRIVIAL(error) << boost::format("The config cannot be loaded: %1%. Reason: %2%") % file % err.what();
+            } catch (const std::runtime_error &err) {
+                BOOST_LOG_TRIVIAL(error) << boost::format("Failed importing config file: %1%. Reason: %2%") % file % err.what();
+            }
+        }
+    }
+    files = result;
+    return substitutions;
+}
+
 //BBS save user preset to user_id preset folder
 void PresetBundle::save_user_presets(AppConfig& config, std::vector<std::string>& need_to_delete_list)
 {
@@ -624,6 +720,17 @@ void PresetBundle::update_user_presets_directory(const std::string preset_folder
     this->filaments.update_user_presets_directory(dir_user_presets, PRESET_FILAMENT_NAME);
     this->printers.update_user_presets_directory(dir_user_presets, PRESET_PRINTER_NAME);
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished");
+}
+
+void PresetBundle::remove_user_presets_directory(const std::string preset_folder)
+{
+    const std::string dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/" + preset_folder;
+
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, delete directory : %1%") % dir_user_presets;
+    fs::path folder(dir_user_presets);
+    if (fs::exists(folder)) {
+        fs::remove_all(folder);
+    }
 }
 
 void PresetBundle::update_system_preset_setting_ids(std::map<std::string, std::map<std::string, std::string>>& system_presets)
@@ -3214,6 +3321,36 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
         }
     }
 }*/
+
+std::vector<std::string> PresetBundle::export_current_configs(const std::string &                     path,
+                                                              std::function<int(std::string const &)> override_confirm,
+                                                              bool                                    include_modify,
+                                                              bool                                    export_system_settings)
+{
+    const Preset &print_preset    = include_modify ? prints.get_edited_preset() : prints.get_selected_preset();
+    const Preset &printer_preset  = include_modify ? printers.get_edited_preset() : printers.get_selected_preset();
+    std::set<Preset const *> presets { &print_preset, &printer_preset };
+    for (auto &f : filament_presets) {
+        auto filament_preset = filaments.find_preset(f, include_modify);
+        if (filament_preset) presets.insert(filament_preset);
+    }
+
+    int overwrite = 0;
+    std::vector<std::string> result;
+    for (auto preset : presets) {
+        if ((preset->is_system  && !export_system_settings) || preset->is_default)
+            continue;
+        std::string file = path + "/" + preset->name + ".json";
+        if (boost::filesystem::exists(file) && overwrite < 2) {
+            overwrite = override_confirm(preset->name);
+            if (overwrite == 0 || overwrite == 2)
+                continue;
+        }
+        preset->config.save_to_json(file, preset->name, "", preset->version.to_string());
+        result.push_back(file);
+    }
+    return result;
+}
 
 // Set the filament preset name. As the name could come from the UI selection box,
 // an optional "(modified)" suffix will be removed from the filament name.

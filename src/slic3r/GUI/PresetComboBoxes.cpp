@@ -390,8 +390,10 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
             std::string setting_id = f.opt_string("filament_settings_id", 0u);
             auto iter = std::find_if(filaments.begin(), filaments.end(),
                 [&setting_id](auto &f) { return f.is_compatible && f.is_system && f.filament_id == setting_id; });
-            if (iter == filaments.end())
+            if (iter == filaments.end()) {
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % setting_id;
                 continue;
+            }
             const_cast<Preset&>(*iter).is_visible = true;
             auto color = f.opt_string("filament_colour", 0u);
             wxColour clr(color);

@@ -34,6 +34,7 @@ wxFont Label::Body_15 = Label::sysFont(15, false);
 wxFont Label::Body_14 = Label::sysFont(14, false);
 wxFont Label::Body_13 = Label::sysFont(13, false);
 wxFont Label::Body_12 = Label::sysFont(12, false);
+wxFont Label::Body_11 = Label::sysFont(11, false);
 wxFont Label::Body_10 = Label::sysFont(10, false);
 wxFont Label::Body_9 = Label::sysFont(9, false);
 
