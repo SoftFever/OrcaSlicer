@@ -5276,9 +5276,9 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
 void Plater::priv::on_action_add(SimpleEvent&)
 {
     if (q != nullptr) {
-        //q->add_model();
+        q->add_model();
         //BBS open file in toolbar add
-        q->add_file();
+        //q->add_file();
     }
 }
 
