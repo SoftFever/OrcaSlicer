@@ -931,7 +931,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_statictext_printer_msg->SetFont(::Label::Body_13);
     m_statictext_printer_msg->Hide();
 
-    m_sizer_select = new wxGridSizer(1, 2, 0, 0);
+    m_sizer_select = new wxGridSizer(0, 2, 0, 0);
     select_bed     = create_item_checkbox(_L("Bed Leveling"), this, _L("Bed Leveling"), "bed_leveling");
     select_flow    = create_item_checkbox(_L("Flow Calibration"), this, _L("Flow Calibration"), "flow_cali");
     select_use_ams = create_ams_checkbox(_L("Enable AMS"), this, _L("Enable AMS"));
@@ -1081,13 +1081,20 @@ wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *par
     img_ams_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_ams_tip](auto &e) {
         wxPoint pos = img_ams_tip->ClientToScreen(wxPoint(0, 0));
         pos.y += img_ams_tip->GetRect().height;
-        m_mapping_tip_popup.Position(pos, wxSize(0, 0));
+        m_mapping_tip_popup.Position(pos, wxSize(0,0));
         m_mapping_tip_popup.Popup();
     });
+    img_ams_tip->Bind(wxEVT_LEAVE_WINDOW, [this, img_ams_tip](wxMouseEvent &e) {
+        auto region = m_mapping_tip_popup.GetClientRect();
 
-    img_ams_tip->Bind(wxEVT_LEAVE_WINDOW, [this, img_ams_tip](auto &e) {
-        m_mapping_tip_popup.Dismiss();
+        if(e.GetPosition().x > region.GetLeftTop().x && e.GetPosition().y > region.GetLeftTop().y && e.GetPosition().x < region.GetRightBottom().x && e.GetPosition().x < region.GetRightBottom().y)
+            ;
+        else
+            m_mapping_tip_popup.Dismiss();
     });
+	m_mapping_tip_popup.Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {
+		m_mapping_tip_popup.Dismiss();
+		});
 
     checkbox->SetSizer(sizer_checkbox);
     checkbox->Layout();

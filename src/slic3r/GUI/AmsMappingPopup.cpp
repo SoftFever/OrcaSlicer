@@ -526,7 +526,7 @@ AmsMapingTipPopup::AmsMapingTipPopup(wxWindow *parent)
 
     m_sizer_body->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(20));
 
-    m_panel_enable_ams = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(200, -1), wxTAB_TRAVERSAL);
+    m_panel_enable_ams = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(220), -1), wxTAB_TRAVERSAL);
     m_panel_enable_ams->SetBackgroundColour(*wxWHITE);
     wxBoxSizer *sizer_enable_ams = new wxBoxSizer(wxVERTICAL);
 
@@ -536,8 +536,9 @@ AmsMapingTipPopup::AmsMapingTipPopup(wxWindow *parent)
     sizer_enable_ams->Add(m_title_enable_ams, 0, 0, 0);
 
     m_tip_enable_ams = new wxStaticText(m_panel_enable_ams, wxID_ANY, _L("Print with filaments in the AMS"), wxDefaultPosition, wxDefaultSize, 0);
+    m_tip_enable_ams->SetMinSize(wxSize(FromDIP(200), FromDIP(50)));
+    m_tip_enable_ams->Wrap(FromDIP(200));
     m_tip_enable_ams->SetBackgroundColour(*wxWHITE);
-    m_tip_enable_ams->Wrap(-1);
     sizer_enable_ams->Add(m_tip_enable_ams, 0, wxTOP, 8);
 
     wxBoxSizer *sizer_enable_ams_img;
@@ -558,7 +559,7 @@ AmsMapingTipPopup::AmsMapingTipPopup(wxWindow *parent)
 
     m_sizer_body->Add(m_split_lines, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(10));
 
-    m_panel_disable_ams = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(200, -1), wxTAB_TRAVERSAL);
+    m_panel_disable_ams = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(220), -1), wxTAB_TRAVERSAL);
     m_panel_disable_ams->SetBackgroundColour(*wxWHITE);
     wxBoxSizer *sizer_disable_ams;
     sizer_disable_ams = new wxBoxSizer(wxVERTICAL);
@@ -569,8 +570,9 @@ AmsMapingTipPopup::AmsMapingTipPopup(wxWindow *parent)
     sizer_disable_ams->Add(m_title_disable_ams, 0, 0, 0);
 
     m_tip_disable_ams = new wxStaticText(m_panel_disable_ams, wxID_ANY, _L("Print with the filament mounted on the back of chassis"), wxDefaultPosition, wxDefaultSize, 0);
+    m_tip_disable_ams->SetMinSize(wxSize(FromDIP(200), FromDIP(50)));
+    m_tip_disable_ams->Wrap(FromDIP(200));
     m_tip_disable_ams->SetBackgroundColour(*wxWHITE);
-    m_tip_disable_ams->Wrap(-1);
     sizer_disable_ams->Add(m_tip_disable_ams, 0, wxTOP, FromDIP(8));
 
     wxBoxSizer *sizer_disable_ams_img;
