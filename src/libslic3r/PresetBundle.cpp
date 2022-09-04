@@ -38,9 +38,9 @@ static std::vector<std::string> s_project_options {
     "wipe_tower_y",
     "wipe_tower_rotation_angle",
     "curr_bed_type",
-#if !BBL_RELEASE_TO_PUBLIC
+// #if !BBL_RELEASE_TO_PUBLIC
     "flush_multiplier",
-#endif
+// #endif
 };
 
 //BBS: add BBL as default
