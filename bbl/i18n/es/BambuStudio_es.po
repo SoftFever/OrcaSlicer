@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-01 09:20+0800\n"
+"POT-Creation-Date: 2022-09-07 09:09+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -834,8 +834,8 @@ msgstr "Clonar"
 msgid "Reduce Triangles"
 msgstr "Reducir los triángulos"
 
-msgid "Per object edit"
-msgstr "Por objeto editar"
+msgid "Edit in Parameter Table"
+msgstr ""
 
 msgid "Edit print parameters for a single object"
 msgstr "Editar los parámetros de impresión de un solo objeto"
@@ -1045,8 +1045,8 @@ msgstr "Densidad de relleno(%)"
 msgid "Auto Brim"
 msgstr "Borde automático"
 
-msgid "Inner wall speed"
-msgstr "Velocidad de la pared interior"
+msgid "Outer wall speed"
+msgstr ""
 
 msgid "Plate"
 msgstr "Placa"
@@ -1270,9 +1270,6 @@ msgstr ""
 msgid "Unkown Error."
 msgstr ""
 
-msgid "Please Fill Task Report."
-msgstr ""
-
 msgid "Sending print configuration"
 msgstr "Sending print configuration"
 
@@ -1457,6 +1454,17 @@ msgstr ""
 
 msgid "File"
 msgstr "Archivo"
+
+msgid "Please home all axes (click "
+msgstr ""
+
+msgid ""
+") to locate the toolhead's position. This prevents device moving beyond the "
+"printable boundary and causing equipment wear."
+msgstr ""
+
+msgid "Go Home"
+msgstr ""
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
@@ -2211,14 +2219,11 @@ msgstr ""
 msgid "Invalid input."
 msgstr ""
 
-msgid "Enter a search term"
-msgstr "Teclea un término de búsqueda"
+msgid "New Window"
+msgstr ""
 
-msgid "Online"
-msgstr "En línea"
-
-msgid "Offline"
-msgstr "Fuera de línea"
+msgid "Open a new window"
+msgstr ""
 
 msgid "Application is closing"
 msgstr "La aplicación se está cerrando"
@@ -2240,9 +2245,6 @@ msgstr "Device"
 
 msgid "Project"
 msgstr "Proyecto"
-
-msgid "Debug"
-msgstr "Depurar"
 
 msgid "Slice"
 msgstr "Laminar"
@@ -2280,9 +2282,6 @@ msgstr "Comprobar Actualicaciones"
 #, c-format, boost-format
 msgid "&About %s"
 msgstr "&Acerca de %s"
-
-msgid "Show Log"
-msgstr ""
 
 msgid "Open Network Test"
 msgstr ""
@@ -2327,6 +2326,9 @@ msgstr "Derecha"
 
 msgid "Right View"
 msgstr "Vista derecha"
+
+msgid "Start a new window"
+msgstr ""
 
 msgid "New Project"
 msgstr "Nuevo proyecto"
@@ -2453,6 +2455,12 @@ msgstr "Utilizar vista en perspectiva"
 
 msgid "Use Orthogonal View"
 msgstr "Utilizar Vista Ortogonal"
+
+msgid "Show &Labels"
+msgstr ""
+
+msgid "Show object labels in 3D scene"
+msgstr ""
 
 msgid "Preferences"
 msgstr "Preferencias"
@@ -2617,20 +2625,21 @@ msgstr ""
 msgid "Choose save directory"
 msgstr ""
 
-msgid "Waiting"
-msgstr "Esperando"
-
-msgid "Retry"
+msgid "Download waiting..."
 msgstr ""
 
-msgid "Failed"
+msgid "Retry"
 msgstr ""
 
 msgid "Open"
 msgstr ""
 
-msgid "Finished"
-msgstr "Terminado"
+msgid "Download finished"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Downloading %d%%..."
+msgstr ""
 
 msgid "Speed:"
 msgstr "Velocidad:"
@@ -3568,6 +3577,12 @@ msgstr "Para \"%1%\", añada \"%2%\" como un nuevo preajuste"
 #, boost-format
 msgid "Simply switch to \"%1%\""
 msgstr "Simplemente cambia a \"%1%\""
+
+msgid "Online"
+msgstr "En línea"
+
+msgid "Offline"
+msgstr "Fuera de línea"
 
 msgid "My Device"
 msgstr "Mi dispositivo"
@@ -6735,6 +6750,24 @@ msgstr "Soporte: arreglar huecos en la capa %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Soporte: propagar ramas en la capa %d"
+
+#~ msgid "Enter a search term"
+#~ msgstr "Teclea un término de búsqueda"
+
+#~ msgid "Debug"
+#~ msgstr "Depurar"
+
+#~ msgid "Waiting"
+#~ msgstr "Esperando"
+
+#~ msgid "Finished"
+#~ msgstr "Terminado"
+
+#~ msgid "Per object edit"
+#~ msgstr "Por objeto editar"
+
+#~ msgid "Inner wall speed"
+#~ msgstr "Velocidad de la pared interior"
 
 #~ msgid "the 3mf is not compatible, load geometry data only!"
 #~ msgstr "el 3mf no es compatible, ¡cargue sólo los datos geométricos!"

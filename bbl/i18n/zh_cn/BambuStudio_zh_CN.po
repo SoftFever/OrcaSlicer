@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-01 09:20+0800\n"
-"PO-Revision-Date: 2022-08-05 11:49+0800\n"
+"POT-Creation-Date: 2022-09-07 09:09+0800\n"
+"PO-Revision-Date: 2022-09-05 10:13+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -815,8 +815,8 @@ msgstr "克隆"
 msgid "Reduce Triangles"
 msgstr "简化三角形"
 
-msgid "Per object edit"
-msgstr "编辑单个对象"
+msgid "Edit in Parameter Table"
+msgstr ""
 
 msgid "Edit print parameters for a single object"
 msgstr "编辑单个对象的打印参数"
@@ -1009,8 +1009,8 @@ msgstr "填充密度(%)"
 msgid "Auto Brim"
 msgstr "自动Brim"
 
-msgid "Inner wall speed"
-msgstr "内墙速度"
+msgid "Outer wall speed"
+msgstr ""
 
 msgid "Plate"
 msgstr "盘"
@@ -1221,9 +1221,6 @@ msgstr "服务不可用"
 msgid "Unkown Error."
 msgstr "未知错误"
 
-msgid "Please Fill Task Report."
-msgstr "请填写打印报告"
-
 msgid "Sending print configuration"
 msgstr "正在发送打印配置"
 
@@ -1404,6 +1401,17 @@ msgstr "AMS不会在启动时自动读取耗材丝信息。它会使用上次关
 
 msgid "File"
 msgstr "文件"
+
+msgid "Please home all axes (click "
+msgstr ""
+
+msgid ""
+") to locate the toolhead's position. This prevents device moving beyond the "
+"printable boundary and causing equipment wear."
+msgstr ""
+
+msgid "Go Home"
+msgstr "回原点"
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
@@ -2128,14 +2136,11 @@ msgstr ""
 msgid "Invalid input."
 msgstr ""
 
-msgid "Enter a search term"
-msgstr "输入搜索内容"
+msgid "New Window"
+msgstr ""
 
-msgid "Online"
-msgstr "在线"
-
-msgid "Offline"
-msgstr "离线"
+msgid "Open a new window"
+msgstr ""
 
 msgid "Application is closing"
 msgstr "正在关闭应用程序"
@@ -2157,9 +2162,6 @@ msgstr "设备"
 
 msgid "Project"
 msgstr "项目"
-
-msgid "Debug"
-msgstr "调试"
 
 msgid "Slice"
 msgstr "切片"
@@ -2197,9 +2199,6 @@ msgstr "检查新版本"
 #, c-format, boost-format
 msgid "&About %s"
 msgstr "关于 %s"
-
-msgid "Show Log"
-msgstr ""
 
 msgid "Open Network Test"
 msgstr ""
@@ -2244,6 +2243,9 @@ msgstr "右面"
 
 msgid "Right View"
 msgstr "右视图"
+
+msgid "Start a new window"
+msgstr ""
 
 msgid "New Project"
 msgstr "新建项目"
@@ -2370,6 +2372,12 @@ msgstr "使用透视视角"
 
 msgid "Use Orthogonal View"
 msgstr "使用正交视角"
+
+msgid "Show &Labels"
+msgstr ""
+
+msgid "Show object labels in 3D scene"
+msgstr ""
 
 msgid "Preferences"
 msgstr "偏好设置"
@@ -2537,20 +2545,21 @@ msgstr "文件列表为空"
 msgid "Choose save directory"
 msgstr "选择保存目录"
 
-msgid "Waiting"
-msgstr "等待中"
+msgid "Download waiting..."
+msgstr ""
 
 msgid "Retry"
 msgstr "重试"
 
-msgid "Failed"
-msgstr "失败"
-
 msgid "Open"
 msgstr "打开"
 
-msgid "Finished"
-msgstr "完成"
+msgid "Download finished"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Downloading %d%%..."
+msgstr ""
 
 msgid "Speed:"
 msgstr "速度："
@@ -3454,6 +3463,12 @@ msgstr "为“%1%”，添加“%2%”为一个新预设"
 #, boost-format
 msgid "Simply switch to \"%1%\""
 msgstr "直接切换到“%1%”"
+
+msgid "Online"
+msgstr "在线"
+
+msgid "Offline"
+msgstr "离线"
 
 msgid "My Device"
 msgstr "我的设备"
@@ -6365,6 +6380,33 @@ msgstr "支撑：正在修补层%d的空洞"
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
 
+#~ msgid "Please Fill Task Report."
+#~ msgstr "请填写打印报告"
+
+#~ msgid "Enter a search term"
+#~ msgstr "输入搜索内容"
+
+#~ msgid "Debug"
+#~ msgstr "调试"
+
+#~ msgid "Waiting"
+#~ msgstr "等待中"
+
+#~ msgid "Failed"
+#~ msgstr "失败"
+
+#~ msgid "Finished"
+#~ msgstr "完成"
+
+#~ msgid "Home"
+#~ msgstr "首页"
+
+#~ msgid "Per object edit"
+#~ msgstr "编辑单个对象"
+
+#~ msgid "Inner wall speed"
+#~ msgstr "内墙速度"
+
 #~ msgid "Clipping of view"
 #~ msgstr "剪切视图"
 
@@ -8452,9 +8494,6 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ "Use this setting to rotate the support material pattern on the horizontal "
 #~ "plane."
 #~ msgstr "使用这个设置将支撑模式在水平面旋转特定角度。"
-
-#~ msgid "Home"
-#~ msgstr "首页"
 
 #~ msgid "Compare this preset with some another"
 #~ msgstr "配置集对比"

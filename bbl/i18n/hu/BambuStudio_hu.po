@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-01 09:20+0800\n"
+"POT-Creation-Date: 2022-09-07 09:09+0800\n"
 "PO-Revision-Date: 2022-07-27 22:05+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -838,8 +838,8 @@ msgstr "Klónozás"
 msgid "Reduce Triangles"
 msgstr "Háromszögek csökkentése"
 
-msgid "Per object edit"
-msgstr "Szerkesztés objektumonként"
+msgid "Edit in Parameter Table"
+msgstr ""
 
 msgid "Edit print parameters for a single object"
 msgstr "Nyomtatási paraméterek szerkesztése egy objektumhoz"
@@ -1048,8 +1048,8 @@ msgstr "Kitöltési sűrűség (%)"
 msgid "Auto Brim"
 msgstr "Automatikus perem"
 
-msgid "Inner wall speed"
-msgstr "Belső fal sebessége"
+msgid "Outer wall speed"
+msgstr ""
 
 msgid "Plate"
 msgstr "Tálca"
@@ -1276,9 +1276,6 @@ msgstr "Szolgáltatás nem elérhető"
 msgid "Unkown Error."
 msgstr "Ismeretlen hiba."
 
-msgid "Please Fill Task Report."
-msgstr ""
-
 msgid "Sending print configuration"
 msgstr "Nyomtatási konfiguráció küldése"
 
@@ -1474,6 +1471,17 @@ msgstr ""
 
 msgid "File"
 msgstr "Fájl"
+
+msgid "Please home all axes (click "
+msgstr ""
+
+msgid ""
+") to locate the toolhead's position. This prevents device moving beyond the "
+"printable boundary and causing equipment wear."
+msgstr ""
+
+msgid "Go Home"
+msgstr ""
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
@@ -2199,13 +2207,10 @@ msgstr ""
 msgid "Invalid input."
 msgstr ""
 
-msgid "Enter a search term"
+msgid "New Window"
 msgstr ""
 
-msgid "Online"
-msgstr ""
-
-msgid "Offline"
+msgid "Open a new window"
 msgstr ""
 
 msgid "Application is closing"
@@ -2228,9 +2233,6 @@ msgstr "Nyomtató"
 
 msgid "Project"
 msgstr "Projekt"
-
-msgid "Debug"
-msgstr "Debug"
 
 msgid "Slice"
 msgstr "Szeletelés"
@@ -2268,9 +2270,6 @@ msgstr "Frissítés keresése"
 #, c-format, boost-format
 msgid "&About %s"
 msgstr "&%s névjegye"
-
-msgid "Show Log"
-msgstr ""
 
 msgid "Open Network Test"
 msgstr ""
@@ -2315,6 +2314,9 @@ msgstr "Jobb"
 
 msgid "Right View"
 msgstr "Jobb nézet"
+
+msgid "Start a new window"
+msgstr ""
 
 msgid "New Project"
 msgstr "Új projekt"
@@ -2441,6 +2443,12 @@ msgstr "Perspektivikus nézet használata"
 
 msgid "Use Orthogonal View"
 msgstr "Ortogonális nézet használata"
+
+msgid "Show &Labels"
+msgstr ""
+
+msgid "Show object labels in 3D scene"
+msgstr ""
 
 msgid "Preferences"
 msgstr "Beállítások"
@@ -2610,19 +2618,20 @@ msgstr ""
 msgid "Choose save directory"
 msgstr ""
 
-msgid "Waiting"
+msgid "Download waiting..."
 msgstr ""
 
 msgid "Retry"
 msgstr ""
 
-msgid "Failed"
-msgstr ""
-
 msgid "Open"
 msgstr ""
 
-msgid "Finished"
+msgid "Download finished"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Downloading %d%%..."
 msgstr ""
 
 msgid "Speed:"
@@ -3540,6 +3549,12 @@ msgstr ""
 #, boost-format
 msgid "Simply switch to \"%1%\""
 msgstr "Csak válts a(z) \"%1%\"-ra"
+
+msgid "Online"
+msgstr ""
+
+msgid "Offline"
+msgstr ""
 
 msgid "My Device"
 msgstr "Saját eszköz"
@@ -6550,6 +6565,15 @@ msgstr ""
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr ""
+
+#~ msgid "Debug"
+#~ msgstr "Debug"
+
+#~ msgid "Per object edit"
+#~ msgstr "Szerkesztés objektumonként"
+
+#~ msgid "Inner wall speed"
+#~ msgstr "Belső fal sebessége"
 
 #~ msgid "Save configuration as:"
 #~ msgstr "Konfiguráció mentése mint:"

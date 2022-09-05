@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-01 09:20+0800\n"
+"POT-Creation-Date: 2022-09-07 09:09+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -810,7 +810,7 @@ msgstr ""
 msgid "Reduce Triangles"
 msgstr ""
 
-msgid "Per object edit"
+msgid "Edit in Parameter Table"
 msgstr ""
 
 msgid "Edit print parameters for a single object"
@@ -1009,7 +1009,7 @@ msgstr ""
 msgid "Auto Brim"
 msgstr ""
 
-msgid "Inner wall speed"
+msgid "Outer wall speed"
 msgstr ""
 
 msgid "Plate"
@@ -1213,9 +1213,6 @@ msgstr ""
 msgid "Unkown Error."
 msgstr ""
 
-msgid "Please Fill Task Report."
-msgstr ""
-
 msgid "Sending print configuration"
 msgstr ""
 
@@ -1381,6 +1378,17 @@ msgid ""
 msgstr ""
 
 msgid "File"
+msgstr ""
+
+msgid "Please home all axes (click "
+msgstr ""
+
+msgid ""
+") to locate the toolhead's position. This prevents device moving beyond the "
+"printable boundary and causing equipment wear."
+msgstr ""
+
+msgid "Go Home"
 msgstr ""
 
 msgid ""
@@ -2055,13 +2063,10 @@ msgstr ""
 msgid "Invalid input."
 msgstr ""
 
-msgid "Enter a search term"
+msgid "New Window"
 msgstr ""
 
-msgid "Online"
-msgstr ""
-
-msgid "Offline"
+msgid "Open a new window"
 msgstr ""
 
 msgid "Application is closing"
@@ -2083,9 +2088,6 @@ msgid "Device"
 msgstr ""
 
 msgid "Project"
-msgstr ""
-
-msgid "Debug"
 msgstr ""
 
 msgid "Slice"
@@ -2123,9 +2125,6 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "&About %s"
-msgstr ""
-
-msgid "Show Log"
 msgstr ""
 
 msgid "Open Network Test"
@@ -2170,6 +2169,9 @@ msgid "Right"
 msgstr ""
 
 msgid "Right View"
+msgstr ""
+
+msgid "Start a new window"
 msgstr ""
 
 msgid "New Project"
@@ -2296,6 +2298,12 @@ msgid "Use Perspective View"
 msgstr ""
 
 msgid "Use Orthogonal View"
+msgstr ""
+
+msgid "Show &Labels"
+msgstr ""
+
+msgid "Show object labels in 3D scene"
 msgstr ""
 
 msgid "Preferences"
@@ -2461,19 +2469,20 @@ msgstr ""
 msgid "Choose save directory"
 msgstr ""
 
-msgid "Waiting"
+msgid "Download waiting..."
 msgstr ""
 
 msgid "Retry"
 msgstr ""
 
-msgid "Failed"
-msgstr ""
-
 msgid "Open"
 msgstr ""
 
-msgid "Finished"
+msgid "Download finished"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Downloading %d%%..."
 msgstr ""
 
 msgid "Speed:"
@@ -3373,6 +3382,12 @@ msgstr ""
 
 #, possible-boost-format
 msgid "Simply switch to \"%1%\""
+msgstr ""
+
+msgid "Online"
+msgstr ""
+
+msgid "Offline"
 msgstr ""
 
 msgid "My Device"
