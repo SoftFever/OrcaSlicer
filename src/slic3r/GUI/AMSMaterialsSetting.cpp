@@ -44,6 +44,16 @@ void AMSMaterialsSetting::create()
 #endif
 
     m_sizer_filament->Add(COMBOBOX_FILAMENT, 1, wxALIGN_CENTER, 0);
+
+    m_readonly_filament = new TextInput(this, wxEmptyString, "", "", wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, wxTE_READONLY);
+    m_readonly_filament->SetBorderColor(StateColor(std::make_pair(0xDBDBDB, (int)StateColor::Focused), std::make_pair(0x00AE42, (int)StateColor::Hovered),
+        std::make_pair(0xDBDBDB, (int)StateColor::Normal)));
+    m_readonly_filament->GetTextCtrl()->Bind(wxEVT_SET_FOCUS, [](auto& e) {
+        ;
+        });
+    m_sizer_filament->Add(m_readonly_filament, 1, wxALIGN_CENTER, 0);
+    m_readonly_filament->Hide();
+
     wxBoxSizer *m_sizer_colour = new wxBoxSizer(wxHORIZONTAL);
 
     m_title_colour = new wxStaticText(this, wxID_ANY, _L("Colour"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
@@ -284,21 +294,12 @@ void AMSMaterialsSetting::update()
 
 void AMSMaterialsSetting::enable_confirm_button(bool en)
 {
-    if (m_is_third) m_button_confirm->Show(en);
-    
-    //if (!en) {
-    //    if (m_button_confirm->IsEnabled()) {
-    //        m_button_confirm->Disable();
-    //        m_button_confirm->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-    //        m_button_confirm->SetBorderColor(wxColour(0x90, 0x90, 0x90));
-    //    }
-    //} else {
-    //    if (!m_button_confirm->IsEnabled()) {
-    //        m_button_confirm->Enable();
-    //        m_button_confirm->SetBackgroundColor(m_btn_bg_green);
-    //        m_button_confirm->SetBorderColor(m_btn_bg_green);
-    //    }
-    //}
+    if (!m_is_third) return;
+    else {
+        m_button_confirm->Show(en);
+        COMBOBOX_FILAMENT->Show(en);
+        m_readonly_filament->Show(!en);
+    }
 }
 
 void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
@@ -351,7 +352,7 @@ void AMSMaterialsSetting::set_color(wxColour color)
 
 void AMSMaterialsSetting::on_clr_picker(wxCommandEvent & event) 
 {
-    if(!m_is_third)
+    if(!m_is_third || obj->is_in_printing() || obj->can_resume())
         return;
     auto clr_dialog = new wxColourDialog(this, m_clrData);
     show_flag = true;
@@ -379,26 +380,23 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         m_button_confirm->Hide();
         m_sn_number->SetLabel(sn);
         m_panel_SN->Show();
-
-#ifdef __APPLE__
-        wxArrayString filament_only;
-        filament_only.push_back(filament);
-        COMBOBOX_FILAMENT->Set(filament_only);
-#else
-        COMBOBOX_FILAMENT->Set(wxArrayString());
-#endif
-        COMBOBOX_FILAMENT->SetValue(filament);
-
+        COMBOBOX_FILAMENT->Hide();
+        m_readonly_filament->Show();
+        m_readonly_filament->GetTextCtrl()->SetLabel("Bambu " + filament);
         m_input_nozzle_min->GetTextCtrl()->SetValue(temp_min);
         m_input_nozzle_max->GetTextCtrl()->SetValue(temp_max);
 
         Layout();
         Fit();
+        update();
         ShowModal();
         return;
     }
+
     m_button_confirm->Show();
     m_panel_SN->Hide();
+    COMBOBOX_FILAMENT->Show();
+    m_readonly_filament->Hide();
     Layout();
     Fit();
 
@@ -407,66 +405,68 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     wxArrayString filament_items;
     std::set<std::string> filament_id_set;
 
-        PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-        if (preset_bundle) {
-            BOOST_LOG_TRIVIAL(trace) << "system_preset_bundle filament number=" << preset_bundle->filaments.size();
-            for (auto filament_it = preset_bundle->filaments.begin(); filament_it != preset_bundle->filaments.end(); filament_it++) {
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle) {
+        BOOST_LOG_TRIVIAL(trace) << "system_preset_bundle filament number=" << preset_bundle->filaments.size();
+        for (auto filament_it = preset_bundle->filaments.begin(); filament_it != preset_bundle->filaments.end(); filament_it++) {
+            // filter by system preset
+            if (!filament_it->is_system) continue;
+
+            for (auto printer_it = preset_bundle->printers.begin(); printer_it != preset_bundle->printers.end(); printer_it++) {
                 // filter by system preset
-                if (!filament_it->is_system) continue;
+                if (!printer_it->is_system) continue;
+                // get printer_model
+                ConfigOption* printer_model_opt = printer_it->config.option("printer_model");
+                ConfigOptionString* printer_model_str = dynamic_cast<ConfigOptionString*>(printer_model_opt);
+                if (!printer_model_str || !obj)
+                    continue;
 
-                for (auto printer_it = preset_bundle->printers.begin(); printer_it != preset_bundle->printers.end(); printer_it++) {
-                    // filter by system preset
-                    if (!printer_it->is_system) continue;
-                    // get printer_model
-                    ConfigOption* printer_model_opt = printer_it->config.option("printer_model");
-                    ConfigOptionString* printer_model_str = dynamic_cast<ConfigOptionString*>(printer_model_opt);
-                    if (!printer_model_str || !obj)
-                        continue;
+                // use printer_model as printer type
+                if (printer_model_str->value != MachineObject::get_preset_printer_model_name(obj->printer_type))
+                    continue;
+                ConfigOption* printer_opt = filament_it->config.option("compatible_printers");
+                ConfigOptionStrings* printer_strs = dynamic_cast<ConfigOptionStrings*>(printer_opt);
+                for (auto printer_str : printer_strs->values) {
+                    if (printer_it->name == printer_str) {
+                        if (filament_id_set.find(filament_it->filament_id) != filament_id_set.end()) {
+                            continue;
+                        }
+                        else {
+                            filament_id_set.insert(filament_it->filament_id);
+                            // name matched
+                            filament_items.push_back(filament_it->alias);
+                            if (filament_it->filament_id == ams_filament_id) {
+                                selection_idx = idx;
 
-                    // use printer_model as printer type
-                    if (printer_model_str->value != MachineObject::get_preset_printer_model_name(obj->printer_type))
-                        continue;
-                    ConfigOption* printer_opt = filament_it->config.option("compatible_printers");
-                    ConfigOptionStrings* printer_strs = dynamic_cast<ConfigOptionStrings*>(printer_opt);
-                    for (auto printer_str : printer_strs->values) {
-                        if (printer_it->name == printer_str) {
-                            if (filament_id_set.find(filament_it->filament_id) != filament_id_set.end()) {
-                                continue;
-                            } else {
-                                filament_id_set.insert(filament_it->filament_id);
-                                // name matched
-                                filament_items.push_back(filament_it->alias);
-                                if (filament_it->filament_id == ams_filament_id) {
-                                    selection_idx = idx;
-
-                                    // update if nozzle_temperature_range is found
-                                    ConfigOption* opt_min = filament_it->config.option("nozzle_temperature_range_low");
-                                    if(opt_min) {
-                                        ConfigOptionInts* opt_min_ints = dynamic_cast<ConfigOptionInts*>(opt_min);
-                                        if (opt_min_ints) {
-                                            wxString text_nozzle_temp_min = wxString::Format("%d", opt_min_ints->get_at(0));
-                                            m_input_nozzle_min->GetTextCtrl()->SetValue(text_nozzle_temp_min);
-                                        }
-                                    }
-                                    ConfigOption* opt_max = filament_it->config.option("nozzle_temperature_range_high");
-                                    if (opt_max) {
-                                        ConfigOptionInts* opt_max_ints = dynamic_cast<ConfigOptionInts*>(opt_max);
-                                        if (opt_max_ints) {
-                                            wxString text_nozzle_temp_max = wxString::Format("%d", opt_max_ints->get_at(0));
-                                            m_input_nozzle_max->GetTextCtrl()->SetValue(text_nozzle_temp_max);
-                                        }
+                                // update if nozzle_temperature_range is found
+                                ConfigOption* opt_min = filament_it->config.option("nozzle_temperature_range_low");
+                                if (opt_min) {
+                                    ConfigOptionInts* opt_min_ints = dynamic_cast<ConfigOptionInts*>(opt_min);
+                                    if (opt_min_ints) {
+                                        wxString text_nozzle_temp_min = wxString::Format("%d", opt_min_ints->get_at(0));
+                                        m_input_nozzle_min->GetTextCtrl()->SetValue(text_nozzle_temp_min);
                                     }
                                 }
-                                idx++;
+                                ConfigOption* opt_max = filament_it->config.option("nozzle_temperature_range_high");
+                                if (opt_max) {
+                                    ConfigOptionInts* opt_max_ints = dynamic_cast<ConfigOptionInts*>(opt_max);
+                                    if (opt_max_ints) {
+                                        wxString text_nozzle_temp_max = wxString::Format("%d", opt_max_ints->get_at(0));
+                                        m_input_nozzle_max->GetTextCtrl()->SetValue(text_nozzle_temp_max);
+                                    }
+                                }
                             }
+                            idx++;
                         }
                     }
                 }
             }
+        }
         COMBOBOX_FILAMENT->Set(filament_items);
         COMBOBOX_FILAMENT->SetSelection(selection_idx);
         post_select_event();
     }
+
     update();
     ShowModal();
 }
