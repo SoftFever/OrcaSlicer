@@ -1847,40 +1847,40 @@ void TabPrint::build()
     page = add_options_page(L("Support"), "support");
         optgroup = page->new_optgroup(L("Support"));
     optgroup->append_single_option_line("enable_support", "support");
-        optgroup->append_single_option_line("support_type", "support");
-        optgroup->append_single_option_line("support_threshold_angle", "support");
+        optgroup->append_single_option_line("support_type", "support#support-types");
+        optgroup->append_single_option_line("support_threshold_angle", "support#threshold-angle");
         optgroup->append_single_option_line("support_on_build_plate_only");
         //optgroup->append_single_option_line("enforce_support_layers");
 
         optgroup = page->new_optgroup(L("Support filament"));
-        optgroup->append_single_option_line("support_filament", "support");
-        optgroup->append_single_option_line("support_interface_filament", "support");
+        optgroup->append_single_option_line("support_filament", "support#support-filament");
+        optgroup->append_single_option_line("support_interface_filament", "support#support-filament");
 
         //optgroup = page->new_optgroup(L("Options for support material and raft"));
         //optgroup->append_single_option_line("support_style");
 
         //BBS
         optgroup = page->new_optgroup(L("Advanced"));
-        optgroup->append_single_option_line("tree_support_branch_distance", "support");
-        optgroup->append_single_option_line("tree_support_branch_diameter", "support");
-        optgroup->append_single_option_line("tree_support_branch_angle", "support");
+        optgroup->append_single_option_line("tree_support_branch_distance", "support#tree-support-only-options");
+        optgroup->append_single_option_line("tree_support_branch_diameter", "support#tree-support-only-options");
+        optgroup->append_single_option_line("tree_support_branch_angle", "support#tree-support-only-options");
         optgroup->append_single_option_line("tree_support_wall_count");
         optgroup->append_single_option_line("tree_support_with_infill");
-        optgroup->append_single_option_line("support_top_z_distance", "support");
-        optgroup->append_single_option_line("support_base_pattern", "support");
-        optgroup->append_single_option_line("support_base_pattern_spacing", "support");
+        optgroup->append_single_option_line("support_top_z_distance", "support#top-z-distance");
+        optgroup->append_single_option_line("support_base_pattern", "support#base-pattern");
+        optgroup->append_single_option_line("support_base_pattern_spacing", "support#base-pattern");
         //optgroup->append_single_option_line("support_angle");
-        optgroup->append_single_option_line("support_interface_top_layers", "support");
-        optgroup->append_single_option_line("support_interface_bottom_layers", "support");
-        optgroup->append_single_option_line("support_interface_pattern", "support");
-        optgroup->append_single_option_line("support_interface_spacing", "support");
+        optgroup->append_single_option_line("support_interface_top_layers", "support#base-pattern");
+        optgroup->append_single_option_line("support_interface_bottom_layers", "support#base-pattern");
+        optgroup->append_single_option_line("support_interface_pattern", "support#base-pattern");
+        optgroup->append_single_option_line("support_interface_spacing", "support#base-pattern");
         optgroup->append_single_option_line("support_bottom_interface_spacing");
         //optgroup->append_single_option_line("support_interface_loop_pattern");
 
-        optgroup->append_single_option_line("support_object_xy_distance", "support");
-        optgroup->append_single_option_line("bridge_no_support", "support");
-        optgroup->append_single_option_line("max_bridge_length", "support");
-        optgroup->append_single_option_line("thick_bridges", "support");
+        optgroup->append_single_option_line("support_object_xy_distance", "support#supportobject-xy-distance");
+        optgroup->append_single_option_line("bridge_no_support", "support#base-pattern");
+        optgroup->append_single_option_line("max_bridge_length", "support#base-pattern");
+        optgroup->append_single_option_line("thick_bridges", "support#base-pattern");
         //optgroup->append_single_option_line("independent_support_layer_height");
 
     page = add_options_page(L("Others"), "advanced");
@@ -1889,8 +1889,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("skirt_distance");
         //optgroup->append_single_option_line("draft_shield");
         optgroup->append_single_option_line("brim_type", "auto-brim");
-        optgroup->append_single_option_line("brim_width", "auto-brim");
-        optgroup->append_single_option_line("brim_object_gap", "auto-brim");
+        optgroup->append_single_option_line("brim_width", "auto-brim#manual");
+        optgroup->append_single_option_line("brim_object_gap", "auto-brim#brim-object-gap");
         optgroup->append_single_option_line("raft_layers");
         //optgroup->append_single_option_line("raft_first_layer_density");
         //optgroup->append_single_option_line("raft_first_layer_expansion");
@@ -1902,9 +1902,9 @@ void TabPrint::build()
         optgroup->append_single_option_line("prime_tower_brim_width");
 
         optgroup = page->new_optgroup(L("Flush options"));
-        optgroup->append_single_option_line("flush_into_infill", "reduce-wasting-during-filament-change");
-        optgroup->append_single_option_line("flush_into_objects", "reduce-wasting-during-filament-change");
-        optgroup->append_single_option_line("flush_into_support", "reduce-wasting-during-filament-change");
+        optgroup->append_single_option_line("flush_into_infill", "reduce-wasting-during-filament-change#wipe-into-infill");
+        optgroup->append_single_option_line("flush_into_objects", "reduce-wasting-during-filament-change#wipe-into-object");
+        optgroup->append_single_option_line("flush_into_support", "reduce-wasting-during-filament-change#wipe-into-support-enabled-by-default");
 
         optgroup = page->new_optgroup(L("Special mode"));
         optgroup->append_single_option_line("print_sequence");
