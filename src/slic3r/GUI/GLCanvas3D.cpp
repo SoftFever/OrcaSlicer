@@ -5855,14 +5855,14 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     {
 
 #if ENABLE_RETINA_GL
-        IMSlider *m_layers_slider = get_gcode_viewer().get_layers_slider();
-        IMSlider *m_moves_slider  = get_gcode_viewer().get_moves_slider();
+        IMSlider* m_layers_slider = get_gcode_viewer().get_layers_slider();
+        IMSlider* m_moves_slider = get_gcode_viewer().get_moves_slider();
         const float sc = m_retina_helper->get_scale_factor();
         m_layers_slider->set_scale(sc);
         m_moves_slider->set_scale(sc);
         m_gcode_viewer.set_scale(sc);
 
-        auto *m_notification = wxGetApp().plater()->get_notification_manager();
+        auto* m_notification = wxGetApp().plater()->get_notification_manager();
         m_notification->set_scale(sc);
 
 #endif
@@ -5887,7 +5887,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     collapse_toolbar.set_scale(sc);
     size *= m_retina_helper->get_scale_factor();
 
-    auto *m_notification = wxGetApp().plater()->get_notification_manager();
+    auto* m_notification = wxGetApp().plater()->get_notification_manager();
     m_notification->set_scale(sc);
 #else
     //BBS: GUI refactor: GLToolbar
@@ -5902,11 +5902,19 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : GLToolbar::Default_Icons_Size;
 
     float top_tb_width = m_main_toolbar.get_width() + m_gizmos.get_scaled_total_width() + m_assemble_view_toolbar.get_width() + m_separator_toolbar.get_width() + collapse_toolbar_width;
-    int   items_cnt = m_main_toolbar.get_visible_items_cnt() + m_gizmos.get_selectable_icons_cnt() + m_assemble_view_toolbar.get_visible_items_cnt() +  m_separator_toolbar.get_visible_items_cnt() + collapse_toolbar.get_visible_items_cnt();
+    int   items_cnt = m_main_toolbar.get_visible_items_cnt() + m_gizmos.get_selectable_icons_cnt() + m_assemble_view_toolbar.get_visible_items_cnt() + m_separator_toolbar.get_visible_items_cnt() + collapse_toolbar.get_visible_items_cnt();
     float noitems_width = top_tb_width - size * items_cnt; // width of separators and borders in top toolbars
 
     // calculate scale needed for items in all top toolbars
+#ifdef __WINDOWS__
+    cnv_size.set_width(cnv_size.get_width() + m_separator_toolbar.get_width() + collapse_toolbar_width);
+#endif
     float new_h_scale = (cnv_size.get_width() - noitems_width) / (items_cnt * GLToolbar::Default_Icons_Size);
+
+    //for protect
+    if (new_h_scale <= 0) {
+        new_h_scale = 1;
+    }
 
     //use the same value as horizon
     float new_v_scale = new_h_scale;
