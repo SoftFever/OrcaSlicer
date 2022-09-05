@@ -476,7 +476,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("%");
     def->min = 0;
     def->max = 100;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInts { 100 });
 
     def = this->add("overhang_fan_threshold", coEnums);
@@ -485,7 +485,7 @@ void PrintConfigDef::init_fff_params()
                      "Expressed as percentage which indicides how much width of the line without support from lower layer");
     def->sidetext = L("");
     def->enum_keys_map = &s_keys_map_OverhangFanThreshold;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->enum_values.emplace_back("5%");
     def->enum_values.emplace_back("25%");
     def->enum_values.emplace_back("50%");
