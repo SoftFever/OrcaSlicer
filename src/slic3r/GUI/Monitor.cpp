@@ -518,6 +518,9 @@ void MonitorPanel::show_status(int status)
         m_connection_info->Show();
         m_connection_info->SetBackgroundColor(wxColour(255, 111, 0));
         m_connection_info->SetBorderColor(wxColour(255, 111, 0));
+#if !BBL_RELEASE_TO_PUBLIC
+        m_upgrade_panel->update(nullptr);
+#endif
     } else if ((status & (int) MonitorStatus::MONITOR_NORMAL) != 0) {
         m_connection_info->Hide();
     } else if ((status & (int) MonitorStatus::MONITOR_CONNECTING) != 0) {
@@ -535,6 +538,9 @@ void MonitorPanel::show_status(int status)
         m_status_info_panel->show_status(status);
         m_tabpanel->Refresh();
         m_tabpanel->Layout();
+#if !BBL_RELEASE_TO_PUBLIC
+        m_upgrade_panel->update(nullptr);
+#endif
     } else if (((status & (int)MonitorStatus::MONITOR_NORMAL) != 0)
         || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0)
         || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
