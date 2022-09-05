@@ -1950,6 +1950,15 @@ void StatusPanel::reset_printing_values()
 void StatusPanel::on_axis_ctrl_xy(wxCommandEvent &event)
 {
     if (!obj) return;
+    if (event.GetInt() == 0) { obj->command_axis_control("Y", 1.0, 10.0f, 3000); }
+    if (event.GetInt() == 1) { obj->command_axis_control("X", 1.0, -10.0f, 3000); }
+    if (event.GetInt() == 2) { obj->command_axis_control("Y", 1.0, -10.0f, 3000); }
+    if (event.GetInt() == 3) { obj->command_axis_control("X", 1.0, 10.0f, 3000); }
+    if (event.GetInt() == 4) { obj->command_axis_control("Y", 1.0, 1.0f, 3000); }
+    if (event.GetInt() == 5) { obj->command_axis_control("X", 1.0, -1.0f, 3000); }
+    if (event.GetInt() == 6) { obj->command_axis_control("Y", 1.0, -1.0f, 3000); }
+    if (event.GetInt() == 7) { obj->command_axis_control("X", 1.0, 1.0f, 3000); }
+    if (event.GetInt() == 8) { obj->command_go_home(); }
 
     //check is at home
     if (event.GetInt() == 1
@@ -1961,25 +1970,17 @@ void StatusPanel::on_axis_ctrl_xy(wxCommandEvent &event)
             show_recenter_dialog();
             return;
         }
-    } else if (event.GetInt() == 0
-               || event.GetInt() == 2
-               || event.GetInt() == 4
-               || event.GetInt() == 6) {
+    }
+    else if (event.GetInt() == 0
+        || event.GetInt() == 2
+        || event.GetInt() == 4
+        || event.GetInt() == 6) {
         if (!obj->is_axis_at_home("Y")) {
             BOOST_LOG_TRIVIAL(info) << "axis y is not at home";
             show_recenter_dialog();
             return;
         }
     }
-    if (event.GetInt() == 0) { obj->command_axis_control("Y", 1.0, 10.0f, 3000); }
-    if (event.GetInt() == 1) { obj->command_axis_control("X", 1.0, -10.0f, 3000); }
-    if (event.GetInt() == 2) { obj->command_axis_control("Y", 1.0, -10.0f, 3000); }
-    if (event.GetInt() == 3) { obj->command_axis_control("X", 1.0, 10.0f, 3000); }
-    if (event.GetInt() == 4) { obj->command_axis_control("Y", 1.0, 1.0f, 3000); }
-    if (event.GetInt() == 5) { obj->command_axis_control("X", 1.0, -1.0f, 3000); }
-    if (event.GetInt() == 6) { obj->command_axis_control("Y", 1.0, -1.0f, 3000); }
-    if (event.GetInt() == 7) { obj->command_axis_control("X", 1.0, 1.0f, 3000); }
-    if (event.GetInt() == 8) { obj->command_go_home(); }
 }
 
 bool StatusPanel::check_axis_z_at_home(MachineObject* obj)
@@ -1998,36 +1999,36 @@ bool StatusPanel::check_axis_z_at_home(MachineObject* obj)
 void StatusPanel::on_axis_ctrl_z_up_10(wxCommandEvent &event)
 {
     if (obj) {
+        obj->command_axis_control("Z", 1.0, -10.0f, 900);
         if (!check_axis_z_at_home(obj))
             return;
-        obj->command_axis_control("Z", 1.0, -10.0f, 900);
     }
 }
 
 void StatusPanel::on_axis_ctrl_z_up_1(wxCommandEvent &event)
 {
     if (obj) {
+        obj->command_axis_control("Z", 1.0, -1.0f, 900);
         if (!check_axis_z_at_home(obj))
             return;
-        obj->command_axis_control("Z", 1.0, -1.0f, 900);
     }
 }
 
 void StatusPanel::on_axis_ctrl_z_down_1(wxCommandEvent &event)
 {
     if (obj) {
+        obj->command_axis_control("Z", 1.0, 1.0f, 900);
         if (!check_axis_z_at_home(obj))
             return;
-        obj->command_axis_control("Z", 1.0, 1.0f, 900);
     }
 }
 
 void StatusPanel::on_axis_ctrl_z_down_10(wxCommandEvent &event)
 {
     if (obj) {
+        obj->command_axis_control("Z", 1.0, 10.0f, 900);
         if (!check_axis_z_at_home(obj))
             return;
-        obj->command_axis_control("Z", 1.0, 10.0f, 900);
     }
 }
 

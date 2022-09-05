@@ -1103,7 +1103,7 @@ wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *par
     checkbox->SetToolTip(tooltip);
     text->SetToolTip(tooltip);
 
-    text->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) {
+    text->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent & event) {
             ams_check->SetValue(ams_check->GetValue() ? false : true);
         });
     return checkbox;
@@ -1200,6 +1200,16 @@ void SelectMachineDialog::finish_mode()
 
 void SelectMachineDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &result)
 {
+    if (result.empty()) {
+        BOOST_LOG_TRIVIAL(trace) << "ams_mapping result is empty";
+        for (auto it = m_materialList.begin(); it != m_materialList.end(); it++) {
+            wxString ams_id = "-";
+            wxColour ams_col = wxColour(0xCE, 0xCE, 0xCE);
+            it->second->item->set_ams_info(ams_col, ams_id);
+        }
+        return;
+    }
+
     for (auto f = result.begin(); f != result.end(); f++) {
         BOOST_LOG_TRIVIAL(trace) << "ams_mapping f id = " << f->id << ", tray_id = " << f->tray_id << ", color = " << f->color << ", type = " << f->type;
 
@@ -1470,7 +1480,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusDisableAms) {
         update_print_status_msg(wxEmptyString, false, false);
-        Enable_Send_Button(false);
+        Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNeedUpgradingAms) {
         wxString msg_text;
@@ -2008,6 +2018,7 @@ void SelectMachineDialog::update_show_status()
     if (obj_->ams_support_use_ams) {
         if (!ams_check->GetValue()) {
             m_ams_mapping_result.clear();
+            sync_ams_mapping_result(m_ams_mapping_result);
             show_status(PrintDialogStatus::PrintStatusDisableAms);
             return;
         }
@@ -2259,7 +2270,7 @@ void SelectMachineDialog::set_default()
                 pos.y += item->GetRect().height;
                 m_mapping_popup.Position(pos, wxSize(0, 0));
 
-                if (obj_ && obj_->has_ams()) {
+                if (obj_ && obj_->has_ams() && ams_check->GetValue()) {
                     m_mapping_popup.set_current_filament_id(extruder);
                     m_mapping_popup.set_tag_texture(materials[extruder]);
                     m_mapping_popup.update_ams_data(obj_->amsList);
