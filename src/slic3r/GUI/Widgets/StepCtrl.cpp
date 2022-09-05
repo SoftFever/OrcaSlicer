@@ -58,6 +58,10 @@ bool StepCtrlBase::SetTipFont(wxFont const& font)
     return true;
 }
 
+void StepCtrlBase::SetHint(wxString hint) {
+    this->hint = hint;
+}
+
 int StepCtrlBase::AppendItem(const wxString &item, wxString const & tip)
 {
     steps.push_back(item);
@@ -181,6 +185,12 @@ void StepCtrl::doRender(wxDC &dc)
     int circleY = size.y / 2;
     dc.SetPen(wxPen(clr_step.colorForStates(states)));
     dc.SetBrush(wxBrush(clr_step.colorForStates(states)));
+    if (!hint.empty()) {
+        dc.SetFont(font_tip);
+        dc.SetTextForeground(clr_tip.colorForStates(states));
+        wxSize sz = dc.GetTextExtent(hint);
+        dc.DrawText(hint, dc.GetCharWidth(), circleY - FromDIP(20) - sz.y);
+    }
     for (int i = 0; i < steps.size(); ++i) {
         bool check = (pos_thumb == wxPoint{0, 0} ? step : pos_thumb.y) == i;
         dc.DrawEllipse(circleX - radius, circleY - radius, radius * 2, radius * 2);

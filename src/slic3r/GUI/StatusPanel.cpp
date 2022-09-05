@@ -1546,8 +1546,8 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
     else {
         // update speed
         this->speed_lvl = obj->printing_speed_lvl;
-        wxString text_speed = wxString::Format("%d%%", obj->printing_speed_mag);
-        m_switch_speed->SetLabels(text_speed, text_speed);
+            wxString text_speed = wxString::Format("%d%%", obj->printing_speed_mag);
+            m_switch_speed->SetLabels(text_speed, text_speed);
     }
 }
 
@@ -2290,7 +2290,7 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
     popUp->SetSizer(sizer);
     auto em = em_unit(this);
     popUp->SetSize(em * 36, em * 8);
-
+    step->SetHint(_L("This only takes effect during printing"));
     step->AppendItem(_L("Silent"), "");
     step->AppendItem(_L("Standard"), "");
     step->AppendItem(_L("Sport"), "");
@@ -2306,6 +2306,11 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
     }
     step->SelectItem(selected_item);
     
+    if (!obj->is_in_printing()) {
+        step->Bind(wxEVT_LEFT_DOWN, [](auto& e) {
+            return; });
+    }
+
     step->Bind(EVT_STEP_CHANGED, [this](auto &e) {
         this->speed_lvl        = e.GetInt() + 1;
         if (obj) {
