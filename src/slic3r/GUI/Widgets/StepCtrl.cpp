@@ -144,7 +144,13 @@ void StepCtrl::mouseMove(wxMouseEvent &event)
     wxPoint pt;
     event.GetPosition(&pt.x, &pt.y);
     pos_thumb.x = pt.x + drag_offset.x;
-    Refresh();
+    wxSize size      = GetSize();
+    int    itemWidth = size.x / steps.size();
+    int    index     = pos_thumb.x / itemWidth;
+    if (index != pos_thumb.y) {
+        pos_thumb.y = index;
+        Refresh();
+    }
 }
 
 void StepCtrl::mouseUp(wxMouseEvent &event)
@@ -160,7 +166,6 @@ void StepCtrl::mouseUp(wxMouseEvent &event)
 void StepCtrl::doRender(wxDC &dc)
 {
     if (steps.empty()) return;
-
     StaticBox::doRender(dc);
 
     wxSize size   = GetSize();
@@ -177,7 +182,7 @@ void StepCtrl::doRender(wxDC &dc)
     dc.SetPen(wxPen(clr_step.colorForStates(states)));
     dc.SetBrush(wxBrush(clr_step.colorForStates(states)));
     for (int i = 0; i < steps.size(); ++i) {
-        bool check = pos_thumb == wxPoint{0, 0} ? step == i : (pos_thumb.x >= circleX - itemWidth / 2 && pos_thumb.x < circleX + itemWidth / 2);
+        bool check = (pos_thumb == wxPoint{0, 0} ? step : pos_thumb.y) == i;
         dc.DrawEllipse(circleX - radius, circleY - radius, radius * 2, radius * 2);
         dc.SetFont(GetFont());
         dc.SetTextForeground(clr_text.colorForStates(states | (check ? StateColor::Checked : 0)));
