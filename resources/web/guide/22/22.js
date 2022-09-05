@@ -62,7 +62,7 @@ function SortUI()
 		let OneMode=m_ProfileItem["model"][n];
 		
 		if( OneMode["nozzle_selected"]!="" )
-			ModelList.push(OneMode);
+			ModelList.push(OneMode["model"]);
 	}
 	
 	//machine
@@ -89,14 +89,14 @@ function SortUI()
 //		$('#MachineList').hide();
 //	}
 	
-	//model
+	//machine
 	let HtmlMode='';
 	nMode=ModelList.length;
 	for(let n=0;n<nMode;n++)
 	{
 		let sModel=ModelList[n];	
 
-		HtmlMode+='<div><input type="checkbox" mode="'+sModel['model']+'"  nozzle="'+sModel['nozzle_selected']+'"   onChange="MachineClick()" />'+sModel['model']+'</div>';
+		HtmlMode+='<div><input type="checkbox" mode="'+sModel+'" onChange="MachineClick()" />'+sModel+'</div>';
 	}
 	
 	$('#MachineList .CValues').append(HtmlMode);	
@@ -122,16 +122,14 @@ function SortUI()
 		let fSelect=OneFila['selected'];
 		let fModel=OneFila['models']
 		
-//		if(OneFila['name'].indexOf("Bambu PA-CF")>=0)
+//		if(OneFila['name'].indexOf("K5 PLA Wood")>0)
 //		{
-//			alert( fShortName+' - '+fVendor+' - '+fType+' - '+fSelect+' - '+fModel )
-//			
 //			let b=1+2;
 //		}
 		
         let bFind=false;		
-		//let bCheck=$("#MachineList input:first").prop("checked");
-		if( fModel=='')
+		let bCheck=$("#MachineList input:first").prop("checked");
+		if(bCheck)
 		{
 			bFind=true;
 		}
@@ -143,20 +141,11 @@ function SortUI()
 		    {
 	    		let sOne=ModelList[m];
 			
-				let OneName=sOne['model'];
-				let NozzleArray=sOne["nozzle_selected"].split(';');
-				
-				let nNozzle=NozzleArray.length;
-				
-				for( let b=0;b<nNozzle;b++ )
-				{
-					let nowModel= OneName+"++"+NozzleArray[b];
-					if(fModel.indexOf(nowModel)>=0)
-					{
-						bFind=true;
-						break;
-					}
-				}
+		    	if(fModel.indexOf(sOne)>=0)
+		    	{
+		    		bFind=true;
+				    break;
+			    }			
 			}
 		}
 		
@@ -346,24 +335,7 @@ function SortFilament()
 	for(let n=0;n<nModel;n++)
 	{
 		let OneModel=pModel[n];
-		
-		let mName=OneModel.getAttribute("mode");
-		if( mName=='all' )
-		{
-			continue;
-		}
-		else
-		{
-			let mNozzle=OneModel.getAttribute("nozzle");
-			let NozzleArray=mNozzle.split(';');
-			
-			for( let bb=0;bb<NozzleArray.length;bb++ )
-			{
-				let NewModel='['+mName+'++'+NozzleArray[bb]+']';
-			
-				ModelList.push( NewModel );
-			}
-		}
+		ModelList.push(  OneModel.getAttribute("mode") );
 	}
 	
 	//TypeList
@@ -401,11 +373,11 @@ function SortFilament()
 		if(TypeList.in_array(fType) && VendorList.in_array(fVendor))
 		{
 			let HasModel=false;
-			for(let m=0;m<ModelList.length;m++)
+			for(let m=0;m<nModel;m++)
 			{
 				let ModelSrc=ModelList[m];
 				
-				if( fModel.indexOf(ModelSrc)>=0)
+				if( ModelSrc=="all" || fModel.indexOf(ModelSrc)>=0)
 				{
 					HasModel=true;
 					break;
