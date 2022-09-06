@@ -1332,6 +1332,10 @@ int MachineObject::command_ams_user_settings(int ams_id, bool start_read_opt, bo
     j["print"]["startup_read_option"] = start_read_opt;
     j["print"]["tray_read_option"]    = tray_read_opt;
 
+    ams_insert_flag = tray_read_opt;
+    ams_power_on_flag = start_read_opt;
+    ams_user_setting_hold_count = HOLD_COUNT_MAX;
+
     return this->publish_json(j.dump());
 }
 
@@ -2282,16 +2286,21 @@ int MachineObject::parse_json(std::string payload)
                             if (jj["ams"].contains("tray_tar")) {
                                 m_tray_tar = jj["ams"]["tray_tar"].get<std::string>();
                             }
-                            if (jj["ams"].contains("insert_flag")) {
-                                ams_insert_flag = jj["ams"]["insert_flag"].get<bool>();
-                            }
                             if (jj["ams"].contains("ams_rfid_status"))
                                 ams_rfid_status = jj["ams"]["ams_rfid_status"].get<int>();
 
-                            if (jj["ams"].contains("power_on_flag")) {
-                                ams_power_on_flag = jj["ams"]["power_on_flag"].get<bool>();
+                            if (jj["ams"].contains("insert_flag") || jj["ams"].contains("power_on_flag")) {
+                                if (ams_user_setting_hold_count > 0) {
+                                    ams_user_setting_hold_count--;
+                                } else {
+                                    if (jj["ams"].contains("insert_flag")) {
+                                        ams_insert_flag = jj["ams"]["insert_flag"].get<bool>();
+                                    }
+                                    if (jj["ams"].contains("power_on_flag")) {
+                                        ams_power_on_flag = jj["ams"]["power_on_flag"].get<bool>();
+                                    }
+                                }
                             }
-
                             if (ams_exist_bits != last_ams_exist_bits
                                 || last_tray_exist_bits != last_tray_exist_bits
                                 || tray_is_bbl_bits != last_is_bbl_bits

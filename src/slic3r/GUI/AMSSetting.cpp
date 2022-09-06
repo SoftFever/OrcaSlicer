@@ -253,6 +253,8 @@ void AMSSetting::on_insert_material_read(wxCommandEvent &event)
     m_sizer_Insert_material_tip_inline->Layout();
     Layout();
     Fit();
+
+    event.Skip();
 }
 
 void AMSSetting::on_starting_read(wxCommandEvent &event)
@@ -276,6 +278,8 @@ void AMSSetting::on_starting_read(wxCommandEvent &event)
     m_sizer_starting_tip_inline->Layout();
     Layout();
     Fit();
+
+    event.Skip();
 }
 
 wxString AMSSetting::append_title(wxString text)

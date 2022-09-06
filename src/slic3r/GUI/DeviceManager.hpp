@@ -364,6 +364,7 @@ public:
     bool  ams_insert_flag { false };
     bool  ams_power_on_flag { false };
     bool  ams_support_use_ams { false };
+    int   ams_user_setting_hold_count = 0;
     AmsStatusMain ams_status_main;
     int   ams_status_sub;
     int   ams_version = 0;
