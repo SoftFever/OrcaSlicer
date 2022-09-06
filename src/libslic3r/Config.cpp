@@ -534,8 +534,10 @@ bool ConfigBase::set_deserialize_nothrow(const t_config_option_key &opt_key_src,
     this->handle_legacy(opt_key, value);
     if (opt_key.empty()) {
         // Ignore the option.
-        //BBS: record these options
-        substitutions_ctxt.unrecogized_keys.push_back(opt_key_src);
+        //BBS: record these options, keep only one repeated opt_key 
+        auto iter = std::find(substitutions_ctxt.unrecogized_keys.begin(), substitutions_ctxt.unrecogized_keys.end(), opt_key_src);
+        if (iter == substitutions_ctxt.unrecogized_keys.end())
+            substitutions_ctxt.unrecogized_keys.push_back(opt_key_src);
         return true;
     }
     return this->set_deserialize_raw(opt_key, value, substitutions_ctxt, append);
