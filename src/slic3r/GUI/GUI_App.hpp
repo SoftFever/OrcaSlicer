@@ -140,6 +140,7 @@ public:
             ver_items[i] = 0;
         }
         force_upgrade = false;
+        version_str = "";
     }
 
     void parse_version_str(std::string str) {
@@ -384,10 +385,11 @@ public:
     bool            m_studio_active = true;
     std::chrono::system_clock::time_point  last_active_point;
 
-    void            check_update(bool show_tips);
-    void            check_new_version(bool show_tips = false);
-    void            request_new_version();
+    void            check_update(bool show_tips, int by_user);
+    void            check_new_version(bool show_tips = false, int by_user = 0);
+    void            request_new_version(int by_user);
     void            enter_force_upgrade();
+    void            set_skip_version(bool skip = true);
     void            no_new_version();
     void            show_dialog(wxString msg);
     void            reload_settings();

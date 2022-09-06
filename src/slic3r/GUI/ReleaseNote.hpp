@@ -57,11 +57,15 @@ public:
 
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void update_version_info(wxString release_note, wxString version);
+    void alter_choice(wxCommandEvent& event);
 
     wxStaticText *    m_text_up_info{nullptr};
     wxScrolledWindow *m_scrollwindw_release_note{nullptr};
     wxBoxSizer *      sizer_text_release_note{nullptr};
     wxStaticText *    m_staticText_release_note{nullptr};
+    wxCheckBox*       m_remind_choice;
+    Button*           m_button_ok;
+    Button*           m_button_cancel;
 };
 
 }} // namespace Slic3r::GUI
