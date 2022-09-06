@@ -1405,6 +1405,14 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_bpButton_z_down_10->Enable(false);
         m_bpButton_e_10->Enable(false);
         m_bpButton_e_down_10->Enable(false);
+
+		m_bpButton_z_10->SetIcon("monitor_bed_up_disable");
+		m_bpButton_z_1->SetIcon("monitor_bed_up_disable");
+		m_bpButton_z_down_1->SetIcon("monitor_bed_down_disable");
+		m_bpButton_z_down_10->SetIcon("monitor_bed_down_disable");
+        m_bpButton_e_10->SetIcon("monitor_extruder_up_disable");
+        m_bpButton_e_down_10->SetIcon("monitor_extrduer_down_disable");
+
         m_staticText_z_tip->SetForegroundColour(DISCONNECT_TEXT_COL);
         m_staticText_e->SetForegroundColour(DISCONNECT_TEXT_COL);
         m_button_unload->Enable(false);
@@ -1422,6 +1430,14 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_bpButton_z_down_10->Enable();
         m_bpButton_e_10->Enable();
         m_bpButton_e_down_10->Enable();
+
+		m_bpButton_z_10->SetIcon("monitor_bed_up");
+		m_bpButton_z_1->SetIcon("monitor_bed_up");
+		m_bpButton_z_down_1->SetIcon("monitor_bed_down");
+		m_bpButton_z_down_10->SetIcon("monitor_bed_down");
+		m_bpButton_e_10->SetIcon("monitor_extruder_up");
+		m_bpButton_e_down_10->SetIcon("monitor_extrduer_down");
+
         m_staticText_z_tip->SetForegroundColour(TEXT_LIGHT_FONT_COL);
         m_staticText_e->SetForegroundColour(TEXT_LIGHT_FONT_COL);
         m_button_unload->Enable();
