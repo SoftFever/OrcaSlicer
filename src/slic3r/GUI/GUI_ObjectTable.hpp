@@ -242,6 +242,7 @@ public:
     }*/
 
     bool OnCellLeftClick(wxGridEvent& event, int row, int col, ConfigOptionType type);
+    void OnRangeSelected(wxGridRangeSelectEvent& ev);
     void OnColHeadLeftClick(wxGridEvent& event);
 
     virtual void DrawColLabels( wxDC& dc, const wxArrayInt& cols );
@@ -252,8 +253,7 @@ public:
     friend class     ObjectTablePanel;
 
     wxString  input_string;
-    wxString  m_cell_data;
-
+	wxString  m_cell_data;
 protected:
     //void OnSize( wxSizeEvent& );
     void OnKeyDown( wxKeyEvent& );
@@ -522,8 +522,9 @@ public:
 
     int m_icon_col_width{ 0 };
     int m_icon_row_height{ 0 };
+    ObjectTablePanel* m_panel{ nullptr };
+
 private:
-    ObjectTablePanel* m_panel{nullptr};
     std::vector<ObjectGridRow*> m_grid_data;
     std::vector<ObjectGridCol*> m_col_data;
     bool m_data_valid{false};
@@ -547,6 +548,12 @@ private:
 //the main panel
 class ObjectTablePanel : public wxPanel
 {
+public:
+	int range_select_left_col;
+	int range_select_right_col;
+	int range_select_top_row;
+	int range_select_bottom_row;
+
     void OnCellLeftClick( wxGridEvent& );
     void OnRowSize( wxGridSizeEvent& );
     void OnColSize( wxGridSizeEvent& );

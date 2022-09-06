@@ -540,6 +540,29 @@ wxString GridCellSupportEditor::ms_stringValues[2] = { wxT(""), wxT("") };
 
 void GridCellSupportEditor::DoActivate(int row, int col, wxGrid* grid)
 {
+    ObjectGrid* local_table = dynamic_cast<ObjectGrid*>(grid);
+    wxGridBlocks cell_array = grid->GetSelectedBlocks();
+   
+    auto left_col = cell_array.begin()->GetLeftCol();
+    auto right_col = cell_array.begin()->GetRightCol();
+    auto top_row = cell_array.begin()->GetTopRow();
+    auto bottom_row = cell_array.begin()->GetBottomRow();
+  
+	if ((left_col == right_col) &&
+		(top_row == bottom_row)) {
+		wxGridCellBoolEditor::DoActivate(row, col, grid);
+		grid->SelectBlock(row, col, row, col, true);
+        return;
+    }
+    else if( (left_col == right_col) &&
+        (top_row != bottom_row)){
+
+        for (auto i = top_row; i <= bottom_row; i++) {
+            //grid->GetTable()->SetValueAsBool(i, left_col, false);
+            wxGridCellBoolEditor::DoActivate(i, left_col, grid);
+        }
+    }
+
     wxGridCellBoolEditor::DoActivate(row, col, grid);
     grid->SelectBlock(row, col, row, col, true);
 }
@@ -724,11 +747,13 @@ wxBEGIN_EVENT_TABLE( ObjectGrid, wxGrid )
     EVT_KEY_UP( ObjectGrid::OnKeyUp )
     EVT_CHAR ( ObjectGrid::OnChar )
     EVT_GRID_LABEL_LEFT_CLICK ( ObjectGrid::OnColHeadLeftClick )
+    EVT_GRID_RANGE_SELECTED(ObjectGrid::OnRangeSelected)
 wxEND_EVENT_TABLE()
 
 bool ObjectGrid::OnCellLeftClick(wxGridEvent& event, int row, int col, ConfigOptionType type)
 {
     input_string = wxEmptyString;
+
     if (type != coBool)
         return false;
 
@@ -812,6 +837,11 @@ bool ObjectGrid::OnCellLeftClick(wxGridEvent& event, int row, int col, ConfigOpt
         }
     }
     return consumed;
+}
+
+void ObjectGrid::OnRangeSelected(wxGridRangeSelectEvent& ev)
+{
+	ev.Skip();
 }
 
 void ObjectGrid::OnColHeadLeftClick(wxGridEvent& event)
@@ -1795,7 +1825,7 @@ void ObjectGridTable::init_cols(ObjectGrid *object_grid)
     m_col_data.push_back(col);
 
     //object layer height
-    col       = new ObjectGridCol(coFloat, "layer_height", L("Quality"), true, false, true, true, wxALIGN_CENTRE);
+    col       = new ObjectGridCol(coFloat, "layer_height", L("Quality"), true, false, true, true, wxALIGN_LEFT);
     col->size = object_grid->GetTextExtent(L("Layer height")).x - 28;
     m_col_data.push_back(col);
 
@@ -2325,6 +2355,22 @@ void ObjectGridTable::sort_by_col(int col)
             m_sort_col = col;
         }
     }
+    else if (col == col_filaments) {
+		if (m_sort_col == col) {
+			auto sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
+				return (std::to_string(row2->filaments.value).compare(std::to_string(row1->filaments.value)) < 0);
+			};
+			sort_row_data(sort_func);
+			m_sort_col = -1;
+		}
+		else {
+			auto sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
+				return (std::to_string(row1->filaments.value).compare(std::to_string(row2->filaments.value)) < 0);
+			};
+			sort_row_data(sort_func);
+			m_sort_col = col;
+		}
+    }
     //else if (col == col_assemble_name) {
     //    if (m_sort_col == col) {
     //        compare_row_func sort_func = [](ObjectGridRow* row1, ObjectGridRow* row2) {
@@ -2789,10 +2835,10 @@ void ObjectTablePanel::load_data()
 
     m_object_grid->SetColLabelValue(ObjectGridTable::col_printable, _L("Printable"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_printable_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_plate_index, wxString::Format("%S%S", _L("Plate"), _L("(Sort)")));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_plate_index, wxString::Format("%S%S", _L("Plate"),  wxString::FromUTF8("\xe2\x87\x85\x20")));
     /*m_object_grid->SetColLabelValue(ObjectGridTable::col_assemble_name, L("Module"));*/
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_name, wxString::Format("%S%S", _L("Name"), _L("(Sort)")));
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments, _L("Filament"));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_name, wxString::Format("%S%S", _L("Name"), wxString::FromUTF8("\xe2\x87\x85\x20")));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments, wxString::Format("%S%S", _L("Filament"), wxString::FromUTF8("\xe2\x87\x85\x20")));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments_reset, "");
     m_object_grid->SetColLabelValue(ObjectGridTable::col_layer_height, _L("Layer height"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_layer_height_reset, "");
@@ -2980,10 +3026,14 @@ void ObjectTablePanel::load_data()
             m_object_grid->SetColSize(i, FromDIP(28)); 
             break;
 
-        case ObjectGridTable::col_wall_loops: 
-            m_object_grid->SetColSize(i, m_object_grid->GetColSize(i) - FromDIP(28)); 
+        case ObjectGridTable::col_wall_loops: {
+			auto width = m_object_grid->GetColSize(i) - FromDIP(28);
+			if (width < m_object_grid->GetTextExtent(("000.00")).x) {
+				width = m_object_grid->GetTextExtent(("000.00")).x;
+			}
+			m_object_grid->SetColSize(i, width);
             break;
-
+        }
         case ObjectGridTable::col_wall_loops_reset: 
             m_object_grid->SetColSize(i, FromDIP(28)); 
             break;
@@ -3128,13 +3178,10 @@ void ObjectTablePanel::OnCellValueChanged( wxGridEvent& ev )
 
 void ObjectTablePanel::OnRangeSelected( wxGridRangeSelectEvent& ev )
 {
-    int left_col = ev.GetLeftCol();
-    int right_col = ev.GetRightCol();
-    int top_row = ev.GetTopRow();
-    int bottom_row = ev.GetBottomRow();
-
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format("cell from (%1%, %2%) to (%3%, %4%) selected") %top_row %left_col %bottom_row %right_col;
-
+    range_select_left_col = ev.GetLeftCol();
+    range_select_right_col = ev.GetRightCol();
+    range_select_top_row = ev.GetTopRow();
+    range_select_bottom_row = ev.GetBottomRow();
     ev.Skip();
 }
 
