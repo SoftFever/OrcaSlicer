@@ -600,6 +600,7 @@ class GCodeViewer
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
 public:
+    enum class EViewType : unsigned char;
     struct SequentialView
     {
         class Marker
@@ -626,7 +627,7 @@ public:
             void set_visible(bool visible) { m_visible = visible; }
 
             //BBS: GUI refactor: add canvas size
-            void render(int canvas_width, int canvas_height) const;
+            void render(int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves, uint64_t curr_line_id) const;
         };
 
         class GCodeWindow
@@ -685,7 +686,7 @@ public:
         std::vector<unsigned int> gcode_ids;
 
         //BBS: GUI refactor: add canvas size
-        void render(float legend_height, int canvas_width, int canvas_height) const;
+        void render(float legend_height, int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves) const;
     };
 
     struct ETools

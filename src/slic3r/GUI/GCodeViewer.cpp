@@ -302,7 +302,7 @@ void GCodeViewer::SequentialView::Marker::set_world_position(const Vec3f& positi
 }
 
 //BBS: GUI refactor: add canvas size from parameters
-void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_height) const
+void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves, uint64_t curr_line_id) const
 {
     if (!m_visible)
         return;
@@ -331,7 +331,7 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     static float last_window_width = 0.0f;
     static size_t last_text_length = 0;
 
-    if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop) {
+    //if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop) {
         ImGuiWrapper& imgui = *wxGetApp().imgui();
         //BBS: GUI refactor: add canvas size from parameters
         //Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
@@ -339,9 +339,9 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         imgui.set_next_window_pos(0.5f * static_cast<float>(canvas_width), static_cast<float>(canvas_height), ImGuiCond_Always, 0.5f, 1.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
         ImGui::SetNextWindowBgAlpha(0.25f);
-        imgui.begin(std::string("ExtruderPosition"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
-        imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Extruder position") + ":");
-        ImGui::SameLine();
+        imgui.begin(std::string("ExtruderPosition"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
+        //imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Extruder position") + ":");
+        //ImGui::SameLine();
         char buf[1024];
         //BBS: minus the plate offset when show tool position
         PartPlateList& partplate_list = wxGetApp().plater()->get_partplate_list();
@@ -349,7 +349,35 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         const Vec3f position = m_world_position + m_world_offset;
         sprintf(buf, "X: %.3f, Y: %.3f, Z: %.3f", position.x() - plate->get_origin().x(), position.y() - plate->get_origin().y(), position.z());
         imgui.text(std::string(buf));
-
+        //gcode_result.moves[i];
+        if (view_type == EViewType::Feedrate) {
+            auto it = std::find_if(moves.begin(), moves.end(), [&curr_line_id](auto move) {
+                if (move.gcode_id == curr_line_id)
+                    return true;
+                else
+                    return false;
+                });
+            if (it != moves.end()) {
+                sprintf(buf, _u8L("Speed: %.f").c_str(), it->feedrate);
+                ImGui::NewLine();
+                ImGui::SameLine((ImGui::GetWindowWidth() - ImGui::CalcTextSize(buf).x) / 2);
+                imgui.text(buf);
+            }
+        }
+        if (view_type == EViewType::VolumetricRate) {
+            auto it = std::find_if(moves.begin(), moves.end(), [&curr_line_id](auto move) {
+                if (move.gcode_id == curr_line_id)
+                    return true;
+                else
+                    return false;
+                });
+            if (it != moves.end()) {
+                sprintf(buf, _u8L("Flow: %.f").c_str(), it->volumetric_rate());
+                ImGui::NewLine();
+                ImGui::SameLine((ImGui::GetWindowWidth() - ImGui::CalcTextSize(buf).x) / 2);
+                imgui.text(buf);
+            }
+        }
         // force extra frame to automatically update window size
         float width = ImGui::GetWindowWidth();
         size_t length = strlen(buf);
@@ -366,7 +394,7 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
 
         imgui.end();
         ImGui::PopStyleVar();
-    }
+    //}
 }
 
 void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& filename, std::vector<size_t> &&lines_ends)
@@ -561,11 +589,10 @@ void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": finished mapping file " << m_filename;
     }
 }
-
 //BBS: GUI refactor: move to the right
-void GCodeViewer::SequentialView::render(float legend_height, int canvas_width, int canvas_height) const
+void GCodeViewer::SequentialView::render(float legend_height, int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves) const
 {
-    marker.render(canvas_width, canvas_height);
+    marker.render(canvas_width, canvas_height, view_type, moves, static_cast<uint64_t>(gcode_ids[current.last]));
     //float bottom = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height();
     // BBS
 #if 0
@@ -1125,7 +1152,7 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
         m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
         m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
         //BBS fixed buttom margin. m_moves_slider.pos_y
-        m_sequential_view.render(legend_height, canvas_width - right_margin, canvas_height - bottom_margin);
+        m_sequential_view.render(legend_height, canvas_width - right_margin, canvas_height - bottom_margin, m_view_type, m_gcode_result->moves);
     //}
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
