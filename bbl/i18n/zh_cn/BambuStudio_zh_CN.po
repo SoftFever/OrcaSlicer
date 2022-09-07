@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-07 09:57+0800\n"
+"POT-Creation-Date: 2022-09-07 14:34+0800\n"
 "PO-Revision-Date: 2022-09-07 09:59+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -5865,6 +5865,15 @@ msgstr "整个打印开始前的起始G-code"
 msgid "Start G-code when start the printing of this filament"
 msgstr "开始使用这个耗材丝打印的起始G-code"
 
+msgid "Slice gap closing radius"
+msgstr "切片间隙闭合半径"
+
+msgid ""
+"Cracks smaller than 2x gap closing radius are being filled during the "
+"triangle mesh slicing. The gap closing operation may reduce the final print "
+"resolution, therefore it is advisable to keep the value reasonably low."
+msgstr "在三角形网格切片过程中，小于2倍间隙闭合半径的裂纹将被填充。间隙闭合操作可能会降低最终打印分辨率，因此建议降值保持在合理的较低水平"
+
 msgid "Enable support"
 msgstr "开启支撑"
 
@@ -8779,9 +8788,6 @@ msgstr "支撑：正在生长层%d的树枝"
 
 #~ msgid "Use single nozzle to print multi filament"
 #~ msgstr "使用单喷嘴打印多耗材"
-
-#~ msgid "Slice gap closing radius"
-#~ msgstr "切片间隙闭合半径"
 
 #~ msgid "Slicing Mode"
 #~ msgstr "切片模式"
