@@ -135,6 +135,8 @@ void MediaPlayCtrl::Stop()
         m_cond.notify_all();
         m_last_state = MEDIASTATE_IDLE;
         SetStatus(_L("Stopped."));
+        if (m_failed_code >= 100) // not keep retry on local error
+            m_next_retry = wxDateTime();
     }
     ++m_failed_retry;
     if (m_next_retry.IsValid())

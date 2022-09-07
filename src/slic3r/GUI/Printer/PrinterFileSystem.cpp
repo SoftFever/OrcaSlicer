@@ -746,7 +746,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
         std::string url = m_messages.front();
         m_messages.clear();
         if (url.empty()) {
-            m_last_error = -100;
+            m_last_error = 1;
         } else {
             l.unlock();
             m_status = Status::Connecting;
