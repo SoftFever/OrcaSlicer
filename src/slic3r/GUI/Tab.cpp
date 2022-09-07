@@ -3395,9 +3395,10 @@ void TabPrinter::toggle_options()
     }
 
     wxString extruder_number;
-    long val;
-    if (m_active_page->title().StartsWith("Extruder ", &extruder_number) && extruder_number.ToLong(&val) &&
-        val > 0 && (size_t)val <= m_extruders_count)
+    long val = 1;
+    if ( m_active_page->title().IsSameAs("Extruder") ||
+        (m_active_page->title().StartsWith("Extruder ", &extruder_number) && extruder_number.ToLong(&val) &&
+        val > 0 && (size_t)val <= m_extruders_count))
     {
         size_t i = size_t(val - 1);
         bool have_retract_length = m_config->opt_float("retraction_length", i) > 0;
@@ -3423,10 +3424,10 @@ void TabPrinter::toggle_options()
             //BBS
             toggle_option(el, retraction, i);
 
-        bool wipe = m_config->opt_bool("wipe", i);
+        bool wipe = retraction && m_config->opt_bool("wipe", i);
         toggle_option("retract_before_wipe", wipe, i);
         // BBS
-        toggle_option("wipe_distance", i);
+        toggle_option("wipe_distance", wipe, i);
 
         toggle_option("retract_length_toolchange", have_multiple_extruders, i);
 

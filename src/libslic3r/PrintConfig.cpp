@@ -2497,6 +2497,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Wipe Distance");
     def->tooltip = L("Discribe how long the nozzle will move along the last path when retracting");
     def->sidetext = L("mm");
+    def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 2. });
 

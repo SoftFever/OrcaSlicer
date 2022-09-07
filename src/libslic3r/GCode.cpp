@@ -3836,8 +3836,8 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction)
     if (m_writer.extruder() == nullptr)
         return gcode;
 
-    // wipe (if it's enabled for this extruder and we have a stored wipe path)
-    if (EXTRUDER_CONFIG(wipe) && m_wipe.has_path()) {
+    // wipe (if it's enabled for this extruder and we have a stored wipe path and no-zero wipe distance)
+    if (EXTRUDER_CONFIG(wipe) && m_wipe.has_path() && scale_(EXTRUDER_CONFIG(wipe_distance)) > SCALED_EPSILON) {
         gcode += toolchange ? m_writer.retract_for_toolchange(true) : m_writer.retract(true);
         gcode += m_wipe.wipe(*this, toolchange, is_last_retraction);
     }
