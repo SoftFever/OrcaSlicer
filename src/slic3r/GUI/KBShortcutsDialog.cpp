@@ -197,6 +197,9 @@ void KBShortcutsDialog::fill_shortcuts()
         m_full_shortcuts.push_back({{_L("Global shortcuts"), ""}, global_shortcuts});
 
         Shortcuts plater_shortcuts = {
+            { L("Left mouse button"), L("Rotate View") },
+            { L("Right mouse button"), L("Pan View") },
+            { L("Mouse wheel"), L("Zoom View") },
             { "A", L("Arrange all objects") },
             { "Shift+A", L("Arrange objects on selected plates") },
 
