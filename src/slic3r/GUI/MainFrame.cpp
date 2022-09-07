@@ -1681,7 +1681,7 @@ void MainFrame::init_menubar_as_editor()
     {
 #ifdef __APPLE__
         // New Window
-        append_menu_item(fileMenu, wxID_ANY, _L("New Window") + "\tCtrl+N", _L("Start a new window"),
+        append_menu_item(fileMenu, wxID_ANY, _L("New Window"), _L("Start a new window"),
                          [](wxCommandEvent&) { start_new_slicer(); }, "", nullptr,
                          []{ return true; }, this);
 #endif

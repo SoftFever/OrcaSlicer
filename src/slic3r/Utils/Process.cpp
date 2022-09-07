@@ -65,7 +65,7 @@ static void start_new_slicer_or_gcodeviewer(const NewSlicerInstanceType instance
 		// On Apple the wxExecute fails, thus we use boost::process instead.
 		BOOST_LOG_TRIVIAL(info) << "Trying to spawn a new slicer \"" << bin_path.string() << "\"";
 		try {
-            std::vector<std::string> args = { "-n", "-a", "BambuStudio"};
+            std::vector<std::string> args = { "-n", "-a", "/Applications/BambuStudio.app"};
             if (!paths_to_open.empty()) {
                 for (const auto& file : paths_to_open)
                     args.emplace_back(into_u8(file));
