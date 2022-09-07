@@ -1932,8 +1932,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         auto co = dynamic_cast<const ConfigOptionEnum<PrintSequence>*>(m_config->option<ConfigOptionEnum<PrintSequence>>("print_sequence"));
 
         const DynamicPrintConfig &dconfig           = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-        const ConfigOption *      option            = dconfig.option("timelapse_no_toolhead");
-        bool                      timelapse_enabled = option ? option->getBool() : false;
+        auto timelapse_type = dconfig.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
+        bool timelapse_enabled = timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false;
 
         if (timelapse_enabled || (filaments_count > 1 && wt && co != nullptr && co->value != PrintSequence::ByObject)) {
             for (int plate_id = 0; plate_id < n_plates; plate_id++) {

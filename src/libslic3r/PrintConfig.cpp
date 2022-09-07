@@ -12,6 +12,35 @@
 
 #include <float.h>
 
+namespace {
+std::set<std::string> SplitStringAndRemoveDuplicateElement(const std::string &str, const std::string &separator)
+{
+    std::set<std::string> result;
+    if (str.empty()) return result;
+
+    std::string strs = str + separator;
+    size_t      pos;
+    size_t      size = strs.size();
+
+    for (int i = 0; i < size; ++i) {
+        pos = strs.find(separator, i);
+        if (pos < size) {
+            std::string sub_str = strs.substr(i, pos - i);
+            result.insert(sub_str);
+            i = pos + separator.size() - 1;
+        }
+    }
+
+    return result;
+}
+
+void ReplaceString(std::string &resource_str, const std::string &old_str, const std::string &new_str)
+{
+    std::string::size_type pos = 0;
+    while ((pos = resource_str.find(old_str)) != std::string::npos) { resource_str.replace(pos, old_str.length(), new_str); }
+}
+}
+
 namespace Slic3r {
 
 //! macro used to mark string used at localization,
@@ -186,6 +215,14 @@ static const t_config_enum_values s_keys_map_BrimType = {
     {"auto_brim", btAutoBrim}  // BBS
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BrimType)
+
+// using 0,1,2 to compatible with old files
+static const t_config_enum_values s_keys_map_TimelapseType = {
+    {"0",       tlClose},
+    {"1",       tlSmooth},
+    {"2",       tlTraditional}
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(TimelapseType)
 
 static const t_config_enum_values s_keys_map_DraftShield = {
     { "disabled", dsDisabled },
@@ -2005,16 +2042,24 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("timelapse_no_toolhead", coBool);
+    def = this->add("timelapse_type", coEnum);
     def->label = L("Timelapse");
-    def->tooltip = L("If enabled, a timelapse video will be generated for each print. "
-                     "After each layer is printed, the toolhead will move to the excess chute, "
-                     "and then a snapshot is taken with the chamber camera. "
+    def->tooltip = L("If smooth or traditional mode is selected, a timelapse video will be generated for each print. "
+                     "After each layer is printed, a snapshot is taken with the chamber camera. "
                      "All of these snapshots are composed into a timelapse video when printing completes. "
+                     "If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed "
+                     "and then take a snapshot. "
                      "Since the melt filament may leak from the nozzle during the process of taking a snapshot, "
-                     "prime tower is required for nozzle priming.");
+                     "prime tower is required for smooth mode to wipe nozzle.");
+    def->enum_keys_map = &ConfigOptionEnum<TimelapseType>::get_enum_values();
+    def->enum_values.emplace_back("0");
+    def->enum_values.emplace_back("1");
+    def->enum_values.emplace_back("2");
+    def->enum_labels.emplace_back(L("Close"));
+    def->enum_labels.emplace_back(L("Smooth"));
+    def->enum_labels.emplace_back(L("Traditional"));
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionEnum<TimelapseType>(tlClose));
 
     def = this->add("standby_temperature_delta", coInt);
     def->label = L("Temperature variation");
@@ -3407,6 +3452,19 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "compatible_process_expression_group";
     } else if (opt_key == "cooling") {
         opt_key = "slow_down_for_layer_cooling";
+    } else if (opt_key == "timelapse_no_toolhead") {
+        opt_key = "timelapse_type";
+    } else if (opt_key == "different_settings_to_system") {
+        std::string copy_value = value;
+        copy_value.erase(std::remove(copy_value.begin(), copy_value.end(), '\"'), copy_value.end()); // remove '"' in string
+        std::set<std::string> split_keys = SplitStringAndRemoveDuplicateElement(copy_value, ";");
+        for (std::string split_key : split_keys) {
+            std::string copy_key = split_key, copy_value = "";
+            handle_legacy(copy_key, copy_value);
+            if (copy_key != split_key) {
+                ReplaceString(value, split_key, copy_key);
+            }
+        }
     }
 
     // Ignore the following obsolete configuration keys:
@@ -3533,8 +3591,8 @@ void DynamicPrintConfig::normalize_fdm(int used_filaments)
         ConfigOptionBool* alh_opt = this->option<ConfigOptionBool>("adaptive_layer_height");
         ConfigOptionEnum<PrintSequence>* ps_opt = this->option<ConfigOptionEnum<PrintSequence>>("print_sequence");
         
-        ConfigOptionBool *timelapse_opt = this->option<ConfigOptionBool>("timelapse_no_toolhead");
-        if (timelapse_opt && timelapse_opt->value == false) {
+        ConfigOptionEnum<TimelapseType> *timelapse_opt = this->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
+        if (timelapse_opt && timelapse_opt->value == TimelapseType::tlSmooth) {
             if (used_filaments == 1 || ps_opt->value == PrintSequence::ByObject)
                 ept_opt->value = false;
         }

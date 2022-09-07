@@ -1756,7 +1756,7 @@ const WipeTowerData& Print::wipe_tower_data(size_t filaments_cnt) const
 
 bool Print::enable_timelapse_print() const
 {
-    return m_config.timelapse_no_toolhead.value;
+    return m_config.timelapse_type.value == TimelapseType::tlSmooth;
 }
 
 void Print::_make_wipe_tower()

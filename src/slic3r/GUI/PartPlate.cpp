@@ -1104,8 +1104,8 @@ Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double wipe_volu
 	wipe_tower_size(2) = max_height;
 
 	const DynamicPrintConfig &dconfig = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-    const ConfigOption* option = dconfig.option("timelapse_no_toolhead");
-    bool timelapse_enabled = option ? option->getBool() : false;
+    auto timelapse_type    = dconfig.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
+    bool timelapse_enabled = timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false;
 
 	double depth = wipe_volume * (plate_extruders.size() - 1) / (layer_height * w);
     if (timelapse_enabled || depth > EPSILON) {

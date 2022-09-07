@@ -545,7 +545,7 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_current_tool(initial_tool),
     //wipe_volumes(flush_matrix)
     m_wipe_volume(prime_volume),
-    m_enable_timelapse_print(config.timelapse_no_toolhead.value)
+    m_enable_timelapse_print(config.timelapse_type.value == TimelapseType::tlSmooth)
 {
     // Read absolute value of first layer speed, if given as percentage,
     // it is taken over following default. Speeds from config are not

@@ -1375,13 +1375,14 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         update_wiping_button_visibility();
 
     if (opt_key == "enable_prime_tower") {
-        bool timelapse_enabled = m_config->option<ConfigOptionBool>("timelapse_no_toolhead")->value;
+        auto timelapse_type = m_config->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
+        bool timelapse_enabled = timelapse_type->value == TimelapseType::tlSmooth;
         if (!boost::any_cast<bool>(value) && timelapse_enabled) {
             MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required by timeplase. Are you sure you want to disable both of them?"),
                               _L("Warning"), wxICON_WARNING | wxYES | wxNO);
             if (dlg.ShowModal() == wxID_YES) {
                 DynamicPrintConfig new_conf = *m_config;
-                new_conf.set_key_value("timelapse_no_toolhead", new ConfigOptionBool(false));
+                new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(TimelapseType::tlClose));
                 m_config_manipulation.apply(m_config, &new_conf);
                 wxGetApp().plater()->update();
             }
@@ -1395,9 +1396,9 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     }
 
     // reload scene to update timelapse wipe tower
-    if (opt_key == "timelapse_no_toolhead") {
+    if (opt_key == "timelapse_type") {
         bool wipe_tower_enabled = m_config->option<ConfigOptionBool>("enable_prime_tower")->value;
-        if (!wipe_tower_enabled && boost::any_cast<bool>(value)) {
+        if (!wipe_tower_enabled && boost::any_cast<int>(value) == int(TimelapseType::tlSmooth)) {
             MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required by timelapse. Do you want to enable both of them?"),
                               _L("Warning"), wxICON_WARNING | wxYES | wxNO);
             if (dlg.ShowModal() == wxID_YES) {
@@ -1408,7 +1409,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             }
             else {
                 DynamicPrintConfig new_conf = *m_config;
-                new_conf.set_key_value("timelapse_no_toolhead", new ConfigOptionBool(false));
+                new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(TimelapseType::tlClose));
                 m_config_manipulation.apply(m_config, &new_conf);
             }
         } else {
@@ -1910,7 +1911,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Special mode"));
         optgroup->append_single_option_line("print_sequence");
         optgroup->append_single_option_line("spiral_mode", "spiral-vase");
-        optgroup->append_single_option_line("timelapse_no_toolhead", "Timelapse");
+        optgroup->append_single_option_line("timelapse_type", "None");
         //BBS: todo remove clearance to machine
 #if 0
         //line = { L("Extruder radius"), "" };
