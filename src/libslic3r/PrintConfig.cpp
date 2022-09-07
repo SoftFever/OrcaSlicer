@@ -2059,6 +2059,16 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("slice_closing_radius", coFloat);
+    def->label = L("Slice gap closing radius");
+    def->category = L("Quality");
+    def->tooltip = L("Cracks smaller than 2x gap closing radius are being filled during the triangle mesh slicing. "
+        "The gap closing operation may reduce the final print resolution, therefore it is advisable to keep the value reasonably low.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.049));
+
     def = this->add("enable_support", coBool);
     //BBS: remove material behind support
     def->label = L("Enable support");

@@ -1764,6 +1764,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("seam_position", "Seam");
 
         optgroup = page->new_optgroup(L("Precision"));
+        optgroup->append_single_option_line("slice_closing_radius");
         optgroup->append_single_option_line("resolution");
         optgroup->append_single_option_line("enable_arc_fitting");
         optgroup->append_single_option_line("xy_hole_compensation");

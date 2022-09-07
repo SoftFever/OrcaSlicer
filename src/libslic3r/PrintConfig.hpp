@@ -580,6 +580,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               raft_first_layer_expansion))
     ((ConfigOptionInt,                 raft_layers))
     ((ConfigOptionEnum<SeamPosition>,  seam_position))
+    ((ConfigOptionFloat,               slice_closing_radius))
     ((ConfigOptionBool,                enable_support))
     // Automatic supports (generated based on support_threshold_angle).
     ((ConfigOptionEnum<SupportType>,   support_type))
@@ -886,6 +887,8 @@ PRINT_CONFIG_CLASS_DEFINE(
 
     //Number of the layers needed for the exposure time fade [3;20]
     ((ConfigOptionInt,  faded_layers))/*= 10*/
+
+    ((ConfigOptionFloat, slice_closing_radius))
 
     // Enabling or disabling support creation
     ((ConfigOptionBool,  supports_enable))

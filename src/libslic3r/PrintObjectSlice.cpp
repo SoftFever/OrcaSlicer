@@ -136,7 +136,7 @@ static std::vector<VolumeSlices> slice_volumes_inner(
         slicing_ranges.reserve(layer_ranges.size());
 
     MeshSlicingParamsEx params_base;
-    params_base.closing_radius = g_config_slice_closing_radius;
+    params_base.closing_radius = print_object_config.slice_closing_radius.value;
     params_base.extra_offset   = 0;
     params_base.trafo          = object_trafo;
     //BBS: 0.0025mm is safe enough to simplify the data to speed slicing up for high-resolution model.
@@ -1040,7 +1040,7 @@ void PrintObject::slice_volumes()
                         if (min_growth < 0.f || elfoot > 0.f) {
                             // Apply the negative XY compensation. (the ones that is <0)
                             ExPolygons trimming;
-                            static const float eps = float(scale_(g_config_slice_closing_radius) * 1.5);
+                            static const float eps = float(scale_(m_config.slice_closing_radius.value) * 1.5);
                             if (elfoot > 0.f) {
                                 lslices_1st_layer = offset_ex(layer->merged(eps), -eps);
                                 trimming = Slic3r::elephant_foot_compensation(lslices_1st_layer,

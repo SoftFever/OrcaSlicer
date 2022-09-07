@@ -518,7 +518,7 @@ void SLAPrint::Steps::slice_model(SLAPrintObject &po)
 
     po.m_model_slices.clear();
     MeshSlicingParamsEx params;
-    params.closing_radius = float(g_config_slice_closing_radius);
+    params.closing_radius = float(po.config().slice_closing_radius.value);
     //BBS: always regular mode
     //switch (po.config().slicing_mode.value) {
     //case SlicingMode::Regular:    params.mode = MeshSlicingParams::SlicingMode::Regular; break;
@@ -749,7 +749,7 @@ void SLAPrint::Steps::slice_supports(SLAPrintObject &po) {
         for(auto& rec : po.m_slice_index) heights.emplace_back(rec.slice_level());
 
         sd->support_slices = sd->support_tree_ptr->slice(
-            heights, float(g_config_slice_closing_radius));
+            heights, float(po.config().slice_closing_radius.value));
     }
 
     for (size_t i = 0; i < sd->support_slices.size() && i < po.m_slice_index.size(); ++i)
