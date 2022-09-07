@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-07 09:09+0800\n"
-"PO-Revision-Date: 2022-09-05 10:13+0800\n"
+"POT-Creation-Date: 2022-09-07 09:57+0800\n"
+"PO-Revision-Date: 2022-09-07 09:59+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -1309,8 +1309,8 @@ msgstr ""
 "软件中的很多部分都来自于社区贡献，因此，我们无法逐一列出他们，相反的，他们将"
 "被注释于相应的代码中。"
 
-msgid "AMSMaterialsSetting"
-msgstr ""
+msgid "AMS Materials Setting"
+msgstr "AMS 材料设置"
 
 msgid "Colour"
 msgstr "颜色"
@@ -1347,16 +1347,16 @@ msgid ""
 msgstr "仅允许选择放入同种材质耗材丝的AMS槽位"
 
 msgid "Enable AMS"
-msgstr ""
+msgstr "启用AMS"
 
 msgid "Print with filaments in the AMS"
-msgstr ""
+msgstr "采用AMS里的材料打印"
 
 msgid "Disable AMS"
-msgstr ""
+msgstr "不启用AMS"
 
 msgid "Print with the filament mounted on the back of chassis"
-msgstr ""
+msgstr "使用机箱背后挂载的材料打印"
 
 msgid "Insertion update"
 msgstr "插入料时更新"
@@ -1403,12 +1403,12 @@ msgid "File"
 msgstr "文件"
 
 msgid "Please home all axes (click "
-msgstr ""
+msgstr "请先执行回原点（点击"
 
 msgid ""
 ") to locate the toolhead's position. This prevents device moving beyond the "
 "printable boundary and causing equipment wear."
-msgstr ""
+msgstr "）操作以定位当前工具头位置，以防止轴移动时超出边界造成设备磨损"
 
 msgid "Go Home"
 msgstr "回原点"
@@ -4313,7 +4313,7 @@ msgid "Shift+Mouse wheel"
 msgstr "Shift+鼠标滚轮"
 
 msgid "Release Note"
-msgstr ""
+msgstr "更新说明"
 
 #, c-format, boost-format
 msgid "version %s update information :"

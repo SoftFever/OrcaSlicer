@@ -12,7 +12,7 @@ static bool show_flag;
 #define COMBOBOX_FILAMENT (m_comboBox_filament)
 #endif
 AMSMaterialsSetting::AMSMaterialsSetting(wxWindow *parent, wxWindowID id) 
-    : DPIDialog(parent, id, _L("AMSMaterialsSetting"), wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+    : DPIDialog(parent, id, _L("AMS Materials Setting"), wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
 {
     create();
 }
