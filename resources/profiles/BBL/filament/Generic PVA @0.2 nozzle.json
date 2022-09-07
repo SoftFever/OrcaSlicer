@@ -1,18 +1,12 @@
 {
     "type": "filament",
-    "setting_id": "GFSS00_00",
-    "name": "Bambu Support W @BBL X1C 0.2 nozzle",
+    "setting_id": "GFSS99_00",
+    "name": "Generic PVA @0.2 nozzle",
     "from": "system",
     "instantiation": "true",
-    "inherits": "Bambu Support W @base",
+    "inherits": "Generic PVA @base",
     "filament_max_volumetric_speed": [
         "0.5"
-    ],
-    "nozzle_temperature_initial_layer": [
-        "240"
-    ],
-    "nozzle_temperature": [
-        "240"
     ],
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.2 nozzle",
