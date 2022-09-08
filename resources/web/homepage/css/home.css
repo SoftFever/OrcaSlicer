@@ -404,14 +404,14 @@ body
 
 .CT_Delete
 {
-	background: url("../img/delete.png");
+	background: url("../img/remove.svg");
 	background-repeat: no-repeat;
 	background-size: contain;	
 }
 
 .CT_Explore
 {
-	background: url("../img/folder.png");
+	background: url("../img/open_folder.svg");
 	background-repeat: no-repeat;
 	background-size: contain;		
 }

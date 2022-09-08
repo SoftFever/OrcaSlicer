@@ -80,8 +80,8 @@ var LangText={
 		"t85":"4, Reopen Bambu studio and install the plug-in again",
 		"t86":"Close",
 		"t87":"User Manual",
-		"t88":"clear",
-		"t89":"show in explorer"
+		"t88":"Remove",
+		"t89":"Open Containing Folder"
 	},
 	"zh_CN":{
 		"t1":"欢迎使用Bambu Studio",
@@ -164,8 +164,8 @@ var LangText={
 		"t85":"4, 重新启动Bambu Studio并尝试安装插件",
 		"t86":"关闭",
 		"t87":"使用引导",
-		"t88":"清除",
-		"t89":"打开文件所在路径"
+		"t88":"移除",
+		"t89":"打开所在的文件夹"
 	}
 };
 
