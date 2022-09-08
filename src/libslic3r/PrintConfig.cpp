@@ -3479,7 +3479,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         , "support_sharp_tails","remove_small_overhangs", "support_with_sheath",
         "tree_support_branch_diameter_angle", "tree_support_collision_resolution",
         "small_perimeter_speed", "max_volumetric_speed", "max_print_speed",
-        "support_bottom_z_distance", "support_closing_radius", "slicing_mode", "slice_closing_radius",
+        "support_bottom_z_distance", "support_closing_radius", "slicing_mode",
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector"
