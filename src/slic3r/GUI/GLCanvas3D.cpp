@@ -3889,6 +3889,14 @@ void GLCanvas3D::do_flatten(const Vec3d& normal, const std::string& snapshot_typ
     do_rotate(""); // avoid taking another snapshot
 }
 
+void GLCanvas3D::do_center()
+{
+    if (m_model == nullptr)
+        return;
+
+    m_selection.center();
+}
+
 void GLCanvas3D::do_mirror(const std::string& snapshot_type)
 {
     if (m_model == nullptr)

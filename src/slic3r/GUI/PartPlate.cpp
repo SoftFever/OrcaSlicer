@@ -1250,7 +1250,7 @@ Vec3d PartPlate::get_center_origin()
 	Vec3d origin;
 
 	origin(0) = (m_bounding_box.min(0) + m_bounding_box.max(0)) / 2;//m_origin.x() + m_width / 2;
-	origin(1) = (m_bounding_box.min(0) + m_bounding_box.max(0)) / 2; //m_origin.y() + m_depth / 2;
+	origin(1) = (m_bounding_box.min(1) + m_bounding_box.max(1)) / 2; //m_origin.y() + m_depth / 2;
 	origin(2) = m_origin.z();
 
 	return origin;

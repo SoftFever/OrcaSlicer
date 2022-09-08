@@ -148,6 +148,12 @@ void View3D::delete_selected()
         m_canvas->delete_selected();
 }
 
+void View3D::center_selected()
+{
+    if (m_canvas != nullptr)
+        m_canvas->do_center();
+}
+
 void View3D::mirror_selection(Axis axis)
 {
     if (m_canvas != nullptr)

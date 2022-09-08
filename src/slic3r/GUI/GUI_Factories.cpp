@@ -892,6 +892,8 @@ void MenuFactory::create_bbl_object_menu()
     append_menu_item_fix_through_netfabb(&m_object_menu);
     // Object Simplify
     append_menu_item_simplify(&m_object_menu);
+    // Object Center
+    append_menu_item_center(&m_object_menu);
     // Object Split
     wxMenu* split_menu = new wxMenu();
     if (!split_menu)
@@ -983,6 +985,7 @@ void MenuFactory::create_bbl_part_menu()
     append_menu_item_delete(menu);
     append_menu_item_fix_through_netfabb(menu);
     append_menu_item_simplify(menu);
+    append_menu_item_center(menu);
     append_menu_items_mirror(menu);
     wxMenu* split_menu = new wxMenu();
     if (!split_menu)
@@ -1182,6 +1185,7 @@ wxMenu* MenuFactory::multi_selection_menu()
             append_menu_item_merge_to_multipart_object(menu);
             index++;
         }
+        append_menu_item_center(menu);
         append_menu_item_fix_through_netfabb(menu);
         //append_menu_item_simplify(menu);
         append_menu_item_delete(menu);
@@ -1196,6 +1200,7 @@ wxMenu* MenuFactory::multi_selection_menu()
         append_menu_item_export_stl(menu, true);
     }
     else {
+        append_menu_item_center(menu);
         append_menu_item_fix_through_netfabb(menu);
         //append_menu_item_simplify(menu);
         append_menu_item_delete(menu);
@@ -1277,6 +1282,25 @@ void MenuFactory::append_menu_item_simplify(wxMenu* menu)
     wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Reduce Triangles"), "",
         [](wxCommandEvent&) { obj_list()->simplify(); }, "", menu,
         []() {return plater()->can_simplify(); }, m_parent);
+}
+
+void MenuFactory::append_menu_item_center(wxMenu* menu)
+{
+     append_menu_item(menu, wxID_ANY, _L("Center") , "",
+        [this](wxCommandEvent&) {
+            plater()->center_selection();
+        }, "", nullptr,
+        []() {
+            if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
+                return false;
+            else {
+                Selection& selection = plater()->get_view3D_canvas3D()->get_selection();
+                PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+                Vec3d model_pos = selection.get_bounding_box().center();
+                Vec3d center_pos = plate->get_center_origin();
+                return !( (model_pos.x() == center_pos.x()) && (model_pos.y() == center_pos.y()) );
+            } //disable if model is at center / not in View3D
+        }, m_parent);
 }
 
 void MenuFactory::append_menu_item_per_object_settings(wxMenu* menu)

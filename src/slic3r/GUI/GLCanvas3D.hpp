@@ -784,6 +784,7 @@ public:
     void do_rotate(const std::string& snapshot_type);
     void do_scale(const std::string& snapshot_type);
     void do_flatten(const Vec3d& normal, const std::string& snapshot_type);
+    void do_center();
     void do_mirror(const std::string& snapshot_type);
 
     void update_gizmos_on_off_state();

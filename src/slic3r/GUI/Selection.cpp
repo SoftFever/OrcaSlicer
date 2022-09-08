@@ -450,6 +450,20 @@ void Selection::clone(int numbers)
     }
 }
 
+void Selection::center()
+{
+    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_selected_plate();
+
+    // calc distance
+    Vec3d src_pos = this->get_bounding_box().center();
+    Vec3d tar_pos = plate->get_center_origin();
+    Vec3d distance = Vec3d(tar_pos.x() - src_pos.x(), tar_pos.y() - src_pos.y(), 0);
+
+    this->move_to_center(distance);
+    wxGetApp().plater()->get_view3D_canvas3D()->do_move(L("Move Object"));
+    return;
+}
+
 //BBS
 void Selection::set_printable(bool printable)
 {
@@ -804,6 +818,39 @@ void Selection::start_dragging()
 
     m_dragging = true;
     set_caches();
+}
+
+void Selection::move_to_center(const Vec3d& displacement, bool local)
+{
+    if (!m_valid)
+        return;
+
+    EMode translation_type = m_mode;
+    //BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": %1%, displacement {%2%, %3%, %4%}") % __LINE__ % displacement(X) % displacement(Y) % displacement(Z);
+
+    set_caches();
+    for (unsigned int i : m_list) {
+        GLVolume& v = *(*m_volumes)[i];
+        if (m_mode == Volume) {
+            if (local)
+                v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + displacement);
+            else {
+                const Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
+                v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
+            }
+        }
+        else if (m_mode == Instance) {
+            if (is_from_fully_selected_instance(i)) {
+                v.set_instance_offset(m_cache.volumes_data[i].get_instance_position() + displacement);
+            }
+            else {
+                const Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
+                v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
+                translation_type = Volume;
+            }
+        }
+    }
+    this->set_bounding_boxes_dirty();
 }
 
 void Selection::translate(const Vec3d& displacement, bool local)
