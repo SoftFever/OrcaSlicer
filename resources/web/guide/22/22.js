@@ -116,6 +116,7 @@ function SortUI()
 	{
 		let OneFila=m_ProfileItem['filament'][key];
 		
+		let fWholeName=OneFila['name'].trim();
 		let fShortName=GetFilamentShortname( OneFila['name'] );
 		let fVendor=OneFila['vendor'];
 		let fType=OneFila['type'];
@@ -184,7 +185,7 @@ function SortUI()
 			let pFila=$("#ItemBlockArea input[vendor='"+fVendor+"'][filatype='"+fType+"'][name='"+fShortName+"']");
 	        if(pFila.length==0)
 		    {
-			    let HtmlFila='<div class="MItem"><input type="checkbox" vendor="'+fVendor+'"  filatype="'+fType+'" model="'+fModel+'" name="'+fShortName+'" />'+fShortName+'</div>';
+			    let HtmlFila='<div class="MItem"><input type="checkbox" vendor="'+fVendor+'"  filatype="'+fType+'" filalist="'+fWholeName+';'+'"  model="'+fModel+'" name="'+fShortName+'" />'+fShortName+'</div>';
 			
 			    $("#ItemBlockArea").append(HtmlFila);
 				
@@ -200,8 +201,10 @@ function SortUI()
 			else
 			{
 				let strModel=pFila.attr("model");
+				let strFilalist=pFila.attr("filalist");
 				
 				pFila.attr("model", strModel+fModel);
+				pFila.attr("filalist", strFilalist+fWholeName+';');
 			}
 		}
 	}
@@ -425,7 +428,7 @@ function SortFilament()
 function ChooseDefaultFilament()
 {
 	//ModelList
-	let pModel=$("#MachineList input:gt(0):checked");
+	let pModel=$("#MachineList input:gt(0)");
 	let nModel=pModel.length;
 	let ModelList=new Array();
 	for(let n=0;n<nModel;n++)
@@ -433,6 +436,24 @@ function ChooseDefaultFilament()
 		let OneModel=pModel[n];
 		ModelList.push(  OneModel.getAttribute("mode") );
 	}	
+	
+	//DefaultMaterialList
+	let DefaultMaterialString=new Array();
+	let nMode=m_ProfileItem["model"].length;
+	for(let n=0;n<nMode;n++)
+	{
+		let OneMode=m_ProfileItem["model"][n];
+		let ModeName=OneMode['model'];
+        let DefaultM=OneMode['materials'];
+		
+		if( ModelList.indexOf(ModeName)>-1 )	
+		{
+			DefaultMaterialString+=OneMode['materials']+';';
+		}
+	}	
+	
+	let DefaultMaterialArray=DefaultMaterialString.split(';');
+	//alert(DefaultMaterialString);
 	
 	//Filament
 	let FilaNodes=$("#ItemBlockArea .MItem");
@@ -443,14 +464,17 @@ function ChooseDefaultFilament()
 		let OneFF=OneNode.getElementsByTagName("input")[0];
 		$(OneFF).prop("checked",false);
 		
-	    let fModel=OneFF.getAttribute("model");
+	    let filamentList=OneFF.getAttribute("filalist"); 
+		//alert(filamentList);
+		let filamentArray=filamentList.split(';')
 		
 		let HasModel=false;
-		for(let m=0;m<nModel;m++)
+		let NowFilaLength=filamentArray.length;
+		for(let p=0;p<NowFilaLength;p++)
 		{
-			let ModelSrc=ModelList[m];
+			let NowFila=filamentArray[p];
 		
-			if( fModel.indexOf(ModelSrc)>=0)
+			if( NowFila!='' && DefaultMaterialArray.indexOf(NowFila)>-1)
 			{
 				HasModel=true;
 				break;
