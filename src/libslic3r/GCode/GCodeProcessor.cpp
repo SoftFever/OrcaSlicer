@@ -990,11 +990,22 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     }
 
     const ConfigOptionPoints* extruder_offset = config.option<ConfigOptionPoints>("extruder_offset");
+    const ConfigOptionBool* single_extruder_multi_material = config.option<ConfigOptionBool>("single_extruder_multi_material");
     if (extruder_offset != nullptr) {
-        m_extruder_offsets.resize(extruder_offset->values.size());
-        for (size_t i = 0; i < extruder_offset->values.size(); ++i) {
-            Vec2f offset = extruder_offset->values[i].cast<float>();
-            m_extruder_offsets[i] = { offset(0), offset(1), 0.0f };
+        //BBS: for single extruder multi material, only use the offset of first extruder
+        if (single_extruder_multi_material != nullptr && single_extruder_multi_material->getBool()) {
+            Vec2f offset = extruder_offset->values[0].cast<float>();
+            m_extruder_offsets.resize(m_result.extruders_count);
+            for (size_t i = 0; i < m_result.extruders_count; ++i) {
+                m_extruder_offsets[i] = { offset(0), offset(1), 0.0f };
+            }
+        }
+        else {
+            m_extruder_offsets.resize(extruder_offset->values.size());
+            for (size_t i = 0; i < extruder_offset->values.size(); ++i) {
+                Vec2f offset = extruder_offset->values[i].cast<float>();
+                m_extruder_offsets[i] = { offset(0), offset(1), 0.0f };
+            }
         }
     }
     
