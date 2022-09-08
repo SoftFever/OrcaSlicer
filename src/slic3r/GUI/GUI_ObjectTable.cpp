@@ -2835,10 +2835,10 @@ void ObjectTablePanel::load_data()
 
     m_object_grid->SetColLabelValue(ObjectGridTable::col_printable, _L("Printable"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_printable_reset, "");
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_plate_index, wxString::Format("%S%S", _L("Plate"),  wxString::FromUTF8("\xe2\x87\x85\x20")));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_plate_index, wxString::Format("%S%S", _L("Plate"), wxString::FromUTF8("\u2191\u2193")));
     /*m_object_grid->SetColLabelValue(ObjectGridTable::col_assemble_name, L("Module"));*/
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_name, wxString::Format("%S%S", _L("Name"), wxString::FromUTF8("\xe2\x87\x85\x20")));
-    m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments, wxString::Format("%S%S", _L("Filament"), wxString::FromUTF8("\xe2\x87\x85\x20")));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_name, wxString::Format("%S%S", _L("Name"), wxString::FromUTF8("\u2191\u2193")));
+    m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments, wxString::Format("%S%S", _L("Filament"), wxString::FromUTF8("\u2191\u2193")));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_filaments_reset, "");
     m_object_grid->SetColLabelValue(ObjectGridTable::col_layer_height, _L("Layer height"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_layer_height_reset, "");
