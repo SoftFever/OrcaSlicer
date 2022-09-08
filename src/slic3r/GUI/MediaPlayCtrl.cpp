@@ -99,8 +99,9 @@ void MediaPlayCtrl::Play()
 
     NetworkAgent* agent = wxGetApp().getAgent();
     if (agent) {
-            agent->get_camera_url(m_machine, [this](std::string url) {
+        agent->get_camera_url(m_machine, [this, m = m_machine](std::string url) {
             BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
+            if (m != m_machine) return;
             CallAfter([this, url] {
                 m_url = url;
                 if (m_last_state == MEDIASTATE_INITIALIZING) {
