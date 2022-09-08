@@ -1697,6 +1697,8 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
         m_print_job->task_use_ams = false;
     }
 
+    BOOST_LOG_TRIVIAL(info) << "print_job: use_ams = " << m_print_job->task_use_ams;
+
     m_print_job->on_success([this]() { finish_mode(); });
 
     wxCommandEvent evt(m_plater->get_print_finished_event());
@@ -1973,6 +1975,8 @@ void SelectMachineDialog::update_show_status()
 
     if (!obj_->is_info_ready()) {
         if (is_timeout()) {
+            m_ams_mapping_result.clear();
+            sync_ams_mapping_result(m_ams_mapping_result);
             show_status(PrintDialogStatus::PrintStatusReadingTimeout);
             return;
         }
