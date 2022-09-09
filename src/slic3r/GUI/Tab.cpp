@@ -1911,7 +1911,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Special mode"));
         optgroup->append_single_option_line("print_sequence");
         optgroup->append_single_option_line("spiral_mode", "spiral-vase");
-        optgroup->append_single_option_line("timelapse_type", "None");
+        optgroup->append_single_option_line("timelapse_type", "Timelapse");
         //BBS: todo remove clearance to machine
 #if 0
         //line = { L("Extruder radius"), "" };
