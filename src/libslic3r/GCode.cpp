@@ -2666,7 +2666,29 @@ GCode::LayerResult GCode::process_layer(
                     }
                 }
 
-                if (support_dontcare || interface_dontcare) {
+                if (interface_dontcare) {
+                    int extruder_override = wiping_extrusions.get_support_interface_extruder_overrides(&object);
+                    if (extruder_override >= 0) {
+                        interface_extruder = extruder_override;
+                        interface_dontcare = false;
+                    }
+                }
+
+                // BBS: try to print support base with a filament other than interface filament
+                if (support_dontcare && !interface_dontcare) {
+                    unsigned int dontcare_extruder = first_extruder_id;
+                    for (unsigned int extruder_id : layer_tools.extruders) {
+                        if (print.config().filament_soluble.get_at(extruder_id)) continue;
+
+                        if (extruder_id == interface_extruder) continue;
+
+                        dontcare_extruder = extruder_id;
+                        break;
+                    }
+
+                    if (support_dontcare) support_extruder = dontcare_extruder;
+                }
+                else if (support_dontcare || interface_dontcare) {
                     // Some support will be printed with "don't care" material, preferably non-soluble.
                     // Is the current extruder assigned a soluble filament?
                     unsigned int dontcare_extruder = first_extruder_id;
