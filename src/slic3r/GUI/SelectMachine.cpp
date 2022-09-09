@@ -931,7 +931,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_statictext_printer_msg->SetFont(::Label::Body_13);
     m_statictext_printer_msg->Hide();
 
-    m_sizer_select = new wxGridSizer(1, 2, 0, 0);
+    m_sizer_select = new wxGridSizer(0, 2, 0, 0);
     select_bed     = create_item_checkbox(_L("Bed Leveling"), this, _L("Bed Leveling"), "bed_leveling");
     select_flow    = create_item_checkbox(_L("Flow Calibration"), this, _L("Flow Calibration"), "flow_cali");
     select_use_ams = create_ams_checkbox(_L("Enable AMS"), this, _L("Enable AMS"));
@@ -1081,13 +1081,20 @@ wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *par
     img_ams_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_ams_tip](auto &e) {
         wxPoint pos = img_ams_tip->ClientToScreen(wxPoint(0, 0));
         pos.y += img_ams_tip->GetRect().height;
-        m_mapping_tip_popup.Position(pos, wxSize(0, 0));
+        m_mapping_tip_popup.Position(pos, wxSize(0,0));
         m_mapping_tip_popup.Popup();
     });
+    img_ams_tip->Bind(wxEVT_LEAVE_WINDOW, [this, img_ams_tip](wxMouseEvent &e) {
+        auto region = m_mapping_tip_popup.GetClientRect();
 
-    img_ams_tip->Bind(wxEVT_LEAVE_WINDOW, [this, img_ams_tip](auto &e) {
-        m_mapping_tip_popup.Dismiss();
+        if(e.GetPosition().x > region.GetLeftTop().x && e.GetPosition().y > region.GetLeftTop().y && e.GetPosition().x < region.GetRightBottom().x && e.GetPosition().x < region.GetRightBottom().y)
+            ;
+        else
+            m_mapping_tip_popup.Dismiss();
     });
+	m_mapping_tip_popup.Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {
+		m_mapping_tip_popup.Dismiss();
+		});
 
     checkbox->SetSizer(sizer_checkbox);
     checkbox->Layout();
@@ -1096,7 +1103,7 @@ wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *par
     checkbox->SetToolTip(tooltip);
     text->SetToolTip(tooltip);
 
-    text->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) {
+    text->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent & event) {
             ams_check->SetValue(ams_check->GetValue() ? false : true);
         });
     return checkbox;
@@ -1193,6 +1200,16 @@ void SelectMachineDialog::finish_mode()
 
 void SelectMachineDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &result)
 {
+    if (result.empty()) {
+        BOOST_LOG_TRIVIAL(trace) << "ams_mapping result is empty";
+        for (auto it = m_materialList.begin(); it != m_materialList.end(); it++) {
+            wxString ams_id = "-";
+            wxColour ams_col = wxColour(0xCE, 0xCE, 0xCE);
+            it->second->item->set_ams_info(ams_col, ams_id);
+        }
+        return;
+    }
+
     for (auto f = result.begin(); f != result.end(); f++) {
         BOOST_LOG_TRIVIAL(trace) << "ams_mapping f id = " << f->id << ", tray_id = " << f->tray_id << ", color = " << f->color << ", type = " << f->type;
 
@@ -1463,7 +1480,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusDisableAms) {
         update_print_status_msg(wxEmptyString, false, false);
-        Enable_Send_Button(false);
+        Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNeedUpgradingAms) {
         wxString msg_text;
@@ -1679,6 +1696,8 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     } else {
         m_print_job->task_use_ams = false;
     }
+
+    BOOST_LOG_TRIVIAL(info) << "print_job: use_ams = " << m_print_job->task_use_ams;
 
     m_print_job->on_success([this]() { finish_mode(); });
 
@@ -1909,9 +1928,9 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 void SelectMachineDialog::update_ams_check(MachineObject* obj)
 {
     if (obj && obj->ams_support_use_ams) {
-        ams_check->Show();
+        select_use_ams->Show();
     } else {
-        ams_check->Hide();
+        select_use_ams->Hide();
     }
 }
 
@@ -1956,6 +1975,8 @@ void SelectMachineDialog::update_show_status()
 
     if (!obj_->is_info_ready()) {
         if (is_timeout()) {
+            m_ams_mapping_result.clear();
+            sync_ams_mapping_result(m_ams_mapping_result);
             show_status(PrintDialogStatus::PrintStatusReadingTimeout);
             return;
         }
@@ -2001,6 +2022,7 @@ void SelectMachineDialog::update_show_status()
     if (obj_->ams_support_use_ams) {
         if (!ams_check->GetValue()) {
             m_ams_mapping_result.clear();
+            sync_ams_mapping_result(m_ams_mapping_result);
             show_status(PrintDialogStatus::PrintStatusDisableAms);
             return;
         }
@@ -2252,7 +2274,7 @@ void SelectMachineDialog::set_default()
                 pos.y += item->GetRect().height;
                 m_mapping_popup.Position(pos, wxSize(0, 0));
 
-                if (obj_ && obj_->has_ams()) {
+                if (obj_ && obj_->has_ams() && ams_check->GetValue()) {
                     m_mapping_popup.set_current_filament_id(extruder);
                     m_mapping_popup.set_tag_texture(materials[extruder]);
                     m_mapping_popup.update_ams_data(obj_->amsList);

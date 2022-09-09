@@ -19,6 +19,8 @@ class GLGizmoScale3D : public GLGizmoBase
     {
         Vec3d scale;
         Vec3d drag_position;
+        Vec3d plane_center;  // keep the relative center position for scale in the bottom plane
+        Vec3d plane_nromal;  // keep the bottom plane 
         BoundingBoxf3 box;
         Vec3d pivots[6];
         bool ctrl_down;

@@ -9,7 +9,7 @@
 
 #include "slic3r/Utils/Http.hpp"
 #include "libslic3r/Thread.hpp"
-
+#include "RecenterDialog.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -1355,6 +1355,12 @@ void StatusPanel::update(MachineObject *obj)
     m_machine_ctrl_panel->Thaw();
 }
 
+void StatusPanel::show_recenter_dialog() {
+    RecenterDialog dlg(this);
+    if (dlg.ShowModal() == wxID_OK)
+        obj->command_go_home();
+}
+
 void StatusPanel::show_error_message(wxString msg)
 {
     m_error_text->SetLabel(msg);
@@ -1399,6 +1405,14 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_bpButton_z_down_10->Enable(false);
         m_bpButton_e_10->Enable(false);
         m_bpButton_e_down_10->Enable(false);
+
+		m_bpButton_z_10->SetIcon("monitor_bed_up_disable");
+		m_bpButton_z_1->SetIcon("monitor_bed_up_disable");
+		m_bpButton_z_down_1->SetIcon("monitor_bed_down_disable");
+		m_bpButton_z_down_10->SetIcon("monitor_bed_down_disable");
+        m_bpButton_e_10->SetIcon("monitor_extruder_up_disable");
+        m_bpButton_e_down_10->SetIcon("monitor_extrduer_down_disable");
+
         m_staticText_z_tip->SetForegroundColour(DISCONNECT_TEXT_COL);
         m_staticText_e->SetForegroundColour(DISCONNECT_TEXT_COL);
         m_button_unload->Enable(false);
@@ -1416,6 +1430,14 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_bpButton_z_down_10->Enable();
         m_bpButton_e_10->Enable();
         m_bpButton_e_down_10->Enable();
+
+		m_bpButton_z_10->SetIcon("monitor_bed_up");
+		m_bpButton_z_1->SetIcon("monitor_bed_up");
+		m_bpButton_z_down_1->SetIcon("monitor_bed_down");
+		m_bpButton_z_down_10->SetIcon("monitor_bed_down");
+		m_bpButton_e_10->SetIcon("monitor_extruder_up");
+		m_bpButton_e_down_10->SetIcon("monitor_extrduer_down");
+
         m_staticText_z_tip->SetForegroundColour(TEXT_LIGHT_FONT_COL);
         m_staticText_e->SetForegroundColour(TEXT_LIGHT_FONT_COL);
         m_button_unload->Enable();
@@ -1524,8 +1546,8 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
     else {
         // update speed
         this->speed_lvl = obj->printing_speed_lvl;
-        wxString text_speed = wxString::Format("%d%%", obj->printing_speed_mag);
-        m_switch_speed->SetLabels(text_speed, text_speed);
+            wxString text_speed = wxString::Format("%d%%", obj->printing_speed_mag);
+            m_switch_speed->SetLabels(text_speed, text_speed);
     }
 }
 
@@ -1953,26 +1975,77 @@ void StatusPanel::on_axis_ctrl_xy(wxCommandEvent &event)
     if (event.GetInt() == 6) { obj->command_axis_control("Y", 1.0, -1.0f, 3000); }
     if (event.GetInt() == 7) { obj->command_axis_control("X", 1.0, 1.0f, 3000); }
     if (event.GetInt() == 8) { obj->command_go_home(); }
+
+    //check is at home
+    if (event.GetInt() == 1
+        || event.GetInt() == 3
+        || event.GetInt() == 5
+        || event.GetInt() == 7) {
+        if (!obj->is_axis_at_home("X")) {
+            BOOST_LOG_TRIVIAL(info) << "axis x is not at home";
+            show_recenter_dialog();
+            return;
+        }
+    }
+    else if (event.GetInt() == 0
+        || event.GetInt() == 2
+        || event.GetInt() == 4
+        || event.GetInt() == 6) {
+        if (!obj->is_axis_at_home("Y")) {
+            BOOST_LOG_TRIVIAL(info) << "axis y is not at home";
+            show_recenter_dialog();
+            return;
+        }
+    }
+}
+
+bool StatusPanel::check_axis_z_at_home(MachineObject* obj)
+{
+    if (obj) {
+        if (!obj->is_axis_at_home("Z")) {
+            BOOST_LOG_TRIVIAL(info) << "axis z is not at home";
+            show_recenter_dialog();
+            return false;
+        }
+        return true;
+    }
+    return false;
 }
 
 void StatusPanel::on_axis_ctrl_z_up_10(wxCommandEvent &event)
 {
-    if (obj) obj->command_axis_control("Z", 1.0, -10.0f, 900);
+    if (obj) {
+        obj->command_axis_control("Z", 1.0, -10.0f, 900);
+        if (!check_axis_z_at_home(obj))
+            return;
+    }
 }
 
 void StatusPanel::on_axis_ctrl_z_up_1(wxCommandEvent &event)
 {
-    if (obj) obj->command_axis_control("Z", 1.0, -1.0f, 900);
+    if (obj) {
+        obj->command_axis_control("Z", 1.0, -1.0f, 900);
+        if (!check_axis_z_at_home(obj))
+            return;
+    }
 }
 
 void StatusPanel::on_axis_ctrl_z_down_1(wxCommandEvent &event)
 {
-    if (obj) obj->command_axis_control("Z", 1.0, 1.0f, 900);
+    if (obj) {
+        obj->command_axis_control("Z", 1.0, 1.0f, 900);
+        if (!check_axis_z_at_home(obj))
+            return;
+    }
 }
 
 void StatusPanel::on_axis_ctrl_z_down_10(wxCommandEvent &event)
 {
-    if (obj) obj->command_axis_control("Z", 1.0, 10.0f, 900);
+    if (obj) {
+        obj->command_axis_control("Z", 1.0, 10.0f, 900);
+        if (!check_axis_z_at_home(obj))
+            return;
+    }
 }
 
 void StatusPanel::on_axis_ctrl_e_up_10(wxCommandEvent &event)
@@ -2217,7 +2290,7 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
     popUp->SetSizer(sizer);
     auto em = em_unit(this);
     popUp->SetSize(em * 36, em * 8);
-
+    step->SetHint(_L("This only takes effect during printing"));
     step->AppendItem(_L("Silent"), "");
     step->AppendItem(_L("Standard"), "");
     step->AppendItem(_L("Sport"), "");
@@ -2233,6 +2306,11 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
     }
     step->SelectItem(selected_item);
     
+    if (!obj->is_in_printing()) {
+        step->Bind(wxEVT_LEFT_DOWN, [](auto& e) {
+            return; });
+    }
+
     step->Bind(EVT_STEP_CHANGED, [this](auto &e) {
         this->speed_lvl        = e.GetInt() + 1;
         if (obj) {

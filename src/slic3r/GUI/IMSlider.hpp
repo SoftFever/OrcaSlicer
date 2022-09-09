@@ -355,6 +355,7 @@ private:
     long                m_extra_style;
     float               m_label_koef{1.0};
 
+    float                    m_zero_layer_height = 0.0f;
     std::vector<double>      m_values;
     TickCodeInfo             m_ticks;
     std::vector<double>      m_layers_times;

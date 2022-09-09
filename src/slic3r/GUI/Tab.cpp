@@ -1376,13 +1376,14 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         update_wiping_button_visibility();
 
     if (opt_key == "enable_prime_tower") {
-        bool timelapse_enabled = m_config->option<ConfigOptionBool>("timelapse_no_toolhead")->value;
+        auto timelapse_type = m_config->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
+        bool timelapse_enabled = timelapse_type->value == TimelapseType::tlSmooth;
         if (!boost::any_cast<bool>(value) && timelapse_enabled) {
             MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required by timeplase. Are you sure you want to disable both of them?"),
                               _L("Warning"), wxICON_WARNING | wxYES | wxNO);
             if (dlg.ShowModal() == wxID_YES) {
                 DynamicPrintConfig new_conf = *m_config;
-                new_conf.set_key_value("timelapse_no_toolhead", new ConfigOptionBool(false));
+                new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(TimelapseType::tlNone));
                 m_config_manipulation.apply(m_config, &new_conf);
                 wxGetApp().plater()->update();
             }
@@ -1396,9 +1397,9 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     }
 
     // reload scene to update timelapse wipe tower
-    if (opt_key == "timelapse_no_toolhead") {
+    if (opt_key == "timelapse_type") {
         bool wipe_tower_enabled = m_config->option<ConfigOptionBool>("enable_prime_tower")->value;
-        if (!wipe_tower_enabled && boost::any_cast<bool>(value)) {
+        if (!wipe_tower_enabled && boost::any_cast<int>(value) == int(TimelapseType::tlSmooth)) {
             MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required by timelapse. Do you want to enable both of them?"),
                               _L("Warning"), wxICON_WARNING | wxYES | wxNO);
             if (dlg.ShowModal() == wxID_YES) {
@@ -1409,7 +1410,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             }
             else {
                 DynamicPrintConfig new_conf = *m_config;
-                new_conf.set_key_value("timelapse_no_toolhead", new ConfigOptionBool(false));
+                new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(TimelapseType::tlNone));
                 m_config_manipulation.apply(m_config, &new_conf);
             }
         } else {
@@ -1765,6 +1766,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("seam_position", "Seam");
 
         optgroup = page->new_optgroup(L("Precision"));
+        optgroup->append_single_option_line("slice_closing_radius");
         optgroup->append_single_option_line("resolution");
         optgroup->append_single_option_line("enable_arc_fitting");
         optgroup->append_single_option_line("xy_hole_compensation");
@@ -1849,40 +1851,40 @@ void TabPrint::build()
     page = add_options_page(L("Support"), "support");
         optgroup = page->new_optgroup(L("Support"));
     optgroup->append_single_option_line("enable_support", "support");
-        optgroup->append_single_option_line("support_type", "support");
-        optgroup->append_single_option_line("support_threshold_angle", "support");
+        optgroup->append_single_option_line("support_type", "support#support-types");
+        optgroup->append_single_option_line("support_threshold_angle", "support#threshold-angle");
         optgroup->append_single_option_line("support_on_build_plate_only");
         //optgroup->append_single_option_line("enforce_support_layers");
 
         optgroup = page->new_optgroup(L("Support filament"));
-        optgroup->append_single_option_line("support_filament", "support");
-        optgroup->append_single_option_line("support_interface_filament", "support");
+        optgroup->append_single_option_line("support_filament", "support#support-filament");
+        optgroup->append_single_option_line("support_interface_filament", "support#support-filament");
 
         //optgroup = page->new_optgroup(L("Options for support material and raft"));
         //optgroup->append_single_option_line("support_style");
 
         //BBS
         optgroup = page->new_optgroup(L("Advanced"));
-        optgroup->append_single_option_line("tree_support_branch_distance", "support");
-        optgroup->append_single_option_line("tree_support_branch_diameter", "support");
-        optgroup->append_single_option_line("tree_support_branch_angle", "support");
+        optgroup->append_single_option_line("tree_support_branch_distance", "support#tree-support-only-options");
+        optgroup->append_single_option_line("tree_support_branch_diameter", "support#tree-support-only-options");
+        optgroup->append_single_option_line("tree_support_branch_angle", "support#tree-support-only-options");
         optgroup->append_single_option_line("tree_support_wall_count");
         optgroup->append_single_option_line("tree_support_with_infill");
-        optgroup->append_single_option_line("support_top_z_distance", "support");
-        optgroup->append_single_option_line("support_base_pattern", "support");
-        optgroup->append_single_option_line("support_base_pattern_spacing", "support");
+        optgroup->append_single_option_line("support_top_z_distance", "support#top-z-distance");
+        optgroup->append_single_option_line("support_base_pattern", "support#base-pattern");
+        optgroup->append_single_option_line("support_base_pattern_spacing", "support#base-pattern");
         //optgroup->append_single_option_line("support_angle");
-        optgroup->append_single_option_line("support_interface_top_layers", "support");
-        optgroup->append_single_option_line("support_interface_bottom_layers", "support");
-        optgroup->append_single_option_line("support_interface_pattern", "support");
-        optgroup->append_single_option_line("support_interface_spacing", "support");
+        optgroup->append_single_option_line("support_interface_top_layers", "support#base-pattern");
+        optgroup->append_single_option_line("support_interface_bottom_layers", "support#base-pattern");
+        optgroup->append_single_option_line("support_interface_pattern", "support#base-pattern");
+        optgroup->append_single_option_line("support_interface_spacing", "support#base-pattern");
         optgroup->append_single_option_line("support_bottom_interface_spacing");
         //optgroup->append_single_option_line("support_interface_loop_pattern");
 
-        optgroup->append_single_option_line("support_object_xy_distance", "support");
-        optgroup->append_single_option_line("bridge_no_support", "support");
-        optgroup->append_single_option_line("max_bridge_length", "support");
-        optgroup->append_single_option_line("thick_bridges", "support");
+        optgroup->append_single_option_line("support_object_xy_distance", "support#supportobject-xy-distance");
+        optgroup->append_single_option_line("bridge_no_support", "support#base-pattern");
+        optgroup->append_single_option_line("max_bridge_length", "support#base-pattern");
+        optgroup->append_single_option_line("thick_bridges", "support#base-pattern");
         //optgroup->append_single_option_line("independent_support_layer_height");
 
     page = add_options_page(L("Others"), "advanced");
@@ -1891,8 +1893,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("skirt_distance");
         //optgroup->append_single_option_line("draft_shield");
         optgroup->append_single_option_line("brim_type", "auto-brim");
-        optgroup->append_single_option_line("brim_width", "auto-brim");
-        optgroup->append_single_option_line("brim_object_gap", "auto-brim");
+        optgroup->append_single_option_line("brim_width", "auto-brim#manual");
+        optgroup->append_single_option_line("brim_object_gap", "auto-brim#brim-object-gap");
         optgroup->append_single_option_line("raft_layers");
         //optgroup->append_single_option_line("raft_first_layer_density");
         //optgroup->append_single_option_line("raft_first_layer_expansion");
@@ -1904,14 +1906,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("prime_tower_brim_width");
 
         optgroup = page->new_optgroup(L("Flush options"));
-        optgroup->append_single_option_line("flush_into_infill", "reduce-wasting-during-filament-change");
-        optgroup->append_single_option_line("flush_into_objects", "reduce-wasting-during-filament-change");
-        optgroup->append_single_option_line("flush_into_support", "reduce-wasting-during-filament-change");
+        optgroup->append_single_option_line("flush_into_infill", "reduce-wasting-during-filament-change#wipe-into-infill");
+        optgroup->append_single_option_line("flush_into_objects", "reduce-wasting-during-filament-change#wipe-into-object");
+        optgroup->append_single_option_line("flush_into_support", "reduce-wasting-during-filament-change#wipe-into-support-enabled-by-default");
 
         optgroup = page->new_optgroup(L("Special mode"));
         optgroup->append_single_option_line("print_sequence");
         optgroup->append_single_option_line("spiral_mode", "spiral-vase");
-        optgroup->append_single_option_line("timelapse_no_toolhead", "Timelapse");
+        optgroup->append_single_option_line("timelapse_type", "Timelapse");
         //BBS: todo remove clearance to machine
 #if 0
         //line = { L("Extruder radius"), "" };
@@ -3399,9 +3401,10 @@ void TabPrinter::toggle_options()
     }
 
     wxString extruder_number;
-    long val;
-    if (m_active_page->title().StartsWith("Extruder ", &extruder_number) && extruder_number.ToLong(&val) &&
-        val > 0 && (size_t)val <= m_extruders_count)
+    long val = 1;
+    if ( m_active_page->title().IsSameAs("Extruder") ||
+        (m_active_page->title().StartsWith("Extruder ", &extruder_number) && extruder_number.ToLong(&val) &&
+        val > 0 && (size_t)val <= m_extruders_count))
     {
         size_t i = size_t(val - 1);
         bool have_retract_length = m_config->opt_float("retraction_length", i) > 0;
@@ -3427,10 +3430,10 @@ void TabPrinter::toggle_options()
             //BBS
             toggle_option(el, retraction, i);
 
-        bool wipe = m_config->opt_bool("wipe", i);
+        bool wipe = retraction && m_config->opt_bool("wipe", i);
         toggle_option("retract_before_wipe", wipe, i);
         // BBS
-        toggle_option("wipe_distance", i);
+        toggle_option("wipe_distance", wipe, i);
 
         toggle_option("retract_length_toolchange", have_multiple_extruders, i);
 

@@ -19,6 +19,7 @@ protected:
 
     std::vector<wxString> steps;
     std::vector<wxString> tips;
+    wxString hint;
 
     int step = -1;
 
@@ -35,6 +36,8 @@ public:
     ~StepCtrlBase();
 
 public:
+    void SetHint(wxString hint);
+
     bool SetTipFont(wxFont const & font);
 
 public:

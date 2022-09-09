@@ -286,7 +286,7 @@ namespace GUI {
 
 void initGestures(void * view,  wxEvtHandler * handler)
 {
-    NSOpenGLView * glView = (NSOpenGLView *) view;
+    wxNSCustomOpenGLView * glView = (wxNSCustomOpenGLView *) view;
     [glView initGesturesWithHandler: handler];
 }
 

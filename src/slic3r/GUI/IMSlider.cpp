@@ -824,12 +824,14 @@ void IMSlider::draw_colored_band(const ImRect& groove, const ImRect& slideable_r
         //cover round corner
         ImGui::RenderFrame(ImVec2(band_rc.Min.x, band_rc.Max.y - band_rc.GetWidth() * 0.5), band_rc.Max, clr, false);
     };
-    //draw colored band
-    ImRect band_rect(main_band);
+    auto draw_main_band = [&main_band, this](const ImU32& clr) {
+        ImGui::RenderFrame(main_band.Min, main_band.Max, clr, false, main_band.GetWidth() * 0.5);
+    };
+    //draw main colored band
     const int default_color_idx = m_mode == MultiAsSingle ? std::max<int>(m_only_extruder - 1, 0) : 0;
     std::array<float, 4>rgba = decode_color_to_float_array(m_extruder_colors[default_color_idx]);
     ImU32 band_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
-    ImGui::RenderFrame(band_rect.Min, band_rect.Max, band_clr, false, band_rect.GetWidth() * 0.5);
+    draw_main_band(band_clr);
 
     static float tick_pos;
     std::set<TickCode>::const_iterator tick_it = m_ticks.ticks.begin();
@@ -841,15 +843,17 @@ void IMSlider::draw_colored_band(const ImRect& groove, const ImRect& slideable_r
         if (tick_it->type == ToolChange) {
             if ((m_mode == SingleExtruder) || (m_mode == MultiAsSingle))
             {
-                //TODO:band_rect width need to be ajusted
-                band_rect = ImRect(main_band.Min, ImVec2(main_band.Max.x, tick_pos));
+                ImRect band_rect = ImRect(main_band.Min, ImVec2(main_band.Max.x, tick_pos));
 
                 const std::string clr_str = m_mode == SingleExtruder ? tick_it->color : get_color_for_tool_change_tick(tick_it);
 
                 if (!clr_str.empty()) {
                     std::array<float, 4>rgba = decode_color_to_float_array(clr_str);
                     ImU32 band_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
-                    draw_band(band_clr, band_rect);
+                    if (tick_it->tick == 0)
+                        draw_main_band(band_clr);
+                    else
+                        draw_band(band_clr, band_rect);
                 }
             }
         }
@@ -1255,7 +1259,15 @@ void IMSlider::render_menu()
 
     ImGui::PushStyleVar(ImGuiStyleVar_::ImGuiStyleVar_ChildRounding, 4.0f * m_scale);
     if (ImGui::BeginPopup("slider_menu_popup")) {
-        if(menu_item_with_icon(_u8L("Add Pause").c_str(), "")) { add_code_as_tick(PausePrint); }
+        if ((m_selection == ssLower && GetLowerValueD() == m_zero_layer_height) || (m_selection == ssHigher && GetHigherValueD() == m_zero_layer_height))
+        {
+            menu_item_with_icon(_u8L("Add Pause").c_str(), "", ImVec2(0, 0), 0, false, false);
+        }else
+        {
+            if (menu_item_with_icon(_u8L("Add Pause").c_str(), "")) {
+                add_code_as_tick(PausePrint);
+            }
+        }
 
         //BBS render this menu item only when extruder_num > 1
         if (extruder_num > 1) {
@@ -1348,12 +1360,23 @@ std::string IMSlider::get_label(int tick, LabelType label_type)
         }
 
         char layer_height[64];
-        ::sprintf(layer_height, "%.2f", m_values.empty() ? m_label_koef * value : m_values[value]);
+        m_values[value] == m_zero_layer_height ?
+            ::sprintf(layer_height, "") :
+            ::sprintf(layer_height, "%.2f", m_values.empty() ? m_label_koef * value : m_values[value]);
         if (label_type == ltHeight) return std::string(layer_height);
         if (label_type == ltHeightWithLayer) {
-            size_t layer_number = m_is_wipe_tower ? get_layer_number(value, label_type) + 1 : (m_values.empty() ? value : value + 1);
             char   buffer[64];
-            ::sprintf(buffer, "%5s\n%5s", std::to_string(layer_number).c_str(), layer_height);
+            size_t layer_number;
+            if (m_values[GetMinValueD()] == m_zero_layer_height) {
+                layer_number = m_is_wipe_tower ? get_layer_number(value, label_type): (m_values.empty() ? value : value);
+                m_values[value] == m_zero_layer_height ?
+                    ::sprintf(buffer, "%5s", std::to_string(layer_number).c_str()) :
+                    ::sprintf(buffer, "%5s\n%5s", std::to_string(layer_number).c_str(), layer_height);
+            }
+            else {
+                layer_number = m_is_wipe_tower ? get_layer_number(value, label_type) + 1 : (m_values.empty() ? value : value + 1);
+                ::sprintf(buffer, "%5s\n%5s", std::to_string(layer_number).c_str(), layer_height);
+            }
             return std::string(buffer);
         }
     }

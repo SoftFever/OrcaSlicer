@@ -1590,7 +1590,7 @@ void GUI_App::init_networking_callbacks()
                             if (state == ConnectStatus::ConnectStatusOk) {
                                 obj->command_request_push_all();
                                 obj->command_get_version();
-                            } else if (state == ConnectStatus::ConnectStatusFailed || ConnectStatus::ConnectStatusLost) {
+                            } else if (state == ConnectStatus::ConnectStatusFailed) {
                                 obj->set_access_code("");
                                 wxString text;
                                 if (msg == "5") {
@@ -1600,6 +1600,9 @@ void GUI_App::init_networking_callbacks()
                                     text = wxString::Format(_L("Connect %s failed! [SN:%s, code=%s]"), from_u8(obj->dev_name), obj->dev_id, msg);
                                     wxGetApp().show_dialog(text);
                                 }
+                            } else if (state == ConnectStatus::ConnectStatusLost) {
+                                m_device_manager->set_selected_machine("");
+                                BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = lost";
                             } else {
                                 BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = " << state;
                             }
@@ -2007,19 +2010,36 @@ bool GUI_App::on_init_inner()
 
                 dialog.SetExtendedMessage(extmsg);*/
 
-                UpdateVersionDialog dialog(this->mainframe);
-                wxString            extmsg = wxString::FromUTF8(version_info.description);
-                dialog.update_version_info(extmsg, version_info.version_str);
-                 switch (dialog.ShowModal())
-                 {
-                 case wxID_YES:
-                     wxLaunchDefaultBrowser(version_info.url);
-                     break;
-                 case wxID_NO:
-                     break;
-                 default:
-                     ;
-                 }
+                std::string skip_version_str = this->app_config->get("app", "skip_version");
+                bool skip_this_version = false;
+                if (!skip_version_str.empty()) {
+                    BOOST_LOG_TRIVIAL(info) << "new version = " << version_info.version_str << ", skip version = " << skip_version_str;
+                    if (version_info.version_str <= skip_version_str) {
+                        skip_this_version = true;
+                    } else {
+                        app_config->set("skip_version", "");
+                        skip_this_version = false;
+                    }
+                }
+                if (!skip_this_version
+                    || evt.GetInt() != 0) {
+                    UpdateVersionDialog dialog(this->mainframe);
+                    wxString            extmsg = wxString::FromUTF8(version_info.description);
+                    dialog.update_version_info(extmsg, version_info.version_str);
+                    if (evt.GetInt() != 0) {
+                        dialog.m_remind_choice->Hide();
+                    }
+                    switch (dialog.ShowModal())
+                    {
+                    case wxID_YES:
+                        wxLaunchDefaultBrowser(version_info.url);
+                        break;
+                    case wxID_NO:
+                        break;
+                    default:
+                        ;
+                    }
+                }
             }
             });
 
@@ -3288,7 +3308,7 @@ void GUI_App::reset_to_active()
     last_active_point = std::chrono::system_clock::now();
 }
 
-void GUI_App::check_update(bool show_tips)
+void GUI_App::check_update(bool show_tips, int by_user)
 {
     if (version_info.version_str.empty()) return;
     if (version_info.url.empty()) return;
@@ -3305,7 +3325,7 @@ void GUI_App::check_update(bool show_tips)
             GUI::wxGetApp().enter_force_upgrade();
         }
         else {
-            GUI::wxGetApp().request_new_version();
+            GUI::wxGetApp().request_new_version(by_user);
         }
     } else {
         wxGetApp().app_config->set("upgrade", "force_upgrade", false);
@@ -3314,7 +3334,7 @@ void GUI_App::check_update(bool show_tips)
     }
 }
 
-void GUI_App::check_new_version(bool show_tips)
+void GUI_App::check_new_version(bool show_tips, int by_user)
 {
     std::string platform = "windows";
 
@@ -3337,7 +3357,7 @@ void GUI_App::check_new_version(bool show_tips)
 
     http.header("accept", "application/json")
         .timeout_max(10)
-        .on_complete([this, show_tips](std::string body, unsigned) {
+        .on_complete([this, show_tips, by_user](std::string body, unsigned) {
         try {
             json j = json::parse(body);
             if (j.contains("message")) {
@@ -3357,8 +3377,8 @@ void GUI_App::check_new_version(bool show_tips)
                             if (j["software"].contains("force_update")) {
                                 version_info.force_upgrade = j["software"]["force_update"].get<bool>();
                             }
-                            CallAfter([this, show_tips](){
-                                this->check_update(show_tips);
+                            CallAfter([this, show_tips, by_user](){
+                                this->check_update(show_tips, by_user);
                             });
                         }
                     }
@@ -3377,10 +3397,11 @@ void GUI_App::check_new_version(bool show_tips)
 
 
 //BBS pop up a dialog and download files
-void GUI_App::request_new_version()
+void GUI_App::request_new_version(int by_user)
 {
     wxCommandEvent* evt = new wxCommandEvent(EVT_SLIC3R_VERSION_ONLINE);
     evt->SetString(GUI::from_u8(version_info.version_str));
+    evt->SetInt(by_user);
     GUI::wxGetApp().QueueEvent(evt);
 }
 
@@ -3388,6 +3409,16 @@ void GUI_App::enter_force_upgrade()
 {
     wxCommandEvent *evt = new wxCommandEvent(EVT_ENTER_FORCE_UPGRADE);
     GUI::wxGetApp().QueueEvent(evt);
+}
+
+void GUI_App::set_skip_version(bool skip)
+{
+    BOOST_LOG_TRIVIAL(info) << "set_skip_version, skip = " << skip << ", version = " <<version_info.version_str;
+    if (skip) {
+        app_config->set("skip_version", version_info.version_str);
+    }else {
+        app_config->set("skip_version", "");
+    }
 }
 
 void GUI_App::no_new_version()
@@ -4516,6 +4547,12 @@ void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
 // wxWidgets override to get an event on open files.
 void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
 {
+    if (m_post_initialized) {
+        std::vector<wxString> names;
+        for (auto & n : fileNames) names.push_back(n);
+        start_new_slicer(names);
+        return;
+    }
     std::vector<std::string> files;
     std::vector<wxString>    gcode_files;
     std::vector<wxString>    non_gcode_files;

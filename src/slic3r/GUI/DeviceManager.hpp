@@ -364,6 +364,7 @@ public:
     bool  ams_insert_flag { false };
     bool  ams_power_on_flag { false };
     bool  ams_support_use_ams { false };
+    int   ams_user_setting_hold_count = 0;
     AmsStatusMain ams_status_main;
     int   ams_status_sub;
     int   ams_version = 0;
@@ -459,6 +460,7 @@ public:
     int     mc_print_percent;       /* left print progess in percent */
     int     mc_left_time;           /* left time in seconds */
     int     last_mc_print_stage;
+    int     home_flag;
     bool    is_system_printing();
     int     print_error;
 
@@ -466,6 +468,8 @@ public:
     int stage_curr = 0;
     int m_push_count = 0;
     bool calibration_done { false };
+
+    bool is_axis_at_home(std::string axis);
 
     wxString get_curr_stage();
     // return curr stage index of stage list

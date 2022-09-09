@@ -1932,8 +1932,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         auto co = dynamic_cast<const ConfigOptionEnum<PrintSequence>*>(m_config->option<ConfigOptionEnum<PrintSequence>>("print_sequence"));
 
         const DynamicPrintConfig &dconfig           = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-        const ConfigOption *      option            = dconfig.option("timelapse_no_toolhead");
-        bool                      timelapse_enabled = option ? option->getBool() : false;
+        auto timelapse_type = dconfig.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
+        bool timelapse_enabled = timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false;
 
         if (timelapse_enabled || (filaments_count > 1 && wt && co != nullptr && co->value != PrintSequence::ByObject)) {
             for (int plate_id = 0; plate_id < n_plates; plate_id++) {
@@ -2264,6 +2264,12 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         return;
     }
 
+    bool is_in_painting_mode = false;
+    GLGizmoPainterBase *current_gizmo_painter = dynamic_cast<GLGizmoPainterBase *>(get_gizmos_manager().get_current());
+    if (current_gizmo_painter != nullptr) {
+        is_in_painting_mode = true;
+    }
+
     //BBS: add orient deactivate logic
     if (keyCode == WXK_ESCAPE
         && (_deactivate_arrange_menu() || _deactivate_orient_menu()))
@@ -2281,7 +2287,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #else /* __APPLE__ */
         case WXK_CONTROL_A:
 #endif /* __APPLE__ */
-            post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL));
+            if (!is_in_painting_mode)
+                post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL));
         break;
 #ifdef __APPLE__
         case 'c':
@@ -2289,7 +2296,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #else /* __APPLE__ */
         case WXK_CONTROL_C:
 #endif /* __APPLE__ */
-            post_event(SimpleEvent(EVT_GLTOOLBAR_COPY));
+            if (!is_in_painting_mode)
+                post_event(SimpleEvent(EVT_GLTOOLBAR_COPY));
         break;
 #ifdef __APPLE__
         case 'm':
@@ -2325,7 +2333,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #else /* __APPLE__ */
         case WXK_CONTROL_V:
 #endif /* __APPLE__ */
-            post_event(SimpleEvent(EVT_GLTOOLBAR_PASTE));
+            if (!is_in_painting_mode)
+                post_event(SimpleEvent(EVT_GLTOOLBAR_PASTE));
         break;
 
 #ifdef __APPLE__
@@ -2334,7 +2343,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #else /* __APPLE__ */
         case WXK_CONTROL_X:
 #endif /* __APPLE__ */
-            post_event(SimpleEvent(EVT_GLTOOLBAR_CUT));
+            if (!is_in_painting_mode)
+                post_event(SimpleEvent(EVT_GLTOOLBAR_CUT));
         break;
 
 #ifdef __APPLE__
@@ -5845,14 +5855,14 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     {
 
 #if ENABLE_RETINA_GL
-        IMSlider *m_layers_slider = get_gcode_viewer().get_layers_slider();
-        IMSlider *m_moves_slider  = get_gcode_viewer().get_moves_slider();
+        IMSlider* m_layers_slider = get_gcode_viewer().get_layers_slider();
+        IMSlider* m_moves_slider = get_gcode_viewer().get_moves_slider();
         const float sc = m_retina_helper->get_scale_factor();
         m_layers_slider->set_scale(sc);
         m_moves_slider->set_scale(sc);
         m_gcode_viewer.set_scale(sc);
 
-        auto *m_notification = wxGetApp().plater()->get_notification_manager();
+        auto* m_notification = wxGetApp().plater()->get_notification_manager();
         m_notification->set_scale(sc);
 
 #endif
@@ -5877,7 +5887,7 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     collapse_toolbar.set_scale(sc);
     size *= m_retina_helper->get_scale_factor();
 
-    auto *m_notification = wxGetApp().plater()->get_notification_manager();
+    auto* m_notification = wxGetApp().plater()->get_notification_manager();
     m_notification->set_scale(sc);
 #else
     //BBS: GUI refactor: GLToolbar
@@ -5892,11 +5902,19 @@ void GLCanvas3D::_check_and_update_toolbar_icon_scale()
     float collapse_toolbar_width = collapse_toolbar.is_enabled() ? collapse_toolbar.get_width() : GLToolbar::Default_Icons_Size;
 
     float top_tb_width = m_main_toolbar.get_width() + m_gizmos.get_scaled_total_width() + m_assemble_view_toolbar.get_width() + m_separator_toolbar.get_width() + collapse_toolbar_width;
-    int   items_cnt = m_main_toolbar.get_visible_items_cnt() + m_gizmos.get_selectable_icons_cnt() + m_assemble_view_toolbar.get_visible_items_cnt() +  m_separator_toolbar.get_visible_items_cnt() + collapse_toolbar.get_visible_items_cnt();
+    int   items_cnt = m_main_toolbar.get_visible_items_cnt() + m_gizmos.get_selectable_icons_cnt() + m_assemble_view_toolbar.get_visible_items_cnt() + m_separator_toolbar.get_visible_items_cnt() + collapse_toolbar.get_visible_items_cnt();
     float noitems_width = top_tb_width - size * items_cnt; // width of separators and borders in top toolbars
 
     // calculate scale needed for items in all top toolbars
+#ifdef __WINDOWS__
+    cnv_size.set_width(cnv_size.get_width() + m_separator_toolbar.get_width() + collapse_toolbar_width);
+#endif
     float new_h_scale = (cnv_size.get_width() - noitems_width) / (items_cnt * GLToolbar::Default_Icons_Size);
+
+    //for protect
+    if (new_h_scale <= 0) {
+        new_h_scale = 1;
+    }
 
     //use the same value as horizon
     float new_v_scale = new_h_scale;

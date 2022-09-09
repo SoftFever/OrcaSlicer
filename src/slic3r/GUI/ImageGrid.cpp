@@ -60,6 +60,9 @@ void ImageGrid::SetFileSystem(boost::shared_ptr<PrinterFileSystem> file_sys)
         m_file_sys->Bind(EVT_THUMBNAIL, &ImageGrid::changedEvent, this);
         m_file_sys->Bind(EVT_DOWNLOAD, &ImageGrid::changedEvent, this);
     }
+    m_row_count = 0;
+    m_col_count = 1;
+    m_row_offset = 0;
     UpdateFileSystem();
 }
 
@@ -109,12 +112,11 @@ void Slic3r::GUI::ImageGrid::Rescale()
 {
     UpdateFileSystem();
     auto em              = em_unit(this);
-    wxSize size1{256 * em / 10, 4 * em};
+    wxSize size1{384 * em / 10, 4 * em};
     m_buttons_background = createAlphaBitmap(size1, *wxBLACK, 77, 77);
+    m_buttons_background_checked = createAlphaBitmap(size1, wxColor("#FF2002"), 77, 77);
     //wxSize size2{128 * m_buttonBackgroundColor.count() * em_unit(this) / 10, 4 * em_unit(this)};
     //m_button_background = createAlphaBitmap(size2, *wxBLACK, 77, 77);
-    wxSize size_p{8 * em, 8 * em};
-    m_progress_background = createCircleBitmap(size_p, em, m_background_progress, wxTransparentColour, *wxWHITE);
 }
 
 void Slic3r::GUI::ImageGrid::Select(size_t index)
@@ -131,6 +133,7 @@ void Slic3r::GUI::ImageGrid::Select(size_t index)
     m_row_offset = index / m_col_count * 4;
     if (m_row_offset >= m_row_count)
         m_row_offset = m_row_count == 0 ? 0 : m_row_count - 1;
+    Refresh();
 }
 
 void Slic3r::GUI::ImageGrid::DoAction(size_t index, int action)
@@ -168,8 +171,8 @@ void Slic3r::GUI::ImageGrid::UpdateFileSystem()
     if (!m_file_sys) return;
     wxSize mask_size{0, 60};
     if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE) {
-        m_image_size.Set(256, 144);
-        m_cell_size.Set(272, 160);
+        m_image_size.Set(384, 216);
+        m_cell_size.Set(396, 228);
     }
     else {
         m_image_size.Set(480, 270);
@@ -474,48 +477,33 @@ void ImageGrid::render(wxDC& dc)
                     pt + wxPoint{10, m_image_size.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
             // can' handle alpha
             // dc.GradientFillLinear({pt.x, pt.y, m_image_size.GetWidth(), 60}, wxColour(0x6F, 0x6F, 0x6F, 0x99), wxColour(0x6F, 0x6F, 0x6F, 0), wxBOTTOM);
-            if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE) {
+            else if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE) {
+                wxString nonHoverText;
                 wxString secondAction = _L("Download");
+                int      states = 0;
                 // Draw download progress
                 if (file.IsDownload()) {
                     if (file.progress == -1) {
                         secondAction = _L("Cancel");
-                        dc.DrawText(_L("Waiting"), pt + wxPoint{24, m_image_size.GetHeight() - 64});
+                        nonHoverText = _L("Download waiting...");
                     } else if (file.progress < 0) {
                         secondAction = _L("Retry");
-                        dc.DrawText(_L("Failed"), pt + wxPoint{24, m_image_size.GetHeight() - 64});
+                        nonHoverText = _L("Download failed");
+                        states       = StateColor::Checked;
                     } else if (file.progress >= 100) {
                         secondAction = _L("Open");
-                        dc.DrawText(_L("Finished"), pt + wxPoint{24, m_image_size.GetHeight() - 64});
+                        nonHoverText = _L("Download finished");
                     } else {
                         secondAction = _L("Cancel");
-                        if (file.progress != m_background_progress) {
-                            auto em               = em_unit(this);
-                            wxSize size_p{8 * em, 8 * em};
-                            m_background_progress = file.progress;
-                            m_progress_background = createCircleBitmap(size_p, em, m_background_progress, wxTransparentColour, *wxWHITE);
-                        }
-                        auto pos = (m_image_size - m_progress_background.GetSize()) / 2;
-                        dc.DrawBitmap(m_progress_background, pt + wxPoint{pos.x, pos.y});
-                        // draw progress text
-                        auto p = wxString::Format("%d", m_background_progress);
-                        dc.SetFont(Label::sysFont(30));
-                        wxSize s1 = dc.GetTextExtent(p);
-                        dc.SetFont(Label::sysFont(20));
-                        wxSize s2 = dc.GetTextExtent(L"%");
-                        wxRect rt = wxRect(0, 0, s1.x + s2.x, s1.y).CenterIn(wxRect(pt, m_image_size));
-                        dc.SetTextForeground(*wxWHITE);
-                        dc.SetFont(Label::sysFont(30));
-                        dc.DrawText(p, rt.GetTopLeft());
-                        dc.SetFont(Label::sysFont(20));
-                        dc.DrawText(L"%", rt.GetTopLeft() + wxSize{s1.x, s1.y - s2.y});
-                        dc.SetFont(GetFont());
+                        nonHoverText = wxString::Format(_L("Downloading %d%%..."), file.progress);
                     }
                 }
                 // Draw buttons on hovered item
+                wxRect rect{pt.x, pt.y + m_image_size.y - m_buttons_background.GetHeight(), m_image_size.GetWidth(), m_buttons_background.GetHeight()};
                 if (hit_image == index) {
-                    wxRect rect{pt.x, pt.y + m_image_size.y - m_buttons_background.GetHeight(), m_image_size.GetWidth(), m_buttons_background.GetHeight()};
-                    renderButtons(dc, {_L("Delete"), (wxChar const*)secondAction, nullptr}, rect, m_hit_type == HIT_ACTION ? m_hit_item & 1 : -1);
+                    renderButtons(dc, {_L("Delete"), (wxChar const *) secondAction, nullptr}, rect, m_hit_type == HIT_ACTION ? m_hit_item & 1 : -1, states);
+                } else if (!nonHoverText.IsEmpty()) {
+                    renderButtons(dc, {(wxChar const *) nonHoverText, nullptr}, rect, -1, states);
                 }
             } else {
                 auto date = wxDateTime((time_t) file.time).Format(_L(formats[m_file_sys->GetGroupMode()]));
@@ -558,11 +546,13 @@ void ImageGrid::render(wxDC& dc)
     }
 }
 
-void Slic3r::GUI::ImageGrid::renderButtons(wxDC &dc, wxStringList const &texts, wxRect const &rect2, size_t hit)
+void Slic3r::GUI::ImageGrid::renderButtons(wxDC &dc, wxStringList const &texts, wxRect const &rect2, size_t hit, int states)
 {
-    wxMemoryDC mdc(m_buttons_background);
     // Draw background
-    dc.Blit(rect2.GetTopLeft(), rect2.GetSize(), &mdc, {0, 0});
+    {
+        wxMemoryDC mdc(states & StateColor::Checked ? m_buttons_background_checked : m_buttons_background);
+        dc.Blit(rect2.GetTopLeft(), rect2.GetSize(), &mdc, {0, 0});
+    }
     // Draw buttons
     wxRect rect(rect2);
     rect.SetWidth(rect.GetWidth() / texts.size());
@@ -570,7 +560,7 @@ void Slic3r::GUI::ImageGrid::renderButtons(wxDC &dc, wxStringList const &texts, 
     dc.SetFont(Label::Body_14);
     //mdc.SelectObject(m_button_background);
     for (size_t i = 0; i < texts.size(); ++i) {
-        int states = hit == i ? state : 0;
+        int states2 = hit == i ? state : 0;
         // Draw button background
         rect.Deflate(10, 5);
         //dc.Blit(rect.GetTopLeft(), rect.GetSize(), &mdc, {m_buttonBackgroundColor.colorIndexForStates(states) * 128, 0});
@@ -578,7 +568,7 @@ void Slic3r::GUI::ImageGrid::renderButtons(wxDC &dc, wxStringList const &texts, 
         // Draw button splitter
         if (i > 0) dc.DrawLine(rect.GetLeftTop(), rect.GetLeftBottom());
         // Draw button text
-        renderText(dc, texts[i], rect, states);
+        renderText(dc, texts[i], rect, states | states2);
         rect.Inflate(10, 5);
         rect.Offset(rect.GetWidth(), 0);
     }

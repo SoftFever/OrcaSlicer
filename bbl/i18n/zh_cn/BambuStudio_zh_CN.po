@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-01 09:20+0800\n"
-"PO-Revision-Date: 2022-08-05 11:49+0800\n"
+"POT-Creation-Date: 2022-09-09 11:50+0800\n"
+"PO-Revision-Date: 2022-09-05 14:22+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -815,8 +815,8 @@ msgstr "克隆"
 msgid "Reduce Triangles"
 msgstr "简化三角形"
 
-msgid "Per object edit"
-msgstr "编辑单个对象"
+msgid "Edit in Parameter Table"
+msgstr "在参数表格中编辑"
 
 msgid "Edit print parameters for a single object"
 msgstr "编辑单个对象的打印参数"
@@ -1009,8 +1009,8 @@ msgstr "填充密度(%)"
 msgid "Auto Brim"
 msgstr "自动Brim"
 
-msgid "Inner wall speed"
-msgstr "内墙速度"
+msgid "Outer wall speed"
+msgstr ""
 
 msgid "Plate"
 msgstr "盘"
@@ -1221,9 +1221,6 @@ msgstr "服务不可用"
 msgid "Unkown Error."
 msgstr "未知错误"
 
-msgid "Please Fill Task Report."
-msgstr "请填写打印报告"
-
 msgid "Sending print configuration"
 msgstr "正在发送打印配置"
 
@@ -1312,8 +1309,8 @@ msgstr ""
 "软件中的很多部分都来自于社区贡献，因此，我们无法逐一列出他们，相反的，他们将"
 "被注释于相应的代码中。"
 
-msgid "AMSMaterialsSetting"
-msgstr ""
+msgid "AMS Materials Setting"
+msgstr "AMS 材料设置"
 
 msgid "Colour"
 msgstr "颜色"
@@ -1350,16 +1347,16 @@ msgid ""
 msgstr "仅允许选择放入同种材质耗材丝的AMS槽位"
 
 msgid "Enable AMS"
-msgstr ""
+msgstr "启用AMS"
 
 msgid "Print with filaments in the AMS"
-msgstr ""
+msgstr "采用AMS里的材料打印"
 
 msgid "Disable AMS"
-msgstr ""
+msgstr "不启用AMS"
 
 msgid "Print with the filament mounted on the back of chassis"
-msgstr ""
+msgstr "使用机箱背后挂载的材料打印"
 
 msgid "Insertion update"
 msgstr "插入料时更新"
@@ -1404,6 +1401,17 @@ msgstr "AMS不会在启动时自动读取耗材丝信息。它会使用上次关
 
 msgid "File"
 msgstr "文件"
+
+msgid "Please home all axes (click "
+msgstr "请先执行回原点（点击"
+
+msgid ""
+") to locate the toolhead's position. This prevents device moving beyond the "
+"printable boundary and causing equipment wear."
+msgstr "）操作以定位当前工具头位置，以防止轴移动时超出边界造成设备磨损"
+
+msgid "Go Home"
+msgstr "回原点"
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
@@ -2128,14 +2136,11 @@ msgstr ""
 msgid "Invalid input."
 msgstr ""
 
-msgid "Enter a search term"
-msgstr "输入搜索内容"
+msgid "New Window"
+msgstr ""
 
-msgid "Online"
-msgstr "在线"
-
-msgid "Offline"
-msgstr "离线"
+msgid "Open a new window"
+msgstr ""
 
 msgid "Application is closing"
 msgstr "正在关闭应用程序"
@@ -2157,9 +2162,6 @@ msgstr "设备"
 
 msgid "Project"
 msgstr "项目"
-
-msgid "Debug"
-msgstr "调试"
 
 msgid "Slice"
 msgstr "切片"
@@ -2197,9 +2199,6 @@ msgstr "检查新版本"
 #, c-format, boost-format
 msgid "&About %s"
 msgstr "关于 %s"
-
-msgid "Show Log"
-msgstr ""
 
 msgid "Open Network Test"
 msgstr ""
@@ -2244,6 +2243,9 @@ msgstr "右面"
 
 msgid "Right View"
 msgstr "右视图"
+
+msgid "Start a new window"
+msgstr ""
 
 msgid "New Project"
 msgstr "新建项目"
@@ -2370,6 +2372,12 @@ msgstr "使用透视视角"
 
 msgid "Use Orthogonal View"
 msgstr "使用正交视角"
+
+msgid "Show &Labels"
+msgstr ""
+
+msgid "Show object labels in 3D scene"
+msgstr ""
 
 msgid "Preferences"
 msgstr "偏好设置"
@@ -2537,20 +2545,21 @@ msgstr "文件列表为空"
 msgid "Choose save directory"
 msgstr "选择保存目录"
 
-msgid "Waiting"
-msgstr "等待中"
+msgid "Download waiting..."
+msgstr "正在下载中..."
 
 msgid "Retry"
 msgstr "重试"
 
-msgid "Failed"
-msgstr "失败"
-
 msgid "Open"
 msgstr "打开"
 
-msgid "Finished"
-msgstr "完成"
+msgid "Download finished"
+msgstr "下载完成"
+
+#, c-format, boost-format
+msgid "Downloading %d%%..."
+msgstr "下载中 %d%%..."
 
 msgid "Speed:"
 msgstr "速度："
@@ -2623,6 +2632,9 @@ msgstr "项目切片"
 
 msgid "Downloading..."
 msgstr "下载中..."
+
+msgid "This only takes effect during printing"
+msgstr "仅在打印过程中生效"
 
 msgid "Silent"
 msgstr "静音"
@@ -3455,6 +3467,12 @@ msgstr "为“%1%”，添加“%2%”为一个新预设"
 msgid "Simply switch to \"%1%\""
 msgstr "直接切换到“%1%”"
 
+msgid "Online"
+msgstr "在线"
+
+msgid "Offline"
+msgstr "离线"
+
 msgid "My Device"
 msgstr "我的设备"
 
@@ -4106,6 +4124,18 @@ msgstr "显示键盘快捷键列表"
 msgid "Global shortcuts"
 msgstr "全局快捷键"
 
+msgid "Rotate View"
+msgstr "旋转视角"
+
+msgid "Pan View"
+msgstr "移动视角"
+
+msgid "Mouse wheel"
+msgstr "鼠标滚轮"
+
+msgid "Zoom View"
+msgstr "缩放视角"
+
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
@@ -4298,7 +4328,7 @@ msgid "Shift+Mouse wheel"
 msgstr "Shift+鼠标滚轮"
 
 msgid "Release Note"
-msgstr ""
+msgstr "更新说明"
 
 #, c-format, boost-format
 msgid "version %s update information :"
@@ -4306,6 +4336,9 @@ msgstr "版本 %s 更新信息"
 
 msgid "New version of Bambu Studio"
 msgstr "新版本的Bambu Studio"
+
+msgid "Don't remind me of this version again"
+msgstr "此版本不再提示"
 
 msgid "Saving objects into the 3mf failed."
 msgstr "保存对象到3mf失败。"
@@ -5834,17 +5867,25 @@ msgstr ""
 "印。最后生成的打印件没有接缝。"
 
 msgid ""
-"If enabled, a timelapse video will be generated for each print. After each "
-"layer is printed, the toolhead will move to the excess chute, and then a "
-"snapshot is taken with the chamber camera. All of these snapshots are "
-"composed into a timelapse video when printing completes. Since the melt "
-"filament may leak from the nozzle during the process of taking a snapshot, "
-"prime tower is required for nozzle priming."
+"If smooth or traditional mode is selected, a timelapse video will be "
+"generated for each print. After each layer is printed, a snapshot is taken "
+"with the chamber camera. All of these snapshots are composed into a "
+"timelapse video when printing completes. If smooth mode is selected, the "
+"toolhead will move to the excess chute after each layer is printed and then "
+"take a snapshot. Since the melt filament may leak from the nozzle during the "
+"process of taking a snapshot, prime tower is required for smooth mode to "
+"wipe nozzle."
 msgstr ""
-"如果启用延时摄影，将在每次打印时生成延时摄影视频。打印完每层后，工具头将移动"
-"到吐料槽，然后用内置相机拍摄快照。打印完成后，所有这些快照会组合成一个延时视"
-"频。由于在拍摄快照的过程中熔丝可能会从喷嘴中泄漏，因此需要使用擦拭塔进行喷嘴"
-"擦拭。"
+"如果启用平滑模式或者传统模式，将在每次打印时生成延时摄影视频。打印完每层后，"
+"将用内置相机拍摄快照。打印完成后，所有这些快照会组合成一个延时视频。如果启用"
+"平滑模式，打印完每层后，工具头将移动到吐料槽，然后拍摄快照。由于平滑模式在拍"
+"摄快照的过程中熔丝可能会从喷嘴中泄漏，因此需要使用擦拭塔进行喷嘴擦拭。"
+
+msgid "Smooth"
+msgstr "平滑模式"
+
+msgid "Traditional"
+msgstr "传统模式"
 
 msgid "Temperature variation"
 msgstr "软化温度"
@@ -5857,6 +5898,17 @@ msgstr "整个打印开始前的起始G-code"
 
 msgid "Start G-code when start the printing of this filament"
 msgstr "开始使用这个耗材丝打印的起始G-code"
+
+msgid "Slice gap closing radius"
+msgstr "切片间隙闭合半径"
+
+msgid ""
+"Cracks smaller than 2x gap closing radius are being filled during the "
+"triangle mesh slicing. The gap closing operation may reduce the final print "
+"resolution, therefore it is advisable to keep the value reasonably low."
+msgstr ""
+"在三角形网格切片过程中，小于2倍间隙闭合半径的裂纹将被填充。间隙闭合操作可能会"
+"降低最终打印分辨率，因此建议降值保持在合理的较低水平"
 
 msgid "Enable support"
 msgstr "开启支撑"
@@ -6376,6 +6428,24 @@ msgstr "支撑：正在修补层%d的空洞"
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
 
+#~ msgid "Waiting"
+#~ msgstr "等待中"
+
+#~ msgid "Failed"
+#~ msgstr "失败"
+
+#~ msgid "Finished"
+#~ msgstr "完成"
+
+#~ msgid "Home"
+#~ msgstr "首页"
+
+#~ msgid "Per object edit"
+#~ msgstr "编辑单个对象"
+
+#~ msgid "Inner wall speed"
+#~ msgstr "内墙速度"
+
 #~ msgid "Clipping of view"
 #~ msgstr "剪切视图"
 
@@ -6608,9 +6678,6 @@ msgstr "支撑：正在生长层%d的树枝"
 
 #~ msgid "sdfsadf Any arrow"
 #~ msgstr "方向键"
-
-#~ msgid "Mouse wheel"
-#~ msgstr "鼠标滚轮"
 
 #~ msgid "Any arrow"
 #~ msgstr "方向键"
@@ -8464,9 +8531,6 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ "plane."
 #~ msgstr "使用这个设置将支撑模式在水平面旋转特定角度。"
 
-#~ msgid "Home"
-#~ msgstr "首页"
-
 #~ msgid "Compare this preset with some another"
 #~ msgstr "配置集对比"
 
@@ -8751,9 +8815,6 @@ msgstr "支撑：正在生长层%d的树枝"
 
 #~ msgid "Use single nozzle to print multi filament"
 #~ msgstr "使用单喷嘴打印多耗材"
-
-#~ msgid "Slice gap closing radius"
-#~ msgstr "切片间隙闭合半径"
 
 #~ msgid "Slicing Mode"
 #~ msgstr "切片模式"
@@ -10036,9 +10097,6 @@ msgstr "支撑：正在生长层%d的树枝"
 
 #~ msgid "Higher print quality versus higher print speed."
 #~ msgstr "高精度 vs 高速度。"
-
-#~ msgid "Smooth"
-#~ msgstr "平滑"
 
 #~ msgid "Keep min"
 #~ msgstr "保留最小"

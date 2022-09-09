@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.02.00.00",
+    "version": "01.02.00.03",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -214,10 +214,6 @@
             "sub_path": "filament/Generic PETG @base.json"
         },
         {
-            "name": "Generic PETG @0.2 nozzle",
-            "sub_path": "filament/Generic PETG @0.2 nozzle.json"
-        },
-        {
             "name": "Generic PETG",
             "sub_path": "filament/Generic PETG.json"
         },
@@ -262,6 +258,14 @@
             "sub_path": "filament/Generic PC.json"
         },
         {
+            "name": "Generic PVA @base",
+            "sub_path": "filament/Generic PVA @base.json"
+        },
+        {
+            "name": "Generic PVA @0.2 nozzle",
+            "sub_path": "filament/Generic PVA @0.2 nozzle.json"
+        },
+        {
             "name": "Generic PVA",
             "sub_path": "filament/Generic PVA.json"
         },
@@ -276,10 +280,6 @@
         {
             "name": "Bambu TPU 95A @BBL X1C",
             "sub_path": "filament/Bambu TPU 95A @BBL X1C.json"
-        },
-        {
-            "name": "Bambu TPU 95A @BBL X1C 0.2 nozzle",
-            "sub_path": "filament/Bambu TPU 95A @BBL X1C 0.2 nozzle.json"
         },
         {
             "name": "Bambu TPU 95A @BBL X1",
@@ -398,6 +398,10 @@
         {
             "name": "Bambu Lab X1 0.4 nozzle",
             "sub_path": "machine/Bambu Lab X1 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu Lab X1 0.2 nozzle",
+            "sub_path": "machine/Bambu Lab X1 0.2 nozzle.json"
         },
         {
             "name": "Bambu Lab X1 0.8 nozzle",

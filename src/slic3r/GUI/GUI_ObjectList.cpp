@@ -5052,9 +5052,7 @@ void ObjectList::apply_object_instance_transfrom_to_all_volumes(ModelObject *mod
     model_object->ensure_on_bed();
     // keep new instance center the same as the original center
     model_object->translate(-original_instance_center);
-    model_object->origin_translation += original_instance_center;
-    model_object->translate_instances(model_object->origin_translation);
-    model_object->origin_translation = Vec3d::Zero();
+    model_object->translate_instances(original_instance_center);
 
     // update the cache data in selection to keep the data of ModelVolume and GLVolume are consistent
     wxGetApp().plater()->update();

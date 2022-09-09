@@ -99,8 +99,9 @@ void MediaPlayCtrl::Play()
 
     NetworkAgent* agent = wxGetApp().getAgent();
     if (agent) {
-            agent->get_camera_url(m_machine, [this](std::string url) {
+        agent->get_camera_url(m_machine, [this, m = m_machine](std::string url) {
             BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
+            if (m != m_machine) return;
             CallAfter([this, url] {
                 m_url = url;
                 if (m_last_state == MEDIASTATE_INITIALIZING) {
@@ -135,6 +136,8 @@ void MediaPlayCtrl::Stop()
         m_cond.notify_all();
         m_last_state = MEDIASTATE_IDLE;
         SetStatus(_L("Stopped."));
+        if (m_failed_code >= 100) // not keep retry on local error
+            m_next_retry = wxDateTime();
     }
     ++m_failed_retry;
     if (m_next_retry.IsValid())

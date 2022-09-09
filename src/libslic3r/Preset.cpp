@@ -643,7 +643,7 @@ std::string Preset::get_filament_type(std::string &display_filament_type)
 }
 
 static std::vector<std::string> s_Preset_print_options {
-    "layer_height", "initial_layer_print_height", "wall_loops", "spiral_mode",
+    "layer_height", "initial_layer_print_height", "wall_loops", "slice_closing_radius", "spiral_mode",
     "top_shell_layers", "top_shell_thickness", "bottom_shell_layers", "bottom_shell_thickness",
     "reduce_crossing_wall", "detect_thin_wall", "detect_overhang_wall",
     "seam_position", "wall_infill_order", "sparse_infill_density", "sparse_infill_pattern", "top_surface_pattern", "bottom_surface_pattern",
@@ -683,7 +683,8 @@ static std::vector<std::string> s_Preset_print_options {
      "gcode_add_line_number", "enable_arc_fitting", "infill_combination", "adaptive_layer_height",
      "support_bottom_interface_spacing", "enable_overhang_speed", "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed",
      "initial_layer_infill_speed", "only_one_wall_top", "only_one_wall_first_layer",
-     "timelapse_no_toolhead"
+     "timelapse_type"
+
 };
 
 static std::vector<std::string> s_Preset_filament_options {
@@ -755,6 +756,7 @@ static std::vector<std::string> s_Preset_sla_print_options {
     "support_object_elevation",
     "support_points_density_relative",
     "support_points_minimal_distance",
+    "slice_closing_radius",
     "pad_enable",
     "pad_wall_thickness",
     "pad_wall_height",

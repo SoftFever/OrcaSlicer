@@ -2615,20 +2615,45 @@ void Selection::paste_objects_from_clipboard()
 
     std::vector<size_t> object_idxs;
     const ModelObjectPtrs& src_objects = m_clipboard.get_objects();
+    PartPlate *            plate       = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+
+    //BBS: if multiple objects are selected, move them as a whole after copy
+    Vec2d shift_all = {0, 0};
+    if (src_objects.size() > 1) {
+        BoundingBoxf3 bbox_all;
+        for (const ModelObject *src_object : src_objects) {
+            BoundingBoxf3 bbox = src_object->instance_convex_hull_bounding_box(0);
+            bbox_all.merge(bbox);
+        }
+        auto bsize = bbox_all.size();
+        if (bsize.x() < bsize.y())
+            shift_all = {bbox_all.size().x(), 0};
+        else
+            shift_all = {0, bbox_all.size().y()};
+    }
+
     for (const ModelObject* src_object : src_objects)
     {
         ModelObject* dst_object = m_model->add_object(*src_object);
-
+        
         // BBS: find an empty cell to put the copied object
         BoundingBoxf3 bbox = src_object->instance_convex_hull_bounding_box(0);
-        PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-        bool in_current = plate->intersects(bbox);
 
-        auto start_offset = in_current?src_object->instances.front()->get_offset():plate->get_build_volume().center();
-        auto start_point = in_current?bbox.center():plate->get_build_volume().center();
-        auto point_offset = start_offset - start_point;
-        auto empty_cell = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({start_point(0), start_point(1)});
-        Vec3d displacement = { empty_cell.x() + point_offset.x(), empty_cell.y() + point_offset.y(), start_point(2) };
+        Vec3d displacement;
+        if (shift_all(0) != 0 || shift_all(1) != 0) {
+            // BBS: if multiple objects are selected, move them as a whole after copy
+            auto start_point = bbox.center();
+            displacement = {shift_all.x() + start_point.x(), shift_all.y() + start_point.y(), start_point(2)};
+        } else {
+            // BBS: if only one object is copied, find an empty cell to put it
+            bool in_current   = plate->intersects(bbox);
+            auto start_point  = in_current ? bbox.center() : plate->get_build_volume().center();
+            auto start_offset = in_current ? src_object->instances.front()->get_offset() : plate->get_build_volume().center();
+            auto point_offset = start_offset - start_point;
+            auto empty_cell   = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({start_point(0), start_point(1)});
+            displacement    = {empty_cell.x() + point_offset.x(), empty_cell.y() + point_offset.y(), start_point(2)};
+        }
+
         for (ModelInstance* inst : dst_object->instances)
             inst->set_offset(displacement);
 

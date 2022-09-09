@@ -990,11 +990,22 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     }
 
     const ConfigOptionPoints* extruder_offset = config.option<ConfigOptionPoints>("extruder_offset");
+    const ConfigOptionBool* single_extruder_multi_material = config.option<ConfigOptionBool>("single_extruder_multi_material");
     if (extruder_offset != nullptr) {
-        m_extruder_offsets.resize(extruder_offset->values.size());
-        for (size_t i = 0; i < extruder_offset->values.size(); ++i) {
-            Vec2f offset = extruder_offset->values[i].cast<float>();
-            m_extruder_offsets[i] = { offset(0), offset(1), 0.0f };
+        //BBS: for single extruder multi material, only use the offset of first extruder
+        if (single_extruder_multi_material != nullptr && single_extruder_multi_material->getBool()) {
+            Vec2f offset = extruder_offset->values[0].cast<float>();
+            m_extruder_offsets.resize(m_result.extruders_count);
+            for (size_t i = 0; i < m_result.extruders_count; ++i) {
+                m_extruder_offsets[i] = { offset(0), offset(1), 0.0f };
+            }
+        }
+        else {
+            m_extruder_offsets.resize(extruder_offset->values.size());
+            for (size_t i = 0; i < extruder_offset->values.size(); ++i) {
+                Vec2f offset = extruder_offset->values[i].cast<float>();
+                m_extruder_offsets[i] = { offset(0), offset(1), 0.0f };
+            }
         }
     }
     
@@ -1192,6 +1203,7 @@ void GCodeProcessor::reset()
     }
 
     m_extruded_last_z = 0.0f;
+    m_zero_layer_height = 0.0f;
     m_first_layer_height = 0.0f;
     m_processing_start_custom_gcode = false;
     m_g1_line_id = 0;
@@ -2469,7 +2481,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
     AxisCoords delta_pos;
     for (unsigned char a = X; a <= E; ++a) {
         delta_pos[a] = m_end_position[a] - m_start_position[a];
-        max_abs_delta = std::max(max_abs_delta, std::abs(delta_pos[a]));
+        max_abs_delta = std::max<float>(max_abs_delta, std::abs(delta_pos[a]));
     }
 
     // no displacement, return
@@ -2575,7 +2587,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             minimum_feedrate(static_cast<PrintEstimatedStatistics::ETimeMode>(i), m_feedrate);
 
         //BBS: calculeta enter and exit direction
-        curr.enter_direction = { delta_pos[X], delta_pos[Y], delta_pos[Z] };
+        curr.enter_direction = { static_cast<float>(delta_pos[X]), static_cast<float>(delta_pos[Y]), static_cast<float>(delta_pos[Z]) };
         float norm = curr.enter_direction.norm();
         if (!is_extrusion_only_move(delta_pos))
             curr.enter_direction = curr.enter_direction / norm;
@@ -2624,8 +2636,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             curr.abs_axis_feedrate[a] = std::abs(curr.axis_feedrate[a]);
             if (curr.abs_axis_feedrate[a] != 0.0f) {
                 float axis_max_feedrate = get_axis_max_feedrate(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a));
-                if (axis_max_feedrate != 0.0f)
-                    min_feedrate_factor = std::min(min_feedrate_factor, axis_max_feedrate / curr.abs_axis_feedrate[a]);
+                if (axis_max_feedrate != 0.0f) min_feedrate_factor = std::min<float>(min_feedrate_factor, axis_max_feedrate / curr.abs_axis_feedrate[a]);
             }
         }
         //BBS: update curr.feedrate
@@ -2914,6 +2925,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
 
     EMoveType type = move_type(delta_pos[E]);
 
+
     float delta_xyz = std::sqrt(sqr(arc_length) + sqr(delta_pos[Z]));
     if (type == EMoveType::Extrude) {
         float volume_extruded_filament = area_filament_cross_section * delta_pos[E];
@@ -3020,8 +3032,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
             curr.abs_axis_feedrate[a] = std::abs(curr.axis_feedrate[a]);
             if (curr.abs_axis_feedrate[a] != 0.0f) {
                 float axis_max_feedrate = get_axis_max_feedrate(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a));
-                if (axis_max_feedrate != 0.0f)
-                    min_feedrate_factor = std::min(min_feedrate_factor, axis_max_feedrate / curr.abs_axis_feedrate[a]);
+                if (axis_max_feedrate != 0.0f) min_feedrate_factor = std::min<float>(min_feedrate_factor, axis_max_feedrate / curr.abs_axis_feedrate[a]);
             }
         }
         curr.feedrate *= min_feedrate_factor;
@@ -3048,8 +3059,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
 
             if (axis_acc[a] != 0.0f) {
                 float axis_max_acceleration = get_axis_max_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a));
-                if (axis_max_acceleration != 0.0f && axis_acc[a] > axis_max_acceleration)
-                    min_acc_factor = std::min(min_acc_factor, axis_max_acceleration / axis_acc[a]);
+                if (axis_max_acceleration != 0.0f && axis_acc[a] > axis_max_acceleration) min_acc_factor = std::min<float>(min_acc_factor, axis_max_acceleration / axis_acc[a]);
             }
         }
         block.acceleration = acceleration * min_acc_factor;
@@ -3685,7 +3695,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
             m_interpolation_points[i] =
                 Vec3f(m_interpolation_points[i].x() + m_x_offset,
                       m_interpolation_points[i].y() + m_y_offset,
-                      m_processing_start_custom_gcode ? m_first_layer_height : m_interpolation_points[i].z()) +
+                      m_processing_start_custom_gcode ? m_zero_layer_height : m_interpolation_points[i].z()) +
                 m_extruder_offsets[m_extruder_id];
     }
 
@@ -3696,8 +3706,8 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         m_extruder_id,
         m_cp_color.current,
         //BBS: add plate's offset to the rendering vertices
-        Vec3f(m_end_position[X] + m_x_offset, m_end_position[Y] + m_y_offset, m_processing_start_custom_gcode ? m_first_layer_height : m_end_position[Z]) + m_extruder_offsets[m_extruder_id],
-        m_end_position[E] - m_start_position[E],
+        Vec3f(m_end_position[X] + m_x_offset, m_end_position[Y] + m_y_offset, m_processing_start_custom_gcode ? m_zero_layer_height : m_end_position[Z]) + m_extruder_offsets[m_extruder_id],
+        static_cast<float>(m_end_position[E] - m_start_position[E]),
         m_feedrate,
         m_width,
         m_height,

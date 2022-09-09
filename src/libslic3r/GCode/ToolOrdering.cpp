@@ -175,8 +175,13 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
         this->collect_extruders(*object, per_layer_extruder_switches);
 
     // Reorder the extruders to minimize tool switches.
+    std::vector<unsigned int> first_layer_tool_order;
     if (first_extruder == (unsigned int)-1) {
-        this->reorder_extruders(generate_first_layer_tool_order(print));
+        first_layer_tool_order = generate_first_layer_tool_order(print);
+    }
+
+    if (!first_layer_tool_order.empty()) {
+        this->reorder_extruders(first_layer_tool_order);
     }
     else {
         this->reorder_extruders(first_extruder);

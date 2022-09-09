@@ -169,7 +169,10 @@ void StaticBox::doRender(wxDC& dc)
             } else {
                 dc.SetPen(wxPen(background_color.colorForStates(states)));
             }
-            dc.SetBrush(wxBrush(background_color.colorForStates(states)));
+            if (background_color.count() > 0)
+                dc.SetBrush(wxBrush(background_color.colorForStates(states)));
+            else
+                dc.SetBrush(wxBrush(GetBackgroundColour()));
             if (radius == 0) {
                 dc.DrawRectangle(rc);
             }

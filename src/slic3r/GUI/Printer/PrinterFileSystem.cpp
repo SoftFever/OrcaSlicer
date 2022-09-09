@@ -540,7 +540,10 @@ void PrinterFileSystem::SendChangedEvent(wxEventType type, size_t index, std::st
     if (!str.empty())
         event.SetString(wxString::FromUTF8(str.c_str()));
     event.SetExtraLong(extra);
-    wxPostEvent(this, event);
+    if (wxThread::IsMain())
+        ProcessEventLocally(event);
+    else
+        wxPostEvent(this, event);
 }
 
 void PrinterFileSystem::DumpLog(Bambu_Session *session, int level, Bambu_Message const *msg)
@@ -743,7 +746,7 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
         std::string url = m_messages.front();
         m_messages.clear();
         if (url.empty()) {
-            m_last_error = -100;
+            m_last_error = 1;
         } else {
             l.unlock();
             m_status = Status::Connecting;

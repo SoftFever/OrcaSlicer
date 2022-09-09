@@ -84,12 +84,12 @@ protected:
     Button *            m_button_close;
     Button *            m_clr_picker;
     wxColourData *      m_clrData;
-
 #ifdef __APPLE__
     wxComboBox *m_comboBox_filament_mac;
 #else
     ComboBox *m_comboBox_filament;
 #endif
+    TextInput*          m_readonly_filament;
 };
 
 }} // namespace Slic3r::GUI

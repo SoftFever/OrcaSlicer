@@ -6,9 +6,16 @@
     "instantiation": "true",
     "inherits": "Bambu Support W @base",
     "filament_max_volumetric_speed": [
-        "2"
+        "0.5"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "240"
+    ],
+    "nozzle_temperature": [
+        "240"
     ],
     "compatible_printers": [
-      "Bambu Lab X1 Carbon 0.2 nozzle"
+      "Bambu Lab X1 Carbon 0.2 nozzle",
+      "Bambu Lab X1 0.2 nozzle"
     ]
 }

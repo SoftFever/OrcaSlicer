@@ -130,13 +130,7 @@ void AppConfig::set_defaults()
 #endif
 
         if (get("single_instance").empty())
-            set_bool("single_instance",
-#ifdef __APPLE__
-                true
-#else // __APPLE__
-                false
-#endif // __APPLE__
-                );
+            set_bool("single_instance", false);
 
 #ifdef SUPPORT_REMEMBER_OUTPUT_PATH
         if (get("remember_output_path").empty())

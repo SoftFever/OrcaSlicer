@@ -43,6 +43,7 @@ src/slic3r/GUI/AMSMappingPopup.cpp
 src/slic3r/GUI/AMSSetting.cpp
 src/slic3r/GUI/BBLTopbar.cpp
 src/slic3r/GUI/DownloadProgressDialog.cpp
+src/slic3r/GUI/RecenterDialog.cpp
 src/slic3r/GUI/BackgroundSlicingProcess.cpp
 src/slic3r/GUI/BedShapeDialog.cpp
 src/slic3r/GUI/BedShapeDialog.hpp

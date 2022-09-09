@@ -534,6 +534,24 @@ Sidebar::Sidebar(Plater *parent)
                 m_bed_type_list->AppendString(_L(item.first));
         }
 
+        bed_type_title->Bind(wxEVT_ENTER_WINDOW, [bed_type_title, this](wxMouseEvent &e) {
+            e.Skip();
+            auto font = bed_type_title->GetFont();
+            font.SetUnderlined(true);
+            bed_type_title->SetFont(font);
+            SetCursor(wxCURSOR_HAND);
+        });
+        bed_type_title->Bind(wxEVT_LEAVE_WINDOW, [bed_type_title, this](wxMouseEvent &e) {
+            e.Skip();
+            auto font = bed_type_title->GetFont();
+            font.SetUnderlined(false);
+            bed_type_title->SetFont(font);
+            SetCursor(wxCURSOR_ARROW);
+        });
+        bed_type_title->Bind(wxEVT_LEFT_UP, [bed_type_title, this](wxMouseEvent &e) {
+            wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/x1/manual/compatibility-and-parameter-settings-of-filaments");
+        });
+
         m_bed_type_list->Select(0);
         bed_type_sizer->Add(bed_type_title, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
         bed_type_sizer->Add(m_bed_type_list, 1, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(10));
@@ -5307,9 +5325,9 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
 void Plater::priv::on_action_add(SimpleEvent&)
 {
     if (q != nullptr) {
-        //q->add_model();
+        q->add_model();
         //BBS open file in toolbar add
-        q->add_file();
+        //q->add_file();
     }
 }
 

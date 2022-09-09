@@ -574,7 +574,7 @@ enum class EnforcerBlockerType : int8_t {
     Extruder13,
     Extruder14,
     Extruder15,
-    ExtruderMax = Extruder15,
+    ExtruderMax
 };
 
 enum class ConversionType : int {

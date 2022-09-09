@@ -277,8 +277,10 @@ protected:
     void on_subtask_clean(wxCommandEvent &event);
     void show_error_message(wxString msg);
     void error_info_reset();
+    void show_recenter_dialog();
 
     /* axis control */
+    bool check_axis_z_at_home(MachineObject* obj);
     void on_axis_ctrl_xy(wxCommandEvent &event);
     void on_axis_ctrl_z_up_10(wxCommandEvent &event);
     void on_axis_ctrl_z_up_1(wxCommandEvent &event);

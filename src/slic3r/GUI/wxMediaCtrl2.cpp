@@ -46,20 +46,31 @@ void wxMediaCtrl2::Load(wxURI url)
         return;
     }
     {
-        wxRegKey key(wxRegKey::HKCR, "CLSID\\{233E64FB-2041-4A6C-AFAB-FF9BCF83E7AA}\\InProcServer32");
-        wxString path = key.QueryDefaultValue();
+        wxRegKey key1(wxRegKey::HKCR, "CLSID\\{233E64FB-2041-4A6C-AFAB-FF9BCF83E7AA}\\InProcServer32");
+        wxString path = key1.QueryDefaultValue();
         wxRegKey key2(wxRegKey::HKCR, "bambu");
         wxString clsid;
         key2.QueryRawValue("Source Filter", clsid);
         if (!wxFile::Exists(path) || clsid != L"{233E64FB-2041-4A6C-AFAB-FF9BCF83E7AA}") {
-            wxMessageBox(_L("Missing BambuSource component registered for media playing! Please re-install BambuStutio or seek after-sales help."), _L("Error"),
+            Slic3r::GUI::wxGetApp().CallAfter([] {
+                wxMessageBox(_L("Missing BambuSource component registered for media playing! Please re-install BambuStutio or seek after-sales help."), _L("Error"),
                                     wxOK);
-            m_error = 3;
+            });
+            m_error = clsid.IsEmpty() ? 100 : clsid != L"{233E64FB-2041-4A6C-AFAB-FF9BCF83E7AA}" ? 101 : 102;
             wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
             event.SetId(GetId());
             event.SetEventObject(this);
             wxPostEvent(this, event);
             return;
+        }
+        wxRegKey keyWmp(wxRegKey::HKCU, "SOFTWARE\\Microsoft\\MediaPlayer\\Player\\Extensions\\.");
+        keyWmp.Create();
+        long permissions = 0;
+        if (keyWmp.HasValue("Permissions"))
+            keyWmp.QueryValue("Permissions", &permissions);
+        if ((permissions & 32) == 0) {
+            permissions |= 32;
+            keyWmp.SetValue("Permissions", permissions);
         }
     }
     url = wxURI(url.BuildURI().append("&hwnd=").append(

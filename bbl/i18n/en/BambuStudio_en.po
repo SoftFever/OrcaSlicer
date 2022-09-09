@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-01 09:20+0800\n"
+"POT-Creation-Date: 2022-09-09 11:50+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -820,8 +820,8 @@ msgstr "Clone"
 msgid "Reduce Triangles"
 msgstr "Reduce Triangles"
 
-msgid "Per object edit"
-msgstr "Per Object Edit"
+msgid "Edit in Parameter Table"
+msgstr ""
 
 msgid "Edit print parameters for a single object"
 msgstr "Edit print parameters for a single object"
@@ -1024,8 +1024,8 @@ msgstr "Infill density(%)"
 msgid "Auto Brim"
 msgstr "Auto Brim"
 
-msgid "Inner wall speed"
-msgstr "Inner wall speed"
+msgid "Outer wall speed"
+msgstr ""
 
 msgid "Plate"
 msgstr "Plate"
@@ -1246,9 +1246,6 @@ msgstr ""
 msgid "Unkown Error."
 msgstr ""
 
-msgid "Please Fill Task Report."
-msgstr ""
-
 msgid "Sending print configuration"
 msgstr "Sending print configuration"
 
@@ -1335,7 +1332,7 @@ msgid ""
 "the corresponding code comments."
 msgstr ""
 
-msgid "AMSMaterialsSetting"
+msgid "AMS Materials Setting"
 msgstr ""
 
 msgid "Colour"
@@ -1433,6 +1430,17 @@ msgstr ""
 
 msgid "File"
 msgstr "File"
+
+msgid "Please home all axes (click "
+msgstr ""
+
+msgid ""
+") to locate the toolhead's position. This prevents device moving beyond the "
+"printable boundary and causing equipment wear."
+msgstr ""
+
+msgid "Go Home"
+msgstr ""
 
 msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
@@ -2176,14 +2184,11 @@ msgstr ""
 msgid "Invalid input."
 msgstr ""
 
-msgid "Enter a search term"
-msgstr "Enter a search term"
+msgid "New Window"
+msgstr ""
 
-msgid "Online"
-msgstr "Online"
-
-msgid "Offline"
-msgstr "Offline"
+msgid "Open a new window"
+msgstr ""
 
 msgid "Application is closing"
 msgstr "Closing application"
@@ -2205,9 +2210,6 @@ msgstr "Device"
 
 msgid "Project"
 msgstr "Project"
-
-msgid "Debug"
-msgstr "Debug"
 
 msgid "Slice"
 msgstr "Slice"
@@ -2245,9 +2247,6 @@ msgstr "Check for Updates"
 #, c-format, boost-format
 msgid "&About %s"
 msgstr "&About %s"
-
-msgid "Show Log"
-msgstr ""
 
 msgid "Open Network Test"
 msgstr ""
@@ -2292,6 +2291,9 @@ msgstr "Right"
 
 msgid "Right View"
 msgstr "Right View"
+
+msgid "Start a new window"
+msgstr ""
 
 msgid "New Project"
 msgstr "New Project"
@@ -2419,6 +2421,12 @@ msgstr "Use Perspective View"
 msgid "Use Orthogonal View"
 msgstr "Use Orthogonal View"
 
+msgid "Show &Labels"
+msgstr ""
+
+msgid "Show object labels in 3D scene"
+msgstr ""
+
 msgid "Preferences"
 msgstr "Preferences"
 
@@ -2483,8 +2491,10 @@ msgstr ""
 #, c-format, boost-format
 msgid "There is %d config exported. (Only non-system configs)"
 msgid_plural "There are %d configs exported. (Only non-system configs)"
-msgstr[0] "There is %d preset exported. (Only non-system and currently used presets)"
-msgstr[1] "There are %d presets exported. (Only non-system and currently used presets)"
+msgstr[0] ""
+"There is %d preset exported. (Only non-system and currently used presets)"
+msgstr[1] ""
+"There are %d presets exported. (Only non-system and currently used presets)"
 
 msgid "Export result"
 msgstr ""
@@ -2496,8 +2506,10 @@ msgstr ""
 msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural ""
 "There are %d configs imported. (Only non-system and compatible configs)"
-msgstr[0] "There is %d preset imported. (Only non-system and compatible presets)"
-msgstr[1] "There are %d presets imported. (Only non-system and compatible presets)"
+msgstr[0] ""
+"There is %d preset imported. (Only non-system and compatible presets)"
+msgstr[1] ""
+"There are %d presets imported. (Only non-system and compatible presets)"
 
 msgid "Import result"
 msgstr ""
@@ -2582,20 +2594,21 @@ msgstr ""
 msgid "Choose save directory"
 msgstr ""
 
-msgid "Waiting"
-msgstr "Waiting"
-
-msgid "Retry"
+msgid "Download waiting..."
 msgstr ""
 
-msgid "Failed"
+msgid "Retry"
 msgstr ""
 
 msgid "Open"
 msgstr ""
 
-msgid "Finished"
-msgstr "Finished"
+msgid "Download finished"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Downloading %d%%..."
+msgstr ""
 
 msgid "Speed:"
 msgstr "Speed:"
@@ -2667,6 +2680,9 @@ msgid "Printing List"
 msgstr "Printing list"
 
 msgid "Downloading..."
+msgstr ""
+
+msgid "This only takes effect during printing"
 msgstr ""
 
 msgid "Silent"
@@ -3516,6 +3532,12 @@ msgstr "For \"%1%\", add \"%2%\" as a new preset"
 msgid "Simply switch to \"%1%\""
 msgstr "Simply switch to \"%1%\""
 
+msgid "Online"
+msgstr "Online"
+
+msgid "Offline"
+msgstr "Offline"
+
 msgid "My Device"
 msgstr "My Device"
 
@@ -4188,6 +4210,18 @@ msgstr "Show keyboard shortcuts list"
 msgid "Global shortcuts"
 msgstr "Global shortcuts"
 
+msgid "Rotate View"
+msgstr ""
+
+msgid "Pan View"
+msgstr ""
+
+msgid "Mouse wheel"
+msgstr ""
+
+msgid "Zoom View"
+msgstr ""
+
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
@@ -4389,6 +4423,9 @@ msgstr ""
 
 msgid "New version of Bambu Studio"
 msgstr "New version of Bambu Studio"
+
+msgid "Don't remind me of this version again"
+msgstr ""
 
 msgid "Saving objects into the 3mf failed."
 msgstr "Saving objects into the 3mf failed."
@@ -6057,12 +6094,20 @@ msgstr ""
 "The final generated model has no seam."
 
 msgid ""
-"If enabled, a timelapse video will be generated for each print. After each "
-"layer is printed, the toolhead will move to the excess chute, and then a "
-"snapshot is taken with the chamber camera. All of these snapshots are "
-"composed into a timelapse video when printing completes. Since the melt "
-"filament may leak from the nozzle during the process of taking a snapshot, "
-"prime tower is required for nozzle priming."
+"If smooth or traditional mode is selected, a timelapse video will be "
+"generated for each print. After each layer is printed, a snapshot is taken "
+"with the chamber camera. All of these snapshots are composed into a "
+"timelapse video when printing completes. If smooth mode is selected, the "
+"toolhead will move to the excess chute after each layer is printed and then "
+"take a snapshot. Since the melt filament may leak from the nozzle during the "
+"process of taking a snapshot, prime tower is required for smooth mode to "
+"wipe nozzle."
+msgstr ""
+
+msgid "Smooth"
+msgstr ""
+
+msgid "Traditional"
 msgstr ""
 
 msgid "Temperature variation"
@@ -6076,6 +6121,15 @@ msgstr "G-code added when starting a print"
 
 msgid "Start G-code when start the printing of this filament"
 msgstr "G-code added when the printer starts using this filament"
+
+msgid "Slice gap closing radius"
+msgstr ""
+
+msgid ""
+"Cracks smaller than 2x gap closing radius are being filled during the "
+"triangle mesh slicing. The gap closing operation may reduce the final print "
+"resolution, therefore it is advisable to keep the value reasonably low."
+msgstr ""
 
 msgid "Enable support"
 msgstr "Enable support"
@@ -6626,6 +6680,24 @@ msgstr "Support: fix holes at layer %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
+
+#~ msgid "Enter a search term"
+#~ msgstr "Enter a search term"
+
+#~ msgid "Debug"
+#~ msgstr "Debug"
+
+#~ msgid "Waiting"
+#~ msgstr "Waiting"
+
+#~ msgid "Finished"
+#~ msgstr "Finished"
+
+#~ msgid "Per object edit"
+#~ msgstr "Per Object Edit"
+
+#~ msgid "Inner wall speed"
+#~ msgstr "Inner wall speed"
 
 #~ msgid "the 3mf is not compatible, load geometry data only!"
 #~ msgstr "The 3mf is not compatible, loading geometry data only!"

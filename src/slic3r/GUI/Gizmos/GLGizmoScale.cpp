@@ -13,6 +13,14 @@ namespace GUI {
 
 const float GLGizmoScale3D::Offset = 5.0f;
 
+// get intersection of ray and plane
+Vec3d GetIntersectionOfRayAndPlane(Vec3d ray_position, Vec3d ray_dir, Vec3d plane_position, Vec3d plane_normal)
+{
+    double t = (plane_normal.dot(plane_position) - plane_normal.dot(ray_position)) / (plane_normal.dot(ray_dir));
+    Vec3d  intersection = ray_position + t * ray_dir;
+    return intersection;
+}
+
 //BBS: GUI refactor: add obj manipulation
 GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id, GizmoObjectManipulation* obj_manipulation)
     : GLGizmoBase(parent, icon_filename, sprite_id)
@@ -95,6 +103,8 @@ void GLGizmoScale3D::on_start_dragging()
     if (m_hover_id != -1)
     {
         m_starting.drag_position = m_grabbers[m_hover_id].center;
+        m_starting.plane_center = m_grabbers[4].center;
+        m_starting.plane_nromal = m_grabbers[5].center - m_grabbers[4].center;
         m_starting.ctrl_down = wxGetKeyState(WXK_CONTROL);
         m_starting.box = (m_starting.ctrl_down && (m_hover_id < 6)) ? m_box : m_parent.get_selection().get_bounding_box();
 
@@ -303,19 +313,23 @@ double GLGizmoScale3D::calc_ratio(const UpdateData& data) const
 {
     double ratio = 0.0;
 
-    Vec3d pivot = (m_starting.ctrl_down && (m_hover_id < 6)) ? m_starting.pivots[m_hover_id] : m_starting.box.center();
-
+    Vec3d pivot = (m_starting.ctrl_down && (m_hover_id < 6)) ? m_starting.pivots[m_hover_id] : m_starting.plane_center;
     Vec3d starting_vec = m_starting.drag_position - pivot;
     double len_starting_vec = starting_vec.norm();
     if (len_starting_vec != 0.0)
     {
         Vec3d mouse_dir = data.mouse_ray.unit_vector();
-        // finds the intersection of the mouse ray with the plane parallel to the camera viewport and passing throught the starting position
-        // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
-        // in our case plane normal and ray direction are the same (orthogonal view)
-        // when moving to perspective camera the negative z unit axis of the camera needs to be transformed in world space and used as plane normal
-        Vec3d inters = data.mouse_ray.a + (m_starting.drag_position - data.mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
-        // vector from the starting position to the found intersection
+        Vec3d plane_normal = m_starting.plane_nromal;
+        if (m_hover_id == 5) {
+            // get z-axis moving plane normal
+            Vec3d plane_vec = mouse_dir.cross(m_starting.plane_nromal);
+            plane_normal    = plane_vec.cross(m_starting.plane_nromal);
+        }
+
+        // finds the intersection of the mouse ray with the plane that the drag point moves
+        // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection
+        Vec3d inters = GetIntersectionOfRayAndPlane(data.mouse_ray.a, mouse_dir, m_starting.drag_position, plane_normal.normalized());
+
         Vec3d inters_vec = inters - m_starting.drag_position;
 
         // finds projection of the vector along the staring direction

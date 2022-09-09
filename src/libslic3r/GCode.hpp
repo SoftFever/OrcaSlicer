@@ -83,7 +83,7 @@ public:
         m_tool_change_idx(0),
         m_plate_origin(plate_origin),
         m_single_extruder_multi_material(print_config.single_extruder_multi_material),
-        m_enable_timelapse_print(print_config.timelapse_no_toolhead.value),
+        m_enable_timelapse_print(print_config.timelapse_type.value == TimelapseType::tlSmooth),
         m_is_first_print(true)
     {}
 

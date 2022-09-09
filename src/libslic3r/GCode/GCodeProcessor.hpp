@@ -219,7 +219,7 @@ namespace Slic3r {
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
     private:
-        using AxisCoords = std::array<float, 4>;
+        using AxisCoords = std::array<double, 4>;
         using ExtruderColors = std::vector<unsigned char>;
         using ExtruderTemps = std::vector<float>;
 
@@ -595,6 +595,7 @@ namespace Slic3r {
         ExtruderTemps m_extruder_temps;
         float m_extruded_last_z;
         float m_first_layer_height; // mm
+        float m_zero_layer_height; // mm
         bool m_processing_start_custom_gcode;
         unsigned int m_g1_line_id;
         unsigned int m_layer_id;

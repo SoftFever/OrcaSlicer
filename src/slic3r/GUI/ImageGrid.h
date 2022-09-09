@@ -76,9 +76,9 @@ protected:
 
     void render(wxDC &dc);
 
-    void renderButtons(wxDC &dc, wxStringList const &texts, wxRect const &rect, size_t hit);
+    void renderButtons(wxDC &dc, wxStringList const &texts, wxRect const &rect, size_t hit, int states);
 
-    void renderText(wxDC &dc, wxString const & text, wxRect const & rect, int state);
+    void renderText(wxDC &dc, wxString const & text, wxRect const & rect, int states);
 
     // some useful events
     void mouseMoved(wxMouseEvent& event);
@@ -108,10 +108,9 @@ private:
 
     wxTimer m_timer;
     wxBitmap   m_mask;
-    wxBitmap   m_buttons_background;
+    wxBitmap m_buttons_background;
+    wxBitmap m_buttons_background_checked;
     // wxBitmap   m_button_background;
-    wxBitmap   m_progress_background;
-    int m_background_progress = 0;
 
     bool m_selecting = false;
 

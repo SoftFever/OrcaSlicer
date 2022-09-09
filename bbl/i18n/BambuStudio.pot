@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-01 09:20+0800\n"
+"POT-Creation-Date: 2022-09-09 11:50+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -810,7 +810,7 @@ msgstr ""
 msgid "Reduce Triangles"
 msgstr ""
 
-msgid "Per object edit"
+msgid "Edit in Parameter Table"
 msgstr ""
 
 msgid "Edit print parameters for a single object"
@@ -1009,7 +1009,7 @@ msgstr ""
 msgid "Auto Brim"
 msgstr ""
 
-msgid "Inner wall speed"
+msgid "Outer wall speed"
 msgstr ""
 
 msgid "Plate"
@@ -1213,9 +1213,6 @@ msgstr ""
 msgid "Unkown Error."
 msgstr ""
 
-msgid "Please Fill Task Report."
-msgstr ""
-
 msgid "Sending print configuration"
 msgstr ""
 
@@ -1298,7 +1295,7 @@ msgid ""
 "the corresponding code comments."
 msgstr ""
 
-msgid "AMSMaterialsSetting"
+msgid "AMS Materials Setting"
 msgstr ""
 
 msgid "Colour"
@@ -1381,6 +1378,17 @@ msgid ""
 msgstr ""
 
 msgid "File"
+msgstr ""
+
+msgid "Please home all axes (click "
+msgstr ""
+
+msgid ""
+") to locate the toolhead's position. This prevents device moving beyond the "
+"printable boundary and causing equipment wear."
+msgstr ""
+
+msgid "Go Home"
 msgstr ""
 
 msgid ""
@@ -2055,13 +2063,10 @@ msgstr ""
 msgid "Invalid input."
 msgstr ""
 
-msgid "Enter a search term"
+msgid "New Window"
 msgstr ""
 
-msgid "Online"
-msgstr ""
-
-msgid "Offline"
+msgid "Open a new window"
 msgstr ""
 
 msgid "Application is closing"
@@ -2083,9 +2088,6 @@ msgid "Device"
 msgstr ""
 
 msgid "Project"
-msgstr ""
-
-msgid "Debug"
 msgstr ""
 
 msgid "Slice"
@@ -2123,9 +2125,6 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "&About %s"
-msgstr ""
-
-msgid "Show Log"
 msgstr ""
 
 msgid "Open Network Test"
@@ -2170,6 +2169,9 @@ msgid "Right"
 msgstr ""
 
 msgid "Right View"
+msgstr ""
+
+msgid "Start a new window"
 msgstr ""
 
 msgid "New Project"
@@ -2296,6 +2298,12 @@ msgid "Use Perspective View"
 msgstr ""
 
 msgid "Use Orthogonal View"
+msgstr ""
+
+msgid "Show &Labels"
+msgstr ""
+
+msgid "Show object labels in 3D scene"
 msgstr ""
 
 msgid "Preferences"
@@ -2461,19 +2469,20 @@ msgstr ""
 msgid "Choose save directory"
 msgstr ""
 
-msgid "Waiting"
+msgid "Download waiting..."
 msgstr ""
 
 msgid "Retry"
 msgstr ""
 
-msgid "Failed"
-msgstr ""
-
 msgid "Open"
 msgstr ""
 
-msgid "Finished"
+msgid "Download finished"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Downloading %d%%..."
 msgstr ""
 
 msgid "Speed:"
@@ -2546,6 +2555,9 @@ msgid "Printing List"
 msgstr ""
 
 msgid "Downloading..."
+msgstr ""
+
+msgid "This only takes effect during printing"
 msgstr ""
 
 msgid "Silent"
@@ -3375,6 +3387,12 @@ msgstr ""
 msgid "Simply switch to \"%1%\""
 msgstr ""
 
+msgid "Online"
+msgstr ""
+
+msgid "Offline"
+msgstr ""
+
 msgid "My Device"
 msgstr ""
 
@@ -4005,6 +4023,18 @@ msgstr ""
 msgid "Global shortcuts"
 msgstr ""
 
+msgid "Rotate View"
+msgstr ""
+
+msgid "Pan View"
+msgstr ""
+
+msgid "Mouse wheel"
+msgstr ""
+
+msgid "Zoom View"
+msgstr ""
+
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
@@ -4202,6 +4232,9 @@ msgid "version %s update information :"
 msgstr ""
 
 msgid "New version of Bambu Studio"
+msgstr ""
+
+msgid "Don't remind me of this version again"
 msgstr ""
 
 msgid "Saving objects into the 3mf failed."
@@ -5661,12 +5694,20 @@ msgid ""
 msgstr ""
 
 msgid ""
-"If enabled, a timelapse video will be generated for each print. After each "
-"layer is printed, the toolhead will move to the excess chute, and then a "
-"snapshot is taken with the chamber camera. All of these snapshots are "
-"composed into a timelapse video when printing completes. Since the melt "
-"filament may leak from the nozzle during the process of taking a snapshot, "
-"prime tower is required for nozzle priming."
+"If smooth or traditional mode is selected, a timelapse video will be "
+"generated for each print. After each layer is printed, a snapshot is taken "
+"with the chamber camera. All of these snapshots are composed into a "
+"timelapse video when printing completes. If smooth mode is selected, the "
+"toolhead will move to the excess chute after each layer is printed and then "
+"take a snapshot. Since the melt filament may leak from the nozzle during the "
+"process of taking a snapshot, prime tower is required for smooth mode to "
+"wipe nozzle."
+msgstr ""
+
+msgid "Smooth"
+msgstr ""
+
+msgid "Traditional"
 msgstr ""
 
 msgid "Temperature variation"
@@ -5679,6 +5720,15 @@ msgid "Start G-code when start the whole printing"
 msgstr ""
 
 msgid "Start G-code when start the printing of this filament"
+msgstr ""
+
+msgid "Slice gap closing radius"
+msgstr ""
+
+msgid ""
+"Cracks smaller than 2x gap closing radius are being filled during the "
+"triangle mesh slicing. The gap closing operation may reduce the final print "
+"resolution, therefore it is advisable to keep the value reasonably low."
 msgstr ""
 
 msgid "Enable support"

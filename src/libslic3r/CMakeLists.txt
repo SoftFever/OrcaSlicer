@@ -454,10 +454,6 @@ set(OCCT_LIBS
     TKernel
 )
 
-if(APPLE)
-    target_link_libraries(libslic3r freetype)
-endif()
-
 
 target_link_libraries(libslic3r
     libnest2d
@@ -479,6 +475,13 @@ target_link_libraries(libslic3r
     ZLIB::ZLIB
     ${OCCT_LIBS}
     )
+
+if(NOT WIN32)
+    target_link_libraries(libslic3r freetype)
+    if (NOT APPLE)
+        target_link_libraries(libslic3r fontconfig)
+    endif()
+endif()
 
 if (TARGET OpenVDB::openvdb)
     target_link_libraries(libslic3r OpenVDB::openvdb)

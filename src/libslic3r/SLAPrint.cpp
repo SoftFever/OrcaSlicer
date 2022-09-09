@@ -930,7 +930,8 @@ bool SLAPrintObject::invalidate_state_by_config_options(const std::vector<t_conf
             || opt_key == "supports_enable"
             || opt_key == "support_object_elevation"
             || opt_key == "pad_around_object"
-            || opt_key == "pad_around_object_everywhere") {
+            || opt_key == "pad_around_object_everywhere"
+            || opt_key == "slice_closing_radius") {
             steps.emplace_back(slaposObjectSlice);
         } else if (
                opt_key == "support_points_density_relative"
