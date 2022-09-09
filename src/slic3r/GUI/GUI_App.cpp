@@ -1588,7 +1588,7 @@ void GUI_App::init_networking_callbacks()
                             if (state == ConnectStatus::ConnectStatusOk) {
                                 obj->command_request_push_all();
                                 obj->command_get_version();
-                            } else if (state == ConnectStatus::ConnectStatusFailed || ConnectStatus::ConnectStatusLost) {
+                            } else if (state == ConnectStatus::ConnectStatusFailed) {
                                 obj->set_access_code("");
                                 wxString text;
                                 if (msg == "5") {
@@ -1598,6 +1598,9 @@ void GUI_App::init_networking_callbacks()
                                     text = wxString::Format(_L("Connect %s failed! [SN:%s, code=%s]"), from_u8(obj->dev_name), obj->dev_id, msg);
                                     wxGetApp().show_dialog(text);
                                 }
+                            } else if (state == ConnectStatus::ConnectStatusLost) {
+                                m_device_manager->set_selected_machine("");
+                                BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = lost";
                             } else {
                                 BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = " << state;
                             }
