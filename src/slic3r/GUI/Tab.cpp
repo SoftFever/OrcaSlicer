@@ -1382,7 +1382,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                               _L("Warning"), wxICON_WARNING | wxYES | wxNO);
             if (dlg.ShowModal() == wxID_YES) {
                 DynamicPrintConfig new_conf = *m_config;
-                new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(TimelapseType::tlClose));
+                new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(TimelapseType::tlNone));
                 m_config_manipulation.apply(m_config, &new_conf);
                 wxGetApp().plater()->update();
             }
@@ -1409,7 +1409,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             }
             else {
                 DynamicPrintConfig new_conf = *m_config;
-                new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(TimelapseType::tlClose));
+                new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(TimelapseType::tlNone));
                 m_config_manipulation.apply(m_config, &new_conf);
             }
         } else {

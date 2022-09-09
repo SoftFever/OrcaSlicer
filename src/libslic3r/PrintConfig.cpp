@@ -218,7 +218,7 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BrimType)
 
 // using 0,1,2 to compatible with old files
 static const t_config_enum_values s_keys_map_TimelapseType = {
-    {"0",       tlClose},
+    {"0",       tlNone},
     {"1",       tlSmooth},
     {"2",       tlTraditional}
 };
@@ -2055,11 +2055,11 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.emplace_back("0");
     def->enum_values.emplace_back("1");
     def->enum_values.emplace_back("2");
-    def->enum_labels.emplace_back(L("Close"));
+    def->enum_labels.emplace_back(L("None"));
     def->enum_labels.emplace_back(L("Smooth"));
     def->enum_labels.emplace_back(L("Traditional"));
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionEnum<TimelapseType>(tlClose));
+    def->set_default_value(new ConfigOptionEnum<TimelapseType>(tlNone));
 
     def = this->add("standby_temperature_delta", coInt);
     def->label = L("Temperature variation");

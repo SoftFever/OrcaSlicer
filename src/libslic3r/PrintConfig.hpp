@@ -135,7 +135,7 @@ enum BrimType {
 };
 
 enum TimelapseType {
-    tlClose,
+    tlNone,
     tlSmooth,
     tlTraditional
 };
