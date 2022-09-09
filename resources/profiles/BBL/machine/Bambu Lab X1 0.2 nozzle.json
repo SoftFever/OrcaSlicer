@@ -9,7 +9,7 @@
         "0.2"
     ],
     "printer_variant": "0.2",
-    "printer_model": "Bambu Lab X1 Carbon",
+    "printer_model": "Bambu Lab X1",
     "default_filament_profile": [
         "Bambu PLA Basic @BBL X1C 0.2 nozzle"
     ],
