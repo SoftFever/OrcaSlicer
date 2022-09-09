@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-07 14:34+0800\n"
-"PO-Revision-Date: 2022-09-07 09:59+0800\n"
+"POT-Creation-Date: 2022-09-09 09:54+0800\n"
+"PO-Revision-Date: 2022-09-09 09:57+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -816,7 +816,7 @@ msgid "Reduce Triangles"
 msgstr "简化三角形"
 
 msgid "Edit in Parameter Table"
-msgstr ""
+msgstr "在参数表格中编辑"
 
 msgid "Edit print parameters for a single object"
 msgstr "编辑单个对象的打印参数"
@@ -2546,7 +2546,7 @@ msgid "Choose save directory"
 msgstr "选择保存目录"
 
 msgid "Download waiting..."
-msgstr ""
+msgstr "正在下载中..."
 
 msgid "Retry"
 msgstr "重试"
@@ -2555,11 +2555,11 @@ msgid "Open"
 msgstr "打开"
 
 msgid "Download finished"
-msgstr ""
+msgstr "下载完成"
 
 #, c-format, boost-format
 msgid "Downloading %d%%..."
-msgstr ""
+msgstr "下载中 %d%%..."
 
 msgid "Speed:"
 msgstr "速度："
@@ -2632,6 +2632,9 @@ msgstr "项目切片"
 
 msgid "Downloading..."
 msgstr "下载中..."
+
+msgid "This only takes effect during printing"
+msgstr ""
 
 msgid "Silent"
 msgstr "静音"
@@ -4121,6 +4124,18 @@ msgstr "显示键盘快捷键列表"
 msgid "Global shortcuts"
 msgstr "全局快捷键"
 
+msgid "Rotate View"
+msgstr "旋转视角"
+
+msgid "Pan View"
+msgstr "移动视角"
+
+msgid "Mouse wheel"
+msgstr "鼠标滚轮"
+
+msgid "Zoom View"
+msgstr "缩放视角"
+
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
@@ -4321,6 +4336,9 @@ msgstr "版本 %s 更新信息"
 
 msgid "New version of Bambu Studio"
 msgstr "新版本的Bambu Studio"
+
+msgid "Don't remind me of this version again"
+msgstr "此版本不在提示"
 
 msgid "Saving objects into the 3mf failed."
 msgstr "保存对象到3mf失败。"
@@ -5841,17 +5859,21 @@ msgstr ""
 "印。最后生成的打印件没有接缝。"
 
 msgid ""
-"If enabled, a timelapse video will be generated for each print. After each "
-"layer is printed, the toolhead will move to the excess chute, and then a "
-"snapshot is taken with the chamber camera. All of these snapshots are "
-"composed into a timelapse video when printing completes. Since the melt "
-"filament may leak from the nozzle during the process of taking a snapshot, "
-"prime tower is required for nozzle priming."
+"If smooth or traditional mode is selected, a timelapse video will be "
+"generated for each print. After each layer is printed, a snapshot is taken "
+"with the chamber camera. All of these snapshots are composed into a "
+"timelapse video when printing completes. If smooth mode is selected, the "
+"toolhead will move to the excess chute after each layer is printed and then "
+"take a snapshot. Since the melt filament may leak from the nozzle during the "
+"process of taking a snapshot, prime tower is required for smooth mode to "
+"wipe nozzle."
 msgstr ""
-"如果启用延时摄影，将在每次打印时生成延时摄影视频。打印完每层后，工具头将移动"
-"到吐料槽，然后用内置相机拍摄快照。打印完成后，所有这些快照会组合成一个延时视"
-"频。由于在拍摄快照的过程中熔丝可能会从喷嘴中泄漏，因此需要使用擦拭塔进行喷嘴"
-"擦拭。"
+
+msgid "Smooth"
+msgstr "平滑"
+
+msgid "Traditional"
+msgstr ""
 
 msgid "Temperature variation"
 msgstr "软化温度"
@@ -5872,7 +5894,9 @@ msgid ""
 "Cracks smaller than 2x gap closing radius are being filled during the "
 "triangle mesh slicing. The gap closing operation may reduce the final print "
 "resolution, therefore it is advisable to keep the value reasonably low."
-msgstr "在三角形网格切片过程中，小于2倍间隙闭合半径的裂纹将被填充。间隙闭合操作可能会降低最终打印分辨率，因此建议降值保持在合理的较低水平"
+msgstr ""
+"在三角形网格切片过程中，小于2倍间隙闭合半径的裂纹将被填充。间隙闭合操作可能会"
+"降低最终打印分辨率，因此建议降值保持在合理的较低水平"
 
 msgid "Enable support"
 msgstr "开启支撑"
@@ -6389,6 +6413,19 @@ msgstr "支撑：正在修补层%d的空洞"
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
 
+#~ msgid ""
+#~ "If enabled, a timelapse video will be generated for each print. After "
+#~ "each layer is printed, the toolhead will move to the excess chute, and "
+#~ "then a snapshot is taken with the chamber camera. All of these snapshots "
+#~ "are composed into a timelapse video when printing completes. Since the "
+#~ "melt filament may leak from the nozzle during the process of taking a "
+#~ "snapshot, prime tower is required for nozzle priming."
+#~ msgstr ""
+#~ "如果启用延时摄影，将在每次打印时生成延时摄影视频。打印完每层后，工具头将移"
+#~ "动到吐料槽，然后用内置相机拍摄快照。打印完成后，所有这些快照会组合成一个延"
+#~ "时视频。由于在拍摄快照的过程中熔丝可能会从喷嘴中泄漏，因此需要使用擦拭塔进"
+#~ "行喷嘴擦拭。"
+
 #~ msgid "Please Fill Task Report."
 #~ msgstr "请填写打印报告"
 
@@ -6648,9 +6685,6 @@ msgstr "支撑：正在生长层%d的树枝"
 
 #~ msgid "sdfsadf Any arrow"
 #~ msgstr "方向键"
-
-#~ msgid "Mouse wheel"
-#~ msgstr "鼠标滚轮"
 
 #~ msgid "Any arrow"
 #~ msgstr "方向键"
@@ -10070,9 +10104,6 @@ msgstr "支撑：正在生长层%d的树枝"
 
 #~ msgid "Higher print quality versus higher print speed."
 #~ msgstr "高精度 vs 高速度。"
-
-#~ msgid "Smooth"
-#~ msgstr "平滑"
 
 #~ msgid "Keep min"
 #~ msgstr "保留最小"

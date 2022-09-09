@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-07 14:34+0800\n"
+"POT-Creation-Date: 2022-09-09 09:54+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1091,10 +1091,10 @@ msgid "Click the pencil icon to edit the filament."
 msgstr "Kattints a ceruza ikonra a filament szerkesztéséhez."
 
 msgid "Load Filament"
-msgstr "Filament betöltés"
+msgstr "Load"
 
 msgid "Unload Filament"
-msgstr "Filament kitöltése"
+msgstr "Unload"
 
 msgid "Tips"
 msgstr "Tippek"
@@ -2721,6 +2721,9 @@ msgstr "Nyomtatási lista"
 msgid "Downloading..."
 msgstr "Letöltés..."
 
+msgid "This only takes effect during printing"
+msgstr ""
+
 msgid "Silent"
 msgstr "Csendes"
 
@@ -4260,6 +4263,18 @@ msgstr "Gyorsgombok listájának megjelenítése"
 msgid "Global shortcuts"
 msgstr "Globális gyorsbillentyűk"
 
+msgid "Rotate View"
+msgstr ""
+
+msgid "Pan View"
+msgstr ""
+
+msgid "Mouse wheel"
+msgstr ""
+
+msgid "Zoom View"
+msgstr ""
+
 msgid ""
 "Auto orientates selected objects or all objects.If there are selected "
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
@@ -4465,6 +4480,9 @@ msgstr ""
 
 msgid "New version of Bambu Studio"
 msgstr "A Bambu Studio új verziója"
+
+msgid "Don't remind me of this version again"
+msgstr ""
 
 msgid "Saving objects into the 3mf failed."
 msgstr "Az objektumok mentése a 3mf-be sikertelen volt."
@@ -6162,12 +6180,20 @@ msgstr ""
 "varratok"
 
 msgid ""
-"If enabled, a timelapse video will be generated for each print. After each "
-"layer is printed, the toolhead will move to the excess chute, and then a "
-"snapshot is taken with the chamber camera. All of these snapshots are "
-"composed into a timelapse video when printing completes. Since the melt "
-"filament may leak from the nozzle during the process of taking a snapshot, "
-"prime tower is required for nozzle priming."
+"If smooth or traditional mode is selected, a timelapse video will be "
+"generated for each print. After each layer is printed, a snapshot is taken "
+"with the chamber camera. All of these snapshots are composed into a "
+"timelapse video when printing completes. If smooth mode is selected, the "
+"toolhead will move to the excess chute after each layer is printed and then "
+"take a snapshot. Since the melt filament may leak from the nozzle during the "
+"process of taking a snapshot, prime tower is required for smooth mode to "
+"wipe nozzle."
+msgstr ""
+
+msgid "Smooth"
+msgstr ""
+
+msgid "Traditional"
 msgstr ""
 
 msgid "Temperature variation"
