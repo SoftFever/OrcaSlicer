@@ -115,7 +115,8 @@ class SeamPlacer
 public:
     // Number of samples generated on the mesh. There are sqr_rays_per_sample_point*sqr_rays_per_sample_point rays casted from each samples
     static constexpr size_t raycasting_visibility_samples_count = 30000;
-    // square of number of rays per sample point
+    static constexpr size_t fast_decimation_triangle_count_target = 16000;
+    //square of number of rays per sample point
     static constexpr size_t sqr_rays_per_sample_point = 5;
 
     // snapping angle - angles larger than this value will be snapped to during seam painting
