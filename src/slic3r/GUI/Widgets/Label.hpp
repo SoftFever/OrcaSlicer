@@ -3,12 +3,21 @@
 
 #include <wx/stattext.h>
 
+#define LB_HYPERLINK 0x0001
+
+
 class Label : public wxStaticText
 {
 public:
-    Label(wxWindow *parent, wxString const &text = {});
+    Label(wxWindow *parent, wxString const &text = {}, long style = 0);
 
-	Label(wxWindow *parent, wxFont const &font, wxString const &text = {});
+	Label(wxWindow *parent, wxFont const &font, wxString const &text = {}, long style = 0);
+
+    void SetWindowStyleFlag(long style) override;
+
+private:
+    wxFont font;
+    wxColour color;
 
 public:
 	static wxFont Head_24;

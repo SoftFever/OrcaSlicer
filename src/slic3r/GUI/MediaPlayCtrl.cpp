@@ -19,11 +19,15 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
     m_button_play = new Button(this, "", "media_play", wxBORDER_NONE);
     m_button_play->SetCanFocus(false);
 
-    m_label_status = new Label(this);
+    m_label_status = new Label(this, "", LB_HYPERLINK);
 
     m_button_play->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto & e) { TogglePlay(); });
 
     m_button_play->Bind(wxEVT_RIGHT_UP, [this](auto & e) { m_media_ctrl->Play(); });
+    m_label_status->Bind(wxEVT_LEFT_UP, [this](auto &e) {
+        auto url = wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/faq/live-view", L"en");
+        wxLaunchDefaultBrowser(url);
+    });
 
     Bind(wxEVT_RIGHT_UP, [this](auto & e) { wxClipboard & c = *wxTheClipboard; if (c.Open()) { c.SetData(new wxTextDataObject(m_url)); c.Close(); } });
 
@@ -206,7 +210,11 @@ void MediaPlayCtrl::SetStatus(wxString const& msg2)
     OutputDebugStringA("\n");
 #endif // __WXMSW__
     m_label_status->SetLabel(msg);
-    //m_label_status->SetForegroundColour(!msg.EndsWith("!") ? 0x42AE00 : 0x3B65E9);
+    long style = m_label_status->GetWindowStyle() & ~LB_HYPERLINK;
+    if (m_failed_code && msg != msg2) {
+        style |= LB_HYPERLINK;
+    }
+    m_label_status->SetWindowStyle(style);
     Layout();
 }
 
@@ -280,6 +288,8 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
         }
         else if (event.GetId()) {
             Stop();
+            if (m_failed_code == 0)
+                m_failed_code = 2;
             SetStatus(_L("Load failed [%d]!"));
         } else {
             m_last_state = last_state;

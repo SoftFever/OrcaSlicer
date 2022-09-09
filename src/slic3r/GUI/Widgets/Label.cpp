@@ -64,11 +64,36 @@ wxSize Label::split_lines(wxDC &dc, int width, const wxString &text, wxString &m
     return dc.GetMultiLineTextExtent(multiline_text);
 }
 
-Label::Label(wxWindow *parent, wxString const &text) : Label(parent, Body_14, text) {}
+Label::Label(wxWindow *parent, wxString const &text, long style) : Label(parent, Body_14, text, style) {}
 
-Label::Label(wxWindow *parent, wxFont const &font, wxString const &text)
-    : wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, wxDefaultSize, 0)
+Label::Label(wxWindow *parent, wxFont const &font, wxString const &text, long style)
+    : wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, wxDefaultSize, style)
 {
+    this->font = font;
     SetFont(font);
     SetBackgroundColour(StaticBox::GetParentBackgroundColor(parent));
+    Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
+        if (GetWindowStyle() & LB_HYPERLINK) {
+            SetFont(this->font.Underlined());
+            Refresh();
+        }
+    });
+    Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
+        SetFont(this->font);
+        Refresh();
+    });
+}
+
+void Label::SetWindowStyleFlag(long style)
+{
+    wxStaticText::SetWindowStyleFlag(style);
+    if (style & LB_HYPERLINK) {
+        this->color = GetForegroundColour();
+        static wxColor clr_url("#00AE42");
+        SetForegroundColour(clr_url);
+    } else {
+        SetForegroundColour(this->color);
+        SetFont(this->font);
+    }
+    Refresh();
 }
