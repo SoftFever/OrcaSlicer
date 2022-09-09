@@ -34,7 +34,7 @@
         "3"
     ],
     "filament_end_gcode": [
-        "; filament end gcode \n;M106 P3 S0\n"
+        "; filament end gcode \n"
     ],
     "filament_flow_ratio": [
         "1"
