@@ -2801,7 +2801,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                             // restore the extruder after reset
                             if (has_extruder) { model_object->config.set("extruder", extruder_id); }
-                            
+
                             // Is there any modifier or advanced config data?
                             for (ModelVolume *model_volume : model_object->volumes) {
                                 has_extruder = model_volume->config.has("extruder");
@@ -6814,9 +6814,25 @@ void Plater::add_model(bool imperial_units/* = false*/)
     }
 
     Plater::TakeSnapshot snapshot(this, snapshot_label);
+
+    // BBS: check file types
+    auto loadfiles_type  = LoadFilesType::NoFile;
+    auto amf_files_count = get_3mf_file_count(paths);
+
+    if (paths.size() > 1 && amf_files_count < paths.size()) { loadfiles_type = LoadFilesType::Multiple3MFOther; }
+    if (paths.size() > 1 && amf_files_count == paths.size()) { loadfiles_type = LoadFilesType::Multiple3MF; }
+    if (paths.size() > 1 && amf_files_count == 0) { loadfiles_type = LoadFilesType::MultipleOther; }
+    if (paths.size() == 1 && amf_files_count == 1) { loadfiles_type = LoadFilesType::Single3MF; };
+    if (paths.size() == 1 && amf_files_count == 0) { loadfiles_type = LoadFilesType::SingleOther; };
+
+    bool ask_multi = false;
+
+    if (loadfiles_type == LoadFilesType::MultipleOther)
+        ask_multi = true;
+
     auto strategy = LoadStrategy::LoadModel;
     if (imperial_units) strategy = strategy | LoadStrategy::ImperialUnits;
-    if (!load_files(paths, strategy).empty()) {
+    if (!load_files(paths, strategy, ask_multi).empty()) {
         wxGetApp().mainframe->update_title();
     }
 }
