@@ -127,9 +127,6 @@
     "Voron Generic ABS"
   ],
   "default_print_profile": "0.20mm Standard @Voron",
-  "nozzle_diameter": [
-    "0.4"
-  ],
   "bed_exclude_area": [
     "0x0"
   ],

@@ -7,6 +7,9 @@
   "inherits": "fdm_klipper_common",
   "printer_model": "Voron 0.1",
   "default_print_profile": "0.20mm Standard @Voron",
+  "nozzle_diameter": [
+    "0.4"
+  ],
   "printable_area": [
     "0x0",
     "120x0",
