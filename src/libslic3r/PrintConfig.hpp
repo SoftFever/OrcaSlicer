@@ -654,6 +654,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                bridge_flow))
     ((ConfigOptionFloat,                bridge_speed))
     ((ConfigOptionEnum<InfillPattern>,  top_surface_pattern))
+    ((ConfigOptionFloat,                top_solid_infill_flow_ratio))
     ((ConfigOptionEnum<InfillPattern>,  bottom_surface_pattern))
     ((ConfigOptionFloat,                outer_wall_line_width))
     ((ConfigOptionFloat,                outer_wall_speed))
