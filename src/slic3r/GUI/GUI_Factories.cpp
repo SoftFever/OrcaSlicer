@@ -652,10 +652,16 @@ void MenuFactory::append_menu_item_export_stl(wxMenu* menu, bool is_mulity_menu)
 
 void MenuFactory::append_menu_item_reload_from_disk(wxMenu* menu)
 {
-    // BBS: change "Reload from disk" to "Reload item"
-    append_menu_item(menu, wxID_ANY, _L("Reload item"), _L("Reload items"),
+    append_menu_item(menu, wxID_ANY, _L("Reload from disk"), _L("Reload the selected volumes from disk"),
         [](wxCommandEvent&) { plater()->reload_from_disk(); }, "", menu,
         []() { return plater()->can_reload_from_disk(); }, m_parent);
+}
+
+void MenuFactory::append_menu_item_replace_with_stl(wxMenu *menu)
+{
+    append_menu_item(menu, wxID_ANY, _L("Replace with STL"), _L("Replace the selected volume with new STL"),
+        [](wxCommandEvent &) { plater()->replace_with_stl(); }, "", menu,
+        []() { return plater()->can_replace_with_stl(); }, m_parent);
 }
 
 void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
@@ -915,6 +921,8 @@ void MenuFactory::create_bbl_object_menu()
     // Enter per object parameters
     append_menu_item_per_object_settings(&m_object_menu);
     m_object_menu.AppendSeparator();
+    append_menu_item_reload_from_disk(&m_object_menu);
+    append_menu_item_replace_with_stl(&m_object_menu);
     append_menu_item_export_stl(&m_object_menu);
 }
 
@@ -992,6 +1000,8 @@ void MenuFactory::create_bbl_part_menu()
     menu->AppendSeparator();
     append_menu_item_per_object_settings(menu);
     append_menu_item_change_type(menu);
+    append_menu_item_reload_from_disk(menu);
+    append_menu_item_replace_with_stl(menu);
 }
 
 void MenuFactory::create_bbl_assemble_part_menu()

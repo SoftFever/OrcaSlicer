@@ -4242,55 +4242,91 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
 
 void Plater::priv::replace_with_stl()
 {
-    // BBS do not support replace with STL
-    //if (! q->get_view3D_canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::EType::Undefined))
-    //    return;
+    if (! q->get_view3D_canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::EType::Undefined))
+        return;
 
-    //const Selection& selection = get_selection();
+    const Selection& selection = get_selection();
 
-    //if (selection.is_wipe_tower() || get_selection().get_volume_idxs().size() != 1)
-    //    return;
+    if (selection.is_wipe_tower() || get_selection().get_volume_idxs().size() != 1)
+        return;
 
-    //const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
-    //int object_idx = v->object_idx();
-    //int volume_idx = v->volume_idx();
+    const GLVolume* v = selection.get_volume(*selection.get_volume_idxs().begin());
+    int object_idx = v->object_idx();
+    int volume_idx = v->volume_idx();
 
-    //// collects paths of files to load
+    // collects paths of files to load
 
-    //const ModelObject* object = model.objects[object_idx];
-    //const ModelVolume* volume = object->volumes[volume_idx];
+    const ModelObject* object = model.objects[object_idx];
+    const ModelVolume* volume = object->volumes[volume_idx];
 
-    //fs::path input_path;
-    //if (!volume->source.input_file.empty() && fs::exists(volume->source.input_file))
-    //    input_path = volume->source.input_file;
+    fs::path input_path;
+    if (!volume->source.input_file.empty() && fs::exists(volume->source.input_file))
+        input_path = volume->source.input_file;
 
-    //wxString title = _L("Select the new file");
-    //title += ":";
-    //wxFileDialog dialog(q, title, "", from_u8(input_path.filename().string()), file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-    //if (dialog.ShowModal() != wxID_OK)
-    //    return;
+    wxString title = _L("Select the new file");
+    title += ":";
+    wxFileDialog dialog(q, title, "", from_u8(input_path.filename().string()), file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (dialog.ShowModal() != wxID_OK)
+        return;
 
-    //fs::path out_path = dialog.GetPath().ToUTF8().data();
-    //if (out_path.empty()) {
-    //    MessageDialog dlg(q, _L("File for the replace wasn't selected"), _L("Error during replace"), wxOK | wxOK_DEFAULT | wxICON_WARNING);
-    //    dlg.ShowModal();
-    //    return;
-    //}
+    fs::path out_path = dialog.GetPath().ToUTF8().data();
+    if (out_path.empty()) {
+        MessageDialog dlg(q, _L("File for the replace wasn't selected"), _L("Error during replace"), wxOK | wxOK_DEFAULT | wxICON_WARNING);
+        dlg.ShowModal();
+        return;
+    }
 
-    //if (!replace_volume_with_stl(object_idx, volume_idx, out_path, "Replace with STL"))
-    //    return;
+    if (!replace_volume_with_stl(object_idx, volume_idx, out_path, "Replace with STL"))
+        return;
 
-    //// update 3D scene
-    //update();
+    // update 3D scene
+    update();
 
-    //// new GLVolumes have been created at this point, so update their printable state
-    //for (size_t i = 0; i < model.objects.size(); ++i) {
-    //    view3D->get_canvas3d()->update_instance_printable_state_for_object(i);
-    //}
+    // new GLVolumes have been created at this point, so update their printable state
+    for (size_t i = 0; i < model.objects.size(); ++i) {
+        view3D->get_canvas3d()->update_instance_printable_state_for_object(i);
+    }
 }
+
+#if ENABLE_RELOAD_FROM_DISK_REWORK
+static std::vector<std::pair<int, int>> reloadable_volumes(const Model &model, const Selection &selection)
+{
+    std::vector<std::pair<int, int>> ret;
+    const std::set<unsigned int> &   selected_volumes_idxs = selection.get_volume_idxs();
+    for (unsigned int idx : selected_volumes_idxs) {
+        const GLVolume &v     = *selection.get_volume(idx);
+        const int       o_idx = v.object_idx();
+        if (0 <= o_idx && o_idx < int(model.objects.size())) {
+            const ModelObject *obj   = model.objects[o_idx];
+            const int          v_idx = v.volume_idx();
+            if (0 <= v_idx && v_idx < int(obj->volumes.size())) {
+                const ModelVolume *vol = obj->volumes[v_idx];
+                if (!vol->source.is_from_builtin_objects && !vol->source.input_file.empty() && !fs::path(vol->source.input_file).extension().string().empty())
+                    ret.push_back({o_idx, v_idx});
+            }
+        }
+    }
+    return ret;
+}
+#endif // ENABLE_RELOAD_FROM_DISK_REWORK
 
 void Plater::priv::reload_from_disk()
 {
+#if ENABLE_RELOAD_FROM_DISK_REWORK
+    // collect selected reloadable ModelVolumes
+    std::vector<std::pair<int, int>> selected_volumes = reloadable_volumes(model, get_selection());
+
+    // nothing to reload, return
+    if (selected_volumes.empty())
+        return;
+
+    std::sort(selected_volumes.begin(), selected_volumes.end(), [](const std::pair<int, int> &v1, const std::pair<int, int> &v2) {
+        return (v1.first < v2.first) || (v1.first == v2.first && v1.second < v2.second);
+        });
+    selected_volumes.erase(std::unique(selected_volumes.begin(), selected_volumes.end(), [](const std::pair<int, int> &v1, const std::pair<int, int> &v2) {
+        return (v1.first == v2.first) && (v1.second == v2.second);
+        }), selected_volumes.end());
+#else
     Plater::TakeSnapshot snapshot(q, "Reload from disk");
 
     const Selection& selection = get_selection();
@@ -4323,10 +4359,36 @@ void Plater::priv::reload_from_disk()
     }
     std::sort(selected_volumes.begin(), selected_volumes.end());
     selected_volumes.erase(std::unique(selected_volumes.begin(), selected_volumes.end()), selected_volumes.end());
+#endif // ENABLE_RELOAD_FROM_DISK_REWORK
 
     // collects paths of files to load
     std::vector<fs::path> input_paths;
     std::vector<fs::path> missing_input_paths;
+#if ENABLE_RELOAD_FROM_DISK_REWORK
+    std::vector<std::pair<fs::path, fs::path>> replace_paths;
+    for (auto [obj_idx, vol_idx] : selected_volumes) {
+        const ModelObject *object = model.objects[obj_idx];
+        const ModelVolume *volume = object->volumes[vol_idx];
+        if (fs::exists(volume->source.input_file))
+            input_paths.push_back(volume->source.input_file);
+        else {
+            // searches the source in the same folder containing the object
+            bool found = false;
+            if (!object->input_file.empty()) {
+                fs::path object_path = fs::path(object->input_file).remove_filename();
+                if (!object_path.empty()) {
+                    object_path /= fs::path(volume->source.input_file).filename();
+                    if (fs::exists(object_path)) {
+                        input_paths.push_back(object_path);
+                        found = true;
+                    }
+                }
+            }
+            if (!found)
+                missing_input_paths.push_back(volume->source.input_file);
+        }
+    }
+#else
     std::vector<fs::path> replace_paths;
     for (const SelectedVolume& v : selected_volumes) {
         const ModelObject* object = model.objects[v.object_idx];
@@ -4356,6 +4418,7 @@ void Plater::priv::reload_from_disk()
         else if (!object->input_file.empty() && volume->is_model_part() && !volume->name.empty() && !volume->source.is_from_builtin_objects)
             missing_input_paths.push_back(volume->name);
     }
+#endif // ENABLE_RELOAD_FROM_DISK_REWORK
 
     std::sort(missing_input_paths.begin(), missing_input_paths.end());
     missing_input_paths.erase(std::unique(missing_input_paths.begin(), missing_input_paths.end()), missing_input_paths.end());
@@ -4397,7 +4460,11 @@ void Plater::priv::reload_from_disk()
             wxString      message = _devL("Do you want to replace it") + " ?";
             MessageDialog dlg(q, message, wxMessageBoxCaptionStr, wxYES_NO | wxYES_DEFAULT | wxICON_QUESTION);
             if (dlg.ShowModal() == wxID_YES)
-                replace_paths.push_back(sel_filename_path);
+#if ENABLE_RELOAD_FROM_DISK_REWORK
+                replace_paths.emplace_back(search, sel_filename_path);
+#else
+                replace_paths.emplace_back(sel_filename_path);
+#endif // ENABLE_RELOAD_FROM_DISK_REWORK
             missing_input_paths.pop_back();
         }
     }
@@ -4407,6 +4474,10 @@ void Plater::priv::reload_from_disk()
 
     std::sort(replace_paths.begin(), replace_paths.end());
     replace_paths.erase(std::unique(replace_paths.begin(), replace_paths.end()), replace_paths.end());
+
+#if ENABLE_RELOAD_FROM_DISK_REWORK
+    Plater::TakeSnapshot snapshot(q, "Reload from disk");
+#endif // ENABLE_RELOAD_FROM_DISK_REWORK
 
     std::vector<wxString> fail_list;
 
@@ -4448,6 +4519,93 @@ void Plater::priv::reload_from_disk()
             return;
         }
 
+#if ENABLE_RELOAD_FROM_DISK_REWORK
+        for (auto [obj_idx, vol_idx] : selected_volumes) {
+            ModelObject *old_model_object = model.objects[obj_idx];
+            ModelVolume *old_volume       = old_model_object->volumes[vol_idx];
+
+            bool sinking = old_model_object->bounding_box().min.z() < SINKING_Z_THRESHOLD;
+
+            bool has_source = !old_volume->source.input_file.empty() &&
+                              boost::algorithm::iequals(fs::path(old_volume->source.input_file).filename().string(), fs::path(path).filename().string());
+            bool has_name = !old_volume->name.empty() && boost::algorithm::iequals(old_volume->name, fs::path(path).filename().string());
+            if (has_source || has_name) {
+                int  new_volume_idx = -1;
+                int  new_object_idx = -1;
+                bool match_found    = false;
+                // take idxs from the matching volume
+                if (has_source && old_volume->source.object_idx < int(new_model.objects.size())) {
+                    const ModelObject *obj = new_model.objects[old_volume->source.object_idx];
+                    if (old_volume->source.volume_idx < int(obj->volumes.size())) {
+                        if (obj->volumes[old_volume->source.volume_idx]->name == old_volume->name) {
+                            new_volume_idx = old_volume->source.volume_idx;
+                            new_object_idx = old_volume->source.object_idx;
+                            match_found    = true;
+                        }
+                    }
+                }
+
+                if (!match_found && has_name) {
+                    // take idxs from the 1st matching volume
+                    for (size_t o = 0; o < new_model.objects.size(); ++o) {
+                        ModelObject *obj   = new_model.objects[o];
+                        bool         found = false;
+                        for (size_t v = 0; v < obj->volumes.size(); ++v) {
+                            if (obj->volumes[v]->name == old_volume->name) {
+                                new_volume_idx = (int) v;
+                                new_object_idx = (int) o;
+                                found          = true;
+                                break;
+                            }
+                        }
+                        if (found) break;
+                    }
+                }
+
+                if (new_object_idx < 0 || int(new_model.objects.size()) <= new_object_idx) {
+                    fail_list.push_back(from_u8(has_source ? old_volume->source.input_file : old_volume->name));
+                    continue;
+                }
+                ModelObject *new_model_object = new_model.objects[new_object_idx];
+                if (new_volume_idx < 0 || int(new_model_object->volumes.size()) <= new_volume_idx) {
+                    fail_list.push_back(from_u8(has_source ? old_volume->source.input_file : old_volume->name));
+                    continue;
+                }
+
+                old_model_object->add_volume(*new_model_object->volumes[new_volume_idx]);
+                ModelVolume *new_volume = old_model_object->volumes.back();
+                new_volume->set_new_unique_id();
+                new_volume->config.apply(old_volume->config);
+                new_volume->set_type(old_volume->type());
+                new_volume->set_material_id(old_volume->material_id());
+#if 0// ENABLE_WORLD_COORDINATE
+                new_volume->set_transformation(Geometry::translation_transform(old_volume->source.transform.get_offset()) *
+                                               old_volume->get_transformation().get_matrix_no_offset() * old_volume->source.transform.get_matrix_no_offset());
+                new_volume->translate(new_volume->get_transformation().get_matrix_no_offset() * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
+#else
+                new_volume->set_transformation(Geometry::assemble_transform(old_volume->source.transform.get_offset()) * old_volume->get_transformation().get_matrix(true) *
+                                               old_volume->source.transform.get_matrix(true));
+                new_volume->translate(new_volume->get_transformation().get_matrix(true) * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
+#endif // ENABLE_WORLD_COORDINATE
+                new_volume->source.object_idx = old_volume->source.object_idx;
+                new_volume->source.volume_idx = old_volume->source.volume_idx;
+                assert(!old_volume->source.is_converted_from_inches || !old_volume->source.is_converted_from_meters);
+                if (old_volume->source.is_converted_from_inches)
+                    new_volume->convert_from_imperial_units();
+                else if (old_volume->source.is_converted_from_meters)
+                    new_volume->convert_from_meters();
+                std::swap(old_model_object->volumes[vol_idx], old_model_object->volumes.back());
+                old_model_object->delete_volume(old_model_object->volumes.size() - 1);
+                if (!sinking) old_model_object->ensure_on_bed();
+                old_model_object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
+
+                sla::reproject_points_and_holes(old_model_object);
+
+                // Fix warning icon in object list
+                wxGetApp().obj_list()->update_item_error_icon(obj_idx, vol_idx);
+            }
+        }
+#else
         // update the selected volumes whose source is the current file
         for (const SelectedVolume& sel_v : selected_volumes) {
             ModelObject* old_model_object = model.objects[sel_v.object_idx];
@@ -4517,8 +4675,17 @@ void Plater::priv::reload_from_disk()
                 sla::reproject_points_and_holes(old_model_object);
             }
         }
+#endif // ENABLE_RELOAD_FROM_DISK_REWORK
     }
 
+#if ENABLE_RELOAD_FROM_DISK_REWORK
+    for (auto [src, dest] : replace_paths) {
+        for (auto [obj_idx, vol_idx] : selected_volumes) {
+            if (boost::algorithm::iequals(model.objects[obj_idx]->volumes[vol_idx]->source.input_file, src.string()))
+                replace_volume_with_stl(obj_idx, vol_idx, dest, "");
+        }
+    }
+#else
     for (size_t i = 0; i < replace_paths.size(); ++i) {
         const auto& path = replace_paths[i].string();
         for (const SelectedVolume& sel_v : selected_volumes) {
@@ -4530,6 +4697,7 @@ void Plater::priv::reload_from_disk()
             }
         }
     }
+#endif // ENABLE_RELOAD_FROM_DISK_REWORK
 
     if (!fail_list.empty()) {
         wxString message = _devL("Unable to reload:") + "\n";
@@ -5976,6 +6144,13 @@ bool Plater::priv::can_replace_with_stl() const
 
 bool Plater::priv::can_reload_from_disk() const
 {
+#if ENABLE_RELOAD_FROM_DISK_REWORK
+    // collect selected reloadable ModelVolumes
+    std::vector<std::pair<int, int>> selected_volumes = reloadable_volumes(model, get_selection());
+    // nothing to reload, return
+    if (selected_volumes.empty())
+        return false;
+#else
     // struct to hold selected ModelVolumes by their indices
     struct SelectedVolume
     {
@@ -6001,6 +6176,22 @@ bool Plater::priv::can_reload_from_disk() const
                 selected_volumes.push_back({ o_idx, v_idx });
         }
     }
+#endif // ENABLE_RELOAD_FROM_DISK_REWORK
+
+#if ENABLE_RELOAD_FROM_DISK_REWORK
+    std::sort(selected_volumes.begin(), selected_volumes.end(), [](const std::pair<int, int> &v1, const std::pair<int, int> &v2) {
+        return (v1.first < v2.first) || (v1.first == v2.first && v1.second < v2.second);
+        });
+    selected_volumes.erase(std::unique(selected_volumes.begin(), selected_volumes.end(), [](const std::pair<int, int> &v1, const std::pair<int, int> &v2) {
+        return (v1.first == v2.first) && (v1.second == v2.second);
+        }), selected_volumes.end());
+
+    // collects paths of files to load
+    std::vector<fs::path> paths;
+    for (auto [obj_idx, vol_idx] : selected_volumes) {
+        paths.push_back(model.objects[obj_idx]->volumes[vol_idx]->source.input_file);
+    }
+#else
     std::sort(selected_volumes.begin(), selected_volumes.end());
     selected_volumes.erase(std::unique(selected_volumes.begin(), selected_volumes.end()), selected_volumes.end());
 
@@ -6014,6 +6205,7 @@ bool Plater::priv::can_reload_from_disk() const
         else if (!object->input_file.empty() && !volume->name.empty() && !volume->source.is_from_builtin_objects)
             paths.push_back(volume->name);
     }
+#endif // ENABLE_RELOAD_FROM_DISK_REWORK
     std::sort(paths.begin(), paths.end());
     paths.erase(std::unique(paths.begin(), paths.end()), paths.end());
 
