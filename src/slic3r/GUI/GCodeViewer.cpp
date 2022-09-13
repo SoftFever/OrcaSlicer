@@ -831,6 +831,11 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
     }
 }
 
+std::vector<int> GCodeViewer::get_plater_extruder()
+{
+    return m_plater_extruder;
+}
+
 //BBS: always load shell at preview
 void GCodeViewer::load(const GCodeProcessorResult& gcode_result, const Print& print, const BuildVolume& build_volume,
                 const std::vector<BoundingBoxf3>& exclude_bounding_box, bool initialized, ConfigOptionMode mode, bool only_gcode)
@@ -2923,6 +2928,14 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
     // extruder ids -> remove duplicates
     sort_remove_duplicates(m_extruder_ids);
     m_extruder_ids.shrink_to_fit();
+
+    std::vector<int> plater_extruder;
+	for (auto mid : m_extruder_ids){
+        int eid = mid;
+        plater_extruder.push_back(++eid);
+	}
+    m_plater_extruder = plater_extruder;
+
 
     // set layers z range
     if (!m_layers.empty())

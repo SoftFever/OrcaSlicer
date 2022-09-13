@@ -2214,7 +2214,9 @@ void SelectMachineDialog::set_default()
     }
 
     // material info
-    auto        extruders = m_plater->get_partplate_list().get_curr_plate()->get_extruders();
+    
+    //auto        extruders1 = m_plater->get_partplate_list().get_curr_plate()->get_extruders();
+    auto        extruders = wxGetApp().plater()->get_current_canvas3D()->get_gcode_viewer().get_plater_extruder();
     BitmapCache bmcache;
 
     MaterialHash::iterator iter = m_materialList.begin();

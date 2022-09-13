@@ -711,6 +711,7 @@ public:
     };
 
 private:
+    std::vector<int> m_plater_extruder;
     bool m_gl_data_initialized{ false };
     unsigned int m_last_result_id{ 0 };
     size_t m_moves_count{ 0 };
@@ -800,6 +801,7 @@ public:
 
     bool has_data() const { return !m_roles.empty(); }
     bool can_export_toolpaths() const;
+    std::vector<int> get_plater_extruder();
 
     const BoundingBoxf3& get_paths_bounding_box() const { return m_paths_bounding_box; }
     const BoundingBoxf3& get_max_bounding_box() const { return m_max_bounding_box; }
