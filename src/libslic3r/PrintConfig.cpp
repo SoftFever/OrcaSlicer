@@ -1434,7 +1434,7 @@ void PrintConfigDef::init_fff_params()
     //def->enum_labels.push_back("Smoothie");
     //def->enum_labels.push_back(L("No extrusion"));
     def->mode = comDevelop;
-    def->readonly = true;
+    def->readonly = false;
     def->set_default_value(new ConfigOptionEnum<GCodeFlavor>(gcfMarlinLegacy));
 
     //BBS
@@ -1603,7 +1603,7 @@ void PrintConfigDef::init_fff_params()
             (void)L("Maximum speed Z");
             (void)L("Maximum speed E");
             def->category = L("Machine limits");
-            def->readonly = true;
+            def->readonly = false;
             def->tooltip  = (boost::format("Maximum speed of %1% axis") % axis_upper).str();
             (void)L("Maximum X speed");
             (void)L("Maximum Y speed");
@@ -1621,7 +1621,7 @@ void PrintConfigDef::init_fff_params()
             (void)L("Maximum acceleration Z");
             (void)L("Maximum acceleration E");
             def->category = L("Machine limits");
-            def->readonly = true;
+            def->readonly = false;
             def->tooltip  = (boost::format("Maximum acceleration of the %1% axis") % axis_upper).str();
             (void)L("Maximum acceleration of the X axis");
             (void)L("Maximum acceleration of the Y axis");
@@ -1639,7 +1639,7 @@ void PrintConfigDef::init_fff_params()
             (void)L("Maximum jerk Z");
             (void)L("Maximum jerk E");
             def->category = L("Machine limits");
-            def->readonly = true;
+            def->readonly = false;
             def->tooltip  = (boost::format("Maximum jerk of the %1% axis") % axis_upper).str();
             (void)L("Maximum jerk of the X axis");
             (void)L("Maximum jerk of the Y axis");
@@ -1681,7 +1681,7 @@ void PrintConfigDef::init_fff_params()
     //                 "as travel acceleration (M204 T).");
     def->sidetext = L("mm/s²");
     def->min = 0;
-    def->readonly = true;
+    def->readonly = false;
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
@@ -1693,7 +1693,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Maximum acceleration for retracting (M204 R)");
     def->sidetext = L("mm/s²");
     def->min = 0;
-    def->readonly = true;
+    def->readonly = false;
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
@@ -1704,7 +1704,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Maximum acceleration for travel (M204 T)");
     def->sidetext = L("mm/s²");
     def->min = 0;
-    def->readonly = true;
+    def->readonly = false;
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
