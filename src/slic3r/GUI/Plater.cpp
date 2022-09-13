@@ -2709,8 +2709,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                                    project_presets.size() % (en_3mf_file_type == En3mfType::From_BBS) % file_version.to_string();
 
                     // 1. add extruder for prusa model if the number of existing extruders is not enough
-                    // 2. add extruder for BBS model if only import geometry
-                    if (en_3mf_file_type == En3mfType::From_Prusa || (en_3mf_file_type == En3mfType::From_BBS && load_model && !load_config)) {
+                    // 2. add extruder for BBS or Other model if only import geometry
+                    if (en_3mf_file_type == En3mfType::From_Prusa || (load_model && !load_config)) {
                         std::set<int> extruderIds;
                         for (ModelObject *o : model.objects) {
                             if (o->config.option("extruder")) extruderIds.insert(o->config.extruder());
@@ -3082,16 +3082,16 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 // convert_model_if(model, answer_convert_from_imperial_units == wxID_YES);
             }
 
-            // if (model.looks_like_multipart_object()) {
-            //   MessageDialog msg_dlg(q, _L(
-            //        "This file contains several objects positioned at multiple heights.\n"
-            //        "Instead of considering them as multiple objects, should \n"
-            //        "the file be loaded as a single object having multiple parts?") + "\n",
-            //        _L("Multi-part object detected"), wxICON_WARNING | wxYES | wxNO);
-            //    if (msg_dlg.ShowModal() == wxID_YES) {
-            //        model.convert_multipart_object(filaments_cnt);
-            //    }
-            //}
+             if (model.looks_like_multipart_object()) {
+               MessageDialog msg_dlg(q, _L(
+                    "This file contains several objects positioned at multiple heights.\n"
+                    "Instead of considering them as multiple objects, should \n"
+                    "the file be loaded as a single object having multiple parts?") + "\n",
+                    _L("Multi-part object detected"), wxICON_WARNING | wxYES | wxNO);
+                if (msg_dlg.ShowModal() == wxID_YES) {
+                    model.convert_multipart_object(filaments_cnt);
+                }
+            }
         }
         // else if ((wxGetApp().get_mode() == comSimple) && (type_3mf || type_any_amf) && model_has_advanced_features(model)) {
         //    MessageDialog msg_dlg(q, _L("This file cannot be loaded in a simple mode. Do you want to switch to an advanced mode?")+"\n",
