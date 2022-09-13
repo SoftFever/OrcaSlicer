@@ -554,7 +554,11 @@ private:
             title = wxGetApp().is_editor() ? SLIC3R_APP_FULL_NAME : GCODEVIEWER_APP_NAME;
 
             // dynamically get the version to display
+#if BBL_INTERNAL_TESTING
+            version = _L("Internal Version") + " " + std::string(SLIC3R_VERSION);
+#else
             version = _L("Version") + " " + std::string(SLIC3R_VERSION);
+#endif
 
             // credits infornation
             credits =   title;

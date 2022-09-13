@@ -244,7 +244,11 @@ AboutDialog::AboutDialog()
     // version
     {
         vesizer->Add(0, FromDIP(165), 1, wxEXPAND, FromDIP(5));
+#if BBL_INTERNAL_TESTING
+        auto version_string = _L("Internal Version") + " " + std::string(SLIC3R_VERSION);
+#else
         auto version_string = _L("Version") + " " + std::string(SLIC3R_VERSION);
+#endif
         wxStaticText* version = new wxStaticText(this, wxID_ANY, version_string.c_str(), wxDefaultPosition, wxDefaultSize);
         wxFont version_font = GetFont();
         #ifdef __WXMSW__
