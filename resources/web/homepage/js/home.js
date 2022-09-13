@@ -4,10 +4,10 @@
 function OnInit()
 {	
 	//-----Test-----
-    //$("#Login1").hide();
-	//$("#UserName").text("ZZZZZZZZ");
-	//$("#Login2").css("display","flex");
+	//Set_RecentFile_MouseRightBtn_Event();
 	
+	
+	//-----Official-----
     TranslatePage();
 
 	SendMsg_GetLoginInfo();
