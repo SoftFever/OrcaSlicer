@@ -3734,11 +3734,14 @@ void DynamicPrintConfig::normalize_fdm(int used_filaments)
         ConfigOptionBool* islh_opt = this->option<ConfigOptionBool>("independent_support_layer_height", true);
         ConfigOptionBool* alh_opt = this->option<ConfigOptionBool>("adaptive_layer_height");
         ConfigOptionEnum<PrintSequence>* ps_opt = this->option<ConfigOptionEnum<PrintSequence>>("print_sequence");
-        
-        ConfigOptionEnum<TimelapseType> *timelapse_opt = this->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
-        if (timelapse_opt && timelapse_opt->value == TimelapseType::tlSmooth) {
-            if (used_filaments == 1 || ps_opt->value == PrintSequence::ByObject)
-                ept_opt->value = false;
+
+        ConfigOptionEnum<TimelapseType>* timelapse_opt = this->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
+        bool is_smooth_timelapse = timelapse_opt != nullptr && timelapse_opt->value == TimelapseType::tlSmooth;
+        if (is_smooth_timelapse) {
+            ept_opt->value = true;
+        }
+        else if (used_filaments == 1 || ps_opt->value == PrintSequence::ByObject) {
+            ept_opt->value = false;
         }
 
         if (ept_opt->value) {

@@ -1475,9 +1475,12 @@ void GCodeViewer::render_calibration_thumbnail(ThumbnailData& thumbnail_data, un
         }
     }
     set_view_type(EViewType::FilamentId, false);
-    // set m_layers_z_range to 0, 0
+    // set m_layers_z_range to 0, 1;
+    // To be safe, we include both layers here although layer 1 seems enough
+    // layer 0: custom extrusions such as flow calibration etc.
+    // layer 1: the real first layer of object
     std::array<unsigned int, 2> tmp_layers_z_range = m_layers_z_range;
-    m_layers_z_range = {0, 0};
+    m_layers_z_range = {0, 1};
     // BBS exclude feature types
     m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags & ~(1 << erSkirt);
     m_extrusions.role_visibility_flags = m_extrusions.role_visibility_flags & ~(1 << erCustom);

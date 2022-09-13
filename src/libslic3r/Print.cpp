@@ -1779,16 +1779,6 @@ void Print::_make_wipe_tower()
     // BBS: priming logic is removed, so don't consider it in tool ordering
     m_wipe_tower_data.tool_ordering = ToolOrdering(*this, (unsigned int)-1, false);
 
-    // if enable_timelapse_print(), update all layer_tools parameters: wipe_tower_partitions
-    if (enable_timelapse_print()) {
-        std::vector<LayerTools>& layer_tools_array = m_wipe_tower_data.tool_ordering.layer_tools();
-        for (LayerTools& layer_tools : layer_tools_array) {
-            if (layer_tools.wipe_tower_partitions == 0) {
-                layer_tools.wipe_tower_partitions = 1;
-            }
-        }
-    }
-
     if (!m_wipe_tower_data.tool_ordering.has_wipe_tower())
         // Don't generate any wipe tower.
         return;

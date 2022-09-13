@@ -45,7 +45,6 @@ using Slic3r::GUI::Config::SnapshotDB;
 
 // FIXME: Incompat bundle resolution doesn't deal with inherited user presets
 
-
 namespace Slic3r {
 
 
@@ -562,7 +561,8 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
         Semver online_version = resource_update->second.version;
         // Semver current_version = get_version_from_json(vendor_root_config.string());
         Semver current_version = resource.version;
-        if (current_version < online_version) {
+        bool version_match = ((online_version.maj() == current_version.maj()) && (online_version.min() == current_version.min()));
+        if (version_match && (current_version < online_version)) {
             if (cancel) { return; }
 
             // need to download the online files
@@ -734,7 +734,8 @@ void PresetUpdater::priv::sync_config(std::string http_url, const VendorMap vend
         Semver online_version = vendor_update->second.first;
         //Semver current_version = get_version_from_json(vendor_root_config.string());
         Semver current_version = vendor_profile.config_version;
-        if (current_version < online_version) {
+        bool version_match = ((online_version.maj() == current_version.maj()) && (online_version.min() == current_version.min()));
+        if (version_match && (current_version < online_version)) {
             auto cache_file = cache_path / (vendor_name+".json");
             auto cache_print_dir = (cache_path / vendor_name / PRESET_PRINT_NAME);
             auto cache_filament_dir = (cache_path / vendor_name / PRESET_FILAMENT_NAME);
@@ -745,7 +746,8 @@ void PresetUpdater::priv::sync_config(std::string http_url, const VendorMap vend
                 &&( fs::exists(cache_filament_dir))
                 &&( fs::exists(cache_machine_dir))) {
                 Semver version = get_version_from_json(cache_file.string());
-                if (version >= online_version) {
+                bool cached_version_match = ((online_version.maj() == version.maj()) && (online_version.min() == version.min()));
+                if (cached_version_match && (version >= online_version)) {
                     //already downloaded before
                     BOOST_LOG_TRIVIAL(info) << "[BBL Updater]Vendor " << vendor_name << ", already cached a version "<<version.to_string();
                     continue;
@@ -884,7 +886,9 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
                     Semver resource_ver = get_version_from_json(file_path);
                     Semver vendor_ver = get_version_from_json(path_in_vendor.string());
 
-                    if (vendor_ver < resource_ver) {
+                    bool version_match = ((resource_ver.maj() == vendor_ver.maj()) && (resource_ver.min() == vendor_ver.min()));
+
+                    if (!version_match || (vendor_ver < resource_ver)) {
                         BOOST_LOG_TRIVIAL(info) << "[BBL Updater]:found vendor "<<vendor_name<<" newer version "<<resource_ver.to_string() <<" from resource, old version "<<vendor_ver.to_string();
                         bundles.push_back(vendor_name);
                     }
@@ -955,7 +959,8 @@ Updates PresetUpdater::priv::get_config_updates(const Semver &old_slic3r_version
                     ifs.close();
                 }
 
-                if (vendor_ver < cache_ver) {
+                bool version_match = ((vendor_ver.maj() == cache_ver.maj()) && (vendor_ver.min() == cache_ver.min()));
+                if (version_match && (vendor_ver < cache_ver)) {
                     Semver app_ver = *Semver::parse(SLIC3R_VERSION);
                     if (cache_ver.maj() == app_ver.maj()){
                         BOOST_LOG_TRIVIAL(info) << "[BBL Updater]:need to update settings from "<<vendor_ver.to_string()<<" to newer version "<<cache_ver.to_string() <<", app version "<<SLIC3R_VERSION;

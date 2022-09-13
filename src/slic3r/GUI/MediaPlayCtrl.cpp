@@ -37,9 +37,9 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
         media_proc();
     });
 
-// #if BBL_RELEASE_TO_PUBLIC
-    m_next_retry = wxDateTime::Now();
-// #endif
+//#if BBL_RELEASE_TO_PUBLIC
+//    m_next_retry = wxDateTime::Now();
+//#endif
 
     auto onShowHide = [this](auto &e) {
         e.Skip();
