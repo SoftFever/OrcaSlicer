@@ -525,7 +525,7 @@ void AppConfig::save()
     {
         // Returns "undefined" if the thread naming functionality is not supported by the operating system.
         std::optional<std::string> current_thread_name = get_current_thread_name();
-        if (current_thread_name && *current_thread_name != "bambustudio_main")
+        if (current_thread_name && *current_thread_name != "bambustu_main")
             throw CriticalException("Calling AppConfig::save() from a worker thread!");
     }
 
@@ -777,7 +777,7 @@ void AppConfig::save()
     {
         // Returns "undefined" if the thread naming functionality is not supported by the operating system.
         std::optional<std::string> current_thread_name = get_current_thread_name();
-        if (current_thread_name && *current_thread_name != "bambustudio_main")
+        if (current_thread_name && *current_thread_name != "bambustu_main")
             throw CriticalException("Calling AppConfig::save() from a worker thread!");
     }
 
