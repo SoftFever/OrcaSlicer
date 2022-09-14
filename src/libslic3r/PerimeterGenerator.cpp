@@ -763,7 +763,7 @@ void PerimeterGenerator::process()
                     double(-inset - infill_peri_overlap));
             if (!top_fills.empty())
                 polyWithoutOverlap = union_ex(polyWithoutOverlap, top_infill_exp);
-            this->fill_no_overlap.insert(this->fill_no_overlap.end(), polyWithoutOverlap.begin(), polyWithoutOverlap.end());
+            this->fill_no_overlap->insert(this->fill_no_overlap->end(), polyWithoutOverlap.begin(), polyWithoutOverlap.end());
         }
 
     } // for each island
