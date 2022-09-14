@@ -131,7 +131,7 @@ void ConfigManipulation::check_bed_temperature_difference(int bed_type, DynamicP
             }
 
             if (first_layer_bed_temp > vitrification || bed_temp > vitrification) {
-                const wxString msg_text = wxString::Format(_L("Bed temperature is higher than vitrification temperature of this filament.\nThis may cause nozzle blocked and printing failure"));
+                const wxString msg_text = wxString::Format(_L("Bed temperature is higher than vitrification temperature of this filament.\nThis may cause nozzle blocked and printing failure\nPlease keep the printer open during the printing process to ensure air circulation or reduce the temperature of the hot bed"));
                 MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
                 is_msg_dlg_already_exist = true;
                 dialog.ShowModal();
