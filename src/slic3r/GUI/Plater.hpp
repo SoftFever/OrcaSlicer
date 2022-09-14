@@ -117,7 +117,8 @@ public:
     void on_filaments_change(size_t num_filaments);
     // BBS
     void on_bed_type_change(BedType bed_type);
-    void load_ams_list(std::map<std::string, Ams *> const & list);
+    void load_ams_list(std::map<std::string, Ams *> const &list);
+    void sync_ams_list();
 
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();

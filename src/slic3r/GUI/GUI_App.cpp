@@ -1641,12 +1641,9 @@ void GUI_App::init_networking_callbacks()
 
                 if (obj) {
                     obj->parse_json(msg);
-
-#if !BBL_RELEASE_TO_PUBLIC
                     if (obj->is_ams_need_update) {
                         GUI::wxGetApp().sidebar().load_ams_list(obj->amsList);
                     }
-#endif
                 }
                 });
         };

@@ -387,11 +387,11 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
         m_first_ams_filament = GetCount();
         auto &filaments      = m_collection->get_presets();
         for (auto &f : m_preset_bundle->filament_ams_list) {
-            std::string setting_id = f.opt_string("filament_settings_id", 0u);
+            std::string filament_id = f.opt_string("filament_id", 0u);
             auto iter = std::find_if(filaments.begin(), filaments.end(),
-                [&setting_id](auto &f) { return f.is_compatible && f.is_system && f.filament_id == setting_id; });
+                [&filament_id](auto &f) { return f.is_compatible && f.is_system && f.filament_id == filament_id; });
             if (iter == filaments.end()) {
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % setting_id;
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;
                 continue;
             }
             const_cast<Preset&>(*iter).is_visible = true;

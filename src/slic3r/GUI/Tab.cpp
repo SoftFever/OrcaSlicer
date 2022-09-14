@@ -231,7 +231,7 @@ void Tab::create_preset_tab()
 
     m_btn_compare_preset->SetToolTip(_L("Compare presets"));
     // TRN "Save current Settings"
-    m_btn_save_preset->SetToolTip(from_u8((boost::format(_utf8(L("Save current %s"))) % m_title).str()));
+    m_btn_save_preset->SetToolTip(wxString::Format(_L("Save current %s"), m_title));
     m_btn_delete_preset->SetToolTip(_(L("Delete this preset")));
     m_btn_delete_preset->Hide();
 
@@ -255,6 +255,7 @@ void Tab::create_preset_tab()
     add_scaled_button(m_top_panel, &m_undo_btn,        m_bmp_white_bullet.name());
     add_scaled_button(m_top_panel, &m_undo_to_sys_btn, m_bmp_white_bullet.name());
     add_scaled_button(m_top_panel, &m_btn_search,      "search");
+    m_btn_search->SetToolTip(_L("Search in preset"));
 
     //search input
     m_search_item = new RoundedRectangle(m_top_panel, wxColour(238, 238, 238), wxDefaultPosition, wxSize(m_top_panel->GetSize().GetWidth(), 3 * wxGetApp().em_unit()), 8);
@@ -993,7 +994,7 @@ void Tab::update_undo_buttons()
     m_undo_btn->        SetBitmap_(m_presets->get_edited_preset().is_dirty ? m_bmp_value_revert: m_bmp_white_bullet);
     m_undo_to_sys_btn-> SetBitmap_(m_is_nonsys_values   ? *m_bmp_non_system : m_bmp_value_lock);
 
-    m_undo_btn->SetToolTip(m_is_modified_values ? m_ttg_value_revert : m_ttg_white_bullet);
+    m_undo_btn->SetToolTip(m_presets->get_edited_preset().is_dirty ? _L("Click to reset all settings to the last saved preset.") : m_ttg_white_bullet);
     m_undo_to_sys_btn->SetToolTip(m_is_nonsys_values ? *m_ttg_non_system : m_ttg_value_lock);
 }
 

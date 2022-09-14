@@ -287,6 +287,7 @@ struct Sidebar::priv
     wxStaticText* m_staticText_filament_settings;
     ScalableButton *  m_bpButton_add_filament;
     ScalableButton *  m_bpButton_del_filament;
+    ScalableButton *  m_bpButton_ams_filament;
     ScalableButton *  m_bpButton_set_filament;
     wxPanel* m_panel_filament_content;
     wxScrolledWindow* m_scrolledWindow_filament_content;
@@ -636,6 +637,7 @@ Sidebar::Sidebar(Plater *parent)
     bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
 
     ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
+    add_btn->SetToolTip(_L("Add one filament"));
     add_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent& e){
         // BBS: limit filament choices to 16
         if (p->combos_filament.size() >= 16)
@@ -654,7 +656,8 @@ Sidebar::Sidebar(Plater *parent)
     bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
 
     ScalableButton* del_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "delete_filament");
-    del_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent& e){
+    del_btn->SetToolTip(_L("Remove last filament"));
+    del_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent &e) {
         if (p->combos_filament.size() <= 1)
             return;
 
@@ -676,8 +679,20 @@ Sidebar::Sidebar(Plater *parent)
     bSizer39->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, FromDIP(5));
     bSizer39->Add(FromDIP(20), 0, 0, 0, 0);
 
+    ScalableButton *ams_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
+                                                 wxBU_EXACTFIT | wxNO_BORDER, false, 18);
+    ams_btn->SetToolTip(_L("Sync material list from AMS"));
+    ams_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent &e) {
+        sync_ams_list();
+    });
+    p->m_bpButton_ams_filament = ams_btn;
+
+    bSizer39->Add(ams_btn, 0, wxALIGN_CENTER|wxALL, FromDIP(5));
+    bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
+
     ScalableButton* set_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "settings");
-    set_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+    set_btn->SetToolTip(_L("Set filaments to use"));
+    set_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
         // p->editing_filament = -1;
         // wxGetApp().params_dialog()->Popup();
         // wxGetApp().get_tab(Preset::TYPE_FILAMENT)->restore_last_select_item();
@@ -992,6 +1007,7 @@ void Sidebar::msw_rescale()
     p->m_filament_icon->msw_rescale();
     p->m_bpButton_add_filament->msw_rescale();
     p->m_bpButton_del_filament->msw_rescale();
+    p->m_bpButton_ams_filament->msw_rescale();
     p->m_bpButton_set_filament->msw_rescale();
     p->m_flushing_volume_btn->Rescale();
     //BBS
@@ -1171,42 +1187,9 @@ void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
     std::vector<DynamicPrintConfig> filament_ams_list;
     for (auto ams : list) {
         for (auto tray : ams.second->trayList) {
-            if (tray.second->setting_id.empty())
-                continue;
+            if (tray.second->setting_id.empty()) continue;
             DynamicPrintConfig ams;
-            auto & filaments = wxGetApp().preset_bundle->filaments.get_presets();
-            auto iter = std::find_if(filaments.begin(), filaments.end(),
-                [&tray](auto &f) { return f.filament_id == tray.second->setting_id; });
-            if (iter != filaments.end()) {
-                ams.set_key_value("filament_settings_id", new ConfigOptionStrings{tray.second->setting_id});
-            } else {
-                /* std::shared_ptr<std::map<std::string, std::string>> preset(new std::map<std::string, std::string>);
-                (*preset)->setting_id = tray.second->setting_id;
-                ams.set_key_value("filament_settings_id", new ConfigOptionStrings{tray.second->setting_id});
-                //TODO: comment it currently
-                NetworkAgent* agent = wxGetApp().getAgent();
-                if (agent) {
-                    agent->get_setting(tray.second->setting_id, *preset, [preset] {
-                        wxGetApp().CallAfter([preset] {
-                            if ((*preset)->name.empty())
-                                return;
-                            PresetsConfigSubstitutions substitutions;
-                            wxGetApp().preset_bundle->filaments.load_user_presets({{(*preset)->name, *preset}},
-                                    PRESET_FILAMENT_NAME, substitutions, ForwardCompatibilitySubstitutionRule::Enable);
-                            auto & ams_list = wxGetApp().preset_bundle->filament_ams_list;
-                            for (auto& ams : ams_list) {
-                                if (ams.opt_string("filament_settings_id", 0u) == (*preset)->setting_id) {
-                                    ams.set_key_value("filament_settings_id", new ConfigOptionStrings{(*preset)->name});
-                                    for (auto c : wxGetApp().sidebar().combos_filament()) c->update();
-                                    break;
-                                }
-                            }
-                        });
-                    });
-                }
-                */
-                continue;
-            }
+            ams.set_key_value("filament_id", new ConfigOptionStrings{tray.second->setting_id});
             ams.set_key_value("filament_colour", new ConfigOptionStrings{"#" + tray.second->color.substr(0, 6)});
             filament_ams_list.emplace_back(std::move(ams));
         }
@@ -1214,6 +1197,34 @@ void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
     wxGetApp().preset_bundle->filament_ams_list = filament_ams_list;
     for (auto c : p->combos_filament)
         c->update();
+}
+
+void Sidebar::sync_ams_list()
+{
+    auto & list = wxGetApp().preset_bundle->filament_ams_list;
+    if (list.empty()) {
+        MessageDialog dlg(this, 
+            _L("No AMS filaments. Please select a printer in 'Device' page to load AMS info."), 
+            _L("Sync filaments with AMS"), wxOK);
+        dlg.ShowModal();
+        return;
+    }
+    MessageDialog dlg(this, 
+        _L("Sync filaments with AMS will drop all current selected filament presets and colors. Do you want to continue?"), 
+        _L("Sync filaments with AMS"), wxYES_NO);
+    if (dlg.ShowModal() != wxID_YES) return;
+    auto n = wxGetApp().preset_bundle->sync_ams_list();
+    if (n == 0) {
+        MessageDialog dlg(this, 
+            _L("There are no compatible filaments, and sync is not performed."), 
+            _L("Sync filaments with AMS"), wxOK);
+        dlg.ShowModal();
+        return;
+    }
+    wxGetApp().plater()->on_filaments_change(n);
+    for (auto &c : p->combos_filament)
+        c->update();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
 }
 
 ObjectList* Sidebar::obj_list()
