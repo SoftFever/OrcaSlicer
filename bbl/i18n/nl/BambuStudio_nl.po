@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-14 12:48+0800\n"
+"POT-Creation-Date: 2022-09-14 17:04+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -686,11 +686,17 @@ msgstr "Repareer model"
 msgid "Export as STL"
 msgstr "Exporteer als STL bestand"
 
-msgid "Reload item"
-msgstr "Onderdeel opnieuw laden"
+msgid "Reload from disk"
+msgstr ""
 
-msgid "Reload items"
-msgstr "Onderdelen opnieuw laden"
+msgid "Reload the selected parts from disk"
+msgstr ""
+
+msgid "Replace with STL"
+msgstr ""
+
+msgid "Replace the selected part with new STL"
+msgstr ""
 
 msgid "Change filament"
 msgstr "Verander filament"
@@ -3088,6 +3094,15 @@ msgstr ""
 msgid "Object too small"
 msgstr "He tobject is te klein"
 
+msgid ""
+"This file contains several objects positioned at multiple heights.\n"
+"Instead of considering them as multiple objects, should \n"
+"the file be loaded as a single object having multiple parts?"
+msgstr ""
+
+msgid "Multi-part object detected"
+msgstr ""
+
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr ""
 "Wilt u deze bestanden laden als een enkel object bestaande uit meerdere "
@@ -3118,6 +3133,15 @@ msgstr "Het geselecteerde object kan niet opgesplitst worden."
 
 msgid "Another export job is running."
 msgstr "Er is reeds een export taak actief."
+
+msgid "Select a new file"
+msgstr ""
+
+msgid "File for the replace wasn't selected"
+msgstr ""
+
+msgid "Error during replace"
+msgstr ""
 
 msgid "Please select a file"
 msgstr "Selecteer een bestand"
@@ -4814,6 +4838,11 @@ msgstr ""
 
 msgid "No extrusions under current settings."
 msgstr "Geen extrusion onder de huidige instellingen"
+
+msgid ""
+"Smooth mode of timelapse is not supported when \"by object\" sequence is "
+"enabled."
+msgstr ""
 
 msgid ""
 "Please select \"By object\" print sequence to print multiple objects in "

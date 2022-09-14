@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-14 12:48+0800\n"
+"POT-Creation-Date: 2022-09-14 17:04+0800\n"
 "PO-Revision-Date: 2022-09-05 14:22+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -673,11 +673,17 @@ msgstr "修复模型"
 msgid "Export as STL"
 msgstr "导出为 STL"
 
-msgid "Reload item"
-msgstr "重新加载所选项"
+msgid "Reload from disk"
+msgstr "从磁盘重新加载"
 
-msgid "Reload items"
-msgstr "重新加载所选项"
+msgid "Reload the selected parts from disk"
+msgstr "从磁盘重新加载选中的零件"
+
+msgid "Replace with STL"
+msgstr "替换为STL"
+
+msgid "Replace the selected part with new STL"
+msgstr "用新的STL替换选中的零件"
 
 msgid "Change filament"
 msgstr "更换耗材丝"
@@ -2985,6 +2991,17 @@ msgstr ""
 msgid "Object too small"
 msgstr "对象尺寸过小"
 
+msgid ""
+"This file contains several objects positioned at multiple heights.\n"
+"Instead of considering them as multiple objects, should \n"
+"the file be loaded as a single object having multiple parts?"
+msgstr ""
+"该文件包含多个位于不同高度的对象。\n"
+"是否将文件加载为一个由多个零件组合而成的对象，而非多个单零件的对象？"
+
+msgid "Multi-part object detected"
+msgstr "检测到多部分对象"
+
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "将这些文件加载为一个多零件对象？\n"
 
@@ -3013,6 +3030,15 @@ msgstr "选中的模型不可分裂。"
 
 msgid "Another export job is running."
 msgstr "有其他导出任务正在进行中。"
+
+msgid "Select a new file"
+msgstr "选择新文件"
+
+msgid "File for the replace wasn't selected"
+msgstr "未选择替换文件"
+
+msgid "Error during replace"
+msgstr "替换时发生错误"
 
 msgid "Please select a file"
 msgstr "请选择一个文件"
@@ -4621,6 +4647,11 @@ msgstr ""
 
 msgid "No extrusions under current settings."
 msgstr "根据当前设置，不会生成任何打印。"
+
+msgid ""
+"Smooth mode of timelapse is not supported when \"by object\" sequence is "
+"enabled."
+msgstr "平滑模式的延时摄影不支持在逐件打印模式下使用。"
 
 msgid ""
 "Please select \"By object\" print sequence to print multiple objects in "
@@ -8648,9 +8679,6 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ msgid "Unable to replace with more than one volume"
 #~ msgstr "超过1个零件，无法替换"
 
-#~ msgid "Error during replace"
-#~ msgstr "替换时发生错误"
-
 #~ msgid "Do you want to replace it"
 #~ msgstr "您是否要替换"
 
@@ -9221,9 +9249,6 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ msgid "Please check your object list before preset changing."
 #~ msgstr "请在预设更改之前检查对象列表。"
 
-#~ msgid "Reload from disk"
-#~ msgstr "从磁盘重新加载"
-
 #~ msgid "Convert from imperial units"
 #~ msgstr "从英制转换"
 
@@ -9748,9 +9773,6 @@ msgstr "支撑：正在生长层%d的树枝"
 
 #~ msgid "Fix through the Netfabb"
 #~ msgstr "通过Netfabb修复"
-
-#~ msgid "Reload the selected volumes from disk"
-#~ msgstr "从磁盘重新加载选中的零件"
 
 #~ msgid "Change extruder"
 #~ msgstr "更换挤出机"

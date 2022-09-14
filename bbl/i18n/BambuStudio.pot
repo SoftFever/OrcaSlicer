@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-14 12:48+0800\n"
+"POT-Creation-Date: 2022-09-14 17:04+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -668,10 +668,16 @@ msgstr ""
 msgid "Export as STL"
 msgstr ""
 
-msgid "Reload item"
+msgid "Reload from disk"
 msgstr ""
 
-msgid "Reload items"
+msgid "Reload the selected parts from disk"
+msgstr ""
+
+msgid "Replace with STL"
+msgstr ""
+
+msgid "Replace the selected part with new STL"
 msgstr ""
 
 msgid "Change filament"
@@ -2909,6 +2915,15 @@ msgstr ""
 msgid "Object too small"
 msgstr ""
 
+msgid ""
+"This file contains several objects positioned at multiple heights.\n"
+"Instead of considering them as multiple objects, should \n"
+"the file be loaded as a single object having multiple parts?"
+msgstr ""
+
+msgid "Multi-part object detected"
+msgstr ""
+
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr ""
 
@@ -2936,6 +2951,15 @@ msgid "The selected object couldn't be split."
 msgstr ""
 
 msgid "Another export job is running."
+msgstr ""
+
+msgid "Select a new file"
+msgstr ""
+
+msgid "File for the replace wasn't selected"
+msgstr ""
+
+msgid "Error during replace"
 msgstr ""
 
 msgid "Please select a file"
@@ -4512,6 +4536,11 @@ msgid ""
 msgstr ""
 
 msgid "No extrusions under current settings."
+msgstr ""
+
+msgid ""
+"Smooth mode of timelapse is not supported when \"by object\" sequence is "
+"enabled."
 msgstr ""
 
 msgid ""
