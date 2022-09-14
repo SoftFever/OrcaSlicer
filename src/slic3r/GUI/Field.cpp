@@ -224,9 +224,19 @@ static wxString na_value() { return _(L("N/A")); }
 void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true*/)
 {
 	switch (m_opt.type) {
-	case coInt:
-		m_value = wxAtoi(str);
-		break;
+    case coInt: {
+        long val = 0;
+        if (!str.ToLong(&val)) {
+            if (!check_value) {
+                m_value.clear();
+                break;
+            }
+            show_error(m_parent, _(L("Invalid numeric.")));
+            set_value(int(val), true);
+        }
+        m_value = int(val);
+        break;
+    }
 	case coPercent:
 	case coPercents:
 	case coFloats:
