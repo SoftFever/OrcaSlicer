@@ -38,6 +38,44 @@ PrintRegion::PrintRegion(PrintRegionConfig &&config) : PrintRegion(std::move(con
 //BBS
 float Print::min_skirt_length = 0;
 
+void dfs_get_all_sorted_extruders(const std::vector<std::vector<float>>&        wipe_volumes,
+                                  const std::vector<unsigned int>&              all_extruders,
+                                  std::vector<unsigned int> &                   sorted_extruders,
+                                  float                                         flush_volume,
+                                  std::map<float, std::vector<unsigned int>> &  volumes_to_extruder_order)
+{
+    if (sorted_extruders.size() == all_extruders.size()) {
+        volumes_to_extruder_order.insert(std::pair(flush_volume, sorted_extruders));
+    }
+
+    for (auto extruder_id : all_extruders) {
+        auto itor = std::find(sorted_extruders.begin(), sorted_extruders.end(), extruder_id);
+        if (itor == sorted_extruders.end()) {
+            float delta_flush_volume = wipe_volumes[sorted_extruders.back()][extruder_id];
+            flush_volume += delta_flush_volume;
+            sorted_extruders.push_back(extruder_id);
+            dfs_get_all_sorted_extruders(wipe_volumes, all_extruders, sorted_extruders, flush_volume, volumes_to_extruder_order);
+            flush_volume -= delta_flush_volume;
+            sorted_extruders.pop_back();
+        }
+    }
+}
+
+std::vector<unsigned int> get_extruders_order(const std::vector<std::vector<float>> &wipe_volumes,
+    std::vector<unsigned int> all_extruders,
+    unsigned int start_extruder_id)
+{
+    std::vector<unsigned int> sorted_extruders;
+    sorted_extruders.push_back(start_extruder_id);
+    std::map<float, std::vector<unsigned int>> volumes_to_extruder_order;
+    if (all_extruders.size() > 1) {
+        dfs_get_all_sorted_extruders(wipe_volumes, all_extruders, sorted_extruders, 0, volumes_to_extruder_order);
+        if(volumes_to_extruder_order.size() > 0)
+            return volumes_to_extruder_order.begin()->second;
+    }
+    return all_extruders;
+}
+
 void Print::clear()
 {
 	std::scoped_lock<std::mutex> lock(this->state_mutex());
@@ -1846,6 +1884,9 @@ void Print::_make_wipe_tower()
             if (!layer_tools.has_wipe_tower) continue;
             bool first_layer = &layer_tools == &m_wipe_tower_data.tool_ordering.front();
             wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, current_extruder_id, current_extruder_id, false);
+
+            layer_tools.extruders = get_extruders_order(wipe_volumes, layer_tools.extruders, current_extruder_id);
+
             for (const auto extruder_id : layer_tools.extruders) {
                 // BBS: priming logic is removed, so no need to do toolchange for first extruder
                 if (/*(first_layer && extruder_id == m_wipe_tower_data.tool_ordering.all_extruders().back()) || */extruder_id != current_extruder_id) {
