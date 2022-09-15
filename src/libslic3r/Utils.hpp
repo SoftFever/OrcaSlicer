@@ -372,7 +372,7 @@ inline std::string short_time(const std::string &time)
     else if (hours > 0)
         ::sprintf(buffer, "%dh%dm", hours, minutes);
     else if (minutes > 0)
-        ::sprintf(buffer, "%dm", minutes);
+        ::sprintf(buffer, "%dm%ds", minutes, seconds);
     else
         ::sprintf(buffer, "%ds", seconds);
     return buffer;
