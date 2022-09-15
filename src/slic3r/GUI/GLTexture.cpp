@@ -771,7 +771,7 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, boo
     else
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
 
-    if (use_mipmaps) {
+    if (use_mipmaps && OpenGLManager::use_manually_generated_mipmaps()) {
         // we manually generate mipmaps because glGenerateMipmap() function is not reliable on all graphics cards
         int lod_w = m_width;
         int lod_h = m_height;
@@ -800,8 +800,9 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, boo
             glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level));
             glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
         }
-    }
-    else {
+    } else if (use_mipmaps && !OpenGLManager::use_manually_generated_mipmaps()) {
+        glGenerateMipmap(GL_TEXTURE_2D);
+    } else {
         glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
         glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
     }

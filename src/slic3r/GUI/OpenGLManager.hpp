@@ -84,6 +84,7 @@ private:
     static EMultisampleState s_multisample;
     static EFramebufferType s_framebuffers_type;
 
+    static bool m_use_manually_generated_mipmaps;
 public:
     OpenGLManager() = default;
     ~OpenGLManager();
@@ -100,6 +101,7 @@ public:
     static EFramebufferType get_framebuffers_type() { return s_framebuffers_type; }
     static wxGLCanvas* create_wxglcanvas(wxWindow& parent);
     static const GLInfo& get_gl_info() { return s_gl_info; }
+    static bool use_manually_generated_mipmaps() { return m_use_manually_generated_mipmaps; }
 
 private:
     static void detect_multisample(int* attribList);
