@@ -170,10 +170,10 @@ void AppConfig::set_defaults()
         set_bool("reverse_mouse_wheel_zoom", false);
 #endif
 
-#ifdef SUPPORT_SHOW_HINTS
+//#ifdef SUPPORT_SHOW_HINTS
     if (get("show_hints").empty())
         set_bool("show_hints", true);
-#endif
+//#endif
 
 
 #ifdef _WIN32

@@ -1050,9 +1050,9 @@ void GUI_App::post_init()
     }*/
 
     // BBS: to be checked
-#if SUPPORT_SHOW_HINTS
+#if 1
     // show "Did you know" notification
-    if (app_config->get("show_hints") == "1" && ! is_gcode_viewer())
+    if (app_config->get("show_hints") == "true" && ! is_gcode_viewer())
         plater_->get_notification_manager()->push_hint_notification(true);
 #endif
 

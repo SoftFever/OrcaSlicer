@@ -211,6 +211,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/MonitorBasePanel.h
     GUI/UpgradePanel.cpp
     GUI/UpgradePanel.hpp
+    GUI/HintNotification.hpp
+    GUI/HintNotification.cpp
     GUI/HMSPanel.hpp
     GUI/HMSPanel.cpp
     GUI/MonitorPage.cpp

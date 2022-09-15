@@ -688,6 +688,8 @@ wxWindow* PreferencesDialog::create_general_page()
     std::vector<wxString> Units         = {_L("Metric"), _L("Imperial")};
     auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "use_inches", Units);
 
+    auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" notification after start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
+
     auto title_sync_settings = create_item_title(_L("User sync"), page, _L("User sync"));
     auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), page, _L("User Sync"), 50, "sync_user_preset");
 
@@ -713,6 +715,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_language, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_region, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_currency, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_hints, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_sync_settings, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_user_sync, 0, wxTOP, FromDIP(3));
 #ifdef _WIN32
