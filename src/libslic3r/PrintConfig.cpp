@@ -3442,8 +3442,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         //But now these key-value must be absolute value.
         //Reset to default value by erasing these key to avoid parsing error.
         opt_key = "";
-    } else if (opt_key == "filament_type" && value == "PA-CF") {
-        value == "PA";
     } else if (opt_key == "inherits_cummulative") {
         opt_key = "inherits_group";
     } else if (opt_key == "compatible_printers_condition_cummulative") {
