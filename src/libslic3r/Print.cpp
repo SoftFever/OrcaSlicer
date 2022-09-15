@@ -1871,8 +1871,11 @@ void Print::_make_wipe_tower()
             layer_tools.wiping_extrusions().ensure_perimeters_infills_order(*this);
 
             // if enable timelapse, slice all layer
-            if (enable_timelapse_print())
+            if (enable_timelapse_print()) {
+                if (layer_tools.wipe_tower_partitions == 0)
+                    wipe_tower.set_last_layer_extruder_fill(false);
                 continue;
+            }
 
             if (&layer_tools == &m_wipe_tower_data.tool_ordering.back() || (&layer_tools + 1)->wipe_tower_partitions == 0)
                 break;

@@ -562,18 +562,10 @@ void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_
     for (int i = int(m_layer_tools.size()) - 2; i >= 0; -- i)
         m_layer_tools[i].wipe_tower_partitions = std::max(m_layer_tools[i + 1].wipe_tower_partitions, m_layer_tools[i].wipe_tower_partitions);
 
-    // if enable_timelapse_print(), update all layer_tools parameters: wipe_tower_partitions
-    if (config.timelapse_type == TimelapseType::tlSmooth) {
-        for (LayerTools& layer_tools : m_layer_tools) {
-            if (layer_tools.wipe_tower_partitions == 0) {
-                layer_tools.wipe_tower_partitions = 1;
-            }
-        }
-    }
-
     //FIXME this is a hack to get the ball rolling.
     for (LayerTools &lt : m_layer_tools)
-        lt.has_wipe_tower = (lt.has_object && lt.wipe_tower_partitions > 0) || lt.print_z < object_bottom_z + EPSILON;
+        lt.has_wipe_tower = (lt.has_object && (config.timelapse_type == TimelapseType::tlSmooth || lt.wipe_tower_partitions > 0))
+            || lt.print_z < object_bottom_z + EPSILON;
 
     // Test for a raft, insert additional wipe tower layer to fill in the raft separation gap.
     for (size_t i = 0; i + 1 < m_layer_tools.size(); ++ i) {

@@ -1066,7 +1066,7 @@ WipeTower::box_coordinates WipeTower::align_perimeter(const WipeTower::box_coord
     return aligned_box;
 }
 
-WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter)
+WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter, bool extruder_fill)
 {
 	assert(! this->layer_finished());
     m_current_layer_finished = true;
@@ -1105,7 +1105,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter)
     const float dy = (fill_box.lu.y() - fill_box.ld.y() - m_perimeter_width);
     float left = fill_box.lu.x() + 2*m_perimeter_width;
     float right = fill_box.ru.x() - 2 * m_perimeter_width;
-    if (dy > m_perimeter_width)
+    if (extruder_fill && dy > m_perimeter_width)
     {
         writer.travel(fill_box.ld + Vec2f(m_perimeter_width * 2, 0.f))
               .append(";--------------------\n"
@@ -1500,7 +1500,7 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
             if (m_enable_timelapse_print) { 
                 timelapse_wall = only_generate_out_wall();
             }
-            finish_layer_tcr = finish_layer(m_enable_timelapse_print ? false : true);
+            finish_layer_tcr = finish_layer(m_enable_timelapse_print ? false : true, layer.extruder_fill);
         }
 
         for (int i=0; i<int(layer.tool_changes.size()); ++i) {
@@ -1511,7 +1511,7 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
             if (i == idx) {
                 layer_result.emplace_back(tool_change(layer.tool_changes[i].new_tool, m_enable_timelapse_print ? false : true));
                 // finish_layer will be called after this toolchange
-                finish_layer_tcr = finish_layer(false);
+                finish_layer_tcr = finish_layer(false, layer.extruder_fill);
             }
             else {
                 layer_result.emplace_back(tool_change(layer.tool_changes[i].new_tool));

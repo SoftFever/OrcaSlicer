@@ -157,8 +157,11 @@ public:
     float get_depth() const { return m_wipe_tower_depth; }
     float get_brim_width() const { return m_wipe_tower_brim_width_real; }
 
-
-
+	void set_last_layer_extruder_fill(bool extruder_fill) {
+        if (!m_plan.empty()) {
+			m_plan.back().extruder_fill = extruder_fill;
+		}
+	}
 
 
 	// Switch to a next layer.
@@ -218,7 +221,7 @@ public:
 
 	// Fill the unfilled space with a sparse infill.
 	// Call this method only if layer_finished() is false.
-	ToolChangeResult finish_layer(bool extruder_perimeter = true);
+    ToolChangeResult finish_layer(bool extruder_perimeter = true, bool extruder_fill = true);
 
 	// Is the current layer finished?
 	bool 			 layer_finished() const {
@@ -378,6 +381,7 @@ private:
 		float height;	// layer height
 		float depth;	// depth of the layer based on all layers above
 		float extra_spacing;
+        bool  extruder_fill{true};
 		float toolchanges_depth() const { float sum = 0.f; for (const auto &a : tool_changes) sum += a.required_depth; return sum; }
 
 		std::vector<ToolChange> tool_changes;
