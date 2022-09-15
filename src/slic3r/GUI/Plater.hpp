@@ -333,7 +333,8 @@ public:
     int export_config_3mf(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
     //BBS jump to nonitor after print job finished
     void print_job_finished(wxCommandEvent &evt);
-	void eject_drive();
+    void publish_job_finished(wxCommandEvent &evt);
+    void eject_drive();
 
     void take_snapshot(const std::string &snapshot_name);
     //void take_snapshot(const wxString &snapshot_name);

@@ -59,6 +59,7 @@ typedef int (*func_get_setting_list)(void *agent, std::string bundle_version, Pr
 typedef int (*func_delete_setting)(void *agent, std::string setting_id);
 typedef std::string (*func_get_studio_info_url)(void *agent);
 typedef int (*func_set_extra_http_header)(void *agent, std::map<std::string, std::string> extra_headers);
+typedef int (*func_get_my_message)(void *agent, int type, int after, int limit, unsigned int* http_code, std::string* http_body);
 typedef int (*func_check_user_task_report)(void *agent, int* task_id, bool* printable);
 typedef int (*func_get_user_print_info)(void *agent, unsigned int* http_code, std::string* http_body);
 typedef int (*func_get_printer_firmware)(void *agent, std::string dev_id, unsigned* http_code, std::string* http_body);
@@ -67,6 +68,7 @@ typedef int (*func_get_slice_info)(void *agent, std::string project_id, std::str
 typedef int (*func_query_bind_status)(void *agent, std::vector<std::string> query_list, unsigned int* http_code, std::string* http_body);
 typedef int (*func_modify_printer_name)(void *agent, std::string dev_id, std::string dev_name);
 typedef int (*func_get_camera_url)(void *agent, std::string dev_id, std::function<void(std::string)> callback);
+typedef int (*func_start_pubilsh)(void *agent, PublishParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string* out);
 
 
 
@@ -136,6 +138,7 @@ public:
     int delete_setting(std::string setting_id);
     std::string get_studio_info_url();
     int set_extra_http_header(std::map<std::string, std::string> extra_headers);
+    int get_my_message(int type, int after, int limit, unsigned int* http_code, std::string* http_body);
     int check_user_task_report(int* task_id, bool* printable);
     int get_user_print_info(unsigned int* http_code, std::string* http_body);
     int get_printer_firmware(std::string dev_id, unsigned* http_code, std::string* http_body);
@@ -144,6 +147,7 @@ public:
     int query_bind_status(std::vector<std::string> query_list, unsigned int* http_code, std::string* http_body);
     int modify_printer_name(std::string dev_id, std::string dev_name);
     int get_camera_url(std::string dev_id, std::function<void(std::string)> callback);
+    int start_publish(PublishParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string* out);
 
 private:
 
@@ -202,6 +206,7 @@ private:
     static func_delete_setting                 delete_setting_ptr;
     static func_get_studio_info_url            get_studio_info_url_ptr;
     static func_set_extra_http_header          set_extra_http_header_ptr;
+    static func_get_my_message                 get_my_message_ptr;
     static func_check_user_task_report         check_user_task_report_ptr;
     static func_get_user_print_info            get_user_print_info_ptr;
     static func_get_printer_firmware           get_printer_firmware_ptr;
@@ -210,6 +215,7 @@ private:
     static func_query_bind_status              query_bind_status_ptr;
     static func_modify_printer_name            modify_printer_name_ptr;
     static func_get_camera_url                 get_camera_url_ptr;
+    static func_start_pubilsh                  start_publish_ptr;
 };
 
 }
