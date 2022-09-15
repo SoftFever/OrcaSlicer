@@ -151,6 +151,7 @@ void PrintJob::process()
     params.task_layer_inspect   = this->task_layer_inspect;
     params.task_record_timelapse= this->task_record_timelapse;
     params.ams_mapping          = this->task_ams_mapping;
+    params.ams_mapping_info     = this->task_ams_mapping_info;
     params.connection_type      = this->connection_type;
     params.task_use_ams         = this->task_use_ams;
 

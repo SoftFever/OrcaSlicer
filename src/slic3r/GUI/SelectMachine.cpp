@@ -1339,7 +1339,8 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
     if (result == 0) {
         print_ams_mapping_result(m_ams_mapping_result);
         std::string ams_array;
-        get_ams_mapping_result(ams_array);
+        std::string mapping_info;
+        get_ams_mapping_result(ams_array, mapping_info);
         if (ams_array.empty()) {
             reset_ams_material();
             BOOST_LOG_TRIVIAL(info) << "ams_mapping_array=[]";
@@ -1365,7 +1366,7 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_)
     return true;
 }
 
-bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str)
+bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str, std::string &ams_mapping_info)
 {
     if (m_ams_mapping_result.empty())
         return false;
@@ -1383,16 +1384,39 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str)
         return false;
     } else {
         json          j = json::array();
+        json mapping_info_json = json::array();
+
         for (int i = 0; i < wxGetApp().preset_bundle->filament_presets.size(); i++) {
             int tray_id = -1;
+            json mapping_item;
+            mapping_item["ams"] = tray_id;
+            mapping_item["targetColor"] = "";
+            mapping_item["filamentId"] = "";
+            mapping_item["filamentType"] = "";
+
             for (int k = 0; k < m_ams_mapping_result.size(); k++) {
                 if (m_ams_mapping_result[k].id == i) {
                     tray_id = m_ams_mapping_result[k].tray_id;
+                    mapping_item["ams"]             = tray_id;
+                    mapping_item["filamentType"]    = m_filaments[k].type;
+                    auto it = wxGetApp().preset_bundle->filaments.find_preset(wxGetApp().preset_bundle->filament_presets[i]);
+                    if (it != nullptr) {
+                        mapping_item["filamentId"] = it->filament_id;
+                    }
+                    //convert #RRGGBB to RRGGBBAA
+                    if (m_filaments[k].color.size() > 6) {
+                        mapping_item["sourceColor"] = m_filaments[k].color.substr(1, 6) + "FF";
+                    } else {
+                        mapping_item["sourceColor"]     = m_filaments[k].color;
+                    }
+                    mapping_item["targetColor"]     = m_ams_mapping_result[k].color;
                 }
             }
             j.push_back(tray_id);
+            mapping_info_json.push_back(mapping_item);
         }
         mapping_array_str = j.dump();
+        ams_mapping_info = mapping_info_json.dump();
         return valid_mapping_result;
     }
     return true;
@@ -1710,7 +1734,8 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
 
     // get ams_mapping_result
     std::string ams_mapping_array;
-    get_ams_mapping_result(ams_mapping_array);
+    std::string ams_mapping_info;
+    get_ams_mapping_result(ams_mapping_array, ams_mapping_info);
 
     result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool &cancel) {
         if (this->m_is_canceled) return;
@@ -1750,10 +1775,13 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
     m_print_job->m_dev_ip      = obj_->dev_ip;
     m_print_job->m_access_code = obj_->access_code;
     m_print_job->connection_type = obj_->connection_type();
-    if (obj_->is_support_ams_mapping())
+    if (obj_->is_support_ams_mapping()) {
         m_print_job->task_ams_mapping = ams_mapping_array;
-    else
+        m_print_job->task_ams_mapping_info = ams_mapping_info;
+    } else {
         m_print_job->task_ams_mapping = "";
+        m_print_job->task_ams_mapping_info = "";
+    }
 
     m_print_job->has_sdcard = obj_->has_sdcard();
     

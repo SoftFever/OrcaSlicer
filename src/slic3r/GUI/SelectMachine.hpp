@@ -349,7 +349,7 @@ public:
 
 	void      sync_ams_mapping_result(std::vector<FilamentInfo>& result);
     bool      do_ams_mapping(MachineObject *obj_);
-    bool      get_ams_mapping_result(std::string &mapping_array_str);
+    bool      get_ams_mapping_result(std::string &mapping_array_str, std::string &ams_mapping_info);
     void      prepare(int print_plate_idx);
     void      show_status(PrintDialogStatus status, std::vector<wxString> params = std::vector<wxString>());
     PrintDialogStatus  get_status() { return m_print_status; }

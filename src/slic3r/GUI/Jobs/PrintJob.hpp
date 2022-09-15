@@ -47,6 +47,7 @@ public:
     bool        task_record_timelapse;
     bool        task_layer_inspect;
     std::string task_ams_mapping;
+    std::string task_ams_mapping_info;
     std::string connection_type;
     bool        cloud_print_only { false };
     bool        has_sdcard { false };
