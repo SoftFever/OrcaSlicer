@@ -534,6 +534,7 @@ public:
 
     /* command upgrade */
     int command_upgrade_confirm();
+    int command_consistency_upgrade_confirm();
     int command_upgrade_firmware(FirmwareInfo info);
 
     /* control apis */

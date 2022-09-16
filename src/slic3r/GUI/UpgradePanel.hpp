@@ -78,7 +78,6 @@ protected:
     std::string last_status_str = "";
 
     void upgrade_firmware_internal();
-    void on_upgrade_firmware(wxCommandEvent &event);
     void on_show_release_note(wxMouseEvent &event);
 
 public:
@@ -97,6 +96,9 @@ public:
     void update_ams(MachineObject *obj);
     void show_status(int status, std::string upgrade_status_str = "");
     void show_ams(bool show = false, bool force_update = false);
+
+    void on_upgrade_firmware(wxCommandEvent &event);
+    void on_consisitency_upgrade_firmware(wxCommandEvent &event);
 
     MachineObject *m_obj{nullptr};
     FirmwareInfo  m_ota_info;
@@ -129,6 +131,11 @@ protected:
     //enable_select_firmware only in debug mode
     bool enable_select_firmware = false;
     bool m_need_update = false;
+    //hint of force upgrade or consistency upgrade
+    int last_forced_hint_status = -1;
+    int last_consistency_hint_status = -1;
+    bool m_show_forced_hint = true;
+    bool m_show_consistency_hint = true;
 
 public:
     UpgradePanel(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxTAB_TRAVERSAL);

@@ -1162,9 +1162,19 @@ int MachineObject::command_request_push_all()
 
 int MachineObject::command_upgrade_confirm()
 {
-    BOOST_LOG_TRIVIAL(trace) << "command_upgrade_confirm";
+    BOOST_LOG_TRIVIAL(info) << "command_upgrade_confirm";
     json j;
     j["upgrade"]["command"] = "upgrade_confirm";
+    j["upgrade"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["upgrade"]["src_id"] = 1; // 1 for slicer
+    return this->publish_json(j.dump());
+}
+
+int MachineObject::command_consistency_upgrade_confirm()
+{
+    BOOST_LOG_TRIVIAL(info) << "command_consistency_upgrade_confirm";
+    json j;
+    j["upgrade"]["command"] = "consistency_confirm";
     j["upgrade"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["upgrade"]["src_id"] = 1; // 1 for slicer
     return this->publish_json(j.dump());
