@@ -49,7 +49,7 @@ public:
 	RemovableDriveManager() = default;
 	RemovableDriveManager(RemovableDriveManager const&) = delete;
 	void operator=(RemovableDriveManager const&) = delete;
-	~RemovableDriveManager() { assert(! m_initialized); }
+	~RemovableDriveManager() { /*assert(! m_initialized);*/ }
 
 	// Start the background thread and register this window as a target for update events.
 	// Register for OSX notifications.

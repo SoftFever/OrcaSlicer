@@ -253,8 +253,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/wxExtensions.hpp
     GUI/WipeTowerDialog.cpp
     GUI/WipeTowerDialog.hpp
-    #GUI/RemovableDriveManager.cpp
-    #GUI/RemovableDriveManager.hpp
+    GUI/RemovableDriveManager.cpp
+    GUI/RemovableDriveManager.hpp
     GUI/SendSystemInfoDialog.cpp
     GUI/SendSystemInfoDialog.hpp
     GUI/ImGuiWrapper.hpp
@@ -387,8 +387,8 @@ if (APPLE)
     list(APPEND SLIC3R_GUI_SOURCES
             Utils/RetinaHelperImpl.mm
             Utils/MacDarkMode.mm
-            #GUI/RemovableDriveManagerMM.mm
-            #GUI/RemovableDriveManagerMM.h
+            GUI/RemovableDriveManagerMM.mm
+            GUI/RemovableDriveManagerMM.h
             GUI/Mouse3DHandlerMac.mm
             #GUI/InstanceCheckMac.mm
             #GUI/InstanceCheckMac.h
