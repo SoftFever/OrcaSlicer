@@ -19,7 +19,18 @@ protected:
 	    ExPolygon     		             expolygon,
 	    Polylines                       &polylines_out) override;
 
+	void _fill_surface_single(const FillParams& params,
+		unsigned int                   thickness_layers,
+		const std::pair<float, Point>& direction,
+		ExPolygon                      expolygon,
+		ThickPolylines& thick_polylines_out) override;
+
 	bool no_sort() const override { return true; }
+
+	const PrintConfig* print_config = nullptr;
+	const PrintObjectConfig* print_object_config = nullptr;
+
+	friend class Layer;
 };
 
 } // namespace Slic3r

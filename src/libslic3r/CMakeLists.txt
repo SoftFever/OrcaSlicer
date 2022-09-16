@@ -67,8 +67,6 @@ set(lisbslic3r_sources
     Fill/FillBase.hpp
     Fill/FillConcentric.cpp
     Fill/FillConcentric.hpp
-    Fill/FillConcentricWGapFill.cpp
-    Fill/FillConcentricWGapFill.hpp
     Fill/FillConcentricInternal.cpp
     Fill/FillConcentricInternal.hpp
     Fill/FillHoneycomb.cpp

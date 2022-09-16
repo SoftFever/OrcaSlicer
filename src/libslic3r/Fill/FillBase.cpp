@@ -9,6 +9,7 @@
 #include "../PrintConfig.hpp"
 #include "../Surface.hpp"
 #include "../libslic3r.h"
+#include "../VariableWidth.hpp"
 
 #include "FillBase.hpp"
 #include "FillConcentric.hpp"
@@ -21,7 +22,6 @@
 #include "FillAdaptive.hpp"
 #include "FillLightning.hpp"
 // BBS: new infill pattern header
-#include "FillConcentricWGapFill.hpp"
 #include "FillConcentricInternal.hpp"
 
 // #define INFILL_DEBUG_OUTPUT
@@ -58,7 +58,6 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipLightning:           return new FillLightning::Filler();
 #endif // HAS_LIGHTNING_INFILL
     // BBS: for internal solid infill only
-    case ipConcentricGapFill:   return new FillConcentricWGapFill();
     case ipConcentricInternal:  return new FillConcentricInternal();
     // BBS: for bottom and top surface only
     case ipMonotonicLine:       return new FillMonotonicLineWGapFill();
@@ -107,16 +106,31 @@ Polylines Fill::fill_surface(const Surface *surface, const FillParams &params)
     return polylines_out;
 }
 
+ThickPolylines Fill::fill_surface_arachne(const Surface* surface, const FillParams& params)
+{
+    // Perform offset.
+    Slic3r::ExPolygons expp = offset_ex(surface->expolygon, float(scale_(this->overlap - 0.5 * this->spacing)));
+    // Create the infills for each of the regions.
+    ThickPolylines thick_polylines_out;
+    for (ExPolygon& expoly : expp)
+        _fill_surface_single(params, surface->thickness_layers, _infill_direction(surface), std::move(expoly), thick_polylines_out);
+    return thick_polylines_out;
+}
+
 // BBS: this method is used to fill the ExtrusionEntityCollection. It call fill_surface by default
 void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out)
 {
     Polylines polylines;
+    ThickPolylines thick_polylines;
     try {
-        polylines = this->fill_surface(surface, params);
+        if (params.use_arachne)
+            thick_polylines = this->fill_surface_arachne(surface, params);
+        else
+            polylines = this->fill_surface(surface, params);
     }
     catch (InfillFailedException&) {}
 
-    if (!polylines.empty()) {
+    if (!polylines.empty() || !thick_polylines.empty()) {
         // calculate actual flow from spacing (which might have been adjusted by the infill
         // pattern generator)
         double flow_mm3_per_mm = params.flow.mm3_per_mm();
@@ -136,10 +150,17 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
         out.push_back(eec = new ExtrusionEntityCollection());
         // Only concentric fills are not sorted.
         eec->no_sort = this->no_sort();
-        extrusion_entities_append_paths(
-            eec->entities, std::move(polylines),
-            params.extrusion_role,
-            flow_mm3_per_mm, float(flow_width), params.flow.height());
+        if (params.use_arachne) {
+            Flow new_flow = params.flow.with_spacing(float(this->spacing));
+            variable_width(thick_polylines, params.extrusion_role, new_flow, eec->entities);
+            thick_polylines.clear();
+        }
+        else {
+            extrusion_entities_append_paths(
+                eec->entities, std::move(polylines),
+                params.extrusion_role,
+                flow_mm3_per_mm, float(flow_width), params.flow.height());
+        }
     }
 }
 
