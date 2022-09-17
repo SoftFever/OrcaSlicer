@@ -1,6 +1,6 @@
 {
     "name": "Anycubic",
-    "version": "01.01.01.02",
+    "version": "01.02.00.01",
     "force_update": "0",
     "description": "Anycubic configurations",
     "machine_model_list": [
