@@ -649,6 +649,16 @@ void PrintConfigDef::init_fff_params()
     def->max = 2;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
+
+    def = this->add("bottom_solid_infill_flow_ratio", coFloat);
+    def->label = L("Bottom surface flow ratio");
+    def->category = L("Advanced");
+    def->tooltip = L("This factor affects the amount of material for bottom solid infill. ");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1));
+
     
     def = this->add("only_one_wall_top", coBool);
     def->label = L("Only one wall on top surfaces");

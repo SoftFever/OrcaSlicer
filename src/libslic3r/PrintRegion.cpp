@@ -25,8 +25,12 @@ Flow PrintRegion::flow(const PrintObject &object, FlowRole role, double layer_he
     double flow_ratio = 1.0;
     // Get extrusion width from configuration.
     // (might be an absolute value, or a percent value, or zero for auto)
-    if (first_layer && print_config.initial_layer_line_width.value > 0) {
-        config_width = print_config.initial_layer_line_width;
+    if (first_layer) { 
+        if(role != frExternalPerimeter)
+            flow_ratio = m_config.bottom_solid_infill_flow_ratio;
+        if(print_config.initial_layer_line_width.value > 0) {
+            config_width = print_config.initial_layer_line_width;
+        }
     } else if (role == frExternalPerimeter) {
         config_width = m_config.outer_wall_line_width;
     } else if (role == frPerimeter) {

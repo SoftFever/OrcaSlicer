@@ -685,7 +685,7 @@ static std::vector<std::string> s_Preset_print_options {
      "initial_layer_infill_speed", "only_one_wall_top", "only_one_wall_first_layer",
      "timelapse_type",
      //SoftFever
-     "top_solid_infill_flow_ratio"
+     "top_solid_infill_flow_ratio","bottom_solid_infill_flow_ratio"
 
 };
 
