@@ -616,6 +616,8 @@ public:
             bool m_visible{ true };
 
         public:
+            float m_scale = 1.0f;
+
             void init(std::string filename);
 
             const BoundingBoxf3& get_bounding_box() const { return m_model.get_bounding_box(); }
@@ -684,6 +686,7 @@ public:
         Marker marker;
         GCodeWindow gcode_window;
         std::vector<unsigned int> gcode_ids;
+        float m_scale = 1.0;
 
         //BBS: GUI refactor: add canvas size
         void render(float legend_height, int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves) const;

@@ -330,71 +330,109 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
 
     static float last_window_width = 0.0f;
     static size_t last_text_length = 0;
+    static const ImU32 text_name_clr = IM_COL32(38, 46, 48, 255);
+    static const ImU32 text_value_clr = IM_COL32(144, 144, 144, 255);
+    static const ImU32 window_bg_clr = IM_COL32(255, 255, 255, 255);
 
-    //if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop) {
-        ImGuiWrapper& imgui = *wxGetApp().imgui();
-        //BBS: GUI refactor: add canvas size from parameters
-        //Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
-        //imgui.set_next_window_pos(0.5f * static_cast<float>(cnv_size.get_width()), static_cast<float>(cnv_size.get_height()), ImGuiCond_Always, 0.5f, 1.0f);
-        imgui.set_next_window_pos(0.5f * static_cast<float>(canvas_width), static_cast<float>(canvas_height), ImGuiCond_Always, 0.5f, 1.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-        ImGui::SetNextWindowBgAlpha(0.25f);
-        imgui.begin(std::string("ExtruderPosition"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
-        //imgui.text_colored(ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Extruder position") + ":");
-        //ImGui::SameLine();
-        char buf[1024];
-        //BBS: minus the plate offset when show tool position
-        PartPlateList& partplate_list = wxGetApp().plater()->get_partplate_list();
-        PartPlate* plate = partplate_list.get_curr_plate();
-        const Vec3f position = m_world_position + m_world_offset;
-        sprintf(buf, "X: %.3f, Y: %.3f, Z: %.3f", position.x() - plate->get_origin().x(), position.y() - plate->get_origin().y(), position.z());
-        imgui.text(std::string(buf));
-        //gcode_result.moves[i];
-        if (view_type == EViewType::Feedrate) {
-            auto it = std::find_if(moves.begin(), moves.end(), [&curr_line_id](auto move) {
-                if (move.gcode_id == curr_line_id)
-                    return true;
-                else
-                    return false;
-                });
-            if (it != moves.end()) {
-                sprintf(buf, _u8L("Speed: %.f").c_str(), it->feedrate);
-                ImGui::NewLine();
-                ImGui::SameLine((ImGui::GetWindowWidth() - ImGui::CalcTextSize(buf).x) / 2);
-                imgui.text(buf);
-            }
-        }
-        if (view_type == EViewType::VolumetricRate) {
-            auto it = std::find_if(moves.begin(), moves.end(), [&curr_line_id](auto move) {
-                if (move.gcode_id == curr_line_id)
-                    return true;
-                else
-                    return false;
-                });
-            if (it != moves.end()) {
-                sprintf(buf, _u8L("Flow: %.f").c_str(), it->volumetric_rate());
-                ImGui::NewLine();
-                ImGui::SameLine((ImGui::GetWindowWidth() - ImGui::CalcTextSize(buf).x) / 2);
-                imgui.text(buf);
-            }
-        }
-        // force extra frame to automatically update window size
-        float width = ImGui::GetWindowWidth();
-        size_t length = strlen(buf);
-        if (width != last_window_width || length != last_text_length) {
-            last_window_width = width;
-            last_text_length = length;
-    #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
-            imgui.set_requires_extra_frame();
-    #else
-            wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-            wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
-    #endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
-        }
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    //BBS: GUI refactor: add canvas size from parameters
+    imgui.set_next_window_pos(0.5f * static_cast<float>(canvas_width), static_cast<float>(canvas_height), ImGuiCond_Always, 0.5f, 1.0f);
+    imgui.push_toolbar_style(m_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0, 4.0 * m_scale));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0 * m_scale, 6.0 * m_scale));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, window_bg_clr);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, text_name_clr);
+    ImGui::PushStyleColor(ImGuiCol_Text, text_value_clr);
+    imgui.begin(std::string("ExtruderPosition"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
+    ImGui::AlignTextToFramePadding();
+    //BBS: minus the plate offset when show tool position
+    PartPlateList& partplate_list = wxGetApp().plater()->get_partplate_list();
+    PartPlate* plate = partplate_list.get_curr_plate();
+    const Vec3f position = m_world_position + m_world_offset;
+    std::string x = ImGui::ColorMarkerStart + std::string("X: ") + ImGui::ColorMarkerEnd;
+    std::string y = ImGui::ColorMarkerStart + std::string("Y: ") + ImGui::ColorMarkerEnd;
+    std::string z = ImGui::ColorMarkerStart + std::string("Z: ") + ImGui::ColorMarkerEnd;
+    std::string speed = ImGui::ColorMarkerStart + _u8L("Speed: ") + ImGui::ColorMarkerEnd;
+    std::string flow = ImGui::ColorMarkerStart + _u8L("Flow: ") + ImGui::ColorMarkerEnd;
 
-        imgui.end();
-        ImGui::PopStyleVar();
-    //}
+    std::ostringstream buffer;
+    char buf[1024];
+    if (view_type == EViewType::Feedrate) {
+        auto it = std::find_if(moves.begin(), moves.end(), [&curr_line_id](auto move) {
+            if (move.gcode_id == curr_line_id)
+                return true;
+            else
+                return false;
+            });
+        if (it != moves.end()) {
+            sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
+            imgui.text(buf);
+
+            ImGui::SameLine();
+            sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
+            imgui.text(buf);
+
+            sprintf(buf, "%s%.3f", z.c_str(), position.z());
+            imgui.text(buf);
+
+            ImGui::SameLine();
+            sprintf(buf, "%s%.f", speed.c_str(), it->feedrate);
+            imgui.text(buf);
+        }
+    }
+    else if (view_type == EViewType::VolumetricRate) {
+        auto it = std::find_if(moves.begin(), moves.end(), [&curr_line_id](auto move) {
+            if (move.gcode_id == curr_line_id)
+                return true;
+            else
+                return false;
+            });
+        if (it != moves.end()) {
+            sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
+            imgui.text(buf);
+
+            ImGui::SameLine();
+            sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
+            imgui.text(buf);
+
+            sprintf(buf, "%s%.3f", z.c_str(), position.z());
+            imgui.text(buf);
+
+            ImGui::SameLine();
+            sprintf(buf, "%s%.f", flow.c_str(), it->volumetric_rate());
+            imgui.text(buf);
+        }
+    }
+    else {
+        sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
+        imgui.text(buf);
+
+        ImGui::SameLine();
+        sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
+        imgui.text(buf);
+
+        ImGui::SameLine();
+        sprintf(buf, "%s%.3f", z.c_str() , position.z());
+        imgui.text(buf);
+    }
+    // force extra frame to automatically update window size
+    float width = ImGui::GetWindowWidth();
+    //size_t length = strlen(buf);
+    if (width != last_window_width /*|| length != last_text_length*/) {
+        last_window_width = width;
+        //last_text_length = length;
+#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+        imgui.set_requires_extra_frame();
+#else
+        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+        wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
+#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
+    }
+
+    imgui.end();
+    imgui.pop_toolbar_style();
+    ImGui::PopStyleVar(2);
+    ImGui::PopStyleColor(3);
 }
 
 void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& filename, std::vector<size_t> &&lines_ends)
@@ -793,6 +831,10 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
 void GCodeViewer::set_scale(float scale)
 {
     if(m_scale != scale)m_scale = scale;
+    if (m_sequential_view.m_scale != scale) {
+        m_sequential_view.m_scale = scale;
+        m_sequential_view.marker.m_scale = scale;
+    }
 }
 
 void GCodeViewer::update_by_mode(ConfigOptionMode mode)
@@ -1157,7 +1199,7 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
         m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
         m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
         //BBS fixed buttom margin. m_moves_slider.pos_y
-        m_sequential_view.render(legend_height, canvas_width - right_margin, canvas_height - bottom_margin, m_view_type, m_gcode_result->moves);
+        m_sequential_view.render(legend_height, canvas_width - right_margin * m_scale, canvas_height - bottom_margin * m_scale, m_view_type, m_gcode_result->moves);
     //}
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
