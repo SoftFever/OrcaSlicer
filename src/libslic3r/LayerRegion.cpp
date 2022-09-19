@@ -116,7 +116,9 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
 void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Polygons *lower_layer_covered)
 {
     const bool      has_infill = this->region().config().sparse_infill_density.value > 0.;
-    const float		margin 	   = float(scale_(EXTERNAL_INFILL_MARGIN));
+    //BBS
+    auto nozzle_diameter = this->region().nozzle_dmr_avg(this->layer()->object()->print()->config());
+    const float	margin = std::min(float(scale_(EXTERNAL_INFILL_MARGIN)), float(scale_(nozzle_diameter * EXTERNAL_INFILL_MARGIN / 0.4)));
 
     // BBS
     const PrintObjectConfig& object_config = this->layer()->object()->config();
