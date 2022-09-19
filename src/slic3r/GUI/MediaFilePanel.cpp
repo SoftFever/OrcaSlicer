@@ -125,13 +125,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_year->Bind(wxEVT_COMMAND_BUTTON_CLICKED, time_button_clicked);
     m_button_month->Bind(wxEVT_COMMAND_BUTTON_CLICKED, time_button_clicked);
     m_button_all->Bind(wxEVT_COMMAND_BUTTON_CLICKED, time_button_clicked);
-
-    {
-        wxCommandEvent e(wxEVT_CHECKBOX);
-        auto           b = m_button_all;
-        e.SetEventObject(b);
-        b->GetEventHandler()->ProcessEvent(e);
-    }
+    m_button_all->SetValue(true);
 
     // File type
     auto type_button_clicked = [this](wxEvent &e) {
@@ -143,26 +137,12 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
             return;
         m_image_grid->SetFileType(type);
         m_last_type = type;
-        {
-            wxCommandEvent e(wxEVT_CHECKBOX);
-            e.SetEventObject(m_button_timelapse);
-            m_button_timelapse->GetEventHandler()->ProcessEvent(e);
-        }
-        {
-            wxCommandEvent e(wxEVT_CHECKBOX);
-            e.SetEventObject(m_button_video);
-            m_button_video->GetEventHandler()->ProcessEvent(e);
-        }
+        m_button_timelapse->SetValue(!m_button_timelapse->GetValue());
+        m_button_video->SetValue(!m_button_video->GetValue());
     };
     m_button_video->Bind(wxEVT_COMMAND_BUTTON_CLICKED, type_button_clicked);
     m_button_timelapse->Bind(wxEVT_COMMAND_BUTTON_CLICKED, type_button_clicked);
-
-    {
-        wxCommandEvent e(wxEVT_CHECKBOX);
-        auto           b = m_button_timelapse;
-        e.SetEventObject(b);
-        b->GetEventHandler()->ProcessEvent(e);
-    }
+    m_button_timelapse->SetValue(true);
 
     // File management
     m_button_management->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) {
@@ -310,15 +290,12 @@ void MediaFilePanel::modeChanged(wxCommandEvent& e1)
     if (m_last_mode == mode)
         return;
     ::Button* buttons[] = {m_button_all, m_button_month, m_button_year};
-    wxCommandEvent e(wxEVT_CHECKBOX);
     auto b = buttons[m_last_mode];
     b->SetFont(Label::Body_14);
-    e.SetEventObject(b);
-    b->GetEventHandler()->ProcessEvent(e);
+    b->SetValue(false);
     b = buttons[mode];
     b->SetFont(Label::Head_14);
-    e.SetEventObject(b);
-    b->GetEventHandler()->ProcessEvent(e);
+    b->SetValue(true);
     m_last_mode = mode;
 }
 

@@ -48,6 +48,10 @@ public:
 
     void SetCanFocus(bool canFocus) override;
 
+    void SetValue(bool state);
+
+    bool GetValue() const;
+
     void Rescale();
 
 protected:

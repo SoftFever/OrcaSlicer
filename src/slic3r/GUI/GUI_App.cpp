@@ -1257,13 +1257,13 @@ std::string GUI_App::get_http_url(std::string country_code)
     return url;
 }
 
-std::string GUI_App::get_plugin_url(std::string country_code)
+std::string GUI_App::get_plugin_url(std::string name, std::string country_code)
 {
     std::string url = get_http_url(country_code);
 
     std::string curr_version = SLIC3R_VERSION;
     std::string using_version = curr_version.substr(0, 9) + "00";
-    url += (boost::format("?slicer/plugins/cloud=%1%") % using_version).str();
+    url += (boost::format("?slicer/%1%/cloud=%2%") % name % using_version).str();
     //url += (boost::format("?slicer/plugins/cloud=%1%") % "01.01.00.00").str();
     return url;
 }
@@ -1283,7 +1283,7 @@ static std::string decode(std::string const& extra, std::string const& path = {}
     return Slic3r::decode_path(path.c_str());
 }
 
-int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
+int GUI_App::download_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
 {
     int result = 0;
     // get country_code
@@ -1294,12 +1294,12 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
     BOOST_LOG_TRIVIAL(info) << "[download_plugin]: enter";
     m_networking_cancel_update = false;
     // get temp path
-    fs::path target_file_path = (fs::temp_directory_path() / "network_plugin.zip");
+    fs::path target_file_path = (fs::temp_directory_path() / package_name);
     fs::path tmp_path = target_file_path;
     tmp_path += format(".%1%%2%", get_current_pid(), ".tmp");
 
     // get_url
-    std::string url = get_plugin_url(app_config->get_country_code());
+    std::string  url = get_plugin_url(name, app_config->get_country_code());
     std::string download_url;
     Slic3r::Http http_url = Slic3r::Http::get(url);
     BOOST_LOG_TRIVIAL(info) << "[download_plugin]: check the plugin from " << url;
@@ -1418,16 +1418,16 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
     return result;
 }
 
-int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
+int GUI_App::install_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
 {
     bool cancel = false;
-    std::string target_file_path = (fs::temp_directory_path() / "network_plugin.zip").string();
+    std::string target_file_path = (fs::temp_directory_path() / package_name).string();
 
     BOOST_LOG_TRIVIAL(info) << "[install_plugin] enter";
     // get plugin folder
     std::string data_dir_str = data_dir();
     boost::filesystem::path data_dir_path(data_dir_str);
-    auto plugin_folder = data_dir_path / "plugins";
+    auto plugin_folder = data_dir_path / name;
     //auto plugin_folder = boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins";
     auto backup_folder = plugin_folder/"backup";
     if (!boost::filesystem::exists(plugin_folder)) {
@@ -1534,7 +1534,8 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
 
     if (pro_fn)
         pro_fn(InstallStatusInstallCompleted, 100, cancel);
-    app_config->set_str("app", "installed_networking", "1");
+    if (name == "plugins")
+        app_config->set_str("app", "installed_networking", "1");
     BOOST_LOG_TRIVIAL(info) << "[install_plugin] success";
     return 0;
 }

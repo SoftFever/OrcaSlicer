@@ -235,13 +235,19 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_recording_button->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
     m_recording_button->SetBackgroundColour(STATUS_TITLE_BG);
 
+    m_vcamera_button = new CameraItem(m_panel_monitoring_title, "vcamera_off_normal", "vcamera_on_normal", "vcamera_off_hover", "vcamera_on_hover");
+    m_vcamera_button->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
+    m_vcamera_button->SetBackgroundColour(STATUS_TITLE_BG);
+
     m_timelapse_button->SetToolTip(_L("Timelapse"));
     m_recording_button->SetToolTip(_L("Video"));
+    m_vcamera_button->SetToolTip(_L("Virtual Camera"));
 
     bSizer_monitoring_title->Add(m_bitmap_sdcard_off_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     bSizer_monitoring_title->Add(m_bitmap_sdcard_on_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     bSizer_monitoring_title->Add(m_timelapse_button, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     bSizer_monitoring_title->Add(m_recording_button, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    bSizer_monitoring_title->Add(m_vcamera_button, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
     bSizer_monitoring_title->Add(FromDIP(13), 0, 0);
 
@@ -1029,6 +1035,7 @@ void StatusBasePanel::upodate_camera_state(bool recording, bool timelapse, bool 
 
      //recording
     m_recording_button->set_switch(recording);
+    m_vcamera_button->set_switch(m_media_play_ctrl->IsStreaming());
 
     //timelapse
     m_timelapse_button->set_switch(timelapse);
@@ -1083,6 +1090,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     //m_bitmap_thumbnail->Connect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_enter), NULL, this);
     //m_bitmap_thumbnail->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
     m_recording_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_switch_recording), NULL, this);
+    m_vcamera_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_switch_vcamera), NULL, this);
     m_project_task_panel->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
 
     m_button_pause_resume->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
@@ -1123,6 +1131,7 @@ StatusPanel::~StatusPanel()
     //m_bitmap_thumbnail->Disconnect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_enter), NULL, this);
     //m_bitmap_thumbnail->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
     m_recording_button->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_switch_recording), NULL, this);
+    m_vcamera_button->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_switch_vcamera), NULL, this);
     m_button_pause_resume->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
     m_button_clean->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_clean), NULL, this);
@@ -1353,6 +1362,12 @@ void StatusPanel::update(MachineObject *obj)
             m_recording_button->Show();
         } else {
             m_recording_button->Hide();
+        }
+
+        if (obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_CAMERA) && obj->has_ipcam) {
+            m_vcamera_button->Show();
+        } else {
+            m_vcamera_button->Hide();
         }
 
         if (obj->is_function_supported(PrinterFunction::FUNC_CHAMBER_TEMP)) {
@@ -2489,6 +2504,14 @@ void StatusPanel::on_switch_recording(wxMouseEvent &event)
     obj->command_ipcam_record(!value);
 }
 
+void StatusPanel::on_switch_vcamera(wxMouseEvent &event)
+{
+    //if (!obj) return;
+    //bool value = m_recording_button->get_switch_status();
+    //obj->command_ipcam_record(!value);
+    m_media_play_ctrl->ToggleStream();
+}
+
 void StatusPanel::on_camera_enter(wxMouseEvent& event)
 {
     if (obj) {
@@ -2578,6 +2601,7 @@ void StatusPanel::set_default()
 
     m_timelapse_button->Show();
     m_recording_button->Show();
+    m_vcamera_button->Show();
     m_tempCtrl_frame->Show();
     m_options_btn->Show();
 
@@ -2652,6 +2676,7 @@ void StatusPanel::msw_rescale()
 
     m_timelapse_button->SetMinSize(wxSize(38, 24));
     m_recording_button->SetMinSize(wxSize(38, 24));
+    m_vcamera_button->SetMinSize(wxSize(38, 24));
     m_bitmap_sdcard_off_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
     m_bitmap_sdcard_on_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
 

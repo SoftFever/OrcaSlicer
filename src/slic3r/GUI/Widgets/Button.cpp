@@ -127,6 +127,14 @@ bool Button::Enable(bool enable)
 
 void Button::SetCanFocus(bool canFocus) { this->canFocus = canFocus; }
 
+void Button::SetValue(bool state)
+{
+    if (GetValue() == state) return;
+    state_handler.set_state(state ? StateHandler::Checked : 0, StateHandler::Checked);
+}
+
+bool Button::GetValue() const { return state_handler.states() & StateHandler::Checked; }
+
 void Button::Rescale()
 {
     if (this->active_icon.bmp().IsOk())

@@ -50,7 +50,9 @@ public:
     std::shared_ptr<UpgradeNetworkJob> m_upgrade_job { nullptr };
     wxPanel *                         m_panel_download;
 
-
+protected:
+    virtual std::shared_ptr<UpgradeNetworkJob> make_job(std::shared_ptr<ProgressIndicator> pri);
+    virtual void                               on_finish();
 };
 
 

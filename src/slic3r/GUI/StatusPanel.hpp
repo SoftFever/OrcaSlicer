@@ -91,6 +91,7 @@ protected:
 
     CameraItem *m_timelapse_button;
     CameraItem *m_recording_button;
+    CameraItem *m_vcamera_button;
 
     wxBitmap m_bitmap_camera;
     wxBitmap m_bitmap_sdcard_state_on;
@@ -319,6 +320,7 @@ protected:
     void on_thumbnail_enter(wxMouseEvent &event);
     void on_thumbnail_leave(wxMouseEvent &event);
     void on_switch_recording(wxMouseEvent &event);
+    void on_switch_vcamera(wxMouseEvent &event);
     void on_camera_enter(wxMouseEvent &event);
     void on_camera_leave(wxMouseEvent& event);
     void on_auto_leveling(wxCommandEvent &event);

@@ -8318,7 +8318,7 @@ int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check)
     auto result = MessageDialog(static_cast<wxWindow*>(this), _L("The current project has unsaved changes, save it before continue?"),
         wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Save"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal();
     if (result == wxID_CANCEL)
-        return result;
+        return result;      
     else if (result == wxID_YES) {
         result = save_project();
         if (result == wxID_CANCEL)

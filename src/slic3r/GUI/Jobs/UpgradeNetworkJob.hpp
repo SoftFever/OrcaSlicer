@@ -29,6 +29,9 @@ class UpgradeNetworkJob : public Job
     InstallProgressFn pro_fn { nullptr };
 
 protected:
+    std::string name;
+    std::string package_name;
+
     void on_exception(const std::exception_ptr &) override;
 public:
     UpgradeNetworkJob(std::shared_ptr<ProgressIndicator> pri);

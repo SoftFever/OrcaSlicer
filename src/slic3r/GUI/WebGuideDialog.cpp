@@ -1509,6 +1509,7 @@ bool GuideFrame::LoadFile(std::string jPath, std::string &sContent)
 int GuideFrame::DownloadPlugin()
 {
     return wxGetApp().download_plugin(
+        "plugins", "network_plugin.zip", 
         [this](int status, int percent, bool& cancel) {
             return ShowPluginStatus(status, percent, cancel);
         }
@@ -1517,7 +1518,7 @@ int GuideFrame::DownloadPlugin()
 
 int GuideFrame::InstallPlugin()
 {
-    return wxGetApp().install_plugin(
+    return wxGetApp().install_plugin("plugins", "network_plugin.zip", 
         [this](int status, int percent, bool &cancel) {
             return ShowPluginStatus(status, percent, cancel);
         }

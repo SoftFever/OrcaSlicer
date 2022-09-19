@@ -566,7 +566,7 @@ void NetworkTestDialog::start_test_oss_download()
 	tmp_path += (boost::format(".%1%%2%") % get_current_pid() % ".tmp").str();
 
 	// get_url
-	std::string url = wxGetApp().get_plugin_url(app_config->get_country_code());
+	std::string url = wxGetApp().get_plugin_url("plugins", app_config->get_country_code());
 	std::string download_url;
 	Slic3r::Http http_url = Slic3r::Http::get(url);
 	update_status(-1, "[test_oss_download]: url=" + url);

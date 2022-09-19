@@ -534,9 +534,9 @@ public:
     void            associate_files(std::wstring extend);
     void            disassociate_files(std::wstring extend);
 #endif // __WXMSW__
-    std::string     get_plugin_url(std::string country_code);
-    int             download_plugin(InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
-    int             install_plugin(InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
+    std::string     get_plugin_url(std::string name, std::string country_code);
+    int             download_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
+    int             install_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
     std::string     get_http_url(std::string country_code);
     bool            is_compatibility_version();
     bool            check_networking_version();
