@@ -793,15 +793,15 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("zig-zag");
     def->enum_values.push_back("monotonic");
     def->enum_values.push_back("monotonicline");
-    //def->enum_values.push_back("alignedrectilinear");
+    def->enum_values.push_back("alignedrectilinear");
     //def->enum_values.push_back("hilbertcurve");
     //def->enum_values.push_back("archimedeanchords");
     //def->enum_values.push_back("octagramspiral");
     def->enum_labels.push_back(L("Concentric"));
-    def->enum_labels.push_back(L("Zig zag"));
+    def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Monotonic"));
     def->enum_labels.push_back(L("Monotonic line"));
-    //def->enum_labels.push_back(L("Aligned Rectilinear"));
+    def->enum_labels.push_back(L("Aligned Rectilinear"));
     //def->enum_labels.push_back(L("Hilbert Curve"));
     //def->enum_labels.push_back(L("Archimedean Chords"));
     //def->enum_labels.push_back(L("Octagram Spiral"));
@@ -1099,7 +1099,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("gyroid");
     def->enum_values.push_back("honeycomb");
     def->enum_values.push_back("adaptivecubic");
-    //def->enum_values.push_back("alignedrectilinear");
+    def->enum_values.push_back("alignedrectilinear");
     //def->enum_values.push_back("3dhoneycomb");
     //def->enum_values.push_back("hilbertcurve");
     //def->enum_values.push_back("archimedeanchords");
@@ -1109,7 +1109,7 @@ void PrintConfigDef::init_fff_params()
     //def->enum_values.push_back("lightning");
 #endif // HAS_LIGHTNING_INFILL
     def->enum_labels.push_back(L("Concentric"));
-    def->enum_labels.push_back(L("Zig zag"));
+    def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Grid"));
     def->enum_labels.push_back(L("Line"));
     def->enum_labels.push_back(L("Cubic"));
@@ -1118,7 +1118,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Gyroid"));
     def->enum_labels.push_back(L("Honeycomb"));
     def->enum_labels.push_back(L("Adaptive Cubic"));
-    //def->enum_labels.push_back(L("Aligned Rectilinear"));
+    def->enum_labels.push_back(L("Aligned Rectilinear"));
     //def->enum_labels.push_back(L("3D Honeycomb"));
     //def->enum_labels.push_back(L("Hilbert Curve"));
     //def->enum_labels.push_back(L("Archimedean Chords"));
@@ -1756,7 +1756,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Wall loops");
     def->category = L("Strength");
     def->tooltip = L("Number of walls of every layer");
-    def->min = 1;
+    def->min = 0;
     def->max = 1000;
     def->set_default_value(new ConfigOptionInt(2));
 
