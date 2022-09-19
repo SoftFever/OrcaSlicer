@@ -2,6 +2,7 @@
 
 #include "Exception.hpp"
 #include "Preset.hpp"
+#include "PresetBundle.hpp"
 #include "AppConfig.hpp"
 
 #ifdef _MSC_VER
@@ -643,6 +644,26 @@ std::string Preset::get_filament_type(std::string &display_filament_type)
     return config.get_filament_type(display_filament_type);
 }
 
+bool Preset::is_bbl_vendor_preset(PresetBundle *preset_bundle)
+{
+    bool is_bbl_vendor_preset = true;
+    if (preset_bundle) {
+        auto config = &preset_bundle->printers.get_edited_preset().config;
+        std::string vendor_name;
+        for (auto vendor_profile : preset_bundle->vendors) {
+            for (auto vendor_model : vendor_profile.second.models)
+                if (vendor_model.name == config->opt_string("printer_model"))
+                {
+                    vendor_name = vendor_profile.first;
+                    break;
+                }
+        }
+        if (!vendor_name.empty())
+            is_bbl_vendor_preset = vendor_name.compare("BBL") == 0 ? true : false;
+    }
+    return is_bbl_vendor_preset;
+}
+
 static std::vector<std::string> s_Preset_print_options {
     "layer_height", "initial_layer_print_height", "wall_loops", "slice_closing_radius", "spiral_mode",
     "top_shell_layers", "top_shell_thickness", "bottom_shell_layers", "bottom_shell_thickness",
@@ -725,7 +746,11 @@ static std::vector<std::string> s_Preset_printer_options {
     "silent_mode",
     // BBS
     "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode",
-    "nozzle_type", "auxiliary_fan", "nozzle_volume"
+    "nozzle_type", "auxiliary_fan", "nozzle_volume",
+    //SoftFever
+    "host_type", "print_host", "printhost_apikey", 
+    "printhost_cafile","printhost_port","printhost_authorization_type",
+    "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke"
 };
 
 static std::vector<std::string> s_Preset_sla_print_options {
@@ -2525,6 +2550,16 @@ static std::vector<std::string> s_PhysicalPrinter_opts {
     "preset_name", // temporary option to compatibility with older Slicer
     "preset_names",
     "printer_technology",
+    "host_type",
+    "print_host",
+    "printhost_apikey",
+    "printhost_cafile",
+    "printhost_port",
+    "printhost_authorization_type",
+    // HTTP digest authentization (RFC 2617)
+    "printhost_user",
+    "printhost_password",
+    "printhost_ssl_ignore_revoke"
 };
 
 const std::vector<std::string>& PhysicalPrinter::printer_options()

@@ -182,6 +182,11 @@ public:
 	void stop_delayed_notifications_of_type(const NotificationType type);
 	// Creates Validate Error notification with a custom text and no fade out.
 	void push_validate_error_notification(StringObjectException const & error);
+		// print host upload
+	void push_upload_job_notification(int id, float filesize, const std::string& filename, const std::string& host, float percentage = 0);
+	void set_upload_job_notification_percentage(int id, const std::string& filename, const std::string& host, float percentage);
+	void upload_job_notification_show_canceled(int id, const std::string& filename, const std::string& host);
+	void upload_job_notification_show_error(int id, const std::string& filename, const std::string& host);
 	// Creates Slicing Error notification with a custom text and no fade out.
 	void push_slicing_error_notification(const std::string& text);
 	// Creates Slicing Warning notification with a custom text and no fade out.
@@ -557,6 +562,48 @@ private:
 
 	};
 
+	class PrintHostUploadNotification : public ProgressBarNotification
+	{
+	public:
+		enum class UploadJobState
+		{
+			PB_PROGRESS,
+			PB_ERROR,
+			PB_CANCELLED,
+			PB_COMPLETED
+		};
+		PrintHostUploadNotification(const NotificationData& n, NotificationIDProvider& id_provider, wxEvtHandler* evt_handler, float percentage, int job_id, float filesize)
+			:ProgressBarNotification(n, id_provider, evt_handler)
+			, m_job_id(job_id)
+			, m_file_size(filesize)
+		{
+			m_has_cancel_button = true;
+			set_percentage(percentage);
+		}
+		static std::string	get_upload_job_text(int id, const std::string& filename, const std::string& host) { return /*"[" + std::to_string(id) + "] " + */filename + " -> " + host; }
+		void				set_percentage(float percent) override;
+		void				cancel() { m_uj_state = UploadJobState::PB_CANCELLED; m_has_cancel_button = false; }
+		void				error()  { m_uj_state = UploadJobState::PB_ERROR;     m_has_cancel_button = false; init(); }
+		bool				compare_job_id(const int other_id) const { return m_job_id == other_id; }
+		bool				compare_text(const std::string& text) const override { return false; }
+	protected:
+		void        init() override;
+		void		count_spaces() override;
+		bool		push_background_color() override;
+		void		render_bar(ImGuiWrapper& imgui,
+								const float win_size_x, const float win_size_y,
+								const float win_pos_x, const float win_pos_y) override;
+		void		render_cancel_button(ImGuiWrapper& imgui,
+											const float win_size_x, const float win_size_y,
+											const float win_pos_x, const float win_pos_y) override;
+		void		render_left_sign(ImGuiWrapper& imgui) override;
+		// Identifies job in cancel callback
+		int					m_job_id;
+		// Size of uploaded size to be displayed in MB
+		float			    m_file_size;
+		long				m_hover_time{ 0 };
+		UploadJobState		m_uj_state{ UploadJobState::PB_PROGRESS };
+	};
 	class SlicingProgressNotification : public ProgressBarNotification
 	{
 	public:

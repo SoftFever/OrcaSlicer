@@ -40,6 +40,7 @@ namespace GUI
 {
 
 class Tab;
+class PrintHostQueueDialog;
 class Plater;
 class MainFrame;
 class ParamsDialog;
@@ -111,6 +112,7 @@ class MainFrame : public DPIFrame
     bool can_export_toolpaths() const;
     bool can_export_supports() const;
     bool can_export_gcode() const;
+    bool can_send_gcode() const;
     //bool can_export_gcode_sd() const;
     //bool can_eject() const;
     bool can_slice() const;
@@ -175,6 +177,7 @@ class MainFrame : public DPIFrame
         eExportGcode = 3,
         eSendGcode = 4,
         eSendToPrinter = 5,
+        eUploadGcode = 6
     };
 
     enum SliceSelectType
@@ -309,6 +312,7 @@ public:
 
     // BBS. Replace title bar and menu bar with top bar.
     BBLTopbar*            m_topbar{ nullptr };
+    PrintHostQueueDialog* printhost_queue_dlg() { return m_printhost_queue_dlg; }
     Plater*               m_plater { nullptr };
     //BBS: GUI refactor
     MonitorPanel*         m_monitor{ nullptr };
@@ -325,6 +329,7 @@ public:
     SettingsDialog        m_settings_dialog;
     DiffPresetDialog      diff_dialog;
     wxWindow*             m_plater_page{ nullptr };
+    PrintHostQueueDialog* m_printhost_queue_dlg;
 
     // BBS
     mutable int m_print_select{ ePrintAll };

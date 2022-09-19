@@ -120,6 +120,7 @@ public:
     void on_bed_type_change(BedType bed_type);
     void load_ams_list(std::map<std::string, Ams *> const &list);
     void sync_ams_list();
+    void update_printer_host_icon();
 
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
@@ -161,6 +162,7 @@ private:
 
     wxBoxSizer* m_scrolled_sizer = nullptr;
     ComboBox* m_bed_type_list = nullptr;
+    ScalableButton* connection_btn = nullptr;
 };
 
 class Plater: public wxPanel
@@ -332,6 +334,7 @@ public:
     /* -1: send current gcode if not specified
      * -2: send all gcode to target machine */
     int send_gcode(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
+    void send_gcode_legacy(int plate_idx = -1, Export3mfProgressFn proFn = nullptr, bool upload_only = false);
     int export_config_3mf(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
     //BBS jump to nonitor after print job finished
     void print_job_finished(wxCommandEvent &evt);

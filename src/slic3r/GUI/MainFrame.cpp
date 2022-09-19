@@ -25,6 +25,7 @@
 #include "ProgressStatusBar.hpp"
 #include "3DScene.hpp"
 #include "ParamsDialog.hpp"
+#include "PrintHostDialogs.hpp"
 #include "wxExtensions.hpp"
 #include "GUI_ObjectList.hpp"
 #include "Mouse3DController.hpp"
@@ -149,6 +150,7 @@ wxDEFINE_EVENT(EVT_SYNC_CLOUD_PRESET,     SimpleEvent);
 
 MainFrame::MainFrame() :
 DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_STYLE, "mainframe")
+    , m_printhost_queue_dlg(new PrintHostQueueDialog(this))
     // BBS
     , m_recent_projects(9)
     , m_settings_dialog(this)
@@ -418,6 +420,10 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< "cancelled by close_with_confirm selection";
             return;
         }
+        if (event.CanVeto() && !wxGetApp().check_print_host_queue()) {
+            event.Veto();
+            return;
+        }
 
     #if 0 // BBS
         //if (m_plater != nullptr) {
@@ -512,6 +518,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             }
             return;}
 #endif
+        if (evt.CmdDown() && evt.GetKeyCode() == 'J') { m_printhost_queue_dlg->Show(); return; }
         if (evt.CmdDown() && evt.GetKeyCode() == 'N') { m_plater->new_project(); return;}
         if (evt.CmdDown() && evt.GetKeyCode() == 'O') { m_plater->load_project(); return;}
         if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'S') { if (m_plater) m_plater->save_project(true); return;}
@@ -1143,6 +1150,17 @@ bool MainFrame::can_export_gcode() const
     return true;
 }
 
+bool MainFrame::can_send_gcode() const
+{
+    if (m_plater && !m_plater->model().objects.empty())
+    {
+        auto cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+        if (const auto *print_host_opt = cfg.option<ConfigOptionString>("print_host"); print_host_opt)
+            return !print_host_opt->value.empty();
+    }
+    return true;
+}
+
 /*bool MainFrame::can_export_gcode_sd() const
 {
     if (m_plater == nullptr)
@@ -1269,6 +1287,10 @@ wxBoxSizer* MainFrame::create_side_tools()
         }
         else if (m_print_select == eExportGcode)
             wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_GCODE));
+        else if (m_print_select == eSendGcode)
+            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_GCODE));
+        else if (m_print_select == eUploadGcode)
+            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_UPLOAD_GCODE));
         else if (m_print_select == eExportSlicedFile)
             wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE)); 
         else if (m_print_select == eSendToPrinter)
@@ -1324,21 +1346,84 @@ wxBoxSizer* MainFrame::create_side_tools()
                 p->Dismiss();
             });
 #endif
-            SideButton* print_plate_btn = new SideButton(p, _L("Send and Print"), "");
-            print_plate_btn->SetCornerRadius(0);
-            SideButton* export_sliced_file_btn = new SideButton(p, _L("Export sliced file"), "");
-            export_sliced_file_btn->SetCornerRadius(0);
+#if ENABEL_PRINT_ALL
+            p->append_button(print_all_btn);
+#endif
+            if (wxGetApp().preset_bundle
+                && !wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle)) {
+                // ThirdParty Buttons
+                SideButton* export_gcode_btn = new SideButton(p, _L("Export G-code file"), "");
+                export_gcode_btn->SetCornerRadius(0);
+                export_gcode_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+                    m_print_btn->SetLabel(_L("Export G-code file"));
+                    m_print_select = eExportGcode;
+                    if (m_print_enable)
+                        m_print_enable = get_enable_print_status();
+                    m_print_btn->Enable(m_print_enable);
+                    this->Layout();
+                    p->Dismiss();
+                    });
 
-            print_plate_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+                // upload and print
+                SideButton* send_gcode_btn = new SideButton(p, _L("Send and Print"), "");
+                send_gcode_btn->SetCornerRadius(0);
+                send_gcode_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+                    m_print_btn->SetLabel(_L("Send and Print"));
+                    m_print_select = eSendGcode;
+                    if (m_print_enable)
+                        m_print_enable = get_enable_print_status() && can_send_gcode();
+                    m_print_btn->Enable(m_print_enable);
+                    this->Layout();
+                    p->Dismiss();
+                    });
+
+                // upload only
+                SideButton* upload_gcode_btn = new SideButton(p, _L("Send"), "");
+                upload_gcode_btn->SetCornerRadius(0);
+                upload_gcode_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+                    m_print_btn->SetLabel(_L("Send"));
+                    m_print_select = eUploadGcode;
+                    if (m_print_enable)
+                        m_print_enable = get_enable_print_status() && can_send_gcode();
+                    m_print_btn->Enable(m_print_enable);
+                    this->Layout();
+                    p->Dismiss();
+                    });
+
+                p->append_button(send_gcode_btn);
+                p->append_button(upload_gcode_btn);
+                p->append_button(export_gcode_btn);
+            } else {
+                //Bambu Studio Buttons
+                SideButton* print_plate_btn = new SideButton(p, _L("Send and Print"), "");
+                print_plate_btn->SetCornerRadius(0);
+
+                SideButton* send_to_printer_btn = new SideButton(p, _L("Send"), "");
+                send_to_printer_btn->SetCornerRadius(0);
+
+                SideButton* export_sliced_file_btn = new SideButton(p, _L("Export sliced file"), "");
+                export_sliced_file_btn->SetCornerRadius(0);
+
+                print_plate_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Send and Print"));
                     m_print_select = ePrintPlate;
                     m_print_enable = get_enable_print_status();
                     m_print_btn->Enable(m_print_enable);
                     this->Layout();
                     p->Dismiss();
-                });
+                    });
 
-            export_sliced_file_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+                send_to_printer_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+                    m_print_btn->SetLabel(_L("Send"));
+                    m_print_select = eSendToPrinter;
+                    if (m_print_enable)
+                        m_print_enable = get_enable_print_status();
+                    m_print_btn->Enable(m_print_enable);
+                    this->Layout();
+                    p->Dismiss();
+                    });
+
+                export_sliced_file_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Export Sliced File"));
                     m_print_select = eExportSlicedFile;
                     if (m_print_enable)
@@ -1346,25 +1431,12 @@ wxBoxSizer* MainFrame::create_side_tools()
                     m_print_btn->Enable(m_print_enable);
                     this->Layout();
                     p->Dismiss();
-                });
-
-            SideButton* send_to_printer_btn = new SideButton(p, _L("Send"), "");
-            send_to_printer_btn->SetCornerRadius(0);
-            send_to_printer_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
-				m_print_btn->SetLabel(_L("Send"));
-				m_print_select = eSendToPrinter;
-				if (m_print_enable)
-					m_print_enable = get_enable_print_status();
-				m_print_btn->Enable(m_print_enable);
-				this->Layout();
-				p->Dismiss();
-				});
-#if ENABEL_PRINT_ALL
-            p->append_button(print_all_btn);
-#endif
-            p->append_button(print_plate_btn);
-            p->append_button(export_sliced_file_btn);
-            p->append_button(send_to_printer_btn);
+                    });
+                p->append_button(print_plate_btn);
+                p->append_button(send_to_printer_btn);
+                p->append_button(export_sliced_file_btn);
+            }
+            
             p->Popup(m_print_btn);
         }
     );

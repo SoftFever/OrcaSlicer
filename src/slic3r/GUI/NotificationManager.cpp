@@ -1001,6 +1001,148 @@ void NotificationManager::UpdatedItemsInfoNotification::add_type(InfoItemType ty
 	update(data);
 }
 
+//------PrintHostUploadNotification----------------
+void NotificationManager::PrintHostUploadNotification::init()
+{
+	ProgressBarNotification::init();
+	if (m_state == EState::NotFading && m_uj_state == UploadJobState::PB_COMPLETED)
+		m_state = EState::Shown;
+}
+void NotificationManager::PrintHostUploadNotification::count_spaces()
+{
+	//determine line width
+	m_line_height = ImGui::CalcTextSize("A").y;
+
+	m_left_indentation = m_line_height;
+	if (m_uj_state == UploadJobState::PB_ERROR) {
+		std::string text;
+		text = (m_data.level == NotificationLevel::ErrorNotificationLevel ? ImGui::ErrorMarker : ImGui::WarningMarker);
+		float picture_width = ImGui::CalcTextSize(text.c_str()).x;
+		m_left_indentation = picture_width + m_line_height / 2;
+	}
+	m_window_width_offset = m_line_height * 6; //(m_has_cancel_button ? 6 : 4);
+	m_window_width = m_line_height * 25;
+}
+bool NotificationManager::PrintHostUploadNotification::push_background_color()
+{
+
+	if (m_uj_state == UploadJobState::PB_ERROR) {
+		ImVec4 backcolor = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+		backcolor.x += 0.3f;
+		push_style_color(ImGuiCol_WindowBg, backcolor, m_state == EState::FadingOut, m_current_fade_opacity);
+		return true;
+	}
+	return false;
+}
+void NotificationManager::PrintHostUploadNotification::set_percentage(float percent)
+{
+	m_percentage = percent;
+	if (percent >= 1.0f) {
+		m_uj_state = UploadJobState::PB_COMPLETED;
+		m_has_cancel_button = false;
+		init();
+	} else if (percent < 0.0f) {
+		error();
+	} else {
+		m_uj_state = UploadJobState::PB_PROGRESS;
+		m_has_cancel_button = true;
+	}
+}
+void NotificationManager::PrintHostUploadNotification::render_bar(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
+{
+	std::string text;
+	switch (m_uj_state) {
+	case Slic3r::GUI::NotificationManager::PrintHostUploadNotification::UploadJobState::PB_PROGRESS:
+	{
+		ProgressBarNotification::render_bar(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
+		float uploaded = m_file_size * m_percentage;
+		std::stringstream stream;
+		stream << std::fixed << std::setprecision(2) << (int)(m_percentage * 100) << "% - " << uploaded << " of " << m_file_size << "MB uploaded";
+		text = stream.str();
+		ImGui::SetCursorPosX(m_left_indentation);
+		ImGui::SetCursorPosY(win_size_y / 2 + win_size_y / 6 - (m_multiline ? 0 : m_line_height / 4));
+		break;
+	}
+	case Slic3r::GUI::NotificationManager::PrintHostUploadNotification::UploadJobState::PB_ERROR:
+		text = _u8L("ERROR");
+		ImGui::SetCursorPosX(m_left_indentation);
+		ImGui::SetCursorPosY(win_size_y / 2 + win_size_y / 6 - (m_multiline ? m_line_height / 4 : m_line_height / 2));
+		break;
+	case Slic3r::GUI::NotificationManager::PrintHostUploadNotification::UploadJobState::PB_CANCELLED:
+		text = _u8L("CANCELED");
+		ImGui::SetCursorPosX(m_left_indentation);
+		ImGui::SetCursorPosY(win_size_y / 2 + win_size_y / 6 - (m_multiline ? m_line_height / 4 : m_line_height / 2));
+		break;
+	case Slic3r::GUI::NotificationManager::PrintHostUploadNotification::UploadJobState::PB_COMPLETED:
+		text = _u8L("COMPLETED");
+		ImGui::SetCursorPosX(m_left_indentation);
+		ImGui::SetCursorPosY(win_size_y / 2 + win_size_y / 6 - (m_multiline ? m_line_height / 4 : m_line_height / 2));
+		break;
+	}
+	imgui.text(text.c_str());
+
+}
+void NotificationManager::PrintHostUploadNotification::render_left_sign(ImGuiWrapper& imgui)
+{
+	if (m_uj_state == UploadJobState::PB_ERROR) {
+		std::string text;
+		text = ImGui::ErrorMarker;
+		ImGui::SetCursorPosX(m_line_height / 3);
+		ImGui::SetCursorPosY(m_window_height / 2 - m_line_height);
+		imgui.text(text.c_str());
+	}
+}
+void NotificationManager::PrintHostUploadNotification::render_cancel_button(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
+{
+	ImVec2 win_size(win_size_x, win_size_y);
+	ImVec2 win_pos(win_pos_x, win_pos_y);
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(.0f, .0f, .0f, .0f));
+	push_style_color(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f), m_state == EState::FadingOut, m_current_fade_opacity);
+	push_style_color(ImGuiCol_TextSelectedBg, ImVec4(0, .75f, .75f, 1.f), m_state == EState::FadingOut, m_current_fade_opacity);
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(.0f, .0f, .0f, .0f));
+
+	std::string button_text;
+	button_text = ImGui::CancelButton;
+
+	if (ImGui::IsMouseHoveringRect(ImVec2(win_pos.x - m_line_height * 5.f, win_pos.y),
+		ImVec2(win_pos.x - m_line_height * 2.5f, win_pos.y + win_size.y),
+		true))
+	{
+		button_text = ImGui::CancelHoverButton;
+		// tooltip
+		long time_now = wxGetLocalTime();
+		if (m_hover_time > 0 && m_hover_time < time_now) {
+			ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
+			ImGui::BeginTooltip();
+			imgui.text(_u8L("Cancel upload") + " " + GUI::shortkey_ctrl_prefix() + "T");
+			ImGui::EndTooltip();
+			ImGui::PopStyleColor();
+		}
+		if (m_hover_time == 0)
+			m_hover_time = time_now;
+	}
+	else
+		m_hover_time = 0;
+
+	ImVec2 button_pic_size = ImGui::CalcTextSize(button_text.c_str());
+	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
+	ImGui::SetCursorPosX(win_size.x - m_line_height * 5.0f);
+	ImGui::SetCursorPosY(win_size.y / 2 - button_size.y);
+	if (imgui.button(button_text.c_str(), button_size.x, button_size.y))
+	{
+		wxGetApp().printhost_job_queue().cancel(m_job_id - 1);
+	}
+
+	//invisible large button
+	ImGui::SetCursorPosX(win_size.x - m_line_height * 4.625f);
+	ImGui::SetCursorPosY(0);
+	if (imgui.button("  ", m_line_height * 2.f, win_size.y))
+	{
+		wxGetApp().printhost_job_queue().cancel(m_job_id - 1);
+	}
+	ImGui::PopStyleColor(5);
+}
 //------SlicingProgressNotification
 void NotificationManager::SlicingProgressNotification::init()
 {
@@ -1612,6 +1754,59 @@ void NotificationManager::push_exporting_finished_notification(const std::string
 	NotificationData data{ NotificationType::ExportFinished, NotificationLevel::RegularNotificationLevel, on_removable ? 0 : 20,  _u8L("Export ok.") + "\n" + path };
 	push_notification_data(std::make_unique<NotificationManager::ExportFinishedNotification>(data, m_id_provider, m_evt_handler, on_removable, path, dir_path), 0);
 	set_slicing_progress_hidden();
+}
+
+void  NotificationManager::push_upload_job_notification(int id, float filesize, const std::string& filename, const std::string& host, float percentage)
+{
+	// find if upload with same id was not already in notification
+	// done by compare_jon_id not compare_text thus has to be performed here
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		if (notification->get_type() == NotificationType::PrintHostUpload && dynamic_cast<PrintHostUploadNotification*>(notification.get())->compare_job_id(id)) {
+			return;
+		}
+	}
+	std::string text = PrintHostUploadNotification::get_upload_job_text(id, filename, host);
+	NotificationData data{ NotificationType::PrintHostUpload, NotificationLevel::ProgressBarNotificationLevel, 10, text };
+	push_notification_data(std::make_unique<NotificationManager::PrintHostUploadNotification>(data, m_id_provider, m_evt_handler, 0, id, filesize), 0);
+}
+void NotificationManager::set_upload_job_notification_percentage(int id, const std::string& filename, const std::string& host, float percentage)
+{
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		if (notification->get_type() == NotificationType::PrintHostUpload) {
+			PrintHostUploadNotification* phun = dynamic_cast<PrintHostUploadNotification*>(notification.get());
+			if (phun->compare_job_id(id)) {
+				phun->set_percentage(percentage);
+				wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+				break;
+			}
+		}
+	}
+}
+void NotificationManager::upload_job_notification_show_canceled(int id, const std::string& filename, const std::string& host)
+{
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		if (notification->get_type() == NotificationType::PrintHostUpload) {
+			PrintHostUploadNotification* phun = dynamic_cast<PrintHostUploadNotification*>(notification.get());
+			if (phun->compare_job_id(id)) {
+				phun->cancel();
+				wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+				break;
+			}
+		}
+	}
+}
+void NotificationManager::upload_job_notification_show_error(int id, const std::string& filename, const std::string& host)
+{
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		if (notification->get_type() == NotificationType::PrintHostUpload) {
+			PrintHostUploadNotification* phun = dynamic_cast<PrintHostUploadNotification*>(notification.get());
+			if(phun->compare_job_id(id)) {
+				phun->error();
+				wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+				break;
+			}
+		}
+	}
 }
 
 void NotificationManager::init_slicing_progress_notification(std::function<bool()> cancel_callback)

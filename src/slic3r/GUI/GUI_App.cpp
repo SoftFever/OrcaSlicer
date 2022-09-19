@@ -56,6 +56,7 @@
 #include "GLCanvas3D.hpp"
 
 #include "../Utils/PresetUpdater.hpp"
+#include "../Utils/PrintHost.hpp"
 #include "../Utils/Process.hpp"
 #include "../Utils/MacDarkMode.hpp"
 #include "../Utils/Http.hpp"
@@ -70,6 +71,7 @@
 #include "NotificationManager.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "SavePresetDialog.hpp"
+#include "PrintHostDialogs.hpp"
 #include "DesktopIntegrationDialog.hpp"
 #include "SendSystemInfoDialog.hpp"
 #include "ParamsDialog.hpp"
@@ -2242,6 +2244,8 @@ bool GUI_App::on_init_inner()
 
     plater_->init_notification_manager();
 
+    m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
+
     if (is_gcode_viewer()) {
         mainframe->update_layout();
         if (plater_ != nullptr)
@@ -2759,6 +2763,7 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
     old_main_frame->Destroy();
 
     dlg.Update(80, _L("Loading current presets") + dots);
+    m_printhost_job_queue.reset(new PrintHostJobQueue(mainframe->printhost_queue_dlg()));
     load_current_presets();
     mainframe->Show(true);
     //mainframe->refresh_plugin_tips();
@@ -4528,6 +4533,34 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
 bool GUI_App::can_load_project()
 {
     return true;
+}
+
+bool GUI_App::check_print_host_queue()
+{
+    wxString dirty;
+    std::vector<std::pair<std::string, std::string>> jobs;
+    // Get ongoing jobs from dialog
+    mainframe->m_printhost_queue_dlg->get_active_jobs(jobs);
+    if (jobs.empty())
+        return true;
+    // Show dialog
+    wxString job_string = wxString();
+    for (const auto& job : jobs) {
+        job_string += format_wxstr("   %1% : %2% \n", job.first, job.second);
+    }
+    wxString message;
+    message += _(L("The uploads are still ongoing")) + ":\n\n" + job_string +"\n" + _(L("Stop them and continue anyway?"));
+    //wxMessageDialog dialog(mainframe,
+    MessageDialog dialog(mainframe,
+        message,
+        wxString(SLIC3R_APP_NAME) + " - " + _(L("Ongoing uploads")),
+        wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+    if (dialog.ShowModal() == wxID_YES)
+        return true;
+
+    // TODO: If already shown, bring forward
+    mainframe->m_printhost_queue_dlg->Show();
+    return false;
 }
 
 bool GUI_App::checked_tab(Tab* tab)

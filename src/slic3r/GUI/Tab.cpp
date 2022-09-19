@@ -3381,17 +3381,7 @@ void TabPrinter::toggle_options()
     //BBS: whether the preset is Bambu Lab printer
     bool is_BBL_printer = false;
     if (m_preset_bundle) {
-        std::string vendor_name;
-        for (auto vendor_profile : m_preset_bundle->vendors) {
-            for (auto vendor_model : vendor_profile.second.models)
-                if (vendor_model.name == m_config->opt_string("printer_model"))
-                {
-                    vendor_name = vendor_profile.first;
-                    break;
-                }
-        }
-        if (!vendor_name.empty())
-            is_BBL_printer = (vendor_name.compare("BBL") == 0);
+       is_BBL_printer = m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(m_preset_bundle);
     }
 
     bool have_multiple_extruders = m_extruders_count > 1;
