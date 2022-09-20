@@ -357,6 +357,8 @@ public:
 
     //BBS special case Support G/ Support W
     std::string get_filament_type(std::string &displayed_filament_type, int id = 0);
+
+    bool is_custom_defined();
 };
 
 void handle_legacy_sla(DynamicPrintConfig &config);

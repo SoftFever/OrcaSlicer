@@ -56,6 +56,7 @@
 #include "NotificationManager.hpp"
 #include "MarkdownTip.hpp"
 #include "NetworkTestDialog.hpp"
+#include "ConfigWizard.hpp"
 
 #ifdef _WIN32
 #include <dbt.h>
@@ -69,6 +70,7 @@ namespace GUI {
 wxDEFINE_EVENT(EVT_SELECT_TAB, wxCommandEvent);
 wxDEFINE_EVENT(EVT_HTTP_ERROR, wxCommandEvent);
 wxDEFINE_EVENT(EVT_USER_LOGIN, wxCommandEvent);
+wxDEFINE_EVENT(EVT_UPDATE_PRESET_CB, SimpleEvent);
 
 // BBS: backup
 wxDEFINE_EVENT(EVT_BACKUP_POST, wxCommandEvent);
@@ -321,6 +323,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         TabPosition pos = (TabPosition)evt.GetInt();
         m_tabpanel->SetSelection(pos);
     });
+
     Bind(EVT_SYNC_CLOUD_PRESET, &MainFrame::on_select_default_preset, this);
 
 //    Bind(wxEVT_MENU,
@@ -1153,10 +1156,23 @@ bool MainFrame::can_export_gcode() const
     return true;
 }
 
+bool MainFrame::can_print_3mf() const
+{
+    if (m_plater && !m_plater->model().objects.empty()) {
+        if (wxGetApp().preset_bundle->printers.get_edited_preset().is_custom_defined())
+            return false;
+    }
+    return true;
+}
+
 bool MainFrame::can_send_gcode() const
 {
     if (m_plater && !m_plater->model().objects.empty())
     {
+        // BBL printer presets
+        if (!wxGetApp().preset_bundle->printers.get_edited_preset().is_custom_defined())
+            return false;
+
         auto cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
         if (const auto *print_host_opt = cfg.option<ConfigOptionString>("print_host"); print_host_opt)
             return !print_host_opt->value.empty();
@@ -1261,44 +1277,44 @@ wxBoxSizer* MainFrame::create_side_tools()
     sizer->Layout();
 
     m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-    {
-        //this->m_plater->select_view_3D("Preview");
-        m_plater->update();
-        if (m_slice_select == eSliceAll)
-            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
-        else
-            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
+        {
+            //this->m_plater->select_view_3D("Preview");
+            m_plater->update();
+            if (m_slice_select == eSliceAll)
+                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
+            else
+                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
 
             this->m_tabpanel->SetSelection(tpPreview);
         });
 
     m_print_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-    {
-        //this->m_plater->select_view_3D("Preview");
-        if (m_print_select == ePrintAll || m_print_select == ePrintPlate)
         {
-            m_plater->apply_background_progress();
-            // check valid of print
-            m_print_enable = get_enable_print_status();
-            m_print_btn->Enable(m_print_enable);
-            if (m_print_enable) {
-                if (m_print_select == ePrintAll)
-                    wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_ALL));
-                if (m_print_select == ePrintPlate)
-                    wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));
+            //this->m_plater->select_view_3D("Preview");
+            if (m_print_select == ePrintAll || m_print_select == ePrintPlate)
+            {
+                m_plater->apply_background_progress();
+                // check valid of print
+                m_print_enable = get_enable_print_status();
+                m_print_btn->Enable(m_print_enable);
+                if (m_print_enable) {
+                    if (m_print_select == ePrintAll)
+                        wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_ALL));
+                    if (m_print_select == ePrintPlate)
+                        wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));
+                }
             }
-        }
-        else if (m_print_select == eExportGcode)
-            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_GCODE));
-        else if (m_print_select == eSendGcode)
-            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_GCODE));
-        else if (m_print_select == eUploadGcode)
-            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_UPLOAD_GCODE));
-        else if (m_print_select == eExportSlicedFile)
-            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE)); 
-        else if (m_print_select == eSendToPrinter)
-            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_TO_PRINTER));
-    });
+            else if (m_print_select == eExportGcode)
+                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_GCODE));
+            else if (m_print_select == eSendGcode)
+                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_GCODE));
+            else if (m_print_select == eUploadGcode)
+                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_UPLOAD_GCODE));
+            else if (m_print_select == eExportSlicedFile)
+                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE));
+            else if (m_print_select == eSendToPrinter)
+                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_TO_PRINTER));
+        });
 
     // only support single plate currently
 #if 0
@@ -1311,21 +1327,21 @@ wxBoxSizer* MainFrame::create_side_tools()
             slice_plate_btn->SetCornerRadius(0);
 
             slice_all_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
-                    m_slice_btn->SetLabel(_L("Slice all"));
-                    m_slice_select = eSliceAll;
-                    m_slice_enable = get_enable_slice_status();
-                    m_slice_btn->Enable(m_slice_enable);
-                    this->Layout();
-                    p->Dismiss();
+                m_slice_btn->SetLabel(_L("Slice all"));
+                m_slice_select = eSliceAll;
+                m_slice_enable = get_enable_slice_status();
+                m_slice_btn->Enable(m_slice_enable);
+                this->Layout();
+                p->Dismiss();
                 });
 
             slice_plate_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
-                    m_slice_btn->SetLabel(_L("Slice plate"));
-                    m_slice_select = eSlicePlate;
-                    m_slice_enable = get_enable_slice_status();
-                    m_slice_btn->Enable(m_slice_enable);
-                    this->Layout();
-                    p->Dismiss();
+                m_slice_btn->SetLabel(_L("Slice plate"));
+                m_slice_select = eSlicePlate;
+                m_slice_enable = get_enable_slice_status();
+                m_slice_btn->Enable(m_slice_enable);
+                this->Layout();
+                p->Dismiss();
                 });
             p->append_button(slice_all_btn);
             p->append_button(slice_plate_btn);
@@ -1340,14 +1356,14 @@ wxBoxSizer* MainFrame::create_side_tools()
 #if ENABEL_PRINT_ALL
             SideButton* print_all_btn = new SideButton(p, _L("Print all"), "");
             print_all_btn->SetCornerRadius(0);
-            print_all_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent &) {
+            print_all_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                 m_print_btn->SetLabel(_L("Print all"));
                 m_print_select = ePrintAll;
                 if (m_print_enable) m_print_enable = get_enable_print_status();
                 m_print_btn->Enable(m_print_enable);
                 this->Layout();
                 p->Dismiss();
-            });
+                });
 #endif
 #if ENABEL_PRINT_ALL
             p->append_button(print_all_btn);
@@ -1393,7 +1409,8 @@ wxBoxSizer* MainFrame::create_side_tools()
                 p->append_button(send_gcode_btn);
                 //p->append_button(upload_gcode_btn);
                 p->append_button(export_gcode_btn);
-            } else {
+            }
+            else {
                 //Bambu Studio Buttons
                 SideButton* print_plate_btn = new SideButton(p, _L("Print"), "");
                 print_plate_btn->SetCornerRadius(0);
@@ -1754,6 +1771,7 @@ static wxMenu* generate_help_menu()
         }, "", nullptr, []() {
             return true;
         });
+
     // About
 #ifndef __APPLE__
     wxString about_title = wxString::Format(_L("&About %s"), SLIC3R_APP_FULL_NAME);

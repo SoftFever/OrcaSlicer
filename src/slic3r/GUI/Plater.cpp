@@ -457,6 +457,12 @@ Sidebar::Sidebar(Plater *parent)
         p->m_printer_icon = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "printer");
         p->m_text_printer_settings = new Label(p->m_panel_printer_title, _L("Printer"));
 
+        p->m_printer_icon->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+            auto wizard_t = new ConfigWizard(wxGetApp().mainframe);
+            wizard_t->run(ConfigWizard::RR_USER, ConfigWizard::SP_CUSTOM);
+            });
+
+
         p->m_printer_setting = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "settings");
         p->m_printer_setting->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
             // p->editing_filament = -1;
@@ -972,9 +978,15 @@ void Sidebar::update_presets(Preset::Type preset_type)
     }
 
     case Preset::TYPE_PRINT:
+        //wxGetApp().mainframe->m_param_panel;
         //p->combo_print->update();
+        {
+        Tab* print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
+        if (print_tab) {
+            print_tab->get_combo_box()->update();
+        }   
         break;
-
+        }
     case Preset::TYPE_SLA_PRINT:
         ;// p->combo_sla_print->update();
         break;
@@ -987,6 +999,12 @@ void Sidebar::update_presets(Preset::Type preset_type)
     {
         update_all_preset_comboboxes();
         p->show_preset_comboboxes();
+        
+        /* update bed shape */
+        Tab* printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
+        if (printer_tab) {
+            printer_tab->update();
+        }
         break;
     }
 
@@ -2000,7 +2018,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , main_frame(main_frame)
     //BBS: add bed_exclude_area
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
-        "printable_area", "bed_exclude_area", "print_sequence",
+        "printable_area", "bed_exclude_area", "bed_custom_texture", "bed_custom_model", "print_sequence",
         "extruder_clearance_radius", "extruder_clearance_max_radius",
         "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod", "skirt_loops", "skirt_distance",
         "brim_width", "brim_object_gap", "brim_type", "nozzle_diameter", "single_extruder_multi_material",
@@ -9328,6 +9346,10 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             bed_shape_changed = true;
             update_scheduled = true;
         }
+        else if (opt_key == "bed_shape" || opt_key == "bed_custom_texture" || opt_key == "bed_custom_model") {
+            bed_shape_changed = true;
+            update_scheduled = true;
+        }
         else if (boost::starts_with(opt_key, "enable_prime_tower") ||
             boost::starts_with(opt_key, "prime_tower") ||
             boost::starts_with(opt_key, "wipe_tower") ||
@@ -9406,7 +9428,8 @@ void Plater::set_bed_shape() const
         //BBS: add bed exclude areas
         p->config->option<ConfigOptionPoints>("bed_exclude_area")->values,
         p->config->option<ConfigOptionFloat>("printable_height")->value,
-        texture_filename, {});
+        p->config->option<ConfigOptionString>("bed_custom_texture")->value.empty() ? texture_filename : p->config->option<ConfigOptionString>("bed_custom_texture")->value,
+        p->config->option<ConfigOptionString>("bed_custom_model")->value);
 }
 
 //BBS: add bed exclude area

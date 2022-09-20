@@ -1756,7 +1756,7 @@ ConfigSubstitutions PresetBundle::load_config_file(const std::string &path, Forw
 
 // Load a config file from a boost property_tree. This is a private method called from load_config_file.
 // is_external == false on if called from ConfigWizard
-void PresetBundle::load_config_file_config(const std::string &name_or_path, bool is_external, DynamicPrintConfig &&config, Semver file_version)
+void PresetBundle::load_config_file_config(const std::string &name_or_path, bool is_external, DynamicPrintConfig &&config, Semver file_version, bool selected, bool is_custom_defined)
 {
     PrinterTechnology printer_technology = Preset::printer_technology(config);
 
@@ -1826,7 +1826,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 		[&config, &inherits, &inherits_values,
          &compatible_printers_condition, &compatible_printers_condition_values,
          &compatible_prints_condition, &compatible_prints_condition_values,
-         is_external, &name, &name_or_path, file_version]
+         is_external, &name, &name_or_path, file_version, selected, is_custom_defined]
 		(PresetCollection &presets, size_t idx, const std::string &key, const std::set<std::string> &different_keys, std::string filament_id) {
 		// Split the "compatible_printers_condition" and "inherits" values one by one from a single vector to the print & printer profiles.
 		inherits = inherits_values[idx];
@@ -1838,7 +1838,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 		if (is_external)
 			presets.load_external_preset(name_or_path, name, config.opt_string(key, true), config, different_keys, PresetCollection::LoadAndSelect::Always, file_version, filament_id);
 		else
-			presets.load_preset(presets.path_from_name(name), name, config).save(nullptr);
+			presets.load_preset(presets.path_from_name(name), name, config, selected, file_version, is_custom_defined).save(nullptr);
 	};
 
     switch (Preset::printer_technology(config)) {
@@ -1899,7 +1899,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                 loaded = this->filaments.load_external_preset(name_or_path, name, old_filament_profile_names->values.front(), config, filament_different_keys_set, PresetCollection::LoadAndSelect::Always, file_version, filament_id).first;
             else {
                 // called from Config Wizard.
-				loaded= &this->filaments.load_preset(this->filaments.path_from_name(name), name, config);
+				loaded= &this->filaments.load_preset(this->filaments.path_from_name(name), name, config, true, file_version, is_custom_defined);
 				loaded->save(nullptr);
 			}
             this->filament_presets.clear();

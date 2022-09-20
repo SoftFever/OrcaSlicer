@@ -29,6 +29,7 @@
 
 //BBS: add json support
 #define BBL_JSON_KEY_VERSION        "version"
+#define BBL_JSON_KEY_IS_CUSTOM      "is_custom_defined"
 #define BBL_JSON_KEY_URL            "url"
 #define BBL_JSON_KEY_NAME           "name"
 #define BBL_JSON_KEY_DESCRIPTION    "description"
@@ -229,6 +230,7 @@ public:
     std::string         user_id;         // preset user_id
     std::string         base_id;         // base id of preset
     std::string         sync_info;       // enum: "delete", "create", "update", ""
+    std::string         custom_defined;  // enum: "1", "0", ""
     long long           updated_time{0};    //last updated time
     std::map<std::string, std::string> key_values;
 
@@ -299,6 +301,8 @@ public:
     std::string get_printer_type(PresetBundle *preset_bundle);
 
     bool is_bbl_vendor_preset(PresetBundle *preset_bundle);
+
+    bool is_custom_defined();
 
     static const std::vector<std::string>&  print_options();
     static const std::vector<std::string>&  filament_options();
@@ -434,8 +438,8 @@ public:
 
     // Load a preset from an already parsed config file, insert it into the sorted sequence of presets
     // and select it, losing previous modifications.
-    Preset&         load_preset(const std::string &path, const std::string &name, const DynamicPrintConfig &config, bool select = true);
-    Preset&         load_preset(const std::string &path, const std::string &name, DynamicPrintConfig &&config, bool select = true);
+    Preset&         load_preset(const std::string &path, const std::string &name, const DynamicPrintConfig &config, bool select = true, Semver file_version = Semver(), bool is_custom_defined = false);
+    Preset&         load_preset(const std::string &path, const std::string &name, DynamicPrintConfig &&config, bool select = true, Semver file_version = Semver(), bool is_custom_defined = false);
 
     // Returns a loaded preset, returns true if an existing preset was selected AND modified from config.
     // In that case the successive filament loaded for a multi material printer should not be modified, but

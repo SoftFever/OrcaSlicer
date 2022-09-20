@@ -112,6 +112,7 @@ class MainFrame : public DPIFrame
     bool can_export_toolpaths() const;
     bool can_export_supports() const;
     bool can_export_gcode() const;
+    bool can_print_3mf() const;
     bool can_send_gcode() const;
     //bool can_export_gcode_sd() const;
     //bool can_eject() const;
@@ -359,6 +360,7 @@ public:
 
 wxDECLARE_EVENT(EVT_HTTP_ERROR, wxCommandEvent);
 wxDECLARE_EVENT(EVT_USER_LOGIN, wxCommandEvent);
+wxDECLARE_EVENT(EVT_UPDATE_PRESET_CB, SimpleEvent);
 
 } // GUI
 } //Slic3r

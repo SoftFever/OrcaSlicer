@@ -24,7 +24,7 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/Utils/PresetUpdater.hpp"
-//#include "BedShapeDialog.hpp"
+#include "BedShapeDialog.hpp"
 #include "GUI.hpp"
 #include "wxExtensions.hpp"
 
@@ -162,7 +162,7 @@ struct PrinterPickerEvent;
 
 typedef std::function<bool(const VendorProfile::PrinterModel&)> ModelFilter;
 
-struct PrinterPicker: wxPanel
+struct PrinterPicker: wxPanel //TO check
 {
     struct Checkbox : wxCheckBox
     {
@@ -240,7 +240,7 @@ struct PageWelcome: ConfigWizardPage
     virtual void set_run_reason(ConfigWizard::RunReason run_reason) override;
 };
 
-struct PagePrinters: ConfigWizardPage
+struct PagePrinters: ConfigWizardPage //TO check
 {
     std::vector<PrinterPicker *> printer_pickers;
     Technology technology;
@@ -386,50 +386,59 @@ private:
 
 };
 
-struct PageUpdate: ConfigWizardPage
+//struct PageUpdate: ConfigWizardPage
+//{
+//    bool version_check;
+//    bool preset_update;
+//
+//    PageUpdate(ConfigWizard *parent);
+//};
+
+//struct PageReloadFromDisk : ConfigWizardPage
+//{
+//    bool full_pathnames;
+//
+//    PageReloadFromDisk(ConfigWizard* parent);
+//};
+
+//#ifdef _WIN32
+//struct PageFilesAssociation : ConfigWizardPage
+//{
+//private:
+//    wxCheckBox* cb_3mf{ nullptr };
+//    wxCheckBox* cb_stl{ nullptr };
+////    wxCheckBox* cb_gcode;
+//
+//public:
+//    PageFilesAssociation(ConfigWizard* parent);
+//
+//    bool associate_3mf() const { return cb_3mf->IsChecked(); }
+//    bool associate_stl() const { return cb_stl->IsChecked(); }
+////    bool associate_gcode() const { return cb_gcode->IsChecked(); }
+//};
+//#endif // _WIN32
+
+//struct PageVendors: ConfigWizardPage
+//{
+//    PageVendors(ConfigWizard *parent);
+//};
+
+struct PageFirmware: ConfigWizardPage
 {
-    bool version_check;
-    bool preset_update;
+    const ConfigOptionDef &gcode_opt;
+    wxChoice *gcode_picker;
 
-    PageUpdate(ConfigWizard *parent);
-};
-
-struct PageReloadFromDisk : ConfigWizardPage
-{
-    bool full_pathnames;
-
-    PageReloadFromDisk(ConfigWizard* parent);
-};
-
-#ifdef _WIN32
-struct PageFilesAssociation : ConfigWizardPage
-{
-private:
-    wxCheckBox* cb_3mf{ nullptr };
-    wxCheckBox* cb_stl{ nullptr };
-//    wxCheckBox* cb_gcode;
-
-public:
-    PageFilesAssociation(ConfigWizard* parent);
-
-    bool associate_3mf() const { return cb_3mf->IsChecked(); }
-    bool associate_stl() const { return cb_stl->IsChecked(); }
-//    bool associate_gcode() const { return cb_gcode->IsChecked(); }
-};
-#endif // _WIN32
-
-struct PageVendors: ConfigWizardPage
-{
-    PageVendors(ConfigWizard *parent);
-};
-
-/*struct PageBedShape: ConfigWizardPage
-{
-    BedShapePanel *shape_panel;
-
-    PageBedShape(ConfigWizard *parent);
+    PageFirmware(ConfigWizard *parent);
     virtual void apply_custom_config(DynamicPrintConfig &config);
-};*/
+};
+
+struct PageBedShape : ConfigWizardPage
+{
+    BedShapePanel* shape_panel;
+
+    PageBedShape(ConfigWizard* parent);
+    virtual void apply_custom_config(DynamicPrintConfig& config);
+};
 
 struct PageDiameters: ConfigWizardPage
 {
@@ -453,6 +462,62 @@ struct PageTemperatures: ConfigWizardPage
 typedef std::map<std::string /* = vendor ID */, 
                  std::pair<PagePrinters* /* = FFF page */, 
                            PagePrinters* /* = SLA page */>> Pages3rdparty;
+
+
+class ConfigWizardIndex: public wxPanel
+{
+public:
+    ConfigWizardIndex(wxWindow *parent);
+
+    void add_page(ConfigWizardPage *page);
+    void add_label(wxString label, unsigned indent = 0);
+
+    size_t active_item() const { return item_active; }
+    ConfigWizardPage* active_page() const;
+    bool active_is_last() const { return item_active < items.size() && item_active == last_page; }
+
+    void go_prev();
+    void go_next();
+    void go_to(size_t i);
+    void go_to(const ConfigWizardPage *page);
+
+    void clear();
+    void msw_rescale();
+
+    int em() const { return em_w; }
+
+    static const size_t NO_ITEM = size_t(-1);
+private:
+    struct Item
+    {
+        wxString label;
+        unsigned indent;
+        ConfigWizardPage *page;     // nullptr page => label-only item
+
+        bool operator==(ConfigWizardPage *page) const { return this->page == page; }
+    };
+
+    int em_w;
+    int em_h;
+    ScalableBitmap bg;
+    ScalableBitmap bullet_black;
+    ScalableBitmap bullet_blue;
+    ScalableBitmap bullet_white;
+
+    std::vector<Item> items;
+    size_t item_active;
+    ssize_t item_hover;
+    size_t last_page;
+
+    int item_height() const { return std::max(bullet_black.bmp().GetSize().GetHeight(), em_w) + em_w; }
+
+    void on_paint(wxPaintEvent &evt);
+    void on_mouse_move(wxMouseEvent &evt);
+};
+
+wxDEFINE_EVENT(EVT_INDEX_PAGE, wxCommandEvent);
+
+
 
 // ConfigWizard private data
 
@@ -482,26 +547,28 @@ struct ConfigWizard::priv
     wxBoxSizer *hscroll_sizer = nullptr;
     wxBoxSizer *btnsizer = nullptr;
     ConfigWizardPage *page_current = nullptr;
-    wxButton *btn_sel_all = nullptr;
+    ConfigWizardIndex *index = nullptr;
+    //wxButton *btn_sel_all = nullptr;
     wxButton *btn_prev = nullptr;
     wxButton *btn_next = nullptr;
     wxButton *btn_finish = nullptr;
     wxButton *btn_cancel = nullptr;
 
-    PagePrinters     *page_fff = nullptr;
-    PagePrinters     *page_msla = nullptr;
+    //PagePrinters     *page_fff = nullptr;
+    //PagePrinters     *page_msla = nullptr;
     PageMaterials    *page_filaments = nullptr;
     PageMaterials    *page_sla_materials = nullptr;
     PageCustom       *page_custom = nullptr;
-    PageReloadFromDisk *page_reload_from_disk = nullptr;
-#ifdef _WIN32
-    PageFilesAssociation* page_files_association = nullptr;
-#endif // _WIN32
-    PageVendors      *page_vendors = nullptr;
-    Pages3rdparty     pages_3rdparty;
+    //PageReloadFromDisk *page_reload_from_disk = nullptr;
+//#ifdef _WIN32
+//    PageFilesAssociation* page_files_association = nullptr;
+//#endif // _WIN32
+    //PageVendors      *page_vendors = nullptr;
+    //Pages3rdparty     pages_3rdparty;
 
     // Custom setup pages
-    //PageBedShape     *page_bed = nullptr;
+    PageFirmware     *page_firmware = nullptr;
+    PageBedShape     *page_bed = nullptr;
     PageDiameters    *page_diams = nullptr;
     PageTemperatures *page_temps = nullptr;
 

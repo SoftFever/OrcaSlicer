@@ -329,6 +329,16 @@ void PrintConfigDef::init_common_params()
     def->gui_type = ConfigOptionDef::GUIType::one_string;
     def->set_default_value(new ConfigOptionPoints{ Vec2d(0, 0) });
 
+    def = this->add("bed_custom_texture", coString);
+    def->label = L("Bed custom texture");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+
+    def = this->add("bed_custom_model", coString);
+    def->label = L("Bed custom model");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+
     def = this->add("elefant_foot_compensation", coFloat);
     def->label = L("Elephant foot compensation");
     def->category = L("Quality");
@@ -1408,29 +1418,29 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("What kind of gcode the printer is compatible with");
     def->enum_keys_map = &ConfigOptionEnum<GCodeFlavor>::get_enum_values();
     def->enum_values.push_back("marlin");
-    //def->enum_values.push_back("reprap");
-    //def->enum_values.push_back("reprapfirmware");
-    //def->enum_values.push_back("repetier");
-    //def->enum_values.push_back("teacup");
-    //def->enum_values.push_back("makerware");
-    //def->enum_values.push_back("marlin2");
-    //def->enum_values.push_back("sailfish");
-    //def->enum_values.push_back("mach3");
-    //def->enum_values.push_back("machinekit");
-    //def->enum_values.push_back("smoothie");
-    //def->enum_values.push_back("no-extrusion");
+    /*def->enum_values.push_back("reprap");
+    def->enum_values.push_back("reprapfirmware");
+    def->enum_values.push_back("repetier");
+    def->enum_values.push_back("teacup");
+    def->enum_values.push_back("makerware");
+    def->enum_values.push_back("marlin2");
+    def->enum_values.push_back("sailfish");
+    def->enum_values.push_back("mach3");
+    def->enum_values.push_back("machinekit");
+    def->enum_values.push_back("smoothie");
+    def->enum_values.push_back("no-extrusion");*/
     def->enum_labels.push_back("Marlin(legacy)");
-    //def->enum_labels.push_back("RepRap/Sprinter");
-    //def->enum_labels.push_back("RepRapFirmware");
-    //def->enum_labels.push_back("Repetier");
-    //def->enum_labels.push_back("Teacup");
-    //def->enum_labels.push_back("MakerWare (MakerBot)");
-    //def->enum_labels.push_back("Marlin 2");
-    //def->enum_labels.push_back("Sailfish (MakerBot)");
-    //def->enum_labels.push_back("Mach3/LinuxCNC");
-    //def->enum_labels.push_back("Machinekit");
-    //def->enum_labels.push_back("Smoothie");
-    //def->enum_labels.push_back(L("No extrusion"));
+    /*def->enum_labels.push_back("RepRap/Sprinter");
+    def->enum_labels.push_back("RepRapFirmware");
+    def->enum_labels.push_back("Repetier");
+    def->enum_labels.push_back("Teacup");
+    def->enum_labels.push_back("MakerWare (MakerBot)");
+    def->enum_labels.push_back("Marlin 2");
+    def->enum_labels.push_back("Sailfish (MakerBot)");
+    def->enum_labels.push_back("Mach3/LinuxCNC");
+    def->enum_labels.push_back("Machinekit");
+    def->enum_labels.push_back("Smoothie");
+    def->enum_labels.push_back(L("No extrusion"));*/
     def->mode = comAdvanced;
     def->readonly = false;
     def->set_default_value(new ConfigOptionEnum<GCodeFlavor>(gcfMarlinLegacy));
@@ -3892,6 +3902,16 @@ std::string DynamicPrintConfig::get_filament_type(std::string &displayed_filamen
         }
     }
     return "PLA";
+}
+
+bool DynamicPrintConfig::is_custom_defined()
+{
+    auto* is_custom_defined = dynamic_cast<const ConfigOptionStrings*>(this->option("is_custom_defined"));
+    if (!is_custom_defined || is_custom_defined->empty())
+        return false;
+    if (is_custom_defined->get_at(0) == "1")
+        return true;
+    return false;
 }
 
 //FIXME localize this function.

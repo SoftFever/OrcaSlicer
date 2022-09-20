@@ -3653,6 +3653,7 @@ void GUI_App::sync_preset(Preset* preset)
     std::string updated_info;
     // only sync user's preset
     if (!preset->is_user()) return;
+    if (preset->is_custom_defined()) return;
 
     if (preset->setting_id.empty() && preset->sync_info.empty() && !preset->base_id.empty()) {
         std::map<std::string, std::string> values_map;
@@ -4944,14 +4945,14 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
 {
     wxCHECK_MSG(mainframe != nullptr, false, "Internal error: Main frame not created / null");
 
-    if (reason == ConfigWizard::RR_USER) {
-        //TODO: turn off it currently, maybe need to turn on in the future
-        //if (preset_updater->config_update(app_config->orig_version(), PresetUpdater::UpdateParams::FORCED_BEFORE_WIZARD) == PresetUpdater::R_ALL_CANCELED)
-        //    return false;
-    }
+    //if (reason == ConfigWizard::RR_USER) {
+    //    //TODO: turn off it currently, maybe need to turn on in the future
+    //    if (preset_updater->config_update(app_config->orig_version(), PresetUpdater::UpdateParams::FORCED_BEFORE_WIZARD) == PresetUpdater::R_ALL_CANCELED)
+    //        return false;
+    //}
 
-    //auto wizard = new ConfigWizard(mainframe);
-    //const bool res = wizard->run(reason, start_page);
+    //auto wizard_t = new ConfigWizard(mainframe);
+    //const bool res = wizard_t->run(reason, start_page);
 
     std::string strFinish = wxGetApp().app_config->get("firstguide", "finish");
     long        pStyle    = wxCAPTION | wxCLOSE_BOX | wxSYSTEM_MENU;
