@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-14 17:04+0800\n"
+"POT-Creation-Date: 2022-09-21 11:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -836,6 +836,9 @@ msgstr "Dupliceren"
 
 msgid "Reduce Triangles"
 msgstr "Aantal driehoeken verkleinen (vereenvoudigen)"
+
+msgid "Center"
+msgstr ""
 
 msgid "Edit in Parameter Table"
 msgstr ""
@@ -1768,13 +1771,10 @@ msgid "%1% infill pattern doesn't support 100%% density."
 msgstr "%1% het gekozen vulling patroon ondersteund geen 100%% dichtheid."
 
 msgid ""
-"Switch to zig-zag pattern?\n"
-"Yes - switch to zig-zag pattern automaticlly\n"
+"Switch to rectilinear pattern?\n"
+"Yes - switch to rectilinear pattern automaticlly\n"
 "No  - reset density to default non 100% value automaticlly\n"
 msgstr ""
-"Overschakelen naar zigzagpatroon?\n"
-"Ja - Automatisch overschakelen naar zigzagpatroon\n"
-"Nee - Reset vulling automatisch naar de standaard niet-100% waarde\n"
 
 msgid "Auto bed leveling"
 msgstr "Automatisch bed levellen"
@@ -1887,12 +1887,12 @@ msgstr ""
 msgid "N/A"
 msgstr "N/B"
 
+msgid "Invalid numeric."
+msgstr "Onjuist getal."
+
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s kan geen percentage zijn"
-
-msgid "Invalid numeric."
-msgstr "Onjuist getal."
 
 #, c-format, boost-format
 msgid "Value %s is out of range, continue?"
@@ -1936,8 +1936,13 @@ msgstr "Flow"
 msgid "Tool"
 msgstr "Hulpmiddel"
 
-msgid "Extruder position"
-msgstr "Positie van de extruder"
+#, c-format, boost-format
+msgid "Speed: %.f"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Flow: %.f"
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "G-codes worden geladen"
@@ -3243,6 +3248,9 @@ msgstr "Bewaar G-code bestand als:"
 
 msgid "Save Sliced file as:"
 msgstr "Bewaar het geslicede bestand als:"
+
+msgid "preparing, export 3mf failed!"
+msgstr ""
 
 msgid ""
 "Print By Object: \n"
@@ -5324,14 +5332,17 @@ msgstr ""
 msgid "Concentric"
 msgstr "Concentrisch"
 
-msgid "Zig zag"
-msgstr "Zig-zag"
+msgid "Rectilinear"
+msgstr "Rechtlijning"
 
 msgid "Monotonic"
 msgstr "Monotoon"
 
 msgid "Monotonic line"
 msgstr "Monotone lijn"
+
+msgid "Aligned Rectilinear"
+msgstr ""
 
 msgid "Bottom surface pattern"
 msgstr "Bodem oppvlakte patroon"
@@ -6410,9 +6421,6 @@ msgstr "Basis patroon"
 msgid "Line pattern of support"
 msgstr "Dit is het lijnpatroon voor support."
 
-msgid "Rectilinear"
-msgstr "Rechtlijning"
-
 msgid "Rectilinear grid"
 msgstr "Rechtlijnig raster"
 
@@ -6858,6 +6866,21 @@ msgstr "Support: repareer gaten op laag %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: verspreid takken op laag %d"
+
+#~ msgid ""
+#~ "Switch to zig-zag pattern?\n"
+#~ "Yes - switch to zig-zag pattern automaticlly\n"
+#~ "No  - reset density to default non 100% value automaticlly\n"
+#~ msgstr ""
+#~ "Overschakelen naar zigzagpatroon?\n"
+#~ "Ja - Automatisch overschakelen naar zigzagpatroon\n"
+#~ "Nee - Reset vulling automatisch naar de standaard niet-100% waarde\n"
+
+#~ msgid "Extruder position"
+#~ msgstr "Positie van de extruder"
+
+#~ msgid "Zig zag"
+#~ msgstr "Zig-zag"
 
 #~ msgid ""
 #~ "Bed temperature is higher than vitrification temperature of this "

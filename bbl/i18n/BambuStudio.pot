@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-14 17:04+0800\n"
+"POT-Creation-Date: 2022-09-21 11:05+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -814,6 +814,9 @@ msgid "Clone"
 msgstr ""
 
 msgid "Reduce Triangles"
+msgstr ""
+
+msgid "Center"
 msgstr ""
 
 msgid "Edit in Parameter Table"
@@ -1622,8 +1625,8 @@ msgid "%1% infill pattern doesn't support 100%% density."
 msgstr ""
 
 msgid ""
-"Switch to zig-zag pattern?\n"
-"Yes - switch to zig-zag pattern automaticlly\n"
+"Switch to rectilinear pattern?\n"
+"Yes - switch to rectilinear pattern automaticlly\n"
 "No  - reset density to default non 100% value automaticlly\n"
 msgstr ""
 
@@ -1738,11 +1741,11 @@ msgstr ""
 msgid "N/A"
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid "%s can't be percentage"
+msgid "Invalid numeric."
 msgstr ""
 
-msgid "Invalid numeric."
+#, possible-c-format, possible-boost-format
+msgid "%s can't be percentage"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -1784,7 +1787,12 @@ msgstr ""
 msgid "Tool"
 msgstr ""
 
-msgid "Extruder position"
+#, possible-c-format, possible-boost-format
+msgid "Speed: %.f"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Flow: %.f"
 msgstr ""
 
 msgid "Loading G-codes"
@@ -3057,6 +3065,9 @@ msgid "Save G-code file as:"
 msgstr ""
 
 msgid "Save Sliced file as:"
+msgstr ""
+
+msgid "preparing, export 3mf failed!"
 msgstr ""
 
 msgid ""
@@ -4937,13 +4948,16 @@ msgstr ""
 msgid "Concentric"
 msgstr ""
 
-msgid "Zig zag"
+msgid "Rectilinear"
 msgstr ""
 
 msgid "Monotonic"
 msgstr ""
 
 msgid "Monotonic line"
+msgstr ""
+
+msgid "Aligned Rectilinear"
 msgstr ""
 
 msgid "Bottom surface pattern"
@@ -5860,9 +5874,6 @@ msgid "Base pattern"
 msgstr ""
 
 msgid "Line pattern of support"
-msgstr ""
-
-msgid "Rectilinear"
 msgstr ""
 
 msgid "Rectilinear grid"

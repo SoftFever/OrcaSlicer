@@ -384,8 +384,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                 wxString msg_text = GUI::format_wxstr(_L("%1% infill pattern doesn't support 100%% density."),
                     _(fill_pattern_def->enum_labels[it_pattern - fill_pattern_def->enum_values.begin()]));
                 if (is_global_config)
-                    msg_text += "\n" + _L("Switch to zig-zag pattern?\n"
-                                          "Yes - switch to zig-zag pattern automaticlly\n"
+                    msg_text += "\n" + _L("Switch to rectilinear pattern?\n"
+                                          "Yes - switch to rectilinear pattern automaticlly\n"
                                           "No  - reset density to default non 100% value automaticlly\n");
                 MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
                                                   wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK) );

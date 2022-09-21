@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-14 17:04+0800\n"
+"POT-Creation-Date: 2022-09-21 11:05+0800\n"
 "PO-Revision-Date: 2022-09-05 14:22+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -820,6 +820,9 @@ msgstr "克隆"
 
 msgid "Reduce Triangles"
 msgstr "简化三角形"
+
+msgid "Center"
+msgstr ""
 
 msgid "Edit in Parameter Table"
 msgstr "在参数表格中编辑"
@@ -1682,12 +1685,12 @@ msgid "%1% infill pattern doesn't support 100%% density."
 msgstr "%1% 填充图案不支持 100%% 密度。"
 
 msgid ""
-"Switch to zig-zag pattern?\n"
-"Yes - switch to zig-zag pattern automaticlly\n"
+"Switch to rectilinear pattern?\n"
+"Yes - switch to rectilinear pattern automaticlly\n"
 "No  - reset density to default non 100% value automaticlly\n"
 msgstr ""
-"切换到锯齿图案？\n"
-"是 - 自动切换到锯齿图案\n"
+"切换到直线图案？\n"
+"是 - 自动切换到直线图案\n"
 "否 - 自动重置为非100%填充密度\n"
 
 msgid "Auto bed leveling"
@@ -1801,12 +1804,12 @@ msgstr "参数名称"
 msgid "N/A"
 msgstr "N/A"
 
+msgid "Invalid numeric."
+msgstr "数值错误。"
+
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s 不可以是百分比"
-
-msgid "Invalid numeric."
-msgstr "数值错误。"
 
 #, c-format, boost-format
 msgid "Value %s is out of range, continue?"
@@ -1850,8 +1853,13 @@ msgstr "流量"
 msgid "Tool"
 msgstr "工具"
 
-msgid "Extruder position"
-msgstr "挤出机位置"
+#, c-format, boost-format
+msgid "Speed: %.f"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Flow: %.f"
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "正在加载G-code"
@@ -3138,6 +3146,9 @@ msgstr "G-code文件另存为："
 
 msgid "Save Sliced file as:"
 msgstr "切片文件另存为："
+
+msgid "preparing, export 3mf failed!"
+msgstr "正在准备中，导出 3mf 失败！"
 
 msgid ""
 "Print By Object: \n"
@@ -5070,14 +5081,17 @@ msgstr "顶面填充的走线图案"
 msgid "Concentric"
 msgstr "同心"
 
-msgid "Zig zag"
-msgstr "锯齿"
+msgid "Rectilinear"
+msgstr "直线"
 
 msgid "Monotonic"
 msgstr "单调"
 
 msgid "Monotonic line"
 msgstr "单调线"
+
+msgid "Aligned Rectilinear"
+msgstr ""
 
 msgid "Bottom surface pattern"
 msgstr "底面图案"
@@ -5294,7 +5308,7 @@ msgid "Grid"
 msgstr "网格"
 
 msgid "Line"
-msgstr "直线"
+msgstr "线"
 
 msgid "Cubic"
 msgstr "立方体"
@@ -6037,9 +6051,6 @@ msgstr "支撑主体图案"
 msgid "Line pattern of support"
 msgstr "支撑走线图案"
 
-msgid "Rectilinear"
-msgstr "直线"
-
 msgid "Rectilinear grid"
 msgstr "直线网格"
 
@@ -6449,6 +6460,21 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid ""
+#~ "Switch to zig-zag pattern?\n"
+#~ "Yes - switch to zig-zag pattern automaticlly\n"
+#~ "No  - reset density to default non 100% value automaticlly\n"
+#~ msgstr ""
+#~ "切换到锯齿图案？\n"
+#~ "是 - 自动切换到锯齿图案\n"
+#~ "否 - 自动重置为非100%填充密度\n"
+
+#~ msgid "Extruder position"
+#~ msgstr "挤出机位置"
+
+#~ msgid "Zig zag"
+#~ msgstr "锯齿"
 
 #~ msgid ""
 #~ "Bed temperature is higher than vitrification temperature of this "
@@ -7055,9 +7081,6 @@ msgstr "支撑：正在生长层%d的树枝"
 
 #~ msgid "Failed to publish your project. Please try agian!"
 #~ msgstr "项目发布失败。请重试！"
-
-#~ msgid "preparing, export 3mf failed!"
-#~ msgstr "正在准备中，导出 3mf 失败！"
 
 #~ msgid "Preparing to upload your project..."
 #~ msgstr "正在准备上传项目..."

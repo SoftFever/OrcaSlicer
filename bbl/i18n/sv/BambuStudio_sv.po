@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-14 17:04+0800\n"
+"POT-Creation-Date: 2022-09-21 11:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -829,6 +829,9 @@ msgstr "Klona"
 
 msgid "Reduce Triangles"
 msgstr "Reducera Trianglar"
+
+msgid "Center"
+msgstr ""
 
 msgid "Edit in Parameter Table"
 msgstr ""
@@ -1738,13 +1741,10 @@ msgid "%1% infill pattern doesn't support 100%% density."
 msgstr "%1% ifyllnads mönster stöds ej 100%% densitet."
 
 msgid ""
-"Switch to zig-zag pattern?\n"
-"Yes - switch to zig-zag pattern automaticlly\n"
+"Switch to rectilinear pattern?\n"
+"Yes - switch to rectilinear pattern automaticlly\n"
 "No  - reset density to default non 100% value automaticlly\n"
 msgstr ""
-"Ändra till Zig-Zag mönster?\n"
-"JA - Byta till Zig-Zag mönster automatiskt\n"
-"NEJ  - Återställ densiteten till standard inte 100% värdet automatiskt\n"
 
 msgid "Auto bed leveling"
 msgstr "Auto justera byggplattan"
@@ -1857,12 +1857,12 @@ msgstr ""
 msgid "N/A"
 msgstr "N/A"
 
+msgid "Invalid numeric."
+msgstr "Ogiltig siffra."
+
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s kan inte vara procent"
-
-msgid "Invalid numeric."
-msgstr "Ogiltig siffra."
 
 #, c-format, boost-format
 msgid "Value %s is out of range, continue?"
@@ -1906,8 +1906,13 @@ msgstr "Flöde"
 msgid "Tool"
 msgstr "Verktyg"
 
-msgid "Extruder position"
-msgstr "Extruder position"
+#, c-format, boost-format
+msgid "Speed: %.f"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Flow: %.f"
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "Laddar G-koder"
@@ -3194,6 +3199,9 @@ msgstr "Spara G-kod som:"
 
 msgid "Save Sliced file as:"
 msgstr "Spara beredningen som:"
+
+msgid "preparing, export 3mf failed!"
+msgstr ""
 
 msgid ""
 "Print By Object: \n"
@@ -5210,14 +5218,17 @@ msgstr "Linjemönster för topp ytans ifyllnad"
 msgid "Concentric"
 msgstr "Koncentrisk"
 
-msgid "Zig zag"
-msgstr "Zig zag"
+msgid "Rectilinear"
+msgstr "Räta linjer"
 
 msgid "Monotonic"
 msgstr "Monoton"
 
 msgid "Monotonic line"
 msgstr "Monoton linje"
+
+msgid "Aligned Rectilinear"
+msgstr ""
 
 msgid "Bottom surface pattern"
 msgstr "Botten ytans mönster"
@@ -6266,9 +6277,6 @@ msgstr "Botten mönster"
 msgid "Line pattern of support"
 msgstr "Supportens linje mönster"
 
-msgid "Rectilinear"
-msgstr "Räta linjer"
-
 msgid "Rectilinear grid"
 msgstr "Rät linjärt nät"
 
@@ -6281,8 +6289,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
-"(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för "
+"lösligt(material) stödgränssnittet är koncentriskt"
 
 msgid "Base pattern spacing"
 msgstr "Basens mönster mellanrum"
@@ -6703,6 +6711,21 @@ msgstr "Support: åtgärda hål vid lager %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: föröka grenar vid lager %d"
+
+#~ msgid ""
+#~ "Switch to zig-zag pattern?\n"
+#~ "Yes - switch to zig-zag pattern automaticlly\n"
+#~ "No  - reset density to default non 100% value automaticlly\n"
+#~ msgstr ""
+#~ "Ändra till Zig-Zag mönster?\n"
+#~ "JA - Byta till Zig-Zag mönster automatiskt\n"
+#~ "NEJ  - Återställ densiteten till standard inte 100% värdet automatiskt\n"
+
+#~ msgid "Extruder position"
+#~ msgstr "Extruder position"
+
+#~ msgid "Zig zag"
+#~ msgstr "Zig zag"
 
 #~ msgid ""
 #~ "Bed temperature is higher than vitrification temperature of this "

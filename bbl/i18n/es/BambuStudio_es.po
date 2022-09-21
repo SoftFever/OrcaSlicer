@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-14 17:04+0800\n"
+"POT-Creation-Date: 2022-09-21 11:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -839,6 +839,9 @@ msgstr "Clonar"
 
 msgid "Reduce Triangles"
 msgstr "Reducir los triángulos"
+
+msgid "Center"
+msgstr ""
 
 msgid "Edit in Parameter Table"
 msgstr ""
@@ -1768,14 +1771,10 @@ msgid "%1% infill pattern doesn't support 100%% density."
 msgstr "El patrón de relleno %1% no soporta el 100%% de densidad."
 
 msgid ""
-"Switch to zig-zag pattern?\n"
-"Yes - switch to zig-zag pattern automaticlly\n"
+"Switch to rectilinear pattern?\n"
+"Yes - switch to rectilinear pattern automaticlly\n"
 "No  - reset density to default non 100% value automaticlly\n"
 msgstr ""
-"¿Cambiar al patrón en zig-zag?\n"
-"Sí - cambia automáticamente al patrón en zig-zag\n"
-"No - restablecer automáticamente la densidad al valor por defecto que no es "
-"del 100%.\n"
 
 msgid "Auto bed leveling"
 msgstr "Nivelación de cama automática"
@@ -1891,12 +1890,12 @@ msgstr ""
 msgid "N/A"
 msgstr "N/A"
 
+msgid "Invalid numeric."
+msgstr "Numérico inválido."
+
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s no puede ser un porcentaje"
-
-msgid "Invalid numeric."
-msgstr "Numérico inválido."
 
 #, c-format, boost-format
 msgid "Value %s is out of range, continue?"
@@ -1940,8 +1939,13 @@ msgstr "Flujo"
 msgid "Tool"
 msgstr "Herramienta"
 
-msgid "Extruder position"
-msgstr "Posición del extrusor"
+#, c-format, boost-format
+msgid "Speed: %.f"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Flow: %.f"
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "Carga de códigos G"
@@ -3240,6 +3244,9 @@ msgstr "Guardar archivo Código G como:"
 
 msgid "Save Sliced file as:"
 msgstr "Guardar el archivo rebanado como:"
+
+msgid "preparing, export 3mf failed!"
+msgstr ""
 
 msgid ""
 "Print By Object: \n"
@@ -5314,14 +5321,17 @@ msgstr "Patrón de líneas del relleno de la superficie superior"
 msgid "Concentric"
 msgstr "Concéntrico"
 
-msgid "Zig zag"
-msgstr "Zig zag"
+msgid "Rectilinear"
+msgstr "Rectilíneo"
 
 msgid "Monotonic"
 msgstr "Monotónico"
 
 msgid "Monotonic line"
 msgstr "Linea continua"
+
+msgid "Aligned Rectilinear"
+msgstr ""
 
 msgid "Bottom surface pattern"
 msgstr "Patrón de la superficie inferior"
@@ -6389,9 +6399,6 @@ msgstr "Patrón de base"
 msgid "Line pattern of support"
 msgstr "Patrón lineal de apoyo"
 
-msgid "Rectilinear"
-msgstr "Rectilíneo"
-
 msgid "Rectilinear grid"
 msgstr "Rejilla rectilínea"
 
@@ -6838,6 +6845,22 @@ msgstr "Soporte: arreglar huecos en la capa %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Soporte: propagar ramas en la capa %d"
+
+#~ msgid ""
+#~ "Switch to zig-zag pattern?\n"
+#~ "Yes - switch to zig-zag pattern automaticlly\n"
+#~ "No  - reset density to default non 100% value automaticlly\n"
+#~ msgstr ""
+#~ "¿Cambiar al patrón en zig-zag?\n"
+#~ "Sí - cambia automáticamente al patrón en zig-zag\n"
+#~ "No - restablecer automáticamente la densidad al valor por defecto que no "
+#~ "es del 100%.\n"
+
+#~ msgid "Extruder position"
+#~ msgstr "Posición del extrusor"
+
+#~ msgid "Zig zag"
+#~ msgstr "Zig zag"
 
 #~ msgid ""
 #~ "Bed temperature is higher than vitrification temperature of this "
