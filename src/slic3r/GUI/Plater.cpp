@@ -4009,7 +4009,8 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 
         //BBS: add slice&&print status update logic
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: background data valid, return_state=%2%")%__LINE__%return_state;
-        if (background_process.finished())
+        PartPlate* cur_plate = background_process.get_current_plate();
+        if (background_process.finished() && cur_plate && cur_plate->is_slice_result_valid())
         {
             ready_to_slice = false;
             this->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, false);
