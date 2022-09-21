@@ -1115,7 +1115,7 @@ boost::any ConfigOptionsGroup::get_config_value2(const DynamicPrintConfig& confi
         ret = config.opt_bool(opt_key);
         break;
     case coBools:
-        ret = config.opt_bool(opt_key, idx);
+        ret = static_cast<unsigned char>(config.opt_bool(opt_key, idx));
         break;
     case coInt:
         ret = config.opt_int(opt_key);
