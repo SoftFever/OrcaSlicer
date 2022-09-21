@@ -120,7 +120,7 @@ wxString ComboBox::GetTextLabel() const
 
 bool ComboBox::SetFont(wxFont const& font)
 {
-    if (GetTextCtrl()->IsShown())
+    if (GetTextCtrl() && GetTextCtrl()->IsShown())
         return GetTextCtrl()->SetFont(font);
     else
         return TextInput::SetFont(font);

@@ -139,7 +139,7 @@ static wxIcon main_frame_icon(GUI_App::EAppMode app_mode)
 }
 
 // BBS
-#ifdef __WINDOWS__
+#ifndef __APPLE__
 #define BORDERLESS_FRAME_STYLE (wxRESIZE_BORDER | wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxCLOSE_BOX)
 #else
 #define BORDERLESS_FRAME_STYLE (wxMINIMIZE_BOX | wxMAXIMIZE_BOX | wxCLOSE_BOX)
@@ -178,7 +178,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     // Fonts were created by the DPIFrame constructor for the monitor, on which the window opened.
     wxGetApp().update_fonts(this);
 
-#ifdef __WINDOWS__
+#ifndef __APPLE__
     m_topbar         = new BBLTopbar(this);
 #else
     auto panel_topbar = new wxPanel(this, wxID_ANY);
@@ -284,7 +284,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     //Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_plater->cut_selection_to_clipboard(); }, wxID_HIGHEST + wxID_CUT);
     Bind(wxEVT_SIZE, [this](wxSizeEvent&) {
             BOOST_LOG_TRIVIAL(trace) << "mainframe: size changed, is maximized = " << this->IsMaximized();
-#ifdef __WINDOWS__
+#ifndef __APPLE__
             if (this->IsMaximized()) {
                 m_topbar->SetWindowSize();
             } else {
@@ -326,7 +326,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     // initialize layout
     m_main_sizer = new wxBoxSizer(wxVERTICAL);
     wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-#ifdef __WINDOWS__
+#ifndef __APPLE__
      sizer->Add(m_topbar, 0, wxEXPAND);
 #else
      sizer->Add(panel_topbar, 0, wxEXPAND);
@@ -854,7 +854,7 @@ void MainFrame::init_tabpanel()
             //monitor
         }
 
-#ifdef __WINDOWS__
+#ifndef __APPLE__
         if (sel == tp3DEditor) {
             m_topbar->EnableUndoRedoItems();
         }
@@ -1507,7 +1507,7 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
         dynamic_cast<Notebook*>(m_tabpanel)->Rescale();
 #endif
 
-#ifdef __WINDOWS__
+#ifndef __APPLE__
     // BBS
     m_topbar->Rescale();
 #endif
@@ -1630,7 +1630,7 @@ static wxMenu* generate_help_menu()
             return true;
         });
     // About
-#ifdef __WINDOWS__
+#ifndef __APPLE__
     wxString about_title = wxString::Format(_L("&About %s"), SLIC3R_APP_FULL_NAME);
     append_menu_item(helpMenu, wxID_ANY, about_title, about_title,
             [](wxCommandEvent&) { Slic3r::GUI::about(); });
@@ -1691,7 +1691,7 @@ void MainFrame::init_menubar_as_editor()
             [this](){return can_start_new_project(); }, this);
         // Open Project
 
-#ifdef __WINDOWS__
+#ifndef __APPLE__
         append_menu_item(fileMenu, wxID_ANY, _L("Open Project") + dots + "\tCtrl+O", _L("Open a project file"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->load_project(); }, "menu_open", nullptr,
             [this](){return can_open_project(); }, this);
@@ -1722,7 +1722,7 @@ void MainFrame::init_menubar_as_editor()
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_open_project() && (m_recent_projects.GetCount() > 0)); }, recent_projects_submenu->GetId());
 
         // BBS: close save project
-#ifdef __WINDOWS__
+#ifndef __APPLE__
         append_menu_item(fileMenu, wxID_ANY, _L("Save Project") + "\tCtrl+S", _L("Save current project to file"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(); }, "menu_save", nullptr,
             [this](){return m_plater != nullptr && can_save(); }, this);
@@ -1733,7 +1733,7 @@ void MainFrame::init_menubar_as_editor()
 #endif
 
 
-#ifdef __WINDOWS__
+#ifndef __APPLE__
         append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\tCtrl+Shift+S", _L("Save current project as"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, "menu_save", nullptr,
             [this](){return m_plater != nullptr && can_save_as(); }, this);
@@ -1748,7 +1748,7 @@ void MainFrame::init_menubar_as_editor()
 
         // BBS
         wxMenu *import_menu = new wxMenu();
-#ifdef __WINDOWS__
+#ifndef __APPLE__
         append_menu_item(import_menu, wxID_ANY, _L("Import 3MF/STL/STEP/OBJ/AMF") + dots + "\tCtrl+I", _L("Load a model"),
             [this](wxCommandEvent&) { if (m_plater) {
             m_plater->add_model();
@@ -1791,7 +1791,7 @@ void MainFrame::init_menubar_as_editor()
 
         fileMenu->AppendSeparator();
 
-#ifdef __WINDOWS__
+#ifndef __APPLE__
         append_menu_item(fileMenu, wxID_EXIT, _L("Quit"), wxString::Format(_L("Quit")),
             [this](wxCommandEvent&) { Close(false); }, "menu_exit", nullptr);
 #else
@@ -1812,7 +1812,7 @@ void MainFrame::init_menubar_as_editor()
         wxString hotkey_delete = "Del";
     #endif
 
-#ifdef __WINDOWS__
+#ifndef __APPLE__
         // BBS undo
         append_menu_item(editMenu, wxID_ANY, _L("Undo") + "\tCtrl+Z",
             _L("Undo"), [this](wxCommandEvent&) { m_plater->undo(); },
@@ -2086,7 +2086,7 @@ void MainFrame::init_menubar_as_editor()
     auto helpMenu = generate_help_menu();
 
         
-#ifdef __WINDOWS__
+#ifndef __APPLE__
     m_topbar->SetFileMenu(fileMenu);
     if (editMenu)
         m_topbar->AddDropDownSubMenu(editMenu, _L("Edit"));

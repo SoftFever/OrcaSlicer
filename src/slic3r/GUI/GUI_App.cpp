@@ -2228,11 +2228,11 @@ bool GUI_App::on_init_inner()
 
         // An ugly solution to GH #5537 in which GUI_App::init_opengl (normally called from events wxEVT_PAINT
         // and wxEVT_SET_FOCUS before GUI_App::post_init is called) wasn't called before GUI_App::post_init and OpenGL wasn't initialized.
-#ifdef __linux__
-        if (!m_post_initialized && m_opengl_initialized) {
-#else
+//#ifdef __linux__
+//        if (!m_post_initialized && m_opengl_initialized) {
+//#else
         if (!m_post_initialized) {
-#endif
+//#endif
             m_post_initialized = true;
 #ifdef WIN32
             this->mainframe->register_win32_callbacks();
