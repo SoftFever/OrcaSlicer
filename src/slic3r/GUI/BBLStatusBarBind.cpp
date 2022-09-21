@@ -36,10 +36,6 @@ BBLStatusBarBind::BBLStatusBarBind(wxWindow *parent, int id)
     m_prog = new wxGauge(m_self, wxID_ANY, 100, wxDefaultPosition, wxSize(m_self->FromDIP(400), m_self->FromDIP(6)), wxGA_HORIZONTAL);
     m_prog->SetValue(0);
 
-   block_left = new wxWindow(m_prog, wxID_ANY, wxPoint(0, 0), wxSize(2, m_prog->GetSize().GetHeight() * 2));
-    block_left->SetBackgroundColour(wxColour(255, 255, 255));
-    block_right = new wxWindow(m_prog, wxID_ANY, wxPoint(m_prog->GetSize().GetWidth() - 2, 0), wxSize(2, m_prog->GetSize().GetHeight() * 2));
-    block_right->SetBackgroundColour(wxColour(255, 255, 255));
 
     m_stext_percent = new wxStaticText(m_self, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize, 0);
     m_stext_percent->SetForegroundColour(wxColour(107, 107, 107));
@@ -61,8 +57,6 @@ BBLStatusBarBind::BBLStatusBarBind(wxWindow *parent, int id)
 
 void BBLStatusBarBind::set_prog_block()
 {
-    block_left->SetPosition(wxPoint(0, 0));
-    block_right->SetPosition(wxPoint(m_prog->GetSize().GetWidth() - 2, 0));
 }
 
 int BBLStatusBarBind::get_progress() const

@@ -35,8 +35,6 @@ class BBLStatusBarBind : public ProgressIndicator
     wxStaticText *m_stext_percent;
     wxBoxSizer *  m_sizer;
     wxBoxSizer *  m_sizer_eline;
-    wxWindow *    block_left;
-    wxWindow *    block_right;
 
 public:
     BBLStatusBarBind(wxWindow *parent = nullptr, int id = -1);

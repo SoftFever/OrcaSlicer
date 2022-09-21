@@ -45,7 +45,7 @@ static const wxColour GROUP_STATIC_LINE_COL = wxColour(206, 206, 206);
 
 /* font and foreground colors */
 static const wxFont PAGE_TITLE_FONT  = Label::Body_14;
-static const wxFont GROUP_TITLE_FONT = Label::sysFont(17);
+//static const wxFont GROUP_TITLE_FONT = Label::sysFont(17);
 
 static wxColour PAGE_TITLE_FONT_COL  = wxColour(107, 107, 107);
 static wxColour GROUP_TITLE_FONT_COL = wxColour(172, 172, 172);
@@ -1177,7 +1177,7 @@ void StatusPanel::create_tasklist_info()
     m_tasklist_caption_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_text_tasklist_caption  = new wxStaticText(this, wxID_ANY, _L("Printing List"), wxDefaultPosition, wxDefaultSize, 0);
     m_text_tasklist_caption->Wrap(-1);
-    m_text_tasklist_caption->SetFont(GROUP_TITLE_FONT);
+    m_text_tasklist_caption->SetFont(Label::Body_16);
     m_text_tasklist_caption->SetForegroundColour(GROUP_TITLE_FONT_COL);
 
     m_tasklist_caption_sizer->Add(m_text_tasklist_caption, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, GROUP_TITLE_LEFT_MARGIN);

@@ -268,7 +268,8 @@ void Tab::create_preset_tab()
 
     search_sizer->Add(new wxWindow(m_search_item, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND | wxLEFT, 16);
     search_sizer->Add(m_search_input, 1, wxEXPAND | wxALL, wxGetApp().em_unit() / 2);
-    search_sizer->Add(new wxWindow(m_search_input, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND | wxLEFT, 16);
+    //bbl for linux
+    //search_sizer->Add(new wxWindow(m_search_input, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND | wxLEFT, 16);
 
 
      m_search_item->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {

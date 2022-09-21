@@ -38,6 +38,8 @@ public:
 	static wxFont Body_10;
 	static wxFont Body_11;
 	static wxFont Body_9;
+	
+	static void initSysFont();
 
     static wxFont sysFont(int size, bool bold = false);
 
