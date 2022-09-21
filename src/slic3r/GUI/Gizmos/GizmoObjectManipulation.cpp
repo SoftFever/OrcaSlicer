@@ -213,11 +213,6 @@ void GizmoObjectManipulation::update_if_dirty()
         update(m_cache.rotation, m_cache.rotation_rounded,  m_new_rotation);
     }
 
-
-    if (selection.requires_uniform_scale()) {
-        m_uniform_scale = true;
-    }
-
     update_reset_buttons_visibility();
     //update_mirror_buttons_visibility();
 
