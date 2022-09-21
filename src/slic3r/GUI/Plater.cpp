@@ -539,7 +539,9 @@ Sidebar::Sidebar(Plater *parent)
             wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/x1/manual/compatibility-and-parameter-settings-of-filaments");
         });
 
-        m_bed_type_list->Select(0);
+        AppConfig *app_config = wxGetApp().app_config;
+        std::string str_bed_type = app_config->get("curr_bed_type");
+        m_bed_type_list->Select(atoi(str_bed_type.c_str()));
         bed_type_sizer->Add(bed_type_title, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
         bed_type_sizer->Add(m_bed_type_list, 1, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(10));
         vsizer_printer->Add(bed_type_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
@@ -5028,6 +5030,10 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
             config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
             // update plater with new config
             q->on_config_change(wxGetApp().preset_bundle->full_config());
+
+            // update app_config
+            AppConfig *app_config = wxGetApp().app_config;
+            app_config->set("curr_bed_type", std::to_string(int(bed_type)));
         }
     }
 }

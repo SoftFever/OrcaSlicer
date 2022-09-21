@@ -285,6 +285,10 @@ void AppConfig::set_defaults()
         set("backup_interval", "10");
     }
 
+    if (get("curr_bed_type").empty()) {
+        set("curr_bed_type", "0");
+    }
+
 #if BBL_RELEASE_TO_PUBLIC
     if (get("iot_environment").empty()) {
         set("iot_environment", "3");
