@@ -307,8 +307,8 @@ void Preset::update_suffix_modified(const std::string& new_suffix_modified)
 // This converts a UI name to a unique preset identifier.
 std::string Preset::remove_suffix_modified(const std::string &name)
 {
-    return boost::algorithm::ends_with(name, g_suffix_modified) ?
-        name.substr(0, name.size() - g_suffix_modified.size()) :
+    return boost::algorithm::starts_with(name, g_suffix_modified) ?
+        name.substr(g_suffix_modified.size()) :
         name;
 }
 
@@ -530,9 +530,10 @@ void Preset::save(DynamicPrintConfig* parent_config)
 }
 
 // Return a label of this preset, consisting of a name and a "(modified)" suffix, if this preset is dirty.
-std::string Preset::label() const
+std::string Preset::label(bool no_alias) const
 {
-    return this->name + (this->is_dirty ? g_suffix_modified : "");
+    return (this->is_dirty ? g_suffix_modified : "")
+        + ((no_alias || this->alias.empty()) ? this->name : this->alias);
 }
 
 bool is_compatible_with_print(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_print, const PresetWithVendorProfile &active_printer)

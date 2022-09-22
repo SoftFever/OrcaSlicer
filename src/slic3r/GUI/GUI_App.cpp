@@ -3999,7 +3999,7 @@ bool GUI_App::load_language(wxString language, bool initial)
 
     //FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
     //wxSetlocale(LC_NUMERIC, "C");
-    Preset::update_suffix_modified((" (" + _L("*") + ")").ToUTF8().data());
+    Preset::update_suffix_modified((_L("*") + " ").ToUTF8().data());
 	return true;
 }
 
