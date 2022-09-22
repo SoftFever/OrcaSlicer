@@ -118,6 +118,7 @@ int ImGuiWrapper::TOOLBAR_WINDOW_FLAGS = ImGuiWindowFlags_AlwaysAutoResize
                                  | ImGuiWindowFlags_NoCollapse
                                  | ImGuiWindowFlags_NoTitleBar;
 
+static float accer = 1.f;
 
 bool get_data_from_svg(const std::string &filename, unsigned int max_size_px, ThumbnailData &thumbnail_data)
 {
@@ -195,21 +196,7 @@ bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const 
     if (axis == ImGuiAxis_Y)
         mouse_wheel_responsive_region = ImRect(region.Min - ImVec2(0, handle_sz.y), region.Max + ImVec2(0, handle_sz.y));
     if (ImGui::ItemHoverable(mouse_wheel_responsive_region, id)) {
-#ifdef __APPLE__
-        if (io.KeyShift)
-            v_new = ImClamp(*out_value - 5 * (ImS32) (context.IO.MouseWheel), v_min, v_max);
-        else if (io.KeyCtrl)
-            v_new = ImClamp(*out_value + 5 * (ImS32) (context.IO.MouseWheel), v_min, v_max);
-        else {
-            v_new = ImClamp(*out_value + (ImS32) (context.IO.MouseWheel), v_min, v_max);
-        }
-#else
-        if (io.KeyCtrl || io.KeyShift)
-            v_new = ImClamp(*out_value + 5 * (ImS32) (context.IO.MouseWheel), v_min, v_max);
-        else {
-            v_new = ImClamp(*out_value + (ImS32) (context.IO.MouseWheel), v_min, v_max);
-        }
-#endif
+        v_new = ImClamp(*out_value + (ImS32)(context.IO.MouseWheel * accer), v_min, v_max);
     }
     // drag behavior
     if (context.ActiveId == id)
@@ -416,9 +403,9 @@ bool ImGuiWrapper::update_mouse_data(wxMouseEvent& evt)
     io.MouseDown[1] = evt.RightIsDown();
     io.MouseDown[2] = evt.MiddleIsDown();
     float wheel_delta = static_cast<float>(evt.GetWheelDelta());
-    if (wheel_delta != 0.0f)
-        io.MouseWheel = static_cast<float>(evt.GetWheelRotation()) / wheel_delta;
-
+    if (wheel_delta != 0.0f) {
+        io.MouseWheel = evt.GetWheelRotation() > 0 ? 1.f : -1.f;
+    }
     unsigned buttons = (evt.LeftIsDown() ? 1 : 0) | (evt.RightIsDown() ? 2 : 0) | (evt.MiddleIsDown() ? 4 : 0);
     m_mouse_buttons = buttons;
 
@@ -434,6 +421,19 @@ bool ImGuiWrapper::update_key_data(wxKeyEvent &evt)
     }
 
     ImGuiIO& io = ImGui::GetIO();
+
+    if (evt.CmdDown()) {
+        accer = 5.f;
+    }
+    else if (evt.ShiftDown()) {
+#ifdef __APPLE__
+        accer = -5.f;
+#else
+        accer = 5.f;
+#endif
+    }
+    else
+        accer = 1.f;
 
     if (evt.GetEventType() == wxEVT_CHAR) {
         // Char event
