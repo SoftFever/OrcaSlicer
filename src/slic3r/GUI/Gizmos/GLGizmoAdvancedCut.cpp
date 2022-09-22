@@ -479,6 +479,13 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
         if (std::abs(m_buffered_movement - m_movement) > EPSILON) {
             m_movement          = m_buffered_movement;
             m_buffered_movement = 0.0;
+
+            // update absolute height
+            Vec3d plane_normal  = get_plane_normal();
+            m_height_delta = plane_normal(2) * m_movement;
+            m_height += m_height_delta;
+            m_buffered_height = m_height;
+
             update_plane_points();
             m_parent.post_event(SimpleEvent(wxEVT_PAINT));
         }
@@ -497,8 +504,7 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
     if (current_active_id != m_last_active_id) {
         if (std::abs(m_buffered_height - m_height) > EPSILON) {
             m_height_delta = m_buffered_height - m_height;
-            m_height = m_buffered_height;
-            //m_buffered_height = 0.0;
+            m_height = m_buffered_height;            
             update_plane_points();
             m_parent.post_event(SimpleEvent(wxEVT_PAINT));
         }
