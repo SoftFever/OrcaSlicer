@@ -1,5 +1,5 @@
-#ifndef slic3r_GUI_FirmwareUpdateDialog_hpp_
-#define slic3r_GUI_FirmwareUpdateDialog_hpp_
+#ifndef slic3r_GUI_ConfirmHintDialog_hpp_
+#define slic3r_GUI_ConfirmHintDialog_hpp_
 
 #include "GUI_Utils.hpp"
 #include <wx/statbmp.h>
@@ -8,9 +8,9 @@
 
 namespace Slic3r { namespace GUI {
 
-wxDECLARE_EVENT(EVT_UPGRADE_FIRMWARE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_CONFIRM_HINT, wxCommandEvent);
 
-class FirmwareUpdateDialog : public DPIDialog
+class ConfirmHintDialog : public DPIDialog
 {
 private:
     wxStaticText* m_staticText_hint;
@@ -27,7 +27,7 @@ private:
     void on_dpi_changed(const wxRect& suggested_rect) override;
 
 public:
-    FirmwareUpdateDialog(wxWindow* parent,
+    ConfirmHintDialog(wxWindow* parent,
         wxWindowID      id = wxID_ANY,
         const wxString& title = wxEmptyString,
         const wxPoint& pos = wxDefaultPosition,
@@ -38,7 +38,7 @@ public:
 
     void SetHint(const wxString &hint);
 
-    ~FirmwareUpdateDialog();
+    ~ConfirmHintDialog();
 };
 }} // namespace Slic3r::GUI
 

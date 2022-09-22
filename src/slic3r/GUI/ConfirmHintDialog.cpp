@@ -1,4 +1,4 @@
-#include "FirmwareUpdateDialog.hpp"
+#include "ConfirmHintDialog.hpp"
 #include <slic3r/GUI/I18N.hpp>
 #include <wx/dcgraph.h>
 #include <wx/dcmemory.h>
@@ -7,10 +7,10 @@
 
 namespace Slic3r { namespace GUI {
 
-wxDEFINE_EVENT(EVT_UPGRADE_FIRMWARE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_CONFIRM_HINT, wxCommandEvent);
 
-FirmwareUpdateDialog::FirmwareUpdateDialog(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
-      : DPIDialog(parent, id, _L("Upgrade firmware"), pos, size, style)
+ConfirmHintDialog::ConfirmHintDialog(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
+      : DPIDialog(parent, id, title, pos, size, style)
 {
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -58,23 +58,23 @@ FirmwareUpdateDialog::FirmwareUpdateDialog(wxWindow* parent, wxWindowID id, cons
     this->SetMinSize(wxSize(wxSize(FromDIP(475), FromDIP(100)).x, -1));
     Layout();
     Fit();
-    this->Bind(wxEVT_PAINT, &FirmwareUpdateDialog::OnPaint, this);
-    m_button_confirm->Bind(wxEVT_BUTTON, &FirmwareUpdateDialog::on_button_confirm, this);
-    m_button_close->Bind(wxEVT_BUTTON, &FirmwareUpdateDialog::on_button_close, this);
+    this->Bind(wxEVT_PAINT, &ConfirmHintDialog::OnPaint, this);
+    m_button_confirm->Bind(wxEVT_BUTTON, &ConfirmHintDialog::on_button_confirm, this);
+    m_button_close->Bind(wxEVT_BUTTON, &ConfirmHintDialog::on_button_close, this);
 }
 
-FirmwareUpdateDialog::~FirmwareUpdateDialog() {}
+ConfirmHintDialog::~ConfirmHintDialog() {}
 
-void FirmwareUpdateDialog::SetHint(const wxString& hint){
+void ConfirmHintDialog::SetHint(const wxString& hint){
     firm_up_hint = hint;
 }
 
-void FirmwareUpdateDialog::OnPaint(wxPaintEvent& event){
+void ConfirmHintDialog::OnPaint(wxPaintEvent& event){
     wxPaintDC dc(this);
     render(dc);
 }
 
-void FirmwareUpdateDialog::render(wxDC& dc) {
+void ConfirmHintDialog::render(wxDC& dc) {
     wxSize     size = GetSize();
 
     dc.SetFont(Label::Body_14);
@@ -147,8 +147,8 @@ void FirmwareUpdateDialog::render(wxDC& dc) {
         dc.DrawText(firm_up_hint, pos_firm_up_hint);
 }
 
-void FirmwareUpdateDialog::on_button_confirm(wxCommandEvent& event) {
-    wxCommandEvent evt(EVT_UPGRADE_FIRMWARE, GetId());
+void ConfirmHintDialog::on_button_confirm(wxCommandEvent& event) {
+    wxCommandEvent evt(EVT_CONFIRM_HINT, GetId());
     event.SetEventObject(this);
     GetEventHandler()->ProcessEvent(evt);
 
@@ -158,11 +158,11 @@ void FirmwareUpdateDialog::on_button_confirm(wxCommandEvent& event) {
         this->Close();
 }
 
-void FirmwareUpdateDialog::on_button_close(wxCommandEvent& event) {
+void ConfirmHintDialog::on_button_close(wxCommandEvent& event) {
     this->Close();
 }
 
-void FirmwareUpdateDialog::on_dpi_changed(const wxRect& suggested_rect) {
+void ConfirmHintDialog::on_dpi_changed(const wxRect& suggested_rect) {
     m_button_confirm->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_confirm->SetCornerRadius(FromDIP(12));
     m_button_close->SetMinSize(wxSize(-1, FromDIP(24)));

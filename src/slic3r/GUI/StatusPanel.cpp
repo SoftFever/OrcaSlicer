@@ -10,6 +10,7 @@
 #include "slic3r/Utils/Http.hpp"
 #include "libslic3r/Thread.hpp"
 #include "RecenterDialog.hpp"
+#include "ConfirmHintDialog.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -1222,7 +1223,13 @@ void StatusPanel::on_subtask_pause_resume(wxCommandEvent &event)
 
 void StatusPanel::on_subtask_abort(wxCommandEvent &event)
 {
-    if (obj) obj->command_task_abort();
+    ConfirmHintDialog* abort_dlg = new ConfirmHintDialog(this, wxID_ANY, _L("Cancel print"));
+    abort_dlg->SetHint(_L("Are you sure you want to cancel this print?"));
+    abort_dlg->Bind(EVT_CONFIRM_HINT, [this](wxCommandEvent &e) {
+        if (obj) obj->command_task_abort();
+    });
+    if(abort_dlg->ShowModal())
+       delete abort_dlg;
 }
 
 void StatusPanel::error_info_reset()

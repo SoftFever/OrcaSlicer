@@ -5,7 +5,7 @@
 #include "GUI_App.hpp"
 #include "libslic3r/Thread.hpp"
 #include "ReleaseNote.hpp"
-#include "FirmwareUpdateDialog.hpp"
+#include "ConfirmHintDialog.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -657,9 +657,9 @@ void MachineInfoPanel::upgrade_firmware_internal() {
 
 void MachineInfoPanel::on_upgrade_firmware(wxCommandEvent &event)
 {
-    FirmwareUpdateDialog* confirm_dlg = new FirmwareUpdateDialog(this->GetParent());
+    ConfirmHintDialog* confirm_dlg = new ConfirmHintDialog(this->GetParent(), wxID_ANY, _L("Upgrade firmware"));
     confirm_dlg->SetHint(normal_upgrade_hint);
-    confirm_dlg->Bind(EVT_UPGRADE_FIRMWARE, [this](wxCommandEvent &e) {
+    confirm_dlg->Bind(EVT_CONFIRM_HINT, [this](wxCommandEvent &e) {
         if (m_obj){
             m_obj->command_upgrade_confirm();
         }
@@ -670,9 +670,9 @@ void MachineInfoPanel::on_upgrade_firmware(wxCommandEvent &event)
 
 void MachineInfoPanel::on_consisitency_upgrade_firmware(wxCommandEvent &event)
 {
-    FirmwareUpdateDialog* confirm_dlg = new FirmwareUpdateDialog(this->GetParent());
+    ConfirmHintDialog* confirm_dlg = new ConfirmHintDialog(this->GetParent(), wxID_ANY, _L("Upgrade firmware"));
     confirm_dlg->SetHint(normal_upgrade_hint);
-    confirm_dlg->Bind(EVT_UPGRADE_FIRMWARE, [this](wxCommandEvent &e) {
+    confirm_dlg->Bind(EVT_CONFIRM_HINT, [this](wxCommandEvent &e) {
         if (m_obj){
             m_obj->command_consistency_upgrade_confirm();
         }
@@ -793,9 +793,9 @@ void UpgradePanel::update(MachineObject *obj)
     if (m_obj && m_show_forced_hint) {
         if (m_obj->upgrade_force_upgrade) {
             m_show_forced_hint = false;   //lock hint
-            FirmwareUpdateDialog* force_dlg = new FirmwareUpdateDialog(m_scrolledWindow);
+            ConfirmHintDialog* force_dlg = new ConfirmHintDialog(m_scrolledWindow, wxID_ANY, _L("Upgrade firmware"));
             force_dlg->SetHint(force_upgrade_hint);
-            force_dlg->Bind(EVT_UPGRADE_FIRMWARE, &MachineInfoPanel::on_upgrade_firmware, m_push_upgrade_panel);
+            force_dlg->Bind(EVT_CONFIRM_HINT, &MachineInfoPanel::on_upgrade_firmware, m_push_upgrade_panel);
             if (force_dlg->ShowModal())
                 delete force_dlg;
         }
@@ -809,9 +809,9 @@ void UpgradePanel::update(MachineObject *obj)
     if (m_obj && m_show_consistency_hint) {
         if (m_obj->upgrade_consistency_request) {
             m_show_consistency_hint = false;
-		    FirmwareUpdateDialog* consistency_dlg = new FirmwareUpdateDialog(m_scrolledWindow);
+		    ConfirmHintDialog* consistency_dlg = new ConfirmHintDialog(m_scrolledWindow, wxID_ANY, _L("Upgrade firmware"));
             consistency_dlg->SetHint(consistency_upgrade_hint);
-            consistency_dlg->Bind(EVT_UPGRADE_FIRMWARE, &MachineInfoPanel::on_consisitency_upgrade_firmware, m_push_upgrade_panel);
+            consistency_dlg->Bind(EVT_CONFIRM_HINT, &MachineInfoPanel::on_consisitency_upgrade_firmware, m_push_upgrade_panel);
             if (consistency_dlg->ShowModal())
                 delete consistency_dlg;
 	    }
