@@ -412,7 +412,7 @@ void ArrangeJob::prepare()
 
     //add the virtual object into unselect list if has
     m_plater->get_partplate_list().preprocess_exclude_areas(m_unselected, MAX_NUM_PLATES);
-    
+
 #if SAVE_ARRANGE_POLY
     if (1)
     { // subtract excluded region and get a polygon bed
@@ -625,8 +625,11 @@ void ArrangeJob::finalize() {
     //BBS: partplate
     PartPlateList& plate_list = m_plater->get_partplate_list();
     //clear all the relations before apply the arrangement results
-    plate_list.clear();
-
+    if (only_on_partplate) {
+        plate_list.clear(false, false, true, current_plate_index);
+    }
+    else
+        plate_list.clear(false, false, true, -1);
     //BBS: adjust the bed_index, create new plates, get the max bed_index
     for (ArrangePolygon& ap : m_selected) {
         //if (ap.bed_idx < 0) continue;  // bed_idx<0 means unarrangable
@@ -709,7 +712,12 @@ void ArrangeJob::finalize() {
     m_plater->get_notification_manager()->close_notification_of_type(NotificationType::ArrangeOngoing);
 
     //BBS: reload all objects due to arrange
-    plate_list.rebuild_plates_after_arrangement(!only_on_partplate);
+    if (only_on_partplate) {
+        plate_list.rebuild_plates_after_arrangement(!only_on_partplate, true, current_plate_index);
+    }
+    else {
+        plate_list.rebuild_plates_after_arrangement(!only_on_partplate, true);
+    }
 
     // BBS: update slice context and gcode result.
     m_plater->update_slicing_context_to_current_partplate();
