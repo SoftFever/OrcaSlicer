@@ -673,6 +673,7 @@ void TreeSupport::detect_object_overhangs()
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     const coordf_t max_bridge_length = scale_(config.max_bridge_length.value);
     const bool bridge_no_support = max_bridge_length > 0;// config.bridge_no_support.value;
+    const bool support_critical_regions_only = config.support_critical_regions_only.value;
     const int enforce_support_layers = config.enforce_support_layers.value;
     const double area_thresh_well_supported = SQ(scale_(6));  // min: 6x6=36mm^2
     const double length_thresh_well_supported = scale_(6);  // min: 6mm
@@ -694,6 +695,7 @@ void TreeSupport::detect_object_overhangs()
         int min_layer = 1e7;
         int max_layer = 0;
         coordf_t offset = 0;
+        bool is_cantilever = false;
         OverhangCluster(const ExPolygon* expoly, int layer_nr) {
             push_back(expoly, layer_nr);
         }
@@ -822,8 +824,11 @@ void TreeSupport::detect_object_overhangs()
             // normal overhang
             ExPolygons lower_layer_offseted = offset_ex(lower_polys, support_offset_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS);
             ExPolygons overhang_areas = std::move(diff_ex(curr_polys, lower_layer_offseted));
-            //overhang_areas = std::move(offset2_ex(overhang_areas, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
-            overhang_areas.erase(std::remove_if(overhang_areas.begin(), overhang_areas.end(), [extrusion_width_scaled](ExPolygon& area) {return offset_ex(area, -0.1 * extrusion_width_scaled).empty(); }), overhang_areas.end());
+            // overhang_areas = std::move(offset2_ex(overhang_areas, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
+            overhang_areas.erase(std::remove_if(overhang_areas.begin(), overhang_areas.end(),
+                                                [extrusion_width_scaled](ExPolygon &area) { return offset_ex(area, -0.1 * extrusion_width_scaled).empty(); }),
+                                    overhang_areas.end());
+            
 
             ExPolygons overhangs_sharp_tail;
             if (is_auto && g_config_support_sharp_tails)
@@ -854,7 +859,7 @@ void TreeSupport::detect_object_overhangs()
                     overhang_areas = union_ex(overhang_areas, overhangs_sharp_tail);
             }
 #else
-                // BBS
+                // BBS detect sharp tail
                 const ExPolygons& lower_layer_sharptails = lower_layer->sharp_tails;
                 auto& lower_layer_sharptails_height = lower_layer->sharp_tails_height;
                 for (ExPolygon& expoly : layer->lslices) {
@@ -939,19 +944,8 @@ void TreeSupport::detect_object_overhangs()
 
             TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_nr + m_raft_layers);
             for (ExPolygon& poly : overhang_areas) {
-                // NOTE: must push something into ts_layer->overhang_areas, can't be empty for any layer,
-                // otherwise remove_small_overhangs can't correctly cluster overhangs
-#if 0
-                ExPolygons poly_simp = poly.simplify(scale_(radius_sample_resolution));
-                // simplify method may delete the entire polygon which is unwanted
-                if(!poly_simp.empty())
-                    append(ts_layer->overhang_areas, poly_simp);
-                else
-                    ts_layer->overhang_areas.emplace_back(poly);
-#else
                 if (!offset_ex(poly, -0.1 * extrusion_width_scaled).empty())
                     ts_layer->overhang_areas.emplace_back(poly);
-#endif
             }
 
             if (is_auto && g_config_remove_small_overhangs) {
@@ -1004,6 +998,34 @@ void TreeSupport::detect_object_overhangs()
     m_object->project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers);
     m_object->project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers);
 
+    // check whether the overhang cluster is cantilever (far awary from main body)
+    for (auto& cluster : overhangClusters) {
+        Layer* layer = m_object->get_layer(cluster.min_layer);
+        if (layer->lower_layer == NULL) continue;
+        Layer* lower_layer = layer->lower_layer;
+        auto cluster_boundary = intersection(cluster.merged_poly, offset(lower_layer->lslices, scale_(0.5)));
+        double dist_max = 0;
+        Points cluster_pts;
+        for (auto& poly : cluster.merged_poly)
+            append(cluster_pts, poly.contour.points);
+        for (auto& pt : cluster_pts) {
+            double dist_pt = std::numeric_limits<double>::max();
+            for (auto& poly : cluster_boundary) {
+                double d = poly.distance_to(pt);
+                dist_pt = std::min(dist_pt, d);
+            }
+            dist_max = std::max(dist_max, dist_pt);
+        }
+        if (dist_max > scale_(5)) {  // this cluster is cantilever, add all expolygons to sharp tail
+            for (auto it = cluster.layer_overhangs.begin(); it != cluster.layer_overhangs.end(); it++) {
+                int  layer_nr = it->first;
+                auto p_overhang = it->second;
+                m_object->get_layer(layer_nr)->cantilevers.emplace_back(*p_overhang);
+            }
+            cluster.is_cantilever = true;
+        }
+    }
+
     if (is_auto && g_config_remove_small_overhangs) {
         if (blockers.size() < m_object->layer_count())
             blockers.resize(m_object->layer_count());
@@ -1045,25 +1067,8 @@ void TreeSupport::detect_object_overhangs()
             }
             if (is_sharp_tail) continue;
 
-            // 4. check whether the overhang cluster is cantilever (far awary from main body)
-            Layer* layer = m_object->get_layer(cluster.min_layer);
-            if (layer->lower_layer == NULL) continue;
-            Layer* lower_layer = layer->lower_layer;
-            auto cluster_boundary = intersection(cluster.merged_poly, offset(lower_layer->lslices, scale_(0.5)));
-            double dist_max = 0;
-            Points cluster_pts;
-            for (auto& poly : cluster.merged_poly)
-                append(cluster_pts, poly.contour.points);
-            for (auto& pt : cluster_pts) {
-                double dist_pt = std::numeric_limits<double>::max();
-                for (auto& poly : cluster_boundary) {
-                    double d = poly.distance_to(pt);
-                    dist_pt = std::min(dist_pt, d);
-                }
-                dist_max = std::max(dist_max, dist_pt);
-            }
-            if (dist_max > scale_(5))
-                continue;
+            // 4. check whether the overhang cluster is cantilever
+            if (cluster.is_cantilever) continue;
 
             for (auto it = cluster.layer_overhangs.begin(); it != cluster.layer_overhangs.end(); it++) {
                 int  layer_nr   = it->first;
@@ -1088,6 +1093,11 @@ void TreeSupport::detect_object_overhangs()
             break;
 
         TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_nr + m_raft_layers);
+        if (support_critical_regions_only) {
+            auto layer = m_object->get_layer(layer_nr);
+            ts_layer->overhang_areas = layer->sharp_tails;
+            append(ts_layer->overhang_areas, layer->cantilevers);
+        }
 
         if (layer_nr < blockers.size()) {
             Polygons& blocker = blockers[layer_nr];

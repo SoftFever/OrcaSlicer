@@ -594,6 +594,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     // Direction of the support pattern (in XY plane).`
     ((ConfigOptionFloat,               support_angle))
     ((ConfigOptionBool,                support_on_build_plate_only))
+    ((ConfigOptionBool,                support_critical_regions_only))
     ((ConfigOptionFloat,               support_top_z_distance))
     ((ConfigOptionInt,                 enforce_support_layers))
     ((ConfigOptionInt,                 support_filament))

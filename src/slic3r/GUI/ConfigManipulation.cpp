@@ -510,7 +510,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
                     "support_interface_pattern", "support_interface_top_layers", "support_interface_bottom_layers",
                     "bridge_no_support", "thick_bridges", "max_bridge_length", "support_top_z_distance",
                      //BBS: add more support params to dependent of enable_support
-                    "support_type","support_on_build_plate_only",
+                    "support_type", "support_on_build_plate_only", "support_critical_regions_only",
                     "support_object_xy_distance", "independent_support_layer_height"})
         toggle_field(el, have_support_material);
     toggle_field("support_threshold_angle", have_support_material && (support_type == stNormalAuto || support_type == stTreeAuto || support_type==stHybridAuto));
