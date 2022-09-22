@@ -658,7 +658,7 @@ static std::vector<std::string> s_Preset_print_options {
     "inner_wall_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed",
     "top_surface_speed", "support_speed", "support_object_xy_distance", "support_interface_speed",
     "bridge_speed", "gap_infill_speed", "travel_speed", "travel_speed_z", "initial_layer_speed",
-    "initial_layer_acceleration", "top_surface_acceleration", "default_acceleration", "skirt_loops", "skirt_distance", "skirt_height", "draft_shield",
+    "outer_wall_acceleration", "inner_wall_acceleration", "initial_layer_acceleration", "top_surface_acceleration", "default_acceleration", "skirt_loops", "skirt_distance", "skirt_height", "draft_shield",
     "brim_width", "brim_object_gap", "brim_type", "enable_support", "support_type", "support_threshold_angle", "enforce_support_layers",
     "raft_layers", "raft_first_layer_density", "raft_first_layer_expansion", "raft_contact_distance", "raft_expansion",
     "support_base_pattern", "support_base_pattern_spacing", "support_style",

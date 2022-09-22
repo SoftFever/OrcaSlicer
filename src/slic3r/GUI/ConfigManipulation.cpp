@@ -483,7 +483,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     bool have_default_acceleration = config->opt_float("default_acceleration") > 0;
     //BBS
-    for (auto el : { "initial_layer_acceleration", "top_surface_acceleration" })
+    for (auto el : { "outer_wall_acceleration", "inner_wall_acceleration", "initial_layer_acceleration", "top_surface_acceleration" })
         toggle_field(el, have_default_acceleration);
 
     bool have_skirt = config->opt_int("skirt_loops") > 0;

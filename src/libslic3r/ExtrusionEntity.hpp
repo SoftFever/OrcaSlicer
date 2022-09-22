@@ -55,6 +55,16 @@ inline bool is_perimeter(ExtrusionRole role)
         || role == erOverhangPerimeter;
 }
 
+inline bool is_internal_perimeter(ExtrusionRole role)
+{
+    return role == erPerimeter;
+}
+
+inline bool is_external_perimeter(ExtrusionRole role)
+{
+    return role == erExternalPerimeter;
+}
+
 inline bool is_infill(ExtrusionRole role)
 {
     return role == erBridgeInfill

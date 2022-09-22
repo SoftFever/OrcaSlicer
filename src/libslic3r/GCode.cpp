@@ -3539,6 +3539,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         } else if (m_config.perimeter_acceleration.value > 0 && is_perimeter(path.role())) {
             acceleration = m_config.perimeter_acceleration.value;
 #endif
+        } else if (m_config.outer_wall_acceleration.value > 0 && is_external_perimeter(path.role())) {
+             acceleration = m_config.outer_wall_acceleration.value;
+        } else if (m_config.inner_wall_acceleration.value > 0 && is_internal_perimeter(path.role())) {
+            acceleration = m_config.inner_wall_acceleration.value;
         } else if (m_config.top_surface_acceleration.value > 0 && is_top_surface(path.role())) {
             acceleration = m_config.top_surface_acceleration.value;
         } else {

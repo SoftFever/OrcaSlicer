@@ -1250,6 +1250,22 @@ void PrintConfigDef::init_fff_params()
 #endif // HAS_LIGHTNING_INFILL
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCubic));
 
+    def = this->add("outer_wall_acceleration", coFloat);
+    def->label = L("Outer wall");
+    def->tooltip = L("Acceleration of outer walls.");
+    def->sidetext = L("mm/s²");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(3000));
+
+    def = this->add("inner_wall_acceleration", coFloat);
+    def->label = L("Inner wall");
+    def->tooltip = L("Acceleration of inner walls.");
+    def->sidetext = L("mm/s²");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(7000));
+
     def = this->add("top_surface_acceleration", coFloat);
     def->label = L("Top surface");
     def->tooltip = L("Acceleration of top surface infill. Using a lower value may improve top surface quality");

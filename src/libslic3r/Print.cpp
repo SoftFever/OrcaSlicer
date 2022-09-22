@@ -90,6 +90,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "filament_diameter",
         "filament_density",
         "filament_cost",
+        "outer_wall_acceleration",
+        "inner_wall_acceleration",
         "initial_layer_acceleration",
         "top_surface_acceleration",
         // BBS
