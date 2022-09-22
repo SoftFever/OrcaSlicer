@@ -53,8 +53,9 @@ OG_CustomCtrl::OG_CustomCtrl(   wxWindow*            parent,
     m_font = Label::Body_14;
     SetFont(m_font);
     m_em_unit   = em_unit(m_parent);
-    m_v_gap     = lround(1.0 * m_em_unit);
-    m_h_gap     = lround(0.2 * m_em_unit);
+    m_v_gap   = lround(1.2 * m_em_unit);
+    m_v_gap2  = lround(0.8 * m_em_unit);
+    m_h_gap   = lround(0.2 * m_em_unit);
 
     //m_bmp_mode_sz       = get_bitmap_size(create_scaled_bitmap("mode_simple", this, wxOSX ? 10 : 12));
     m_bmp_blinking_sz   = get_bitmap_size(create_scaled_bitmap("blank_16", this));
@@ -101,7 +102,7 @@ void OG_CustomCtrl::init_ctrl_lines()
             wxSize label_sz = GetTextExtent(line.label);
             if (opt_group->split_multi_line) {
                 if (option_set.size() > 1) // BBS
-                    height = (label_sz.y + m_v_gap) * option_set.size();
+                    height = (label_sz.y + m_v_gap2) * option_set.size() + m_v_gap - m_v_gap2;
                 else
                     height = label_sz.y * (label_sz.GetWidth() > int(opt_group->label_width * m_em_unit) ? 2 : 1) + m_v_gap;
             } else {
@@ -243,7 +244,7 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                     break;
                 }
                 if (opt_group->split_multi_line) {// BBS
-                    v_pos += ctrl_line.height / option_set.size();
+                    v_pos += (ctrl_line.height - m_v_gap + m_v_gap2) / option_set.size();
                 } else {
                     // BBS: new layout
                     h_pos += field->getWindow()->GetSize().x;
@@ -507,7 +508,7 @@ void OG_CustomCtrl::correct_window_position(wxWindow* win, const Line& line, Fie
     int line_height = get_height(line);
     if (opt_group->split_multi_line) { // BBS
         if (line.get_options().size() > 1)
-            line_height /= line.get_options().size();
+            line_height = (line_height - m_v_gap + m_v_gap2) / line.get_options().size();
     }
     pos.y += std::max(0, int(0.5 * (line_height - win->GetSize().y)));
     win->SetPosition(pos);
@@ -568,7 +569,8 @@ void OG_CustomCtrl::msw_rescale()
     m_font = Label::Body_14;
     SetFont(m_font);
     m_em_unit   = em_unit(m_parent);
-    m_v_gap     = lround(1.5 * m_em_unit);
+    m_v_gap     = lround(1.2 * m_em_unit);
+    m_v_gap2     = lround(0.8 * m_em_unit);
     m_h_gap     = lround(0.2 * m_em_unit);
 
     //m_bmp_mode_sz = create_scaled_bitmap("mode_simple", this, wxOSX ? 10 : 12).GetSize();
@@ -672,7 +674,7 @@ void OG_CustomCtrl::CtrlLine::msw_rescale()
         if (ctrl->opt_group->split_multi_line) { // BBS
             const std::vector<Option> &option_set = og_line.get_options();
             if (option_set.size() > 1)
-                height = (label_sz.y + ctrl->m_v_gap) * option_set.size();
+                height = (label_sz.y + ctrl->m_v_gap2) * option_set.size() + ctrl->m_v_gap - ctrl->m_v_gap2;
             else
                 height = label_sz.y * (label_sz.GetWidth() > int(ctrl->opt_group->label_width * ctrl->m_em_unit) ? 2 : 1) + ctrl->m_v_gap;
         } else {
@@ -878,7 +880,7 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
             h_pos += lround(0.6 * ctrl->m_em_unit);
 
         if (ctrl->opt_group->split_multi_line) { // BBS
-            v_pos += height / option_set.size();
+            v_pos += (height - ctrl->m_v_gap + ctrl->m_v_gap2) / option_set.size();
             h_pos = h_pos2;
         }
     }
@@ -894,7 +896,7 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_text(wxDC &dc, wxPoint pos, const wxString
 
         if (ctrl->opt_group->split_multi_line && !is_main) { // BBS
             const std::vector<Option> &option_set = og_line.get_options();
-            pos.y = pos.y + lround((height / option_set.size() - size.y) / 2);
+            pos.y = pos.y + lround(((height - ctrl->m_v_gap + ctrl->m_v_gap2) / option_set.size() - size.y) / 2);
         } else {
             pos.y = pos.y + lround((height - size.y) / 2);
         }
@@ -952,7 +954,7 @@ wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBi
     if (ctrl->opt_group->split_multi_line) { // BBS
         const std::vector<Option> &option_set = og_line.get_options();
         if (option_set.size() > 1)
-            pos.y += lround((height / option_set.size() - get_bitmap_size(bmp_undo).GetHeight()) / 2);
+            pos.y += lround(((height - ctrl->m_v_gap + ctrl->m_v_gap2) / option_set.size() - get_bitmap_size(bmp_undo).GetHeight()) / 2);
         else
             pos.y += lround((height - get_bitmap_size(bmp_undo).GetHeight()) / 2);
     } else {
