@@ -1822,6 +1822,24 @@ inline coordf_t calc_branch_radius(coordf_t base_radius, size_t layers_to_top, s
     return radius;
 }
 
+ExPolygons avoid_object_remove_extra_small_parts(ExPolygons &expolys, const ExPolygons &avoid_region) {
+    ExPolygons expolys_out;
+    for (auto expoly : expolys) {
+        auto  expolys_avoid = diff_ex(expoly, avoid_region);
+        int   idx_max_area  = -1;
+        float max_area      = 0;
+        for (int i = 0; i < expolys_avoid.size(); ++i) {
+            auto a = expolys_avoid[i].area();
+            if (a > max_area) {
+                max_area     = a;
+                idx_max_area = i;
+            }
+        }
+        if (idx_max_area >= 0) expolys_out.emplace_back(std::move(expolys_avoid[idx_max_area]));
+    }
+    return expolys_out;
+}
+
 void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_nodes)
 {
     const PrintObjectConfig &config = m_object->config();
@@ -1898,7 +1916,6 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
                 //Draw the support areas and add the roofs appropriately to the support roof instead of normal areas.
                 ts_layer->lslices.reserve(contact_nodes[layer_nr].size());
-#if 1
                 for (const Node* p_node : contact_nodes[layer_nr])
                 {
                     if (print->canceled())
@@ -1949,59 +1966,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                     if (layer_nr < brim_skirt_layers)
                         ts_layer->lslices.emplace_back(area);
                 }
-#else
-                // some nodes may not have radius set
-                for (Node* p_node : contact_nodes[layer_nr])
-                {
-                    size_t layers_to_top = p_node->distance_to_top;// std::min(node.distance_to_top, (size_t)300);
-                    double scale = static_cast<double>(layers_to_top + 1) / tip_layers;
-                    scale = layers_to_top < tip_layers ? (0.5 + scale / 2) : (1 + static_cast<double>(layers_to_top - tip_layers) * diameter_angle_scale_factor);
-                    p_node->radius = scale * branch_radius;
-                }
-                {
-                    // now this method is extremely slow. Need to optimize the speed before we can use it.
-                    Polygons layer_contours = std::move(m_ts_data->get_contours_with_holes(layer_nr));
-                    std::vector<double> radiis;
-                    std::vector<bool> is_interface;
-                    //Polygons lines = spanning_tree_to_polygon(m_spanning_trees[layer_nr], layer_contours, layer_nr, radiis);
-                    Polygons lines = contact_nodes_to_polygon(contact_nodes[layer_nr], layer_contours, layer_nr, radiis, is_interface);
 
-                    for (int k = 0; k < lines.size(); k++) {
-                        auto line = lines[k];
-                        double radius = radiis[k];
-                        Polygons line_expanded;
-                        if (line.size() == 1)
-                        {
-                            Polygon circle;
-                            double scale = radiis[k] / branch_radius;
-                            for (auto iter = branch_circle.points.begin(); iter != branch_circle.points.end(); iter++)
-                            {
-                                Point corner = (*iter) * scale;
-                                circle.append(line.first_point() + corner);
-                            }
-                            line_expanded.emplace_back(circle);
-                        }
-                        else {
-                            line_expanded = offset(line, scale_(radius), jtRound, scale_(g_config_tree_support_collision_resolution));
-                        }
-                        if (line_expanded.empty())
-                            continue;
-                        if (is_interface[k])
-                            roof_areas.emplace_back(line_expanded[0]);
-                        else
-                            base_areas.emplace_back(line_expanded[0]);
-                        if (layer_nr < brim_skirt_layers)
-                            ts_layer->lslices.emplace_back(line_expanded[0]);
-
-                        //if (radius > config.support_base_pattern_spacing * 2)
-                        //    ts_layer->need_infill = true;
-                    }
-
-#ifdef SUPPORT_TREE_DEBUG_TO_SVG
-                    draw_contours_and_nodes_to_svg( layer_nr, base_areas, to_expolygons(lines), m_ts_data->m_layer_outlines_below[layer_nr], {}, {}, "circles", { "lines","base_areas","outlines" });
-#endif
-                }
-#endif
                 ts_layer->lslices = std::move(union_ex(ts_layer->lslices));
 
                 //Must update bounding box which is used in avoid crossing perimeter
@@ -2020,15 +1985,18 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
                 // avoid object
                 auto avoid_region_interface = m_ts_data->get_collision(m_ts_data->m_xy_distance, layer_nr);
-                roof_areas = std::move(diff_ex(roof_areas, avoid_region_interface));
-                roof_1st_layer = std::move(diff_ex(roof_1st_layer, avoid_region_interface));
+                //roof_areas = std::move(diff_ex(roof_areas, avoid_region_interface));
+                //roof_1st_layer = std::move(diff_ex(roof_1st_layer, avoid_region_interface));
+                roof_areas = avoid_object_remove_extra_small_parts(roof_areas, avoid_region_interface);
+                roof_1st_layer = avoid_object_remove_extra_small_parts(roof_1st_layer, avoid_region_interface);
 
                 // roof_1st_layer and roof_areas may intersect, so need to subtract roof_areas from roof_1st_layer
                 roof_1st_layer = std::move(diff_ex(roof_1st_layer, roof_areas));
 
                 // let supports touch objects when brim is on
                 auto avoid_region = m_ts_data->get_collision((layer_nr == 0 && has_brim) ? config.brim_object_gap : m_ts_data->m_xy_distance, layer_nr);
-                base_areas = std::move(diff_ex(base_areas, avoid_region));
+                // base_areas = std::move(diff_ex(base_areas, avoid_region));
+                base_areas = avoid_object_remove_extra_small_parts(base_areas, avoid_region);
                 base_areas = std::move(diff_ex(base_areas, roof_areas));
                 base_areas = std::move(diff_ex(base_areas, roof_1st_layer));
 
