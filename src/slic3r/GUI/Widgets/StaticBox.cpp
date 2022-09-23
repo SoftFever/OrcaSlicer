@@ -34,6 +34,8 @@ StaticBox::StaticBox(wxWindow* parent,
 
 bool StaticBox::Create(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
 {
+    if (style & wxBORDER_NONE)
+        border_width = 0;
     wxWindow::Create(parent, id, pos, size, style);
     state_handler.attach({&border_color, &background_color, &background_color2});
     state_handler.update_binds();
@@ -150,7 +152,7 @@ void StaticBox::doRender(wxDC& dc)
     if (background_color2.count() == 0) {
         if ((border_width && border_color.count() > 0) || background_color.count() > 0) {
             wxRect rc(0, 0, size.x, size.y);
-            if (border_width && border_color.count() > 0 && (GetWindowStyle() & wxBORDER_NONE) == 0) {
+            if (border_width && border_color.count() > 0) {
                 if (dc.GetContentScaleFactor() == 1.0) {
                     int d  = floor(border_width / 2.0);
                     int d2 = floor(border_width - 1);
