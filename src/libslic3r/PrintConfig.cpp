@@ -644,7 +644,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Top surface flow ratio");
     def->category = L("Advanced");
     def->tooltip = L("This factor affects the amount of material for top solid infill. "
-                   "You can decrease it slightly to have smooth surface finish.");
+                   "You can decrease it slightly to have smooth surface finish");
     def->min = 0;
     def->max = 2;
     def->mode = comAdvanced;
@@ -653,7 +653,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("bottom_solid_infill_flow_ratio", coFloat);
     def->label = L("Bottom surface flow ratio");
     def->category = L("Advanced");
-    def->tooltip = L("This factor affects the amount of material for bottom solid infill. ");
+    def->tooltip = L("This factor affects the amount of material for bottom solid infill");
     def->min = 0;
     def->max = 2;
     def->mode = comAdvanced;
@@ -1252,7 +1252,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("outer_wall_acceleration", coFloat);
     def->label = L("Outer wall");
-    def->tooltip = L("Acceleration of outer walls.");
+    def->tooltip = L("Acceleration of outer walls");
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->mode = comAdvanced;
@@ -1260,7 +1260,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("inner_wall_acceleration", coFloat);
     def->label = L("Inner wall");
-    def->tooltip = L("Acceleration of inner walls.");
+    def->tooltip = L("Acceleration of inner walls");
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->mode = comAdvanced;

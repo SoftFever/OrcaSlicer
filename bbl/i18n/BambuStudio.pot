@@ -2820,6 +2820,9 @@ msgstr ""
 msgid "Click to edit preset"
 msgstr ""
 
+msgid "Connection"
+msgstr ""
+
 msgid "Bed type"
 msgstr ""
 
@@ -4743,6 +4746,20 @@ msgstr ""
 msgid "Bridge flow"
 msgstr ""
 
+msgid "Top surface flow ratio"
+msgstr ""
+
+msgid "Bottom surface flow ratio"
+msgstr ""
+
+msgid "This factor affects the amount of material for bottom solid infill"
+msgstr ""
+
+msgid ""
+"This factor affects the amount of material for top solid infill. "
+"You can decrease it slightly to have smooth surface finish"
+msgstr ""
+
 msgid ""
 "Decrease this value slightly(for example 0.9) to reduce the amount of "
 "material for bridge, to improve sag"
@@ -4751,8 +4768,16 @@ msgstr ""
 msgid "Only one wall on top surfaces"
 msgstr ""
 
+msgid "Only one wall on first layer"
+msgstr ""
+
 msgid ""
 "Use only one wall on flat top surface, to give more space to the top infill "
+"pattern"
+msgstr ""
+
+msgid ""
+"Use only one wall on first layer, to give more space to the bottom infill "
 "pattern"
 msgstr ""
 

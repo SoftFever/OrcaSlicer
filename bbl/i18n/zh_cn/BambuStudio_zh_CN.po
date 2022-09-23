@@ -2894,6 +2894,9 @@ msgstr "材料切换"
 msgid "Click to edit preset"
 msgstr "点击编辑配置"
 
+msgid "Connection"
+msgstr "连接打印机"
+
 msgid "Bed type"
 msgstr "热床类型"
 
@@ -4862,6 +4865,20 @@ msgstr ""
 msgid "Bridge flow"
 msgstr "桥接流量"
 
+msgid "Top surface flow ratio"
+msgstr "顶面流量"
+
+msgid "Bottom surface flow ratio"
+msgstr "首层流量"
+
+msgid "This factor affects the amount of material for bottom solid infill"
+msgstr "首层流量调整系数，默认为1.0"
+
+msgid ""
+"This factor affects the amount of material for top solid infill. "
+"You can decrease it slightly to have smooth surface finish"
+msgstr "稍微减小这个数值（比如0.97）可以来改善顶面的光滑程度。"
+
 msgid ""
 "Decrease this value slightly(for example 0.9) to reduce the amount of "
 "material for bridge, to improve sag"
@@ -4879,7 +4896,7 @@ msgid "Only one wall on top surfaces"
 msgstr "顶面单层墙"
 
 msgid ""
-"Use only one wall on first layer, to give more space to the bottom infill pattern "
+"Use only one wall on first layer, to give more space to the bottom infill "
 "pattern"
 msgstr "首层只使用单层墙，从而更多的空间能够使用底部填充图案"
 
@@ -5295,6 +5312,13 @@ msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
 "adhensive"
 msgstr "首层加速度。使用较低值可以改善和构建板的粘接。"
+
+msgid "Acceleration of outer walls"
+msgstr "外墙的加速度。它通常使用比内壁速度慢的加速度，以获得更好的质量。。"
+
+msgid "Acceleration of inner walls"
+msgstr "内圈墙加速度。使用较低值可以改善质量。"
+
 
 msgid "Line width of initial layer"
 msgstr "首层的线宽"
