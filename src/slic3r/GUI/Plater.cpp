@@ -2595,6 +2595,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 {
     std::vector<size_t> empty_result;
     bool dlg_cont = true;
+    bool is_user_cancel = false;
 
     if (input_files.empty()) { return std::vector<size_t>(); }
 
@@ -2707,7 +2708,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     // BBS: backup & restore
                     model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, en_3mf_file_type, strategy, &plate_data, &project_presets,
                                                              &file_version,
-                                                             [this, &dlg, real_filename, &progress_percent, &file_percent, stage_percent, INPUT_FILES_RATIO, total_files, i](int import_stage, int current, int total, bool &cancel) {
+                                                             [this, &dlg, real_filename, &progress_percent, &file_percent, stage_percent, INPUT_FILES_RATIO, total_files, i,
+                                                              &is_user_cancel](int import_stage, int current, int total, bool &cancel) {
                                                                  bool     cont = true;
                                                                  float percent_float = (100.0f * (float)i / (float)total_files) + INPUT_FILES_RATIO * ((float)stage_percent[import_stage] + (float)current * (float)(stage_percent[import_stage + 1] - stage_percent[import_stage]) /(float) total) / (float)total_files;
                                                                  BOOST_LOG_TRIVIAL(trace) << "load_3mf_file: percent(float)=" << percent_float << ", stage = " << import_stage << ", curr = " << current << ", total = " << total;
@@ -2715,6 +2717,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                                                  wxString msg  = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
                                                                  cont          = dlg.Update(progress_percent, msg);
                                                                  cancel        = !cont;
+                                                                 if (cancel)
+                                                                     is_user_cancel = cancel;
                                                              });
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__
                                             << boost::format(", plate_data.size %1%, project_preset.size %2%, is_bbs_3mf %3%, file_version %4% \n") % plate_data.size() %
@@ -3032,7 +3036,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             GUI::show_error(q, message);
             continue;
         } catch (const std::exception &e) {
-            GUI::show_error(q, e.what());
+            if (!is_user_cancel)
+                GUI::show_error(q, e.what());
             continue;
         }
 
@@ -3265,8 +3270,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
     if (tolal_model_count <= 0 && !q->m_exported_file) {
         dlg.Hide();
-        MessageDialog msg(wxGetApp().mainframe, _L("The file does not contain any geometry data."), _L("Warning"), wxYES | wxICON_WARNING);
-        if (msg.ShowModal() == wxID_YES) {}
+        if (!is_user_cancel) {
+            MessageDialog msg(wxGetApp().mainframe, _L("The file does not contain any geometry data."), _L("Warning"), wxYES | wxICON_WARNING);
+            if (msg.ShowModal() == wxID_YES) {}
+        }
     }
     return obj_idxs;
 }
