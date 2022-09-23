@@ -8954,6 +8954,10 @@ void Plater::print_job_finished(wxCommandEvent &evt)
 
     p->hide_select_machine_dlg();
     p->main_frame->request_select_tab(MainFrame::TabPosition::tpMonitor);
+    //jump to monitor and select device status panel
+    MonitorPanel* curr_monitor = p->main_frame->m_monitor;
+    if(curr_monitor)
+       curr_monitor->get_tabpanel()->ChangeSelection(MonitorPanel::PrinterTab::PT_STATUS);
 }
 
 // Called when the Eject button is pressed.

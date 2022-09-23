@@ -112,10 +112,20 @@ private:
 public:
     MonitorPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~MonitorPanel();
+
+    enum PrinterTab {
+        PT_STATUS  = 0,
+        PT_MEDIA   = 1,
+        PT_UPDATE  = 2,
+        PT_HMS     = 3,
+        PT_DEBUG   = 4,
+        PT_MAX_NUM = 5
+    };
     
 	void init_bitmap();
     void init_timer();
     void init_tabpanel();
+    Tabbook* get_tabpanel() { return m_tabpanel; };
     void set_default();
     wxWindow* create_side_tools();
 
