@@ -565,19 +565,13 @@ bool Model::looks_like_multipart_object() const
     for (const ModelObject *obj : this->objects) {
         if (obj->volumes.size() > 1 || obj->config.keys().size() > 1)
             return false;
-        Vec3d instance_offset_matrix = obj->instances[0]->m_transformation.get_offset();
-        for (const ModelVolume *vol : obj->volumes) {
-            Vec3d volume_offset_matrix = vol->m_transformation.get_offset();
-            BoundingBoxf3 bounding_box = vol->mesh().bounding_box();
-            bounding_box.translate(instance_offset_matrix);
-            bounding_box.translate(volume_offset_matrix);
-            double zmin_this = bounding_box.min(2);
-            if (zmin == std::numeric_limits<double>::max())
-                zmin = zmin_this;
-            else if (std::abs(zmin - zmin_this) > EPSILON)
-                // The volumes don't share zmin.
-                return true;
-        }
+
+        double zmin_this = obj->get_min_z();
+        if (zmin == std::numeric_limits<double>::max())
+            zmin = zmin_this;
+        else if (std::abs(zmin - zmin_this) > EPSILON)
+            // The Object don't share zmin.
+            return true;
     }
     return false;
 }
