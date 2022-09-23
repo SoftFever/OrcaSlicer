@@ -105,6 +105,7 @@ public:
     bool option_label_at_right{false};
     // BBS: new layout
     wxWindow *     stb;
+    const wxString  icon;
     const wxString  title;
     size_t			label_width = 20 ;// {200};
     wxSizer*		sizer {nullptr};
@@ -180,7 +181,7 @@ public:
 
     void            hide_labels() { label_width = 0; }
 
-	OptionsGroup(	wxWindow* _parent, const wxString& title, bool is_tab_opt = false, 
+	OptionsGroup(wxWindow *_parent, const wxString &title, const wxString &icon, bool is_tab_opt = false, 
                     column_t extra_clmn = nullptr);
 	~OptionsGroup() { clear(true); }
 
@@ -239,14 +240,17 @@ public:
 
 class ConfigOptionsGroup: public OptionsGroup {
 public:
+	ConfigOptionsGroup(	wxWindow* parent, const wxString& title, const wxString& icon, DynamicPrintConfig* config = nullptr, 
+						bool is_tab_opt = false, column_t extra_clmn = nullptr) :
+		OptionsGroup(parent, title, icon, is_tab_opt, extra_clmn), m_config(config) {}
 	ConfigOptionsGroup(	wxWindow* parent, const wxString& title, DynamicPrintConfig* config = nullptr, 
 						bool is_tab_opt = false, column_t extra_clmn = nullptr) :
-		OptionsGroup(parent, title, is_tab_opt, extra_clmn), m_config(config) {}
+		ConfigOptionsGroup(parent, title, wxEmptyString, config, is_tab_opt, extra_clmn) {}
 	ConfigOptionsGroup(	wxWindow* parent, const wxString& title, ModelConfig* config, 
 						bool is_tab_opt = false, column_t extra_clmn = nullptr) :
-		OptionsGroup(parent, title, is_tab_opt, extra_clmn), m_config(&config->get()), m_modelconfig(config) {}
+		OptionsGroup(parent, title, wxEmptyString, is_tab_opt, extra_clmn), m_config(&config->get()), m_modelconfig(config) {}
 	ConfigOptionsGroup(	wxWindow* parent) :
-		OptionsGroup(parent, wxEmptyString, true, nullptr) {}
+		OptionsGroup(parent, wxEmptyString, wxEmptyString, true, nullptr) {}
 
 	const wxString& config_category() const throw() { return m_config_category; }
 	int config_type() const throw() { return m_config_type; }
@@ -316,7 +320,7 @@ class ExtruderOptionsGroup : public ConfigOptionsGroup {
 public:
 	ExtruderOptionsGroup(wxWindow* parent, const wxString& title, DynamicPrintConfig* config = nullptr,
 		bool is_tab_opt = false, column_t extra_clmn = nullptr) :
-		ConfigOptionsGroup(parent, title, config, is_tab_opt, extra_clmn) {}
+		ConfigOptionsGroup(parent, title, wxEmptyString, config, is_tab_opt, extra_clmn) {}
 
 	void on_change_OG(const t_config_option_key& opt_id, const boost::any& value) override;
 };

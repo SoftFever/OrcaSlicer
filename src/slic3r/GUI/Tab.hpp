@@ -97,7 +97,7 @@ public:
     Line *      get_line(const t_config_option_key &opt_key);
 	bool		set_value(const t_config_option_key& opt_key, const boost::any& value);
 	// BBS. Add is_extruder_og parameter.
-	ConfigOptionsGroupShp	new_optgroup(const wxString& title, int noncommon_label_width = -1, bool is_extruder_og = false);
+	ConfigOptionsGroupShp	new_optgroup(const wxString& title, const wxString& icon = wxEmptyString, int noncommon_label_width = -1, bool is_extruder_og = false);
 	const ConfigOptionsGroupShp	get_optgroup(const wxString& title) const;
 
 	bool		set_item_colour(const wxColour *clr) {

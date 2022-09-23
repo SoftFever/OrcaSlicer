@@ -113,10 +113,10 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
     return field;
 }
 
-OptionsGroup::OptionsGroup(	wxWindow* _parent, const wxString& title,
+OptionsGroup::OptionsGroup(wxWindow *_parent, const wxString &title, const wxString &icon,
                             bool is_tab_opt /* = false */,
                             column_t extra_clmn /* = nullptr */) :
-                m_parent(_parent), title(title),
+                m_parent(_parent), title(title), icon(icon),
                 m_use_custom_ctrl(is_tab_opt),
 				// BBS: new layout
 				staticbox(!is_tab_opt), extra_column(extra_clmn)
@@ -461,7 +461,7 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/
 		}
 		else {
 			// BBS: new layout
-			::StaticLine* stl = new ::StaticLine(m_parent, false, _(title));
+			::StaticLine* stl = new ::StaticLine(m_parent, false, _(title), icon);
             stl->SetFont(Label::Head_14);
             stl->SetForegroundColour("#262E30");
             sizer = new wxBoxSizer(wxVERTICAL);
@@ -850,6 +850,9 @@ void ConfigOptionsGroup::msw_rescale()
 
     if (custom_ctrl)
         custom_ctrl->msw_rescale();
+
+    if (auto line = dynamic_cast<::StaticLine*>(stb))
+        line->Rescale();
 }
 
 void ConfigOptionsGroup::sys_color_changed()

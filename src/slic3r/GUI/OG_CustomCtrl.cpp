@@ -545,7 +545,7 @@ int OG_CustomCtrl::get_title_width()
     if (!GetLabel().IsEmpty())
         return titleWidth;
     else
-        return 1;
+        return 2;
 }
 
 void OG_CustomCtrl::set_max_win_width(int max_win_width)

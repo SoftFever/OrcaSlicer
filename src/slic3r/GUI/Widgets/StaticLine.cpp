@@ -10,7 +10,7 @@ EVT_PAINT(StaticLine::paintEvent)
 
 END_EVENT_TABLE()
 
-StaticLine::StaticLine(wxWindow* parent, bool vertical, const wxString& label)
+StaticLine::StaticLine(wxWindow *parent, bool vertical, const wxString &label, const wxString &icon)
     : wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
     , vertical(vertical)
 {
@@ -18,22 +18,22 @@ StaticLine::StaticLine(wxWindow* parent, bool vertical, const wxString& label)
     this->pen = wxPen(wxColour("#EEEEEE"));
     DisableFocusFromKeyboard();
     SetFont(Label::Body_14);
-    SetLabel(label);
+    wxWindow::SetLabel(label);
+    SetIcon(icon);
 }
 
 void StaticLine::SetLabel(const wxString& label)
 {
     wxWindow::SetLabel(label);
-    int s = 1;
-    if (!label.IsEmpty()) {
-        wxClientDC dc(this);
-        auto size = dc.GetTextExtent(label);
-        s = vertical ? size.x : size.y;
-    }
-    if (vertical)
-        SetMinSize({s, -1});
-    else
-        SetMinSize({-1, s});
+    messureSize();
+    Refresh();
+}
+
+void StaticLine::SetIcon(const wxString &icon)
+{
+    this->icon = icon.IsEmpty() ? ScalableBitmap() 
+        : ScalableBitmap(this, icon.ToStdString(), 18);
+    messureSize();
     Refresh();
 }
 
@@ -42,11 +42,39 @@ void StaticLine::SetLineColour(wxColour color)
     this->pen = wxPen(color);
 }
 
+void StaticLine::Rescale()
+{
+    if (this->icon.bmp().IsOk())
+        this->icon.msw_rescale();
+    messureSize();
+}
+
 void StaticLine::paintEvent(wxPaintEvent& evt)
 {
     // depending on your system you may need to look at double-buffered dcs
     wxPaintDC dc(this);
     render(dc);
+}
+
+void StaticLine::messureSize()
+{
+    wxClientDC dc(this);
+    wxSize textSize = dc.GetTextExtent(GetLabel());
+    wxSize szContent = textSize;
+    if (this->icon.bmp().IsOk()) {
+        if (szContent.y > 0) {
+            // BBS norrow size between text and icon
+            szContent.x += 5;
+        }
+        wxSize szIcon = this->icon.GetBmpSize();
+        szContent.x += szIcon.x;
+        if (szIcon.y > szContent.y) szContent.y = szIcon.y;
+    }
+    if (vertical)
+        szContent.y += 10;
+    else
+        szContent.x += 10;
+    SetMinSize(szContent);
 }
 
 /*
@@ -57,22 +85,29 @@ void StaticLine::paintEvent(wxPaintEvent& evt)
 void StaticLine::render(wxDC& dc)
 {
     wxSize size = GetSize();
-    wxSize size2 {0, 0};
-    auto label = GetLabel();
+    wxSize textSize;
+    auto   label = GetLabel();
+    if (!label.IsEmpty()) textSize = dc.GetTextExtent(label);
+    wxRect titleRect{{0, 0}, size};
+    titleRect.height = wxMax(icon.GetBmpHeight(), textSize.GetHeight());
+    int contentWidth = icon.GetBmpWidth() + ((icon.bmp().IsOk() && textSize.GetWidth() > 0) ? 5 : 0) +
+                textSize.GetWidth();
+    if (vertical) titleRect.Deflate((size.GetWidth() - contentWidth) / 2, 0);
+    if (icon.bmp().IsOk()) {
+        dc.DrawBitmap(icon.bmp(), {0, (size.y - icon.GetBmpHeight()) / 2});
+        titleRect.x += icon.GetBmpWidth() + 5;
+    }
     if (!label.IsEmpty()) {
-        size2 = dc.GetTextExtent(label);
-        dc.DrawText(label, 0, 0);
-        if (vertical)
-            size2.y += 5;
-        else
-            size2.x += 5;
+        dc.DrawText(label, titleRect.x, (size.GetHeight() - textSize.GetHeight()) / 2);
+        titleRect.x += textSize.GetWidth() + 5;
     }
     dc.SetPen(pen);
     if (vertical) {
         size.x /= 2;
-        dc.DrawLine(size.x, size2.y, size.x, size.y);
+        if (titleRect.y > 0) titleRect.y += 5;
+        dc.DrawLine(size.x, titleRect.y, size.x, size.y);
     } else {
         size.y /= 2;
-        dc.DrawLine(size2.x, size.y, size.x, size.y);
+        dc.DrawLine(titleRect.x, size.y, size.x, size.y);
     }
 }
