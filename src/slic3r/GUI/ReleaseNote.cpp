@@ -272,7 +272,7 @@ void UpdateVersionDialog::on_dpi_changed(const wxRect &suggested_rect) {
     m_button_cancel->Rescale();
 }
 
-void UpdateVersionDialog::update_version_info(wxString release_note, wxString version)
+void UpdateVersionDialog::update_version_info(std::string url)
 { 
    /*m_text_up_info->SetLabel(wxString::Format(_L("Click to download new version in default browser: %s"), version));
     wxBoxSizer *sizer_text_release_note   = new wxBoxSizer(wxVERTICAL);
@@ -281,6 +281,23 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
     sizer_text_release_note->Add(m_staticText_release_note, 0, wxALL, 5);
     m_scrollwindw_release_note->SetSizer(sizer_text_release_note);
     m_scrollwindw_release_note->Layout();*/
+
+    if (url.empty()) {
+		fs::path ph(data_dir());
+		ph /= "resources/tooltip/common/releasenote.html";
+		if (!fs::exists(ph)) {
+			ph = resources_dir();
+			ph /= "tooltip/releasenote.html";
+		}
+		auto url = ph.string();
+		std::replace(url.begin(), url.end(), '\\', '/');
+		url = "file:///" + url;
+		m_scrollwindw_release_note->LoadURL(from_u8(url));
+    }
+    else {
+        m_scrollwindw_release_note->LoadURL(from_u8(url));
+    }
+    
 }
 
  }} // namespace Slic3r::GUI

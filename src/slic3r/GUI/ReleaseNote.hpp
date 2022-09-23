@@ -63,7 +63,7 @@ public:
     bool ShowReleaseNote(std::string content);
     void RunScript(std::string script);
     void on_dpi_changed(const wxRect& suggested_rect) override;
-    void update_version_info(wxString release_note, wxString version);
+    void update_version_info(std::string url);
     void alter_choice(wxCommandEvent& event);
 
     wxStaticText *    m_text_up_info{nullptr};
