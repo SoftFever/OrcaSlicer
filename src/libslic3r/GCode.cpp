@@ -2042,7 +2042,7 @@ void GCode::get_bed_temperature(const int extruder_id, const bool is_first_layer
 {
     temps_per_bed.resize((int)BedType::btCount, 0);
     for (int bed_type = 0; bed_type < BedType::btCount; bed_type++) {
-        std::string bed_temp_key = is_first_layer ? get_bed_temp_key((BedType)bed_type) : get_bed_temp_1st_layer_key((BedType)bed_type);
+        std::string bed_temp_key = is_first_layer ? get_bed_temp_1st_layer_key((BedType)bed_type) : get_bed_temp_key((BedType)bed_type);
         const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(bed_temp_key);
 
         temps_per_bed[bed_type] = bed_temp_opt->get_at(extruder_id);
