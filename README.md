@@ -1,31 +1,37 @@
 
 # Bambu Studio - SoftFever
-A modified version of Bambu Studio.   
-It has following changes:
+A modified version of Bambu Studio with many handy features.   
+It's fully compatible with Bambulab X1/X1-C printers.
+It also supports Voron and Prusa MK3S printers.  
+You can download it here: https://github.com/SoftFever/BambuStudio-SoftFever/releases
 
-- ## Support third-party printers:
-    - Voron 2.4
-    - Voron Trident
-    - Voron 0.1
-    - Prusa MK3S
-- ## Export to to .gcode file.  
-    ![image](./SoftFever_doc/export_gcode.png)  
+## BambuStudio SoftFever change notes:
+### [V1.2.4 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.2.4-sf):
+1. Allow users to adjust accelerations for inner/outer walls separately.
+2. Allow users to adjust the bottom surface flow-rate
+3. Fix an issue that bed temperature for other layers is not set properly. This bug exists in the upstream as well. My PR here(bambulab#319)
 
-- ## Send gcode file to printer  
-    1. Setup connection  
-        <img src="./SoftFever_doc/print_host.png" width="1024">
-    2. Send to print  
-        <img src="./SoftFever_doc/send_to_print.png" width="1024">
-- ## Support single wall mode on first layer  
-    ![image](./SoftFever_doc/single_wall_first_layer.png)  
-- ## Support Chamber temperature. This setting can be use in machine start G-Gcode  
-    ![image](./SoftFever_doc/chamber_temperature.png)  
-    <img src="./SoftFever_doc/chamber_temperature_custom_gcode.png" width="686">
-- ## Thumbview is supported
+### [V1.2 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.2-sf):
+1. Allow user to change machine limits
+2. Allow users to adjust the top surface flow-rate.
+3. Unlock some cool hidden features in BambuStudio.
+4. Fix an issue that the software connected to Bambulab's staging server by default. (Only Bambulab machines were affected)
+
+### [V1.1 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.1):
+1. Support third-party printers:
+   - Voron 2.4
+   - Voron Trident
+   - Voron 0.1
+   - Prusa MK3S
+2. Export to to .gcode file.
+3. Send gcode file to printer
+4. Support single wall mode on first layer
+5. Support Chamber temperature. This setting can be use in machine start G-Gcode
+6. Support thumbview for third-party printers
 
 Demo video: https://youtu.be/vSNE9iGj2II  
  
-# NOTE: 
+## NOTE: 
 ## - If you have troubles to run the build, you might need to install following runtimes:  
 - [MicrosoftEdgeWebView2RuntimeInstallerX64](https://github.com/SoftFever/BambuStudio-SoftFever/releases/download/v1.0.10-sf2/MicrosoftEdgeWebView2RuntimeInstallerX64.exe)  
 - [vcredist2019_x64](https://github.com/SoftFever/BambuStudio-SoftFever/releases/download/v1.0.10-sf2/vcredist2019_x64.exe)  
@@ -63,6 +69,7 @@ ARC movement are supported by default.
 
 
 # Gallery
+![image](./SoftFever_doc/accelerations.png)
 ![image](./SoftFever_doc/printers1.png)  
 ![image](./SoftFever_doc/printers2.png)  
 ![image](./SoftFever_doc/printers3.png)  
