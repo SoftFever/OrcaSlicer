@@ -43,11 +43,35 @@ You can enable gcode_arcs(G2/G3) support by adding following section into you pr
 [gcode_arcs]
 resolution: 0.1
 
+[gcode_macro m201]
+gcode:
+  {% if 'X' in params or 'Y' in params %}
+    {% set accel = (params.X|default(params.Y)|float,
+                    params.Y|default(params.X)|float)|min %}
+      SET_VELOCITY_LIMIT ACCEL={accel} ACCEL_TO_DECEL={accel * 0.5}
+  {% else %}
+    SET_VELOCITY_LIMIT
+  {% endif %}
+
+[gcode_macro m203]
+gcode:
+  {% if 'X' in params or 'Y' in params %}
+    {% set speed = (params.X|default(params.Y)|float,
+                       params.Y|default(params.X)|float)|min %}
+    SET_VELOCITY_LIMIT VELOCITY={speed}
+  {% else %}
+    SET_VELOCITY_LIMIT
+  {% endif %}
+
 [gcode_macro M205]
 gcode:
-    {% set x_jerk = params.X|default(5)|float %}
-    {% set y_jerk = params.Y|default(5)|float %}
-    SET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY={x_jerk}
+  {% if 'X' in params or 'Y' in params %}
+    {% set corner_speed = (params.X|default(params.Y)|float,
+                       params.Y|default(params.X)|float)|min %}
+    SET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY={corner_speed}
+  {% else %}
+    SET_VELOCITY_LIMIT
+  {% endif %}
 
 ```
 
