@@ -1,0 +1,30 @@
+{
+    "type": "machine",
+    "setting_id": "GM003",
+    "name": "FLSun V400 0.4 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_machine_common",
+    "printer_model": "FLSun V400",
+    "default_print_profile": "0.20mm Standard @V400",
+    "nozzle_diameter": [
+        "0.4"
+    ],
+    "bed_exclude_area": [
+      "0x0"
+    ],
+    "printable_area": [
+      "0x0",
+      "212x0",
+      "212x212",
+      "0x212"
+    ],
+    "printable_height": "410",
+    "machine_start_gcode": "M190 S0\nM104 S0\nPRINT_START EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer_single]\n; You can use following code instead if your PRINT_START macro support Chamber and print area bedmesh\n; PRINT_START EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer_single] Chamber=[chamber_temperature] PRINT_MIN={first_layer_print_min[0]},{first_layer_print_min[1]} PRINT_MAX={first_layer_print_max[0]},{first_layer_print_max[1]}",
+    "machine_end_gcode": "PRINT_END",
+    "layer_change_gcode": "",
+    "scan_first_layer": "0",
+    "nozzle_type": "hardened_steel",
+    "auxiliary_fan": "0"
+  }
+  

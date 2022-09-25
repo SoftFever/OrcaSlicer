@@ -1,0 +1,20 @@
+{
+  "type": "process",
+  "setting_id": "FLSun-1",
+  "name": "0.20mm Standard @V400",
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "fdm_process_common",
+  "initial_layer_speed": "50",
+  "initial_layer_infill_speed": "105",
+  "outer_wall_speed": "200",
+  "inner_wall_speed": "300",
+  "sparse_infill_speed": "270",
+  "internal_solid_infill_speed": "250",
+  "top_surface_speed": "200",
+  "gap_infill_speed": "250",
+  "travel_speed": "480",
+  "compatible_printers": [
+    "FLSun V400 0.4 nozzle"
+  ]
+}
