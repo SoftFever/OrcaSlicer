@@ -148,7 +148,13 @@ HMSPanel::~HMSPanel() {
 
 void HMSPanel::append_hms_panel(HMSItem& item) {
     m_notify_item = new HMSNotifyItem(m_scrolledWindow, item);
-    m_top_sizer->Add(m_notify_item, 0, wxALIGN_CENTER_HORIZONTAL);
+    wxString msg = wxGetApp().get_hms_query()->query_hms_msg(item.get_long_error_code());
+    if (!msg.empty())
+        m_top_sizer->Add(m_notify_item, 0, wxALIGN_CENTER_HORIZONTAL);
+    else {
+        // debug for hms display error info
+        m_top_sizer->Add(m_notify_item, 0, wxALIGN_CENTER_HORIZONTAL);
+    }
 }
 
 void HMSPanel::delete_hms_panels() {
