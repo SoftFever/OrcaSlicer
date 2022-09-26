@@ -4703,7 +4703,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             append_option_item(item,offsets);
 
         //BBS display filament change times
-        if (m_print_statistics.total_filamentchanges > 0) {
+        if (m_print_statistics.total_filamentchanges > 0 && ( total_flushed_filament_m > 0 || total_flushed_filament_g > 0)) {
             std::string flushed_filament_title_str = _u8L("Flushed filament");
             std::string flushed_filament_str = _u8L("Filament");
             std::string total_flushed_filament_str = _u8L("Total");

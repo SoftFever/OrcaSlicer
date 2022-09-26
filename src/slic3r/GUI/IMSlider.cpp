@@ -88,14 +88,21 @@ bool check_color_change(PrintObject *object, size_t frst_layer_id, size_t layers
 
 static std::string gcode(Type type)
 {
-    const PrintConfig& config = GUI::wxGetApp().plater()->fff_print().config();
+    Slic3r::DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
     switch (type) {
     //BBS
-    //case ColorChange: return config.color_change_gcode;
-    case PausePrint:  return config.machine_pause_gcode;
-    //case Template:    return config.template_custom_gcode;
+    case Template:    return config.opt_string("template_custom_gcode");
     default:          return "";
     }
+
+    //const PrintConfig& config = GUI::wxGetApp().plater()->fff_print().config();
+    //switch (type) {
+    ////BBS
+    ////case ColorChange: return config.color_change_gcode;
+    //case PausePrint:  return config.machine_pause_gcode;
+    //case Template:    return config.template_custom_gcode;
+    //default:          return "";
+    //}
 }
 
 static std::string short_and_splitted_time(const std::string &time)
@@ -222,9 +229,9 @@ bool TickCodeInfo::add_tick(const int tick, Type type, const int extruder, doubl
     std::string extra;
     if (type == Custom) // custom Gcode
     {
-        /*extra = get_custom_code(custom_gcode, print_z);
-        if (extra.empty()) return false;
-        custom_gcode = extra;*/
+        //extra = get_custom_code(custom_gcode, print_z);
+        //if (extra.empty()) return false;
+        //custom_gcode = extra;
     } else if (type == PausePrint) {
         //BBS do not set pause extra message
         //extra = get_pause_print_msg(pause_print_msg, print_z);
@@ -262,9 +269,10 @@ bool TickCodeInfo::edit_tick(std::set<TickCode>::iterator it, double print_z)
         if (it->color == edited_value) return false;
         changed_tick.color = edited_value;
     } else if (it->type == Template) {
-        if (gcode(Template) == edited_value) return false;
-        changed_tick.extra = edited_value;
-        changed_tick.type  = Custom;
+        //if (gcode(Template) == edited_value) return false;
+        //changed_tick.extra = edited_value;
+        //changed_tick.type  = Custom;
+        ;
     } else if (it->type == Custom || it->type == PausePrint) {
         if (it->extra == edited_value) return false;
         changed_tick.extra = edited_value;
@@ -623,6 +631,21 @@ void IMSlider::post_ticks_changed_event(Type type)
 {
     m_tick_change_event_type = type;
     m_is_need_post_tick_changed_event = true;
+}
+
+void IMSlider::add_custom_gcode(std::string custom_gcode)
+{
+    if (m_selection == ssUndef) return;
+    const int tick = m_selection == ssLower ? m_lower_value : m_higher_value;
+
+    const auto it = m_ticks.ticks.find(TickCode{ tick });
+
+    if (it != m_ticks.ticks.end()) {
+        m_ticks.ticks.erase(it);
+    }
+    m_ticks.ticks.emplace(TickCode{ tick, Custom, std::max<int>(1, m_only_extruder), "", custom_gcode });
+
+    post_ticks_changed_event(Custom);
 }
 
 void IMSlider::add_code_as_tick(Type type, int selected_extruder)
@@ -1194,6 +1217,8 @@ bool IMSlider::render(int canvas_width, int canvas_height)
 
     float scale = (float) wxGetApp().em_unit() / 10.0f;
 
+    render_input_custom_gcode();
+
     if (is_horizontal()) {
         float  pos_x = std::max(LEFT_MARGIN, 0.2f * canvas_width);
         float  pos_y = (canvas_height - HORIZONTAL_SLIDER_SIZE.y * m_scale);
@@ -1247,6 +1272,70 @@ bool IMSlider::render(int canvas_width, int canvas_height)
     return result;
 }
 
+void IMSlider::render_input_custom_gcode()
+{
+    if (!m_show_custom_gcode_window)
+        return;
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    static bool move_to_center = true;
+    if (move_to_center) {
+        move_to_center = false;
+        auto pos_x = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_width() / 2;
+        auto pos_y = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height() / 2;
+        imgui.set_next_window_pos(pos_x, pos_y, ImGuiCond_Always, 0.5f, 0.5f);
+    }
+
+    imgui.push_common_window_style(m_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 12.f * m_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 3) * m_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10, 7) * m_scale);
+    int windows_flag = 
+        ImGuiWindowFlags_NoCollapse
+        | ImGuiWindowFlags_AlwaysAutoResize
+        | ImGuiWindowFlags_NoResize
+        | ImGuiWindowFlags_NoScrollbar
+        | ImGuiWindowFlags_NoScrollWithMouse;
+    imgui.begin(_u8L("Custom G-code"), windows_flag);
+    imgui.text(_u8L("Enter Custom G-code used on current layer:"));
+    int text_height = 6;
+    ImGui::InputTextMultiline("##text", m_custom_gcode, sizeof(m_custom_gcode), ImVec2(-1, ImGui::GetTextLineHeight() * text_height));
+    //text_height = 5;
+    //for (int i = 0; m_custom_gcode[i] != '\0'; ++i){
+    //    if ('\n' == m_custom_gcode[i] && text_height < 12)
+    //        ++text_height;
+    //}
+
+    ImGui::NewLine();
+    ImGui::SameLine(ImGui::GetStyle().WindowPadding.x * 14);
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f / 255.f, 174.f / 255.f, 66.f / 255.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(61.f / 255.f, 203.f / 255.f, 115.f / 255.f, 1.f));    
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(27.f / 255.f, 136.f / 255.f, 68.f / 255.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.f, 1.f, 1.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));  
+    if (imgui.bbl_button(_L("OK"))) {
+        m_show_custom_gcode_window = false;
+        add_custom_gcode(m_custom_gcode);
+        move_to_center = true;
+    }
+    ImGui::PopStyleColor(5);
+
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(255.f / 255.f, 255.f / 255.f, 255.f / 255.f, 1.f));    
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(238.f / 255.f, 238.f / 255.f, 238.f / 255.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(206.f / 255.f, 206.f / 255.f, 206.f / 255.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.f, 0.f, 0.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(38.f / 255.0f, 46.f / 255.0f, 48.f / 255.0f, 1.00f));  
+    if (imgui.bbl_button(_L("Cancel"))) {
+        m_show_custom_gcode_window = false;
+        move_to_center = true;
+    }
+    ImGui::PopStyleColor(5);
+
+    imgui.end();
+    ImGui::PopStyleVar(3);
+    imgui.pop_common_window_style();
+}
+
 void IMSlider::render_menu()
 {
     ImGuiWrapper::push_menu_style(m_scale);
@@ -1266,6 +1355,14 @@ void IMSlider::render_menu()
         {
             if (menu_item_with_icon(_u8L("Add Pause").c_str(), "")) {
                 add_code_as_tick(PausePrint);
+            }
+            if (menu_item_with_icon(_u8L("Add Custom G-code").c_str(), "")) {
+                m_show_custom_gcode_window = true;
+            }
+            if (!gcode(Template).empty()) {
+                if (menu_item_with_icon(_u8L("Add Custom Template").c_str(), "")) {
+                    add_code_as_tick(Template);
+                }
             }
         }
 

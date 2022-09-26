@@ -866,7 +866,7 @@ namespace DoExport {
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Printing by object G-code")), config.printing_by_object_gcode.value);
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Color Change G-code")), config.color_change_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Pause G-code")), config.machine_pause_gcode.value);
-        //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Template Custom G-code")), config.template_custom_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Template Custom G-code")), config.template_custom_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) {
             for (const std::string& value : config.filament_start_gcode.values) {
                 check(_(L("Filament start G-code")), value);
@@ -2218,11 +2218,11 @@ namespace ProcessLayer
             // Extruder switches are processed by LayerTools, they should be filtered out.
             assert(custom_gcode->type != CustomGCode::ToolChange);
 
-            CustomGCode::Type   gcode_type   = custom_gcode->type;
+            CustomGCode::Type   gcode_type = custom_gcode->type;
             bool  				color_change = gcode_type == CustomGCode::ColorChange;
-            bool 				tool_change  = gcode_type == CustomGCode::ToolChange;
+            bool 				tool_change = gcode_type == CustomGCode::ToolChange;
             // Tool Change is applied as Color Change for a single extruder printer only.
-            assert(! tool_change || single_filament_print);
+            assert(!tool_change || single_filament_print);
 
             std::string pause_print_msg;
             int m600_extruder_before_layer = -1;
@@ -2230,13 +2230,13 @@ namespace ProcessLayer
                 m600_extruder_before_layer = custom_gcode->extruder - 1;
             else if (gcode_type == CustomGCode::PausePrint)
                 pause_print_msg = custom_gcode->extra;
-            //BBS: inserting color gcode and template_custom_gcode is removed
+            //BBS: inserting color gcode is removed
 #if 0
             // we should add or not colorprint_change in respect to nozzle_diameter count instead of really used extruders count
             if (color_change || tool_change)
             {
                 assert(m600_extruder_before_layer >= 0);
-		        // Color Change or Tool Change as Color Change.
+                // Color Change or Tool Change as Color Change.
                 // add tag for processor
                 gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Color_Change) + ",T" + std::to_string(m600_extruder_before_layer) + "," + custom_gcode->color + "\n";
 
@@ -2258,20 +2258,19 @@ namespace ProcessLayer
                     // see GH issue #6362
                     gcodegen.writer().unretract();
                 }
-	        }
-	        else {
+            }
+            else {
 #endif
-	            if (gcode_type == CustomGCode::PausePrint) // Pause print
-	            {
+                if (gcode_type == CustomGCode::PausePrint) // Pause print
+                {
                     // add tag for processor
                     gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Pause_Print) + "\n";
                     //! FIXME_in_fw show message during print pause
-	                //if (!pause_print_msg.empty())
-	                //    gcode += "M117 " + pause_print_msg + "\n";
+                    //if (!pause_print_msg.empty())
+                    //    gcode += "M117 " + pause_print_msg + "\n";
                     gcode += gcodegen.placeholder_parser_process("machine_pause_gcode", config.machine_pause_gcode, current_extruder_id) + "\n";
                 }
-#if 0
-	            else {
+                else {
                     // add tag for processor
                     gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Custom_Code) + "\n";
                     if (gcode_type == CustomGCode::Template)    // Template Custom Gcode
@@ -2281,9 +2280,9 @@ namespace ProcessLayer
 
                 }
                 gcode += "\n";
+#if 0
             }
 #endif
-
         }
 
         return gcode;

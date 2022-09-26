@@ -5739,7 +5739,7 @@ bool _BBS_3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_ar
             //BBS
             std::string gcode = //code.type == CustomGCode::ColorChange ? config->opt_string("color_change_gcode")    :
                                 code.type == CustomGCode::PausePrint  ? config->opt_string("machine_pause_gcode")     :
-                                //code.type == CustomGCode::Template    ? config->opt_string("template_custom_gcode") :
+                                code.type == CustomGCode::Template    ? config->opt_string("template_custom_gcode") :
                                 code.type == CustomGCode::ToolChange  ? "tool_change"   : code.extra;
             code_tree.put("<xmlattr>.gcode"     , gcode   );
         }

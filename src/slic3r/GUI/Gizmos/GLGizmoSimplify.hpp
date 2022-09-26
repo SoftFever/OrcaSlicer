@@ -48,8 +48,6 @@ private:
     void process();
     void stop_worker_thread_request();
     void worker_finished();
-    void push_simplify_style();
-    void pop_simplify_style();
 
     void create_gui_cfg();
     void request_rerender(bool force = false);
