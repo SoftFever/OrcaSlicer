@@ -8917,7 +8917,7 @@ int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
         return -1;
     }
 
-    SaveStrategy strategy = SaveStrategy::Silence | SaveStrategy::SkipModel | SaveStrategy::WithGcode;
+    SaveStrategy strategy = SaveStrategy::Silence | SaveStrategy::SkipModel | SaveStrategy::WithGcode | SaveStrategy::SkipAuxiliary;
 #if !BBL_RELEASE_TO_PUBLIC
     //only save model in QA environment
     std::string sel = get_app_config()->get("iot_environment");
@@ -8950,7 +8950,7 @@ int Plater::export_config_3mf(int plate_idx, Export3mfProgressFn proFn)
         return -1;
     }
 
-    SaveStrategy strategy = SaveStrategy::Silence | SaveStrategy::SkipModel | SaveStrategy::WithSliceInfo;
+    SaveStrategy strategy = SaveStrategy::Silence | SaveStrategy::SkipModel | SaveStrategy::WithSliceInfo | SaveStrategy::SkipAuxiliary;
     result = export_3mf(p->m_print_job_data._3mf_config_path, strategy, plate_idx, proFn);
 
     return result;

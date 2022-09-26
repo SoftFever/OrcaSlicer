@@ -3827,6 +3827,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool m_split_model { false };       // save object per file with Production Extention
         bool m_save_gcode { false };        // whether to save gcode for normal save
         bool m_skip_model { false };        // skip model when exporting .gcode.3mf
+        bool m_skip_auxiliary { false };    // skip normal axuiliary files
 
     public:
         //BBS: add plate data related logic
@@ -3910,6 +3911,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         m_split_model = store_params.strategy & SaveStrategy::SplitModel;
         m_save_gcode = store_params.strategy & SaveStrategy::WithGcode;
         m_skip_model  = store_params.strategy & SaveStrategy::SkipModel;
+        m_skip_auxiliary = store_params.strategy & SaveStrategy::SkipAuxiliary;
 
         boost::system::error_code ec;
         std::string filename = std::string(store_params.path);
@@ -5826,7 +5828,7 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive &archive, c
                 }
                 continue;
             }
-            if (boost::filesystem::is_regular_file(dir_entry.path()))
+            if (boost::filesystem::is_regular_file(dir_entry.path()) && !m_skip_auxiliary)
             {
                 src_file = dir_entry.path().string();
                 dst_in_3mf = dir_entry.path().string();
