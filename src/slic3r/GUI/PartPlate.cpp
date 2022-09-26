@@ -3580,10 +3580,15 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 	{
 		if (arrange_polygon.bed_idx == -1)
 		{
-			//outarea for large object
+			// outarea for large object
 			arrange_polygon.bed_idx = m_plate_list.size();
-			arrange_polygon.translation(X) = scaled<double>(0.5 * plate_stride_x());
-			arrange_polygon.translation(Y) = scaled<double>(0.5 * plate_stride_y());
+			BoundingBox apbox(arrange_polygon.poly);
+			auto        apbox_size = apbox.size();
+
+			//arrange_polygon.translation(X) = scaled<double>(0.5 * plate_stride_x());
+			//arrange_polygon.translation(Y) = scaled<double>(0.5 * plate_stride_y());
+			arrange_polygon.translation(X) = 0.5 * apbox_size[0];
+			arrange_polygon.translation(Y) = scaled<double>(static_cast<double>(m_plate_depth)) - 0.5 * apbox_size[1];
 		}
 
 		arrange_polygon.row = arrange_polygon.bed_idx / m_plate_cols;
