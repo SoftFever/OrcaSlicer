@@ -81,6 +81,7 @@ public:
     Vec3d           m_buffered_size;
     bool            m_new_enabled {true};
     bool            m_uniform_scale {true};
+    bool            m_uniform_config {false};
     // Does the object manipulation panel work in World or Local coordinates?
     bool            m_world_coordinates = true;
 
