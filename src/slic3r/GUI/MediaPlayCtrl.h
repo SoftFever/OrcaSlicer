@@ -58,6 +58,11 @@ private:
     wxMediaCtrl2 * m_media_ctrl;
     wxMediaState m_last_state = MEDIASTATE_IDLE;
     std::string m_machine;
+    std::string m_lan_ip;
+    std::string m_lan_user;
+    std::string m_lan_passwd;
+    bool m_lan_mode = false;
+    bool m_tutk_support = false;
     wxString m_url;
     
     std::deque<wxString> m_tasks;

@@ -2,11 +2,17 @@
     "printers": [
         {
             "display_name": "Bambu Lab X1",
+            "func": {
+                "FUNC_LOCAL_TUNNEL": false
+            },
             "model_id": "BL-P002",
             "printer_type": "3DPrinter-X1"
         },
         {
             "display_name": "Bambu Lab X1 Carbon",
+            "func": {
+                "FUNC_LOCAL_TUNNEL": false
+            },
             "model_id": "BL-P001",
             "printer_type": "3DPrinter-X1-Carbon"
         }

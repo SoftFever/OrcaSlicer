@@ -1702,6 +1702,18 @@ bool MachineObject::is_function_supported(PrinterFunction func)
     case FUNC_CHAMBER_TEMP:
         func_name = "FUNC_CHAMBER_TEMP";
         break;
+    case FUNC_CAMERA_VIDEO:
+        func_name = "FUNC_CAMERA_VIDEO";
+        break;
+    case FUNC_MEDIA_FILE:
+        func_name = "FUNC_MEDIA_FILE";
+        break;
+    case FUNC_REMOTE_TUNNEL:
+        func_name = "FUNC_REMOTE_TUNNEL";
+        break;
+    case FUNC_LOCAL_TUNNEL:
+        func_name = "FUNC_LOCAL_TUNNEL";
+        break;
     default:
         return true;
     }

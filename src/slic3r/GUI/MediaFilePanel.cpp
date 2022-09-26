@@ -174,6 +174,17 @@ MediaFilePanel::~MediaFilePanel()
 void MediaFilePanel::SetMachineObject(MachineObject* obj)
 {
     std::string machine = obj ? obj->dev_id : "";
+    if (obj && obj->is_function_supported(PrinterFunction::FUNC_MEDIA_FILE)) {
+        m_lan_mode     = obj->is_lan_mode_printer();
+        m_lan_ip       = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->dev_ip : "";
+        m_lan_passwd   = obj->access_code;
+        m_tutk_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
+    } else {
+        m_lan_mode = false;
+        m_lan_ip.clear();
+        m_lan_passwd.clear();
+        m_tutk_support = true;
+    }
     if (machine == m_machine)
         return;
     m_machine = machine;
@@ -185,6 +196,8 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
     }
     if (m_machine.empty()) {
         m_image_grid->SetStatus(m_bmp_failed.bmp(), _L("No printers."));    
+    } else if (m_lan_ip.empty() && (m_lan_mode && !m_tutk_support)) {
+        m_image_grid->SetStatus(m_bmp_failed.bmp(), _L("Not supported."));
     } else {
         boost::shared_ptr<PrinterFileSystem> fs(new PrinterFileSystem);
         m_image_grid->SetFileType(m_last_type);
@@ -259,7 +272,17 @@ void MediaFilePanel::modeChanged(wxCommandEvent& e1)
 
 void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
 {
-    NetworkAgent* agent = wxGetApp().getAgent();
+    if (!m_lan_ip.empty()) {
+       std::string url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
+        boost::shared_ptr fs(wfs.lock());
+        if (!fs || fs != m_image_grid->GetFileSystem()) return;
+        fs->SetUrl(url);
+        return;
+    }
+    if (m_lan_mode && !m_tutk_support) { // not support tutk
+        return;
+    }
+    NetworkAgent *agent = wxGetApp().getAgent();
     if (agent) {
         agent->get_camera_url(m_machine,
             [this, wfs](std::string url) {
