@@ -794,7 +794,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("monotonic");
     def->enum_values.push_back("monotonicline");
     def->enum_values.push_back("alignedrectilinear");
-    //def->enum_values.push_back("hilbertcurve");
+    def->enum_values.push_back("hilbertcurve");
     //def->enum_values.push_back("archimedeanchords");
     //def->enum_values.push_back("octagramspiral");
     def->enum_labels.push_back(L("Concentric"));
@@ -802,7 +802,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Monotonic"));
     def->enum_labels.push_back(L("Monotonic line"));
     def->enum_labels.push_back(L("Aligned Rectilinear"));
-    //def->enum_labels.push_back(L("Hilbert Curve"));
+    def->enum_labels.push_back(L("Hilbert Curve"));
     //def->enum_labels.push_back(L("Archimedean Chords"));
     //def->enum_labels.push_back(L("Octagram Spiral"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
