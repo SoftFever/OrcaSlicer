@@ -490,6 +490,8 @@ size_t PrinterFileSystem::FindFile(size_t index, std::string const &name)
 void PrinterFileSystem::FileRemoved(size_t index, std::string const &name)
 {
     index = FindFile(index, name);
+    if (index == size_t(-1))
+        return;
     auto removeFromGroup = [](std::vector<size_t> &group, size_t index, int total) {
         for (auto iter = group.begin(); iter != group.end(); ++iter) {
             size_t index2 = -1;

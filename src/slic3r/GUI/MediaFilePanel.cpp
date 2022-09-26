@@ -31,6 +31,9 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_year = new ::Button(m_time_panel, _L("Year"), "", wxBORDER_NONE);
     m_button_month = new ::Button(m_time_panel, _L("Month"), "", wxBORDER_NONE);
     m_button_all = new ::Button(m_time_panel, _L("All Files"), "", wxBORDER_NONE);
+    m_button_year->SetToolTip(L("Group files by year, recent first."));
+    m_button_month->SetToolTip(L("Group files by month, recent first."));
+    m_button_all->SetToolTip(L("Show all files, recent first."));
     m_button_all->SetFont(Label::Head_14); // sync with m_last_mode
     for (auto b : {m_button_year, m_button_month, m_button_all}) {
         b->SetBackgroundColor(StateColor());
@@ -49,14 +52,22 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     top_sizer->Add(m_time_panel, 1, wxEXPAND);
 
     // File type
+    StateColor background(
+        std::make_pair(0xEEEEEE, (int) StateColor::Checked),
+        std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered), 
+        std::make_pair(*wxWHITE, (int) StateColor::Normal));
     m_type_panel = new ::StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_type_panel->SetBackgroundColor(*wxWHITE);
     m_type_panel->SetCornerRadius(FromDIP(5));
     m_type_panel->SetMinSize({-1, 48 * em_unit(this) / 10});
     m_button_timelapse = new ::Button(m_type_panel, _L("Timelapse"), "", wxBORDER_NONE);
-    m_button_timelapse->SetCanFocus(false);
+    m_button_timelapse->SetToolTip(L("Switch to timelapse files."));
     m_button_video = new ::Button(m_type_panel, _L("Video"), "", wxBORDER_NONE);
-    m_button_video->SetCanFocus(false);
+    m_button_video->SetToolTip(L("Switch to video files."));
+    for (auto b : {m_button_timelapse, m_button_video} ) {
+        b->SetBackgroundColor(background);
+        b->SetCanFocus(false);
+    }
 
     wxBoxSizer *type_sizer = new wxBoxSizer(wxHORIZONTAL);
     type_sizer->Add(m_button_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24);
@@ -68,13 +79,22 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_manage_panel      = new ::StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_manage_panel->SetBackgroundColor(StateColor());
     m_button_delete     = new ::Button(m_manage_panel, _L("Delete"));
-    m_button_delete->SetBackgroundColor(StateColor());
-    m_button_delete->SetCanFocus(false);
+    m_button_delete->SetToolTip(L("Delete selected files from printer."));
     m_button_download = new ::Button(m_manage_panel, _L("Download"));
-    m_button_download->SetBackgroundColor(StateColor());
-    m_button_download->SetCanFocus(false);
+    m_button_download->SetToolTip(L("Download selected files from printer."));
     m_button_management = new ::Button(m_manage_panel, _L("Management"));
-    m_button_management->SetBackgroundColor(StateColor());
+    m_button_management->SetToolTip(L("Batch manage files."));
+    for (auto b : {m_button_delete, m_button_download, m_button_management}) {
+        b->SetBackgroundColor(StateColor());
+        b->SetFont(Label::Body_12);
+        b->SetCornerRadius(12);
+        b->SetPaddingSize({10, 6});
+        b->SetCanFocus(false);
+    }
+    m_button_delete->SetBorderColor(wxColor("#FF6F00"));
+    m_button_delete->SetTextColor(wxColor("#FF6F00"));
+    m_button_management->SetBorderWidth(0);
+    m_button_management->SetBackgroundColor(wxColor("#00AE42"));
 
     wxBoxSizer *manage_sizer = new wxBoxSizer(wxHORIZONTAL);
     manage_sizer->AddStretchSpacer(1);
