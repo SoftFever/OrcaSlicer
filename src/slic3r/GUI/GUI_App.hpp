@@ -26,6 +26,7 @@
 
 #define BBL_HAS_FIRST_PAGE          1
 #define STUDIO_INACTIVE_TIMEOUT     15*60*1000
+#define LOG_FILES_MAX_NUM           30
 
 class wxMenuItem;
 class wxMenuBar;
