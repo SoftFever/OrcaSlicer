@@ -705,15 +705,16 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
     float        depth                     = print.wipe_tower_data(filaments_count).depth;
     //float        brim_width                = print.wipe_tower_data(filaments_count).brim_width;
 
-    Polygon     wipe_tower_convex_hull;
-    wipe_tower_convex_hull.points.emplace_back(scale_(x), scale_(y));
-    wipe_tower_convex_hull.points.emplace_back(scale_(x + width), scale_(y));
-    wipe_tower_convex_hull.points.emplace_back(scale_(x + width), scale_(y + depth));
-    wipe_tower_convex_hull.points.emplace_back(scale_(x), scale_(y + depth));
-    wipe_tower_convex_hull.rotate(a);
-
     Polygons convex_hulls_temp;
-    convex_hulls_temp.push_back(wipe_tower_convex_hull);
+    if (print.has_wipe_tower()) {
+        Polygon wipe_tower_convex_hull;
+        wipe_tower_convex_hull.points.emplace_back(scale_(x), scale_(y));
+        wipe_tower_convex_hull.points.emplace_back(scale_(x + width), scale_(y));
+        wipe_tower_convex_hull.points.emplace_back(scale_(x + width), scale_(y + depth));
+        wipe_tower_convex_hull.points.emplace_back(scale_(x), scale_(y + depth));
+        wipe_tower_convex_hull.rotate(a);
+        convex_hulls_temp.push_back(wipe_tower_convex_hull);
+    }
     if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
         if (warning) {
             warning->string += L("Prime Tower") + L(" is too close to others, and collisions may be caused.\n");
