@@ -119,25 +119,27 @@ bool BridgeDetector::detect_angle(double bridge_direction_override)
         }
 
         double total_length = 0;
+        double arachored_length = 0;
         double max_length = 0;
         {
             Lines clipped_lines = intersection_ln(lines, clip_area);
             for (size_t i = 0; i < clipped_lines.size(); ++i) {
                 const Line &line = clipped_lines[i];
+                double len = line.length();
+                total_length += len;
                 if (expolygons_contain(this->_anchor_regions, line.a) && expolygons_contain(this->_anchor_regions, line.b)) {
                     // This line could be anchored.
-                    double len = line.length();
-                    total_length += len;
+                    arachored_length += len;
                     max_length = std::max(max_length, len);
                 }
             }        
         }
-        if (total_length == 0.)
+        if (arachored_length == 0.)
             continue;
 
         have_coverage = true;
         // Sum length of bridged lines.
-        candidates[i_angle].coverage = total_length;
+        candidates[i_angle].coverage = arachored_length / total_length;
         /*  The following produces more correct results in some cases and more broken in others.
             TODO: investigate, as it looks more reliable than line clipping. */
         // $directions_coverage{$angle} = sum(map $_->area, @{$self->coverage($angle)}) // 0;

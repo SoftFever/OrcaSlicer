@@ -1782,6 +1782,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("wall_infill_order");
         optgroup->append_single_option_line("bridge_flow");
+        optgroup->append_single_option_line("thick_bridges");
         optgroup->append_single_option_line("only_one_wall_top");
         optgroup->append_single_option_line("detect_overhang_wall");
         optgroup->append_single_option_line("reduce_crossing_wall");
@@ -1884,7 +1885,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_object_xy_distance", "support#supportobject-xy-distance");
         optgroup->append_single_option_line("bridge_no_support", "support#base-pattern");
         optgroup->append_single_option_line("max_bridge_length", "support#base-pattern");
-        optgroup->append_single_option_line("thick_bridges", "support#base-pattern");
         //optgroup->append_single_option_line("independent_support_layer_height");
 
     page = add_options_page(L("Others"), "advanced");
