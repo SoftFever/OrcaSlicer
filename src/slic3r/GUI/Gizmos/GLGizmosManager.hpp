@@ -146,6 +146,7 @@ private:
     std::map<int, void*> icon_list;
 public:
 
+    std::unique_ptr<AssembleViewDataPool> m_assemble_view_data;
     enum MENU_ICON_NAME {
         IC_TOOLBAR_RESET            = 0,
         IC_TOOLBAR_RESET_HOVER,
@@ -222,6 +223,7 @@ public:
 
     void update(const Linef3& mouse_ray, const Point& mouse_pos);
     void update_data();
+    void update_assemble_view_data();
 
     EType get_current_type() const { return m_current; }
     GLGizmoBase* get_current() const;
@@ -265,6 +267,7 @@ public:
 
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false, bool alt_down = false, bool control_down = false);
     ClippingPlane get_clipping_plane() const;
+    ClippingPlane get_assemble_view_clipping_plane() const;
     bool wants_reslice_supports_on_undo() const;
 
     bool is_in_editing_mode(bool error_notification = false) const;
@@ -273,6 +276,7 @@ public:
     void render_current_gizmo() const;
     void render_current_gizmo_for_picking_pass() const;
     void render_painter_gizmo() const;
+    void render_painter_assemble_view() const;
 
     void render_overlay() const;
 

@@ -767,7 +767,7 @@ bool AssembleView::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrint
     m_canvas->set_process(process);
     m_canvas->set_type(GLCanvas3D::ECanvasType::CanvasAssembleView);
     m_canvas->set_config(config);
-    m_canvas->enable_gizmos(false);
+    m_canvas->enable_gizmos(true);
     m_canvas->enable_selection(true);
     m_canvas->enable_main_toolbar(false);
     m_canvas->enable_labels(false);

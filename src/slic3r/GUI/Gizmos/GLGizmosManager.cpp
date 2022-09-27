@@ -155,6 +155,7 @@ bool GLGizmosManager::init()
     //m_gizmos.emplace_back(new GLGizmoHollow(m_parent, "hollow.svg", sprite_id++));
 
     m_common_gizmos_data.reset(new CommonGizmosDataPool(&m_parent));
+    m_assemble_view_data.reset(new AssembleViewDataPool(&m_parent));
 
     for (auto& gizmo : m_gizmos) {
         if (! gizmo->init()) {
@@ -341,6 +342,16 @@ void GLGizmosManager::update(const Linef3& mouse_ray, const Point& mouse_pos)
         curr->update(GLGizmoBase::UpdateData(mouse_ray, mouse_pos));
 }
 
+void GLGizmosManager::update_assemble_view_data()
+{
+    if (m_assemble_view_data) {
+        if (m_parent.get_canvas_type() != GLCanvas3D::CanvasAssembleView)
+            m_assemble_view_data->update(AssembleViewDataID(0));
+        else
+            m_assemble_view_data->update(AssembleViewDataID((int)AssembleViewDataID::ModelObjectsInfo | (int)AssembleViewDataID::ModelObjectsClipper));
+    }
+}
+
 void GLGizmosManager::update_data()
 {
     if (!m_enabled)
@@ -359,10 +370,11 @@ void GLGizmosManager::update_data()
         enable_grabber(Scale, i, enable_scale_xyz);
     }
 
-    if (m_common_gizmos_data)
+    if (m_common_gizmos_data) {
         m_common_gizmos_data->update(get_current()
-                                   ? get_current()->get_requirements()
-                                   : CommonGizmosDataID(0));
+            ? get_current()->get_requirements()
+            : CommonGizmosDataID(0));
+    }
 
     if (selection.is_single_full_instance())
     {
@@ -587,6 +599,18 @@ ClippingPlane GLGizmosManager::get_clipping_plane() const
     }
 }
 
+ClippingPlane GLGizmosManager::get_assemble_view_clipping_plane() const
+{
+    if (!m_assemble_view_data
+        || !m_assemble_view_data->model_objects_clipper()
+        || m_assemble_view_data->model_objects_clipper()->get_position() == 0.)
+        return ClippingPlane::ClipsNothing();
+    else {
+        const ClippingPlane& clp = *m_assemble_view_data->model_objects_clipper()->get_clipping_plane();
+        return ClippingPlane(-clp.get_normal(), clp.get_data()[3]);
+    }
+}
+
 bool GLGizmosManager::wants_reslice_supports_on_undo() const
 {
     return (m_current == SlaSupports
@@ -612,6 +636,12 @@ void GLGizmosManager::render_painter_gizmo() const
     auto *gizmo = dynamic_cast<GLGizmoPainterBase*>(get_current());
     assert(gizmo); // check the precondition
     gizmo->render_painter_gizmo();
+}
+
+void GLGizmosManager::render_painter_assemble_view() const
+{
+    if (m_assemble_view_data)
+        m_assemble_view_data->model_objects_clipper()->render_cut();
 }
 
 void GLGizmosManager::render_current_gizmo_for_picking_pass() const
