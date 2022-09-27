@@ -46,17 +46,24 @@ void dfs_get_all_sorted_extruders(const std::vector<std::vector<float>>&        
 {
     if (sorted_extruders.size() == all_extruders.size()) {
         volumes_to_extruder_order.insert(std::pair(flush_volume, sorted_extruders));
+        return;
     }
 
     for (auto extruder_id : all_extruders) {
-        auto itor = std::find(sorted_extruders.begin(), sorted_extruders.end(), extruder_id);
-        if (itor == sorted_extruders.end()) {
-            float delta_flush_volume = wipe_volumes[sorted_extruders.back()][extruder_id];
-            flush_volume += delta_flush_volume;
+        if (sorted_extruders.empty()) {
             sorted_extruders.push_back(extruder_id);
             dfs_get_all_sorted_extruders(wipe_volumes, all_extruders, sorted_extruders, flush_volume, volumes_to_extruder_order);
-            flush_volume -= delta_flush_volume;
             sorted_extruders.pop_back();
+        } else {
+            auto itor = std::find(sorted_extruders.begin(), sorted_extruders.end(), extruder_id);
+            if (itor == sorted_extruders.end()) {
+                float delta_flush_volume = wipe_volumes[sorted_extruders.back()][extruder_id];
+                flush_volume += delta_flush_volume;
+                sorted_extruders.push_back(extruder_id);
+                dfs_get_all_sorted_extruders(wipe_volumes, all_extruders, sorted_extruders, flush_volume, volumes_to_extruder_order);
+                flush_volume -= delta_flush_volume;
+                sorted_extruders.pop_back();
+            }
         }
     }
 }
@@ -65,10 +72,13 @@ std::vector<unsigned int> get_extruders_order(const std::vector<std::vector<floa
     std::vector<unsigned int> all_extruders,
     unsigned int start_extruder_id)
 {
-    std::vector<unsigned int> sorted_extruders;
-    sorted_extruders.push_back(start_extruder_id);
-    std::map<float, std::vector<unsigned int>> volumes_to_extruder_order;
     if (all_extruders.size() > 1) {
+        std::vector<unsigned int> sorted_extruders;
+        auto iter = std::find(all_extruders.begin(), all_extruders.end(), start_extruder_id);
+        if (iter != all_extruders.end()) {
+            sorted_extruders.push_back(start_extruder_id);
+        }
+        std::map<float, std::vector<unsigned int>> volumes_to_extruder_order;
         dfs_get_all_sorted_extruders(wipe_volumes, all_extruders, sorted_extruders, 0, volumes_to_extruder_order);
         if(volumes_to_extruder_order.size() > 0)
             return volumes_to_extruder_order.begin()->second;
