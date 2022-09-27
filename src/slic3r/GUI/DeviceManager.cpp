@@ -5,9 +5,6 @@
 #include "slic3r/Utils/ColorSpaceConvert.hpp"
 
 #include "GUI_App.hpp"
-#include "libslic3r/PlaceholderParser.hpp"
-#include "libslic3r/Print.hpp"
-#include "libslic3r/PrintConfig.hpp"
 #include "MsgDialog.hpp"
 #include "Plater.hpp"
 #include "GUI_App.hpp"
@@ -46,6 +43,10 @@ std::string PRINTING_STAGE_STR[PRINTING_STAGE_COUNT] = {
     "scanner_laser_para_cali",
     "extruder_absolute_flow_cali"
     };
+
+
+
+
 
 wxString get_stage_string(int stage)
 {
@@ -1268,55 +1269,23 @@ int MachineObject::command_ams_switch(int tray_index, int old_temp, int new_temp
     int tray_id_int = tray_index;
 
     std::string gcode = "";
-    Slic3r::Print &   print = Slic3r::GUI::wxGetApp().plater()->get_partplate_list().get_current_fff_print();
-    const PrintConfig &print_config = print.config();
+    if (tray_index == 255) {
+        // unload gcode
+        gcode = "M620 S255\nM104 S250\nG28 X\nG91\nG1 Z3.0 F1200\nG90\n"
+                "G1 X70 F12000\nG1 Y245\nG1 Y265 F3000\nM109 S250\nG1 X120 F12000\n"
+                "G1 X20 Y50 F12000\nG1 Y-3\nT255\nM104 S25\nG1 X165 F5000\nG1 Y245\n"
+                "G91\nG1 Z-3.0 F1200\nG90\nM621 S255\n";
+    } else {
+        // load gcode
+        gcode = "M620 S[next_extruder]\nM104 S250\nG28 X\nG91\n\nG1 Z3.0 F1200\nG90\n"
+                "G1 X70 F12000\nG1 Y245\nG1 Y265 F3000\nM109 S250\nG1 X120 F12000\nG1 X20 Y50 F12000\nG1 Y-3"
+                "\nT[next_extruder]\nG1 X54  F12000\nG1 Y265\nM400\nM106 P1 S0\nG92 E0\nG1 E40 F200\nM400"
+                "\nM109 S[new_filament_temp]\nM400\nM106 P1 S255\nG92 E0\nG1 E5 F300\nM400\nM106 P1 S0\nG1 X70  F9000"
+                "\nG1 X76 F15000\nG1 X65 F15000\nG1 X76 F15000\nG1 X65 F15000\nG1 X70 F6000\nG1 X100 F5000\nG1 X70 F15000"
+                "\nG1 X100 F5000\nG1 X70 F15000\nG1 X165 F5000\nG1 Y245\nG91\nG1 Z-3.0 F1200\nG90\nM621 S[next_extruder]\n";
 
-    PlaceholderParser m_placeholder_parser;
-    m_placeholder_parser = print.placeholder_parser();
-    PlaceholderParser::ContextData m_placeholder_parser_context;
-    DynamicConfig      dyn_config;
-
-    int                old_filament_temp = old_temp;
-    int                new_filament_temp = new_temp;
-    old_filament_temp = correct_filament_temperature(old_filament_temp);
-    new_filament_temp = correct_filament_temperature(new_filament_temp);
-    dyn_config.set_key_value("previous_extruder", new ConfigOptionInt(-1));
-    dyn_config.set_key_value("next_extruder", new ConfigOptionInt(tray_id_int));
-    dyn_config.set_key_value("layer_num", new ConfigOptionInt(0));
-    dyn_config.set_key_value("layer_z", new ConfigOptionFloat(0.3));
-    dyn_config.set_key_value("max_layer_z", new ConfigOptionFloat(10.));
-    dyn_config.set_key_value("relative_e_axis", new ConfigOptionBool(RELATIVE_E_AXIS));
-    dyn_config.set_key_value("toolchange_count", new ConfigOptionInt(1));
-    dyn_config.set_key_value("fan_speed", new ConfigOptionInt(0));
-    dyn_config.set_key_value("old_retract_length", new ConfigOptionFloat(2.));
-    dyn_config.set_key_value("new_retract_length", new ConfigOptionFloat(2.));
-    dyn_config.set_key_value("old_retract_length_toolchange", new ConfigOptionFloat(3.0));
-    dyn_config.set_key_value("new_retract_length_toolchange", new ConfigOptionFloat(3.0));
-    dyn_config.set_key_value("old_filament_temp", new ConfigOptionInt(old_filament_temp));
-    dyn_config.set_key_value("new_filament_temp", new ConfigOptionInt(new_filament_temp));
-    dyn_config.set_key_value("x_after_toolchange", new ConfigOptionFloat(50.));
-    dyn_config.set_key_value("y_after_toolchange", new ConfigOptionFloat(50.));
-    dyn_config.set_key_value("z_after_toolchange", new ConfigOptionFloat(10.));
-    dyn_config.set_key_value("flush_length_1", new ConfigOptionFloat(5.f));
-    dyn_config.set_key_value("flush_length_2", new ConfigOptionFloat(5.f));
-    dyn_config.set_key_value("flush_length_3", new ConfigOptionFloat(0.f));
-    dyn_config.set_key_value("flush_length_4", new ConfigOptionFloat(0.f));
-    dyn_config.set_key_value("old_filament_e_feedrate", new ConfigOptionInt(100));
-    dyn_config.set_key_value("new_filament_e_feedrate", new ConfigOptionInt(100));
-    try {
-        std::string parsed_command = m_placeholder_parser.process(print_config.change_filament_gcode.value, tray_id_int, &dyn_config, &m_placeholder_parser_context);
-        // config xyz coordinate mode
-        std::string auto_home_command = "G28 X\n";
-        parsed_command                = "G90\n" + auto_home_command + parsed_command;
-        std::regex  match_pattern(";.*\n");
-        std::string replace_pattern = "\n";
-        char        result[1024]    = {0};
-        std::regex_replace(result, parsed_command.begin(), parsed_command.end(), match_pattern, replace_pattern);
-        result[1023] = 0;
-        gcode = std::string(result);
-    } catch (Exception &e) {
-        BOOST_LOG_TRIVIAL(trace) << "exception, e=" << e.what();
-        return -1;
+        boost::replace_all(gcode, "[next_extruder]", std::to_string(tray_index));
+        boost::replace_all(gcode, "[new_filament_temp]", std::to_string(new_temp));
     }
 
     return this->publish_gcode(gcode);
