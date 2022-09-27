@@ -227,11 +227,6 @@ void MonitorPanel::set_default()
     /* reset side tool*/
     //m_bitmap_wifi_signal->SetBitmap(wxNullBitmap);
 
-#if !BBL_RELEASE_TO_PUBLIC
-    /* reset time lapse panel */
-    m_media_file_panel->SetMachineObject(nullptr);
-#endif
-
     wxGetApp().sidebar().load_ams_list({});
 }
 

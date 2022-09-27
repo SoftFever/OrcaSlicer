@@ -220,6 +220,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         m_image_grid->SetStatus(m_bmp_failed.bmp(), _L("Not supported."));
     } else {
         boost::shared_ptr<PrinterFileSystem> fs(new PrinterFileSystem);
+        fs->Attached();
         m_image_grid->SetFileType(m_last_type);
         m_image_grid->SetFileSystem(fs);
         fs->Bind(EVT_MODE_CHANGED, &MediaFilePanel::modeChanged, this);

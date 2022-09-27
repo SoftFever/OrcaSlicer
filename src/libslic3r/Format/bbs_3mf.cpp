@@ -6024,8 +6024,10 @@ private:
         boost::posix_time::ptime start;
     };
 private:
-    _BBS_Backup_Manager() : m_thread(boost::ref(*this)) {
+    _BBS_Backup_Manager() {
         m_next_backup = boost::get_system_time() + boost::posix_time::seconds(m_interval);
+        boost::unique_lock lock(m_mutex);
+        m_thread = std::move(boost::thread(boost::ref(*this)));
     }
 
     ~_BBS_Backup_Manager() {
