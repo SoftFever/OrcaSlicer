@@ -26,10 +26,10 @@
         "0"
     ],
     "hot_plate_temp" : [
-        "45"
+        "55"
     ],
     "textured_plate_temp" : [
-        "45"
+        "55"
     ],
     "cool_plate_temp_initial_layer" : [
         "35"
@@ -38,10 +38,10 @@
         "0"
     ],
     "hot_plate_temp_initial_layer" : [
-        "45"
+        "55"
     ],
     "textured_plate_temp_initial_layer" : [
-        "45"
+        "55"
     ],
     "nozzle_temperature_initial_layer": [
         "220"

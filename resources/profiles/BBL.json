@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.02.01.01",
+    "version": "01.02.01.02",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -380,6 +380,14 @@
         {
             "name": "PolyTerra PLA @BBL X1",
             "sub_path": "filament/PolyTerra PLA @BBL X1.json"
+        },
+        {
+            "name": "PolyTerra PLA @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/PolyTerra PLA @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "PolyLite PLA @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/PolyLite PLA @BBL X1C 0.2 nozzle.json"
         }
     ],
     "machine_list": [
