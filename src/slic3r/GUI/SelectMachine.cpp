@@ -1991,6 +1991,18 @@ void SelectMachineDialog::update_show_status()
     reset_timeout();
     update_ams_check(obj_);
 
+    // do ams mapping if no ams result
+    if (obj_->has_ams() && m_ams_mapping_result.empty()) {
+        if (obj_->ams_support_use_ams) {
+            if (ams_check->GetValue()) {
+                do_ams_mapping(obj_);
+            } else {
+                m_ams_mapping_result.clear();
+                sync_ams_mapping_result(m_ams_mapping_result);
+            }
+        }
+    }
+
     // reading done
     if (obj_->is_in_upgrading()) {
         show_status(PrintDialogStatus::PrintStatusInUpgrading);

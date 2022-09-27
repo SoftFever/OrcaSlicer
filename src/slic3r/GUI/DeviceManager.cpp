@@ -666,9 +666,11 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
         }
     }
 
+    
     // is_support_ams_mapping
     if (!is_support_ams_mapping()) {
         BOOST_LOG_TRIVIAL(info) << "ams_mapping: do not support, use order mapping";
+        result.clear();
         for (int i = 0; i < filaments.size(); i++) {
             FilamentInfo info;
             info.id = filaments[i].id;
