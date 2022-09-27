@@ -108,7 +108,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     auto sizer = new wxBoxSizer(wxVERTICAL);
     auto line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_spaghetti = new CheckBox(parent);
-    text_spaghetti = new wxStaticText(parent, wxID_ANY, _L("Spaghetti Detection"));
+    text_spaghetti = new wxStaticText(parent, wxID_ANY, _L("Spaghetti and Excess Chute Pileup Detection"));
     text_spaghetti->SetFont(Label::Body_14);
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_spaghetti, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -117,7 +117,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
 
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_spaghetti_print_halt = new CheckBox(parent);
-    text_spaghetti_print_halt = new wxStaticText(parent, wxID_ANY, _L("Stop printing when spaghetti detected"));
+    text_spaghetti_print_halt = new wxStaticText(parent, wxID_ANY, _L("Stop printing when Spaghetti or Excess Chute Pileup is detected"));
     text_spaghetti_print_halt->SetFont(Label::Body_14);
     line_sizer->Add(FromDIP(30), 0, 0, 0);
     line_sizer->Add(m_cb_spaghetti_print_halt, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));

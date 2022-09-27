@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-21 11:05+0800\n"
+"POT-Creation-Date: 2022-09-27 16:25+0800\n"
 "PO-Revision-Date: 2022-09-05 14:22+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -818,11 +818,11 @@ msgstr "删除所选盘"
 msgid "Clone"
 msgstr "克隆"
 
-msgid "Reduce Triangles"
-msgstr "简化三角形"
+msgid "Simplify Model"
+msgstr ""
 
 msgid "Center"
-msgstr ""
+msgstr "居中"
 
 msgid "Edit in Parameter Table"
 msgstr "在参数表格中编辑"
@@ -1300,23 +1300,23 @@ msgstr ""
 "为基础的。"
 
 msgid "PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."
-msgstr "MerillPrusasicle最初是以Alessandro Ranellucci为基础的Slic3r。"
+msgstr "PrusaSlicer最初是基于Alessandro Ranellucci的Slic3r。"
 
 msgid ""
 "Slic3r was created by Alessandro Ranellucci with the help of many other "
 "contributors."
-msgstr "Slic3r是由Alessandro Ranellucci和许多其他贡献者的帮助下创建的。"
+msgstr "Slic3r由Alessandro Ranellucci在其他众多贡献者的帮助下创建。"
 
 msgid "Bambu Studio also referenced some ideas from Cura by Ultimaker."
-msgstr "Bambu Studio还引入了Ultimaker从Cura提出的一些想法。"
+msgstr "Bambu Studio还参考了Ultimaker的Cura中的一些想法。"
 
 msgid ""
 "There many parts of the software that come from community contributions, so "
 "we're unable to list them one-by-one, and instead, they'll be attributed in "
 "the corresponding code comments."
 msgstr ""
-"软件中的很多部分都来自于社区贡献，因此，我们无法逐一列出他们，相反的，他们将"
-"被注释于相应的代码中。"
+"软件中有很多部分来自于社区贡献，因此我们不便逐一列出他们，作为替代，他们将在"
+"相应的代码注释中被介绍。"
 
 msgid "AMS Materials Setting"
 msgstr "AMS 材料设置"
@@ -1853,12 +1853,10 @@ msgstr "流量"
 msgid "Tool"
 msgstr "工具"
 
-#, c-format, boost-format
-msgid "Speed: %.f"
+msgid "Speed: "
 msgstr ""
 
-#, c-format, boost-format
-msgid "Flow: %.f"
+msgid "Flow: "
 msgstr ""
 
 msgid "Loading G-codes"
@@ -1957,6 +1955,9 @@ msgstr "耗材丝 1"
 msgid "Flushed filament"
 msgstr "换料冲刷消耗"
 
+msgid "Total"
+msgstr "总计"
+
 msgid "Filament change times"
 msgstr "换料次数"
 
@@ -1989,9 +1990,6 @@ msgstr "准备时间"
 
 msgid "Model printing time"
 msgstr "模型打印时间"
-
-msgid "Total"
-msgstr "总计"
 
 msgid "Switch to silent mode"
 msgstr "切换到静音模式"
@@ -2507,12 +2505,15 @@ msgstr "初始化失败（没有设备）！"
 msgid "Initializing..."
 msgstr "正在初始化……"
 
+msgid "Loading..."
+msgstr "正在加载视频……"
+
+msgid "Initialize failed (Not supported)!"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Initialize failed [%d]!"
 msgstr "初始化失败 [%d]！"
-
-msgid "Loading..."
-msgstr "正在加载视频……"
 
 msgid "Stopped."
 msgstr "已经停止。"
@@ -2533,17 +2534,44 @@ msgstr "月"
 msgid "All Files"
 msgstr "所有文件"
 
+msgid "Group files by year, recent first."
+msgstr ""
+
+msgid "Group files by month, recent first."
+msgstr ""
+
+msgid "Show all files, recent first."
+msgstr ""
+
+msgid "Switch to timelapse files."
+msgstr ""
+
 msgid "Video"
 msgstr "录像"
+
+msgid "Switch to video files."
+msgstr ""
+
+msgid "Delete selected files from printer."
+msgstr ""
 
 msgid "Download"
 msgstr "下载"
 
+msgid "Download selected files from printer."
+msgstr ""
+
 msgid "Management"
 msgstr "管理"
 
+msgid "Batch manage files."
+msgstr ""
+
 msgid "No printers."
 msgstr "未选择打印机"
+
+msgid "Not supported."
+msgstr ""
 
 msgid "Connecting..."
 msgstr "连接中..."
@@ -2645,6 +2673,12 @@ msgstr "调试信息"
 
 msgid "Printing List"
 msgstr "项目切片"
+
+msgid "Cancel print"
+msgstr "取消打印"
+
+msgid "Are you sure you want to cancel this print?"
+msgstr "你确定要取消这次打印吗？"
 
 msgid "Downloading..."
 msgstr "下载中..."
@@ -2843,11 +2877,11 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "底部"
 
-msgid "Spaghetti Detection"
-msgstr "炒面检测"
+msgid "Spaghetti and Excess Chute Pileup Detection"
+msgstr "炒面与堆料检查"
 
-msgid "Stop printing when spaghetti detected"
-msgstr "当发生炒面时停止打印"
+msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
+msgstr "当发生炒面或废料口堆料时停止打印"
 
 msgid "First Layer Inspection"
 msgstr "首层扫描"
@@ -2916,12 +2950,49 @@ msgstr "热床类型"
 msgid "Flushing volumes"
 msgstr "冲刷体积"
 
+msgid "Add one filament"
+msgstr ""
+
+msgid "Remove last filament"
+msgstr ""
+
+msgid "Sync material list from AMS"
+msgstr ""
+
+msgid "Set filaments to use"
+msgstr ""
+
+msgid ""
+"No AMS filaments. Please select a printer in 'Device' page to load AMS info."
+msgstr ""
+
+msgid "Sync filaments with AMS"
+msgstr ""
+
+msgid ""
+"Sync filaments with AMS will drop all current selected filament presets and "
+"colors. Do you want to continue?"
+msgstr ""
+
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr ""
+
 msgid "Untitled"
 msgstr "未命名"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
 msgstr "是否保存修改到“%1%”？"
+
+#, c-format, boost-format
+msgid ""
+"Successfully unmounted. The device %s(%s) can now be safely removed from the "
+"computer."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Ejecting of device %s(%s) has failed."
+msgstr ""
 
 msgid "Previous unsaved project detected, do you want to restore it?"
 msgstr "检测到有未保存的项目，是否恢复此项目？"
@@ -3658,6 +3729,12 @@ msgstr "保存当前 %s"
 msgid "Delete this preset"
 msgstr "删除此预设"
 
+msgid "Search in preset"
+msgstr ""
+
+msgid "Click to reset all settings to the last saved preset."
+msgstr ""
+
 msgid ""
 "Prime tower is required by timeplase. Are you sure you want to disable both "
 "of them?"
@@ -4379,6 +4456,53 @@ msgstr "新版本的Bambu Studio"
 msgid "Don't remind me of this version again"
 msgstr "此版本不再提示"
 
+msgid ""
+"Are you sure you want to update? This will take about 10 minutes. Do not "
+"turn off the power while the printer is updating."
+msgstr "确定要更新吗？更新需要大约10分钟，在此期间请勿关闭电源。"
+
+msgid ""
+"An important update was detected and needs to be run before printing can "
+"continue. Do you want to update now? You can also update later from 'Upgrade "
+"firmware'."
+msgstr "检测到重要更新，需要升级后才可进行打印。你想现在就开始升级吗？你也可以稍后点击‘升级固件’完成升级。"
+
+msgid ""
+"The firmware version is abnormal. Repairing and updating are required before "
+"printing. Do you want to update now? You can also update later on printer or "
+"update next time starting the studio."
+msgstr "当前固件版本异常，需要进行修复升级，否则无法继续打印。你想现在就开始升级吗？你也可以稍后在打印机上升级，或者下一次启动studio再升级。"
+
+msgid "Model:"
+msgstr ""
+
+msgid "Serial:"
+msgstr ""
+
+msgid "Version:"
+msgstr ""
+
+msgid "Upgrade firmware"
+msgstr "升级固件"
+
+msgid "Printing"
+msgstr ""
+
+msgid "Idle"
+msgstr ""
+
+msgid "Latest version"
+msgstr ""
+
+msgid "Upgrading"
+msgstr "升级中"
+
+msgid "Upgrading failed"
+msgstr "升级失败"
+
+msgid "Upgrading successful"
+msgstr "升级成功"
+
 msgid "Saving objects into the 3mf failed."
 msgstr "保存对象到3mf失败。"
 
@@ -5091,6 +5215,9 @@ msgid "Monotonic line"
 msgstr "单调线"
 
 msgid "Aligned Rectilinear"
+msgstr ""
+
+msgid "Hilbert Curve"
 msgstr ""
 
 msgid "Bottom surface pattern"
@@ -5995,6 +6122,14 @@ msgstr "仅在构建板生成"
 msgid "Don't create support on model surface, only on build plate"
 msgstr "不在模型表面上生成支撑，只在热床上生成。"
 
+msgid "Support critical regions only"
+msgstr ""
+
+msgid ""
+"Only create support for critical regions including sharp tail, cantilever, "
+"etc."
+msgstr ""
+
 msgid "Top Z distance"
 msgstr "顶部Z距离"
 
@@ -6460,6 +6595,15 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#~ msgid "Reduce Triangles"
+#~ msgstr "简化三角形"
+
+#~ msgid "Spaghetti Detection"
+#~ msgstr "炒面检测"
+
+#~ msgid "Stop printing when spaghetti detected"
+#~ msgstr "当发生炒面时停止打印"
 
 #~ msgid ""
 #~ "Switch to zig-zag pattern?\n"

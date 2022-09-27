@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-21 11:05+0800\n"
+"POT-Creation-Date: 2022-09-27 16:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -827,8 +827,8 @@ msgstr "Radera den valda plattan"
 msgid "Clone"
 msgstr "Klona"
 
-msgid "Reduce Triangles"
-msgstr "Reducera Trianglar"
+msgid "Simplify Model"
+msgstr ""
 
 msgid "Center"
 msgstr ""
@@ -1906,12 +1906,10 @@ msgstr "Flöde"
 msgid "Tool"
 msgstr "Verktyg"
 
-#, c-format, boost-format
-msgid "Speed: %.f"
+msgid "Speed: "
 msgstr ""
 
-#, c-format, boost-format
-msgid "Flow: %.f"
+msgid "Flow: "
 msgstr ""
 
 msgid "Loading G-codes"
@@ -2010,6 +2008,9 @@ msgstr "Filament 1"
 msgid "Flushed filament"
 msgstr "Rensat filament"
 
+msgid "Total"
+msgstr "Totalt"
+
 msgid "Filament change times"
 msgstr "Filament bytes tider"
 
@@ -2042,9 +2043,6 @@ msgstr "Förbered tid"
 
 msgid "Model printing time"
 msgstr "Utskriftstid för modellen"
-
-msgid "Total"
-msgstr "Totalt"
 
 msgid "Switch to silent mode"
 msgstr "Ändra till tyst läge"
@@ -2555,12 +2553,15 @@ msgstr "Start misslyckad (Ingen Enhet)!"
 msgid "Initializing..."
 msgstr "Startar..."
 
+msgid "Loading..."
+msgstr "Laddar..."
+
+msgid "Initialize failed (Not supported)!"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Initialize failed [%d]!"
 msgstr "Start misslyckad [%d]!"
-
-msgid "Loading..."
-msgstr "Laddar..."
 
 msgid "Stopped."
 msgstr "Avbruten."
@@ -2581,17 +2582,44 @@ msgstr "Månad"
 msgid "All Files"
 msgstr ""
 
+msgid "Group files by year, recent first."
+msgstr ""
+
+msgid "Group files by month, recent first."
+msgstr ""
+
+msgid "Show all files, recent first."
+msgstr ""
+
+msgid "Switch to timelapse files."
+msgstr ""
+
 msgid "Video"
 msgstr "Video"
+
+msgid "Switch to video files."
+msgstr ""
+
+msgid "Delete selected files from printer."
+msgstr ""
 
 msgid "Download"
 msgstr "Ladda ner"
 
+msgid "Download selected files from printer."
+msgstr ""
+
 msgid "Management"
 msgstr "Handhavande"
 
+msgid "Batch manage files."
+msgstr ""
+
 msgid "No printers."
 msgstr "Ingen printer."
+
+msgid "Not supported."
+msgstr ""
 
 msgid "Connecting..."
 msgstr "Sammankopplar..."
@@ -2693,6 +2721,12 @@ msgstr "Felsöknings Information"
 
 msgid "Printing List"
 msgstr "Utskrifts Lista"
+
+msgid "Cancel print"
+msgstr ""
+
+msgid "Are you sure you want to cancel this print?"
+msgstr ""
 
 msgid "Downloading..."
 msgstr "Laddar ner..."
@@ -2896,10 +2930,10 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Bottenlager"
 
-msgid "Spaghetti Detection"
+msgid "Spaghetti and Excess Chute Pileup Detection"
 msgstr ""
 
-msgid "Stop printing when spaghetti detected"
+msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 msgstr ""
 
 msgid "First Layer Inspection"
@@ -2969,12 +3003,49 @@ msgstr "Typ av byggplatta"
 msgid "Flushing volumes"
 msgstr "Rensnings volymer"
 
+msgid "Add one filament"
+msgstr ""
+
+msgid "Remove last filament"
+msgstr ""
+
+msgid "Sync material list from AMS"
+msgstr ""
+
+msgid "Set filaments to use"
+msgstr ""
+
+msgid ""
+"No AMS filaments. Please select a printer in 'Device' page to load AMS info."
+msgstr ""
+
+msgid "Sync filaments with AMS"
+msgstr ""
+
+msgid ""
+"Sync filaments with AMS will drop all current selected filament presets and "
+"colors. Do you want to continue?"
+msgstr ""
+
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr ""
+
 msgid "Untitled"
 msgstr "Ej namngiven"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
 msgstr "Spara ändringarna till \"%1%\"?"
+
+#, c-format, boost-format
+msgid ""
+"Successfully unmounted. The device %s(%s) can now be safely removed from the "
+"computer."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Ejecting of device %s(%s) has failed."
+msgstr ""
 
 msgid "Previous unsaved project detected, do you want to restore it?"
 msgstr "Tidigare osparat projekt upptäckt, återställa det?"
@@ -3714,6 +3785,12 @@ msgstr "Spara nuvarande %s"
 
 msgid "Delete this preset"
 msgstr "Radera denna förinställning"
+
+msgid "Search in preset"
+msgstr ""
+
+msgid "Click to reset all settings to the last saved preset."
+msgstr ""
 
 msgid ""
 "Prime tower is required by timeplase. Are you sure you want to disable both "
@@ -4464,6 +4541,53 @@ msgid "New version of Bambu Studio"
 msgstr "Ny version av Bambu Studio"
 
 msgid "Don't remind me of this version again"
+msgstr ""
+
+msgid ""
+"Are you sure you want to update? This will take about 10 minutes. Do not "
+"turn off the power while the printer is updating."
+msgstr ""
+
+msgid ""
+"An important update was detected and needs to be run before printing can "
+"continue. Do you want to update now? You can also update later from 'Upgrade "
+"firmware'."
+msgstr ""
+
+msgid ""
+"The firmware version is abnormal. Repairing and updating are required before "
+"printing. Do you want to update now? You can also update later on printer or "
+"update next time starting the studio."
+msgstr ""
+
+msgid "Model:"
+msgstr ""
+
+msgid "Serial:"
+msgstr ""
+
+msgid "Version:"
+msgstr ""
+
+msgid "Upgrade firmware"
+msgstr ""
+
+msgid "Printing"
+msgstr ""
+
+msgid "Idle"
+msgstr ""
+
+msgid "Latest version"
+msgstr ""
+
+msgid "Upgrading"
+msgstr ""
+
+msgid "Upgrading failed"
+msgstr ""
+
+msgid "Upgrading successful"
 msgstr ""
 
 msgid "Saving objects into the 3mf failed."
@@ -5228,6 +5352,9 @@ msgid "Monotonic line"
 msgstr "Monoton linje"
 
 msgid "Aligned Rectilinear"
+msgstr ""
+
+msgid "Hilbert Curve"
 msgstr ""
 
 msgid "Bottom surface pattern"
@@ -6213,6 +6340,14 @@ msgstr "Endast på byggplattan"
 msgid "Don't create support on model surface, only on build plate"
 msgstr "Inställningen skapar bara support som utgår ifrån byggplattan"
 
+msgid "Support critical regions only"
+msgstr ""
+
+msgid ""
+"Only create support for critical regions including sharp tail, cantilever, "
+"etc."
+msgstr ""
+
 msgid "Top Z distance"
 msgstr "Topp Z-distans"
 
@@ -6711,6 +6846,9 @@ msgstr "Support: åtgärda hål vid lager %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: föröka grenar vid lager %d"
+
+#~ msgid "Reduce Triangles"
+#~ msgstr "Reducera Trianglar"
 
 #~ msgid ""
 #~ "Switch to zig-zag pattern?\n"
