@@ -217,7 +217,7 @@ void Tab::create_preset_tab()
         restore_last_select_item();
     });
 
-    add_scaled_button(panel, &m_btn_compare_preset, "compare");
+    //add_scaled_button(panel, &m_btn_compare_preset, "compare");
     add_scaled_button(m_top_panel, &m_btn_save_preset, "save");
     add_scaled_button(m_top_panel, &m_btn_delete_preset, "cross");
     //if (m_type == Preset::Type::TYPE_PRINTER)
@@ -229,7 +229,7 @@ void Tab::create_preset_tab()
 
     //add_scaled_button(panel, &m_btn_hide_incompatible_presets, m_bmp_hide_incompatible_presets.name());
 
-    m_btn_compare_preset->SetToolTip(_L("Compare presets"));
+    //m_btn_compare_preset->SetToolTip(_L("Compare presets"));
     // TRN "Save current Settings"
     m_btn_save_preset->SetToolTip(wxString::Format(_L("Save current %s"), m_title));
     m_btn_delete_preset->SetToolTip(_(L("Delete this preset")));
@@ -494,7 +494,7 @@ void Tab::create_preset_tab()
     m_page_view->SetScrollbars(1, 20, 1, 2);
     m_hsizer->Add(m_page_view, 1, wxEXPAND | wxLEFT, 5);*/
 
-    m_btn_compare_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { compare_preset(); }));
+    //m_btn_compare_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { compare_preset(); }));
     m_btn_save_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { save_preset(); }));
     m_btn_delete_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { delete_preset(); }));
     /*m_btn_hide_incompatible_presets->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) {
