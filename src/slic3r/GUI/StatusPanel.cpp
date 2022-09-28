@@ -1397,6 +1397,10 @@ void StatusPanel::update_error_message()
                                  wxGetApp().get_hms_query()->query_print_error_msg(obj->print_error),
                                  print_error_str);
             show_error_message(error_msg);
+            //hint dialog
+            ConfirmHintDialog print_error_dlg(this->GetParent(), wxID_ANY, _L("Warning"));
+            print_error_dlg.SetHint(error_msg);
+            print_error_dlg.ShowModal();
         }
         before_error_code        = obj->print_error;
    }
