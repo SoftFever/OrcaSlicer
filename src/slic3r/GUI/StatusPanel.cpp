@@ -1104,6 +1104,8 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     Bind(EVT_AMS_REFRESH_RFID, &StatusPanel::on_ams_refresh_rfid, this);
     Bind(EVT_AMS_ON_SELECTED, &StatusPanel::on_ams_selected, this);
     Bind(EVT_AMS_ON_FILAMENT_EDIT, &StatusPanel::on_filament_edit, this);
+    Bind(EVT_AMS_GUIDE_WIKI, &StatusPanel::on_ams_guide, this);
+    Bind(EVT_AMS_RETRY, &StatusPanel::on_ams_retry, this);
 
     m_switch_speed->Connect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_switch_speed), NULL, this);
     m_calibration_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_calibration), NULL, this);
@@ -2264,6 +2266,16 @@ void StatusPanel::on_ams_selected(wxCommandEvent &event)
             ;
         }   
     }
+}
+
+void StatusPanel::on_ams_guide(wxCommandEvent& event)
+{
+    ;// todo
+}
+
+void StatusPanel::on_ams_retry(wxCommandEvent& event)
+{
+    ;// todo
 }
 
 void StatusPanel::on_bed_temp_kill_focus(wxFocusEvent &event)
