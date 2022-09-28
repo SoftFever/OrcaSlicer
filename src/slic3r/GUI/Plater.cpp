@@ -3829,7 +3829,7 @@ void Plater::priv::update_print_volume_state()
     //BBS: use the plate's bounding box instead of the bed's
     PartPlate* pp = partplate_list.get_curr_plate();
     BuildVolume build_volume(pp->get_shape(), this->bed.build_volume().printable_height());
-    this->q->model().update_print_volume_state(build_volume);
+    this->model.update_print_volume_state(build_volume);
 }
 
 void Plater::priv::process_validation_warning(StringObjectException const &warning) const
@@ -3909,7 +3909,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         this->partplate_list.update_slice_context_to_current_plate(background_process);
         this->preview->update_gcode_result(partplate_list.get_current_slice_result());
     }
-    Print::ApplyStatus invalidated = background_process.apply(q->model(), wxGetApp().preset_bundle->full_config());
+    Print::ApplyStatus invalidated = background_process.apply(this->model, wxGetApp().preset_bundle->full_config());
 
     if ((invalidated == Print::APPLY_STATUS_CHANGED) || (invalidated == Print::APPLY_STATUS_INVALIDATED))
         // BBS: add only gcode mode

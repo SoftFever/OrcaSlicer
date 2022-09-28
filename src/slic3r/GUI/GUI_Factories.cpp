@@ -1343,6 +1343,9 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
         return;
 
     std::vector<wxBitmap*> icons = get_extruder_color_icons(true);
+    if (icons.size() < filaments_cnt) {
+        BOOST_LOG_TRIVIAL(warning) << boost::format("Warning: icons size %1%, filaments_cnt=%2%")%icons.size()%filaments_cnt;
+    }
     wxMenu* extruder_selection_menu = new wxMenu();
     const wxString& name = sels.Count() == 1 ? names[0] : names[1];
 
