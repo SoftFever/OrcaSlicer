@@ -1205,20 +1205,20 @@ void Sidebar::sync_ams_list()
 {
     auto & list = wxGetApp().preset_bundle->filament_ams_list;
     if (list.empty()) {
-        MessageDialog dlg(this, 
-            _L("No AMS filaments. Please select a printer in 'Device' page to load AMS info."), 
+        MessageDialog dlg(this,
+            _L("No AMS filaments. Please select a printer in 'Device' page to load AMS info."),
             _L("Sync filaments with AMS"), wxOK);
         dlg.ShowModal();
         return;
     }
-    MessageDialog dlg(this, 
-        _L("Sync filaments with AMS will drop all current selected filament presets and colors. Do you want to continue?"), 
+    MessageDialog dlg(this,
+        _L("Sync filaments with AMS will drop all current selected filament presets and colors. Do you want to continue?"),
         _L("Sync filaments with AMS"), wxYES_NO);
     if (dlg.ShowModal() != wxID_YES) return;
     auto n = wxGetApp().preset_bundle->sync_ams_list();
     if (n == 0) {
-        MessageDialog dlg(this, 
-            _L("There are no compatible filaments, and sync is not performed."), 
+        MessageDialog dlg(this,
+            _L("There are no compatible filaments, and sync is not performed."),
             _L("Sync filaments with AMS"), wxOK);
         dlg.ShowModal();
         return;
@@ -5412,7 +5412,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
                 // Don't offer the "Eject" button on ChromeOS, the Linux side has no control over it.
                 platform_flavor() != PlatformFlavor::LinuxOnChromium);
             wxGetApp().removable_drive_manager()->set_exporting_finished(true);
-        }else 
+        }else
         if (exporting_status == ExportingStatus::EXPORTING_TO_LOCAL && !has_error)
             notification_manager->push_exporting_finished_notification(last_output_path, last_output_dir_path, false);
     }
@@ -8308,7 +8308,7 @@ void Plater::export_gcode_3mf()
         export_3mf(output_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode | SaveStrategy::SkipModel, curr_plate_idx); // BBS: silence
 
         RemovableDriveManager& removable_drive_manager = *wxGetApp().removable_drive_manager();
-        
+
 
         bool on_removable = removable_drive_manager.is_path_on_removable_drive(p->last_output_dir_path);
 
@@ -8727,6 +8727,7 @@ void Plater::reslice()
     if (p->process_completed_with_error)
     {
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": process_completed_with_error, return directly");
+        reset_gcode_toolpaths();
         return;
     }
 
