@@ -13,10 +13,6 @@ namespace GUI {
 static const wxColour TEXT_NORMAL_CLR = wxColour(0, 174, 66);
 static const wxColour TEXT_FAILED_CLR = wxColour(255, 111, 0);
 
-wxString normal_upgrade_hint = _L("Are you sure you want to update? This will take about 10 minutes. Do not turn off the power while the printer is updating.");
-wxString force_upgrade_hint = _L("An important update was detected and needs to be run before printing can continue. Do you want to update now? You can also update later from 'Upgrade firmware'.");
-wxString consistency_upgrade_hint = _L("The firmware version is abnormal. Repairing and updating are required before printing. Do you want to update now? You can also update later on printer or update next time starting the studio.");
-
 MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
     :wxPanel(parent, id, pos, size, style)
 {
@@ -503,47 +499,53 @@ void MachineInfoPanel::update_ams(MachineObject *obj)
                 ams_sn   = "-";
                 ams_ver  = "-";
             } else {
-                // update ams img
-                wxString ams_text = wxString::Format("AMS%s", std::to_string(ams_id + 1));
-                ams_name = ams_text;
+                if (m_obj->upgrade_display_state == (int)MachineObject::UpgradingDisplayState::UpgradingInProgress) {
+                    ams_ver = "-";
+                    amspanel->m_ams_new_version_img->Hide();
+                }
+                else {
+                    // update ams img
+                    wxString ams_text = wxString::Format("AMS%s", std::to_string(ams_id + 1));
+                    ams_name = ams_text;
 
-                if (obj->new_ver_list.empty() && !obj->m_new_ver_list_exist) {
-                    if (obj->upgrade_new_version
-                        && obj->ams_new_version_number.compare(it->second.sw_ver) != 0) { 
-                        amspanel->m_ams_new_version_img->Show();
-
-                        if (obj->ams_new_version_number.empty()) {
-                            ams_ver = wxString::Format("%s", it->second.sw_ver);
-                        } else {
-                            ams_ver = wxString::Format("%s->%s", it->second.sw_ver, obj->ams_new_version_number);
-                        }
-                    } else {
-                        amspanel->m_ams_new_version_img->Hide();
-                        if (obj->ams_new_version_number.empty()) {
-                            wxString ver_text = wxString::Format("%s", it->second.sw_ver);
-                            ams_ver           = ver_text;
-                        } else {
-                            wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
-                            ams_ver           = ver_text;
-                        }
-                    }
-                } else {
-                    std::string ams_idx = (boost::format("ams/%1%") % ams_id).str();
-                    auto        ver_item = obj->new_ver_list.find(ams_idx);
-
-                    if (ver_item == obj->new_ver_list.end()) {
-                        amspanel->m_ams_new_version_img->Hide();
-                        wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
-                        ams_ver           = ver_text;
-                    } else {
-                        if (ver_item->second.sw_new_ver != ver_item->second.sw_ver) {
+                    if (obj->new_ver_list.empty() && !obj->m_new_ver_list_exist) {
+                        if (obj->upgrade_new_version
+                            && obj->ams_new_version_number.compare(it->second.sw_ver) != 0) {
                             amspanel->m_ams_new_version_img->Show();
-                            wxString ver_text = wxString::Format("%s->%s", ver_item->second.sw_ver, ver_item->second.sw_new_ver);
-                            ams_ver           = ver_text;
+
+                            if (obj->ams_new_version_number.empty()) {
+                                ams_ver = wxString::Format("%s", it->second.sw_ver);
+                            } else {
+                                ams_ver = wxString::Format("%s->%s", it->second.sw_ver, obj->ams_new_version_number);
+                            }
                         } else {
                             amspanel->m_ams_new_version_img->Hide();
-                            wxString ver_text = wxString::Format("%s(%s)", ver_item->second.sw_ver, _L("Latest version"));
+                            if (obj->ams_new_version_number.empty()) {
+                                wxString ver_text = wxString::Format("%s", it->second.sw_ver);
+                                ams_ver           = ver_text;
+                            } else {
+                                wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
+                                ams_ver           = ver_text;
+                            }
+                        }
+                    } else {
+                        std::string ams_idx = (boost::format("ams/%1%") % ams_id).str();
+                        auto        ver_item = obj->new_ver_list.find(ams_idx);
+
+                        if (ver_item == obj->new_ver_list.end()) {
+                            amspanel->m_ams_new_version_img->Hide();
+                            wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
                             ams_ver           = ver_text;
+                        } else {
+                            if (ver_item->second.sw_new_ver != ver_item->second.sw_ver) {
+                                amspanel->m_ams_new_version_img->Show();
+                                wxString ver_text = wxString::Format("%s->%s", ver_item->second.sw_ver, ver_item->second.sw_new_ver);
+                                ams_ver           = ver_text;
+                            } else {
+                                amspanel->m_ams_new_version_img->Hide();
+                                wxString ver_text = wxString::Format("%s(%s)", ver_item->second.sw_ver, _L("Latest version"));
+                                ams_ver           = ver_text;
+                            }
                         }
                     }
                 }
@@ -658,7 +660,9 @@ void MachineInfoPanel::upgrade_firmware_internal() {
 void MachineInfoPanel::on_upgrade_firmware(wxCommandEvent &event)
 {
     ConfirmHintDialog* confirm_dlg = new ConfirmHintDialog(this->GetParent(), wxID_ANY, _L("Upgrade firmware"));
-    confirm_dlg->SetHint(normal_upgrade_hint);
+    confirm_dlg->SetHint(_L(
+        "Are you sure you want to update? This will take about 10 minutes. Do not turn off the power while the printer is updating."
+    ));
     confirm_dlg->Bind(EVT_CONFIRM_HINT, [this](wxCommandEvent &e) {
         if (m_obj){
             m_obj->command_upgrade_confirm();
@@ -671,7 +675,9 @@ void MachineInfoPanel::on_upgrade_firmware(wxCommandEvent &event)
 void MachineInfoPanel::on_consisitency_upgrade_firmware(wxCommandEvent &event)
 {
     ConfirmHintDialog* confirm_dlg = new ConfirmHintDialog(this->GetParent(), wxID_ANY, _L("Upgrade firmware"));
-    confirm_dlg->SetHint(normal_upgrade_hint);
+    confirm_dlg->SetHint(_L(
+        "Are you sure you want to update? This will take about 10 minutes. Do not turn off the power while the printer is updating."
+    ));
     confirm_dlg->Bind(EVT_CONFIRM_HINT, [this](wxCommandEvent &e) {
         if (m_obj){
             m_obj->command_consistency_upgrade_confirm();
@@ -794,7 +800,9 @@ void UpgradePanel::update(MachineObject *obj)
         if (m_obj->upgrade_force_upgrade) {
             m_show_forced_hint = false;   //lock hint
             ConfirmHintDialog* force_dlg = new ConfirmHintDialog(m_scrolledWindow, wxID_ANY, _L("Upgrade firmware"));
-            force_dlg->SetHint(force_upgrade_hint);
+            force_dlg->SetHint(_L(
+                "An important update was detected and needs to be run before printing can continue. Do you want to update now? You can also update later from 'Upgrade firmware'."
+            ));
             force_dlg->Bind(EVT_CONFIRM_HINT, &MachineInfoPanel::on_upgrade_firmware, m_push_upgrade_panel);
             if (force_dlg->ShowModal())
                 delete force_dlg;
@@ -810,7 +818,9 @@ void UpgradePanel::update(MachineObject *obj)
         if (m_obj->upgrade_consistency_request) {
             m_show_consistency_hint = false;
 		    ConfirmHintDialog* consistency_dlg = new ConfirmHintDialog(m_scrolledWindow, wxID_ANY, _L("Upgrade firmware"));
-            consistency_dlg->SetHint(consistency_upgrade_hint);
+            consistency_dlg->SetHint(_L(
+                "The firmware version is abnormal. Repairing and updating are required before printing. Do you want to update now? You can also update later on printer or update next time starting the studio."
+            ));
             consistency_dlg->Bind(EVT_CONFIRM_HINT, &MachineInfoPanel::on_consisitency_upgrade_firmware, m_push_upgrade_panel);
             if (consistency_dlg->ShowModal())
                 delete consistency_dlg;
