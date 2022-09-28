@@ -387,6 +387,7 @@ std::string RemovableDriveManager::get_removable_drive_from_path(const std::stri
 
 void RemovableDriveManager::init(wxEvtHandler *callback_evt_handler)
 {
+	//no need use assert
 	assert(! m_initialized);
 	assert(m_callback_evt_handler == nullptr);
 

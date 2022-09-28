@@ -1157,6 +1157,10 @@ void GUI_App::shutdown()
 {
     BOOST_LOG_TRIVIAL(info) << "shutdown";
 
+	if (m_removable_drive_manager) {
+		removable_drive_manager()->shutdown();
+	}
+
     if (m_is_recreating_gui) return;
     m_is_closing = true;
     stop_sync_user_preset();
