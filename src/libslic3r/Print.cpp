@@ -435,11 +435,11 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                 //juedge the exclude area
                 if (!intersection(exclude_polys, convex_hull_no_offset).empty()) {
                     if (single_object_exception.string.empty()) {
-                        single_object_exception.string = (boost::format(L("%1% is too close to exclusion area, there will be collisions when printing.")) %instance.model_instance->get_object()->name).str();
+                        single_object_exception.string = (boost::format(L("%1% is too close to exclusion area, there may be collisions when printing.")) %instance.model_instance->get_object()->name).str();
                         single_object_exception.object = instance.model_instance->get_object();
                     }
                     else {
-                        single_object_exception.string += (boost::format(L("\n%1% is too close to exclusion area, there will be collisions when printing.")) %instance.model_instance->get_object()->name).str();
+                        single_object_exception.string += (boost::format(L("\n%1% is too close to exclusion area, there may be collisions when printing.")) %instance.model_instance->get_object()->name).str();
                         single_object_exception.object = nullptr;
                     }
                     //if (polygons) {
@@ -639,14 +639,14 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
         convex_hulls_temp.push_back(convex_hull);
         if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
             if (warning) {
-                warning->string = inst->model_instance->get_object()->name + L(" is too close to others, there will be collisions when printing.\n");
+                warning->string = inst->model_instance->get_object()->name + L(" is too close to others, there may be collisions when printing.\n");
                 warning->object = inst->model_instance->get_object();
             }
         }
         if (!intersection(exclude_polys, convex_hull).empty()) {
-            return {inst->model_instance->get_object()->name + L(" is too close to exclusion area, there will be collisions when printing.\n"), inst->model_instance->get_object()};
+            return {inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.\n"), inst->model_instance->get_object()};
             /*if (warning) {
-                warning->string = inst->model_instance->get_object()->name + L(" is too close to exclusion area, there will be collisions when printing.\n");
+                warning->string = inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.\n");
                 warning->object = inst->model_instance->get_object();
             }*/
         }
@@ -684,7 +684,7 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
     }
     if (!intersection(exclude_polys, convex_hulls_temp).empty()) {
         /*if (warning) {
-            warning->string += L("Prime Tower is too close to exclusion area, there will be collisions when printing.\n");
+            warning->string += L("Prime Tower is too close to exclusion area, there may be collisions when printing.\n");
         }*/
         return {L("Prime Tower") + L(" is too close to exclusion area, and collisions will be caused.\n")};
     }
