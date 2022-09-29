@@ -6771,7 +6771,8 @@ Plater::Plater(wxWindow *parent, MainFrame *main_frame)
 
 bool Plater::Show(bool show)
 {
-    wxGetApp().mainframe->show_option(show);
+    if (wxGetApp().mainframe)
+        wxGetApp().mainframe->show_option(show);
     return wxPanel::Show(show);
 }
 
