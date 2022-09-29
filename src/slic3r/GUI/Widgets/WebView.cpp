@@ -10,6 +10,25 @@
 
 #ifdef __WIN32__
 #include "../WebView2.h"
+#elif defined __linux__
+#include <gtk/gtk.h>
+#define WEBKIT_API
+struct WebKitWebView;
+struct WebKitJavascriptResult;
+extern "C" {
+WEBKIT_API void
+webkit_web_view_run_javascript                       (WebKitWebView             *web_view,
+                                                      const gchar               *script,
+                                                      GCancellable              *cancellable,
+                                                      GAsyncReadyCallback       callback,
+                                                      gpointer                  user_data);
+WEBKIT_API WebKitJavascriptResult *
+webkit_web_view_run_javascript_finish                (WebKitWebView             *web_view,
+                                                      GAsyncResult              *result,
+						      GError                    **error);
+WEBKIT_API void
+webkit_javascript_result_unref              (WebKitJavascriptResult *js_result);
+}
 #endif
 
 class FakeWebView : public wxWebView
@@ -85,13 +104,13 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
         webView->Create(parent, wxID_ANY, url2, wxDefaultPosition, wxDefaultSize);
         webView->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION));
 #endif
-#ifdef __WXMAC__
+#ifndef __WIN32__
         Slic3r::GUI::wxGetApp().CallAfter([webView] {
 #endif
         if (!webView->AddScriptMessageHandler("wx"))
             wxLogError("Could not add script message handler");
-#ifdef __WXMAC__
-                             });
+#ifndef __WIN32__
+        });
 #endif
         webView->EnableContextMenu(false);
     } else {
@@ -132,8 +151,18 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
         Slic3r::GUI::WKWebView_evaluateJavaScript(wkWebView, wrapJS.GetWrappedCode(), nullptr);
         return true;
 #else
-        wxString result;
-        return webView->RunScript(javascript, &result);
+        WebKitWebView *wkWebView = (WebKitWebView *) webView->GetNativeBackend();
+        webkit_web_view_run_javascript(
+            wkWebView, javascript.utf8_str(), NULL,
+            [](GObject *wkWebView, GAsyncResult *res, void *) {
+                GError * error = NULL;
+                auto result = webkit_web_view_run_javascript_finish((WebKitWebView*)wkWebView, res, &error);
+                if (!result)
+                    g_error_free (error);
+                else
+                    webkit_javascript_result_unref (result);
+        }, NULL);
+        return true;
 #endif
     } catch (std::exception &e) {
         return false;
