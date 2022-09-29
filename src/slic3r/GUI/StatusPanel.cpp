@@ -177,6 +177,7 @@ void StatusBasePanel::init_bitmaps()
     m_thumbnail_sdcard       = ScalableBitmap(this, "monitor_sdcard_thumbnail", 120);
     //m_bitmap_camera          = create_scaled_bitmap("monitor_camera", nullptr, 18);
     m_bitmap_extruder        = *cache.load_png("monitor_extruder", FromDIP(28), FromDIP(70), false, false);
+    m_bitmap_extruder_load   = *cache.load_png("monitor_extruder_load", FromDIP(28), FromDIP(70), false, false);
     m_bitmap_sdcard_state_on    = create_scaled_bitmap("sdcard_state_on", nullptr, 20);
     m_bitmap_sdcard_state_off    = create_scaled_bitmap("sdcard_state_off", nullptr, 20);
 }
@@ -1304,6 +1305,13 @@ void StatusPanel::update(MachineObject *obj)
 
     update_temp_ctrl(obj);
     update_misc_ctrl(obj);
+
+    if (obj && obj->is_filament_at_extruder()) {
+        m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_load);
+    }
+    else {
+        m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder);
+    }
 
     // BBS hide tasklist info
     // update_tasklist(obj);

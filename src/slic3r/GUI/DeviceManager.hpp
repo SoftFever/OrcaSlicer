@@ -466,6 +466,7 @@ public:
     int     mc_left_time;           /* left time in seconds */
     int     last_mc_print_stage;
     int     home_flag;
+    int     hw_switch_state;
     bool    is_system_printing();
     int     print_error;
 
@@ -475,6 +476,8 @@ public:
     bool calibration_done { false };
 
     bool is_axis_at_home(std::string axis);
+
+    bool is_filament_at_extruder();
 
     wxString get_curr_stage();
     // return curr stage index of stage list

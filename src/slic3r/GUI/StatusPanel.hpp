@@ -81,6 +81,7 @@ protected:
     ScalableBitmap m_bitmap_use_time;
     ScalableBitmap m_bitmap_use_weight;
     wxBitmap m_bitmap_extruder;
+    wxBitmap m_bitmap_extruder_load;
 
     CameraRecordingStatus m_state_recording{CameraRecordingStatus::RECORDING_NONE};
     CameraTimelapseStatus m_state_timelapse{CameraTimelapseStatus::TIMELAPSE_NONE};

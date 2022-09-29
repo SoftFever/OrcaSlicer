@@ -358,6 +358,7 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     mc_print_sub_stage = 0;
     mc_left_time = 0;
     home_flag = -1;
+    hw_switch_state = 0;
     printing_speed_lvl   = PrintingSpeedLevel::SPEED_LEVEL_INVALID;
 }
 
@@ -1042,6 +1043,18 @@ bool MachineObject::is_axis_at_home(std::string axis)
     } else if (axis == "Z") {
         return home_flag >> 2 & 1 == 1;
     } else {
+        return true;
+    }
+}
+
+bool MachineObject::is_filament_at_extruder()
+{
+    if (hw_switch_state == 1)
+        return true;
+    else if (hw_switch_state == 0)
+        return false;
+    else {
+       //default
         return true;
     }
 }
@@ -1819,6 +1832,9 @@ int MachineObject::parse_json(std::string payload)
 
                     if (jj.contains("home_flag")) {
                         home_flag = jj["home_flag"].get<int>();
+                    }
+                    if (jj.contains("hw_switch_state")) {
+                        hw_switch_state = jj["hw_switch_state"].get<int>();
                     }
 
                     if (jj.contains("mc_remaining_time")) {
