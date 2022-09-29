@@ -20,6 +20,7 @@
 #include "PartPlate.hpp"
 #include "GUI_App.hpp"
 #include "Jobs/PrintJob.hpp"
+#include "Jobs/SendJob.hpp"
 #include "libslic3r/Model.hpp"
 
 class wxButton;
@@ -296,6 +297,7 @@ public:
     void segment(size_t obj_idx, size_t instance_idx, double smoothing_alpha=0.5, int segment_number=5);
     void merge(size_t obj_idx, std::vector<int>& vol_indeces);
 
+    void send_to_printer();
     void export_gcode(bool prefer_removable);
     void export_gcode_3mf();
     void export_core_3mf();

@@ -84,6 +84,7 @@
 #include "Jobs/NotificationProgressIndicator.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "SelectMachine.hpp"
+#include "SendToPrinter.hpp"
 #include "PublishDialog.hpp"
 #include "ConfigWizard.hpp"
 #include "../Utils/ASCIIFolding.hpp"
@@ -1458,6 +1459,7 @@ struct Plater::priv
     MenuFactory menus;
 
     SelectMachineDialog* m_select_machine_dlg = nullptr;
+    SendToPrinterDialog* m_send_to_sdcard_dlg = nullptr;
     PublishDialog *m_publish_dlg = nullptr;
 
     // Data
@@ -1914,14 +1916,14 @@ struct Plater::priv
     void update_fff_scene_only_shells(bool only_shells = true);
     //BBS: add popup object table logic
     bool PopupObjectTable(int object_id, int volume_id, const wxPoint& position);
-
+    void on_action_send_to_printer();
 private:
     void update_fff_scene();
     void update_sla_scene();
 
     void undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator it_snapshot);
     void update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bool temp_snapshot_was_taken = false);
-
+    void on_action_export_to_sdcard(SimpleEvent&);
     // path to project folder stored with no extension
     boost::filesystem::path     m_project_folder;
 
@@ -2222,6 +2224,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLTOOLBAR_PRINT_ALL, &priv::on_action_print_all, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_GCODE, &priv::on_action_export_gcode, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_SLICED_FILE, &priv::on_action_export_sliced_file, this);
+        q->Bind(EVT_GLTOOLBAR_SEND_TO_PRINTER, &priv::on_action_export_to_sdcard, this);
         q->Bind(EVT_GLCANVAS_PLATE_SELECT, &priv::on_plate_selected, this);
         q->Bind(EVT_DOWNLOAD_PROJECT, &priv::on_action_download_project, this);
         q->Bind(EVT_IMPORT_MODEL_ID, &priv::on_action_request_model_id, this);
@@ -5598,6 +5601,14 @@ void Plater::priv::on_action_print_plate(SimpleEvent&)
     m_select_machine_dlg->ShowModal();
 }
 
+
+void Plater::priv::on_action_send_to_printer()
+{
+	if (!m_send_to_sdcard_dlg) m_send_to_sdcard_dlg = new SendToPrinterDialog(q);
+	m_send_to_sdcard_dlg->prepare(partplate_list.get_curr_plate_index());
+	m_send_to_sdcard_dlg->ShowModal();
+}
+
 void Plater::priv::on_action_select_sliced_plate(wxCommandEvent &evt)
 {
     if (q != nullptr) {
@@ -5634,6 +5645,14 @@ void Plater::priv::on_action_export_sliced_file(SimpleEvent&)
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received export sliced file event\n" ;
         q->export_gcode_3mf();
     }
+}
+
+void Plater::priv::on_action_export_to_sdcard(SimpleEvent&)
+{
+	if (q != nullptr) {
+		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received export sliced file event\n";
+		q->send_to_printer();
+	}
 }
 
 //BBS: add plate select logic
@@ -8256,6 +8275,11 @@ void Plater::export_gcode(bool prefer_removable)
         // while the dialog was open.
         appconfig.update_last_output_dir(output_path.parent_path().string(), path_on_removable_media);
     }
+}
+
+void Plater::send_to_printer()
+{
+    p->on_action_send_to_printer();
 }
 
 //BBS export gcode 3mf to file

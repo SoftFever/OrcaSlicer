@@ -1226,7 +1226,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_print_select = ePrintPlate;
 
     m_slice_btn = new SideButton(this, _L("Slice"), "");
-    m_print_btn = new SideButton(this, _L("Print"), "");
+    m_print_btn = new SideButton(this, _L("Send and Print"), "");
     m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
 
     update_side_button_style();
@@ -1270,7 +1270,9 @@ wxBoxSizer* MainFrame::create_side_tools()
         else if (m_print_select == eExportGcode)
             wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_GCODE));
         else if (m_print_select == eExportSlicedFile)
-            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE));
+            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE)); 
+        else if (m_print_select == eSendToPrinter)
+            wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_TO_PRINTER));
     });
 
     // only support single plate currently
@@ -1322,13 +1324,13 @@ wxBoxSizer* MainFrame::create_side_tools()
                 p->Dismiss();
             });
 #endif
-            SideButton* print_plate_btn = new SideButton(p, _L("Print"), "");
+            SideButton* print_plate_btn = new SideButton(p, _L("Send and Print"), "");
             print_plate_btn->SetCornerRadius(0);
             SideButton* export_sliced_file_btn = new SideButton(p, _L("Export sliced file"), "");
             export_sliced_file_btn->SetCornerRadius(0);
 
             print_plate_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
-                    m_print_btn->SetLabel(_L("Print"));
+                    m_print_btn->SetLabel(_L("Send and Print"));
                     m_print_select = ePrintPlate;
                     m_print_enable = get_enable_print_status();
                     m_print_btn->Enable(m_print_enable);
@@ -1345,11 +1347,24 @@ wxBoxSizer* MainFrame::create_side_tools()
                     this->Layout();
                     p->Dismiss();
                 });
+
+            SideButton* send_to_printer_btn = new SideButton(p, _L("Send"), "");
+            send_to_printer_btn->SetCornerRadius(0);
+            send_to_printer_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+				m_print_btn->SetLabel(_L("Send"));
+				m_print_select = eSendToPrinter;
+				if (m_print_enable)
+					m_print_enable = get_enable_print_status();
+				m_print_btn->Enable(m_print_enable);
+				this->Layout();
+				p->Dismiss();
+				});
 #if ENABEL_PRINT_ALL
             p->append_button(print_all_btn);
 #endif
             p->append_button(print_plate_btn);
             p->append_button(export_sliced_file_btn);
+            p->append_button(send_to_printer_btn);
             p->Popup(m_print_btn);
         }
     );
@@ -1441,7 +1456,14 @@ bool MainFrame::get_enable_print_status()
         {
             enable = false;
         }
-    }
+	}
+	else if (m_print_select == eSendToPrinter)
+	{
+		if (!current_plate->is_slice_result_ready_for_print())
+		{
+			enable = false;
+		}
+	}
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": m_print_select %1%, enable= %2% ")%m_print_select %enable;
 

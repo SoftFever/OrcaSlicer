@@ -72,6 +72,7 @@ func_get_user_selected_machine      NetworkAgent::get_user_selected_machine_ptr 
 func_set_user_selected_machine      NetworkAgent::set_user_selected_machine_ptr = nullptr;
 func_start_print                    NetworkAgent::start_print_ptr = nullptr;
 func_start_local_print_with_record  NetworkAgent::start_local_print_with_record_ptr = nullptr;
+func_start_send_gcode_to_sdcard     NetworkAgent::start_send_gcode_to_sdcard_ptr = nullptr;
 func_start_local_print              NetworkAgent::start_local_print_ptr = nullptr;
 func_get_user_presets               NetworkAgent::get_user_presets_ptr = nullptr;
 func_request_setting_id             NetworkAgent::request_setting_id_ptr = nullptr;
@@ -208,6 +209,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     set_user_selected_machine_ptr     =  reinterpret_cast<func_set_user_selected_machine>(get_network_function("bambu_network_set_user_selected_machine"));
     start_print_ptr                   =  reinterpret_cast<func_start_print>(get_network_function("bambu_network_start_print"));
     start_local_print_with_record_ptr =  reinterpret_cast<func_start_local_print_with_record>(get_network_function("bambu_network_start_local_print_with_record"));
+    start_send_gcode_to_sdcard_ptr    =  reinterpret_cast<func_start_send_gcode_to_sdcard>(get_network_function("bambu_network_start_send_gcode_to_sdcard"));
     start_local_print_ptr             =  reinterpret_cast<func_start_local_print>(get_network_function("bambu_network_start_local_print"));
     get_user_presets_ptr              =  reinterpret_cast<func_get_user_presets>(get_network_function("bambu_network_get_user_presets"));
     request_setting_id_ptr            =  reinterpret_cast<func_request_setting_id>(get_network_function("bambu_network_request_setting_id"));
@@ -298,6 +300,7 @@ int NetworkAgent::unload_network_module()
     set_user_selected_machine_ptr     =  nullptr;
     start_print_ptr                   =  nullptr;
     start_local_print_with_record_ptr =  nullptr;
+    start_send_gcode_to_sdcard_ptr    =  nullptr;
     start_local_print_ptr             =  nullptr;
     get_user_presets_ptr              =  nullptr;
     request_setting_id_ptr            =  nullptr;
@@ -839,6 +842,17 @@ int NetworkAgent::start_local_print_with_record(PrintParams params, OnUpdateStat
                 %network_agent %ret %params.dev_id %params.task_name %params.project_name;
     }
     return ret;
+}
+
+int NetworkAgent::start_send_gcode_to_sdcard(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
+{
+	int ret = 0;
+	if (network_agent && start_send_gcode_to_sdcard_ptr) {
+		ret = start_send_gcode_to_sdcard_ptr(network_agent, params, update_fn, cancel_fn);
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%")
+			% network_agent % ret % params.dev_id % params.task_name % params.project_name;
+	}
+	return ret;
 }
 
 int NetworkAgent::start_local_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)

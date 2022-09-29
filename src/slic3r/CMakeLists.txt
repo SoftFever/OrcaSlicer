@@ -301,6 +301,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/ProgressIndicator.hpp
     GUI/Jobs/PrintJob.hpp
     GUI/Jobs/PrintJob.cpp
+    GUI/Jobs/SendJob.hpp
+    GUI/Jobs/SendJob.cpp
     GUI/Jobs/BindJob.hpp
     GUI/Jobs/BindJob.cpp
     GUI/Jobs/NotificationProgressIndicator.hpp
@@ -350,6 +352,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/BindDialog.hpp
     GUI/SelectMachine.hpp
     GUI/SelectMachine.cpp
+    GUI/SendToPrinter.hpp
+    GUI/SendToPrinter.cpp
     GUI/AmsMappingPopup.hpp
     GUI/AmsMappingPopup.cpp
     GUI/ReleaseNote.hpp

@@ -51,6 +51,7 @@ typedef std::string (*func_get_user_selected_machine)(void *agent);
 typedef int (*func_set_user_selected_machine)(void *agent, std::string dev_id);
 typedef int (*func_start_print)(void *agent, PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
 typedef int (*func_start_local_print_with_record)(void *agent, PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
+typedef int (*func_start_send_gcode_to_sdcard)(void *agent, PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
 typedef int (*func_start_local_print)(void *agent, PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
 typedef int (*func_get_user_presets)(void *agent, std::map<std::string, std::map<std::string, std::string>>* user_presets);
 typedef std::string (*func_request_setting_id)(void *agent, std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code);
@@ -130,6 +131,7 @@ public:
     int set_user_selected_machine(std::string dev_id);
     int start_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
     int start_local_print_with_record(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
+    int start_send_gcode_to_sdcard(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
     int start_local_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
     int get_user_presets(std::map<std::string, std::map<std::string, std::string>>* user_presets);
     std::string request_setting_id(std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code);
@@ -198,6 +200,7 @@ private:
     static func_set_user_selected_machine      set_user_selected_machine_ptr;
     static func_start_print                    start_print_ptr;
     static func_start_local_print_with_record  start_local_print_with_record_ptr;
+    static func_start_send_gcode_to_sdcard     start_send_gcode_to_sdcard_ptr;
     static func_start_local_print              start_local_print_ptr;
     static func_get_user_presets               get_user_presets_ptr;
     static func_request_setting_id             request_setting_id_ptr;
