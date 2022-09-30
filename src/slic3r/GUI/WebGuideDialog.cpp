@@ -35,7 +35,7 @@ namespace Slic3r { namespace GUI {
 json m_ProfileJson;
 
 GuideFrame::GuideFrame(GUI_App *pGUI, long style)
-    : wxDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "BambuStudio", wxDefaultPosition, wxDefaultSize, style),
+    : DPIDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "BambuStudio", wxDefaultPosition, wxDefaultSize, style),
 	m_appconfig_new()
 {
     // INI

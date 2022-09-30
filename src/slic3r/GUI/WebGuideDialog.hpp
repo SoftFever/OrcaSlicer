@@ -34,7 +34,7 @@
 
 namespace Slic3r { namespace GUI {
 
-class GuideFrame : public wxDialog
+class GuideFrame : public DPIDialog
 {
 public:
     GuideFrame(GUI_App *pGUI, long style = wxCAPTION | wxCLOSE_BOX | wxSYSTEM_MENU);
@@ -92,6 +92,8 @@ public:
     int InstallPlugin();
     int ShowPluginStatus(int status, int percent, bool &cancel);
 
+    void on_dpi_changed(const wxRect &suggested_rect) {}
+    
 private:
     GUI_App *m_MainPtr;
     AppConfig m_appconfig_new;
