@@ -20,6 +20,50 @@ namespace Slic3r {
 
 const static bool g_wipe_into_objects = false;
 
+void dfs_get_all_sorted_extruders(const std::vector<std::vector<float>> &     wipe_volumes,
+                                  const std::vector<unsigned int> &           all_extruders,
+                                  std::vector<unsigned int> &                 sorted_extruders,
+                                  float                                       flush_volume,
+                                  std::map<float, std::vector<unsigned int>> &volumes_to_extruder_order)
+{
+    if (sorted_extruders.size() == all_extruders.size()) {
+        volumes_to_extruder_order.insert(std::pair(flush_volume, sorted_extruders));
+        return;
+    }
+
+    for (auto extruder_id : all_extruders) {
+        if (sorted_extruders.empty()) {
+            sorted_extruders.push_back(extruder_id);
+            dfs_get_all_sorted_extruders(wipe_volumes, all_extruders, sorted_extruders, flush_volume, volumes_to_extruder_order);
+            sorted_extruders.pop_back();
+        } else {
+            auto itor = std::find(sorted_extruders.begin(), sorted_extruders.end(), extruder_id);
+            if (itor == sorted_extruders.end()) {
+                float delta_flush_volume = wipe_volumes[sorted_extruders.back()][extruder_id];
+                flush_volume += delta_flush_volume;
+                sorted_extruders.push_back(extruder_id);
+                dfs_get_all_sorted_extruders(wipe_volumes, all_extruders, sorted_extruders, flush_volume, volumes_to_extruder_order);
+                flush_volume -= delta_flush_volume;
+                sorted_extruders.pop_back();
+            }
+        }
+    }
+}
+
+std::vector<unsigned int> get_extruders_order(const std::vector<std::vector<float>> &wipe_volumes, std::vector<unsigned int> all_extruders, unsigned int start_extruder_id)
+{
+    if (all_extruders.size() > 1) {
+        std::vector<unsigned int> sorted_extruders;
+        auto                      iter = std::find(all_extruders.begin(), all_extruders.end(), start_extruder_id);
+        if (iter != all_extruders.end()) { sorted_extruders.push_back(start_extruder_id); }
+        std::map<float, std::vector<unsigned int>> volumes_to_extruder_order;
+        dfs_get_all_sorted_extruders(wipe_volumes, all_extruders, sorted_extruders, 0, volumes_to_extruder_order);
+        if (volumes_to_extruder_order.size() > 0) return volumes_to_extruder_order.begin()->second;
+    }
+    return all_extruders;
+}
+
+
 // Returns true in case that extruder a comes before b (b does not have to be present). False otherwise.
 bool LayerTools::is_extruder_order(unsigned int a, unsigned int b) const
 {
@@ -471,6 +515,9 @@ void ToolOrdering::reorder_extruders(unsigned int last_extruder_id)
             assert(extruder_id > 0);
             -- extruder_id;
         }
+
+    // reorder the extruders for minimum flush volume
+    reorder_extruders_for_minimum_flush_volume();
 }
 
 // BBS
@@ -539,6 +586,9 @@ void ToolOrdering::reorder_extruders(std::vector<unsigned int> tool_order_layer0
             assert(extruder_id > 0);
             --extruder_id;
         }
+
+    // reorder the extruders for minimum flush volume
+    reorder_extruders_for_minimum_flush_volume();
 }
 
 void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z, coordf_t max_layer_height)
@@ -667,6 +717,28 @@ void ToolOrdering::collect_extruder_statistics(bool prime_multi_material)
             m_all_printing_extruders.end());
         m_all_printing_extruders.emplace_back(m_first_printing_extruder);
         m_first_printing_extruder = m_all_printing_extruders.front();
+    }
+}
+
+void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
+{
+    if (!m_print_config_ptr || m_layer_tools.empty())
+        return;
+
+    // Get wiping matrix to get number of extruders and convert vector<double> to vector<float>:
+    std::vector<float> flush_matrix(cast<float>(m_print_config_ptr->flush_volumes_matrix.values));
+    const unsigned int number_of_extruders = (unsigned int) (sqrt(flush_matrix.size()) + EPSILON);
+    // Extract purging volumes for each extruder pair:
+    std::vector<std::vector<float>> wipe_volumes;
+    for (unsigned int i = 0; i < number_of_extruders; ++i)
+        wipe_volumes.push_back(std::vector<float>(flush_matrix.begin() + i * number_of_extruders, flush_matrix.begin() + (i + 1) * number_of_extruders));
+
+    unsigned int current_extruder_id = -1;
+    for (LayerTools& lt : m_layer_tools) {
+        if (lt.extruders.empty())
+            continue;
+        lt.extruders = get_extruders_order(wipe_volumes, lt.extruders, current_extruder_id);
+        current_extruder_id = lt.extruders.back();
     }
 }
 
