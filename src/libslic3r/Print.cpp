@@ -68,7 +68,9 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         //BBS: add bed_exclude_area
         "bed_exclude_area",
         "before_layer_change_gcode",
-        "enable_overhang_bridge_fan"
+        "enable_pressure_advance",
+        "pressure_advance",
+        "enable_overhang_bridge_fan",
         "overhang_fan_speed",
         "overhang_fan_threshold",
         "slow_down_for_layer_cooling",
@@ -94,6 +96,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "inner_wall_acceleration",
         "initial_layer_acceleration",
         "top_surface_acceleration",
+        "travel_acceleration",
         // BBS
         "cool_plate_temp_initial_layer",
         "eng_plate_temp_initial_layer",

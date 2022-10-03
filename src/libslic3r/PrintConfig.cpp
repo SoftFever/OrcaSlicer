@@ -1042,6 +1042,18 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 1. });
 
+    def = this->add("enable_pressure_advance", coBool);
+    def->label = L("Enable Pressure Advance");
+    def->tooltip = L("Enable Pressure Advance");
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("pressure_advance", coFloats);
+    def->label = L("Pressure advance");
+    def->tooltip = L("Pressure Advnce(Klipper) AKA Linear Advance Factor(Marlin)");
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats { 0. });
+
     def = this->add("line_width", coFloat);
     def->label = L("Default");
     def->category = L("Quality");
@@ -1266,6 +1278,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(7000));
 
+    def = this->add("travel_acceleration", coFloat);
+    def->label = L("Travel");
+    def->tooltip = L("Acceleration of travel moves");
+    def->sidetext = L("mm/s²");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(15000));
+
     def = this->add("top_surface_acceleration", coFloat);
     def->label = L("Top surface");
     def->tooltip = L("Acceleration of top surface infill. Using a lower value may improve top surface quality");
@@ -1281,6 +1301,54 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(300));
+
+    def = this->add("default_jerk", coFloat);
+    def->label = L("default jerk");
+    def->tooltip = L("Default jerk");
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("outer_wall_jerk", coFloat);
+    def->label = L("Outer wall");
+    def->tooltip = L("Jerk of outer walls");
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(9));
+
+    def = this->add("inner_wall_jerk", coFloat);
+    def->label = L("Inner wall");
+    def->tooltip = L("Jerk of inner walls");
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(9));
+
+    def = this->add("top_surface_jerk", coFloat);
+    def->label = L("Top surface");
+    def->tooltip = L("Jerk for top surface");
+    def->sidetext = L("mm/s");
+    def->min = 1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(9));
+
+    def = this->add("initial_layer_jerk", coFloat);
+    def->label = L("Initial layer");
+    def->tooltip = L("Jerk for initial layer");
+    def->sidetext = L("mm/s");
+    def->min = 1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(9));
+
+    def = this->add("travel_jerk", coFloat);
+    def->label = L("Travel");
+    def->tooltip = L("Jerk for travel");
+    def->sidetext = L("mm/s");
+    def->min = 1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(9));
 
     def = this->add("initial_layer_line_width", coFloat);
     def->label = L("Initial layer");

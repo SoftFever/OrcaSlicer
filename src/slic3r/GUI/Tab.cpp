@@ -1841,11 +1841,20 @@ void TabPrint::build()
         optgroup->append_single_option_line("travel_speed");
 
         optgroup = page->new_optgroup(L("Acceleration"), 15);
+        optgroup->append_single_option_line("default_acceleration");
         optgroup->append_single_option_line("outer_wall_acceleration");
         optgroup->append_single_option_line("inner_wall_acceleration");
         optgroup->append_single_option_line("initial_layer_acceleration");
         optgroup->append_single_option_line("top_surface_acceleration");
-        optgroup->append_single_option_line("default_acceleration");
+        optgroup->append_single_option_line("travel_acceleration");
+
+        optgroup = page->new_optgroup(L("Jerk"), 15);
+        optgroup->append_single_option_line("default_jerk");
+        optgroup->append_single_option_line("outer_wall_jerk");
+        optgroup->append_single_option_line("inner_wall_jerk");
+        optgroup->append_single_option_line("top_surface_jerk");
+        optgroup->append_single_option_line("initial_layer_jerk");
+        optgroup->append_single_option_line("travel_jerk");
 
 #ifdef HAS_PRESSURE_EQUALIZER
         optgroup->append_single_option_line("max_volumetric_extrusion_rate_slope_positive");
@@ -2442,6 +2451,10 @@ void TabFilament::build()
         //optgroup->append_single_option_line("filament_colour");
         optgroup->append_single_option_line("filament_diameter");
         optgroup->append_single_option_line("filament_flow_ratio");
+
+        optgroup->append_single_option_line("enable_pressure_advance");
+        optgroup->append_single_option_line("pressure_advance");
+
         optgroup->append_single_option_line("filament_density");
         optgroup->append_single_option_line("filament_cost");
         //BBS
@@ -2659,7 +2672,11 @@ void TabFilament::toggle_options()
         for (auto el : { "overhang_fan_speed", "overhang_fan_threshold" })
             toggle_option(el, has_enable_overhang_bridge_fan);
     }
-
+    if (m_active_page->title() == "Filament")
+    {
+        bool pa = m_config->opt_bool("enable_pressure_advance");
+        toggle_option("pressure_advance", pa);
+    }
     if (m_active_page->title() == "Setting Overrides")
         update_filament_overrides_page();
 }

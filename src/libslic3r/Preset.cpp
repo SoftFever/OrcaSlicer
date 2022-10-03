@@ -658,7 +658,8 @@ static std::vector<std::string> s_Preset_print_options {
     "inner_wall_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed",
     "top_surface_speed", "support_speed", "support_object_xy_distance", "support_interface_speed",
     "bridge_speed", "gap_infill_speed", "travel_speed", "travel_speed_z", "initial_layer_speed",
-    "outer_wall_acceleration", "inner_wall_acceleration", "initial_layer_acceleration", "top_surface_acceleration", "default_acceleration", "skirt_loops", "skirt_distance", "skirt_height", "draft_shield",
+    "outer_wall_acceleration", "inner_wall_acceleration", "initial_layer_acceleration", "top_surface_acceleration", "default_acceleration", "travel_acceleration", "skirt_loops", "skirt_distance", "skirt_height", "draft_shield",
+    "default_jerk", "outer_wall_jerk", "inner_wall_jerk", "top_surface_jerk", "initial_layer_jerk","travel_jerk",
     "brim_width", "brim_object_gap", "brim_type", "enable_support", "support_type", "support_threshold_angle", "enforce_support_layers",
     "raft_layers", "raft_first_layer_density", "raft_first_layer_expansion", "raft_contact_distance", "raft_expansion",
     "support_base_pattern", "support_base_pattern_spacing", "support_style",
@@ -691,7 +692,7 @@ static std::vector<std::string> s_Preset_print_options {
 
 static std::vector<std::string> s_Preset_filament_options {
     /*"filament_colour", */"filament_diameter", "filament_type", "filament_soluble", "filament_is_support", "filament_max_volumetric_speed",
-    "filament_flow_ratio", "filament_density", "filament_cost", "filament_minimal_purge_on_wipe_tower",
+    "filament_flow_ratio", "enable_pressure_advance", "pressure_advance", "filament_density", "filament_cost", "filament_minimal_purge_on_wipe_tower",
     "chamber_temperature", "nozzle_temperature", "nozzle_temperature_initial_layer",
     // BBS
     "cool_plate_temp", "eng_plate_temp", "hot_plate_temp", "textured_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp_initial_layer", "hot_plate_temp_initial_layer","textured_plate_temp_initial_layer",

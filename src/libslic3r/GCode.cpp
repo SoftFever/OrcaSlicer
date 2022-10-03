@@ -1597,7 +1597,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     //BBS: open spaghetti detector
     // if (print.config().spaghetti_detector.value)
         file.write("M981 S1 P20000 ;open spaghetti detector\n");
-
+    if(m_config.enable_pressure_advance.value)
+    {
+        file.write_format("M900 K%.3f\nM900 S0\n",m_config.pressure_advance.values.front());
+    }
     // Do all objects for each layer.
     if (print.config().print_sequence == PrintSequence::ByObject) {
         size_t finished_objects = 0;
@@ -2499,6 +2502,12 @@ GCode::LayerResult GCode::process_layer(
             double acceleration = m_config.initial_layer_acceleration.value;
             gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
         }
+
+        if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
+            double jerk = m_config.initial_layer_jerk.value;
+            gcode += m_writer.set_jerk_xy((unsigned int)floor(jerk + 0.5));
+        }
+
     }
 
     if (! first_layer && ! m_second_layer_things_done) {
@@ -2521,6 +2530,12 @@ GCode::LayerResult GCode::process_layer(
             double acceleration = m_config.default_acceleration.value;
             gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
         }
+
+        if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
+            double jerk = m_config.default_jerk.value;
+            gcode += m_writer.set_jerk_xy((unsigned int)floor(jerk + 0.5));
+        }
+
         // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
         // nozzle_temperature_initial_layer vs. temperature settings.
         for (const Extruder &extruder : m_writer.extruders()) {
@@ -3235,9 +3250,13 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     }
 
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
-    if (!this->on_first_layer())
+    if (!this->on_first_layer()){
         // reset acceleration
-        gcode += m_writer.set_acceleration((unsigned int)(m_config.default_acceleration.value + 0.5));
+        if(m_config.default_acceleration.value > 0)
+            gcode += m_writer.set_acceleration((unsigned int)(m_config.default_acceleration.value + 0.5));
+        if(m_config.default_jerk.value > 0)
+            gcode += m_writer.set_jerk_xy((unsigned int)(m_config.default_jerk.value + 0.5));
+        }
 
     // BBS
     if (m_wipe.enable) {
@@ -3310,9 +3329,12 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
         m_wipe.path.reverse();
     }
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
-    if (!this->on_first_layer())
+    if (!this->on_first_layer()) {
         // reset acceleration
         gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
+        if(m_config.default_jerk.value > 0)
+            gcode += m_writer.set_jerk_xy((unsigned int)floor(m_config.default_jerk.value + 0.5));
+        }
     return gcode;
 }
 
@@ -3338,9 +3360,13 @@ std::string GCode::extrude_path(ExtrusionPath path, std::string description, dou
         m_wipe.path.reverse();
     }
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
-    if (!this->on_first_layer())
+    if (!this->on_first_layer()){
         // reset acceleration
         gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
+        if(m_config.default_jerk.value > 0)
+            gcode += m_writer.set_jerk_xy((unsigned int)floor(m_config.default_jerk.value + 0.5));
+
+        }
     return gcode;
 }
 
@@ -3549,6 +3575,23 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             acceleration = m_config.default_acceleration.value;
         }
         gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
+    }
+
+    // adjust X Y jerk
+    if (m_config.default_jerk.value > 0) {
+        double jerk;
+        if (this->on_first_layer() && m_config.initial_layer_jerk.value > 0) {
+            jerk = m_config.initial_layer_jerk.value;
+        } else if (m_config.outer_wall_jerk.value > 0 && is_external_perimeter(path.role())) {
+             jerk = m_config.outer_wall_jerk.value;
+        } else if (m_config.inner_wall_jerk.value > 0 && is_internal_perimeter(path.role())) {
+            jerk = m_config.inner_wall_jerk.value;
+        } else if (m_config.top_surface_jerk.value > 0 && is_top_surface(path.role())) {
+            jerk = m_config.top_surface_jerk.value;
+        } else {
+            jerk = m_config.default_jerk.value;
+        }
+        gcode += m_writer.set_jerk_xy((unsigned int)floor(jerk + 0.5));
     }
 
     // calculate extrusion length per distance unit
@@ -3763,7 +3806,34 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     bool could_be_wipe_disabled       = false;
     // Save state of use_external_mp_once for the case that will be needed to call twice m_avoid_crossing_perimeters.travel_to.
     const bool used_external_mp_once  = m_avoid_crossing_perimeters.used_external_mp_once();
+    std::string gcode;
 
+    // SoftFever
+    if (this->on_first_layer()) {
+        if(m_config.default_acceleration.value > 0)
+        {        
+            auto jerk = (unsigned int)floor(m_config.initial_layer_jerk.value + 0.5);
+            auto accel = (unsigned int)floor(m_config.initial_layer_acceleration.value + 0.5);
+            if(jerk > 0)
+                gcode += m_writer.set_jerk_xy(jerk);
+            
+            if(accel > 0)
+                gcode += m_writer.set_acceleration(accel);
+        }
+    }
+    else
+    {
+        if(m_config.default_jerk.value > 0)
+        {
+            auto jerk = (unsigned int)floor(m_config.travel_jerk.value + 0.5);
+            auto accel = (unsigned int)floor(m_config.travel_acceleration.value + 0.5);
+            if(jerk > 0)
+                gcode += m_writer.set_jerk_xy(jerk);
+            
+            if(accel > 0)
+                gcode += m_writer.set_acceleration(accel);
+        }
+    }
     // if a retraction would be needed, try to use reduce_crossing_wall to plan a
     // multi-hop travel path inside the configuration space
     if (needs_retraction
@@ -3779,7 +3849,6 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     m_avoid_crossing_perimeters.reset_once_modifiers();
 
     // generate G-code for the travel move
-    std::string gcode;
     if (needs_retraction) {
         if (m_config.reduce_crossing_wall && could_be_wipe_disabled)
             m_wipe.reset_path();
@@ -3810,9 +3879,9 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
             if (i == travel.size() - 1 && !m_spiral_vase) {
                 Vec2d dest2d = this->point_to_gcode(travel.points[i]);
                 Vec3d dest3d(dest2d(0), dest2d(1), m_nominal_z);
-                gcode += m_writer.travel_to_xyz(dest3d, comment);
+                gcode += m_writer.travel_to_xyz(dest3d, comment+" travel_to_xyz");
             } else {
-                gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment);
+                gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment+" travel_to_xy");
             }
         }
         this->set_last_pos(travel.points.back());

@@ -15,7 +15,7 @@
 
 namespace Slic3r {
 
-const bool GCodeWriter::full_gcode_comment = false;
+const bool GCodeWriter::full_gcode_comment = true;
 const double GCodeWriter::slope_threshold = 3 * PI / 180;
 
 void GCodeWriter::apply_print_config(const PrintConfig &print_config)
@@ -24,6 +24,7 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
     m_single_extruder_multi_material = print_config.single_extruder_multi_material.value;
     bool is_marlin = print_config.gcode_flavor.value == gcfMarlinLegacy || print_config.gcode_flavor.value == gcfMarlinFirmware;
     m_max_acceleration = std::lrint(is_marlin ? print_config.machine_max_acceleration_extruding.values.front() : 0);
+    m_max_jerk = std::lrint(is_marlin ? std::min(print_config.machine_max_jerk_x.values.front(), print_config.machine_max_jerk_y.values.front()) : 0);
 }
 
 void GCodeWriter::set_extruders(std::vector<unsigned int> extruder_ids)
@@ -181,6 +182,26 @@ std::string GCodeWriter::set_acceleration(unsigned int acceleration)
     gcode << "\n";
     
     return gcode.str();
+}
+
+std::string GCodeWriter::set_jerk_xy(unsigned int jerk)
+{
+    // Clamp the jerk to the allowed maximum.
+    if (m_max_jerk > 0 && jerk > m_max_jerk)
+        jerk = m_max_jerk;
+
+    if (jerk < 1 || jerk == m_last_jerk)
+        return std::string();
+    
+    m_last_jerk = jerk;
+    
+    std::ostringstream gcode;
+    gcode << "M205 X" << jerk << " Y" << jerk;
+    if (GCodeWriter::full_gcode_comment) gcode << " ; adjust jerk";
+    gcode << "\n";
+
+    return gcode.str();
+
 }
 
 std::string GCodeWriter::reset_e(bool force)
