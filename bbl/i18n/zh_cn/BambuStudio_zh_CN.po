@@ -5314,11 +5314,43 @@ msgid ""
 msgstr "首层加速度。使用较低值可以改善和构建板的粘接。"
 
 msgid "Acceleration of outer walls"
-msgstr "外墙的加速度。它通常使用比内壁速度慢的加速度，以获得更好的质量。。"
+msgstr "外墙的加速度。它通常使用比内壁速度慢的加速度，以获得更好的质量"
 
 msgid "Acceleration of inner walls"
-msgstr "内圈墙加速度。使用较低值可以改善质量。"
+msgstr "内圈墙加速度，使用较低值可以改善质量。"
 
+msgid "Acceleration of travel moves"
+msgstr "空驶加速度"
+
+msgid "Jerk(XY)"
+msgstr "抖动（XY）"
+
+msgid "Jerk of outer walls"
+msgstr "外墙抖动值"
+
+msgid "Jerk of inner walls"
+msgstr "内墙抖动值"
+
+msgid "Jerk for top surface"
+msgstr "顶面抖动值"
+
+msgid "Jerk for initial layer"
+msgstr "首层抖动值"
+
+msgid "Jerk for travel"
+msgstr "空驶抖动值"
+
+msgid "Enable pressure advance"
+msgstr "启用压力提前"
+
+msgid "Pressure advance"
+msgstr "压力提前"
+
+msgid "Pressure advnce(Klipper) AKA Linear advance factor(Marlin)"
+msgstr "压力提前(Klipper)或者线性提前(Marlin)"
+
+msgid "Enable pressure advance, auto calibration result will be overwriten once enabled."
+msgstr "启用压力提前，一旦启用会覆盖自动检测的结果"
 
 msgid "Line width of initial layer"
 msgstr "首层的线宽"

@@ -1848,7 +1848,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("top_surface_acceleration");
         optgroup->append_single_option_line("travel_acceleration");
 
-        optgroup = page->new_optgroup(L("Jerk"), 15);
+        optgroup = page->new_optgroup(L("Jerk(XY)"), 15);
         optgroup->append_single_option_line("default_jerk");
         optgroup->append_single_option_line("outer_wall_jerk");
         optgroup->append_single_option_line("inner_wall_jerk");

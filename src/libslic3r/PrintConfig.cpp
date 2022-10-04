@@ -1043,13 +1043,13 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloats { 1. });
 
     def = this->add("enable_pressure_advance", coBool);
-    def->label = L("Enable Pressure Advance");
-    def->tooltip = L("Enable Pressure Advance");
+    def->label = L("Enable pressure advance");
+    def->tooltip = L("Enable pressure advance, auto calibration result will be overwriten once enabled.");
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("pressure_advance", coFloats);
     def->label = L("Pressure advance");
-    def->tooltip = L("Pressure Advnce(Klipper) AKA Linear Advance Factor(Marlin)");
+    def->tooltip = L("Pressure advnce(Klipper) AKA Linear advance factor(Marlin)");
     def->max = 2;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0. });
@@ -1303,8 +1303,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(300));
 
     def = this->add("default_jerk", coFloat);
-    def->label = L("default jerk");
-    def->tooltip = L("Default jerk");
+    def->label = L("Default");
+    def->tooltip = L("Default");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
