@@ -241,6 +241,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ConfigManipulation.hpp
     GUI/Field.cpp
     GUI/Field.hpp
+    GUI/ConfirmHintDialog.cpp
+    GUI/ConfirmHintDialog.hpp
     GUI/OptionsGroup.cpp
     GUI/OptionsGroup.hpp
     GUI/OG_CustomCtrl.cpp
@@ -257,8 +259,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/wxExtensions.hpp
     GUI/WipeTowerDialog.cpp
     GUI/WipeTowerDialog.hpp
-    #GUI/RemovableDriveManager.cpp
-    #GUI/RemovableDriveManager.hpp
+    GUI/RemovableDriveManager.cpp
+    GUI/RemovableDriveManager.hpp
     GUI/SendSystemInfoDialog.cpp
     GUI/SendSystemInfoDialog.hpp
     GUI/ImGuiWrapper.hpp
@@ -409,8 +411,8 @@ if (APPLE)
     list(APPEND SLIC3R_GUI_SOURCES
             Utils/RetinaHelperImpl.mm
             Utils/MacDarkMode.mm
-            #GUI/RemovableDriveManagerMM.mm
-            #GUI/RemovableDriveManagerMM.h
+            GUI/RemovableDriveManagerMM.mm
+            GUI/RemovableDriveManagerMM.h
             GUI/Mouse3DHandlerMac.mm
             #GUI/InstanceCheckMac.mm
             #GUI/InstanceCheckMac.h
@@ -438,7 +440,18 @@ target_link_libraries(libslic3r_gui libslic3r cereal imgui minilzo GLEW::GLEW Op
 if (MSVC)
     target_link_libraries(libslic3r_gui Setupapi.lib)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    FIND_LIBRARY(WAYLAND_SERVER_LIBRARIES NAMES wayland-server)
+    FIND_LIBRARY(WAYLAND_EGL_LIBRARIES    NAMES wayland-egl)
+    FIND_LIBRARY(WAYLAND_CLIENT_LIBRARIES NAMES wayland-client)
+    find_package(CURL REQUIRED)
     target_link_libraries(libslic3r_gui ${DBUS_LIBRARIES} OSMesa)
+    target_link_libraries(libslic3r_gui
+        OpenGL::EGL
+        ${WAYLAND_SERVER_LIBRARIES}
+        ${WAYLAND_EGL_LIBRARIES}
+        ${WAYLAND_CLIENT_LIBRARIES}
+        ${CURL_LIBRARIES}
+    )
 elseif (APPLE)
     target_link_libraries(libslic3r_gui ${DISKARBITRATION_LIBRARY})
 endif()

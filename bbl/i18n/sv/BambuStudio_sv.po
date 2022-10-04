@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-09 11:50+0800\n"
+"POT-Creation-Date: 2022-09-27 16:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -682,11 +682,17 @@ msgstr "Fixa modell"
 msgid "Export as STL"
 msgstr "Exportera som STL"
 
-msgid "Reload item"
-msgstr "Ladda om objektet"
+msgid "Reload from disk"
+msgstr ""
 
-msgid "Reload items"
-msgstr "Ladda om objekten"
+msgid "Reload the selected parts from disk"
+msgstr ""
+
+msgid "Replace with STL"
+msgstr ""
+
+msgid "Replace the selected part with new STL"
+msgstr ""
 
 msgid "Change filament"
 msgstr "Byta filament"
@@ -821,8 +827,11 @@ msgstr "Radera den valda plattan"
 msgid "Clone"
 msgstr "Klona"
 
-msgid "Reduce Triangles"
-msgstr "Reducera Trianglar"
+msgid "Simplify Model"
+msgstr ""
+
+msgid "Center"
+msgstr ""
 
 msgid "Edit in Parameter Table"
 msgstr ""
@@ -1613,11 +1622,10 @@ msgstr ""
 
 msgid ""
 "Bed temperature is higher than vitrification temperature of this filament.\n"
-"This may cause nozzle blocked and printing failure"
+"This may cause nozzle blocked and printing failure\n"
+"Please keep the printer open during the printing process to ensure air "
+"circulation or reduce the temperature of the hot bed"
 msgstr ""
-"Byggplattans temperatur överstiger kristalliserings temperaturen av detta "
-"filament.\n"
-"Detta kan orsaka att nozzeln blockeras och utskriften misslyckas"
 
 msgid ""
 "Too small layer height.\n"
@@ -1733,13 +1741,10 @@ msgid "%1% infill pattern doesn't support 100%% density."
 msgstr "%1% ifyllnads mönster stöds ej 100%% densitet."
 
 msgid ""
-"Switch to zig-zag pattern?\n"
-"Yes - switch to zig-zag pattern automaticlly\n"
+"Switch to rectilinear pattern?\n"
+"Yes - switch to rectilinear pattern automaticlly\n"
 "No  - reset density to default non 100% value automaticlly\n"
 msgstr ""
-"Ändra till Zig-Zag mönster?\n"
-"JA - Byta till Zig-Zag mönster automatiskt\n"
-"NEJ  - Återställ densiteten till standard inte 100% värdet automatiskt\n"
 
 msgid "Auto bed leveling"
 msgstr "Auto justera byggplattan"
@@ -1852,12 +1857,12 @@ msgstr ""
 msgid "N/A"
 msgstr "N/A"
 
+msgid "Invalid numeric."
+msgstr "Ogiltig siffra."
+
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s kan inte vara procent"
-
-msgid "Invalid numeric."
-msgstr "Ogiltig siffra."
 
 #, c-format, boost-format
 msgid "Value %s is out of range, continue?"
@@ -1901,8 +1906,11 @@ msgstr "Flöde"
 msgid "Tool"
 msgstr "Verktyg"
 
-msgid "Extruder position"
-msgstr "Extruder position"
+msgid "Speed: "
+msgstr ""
+
+msgid "Flow: "
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "Laddar G-koder"
@@ -2000,6 +2008,9 @@ msgstr "Filament 1"
 msgid "Flushed filament"
 msgstr "Rensat filament"
 
+msgid "Total"
+msgstr "Totalt"
+
 msgid "Filament change times"
 msgstr "Filament bytes tider"
 
@@ -2032,9 +2043,6 @@ msgstr "Förbered tid"
 
 msgid "Model printing time"
 msgstr "Utskriftstid för modellen"
-
-msgid "Total"
-msgstr "Totalt"
 
 msgid "Switch to silent mode"
 msgstr "Ändra till tyst läge"
@@ -2545,12 +2553,15 @@ msgstr "Start misslyckad (Ingen Enhet)!"
 msgid "Initializing..."
 msgstr "Startar..."
 
+msgid "Loading..."
+msgstr "Laddar..."
+
+msgid "Initialize failed (Not supported)!"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Initialize failed [%d]!"
 msgstr "Start misslyckad [%d]!"
-
-msgid "Loading..."
-msgstr "Laddar..."
 
 msgid "Stopped."
 msgstr "Avbruten."
@@ -2571,17 +2582,44 @@ msgstr "Månad"
 msgid "All Files"
 msgstr ""
 
+msgid "Group files by year, recent first."
+msgstr ""
+
+msgid "Group files by month, recent first."
+msgstr ""
+
+msgid "Show all files, recent first."
+msgstr ""
+
+msgid "Switch to timelapse files."
+msgstr ""
+
 msgid "Video"
 msgstr "Video"
+
+msgid "Switch to video files."
+msgstr ""
+
+msgid "Delete selected files from printer."
+msgstr ""
 
 msgid "Download"
 msgstr "Ladda ner"
 
+msgid "Download selected files from printer."
+msgstr ""
+
 msgid "Management"
 msgstr "Handhavande"
 
+msgid "Batch manage files."
+msgstr ""
+
 msgid "No printers."
 msgstr "Ingen printer."
+
+msgid "Not supported."
+msgstr ""
 
 msgid "Connecting..."
 msgstr "Sammankopplar..."
@@ -2683,6 +2721,12 @@ msgstr "Felsöknings Information"
 
 msgid "Printing List"
 msgstr "Utskrifts Lista"
+
+msgid "Cancel print"
+msgstr ""
+
+msgid "Are you sure you want to cancel this print?"
+msgstr ""
 
 msgid "Downloading..."
 msgstr "Laddar ner..."
@@ -2886,10 +2930,10 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Bottenlager"
 
-msgid "Spaghetti Detection"
+msgid "Spaghetti and Excess Chute Pileup Detection"
 msgstr ""
 
-msgid "Stop printing when spaghetti detected"
+msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 msgstr ""
 
 msgid "First Layer Inspection"
@@ -2959,12 +3003,49 @@ msgstr "Typ av byggplatta"
 msgid "Flushing volumes"
 msgstr "Rensnings volymer"
 
+msgid "Add one filament"
+msgstr ""
+
+msgid "Remove last filament"
+msgstr ""
+
+msgid "Sync material list from AMS"
+msgstr ""
+
+msgid "Set filaments to use"
+msgstr ""
+
+msgid ""
+"No AMS filaments. Please select a printer in 'Device' page to load AMS info."
+msgstr ""
+
+msgid "Sync filaments with AMS"
+msgstr ""
+
+msgid ""
+"Sync filaments with AMS will drop all current selected filament presets and "
+"colors. Do you want to continue?"
+msgstr ""
+
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr ""
+
 msgid "Untitled"
 msgstr "Ej namngiven"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
 msgstr "Spara ändringarna till \"%1%\"?"
+
+#, c-format, boost-format
+msgid ""
+"Successfully unmounted. The device %s(%s) can now be safely removed from the "
+"computer."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Ejecting of device %s(%s) has failed."
+msgstr ""
 
 msgid "Previous unsaved project detected, do you want to restore it?"
 msgstr "Tidigare osparat projekt upptäckt, återställa det?"
@@ -3045,6 +3126,15 @@ msgstr ""
 msgid "Object too small"
 msgstr "För litet objekt"
 
+msgid ""
+"This file contains several objects positioned at multiple heights.\n"
+"Instead of considering them as multiple objects, should \n"
+"the file be loaded as a single object having multiple parts?"
+msgstr ""
+
+msgid "Multi-part object detected"
+msgstr ""
+
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Ladda dessa filer som ett enkelt objekt med multipla delar?\n"
 
@@ -3073,6 +3163,15 @@ msgstr "Det valda objektet kan inte delas."
 
 msgid "Another export job is running."
 msgstr "En annan exportering pågår."
+
+msgid "Select a new file"
+msgstr ""
+
+msgid "File for the replace wasn't selected"
+msgstr ""
+
+msgid "Error during replace"
+msgstr ""
 
 msgid "Please select a file"
 msgstr "Välj en fil"
@@ -3171,6 +3270,9 @@ msgstr "Spara G-kod som:"
 
 msgid "Save Sliced file as:"
 msgstr "Spara beredningen som:"
+
+msgid "preparing, export 3mf failed!"
+msgstr ""
 
 msgid ""
 "Print By Object: \n"
@@ -3683,6 +3785,12 @@ msgstr "Spara nuvarande %s"
 
 msgid "Delete this preset"
 msgstr "Radera denna förinställning"
+
+msgid "Search in preset"
+msgstr ""
+
+msgid "Click to reset all settings to the last saved preset."
+msgstr ""
 
 msgid ""
 "Prime tower is required by timeplase. Are you sure you want to disable both "
@@ -4435,6 +4543,53 @@ msgstr "Ny version av Bambu Studio"
 msgid "Don't remind me of this version again"
 msgstr ""
 
+msgid ""
+"Are you sure you want to update? This will take about 10 minutes. Do not "
+"turn off the power while the printer is updating."
+msgstr ""
+
+msgid ""
+"An important update was detected and needs to be run before printing can "
+"continue. Do you want to update now? You can also update later from 'Upgrade "
+"firmware'."
+msgstr ""
+
+msgid ""
+"The firmware version is abnormal. Repairing and updating are required before "
+"printing. Do you want to update now? You can also update later on printer or "
+"update next time starting the studio."
+msgstr ""
+
+msgid "Model:"
+msgstr ""
+
+msgid "Serial:"
+msgstr ""
+
+msgid "Version:"
+msgstr ""
+
+msgid "Upgrade firmware"
+msgstr ""
+
+msgid "Printing"
+msgstr ""
+
+msgid "Idle"
+msgstr ""
+
+msgid "Latest version"
+msgstr ""
+
+msgid "Upgrading"
+msgstr ""
+
+msgid "Upgrading failed"
+msgstr ""
+
+msgid "Upgrading successful"
+msgstr ""
+
 msgid "Saving objects into the 3mf failed."
 msgstr "Sparande av objektet till 3mf misslyckades."
 
@@ -4721,6 +4876,11 @@ msgstr ""
 
 msgid "No extrusions under current settings."
 msgstr "Nuvarande inställning har ingen extrudering."
+
+msgid ""
+"Smooth mode of timelapse is not supported when \"by object\" sequence is "
+"enabled."
+msgstr ""
 
 msgid ""
 "Please select \"By object\" print sequence to print multiple objects in "
@@ -5182,14 +5342,20 @@ msgstr "Linjemönster för topp ytans ifyllnad"
 msgid "Concentric"
 msgstr "Koncentrisk"
 
-msgid "Zig zag"
-msgstr "Zig zag"
+msgid "Rectilinear"
+msgstr "Räta linjer"
 
 msgid "Monotonic"
 msgstr "Monoton"
 
 msgid "Monotonic line"
 msgstr "Monoton linje"
+
+msgid "Aligned Rectilinear"
+msgstr ""
+
+msgid "Hilbert Curve"
+msgstr ""
 
 msgid "Bottom surface pattern"
 msgstr "Botten ytans mönster"
@@ -6174,6 +6340,14 @@ msgstr "Endast på byggplattan"
 msgid "Don't create support on model surface, only on build plate"
 msgstr "Inställningen skapar bara support som utgår ifrån byggplattan"
 
+msgid "Support critical regions only"
+msgstr ""
+
+msgid ""
+"Only create support for critical regions including sharp tail, cantilever, "
+"etc."
+msgstr ""
+
 msgid "Top Z distance"
 msgstr "Topp Z-distans"
 
@@ -6238,9 +6412,6 @@ msgstr "Botten mönster"
 msgid "Line pattern of support"
 msgstr "Supportens linje mönster"
 
-msgid "Rectilinear"
-msgstr "Räta linjer"
-
 msgid "Rectilinear grid"
 msgstr "Rät linjärt nät"
 
@@ -6253,8 +6424,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
-"(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för "
+"lösligt(material) stödgränssnittet är koncentriskt"
 
 msgid "Base pattern spacing"
 msgstr "Basens mönster mellanrum"
@@ -6675,6 +6846,33 @@ msgstr "Support: åtgärda hål vid lager %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: föröka grenar vid lager %d"
+
+#~ msgid "Reduce Triangles"
+#~ msgstr "Reducera Trianglar"
+
+#~ msgid ""
+#~ "Switch to zig-zag pattern?\n"
+#~ "Yes - switch to zig-zag pattern automaticlly\n"
+#~ "No  - reset density to default non 100% value automaticlly\n"
+#~ msgstr ""
+#~ "Ändra till Zig-Zag mönster?\n"
+#~ "JA - Byta till Zig-Zag mönster automatiskt\n"
+#~ "NEJ  - Återställ densiteten till standard inte 100% värdet automatiskt\n"
+
+#~ msgid "Extruder position"
+#~ msgstr "Extruder position"
+
+#~ msgid "Zig zag"
+#~ msgstr "Zig zag"
+
+#~ msgid ""
+#~ "Bed temperature is higher than vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause nozzle blocked and printing failure"
+#~ msgstr ""
+#~ "Byggplattans temperatur överstiger kristalliserings temperaturen av detta "
+#~ "filament.\n"
+#~ "Detta kan orsaka att nozzeln blockeras och utskriften misslyckas"
 
 #~ msgid "0%"
 #~ msgstr "0%"

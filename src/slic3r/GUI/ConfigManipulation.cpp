@@ -131,7 +131,7 @@ void ConfigManipulation::check_bed_temperature_difference(int bed_type, DynamicP
             }
 
             if (first_layer_bed_temp > vitrification || bed_temp > vitrification) {
-                const wxString msg_text = wxString::Format(_L("Bed temperature is higher than vitrification temperature of this filament.\nThis may cause nozzle blocked and printing failure"));
+                const wxString msg_text = wxString::Format(_L("Bed temperature is higher than vitrification temperature of this filament.\nThis may cause nozzle blocked and printing failure\nPlease keep the printer open during the printing process to ensure air circulation or reduce the temperature of the hot bed"));
                 MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
                 is_msg_dlg_already_exist = true;
                 dialog.ShowModal();
@@ -384,8 +384,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                 wxString msg_text = GUI::format_wxstr(_L("%1% infill pattern doesn't support 100%% density."),
                     _(fill_pattern_def->enum_labels[it_pattern - fill_pattern_def->enum_values.begin()]));
                 if (is_global_config)
-                    msg_text += "\n" + _L("Switch to zig-zag pattern?\n"
-                                          "Yes - switch to zig-zag pattern automaticlly\n"
+                    msg_text += "\n" + _L("Switch to rectilinear pattern?\n"
+                                          "Yes - switch to rectilinear pattern automaticlly\n"
                                           "No  - reset density to default non 100% value automaticlly\n");
                 MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
                                                   wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK) );
@@ -513,9 +513,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     for (auto el : { "support_style", "support_base_pattern",
                     "support_base_pattern_spacing", "support_angle",
                     "support_interface_pattern", "support_interface_top_layers", "support_interface_bottom_layers",
-                    "bridge_no_support", "thick_bridges", "max_bridge_length", "support_top_z_distance",
+                    "bridge_no_support", "max_bridge_length", "support_top_z_distance",
                      //BBS: add more support params to dependent of enable_support
-                    "support_type","support_on_build_plate_only",
+                    "support_type", "support_on_build_plate_only", "support_critical_regions_only",
                     "support_object_xy_distance", "independent_support_layer_height"})
         toggle_field(el, have_support_material);
     toggle_field("support_threshold_angle", have_support_material && (support_type == stNormalAuto || support_type == stTreeAuto || support_type==stHybridAuto));

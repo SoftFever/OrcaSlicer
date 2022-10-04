@@ -65,7 +65,13 @@ private:
     ::Button *m_button_management = nullptr;
 
     std::string m_machine;
-    ImageGrid * m_image_grid = nullptr;
+    std::string m_lan_ip;
+    std::string m_lan_user;
+    std::string m_lan_passwd;
+    bool        m_lan_mode     = false;
+    bool        m_tutk_support = false;
+
+    ImageGrid * m_image_grid   = nullptr;
 
     int m_last_mode = 0;
     int m_last_type = 0;

@@ -111,7 +111,9 @@ int NetworkAgent::initialize_network_module(bool using_backup)
 {
     //int ret = -1;
     std::string library;
-    auto plugin_folder = boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins";
+    std::string data_dir_str = data_dir();
+    boost::filesystem::path data_dir_path(data_dir_str);
+    auto plugin_folder = data_dir_path / "plugins";
 
     if (using_backup) {
         plugin_folder = plugin_folder/"backup";
@@ -323,7 +325,9 @@ void* NetworkAgent::get_bambu_source_entry()
 
     //int ret = -1;
     std::string library;
-    auto plugin_folder = boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins";
+    std::string data_dir_str = data_dir();
+    boost::filesystem::path data_dir_path(data_dir_str);
+    auto plugin_folder = data_dir_path / "plugins";
 #if defined(_MSC_VER) || defined(_WIN32)
     wchar_t lib_wstr[128];
 

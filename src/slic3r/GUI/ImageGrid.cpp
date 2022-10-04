@@ -187,6 +187,9 @@ void ImageGrid::UpdateLayout()
 {
     if (!m_file_sys) return;
     wxSize size = GetClientSize();
+    wxSize mask_size{0, 60 * em_unit(this) / 10};
+    if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE)
+        mask_size.y = 20 * em_unit(this) / 10;
     int cell_width = m_cell_size.GetWidth();
     int cell_height = m_cell_size.GetHeight();
     int ncol = (size.GetWidth() - cell_width + m_image_size.GetWidth()) / cell_width;
@@ -199,7 +202,6 @@ void ImageGrid::UpdateLayout()
     if (m_row_offset >= m_row_count)
         m_row_offset = m_row_count == 0 ? 0 : m_row_count - 1;
     // create mask
-    wxSize mask_size{0, 60 * em_unit(this) / 10};
     if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE) {
         mask_size.x = (m_col_count - 1) * m_cell_size.GetWidth() + m_image_size.GetWidth();
     }
@@ -370,6 +372,8 @@ size_t Slic3r::GUI::ImageGrid::firstItem(wxSize const &size, wxPoint &off)
     int index = (m_row_offset + 1 < m_row_count || m_row_count == 0) ?
                     m_row_offset / 4 * m_col_count :
                     ((m_file_sys->GetCount() + m_col_count - 1) / m_col_count - (size.y + m_image_size.GetHeight() - 1) / m_cell_size.GetHeight()) * m_col_count;
+    if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE)
+        offy += m_mask.GetHeight();
     off = wxPoint{offx, offy};
     return index;
 }
@@ -523,12 +527,15 @@ void ImageGrid::render(wxDC& dc)
     }
     // Draw floating date range for non-group list
     if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE && m_file_sys->GetCount() > 0) {
-        dc.DrawBitmap(m_mask, {off.x, 0});
+        //dc.DrawBitmap(m_mask, {off.x, 0});
+        dc.DrawRectangle({off.x, 0}, m_mask.GetSize());
         auto & file1 = m_file_sys->GetFile(start);
         auto & file2 = m_file_sys->GetFile(end - 1);
         auto date1 = wxDateTime((time_t) file1.time).Format(_L(formats[m_file_sys->GetGroupMode()]));
         auto date2 = wxDateTime((time_t) file2.time).Format(_L(formats[m_file_sys->GetGroupMode()]));
-        dc.DrawText(date1 + " - " + date2, wxPoint{off.x + 24, 16});
+        dc.SetFont(Label::Head_16);
+        dc.SetTextForeground(wxColor("#262E30"));
+        dc.DrawText(date1 + " - " + date2, wxPoint{off.x, 2});
     }
     // Draw bottom background
     if (off.y < size.y)

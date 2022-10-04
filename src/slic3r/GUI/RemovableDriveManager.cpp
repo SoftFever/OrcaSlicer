@@ -387,6 +387,7 @@ std::string RemovableDriveManager::get_removable_drive_from_path(const std::stri
 
 void RemovableDriveManager::init(wxEvtHandler *callback_evt_handler)
 {
+	//no need use assert
 	assert(! m_initialized);
 	assert(m_callback_evt_handler == nullptr);
 
@@ -442,7 +443,14 @@ bool RemovableDriveManager::set_and_verify_last_save_path(const std::string &pat
 #ifndef REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
 	this->update();
 #endif // REMOVABLE_DRIVE_MANAGER_OS_CALLBACKS
+
+#ifdef __APPLE__
+	m_last_save_path = path;
+#else
 	m_last_save_path = this->get_removable_drive_from_path(path);
+#endif
+
+	
 	m_exporting_finished = false;
 	return ! m_last_save_path.empty();
 }

@@ -150,9 +150,12 @@ wxString HMSQuery::query_hms_msg(std::string long_error_code)
     if (m_hms_json.contains("device_hms")) {
         if (m_hms_json["device_hms"].contains(lang_code)) {
             for (auto item = m_hms_json["device_hms"][lang_code].begin(); item != m_hms_json["device_hms"][lang_code].end(); item++) {
-                if (item->contains("ecode") && (*item)["ecode"].get<std::string>() == long_error_code) {
-                    if (item->contains("intro")) {
-                        return wxString::FromUTF8((*item)["intro"].get<std::string>());
+                if (item->contains("ecode")) {
+                    std::string temp_string =  (*item)["ecode"].get<std::string>();
+                    if (boost::to_upper_copy(temp_string) == long_error_code) {
+                        if (item->contains("intro")) {
+                            return wxString::FromUTF8((*item)["intro"].get<std::string>());
+                        }
                     }
                 }
             }

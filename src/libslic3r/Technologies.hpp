@@ -38,6 +38,8 @@
 // Enable style editor in develop mode
 #define ENABLE_IMGUI_STYLE_EDITOR	0
 
+// Enable rework of Reload from disk command
+#define ENABLE_RELOAD_FROM_DISK_REWORK 1
 
 //====================
 // 2.4.0.beta1 techs

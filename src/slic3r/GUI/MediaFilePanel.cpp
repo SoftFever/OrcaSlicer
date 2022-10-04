@@ -31,6 +31,9 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_year = new ::Button(m_time_panel, _L("Year"), "", wxBORDER_NONE);
     m_button_month = new ::Button(m_time_panel, _L("Month"), "", wxBORDER_NONE);
     m_button_all = new ::Button(m_time_panel, _L("All Files"), "", wxBORDER_NONE);
+    m_button_year->SetToolTip(L("Group files by year, recent first."));
+    m_button_month->SetToolTip(L("Group files by month, recent first."));
+    m_button_all->SetToolTip(L("Show all files, recent first."));
     m_button_all->SetFont(Label::Head_14); // sync with m_last_mode
     for (auto b : {m_button_year, m_button_month, m_button_all}) {
         b->SetBackgroundColor(StateColor());
@@ -49,14 +52,22 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     top_sizer->Add(m_time_panel, 1, wxEXPAND);
 
     // File type
+    StateColor background(
+        std::make_pair(0xEEEEEE, (int) StateColor::Checked),
+        std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered), 
+        std::make_pair(*wxWHITE, (int) StateColor::Normal));
     m_type_panel = new ::StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_type_panel->SetBackgroundColor(*wxWHITE);
     m_type_panel->SetCornerRadius(FromDIP(5));
     m_type_panel->SetMinSize({-1, 48 * em_unit(this) / 10});
     m_button_timelapse = new ::Button(m_type_panel, _L("Timelapse"), "", wxBORDER_NONE);
-    m_button_timelapse->SetCanFocus(false);
+    m_button_timelapse->SetToolTip(L("Switch to timelapse files."));
     m_button_video = new ::Button(m_type_panel, _L("Video"), "", wxBORDER_NONE);
-    m_button_video->SetCanFocus(false);
+    m_button_video->SetToolTip(L("Switch to video files."));
+    for (auto b : {m_button_timelapse, m_button_video} ) {
+        b->SetBackgroundColor(background);
+        b->SetCanFocus(false);
+    }
 
     wxBoxSizer *type_sizer = new wxBoxSizer(wxHORIZONTAL);
     type_sizer->Add(m_button_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24);
@@ -68,13 +79,22 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_manage_panel      = new ::StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_manage_panel->SetBackgroundColor(StateColor());
     m_button_delete     = new ::Button(m_manage_panel, _L("Delete"));
-    m_button_delete->SetBackgroundColor(StateColor());
-    m_button_delete->SetCanFocus(false);
+    m_button_delete->SetToolTip(L("Delete selected files from printer."));
     m_button_download = new ::Button(m_manage_panel, _L("Download"));
-    m_button_download->SetBackgroundColor(StateColor());
-    m_button_download->SetCanFocus(false);
+    m_button_download->SetToolTip(L("Download selected files from printer."));
     m_button_management = new ::Button(m_manage_panel, _L("Management"));
-    m_button_management->SetBackgroundColor(StateColor());
+    m_button_management->SetToolTip(L("Batch manage files."));
+    for (auto b : {m_button_delete, m_button_download, m_button_management}) {
+        b->SetBackgroundColor(StateColor());
+        b->SetFont(Label::Body_12);
+        b->SetCornerRadius(12);
+        b->SetPaddingSize({10, 6});
+        b->SetCanFocus(false);
+    }
+    m_button_delete->SetBorderColor(wxColor("#FF6F00"));
+    m_button_delete->SetTextColor(wxColor("#FF6F00"));
+    m_button_management->SetBorderWidth(0);
+    m_button_management->SetBackgroundColor(wxColor("#00AE42"));
 
     wxBoxSizer *manage_sizer = new wxBoxSizer(wxHORIZONTAL);
     manage_sizer->AddStretchSpacer(1);
@@ -174,6 +194,17 @@ MediaFilePanel::~MediaFilePanel()
 void MediaFilePanel::SetMachineObject(MachineObject* obj)
 {
     std::string machine = obj ? obj->dev_id : "";
+    if (obj && obj->is_function_supported(PrinterFunction::FUNC_MEDIA_FILE)) {
+        m_lan_mode     = obj->is_lan_mode_printer();
+        m_lan_ip       = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->dev_ip : "";
+        m_lan_passwd   = obj->access_code;
+        m_tutk_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
+    } else {
+        m_lan_mode = false;
+        m_lan_ip.clear();
+        m_lan_passwd.clear();
+        m_tutk_support = true;
+    }
     if (machine == m_machine)
         return;
     m_machine = machine;
@@ -185,8 +216,11 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
     }
     if (m_machine.empty()) {
         m_image_grid->SetStatus(m_bmp_failed.bmp(), _L("No printers."));    
+    } else if (m_lan_ip.empty() && (m_lan_mode && !m_tutk_support)) {
+        m_image_grid->SetStatus(m_bmp_failed.bmp(), _L("Not supported."));
     } else {
         boost::shared_ptr<PrinterFileSystem> fs(new PrinterFileSystem);
+        fs->Attached();
         m_image_grid->SetFileType(m_last_type);
         m_image_grid->SetFileSystem(fs);
         fs->Bind(EVT_MODE_CHANGED, &MediaFilePanel::modeChanged, this);
@@ -259,7 +293,17 @@ void MediaFilePanel::modeChanged(wxCommandEvent& e1)
 
 void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
 {
-    NetworkAgent* agent = wxGetApp().getAgent();
+    if (!m_lan_ip.empty()) {
+       std::string url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
+        boost::shared_ptr fs(wfs.lock());
+        if (!fs || fs != m_image_grid->GetFileSystem()) return;
+        fs->SetUrl(url);
+        return;
+    }
+    if (m_lan_mode && !m_tutk_support) { // not support tutk
+        return;
+    }
+    NetworkAgent *agent = wxGetApp().getAgent();
     if (agent) {
         agent->get_camera_url(m_machine,
             [this, wfs](std::string url) {

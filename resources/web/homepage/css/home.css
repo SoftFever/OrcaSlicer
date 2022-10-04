@@ -370,14 +370,15 @@ body
 {
 	position: absolute;
 	margin: 0px;
-	padding: 0px;
+	padding: 10px;
 	border: 0px;
 	min-width: 100px;
     top: 800px;
 	border: 1px solid #C3C3C3;
+	border-radius: 5px;
 	color: #323A3D;
 	background-color: #fff;
-        display: none;
+    display: none;
 }
 
 .CT_Item
@@ -385,15 +386,16 @@ body
 	padding: 2px 10px;
 	display: flex;
 	flex-direction: row;
-	align-content: center;
 	align-items: center;
 	border: 2px solid #fff;
+	border-radius: 4px;	
 }
 
 .CT_Item:hover
 {
 	cursor: pointer;
-	border: 2px solid #00AE42;
+	background-color: #0078D4;
+	color: #fff;
 }
 
 
@@ -401,19 +403,33 @@ body
 {
 	margin-right: 6px;
 	width: 16px;
-	height: 16px;		
+	height: 16px;	
+}
+
+#CT_Delete_Bar:hover  .CT_Delete
+{
+	background: url("../img/remove2.svg");
+	background-repeat: no-repeat;
+	background-size: contain;	
 }
 
 .CT_Delete
 {
-	background: url("../img/delete.png");
+	background: url("../img/remove.svg");
+	background-repeat: no-repeat;
+	background-size: contain;	
+}
+
+#CT_Folder_Bar:hover .CT_Explore
+{
+	background: url("../img/open_folder2.svg");
 	background-repeat: no-repeat;
 	background-size: contain;	
 }
 
 .CT_Explore
 {
-	background: url("../img/folder.png");
+	background: url("../img/open_folder.svg");
 	background-repeat: no-repeat;
 	background-size: contain;		
 }
@@ -426,7 +442,9 @@ body
 
 .CT_Text
 {
-
+	line-height: 20px;
+	height: 20px;	
+	display: block;
 }
 
 /*--------Mall------*/

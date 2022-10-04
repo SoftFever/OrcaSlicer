@@ -149,6 +149,8 @@ public:
     Status GetStatus() const { return m_status; }
     int GetLastError() const { return m_last_error; }
 
+    void Attached();
+
     void Start();
 
     void Retry();

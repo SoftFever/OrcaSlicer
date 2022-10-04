@@ -227,11 +227,6 @@ void MonitorPanel::set_default()
     /* reset side tool*/
     //m_bitmap_wifi_signal->SetBitmap(wxNullBitmap);
 
-#if !BBL_RELEASE_TO_PUBLIC
-    /* reset time lapse panel */
-    m_media_file_panel->SetMachineObject(nullptr);
-#endif
-
     wxGetApp().sidebar().load_ams_list({});
 }
 
@@ -324,6 +319,13 @@ void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
         wxPoint             pos              = m_side_tools->ClientToScreen(wxPoint(0, 0));
         pos.y += m_side_tools->GetRect().height;
         m_select_machine.Position(pos, wxSize(0, 0));
+
+#ifdef __linux__
+        m_select_machine.SetSize(wxSize(m_side_tools->GetSize().x, -1));
+        m_select_machine.SetMaxSize(wxSize(m_side_tools->GetSize().x, -1));
+        m_select_machine.SetMinSize(wxSize(m_side_tools->GetSize().x, -1));
+#endif
+
         m_select_machine.Popup();
     }
 }

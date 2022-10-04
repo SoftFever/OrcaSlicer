@@ -3889,6 +3889,14 @@ void GLCanvas3D::do_flatten(const Vec3d& normal, const std::string& snapshot_typ
     do_rotate(""); // avoid taking another snapshot
 }
 
+void GLCanvas3D::do_center()
+{
+    if (m_model == nullptr)
+        return;
+
+    m_selection.center();
+}
+
 void GLCanvas3D::do_mirror(const std::string& snapshot_type)
 {
     if (m_model == nullptr)
@@ -4074,15 +4082,15 @@ double GLCanvas3D::get_size_proportional_to_max_bed_size(double factor) const
 }
 
 //BBS
-std::vector<Vec2f> GLCanvas3D::get_empty_cells(const Vec2f start_point)
+std::vector<Vec2f> GLCanvas3D::get_empty_cells(const Vec2f start_point, const Vec2f step)
 {
     PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
     BoundingBoxf3 build_volume = plate->get_build_volume();
     Vec2d vmin(build_volume.min.x(), build_volume.min.y()), vmax(build_volume.max.x(), build_volume.max.y());
     BoundingBoxf bbox(vmin, vmax);
     std::vector<Vec2f> cells;
-    for (float x = bbox.min.x(); x < bbox.max.x(); x+=10)
-        for (float y = bbox.min.y(); y < bbox.max.y(); y += 10)
+    for (float x = bbox.min.x(); x < bbox.max.x(); x += step(0))
+        for (float y = bbox.min.y(); y < bbox.max.y(); y += step(1))
         {
             cells.emplace_back(x, y);
         }
@@ -4124,9 +4132,9 @@ std::vector<Vec2f> GLCanvas3D::get_empty_cells(const Vec2f start_point)
     return cells;
 }
 
-Vec2f GLCanvas3D::get_nearest_empty_cell(const Vec2f start_point)
+Vec2f GLCanvas3D::get_nearest_empty_cell(const Vec2f start_point, const Vec2f step)
 {
-    std::vector<Vec2f> empty_cells = get_empty_cells(start_point);
+    std::vector<Vec2f> empty_cells = get_empty_cells(start_point, step);
     if (!empty_cells.empty())
         return empty_cells.front();
     else {

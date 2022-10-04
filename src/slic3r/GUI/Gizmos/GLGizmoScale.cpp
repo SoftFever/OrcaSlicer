@@ -120,6 +120,16 @@ void GLGizmoScale3D::on_start_dragging()
 
 void GLGizmoScale3D::on_update(const UpdateData& data)
 {
+    bool uniform_scale = false;
+    AppConfig* config = wxGetApp().app_config;
+    if (config)
+        uniform_scale = config->get("uniform_scale") == "1" ? true : false;
+
+    if (uniform_scale) {
+        do_scale_uniform(data);
+        return;
+    }
+
     if ((m_hover_id == 0) || (m_hover_id == 1))
         do_scale_along_axis(X, data);
     else if ((m_hover_id == 2) || (m_hover_id == 3))

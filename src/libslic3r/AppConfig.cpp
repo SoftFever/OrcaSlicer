@@ -285,6 +285,10 @@ void AppConfig::set_defaults()
         set("backup_interval", "10");
     }
 
+    if (get("curr_bed_type").empty()) {
+        set("curr_bed_type", "0");
+    }
+
 // #if BBL_RELEASE_TO_PUBLIC
     if (get("iot_environment").empty()) {
         set("iot_environment", "3");
@@ -294,6 +298,10 @@ void AppConfig::set_defaults()
 //         set("iot_environment", "1");
 //     }
 // #endif
+
+    if (get("uniform_scale").empty()) {
+        set("uniform_scale", "1");
+    }
 
     // Remove legacy window positions/sizes
     erase("app", "main_frame_maximized");
@@ -525,7 +533,7 @@ void AppConfig::save()
     {
         // Returns "undefined" if the thread naming functionality is not supported by the operating system.
         std::optional<std::string> current_thread_name = get_current_thread_name();
-        if (current_thread_name && *current_thread_name != "bambustudio_main")
+        if (current_thread_name && *current_thread_name != "bambustu_main")
             throw CriticalException("Calling AppConfig::save() from a worker thread!");
     }
 
@@ -777,7 +785,7 @@ void AppConfig::save()
     {
         // Returns "undefined" if the thread naming functionality is not supported by the operating system.
         std::optional<std::string> current_thread_name = get_current_thread_name();
-        if (current_thread_name && *current_thread_name != "bambustudio_main")
+        if (current_thread_name && *current_thread_name != "bambustu_main")
             throw CriticalException("Calling AppConfig::save() from a worker thread!");
     }
 

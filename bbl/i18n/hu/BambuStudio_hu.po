@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-09 11:50+0800\n"
+"POT-Creation-Date: 2022-09-27 16:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -688,11 +688,17 @@ msgstr "Model javítása"
 msgid "Export as STL"
 msgstr "Exportálás STL-ként"
 
-msgid "Reload item"
-msgstr "Tárgy újbóli betöltése"
+msgid "Reload from disk"
+msgstr ""
 
-msgid "Reload items"
-msgstr "Tárgyak újbóli betöltése"
+msgid "Reload the selected parts from disk"
+msgstr ""
+
+msgid "Replace with STL"
+msgstr ""
+
+msgid "Replace the selected part with new STL"
+msgstr ""
 
 msgid "Change filament"
 msgstr "Filament csere"
@@ -829,8 +835,11 @@ msgstr "Kiválasztott tálca eltávolítása"
 msgid "Clone"
 msgstr "Klónozás"
 
-msgid "Reduce Triangles"
-msgstr "Háromszögek csökkentése"
+msgid "Simplify Model"
+msgstr ""
+
+msgid "Center"
+msgstr ""
 
 msgid "Edit in Parameter Table"
 msgstr ""
@@ -1636,11 +1645,10 @@ msgstr ""
 
 msgid ""
 "Bed temperature is higher than vitrification temperature of this filament.\n"
-"This may cause nozzle blocked and printing failure"
+"This may cause nozzle blocked and printing failure\n"
+"Please keep the printer open during the printing process to ensure air "
+"circulation or reduce the temperature of the hot bed"
 msgstr ""
-"Az asztalhőmérséklet magasabb, mint ennek a filamentnek az üvegesedési "
-"hőmérséklete.\n"
-"Ez a fúvóka eltömődését és nyomtatási hibákat okozhat"
 
 msgid ""
 "Too small layer height.\n"
@@ -1758,13 +1766,10 @@ msgid "%1% infill pattern doesn't support 100%% density."
 msgstr "%1% kitöltési mintázat nem támogatja a 100%%-os kitöltés."
 
 msgid ""
-"Switch to zig-zag pattern?\n"
-"Yes - switch to zig-zag pattern automaticlly\n"
+"Switch to rectilinear pattern?\n"
+"Yes - switch to rectilinear pattern automaticlly\n"
 "No  - reset density to default non 100% value automaticlly\n"
 msgstr ""
-"Switch to zig-zag pattern?\n"
-"Yes - Switch to zig-zag pattern automatically\n"
-"No  - Reset density to default non-100% value automatically\n"
 
 msgid "Auto bed leveling"
 msgstr "Automatikus asztalszintezés"
@@ -1877,12 +1882,12 @@ msgstr ""
 msgid "N/A"
 msgstr "N/A"
 
+msgid "Invalid numeric."
+msgstr "Érvénytelen számjegy."
+
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s nem lehet százalék"
-
-msgid "Invalid numeric."
-msgstr "Érvénytelen számjegy."
 
 #, c-format, boost-format
 msgid "Value %s is out of range, continue?"
@@ -1926,8 +1931,11 @@ msgstr "Anyagáramlás"
 msgid "Tool"
 msgstr "Tool"
 
-msgid "Extruder position"
-msgstr "Extruder pozíció"
+msgid "Speed: "
+msgstr ""
+
+msgid "Flow: "
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "Loading G-codes"
@@ -2025,6 +2033,9 @@ msgstr "Filament 1"
 msgid "Flushed filament"
 msgstr "Öblített filament"
 
+msgid "Total"
+msgstr "Összesen"
+
 msgid "Filament change times"
 msgstr "Filamentcserék száma"
 
@@ -2057,9 +2068,6 @@ msgstr "Előkészítési idő"
 
 msgid "Model printing time"
 msgstr "Modell nyomtatási ideje"
-
-msgid "Total"
-msgstr "Összesen"
 
 msgid "Switch to silent mode"
 msgstr "Switch to silent mode"
@@ -2579,12 +2587,15 @@ msgstr "Sikertelen inicializálás (Nincs eszköz)!"
 msgid "Initializing..."
 msgstr "Initializing..."
 
+msgid "Loading..."
+msgstr "Loading..."
+
+msgid "Initialize failed (Not supported)!"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Initialize failed [%d]!"
 msgstr "Initalization failed [%d]!"
-
-msgid "Loading..."
-msgstr "Loading..."
 
 msgid "Stopped."
 msgstr "Megállítva."
@@ -2605,17 +2616,44 @@ msgstr "Month"
 msgid "All Files"
 msgstr ""
 
+msgid "Group files by year, recent first."
+msgstr ""
+
+msgid "Group files by month, recent first."
+msgstr ""
+
+msgid "Show all files, recent first."
+msgstr ""
+
+msgid "Switch to timelapse files."
+msgstr ""
+
 msgid "Video"
 msgstr "Video"
+
+msgid "Switch to video files."
+msgstr ""
+
+msgid "Delete selected files from printer."
+msgstr ""
 
 msgid "Download"
 msgstr "Letöltés"
 
+msgid "Download selected files from printer."
+msgstr ""
+
 msgid "Management"
 msgstr "Management"
 
+msgid "Batch manage files."
+msgstr ""
+
 msgid "No printers."
 msgstr "No printers."
+
+msgid "Not supported."
+msgstr ""
 
 msgid "Connecting..."
 msgstr "Csatlakozás..."
@@ -2717,6 +2755,12 @@ msgstr "Hibakeresési infó"
 
 msgid "Printing List"
 msgstr "Nyomtatási lista"
+
+msgid "Cancel print"
+msgstr ""
+
+msgid "Are you sure you want to cancel this print?"
+msgstr ""
 
 msgid "Downloading..."
 msgstr "Letöltés..."
@@ -2921,10 +2965,10 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Alsó"
 
-msgid "Spaghetti Detection"
+msgid "Spaghetti and Excess Chute Pileup Detection"
 msgstr ""
 
-msgid "Stop printing when spaghetti detected"
+msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 msgstr ""
 
 msgid "First Layer Inspection"
@@ -2994,12 +3038,49 @@ msgstr "Asztaltípus"
 msgid "Flushing volumes"
 msgstr "Öblítési mennyiségek"
 
+msgid "Add one filament"
+msgstr ""
+
+msgid "Remove last filament"
+msgstr ""
+
+msgid "Sync material list from AMS"
+msgstr ""
+
+msgid "Set filaments to use"
+msgstr ""
+
+msgid ""
+"No AMS filaments. Please select a printer in 'Device' page to load AMS info."
+msgstr ""
+
+msgid "Sync filaments with AMS"
+msgstr ""
+
+msgid ""
+"Sync filaments with AMS will drop all current selected filament presets and "
+"colors. Do you want to continue?"
+msgstr ""
+
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr ""
+
 msgid "Untitled"
 msgstr "Untitled"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
 msgstr "Szeretnéd elmenteni \"%1%\" változásait?"
+
+#, c-format, boost-format
+msgid ""
+"Successfully unmounted. The device %s(%s) can now be safely removed from the "
+"computer."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Ejecting of device %s(%s) has failed."
+msgstr ""
 
 msgid "Previous unsaved project detected, do you want to restore it?"
 msgstr "Korábbi, nem mentett projektet találtunk, vissza szeretnéd állítani?"
@@ -3079,6 +3160,15 @@ msgstr ""
 msgid "Object too small"
 msgstr "Object too small"
 
+msgid ""
+"This file contains several objects positioned at multiple heights.\n"
+"Instead of considering them as multiple objects, should \n"
+"the file be loaded as a single object having multiple parts?"
+msgstr ""
+
+msgid "Multi-part object detected"
+msgstr ""
+
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Load these files as a single object with multiple parts?\n"
 
@@ -3107,6 +3197,15 @@ msgstr "The selected object couldn't be split."
 
 msgid "Another export job is running."
 msgstr "Egy másik exportálási feladat is fut."
+
+msgid "Select a new file"
+msgstr ""
+
+msgid "File for the replace wasn't selected"
+msgstr ""
+
+msgid "Error during replace"
+msgstr ""
 
 msgid "Please select a file"
 msgstr "Kérjük, válassz egy fájlt"
@@ -3209,6 +3308,9 @@ msgstr "G-kód fájl mentése mint:"
 
 msgid "Save Sliced file as:"
 msgstr "Szeletelt fájl mentése mint:"
+
+msgid "preparing, export 3mf failed!"
+msgstr ""
 
 msgid ""
 "Print By Object: \n"
@@ -3727,6 +3829,12 @@ msgstr "Jelenlegi %s mentése"
 
 msgid "Delete this preset"
 msgstr "Ezen beállítás törlése"
+
+msgid "Search in preset"
+msgstr ""
+
+msgid "Click to reset all settings to the last saved preset."
+msgstr ""
 
 msgid ""
 "Prime tower is required by timeplase. Are you sure you want to disable both "
@@ -4484,6 +4592,53 @@ msgstr "A Bambu Studio új verziója"
 msgid "Don't remind me of this version again"
 msgstr ""
 
+msgid ""
+"Are you sure you want to update? This will take about 10 minutes. Do not "
+"turn off the power while the printer is updating."
+msgstr ""
+
+msgid ""
+"An important update was detected and needs to be run before printing can "
+"continue. Do you want to update now? You can also update later from 'Upgrade "
+"firmware'."
+msgstr ""
+
+msgid ""
+"The firmware version is abnormal. Repairing and updating are required before "
+"printing. Do you want to update now? You can also update later on printer or "
+"update next time starting the studio."
+msgstr ""
+
+msgid "Model:"
+msgstr ""
+
+msgid "Serial:"
+msgstr ""
+
+msgid "Version:"
+msgstr ""
+
+msgid "Upgrade firmware"
+msgstr ""
+
+msgid "Printing"
+msgstr ""
+
+msgid "Idle"
+msgstr ""
+
+msgid "Latest version"
+msgstr ""
+
+msgid "Upgrading"
+msgstr ""
+
+msgid "Upgrading failed"
+msgstr ""
+
+msgid "Upgrading successful"
+msgstr ""
+
 msgid "Saving objects into the 3mf failed."
 msgstr "Az objektumok mentése a 3mf-be sikertelen volt."
 
@@ -4783,6 +4938,11 @@ msgstr ""
 
 msgid "No extrusions under current settings."
 msgstr "No extrusions under current settings."
+
+msgid ""
+"Smooth mode of timelapse is not supported when \"by object\" sequence is "
+"enabled."
+msgstr ""
 
 msgid ""
 "Please select \"By object\" print sequence to print multiple objects in "
@@ -5257,14 +5417,20 @@ msgstr "This is the line pattern for top surface infill."
 msgid "Concentric"
 msgstr "Koncentrikus"
 
-msgid "Zig zag"
-msgstr "Cikcakk"
+msgid "Rectilinear"
+msgstr "Vonalak"
 
 msgid "Monotonic"
 msgstr "Monotonikus"
 
 msgid "Monotonic line"
 msgstr "Monotonikus vonal"
+
+msgid "Aligned Rectilinear"
+msgstr ""
+
+msgid "Hilbert Curve"
+msgstr ""
 
 msgid "Bottom surface pattern"
 msgstr "Alsó felület mintázata"
@@ -6265,6 +6431,14 @@ msgstr "Csak a tárgyasztaltól"
 msgid "Don't create support on model surface, only on build plate"
 msgstr "Nem generál támaszt a modell felületén, csak a tárgyasztalon"
 
+msgid "Support critical regions only"
+msgstr ""
+
+msgid ""
+"Only create support for critical regions including sharp tail, cantilever, "
+"etc."
+msgstr ""
+
 msgid "Top Z distance"
 msgstr "Z távolság"
 
@@ -6329,9 +6503,6 @@ msgstr "Alap mintázata"
 
 msgid "Line pattern of support"
 msgstr "This is the line pattern for support."
-
-msgid "Rectilinear"
-msgstr "Vonalak"
 
 msgid "Rectilinear grid"
 msgstr "Vonalrács"
@@ -6770,6 +6941,33 @@ msgstr "Support: fix holes at layer %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
+
+#~ msgid "Reduce Triangles"
+#~ msgstr "Háromszögek csökkentése"
+
+#~ msgid ""
+#~ "Switch to zig-zag pattern?\n"
+#~ "Yes - switch to zig-zag pattern automaticlly\n"
+#~ "No  - reset density to default non 100% value automaticlly\n"
+#~ msgstr ""
+#~ "Switch to zig-zag pattern?\n"
+#~ "Yes - Switch to zig-zag pattern automatically\n"
+#~ "No  - Reset density to default non-100% value automatically\n"
+
+#~ msgid "Extruder position"
+#~ msgstr "Extruder pozíció"
+
+#~ msgid "Zig zag"
+#~ msgstr "Cikcakk"
+
+#~ msgid ""
+#~ "Bed temperature is higher than vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause nozzle blocked and printing failure"
+#~ msgstr ""
+#~ "Az asztalhőmérséklet magasabb, mint ennek a filamentnek az üvegesedési "
+#~ "hőmérséklete.\n"
+#~ "Ez a fúvóka eltömődését és nyomtatási hibákat okozhat"
 
 #~ msgid "0%"
 #~ msgstr "0%"

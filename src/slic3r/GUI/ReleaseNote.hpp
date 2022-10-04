@@ -33,6 +33,7 @@
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/ScrolledWindow.hpp"
 #include <wx/hashmap.h>
+#include <wx/webview.h>
 
 namespace Slic3r { namespace GUI {
 
@@ -55,12 +56,18 @@ public:
     UpdateVersionDialog(wxWindow *parent = nullptr);
     ~UpdateVersionDialog();
 
-    void on_dpi_changed(const wxRect &suggested_rect) override;
-    void update_version_info(wxString release_note, wxString version);
+    wxWebView* CreateTipView(wxWindow* parent);
+    void OnLoaded(wxWebViewEvent& event);
+    void OnTitleChanged(wxWebViewEvent& event);
+    void OnError(wxWebViewEvent& event);
+    bool ShowReleaseNote(std::string content);
+    void RunScript(std::string script);
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+    void update_version_info(std::string url);
     void alter_choice(wxCommandEvent& event);
 
     wxStaticText *    m_text_up_info{nullptr};
-    wxScrolledWindow *m_scrollwindw_release_note{nullptr};
+    wxWebView*        m_scrollwindw_release_note{nullptr};
     wxBoxSizer *      sizer_text_release_note{nullptr};
     wxStaticText *    m_staticText_release_note{nullptr};
     wxCheckBox*       m_remind_choice;

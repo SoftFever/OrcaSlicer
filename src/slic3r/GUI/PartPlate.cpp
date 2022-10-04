@@ -1162,12 +1162,14 @@ void PartPlate::set_index(int index)
 		m_print->set_plate_index(index);
 }
 
-void PartPlate::clear()
+void PartPlate::clear(bool clear_sliced_result)
 {
 	obj_to_instance_set.clear();
 	instance_outside_set.clear();
-	m_ready_for_slice = true;
-	update_slice_result_valid_state(false);
+	if (clear_sliced_result) {
+		m_ready_for_slice = true;
+		update_slice_result_valid_state(false);
+	}
 
 	return;
 }
@@ -1250,7 +1252,7 @@ Vec3d PartPlate::get_center_origin()
 	Vec3d origin;
 
 	origin(0) = (m_bounding_box.min(0) + m_bounding_box.max(0)) / 2;//m_origin.x() + m_width / 2;
-	origin(1) = (m_bounding_box.min(0) + m_bounding_box.max(0)) / 2; //m_origin.y() + m_depth / 2;
+	origin(1) = (m_bounding_box.min(1) + m_bounding_box.max(1)) / 2; //m_origin.y() + m_depth / 2;
 	origin(2) = m_origin.z();
 
 	return origin;
@@ -2415,14 +2417,19 @@ void PartPlateList::reset_size(int width, int depth, int height)
 }
 
 //clear all the instances in the plate, but keep the plates
-void PartPlateList::clear(bool delete_plates, bool release_print_list)
+void PartPlateList::clear(bool delete_plates, bool release_print_list, bool except_locked, int plate_index)
 {
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
 		PartPlate* plate = m_plate_list[i];
 		assert(plate != NULL);
 
-		plate->clear();
+		if (except_locked && plate->is_locked())
+			plate->clear(false);
+		else if ((plate_index != -1) && (plate_index != i))
+			plate->clear(false);
+		else
+			plate->clear();
 		if (delete_plates)
 			delete plate;
 	}
@@ -3202,12 +3209,12 @@ int PartPlateList::add_to_plate(int obj_id, int instance_id, int plate_id)
 }
 
 //reload all objects
-int PartPlateList::reload_all_objects()
+int PartPlateList::reload_all_objects(bool except_locked, int plate_index)
 {
 	int ret = 0;
 	unsigned int i, j, k;
 
-	clear();
+	clear(false, false, except_locked, plate_index);
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": m_model->objects.size() is %1%") % m_model->objects.size();
 	//try to find a new plate
@@ -3573,10 +3580,15 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 	{
 		if (arrange_polygon.bed_idx == -1)
 		{
-			//outarea for large object
+			// outarea for large object
 			arrange_polygon.bed_idx = m_plate_list.size();
-			arrange_polygon.translation(X) = scaled<double>(0.5 * plate_stride_x());
-			arrange_polygon.translation(Y) = scaled<double>(0.5 * plate_stride_y());
+			BoundingBox apbox(arrange_polygon.poly);
+			auto        apbox_size = apbox.size();
+
+			//arrange_polygon.translation(X) = scaled<double>(0.5 * plate_stride_x());
+			//arrange_polygon.translation(Y) = scaled<double>(0.5 * plate_stride_y());
+			arrange_polygon.translation(X) = 0.5 * apbox_size[0];
+			arrange_polygon.translation(Y) = scaled<double>(static_cast<double>(m_plate_depth)) - 0.5 * apbox_size[1];
 		}
 
 		arrange_polygon.row = arrange_polygon.bed_idx / m_plate_cols;
@@ -3945,7 +3957,7 @@ int PartPlateList::rebuild_plates_after_deserialize(std::vector<bool>& previous_
 }
 
 //retruct plates structures after auto-arrangement
-int PartPlateList::rebuild_plates_after_arrangement(bool recycle_plates)
+int PartPlateList::rebuild_plates_after_arrangement(bool recycle_plates, bool except_locked, int plate_index)
 {
 	int ret = 0;
 
@@ -3956,7 +3968,7 @@ int PartPlateList::rebuild_plates_after_arrangement(bool recycle_plates)
 	//for (auto object : m_model->objects)
 	//	std::sort(object->instances.begin(), object->instances.end(), [](auto a, auto b) {return a->arrange_order < b->arrange_order; });
 
-	ret = reload_all_objects();
+	ret = reload_all_objects(except_locked, plate_index);
 
 	if (recycle_plates)
 	{

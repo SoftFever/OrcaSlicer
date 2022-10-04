@@ -12,6 +12,7 @@
 #include "FillBase.hpp"
 #include "FillRectilinear.hpp"
 #include "FillConcentricInternal.hpp"
+#include "FillConcentric.hpp"
 
 #define NARROW_INFILL_AREA_THRESHOLD 3
 
@@ -407,6 +408,11 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
             assert(fill_concentric != nullptr);
             fill_concentric->print_config        = &this->object()->print()->config();
             fill_concentric->print_object_config = &this->object()->config();
+        } else if (surface_fill.params.pattern == ipConcentric) {
+            FillConcentric *fill_concentric = dynamic_cast<FillConcentric *>(f.get());
+            assert(fill_concentric != nullptr);
+            fill_concentric->print_config = &this->object()->print()->config();
+            fill_concentric->print_object_config = &this->object()->config();
         }
 
         // calculate flow spacing for infill pattern generation
@@ -434,6 +440,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         params.anchor_length     = surface_fill.params.anchor_length;
 		params.anchor_length_max = surface_fill.params.anchor_length_max;
 		params.resolution        = resolution;
+		params.use_arachne = surface_fill.params.pattern == ipConcentric;
 
 		// BBS
 		params.flow = surface_fill.params.flow;

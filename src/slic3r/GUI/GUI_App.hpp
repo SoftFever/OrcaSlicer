@@ -28,6 +28,7 @@
 
 #define BBL_HAS_FIRST_PAGE          1
 #define STUDIO_INACTIVE_TIMEOUT     15*60*1000
+#define LOG_FILES_MAX_NUM           30
 
 class wxMenuItem;
 class wxMenuBar;
@@ -52,7 +53,7 @@ class NetworkAgent;
 
 namespace GUI{
 
-//class RemovableDriveManager;
+class RemovableDriveManager;
 class OtherInstanceMessageHandler;
 class MainFrame;
 class Sidebar;
@@ -247,7 +248,7 @@ private:
     const wxLanguageInfo		 *m_language_info_best   = nullptr;
 
     OpenGLManager m_opengl_mgr;
-    //std::unique_ptr<RemovableDriveManager> m_removable_drive_manager;
+    std::unique_ptr<RemovableDriveManager> m_removable_drive_manager;
 
     std::unique_ptr<ImGuiWrapper> m_imgui;
     std::unique_ptr<PrintHostJobQueue> m_printhost_job_queue;
@@ -484,7 +485,7 @@ public:
     std::vector<Tab *>      tabs_list;
     std::vector<Tab *>      model_tabs_list;
 
-	//RemovableDriveManager* removable_drive_manager() { return m_removable_drive_manager.get(); }
+	RemovableDriveManager* removable_drive_manager() { return m_removable_drive_manager.get(); }
 	//OtherInstanceMessageHandler* other_instance_message_handler() { return m_other_instance_message_handler.get(); }
     //wxSingleInstanceChecker* single_instance_checker() {return m_single_instance_checker.get();}
 

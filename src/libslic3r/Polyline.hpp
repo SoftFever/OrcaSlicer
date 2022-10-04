@@ -239,6 +239,18 @@ public:
     std::pair<bool,bool>  endpoints;
 };
 
+inline ThickPolylines to_thick_polylines(Polylines&& polylines, const coordf_t width)
+{
+    ThickPolylines out;
+    out.reserve(polylines.size());
+    for (Polyline& polyline : polylines) {
+        out.emplace_back();
+        out.back().width.assign((polyline.points.size() - 1) * 2, width);
+        out.back().points = std::move(polyline.points);
+    }
+    return out;
+}
+
 class Polyline3 : public MultiPoint3
 {
 public:

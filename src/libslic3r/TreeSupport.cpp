@@ -673,6 +673,7 @@ void TreeSupport::detect_object_overhangs()
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     const coordf_t max_bridge_length = scale_(config.max_bridge_length.value);
     const bool bridge_no_support = max_bridge_length > 0;// config.bridge_no_support.value;
+    const bool support_critical_regions_only = config.support_critical_regions_only.value;
     const int enforce_support_layers = config.enforce_support_layers.value;
     const double area_thresh_well_supported = SQ(scale_(6));  // min: 6x6=36mm^2
     const double length_thresh_well_supported = scale_(6);  // min: 6mm
@@ -694,6 +695,7 @@ void TreeSupport::detect_object_overhangs()
         int min_layer = 1e7;
         int max_layer = 0;
         coordf_t offset = 0;
+        bool is_cantilever = false;
         OverhangCluster(const ExPolygon* expoly, int layer_nr) {
             push_back(expoly, layer_nr);
         }
@@ -822,8 +824,11 @@ void TreeSupport::detect_object_overhangs()
             // normal overhang
             ExPolygons lower_layer_offseted = offset_ex(lower_polys, support_offset_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS);
             ExPolygons overhang_areas = std::move(diff_ex(curr_polys, lower_layer_offseted));
-            //overhang_areas = std::move(offset2_ex(overhang_areas, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
-            overhang_areas.erase(std::remove_if(overhang_areas.begin(), overhang_areas.end(), [extrusion_width_scaled](ExPolygon& area) {return offset_ex(area, -0.1 * extrusion_width_scaled).empty(); }), overhang_areas.end());
+            // overhang_areas = std::move(offset2_ex(overhang_areas, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
+            overhang_areas.erase(std::remove_if(overhang_areas.begin(), overhang_areas.end(),
+                                                [extrusion_width_scaled](ExPolygon &area) { return offset_ex(area, -0.1 * extrusion_width_scaled).empty(); }),
+                                    overhang_areas.end());
+            
 
             ExPolygons overhangs_sharp_tail;
             if (is_auto && g_config_support_sharp_tails)
@@ -854,7 +859,7 @@ void TreeSupport::detect_object_overhangs()
                     overhang_areas = union_ex(overhang_areas, overhangs_sharp_tail);
             }
 #else
-                // BBS
+                // BBS detect sharp tail
                 const ExPolygons& lower_layer_sharptails = lower_layer->sharp_tails;
                 auto& lower_layer_sharptails_height = lower_layer->sharp_tails_height;
                 for (ExPolygon& expoly : layer->lslices) {
@@ -939,19 +944,8 @@ void TreeSupport::detect_object_overhangs()
 
             TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_nr + m_raft_layers);
             for (ExPolygon& poly : overhang_areas) {
-                // NOTE: must push something into ts_layer->overhang_areas, can't be empty for any layer,
-                // otherwise remove_small_overhangs can't correctly cluster overhangs
-#if 0
-                ExPolygons poly_simp = poly.simplify(scale_(radius_sample_resolution));
-                // simplify method may delete the entire polygon which is unwanted
-                if(!poly_simp.empty())
-                    append(ts_layer->overhang_areas, poly_simp);
-                else
-                    ts_layer->overhang_areas.emplace_back(poly);
-#else
                 if (!offset_ex(poly, -0.1 * extrusion_width_scaled).empty())
                     ts_layer->overhang_areas.emplace_back(poly);
-#endif
             }
 
             if (is_auto && g_config_remove_small_overhangs) {
@@ -1004,6 +998,34 @@ void TreeSupport::detect_object_overhangs()
     m_object->project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers);
     m_object->project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers);
 
+    // check whether the overhang cluster is cantilever (far awary from main body)
+    for (auto& cluster : overhangClusters) {
+        Layer* layer = m_object->get_layer(cluster.min_layer);
+        if (layer->lower_layer == NULL) continue;
+        Layer* lower_layer = layer->lower_layer;
+        auto cluster_boundary = intersection(cluster.merged_poly, offset(lower_layer->lslices, scale_(0.5)));
+        double dist_max = 0;
+        Points cluster_pts;
+        for (auto& poly : cluster.merged_poly)
+            append(cluster_pts, poly.contour.points);
+        for (auto& pt : cluster_pts) {
+            double dist_pt = std::numeric_limits<double>::max();
+            for (auto& poly : cluster_boundary) {
+                double d = poly.distance_to(pt);
+                dist_pt = std::min(dist_pt, d);
+            }
+            dist_max = std::max(dist_max, dist_pt);
+        }
+        if (dist_max > scale_(5)) {  // this cluster is cantilever, add all expolygons to sharp tail
+            for (auto it = cluster.layer_overhangs.begin(); it != cluster.layer_overhangs.end(); it++) {
+                int  layer_nr = it->first;
+                auto p_overhang = it->second;
+                m_object->get_layer(layer_nr)->cantilevers.emplace_back(*p_overhang);
+            }
+            cluster.is_cantilever = true;
+        }
+    }
+
     if (is_auto && g_config_remove_small_overhangs) {
         if (blockers.size() < m_object->layer_count())
             blockers.resize(m_object->layer_count());
@@ -1045,25 +1067,8 @@ void TreeSupport::detect_object_overhangs()
             }
             if (is_sharp_tail) continue;
 
-            // 4. check whether the overhang cluster is cantilever (far awary from main body)
-            Layer* layer = m_object->get_layer(cluster.min_layer);
-            if (layer->lower_layer == NULL) continue;
-            Layer* lower_layer = layer->lower_layer;
-            auto cluster_boundary = intersection(cluster.merged_poly, offset(lower_layer->lslices, scale_(0.5)));
-            double dist_max = 0;
-            Points cluster_pts;
-            for (auto& poly : cluster.merged_poly)
-                append(cluster_pts, poly.contour.points);
-            for (auto& pt : cluster_pts) {
-                double dist_pt = std::numeric_limits<double>::max();
-                for (auto& poly : cluster_boundary) {
-                    double d = poly.distance_to(pt);
-                    dist_pt = std::min(dist_pt, d);
-                }
-                dist_max = std::max(dist_max, dist_pt);
-            }
-            if (dist_max > scale_(5))
-                continue;
+            // 4. check whether the overhang cluster is cantilever
+            if (cluster.is_cantilever) continue;
 
             for (auto it = cluster.layer_overhangs.begin(); it != cluster.layer_overhangs.end(); it++) {
                 int  layer_nr   = it->first;
@@ -1088,6 +1093,11 @@ void TreeSupport::detect_object_overhangs()
             break;
 
         TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_nr + m_raft_layers);
+        if (support_critical_regions_only) {
+            auto layer = m_object->get_layer(layer_nr);
+            ts_layer->overhang_areas = layer->sharp_tails;
+            append(ts_layer->overhang_areas, layer->cantilevers);
+        }
 
         if (layer_nr < blockers.size()) {
             Polygons& blocker = blockers[layer_nr];
@@ -1822,6 +1832,24 @@ inline coordf_t calc_branch_radius(coordf_t base_radius, size_t layers_to_top, s
     return radius;
 }
 
+ExPolygons avoid_object_remove_extra_small_parts(ExPolygons &expolys, const ExPolygons &avoid_region) {
+    ExPolygons expolys_out;
+    for (auto expoly : expolys) {
+        auto  expolys_avoid = diff_ex(expoly, avoid_region);
+        int   idx_max_area  = -1;
+        float max_area      = 0;
+        for (int i = 0; i < expolys_avoid.size(); ++i) {
+            auto a = expolys_avoid[i].area();
+            if (a > max_area) {
+                max_area     = a;
+                idx_max_area = i;
+            }
+        }
+        if (idx_max_area >= 0) expolys_out.emplace_back(std::move(expolys_avoid[idx_max_area]));
+    }
+    return expolys_out;
+}
+
 void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_nodes)
 {
     const PrintObjectConfig &config = m_object->config();
@@ -1898,7 +1926,6 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
                 //Draw the support areas and add the roofs appropriately to the support roof instead of normal areas.
                 ts_layer->lslices.reserve(contact_nodes[layer_nr].size());
-#if 1
                 for (const Node* p_node : contact_nodes[layer_nr])
                 {
                     if (print->canceled())
@@ -1949,59 +1976,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                     if (layer_nr < brim_skirt_layers)
                         ts_layer->lslices.emplace_back(area);
                 }
-#else
-                // some nodes may not have radius set
-                for (Node* p_node : contact_nodes[layer_nr])
-                {
-                    size_t layers_to_top = p_node->distance_to_top;// std::min(node.distance_to_top, (size_t)300);
-                    double scale = static_cast<double>(layers_to_top + 1) / tip_layers;
-                    scale = layers_to_top < tip_layers ? (0.5 + scale / 2) : (1 + static_cast<double>(layers_to_top - tip_layers) * diameter_angle_scale_factor);
-                    p_node->radius = scale * branch_radius;
-                }
-                {
-                    // now this method is extremely slow. Need to optimize the speed before we can use it.
-                    Polygons layer_contours = std::move(m_ts_data->get_contours_with_holes(layer_nr));
-                    std::vector<double> radiis;
-                    std::vector<bool> is_interface;
-                    //Polygons lines = spanning_tree_to_polygon(m_spanning_trees[layer_nr], layer_contours, layer_nr, radiis);
-                    Polygons lines = contact_nodes_to_polygon(contact_nodes[layer_nr], layer_contours, layer_nr, radiis, is_interface);
 
-                    for (int k = 0; k < lines.size(); k++) {
-                        auto line = lines[k];
-                        double radius = radiis[k];
-                        Polygons line_expanded;
-                        if (line.size() == 1)
-                        {
-                            Polygon circle;
-                            double scale = radiis[k] / branch_radius;
-                            for (auto iter = branch_circle.points.begin(); iter != branch_circle.points.end(); iter++)
-                            {
-                                Point corner = (*iter) * scale;
-                                circle.append(line.first_point() + corner);
-                            }
-                            line_expanded.emplace_back(circle);
-                        }
-                        else {
-                            line_expanded = offset(line, scale_(radius), jtRound, scale_(g_config_tree_support_collision_resolution));
-                        }
-                        if (line_expanded.empty())
-                            continue;
-                        if (is_interface[k])
-                            roof_areas.emplace_back(line_expanded[0]);
-                        else
-                            base_areas.emplace_back(line_expanded[0]);
-                        if (layer_nr < brim_skirt_layers)
-                            ts_layer->lslices.emplace_back(line_expanded[0]);
-
-                        //if (radius > config.support_base_pattern_spacing * 2)
-                        //    ts_layer->need_infill = true;
-                    }
-
-#ifdef SUPPORT_TREE_DEBUG_TO_SVG
-                    draw_contours_and_nodes_to_svg( layer_nr, base_areas, to_expolygons(lines), m_ts_data->m_layer_outlines_below[layer_nr], {}, {}, "circles", { "lines","base_areas","outlines" });
-#endif
-                }
-#endif
                 ts_layer->lslices = std::move(union_ex(ts_layer->lslices));
 
                 //Must update bounding box which is used in avoid crossing perimeter
@@ -2020,15 +1995,18 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
                 // avoid object
                 auto avoid_region_interface = m_ts_data->get_collision(m_ts_data->m_xy_distance, layer_nr);
-                roof_areas = std::move(diff_ex(roof_areas, avoid_region_interface));
-                roof_1st_layer = std::move(diff_ex(roof_1st_layer, avoid_region_interface));
+                //roof_areas = std::move(diff_ex(roof_areas, avoid_region_interface));
+                //roof_1st_layer = std::move(diff_ex(roof_1st_layer, avoid_region_interface));
+                roof_areas = avoid_object_remove_extra_small_parts(roof_areas, avoid_region_interface);
+                roof_1st_layer = avoid_object_remove_extra_small_parts(roof_1st_layer, avoid_region_interface);
 
                 // roof_1st_layer and roof_areas may intersect, so need to subtract roof_areas from roof_1st_layer
                 roof_1st_layer = std::move(diff_ex(roof_1st_layer, roof_areas));
 
                 // let supports touch objects when brim is on
                 auto avoid_region = m_ts_data->get_collision((layer_nr == 0 && has_brim) ? config.brim_object_gap : m_ts_data->m_xy_distance, layer_nr);
-                base_areas = std::move(diff_ex(base_areas, avoid_region));
+                // base_areas = std::move(diff_ex(base_areas, avoid_region));
+                base_areas = avoid_object_remove_extra_small_parts(base_areas, avoid_region);
                 base_areas = std::move(diff_ex(base_areas, roof_areas));
                 base_areas = std::move(diff_ex(base_areas, roof_1st_layer));
 

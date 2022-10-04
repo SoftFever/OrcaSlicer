@@ -702,6 +702,7 @@ bool PrintObject::invalidate_state_by_config_options(
         	   opt_key == "support_type"
             || opt_key == "support_angle"
             || opt_key == "support_on_build_plate_only"
+            || opt_key == "support_critical_regions_only"
             || opt_key == "enforce_support_layers"
             || opt_key == "support_filament"
             || opt_key == "support_line_width"

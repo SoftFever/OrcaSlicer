@@ -27,6 +27,7 @@ class OG_CustomCtrl :public wxPanel
 {
     wxFont  m_font;
     int     m_v_gap;
+    int     m_v_gap2;
     int     m_h_gap;
     int     m_em_unit;
 

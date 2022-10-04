@@ -95,7 +95,7 @@ static void glfw_callback(int error_code, const char* description)
 int CLI::run(int argc, char **argv)
 {
     // Mark the main thread for the debugger and for runtime checks.
-    set_current_thread_name("bambustudio_main");
+    set_current_thread_name("bambustu_main");
 
 #ifdef __WXGTK__
     // On Linux, wxGTK has no support for Wayland, and the app crashes on
@@ -170,6 +170,7 @@ int CLI::run(int argc, char **argv)
 
     if (start_gui) {
         BOOST_LOG_TRIVIAL(info) << "no action, start gui directly" << std::endl;
+        ::Label::initSysFont();
 #ifdef SLIC3R_GUI
     /*#if !defined(_WIN32) && !defined(__APPLE__)
         // likely some linux / unix system
@@ -1736,7 +1737,7 @@ LONG WINAPI VectoredExceptionHandler(PEXCEPTION_POINTERS pExceptionInfo)
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
 extern "C" {
-    __declspec(dllexport) int __stdcall bambustudio_main(int argc, wchar_t **argv)
+    __declspec(dllexport) int __stdcall bambustu_main(int argc, wchar_t **argv)
     {
         // Convert wchar_t arguments to UTF8.
         std::vector<std::string> 	argv_narrow;

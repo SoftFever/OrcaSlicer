@@ -54,7 +54,7 @@ enum AuthorizationType {
 
 enum InfillPattern : int {
     ipConcentric, ipRectilinear, ipGrid, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
-    ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricGapFill, ipConcentricInternal,
+    ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricInternal,
 #if HAS_LIGHTNING_INFILL
     ipLightning, 
 #endif // HAS_LIGHTNING_INFILL
@@ -605,6 +605,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     // Direction of the support pattern (in XY plane).`
     ((ConfigOptionFloat,               support_angle))
     ((ConfigOptionBool,                support_on_build_plate_only))
+    ((ConfigOptionBool,                support_critical_regions_only))
     ((ConfigOptionFloat,               support_top_z_distance))
     ((ConfigOptionInt,                 enforce_support_layers))
     ((ConfigOptionInt,                 support_filament))

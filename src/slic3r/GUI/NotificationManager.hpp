@@ -21,8 +21,8 @@
 namespace Slic3r {
 namespace GUI {
 
-//using EjectDriveNotificationClickedEvent = SimpleEvent;
-//wxDECLARE_EVENT(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED, EjectDriveNotificationClickedEvent);
+using EjectDriveNotificationClickedEvent = SimpleEvent;
+wxDECLARE_EVENT(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED, EjectDriveNotificationClickedEvent);
 using ExportGcodeNotificationClickedEvent = SimpleEvent;
 wxDECLARE_EVENT(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED, ExportGcodeNotificationClickedEvent);
 using PresetUpdateAvailableClickedEvent = SimpleEvent;
@@ -737,9 +737,9 @@ private:
 		void render_close_button(ImGuiWrapper& imgui,
 								 const float win_size_x, const float win_size_y,
 								 const float win_pos_x, const float win_pos_y) override;
-		/*void render_eject_button(ImGuiWrapper& imgui,
+		void render_eject_button(ImGuiWrapper& imgui,
 			                             const float win_size_x, const float win_size_y,
-			                             const float win_pos_x, const float win_pos_y);*/
+			                             const float win_pos_x, const float win_pos_y);
 		void render_minimize_button(ImGuiWrapper& imgui, const float win_pos_x, const float win_pos_y) override
 			{ m_minimize_b_visible = false; }
 		bool on_text_click() override;

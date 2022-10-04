@@ -1066,7 +1066,7 @@ WipeTower::box_coordinates WipeTower::align_perimeter(const WipeTower::box_coord
     return aligned_box;
 }
 
-WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter)
+WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter, bool extruder_fill)
 {
 	assert(! this->layer_finished());
     m_current_layer_finished = true;
@@ -1083,7 +1083,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter)
 	// Slow down on the 1st layer.
     bool first_layer = is_first_layer();
     // BBS: speed up perimeter speed to 90mm/s for non-first layer
-    float feedrate = first_layer ? std::min(m_first_layer_speed * 60.f, 5400.f) : 5400.f;
+    float           feedrate   = first_layer ? std::min(m_first_layer_speed * 60.f, 5400.f) : std::min(60.0f * m_filpar[m_current_tool].max_e_speed / m_extrusion_flow, 5400.f);
     float fill_box_y = m_layer_info->toolchanges_depth() + m_perimeter_width;
     box_coordinates fill_box(Vec2f(m_perimeter_width, fill_box_y),
                              m_wipe_tower_width - 2 * m_perimeter_width, m_layer_info->depth - fill_box_y);
@@ -1105,7 +1105,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter)
     const float dy = (fill_box.lu.y() - fill_box.ld.y() - m_perimeter_width);
     float left = fill_box.lu.x() + 2*m_perimeter_width;
     float right = fill_box.ru.x() - 2 * m_perimeter_width;
-    if (dy > m_perimeter_width)
+    if (extruder_fill && dy > m_perimeter_width)
     {
         writer.travel(fill_box.ld + Vec2f(m_perimeter_width * 2, 0.f))
               .append(";--------------------\n"
@@ -1500,7 +1500,7 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
             if (m_enable_timelapse_print) { 
                 timelapse_wall = only_generate_out_wall();
             }
-            finish_layer_tcr = finish_layer(m_enable_timelapse_print ? false : true);
+            finish_layer_tcr = finish_layer(m_enable_timelapse_print ? false : true, layer.extruder_fill);
         }
 
         for (int i=0; i<int(layer.tool_changes.size()); ++i) {
@@ -1511,7 +1511,7 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
             if (i == idx) {
                 layer_result.emplace_back(tool_change(layer.tool_changes[i].new_tool, m_enable_timelapse_print ? false : true));
                 // finish_layer will be called after this toolchange
-                finish_layer_tcr = finish_layer(false);
+                finish_layer_tcr = finish_layer(false, layer.extruder_fill);
             }
             else {
                 layer_result.emplace_back(tool_change(layer.tool_changes[i].new_tool));
@@ -1541,7 +1541,6 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall()
 {
     size_t old_tool = m_current_tool;
 
-    m_extrusion_flow = 0.038f;  // hard code
     WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
     writer.set_extrusion_flow(m_extrusion_flow)
         .set_z(m_z_pos)
@@ -1551,7 +1550,7 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall()
     // Slow down on the 1st layer.
     bool first_layer = is_first_layer();
     // BBS: speed up perimeter speed to 90mm/s for non-first layer
-    float           feedrate   = first_layer ? std::min(m_first_layer_speed * 60.f, 5400.f) : 5400.f;
+    float           feedrate   = first_layer ? std::min(m_first_layer_speed * 60.f, 5400.f) : std::min(60.0f * m_filpar[m_current_tool].max_e_speed / m_extrusion_flow, 5400.f);
     float           fill_box_y = m_layer_info->toolchanges_depth() + m_perimeter_width;
     box_coordinates fill_box(Vec2f(m_perimeter_width, fill_box_y), m_wipe_tower_width - 2 * m_perimeter_width, m_layer_info->depth - fill_box_y);
 

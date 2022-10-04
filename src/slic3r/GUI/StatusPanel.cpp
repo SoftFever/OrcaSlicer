@@ -10,6 +10,7 @@
 #include "slic3r/Utils/Http.hpp"
 #include "libslic3r/Thread.hpp"
 #include "RecenterDialog.hpp"
+#include "ConfirmHintDialog.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -44,7 +45,7 @@ static const wxColour GROUP_STATIC_LINE_COL = wxColour(206, 206, 206);
 
 /* font and foreground colors */
 static const wxFont PAGE_TITLE_FONT  = Label::Body_14;
-static const wxFont GROUP_TITLE_FONT = Label::sysFont(17);
+//static const wxFont GROUP_TITLE_FONT = Label::sysFont(17);
 
 static wxColour PAGE_TITLE_FONT_COL  = wxColour(107, 107, 107);
 static wxColour GROUP_TITLE_FONT_COL = wxColour(172, 172, 172);
@@ -1176,7 +1177,7 @@ void StatusPanel::create_tasklist_info()
     m_tasklist_caption_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_text_tasklist_caption  = new wxStaticText(this, wxID_ANY, _L("Printing List"), wxDefaultPosition, wxDefaultSize, 0);
     m_text_tasklist_caption->Wrap(-1);
-    m_text_tasklist_caption->SetFont(GROUP_TITLE_FONT);
+    m_text_tasklist_caption->SetFont(Label::Body_16);
     m_text_tasklist_caption->SetForegroundColour(GROUP_TITLE_FONT_COL);
 
     m_tasklist_caption_sizer->Add(m_text_tasklist_caption, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, GROUP_TITLE_LEFT_MARGIN);
@@ -1222,7 +1223,13 @@ void StatusPanel::on_subtask_pause_resume(wxCommandEvent &event)
 
 void StatusPanel::on_subtask_abort(wxCommandEvent &event)
 {
-    if (obj) obj->command_task_abort();
+    ConfirmHintDialog* abort_dlg = new ConfirmHintDialog(this, wxID_ANY, _L("Cancel print"));
+    abort_dlg->SetHint(_L("Are you sure you want to cancel this print?"));
+    abort_dlg->Bind(EVT_CONFIRM_HINT, [this](wxCommandEvent &e) {
+        if (obj) obj->command_task_abort();
+    });
+    if(abort_dlg->ShowModal())
+       delete abort_dlg;
 }
 
 void StatusPanel::error_info_reset()

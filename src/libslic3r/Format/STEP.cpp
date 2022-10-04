@@ -275,7 +275,7 @@ bool load_step(const char *path, Model *model, ImportStepProgressFn stepFn, Step
                 }
             }
 
-            if (aNbTriangles == 0)
+            if (aNbTriangles == 0 || aNbNodes == 0)
                 // BBS: No triangulation on the shape.
                 continue;
 
@@ -354,13 +354,16 @@ bool load_step(const char *path, Model *model, ImportStepProgressFn stepFn, Step
             }
         }
 
-        TriangleMesh triangle_mesh;
-        triangle_mesh.from_stl(stl[i]);
-        ModelVolume *new_volume       = new_object->add_volume(std::move(triangle_mesh));
-        new_volume->name              = namedSolids[i].name;
-        new_volume->source.input_file = path;
-        new_volume->source.object_idx = (int) model->objects.size() - 1;
-        new_volume->source.volume_idx = (int) new_object->volumes.size() - 1;
+        //BBS: maybe mesh is empty from step file. Don't add
+        if (stl[i].stats.number_of_facets > 0) {
+            TriangleMesh triangle_mesh;
+            triangle_mesh.from_stl(stl[i]);
+            ModelVolume* new_volume = new_object->add_volume(std::move(triangle_mesh));
+            new_volume->name = namedSolids[i].name;
+            new_volume->source.input_file = path;
+            new_volume->source.object_idx = (int)model->objects.size() - 1;
+            new_volume->source.volume_idx = (int)new_object->volumes.size() - 1;
+        }
     }
 
     shapeTool.reset(nullptr);

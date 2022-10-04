@@ -198,7 +198,7 @@ public:
     bool operator<(PartPlate&) const;
 
     //clear alll the instances in plate
-    void clear();
+    void clear(bool clear_sliced_result = true);
 
     //static const int plate_x_offset = 20; //mm
     //static const double plate_x_gap = 0.2;
@@ -468,7 +468,7 @@ public:
     //this may be happened after machine changed
     void reset_size(int width, int depth, int height);
     //clear all the instances in the plate, but keep the plates
-    void clear(bool delete_plates = false, bool release_print_list = false);
+    void clear(bool delete_plates = false, bool release_print_list = false, bool except_locked = false, int plate_index = -1);
     //clear all the instances in the plate, and delete the plates, only keep the first default plate
     void reset(bool do_init);
 
@@ -563,7 +563,7 @@ public:
     int add_to_plate(int obj_id, int instance_id, int plate_id);
 
     //reload all objects
-    int reload_all_objects();
+    int reload_all_objects(bool except_locked = false, int plate_index = -1);
 
     //reload objects for newly created plate
     int construct_objects_list_for_new_plate(int plate_index);
@@ -624,7 +624,7 @@ public:
     int rebuild_plates_after_deserialize(std::vector<bool>& previous_sliced_result, std::vector<std::string>& previous_gcode_paths);
 
     //retruct plates structures after auto-arrangement
-    int rebuild_plates_after_arrangement(bool recycle_plates = true);
+    int rebuild_plates_after_arrangement(bool recycle_plates = true, bool except_locked = false, int plate_index = -1);
 
     /* load/store releted functions, with_gcode = true and plate_idx = -1, export all gcode
     * if with_gcode = true and specify plate_idx, export plate_idx gcode only

@@ -160,6 +160,8 @@ const unsigned int METADATA_STR_LEN = 9;
 
 static constexpr const char* MODEL_TAG = "model";
 static constexpr const char* RESOURCES_TAG = "resources";
+static constexpr const char* COLOR_GROUP_TAG = "m:colorgroup";
+static constexpr const char* COLOR_TAG = "m:color";
 static constexpr const char* OBJECT_TAG = "object";
 static constexpr const char* MESH_TAG = "mesh";
 static constexpr const char* MESH_STAT_TAG = "mesh_stat";
@@ -193,6 +195,7 @@ static constexpr const char* SLICE_HEADER_ITEM_TAG = "header_item";
 
 // BBS: encrypt
 static constexpr const char* RELATIONSHIP_TAG = "Relationship";
+static constexpr const char* PID_ATTR = "pid";
 static constexpr const char* PUUID_ATTR = "p:uuid";
 static constexpr const char* PPATH_ATTR = "p:path";
 static constexpr const char* OBJECT_UUID_SUFFIX = "-41cb-4c03-9d28-80fed5dfa1dc";
@@ -203,6 +206,7 @@ static constexpr const char* RELS_TYPE_ATTR = "Type";
 
 static constexpr const char* UNIT_ATTR = "unit";
 static constexpr const char* NAME_ATTR = "name";
+static constexpr const char* COLOR_ATTR = "color";
 static constexpr const char* TYPE_ATTR = "type";
 static constexpr const char* ID_ATTR = "id";
 static constexpr const char* X_ATTR = "x";
@@ -549,6 +553,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             //int subobject_id;
             std::string name;
             std::string uuid;
+            int         pid{-1};
             //bool is_model_object;
 
             CurrentObject() { reset(); }
@@ -713,6 +718,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         PlateData* m_curr_plater;
         CurrentInstance m_curr_instance;
 
+        int m_current_color_group{-1};
+        std::map<int, std::string> m_group_id_to_color;
+
     public:
         _BBS_3MF_Importer();
         ~_BBS_3MF_Importer();
@@ -777,6 +785,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         bool _handle_start_object(const char** attributes, unsigned int num_attributes);
         bool _handle_end_object();
+
+        bool _handle_start_color_group(const char **attributes, unsigned int num_attributes);
+        bool _handle_end_color_group();
+
+        bool _handle_start_color(const char **attributes, unsigned int num_attributes);
+        bool _handle_end_color();
 
         bool _handle_start_mesh(const char** attributes, unsigned int num_attributes);
         bool _handle_end_mesh();
@@ -1314,6 +1328,20 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
         }
 
+        std::map<int, int> color_group_id_to_extruder_id_map;
+        std::map<std::string, int> color_to_extruder_id_map;
+        int extruder_id = 0;
+        for (auto group_iter = m_group_id_to_color.begin(); group_iter != m_group_id_to_color.end(); ++group_iter) {
+            auto color_iter = color_to_extruder_id_map.find(group_iter->second);
+            if (color_iter == color_to_extruder_id_map.end()) {
+                ++extruder_id;
+                color_to_extruder_id_map[group_iter->second] = extruder_id;
+                color_group_id_to_extruder_id_map[group_iter->first] = extruder_id;
+            } else {
+                color_group_id_to_extruder_id_map[group_iter->first] = color_iter->second;
+            }
+        }
+
         for (const IdToModelObjectMap::value_type& object : m_objects) {
             if (object.second >= int(m_model->objects.size())) {
                 add_error("invalid object, id: "+std::to_string(object.first.second));
@@ -1381,6 +1409,18 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 {
                     Id object_id = object_id_list[k].object_id;
                     volumes.emplace_back(object_id.second);
+                }
+
+                IdToCurrentObjectMap::const_iterator current_object = m_current_objects.find(object.first);
+                if (current_object != m_current_objects.end()) {
+                    // get name
+                    model_object->name = current_object->second.name;
+
+                    // get color
+                    auto extruder_itor = color_group_id_to_extruder_id_map.find(current_object->second.pid);
+                    if (extruder_itor != color_group_id_to_extruder_id_map.end()) {
+                        model_object->config.set_key_value("extruder", new ConfigOptionInt(extruder_itor->second));
+                    }
                 }
 
                 // select as volumes
@@ -2213,6 +2253,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             res = _handle_start_resources(attributes, num_attributes);
         else if (::strcmp(OBJECT_TAG, name) == 0)
             res = _handle_start_object(attributes, num_attributes);
+        else if (::strcmp(COLOR_GROUP_TAG, name) == 0)
+            res = _handle_start_color_group(attributes, num_attributes);
+        else if (::strcmp(COLOR_TAG, name) == 0)
+            res = _handle_start_color(attributes, num_attributes);
         else if (::strcmp(MESH_TAG, name) == 0)
             res = _handle_start_mesh(attributes, num_attributes);
         else if (::strcmp(VERTICES_TAG, name) == 0)
@@ -2251,6 +2295,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             res = _handle_end_resources();
         else if (::strcmp(OBJECT_TAG, name) == 0)
             res = _handle_end_object();
+        else if (::strcmp(COLOR_GROUP_TAG, name) == 0)
+            res = _handle_end_color_group();
+        else if (::strcmp(COLOR_TAG, name) == 0)
+            res = _handle_end_color();
         else if (::strcmp(MESH_TAG, name) == 0)
             res = _handle_end_mesh();
         else if (::strcmp(VERTICES_TAG, name) == 0)
@@ -2434,6 +2482,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             m_curr_object->name = bbs_get_attribute_value_string(attributes, num_attributes, NAME_ATTR);
 
             m_curr_object->uuid = bbs_get_attribute_value_string(attributes, num_attributes, PUUID_ATTR);
+            m_curr_object->pid = bbs_get_attribute_value_int(attributes, num_attributes, PID_ATTR);
         }
 
         return true;
@@ -2540,6 +2589,31 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
         }*/
 
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_color_group(const char **attributes, unsigned int num_attributes)
+    {
+        m_current_color_group = bbs_get_attribute_value_int(attributes, num_attributes, ID_ATTR);
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_end_color_group()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_color(const char **attributes, unsigned int num_attributes)
+    {
+        std::string color = bbs_get_attribute_value_string(attributes, num_attributes, COLOR_ATTR);
+        m_group_id_to_color[m_current_color_group] = color;
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_end_color()
+    {
+        // do nothing
         return true;
     }
 
@@ -5950,8 +6024,10 @@ private:
         boost::posix_time::ptime start;
     };
 private:
-    _BBS_Backup_Manager() : m_thread(boost::ref(*this)) {
+    _BBS_Backup_Manager() {
         m_next_backup = boost::get_system_time() + boost::posix_time::seconds(m_interval);
+        boost::unique_lock lock(m_mutex);
+        m_thread = std::move(boost::thread(boost::ref(*this)));
     }
 
     ~_BBS_Backup_Manager() {

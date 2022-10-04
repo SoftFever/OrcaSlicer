@@ -27,7 +27,6 @@ struct StaticBambuLib : BambuLib {
 
 PrinterFileSystem::PrinterFileSystem()
     : BambuLib(StaticBambuLib::get())
-    , m_recv_thread(&PrinterFileSystem::RecvMessageThread, this)
 {
     if (!default_thumbnail.IsOk())
         default_thumbnail = wxImage(Slic3r::encode_path(Slic3r::var("live_stream_default.png").c_str()));
@@ -41,7 +40,9 @@ PrinterFileSystem::PrinterFileSystem()
 }
 
 PrinterFileSystem::~PrinterFileSystem()
-{ m_recv_thread.detach(); }
+{
+    m_recv_thread.detach();
+}
 
 void PrinterFileSystem::SetFileType(FileType type)
 {
@@ -251,6 +252,15 @@ int PrinterFileSystem::RecvData(std::function<int(Bambu_Sample& sample)> const &
     return result;
 }
 
+void PrinterFileSystem::Attached()
+{
+    boost::unique_lock lock(m_mutex);
+    m_recv_thread = std::move(boost::thread([w = weak_from_this()] {
+        boost::shared_ptr<PrinterFileSystem> s = w.lock();
+        if (s) s->RecvMessageThread();
+    }));
+}
+
 void PrinterFileSystem::Start()
 {
     boost::unique_lock l(m_mutex);
@@ -277,8 +287,6 @@ void PrinterFileSystem::Stop(bool quit)
     boost::unique_lock l(m_mutex);
     if (quit) {
         m_session.owner = nullptr;
-        // let the thread delete this
-        m_callbacks.push_back([thiz = shared_from_this()](int result, json const &, unsigned char const *) { (void) thiz; });
     } else if (m_stopped) {
         return;
     }
@@ -490,6 +498,8 @@ size_t PrinterFileSystem::FindFile(size_t index, std::string const &name)
 void PrinterFileSystem::FileRemoved(size_t index, std::string const &name)
 {
     index = FindFile(index, name);
+    if (index == size_t(-1))
+        return;
     auto removeFromGroup = [](std::vector<size_t> &group, size_t index, int total) {
         for (auto iter = group.begin(); iter != group.end(); ++iter) {
             size_t index2 = -1;
@@ -622,7 +632,7 @@ void PrinterFileSystem::RecvMessageThread()
         if (m_stopped && (m_session.owner == nullptr || (m_messages.empty() && m_callbacks.empty()))) {
             Reconnect(l, 0); // Close and wait start again
             if (m_session.owner == nullptr) {
-                // clear callbacks may invoke destructor, so clear first
+                // clear callbacks first
                 auto callbacks(std::move(m_callbacks));
                 break;
             }

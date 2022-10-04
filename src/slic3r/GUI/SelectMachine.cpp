@@ -1927,7 +1927,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 
 void SelectMachineDialog::update_ams_check(MachineObject* obj)
 {
-    if (obj && obj->ams_support_use_ams) {
+    if (obj && obj->ams_support_use_ams && obj->has_ams()) {
         select_use_ams->Show();
     } else {
         select_use_ams->Hide();
@@ -1990,6 +1990,18 @@ void SelectMachineDialog::update_show_status()
 
     reset_timeout();
     update_ams_check(obj_);
+
+    // do ams mapping if no ams result
+    if (obj_->has_ams() && m_ams_mapping_result.empty()) {
+        if (obj_->ams_support_use_ams) {
+            if (ams_check->GetValue()) {
+                do_ams_mapping(obj_);
+            } else {
+                m_ams_mapping_result.clear();
+                sync_ams_mapping_result(m_ams_mapping_result);
+            }
+        }
+    }
 
     // reading done
     if (obj_->is_in_upgrading()) {
@@ -2214,7 +2226,9 @@ void SelectMachineDialog::set_default()
     }
 
     // material info
-    auto        extruders = m_plater->get_partplate_list().get_curr_plate()->get_extruders();
+    
+    //auto        extruders1 = m_plater->get_partplate_list().get_curr_plate()->get_extruders();
+    auto        extruders = wxGetApp().plater()->get_preview_canvas3D()->get_gcode_viewer().get_plater_extruder();
     BitmapCache bmcache;
 
     MaterialHash::iterator iter = m_materialList.begin();

@@ -63,6 +63,7 @@ public:
     void select_all();
     void deselect_all();
     void delete_selected();
+    void center_selected();
     void mirror_selection(Axis axis);
 
     bool is_dragging() const;

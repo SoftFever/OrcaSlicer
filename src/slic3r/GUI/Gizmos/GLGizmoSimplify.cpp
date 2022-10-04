@@ -569,7 +569,7 @@ void GLGizmoSimplify::apply_simplify() {
     mv->calculate_convex_hull();
     mv->set_new_unique_id();
     mv->get_object()->invalidate_bounding_box();
-    mv->get_object()->ensure_on_bed(true); // allow negative z
+    mv->get_object()->ensure_on_bed();
 
     // fix hollowing, sla support points, modifiers, ...    
     plater->changed_mesh(object_idx);

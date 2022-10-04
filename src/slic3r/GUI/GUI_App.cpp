@@ -66,7 +66,7 @@
 #include "SysInfoDialog.hpp"
 #include "UpdateDialogs.hpp"
 #include "Mouse3DController.hpp"
-//#include "RemovableDriveManager.hpp"
+#include "RemovableDriveManager.hpp"
 #include "InstanceCheck.hpp"
 #include "NotificationManager.hpp"
 #include "UnsavedChangesDialog.hpp"
@@ -1098,6 +1098,31 @@ void GUI_App::post_init()
     std::string functional_config_file = Slic3r::resources_dir() + "/config.json";
     DeviceManager::load_functional_config(encode_path(functional_config_file.c_str()));
 
+    // remove old log files over LOG_FILES_MAX_NUM
+    std::string log_addr = data_dir();
+    if (!log_addr.empty()) {
+        auto log_folder = boost::filesystem::path(log_addr) / "log";
+        if (boost::filesystem::exists(log_folder)) {
+           std::vector<std::pair<time_t, std::string>> files_vec;
+           for (auto& it : boost::filesystem::directory_iterator(log_folder)) {
+               auto temp_path = it.path();
+               std::time_t lw_t = boost::filesystem::last_write_time(temp_path) ;
+               files_vec.push_back({ lw_t, temp_path.filename().string() });
+           }
+           std::sort(files_vec.begin(), files_vec.end(), [](
+               std::pair<time_t, std::string> &a, std::pair<time_t, std::string> &b) {
+               return a.first > b.first;
+           });
+
+           while (files_vec.size() > LOG_FILES_MAX_NUM) {
+               auto full_path = log_folder / boost::filesystem::path(files_vec[files_vec.size() - 1].second);
+               BOOST_LOG_TRIVIAL(info) << "delete log file over " << LOG_FILES_MAX_NUM << ", filename: "<< files_vec[files_vec.size() - 1].second;
+               boost::filesystem::remove(full_path);
+               files_vec.pop_back();
+           }
+        }
+    }
+
     BOOST_LOG_TRIVIAL(info) << "finished post_init";
 //BBS: remove the single instance currently
 /*#ifdef _WIN32
@@ -1121,7 +1146,7 @@ GUI_App::GUI_App()
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
     , hms_query(new HMSQuery())
-	//, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
+	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
 	//, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
 {
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
@@ -1133,6 +1158,10 @@ GUI_App::GUI_App()
 void GUI_App::shutdown()
 {
     BOOST_LOG_TRIVIAL(info) << "shutdown";
+
+	if (m_removable_drive_manager) {
+		removable_drive_manager()->shutdown();
+	}
 
     if (m_is_recreating_gui) return;
     m_is_closing = true;
@@ -1343,7 +1372,10 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
 
     BOOST_LOG_TRIVIAL(info) << "[install_plugin] enter";
     // get plugin folder
-    auto plugin_folder = boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins";
+    std::string data_dir_str = data_dir();
+    boost::filesystem::path data_dir_path(data_dir_str);
+    auto plugin_folder = data_dir_path / "plugins";
+    //auto plugin_folder = boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins";
     auto backup_folder = plugin_folder/"backup";
     if (!boost::filesystem::exists(plugin_folder)) {
         BOOST_LOG_TRIVIAL(info) << "[install_plugin] will create directory "<<plugin_folder.string();
@@ -1486,7 +1518,10 @@ void GUI_App::restart_networking()
 
 void GUI_App::remove_old_networking_plugins()
 {
-    auto plugin_folder = boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins";
+    std::string data_dir_str = data_dir();
+    boost::filesystem::path data_dir_path(data_dir_str);
+    auto plugin_folder = data_dir_path / "plugins";
+    //auto plugin_folder = boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins";
     if (boost::filesystem::exists(plugin_folder)) {
         BOOST_LOG_TRIVIAL(info) << "[remove_old_networking_plugins] remove the directory "<<plugin_folder.string();
         try {
@@ -1643,12 +1678,9 @@ void GUI_App::init_networking_callbacks()
 
                 if (obj) {
                     obj->parse_json(msg);
-
-#if !BBL_RELEASE_TO_PUBLIC
                     if (obj->is_ams_need_update) {
                         GUI::wxGetApp().sidebar().load_ams_list(obj->amsList);
                     }
-#endif
                 }
                 });
         };
@@ -2024,8 +2056,8 @@ bool GUI_App::on_init_inner()
                 if (!skip_this_version
                     || evt.GetInt() != 0) {
                     UpdateVersionDialog dialog(this->mainframe);
-                    wxString            extmsg = wxString::FromUTF8(version_info.description);
-                    dialog.update_version_info(extmsg, version_info.version_str);
+                    //dialog.update_version_info(extmsg, version_info.version_str);
+                    dialog.update_version_info(version_info.description);
                     if (evt.GetInt() != 0) {
                         dialog.m_remind_choice->Hide();
                     }
@@ -2235,11 +2267,11 @@ bool GUI_App::on_init_inner()
 
         // An ugly solution to GH #5537 in which GUI_App::init_opengl (normally called from events wxEVT_PAINT
         // and wxEVT_SET_FOCUS before GUI_App::post_init is called) wasn't called before GUI_App::post_init and OpenGL wasn't initialized.
-#ifdef __linux__
-        if (!m_post_initialized && m_opengl_initialized) {
-#else
+//#ifdef __linux__
+//        if (!m_post_initialized && m_opengl_initialized) {
+//#else
         if (!m_post_initialized) {
-#endif
+//#endif
             m_post_initialized = true;
 #ifdef WIN32
             this->mainframe->register_win32_callbacks();
@@ -2306,11 +2338,12 @@ __retry:
             m_device_manager = new Slic3r::DeviceManager(m_agent);
         else
             m_device_manager->set_agent(m_agent);
-        std::string data_dir = wxStandardPaths::Get().GetUserDataDir().ToUTF8().data();
+        //std::string data_dir = wxStandardPaths::Get().GetUserDataDir().ToUTF8().data();
+        std::string data_directory = data_dir();
 
         //BBS set config dir
         if (m_agent) {
-            m_agent->set_config_dir(data_dir);
+            m_agent->set_config_dir(data_directory);
         }
         //BBS set cert dir
         if (m_agent)
@@ -4007,7 +4040,7 @@ bool GUI_App::load_language(wxString language, bool initial)
 
     //FIXME This is a temporary workaround, the correct solution is to switch to "C" locale during file import / export only.
     //wxSetlocale(LC_NUMERIC, "C");
-    Preset::update_suffix_modified((" (" + _L("*") + ")").ToUTF8().data());
+    Preset::update_suffix_modified((_L("*") + " ").ToUTF8().data());
 	return true;
 }
 

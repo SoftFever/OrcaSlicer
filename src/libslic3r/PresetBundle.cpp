@@ -1314,6 +1314,31 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
     update_multi_material_filament_presets();
 }
 
+unsigned int PresetBundle::sync_ams_list()
+{
+    std::vector<std::string> filament_presets;
+    std::vector<std::string> filament_colors;
+    for (auto &ams : filament_ams_list) {
+        auto filament_id = ams.opt_string("filament_id", 0u);
+        auto filament_color = ams.opt_string("filament_colour", 0u);
+        auto iter = std::find_if(filaments.begin(), filaments.end(), [&filament_id](auto &f) { return f.is_compatible && f.is_system && f.filament_id == filament_id; });
+        if (iter == filaments.end()) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;
+            continue;
+        }
+        filament_presets.push_back(iter->name);
+        filament_colors.push_back(filament_color);
+    }
+    if (filament_presets.empty())
+        return 0;
+    this->filament_presets = filament_presets;
+    ConfigOptionStrings *filament_color = project_config.option<ConfigOptionStrings>("filament_colour");
+    filament_color->resize(filament_presets.size());
+    filament_color->values = filament_colors;
+    update_multi_material_filament_presets();
+    return filament_presets.size();
+}
+
 //BBS: check whether this is the only edited filament
 bool PresetBundle::is_the_only_edited_filament(unsigned int filament_index)
 {

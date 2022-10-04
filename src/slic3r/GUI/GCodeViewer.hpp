@@ -600,6 +600,7 @@ class GCodeViewer
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
 
 public:
+    enum class EViewType : unsigned char;
     struct SequentialView
     {
         class Marker
@@ -615,6 +616,8 @@ public:
             bool m_visible{ true };
 
         public:
+            float m_scale = 1.0f;
+
             void init(std::string filename);
 
             const BoundingBoxf3& get_bounding_box() const { return m_model.get_bounding_box(); }
@@ -626,7 +629,7 @@ public:
             void set_visible(bool visible) { m_visible = visible; }
 
             //BBS: GUI refactor: add canvas size
-            void render(int canvas_width, int canvas_height) const;
+            void render(int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves, uint64_t curr_line_id) const;
         };
 
         class GCodeWindow
@@ -683,9 +686,10 @@ public:
         Marker marker;
         GCodeWindow gcode_window;
         std::vector<unsigned int> gcode_ids;
+        float m_scale = 1.0;
 
         //BBS: GUI refactor: add canvas size
-        void render(float legend_height, int canvas_width, int canvas_height) const;
+        void render(float legend_height, int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves) const;
     };
 
     struct ETools
@@ -710,6 +714,7 @@ public:
     };
 
 private:
+    std::vector<int> m_plater_extruder;
     bool m_gl_data_initialized{ false };
     unsigned int m_last_result_id{ 0 };
     size_t m_moves_count{ 0 };
@@ -799,6 +804,7 @@ public:
 
     bool has_data() const { return !m_roles.empty(); }
     bool can_export_toolpaths() const;
+    std::vector<int> get_plater_extruder();
 
     const BoundingBoxf3& get_paths_bounding_box() const { return m_paths_bounding_box; }
     const BoundingBoxf3& get_max_bounding_box() const { return m_max_bounding_box; }

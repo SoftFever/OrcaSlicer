@@ -38,7 +38,7 @@ void wxMediaCtrl2::Load(wxURI url)
                 wxExecute("cmd /c start " + url, wxEXEC_HIDE_CONSOLE);
             }
         });
-        m_error = 2;
+        m_error = 100;
         wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
         event.SetId(GetId());
         event.SetEventObject(this);
@@ -56,7 +56,7 @@ void wxMediaCtrl2::Load(wxURI url)
                 wxMessageBox(_L("Missing BambuSource component registered for media playing! Please re-install BambuStutio or seek after-sales help."), _L("Error"),
                                     wxOK);
             });
-            m_error = clsid.IsEmpty() ? 100 : clsid != L"{233E64FB-2041-4A6C-AFAB-FF9BCF83E7AA}" ? 101 : 102;
+            m_error = clsid != L"{233E64FB-2041-4A6C-AFAB-FF9BCF83E7AA}" ? 101 : path.empty() ? 102 : 103;
             wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
             event.SetId(GetId());
             event.SetEventObject(this);

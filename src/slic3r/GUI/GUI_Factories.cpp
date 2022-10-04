@@ -55,7 +55,7 @@ static SettingsFactory::Bundle FREQ_SETTINGS_BUNDLE_FFF =
     { L("Infill")               , { "sparse_infill_density", "sparse_infill_pattern" } },
     // BBS
     { L("Support")     , { "enable_support", "support_type", "support_threshold_angle",
-                                    "support_base_pattern", "support_on_build_plate_only",
+                                    "support_base_pattern", "support_on_build_plate_only","support_critical_regions_only",
                                     "support_base_pattern_spacing" } }
     //BBS
     //{ L("Wipe options")         , { "flush_into_infill", "flush_into_objects" } }
@@ -81,7 +81,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
                      {"tree_support_branch_angle", "",10}, {"tree_support_wall_count", "",11},{"tree_support_with_infill", "",12},//tree support
                             {"support_top_z_distance", "",13},{"support_base_pattern", "",14},{"support_base_pattern_spacing", "",15},
                             {"support_interface_top_layers", "",16},{"support_interface_bottom_layers", "",17},{"support_interface_spacing", "",18},{"support_bottom_interface_spacing", "",19},
-                            {"support_object_xy_distance", "",20}, {"bridge_no_support", "",21},{"max_bridge_length", "",22}
+                            {"support_object_xy_distance", "",20}, {"bridge_no_support", "",21},{"max_bridge_length", "",22},{"support_critical_regions_only", "",23}
                             }},
     { L("Speed"), {{"support_speed", "",12}, {"support_interface_speed", "",13}
                     }}
@@ -138,7 +138,7 @@ std::vector<SimpleSettingData> SettingsFactory::get_visible_options(const std::s
         //Quality
         "layer_height", "initial_layer_print_height", "adaptive_layer_height", "seam_position", "xy_hole_compensation", "xy_contour_compensation", "elefant_foot_compensation", "support_line_width",
         //Support
-        "enable_support", "support_type", "support_threshold_angle", "support_on_build_plate_only", "enforce_support_layers",
+        "enable_support", "support_type", "support_threshold_angle", "support_on_build_plate_only", "support_critical_regions_only", "enforce_support_layers",
         //tree support
         "tree_support_wall_count", "tree_support_with_infill",
         //support
@@ -652,10 +652,16 @@ void MenuFactory::append_menu_item_export_stl(wxMenu* menu, bool is_mulity_menu)
 
 void MenuFactory::append_menu_item_reload_from_disk(wxMenu* menu)
 {
-    // BBS: change "Reload from disk" to "Reload item"
-    append_menu_item(menu, wxID_ANY, _L("Reload item"), _L("Reload items"),
+    append_menu_item(menu, wxID_ANY, _L("Reload from disk"), _L("Reload the selected parts from disk"),
         [](wxCommandEvent&) { plater()->reload_from_disk(); }, "", menu,
         []() { return plater()->can_reload_from_disk(); }, m_parent);
+}
+
+void MenuFactory::append_menu_item_replace_with_stl(wxMenu *menu)
+{
+    append_menu_item(menu, wxID_ANY, _L("Replace with STL"), _L("Replace the selected part with new STL"),
+        [](wxCommandEvent &) { plater()->replace_with_stl(); }, "", menu,
+        []() { return plater()->can_replace_with_stl(); }, m_parent);
 }
 
 void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
@@ -886,6 +892,8 @@ void MenuFactory::create_bbl_object_menu()
     append_menu_item_fix_through_netfabb(&m_object_menu);
     // Object Simplify
     append_menu_item_simplify(&m_object_menu);
+    // Object Center
+    append_menu_item_center(&m_object_menu);
     // Object Split
     wxMenu* split_menu = new wxMenu();
     if (!split_menu)
@@ -915,6 +923,8 @@ void MenuFactory::create_bbl_object_menu()
     // Enter per object parameters
     append_menu_item_per_object_settings(&m_object_menu);
     m_object_menu.AppendSeparator();
+    append_menu_item_reload_from_disk(&m_object_menu);
+    append_menu_item_replace_with_stl(&m_object_menu);
     append_menu_item_export_stl(&m_object_menu);
 }
 
@@ -975,6 +985,7 @@ void MenuFactory::create_bbl_part_menu()
     append_menu_item_delete(menu);
     append_menu_item_fix_through_netfabb(menu);
     append_menu_item_simplify(menu);
+    append_menu_item_center(menu);
     append_menu_items_mirror(menu);
     wxMenu* split_menu = new wxMenu();
     if (!split_menu)
@@ -992,6 +1003,8 @@ void MenuFactory::create_bbl_part_menu()
     menu->AppendSeparator();
     append_menu_item_per_object_settings(menu);
     append_menu_item_change_type(menu);
+    append_menu_item_reload_from_disk(menu);
+    append_menu_item_replace_with_stl(menu);
 }
 
 void MenuFactory::create_bbl_assemble_part_menu()
@@ -1172,6 +1185,7 @@ wxMenu* MenuFactory::multi_selection_menu()
             append_menu_item_merge_to_multipart_object(menu);
             index++;
         }
+        append_menu_item_center(menu);
         append_menu_item_fix_through_netfabb(menu);
         //append_menu_item_simplify(menu);
         append_menu_item_delete(menu);
@@ -1186,6 +1200,7 @@ wxMenu* MenuFactory::multi_selection_menu()
         append_menu_item_export_stl(menu, true);
     }
     else {
+        append_menu_item_center(menu);
         append_menu_item_fix_through_netfabb(menu);
         //append_menu_item_simplify(menu);
         append_menu_item_delete(menu);
@@ -1264,9 +1279,28 @@ void MenuFactory::append_menu_item_clone(wxMenu* menu)
 
 void MenuFactory::append_menu_item_simplify(wxMenu* menu)
 {
-    wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Reduce Triangles"), "",
+    wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Simplify Model"), "",
         [](wxCommandEvent&) { obj_list()->simplify(); }, "", menu,
         []() {return plater()->can_simplify(); }, m_parent);
+}
+
+void MenuFactory::append_menu_item_center(wxMenu* menu)
+{
+     append_menu_item(menu, wxID_ANY, _L("Center") , "",
+        [this](wxCommandEvent&) {
+            plater()->center_selection();
+        }, "", nullptr,
+        []() {
+            if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
+                return false;
+            else {
+                Selection& selection = plater()->get_view3D_canvas3D()->get_selection();
+                PartPlate* plate = plater()->get_partplate_list().get_selected_plate();
+                Vec3d model_pos = selection.get_bounding_box().center();
+                Vec3d center_pos = plate->get_center_origin();
+                return !( (model_pos.x() == center_pos.x()) && (model_pos.y() == center_pos.y()) );
+            } //disable if model is at center / not in View3D
+        }, m_parent);
 }
 
 void MenuFactory::append_menu_item_per_object_settings(wxMenu* menu)
@@ -1309,6 +1343,9 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
         return;
 
     std::vector<wxBitmap*> icons = get_extruder_color_icons(true);
+    if (icons.size() < filaments_cnt) {
+        BOOST_LOG_TRIVIAL(warning) << boost::format("Warning: icons size %1%, filaments_cnt=%2%")%icons.size()%filaments_cnt;
+    }
     wxMenu* extruder_selection_menu = new wxMenu();
     const wxString& name = sels.Count() == 1 ? names[0] : names[1];
 

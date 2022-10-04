@@ -117,7 +117,8 @@ public:
     void on_filaments_change(size_t num_filaments);
     // BBS
     void on_bed_type_change(BedType bed_type);
-    void load_ams_list(std::map<std::string, Ams *> const & list);
+    void load_ams_list(std::map<std::string, Ams *> const &list);
+    void sync_ams_list();
 
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
@@ -333,7 +334,7 @@ public:
     int export_config_3mf(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
     //BBS jump to nonitor after print job finished
     void print_job_finished(wxCommandEvent &evt);
-	//void eject_drive();
+	void eject_drive();
 
     void take_snapshot(const std::string &snapshot_name);
     //void take_snapshot(const wxString &snapshot_name);
@@ -412,6 +413,7 @@ public:
     void paste_from_clipboard();
     //BBS: add clone logic
     void clone_selection();
+    void center_selection();
     void search(bool plater_is_active, Preset::Type  type, wxWindow *tag, wxTextCtrl *etag, wxWindow *stag);
     void mirror(Axis axis);
     void split_object();

@@ -237,6 +237,7 @@ Button *SpinInput::createButton(bool inc)
     });
     btn->Bind(wxEVT_LEFT_DCLICK, [=](auto &e) {
         delta = inc ? 1 : -1;
+        btn->CaptureMouse();
         SetValue(val + delta);
         sendSpinEvent();
     });

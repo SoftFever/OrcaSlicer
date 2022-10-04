@@ -450,6 +450,20 @@ void Selection::clone(int numbers)
     }
 }
 
+void Selection::center()
+{
+    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_selected_plate();
+
+    // calc distance
+    Vec3d src_pos = this->get_bounding_box().center();
+    Vec3d tar_pos = plate->get_center_origin();
+    Vec3d distance = Vec3d(tar_pos.x() - src_pos.x(), tar_pos.y() - src_pos.y(), 0);
+
+    this->move_to_center(distance);
+    wxGetApp().plater()->get_view3D_canvas3D()->do_move(L("Move Object"));
+    return;
+}
+
 //BBS
 void Selection::set_printable(bool printable)
 {
@@ -804,6 +818,39 @@ void Selection::start_dragging()
 
     m_dragging = true;
     set_caches();
+}
+
+void Selection::move_to_center(const Vec3d& displacement, bool local)
+{
+    if (!m_valid)
+        return;
+
+    EMode translation_type = m_mode;
+    //BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": %1%, displacement {%2%, %3%, %4%}") % __LINE__ % displacement(X) % displacement(Y) % displacement(Z);
+
+    set_caches();
+    for (unsigned int i : m_list) {
+        GLVolume& v = *(*m_volumes)[i];
+        if (m_mode == Volume) {
+            if (local)
+                v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + displacement);
+            else {
+                const Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
+                v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
+            }
+        }
+        else if (m_mode == Instance) {
+            if (is_from_fully_selected_instance(i)) {
+                v.set_instance_offset(m_cache.volumes_data[i].get_instance_position() + displacement);
+            }
+            else {
+                const Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
+                v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
+                translation_type = Volume;
+            }
+        }
+    }
+    this->set_bounding_boxes_dirty();
 }
 
 void Selection::translate(const Vec3d& displacement, bool local)
@@ -2619,6 +2666,7 @@ void Selection::paste_objects_from_clipboard()
 
     //BBS: if multiple objects are selected, move them as a whole after copy
     Vec2d shift_all = {0, 0};
+    Vec2f empty_cell_all = {0, 0};
     if (src_objects.size() > 1) {
         BoundingBoxf3 bbox_all;
         for (const ModelObject *src_object : src_objects) {
@@ -2632,25 +2680,27 @@ void Selection::paste_objects_from_clipboard()
             shift_all = {0, bbox_all.size().y()};
     }
 
-    for (const ModelObject* src_object : src_objects)
+    for (size_t i=0;i<src_objects.size();i++)
     {
+        const ModelObject *src_object = src_objects[i];
         ModelObject* dst_object = m_model->add_object(*src_object);
         
         // BBS: find an empty cell to put the copied object
         BoundingBoxf3 bbox = src_object->instance_convex_hull_bounding_box(0);
 
         Vec3d displacement;
+        bool  in_current  = plate->intersects(bbox);
+        auto  start_point = in_current ? bbox.center() : plate->get_build_volume().center();
         if (shift_all(0) != 0 || shift_all(1) != 0) {
             // BBS: if multiple objects are selected, move them as a whole after copy
-            auto start_point = bbox.center();
-            displacement = {shift_all.x() + start_point.x(), shift_all.y() + start_point.y(), start_point(2)};
+            if (i == 0) empty_cell_all = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({start_point(0), start_point(1)}, {bbox.size()(0)+1,bbox.size()(1)+1});
+            auto instance_shift = src_object->instances.front()->get_offset() - src_objects[0]->instances.front()->get_offset();
+            displacement = {shift_all.x() + empty_cell_all.x()+instance_shift.x(), shift_all.y() + empty_cell_all.y()+instance_shift.y(), start_point(2)};
         } else {
             // BBS: if only one object is copied, find an empty cell to put it
-            bool in_current   = plate->intersects(bbox);
-            auto start_point  = in_current ? bbox.center() : plate->get_build_volume().center();
             auto start_offset = in_current ? src_object->instances.front()->get_offset() : plate->get_build_volume().center();
             auto point_offset = start_offset - start_point;
-            auto empty_cell   = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({start_point(0), start_point(1)});
+            auto empty_cell   = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({start_point(0), start_point(1)}, {bbox.size()(0)+1, bbox.size()(1)+1});
             displacement    = {empty_cell.x() + point_offset.x(), empty_cell.y() + point_offset.y(), start_point(2)};
         }
 

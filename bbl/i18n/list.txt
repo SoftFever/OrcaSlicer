@@ -56,6 +56,7 @@ src/slic3r/GUI/GLCanvas3D.cpp
 src/slic3r/GUI/Calibration.cpp
 src/slic3r/GUI/CameraPopup.cpp
 src/slic3r/GUI/ConnectPrinter.cpp
+src/slic3r/GUI/ConfirmHintDialog.cpp
 src/slic3r/GUI/HMSPanel.cpp
 src/slic3r/GUI/MainFrame.cpp
 src/slic3r/GUI/MediaPlayCtrl.cpp
@@ -99,6 +100,7 @@ src/slic3r/GUI/KBShortcutsDialog.hpp
 src/slic3r/GUI/KBShortcutsDialog.cpp
 src/slic3r/GUI/ReleaseNote.cpp
 src/slic3r/GUI/ReleaseNote.hpp
+src/slic3r/GUI/UpgradePanel.cpp
 src/slic3r/Utils/FixModelByWin10.cpp
 src/slic3r/Utils/PresetUpdater.cpp
 src/slic3r/Utils/Http.cpp

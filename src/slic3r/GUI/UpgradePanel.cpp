@@ -5,12 +5,17 @@
 #include "GUI_App.hpp"
 #include "libslic3r/Thread.hpp"
 #include "ReleaseNote.hpp"
+#include "ConfirmHintDialog.hpp"
 
 namespace Slic3r {
 namespace GUI {
 
 static const wxColour TEXT_NORMAL_CLR = wxColour(0, 174, 66);
 static const wxColour TEXT_FAILED_CLR = wxColour(255, 111, 0);
+
+wxString normal_upgrade_hint = _L("Are you sure you want to update? This will take about 10 minutes. Do not turn off the power while the printer is updating.");
+wxString force_upgrade_hint = _L("An important update was detected and needs to be run before printing can continue. Do you want to update now? You can also update later from 'Upgrade firmware'.");
+wxString consistency_upgrade_hint = _L("The firmware version is abnormal. Repairing and updating are required before printing. Do you want to update now? You can also update later on printer or update next time starting the studio.");
 
 MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
     :wxPanel(parent, id, pos, size, style)
@@ -312,7 +317,6 @@ void MachineInfoPanel::update(MachineObject* obj)
             m_staticText_upgrading_percent->SetLabelText(wxString::Format("%d%%", upgrade_percent));
         } else if (obj->upgrade_display_state == (int) MachineObject::UpgradingDisplayState::UpgradingFinished) {
             wxString result_text = obj->get_upgrade_result_str(obj->upgrade_err_code);
-            m_staticText_upgrading_info->SetLabelText(result_text);
             m_upgrade_progress->SetValue(upgrade_percent);
             m_staticText_upgrading_percent->SetLabelText(wxString::Format("%d%%", upgrade_percent));
         }
@@ -575,7 +579,7 @@ void MachineInfoPanel::show_status(int status, std::string upgrade_status_str)
     BOOST_LOG_TRIVIAL(trace) << "MachineInfoPanel: show_status = " << status << ", str = " << upgrade_status_str;
 
     Freeze();
-    
+
     if (status == (int)MachineObject::UpgradingDisplayState::UpgradingUnavaliable) {
         m_button_upgrade_firmware->Show();
         m_button_upgrade_firmware->Disable();
@@ -593,7 +597,7 @@ void MachineInfoPanel::show_status(int status, std::string upgrade_status_str)
         m_staticText_upgrading_info->Hide();
         m_staticText_upgrading_percent->Hide();
     } else if (status == (int) MachineObject::UpgradingDisplayState::UpgradingInProgress) {
-        m_button_upgrade_firmware->Hide();
+        m_button_upgrade_firmware->Disable();
         for (size_t i = 0; i < m_upgrading_sizer->GetItemCount(); i++) { m_upgrading_sizer->Show(true); }
         m_upgrade_retry_img->Hide();
         m_staticText_upgrading_info->Show();
@@ -606,17 +610,18 @@ void MachineInfoPanel::show_status(int status, std::string upgrade_status_str)
             m_staticText_upgrading_info->SetLabel(_L("Upgrading failed"));
             m_staticText_upgrading_info->SetForegroundColour(TEXT_FAILED_CLR);
             for (size_t i = 0; i < m_upgrading_sizer->GetItemCount(); i++) { m_upgrading_sizer->Show(true); }
-            m_button_upgrade_firmware->Hide();
+            m_button_upgrade_firmware->Disable();
             m_staticText_upgrading_info->Show();
-            m_staticText_upgrading_percent->Hide();
+            m_staticText_upgrading_percent->Show();
             m_upgrade_retry_img->Show();
         } else {
-            for (size_t i = 0; i < m_upgrading_sizer->GetItemCount(); i++) { m_upgrading_sizer->Show(true); }
-            m_button_upgrade_firmware->Hide();
-            m_staticText_upgrading_info->SetLabel(_L("Upgrading success"));
+            m_staticText_upgrading_info->SetLabel(_L("Upgrading successful"));
             m_staticText_upgrading_info->Show();
+            for (size_t i = 0; i < m_upgrading_sizer->GetItemCount(); i++) { m_upgrading_sizer->Show(true); }
+            m_button_upgrade_firmware->Disable();
             m_staticText_upgrading_info->SetForegroundColour(TEXT_NORMAL_CLR);
             m_staticText_upgrading_percent->SetForegroundColour(TEXT_NORMAL_CLR);
+            m_staticText_upgrading_percent->Show();
             m_upgrade_retry_img->Hide();
         }
     } else {
@@ -652,8 +657,28 @@ void MachineInfoPanel::upgrade_firmware_internal() {
 
 void MachineInfoPanel::on_upgrade_firmware(wxCommandEvent &event)
 {
-    if (m_obj)
-        m_obj->command_upgrade_confirm();
+    ConfirmHintDialog* confirm_dlg = new ConfirmHintDialog(this->GetParent(), wxID_ANY, _L("Upgrade firmware"));
+    confirm_dlg->SetHint(normal_upgrade_hint);
+    confirm_dlg->Bind(EVT_CONFIRM_HINT, [this](wxCommandEvent &e) {
+        if (m_obj){
+            m_obj->command_upgrade_confirm();
+        }
+    });
+    if(confirm_dlg->ShowModal())
+       delete confirm_dlg;
+}
+
+void MachineInfoPanel::on_consisitency_upgrade_firmware(wxCommandEvent &event)
+{
+    ConfirmHintDialog* confirm_dlg = new ConfirmHintDialog(this->GetParent(), wxID_ANY, _L("Upgrade firmware"));
+    confirm_dlg->SetHint(normal_upgrade_hint);
+    confirm_dlg->Bind(EVT_CONFIRM_HINT, [this](wxCommandEvent &e) {
+        if (m_obj){
+            m_obj->command_consistency_upgrade_confirm();
+        }
+    });
+    if(confirm_dlg->ShowModal())
+       delete confirm_dlg;
 }
 
 void MachineInfoPanel::on_show_release_note(wxMouseEvent &event) 
@@ -757,6 +782,39 @@ void UpgradePanel::update(MachineObject *obj)
             m_machine_list_sizer->Add(m_push_upgrade_panel, 0, wxTOP | wxALIGN_CENTER_HORIZONTAL, FromDIP(8));
             m_need_update = false;
         }
+    }
+
+    //force upgrade
+    //unlock hint
+    if (m_obj && (m_obj->upgrade_display_state == (int) MachineObject::UpgradingDisplayState::UpgradingFinished) && (last_forced_hint_status != m_obj->upgrade_display_state)) {
+        last_forced_hint_status = m_obj->upgrade_display_state;
+        m_show_forced_hint = true;
+    }
+    if (m_obj && m_show_forced_hint) {
+        if (m_obj->upgrade_force_upgrade) {
+            m_show_forced_hint = false;   //lock hint
+            ConfirmHintDialog* force_dlg = new ConfirmHintDialog(m_scrolledWindow, wxID_ANY, _L("Upgrade firmware"));
+            force_dlg->SetHint(force_upgrade_hint);
+            force_dlg->Bind(EVT_CONFIRM_HINT, &MachineInfoPanel::on_upgrade_firmware, m_push_upgrade_panel);
+            if (force_dlg->ShowModal())
+                delete force_dlg;
+        }
+    }
+
+    //consistency upgrade
+    if (m_obj && (m_obj->upgrade_display_state == (int) MachineObject::UpgradingDisplayState::UpgradingFinished) && (last_consistency_hint_status != m_obj->upgrade_display_state)) {
+        last_consistency_hint_status = m_obj->upgrade_display_state;
+        m_show_consistency_hint = true;
+    }
+    if (m_obj && m_show_consistency_hint) {
+        if (m_obj->upgrade_consistency_request) {
+            m_show_consistency_hint = false;
+		    ConfirmHintDialog* consistency_dlg = new ConfirmHintDialog(m_scrolledWindow, wxID_ANY, _L("Upgrade firmware"));
+            consistency_dlg->SetHint(consistency_upgrade_hint);
+            consistency_dlg->Bind(EVT_CONFIRM_HINT, &MachineInfoPanel::on_consisitency_upgrade_firmware, m_push_upgrade_panel);
+            if (consistency_dlg->ShowModal())
+                delete consistency_dlg;
+	    }
     }
 
     //update panels

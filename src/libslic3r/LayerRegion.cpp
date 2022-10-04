@@ -63,7 +63,7 @@ void LayerRegion::slices_to_fill_surfaces_clipped()
     }
 }
 
-void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection* fill_surfaces)
+void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollection* fill_surfaces, ExPolygons* fill_no_overlap)
 {
     this->perimeters.clear();
     this->thin_fills.clear();
@@ -90,7 +90,9 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
         // output:
         &this->perimeters,
         &this->thin_fills,
-        fill_surfaces
+        fill_surfaces,
+        //BBS
+        fill_no_overlap
     );
     
     if (this->layer()->lower_layer != nullptr)
@@ -105,9 +107,6 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
     g.solid_infill_flow     = this->flow(frSolidInfill);
     
     g.process();
-
-    // BBS
-    this->fill_no_overlap_expolygons = g.fill_no_overlap;
 }
 
 //#define EXTERNAL_SURFACES_OFFSET_PARAMETERS ClipperLib::jtMiter, 3.
@@ -117,7 +116,9 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
 void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Polygons *lower_layer_covered)
 {
     const bool      has_infill = this->region().config().sparse_infill_density.value > 0.;
-    const float		margin 	   = float(scale_(EXTERNAL_INFILL_MARGIN));
+    //BBS
+    auto nozzle_diameter = this->region().nozzle_dmr_avg(this->layer()->object()->print()->config());
+    const float	margin = std::min(float(scale_(EXTERNAL_INFILL_MARGIN)), float(scale_(nozzle_diameter * EXTERNAL_INFILL_MARGIN / 0.4)));
 
     // BBS
     const PrintObjectConfig& object_config = this->layer()->object()->config();

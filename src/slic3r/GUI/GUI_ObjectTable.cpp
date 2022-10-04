@@ -3353,12 +3353,9 @@ void ObjectTableDialog::OnClose(wxCloseEvent &evt)
         delete m_obj_panel;
         m_obj_panel = nullptr;
     }
-
     DestroyChildren();
     Destroy();
-    #endif
-
-    #ifdef __WXOSX_MAC__
+    #else
     evt.Skip();
     #endif
 }

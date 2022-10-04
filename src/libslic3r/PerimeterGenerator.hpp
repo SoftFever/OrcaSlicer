@@ -29,13 +29,14 @@ public:
     ExtrusionEntityCollection   *loops;
     ExtrusionEntityCollection   *gap_fill;
     SurfaceCollection           *fill_surfaces;
+    //BBS
+    ExPolygons                  *fill_no_overlap;
 
     //BBS
     Flow                        smaller_ext_perimeter_flow;
     std::map<int, Polygons>     m_lower_polygons_series;
     std::map<int, Polygons>     m_external_lower_polygons_series;
     std::map<int, Polygons>     m_smaller_external_lower_polygons_series;
-    ExPolygons                  fill_no_overlap;
     
     PerimeterGenerator(
         // Input:
@@ -52,14 +53,16 @@ public:
         // Gaps without the thin walls
         ExtrusionEntityCollection*  gap_fill,
         // Infills without the gap fills
-        SurfaceCollection*          fill_surfaces)
+        SurfaceCollection*          fill_surfaces,
+        //BBS
+        ExPolygons*                 fill_no_overlap)
         : slices(slices), upper_slices(nullptr), lower_slices(nullptr), layer_height(layer_height),
             layer_id(-1), perimeter_flow(flow), ext_perimeter_flow(flow),
             overhang_flow(flow), solid_infill_flow(flow),
             config(config), object_config(object_config), print_config(print_config),
             m_spiral_vase(spiral_mode),
             m_scaled_resolution(scaled<double>(print_config->resolution.value > EPSILON ? print_config->resolution.value : EPSILON)),
-            loops(loops), gap_fill(gap_fill), fill_surfaces(fill_surfaces),
+            loops(loops), gap_fill(gap_fill), fill_surfaces(fill_surfaces), fill_no_overlap(fill_no_overlap),
             m_ext_mm3_per_mm(-1), m_mm3_per_mm(-1), m_mm3_per_mm_overhang(-1), m_ext_mm3_per_mm_smaller_width(-1)
         {}
 

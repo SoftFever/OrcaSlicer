@@ -1271,7 +1271,7 @@ void IMSlider::render_menu()
 
         //BBS render this menu item only when extruder_num > 1
         if (extruder_num > 1) {
-            if (!m_can_change_color) {
+            if (!m_can_change_color || m_draw_mode == dmSequentialFffPrint) {
                 begin_menu(_u8L("Change Filament").c_str(), false);
             }
             else if (begin_menu(_u8L("Change Filament").c_str())) {
@@ -1360,9 +1360,7 @@ std::string IMSlider::get_label(int tick, LabelType label_type)
         }
 
         char layer_height[64];
-        m_values[value] == m_zero_layer_height ?
-            ::sprintf(layer_height, "") :
-            ::sprintf(layer_height, "%.2f", m_values.empty() ? m_label_koef * value : m_values[value]);
+        ::sprintf(layer_height, "%.2f", m_values.empty() ? m_label_koef * value : m_values[value]);
         if (label_type == ltHeight) return std::string(layer_height);
         if (label_type == ltHeightWithLayer) {
             char   buffer[64];
@@ -1370,7 +1368,7 @@ std::string IMSlider::get_label(int tick, LabelType label_type)
             if (m_values[GetMinValueD()] == m_zero_layer_height) {
                 layer_number = m_is_wipe_tower ? get_layer_number(value, label_type): (m_values.empty() ? value : value);
                 m_values[value] == m_zero_layer_height ?
-                    ::sprintf(buffer, "%5s", std::to_string(layer_number).c_str()) :
+                    ::sprintf(buffer, "%5s\n%5s", _u8L("Start").c_str(), _u8L("G-code").c_str()) :
                     ::sprintf(buffer, "%5s\n%5s", std::to_string(layer_number).c_str(), layer_height);
             }
             else {

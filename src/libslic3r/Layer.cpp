@@ -190,7 +190,7 @@ void Layer::make_perimeters()
 	        
 	        if (layerms.size() == 1) {  // optimization
 	            (*layerm)->fill_surfaces.surfaces.clear();
-	            (*layerm)->make_perimeters((*layerm)->slices, &(*layerm)->fill_surfaces);
+	            (*layerm)->make_perimeters((*layerm)->slices, &(*layerm)->fill_surfaces, &(*layerm)->fill_no_overlap_expolygons);
 	            (*layerm)->fill_expolygons = to_expolygons((*layerm)->fill_surfaces.surfaces);
 	        } else {
 	            SurfaceCollection new_slices;
@@ -212,7 +212,9 @@ void Layer::make_perimeters()
 	            
 	            // make perimeters
 	            SurfaceCollection fill_surfaces;
-	            layerm_config->make_perimeters(new_slices, &fill_surfaces);
+                //BBS
+                ExPolygons fill_no_overlap;
+	            layerm_config->make_perimeters(new_slices, &fill_surfaces, &fill_no_overlap);
 
 	            // assign fill_surfaces to each layer
 	            if (!fill_surfaces.surfaces.empty()) { 
@@ -221,6 +223,8 @@ void Layer::make_perimeters()
 	                    ExPolygons expp = intersection_ex(fill_surfaces.surfaces, (*l)->slices.surfaces);
 	                    (*l)->fill_expolygons = expp;
 	                    (*l)->fill_surfaces.set(std::move(expp), fill_surfaces.surfaces.front());
+                        //BBS: Separate fill_no_overlap
+                        (*l)->fill_no_overlap_expolygons = intersection_ex((*l)->slices.surfaces, fill_no_overlap);
 	                }
 	            }
 	        }

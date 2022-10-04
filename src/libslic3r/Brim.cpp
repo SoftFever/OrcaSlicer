@@ -337,7 +337,7 @@ static ExPolygons top_level_outer_brim_area(const Print& print, const ConstPrint
 
                     no_brim_area_object.emplace_back(ex_poly.contour);
                 }
-                brimToWrite.at(object->id()).obj == false;
+                brimToWrite.at(object->id()).obj = false;
                 for (const PrintInstance& instance : object->instances()) {
                     if (!brim_area_object.empty())
                         append_and_translate(brim_area, brim_area_object, instance, print, brimAreaMap);
@@ -375,7 +375,7 @@ static ExPolygons top_level_outer_brim_area(const Print& print, const ConstPrint
                         no_brim_area_support.emplace_back(ex_poly.contour);
                     }
                 }
-                brimToWrite.at(object->id()).sup == false;
+                brimToWrite.at(object->id()).sup = false;
                 for (const PrintInstance& instance : object->instances()) {
                     if (!brim_area_support.empty())
                         append_and_translate(brim_area, brim_area_support, instance, print, supportBrimAreaMap);
@@ -521,7 +521,7 @@ static ExPolygons inner_brim_area(const Print& print, const ConstPrintObjectPtrs
                     append(holes_object, ex_poly.holes);
                 }
                 append(no_brim_area_object, offset_ex(object->layers().front()->lslices, brim_offset));
-                brimToWrite.at(object->id()).obj == false;
+                brimToWrite.at(object->id()).obj = false;
                 for (const PrintInstance& instance : object->instances()) {
                     if (!brim_area_object.empty())
                         append_and_translate(brim_area, brim_area_object, instance, print, innerBrimAreaMap);
@@ -564,7 +564,7 @@ static ExPolygons inner_brim_area(const Print& print, const ConstPrintObjectPtrs
                     }
                 }
             }
-            brimToWrite.at(object->id()).sup == false;
+            brimToWrite.at(object->id()).sup = false;
             for (const PrintInstance& instance : object->instances()) {
                 if (!brim_area_support.empty())
                     append_and_translate(brim_area, brim_area_support, instance, print, innerSupportBrimAreaMap);
@@ -1386,7 +1386,7 @@ static void make_inner_island_brim(const Print& print, const ConstPrintObjectPtr
                             for (const PrintInstance& instance : object->instances())
                                 append_and_translate(islands_area_ex, islands_area_ex_object, instance);
                         }
-                        brimToWrite.at(object->id()).obj == false;
+                        brimToWrite.at(object->id()).obj = false;
                     }
                     else {
                         for (auto it = hole_island_pair.begin(); it != hole_island_pair.end(); it++) {
@@ -1406,7 +1406,7 @@ static void make_inner_island_brim(const Print& print, const ConstPrintObjectPtr
                             for (const PrintInstance& instance : object->instances())
                                 append_and_translate(islands_area_ex, islands_area_ex_object, instance, print, innerbrimAreaMap);
                         }
-                        brimToWrite.at(object->id()).obj == false;
+                        brimToWrite.at(object->id()).obj = false;
                     }
                     if (innerbrimAreaMap.find(object->id()) != innerbrimAreaMap.end())
                         expolygons_append(islands_area_ex, innerbrimAreaMap[object->id()]);
@@ -1422,7 +1422,7 @@ static void make_inner_island_brim(const Print& print, const ConstPrintObjectPtr
                             for (const PrintInstance& instance : object->instances())
                                 append_and_translate(islands_area_ex, islands_area_ex_support, instance);
                         }
-                        brimToWrite.at(object->id()).sup == false;
+                        brimToWrite.at(object->id()).sup = false;
                     }
                     else {
                         for (auto it = hole_island_pair_supports.begin(); it != hole_island_pair_supports.end(); it++) {
@@ -1443,7 +1443,7 @@ static void make_inner_island_brim(const Print& print, const ConstPrintObjectPtr
                                 append_and_translate(islands_area_ex, islands_area_ex_support, instance, print, innerSupportBrimAreaMap);
 
                         }
-                        brimToWrite.at(object->id()).sup == false;
+                        brimToWrite.at(object->id()).sup = false;
                     }
                     if (innerSupportBrimAreaMap.find(object->id()) != innerSupportBrimAreaMap.end())
                         expolygons_append(islands_area_ex, innerSupportBrimAreaMap[object->id()]);

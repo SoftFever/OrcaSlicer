@@ -79,6 +79,7 @@ public:
 
     // BBS
     void            set_num_filaments(unsigned int n, std::string new_col = "");
+    unsigned int sync_ams_list();
     //BBS: check whether this is the only edited filament
     bool is_the_only_edited_filament(unsigned int filament_index);
 

@@ -65,6 +65,10 @@ enum PrinterFunction {
     FUNC_FLOW_CALIBRATION,
     FUNC_AUTO_LEVELING,
     FUNC_CHAMBER_TEMP,
+    FUNC_CAMERA_VIDEO,
+    FUNC_MEDIA_FILE,
+    FUNC_REMOTE_TUNNEL,
+    FUNC_LOCAL_TUNNEL,
     FUNC_MAX
 };
 
@@ -534,6 +538,7 @@ public:
 
     /* command upgrade */
     int command_upgrade_confirm();
+    int command_consistency_upgrade_confirm();
     int command_upgrade_firmware(FirmwareInfo info);
 
     /* control apis */

@@ -565,14 +565,13 @@ bool Model::looks_like_multipart_object() const
     for (const ModelObject *obj : this->objects) {
         if (obj->volumes.size() > 1 || obj->config.keys().size() > 1)
             return false;
-        for (const ModelVolume *vol : obj->volumes) {
-            double zmin_this = vol->mesh().bounding_box().min(2);
-            if (zmin == std::numeric_limits<double>::max())
-                zmin = zmin_this;
-            else if (std::abs(zmin - zmin_this) > EPSILON)
-                // The volumes don't share zmin.
-                return true;
-        }
+
+        double zmin_this = obj->get_min_z();
+        if (zmin == std::numeric_limits<double>::max())
+            zmin = zmin_this;
+        else if (std::abs(zmin - zmin_this) > EPSILON)
+            // The Object don't share zmin.
+            return true;
     }
     return false;
 }
@@ -608,11 +607,15 @@ void Model::convert_multipart_object(unsigned int max_extruders)
             // Revert the centering operation.
             trafo_volume.set_offset(trafo_volume.get_offset() - o->origin_translation);
             int counter = 1;
-            auto copy_volume = [o, max_extruders, &counter, &extruder_counter](ModelVolume *new_v) {
+            auto copy_volume = [o, v, max_extruders, &counter, &extruder_counter](ModelVolume *new_v) {
                 assert(new_v != nullptr);
                 new_v->name = (counter > 1) ? o->name + "_" + std::to_string(counter++) : o->name;
-                //BBS: use default extruder id
-                //new_v->config.set("extruder", auto_extruder_id(max_extruders, extruder_counter));
+                //BBS: Use extruder priority: volumn > object > default
+                if (v->config.option("extruder"))
+                    new_v->config.set("extruder", v->config.extruder());
+                else if (o->config.option("extruder"))
+                    new_v->config.set("extruder", o->config.extruder());
+
                 return new_v;
             };
             if (o->instances.empty()) {

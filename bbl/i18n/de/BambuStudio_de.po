@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-09 11:50+0800\n"
+"POT-Creation-Date: 2022-09-27 16:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -689,11 +689,17 @@ msgstr "Modell reparieren"
 msgid "Export as STL"
 msgstr "Als STL exportieren"
 
-msgid "Reload item"
-msgstr "Element neu laden"
+msgid "Reload from disk"
+msgstr ""
 
-msgid "Reload items"
-msgstr "Elemente neu laden"
+msgid "Reload the selected parts from disk"
+msgstr ""
+
+msgid "Replace with STL"
+msgstr ""
+
+msgid "Replace the selected part with new STL"
+msgstr ""
 
 msgid "Change filament"
 msgstr "Filament wechseln"
@@ -830,8 +836,11 @@ msgstr "Aktuelle Druckplatte entfernen"
 msgid "Clone"
 msgstr "Klonen"
 
-msgid "Reduce Triangles"
-msgstr "Dreiecke reduzieren"
+msgid "Simplify Model"
+msgstr ""
+
+msgid "Center"
+msgstr ""
 
 msgid "Edit in Parameter Table"
 msgstr ""
@@ -1644,11 +1653,10 @@ msgstr ""
 
 msgid ""
 "Bed temperature is higher than vitrification temperature of this filament.\n"
-"This may cause nozzle blocked and printing failure"
+"This may cause nozzle blocked and printing failure\n"
+"Please keep the printer open during the printing process to ensure air "
+"circulation or reduce the temperature of the hot bed"
 msgstr ""
-"Die Temperatur des Druckbett ist höher als die Verglasungstemperatur dieses "
-"Filaments.\n"
-"Dies kann zu einer Verstopfung der Düse und zu Druckfehlern führen"
 
 msgid ""
 "Too small layer height.\n"
@@ -1768,14 +1776,10 @@ msgid "%1% infill pattern doesn't support 100%% density."
 msgstr "Das %1%-Infill-Muster unterstützt keine 100%% Dichte."
 
 msgid ""
-"Switch to zig-zag pattern?\n"
-"Yes - switch to zig-zag pattern automaticlly\n"
+"Switch to rectilinear pattern?\n"
+"Yes - switch to rectilinear pattern automaticlly\n"
 "No  - reset density to default non 100% value automaticlly\n"
 msgstr ""
-"Umschalten auf Zick-Zack-Muster?\n"
-"Ja - automatisch zum Zick-Zack-Muster wechseln\n"
-"Nein - setzt die Dichte automatisch auf den Standardwert von nicht 100% "
-"zurück\n"
 
 msgid "Auto bed leveling"
 msgstr "Automatische Druckbettnivellierung"
@@ -1888,12 +1892,12 @@ msgstr ""
 msgid "N/A"
 msgstr "N/A"
 
+msgid "Invalid numeric."
+msgstr "Ungültige Zahl."
+
 #, c-format, boost-format
 msgid "%s can't be percentage"
 msgstr "%s kann nicht Prozent sein"
-
-msgid "Invalid numeric."
-msgstr "Ungültige Zahl."
 
 #, c-format, boost-format
 msgid "Value %s is out of range, continue?"
@@ -1937,8 +1941,11 @@ msgstr "Fluss"
 msgid "Tool"
 msgstr "Werkzeug"
 
-msgid "Extruder position"
-msgstr "Extruderposition"
+msgid "Speed: "
+msgstr ""
+
+msgid "Flow: "
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "Laden von G-Codes"
@@ -2036,6 +2043,9 @@ msgstr "Filament 1"
 msgid "Flushed filament"
 msgstr "gereinigtes Filament"
 
+msgid "Total"
+msgstr "Gesamt"
+
 msgid "Filament change times"
 msgstr "Filamentwechselzeiten"
 
@@ -2068,9 +2078,6 @@ msgstr "Vorbereitungszeit"
 
 msgid "Model printing time"
 msgstr "Druckzeit des Modell"
-
-msgid "Total"
-msgstr "Gesamt"
 
 msgid "Switch to silent mode"
 msgstr "Zum Leisemodus wechseln"
@@ -2581,12 +2588,15 @@ msgstr "Initialisierung fehlgeschlagen (Kein Gerät)!"
 msgid "Initializing..."
 msgstr "Initialisieren..."
 
+msgid "Loading..."
+msgstr "Laden..."
+
+msgid "Initialize failed (Not supported)!"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Initialize failed [%d]!"
 msgstr "Initialisierung fehlgeschlagen [%d]!"
-
-msgid "Loading..."
-msgstr "Laden..."
 
 msgid "Stopped."
 msgstr "Gestoppt."
@@ -2607,17 +2617,44 @@ msgstr "Month"
 msgid "All Files"
 msgstr ""
 
+msgid "Group files by year, recent first."
+msgstr ""
+
+msgid "Group files by month, recent first."
+msgstr ""
+
+msgid "Show all files, recent first."
+msgstr ""
+
+msgid "Switch to timelapse files."
+msgstr ""
+
 msgid "Video"
 msgstr "Video"
+
+msgid "Switch to video files."
+msgstr ""
+
+msgid "Delete selected files from printer."
+msgstr ""
 
 msgid "Download"
 msgstr "Herunterladen"
 
+msgid "Download selected files from printer."
+msgstr ""
+
 msgid "Management"
 msgstr "Management"
 
+msgid "Batch manage files."
+msgstr ""
+
 msgid "No printers."
 msgstr "No printers."
+
+msgid "Not supported."
+msgstr ""
 
 msgid "Connecting..."
 msgstr "Connecting..."
@@ -2719,6 +2756,12 @@ msgstr "Debug-Informationen"
 
 msgid "Printing List"
 msgstr "Druckliste"
+
+msgid "Cancel print"
+msgstr ""
+
+msgid "Are you sure you want to cancel this print?"
+msgstr ""
 
 msgid "Downloading..."
 msgstr "Downloading..."
@@ -2923,10 +2966,10 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Untere"
 
-msgid "Spaghetti Detection"
+msgid "Spaghetti and Excess Chute Pileup Detection"
 msgstr ""
 
-msgid "Stop printing when spaghetti detected"
+msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 msgstr ""
 
 msgid "First Layer Inspection"
@@ -2998,12 +3041,49 @@ msgstr "Druckbetttyp"
 msgid "Flushing volumes"
 msgstr "Säuberungsvolumen"
 
+msgid "Add one filament"
+msgstr ""
+
+msgid "Remove last filament"
+msgstr ""
+
+msgid "Sync material list from AMS"
+msgstr ""
+
+msgid "Set filaments to use"
+msgstr ""
+
+msgid ""
+"No AMS filaments. Please select a printer in 'Device' page to load AMS info."
+msgstr ""
+
+msgid "Sync filaments with AMS"
+msgstr ""
+
+msgid ""
+"Sync filaments with AMS will drop all current selected filament presets and "
+"colors. Do you want to continue?"
+msgstr ""
+
+msgid "There are no compatible filaments, and sync is not performed."
+msgstr ""
+
 msgid "Untitled"
 msgstr "Unbenannt"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
 msgstr "Möchten Sie Änderungen unter \" %1% \" speichern?"
+
+#, c-format, boost-format
+msgid ""
+"Successfully unmounted. The device %s(%s) can now be safely removed from the "
+"computer."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Ejecting of device %s(%s) has failed."
+msgstr ""
 
 msgid "Previous unsaved project detected, do you want to restore it?"
 msgstr ""
@@ -3088,6 +3168,15 @@ msgstr ""
 msgid "Object too small"
 msgstr "Objekt zu klein"
 
+msgid ""
+"This file contains several objects positioned at multiple heights.\n"
+"Instead of considering them as multiple objects, should \n"
+"the file be loaded as a single object having multiple parts?"
+msgstr ""
+
+msgid "Multi-part object detected"
+msgstr ""
+
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Diese Dateien als ein einziges Objekt mit mehreren Teilen laden?\n"
 
@@ -3116,6 +3205,15 @@ msgstr "Das ausgewählte Objekt konnte nicht geteilt werden."
 
 msgid "Another export job is running."
 msgstr "Ein weiterer Exportauftrag läuft gerade."
+
+msgid "Select a new file"
+msgstr ""
+
+msgid "File for the replace wasn't selected"
+msgstr ""
+
+msgid "Error during replace"
+msgstr ""
 
 msgid "Please select a file"
 msgstr "Bitte wählen Sie eine Datei"
@@ -3217,6 +3315,9 @@ msgstr "Speichere G-Code Datei als:"
 
 msgid "Save Sliced file as:"
 msgstr "Geslicte Datei speichern unter:"
+
+msgid "preparing, export 3mf failed!"
+msgstr ""
 
 msgid ""
 "Print By Object: \n"
@@ -3751,6 +3852,12 @@ msgstr "Speichere aktuelle %s"
 
 msgid "Delete this preset"
 msgstr "Lösche diese Voreinstellung"
+
+msgid "Search in preset"
+msgstr ""
+
+msgid "Click to reset all settings to the last saved preset."
+msgstr ""
 
 msgid ""
 "Prime tower is required by timeplase. Are you sure you want to disable both "
@@ -4517,6 +4624,53 @@ msgstr "Neue Version von Bambu Studio"
 msgid "Don't remind me of this version again"
 msgstr ""
 
+msgid ""
+"Are you sure you want to update? This will take about 10 minutes. Do not "
+"turn off the power while the printer is updating."
+msgstr ""
+
+msgid ""
+"An important update was detected and needs to be run before printing can "
+"continue. Do you want to update now? You can also update later from 'Upgrade "
+"firmware'."
+msgstr ""
+
+msgid ""
+"The firmware version is abnormal. Repairing and updating are required before "
+"printing. Do you want to update now? You can also update later on printer or "
+"update next time starting the studio."
+msgstr ""
+
+msgid "Model:"
+msgstr ""
+
+msgid "Serial:"
+msgstr ""
+
+msgid "Version:"
+msgstr ""
+
+msgid "Upgrade firmware"
+msgstr ""
+
+msgid "Printing"
+msgstr ""
+
+msgid "Idle"
+msgstr ""
+
+msgid "Latest version"
+msgstr ""
+
+msgid "Upgrading"
+msgstr ""
+
+msgid "Upgrading failed"
+msgstr ""
+
+msgid "Upgrading successful"
+msgstr ""
+
 msgid "Saving objects into the 3mf failed."
 msgstr "Das Speichern von Objekten in der 3mf ist fehlgeschlagen."
 
@@ -4813,6 +4967,11 @@ msgstr ""
 
 msgid "No extrusions under current settings."
 msgstr "Keine Extrusion unter den aktuellen Einstellungen."
+
+msgid ""
+"Smooth mode of timelapse is not supported when \"by object\" sequence is "
+"enabled."
+msgstr ""
 
 msgid ""
 "Please select \"By object\" print sequence to print multiple objects in "
@@ -5302,14 +5461,20 @@ msgstr "Linienmuster der Füllung der oberen Oberfläche"
 msgid "Concentric"
 msgstr "Konzentrisch"
 
-msgid "Zig zag"
-msgstr "Zick-Zack"
+msgid "Rectilinear"
+msgstr "Geradlinig"
 
 msgid "Monotonic"
 msgstr "Monotonisch"
 
 msgid "Monotonic line"
 msgstr "Monotone Linie"
+
+msgid "Aligned Rectilinear"
+msgstr ""
+
+msgid "Hilbert Curve"
+msgstr ""
 
 msgid "Bottom surface pattern"
 msgstr "Muster der unteren Oberfläche"
@@ -6309,6 +6474,14 @@ msgstr ""
 "Stützen nicht auf der Modelloberfläche, sondern nur auf der Druckplatte "
 "erzeugen"
 
+msgid "Support critical regions only"
+msgstr ""
+
+msgid ""
+"Only create support for critical regions including sharp tail, cantilever, "
+"etc."
+msgstr ""
+
 msgid "Top Z distance"
 msgstr "Oberer Z-Abstand"
 
@@ -6372,9 +6545,6 @@ msgstr "Basismuster"
 
 msgid "Line pattern of support"
 msgstr "Linienmuster der Supports"
-
-msgid "Rectilinear"
-msgstr "Geradlinig"
 
 msgid "Rectilinear grid"
 msgstr "Rechtwinkliges Gitter"
@@ -6826,6 +6996,34 @@ msgstr "Support: Löcher in Schicht %d repairieren"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: Verbreiten von Zweigen auf Ebene %d"
+
+#~ msgid "Reduce Triangles"
+#~ msgstr "Dreiecke reduzieren"
+
+#~ msgid ""
+#~ "Switch to zig-zag pattern?\n"
+#~ "Yes - switch to zig-zag pattern automaticlly\n"
+#~ "No  - reset density to default non 100% value automaticlly\n"
+#~ msgstr ""
+#~ "Umschalten auf Zick-Zack-Muster?\n"
+#~ "Ja - automatisch zum Zick-Zack-Muster wechseln\n"
+#~ "Nein - setzt die Dichte automatisch auf den Standardwert von nicht 100% "
+#~ "zurück\n"
+
+#~ msgid "Extruder position"
+#~ msgstr "Extruderposition"
+
+#~ msgid "Zig zag"
+#~ msgstr "Zick-Zack"
+
+#~ msgid ""
+#~ "Bed temperature is higher than vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause nozzle blocked and printing failure"
+#~ msgstr ""
+#~ "Die Temperatur des Druckbett ist höher als die Verglasungstemperatur "
+#~ "dieses Filaments.\n"
+#~ "Dies kann zu einer Verstopfung der Düse und zu Druckfehlern führen"
 
 #~ msgid "0%"
 #~ msgstr "0%"

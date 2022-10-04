@@ -262,6 +262,7 @@ public:
     void add_curr_plate();
     void remove_curr_plate();
     void clone(int numbers = 1);
+    void center();
     void set_printable(bool printable);
 
     void add_all();
@@ -330,6 +331,7 @@ public:
     bool is_dragging() const { return m_dragging; }
 
     void translate(const Vec3d& displacement, bool local = false);
+    void move_to_center(const Vec3d& displacement, bool local = false);
     void rotate(const Vec3d& rotation, TransformationType transformation_type);
     void flattening_rotate(const Vec3d& normal);
     void scale(const Vec3d& scale, TransformationType transformation_type);

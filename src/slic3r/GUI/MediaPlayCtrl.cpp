@@ -19,11 +19,15 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
     m_button_play = new Button(this, "", "media_play", wxBORDER_NONE);
     m_button_play->SetCanFocus(false);
 
-    m_label_status = new Label(this);
+    m_label_status = new Label(this, "", LB_HYPERLINK);
 
     m_button_play->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto & e) { TogglePlay(); });
 
     m_button_play->Bind(wxEVT_RIGHT_UP, [this](auto & e) { m_media_ctrl->Play(); });
+    m_label_status->Bind(wxEVT_LEFT_UP, [this](auto &e) {
+        auto url = wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/faq/live-view", L"en");
+        wxLaunchDefaultBrowser(url);
+    });
 
     Bind(wxEVT_RIGHT_UP, [this](auto & e) { wxClipboard & c = *wxTheClipboard; if (c.Open()) { c.SetData(new wxTextDataObject(m_url)); c.Close(); } });
 
@@ -48,6 +52,9 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
     };
     parent->Bind(wxEVT_SHOW, onShowHide);
     parent->GetParent()->GetParent()->Bind(wxEVT_SHOW, onShowHide);
+
+    m_lan_user = "bblp";
+    m_lan_passwd = "bblp";
 }
 
 MediaPlayCtrl::~MediaPlayCtrl()
@@ -63,6 +70,17 @@ MediaPlayCtrl::~MediaPlayCtrl()
 void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
 {
     std::string machine = obj ? obj->dev_id : "";
+    if (obj && obj->is_function_supported(PrinterFunction::FUNC_CAMERA_VIDEO)) {
+        m_lan_mode     = obj->is_lan_mode_printer();
+        m_lan_ip       = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->dev_ip : "";
+        m_lan_passwd   = obj->access_code;
+        m_tutk_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
+    } else {
+        m_lan_mode = false;
+        m_lan_ip.clear();
+        m_lan_passwd.clear();
+        m_tutk_support = true;
+    }
     if (machine == m_machine) {
         if (m_last_state == MEDIASTATE_IDLE && m_next_retry.IsValid() && wxDateTime::Now() >= m_next_retry)
             Play();
@@ -92,10 +110,36 @@ void MediaPlayCtrl::Play()
     if (m_last_state != MEDIASTATE_IDLE) {
         return;
     }
+
     m_last_state = MEDIASTATE_INITIALIZING;
     m_button_play->SetIcon("media_stop");
     SetStatus(_L("Initializing..."));
 
+    if (!m_lan_ip.empty()) {
+        m_url        = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
+        m_last_state = MEDIASTATE_LOADING;
+        SetStatus(_L("Loading..."));
+        if (wxGetApp().app_config->get("dump_video") == "true") {
+            std::string file_h264 = data_dir() + "/video.h264";
+            std::string file_info = data_dir() + "/video.info";
+            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl dump video to " << file_h264;
+            // closed by BambuSource
+            FILE *dump_h264_file = boost::nowide::fopen(file_h264.c_str(), "wb");
+            FILE *dump_info_file = boost::nowide::fopen(file_info.c_str(), "wb");
+            m_url                = m_url + "&dump_h264=" + boost::lexical_cast<std::string>(dump_h264_file);
+            m_url                = m_url + "&dump_info=" + boost::lexical_cast<std::string>(dump_info_file);
+        }
+        boost::unique_lock lock(m_mutex);
+        m_tasks.push_back(m_url);
+        m_cond.notify_all();
+        return;
+    }
+    
+    if (m_lan_mode && !m_tutk_support) { // not support tutk
+        Stop();
+        SetStatus(_L("Initialize failed (Not supported)!"));
+        return;
+    }
 
     NetworkAgent* agent = wxGetApp().getAgent();
     if (agent) {
@@ -166,7 +210,11 @@ void MediaPlayCtrl::SetStatus(wxString const& msg2)
     OutputDebugStringA("\n");
 #endif // __WXMSW__
     m_label_status->SetLabel(msg);
-    //m_label_status->SetForegroundColour(!msg.EndsWith("!") ? 0x42AE00 : 0x3B65E9);
+    long style = m_label_status->GetWindowStyle() & ~LB_HYPERLINK;
+    if (m_failed_code && msg != msg2) {
+        style |= LB_HYPERLINK;
+    }
+    m_label_status->SetWindowStyle(style);
     Layout();
 }
 
@@ -240,6 +288,8 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
         }
         else if (event.GetId()) {
             Stop();
+            if (m_failed_code == 0)
+                m_failed_code = 2;
             SetStatus(_L("Load failed [%d]!"));
         } else {
             m_last_state = last_state;
