@@ -6,6 +6,11 @@ It also supports Voron and Prusa MK3S printers.
 You can download it here: https://github.com/SoftFever/BambuStudio-SoftFever/releases
 
 ## BambuStudio SoftFever change notes:
+### [V1.2.5 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.2.5-sf):
+1. Add options to adjust jerk for different line types
+2. Add an option to adjust acceleration for travel. Higher acceleration for travel and lower acceleration for the outer wall makes it possible to print faster and nicer.
+3. Add an option to manually override the Pressure Advance / Linear Advance for each filament.
+
 ### [V1.2.4 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.2.4-sf):
 1. Allow users to adjust accelerations for inner/outer walls separately.
 2. Allow users to adjust the bottom surface flow-rate
