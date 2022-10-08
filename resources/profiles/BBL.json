@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.02.01.02",
+    "version": "01.02.01.03",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -204,7 +204,7 @@
         {
             "name": "Generic PLA @0.2 nozzle",
             "sub_path": "filament/Generic PLA @0.2 nozzle.json"
-        },   
+        },
         {
             "name": "Generic PLA-CF",
             "sub_path": "filament/Generic PLA-CF.json"

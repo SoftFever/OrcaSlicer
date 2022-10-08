@@ -256,6 +256,7 @@ static const t_config_enum_values s_keys_map_BedType = {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BedType)
 
 static t_config_enum_values s_keys_map_NozzleType {
+    { "undefine",       int(NozzleType::ntUndefine) },
     { "hardened_steel", int(NozzleType::ntHardenedSteel) },
     { "stainless_steel",int(NozzleType::ntStainlessSteel) },
     { "brass",          int(NozzleType::ntBrass) }
@@ -487,7 +488,7 @@ void PrintConfigDef::init_fff_params()
                       "than bottom shell thickness, the bottom shell layers will be increased");
     def->full_label = L("Bottom shell layers");
     def->min = 0;
-    def->set_default_value(new ConfigOptionInt(2));
+    def->set_default_value(new ConfigOptionInt(3));
 
     def = this->add("bottom_shell_thickness", coFloat);
     def->label = L("Bottom shell thickness");
@@ -549,7 +550,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Only one wall on top surfaces");
     def->category = L("Quality");
     def->tooltip = L("Use only one wall on flat top surface, to give more space to the top infill pattern");
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("enable_overhang_speed", coBool);
     def->label = L("Slow down for overhang");
@@ -607,7 +608,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(60));
+    def->set_default_value(new ConfigOptionFloat(25));
 
     def = this->add("brim_width", coFloat);
     def->label = L("Brim width");
@@ -717,7 +718,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(5000));
+    def->set_default_value(new ConfigOptionFloat(500.0));
 
     def = this->add("default_filament_profile", coStrings);
     def->label = L("Default filament profile");
@@ -773,7 +774,7 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height = 12;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString("M104 S0\n"));
+    def->set_default_value(new ConfigOptionString("M104 S0 ; turn off temperature\nG28 X0  ; home X axis\nM84     ; disable motors\n"));
 
     def = this->add("filament_end_gcode", coStrings);
     def->label = L("End G-code");
@@ -833,7 +834,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(120));
+    def->set_default_value(new ConfigOptionFloat(60));
 
     def = this->add("wall_infill_order", coEnum);
     def->label = L("Order of inner wall/outer wall/infil");
@@ -1135,7 +1136,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(2000));
+    def->set_default_value(new ConfigOptionFloat(500));
 
     def = this->add("initial_layer_acceleration", coFloat);
     def->label = L("Initial layer");
@@ -1252,7 +1253,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Arc fitting");
     def->tooltip = L("Enable this to get a G-code file which has G2 and G3 moves. "
                      "And the fitting tolerance is same with resolution");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(0));
     // BBS
     def = this->add("gcode_add_line_number", coBool);
@@ -1279,20 +1280,22 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The metallic material of nozzle. This determines the abrasive resistance of nozzle, and "
                      "what kind of filament can be printed");
     def->enum_keys_map = &ConfigOptionEnum<NozzleType>::get_enum_values();
+    def->enum_values.push_back("undefine");
     def->enum_values.push_back("hardened_steel");
     def->enum_values.push_back("stainless_steel");
     def->enum_values.push_back("brass");
+    def->enum_labels.push_back(L("Undefine"));
     def->enum_labels.push_back(L("Hardened steel"));
     def->enum_labels.push_back(L("Stainless steel"));
     def->enum_labels.push_back(L("Brass"));
-    def->mode = comSimple;
-    def->set_default_value(new ConfigOptionEnum<NozzleType>(ntHardenedSteel));
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionEnum<NozzleType>(ntUndefine));
 
     def = this->add("auxiliary_fan", coBool);
     def->label = L("Auxiliary part cooling fan");
     def->tooltip = L("Enable this option if machine has auxiliary part cooling fan");
-    def->mode = comSimple;
-    def->set_default_value(new ConfigOptionBool(true));
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("gcode_flavor", coEnum);
     def->label = L("G-code flavor");
@@ -1310,7 +1313,7 @@ void PrintConfigDef::init_fff_params()
     //def->enum_values.push_back("machinekit");
     //def->enum_values.push_back("smoothie");
     //def->enum_values.push_back("no-extrusion");
-    def->enum_labels.push_back("Marlin");
+    def->enum_labels.push_back("Marlin(legacy)");
     //def->enum_labels.push_back("RepRap/Sprinter");
     //def->enum_labels.push_back("RepRapFirmware");
     //def->enum_labels.push_back("Repetier");
@@ -1322,8 +1325,8 @@ void PrintConfigDef::init_fff_params()
     //def->enum_labels.push_back("Machinekit");
     //def->enum_labels.push_back("Smoothie");
     //def->enum_labels.push_back(L("No extrusion"));
-    def->mode = comDevelop;
-    def->readonly = true;
+    def->mode = comAdvanced;
+    def->readonly = false;
     def->set_default_value(new ConfigOptionEnum<GCodeFlavor>(gcfMarlinLegacy));
 
     //BBS
@@ -1368,7 +1371,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(150));
+    def->set_default_value(new ConfigOptionFloat(100));
 
     def = this->add("inherits", coString);
     //def->label = L("Inherits profile");
@@ -1477,10 +1480,10 @@ void PrintConfigDef::init_fff_params()
         };
         std::vector<AxisDefault> axes {
             // name, max_feedrate,  max_acceleration, max_jerk
-            { "x", { 500., 200. }, {  9000., 1000. }, { 10. , 10.  } },
-            { "y", { 500., 200. }, {  9000., 1000. }, { 10. , 10.  } },
+            { "x", { 500., 200. }, {  1000., 1000. }, { 10. , 10.  } },
+            { "y", { 500., 200. }, {  1000., 1000. }, { 10. , 10.  } },
             { "z", {  12.,  12. }, {   500.,  200. }, {  0.2,  0.4 } },
-            { "e", { 120., 120. }, { 10000., 5000. }, {  2.5,  2.5 } }
+            { "e", { 120., 120. }, {  5000., 5000. }, {  2.5,  2.5 } }
         };
         for (const AxisDefault &axis : axes) {
             std::string axis_upper = boost::to_upper_copy<std::string>(axis.name);
@@ -1492,7 +1495,7 @@ void PrintConfigDef::init_fff_params()
             (void)L("Maximum speed Z");
             (void)L("Maximum speed E");
             def->category = L("Machine limits");
-            def->readonly = true;
+            def->readonly = false;
             def->tooltip  = (boost::format("Maximum speed of %1% axis") % axis_upper).str();
             (void)L("Maximum X speed");
             (void)L("Maximum Y speed");
@@ -1510,7 +1513,7 @@ void PrintConfigDef::init_fff_params()
             (void)L("Maximum acceleration Z");
             (void)L("Maximum acceleration E");
             def->category = L("Machine limits");
-            def->readonly = true;
+            def->readonly = false;
             def->tooltip  = (boost::format("Maximum acceleration of the %1% axis") % axis_upper).str();
             (void)L("Maximum acceleration of the X axis");
             (void)L("Maximum acceleration of the Y axis");
@@ -1528,7 +1531,7 @@ void PrintConfigDef::init_fff_params()
             (void)L("Maximum jerk Z");
             (void)L("Maximum jerk E");
             def->category = L("Machine limits");
-            def->readonly = true;
+            def->readonly = false;
             def->tooltip  = (boost::format("Maximum jerk of the %1% axis") % axis_upper).str();
             (void)L("Maximum jerk of the X axis");
             (void)L("Maximum jerk of the Y axis");
@@ -1570,8 +1573,8 @@ void PrintConfigDef::init_fff_params()
     //                 "as travel acceleration (M204 T).");
     def->sidetext = L("mm/s²");
     def->min = 0;
-    def->readonly = true;
-    def->mode = comDevelop;
+    def->readonly = false;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
 
@@ -1582,8 +1585,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Maximum acceleration for retracting (M204 R)");
     def->sidetext = L("mm/s²");
     def->min = 0;
-    def->readonly = true;
-    def->mode = comDevelop;
+    def->readonly = false;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
     // M204 T... [mm/sec^2]
@@ -1689,7 +1692,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm³");
     def->mode = comDevelop;
     def->readonly = true;
-    def->set_default_value(new ConfigOptionFloat { 118 });
+    def->set_default_value(new ConfigOptionFloat { 0.0 });
 
     def = this->add("reduce_infill_retraction", coBool);
     def->label = L("Reduce infill retraction");
@@ -1697,7 +1700,7 @@ void PrintConfigDef::init_fff_params()
                      "This can reduce times of retraction for complex model and save printing time, but make slicing and "
                      "G-code generating slower");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("ooze_prevention", coBool);
     def->label = L("Enable");
@@ -2003,7 +2006,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm²");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(5));
+    def->set_default_value(new ConfigOptionFloat(15));
 
     def = this->add("solid_infill_filament", coInt);
     //def->label = L("Solid infill");
@@ -2079,7 +2082,7 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height = 12;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString("G28\nG1 Z10 F100\n"));
+    def->set_default_value(new ConfigOptionString("G28 ; home all axes\nG1 Z5 F5000 ; lift nozzle\n"));
 
     def = this->add("filament_start_gcode", coStrings);
     def->label = L("Start G-code");
@@ -2284,7 +2287,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
+    def->set_default_value(new ConfigOptionFloat(0.5));
 
     //BBS
     def = this->add("support_bottom_interface_spacing", coFloat);
@@ -2508,7 +2511,7 @@ void PrintConfigDef::init_fff_params()
                      "than top shell thickness, the top shell layers will be increased");
     def->full_label = L("Top solid layers");
     def->min = 0;
-    def->set_default_value(new ConfigOptionInt(2));
+    def->set_default_value(new ConfigOptionInt(4));
 
     def = this->add("top_shell_thickness", coFloat);
     def->label = L("Top shell thickness");
@@ -2527,7 +2530,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 1;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(200));
+    def->set_default_value(new ConfigOptionFloat(120));
 
     def = this->add("travel_speed_z", coFloat);
     //def->label = L("Z travel");

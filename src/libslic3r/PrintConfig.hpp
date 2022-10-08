@@ -164,7 +164,8 @@ enum BedType {
 
 // BBS
 enum NozzleType {
-    ntHardenedSteel = 0,
+    ntUndefine = 0,
+    ntHardenedSteel,
     ntStainlessSteel,
     ntBrass,
     ntCount
