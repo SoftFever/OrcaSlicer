@@ -69,6 +69,7 @@ enum PrinterFunction {
     FUNC_MEDIA_FILE,
     FUNC_REMOTE_TUNNEL,
     FUNC_LOCAL_TUNNEL,
+    FUNC_PRINT_WITHOUT_SD,
     FUNC_MAX
 };
 
@@ -492,6 +493,7 @@ public:
     PrintingSpeedLevel _parse_printing_speed_lvl(int lvl);
 
     /* camera */
+    bool has_ipcam { false };
     bool camera_recording { false };
     bool camera_timelapse { false };
     bool camera_has_sdcard { false };

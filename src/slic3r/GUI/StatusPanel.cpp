@@ -1341,7 +1341,7 @@ void StatusPanel::update(MachineObject *obj)
             m_timelapse_button->Hide();
         }
 
-        if (obj->is_function_supported(PrinterFunction::FUNC_RECORDING)) {
+        if (obj->is_function_supported(PrinterFunction::FUNC_RECORDING) || obj->has_ipcam) {
             m_recording_button->Show();
         } else {
             m_recording_button->Hide();

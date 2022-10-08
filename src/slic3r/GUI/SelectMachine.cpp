@@ -40,6 +40,59 @@ wxDEFINE_EVENT(EVT_EDIT_PRINT_NAME, wxCommandEvent);
 
 static wxString task_canceled_text = _L("Task canceled");
 
+
+std::string get_print_status_info(PrintDialogStatus status)
+{
+    switch(status) {
+    case PrintStatusInit:
+        return "PrintStatusInit";
+    case PrintStatusNoUserLogin:
+        return "PrintStatusNoUserLogin";
+    case PrintStatusInvalidPrinter:
+        return "PrintStatusInvalidPrinter";
+    case PrintStatusConnectingServer:
+        return "PrintStatusConnectingServer";
+    case PrintStatusReading:
+        return "PrintStatusReading";
+    case PrintStatusReadingFinished:
+        return "PrintStatusReadingFinished";
+    case PrintStatusReadingTimeout:
+        return "PrintStatusReadingTimeout";
+    case PrintStatusInUpgrading:
+        return "PrintStatusInUpgrading";
+    case PrintStatusNeedUpgradingAms:
+        return "PrintStatusNeedUpgradingAms";
+    case PrintStatusInSystemPrinting:
+        return "PrintStatusInSystemPrinting";
+    case PrintStatusInPrinting:
+        return "PrintStatusInPrinting";
+    case PrintStatusDisableAms:
+        return "PrintStatusDisableAms";
+    case PrintStatusAmsMappingSuccess:
+        return "PrintStatusAmsMappingSuccess";
+    case PrintStatusAmsMappingInvalid:
+        return "PrintStatusAmsMappingInvalid";
+    case PrintStatusAmsMappingU0Invalid:
+        return "PrintStatusAmsMappingU0Invalid";
+    case PrintStatusAmsMappingValid:
+        return "PrintStatusAmsMappingValid";
+    case PrintStatusAmsMappingByOrder:
+        return "PrintStatusAmsMappingByOrder";
+    case PrintStatusRefreshingMachineList:
+        return "PrintStatusRefreshingMachineList";
+    case PrintStatusSending:
+        return "PrintStatusSending";
+    case PrintStatusSendingCanceled:
+        return "PrintStatusSendingCanceled";
+    case PrintStatusLanModeNoSdcard:
+        return "PrintStatusLanModeNoSdcard";
+    case PrintStatusNoSdcard:
+        return "PrintStatusNoSdcard";
+    }
+    return "unknown";
+}
+
+
 MachineListModel::MachineListModel() : wxDataViewVirtualListModel(INITIAL_NUMBER_OF_MACHINES) { ; }
 
 void MachineListModel::display_machines(std::map<std::string, MachineObject *> list)
@@ -1414,7 +1467,7 @@ void SelectMachineDialog::update_print_status_msg(wxString msg, bool is_warning,
 void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxString> params)
 {
     if (m_print_status != status)
-        BOOST_LOG_TRIVIAL(info) << "select_machine_dialog: show_status = " << status;
+        BOOST_LOG_TRIVIAL(info) << "select_machine_dialog: show_status = " << status << "(" << get_print_status_info(status) << ")";
     m_print_status = status;
 
     // m_comboBox_printer
@@ -1524,7 +1577,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintDialogStatus::PrintStatusSendingCanceled) {
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
-    } else if (status == PrintDialogStatus::PrintStatusNoSdcard) {
+    } else if (status == PrintDialogStatus::PrintStatusLanModeNoSdcard) {
         wxString msg_text = _L("An SD card needs to be inserted before printing via LAN.");
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(true);
@@ -1532,6 +1585,11 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintDialogStatus::PrintStatusAmsMappingByOrder) {
         wxString msg_text = _L("The printer firmware only supports sequential mapping of filament => AMS slot.");
         update_print_status_msg(msg_text, false, false);
+        Enable_Send_Button(true);
+        Enable_Refresh_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusNoSdcard) {
+        wxString msg_text = _L("An SD card needs to be inserted before printing.");
+        update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     }
@@ -1913,6 +1971,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 
     if (obj) {
         obj->command_get_version();
+        obj->command_request_push_all();
         dev->set_selected_machine(m_printer_last_select);
         update_select_layout(obj);
     } else {
@@ -2016,11 +2075,17 @@ void SelectMachineDialog::update_show_status()
         show_status(PrintDialogStatus::PrintStatusInPrinting);
         return;
     }
+    else if (!obj_->is_function_supported(PrinterFunction::FUNC_PRINT_WITHOUT_SD)) {
+        show_status(PrintDialogStatus::PrintStatusNoSdcard);
+        return;
+    }
+
+
 
     // check sdcard when if lan mode printer
     if (obj_->is_lan_mode_printer()) {
         if (!obj_->has_sdcard()) {
-            show_status(PrintDialogStatus::PrintStatusNoSdcard);
+            show_status(PrintDialogStatus::PrintStatusLanModeNoSdcard);
             return;
         }
     }
