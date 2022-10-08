@@ -617,6 +617,7 @@ public:
     void update_slice_info(std::string project_id, std::string profile_id, std::string subtask_id, int plate_idx);
 
     bool m_firmware_valid { false };
+    bool m_firmware_thread_started { false };
     void get_firmware_info();
     bool is_firmware_info_valid();
 };

@@ -2673,8 +2673,12 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
 void MachineObject::get_firmware_info()
 {
     m_firmware_valid = false;
+    if (m_firmware_thread_started)
+        return;
+
     boost::thread update_info_thread = Slic3r::create_thread(
         [&] {
+            m_firmware_thread_started = true;
             int          result = 0;
             unsigned int http_code;
             std::string  http_body;
@@ -2745,6 +2749,7 @@ void MachineObject::get_firmware_info()
             catch (...) {
                 return;
             }
+            m_firmware_thread_started = false;
             m_firmware_valid = true;
         }
     );
