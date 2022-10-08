@@ -1386,6 +1386,7 @@ void StatusPanel::update_error_message()
     }
 
     if (before_error_code != obj->print_error) {
+        before_error_code = obj->print_error;
         if (wxGetApp().get_hms_query()) {
             char buf[32];
             ::sprintf(buf, "%08X", obj->print_error);
@@ -1398,11 +1399,11 @@ void StatusPanel::update_error_message()
                                  print_error_str);
             show_error_message(error_msg);
             //hint dialog
+            BOOST_LOG_TRIVIAL(info) << "Print error! " << error_msg;
             ConfirmHintDialog print_error_dlg(this->GetParent(), wxID_ANY, _L("Warning"));
             print_error_dlg.SetHint(error_msg);
             print_error_dlg.ShowModal();
         }
-        before_error_code        = obj->print_error;
    }
 }
 
