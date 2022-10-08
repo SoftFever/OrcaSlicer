@@ -7,6 +7,7 @@ BEGIN_EVENT_TABLE(Button, StaticBox)
 
 EVT_LEFT_DOWN(Button::mouseDown)
 EVT_LEFT_UP(Button::mouseReleased)
+EVT_MOUSE_CAPTURE_LOST(Button::mouseCaptureLost)
 EVT_KEY_DOWN(Button::keyDownUp)
 EVT_KEY_UP(Button::keyDownUp)
 
@@ -242,10 +243,17 @@ void Button::mouseReleased(wxMouseEvent& event)
     event.Skip();
     if (pressedDown) {
         pressedDown = false;
-        ReleaseMouse();
+        if (HasCapture())
+            ReleaseMouse();
         if (wxRect({0, 0}, GetSize()).Contains(event.GetPosition()))
             sendButtonEvent();
     }
+}
+
+void Button::mouseCaptureLost(wxMouseCaptureLostEvent &event)
+{
+    wxMouseEvent evt;
+    mouseReleased(evt);
 }
 
 void Button::keyDownUp(wxKeyEvent &event)

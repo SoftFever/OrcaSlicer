@@ -67,6 +67,7 @@ private:
     // some useful events
     void mouseDown(wxMouseEvent& event);
     void mouseReleased(wxMouseEvent& event);
+    void mouseCaptureLost(wxMouseCaptureLostEvent &event);
     void keyDownUp(wxKeyEvent &event);
 
     void sendButtonEvent();

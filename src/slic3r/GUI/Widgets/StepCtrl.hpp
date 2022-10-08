@@ -77,6 +77,7 @@ private:
     void mouseDown(wxMouseEvent &event);
     void mouseMove(wxMouseEvent &event);
     void mouseUp(wxMouseEvent &event);
+    void mouseCaptureLost(wxMouseCaptureLostEvent &event);
 
     void doRender(wxDC &dc) override;
 

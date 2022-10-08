@@ -9,6 +9,7 @@ BEGIN_EVENT_TABLE(DropDown, wxPopupTransientWindow)
 
 EVT_LEFT_DOWN(DropDown::mouseDown)
 EVT_LEFT_UP(DropDown::mouseReleased)
+EVT_MOUSE_CAPTURE_LOST(DropDown::mouseCaptureLost)
 EVT_MOTION(DropDown::mouseMove)
 EVT_MOUSEWHEEL(DropDown::mouseWheelMoved)
 
@@ -377,6 +378,7 @@ void DropDown::mouseDown(wxMouseEvent& event)
     // force calc hover item again
     mouseMove(event);
     pressedDown = true;
+    CaptureMouse();
     dragStart   = event.GetPosition();
 }
 
@@ -385,11 +387,19 @@ void DropDown::mouseReleased(wxMouseEvent& event)
     if (pressedDown) {
         dragStart = wxPoint();
         pressedDown = false;
+        if (HasCapture())
+            ReleaseMouse();
         if (hover_item >= 0) { // not moved
             sendDropDownEvent();
             DismissAndNotify();
         }
     }
+}
+
+void DropDown::mouseCaptureLost(wxMouseCaptureLostEvent &event)
+{
+    wxMouseEvent evt;
+    mouseReleased(evt);
 }
 
 void DropDown::mouseMove(wxMouseEvent &event)
