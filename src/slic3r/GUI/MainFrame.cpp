@@ -199,6 +199,25 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 */
 
 #ifdef __APPLE__
+	m_reset_title_text_colour_timer = new wxTimer();
+	m_reset_title_text_colour_timer->SetOwner(this);
+	Bind(wxEVT_TIMER, [this](auto& e) {
+		set_title_colour_after_set_title(GetHandle());
+		m_reset_title_text_colour_timer->Stop();
+	});
+	this->Bind(wxEVT_FULLSCREEN, [this](wxFullScreenEvent& e) {
+		set_tag_when_enter_full_screen(e.IsFullScreen());
+		if (!e.IsFullScreen()) {
+            if (m_reset_title_text_colour_timer) {
+                m_reset_title_text_colour_timer->Stop();
+                m_reset_title_text_colour_timer->Start(500);
+            }
+		}
+		e.Skip();
+	});
+#endif
+
+#ifdef __APPLE__
     // Initialize the docker task bar icon.
     switch (wxGetApp().get_app_mode()) {
     default:
@@ -766,8 +785,8 @@ void MainFrame::update_title()
 
 void MainFrame::update_title_colour_after_set_title() 
 {
-#ifdef __WXOSX__
-    set_title_colour_after_set_title();
+#ifdef __APPLE__
+    set_title_colour_after_set_title(GetHandle());
 #endif
 }
 
