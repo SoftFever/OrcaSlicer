@@ -188,8 +188,10 @@ void ImageGrid::UpdateLayout()
     if (!m_file_sys) return;
     wxSize size = GetClientSize();
     wxSize mask_size{0, 60 * em_unit(this) / 10};
-    if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE)
+    if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE) {
         mask_size.y = 20 * em_unit(this) / 10;
+        size.y -= mask_size.y;
+    }
     int cell_width = m_cell_size.GetWidth();
     int cell_height = m_cell_size.GetHeight();
     int ncol = (size.GetWidth() - cell_width + m_image_size.GetWidth()) / cell_width;
@@ -365,13 +367,16 @@ void ImageGrid::paintEvent(wxPaintEvent& evt)
 
 size_t Slic3r::GUI::ImageGrid::firstItem(wxSize const &size, wxPoint &off)
 {
+    int size_y = size.y;
+    if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE)
+        size_y -= m_mask.GetHeight();
     int offx  = (size.x - (m_col_count - 1) * m_cell_size.GetWidth() - m_image_size.GetWidth()) / 2;
     int offy  = (m_row_offset + 1 < m_row_count || m_row_count == 0) ?
                     m_cell_size.GetHeight() - m_image_size.GetHeight() - m_row_offset * m_cell_size.GetHeight() / 4 + m_row_offset / 4 * m_cell_size.GetHeight() :
-                    size.y - (size.y + m_image_size.GetHeight() - 1) / m_cell_size.GetHeight() * m_cell_size.GetHeight();
+                    size_y - (size_y + m_image_size.GetHeight() - 1) / m_cell_size.GetHeight() * m_cell_size.GetHeight();
     int index = (m_row_offset + 1 < m_row_count || m_row_count == 0) ?
                     m_row_offset / 4 * m_col_count :
-                    ((m_file_sys->GetCount() + m_col_count - 1) / m_col_count - (size.y + m_image_size.GetHeight() - 1) / m_cell_size.GetHeight()) * m_col_count;
+                    ((m_file_sys->GetCount() + m_col_count - 1) / m_col_count - (size_y + m_image_size.GetHeight() - 1) / m_cell_size.GetHeight()) * m_col_count;
     if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE)
         offy += m_mask.GetHeight();
     off = wxPoint{offx, offy};

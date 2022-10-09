@@ -320,7 +320,7 @@ void PrinterFileSystem::DeleteFilesContinue()
     std::vector<size_t> indexes;
     std::vector<std::string> names;
     for (size_t i = 0; i < m_file_list.size(); ++i)
-        if ((m_file_list[i].flags & FF_SELECT) && !m_file_list[i].name.empty()) {
+        if ((m_file_list[i].flags & FF_DELETED) && !m_file_list[i].name.empty()) {
             indexes.push_back(i);
             names.push_back(m_file_list[i].name);
             if (names.size() >= 64)
@@ -338,7 +338,7 @@ void PrinterFileSystem::DeleteFilesContinue()
         FILE_DEL, req, nullptr,
         [indexes, names, this](int, Void const &) {
             // TODO:
-            for (size_t i = indexes.size() - 1; i >= 0; --i)
+            for (size_t i = indexes.size() - 1; i != size_t(-1); --i)
                 FileRemoved(indexes[i], names[i]);
             SendChangedEvent(EVT_FILE_CHANGED);
             DeleteFilesContinue();
@@ -363,11 +363,11 @@ void PrinterFileSystem::DownloadNextFile(std::string const &path)
     SendChangedEvent(EVT_DOWNLOAD, index, m_file_list[index].name);
     struct Download
     {
-        int                       index;
-        std::string               name;
-        std::string               path;
+        size_t                      index;
+        std::string                 name;
+        std::string                 path;
         boost::filesystem::ofstream ofs;
-        boost::uuids::detail::md5 boost_md5;
+        boost::uuids::detail::md5   boost_md5;
     };
     std::shared_ptr<Download> download(new Download);
     download->index = index;
@@ -412,9 +412,9 @@ void PrinterFileSystem::DownloadNextFile(std::string const &path)
             return result;
         },
         [this, download](int result, Progress const &data) {
-            if (download->index >= 0)
+            if (download->index != size_t(-1))
                 download->index = FindFile(download->index, download->name);
-            if (download->index >= 0) {
+            if (download->index != size_t(-1)) {
                 int progress = data.size * 100 / data.total;
                 if (result > CONTINUE)
                     progress = -2;
