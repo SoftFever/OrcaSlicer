@@ -779,6 +779,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "fuzzy_skin_thickness"
             || opt_key == "fuzzy_skin_point_distance"
             || opt_key == "detect_overhang_wall"
+            //BBS
+            || opt_key == "enable_overhang_speed"
             || opt_key == "detect_thin_wall") {
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posSupportMaterial);
@@ -794,8 +796,6 @@ bool PrintObject::invalidate_state_by_config_options(
                opt_key == "seam_position"
             || opt_key == "support_speed"
             || opt_key == "support_interface_speed"
-            //BBS
-            || opt_key == "enable_overhang_speed"
             || opt_key == "overhang_1_4_speed"
             || opt_key == "overhang_2_4_speed"
             || opt_key == "overhang_3_4_speed"
