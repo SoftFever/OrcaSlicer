@@ -92,6 +92,12 @@ void WKWebView_evaluateJavaScript(void * web, wxString const & script, void (*ca
     }];
 }
 
+void openFolderForFile(wxString const & file)
+{
+    NSArray *fileURLs = [NSArray arrayWithObjects:wxCFStringRef(file).AsNSString(), /* ... */ nil];
+    [[NSWorkspace sharedWorkspace] activateFileViewerSelectingURLs:fileURLs];
+}
+    
 }
 }
 

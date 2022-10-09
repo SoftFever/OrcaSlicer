@@ -288,7 +288,7 @@ void AppConfig::set_defaults()
     if (get("backup_interval").empty()) {
         set("backup_interval", "10");
     }
-
+    
     if (get("curr_bed_type").empty()) {
         set("curr_bed_type", "0");
     }

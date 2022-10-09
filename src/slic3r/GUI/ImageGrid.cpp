@@ -8,6 +8,9 @@
 
 #include <wx/dcgraph.h>
 
+#ifdef __APPLE__
+#include "../Utils/MacDarkMode.hpp"
+#endif
 
 BEGIN_EVENT_TABLE(Slic3r::GUI::ImageGrid, wxPanel)
 
@@ -145,24 +148,19 @@ void Slic3r::GUI::ImageGrid::DoAction(size_t index, int action)
             auto &file = m_file_sys->GetFile(index);
             if (file.IsDownload() && file.progress >= -1) {
                 if (file.progress >= 100) {
-#ifdef __WXMSW__
-                    wxExecute("cmd /c start " + from_u8(m_save_path + "\\" + file.name), wxEXEC_HIDE_CONSOLE);
+#ifdef __WIN32__
+                    wxExecute(L"explorer.exe /select," + from_u8(file.path));
+#elif __APPLE__
+                    openFolderForFile(from_u8(file.path));
 #else
-                    wxShell("open " + m_save_path + "/" + file.name);
 #endif
                 } else {
                     m_file_sys->DownloadCancel(index);
                 }
                 return;
             }
-            if (m_save_path.empty()) {
-                wxDirDialog dlg(NULL, _L("Choose save directory"), "", wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
-                if (dlg.ShowModal() == wxID_CANCEL)
-                    return;
-                m_save_path = dlg.GetPath().ToUTF8().data();
-            }
         }
-        m_file_sys->DownloadFiles(index, m_save_path);
+        m_file_sys->DownloadFiles(index, wxGetApp().app_config->get("download_path"));
     }
 }
 
@@ -351,8 +349,12 @@ void Slic3r::GUI::ImageGrid::changedEvent(wxCommandEvent& evt)
 {
     evt.Skip();
     BOOST_LOG_TRIVIAL(info) << "ImageGrid::changedEvent: " << evt.GetEventType() << " index: " << evt.GetInt() << " name: " << evt.GetString() << " extra: " << evt.GetExtraLong();
-    if (evt.GetEventType() == EVT_MODE_CHANGED
-        || evt.GetEventType() == EVT_FILE_CHANGED)
+    if (evt.GetEventType() == EVT_FILE_CHANGED) {
+        if (evt.GetInt() == -1)
+            m_file_sys->DownloadCheckFiles(wxGetApp().app_config->get("download_path"));
+        UpdateFileSystem();
+    }
+    else if (evt.GetEventType() == EVT_MODE_CHANGED)
         UpdateFileSystem();
     else
         Refresh();
@@ -480,11 +482,12 @@ void ImageGrid::render(wxDC& dc)
                     dc.DrawBitmap(m_mask, pt);
                 }
             }
+            bool show_download_state_always = true;
             // Draw checked icon
-            if (m_selecting)
+            if (m_selecting && !show_download_state_always)
                 dc.DrawBitmap(file.IsSelect() ? m_checked_icon.bmp() : m_unchecked_icon.bmp(), 
                     pt + wxPoint{10, m_image_size.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
-            // can' handle alpha
+            // can't handle alpha
             // dc.GradientFillLinear({pt.x, pt.y, m_image_size.GetWidth(), 60}, wxColour(0x6F, 0x6F, 0x6F, 0x99), wxColour(0x6F, 0x6F, 0x6F, 0), wxBOTTOM);
             else if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE) {
                 wxString nonHoverText;
@@ -500,7 +503,7 @@ void ImageGrid::render(wxDC& dc)
                         nonHoverText = _L("Download failed");
                         states       = StateColor::Checked;
                     } else if (file.progress >= 100) {
-                        secondAction = _L("Open");
+                        secondAction = _L("Open Folder");
                         nonHoverText = _L("Download finished");
                     } else {
                         secondAction = _L("Cancel");
@@ -514,6 +517,9 @@ void ImageGrid::render(wxDC& dc)
                 } else if (!nonHoverText.IsEmpty()) {
                     renderButtons(dc, {(wxChar const *) nonHoverText, nullptr}, rect, -1, states);
                 }
+                if (m_selecting && show_download_state_always)
+                    dc.DrawBitmap(file.IsSelect() ? m_checked_icon.bmp() : m_unchecked_icon.bmp(),
+                                  pt + wxPoint{10, m_image_size.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
             } else {
                 auto date = wxDateTime((time_t) file.time).Format(_L(formats[m_file_sys->GetGroupMode()]));
                 dc.DrawText(date, pt + wxPoint{24, 16});

@@ -10,7 +10,9 @@
 
 #include <cstring>
 
+#ifndef NDEBUG
 //#define PRINTER_FILE_SYSTEM_TEST
+#endif
 
 wxDEFINE_EVENT(EVT_STATUS_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_MODE_CHANGED, wxCommandEvent);
@@ -38,7 +40,7 @@ PrinterFileSystem::PrinterFileSystem()
     for (int i = 0; i < 800; ++i) {
         auto name = wxString::Format(L"img-%03d.jpg", i + 1);
         wxImage im(L"D:\\work\\pic\\" + name);
-        m_file_list.push_back({name.ToUTF8().data(), time.GetTicks(), 0, im, i < 20 ? FF_DOWNLOAD : 0, i * 10 - 40});
+        m_file_list.push_back({name.ToUTF8().data(), time.GetTicks(), 26937, im, i < 20 ? FF_DOWNLOAD : 0, i * 10 - 40});
         time.Add(wxDateSpan::Days(-1));
     }
     BuildGroups();
@@ -160,6 +162,7 @@ void PrinterFileSystem::DownloadFiles(size_t index, std::string const &path)
             if ((file.flags & FF_DOWNLOAD) != 0 && file.progress >= 0) continue;
             file.flags |= FF_DOWNLOAD;
             file.progress = -1;
+            file.path = (boost::filesystem::path(path) / file.name).string();
             ++n;
         }
         if (n == 0) return;
@@ -171,9 +174,25 @@ void PrinterFileSystem::DownloadFiles(size_t index, std::string const &path)
             return;
         file.flags |= FF_DOWNLOAD;
         file.progress = -1;
+        file.path = (boost::filesystem::path(path) / file.name).string();
     }
     if ((m_task_flags & FF_DOWNLOAD) == 0)
-        DownloadNextFile(path);
+        DownloadNextFile();
+}
+
+void PrinterFileSystem::DownloadCheckFiles(std::string const &path)
+{
+    for (size_t i = 0; i < m_file_list.size(); ++i) {
+        auto &file = m_file_list[i];
+        if ((file.flags & FF_DOWNLOAD) != 0 && file.progress >= 0) continue;
+        auto path2 = boost::filesystem::path(path) / file.name;
+        boost::system::error_code ec;
+        if (boost::filesystem::file_size(path2, ec) == file.size) {
+            file.flags |= FF_DOWNLOAD;
+            file.progress = 100;
+            file.path     = path2.string();
+        }
+    }
 }
 
 void PrinterFileSystem::DownloadCancel(size_t index)
@@ -346,12 +365,12 @@ void PrinterFileSystem::DeleteFilesContinue()
             // TODO:
             for (size_t i = indexes.size() - 1; i != size_t(-1); --i)
                 FileRemoved(indexes[i], names[i]);
-            SendChangedEvent(EVT_FILE_CHANGED);
+            SendChangedEvent(EVT_FILE_CHANGED, indexes.size());
             DeleteFilesContinue();
         });
 }
 
-void PrinterFileSystem::DownloadNextFile(std::string const &path)
+void PrinterFileSystem::DownloadNextFile()
 {
     size_t index = size_t(-1);
     for (size_t i = 0; i < m_file_list.size(); ++i) {
@@ -378,7 +397,7 @@ void PrinterFileSystem::DownloadNextFile(std::string const &path)
     std::shared_ptr<Download> download(new Download);
     download->index = index;
     download->name  = m_file_list[index].name;
-    download->path  = path;
+    download->path  = m_file_list[index].path;
     m_task_flags |= FF_DOWNLOAD;
     m_download_seq = SendRequest<Progress>(
         FILE_DOWNLOAD, req,
@@ -388,7 +407,7 @@ void PrinterFileSystem::DownloadNextFile(std::string const &path)
             prog.size   = resp["offset"];
             prog.total  = resp["total"];
             if (prog.size == 0) {
-                download->ofs.open(download->path + "/" + download->name, std::ios::binary);
+                download->ofs.open(download->path, std::ios::binary);
                 if (!download->ofs) return FILE_OPEN_ERR;
             }
             // receive data
@@ -429,10 +448,10 @@ void PrinterFileSystem::DownloadNextFile(std::string const &path)
                     file.flags &= ~FF_DOWNLOAD;
                 else if (file.progress != progress) {
                     file.progress = progress;
-                    SendChangedEvent(EVT_DOWNLOAD, download->index, m_file_list[download->index].name, data.size);
+                    SendChangedEvent(EVT_DOWNLOAD, download->index, file.path, data.size);
                 }
             }
-            if (result != CONTINUE) DownloadNextFile(download->path);
+            if (result != CONTINUE) DownloadNextFile();
         });
 }
 
@@ -790,7 +809,9 @@ void PrinterFileSystem::Reconnect(boost::unique_lock<boost::mutex> &l, int resul
     }
     m_status = Status::ListSyncing;
     SendChangedEvent(EVT_STATUS_CHANGED, m_status);
-#ifndef PRINTER_FILE_SYSTEM_TEST
+#ifdef PRINTER_FILE_SYSTEM_TEST
+    PostCallback([this] { SendChangedEvent(EVT_FILE_CHANGED); });
+#else
     PostCallback([this] { ListAllFiles(); });
 #endif
 }

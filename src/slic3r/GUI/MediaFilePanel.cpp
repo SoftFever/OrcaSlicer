@@ -82,7 +82,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_delete->SetToolTip(L("Delete selected files from printer."));
     m_button_download = new ::Button(m_manage_panel, _L("Download"));
     m_button_download->SetToolTip(L("Download selected files from printer."));
-    m_button_management = new ::Button(m_manage_panel, _L("Management"));
+    m_button_management = new ::Button(m_manage_panel, _L("Select"));
     m_button_management->SetToolTip(L("Batch manage files."));
     for (auto b : {m_button_delete, m_button_download, m_button_management}) {
         b->SetBackgroundColor(StateColor());
@@ -163,18 +163,26 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
         b->GetEventHandler()->ProcessEvent(e);
     }
 
-    // File management
-    m_button_management->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) {
-        e.Skip();
-        bool selecting = !m_image_grid->IsSelecting();
+    auto set_selecting = [this](bool selecting) {
         m_image_grid->SetSelecting(selecting);
-        m_button_management->SetLabel(selecting ? _L("Finish") : _L("Management"));
+        m_button_management->SetLabel(selecting ? _L("Cancel") : _L("Select"));
         m_manage_panel->GetSizer()->Show(m_button_download, selecting);
         m_manage_panel->GetSizer()->Show(m_button_delete, selecting);
         m_manage_panel->Layout();
+    };
+    // File management
+    m_button_management->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this, set_selecting](auto &e) {
+        e.Skip();
+        set_selecting(!m_image_grid->IsSelecting());
     });
-    m_button_download->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) { m_image_grid->DoActionOnSelection(1); });
-    m_button_delete->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) { m_image_grid->DoActionOnSelection(0); });
+    m_button_download->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this, set_selecting](auto &e) {
+        m_image_grid->DoActionOnSelection(1);
+        set_selecting(false);
+    });
+    m_button_delete->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this, set_selecting](auto &e) {
+        m_image_grid->DoActionOnSelection(0);
+        set_selecting(false);
+    });
 
     auto onShowHide = [this](auto &e) {
         e.Skip();

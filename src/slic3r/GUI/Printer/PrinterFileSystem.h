@@ -95,6 +95,7 @@ public:
         wxBitmap    thumbnail;
         int         flags = 0;
         int         progress = -1; // -1: waiting
+        std::string path;
 
         bool IsSelect() const { return flags & FF_SELECT; }
         bool IsDownload() const { return flags & FF_DOWNLOAD; }
@@ -123,6 +124,8 @@ public:
     void DeleteFiles(size_t index);
 
     void DownloadFiles(size_t index, std::string const &path);
+
+    void DownloadCheckFiles(std::string const &path);
 
     void DownloadCancel(size_t index);
 
@@ -164,7 +167,7 @@ private:
 
     void DeleteFilesContinue();
 
-    void DownloadNextFile(std::string const &path);
+    void DownloadNextFile();
 
     void UpdateFocusThumbnail();
 
