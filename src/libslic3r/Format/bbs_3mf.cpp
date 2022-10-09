@@ -456,10 +456,18 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     for (auto it = ps.volumes_per_extruder.begin(); it != ps.volumes_per_extruder.end(); it++) {
         double volume                           = it->second;
         auto [used_filament_m, used_filament_g] = get_used_filament_from_volume(volume, it->first);
+
         FilamentInfo info;
-        info.id     = it->first;
-        info.used_m = used_filament_m;
-        info.used_g = used_filament_g;
+        info.id = it->first;
+        if (ps.flush_per_filament.find(it->first) != ps.flush_per_filament.end()) {
+            volume = ps.flush_per_filament.at(it->first);
+            auto [flushed_filament_m, flushed_filament_g] = get_used_filament_from_volume(volume, it->first);
+            info.used_m = used_filament_m + flushed_filament_m;
+            info.used_g = used_filament_g + flushed_filament_g;
+        } else {
+            info.used_m = used_filament_m;
+            info.used_g = used_filament_g;
+        }
         slice_filaments_info.push_back(info);
     }
 
