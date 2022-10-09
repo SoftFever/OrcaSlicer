@@ -2307,7 +2307,7 @@ bool GUI_App::on_init_inner()
 //#ifdef __linux__
 //        if (!m_post_initialized && m_opengl_initialized) {
 //#else
-        if (!m_post_initialized) {
+        if (!m_post_initialized && !m_adding_script_handler) {
 //#endif
             m_post_initialized = true;
 #ifdef WIN32

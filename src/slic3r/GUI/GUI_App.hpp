@@ -269,6 +269,8 @@ private:
     boost::thread    m_sync_update_thread;
     bool             enable_sync = false;
 
+    bool             m_adding_script_handler { false };
+
 public:
     bool            OnInit() override;
     bool            initialized() const { return m_initialized; }
@@ -458,6 +460,8 @@ public:
     //BBS
     void            load_url(wxString url);
     void run_script(wxString js);
+    bool            is_adding_script_handler() { return m_adding_script_handler; }
+    void            set_adding_script_handler(bool status) { m_adding_script_handler = status; }
 
     // Parameters extracted from the command line to be passed to GUI after initialization.
     GUI_InitParams* init_params { nullptr };
