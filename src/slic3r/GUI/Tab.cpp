@@ -3378,17 +3378,36 @@ void TabPrinter::toggle_options()
     if (!m_active_page || m_presets->get_edited_preset().printer_technology() == ptSLA)
         return;
 
-    bool have_multiple_extruders = m_extruders_count > 1;
-    if (m_active_page->title() == "Custom G-code") {
-        toggle_option("change_filament_gcode", have_multiple_extruders);
+    //BBS: whether the preset is Bambu Lab printer
+    bool is_BBL_printer = false;
+    if (m_preset_bundle) {
+        std::string vendor_name;
+        for (auto vendor_profile : m_preset_bundle->vendors) {
+            for (auto vendor_model : vendor_profile.second.models)
+                if (vendor_model.name == m_config->opt_string("printer_model"))
+                {
+                    vendor_name = vendor_profile.first;
+                    break;
+                }
+        }
+        if (!vendor_name.empty())
+            is_BBL_printer = (vendor_name.compare("BBL") == 0);
     }
-    if (m_active_page->title() == "General") {
+
+    bool have_multiple_extruders = m_extruders_count > 1;
+    //if (m_active_page->title() == "Custom G-code") {
+    //    toggle_option("change_filament_gcode", have_multiple_extruders);
+    //}
+    if (m_active_page->title() == "Basic information") {
         toggle_option("single_extruder_multi_material", have_multiple_extruders);
 
         auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;
         // Disable silent mode for non-marlin firmwares.
         toggle_option("silent_mode", is_marlin_flavor);
+        //BBS: extruder clearance of BBL printer can't be edited.
+        for (auto el : { "extruder_clearance_radius", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
+            toggle_option(el, !is_BBL_printer);
     }
 
     wxString extruder_number;
@@ -3437,9 +3456,10 @@ void TabPrinter::toggle_options()
             || m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlinFirmware);
         bool silent_mode = m_config->opt_bool("silent_mode");
         int  max_field = silent_mode ? 2 : 1;
+        //BBS: limits of BBL printer can't be edited.
     	for (const std::string &opt : Preset::machine_limits_options())
             for (int i = 0; i < max_field; ++ i)
-	            toggle_option(opt, true, i);
+	            toggle_option(opt, !is_BBL_printer, i);
     }
 }
 
