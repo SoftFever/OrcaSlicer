@@ -316,7 +316,7 @@ void Tab::create_preset_tab()
          this->GetParent()->Update();
          this->GetParent()->Layout();
 
-         wxGetApp().plater()->search(false, m_type, m_search_item, m_search_input, m_btn_search);
+         wxGetApp().plater()->search(false, m_type, m_top_panel->GetParent(), m_search_input, m_btn_search);
          m_search_input->SetFocus();
          Thaw();
 
