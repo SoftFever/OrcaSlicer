@@ -1465,6 +1465,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // Emit machine envelope limits for the Marlin firmware.
     this->print_machine_envelope(file, print);
 
+    //BBS: emit printing accelerate if has non-zero value
+    if (m_config.default_acceleration.value > 0) {
+        float acceleration = m_config.default_acceleration.value;
+        file.write(m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5)));
+    }
+
     // Disable fan.
     if (print.config().close_fan_the_first_x_layers.get_at(initial_extruder_id)) {
         file.write(m_writer.set_fan(0));
