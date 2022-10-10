@@ -318,6 +318,7 @@ void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
     if (!m_side_tools->is_in_interval()) {
         wxPoint             pos              = m_side_tools->ClientToScreen(wxPoint(0, 0));
         pos.y += m_side_tools->GetRect().height;
+        pos.x = pos.x < 0? 0:pos.x;
         m_select_machine.Position(pos, wxSize(0, 0));
 
 #ifdef __linux__

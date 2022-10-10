@@ -395,13 +395,13 @@ SelectMachinePopup::SelectMachinePopup(wxWindow *parent)
     m_sizxer_scrolledWindow->Fit(m_scrolledWindow);
 
 #if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
-    m_sizer_search_bar = new wxBoxSizer(wxVERTICAL);
-    m_search_bar = new wxSearchCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+	m_sizer_search_bar = new wxBoxSizer(wxVERTICAL);
+	m_search_bar = new wxSearchCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
 	m_search_bar->ShowSearchButton( true );
 	m_search_bar->ShowCancelButton( false );
 	m_sizer_search_bar->Add( m_search_bar, 1, wxALL| wxEXPAND, 1 );
-    m_sizer_main->Add(m_sizer_search_bar, 0, wxALL | wxEXPAND, FromDIP(2));
-    m_search_bar->Bind( wxEVT_COMMAND_TEXT_UPDATED, &SelectMachinePopup::update_machine_list, this );
+	m_sizer_main->Add(m_sizer_search_bar, 0, wxALL | wxEXPAND, FromDIP(2));
+	m_search_bar->Bind( wxEVT_COMMAND_TEXT_UPDATED, &SelectMachinePopup::update_machine_list, this );
 #endif
     auto own_title        = create_title_panel(_L("My Device"));
     m_sizer_my_devices    = new wxBoxSizer(wxVERTICAL);
@@ -550,6 +550,7 @@ void SelectMachinePopup::update_other_devices()
     this->Freeze();
     m_scrolledWindow->Freeze();
     int i = 0;
+
     for (auto &elem : m_free_machine_list) {
         MachineObject *     mobj = elem.second;
         /* do not show printer bind state is empty */
@@ -568,9 +569,9 @@ void SelectMachinePopup::update_other_devices()
             op = m_other_list_machine_panel[i]->mPanel;
             op->Show();
 #if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
-            if (!search_for_printer(mobj)) {
-               op->Hide();
-            }
+			if (!search_for_printer(mobj)) {
+				op->Hide();
+			}
 #endif
         } else {
             op = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
@@ -626,13 +627,27 @@ void SelectMachinePopup::update_other_devices()
         m_other_list_machine_panel[j]->mPanel->update_machine_info(nullptr);
         m_other_list_machine_panel[j]->mPanel->Hide();
     }
-    m_sizer_other_devices->Layout();
+
+    if (m_placeholder_panel != nullptr) {
+        m_scrolledWindow->RemoveChild(m_placeholder_panel);
+        m_placeholder_panel->Destroy();
+        m_placeholder_panel = nullptr;
+    }
+
+    m_placeholder_panel = new wxWindow(m_scrolledWindow, wxID_ANY, wxDefaultPosition, wxSize(-1,FromDIP(10)));
+    m_placeholder_panel->SetBackgroundColour(*wxWHITE);
+    m_sizer_other_devices->Add(m_placeholder_panel, 0, wxEXPAND, 0);
+
+    //m_sizer_other_devices->Layout();
+    if(m_other_devices_count != i) {
+		m_scrolledWindow->Fit();
+    }
     m_scrolledWindow->Layout();
-    m_scrolledWindow->Fit();
-    m_scrolledWindow->Thaw();
-    Layout();
-    Fit();
-    this->Thaw();
+	m_scrolledWindow->Thaw();
+	Layout();
+	Fit();
+	this->Thaw();
+    m_other_devices_count = i;
     BOOST_LOG_TRIVIAL(trace) << "SelectMachinePopup update_other_devices end";
 }
 
@@ -653,6 +668,7 @@ void SelectMachinePopup::update_user_devices()
     this->Freeze();
     m_scrolledWindow->Freeze();
     int i = 0;
+
     for (auto& elem : m_bind_machine_list) {
         MachineObject* mobj = elem.second;
         MachineObjectPanel* op = nullptr;
@@ -660,9 +676,9 @@ void SelectMachinePopup::update_user_devices()
             op = m_user_list_machine_panel[i]->mPanel;
             op->Show();
 #if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
-            if (!search_for_printer(mobj)) {
-               op->Hide();
-            }
+			if (!search_for_printer(mobj)) {
+				op->Hide();
+			}
 #endif
         } else {
             op = new MachineObjectPanel(m_scrolledWindow, wxID_ANY);
@@ -752,27 +768,31 @@ void SelectMachinePopup::update_user_devices()
         m_user_list_machine_panel[j]->mPanel->Hide();
     }
     //m_sizer_my_devices->Layout();
+
+    if (m_my_devices_count != i) {
+		m_scrolledWindow->Fit();
+    }
     m_scrolledWindow->Layout();
-    m_scrolledWindow->Fit();
     m_scrolledWindow->Thaw();
-    Layout();
-    Fit();
-    this->Thaw();
+	Layout();
+	Fit();
+	this->Thaw();
+    m_my_devices_count = i;
 }
 
 bool SelectMachinePopup::search_for_printer(MachineObject* obj)
 {
-    std::string search_text = std::string((m_search_bar->GetValue()).mb_str());
-    if (search_text.empty()) {
-        return true;
-    }
-    auto name = obj->dev_name;
-    auto ip = obj->dev_ip;
-    auto name_it = name.find(search_text);
-    auto ip_it = ip.find(search_text);
-    if ((name_it != std::string::npos)||(ip_it != std::string::npos)) {
-        return true;
-    }
+	std::string search_text = std::string((m_search_bar->GetValue()).mb_str());
+	if (search_text.empty()) {
+		return true;
+	}
+	auto name = obj->dev_name;
+	auto ip = obj->dev_ip;
+	auto name_it = name.find(search_text);
+	auto ip_it = ip.find(search_text);
+	if ((name_it != std::string::npos)||(ip_it != std::string::npos)) {
+		return true;
+	}
 
     return false;
 }

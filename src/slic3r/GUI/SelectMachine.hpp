@@ -195,6 +195,9 @@ public:
     bool was_dismiss() { return m_dismiss; }
 
 private:
+    int                               m_my_devices_count{0};
+    int                               m_other_devices_count{0};
+    wxWindow*                         m_placeholder_panel{nullptr};
     wxBoxSizer *                      m_sizer_body{nullptr};
     wxBoxSizer *                      m_sizer_my_devices{nullptr};
     wxBoxSizer *                      m_sizer_other_devices{nullptr};
