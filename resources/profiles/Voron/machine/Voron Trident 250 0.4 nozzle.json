@@ -1,0 +1,19 @@
+{
+  "type": "machine",
+  "setting_id": "GM_VORON_005",
+  "name": "Voron Trident 250 0.4 nozzle",
+  "from": "system",
+  "instantiation": "true",
+  "inherits": "fdm_klipper_common",
+  "printer_model": "Voron Trident 250",
+  "nozzle_diameter": [
+    "0.4"
+  ],
+  "printable_area": [
+    "0x0",
+    "250x0",
+    "250x250",
+    "0x250"
+  ],
+  "printable_height": "225"
+}
