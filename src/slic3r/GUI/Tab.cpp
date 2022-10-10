@@ -1915,19 +1915,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("print_sequence");
         optgroup->append_single_option_line("spiral_mode", "spiral-vase");
         optgroup->append_single_option_line("timelapse_type", "Timelapse");
-        //BBS: todo remove clearance to machine
-#if 0
-        //line = { L("Extruder radius"), "" };
-        //line.append_option(optgroup->get_option("extruder_clearance_radius"));
-        //optgroup->append_line(line);
-        ////BBS: new line for extruder_clearance_height_to_lid as there is not enough space for a single line
-        //line = { L("Height to rod"), "" };
-        //line.append_option(optgroup->get_option("extruder_clearance_height_to_rod"));
-        //optgroup->append_line(line);
-        //line = { L("Height to lid"), "" };
-        //line.append_option(optgroup->get_option("extruder_clearance_height_to_lid"));
-        //optgroup->append_line(line);
-#endif
+
         optgroup->append_single_option_line("fuzzy_skin");
         optgroup->append_single_option_line("fuzzy_skin_point_distance");
         optgroup->append_single_option_line("fuzzy_skin_thickness");
@@ -2855,6 +2843,11 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("machine_load_filament_time");
         optgroup->append_single_option_line("machine_unload_filament_time");
 
+        optgroup = page->new_optgroup(L("Extruder Clearance"));
+        optgroup->append_single_option_line("extruder_clearance_radius");
+        optgroup->append_single_option_line("extruder_clearance_height_to_rod");
+        optgroup->append_single_option_line("extruder_clearance_height_to_lid");
+        
         optgroup = page->new_optgroup(L("Accessory") /*, L"param_accessory"*/);
         optgroup->append_single_option_line("nozzle_type");
         optgroup->append_single_option_line("auxiliary_fan");

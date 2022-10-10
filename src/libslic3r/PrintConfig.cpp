@@ -868,29 +868,29 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("extruder_clearance_height_to_rod", coFloat);
     def->label = L("Height to rod");
-    def->tooltip = L("Height of the clearance cylinder around extruder. "
-                     "Used as input of auto-arrange to avoid collision when print object by object");
+    def->tooltip = L("Distance of the nozzle tip to the lower rod. "
+        "Used as input of auto-arranging to avoid collision when printing by object");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(40));
 
     // BBS
     def = this->add("extruder_clearance_height_to_lid", coFloat);
     def->label = L("Height to lid");
-    def->tooltip = L("Height of the clearance cylinder around extruder. "
-                     "Used as input of auto-arrange to avoid collision when print object by object");
+    def->tooltip = L("Distance of the nozzle tip to the lid. "
+        "Used as input of auto-arranging to avoid collision when printing by object");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(120));
 
     def = this->add("extruder_clearance_radius", coFloat);
     def->label = L("Radius");
-    def->tooltip = L("Clearance radius around extruder. Used as input of auto-arrange to avoid collision when print object by object");
+    def->tooltip = L("Clearance radius around extruder. Used as input of auto-arranging to avoid collision when printing by object");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(40));
 
     def = this->add("extruder_colour", coStrings);
