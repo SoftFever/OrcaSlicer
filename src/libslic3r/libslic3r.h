@@ -70,12 +70,8 @@ static constexpr double SUPPORT_RESOLUTION = 0.05;
 static constexpr double INSET_OVERLAP_TOLERANCE = 0.4;
 // 3mm ring around the top / bottom / bridging areas.
 //FIXME This is quite a lot.
-// BBS: 3mm is too large and will cause overflow when printing object which likes shell.
-// We decided to reduce this value according to superslicer.
-// The right way is that area should not be enlarged. But should find arched point at last layer, expecially for
-// bridge area.
-//static constexpr double EXTERNAL_INFILL_MARGIN = 3;
-static constexpr double EXTERNAL_INFILL_MARGIN = 1;
+static constexpr double EXTERNAL_INFILL_MARGIN = 3;
+static constexpr double BRIDGE_INFILL_MARGIN = 1;
 //FIXME Better to use an inline function with an explicit return type.
 //inline coord_t scale_(coordf_t v) { return coord_t(floor(v / SCALING_FACTOR + 0.5f)); }
 #define scale_(val) ((val) / SCALING_FACTOR)

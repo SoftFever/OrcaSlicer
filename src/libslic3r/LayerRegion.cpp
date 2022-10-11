@@ -118,7 +118,8 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
     const bool      has_infill = this->region().config().sparse_infill_density.value > 0.;
     //BBS
     auto nozzle_diameter = this->region().nozzle_dmr_avg(this->layer()->object()->print()->config());
-    const float	margin = std::min(float(scale_(EXTERNAL_INFILL_MARGIN)), float(scale_(nozzle_diameter * EXTERNAL_INFILL_MARGIN / 0.4)));
+    const float margin = float(scale_(EXTERNAL_INFILL_MARGIN));
+    const float bridge_margin = std::min(float(scale_(BRIDGE_INFILL_MARGIN)), float(scale_(nozzle_diameter * BRIDGE_INFILL_MARGIN / 0.4)));
 
     // BBS
     const PrintObjectConfig& object_config = this->layer()->object()->config();
@@ -224,7 +225,7 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                         break;
                     }
                 // Grown by 3mm.
-                Polygons polys = offset(bridges[i].expolygon, margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS);
+                Polygons polys = offset(bridges[i].expolygon, bridge_margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS);
                 if (idx_island == -1) {
 				    BOOST_LOG_TRIVIAL(trace) << "Bridge did not fall into the source region!";
                 } else {
