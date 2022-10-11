@@ -2029,10 +2029,14 @@ void SelectMachineDialog::update_show_status()
 
     NetworkAgent* agent = Slic3r::GUI::wxGetApp().getAgent();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!agent) return;
+    if (!agent) {
+        update_ams_check(nullptr);
+        return;
+    }
     if (!dev) return;
     MachineObject* obj_ = dev->get_my_machine(m_printer_last_select);
     if (!obj_) {
+        update_ams_check(nullptr);
         if (agent) {
             if (agent->is_user_login()) {
                 show_status(PrintDialogStatus::PrintStatusInvalidPrinter);
