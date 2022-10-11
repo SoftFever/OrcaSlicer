@@ -301,7 +301,8 @@ public:
     wxGLContext*    init_glcontext(wxGLCanvas& canvas);
     bool            init_opengl();
 
-    static unsigned get_colour_approx_luma(const wxColour &colour);
+    void            init_download_path();
+    static unsigned get_colour_approx_luma(const wxColour& colour);
     static bool     dark_mode();
     const wxColour  get_label_default_clr_system();
     const wxColour  get_label_default_clr_modified();

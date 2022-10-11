@@ -273,6 +273,10 @@ void AppConfig::set_defaults()
         set("precise_control", "none/mouse left");
     }
 
+    if (get("download_path").empty()) {
+        set("download_path", "");
+    }
+
     if (get("mouse_wheel").empty()) {
         set("mouse_wheel", "0");
     }

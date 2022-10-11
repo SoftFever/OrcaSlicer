@@ -1174,6 +1174,7 @@ GUI_App::GUI_App()
 {
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
     this->init_app_config();
+    this->init_download_path();
 
     reset_to_active();
 }
@@ -1762,6 +1763,26 @@ static boost::optional<Semver> parse_semver_from_ini(std::string path)
     if (end < body.size())
         body.resize(end);
     return Semver::parse(body);
+}
+
+void GUI_App::init_download_path() 
+{
+    std::string down_path = app_config->get("download_path");
+
+    if (down_path.empty()) {
+        std::string user_down_path = wxStandardPaths::Get().GetUserDir(wxStandardPaths::Dir_Downloads).ToUTF8().data();
+        app_config->set("download_path", user_down_path);
+    }
+    else {
+        fs::path dp(down_path);
+        if (!fs::exists(dp)) {
+
+            if (!fs::create_directory(dp)) {
+                std::string user_down_path = wxStandardPaths::Get().GetUserDir(wxStandardPaths::Dir_Downloads).ToUTF8().data();
+                app_config->set("download_path", user_down_path);
+            }
+        }
+    }
 }
 
 void GUI_App::init_app_config()
