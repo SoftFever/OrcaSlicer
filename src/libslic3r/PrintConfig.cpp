@@ -1464,11 +1464,11 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("machine_pause_gcode", coString);
     def->label = L("Pause G-code");
-    //def->tooltip = L("This G-code will be used as a code for the pause print");
+    def->tooltip = L("This G-code will be used as a code for the pause print. User can insert pause G-code in gcode viewer");
     def->multiline = true;
     def->full_width = true;
     def->height = 12;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
     {
