@@ -1829,6 +1829,9 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
          for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
             if (m_ams_mapping_result[i].id == wxAtoi(selection_data_arr[4])) {
                 m_ams_mapping_result[i].tray_id = evt.GetInt();
+				auto ams_colour = wxColour(wxAtoi(selection_data_arr[0]), wxAtoi(selection_data_arr[1]), wxAtoi(selection_data_arr[2]));
+				auto color = wxString::Format("%sFF", ams_colour.GetAsString(wxC2S_HTML_SYNTAX).substr(1, ams_colour.GetAsString(wxC2S_HTML_SYNTAX).size()-1));
+			   m_ams_mapping_result[i].color = color.ToStdString();
             }
             BOOST_LOG_TRIVIAL(trace) << "The ams mapping result: id is " << m_ams_mapping_result[i].id << "tray_id is " << m_ams_mapping_result[i].tray_id;
          }
