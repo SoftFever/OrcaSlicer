@@ -44,7 +44,7 @@ protected:
 
     void TogglePlay();
 
-    void SetStatus(wxString const & msg);
+    void SetStatus(wxString const &msg, bool hyperlink = true);
 
 private:
     void media_proc();

@@ -109,6 +109,8 @@ Label::Label(wxWindow *parent, wxFont const &font, wxString const &text, long st
 
 void Label::SetWindowStyleFlag(long style)
 {
+    if (style == GetWindowStyle())
+        return;
     wxStaticText::SetWindowStyleFlag(style);
     if (style & LB_HYPERLINK) {
         this->color = GetForegroundColour();

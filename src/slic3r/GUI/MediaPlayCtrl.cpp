@@ -95,7 +95,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     if (m_next_retry.IsValid())
         Play();
     else
-        SetStatus("");
+        SetStatus("", false);
 }
 
 void MediaPlayCtrl::Play()
@@ -108,10 +108,12 @@ void MediaPlayCtrl::Play()
         return;
     }
     if (m_machine.empty()) {
+        Stop();
         SetStatus(_L("Initialize failed (No Device)!"));
         return;
     }
     if (!m_camera_exists) {
+        Stop();
         SetStatus(_L("Initialize failed (No Camera Device)!"));
         return;
     }
@@ -141,6 +143,7 @@ void MediaPlayCtrl::Play()
     }
     
     if (m_lan_mode) {
+        Stop();
         SetStatus(m_lan_passwd.empty() 
             ? _L("Initialize failed (Not supported with LAN-only mode)!") 
             : _L("Initialize failed (Not accessible in LAN-only mode)!"));
@@ -148,6 +151,7 @@ void MediaPlayCtrl::Play()
     }
     
     if (!m_tutk_support) { // not support tutk
+        Stop();
         SetStatus(_L("Initialize failed (Not supported without remote video tunnel)!"));
         return;
     }
@@ -189,7 +193,7 @@ void MediaPlayCtrl::Stop()
         m_tasks.push_back("<stop>");
         m_cond.notify_all();
         m_last_state = MEDIASTATE_IDLE;
-        SetStatus(_L("Stopped."));
+        SetStatus(_L("Stopped."), false);
         if (m_failed_code >= 100) // not keep retry on local error
             m_next_retry = wxDateTime();
     }
@@ -210,7 +214,7 @@ void MediaPlayCtrl::TogglePlay()
     }
 }
 
-void MediaPlayCtrl::SetStatus(wxString const& msg2)
+void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
 {
     auto msg = wxString::Format(msg2, m_failed_code);
     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::SetStatus: " << msg.ToUTF8().data();
@@ -221,10 +225,11 @@ void MediaPlayCtrl::SetStatus(wxString const& msg2)
 #endif // __WXMSW__
     m_label_status->SetLabel(msg);
     long style = m_label_status->GetWindowStyle() & ~LB_HYPERLINK;
-    if (m_failed_code && msg != msg2) {
+    if (hyperlink) {
         style |= LB_HYPERLINK;
     }
     m_label_status->SetWindowStyle(style);
+    m_label_status->InvalidateBestSize();
     Layout();
 }
 
@@ -290,7 +295,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
         m_failed_code = m_media_ctrl->GetLastError();
         if (size.GetWidth() > 1000) {
             m_last_state = state;
-            SetStatus(_L("Playing..."));
+            SetStatus(_L("Playing..."), false);
             m_failed_retry = 0;
             boost::unique_lock lock(m_mutex);
             m_tasks.push_back("<play>");
