@@ -4,6 +4,7 @@
 #ifdef __WIN32__
 #include <versionhelpers.h>
 #include <wx/msw/registry.h>
+#include <shellapi.h>
 #endif
 
 wxMediaCtrl2::wxMediaCtrl2(wxWindow *parent)
@@ -24,6 +25,8 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow *parent)
 #endif
     wxMediaCtrl::Create(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxMEDIACTRLPLAYERCONTROLS_NONE);
 }
+
+#define CLSID_BAMBU_SOURCE L"{233E64FB-2041-4A6C-AFAB-FF9BCF83E7AA}"
 
 void wxMediaCtrl2::Load(wxURI url)
 {
@@ -46,16 +49,31 @@ void wxMediaCtrl2::Load(wxURI url)
         return;
     }
     {
-        wxRegKey key1(wxRegKey::HKCR, "CLSID\\{233E64FB-2041-4A6C-AFAB-FF9BCF83E7AA}\\InProcServer32");
+        wxRegKey key1(wxRegKey::HKCR, L"CLSID\\" CLSID_BAMBU_SOURCE L"\\InProcServer32");
         wxString path = key1.QueryDefaultValue();
         wxRegKey key2(wxRegKey::HKCR, "bambu");
         wxString clsid;
         key2.QueryRawValue("Source Filter", clsid);
-        if (!wxFile::Exists(path) || clsid != L"{233E64FB-2041-4A6C-AFAB-FF9BCF83E7AA}") {
-            Slic3r::GUI::wxGetApp().CallAfter([] {
-                wxMessageBox(_L("Missing BambuSource component registered for media playing! Please re-install BambuStutio or seek after-sales help."), _L("Error"),
-                                    wxOK);
-            });
+        if (path.empty() || !wxFile::Exists(path) || clsid != CLSID_BAMBU_SOURCE) {
+            if (clsid != CLSID_BAMBU_SOURCE || path.empty()) {
+                std::string             data_dir_str = Slic3r::data_dir();
+                boost::filesystem::path data_dir_path(data_dir_str);
+                auto                    dll_path = data_dir_path / "plugins" / "BambuSource.dll";
+                if (boost::filesystem::exists(dll_path)) {
+                    Slic3r::GUI::wxGetApp().CallAfter(
+                        [dll_path] {
+                        int res = wxMessageBox(_L("BambuSource has not correctly been registered for media playing! Press Yes to re-register it."), _L("Error"), wxYES_NO);
+                        if (res == wxYES) {
+                            SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"runas", L"regsvr32", dll_path.wstring().c_str(), SW_HIDE };
+                            ::ShellExecuteEx(&info);
+                        }
+                    });
+                }
+            } else {
+                Slic3r::GUI::wxGetApp().CallAfter([] {
+                    wxMessageBox(_L("Missing BambuSource component registered for media playing! Please re-install BambuStutio or seek after-sales help."), _L("Error"), wxOK);
+                });
+            }
             m_error = clsid != L"{233E64FB-2041-4A6C-AFAB-FF9BCF83E7AA}" ? 101 : path.empty() ? 102 : 103;
             wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
             event.SetId(GetId());
