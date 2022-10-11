@@ -3715,7 +3715,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     static std::set<std::string> ignore = {
         "acceleration", "scale", "rotate", "duplicate", "duplicate_grid",
         "bed_size",
-        "print_center", "g0", "pressure_advance", "wipe_tower_per_color_wipe"
+        "print_center", "g0", "wipe_tower_per_color_wipe"
 #ifndef HAS_PRESSURE_EQUALIZER
         , "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative"
 #endif /* HAS_PRESSURE_EQUALIZER */
