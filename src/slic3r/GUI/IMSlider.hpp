@@ -265,7 +265,7 @@ public:
     void add_code_as_tick(Type type, int selected_extruder = -1);
     void post_ticks_changed_event(Type type = Custom);
     bool check_ticks_changed_event(Type type);
-    void switch_one_layer_mode();
+    bool switch_one_layer_mode();
 
     bool render(int canvas_width, int canvas_height);
 

@@ -705,8 +705,11 @@ bool IMSlider::check_ticks_changed_event(Type type)
 
 
 // switch on/off one layer mode
-void IMSlider::switch_one_layer_mode()
+bool IMSlider::switch_one_layer_mode()
 {
+    if (m_show_custom_gcode_window)
+        return false;
+
     m_is_one_layer = !m_is_one_layer;
     if (!m_is_one_layer) {
         SetLowerValue(m_min_value);
@@ -715,6 +718,7 @@ void IMSlider::switch_one_layer_mode()
     m_selection == ssLower ? correct_lower_value() : correct_higher_value();
     if (m_selection == ssUndef) m_selection = ssHigher;
     set_as_dirty();
+    return true;
 }
 
 void IMSlider::draw_background(const ImRect& groove) {
