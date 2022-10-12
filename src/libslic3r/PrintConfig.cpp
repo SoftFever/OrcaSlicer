@@ -1052,7 +1052,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Pressure advnce(Klipper) AKA Linear advance factor(Marlin)");
     def->max = 2;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats { 0. });
+    def->set_default_value(new ConfigOptionFloats { 0.02 });
 
     def = this->add("line_width", coFloat);
     def->label = L("Default");
