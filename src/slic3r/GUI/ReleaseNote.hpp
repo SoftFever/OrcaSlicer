@@ -47,7 +47,7 @@ public:
     void update_release_note(wxString release_note, std::string version);
 
     wxStaticText *    m_text_up_info{nullptr};
-    wxScrolledWindow *m_scrollwindw_release_note {nullptr};
+    wxScrolledWindow *m_vebview_release_note {nullptr};
 };
 
 class UpdateVersionDialog : public DPIDialog
@@ -63,11 +63,14 @@ public:
     bool ShowReleaseNote(std::string content);
     void RunScript(std::string script);
     void on_dpi_changed(const wxRect& suggested_rect) override;
-    void update_version_info(std::string url);
+    void update_version_info(wxString release_note, wxString version);
     void alter_choice(wxCommandEvent& event);
+    std::vector<std::string> splitWithStl(std::string str, std::string pattern);
 
     wxStaticText *    m_text_up_info{nullptr};
-    wxWebView*        m_scrollwindw_release_note{nullptr};
+    wxWebView*        m_vebview_release_note{nullptr};
+    wxSimplebook*     m_simplebook_release_note{nullptr};
+    wxScrolledWindow* m_scrollwindows_release_note{nullptr};
     wxBoxSizer *      sizer_text_release_note{nullptr};
     wxStaticText *    m_staticText_release_note{nullptr};
     wxCheckBox*       m_remind_choice;

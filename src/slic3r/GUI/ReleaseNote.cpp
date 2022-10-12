@@ -57,12 +57,12 @@ ReleaseNoteDialog::ReleaseNoteDialog(Plater *plater /*= nullptr*/)
 
     m_sizer_right->Add(0, 0, 1, wxTOP, FromDIP(15));
 
-    m_scrollwindw_release_note = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(560), FromDIP(430)), wxVSCROLL);
-    m_scrollwindw_release_note->SetScrollRate(5, 5);
-    m_scrollwindw_release_note->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
-    m_scrollwindw_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
+    m_vebview_release_note = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(560), FromDIP(430)), wxVSCROLL);
+    m_vebview_release_note->SetScrollRate(5, 5);
+    m_vebview_release_note->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
+    m_vebview_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
 
-    m_sizer_right->Add(m_scrollwindw_release_note, 0, wxEXPAND | wxRIGHT, FromDIP(20));
+    m_sizer_right->Add(m_vebview_release_note, 0, wxEXPAND | wxRIGHT, FromDIP(20));
     m_sizer_body->Add(m_sizer_right, 1, wxBOTTOM | wxEXPAND, FromDIP(30));
     m_sizer_main->Add(m_sizer_body, 0, wxEXPAND, 0);
 
@@ -84,11 +84,11 @@ void ReleaseNoteDialog::update_release_note(wxString release_note, std::string v
 { 
     m_text_up_info->SetLabel(wxString::Format(_L("version %s update information :"), version));
     wxBoxSizer * sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
-    auto        m_staticText_release_note = new wxStaticText(m_scrollwindw_release_note, wxID_ANY, release_note, wxDefaultPosition, wxDefaultSize, 0);
+    auto        m_staticText_release_note = new wxStaticText(m_vebview_release_note, wxID_ANY, release_note, wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_release_note->Wrap(FromDIP(530));
     sizer_text_release_note->Add(m_staticText_release_note, 0, wxALL, 5);
-    m_scrollwindw_release_note->SetSizer(sizer_text_release_note);
-    m_scrollwindw_release_note->Layout();
+    m_vebview_release_note->SetSizer(sizer_text_release_note);
+    m_vebview_release_note->Layout();
 }
 
 void UpdateVersionDialog::alter_choice(wxCommandEvent& event)
@@ -130,12 +130,22 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
 
     m_sizer_right->Add(0, 0, 1, wxTOP, FromDIP(15));
 
+    m_simplebook_release_note = new wxSimplebook(this);
+    m_simplebook_release_note->SetSize(wxSize(FromDIP(560), FromDIP(430)));
+    m_simplebook_release_note->SetMinSize(wxSize(FromDIP(560), FromDIP(430)));
+    m_simplebook_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
+    m_simplebook_release_note->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
+
+    m_scrollwindows_release_note = new wxScrolledWindow(m_simplebook_release_note, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(560), FromDIP(430)), wxVSCROLL);
+    m_scrollwindows_release_note->SetScrollRate(5, 5);
+    m_scrollwindows_release_note->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
+
     //webview
-    m_scrollwindw_release_note = CreateTipView(this);
-    m_scrollwindw_release_note->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
-    m_scrollwindw_release_note->SetSize(wxSize(FromDIP(560), FromDIP(430)));
-    m_scrollwindw_release_note->SetMinSize(wxSize(FromDIP(560), FromDIP(430)));
-    m_scrollwindw_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
+    m_vebview_release_note = CreateTipView(m_simplebook_release_note);
+    m_vebview_release_note->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
+    m_vebview_release_note->SetSize(wxSize(FromDIP(560), FromDIP(430)));
+    m_vebview_release_note->SetMinSize(wxSize(FromDIP(560), FromDIP(430)));
+    m_vebview_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
 
 	fs::path ph(data_dir());
 	ph /= "resources/tooltip/common/releasenote.html";
@@ -146,7 +156,10 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
 	auto url = ph.string();
 	std::replace(url.begin(), url.end(), '\\', '/');
 	url = "file:///" + url;
-    m_scrollwindw_release_note->LoadURL(from_u8(url));
+    m_vebview_release_note->LoadURL(from_u8(url));
+
+    m_simplebook_release_note->AddPage(m_scrollwindows_release_note, wxEmptyString, false);
+    m_simplebook_release_note->AddPage(m_vebview_release_note, wxEmptyString, false);
 
 
     m_remind_choice = new wxCheckBox( this, wxID_ANY, _L("Don't remind me of this version again"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -193,7 +206,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
     
 
-    m_sizer_right->Add(m_scrollwindw_release_note, 0, wxEXPAND | wxRIGHT, FromDIP(20));
+    m_sizer_right->Add(m_simplebook_release_note, 0, wxEXPAND | wxRIGHT, FromDIP(20));
     m_sizer_right->Add(sizer_button, 0, wxEXPAND | wxRIGHT, FromDIP(20));
     
     m_sizer_body->Add(m_sizer_right, 1, wxBOTTOM | wxEXPAND, FromDIP(8));
@@ -263,7 +276,7 @@ bool UpdateVersionDialog::ShowReleaseNote(std::string content)
 
 void UpdateVersionDialog::RunScript(std::string script)
 {
-    WebView::RunScript(m_scrollwindw_release_note, script);
+    WebView::RunScript(m_vebview_release_note, script);
     script.clear();
 }
 
@@ -272,32 +285,55 @@ void UpdateVersionDialog::on_dpi_changed(const wxRect &suggested_rect) {
     m_button_cancel->Rescale();
 }
 
-void UpdateVersionDialog::update_version_info(std::string url)
-{ 
-   /*m_text_up_info->SetLabel(wxString::Format(_L("Click to download new version in default browser: %s"), version));
-    wxBoxSizer *sizer_text_release_note   = new wxBoxSizer(wxVERTICAL);
-    auto        m_staticText_release_note = new wxStaticText(m_scrollwindw_release_note, wxID_ANY, release_note, wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_release_note->Wrap(FromDIP(530));
-    sizer_text_release_note->Add(m_staticText_release_note, 0, wxALL, 5);
-    m_scrollwindw_release_note->SetSizer(sizer_text_release_note);
-    m_scrollwindw_release_note->Layout();*/
+std::vector<std::string> UpdateVersionDialog::splitWithStl(std::string str,std::string pattern)
+{
+    std::string::size_type pos;
+    std::vector<std::string> result;
+    str += pattern;
+    int size = str.size();
+    for (int i = 0; i < size; i++)
+    {
+        pos = str.find(pattern, i);
+        if (pos < size)
+        {
+            std::string s = str.substr(i, pos - i);
+            result.push_back(s);
+            i = pos + pattern.size() - 1;
+        }
+    }
+    return result;
+}
 
-    if (url.empty()) {
-		fs::path ph(data_dir());
-		ph /= "resources/tooltip/common/releasenote.html";
-		if (!fs::exists(ph)) {
-			ph = resources_dir();
-			ph /= "tooltip/releasenote.html";
-		}
-		auto url = ph.string();
-		std::replace(url.begin(), url.end(), '\\', '/');
-		url = "file:///" + url;
-		m_scrollwindw_release_note->LoadURL(from_u8(url));
+void UpdateVersionDialog::update_version_info(wxString release_note, wxString version)
+{ 
+    //bbs check whether the web display is used
+    bool use_web_link       = false;
+    std::string url_line    = "";
+    auto split_array        =  splitWithStl(release_note.ToStdString(), "###");
+
+    for (auto i = 0; i < split_array.size(); i++) {
+        std::string url = split_array[i];
+        if (std::strstr (url.c_str(), "http://") != NULL || std::strstr (url.c_str(), "https://") != NULL) {
+            use_web_link = true;
+            url_line = url;
+            break;
+        }
+    }
+
+    if (use_web_link) {
+        m_simplebook_release_note->SetSelection(1);
+        m_vebview_release_note->LoadURL(from_u8(url_line));
     }
     else {
-        m_scrollwindw_release_note->LoadURL(from_u8(url));
-    }
-    
+        m_simplebook_release_note->SetSelection(0);
+        m_text_up_info->SetLabel(wxString::Format(_L("Click to download new version in default browser: %s"), version));
+        wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
+        auto        m_staticText_release_note = new wxStaticText(m_scrollwindows_release_note, wxID_ANY, release_note, wxDefaultPosition, wxDefaultSize, 0);
+        m_staticText_release_note->Wrap(FromDIP(530));
+        sizer_text_release_note->Add(m_staticText_release_note, 0, wxALL, 5);
+        m_scrollwindows_release_note->SetSizer(sizer_text_release_note);
+        m_scrollwindows_release_note->Layout();
+    }  
 }
 
  }} // namespace Slic3r::GUI

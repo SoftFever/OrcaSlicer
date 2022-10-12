@@ -2118,8 +2118,9 @@ bool GUI_App::on_init_inner()
                 if (!skip_this_version
                     || evt.GetInt() != 0) {
                     UpdateVersionDialog dialog(this->mainframe);
-                    //dialog.update_version_info(extmsg, version_info.version_str);
-                    dialog.update_version_info(version_info.description);
+                    wxString            extmsg = wxString::FromUTF8(version_info.description);
+                    dialog.update_version_info(extmsg, version_info.version_str);
+                    //dialog.update_version_info(version_info.description);
                     if (evt.GetInt() != 0) {
                         dialog.m_remind_choice->Hide();
                     }
