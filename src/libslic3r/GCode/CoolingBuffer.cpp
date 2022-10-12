@@ -811,6 +811,8 @@ std::string CoolingBuffer::apply_layer_cooldown(
             //BBS: force to write a fan speed command again
             if (m_current_fan_speed != -1)
                 new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_current_fan_speed);
+            if (m_additional_fan_speed != -1)
+                new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
         }
         else if (line->type & CoolingLine::TYPE_EXTRUDE_END) {
             // Just remove this comment.
