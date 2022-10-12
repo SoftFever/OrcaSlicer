@@ -21,7 +21,7 @@ DistributedBeadingStrategy::DistributedBeadingStrategy(const coord_t optimal_wid
     name = "DistributedBeadingStrategy";
 }
 
-DistributedBeadingStrategy::Beading DistributedBeadingStrategy::compute(coord_t thickness, coord_t bead_count) const
+DistributedBeadingStrategy::Beading DistributedBeadingStrategy::compute(const coord_t thickness, const coord_t bead_count) const
 {
     Beading ret;
 
@@ -40,18 +40,24 @@ DistributedBeadingStrategy::Beading DistributedBeadingStrategy::compute(coord_t 
         for (coord_t bead_idx = 0; bead_idx < bead_count; bead_idx++)
             weights[bead_idx] = getWeight(bead_idx);
 
-        const float total_weight = std::accumulate(weights.cbegin(), weights.cend(), 0.f);
+        const float total_weight      = std::accumulate(weights.cbegin(), weights.cend(), 0.f);
+        coord_t     accumulated_width = 0;
         for (coord_t bead_idx = 0; bead_idx < bead_count; bead_idx++) {
-            const float weight_fraction = weights[bead_idx] / total_weight;
+            const float   weight_fraction          = weights[bead_idx] / total_weight;
             const coord_t splitup_left_over_weight = to_be_divided * weight_fraction;
-            const coord_t width = optimal_width + splitup_left_over_weight;
+            const coord_t width                    = (bead_idx == bead_count - 1) ? thickness - accumulated_width : optimal_width + splitup_left_over_weight;
+
+            // Be aware that toolpath_locations is computed by dividing the width by 2, so toolpath_locations
+            // could be off by 1 because of rounding errors.
             if (bead_idx == 0)
                 ret.toolpath_locations.emplace_back(width / 2);
             else
                 ret.toolpath_locations.emplace_back(ret.toolpath_locations.back() + (ret.bead_widths.back() + width) / 2);
             ret.bead_widths.emplace_back(width);
+            accumulated_width += width;
         }
         ret.left_over = 0;
+        assert((accumulated_width + ret.left_over) == thickness);
     } else if (bead_count == 2) {
         const coord_t outer_width = thickness / 2;
         ret.bead_widths.emplace_back(outer_width);
@@ -67,6 +73,13 @@ DistributedBeadingStrategy::Beading DistributedBeadingStrategy::compute(coord_t 
     } else {
         ret.left_over = thickness;
     }
+
+    assert(([&ret = std::as_const(ret), thickness]() -> bool {
+        coord_t total_bead_width = 0;
+        for (const coord_t &bead_width : ret.bead_widths)
+            total_bead_width += bead_width;
+        return (total_bead_width + ret.left_over) == thickness;
+    }()));
 
     return ret;
 }

@@ -15,6 +15,7 @@ Vec2i64 VoronoiUtils::p(const vd_t::vertex_type *node)
 {
     const double x = node->x();
     const double y = node->y();
+    assert(std::isfinite(x) && std::isfinite(y));
     assert(x <= double(std::numeric_limits<int64_t>::max()) && x >= std::numeric_limits<int64_t>::lowest());
     assert(y <= double(std::numeric_limits<int64_t>::max()) && y >= std::numeric_limits<int64_t>::lowest());
     return {int64_t(x + 0.5 - (x < 0)), int64_t(y + 0.5 - (y < 0))}; // Round to the nearest integer coordinates.

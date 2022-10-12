@@ -441,6 +441,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		params.anchor_length_max = surface_fill.params.anchor_length_max;
 		params.resolution        = resolution;
 		params.use_arachne = surface_fill.params.pattern == ipConcentric;
+		params.layer_height      = m_regions[surface_fill.region_id]->layer()->height;
 
 		// BBS
 		params.flow = surface_fill.params.flow;

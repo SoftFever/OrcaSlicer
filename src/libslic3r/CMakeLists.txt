@@ -151,6 +151,8 @@ set(lisbslic3r_sources
     Geometry/Voronoi.hpp
     Geometry/VoronoiOffset.cpp
     Geometry/VoronoiOffset.hpp
+    Geometry/VoronoiUtilsCgal.cpp
+    Geometry/VoronoiUtilsCgal.hpp
     Geometry/VoronoiVisualUtils.hpp
     Int128.hpp
     InternalBridgeDetector.cpp

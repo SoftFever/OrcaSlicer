@@ -29,8 +29,6 @@ public:
     float   wall_transition_angle;
     float   wall_transition_filter_deviation;
     int     wall_distribution_count;
-    float   wall_add_middle_threshold;
-    float   wall_split_middle_threshold;
 };
 
 class WallToolPaths
@@ -44,7 +42,7 @@ public:
      * \param inset_count The maximum number of parallel extrusion lines that make up the wall
      * \param wall_0_inset How far to inset the outer wall, to make it adhere better to other walls.
      */
-    WallToolPaths(const Polygons& outline, coord_t bead_width_0, coord_t bead_width_x, size_t inset_count, coord_t wall_0_inset, const WallToolPathsParams &params);
+    WallToolPaths(const Polygons& outline, coord_t bead_width_0, coord_t bead_width_x, size_t inset_count, coord_t wall_0_inset, coordf_t layer_height, const WallToolPathsParams &params);
 
     /*!
      * Generates the Toolpaths
@@ -123,14 +121,15 @@ private:
     coord_t bead_width_x; //<! The subsequently extrusion line width with which libArachne generates its walls if WallToolPaths was called with the nominal_bead_width Constructor this is the same as bead_width_0
     size_t inset_count; //<! The maximum number of walls to generate
     coord_t wall_0_inset; //<! How far to inset the outer wall. Should only be applied when printing the actual walls, not extra infill/skin/support walls.
+    coordf_t layer_height;
     bool print_thin_walls; //<! Whether to enable the widening beading meta-strategy for thin features
     coord_t min_feature_size; //<! The minimum size of the features that can be widened by the widening beading meta-strategy. Features thinner than that will not be printed
     coord_t min_bead_width;  //<! The minimum bead size to use when widening thin model features with the widening beading meta-strategy
     double small_area_length; //<! The length of the small features which are to be filtered out, this is squared into a surface
+    coord_t wall_transition_filter_deviation; //!< The allowed line width deviation induced by filtering
     bool toolpaths_generated; //<! Are the toolpaths generated
     std::vector<VariableWidthLines> toolpaths; //<! The generated toolpaths
     Polygons inner_contour;  //<! The inner contour of the generated toolpaths
-    coord_t wall_transition_filter_deviation;  //!< The allowed line width deviation induced by filtering
     const WallToolPathsParams m_params;
 };
 

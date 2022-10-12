@@ -24,18 +24,19 @@ namespace Slic3r::Arachne
 {
 
 WallToolPaths::WallToolPaths(const Polygons& outline, const coord_t bead_width_0, const coord_t bead_width_x,
-                             const size_t inset_count, const coord_t wall_0_inset, const WallToolPathsParams &params)
+                             const size_t inset_count, const coord_t wall_0_inset, const coordf_t layer_height, const WallToolPathsParams &params)
     : outline(outline)
     , bead_width_0(bead_width_0)
     , bead_width_x(bead_width_x)
     , inset_count(inset_count)
     , wall_0_inset(wall_0_inset)
+    , layer_height(layer_height)
     , print_thin_walls(Slic3r::Arachne::fill_outline_gaps)
     , min_feature_size(scaled<coord_t>(params.min_feature_size))
     , min_bead_width(scaled<coord_t>(params.min_bead_width))
     , small_area_length(static_cast<double>(bead_width_0) / 2.)
-    , toolpaths_generated(false)
     , wall_transition_filter_deviation(scaled<coord_t>(params.wall_transition_filter_deviation))
+    , toolpaths_generated(false)
     , m_params(params)
 {
 }
@@ -312,60 +313,46 @@ void removeSmallAreas(Polygons &thiss, const double min_area_size, const bool re
     };
 
     auto new_end = thiss.end();
-    if(remove_holes)
-    {
-        for(auto it = thiss.begin(); it < new_end; it++)
-        {
-            // All polygons smaller than target are removed by replacing them with a polygon from the back of the vector
-            if(fabs(ClipperLib::Area(to_path(*it))) < min_area_size)
-            {
-                new_end--;
+    if (remove_holes) {
+        for (auto it = thiss.begin(); it < new_end;) {
+            // All polygons smaller than target are removed by replacing them with a polygon from the back of the vector.
+            if (fabs(ClipperLib::Area(to_path(*it))) < min_area_size) {
+                --new_end;
                 *it = std::move(*new_end);
-                it--; // wind back the iterator such that the polygon just swaped in is checked next
+                continue; // Don't increment the iterator such that the polygon just swapped in is checked next.
             }
+            ++it;
         }
-    }
-    else
-    {
+    } else {
         // For each polygon, computes the signed area, move small outlines at the end of the vector and keep pointer on small holes
         std::vector<Polygon> small_holes;
-        for(auto it = thiss.begin(); it < new_end; it++) {
-            double area = ClipperLib::Area(to_path(*it));
-            if (fabs(area) < min_area_size)
-            {
-                if(area >= 0)
-                {
-                    new_end--;
-                    if(it < new_end) {
+        for (auto it = thiss.begin(); it < new_end;) {
+            if (double area = ClipperLib::Area(to_path(*it)); fabs(area) < min_area_size) {
+                if (area >= 0) {
+                    --new_end;
+                    if (it < new_end) {
                         std::swap(*new_end, *it);
-                        it--;
-                    }
-                    else
-                    { // Don't self-swap the last Path
+                        continue;
+                    } else { // Don't self-swap the last Path
                         break;
                     }
-                }
-                else
-                {
+                } else {
                     small_holes.push_back(*it);
                 }
             }
+            ++it;
         }
 
         // Removes small holes that have their first point inside one of the removed outlines
         // Iterating in reverse ensures that unprocessed small holes won't be moved
         const auto removed_outlines_start = new_end;
-        for(auto hole_it = small_holes.rbegin(); hole_it < small_holes.rend(); hole_it++)
-        {
-            for(auto outline_it = removed_outlines_start; outline_it < thiss.end() ; outline_it++)
-            {
-                if(Polygon(*outline_it).contains(*hole_it->begin())) {
+        for (auto hole_it = small_holes.rbegin(); hole_it < small_holes.rend(); hole_it++)
+            for (auto outline_it = removed_outlines_start; outline_it < thiss.end(); outline_it++)
+                if (Polygon(*outline_it).contains(*hole_it->begin())) {
                     new_end--;
                     *hole_it = std::move(*new_end);
                     break;
                 }
-            }
-        }
     }
     thiss.resize(new_end-thiss.begin());
 }
@@ -471,7 +458,7 @@ const std::vector<VariableWidthLines> &WallToolPaths::generate()
     // The functions above could produce intersecting polygons that could cause a crash inside Arachne.
     // Applying Clipper union should be enough to get rid of this issue.
     // Clipper union also fixed an issue in Arachne that in post-processing Voronoi diagram, some edges
-    // didn't have twin edges (this probably isn't an issue in Boost Voronoi generator).
+    // didn't have twin edges. (a non-planar Voronoi diagram probably caused this).
     prepared_outline = union_(prepared_outline);
 
     if (area(prepared_outline) <= 0) {
@@ -479,9 +466,14 @@ const std::vector<VariableWidthLines> &WallToolPaths::generate()
         return toolpaths;
     }
 
+    const float external_perimeter_extrusion_width = Flow::rounded_rectangle_extrusion_width_from_spacing(unscale<float>(bead_width_0), float(this->layer_height));
+    const float perimeter_extrusion_width          = Flow::rounded_rectangle_extrusion_width_from_spacing(unscale<float>(bead_width_x), float(this->layer_height));
+
     const coord_t wall_transition_length = scaled<coord_t>(this->m_params.wall_transition_length);
-    const double wall_split_middle_threshold = this->m_params.wall_split_middle_threshold;  // For an uneven nr. of lines: When to split the middle wall into two.
-    const double wall_add_middle_threshold = this->m_params.wall_add_middle_threshold;      // For an even nr. of lines: When to add a new middle in between the innermost two walls.
+	
+	const double wall_split_middle_threshold = std::clamp(2. * unscaled<double>(this->min_bead_width) / external_perimeter_extrusion_width - 1., 0.01, 0.99); // For an uneven nr. of lines: When to split the middle wall into two.
+    const double wall_add_middle_threshold   = std::clamp(unscaled<double>(this->min_bead_width) / perimeter_extrusion_width, 0.01, 0.99); // For an even nr. of lines: When to add a new middle in between the innermost two walls.
+    
     const int wall_distribution_count = this->m_params.wall_distribution_count;
     const size_t max_bead_count = (inset_count < std::numeric_limits<coord_t>::max() / 2) ? 2 * inset_count : std::numeric_limits<coord_t>::max();
     const auto beading_strat = BeadingStrategyFactory::makeStrategy
@@ -608,6 +600,14 @@ void WallToolPaths::stitchToolPaths(std::vector<VariableWidthLines> &toolpaths, 
             if (wall_polygon.junctions.empty())
             {
                 continue;
+            }
+
+            // PolylineStitcher, in some cases, produced closed extrusion (polygons),
+            // but the endpoints differ by a small distance. So we reconnect them.
+            // FIXME Lukas H.: Investigate more deeply why it is happening.
+            if (wall_polygon.junctions.front().p != wall_polygon.junctions.back().p &&
+                (wall_polygon.junctions.back().p - wall_polygon.junctions.front().p).cast<double>().norm() < stitch_distance) {
+                wall_polygon.junctions.emplace_back(wall_polygon.junctions.front());
             }
             wall_polygon.is_closed = true;
             wall_lines.emplace_back(std::move(wall_polygon)); // add stitched polygons to result

@@ -18,6 +18,10 @@
 #include "SkeletalTrapezoidationJoint.hpp"
 #include "libslic3r/Arachne/BeadingStrategy/BeadingStrategy.hpp"
 #include "SkeletalTrapezoidationGraph.hpp"
+#include "../Geometry/Voronoi.hpp"
+
+//#define ARACHNE_DEBUG
+//#define ARACHNE_DEBUG_VORONOI
 
 namespace Slic3r::Arachne
 {
@@ -121,6 +125,10 @@ public:
      * no longer end in a single line but will just loop.
      */
     void generateToolpaths(std::vector<VariableWidthLines> &generated_toolpaths, bool filter_outermost_central_edges = false);
+
+#ifdef ARACHNE_DEBUG
+    Polygons outline;
+#endif
 
 protected:
     /*!
