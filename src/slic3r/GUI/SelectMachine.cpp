@@ -88,6 +88,8 @@ std::string get_print_status_info(PrintDialogStatus status)
         return "PrintStatusLanModeNoSdcard";
     case PrintStatusNoSdcard:
         return "PrintStatusNoSdcard";
+    case PrintStatusTimelapseNoSdcard:
+        return "PrintStatusTimelapseNoSdcard";
     }
     return "unknown";
 }
@@ -1007,14 +1009,17 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_select = new wxGridSizer(0, 2, 0, 0);
     select_bed     = create_item_checkbox(_L("Bed Leveling"), this, _L("Bed Leveling"), "bed_leveling");
     select_flow    = create_item_checkbox(_L("Flow Calibration"), this, _L("Flow Calibration"), "flow_cali");
+    select_timelapse = create_item_checkbox(_L("Timelapse"), this, _L("Timelapse"), "timelapse");
     select_use_ams = create_ams_checkbox(_L("Enable AMS"), this, _L("Enable AMS"));
 
     m_sizer_select->Add(select_bed);
     m_sizer_select->Add(select_flow);
+    m_sizer_select->Add(select_timelapse);
     m_sizer_select->Add(select_use_ams);
 
     select_bed->Show(true);
     select_flow->Show(true);
+    select_timelapse->Show(false);
     select_use_ams->Show(true);
 
     // line schedule
@@ -1227,6 +1232,13 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
         select_bed->Show();
     } else {
         select_bed->Hide();
+    }
+
+    if (obj && obj->is_function_supported(PrinterFunction::FUNC_TIMELAPSE)
+        && obj->is_support_print_with_timelapse()) {
+        select_timelapse->Show();
+    } else {
+        select_timelapse->Hide();
     }
 
     Fit();
@@ -1508,6 +1520,22 @@ void SelectMachineDialog::update_print_status_msg(wxString msg, bool is_warning,
     }
 }
 
+bool SelectMachineDialog::has_tips(MachineObject* obj)
+{
+    if (!obj) return false;
+    
+    // must set to a status if return true
+    if (select_timelapse->IsShown() &&
+        m_checkbox_list["timelapse"]->GetValue()) {
+        if (!obj->has_sdcard()) {
+            show_status(PrintDialogStatus::PrintStatusTimelapseNoSdcard);
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxString> params)
 {
     if (m_print_status != status)
@@ -1634,6 +1662,11 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNoSdcard) {
         wxString msg_text = _L("An SD card needs to be inserted before printing.");
+        update_print_status_msg(msg_text, true, true);
+        Enable_Send_Button(true);
+        Enable_Refresh_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusTimelapseNoSdcard) {
+        wxString msg_text = _L("An SD card needs to be inserted to recording timelapse");
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
@@ -1790,13 +1823,16 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
         m_print_job->cloud_print_only = true;
     }
 
+    
+    bool timelapse_option = select_timelapse->IsShown() ? m_checkbox_list["timelapse"]->GetValue() : true;
+
     m_print_job->set_print_config(
         MachineBedTypeString[0],
         m_checkbox_list["bed_leveling"]->GetValue(),
         m_checkbox_list["flow_cali"]->GetValue(),
         false,
         false,
-        true);
+        timelapse_option);
 
     if (obj_->has_ams()) {
         m_print_job->task_use_ams = ams_check->GetValue();
@@ -1804,6 +1840,7 @@ void SelectMachineDialog::on_ok(wxCommandEvent &event)
         m_print_job->task_use_ams = false;
     }
 
+    BOOST_LOG_TRIVIAL(info) << "print_job: timelapse_option = " << timelapse_option;
     BOOST_LOG_TRIVIAL(info) << "print_job: use_ams = " << m_print_job->task_use_ams;
 
     m_print_job->on_success([this]() { finish_mode(); });
@@ -2138,8 +2175,6 @@ void SelectMachineDialog::update_show_status()
         return;
     }
 
-
-
     // check sdcard when if lan mode printer
     if (obj_->is_lan_mode_printer()) {
         if (!obj_->has_sdcard()) {
@@ -2150,7 +2185,8 @@ void SelectMachineDialog::update_show_status()
 
     // no ams
     if (!obj_->has_ams()) {
-        show_status(PrintDialogStatus::PrintStatusReadingFinished);
+        if (!has_tips(obj_))
+            show_status(PrintDialogStatus::PrintStatusReadingFinished);
         return;
     }
 
@@ -2202,10 +2238,13 @@ void SelectMachineDialog::update_show_status()
     }
     else {
         if (obj_->is_valid_mapping_result(m_ams_mapping_result)) {
-            show_status(PrintDialogStatus::PrintStatusAmsMappingValid);
+            if (!has_tips(obj_))
+                show_status(PrintDialogStatus::PrintStatusAmsMappingValid);
+            return;
         }
         else {
             show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
+            return;
         }
     }
 }
@@ -2308,6 +2347,7 @@ void SelectMachineDialog::set_default()
     // checkbox default values
     m_checkbox_list["bed_leveling"]->SetValue(true);
     m_checkbox_list["flow_cali"]->SetValue(true);
+    m_checkbox_list["timelapse"]->SetValue(true);
     ams_check->SetValue(true);
 
     // thumbmail

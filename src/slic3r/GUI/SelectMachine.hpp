@@ -252,7 +252,8 @@ enum PrintDialogStatus {
     PrintStatusSending,
     PrintStatusSendingCanceled,
     PrintStatusLanModeNoSdcard,
-    PrintStatusNoSdcard
+    PrintStatusNoSdcard,
+    PrintStatusTimelapseNoSdcard
 };
 
 std::string get_print_status_info(PrintDialogStatus status);
@@ -326,6 +327,7 @@ protected:
 
     wxWindow *select_bed{nullptr};
     wxWindow *select_flow{nullptr};
+    wxWindow *select_timelapse { nullptr };
     wxWindow *select_use_ams{nullptr};
     CheckBox *ams_check{nullptr};
 
@@ -351,6 +353,7 @@ public:
     bool      do_ams_mapping(MachineObject *obj_);
     bool      get_ams_mapping_result(std::string &mapping_array_str, std::string &ams_mapping_info);
     void      prepare(int print_plate_idx);
+    bool      has_tips(MachineObject* obj);
     void      show_status(PrintDialogStatus status, std::vector<wxString> params = std::vector<wxString>());
     PrintDialogStatus  get_status() { return m_print_status; }
 

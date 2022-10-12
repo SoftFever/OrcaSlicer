@@ -1739,6 +1739,12 @@ bool MachineObject::is_function_supported(PrinterFunction func)
     return DeviceManager::is_function_supported(printer_type, func_name);
 }
 
+bool MachineObject::is_support_print_with_timelapse()
+{
+    //TODO version check, set true by default
+    return true;
+}
+
 int MachineObject::publish_json(std::string json_str, int qos)
 {
     if (is_lan_mode_printer()) {

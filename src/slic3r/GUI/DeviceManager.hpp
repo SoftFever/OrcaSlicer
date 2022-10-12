@@ -608,6 +608,7 @@ public:
     bool is_online() { return m_is_online; }
     bool is_info_ready();
     bool is_function_supported(PrinterFunction func);
+    bool is_support_print_with_timelapse();
 
 
     /* Msg for display MsgFn */
