@@ -771,11 +771,11 @@ void StatusBasePanel::reset_temp_misc_control()
 {
     // reset temp string
     m_tempCtrl_nozzle->SetLabel(TEMP_BLANK_STR);
-    m_tempCtrl_nozzle->GetTextCtrl()->SetLabel(TEMP_BLANK_STR);
+    m_tempCtrl_nozzle->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
     m_tempCtrl_bed->SetLabel(TEMP_BLANK_STR);
-    m_tempCtrl_bed->GetTextCtrl()->SetLabel(TEMP_BLANK_STR);
+    m_tempCtrl_bed->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
     m_tempCtrl_frame->SetLabel(TEMP_BLANK_STR);
-    m_tempCtrl_frame->GetTextCtrl()->SetLabel(TEMP_BLANK_STR);
+    m_tempCtrl_frame->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
     m_button_unload->Show(); 
 
     m_tempCtrl_nozzle->Enable(true);
@@ -1359,7 +1359,7 @@ void StatusPanel::update(MachineObject *obj)
             m_tempCtrl_frame->Enable();
         } else {
             m_tempCtrl_frame->SetLabel(TEMP_BLANK_STR);
-            m_tempCtrl_frame->GetTextCtrl()->SetLabel(TEMP_BLANK_STR);
+            m_tempCtrl_frame->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
             m_tempCtrl_frame->Disable();
         }
 
