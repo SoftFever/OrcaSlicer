@@ -1609,6 +1609,8 @@ void GUI_App::init_networking_callbacks()
                 return;
             }
             GUI::wxGetApp().CallAfter([this] {
+                if (m_is_closing)
+                    return;
                 BOOST_LOG_TRIVIAL(trace) << "static: server connected";
                 m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
                 });
@@ -1619,6 +1621,8 @@ void GUI_App::init_networking_callbacks()
                 return;
             }
             GUI::wxGetApp().CallAfter([this, dev_id] {
+                if (m_is_closing)
+                    return;
                 /* request_pushing */
                 MachineObject* obj = m_device_manager->get_my_machine(dev_id);
                 if (obj) {
@@ -1678,6 +1682,8 @@ void GUI_App::init_networking_callbacks()
                 return;
             }
             CallAfter([this, dev_id, msg] {
+                if (m_is_closing)
+                    return;
                 MachineObject* obj = this->m_device_manager->get_user_machine(dev_id);
                 if (obj) {
                     obj->is_ams_need_update = false;
@@ -1697,6 +1703,8 @@ void GUI_App::init_networking_callbacks()
                 return;
             }
             CallAfter([this, dev_id, msg] {
+                if (m_is_closing)
+                    return;
                 MachineObject* obj = m_device_manager->get_my_machine(dev_id);
                 if (!obj) {
                     obj = m_device_manager->get_local_machine(dev_id);
