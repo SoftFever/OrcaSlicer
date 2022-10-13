@@ -761,7 +761,7 @@ bool PrintObject::invalidate_state_by_config_options(
 #if HAS_LIGHTNING_INFILL
             const auto *old_fill_pattern = old_config.option<ConfigOptionEnum<InfillPattern>>(opt_key);
             const auto *new_fill_pattern = new_config.option<ConfigOptionEnum<InfillPattern>>(opt_key);
-            assert(old_infill && new_infill);
+            assert(old_fill_pattern && new_fill_pattern);
             // We need to recalculate infill surfaces when infill_only_where_needed is enabled, and we are switching from
             // the Lightning infill to another infill or vice versa.
             if (PrintObject::infill_only_where_needed && (new_fill_pattern->value == ipLightning || old_fill_pattern->value == ipLightning))
