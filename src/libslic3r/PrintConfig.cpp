@@ -1940,8 +1940,8 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Filename format");
     def->tooltip = L("User can self-define the project file name when export");
     def->full_width = true;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionString("[input_filename_base].gcode"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString("{input_filename_base}_{filament_type[0]}_{print_time}.gcode"));
 
     def = this->add("detect_overhang_wall", coBool);
     def->label = L("Detect overhang wall");

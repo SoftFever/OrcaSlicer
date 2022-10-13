@@ -1952,7 +1952,10 @@ void TabPrint::build()
         optgroup->append_single_option_line("reduce_infill_retraction");
         optgroup->append_single_option_line("gcode_add_line_number");
         Option option = optgroup->get_option("filename_format");
-        option.opt.full_width = true;
+        // option.opt.full_width = true;
+        option.opt.is_code = true;
+        option.opt.multiline = true;
+        // option.opt.height = 5;
         optgroup->append_single_option_line(option);
 
 #if 0
