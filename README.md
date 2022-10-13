@@ -78,6 +78,10 @@ gcode:
     SET_VELOCITY_LIMIT
   {% endif %}
 
+[gcode_macro M900]
+gcode:
+      SET_PRESSURE_ADVANCE ADVANCE={params.K}
+
 ```
 
 It's also recommended to add followinging dummy macros to make Klipper happy
