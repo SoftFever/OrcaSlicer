@@ -1599,7 +1599,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         file.write("M981 S1 P20000 ;open spaghetti detector\n");
     if(m_config.enable_pressure_advance.value)
     {
-        file.write_format("M900 K%.3f ; Override pressure advance value\nM900 S0\n",m_config.pressure_advance.values.front());
+        file.write_format("M900 K%.3f ; Override pressure advance value\n",m_config.pressure_advance.values.front());
     }
     // Do all objects for each layer.
     if (print.config().print_sequence == PrintSequence::ByObject) {
