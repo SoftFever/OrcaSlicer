@@ -79,7 +79,7 @@ private:
 
     void paintEvent(wxPaintEvent& evt);
 
-    void render(wxDC& dc);
+    void dorender(wxDC& dc, wxDC& text_dc);
 
     void messureSize();
 

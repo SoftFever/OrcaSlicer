@@ -742,7 +742,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
     m_switch_nozzle_fan->SetLabels(_L("Part Cooling"), _L("Part Cooling"));
     m_switch_nozzle_fan->SetPadding(FromDIP(3));
     m_switch_nozzle_fan->SetBorderWidth(FromDIP(2));
-    m_switch_nozzle_fan->SetFont(SWITCH_FONT);
+    m_switch_nozzle_fan->SetFont(::Label::Body_10);
     m_switch_nozzle_fan->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_FAN_TEXT_COL, (int) StateColor::Normal)));
 
     line_sizer->Add(m_switch_nozzle_fan, 1, wxALIGN_CENTER | wxALL, 0);
@@ -755,7 +755,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
     m_switch_printing_fan->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_printing_fan->SetPadding(FromDIP(3));
     m_switch_printing_fan->SetBorderWidth(FromDIP(2));
-    m_switch_printing_fan->SetFont(SWITCH_FONT);
+    m_switch_printing_fan->SetFont(::Label::Body_10);
     m_switch_printing_fan->SetLabels(_L("Aux Cooling"), _L("Aux Cooling"));
     m_switch_printing_fan->SetTextColor(
         StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_FAN_TEXT_COL, (int) StateColor::Normal)));
