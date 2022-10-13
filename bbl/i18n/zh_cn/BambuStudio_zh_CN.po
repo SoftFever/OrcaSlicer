@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-27 16:25+0800\n"
+"POT-Creation-Date: 2022-10-13 20:53+0800\n"
 "PO-Revision-Date: 2022-09-05 14:22+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -420,6 +420,9 @@ msgstr "配置文件“%1%”已被加载，但部分数值未被识别。"
 msgid "V"
 msgstr "V"
 
+msgid "Internal Version"
+msgstr ""
+
 msgid "Version"
 msgstr "版本"
 
@@ -551,6 +554,15 @@ msgstr "语言"
 
 msgid "*"
 msgstr "*"
+
+msgid "The uploads are still ongoing"
+msgstr "上传任务依然在继续"
+
+msgid "Stop them and continue anyway?"
+msgstr "停止它们并且继续？"
+
+msgid "Ongoing uploads"
+msgstr "正在进行的上传"
 
 msgid "Select a G-code file:"
 msgstr "选择一个G-code文件："
@@ -1474,6 +1486,16 @@ msgstr ""
 msgid "Succeed to export G-code to %1%"
 msgstr "成功导出G-code至 %1%"
 
+msgid "Running post-processing scripts"
+msgstr "运行后处理脚本"
+
+msgid "Copying of the temporary G-code to the output G-code failed"
+msgstr "将临时 G 代码复制到输出 G 代码失败"
+
+#, boost-format
+msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
+msgstr "计划上传到 `%1%`。请参阅窗口-> 打印主机上传队列"
+
 msgid "Origin"
 msgstr "原点"
 
@@ -2073,6 +2095,12 @@ msgstr "上色工具条"
 msgid "Explosion Ratio"
 msgstr "爆炸比例"
 
+msgid "Section View"
+msgstr ""
+
+msgid "Assemble Control"
+msgstr ""
+
 msgid "Total Volume:"
 msgstr "总体积："
 
@@ -2180,6 +2208,9 @@ msgstr "项目"
 msgid "Slice"
 msgstr "切片"
 
+msgid "Send and Print"
+msgstr ""
+
 msgid "Slice all"
 msgstr "切片所有盘"
 
@@ -2188,6 +2219,12 @@ msgstr "切片单盘"
 
 msgid "Print all"
 msgstr "打印所有盘"
+
+msgid "Export G-code file"
+msgstr ""
+
+msgid "Send"
+msgstr "发送"
 
 msgid "Export sliced file"
 msgstr "导出切片文件"
@@ -2213,6 +2250,9 @@ msgstr "检查新版本"
 #, c-format, boost-format
 msgid "&About %s"
 msgstr "关于 %s"
+
+msgid "Show Tip of the Day"
+msgstr ""
 
 msgid "Open Network Test"
 msgstr ""
@@ -2502,18 +2542,30 @@ msgstr "同步"
 msgid "Initialize failed (No Device)!"
 msgstr "初始化失败（没有设备）！"
 
+msgid "Initialize failed (No Camera Device)!"
+msgstr ""
+
 msgid "Initializing..."
 msgstr "正在初始化……"
 
 msgid "Loading..."
 msgstr "正在加载视频……"
 
-msgid "Initialize failed (Not supported)!"
+msgid "Initialize failed (Not supported with LAN-only mode)!"
+msgstr ""
+
+msgid "Initialize failed (Not accessible in LAN-only mode)!"
+msgstr ""
+
+msgid "Initialize failed (Not supported without remote video tunnel)!"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Initialize failed [%d]!"
-msgstr "初始化失败 [%d]！"
+msgid "Initialize failed (%s)!"
+msgstr ""
+
+msgid "Network unreachable"
+msgstr ""
 
 msgid "Stopped."
 msgstr "已经停止。"
@@ -2561,8 +2613,8 @@ msgstr "下载"
 msgid "Download selected files from printer."
 msgstr ""
 
-msgid "Management"
-msgstr "管理"
+msgid "Select"
+msgstr ""
 
 msgid "Batch manage files."
 msgstr ""
@@ -2586,17 +2638,14 @@ msgstr "加载文件列表..."
 msgid "No files"
 msgstr "文件列表为空"
 
-msgid "Choose save directory"
-msgstr "选择保存目录"
-
 msgid "Download waiting..."
 msgstr "正在下载中..."
 
 msgid "Retry"
 msgstr "重试"
 
-msgid "Open"
-msgstr "打开"
+msgid "Open Folder"
+msgstr ""
 
 msgid "Download finished"
 msgstr "下载完成"
@@ -2798,6 +2847,18 @@ msgid "%1$d Object has color painting."
 msgid_plural "%1$d Objects have color painting."
 msgstr[0] "%1$d对象有涂色。"
 
+msgid "ERROR"
+msgstr ""
+
+msgid "CANCELED"
+msgstr ""
+
+msgid "COMPLETED"
+msgstr ""
+
+msgid "Cancel upload"
+msgstr ""
+
 msgid "Slice ok."
 msgstr "切片完成."
 
@@ -2943,6 +3004,9 @@ msgstr "材料切换"
 
 msgid "Click to edit preset"
 msgstr "点击编辑配置"
+
+msgid "Connection"
+msgstr ""
 
 msgid "Bed type"
 msgstr "热床类型"
@@ -3110,6 +3174,9 @@ msgstr "选中的模型不可分裂。"
 msgid "Another export job is running."
 msgstr "有其他导出任务正在进行中。"
 
+msgid "Another export job is currently running."
+msgstr ""
+
 msgid "Select a new file"
 msgstr "选择新文件"
 
@@ -3218,9 +3285,6 @@ msgstr "G-code文件另存为："
 msgid "Save Sliced file as:"
 msgstr "切片文件另存为："
 
-msgid "preparing, export 3mf failed!"
-msgstr "正在准备中，导出 3mf 失败！"
-
 msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
@@ -3292,6 +3356,12 @@ msgstr "区域选择"
 msgid "Second"
 msgstr "秒"
 
+msgid "Browse"
+msgstr ""
+
+msgid "Choose Download Directory"
+msgstr ""
+
 msgid "General Settings"
 msgstr "通用设置"
 
@@ -3321,6 +3391,12 @@ msgstr "英制"
 
 msgid "Units"
 msgstr "单位"
+
+msgid "Show \"Tip of the day\" notification after start"
+msgstr ""
+
+msgid "If enabled, useful hints are displayed at startup."
+msgstr ""
 
 msgid "User sync"
 msgstr "用户同步"
@@ -3360,6 +3436,9 @@ msgstr "自动备份"
 
 msgid "Backup interval"
 msgstr "备份间隔时长"
+
+msgid "Downloads"
+msgstr ""
 
 msgid "Home page and daily tips"
 msgstr "首页和每日小贴士"
@@ -3607,9 +3686,6 @@ msgstr "工程打印热床"
 msgid "Bamabu High Temperature Plate"
 msgstr "高温打印热床"
 
-msgid "Send print job to"
-msgstr "发送打印任务至"
-
 msgid "Refresh"
 msgstr "刷新"
 
@@ -3618,9 +3694,6 @@ msgstr "热床调平"
 
 msgid "Flow Calibration"
 msgstr "流量校准"
-
-msgid "Send"
-msgstr "发送"
 
 msgid "send completed"
 msgstr "发送完成"
@@ -3691,6 +3764,9 @@ msgstr ""
 "已自动建立 \"耗材丝列表=>AMS槽位\" 的映射关系。 可点击上方具体的耗材丝手动设"
 "置其所对应的AMS槽位"
 
+msgid "An SD card needs to be inserted before printing."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "正在准备打印任务"
 
@@ -3736,13 +3812,14 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr ""
 
 msgid ""
-"Prime tower is required by timeplase. Are you sure you want to disable both "
-"of them?"
-msgstr "延时摄影需要使用擦拭塔，是否同时禁用？"
+"Prime tower is required by smooth timeplase. If whthout prime tower, there "
+"will be flaws on the model. Are you sure you want to disable prime tower?"
+msgstr ""
 
 msgid ""
-"Prime tower is required by timelapse. Do you want to enable both of them?"
-msgstr "延时摄影需要使用擦拭塔，是否同时启用？"
+"Prime tower is required by smooth timelapse. If whthout prime tower, there "
+"will be flaws on the model. Do you want to enable prime tower?"
+msgstr ""
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
@@ -3928,6 +4005,9 @@ msgstr "耗材丝结束G-code"
 msgid "Printable space"
 msgstr "可打印区域"
 
+msgid "Extruder Clearance"
+msgstr ""
+
 msgid "Accessory"
 msgstr "配件"
 
@@ -3951,6 +4031,9 @@ msgstr "耗材丝更换G-code"
 
 msgid "Pause G-code"
 msgstr "暂停 G-code"
+
+msgid "Template Custom G-code"
+msgstr ""
 
 msgid "Motion ability"
 msgstr "移动能力"
@@ -4456,23 +4539,6 @@ msgstr "新版本的Bambu Studio"
 msgid "Don't remind me of this version again"
 msgstr "此版本不再提示"
 
-msgid ""
-"Are you sure you want to update? This will take about 10 minutes. Do not "
-"turn off the power while the printer is updating."
-msgstr "确定要更新吗？更新需要大约10分钟，在此期间请勿关闭电源。"
-
-msgid ""
-"An important update was detected and needs to be run before printing can "
-"continue. Do you want to update now? You can also update later from 'Upgrade "
-"firmware'."
-msgstr "检测到重要更新，需要升级后才可进行打印。你想现在就开始升级吗？你也可以稍后点击‘升级固件’完成升级。"
-
-msgid ""
-"The firmware version is abnormal. Repairing and updating are required before "
-"printing. Do you want to update now? You can also update later on printer or "
-"update next time starting the studio."
-msgstr "当前固件版本异常，需要进行修复升级，否则无法继续打印。你想现在就开始升级吗？你也可以稍后在打印机上升级，或者下一次启动studio再升级。"
-
 msgid "Model:"
 msgstr ""
 
@@ -4502,6 +4568,27 @@ msgstr "升级失败"
 
 msgid "Upgrading successful"
 msgstr "升级成功"
+
+msgid ""
+"Are you sure you want to update? This will take about 10 minutes. Do not "
+"turn off the power while the printer is updating."
+msgstr "确定要更新吗？更新需要大约10分钟，在此期间请勿关闭电源。"
+
+msgid ""
+"An important update was detected and needs to be run before printing can "
+"continue. Do you want to update now? You can also update later from 'Upgrade "
+"firmware'."
+msgstr ""
+"检测到重要更新，需要升级后才可进行打印。你想现在就开始升级吗？你也可以稍后点"
+"击‘升级固件’完成升级。"
+
+msgid ""
+"The firmware version is abnormal. Repairing and updating are required before "
+"printing. Do you want to update now? You can also update later on printer or "
+"update next time starting the studio."
+msgstr ""
+"当前固件版本异常，需要进行修复升级，否则无法继续打印。你想现在就开始升级吗？"
+"你也可以稍后在打印机上升级，或者下一次启动studio再升级。"
 
 msgid "Saving objects into the 3mf failed."
 msgstr "保存对象到3mf失败。"
@@ -4738,16 +4825,14 @@ msgstr "写入回调失败"
 
 #, boost-format
 msgid ""
-"%1% is too close to exclusion area, there will be collisions when printing."
-msgstr "%1%离不可打印区域太近，会造成打印时出现碰撞。"
+"%1% is too close to exclusion area, there may be collisions when printing."
+msgstr ""
 
 #, boost-format
 msgid ""
 "\n"
-"%1% is too close to exclusion area, there will be collisions when printing."
+"%1% is too close to exclusion area, there may be collisions when printing."
 msgstr ""
-"\n"
-"%1%离不可打印区域太近，会造成打印时出现碰撞。"
 
 #, boost-format
 msgid "%1% is too close to others, and collisions may be caused."
@@ -4757,12 +4842,12 @@ msgstr "%1%离其它对象太近，可能会发生碰撞。"
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1%太高，会发生碰撞。"
 
-msgid " is too close to others, there will be collisions when printing.\n"
-msgstr "离其它对象太近，会造成打印时出现碰撞。\n"
+msgid " is too close to others, there may be collisions when printing.\n"
+msgstr ""
 
 msgid ""
-" is too close to exclusion area, there will be collisions when printing.\n"
-msgstr "离不可打印区域太近，会造成打印时出现碰撞。\n"
+" is too close to exclusion area, there may be collisions when printing.\n"
+msgstr ""
 
 msgid "Prime Tower"
 msgstr "擦拭塔"
@@ -4891,19 +4976,84 @@ msgstr "由打印机结构约束的最大可打印高度"
 msgid "Printer preset names"
 msgstr "打印机预设名"
 
-msgid "Avoid crossing wall when travel"
-msgstr "空驶时避免跨越外墙"
+msgid "Hostname, IP or URL"
+msgstr ""
+
+msgid ""
+"Slic3r can upload G-code files to a printer host. This field should contain "
+"the hostname, IP address or URL of the printer host instance. Print host "
+"behind HAProxy with basic auth enabled can be accessed by putting the user "
+"name and password into the URL in the following format: https://username:"
+"password@your-octopi-address/"
+msgstr ""
+
+msgid "API Key / Password"
+msgstr ""
+
+msgid ""
+"Slic3r can upload G-code files to a printer host. This field should contain "
+"the API Key or the password required for authentication."
+msgstr ""
+
+msgid "Name of the printer"
+msgstr ""
+
+msgid "HTTPS CA File"
+msgstr ""
+
+msgid ""
+"Custom CA certificate file can be specified for HTTPS OctoPrint connections, "
+"in crt/pem format. If left blank, the default OS CA certificate repository "
+"is used."
+msgstr ""
+
+msgid "User"
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "Ignore HTTPS certificate revocation checks"
+msgstr ""
+
+msgid ""
+"Ignore HTTPS certificate revocation checks in case of missing or offline "
+"distribution points. One may want to enable this option for self signed "
+"certificates if connection fails."
+msgstr ""
+
+msgid "Names of presets related to the physical printer"
+msgstr ""
+
+msgid "Authorization Type"
+msgstr ""
+
+msgid "API key"
+msgstr ""
+
+msgid "HTTP digest"
+msgstr ""
+
+msgid "Avoid crossing wall"
+msgstr "避免跨越外墙"
 
 msgid "Detour and avoid to travel across wall which may cause blob on surface"
 msgstr "空驶时绕过外墙以避免在模型外观面产生斑点"
 
-msgid "Max travel detour distance"
-msgstr "最大绕行距离"
+msgid "Avoid crossing wall - Max detour length"
+msgstr "避免跨越外墙-最大绕行长度"
 
 msgid ""
 "Maximum detour distance for avoiding crossing wall. Don't detour if the "
-"detour distance is large than this value"
-msgstr "避免跨越外墙时的最大绕行距离。如果绕行距离大于这个阈值，则不再绕行。"
+"detour distance is large than this value. Detour length could be specified "
+"either as an absolute value or as percentage (for example 50%) of a direct "
+"travel path. Zero to disable"
+msgstr ""
+"避免跨越外墙时的最大绕行距离。当绕行距离比这个数值大时，此次空驶不绕行。"
+"绕行距离可表达为绝对值，或者相对直线空驶长度的百分比(例如50%)。0表示禁用"
+
+msgid "mm or %"
+msgstr "mm 或 %"
 
 msgid "Other layers"
 msgstr "其它层"
@@ -5256,20 +5406,25 @@ msgid "Height to rod"
 msgstr "到横杆高度"
 
 msgid ""
-"Height of the clearance cylinder around extruder. Used as input of auto-"
-"arrange to avoid collision when print object by object"
-msgstr "挤出机的净空高度。作为自动摆放的输入信息，避免逐件打印时发生碰撞。"
+"Distance of the nozzle tip to the lower rod. Used as input of auto-arranging "
+"to avoid collision when printing by object"
+msgstr ""
 
 msgid "Height to lid"
 msgstr "到顶盖高度"
+
+msgid ""
+"Distance of the nozzle tip to the lid. Used as input of auto-arranging to "
+"avoid collision when printing by object"
+msgstr ""
 
 msgid "Radius"
 msgstr "半径"
 
 msgid ""
-"Clearance radius around extruder. Used as input of auto-arrange to avoid "
-"collision when print object by object"
-msgstr "挤出机的净空半径。作为自动摆放的输入信息，避免逐件打印时发生碰撞。"
+"Clearance radius around extruder. Used as input of auto-arranging to avoid "
+"collision when printing by object"
+msgstr ""
 
 msgid "Extruder Color"
 msgstr "挤出机颜色"
@@ -5452,6 +5607,9 @@ msgstr "蜂窝"
 msgid "Adaptive Cubic"
 msgstr "自适应立方体"
 
+msgid "Lightning"
+msgstr ""
+
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
@@ -5568,6 +5726,9 @@ msgid ""
 "nozzle, and what kind of filament can be printed"
 msgstr "喷嘴的金属材料。这将决定喷嘴的耐磨性，以及可打印材料的种类"
 
+msgid "Undefine"
+msgstr ""
+
 msgid "Hardened steel"
 msgstr "硬化钢"
 
@@ -5666,6 +5827,14 @@ msgid ""
 "Whether the machine supports silent mode in which machine use lower "
 "acceleration to print"
 msgstr "机器是否支持使用低加速度打印的静音模式。"
+
+msgid ""
+"This G-code will be used as a code for the pause print. User can insert "
+"pause G-code in gcode viewer"
+msgstr ""
+
+msgid "This G-code will be used as a custom code"
+msgstr ""
 
 msgid "Maximum speed X"
 msgstr "X最大速度"
@@ -5819,6 +5988,14 @@ msgstr "喷嘴直径"
 
 msgid "Diameter of nozzle"
 msgstr "喷嘴直径"
+
+msgid "Host Type"
+msgstr ""
+
+msgid ""
+"Slic3r can upload G-code files to a printer host. This field must contain "
+"the kind of the host."
+msgstr ""
 
 msgid "Nozzle volume"
 msgstr "喷嘴内腔体积"
@@ -6561,10 +6738,6 @@ msgstr "正在切片网格"
 msgid " Object:"
 msgstr " 对象："
 
-#, boost-format
-msgid "Error at line %1%:\n"
-msgstr "错误在行%1%：\n"
-
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
 msgstr "支撑：正在生成层%d的走线路径"
@@ -6595,6 +6768,82 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#, c-format, boost-format
+#~ msgid "Initialize failed [%d]!"
+#~ msgstr "初始化失败 [%d]！"
+
+#~ msgid "Management"
+#~ msgstr "管理"
+
+#~ msgid "Choose save directory"
+#~ msgstr "选择保存目录"
+
+#~ msgid "Open"
+#~ msgstr "打开"
+
+#~ msgid "preparing, export 3mf failed!"
+#~ msgstr "正在准备中，导出 3mf 失败！"
+
+#~ msgid "Send print job to"
+#~ msgstr "发送打印任务至"
+
+#~ msgid ""
+#~ "Prime tower is required by timeplase. Are you sure you want to disable "
+#~ "both of them?"
+#~ msgstr "延时摄影需要使用擦拭塔，是否同时禁用？"
+
+#~ msgid ""
+#~ "Prime tower is required by timelapse. Do you want to enable both of them?"
+#~ msgstr "延时摄影需要使用擦拭塔，是否同时启用？"
+
+#, boost-format
+#~ msgid ""
+#~ "%1% is too close to exclusion area, there will be collisions when "
+#~ "printing."
+#~ msgstr "%1%离不可打印区域太近，会造成打印时出现碰撞。"
+
+#, boost-format
+#~ msgid ""
+#~ "\n"
+#~ "%1% is too close to exclusion area, there will be collisions when "
+#~ "printing."
+#~ msgstr ""
+#~ "\n"
+#~ "%1%离不可打印区域太近，会造成打印时出现碰撞。"
+
+#~ msgid " is too close to others, there will be collisions when printing.\n"
+#~ msgstr "离其它对象太近，会造成打印时出现碰撞。\n"
+
+#~ msgid ""
+#~ " is too close to exclusion area, there will be collisions when printing.\n"
+#~ msgstr "离不可打印区域太近，会造成打印时出现碰撞。\n"
+
+#~ msgid "Avoid crossing wall when travel"
+#~ msgstr "空驶时避免跨越外墙"
+
+#~ msgid "Max travel detour distance"
+#~ msgstr "最大绕行距离"
+
+#~ msgid ""
+#~ "Maximum detour distance for avoiding crossing wall. Don't detour if the "
+#~ "detour distance is large than this value"
+#~ msgstr ""
+#~ "避免跨越外墙时的最大绕行距离。如果绕行距离大于这个阈值，则不再绕行。"
+
+#~ msgid ""
+#~ "Height of the clearance cylinder around extruder. Used as input of auto-"
+#~ "arrange to avoid collision when print object by object"
+#~ msgstr "挤出机的净空高度。作为自动摆放的输入信息，避免逐件打印时发生碰撞。"
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used as input of auto-arrange to avoid "
+#~ "collision when print object by object"
+#~ msgstr "挤出机的净空半径。作为自动摆放的输入信息，避免逐件打印时发生碰撞。"
+
+#, boost-format
+#~ msgid "Error at line %1%:\n"
+#~ msgstr "错误在行%1%：\n"
 
 #~ msgid "Reduce Triangles"
 #~ msgstr "简化三角形"
@@ -7661,9 +7910,6 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ "Line width of outer wall. It's relative to nozzle diameter if expressed "
 #~ "as percentage"
 #~ msgstr "外墙的线宽。如果表示为百分数，则基数为喷嘴直径。"
-
-#~ msgid "mm or %"
-#~ msgstr "mm 或 %"
 
 #~ msgid ""
 #~ "Line width of initial layer. It's relative to nozzle diameter if "
@@ -9114,9 +9360,6 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ msgid "Masked SLA file exported to %1%"
 #~ msgstr "已将 贴面过 SLA 文件导出到 %1%"
 
-#~ msgid "Running post-processing scripts"
-#~ msgstr "运行后处理脚本"
-
 #~ msgid "G-code file exported to %1%"
 #~ msgstr "G 代码文件导出到 %1%"
 
@@ -9279,12 +9522,6 @@ msgstr "支撑：正在生长层%d的树枝"
 
 #~ msgid "Around object"
 #~ msgstr "模型周围"
-
-#~ msgid "Copying of the temporary G-code to the output G-code failed"
-#~ msgstr "将临时 G 代码复制到输出 G 代码失败"
-
-#~ msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
-#~ msgstr "计划上传到 `%1%`。请参阅窗口-> 打印主机上传队列"
 
 #~ msgid "Firmware Type"
 #~ msgstr "固件类型"
@@ -9898,15 +10135,6 @@ msgstr "支撑：正在生长层%d的树枝"
 
 #~ msgid "For new project all modifications will be reseted"
 #~ msgstr "对新项目，所有修改都被重置"
-
-#~ msgid "The uploads are still ongoing"
-#~ msgstr "上传任务依然在继续"
-
-#~ msgid "Stop them and continue anyway?"
-#~ msgstr "停止它们并且继续？"
-
-#~ msgid "Ongoing uploads"
-#~ msgstr "正在进行的上传"
 
 #~ msgid "It's impossible to print multi-part object(s) with SLA technology."
 #~ msgstr "无法使用 SLA 技术打印多部分对象。"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-27 16:25+0800\n"
+"POT-Creation-Date: 2022-10-13 20:53+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -420,6 +420,9 @@ msgstr ""
 msgid "V"
 msgstr "V"
 
+msgid "Internal Version"
+msgstr ""
+
 msgid "Version"
 msgstr "Version"
 
@@ -556,6 +559,15 @@ msgstr "Language"
 
 msgid "*"
 msgstr "*"
+
+msgid "The uploads are still ongoing"
+msgstr ""
+
+msgid "Stop them and continue anyway?"
+msgstr ""
+
+msgid "Ongoing uploads"
+msgstr ""
 
 msgid "Select a G-code file:"
 msgstr "Select a G-code file:"
@@ -1505,6 +1517,16 @@ msgstr ""
 msgid "Succeed to export G-code to %1%"
 msgstr "Success! G-code exported to %1%"
 
+msgid "Running post-processing scripts"
+msgstr ""
+
+msgid "Copying of the temporary G-code to the output G-code failed"
+msgstr ""
+
+#, boost-format
+msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
+msgstr ""
+
 msgid "Origin"
 msgstr "Origin"
 
@@ -2116,6 +2138,12 @@ msgstr "Paint Toolbar"
 msgid "Explosion Ratio"
 msgstr "Explosion Ratio"
 
+msgid "Section View"
+msgstr ""
+
+msgid "Assemble Control"
+msgstr ""
+
 msgid "Total Volume:"
 msgstr "Total Volume:"
 
@@ -2222,6 +2250,9 @@ msgstr "Project"
 msgid "Slice"
 msgstr "Slice"
 
+msgid "Send and Print"
+msgstr ""
+
 msgid "Slice all"
 msgstr "Slice all"
 
@@ -2230,6 +2261,12 @@ msgstr "Slice plate"
 
 msgid "Print all"
 msgstr "Print all"
+
+msgid "Export G-code file"
+msgstr ""
+
+msgid "Send"
+msgstr "Send"
 
 msgid "Export sliced file"
 msgstr "Export Sliced File"
@@ -2255,6 +2292,9 @@ msgstr "Check for Updates"
 #, c-format, boost-format
 msgid "&About %s"
 msgstr "&About %s"
+
+msgid "Show Tip of the Day"
+msgstr ""
 
 msgid "Open Network Test"
 msgstr ""
@@ -2545,18 +2585,30 @@ msgstr "Synchronization"
 msgid "Initialize failed (No Device)!"
 msgstr "Initialization failed (No Device)!"
 
+msgid "Initialize failed (No Camera Device)!"
+msgstr ""
+
 msgid "Initializing..."
 msgstr "Initializing..."
 
 msgid "Loading..."
 msgstr "Loading..."
 
-msgid "Initialize failed (Not supported)!"
+msgid "Initialize failed (Not supported with LAN-only mode)!"
+msgstr ""
+
+msgid "Initialize failed (Not accessible in LAN-only mode)!"
+msgstr ""
+
+msgid "Initialize failed (Not supported without remote video tunnel)!"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Initialize failed [%d]!"
-msgstr "Initalization failed [%d]!"
+msgid "Initialize failed (%s)!"
+msgstr ""
+
+msgid "Network unreachable"
+msgstr ""
 
 msgid "Stopped."
 msgstr "Stopped."
@@ -2604,7 +2656,7 @@ msgstr "Download"
 msgid "Download selected files from printer."
 msgstr ""
 
-msgid "Management"
+msgid "Select"
 msgstr ""
 
 msgid "Batch manage files."
@@ -2629,16 +2681,13 @@ msgstr ""
 msgid "No files"
 msgstr ""
 
-msgid "Choose save directory"
-msgstr ""
-
 msgid "Download waiting..."
 msgstr ""
 
 msgid "Retry"
 msgstr ""
 
-msgid "Open"
+msgid "Open Folder"
 msgstr ""
 
 msgid "Download finished"
@@ -2843,6 +2892,18 @@ msgid_plural "%1$d Objects have color painting."
 msgstr[0] "%1$d Object has color painting."
 msgstr[1] "%1$d Objects have color painting."
 
+msgid "ERROR"
+msgstr ""
+
+msgid "CANCELED"
+msgstr ""
+
+msgid "COMPLETED"
+msgstr ""
+
+msgid "Cancel upload"
+msgstr ""
+
 msgid "Slice ok."
 msgstr "Slice complete"
 
@@ -2992,6 +3053,9 @@ msgstr "Filament changes"
 
 msgid "Click to edit preset"
 msgstr "Click to edit preset"
+
+msgid "Connection"
+msgstr ""
 
 msgid "Bed type"
 msgstr "Bed type"
@@ -3160,6 +3224,9 @@ msgstr "The selected object couldn't be split."
 msgid "Another export job is running."
 msgstr "Another export job is running."
 
+msgid "Another export job is currently running."
+msgstr ""
+
 msgid "Select a new file"
 msgstr ""
 
@@ -3268,9 +3335,6 @@ msgstr "Save G-code file as:"
 msgid "Save Sliced file as:"
 msgstr "Save Sliced file as:"
 
-msgid "preparing, export 3mf failed!"
-msgstr ""
-
 msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
@@ -3342,6 +3406,12 @@ msgstr "Region selection"
 msgid "Second"
 msgstr "Second"
 
+msgid "Browse"
+msgstr ""
+
+msgid "Choose Download Directory"
+msgstr ""
+
 msgid "General Settings"
 msgstr "General Settings"
 
@@ -3371,6 +3441,12 @@ msgstr "Imperial"
 
 msgid "Units"
 msgstr "Units"
+
+msgid "Show \"Tip of the day\" notification after start"
+msgstr ""
+
+msgid "If enabled, useful hints are displayed at startup."
+msgstr ""
 
 msgid "User sync"
 msgstr "User sync"
@@ -3416,6 +3492,9 @@ msgstr "Auto-Backup"
 
 msgid "Backup interval"
 msgstr "Backup interval"
+
+msgid "Downloads"
+msgstr ""
 
 msgid "Home page and daily tips"
 msgstr "Home page and daily tips"
@@ -3664,9 +3743,6 @@ msgstr "Bambu Engineering Plate"
 msgid "Bamabu High Temperature Plate"
 msgstr "Bambu High Temperature Plate"
 
-msgid "Send print job to"
-msgstr "Send print job to"
-
 msgid "Refresh"
 msgstr "Refresh"
 
@@ -3675,9 +3751,6 @@ msgstr "Bed leveling"
 
 msgid "Flow Calibration"
 msgstr "Flow calibration"
-
-msgid "Send"
-msgstr "Send"
 
 msgid "send completed"
 msgstr "Send complete"
@@ -3746,6 +3819,9 @@ msgid ""
 "slot."
 msgstr ""
 
+msgid "An SD card needs to be inserted before printing."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "Preparing print job"
 
@@ -3791,12 +3867,13 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr ""
 
 msgid ""
-"Prime tower is required by timeplase. Are you sure you want to disable both "
-"of them?"
+"Prime tower is required by smooth timeplase. If whthout prime tower, there "
+"will be flaws on the model. Are you sure you want to disable prime tower?"
 msgstr ""
 
 msgid ""
-"Prime tower is required by timelapse. Do you want to enable both of them?"
+"Prime tower is required by smooth timelapse. If whthout prime tower, there "
+"will be flaws on the model. Do you want to enable prime tower?"
 msgstr ""
 
 msgid ""
@@ -3998,6 +4075,9 @@ msgstr "Filament end G-code"
 msgid "Printable space"
 msgstr "Printable space"
 
+msgid "Extruder Clearance"
+msgstr ""
+
 msgid "Accessory"
 msgstr "Accessory"
 
@@ -4021,6 +4101,9 @@ msgstr "Change filament G-code"
 
 msgid "Pause G-code"
 msgstr "Pause G-code"
+
+msgid "Template Custom G-code"
+msgstr ""
 
 msgid "Motion ability"
 msgstr "Motion ability"
@@ -4535,23 +4618,6 @@ msgstr "New version of Bambu Studio"
 msgid "Don't remind me of this version again"
 msgstr ""
 
-msgid ""
-"Are you sure you want to update? This will take about 10 minutes. Do not "
-"turn off the power while the printer is updating."
-msgstr ""
-
-msgid ""
-"An important update was detected and needs to be run before printing can "
-"continue. Do you want to update now? You can also update later from 'Upgrade "
-"firmware'."
-msgstr ""
-
-msgid ""
-"The firmware version is abnormal. Repairing and updating are required before "
-"printing. Do you want to update now? You can also update later on printer or "
-"update next time starting the studio."
-msgstr ""
-
 msgid "Model:"
 msgstr ""
 
@@ -4580,6 +4646,23 @@ msgid "Upgrading failed"
 msgstr ""
 
 msgid "Upgrading successful"
+msgstr ""
+
+msgid ""
+"Are you sure you want to update? This will take about 10 minutes. Do not "
+"turn off the power while the printer is updating."
+msgstr ""
+
+msgid ""
+"An important update was detected and needs to be run before printing can "
+"continue. Do you want to update now? You can also update later from 'Upgrade "
+"firmware'."
+msgstr ""
+
+msgid ""
+"The firmware version is abnormal. Repairing and updating are required before "
+"printing. Do you want to update now? You can also update later on printer or "
+"update next time starting the studio."
 msgstr ""
 
 msgid "Saving objects into the 3mf failed."
@@ -4821,19 +4904,14 @@ msgstr "write callback failed"
 
 #, boost-format
 msgid ""
-"%1% is too close to exclusion area, there will be collisions when printing."
+"%1% is too close to exclusion area, there may be collisions when printing."
 msgstr ""
-"%1% is too close to an exclusion area; there will be collisions when "
-"printing."
 
 #, boost-format
 msgid ""
 "\n"
-"%1% is too close to exclusion area, there will be collisions when printing."
+"%1% is too close to exclusion area, there may be collisions when printing."
 msgstr ""
-"\n"
-"%1% is too close to an exclusion area; there will be collisions when "
-"printing."
 
 #, boost-format
 msgid "%1% is too close to others, and collisions may be caused."
@@ -4843,13 +4921,12 @@ msgstr "%1% is too close to others, and collisions may be caused."
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% is too tall, and collisions will be caused."
 
-msgid " is too close to others, there will be collisions when printing.\n"
-msgstr " is too close to others, there will be collisions when printing.\n"
+msgid " is too close to others, there may be collisions when printing.\n"
+msgstr ""
 
 msgid ""
-" is too close to exclusion area, there will be collisions when printing.\n"
+" is too close to exclusion area, there may be collisions when printing.\n"
 msgstr ""
-" is too close to an exclusion area, there will be collisions when printing.\n"
 
 msgid "Prime Tower"
 msgstr "Prime Tower"
@@ -4997,23 +5074,84 @@ msgstr ""
 msgid "Printer preset names"
 msgstr "Printer preset names"
 
-msgid "Avoid crossing wall when travel"
-msgstr "Avoid walls when traveling"
+msgid "Hostname, IP or URL"
+msgstr ""
+
+msgid ""
+"Slic3r can upload G-code files to a printer host. This field should contain "
+"the hostname, IP address or URL of the printer host instance. Print host "
+"behind HAProxy with basic auth enabled can be accessed by putting the user "
+"name and password into the URL in the following format: https://username:"
+"password@your-octopi-address/"
+msgstr ""
+
+msgid "API Key / Password"
+msgstr ""
+
+msgid ""
+"Slic3r can upload G-code files to a printer host. This field should contain "
+"the API Key or the password required for authentication."
+msgstr ""
+
+msgid "Name of the printer"
+msgstr ""
+
+msgid "HTTPS CA File"
+msgstr ""
+
+msgid ""
+"Custom CA certificate file can be specified for HTTPS OctoPrint connections, "
+"in crt/pem format. If left blank, the default OS CA certificate repository "
+"is used."
+msgstr ""
+
+msgid "User"
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "Ignore HTTPS certificate revocation checks"
+msgstr ""
+
+msgid ""
+"Ignore HTTPS certificate revocation checks in case of missing or offline "
+"distribution points. One may want to enable this option for self signed "
+"certificates if connection fails."
+msgstr ""
+
+msgid "Names of presets related to the physical printer"
+msgstr ""
+
+msgid "Authorization Type"
+msgstr ""
+
+msgid "API key"
+msgstr ""
+
+msgid "HTTP digest"
+msgstr ""
+
+msgid "Avoid crossing wall"
+msgstr ""
 
 msgid "Detour and avoid to travel across wall which may cause blob on surface"
 msgstr ""
 "This detours to avoid traveling across walls, which may cause blobs on the "
 "surface"
 
-msgid "Max travel detour distance"
-msgstr "Max travel detour distance"
+msgid "Avoid crossing wall - Max detour length"
+msgstr ""
 
 msgid ""
 "Maximum detour distance for avoiding crossing wall. Don't detour if the "
-"detour distance is large than this value"
+"detour distance is large than this value. Detour length could be specified "
+"either as an absolute value or as percentage (for example 50%) of a direct "
+"travel path. Zero to disable"
 msgstr ""
-"Maximum detour distance for avoiding travel across walls. If the distance is "
-"larger than this value, there will be no detour."
+
+msgid "mm or %"
+msgstr ""
 
 msgid "Other layers"
 msgstr "Other layers"
@@ -5404,24 +5542,25 @@ msgid "Height to rod"
 msgstr "Height to rod"
 
 msgid ""
-"Height of the clearance cylinder around extruder. Used as input of auto-"
-"arrange to avoid collision when print object by object"
+"Distance of the nozzle tip to the lower rod. Used as input of auto-arranging "
+"to avoid collision when printing by object"
 msgstr ""
-"Height of the clearance cylinder around extruder: used as input for auto-"
-"arranging to avoid collisions when printing object by object"
 
 msgid "Height to lid"
 msgstr "Height to lid"
+
+msgid ""
+"Distance of the nozzle tip to the lid. Used as input of auto-arranging to "
+"avoid collision when printing by object"
+msgstr ""
 
 msgid "Radius"
 msgstr "Radius"
 
 msgid ""
-"Clearance radius around extruder. Used as input of auto-arrange to avoid "
-"collision when print object by object"
+"Clearance radius around extruder. Used as input of auto-arranging to avoid "
+"collision when printing by object"
 msgstr ""
-"Clearance radius around extruder: used as input for auto-arranging to avoid "
-"collisions when printing object by object"
 
 msgid "Extruder Color"
 msgstr "Extruder Color"
@@ -5623,6 +5762,9 @@ msgstr "Honeycomb"
 msgid "Adaptive Cubic"
 msgstr "Adaptive Cubic"
 
+msgid "Lightning"
+msgstr ""
+
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
@@ -5763,6 +5905,9 @@ msgstr ""
 "The metallic material of the nozzle: This determines the abrasive resistance "
 "of the nozzle and what kind of filament can be printed."
 
+msgid "Undefine"
+msgstr ""
+
 msgid "Hardened steel"
 msgstr "Hardened steel"
 
@@ -5868,6 +6013,14 @@ msgid ""
 msgstr ""
 "Whether the machine supports silent mode in which machine uses lower "
 "acceleration to print more quietly"
+
+msgid ""
+"This G-code will be used as a code for the pause print. User can insert "
+"pause G-code in gcode viewer"
+msgstr ""
+
+msgid "This G-code will be used as a custom code"
+msgstr ""
 
 msgid "Maximum speed X"
 msgstr "Maximum speed X"
@@ -6027,6 +6180,14 @@ msgstr "Nozzle diameter"
 
 msgid "Diameter of nozzle"
 msgstr "The diameter of the nozzle"
+
+msgid "Host Type"
+msgstr ""
+
+msgid ""
+"Slic3r can upload G-code files to a printer host. This field must contain "
+"the kind of the host."
+msgstr ""
 
 msgid "Nozzle volume"
 msgstr "Nozzle volume"
@@ -6817,10 +6978,6 @@ msgstr "Slicing mesh"
 msgid " Object:"
 msgstr " Object:"
 
-#, boost-format
-msgid "Error at line %1%:\n"
-msgstr "Error at line %1%:\n"
-
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
 msgstr "Support: generate toolpath at layer %d"
@@ -6851,6 +7008,71 @@ msgstr "Support: fix holes at layer %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
+
+#, c-format, boost-format
+#~ msgid "Initialize failed [%d]!"
+#~ msgstr "Initalization failed [%d]!"
+
+#~ msgid "Send print job to"
+#~ msgstr "Send print job to"
+
+#, boost-format
+#~ msgid ""
+#~ "%1% is too close to exclusion area, there will be collisions when "
+#~ "printing."
+#~ msgstr ""
+#~ "%1% is too close to an exclusion area; there will be collisions when "
+#~ "printing."
+
+#, boost-format
+#~ msgid ""
+#~ "\n"
+#~ "%1% is too close to exclusion area, there will be collisions when "
+#~ "printing."
+#~ msgstr ""
+#~ "\n"
+#~ "%1% is too close to an exclusion area; there will be collisions when "
+#~ "printing."
+
+#~ msgid " is too close to others, there will be collisions when printing.\n"
+#~ msgstr " is too close to others, there will be collisions when printing.\n"
+
+#~ msgid ""
+#~ " is too close to exclusion area, there will be collisions when printing.\n"
+#~ msgstr ""
+#~ " is too close to an exclusion area, there will be collisions when "
+#~ "printing.\n"
+
+#~ msgid "Avoid crossing wall when travel"
+#~ msgstr "Avoid walls when traveling"
+
+#~ msgid "Max travel detour distance"
+#~ msgstr "Max travel detour distance"
+
+#~ msgid ""
+#~ "Maximum detour distance for avoiding crossing wall. Don't detour if the "
+#~ "detour distance is large than this value"
+#~ msgstr ""
+#~ "Maximum detour distance for avoiding travel across walls. If the distance "
+#~ "is larger than this value, there will be no detour."
+
+#~ msgid ""
+#~ "Height of the clearance cylinder around extruder. Used as input of auto-"
+#~ "arrange to avoid collision when print object by object"
+#~ msgstr ""
+#~ "Height of the clearance cylinder around extruder: used as input for auto-"
+#~ "arranging to avoid collisions when printing object by object"
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used as input of auto-arrange to avoid "
+#~ "collision when print object by object"
+#~ msgstr ""
+#~ "Clearance radius around extruder: used as input for auto-arranging to "
+#~ "avoid collisions when printing object by object"
+
+#, boost-format
+#~ msgid "Error at line %1%:\n"
+#~ msgstr "Error at line %1%:\n"
 
 #~ msgid "Reduce Triangles"
 #~ msgstr "Reduce Triangles"

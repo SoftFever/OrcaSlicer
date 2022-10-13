@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-27 16:25+0800\n"
+"POT-Creation-Date: 2022-10-13 20:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -429,6 +429,9 @@ msgstr ""
 msgid "V"
 msgstr "V"
 
+msgid "Internal Version"
+msgstr ""
+
 msgid "Version"
 msgstr "Versión"
 
@@ -569,6 +572,15 @@ msgstr "Idioma"
 
 msgid "*"
 msgstr "*"
+
+msgid "The uploads are still ongoing"
+msgstr ""
+
+msgid "Stop them and continue anyway?"
+msgstr ""
+
+msgid "Ongoing uploads"
+msgstr ""
 
 msgid "Select a G-code file:"
 msgstr "Seleccione un archivo de código G:"
@@ -1534,6 +1546,16 @@ msgstr ""
 msgid "Succeed to export G-code to %1%"
 msgstr "Exportación de código G a %1% con éxito"
 
+msgid "Running post-processing scripts"
+msgstr ""
+
+msgid "Copying of the temporary G-code to the output G-code failed"
+msgstr ""
+
+#, boost-format
+msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
+msgstr ""
+
 msgid "Origin"
 msgstr "Origen"
 
@@ -2158,6 +2180,12 @@ msgstr "Barra de herramientas de pintura"
 msgid "Explosion Ratio"
 msgstr "Ratio de Explosión"
 
+msgid "Section View"
+msgstr ""
+
+msgid "Assemble Control"
+msgstr ""
+
 msgid "Total Volume:"
 msgstr "Volumen total:"
 
@@ -2264,6 +2292,9 @@ msgstr "Proyecto"
 msgid "Slice"
 msgstr "Laminar"
 
+msgid "Send and Print"
+msgstr ""
+
 msgid "Slice all"
 msgstr "Laminar todo"
 
@@ -2272,6 +2303,12 @@ msgstr "Laminar placa"
 
 msgid "Print all"
 msgstr "Imprimir todo"
+
+msgid "Export G-code file"
+msgstr ""
+
+msgid "Send"
+msgstr "Enviar"
 
 msgid "Export sliced file"
 msgstr "Exportar archivo rebanado"
@@ -2297,6 +2334,9 @@ msgstr "Comprobar Actualicaciones"
 #, c-format, boost-format
 msgid "&About %s"
 msgstr "&Acerca de %s"
+
+msgid "Show Tip of the Day"
+msgstr ""
 
 msgid "Open Network Test"
 msgstr ""
@@ -2583,18 +2623,30 @@ msgstr "Sincronización"
 msgid "Initialize failed (No Device)!"
 msgstr "¡Inicialización fallida (No hay dispositivo)!"
 
+msgid "Initialize failed (No Camera Device)!"
+msgstr ""
+
 msgid "Initializing..."
 msgstr "Iniciando..."
 
 msgid "Loading..."
 msgstr "Cargando..."
 
-msgid "Initialize failed (Not supported)!"
+msgid "Initialize failed (Not supported with LAN-only mode)!"
+msgstr ""
+
+msgid "Initialize failed (Not accessible in LAN-only mode)!"
+msgstr ""
+
+msgid "Initialize failed (Not supported without remote video tunnel)!"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Initialize failed [%d]!"
-msgstr "¡Ha fallado la inicialización [%d]!"
+msgid "Initialize failed (%s)!"
+msgstr ""
+
+msgid "Network unreachable"
+msgstr ""
 
 msgid "Stopped."
 msgstr "Detenido."
@@ -2642,8 +2694,8 @@ msgstr "Descargar"
 msgid "Download selected files from printer."
 msgstr ""
 
-msgid "Management"
-msgstr "Management"
+msgid "Select"
+msgstr ""
 
 msgid "Batch manage files."
 msgstr ""
@@ -2667,17 +2719,14 @@ msgstr "Loading file list..."
 msgid "No files"
 msgstr "No files"
 
-msgid "Choose save directory"
-msgstr ""
-
 msgid "Download waiting..."
 msgstr ""
 
 msgid "Retry"
 msgstr ""
 
-msgid "Open"
-msgstr "Open"
+msgid "Open Folder"
+msgstr ""
 
 msgid "Download finished"
 msgstr ""
@@ -2881,6 +2930,18 @@ msgid_plural "%1$d Objects have color painting."
 msgstr[0] "%1$d El objeto tiene pintura de color."
 msgstr[1] "%1$d Los objetos tienen pintura de color."
 
+msgid "ERROR"
+msgstr ""
+
+msgid "CANCELED"
+msgstr ""
+
+msgid "COMPLETED"
+msgstr ""
+
+msgid "Cancel upload"
+msgstr ""
+
 msgid "Slice ok."
 msgstr "Rebanado correcto."
 
@@ -3034,6 +3095,9 @@ msgstr "Cambios de filamento"
 
 msgid "Click to edit preset"
 msgstr "Clic para cambiar el ajuste inicial"
+
+msgid "Connection"
+msgstr ""
 
 msgid "Bed type"
 msgstr "Tipo de cama"
@@ -3207,6 +3271,9 @@ msgstr "El objeto seleccionado no ha podido ser dividido."
 msgid "Another export job is running."
 msgstr "Otro trabajo de exportación está en marcha."
 
+msgid "Another export job is currently running."
+msgstr ""
+
 msgid "Select a new file"
 msgstr ""
 
@@ -3316,9 +3383,6 @@ msgstr "Guardar archivo Código G como:"
 msgid "Save Sliced file as:"
 msgstr "Guardar el archivo rebanado como:"
 
-msgid "preparing, export 3mf failed!"
-msgstr ""
-
 msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
@@ -3396,6 +3460,12 @@ msgstr "Selección de región"
 msgid "Second"
 msgstr "Segundo"
 
+msgid "Browse"
+msgstr ""
+
+msgid "Choose Download Directory"
+msgstr ""
+
 msgid "General Settings"
 msgstr "Configuración General"
 
@@ -3425,6 +3495,12 @@ msgstr "Imperial"
 
 msgid "Units"
 msgstr "Unidades"
+
+msgid "Show \"Tip of the day\" notification after start"
+msgstr ""
+
+msgid "If enabled, useful hints are displayed at startup."
+msgstr ""
 
 msgid "User sync"
 msgstr "Sincronización del usuario"
@@ -3472,6 +3548,9 @@ msgstr "Copia de seguridad automática"
 
 msgid "Backup interval"
 msgstr "Intervalo de copia de seguridad"
+
+msgid "Downloads"
+msgstr ""
 
 msgid "Home page and daily tips"
 msgstr "Página de inicio y consejos diarios"
@@ -3724,9 +3803,6 @@ msgstr "Placa de Ingenieria Bambu"
 msgid "Bamabu High Temperature Plate"
 msgstr "Placa de alta temperatura Bambu"
 
-msgid "Send print job to"
-msgstr "Enviar el trabajo de impresión a"
-
 msgid "Refresh"
 msgstr "Actualizar"
 
@@ -3735,9 +3811,6 @@ msgstr "Nivelación de la cama"
 
 msgid "Flow Calibration"
 msgstr "Calibración del flujo"
-
-msgid "Send"
-msgstr "Enviar"
 
 msgid "send completed"
 msgstr "envío completo"
@@ -3810,6 +3883,9 @@ msgid ""
 "slot."
 msgstr ""
 
+msgid "An SD card needs to be inserted before printing."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "Preparando el trabajo de impresión"
 
@@ -3857,12 +3933,13 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr ""
 
 msgid ""
-"Prime tower is required by timeplase. Are you sure you want to disable both "
-"of them?"
+"Prime tower is required by smooth timeplase. If whthout prime tower, there "
+"will be flaws on the model. Are you sure you want to disable prime tower?"
 msgstr ""
 
 msgid ""
-"Prime tower is required by timelapse. Do you want to enable both of them?"
+"Prime tower is required by smooth timelapse. If whthout prime tower, there "
+"will be flaws on the model. Do you want to enable prime tower?"
 msgstr ""
 
 msgid ""
@@ -4071,6 +4148,9 @@ msgstr "Final del Código G de filamento "
 msgid "Printable space"
 msgstr "Espacio imprimible"
 
+msgid "Extruder Clearance"
+msgstr ""
+
 msgid "Accessory"
 msgstr "Accesorio"
 
@@ -4094,6 +4174,9 @@ msgstr "Cambiar el código G del filamento"
 
 msgid "Pause G-code"
 msgstr "Código G de pausa"
+
+msgid "Template Custom G-code"
+msgstr ""
 
 msgid "Motion ability"
 msgstr "Capacidad de movimiento"
@@ -4614,23 +4697,6 @@ msgstr "Nueva versión de Bambu Studio"
 msgid "Don't remind me of this version again"
 msgstr ""
 
-msgid ""
-"Are you sure you want to update? This will take about 10 minutes. Do not "
-"turn off the power while the printer is updating."
-msgstr ""
-
-msgid ""
-"An important update was detected and needs to be run before printing can "
-"continue. Do you want to update now? You can also update later from 'Upgrade "
-"firmware'."
-msgstr ""
-
-msgid ""
-"The firmware version is abnormal. Repairing and updating are required before "
-"printing. Do you want to update now? You can also update later on printer or "
-"update next time starting the studio."
-msgstr ""
-
 msgid "Model:"
 msgstr ""
 
@@ -4659,6 +4725,23 @@ msgid "Upgrading failed"
 msgstr ""
 
 msgid "Upgrading successful"
+msgstr ""
+
+msgid ""
+"Are you sure you want to update? This will take about 10 minutes. Do not "
+"turn off the power while the printer is updating."
+msgstr ""
+
+msgid ""
+"An important update was detected and needs to be run before printing can "
+"continue. Do you want to update now? You can also update later from 'Upgrade "
+"firmware'."
+msgstr ""
+
+msgid ""
+"The firmware version is abnormal. Repairing and updating are required before "
+"printing. Do you want to update now? You can also update later on printer or "
+"update next time starting the studio."
 msgstr ""
 
 msgid "Saving objects into the 3mf failed."
@@ -4907,17 +4990,14 @@ msgstr "La llamada de recuperación de la escritura ha fallado"
 
 #, boost-format
 msgid ""
-"%1% is too close to exclusion area, there will be collisions when printing."
+"%1% is too close to exclusion area, there may be collisions when printing."
 msgstr ""
-"%1% está demasiado cerca del área de exclusión, habrá colisiones al imprimir."
 
 #, boost-format
 msgid ""
 "\n"
-"%1% is too close to exclusion area, there will be collisions when printing."
+"%1% is too close to exclusion area, there may be collisions when printing."
 msgstr ""
-"\n"
-"%1% está demasiado cerca del área de exclusión, habrá colisiones al imprimir."
 
 #, boost-format
 msgid "%1% is too close to others, and collisions may be caused."
@@ -4927,13 +5007,12 @@ msgstr "%1% está demasiado cerca de otros, y pueden producirse colisiones."
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% es demasiado alto, y se producirán colisiones."
 
-msgid " is too close to others, there will be collisions when printing.\n"
-msgstr " está demasiado cerca de otros, habrá colisiones al imprimir.\n"
+msgid " is too close to others, there may be collisions when printing.\n"
+msgstr ""
 
 msgid ""
-" is too close to exclusion area, there will be collisions when printing.\n"
+" is too close to exclusion area, there may be collisions when printing.\n"
 msgstr ""
-" está demasiado cerca del área de exclusión, habrá colisiones al imprimir.\n"
 
 msgid "Prime Tower"
 msgstr "Torre principal"
@@ -5085,23 +5164,84 @@ msgstr "Altura máxima imprimible limitada por el mecanismo de la impresora"
 msgid "Printer preset names"
 msgstr "Nombres de ajustes de la impresora"
 
-msgid "Avoid crossing wall when travel"
-msgstr "Evitar cruzar el muro en los desplazamientos"
+msgid "Hostname, IP or URL"
+msgstr ""
+
+msgid ""
+"Slic3r can upload G-code files to a printer host. This field should contain "
+"the hostname, IP address or URL of the printer host instance. Print host "
+"behind HAProxy with basic auth enabled can be accessed by putting the user "
+"name and password into the URL in the following format: https://username:"
+"password@your-octopi-address/"
+msgstr ""
+
+msgid "API Key / Password"
+msgstr ""
+
+msgid ""
+"Slic3r can upload G-code files to a printer host. This field should contain "
+"the API Key or the password required for authentication."
+msgstr ""
+
+msgid "Name of the printer"
+msgstr ""
+
+msgid "HTTPS CA File"
+msgstr ""
+
+msgid ""
+"Custom CA certificate file can be specified for HTTPS OctoPrint connections, "
+"in crt/pem format. If left blank, the default OS CA certificate repository "
+"is used."
+msgstr ""
+
+msgid "User"
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "Ignore HTTPS certificate revocation checks"
+msgstr ""
+
+msgid ""
+"Ignore HTTPS certificate revocation checks in case of missing or offline "
+"distribution points. One may want to enable this option for self signed "
+"certificates if connection fails."
+msgstr ""
+
+msgid "Names of presets related to the physical printer"
+msgstr ""
+
+msgid "Authorization Type"
+msgstr ""
+
+msgid "API key"
+msgstr ""
+
+msgid "HTTP digest"
+msgstr ""
+
+msgid "Avoid crossing wall"
+msgstr ""
 
 msgid "Detour and avoid to travel across wall which may cause blob on surface"
 msgstr ""
 "Desvíese y evite atravesar el muro, ya que puede provocar una mancha en la "
 "superficie"
 
-msgid "Max travel detour distance"
-msgstr "Distancia máxima de desvío de viaje"
+msgid "Avoid crossing wall - Max detour length"
+msgstr ""
 
 msgid ""
 "Maximum detour distance for avoiding crossing wall. Don't detour if the "
-"detour distance is large than this value"
+"detour distance is large than this value. Detour length could be specified "
+"either as an absolute value or as percentage (for example 50%) of a direct "
+"travel path. Zero to disable"
 msgstr ""
-"Distancia máxima de desvío para evitar cruzar el muro. No se desvía si la "
-"distancia de desvío es mayor que este valor"
+
+msgid "mm or %"
+msgstr ""
 
 msgid "Other layers"
 msgstr "Otras capas"
@@ -5502,25 +5642,25 @@ msgid "Height to rod"
 msgstr "Altura a la barra"
 
 msgid ""
-"Height of the clearance cylinder around extruder. Used as input of auto-"
-"arrange to avoid collision when print object by object"
+"Distance of the nozzle tip to the lower rod. Used as input of auto-arranging "
+"to avoid collision when printing by object"
 msgstr ""
-"Altura del cilindro de separación alrededor del extrusor. Se utiliza como "
-"entrada de auto-organización para evitar la colisión cuando se imprime "
-"objeto por objeto."
 
 msgid "Height to lid"
 msgstr "Altura hasta la tapa"
+
+msgid ""
+"Distance of the nozzle tip to the lid. Used as input of auto-arranging to "
+"avoid collision when printing by object"
+msgstr ""
 
 msgid "Radius"
 msgstr "Radio"
 
 msgid ""
-"Clearance radius around extruder. Used as input of auto-arrange to avoid "
-"collision when print object by object"
+"Clearance radius around extruder. Used as input of auto-arranging to avoid "
+"collision when printing by object"
 msgstr ""
-"Radio de separación alrededor del extrusor. Se utiliza como entrada de auto-"
-"organización para evitar la colisión cuando se imprime objeto por objeto"
 
 msgid "Extruder Color"
 msgstr "Color del extrusor"
@@ -5726,6 +5866,9 @@ msgstr "Panal de abeja"
 msgid "Adaptive Cubic"
 msgstr "Cúbico Adaptativo"
 
+msgid "Lightning"
+msgstr ""
+
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
@@ -5867,6 +6010,9 @@ msgstr ""
 "El material metálico de la boquilla. Esto determina la resistencia a la "
 "abrasión de la boquilla, y qué tipo de filamento se puede imprimir"
 
+msgid "Undefine"
+msgstr ""
+
 msgid "Hardened steel"
 msgstr "Acero endurecido"
 
@@ -5977,6 +6123,14 @@ msgid ""
 msgstr ""
 "Si la máquina admite el modo silencioso en el que la máquina utiliza una "
 "menor aceleración para imprimir"
+
+msgid ""
+"This G-code will be used as a code for the pause print. User can insert "
+"pause G-code in gcode viewer"
+msgstr ""
+
+msgid "This G-code will be used as a custom code"
+msgstr ""
 
 msgid "Maximum speed X"
 msgstr "Velocidad máxima X"
@@ -6138,6 +6292,14 @@ msgstr "Diámetro de la boquilla"
 
 msgid "Diameter of nozzle"
 msgstr "Diámetro de la boquilla"
+
+msgid "Host Type"
+msgstr ""
+
+msgid ""
+"Slic3r can upload G-code files to a printer host. This field must contain "
+"the kind of the host."
+msgstr ""
 
 msgid "Nozzle volume"
 msgstr "Tamaño de la boquilla"
@@ -6946,10 +7108,6 @@ msgstr "Malla de corte"
 msgid " Object:"
 msgstr "Objeto"
 
-#, boost-format
-msgid "Error at line %1%:\n"
-msgstr "Error en la línea %1%:\n"
-
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
 msgstr "Soporte: generar trayectoria en la capa %d"
@@ -6980,6 +7138,79 @@ msgstr "Soporte: arreglar huecos en la capa %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Soporte: propagar ramas en la capa %d"
+
+#, c-format, boost-format
+#~ msgid "Initialize failed [%d]!"
+#~ msgstr "¡Ha fallado la inicialización [%d]!"
+
+#~ msgid "Management"
+#~ msgstr "Management"
+
+#~ msgid "Open"
+#~ msgstr "Open"
+
+#~ msgid "Send print job to"
+#~ msgstr "Enviar el trabajo de impresión a"
+
+#, boost-format
+#~ msgid ""
+#~ "%1% is too close to exclusion area, there will be collisions when "
+#~ "printing."
+#~ msgstr ""
+#~ "%1% está demasiado cerca del área de exclusión, habrá colisiones al "
+#~ "imprimir."
+
+#, boost-format
+#~ msgid ""
+#~ "\n"
+#~ "%1% is too close to exclusion area, there will be collisions when "
+#~ "printing."
+#~ msgstr ""
+#~ "\n"
+#~ "%1% está demasiado cerca del área de exclusión, habrá colisiones al "
+#~ "imprimir."
+
+#~ msgid " is too close to others, there will be collisions when printing.\n"
+#~ msgstr " está demasiado cerca de otros, habrá colisiones al imprimir.\n"
+
+#~ msgid ""
+#~ " is too close to exclusion area, there will be collisions when printing.\n"
+#~ msgstr ""
+#~ " está demasiado cerca del área de exclusión, habrá colisiones al "
+#~ "imprimir.\n"
+
+#~ msgid "Avoid crossing wall when travel"
+#~ msgstr "Evitar cruzar el muro en los desplazamientos"
+
+#~ msgid "Max travel detour distance"
+#~ msgstr "Distancia máxima de desvío de viaje"
+
+#~ msgid ""
+#~ "Maximum detour distance for avoiding crossing wall. Don't detour if the "
+#~ "detour distance is large than this value"
+#~ msgstr ""
+#~ "Distancia máxima de desvío para evitar cruzar el muro. No se desvía si la "
+#~ "distancia de desvío es mayor que este valor"
+
+#~ msgid ""
+#~ "Height of the clearance cylinder around extruder. Used as input of auto-"
+#~ "arrange to avoid collision when print object by object"
+#~ msgstr ""
+#~ "Altura del cilindro de separación alrededor del extrusor. Se utiliza como "
+#~ "entrada de auto-organización para evitar la colisión cuando se imprime "
+#~ "objeto por objeto."
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used as input of auto-arrange to avoid "
+#~ "collision when print object by object"
+#~ msgstr ""
+#~ "Radio de separación alrededor del extrusor. Se utiliza como entrada de "
+#~ "auto-organización para evitar la colisión cuando se imprime objeto por "
+#~ "objeto"
+
+#, boost-format
+#~ msgid "Error at line %1%:\n"
+#~ msgstr "Error en la línea %1%:\n"
 
 #~ msgid "Reduce Triangles"
 #~ msgstr "Reducir los triángulos"
