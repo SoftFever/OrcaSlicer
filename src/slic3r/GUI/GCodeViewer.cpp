@@ -3085,8 +3085,8 @@ void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_p
 
         const double max_z = print.objects()[0]->model_object()->get_model()->bounding_box().max(2);
         const PrintConfig& config = print.config();
-        if (print.enable_timelapse_print()
-            || (extruders_count > 1 && config.enable_prime_tower && (config.print_sequence == PrintSequence::ByLayer))) {
+        if (config.enable_prime_tower && 
+            (print.enable_timelapse_print() || (extruders_count > 1 && (config.print_sequence == PrintSequence::ByLayer)))) {
             const float depth = print.wipe_tower_data(extruders_count).depth;
             const float brim_width = print.wipe_tower_data(extruders_count).brim_width;
 

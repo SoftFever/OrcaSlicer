@@ -1380,19 +1380,14 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         auto timelapse_type = m_config->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
         bool timelapse_enabled = timelapse_type->value == TimelapseType::tlSmooth;
         if (!boost::any_cast<bool>(value) && timelapse_enabled) {
-            MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required by timeplase. Are you sure you want to disable both of them?"),
+            MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required by smooth timeplase. If whthout prime tower, there will be flaws on the model. Are you sure you want to disable prime tower?"),
                               _L("Warning"), wxICON_WARNING | wxYES | wxNO);
-            if (dlg.ShowModal() == wxID_YES) {
-                DynamicPrintConfig new_conf = *m_config;
-                new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(TimelapseType::tlNone));
-                m_config_manipulation.apply(m_config, &new_conf);
-                wxGetApp().plater()->update();
-            }
-            else {
+            if (dlg.ShowModal() == wxID_NO) {
                 DynamicPrintConfig new_conf = *m_config;
                 new_conf.set_key_value("enable_prime_tower", new ConfigOptionBool(true));
                 m_config_manipulation.apply(m_config, &new_conf);
             }
+            wxGetApp().plater()->update();
         }
         update_wiping_button_visibility();
     }
@@ -1401,18 +1396,13 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "timelapse_type") {
         bool wipe_tower_enabled = m_config->option<ConfigOptionBool>("enable_prime_tower")->value;
         if (!wipe_tower_enabled && boost::any_cast<int>(value) == int(TimelapseType::tlSmooth)) {
-            MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required by timelapse. Do you want to enable both of them?"),
+            MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required by smooth timelapse. If whthout prime tower, there will be flaws on the model. Do you want to enable prime tower?"),
                               _L("Warning"), wxICON_WARNING | wxYES | wxNO);
             if (dlg.ShowModal() == wxID_YES) {
                 DynamicPrintConfig new_conf = *m_config;
                 new_conf.set_key_value("enable_prime_tower", new ConfigOptionBool(true));
                 m_config_manipulation.apply(m_config, &new_conf);
                 wxGetApp().plater()->update();
-            }
-            else {
-                DynamicPrintConfig new_conf = *m_config;
-                new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(TimelapseType::tlNone));
-                m_config_manipulation.apply(m_config, &new_conf);
             }
         } else {
             wxGetApp().plater()->update();

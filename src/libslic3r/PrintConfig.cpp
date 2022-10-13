@@ -3728,10 +3728,7 @@ void DynamicPrintConfig::normalize_fdm(int used_filaments)
 
         ConfigOptionEnum<TimelapseType>* timelapse_opt = this->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
         bool is_smooth_timelapse = timelapse_opt != nullptr && timelapse_opt->value == TimelapseType::tlSmooth;
-        if (is_smooth_timelapse) {
-            ept_opt->value = true;
-        }
-        else if (used_filaments == 1 || ps_opt->value == PrintSequence::ByObject) {
+        if (!is_smooth_timelapse && (used_filaments == 1 || ps_opt->value == PrintSequence::ByObject)) {
             ept_opt->value = false;
         }
 

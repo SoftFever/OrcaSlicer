@@ -1730,13 +1730,13 @@ void Print::finalize_first_layer_convex_hull()
 // Wipe tower support.
 bool Print::has_wipe_tower() const
 {
-    if (enable_timelapse_print())
-        return true;
+    if (m_config.enable_prime_tower.value == true) {
+        if (enable_timelapse_print())
+            return true;
 
-    return
-        ! m_config.spiral_mode.value &&
-        m_config.enable_prime_tower.value &&
-        m_config.filament_diameter.values.size() > 1;
+        return !m_config.spiral_mode.value && m_config.filament_diameter.values.size() > 1;
+    }
+    return false;
 }
 
 const WipeTowerData& Print::wipe_tower_data(size_t filaments_cnt) const
