@@ -79,7 +79,7 @@ static const float g_min_purge_volume = 100.f;
 static const float g_purge_volume_one_time = 135.f;
 static const int g_max_flush_count = 4;
 
-bool GCode::gcode_label_objects = false;
+bool GCode::gcode_label_objects = true;
 
 // Only add a newline in case the current G-code does not end with a newline.
     static inline void check_add_eol(std::string& gcode)
