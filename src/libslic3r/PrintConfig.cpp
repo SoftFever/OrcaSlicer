@@ -1255,6 +1255,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(500));
 
+    def = this->add("outer_wall_acceleration", coFloat);
+    def->label = L("Outer wall");
+    def->tooltip = L("Acceleration of outer wall. Using a lower value can improve quality");
+    def->sidetext = L("mm/s²");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(500));
+
     def = this->add("initial_layer_acceleration", coFloat);
     def->label = L("Initial layer");
     def->tooltip = L("Acceleration of initial layer. Using a lower value can improve build plate adhensive");
@@ -3997,7 +4005,7 @@ std::string validate(const FullPrintConfig &cfg)
     // config before exporting, leaving this check in would mean that config would be rejected before export
     // (although both the UI and the backend handle it).
     // --default-acceleration
-    //if ((cfg.perimeter_acceleration != 0. || cfg.infill_acceleration != 0. || cfg.bridge_acceleration != 0. || cfg.initial_layer_acceleration != 0.) &&
+    //if ((cfg.outer_wall_acceleration != 0. || cfg.infill_acceleration != 0. || cfg.bridge_acceleration != 0. || cfg.initial_layer_acceleration != 0.) &&
     //    cfg.default_acceleration == 0.)
     //    return "Invalid zero value for --default-acceleration when using other acceleration settings";
 

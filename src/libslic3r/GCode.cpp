@@ -1465,9 +1465,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // Emit machine envelope limits for the Marlin firmware.
     this->print_machine_envelope(file, print);
 
-    //BBS: emit printing accelerate if has non-zero value
+    //BBS: emit outer wall accelerate if has non-zero value
     if (m_config.default_acceleration.value > 0) {
-        float acceleration = m_config.default_acceleration.value;
+        float acceleration = m_config.outer_wall_acceleration.value > 0 ?
+                             m_config.outer_wall_acceleration.value : m_config.default_acceleration.value;
         file.write(m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5)));
     }
 
@@ -3538,9 +3539,12 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             acceleration = m_config.first_layer_acceleration_over_raft.value;
         } else if (m_config.bridge_acceleration.value > 0 && is_bridge(path.role())) {
             acceleration = m_config.bridge_acceleration.value;
-        } else if (m_config.perimeter_acceleration.value > 0 && is_perimeter(path.role())) {
-            acceleration = m_config.perimeter_acceleration.value;
 #endif
+        } else if (m_config.outer_wall_acceleration.value > 0
+            //BBS: FIXME, in fact,we only need to set acceleration for outer wall. But we don't know
+            //whether the overhang perimeter is outer or not. So using specific acceleration together.
+            && (path.role() == erExternalPerimeter || path.role() == erOverhangPerimeter)) {
+            acceleration = m_config.outer_wall_acceleration.value;
         } else if (m_config.top_surface_acceleration.value > 0 && is_top_surface(path.role())) {
             acceleration = m_config.top_surface_acceleration.value;
         } else {
