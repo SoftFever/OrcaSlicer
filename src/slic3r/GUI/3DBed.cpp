@@ -251,7 +251,9 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
     m_extended_bounding_box = this->calc_extended_bounding_box(false);
 
     //BBS: add part plate logic
-/*#if 0
+    
+    //BBS add default bed
+#if 1
     ExPolygon poly{ Polygon::new_scale(printable_area) };
 #else
     ExPolygon poly;
@@ -265,7 +267,7 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
     const BoundingBox& bed_bbox = poly.contour.bounding_box();
     calc_gridlines(poly, bed_bbox);
 
-    m_polygon = offset(poly.contour, (float)bed_bbox.radius() * 1.7f, jtRound, scale_(0.5))[0];*/
+    m_polygon = offset(poly.contour, (float)bed_bbox.radius() * 1.7f, jtRound, scale_(0.5))[0];
 
     if (with_reset) {
         this->release_VBOs();
@@ -375,7 +377,7 @@ BoundingBoxf3 Bed3D::calc_extended_bounding_box(bool consider_model_offset) cons
     return out;
 }
 
-/*void Bed3D::calc_triangles(const ExPolygon& poly)
+void Bed3D::calc_triangles(const ExPolygon& poly)
 {
     if (! m_triangles.set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z))
         BOOST_LOG_TRIVIAL(error) << "Unable to create bed triangles";
@@ -406,7 +408,7 @@ void Bed3D::calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox)
 
     if (!m_gridlines.set_from_lines(gridlines, GROUND_Z))
         BOOST_LOG_TRIVIAL(error) << "Unable to create bed grid lines\n";
-}*/
+}
 
 // Try to match the print bed shape with the shape of an active profile. If such a match exists,
 // return the print bed model.
@@ -611,6 +613,36 @@ void Bed3D::update_model_offset() const
     const_cast<BoundingBoxf3&>(m_extended_bounding_box) = calc_extended_bounding_box();
 }
 
+GeometryBuffer Bed3D::update_bed_triangles() const
+{
+    GeometryBuffer new_triangles;
+    Vec3d shift = m_extended_bounding_box.center();
+    shift(2) = -0.03;
+    Vec3d* model_offset_ptr = const_cast<Vec3d*>(&m_model_offset);
+    *model_offset_ptr = shift;
+    //BBS: TODO: hack for default bed
+    BoundingBoxf3 build_volume;
+
+    if (!m_build_volume.valid()) return new_triangles;
+
+    (*model_offset_ptr)(0) = m_build_volume.bounding_volume2d().min.x();
+    (*model_offset_ptr)(1) = m_build_volume.bounding_volume2d().min.y();
+    (*model_offset_ptr)(2) = -0.41 + GROUND_Z;
+
+    std::vector<Vec2d> new_bed_shape;
+    for (auto point: m_bed_shape) {
+        Vec2d new_point(point.x() + model_offset_ptr->x(), point.y() + model_offset_ptr->y());
+        new_bed_shape.push_back(new_point);
+    }
+    ExPolygon poly{ Polygon::new_scale(new_bed_shape) };
+    if (!new_triangles.set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z)) {
+        ;
+    }
+    // update extended bounding box
+    const_cast<BoundingBoxf3&>(m_extended_bounding_box) = calc_extended_bounding_box();
+    return new_triangles;
+}
+
 void Bed3D::render_model() const
 {
     if (m_model_filename.empty())
@@ -654,9 +686,11 @@ void Bed3D::render_custom(GLCanvas3D& canvas, bool bottom) const
 
 void Bed3D::render_default(bool bottom) const
 {
-    /*const_cast<GLTexture*>(&m_texture)->reset();
+    bool picking = false;
+    const_cast<GLTexture*>(&m_texture)->reset();
 
     unsigned int triangles_vcount = m_triangles.get_vertices_count();
+    GeometryBuffer default_triangles = update_bed_triangles();
     if (triangles_vcount > 0) {
         bool has_model = !m_model.get_filename().empty();
 
@@ -671,7 +705,7 @@ void Bed3D::render_default(bool bottom) const
             glsafe(::glDepthMask(GL_FALSE));
             glsafe(::glColor4fv(picking ? PICKING_MODEL_COLOR.data() : DEFAULT_MODEL_COLOR.data()));
             glsafe(::glNormal3d(0.0f, 0.0f, 1.0f));
-            glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_triangles.get_vertices_data()));
+            glsafe(::glVertexPointer(3, GL_FLOAT, default_triangles.get_vertex_data_size(), (GLvoid*)default_triangles.get_vertices_data()));
             glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount));
             glsafe(::glDepthMask(GL_TRUE));
         }
@@ -683,14 +717,14 @@ void Bed3D::render_default(bool bottom) const
                 glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 1.0f));
             else
                 glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 0.6f));
-            glsafe(::glVertexPointer(3, GL_FLOAT, m_triangles.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data()));
+            glsafe(::glVertexPointer(3, GL_FLOAT, default_triangles.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data()));
             glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_gridlines.get_vertices_count()));
         }
 
         glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
 
         glsafe(::glDisable(GL_BLEND));
-    }*/
+    }
 }
 
 void Bed3D::release_VBOs()

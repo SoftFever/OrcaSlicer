@@ -1,7 +1,7 @@
 #ifndef slic3r_3DBed_hpp_
 #define slic3r_3DBed_hpp_
 
-//#include "GLTexture.hpp"
+#include "GLTexture.hpp"
 #include "3DScene.hpp"
 #include "GLModel.hpp"
 
@@ -90,10 +90,10 @@ private:
     // Print volume bounding box exteded with axes and model.
     BoundingBoxf3 m_extended_bounding_box;
     // Slightly expanded print bed polygon, for collision detection.
-    //Polygon m_polygon;
-    //GeometryBuffer m_triangles;
-    //GeometryBuffer m_gridlines;
-    //GLTexture m_texture;
+    Polygon m_polygon;
+    GeometryBuffer m_triangles;
+    GeometryBuffer m_gridlines;
+    GLTexture m_texture;
     // temporary texture shown until the main texture has still no levels compressed
     //GLTexture m_temp_texture;
     GLModel m_model;
@@ -148,6 +148,8 @@ private:
     void calc_triangles(const ExPolygon& poly);
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
     void update_model_offset() const;
+    //BBS: with offset
+    GeometryBuffer update_bed_triangles() const;
     static std::tuple<Type, std::string, std::string> detect_type(const Pointfs& shape);
     void render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
         bool show_axes);
