@@ -133,7 +133,7 @@ function HandleModelList( pVal )
 	let nSelect=AlreadySelect.length;
 	if(nSelect==0)
 	{
-		$("input[nozzel='0.4']").prop("checked", true);
+		$("input[nozzel='0.4'][vendor='BBL']").prop("checked", true);
 	}
 	
 	TranslatePage();
