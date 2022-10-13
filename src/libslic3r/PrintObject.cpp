@@ -758,7 +758,7 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posInfill);
         } else if (opt_key == "sparse_infill_pattern") {
             steps.emplace_back(posInfill);
-
+#if HAS_LIGHTNING_INFILL
             const auto *old_fill_pattern = old_config.option<ConfigOptionEnum<InfillPattern>>(opt_key);
             const auto *new_fill_pattern = new_config.option<ConfigOptionEnum<InfillPattern>>(opt_key);
             assert(old_infill && new_infill);
@@ -766,6 +766,7 @@ bool PrintObject::invalidate_state_by_config_options(
             // the Lightning infill to another infill or vice versa.
             if (PrintObject::infill_only_where_needed && (new_fill_pattern->value == ipLightning || old_fill_pattern->value == ipLightning))
                 steps.emplace_back(posPrepareInfill);
+#endif
         } else if (opt_key == "sparse_infill_density") {
             // One likely wants to reslice only when switching between zero infill to simulate boolean difference (subtracting volumes),
             // normal infill and 100% (solid) infill.
