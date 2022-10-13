@@ -455,22 +455,23 @@ void PrintConfigDef::init_fff_params()
     const int max_temp = 1500;
 
     def = this->add("reduce_crossing_wall", coBool);
-    def->label = L("Avoid crossing wall when travel");
+    def->label = L("Avoid crossing wall");
     def->category = L("Quality");
     def->tooltip = L("Detour and avoid to travel across wall which may cause blob on surface");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("max_travel_detour_distance", coFloat);
-    def->label = L("Max travel detour distance");
+    def = this->add("max_travel_detour_distance", coFloatOrPercent);
+    def->label = L("Avoid crossing wall - Max detour length");
     def->category = L("Quality");
     def->tooltip = L("Maximum detour distance for avoiding crossing wall. "
-                     "Don't detour if the detour distance is large than this value");
-    def->sidetext = L("mm");
+                     "Don't detour if the detour distance is large than this value. "
+                     "Detour length could be specified either as an absolute value or as percentage (for example 50%) of a direct travel path. Zero to disable");
+    def->sidetext = L("mm or %");
     def->min = 0;
     def->max_literal = 1000;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(0.));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     // BBS
     def = this->add("cool_plate_temp", coInts);
