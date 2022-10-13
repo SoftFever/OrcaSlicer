@@ -280,6 +280,15 @@ public:
         memDc.SetTextForeground(wxColor(134, 134, 134));
         memDc.DrawLabel(m_constant_text.version, version_rect, wxALIGN_LEFT | wxALIGN_BOTTOM);
 
+#if BBL_INTERNAL_TESTING
+        wxSize text_rect = memDc.GetTextExtent("Internal Version");
+        int start_x = (title_rect.GetLeft() + version_rect.GetRight()) / 2 - text_rect.GetWidth();
+        int start_y = version_rect.GetBottom() + 10;
+        wxRect internal_sign_rect(wxPoint(start_x, start_y), wxSize(text_rect));
+        memDc.SetFont(m_constant_text.title_font);
+        memDc.DrawLabel("Internal Version", internal_sign_rect, wxALIGN_TOP | wxALIGN_LEFT);
+#endif
+
         // load bitmap for logo
         BitmapCache bmp_cache;
         int logo_margin = FromDIP(72 * m_scale);
