@@ -6,6 +6,13 @@ It also supports Voron and Prusa MK3S printers.
 You can download it here: https://github.com/SoftFever/BambuStudio-SoftFever/releases
 
 ## BambuStudio SoftFever change notes:
+### [V1.2.5.3 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.2.5.3-sf):
+1. Label objects to support Klipper Exclude Objects feature
+2. Allow users to change output file name format
+3. Fix a bug that pressure advance value was not saved in the profile
+4. Optimize non-Bambu printer profiles
+5. Remove M900 S0 which is not necessary.
+
 ### [V1.2.5 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.2.5-sf):
 1. Add options to adjust jerk for different line types
 2. Add an option to adjust acceleration for travel. Higher acceleration for travel and lower acceleration for the outer wall makes it possible to print faster and nicer.
