@@ -77,8 +77,8 @@
         "200"
     ],
     "machine_max_speed_z": [
-        "12",
-        "12"
+        "20",
+        "20"
     ],
     "machine_max_jerk_e": [
         "2.5",
