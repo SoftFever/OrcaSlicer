@@ -109,6 +109,10 @@ struct SurfaceFill {
 	Surface 			surface;
 	ExPolygons       	expolygons;
 	SurfaceFillParams	params;
+	//BBS
+	std::vector<size_t> region_id_group;
+	ExPolygons          no_overlap_expolygons;
+	
 };
 
 // BBS: used to judge whether the internal solid infill area is narrow
@@ -210,8 +214,18 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 	        			fill.region_id = region_id;
 	        			fill.surface = surface;
 	        			fill.expolygons.emplace_back(std::move(fill.surface.expolygon));
-	        		} else
-	        			fill.expolygons.emplace_back(surface.expolygon);
+						//BBS
+						fill.region_id_group.push_back(region_id);
+						fill.no_overlap_expolygons = layerm.fill_no_overlap_expolygons;
+					} else {
+						fill.expolygons.emplace_back(surface.expolygon);
+						//BBS
+						auto t = find(fill.region_id_group.begin(), fill.region_id_group.end(), region_id);
+						if (t == fill.region_id_group.end()) {
+							fill.region_id_group.push_back(region_id);
+							fill.no_overlap_expolygons = union_ex(fill.no_overlap_expolygons, layerm.fill_no_overlap_expolygons);
+						}
+					}
 				}
 	        }
 	}
@@ -453,7 +467,8 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 
 		LayerRegion* layerm = this->m_regions[surface_fill.region_id];
 		for (ExPolygon& expoly : surface_fill.expolygons) {
-			f->no_overlap_expolygons = intersection_ex(layerm->fill_no_overlap_expolygons, ExPolygons() = { expoly });
+			//f->no_overlap_expolygons = intersection_ex(layerm->fill_no_overlap_expolygons, ExPolygons() = { expoly });
+			f->no_overlap_expolygons = intersection_ex(surface_fill.no_overlap_expolygons, ExPolygons() = { expoly });
 			// Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.
 			f->spacing = surface_fill.params.spacing;
 			surface_fill.surface.expolygon = std::move(expoly);
