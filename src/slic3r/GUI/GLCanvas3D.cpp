@@ -2664,6 +2664,12 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     m_dirty = true;
 #endif
                 }
+                else  if (evt.ShiftDown() && evt.ControlDown() && keyCode == WXK_RETURN) {
+#if !BBL_RELEASE_TO_PUBLIC
+                    wxGetApp().plater()->toggle_show_wireframe();
+                    m_dirty = true;
+#endif
+                }
                 else if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
                     // Enable switching between 3D and Preview with Tab
                     // m_canvas->HandleAsNavigationKey(evt);   // XXX: Doesn't work in some cases / on Linux

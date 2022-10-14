@@ -1612,6 +1612,7 @@ struct Plater::priv
     std::string                 label_btn_send;
 
     bool                        show_render_statistic_dialog{ false };
+    bool                        show_wireframe{ false };
 
     static const std::regex pattern_bundle;
     static const std::regex pattern_3mf;
@@ -9039,7 +9040,7 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn, bool up
         wxBusyCursor wait;
         upload_job.printhost->get_groups(groups);
     }
-    
+
     PrintHostSendDialog dlg(default_output_file, upload_job.printhost->get_post_upload_actions(), groups, upload_only);
     if (dlg.ShowModal() == wxID_OK) {
         upload_job.upload_data.upload_path = dlg.filename();
@@ -10507,6 +10508,16 @@ void Plater::toggle_render_statistic_dialog()
 bool Plater::is_render_statistic_dialog_visible() const
 {
     return p->show_render_statistic_dialog;
+}
+
+void Plater::toggle_show_wireframe()
+{
+    p->show_wireframe = !p->show_wireframe;
+}
+
+bool Plater::is_show_wireframe() const
+{
+    return p->show_wireframe;
 }
 
 

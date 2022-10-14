@@ -1,4 +1,4 @@
-#version 110
+#version 130
 
 const vec3 ZERO = vec3(0.0, 0.0, 0.0);
 //BBS: add grey and orange
@@ -26,11 +26,29 @@ struct SlopeDetection
     mat3 volume_world_normal_matrix;
 };
 
+//BBS: add wireframe logic
+varying vec3 barycentric_coordinates;
+float edgeFactor(float lineWidth) {
+    vec3 d = fwidth(barycentric_coordinates);
+    vec3 a3 = smoothstep(vec3(0.0), d * lineWidth, barycentric_coordinates);
+    return min(min(a3.x, a3.y), a3.z);
+}
+
+vec3 wireframe(vec3 fill, vec3 stroke, float lineWidth) {
+    return mix(stroke, fill, edgeFactor(lineWidth));
+}
+
+vec3 getWireframeColor(vec3 fill) {
+    float brightness = 0.2126 * fill.r + 0.7152 * fill.g + 0.0722 * fill.b;
+    return (brightness > 0.75) ? vec3(0.11, 0.165, 0.208) : vec3(0.988, 0.988, 0.988);
+}
+
 uniform vec4 uniform_color;
 uniform SlopeDetection slope;
 
 //BBS: add outline_color
 uniform bool is_outline;
+uniform bool show_wireframe;
 
 uniform bool offset_depth_buffer;
 
@@ -88,9 +106,17 @@ void main()
   else if (use_environment_tex)
         gl_FragColor = vec4(0.45 * texture2D(environment_tex, normalize(eye_normal).xy * 0.5 + 0.5).xyz + 0.8 * color * intensity.x, alpha);
 #endif
-	else
-        gl_FragColor = vec4(vec3(intensity.y) + color * intensity.x, alpha);
-		
+	else {
+        //gl_FragColor = vec4(vec3(intensity.y) + color * intensity.x, alpha);
+		if (show_wireframe) {
+			vec3 wireframeColor = show_wireframe ? getWireframeColor(color) : color;
+			vec3 triangleColor = wireframe(color, wireframeColor, 1.0);
+			gl_FragColor = vec4(vec3(intensity.y) + triangleColor * intensity.x, alpha);
+		}
+		else {
+			gl_FragColor = vec4(vec3(intensity.y) + color * intensity.x, alpha);
+		}
+	}
     // In the support painting gizmo and the seam painting gizmo are painted triangles rendered over the already
     // rendered object. To resolved z-fighting between previously rendered object and painted triangles, values
     // inside the depth buffer are offset by small epsilon for painted triangles inside those gizmos.

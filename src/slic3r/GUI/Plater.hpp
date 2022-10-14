@@ -618,6 +618,9 @@ public:
     void toggle_render_statistic_dialog();
     bool is_render_statistic_dialog_visible() const;
 
+    void toggle_show_wireframe();
+    bool is_show_wireframe() const;
+
 	// Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.
 	bool PopupMenu(wxMenu *menu, const wxPoint& pos = wxDefaultPosition);
     bool PopupMenu(wxMenu *menu, int x, int y) { return this->PopupMenu(menu, wxPoint(x, y)); }
