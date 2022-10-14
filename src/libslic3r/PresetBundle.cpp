@@ -179,8 +179,13 @@ void PresetBundle::setup_directories()
 		boost::filesystem::path subdir = path;
         subdir.make_preferred();
         if (! boost::filesystem::is_directory(subdir) &&
-            ! boost::filesystem::create_directory(subdir))
-            throw Slic3r::RuntimeError(std::string("Unable to create directory ") + subdir.string());
+            ! boost::filesystem::create_directory(subdir)) {
+            if (boost::filesystem::is_directory(subdir)) {
+                BOOST_LOG_TRIVIAL(warning) << boost::format("creating directory %1% failed, maybe created by other instance, go on!")%subdir.string();
+            }
+            else
+                throw Slic3r::RuntimeError(std::string("Unable to create directory ") + subdir.string());
+        }
     }
 }
 
@@ -659,7 +664,7 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
                     continue;
                 }
                 new_config.apply(std::move(config));
-                
+
                 Preset &preset     = collection->load_preset(collection->path_from_name(name), name, std::move(new_config), false);
                 preset.is_external = true;
                 preset.version     = *version;
@@ -838,7 +843,7 @@ void PresetBundle::remove_users_preset(AppConfig& config)
     } else {
         printers.select_preset_by_name(printer_selected_preset_name, false);
     }
-    
+
     std::string selected_print_name = prints.get_selected_preset().name;
     bool need_reset_print_preset = false;
     // remove preset if user_id is not current user
