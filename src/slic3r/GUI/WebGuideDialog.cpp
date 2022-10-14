@@ -989,6 +989,7 @@ int GuideFrame::LoadProfile()
         //} while (_findnext(handle, &findData) == 0); // 查找目录中的下一个文件
 
 
+        //load BBL bundle from user data path
         string                                targetPath = bbl_bundle_path.make_preferred().string();
         boost::filesystem::path               myPath(targetPath);
         boost::filesystem::directory_iterator endIter;
@@ -1003,9 +1004,28 @@ int GuideFrame::LoadProfile()
                 strVendor          = strVendor.AfterLast( '\\');
                 strVendor          = strVendor.AfterLast('\/');
 
-                LoadProfileFamily(w2s(strVendor), iter->path().string());
+                if (w2s(strVendor) == PresetBundle::BBL_BUNDLE)
+                    LoadProfileFamily(w2s(strVendor), iter->path().string());
             }
+        }
+
+        //string                                others_targetPath = rsrc_vendor_dir.string();
+        boost::filesystem::directory_iterator others_endIter;
+        for (boost::filesystem::directory_iterator iter(rsrc_vendor_dir); iter != others_endIter; iter++) {
+            if (boost::filesystem::is_directory(*iter)) {
+                //cout << "is dir" << endl;
+                //cout << iter->path().string() << endl;
+            } else {
+                //cout << "is a file" << endl;
+                //cout << iter->path().string() << endl;
+                wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
+                strVendor          = strVendor.AfterLast( '\\');
+                strVendor          = strVendor.AfterLast('\/');
+
+                if (w2s(strVendor) != PresetBundle::BBL_BUNDLE)
+                    LoadProfileFamily(w2s(strVendor), iter->path().string());
             }
+        }
 
 
         //LoadProfileFamily(PresetBundle::BBL_BUNDLE, bbl_bundle_path.string());
