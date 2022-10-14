@@ -2454,16 +2454,6 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
             continue;
         m_object->print()->set_status(60, (boost::format(_L("Support: propagate branches at layer %d")) % layer_nr).str());
 
-        for (Node* p_node : layer_contact_nodes)
-        {
-            if (p_node->type == ePolygon) {
-                 const bool to_buildplate = !is_inside_ex(m_ts_data->m_layer_outlines[layer_nr], p_node->position);
-                 Node *     next_node     = new Node(p_node->position, p_node->distance_to_top + 1, p_node->skin_direction, p_node->support_roof_layers_below - 1, to_buildplate, p_node,
-                                            m_object->get_layer(layer_nr - 1)->print_z, m_object->get_layer(layer_nr - 1)->height);
-                contact_nodes[layer_nr - 1].emplace_back(next_node);
-            }
-        }
-
         Polygons layer_contours = std::move(m_ts_data->get_contours_with_holes(layer_nr));
         //std::unordered_map<Line, bool, LineHash>& mst_line_x_layer_contour_cache = m_mst_line_x_layer_contour_caches[layer_nr];
         std::unordered_map<Line, bool, LineHash> mst_line_x_layer_contour_cache;
@@ -2506,6 +2496,10 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
             }
             if (node.type == ePolygon) {
                 // polygon node do not merge or move
+                const bool to_buildplate = !is_inside_ex(m_ts_data->m_layer_outlines[layer_nr], p_node->position);
+                Node *next_node = new Node(p_node->position, p_node->distance_to_top + 1, p_node->skin_direction, p_node->support_roof_layers_below - 1, to_buildplate, p_node,
+                                           m_object->get_layer(layer_nr - 1)->print_z, m_object->get_layer(layer_nr - 1)->height);
+                contact_nodes[layer_nr - 1].emplace_back(next_node);
                 continue;
             }
             /* Find which part this node is located in and group the nodes in
