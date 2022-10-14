@@ -2685,6 +2685,28 @@ void MainFrame::on_config_changed(DynamicPrintConfig* config) const
         m_plater->on_config_change(*config); // propagate config change events to the plater
 }
 
+void MainFrame::set_print_button_to_default(PrintSelectType select_type)
+{
+    if (select_type == PrintSelectType::ePrintPlate) {
+        m_print_btn->SetLabel(_L("Send and Print"));
+        m_print_select = ePrintPlate;
+        if (m_print_enable)
+            m_print_enable = get_enable_print_status();
+        m_print_btn->Enable(m_print_enable);
+        this->Layout();
+    } else if (select_type == PrintSelectType::eSendGcode) {
+        m_print_btn->SetLabel(_L("Send and Print"));
+        m_print_select = eSendGcode;
+        if (m_print_enable)
+            m_print_enable = get_enable_print_status() && can_send_gcode();
+        m_print_btn->Enable(m_print_enable);
+        this->Layout();
+    } else {
+        //unsupport
+        return;
+    }
+}
+
 void MainFrame::add_to_recent_projects(const wxString& filename)
 {
     if (wxFileExists(filename))

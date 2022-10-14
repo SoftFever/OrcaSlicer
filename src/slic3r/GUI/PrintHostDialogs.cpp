@@ -50,7 +50,7 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUplo
     auto *label_dir_hint = new wxStaticText(this, wxID_ANY, _L("Use forward slashes ( / ) as a directory separator if needed."));
     label_dir_hint->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
 
-    content_sizer->Add(txt_filename, 0, wxEXPAND, FromDIP(10));
+    content_sizer->Add(txt_filename, 0, wxEXPAND | wxALL, FromDIP(10));
     content_sizer->Add(FromDIP(10), FromDIP(10), 0, 0);
     content_sizer->Add(label_dir_hint, 0, 0, FromDIP(10));
     content_sizer->AddSpacer(VERT_SPACING);

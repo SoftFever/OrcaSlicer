@@ -709,7 +709,7 @@ Sidebar::Sidebar(Plater *parent)
     bSizer39->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, FromDIP(5));
     bSizer39->Add(FromDIP(20), 0, 0, 0, 0);
 
-    ScalableButton *ams_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
+    ams_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
                                                  wxBU_EXACTFIT | wxNO_BORDER, false, 18);
     ams_btn->SetToolTip(_L("Sync material list from AMS"));
     ams_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent &e) {
@@ -909,8 +909,20 @@ void Sidebar::update_all_preset_comboboxes()
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
     const auto print_tech = preset_bundle.printers.get_edited_preset().printer_technology();
 
-    //only show connection button for not-BBL printer
-    update_printer_host_icon();
+    bool is_bbl_preset = preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle);
+
+    if (is_bbl_preset) {
+        //only show connection button for not-BBL printer
+        connection_btn->Hide();
+        //only show sync-ams button for BBL printer
+        ams_btn->Show();
+        //update print button default value for bbl or third-party printer
+        wxGetApp().mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
+    } else {
+        connection_btn->Show();
+        ams_btn->Hide();
+        wxGetApp().mainframe->set_print_button_to_default(MainFrame::PrintSelectType::eSendGcode);
+    }
 
     // Update the print choosers to only contain the compatible presets, update the dirty flags.
     //BBS
@@ -1313,19 +1325,6 @@ void Sidebar::enable_buttons(bool enable)
 //    p->btn_eject_device->Enable(enable);
     p->btn_export_gcode_removable->Enable(enable);
 #endif
-}
-
-void Sidebar::update_printer_host_icon() {
-    bool is_bbl_vendor_preset = false;
-    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-    if (preset_bundle) {
-        is_bbl_vendor_preset = preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(preset_bundle);
-    }
-    if (is_bbl_vendor_preset) {
-        connection_btn->Hide();
-    }else{
-        connection_btn->Show();
-    }
 }
 
 bool Sidebar::show_reslice(bool show)          const { return p->btn_reslice->Show(show); }

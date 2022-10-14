@@ -4255,12 +4255,21 @@ void Tab::compare_preset()
 // Wizard calls save_preset with a name "My Settings", otherwise no name is provided and this method
 // opens a Slic3r::GUI::SavePresetDialog dialog.
 //BBS: add project embedded preset relate logic
-void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_project)
+void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_project, bool from_input, std::string input_name )
 {
     // since buttons(and choices too) don't get focus on Mac, we set focus manually
     // to the treectrl so that the EVT_* events are fired for the input field having
     // focus currently.is there anything better than this ?
 //!	m_tabctrl->OnSetFocus();
+    if (from_input) {
+        SavePresetDialog dlg(m_parent, m_type, detach ? _u8L("Detached") : "");
+        dlg.Show(false);
+        dlg.input_name_from_other(input_name);
+        wxCommandEvent evt(wxEVT_TEXT, GetId());
+        dlg.GetEventHandler()->ProcessEvent(evt);
+        dlg.confirm_from_other();
+        name = input_name;
+    }
 
     if (name.empty()) {
         SavePresetDialog dlg(m_parent, m_type, detach ? _u8L("Detached") : "");

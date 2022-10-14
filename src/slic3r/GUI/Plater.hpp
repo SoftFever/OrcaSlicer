@@ -120,7 +120,6 @@ public:
     void on_bed_type_change(BedType bed_type);
     void load_ams_list(std::map<std::string, Ams *> const &list);
     void sync_ams_list();
-    void update_printer_host_icon();
 
     ObjectList*             obj_list();
     ObjectSettings*         obj_settings();
@@ -163,6 +162,7 @@ private:
     wxBoxSizer* m_scrolled_sizer = nullptr;
     ComboBox* m_bed_type_list = nullptr;
     ScalableButton* connection_btn = nullptr;
+    ScalableButton* ams_btn = nullptr;
 };
 
 class Plater: public wxPanel

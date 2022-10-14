@@ -168,18 +168,6 @@ class MainFrame : public DPIFrame
 
     ESettingsLayout m_layout{ ESettingsLayout::Unknown };
 
-    //BBS GUI refactor
-    enum PrintSelectType
-    {
-        ePrintAll = 0,
-        ePrintPlate = 1,
-        eExportSlicedFile = 2,
-        eExportGcode = 3,
-        eSendGcode = 4,
-        eSendToPrinter = 5,
-        eUploadGcode = 6
-    };
-
     enum SliceSelectType
     {
         eSliceAll = 0,
@@ -195,7 +183,6 @@ protected:
 #endif
 
 public:
-
     MainFrame();
     ~MainFrame() = default;
 
@@ -208,6 +195,18 @@ public:
         tpPreview = 2,
         tpMonitor = 3,
         tpProject = 4,
+    };
+
+    //BBS GUI refactor
+    enum PrintSelectType
+    {
+        ePrintAll = 0,
+        ePrintPlate = 1,
+        eExportSlicedFile = 2,
+        eExportGcode = 3,
+        eSendGcode = 4,
+        eSendToPrinter = 5,
+        eUploadGcode = 6
     };
 
     //BBS: add slice&&print status update logic
@@ -290,6 +289,7 @@ public:
     void        select_view(const std::string& direction);
     // Propagate changed configuration from the Tab to the Plater and save changes to the AppConfig
     void        on_config_changed(DynamicPrintConfig* cfg) const ;
+    void        set_print_button_to_default(PrintSelectType select_type);
 
     bool can_save() const;
     bool can_save_as() const;

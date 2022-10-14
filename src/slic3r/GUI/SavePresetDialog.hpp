@@ -97,6 +97,8 @@ public:
 
     std::string get_name();
     std::string get_name(Preset::Type type);
+    void input_name_from_other(std::string new_preset_name);
+    void confirm_from_other();
 
     bool enable_ok_btn() const;
     void add_info_for_edit_ph_printer(wxBoxSizer *sizer);
