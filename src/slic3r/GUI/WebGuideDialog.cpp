@@ -649,6 +649,34 @@ int GuideFrame::SaveProfile()
     return 0;
 }
 
+static std::set<std::string> get_new_added_presets(const std::map<std::string, std::string>& old_data, const std::map<std::string, std::string>& new_data)
+{
+    auto get_aliases = [](const std::map<std::string, std::string>& data) {
+        std::set<std::string> old_aliases;
+        for (auto item : data) {
+            const std::string& name = item.first;
+            size_t pos = name.find("@");
+            old_aliases.emplace(pos == std::string::npos ? name : name.substr(0, pos-1));
+        }
+        return old_aliases;
+    };
+
+    std::set<std::string> old_aliases = get_aliases(old_data);
+    std::set<std::string> new_aliases = get_aliases(new_data);
+    std::set<std::string> diff;
+    std::set_difference(new_aliases.begin(), new_aliases.end(), old_aliases.begin(), old_aliases.end(), std::inserter(diff, diff.begin()));
+
+    return diff;
+}
+
+static std::string get_first_added_preset(const std::map<std::string, std::string>& old_data, const std::map<std::string, std::string>& new_data)
+{
+    std::set<std::string> diff = get_new_added_presets(old_data, new_data);
+    if (diff.empty())
+        return std::string();
+    return *diff.begin();
+}
+
 bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater, bool& apply_keeped_changes)
 {
     const auto enabled_vendors = m_appconfig_new.vendors();
@@ -714,13 +742,72 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
         BOOST_LOG_TRIVIAL(info) << "No bundles need to be removed";
     }
 
+    std::string preferred_model;
+    std::string preferred_variant;
+    PrinterTechnology preferred_pt = ptFFF;
+    auto get_preferred_printer_model = [preset_bundle, enabled_vendors, old_enabled_vendors, preferred_pt](const std::string& bundle_name, std::string& variant) {
+        const auto config = enabled_vendors.find(bundle_name);
+        if (config == enabled_vendors.end())
+            return std::string();
+        auto vendor_profile = preset_bundle->vendors.find(bundle_name);
+        if (vendor_profile == preset_bundle->vendors.end()) {
+            BOOST_LOG_TRIVIAL(info) << boost::format("%1%, can not find bundle %2% in preset bundles")%__FUNCTION__ %bundle_name;
+            return std::string();
+        }
+        //for (const auto& vendor_profile : preset_bundle->vendors) {
+        for (const auto model: vendor_profile->second.models) {
+            if (const auto model_it = config->second.find(model.id);
+                model_it != config->second.end() && model_it->second.size() > 0 &&
+                preferred_pt == model.technology) {
+                variant = *model_it->second.begin();
+                const auto config_old = old_enabled_vendors.find(bundle_name);
+                if (config_old == old_enabled_vendors.end())
+                    return model.id;
+                const auto model_it_old = config_old->second.find(model.id);
+                if (model_it_old == config_old->second.end())
+                    return model.id;
+                else if (model_it_old->second != model_it->second) {
+                    for (const auto& var : model_it->second)
+                        if (model_it_old->second.find(var) == model_it_old->second.end()) {
+                            variant = var;
+                            return model.id;
+                        }
+                }
+            }
+        }
+        //}
+        if (!variant.empty())
+            variant.clear();
+        return std::string();
+    };
+    // Prusa printers are considered first, then 3rd party.
+    if (preferred_model = get_preferred_printer_model(PresetBundle::BBL_BUNDLE, preferred_variant);
+        preferred_model.empty()) {
+        for (const auto& bundle : enabled_vendors) {
+            if (bundle.first == PresetBundle::BBL_BUNDLE) { continue; }
+            if (preferred_model = get_preferred_printer_model(bundle.first, preferred_variant);
+                !preferred_model.empty())
+                    break;
+        }
+    }
+
+    std::string first_added_filament;
+    auto get_first_added_material_preset = [this, app_config](const std::string& section_name, std::string& first_added_preset) {
+        if (m_appconfig_new.has_section(section_name)) {
+            // get first of new added preset names
+            const std::map<std::string, std::string>& old_presets = app_config->has_section(section_name) ? app_config->get_section(section_name) : std::map<std::string, std::string>();
+            first_added_preset = get_first_added_preset(old_presets, m_appconfig_new.get_section(section_name));
+        }
+    };
+    get_first_added_material_preset(AppConfig::SECTION_FILAMENTS, first_added_filament);
+
     //update the app_config
     app_config->set_section(AppConfig::SECTION_FILAMENTS, enabled_filaments);
     app_config->set_vendors(m_appconfig_new);
 
     if (check_unsaved_preset_changes)
         preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem,
-                                    {PresetBundle::BBL_DEFAULT_PRINTER_MODEL, PresetBundle::BBL_DEFAULT_PRINTER_VARIANT, PresetBundle::BBL_DEFAULT_FILAMENT, std::string()});
+                                    {preferred_model, preferred_variant, first_added_filament, std::string()});
 
     // Update the selections from the compatibilty.
     preset_bundle->export_selections(*app_config);
@@ -914,7 +1001,7 @@ int GuideFrame::LoadProfile()
                 //cout << iter->path().string() << endl;
                 wxString strVendor = from_u8(iter->path().string()).BeforeLast('.');
                 strVendor          = strVendor.AfterLast( '\\');
-                strVendor          = strVendor.AfterLast('\/');          
+                strVendor          = strVendor.AfterLast('\/');
 
                 LoadProfileFamily(w2s(strVendor), iter->path().string());
             }
@@ -1309,15 +1396,15 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
                     json pPrinters = pm["compatible_printers"];
                     int nPrinter   = pPrinters.size();
                     std::string ModelList = "";
-                    for (int i = 0; i < nPrinter; i++) 
-                    { 
+                    for (int i = 0; i < nPrinter; i++)
+                    {
                         std::string sP = pPrinters.at(i);
-                        if (m_ProfileJson["machine"].contains(sP)) 
+                        if (m_ProfileJson["machine"].contains(sP))
                         {
                             std::string mModel = m_ProfileJson["machine"][sP]["model"];
                             std::string mNozzle = m_ProfileJson["machine"][sP]["nozzle"];
                             std::string NewModel = mModel + "++" + mNozzle;
-                            
+
                             ModelList = (boost::format("%1%[%2%]") % ModelList % NewModel).str();
                         }
                     }
