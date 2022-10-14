@@ -275,10 +275,60 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
                                wxVSCROLL) // hide hori-bar will cause hidden field mis-position
         {
             // ShowScrollBar(GetHandle(), SB_BOTH, FALSE);
+            Bind(wxEVT_SCROLL_CHANGED, [this](auto &e) {
+                wxWindow *child = dynamic_cast<wxWindow *>(e.GetEventObject());
+                if (child != this)
+                    EnsureVisible(child);
+            });
         }
         virtual bool ShouldScrollToChildOnFocus(wxWindow *child)
         {
+            EnsureVisible(child);
             return false;
+        }
+        void EnsureVisible(wxWindow* win)
+        {
+            const wxRect viewRect(m_targetWindow->GetClientRect());
+            const wxRect winRect(m_targetWindow->ScreenToClient(win->GetScreenPosition()), win->GetSize());
+            if (viewRect.Contains(winRect)) {
+                return;
+            }
+            if (winRect.GetWidth() > viewRect.GetWidth() || winRect.GetHeight() > viewRect.GetHeight()) {
+                return;
+            }
+            int stepx, stepy;
+            GetScrollPixelsPerUnit(&stepx, &stepy);
+
+            int startx, starty;
+            GetViewStart(&startx, &starty);
+            // first in vertical direction:
+            if (stepy > 0) {
+                int diff = 0;
+
+                if (winRect.GetTop() < 0) {
+                    diff = winRect.GetTop();
+                } else if (winRect.GetBottom() > viewRect.GetHeight()) {
+                    diff = winRect.GetBottom() - viewRect.GetHeight() + 1;
+                    // round up to next scroll step if we can't get exact position,
+                    // so that the window is fully visible:
+                    diff += stepy - 1;
+                }
+                starty = (starty * stepy + diff) / stepy;
+            }
+            // then horizontal:
+            if (stepx > 0) {
+                int diff = 0;
+                if (winRect.GetLeft() < 0) {
+                    diff = winRect.GetLeft();
+                } else if (winRect.GetRight() > viewRect.GetWidth()) {
+                    diff = winRect.GetRight() - viewRect.GetWidth() + 1;
+                    // round up to next scroll step if we can't get exact position,
+                    // so that the window is fully visible:
+                    diff += stepx - 1;
+                }
+                startx = (startx * stepx + diff) / stepx;
+            }
+            Scroll(startx, starty);
         }
     };
 

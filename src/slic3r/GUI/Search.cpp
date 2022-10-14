@@ -644,7 +644,7 @@ void SearchDialog::Dismiss()
 
 void SearchDialog::Die() 
 {
-    Destroy();
+    wxPopupTransientWindow::Dismiss();
     wxCommandEvent event(wxCUSTOMEVT_EXIT_SEARCH);
     wxPostEvent(search_line, event);
 }

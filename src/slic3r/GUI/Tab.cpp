@@ -1503,8 +1503,14 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
     Field* field = get_field(opt_key);
 
     // focused selected field
-    if (field)
+    if (field) {
         set_focus(field->getWindow());
+        if (!field->getWindow()->HasFocus()) {
+            wxScrollEvent evt(wxEVT_SCROLL_CHANGED);
+            evt.SetEventObject(field->getWindow());
+            wxPostEvent(m_page_view, evt);
+        }
+    }
     //else if (category == "Single extruder MM setup") {
     //    // When we show and hide "Single extruder MM setup" page,
     //    // related options are still in the search list
