@@ -385,7 +385,7 @@ void SendToPrinterDialog::on_cancel(wxCloseEvent &event)
     }
     this->EndModal(wxID_CANCEL);
 }
-
+ 
 void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 {
     BOOST_LOG_TRIVIAL(info) << "print_job: on_ok to send";
@@ -488,8 +488,10 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 
 
     m_send_job->on_success([this]() {
-        enable_prepare_mode = true;
-        //prepare_mode();
+        //enable_prepare_mode = true;enable_prepare_mode
+        m_status_bar->reset();
+        prepare_mode();
+        //EndModal(wxID_CLOSE);
     });
 
     enable_prepare_mode = false;
@@ -779,11 +781,6 @@ void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxSt
 	if (status == PrintDialogStatus::PrintStatusSending) {
 		sending_mode();
 	}
-	else {
-        if (enable_prepare_mode) {
-            prepare_mode();
-        }
-	}
 
 	// other
 	if (status == PrintDialogStatus::PrintStatusInit) {
@@ -888,6 +885,8 @@ void SendToPrinterDialog::on_dpi_changed(const wxRect &suggested_rect)
 void SendToPrinterDialog::set_default()
 {
     enable_prepare_mode = true;
+    prepare_mode();
+
     //clear combobox
     m_list.clear();
     m_comboBox_printer->Clear();

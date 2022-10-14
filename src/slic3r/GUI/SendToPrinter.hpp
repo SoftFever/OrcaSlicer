@@ -149,7 +149,7 @@ protected:
 	void                     on_timer(wxTimerEvent& event);
 	void                     on_selection_changed(wxCommandEvent& event);
 	void                     Enable_Refresh_Button(bool en);
-	 void				     show_status(PrintDialogStatus status, std::vector<wxString> params = std::vector<wxString>());
+	void				     show_status(PrintDialogStatus status, std::vector<wxString> params = std::vector<wxString>());
 	void                     Enable_Send_Button(bool en);
 	void                     on_dpi_changed(const wxRect& suggested_rect) override;
 	void                     update_user_machine_list();

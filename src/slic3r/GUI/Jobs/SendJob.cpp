@@ -27,7 +27,7 @@ SendJob::SendJob(std::shared_ptr<ProgressIndicator> pri, Plater* plater, std::st
 : PlaterJob{ std::move(pri), plater },
     m_dev_id(dev_id)
 {
-    m_print_job_completed_id = plater->get_print_finished_event();
+    m_print_job_completed_id = plater->get_send_finished_event();
 }
 
 void SendJob::prepare()
@@ -191,8 +191,8 @@ void SendJob::process()
 							}
                         }
 						else if (stage == SendingPrintJobStage::PrintingStageFinished) {
-							curr_percent = 100;
-							msg = wxString::Format(_L("Successfully sent."));
+                            curr_percent = 100;
+                            msg = wxString::Format(_L("Successfully sent. Close current page in %s s"), info);
 						}
 						else {
 							if (this->connection_type == "lan") {
@@ -291,7 +291,10 @@ void SendJob::process()
         BOOST_LOG_TRIVIAL(error) << "send_job: failed, result = " << result;
     } else {
         BOOST_LOG_TRIVIAL(error) << "send_job: send ok.";
-        m_success_fun();
+        //m_success_fun();
+        wxCommandEvent* evt = new wxCommandEvent(m_print_job_completed_id);
+        evt->SetString(m_dev_id);
+        wxQueueEvent(m_plater, evt);
         m_job_finished = true;
     }
 }
