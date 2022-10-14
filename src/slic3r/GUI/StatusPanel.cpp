@@ -1410,7 +1410,7 @@ void StatusPanel::update_error_message()
             show_error_message(error_msg);
             //hint dialog
             BOOST_LOG_TRIVIAL(info) << "Print error! " << error_msg;
-            ConfirmHintDialog print_error_dlg(this->GetParent(), wxID_ANY, _L("Warning"));
+            ConfirmHintDialog print_error_dlg(this->GetParent(), wxID_ANY, _L("Warning"), ConfirmHintDialog::ButtonStyle::ONLY_CONFIRM);
             print_error_dlg.SetHint(error_msg);
             print_error_dlg.ShowModal();
         }

@@ -9,7 +9,7 @@ namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_CONFIRM_HINT, wxCommandEvent);
 
-ConfirmHintDialog::ConfirmHintDialog(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
+ConfirmHintDialog::ConfirmHintDialog(wxWindow* parent, wxWindowID id, const wxString& title, enum ButtonStyle btn_style, const wxPoint& pos, const wxSize& size, long style)
       : DPIDialog(parent, id, title, pos, size, style)
 {
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
@@ -45,6 +45,11 @@ ConfirmHintDialog::ConfirmHintDialog(wxWindow* parent, wxWindowID id, const wxSt
     button_sizer->Add(m_button_confirm);
     button_sizer->AddSpacer(FromDIP(20));
     button_sizer->Add(m_button_close);
+
+    if (btn_style == CONFIRM_AND_CANCEL)
+        m_button_close->Show();
+    else
+        m_button_close->Hide();
 
     main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
     main_sizer->AddSpacer(wxSize(FromDIP(475), FromDIP(100)).y);
@@ -109,7 +114,7 @@ void ConfirmHintDialog::render(wxDC& dc) {
                     break;
                 }
                 else {
-                    fisrt_line = firm_up_hint.SubString(0, i);
+                    fisrt_line = firm_up_hint.SubString(0, i - 1);
                     remaining_line = firm_up_hint.SubString(i, firm_up_hint.length());
                     break;
                 }
@@ -165,8 +170,10 @@ void ConfirmHintDialog::on_button_close(wxCommandEvent& event) {
 void ConfirmHintDialog::on_dpi_changed(const wxRect& suggested_rect) {
     m_button_confirm->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_confirm->SetCornerRadius(FromDIP(12));
-    m_button_close->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_button_close->SetCornerRadius(FromDIP(12));
+    if (m_button_close->IsShown()) {
+       m_button_close->SetMinSize(wxSize(-1, FromDIP(24)));
+       m_button_close->SetCornerRadius(FromDIP(12));
+    }
     Layout();
 }
 
