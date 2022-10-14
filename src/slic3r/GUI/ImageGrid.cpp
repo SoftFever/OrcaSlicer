@@ -105,7 +105,8 @@ void Slic3r::GUI::ImageGrid::SetGroupMode(int mode)
 void Slic3r::GUI::ImageGrid::SetSelecting(bool selecting)
 {
     m_selecting = selecting;
-    if (!m_selecting) m_file_sys->SelectAll(false);
+    if (m_file_sys)
+        m_file_sys->SelectAll(false);
     Refresh();
 }
 
@@ -143,7 +144,24 @@ void Slic3r::GUI::ImageGrid::DoAction(size_t index, int action)
 {
     if (action == 0) {
         m_file_sys->DeleteFiles(index);
-    } else {
+    } else if (action == 1) {
+        if (index != -1) {
+            auto &file = m_file_sys->GetFile(index);
+            if (file.IsDownload() && file.progress >= -1) {
+                if (file.progress >= 100) {
+#ifdef __WXMSW__
+                    wxExecute("cmd /c start " + from_u8(file.path), wxEXEC_HIDE_CONSOLE);
+#else
+                    wxShell("open " + file.path);
+#endif
+                } else {
+                    m_file_sys->DownloadCancel(index);
+                }
+                return;
+            }
+        }
+        m_file_sys->DownloadFiles(index, wxGetApp().app_config->get("download_path"));
+    } else if (action == 2) {
         if (index != -1) {
             auto &file = m_file_sys->GetFile(index);
             if (file.IsDownload() && file.progress >= -1) {
@@ -254,7 +272,9 @@ std::pair<int, size_t> Slic3r::GUI::ImageGrid::HitTest(wxPoint const &pt)
     if (index >= m_file_sys->GetCount()) { return {HIT_NONE, -1}; }
     if (!m_selecting) {
         wxRect  hover_rect{0, m_image_size.y - 40, m_image_size.GetWidth(), 40};
-        if (hover_rect.Contains(off.x, off.y)) { return {HIT_ACTION, index * 2 + off.x * 2 / hover_rect.GetWidth()}; } // Two buttons
+        auto & file = m_file_sys->GetFile(index);
+        int    btn  = file.IsDownload() && file.progress >= 100 ? 3 : 2;
+        if (hover_rect.Contains(off.x, off.y)) { return {HIT_ACTION, index * 4 + off.x * btn / hover_rect.GetWidth()}; } // Two buttons
     }
     return {HIT_ITEM, index};
 }
@@ -316,7 +336,7 @@ void ImageGrid::mouseReleased(wxMouseEvent& event)
         if (m_hit_type == HIT_ITEM)
             Select(m_hit_item);
         else if (m_hit_type == HIT_ACTION)
-            DoAction(m_hit_item / 2, m_hit_item & 1);
+            DoAction(m_hit_item / 4, m_hit_item & 3);
         else if (m_hit_type == HIT_MODE)
             SetGroupMode(static_cast<PrinterFileSystem::GroupMode>(2 - m_hit_item));
         else if (m_hit_type == HIT_STATUS)
@@ -462,7 +482,7 @@ void ImageGrid::render(wxDC& dc)
     constexpr wchar_t const * formats[] = {_T("%Y-%m-%d"), _T("%Y-%m"), _T("%Y")};
     size_t start = index;
     size_t end = index;
-    size_t hit_image = m_selecting ? size_t(-1) : m_hit_type == HIT_ITEM ? m_hit_item : m_hit_type == HIT_ACTION ? m_hit_item / 2 :size_t(-1);
+    size_t hit_image = m_selecting ? size_t(-1) : m_hit_type == HIT_ITEM ? m_hit_item : m_hit_type == HIT_ACTION ? m_hit_item / 4 :size_t(-1);
     // Draw items with background
     while (off.y < size.y)
     {
@@ -492,6 +512,7 @@ void ImageGrid::render(wxDC& dc)
             else if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE) {
                 wxString nonHoverText;
                 wxString secondAction = _L("Download");
+                wxString thirdAction;
                 int      states = 0;
                 // Draw download progress
                 if (file.IsDownload()) {
@@ -503,7 +524,8 @@ void ImageGrid::render(wxDC& dc)
                         nonHoverText = _L("Download failed");
                         states       = StateColor::Checked;
                     } else if (file.progress >= 100) {
-                        secondAction = _L("Open Folder");
+                        secondAction = _L("Play");
+                        thirdAction = _L("Open Folder");
                         nonHoverText = _L("Download finished");
                     } else {
                         secondAction = _L("Cancel");
@@ -513,7 +535,8 @@ void ImageGrid::render(wxDC& dc)
                 // Draw buttons on hovered item
                 wxRect rect{pt.x, pt.y + m_image_size.y - m_buttons_background.GetHeight(), m_image_size.GetWidth(), m_buttons_background.GetHeight()};
                 if (hit_image == index) {
-                    renderButtons(dc, {_L("Delete"), (wxChar const *) secondAction, nullptr}, rect, m_hit_type == HIT_ACTION ? m_hit_item & 1 : -1, states);
+                    renderButtons(dc, {_L("Delete"), (wxChar const *) secondAction, thirdAction.IsEmpty() ? nullptr : (wxChar const *) thirdAction, nullptr}, rect,
+                                  m_hit_type == HIT_ACTION ? m_hit_item & 3 : -1, states);
                 } else if (!nonHoverText.IsEmpty()) {
                     renderButtons(dc, {(wxChar const *) nonHoverText, nullptr}, rect, -1, states);
                 }
@@ -580,12 +603,12 @@ void Slic3r::GUI::ImageGrid::renderButtons(wxDC &dc, wxStringList const &texts, 
     for (size_t i = 0; i < texts.size(); ++i) {
         int states2 = hit == i ? state : 0;
         // Draw button background
-        rect.Deflate(10, 5);
         //dc.Blit(rect.GetTopLeft(), rect.GetSize(), &mdc, {m_buttonBackgroundColor.colorIndexForStates(states) * 128, 0});
         //dc.DrawBitmap(m_button_background, rect2.GetTopLeft());
         // Draw button splitter
         if (i > 0) dc.DrawLine(rect.GetLeftTop(), rect.GetLeftBottom());
         // Draw button text
+        rect.Deflate(10, 5);
         renderText(dc, texts[i], rect, states | states2);
         rect.Inflate(10, 5);
         rect.Offset(rect.GetWidth(), 0);

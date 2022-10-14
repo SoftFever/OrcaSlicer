@@ -39,6 +39,8 @@ public:
 public:
     void Rescale();
 
+    void SetSelecting(bool selecting);
+
 private:
     void modeChanged(wxCommandEvent & e);
 

@@ -18,9 +18,11 @@ END_EVENT_TABLE()
 
 StaticBox::StaticBox()
     : state_handler(this)
-    , border_color(0x303A3C)
     , radius(8)
 {
+    border_color = StateColor(
+        std::make_pair(*wxLIGHT_GREY, (int) StateColor::Disabled), 
+        std::make_pair(0x303A3C, (int) StateColor::Normal));
 }
 
 StaticBox::StaticBox(wxWindow* parent,
@@ -62,10 +64,22 @@ void StaticBox::SetBorderColor(StateColor const &color)
     Refresh();
 }
 
+void StaticBox::SetBorderColorNormal(wxColor const &color)
+{
+    border_color.setColorForStates(color, 0);
+    Refresh();
+}
+
 void StaticBox::SetBackgroundColor(StateColor const &color)
 {
     background_color = color;
     state_handler.update_binds();
+    Refresh();
+}
+
+void StaticBox::SetBackgroundColorNormal(wxColor const &color)
+{
+    background_color.setColorForStates(color, 0);
     Refresh();
 }
 

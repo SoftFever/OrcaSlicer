@@ -17,6 +17,7 @@
 wxDEFINE_EVENT(EVT_STATUS_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_MODE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_FILE_CHANGED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SELECT_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_THUMBNAIL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DOWNLOAD, wxCommandEvent);
 
@@ -37,7 +38,7 @@ PrinterFileSystem::PrinterFileSystem()
     m_session.owner = this;
 #ifdef PRINTER_FILE_SYSTEM_TEST
     auto time = wxDateTime::Now();
-    for (int i = 0; i < 800; ++i) {
+    for (int i = 0; i < 100; ++i) {
         auto name = wxString::Format(L"img-%03d.jpg", i + 1);
         wxImage im(L"D:\\work\\pic\\" + name);
         m_file_list.push_back({name.ToUTF8().data(), time.GetTicks(), 26937, im, i < 20 ? FF_DOWNLOAD : 0, i * 10 - 40});
@@ -226,16 +227,29 @@ size_t PrinterFileSystem::GetIndexAtTime(boost::uint32_t time)
 
 void PrinterFileSystem::ToggleSelect(size_t index)
 {
-    if (index < m_file_list.size()) m_file_list[index].flags ^= FF_SELECT;
+    if (index < m_file_list.size()) {
+        m_file_list[index].flags ^= FF_SELECT;
+        if (m_file_list[index].flags & FF_SELECT)
+            ++m_select_count;
+        else
+            --m_select_count;
+    }
+    SendChangedEvent(EVT_SELECT_CHANGED, m_select_count);
 }
 
 void PrinterFileSystem::SelectAll(bool select)
 {
-    if (select)
+    if (select) {
         for (auto &f : m_file_list) f.flags |= FF_SELECT;
-    else
+        m_select_count = m_file_list.size();
+    } else {
         for (auto &f : m_file_list) f.flags &= ~FF_SELECT;
+        m_select_count = 0;
+    }
+    SendChangedEvent(EVT_SELECT_CHANGED, m_select_count);
 }
+
+size_t PrinterFileSystem::GetSelectCount() const { return m_select_count; }
 
 void PrinterFileSystem::SetFocusRange(size_t start, size_t count)
 {

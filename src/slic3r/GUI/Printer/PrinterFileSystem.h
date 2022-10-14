@@ -18,6 +18,7 @@ using nlohmann::json;
 wxDECLARE_EVENT(EVT_STATUS_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_MODE_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_FILE_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SELECT_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_THUMBNAIL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_DOWNLOAD, wxCommandEvent);
 
@@ -136,6 +137,8 @@ public:
     void ToggleSelect(size_t index);
     
     void SelectAll(bool select);
+
+    size_t GetSelectCount() const;
 
     void SetFocusRange(size_t start, size_t count);
 
@@ -263,6 +266,7 @@ protected:
     std::vector<size_t> m_group_month;
 
 private:
+    size_t m_select_count = 0;
     size_t m_lock_start = 0;
     size_t m_lock_end   = 0;
     int m_task_flags = 0;
