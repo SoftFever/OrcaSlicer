@@ -69,6 +69,7 @@ enum PrinterFunction {
     FUNC_MEDIA_FILE,
     FUNC_REMOTE_TUNNEL,
     FUNC_LOCAL_TUNNEL,
+    FUNC_PRINT_WITHOUT_SD,
     FUNC_MAX
 };
 
@@ -492,6 +493,7 @@ public:
     PrintingSpeedLevel _parse_printing_speed_lvl(int lvl);
 
     /* camera */
+    bool has_ipcam { false };
     bool camera_recording { false };
     bool camera_timelapse { false };
     bool camera_has_sdcard { false };
@@ -617,6 +619,7 @@ public:
     void update_slice_info(std::string project_id, std::string profile_id, std::string subtask_id, int plate_idx);
 
     bool m_firmware_valid { false };
+    bool m_firmware_thread_started { false };
     void get_firmware_info();
     bool is_firmware_info_valid();
 };

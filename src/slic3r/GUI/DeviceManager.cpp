@@ -1140,6 +1140,7 @@ bool MachineObject::has_recording()
 
 int MachineObject::command_get_version()
 {
+    BOOST_LOG_TRIVIAL(info) << "command_get_version";
     json j;
     j["info"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["info"]["command"] = "get_version";
@@ -1716,6 +1717,9 @@ bool MachineObject::is_function_supported(PrinterFunction func)
     case FUNC_LOCAL_TUNNEL:
         func_name = "FUNC_LOCAL_TUNNEL";
         break;
+    case FUNC_PRINT_WITHOUT_SD:
+        func_name = "FUNC_PRINT_WITHOUT_SD";
+        break;
     default:
         return true;
     }
@@ -2175,6 +2179,13 @@ int MachineObject::parse_json(std::string payload)
                                 }
                                 else {
                                     camera_timelapse = false;
+                                }
+                            }
+                            if (jj["ipcam"].contains("ipcam_dev")) {
+                                if (jj["ipcam"]["ipcam_dev"].get<std::string>() == "1") {
+                                    has_ipcam = true;
+                                } else {
+                                    has_ipcam = false;
                                 }
                             }
                         }
@@ -2673,8 +2684,12 @@ void MachineObject::update_slice_info(std::string project_id, std::string profil
 void MachineObject::get_firmware_info()
 {
     m_firmware_valid = false;
+    if (m_firmware_thread_started)
+        return;
+
     boost::thread update_info_thread = Slic3r::create_thread(
         [&] {
+            m_firmware_thread_started = true;
             int          result = 0;
             unsigned int http_code;
             std::string  http_body;
@@ -2745,6 +2760,7 @@ void MachineObject::get_firmware_info()
             catch (...) {
                 return;
             }
+            m_firmware_thread_started = false;
             m_firmware_valid = true;
         }
     );

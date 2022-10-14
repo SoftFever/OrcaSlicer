@@ -222,7 +222,7 @@ public:
          , height(0.0)
         {}
 
-        Node(const Point position, const size_t distance_to_top, const bool skin_direction, const int support_roof_layers_below, const bool to_buildplate, Node* const parent,
+        Node(const Point position, const size_t distance_to_top, const bool skin_direction, const int support_roof_layers_below, const bool to_buildplate, Node* parent,
              coordf_t     print_z_, coordf_t height_)
          : distance_to_top(distance_to_top)
          , position(position)
@@ -233,7 +233,13 @@ public:
          , parent(parent)
          , print_z(print_z_)
          , height(height_)
-        {}
+        {
+            if (parent) {
+                type     = parent->type;
+                overhang = parent->overhang;
+                parent->child = this;
+            }
+        }
 
 #ifdef DEBUG // Clear the delete node's data so if there's invalid access after, we may get a clue by inspecting that node.
         ~Node()
@@ -294,6 +300,7 @@ public:
          * the entire branch needs to be known.
          */
         Node *parent;
+        Node *child = nullptr;
 
         /*!
         * \brief All neighbours (on the same layer) that where merged into this node.

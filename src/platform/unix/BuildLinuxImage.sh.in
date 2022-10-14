@@ -34,7 +34,20 @@ echo -n "[9/9] Generating Linux app..."
     ## find package/resources/localization -name "*.po" -type f -delete ## FIXME: DD - do we need this?
 
     # create bin
-    echo -e '#!/bin/bash\nDIR=$(readlink -f "$0" | xargs dirname)\nexport LD_LIBRARY_PATH="$DIR/bin"\nexec "$DIR/bin/@SLIC3R_APP_CMD@" "$@"' >@SLIC3R_APP_CMD@
+cat << EOF >@SLIC3R_APP_CMD@
+#!/bin/bash
+DIR=\$(readlink -f "\$0" | xargs dirname)
+export LD_LIBRARY_PATH="\$DIR/bin"
+
+# FIXME: BambuStudio segfault workarounds
+# 1) BambuStudio will segfault on systems where locale info is not as expected (i.e. Holo-ISO arch-based distro)
+# 2) BambuStudio will segfault with a boost logging error if ~/.config/BambuStudio doesn't exist on first run
+export LC_ALL=C
+mkdir -p \${HOME}/.config/BambuStudio/ 2> /dev/null
+
+exec "\$DIR/bin/@SLIC3R_APP_CMD@" "\$@"
+EOF
+
     chmod ug+x @SLIC3R_APP_CMD@
     cp -f @SLIC3R_APP_CMD@ package/@SLIC3R_APP_CMD@
     pushd package

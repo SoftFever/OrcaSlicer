@@ -691,6 +691,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto title_sync_settings = create_item_title(_L("User sync"), page, _L("User sync"));
     auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), page, _L("User Sync"), 50, "sync_user_preset");
 
+#ifdef _WIN32
     auto title_associate_file = create_item_title(_L("Associate files to BambuStudio"), page, _L("Associate files to BambuStudio"));
 
     // associate file
@@ -700,6 +701,7 @@ wxWindow* PreferencesDialog::create_general_page()
                                                         _L("If enabled, sets BambuStudio as default application to open .stl files"), 50, "associate_stl");
     auto item_associate_step = create_item_checkbox(_L("Associate .step/.stp files to BambuStudio"), page,
                                                          _L("If enabled, sets BambuStudio as default application to open .step files"), 50, "associate_step");
+#endif // _WIN32
 
 
     auto title_backup = create_item_title(_L("Backup"), page, _L("Backup"));
@@ -713,10 +715,12 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_currency, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_sync_settings, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_user_sync, 0, wxTOP, FromDIP(3));
+#ifdef _WIN32
     sizer_page->Add(title_associate_file, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_associate_3mf, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_associate_stl, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_associate_step, 0, wxTOP, FromDIP(3));
+#endif // _WIN32
     sizer_page->Add(title_backup, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_backup, 0, wxTOP,FromDIP(3));
     sizer_page->Add(item_backup_interval, 0, wxTOP,FromDIP(3));

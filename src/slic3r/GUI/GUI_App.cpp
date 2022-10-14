@@ -165,6 +165,31 @@ static std::string convert_studio_language_to_api(std::string lang_code)
         return "en";*/
 }
 
+#ifdef _WIN32
+bool is_associate_files(std::wstring extend)
+{
+    wchar_t app_path[MAX_PATH];
+    ::GetModuleFileNameW(nullptr, app_path, sizeof(app_path));
+
+    std::wstring prog_id             = L" Bambu.Studio.1";
+    std::wstring reg_base            = L"Software\\Classes";
+    std::wstring reg_extension       = reg_base + L"\\." + extend;
+
+    wchar_t szValueCurrent[1000];
+    DWORD   dwType;
+    DWORD   dwSize = sizeof(szValueCurrent);
+
+    int iRC = ::RegGetValueW(HKEY_CURRENT_USER, reg_extension.c_str(), nullptr, RRF_RT_ANY, &dwType, szValueCurrent, &dwSize);
+
+    bool bDidntExist = iRC == ERROR_FILE_NOT_FOUND;
+
+    if (!bDidntExist && ::wcscmp(szValueCurrent, prog_id.c_str()) == 0)
+        return true;
+
+    return false;
+}
+#endif
+
 class BBLSplashScreen : public wxSplashScreen
 {
 public:
@@ -1793,6 +1818,20 @@ void GUI_App::init_app_config()
         // Save orig_version here, so its empty if no app_config existed before this run.
         m_last_config_version = app_config->orig_version();//parse_semver_from_ini(app_config->config_path());
     }
+    else {
+#ifdef _WIN32
+        // update associate files from registry information
+        if (is_associate_files(L"3mf")) {
+            app_config->set("associate_3mf", "true");
+        }
+        if (is_associate_files(L"stl")) {
+            app_config->set("associate_stl", "true");
+        }
+        if (is_associate_files(L"step") && is_associate_files(L"stp")) {
+            app_config->set("associate_step", "true");
+        }
+#endif // _WIN32
+    }
 }
 
 // returns true if found newer version and user agreed to use it
@@ -2021,8 +2060,10 @@ bool GUI_App::on_init_inner()
             associate_files(L"3mf");
         if (app_config->get("associate_stl") == "true")
             associate_files(L"stl");
-        if (app_config->get("associate_step") == "true")
+        if (app_config->get("associate_step") == "true") {
             associate_files(L"step");
+            associate_files(L"stp");
+        }
         if (app_config->get("associate_gcode") == "true")
             associate_files(L"gcode");
 #endif // __WXMSW__
@@ -2270,7 +2311,7 @@ bool GUI_App::on_init_inner()
 //#ifdef __linux__
 //        if (!m_post_initialized && m_opengl_initialized) {
 //#else
-        if (!m_post_initialized) {
+        if (!m_post_initialized && !m_adding_script_handler) {
 //#endif
             m_post_initialized = true;
 #ifdef WIN32
@@ -4269,8 +4310,10 @@ void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_
                 associate_files(L"3mf");
             if (app_config->get("associate_stl") == "true")
                 associate_files(L"stl");
-            if (app_config->get("associate_step") == "true")
+            if (app_config->get("associate_step") == "true") {
                 associate_files(L"step");
+                associate_files(L"stp");
+            }
         }
         else {
             if (app_config->get("associate_gcode") == "true")

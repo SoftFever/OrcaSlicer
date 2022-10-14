@@ -2,6 +2,8 @@
 #define FIRSTFIT_HPP
 
 #include "selection_boilerplate.hpp"
+// for writing SVG
+//#include "../tools/svgtools.hpp"
 
 namespace libnest2d { namespace selections {
 
@@ -60,14 +62,11 @@ public:
             pconfig.m_excluded_items.emplace_back(itm);
             });
 
-        // If the packed_items array is not empty we have to create as many
-        // placers as there are elements in packed bins and preload each item
-        // into the appropriate placer
-        //for(ItemGroup& ig : fixed_bins) {
-        //    placers.emplace_back(bin);
-        //    placers.back().configure(pconfig);
-        //    placers.back().preload(ig);
-        //}
+#ifdef SVGTOOLS_HPP
+        svg::SVGWriter<RawShape> svgwriter;
+        std::for_each(first, last, [this,&svgwriter](Item &itm) { svgwriter.writeShape(itm, "none", "blue"); });
+        svgwriter.save(boost::filesystem::path("SVG") / "all_items.svg");
+#endif
         
         std::function<bool(Item& i1, Item& i2)> sortfunc;
         if (pconfig.sortfunc)

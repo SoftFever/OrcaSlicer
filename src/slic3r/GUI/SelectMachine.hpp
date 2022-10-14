@@ -248,8 +248,11 @@ enum PrintDialogStatus {
     PrintStatusRefreshingMachineList,
     PrintStatusSending,
     PrintStatusSendingCanceled,
+    PrintStatusLanModeNoSdcard,
     PrintStatusNoSdcard
 };
+
+std::string get_print_status_info(PrintDialogStatus status);
 
 class SelectMachineDialog : public DPIDialog
 {

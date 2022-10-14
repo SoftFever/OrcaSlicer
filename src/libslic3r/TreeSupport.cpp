@@ -2271,11 +2271,9 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
         for (Node* p_node : layer_contact_nodes)
         {
             if (p_node->type == ePolygon) {
-                Node* next_node = new Node(*p_node);
-                next_node->distance_to_top++;
-                next_node->support_roof_layers_below--;
-                next_node->print_z -= m_object->get_layer(layer_nr)->height;
-                next_node->to_buildplate = !is_inside_ex(m_ts_data->m_layer_outlines[layer_nr], next_node->position);
+                 const bool to_buildplate = !is_inside_ex(m_ts_data->m_layer_outlines[layer_nr], p_node->position);
+                 Node *     next_node     = new Node(p_node->position, p_node->distance_to_top + 1, p_node->skin_direction, p_node->support_roof_layers_below - 1, to_buildplate, p_node,
+                                            m_object->get_layer(layer_nr - 1)->print_z, m_object->get_layer(layer_nr - 1)->height);
                 contact_nodes[layer_nr - 1].emplace_back(next_node);
             }
         }
@@ -2602,6 +2600,20 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     {
                         unsupported_branch_leaves.push_front({ i_layer, neighbour });
                     }
+                }
+            }
+        }
+    }
+
+    // delete nodes with no children (means either it's a single layer nodes, or the branch has been deleted but not completely)
+    for (size_t layer_nr = contact_nodes.size() - 1; layer_nr > 0; layer_nr--){
+        auto layer_contact_nodes = contact_nodes[layer_nr];
+        for (Node *p_node : layer_contact_nodes) {
+            if (p_node->child==nullptr) {
+                std::vector<Node *>::iterator to_erase = std::find(contact_nodes[layer_nr].begin(), contact_nodes[layer_nr].end(), p_node);
+                if (to_erase != contact_nodes[layer_nr].end()) {
+                    to_free_node_set.insert(*to_erase);
+                    contact_nodes[layer_nr].erase(to_erase);
                 }
             }
         }

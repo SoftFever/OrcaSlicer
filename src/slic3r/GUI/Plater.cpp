@@ -555,10 +555,21 @@ Sidebar::Sidebar(Plater *parent)
 
         AppConfig *app_config = wxGetApp().app_config;
         std::string str_bed_type = app_config->get("curr_bed_type");
-        m_bed_type_list->Select(atoi(str_bed_type.c_str()));
+        int bed_type_value = atoi(str_bed_type.c_str());
+        m_bed_type_list->Select(bed_type_value);
         bed_type_sizer->Add(bed_type_title, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
         bed_type_sizer->Add(m_bed_type_list, 1, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(10));
         vsizer_printer->Add(bed_type_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
+
+        auto& project_config = wxGetApp().preset_bundle->project_config;
+        /*const t_config_enum_values* keys_map = print_config_def.get("curr_bed_type")->enum_keys_map;
+        BedType bed_type = btCount;
+        for (auto item : *keys_map) {
+            if (item.first == str_bed_type)
+                bed_type = (BedType)item.second;
+        }*/
+        BedType bed_type = (BedType)bed_type_value;
+        project_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
 
         p->m_panel_printer_content->SetSizer(vsizer_printer);
         p->m_panel_printer_content->Layout();
@@ -9057,6 +9068,10 @@ void Plater::print_job_finished(wxCommandEvent &evt)
 
     p->hide_select_machine_dlg();
     p->main_frame->request_select_tab(MainFrame::TabPosition::tpMonitor);
+    //jump to monitor and select device status panel
+    MonitorPanel* curr_monitor = p->main_frame->m_monitor;
+    if(curr_monitor)
+       curr_monitor->get_tabpanel()->ChangeSelection(MonitorPanel::PrinterTab::PT_STATUS);
 }
 
 // Called when the Eject button is pressed.

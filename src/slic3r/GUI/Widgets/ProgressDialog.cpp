@@ -185,11 +185,21 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
 
         m_sizer_main->Add(m_simplebook, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(28));
     } else {
-        m_msg = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(PROGRESSDIALOG_SIMPLEBOOK_SIZE.x, -1), 0);
+        wxScrolledWindow* m_msg_scrolledWindow = new wxScrolledWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL );
+        m_msg_scrolledWindow->SetScrollRate(0,5);
+        m_msg_scrolledWindow->SetMinSize(wxSize(FromDIP(80), FromDIP(300)));
+        wxBoxSizer* m_msg_sizer= new wxBoxSizer(wxVERTICAL);
+
+        m_msg = new wxStaticText(m_msg_scrolledWindow, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(PROGRESSDIALOG_SIMPLEBOOK_SIZE.x, -1), 0);
         m_msg->Wrap(PROGRESSDIALOG_SIMPLEBOOK_SIZE.x);
         m_msg->SetFont(::Label::Body_13);
         m_msg->SetForegroundColour(PROGRESSDIALOG_GREY_700);
-        m_sizer_main->Add(m_msg, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(28));
+
+        m_msg_sizer->Add( m_msg, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(5) );
+        m_msg_scrolledWindow->SetSizer(m_msg_sizer);
+        m_msg_scrolledWindow->Layout();
+        m_msg_sizer->Fit(m_msg_scrolledWindow);
+        m_sizer_main->Add(m_msg_scrolledWindow, 0, wxEXPAND | wxALL, FromDIP(28));
     }
 
 
@@ -237,7 +247,7 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
     }
 
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(16));
-    m_sizer_main->Add(m_sizer_bottom, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(28));
+    m_sizer_main->Add(m_sizer_bottom, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(28));
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(10));
 
     SetSizer(m_sizer_main);

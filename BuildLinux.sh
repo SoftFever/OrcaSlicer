@@ -3,6 +3,7 @@ set -e # exit on first error
 
 export ROOT=`pwd`
 export NCORES=`nproc --all`
+export CMAKE_BUILD_PARALLEL_LEVEL=${NCORES}
 FOUND_GTK2=$(dpkg -l libgtk* | grep gtk2)
 FOUND_GTK3=$(dpkg -l libgtk* | grep gtk-3)
 
@@ -192,6 +193,8 @@ then
     if [[ -n "$BUILD_DEBUG" ]]
     then
         BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug"
+    else
+        BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1"
     fi
     
     # cmake
