@@ -1278,7 +1278,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(3000));
+    def->set_default_value(new ConfigOptionFloat(10000));
 
     def = this->add("inner_wall_acceleration", coFloat);
     def->label = L("Inner wall");
@@ -1286,7 +1286,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(7000));
+    def->set_default_value(new ConfigOptionFloat(10000));
 
     def = this->add("travel_acceleration", coFloat);
     def->label = L("Travel");
@@ -1294,7 +1294,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(15000));
+    def->set_default_value(new ConfigOptionFloat(10000));
 
     def = this->add("top_surface_acceleration", coFloat);
     def->label = L("Top surface");
