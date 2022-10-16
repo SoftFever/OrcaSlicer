@@ -312,9 +312,8 @@ void PrintConfigDef::init_common_params()
 
     def = this->add("printable_area", coPoints);
     def->label = L("Printable area");
-
     //BBS
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPoints{ Vec2d(0, 0), Vec2d(200, 0), Vec2d(200, 200), Vec2d(0, 200) });
 
     //BBS: add "bed_exclude_area"
@@ -571,7 +570,7 @@ void PrintConfigDef::init_fff_params()
     def->multiline = true;
     def->full_width = true;
     def->height = 5;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("bottom_shell_layers", coInt);
@@ -1161,13 +1160,13 @@ void PrintConfigDef::init_fff_params()
     def = this->add("filament_soluble", coBools);
     def->label = L("Soluble material");
     def->tooltip = L("Soluble material is commonly used to print support and support interface");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools { false });
 
     def = this->add("filament_is_support", coBools);
     def->label = L("Support material");
     def->tooltip = L("Support material is commonly used to print support and support interface");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools { false });
 
     // BBS
@@ -1358,7 +1357,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 1;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(9));
+    def->set_default_value(new ConfigOptionFloat(12));
 
     def = this->add("initial_layer_line_width", coFloat);
     def->label = L("Initial layer");
@@ -1467,7 +1466,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Arc fitting");
     def->tooltip = L("Enable this to get a G-code file which has G2 and G3 moves. "
                      "And the fitting tolerance is same with resolution");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(0));
     // BBS
     def = this->add("gcode_add_line_number", coBool);
@@ -1480,7 +1479,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("scan_first_layer", coBool);
     def->label = L("Scan first layer");
     def->tooltip = L("Enable this to enable the camera on printer to check the quality of first layer");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
     //BBS
     // def = this->add("spaghetti_detector", coBool);
@@ -1537,7 +1536,8 @@ void PrintConfigDef::init_fff_params()
     //def->enum_labels.push_back("Machinekit");
     //def->enum_labels.push_back("Smoothie");
     //def->enum_labels.push_back(L("No extrusion"));
-    def->mode = comDevelop;
+    def->enum_labels.push_back(L("Klipper"));
+    def->mode = comAdvanced;
     def->readonly = false;
     def->set_default_value(new ConfigOptionEnum<GCodeFlavor>(gcfMarlinLegacy));
 
@@ -1656,7 +1656,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Print speed of ironing lines");
     def->sidetext = L("mm/s");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(20));
 
     def = this->add("layer_change_gcode", coString);
@@ -1680,7 +1680,7 @@ void PrintConfigDef::init_fff_params()
     def->multiline = true;
     def->full_width = true;
     def->height = 12;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionString(""));
 
     {
@@ -1828,7 +1828,7 @@ void PrintConfigDef::init_fff_params()
                      "the maximum layer hight when enable adaptive layer height");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0. });
 
 #ifdef HAS_PRESSURE_EQUALIZER
@@ -1880,7 +1880,7 @@ void PrintConfigDef::init_fff_params()
                      "the minimum layer hight when enable adaptive layer height");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0.07 });
 
     def = this->add("slow_down_min_speed", coFloats);
@@ -1888,14 +1888,14 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The minimum printing speed when slow down for cooling");
     def->sidetext = L("mm/s");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 10. });
 
     def = this->add("nozzle_diameter", coFloats);
     def->label = L("Nozzle diameter");
     def->tooltip = L("Diameter of nozzle");
     def->sidetext = L("mm");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0.4 });
 
     def = this->add("host_type", coEnum);
@@ -1958,7 +1958,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("Detect the overhang percentage relative to line width and use different speed to print. "
                      "For 100%% overhang, bridge speed is used.");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("wall_filament", coInt);
@@ -2119,7 +2119,7 @@ void PrintConfigDef::init_fff_params()
     //               "by the specified amount (the length is measured on raw filament, before it enters "
     //               "the extruder).");
     def->sidetext = L("mm");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 10. });
 
     def = this->add("z_hop", coFloats);
@@ -2187,7 +2187,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->max = 10;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(2));
 
     def = this->add("skirt_height", coInt);
@@ -2195,7 +2195,7 @@ void PrintConfigDef::init_fff_params()
     def->label = "Skirt height";
     //def->tooltip = L("How many layers of skirt. Usually only one layer");
     def->sidetext = L("layers");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->max = 10000;
     def->set_default_value(new ConfigOptionInt(1));
 
@@ -2513,7 +2513,7 @@ void PrintConfigDef::init_fff_params()
     //TRN To be shown in Print Settings "Bottom interface layers". Have to be as short as possible
     def->enum_labels.push_back("-1");
     append(def->enum_labels, support_interface_top_layers->enum_labels);
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("support_interface_spacing", coFloat);
@@ -2532,7 +2532,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Spacing of bottom interface lines. Zero means solid interface");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.5));
 
     def = this->add("support_interface_speed", coFloat);
@@ -2603,7 +2603,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("snug");
     def->enum_labels.push_back(L("Grid"));
     def->enum_labels.push_back(L("Snug"));
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialStyle>(smsGrid));
 
     def = this->add("independent_support_layer_height", coBool);
@@ -2972,7 +2972,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("This option will auto detect narrow internal solid infill area."
                    " If enabled, concentric pattern will be used for the area to speed printing up."
                    " Otherwise, rectilinear pattern is used defaultly.");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 }
 

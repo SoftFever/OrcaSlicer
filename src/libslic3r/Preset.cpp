@@ -729,7 +729,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "silent_mode",
     // BBS
     "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode",
-    "nozzle_type", "auxiliary_fan", "nozzle_volume",
+    "nozzle_type", "nozzle_diameter", "auxiliary_fan", "nozzle_volume",
     //SoftFever
     "host_type", "print_host", "printhost_apikey", 
     "printhost_cafile","printhost_port","printhost_authorization_type",

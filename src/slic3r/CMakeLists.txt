@@ -362,6 +362,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/PrintOptionsDialog.cpp
     GUI/BonjourDialog.hpp
     GUI/BonjourDialog.cpp
+    GUI/BedShapeDialog.hpp
+    GUI/BedShapeDialog.cpp
     Utils/json_diff.hpp
     Utils/json_diff.cpp
     GUI/KBShortcutsDialog.hpp
