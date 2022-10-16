@@ -2410,6 +2410,10 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         {
         //case WXK_BACK:
         case WXK_DELETE: { post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break; }
+        // BBS
+#ifdef __APPLE__
+        case WXK_BACK: { post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break; }
+#endif
         case WXK_ESCAPE: { deselect_all(); break; }
         //case WXK_F5: {
         //    if ((wxGetApp().is_editor() && !wxGetApp().plater()->model().objects.empty()) ||

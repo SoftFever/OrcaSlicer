@@ -181,8 +181,7 @@ ObjectList::ObjectList(wxWindow* parent) :
         entries[index++].Set(wxACCEL_CTRL, (int)'A', wxID_SELECTALL);
         entries[index++].Set(wxACCEL_CTRL, (int)'Z', wxID_UNDO);
         entries[index++].Set(wxACCEL_CTRL, (int)'Y', wxID_REDO);
-        entries[index++].Set(wxACCEL_NORMAL, WXK_DELETE, wxID_DELETE);
-        //entries[index++].Set(wxACCEL_NORMAL, WXK_BACK, wxID_DELETE);
+        entries[index++].Set(wxACCEL_NORMAL, WXK_BACK, wxID_DELETE);
         //entries[index++].Set(wxACCEL_NORMAL, int('+'), wxID_ADD);
         //entries[index++].Set(wxACCEL_NORMAL, WXK_NUMPAD_ADD, wxID_ADD);
         //entries[index++].Set(wxACCEL_NORMAL, int('-'), wxID_REMOVE);
