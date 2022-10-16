@@ -1,4 +1,4 @@
-#version 110
+#version 130
 
 #define INTENSITY_CORRECTION 0.6
 
@@ -43,6 +43,8 @@ varying vec4 world_pos;
 varying float world_normal_z;
 varying vec3 eye_normal;
 
+varying vec3 barycentric_coordinates;
+
 void main()
 {
 	// First transform the normal into camera space and normalize the result.
@@ -70,4 +72,8 @@ void main()
     gl_Position = ftransform();
     // Fill in the scalars for fragment shader clipping. Fragments with any of these components lower than zero are discarded.
     clipping_planes_dots = vec3(dot(world_pos, clipping_plane), world_pos.z - z_range.x, z_range.y - world_pos.z);
+
+    //compute the Barycentric Coordinates
+    int vertexMod3 = gl_VertexID % 3;
+    barycentric_coordinates = vec3(float(vertexMod3 == 0), float(vertexMod3 == 1), float(vertexMod3 == 2));
 }

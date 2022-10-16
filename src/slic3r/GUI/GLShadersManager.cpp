@@ -45,11 +45,20 @@ std::pair<bool, std::string> GLShadersManager::init()
     // used to render extrusion and travel paths as lines in gcode preview
     valid &= append_shader("toolpaths_lines", { "toolpaths_lines.vs", "toolpaths_lines.fs" });
     // used to render objects in 3d editor
-    valid &= append_shader("gouraud", { "gouraud.vs", "gouraud.fs" }
+    if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 0)) {
+        valid &= append_shader("gouraud", { "gouraud_130.vs", "gouraud_130.fs" }
+#if ENABLE_ENVIRONMENT_MAP
+            , { "ENABLE_ENVIRONMENT_MAP"sv }
+#endif // ENABLE_ENVIRONMENT_MAP
+            );
+    }
+    else {
+        valid &= append_shader("gouraud", { "gouraud.vs", "gouraud.fs" }
 #if ENABLE_ENVIRONMENT_MAP
         , { "ENABLE_ENVIRONMENT_MAP"sv }
 #endif // ENABLE_ENVIRONMENT_MAP
         );
+    }
     // used to render variable layers heights in 3d editor
     valid &= append_shader("variable_layer_height", { "variable_layer_height.vs", "variable_layer_height.fs" });
     // used to render highlight contour around selected triangles inside the multi-material gizmo
