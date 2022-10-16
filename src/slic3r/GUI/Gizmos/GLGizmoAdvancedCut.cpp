@@ -438,7 +438,7 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
 
     // Rotation input box
     ImGui::PushItemWidth(caption_size);
-    m_imgui->text(_L("Rotation:"));
+    m_imgui->text(_L("Rotation") + " ");
     ImGui::SameLine(caption_size + 1 * space_size);
     ImGui::PushItemWidth(unit_size);
     ImGui::BBLInputDouble("##cut_rotation_x", &rotation[0], 0.0f, 0.0f, "%.2f");
@@ -471,7 +471,7 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
     double movement = m_movement;
     ImGui::PushItemWidth(caption_size);
     ImGui::AlignTextToFramePadding();
-    m_imgui->text(_L("Movement:"));
+    m_imgui->text(_L("Movement") + " ");
     ImGui::SameLine(caption_size + 1 * space_size);
     ImGui::PushItemWidth(3 * unit_size + 2 * space_size);
     ImGui::BBLInputDouble("##cut_movement", &movement, 0.0f, 0.0f, "%.2f");
@@ -497,7 +497,7 @@ void GLGizmoAdvancedCut::on_render_input_window(float x, float y, float bottom_l
     double height = m_height;
     ImGui::PushItemWidth(caption_size);
     ImGui::AlignTextToFramePadding();
-    m_imgui->text(_L("Height:"));
+    m_imgui->text(_L("Height") + " ");
     ImGui::SameLine(caption_size + 1 * space_size);
     ImGui::PushItemWidth(3 * unit_size + 2 * space_size);
     ImGui::BBLInputDouble("##cut_height", &height, 0.0f, 0.0f, "%.2f");

@@ -679,7 +679,14 @@ bool GLGizmosManager::on_mouse_wheel(wxMouseEvent& evt)
 
     if (m_current == SlaSupports || m_current == Hollow || m_current == FdmSupports || m_current == Seam || m_current == MmuSegmentation) {
         float rot = (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta();
-        if (gizmo_event((rot > 0.f ? SLAGizmoEventType::MouseWheelUp : SLAGizmoEventType::MouseWheelDown), Vec2d::Zero(), evt.ShiftDown(), evt.AltDown(), evt.ControlDown()))
+        if (gizmo_event((rot > 0.f ? SLAGizmoEventType::MouseWheelUp : SLAGizmoEventType::MouseWheelDown), Vec2d::Zero(), evt.ShiftDown(), evt.AltDown()
+            // BBS
+#ifdef __WXOSX_MAC__
+            , evt.RawControlDown()
+#else
+            , evt.ControlDown()
+#endif
+            ))
             processed = true;
     }
 
@@ -705,7 +712,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
     if (evt.Moving()) {
         m_tooltip = update_hover_state(mouse_pos);
         if (m_current == MmuSegmentation || m_current == FdmSupports)
-            gizmo_event(SLAGizmoEventType::Moving, mouse_pos, evt.ShiftDown(), evt.AltDown());
+            // BBS
+            gizmo_event(SLAGizmoEventType::Moving, mouse_pos, evt.ShiftDown(), evt.AltDown(), evt.ControlDown());
     } else if (evt.LeftUp()) {
         if (m_mouse_capture.left) {
             processed = true;

@@ -142,6 +142,7 @@ public:
 
     constexpr static float GapAreaMin = 0.f;
     constexpr static float GapAreaMax = 5.f;
+    constexpr static float GapAreaStep = 0.2f;
 
     // BBS: fix me
     static float gap_area;
