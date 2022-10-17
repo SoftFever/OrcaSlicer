@@ -104,8 +104,13 @@ void ConfirmHintDialog::render(wxDC& dc) {
             auto text_size = dc.GetTextExtent(count_txt);
             if (text_size.x + pos_firm_up_hint.x + FromDIP(25) < wxSize(FromDIP(475), FromDIP(100)).x)
             {
-                if (firm_up_hint[i] == ' ' ||  firm_up_hint[i] == '\n')
+                if (firm_up_hint[i] == ' ') {
                     new_line_pos = i;
+                } else if (firm_up_hint[i] == '\n') {
+                    fisrt_line = firm_up_hint.SubString(0, i);
+                    remaining_line = firm_up_hint.SubString(i + 1, firm_up_hint.length());
+                    break;
+                }
             }
             else {
                 if (!is_ch) {
@@ -122,7 +127,6 @@ void ConfirmHintDialog::render(wxDC& dc) {
             }
         }
         dc.DrawText(fisrt_line, pos_firm_up_hint);
-
 
         count_txt = "";
         new_line_pos = 0;
@@ -165,6 +169,12 @@ void ConfirmHintDialog::on_button_confirm(wxCommandEvent& event) {
 
 void ConfirmHintDialog::on_button_close(wxCommandEvent& event) {
     this->Close();
+}
+
+bool ConfirmHintDialog::Show(bool show)
+{
+    if (show) { CentreOnParent(); }
+    return DPIDialog::Show(show);
 }
 
 void ConfirmHintDialog::on_dpi_changed(const wxRect& suggested_rect) {

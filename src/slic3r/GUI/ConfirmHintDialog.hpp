@@ -45,6 +45,8 @@ public:
 
     void SetHint(const wxString &hint);
 
+    bool Show(bool show) override;
+
     ~ConfirmHintDialog();
 };
 }} // namespace Slic3r::GUI

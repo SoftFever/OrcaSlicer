@@ -358,6 +358,8 @@ public:
     void      show_status(PrintDialogStatus status, std::vector<wxString> params = std::vector<wxString>());
     PrintDialogStatus  get_status() { return m_print_status; }
 
+    bool      is_same_printer_model();
+
     bool Show(bool show);
 
     /* model */
@@ -393,7 +395,8 @@ protected:
     // Virtual event handlers, overide them in your derived class
     void                     update_printer_combobox(wxCommandEvent &event);
     void                     on_cancel(wxCloseEvent &event);
-    void                     on_ok(wxCommandEvent &event);
+    void                     on_ok_btn(wxCommandEvent &event);
+    void                     on_ok();
     void                     on_refresh(wxCommandEvent &event);
     void                     on_set_finish_mapping(wxCommandEvent &evt);
     void                     on_print_job_cancel(wxCommandEvent &evt);

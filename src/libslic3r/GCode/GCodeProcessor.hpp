@@ -16,6 +16,9 @@
 
 namespace Slic3r {
 
+// slice warnings enum strings
+#define BED_TEMP_TOO_HIGH_THAN_FILAMENT     "bed_temperature_too_high_than_filament"
+
     enum class EMoveType : unsigned char
     {
         Noop,
@@ -127,6 +130,14 @@ namespace Slic3r {
                 return move_path_type == EMovePathType::Arc_move_ccw || move_path_type == EMovePathType::Arc_move_cw;
             }
         };
+
+        struct SliceWarnings {
+            int         level;                  // 0: normal tips, 1: warning; 2: error
+            std::string msg;                    // enum string
+            std::vector<std::string> params;    // extra msg info
+        };
+
+        std::vector<SliceWarnings> warnings;
 
         std::string filename;
         unsigned int id;

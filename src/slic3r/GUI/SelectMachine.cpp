@@ -21,6 +21,7 @@
 #include "Plater.hpp"
 #include "BitmapCache.hpp"
 #include "BindDialog.hpp"
+#include "ConfirmHintDialog.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -1046,7 +1047,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_button_ensure->SetCornerRadius(FromDIP(12));
 
-    m_button_ensure->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_ok, this);
+    m_button_ensure->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_ok_btn, this);
     m_sizer_pcont->Add(m_button_ensure, 0, wxEXPAND | wxBOTTOM, FromDIP(10));
     m_sizer_prepare->Add(m_sizer_pcont, 0, wxEXPAND, 0);
     m_panel_prepare->SetSizer(m_sizer_prepare);
@@ -1716,7 +1717,67 @@ void SelectMachineDialog::on_cancel(wxCloseEvent &event)
     this->EndModal(wxID_CANCEL);
 }
 
-void SelectMachineDialog::on_ok(wxCommandEvent &event)
+bool SelectMachineDialog::is_same_printer_model()
+{
+    bool result = true;
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return result;
+
+    MachineObject* obj_ = dev->get_selected_machine();
+    assert(obj_->dev_id == m_printer_last_select);
+    if (obj_ == nullptr) {
+        return result;
+    }
+
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle && preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) != obj_->printer_type) {
+        BOOST_LOG_TRIVIAL(info) << "printer_model: source = " << preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+        BOOST_LOG_TRIVIAL(info) << "printer_model: target = " << obj_->printer_type;
+        return false;
+    }
+
+    return true;
+}
+
+void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
+{
+    wxString confirm_text = _L("Please check the following infomation:\n");
+
+    //Check Printer Model Id
+    bool is_same_printer_type = is_same_printer_model();
+    confirm_text += _L("The printer type used to generate G-code is not the same type as the currently selected physical printer. It is recommend to re-slice by selecting the same printer type.\n");
+
+    //Check slice warnings
+    bool has_slice_warnings = false;
+    PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (dev) {
+        MachineObject* obj_ = dev->get_selected_machine();
+        for (auto warning : plate->get_slice_result()->warnings) {
+            if ((obj_->printer_type == "BL-P001" || obj_->printer_type == "BL-P002") && warning.msg == BED_TEMP_TOO_HIGH_THAN_FILAMENT) {
+                confirm_text += Plater::get_slice_warning_string(warning) + "\n";
+            } else {
+                has_slice_warnings = true;
+            }
+        }
+    }
+
+    if (!is_same_printer_type
+        || has_slice_warnings
+        ) {
+        wxString confirm_title = _L("Confirm");
+        ConfirmHintDialog confirm_dlg(this, wxID_ANY, confirm_title);
+        confirm_dlg.SetHint(confirm_text);
+        confirm_dlg.Bind(EVT_CONFIRM_HINT, [this](wxCommandEvent& e) {
+                this->on_ok();
+        });
+        confirm_dlg.ShowModal();
+    } else {
+        this->on_ok();
+    }
+}
+
+void SelectMachineDialog::on_ok()
 {
     BOOST_LOG_TRIVIAL(info) << "print_job: on_ok to send";
     m_is_canceled = false;
