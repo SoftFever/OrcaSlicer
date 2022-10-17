@@ -390,6 +390,8 @@ std::array<float, 4> GLVolume::MODEL_NEGTIVE_COL    = {0.3f, 0.3f, 0.3f, 0.4f};
 std::array<float, 4> GLVolume::SUPPORT_ENFORCER_COL = {0.3f, 0.3f, 1.0f, 0.4f};
 std::array<float, 4> GLVolume::SUPPORT_BLOCKER_COL  = {1.0f, 0.3f, 0.3f, 0.4f};
 
+std::array<float, 4> GLVolume::MODEL_HIDDEN_COL  = {0.f, 0.f, 0.f, 0.3f};
+
 std::array<std::array<float, 4>, 5> GLVolume::MODEL_COLOR = { {
     { 1.0f, 1.0f, 0.0f, 1.f },
     { 1.0f, 0.5f, 0.5f, 1.f },
@@ -430,6 +432,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , selected(false)
     , disabled(false)
     , printable(true)
+    , visible(true)
     , is_active(true)
     , zoom_to_volumes(true)
     , shader_outside_printer_detection_enabled(false)
@@ -520,6 +523,14 @@ void GLVolume::set_render_color()
         render_color[1] = UNPRINTABLE_COLOR[1];
         render_color[2] = UNPRINTABLE_COLOR[2];
         render_color[3] = UNPRINTABLE_COLOR[3];
+    }
+
+    //BBS set invisible color
+    if (!visible) {
+        render_color[0] = MODEL_HIDDEN_COL[0];
+        render_color[1] = MODEL_HIDDEN_COL[1];
+        render_color[2] = MODEL_HIDDEN_COL[2];
+        render_color[3] = MODEL_HIDDEN_COL[3];
     }
 }
 

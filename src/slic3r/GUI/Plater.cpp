@@ -8739,6 +8739,18 @@ void Plater::delete_all_objects_from_model()
     p->delete_all_objects_from_model();
 }
 
+void Plater::set_selected_visible(bool visible)
+{
+    if (p->get_curr_selection().is_empty())
+        return;
+
+    Plater::TakeSnapshot snapshot(this, "Set Selected Objects Visible in AssembleView");
+    p->m_ui_jobs.cancel_all();
+
+    p->get_current_canvas3D()->set_selected_visible(visible);
+}
+
+
 void Plater::remove_selected()
 {
     /*if (p->get_selection().is_empty())

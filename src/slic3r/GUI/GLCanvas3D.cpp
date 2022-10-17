@@ -2030,6 +2030,16 @@ void GLCanvas3D::deselect_all()
     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
 }
 
+void GLCanvas3D::set_selected_visible(bool visible)
+{
+    for (unsigned int i : m_selection.get_volume_idxs()) {
+        GLVolume* volume = const_cast<GLVolume*>(m_selection.get_volume(i));
+        volume->visible = visible;
+        volume->color[3] = visible ? 1.f : GLVolume::MODEL_HIDDEN_COL[3];
+        volume->render_color[3] = volume->color[3];
+    }
+}
+
 void GLCanvas3D::delete_selected()
 {
     m_selection.erase();
@@ -3520,6 +3530,28 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     if (m_gizmos.on_mouse_wheel(evt))
         return;
 
+    if (m_canvas_type == CanvasAssembleView && (evt.AltDown() || evt.CmdDown())) {
+        float rotation = (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta();
+        if (evt.AltDown()) {
+            auto clp_dist = m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position();
+            clp_dist = rotation < 0.f
+                ? std::max(0., clp_dist - 0.01)
+                : std::min(1., clp_dist + 0.01);
+            m_gizmos.m_assemble_view_data->model_objects_clipper()->set_position(clp_dist, true);
+        }
+        else if (evt.CmdDown()) {
+            m_explosion_ratio = rotation < 0.f
+                ? std::max(1., m_explosion_ratio - 0.01)
+                : std::min(3., m_explosion_ratio + 0.01);
+            if (m_explosion_ratio != GLVolume::explosion_ratio) {
+                for (GLVolume* volume : m_volumes.volumes) {
+                    volume->set_bounding_boxes_as_dirty();
+                }
+                GLVolume::explosion_ratio = m_explosion_ratio;
+            }
+        }
+        return;
+    }
     // Calculate the zoom delta and apply it to the current zoom factor
 #ifdef SUPPORT_REVERSE_MOUSE_ZOOM
     double direction_factor = (wxGetApp().app_config->get("reverse_mouse_wheel_zoom") == "1") ? -1.0 : 1.0;
@@ -6561,7 +6593,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                     return true;
                 }
                 }, with_outline);
-            if (m_canvas_type == CanvasAssembleView) {
+            if (m_canvas_type == CanvasAssembleView && m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position() > 0) {
                 const GLGizmosManager& gm = get_gizmos_manager();
                 shader->stop_using();
                 gm.render_painter_assemble_view();

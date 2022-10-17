@@ -731,7 +731,7 @@ void ObjectList::printable_state_changed(const std::vector<ObjectVolumeID>& ov_i
     obj_idxs.erase(unique(obj_idxs.begin(), obj_idxs.end()), obj_idxs.end());
 
     // update printable state on canvas
-    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
+    wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
 
     // update scene
     wxGetApp().plater()->update();
@@ -1777,7 +1777,7 @@ void ObjectList::load_subobject(ModelVolumeType type, bool from_galery/* = false
 
     if (type == ModelVolumeType::MODEL_PART)
         // update printable state on canvas
-        wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
+        wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
 
     if (items.size() > 1) {
         m_selection_mode = smVolume;
@@ -2055,7 +2055,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
     });
     if (type == ModelVolumeType::MODEL_PART)
         // update printable state on canvas
-        wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
+        wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
 
     // apply the instance transform to all volumes and reset instance transform except the offset
     apply_object_instance_transfrom_to_all_volumes(&model_object);
@@ -2192,7 +2192,7 @@ void ObjectList::load_mesh_part(const TriangleMesh &mesh, const wxString &name, 
     wxDataViewItemArray items = reorder_volumes_and_get_selection(obj_idx, [volumes](const ModelVolume* volume) {
         return std::find(volumes.begin(), volumes.end(), volume) != volumes.end(); });
 
-    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
+    wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_object((size_t)obj_idx);
 
     if (items.size() > 1) {
         m_selection_mode = smVolume;
@@ -4565,7 +4565,7 @@ void ObjectList::instances_to_separated_object(const int obj_idx, const std::set
     }
 
     // update printable state for new volumes on canvas3D
-    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_object(new_obj_indx);
+    wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_object(new_obj_indx);
     update_info_items(new_obj_indx);
 }
 
@@ -4598,7 +4598,7 @@ void ObjectList::instances_to_separated_objects(const int obj_idx)
     }
 
     // update printable state for new volumes on canvas3D
-    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(object_idxs);
+    wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_objects(object_idxs);
     for (size_t object : object_idxs)
         update_info_items(object);
 }
@@ -5012,7 +5012,7 @@ void ObjectList::reload_all_plates(bool notify_partplate)
     m_prevent_canvas_selection_update = false;
 
     // update printable states on canvas
-    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
+    wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
     // update scene
     wxGetApp().plater()->update();
 }
@@ -5146,7 +5146,7 @@ void ObjectList::toggle_printable_state()
     obj_idxs.erase(unique(obj_idxs.begin(), obj_idxs.end()), obj_idxs.end());
 
     // update printable state on canvas
-    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
+    wxGetApp().plater()->get_view3D_canvas3D()->update_instance_printable_state_for_objects(obj_idxs);
 
     // update scene
     wxGetApp().plater()->update();

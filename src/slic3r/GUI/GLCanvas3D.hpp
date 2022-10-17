@@ -847,6 +847,7 @@ public:
 
     void select_all();
     void deselect_all();
+    void set_selected_visible(bool visible);
     void delete_selected();
     void ensure_on_bed(unsigned int object_idx, bool allow_negative_z);
 

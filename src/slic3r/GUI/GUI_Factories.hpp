@@ -126,6 +126,7 @@ private:
     void        append_menu_item_reload_from_disk(wxMenu* menu);
     void        append_menu_item_replace_with_stl(wxMenu* menu);
     void        append_menu_item_change_extruder(wxMenu* menu);
+    void        append_menu_item_set_visible(wxMenu* menu);
     void        append_menu_item_delete(wxMenu* menu);
     void        append_menu_item_scale_selection_to_fit_print_volume(wxMenu* menu);
     void        append_menu_items_convert_unit(wxMenu* menu); // Add "Conver/Revert..." menu items (from/to inches/meters) after "Reload From Disk"
