@@ -1357,8 +1357,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                 export_gcode_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Export G-code file"));
                     m_print_select = eExportGcode;
-                    if (m_print_enable)
-                        m_print_enable = get_enable_print_status();
+                    m_print_enable = get_enable_print_status();
                     m_print_btn->Enable(m_print_enable);
                     this->Layout();
                     p->Dismiss();
@@ -1370,8 +1369,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                 send_gcode_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Send and Print"));
                     m_print_select = eSendGcode;
-                    if (m_print_enable)
-                        m_print_enable = get_enable_print_status() && can_send_gcode();
+                    m_print_enable = get_enable_print_status();
                     m_print_btn->Enable(m_print_enable);
                     this->Layout();
                     p->Dismiss();
@@ -1383,8 +1381,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                 upload_gcode_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Send"));
                     m_print_select = eUploadGcode;
-                    if (m_print_enable)
-                        m_print_enable = get_enable_print_status() && can_send_gcode();
+                    m_print_enable = get_enable_print_status();
                     m_print_btn->Enable(m_print_enable);
                     this->Layout();
                     p->Dismiss();
@@ -1416,8 +1413,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                 send_to_printer_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Send"));
                     m_print_select = eSendToPrinter;
-                    if (m_print_enable)
-                        m_print_enable = get_enable_print_status();
+                    m_print_enable = get_enable_print_status();
                     m_print_btn->Enable(m_print_enable);
                     this->Layout();
                     p->Dismiss();
@@ -1426,8 +1422,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                 export_sliced_file_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Export Sliced File"));
                     m_print_select = eExportSlicedFile;
-                    if (m_print_enable)
-                        m_print_enable = get_enable_print_status();
+                    m_print_enable = get_enable_print_status();
                     m_print_btn->Enable(m_print_enable);
                     this->Layout();
                     p->Dismiss();
@@ -1521,6 +1516,20 @@ bool MainFrame::get_enable_print_status()
         {
             enable = false;
         }
+    }
+    else if (m_print_select == eSendGcode)
+    {
+        if (!current_plate->is_slice_result_valid())
+            enable = false;
+        if (!can_send_gcode())
+            enable = false;
+    }
+    else if (m_print_select == eUploadGcode)
+    {
+        if (!current_plate->is_slice_result_valid())
+            enable = false;
+        if (!can_send_gcode())
+            enable = false;
     }
     else if (m_print_select == eExportSlicedFile)
     {
@@ -2698,7 +2707,7 @@ void MainFrame::set_print_button_to_default(PrintSelectType select_type)
         m_print_btn->SetLabel(_L("Send and Print"));
         m_print_select = eSendGcode;
         if (m_print_enable)
-            m_print_enable = get_enable_print_status() && can_send_gcode();
+            m_print_enable = get_enable_print_status();
         m_print_btn->Enable(m_print_enable);
         this->Layout();
     } else {
