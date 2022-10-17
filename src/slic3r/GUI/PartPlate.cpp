@@ -4106,7 +4106,7 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 		ps.total_used_filament *= 1000; //koef
 		gcode_result->toolpath_outside = plate_data_list[i]->toolpath_outside;
 		m_plate_list[index]->slice_filaments_info = plate_data_list[i]->slice_filaments_info;
-
+		gcode_result->warnings = plate_data_list[i]->warnings;
 		if (!plate_data_list[i]->thumbnail_file.empty()) {
 			if (boost::filesystem::exists(plate_data_list[i]->thumbnail_file)) {
 				m_plate_list[index]->load_thumbnail_data(plate_data_list[i]->thumbnail_file);

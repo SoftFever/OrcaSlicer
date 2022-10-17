@@ -175,6 +175,8 @@ static constexpr const char* BUILD_TAG = "build";
 static constexpr const char* ITEM_TAG = "item";
 static constexpr const char* METADATA_TAG = "metadata";
 static constexpr const char* FILAMENT_TAG = "filament";
+static constexpr const char* SLICE_WARNING_TAG = "warning";
+static constexpr const char* WARNING_MSG_TAG = "msg";
 static constexpr const char *FILAMENT_ID_TAG   = "id";
 static constexpr const char* FILAMENT_TYPE_TAG = "type";
 static constexpr const char *FILAMENT_COLOR_TAG = "color";
@@ -460,6 +462,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         info.used_g = used_filament_g;
         slice_filaments_info.push_back(info);
     }
+
+    /* only for test
+    GCodeProcessorResult::SliceWarnings sw;
+    sw.msg = BED_TEMP_TOO_HIGH_THAN_FILAMENT;
+    sw.level = 1;
+    result->warnings.push_back(sw);
+    */
+    warnings = result->warnings;
 }
 
 
@@ -842,6 +852,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         bool _handle_start_config_filament(const char** attributes, unsigned int num_attributes);
         bool _handle_end_config_filament();
+
+        bool _handle_start_config_warning(const char** attributes, unsigned int num_attributes);
+        bool _handle_end_config_warning();
 
         //BBS: add plater config parse functions
         bool _handle_start_config_plater(const char** attributes, unsigned int num_attributes);
@@ -1510,6 +1523,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->gcode_weight = it->second->gcode_weight;
             plate_data_list[it->first-1]->toolpath_outside = it->second->toolpath_outside;
             plate_data_list[it->first-1]->slice_filaments_info = it->second->slice_filaments_info;
+            plate_data_list[it->first-1]->warnings = it->second->warnings;
             plate_data_list[it->first-1]->thumbnail_file = (m_load_restore || it->second->thumbnail_file.empty()) ? it->second->thumbnail_file : m_backup_path + "/" + it->second->thumbnail_file;
             plate_data_list[it->first-1]->pattern_file = (m_load_restore || it->second->pattern_file.empty()) ? it->second->pattern_file : m_backup_path + "/" + it->second->pattern_file;
             plate_data_list[it->first-1]->pattern_bbox_file = (m_load_restore || it->second->pattern_bbox_file.empty()) ? it->second->pattern_bbox_file : m_backup_path + "/" + it->second->pattern_bbox_file;
@@ -2355,6 +2369,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             res = _handle_start_config_plater_instance(attributes, num_attributes);
         else if (::strcmp(FILAMENT_TAG, name) == 0)
             res = _handle_start_config_filament(attributes, num_attributes);
+        else if (::strcmp(SLICE_WARNING_TAG, name) == 0)
+            res = _handle_start_config_warning(attributes, num_attributes);
         else if (::strcmp(ASSEMBLE_TAG, name) == 0)
             res = _handle_start_assemble(attributes, num_attributes);
         else if (::strcmp(ASSEMBLE_ITEM_TAG, name) == 0)
@@ -3200,6 +3216,30 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     }
 
     bool _BBS_3MF_Importer::_handle_end_config_filament()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_config_warning(const char** attributes, unsigned int num_attributes)
+    {
+        if (m_curr_plater) {
+            std::string msg     = bbs_get_attribute_value_string(attributes, num_attributes, WARNING_MSG_TAG);
+            std::string lvl_str = bbs_get_attribute_value_string(attributes, num_attributes, "level");
+            GCodeProcessorResult::SliceWarnings sw;
+            sw.msg = msg;
+            try {
+                sw.level = atoi(lvl_str.c_str());
+            }
+            catch(...) {
+            };
+
+            m_curr_plater->warnings.push_back(sw);
+        }
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_end_config_warning()
     {
         // do nothing
         return true;
@@ -5638,6 +5678,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                            << FILAMENT_COLOR_TAG << "=\"" << it->color << "\" "
                            << FILAMENT_USED_M_TAG << "=\"" << it->used_m << "\" "
                            << FILAMENT_USED_G_TAG << "=\"" << it->used_g << "\" />\n";
+                }
+
+                for (auto it = plate_data->warnings.begin(); it != plate_data->warnings.end(); it++) {
+                    stream << "    <" << SLICE_WARNING_TAG << " " << "msg=\"" << it->msg << "\" " << "level=\"" << std::to_string(it->level) << "\"  />\n";
                 }
                 stream << "  </" << PLATE_TAG << ">\n";
             }
