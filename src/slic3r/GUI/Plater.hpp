@@ -235,7 +235,7 @@ public:
     static void setPrintSpeedTable(Slic3r::GlobalSpeedMap& printSpeedMap);
     static void setExtruderParams(std::map<size_t, Slic3r::ExtruderParams>& extParas);
     static wxColour get_next_color_for_filament();
-    static wxString get_slice_warning_string(GCodeProcessorResult::SliceWarnings& warning);
+    static wxString get_slice_warning_string(GCodeProcessorResult::SliceWarning& warning);
 
     // BBS: restore
     std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, LoadStrategy strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig,  bool ask_multi = false);

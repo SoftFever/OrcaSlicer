@@ -1767,7 +1767,8 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
     //Check Printer Model Id
     bool is_same_printer_type = is_same_printer_model();
-    confirm_text += _L("The printer type used to generate G-code is not the same type as the currently selected physical printer. It is recommend to re-slice by selecting the same printer type.\n");
+    if (!is_same_printer_type)
+        confirm_text += _L("The printer type used to generate G-code is not the same type as the currently selected physical printer. It is recommend to re-slice by selecting the same printer type.\n");
 
     //Check slice warnings
     bool has_slice_warnings = false;
@@ -1776,9 +1777,13 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     if (dev) {
         MachineObject* obj_ = dev->get_selected_machine();
         for (auto warning : plate->get_slice_result()->warnings) {
-            if ((obj_->printer_type == "BL-P001" || obj_->printer_type == "BL-P002") && warning.msg == BED_TEMP_TOO_HIGH_THAN_FILAMENT) {
-                confirm_text += Plater::get_slice_warning_string(warning) + "\n";
-            } else {
+            if (warning.msg == BED_TEMP_TOO_HIGH_THAN_FILAMENT) {
+                if ((obj_->printer_type == "BL-P001" || obj_->printer_type == "BL-P002")) {
+                    confirm_text += Plater::get_slice_warning_string(warning) + "\n";
+                    has_slice_warnings = true;
+                }
+            }
+            else {
                 has_slice_warnings = true;
             }
         }

@@ -36,6 +36,7 @@ static const float DEFAULT_TRAVEL_ACCELERATION = 1250.0f;
 static const size_t MIN_EXTRUDERS_COUNT = 5;
 static const float DEFAULT_FILAMENT_DIAMETER = 1.75f;
 static const float DEFAULT_FILAMENT_DENSITY = 1.245f;
+static const int   DEFAULT_FILAMENT_VITRIFICATION_TEMPERATURE = 0;
 static const Slic3r::Vec3f DEFAULT_EXTRUDER_OFFSET = Slic3r::Vec3f::Zero();
 
 namespace Slic3r {
@@ -779,6 +780,7 @@ void GCodeProcessorResult::reset() {
     filament_diameters = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DIAMETER);
     filament_densities = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DENSITY);
     custom_gcode_per_print_z = std::vector<CustomGCode::Item>();
+    warnings.clear();
 
     //BBS: add mutex for protection of gcode result
     unlock();
@@ -880,6 +882,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_extruder_colors.resize(extruders_count);
     m_result.filament_diameters.resize(extruders_count);
     m_result.filament_densities.resize(extruders_count);
+    m_result.filament_vitrification_temperature.resize(extruders_count);
     m_extruder_temps.resize(extruders_count);
 
     for (size_t i = 0; i < extruders_count; ++ i) {
@@ -887,6 +890,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_extruder_colors[i]            = static_cast<unsigned char>(i);
         m_result.filament_diameters[i]  = static_cast<float>(config.filament_diameter.get_at(i));
         m_result.filament_densities[i]  = static_cast<float>(config.filament_density.get_at(i));
+        m_result.filament_vitrification_temperature[i] = static_cast<float>(config.temperature_vitrification.get_at(i));
     }
 
     if (m_flavor == gcfMarlinLegacy || m_flavor == gcfMarlinFirmware) {
@@ -986,6 +990,20 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     if (m_result.filament_densities.size() < m_result.extruders_count) {
         for (size_t i = m_result.filament_densities.size(); i < m_result.extruders_count; ++i) {
             m_result.filament_densities.emplace_back(DEFAULT_FILAMENT_DENSITY);
+        }
+    }
+    //BBS
+    const ConfigOptionInts* filament_vitrification_temperature = config.option<ConfigOptionInts>("temperature_vitrification");
+    if (filament_vitrification_temperature != nullptr) {
+        m_result.filament_vitrification_temperature.clear();
+        m_result.filament_vitrification_temperature.resize(filament_vitrification_temperature->values.size());
+        for (size_t i = 0; i < filament_vitrification_temperature->values.size(); ++i) {
+            m_result.filament_vitrification_temperature[i] = static_cast<int>(filament_vitrification_temperature->values[i]);
+        }
+    }
+    if (m_result.filament_vitrification_temperature.size() < m_result.extruders_count) {
+        for (size_t i = m_result.filament_vitrification_temperature.size(); i < m_result.extruders_count; ++i) {
+            m_result.filament_vitrification_temperature.emplace_back(DEFAULT_FILAMENT_VITRIFICATION_TEMPERATURE);
         }
     }
 
@@ -1201,6 +1219,7 @@ void GCodeProcessor::reset()
     for (size_t i = 0; i < MIN_EXTRUDERS_COUNT; ++i) {
         m_extruder_temps[i] = 0.0f;
     }
+    m_highest_bed_temp = 0;
 
     m_extruded_last_z = 0.0f;
     m_zero_layer_height = 0.0f;
@@ -1366,6 +1385,8 @@ void GCodeProcessor::finalize(bool post_process)
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_result.time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_start_time).count();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
+    //BBS: update slice warning
+    update_slice_warnings();
 }
 
 float GCodeProcessor::get_time(PrintEstimatedStatistics::ETimeMode mode) const
@@ -1655,6 +1676,16 @@ void GCodeProcessor::process_gcode_line(const GCodeReader::GCodeLine& line, bool
                         default: break;
                         }
                         break;
+                    case '4':
+                        switch (cmd[3]) {
+                        case '0': { process_M140(line); break; } // Set bed temperature
+                        default: break;
+                        }
+                    case '9':
+                        switch (cmd[3]) {
+                        case '0': { process_M190(line); break; } // Wait bed temperature
+                        default: break;
+                    }
                     default:
                         break;
                     }
@@ -3430,6 +3461,21 @@ void GCodeProcessor::process_M135(const GCodeReader::GCodeLine& line)
         process_T(cmd.substr(pos));
 }
 
+void GCodeProcessor::process_M140(const GCodeReader::GCodeLine& line)
+{
+    float new_temp;
+    if (line.has_value('S', new_temp))
+        m_highest_bed_temp = m_highest_bed_temp < (int)new_temp ? (int)new_temp : m_highest_bed_temp;
+}
+
+void GCodeProcessor::process_M190(const GCodeReader::GCodeLine& line)
+{
+    float new_temp;
+    if (line.has_value('S', new_temp))
+        m_highest_bed_temp = m_highest_bed_temp < (int)new_temp ? (int)new_temp : m_highest_bed_temp;
+}
+
+
 void GCodeProcessor::process_M201(const GCodeReader::GCodeLine& line)
 {
     // see http://reprap.org/wiki/G-code#M201:_Set_max_printing_acceleration
@@ -3851,6 +3897,15 @@ float GCodeProcessor::get_filament_unload_time(size_t extruder_id)
     return m_time_processor.extruder_unloaded ? 0.0f : m_time_processor.filament_unload_times;
 }
 
+//BBS
+int GCodeProcessor::get_filament_vitrification_temperature(size_t extrude_id)
+{
+    if (extrude_id < m_result.filament_vitrification_temperature.size())
+        return m_result.filament_vitrification_temperature[extrude_id];
+    else
+        return 0;
+}
+
 void GCodeProcessor::process_custom_gcode_time(CustomGCode::Type code)
 {
     for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
@@ -3910,6 +3965,37 @@ void GCodeProcessor::update_estimated_times_stats()
     m_result.print_statistics.volumes_per_extruder      = m_used_filaments.volumes_per_extruder;
     m_result.print_statistics.flush_per_filament      = m_used_filaments.flush_per_filament;
     m_result.print_statistics.used_filaments_per_role   = m_used_filaments.filaments_per_role;
+}
+
+//BBS: ugly code...
+void GCodeProcessor::update_slice_warnings()
+{
+    m_result.warnings.clear();
+
+    auto get_used_extruders = [this]() {
+        std::vector<size_t> used_extruders;
+        used_extruders.reserve(m_used_filaments.volumes_per_extruder.size());
+        for (auto item : m_used_filaments.volumes_per_extruder) {
+            used_extruders.push_back(item.first);
+        }
+        return used_extruders;
+    };
+
+    auto used_extruders = get_used_extruders();
+    assert(!used_extruders.empty());
+    if (m_highest_bed_temp != 0) {
+        for (size_t i = 0; i < used_extruders.size(); i++) {
+            int temperature = get_filament_vitrification_temperature(used_extruders[i]);
+            if (temperature != 0 && m_highest_bed_temp > temperature) {
+                GCodeProcessorResult::SliceWarning warning;
+                warning.level = 1;
+                warning.msg = BED_TEMP_TOO_HIGH_THAN_FILAMENT;
+                m_result.warnings.emplace_back(std::move(warning));
+            }
+        }
+    }
+
+    m_result.warnings.shrink_to_fit();
 }
 
 } /* namespace Slic3r */

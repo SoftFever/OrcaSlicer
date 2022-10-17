@@ -2540,7 +2540,7 @@ wxColour Plater::get_next_color_for_filament()
     return colors[curr_color_filamenet++ % 7];
 }
 
-wxString Plater::get_slice_warning_string(GCodeProcessorResult::SliceWarnings& warning)
+wxString Plater::get_slice_warning_string(GCodeProcessorResult::SliceWarning& warning)
 {
     if (warning.msg == BED_TEMP_TOO_HIGH_THAN_FILAMENT) {
         return _L("The bed temperature exceeds filament's vitrification temperature. Please open the front door of printer before printing to avoid nozzle clog.");

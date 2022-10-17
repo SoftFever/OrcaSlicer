@@ -70,7 +70,7 @@ struct PlateData
     bool            is_sliced_valid = false;
     bool            toolpath_outside {false};
 
-    std::vector<GCodeProcessorResult::SliceWarnings> warnings;
+    std::vector<GCodeProcessorResult::SliceWarning> warnings;
 
     std::string get_gcode_prediction_str() {
         return gcode_prediction;

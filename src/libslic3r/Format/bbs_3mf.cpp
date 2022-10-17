@@ -464,7 +464,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     }
 
     /* only for test
-    GCodeProcessorResult::SliceWarnings sw;
+    GCodeProcessorResult::SliceWarning sw;
     sw.msg = BED_TEMP_TOO_HIGH_THAN_FILAMENT;
     sw.level = 1;
     result->warnings.push_back(sw);
@@ -3226,7 +3226,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         if (m_curr_plater) {
             std::string msg     = bbs_get_attribute_value_string(attributes, num_attributes, WARNING_MSG_TAG);
             std::string lvl_str = bbs_get_attribute_value_string(attributes, num_attributes, "level");
-            GCodeProcessorResult::SliceWarnings sw;
+            GCodeProcessorResult::SliceWarning sw;
             sw.msg = msg;
             try {
                 sw.level = atoi(lvl_str.c_str());
