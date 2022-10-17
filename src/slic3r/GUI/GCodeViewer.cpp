@@ -334,6 +334,13 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     static const ImU32 text_value_clr = IM_COL32(144, 144, 144, 255);
     static const ImU32 window_bg_clr = IM_COL32(255, 255, 255, 255);
 
+    auto it = std::find_if(moves.begin(), moves.end(), [&curr_line_id](auto move) {
+        return move.gcode_id == curr_line_id;
+        });
+    if (it == moves.end()) {
+        return;
+    }
+
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     //BBS: GUI refactor: add canvas size from parameters
     imgui.set_next_window_pos(0.5f * static_cast<float>(canvas_width), static_cast<float>(canvas_height), ImGuiCond_Always, 0.5f, 1.0f);
@@ -352,19 +359,101 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     std::string x = ImGui::ColorMarkerStart + std::string("X: ") + ImGui::ColorMarkerEnd;
     std::string y = ImGui::ColorMarkerStart + std::string("Y: ") + ImGui::ColorMarkerEnd;
     std::string z = ImGui::ColorMarkerStart + std::string("Z: ") + ImGui::ColorMarkerEnd;
+    std::string height = ImGui::ColorMarkerStart + _u8L("Height: ") + ImGui::ColorMarkerEnd;
+    std::string width = ImGui::ColorMarkerStart + _u8L("Width: ") + ImGui::ColorMarkerEnd;
     std::string speed = ImGui::ColorMarkerStart + _u8L("Speed: ") + ImGui::ColorMarkerEnd;
     std::string flow = ImGui::ColorMarkerStart + _u8L("Flow: ") + ImGui::ColorMarkerEnd;
+    const float item_size = imgui.calc_text_size("X: 000.000  ").x;
+    const float item_spacing = imgui.get_item_spacing().x;
+    const float window_padding = ImGui::GetStyle().WindowPadding.x;
 
-    std::ostringstream buffer;
     char buf[1024];
-    if (view_type == EViewType::Feedrate) {
-        auto it = std::find_if(moves.begin(), moves.end(), [&curr_line_id](auto move) {
-            if (move.gcode_id == curr_line_id)
-                return true;
-            else
-                return false;
-            });
-        if (it != moves.end()) {
+    switch (view_type){
+        case EViewType::Height: {
+            sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            ImGui::SameLine(window_padding + item_size + item_spacing);
+            sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            sprintf(buf, "%s%.3f", z.c_str(), position.z());
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            ImGui::SameLine(window_padding + item_size + item_spacing);
+            sprintf(buf, "%s%.2f", height.c_str(), it->height);
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+            
+            break;
+        }
+        case EViewType::Width: {
+            sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            ImGui::SameLine(window_padding + item_size + item_spacing);
+            sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            sprintf(buf, "%s%.3f", z.c_str(), position.z());
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            ImGui::SameLine(window_padding + item_size + item_spacing);
+            sprintf(buf, "%s%.2f", width.c_str(), it->width);
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            break;
+        }
+        case EViewType::Feedrate: {
+            sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            ImGui::SameLine(window_padding + item_size + item_spacing);
+            sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            sprintf(buf, "%s%.3f", z.c_str(), position.z());
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            ImGui::SameLine(window_padding + item_size + item_spacing);
+            sprintf(buf, "%s%.2f", speed.c_str(), it->feedrate);
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            break;
+        }
+        case EViewType::VolumetricRate: {
+            sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            ImGui::SameLine(window_padding + item_size + item_spacing);
+            sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            sprintf(buf, "%s%.3f", z.c_str(), position.z());
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+
+            ImGui::SameLine(window_padding + item_size + item_spacing);
+            sprintf(buf, "%s%.2f", flow.c_str(), it->volumetric_rate());
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+            
+            break;
+        }
+        default:
             sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
             imgui.text(buf);
 
@@ -372,54 +461,16 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
             sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
             imgui.text(buf);
 
+            ImGui::SameLine();
             sprintf(buf, "%s%.3f", z.c_str(), position.z());
             imgui.text(buf);
-
-            ImGui::SameLine();
-            sprintf(buf, "%s%.f", speed.c_str(), it->feedrate);
-            imgui.text(buf);
-        }
     }
-    else if (view_type == EViewType::VolumetricRate) {
-        auto it = std::find_if(moves.begin(), moves.end(), [&curr_line_id](auto move) {
-            if (move.gcode_id == curr_line_id)
-                return true;
-            else
-                return false;
-            });
-        if (it != moves.end()) {
-            sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
-            imgui.text(buf);
 
-            ImGui::SameLine();
-            sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
-            imgui.text(buf);
-
-            sprintf(buf, "%s%.3f", z.c_str(), position.z());
-            imgui.text(buf);
-
-            ImGui::SameLine();
-            sprintf(buf, "%s%.f", flow.c_str(), it->volumetric_rate());
-            imgui.text(buf);
-        }
-    }
-    else {
-        sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
-        imgui.text(buf);
-
-        ImGui::SameLine();
-        sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
-        imgui.text(buf);
-
-        ImGui::SameLine();
-        sprintf(buf, "%s%.3f", z.c_str() , position.z());
-        imgui.text(buf);
-    }
     // force extra frame to automatically update window size
-    float width = ImGui::GetWindowWidth();
+    float window_width = ImGui::GetWindowWidth();
     //size_t length = strlen(buf);
-    if (width != last_window_width /*|| length != last_text_length*/) {
-        last_window_width = width;
+    if (window_width != last_window_width /*|| length != last_text_length*/) {
+        last_window_width = window_width;
         //last_text_length = length;
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
         imgui.set_requires_extra_frame();
