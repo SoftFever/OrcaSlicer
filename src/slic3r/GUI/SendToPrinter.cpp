@@ -655,7 +655,7 @@ void SendToPrinterDialog::on_timer(wxTimerEvent &event)
 void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
 {
     /* reset timeout and reading printer info */
-    m_status_bar->reset();
+    //m_status_bar->reset();
     timeout_count      = 0;
 
     auto selection = m_comboBox_printer->GetSelection();
@@ -744,6 +744,12 @@ void SendToPrinterDialog::update_show_status()
 		show_status(PrintDialogStatus::PrintStatusNoSdcard);
 		return;
 	}
+
+    if (obj_->dev_ip.empty()) {
+        show_status(PrintDialogStatus::PrintStatusNotOnTheSameLAN);
+        return;
+    }
+
 
     show_status(PrintDialogStatus::PrintStatusReadingFinished);
 }
@@ -846,6 +852,12 @@ void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxSt
 		update_print_status_msg(msg_text, true, true);
 		Enable_Send_Button(false);
 		Enable_Refresh_Button(true);
+    }
+    else if (status == PrintDialogStatus::PrintStatusNotOnTheSameLAN) {
+        wxString msg_text = _L("The printer is required to be in the same LAN as Bambu Studio.");
+        update_print_status_msg(msg_text, true, true);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
     }
     else {
 		Enable_Send_Button(true);
