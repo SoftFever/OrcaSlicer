@@ -554,17 +554,14 @@ void Camera::look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up
 
 void Camera::set_default_orientation()
 {
-    // BBS modify default orientation
-    look_at(m_target - 0.707 * m_distance * Vec3d::UnitY() + 0.707 * m_distance * Vec3d::UnitZ(), m_target, Vec3d::UnitY() + Vec3d::UnitZ());
-
-    /*m_zenit = 45.0f;
+    m_zenit = 45.0f;
     const double theta_rad = Geometry::deg2rad(-(double)m_zenit);
     const double phi_rad = Geometry::deg2rad(45.0);
     const double sin_theta = ::sin(theta_rad);
     const Vec3d camera_pos = m_target + m_distance * Vec3d(sin_theta * ::sin(phi_rad), sin_theta * ::cos(phi_rad), ::cos(theta_rad));
     m_view_rotation = Eigen::AngleAxisd(theta_rad, Vec3d::UnitX()) * Eigen::AngleAxisd(phi_rad, Vec3d::UnitZ());
     m_view_rotation.normalize();
-    m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-camera_pos), m_view_rotation, Vec3d::Ones());*/
+    m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-camera_pos), m_view_rotation, Vec3d::Ones());
 }
 
 Vec3d Camera::validate_target(const Vec3d& target) const
