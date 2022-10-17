@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-13 20:53+0800\n"
+"POT-Creation-Date: 2022-10-17 22:08+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -16,8 +16,14 @@ msgstr ""
 msgid "Supports Painting"
 msgstr "Onderteuning (Support) tekenen"
 
+msgid "Alt + Mouse wheel"
+msgstr "Alt + muiswiel"
+
 msgid "Section view"
 msgstr "Doorsnede"
+
+msgid "Ctrl + Mouse wheel"
+msgstr "Ctrl + muiswiel"
 
 msgid "Pen size"
 msgstr "Pen grootte"
@@ -37,8 +43,8 @@ msgstr "Support blokkeren"
 msgid "Shift + Left mouse button"
 msgstr "Shit + linker muisknop"
 
-msgid "Erase painting"
-msgstr "Getekende delen wissen"
+msgid "Erase"
+msgstr "Wissen"
 
 msgid "Erase all painting"
 msgstr "Alle getekende delen wissen"
@@ -54,12 +60,6 @@ msgstr "Uitvoeren"
 
 msgid "Gap area"
 msgstr ""
-
-msgid "Set pen size"
-msgstr "Selecteer pen formaat"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + muiswiel"
 
 msgid "Tool type"
 msgstr "Gereedschap type"
@@ -111,9 +111,6 @@ msgstr "Pen vorm"
 
 msgid "Paint"
 msgstr "Tekenen"
-
-msgid "Erase"
-msgstr "Wissen"
 
 msgid "Key 1~9"
 msgstr "Toets 1~9"
@@ -242,11 +239,11 @@ msgstr "Knippen"
 msgid "Movement:"
 msgstr "Beweging:"
 
-msgid "Rotation:"
-msgstr "Rotatie:"
+msgid "Movement"
+msgstr ""
 
-msgid "Height:"
-msgstr "Hoogte:"
+msgid "Height"
+msgstr ""
 
 msgid "Keep upper part"
 msgstr "Bewaar het bovenstee deel"
@@ -353,10 +350,10 @@ msgstr ""
 msgid "Block seam"
 msgstr ""
 
-msgid "Remove selection"
+msgid "Seam painting"
 msgstr ""
 
-msgid "Seam painting"
+msgid "Remove selection"
 msgstr ""
 
 msgid "Entering Seam painting"
@@ -1127,8 +1124,11 @@ msgstr "Lossen"
 msgid "Tips"
 msgstr "Tips"
 
-msgid "AMS Settings"
-msgstr "AMS Instellingen"
+msgid "Guide"
+msgstr ""
+
+msgid "Retry"
+msgstr ""
 
 msgid "Calibrating AMS..."
 msgstr "AMS kalibreren..."
@@ -1434,6 +1434,9 @@ msgstr ""
 
 msgid "Print with the filament mounted on the back of chassis"
 msgstr ""
+
+msgid "AMS Settings"
+msgstr "AMS Instellingen"
 
 msgid "Insertion update"
 msgstr "Update gegevens bij invoeren"
@@ -2719,7 +2722,7 @@ msgstr "Geen bestanden"
 msgid "Download waiting..."
 msgstr ""
 
-msgid "Retry"
+msgid "Play"
 msgstr ""
 
 msgid "Open Folder"
@@ -2825,6 +2828,9 @@ msgstr "Sport"
 msgid "Ludicrous"
 msgstr "Ludicrous"
 
+msgid "Failed to connect to the server"
+msgstr "Verbinding maken met de server is mislukt"
+
 msgid "Status"
 msgstr "Status"
 
@@ -2836,9 +2842,6 @@ msgstr "Updaten"
 
 msgid "HMS"
 msgstr "HMS"
-
-msgid "Failed to connect to the server"
-msgstr "Verbinding maken met de server is mislukt"
 
 msgid "Failed to connect to the printer"
 msgstr "Verbinding maken met de printer is mislukt"
@@ -3158,6 +3161,11 @@ msgstr ""
 
 msgid "Restore"
 msgstr "Herstellen"
+
+msgid ""
+"The bed temperature exceeds filament's vitrification temperature. Please "
+"open the front door of printer before printing to avoid nozzle clog."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -3794,6 +3802,9 @@ msgstr "Ander apparaat"
 msgid "Input access code"
 msgstr "Toegangscode invoeren"
 
+msgid "Can't find my devices?"
+msgstr ""
+
 msgid "Log out successful."
 msgstr "Uitloggen gelukt."
 
@@ -3817,6 +3828,9 @@ msgstr "Bed leveling"
 
 msgid "Flow Calibration"
 msgstr "Flow calibratie"
+
+msgid "Can't connect to the printer"
+msgstr ""
 
 msgid "send completed"
 msgstr "Versturen gelukt"
@@ -3887,6 +3901,18 @@ msgid ""
 msgstr ""
 
 msgid "An SD card needs to be inserted before printing."
+msgstr ""
+
+msgid "An SD card needs to be inserted to recording timelapse"
+msgstr ""
+
+msgid "Please check the following infomation:\n"
+msgstr ""
+
+msgid ""
+"The printer type used to generate G-code is not the same type as the "
+"currently selected physical printer. It is recommend to re-slice by "
+"selecting the same printer type.\n"
 msgstr ""
 
 msgid "Preparing print job"
@@ -7154,7 +7180,18 @@ msgstr "Support: repareer gaten op laag %d"
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: verspreid takken op laag %d"
 
-#, c-format, boost-format
+#~ msgid "Erase painting"
+#~ msgstr "Getekende delen wissen"
+
+#~ msgid "Set pen size"
+#~ msgstr "Selecteer pen formaat"
+
+#~ msgid "Rotation:"
+#~ msgstr "Rotatie:"
+
+#~ msgid "Height:"
+#~ msgstr "Hoogte:"
+
 #~ msgid "Initialize failed [%d]!"
 #~ msgstr "Het initialiseren is mislukt [%d]!"
 
@@ -7167,7 +7204,6 @@ msgstr "Support: verspreid takken op laag %d"
 #~ msgid "Send print job to"
 #~ msgstr "Stuur de printtaak naar"
 
-#, boost-format
 #~ msgid ""
 #~ "%1% is too close to exclusion area, there will be collisions when "
 #~ "printing."
@@ -7175,7 +7211,6 @@ msgstr "Support: verspreid takken op laag %d"
 #~ "%1% bevindt zich te dicht bij een uitgesloten gebied, er zullen botsingen "
 #~ "optreden tijdens het printen."
 
-#, boost-format
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -7225,7 +7260,6 @@ msgstr "Support: verspreid takken op laag %d"
 #~ "automatisch rangschikken om botsingen te voorkomen bij het afdrukken van "
 #~ "object voor object"
 
-#, boost-format
 #~ msgid "Error at line %1%:\n"
 #~ msgstr "Fout op laag %1%:\n"
 
@@ -7258,9 +7292,6 @@ msgstr "Support: verspreid takken op laag %d"
 
 #~ msgid "0%"
 #~ msgstr "0%"
-
-#~ msgid "Alt + Mouse wheel"
-#~ msgstr "Alt + muiswiel"
 
 #~ msgid ""
 #~ "An object is layed over the boundary of plate.\n"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-13 20:53+0800\n"
+"POT-Creation-Date: 2022-10-17 22:08+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -16,8 +16,14 @@ msgstr ""
 msgid "Supports Painting"
 msgstr "Támaszok festése"
 
+msgid "Alt + Mouse wheel"
+msgstr "Alt + Mouse wheel"
+
 msgid "Section view"
 msgstr "Keresztmetszet nézet"
+
+msgid "Ctrl + Mouse wheel"
+msgstr "Ctrl + Egérgörgő"
 
 msgid "Pen size"
 msgstr "Tollméret"
@@ -37,8 +43,8 @@ msgstr "Támaszok blokkolása"
 msgid "Shift + Left mouse button"
 msgstr "Shift + bal egérgomb"
 
-msgid "Erase painting"
-msgstr "Festés törlése"
+msgid "Erase"
+msgstr "Törlés"
 
 msgid "Erase all painting"
 msgstr "Minden festés törlése"
@@ -54,12 +60,6 @@ msgstr "Alkalmaz"
 
 msgid "Gap area"
 msgstr ""
-
-msgid "Set pen size"
-msgstr "Tollméret beállítása"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + Egérgörgő"
 
 msgid "Tool type"
 msgstr "Eszköz típusa"
@@ -110,9 +110,6 @@ msgstr "Toll formája"
 
 msgid "Paint"
 msgstr "Festés"
-
-msgid "Erase"
-msgstr "Törlés"
 
 msgid "Key 1~9"
 msgstr "Számgombok 1-9"
@@ -241,11 +238,11 @@ msgstr "Vágás"
 msgid "Movement:"
 msgstr "Mozgatás:"
 
-msgid "Rotation:"
-msgstr "Forgatás:"
+msgid "Movement"
+msgstr ""
 
-msgid "Height:"
-msgstr "Magasság:"
+msgid "Height"
+msgstr ""
 
 msgid "Keep upper part"
 msgstr "Felső rész megtartása"
@@ -353,10 +350,10 @@ msgstr ""
 msgid "Block seam"
 msgstr ""
 
-msgid "Remove selection"
+msgid "Seam painting"
 msgstr ""
 
-msgid "Seam painting"
+msgid "Remove selection"
 msgstr ""
 
 msgid "Entering Seam painting"
@@ -1120,8 +1117,11 @@ msgstr "Unload"
 msgid "Tips"
 msgstr "Tippek"
 
-msgid "AMS Settings"
-msgstr "AMS beállítások"
+msgid "Guide"
+msgstr ""
+
+msgid "Retry"
+msgstr ""
 
 msgid "Calibrating AMS..."
 msgstr "AMS kalibrálása..."
@@ -1438,6 +1438,9 @@ msgstr ""
 
 msgid "Print with the filament mounted on the back of chassis"
 msgstr ""
+
+msgid "AMS Settings"
+msgstr "AMS beállítások"
 
 msgid "Insertion update"
 msgstr "Insertion update"
@@ -2723,7 +2726,7 @@ msgstr "No files"
 msgid "Download waiting..."
 msgstr ""
 
-msgid "Retry"
+msgid "Play"
 msgstr ""
 
 msgid "Open Folder"
@@ -2829,6 +2832,9 @@ msgstr "Sport"
 msgid "Ludicrous"
 msgstr "Őrült"
 
+msgid "Failed to connect to the server"
+msgstr "Nem sikerült csatlakozni a szerverhez"
+
 msgid "Status"
 msgstr "Állapot"
 
@@ -2840,9 +2846,6 @@ msgstr "Update"
 
 msgid "HMS"
 msgstr "HMS"
-
-msgid "Failed to connect to the server"
-msgstr "Nem sikerült csatlakozni a szerverhez"
 
 msgid "Failed to connect to the printer"
 msgstr "Nem sikerült csatlakozni a nyomtatóhoz"
@@ -3151,6 +3154,11 @@ msgstr "Korábbi, nem mentett projektet találtunk, vissza szeretnéd állítani
 
 msgid "Restore"
 msgstr "Visszaállítás"
+
+msgid ""
+"The bed temperature exceeds filament's vitrification temperature. Please "
+"open the front door of printer before printing to avoid nozzle clog."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -3772,6 +3780,9 @@ msgstr "Egyéb eszköz"
 msgid "Input access code"
 msgstr "Input access code"
 
+msgid "Can't find my devices?"
+msgstr ""
+
 msgid "Log out successful."
 msgstr "Log out successful."
 
@@ -3795,6 +3806,9 @@ msgstr "Asztalszintezés"
 
 msgid "Flow Calibration"
 msgstr "Anyagáramlás kalibráció"
+
+msgid "Can't connect to the printer"
+msgstr ""
 
 msgid "send completed"
 msgstr "küldés befejezve"
@@ -3866,6 +3880,18 @@ msgid ""
 msgstr ""
 
 msgid "An SD card needs to be inserted before printing."
+msgstr ""
+
+msgid "An SD card needs to be inserted to recording timelapse"
+msgstr ""
+
+msgid "Please check the following infomation:\n"
+msgstr ""
+
+msgid ""
+"The printer type used to generate G-code is not the same type as the "
+"currently selected physical printer. It is recommend to re-slice by "
+"selecting the same printer type.\n"
 msgstr ""
 
 msgid "Preparing print job"
@@ -7095,7 +7121,18 @@ msgstr "Support: fix holes at layer %d"
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
 
-#, c-format, boost-format
+#~ msgid "Erase painting"
+#~ msgstr "Festés törlése"
+
+#~ msgid "Set pen size"
+#~ msgstr "Tollméret beállítása"
+
+#~ msgid "Rotation:"
+#~ msgstr "Forgatás:"
+
+#~ msgid "Height:"
+#~ msgstr "Magasság:"
+
 #~ msgid "Initialize failed [%d]!"
 #~ msgstr "Initalization failed [%d]!"
 
@@ -7108,7 +7145,6 @@ msgstr "Support: propagate branches at layer %d"
 #~ msgid "Send print job to"
 #~ msgstr "Nyomtatási feladat küldése"
 
-#, boost-format
 #~ msgid ""
 #~ "%1% is too close to exclusion area, there will be collisions when "
 #~ "printing."
@@ -7116,7 +7152,6 @@ msgstr "Support: propagate branches at layer %d"
 #~ "%1% túl közel van a tiltott területhez, a nyomtatás során előfordulhatnak "
 #~ "ütközések."
 
-#, boost-format
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -7165,7 +7200,6 @@ msgstr "Support: propagate branches at layer %d"
 #~ "elrendezéshez használatos az ütközések elkerülése érdekében, amikor "
 #~ "objektumonként nyomtatsz"
 
-#, boost-format
 #~ msgid "Error at line %1%:\n"
 #~ msgstr "Hiba a következő sorban %1%:\n"
 
@@ -7198,9 +7232,6 @@ msgstr "Support: propagate branches at layer %d"
 
 #~ msgid "0%"
 #~ msgstr "0%"
-
-#~ msgid "Alt + Mouse wheel"
-#~ msgstr "Alt + Mouse wheel"
 
 #~ msgid ""
 #~ "An object is layed over the boundary of plate.\n"

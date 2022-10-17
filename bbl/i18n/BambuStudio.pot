@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-13 20:53+0800\n"
+"POT-Creation-Date: 2022-10-17 22:08+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,7 +21,13 @@ msgstr ""
 msgid "Supports Painting"
 msgstr ""
 
+msgid "Alt + Mouse wheel"
+msgstr ""
+
 msgid "Section view"
+msgstr ""
+
+msgid "Ctrl + Mouse wheel"
 msgstr ""
 
 msgid "Pen size"
@@ -42,7 +48,7 @@ msgstr ""
 msgid "Shift + Left mouse button"
 msgstr ""
 
-msgid "Erase painting"
+msgid "Erase"
 msgstr ""
 
 msgid "Erase all painting"
@@ -58,12 +64,6 @@ msgid "Perform"
 msgstr ""
 
 msgid "Gap area"
-msgstr ""
-
-msgid "Set pen size"
-msgstr ""
-
-msgid "Ctrl + Mouse wheel"
 msgstr ""
 
 msgid "Tool type"
@@ -112,9 +112,6 @@ msgid "Pen shape"
 msgstr ""
 
 msgid "Paint"
-msgstr ""
-
-msgid "Erase"
 msgstr ""
 
 msgid "Key 1~9"
@@ -244,10 +241,10 @@ msgstr ""
 msgid "Movement:"
 msgstr ""
 
-msgid "Rotation:"
+msgid "Movement"
 msgstr ""
 
-msgid "Height:"
+msgid "Height"
 msgstr ""
 
 msgid "Keep upper part"
@@ -351,10 +348,10 @@ msgstr ""
 msgid "Block seam"
 msgstr ""
 
-msgid "Remove selection"
+msgid "Seam painting"
 msgstr ""
 
-msgid "Seam painting"
+msgid "Remove selection"
 msgstr ""
 
 msgid "Entering Seam painting"
@@ -1087,7 +1084,10 @@ msgstr ""
 msgid "Tips"
 msgstr ""
 
-msgid "AMS Settings"
+msgid "Guide"
+msgstr ""
+
+msgid "Retry"
 msgstr ""
 
 msgid "Calibrating AMS..."
@@ -1363,6 +1363,9 @@ msgid "Disable AMS"
 msgstr ""
 
 msgid "Print with the filament mounted on the back of chassis"
+msgstr ""
+
+msgid "AMS Settings"
 msgstr ""
 
 msgid "Insertion update"
@@ -2565,7 +2568,7 @@ msgstr ""
 msgid "Download waiting..."
 msgstr ""
 
-msgid "Retry"
+msgid "Play"
 msgstr ""
 
 msgid "Open Folder"
@@ -2671,6 +2674,9 @@ msgstr ""
 msgid "Ludicrous"
 msgstr ""
 
+msgid "Failed to connect to the server"
+msgstr ""
+
 msgid "Status"
 msgstr ""
 
@@ -2681,9 +2687,6 @@ msgid "Update"
 msgstr ""
 
 msgid "HMS"
-msgstr ""
-
-msgid "Failed to connect to the server"
 msgstr ""
 
 msgid "Failed to connect to the printer"
@@ -2988,6 +2991,11 @@ msgid "Previous unsaved project detected, do you want to restore it?"
 msgstr ""
 
 msgid "Restore"
+msgstr ""
+
+msgid ""
+"The bed temperature exceeds filament's vitrification temperature. Please "
+"open the front door of printer before printing to avoid nozzle clog."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -3589,6 +3597,9 @@ msgstr ""
 msgid "Input access code"
 msgstr ""
 
+msgid "Can't find my devices?"
+msgstr ""
+
 msgid "Log out successful."
 msgstr ""
 
@@ -3611,6 +3622,9 @@ msgid "Bed Leveling"
 msgstr ""
 
 msgid "Flow Calibration"
+msgstr ""
+
+msgid "Can't connect to the printer"
 msgstr ""
 
 msgid "send completed"
@@ -3676,6 +3690,18 @@ msgid ""
 msgstr ""
 
 msgid "An SD card needs to be inserted before printing."
+msgstr ""
+
+msgid "An SD card needs to be inserted to recording timelapse"
+msgstr ""
+
+msgid "Please check the following infomation:\n"
+msgstr ""
+
+msgid ""
+"The printer type used to generate G-code is not the same type as the "
+"currently selected physical printer. It is recommend to re-slice by "
+"selecting the same printer type.\n"
 msgstr ""
 
 msgid "Preparing print job"

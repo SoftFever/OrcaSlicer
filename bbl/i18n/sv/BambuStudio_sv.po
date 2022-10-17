@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-13 20:53+0800\n"
+"POT-Creation-Date: 2022-10-17 22:08+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -16,8 +16,14 @@ msgstr ""
 msgid "Supports Painting"
 msgstr "Färgläggning av Support"
 
+msgid "Alt + Mouse wheel"
+msgstr "Alt + mushjul"
+
 msgid "Section view"
 msgstr "Sektionsvy"
+
+msgid "Ctrl + Mouse wheel"
+msgstr "Ctrl + Mushjul"
 
 msgid "Pen size"
 msgstr "Penn storlek"
@@ -37,8 +43,8 @@ msgstr "Blockera support"
 msgid "Shift + Left mouse button"
 msgstr "Shift + Vänster musknapp"
 
-msgid "Erase painting"
-msgstr "Radera färgläggning"
+msgid "Erase"
+msgstr "Radera"
 
 msgid "Erase all painting"
 msgstr "Radera all färgläggning"
@@ -54,12 +60,6 @@ msgstr "Utför"
 
 msgid "Gap area"
 msgstr ""
-
-msgid "Set pen size"
-msgstr "Välj penn storlek"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + Mushjul"
 
 msgid "Tool type"
 msgstr "Verktygs typ"
@@ -111,9 +111,6 @@ msgstr "Penn form"
 
 msgid "Paint"
 msgstr "Färglägga"
-
-msgid "Erase"
-msgstr "Radera"
 
 msgid "Key 1~9"
 msgstr "Nyckel 1~9"
@@ -242,11 +239,11 @@ msgstr "Beskär"
 msgid "Movement:"
 msgstr "Rörelse:"
 
-msgid "Rotation:"
-msgstr "Rotation:"
+msgid "Movement"
+msgstr ""
 
-msgid "Height:"
-msgstr "Höjd:"
+msgid "Height"
+msgstr ""
 
 msgid "Keep upper part"
 msgstr "Behåll övre del"
@@ -352,10 +349,10 @@ msgstr ""
 msgid "Block seam"
 msgstr ""
 
-msgid "Remove selection"
+msgid "Seam painting"
 msgstr ""
 
-msgid "Seam painting"
+msgid "Remove selection"
 msgstr ""
 
 msgid "Entering Seam painting"
@@ -1112,8 +1109,11 @@ msgstr "Mata ut"
 msgid "Tips"
 msgstr "Tips"
 
-msgid "AMS Settings"
-msgstr "AMS Inställningar"
+msgid "Guide"
+msgstr ""
+
+msgid "Retry"
+msgstr ""
 
 msgid "Calibrating AMS..."
 msgstr "Kalibrerar AMS..."
@@ -1415,6 +1415,9 @@ msgstr ""
 
 msgid "Print with the filament mounted on the back of chassis"
 msgstr ""
+
+msgid "AMS Settings"
+msgstr "AMS Inställningar"
 
 msgid "Insertion update"
 msgstr "Infoga uppdatering"
@@ -2689,7 +2692,7 @@ msgstr "Inga filer"
 msgid "Download waiting..."
 msgstr ""
 
-msgid "Retry"
+msgid "Play"
 msgstr ""
 
 msgid "Open Folder"
@@ -2795,6 +2798,9 @@ msgstr "Sport"
 msgid "Ludicrous"
 msgstr "Galet"
 
+msgid "Failed to connect to the server"
+msgstr "Uppkoppling till servern misslyckades"
+
 msgid "Status"
 msgstr "Status"
 
@@ -2806,9 +2812,6 @@ msgstr "Uppdatera"
 
 msgid "HMS"
 msgstr "HMS"
-
-msgid "Failed to connect to the server"
-msgstr "Uppkoppling till servern misslyckades"
 
 msgid "Failed to connect to the printer"
 msgstr "Uppkoppling till printern misslyckades"
@@ -3116,6 +3119,11 @@ msgstr "Tidigare osparat projekt upptäckt, återställa det?"
 
 msgid "Restore"
 msgstr "Återställ"
+
+msgid ""
+"The bed temperature exceeds filament's vitrification temperature. Please "
+"open the front door of printer before printing to avoid nozzle clog."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -3729,6 +3737,9 @@ msgstr "Andra Enheter"
 msgid "Input access code"
 msgstr "Inmatning av åtkomstkod"
 
+msgid "Can't find my devices?"
+msgstr ""
+
 msgid "Log out successful."
 msgstr "Utloggning lyckades."
 
@@ -3752,6 +3763,9 @@ msgstr "Justering av Byggplattan"
 
 msgid "Flow Calibration"
 msgstr "Flödes Kalibrering"
+
+msgid "Can't connect to the printer"
+msgstr ""
 
 msgid "send completed"
 msgstr "Skicka komplett"
@@ -3822,6 +3836,18 @@ msgid ""
 msgstr ""
 
 msgid "An SD card needs to be inserted before printing."
+msgstr ""
+
+msgid "An SD card needs to be inserted to recording timelapse"
+msgstr ""
+
+msgid "Please check the following infomation:\n"
+msgstr ""
+
+msgid ""
+"The printer type used to generate G-code is not the same type as the "
+"currently selected physical printer. It is recommend to re-slice by "
+"selecting the same printer type.\n"
 msgstr ""
 
 msgid "Preparing print job"
@@ -6589,8 +6615,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för "
-"lösligt(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
+"(material) stödgränssnittet är koncentriskt"
 
 msgid "Base pattern spacing"
 msgstr "Basens mönster mellanrum"
@@ -7008,7 +7034,18 @@ msgstr "Support: åtgärda hål vid lager %d"
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: föröka grenar vid lager %d"
 
-#, c-format, boost-format
+#~ msgid "Erase painting"
+#~ msgstr "Radera färgläggning"
+
+#~ msgid "Set pen size"
+#~ msgstr "Välj penn storlek"
+
+#~ msgid "Rotation:"
+#~ msgstr "Rotation:"
+
+#~ msgid "Height:"
+#~ msgstr "Höjd:"
+
 #~ msgid "Initialize failed [%d]!"
 #~ msgstr "Start misslyckad [%d]!"
 
@@ -7021,13 +7058,11 @@ msgstr "Support: föröka grenar vid lager %d"
 #~ msgid "Send print job to"
 #~ msgstr "Skicka utskriftsjobb till"
 
-#, boost-format
 #~ msgid ""
 #~ "%1% is too close to exclusion area, there will be collisions when "
 #~ "printing."
 #~ msgstr "%1% för tätt inpå den isolerade ytan, utskriften kolliderar."
 
-#, boost-format
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -7071,7 +7106,6 @@ msgstr "Support: föröka grenar vid lager %d"
 #~ "Fri radie område runt extrudern: Används som input för auto-placering för "
 #~ "att undvika kollision när man skriver ut objekt för objekt"
 
-#, boost-format
 #~ msgid "Error at line %1%:\n"
 #~ msgstr "Fel i linje %1%:\n"
 
@@ -7104,9 +7138,6 @@ msgstr "Support: föröka grenar vid lager %d"
 
 #~ msgid "0%"
 #~ msgstr "0%"
-
-#~ msgid "Alt + Mouse wheel"
-#~ msgstr "Alt + mushjul"
 
 #~ msgid ""
 #~ "An object is layed over the boundary of plate.\n"

@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-13 20:53+0800\n"
-"PO-Revision-Date: 2022-09-05 14:22+0800\n"
+"POT-Creation-Date: 2022-10-17 22:08+0800\n"
+"PO-Revision-Date: 2022-10-17 22:14+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -20,8 +20,14 @@ msgstr ""
 msgid "Supports Painting"
 msgstr "支撑绘制"
 
+msgid "Alt + Mouse wheel"
+msgstr "Alt + 鼠标滚轮"
+
 msgid "Section view"
 msgstr "剖面视图"
+
+msgid "Ctrl + Mouse wheel"
+msgstr "Ctrl + 鼠标滚轮"
 
 msgid "Pen size"
 msgstr "画笔尺寸"
@@ -41,8 +47,8 @@ msgstr "屏蔽支撑"
 msgid "Shift + Left mouse button"
 msgstr "Shift + 鼠标左键"
 
-msgid "Erase painting"
-msgstr "擦除绘制"
+msgid "Erase"
+msgstr "擦除"
 
 msgid "Erase all painting"
 msgstr "擦除所有绘制"
@@ -58,12 +64,6 @@ msgstr "执行"
 
 msgid "Gap area"
 msgstr "间隙面积"
-
-msgid "Set pen size"
-msgstr "设置画笔大小"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + 鼠标滚轮"
 
 msgid "Tool type"
 msgstr "工具类型"
@@ -113,9 +113,6 @@ msgstr "画笔形状"
 
 msgid "Paint"
 msgstr "绘制"
-
-msgid "Erase"
-msgstr "擦除"
 
 msgid "Key 1~9"
 msgstr "按键 1~9"
@@ -244,11 +241,11 @@ msgstr "剪切"
 msgid "Movement:"
 msgstr "移动："
 
-msgid "Rotation:"
-msgstr "旋转："
+msgid "Movement"
+msgstr "移动"
 
-msgid "Height:"
-msgstr "高度："
+msgid "Height"
+msgstr "高度"
 
 msgid "Keep upper part"
 msgstr "保留上半部分"
@@ -351,11 +348,11 @@ msgstr "添加Z缝"
 msgid "Block seam"
 msgstr "屏蔽Z缝"
 
-msgid "Remove selection"
-msgstr "移除绘制"
-
 msgid "Seam painting"
 msgstr "Z缝绘制"
+
+msgid "Remove selection"
+msgstr "移除绘制"
 
 msgid "Entering Seam painting"
 msgstr ""
@@ -421,7 +418,7 @@ msgid "V"
 msgstr "V"
 
 msgid "Internal Version"
-msgstr ""
+msgstr "内部版本"
 
 msgid "Version"
 msgstr "版本"
@@ -831,7 +828,7 @@ msgid "Clone"
 msgstr "克隆"
 
 msgid "Simplify Model"
-msgstr ""
+msgstr "简化模型"
 
 msgid "Center"
 msgstr "居中"
@@ -1031,7 +1028,7 @@ msgid "Auto Brim"
 msgstr "自动Brim"
 
 msgid "Outer wall speed"
-msgstr ""
+msgstr "外墙速度"
 
 msgid "Plate"
 msgstr "盘"
@@ -1087,8 +1084,11 @@ msgstr "退料"
 msgid "Tips"
 msgstr "提示"
 
-msgid "AMS Settings"
-msgstr "AMS 设置"
+msgid "Guide"
+msgstr "引导"
+
+msgid "Retry"
+msgstr "重试"
 
 msgid "Calibrating AMS..."
 msgstr "正在校准AMS..."
@@ -1378,6 +1378,9 @@ msgstr "不启用AMS"
 
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "使用机箱背后挂载的材料打印"
+
+msgid "AMS Settings"
+msgstr "AMS 设置"
 
 msgid "Insertion update"
 msgstr "插入料时更新"
@@ -2209,7 +2212,7 @@ msgid "Slice"
 msgstr "切片"
 
 msgid "Send and Print"
-msgstr ""
+msgstr "发送并打印"
 
 msgid "Slice all"
 msgstr "切片所有盘"
@@ -2221,7 +2224,7 @@ msgid "Print all"
 msgstr "打印所有盘"
 
 msgid "Export G-code file"
-msgstr ""
+msgstr "导出G-code文件"
 
 msgid "Send"
 msgstr "发送"
@@ -2565,7 +2568,7 @@ msgid "Initialize failed (%s)!"
 msgstr ""
 
 msgid "Network unreachable"
-msgstr ""
+msgstr "网络不可访问"
 
 msgid "Stopped."
 msgstr "已经停止。"
@@ -2641,8 +2644,8 @@ msgstr "文件列表为空"
 msgid "Download waiting..."
 msgstr "正在下载中..."
 
-msgid "Retry"
-msgstr "重试"
+msgid "Play"
+msgstr ""
 
 msgid "Open Folder"
 msgstr ""
@@ -2747,6 +2750,9 @@ msgstr "运动"
 msgid "Ludicrous"
 msgstr "狂暴"
 
+msgid "Failed to connect to the server"
+msgstr "无法连接服务器"
+
 msgid "Status"
 msgstr "设备状态"
 
@@ -2758,9 +2764,6 @@ msgstr "固件更新"
 
 msgid "HMS"
 msgstr ""
-
-msgid "Failed to connect to the server"
-msgstr "无法连接服务器"
 
 msgid "Failed to connect to the printer"
 msgstr "无法连接打印机"
@@ -2857,7 +2860,7 @@ msgid "COMPLETED"
 msgstr ""
 
 msgid "Cancel upload"
-msgstr ""
+msgstr "取消上传"
 
 msgid "Slice ok."
 msgstr "切片完成."
@@ -3063,6 +3066,11 @@ msgstr "检测到有未保存的项目，是否恢复此项目？"
 
 msgid "Restore"
 msgstr "恢复"
+
+msgid ""
+"The bed temperature exceeds filament's vitrification temperature. Please "
+"open the front door of printer before printing to avoid nozzle clog."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -3357,10 +3365,10 @@ msgid "Second"
 msgstr "秒"
 
 msgid "Browse"
-msgstr ""
+msgstr "浏览"
 
 msgid "Choose Download Directory"
-msgstr ""
+msgstr "选择下载文件夹"
 
 msgid "General Settings"
 msgstr "通用设置"
@@ -3438,7 +3446,7 @@ msgid "Backup interval"
 msgstr "备份间隔时长"
 
 msgid "Downloads"
-msgstr ""
+msgstr "下载"
 
 msgid "Home page and daily tips"
 msgstr "首页和每日小贴士"
@@ -3671,6 +3679,9 @@ msgstr "其他设备"
 msgid "Input access code"
 msgstr "输入访问码"
 
+msgid "Can't find my devices?"
+msgstr "无法找到我的设备？"
+
 msgid "Log out successful."
 msgstr "登出成功。"
 
@@ -3694,6 +3705,9 @@ msgstr "热床调平"
 
 msgid "Flow Calibration"
 msgstr "流量校准"
+
+msgid "Can't connect to the printer"
+msgstr "无法连接打印机"
 
 msgid "send completed"
 msgstr "发送完成"
@@ -3765,7 +3779,21 @@ msgstr ""
 "置其所对应的AMS槽位"
 
 msgid "An SD card needs to be inserted before printing."
+msgstr "请在发起打印前插入SD卡"
+
+msgid "An SD card needs to be inserted to recording timelapse"
+msgstr "开启延迟摄影功能需要插入SD卡"
+
+msgid "Please check the following infomation:\n"
+msgstr "请确认以下信息后发送打印：\n"
+
+msgid ""
+"The printer type used to generate G-code is not the same type as the "
+"currently selected physical printer. It is recommend to re-slice by "
+"selecting the same printer type.\n"
 msgstr ""
+"用于生成G-code的打印机类型与当前选定的物理打印机类型不同，建议选择相同的打印"
+"机类型重新切片。\n"
 
 msgid "Preparing print job"
 msgstr "正在准备打印任务"
@@ -4558,7 +4586,7 @@ msgid "Idle"
 msgstr ""
 
 msgid "Latest version"
-msgstr ""
+msgstr "最新版本"
 
 msgid "Upgrading"
 msgstr "升级中"
@@ -5008,10 +5036,10 @@ msgid ""
 msgstr ""
 
 msgid "User"
-msgstr ""
+msgstr "用户名"
 
 msgid "Password"
-msgstr ""
+msgstr "密码"
 
 msgid "Ignore HTTPS certificate revocation checks"
 msgstr ""
@@ -5049,8 +5077,8 @@ msgid ""
 "either as an absolute value or as percentage (for example 50%) of a direct "
 "travel path. Zero to disable"
 msgstr ""
-"避免跨越外墙时的最大绕行距离。当绕行距离比这个数值大时，此次空驶不绕行。"
-"绕行距离可表达为绝对值，或者相对直线空驶长度的百分比(例如50%)。0表示禁用"
+"避免跨越外墙时的最大绕行距离。当绕行距离比这个数值大时，此次空驶不绕行。绕行"
+"距离可表达为绝对值，或者相对直线空驶长度的百分比(例如50%)。0表示禁用"
 
 msgid "mm or %"
 msgstr "mm 或 %"
@@ -6769,7 +6797,18 @@ msgstr "支撑：正在修补层%d的空洞"
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
 
-#, c-format, boost-format
+#~ msgid "Erase painting"
+#~ msgstr "擦除绘制"
+
+#~ msgid "Set pen size"
+#~ msgstr "设置画笔大小"
+
+#~ msgid "Rotation:"
+#~ msgstr "旋转："
+
+#~ msgid "Height:"
+#~ msgstr "高度："
+
 #~ msgid "Initialize failed [%d]!"
 #~ msgstr "初始化失败 [%d]！"
 
@@ -6797,13 +6836,11 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ "Prime tower is required by timelapse. Do you want to enable both of them?"
 #~ msgstr "延时摄影需要使用擦拭塔，是否同时启用？"
 
-#, boost-format
 #~ msgid ""
 #~ "%1% is too close to exclusion area, there will be collisions when "
 #~ "printing."
 #~ msgstr "%1%离不可打印区域太近，会造成打印时出现碰撞。"
 
-#, boost-format
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -6841,7 +6878,6 @@ msgstr "支撑：正在生长层%d的树枝"
 #~ "collision when print object by object"
 #~ msgstr "挤出机的净空半径。作为自动摆放的输入信息，避免逐件打印时发生碰撞。"
 
-#, boost-format
 #~ msgid "Error at line %1%:\n"
 #~ msgstr "错误在行%1%：\n"
 
@@ -7139,9 +7175,6 @@ msgstr "支撑：正在生长层%d的树枝"
 
 #~ msgid "Ctrl + Any arrow"
 #~ msgstr "Ctrl + 方向键"
-
-#~ msgid "Alt + Mouse wheel"
-#~ msgstr "Alt + 鼠标滚轮"
 
 #~ msgid "Shift + Mouse wheel"
 #~ msgstr "Shift + 鼠标滚轮"
@@ -8170,9 +8203,6 @@ msgstr "支撑：正在生长层%d的树枝"
 
 #~ msgid "Cancel Calibration"
 #~ msgstr "取消校准"
-
-#~ msgid "Guide"
-#~ msgstr "引导"
 
 #~ msgid "Overhang"
 #~ msgstr "悬垂"

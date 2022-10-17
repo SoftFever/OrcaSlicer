@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-13 20:53+0800\n"
+"POT-Creation-Date: 2022-10-17 22:08+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -16,8 +16,14 @@ msgstr ""
 msgid "Supports Painting"
 msgstr "Prend en charge la peinture"
 
+msgid "Alt + Mouse wheel"
+msgstr "Alt + molette de la souris"
+
 msgid "Section view"
 msgstr "Vue en coupe"
+
+msgid "Ctrl + Mouse wheel"
+msgstr "Ctrl + molette de la souris"
 
 msgid "Pen size"
 msgstr "Taille du stylo"
@@ -37,8 +43,8 @@ msgstr "Bloc prend en charge"
 msgid "Shift + Left mouse button"
 msgstr "Maj + bouton gauche de la souris"
 
-msgid "Erase painting"
-msgstr "Effacer la peinture"
+msgid "Erase"
+msgstr "Effacer"
 
 msgid "Erase all painting"
 msgstr "Effacer toute la peinture"
@@ -54,12 +60,6 @@ msgstr "Exécuter"
 
 msgid "Gap area"
 msgstr ""
-
-msgid "Set pen size"
-msgstr "Définir la taille du stylo"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + molette de la souris"
 
 msgid "Tool type"
 msgstr "Type d'outil"
@@ -111,9 +111,6 @@ msgstr "Forme de stylo"
 
 msgid "Paint"
 msgstr "Peindre"
-
-msgid "Erase"
-msgstr "Effacer"
 
 msgid "Key 1~9"
 msgstr "Clé 1 ~ 9"
@@ -242,11 +239,11 @@ msgstr "Couper"
 msgid "Movement:"
 msgstr "Mouvement:"
 
-msgid "Rotation:"
-msgstr "Rotation :"
+msgid "Movement"
+msgstr ""
 
-msgid "Height:"
-msgstr "Hauteur:"
+msgid "Height"
+msgstr ""
 
 msgid "Keep upper part"
 msgstr "Conserver la partie supérieure"
@@ -353,10 +350,10 @@ msgstr ""
 msgid "Block seam"
 msgstr ""
 
-msgid "Remove selection"
+msgid "Seam painting"
 msgstr ""
 
-msgid "Seam painting"
+msgid "Remove selection"
 msgstr ""
 
 msgid "Entering Seam painting"
@@ -1122,8 +1119,11 @@ msgstr "Déchargement"
 msgid "Tips"
 msgstr "astuces"
 
-msgid "AMS Settings"
-msgstr "Paramètres AMS"
+msgid "Guide"
+msgstr ""
+
+msgid "Retry"
+msgstr ""
 
 msgid "Calibrating AMS..."
 msgstr "Étalonnage de l'AMS..."
@@ -1425,6 +1425,9 @@ msgstr ""
 
 msgid "Print with the filament mounted on the back of chassis"
 msgstr ""
+
+msgid "AMS Settings"
+msgstr "Paramètres AMS"
 
 msgid "Insertion update"
 msgstr "Insertion de la mise à jour"
@@ -2696,7 +2699,7 @@ msgstr "No files"
 msgid "Download waiting..."
 msgstr ""
 
-msgid "Retry"
+msgid "Play"
 msgstr ""
 
 msgid "Open Folder"
@@ -2802,6 +2805,9 @@ msgstr "sport"
 msgid "Ludicrous"
 msgstr "Ridicule"
 
+msgid "Failed to connect to the server"
+msgstr "Impossible de se connecter au serveur"
+
 msgid "Status"
 msgstr "Statut"
 
@@ -2813,9 +2819,6 @@ msgstr "Mise à jour"
 
 msgid "HMS"
 msgstr "HMS"
-
-msgid "Failed to connect to the server"
-msgstr "Impossible de se connecter au serveur"
 
 msgid "Failed to connect to the printer"
 msgstr "Échec de la connexion à l'imprimante"
@@ -3125,6 +3128,11 @@ msgstr "Projet précédent non enregistré détecté, voulez-vous le restaurer ?
 
 msgid "Restore"
 msgstr "Restaurer"
+
+msgid ""
+"The bed temperature exceeds filament's vitrification temperature. Please "
+"open the front door of printer before printing to avoid nozzle clog."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -3760,6 +3768,9 @@ msgstr "Autre appareil"
 msgid "Input access code"
 msgstr "Saisir le code d'accès"
 
+msgid "Can't find my devices?"
+msgstr ""
+
 msgid "Log out successful."
 msgstr "Déconnexion réussie."
 
@@ -3783,6 +3794,9 @@ msgstr "Mise à niveau du lit"
 
 msgid "Flow Calibration"
 msgstr "Étalonnage du débit"
+
+msgid "Can't connect to the printer"
+msgstr ""
 
 msgid "send completed"
 msgstr "envoi terminé"
@@ -3857,6 +3871,18 @@ msgid ""
 msgstr ""
 
 msgid "An SD card needs to be inserted before printing."
+msgstr ""
+
+msgid "An SD card needs to be inserted to recording timelapse"
+msgstr ""
+
+msgid "Please check the following infomation:\n"
+msgstr ""
+
+msgid ""
+"The printer type used to generate G-code is not the same type as the "
+"currently selected physical printer. It is recommend to re-slice by "
+"selecting the same printer type.\n"
 msgstr ""
 
 msgid "Preparing print job"
@@ -7138,7 +7164,18 @@ msgstr "Support : Correction des trous dans la couche %d"
 msgid "Support: propagate branches at layer %d"
 msgstr "Support : propagation des branches à la couche %d"
 
-#, c-format, boost-format
+#~ msgid "Erase painting"
+#~ msgstr "Effacer la peinture"
+
+#~ msgid "Set pen size"
+#~ msgstr "Définir la taille du stylo"
+
+#~ msgid "Rotation:"
+#~ msgstr "Rotation :"
+
+#~ msgid "Height:"
+#~ msgstr "Hauteur:"
+
 #~ msgid "Initialize failed [%d]!"
 #~ msgstr "Échec de l'initialisation [%d] !"
 
@@ -7151,7 +7188,6 @@ msgstr "Support : propagation des branches à la couche %d"
 #~ msgid "Send print job to"
 #~ msgstr "Envoyer le travail d'impression à"
 
-#, boost-format
 #~ msgid ""
 #~ "%1% is too close to exclusion area, there will be collisions when "
 #~ "printing."
@@ -7159,7 +7195,6 @@ msgstr "Support : propagation des branches à la couche %d"
 #~ "%1% est trop proche de la zone d'exclusion, il y aura des collisions lors "
 #~ "de l'impression."
 
-#, boost-format
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -7209,7 +7244,6 @@ msgstr "Support : propagation des branches à la couche %d"
 #~ "l'auto-arrangement pour éviter les collisions lors de l'impression objet "
 #~ "par objet"
 
-#, boost-format
 #~ msgid "Error at line %1%:\n"
 #~ msgstr "Erreur à la ligne %1% :\n"
 
@@ -7243,9 +7277,6 @@ msgstr "Support : propagation des branches à la couche %d"
 
 #~ msgid "0%"
 #~ msgstr "0%"
-
-#~ msgid "Alt + Mouse wheel"
-#~ msgstr "Alt + molette de la souris"
 
 #~ msgid ""
 #~ "An object is layed over the boundary of plate.\n"
