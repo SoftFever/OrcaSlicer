@@ -1791,6 +1791,42 @@ static wxMenu* generate_help_menu()
     return helpMenu;
 }
 
+
+static void add_common_publish_menu_items(wxMenu* publish_menu, MainFrame* mainFrame)
+{
+#ifdef __APPLE__ || __LINUX__
+    append_menu_item(publish_menu, wxID_ANY, _L("Upload Models"), _L("Upload Models"),
+        [](wxCommandEvent&) {
+            if (!wxGetApp().getAgent()) {
+                BOOST_LOG_TRIVIAL(info) << "publish: no agent";
+                return;
+            }
+
+            //if (GUI::wxGetApp().plater()->model().objects.empty()) return;
+
+            if (!wxGetApp().check_login())
+                return;
+
+            wxGetApp().open_publish_page_dialog();
+        });
+
+    append_menu_item(publish_menu, wxID_ANY, _L("Download Models"), _L("Download Models"),
+        [](wxCommandEvent&) {
+            if (!wxGetApp().getAgent()) {
+                BOOST_LOG_TRIVIAL(info) << "publish: no agent";
+                return;
+}
+
+            //if (GUI::wxGetApp().plater()->model().objects.empty()) return;
+
+            if (!wxGetApp().check_login())
+                return;
+
+            wxGetApp().open_mall_page_dialog();
+        });
+#endif
+}
+
 static void add_common_view_menu_items(wxMenu* view_menu, MainFrame* mainFrame, std::function<bool(void)> can_change_view)
 {
     // The camera control accelerators are captured by GLCanvas3D::on_char().
@@ -2063,6 +2099,14 @@ void MainFrame::init_menubar_as_editor()
 
     // BBS
 
+    //publish menu
+    wxMenu* publishMenu = nullptr;
+    if (m_plater) {
+        publishMenu = new wxMenu();
+        add_common_publish_menu_items(publishMenu, this);
+        publishMenu->AppendSeparator();
+    }
+        
     // View menu
     wxMenu* viewMenu = nullptr;
     if (m_plater) {
@@ -2270,6 +2314,8 @@ void MainFrame::init_menubar_as_editor()
         m_menubar->Append(editMenu, wxString::Format("&%s", _L("Edit")));
     if (viewMenu)
         m_menubar->Append(viewMenu, wxString::Format("&%s", _L("View")));
+    if (publishMenu)
+        m_menubar->Append(publishMenu, wxString::Format("&%s", _L("3D Models")));
     if (helpMenu)
         m_menubar->Append(helpMenu, wxString::Format("&%s", _L("Help")));
     SetMenuBar(m_menubar);

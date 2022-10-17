@@ -86,6 +86,7 @@
 #include "SelectMachine.hpp"
 #include "SendToPrinter.hpp"
 #include "PublishDialog.hpp"
+#include "ModelMall.hpp"
 #include "ConfigWizard.hpp"
 #include "../Utils/ASCIIFolding.hpp"
 #include "../Utils/FixModelByWin10.hpp"
@@ -7153,9 +7154,190 @@ int Plater::save_project(bool saveAs)
 }
 
 //BBS import model by model id
-void Plater::import_model_id(const std::string& import_json)
+void Plater::import_model_id(const std::string& download_url)
 {
-    return;
+    /* json j;
+     std::string model_id = "";
+     std::string profile_id = "";
+     std::string design_id;*/
+
+
+    bool download_ok = false;
+    /* save to a file */
+
+    /* jump to 3D eidtor */
+    wxGetApp().mainframe->select_tab((size_t)MainFrame::TabPosition::tp3DEditor);
+
+    /* prepare progress dialog */
+    bool cont = true;
+    bool cont_dlg = true;
+    bool cancel = false;
+    wxString msg;
+    wxString dlg_title = _L("Importing Model");
+    wxString filename;
+    int percent = 1;
+    ProgressDialog dlg(dlg_title,
+        wxString(' ', 100) + "\n\n\n\n",
+        100,    // range
+        this,   // parent
+        wxPD_CAN_ABORT |
+        wxPD_APP_MODAL |
+        wxPD_AUTO_HIDE |
+        wxPD_SMOOTH);
+
+    boost::filesystem::path target_path;
+
+    //reset params
+    p->project.reset();
+
+    /* prepare project and profile */
+    boost::thread import_thread = Slic3r::create_thread([&percent, &cont, &cancel, &msg, &target_path, &download_ok, download_url, &filename] {
+
+        NetworkAgent* m_agent = Slic3r::GUI::wxGetApp().getAgent();
+        if (!m_agent) return;
+
+        int res = 0;
+        unsigned int http_code;
+        std::string http_body;
+
+        msg = _L("prepare 3mf file...");
+        //BBLProfile* profile = new BBLProfile();
+        //profile->profile_id = profile_id;
+        //profile->model_id = model_id;
+        //res = m_agent->get_profile_3mf(profile);
+        /*if (res < 0 && profile->url.empty() && profile->md5.empty()) {
+            wxString error_msg = wxString::Format(_devL("get_des,err:code=%u,msg=%s"), http_code, http_body);
+            msg = _L("Import project failed, Please try again!") + error_msg;
+            return;
+        }*/
+        //filename = from_u8(profile->filename);
+
+        
+        //filename = from_u8(fs::path(download_url).filename().string());
+
+        //gets the number of files with the same name
+        std::vector<wxString>   vecFiles;
+        bool                    is_already_exist = false;
+
+
+        target_path = fs::path(wxGetApp().app_config->get("download_path"));
+        filename = from_u8(fs::path(download_url).filename().string());
+
+        try
+        {
+            vecFiles.clear();
+            for (const auto& iter : boost::filesystem::directory_iterator(target_path))
+            {
+                if (boost::filesystem::is_directory(iter.path()))
+                    continue;
+
+                wxString sFile = iter.path().filename().string().c_str();
+                
+                if ( strstr(sFile.c_str(), filename.c_str()) != NULL) {
+                    vecFiles.push_back(sFile);
+                }
+
+                if (sFile == filename) is_already_exist = true;
+            }
+        }
+        catch (const std::exception& error)
+        {
+            //wxString sError = error.what();
+        }
+
+        //update filename
+        if (is_already_exist && vecFiles.size() >= 1) {
+            wxString extension = fs::path(download_url).extension().c_str();
+            wxString name = filename.SubString(0, filename.length() - extension.length() - 1);
+            filename = wxString::Format("%s(%d)%s",name, vecFiles.size() + 1, extension);
+        }
+        else {
+            filename = from_u8(fs::path(download_url).filename().string());
+        }
+
+        msg = _L("downloading project ...");
+
+        //target_path = wxStandardPaths::Get().GetTempDir().utf8_str().data();
+
+       
+        //target_path = wxGetApp().get_local_models_path().c_str();
+        boost::uuids::uuid uuid = boost::uuids::random_generator()();
+        std::string unique = to_string(uuid).substr(0, 6);
+
+        //target_path /= (boost::format("%1%_%2%.3mf") % filename % unique).str();
+        target_path /= filename.c_str();
+        fs::path tmp_path = target_path;
+        tmp_path += format(".%1%", ".download");
+
+        auto url = download_url;
+        auto http = Http::get(url);
+        http.on_progress([&percent, &cont, &msg](Http::Progress progress, bool& cancel) {
+            if (!cont) cancel = true;
+            if (progress.dltotal != 0) {
+                percent = progress.dlnow * 100 / progress.dltotal;
+            }
+            msg = wxString::Format(_L("Project downloaded %d%%"), percent);
+            })
+            .on_error([&msg, &cont](std::string body, std::string error, unsigned http_status) {
+                (void)body;
+                BOOST_LOG_TRIVIAL(error) << format("Error getting: `%1%`: HTTP %2%, %3%",
+                    body,
+                    http_status,
+                    error);
+                msg = wxString::Format("Download Failed! body=%s, error=%s, status=%d", body, error, http_status);
+                cont = false;
+                return;
+                })
+                .on_complete([&cont, &download_ok, tmp_path, target_path](std::string body, unsigned /* http_status */) {
+                    fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
+                    file.write(body.c_str(), body.size());
+                    file.close();
+                    fs::rename(tmp_path, target_path);
+                    cont = false;
+                    download_ok = true;
+                    })
+                    .perform_sync();
+
+                    // for break while
+                    cont = false;
+        });
+
+    while (cont && cont_dlg) {
+        wxMilliSleep(50);
+        cont_dlg = dlg.Update(percent, msg);
+        if (!cont_dlg) {
+            cont = cont_dlg;
+            cancel = true;
+        }
+
+        if (download_ok)
+            break;
+    }
+
+    if (import_thread.joinable())
+        import_thread.join();
+
+    dlg.Close();
+    if (download_ok) {
+        BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << target_path.string();
+        /* load project */
+        this->load_project(encode_path(target_path.string().c_str()), "<silence>");
+
+        /*BBS set project info after load project, project info is reset in load project */
+        //p->project.project_model_id = model_id;
+        //p->project.project_design_id = design_id;
+        AppConfig* config = wxGetApp().app_config;
+        if (config) {
+            p->project.project_country_code = config->get_country_code();
+        }
+
+        // show save new project
+        p->set_project_filename(filename);
+    }
+    else {
+        wxMessageBox(msg);
+        return;
+    }
 }
 
 //BBS download project by project id
@@ -9214,7 +9396,8 @@ void Plater::send_job_finished(wxCommandEvent& evt)
 void Plater::publish_job_finished(wxCommandEvent &evt)
 {
     p->m_publish_dlg->EndModal(wxID_OK);
-    GUI::wxGetApp().load_url(evt.GetString());
+   // GUI::wxGetApp().load_url(evt.GetString());
+   //GUI::wxGetApp().open_publish_page_dialog(evt.GetString());
 }
 
 // Called when the Eject button is pressed.

@@ -88,6 +88,7 @@
 #include "WebGuideDialog.hpp"
 #include "WebUserLoginDialog.hpp"
 #include "ReleaseNote.hpp"
+#include "ModelMall.hpp"
 
 //#ifdef WIN32
 //#include "BaseException.h"
@@ -1930,6 +1931,25 @@ void GUI_App::init_http_extra_header()
         m_agent->set_extra_http_header(extra_headers);
 }
 
+std::string GUI_App::get_local_models_path()
+{
+    std::string local_path = "";
+    if (data_dir().empty()) {
+        return local_path;
+    }
+
+    auto models_folder = (boost::filesystem::path(data_dir()) / "models");
+    local_path = models_folder.string();
+
+    if (!fs::exists(models_folder)) {
+        if (!fs::create_directory(models_folder)) {
+            local_path = "";
+        }
+        BOOST_LOG_TRIVIAL(info) << "create models folder:" << models_folder.string();
+    }
+    return local_path;
+}
+
 /*void GUI_App::init_single_instance_checker(const std::string &name, const std::string &path)
 {
     BOOST_LOG_TRIVIAL(debug) << "init wx instance checker " << name << " "<< path;
@@ -3185,15 +3205,18 @@ std::string GUI_App::handle_web_request(std::string cmd)
         json j = json::parse(cmd);
 
         std::string web_cmd = j["command"].get<std::string>();
+
         if (web_cmd == "request_model_download") {
-            json j_data = j["data"];
-            json import_j;
-            import_j["model_id"] = j["data"]["model_id"].get<std::string>();
-            import_j["profile_id"] = j["data"]["profile_id"].get<std::string>();
-            import_j["design_id"] = "";
-            if (j["data"].contains("design_id"))
-                import_j["design_id"] = j["data"]["design_id"].get<std::string>();
-            this->request_model_download(import_j.dump());
+           /* json j_data = j["data"];
+            json import_j;*/
+            /*  import_j["model_id"] = j["data"]["model_id"].get<std::string>();
+              import_j["profile_id"] = j["data"]["profile_id"].get<std::string>();*/
+
+            std::string download_url = "";
+            if (j["data"].contains("download_url"))
+                download_url = j["data"]["download_url"].get<std::string>();
+
+            this->request_model_download(download_url);
         }
 
         std::stringstream ss(cmd), oss;
@@ -3240,7 +3263,9 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 });
             }            
             else if (command_str.compare("homepage_modeldepot") == 0) {
-                
+                CallAfter([this] {
+                    wxGetApp().open_mall_page_dialog();
+                });
             }
             else if (command_str.compare("homepage_newproject") == 0) {
                 this->request_open_project("<new>");
@@ -4877,6 +4902,30 @@ void GUI_App::load_url(wxString url)
 {
     if (mainframe)
         return mainframe->load_url(url);
+}
+
+void GUI_App::open_mall_page_dialog()
+{
+    std::string url;
+    getAgent()->get_model_mall_home_url(&url);
+
+    if (mainframe) {
+        ModelMallDialog modelMallDialog;
+        modelMallDialog.go_to_mall(url);
+        modelMallDialog.ShowModal();
+    }
+}
+
+void GUI_App::open_publish_page_dialog()
+{
+    std::string url;
+    getAgent()->get_model_publish_url(&url);
+
+    if (mainframe) {
+        ModelMallDialog modelMallDialog;
+        modelMallDialog.go_to_publish(url);
+        modelMallDialog.ShowModal();
+    }
 }
 
 void GUI_App::run_script(wxString js)

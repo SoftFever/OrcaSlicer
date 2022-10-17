@@ -905,6 +905,7 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
 
     wxButton *debug_button = new wxButton(m_scrolledWindow, wxID_ANY, _L("debug save button"), wxDefaultPosition, wxDefaultSize, 0);
     debug_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+
         // success message box
         MessageDialog dialog(this, _L("save debug settings"), _L("DEBUG settings have saved successfully!"), wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION);
         switch (dialog.ShowModal()) {

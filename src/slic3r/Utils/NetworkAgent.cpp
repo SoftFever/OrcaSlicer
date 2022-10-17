@@ -91,6 +91,9 @@ func_query_bind_status              NetworkAgent::query_bind_status_ptr = nullpt
 func_modify_printer_name            NetworkAgent::modify_printer_name_ptr = nullptr;
 func_get_camera_url                 NetworkAgent::get_camera_url_ptr = nullptr;
 func_start_pubilsh                  NetworkAgent::start_publish_ptr = nullptr;
+func_get_profile_3mf                NetworkAgent::get_profile_3mf_ptr = nullptr;
+func_get_model_publish_url          NetworkAgent::get_model_publish_url_ptr = nullptr;
+func_get_model_mall_home_url        NetworkAgent::get_model_mall_home_url_ptr = nullptr;
 
 
 NetworkAgent::NetworkAgent()
@@ -228,6 +231,9 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     modify_printer_name_ptr           =  reinterpret_cast<func_modify_printer_name>(get_network_function("bambu_network_modify_printer_name"));
     get_camera_url_ptr                =  reinterpret_cast<func_get_camera_url>(get_network_function("bambu_network_get_camera_url"));
     start_publish_ptr                 =  reinterpret_cast<func_start_pubilsh>(get_network_function("bambu_network_start_publish"));
+    get_profile_3mf_ptr               =  reinterpret_cast<func_get_profile_3mf>(get_network_function("bambu_network_get_profile_3mf"));
+    get_model_publish_url_ptr         =  reinterpret_cast<func_get_model_publish_url>(get_network_function("bambu_network_get_model_publish_url"));
+    get_model_mall_home_url_ptr       =  reinterpret_cast<func_get_model_mall_home_url>(get_network_function("bambu_network_get_model_mall_home_url"));
 
     return 0;
 }
@@ -319,6 +325,9 @@ int NetworkAgent::unload_network_module()
     modify_printer_name_ptr           =  nullptr;
     get_camera_url_ptr                =  nullptr;
     start_publish_ptr                 =  nullptr;
+    get_profile_3mf_ptr               =  nullptr;
+    get_model_publish_url_ptr         =  nullptr;
+    get_model_mall_home_url_ptr       =  nullptr;
 
     return 0;
 }
@@ -1048,5 +1057,36 @@ int NetworkAgent::start_publish(PublishParams params, OnUpdateStatusFn update_fn
     return ret;
 }
 
+int NetworkAgent::get_profile_3mf(BBLProfile* profile)
+{
+    int ret = -1;
+    if (network_agent && get_profile_3mf_ptr) {
+        ret = get_profile_3mf_ptr(network_agent, profile);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::get_model_publish_url(std::string* url)
+{
+    int ret = 0;
+    if (network_agent && get_model_publish_url_ptr) {
+        ret = get_model_publish_url_ptr(network_agent, url);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
+    }
+    return ret;
+}
+
+int NetworkAgent::get_model_mall_home_url(std::string* url)
+{
+    int ret = 0;
+    if (network_agent && get_model_publish_url_ptr) {
+        ret = get_model_mall_home_url_ptr(network_agent, url);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
+    }
+    return ret;
+}
 
 } //namespace

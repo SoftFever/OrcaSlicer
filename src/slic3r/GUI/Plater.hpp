@@ -202,7 +202,7 @@ public:
     void load_project(wxString const & filename = "", wxString const & originfile = "-");
     int save_project(bool saveAs = false);
     //BBS download project by project id
-    void import_model_id(const std::string& import_json);
+    void import_model_id(const std::string& download_url);
     void download_project(const wxString& project_id);
     void request_model_download(std::string import_json);
     void request_download_project(std::string project_id);

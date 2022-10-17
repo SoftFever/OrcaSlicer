@@ -2,6 +2,7 @@
 #define __NETWORK_Agent_HPP__
 
 #include "bambu_networking.hpp"
+#include "libslic3r/ProjectTask.hpp"
 
 using namespace BBL;
 
@@ -70,7 +71,9 @@ typedef int (*func_query_bind_status)(void *agent, std::vector<std::string> quer
 typedef int (*func_modify_printer_name)(void *agent, std::string dev_id, std::string dev_name);
 typedef int (*func_get_camera_url)(void *agent, std::string dev_id, std::function<void(std::string)> callback);
 typedef int (*func_start_pubilsh)(void *agent, PublishParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string* out);
-
+typedef int (*func_get_profile_3mf)(void *agent, BBLProfile* profile);
+typedef int (*func_get_model_publish_url)(void *agent, std::string* url);
+typedef int (*func_get_model_mall_home_url)(void *agent, std::string* url);
 
 
 //the NetworkAgent class
@@ -150,6 +153,9 @@ public:
     int modify_printer_name(std::string dev_id, std::string dev_name);
     int get_camera_url(std::string dev_id, std::function<void(std::string)> callback);
     int start_publish(PublishParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string* out);
+    int get_profile_3mf(BBLProfile* profile);
+    int get_model_publish_url(std::string* url);
+    int get_model_mall_home_url(std::string* url);   
 
 private:
 
@@ -219,6 +225,9 @@ private:
     static func_modify_printer_name            modify_printer_name_ptr;
     static func_get_camera_url                 get_camera_url_ptr;
     static func_start_pubilsh                  start_publish_ptr;
+    static func_get_profile_3mf                get_profile_3mf_ptr;
+    static func_get_model_publish_url          get_model_publish_url_ptr;
+    static func_get_model_mall_home_url        get_model_mall_home_url_ptr;
 };
 
 }
