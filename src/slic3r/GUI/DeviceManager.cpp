@@ -1372,6 +1372,19 @@ int MachineObject::command_ams_select_tray(std::string tray_id)
     return this->publish_gcode(gcode_cmd);
 }
 
+int MachineObject::command_ams_control(std::string action)
+{
+    //valid actions
+    if (action == "resume" || action == "reset" || action == "pause") {
+        json j;
+        j["print"]["command"] = "ams_control";
+        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+        j["print"]["param"] = action;
+        return this->publish_json(j.dump());
+    }
+    return -1;
+}
+
 
 int MachineObject::command_set_chamber_light(LIGHT_EFFECT effect, int on_time, int off_time, int loops, int interval)
 {

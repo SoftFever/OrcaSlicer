@@ -2115,10 +2115,16 @@ void StatusPanel::on_set_nozzle_temp()
 
 void StatusPanel::on_ams_load(SimpleEvent &event)
 {
+    BOOST_LOG_TRIVIAL(info) << "on_ams_load";
+    on_ams_load_curr();
+}
+
+void StatusPanel::on_ams_load_curr()
+{
     if (obj) {
         std::string                            curr_ams_id = m_ams_control->GetCurentAms();
         std::string                            curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
-        std::map<std::string, Ams *>::iterator it          = obj->amsList.find(curr_ams_id);
+        std::map<std::string, Ams*>::iterator it = obj->amsList.find(curr_ams_id);
         if (it == obj->amsList.end()) {
             BOOST_LOG_TRIVIAL(trace) << "ams: find " << curr_ams_id << " failed";
             return;
@@ -2129,8 +2135,8 @@ void StatusPanel::on_ams_load(SimpleEvent &event)
             return;
         }
 
-        AmsTray *curr_tray = obj->get_curr_tray();
-        AmsTray *targ_tray = obj->get_ams_tray(curr_ams_id, curr_can_id);
+        AmsTray* curr_tray = obj->get_curr_tray();
+        AmsTray* targ_tray = obj->get_ams_tray(curr_ams_id, curr_can_id);
         if (curr_tray && targ_tray) {
             int old_temp = -1;
             int new_temp = -1;
@@ -2139,12 +2145,14 @@ void StatusPanel::on_ams_load(SimpleEvent &event)
                     old_temp = (atoi(curr_tray->nozzle_temp_min.c_str()) + atoi(curr_tray->nozzle_temp_max.c_str())) / 2;
                 if (!targ_tray->nozzle_temp_max.empty() && !targ_tray->nozzle_temp_min.empty())
                     new_temp = (atoi(targ_tray->nozzle_temp_min.c_str()) + atoi(targ_tray->nozzle_temp_max.c_str())) / 2;
-            } catch (...) {
+            }
+            catch (...) {
                 ;
             }
             int tray_index = atoi(curr_ams_id.c_str()) * 4 + atoi(tray_it->second->id.c_str());
             obj->command_ams_switch(tray_index, old_temp, new_temp);
-        } else {
+        }
+        else {
             int tray_index = atoi(curr_ams_id.c_str()) * 4 + atoi(tray_it->second->id.c_str());
             obj->command_ams_switch(tray_index, -1, -1);
         }
@@ -2270,12 +2278,16 @@ void StatusPanel::on_ams_selected(wxCommandEvent &event)
 
 void StatusPanel::on_ams_guide(wxCommandEvent& event)
 {
-    ;// todo
+    wxString ams_wiki_url = "https://wiki.bambulab.com/en/software/bambu-studio/use-ams-on-bambu-studio";
+    wxLaunchDefaultBrowser(ams_wiki_url);
 }
 
 void StatusPanel::on_ams_retry(wxCommandEvent& event)
 {
-    ;// todo
+    BOOST_LOG_TRIVIAL(info) << "on_ams_retry";
+    if (obj) {
+        obj->command_ams_control("resume");
+    }
 }
 
 void StatusPanel::on_bed_temp_kill_focus(wxFocusEvent &event)

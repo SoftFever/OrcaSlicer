@@ -301,6 +301,7 @@ protected:
 
     /* extruder apis */
     void on_ams_load(SimpleEvent &event);
+    void on_ams_load_curr();
     void on_ams_unload(SimpleEvent &event);
     void on_ams_setting_click(SimpleEvent &event);
     void on_filament_edit(wxCommandEvent &event);
