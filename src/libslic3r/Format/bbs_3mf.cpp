@@ -5042,7 +5042,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //    if (volume == nullptr)
         //        continue;
 
-            bool is_left_handed = volume->is_left_handed();
+            //BBS: as we stored matrix seperately, not multiplied into vertex
+            //we don't need to consider this left hand case specially
+            //bool is_left_handed = volume->is_left_handed();
+            bool is_left_handed = false;
             //VolumeToOffsetsMap::iterator volume_it = volumes_objectID.find(volume);
             //assert(volume_it != volumes_objectID.end());
 
