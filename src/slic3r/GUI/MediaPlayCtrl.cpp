@@ -193,7 +193,10 @@ void MediaPlayCtrl::Stop()
         m_tasks.push_back("<stop>");
         m_cond.notify_all();
         m_last_state = MEDIASTATE_IDLE;
-        SetStatus(_L("Stopped."), false);
+        if (m_failed_code)
+            SetStatus(_L("Stopped [%d]!"), true);
+        else
+            SetStatus(_L("Stopped."), false);
         if (m_failed_code >= 100) // not keep retry on local error
             m_next_retry = wxDateTime();
     }
@@ -286,6 +289,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
     }
     if ((last_state == wxMEDIASTATE_PAUSED || last_state == wxMEDIASTATE_PLAYING)  &&
         state == wxMEDIASTATE_STOPPED) {
+        m_failed_code = m_media_ctrl->GetLastError();
         Stop();
         return;
     }
@@ -306,9 +310,9 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
             if (m_failed_code == 0)
                 m_failed_code = 2;
             SetStatus(_L("Load failed [%d]!"));
-        } else {
-            m_last_state = last_state;
         }
+    } else {
+        m_last_state = state;
     }
 }
 
