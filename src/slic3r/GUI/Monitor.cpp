@@ -177,16 +177,19 @@ MonitorPanel::~MonitorPanel()
     m_connection_info->SetTextColor(*wxWHITE);
     m_connection_info->SetFont(::Label::Body_13);
     m_connection_info->SetCornerRadius(0);
-    m_connection_info->SetSize(wxSize(FromDIP(220), FromDIP(25)));
-    m_connection_info->SetMinSize(wxSize(FromDIP(220), FromDIP(25)));
-    m_connection_info->SetMaxSize(wxSize(FromDIP(220), FromDIP(25)));
+    m_connection_info->SetSize(wxSize(FromDIP(-1), FromDIP(25)));
+    m_connection_info->SetMinSize(wxSize(FromDIP(-1), FromDIP(25)));
+    m_connection_info->SetMaxSize(wxSize(FromDIP(-1), FromDIP(25)));
+
+    wxBoxSizer* connection_sizer = new wxBoxSizer(wxVERTICAL);
+    m_hyperlink = new wxHyperlinkCtrl(m_connection_info, wxID_ANY, _L("Failed to connect to the server"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+    connection_sizer->Add(m_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
+    m_hyperlink->SetBackgroundColour(wxColour(255, 111, 0));
+    m_connection_info->SetSizer(connection_sizer);
+    m_connection_info->Layout();
+    connection_sizer->Fit(m_connection_info);
+
     m_connection_info->Hide();
-    /*sizer_boxv->Add(m_connection_info, 0, wxALIGN_CENTER, 0);
-    sizer_boxh->Add(sizer_boxv, 1, wxALIGN_CENTER, 0);
-    warning_panel->SetSizer(sizer_boxh);
-    warning_panel->Layout();*/
-
-
 
 
     sizer_side_tools->Add(m_connection_info, 0, wxEXPAND, 0);
@@ -507,9 +510,14 @@ void MonitorPanel::show_status(int status)
 
     if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0) || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)) {
         if ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER))
-            m_connection_info->SetLabel(_L("Failed to connect to the server"));
+            m_hyperlink->SetLabel(_L("Failed to connect to the server"));
+            //m_connection_info->SetLabel(_L("Failed to connect to the server"));
         else
-            m_connection_info->SetLabel(_L("Failed to connect to the printer"));
+            m_hyperlink->SetLabel(_L("Failed to connect to the printer"));
+            //m_connection_info->SetLabel(_L("Failed to connect to the printer"));
+
+        m_hyperlink->Show();
+        m_connection_info->SetLabel(wxEmptyString);
         m_connection_info->Show();
         m_connection_info->SetBackgroundColor(wxColour(255, 111, 0));
         m_connection_info->SetBorderColor(wxColour(255, 111, 0));
@@ -519,6 +527,7 @@ void MonitorPanel::show_status(int status)
     } else if ((status & (int) MonitorStatus::MONITOR_NORMAL) != 0) {
         m_connection_info->Hide();
     } else if ((status & (int) MonitorStatus::MONITOR_CONNECTING) != 0) {
+        m_hyperlink->Hide();
         m_connection_info->SetLabel(_L("Connecting..."));
         m_connection_info->SetBackgroundColor(wxColour(0, 174, 66));
         m_connection_info->SetBorderColor(wxColour(0, 174, 66));

@@ -84,6 +84,7 @@ private:
     UpgradePanel*       m_upgrade_panel;
     HMSPanel*           m_hms_panel;
     Button *            m_connection_info{nullptr};
+    wxHyperlinkCtrl* m_hyperlink{nullptr};
 
 	/* side tools */
     SideTools*      m_side_tools{nullptr};

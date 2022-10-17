@@ -637,7 +637,17 @@ void SelectMachinePopup::update_other_devices()
         m_placeholder_panel = nullptr;
     }
 
-    m_placeholder_panel = new wxWindow(m_scrolledWindow, wxID_ANY, wxDefaultPosition, wxSize(-1,FromDIP(10)));
+    m_placeholder_panel = new wxWindow(m_scrolledWindow, wxID_ANY, wxDefaultPosition, wxSize(-1,FromDIP(26)));
+    wxBoxSizer* placeholder_sizer = new wxBoxSizer(wxVERTICAL);
+
+    auto m_hyperlink = new wxHyperlinkCtrl(m_placeholder_panel, wxID_ANY, _L("Can't find my devices?"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+    placeholder_sizer->Add(m_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
+
+
+    m_placeholder_panel->SetSizer(placeholder_sizer);
+    m_placeholder_panel->Layout();
+    placeholder_sizer->Fit(m_placeholder_panel);
+
     m_placeholder_panel->SetBackgroundColour(*wxWHITE);
     m_sizer_other_devices->Add(m_placeholder_panel, 0, wxEXPAND, 0);
 
@@ -1033,11 +1043,23 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     // perpare mode
     m_panel_prepare = new wxPanel(m_simplebook, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_panel_prepare->SetBackgroundColour(m_colour_def_color);
-    // m_panel_prepare->SetBackgroundColour(wxColour(135,206,250));
+    //m_panel_prepare->SetBackgroundColour(wxColour(135,206,250));
     wxBoxSizer *m_sizer_prepare = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *m_sizer_pcont   = new wxBoxSizer(wxHORIZONTAL);
 
-    m_sizer_prepare->Add(0, 0, 1, wxTOP, FromDIP(22));
+    m_sizer_prepare->Add(0, 0, 1, wxTOP, FromDIP(12));
+
+    auto hyperlink_sizer = new wxBoxSizer( wxHORIZONTAL );
+    auto m_hyperlink = new wxHyperlinkCtrl(m_panel_prepare, wxID_ANY, _L("Can't connect to the printer"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+
+    auto linkimg = new wxStaticBitmap(m_panel_prepare, wxID_ANY, create_scaled_bitmap("link_wiki_img", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
+
+    hyperlink_sizer->Add(m_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
+    hyperlink_sizer->Add(linkimg, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+
+    m_sizer_prepare->Add(hyperlink_sizer, 0, wxALIGN_CENTER | wxALL, 5);
+    
+
     m_sizer_pcont->Add(0, 0, 1, wxEXPAND, 0);
     m_button_ensure = new Button(m_panel_prepare, _L("Print"));
     m_button_ensure->SetBackgroundColor(btn_bg_enable);
