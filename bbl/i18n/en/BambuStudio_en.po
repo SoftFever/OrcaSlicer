@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-17 22:08+0800\n"
+"POT-Creation-Date: 2022-10-18 13:09+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1062,6 +1062,42 @@ msgstr "Multicolor Print"
 
 msgid "Line Type"
 msgstr "Line Type"
+
+msgid "More"
+msgstr "More"
+
+msgid "Open Preferences."
+msgstr ""
+
+msgid "Open Documentation in web browser."
+msgstr ""
+
+msgid "Custom G-code"
+msgstr "Custom G-code"
+
+msgid "Enter Custom G-code used on current layer:"
+msgstr ""
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Add Pause"
+msgstr ""
+
+msgid "Add Custom G-code"
+msgstr ""
+
+msgid "Add Custom Template"
+msgstr ""
+
+msgid "Filament "
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "G-code"
+msgstr ""
 
 msgid "No printer"
 msgstr "No printer"
@@ -2478,6 +2514,12 @@ msgstr ""
 msgid "Show object labels in 3D scene"
 msgstr ""
 
+msgid "Show &Wireframe"
+msgstr ""
+
+msgid "Show wireframes in 3D scene"
+msgstr ""
+
 msgid "Preferences"
 msgstr "Preferences"
 
@@ -2611,6 +2653,10 @@ msgid "Initialize failed (%s)!"
 msgstr ""
 
 msgid "Network unreachable"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Stopped [%d]!"
 msgstr ""
 
 msgid "Stopped."
@@ -2811,9 +2857,6 @@ msgstr "HMS"
 msgid "Failed to connect to the printer"
 msgstr "Failed to connect to the printer"
 
-msgid "OK"
-msgstr "OK"
-
 msgid "Yes"
 msgstr "Yes"
 
@@ -2876,9 +2919,6 @@ msgstr "An update is available!"
 
 msgid "Goto download page."
 msgstr "Go to download page"
-
-msgid "More"
-msgstr "More"
 
 msgid "Open Folder."
 msgstr "Open Folder."
@@ -4174,9 +4214,6 @@ msgstr "All"
 
 msgid "Set"
 msgstr "Set"
-
-msgid "Custom G-code"
-msgstr "Custom G-code"
 
 msgid "Click to reset current value and attach to the global value."
 msgstr "Click to reset current value and attach to the global value."

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-17 22:08+0800\n"
+"POT-Creation-Date: 2022-10-18 13:09+0800\n"
 "PO-Revision-Date: 2022-10-17 22:14+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1047,6 +1047,42 @@ msgstr "多色打印"
 
 msgid "Line Type"
 msgstr "走线类型"
+
+msgid "More"
+msgstr "详情"
+
+msgid "Open Preferences."
+msgstr "打开首选项。"
+
+msgid "Open Documentation in web browser."
+msgstr "在web浏览器中打开文档。"
+
+msgid "Custom G-code"
+msgstr "自定义 G-code"
+
+msgid "Enter Custom G-code used on current layer:"
+msgstr "输入当前层上使用的自定义G-code"
+
+msgid "OK"
+msgstr "确认"
+
+msgid "Add Pause"
+msgstr "添加暂停打印"
+
+msgid "Add Custom G-code"
+msgstr "添加自定义G-code"
+
+msgid "Add Custom Template"
+msgstr "添加自定义模板"
+
+msgid "Filament "
+msgstr "耗材丝"
+
+msgid "Start"
+msgstr "首层"
+
+msgid "G-code"
+msgstr ""
 
 msgid "No printer"
 msgstr "无打印机"
@@ -2099,7 +2135,7 @@ msgid "Explosion Ratio"
 msgstr "爆炸比例"
 
 msgid "Section View"
-msgstr ""
+msgstr "剖面视图"
 
 msgid "Assemble Control"
 msgstr ""
@@ -2255,10 +2291,10 @@ msgid "&About %s"
 msgstr "关于 %s"
 
 msgid "Show Tip of the Day"
-msgstr ""
+msgstr "展示每日小贴士"
 
 msgid "Open Network Test"
-msgstr ""
+msgstr "打开网络测试"
 
 msgid "Default View"
 msgstr "默认视图"
@@ -2431,10 +2467,16 @@ msgid "Use Orthogonal View"
 msgstr "使用正交视角"
 
 msgid "Show &Labels"
-msgstr ""
+msgstr "显示名称"
 
 msgid "Show object labels in 3D scene"
-msgstr ""
+msgstr "在3D场景中显示对象名称"
+
+msgid "Show &Wireframe"
+msgstr "显示线框"
+
+msgid "Show wireframes in 3D scene"
+msgstr "在3D场景中显示线框"
 
 msgid "Preferences"
 msgstr "偏好设置"
@@ -2569,6 +2611,10 @@ msgstr "初始化失败（%s）!"
 
 msgid "Network unreachable"
 msgstr "网络不可访问"
+
+#, c-format, boost-format
+msgid "Stopped [%d]!"
+msgstr ""
 
 msgid "Stopped."
 msgstr "已经停止。"
@@ -2768,9 +2814,6 @@ msgstr ""
 msgid "Failed to connect to the printer"
 msgstr "无法连接打印机"
 
-msgid "OK"
-msgstr "确认"
-
 msgid "Yes"
 msgstr "是"
 
@@ -2833,9 +2876,6 @@ msgstr "发现新的软件版本。"
 
 msgid "Goto download page."
 msgstr "前往下载网站。"
-
-msgid "More"
-msgstr "详情"
 
 msgid "Open Folder."
 msgstr "打开目录。"
@@ -3401,10 +3441,10 @@ msgid "Units"
 msgstr "单位"
 
 msgid "Show \"Tip of the day\" notification after start"
-msgstr ""
+msgstr "启动后显示“每日小贴士”通知"
 
 msgid "If enabled, useful hints are displayed at startup."
-msgstr ""
+msgstr "如果启用，将在启动时显示有用的提示。"
 
 msgid "User sync"
 msgstr "用户同步"
@@ -4061,7 +4101,7 @@ msgid "Pause G-code"
 msgstr "暂停 G-code"
 
 msgid "Template Custom G-code"
-msgstr ""
+msgstr "模板自定义G-code"
 
 msgid "Motion ability"
 msgstr "移动能力"
@@ -4105,9 +4145,6 @@ msgstr "所有"
 
 msgid "Set"
 msgstr "设置"
-
-msgid "Custom G-code"
-msgstr "自定义 G-code"
 
 msgid "Click to reset current value and attach to the global value."
 msgstr "点击该图标，恢复到全局的配置数值，并与全局配置同步变化。"
@@ -4212,7 +4249,7 @@ msgid "Show all presets (including incompatible)"
 msgstr "显示所有预设(包括不兼容的)"
 
 msgid "Add File"
-msgstr ""
+msgstr "添加文件"
 
 msgid "Set as cover"
 msgstr "设置为封面"
@@ -6189,7 +6226,7 @@ msgid "Back"
 msgstr "背面"
 
 msgid "Random"
-msgstr ""
+msgstr "随机"
 
 msgid "Skirt distance"
 msgstr "Skirt距离"

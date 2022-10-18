@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-17 22:08+0800\n"
+"POT-Creation-Date: 2022-10-18 13:09+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1080,6 +1080,42 @@ msgstr "Többszínű nyomtatás"
 
 msgid "Line Type"
 msgstr "Vonaltípus"
+
+msgid "More"
+msgstr "Több"
+
+msgid "Open Preferences."
+msgstr ""
+
+msgid "Open Documentation in web browser."
+msgstr ""
+
+msgid "Custom G-code"
+msgstr "Egyedi G-kód"
+
+msgid "Enter Custom G-code used on current layer:"
+msgstr ""
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Add Pause"
+msgstr ""
+
+msgid "Add Custom G-code"
+msgstr ""
+
+msgid "Add Custom Template"
+msgstr ""
+
+msgid "Filament "
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "G-code"
+msgstr ""
 
 msgid "No printer"
 msgstr "Nincs nyomtató"
@@ -2516,6 +2552,12 @@ msgstr ""
 msgid "Show object labels in 3D scene"
 msgstr ""
 
+msgid "Show &Wireframe"
+msgstr ""
+
+msgid "Show wireframes in 3D scene"
+msgstr ""
+
 msgid "Preferences"
 msgstr "Beállítások"
 
@@ -2650,6 +2692,10 @@ msgid "Initialize failed (%s)!"
 msgstr ""
 
 msgid "Network unreachable"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Stopped [%d]!"
 msgstr ""
 
 msgid "Stopped."
@@ -2850,9 +2896,6 @@ msgstr "HMS"
 msgid "Failed to connect to the printer"
 msgstr "Nem sikerült csatlakozni a nyomtatóhoz"
 
-msgid "OK"
-msgstr "OK"
-
 msgid "Yes"
 msgstr "Igen"
 
@@ -2915,9 +2958,6 @@ msgstr "Új szoftververzió érhető el."
 
 msgid "Goto download page."
 msgstr "Látogass el a letöltési oldalra."
-
-msgid "More"
-msgstr "Több"
 
 msgid "Open Folder."
 msgstr "Mappa megnyitása."
@@ -4223,9 +4263,6 @@ msgstr "Összes"
 
 msgid "Set"
 msgstr "Beállít"
-
-msgid "Custom G-code"
-msgstr "Egyedi G-kód"
 
 msgid "Click to reset current value and attach to the global value."
 msgstr "Click to reset current value and attach to the global value."

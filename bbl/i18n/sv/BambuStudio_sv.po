@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-17 22:08+0800\n"
+"POT-Creation-Date: 2022-10-18 13:09+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1072,6 +1072,42 @@ msgstr "Multifärgs Utskrift"
 
 msgid "Line Type"
 msgstr "Linje typ"
+
+msgid "More"
+msgstr "Mer"
+
+msgid "Open Preferences."
+msgstr ""
+
+msgid "Open Documentation in web browser."
+msgstr ""
+
+msgid "Custom G-code"
+msgstr "Custom G-kod"
+
+msgid "Enter Custom G-code used on current layer:"
+msgstr ""
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Add Pause"
+msgstr ""
+
+msgid "Add Custom G-code"
+msgstr ""
+
+msgid "Add Custom Template"
+msgstr ""
+
+msgid "Filament "
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "G-code"
+msgstr ""
 
 msgid "No printer"
 msgstr "Ingen skrivare"
@@ -2487,6 +2523,12 @@ msgstr ""
 msgid "Show object labels in 3D scene"
 msgstr ""
 
+msgid "Show &Wireframe"
+msgstr ""
+
+msgid "Show wireframes in 3D scene"
+msgstr ""
+
 msgid "Preferences"
 msgstr "Inställningar"
 
@@ -2616,6 +2658,10 @@ msgid "Initialize failed (%s)!"
 msgstr ""
 
 msgid "Network unreachable"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Stopped [%d]!"
 msgstr ""
 
 msgid "Stopped."
@@ -2816,9 +2862,6 @@ msgstr "HMS"
 msgid "Failed to connect to the printer"
 msgstr "Uppkoppling till printern misslyckades"
 
-msgid "OK"
-msgstr "OK"
-
 msgid "Yes"
 msgstr "Ja"
 
@@ -2881,9 +2924,6 @@ msgstr "En uppdatering finns tillgänglig."
 
 msgid "Goto download page."
 msgstr "Besök nedladdnings sidan."
-
-msgid "More"
-msgstr "Mer"
 
 msgid "Open Folder."
 msgstr "Öppna Mapp."
@@ -4181,9 +4221,6 @@ msgstr "Allt"
 
 msgid "Set"
 msgstr "Välj"
-
-msgid "Custom G-code"
-msgstr "Custom G-kod"
 
 msgid "Click to reset current value and attach to the global value."
 msgstr ""
@@ -6615,8 +6652,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
-"(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för "
+"lösligt(material) stödgränssnittet är koncentriskt"
 
 msgid "Base pattern spacing"
 msgstr "Basens mönster mellanrum"

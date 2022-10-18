@@ -25,6 +25,8 @@ src/slic3r/GUI/GUI_ObjectTable.hpp
 src/slic3r/GUI/GUI_ObjectTableSettings.cpp
 src/slic3r/GUI/GUI_ObjectTableSettings.hpp
 src/slic3r/GUI/GUI_Preview.cpp
+src/slic3r/GUI/HintNotification.cpp
+src/slic3r/GUI/IMSlider.cpp
 src/slic3r/GUI/Widgets/SideTools.cpp
 src/slic3r/GUI/Widgets/AMSControl.cpp
 src/slic3r/GUI/ImGuiWrapper.cpp

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-17 22:08+0800\n"
+"POT-Creation-Date: 2022-10-18 13:09+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1046,6 +1046,42 @@ msgid "Multicolor Print"
 msgstr ""
 
 msgid "Line Type"
+msgstr ""
+
+msgid "More"
+msgstr ""
+
+msgid "Open Preferences."
+msgstr ""
+
+msgid "Open Documentation in web browser."
+msgstr ""
+
+msgid "Custom G-code"
+msgstr ""
+
+msgid "Enter Custom G-code used on current layer:"
+msgstr ""
+
+msgid "OK"
+msgstr ""
+
+msgid "Add Pause"
+msgstr ""
+
+msgid "Add Custom G-code"
+msgstr ""
+
+msgid "Add Custom Template"
+msgstr ""
+
+msgid "Filament "
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "G-code"
 msgstr ""
 
 msgid "No printer"
@@ -2363,6 +2399,12 @@ msgstr ""
 msgid "Show object labels in 3D scene"
 msgstr ""
 
+msgid "Show &Wireframe"
+msgstr ""
+
+msgid "Show wireframes in 3D scene"
+msgstr ""
+
 msgid "Preferences"
 msgstr ""
 
@@ -2492,6 +2534,10 @@ msgid "Initialize failed (%s)!"
 msgstr ""
 
 msgid "Network unreachable"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Stopped [%d]!"
 msgstr ""
 
 msgid "Stopped."
@@ -2692,9 +2738,6 @@ msgstr ""
 msgid "Failed to connect to the printer"
 msgstr ""
 
-msgid "OK"
-msgstr ""
-
 msgid "Yes"
 msgstr ""
 
@@ -2756,9 +2799,6 @@ msgid "Software has New version."
 msgstr ""
 
 msgid "Goto download page."
-msgstr ""
-
-msgid "More"
 msgstr ""
 
 msgid "Open Folder."
@@ -4007,9 +4047,6 @@ msgid "All"
 msgstr ""
 
 msgid "Set"
-msgstr ""
-
-msgid "Custom G-code"
 msgstr ""
 
 msgid "Click to reset current value and attach to the global value."
