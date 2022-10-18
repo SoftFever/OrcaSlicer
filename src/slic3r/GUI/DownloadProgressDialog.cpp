@@ -34,8 +34,8 @@ DownloadProgressDialog::DownloadProgressDialog(wxString title)
     wxString download_failed_url = wxT("https://wiki.bambulab.com/e/en/software/bambu-studio/failed-to-get-network-plugin");
     wxString install_failed_url = wxT("https://wiki.bambulab.com/e/en/software/bambu-studio/failed-to-get-network-plugin");
 
-    wxString download_failed_msg = _L("Download Failed. Please check your firewall settings and vpn software, check and retry.");
-    wxString install_failed_msg = _L("Installed failed. Check whether the plugin is deleted by the antivirus software.");
+    wxString download_failed_msg = _L("Failed to download the plug-in. Please check your firewall settings and vpn software, check and retry.");
+    wxString install_failed_msg = _L("Failed to install the plug-in. Please check whether it is blocked or deleted by anti-virus software.");
 
 
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();

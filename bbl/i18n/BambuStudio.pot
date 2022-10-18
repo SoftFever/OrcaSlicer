@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-18 18:18+0800\n"
+"POT-Creation-Date: 2022-10-18 23:28+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1232,6 +1232,9 @@ msgstr ""
 msgid "Unknown Failure"
 msgstr ""
 
+msgid "Please check the printer network connection."
+msgstr ""
+
 msgid "Abnormal print file data. Please slice again"
 msgstr ""
 
@@ -1438,6 +1441,19 @@ msgid ""
 msgstr ""
 
 msgid "File"
+msgstr ""
+
+msgid ""
+"Failed to download the plug-in. Please check your firewall settings and vpn "
+"software, check and retry."
+msgstr ""
+
+msgid ""
+"Failed to install the plug-in. Please check whether it is blocked or deleted "
+"by anti-virus software."
+msgstr ""
+
+msgid "click here to see more info"
 msgstr ""
 
 msgid "Please home all axes (click "
@@ -1846,6 +1862,12 @@ msgid "Flow"
 msgstr ""
 
 msgid "Tool"
+msgstr ""
+
+msgid "Height: "
+msgstr ""
+
+msgid "Width: "
 msgstr ""
 
 msgid "Speed: "

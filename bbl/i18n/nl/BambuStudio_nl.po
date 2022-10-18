@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-18 18:18+0800\n"
+"POT-Creation-Date: 2022-10-18 23:28+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1291,6 +1291,9 @@ msgstr "Koppeling mislukt"
 msgid "Unknown Failure"
 msgstr "Onbekende fout"
 
+msgid "Please check the printer network connection."
+msgstr ""
+
 msgid "Abnormal print file data. Please slice again"
 msgstr "Abnormale printbestand. Slice opnieuw"
 
@@ -1521,6 +1524,19 @@ msgstr ""
 
 msgid "File"
 msgstr "Bestand"
+
+msgid ""
+"Failed to download the plug-in. Please check your firewall settings and vpn "
+"software, check and retry."
+msgstr ""
+
+msgid ""
+"Failed to install the plug-in. Please check whether it is blocked or deleted "
+"by anti-virus software."
+msgstr ""
+
+msgid "click here to see more info"
+msgstr ""
 
 msgid "Please home all axes (click "
 msgstr ""
@@ -1996,6 +2012,12 @@ msgstr "Flow"
 
 msgid "Tool"
 msgstr "Hulpmiddel"
+
+msgid "Height: "
+msgstr ""
+
+msgid "Width: "
+msgstr ""
 
 msgid "Speed: "
 msgstr ""
