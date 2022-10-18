@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-18 13:09+0800\n"
+"POT-Creation-Date: 2022-10-18 18:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3896,6 +3896,12 @@ msgstr "Förbereder utskriftsjobb"
 msgid "Modifying the device name"
 msgstr "Ändra enhetens namn"
 
+msgid "Send to Printer"
+msgstr ""
+
+msgid "The printer is required to be in the same LAN as Bambu Studio."
+msgstr ""
+
 msgid "Log in printer"
 msgstr "Logga in skrivare"
 
@@ -7070,6 +7076,170 @@ msgstr "Support: åtgärda hål vid lager %d"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: föröka grenar vid lager %d"
+
+#: resources/data/hints.ini: [hint:3D Scene Operations]
+msgid ""
+"3D Scene Operations\n"
+"Did you know how to control view and object/part selection with mouse and "
+"touchpanel in the 3D scene?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Cut Tool]
+msgid ""
+"Cut Tool\n"
+"Did you know that you can cut a model at any angle and position with the "
+"cutting tool?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Fix Model]
+msgid ""
+"Fix Model\n"
+"Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
+"problems?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Timelapse]
+msgid ""
+"Timelapse\n"
+"Did you know that you can generate a timelapse video during each print?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Auto-Arrange]
+msgid ""
+"Auto-Arrange\n"
+"Did you know that you can auto-arrange all objects in your project?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Auto-Orient]
+msgid ""
+"Auto-Orient\n"
+"Did you know that you can rotate objects to an optimal orientation for "
+"printing by a simple click?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Lay on Face]
+msgid ""
+"Lay on Face\n"
+"Did you know that you can quickly orient a model so that one of its faces "
+"sits on the print bed? Select the \"Place on face\" function or press the "
+"<b>F</b> key."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Object List]
+msgid ""
+"Object List\n"
+"Did you know that you can view all objects/parts in a list and change "
+"settings for each object/part?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Simplify Model]
+msgid ""
+"Simplify Model\n"
+"Did you know that you can reduce the number of triangles in a mesh using the "
+"Simplify mesh feature? Right-click the model and select Simplify model. Read "
+"more in the documentation."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Slicing Parameter Table]
+msgid ""
+"Slicing Parameter Table\n"
+"Did you know that you can view all objects/parts on a table and change "
+"settings for each object/part?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Split to Objects/Parts]
+msgid ""
+"Split to Objects/Parts\n"
+"Did you know that you can split a big object into small ones for easy "
+"colorizing or printing?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Subtract a Part]
+msgid ""
+"Subtract a Part\n"
+"Did you know that you can subtract one mesh from another using the Negative "
+"part modifier? That way you can, for example, create easily resizable holes "
+"directly in Bambu Studio. Read more in the documentation."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:STEP]
+msgid ""
+"STEP\n"
+"Did you know that you can improve your print quality by slicing a STEP file "
+"instead of an STL?\n"
+"Bambu Studio supports slicing STEP files, providing smoother results than a "
+"lower resolution STL. Give it a try!"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Z seam location]
+msgid ""
+"Z seam location\n"
+"Did you know that you can customize the location of the Z seam, and even "
+"paint it on your print, to have it in a less visible location? This improves "
+"the overall look of your model. Check it out!"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
+msgid ""
+"Fine-tuning for flow rate\n"
+"Did you know that flow rate can be fine-tuned for even better-looking "
+"prints? Depending on the material, you can improve the overall finish of the "
+"printed model by doing some fine-tuning."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Split your prints into plates]
+msgid ""
+"Split your prints into plates\n"
+"Did you know that you can split a model that has a lot of parts into "
+"individual plates ready to print? This will simplify the process of keeping "
+"track of all the parts."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
+#: Height]
+msgid ""
+"Speed up your print with Adaptive Layer Height\n"
+"Did you know that you can print a model even faster, by using the Adaptive "
+"Layer Height option? Check it out!"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Support painting]
+msgid ""
+"Support painting\n"
+"Did you know that you can paint the location of your supports? This feature "
+"makes it easy to place the support material only on the sections of the "
+"model that actually need it."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Different types of supports]
+msgid ""
+"Different types of supports\n"
+"Did you know that you can choose from multiple types of supports? Tree "
+"supports work great for organic models, while saving filament and improving "
+"print speed. Check them out!"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Printing Silk Filament]
+msgid ""
+"Printing Silk Filament\n"
+"Did you know that Silk filament needs special consideration to print it "
+"successfully? Higher temperature and lower speed are always recommended for "
+"the best results."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Brim for better adhesion]
+msgid ""
+"Brim for better adhesion\n"
+"Did you know that when printing models have a small contact interface with "
+"the printing surface, it's recommended to use a brim?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Set parameters for multiple objects]
+msgid ""
+"Set parameters for multiple objects\n"
+"Did you know that you can set slicing parameters for all selected objects at "
+"one time?"
+msgstr ""
 
 #~ msgid "Erase painting"
 #~ msgstr "Radera färgläggning"

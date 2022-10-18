@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-18 13:09+0800\n"
+"POT-Creation-Date: 2022-10-18 18:18+0800\n"
 "PO-Revision-Date: 2022-10-17 22:14+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3841,6 +3841,12 @@ msgstr "正在准备打印任务"
 msgid "Modifying the device name"
 msgstr "修改打印机名称"
 
+msgid "Send to Printer"
+msgstr "发送到打印机"
+
+msgid "The printer is required to be in the same LAN as Bambu Studio."
+msgstr "打印机需要与Bambu Studio在同一个局域网内。"
+
 msgid "Log in printer"
 msgstr "登录打印机"
 
@@ -6833,6 +6839,192 @@ msgstr "支撑：正在修补层%d的空洞"
 #, c-format, boost-format
 msgid "Support: propagate branches at layer %d"
 msgstr "支撑：正在生长层%d的树枝"
+
+#: resources/data/hints.ini: [hint:3D Scene Operations]
+msgid ""
+"3D Scene Operations\n"
+"Did you know how to control view and object/part selection with mouse and "
+"touchpanel in the 3D scene?"
+msgstr "3D场景操作\n如何在3D场景中使用鼠标和触摸面板进行视角控制和对象/部件选择"
+
+#: resources/data/hints.ini: [hint:Cut Tool]
+msgid ""
+"Cut Tool\n"
+"Did you know that you can cut a model at any angle and position with the "
+"cutting tool?"
+msgstr "切割工具\n您知道吗？您可以使用切割工具以任何角度和位置切割模型。"
+
+#: resources/data/hints.ini: [hint:Fix Model]
+msgid ""
+"Fix Model\n"
+"Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
+"problems?"
+msgstr "修复模型\n您知道吗？您可以修复一个损坏的3D模型以避免诸多切片问题。"
+
+#: resources/data/hints.ini: [hint:Timelapse]
+msgid ""
+"Timelapse\n"
+"Did you know that you can generate a timelapse video during each print?"
+msgstr "延时摄影\n您知道吗？您可以每次打印时生成一段延时摄影。"
+
+#: resources/data/hints.ini: [hint:Auto-Arrange]
+msgid ""
+"Auto-Arrange\n"
+"Did you know that you can auto-arrange all objects in your project?"
+msgstr "自动摆盘\n您知道吗？您可以自动排列项目中的所有对象。"
+
+#: resources/data/hints.ini: [hint:Auto-Orient]
+msgid ""
+"Auto-Orient\n"
+"Did you know that you can rotate objects to an optimal orientation for "
+"printing by a simple click?"
+msgstr "自动朝向\n您知道吗？您只需单击鼠标，即可将对象旋转到适合的打印方向？"
+
+#: resources/data/hints.ini: [hint:Lay on Face]
+msgid ""
+"Lay on Face\n"
+"Did you know that you can quickly orient a model so that one of its faces "
+"sits on the print bed? Select the \"Place on face\" function or press the "
+"<b>F</b> key."
+msgstr ""
+"放置在面部\n您知道吗？您可以快速指定模型的底面，使其位于打印床上。选择“放置在面部”功能或"
+"按<b>F</b>键。"
+
+#: resources/data/hints.ini: [hint:Object List]
+msgid ""
+"Object List\n"
+"Did you know that you can view all objects/parts in a list and change "
+"settings for each object/part?"
+msgstr ""
+"对象列表\n您知道对象列表吗？您可以在其中的查看所有对象/部件，并更改每个对象/部件的设"
+"置。"
+
+#: resources/data/hints.ini: [hint:Simplify Model]
+msgid ""
+"Simplify Model\n"
+"Did you know that you can reduce the number of triangles in a mesh using the "
+"Simplify mesh feature? Right-click the model and select Simplify model. Read "
+"more in the documentation."
+msgstr ""
+"简化模型\n您知道吗？您可以使用“简化模型”功能减少模型的三角形数。在模型上单击鼠标右键，"
+"然后选择“简化模型”。"
+
+#: resources/data/hints.ini: [hint:Slicing Parameter Table]
+msgid ""
+"Slicing Parameter Table\n"
+"Did you know that you can view all objects/parts on a table and change "
+"settings for each object/part?"
+msgstr "参数表格\n您知道吗？您可以参数表格上的所有对象/部件，并更改每个对象/部件的设置。"
+
+#: resources/data/hints.ini: [hint:Split to Objects/Parts]
+msgid ""
+"Split to Objects/Parts\n"
+"Did you know that you can split a big object into small ones for easy "
+"colorizing or printing?"
+msgstr "分割成对象/零件\n您知道吗？您可以把一个大对象分割成多个小对象/零件以便着色或打印吗？"
+
+#: resources/data/hints.ini: [hint:Subtract a Part]
+msgid ""
+"Subtract a Part\n"
+"Did you know that you can subtract one mesh from another using the Negative "
+"part modifier? That way you can, for example, create easily resizable holes "
+"directly in Bambu Studio. Read more in the documentation."
+msgstr ""
+"减去部分几何体\n您知道吗？您可以使用负零件从另一个几何体中减去另一个几何体。例如，这样可以直"
+"接在Bambu Studio中创建可轻松调整大小的孔。"
+
+#: resources/data/hints.ini: [hint:STEP]
+msgid ""
+"STEP\n"
+"Did you know that you can improve your print quality by slicing a STEP file "
+"instead of an STL?\n"
+"Bambu Studio supports slicing STEP files, providing smoother results than a "
+"lower resolution STL. Give it a try!"
+msgstr ""
+"STEP文件\n您知道吗？通过切片STEP文件而不是STL文件可以提高打印质量？\n"
+"Bambu Studio支持切片STEP文件，提供比低分辨率STL更平滑的结果。试试看！"
+
+#: resources/data/hints.ini: [hint:Z seam location]
+msgid ""
+"Z seam location\n"
+"Did you know that you can customize the location of the Z seam, and even "
+"paint it on your print, to have it in a less visible location? This improves "
+"the overall look of your model. Check it out!"
+msgstr ""
+"Z接缝位置\n您知道吗？您可以自定义Z接缝的位置，甚至可以将其绘制在打印上，使其位于不太可见"
+"的位置？这样可以改善模型的整体外观。试试看！"
+
+#: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
+msgid ""
+"Fine-tuning for flow rate\n"
+"Did you know that flow rate can be fine-tuned for even better-looking "
+"prints? Depending on the material, you can improve the overall finish of the "
+"printed model by doing some fine-tuning."
+msgstr ""
+"流量微调\n你知道吗？您可以微调流量，以获得更好看的打印效果吗？根据材料的不同，可以通过"
+"进行一些微调来提高打印模型的整体光洁度。"
+
+#: resources/data/hints.ini: [hint:Split your prints into plates]
+msgid ""
+"Split your prints into plates\n"
+"Did you know that you can split a model that has a lot of parts into "
+"individual plates ready to print? This will simplify the process of keeping "
+"track of all the parts."
+msgstr ""
+"分盘打印\n您知道吗？您可以把一个有很多零件的模型安排到多个独立的分盘，然后打印出来，这"
+"将简化对所有零件的管理。"
+
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
+#: Height]
+msgid ""
+"Speed up your print with Adaptive Layer Height\n"
+"Did you know that you can print a model even faster, by using the Adaptive "
+"Layer Height option? Check it out!"
+msgstr "自适应层高度加速打印\n您知道吗？您可以使用“自适应层高度”选项可以更快地打印模型。试试看！"
+
+#: resources/data/hints.ini: [hint:Support painting]
+msgid ""
+"Support painting\n"
+"Did you know that you can paint the location of your supports? This feature "
+"makes it easy to place the support material only on the sections of the "
+"model that actually need it."
+msgstr ""
+"绘制支撑\n您知道吗？您可以手动绘制添加/屏蔽支撑的位置，此功能使仅将支撑材料放置在实际需"
+"要的模型截面上变得容易。"
+
+#: resources/data/hints.ini: [hint:Different types of supports]
+msgid ""
+"Different types of supports\n"
+"Did you know that you can choose from multiple types of supports? Tree "
+"supports work great for organic models, while saving filament and improving "
+"print speed. Check them out!"
+msgstr ""
+"支撑类型\n您知道吗？有多种可选的支撑类型，树状支撑非常适合人物/动物模型，同时可以节耗材"
+"并提高打印速度。试试看！"
+
+#: resources/data/hints.ini: [hint:Printing Silk Filament]
+msgid ""
+"Printing Silk Filament\n"
+"Did you know that Silk filament needs special consideration to print it "
+"successfully? Higher temperature and lower speed are always recommended for "
+"the best results."
+msgstr ""
+"打印丝绸耗材\n你知道丝绸耗材需要特别考虑才能成功打印吗？为了获得最佳效果，通常建议使用较高"
+"的温度和较低的速度。"
+
+#: resources/data/hints.ini: [hint:Brim for better adhesion]
+msgid ""
+"Brim for better adhesion\n"
+"Did you know that when printing models have a small contact interface with "
+"the printing surface, it's recommended to use a brim?"
+msgstr "使用Brim\n您知道吗？当模型与热床表面的接触面积较小时，建议使用brim以提高打印成功率。"
+
+#: resources/data/hints.ini: [hint:Set parameters for multiple objects]
+msgid ""
+"Set parameters for multiple objects\n"
+"Did you know that you can set slicing parameters for all selected objects at "
+"one time?"
+msgstr "为多个对象设置参数\n您知道可以同时为所有选定对象设置切片参数吗？"
 
 #~ msgid "Erase painting"
 #~ msgstr "擦除绘制"
