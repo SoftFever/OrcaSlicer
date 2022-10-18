@@ -726,6 +726,11 @@ void PresetBundle::update_user_presets_directory(const std::string preset_folder
     const std::string dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/"+ preset_folder;
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, update directory to %1%")%dir_user_presets;
+
+    fs::path user_folder(data_dir() + "/" + PRESET_USER_DIR);
+    if (!fs::exists(user_folder))
+        fs::create_directory(user_folder);
+
     fs::path folder(dir_user_presets);
     if (!fs::exists(folder))
         fs::create_directory(folder);
@@ -740,6 +745,10 @@ void PresetBundle::remove_user_presets_directory(const std::string preset_folder
 {
     const std::string dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/" + preset_folder;
 
+    if (preset_folder.empty()) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": preset_folder is empty, no need to remove directory : %1%") % dir_user_presets;
+        return;
+    }
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, delete directory : %1%") % dir_user_presets;
     fs::path folder(dir_user_presets);
     if (fs::exists(folder)) {
