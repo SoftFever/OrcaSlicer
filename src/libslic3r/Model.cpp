@@ -755,12 +755,14 @@ std::string Model::get_backup_path()
 {
     if (backup_path.empty())
     {
+        auto pid = get_current_pid();
         boost::filesystem::path parent_path(temporary_dir());
         std::time_t t = std::time(0);
         std::tm* now_time = std::localtime(&t);
         std::stringstream buf;
         buf << "/bamboo_model/";
         buf << std::put_time(now_time, "%a_%b_%d/%H_%M_%S#");
+        buf << pid << "#";
         buf << this->id().id;
 
         backup_path = parent_path.string() + buf.str();
