@@ -4695,12 +4695,12 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     double width = volumes_box.max.x() - volumes_box.min.x();
     double depth = volumes_box.max.y() - volumes_box.min.y();
     double height = volumes_box.max.z() - volumes_box.min.z();
-    volumes_box.max.x() = volumes_box.max.x() + width * 0.25f;
-    volumes_box.min.x() = volumes_box.min.x() - width * 0.25f;
-    volumes_box.max.y() = volumes_box.max.y() + depth * 0.25f;
-    volumes_box.min.y() = volumes_box.min.y() - depth * 0.25f;
-    volumes_box.max.z() = volumes_box.max.z() + height * 0.25f;
-    volumes_box.min.z() = volumes_box.min.z() - height * 0.25f;
+    volumes_box.max.x() = volumes_box.max.x() + width * 0.05f;
+    volumes_box.min.x() = volumes_box.min.x() - width * 0.05f;
+    volumes_box.max.y() = volumes_box.max.y() + depth * 0.05f;
+    volumes_box.min.y() = volumes_box.min.y() - depth * 0.05f;
+    volumes_box.max.z() = volumes_box.max.z() + height * 0.05f;
+    volumes_box.min.z() = volumes_box.min.z() - height * 0.05f;
 
     Camera camera;
     camera.set_type(camera_type);
@@ -4715,15 +4715,10 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     camera.zoom_to_box(volumes_box);
     const Vec3d& target = camera.get_target();
     double distance = camera.get_distance();
-    //camera.select_view("topfront");
-    camera.look_at(target - 0.707 * distance * Vec3d::UnitY() + 0.3 * distance * Vec3d::UnitZ(), target, Vec3d::UnitY() + Vec3d::UnitZ());
+    camera.select_view("iso");
     camera.apply_view_matrix();
 
     camera.apply_projection(plate_build_volume);
-
-    //double near_z = -1.0;
-    //double far_z = -1.0;
-    //camera.apply_projection(volumes_box, near_z, far_z);
 
     //GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (shader == nullptr) {
@@ -4732,7 +4727,7 @@ void GLCanvas3D::render_thumbnail_internal(ThumbnailData& thumbnail_data, const 
     }
 
     //if (thumbnail_params.transparent_background)
-    glsafe(::glClearColor(0.906f, 0.906f, 0.906f, 1.0f));
+    glsafe(::glClearColor(0.2f, 0.2f, 0.2f, 0.0f));
 
     glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
