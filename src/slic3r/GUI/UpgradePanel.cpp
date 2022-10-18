@@ -228,6 +228,7 @@ wxPanel *MachineInfoPanel::create_caption_panel(wxWindow *parent)
 
     m_upgrade_status_img = new wxStaticBitmap(caption_panel, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(5), FromDIP(5)));
     m_upgrade_status_img->SetBitmap(upgrade_gray_icon);
+    m_upgrade_status_img->Hide();
     m_caption_sizer->Add(m_upgrade_status_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
     m_caption_text = new wxStaticText(caption_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize);
