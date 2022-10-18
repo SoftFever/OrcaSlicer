@@ -863,7 +863,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(20));
+    def->set_default_value(new ConfigOptionFloat(10));
 
     def = this->add("machine_end_gcode", coString);
     def->label = L("End G-code");

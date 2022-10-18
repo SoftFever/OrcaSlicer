@@ -1976,7 +1976,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     const int  CIRCLE_RESOLUTION = SQUARE_SUPPORT ? 4 : 100; // The number of vertices in each circle.
 
 
-    for (unsigned int i = 0; i < CIRCLE_RESOLUTION; i++)
+    for (int i = 0; i < CIRCLE_RESOLUTION; i++)
     {
         double angle;
         if (SQUARE_SUPPORT)
@@ -2043,6 +2043,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 ExPolygons& roof_1st_layer = ts_layer->roof_1st_layer;
                 ExPolygons& floor_areas = ts_layer->floor_areas;
 
+                BOOST_LOG_TRIVIAL(debug) << "circles at layer " << layer_nr << " contact nodes size=" << contact_nodes[layer_nr].size();
                 //Draw the support areas and add the roofs appropriately to the support roof instead of normal areas.
                 ts_layer->lslices.reserve(contact_nodes[layer_nr].size());
                 for (const Node* p_node : contact_nodes[layer_nr])
@@ -2288,7 +2289,8 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 int layer_nr_lower = layer_nr - 1;
                 for (layer_nr_lower; layer_nr_lower >= 0; layer_nr_lower--) {
                     if (!m_object->get_tree_support_layer(layer_nr_lower + m_raft_layers)->area_groups.empty()) break;
-                    }
+                }
+                if (layer_nr_lower < 0) continue;
                 auto& area_groups_lower = m_object->get_tree_support_layer(layer_nr_lower + m_raft_layers)->area_groups;
 
                 for (const auto& area_group : ts_layer->area_groups) {
@@ -2589,7 +2591,8 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     size_t new_support_roof_layers_below = std::max(node.support_roof_layers_below, neighbour->support_roof_layers_below) - 1;
 
                     const bool to_buildplate = !is_inside_ex(m_ts_data->get_avoidance(0, layer_nr - 1), next_position);
-                    Node* next_node = new Node(next_position, new_distance_to_top, node.skin_direction, new_support_roof_layers_below, to_buildplate, p_node,p_node->print_z,p_node->height);
+                    Node *     next_node     = new Node(next_position, new_distance_to_top, node.skin_direction, new_support_roof_layers_below, to_buildplate, p_node,
+                                               m_object->get_layer(layer_nr - 1)->print_z, p_node->height);
                     next_node->movement = next_position - node.position;
                     contact_nodes[layer_nr - 1].push_back(next_node);
 
@@ -2637,21 +2640,20 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                         {
                             unsupported_branch_leaves.push_front({ layer_nr, p_node });
                         }
-                        /*else {
+                        else {
                             Node* pn = p_node;
-                            for (int i = 0; i < bottom_interface_layers && pn; i++, pn = pn->parent)
-                                pn->support_floor_layers_above = bottom_interface_layers - i;
+                            for (int i = 0; i <= bottom_interface_layers && pn; i++, pn = pn->parent)
+                                pn->support_floor_layers_above = bottom_interface_layers - i + 1; // +1 so the parent node has support_floor_layers_above=2
                             to_delete.insert(p_node);
-                        }*/
+                        }
                         continue;
                     }
-                    // if the link between parent and current is cut by contours, delete this branch
+                    // if the link between parent and current is cut by contours, mark current as bottom contact node
                     if (p_node->parent && intersection_ln({p_node->position, p_node->parent->position}, layer_contours).empty()==false)
                     {
-                        //unsupported_branch_leaves.push_front({ layer_nr, p_node });
                         Node* pn = p_node->parent;
-                        for (int i = 0; i < bottom_interface_layers && pn; i++, pn = pn->parent)
-                            pn->support_floor_layers_above = bottom_interface_layers - i;
+                        for (int i = 0; i <= bottom_interface_layers && pn; i++, pn = pn->parent)
+                            pn->support_floor_layers_above = bottom_interface_layers - i + 1;
                         to_delete.insert(p_node);
                         continue;
                     }
