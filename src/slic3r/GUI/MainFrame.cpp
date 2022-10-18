@@ -394,7 +394,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
     // declare events
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< "received close_widow event";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": mainframe received close_widow event";
         if (event.CanVeto() && m_plater->get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode(true)) {
             // prevents to open the save dirty project dialog
             event.Veto();
@@ -447,7 +447,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         this->shutdown();
         // propagate event
         event.Skip();
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< "finished process close_widow event";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": mainframe finished process close_widow event";
     });
 
     //FIXME it seems this method is not called on application start-up, at least not on Windows. Why?
@@ -722,6 +722,7 @@ void MainFrame::update_layout()
 // Called when closing the application and when switching the application language.
 void MainFrame::shutdown()
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "MainFrame::shutdown enter";
     // BBS: backup
     Slic3r::set_backup_callback(nullptr);
 #ifdef _WIN32
@@ -783,6 +784,8 @@ void MainFrame::shutdown()
     wxGetApp().shutdown();
     // BBS: why clear ?
     //wxGetApp().plater_ = nullptr;
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "MainFrame::shutdown exit";
 }
 
 void MainFrame::update_title()
@@ -1431,7 +1434,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                 p->append_button(send_to_printer_btn);
                 p->append_button(export_sliced_file_btn);
             }
-            
+
             p->Popup(m_print_btn);
         }
     );

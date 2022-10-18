@@ -1196,7 +1196,7 @@ GUI_App::GUI_App()
 
 void GUI_App::shutdown()
 {
-    BOOST_LOG_TRIVIAL(info) << "shutdown";
+    BOOST_LOG_TRIVIAL(info) << "GUI_App::shutdown enter";
 
 	if (m_removable_drive_manager) {
 		removable_drive_manager()->shutdown();
@@ -1216,6 +1216,7 @@ void GUI_App::shutdown()
         delete m_agent;
         m_agent = nullptr;
     }
+    BOOST_LOG_TRIVIAL(info) << "GUI_App::shutdown exit";
 }
 
 
@@ -1788,7 +1789,7 @@ static boost::optional<Semver> parse_semver_from_ini(std::string path)
     return Semver::parse(body);
 }
 
-void GUI_App::init_download_path() 
+void GUI_App::init_download_path()
 {
     std::string down_path = app_config->get("download_path");
 
@@ -1971,6 +1972,7 @@ bool GUI_App::on_init_inner()
 #endif
 
     wxGetApp().Bind(wxEVT_QUERY_END_SESSION, [this](auto & e) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< "received wxEVT_QUERY_END_SESSION";
         if (mainframe) {
             wxCloseEvent e2(wxEVT_CLOSE_WINDOW);
             e2.SetCanVeto(true);
@@ -2762,6 +2764,7 @@ void GUI_App::check_printer_presets()
 
 void GUI_App::recreate_GUI(const wxString& msg_name)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI enter";
     m_is_recreating_gui = true;
 
     mainframe->shutdown();
@@ -2809,6 +2812,8 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 //     });
 
     m_is_recreating_gui = false;
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI exit";
 }
 
 void GUI_App::system_info()
@@ -2968,6 +2973,7 @@ void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_max
     const std::string name = into_u8(window->GetName());
 
     window->Bind(wxEVT_CLOSE_WINDOW, [=](wxCloseEvent &event) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": received wxEVT_CLOSE_WINDOW, trigger save for window_mainframe";
         window_pos_save(window, "mainframe");
         event.Skip();
     });

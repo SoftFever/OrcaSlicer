@@ -749,28 +749,23 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
         const auto config = enabled_vendors.find(bundle_name);
         if (config == enabled_vendors.end())
             return std::string();
-        auto vendor_profile = preset_bundle->vendors.find(bundle_name);
-        if (vendor_profile == preset_bundle->vendors.end()) {
-            BOOST_LOG_TRIVIAL(info) << boost::format("%1%, can not find bundle %2% in preset bundles")%__FUNCTION__ %bundle_name;
-            return std::string();
-        }
+
+        const std::map<std::string, std::set<std::string>>& model_maps = config->second;
         //for (const auto& vendor_profile : preset_bundle->vendors) {
-        for (const auto model: vendor_profile->second.models) {
-            if (const auto model_it = config->second.find(model.id);
-                model_it != config->second.end() && model_it->second.size() > 0 &&
-                preferred_pt == model.technology) {
-                variant = *model_it->second.begin();
+        for (const auto model_it: model_maps) {
+            if (model_it.second.size() > 0) {
+                variant = *model_it.second.begin();
                 const auto config_old = old_enabled_vendors.find(bundle_name);
                 if (config_old == old_enabled_vendors.end())
-                    return model.id;
-                const auto model_it_old = config_old->second.find(model.id);
+                    return model_it.first;
+                const auto model_it_old = config_old->second.find(model_it.first);
                 if (model_it_old == config_old->second.end())
-                    return model.id;
-                else if (model_it_old->second != model_it->second) {
-                    for (const auto& var : model_it->second)
+                    return model_it.first;
+                else if (model_it_old->second != model_it.second) {
+                    for (const auto& var : model_it.second)
                         if (model_it_old->second.find(var) == model_it_old->second.end()) {
                             variant = var;
-                            return model.id;
+                            return model_it.first;
                         }
                 }
             }

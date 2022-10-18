@@ -1128,14 +1128,33 @@ void PresetBundle::save_changes_for_preset(const std::string& new_name, Preset::
 
 void PresetBundle::load_installed_filaments(AppConfig &config)
 {
-    if (! config.has_section(AppConfig::SECTION_FILAMENTS)
-        || config.get_section(AppConfig::SECTION_FILAMENTS).empty()) {
+    //if (! config.has_section(AppConfig::SECTION_FILAMENTS)
+    //    || config.get_section(AppConfig::SECTION_FILAMENTS).empty()) {
         // Compatibility with the PrusaSlicer 2.1.1 and older, where the filament profiles were not installable yet.
         // Find all filament profiles, which are compatible with installed printers, and act as if these filament profiles
         // were installed.
         std::unordered_set<const Preset*> compatible_filaments;
         for (const Preset &printer : printers)
             if (printer.is_visible && printer.printer_technology() == ptFFF && printer.vendor && (!printer.vendor->models.empty())) {
+                bool add_default_materials = true;
+                if (config.has_section(AppConfig::SECTION_FILAMENTS))
+                {
+                    const std::map<std::string, std::string>& installed_filament = config.get_section(AppConfig::SECTION_FILAMENTS);
+                    for (auto filament_iter : installed_filament)
+                    {
+                        Preset* filament = filaments.find_preset(filament_iter.first, false, true);
+                        if (filament && is_compatible_with_printer(PresetWithVendorProfile(*filament, filament->vendor), PresetWithVendorProfile(printer, printer.vendor)))
+                        {
+                            //already has compatible filament
+                            add_default_materials = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (!add_default_materials)
+                    continue;
+
                 for (auto default_filament: printer.vendor->models[0].default_materials)
                 {
                     Preset* filament = filaments.find_preset(default_filament, false, true);
@@ -1150,7 +1169,7 @@ void PresetBundle::load_installed_filaments(AppConfig &config)
         // and mark these filaments as installed, therefore this code will not be executed at the next start of the application.
         for (const auto &filament: compatible_filaments)
             config.set(AppConfig::SECTION_FILAMENTS, filament->name, "true");
-    }
+    //}
 
     for (auto &preset : filaments)
         preset.set_visible_from_appconfig(config);
