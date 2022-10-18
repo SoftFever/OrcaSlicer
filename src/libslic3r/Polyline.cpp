@@ -422,7 +422,7 @@ bool Polyline::split_fitting_result_before_index(const size_t index, Point& new_
             if (data.back().is_arc_move() && data.back().end_point_index > index) {
                 if (!data.back().arc_data.clip_end(this->points[index]))
                     //BBS: failed to clip arc, then return to be linear move
-                    data.back().path_type == EMovePathType::Linear_move;
+                    data.back().path_type = EMovePathType::Linear_move;
                 else
                     //BBS: succeed to clip arc, then update and return the new end point
                     new_endpoint = data.back().arc_data.end_point;
