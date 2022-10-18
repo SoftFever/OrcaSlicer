@@ -869,10 +869,10 @@ void GLVolume::render(bool with_outline) const
             std::array<float, 4> body_color = { 1.0f, 1.0f, 1.0f, 1.0f }; //red
 
             shader->set_uniform("uniform_color", body_color);
-            if (GUI::wxGetApp().plater()->is_show_wireframe())
-                shader->set_uniform("show_wireframe", true);
-            else
-                shader->set_uniform("show_wireframe", false);
+            //if (GUI::wxGetApp().plater()->is_show_wireframe())
+            //    shader->set_uniform("show_wireframe", true);
+            //else
+            //    shader->set_uniform("show_wireframe", false);
             shader->set_uniform("is_outline", true);
             glsafe(::glPopMatrix());
             glsafe(::glPushMatrix());
