@@ -313,7 +313,8 @@ protected:
     int        m_current_filament_id;
     bool       m_is_in_sending_mode { false };
 
-    wxGridSizer *m_sizer_select;
+    //wxGridSizer *m_sizer_select;
+    wxWrapSizer *m_sizer_select;
     wxBoxSizer * sizer_thumbnail;
     wxGridSizer *m_sizer_material;
     wxBoxSizer * m_sizer_main;

@@ -39,6 +39,8 @@ wxDEFINE_EVENT(EVT_EDIT_PRINT_NAME, wxCommandEvent);
 #define LIST_REFRESH_INTERVAL 200
 #define MACHINE_LIST_REFRESH_INTERVAL 2000
 
+#define WRAP_GAP FromDIP(30)
+
 static wxString task_canceled_text = _L("Task canceled");
 
 
@@ -1017,16 +1019,17 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_statictext_printer_msg->SetFont(::Label::Body_13);
     m_statictext_printer_msg->Hide();
 
-    m_sizer_select = new wxGridSizer(0, 2, 0, 0);
+    //m_sizer_select = new wxGridSizer(0, 2, 0, 0);
+    m_sizer_select = new wxWrapSizer();
     select_bed     = create_item_checkbox(_L("Bed Leveling"), this, _L("Bed Leveling"), "bed_leveling");
     select_flow    = create_item_checkbox(_L("Flow Calibration"), this, _L("Flow Calibration"), "flow_cali");
     select_timelapse = create_item_checkbox(_L("Timelapse"), this, _L("Timelapse"), "timelapse");
     select_use_ams = create_ams_checkbox(_L("Enable AMS"), this, _L("Enable AMS"));
 
-    m_sizer_select->Add(select_bed);
-    m_sizer_select->Add(select_flow);
-    m_sizer_select->Add(select_timelapse);
-    m_sizer_select->Add(select_use_ams);
+    m_sizer_select->Add(select_bed, 0, wxLEFT | wxRIGHT, WRAP_GAP);
+    m_sizer_select->Add(select_flow, 0, wxLEFT | wxRIGHT, WRAP_GAP);
+    m_sizer_select->Add(select_timelapse, 0, wxLEFT | wxRIGHT, WRAP_GAP);
+    m_sizer_select->Add(select_use_ams, 0, wxLEFT | wxRIGHT, WRAP_GAP);
 
     select_bed->Show(true);
     select_flow->Show(true);
@@ -1052,10 +1055,10 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     auto hyperlink_sizer = new wxBoxSizer( wxHORIZONTAL );
     auto m_hyperlink = new wxHyperlinkCtrl(m_panel_prepare, wxID_ANY, _L("Can't connect to the printer"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
 
-    auto linkimg = new wxStaticBitmap(m_panel_prepare, wxID_ANY, create_scaled_bitmap("link_wiki_img", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
+    //auto linkimg = new wxStaticBitmap(m_panel_prepare, wxID_ANY, create_scaled_bitmap("link_wiki_img", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
 
     hyperlink_sizer->Add(m_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
-    hyperlink_sizer->Add(linkimg, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+    //hyperlink_sizer->Add(linkimg, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
 
     m_sizer_prepare->Add(hyperlink_sizer, 0, wxALIGN_CENTER | wxALL, 5);
     
@@ -1263,7 +1266,6 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     } else {
         select_timelapse->Hide();
     }
-
     Fit();
 }
 
@@ -2258,7 +2260,7 @@ void SelectMachineDialog::update_show_status()
         show_status(PrintDialogStatus::PrintStatusInPrinting);
         return;
     }
-    else if (!obj_->is_function_supported(PrinterFunction::FUNC_PRINT_WITHOUT_SD)) {
+    else if (!obj_->is_function_supported(PrinterFunction::FUNC_PRINT_WITHOUT_SD) && !obj_->has_sdcard()) {
         show_status(PrintDialogStatus::PrintStatusNoSdcard);
         return;
     }

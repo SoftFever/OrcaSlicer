@@ -252,6 +252,10 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
     else {
         dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/default";
     }
+    fs::path user_folder(data_dir() + "/" + PRESET_USER_DIR);
+    if (!fs::exists(user_folder))
+        fs::create_directory(user_folder);
+
     fs::path folder(dir_user_presets);
     if (!fs::exists(folder))
         fs::create_directory(folder);
@@ -700,6 +704,11 @@ void PresetBundle::save_user_presets(AppConfig& config, std::vector<std::string>
     const std::string dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/"+ config.get("preset_folder");
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, save to %1%")%dir_user_presets;
+
+    fs::path user_folder(data_dir() + "/" + PRESET_USER_DIR);
+    if (!fs::exists(user_folder))
+        fs::create_directory(user_folder);
+
     fs::path folder(dir_user_presets);
     if (!fs::exists(folder))
         fs::create_directory(folder);

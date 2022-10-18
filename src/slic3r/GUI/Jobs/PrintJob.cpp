@@ -85,6 +85,7 @@ wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
     else {
         wxString unkown_text = _L("Unkown Error.");
         unkown_text += wxString::Format("status=%u, body=%s", status, body);
+        BOOST_LOG_TRIVIAL(error) << "http_error: status=" << status << ", code=" << code << ", error=" << error;
         return unkown_text;
     }
 
