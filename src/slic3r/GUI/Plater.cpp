@@ -3503,8 +3503,12 @@ fs::path Plater::priv::get_export_file_path(GUI::FileType file_type)
         // for 3mf take the path from the project filename, if any
         output_file = into_path(get_project_filename(".3mf"));
 
-    if (output_file.empty())
-        output_file = into_path(get_project_name() + ".3mf");
+    //bbs  name the project using the part name
+    if (output_file.empty()) {
+        if (get_project_name() != _L("Untitled")) {
+            output_file = into_path(get_project_name() + ".3mf");
+        }
+    }
 
     if (output_file.empty())
     {
@@ -7194,6 +7198,11 @@ void Plater::add_model(bool imperial_units/* = false*/)
     auto strategy = LoadStrategy::LoadModel;
     if (imperial_units) strategy = strategy | LoadStrategy::ImperialUnits;
     if (!load_files(paths, strategy, ask_multi).empty()) {
+
+        if (get_project_name() == _L("Untitled") && paths.size() > 0) {
+            p->set_project_filename(wxString(paths[0].string()));
+        }
+
         wxGetApp().mainframe->update_title();
     }
 }
