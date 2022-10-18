@@ -871,6 +871,9 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
 {
     BOOST_LOG_TRIVIAL(info) << "[BBL Updater]:Checking whether the profile from resource is newer";
 
+    AppConfig *app_config = GUI::wxGetApp().app_config;
+    const auto enabled_vendors = app_config->vendors();
+
     //BBS: refine the init check logic
     std::vector<std::string> bundles;
     for (auto &dir_entry : boost::filesystem::directory_iterator(rsrc_path)) {
@@ -883,21 +886,30 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
             vendor_name.erase(vendor_name.size() - 5);
             if (enabled_config_update) {
                 if ( fs::exists(path_in_vendor)) {
-                    Semver resource_ver = get_version_from_json(file_path);
-                    Semver vendor_ver = get_version_from_json(path_in_vendor.string());
+                    if (enabled_vendors.find(vendor_name) != enabled_vendors.end()) {
+                        Semver resource_ver = get_version_from_json(file_path);
+                        Semver vendor_ver = get_version_from_json(path_in_vendor.string());
 
-                    bool version_match = ((resource_ver.maj() == vendor_ver.maj()) && (resource_ver.min() == vendor_ver.min()));
+                        bool version_match = ((resource_ver.maj() == vendor_ver.maj()) && (resource_ver.min() == vendor_ver.min()));
 
-                    if (!version_match || (vendor_ver < resource_ver)) {
-                        BOOST_LOG_TRIVIAL(info) << "[BBL Updater]:found vendor "<<vendor_name<<" newer version "<<resource_ver.to_string() <<" from resource, old version "<<vendor_ver.to_string();
-                        bundles.push_back(vendor_name);
+                        if (!version_match || (vendor_ver < resource_ver)) {
+                            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]:found vendor "<<vendor_name<<" newer version "<<resource_ver.to_string() <<" from resource, old version "<<vendor_ver.to_string();
+                            bundles.push_back(vendor_name);
+                        }
+                    }
+                    else {
+                        //need to be removed because not installed
+                        fs::remove(path_in_vendor);
+                        const auto path_of_vendor = vendor_path / vendor_name;
+                        if (fs::exists(path_of_vendor))
+                            fs::remove_all(path_of_vendor);
                     }
                 }
-                else if (vendor_name == PresetBundle::BBL_BUNDLE) {//if vendor has no file, copy it from resource for BBL
+                else if ((vendor_name == PresetBundle::BBL_BUNDLE) || (enabled_vendors.find(vendor_name) != enabled_vendors.end())) {//if vendor has no file, copy it from resource for BBL
                     bundles.push_back(vendor_name);
                 }
             }
-            else  if (vendor_name == PresetBundle::BBL_BUNDLE) {//always update configs from resource to vendor for BBL
+            else if ((vendor_name == PresetBundle::BBL_BUNDLE) || (enabled_vendors.find(vendor_name) != enabled_vendors.end())) { //always update configs from resource to vendor for BBL
                 bundles.push_back(vendor_name);
             }
         }
