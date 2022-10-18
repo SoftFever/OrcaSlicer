@@ -452,10 +452,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                     PrintEstimatedStatistics::ETimeMode mode = static_cast<PrintEstimatedStatistics::ETimeMode>(i);
                     if (mode == PrintEstimatedStatistics::ETimeMode::Normal || machine.enabled) {
                         char buf[128];
-                        //sprintf(buf, "; estimated printing time (%s mode) = %s\n",
-                        //    (mode == PrintEstimatedStatistics::ETimeMode::Normal) ? "normal" : "silent",
-                        //    get_time_dhms(machine.time).c_str());
-                        sprintf(buf, "; total estimated time: %s\n", get_time_dhms(machine.time).c_str());
+                        sprintf(buf, "; estimated printing time: %s\n", get_time_dhms(machine.time).c_str());
                         ret += buf;
                     }
                 }
