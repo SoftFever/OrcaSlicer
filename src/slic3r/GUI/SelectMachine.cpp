@@ -22,6 +22,7 @@
 #include "BitmapCache.hpp"
 #include "BindDialog.hpp"
 #include "ConfirmHintDialog.hpp"
+#include "ReleaseNote.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -39,7 +40,7 @@ wxDEFINE_EVENT(EVT_EDIT_PRINT_NAME, wxCommandEvent);
 #define LIST_REFRESH_INTERVAL 200
 #define MACHINE_LIST_REFRESH_INTERVAL 2000
 
-#define WRAP_GAP FromDIP(30)
+#define WRAP_GAP FromDIP(10)
 
 static wxString task_canceled_text = _L("Task canceled");
 
@@ -1228,10 +1229,12 @@ wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *pa
     sizer_checkbox->Add(sizer_check, 0, wxEXPAND, FromDIP(5));
     sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(11));
 
-    auto text = new wxStaticText(checkbox, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
+    auto text = new wxStaticText(checkbox, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     text->SetFont(::Label::Body_13);
     text->SetForegroundColour(wxColour(107, 107, 107));
     text->Wrap(-1);
+    text->SetMinSize(wxSize(FromDIP(120), -1));
+    text->SetMaxSize(wxSize(FromDIP(120), -1));
     sizer_checkbox->Add(text, 0, wxBOTTOM | wxEXPAND | wxTOP, FromDIP(5));
 
     checkbox->SetSizer(sizer_checkbox);
@@ -1795,12 +1798,11 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         || has_slice_warnings
         ) {
         wxString confirm_title = _L("Confirm");
-        ConfirmHintDialog confirm_dlg(this, wxID_ANY, confirm_title);
-        confirm_dlg.SetHint(confirm_text);
-        confirm_dlg.Bind(EVT_CONFIRM_HINT, [this](wxCommandEvent& e) {
-                this->on_ok();
-        });
-        confirm_dlg.ShowModal();
+        SecondaryCheckDialog confirm_dlg(this);
+        confirm_dlg.update_text(confirm_text);
+        if (confirm_dlg.ShowModal() == wxID_YES) {
+            this->on_ok();
+        }
     } else {
         this->on_ok();
     }

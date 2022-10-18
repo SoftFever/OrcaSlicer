@@ -78,6 +78,20 @@ public:
     Button*           m_button_cancel;
 };
 
+class SecondaryCheckDialog : public DPIDialog
+{
+public:
+    SecondaryCheckDialog(wxWindow* parent);
+    void update_text(wxString text);
+    wxString format_text(wxStaticText* st, wxString str, int warp);
+    ~SecondaryCheckDialog();
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+
+    wxScrolledWindow *m_vebview_release_note {nullptr};
+    Button* m_button_ok;
+    Button* m_button_cancel;
+};
+
 }} // namespace Slic3r::GUI
 
 #endif

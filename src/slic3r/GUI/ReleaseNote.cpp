@@ -336,4 +336,126 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
     }  
 }
 
+SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent)
+    :DPIDialog(parent, wxID_ANY, _L("Confirm"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+{
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
+    SetBackgroundColour(*wxWHITE);
+    wxBoxSizer* m_sizer_main = new wxBoxSizer(wxVERTICAL);
+    auto        m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(480), 1));
+    m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
+    m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(5));
+
+    wxBoxSizer* m_sizer_right = new wxBoxSizer(wxVERTICAL);
+
+    m_sizer_right->Add(0, 0, 1, wxTOP, FromDIP(15));
+
+    m_vebview_release_note = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+    m_vebview_release_note->SetScrollRate(0, 5);
+    m_vebview_release_note->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
+    m_vebview_release_note->SetSize(wxSize(FromDIP(280), FromDIP(280)));
+    m_vebview_release_note->SetMinSize(wxSize(FromDIP(280), FromDIP(280)));
+    m_vebview_release_note->SetMaxSize(wxSize(FromDIP(280), FromDIP(280)));
+
+
+    auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+
+    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+        std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+
+    m_button_ok = new Button(this, _L("OK"));
+    m_button_ok->SetBackgroundColor(btn_bg_green);
+    m_button_ok->SetBorderColor(*wxWHITE);
+    m_button_ok->SetTextColor(*wxWHITE);
+    m_button_ok->SetFont(Label::Body_12);
+    m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_ok->SetCornerRadius(FromDIP(12));
+
+    m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        EndModal(wxID_YES);
+        });
+
+    m_button_cancel = new Button(this, _L("Cancel"));
+    m_button_cancel->SetBackgroundColor(*wxWHITE);
+    m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
+    m_button_cancel->SetFont(Label::Body_12);
+    m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_cancel->SetCornerRadius(FromDIP(12));
+
+    m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        EndModal(wxID_NO);
+        });
+
+    sizer_button->AddStretchSpacer();
+    sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
+    sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
+
+
+    m_sizer_right->Add(m_vebview_release_note, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(20));
+    m_sizer_right->Add(sizer_button, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(20));
+
+
+    SetSizer(m_sizer_right);
+    Layout();
+    m_sizer_main->Fit(this);
+
+    CenterOnParent();
+}
+
+void SecondaryCheckDialog::update_text(wxString text)
+{
+    wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
+    auto        m_staticText_release_note = new wxStaticText(m_vebview_release_note, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_release_note->SetSize(wxSize(FromDIP(260), -1));
+    m_staticText_release_note->SetMaxSize(wxSize(FromDIP(260), -1));
+    m_staticText_release_note->SetMinSize(wxSize(FromDIP(260), -1));
+
+    text = format_text(m_staticText_release_note, text, FromDIP(240));
+
+    m_staticText_release_note->SetLabelText(text);
+    m_staticText_release_note->Wrap(FromDIP(240));
+    sizer_text_release_note->Add(m_staticText_release_note, 0, wxALIGN_CENTER, 5);
+    m_vebview_release_note->SetSizer(sizer_text_release_note);
+    m_vebview_release_note->Layout();
+    //Fit();
+}
+
+wxString SecondaryCheckDialog::format_text(wxStaticText* st, wxString str, int warp)
+{
+    if (wxGetApp().app_config->get("language") != "zh_CN") { return str; }
+
+    wxString out_txt = str;
+    wxString count_txt = "";
+    int      new_line_pos = 0;
+
+    for (int i = 0; i < str.length(); i++) {
+        auto text_size = st->GetTextExtent(count_txt);
+        if (text_size.x < warp) {
+            count_txt += str[i];
+        }
+        else {
+            out_txt.insert(i - 1, '\n');
+            count_txt = "";
+        }
+    }
+    return out_txt;
+}
+
+SecondaryCheckDialog::~SecondaryCheckDialog()
+{
+
+}
+
+void SecondaryCheckDialog::on_dpi_changed(const wxRect& suggested_rect)
+{
+
+}
+
  }} // namespace Slic3r::GUI
