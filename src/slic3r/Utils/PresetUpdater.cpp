@@ -85,13 +85,19 @@ void copy_directory_fix(const fs::path &source, const fs::path &target)
         std::string name = dir_entry.path().filename().string();
         std::string target_file = target.string() + "/" + name;
 
-        //CopyFileResult cfr = Slic3r::GUI::copy_file_gui(source_file, target_file, error_message, false);
-        CopyFileResult cfr = copy_file(source_file, target_file, error_message, false);
-        if (cfr != CopyFileResult::SUCCESS) {
-        BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
+        if (boost::filesystem::is_directory(dir_entry)) {
+            const auto target_path = target / name;
+            copy_directory_fix(dir_entry, target_path);
+        }
+        else {
+            //CopyFileResult cfr = Slic3r::GUI::copy_file_gui(source_file, target_file, error_message, false);
+            CopyFileResult cfr = copy_file(source_file, target_file, error_message, false);
+            if (cfr != CopyFileResult::SUCCESS) {
+                BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
                 throw Slic3r::CriticalException(GUI::format(
-                        _L("Copying directory %1% to %2% failed: %3%"),
-                        source, target, error_message));
+                    _L("Copying directory %1% to %2% failed: %3%"),
+                    source, target, error_message));
+            }
         }
     }
     return;
