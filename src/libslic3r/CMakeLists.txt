@@ -108,6 +108,8 @@ set(lisbslic3r_sources
     Format/STL.hpp
     Format/SL1.hpp
     Format/SL1.cpp
+	Format/svg.hpp
+    Format/svg.cpp
     GCode/ThumbnailData.cpp
     GCode/ThumbnailData.hpp
     GCode/CoolingBuffer.cpp

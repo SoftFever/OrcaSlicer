@@ -14,6 +14,7 @@
 #include "Format/OBJ.hpp"
 #include "Format/STL.hpp"
 #include "Format/STEP.hpp"
+#include "Format/svg.hpp"
 // BBS
 #include "FaceDetector.hpp"
 
@@ -159,6 +160,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
         file_version = &temp_version;
 
     bool result = false;
+    std::string message;
     if (boost::algorithm::iends_with(input_file, ".stp") ||
         boost::algorithm::iends_with(input_file, ".step"))
         result = load_step(input_file.c_str(), &model, stepFn, stepIsUtf8Fn);
@@ -166,6 +168,8 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn);
     else if (boost::algorithm::iends_with(input_file, ".obj"))
         result = load_obj(input_file.c_str(), &model);
+    else if (boost::algorithm::iends_with(input_file, ".svg"))
+        result = load_svg(input_file.c_str(), &model, message);
     //BBS: remove the old .amf.xml files
     //else if (boost::algorithm::iends_with(input_file, ".amf") || boost::algorithm::iends_with(input_file, ".amf.xml"))
     else if (boost::algorithm::iends_with(input_file, ".amf"))
@@ -180,8 +184,12 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
     else
         throw Slic3r::RuntimeError("Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension.");
 
-    if (! result)
-        throw Slic3r::RuntimeError("Loading of a model file failed.");
+    if (!result) {
+        if (message.empty())
+            throw Slic3r::RuntimeError("Loading of a model file failed.");
+        else
+            throw Slic3r::RuntimeError(message);
+    }
 
     if (model.objects.empty())
         throw Slic3r::RuntimeError("The supplied file couldn't be read because it's empty");
