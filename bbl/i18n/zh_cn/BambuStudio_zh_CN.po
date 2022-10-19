@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-18 23:28+0800\n"
+"POT-Creation-Date: 2022-10-19 09:33+0800\n"
 "PO-Revision-Date: 2022-10-17 22:14+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2493,12 +2493,6 @@ msgstr "显示名称"
 
 msgid "Show object labels in 3D scene"
 msgstr "在3D场景中显示对象名称"
-
-msgid "Show &Wireframe"
-msgstr "显示线框"
-
-msgid "Show wireframes in 3D scene"
-msgstr "在3D场景中显示线框"
 
 msgid "Preferences"
 msgstr "偏好设置"
@@ -5458,10 +5452,10 @@ msgid "Monotonic line"
 msgstr "单调线"
 
 msgid "Aligned Rectilinear"
-msgstr ""
+msgstr "直线排列"
 
 msgid "Hilbert Curve"
-msgstr ""
+msgstr "希尔伯特曲线"
 
 msgid "Bottom surface pattern"
 msgstr "底面图案"
@@ -5701,7 +5695,7 @@ msgid "Adaptive Cubic"
 msgstr "自适应立方体"
 
 msgid "Lightning"
-msgstr ""
+msgstr "闪电"
 
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
@@ -7080,6 +7074,12 @@ msgid ""
 msgstr ""
 "为多个对象设置参数\n"
 "您知道可以同时为所有选定对象设置切片参数吗？"
+
+#~ msgid "Show &Wireframe"
+#~ msgstr "显示线框"
+
+#~ msgid "Show wireframes in 3D scene"
+#~ msgstr "在3D场景中显示线框"
 
 #~ msgid "Erase painting"
 #~ msgstr "擦除绘制"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-18 23:28+0800\n"
+"POT-Creation-Date: 2022-10-19 09:33+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2534,12 +2534,6 @@ msgid "Show &Labels"
 msgstr ""
 
 msgid "Show object labels in 3D scene"
-msgstr ""
-
-msgid "Show &Wireframe"
-msgstr ""
-
-msgid "Show wireframes in 3D scene"
 msgstr ""
 
 msgid "Preferences"
