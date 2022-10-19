@@ -30,6 +30,10 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     m_status_text->SetForegroundColour(wxColour(107, 107, 107));
     m_status_text->SetFont(::Label::Body_13);
     m_status_text->Wrap(m_self->FromDIP(280));
+    m_status_text->SetSize(wxSize(m_self->FromDIP(280), m_self->FromDIP(46)));
+    m_status_text->SetMaxSize(wxSize(m_self->FromDIP(280), m_self->FromDIP(46)));
+
+    //m_status_text->SetSize()
    
 
     m_prog = new wxGauge(m_self, wxID_ANY, 100, wxDefaultPosition, wxSize(-1, m_self->FromDIP(6)), wxGA_HORIZONTAL);
@@ -170,15 +174,61 @@ wxPanel* BBLStatusBarSend::get_panel()
     return m_self;
 }
 
+bool BBLStatusBarSend::is_english_text(wxString str)
+{
+    std::regex reg("^[0-9a-zA-Z]+$");
+    std::smatch matchResult;
+
+    std::string pattern_Special = "{}[]<>~!@#$%^&*(),.?/ :";
+    for (auto i = 0; i < str.Length(); i++) {
+        std::string regex_str = wxString(str[i]).ToStdString();
+        if (std::regex_match(regex_str, matchResult, reg)) {
+            continue;
+        }
+        else {
+            int result = pattern_Special.find(regex_str.c_str());
+            if (result < 0 || result > pattern_Special.length()) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+wxString BBLStatusBarSend::format_text(wxStaticText* st, wxString str, int warp)
+{
+    int index = 0;
+    if (!str.empty()) {
+        while ((index = str.find('\n', index)) != string::npos) {
+            str.erase(index, 1);
+        }
+    }
+
+    wxString out_txt = str;
+    wxString count_txt = "";
+    int      new_line_pos = 0;
+
+    for (int i = 0; i < str.length(); i++) {
+        auto text_size = st->GetTextExtent(count_txt);
+        if (text_size.x < warp) {
+            count_txt += str[i];
+        }
+        else {
+            out_txt.insert(i - 1, '\n');
+            count_txt = "";
+        }
+    }
+    return out_txt;
+}
+
 void BBLStatusBarSend::set_status_text(const wxString& txt)
 {
     //auto txtss = "Sending the printing task has timed out.\nPlease try again!";
     //auto txtss = "The printing project is being uploaded... 25%%";
     //m_status_text->SetLabelText(txtss);
-    m_status_text->SetLabelText(txt);
-    m_status_text->SetSize(wxSize(m_self->FromDIP(280), -1));
-    m_status_text->SetMaxSize(wxSize(m_self->FromDIP(280), -1));
-    m_status_text->Wrap(m_self->FromDIP(280));
+    wxString str = format_text(m_status_text,txt,280);
+    m_status_text->SetLabelText(str);
+    //if (is_english_text(str)) m_status_text->Wrap(m_self->FromDIP(280));
 }
 
 void BBLStatusBarSend::set_percent_text(const wxString &txt)
@@ -208,6 +258,7 @@ wxString BBLStatusBarSend::get_status_text() const
 
 bool BBLStatusBarSend::update_status(wxString &msg, bool &was_cancel, int percent, bool yield)
 {
+    //auto test_txt = _L("Unkown Error.") + _L("status=150, body=Timeout was reached: Connection timed out after 10009 milliseconds [Error 28]");
     set_status_text(msg);
 
     if (percent >= 0)

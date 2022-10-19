@@ -157,7 +157,7 @@ void SendToPrinterDialog::on_rename_enter()
 }
 
 SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
-    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Send to Printer"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Send to Printer SD card"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_plater(plater), m_export_3mf_cancel(false)
 {
 #ifdef __WINDOWS__
@@ -221,7 +221,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
 
     wxBoxSizer *m_sizer_printer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_stext_printer_title = new wxStaticText(this, wxID_ANY, L("Printer"), wxDefaultPosition, wxSize(-1, -1), 0);
+    m_stext_printer_title = new wxStaticText(this, wxID_ANY, _L("Printer"), wxDefaultPosition, wxSize(-1, -1), 0);
     m_stext_printer_title->SetFont(::Label::Head_14);
     m_stext_printer_title->Wrap(-1);
     m_stext_printer_title->SetForegroundColour(m_colour_bold_color);

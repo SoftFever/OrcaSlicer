@@ -100,6 +100,7 @@ protected:
 	wxBoxSizer* sizer_thumbnail;
 	wxBoxSizer* m_sizer_main;
 	wxBoxSizer* m_sizer_bottom;
+	wxStaticText* m_file_name;
 
 	bool        m_is_rename_mode{false};
 	bool		enable_prepare_mode{true};

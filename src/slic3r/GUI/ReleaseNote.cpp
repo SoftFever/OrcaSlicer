@@ -13,6 +13,7 @@
 #include "Widgets/StaticBox.hpp"
 #include "Widgets/WebView.hpp"
 
+#include <wx/regex.h>
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
 #include <wx/dcgraph.h>

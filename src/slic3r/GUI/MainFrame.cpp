@@ -1411,7 +1411,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                     });
 
                 // upload only
-                /*SideButton* upload_gcode_btn = new SideButton(p, _L("Send"), "");
+                SideButton* upload_gcode_btn = new SideButton(p, _L("Send"), "");
                 upload_gcode_btn->SetCornerRadius(0);
                 upload_gcode_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Send"));
@@ -1420,10 +1420,10 @@ wxBoxSizer* MainFrame::create_side_tools()
                     m_print_btn->Enable(m_print_enable);
                     this->Layout();
                     p->Dismiss();
-                    });*/
+                    });
 
                 p->append_button(send_gcode_btn);
-                //p->append_button(upload_gcode_btn);
+                p->append_button(upload_gcode_btn);
                 p->append_button(export_gcode_btn);
             }
             else {
@@ -1431,8 +1431,8 @@ wxBoxSizer* MainFrame::create_side_tools()
                 SideButton* print_plate_btn = new SideButton(p, _L("Print plate"), "");
                 print_plate_btn->SetCornerRadius(0);
 
-                /*SideButton* send_to_printer_btn = new SideButton(p, _L("Send"), "");
-                send_to_printer_btn->SetCornerRadius(0);*/
+                SideButton* send_to_printer_btn = new SideButton(p, _L("Send"), "");
+                send_to_printer_btn->SetCornerRadius(0);
 
                 SideButton* export_sliced_file_btn = new SideButton(p, _L("Export plate sliced file"), "");
                 export_sliced_file_btn->SetCornerRadius(0);
@@ -1460,16 +1460,16 @@ wxBoxSizer* MainFrame::create_side_tools()
                     p->Dismiss();
                     });
 
-                /*send_to_printer_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+                send_to_printer_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Send"));
                     m_print_select = eSendToPrinter;
                     m_print_enable = get_enable_print_status();
                     m_print_btn->Enable(m_print_enable);
                     this->Layout();
                     p->Dismiss();
-                    });*/
+                    });
 
-                    /*SideButton* send_to_printer_all_btn = new SideButton(p, _L("Send all"), "");
+                SideButton* send_to_printer_all_btn = new SideButton(p, _L("Send all"), "");
                     send_to_printer_all_btn->SetCornerRadius(0);
                     send_to_printer_all_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                         m_print_btn->SetLabel(_L("Send all"));
@@ -1478,7 +1478,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                         m_print_btn->Enable(m_print_enable);
                         this->Layout();
                         p->Dismiss();
-                        });*/
+                        });
 
                 export_sliced_file_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Export plate sliced file"));
@@ -1500,8 +1500,8 @@ wxBoxSizer* MainFrame::create_side_tools()
 
                 p->append_button(print_plate_btn);
                 p->append_button(print_all_btn);
-                //p->append_button(send_to_printer_btn);
-                //p->append_button(send_to_printer_all_btn);
+                p->append_button(send_to_printer_btn);
+                p->append_button(send_to_printer_all_btn);
                 p->append_button(export_sliced_file_btn);
                 p->append_button(export_all_sliced_file_btn);
             }

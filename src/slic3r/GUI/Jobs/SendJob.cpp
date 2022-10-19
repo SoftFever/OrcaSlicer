@@ -12,7 +12,7 @@ namespace GUI {
 static wxString check_gcode_failed_str      = _L("Abnormal print file data. Please slice again");
 static wxString printjob_cancel_str         = _L("Task canceled");
 static wxString timeout_to_upload_str       = _L("Upload task timed out. Please check the network problem and try again");
-static wxString failed_in_cloud_service_str = _L("Cloud service connection failed. Please try again.");
+static wxString failed_in_cloud_service_str = _L("Send to Printer failed. Please try again.");
 static wxString file_is_not_exists_str      = _L("Print file not found, please slice again");
 static wxString file_over_size_str          = _L("The print file exceeds the maximum allowable size (1GB). Please simplify the model and slice again");
 static wxString print_canceled_str          = _L("Task canceled");
