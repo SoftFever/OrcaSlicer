@@ -1254,6 +1254,8 @@ void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
     for (auto ams : list) {
         for (auto tray : ams.second->trayList) {
             if (tray.second->setting_id.empty()) continue;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+                                    << boost::format(": ams %1% tray %2% id %3% color %4%") % ams.first % tray.first % tray.second->setting_id % tray.second->color;
             DynamicPrintConfig ams;
             ams.set_key_value("filament_id", new ConfigOptionStrings{tray.second->setting_id});
             ams.set_key_value("filament_colour", new ConfigOptionStrings{"#" + tray.second->color.substr(0, 6)});
