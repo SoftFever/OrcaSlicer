@@ -134,5 +134,6 @@
     "machine_pause_gcode": "M400 U1\n",
     "wipe": [
         "1"
-    ]
+    ],
+    "z_lift_type": "NormalLift"
 }

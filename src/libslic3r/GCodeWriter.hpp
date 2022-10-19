@@ -11,12 +11,6 @@
 
 namespace Slic3r {
 
-enum class LiftType {
-    NormalLift,
-    LazyLift,
-    SpiralLift
-};
-
 class GCodeWriter {
 public:
     GCodeConfig config;

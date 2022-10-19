@@ -105,6 +105,15 @@ static t_config_enum_values s_keys_map_GCodeFlavor {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(GCodeFlavor)
 
+
+static t_config_enum_values s_keys_map_LiftType {
+    { "NormalLift",         int(LiftType::NormalLift) },
+    { "LazyLift",           int(LiftType::LazyLift) },
+    { "SpiralLift",         int(LiftType::SpiralLift) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(LiftType)
+
+
 static t_config_enum_values s_keys_map_FuzzySkinType {
     { "none",           int(FuzzySkinType::None) },
     { "external",       int(FuzzySkinType::External) },
@@ -2793,6 +2802,19 @@ void PrintConfigDef::init_fff_params()
                      "This can minimize blob when print new part after travel");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools { false });
+
+    def = this->add("z_lift_type", coEnum);
+    def->label = L("z lift type");
+    def->tooltip = L("z lift type");
+    def->enum_keys_map = &ConfigOptionEnum<LiftType>::get_enum_values();
+    def->enum_values.push_back("NormalLift");
+    def->enum_values.push_back("SpiralLift");
+    // def->enum_values.push_back("LazyLift");
+    def->enum_labels.push_back(L("NormalLift"));
+    def->enum_labels.push_back(L("SpiralLift"));
+    // def->enum_labels.push_back(L("LazyLift"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<LiftType>(LiftType::SpiralLift));
 
     def = this->add("wipe_distance", coFloats);
     def->label = L("Wipe Distance");

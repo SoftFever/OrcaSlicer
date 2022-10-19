@@ -101,5 +101,7 @@
     "internal_solid_infill_speed": "150",
     "top_surface_speed": "50",
     "gap_infill_speed": "30",
-    "travel_speed": "200"
+    "travel_speed": "200",
+    "enable_arc_fitting": "0"
+
 }

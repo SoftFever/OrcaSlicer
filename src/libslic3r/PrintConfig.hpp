@@ -115,6 +115,12 @@ enum SeamPosition {
     spNearest, spAligned, spRear, spRandom
 };
 
+enum LiftType {
+    NormalLift,
+    SpiralLift,
+    LazyLift
+};
+
 enum SLAMaterial {
     slamTough,
     slamFlex,
@@ -775,6 +781,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              retraction_length))
     ((ConfigOptionFloats,              retract_length_toolchange))
     ((ConfigOptionFloats,              z_hop))
+    ((ConfigOptionEnum<LiftType>,     z_lift_type))
     ((ConfigOptionFloats,              retract_restart_extra))
     ((ConfigOptionFloats,              retract_restart_extra_toolchange))
     ((ConfigOptionFloats,              retraction_speed))

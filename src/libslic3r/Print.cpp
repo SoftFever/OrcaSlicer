@@ -129,6 +129,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "filament_start_gcode",
         "change_filament_gcode",
         "wipe",
+        "z_lift_type",
         // BBS
         "wipe_distance",
         "curr_bed_type",

@@ -3953,7 +3953,11 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction)
     if (m_writer.extruder()->retraction_length() > 0) {
         // BBS: don't do lazy_lift when enable spiral vase
         size_t extruder_id = m_writer.extruder()->id();
-        gcode += m_writer.lift((!m_spiral_vase && m_config.enable_arc_fitting) ? LiftType::SpiralLift : LiftType::NormalLift);
+        auto _lift = m_config.z_lift_type.value;
+        if(m_spiral_vase)
+            _lift = NormalLift;
+
+        gcode += m_writer.lift(_lift);
     }
 
     return gcode;
