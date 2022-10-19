@@ -31,7 +31,7 @@ public:
     typedef boost::container::small_vector<int32_t, 3> ExtruderPerCopy;
 
     // This is called from GCode::process_layer - see implementation for further comments:
-    const ExtruderPerCopy* get_extruder_overrides(const ExtrusionEntity* entity, int correct_extruder_id, size_t num_of_copies);
+    const ExtruderPerCopy* get_extruder_overrides(const ExtrusionEntity* entity, const PrintObject* object, int correct_extruder_id, size_t num_of_copies);
     int get_support_extruder_overrides(const PrintObject* object);
     int get_support_interface_extruder_overrides(const PrintObject* object);
 
@@ -71,18 +71,18 @@ private:
     int last_nonsoluble_extruder_on_layer(const PrintConfig& print_config) const;
 
     // This function is called from mark_wiping_extrusions and sets extruder that it should be printed with (-1 .. as usual)
-    void set_extruder_override(const ExtrusionEntity* entity, size_t copy_id, int extruder, size_t num_of_copies);
+    void set_extruder_override(const ExtrusionEntity* entity, const PrintObject* object, size_t copy_id, int extruder, size_t num_of_copies);
     // BBS
     void set_support_extruder_override(const PrintObject* object, size_t copy_id, int extruder, size_t num_of_copies);
     void set_support_interface_extruder_override(const PrintObject* object, size_t copy_id, int extruder, size_t num_of_copies);
 
     // Returns true in case that entity is not printed with its usual extruder for a given copy:
-    bool is_entity_overridden(const ExtrusionEntity* entity, size_t copy_id) const {
-        auto it = entity_map.find(entity);
+    bool is_entity_overridden(const ExtrusionEntity* entity, const PrintObject *object, size_t copy_id) const {
+        auto it = entity_map.find(std::make_tuple(entity, object));
         return it == entity_map.end() ? false : it->second[copy_id] != -1;
     }
 
-    std::map<const ExtrusionEntity*, ExtruderPerCopy> entity_map;  // to keep track of who prints what
+    std::map<std::tuple<const ExtrusionEntity*, const PrintObject *>, ExtruderPerCopy> entity_map;  // to keep track of who prints what
     // BBS
     std::map<const PrintObject*, int> support_map;
     std::map<const PrintObject*, int> support_intf_map;

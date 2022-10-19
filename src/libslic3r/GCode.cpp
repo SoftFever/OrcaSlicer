@@ -2791,7 +2791,7 @@ GCode::LayerResult GCode::process_layer(
                         }
                         printing_extruders.clear();
                         if (is_anything_overridden) {
-                            entity_overrides = const_cast<LayerTools&>(layer_tools).wiping_extrusions().get_extruder_overrides(extrusions, correct_extruder_id, layer_to_print.object()->instances().size());
+                            entity_overrides = const_cast<LayerTools&>(layer_tools).wiping_extrusions().get_extruder_overrides(extrusions, layer_to_print.original_object, correct_extruder_id, layer_to_print.object()->instances().size());
                             if (entity_overrides == nullptr) {
                                 printing_extruders.emplace_back(correct_extruder_id);
                             } else {
