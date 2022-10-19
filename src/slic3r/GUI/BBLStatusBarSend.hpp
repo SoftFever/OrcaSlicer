@@ -56,7 +56,9 @@ public:
     void        set_cancel_callback(CancelFn = CancelFn()) override;
     inline void reset_cancel_callback() { set_cancel_callback(); }
     wxPanel *   get_panel();
-    void        set_status_text(const wxString &txt);
+    bool        is_english_text(wxString str);
+    wxString format_text(wxStaticText* st, wxString str, int warp);
+    void        set_status_text(const wxString& txt);
     void        set_percent_text(const wxString &txt);
     void        msw_rescale();
     void        set_status_text(const std::string &txt);

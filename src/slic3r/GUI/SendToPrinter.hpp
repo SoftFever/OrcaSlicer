@@ -92,6 +92,7 @@ protected:
 	wxBoxSizer* sizer_thumbnail;
 	wxBoxSizer* m_sizer_main;
 	wxBoxSizer* m_sizer_bottom;
+	wxStaticText* m_file_name;
 
 	bool		enable_prepare_mode{true};
 	bool        m_need_adaptation_screen{ false };

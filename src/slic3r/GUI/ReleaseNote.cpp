@@ -13,6 +13,7 @@
 #include "Widgets/StaticBox.hpp"
 #include "Widgets/WebView.hpp"
 
+#include <wx/regex.h>
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
 #include <wx/dcgraph.h>
@@ -420,16 +421,36 @@ void SecondaryCheckDialog::update_text(wxString text)
     text = format_text(m_staticText_release_note, text, FromDIP(240));
 
     m_staticText_release_note->SetLabelText(text);
-    m_staticText_release_note->Wrap(FromDIP(240));
+    if (is_english_text(text)) m_staticText_release_note->Wrap(FromDIP(240));
     sizer_text_release_note->Add(m_staticText_release_note, 0, wxALIGN_CENTER, 5);
     m_vebview_release_note->SetSizer(sizer_text_release_note);
     m_vebview_release_note->Layout();
-    //Fit();
+}
+
+bool SecondaryCheckDialog::is_english_text(wxString str)
+{
+    std::regex reg("^[0-9a-zA-Z]+$");
+    std::smatch matchResult;
+
+    std::string pattern_Special = "{}[]<>~!@#$%^&*(),.?/ :";
+    for (auto i = 0; i < str.Length(); i++) {
+        std::string regex_str = wxString(str[i]).ToStdString();
+        if(std::regex_match(regex_str, matchResult, reg)){
+            continue;
+        }
+        else {
+            int result = pattern_Special.find(regex_str.c_str());
+            if (result < 0 || result > pattern_Special.length()) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 wxString SecondaryCheckDialog::format_text(wxStaticText* st, wxString str, int warp)
 {
-    if (wxGetApp().app_config->get("language") != "zh_CN") { return str; }
+    if (is_english_text(str)) return str;
 
     wxString out_txt = str;
     wxString count_txt = "";
