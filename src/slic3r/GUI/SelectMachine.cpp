@@ -1698,7 +1698,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintDialogStatus::PrintStatusNoSdcard) {
         wxString msg_text = _L("An SD card needs to be inserted before printing.");
         update_print_status_msg(msg_text, true, true);
-        Enable_Send_Button(true);
+        Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusTimelapseNoSdcard) {
         wxString msg_text = _L("An SD card needs to be inserted to recording timelapse");
