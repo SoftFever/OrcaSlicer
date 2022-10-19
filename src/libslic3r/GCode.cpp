@@ -2562,7 +2562,7 @@ GCode::LayerResult GCode::process_layer(
     for (const LayerToPrint &layer_to_print : layers) {
         if (layer_to_print.support_layer != nullptr) {
             const SupportLayer &support_layer = *layer_to_print.support_layer;
-            const PrintObject  &object = *support_layer.object();
+            const PrintObject& object = *layer_to_print.original_object;
             if (! support_layer.support_fills.entities.empty()) {
                 ExtrusionRole   role               = support_layer.support_fills.role();
                 bool            has_support        = role == erMixed || role == erSupportMaterial || role == erSupportTransition;
@@ -2647,7 +2647,7 @@ GCode::LayerResult GCode::process_layer(
         // BBS
         if (layer_to_print.tree_support_layer != nullptr) {
             const TreeSupportLayer& tree_support_layer = *layer_to_print.tree_support_layer;
-            const PrintObject& object = *tree_support_layer.object();
+            const PrintObject& object = *layer_to_print.original_object;
             if (!tree_support_layer.support_fills.entities.empty()) {
                 ExtrusionRole   role = tree_support_layer.support_fills.role();
                 bool            has_support = role == erMixed || role == erSupportMaterial || role == erSupportTransition;
