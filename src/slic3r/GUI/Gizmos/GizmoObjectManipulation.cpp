@@ -456,9 +456,6 @@ void GizmoObjectManipulation::set_uniform_scaling(const bool new_value)
         }
     }
     m_uniform_scale = new_value;
-    AppConfig* config = wxGetApp().app_config;
-    if (config)
-        config->set("uniform_scale", new_value ? "1": "0");
 }
 
 static const char* label_values[2][3] = {
@@ -890,9 +887,6 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
 
     ImGui::Separator();
 
-    AppConfig* config = wxGetApp().app_config;
-    if (config)
-        this->m_uniform_scale = config->get("uniform_scale") == "1" ? true : false;
     bool uniform_scale = this->m_uniform_scale;
 
     const Selection &selection = m_glcanvas.get_selection();

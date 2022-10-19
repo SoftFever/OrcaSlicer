@@ -303,10 +303,6 @@ void AppConfig::set_defaults()
     }
 #endif
 
-    if (get("uniform_scale").empty()) {
-        set("uniform_scale", "1");
-    }
-
     // Remove legacy window positions/sizes
     erase("app", "main_frame_maximized");
     erase("app", "main_frame_pos");
