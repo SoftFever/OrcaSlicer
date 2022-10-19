@@ -8,6 +8,9 @@
 
 #include <wx/dcgraph.h>
 
+#ifdef __WXMSW__
+#include <shellapi.h>
+#endif
 #ifdef __APPLE__
 #include "../Utils/MacDarkMode.hpp"
 #endif
@@ -149,8 +152,15 @@ void Slic3r::GUI::ImageGrid::DoAction(size_t index, int action)
             auto &file = m_file_sys->GetFile(index);
             if (file.IsDownload() && file.progress >= -1) {
                 if (file.progress >= 100) {
+                    if (!m_file_sys->DownloadCheckFile(index)) {
+                        wxMessageBox(wxString::Format(_L("File '%s' was lost! Please download it again."), from_u8(file.name)), _L("Error"), wxOK);
+                        Refresh();
+                        return;
+                    }
 #ifdef __WXMSW__
-                    wxExecute("cmd /c start " + from_u8(file.path), wxEXEC_HIDE_CONSOLE);
+                    auto wfile = boost::filesystem::path(file.path).wstring();
+                    SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"open", wfile.c_str(), L"", SW_HIDE};
+                    ::ShellExecuteEx(&info);
 #else
                     wxShell("open " + file.path);
 #endif
@@ -166,6 +176,11 @@ void Slic3r::GUI::ImageGrid::DoAction(size_t index, int action)
             auto &file = m_file_sys->GetFile(index);
             if (file.IsDownload() && file.progress >= -1) {
                 if (file.progress >= 100) {
+                    if (!m_file_sys->DownloadCheckFile(index)) {
+                        wxMessageBox(wxString::Format(_L("File '%s' was lost! Please download it again."), from_u8(file.name)), _L("Error"), wxOK);
+                        Refresh();
+                        return;
+                    }
 #ifdef __WIN32__
                     wxExecute(L"explorer.exe /select," + from_u8(file.path));
 #elif __APPLE__

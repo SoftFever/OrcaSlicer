@@ -54,6 +54,8 @@ void wxMediaCtrl2::Load(wxURI url)
         wxRegKey key2(wxRegKey::HKCR, "bambu");
         wxString clsid;
         key2.QueryRawValue("Source Filter", clsid);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": clsid %1% path %2%") % clsid % path;
+
         if (path.empty() || !wxFile::Exists(path) || clsid != CLSID_BAMBU_SOURCE) {
             if (clsid != CLSID_BAMBU_SOURCE || path.empty()) {
                 std::string             data_dir_str = Slic3r::data_dir();

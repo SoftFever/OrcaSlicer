@@ -128,6 +128,8 @@ public:
 
     void DownloadCheckFiles(std::string const &path);
 
+    bool DownloadCheckFile(size_t index);
+
     void DownloadCancel(size_t index);
 
     size_t GetCount() const;

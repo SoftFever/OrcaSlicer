@@ -111,6 +111,7 @@ void PrinterFileSystem::ListAllFiles()
                 iter1->thumbnail = iter2->thumbnail;
                 iter1->flags = iter2->flags;
                 iter1->progress = iter2->progress;
+                iter1->path = iter2->path;
                 ++iter1; ++iter2;
             } else if (*iter1 < *iter2) {
                 ++iter1;
@@ -194,6 +195,21 @@ void PrinterFileSystem::DownloadCheckFiles(std::string const &path)
             file.path     = path2.string();
         }
     }
+}
+
+bool PrinterFileSystem::DownloadCheckFile(size_t index)
+{
+    if (index >= m_file_list.size()) return false;
+    auto &file = m_file_list[index];
+    if ((file.flags & FF_DOWNLOAD) == 0) return false;
+    if (!boost::filesystem::exists(file.path)) {
+        file.flags &= ~FF_DOWNLOAD;
+        file.progress = 0;
+        file.path.clear();
+        SendChangedEvent(EVT_DOWNLOAD, index, file.path);
+        return false;
+    }
+    return true;
 }
 
 void PrinterFileSystem::DownloadCancel(size_t index)
