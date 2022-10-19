@@ -1805,7 +1805,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         || has_slice_warnings
         ) {
         wxString confirm_title = _L("Confirm");
-        SecondaryCheckDialog confirm_dlg(this);
+        SecondaryCheckDialog confirm_dlg(this, wxID_ANY, confirm_title);
         confirm_dlg.update_text(confirm_text);
         if (confirm_dlg.ShowModal() == wxID_YES) {
             this->on_ok();

@@ -37,6 +37,8 @@
 
 namespace Slic3r { namespace GUI {
 
+wxDECLARE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
+
 class ReleaseNoteDialog : public DPIDialog
 {
 public:
@@ -81,7 +83,20 @@ public:
 class SecondaryCheckDialog : public DPIDialog
 {
 public:
-    SecondaryCheckDialog(wxWindow* parent);
+    enum ButtonStyle {
+        ONLY_CONFIRM = 0,
+        CONFIRM_AND_CANCEL = 1,
+        MAX_STYLE_NUM = 2
+    };
+    SecondaryCheckDialog(
+        wxWindow* parent,
+        wxWindowID      id = wxID_ANY,
+        const wxString& title = wxEmptyString,
+        enum ButtonStyle btn_style = CONFIRM_AND_CANCEL,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long            style = wxCLOSE_BOX | wxCAPTION
+    );
     void update_text(wxString text);
     wxString format_text(wxStaticText* st, wxString str, int warp);
     ~SecondaryCheckDialog();

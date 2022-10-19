@@ -23,6 +23,8 @@
 
 namespace Slic3r { namespace GUI {
 
+wxDEFINE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
+
 ReleaseNoteDialog::ReleaseNoteDialog(Plater *plater /*= nullptr*/)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Release Note"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
@@ -338,8 +340,8 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
     }  
 }
 
-SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent)
-    :DPIDialog(parent, wxID_ANY, _L("Confirm"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, const wxString& title, enum ButtonStyle btn_style, const wxPoint& pos, const wxSize& size, long style)
+    :DPIDialog(parent, id, title, pos, size, style)
 {
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -380,7 +382,13 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent)
     m_button_ok->SetCornerRadius(FromDIP(12));
 
     m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
-        EndModal(wxID_YES);
+        wxCommandEvent evt(EVT_SECONDARY_CHECK_CONFIRM, GetId());
+        e.SetEventObject(this);
+        GetEventHandler()->ProcessEvent(evt);
+        if (this->IsModal())
+            EndModal(wxID_YES);
+        else
+            this->Close();
         });
 
     m_button_cancel = new Button(this, _L("Cancel"));
@@ -392,8 +400,16 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent)
     m_button_cancel->SetCornerRadius(FromDIP(12));
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
-        EndModal(wxID_NO);
+        if (this->IsModal())
+            EndModal(wxID_NO);
+        else
+            this->Close();
         });
+
+    if (btn_style != CONFIRM_AND_CANCEL)
+        m_button_cancel->Hide();
+    else
+        m_button_cancel->Show();
 
     sizer_button->AddStretchSpacer();
     sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
@@ -438,6 +454,10 @@ wxString SecondaryCheckDialog::format_text(wxStaticText* st, wxString str, int w
     int      new_line_pos = 0;
 
     for (int i = 0; i < str.length(); i++) {
+        if (str[i] == '\n') {
+            count_txt = "";
+            continue;
+        }
         auto text_size = st->GetTextExtent(count_txt);
         if (text_size.x < warp) {
             count_txt += str[i];

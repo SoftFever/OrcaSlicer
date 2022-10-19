@@ -10,7 +10,7 @@
 #include "slic3r/Utils/Http.hpp"
 #include "libslic3r/Thread.hpp"
 #include "RecenterDialog.hpp"
-#include "ConfirmHintDialog.hpp"
+#include "ReleaseNote.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -1226,13 +1226,12 @@ void StatusPanel::on_subtask_pause_resume(wxCommandEvent &event)
 
 void StatusPanel::on_subtask_abort(wxCommandEvent &event)
 {
-    ConfirmHintDialog* abort_dlg = new ConfirmHintDialog(this, wxID_ANY, _L("Cancel print"));
-    abort_dlg->SetHint(_L("Are you sure you want to cancel this print?"));
-    abort_dlg->Bind(EVT_CONFIRM_HINT, [this](wxCommandEvent &e) {
+    SecondaryCheckDialog abort_dlg(this->GetParent(), wxID_ANY, _L("Cancel print"));
+    abort_dlg.update_text(_L("Are you sure you want to cancel this print?"));
+    abort_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent &e) {
         if (obj) obj->command_task_abort();
     });
-    if(abort_dlg->ShowModal())
-       delete abort_dlg;
+    abort_dlg.ShowModal();
 }
 
 void StatusPanel::error_info_reset()
@@ -1247,6 +1246,7 @@ void StatusPanel::error_info_reset()
 void StatusPanel::on_subtask_clean(wxCommandEvent &event)
 {
     error_info_reset();
+    before_error_code = obj->print_error;
 }
 
 void StatusPanel::on_webrequest_state(wxWebRequestEvent &evt)
@@ -1405,16 +1405,16 @@ void StatusPanel::update_error_message()
                 print_error_str.insert(4, " ");
             }
             wxString error_msg = wxString::Format("%s[%s]",
-                                 wxGetApp().get_hms_query()->query_print_error_msg(obj->print_error),
-                                 print_error_str);
+                wxGetApp().get_hms_query()->query_print_error_msg(obj->print_error),
+                print_error_str);
             show_error_message(error_msg);
             //hint dialog
             BOOST_LOG_TRIVIAL(info) << "Print error! " << error_msg;
-            ConfirmHintDialog print_error_dlg(this->GetParent(), wxID_ANY, _L("Warning"), ConfirmHintDialog::ButtonStyle::ONLY_CONFIRM);
-            print_error_dlg.SetHint(error_msg);
+            SecondaryCheckDialog print_error_dlg(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
+            print_error_dlg.update_text(error_msg);
             print_error_dlg.ShowModal();
         }
-   }
+    }
 }
 
 void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
