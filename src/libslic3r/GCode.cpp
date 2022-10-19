@@ -335,8 +335,8 @@ bool GCode::gcode_label_objects = false;
                 float new_retract_length = full_config.retraction_length.get_at(new_extruder_id);
                 float old_retract_length_toolchange = gcode_writer.extruder() != nullptr ? full_config.retract_length_toolchange.get_at(previous_extruder_id) : 0;
                 float new_retract_length_toolchange = full_config.retract_length_toolchange.get_at(new_extruder_id);
-                int old_filament_temp = gcode_writer.extruder() != nullptr ? full_config.nozzle_temperature.get_at(previous_extruder_id) : 210;
-                int new_filament_temp = full_config.nozzle_temperature.get_at(new_extruder_id);
+                int old_filament_temp = gcode_writer.extruder() != nullptr ? (gcodegen.on_first_layer()? full_config.nozzle_temperature_initial_layer.get_at(previous_extruder_id) : full_config.nozzle_temperature.get_at(previous_extruder_id)) : 210;
+                int new_filament_temp = gcodegen.on_first_layer() ? full_config.nozzle_temperature_initial_layer.get_at(new_extruder_id) : full_config.nozzle_temperature.get_at(new_extruder_id);
                 Vec3d nozzle_pos = gcode_writer.get_position();
 
                 float purge_volume = tcr.purge_volume < EPSILON ? 0 : std::max(tcr.purge_volume, g_min_purge_volume);
@@ -3940,7 +3940,7 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     // BBS
     float new_retract_length = m_config.retraction_length.get_at(extruder_id);
     float new_retract_length_toolchange = m_config.retract_length_toolchange.get_at(extruder_id);
-    int new_filament_temp = m_config.nozzle_temperature.get_at(extruder_id);
+    int new_filament_temp = this->on_first_layer() ? m_config.nozzle_temperature_initial_layer.get_at(extruder_id): m_config.nozzle_temperature.get_at(extruder_id);
     Vec3d nozzle_pos = m_writer.get_position();
     float old_retract_length, old_retract_length_toolchange, wipe_volume;
     int old_filament_temp, old_filament_e_feedrate;
@@ -3956,7 +3956,7 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
         int previous_extruder_id = m_writer.extruder()->id();
         old_retract_length = m_config.retraction_length.get_at(previous_extruder_id);
         old_retract_length_toolchange = m_config.retract_length_toolchange.get_at(previous_extruder_id);
-        old_filament_temp = m_config.nozzle_temperature.get_at(previous_extruder_id);
+        old_filament_temp = this->on_first_layer()? m_config.nozzle_temperature_initial_layer.get_at(previous_extruder_id) : m_config.nozzle_temperature.get_at(previous_extruder_id);
         wipe_volume = flush_matrix[previous_extruder_id * number_of_extruders + extruder_id];
         old_filament_e_feedrate = (int)(60.0 * m_config.filament_max_volumetric_speed.get_at(previous_extruder_id) / filament_area);
         old_filament_e_feedrate = old_filament_e_feedrate == 0 ? 100 : old_filament_e_feedrate;
