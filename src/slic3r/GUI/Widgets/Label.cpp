@@ -95,16 +95,19 @@ Label::Label(wxWindow *parent, wxFont const &font, wxString const &text, long st
     this->font = font;
     SetFont(font);
     SetBackgroundColour(StaticBox::GetParentBackgroundColor(parent));
-    Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
-        if (GetWindowStyle() & LB_HYPERLINK) {
-            SetFont(this->font.Underlined());
-            Refresh();
-        }
-    });
-    Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
-        SetFont(this->font);
-        Refresh();
-    });
+}
+
+void Label::SetLabel(const wxString& label)
+{
+    if (GetLabel() == label)
+        return;
+    wxStaticText::SetLabel(label);
+#ifdef __WXOSX__
+    if ((GetWindowStyle() & LB_HYPERLINK)) {
+        SetLabelMarkup(label);
+        return;
+    }
+#endif
 }
 
 void Label::SetWindowStyleFlag(long style)
@@ -115,10 +118,21 @@ void Label::SetWindowStyleFlag(long style)
     if (style & LB_HYPERLINK) {
         this->color = GetForegroundColour();
         static wxColor clr_url("#00AE42");
+        SetFont(this->font.Underlined());
         SetForegroundColour(clr_url);
+        SetCursor(wxCURSOR_HAND);
+#ifdef __WXOSX__
+        SetLabelMarkup(GetLabel());
+#endif
     } else {
         SetForegroundColour(this->color);
         SetFont(this->font);
+        SetCursor(wxCURSOR_ARROW);
+#ifdef __WXOSX__
+        auto label = GetLabel();
+        wxStaticText::SetLabel({});
+        wxStaticText::SetLabel(label);
+#endif
     }
     Refresh();
 }

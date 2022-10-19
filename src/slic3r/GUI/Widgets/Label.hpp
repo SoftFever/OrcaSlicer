@@ -13,6 +13,8 @@ public:
 
 	Label(wxWindow *parent, wxFont const &font, wxString const &text = {}, long style = 0);
 
+    void SetLabel(const wxString& label) override;
+
     void SetWindowStyleFlag(long style) override;
 
 private:
