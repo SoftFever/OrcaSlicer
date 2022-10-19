@@ -83,7 +83,6 @@ class SecondaryCheckDialog : public DPIDialog
 public:
     SecondaryCheckDialog(wxWindow* parent);
     void update_text(wxString text);
-    bool is_english_text(wxString str);
     wxString format_text(wxStaticText* st, wxString str, int warp);
     ~SecondaryCheckDialog();
     void on_dpi_changed(const wxRect& suggested_rect) override;

@@ -71,7 +71,7 @@ wxString SendToPrinterDialog::format_text(wxString &m_msg)
 }
 
 SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
-    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Send to Printer SD card"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Send to Printer"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_plater(plater), m_export_3mf_cancel(false)
 {
 #ifdef __WINDOWS__
@@ -135,7 +135,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
 
     wxBoxSizer *m_sizer_printer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_stext_printer_title = new wxStaticText(this, wxID_ANY, _L("Printer"), wxDefaultPosition, wxSize(-1, -1), 0);
+    m_stext_printer_title = new wxStaticText(this, wxID_ANY, L("Printer"), wxDefaultPosition, wxSize(-1, -1), 0);
     m_stext_printer_title->SetFont(::Label::Head_14);
     m_stext_printer_title->Wrap(-1);
     m_stext_printer_title->SetForegroundColour(m_colour_bold_color);
@@ -237,17 +237,14 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
 	m_scrollable_region->SetSizer(m_sizer_scrollable_region);
 	m_scrollable_region->Layout();
 
-    //file name
-    m_file_name = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(22));
     m_sizer_main->Add(m_scrollable_region, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
-    m_sizer_main->Add(m_file_name, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
     m_sizer_main->Add(m_line_materia, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(15));
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
     m_sizer_main->Add(m_sizer_printer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(5));
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
@@ -899,9 +896,6 @@ void SendToPrinterDialog::on_dpi_changed(const wxRect &suggested_rect)
 
 void SendToPrinterDialog::set_default()
 {
-    wxString filename = m_plater->get_export_gcode_filename(".gcode.3mf", true);
-    m_file_name->SetLabelText(filename);
-
     enable_prepare_mode = true;
     prepare_mode();
 
