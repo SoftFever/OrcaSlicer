@@ -1775,7 +1775,7 @@ void StatusPanel::update_cali(MachineObject *obj)
 {
     if (!obj) return;
 
-    if (obj->is_in_calibration()) {
+    if (obj->is_calibration_running()) {
         m_calibration_btn->SetLabel(_L("Calibrating"));
         if (calibration_dlg && calibration_dlg->IsShown()) {
             m_calibration_btn->Disable();
@@ -1851,7 +1851,8 @@ void StatusPanel::update_subtask(MachineObject *obj)
 {
     if (!obj) return;
 
-    if (obj->is_system_printing()) {
+    if (obj->is_system_printing()
+        || obj->is_in_calibration()) {
         reset_printing_values();
     } else if (obj->is_in_printing() || obj->print_status == "FINISH") {
         if (obj->is_in_prepare()) {

@@ -158,7 +158,7 @@ void CalibrationDialog::on_dpi_changed(const wxRect &suggested_rect) {}
 void CalibrationDialog::update_cali(MachineObject *obj)
 {
     if (!obj) return;
-    if (obj->is_in_calibration() || obj->is_calibration_done()) {
+    if (obj->is_calibration_running() || obj->is_calibration_done()) {
         if (obj->is_calibration_done()) {
             m_calibration_btn->Enable();
             m_calibration_btn->SetLabel(_L("Completed"));
