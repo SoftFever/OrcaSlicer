@@ -963,7 +963,15 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
 
     // we will sort objects so that dedicated for wiping are at the beginning:
     ConstPrintObjectPtrs object_list = print.objects().vector();
-    std::sort(object_list.begin(), object_list.end(), [](const PrintObject* a, const PrintObject* b) { return a->config().flush_into_objects; });
+    // BBS: fix the exception caused by not fixed order between different objects
+    std::sort(object_list.begin(), object_list.end(), [object_list](const PrintObject* a, const PrintObject* b) {
+        if (a->config().flush_into_objects != b->config().flush_into_objects) {
+            return a->config().flush_into_objects.getBool();
+        }
+        else {
+            return a->id() < b->id();
+        }
+    });
 
     // We will now iterate through
     //  - first the dedicated objects to mark perimeters or infills (depending on infill_first)
