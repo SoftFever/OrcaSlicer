@@ -1183,23 +1183,23 @@ wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *par
     auto img_ams_tip = new wxStaticBitmap(checkbox, wxID_ANY, create_scaled_bitmap("enable_ams", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
     sizer_checkbox->Add(img_ams_tip, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
 
-    img_ams_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_ams_tip](auto &e) {
-        wxPoint pos = img_ams_tip->ClientToScreen(wxPoint(0, 0));
-        pos.y += img_ams_tip->GetRect().height;
-        m_mapping_tip_popup.Position(pos, wxSize(0,0));
+    img_ams_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_ams_tip](auto& e) {
+        wxPoint img_pos = img_ams_tip->ClientToScreen(wxPoint(0, 0));
+        wxPoint popup_pos(img_pos.x, img_pos.y + img_ams_tip->GetRect().height);
+        m_mapping_tip_popup.Position(popup_pos, wxSize(0, 0));
         m_mapping_tip_popup.Popup();
-    });
-    img_ams_tip->Bind(wxEVT_LEAVE_WINDOW, [this, img_ams_tip](wxMouseEvent &e) {
-        auto region = m_mapping_tip_popup.GetClientRect();
 
-        if(e.GetPosition().x > region.GetLeftTop().x && e.GetPosition().y > region.GetLeftTop().y && e.GetPosition().x < region.GetRightBottom().x && e.GetPosition().x < region.GetRightBottom().y)
-            ;
-        else
+        if (m_mapping_tip_popup.ClientToScreen(wxPoint(0, 0)).y < img_pos.y) {
             m_mapping_tip_popup.Dismiss();
+            popup_pos = wxPoint(img_pos.x, img_pos.y - m_mapping_tip_popup.GetRect().height);
+            m_mapping_tip_popup.Position(popup_pos, wxSize(0, 0));
+            m_mapping_tip_popup.Popup();
+        }
     });
-	m_mapping_tip_popup.Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {
-		m_mapping_tip_popup.Dismiss();
-		});
+
+    img_ams_tip->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
+        m_mapping_tip_popup.Dismiss();
+        });
 
     checkbox->SetSizer(sizer_checkbox);
     checkbox->Layout();
