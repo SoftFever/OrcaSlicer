@@ -663,6 +663,14 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "top_surface_speed") {
             // Brim is printed below supports, support invalidates brim and skirt.
             steps.emplace_back(posSupportMaterial);
+            if (opt_key == "brim_type") {
+                const auto* old_brim_type = old_config.option<ConfigOptionEnum<BrimType>>(opt_key);
+                const auto* new_brim_type = new_config.option<ConfigOptionEnum<BrimType>>(opt_key);
+                //BBS: When switch to manual brim, the object must have brim, then re-generate perimeter
+                //to make the wall order of first layer to be outer-first
+                if (old_brim_type->value == btOuterOnly || new_brim_type->value == btOuterOnly)
+                    steps.emplace_back(posPerimeters);
+            }
         } else if (
                opt_key == "wall_loops"
             || opt_key == "only_one_wall_top"
