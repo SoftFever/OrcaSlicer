@@ -157,7 +157,8 @@ enum DraftShield {
 
 // BBS
 enum OverhangFanThreshold {
-    Overhang_threshold_1_4 = 0,
+    Overhang_threshold_none = 0,
+    Overhang_threshold_1_4,
     Overhang_threshold_2_4,
     Overhang_threshold_3_4,
     Overhang_threshold_4_4,

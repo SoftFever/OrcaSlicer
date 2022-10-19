@@ -20,6 +20,12 @@
     "nozzle_temperature_initial_layer": [
         "280"
     ],
+    "overhang_fan_threshold": [
+        "0%"
+    ],
+    "overhang_fan_speed": [
+        "40"
+    ],
     "filament_type": [
         "PA-CF"
     ],

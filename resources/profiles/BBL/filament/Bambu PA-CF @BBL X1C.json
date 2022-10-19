@@ -15,13 +15,13 @@
       "290"
     ],
     "fan_max_speed": [
-      "40"
+      "30"
     ],
     "fan_min_speed": [
       "10"
     ],
     "fan_cooling_layer_time": [
-      "6"
+      "5"
     ],
     "full_fan_speed_layer": [
       "2"

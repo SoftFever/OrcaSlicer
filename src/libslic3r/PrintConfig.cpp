@@ -259,12 +259,14 @@ static const t_config_enum_values s_keys_map_ForwardCompatibilitySubstitutionRul
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
 
 static const t_config_enum_values s_keys_map_OverhangFanThreshold = {
+    { "0%",         Overhang_threshold_none },
     { "5%",         Overhang_threshold_1_4  },
     { "25%",        Overhang_threshold_2_4  },
     { "50%",        Overhang_threshold_3_4  },
     { "75%",        Overhang_threshold_4_4  },
     { "95%",        Overhang_threshold_bridge  }
 };
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(OverhangFanThreshold)
 
 // BBS
 static const t_config_enum_values s_keys_map_BedType = {
@@ -628,15 +630,18 @@ void PrintConfigDef::init_fff_params()
     def = this->add("overhang_fan_threshold", coEnums);
     def->label = L("Cooling overhang threshold");
     def->tooltip = L("Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. "
-                     "Expressed as percentage which indicides how much width of the line without support from lower layer");
+                     "Expressed as percentage which indicides how much width of the line without support from lower layer. "
+                     "0% means forcing cooling for all outer wall no matter how much overhang degree");
     def->sidetext = L("");
-    def->enum_keys_map = &s_keys_map_OverhangFanThreshold;
+    def->enum_keys_map = &ConfigOptionEnum<OverhangFanThreshold>::get_enum_values();
     def->mode = comAdvanced;
+    def->enum_values.emplace_back("0%");
     def->enum_values.emplace_back("5%");
     def->enum_values.emplace_back("25%");
     def->enum_values.emplace_back("50%");
     def->enum_values.emplace_back("75%");
     def->enum_values.emplace_back("95%");
+    def->enum_labels.emplace_back("0%");
     def->enum_labels.emplace_back("10%");
     def->enum_labels.emplace_back("25%");
     def->enum_labels.emplace_back("50%");

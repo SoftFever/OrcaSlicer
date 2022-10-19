@@ -3674,11 +3674,21 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     std::string comment;
     if (m_enable_cooling_markers) {
-        if (EXTRUDER_CONFIG(enable_overhang_bridge_fan) &&
-            (path.get_overhang_degree() > EXTRUDER_CONFIG(overhang_fan_threshold) || is_bridge(path.role())))
-            gcode += ";_OVERHANG_FAN_START\n";
-        else
+        if (EXTRUDER_CONFIG(enable_overhang_bridge_fan)) {
+            //BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external perimeter
+            int overhang_threshold = EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none ?
+                Overhang_threshold_none : EXTRUDER_CONFIG(overhang_fan_threshold) - 1;
+            if ((EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter) ||
+                path.get_overhang_degree() > overhang_threshold ||
+                is_bridge(path.role()))
+                gcode += ";_OVERHANG_FAN_START\n";
+            else
+                comment = ";_EXTRUDE_SET_SPEED";
+        }
+        else {
             comment = ";_EXTRUDE_SET_SPEED";
+        }
+
         if (path.role() == erExternalPerimeter)
             comment += ";_EXTERNAL_PERIMETER";
     }
@@ -3742,10 +3752,22 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             }
         }
     }
-    if (m_enable_cooling_markers)
-        gcode += (EXTRUDER_CONFIG(enable_overhang_bridge_fan) &&
-                  (is_bridge(path.role()) || path.get_overhang_degree() > EXTRUDER_CONFIG(overhang_fan_threshold))) ?
-        ";_OVERHANG_FAN_END\n" : ";_EXTRUDE_END\n";
+    if (m_enable_cooling_markers) {
+        if (EXTRUDER_CONFIG(enable_overhang_bridge_fan)) {
+            //BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external perimeter
+            int overhang_threshold = EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none ?
+                Overhang_threshold_none : EXTRUDER_CONFIG(overhang_fan_threshold) - 1;
+            if ((EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter) ||
+                path.get_overhang_degree() > overhang_threshold ||
+                is_bridge(path.role()))
+                gcode += ";_OVERHANG_FAN_END\n";
+            else
+                gcode += ";_EXTRUDE_END\n";
+        }
+        else {
+            gcode += ";_EXTRUDE_END\n";
+        }
+    }
 
     this->set_last_pos(path.last_point());
     return gcode;
