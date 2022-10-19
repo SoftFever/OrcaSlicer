@@ -112,6 +112,8 @@ void PrinterFileSystem::ListAllFiles()
             if (iter1->name == iter2->name) {
                 iter1->thumbnail = iter2->thumbnail;
                 iter1->flags = iter2->flags;
+                if (!iter1->thumbnail.IsOk())
+                    iter1->flags &= ~FF_THUMNAIL;
                 iter1->progress = iter2->progress;
                 iter1->path = iter2->path;
                 ++iter1; ++iter2;
