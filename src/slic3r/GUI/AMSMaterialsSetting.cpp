@@ -21,11 +21,6 @@ void AMSMaterialsSetting::create()
 {
     SetBackgroundColour(*wxWHITE);
     wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
-    SetSize(wxSize(AMS_MATERIALS_SETTING_BODY_WIDTH, -1));
-    SetMinSize(wxSize(AMS_MATERIALS_SETTING_BODY_WIDTH, -1));
-    SetMaxSize(wxSize(AMS_MATERIALS_SETTING_BODY_WIDTH, -1));
-
-
 
     wxBoxSizer *m_sizer_filament = new wxBoxSizer(wxHORIZONTAL);
 
@@ -104,7 +99,7 @@ void AMSMaterialsSetting::create()
 
     sizer_tempinput->Add(m_input_nozzle_max, 1, wxALIGN_CENTER, 0);
     sizer_tempinput->Add(bitmap_min_degree, 0, wxALIGN_CENTER, 0);
-    sizer_tempinput->Add(FromDIP(10), 0, wxEXPAND, 0);
+    sizer_tempinput->Add(FromDIP(10), 0, 0, 0);
     sizer_tempinput->Add(m_input_nozzle_min, 1, wxALIGN_CENTER, 0);
     sizer_tempinput->Add(bitmap_max_degree, 0, wxALIGN_CENTER, 0);
 
@@ -116,8 +111,8 @@ void AMSMaterialsSetting::create()
     m_title_min->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
     m_title_min->SetFont(::Label::Body_13);
     sizer_temp_txt->Add(m_title_max, 1, wxALIGN_CENTER, 0);
-    sizer_temp_txt->Add(FromDIP(10), 0, wxEXPAND, 0);
-    sizer_temp_txt->Add(m_title_min, 1, wxALIGN_CENTER|wxRIGHT, FromDIP(16));
+    sizer_temp_txt->Add(FromDIP(10), 0, 0, 0);
+    sizer_temp_txt->Add(m_title_min, 1, wxALIGN_CENTER | wxRIGHT, FromDIP(16));
 
 
     sizer_other->Add(sizer_temp_txt, 0, wxALIGN_CENTER, 0);
@@ -188,7 +183,13 @@ void AMSMaterialsSetting::create()
     m_panel_SN->Layout();
     m_panel_SN->Fit();
 
+    wxBoxSizer* m_tip_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_tip_readonly = new wxStaticText(this, wxID_ANY, _L("Setting AMS slot information while printing is not supported"), wxDefaultPosition, wxSize(-1, AMS_MATERIALS_SETTING_INPUT_SIZE.y));
+    m_tip_readonly->Hide();
+    m_tip_sizer->Add(m_tip_readonly, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(20));
+
     wxBoxSizer *m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
+
     m_sizer_button->Add(0, 0, 1, wxEXPAND, 0);
 
     m_button_confirm = new Button(this, _L("Confirm"));
@@ -225,6 +226,7 @@ void AMSMaterialsSetting::create()
     m_sizer_main->Add(warning_text, 0,  wxLEFT | wxRIGHT, FromDIP(20));
     m_sizer_main->Add(m_panel_SN, 0, wxLEFT, FromDIP(20));
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(24));
+    m_sizer_main->Add(m_tip_sizer, 0, wxLEFT, FromDIP(20));
     m_sizer_main->Add(m_sizer_button, 0,  wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
     m_sizer_main->Add(0, 0, 0,  wxTOP, FromDIP(16));
 
@@ -294,11 +296,14 @@ void AMSMaterialsSetting::update()
 
 void AMSMaterialsSetting::enable_confirm_button(bool en)
 {
-    if (!m_is_third) return;
+    if (!m_is_third) { 
+        m_tip_readonly->Hide(); 
+    }
     else {
         m_button_confirm->Show(en);
         COMBOBOX_FILAMENT->Show(en);
         m_readonly_filament->Show(!en);
+        m_tip_readonly->Show(!en);
     }
 }
 
@@ -386,9 +391,9 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         m_input_nozzle_min->GetTextCtrl()->SetValue(temp_min);
         m_input_nozzle_max->GetTextCtrl()->SetValue(temp_max);
 
+        update();
         Layout();
         Fit();
-        update();
         ShowModal();
         return;
     }
@@ -397,8 +402,6 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     m_panel_SN->Hide();
     COMBOBOX_FILAMENT->Show();
     m_readonly_filament->Hide();
-    Layout();
-    Fit();
 
 
     int selection_idx = -1, idx = 0;
@@ -468,6 +471,8 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     }
 
     update();
+    Layout();
+    Fit();
     ShowModal();
 }
 
