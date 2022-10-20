@@ -1247,7 +1247,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_print_select = ePrintPlate;
 
     m_slice_btn = new SideButton(this, _L("Slice"), "");
-    m_print_btn = new SideButton(this, _L("Send and Print"), "");
+    m_print_btn = new SideButton(this, _L("Print"), "");
     m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
 
     update_side_button_style();
@@ -1367,10 +1367,10 @@ wxBoxSizer* MainFrame::create_side_tools()
                     });
 
                 // upload and print
-                SideButton* send_gcode_btn = new SideButton(p, _L("Send and Print"), "");
+                SideButton* send_gcode_btn = new SideButton(p, _L("Print"), "");
                 send_gcode_btn->SetCornerRadius(0);
                 send_gcode_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
-                    m_print_btn->SetLabel(_L("Send and Print"));
+                    m_print_btn->SetLabel(_L("Print"));
                     m_print_select = eSendGcode;
                     m_print_enable = get_enable_print_status();
                     m_print_btn->Enable(m_print_enable);
@@ -1379,7 +1379,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                     });
 
                 // upload only
-                SideButton* upload_gcode_btn = new SideButton(p, _L("Send"), "");
+                /*SideButton* upload_gcode_btn = new SideButton(p, _L("Send"), "");
                 upload_gcode_btn->SetCornerRadius(0);
                 upload_gcode_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Send"));
@@ -1388,24 +1388,24 @@ wxBoxSizer* MainFrame::create_side_tools()
                     m_print_btn->Enable(m_print_enable);
                     this->Layout();
                     p->Dismiss();
-                    });
+                    });*/
 
                 p->append_button(send_gcode_btn);
-                p->append_button(upload_gcode_btn);
+                //p->append_button(upload_gcode_btn);
                 p->append_button(export_gcode_btn);
             } else {
                 //Bambu Studio Buttons
-                SideButton* print_plate_btn = new SideButton(p, _L("Send and Print"), "");
+                SideButton* print_plate_btn = new SideButton(p, _L("Print"), "");
                 print_plate_btn->SetCornerRadius(0);
 
-                SideButton* send_to_printer_btn = new SideButton(p, _L("Send"), "");
-                send_to_printer_btn->SetCornerRadius(0);
+                /*SideButton* send_to_printer_btn = new SideButton(p, _L("Send"), "");
+                send_to_printer_btn->SetCornerRadius(0);*/
 
                 SideButton* export_sliced_file_btn = new SideButton(p, _L("Export sliced file"), "");
                 export_sliced_file_btn->SetCornerRadius(0);
 
                 print_plate_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
-                    m_print_btn->SetLabel(_L("Send and Print"));
+                    m_print_btn->SetLabel(_L("Print"));
                     m_print_select = ePrintPlate;
                     m_print_enable = get_enable_print_status();
                     m_print_btn->Enable(m_print_enable);
@@ -1413,14 +1413,14 @@ wxBoxSizer* MainFrame::create_side_tools()
                     p->Dismiss();
                     });
 
-                send_to_printer_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+                /*send_to_printer_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Send"));
                     m_print_select = eSendToPrinter;
                     m_print_enable = get_enable_print_status();
                     m_print_btn->Enable(m_print_enable);
                     this->Layout();
                     p->Dismiss();
-                    });
+                    });*/
 
                 export_sliced_file_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Export Sliced File"));
@@ -1431,7 +1431,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                     p->Dismiss();
                     });
                 p->append_button(print_plate_btn);
-                p->append_button(send_to_printer_btn);
+                //p->append_button(send_to_printer_btn);
                 p->append_button(export_sliced_file_btn);
             }
 
@@ -2700,14 +2700,14 @@ void MainFrame::on_config_changed(DynamicPrintConfig* config) const
 void MainFrame::set_print_button_to_default(PrintSelectType select_type)
 {
     if (select_type == PrintSelectType::ePrintPlate) {
-        m_print_btn->SetLabel(_L("Send and Print"));
+        m_print_btn->SetLabel(_L("Print"));
         m_print_select = ePrintPlate;
         if (m_print_enable)
             m_print_enable = get_enable_print_status();
         m_print_btn->Enable(m_print_enable);
         this->Layout();
     } else if (select_type == PrintSelectType::eSendGcode) {
-        m_print_btn->SetLabel(_L("Send and Print"));
+        m_print_btn->SetLabel(_L("Print"));
         m_print_select = eSendGcode;
         if (m_print_enable)
             m_print_enable = get_enable_print_status();

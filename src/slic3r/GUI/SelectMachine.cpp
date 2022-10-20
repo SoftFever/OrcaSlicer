@@ -913,7 +913,7 @@ wxString SelectMachineDialog::format_text(wxString &m_msg)
 }
 
 SelectMachineDialog::SelectMachineDialog(Plater *plater)
-    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Send and Print"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Send print job to"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_plater(plater), m_export_3mf_cancel(false)
     , m_mapping_popup(AmsMapingPopup(this))
     , m_mapping_tip_popup(AmsMapingTipPopup(this))
@@ -1054,7 +1054,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_prepare->Add(0, 0, 1, wxTOP, FromDIP(12));
 
     auto hyperlink_sizer = new wxBoxSizer( wxHORIZONTAL );
-    auto m_hyperlink = new wxHyperlinkCtrl(m_panel_prepare, wxID_ANY, _L("Can't connect to the printer"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+    auto m_hyperlink = new wxHyperlinkCtrl(m_panel_prepare, wxID_ANY, _L("Can't find my devices?"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
 
     //auto linkimg = new wxStaticBitmap(m_panel_prepare, wxID_ANY, create_scaled_bitmap("link_wiki_img", this, 18), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
 
@@ -1065,7 +1065,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     
 
     m_sizer_pcont->Add(0, 0, 1, wxEXPAND, 0);
-    m_button_ensure = new Button(m_panel_prepare, _L("Print"));
+    m_button_ensure = new Button(m_panel_prepare, _L("Send"));
     m_button_ensure->SetBackgroundColor(btn_bg_enable);
     m_button_ensure->SetBorderColor(btn_bg_enable);
     m_button_ensure->SetTextColor(*wxWHITE);
