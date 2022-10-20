@@ -859,7 +859,7 @@ bool GuideFrame::run()
     }
 }
 
-int GuideFrame::GetFilamentInfo(std::string filepath, std::string &sVendor, std::string &sType)
+int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, std::string filepath, std::string &sVendor, std::string &sType)
 {
     //GetStardardFilePath(filepath);
 
@@ -881,21 +881,18 @@ int GuideFrame::GetFilamentInfo(std::string filepath, std::string &sVendor, std:
         if (sVendor == "" || sType == "")
         {
             if (jLocal.contains("inherits")) {
-                boost::filesystem::path sf(filepath.c_str());
-                filepath = sf.string();
-
-                std::string strFile   = filepath;
-                //wxString strFolder = strFile.BeforeLast(boost::filesystem::path::preferred_separator);
-                boost::filesystem::path file_path(filepath);
-
                 std::string FName = jLocal["inherits"];
-                FName += ".json";
-                //wxString strNewFile = wxString::Format("%s%c%s.json", strFolder.mb_str(), boost::filesystem::path::preferred_separator, FName.c_str());
-                boost::filesystem::path inherits_path = boost::filesystem::absolute(file_path.parent_path() / FName).make_preferred();
+               
+                if (!pFilaList.contains(FName)) 
+                    return -1;
+
+                std::string FPath = pFilaList[FName]["sub_path"];
+                wxString                strNewFile    = wxString::Format("%s%c%s", VendorDirectory, boost::filesystem::path::preferred_separator, FPath);
+                boost::filesystem::path inherits_path = boost::filesystem::absolute(w2s(strNewFile)).make_preferred();
 
                 //boost::filesystem::path nf(strNewFile.c_str());
                 if (boost::filesystem::exists(inherits_path))
-                    return GetFilamentInfo(inherits_path.string(), sVendor, sType);
+                    return GetFilamentInfo(VendorDirectory,pFilaList, inherits_path.string(), sVendor, sType);
                 else
                     return -1;
             } else {
@@ -1379,7 +1376,17 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
 
         // BBS:Filament
         json pFilament = jLocal["filament_list"];
+        json tFilaList = json::object();
         nsize          = pFilament.size();
+
+        for (int n = 0; n < nsize; n++) { 
+            json OneFF = pFilament.at(n);
+            
+            std::string s1    = OneFF["name"];
+            std::string s2    = OneFF["sub_path"];
+        
+            tFilaList[s1] = OneFF;
+        }
 
         int nFalse  = 0;
         int nModel  = 0;
@@ -1403,7 +1410,7 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
                     std::string sV;
                     std::string sT;
 
-                    int nRet = GetFilamentInfo(sub_file, sV, sT);
+                    int nRet = GetFilamentInfo(vendor_dir.string(),tFilaList, sub_file, sV, sT);
                     if (nRet != 0) continue;
 
                     OneFF["vendor"] = sV;
