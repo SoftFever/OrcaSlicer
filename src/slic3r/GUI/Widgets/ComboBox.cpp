@@ -236,7 +236,7 @@ void ComboBox::keyDown(wxKeyEvent& event)
         case WXK_RETURN:
         case WXK_SPACE:
             if (drop_down) {
-                drop.Hide();
+                drop.DismissAndNotify();
             } else if (drop.HasDismissLongTime()) {
                 drop.autoPosition();
                 drop_down = true;

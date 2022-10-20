@@ -44,7 +44,7 @@ protected:
 
     void TogglePlay();
 
-    void SetStatus(wxString const & msg);
+    void SetStatus(wxString const &msg, bool hyperlink = true);
 
 private:
     void media_proc();
@@ -61,6 +61,7 @@ private:
     std::string m_lan_ip;
     std::string m_lan_user;
     std::string m_lan_passwd;
+    bool m_camera_exists = false;
     bool m_lan_mode = false;
     bool m_tutk_support = false;
     wxString m_url;

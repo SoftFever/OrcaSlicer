@@ -1,6 +1,6 @@
 {
   "type": "machine",
-  "setting_id": "VORON-004",
+  "setting_id": "GM_VORON_004",
   "name": "Voron 2.4 350 0.4 nozzle",
   "from": "system",
   "instantiation": "true",

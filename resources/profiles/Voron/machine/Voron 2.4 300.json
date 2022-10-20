@@ -1,12 +1,12 @@
 {
     "type": "machine_model",
     "name": "Voron 2.4 300",
-    "model_id": "Voron2-300",
+    "model_id": "Voron2_300",
     "nozzle_diameter": "0.4",
     "machine_tech": "FFF",
     "family": "VoronDesign",
     "bed_model": "",
     "bed_texture": "voron_logo.png",
-    "hotend_model": "bbl-3dp-hotend.stl",
+    "hotend_model": "hotend.stl",
     "default_materials": "Voron Generic ABS;Voron Generic PLA;Voron Generic PLA-CF;Voron Generic PETG;Voron Generic TPU;Voron Generic ASA;Voron Generic PC;Voron Generic PVA;Voron Generic PA;Voron Generic PA-CF"
 }

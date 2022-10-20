@@ -171,7 +171,9 @@ void SideButton::paintEvent(wxPaintEvent& evt)
 #else
     wxDC & dc2(dc);
 #endif
-    render(dc2);
+
+    wxDC & dctext(dc);
+    dorender(dc2, dctext);
 }
 
 /*
@@ -179,7 +181,7 @@ void SideButton::paintEvent(wxPaintEvent& evt)
  * method so that it can work no matter what type of DC
  * (e.g. wxPaintDC or wxClientDC) is used.
  */
-void SideButton::render(wxDC& dc)
+void SideButton::dorender(wxDC& dc, wxDC& text_dc)
 {
     wxSize size = GetSize();
 
@@ -266,9 +268,10 @@ void SideButton::render(wxDC& dc)
     auto text = GetLabel();
     if (!text.IsEmpty()) {
         pt.y += (rcContent.height - textSize.y) / 2;
-        dc.SetFont(GetFont());
-        dc.SetTextForeground(text_color.colorForStates(states));
-        dc.DrawText(text, pt);
+
+        text_dc.SetFont(GetFont());
+        text_dc.SetTextForeground(text_color.colorForStates(states));
+        text_dc.DrawText(text, pt);
     }
 }
 

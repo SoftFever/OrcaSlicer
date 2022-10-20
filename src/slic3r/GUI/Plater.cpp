@@ -84,6 +84,7 @@
 #include "Jobs/NotificationProgressIndicator.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "SelectMachine.hpp"
+#include "SendToPrinter.hpp"
 #include "PublishDialog.hpp"
 #include "ConfigWizard.hpp"
 #include "../Utils/ASCIIFolding.hpp"
@@ -151,6 +152,8 @@ wxDEFINE_EVENT(EVT_PUBLISH,                         wxCommandEvent);
 // BBS: backup & restore
 wxDEFINE_EVENT(EVT_RESTORE_PROJECT,                 wxCommandEvent);
 wxDEFINE_EVENT(EVT_PRINT_FINISHED,                  wxCommandEvent);
+wxDEFINE_EVENT(EVT_SEND_FINISHED,                   wxCommandEvent);
+wxDEFINE_EVENT(EVT_PUBLISH_FINISHED,                wxCommandEvent);
 //BBS: repair model
 wxDEFINE_EVENT(EVT_REPAIR_MODEL,                    wxCommandEvent);
 wxDEFINE_EVENT(EVT_FILAMENT_COLOR_CHANGED,          wxCommandEvent);
@@ -504,17 +507,17 @@ Sidebar::Sidebar(Plater *parent)
         combo_printer->edit_btn = edit_btn;
         p->combo_printer = combo_printer;
 
-        ScalableButton* connection_btn = new ScalableButton(p->m_panel_printer_content, wxID_ANY, "monitor_signal_strong");
+        connection_btn = new ScalableButton(p->m_panel_printer_content, wxID_ANY, "monitor_signal_strong");
         connection_btn->SetBackgroundColour(wxColour(255, 255, 255));
         connection_btn->SetToolTip(_L("Connection"));
         connection_btn->Bind(wxEVT_BUTTON, [this, combo_printer](wxCommandEvent)
-                             {
-                                 PhysicalPrinterDialog dlg(this->GetParent());
-                                 dlg.ShowModal();
-                             });
+            {
+                PhysicalPrinterDialog dlg(this->GetParent());
+                dlg.ShowModal();
+            });
 
-        wxBoxSizer *vsizer_printer = new wxBoxSizer(wxVERTICAL);
-        wxBoxSizer *hsizer_printer = new wxBoxSizer(wxHORIZONTAL);
+        wxBoxSizer* vsizer_printer = new wxBoxSizer(wxVERTICAL);
+        wxBoxSizer* hsizer_printer = new wxBoxSizer(wxHORIZONTAL);
 
         hsizer_printer->Add(combo_printer, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
         hsizer_printer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
@@ -706,7 +709,7 @@ Sidebar::Sidebar(Plater *parent)
     bSizer39->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL, FromDIP(5));
     bSizer39->Add(FromDIP(20), 0, 0, 0, 0);
 
-    ScalableButton *ams_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
+    ams_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
                                                  wxBU_EXACTFIT | wxNO_BORDER, false, 18);
     ams_btn->SetToolTip(_L("Sync material list from AMS"));
     ams_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent &e) {
@@ -905,6 +908,21 @@ void Sidebar::update_all_preset_comboboxes()
 {
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
     const auto print_tech = preset_bundle.printers.get_edited_preset().printer_technology();
+
+    bool is_bbl_preset = preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle);
+
+    if (is_bbl_preset) {
+        //only show connection button for not-BBL printer
+        connection_btn->Hide();
+        //only show sync-ams button for BBL printer
+        ams_btn->Show();
+        //update print button default value for bbl or third-party printer
+        wxGetApp().mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
+    } else {
+        connection_btn->Show();
+        ams_btn->Hide();
+        wxGetApp().mainframe->set_print_button_to_default(MainFrame::PrintSelectType::eSendGcode);
+    }
 
     // Update the print choosers to only contain the compatible presets, update the dirty flags.
     //BBS
@@ -1472,6 +1490,7 @@ struct Plater::priv
     MenuFactory menus;
 
     SelectMachineDialog* m_select_machine_dlg = nullptr;
+    SendToPrinterDialog* m_send_to_sdcard_dlg = nullptr;
     PublishDialog *m_publish_dlg = nullptr;
 
     // Data
@@ -1594,6 +1613,7 @@ struct Plater::priv
     std::string                 label_btn_send;
 
     bool                        show_render_statistic_dialog{ false };
+    bool                        show_wireframe{ false };
 
     static const std::regex pattern_bundle;
     static const std::regex pattern_3mf;
@@ -1671,6 +1691,7 @@ struct Plater::priv
 
     // BBS
     void hide_select_machine_dlg() { m_select_machine_dlg->EndModal(wxID_OK); }
+    void hide_send_to_printer_dlg() { m_send_to_sdcard_dlg->EndModal(wxID_OK); }
 
     void update_preview_bottom_toolbar();
 
@@ -1850,6 +1871,7 @@ struct Plater::priv
     void on_action_print_all(SimpleEvent&);
     void on_action_export_gcode(SimpleEvent&);
     void on_action_send_gcode(SimpleEvent&);
+    void on_action_upload_gcode(SimpleEvent&);
     void on_action_export_sliced_file(SimpleEvent&);
     void on_action_select_sliced_plate(wxCommandEvent& evt);
 
@@ -1931,14 +1953,14 @@ struct Plater::priv
     void update_fff_scene_only_shells(bool only_shells = true);
     //BBS: add popup object table logic
     bool PopupObjectTable(int object_id, int volume_id, const wxPoint& position);
-
+    void on_action_send_to_printer();
 private:
     void update_fff_scene();
     void update_sla_scene();
 
     void undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator it_snapshot);
     void update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bool temp_snapshot_was_taken = false);
-
+    void on_action_export_to_sdcard(SimpleEvent&);
     // path to project folder stored with no extension
     boost::filesystem::path     m_project_folder;
 
@@ -2201,7 +2223,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             preview->on_tick_changed(tick_event_type);
 
             // BBS set to invalid state only
-            if (tick_event_type == Type::ToolChange) {
+            if (tick_event_type == Type::ToolChange || tick_event_type == Type::Custom || tick_event_type == Type::Template) {
                 PartPlate *plate = this->q->get_partplate_list().get_curr_plate();
                 if (plate) {
                     plate->update_slice_result_valid_state(false);
@@ -2239,11 +2261,15 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLTOOLBAR_PRINT_ALL, &priv::on_action_print_all, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_GCODE, &priv::on_action_export_gcode, this);
         q->Bind(EVT_GLTOOLBAR_SEND_GCODE, &priv::on_action_send_gcode, this);
+        q->Bind(EVT_GLTOOLBAR_UPLOAD_GCODE, &priv::on_action_upload_gcode, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_SLICED_FILE, &priv::on_action_export_sliced_file, this);
+        q->Bind(EVT_GLTOOLBAR_SEND_TO_PRINTER, &priv::on_action_export_to_sdcard, this);
         q->Bind(EVT_GLCANVAS_PLATE_SELECT, &priv::on_plate_selected, this);
         q->Bind(EVT_DOWNLOAD_PROJECT, &priv::on_action_download_project, this);
         q->Bind(EVT_IMPORT_MODEL_ID, &priv::on_action_request_model_id, this);
         q->Bind(EVT_PRINT_FINISHED, [q](wxCommandEvent &evt) { q->print_job_finished(evt); });
+        q->Bind(EVT_SEND_FINISHED, [q](wxCommandEvent &evt) { q->send_job_finished(evt); });
+        q->Bind(EVT_PUBLISH_FINISHED, [q](wxCommandEvent &evt) { q->publish_job_finished(evt);});
         //q->Bind(EVT_GLVIEWTOOLBAR_ASSEMBLE, [q](SimpleEvent&) { q->select_view_3D("Assemble"); });
     }
 
@@ -2512,6 +2538,16 @@ wxColour Plater::get_next_color_for_filament()
         *wxBLACK
     };
     return colors[curr_color_filamenet++ % 7];
+}
+
+wxString Plater::get_slice_warning_string(GCodeProcessorResult::SliceWarning& warning)
+{
+    if (warning.msg == BED_TEMP_TOO_HIGH_THAN_FILAMENT) {
+        return _L("The bed temperature exceeds filament's vitrification temperature. Please open the front door of printer before printing to avoid nozzle clog.");
+    }
+    else {
+        return wxString(warning.msg);
+    }
 }
 
 void Plater::priv::apply_free_camera_correction(bool apply/* = true*/)
@@ -3467,8 +3503,12 @@ fs::path Plater::priv::get_export_file_path(GUI::FileType file_type)
         // for 3mf take the path from the project filename, if any
         output_file = into_path(get_project_filename(".3mf"));
 
-    if (output_file.empty())
-        output_file = into_path(get_project_name() + ".3mf");
+    //bbs  name the project using the part name
+    if (output_file.empty()) {
+        if (get_project_name() != _L("Untitled")) {
+            output_file = into_path(get_project_name() + ".3mf");
+        }
+    }
 
     if (output_file.empty())
     {
@@ -5647,6 +5687,14 @@ void Plater::priv::on_action_print_plate(SimpleEvent&)
     m_select_machine_dlg->ShowModal();
 }
 
+
+void Plater::priv::on_action_send_to_printer()
+{
+	if (!m_send_to_sdcard_dlg) m_send_to_sdcard_dlg = new SendToPrinterDialog(q);
+	m_send_to_sdcard_dlg->prepare(partplate_list.get_curr_plate_index());
+	m_send_to_sdcard_dlg->ShowModal();
+}
+
 void Plater::priv::on_action_select_sliced_plate(wxCommandEvent &evt)
 {
     if (q != nullptr) {
@@ -5677,11 +5725,19 @@ void Plater::priv::on_action_export_gcode(SimpleEvent&)
     }
 }
 
+void Plater::priv::on_action_upload_gcode(SimpleEvent&)
+{
+    if (q != nullptr) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received export gcode event\n";
+        q->send_gcode_legacy(-1, nullptr, true);
+    }
+}
+
 void Plater::priv::on_action_send_gcode(SimpleEvent&)
 {
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received export gcode event\n" ;
-        q->send_gcode_legacy();
+        q->send_gcode_legacy(-1, nullptr, false);
     }
 }
 
@@ -5691,6 +5747,14 @@ void Plater::priv::on_action_export_sliced_file(SimpleEvent&)
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received export sliced file event\n" ;
         q->export_gcode_3mf();
     }
+}
+
+void Plater::priv::on_action_export_to_sdcard(SimpleEvent&)
+{
+	if (q != nullptr) {
+		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received export sliced file event\n";
+		q->send_to_printer();
+	}
 }
 
 //BBS: add plate select logic
@@ -6072,9 +6136,20 @@ void Plater::get_print_job_data(PrintPrepareData* data)
         data->_3mf_config_path = p->m_print_job_data._3mf_config_path;
     }
 }
+
 int Plater::get_print_finished_event()
 {
     return EVT_PRINT_FINISHED;
+}
+
+int Plater::get_send_finished_event()
+{
+    return EVT_SEND_FINISHED;
+}
+
+int Plater::get_publish_finished_event()
+{
+    return EVT_PUBLISH_FINISHED;
 }
 
 void Plater::priv::set_current_canvas_as_dirty()
@@ -7123,6 +7198,11 @@ void Plater::add_model(bool imperial_units/* = false*/)
     auto strategy = LoadStrategy::LoadModel;
     if (imperial_units) strategy = strategy | LoadStrategy::ImperialUnits;
     if (!load_files(paths, strategy, ask_multi).empty()) {
+
+        if (get_project_name() == _L("Untitled") && paths.size() > 0) {
+            p->set_project_filename(wxString(paths[0].string()));
+        }
+
         wxGetApp().mainframe->update_title();
     }
 }
@@ -8315,6 +8395,11 @@ void Plater::export_gcode(bool prefer_removable)
     }
 }
 
+void Plater::send_to_printer()
+{
+    p->on_action_send_to_printer();
+}
+
 //BBS export gcode 3mf to file
 void Plater::export_gcode_3mf()
 {
@@ -8952,7 +9037,7 @@ void Plater::reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &
     // and let the background processing start.
     this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
 }
-void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
+void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn, bool upload_only)
 {
     // if physical_printer is selected, send gcode for this printer
     // DynamicPrintConfig* physical_printer_config = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config();
@@ -8989,7 +9074,7 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
         wxBusyCursor wait;
         upload_job.printhost->get_groups(groups);
     }
-    
+
     PrintHostSendDialog dlg(default_output_file, upload_job.printhost->get_post_upload_actions(), groups);
     if (dlg.ShowModal() == wxID_OK) {
         upload_job.upload_data.upload_path = dlg.filename();
@@ -9020,7 +9105,7 @@ int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
         return -1;
     }
 
-    SaveStrategy strategy = SaveStrategy::Silence | SaveStrategy::SkipModel | SaveStrategy::WithGcode;
+    SaveStrategy strategy = SaveStrategy::Silence | SaveStrategy::SkipModel | SaveStrategy::WithGcode | SaveStrategy::SkipAuxiliary;
 #if !BBL_RELEASE_TO_PUBLIC
     //only save model in QA environment
     std::string sel = get_app_config()->get("iot_environment");
@@ -9053,7 +9138,7 @@ int Plater::export_config_3mf(int plate_idx, Export3mfProgressFn proFn)
         return -1;
     }
 
-    SaveStrategy strategy = SaveStrategy::Silence | SaveStrategy::SkipModel | SaveStrategy::WithSliceInfo;
+    SaveStrategy strategy = SaveStrategy::Silence | SaveStrategy::SkipModel | SaveStrategy::WithSliceInfo | SaveStrategy::SkipAuxiliary;
     result = export_3mf(p->m_print_job_data._3mf_config_path, strategy, plate_idx, proFn);
 
     return result;
@@ -9072,6 +9157,26 @@ void Plater::print_job_finished(wxCommandEvent &evt)
     MonitorPanel* curr_monitor = p->main_frame->m_monitor;
     if(curr_monitor)
        curr_monitor->get_tabpanel()->ChangeSelection(MonitorPanel::PrinterTab::PT_STATUS);
+}
+
+void Plater::send_job_finished(wxCommandEvent& evt)
+{
+    Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+    dev->set_selected_machine(evt.GetString().ToStdString());
+
+    p->hide_send_to_printer_dlg();
+    //p->main_frame->request_select_tab(MainFrame::TabPosition::tpMonitor);
+    ////jump to monitor and select device status panel
+    //MonitorPanel* curr_monitor = p->main_frame->m_monitor;
+    //if (curr_monitor)
+    //    curr_monitor->get_tabpanel()->ChangeSelection(MonitorPanel::PrinterTab::PT_STATUS);
+}
+
+void Plater::publish_job_finished(wxCommandEvent &evt)
+{
+    p->m_publish_dlg->EndModal(wxID_OK);
+    GUI::wxGetApp().load_url(evt.GetString());
 }
 
 // Called when the Eject button is pressed.
@@ -10457,6 +10562,16 @@ void Plater::toggle_render_statistic_dialog()
 bool Plater::is_render_statistic_dialog_visible() const
 {
     return p->show_render_statistic_dialog;
+}
+
+void Plater::toggle_show_wireframe()
+{
+    p->show_wireframe = !p->show_wireframe;
+}
+
+bool Plater::is_show_wireframe() const
+{
+    return p->show_wireframe;
 }
 
 

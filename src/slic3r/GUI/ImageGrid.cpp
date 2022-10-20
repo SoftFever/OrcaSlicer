@@ -8,6 +8,12 @@
 
 #include <wx/dcgraph.h>
 
+#ifdef __WXMSW__
+#include <shellapi.h>
+#endif
+#ifdef __APPLE__
+#include "../Utils/MacDarkMode.hpp"
+#endif
 
 BEGIN_EVENT_TABLE(Slic3r::GUI::ImageGrid, wxPanel)
 
@@ -102,7 +108,8 @@ void Slic3r::GUI::ImageGrid::SetGroupMode(int mode)
 void Slic3r::GUI::ImageGrid::SetSelecting(bool selecting)
 {
     m_selecting = selecting;
-    if (!m_selecting) m_file_sys->SelectAll(false);
+    if (m_file_sys)
+        m_file_sys->SelectAll(false);
     Refresh();
 }
 
@@ -140,29 +147,53 @@ void Slic3r::GUI::ImageGrid::DoAction(size_t index, int action)
 {
     if (action == 0) {
         m_file_sys->DeleteFiles(index);
-    } else {
+    } else if (action == 1) {
         if (index != -1) {
             auto &file = m_file_sys->GetFile(index);
             if (file.IsDownload() && file.progress >= -1) {
                 if (file.progress >= 100) {
+                    if (!m_file_sys->DownloadCheckFile(index)) {
+                        wxMessageBox(wxString::Format(_L("File '%s' was lost! Please download it again."), from_u8(file.name)), _L("Error"), wxOK);
+                        Refresh();
+                        return;
+                    }
 #ifdef __WXMSW__
-                    wxExecute("cmd /c start " + from_u8(m_save_path + "\\" + file.name), wxEXEC_HIDE_CONSOLE);
+                    auto wfile = boost::filesystem::path(file.path).wstring();
+                    SHELLEXECUTEINFO info{sizeof(info), 0, NULL, L"open", wfile.c_str(), L"", SW_HIDE};
+                    ::ShellExecuteEx(&info);
 #else
-                    wxShell("open " + m_save_path + "/" + file.name);
+                    wxShell("open " + file.path);
 #endif
                 } else {
                     m_file_sys->DownloadCancel(index);
                 }
                 return;
             }
-            if (m_save_path.empty()) {
-                wxDirDialog dlg(NULL, _L("Choose save directory"), "", wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
-                if (dlg.ShowModal() == wxID_CANCEL)
-                    return;
-                m_save_path = dlg.GetPath().ToUTF8().data();
+        }
+        m_file_sys->DownloadFiles(index, wxGetApp().app_config->get("download_path"));
+    } else if (action == 2) {
+        if (index != -1) {
+            auto &file = m_file_sys->GetFile(index);
+            if (file.IsDownload() && file.progress >= -1) {
+                if (file.progress >= 100) {
+                    if (!m_file_sys->DownloadCheckFile(index)) {
+                        wxMessageBox(wxString::Format(_L("File '%s' was lost! Please download it again."), from_u8(file.name)), _L("Error"), wxOK);
+                        Refresh();
+                        return;
+                    }
+#ifdef __WIN32__
+                    wxExecute(L"explorer.exe /select," + from_u8(file.path));
+#elif __APPLE__
+                    openFolderForFile(from_u8(file.path));
+#else
+#endif
+                } else {
+                    m_file_sys->DownloadCancel(index);
+                }
+                return;
             }
         }
-        m_file_sys->DownloadFiles(index, m_save_path);
+        m_file_sys->DownloadFiles(index, wxGetApp().app_config->get("download_path"));
     }
 }
 
@@ -188,8 +219,10 @@ void ImageGrid::UpdateLayout()
     if (!m_file_sys) return;
     wxSize size = GetClientSize();
     wxSize mask_size{0, 60 * em_unit(this) / 10};
-    if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE)
+    if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE) {
         mask_size.y = 20 * em_unit(this) / 10;
+        size.y -= mask_size.y;
+    }
     int cell_width = m_cell_size.GetWidth();
     int cell_height = m_cell_size.GetHeight();
     int ncol = (size.GetWidth() - cell_width + m_image_size.GetWidth()) / cell_width;
@@ -254,7 +287,9 @@ std::pair<int, size_t> Slic3r::GUI::ImageGrid::HitTest(wxPoint const &pt)
     if (index >= m_file_sys->GetCount()) { return {HIT_NONE, -1}; }
     if (!m_selecting) {
         wxRect  hover_rect{0, m_image_size.y - 40, m_image_size.GetWidth(), 40};
-        if (hover_rect.Contains(off.x, off.y)) { return {HIT_ACTION, index * 2 + off.x * 2 / hover_rect.GetWidth()}; } // Two buttons
+        auto & file = m_file_sys->GetFile(index);
+        int    btn  = file.IsDownload() && file.progress >= 100 ? 3 : 2;
+        if (hover_rect.Contains(off.x, off.y)) { return {HIT_ACTION, index * 4 + off.x * btn / hover_rect.GetWidth()}; } // Two buttons
     }
     return {HIT_ITEM, index};
 }
@@ -316,7 +351,7 @@ void ImageGrid::mouseReleased(wxMouseEvent& event)
         if (m_hit_type == HIT_ITEM)
             Select(m_hit_item);
         else if (m_hit_type == HIT_ACTION)
-            DoAction(m_hit_item / 2, m_hit_item & 1);
+            DoAction(m_hit_item / 4, m_hit_item & 3);
         else if (m_hit_type == HIT_MODE)
             SetGroupMode(static_cast<PrinterFileSystem::GroupMode>(2 - m_hit_item));
         else if (m_hit_type == HIT_STATUS)
@@ -349,8 +384,12 @@ void Slic3r::GUI::ImageGrid::changedEvent(wxCommandEvent& evt)
 {
     evt.Skip();
     BOOST_LOG_TRIVIAL(info) << "ImageGrid::changedEvent: " << evt.GetEventType() << " index: " << evt.GetInt() << " name: " << evt.GetString() << " extra: " << evt.GetExtraLong();
-    if (evt.GetEventType() == EVT_MODE_CHANGED
-        || evt.GetEventType() == EVT_FILE_CHANGED)
+    if (evt.GetEventType() == EVT_FILE_CHANGED) {
+        if (evt.GetInt() == -1)
+            m_file_sys->DownloadCheckFiles(wxGetApp().app_config->get("download_path"));
+        UpdateFileSystem();
+    }
+    else if (evt.GetEventType() == EVT_MODE_CHANGED)
         UpdateFileSystem();
     else
         Refresh();
@@ -365,13 +404,16 @@ void ImageGrid::paintEvent(wxPaintEvent& evt)
 
 size_t Slic3r::GUI::ImageGrid::firstItem(wxSize const &size, wxPoint &off)
 {
+    int size_y = size.y;
+    if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE)
+        size_y -= m_mask.GetHeight();
     int offx  = (size.x - (m_col_count - 1) * m_cell_size.GetWidth() - m_image_size.GetWidth()) / 2;
     int offy  = (m_row_offset + 1 < m_row_count || m_row_count == 0) ?
                     m_cell_size.GetHeight() - m_image_size.GetHeight() - m_row_offset * m_cell_size.GetHeight() / 4 + m_row_offset / 4 * m_cell_size.GetHeight() :
-                    size.y - (size.y + m_image_size.GetHeight() - 1) / m_cell_size.GetHeight() * m_cell_size.GetHeight();
+                    size_y - (size_y + m_image_size.GetHeight() - 1) / m_cell_size.GetHeight() * m_cell_size.GetHeight();
     int index = (m_row_offset + 1 < m_row_count || m_row_count == 0) ?
                     m_row_offset / 4 * m_col_count :
-                    ((m_file_sys->GetCount() + m_col_count - 1) / m_col_count - (size.y + m_image_size.GetHeight() - 1) / m_cell_size.GetHeight()) * m_col_count;
+                    ((m_file_sys->GetCount() + m_col_count - 1) / m_col_count - (size_y + m_image_size.GetHeight() - 1) / m_cell_size.GetHeight()) * m_col_count;
     if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE)
         offy += m_mask.GetHeight();
     off = wxPoint{offx, offy};
@@ -455,7 +497,7 @@ void ImageGrid::render(wxDC& dc)
     constexpr wchar_t const * formats[] = {_T("%Y-%m-%d"), _T("%Y-%m"), _T("%Y")};
     size_t start = index;
     size_t end = index;
-    size_t hit_image = m_selecting ? size_t(-1) : m_hit_type == HIT_ITEM ? m_hit_item : m_hit_type == HIT_ACTION ? m_hit_item / 2 :size_t(-1);
+    size_t hit_image = m_selecting ? size_t(-1) : m_hit_type == HIT_ITEM ? m_hit_item : m_hit_type == HIT_ACTION ? m_hit_item / 4 :size_t(-1);
     // Draw items with background
     while (off.y < size.y)
     {
@@ -475,15 +517,17 @@ void ImageGrid::render(wxDC& dc)
                     dc.DrawBitmap(m_mask, pt);
                 }
             }
+            bool show_download_state_always = true;
             // Draw checked icon
-            if (m_selecting)
+            if (m_selecting && !show_download_state_always)
                 dc.DrawBitmap(file.IsSelect() ? m_checked_icon.bmp() : m_unchecked_icon.bmp(), 
                     pt + wxPoint{10, m_image_size.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
-            // can' handle alpha
+            // can't handle alpha
             // dc.GradientFillLinear({pt.x, pt.y, m_image_size.GetWidth(), 60}, wxColour(0x6F, 0x6F, 0x6F, 0x99), wxColour(0x6F, 0x6F, 0x6F, 0), wxBOTTOM);
             else if (m_file_sys->GetGroupMode() == PrinterFileSystem::G_NONE) {
                 wxString nonHoverText;
                 wxString secondAction = _L("Download");
+                wxString thirdAction;
                 int      states = 0;
                 // Draw download progress
                 if (file.IsDownload()) {
@@ -495,7 +539,8 @@ void ImageGrid::render(wxDC& dc)
                         nonHoverText = _L("Download failed");
                         states       = StateColor::Checked;
                     } else if (file.progress >= 100) {
-                        secondAction = _L("Open");
+                        secondAction = _L("Play");
+                        thirdAction = _L("Open Folder");
                         nonHoverText = _L("Download finished");
                     } else {
                         secondAction = _L("Cancel");
@@ -505,10 +550,14 @@ void ImageGrid::render(wxDC& dc)
                 // Draw buttons on hovered item
                 wxRect rect{pt.x, pt.y + m_image_size.y - m_buttons_background.GetHeight(), m_image_size.GetWidth(), m_buttons_background.GetHeight()};
                 if (hit_image == index) {
-                    renderButtons(dc, {_L("Delete"), (wxChar const *) secondAction, nullptr}, rect, m_hit_type == HIT_ACTION ? m_hit_item & 1 : -1, states);
+                    renderButtons(dc, {_L("Delete"), (wxChar const *) secondAction, thirdAction.IsEmpty() ? nullptr : (wxChar const *) thirdAction, nullptr}, rect,
+                                  m_hit_type == HIT_ACTION ? m_hit_item & 3 : -1, states);
                 } else if (!nonHoverText.IsEmpty()) {
                     renderButtons(dc, {(wxChar const *) nonHoverText, nullptr}, rect, -1, states);
                 }
+                if (m_selecting && show_download_state_always)
+                    dc.DrawBitmap(file.IsSelect() ? m_checked_icon.bmp() : m_unchecked_icon.bmp(),
+                                  pt + wxPoint{10, m_image_size.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
             } else {
                 auto date = wxDateTime((time_t) file.time).Format(_L(formats[m_file_sys->GetGroupMode()]));
                 dc.DrawText(date, pt + wxPoint{24, 16});
@@ -569,12 +618,12 @@ void Slic3r::GUI::ImageGrid::renderButtons(wxDC &dc, wxStringList const &texts, 
     for (size_t i = 0; i < texts.size(); ++i) {
         int states2 = hit == i ? state : 0;
         // Draw button background
-        rect.Deflate(10, 5);
         //dc.Blit(rect.GetTopLeft(), rect.GetSize(), &mdc, {m_buttonBackgroundColor.colorIndexForStates(states) * 128, 0});
         //dc.DrawBitmap(m_button_background, rect2.GetTopLeft());
         // Draw button splitter
         if (i > 0) dc.DrawLine(rect.GetLeftTop(), rect.GetLeftBottom());
         // Draw button text
+        rect.Deflate(10, 5);
         renderText(dc, texts[i], rect, states | states2);
         rect.Inflate(10, 5);
         rect.Offset(rect.GetWidth(), 0);

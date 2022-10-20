@@ -205,6 +205,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ParamsDialog.hpp
     GUI/ParamsPanel.cpp
     GUI/ParamsPanel.hpp
+    GUI/PrintHostDialogs.cpp
+    GUI/PrintHostDialogs.hpp
     GUI/AmsWidgets.cpp
     GUI/AmsWidgets.hpp
     GUI/MediaFilePanel.cpp
@@ -215,6 +217,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/MonitorBasePanel.h
     GUI/UpgradePanel.cpp
     GUI/UpgradePanel.hpp
+    GUI/HintNotification.hpp
+    GUI/HintNotification.cpp
     GUI/HMSPanel.hpp
     GUI/HMSPanel.cpp
     GUI/MonitorPage.cpp
@@ -303,10 +307,14 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/ProgressIndicator.hpp
     GUI/Jobs/PrintJob.hpp
     GUI/Jobs/PrintJob.cpp
+    GUI/Jobs/SendJob.hpp
+    GUI/Jobs/SendJob.cpp
     GUI/Jobs/BindJob.hpp
     GUI/Jobs/BindJob.cpp
     GUI/Jobs/NotificationProgressIndicator.hpp
     GUI/Jobs/NotificationProgressIndicator.cpp
+    GUI/PhysicalPrinterDialog.hpp
+    GUI/PhysicalPrinterDialog.cpp
     GUI/ProgressStatusBar.hpp
     GUI/ProgressStatusBar.cpp
     GUI/BBLStatusBar.hpp
@@ -348,10 +356,14 @@ set(SLIC3R_GUI_SOURCES
     GUI/PublishDialog.hpp
 	GUI/RecenterDialog.cpp
     GUI/RecenterDialog.hpp
+    GUI/BonjourDialog.cpp
+    GUI/BonjourDialog.hpp
     GUI/BindDialog.cpp
     GUI/BindDialog.hpp
     GUI/SelectMachine.hpp
     GUI/SelectMachine.cpp
+    GUI/SendToPrinter.hpp
+    GUI/SendToPrinter.cpp
     GUI/AmsMappingPopup.hpp
     GUI/AmsMappingPopup.cpp
     GUI/ReleaseNote.hpp
@@ -389,6 +401,10 @@ set(SLIC3R_GUI_SOURCES
     Utils/minilzo_extension.cpp
     Utils/ColorSpaceConvert.hpp
     Utils/ColorSpaceConvert.cpp
+    Utils/OctoPrint.hpp
+    Utils/OctoPrint.cpp
+    Utils/PrintHost.hpp
+    Utils/PrintHost.cpp
     Utils/NetworkAgent.cpp
     Utils/NetworkAgent.hpp
     Utils/OctoPrint.cpp

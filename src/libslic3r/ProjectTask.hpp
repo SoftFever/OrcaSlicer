@@ -38,6 +38,7 @@ struct FilamentInfo
     int         id;         // filament id = extruder id, start with 0.
     std::string type;
     std::string color;
+    std::string filament_id;
     float       used_m;
     float       used_g;
     int         tray_id;    // start with 0

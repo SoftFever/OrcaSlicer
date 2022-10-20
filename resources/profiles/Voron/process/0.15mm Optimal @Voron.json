@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "setting_id": "GP003",
+    "setting_id": "GP_VORON_003",
     "name": "0.15mm Optimal @Voron",
     "from": "system",
     "instantiation": "true",

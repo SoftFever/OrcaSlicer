@@ -132,9 +132,9 @@ private:
     void fill_surface_by_lines(const Surface* surface, const FillParams& params, Polylines& polylines_out);
 };
 
-Points sample_grid_pattern(const ExPolygon &expolygon, coord_t spacing);
-Points sample_grid_pattern(const ExPolygons &expolygons, coord_t spacing);
-Points sample_grid_pattern(const Polygons &polygons, coord_t spacing);
+Points sample_grid_pattern(const ExPolygon& expolygon, coord_t spacing, const BoundingBox& global_bounding_box);
+Points sample_grid_pattern(const ExPolygons& expolygons, coord_t spacing, const BoundingBox& global_bounding_box);
+Points sample_grid_pattern(const Polygons& polygons, coord_t spacing, const BoundingBox& global_bounding_box);
 
 } // namespace Slic3r
 

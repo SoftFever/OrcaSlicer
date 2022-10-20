@@ -11,8 +11,10 @@ extern bool mac_dark_mode();
 extern double mac_max_scaling_factor();
 extern void set_miniaturizable(void * window);
 void WKWebView_evaluateJavaScript(void * web, wxString const & script, void (*callback)(wxString const &));
-void set_title_colour_after_set_title();
+void set_tag_when_enter_full_screen(bool isfullscreen);
+void set_title_colour_after_set_title(void * window);
 void initGestures(void * view,  wxEvtHandler * handler);
+void openFolderForFile(wxString const & file);
 #endif
 
 

@@ -96,8 +96,6 @@ private:
     wxBitmap m_status_icon;
     wxString m_status_msg;
 
-    std::string m_save_path;
-
     ScalableBitmap m_checked_icon;
     ScalableBitmap m_unchecked_icon;
     StateColor m_buttonBackgroundColor;

@@ -8,6 +8,7 @@ BEGIN_EVENT_TABLE(StepCtrl, StepCtrlBase)
 EVT_LEFT_DOWN(StepCtrl::mouseDown)
 EVT_MOTION(StepCtrl::mouseMove)
 EVT_LEFT_UP(StepCtrl::mouseUp)
+EVT_MOUSE_CAPTURE_LOST(StepCtrl::mouseCaptureLost)
 END_EVENT_TABLE()
 
 StepCtrlBase::StepCtrlBase(wxWindow *      parent,
@@ -133,6 +134,7 @@ void StepCtrl::mouseDown(wxMouseEvent &event)
     if (rcThumb.Contains(pt)) {
         pos_thumb   = wxPoint{circleX, size.y / 2};
         drag_offset = pos_thumb - pt;
+        CaptureMouse();
     } else if (rcBar.Contains(pt)) {
         if (pt.x < circleX) {
             if (step > 0) SelectItem(step - 1);
@@ -151,6 +153,10 @@ void StepCtrl::mouseMove(wxMouseEvent &event)
     wxSize size      = GetSize();
     int    itemWidth = size.x / steps.size();
     int    index     = pos_thumb.x / itemWidth;
+    if (index < 0)
+        index = 0;
+    else if (index >= steps.size())
+        index = steps.size() - 1;
     if (index != pos_thumb.y) {
         pos_thumb.y = index;
         Refresh();
@@ -163,8 +169,20 @@ void StepCtrl::mouseUp(wxMouseEvent &event)
     wxSize size      = GetSize();
     int    itemWidth = size.x / steps.size();
     int    index     = pos_thumb.x / itemWidth;
-    pos_thumb        = {0, 0};
-    SelectItem(index < steps.size() ? index : steps.size() - 1);
+    if (index < 0)
+        index = 0;
+    else if (index >= steps.size())
+        index = steps.size() - 1;
+    pos_thumb = {0, 0};
+    SelectItem(index);
+    if (HasCapture())
+        ReleaseMouse();
+}
+
+void StepCtrl::mouseCaptureLost(wxMouseCaptureLostEvent &event)
+{
+    wxMouseEvent evt;
+    mouseUp(evt);
 }
 
 void StepCtrl::doRender(wxDC &dc)

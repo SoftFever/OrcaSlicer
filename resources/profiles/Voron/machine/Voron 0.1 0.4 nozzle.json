@@ -1,6 +1,6 @@
 {
   "type": "machine",
-  "setting_id": "VORON-001",
+  "setting_id": "GM_VORON_001",
   "name": "Voron 0.1 0.4 nozzle",
   "from": "system",
   "instantiation": "true",
@@ -17,6 +17,6 @@
     "0x120"
   ],
   "printable_height": "120",
-  "nozzle_type": "hardened_steel",
+  "nozzle_type": "undefine",
   "auxiliary_fan": "0"
 }

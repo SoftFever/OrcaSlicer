@@ -175,6 +175,8 @@ static constexpr const char* BUILD_TAG = "build";
 static constexpr const char* ITEM_TAG = "item";
 static constexpr const char* METADATA_TAG = "metadata";
 static constexpr const char* FILAMENT_TAG = "filament";
+static constexpr const char* SLICE_WARNING_TAG = "warning";
+static constexpr const char* WARNING_MSG_TAG = "msg";
 static constexpr const char *FILAMENT_ID_TAG   = "id";
 static constexpr const char* FILAMENT_TYPE_TAG = "type";
 static constexpr const char *FILAMENT_COLOR_TAG = "color";
@@ -454,12 +456,28 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     for (auto it = ps.volumes_per_extruder.begin(); it != ps.volumes_per_extruder.end(); it++) {
         double volume                           = it->second;
         auto [used_filament_m, used_filament_g] = get_used_filament_from_volume(volume, it->first);
+
         FilamentInfo info;
-        info.id     = it->first;
-        info.used_m = used_filament_m;
-        info.used_g = used_filament_g;
+        info.id = it->first;
+        if (ps.flush_per_filament.find(it->first) != ps.flush_per_filament.end()) {
+            volume = ps.flush_per_filament.at(it->first);
+            auto [flushed_filament_m, flushed_filament_g] = get_used_filament_from_volume(volume, it->first);
+            info.used_m = used_filament_m + flushed_filament_m;
+            info.used_g = used_filament_g + flushed_filament_g;
+        } else {
+            info.used_m = used_filament_m;
+            info.used_g = used_filament_g;
+        }
         slice_filaments_info.push_back(info);
     }
+
+    /* only for test
+    GCodeProcessorResult::SliceWarning sw;
+    sw.msg = BED_TEMP_TOO_HIGH_THAN_FILAMENT;
+    sw.level = 1;
+    result->warnings.push_back(sw);
+    */
+    warnings = result->warnings;
 }
 
 
@@ -842,6 +860,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         bool _handle_start_config_filament(const char** attributes, unsigned int num_attributes);
         bool _handle_end_config_filament();
+
+        bool _handle_start_config_warning(const char** attributes, unsigned int num_attributes);
+        bool _handle_end_config_warning();
 
         //BBS: add plater config parse functions
         bool _handle_start_config_plater(const char** attributes, unsigned int num_attributes);
@@ -1510,6 +1531,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->gcode_weight = it->second->gcode_weight;
             plate_data_list[it->first-1]->toolpath_outside = it->second->toolpath_outside;
             plate_data_list[it->first-1]->slice_filaments_info = it->second->slice_filaments_info;
+            plate_data_list[it->first-1]->warnings = it->second->warnings;
             plate_data_list[it->first-1]->thumbnail_file = (m_load_restore || it->second->thumbnail_file.empty()) ? it->second->thumbnail_file : m_backup_path + "/" + it->second->thumbnail_file;
             plate_data_list[it->first-1]->pattern_file = (m_load_restore || it->second->pattern_file.empty()) ? it->second->pattern_file : m_backup_path + "/" + it->second->pattern_file;
             plate_data_list[it->first-1]->pattern_bbox_file = (m_load_restore || it->second->pattern_bbox_file.empty()) ? it->second->pattern_bbox_file : m_backup_path + "/" + it->second->pattern_bbox_file;
@@ -2355,6 +2377,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             res = _handle_start_config_plater_instance(attributes, num_attributes);
         else if (::strcmp(FILAMENT_TAG, name) == 0)
             res = _handle_start_config_filament(attributes, num_attributes);
+        else if (::strcmp(SLICE_WARNING_TAG, name) == 0)
+            res = _handle_start_config_warning(attributes, num_attributes);
         else if (::strcmp(ASSEMBLE_TAG, name) == 0)
             res = _handle_start_assemble(attributes, num_attributes);
         else if (::strcmp(ASSEMBLE_ITEM_TAG, name) == 0)
@@ -3205,6 +3229,30 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return true;
     }
 
+    bool _BBS_3MF_Importer::_handle_start_config_warning(const char** attributes, unsigned int num_attributes)
+    {
+        if (m_curr_plater) {
+            std::string msg     = bbs_get_attribute_value_string(attributes, num_attributes, WARNING_MSG_TAG);
+            std::string lvl_str = bbs_get_attribute_value_string(attributes, num_attributes, "level");
+            GCodeProcessorResult::SliceWarning sw;
+            sw.msg = msg;
+            try {
+                sw.level = atoi(lvl_str.c_str());
+            }
+            catch(...) {
+            };
+
+            m_curr_plater->warnings.push_back(sw);
+        }
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_end_config_warning()
+    {
+        // do nothing
+        return true;
+    }
+
     bool _BBS_3MF_Importer::_handle_start_config_plater(const char** attributes, unsigned int num_attributes)
     {
         if (!m_parsing_slice_info) {
@@ -3827,6 +3875,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool m_split_model { false };       // save object per file with Production Extention
         bool m_save_gcode { false };        // whether to save gcode for normal save
         bool m_skip_model { false };        // skip model when exporting .gcode.3mf
+        bool m_skip_auxiliary { false };    // skip normal axuiliary files
 
     public:
         //BBS: add plate data related logic
@@ -3910,6 +3959,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         m_split_model = store_params.strategy & SaveStrategy::SplitModel;
         m_save_gcode = store_params.strategy & SaveStrategy::WithGcode;
         m_skip_model  = store_params.strategy & SaveStrategy::SkipModel;
+        m_skip_auxiliary = store_params.strategy & SaveStrategy::SkipAuxiliary;
 
         boost::system::error_code ec;
         std::string filename = std::string(store_params.path);
@@ -5000,7 +5050,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //    if (volume == nullptr)
         //        continue;
 
-            bool is_left_handed = volume->is_left_handed();
+            //BBS: as we stored matrix seperately, not multiplied into vertex
+            //we don't need to consider this left hand case specially
+            //bool is_left_handed = volume->is_left_handed();
+            bool is_left_handed = false;
             //VolumeToOffsetsMap::iterator volume_it = volumes_objectID.find(volume);
             //assert(volume_it != volumes_objectID.end());
 
@@ -5637,6 +5690,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                            << FILAMENT_USED_M_TAG << "=\"" << it->used_m << "\" "
                            << FILAMENT_USED_G_TAG << "=\"" << it->used_g << "\" />\n";
                 }
+
+                for (auto it = plate_data->warnings.begin(); it != plate_data->warnings.end(); it++) {
+                    stream << "    <" << SLICE_WARNING_TAG << " " << "msg=\"" << it->msg << "\" " << "level=\"" << std::to_string(it->level) << "\"  />\n";
+                }
                 stream << "  </" << PLATE_TAG << ">\n";
             }
         }
@@ -5737,7 +5794,7 @@ bool _BBS_3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_ar
             //BBS
             std::string gcode = //code.type == CustomGCode::ColorChange ? config->opt_string("color_change_gcode")    :
                                 code.type == CustomGCode::PausePrint  ? config->opt_string("machine_pause_gcode")     :
-                                //code.type == CustomGCode::Template    ? config->opt_string("template_custom_gcode") :
+                                code.type == CustomGCode::Template    ? config->opt_string("template_custom_gcode") :
                                 code.type == CustomGCode::ToolChange  ? "tool_change"   : code.extra;
             code_tree.put("<xmlattr>.gcode"     , gcode   );
         }
@@ -5826,7 +5883,7 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive &archive, c
                 }
                 continue;
             }
-            if (boost::filesystem::is_regular_file(dir_entry.path()))
+            if (boost::filesystem::is_regular_file(dir_entry.path()) && !m_skip_auxiliary)
             {
                 src_file = dir_entry.path().string();
                 dst_in_3mf = dir_entry.path().string();

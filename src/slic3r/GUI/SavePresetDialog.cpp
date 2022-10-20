@@ -388,6 +388,19 @@ std::string SavePresetDialog::get_name(Preset::Type type)
     return "";
 }
 
+void SavePresetDialog::input_name_from_other(std::string new_preset_name) {
+    //only work for one-item
+    Item* curr_item = m_items[0];
+    curr_item->m_input_ctrl->SetValue(new_preset_name);
+}
+
+void SavePresetDialog::confirm_from_other() {
+    for (Item *item : m_items) {
+        item->accept();
+        if (item->type() == Preset::TYPE_PRINTER) update_physical_printers(item->preset_name());
+    }
+}
+
 // BBS: add project relate
 bool SavePresetDialog::get_save_to_project_selection(Preset::Type type)
 {

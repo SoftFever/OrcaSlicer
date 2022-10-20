@@ -9,7 +9,8 @@ namespace GUI {
 
 wxDEFINE_EVENT(EVT_UPGRADE_UPDATE_MESSAGE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPGRADE_NETWORK_SUCCESS, wxCommandEvent);
-wxDEFINE_EVENT(EVT_UPGRADE_NETWORK_FAILED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_DOWNLOAD_NETWORK_FAILED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_INSTALL_NETWORK_FAILED, wxCommandEvent);
 
 
 UpgradeNetworkJob::UpgradeNetworkJob(std::shared_ptr<ProgressIndicator> pri)
@@ -88,7 +89,7 @@ void UpgradeNetworkJob::process()
 
     if (result < 0) {
         update_status(0, _L("Download failed"));
-        wxCommandEvent event(EVT_UPGRADE_NETWORK_FAILED);
+        wxCommandEvent event(EVT_DOWNLOAD_NETWORK_FAILED);
         event.SetEventObject(m_event_handle);
         wxPostEvent(m_event_handle, event);
         return;
@@ -112,7 +113,7 @@ void UpgradeNetworkJob::process()
 
     if (result != 0) {
         update_status(0, _L("Install failed"));
-        wxCommandEvent event(EVT_UPGRADE_NETWORK_FAILED);
+        wxCommandEvent event(EVT_INSTALL_NETWORK_FAILED);
         event.SetEventObject(m_event_handle);
         wxPostEvent(m_event_handle, event);
         return;

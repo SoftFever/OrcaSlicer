@@ -11,6 +11,9 @@
 
 #include "../../EdgeGrid.hpp"
 #include "../../Polygon.hpp"
+#include "SVG.hpp"
+
+//#define LIGHTNING_TREE_NODE_DEBUG_OUTPUT
 
 namespace Slic3r::FillLightning
 {
@@ -43,7 +46,7 @@ public:
     {
         struct EnableMakeShared : public Node
         {
-            EnableMakeShared(Arg&&...arg) : Node(std::forward<Arg>(arg)...) {}
+            explicit EnableMakeShared(Arg&&...arg) : Node(std::forward<Arg>(arg)...) {}
         };
         return std::make_shared<EnableMakeShared>(std::forward<Arg>(arg)...);
     }
@@ -99,9 +102,9 @@ public:
         std::vector<NodeSPtr>& next_trees,
         const Polygons& next_outlines,
         const EdgeGrid::Grid& outline_locator,
-        const coord_t prune_distance,
-        const coord_t smooth_magnitude,
-        const coord_t max_remove_colinear_dist
+        coord_t prune_distance,
+        coord_t smooth_magnitude,
+        coord_t max_remove_colinear_dist
     ) const;
 
     /*!
@@ -156,7 +159,7 @@ public:
      * This is then recursively bubbled up until it reaches the (former) root, which then will become a leaf.
      * \param new_parent The (new) parent-node of the root, useful for recursing or immediately attaching the node to another tree.
      */
-    void reroot(NodeSPtr new_parent = nullptr);
+    void reroot(const NodeSPtr &new_parent = nullptr);
 
     /*!
      * Retrieves the closest node to the specified location.
@@ -176,16 +179,16 @@ public:
      */
     bool hasOffspring(const NodeSPtr& to_be_checked) const;
 
-protected:
     Node() = delete; // Don't allow empty contruction
 
+protected:
     /*!
      * Construct a new node, either for insertion in a tree or as root.
      * \param p The physical location in the 2D layer that this node represents.
      * Connecting other nodes to this node indicates that a line segment should
      * be drawn between those two physical positions.
      */
-    Node(const Point& p, const std::optional<Point>& last_grounding_location = std::nullopt);
+    explicit Node(const Point& p, const std::optional<Point>& last_grounding_location = std::nullopt);
 
     /*!
      * Copy this node and its entire sub-tree.
@@ -211,7 +214,7 @@ protected:
      * \param magnitude The maximum allowed distance to move the node.
      * \param max_remove_colinear_dist Maximum distance of the (compound) line-segment from which a co-linear point may be removed.
      */
-    void straighten(const coord_t magnitude, const coord_t max_remove_colinear_dist);
+    void straighten(coord_t magnitude, coord_t max_remove_colinear_dist);
 
     /*! Recursive part of \ref straighten(.)
      * \param junction_above The last seen junction with multiple children above
@@ -219,7 +222,7 @@ protected:
      * \param max_remove_colinear_dist2 Maximum distance _squared_ of the (compound) line-segment from which a co-linear point may be removed.
      * \return the total distance along the tree from the last junction above to the first next junction below and the location of the next junction below
      */
-    RectilinearJunction straighten(const coord_t magnitude, const Point& junction_above, const coord_t accumulated_dist, const coord_t max_remove_colinear_dist2);
+    RectilinearJunction straighten(coord_t magnitude, const Point& junction_above, coord_t accumulated_dist, int64_t max_remove_colinear_dist2);
 
     /*! Prune the tree from the extremeties (leaf-nodes) until the pruning distance is reached.
      * \return The distance that has been pruned. If less than \p distance, then the whole tree was puned away.
@@ -236,13 +239,15 @@ public:
      * 
      * \param output all branches in this tree connected into polylines
      */
-    void convertToPolylines(Polygons& output, const coord_t line_width) const;
+    void convertToPolylines(Polylines &output, coord_t line_overlap) const;
 
     /*! If this was ever a direct child of the root, it'll have a previous grounding location.
      *
      * This needs to be known when roots are reconnected, so that the last (higher) layer is supported by the next one.
      */
     const std::optional<Point>& getLastGroundingLocation() const { return m_last_grounding_location; }
+
+    void draw_tree(SVG& svg) { for (auto& child : m_children) { svg.draw(Line(m_p, child->getLocation()), "yellow"); child->draw_tree(svg); } }
 
 protected:
     /*!
@@ -255,9 +260,9 @@ protected:
      * \param long_line a reference to a polyline in \p output which to continue building on in the recursion
      * \param output all branches in this tree connected into polylines
      */
-    void convertToPolylines(size_t long_line_idx, Polygons& output) const;
+    void convertToPolylines(size_t long_line_idx, Polylines &output) const;
 
-    void removeJunctionOverlap(Polygons& polylines, const coord_t line_width) const;
+    void removeJunctionOverlap(Polylines &polylines, coord_t line_overlap) const;
 
     bool m_is_root;
     Point m_p;
@@ -265,10 +270,40 @@ protected:
     std::vector<NodeSPtr> m_children;
 
     std::optional<Point> m_last_grounding_location;  //<! The last known grounding location, see 'getLastGroundingLocation()'.
+
+    friend BoundingBox get_extents(const NodeSPtr &root_node);
+    friend BoundingBox get_extents(const std::vector<NodeSPtr> &tree_roots);
+
+#ifdef LIGHTNING_TREE_NODE_DEBUG_OUTPUT
+    friend void export_to_svg(const NodeSPtr &root_node, Slic3r::SVG &svg);
+    friend void export_to_svg(const std::string &path, const Polygons &contour, const std::vector<NodeSPtr> &root_nodes);
+#endif /* LIGHTNING_TREE_NODE_DEBUG_OUTPUT */
 };
 
-bool inside(const Polygons &polygons, const Point p);
-bool lineSegmentPolygonsIntersection(const Point& a, const Point& b, const EdgeGrid::Grid& outline_locator, Point& result, const coord_t within_max_dist);
+bool inside(const Polygons &polygons, const Point &p);
+bool lineSegmentPolygonsIntersection(const Point& a, const Point& b, const EdgeGrid::Grid& outline_locator, Point& result, coord_t within_max_dist);
+
+inline BoundingBox get_extents(const NodeSPtr &root_node)
+{
+    BoundingBox bbox;
+    for (const NodeSPtr &children : root_node->m_children)
+        bbox.merge(get_extents(children));
+    bbox.merge(root_node->getLocation());
+    return bbox;
+}
+
+inline BoundingBox get_extents(const std::vector<NodeSPtr> &tree_roots)
+{
+    BoundingBox bbox;
+    for (const NodeSPtr &root_node : tree_roots)
+        bbox.merge(get_extents(root_node));
+    return bbox;
+}
+
+#ifdef LIGHTNING_TREE_NODE_DEBUG_OUTPUT
+void export_to_svg(const NodeSPtr &root_node, SVG &svg);
+void export_to_svg(const std::string &path, const Polygons &contour, const std::vector<NodeSPtr> &root_nodes);
+#endif /* LIGHTNING_TREE_NODE_DEBUG_OUTPUT */
 
 } // namespace Slic3r::FillLightning
 

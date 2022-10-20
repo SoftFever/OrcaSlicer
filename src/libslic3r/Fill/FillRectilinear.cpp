@@ -407,13 +407,15 @@ public:
         // for the infill pattern, don't cut the corners.
         // default miterLimt = 3
         //double miterLimit = 10.;
-        assert(aoffset1 < 0);
+        // FIXME: Resolve properly the cases when it is constructed with aoffset1 = 0 and aoffset2 = 0,
+        //        that is used in sample_grid_pattern() for Lightning infill.
+        //assert(aoffset1 < 0);
         assert(aoffset2 <= 0);
-        assert(aoffset2 == 0 || aoffset2 < aoffset1);
+        // assert(aoffset2 == 0 || aoffset2 < aoffset1);
 //        bool sticks_removed = 
         remove_sticks(polygons_src);
 //        if (sticks_removed) BOOST_LOG_TRIVIAL(error) << "Sticks removed!";
-        polygons_outer = offset(polygons_src, float(aoffset1), ClipperLib::jtMiter, miterLimit);
+        polygons_outer = aoffset1 == 0 ? polygons_src : offset(polygons_src, float(aoffset1), ClipperLib::jtMiter, miterLimit);
         if (aoffset2 < 0)
             polygons_inner = shrink(polygons_outer, float(aoffset1 - aoffset2), ClipperLib::jtMiter, miterLimit);
 		// Filter out contours with zero area or small area, contours with 2 points only.
@@ -3053,14 +3055,18 @@ Polylines FillSupportBase::fill_surface(const Surface *surface, const FillParams
     return polylines_out;
 }
 
-Points sample_grid_pattern(const ExPolygon &expolygon, coord_t spacing)
+// Lightning infill assumes that the distance between any two sampled points is always
+// at least equal to the value of spacing. To meet this assumption, we need to use
+// BoundingBox for whole layers instead of bounding box just around processing ExPolygon.
+// Using just BoundingBox around processing ExPolygon could produce two points closer
+// than spacing (in cases where two ExPolygon are closer than spacing).
+Points sample_grid_pattern(const ExPolygon& expolygon, coord_t spacing, const BoundingBox& global_bounding_box)
 {
     ExPolygonWithOffset poly_with_offset(expolygon, 0, 0, 0);
-    BoundingBox bounding_box = poly_with_offset.bounding_box_src();
     std::vector<SegmentedIntersectionLine> segs = slice_region_by_vertical_lines(
         poly_with_offset, 
-        (bounding_box.max.x() - bounding_box.min.x() + spacing - 1) / spacing, 
-        bounding_box.min.x(),
+        (global_bounding_box.max.x() - global_bounding_box.min.x() + spacing - 1) / spacing,
+        global_bounding_box.min.x(),
         spacing);
 
     Points out;
@@ -3076,17 +3082,17 @@ Points sample_grid_pattern(const ExPolygon &expolygon, coord_t spacing)
     return out;
 }
 
-Points sample_grid_pattern(const ExPolygons &expolygons, coord_t spacing)
+Points sample_grid_pattern(const ExPolygons& expolygons, coord_t spacing, const BoundingBox& global_bounding_box)
 {
     Points out;
-    for (const ExPolygon &expoly : expolygons)
-        append(out, sample_grid_pattern(expoly, spacing));
+    for (const ExPolygon& expoly : expolygons)
+        append(out, sample_grid_pattern(expoly, spacing, global_bounding_box));
     return out;
 }
 
-Points sample_grid_pattern(const Polygons &polygons, coord_t spacing)
+Points sample_grid_pattern(const Polygons& polygons, coord_t spacing, const BoundingBox& global_bounding_box)
 {
-    return sample_grid_pattern(union_ex(polygons), spacing);
+    return sample_grid_pattern(union_ex(polygons), spacing, global_bounding_box);
 }
 
 void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out)

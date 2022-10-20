@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-27 16:25+0800\n"
+"POT-Creation-Date: 2022-10-19 09:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -16,8 +16,14 @@ msgstr ""
 msgid "Supports Painting"
 msgstr "Támaszok festése"
 
+msgid "Alt + Mouse wheel"
+msgstr "Alt + Mouse wheel"
+
 msgid "Section view"
 msgstr "Keresztmetszet nézet"
+
+msgid "Ctrl + Mouse wheel"
+msgstr "Ctrl + Egérgörgő"
 
 msgid "Pen size"
 msgstr "Tollméret"
@@ -37,8 +43,8 @@ msgstr "Támaszok blokkolása"
 msgid "Shift + Left mouse button"
 msgstr "Shift + bal egérgomb"
 
-msgid "Erase painting"
-msgstr "Festés törlése"
+msgid "Erase"
+msgstr "Törlés"
 
 msgid "Erase all painting"
 msgstr "Minden festés törlése"
@@ -54,12 +60,6 @@ msgstr "Alkalmaz"
 
 msgid "Gap area"
 msgstr ""
-
-msgid "Set pen size"
-msgstr "Tollméret beállítása"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + Egérgörgő"
 
 msgid "Tool type"
 msgstr "Eszköz típusa"
@@ -110,9 +110,6 @@ msgstr "Toll formája"
 
 msgid "Paint"
 msgstr "Festés"
-
-msgid "Erase"
-msgstr "Törlés"
 
 msgid "Key 1~9"
 msgstr "Számgombok 1-9"
@@ -241,11 +238,11 @@ msgstr "Vágás"
 msgid "Movement:"
 msgstr "Mozgatás:"
 
-msgid "Rotation:"
-msgstr "Forgatás:"
+msgid "Movement"
+msgstr ""
 
-msgid "Height:"
-msgstr "Magasság:"
+msgid "Height"
+msgstr ""
 
 msgid "Keep upper part"
 msgstr "Felső rész megtartása"
@@ -353,10 +350,10 @@ msgstr ""
 msgid "Block seam"
 msgstr ""
 
-msgid "Remove selection"
+msgid "Seam painting"
 msgstr ""
 
-msgid "Seam painting"
+msgid "Remove selection"
 msgstr ""
 
 msgid "Entering Seam painting"
@@ -427,6 +424,9 @@ msgstr ""
 
 msgid "V"
 msgstr "V"
+
+msgid "Internal Version"
+msgstr ""
 
 msgid "Version"
 msgstr "Verzió"
@@ -566,6 +566,15 @@ msgstr "Nyelv"
 
 msgid "*"
 msgstr "*"
+
+msgid "The uploads are still ongoing"
+msgstr ""
+
+msgid "Stop them and continue anyway?"
+msgstr ""
+
+msgid "Ongoing uploads"
+msgstr ""
 
 msgid "Select a G-code file:"
 msgstr "Válassz egy G-code fájlt:"
@@ -1072,6 +1081,42 @@ msgstr "Többszínű nyomtatás"
 msgid "Line Type"
 msgstr "Vonaltípus"
 
+msgid "More"
+msgstr "Több"
+
+msgid "Open Preferences."
+msgstr ""
+
+msgid "Open Documentation in web browser."
+msgstr ""
+
+msgid "Custom G-code"
+msgstr "Egyedi G-kód"
+
+msgid "Enter Custom G-code used on current layer:"
+msgstr ""
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Add Pause"
+msgstr ""
+
+msgid "Add Custom G-code"
+msgstr ""
+
+msgid "Add Custom Template"
+msgstr ""
+
+msgid "Filament "
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "G-code"
+msgstr ""
+
 msgid "No printer"
 msgstr "Nincs nyomtató"
 
@@ -1108,8 +1153,11 @@ msgstr "Unload"
 msgid "Tips"
 msgstr "Tippek"
 
-msgid "AMS Settings"
-msgstr "AMS beállítások"
+msgid "Guide"
+msgstr ""
+
+msgid "Retry"
+msgstr ""
 
 msgid "Calibrating AMS..."
 msgstr "AMS kalibrálása..."
@@ -1235,6 +1283,9 @@ msgstr "Sikertelen párosítás"
 
 msgid "Unknown Failure"
 msgstr "Ismeretlen hiba"
+
+msgid "Please check the printer network connection."
+msgstr ""
 
 msgid "Abnormal print file data. Please slice again"
 msgstr "Rendellenes nyomtatási fájladatok. Kérjük, szeleteld újra"
@@ -1427,6 +1478,9 @@ msgstr ""
 msgid "Print with the filament mounted on the back of chassis"
 msgstr ""
 
+msgid "AMS Settings"
+msgstr "AMS beállítások"
+
 msgid "Insertion update"
 msgstr "Insertion update"
 
@@ -1474,6 +1528,19 @@ msgstr ""
 
 msgid "File"
 msgstr "Fájl"
+
+msgid ""
+"Failed to download the plug-in. Please check your firewall settings and vpn "
+"software, check and retry."
+msgstr ""
+
+msgid ""
+"Failed to install the plug-in. Please check whether it is blocked or deleted "
+"by anti-virus software."
+msgstr ""
+
+msgid "click here to see more info"
+msgstr ""
 
 msgid "Please home all axes (click "
 msgstr ""
@@ -1538,6 +1605,16 @@ msgstr ""
 #, boost-format
 msgid "Succeed to export G-code to %1%"
 msgstr "G-kód sikeresen exportálva ide: %1%"
+
+msgid "Running post-processing scripts"
+msgstr ""
+
+msgid "Copying of the temporary G-code to the output G-code failed"
+msgstr ""
+
+#, boost-format
+msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
+msgstr ""
 
 msgid "Origin"
 msgstr "Origó"
@@ -1931,6 +2008,12 @@ msgstr "Anyagáramlás"
 msgid "Tool"
 msgstr "Tool"
 
+msgid "Height: "
+msgstr ""
+
+msgid "Width: "
+msgstr ""
+
 msgid "Speed: "
 msgstr ""
 
@@ -2150,6 +2233,12 @@ msgstr "Festés eszköztár"
 msgid "Explosion Ratio"
 msgstr "Robbantási arány"
 
+msgid "Section View"
+msgstr ""
+
+msgid "Assemble Control"
+msgstr ""
+
 msgid "Total Volume:"
 msgstr "Total Volume:"
 
@@ -2260,6 +2349,9 @@ msgstr "Projekt"
 msgid "Slice"
 msgstr "Szeletelés"
 
+msgid "Send and Print"
+msgstr ""
+
 msgid "Slice all"
 msgstr "Összes szeletelése"
 
@@ -2268,6 +2360,12 @@ msgstr "Tálca szeletelése"
 
 msgid "Print all"
 msgstr "Összes nyomtatása"
+
+msgid "Export G-code file"
+msgstr ""
+
+msgid "Send"
+msgstr "Küldés"
 
 msgid "Export sliced file"
 msgstr "Szeletelt fájl exportálása"
@@ -2293,6 +2391,9 @@ msgstr "Frissítés keresése"
 #, c-format, boost-format
 msgid "&About %s"
 msgstr "&%s névjegye"
+
+msgid "Show Tip of the Day"
+msgstr ""
 
 msgid "Open Network Test"
 msgstr ""
@@ -2584,18 +2685,34 @@ msgstr "Synchronization"
 msgid "Initialize failed (No Device)!"
 msgstr "Sikertelen inicializálás (Nincs eszköz)!"
 
+msgid "Initialize failed (No Camera Device)!"
+msgstr ""
+
 msgid "Initializing..."
 msgstr "Initializing..."
 
 msgid "Loading..."
 msgstr "Loading..."
 
-msgid "Initialize failed (Not supported)!"
+msgid "Initialize failed (Not supported with LAN-only mode)!"
+msgstr ""
+
+msgid "Initialize failed (Not accessible in LAN-only mode)!"
+msgstr ""
+
+msgid "Initialize failed (Not supported without remote video tunnel)!"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Initialize failed [%d]!"
-msgstr "Initalization failed [%d]!"
+msgid "Initialize failed (%s)!"
+msgstr ""
+
+msgid "Network unreachable"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Stopped [%d]!"
+msgstr ""
 
 msgid "Stopped."
 msgstr "Megállítva."
@@ -2643,8 +2760,8 @@ msgstr "Letöltés"
 msgid "Download selected files from printer."
 msgstr ""
 
-msgid "Management"
-msgstr "Management"
+msgid "Select"
+msgstr ""
 
 msgid "Batch manage files."
 msgstr ""
@@ -2668,17 +2785,14 @@ msgstr "Loading file list..."
 msgid "No files"
 msgstr "No files"
 
-msgid "Choose save directory"
-msgstr ""
-
 msgid "Download waiting..."
 msgstr ""
 
-msgid "Retry"
+msgid "Play"
 msgstr ""
 
-msgid "Open"
-msgstr "Open"
+msgid "Open Folder"
+msgstr ""
 
 msgid "Download finished"
 msgstr ""
@@ -2780,6 +2894,9 @@ msgstr "Sport"
 msgid "Ludicrous"
 msgstr "Őrült"
 
+msgid "Failed to connect to the server"
+msgstr "Nem sikerült csatlakozni a szerverhez"
+
 msgid "Status"
 msgstr "Állapot"
 
@@ -2792,14 +2909,8 @@ msgstr "Update"
 msgid "HMS"
 msgstr "HMS"
 
-msgid "Failed to connect to the server"
-msgstr "Nem sikerült csatlakozni a szerverhez"
-
 msgid "Failed to connect to the printer"
 msgstr "Nem sikerült csatlakozni a nyomtatóhoz"
-
-msgid "OK"
-msgstr "OK"
 
 msgid "Yes"
 msgstr "Igen"
@@ -2864,9 +2975,6 @@ msgstr "Új szoftververzió érhető el."
 msgid "Goto download page."
 msgstr "Látogass el a letöltési oldalra."
 
-msgid "More"
-msgstr "Több"
-
 msgid "Open Folder."
 msgstr "Mappa megnyitása."
 
@@ -2881,6 +2989,18 @@ msgid "%1$d Object has color painting."
 msgid_plural "%1$d Objects have color painting."
 msgstr[0] "%1$d objektum színfestést tartalmaz."
 msgstr[1] "%1$d objektum színfestést tartalmaz."
+
+msgid "ERROR"
+msgstr ""
+
+msgid "CANCELED"
+msgstr ""
+
+msgid "COMPLETED"
+msgstr ""
+
+msgid "Cancel upload"
+msgstr ""
 
 msgid "Slice ok."
 msgstr "Szeletelés kész."
@@ -3032,6 +3152,9 @@ msgstr "Filamentcserék"
 msgid "Click to edit preset"
 msgstr "Kattints a beállítás szerkesztéséhez"
 
+msgid "Connection"
+msgstr ""
+
 msgid "Bed type"
 msgstr "Asztaltípus"
 
@@ -3087,6 +3210,11 @@ msgstr "Korábbi, nem mentett projektet találtunk, vissza szeretnéd állítani
 
 msgid "Restore"
 msgstr "Visszaállítás"
+
+msgid ""
+"The bed temperature exceeds filament's vitrification temperature. Please "
+"open the front door of printer before printing to avoid nozzle clog."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -3197,6 +3325,9 @@ msgstr "The selected object couldn't be split."
 
 msgid "Another export job is running."
 msgstr "Egy másik exportálási feladat is fut."
+
+msgid "Another export job is currently running."
+msgstr ""
 
 msgid "Select a new file"
 msgstr ""
@@ -3309,9 +3440,6 @@ msgstr "G-kód fájl mentése mint:"
 msgid "Save Sliced file as:"
 msgstr "Szeletelt fájl mentése mint:"
 
-msgid "preparing, export 3mf failed!"
-msgstr ""
-
 msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
@@ -3385,6 +3513,12 @@ msgstr "Régió kiválasztása"
 msgid "Second"
 msgstr "Másodperc"
 
+msgid "Browse"
+msgstr ""
+
+msgid "Choose Download Directory"
+msgstr ""
+
 msgid "General Settings"
 msgstr "Általános beállítások"
 
@@ -3414,6 +3548,12 @@ msgstr "Angolszász"
 
 msgid "Units"
 msgstr "Mértékegység"
+
+msgid "Show \"Tip of the day\" notification after start"
+msgstr ""
+
+msgid "If enabled, useful hints are displayed at startup."
+msgstr ""
 
 msgid "User sync"
 msgstr "Felhasználói szinkronizálás"
@@ -3461,6 +3601,9 @@ msgstr "Automatikus biztonsági mentés"
 
 msgid "Backup interval"
 msgstr "Intervallum"
+
+msgid "Downloads"
+msgstr ""
 
 msgid "Home page and daily tips"
 msgstr "Kezdőoldal és napi tippek"
@@ -3693,6 +3836,9 @@ msgstr "Egyéb eszköz"
 msgid "Input access code"
 msgstr "Input access code"
 
+msgid "Can't find my devices?"
+msgstr ""
+
 msgid "Log out successful."
 msgstr "Log out successful."
 
@@ -3708,9 +3854,6 @@ msgstr "Bambu Engineering Plate"
 msgid "Bamabu High Temperature Plate"
 msgstr "Bambu High Temperature Plate"
 
-msgid "Send print job to"
-msgstr "Nyomtatási feladat küldése"
-
 msgid "Refresh"
 msgstr "Frissítés"
 
@@ -3720,8 +3863,8 @@ msgstr "Asztalszintezés"
 msgid "Flow Calibration"
 msgstr "Anyagáramlás kalibráció"
 
-msgid "Send"
-msgstr "Küldés"
+msgid "Can't connect to the printer"
+msgstr ""
 
 msgid "send completed"
 msgstr "küldés befejezve"
@@ -3792,11 +3935,32 @@ msgid ""
 "slot."
 msgstr ""
 
+msgid "An SD card needs to be inserted before printing."
+msgstr ""
+
+msgid "An SD card needs to be inserted to recording timelapse"
+msgstr ""
+
+msgid "Please check the following infomation:\n"
+msgstr ""
+
+msgid ""
+"The printer type used to generate G-code is not the same type as the "
+"currently selected physical printer. It is recommend to re-slice by "
+"selecting the same printer type.\n"
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "Nyomtatási feladat előkészítése"
 
 msgid "Modifying the device name"
 msgstr "Modifying the device name"
+
+msgid "Send to Printer"
+msgstr ""
+
+msgid "The printer is required to be in the same LAN as Bambu Studio."
+msgstr ""
 
 msgid "Log in printer"
 msgstr "Log in printer"
@@ -3837,12 +4001,13 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr ""
 
 msgid ""
-"Prime tower is required by timeplase. Are you sure you want to disable both "
-"of them?"
+"Prime tower is required by smooth timeplase. If whthout prime tower, there "
+"will be flaws on the model. Are you sure you want to disable prime tower?"
 msgstr ""
 
 msgid ""
-"Prime tower is required by timelapse. Do you want to enable both of them?"
+"Prime tower is required by smooth timelapse. If whthout prime tower, there "
+"will be flaws on the model. Do you want to enable prime tower?"
 msgstr ""
 
 msgid ""
@@ -4047,6 +4212,9 @@ msgstr "Filament befejező G-kód"
 msgid "Printable space"
 msgstr "Nyomtatási terület"
 
+msgid "Extruder Clearance"
+msgstr ""
+
 msgid "Accessory"
 msgstr "Tartozékok"
 
@@ -4070,6 +4238,9 @@ msgstr "Filament csere G-kód"
 
 msgid "Pause G-code"
 msgstr "Szünet G-kód"
+
+msgid "Template Custom G-code"
+msgstr ""
 
 msgid "Motion ability"
 msgstr "Géplimitek"
@@ -4114,9 +4285,6 @@ msgstr "Összes"
 
 msgid "Set"
 msgstr "Beállít"
-
-msgid "Custom G-code"
-msgstr "Egyedi G-kód"
 
 msgid "Click to reset current value and attach to the global value."
 msgstr "Click to reset current value and attach to the global value."
@@ -4592,23 +4760,6 @@ msgstr "A Bambu Studio új verziója"
 msgid "Don't remind me of this version again"
 msgstr ""
 
-msgid ""
-"Are you sure you want to update? This will take about 10 minutes. Do not "
-"turn off the power while the printer is updating."
-msgstr ""
-
-msgid ""
-"An important update was detected and needs to be run before printing can "
-"continue. Do you want to update now? You can also update later from 'Upgrade "
-"firmware'."
-msgstr ""
-
-msgid ""
-"The firmware version is abnormal. Repairing and updating are required before "
-"printing. Do you want to update now? You can also update later on printer or "
-"update next time starting the studio."
-msgstr ""
-
 msgid "Model:"
 msgstr ""
 
@@ -4637,6 +4788,23 @@ msgid "Upgrading failed"
 msgstr ""
 
 msgid "Upgrading successful"
+msgstr ""
+
+msgid ""
+"Are you sure you want to update? This will take about 10 minutes. Do not "
+"turn off the power while the printer is updating."
+msgstr ""
+
+msgid ""
+"An important update was detected and needs to be run before printing can "
+"continue. Do you want to update now? You can also update later from 'Upgrade "
+"firmware'."
+msgstr ""
+
+msgid ""
+"The firmware version is abnormal. Repairing and updating are required before "
+"printing. Do you want to update now? You can also update later on printer or "
+"update next time starting the studio."
 msgstr ""
 
 msgid "Saving objects into the 3mf failed."
@@ -4880,19 +5048,14 @@ msgstr "write callback failed"
 
 #, boost-format
 msgid ""
-"%1% is too close to exclusion area, there will be collisions when printing."
+"%1% is too close to exclusion area, there may be collisions when printing."
 msgstr ""
-"%1% túl közel van a tiltott területhez, a nyomtatás során előfordulhatnak "
-"ütközések."
 
 #, boost-format
 msgid ""
 "\n"
-"%1% is too close to exclusion area, there will be collisions when printing."
+"%1% is too close to exclusion area, there may be collisions when printing."
 msgstr ""
-"\n"
-"%1% túl közel van a tiltott területhez, a nyomtatás során előfordulhatnak "
-"ütközések."
 
 #, boost-format
 msgid "%1% is too close to others, and collisions may be caused."
@@ -4904,16 +5067,12 @@ msgstr ""
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% túl magas, a nyomtatás során előfordulhatnak ütközések."
 
-msgid " is too close to others, there will be collisions when printing.\n"
+msgid " is too close to others, there may be collisions when printing.\n"
 msgstr ""
-" túl közel van a tiltott területhez, a nyomtatás során előfordulhatnak "
-"ütközések.\n"
 
 msgid ""
-" is too close to exclusion area, there will be collisions when printing.\n"
+" is too close to exclusion area, there may be collisions when printing.\n"
 msgstr ""
-" túl közel van a tiltott területhez, a nyomtatás során előfordulhatnak "
-"ütközések.\n"
 
 msgid "Prime Tower"
 msgstr "Törlő torony"
@@ -5064,22 +5223,83 @@ msgstr ""
 msgid "Printer preset names"
 msgstr "Nyomtató beállítások neve"
 
-msgid "Avoid crossing wall when travel"
-msgstr "Falak elkerülése mozgáskor"
+msgid "Hostname, IP or URL"
+msgstr ""
+
+msgid ""
+"Slic3r can upload G-code files to a printer host. This field should contain "
+"the hostname, IP address or URL of the printer host instance. Print host "
+"behind HAProxy with basic auth enabled can be accessed by putting the user "
+"name and password into the URL in the following format: https://username:"
+"password@your-octopi-address/"
+msgstr ""
+
+msgid "API Key / Password"
+msgstr ""
+
+msgid ""
+"Slic3r can upload G-code files to a printer host. This field should contain "
+"the API Key or the password required for authentication."
+msgstr ""
+
+msgid "Name of the printer"
+msgstr ""
+
+msgid "HTTPS CA File"
+msgstr ""
+
+msgid ""
+"Custom CA certificate file can be specified for HTTPS OctoPrint connections, "
+"in crt/pem format. If left blank, the default OS CA certificate repository "
+"is used."
+msgstr ""
+
+msgid "User"
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "Ignore HTTPS certificate revocation checks"
+msgstr ""
+
+msgid ""
+"Ignore HTTPS certificate revocation checks in case of missing or offline "
+"distribution points. One may want to enable this option for self signed "
+"certificates if connection fails."
+msgstr ""
+
+msgid "Names of presets related to the physical printer"
+msgstr ""
+
+msgid "Authorization Type"
+msgstr ""
+
+msgid "API key"
+msgstr ""
+
+msgid "HTTP digest"
+msgstr ""
+
+msgid "Avoid crossing wall"
+msgstr ""
 
 msgid "Detour and avoid to travel across wall which may cause blob on surface"
 msgstr ""
 "Kerülje a falon keresztül való áthaladást, ami nyomot hagyhat a felületen"
 
-msgid "Max travel detour distance"
-msgstr "Max travel detour distance"
+msgid "Avoid crossing wall - Max detour length"
+msgstr ""
 
 msgid ""
 "Maximum detour distance for avoiding crossing wall. Don't detour if the "
-"detour distance is large than this value"
+"detour distance is large than this value. Detour length could be specified "
+"either as an absolute value or as percentage (for example 50%) of a direct "
+"travel path. Zero to disable"
 msgstr ""
-"Maximum detour distance for avoiding travel across walls. If the distance is "
-"larger than this value, there will be no detour."
+
+msgid "mm or %"
+msgstr ""
 
 msgid "Other layers"
 msgstr "Többi réteg"
@@ -5472,25 +5692,25 @@ msgid "Height to rod"
 msgstr "Height to rod"
 
 msgid ""
-"Height of the clearance cylinder around extruder. Used as input of auto-"
-"arrange to avoid collision when print object by object"
+"Distance of the nozzle tip to the lower rod. Used as input of auto-arranging "
+"to avoid collision when printing by object"
 msgstr ""
-"Height of the clearance cylinder around extruder: used as input for auto-"
-"arranging to avoid collisions when printing object by object"
 
 msgid "Height to lid"
 msgstr "Height to lid"
+
+msgid ""
+"Distance of the nozzle tip to the lid. Used as input of auto-arranging to "
+"avoid collision when printing by object"
+msgstr ""
 
 msgid "Radius"
 msgstr "Radius"
 
 msgid ""
-"Clearance radius around extruder. Used as input of auto-arrange to avoid "
-"collision when print object by object"
+"Clearance radius around extruder. Used as input of auto-arranging to avoid "
+"collision when printing by object"
 msgstr ""
-"Az extruder körüli biztonságos terület sugara. Az automatikus elrendezéshez "
-"használatos az ütközések elkerülése érdekében, amikor objektumonként "
-"nyomtatsz"
 
 msgid "Extruder Color"
 msgstr "Extruder szín"
@@ -5696,6 +5916,9 @@ msgstr "Méhsejt"
 msgid "Adaptive Cubic"
 msgstr "Adaptív kocka"
 
+msgid "Lightning"
+msgstr ""
+
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
@@ -5834,6 +6057,9 @@ msgstr ""
 "The metallic material of the nozzle: This determines the abrasive resistance "
 "of the nozzle and what kind of filament can be printed."
 
+msgid "Undefine"
+msgstr ""
+
 msgid "Hardened steel"
 msgstr "Edzett acél"
 
@@ -5942,6 +6168,14 @@ msgid ""
 msgstr ""
 "Whether the machine supports silent mode in which machine uses lower "
 "acceleration to print more quietly"
+
+msgid ""
+"This G-code will be used as a code for the pause print. User can insert "
+"pause G-code in gcode viewer"
+msgstr ""
+
+msgid "This G-code will be used as a custom code"
+msgstr ""
 
 msgid "Maximum speed X"
 msgstr "Maximális sebesség X"
@@ -6101,6 +6335,14 @@ msgstr "Nozzle diameter"
 
 msgid "Diameter of nozzle"
 msgstr "Fúvóka átmérője"
+
+msgid "Host Type"
+msgstr ""
+
+msgid ""
+"Slic3r can upload G-code files to a printer host. This field must contain "
+"the kind of the host."
+msgstr ""
 
 msgid "Nozzle volume"
 msgstr "Nozzle volume"
@@ -6907,10 +7149,6 @@ msgstr "Háló szeletelése"
 msgid " Object:"
 msgstr " Objektum:"
 
-#, boost-format
-msgid "Error at line %1%:\n"
-msgstr "Hiba a következő sorban %1%:\n"
-
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
 msgstr "Support: generate toolpath at layer %d"
@@ -6942,6 +7180,252 @@ msgstr "Support: fix holes at layer %d"
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: propagate branches at layer %d"
 
+#: resources/data/hints.ini: [hint:3D Scene Operations]
+msgid ""
+"3D Scene Operations\n"
+"Did you know how to control view and object/part selection with mouse and "
+"touchpanel in the 3D scene?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Cut Tool]
+msgid ""
+"Cut Tool\n"
+"Did you know that you can cut a model at any angle and position with the "
+"cutting tool?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Fix Model]
+msgid ""
+"Fix Model\n"
+"Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
+"problems?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Timelapse]
+msgid ""
+"Timelapse\n"
+"Did you know that you can generate a timelapse video during each print?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Auto-Arrange]
+msgid ""
+"Auto-Arrange\n"
+"Did you know that you can auto-arrange all objects in your project?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Auto-Orient]
+msgid ""
+"Auto-Orient\n"
+"Did you know that you can rotate objects to an optimal orientation for "
+"printing by a simple click?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Lay on Face]
+msgid ""
+"Lay on Face\n"
+"Did you know that you can quickly orient a model so that one of its faces "
+"sits on the print bed? Select the \"Place on face\" function or press the "
+"<b>F</b> key."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Object List]
+msgid ""
+"Object List\n"
+"Did you know that you can view all objects/parts in a list and change "
+"settings for each object/part?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Simplify Model]
+msgid ""
+"Simplify Model\n"
+"Did you know that you can reduce the number of triangles in a mesh using the "
+"Simplify mesh feature? Right-click the model and select Simplify model. Read "
+"more in the documentation."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Slicing Parameter Table]
+msgid ""
+"Slicing Parameter Table\n"
+"Did you know that you can view all objects/parts on a table and change "
+"settings for each object/part?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Split to Objects/Parts]
+msgid ""
+"Split to Objects/Parts\n"
+"Did you know that you can split a big object into small ones for easy "
+"colorizing or printing?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Subtract a Part]
+msgid ""
+"Subtract a Part\n"
+"Did you know that you can subtract one mesh from another using the Negative "
+"part modifier? That way you can, for example, create easily resizable holes "
+"directly in Bambu Studio. Read more in the documentation."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:STEP]
+msgid ""
+"STEP\n"
+"Did you know that you can improve your print quality by slicing a STEP file "
+"instead of an STL?\n"
+"Bambu Studio supports slicing STEP files, providing smoother results than a "
+"lower resolution STL. Give it a try!"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Z seam location]
+msgid ""
+"Z seam location\n"
+"Did you know that you can customize the location of the Z seam, and even "
+"paint it on your print, to have it in a less visible location? This improves "
+"the overall look of your model. Check it out!"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
+msgid ""
+"Fine-tuning for flow rate\n"
+"Did you know that flow rate can be fine-tuned for even better-looking "
+"prints? Depending on the material, you can improve the overall finish of the "
+"printed model by doing some fine-tuning."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Split your prints into plates]
+msgid ""
+"Split your prints into plates\n"
+"Did you know that you can split a model that has a lot of parts into "
+"individual plates ready to print? This will simplify the process of keeping "
+"track of all the parts."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
+#: Height]
+msgid ""
+"Speed up your print with Adaptive Layer Height\n"
+"Did you know that you can print a model even faster, by using the Adaptive "
+"Layer Height option? Check it out!"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Support painting]
+msgid ""
+"Support painting\n"
+"Did you know that you can paint the location of your supports? This feature "
+"makes it easy to place the support material only on the sections of the "
+"model that actually need it."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Different types of supports]
+msgid ""
+"Different types of supports\n"
+"Did you know that you can choose from multiple types of supports? Tree "
+"supports work great for organic models, while saving filament and improving "
+"print speed. Check them out!"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Printing Silk Filament]
+msgid ""
+"Printing Silk Filament\n"
+"Did you know that Silk filament needs special consideration to print it "
+"successfully? Higher temperature and lower speed are always recommended for "
+"the best results."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Brim for better adhesion]
+msgid ""
+"Brim for better adhesion\n"
+"Did you know that when printing models have a small contact interface with "
+"the printing surface, it's recommended to use a brim?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Set parameters for multiple objects]
+msgid ""
+"Set parameters for multiple objects\n"
+"Did you know that you can set slicing parameters for all selected objects at "
+"one time?"
+msgstr ""
+
+#~ msgid "Erase painting"
+#~ msgstr "Festés törlése"
+
+#~ msgid "Set pen size"
+#~ msgstr "Tollméret beállítása"
+
+#~ msgid "Rotation:"
+#~ msgstr "Forgatás:"
+
+#~ msgid "Height:"
+#~ msgstr "Magasság:"
+
+#~ msgid "Initialize failed [%d]!"
+#~ msgstr "Initalization failed [%d]!"
+
+#~ msgid "Management"
+#~ msgstr "Management"
+
+#~ msgid "Open"
+#~ msgstr "Open"
+
+#~ msgid "Send print job to"
+#~ msgstr "Nyomtatási feladat küldése"
+
+#~ msgid ""
+#~ "%1% is too close to exclusion area, there will be collisions when "
+#~ "printing."
+#~ msgstr ""
+#~ "%1% túl közel van a tiltott területhez, a nyomtatás során előfordulhatnak "
+#~ "ütközések."
+
+#~ msgid ""
+#~ "\n"
+#~ "%1% is too close to exclusion area, there will be collisions when "
+#~ "printing."
+#~ msgstr ""
+#~ "\n"
+#~ "%1% túl közel van a tiltott területhez, a nyomtatás során előfordulhatnak "
+#~ "ütközések."
+
+#~ msgid " is too close to others, there will be collisions when printing.\n"
+#~ msgstr ""
+#~ " túl közel van a tiltott területhez, a nyomtatás során előfordulhatnak "
+#~ "ütközések.\n"
+
+#~ msgid ""
+#~ " is too close to exclusion area, there will be collisions when printing.\n"
+#~ msgstr ""
+#~ " túl közel van a tiltott területhez, a nyomtatás során előfordulhatnak "
+#~ "ütközések.\n"
+
+#~ msgid "Avoid crossing wall when travel"
+#~ msgstr "Falak elkerülése mozgáskor"
+
+#~ msgid "Max travel detour distance"
+#~ msgstr "Max travel detour distance"
+
+#~ msgid ""
+#~ "Maximum detour distance for avoiding crossing wall. Don't detour if the "
+#~ "detour distance is large than this value"
+#~ msgstr ""
+#~ "Maximum detour distance for avoiding travel across walls. If the distance "
+#~ "is larger than this value, there will be no detour."
+
+#~ msgid ""
+#~ "Height of the clearance cylinder around extruder. Used as input of auto-"
+#~ "arrange to avoid collision when print object by object"
+#~ msgstr ""
+#~ "Height of the clearance cylinder around extruder: used as input for auto-"
+#~ "arranging to avoid collisions when printing object by object"
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used as input of auto-arrange to avoid "
+#~ "collision when print object by object"
+#~ msgstr ""
+#~ "Az extruder körüli biztonságos terület sugara. Az automatikus "
+#~ "elrendezéshez használatos az ütközések elkerülése érdekében, amikor "
+#~ "objektumonként nyomtatsz"
+
+#~ msgid "Error at line %1%:\n"
+#~ msgstr "Hiba a következő sorban %1%:\n"
+
 #~ msgid "Reduce Triangles"
 #~ msgstr "Háromszögek csökkentése"
 
@@ -6971,9 +7455,6 @@ msgstr "Support: propagate branches at layer %d"
 
 #~ msgid "0%"
 #~ msgstr "0%"
-
-#~ msgid "Alt + Mouse wheel"
-#~ msgstr "Alt + Mouse wheel"
 
 #~ msgid ""
 #~ "An object is layed over the boundary of plate.\n"

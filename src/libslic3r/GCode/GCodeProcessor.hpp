@@ -16,6 +16,9 @@
 
 namespace Slic3r {
 
+// slice warnings enum strings
+#define BED_TEMP_TOO_HIGH_THAN_FILAMENT     "bed_temperature_too_high_than_filament"
+
     enum class EMoveType : unsigned char
     {
         Noop,
@@ -128,6 +131,12 @@ namespace Slic3r {
             }
         };
 
+        struct SliceWarning {
+            int         level;                  // 0: normal tips, 1: warning; 2: error
+            std::string msg;                    // enum string
+            std::vector<std::string> params;    // extra msg info
+        };
+
         std::string filename;
         unsigned int id;
         std::vector<MoveVertex> moves;
@@ -144,8 +153,11 @@ namespace Slic3r {
         std::vector<std::string> extruder_colors;
         std::vector<float> filament_diameters;
         std::vector<float> filament_densities;
+        std::vector<int> filament_vitrification_temperature;
         PrintEstimatedStatistics print_statistics;
         std::vector<CustomGCode::Item> custom_gcode_per_print_z;
+        //BBS
+        std::vector<SliceWarning> warnings;
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
         int64_t time{ 0 };
@@ -171,6 +183,7 @@ namespace Slic3r {
             filament_densities = other.filament_densities;
             print_statistics = other.print_statistics;
             custom_gcode_per_print_z = other.custom_gcode_per_print_z;
+            warnings = other.warnings;
 #if ENABLE_GCODE_VIEWER_STATISTICS
             time = other.time;
 #endif
@@ -593,6 +606,7 @@ namespace Slic3r {
         unsigned char m_last_extruder_id;
         ExtruderColors m_extruder_colors;
         ExtruderTemps m_extruder_temps;
+        int m_highest_bed_temp;
         float m_extruded_last_z;
         float m_first_layer_height; // mm
         float m_zero_layer_height; // mm
@@ -759,6 +773,12 @@ namespace Slic3r {
         // Set tool (MakerWare)
         void process_M135(const GCodeReader::GCodeLine& line);
 
+        //BBS: Set bed temperature
+        void process_M140(const GCodeReader::GCodeLine& line);
+
+        //BBS: wait bed temperature
+        void process_M190(const GCodeReader::GCodeLine& line);
+
         // Set max printing acceleration
         void process_M201(const GCodeReader::GCodeLine& line);
 
@@ -811,6 +831,7 @@ namespace Slic3r {
         void  set_travel_acceleration(PrintEstimatedStatistics::ETimeMode mode, float value);
         float get_filament_load_time(size_t extruder_id);
         float get_filament_unload_time(size_t extruder_id);
+        int   get_filament_vitrification_temperature(size_t extrude_id);
 
         void process_custom_gcode_time(CustomGCode::Type code);
         void process_filaments(CustomGCode::Type code);
@@ -819,6 +840,8 @@ namespace Slic3r {
         void simulate_st_synchronize(float additional_time = 0.0f);
 
         void update_estimated_times_stats();
+        //BBS:
+        void update_slice_warnings();
    };
 
 } /* namespace Slic3r */

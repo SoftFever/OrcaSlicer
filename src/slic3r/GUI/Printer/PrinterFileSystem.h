@@ -18,6 +18,7 @@ using nlohmann::json;
 wxDECLARE_EVENT(EVT_STATUS_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_MODE_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_FILE_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SELECT_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_THUMBNAIL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_DOWNLOAD, wxCommandEvent);
 
@@ -95,6 +96,7 @@ public:
         wxBitmap    thumbnail;
         int         flags = 0;
         int         progress = -1; // -1: waiting
+        std::string path;
 
         bool IsSelect() const { return flags & FF_SELECT; }
         bool IsDownload() const { return flags & FF_DOWNLOAD; }
@@ -124,6 +126,10 @@ public:
 
     void DownloadFiles(size_t index, std::string const &path);
 
+    void DownloadCheckFiles(std::string const &path);
+
+    bool DownloadCheckFile(size_t index);
+
     void DownloadCancel(size_t index);
 
     size_t GetCount() const;
@@ -133,6 +139,8 @@ public:
     void ToggleSelect(size_t index);
     
     void SelectAll(bool select);
+
+    size_t GetSelectCount() const;
 
     void SetFocusRange(size_t start, size_t count);
 
@@ -164,7 +172,7 @@ private:
 
     void DeleteFilesContinue();
 
-    void DownloadNextFile(std::string const &path);
+    void DownloadNextFile();
 
     void UpdateFocusThumbnail();
 
@@ -174,7 +182,7 @@ private:
 
     void SendChangedEvent(wxEventType type, size_t index = (size_t)-1, std::string const &str = {}, long extra = 0);
 
-    static void DumpLog(Bambu_Session *session, int level, Bambu_Message const *msg);
+    static void DumpLog(void* context, int level, tchar const *msg);
 
 private:
     template<typename T> using Translator = std::function<int(json const &, T &, unsigned char const *)>;
@@ -260,13 +268,15 @@ protected:
     std::vector<size_t> m_group_month;
 
 private:
+    size_t m_select_count = 0;
     size_t m_lock_start = 0;
     size_t m_lock_end   = 0;
     int m_task_flags = 0;
 
 private:
-    struct Session : Bambu_Session
+    struct Session
     {
+        Bambu_Tunnel tunnel = nullptr;
         PrinterFileSystem * owner;
     };
     Session m_session;

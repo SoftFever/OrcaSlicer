@@ -139,6 +139,8 @@ void AuFile::enter_rename_mode()
 {
     m_input_name->Show();
     m_text_name->Hide();
+    auto name = m_file_name.SubString(0, (m_file_name.Find(".") - 1));
+    m_input_name->GetTextCtrl()->SetLabelText(name);
     Layout();
 }
 

@@ -103,7 +103,10 @@ void BindJob::process()
                 msg = _L("Logging in");
             }
             if (code != 0) {
-                msg = _L("Login failed") + wxString::Format("(code=%d,info=%s)", code, info);
+                msg = _L("Login failed") + wxString::Format("(code=%d,info=%s). ", code, info);
+                if (code == BAMBU_NETWORK_ERR_TIMEOUT) {
+                    msg += _L("Please check the printer network connection.");
+                }
             }
             update_status(curr_percent, msg);
         }

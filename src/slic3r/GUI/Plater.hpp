@@ -20,6 +20,7 @@
 #include "PartPlate.hpp"
 #include "GUI_App.hpp"
 #include "Jobs/PrintJob.hpp"
+#include "Jobs/SendJob.hpp"
 #include "libslic3r/Model.hpp"
 
 class wxButton;
@@ -160,6 +161,8 @@ private:
 
     wxBoxSizer* m_scrolled_sizer = nullptr;
     ComboBox* m_bed_type_list = nullptr;
+    ScalableButton* connection_btn = nullptr;
+    ScalableButton* ams_btn = nullptr;
 };
 
 class Plater: public wxPanel
@@ -232,6 +235,7 @@ public:
     static void setPrintSpeedTable(Slic3r::GlobalSpeedMap& printSpeedMap);
     static void setExtruderParams(std::map<size_t, Slic3r::ExtruderParams>& extParas);
     static wxColour get_next_color_for_filament();
+    static wxString get_slice_warning_string(GCodeProcessorResult::SliceWarning& warning);
 
     // BBS: restore
     std::vector<size_t> load_files(const std::vector<boost::filesystem::path>& input_files, LoadStrategy strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig,  bool ask_multi = false);
@@ -296,6 +300,7 @@ public:
     void segment(size_t obj_idx, size_t instance_idx, double smoothing_alpha=0.5, int segment_number=5);
     void merge(size_t obj_idx, std::vector<int>& vol_indeces);
 
+    void send_to_printer();
     void export_gcode(bool prefer_removable);
     void export_gcode_3mf();
     void export_core_3mf();
@@ -330,10 +335,12 @@ public:
     /* -1: send current gcode if not specified
      * -2: send all gcode to target machine */
     int send_gcode(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
-    void send_gcode_legacy(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
+    void send_gcode_legacy(int plate_idx = -1, Export3mfProgressFn proFn = nullptr, bool upload_only = false);
     int export_config_3mf(int plate_idx = -1, Export3mfProgressFn proFn = nullptr);
     //BBS jump to nonitor after print job finished
     void print_job_finished(wxCommandEvent &evt);
+    void send_job_finished(wxCommandEvent& evt);
+    void publish_job_finished(wxCommandEvent& evt);
 	void eject_drive();
 
     void take_snapshot(const std::string &snapshot_name);
@@ -397,6 +404,8 @@ public:
     //BBS: add print job releated functions
     void get_print_job_data(PrintPrepareData* data);
     int get_print_finished_event();
+    int get_send_finished_event();
+    int get_publish_finished_event();
 
     void set_current_canvas_as_dirty();
     void unbind_canvas_event_handlers();
@@ -612,6 +621,9 @@ public:
 
     void toggle_render_statistic_dialog();
     bool is_render_statistic_dialog_visible() const;
+
+    void toggle_show_wireframe();
+    bool is_show_wireframe() const;
 
 	// Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.
 	bool PopupMenu(wxMenu *menu, const wxPoint& pos = wxDefaultPosition);

@@ -136,6 +136,6 @@
   "layer_change_gcode": "",
   "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0\n",
   "scan_first_layer": "0",
-  "nozzle_type": "hardened_steel",
+  "nozzle_type": "undefine",
   "auxiliary_fan": "0"
 }

@@ -85,6 +85,7 @@ wxString PrintJob::get_http_error_msg(unsigned int status, std::string body)
     else {
         wxString unkown_text = _L("Unkown Error.");
         unkown_text += wxString::Format("status=%u, body=%s", status, body);
+        BOOST_LOG_TRIVIAL(error) << "http_error: status=" << status << ", code=" << code << ", error=" << error;
         return unkown_text;
     }
 
@@ -151,6 +152,7 @@ void PrintJob::process()
     params.task_layer_inspect   = this->task_layer_inspect;
     params.task_record_timelapse= this->task_record_timelapse;
     params.ams_mapping          = this->task_ams_mapping;
+    params.ams_mapping_info     = this->task_ams_mapping_info;
     params.connection_type      = this->connection_type;
     params.task_use_ams         = this->task_use_ams;
 

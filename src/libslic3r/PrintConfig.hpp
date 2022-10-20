@@ -50,7 +50,7 @@ enum AuthorizationType {
     atKeyPassword, atUserPassword
 };
 
-#define HAS_LIGHTNING_INFILL 0
+#define HAS_LIGHTNING_INFILL 1
 
 enum InfillPattern : int {
     ipConcentric, ipRectilinear, ipGrid, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
@@ -96,6 +96,9 @@ enum class SlicingMode
 
 enum SupportMaterialPattern {
     smpRectilinear, smpRectilinearGrid, smpHoneycomb,
+#if HAS_LIGHTNING_INFILL
+    smpLightning,
+#endif // HAS_LIGHTNING_INFILL
 };
 
 enum SupportMaterialStyle {
@@ -178,7 +181,8 @@ enum BedType {
 
 // BBS
 enum NozzleType {
-    ntHardenedSteel = 0,
+    ntUndefine = 0,
+    ntHardenedSteel,
     ntStainlessSteel,
     ntBrass,
     ntCount
@@ -794,6 +798,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               travel_speed_z))
     ((ConfigOptionBool,                silent_mode))
     ((ConfigOptionString,              machine_pause_gcode))
+    ((ConfigOptionString,              template_custom_gcode))
     //BBS
     ((ConfigOptionEnum<NozzleType>,    nozzle_type))
     ((ConfigOptionBool,                auxiliary_fan))
@@ -807,7 +812,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     //BBS
     ((ConfigOptionInts,               additional_cooling_fan_speed))
     ((ConfigOptionBool,               reduce_crossing_wall))
-    ((ConfigOptionFloat,              max_travel_detour_distance))
+    ((ConfigOptionFloatOrPercent,     max_travel_detour_distance))
     ((ConfigOptionPoints,             printable_area))
     //BBS: add bed_exclude_area
     ((ConfigOptionPoints,             bed_exclude_area))

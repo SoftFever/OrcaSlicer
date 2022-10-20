@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFN99",
-    "setting_id": "GFSN98",
+    "setting_id": "GFSN99_VORON_00",
     "name": "Voron Generic PA",
     "from": "system",
     "instantiation": "true",

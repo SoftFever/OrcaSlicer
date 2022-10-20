@@ -170,10 +170,10 @@ void AppConfig::set_defaults()
         set_bool("reverse_mouse_wheel_zoom", false);
 #endif
 
-#ifdef SUPPORT_SHOW_HINTS
+//#ifdef SUPPORT_SHOW_HINTS
     if (get("show_hints").empty())
         set_bool("show_hints", true);
-#endif
+//#endif
 
 
 #ifdef _WIN32
@@ -273,6 +273,10 @@ void AppConfig::set_defaults()
         set("precise_control", "none/mouse left");
     }
 
+    if (get("download_path").empty()) {
+        set("download_path", "");
+    }
+
     if (get("mouse_wheel").empty()) {
         set("mouse_wheel", "0");
     }
@@ -284,7 +288,7 @@ void AppConfig::set_defaults()
     if (get("backup_interval").empty()) {
         set("backup_interval", "10");
     }
-
+    
     if (get("curr_bed_type").empty()) {
         set("curr_bed_type", "0");
     }
@@ -298,10 +302,6 @@ void AppConfig::set_defaults()
 //         set("iot_environment", "1");
 //     }
 // #endif
-
-    if (get("uniform_scale").empty()) {
-        set("uniform_scale", "1");
-    }
 
     // Remove legacy window positions/sizes
     erase("app", "main_frame_maximized");

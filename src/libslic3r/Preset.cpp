@@ -2,6 +2,7 @@
 
 #include "Exception.hpp"
 #include "Preset.hpp"
+#include "PresetBundle.hpp"
 #include "AppConfig.hpp"
 
 #ifdef _MSC_VER
@@ -643,6 +644,44 @@ std::string Preset::get_filament_type(std::string &display_filament_type)
     return config.get_filament_type(display_filament_type);
 }
 
+std::string Preset::get_printer_type(PresetBundle *preset_bundle)
+{
+    if (preset_bundle) {
+        auto config = &preset_bundle->printers.get_edited_preset().config;
+        std::string vendor_name;
+        for (auto vendor_profile : preset_bundle->vendors) {
+            for (auto vendor_model : vendor_profile.second.models)
+                if (vendor_model.name == config->opt_string("printer_model"))
+                {
+                    vendor_name = vendor_profile.first;
+                    return vendor_model.model_id;
+                }
+        }    
+    }
+    return "";
+}
+
+
+bool Preset::is_bbl_vendor_preset(PresetBundle *preset_bundle)
+{
+    bool is_bbl_vendor_preset = true;
+    if (preset_bundle) {
+        auto config = &preset_bundle->printers.get_edited_preset().config;
+        std::string vendor_name;
+        for (auto vendor_profile : preset_bundle->vendors) {
+            for (auto vendor_model : vendor_profile.second.models)
+                if (vendor_model.name == config->opt_string("printer_model"))
+                {
+                    vendor_name = vendor_profile.first;
+                    break;
+                }
+        }
+        if (!vendor_name.empty())
+            is_bbl_vendor_preset = vendor_name.compare("BBL") == 0 ? true : false;
+    }
+    return is_bbl_vendor_preset;
+}
+
 static std::vector<std::string> s_Preset_print_options {
     "layer_height", "initial_layer_print_height", "wall_loops", "slice_closing_radius", "spiral_mode",
     "top_shell_layers", "top_shell_thickness", "bottom_shell_layers", "bottom_shell_thickness",
@@ -728,7 +767,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "default_print_profile", "inherits",
     "silent_mode",
     // BBS
-    "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode",
+    "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode",
     "nozzle_type", "nozzle_diameter", "auxiliary_fan", "nozzle_volume",
     //SoftFever
     "host_type", "print_host", "printhost_apikey", 

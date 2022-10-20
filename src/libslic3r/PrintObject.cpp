@@ -14,6 +14,7 @@
 #include "TriangleMeshSlicer.hpp"
 #include "Utils.hpp"
 #include "Fill/FillAdaptive.hpp"
+#include "Fill/FillLightning.hpp"
 #include "Format/STL.hpp"
 #include "InternalBridgeDetector.hpp"
 #include "TreeSupport.hpp"
@@ -367,14 +368,16 @@ void PrintObject::infill()
         m_print->set_status(35, L("Generating infill toolpath"));
 
         auto [adaptive_fill_octree, support_fill_octree] = this->prepare_adaptive_infill_data();
+        auto lightning_generator = this->prepare_lightning_infill_data();
+
 
         BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - start";
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),
-            [this, &adaptive_fill_octree = adaptive_fill_octree, &support_fill_octree = support_fill_octree](const tbb::blocked_range<size_t>& range) {
+            [this, &adaptive_fill_octree = adaptive_fill_octree, &support_fill_octree = support_fill_octree, &lightning_generator](const tbb::blocked_range<size_t>& range) {
                 for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                     m_print->throw_if_canceled();
-                    m_layers[layer_idx]->make_fills(adaptive_fill_octree.get(), support_fill_octree.get());
+                    m_layers[layer_idx]->make_fills(adaptive_fill_octree.get(), support_fill_octree.get(), lightning_generator.get());
                 }
             }
         );
@@ -532,6 +535,18 @@ std::pair<FillAdaptive::OctreePtr, FillAdaptive::OctreePtr> PrintObject::prepare
     return std::make_pair(
         adaptive_line_spacing ? build_octree(mesh, overhangs.front(), adaptive_line_spacing, false) : OctreePtr(),
         support_line_spacing  ? build_octree(mesh, overhangs.front(), support_line_spacing, true) : OctreePtr());
+}
+
+FillLightning::GeneratorPtr PrintObject::prepare_lightning_infill_data()
+{
+    bool has_lightning_infill = false;
+    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id)
+        if (const PrintRegionConfig& config = this->printing_region(region_id).config(); config.sparse_infill_density > 0 && config.sparse_infill_pattern == ipLightning) {
+            has_lightning_infill = true;
+            break;
+        }
+
+    return has_lightning_infill ? FillLightning::build_generator(std::as_const(*this)) : FillLightning::GeneratorPtr();
 }
 
 void PrintObject::clear_layers()
@@ -759,6 +774,17 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "top_surface_line_width"
             || opt_key == "initial_layer_line_width") {
             steps.emplace_back(posInfill);
+        } else if (opt_key == "sparse_infill_pattern") {
+            steps.emplace_back(posInfill);
+#if HAS_LIGHTNING_INFILL
+            const auto *old_fill_pattern = old_config.option<ConfigOptionEnum<InfillPattern>>(opt_key);
+            const auto *new_fill_pattern = new_config.option<ConfigOptionEnum<InfillPattern>>(opt_key);
+            assert(old_fill_pattern && new_fill_pattern);
+            // We need to recalculate infill surfaces when infill_only_where_needed is enabled, and we are switching from
+            // the Lightning infill to another infill or vice versa.
+            if (PrintObject::infill_only_where_needed && (new_fill_pattern->value == ipLightning || old_fill_pattern->value == ipLightning))
+                steps.emplace_back(posPrepareInfill);
+#endif
         } else if (opt_key == "sparse_infill_density") {
             // One likely wants to reslice only when switching between zero infill to simulate boolean difference (subtracting volumes),
             // normal infill and 100% (solid) infill.
@@ -781,6 +807,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "fuzzy_skin_thickness"
             || opt_key == "fuzzy_skin_point_distance"
             || opt_key == "detect_overhang_wall"
+            //BBS
+            || opt_key == "enable_overhang_speed"
             || opt_key == "detect_thin_wall") {
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posSupportMaterial);
@@ -796,8 +824,6 @@ bool PrintObject::invalidate_state_by_config_options(
                opt_key == "seam_position"
             || opt_key == "support_speed"
             || opt_key == "support_interface_speed"
-            //BBS
-            || opt_key == "enable_overhang_speed"
             || opt_key == "overhang_1_4_speed"
             || opt_key == "overhang_2_4_speed"
             || opt_key == "overhang_3_4_speed"

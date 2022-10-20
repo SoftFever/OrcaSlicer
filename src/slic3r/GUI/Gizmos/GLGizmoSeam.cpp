@@ -29,16 +29,18 @@ bool GLGizmoSeam::on_init()
 {
     m_shortcut_key = WXK_CONTROL_P;
 
-    m_desc["clipping_of_view"] = _L("Section view") + ": ";
+    m_desc["clipping_of_view_caption"] = _L("Alt + Mouse wheel");
+    m_desc["clipping_of_view"] = _L("Section view");
     m_desc["reset_direction"]  = _L("Reset direction");
-    m_desc["cursor_size"]      = _L("Brush size") + ": ";
-    m_desc["cursor_type"]      = _L("Brush shape") + ": ";
-    m_desc["enforce_caption"]  = _L("Left mouse button") + ": ";
+    m_desc["cursor_size_caption"] = _L("Ctrl + Mouse wheel");
+    m_desc["cursor_size"]      = _L("Brush size");
+    m_desc["cursor_type"]      = _L("Brush shape");
+    m_desc["enforce_caption"]  = _L("Left mouse button");
     m_desc["enforce"]          = _L("Enforce seam");
-    m_desc["block_caption"]    = _L("Right mouse button") + ": ";
+    m_desc["block_caption"]    = _L("Right mouse button");
     m_desc["block"]            = _L("Block seam");
-    m_desc["remove_caption"]   = _L("Shift + Left mouse button") + ": ";
-    m_desc["remove"]           = _L("Remove selection");
+    m_desc["remove_caption"]   = _L("Shift + Left mouse button");
+    m_desc["remove"]           = _L("Erase");
     m_desc["remove_all"]       = _L("Erase all painting");
     m_desc["circle"]           = _L("Circle");
     m_desc["sphere"]           = _L("Sphere");
@@ -125,6 +127,8 @@ void GLGizmoSeam::show_tooltip_information(float caption_max, float x, float y)
     ImTextureID normal_id = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP);
     ImTextureID hover_id  = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP_HOVER);
 
+    caption_max += m_imgui->calc_text_size(": ").x + 35.f;
+
     float font_size = ImGui::GetFontSize();
     ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
@@ -138,7 +142,7 @@ void GLGizmoSeam::show_tooltip_information(float caption_max, float x, float y)
             m_imgui->text_colored(ImGuiWrapper::COL_WINDOW_BG, text);
         };
 
-        for (const auto &t : std::array<std::string, 3>{"enforce", "block", "remove"}) draw_text_with_caption(m_desc.at(t + "_caption"), m_desc.at(t));
+        for (const auto &t : std::array<std::string, 5>{"enforce", "block", "remove", "cursor_size", "clipping_of_view"}) draw_text_with_caption(m_desc.at(t + "_caption") + ": ", m_desc.at(t));
         ImGui::EndTooltip();
     }
     ImGui::PopStyleVar(1);
@@ -187,7 +191,7 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
 
     float caption_max    = 0.f;
     float total_text_max = 0.f;
-    for (const auto &t : std::array<std::string, 3>{"enforce", "block", "remove"}) {
+    for (const auto &t : std::array<std::string, 6>{"enforce", "block", "remove", "cursor_size", "clipping_of_view"}) {
         caption_max    = std::max(caption_max, m_imgui->calc_text_size(m_desc[t + "_caption"]).x);
         total_text_max = std::max(total_text_max, m_imgui->calc_text_size(m_desc[t]).x);
     }

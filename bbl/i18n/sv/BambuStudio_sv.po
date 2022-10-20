@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-27 16:25+0800\n"
+"POT-Creation-Date: 2022-10-19 09:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -16,8 +16,14 @@ msgstr ""
 msgid "Supports Painting"
 msgstr "Färgläggning av Support"
 
+msgid "Alt + Mouse wheel"
+msgstr "Alt + mushjul"
+
 msgid "Section view"
 msgstr "Sektionsvy"
+
+msgid "Ctrl + Mouse wheel"
+msgstr "Ctrl + Mushjul"
 
 msgid "Pen size"
 msgstr "Penn storlek"
@@ -37,8 +43,8 @@ msgstr "Blockera support"
 msgid "Shift + Left mouse button"
 msgstr "Shift + Vänster musknapp"
 
-msgid "Erase painting"
-msgstr "Radera färgläggning"
+msgid "Erase"
+msgstr "Radera"
 
 msgid "Erase all painting"
 msgstr "Radera all färgläggning"
@@ -54,12 +60,6 @@ msgstr "Utför"
 
 msgid "Gap area"
 msgstr ""
-
-msgid "Set pen size"
-msgstr "Välj penn storlek"
-
-msgid "Ctrl + Mouse wheel"
-msgstr "Ctrl + Mushjul"
 
 msgid "Tool type"
 msgstr "Verktygs typ"
@@ -111,9 +111,6 @@ msgstr "Penn form"
 
 msgid "Paint"
 msgstr "Färglägga"
-
-msgid "Erase"
-msgstr "Radera"
 
 msgid "Key 1~9"
 msgstr "Nyckel 1~9"
@@ -242,11 +239,11 @@ msgstr "Beskär"
 msgid "Movement:"
 msgstr "Rörelse:"
 
-msgid "Rotation:"
-msgstr "Rotation:"
+msgid "Movement"
+msgstr ""
 
-msgid "Height:"
-msgstr "Höjd:"
+msgid "Height"
+msgstr ""
 
 msgid "Keep upper part"
 msgstr "Behåll övre del"
@@ -352,10 +349,10 @@ msgstr ""
 msgid "Block seam"
 msgstr ""
 
-msgid "Remove selection"
+msgid "Seam painting"
 msgstr ""
 
-msgid "Seam painting"
+msgid "Remove selection"
 msgstr ""
 
 msgid "Entering Seam painting"
@@ -421,6 +418,9 @@ msgstr ""
 
 msgid "V"
 msgstr "V"
+
+msgid "Internal Version"
+msgstr ""
 
 msgid "Version"
 msgstr "Version"
@@ -560,6 +560,15 @@ msgstr "Språk"
 
 msgid "*"
 msgstr "*"
+
+msgid "The uploads are still ongoing"
+msgstr ""
+
+msgid "Stop them and continue anyway?"
+msgstr ""
+
+msgid "Ongoing uploads"
+msgstr ""
 
 msgid "Select a G-code file:"
 msgstr "Välj en G-kod fil:"
@@ -1064,6 +1073,42 @@ msgstr "Multifärgs Utskrift"
 msgid "Line Type"
 msgstr "Linje typ"
 
+msgid "More"
+msgstr "Mer"
+
+msgid "Open Preferences."
+msgstr ""
+
+msgid "Open Documentation in web browser."
+msgstr ""
+
+msgid "Custom G-code"
+msgstr "Custom G-kod"
+
+msgid "Enter Custom G-code used on current layer:"
+msgstr ""
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Add Pause"
+msgstr ""
+
+msgid "Add Custom G-code"
+msgstr ""
+
+msgid "Add Custom Template"
+msgstr ""
+
+msgid "Filament "
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "G-code"
+msgstr ""
+
 msgid "No printer"
 msgstr "Ingen skrivare"
 
@@ -1100,8 +1145,11 @@ msgstr "Mata ut"
 msgid "Tips"
 msgstr "Tips"
 
-msgid "AMS Settings"
-msgstr "AMS Inställningar"
+msgid "Guide"
+msgstr ""
+
+msgid "Retry"
+msgstr ""
 
 msgid "Calibrating AMS..."
 msgstr "Kalibrerar AMS..."
@@ -1224,6 +1272,9 @@ msgstr "Fel vid sammankoppling"
 
 msgid "Unknown Failure"
 msgstr "Okänt fel"
+
+msgid "Please check the printer network connection."
+msgstr ""
 
 msgid "Abnormal print file data. Please slice again"
 msgstr "Onormal utskrifts fil data. Vänligen bered igen"
@@ -1404,6 +1455,9 @@ msgstr ""
 msgid "Print with the filament mounted on the back of chassis"
 msgstr ""
 
+msgid "AMS Settings"
+msgstr "AMS Inställningar"
+
 msgid "Insertion update"
 msgstr "Infoga uppdatering"
 
@@ -1450,6 +1504,19 @@ msgstr ""
 
 msgid "File"
 msgstr "Fil"
+
+msgid ""
+"Failed to download the plug-in. Please check your firewall settings and vpn "
+"software, check and retry."
+msgstr ""
+
+msgid ""
+"Failed to install the plug-in. Please check whether it is blocked or deleted "
+"by anti-virus software."
+msgstr ""
+
+msgid "click here to see more info"
+msgstr ""
 
 msgid "Please home all axes (click "
 msgstr ""
@@ -1513,6 +1580,16 @@ msgstr ""
 #, boost-format
 msgid "Succeed to export G-code to %1%"
 msgstr "Success! G-code exporterades till %1%"
+
+msgid "Running post-processing scripts"
+msgstr ""
+
+msgid "Copying of the temporary G-code to the output G-code failed"
+msgstr ""
+
+#, boost-format
+msgid "Scheduling upload to `%1%`. See Window -> Print Host Upload Queue"
+msgstr ""
 
 msgid "Origin"
 msgstr "Ursprung"
@@ -1906,6 +1983,12 @@ msgstr "Flöde"
 msgid "Tool"
 msgstr "Verktyg"
 
+msgid "Height: "
+msgstr ""
+
+msgid "Width: "
+msgstr ""
+
 msgid "Speed: "
 msgstr ""
 
@@ -2125,6 +2208,12 @@ msgstr "Färgläggningsverktyg"
 msgid "Explosion Ratio"
 msgstr "Explosions Förhållande"
 
+msgid "Section View"
+msgstr ""
+
+msgid "Assemble Control"
+msgstr ""
+
 msgid "Total Volume:"
 msgstr "Total Volym:"
 
@@ -2231,6 +2320,9 @@ msgstr "Projekt"
 msgid "Slice"
 msgstr "Bered"
 
+msgid "Send and Print"
+msgstr ""
+
 msgid "Slice all"
 msgstr "Bered allt"
 
@@ -2239,6 +2331,12 @@ msgstr "Bered plattan"
 
 msgid "Print all"
 msgstr "Skriv ut allt"
+
+msgid "Export G-code file"
+msgstr ""
+
+msgid "Send"
+msgstr "Skicka"
 
 msgid "Export sliced file"
 msgstr "Exportera beredd fil"
@@ -2264,6 +2362,9 @@ msgstr "Sök efter Uppdatering"
 #, c-format, boost-format
 msgid "&About %s"
 msgstr "&Om %s"
+
+msgid "Show Tip of the Day"
+msgstr ""
 
 msgid "Open Network Test"
 msgstr ""
@@ -2550,18 +2651,34 @@ msgstr "Synkronisering"
 msgid "Initialize failed (No Device)!"
 msgstr "Start misslyckad (Ingen Enhet)!"
 
+msgid "Initialize failed (No Camera Device)!"
+msgstr ""
+
 msgid "Initializing..."
 msgstr "Startar..."
 
 msgid "Loading..."
 msgstr "Laddar..."
 
-msgid "Initialize failed (Not supported)!"
+msgid "Initialize failed (Not supported with LAN-only mode)!"
+msgstr ""
+
+msgid "Initialize failed (Not accessible in LAN-only mode)!"
+msgstr ""
+
+msgid "Initialize failed (Not supported without remote video tunnel)!"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Initialize failed [%d]!"
-msgstr "Start misslyckad [%d]!"
+msgid "Initialize failed (%s)!"
+msgstr ""
+
+msgid "Network unreachable"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Stopped [%d]!"
+msgstr ""
 
 msgid "Stopped."
 msgstr "Avbruten."
@@ -2609,8 +2726,8 @@ msgstr "Ladda ner"
 msgid "Download selected files from printer."
 msgstr ""
 
-msgid "Management"
-msgstr "Handhavande"
+msgid "Select"
+msgstr ""
 
 msgid "Batch manage files."
 msgstr ""
@@ -2634,17 +2751,14 @@ msgstr "Laddar fil lista..."
 msgid "No files"
 msgstr "Inga filer"
 
-msgid "Choose save directory"
-msgstr ""
-
 msgid "Download waiting..."
 msgstr ""
 
-msgid "Retry"
+msgid "Play"
 msgstr ""
 
-msgid "Open"
-msgstr "Öppna"
+msgid "Open Folder"
+msgstr ""
 
 msgid "Download finished"
 msgstr ""
@@ -2746,6 +2860,9 @@ msgstr "Sport"
 msgid "Ludicrous"
 msgstr "Galet"
 
+msgid "Failed to connect to the server"
+msgstr "Uppkoppling till servern misslyckades"
+
 msgid "Status"
 msgstr "Status"
 
@@ -2758,14 +2875,8 @@ msgstr "Uppdatera"
 msgid "HMS"
 msgstr "HMS"
 
-msgid "Failed to connect to the server"
-msgstr "Uppkoppling till servern misslyckades"
-
 msgid "Failed to connect to the printer"
 msgstr "Uppkoppling till printern misslyckades"
-
-msgid "OK"
-msgstr "OK"
 
 msgid "Yes"
 msgstr "Ja"
@@ -2830,9 +2941,6 @@ msgstr "En uppdatering finns tillgänglig."
 msgid "Goto download page."
 msgstr "Besök nedladdnings sidan."
 
-msgid "More"
-msgstr "Mer"
-
 msgid "Open Folder."
 msgstr "Öppna Mapp."
 
@@ -2847,6 +2955,18 @@ msgid "%1$d Object has color painting."
 msgid_plural "%1$d Objects have color painting."
 msgstr[0] "%1$d Objektet har färgläggning.@%1$d Objekten har färgläggning."
 msgstr[1] "%1$d Objektet har färgläggning.@%1$d Objekten har färgläggning."
+
+msgid "ERROR"
+msgstr ""
+
+msgid "CANCELED"
+msgstr ""
+
+msgid "COMPLETED"
+msgstr ""
+
+msgid "Cancel upload"
+msgstr ""
 
 msgid "Slice ok."
 msgstr "Beredning klar."
@@ -2997,6 +3117,9 @@ msgstr "Filament byten"
 msgid "Click to edit preset"
 msgstr "Tryck för att redigera inställningar"
 
+msgid "Connection"
+msgstr ""
+
 msgid "Bed type"
 msgstr "Typ av byggplatta"
 
@@ -3052,6 +3175,11 @@ msgstr "Tidigare osparat projekt upptäckt, återställa det?"
 
 msgid "Restore"
 msgstr "Återställ"
+
+msgid ""
+"The bed temperature exceeds filament's vitrification temperature. Please "
+"open the front door of printer before printing to avoid nozzle clog."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -3164,6 +3292,9 @@ msgstr "Det valda objektet kan inte delas."
 msgid "Another export job is running."
 msgstr "En annan exportering pågår."
 
+msgid "Another export job is currently running."
+msgstr ""
+
 msgid "Select a new file"
 msgstr ""
 
@@ -3271,9 +3402,6 @@ msgstr "Spara G-kod som:"
 msgid "Save Sliced file as:"
 msgstr "Spara beredningen som:"
 
-msgid "preparing, export 3mf failed!"
-msgstr ""
-
 msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
@@ -3345,6 +3473,12 @@ msgstr "Val av region"
 msgid "Second"
 msgstr "Andra"
 
+msgid "Browse"
+msgstr ""
+
+msgid "Choose Download Directory"
+msgstr ""
+
 msgid "General Settings"
 msgstr "Allmänna inställningar"
 
@@ -3374,6 +3508,12 @@ msgstr "Brittisk standard"
 
 msgid "Units"
 msgstr "Enheter"
+
+msgid "Show \"Tip of the day\" notification after start"
+msgstr ""
+
+msgid "If enabled, useful hints are displayed at startup."
+msgstr ""
 
 msgid "User sync"
 msgstr "Användar synkronisering"
@@ -3415,6 +3555,9 @@ msgstr "Auto Säkerhetskopiera"
 
 msgid "Backup interval"
 msgstr "Säkerhetskopierings intervall"
+
+msgid "Downloads"
+msgstr ""
 
 msgid "Home page and daily tips"
 msgstr "Hemsida och dagliga förslag"
@@ -3650,6 +3793,9 @@ msgstr "Andra Enheter"
 msgid "Input access code"
 msgstr "Inmatning av åtkomstkod"
 
+msgid "Can't find my devices?"
+msgstr ""
+
 msgid "Log out successful."
 msgstr "Utloggning lyckades."
 
@@ -3665,9 +3811,6 @@ msgstr "Bambu Engineering Plate"
 msgid "Bamabu High Temperature Plate"
 msgstr "Bambu High Temperature Plate"
 
-msgid "Send print job to"
-msgstr "Skicka utskriftsjobb till"
-
 msgid "Refresh"
 msgstr "Uppdatera"
 
@@ -3677,8 +3820,8 @@ msgstr "Justering av Byggplattan"
 msgid "Flow Calibration"
 msgstr "Flödes Kalibrering"
 
-msgid "Send"
-msgstr "Skicka"
+msgid "Can't connect to the printer"
+msgstr ""
 
 msgid "send completed"
 msgstr "Skicka komplett"
@@ -3748,11 +3891,32 @@ msgid ""
 "slot."
 msgstr ""
 
+msgid "An SD card needs to be inserted before printing."
+msgstr ""
+
+msgid "An SD card needs to be inserted to recording timelapse"
+msgstr ""
+
+msgid "Please check the following infomation:\n"
+msgstr ""
+
+msgid ""
+"The printer type used to generate G-code is not the same type as the "
+"currently selected physical printer. It is recommend to re-slice by "
+"selecting the same printer type.\n"
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "Förbereder utskriftsjobb"
 
 msgid "Modifying the device name"
 msgstr "Ändra enhetens namn"
+
+msgid "Send to Printer"
+msgstr ""
+
+msgid "The printer is required to be in the same LAN as Bambu Studio."
+msgstr ""
 
 msgid "Log in printer"
 msgstr "Logga in skrivare"
@@ -3793,12 +3957,13 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr ""
 
 msgid ""
-"Prime tower is required by timeplase. Are you sure you want to disable both "
-"of them?"
+"Prime tower is required by smooth timeplase. If whthout prime tower, there "
+"will be flaws on the model. Are you sure you want to disable prime tower?"
 msgstr ""
 
 msgid ""
-"Prime tower is required by timelapse. Do you want to enable both of them?"
+"Prime tower is required by smooth timelapse. If whthout prime tower, there "
+"will be flaws on the model. Do you want to enable prime tower?"
 msgstr ""
 
 msgid ""
@@ -4001,6 +4166,9 @@ msgstr "Filament stop G-kod"
 msgid "Printable space"
 msgstr "Utskriftsbar yta"
 
+msgid "Extruder Clearance"
+msgstr ""
+
 msgid "Accessory"
 msgstr "Tillbehör"
 
@@ -4024,6 +4192,9 @@ msgstr "Byta filament G-kod"
 
 msgid "Pause G-code"
 msgstr "Paus G-kod"
+
+msgid "Template Custom G-code"
+msgstr ""
 
 msgid "Motion ability"
 msgstr "Rörelseförmåga"
@@ -4072,9 +4243,6 @@ msgstr "Allt"
 
 msgid "Set"
 msgstr "Välj"
-
-msgid "Custom G-code"
-msgstr "Custom G-kod"
 
 msgid "Click to reset current value and attach to the global value."
 msgstr ""
@@ -4543,23 +4711,6 @@ msgstr "Ny version av Bambu Studio"
 msgid "Don't remind me of this version again"
 msgstr ""
 
-msgid ""
-"Are you sure you want to update? This will take about 10 minutes. Do not "
-"turn off the power while the printer is updating."
-msgstr ""
-
-msgid ""
-"An important update was detected and needs to be run before printing can "
-"continue. Do you want to update now? You can also update later from 'Upgrade "
-"firmware'."
-msgstr ""
-
-msgid ""
-"The firmware version is abnormal. Repairing and updating are required before "
-"printing. Do you want to update now? You can also update later on printer or "
-"update next time starting the studio."
-msgstr ""
-
 msgid "Model:"
 msgstr ""
 
@@ -4588,6 +4739,23 @@ msgid "Upgrading failed"
 msgstr ""
 
 msgid "Upgrading successful"
+msgstr ""
+
+msgid ""
+"Are you sure you want to update? This will take about 10 minutes. Do not "
+"turn off the power while the printer is updating."
+msgstr ""
+
+msgid ""
+"An important update was detected and needs to be run before printing can "
+"continue. Do you want to update now? You can also update later from 'Upgrade "
+"firmware'."
+msgstr ""
+
+msgid ""
+"The firmware version is abnormal. Repairing and updating are required before "
+"printing. Do you want to update now? You can also update later on printer or "
+"update next time starting the studio."
 msgstr ""
 
 msgid "Saving objects into the 3mf failed."
@@ -4830,16 +4998,14 @@ msgstr "skriv återuppringning misslyckad"
 
 #, boost-format
 msgid ""
-"%1% is too close to exclusion area, there will be collisions when printing."
-msgstr "%1% för tätt inpå den isolerade ytan, utskriften kolliderar."
+"%1% is too close to exclusion area, there may be collisions when printing."
+msgstr ""
 
 #, boost-format
 msgid ""
 "\n"
-"%1% is too close to exclusion area, there will be collisions when printing."
+"%1% is too close to exclusion area, there may be collisions when printing."
 msgstr ""
-"\n"
-"%1% för tätt inpå den isolerade ytan, utskriften kolliderar."
 
 #, boost-format
 msgid "%1% is too close to others, and collisions may be caused."
@@ -4849,12 +5015,12 @@ msgstr "%1% är för nära andra och kan orsaka kollisioner."
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% är för hög, och kollisioner kommer att uppstå."
 
-msgid " is too close to others, there will be collisions when printing.\n"
-msgstr " för tätt inpå andra, utskriften kolliderar.\n"
+msgid " is too close to others, there may be collisions when printing.\n"
+msgstr ""
 
 msgid ""
-" is too close to exclusion area, there will be collisions when printing.\n"
-msgstr " för tätt inpå den isolerade ytan, utskriften kolliderar.\n"
+" is too close to exclusion area, there may be collisions when printing.\n"
+msgstr ""
 
 msgid "Prime Tower"
 msgstr "Prime Torn"
@@ -4995,22 +5161,83 @@ msgstr "Maximala utskriftshöjd begränsas av skrivarens mekanism"
 msgid "Printer preset names"
 msgstr "Namn på förinställda skrivare"
 
-msgid "Avoid crossing wall when travel"
-msgstr "Undvik väggar vid förflyttning"
+msgid "Hostname, IP or URL"
+msgstr ""
+
+msgid ""
+"Slic3r can upload G-code files to a printer host. This field should contain "
+"the hostname, IP address or URL of the printer host instance. Print host "
+"behind HAProxy with basic auth enabled can be accessed by putting the user "
+"name and password into the URL in the following format: https://username:"
+"password@your-octopi-address/"
+msgstr ""
+
+msgid "API Key / Password"
+msgstr ""
+
+msgid ""
+"Slic3r can upload G-code files to a printer host. This field should contain "
+"the API Key or the password required for authentication."
+msgstr ""
+
+msgid "Name of the printer"
+msgstr ""
+
+msgid "HTTPS CA File"
+msgstr ""
+
+msgid ""
+"Custom CA certificate file can be specified for HTTPS OctoPrint connections, "
+"in crt/pem format. If left blank, the default OS CA certificate repository "
+"is used."
+msgstr ""
+
+msgid "User"
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "Ignore HTTPS certificate revocation checks"
+msgstr ""
+
+msgid ""
+"Ignore HTTPS certificate revocation checks in case of missing or offline "
+"distribution points. One may want to enable this option for self signed "
+"certificates if connection fails."
+msgstr ""
+
+msgid "Names of presets related to the physical printer"
+msgstr ""
+
+msgid "Authorization Type"
+msgstr ""
+
+msgid "API key"
+msgstr ""
+
+msgid "HTTP digest"
+msgstr ""
+
+msgid "Avoid crossing wall"
+msgstr ""
 
 msgid "Detour and avoid to travel across wall which may cause blob on surface"
 msgstr ""
 "Undvik väggar vid förflyttning, för att undvika att filament droppar på ytan"
 
-msgid "Max travel detour distance"
-msgstr "Max undvikande förflyttnings avstånd"
+msgid "Avoid crossing wall - Max detour length"
+msgstr ""
 
 msgid ""
 "Maximum detour distance for avoiding crossing wall. Don't detour if the "
-"detour distance is large than this value"
+"detour distance is large than this value. Detour length could be specified "
+"either as an absolute value or as percentage (for example 50%) of a direct "
+"travel path. Zero to disable"
 msgstr ""
-"Max undvikande förflyttnings avstånd för att undvika väggar. Om avståndet "
-"överstiger detta värde, kommer ingen undvikande förflyttning att ske"
+
+msgid "mm or %"
+msgstr ""
 
 msgid "Other layers"
 msgstr "Andra lager"
@@ -5395,24 +5622,25 @@ msgid "Height to rod"
 msgstr "Höjd till axel"
 
 msgid ""
-"Height of the clearance cylinder around extruder. Used as input of auto-"
-"arrange to avoid collision when print object by object"
+"Distance of the nozzle tip to the lower rod. Used as input of auto-arranging "
+"to avoid collision when printing by object"
 msgstr ""
-"Höjden på fritt cylinder område runt extrudern: Används som input för auto-"
-"placering för att undvika kollision när man skriver ut objekt för objekt"
 
 msgid "Height to lid"
 msgstr "Höjd till locket"
+
+msgid ""
+"Distance of the nozzle tip to the lid. Used as input of auto-arranging to "
+"avoid collision when printing by object"
+msgstr ""
 
 msgid "Radius"
 msgstr "Radie"
 
 msgid ""
-"Clearance radius around extruder. Used as input of auto-arrange to avoid "
-"collision when print object by object"
+"Clearance radius around extruder. Used as input of auto-arranging to avoid "
+"collision when printing by object"
 msgstr ""
-"Fri radie område runt extrudern: Används som input för auto-placering för "
-"att undvika kollision när man skriver ut objekt för objekt"
 
 msgid "Extruder Color"
 msgstr "Extruder Färg"
@@ -5615,6 +5843,9 @@ msgstr "Honeycomb"
 msgid "Adaptive Cubic"
 msgstr "Adaptiv Cubic"
 
+msgid "Lightning"
+msgstr ""
+
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
@@ -5755,6 +5986,9 @@ msgstr ""
 "Nozzelns metalliska material avgör munstyckets nötningsbeständighet och "
 "vilken typ av filament som kan skrivas ut"
 
+msgid "Undefine"
+msgstr ""
+
 msgid "Hardened steel"
 msgstr "Härdat stål"
 
@@ -5862,6 +6096,14 @@ msgid ""
 msgstr ""
 "Om maskinen stöder tyst läge där maskinen använder lägre acceleration för "
 "att skriva ut"
+
+msgid ""
+"This G-code will be used as a code for the pause print. User can insert "
+"pause G-code in gcode viewer"
+msgstr ""
+
+msgid "This G-code will be used as a custom code"
+msgstr ""
 
 msgid "Maximum speed X"
 msgstr "Max hastighet X"
@@ -6021,6 +6263,14 @@ msgstr "Nozzel diameter"
 
 msgid "Diameter of nozzle"
 msgstr "Diametern på nozzeln"
+
+msgid "Host Type"
+msgstr ""
+
+msgid ""
+"Slic3r can upload G-code files to a printer host. This field must contain "
+"the kind of the host."
+msgstr ""
 
 msgid "Nozzle volume"
 msgstr "Nozzle volym"
@@ -6424,8 +6674,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för "
-"lösligt(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
+"(material) stödgränssnittet är koncentriskt"
 
 msgid "Base pattern spacing"
 msgstr "Basens mönster mellanrum"
@@ -6812,10 +7062,6 @@ msgstr "Bereder mesh"
 msgid " Object:"
 msgstr " Objekt:"
 
-#, boost-format
-msgid "Error at line %1%:\n"
-msgstr "Fel i linje %1%:\n"
-
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
 msgstr "Support: generera verktygsbana vid lager %d"
@@ -6847,6 +7093,245 @@ msgstr "Support: åtgärda hål vid lager %d"
 msgid "Support: propagate branches at layer %d"
 msgstr "Support: föröka grenar vid lager %d"
 
+#: resources/data/hints.ini: [hint:3D Scene Operations]
+msgid ""
+"3D Scene Operations\n"
+"Did you know how to control view and object/part selection with mouse and "
+"touchpanel in the 3D scene?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Cut Tool]
+msgid ""
+"Cut Tool\n"
+"Did you know that you can cut a model at any angle and position with the "
+"cutting tool?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Fix Model]
+msgid ""
+"Fix Model\n"
+"Did you know that you can fix a corrupted 3D model to avoid a lot of slicing "
+"problems?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Timelapse]
+msgid ""
+"Timelapse\n"
+"Did you know that you can generate a timelapse video during each print?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Auto-Arrange]
+msgid ""
+"Auto-Arrange\n"
+"Did you know that you can auto-arrange all objects in your project?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Auto-Orient]
+msgid ""
+"Auto-Orient\n"
+"Did you know that you can rotate objects to an optimal orientation for "
+"printing by a simple click?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Lay on Face]
+msgid ""
+"Lay on Face\n"
+"Did you know that you can quickly orient a model so that one of its faces "
+"sits on the print bed? Select the \"Place on face\" function or press the "
+"<b>F</b> key."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Object List]
+msgid ""
+"Object List\n"
+"Did you know that you can view all objects/parts in a list and change "
+"settings for each object/part?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Simplify Model]
+msgid ""
+"Simplify Model\n"
+"Did you know that you can reduce the number of triangles in a mesh using the "
+"Simplify mesh feature? Right-click the model and select Simplify model. Read "
+"more in the documentation."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Slicing Parameter Table]
+msgid ""
+"Slicing Parameter Table\n"
+"Did you know that you can view all objects/parts on a table and change "
+"settings for each object/part?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Split to Objects/Parts]
+msgid ""
+"Split to Objects/Parts\n"
+"Did you know that you can split a big object into small ones for easy "
+"colorizing or printing?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Subtract a Part]
+msgid ""
+"Subtract a Part\n"
+"Did you know that you can subtract one mesh from another using the Negative "
+"part modifier? That way you can, for example, create easily resizable holes "
+"directly in Bambu Studio. Read more in the documentation."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:STEP]
+msgid ""
+"STEP\n"
+"Did you know that you can improve your print quality by slicing a STEP file "
+"instead of an STL?\n"
+"Bambu Studio supports slicing STEP files, providing smoother results than a "
+"lower resolution STL. Give it a try!"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Z seam location]
+msgid ""
+"Z seam location\n"
+"Did you know that you can customize the location of the Z seam, and even "
+"paint it on your print, to have it in a less visible location? This improves "
+"the overall look of your model. Check it out!"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
+msgid ""
+"Fine-tuning for flow rate\n"
+"Did you know that flow rate can be fine-tuned for even better-looking "
+"prints? Depending on the material, you can improve the overall finish of the "
+"printed model by doing some fine-tuning."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Split your prints into plates]
+msgid ""
+"Split your prints into plates\n"
+"Did you know that you can split a model that has a lot of parts into "
+"individual plates ready to print? This will simplify the process of keeping "
+"track of all the parts."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
+#: Height]
+msgid ""
+"Speed up your print with Adaptive Layer Height\n"
+"Did you know that you can print a model even faster, by using the Adaptive "
+"Layer Height option? Check it out!"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Support painting]
+msgid ""
+"Support painting\n"
+"Did you know that you can paint the location of your supports? This feature "
+"makes it easy to place the support material only on the sections of the "
+"model that actually need it."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Different types of supports]
+msgid ""
+"Different types of supports\n"
+"Did you know that you can choose from multiple types of supports? Tree "
+"supports work great for organic models, while saving filament and improving "
+"print speed. Check them out!"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Printing Silk Filament]
+msgid ""
+"Printing Silk Filament\n"
+"Did you know that Silk filament needs special consideration to print it "
+"successfully? Higher temperature and lower speed are always recommended for "
+"the best results."
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Brim for better adhesion]
+msgid ""
+"Brim for better adhesion\n"
+"Did you know that when printing models have a small contact interface with "
+"the printing surface, it's recommended to use a brim?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Set parameters for multiple objects]
+msgid ""
+"Set parameters for multiple objects\n"
+"Did you know that you can set slicing parameters for all selected objects at "
+"one time?"
+msgstr ""
+
+#~ msgid "Erase painting"
+#~ msgstr "Radera färgläggning"
+
+#~ msgid "Set pen size"
+#~ msgstr "Välj penn storlek"
+
+#~ msgid "Rotation:"
+#~ msgstr "Rotation:"
+
+#~ msgid "Height:"
+#~ msgstr "Höjd:"
+
+#~ msgid "Initialize failed [%d]!"
+#~ msgstr "Start misslyckad [%d]!"
+
+#~ msgid "Management"
+#~ msgstr "Handhavande"
+
+#~ msgid "Open"
+#~ msgstr "Öppna"
+
+#~ msgid "Send print job to"
+#~ msgstr "Skicka utskriftsjobb till"
+
+#~ msgid ""
+#~ "%1% is too close to exclusion area, there will be collisions when "
+#~ "printing."
+#~ msgstr "%1% för tätt inpå den isolerade ytan, utskriften kolliderar."
+
+#~ msgid ""
+#~ "\n"
+#~ "%1% is too close to exclusion area, there will be collisions when "
+#~ "printing."
+#~ msgstr ""
+#~ "\n"
+#~ "%1% för tätt inpå den isolerade ytan, utskriften kolliderar."
+
+#~ msgid " is too close to others, there will be collisions when printing.\n"
+#~ msgstr " för tätt inpå andra, utskriften kolliderar.\n"
+
+#~ msgid ""
+#~ " is too close to exclusion area, there will be collisions when printing.\n"
+#~ msgstr " för tätt inpå den isolerade ytan, utskriften kolliderar.\n"
+
+#~ msgid "Avoid crossing wall when travel"
+#~ msgstr "Undvik väggar vid förflyttning"
+
+#~ msgid "Max travel detour distance"
+#~ msgstr "Max undvikande förflyttnings avstånd"
+
+#~ msgid ""
+#~ "Maximum detour distance for avoiding crossing wall. Don't detour if the "
+#~ "detour distance is large than this value"
+#~ msgstr ""
+#~ "Max undvikande förflyttnings avstånd för att undvika väggar. Om avståndet "
+#~ "överstiger detta värde, kommer ingen undvikande förflyttning att ske"
+
+#~ msgid ""
+#~ "Height of the clearance cylinder around extruder. Used as input of auto-"
+#~ "arrange to avoid collision when print object by object"
+#~ msgstr ""
+#~ "Höjden på fritt cylinder område runt extrudern: Används som input för "
+#~ "auto-placering för att undvika kollision när man skriver ut objekt för "
+#~ "objekt"
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used as input of auto-arrange to avoid "
+#~ "collision when print object by object"
+#~ msgstr ""
+#~ "Fri radie område runt extrudern: Används som input för auto-placering för "
+#~ "att undvika kollision när man skriver ut objekt för objekt"
+
+#~ msgid "Error at line %1%:\n"
+#~ msgstr "Fel i linje %1%:\n"
+
 #~ msgid "Reduce Triangles"
 #~ msgstr "Reducera Trianglar"
 
@@ -6876,9 +7361,6 @@ msgstr "Support: föröka grenar vid lager %d"
 
 #~ msgid "0%"
 #~ msgstr "0%"
-
-#~ msgid "Alt + Mouse wheel"
-#~ msgstr "Alt + mushjul"
 
 #~ msgid ""
 #~ "An object is layed over the boundary of plate.\n"

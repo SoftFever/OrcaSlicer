@@ -27,9 +27,16 @@ private:
     void on_dpi_changed(const wxRect& suggested_rect) override;
 
 public:
+    enum ButtonStyle {
+        ONLY_CONFIRM = 0,
+        CONFIRM_AND_CANCEL = 1,
+        MAX_STYLE_NUM = 2
+    };
+
     ConfirmHintDialog(wxWindow* parent,
         wxWindowID      id = wxID_ANY,
         const wxString& title = wxEmptyString,
+        enum ButtonStyle btn_style = CONFIRM_AND_CANCEL,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize,
         long            style = wxCLOSE_BOX | wxCAPTION);
@@ -37,6 +44,8 @@ public:
     const wxColour text_color = wxColour(107, 107, 107);
 
     void SetHint(const wxString &hint);
+
+    bool Show(bool show) override;
 
     ~ConfirmHintDialog();
 };

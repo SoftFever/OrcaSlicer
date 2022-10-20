@@ -2681,6 +2681,7 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
     SetSize(wxSize(-1, FromDIP(450)));
     SetMinSize(wxSize(-1, FromDIP(450)));
     SetMaxSize(wxSize(-1, FromDIP(450)));
+    
 
     //m_search_line = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
 
@@ -3228,7 +3229,7 @@ void ObjectTablePanel::resetAllValuesInSideWindow(int row, bool is_object, Model
 // ObjectTableDialog
 // ----------------------------------------------------------------------------
 ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model *modelObj, wxSize maxSize)
-    : GUI::DPIDialog(parent, wxID_ANY, _L("Object/Part Setting"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    : GUI::DPIDialog(parent, wxID_ANY, _L("Object/Part Setting"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
     ,
     m_model(modelObj), m_plater(platerObj)
 {
@@ -3369,12 +3370,27 @@ void ObjectTableDialog::OnText(wxKeyEvent &evt)
 
 void ObjectTableDialog::OnSize(wxSizeEvent& event)
 {
-    wxSize new_size = event.GetSize();
+   /* wxSize new_size = event.GetSize();
     if ((new_size.GetWidth() > g_dialog_max_width) || (new_size.GetHeight() > g_dialog_max_height)) {
-        int width  = (new_size.GetWidth() > g_dialog_max_width) ? new_size.GetWidth() : g_dialog_max_width;
+        int width = (new_size.GetWidth() > g_dialog_max_width) ? new_size.GetWidth() : g_dialog_max_width;
         int height = (new_size.GetHeight() > g_dialog_max_height) ? new_size.GetHeight() : g_dialog_max_height;
         this->SetMaxSize(wxSize(width, height));
+    }*/
+
+    if (event.GetSize().y <= FromDIP(450)) {
+        SetMaxSize(wxSize(GetSize().x, -1));
+        SetMinSize(wxSize(GetSize().x, -1));
+        SetSize(wxSize(GetSize().x, -1));
+        return;
     }
+    SetMaxSize(wxSize(GetSize().x, -1));
+    SetMinSize(wxSize(GetSize().x, -1));
+    SetSize(wxSize(GetSize().x, -1));
+
+    m_obj_panel->SetSize(wxSize(-1, GetSize().y));
+    m_obj_panel->SetMinSize(wxSize(-1, GetSize().y));
+    m_obj_panel->SetMaxSize(wxSize(-1, GetSize().y));
+
     event.Skip();
 }
 

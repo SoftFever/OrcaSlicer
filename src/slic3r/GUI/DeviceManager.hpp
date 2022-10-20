@@ -466,6 +466,7 @@ public:
     int     mc_left_time;           /* left time in seconds */
     int     last_mc_print_stage;
     int     home_flag;
+    int     hw_switch_state;
     bool    is_system_printing();
     int     print_error;
 
@@ -475,6 +476,8 @@ public:
     bool calibration_done { false };
 
     bool is_axis_at_home(std::string axis);
+
+    bool is_filament_at_extruder();
 
     wxString get_curr_stage();
     // return curr stage index of stage list
@@ -561,6 +564,7 @@ public:
     int command_ams_filament_settings(int ams_id, int tray_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max);
     int command_ams_select_tray(std::string tray_id);
     int command_ams_refresh_rfid(std::string tray_id);
+    int command_ams_control(std::string action);
     int command_set_chamber_light(LIGHT_EFFECT effect, int on_time = 500, int off_time = 500, int loops = 1, int interval = 1000);
     int command_set_work_light(LIGHT_EFFECT effect, int on_time = 500, int off_time = 500, int loops = 1, int interval = 1000);
 
@@ -605,6 +609,7 @@ public:
     bool is_online() { return m_is_online; }
     bool is_info_ready();
     bool is_function_supported(PrinterFunction func);
+    bool is_support_print_with_timelapse();
 
 
     /* Msg for display MsgFn */

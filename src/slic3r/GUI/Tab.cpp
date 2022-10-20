@@ -318,7 +318,7 @@ void Tab::create_preset_tab()
          this->GetParent()->Update();
          this->GetParent()->Layout();
 
-         wxGetApp().plater()->search(false, m_type, m_search_item, m_search_input, m_btn_search);
+         wxGetApp().plater()->search(false, m_type, m_top_panel->GetParent(), m_search_input, m_btn_search);
          m_search_input->SetFocus();
          Thaw();
 
@@ -1382,19 +1382,14 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         auto timelapse_type = m_config->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
         bool timelapse_enabled = timelapse_type->value == TimelapseType::tlSmooth;
         if (!boost::any_cast<bool>(value) && timelapse_enabled) {
-            MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required by timeplase. Are you sure you want to disable both of them?"),
+            MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required by smooth timeplase. If whthout prime tower, there will be flaws on the model. Are you sure you want to disable prime tower?"),
                               _L("Warning"), wxICON_WARNING | wxYES | wxNO);
-            if (dlg.ShowModal() == wxID_YES) {
-                DynamicPrintConfig new_conf = *m_config;
-                new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(TimelapseType::tlNone));
-                m_config_manipulation.apply(m_config, &new_conf);
-                wxGetApp().plater()->update();
-            }
-            else {
+            if (dlg.ShowModal() == wxID_NO) {
                 DynamicPrintConfig new_conf = *m_config;
                 new_conf.set_key_value("enable_prime_tower", new ConfigOptionBool(true));
                 m_config_manipulation.apply(m_config, &new_conf);
             }
+            wxGetApp().plater()->update();
         }
         update_wiping_button_visibility();
     }
@@ -1403,18 +1398,13 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "timelapse_type") {
         bool wipe_tower_enabled = m_config->option<ConfigOptionBool>("enable_prime_tower")->value;
         if (!wipe_tower_enabled && boost::any_cast<int>(value) == int(TimelapseType::tlSmooth)) {
-            MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required by timelapse. Do you want to enable both of them?"),
+            MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required by smooth timelapse. If whthout prime tower, there will be flaws on the model. Do you want to enable prime tower?"),
                               _L("Warning"), wxICON_WARNING | wxYES | wxNO);
             if (dlg.ShowModal() == wxID_YES) {
                 DynamicPrintConfig new_conf = *m_config;
                 new_conf.set_key_value("enable_prime_tower", new ConfigOptionBool(true));
                 m_config_manipulation.apply(m_config, &new_conf);
                 wxGetApp().plater()->update();
-            }
-            else {
-                DynamicPrintConfig new_conf = *m_config;
-                new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(TimelapseType::tlNone));
-                m_config_manipulation.apply(m_config, &new_conf);
             }
         } else {
             wxGetApp().plater()->update();
@@ -1515,8 +1505,14 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
     Field* field = get_field(opt_key);
 
     // focused selected field
-    if (field)
+    if (field) {
         set_focus(field->getWindow());
+        if (!field->getWindow()->HasFocus()) {
+            wxScrollEvent evt(wxEVT_SCROLL_CHANGED);
+            evt.SetEventObject(field->getWindow());
+            wxPostEvent(m_page_view, evt);
+        }
+    }
     //else if (category == "Single extruder MM setup") {
     //    // When we show and hide "Single extruder MM setup" page,
     //    // related options are still in the search list
@@ -1807,9 +1803,9 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Infill"), L"param_infill");
         optgroup->append_single_option_line("sparse_infill_density");
-        optgroup->append_single_option_line("sparse_infill_pattern");
-        optgroup->append_single_option_line("top_surface_pattern");
-        optgroup->append_single_option_line("bottom_surface_pattern");
+        optgroup->append_single_option_line("sparse_infill_pattern", "fill-patterns#infill types and their properties of sparse");
+        optgroup->append_single_option_line("top_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
+        optgroup->append_single_option_line("bottom_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("infill_wall_overlap");
@@ -1932,19 +1928,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("print_sequence");
         optgroup->append_single_option_line("spiral_mode", "spiral-vase");
         optgroup->append_single_option_line("timelapse_type", "Timelapse");
-        //BBS: todo remove clearance to machine
-#if 0
-        //line = { L("Extruder radius"), "" };
-        //line.append_option(optgroup->get_option("extruder_clearance_radius"));
-        //optgroup->append_line(line);
-        ////BBS: new line for extruder_clearance_height_to_lid as there is not enough space for a single line
-        //line = { L("Height to rod"), "" };
-        //line.append_option(optgroup->get_option("extruder_clearance_height_to_rod"));
-        //optgroup->append_line(line);
-        //line = { L("Height to lid"), "" };
-        //line.append_option(optgroup->get_option("extruder_clearance_height_to_lid"));
-        //optgroup->append_line(line);
-#endif
+
         optgroup->append_single_option_line("fuzzy_skin");
         optgroup->append_single_option_line("fuzzy_skin_point_distance");
         optgroup->append_single_option_line("fuzzy_skin_thickness");
@@ -2888,6 +2872,11 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("machine_load_filament_time");
         optgroup->append_single_option_line("machine_unload_filament_time");
 
+        optgroup = page->new_optgroup(L("Extruder Clearance"));
+        optgroup->append_single_option_line("extruder_clearance_radius");
+        optgroup->append_single_option_line("extruder_clearance_height_to_rod");
+        optgroup->append_single_option_line("extruder_clearance_height_to_lid");
+        
         optgroup = page->new_optgroup(L("Accessory") /*, L"param_accessory"*/);
         optgroup->append_single_option_line("nozzle_type");
         optgroup->append_single_option_line("auxiliary_fan");
@@ -2949,6 +2938,15 @@ void TabPrinter::build_fff()
             validate_custom_gcode_cb(this, optgroup, opt_key, value);
         };
         option = optgroup->get_option("machine_pause_gcode");
+        option.opt.is_code = true;
+        option.opt.height = gcode_field_height;//150;
+        optgroup->append_single_option_line(option);
+
+        optgroup = page->new_optgroup(L("Template Custom G-code"), L"param_gcode", 0);
+        optgroup->m_on_change = [this, optgroup](const t_config_option_key& opt_key, const boost::any& value) {
+            validate_custom_gcode_cb(this, optgroup, opt_key, value);
+        };
+        option = optgroup->get_option("template_custom_gcode");
         option.opt.is_code = true;
         option.opt.height = gcode_field_height;//150;
         optgroup->append_single_option_line(option);
@@ -3417,17 +3415,26 @@ void TabPrinter::toggle_options()
     if (!m_active_page || m_presets->get_edited_preset().printer_technology() == ptSLA)
         return;
 
-    bool have_multiple_extruders = m_extruders_count > 1;
-    if (m_active_page->title() == "Custom G-code") {
-        toggle_option("change_filament_gcode", have_multiple_extruders);
+    //BBS: whether the preset is Bambu Lab printer
+    bool is_BBL_printer = false;
+    if (m_preset_bundle) {
+       is_BBL_printer = m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(m_preset_bundle);
     }
-    if (m_active_page->title() == "General") {
+
+    bool have_multiple_extruders = m_extruders_count > 1;
+    //if (m_active_page->title() == "Custom G-code") {
+    //    toggle_option("change_filament_gcode", have_multiple_extruders);
+    //}
+    if (m_active_page->title() == "Basic information") {
         toggle_option("single_extruder_multi_material", have_multiple_extruders);
 
         auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;
         // Disable silent mode for non-marlin firmwares.
         toggle_option("silent_mode", is_marlin_flavor);
+        //BBS: extruder clearance of BBL printer can't be edited.
+        for (auto el : { "extruder_clearance_radius", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
+            toggle_option(el, !is_BBL_printer);
     }
 
     wxString extruder_number;
@@ -3476,9 +3483,10 @@ void TabPrinter::toggle_options()
             || m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlinFirmware);
         bool silent_mode = m_config->opt_bool("silent_mode");
         int  max_field = silent_mode ? 2 : 1;
+        //BBS: limits of BBL printer can't be edited.
     	for (const std::string &opt : Preset::machine_limits_options())
             for (int i = 0; i < max_field; ++ i)
-	            toggle_option(opt, true, i);
+	            toggle_option(opt, !is_BBL_printer, i);
     }
 }
 
@@ -4285,12 +4293,21 @@ void Tab::compare_preset()
 // Wizard calls save_preset with a name "My Settings", otherwise no name is provided and this method
 // opens a Slic3r::GUI::SavePresetDialog dialog.
 //BBS: add project embedded preset relate logic
-void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_project)
+void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_project, bool from_input, std::string input_name )
 {
     // since buttons(and choices too) don't get focus on Mac, we set focus manually
     // to the treectrl so that the EVT_* events are fired for the input field having
     // focus currently.is there anything better than this ?
 //!	m_tabctrl->OnSetFocus();
+    if (from_input) {
+        SavePresetDialog dlg(m_parent, m_type, detach ? _u8L("Detached") : "");
+        dlg.Show(false);
+        dlg.input_name_from_other(input_name);
+        wxCommandEvent evt(wxEVT_TEXT, GetId());
+        dlg.GetEventHandler()->ProcessEvent(evt);
+        dlg.confirm_from_other();
+        name = input_name;
+    }
 
     if (name.empty()) {
         SavePresetDialog dlg(m_parent, m_type, detach ? _u8L("Detached") : "");

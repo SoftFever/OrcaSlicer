@@ -1935,7 +1935,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         auto timelapse_type = dconfig.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
         bool timelapse_enabled = timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false;
 
-        if (timelapse_enabled || (filaments_count > 1 && wt && co != nullptr && co->value != PrintSequence::ByObject)) {
+        if ((timelapse_enabled && wt) || (filaments_count > 1 && wt && co != nullptr && co->value != PrintSequence::ByObject)) {
             for (int plate_id = 0; plate_id < n_plates; plate_id++) {
                 DynamicPrintConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
                 float x = dynamic_cast<const ConfigOptionFloats*>(proj_cfg.option("wipe_tower_x"))->get_at(plate_id);
@@ -1978,6 +1978,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
         m_selection.volumes_changed(map_glvolume_old_to_new);
 
     m_gizmos.update_data();
+    m_gizmos.update_assemble_view_data();
     m_gizmos.refresh_on_off_state();
 
     // Update the toolbar
@@ -2409,6 +2410,10 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         {
         //case WXK_BACK:
         case WXK_DELETE: { post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break; }
+        // BBS
+#ifdef __APPLE__
+        case WXK_BACK: { post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break; }
+#endif
         case WXK_ESCAPE: { deselect_all(); break; }
         //case WXK_F5: {
         //    if ((wxGetApp().is_editor() && !wxGetApp().plater()->model().objects.empty()) ||
@@ -2663,6 +2668,12 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     m_dirty = true;
 #endif
                 }
+                else  if (evt.ShiftDown() && evt.ControlDown() && keyCode == WXK_RETURN) {
+#if !BBL_RELEASE_TO_PUBLIC
+                    wxGetApp().plater()->toggle_show_wireframe();
+                    m_dirty = true;
+#endif
+                }
                 else if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
                     // Enable switching between 3D and Preview with Tab
                     // m_canvas->HandleAsNavigationKey(evt);   // XXX: Doesn't work in some cases / on Linux
@@ -2694,7 +2705,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 }
                 else if (keyCode == WXK_CONTROL)
                     m_dirty = true;
-                else if (m_gizmos.is_enabled() && !m_selection.is_empty()) {
+                else if (m_gizmos.is_enabled() && !m_selection.is_empty() && m_canvas_type != CanvasAssembleView) {
                     translationProcessor.process(evt);
 
                     //switch (keyCode)
@@ -2774,7 +2785,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 }
                 else if (keyCode == WXK_CONTROL)
                     m_dirty = true;
-                else if (m_gizmos.is_enabled() && !m_selection.is_empty()) {
+                else if (m_gizmos.is_enabled() && !m_selection.is_empty() && m_canvas_type != CanvasAssembleView) {
 //                    auto do_rotate = [this](double angle_z_rad) {
 //                        m_selection.start_dragging();
 //                        m_selection.rotate(Vec3d(0.0, 0.0, angle_z_rad), TransformationType(TransformationType::World_Relative_Joint));
@@ -3351,6 +3362,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     //BBS do not limit rotate in assemble view
                     camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
                     //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), false, rotate_target);
+                    auto clp_dist = m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position();
+                    m_gizmos.m_assemble_view_data->model_objects_clipper()->set_position(clp_dist, true);
                 }
                 else {
 #ifdef SUPPORT_FEEE_CAMERA
@@ -5720,7 +5733,12 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
     else
         m_volumes.set_z_range(-FLT_MAX, FLT_MAX);
 
-    m_volumes.set_clipping_plane(m_camera_clipping_plane.get_data());
+    if (m_canvas_type == CanvasAssembleView) {
+        m_volumes.set_clipping_plane(m_gizmos.get_assemble_view_clipping_plane().get_data());
+    }
+    else {
+        m_volumes.set_clipping_plane(m_camera_clipping_plane.get_data());
+    }
     //BBS: remove sinking logic
     //m_volumes.set_show_sinking_contours(! m_gizmos.is_hiding_instances());
 
@@ -5761,6 +5779,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                     shader->start_using();
                 }
             }
+
             break;
         }
         case GLVolumeCollection::ERenderType::Transparent:
@@ -5774,6 +5793,12 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                     return true;
                 }
                 }, with_outline);
+            if (m_canvas_type == CanvasAssembleView) {
+                const GLGizmosManager& gm = get_gizmos_manager();
+                shader->stop_using();
+                gm.render_painter_assemble_view();
+                shader->start_using();
+            }
             break;
         }
         }
@@ -5959,7 +5984,7 @@ void GLCanvas3D::_render_overlays()
 
     _check_and_update_toolbar_icon_scale();
 
-    _render_explosion_control();
+    _render_assemble_control();
     _render_assemble_info();
 
     // main toolbar and undoredo toolbar need to be both updated before rendering because both their sizes are needed
@@ -6167,6 +6192,8 @@ void GLCanvas3D::_render_gizmos_overlay()
     const float size = int(GLGizmosManager::Default_Icons_Size * wxGetApp().toolbar_icon_scale());
     m_gizmos.set_overlay_icon_size(size); //! #ys_FIXME_experiment
 #endif /* __WXMSW__ */
+    if (m_canvas_type == CanvasAssembleView)
+        return;
 
     m_gizmos.render_overlay();
 
@@ -6664,7 +6691,7 @@ void GLCanvas3D::_render_paint_toolbar() const
 }
 
 //BBS
-void GLCanvas3D::_render_explosion_control() const
+void GLCanvas3D::_render_assemble_control() const
 {
     if (m_canvas_type != ECanvasType::CanvasAssembleView) {
         GLVolume::explosion_ratio = m_explosion_ratio = 1.0;
@@ -6679,26 +6706,45 @@ void GLCanvas3D::_render_explosion_control() const
     auto canvas_h = float(get_canvas_size().get_height());
 
     const float text_padding = 7.0f;
-    ImVec2 text_size = imgui->calc_text_size(_L("Explosion Ratio"));
-    const float slider_width = 130.0f;
+    const float text_size_x = std::max(imgui->calc_text_size(_L("Explosion Ratio")).x, imgui->calc_text_size(_L("Section View")).x);
+    const float slider_width = 75.0f;
     const float value_size = imgui->calc_text_size("3.00").x + text_padding * 2;
     const float item_spacing = imgui->get_item_spacing().x;
     ImVec2 window_padding = ImGui::GetStyle().WindowPadding;
-    ImVec2      window_size    = ImVec2(text_size.x + slider_width + value_size + item_spacing * 2 + window_padding.x * 2, window_padding.y * 2 + text_size.y);
 
-    // 13.0f is bottom margin
-    imgui->set_next_window_pos(canvas_w * 0.5 - window_size.x * 0.5, canvas_h - window_size.y - 13.0f, ImGuiCond_Always, 0.0f, 0.0f);
-    imgui->begin(_L("Explosion Ratio"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+    imgui->set_next_window_pos(canvas_w / 2, canvas_h - 13.0f * get_scale(), ImGuiCond_Always, 0.5f, 1.0f);
+    imgui->begin(_L("Assemble Control"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
     ImGui::AlignTextToFramePadding();
-    imgui->text(_L("Explosion Ratio"));
-    ImGui::SameLine(window_padding.x + text_size.x + item_spacing);
-    ImGui::PushItemWidth(slider_width);
-    bool slider_changed = imgui->bbl_slider_float_style("##ratio_slider", &m_explosion_ratio, 1.0f, 3.0f, "%1.2f");
 
-    ImGui::SameLine(window_padding.x + text_size.x + slider_width + item_spacing * 2);
-    ImGui::PushItemWidth(value_size);
-    bool input_changed   = ImGui::BBLDragFloat("##ratio_input", &m_explosion_ratio, 0.1f, 1.0f, 3.0f, "%1.2f");
+    {
+        imgui->text(_L("Section View"));
+
+        ImGui::SameLine(window_padding.x + text_size_x + item_spacing);
+        ImGui::PushItemWidth(slider_width);
+        static float clp_dist = 0.f;
+        bool view_slider_changed = imgui->bbl_slider_float_style("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true);
+
+        ImGui::SameLine(window_padding.x + text_size_x + slider_width + item_spacing * 2);
+        ImGui::PushItemWidth(value_size);
+        bool view_input_changed = ImGui::BBLDragFloat("##clp_dist_input", &clp_dist, 0.05f, 0.0f, 0.0f, "%.2f");
+
+        if (view_slider_changed || view_input_changed)
+            m_gizmos.m_assemble_view_data->model_objects_clipper()->set_position(clp_dist, true);
+    }
+
+    {
+        ImGui::SameLine(window_padding.x + text_size_x + slider_width + item_spacing * 6 + value_size);
+        imgui->text(_L("Explosion Ratio"));
+
+        ImGui::SameLine(window_padding.x + 2 * text_size_x + slider_width + item_spacing * 7 + value_size);
+        ImGui::PushItemWidth(slider_width);
+        bool explosion_slider_changed = imgui->bbl_slider_float_style("##ratio_slider", &m_explosion_ratio, 1.0f, 3.0f, "%1.2f");
+
+        ImGui::SameLine(window_padding.x + 2 * text_size_x + 2 * slider_width + item_spacing * 8 + value_size);
+        ImGui::PushItemWidth(value_size);
+        bool explosion_input_changed = ImGui::BBLDragFloat("##ratio_input", &m_explosion_ratio, 0.1f, 1.0f, 3.0f, "%1.2f");
+    }
 
     imgui->end();
 

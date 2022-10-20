@@ -940,31 +940,31 @@ namespace client
             auto error_line = std::string(first, first_pos) + std::string(last, 0, last_pos);
             // Position of the it_error from the start of its line.
             auto error_pos  = (it_error - it_begin) - first_pos;
-            msg += Slic3r::format(_(L("Error at line %1%:\n")), std::to_string(line_nr));
-            //if (! info.tag.empty() && info.tag.front() == '*') {
-            //    // The gat contains an explanatory string.
-            //    msg += ": ";
-            //    msg += info.tag.substr(1);
-            //} else {
-            //   auto it = tag_to_error_message.find(info.tag);
-            //    if (it == tag_to_error_message.end()) {
-            //        // A generic error report based on the nonterminal or terminal symbol name.
-            //        msg += ". Expecting tag ";
-            //        msg += info.tag;
-            //    } else {
-            //        // Use the human readable error message.
-            //        msg += ". ";
-            //        msg += it->second;
-            //    }
-            //}
-            //msg += '\n';
+            msg += "Parsing error at line " + std::to_string(line_nr);
+            if (! info.tag.empty() && info.tag.front() == '*') {
+                // The gat contains an explanatory string.
+                msg += ": ";
+                msg += info.tag.substr(1);
+            } else {
+                auto it = tag_to_error_message.find(info.tag);
+                if (it == tag_to_error_message.end()) {
+                    // A generic error report based on the nonterminal or terminal symbol name.
+                    msg += ". Expecting tag ";
+                    msg += info.tag;
+                } else {
+                    // Use the human readable error message.
+                    msg += ". ";
+                    msg += it->second;
+                }
+            }
+            msg += '\n';
             // This hack removes all non-UTF8 characters from the source line, so that the upstream wxWidgets conversions
             // from UTF8 to UTF16 don't bail out.
             msg += boost::nowide::narrow(boost::nowide::widen(error_line));
             msg += '\n';
-            //for (size_t i = 0; i < error_pos; ++ i)
-            //    msg += ' ';
-            //msg += "^\n";
+            for (size_t i = 0; i < error_pos; ++ i)
+                msg += ' ';
+            msg += "^\n";
         }
     };
 

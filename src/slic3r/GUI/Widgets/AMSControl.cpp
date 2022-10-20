@@ -31,6 +31,8 @@ wxDEFINE_EVENT(EVT_AMS_ON_SELECTED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_ON_FILAMENT_EDIT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_CLIBRATION_AGAIN, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_CLIBRATION_CANCEL, wxCommandEvent);
+wxDEFINE_EVENT(EVT_AMS_GUIDE_WIKI, wxCommandEvent);
+wxDEFINE_EVENT(EVT_AMS_RETRY, wxCommandEvent);
 
 inline int hex_digit_to_int(const char c)
 {
@@ -1467,14 +1469,26 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_simplebook_right->AddPage(m_filament_unload_step, wxEmptyString, false);
 
     wxBoxSizer *m_sizer_right_bottom = new wxBoxSizer(wxHORIZONTAL);
-    m_sizer_right_bottom->Add(0, 0, 1, wxEXPAND, FromDIP(5));
-    m_button_ams_setting = new Button(m_amswin, _L("AMS Settings"));
-    m_button_ams_setting->SetBackgroundColor(btn_bg_white);
-    m_button_ams_setting->SetBorderColor(btn_bd_white);
-    m_button_ams_setting->SetFont(Label::Body_13);
-    //m_button_ams_setting->Hide();
-    m_sizer_right_bottom->Add(m_button_ams_setting, 0, wxTOP, FromDIP(20));
-    m_sizer_right->Add(m_sizer_right_bottom, 0, wxEXPAND, FromDIP(5));
+    m_button_ams_setting = new Button(m_amswin, "", "ams_setting_normal", wxBORDER_NONE, FromDIP(24));
+    m_button_ams_setting->SetPaddingSize(wxSize(0, 0));
+    m_button_ams_setting->SetBackgroundColor(m_amswin->GetBackgroundColour());
+
+    m_button_guide = new Button(m_amswin, _L("Guide"));
+    m_button_guide->SetFont(Label::Body_13);
+    m_button_guide->SetCornerRadius(FromDIP(12));
+    m_button_guide->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_guide->SetBackgroundColor(btn_bg_white);
+
+    m_button_retry = new Button(m_amswin, _L("Retry"));
+    m_button_retry->SetFont(Label::Body_13);
+    m_button_retry->SetCornerRadius(FromDIP(12));
+    m_button_retry->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_retry->SetBackgroundColor(btn_bg_white);
+
+    m_sizer_right_bottom->Add(m_button_ams_setting, 0);
+    m_sizer_right_bottom->Add(m_button_guide, 0, wxLEFT, FromDIP(10));
+    m_sizer_right_bottom->Add(m_button_retry, 0, wxLEFT, FromDIP(10));
+    m_sizer_right->Add(m_sizer_right_bottom, 0, wxEXPAND | wxTOP, FromDIP(20));
     m_sizer_bottom->Add(m_sizer_right, 0, wxEXPAND, FromDIP(5));
 
     m_sizer_body->Add(m_simplebook_amsitems, 0, wxEXPAND, 0);
@@ -1485,7 +1499,6 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_amswin->SetSizer(m_sizer_body);
     m_amswin->Layout();
     m_amswin->Fit();
-    
     //Thaw();
 
     SetSize(m_amswin->GetSize());
@@ -1566,6 +1579,25 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_extruder_feed->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_filament_load), NULL, this);
     m_button_extruder_back->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_filament_unload), NULL, this);
     m_button_ams_setting->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_ams_setting_click), NULL, this);
+    m_button_ams_setting->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& e) {
+        m_button_ams_setting->SetIcon("ams_setting_hover");
+        e.Skip();
+        });
+    m_button_ams_setting->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        m_button_ams_setting->SetIcon("ams_setting_press");
+        e.Skip();
+        });
+    m_button_ams_setting->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent&e) {
+        m_button_ams_setting->SetIcon("ams_setting_normal");
+        e.Skip();
+        });
+
+    m_button_guide->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+        post_event(wxCommandEvent(EVT_AMS_GUIDE_WIKI));
+        });
+    m_button_retry->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+        post_event(wxCommandEvent(EVT_AMS_RETRY));
+        });
 
     CreateAms();
     SetSelection(0);
@@ -1578,8 +1610,6 @@ void AMSControl::init_scaled_buttons()
     m_button_extruder_feed->SetCornerRadius(FromDIP(12));
     m_button_extruder_back->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_extruder_back->SetCornerRadius(FromDIP(12));
-    m_button_ams_setting->SetMinSize(wxSize(-1, FromDIP(33)));
-    m_button_ams_setting->SetCornerRadius(FromDIP(12));
 }
 
 std::string AMSControl::GetCurentAms() { return m_current_ams; }
@@ -1709,7 +1739,9 @@ void AMSControl::msw_rescale()
     m_extruder->msw_rescale();
     m_button_extruder_back->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_extruder_feed->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_button_ams_setting->SetMinSize(wxSize(-1, FromDIP(33)));
+    m_button_ams_setting->SetMinSize(wxSize(FromDIP(25), FromDIP(24)));
+    m_button_guide->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_retry->SetMinSize(wxSize(-1, FromDIP(24)));
 
     for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
         AmsCansWindow *cans = m_ams_cans_list[i];

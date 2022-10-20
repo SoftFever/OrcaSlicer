@@ -1167,12 +1167,14 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
         travel_intersection_count = 0;
     }
 
-    const ConfigOptionFloat &opt_max_detour             = gcodegen.config().max_travel_detour_distance;
+    const ConfigOptionFloatOrPercent &opt_max_detour             = gcodegen.config().max_travel_detour_distance;
     bool                              max_detour_length_exceeded = false;
     if (opt_max_detour.value > 0) {
         double direct_length     = travel.length();
         double detour            = result_pl.length() - direct_length;
-        double max_detour_length = scale_(opt_max_detour.value);
+        double max_detour_length = opt_max_detour.percent ?
+            direct_length * 0.01 * opt_max_detour.value :
+            scale_(opt_max_detour.value);
         if (detour > max_detour_length) {
             result_pl = {start, end};
             max_detour_length_exceeded = true;

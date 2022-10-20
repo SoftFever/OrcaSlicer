@@ -89,13 +89,6 @@ void GizmoObjectManipulation::update_settings_value(const Selection& selection)
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
         m_new_position = volume->get_instance_offset();
 
-        // Verify whether the instance rotation is multiples of 90 degrees, so that the scaling in world coordinates is possible.
-		if (m_world_coordinates && ! m_uniform_scale && 
-            ! Geometry::is_rotation_ninety_degrees(volume->get_instance_rotation())) {
-			// Manipulating an instance in the world coordinate system, rotation is not multiples of ninety degrees, therefore enforce uniform scaling.
-			m_uniform_scale = true;
-		}
-
         if (m_world_coordinates) {
 			m_new_rotate_label_string = L("Rotate");
             m_new_rotation = volume->get_instance_rotation() * (180. / M_PI);
@@ -463,9 +456,6 @@ void GizmoObjectManipulation::set_uniform_scaling(const bool new_value)
         }
     }
     m_uniform_scale = new_value;
-    AppConfig* config = wxGetApp().app_config;
-    if (config)
-        config->set("uniform_scale", new_value ? "1": "0");
 }
 
 static const char* label_values[2][3] = {
@@ -897,9 +887,6 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
 
     ImGui::Separator();
 
-    AppConfig* config = wxGetApp().app_config;
-    if (config)
-        this->m_uniform_scale = config->get("uniform_scale") == "1" ? true : false;
     bool uniform_scale = this->m_uniform_scale;
 
     const Selection &selection = m_glcanvas.get_selection();

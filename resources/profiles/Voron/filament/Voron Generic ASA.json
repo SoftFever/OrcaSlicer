@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFB98",
-    "setting_id": "GFSB98",
+    "setting_id": "GFSB98_VORON_00",
     "name": "Voron Generic ASA",
     "from": "system",
     "instantiation": "true",

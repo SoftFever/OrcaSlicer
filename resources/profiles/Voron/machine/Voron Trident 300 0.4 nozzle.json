@@ -1,6 +1,6 @@
 {
   "type": "machine",
-  "setting_id": "VORON-006",
+  "setting_id": "GM_VORON_006",
   "name": "Voron Trident 300 0.4 nozzle",
   "from": "system",
   "instantiation": "true",

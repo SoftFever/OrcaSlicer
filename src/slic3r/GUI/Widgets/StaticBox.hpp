@@ -29,7 +29,11 @@ public:
 
     void SetBorderColor(StateColor const & color);
 
+    void SetBorderColorNormal(wxColor const &color);
+
     void SetBackgroundColor(StateColor const &color);
+
+    void SetBackgroundColorNormal(wxColor const &color);
 
     void SetBackgroundColor2(StateColor const &color);
 

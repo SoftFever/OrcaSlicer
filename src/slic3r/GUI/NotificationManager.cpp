@@ -1,5 +1,6 @@
 #include "NotificationManager.hpp"
 
+#include "HintNotification.hpp"
 #include "GUI.hpp"
 #include "ImGuiWrapper.hpp"
 #include "wxExtensions.hpp"
@@ -1009,7 +1010,7 @@ void NotificationManager::PrintHostUploadNotification::init()
 }
 void NotificationManager::PrintHostUploadNotification::count_spaces()
 {
-	//determine line width 
+	//determine line width
 	m_line_height = ImGui::CalcTextSize("A").y;
 
 	m_left_indentation = m_line_height;
@@ -1078,7 +1079,6 @@ void NotificationManager::PrintHostUploadNotification::render_bar(ImGuiWrapper& 
 		ImGui::SetCursorPosY(win_size_y / 2 + win_size_y / 6 - (m_multiline ? m_line_height / 4 : m_line_height / 2));
 		break;
 	}
-	
 	imgui.text(text.c_str());
 
 }
@@ -1983,7 +1983,27 @@ int  NotificationManager::progress_indicator_get_range() const
 
 void NotificationManager::push_hint_notification(bool open_next)
 {
-	return;
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		if (notification->get_type() == NotificationType::DidYouKnowHint) {
+			(dynamic_cast<HintNotification*>(notification.get()))->open_next();
+			return;
+		}
+	}
+
+	NotificationData data{ NotificationType::DidYouKnowHint, NotificationLevel::HintNotificationLevel, 300, "" };
+	// from user - open now
+	if (!open_next) {
+		push_notification_data(std::make_unique<NotificationManager::HintNotification>(data, m_id_provider, m_evt_handler, open_next), 0);
+		stop_delayed_notifications_of_type(NotificationType::DidYouKnowHint);
+		// at startup - delay for half a second to let other notification pop up, than try every 30 seconds
+		// show only if no notifications are shown
+	}
+	else {
+		auto condition = [&self = std::as_const(*this)]() {
+			return self.get_notification_count() == 0;
+		};
+		push_delayed_notification_data(std::make_unique<NotificationManager::HintNotification>(data, m_id_provider, m_evt_handler, open_next), condition, 500, 30000);
+	}
 }
 
 bool NotificationManager::is_hint_notification_open()

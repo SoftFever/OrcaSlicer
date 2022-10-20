@@ -71,11 +71,13 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
 {
     std::string machine = obj ? obj->dev_id : "";
     if (obj && obj->is_function_supported(PrinterFunction::FUNC_CAMERA_VIDEO)) {
-        m_lan_mode     = obj->is_lan_mode_printer();
+        m_camera_exists = obj->has_ipcam;
+        m_lan_mode      = obj->is_lan_mode_printer();
         m_lan_ip       = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->dev_ip : "";
-        m_lan_passwd   = obj->access_code;
+        m_lan_passwd    = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->access_code : "";
         m_tutk_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
     } else {
+        m_camera_exists = false;
         m_lan_mode = false;
         m_lan_ip.clear();
         m_lan_passwd.clear();
@@ -93,7 +95,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     if (m_next_retry.IsValid())
         Play();
     else
-        SetStatus("");
+        SetStatus("", false);
 }
 
 void MediaPlayCtrl::Play()
@@ -102,12 +104,17 @@ void MediaPlayCtrl::Play()
         return;
     if (!IsShownOnScreen())
         return;
+    if (m_last_state != MEDIASTATE_IDLE) {
+        return;
+    }
     if (m_machine.empty()) {
         Stop();
         SetStatus(_L("Initialize failed (No Device)!"));
         return;
     }
-    if (m_last_state != MEDIASTATE_IDLE) {
+    if (!m_camera_exists) {
+        Stop();
+        SetStatus(_L("Initialize failed (No Camera Device)!"));
         return;
     }
 
@@ -135,9 +142,17 @@ void MediaPlayCtrl::Play()
         return;
     }
     
-    if (m_lan_mode && !m_tutk_support) { // not support tutk
+    if (m_lan_mode) {
         Stop();
-        SetStatus(_L("Initialize failed (Not supported)!"));
+        SetStatus(m_lan_passwd.empty() 
+            ? _L("Initialize failed (Not supported with LAN-only mode)!") 
+            : _L("Initialize failed (Not accessible in LAN-only mode)!"));
+        return;
+    }
+    
+    if (!m_tutk_support) { // not support tutk
+        Stop();
+        SetStatus(_L("Initialize failed (Not supported without remote video tunnel)!"));
         return;
     }
 
@@ -145,14 +160,13 @@ void MediaPlayCtrl::Play()
     if (agent) {
         agent->get_camera_url(m_machine, [this, m = m_machine](std::string url) {
             BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
-            if (m != m_machine) return;
-            CallAfter([this, url] {
+            CallAfter([this, m, url] {
+                if (m != m_machine) return;
                 m_url = url;
                 if (m_last_state == MEDIASTATE_INITIALIZING) {
-                    if (url.empty()) {
+                    if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
                         Stop();
-                        m_failed_code = 1;
-                        SetStatus(_L("Initialize failed [%d]!"));
+                        SetStatus(wxString::Format(_L("Initialize failed (%s)!"), url.empty() ? _L("Network unreachable") : from_u8(url)));
                     } else {
                         m_last_state = MEDIASTATE_LOADING;
                         SetStatus(_L("Loading..."));
@@ -179,7 +193,10 @@ void MediaPlayCtrl::Stop()
         m_tasks.push_back("<stop>");
         m_cond.notify_all();
         m_last_state = MEDIASTATE_IDLE;
-        SetStatus(_L("Stopped."));
+        if (m_failed_code)
+            SetStatus(_L("Stopped [%d]!"), true);
+        else
+            SetStatus(_L("Stopped."), false);
         if (m_failed_code >= 100) // not keep retry on local error
             m_next_retry = wxDateTime();
     }
@@ -200,7 +217,7 @@ void MediaPlayCtrl::TogglePlay()
     }
 }
 
-void MediaPlayCtrl::SetStatus(wxString const& msg2)
+void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
 {
     auto msg = wxString::Format(msg2, m_failed_code);
     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::SetStatus: " << msg.ToUTF8().data();
@@ -211,10 +228,11 @@ void MediaPlayCtrl::SetStatus(wxString const& msg2)
 #endif // __WXMSW__
     m_label_status->SetLabel(msg);
     long style = m_label_status->GetWindowStyle() & ~LB_HYPERLINK;
-    if (m_failed_code && msg != msg2) {
+    if (hyperlink) {
         style |= LB_HYPERLINK;
     }
     m_label_status->SetWindowStyle(style);
+    m_label_status->InvalidateBestSize();
     Layout();
 }
 
@@ -271,6 +289,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
     }
     if ((last_state == wxMEDIASTATE_PAUSED || last_state == wxMEDIASTATE_PLAYING)  &&
         state == wxMEDIASTATE_STOPPED) {
+        m_failed_code = m_media_ctrl->GetLastError();
         Stop();
         return;
     }
@@ -280,7 +299,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
         m_failed_code = m_media_ctrl->GetLastError();
         if (size.GetWidth() > 1000) {
             m_last_state = state;
-            SetStatus(_L("Playing..."));
+            SetStatus(_L("Playing..."), false);
             m_failed_retry = 0;
             boost::unique_lock lock(m_mutex);
             m_tasks.push_back("<play>");
@@ -291,9 +310,9 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
             if (m_failed_code == 0)
                 m_failed_code = 2;
             SetStatus(_L("Load failed [%d]!"));
-        } else {
-            m_last_state = last_state;
         }
+    } else {
+        m_last_state = state;
     }
 }
 

@@ -177,16 +177,19 @@ MonitorPanel::~MonitorPanel()
     m_connection_info->SetTextColor(*wxWHITE);
     m_connection_info->SetFont(::Label::Body_13);
     m_connection_info->SetCornerRadius(0);
-    m_connection_info->SetSize(wxSize(FromDIP(220), FromDIP(25)));
-    m_connection_info->SetMinSize(wxSize(FromDIP(220), FromDIP(25)));
-    m_connection_info->SetMaxSize(wxSize(FromDIP(220), FromDIP(25)));
+    m_connection_info->SetSize(wxSize(FromDIP(-1), FromDIP(25)));
+    m_connection_info->SetMinSize(wxSize(FromDIP(-1), FromDIP(25)));
+    m_connection_info->SetMaxSize(wxSize(FromDIP(-1), FromDIP(25)));
+
+    wxBoxSizer* connection_sizer = new wxBoxSizer(wxVERTICAL);
+    m_hyperlink = new wxHyperlinkCtrl(m_connection_info, wxID_ANY, _L("Failed to connect to the server"), wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-connect-printer"), wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+    connection_sizer->Add(m_hyperlink, 0, wxALIGN_CENTER | wxALL, 5);
+    m_hyperlink->SetBackgroundColour(wxColour(255, 111, 0));
+    m_connection_info->SetSizer(connection_sizer);
+    m_connection_info->Layout();
+    connection_sizer->Fit(m_connection_info);
+
     m_connection_info->Hide();
-    /*sizer_boxv->Add(m_connection_info, 0, wxALIGN_CENTER, 0);
-    sizer_boxh->Add(sizer_boxv, 1, wxALIGN_CENTER, 0);
-    warning_panel->SetSizer(sizer_boxh);
-    warning_panel->Layout();*/
-
-
 
 
     sizer_side_tools->Add(m_connection_info, 0, wxEXPAND, 0);
@@ -201,13 +204,11 @@ MonitorPanel::~MonitorPanel()
     m_status_info_panel        = new StatusPanel(m_tabpanel);
     m_tabpanel->AddPage(m_status_info_panel, _L("Status"), "", true);
 
-#if !BBL_RELEASE_TO_PUBLIC
     m_media_file_panel = new MediaFilePanel(m_tabpanel);
     m_tabpanel->AddPage(m_media_file_panel, _L("Media"), "", false);
 
     m_upgrade_panel = new UpgradePanel(m_tabpanel);
     m_tabpanel->AddPage(m_upgrade_panel, _L("Update"), "", false);
-#endif
 
     m_hms_panel = new HMSPanel(m_tabpanel);
     m_tabpanel->AddPage(m_hms_panel, _L("HMS"),"", false);
@@ -254,10 +255,8 @@ void MonitorPanel::msw_rescale()
     m_tabpanel->Rescale();
     //m_status_add_machine_panel->msw_rescale();
     m_status_info_panel->msw_rescale();
-#if !BBL_RELEASE_TO_PUBLIC
     m_media_file_panel->Rescale();
     m_upgrade_panel->msw_rescale();
-#endif
     m_hms_panel->msw_rescale();
 
     m_connection_info->SetCornerRadius(0);
@@ -318,6 +317,7 @@ void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
     if (!m_side_tools->is_in_interval()) {
         wxPoint             pos              = m_side_tools->ClientToScreen(wxPoint(0, 0));
         pos.y += m_side_tools->GetRect().height;
+        pos.x = pos.x < 0? 0:pos.x;
         m_select_machine.Position(pos, wxSize(0, 0));
 
 #ifdef __linux__
@@ -407,15 +407,11 @@ void MonitorPanel::update_all()
     }
 
     m_status_info_panel->obj = obj;
-#if !BBL_RELEASE_TO_PUBLIC
     m_upgrade_panel->update(obj);
-#endif
 
     
     m_status_info_panel->m_media_play_ctrl->SetMachineObject(obj);
-#if !BBL_RELEASE_TO_PUBLIC
     m_media_file_panel->SetMachineObject(obj);
-#endif
 
     update_status(obj);
     
@@ -514,9 +510,14 @@ void MonitorPanel::show_status(int status)
 
     if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0) || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)) {
         if ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER))
-            m_connection_info->SetLabel(_L("Failed to connect to the server"));
+            m_hyperlink->SetLabel(_L("Failed to connect to the server"));
+            //m_connection_info->SetLabel(_L("Failed to connect to the server"));
         else
-            m_connection_info->SetLabel(_L("Failed to connect to the printer"));
+            m_hyperlink->SetLabel(_L("Failed to connect to the printer"));
+            //m_connection_info->SetLabel(_L("Failed to connect to the printer"));
+
+        m_hyperlink->Show();
+        m_connection_info->SetLabel(wxEmptyString);
         m_connection_info->Show();
         m_connection_info->SetBackgroundColor(wxColour(255, 111, 0));
         m_connection_info->SetBorderColor(wxColour(255, 111, 0));
@@ -526,6 +527,7 @@ void MonitorPanel::show_status(int status)
     } else if ((status & (int) MonitorStatus::MONITOR_NORMAL) != 0) {
         m_connection_info->Hide();
     } else if ((status & (int) MonitorStatus::MONITOR_CONNECTING) != 0) {
+        m_hyperlink->Hide();
         m_connection_info->SetLabel(_L("Connecting..."));
         m_connection_info->SetBackgroundColor(wxColour(0, 174, 66));
         m_connection_info->SetBorderColor(wxColour(0, 174, 66));

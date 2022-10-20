@@ -97,18 +97,20 @@ bool GLGizmoMmuSegmentation::on_init()
     // BBS
     m_shortcut_key = WXK_CONTROL_N;
 
-    m_desc["clipping_of_view"]     = _L("Section view") + ": ";
-    m_desc["cursor_size"]          = _L("Pen size") + ": ";
+    m_desc["clipping_of_view_caption"] = _L("Alt + Mouse wheel");
+    m_desc["clipping_of_view"]     = _L("Section view");
+    m_desc["cursor_size_caption"]  = _L("Ctrl + Mouse wheel");
+    m_desc["cursor_size"]          = _L("Pen size");
     m_desc["cursor_type"]          = _L("Pen shape");
 
-    // BBS
-    m_desc["paint_caption"]        = _L("Left mouse button") + ": ";
+    m_desc["paint_caption"]        = _L("Left mouse button");
     m_desc["paint"]                = _L("Paint");
-    m_desc["erase_caption"]        = _L("Right mouse button") + ": ";
+    m_desc["erase_caption"]        = _L("Shift + Left mouse button");
     m_desc["erase"]                = _L("Erase");
-    m_desc["shortcut_key_caption"] = _L("Key 1~9") + ": ";
+    m_desc["shortcut_key_caption"] = _L("Key 1~9");
     m_desc["shortcut_key"]         = _L("Choose filament");
     m_desc["edge_detection"]       = _L("Edge detection");
+    m_desc["gap_area_caption"]     = _L("Ctrl + Mouse wheel");
     m_desc["gap_area"]             = _L("Gap area");
     m_desc["perform"]              = _L("Perform");
 
@@ -123,12 +125,10 @@ bool GLGizmoMmuSegmentation::on_init()
     m_desc["tool_smart_fill"]      = _L("Smart fill");
     m_desc["tool_bucket_fill"]     = _L("Bucket fill");
 
+    m_desc["smart_fill_angle_caption"] = _L("Ctrl + Mouse wheel");
     m_desc["smart_fill_angle"]     = _L("Smart fill angle");
 
-    m_desc["brush_size"]         = _L("Set pen size");
-    m_desc["brush_size_caption"] = _L("Ctrl + Mouse wheel") + ": ";
-
-    // BBS
+    m_desc["height_range_caption"] = _L("Ctrl + Mouse wheel");
     m_desc["height_range"]         = _L("Height range");
 
     init_extruders_data();
@@ -297,6 +297,8 @@ void GLGizmoMmuSegmentation::show_tooltip_information(float caption_max, float x
     ImTextureID normal_id = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP);
     ImTextureID hover_id  = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP_HOVER);
 
+    caption_max += m_imgui->calc_text_size(": ").x + 15.f;
+
     float font_size = ImGui::GetFontSize();
     ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
@@ -310,7 +312,24 @@ void GLGizmoMmuSegmentation::show_tooltip_information(float caption_max, float x
             m_imgui->text_colored(ImGuiWrapper::COL_WINDOW_BG, text);
         };
 
-        for (const auto &t : std::array<std::string, 3>{"paint", "erase", "brush_size"}) draw_text_with_caption(m_desc.at(t + "_caption"), m_desc.at(t));
+        std::vector<std::string> tip_items;
+        switch (m_tool_type) {
+            case ToolType::BRUSH:
+                tip_items = {"paint", "erase", "cursor_size", "clipping_of_view"};
+                break;
+            case ToolType::BUCKET_FILL:
+                tip_items = {"paint", "erase", "smart_fill_angle", "clipping_of_view"};
+                break;
+            case ToolType::SMART_FILL:
+                // TODO:
+                break;
+            case ToolType::GAP_FILL:
+                tip_items = {"gap_area"};
+                break;
+            default:
+                break;
+        }
+        for (const auto &t : tip_items) draw_text_with_caption(m_desc.at(t + "_caption") + ": ", m_desc.at(t));
         ImGui::EndTooltip();
     }
     ImGui::PopStyleVar(1);
@@ -347,7 +366,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     float caption_max = 0.f;
     float total_text_max = 0.f;
-    for (const auto &t : std::array<std::string, 3>{"paint", "erase", "brush_size"}) {
+    for (const auto &t : std::array<std::string, 6>{"paint", "erase", "cursor_size", "smart_fill_angle", "height_range", "clipping_of_view"}) {
         caption_max = std::max(caption_max, m_imgui->calc_text_size(m_desc[t + "_caption"]).x);
         total_text_max = std::max(total_text_max, m_imgui->calc_text_size(m_desc[t]).x);
     }
@@ -537,7 +556,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
         if (m_detect_geometry_edge) {
             ImGui::AlignTextToFramePadding();
-            m_imgui->text(m_desc["smart_fill_angle"] + ":");
+            m_imgui->text(m_desc["smart_fill_angle"]);
             std::string format_str = std::string("%.f") + I18N::translate_utf8("°", "Face angle threshold,"
                                                                                     "placed after the number with no whitespace in between.");
             ImGui::SameLine(sliders_left_width);

@@ -358,6 +358,7 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     mc_print_sub_stage = 0;
     mc_left_time = 0;
     home_flag = -1;
+    hw_switch_state = 0;
     printing_speed_lvl   = PrintingSpeedLevel::SPEED_LEVEL_INVALID;
 }
 
@@ -1046,6 +1047,18 @@ bool MachineObject::is_axis_at_home(std::string axis)
     }
 }
 
+bool MachineObject::is_filament_at_extruder()
+{
+    if (hw_switch_state == 1)
+        return true;
+    else if (hw_switch_state == 0)
+        return false;
+    else {
+       //default
+        return true;
+    }
+}
+
 wxString MachineObject::get_curr_stage()
 {
     if (stage_list_info.empty()) {
@@ -1357,6 +1370,19 @@ int MachineObject::command_ams_select_tray(std::string tray_id)
     std::string gcode_cmd = (boost::format("M620 P%1% \n") % tray_id).str();
     BOOST_LOG_TRIVIAL(trace) << "ams_debug: gcode_cmd" << gcode_cmd;
     return this->publish_gcode(gcode_cmd);
+}
+
+int MachineObject::command_ams_control(std::string action)
+{
+    //valid actions
+    if (action == "resume" || action == "reset" || action == "pause") {
+        json j;
+        j["print"]["command"] = "ams_control";
+        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+        j["print"]["param"] = action;
+        return this->publish_json(j.dump());
+    }
+    return -1;
 }
 
 
@@ -1726,6 +1752,12 @@ bool MachineObject::is_function_supported(PrinterFunction func)
     return DeviceManager::is_function_supported(printer_type, func_name);
 }
 
+bool MachineObject::is_support_print_with_timelapse()
+{
+    //TODO version check, set true by default
+    return true;
+}
+
 int MachineObject::publish_json(std::string json_str, int qos)
 {
     if (is_lan_mode_printer()) {
@@ -1819,6 +1851,9 @@ int MachineObject::parse_json(std::string payload)
 
                     if (jj.contains("home_flag")) {
                         home_flag = jj["home_flag"].get<int>();
+                    }
+                    if (jj.contains("hw_switch_state")) {
+                        hw_switch_state = jj["hw_switch_state"].get<int>();
                     }
 
                     if (jj.contains("mc_remaining_time")) {

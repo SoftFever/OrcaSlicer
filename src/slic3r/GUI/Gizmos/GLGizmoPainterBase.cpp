@@ -495,21 +495,22 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
     if (action == SLAGizmoEventType::MouseWheelUp
      || action == SLAGizmoEventType::MouseWheelDown) {
         if (control_down) {
+            //BBS
+            if (m_tool_type == ToolType::BRUSH && m_cursor_type == TriangleSelector::CursorType::HEIGHT_RANGE) {
+                m_cursor_height = action == SLAGizmoEventType::MouseWheelDown ? std::max(m_cursor_height - this->get_cursor_height_step(), this->get_cursor_height_min()) :
+                                                                                std::min(m_cursor_height + this->get_cursor_height_step(), this->get_cursor_height_max());
+                m_parent.set_as_dirty();
+                return true;
+            }
+
             if (m_tool_type == ToolType::BRUSH && (m_cursor_type == TriangleSelector::CursorType::SPHERE || m_cursor_type == TriangleSelector::CursorType::CIRCLE)) {
                 m_cursor_radius = action == SLAGizmoEventType::MouseWheelDown ? std::max(m_cursor_radius - this->get_cursor_radius_step(), this->get_cursor_radius_min()) :
                                                                                 std::min(m_cursor_radius + this->get_cursor_radius_step(), this->get_cursor_radius_max());
                 m_parent.set_as_dirty();
                 return true;
             }
-            double pos = m_c->object_clipper()->get_position();
-            pos = action == SLAGizmoEventType::MouseWheelDown
-                      ? std::max(0., pos - 0.01)
-                      : std::min(1., pos + 0.01);
-            m_c->object_clipper()->set_position(pos, true);
-            return true;
-        }
-        else if (alt_down) {
-                if (m_tool_type == ToolType::SMART_FILL) {
+
+            if (m_tool_type == ToolType::BUCKET_FILL || m_tool_type == ToolType::SMART_FILL) {
                 m_smart_fill_angle = action == SLAGizmoEventType::MouseWheelDown ? std::max(m_smart_fill_angle - SmartFillAngleStep, SmartFillAngleMin)
                                                                                 : std::min(m_smart_fill_angle + SmartFillAngleStep, SmartFillAngleMax);
                 m_parent.set_as_dirty();
@@ -527,7 +528,22 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                 return true;
             }
 
-            return false;
+            if (m_tool_type == ToolType::GAP_FILL) {
+                TriangleSelectorPatch::gap_area = action == SLAGizmoEventType::MouseWheelDown ?
+                    std::max(TriangleSelectorPatch::gap_area - TriangleSelectorPatch::GapAreaStep, TriangleSelectorPatch::GapAreaMin) :
+                    std::min(TriangleSelectorPatch::gap_area + TriangleSelectorPatch::GapAreaStep, TriangleSelectorPatch::GapAreaMax);
+                m_parent.set_as_dirty();
+                return true;
+            }
+        }
+        else if (alt_down) {
+            // BBS
+            double pos = m_c->object_clipper()->get_position();
+            pos = action == SLAGizmoEventType::MouseWheelDown
+                      ? std::max(0., pos - 0.01)
+                      : std::min(1., pos + 0.01);
+            m_c->object_clipper()->set_position(pos, true);
+            return true;
         }
     }
 
@@ -544,6 +560,16 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             return false;
 
         EnforcerBlockerType new_state = EnforcerBlockerType::NONE;
+        // BBS
+        if (action == SLAGizmoEventType::Dragging) {
+            if (m_button_down == Button::Right && this->get_right_button_state_type() == EnforcerBlockerType(-1))
+                return false;
+        }
+        else {
+            if (action == SLAGizmoEventType::RightDown && this->get_right_button_state_type() == EnforcerBlockerType(-1))
+                return false;
+        }
+
         if (! shift_down) {
             if (action == SLAGizmoEventType::Dragging)
                 new_state = m_button_down == Button::Left ? this->get_left_button_state_type() : this->get_right_button_state_type();

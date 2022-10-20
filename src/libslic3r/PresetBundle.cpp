@@ -179,8 +179,13 @@ void PresetBundle::setup_directories()
 		boost::filesystem::path subdir = path;
         subdir.make_preferred();
         if (! boost::filesystem::is_directory(subdir) &&
-            ! boost::filesystem::create_directory(subdir))
-            throw Slic3r::RuntimeError(std::string("Unable to create directory ") + subdir.string());
+            ! boost::filesystem::create_directory(subdir)) {
+            if (boost::filesystem::is_directory(subdir)) {
+                BOOST_LOG_TRIVIAL(warning) << boost::format("creating directory %1% failed, maybe created by other instance, go on!")%subdir.string();
+            }
+            else
+                throw Slic3r::RuntimeError(std::string("Unable to create directory ") + subdir.string());
+        }
     }
 }
 
@@ -247,6 +252,10 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
     else {
         dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/default";
     }
+    fs::path user_folder(data_dir() + "/" + PRESET_USER_DIR);
+    if (!fs::exists(user_folder))
+        fs::create_directory(user_folder);
+
     fs::path folder(dir_user_presets);
     if (!fs::exists(folder))
         fs::create_directory(folder);
@@ -659,7 +668,7 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
                     continue;
                 }
                 new_config.apply(std::move(config));
-                
+
                 Preset &preset     = collection->load_preset(collection->path_from_name(name), name, std::move(new_config), false);
                 preset.is_external = true;
                 preset.version     = *version;
@@ -695,6 +704,11 @@ void PresetBundle::save_user_presets(AppConfig& config, std::vector<std::string>
     const std::string dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/"+ config.get("preset_folder");
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, save to %1%")%dir_user_presets;
+
+    fs::path user_folder(data_dir() + "/" + PRESET_USER_DIR);
+    if (!fs::exists(user_folder))
+        fs::create_directory(user_folder);
+
     fs::path folder(dir_user_presets);
     if (!fs::exists(folder))
         fs::create_directory(folder);
@@ -712,6 +726,11 @@ void PresetBundle::update_user_presets_directory(const std::string preset_folder
     const std::string dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/"+ preset_folder;
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, update directory to %1%")%dir_user_presets;
+
+    fs::path user_folder(data_dir() + "/" + PRESET_USER_DIR);
+    if (!fs::exists(user_folder))
+        fs::create_directory(user_folder);
+
     fs::path folder(dir_user_presets);
     if (!fs::exists(folder))
         fs::create_directory(folder);
@@ -726,6 +745,10 @@ void PresetBundle::remove_user_presets_directory(const std::string preset_folder
 {
     const std::string dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/" + preset_folder;
 
+    if (preset_folder.empty()) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": preset_folder is empty, no need to remove directory : %1%") % dir_user_presets;
+        return;
+    }
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, delete directory : %1%") % dir_user_presets;
     fs::path folder(dir_user_presets);
     if (fs::exists(folder)) {
@@ -838,7 +861,7 @@ void PresetBundle::remove_users_preset(AppConfig& config)
     } else {
         printers.select_preset_by_name(printer_selected_preset_name, false);
     }
-    
+
     std::string selected_print_name = prints.get_selected_preset().name;
     bool need_reset_print_preset = false;
     // remove preset if user_id is not current user
@@ -1114,14 +1137,33 @@ void PresetBundle::save_changes_for_preset(const std::string& new_name, Preset::
 
 void PresetBundle::load_installed_filaments(AppConfig &config)
 {
-    if (! config.has_section(AppConfig::SECTION_FILAMENTS)
-        || config.get_section(AppConfig::SECTION_FILAMENTS).empty()) {
+    //if (! config.has_section(AppConfig::SECTION_FILAMENTS)
+    //    || config.get_section(AppConfig::SECTION_FILAMENTS).empty()) {
         // Compatibility with the PrusaSlicer 2.1.1 and older, where the filament profiles were not installable yet.
         // Find all filament profiles, which are compatible with installed printers, and act as if these filament profiles
         // were installed.
         std::unordered_set<const Preset*> compatible_filaments;
         for (const Preset &printer : printers)
             if (printer.is_visible && printer.printer_technology() == ptFFF && printer.vendor && (!printer.vendor->models.empty())) {
+                bool add_default_materials = true;
+                if (config.has_section(AppConfig::SECTION_FILAMENTS))
+                {
+                    const std::map<std::string, std::string>& installed_filament = config.get_section(AppConfig::SECTION_FILAMENTS);
+                    for (auto filament_iter : installed_filament)
+                    {
+                        Preset* filament = filaments.find_preset(filament_iter.first, false, true);
+                        if (filament && is_compatible_with_printer(PresetWithVendorProfile(*filament, filament->vendor), PresetWithVendorProfile(printer, printer.vendor)))
+                        {
+                            //already has compatible filament
+                            add_default_materials = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (!add_default_materials)
+                    continue;
+
                 for (auto default_filament: printer.vendor->models[0].default_materials)
                 {
                     Preset* filament = filaments.find_preset(default_filament, false, true);
@@ -1136,7 +1178,7 @@ void PresetBundle::load_installed_filaments(AppConfig &config)
         // and mark these filaments as installed, therefore this code will not be executed at the next start of the application.
         for (const auto &filament: compatible_filaments)
             config.set(AppConfig::SECTION_FILAMENTS, filament->name, "true");
-    }
+    //}
 
     for (auto &preset : filaments)
         preset.set_visible_from_appconfig(config);

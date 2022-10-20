@@ -13,6 +13,9 @@
     "hot_plate_temp" : [
         "35"
     ],
+    "textured_plate_temp" : [
+        "35"
+    ],
     "cool_plate_temp_initial_layer" : [
         "30"
     ],
@@ -20,6 +23,9 @@
         "30"
     ],
     "hot_plate_temp_initial_layer" : [
+        "35"
+    ],
+    "textured_plate_temp_initial_layer" : [
         "35"
     ],
     "fan_cooling_layer_time": [

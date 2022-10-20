@@ -20,6 +20,7 @@ namespace Slic3r { namespace GUI {
 #define DESIGN_SELECTOR_NOMORE_COLOR wxColour(248, 248, 248)
 #define DESIGN_GRAY900_COLOR wxColour(38, 46, 48)
 #define DESIGN_GRAY800_COLOR wxColour(50, 58, 61)
+#define DESIGN_GRAY600_COLOR wxColour(144, 144, 144)
 #define DESIGN_GRAY400_COLOR wxColour(166, 169, 170)
 
 class Selector
@@ -106,7 +107,8 @@ public:
     wxBoxSizer *create_item_language_combobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param, std::vector<const wxLanguageInfo *> vlist);
     wxBoxSizer *create_item_loglevel_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist);
     wxBoxSizer *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
-    wxBoxSizer *create_item_backup_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
+    wxWindow*   create_item_downloads(wxWindow* parent, int padding_left, std::string param);
+    wxBoxSizer* create_item_backup_checkbox(wxString title, wxWindow* parent, wxString tooltip, int padding_left, std::string param);
     wxBoxSizer *create_item_backup_input(wxString title, wxWindow *parent, wxString tooltip, std::string param);
     wxBoxSizer *create_item_multiple_combobox(
         wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string parama, std::vector<wxString> vlista, std::vector<wxString> vlistb);
@@ -125,7 +127,6 @@ public:
     void create_select_domain_widget();
 
     void Split(const std::string &src, const std::string &separator, std::vector<wxString> &dest);
-
     int m_current_language_selected = {0};
 
 protected:

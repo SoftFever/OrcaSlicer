@@ -36,7 +36,7 @@ namespace BBL {
 
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
-#define BAMBU_NETWORK_AGENT_VERSION         "01.02.00.02"
+#define BAMBU_NETWORK_AGENT_VERSION         "01.03.00.02"
 
 
 //iot preset type strings
@@ -84,6 +84,13 @@ enum SendingPrintJobStage {
     PrintingStageFinished = 5,
 };
 
+enum PublishingStage {
+    PublishingCreate    = 0,
+    PublishingUpload    = 1,
+    PublishingWaiting   = 2,
+    PublishingJumpUrl   = 3,
+};
+
 enum BindJobStage {
     LoginStageConnect = 0,
     LoginStageLogin = 1,
@@ -112,6 +119,7 @@ struct PrintParams {
     std::string     ftp_file;
     std::string     ftp_file_md5;
     std::string     ams_mapping;
+    std::string     ams_mapping_info;
     std::string     connection_type;
     std::string     comments;
 
@@ -127,6 +135,15 @@ struct PrintParams {
     bool            task_layer_inspect;     /* first layer inspection of task */
     bool            task_record_timelapse;  /* record timelapse of task */
     bool            task_use_ams;
+};
+
+struct PublishParams {
+    std::string     project_name;
+    std::string     project_3mf_file;
+    std::string     preset_name;
+    std::string     project_model_id;
+    std::string     design_id;
+    std::string     config_filename;
 };
 
 }

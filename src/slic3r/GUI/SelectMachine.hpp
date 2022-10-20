@@ -195,6 +195,9 @@ public:
     bool was_dismiss() { return m_dismiss; }
 
 private:
+    int                               m_my_devices_count{0};
+    int                               m_other_devices_count{0};
+    wxWindow*                         m_placeholder_panel{nullptr};
     wxBoxSizer *                      m_sizer_body{nullptr};
     wxBoxSizer *                      m_sizer_my_devices{nullptr};
     wxBoxSizer *                      m_sizer_other_devices{nullptr};
@@ -249,7 +252,9 @@ enum PrintDialogStatus {
     PrintStatusSending,
     PrintStatusSendingCanceled,
     PrintStatusLanModeNoSdcard,
-    PrintStatusNoSdcard
+    PrintStatusNoSdcard,
+    PrintStatusTimelapseNoSdcard,
+    PrintStatusNotOnTheSameLAN
 };
 
 std::string get_print_status_info(PrintDialogStatus status);
@@ -308,7 +313,8 @@ protected:
     int        m_current_filament_id;
     bool       m_is_in_sending_mode { false };
 
-    wxGridSizer *m_sizer_select;
+    //wxGridSizer *m_sizer_select;
+    wxWrapSizer *m_sizer_select;
     wxBoxSizer * sizer_thumbnail;
     wxGridSizer *m_sizer_material;
     wxBoxSizer * m_sizer_main;
@@ -323,6 +329,7 @@ protected:
 
     wxWindow *select_bed{nullptr};
     wxWindow *select_flow{nullptr};
+    wxWindow *select_timelapse { nullptr };
     wxWindow *select_use_ams{nullptr};
     CheckBox *ams_check{nullptr};
 
@@ -346,10 +353,13 @@ public:
 
 	void      sync_ams_mapping_result(std::vector<FilamentInfo>& result);
     bool      do_ams_mapping(MachineObject *obj_);
-    bool      get_ams_mapping_result(std::string &mapping_array_str);
+    bool      get_ams_mapping_result(std::string &mapping_array_str, std::string &ams_mapping_info);
     void      prepare(int print_plate_idx);
+    bool      has_tips(MachineObject* obj);
     void      show_status(PrintDialogStatus status, std::vector<wxString> params = std::vector<wxString>());
     PrintDialogStatus  get_status() { return m_print_status; }
+
+    bool      is_same_printer_model();
 
     bool Show(bool show);
 
@@ -386,7 +396,8 @@ protected:
     // Virtual event handlers, overide them in your derived class
     void                     update_printer_combobox(wxCommandEvent &event);
     void                     on_cancel(wxCloseEvent &event);
-    void                     on_ok(wxCommandEvent &event);
+    void                     on_ok_btn(wxCommandEvent &event);
+    void                     on_ok();
     void                     on_refresh(wxCommandEvent &event);
     void                     on_set_finish_mapping(wxCommandEvent &evt);
     void                     on_print_job_cancel(wxCommandEvent &evt);

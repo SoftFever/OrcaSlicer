@@ -12,6 +12,7 @@
 #include <wx/richmsgdlg.h>
 #include <wx/textctrl.h>
 #include <wx/statline.h>
+#include <wx/simplebook.h>
 #include "Widgets/Button.hpp"
 #include "BBLStatusBar.hpp"
 #include "BBLStatusBarSend.hpp"
@@ -37,10 +38,13 @@ protected:
 
 public:
     DownloadProgressDialog(wxString title);
+    wxString format_text(wxStaticText* st, wxString str, int warp);
     ~DownloadProgressDialog();
 
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void update_release_note(std::string release_note, std::string version);
+
+    wxSimplebook* m_simplebook_status{nullptr};
 
 	std::shared_ptr<BBLStatusBarSend> m_status_bar;
     std::shared_ptr<UpgradeNetworkJob> m_upgrade_job { nullptr };

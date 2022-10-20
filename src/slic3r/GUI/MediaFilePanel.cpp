@@ -73,7 +73,8 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     type_sizer->Add(m_button_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24);
     type_sizer->Add(m_button_video, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 24);
     m_type_panel->SetSizer(type_sizer);
-    //top_sizer->Add(m_type_panel, 0, wxALIGN_CENTER_VERTICAL);
+    m_type_panel->Hide();
+    // top_sizer->Add(m_type_panel, 0, wxALIGN_CENTER_VERTICAL);
 
     // File management
     m_manage_panel      = new ::StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
@@ -82,19 +83,18 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_delete->SetToolTip(L("Delete selected files from printer."));
     m_button_download = new ::Button(m_manage_panel, _L("Download"));
     m_button_download->SetToolTip(L("Download selected files from printer."));
-    m_button_management = new ::Button(m_manage_panel, _L("Management"));
+    m_button_management = new ::Button(m_manage_panel, _L("Select"));
     m_button_management->SetToolTip(L("Batch manage files."));
     for (auto b : {m_button_delete, m_button_download, m_button_management}) {
-        b->SetBackgroundColor(StateColor());
         b->SetFont(Label::Body_12);
         b->SetCornerRadius(12);
         b->SetPaddingSize({10, 6});
         b->SetCanFocus(false);
     }
-    m_button_delete->SetBorderColor(wxColor("#FF6F00"));
-    m_button_delete->SetTextColor(wxColor("#FF6F00"));
+    m_button_delete->SetBorderColorNormal(wxColor("#FF6F00"));
+    m_button_delete->SetTextColorNormal(wxColor("#FF6F00"));
     m_button_management->SetBorderWidth(0);
-    m_button_management->SetBackgroundColor(wxColor("#00AE42"));
+    m_button_management->SetBackgroundColorNormal(wxColor("#00AE42"));
 
     wxBoxSizer *manage_sizer = new wxBoxSizer(wxHORIZONTAL);
     manage_sizer->AddStretchSpacer(1);
@@ -166,15 +166,16 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     // File management
     m_button_management->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) {
         e.Skip();
-        bool selecting = !m_image_grid->IsSelecting();
-        m_image_grid->SetSelecting(selecting);
-        m_button_management->SetLabel(selecting ? _L("Finish") : _L("Management"));
-        m_manage_panel->GetSizer()->Show(m_button_download, selecting);
-        m_manage_panel->GetSizer()->Show(m_button_delete, selecting);
-        m_manage_panel->Layout();
+        SetSelecting(!m_image_grid->IsSelecting());
     });
-    m_button_download->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) { m_image_grid->DoActionOnSelection(1); });
-    m_button_delete->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) { m_image_grid->DoActionOnSelection(0); });
+    m_button_download->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) {
+        m_image_grid->DoActionOnSelection(1);
+        SetSelecting(false);
+    });
+    m_button_delete->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) {
+        m_image_grid->DoActionOnSelection(0);
+        SetSelecting(false);
+    });
 
     auto onShowHide = [this](auto &e) {
         e.Skip();
@@ -214,6 +215,8 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         fs->Unbind(EVT_MODE_CHANGED, &MediaFilePanel::modeChanged, this);
         fs->Stop(true);
     }
+    m_button_management->Enable(false);
+    SetSelecting(false);
     if (m_machine.empty()) {
         m_image_grid->SetStatus(m_bmp_failed.bmp(), _L("No printers."));    
     } else if (m_lan_ip.empty() && (m_lan_mode && !m_tutk_support)) {
@@ -223,8 +226,26 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
         fs->Attached();
         m_image_grid->SetFileType(m_last_type);
         m_image_grid->SetFileSystem(fs);
+        fs->Bind(EVT_FILE_CHANGED, [this, wfs = boost::weak_ptr(fs)](auto &e) {
+            e.Skip();
+            boost::shared_ptr fs(wfs.lock());
+            if (m_image_grid->GetFileSystem() != fs) // canceled
+                return;
+            m_button_management->Enable(fs->GetCount() > 0);
+            if (fs->GetCount() == 0)
+                SetSelecting(false);
+        });
+        fs->Bind(EVT_SELECT_CHANGED, [this, wfs = boost::weak_ptr(fs)](auto &e) {
+            e.Skip();
+            boost::shared_ptr fs(wfs.lock());
+            if (m_image_grid->GetFileSystem() != fs) // canceled
+                return;
+            m_button_delete->Enable(e.GetInt() > 0);
+            m_button_download->Enable(e.GetInt() > 0);
+        });
         fs->Bind(EVT_MODE_CHANGED, &MediaFilePanel::modeChanged, this);
         fs->Bind(EVT_STATUS_CHANGED, [this, wfs = boost::weak_ptr(fs)](auto &e) {
+            e.Skip();
             boost::shared_ptr fs(wfs.lock());
             if (m_image_grid->GetFileSystem() != fs) // canceled
                 return;
@@ -269,6 +290,15 @@ void MediaFilePanel::Rescale()
     m_button_management->Rescale();
 
     m_image_grid->Rescale();
+}
+
+void MediaFilePanel::SetSelecting(bool selecting)
+{
+    m_image_grid->SetSelecting(selecting);
+    m_button_management->SetLabel(selecting ? _L("Cancel") : _L("Select"));
+    m_manage_panel->GetSizer()->Show(m_button_download, selecting);
+    m_manage_panel->GetSizer()->Show(m_button_delete, selecting);
+    m_manage_panel->Layout();
 }
 
 void MediaFilePanel::modeChanged(wxCommandEvent& e1)

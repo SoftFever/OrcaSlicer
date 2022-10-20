@@ -333,7 +333,7 @@ public:
 
 	void		compare_preset();
 	//BBS: add project embedded preset relate logic
-	void        save_preset(std::string name = std::string(), bool detach = false, bool save_to_project = false);
+	void        save_preset(std::string name = std::string(), bool detach = false, bool save_to_project = false, bool from_input = false, std::string input_name = "");
 	//void		save_preset(std::string name = std::string(), bool detach = false);
 
 	void		delete_preset();

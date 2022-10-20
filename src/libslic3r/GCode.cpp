@@ -335,8 +335,8 @@ bool GCode::gcode_label_objects = true;
                 float new_retract_length = full_config.retraction_length.get_at(new_extruder_id);
                 float old_retract_length_toolchange = gcode_writer.extruder() != nullptr ? full_config.retract_length_toolchange.get_at(previous_extruder_id) : 0;
                 float new_retract_length_toolchange = full_config.retract_length_toolchange.get_at(new_extruder_id);
-                int old_filament_temp = gcode_writer.extruder() != nullptr ? full_config.nozzle_temperature.get_at(previous_extruder_id) : 210;
-                int new_filament_temp = full_config.nozzle_temperature.get_at(new_extruder_id);
+                int old_filament_temp = gcode_writer.extruder() != nullptr ? (gcodegen.on_first_layer()? full_config.nozzle_temperature_initial_layer.get_at(previous_extruder_id) : full_config.nozzle_temperature.get_at(previous_extruder_id)) : 210;
+                int new_filament_temp = gcodegen.on_first_layer() ? full_config.nozzle_temperature_initial_layer.get_at(new_extruder_id) : full_config.nozzle_temperature.get_at(new_extruder_id);
                 Vec3d nozzle_pos = gcode_writer.get_position();
 
                 float purge_volume = tcr.purge_volume < EPSILON ? 0 : std::max(tcr.purge_volume, g_min_purge_volume);
@@ -866,7 +866,7 @@ namespace DoExport {
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Printing by object G-code")), config.printing_by_object_gcode.value);
         //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Color Change G-code")), config.color_change_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) check(_(L("Pause G-code")), config.machine_pause_gcode.value);
-        //if (ret.size() < MAX_TAGS_COUNT) check(_(L("Template Custom G-code")), config.template_custom_gcode.value);
+        if (ret.size() < MAX_TAGS_COUNT) check(_(L("Template Custom G-code")), config.template_custom_gcode.value);
         if (ret.size() < MAX_TAGS_COUNT) {
             for (const std::string& value : config.filament_start_gcode.values) {
                 check(_(L("Filament start G-code")), value);
@@ -1456,6 +1456,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     // Emit machine envelope limits for the Marlin firmware.
     this->print_machine_envelope(file, print);
+
+    //BBS: emit printing accelerate if has non-zero value
+    if (m_config.default_acceleration.value > 0) {
+        float acceleration = m_config.default_acceleration.value;
+        file.write(m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5)));
+    }
 
     // Disable fan.
     if (print.config().close_fan_the_first_x_layers.get_at(initial_extruder_id)) {
@@ -2224,11 +2230,11 @@ namespace ProcessLayer
             // Extruder switches are processed by LayerTools, they should be filtered out.
             assert(custom_gcode->type != CustomGCode::ToolChange);
 
-            CustomGCode::Type   gcode_type   = custom_gcode->type;
+            CustomGCode::Type   gcode_type = custom_gcode->type;
             bool  				color_change = gcode_type == CustomGCode::ColorChange;
-            bool 				tool_change  = gcode_type == CustomGCode::ToolChange;
+            bool 				tool_change = gcode_type == CustomGCode::ToolChange;
             // Tool Change is applied as Color Change for a single extruder printer only.
-            assert(! tool_change || single_filament_print);
+            assert(!tool_change || single_filament_print);
 
             std::string pause_print_msg;
             int m600_extruder_before_layer = -1;
@@ -2236,13 +2242,13 @@ namespace ProcessLayer
                 m600_extruder_before_layer = custom_gcode->extruder - 1;
             else if (gcode_type == CustomGCode::PausePrint)
                 pause_print_msg = custom_gcode->extra;
-            //BBS: inserting color gcode and template_custom_gcode is removed
+            //BBS: inserting color gcode is removed
 #if 0
             // we should add or not colorprint_change in respect to nozzle_diameter count instead of really used extruders count
             if (color_change || tool_change)
             {
                 assert(m600_extruder_before_layer >= 0);
-		        // Color Change or Tool Change as Color Change.
+                // Color Change or Tool Change as Color Change.
                 // add tag for processor
                 gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Color_Change) + ",T" + std::to_string(m600_extruder_before_layer) + "," + custom_gcode->color + "\n";
 
@@ -2264,20 +2270,19 @@ namespace ProcessLayer
                     // see GH issue #6362
                     gcodegen.writer().unretract();
                 }
-	        }
-	        else {
+            }
+            else {
 #endif
-	            if (gcode_type == CustomGCode::PausePrint) // Pause print
-	            {
+                if (gcode_type == CustomGCode::PausePrint) // Pause print
+                {
                     // add tag for processor
                     gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Pause_Print) + "\n";
                     //! FIXME_in_fw show message during print pause
-	                //if (!pause_print_msg.empty())
-	                //    gcode += "M117 " + pause_print_msg + "\n";
+                    //if (!pause_print_msg.empty())
+                    //    gcode += "M117 " + pause_print_msg + "\n";
                     gcode += gcodegen.placeholder_parser_process("machine_pause_gcode", config.machine_pause_gcode, current_extruder_id) + "\n";
                 }
-#if 0
-	            else {
+                else {
                     // add tag for processor
                     gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Custom_Code) + "\n";
                     if (gcode_type == CustomGCode::Template)    // Template Custom Gcode
@@ -2287,9 +2292,9 @@ namespace ProcessLayer
 
                 }
                 gcode += "\n";
+#if 0
             }
 #endif
-
         }
 
         return gcode;
@@ -2581,7 +2586,7 @@ GCode::LayerResult GCode::process_layer(
     for (const LayerToPrint &layer_to_print : layers) {
         if (layer_to_print.support_layer != nullptr) {
             const SupportLayer &support_layer = *layer_to_print.support_layer;
-            const PrintObject  &object = *support_layer.object();
+            const PrintObject& object = *layer_to_print.original_object;
             if (! support_layer.support_fills.entities.empty()) {
                 ExtrusionRole   role               = support_layer.support_fills.role();
                 bool            has_support        = role == erMixed || role == erSupportMaterial || role == erSupportTransition;
@@ -2666,7 +2671,7 @@ GCode::LayerResult GCode::process_layer(
         // BBS
         if (layer_to_print.tree_support_layer != nullptr) {
             const TreeSupportLayer& tree_support_layer = *layer_to_print.tree_support_layer;
-            const PrintObject& object = *tree_support_layer.object();
+            const PrintObject& object = *layer_to_print.original_object;
             if (!tree_support_layer.support_fills.entities.empty()) {
                 ExtrusionRole   role = tree_support_layer.support_fills.role();
                 bool            has_support = role == erMixed || role == erSupportMaterial || role == erSupportTransition;
@@ -2810,7 +2815,7 @@ GCode::LayerResult GCode::process_layer(
                         }
                         printing_extruders.clear();
                         if (is_anything_overridden) {
-                            entity_overrides = const_cast<LayerTools&>(layer_tools).wiping_extrusions().get_extruder_overrides(extrusions, correct_extruder_id, layer_to_print.object()->instances().size());
+                            entity_overrides = const_cast<LayerTools&>(layer_tools).wiping_extrusions().get_extruder_overrides(extrusions, layer_to_print.original_object, correct_extruder_id, layer_to_print.object()->instances().size());
                             if (entity_overrides == nullptr) {
                                 printing_extruders.emplace_back(correct_extruder_id);
                             } else {
@@ -2996,8 +3001,8 @@ GCode::LayerResult GCode::process_layer(
 
                     // BBS
                     WipingExtrusions& wiping_extrusions = const_cast<LayerTools&>(layer_tools).wiping_extrusions();
-                    bool support_overridden = wiping_extrusions.is_support_overridden(layer.object());
-                    bool support_intf_overridden = wiping_extrusions.is_support_interface_overridden(layer.object());
+                    bool support_overridden = wiping_extrusions.is_support_overridden(layer_to_print.original_object);
+                    bool support_intf_overridden = wiping_extrusions.is_support_interface_overridden(layer_to_print.original_object);
 
                     ExtrusionRole support_extrusion_role = instance_to_print.object_by_extruder.support_extrusion_role;
                     bool is_overridden = support_extrusion_role == erSupportMaterialInterface ? support_intf_overridden : support_overridden;
@@ -3909,12 +3914,20 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
 
     if (role == erSupportMaterial || role == erSupportTransition) {
         const SupportLayer* support_layer = dynamic_cast<const SupportLayer*>(m_layer);
+
         //FIXME support_layer->support_islands.contains should use some search structure!
         if (support_layer != NULL && support_layer->support_islands.contains(travel))
             // skip retraction if this is a travel move inside a support material island
             //FIXME not retracting over a long path may cause oozing, which in turn may result in missing material
             // at the end of the extrusion path!
             return false;
+
+        //reduce the retractions in lightning infills for tree support
+        const TreeSupportLayer* ts_layer = dynamic_cast<const TreeSupportLayer*>(m_layer);
+        if (ts_layer != NULL)
+            for (auto& area : ts_layer->base_areas)
+                if(area.contains(travel))
+                    return false;
     }
 
     //BBS: need retract when long moving to print perimeter to avoid dropping of material
@@ -4013,7 +4026,7 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     // BBS
     float new_retract_length = m_config.retraction_length.get_at(extruder_id);
     float new_retract_length_toolchange = m_config.retract_length_toolchange.get_at(extruder_id);
-    int new_filament_temp = m_config.nozzle_temperature.get_at(extruder_id);
+    int new_filament_temp = this->on_first_layer() ? m_config.nozzle_temperature_initial_layer.get_at(extruder_id): m_config.nozzle_temperature.get_at(extruder_id);
     Vec3d nozzle_pos = m_writer.get_position();
     float old_retract_length, old_retract_length_toolchange, wipe_volume;
     int old_filament_temp, old_filament_e_feedrate;
@@ -4029,7 +4042,7 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
         int previous_extruder_id = m_writer.extruder()->id();
         old_retract_length = m_config.retraction_length.get_at(previous_extruder_id);
         old_retract_length_toolchange = m_config.retract_length_toolchange.get_at(previous_extruder_id);
-        old_filament_temp = m_config.nozzle_temperature.get_at(previous_extruder_id);
+        old_filament_temp = this->on_first_layer()? m_config.nozzle_temperature_initial_layer.get_at(previous_extruder_id) : m_config.nozzle_temperature.get_at(previous_extruder_id);
         wipe_volume = flush_matrix[previous_extruder_id * number_of_extruders + extruder_id];
         old_filament_e_feedrate = (int)(60.0 * m_config.filament_max_volumetric_speed.get_at(previous_extruder_id) / filament_area);
         old_filament_e_feedrate = old_filament_e_feedrate == 0 ? 100 : old_filament_e_feedrate;

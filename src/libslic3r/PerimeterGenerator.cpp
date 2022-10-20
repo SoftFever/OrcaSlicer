@@ -222,29 +222,47 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
         if (perimeter_generator.config->detect_overhang_wall && perimeter_generator.layer_id > perimeter_generator.object_config->raft_layers) {
             // get non 100% overhang paths by intersecting this loop with the grown lower slices
             Polylines remain_polines;
-            for (auto it = lower_polygons_series->begin();
-                it != lower_polygons_series->end(); it++)
-            {
 
-                Polylines inside_polines = (it == lower_polygons_series->begin()) ?
-                                           intersection_pl({ polygon }, it->second) :
-                                           intersection_pl(remain_polines, it->second);
+            if (perimeter_generator.config->enable_overhang_speed) {
+                for (auto it = lower_polygons_series->begin();
+                    it != lower_polygons_series->end(); it++)
+                {
+
+                    Polylines inside_polines = (it == lower_polygons_series->begin()) ?
+                        intersection_pl({ polygon }, it->second) :
+                        intersection_pl(remain_polines, it->second);
+                    extrusion_paths_append(
+                        paths,
+                        std::move(inside_polines),
+                        it->first,
+                        int(0),
+                        role,
+                        extrusion_mm3_per_mm,
+                        extrusion_width,
+                        (float)perimeter_generator.layer_height);
+
+                    remain_polines = (it == lower_polygons_series->begin()) ?
+                        diff_pl({ polygon }, it->second) :
+                        diff_pl(remain_polines, it->second);
+
+                    if (remain_polines.size() == 0)
+                        break;
+                }
+            } else {
+                auto it = lower_polygons_series->end();
+                it--;
+                Polylines inside_polines = intersection_pl({ polygon }, it->second);
                 extrusion_paths_append(
                     paths,
                     std::move(inside_polines),
-                    it->first,
+                    int(0),
                     int(0),
                     role,
                     extrusion_mm3_per_mm,
                     extrusion_width,
                     (float)perimeter_generator.layer_height);
 
-                remain_polines = (it == lower_polygons_series->begin())?
-                                  diff_pl({ polygon }, it->second) :
-                                  diff_pl(remain_polines, it->second);
-
-                if (remain_polines.size() == 0)
-                    break;
+                remain_polines = diff_pl({ polygon }, it->second);
             }
 
             // get 100% overhang paths by checking what parts of this loop fall

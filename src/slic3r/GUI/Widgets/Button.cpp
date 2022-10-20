@@ -7,6 +7,7 @@ BEGIN_EVENT_TABLE(Button, StaticBox)
 
 EVT_LEFT_DOWN(Button::mouseDown)
 EVT_LEFT_UP(Button::mouseReleased)
+EVT_MOUSE_CAPTURE_LOST(Button::mouseCaptureLost)
 EVT_KEY_DOWN(Button::keyDownUp)
 EVT_KEY_UP(Button::keyDownUp)
 
@@ -23,7 +24,6 @@ END_EVENT_TABLE()
 
 Button::Button()
     : paddingSize(10, 8)
-    , text_color(*wxBLACK)
 {
     background_color = StateColor(
         std::make_pair(0xF0F0F0, (int) StateColor::Disabled),
@@ -31,6 +31,9 @@ Button::Button()
         std::make_pair(0x00AE42, (int) StateColor::Checked),
         std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered), 
         std::make_pair(*wxWHITE, (int) StateColor::Normal));
+    text_color       = StateColor(
+        std::make_pair(*wxLIGHT_GREY, (int) StateColor::Disabled), 
+        std::make_pair(*wxBLACK, (int) StateColor::Normal));
 }
 
 Button::Button(wxWindow* parent, wxString text, wxString icon, long style, int iconSize)
@@ -242,10 +245,17 @@ void Button::mouseReleased(wxMouseEvent& event)
     event.Skip();
     if (pressedDown) {
         pressedDown = false;
-        ReleaseMouse();
+        if (HasCapture())
+            ReleaseMouse();
         if (wxRect({0, 0}, GetSize()).Contains(event.GetPosition()))
             sendButtonEvent();
     }
+}
+
+void Button::mouseCaptureLost(wxMouseCaptureLostEvent &event)
+{
+    wxMouseEvent evt;
+    mouseReleased(evt);
 }
 
 void Button::keyDownUp(wxKeyEvent &event)

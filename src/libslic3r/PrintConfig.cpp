@@ -180,7 +180,10 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SlicingMode)
 static t_config_enum_values s_keys_map_SupportMaterialPattern {
     { "rectilinear",        smpRectilinear },
     { "rectilinear-grid",   smpRectilinearGrid },
-    { "honeycomb",          smpHoneycomb }
+    { "honeycomb",          smpHoneycomb },
+#if HAS_LIGHTNING_INFILL
+    { "lightning",          smpLightning },
+#endif
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialPattern)
 
@@ -282,6 +285,7 @@ static const t_config_enum_values s_keys_map_BedType = {
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BedType)
 
 static t_config_enum_values s_keys_map_NozzleType {
+    { "undefine",       int(NozzleType::ntUndefine) },
     { "hardened_steel", int(NozzleType::ntHardenedSteel) },
     { "stainless_steel",int(NozzleType::ntStainlessSteel) },
     { "brass",          int(NozzleType::ntBrass) }
@@ -371,9 +375,9 @@ void PrintConfigDef::init_common_params()
     def = this->add("print_host", coString);
     def->label = L("Hostname, IP or URL");
     def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
-                   "the hostname, IP address or URL of the printer host instance. "
-                   "Print host behind HAProxy with basic auth enabled can be accessed by putting the user name and password into the URL "
-                   "in the following format: https://username:password@your-octopi-address/");
+        "the hostname, IP address or URL of the printer host instance. "
+        "Print host behind HAProxy with basic auth enabled can be accessed by putting the user name and password into the URL "
+        "in the following format: https://username:password@your-octopi-address/");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
@@ -381,11 +385,11 @@ void PrintConfigDef::init_common_params()
     def = this->add("printhost_apikey", coString);
     def->label = L("API Key / Password");
     def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
-                   "the API Key or the password required for authentication.");
+        "the API Key or the password required for authentication.");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
-    
+
     def = this->add("printhost_port", coString);
     def->label = L("Printer");
     def->tooltip = L("Name of the printer");
@@ -393,27 +397,27 @@ void PrintConfigDef::init_common_params()
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
-    
+
     def = this->add("printhost_cafile", coString);
     def->label = L("HTTPS CA File");
     def->tooltip = L("Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. "
-                   "If left blank, the default OS CA certificate repository is used.");
+        "If left blank, the default OS CA certificate repository is used.");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
-    
+
     // Options used by physical printers
-    
+
     def = this->add("printhost_user", coString);
     def->label = L("User");
-//    def->tooltip = L("");
+    //    def->tooltip = L("");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
-    
+
     def = this->add("printhost_password", coString);
     def->label = L("Password");
-//    def->tooltip = L("");
+    //    def->tooltip = L("");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
@@ -422,11 +426,11 @@ void PrintConfigDef::init_common_params()
     def = this->add("printhost_ssl_ignore_revoke", coBool);
     def->label = L("Ignore HTTPS certificate revocation checks");
     def->tooltip = L("Ignore HTTPS certificate revocation checks in case of missing or offline distribution points. "
-                     "One may want to enable this option for self signed certificates if connection fails.");
+        "One may want to enable this option for self signed certificates if connection fails.");
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionBool(false));
-    
+
     def = this->add("preset_names", coStrings);
     def->label = L("Printer preset names");
     def->tooltip = L("Names of presets related to the physical printer");
@@ -435,7 +439,7 @@ void PrintConfigDef::init_common_params()
 
     def = this->add("printhost_authorization_type", coEnum);
     def->label = L("Authorization Type");
-//    def->tooltip = L("");
+    //    def->tooltip = L("");
     def->enum_keys_map = &ConfigOptionEnum<AuthorizationType>::get_enum_values();
     def->enum_values.push_back("key");
     def->enum_values.push_back("user");
@@ -460,22 +464,23 @@ void PrintConfigDef::init_fff_params()
     const int max_temp = 1500;
 
     def = this->add("reduce_crossing_wall", coBool);
-    def->label = L("Avoid crossing wall when travel");
+    def->label = L("Avoid crossing wall");
     def->category = L("Quality");
     def->tooltip = L("Detour and avoid to travel across wall which may cause blob on surface");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("max_travel_detour_distance", coFloat);
-    def->label = L("Max travel detour distance");
+    def = this->add("max_travel_detour_distance", coFloatOrPercent);
+    def->label = L("Avoid crossing wall - Max detour length");
     def->category = L("Quality");
     def->tooltip = L("Maximum detour distance for avoiding crossing wall. "
-                     "Don't detour if the detour distance is large than this value");
-    def->sidetext = L("mm");
+                     "Don't detour if the detour distance is large than this value. "
+                     "Detour length could be specified either as an absolute value or as percentage (for example 50%) of a direct travel path. Zero to disable");
+    def->sidetext = L("mm or %");
     def->min = 0;
     def->max_literal = 1000;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(0.));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(0., false));
 
     // BBS
     def = this->add("cool_plate_temp", coInts);
@@ -590,7 +595,7 @@ void PrintConfigDef::init_fff_params()
                       "than bottom shell thickness, the bottom shell layers will be increased");
     def->full_label = L("Bottom shell layers");
     def->min = 0;
-    def->set_default_value(new ConfigOptionInt(2));
+    def->set_default_value(new ConfigOptionInt(3));
 
     def = this->add("bottom_shell_thickness", coFloat);
     def->label = L("Bottom shell thickness");
@@ -672,7 +677,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Only one wall on top surfaces");
     def->category = L("Quality");
     def->tooltip = L("Use only one wall on flat top surface, to give more space to the top infill pattern");
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("only_one_wall_first_layer", coBool);
     def->label = L("Only one wall on first layer");
@@ -736,7 +741,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(60));
+    def->set_default_value(new ConfigOptionFloat(25));
 
     def = this->add("brim_width", coFloat);
     def->label = L("Brim width");
@@ -846,7 +851,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(5000));
+    def->set_default_value(new ConfigOptionFloat(500.0));
 
     def = this->add("default_filament_profile", coStrings);
     def->label = L("Default filament profile");
@@ -893,7 +898,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(20));
+    def->set_default_value(new ConfigOptionFloat(10));
 
     def = this->add("machine_end_gcode", coString);
     def->label = L("End G-code");
@@ -902,7 +907,7 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height = 12;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString("M104 S0\n"));
+    def->set_default_value(new ConfigOptionString("M104 S0 ; turn off temperature\nG28 X0  ; home X axis\nM84     ; disable motors\n"));
 
     def = this->add("filament_end_gcode", coStrings);
     def->label = L("End G-code");
@@ -962,7 +967,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(120));
+    def->set_default_value(new ConfigOptionFloat(60));
 
     def = this->add("wall_infill_order", coEnum);
     def->label = L("Order of inner wall/outer wall/infil");
@@ -997,29 +1002,29 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("extruder_clearance_height_to_rod", coFloat);
     def->label = L("Height to rod");
-    def->tooltip = L("Height of the clearance cylinder around extruder. "
-                     "Used as input of auto-arrange to avoid collision when print object by object");
+    def->tooltip = L("Distance of the nozzle tip to the lower rod. "
+        "Used as input of auto-arranging to avoid collision when printing by object");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(40));
 
     // BBS
     def = this->add("extruder_clearance_height_to_lid", coFloat);
     def->label = L("Height to lid");
-    def->tooltip = L("Height of the clearance cylinder around extruder. "
-                     "Used as input of auto-arrange to avoid collision when print object by object");
+    def->tooltip = L("Distance of the nozzle tip to the lid. "
+        "Used as input of auto-arranging to avoid collision when printing by object");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(120));
 
     def = this->add("extruder_clearance_radius", coFloat);
     def->label = L("Radius");
-    def->tooltip = L("Clearance radius around extruder. Used as input of auto-arrange to avoid collision when print object by object");
+    def->tooltip = L("Clearance radius around extruder. Used as input of auto-arranging to avoid collision when printing by object");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(40));
 
     def = this->add("extruder_colour", coStrings);
@@ -1257,7 +1262,7 @@ void PrintConfigDef::init_fff_params()
     //def->enum_values.push_back("octagramspiral");
     //def->enum_values.push_back("supportcubic");
 #if HAS_LIGHTNING_INFILL
-    //def->enum_values.push_back("lightning");
+    def->enum_values.push_back("lightning");
 #endif // HAS_LIGHTNING_INFILL
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Rectilinear"));
@@ -1276,7 +1281,7 @@ void PrintConfigDef::init_fff_params()
     //def->enum_labels.push_back(L("Octagram Spiral"));
     //def->enum_labels.push_back(L("Support Cubic"));
 #if HAS_LIGHTNING_INFILL
-    //def->enum_labels.push_back(L("Lightning"));
+    def->enum_labels.push_back(L("Lightning"));
 #endif // HAS_LIGHTNING_INFILL
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCubic));
 
@@ -1310,7 +1315,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(2000));
+    def->set_default_value(new ConfigOptionFloat(500));
 
     def = this->add("initial_layer_acceleration", coFloat);
     def->label = L("Initial layer");
@@ -1502,20 +1507,22 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The metallic material of nozzle. This determines the abrasive resistance of nozzle, and "
                      "what kind of filament can be printed");
     def->enum_keys_map = &ConfigOptionEnum<NozzleType>::get_enum_values();
+    def->enum_values.push_back("undefine");
     def->enum_values.push_back("hardened_steel");
     def->enum_values.push_back("stainless_steel");
     def->enum_values.push_back("brass");
+    def->enum_labels.push_back(L("Undefine"));
     def->enum_labels.push_back(L("Hardened steel"));
     def->enum_labels.push_back(L("Stainless steel"));
     def->enum_labels.push_back(L("Brass"));
-    def->mode = comSimple;
-    def->set_default_value(new ConfigOptionEnum<NozzleType>(ntHardenedSteel));
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionEnum<NozzleType>(ntUndefine));
 
     def = this->add("auxiliary_fan", coBool);
     def->label = L("Auxiliary part cooling fan");
     def->tooltip = L("Enable this option if machine has auxiliary part cooling fan");
-    def->mode = comSimple;
-    def->set_default_value(new ConfigOptionBool(true));
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("gcode_flavor", coEnum);
     def->label = L("G-code flavor");
@@ -1533,7 +1540,7 @@ void PrintConfigDef::init_fff_params()
     //def->enum_values.push_back("machinekit");
     //def->enum_values.push_back("smoothie");
     //def->enum_values.push_back("no-extrusion");
-    def->enum_labels.push_back("Marlin");
+    def->enum_labels.push_back("Marlin(legacy)");
     //def->enum_labels.push_back("RepRap/Sprinter");
     //def->enum_labels.push_back("RepRapFirmware");
     //def->enum_labels.push_back("Repetier");
@@ -1592,7 +1599,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(150));
+    def->set_default_value(new ConfigOptionFloat(100));
 
     def = this->add("inherits", coString);
     //def->label = L("Inherits profile");
@@ -1685,7 +1692,16 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("machine_pause_gcode", coString);
     def->label = L("Pause G-code");
-    //def->tooltip = L("This G-code will be used as a code for the pause print");
+    def->tooltip = L("This G-code will be used as a code for the pause print. User can insert pause G-code in gcode viewer");
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 12;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString(""));
+
+    def = this->add("template_custom_gcode", coString);
+    def->label = L("Custom G-code");
+    def->tooltip = L("This G-code will be used as a custom code");
     def->multiline = true;
     def->full_width = true;
     def->height = 12;
@@ -1701,10 +1717,10 @@ void PrintConfigDef::init_fff_params()
         };
         std::vector<AxisDefault> axes {
             // name, max_feedrate,  max_acceleration, max_jerk
-            { "x", { 500., 200. }, {  9000., 1000. }, { 10. , 10.  } },
-            { "y", { 500., 200. }, {  9000., 1000. }, { 10. , 10.  } },
+            { "x", { 500., 200. }, {  1000., 1000. }, { 10. , 10.  } },
+            { "y", { 500., 200. }, {  1000., 1000. }, { 10. , 10.  } },
             { "z", {  12.,  12. }, {   500.,  200. }, {  0.2,  0.4 } },
-            { "e", { 120., 120. }, { 10000., 5000. }, {  2.5,  2.5 } }
+            { "e", { 120., 120. }, {  5000., 5000. }, {  2.5,  2.5 } }
         };
         for (const AxisDefault &axis : axes) {
             std::string axis_upper = boost::to_upper_copy<std::string>(axis.name);
@@ -1795,7 +1811,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->readonly = false;
-    def->mode = comDevelop;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
 
@@ -1807,7 +1823,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s²");
     def->min = 0;
     def->readonly = false;
-    def->mode = comDevelop;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloats{ 1500., 1250. });
 
     // M204 T... [mm/sec^2]
@@ -1937,7 +1953,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm³");
     def->mode = comDevelop;
     def->readonly = true;
-    def->set_default_value(new ConfigOptionFloat { 118 });
+    def->set_default_value(new ConfigOptionFloat { 0.0 });
 
     def = this->add("reduce_infill_retraction", coBool);
     def->label = L("Reduce infill retraction");
@@ -1945,7 +1961,7 @@ void PrintConfigDef::init_fff_params()
                      "This can reduce times of retraction for complex model and save printing time, but make slicing and "
                      "G-code generating slower");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("ooze_prevention", coBool);
     def->label = L("Enable");
@@ -2251,7 +2267,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm²");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(5));
+    def->set_default_value(new ConfigOptionFloat(15));
 
     def = this->add("solid_infill_filament", coInt);
     //def->label = L("Solid infill");
@@ -2327,7 +2343,7 @@ void PrintConfigDef::init_fff_params()
     def->full_width = true;
     def->height = 12;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionString("G28\nG1 Z10 F100\n"));
+    def->set_default_value(new ConfigOptionString("G28 ; home all axes\nG1 Z5 F5000 ; lift nozzle\n"));
 
     def = this->add("filament_start_gcode", coStrings);
     def->label = L("Start G-code");
@@ -2532,7 +2548,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
+    def->set_default_value(new ConfigOptionFloat(0.5));
 
     //BBS
     def = this->add("support_bottom_interface_spacing", coFloat);
@@ -2561,9 +2577,15 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("rectilinear-grid");
     def->enum_values.push_back("honeycomb");
+#if HAS_LIGHTNING_INFILL
+    def->enum_values.push_back("lightning");
+#endif
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Rectilinear grid"));
     def->enum_labels.push_back(L("Honeycomb"));
+#if HAS_LIGHTNING_INFILL
+    def->enum_labels.push_back(L("Lightning"));
+#endif
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialPattern>(smpRectilinear));
 
@@ -2765,7 +2787,7 @@ void PrintConfigDef::init_fff_params()
                      "than top shell thickness, the top shell layers will be increased");
     def->full_label = L("Top solid layers");
     def->min = 0;
-    def->set_default_value(new ConfigOptionInt(2));
+    def->set_default_value(new ConfigOptionInt(4));
 
     def = this->add("top_shell_thickness", coFloat);
     def->label = L("Top shell thickness");
@@ -2784,7 +2806,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm/s");
     def->min = 1;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(200));
+    def->set_default_value(new ConfigOptionFloat(120));
 
     def = this->add("travel_speed_z", coFloat);
     //def->label = L("Z travel");
@@ -3869,10 +3891,7 @@ void DynamicPrintConfig::normalize_fdm(int used_filaments)
 
         ConfigOptionEnum<TimelapseType>* timelapse_opt = this->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
         bool is_smooth_timelapse = timelapse_opt != nullptr && timelapse_opt->value == TimelapseType::tlSmooth;
-        if (is_smooth_timelapse) {
-            ept_opt->value = true;
-        }
-        else if (used_filaments == 1 || ps_opt->value == PrintSequence::ByObject) {
+        if (!is_smooth_timelapse && (used_filaments == 1 || ps_opt->value == PrintSequence::ByObject)) {
             ept_opt->value = false;
         }
 

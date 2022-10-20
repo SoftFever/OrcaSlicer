@@ -506,7 +506,8 @@ void Preview::update_layers_slider_from_canvas(wxKeyEvent &event)
     IMSlider *m_layers_slider = m_canvas->get_gcode_viewer().get_layers_slider();
     IMSlider *m_moves_slider  = m_canvas->get_gcode_viewer().get_moves_slider();
     if (key == 'L') {
-        m_layers_slider->switch_one_layer_mode();
+        if(!m_layers_slider->switch_one_layer_mode())
+            event.Skip();
         m_canvas->set_as_dirty();
     }
     /*else if (key == WXK_SHIFT)
@@ -767,7 +768,7 @@ bool AssembleView::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrint
     m_canvas->set_process(process);
     m_canvas->set_type(GLCanvas3D::ECanvasType::CanvasAssembleView);
     m_canvas->set_config(config);
-    m_canvas->enable_gizmos(false);
+    m_canvas->enable_gizmos(true);
     m_canvas->enable_selection(true);
     m_canvas->enable_main_toolbar(false);
     m_canvas->enable_labels(false);

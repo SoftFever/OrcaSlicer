@@ -365,8 +365,8 @@ void OptionsSearcher::show_dialog(Preset::Type type, wxWindow *parent, wxTextCtr
 {
     if (parent == nullptr || input == nullptr) return;
     auto    search_dialog = new SearchDialog(this, type, parent, input, ssearch_btn);
-    wxPoint pos = parent->ClientToScreen(wxPoint(0, 0));
-    pos.y += parent->GetRect().height;
+    wxPoint pos = input->GetParent()->ClientToScreen(wxPoint(0, 0));
+    pos.y += input->GetParent()->GetRect().height;
     search_dialog->SetPosition(pos);
     search_dialog->Popup();
 }
@@ -644,7 +644,7 @@ void SearchDialog::Dismiss()
 
 void SearchDialog::Die() 
 {
-    Destroy();
+    wxPopupTransientWindow::Dismiss();
     wxCommandEvent event(wxCUSTOMEVT_EXIT_SEARCH);
     wxPostEvent(search_line, event);
 }

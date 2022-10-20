@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFB99",
-    "setting_id": "GFSB99",
+    "setting_id": "GFSB99_VORON_00",
     "name": "Voron Generic ABS",
     "from": "system",
     "instantiation": "true",

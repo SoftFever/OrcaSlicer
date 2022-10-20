@@ -181,8 +181,7 @@ ObjectList::ObjectList(wxWindow* parent) :
         entries[index++].Set(wxACCEL_CTRL, (int)'A', wxID_SELECTALL);
         entries[index++].Set(wxACCEL_CTRL, (int)'Z', wxID_UNDO);
         entries[index++].Set(wxACCEL_CTRL, (int)'Y', wxID_REDO);
-        entries[index++].Set(wxACCEL_NORMAL, WXK_DELETE, wxID_DELETE);
-        //entries[index++].Set(wxACCEL_NORMAL, WXK_BACK, wxID_DELETE);
+        entries[index++].Set(wxACCEL_NORMAL, WXK_BACK, wxID_DELETE);
         //entries[index++].Set(wxACCEL_NORMAL, int('+'), wxID_ADD);
         //entries[index++].Set(wxACCEL_NORMAL, WXK_NUMPAD_ADD, wxID_ADD);
         //entries[index++].Set(wxACCEL_NORMAL, int('-'), wxID_REMOVE);
@@ -5041,6 +5040,15 @@ void ObjectList::apply_object_instance_transfrom_to_all_volumes(ModelObject *mod
     const Geometry::Transformation &instance_transformation  = model_object->instances[0]->get_transformation();
     Vec3d                           original_instance_center = instance_transformation.get_offset();
 
+    // apply the instance_transform(except offset) to assemble_transform
+    Geometry::Transformation instance_transformation_copy = instance_transformation;
+    instance_transformation_copy.set_offset(Vec3d(0, 0, 0)); // remove the effect of offset
+    const Transform3d & instance_inverse_matrix = instance_transformation_copy.get_matrix().inverse();
+    const Transform3d & assemble_matrix = model_object->instances[0]->get_assemble_transformation().get_matrix();
+    Transform3d new_assemble_transform = assemble_matrix * instance_inverse_matrix;
+    model_object->instances[0]->set_assemble_from_transform(new_assemble_transform);
+
+    // apply the instance_transform to volumn
     const Transform3d &transformation_matrix = instance_transformation.get_matrix();
     for (ModelVolume *volume : model_object->volumes) {
         const Transform3d &volume_matrix = volume->get_matrix();

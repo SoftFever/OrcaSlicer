@@ -280,6 +280,15 @@ public:
         memDc.SetTextForeground(wxColor(134, 134, 134));
         memDc.DrawLabel(m_constant_text.version, version_rect, wxALIGN_LEFT | wxALIGN_BOTTOM);
 
+#if BBL_INTERNAL_TESTING
+        wxSize text_rect = memDc.GetTextExtent("Internal Version");
+        int start_x = (title_rect.GetLeft() + version_rect.GetRight()) / 2 - text_rect.GetWidth();
+        int start_y = version_rect.GetBottom() + 10;
+        wxRect internal_sign_rect(wxPoint(start_x, start_y), wxSize(text_rect));
+        memDc.SetFont(m_constant_text.title_font);
+        memDc.DrawLabel("Internal Version", internal_sign_rect, wxALIGN_TOP | wxALIGN_LEFT);
+#endif
+
         // load bitmap for logo
         BitmapCache bmp_cache;
         int logo_margin = FromDIP(72 * m_scale);
@@ -545,7 +554,11 @@ private:
             title = wxGetApp().is_editor() ? SLIC3R_APP_FULL_NAME : GCODEVIEWER_APP_NAME;
 
             // dynamically get the version to display
+#if BBL_INTERNAL_TESTING
+            version = _L("Internal Version") + " " + std::string(SLIC3R_VERSION);
+#else
             version = _L("Version") + " " + std::string(SLIC3R_VERSION);
+#endif
 
             // credits infornation
             credits =   title;
@@ -1052,9 +1065,9 @@ void GUI_App::post_init()
     }*/
 
     // BBS: to be checked
-#if SUPPORT_SHOW_HINTS
+#if 1
     // show "Did you know" notification
-    if (app_config->get("show_hints") == "1" && ! is_gcode_viewer())
+    if (app_config->get("show_hints") == "true" && ! is_gcode_viewer())
         plater_->get_notification_manager()->push_hint_notification(true);
 #endif
 
@@ -1176,13 +1189,14 @@ GUI_App::GUI_App()
 {
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
     this->init_app_config();
+    this->init_download_path();
 
     reset_to_active();
 }
 
 void GUI_App::shutdown()
 {
-    BOOST_LOG_TRIVIAL(info) << "shutdown";
+    BOOST_LOG_TRIVIAL(info) << "GUI_App::shutdown enter";
 
 	if (m_removable_drive_manager) {
 		removable_drive_manager()->shutdown();
@@ -1202,6 +1216,7 @@ void GUI_App::shutdown()
         delete m_agent;
         m_agent = nullptr;
     }
+    BOOST_LOG_TRIVIAL(info) << "GUI_App::shutdown exit";
 }
 
 
@@ -1608,6 +1623,8 @@ void GUI_App::init_networking_callbacks()
                 return;
             }
             GUI::wxGetApp().CallAfter([this] {
+                if (m_is_closing)
+                    return;
                 BOOST_LOG_TRIVIAL(trace) << "static: server connected";
                 m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
                 });
@@ -1618,6 +1635,8 @@ void GUI_App::init_networking_callbacks()
                 return;
             }
             GUI::wxGetApp().CallAfter([this, dev_id] {
+                if (m_is_closing)
+                    return;
                 /* request_pushing */
                 MachineObject* obj = m_device_manager->get_my_machine(dev_id);
                 if (obj) {
@@ -1677,6 +1696,8 @@ void GUI_App::init_networking_callbacks()
                 return;
             }
             CallAfter([this, dev_id, msg] {
+                if (m_is_closing)
+                    return;
                 MachineObject* obj = this->m_device_manager->get_user_machine(dev_id);
                 if (obj) {
                     obj->is_ams_need_update = false;
@@ -1696,6 +1717,8 @@ void GUI_App::init_networking_callbacks()
                 return;
             }
             CallAfter([this, dev_id, msg] {
+                if (m_is_closing)
+                    return;
                 MachineObject* obj = m_device_manager->get_my_machine(dev_id);
                 if (!obj) {
                     obj = m_device_manager->get_local_machine(dev_id);
@@ -1764,6 +1787,26 @@ static boost::optional<Semver> parse_semver_from_ini(std::string path)
     if (end < body.size())
         body.resize(end);
     return Semver::parse(body);
+}
+
+void GUI_App::init_download_path()
+{
+    std::string down_path = app_config->get("download_path");
+
+    if (down_path.empty()) {
+        std::string user_down_path = wxStandardPaths::Get().GetUserDir(wxStandardPaths::Dir_Downloads).ToUTF8().data();
+        app_config->set("download_path", user_down_path);
+    }
+    else {
+        fs::path dp(down_path);
+        if (!fs::exists(dp)) {
+
+            if (!fs::create_directory(dp)) {
+                std::string user_down_path = wxStandardPaths::Get().GetUserDir(wxStandardPaths::Dir_Downloads).ToUTF8().data();
+                app_config->set("download_path", user_down_path);
+            }
+        }
+    }
 }
 
 void GUI_App::init_app_config()
@@ -1899,7 +1942,8 @@ bool GUI_App::on_init_inner()
     std::time_t t = std::time(0);
     std::tm* now_time = std::localtime(&t);
     std::stringstream buf;
-    buf << std::put_time(now_time, "debug_%a_%b_%d_%H_%M_%S.log");
+    buf << std::put_time(now_time, "debug_%a_%b_%d_%H_%M_%S_");
+    buf << get_current_pid() << ".log";
     std::string log_filename = buf.str();
 #if !BBL_RELEASE_TO_PUBLIC
     set_log_path_and_level(log_filename, 5);
@@ -1929,6 +1973,7 @@ bool GUI_App::on_init_inner()
 #endif
 
     wxGetApp().Bind(wxEVT_QUERY_END_SESSION, [this](auto & e) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< "received wxEVT_QUERY_END_SESSION";
         if (mainframe) {
             wxCloseEvent e2(wxEVT_CLOSE_WINDOW);
             e2.SetCanVeto(true);
@@ -2097,8 +2142,9 @@ bool GUI_App::on_init_inner()
                 if (!skip_this_version
                     || evt.GetInt() != 0) {
                     UpdateVersionDialog dialog(this->mainframe);
-                    //dialog.update_version_info(extmsg, version_info.version_str);
-                    dialog.update_version_info(version_info.description);
+                    wxString            extmsg = wxString::FromUTF8(version_info.description);
+                    dialog.update_version_info(extmsg, version_info.version_str);
+                    //dialog.update_version_info(version_info.description);
                     if (evt.GetInt() != 0) {
                         dialog.m_remind_choice->Hide();
                     }
@@ -2719,6 +2765,7 @@ void GUI_App::check_printer_presets()
 
 void GUI_App::recreate_GUI(const wxString& msg_name)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI enter";
     m_is_recreating_gui = true;
 
     mainframe->shutdown();
@@ -2766,6 +2813,8 @@ void GUI_App::recreate_GUI(const wxString& msg_name)
 //     });
 
     m_is_recreating_gui = false;
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI exit";
 }
 
 void GUI_App::system_info()
@@ -2925,6 +2974,7 @@ void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_max
     const std::string name = into_u8(window->GetName());
 
     window->Bind(wxEVT_CLOSE_WINDOW, [=](wxCloseEvent &event) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": received wxEVT_CLOSE_WINDOW, trigger save for window_mainframe";
         window_pos_save(window, "mainframe");
         event.Skip();
     });

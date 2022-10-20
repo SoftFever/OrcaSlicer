@@ -261,14 +261,17 @@ public:
 
     void UseDefaultColors(bool def_colors_on) { m_ticks.set_default_colors(def_colors_on); }
 
+    void add_custom_gcode(std::string custom_gcode);
     void add_code_as_tick(Type type, int selected_extruder = -1);
     void post_ticks_changed_event(Type type = Custom);
     bool check_ticks_changed_event(Type type);
-    void switch_one_layer_mode();
+    bool switch_one_layer_mode();
 
     bool render(int canvas_width, int canvas_height);
 
     void render_menu();
+
+    void render_input_custom_gcode();
 
     //BBS update scroll value changed
     bool is_dirty() { return m_dirty; }
@@ -327,6 +330,7 @@ private:
     bool m_is_one_layer       = false;
     bool m_is_focused         = false;
     bool m_show_menu         = false;
+    bool m_show_custom_gcode_window = false;
     bool m_force_mode_apply   = true;
     bool m_enable_action_icon = true;
     bool m_enable_cog_icon    = false;
@@ -367,6 +371,8 @@ private:
     Type                     m_tick_change_event_type;
 
     std::vector<double> m_alternate_values;
+
+    char m_custom_gcode[1024] = { 0 };
 };
 
 }

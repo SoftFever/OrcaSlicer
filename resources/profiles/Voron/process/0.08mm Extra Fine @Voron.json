@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "setting_id": "GP001",
+    "setting_id": "GP_VORON_001",
     "name": "0.08mm Extra Fine @Voron",
     "from": "system",
     "instantiation": "true",

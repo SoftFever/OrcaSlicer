@@ -177,6 +177,7 @@ void StatusBasePanel::init_bitmaps()
     m_thumbnail_sdcard       = ScalableBitmap(this, "monitor_sdcard_thumbnail", 120);
     //m_bitmap_camera          = create_scaled_bitmap("monitor_camera", nullptr, 18);
     m_bitmap_extruder        = *cache.load_png("monitor_extruder", FromDIP(28), FromDIP(70), false, false);
+    m_bitmap_extruder_load   = *cache.load_png("monitor_extruder_load", FromDIP(28), FromDIP(70), false, false);
     m_bitmap_sdcard_state_on    = create_scaled_bitmap("sdcard_state_on", nullptr, 20);
     m_bitmap_sdcard_state_off    = create_scaled_bitmap("sdcard_state_off", nullptr, 20);
 }
@@ -741,7 +742,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
     m_switch_nozzle_fan->SetLabels(_L("Part Cooling"), _L("Part Cooling"));
     m_switch_nozzle_fan->SetPadding(FromDIP(3));
     m_switch_nozzle_fan->SetBorderWidth(FromDIP(2));
-    m_switch_nozzle_fan->SetFont(SWITCH_FONT);
+    m_switch_nozzle_fan->SetFont(::Label::Body_10);
     m_switch_nozzle_fan->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_FAN_TEXT_COL, (int) StateColor::Normal)));
 
     line_sizer->Add(m_switch_nozzle_fan, 1, wxALIGN_CENTER | wxALL, 0);
@@ -754,7 +755,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
     m_switch_printing_fan->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_printing_fan->SetPadding(FromDIP(3));
     m_switch_printing_fan->SetBorderWidth(FromDIP(2));
-    m_switch_printing_fan->SetFont(SWITCH_FONT);
+    m_switch_printing_fan->SetFont(::Label::Body_10);
     m_switch_printing_fan->SetLabels(_L("Aux Cooling"), _L("Aux Cooling"));
     m_switch_printing_fan->SetTextColor(
         StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_FAN_TEXT_COL, (int) StateColor::Normal)));
@@ -770,11 +771,11 @@ void StatusBasePanel::reset_temp_misc_control()
 {
     // reset temp string
     m_tempCtrl_nozzle->SetLabel(TEMP_BLANK_STR);
-    m_tempCtrl_nozzle->GetTextCtrl()->SetLabel(TEMP_BLANK_STR);
+    m_tempCtrl_nozzle->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
     m_tempCtrl_bed->SetLabel(TEMP_BLANK_STR);
-    m_tempCtrl_bed->GetTextCtrl()->SetLabel(TEMP_BLANK_STR);
+    m_tempCtrl_bed->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
     m_tempCtrl_frame->SetLabel(TEMP_BLANK_STR);
-    m_tempCtrl_frame->GetTextCtrl()->SetLabel(TEMP_BLANK_STR);
+    m_tempCtrl_frame->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
     m_button_unload->Show(); 
 
     m_tempCtrl_nozzle->Enable(true);
@@ -1103,6 +1104,8 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     Bind(EVT_AMS_REFRESH_RFID, &StatusPanel::on_ams_refresh_rfid, this);
     Bind(EVT_AMS_ON_SELECTED, &StatusPanel::on_ams_selected, this);
     Bind(EVT_AMS_ON_FILAMENT_EDIT, &StatusPanel::on_filament_edit, this);
+    Bind(EVT_AMS_GUIDE_WIKI, &StatusPanel::on_ams_guide, this);
+    Bind(EVT_AMS_RETRY, &StatusPanel::on_ams_retry, this);
 
     m_switch_speed->Connect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_switch_speed), NULL, this);
     m_calibration_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_calibration), NULL, this);
@@ -1305,6 +1308,13 @@ void StatusPanel::update(MachineObject *obj)
     update_temp_ctrl(obj);
     update_misc_ctrl(obj);
 
+    if (obj && obj->is_filament_at_extruder()) {
+        m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_load);
+    }
+    else {
+        m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder);
+    }
+
     // BBS hide tasklist info
     // update_tasklist(obj);
     update_ams(obj);
@@ -1351,7 +1361,7 @@ void StatusPanel::update(MachineObject *obj)
             m_tempCtrl_frame->Enable();
         } else {
             m_tempCtrl_frame->SetLabel(TEMP_BLANK_STR);
-            m_tempCtrl_frame->GetTextCtrl()->SetLabel(TEMP_BLANK_STR);
+            m_tempCtrl_frame->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
             m_tempCtrl_frame->Disable();
         }
 
@@ -1386,6 +1396,7 @@ void StatusPanel::update_error_message()
     }
 
     if (before_error_code != obj->print_error) {
+        before_error_code = obj->print_error;
         if (wxGetApp().get_hms_query()) {
             char buf[32];
             ::sprintf(buf, "%08X", obj->print_error);
@@ -1398,11 +1409,11 @@ void StatusPanel::update_error_message()
                                  print_error_str);
             show_error_message(error_msg);
             //hint dialog
-            ConfirmHintDialog print_error_dlg(this->GetParent(), wxID_ANY, _L("Warning"));
+            BOOST_LOG_TRIVIAL(info) << "Print error! " << error_msg;
+            ConfirmHintDialog print_error_dlg(this->GetParent(), wxID_ANY, _L("Warning"), ConfirmHintDialog::ButtonStyle::ONLY_CONFIRM);
             print_error_dlg.SetHint(error_msg);
             print_error_dlg.ShowModal();
         }
-        before_error_code        = obj->print_error;
    }
 }
 
@@ -1764,7 +1775,7 @@ void StatusPanel::update_cali(MachineObject *obj)
 {
     if (!obj) return;
 
-    if (obj->is_in_calibration()) {
+    if (obj->is_calibration_running()) {
         m_calibration_btn->SetLabel(_L("Calibrating"));
         if (calibration_dlg && calibration_dlg->IsShown()) {
             m_calibration_btn->Disable();
@@ -1840,7 +1851,8 @@ void StatusPanel::update_subtask(MachineObject *obj)
 {
     if (!obj) return;
 
-    if (obj->is_system_printing()) {
+    if (obj->is_system_printing()
+        || obj->is_in_calibration()) {
         reset_printing_values();
     } else if (obj->is_in_printing() || obj->print_status == "FINISH") {
         if (obj->is_in_prepare()) {
@@ -2104,10 +2116,16 @@ void StatusPanel::on_set_nozzle_temp()
 
 void StatusPanel::on_ams_load(SimpleEvent &event)
 {
+    BOOST_LOG_TRIVIAL(info) << "on_ams_load";
+    on_ams_load_curr();
+}
+
+void StatusPanel::on_ams_load_curr()
+{
     if (obj) {
         std::string                            curr_ams_id = m_ams_control->GetCurentAms();
         std::string                            curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
-        std::map<std::string, Ams *>::iterator it          = obj->amsList.find(curr_ams_id);
+        std::map<std::string, Ams*>::iterator it = obj->amsList.find(curr_ams_id);
         if (it == obj->amsList.end()) {
             BOOST_LOG_TRIVIAL(trace) << "ams: find " << curr_ams_id << " failed";
             return;
@@ -2118,8 +2136,8 @@ void StatusPanel::on_ams_load(SimpleEvent &event)
             return;
         }
 
-        AmsTray *curr_tray = obj->get_curr_tray();
-        AmsTray *targ_tray = obj->get_ams_tray(curr_ams_id, curr_can_id);
+        AmsTray* curr_tray = obj->get_curr_tray();
+        AmsTray* targ_tray = obj->get_ams_tray(curr_ams_id, curr_can_id);
         if (curr_tray && targ_tray) {
             int old_temp = -1;
             int new_temp = -1;
@@ -2128,12 +2146,14 @@ void StatusPanel::on_ams_load(SimpleEvent &event)
                     old_temp = (atoi(curr_tray->nozzle_temp_min.c_str()) + atoi(curr_tray->nozzle_temp_max.c_str())) / 2;
                 if (!targ_tray->nozzle_temp_max.empty() && !targ_tray->nozzle_temp_min.empty())
                     new_temp = (atoi(targ_tray->nozzle_temp_min.c_str()) + atoi(targ_tray->nozzle_temp_max.c_str())) / 2;
-            } catch (...) {
+            }
+            catch (...) {
                 ;
             }
             int tray_index = atoi(curr_ams_id.c_str()) * 4 + atoi(tray_it->second->id.c_str());
             obj->command_ams_switch(tray_index, old_temp, new_temp);
-        } else {
+        }
+        else {
             int tray_index = atoi(curr_ams_id.c_str()) * 4 + atoi(tray_it->second->id.c_str());
             obj->command_ams_switch(tray_index, -1, -1);
         }
@@ -2254,6 +2274,20 @@ void StatusPanel::on_ams_selected(wxCommandEvent &event)
         } catch (...) {
             ;
         }   
+    }
+}
+
+void StatusPanel::on_ams_guide(wxCommandEvent& event)
+{
+    wxString ams_wiki_url = "https://wiki.bambulab.com/en/software/bambu-studio/use-ams-on-bambu-studio";
+    wxLaunchDefaultBrowser(ams_wiki_url);
+}
+
+void StatusPanel::on_ams_retry(wxCommandEvent& event)
+{
+    BOOST_LOG_TRIVIAL(info) << "on_ams_retry";
+    if (obj) {
+        obj->command_ams_control("resume");
     }
 }
 

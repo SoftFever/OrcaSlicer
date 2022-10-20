@@ -79,23 +79,25 @@ bool GLGizmoFdmSupports::on_init()
     // BBS
     m_shortcut_key = WXK_CONTROL_L;
 
-    m_desc["clipping_of_view"]      = _L("Section view") + ": ";
-    m_desc["cursor_size"]           = _L("Pen size") + ": ";
-    m_desc["enforce_caption"]       = _L("Left mouse button") + ": ";
+    m_desc["clipping_of_view_caption"] = _L("Alt + Mouse wheel");
+    m_desc["clipping_of_view"]      = _L("Section view");
+    m_desc["cursor_size_caption"]   = _L("Ctrl + Mouse wheel");
+    m_desc["cursor_size"]           = _L("Pen size");
+    m_desc["enforce_caption"]       = _L("Left mouse button");
     m_desc["enforce"]               = _L("Enforce supports");
-    m_desc["block_caption"]         = _L("Right mouse button") + ": ";
+    m_desc["block_caption"]         = _L("Right mouse button");
     m_desc["block"]                 = _L("Block supports");
-    m_desc["remove_caption"]        = _L("Shift + Left mouse button") + ": ";
-    m_desc["remove"]                = _L("Erase painting");
+    m_desc["remove_caption"]        = _L("Shift + Left mouse button");
+    m_desc["remove"]                = _L("Erase");
     m_desc["remove_all"]            = _L("Erase all painting");
-    m_desc["highlight_by_angle"]    = _L("Highlight overhang areas") + ": ";
+    m_desc["highlight_by_angle"]    = _L("Highlight overhang areas");
     m_desc["gap_fill"]              = _L("Gap fill");
     m_desc["perform"]               = _L("Perform");
+    m_desc["gap_area_caption"]      = _L("Ctrl + Mouse wheel");
     m_desc["gap_area"]              = _L("Gap area");
-    m_desc["brush_size"]            = _L("Set pen size");
-    m_desc["brush_size_caption"]    = _L("Ctrl + Mouse wheel") + ": ";
     m_desc["tool_type"]             = _L("Tool type");
-    m_desc["smart_fill_angle"]      = _L("Smart fill angle") + ": ";
+    m_desc["smart_fill_angle_caption"] = _L("Ctrl + Mouse wheel");
+    m_desc["smart_fill_angle"]      = _L("Smart fill angle");
 
     memset(&m_print_instance, sizeof(m_print_instance), 0);
     return true;
@@ -224,7 +226,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     float caption_max    = 0.f;
     float total_text_max = 0.f;
-    for (const auto &t : std::array<std::string, 4>{"enforce", "block", "remove", "brush_size"}) {
+    for (const auto &t : std::array<std::string, 5>{"enforce", "block", "remove", "cursor_size", "clipping_of_view"}) {
         caption_max    = std::max(caption_max, m_imgui->calc_text_size(m_desc[t + "_caption"]).x);
         total_text_max = std::max(total_text_max, m_imgui->calc_text_size(m_desc[t]).x);
     }
@@ -461,6 +463,8 @@ void GLGizmoFdmSupports::show_tooltip_information(float caption_max, float x, fl
     ImTextureID normal_id = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP);
     ImTextureID hover_id  = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP_HOVER);
 
+    caption_max += m_imgui->calc_text_size(": ").x + 15.f;
+
     float font_size = ImGui::GetFontSize();
     ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
@@ -475,7 +479,24 @@ void GLGizmoFdmSupports::show_tooltip_information(float caption_max, float x, fl
             m_imgui->text_colored(ImGuiWrapper::COL_WINDOW_BG, text);
         };
 
-        for (const auto &t : std::array<std::string, 4>{"enforce", "block", "remove", "brush_size"}) draw_text_with_caption(m_desc.at(t + "_caption"), m_desc.at(t));
+        std::vector<std::string> tip_items;
+        switch (m_tool_type) {
+            case ToolType::BRUSH:
+                tip_items = {"enforce", "block", "remove", "cursor_size", "clipping_of_view"};
+                break;
+            case ToolType::BUCKET_FILL:
+                break;
+            case ToolType::SMART_FILL:
+                tip_items = {"enforce", "block", "remove", "smart_fill_angle", "clipping_of_view"};
+                break;
+            case ToolType::GAP_FILL:
+                tip_items = {"gap_area"};
+                break;
+            default:
+                break;
+        }
+        for (const auto &t : tip_items) draw_text_with_caption(m_desc.at(t + "_caption") + ": ", m_desc.at(t));
+
         ImGui::EndTooltip();
     }
     ImGui::PopStyleVar(1);

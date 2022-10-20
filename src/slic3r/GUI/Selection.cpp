@@ -1105,6 +1105,12 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
                 else
                     v.set_instance_scaling_factor(scale);
             }
+
+            // update the instance assemble transform
+            ModelObject* object = m_model->objects[v.object_idx()];
+            Geometry::Transformation assemble_transform = object->instances[v.instance_idx()]->get_assemble_transformation();
+            assemble_transform.set_scaling_factor(v.get_instance_scaling_factor());
+            object->instances[v.instance_idx()]->set_assemble_transformation(assemble_transform);
         }
         else if (is_single_volume() || is_single_modifier())
             v.set_volume_scaling_factor(scale);

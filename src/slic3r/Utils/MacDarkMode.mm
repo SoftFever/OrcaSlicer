@@ -20,6 +20,7 @@ namespace Slic3r {
 namespace GUI {
 
 NSTextField* mainframe_text_field = nil;
+bool is_in_full_screen_mode = false;
 
 bool mac_dark_mode()
 {
@@ -60,11 +61,25 @@ void set_miniaturizable(void * window)
     }
 }
 
-void set_title_colour_after_set_title()
+void set_tag_when_enter_full_screen(bool isfullscreen)
 {
-    if(mainframe_text_field){
-        [(NSTextField*)mainframe_text_field setTextColor :  NSColor.whiteColor];
+  is_in_full_screen_mode = isfullscreen;
+}
+
+void set_title_colour_after_set_title(void * window)
+{
+  NSEnumerator *viewEnum = [[[[[[[(NSView*) window window] contentView] superview] titlebarViewController] view] subviews] objectEnumerator];
+  NSView *viewObject;
+  while(viewObject = (NSView *)[viewEnum nextObject]) {
+    if([viewObject class] == [NSTextField self]) {
+      [(NSTextField*)viewObject setTextColor : NSColor.whiteColor];
+      mainframe_text_field = viewObject;
     }
+  }
+
+  if (mainframe_text_field) {
+    [(NSTextField*)mainframe_text_field setTextColor : NSColor.whiteColor];
+  }
 }
 
 void WKWebView_evaluateJavaScript(void * web, wxString const & script, void (*callback)(wxString const &))
@@ -77,6 +92,12 @@ void WKWebView_evaluateJavaScript(void * web, wxString const & script, void (*ca
     }];
 }
 
+void openFolderForFile(wxString const & file)
+{
+    NSArray *fileURLs = [NSArray arrayWithObjects:wxCFStringRef(file).AsNSString(), /* ... */ nil];
+    [[NSWorkspace sharedWorkspace] activateFileViewerSelectingURLs:fileURLs];
+}
+    
 }
 }
 
@@ -90,7 +111,11 @@ void WKWebView_evaluateJavaScript(void * web, wxString const & script, void (*ca
     if (Slic3r::GUI::mainframe_text_field != self){
         [self setTextColor2: textColor];
     }else{
-        [self setTextColor2 : NSColor.whiteColor];
+        if(Slic3r::GUI::is_in_full_screen_mode){
+            [self setTextColor2 : NSColor.darkGrayColor];
+        }else{
+            [self setTextColor2 : NSColor.whiteColor];
+        }
     }
 }
 

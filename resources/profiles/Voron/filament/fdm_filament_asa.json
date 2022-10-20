@@ -13,6 +13,9 @@
     "hot_plate_temp" : [
         "105"
     ],
+    "textured_plate_temp" : [
+        "105"
+    ],
     "cool_plate_temp_initial_layer" : [
         "105"
     ],
@@ -20,6 +23,9 @@
         "105"
     ],
     "hot_plate_temp_initial_layer" : [
+        "105"
+    ],
+    "textured_plate_temp_initial_layer" : [
         "105"
     ],
     "slow_down_for_layer_cooling": [

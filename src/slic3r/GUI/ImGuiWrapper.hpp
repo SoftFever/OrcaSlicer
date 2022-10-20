@@ -192,6 +192,8 @@ public:
     static void pop_toolbar_style();
     static void push_menu_style(const float scale);
     static void pop_menu_style();
+    static void push_common_window_style(const float scale);
+    static void pop_common_window_style();
 
     //BBS
     static int TOOLBAR_WINDOW_FLAGS;

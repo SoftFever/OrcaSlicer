@@ -81,6 +81,7 @@ protected:
     ScalableBitmap m_bitmap_use_time;
     ScalableBitmap m_bitmap_use_weight;
     wxBitmap m_bitmap_extruder;
+    wxBitmap m_bitmap_extruder_load;
 
     CameraRecordingStatus m_state_recording{CameraRecordingStatus::RECORDING_NONE};
     CameraTimelapseStatus m_state_timelapse{CameraTimelapseStatus::TIMELAPSE_NONE};
@@ -300,11 +301,14 @@ protected:
 
     /* extruder apis */
     void on_ams_load(SimpleEvent &event);
+    void on_ams_load_curr();
     void on_ams_unload(SimpleEvent &event);
     void on_ams_setting_click(SimpleEvent &event);
     void on_filament_edit(wxCommandEvent &event);
     void on_ams_refresh_rfid(wxCommandEvent &event);
     void on_ams_selected(wxCommandEvent &event);
+    void on_ams_guide(wxCommandEvent &event);
+    void on_ams_retry(wxCommandEvent &event);
 
     void on_switch_speed(wxCommandEvent &event);
     void on_lamp_switch(wxCommandEvent &event);

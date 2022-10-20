@@ -1,28 +1,35 @@
-#pragma once
+#ifndef _BAMBU__TUNNEL_H_
+#define _BAMBU__TUNNEL_H_
 
 #ifdef BAMBU_DYNAMIC
 #  define BAMBU_EXPORT
 #  define BAMBU_FUNC(x) (*x)
 #else
-#  ifdef __WIN32__
-#    define BAMBU_EXPORT __declspec(dllexport)
+#  ifdef _WIN32
+#    ifdef BAMBU_EXPORTS
+#      define BAMBU_EXPORT __declspec(dllexport)
+#    else
+#      define BAMBU_EXPORT __declspec(dllimport)
+#    endif // BAMBU_EXPORTS
 #  else
 #    define BAMBU_EXPORT
 #  endif // __WIN32__
 #  define BAMBU_FUNC(x) x
-#endif
+#endif // BAMBU_DYNAMIC
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
-struct Bambu_Session;
-#ifdef __WIN32__
-typedef wchar_t Bambu_Message;
+#ifdef _WIN32
+    typedef wchar_t tchar;
 #else
-typedef char Bambu_Message;
+    typedef char tchar;
 #endif
-typedef void (*Logger)(Bambu_Session * session, int level, Bambu_Message const * msg);
+
+typedef void* Bambu_Tunnel;
+
+typedef void (*Logger)(void * context, int level, tchar const* msg);
 
 enum Bambu_StreamType
 {
@@ -89,48 +96,39 @@ enum Bambu_Error
 {
     Bambu_success,
     Bambu_stream_end,
-    Bambu_would_block
-};
-
-struct Bambu_Session
-{
-    int gSID = -1;
-    int avIndex = -1;
-    int block = 0;
-    int block_next = 0;
-    Logger logger = nullptr;
-    void * buffer = nullptr;
-    int buffer_size = 0;
-    void * extra = 0;
-    void * dump_file1 = nullptr;
-    void * dump_file2 = nullptr;
-
-    void Log(int unused, int level, wchar_t const * format, ...);
+    Bambu_would_block, 
+    Bambu_buffer_limit
 };
 
 #ifdef BAMBU_DYNAMIC
 struct BambuLib {
 #endif
 
-BAMBU_EXPORT int BAMBU_FUNC(Bambu_Open)(Bambu_Session* session, char const* uid);
+BAMBU_EXPORT int BAMBU_FUNC(Bambu_Create)(Bambu_Tunnel* tunnel, char const* path);
 
-BAMBU_EXPORT int BAMBU_FUNC(Bambu_StartStream)(Bambu_Session* session);
+BAMBU_EXPORT void BAMBU_FUNC(Bambu_SetLogger)(Bambu_Tunnel tunnel, Logger logger, void * context);
 
-BAMBU_EXPORT int BAMBU_FUNC(Bambu_GetStreamCount)(Bambu_Session* session);
+BAMBU_EXPORT int BAMBU_FUNC(Bambu_Open)(Bambu_Tunnel tunnel);
 
-BAMBU_EXPORT int BAMBU_FUNC(Bambu_GetStreamInfo)(Bambu_Session* session, int index, Bambu_StreamInfo* info);
+BAMBU_EXPORT int BAMBU_FUNC(Bambu_StartStream)(Bambu_Tunnel tunnel, bool video);
 
-BAMBU_EXPORT unsigned long BAMBU_FUNC(Bambu_GetDuration)(Bambu_Session* session);
+BAMBU_EXPORT int BAMBU_FUNC(Bambu_GetStreamCount)(Bambu_Tunnel tunnel);
 
-BAMBU_EXPORT int BAMBU_FUNC(Bambu_Seek)(Bambu_Session* session, unsigned long time);
+BAMBU_EXPORT int BAMBU_FUNC(Bambu_GetStreamInfo)(Bambu_Tunnel tunnel, int index, Bambu_StreamInfo* info);
 
-BAMBU_EXPORT int BAMBU_FUNC(Bambu_ReadSample)(Bambu_Session* session, Bambu_Sample* sample);
+BAMBU_EXPORT unsigned long BAMBU_FUNC(Bambu_GetDuration)(Bambu_Tunnel tunnel);
 
-BAMBU_EXPORT int BAMBU_FUNC(Bambu_SendMessage)(Bambu_Session* session, int ctrl, char const* data, int len);
+BAMBU_EXPORT int BAMBU_FUNC(Bambu_Seek)(Bambu_Tunnel tunnel, unsigned long time);
 
-BAMBU_EXPORT int BAMBU_FUNC(Bambu_RecvMessage)(Bambu_Session* session, int* ctrl, char* data, int* len);
+BAMBU_EXPORT int BAMBU_FUNC(Bambu_ReadSample)(Bambu_Tunnel tunnel, Bambu_Sample* sample);
 
-BAMBU_EXPORT void BAMBU_FUNC(Bambu_Close)(Bambu_Session* session);
+BAMBU_EXPORT int BAMBU_FUNC(Bambu_SendMessage)(Bambu_Tunnel tunnel, int ctrl, char const* data, int len);
+
+BAMBU_EXPORT int BAMBU_FUNC(Bambu_RecvMessage)(Bambu_Tunnel tunnel, int* ctrl, char* data, int* len);
+
+BAMBU_EXPORT void BAMBU_FUNC(Bambu_Close)(Bambu_Tunnel tunnel);
+
+BAMBU_EXPORT void BAMBU_FUNC(Bambu_Destroy)(Bambu_Tunnel tunnel);
 
 BAMBU_EXPORT int BAMBU_FUNC(Bambu_Init)();
 
@@ -138,7 +136,7 @@ BAMBU_EXPORT void BAMBU_FUNC(Bambu_Deinit)();
 
 BAMBU_EXPORT char const* BAMBU_FUNC(Bambu_GetLastErrorMsg)();
 
-BAMBU_EXPORT void BAMBU_FUNC(Bambu_FreeLogMsg)(Bambu_Message const* msg);
+BAMBU_EXPORT void BAMBU_FUNC(Bambu_FreeLogMsg)(tchar const* msg);
 
 #ifdef BAMBU_DYNAMIC
 };
@@ -147,3 +145,5 @@ BAMBU_EXPORT void BAMBU_FUNC(Bambu_FreeLogMsg)(Bambu_Message const* msg);
 #ifdef __cplusplus
 }
 #endif // __cplusplus
+
+#endif // _BAMBU__TUNNEL_H_

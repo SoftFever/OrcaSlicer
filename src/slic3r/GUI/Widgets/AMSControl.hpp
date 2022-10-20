@@ -461,7 +461,9 @@ protected:
 
     Button *m_button_extruder_feed = {nullptr};
     Button *m_button_extruder_back = {nullptr};
-    Button *m_button_ams_setting   = {nullptr};
+    Button* m_button_ams_setting   = {nullptr};
+    Button *m_button_guide = {nullptr};
+    Button *m_button_retry = {nullptr};
 
     wxHyperlinkCtrl *m_hyperlink = {nullptr};
 
@@ -518,6 +520,8 @@ wxDECLARE_EVENT(EVT_AMS_ON_SELECTED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_ON_FILAMENT_EDIT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_CLIBRATION_AGAIN, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_CLIBRATION_CANCEL, wxCommandEvent);
+wxDECLARE_EVENT(EVT_AMS_GUIDE_WIKI, wxCommandEvent);
+wxDECLARE_EVENT(EVT_AMS_RETRY, wxCommandEvent);
 
 }} // namespace Slic3r::GUI
 
