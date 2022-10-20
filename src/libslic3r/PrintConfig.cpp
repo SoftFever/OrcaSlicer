@@ -2826,8 +2826,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBools { false });
 
     def = this->add("z_lift_type", coEnum);
-    def->label = L("z lift type");
-    def->tooltip = L("z lift type");
+    def->label = L("Z hop type");
+    def->tooltip = L("Z hop type");
     def->enum_keys_map = &ConfigOptionEnum<LiftType>::get_enum_values();
     def->enum_values.push_back("NormalLift");
     def->enum_values.push_back("SpiralLift");
