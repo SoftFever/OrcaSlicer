@@ -280,14 +280,15 @@ public:
         memDc.SetTextForeground(wxColor(134, 134, 134));
         memDc.DrawLabel(m_constant_text.version, version_rect, wxALIGN_LEFT | wxALIGN_BOTTOM);
 
-#if BBL_INTERNAL_TESTING
-        wxSize text_rect = memDc.GetTextExtent("Internal Version");
+// #if BBL_INTERNAL_TESTING
+        auto sf_version = wxString::Format("SoftFever %s",std::string(SoftFever_VERSION)).ToStdString();
+        wxSize text_rect = memDc.GetTextExtent(sf_version);
         int start_x = (title_rect.GetLeft() + version_rect.GetRight()) / 2 - text_rect.GetWidth();
         int start_y = version_rect.GetBottom() + 10;
         wxRect internal_sign_rect(wxPoint(start_x, start_y), wxSize(text_rect));
-        memDc.SetFont(m_constant_text.title_font);
-        memDc.DrawLabel("Internal Version", internal_sign_rect, wxALIGN_TOP | wxALIGN_LEFT);
-#endif
+        memDc.SetFont(m_constant_text.version_font);
+        memDc.DrawLabel(sf_version, internal_sign_rect, wxALIGN_CENTER);
+// #endif
 
         // load bitmap for logo
         BitmapCache bmp_cache;
@@ -554,11 +555,11 @@ private:
             title = wxGetApp().is_editor() ? SLIC3R_APP_FULL_NAME : GCODEVIEWER_APP_NAME;
 
             // dynamically get the version to display
-#if BBL_INTERNAL_TESTING
-            version = _L("Internal Version") + " " + std::string(SLIC3R_VERSION);
-#else
-            version = _L("Version") + " " + std::string(SLIC3R_VERSION);
-#endif
+// #if BBL_INTERNAL_TESTING
+            // version = _L("Internal Version") + " " + std::string(SLIC3R_VERSION);
+// #else
+            version = _L("SoftFever Version") + " " + std::string(SoftFever_VERSION);
+// #endif
 
             // credits infornation
             credits =   title;
