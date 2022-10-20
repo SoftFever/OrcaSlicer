@@ -2,6 +2,7 @@
 #include "libslic3r/Utils.hpp"
 
 #include "../../Utils/NetworkAgent.hpp"
+#include "../BitmapCache.hpp"
 
 #include <boost/algorithm/hex.hpp>
 #include <boost/uuid/detail/md5.hpp>
@@ -34,7 +35,7 @@ PrinterFileSystem::PrinterFileSystem()
     : BambuLib(StaticBambuLib::get())
 {
     if (!default_thumbnail.IsOk())
-        default_thumbnail = wxImage(Slic3r::encode_path(Slic3r::var("live_stream_default.png").c_str()));
+        default_thumbnail = *Slic3r::GUI::BitmapCache().load_svg("printer_file", 0, 0);
     m_session.owner = this;
 #ifdef PRINTER_FILE_SYSTEM_TEST
     auto time = wxDateTime::Now();
@@ -44,6 +45,7 @@ PrinterFileSystem::PrinterFileSystem()
         m_file_list.push_back({name.ToUTF8().data(), time.GetTicks(), 26937, im, i < 20 ? FF_DOWNLOAD : 0, i * 10 - 40});
         time.Add(wxDateSpan::Days(-1));
     }
+    m_file_list[0].thumbnail = default_thumbnail;
     BuildGroups();
 #endif
 }
