@@ -109,6 +109,9 @@ struct SurfaceFill {
 	Surface 			surface;
 	ExPolygons       	expolygons;
 	SurfaceFillParams	params;
+    // BBS
+    std::vector<size_t> region_id_group;
+    ExPolygons          no_overlap_expolygons;
 };
 
 // BBS: used to judge whether the internal solid infill area is narrow
@@ -210,8 +213,18 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 	        			fill.region_id = region_id;
 	        			fill.surface = surface;
 	        			fill.expolygons.emplace_back(std::move(fill.surface.expolygon));
-	        		} else
-	        			fill.expolygons.emplace_back(surface.expolygon);
+						//BBS
+						fill.region_id_group.push_back(region_id);
+						fill.no_overlap_expolygons = layerm.fill_no_overlap_expolygons;
+					} else {
+						fill.expolygons.emplace_back(surface.expolygon);
+						//BBS
+						auto t = find(fill.region_id_group.begin(), fill.region_id_group.end(), region_id);
+						if (t == fill.region_id_group.end()) {
+							fill.region_id_group.push_back(region_id);
+							fill.no_overlap_expolygons = union_ex(fill.no_overlap_expolygons, layerm.fill_no_overlap_expolygons);
+						}
+					}
 				}
 	        }
 	}
@@ -337,6 +350,8 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 				surface_fills.back().region_id = surface_fills[i].region_id;
 				surface_fills.back().surface.surface_type = stInternalSolid;
 				surface_fills.back().surface.thickness = surface_fills[i].surface.thickness;
+				surface_fills.back().region_id_group       = surface_fills[i].region_id_group;
+				surface_fills.back().no_overlap_expolygons = surface_fills[i].no_overlap_expolygons;
 				for (size_t j = 0; j < narrow_expolygons_index.size(); j++) {
 					// BBS: move the narrow expolygons to new surface_fills.back();
 					surface_fills.back().expolygons.emplace_back(std::move(surface_fills[i].expolygons[narrow_expolygons_index[j]]));
