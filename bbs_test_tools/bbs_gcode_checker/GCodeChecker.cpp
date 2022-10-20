@@ -7,7 +7,7 @@ namespace BambuStudio {
 
 //BBS: only check wodth when dE is longer than this value
 const double CHECK_WIDTH_E_THRESHOLD = 0.0025;
-const double WIDTH_THRESHOLD = 0.012;
+const double WIDTH_THRESHOLD = 0.03;
 const double RADIUS_THRESHOLD = 0.005;
 
 const double filament_diameter = 1.75;
@@ -189,6 +189,7 @@ GCodeCheckResult GCodeChecker::parse_axis(GCodeLine& gcode_line)
         case 'F': axis = F; break;
         case 'I': axis = I; break;
         case 'J': axis = J; break;
+        case 'P': axis = P; break;
         default:
             //BBS: invalid command which has invalid axis
             std::cout << "Invalid gcode because of invalid axis!" << std::endl;
@@ -266,8 +267,7 @@ GCodeCheckResult GCodeChecker::parse_G2_G3(GCodeLine& gcode_line)
         return GCodeCheckResult::ParseFailed;
     }
     //BBS: invalid G2_G3 command which has no X and Y axis at same time
-    if (!gcode_line.has(X) &&
-        !gcode_line.has(Y)) {
+    if (!gcode_line.has(X) && !gcode_line.has(Y) && !gcode_line.has(I) && !gcode_line.has(J)) {
         if (!gcode_line.has(X) || !gcode_line.has(P) || (int)gcode_line.get(P) != 1) {
             std::cout << "Invalid G2_G3 gcode because of no X and Y axis at same time!" << std::endl;
             return GCodeCheckResult::ParseFailed;
@@ -391,6 +391,7 @@ double GCodeChecker::calculate_G2_G3_width(const std::array<double, 2>& source,
     double length = radius * radian;
     double volume = e * Pi * (filament_diameter/2) * (filament_diameter/2);
     double mm3_per_mm = volume / length;
+
     return is_bridge? 2 * sqrt(mm3_per_mm/Pi) :
            (mm3_per_mm / height) + height * (1 - 0.25 * Pi);
 }
@@ -481,12 +482,15 @@ GCodeCheckResult GCodeChecker::check_G0_G1_width(const GCodeLine& line)
         std::array<double, 3> target = { m_end_position[X], m_end_position[Y], m_end_position[Z] };
 
         bool is_bridge = m_role == erOverhangPerimeter || m_role == erBridgeInfill;
-        double width_real = calculate_G1_width(source, target, delta_pos[E], m_height, is_bridge);
-        if (fabs(width_real - m_width) > WIDTH_THRESHOLD) {
-            std::cout << "Invalid G0_G1 because has abnormal line width." << std::endl;
-            std::cout << "Width: " << m_width << " Width_real: " << width_real <<  std::endl;
-            return GCodeCheckResult::CheckFailed;
+        if (!is_bridge) {
+            double width_real = calculate_G1_width(source, target, delta_pos[E], m_height, is_bridge);
+            if (fabs(width_real - m_width) > WIDTH_THRESHOLD) {
+                std::cout << "Invalid G0_G1 because has abnormal line width." << std::endl;
+                std::cout << "Width: " << m_width << " Width_real: " << width_real << std::endl;
+                return GCodeCheckResult::CheckFailed;
+            }
         }
+
     }
 
     return GCodeCheckResult::Success;
@@ -556,12 +560,16 @@ GCodeCheckResult GCodeChecker::check_G2_G3_width(const GCodeLine& line)
         m_role != erGapFill &&
         delta_e > CHECK_WIDTH_E_THRESHOLD) {
         bool is_bridge = m_role == erOverhangPerimeter || m_role == erBridgeInfill;
-        double width_real = calculate_G2_G3_width(source, target, center, is_ccw, delta_e, m_height, is_bridge);
-        if (fabs(width_real - m_width) > WIDTH_THRESHOLD) {
-            std::cout << "Invalid G2_G3 because has abnormal line width." << std::endl;
-            std::cout << "Width: " << m_width << " Width_real: " << width_real <<  std::endl;
-            return GCodeCheckResult::CheckFailed;
+
+        if (!is_bridge) {
+            double width_real = calculate_G2_G3_width(source, target, center, is_ccw, delta_e, m_height, is_bridge);
+            if (fabs(width_real - m_width) > WIDTH_THRESHOLD) {
+                std::cout << "Invalid G2_G3 because has abnormal line width." << std::endl;
+                std::cout << "Width: " << m_width << " Width_real: " << width_real << std::endl;
+                return GCodeCheckResult::CheckFailed;
+            }
         }
+
     }
 
     return GCodeCheckResult::Success;
