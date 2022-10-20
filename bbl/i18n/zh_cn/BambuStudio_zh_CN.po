@@ -5677,6 +5677,9 @@ msgstr "（未定义）"
 msgid "Infill direction"
 msgstr "填充方向"
 
+msgid "Bridge infill direction"
+msgstr "拉桥填充方向"
+
 msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
 "of line"
@@ -6270,6 +6273,15 @@ msgstr ""
 
 msgid "Z hop when retract"
 msgstr "回抽时抬升Z"
+
+msgid "Z hop type"
+msgstr "抬Z类型"
+
+msgid "NormalLift"
+msgstr "直接抬Z"
+
+msgid "SpiralLift"
+msgstr "螺旋抬Z"
 
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
