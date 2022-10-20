@@ -56,6 +56,7 @@ void BedShape::append_option_line(ConfigOptionsGroupShp optgroup, Parameter para
         def.max = 600;
         def.label = get_option_label(param);
         def.tooltip = L("Distance of the 0,0 G-code coordinate from the front left corner of the rectangle.");
+        def.readonly = true;
         key = "rect_origin";
         break;
     case Parameter::Diameter:
@@ -191,9 +192,9 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const Conf
     BedShape::append_option_line(optgroup, BedShape::Parameter::RectOrigin);
     activate_options_page(optgroup);
 
-    optgroup = init_shape_options_page(BedShape::get_name(BedShape::PageType::Circle));
-    BedShape::append_option_line(optgroup, BedShape::Parameter::Diameter);
-    activate_options_page(optgroup);
+    // optgroup = init_shape_options_page(BedShape::get_name(BedShape::PageType::Circle));
+    // BedShape::append_option_line(optgroup, BedShape::Parameter::Diameter);
+    // activate_options_page(optgroup);
 
     optgroup = init_shape_options_page(BedShape::get_name(BedShape::PageType::Custom));
 
