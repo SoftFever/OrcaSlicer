@@ -2977,8 +2977,8 @@ GCode::LayerResult GCode::process_layer(
 
                     // BBS
                     WipingExtrusions& wiping_extrusions = const_cast<LayerTools&>(layer_tools).wiping_extrusions();
-                    bool support_overridden = wiping_extrusions.is_support_overridden(layer.object());
-                    bool support_intf_overridden = wiping_extrusions.is_support_interface_overridden(layer.object());
+                    bool support_overridden = wiping_extrusions.is_support_overridden(layer_to_print.original_object);
+                    bool support_intf_overridden = wiping_extrusions.is_support_interface_overridden(layer_to_print.original_object);
 
                     ExtrusionRole support_extrusion_role = instance_to_print.object_by_extruder.support_extrusion_role;
                     bool is_overridden = support_extrusion_role == erSupportMaterialInterface ? support_intf_overridden : support_overridden;
