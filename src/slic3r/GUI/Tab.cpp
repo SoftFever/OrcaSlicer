@@ -2646,6 +2646,8 @@ void TabFilament::update()
     if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
         return; // ys_FIXME
 
+    m_config_manipulation.check_filament_max_volumetric_speed(m_config);
+
     m_update_cnt++;
 
     update_description_lines();

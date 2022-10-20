@@ -141,6 +141,26 @@ void ConfigManipulation::check_bed_temperature_difference(int bed_type, DynamicP
     }
 }
 
+void ConfigManipulation::check_filament_max_volumetric_speed(DynamicPrintConfig *config)
+{
+    //if (is_msg_dlg_already_exist) return;
+    //float max_volumetric_speed = config->opt_float("filament_max_volumetric_speed");
+
+    float max_volumetric_speed = config->has("filament_max_volumetric_speed") ? config->opt_float("filament_max_volumetric_speed", (float) 0.5) : 0.5;
+    // BBS: limite the min max_volumetric_speed
+    if (max_volumetric_speed < 0.5) {
+        const wxString     msg_text = _(L("Too small max volumetric speed.\nReset to 0.5"));
+        MessageDialog      dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist    = true;
+        dialog.ShowModal();
+        new_conf.set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats({0.5}));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
+ 
+}
+
 void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, const bool is_global_config)
 {
     // #ys_FIXME_to_delete

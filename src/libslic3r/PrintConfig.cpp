@@ -1075,11 +1075,12 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Max volumetric speed");
     def->tooltip = L("This setting stands for how much volume of filament can be melted and extruded per second. "
                      "Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. "
-                     "Zero means no limit");
+                     "Can't be zero");
     def->sidetext = L("mm³/s");
     def->min = 0;
+    def->max = 50;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats { 0. });
+    def->set_default_value(new ConfigOptionFloats { 2. });
 
     def = this->add("filament_minimal_purge_on_wipe_tower", coFloats);
     def->label = L("Minimal purge on wipe tower");
