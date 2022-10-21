@@ -1485,17 +1485,17 @@ bool CLI::setup(int argc, char **argv)
     // Notify user that a blacklisted DLL was injected into BambuStudio process (for example Nahimic, see GH #5573).
     // We hope that if a DLL is being injected into a BambuStudio process, it happens at the very start of the application,
     // thus we shall detect them now.
-    //if (BlacklistedLibraryCheck::get_instance().perform_check()) {
-    //    std::wstring text = L"Following DLLs have been injected into the BambuStudio process:\n\n";
-    //    text += BlacklistedLibraryCheck::get_instance().get_blacklisted_string();
-    //    text += L"\n\n"
-    //            L"BambuStudio is known to not run correctly with these DLLs injected. "
-    //            L"We suggest stopping or uninstalling these services if you experience "
-    //            L"crashes or unexpected behaviour while using BambuStudio.\n"
-    //            L"For example, ASUS Sonic Studio injects a Nahimic driver, which makes BambuStudio "
-    //            L"to crash on a secondary monitor, see BambuStudio github issue #5573";
-    //    MessageBoxW(NULL, text.c_str(), L"Warning"/*L"Incopatible library found"*/, MB_OK);
-    //}
+    if (BlacklistedLibraryCheck::get_instance().perform_check()) {
+        std::wstring text = L"Following DLLs have been injected into the BambuStudio process:\n\n";
+        text += BlacklistedLibraryCheck::get_instance().get_blacklisted_string();
+        text += L"\n\n"
+                L"BambuStudio is known to not run correctly with these DLLs injected. "
+                L"We suggest stopping or uninstalling these services if you experience "
+                L"crashes or unexpected behaviour while using BambuStudio.\n"
+                L"For example, ASUS Sonic Studio injects a Nahimic driver, which makes BambuStudio "
+                L"to crash on a secondary monitor";
+        MessageBoxW(NULL, text.c_str(), L"Warning"/*L"Incopatible library found"*/, MB_OK);
+    }
 #endif
 
     // See Invoking prusa-slicer from $PATH environment variable crashes #5542
