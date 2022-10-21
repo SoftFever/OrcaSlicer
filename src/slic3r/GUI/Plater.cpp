@@ -918,10 +918,23 @@ void Sidebar::update_all_preset_comboboxes()
         ams_btn->Show();
         //update print button default value for bbl or third-party printer
         wxGetApp().mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
+        MonitorPanel *curr_monitor = wxGetApp().mainframe->m_monitor;
+        if(wxGetApp().mainframe->m_tabpanel->GetPage(3) !=
+            curr_monitor){
+        wxGetApp().mainframe->m_tabpanel->InsertPage(3,
+            curr_monitor, _L("Device"),
+                            std::string("tab_monitor_active"),
+                            std::string("tab_monitor_active"));
+        }
+
     } else {
         connection_btn->Show();
         ams_btn->Hide();
         wxGetApp().mainframe->set_print_button_to_default(MainFrame::PrintSelectType::eSendGcode);
+        MonitorPanel *curr_monitor = wxGetApp().mainframe->m_monitor;
+        if (wxGetApp().mainframe->m_tabpanel->GetPage(3) == curr_monitor) {
+          wxGetApp().mainframe->m_tabpanel->RemovePage(3);
+        }
     }
 
     // Update the print choosers to only contain the compatible presets, update the dirty flags.
