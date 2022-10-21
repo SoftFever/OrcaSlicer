@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-05 12:18+0800\n"
+"POT-Creation-Date: 2022-10-21 14:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1344,6 +1344,22 @@ msgid "Successfully sent. Will automatically jump to the device page in %s s"
 msgstr ""
 
 msgid "An SD card needs to be inserted before printing via LAN."
+msgstr ""
+
+msgid "Sending gcode file over LAN"
+msgstr ""
+
+msgid "Sending gcode file through cloud service"
+msgstr ""
+
+msgid "Sending gcode file to sdcard"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Successfully sent. Close current page in %s s"
+msgstr ""
+
+msgid "An SD card needs to be inserted before sending to printer."
 msgstr ""
 
 msgid "Downloading"
@@ -4799,7 +4815,7 @@ msgstr ""
 msgid "Version:"
 msgstr ""
 
-msgid "Upgrade firmware"
+msgid "Update firmware"
 msgstr ""
 
 msgid "Printing"
@@ -4811,13 +4827,13 @@ msgstr ""
 msgid "Latest version"
 msgstr ""
 
-msgid "Upgrading"
+msgid "Updating"
 msgstr ""
 
-msgid "Upgrading failed"
+msgid "Updating failed"
 msgstr ""
 
-msgid "Upgrading successful"
+msgid "Updating successful"
 msgstr ""
 
 msgid ""
@@ -5228,6 +5244,12 @@ msgid ""
 "Unprintable area in XY plane. For example, X1 Series printers use the front "
 "left corner to cut filament during filament change. The area is expressed as "
 "polygon by points in following format: \"XxY, XxY, ...\""
+msgstr ""
+
+msgid "Bed custom texture"
+msgstr ""
+
+msgid "Bed custom model"
 msgstr ""
 
 msgid "Elephant foot compensation"

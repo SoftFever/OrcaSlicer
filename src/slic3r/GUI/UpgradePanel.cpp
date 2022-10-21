@@ -142,7 +142,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
 
     m_main_right_sizer->Add(0, FromDIP(50), 0, wxEXPAND, FromDIP(5));
 
-    m_button_upgrade_firmware = new Button(this, _L("Upgrade firmware"));
+    m_button_upgrade_firmware = new Button(this, _L("Update firmware"));
     StateColor btn_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
                       std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Enabled),
                       std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
@@ -603,13 +603,13 @@ void MachineInfoPanel::show_status(int status, std::string upgrade_status_str)
         for (size_t i = 0; i < m_upgrading_sizer->GetItemCount(); i++) { m_upgrading_sizer->Show(true); }
         m_upgrade_retry_img->Hide();
         m_staticText_upgrading_info->Show();
-        m_staticText_upgrading_info->SetLabel(_L("Upgrading"));
+        m_staticText_upgrading_info->SetLabel(_L("Updating"));
         m_staticText_upgrading_info->SetForegroundColour(TEXT_NORMAL_CLR);
         m_staticText_upgrading_percent->SetForegroundColour(TEXT_NORMAL_CLR);
         m_staticText_upgrading_percent->Show();
     } else if (status == (int) MachineObject::UpgradingDisplayState::UpgradingFinished) {
         if (upgrade_status_str == "UPGRADE_FAIL") {
-            m_staticText_upgrading_info->SetLabel(_L("Upgrading failed"));
+            m_staticText_upgrading_info->SetLabel(_L("Updating failed"));
             m_staticText_upgrading_info->SetForegroundColour(TEXT_FAILED_CLR);
             for (size_t i = 0; i < m_upgrading_sizer->GetItemCount(); i++) { m_upgrading_sizer->Show(true); }
             m_button_upgrade_firmware->Disable();
@@ -617,7 +617,7 @@ void MachineInfoPanel::show_status(int status, std::string upgrade_status_str)
             m_staticText_upgrading_percent->Show();
             m_upgrade_retry_img->Show();
         } else {
-            m_staticText_upgrading_info->SetLabel(_L("Upgrading successful"));
+            m_staticText_upgrading_info->SetLabel(_L("Updating successful"));
             m_staticText_upgrading_info->Show();
             for (size_t i = 0; i < m_upgrading_sizer->GetItemCount(); i++) { m_upgrading_sizer->Show(true); }
             m_button_upgrade_firmware->Disable();
@@ -659,7 +659,7 @@ void MachineInfoPanel::upgrade_firmware_internal() {
 
 void MachineInfoPanel::on_upgrade_firmware(wxCommandEvent &event)
 {
-    SecondaryCheckDialog* confirm_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Upgrade firmware"));
+    SecondaryCheckDialog* confirm_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Update firmware"));
     confirm_dlg->update_text(_L("Are you sure you want to update? This will take about 10 minutes. Do not turn off the power while the printer is updating."));
     confirm_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent &e) {
         if (m_obj) {
@@ -673,7 +673,7 @@ void MachineInfoPanel::on_upgrade_firmware(wxCommandEvent &event)
 
 void MachineInfoPanel::on_consisitency_upgrade_firmware(wxCommandEvent &event)
 {
-    SecondaryCheckDialog* confirm_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Upgrade firmware"));
+    SecondaryCheckDialog* confirm_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Update firmware"));
     confirm_dlg->update_text(_L("Are you sure you want to update? This will take about 10 minutes. Do not turn off the power while the printer is updating."));
     confirm_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent &e) {
         if (m_obj) {
@@ -797,7 +797,7 @@ void UpgradePanel::update(MachineObject *obj)
     if (m_obj && m_show_forced_hint) {
         if (m_obj->upgrade_force_upgrade) {
             m_show_forced_hint = false;   //lock hint
-            SecondaryCheckDialog*  force_dlg = new SecondaryCheckDialog(m_scrolledWindow, wxID_ANY, _L("Upgrade firmware"));
+            SecondaryCheckDialog*  force_dlg = new SecondaryCheckDialog(m_scrolledWindow, wxID_ANY, _L("Update firmware"));
             force_dlg->update_text(_L(
                 "An important update was detected and needs to be run before printing can continue. Do you want to update now? You can also update later from 'Upgrade firmware'."
             ));
@@ -816,7 +816,7 @@ void UpgradePanel::update(MachineObject *obj)
     if (m_obj && m_show_consistency_hint) {
         if (m_obj->upgrade_consistency_request) {
             m_show_consistency_hint = false;
-            SecondaryCheckDialog*  consistency_dlg = new SecondaryCheckDialog(m_scrolledWindow, wxID_ANY, _L("Upgrade firmware"));
+            SecondaryCheckDialog*  consistency_dlg = new SecondaryCheckDialog(m_scrolledWindow, wxID_ANY, _L("Update firmware"));
             consistency_dlg->update_text(_L(
                 "The firmware version is abnormal. Repairing and updating are required before printing. Do you want to update now? You can also update later on printer or update next time starting the studio."
             ));

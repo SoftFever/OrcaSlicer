@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-05 12:18+0800\n"
-"PO-Revision-Date: 2022-11-05 12:10+0800\n"
+"POT-Creation-Date: 2022-10-21 14:33+0800\n"
+"PO-Revision-Date: 2022-10-17 22:14+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -1290,6 +1290,22 @@ msgstr "已发送完成，即将自动跳转到设备页面（%s秒）"
 
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "需要插入SD卡后方可发送局域网打印"
+
+msgid "Sending gcode file over LAN"
+msgstr "通过局域网发送gcode文件"
+
+msgid "Sending gcode file through cloud service"
+msgstr "通过云服务发送gcode文件"
+
+msgid "Sending gcode file to sdcard"
+msgstr "发送gcode文件到sd卡"
+
+#, c-format, boost-format
+msgid "Successfully sent. Close current page in %s s"
+msgstr "成功发送。即将关闭当前页面（%s秒）"
+
+msgid "An SD card needs to be inserted before sending to printer."
+msgstr "需要插入SD卡后方可发送到打印机。"
 
 msgid "Downloading"
 msgstr "下载中"
@@ -4640,8 +4656,8 @@ msgstr "序列号："
 msgid "Version:"
 msgstr "版本："
 
-msgid "Upgrade firmware"
-msgstr "升级固件"
+msgid "Update firmware"
+msgstr ""
 
 msgid "Printing"
 msgstr "打印中"
@@ -4652,14 +4668,14 @@ msgstr "空闲"
 msgid "Latest version"
 msgstr "最新版本"
 
-msgid "Upgrading"
-msgstr "升级中"
+msgid "Updating"
+msgstr "更新中"
 
-msgid "Upgrading failed"
-msgstr "升级失败"
+msgid "Updating failed"
+msgstr "更新失败"
 
-msgid "Upgrading successful"
-msgstr "升级成功"
+msgid "Updating successful"
+msgstr "更新成功"
 
 msgid ""
 "Are you sure you want to update? This will take about 10 minutes. Do not "
@@ -5045,6 +5061,12 @@ msgid ""
 msgstr ""
 "XY平面上的不可打印区域。例如，X1系列打印机在换料过程中，会使用左前角区域来切"
 "断耗材丝。这个多边形区域由以下格式的点表示：“XxY，XxY，…”"
+
+msgid "Bed custom texture"
+msgstr ""
+
+msgid "Bed custom model"
+msgstr ""
 
 msgid "Elephant foot compensation"
 msgstr "象脚补偿"
@@ -7088,24 +7110,23 @@ msgstr ""
 "为多个对象设置参数\n"
 "您知道可以同时为所有选定对象设置切片参数吗？"
 
-#~ msgid "Print By Object"
-#~ msgstr "逐件打印"
-
-#~ msgid "Suggest to use auto-arrange to avoid collisions when printing."
-#~ msgstr "建议您使用自动摆盘避免打印时发生碰撞。"
-
-#~ msgid ""
-#~ "Print By Object\n"
-#~ "Suggest to use auto-arrange to avoid collisions when printing."
-#~ msgstr ""
-#~ "逐件打印：\n"
-#~ "建议使用自动摆盘避免打印时发生碰撞。"
-
 #~ msgid "Send and Print"
 #~ msgstr "发送并打印"
 
 #~ msgid "Can't connect to the printer"
 #~ msgstr "无法连接打印机"
+
+#~ msgid "Upgrade firmware"
+#~ msgstr "升级固件"
+
+#~ msgid "Upgrading"
+#~ msgstr "升级中"
+
+#~ msgid "Upgrading failed"
+#~ msgstr "升级失败"
+
+#~ msgid "Upgrading successful"
+#~ msgstr "升级成功"
 
 #~ msgid "Show &Wireframe"
 #~ msgstr "显示线框"

@@ -253,7 +253,7 @@ void SendJob::process()
             this->update_status(curr_percent, _L("Sending gcode file over LAN"));
             result = m_agent->start_send_gcode_to_sdcard(params, update_fn, cancel_fn);
         } else {
-            this->update_status(curr_percent, _L("An SD card needs to be inserted before printing via LAN."));
+            this->update_status(curr_percent, _L("An SD card needs to be inserted before sending to printer."));
             return;
         }
     }
