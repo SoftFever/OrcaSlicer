@@ -1271,8 +1271,7 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
 
     if (obj && obj->is_function_supported(PrinterFunction::FUNC_TIMELAPSE)
         && obj->is_support_print_with_timelapse()) {
-        //always hide timelapse
-        select_timelapse->Hide();
+        select_timelapse->Show();
     } else {
         select_timelapse->Hide();
     }
