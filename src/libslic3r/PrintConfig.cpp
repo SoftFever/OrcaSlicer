@@ -998,7 +998,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back("3");
     def->enum_labels.push_back("4");
     def->enum_labels.push_back("5");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
 
     def = this->add("extruder_clearance_height_to_rod", coFloat);
     def->label = L("Height to rod");
@@ -1032,7 +1032,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Only used as a visual help on UI");
     def->gui_type = ConfigOptionDef::GUIType::color;
     // Empty string means no color assigned yet.
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings { "" });
 
     def = this->add("extruder_offset", coPoints);
@@ -1042,7 +1042,7 @@ void PrintConfigDef::init_fff_params()
     //               "with respect to the first one. It expects positive coordinates (they will be subtracted "
     //               "from the XY coordinate).");
     def->sidetext = L("mm");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPoints { Vec2d(0,0) });
 
     def = this->add("filament_flow_ratio", coFloats);
@@ -1097,7 +1097,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Color");
     def->tooltip = L("Only used as a visual help on UI");
     def->gui_type = ConfigOptionDef::GUIType::color;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings{ "#00AE42" });
 
     def = this->add("filament_max_volumetric_speed", coFloats);
@@ -1112,13 +1112,13 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_minimal_purge_on_wipe_tower", coFloats);
     def->label = L("Minimal purge on wipe tower");
-    //def->tooltip = L("After a tool change, the exact position of the newly loaded filament inside "
-    //                 "the nozzle may not be known, and the filament pressure is likely not yet stable. "
-    //                 "Before purging the print head into an infill or a sacrificial object, Slic3r will always prime "
-    //                 "this amount of material into the wipe tower to produce successive infill or sacrificial object extrusions reliably.");
+    def->tooltip = L("After a tool change, the exact position of the newly loaded filament inside "
+                    "the nozzle may not be known, and the filament pressure is likely not yet stable. "
+                    "Before purging the print head into an infill or a sacrificial object, Slic3r will always prime "
+                    "this amount of material into the wipe tower to produce successive infill or sacrificial object extrusions reliably.");
     def->sidetext = L("mm³");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 15. });
 
     def = this->add("machine_load_filament_time", coFloat);
@@ -1455,7 +1455,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The width within which to jitter. It's adversed to be below outer wall line width");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.3));
 
     def = this->add("fuzzy_skin_point_distance", coFloat);
@@ -1463,7 +1463,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Others");
     def->tooltip = L("The average diatance between the random points introducded on each line segment");
     def->sidetext = L("mm");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.8));
 
     def = this->add("gap_infill_speed", coFloat);
@@ -1515,13 +1515,13 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Hardened steel"));
     def->enum_labels.push_back(L("Stainless steel"));
     def->enum_labels.push_back(L("Brass"));
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<NozzleType>(ntUndefine));
 
     def = this->add("auxiliary_fan", coBool);
     def->label = L("Auxiliary part cooling fan");
     def->tooltip = L("Enable this option if machine has auxiliary part cooling fan");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("gcode_flavor", coEnum);
@@ -1618,13 +1618,13 @@ void PrintConfigDef::init_fff_params()
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("interface_shells", coBool);
-    //def->label = L("Interface shells");
+    def->label = L("Interface shells");
     def->label = "Interface shells";
-    //def->tooltip = L("Force the generation of solid shells between adjacent materials/volumes. "
-    //               "Useful for multi-extruder prints with translucent materials or manual soluble "
-    //               "support material");
+    def->tooltip = L("Force the generation of solid shells between adjacent materials/volumes. "
+                  "Useful for multi-extruder prints with translucent materials or manual soluble "
+                  "support material");
     def->category = L("Quality");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("ironing_type", coEnum);
@@ -1951,7 +1951,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Nozzle volume");
     def->tooltip = L("Volume of nozzle between the cutter and the end of nozzle");
     def->sidetext = L("mm³");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->readonly = true;
     def->set_default_value(new ConfigOptionFloat { 0.0 });
 
@@ -2055,7 +2055,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Z gap between object and raft. Ignored for soluble interface");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.1));
 
     def = this->add("raft_expansion", coFloat);
@@ -2064,7 +2064,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Expand all raft layers in XY plane");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1.5));
 
     def = this->add("raft_first_layer_density", coPercent);
@@ -2074,7 +2074,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("%");
     def->min = 10;
     def->max = 100;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(90));
 
     def = this->add("raft_first_layer_expansion", coFloat);
@@ -2083,7 +2083,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Expand the first raft or support layer to improve bed plate adhesion");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     //BBS: change from 3.0 to 2.0
     def->set_default_value(new ConfigOptionFloat(2.0));
 
@@ -2095,7 +2095,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("layers");
     def->min = 0;
     def->max = 100;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("resolution", coFloat);
@@ -2118,7 +2118,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Retract amount before wipe");
     def->tooltip = L("The length of fast retraction before wipe, relative to retraction length");
     def->sidetext = L("%");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercents { 100 });
 
     def = this->add("retract_when_changing_layer", coBools);
@@ -2157,21 +2157,21 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloats { 0.4 });
 
     def = this->add("retract_restart_extra", coFloats);
-    //def->label = L("Extra length on restart");
+    def->label = L("Extra length on restart");
     def->label = "Extra length on restart";
-    //def->tooltip = L("When the retraction is compensated after the travel move, the extruder will push "
-    //               "this additional amount of filament. This setting is rarely needed.");
+    def->tooltip = L("When the retraction is compensated after the travel move, the extruder will push "
+                  "this additional amount of filament. This setting is rarely needed.");
     def->sidetext = L("mm");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0. });
 
     def = this->add("retract_restart_extra_toolchange", coFloats);
-    //def->label = L("Extra length on restart");
+    def->label = L("Extra length on restart");
     def->label = "Extra length on restart";
-    //def->tooltip = L("When the retraction is compensated after changing tool, the extruder will push "
-    //               "this additional amount of filament.");
+    def->tooltip = L("When the retraction is compensated after changing tool, the extruder will push "
+                  "this additional amount of filament.");
     def->sidetext = L("mm");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0. });
 
     def = this->add("retraction_speed", coFloats);
@@ -2422,7 +2422,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("°");
     def->min = 0;
     def->max = 359;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("support_on_build_plate_only", coBool);
@@ -2876,7 +2876,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Flush multiplier");
     def->tooltip = L("");
     def->sidetext = L("");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(1.0));
 
@@ -2998,8 +2998,6 @@ void PrintConfigDef::init_fff_params()
         if ((strcmp(opt_key, "retraction_length") == 0) ||
             (strcmp(opt_key, "z_hop") == 0))
             def->mode       = comSimple;
-        else if (strcmp(opt_key, "retract_before_wipe") == 0)
-            def->mode       = comDevelop;
         else
             def->mode       = comAdvanced;
         switch (def->type) {
