@@ -31,8 +31,8 @@ namespace GUI {
 DownloadProgressDialog::DownloadProgressDialog(wxString title)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
-    wxString download_failed_url = wxT("https://wiki.bambulab.com/e/en/software/bambu-studio/failed-to-get-network-plugin");
-    wxString install_failed_url = wxT("https://wiki.bambulab.com/e/en/software/bambu-studio/failed-to-get-network-plugin");
+    wxString download_failed_url = wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-get-network-plugin");
+    wxString install_failed_url = wxT("https://wiki.bambulab.com/en/software/bambu-studio/failed-to-get-network-plugin");
 
     wxString download_failed_msg = _L("Failed to download the plug-in. Please check your firewall settings and vpn software, check and retry.");
     wxString install_failed_msg = _L("Failed to install the plug-in. Please check whether it is blocked or deleted by anti-virus software.");
