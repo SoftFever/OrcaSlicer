@@ -245,7 +245,7 @@ AboutDialog::AboutDialog()
     {
         vesizer->Add(0, FromDIP(165), 1, wxEXPAND, FromDIP(5));
 
-        auto version_string = _L("SoftFever Version") + " " + std::string(SLIC3R_VERSION);
+        auto version_string = _L("SoftFever Version") + " " + std::string(SoftFever_VERSION);
         wxStaticText* version = new wxStaticText(this, wxID_ANY, version_string.c_str(), wxDefaultPosition, wxDefaultSize);
         wxFont version_font = GetFont();
         #ifdef __WXMSW__
