@@ -6,6 +6,18 @@ It also supports Voron and Prusa MK3S printers.
 You can download it here: https://github.com/SoftFever/BambuStudio-SoftFever/releases
 
 ## BambuStudio SoftFever change notes:
+
+### [V1.3.1 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.3.1-sf):
+1. Support change bed size and nozzle diameter
+2. Allow users to specify the bridge infill direction
+3. bridge_infill_direction1
+4. bridge_infill_direction2
+5. Change to ISO view angle for preview image
+6. Add an option to change Z Hop action: NormalLift/SpiralLift
+7. Optimise g-code generation for both Bambu printers and 3rd party printers
+8. Support Klipper Exclude Objects
+9. Better support for Moonraker's metadata.
+
 ### [V1.2.5.3 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.2.5.3-sf):
 1. Label objects to support Klipper Exclude Objects feature
 2. Allow users to change output file name format
@@ -97,11 +109,6 @@ It's also recommended to add followinging dummy macros to make Klipper happy
 [gcode_macro G17]
 gcode:
 
-[gcode_macro M981]
-gcode:
-
-[gcode_macro M1003]
-gcode:
 ```
 
 - For Prusa MK3S:  
