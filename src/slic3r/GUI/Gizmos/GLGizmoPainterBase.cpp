@@ -1076,6 +1076,12 @@ void TriangleSelectorPatch::render(ImGuiWrapper* imgui)
     if (!shader)
         return;
     assert(shader->get_name() == "mm_gouraud");
+    if (wxGetApp().plater()->is_wireframe_enabled()) {
+        if (wxGetApp().plater()->is_show_wireframe())
+            shader->set_uniform("show_wireframe", true);
+        else
+            shader->set_uniform("show_wireframe", false);
+    }
 
     for (size_t buffer_idx = 0; buffer_idx < m_triangle_patches.size(); ++buffer_idx) {
         if (this->has_VBOs(buffer_idx)) {
@@ -1130,7 +1136,15 @@ void TriangleSelectorPatch::update_triangles_per_type()
 
         int state = (int)triangle.get_state();
         auto& patch = m_triangle_patches[state];
-        patch.triangle_indices.insert(patch.triangle_indices.end(), triangle.verts_idxs.begin(), triangle.verts_idxs.end());
+        //patch.triangle_indices.insert(patch.triangle_indices.end(), triangle.verts_idxs.begin(), triangle.verts_idxs.end());
+        for (int i = 0; i < 3; ++i) {
+            int j = triangle.verts_idxs[i];
+            int index = int(patch.patch_vertices.size()/3);
+            patch.patch_vertices.emplace_back(m_vertices[j].v(0));
+            patch.patch_vertices.emplace_back(m_vertices[j].v(1));
+            patch.patch_vertices.emplace_back(m_vertices[j].v(2));
+            patch.triangle_indices.emplace_back( index);
+        }
     }
 }
 
@@ -1202,7 +1216,15 @@ void TriangleSelectorPatch::update_triangles_per_patch()
 
             if (!visited[current_facet]) {
                 Triangle& triangle = m_triangles[current_facet];
-                patch.triangle_indices.insert(patch.triangle_indices.end(), triangle.verts_idxs.begin(), triangle.verts_idxs.end());
+                for (int i = 0; i < 3; ++i) {
+                    int j = triangle.verts_idxs[i];
+                    int index = int(patch.patch_vertices.size()/3);
+                    patch.patch_vertices.emplace_back(m_vertices[j].v(0));
+                    patch.patch_vertices.emplace_back(m_vertices[j].v(1));
+                    patch.patch_vertices.emplace_back(m_vertices[j].v(2));
+                    patch.triangle_indices.emplace_back( index);
+                }
+                //patch.triangle_indices.insert(patch.triangle_indices.end(), triangle.verts_idxs.begin(), triangle.verts_idxs.end());
                 patch.facet_indices.push_back(current_facet);
 
                 std::vector<int> touching_triangles = get_all_touching_triangles(current_facet, neighbors[current_facet], neighbors_propagated[current_facet]);
@@ -1246,16 +1268,16 @@ void TriangleSelectorPatch::set_filter_state(bool is_filter_state)
 
 void TriangleSelectorPatch::update_render_data()
 {
-    if (m_paint_changed || m_vertices_VBO_id == 0) {
+    if (m_paint_changed || (m_triangle_patches.size() == 0)) {
         this->release_geometry();
 
-        m_patch_vertices.reserve(m_vertices.size() * 3);
+        /*m_patch_vertices.reserve(m_vertices.size() * 3);
         for (const Vertex& vr : m_vertices) {
             m_patch_vertices.emplace_back(vr.v.x());
             m_patch_vertices.emplace_back(vr.v.y());
             m_patch_vertices.emplace_back(vr.v.z());
         }
-        this->finalize_vertices();
+        this->finalize_vertices();*/
 
         if (m_filter_state)
             update_triangles_per_patch();
@@ -1290,11 +1312,17 @@ void TriangleSelectorPatch::render(int triangle_indices_idx)
 {
     assert(triangle_indices_idx < this->m_triangle_indices_VBO_ids.size());
     assert(this->m_triangle_patches.size() == this->m_triangle_indices_VBO_ids.size());
-    assert(this->m_vertices_VBO_id != 0);
+    //assert(this->m_vertices_VBO_id != 0);
+    assert(this->m_triangle_patches.size() == this->m_vertices_VBO_ids.size());
+    assert(this->m_vertices_VBO_ids[triangle_indices_idx] != 0);
     assert(this->m_triangle_indices_VBO_ids[triangle_indices_idx] != 0);
 
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_vertices_VBO_id));
-    glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), (const void*)(0 * sizeof(float))));
+    //glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_vertices_VBO_id));
+    //glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), (const void*)(0 * sizeof(float))));
+    if (this->m_triangle_indices_sizes[triangle_indices_idx] > 0) {
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_vertices_VBO_ids[triangle_indices_idx]));
+        glsafe(::glVertexPointer(3, GL_FLOAT, 3 * sizeof(float), nullptr));
+    }
 
     glsafe(::glEnableClientState(GL_VERTEX_ARRAY));
 
@@ -1307,14 +1335,19 @@ void TriangleSelectorPatch::render(int triangle_indices_idx)
 
     glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
 
-    glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+    if (this->m_triangle_indices_sizes[triangle_indices_idx] > 0)
+        glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
 void TriangleSelectorPatch::release_geometry()
 {
-    if (m_vertices_VBO_id) {
+    /*if (m_vertices_VBO_id) {
         glsafe(::glDeleteBuffers(1, &m_vertices_VBO_id));
         m_vertices_VBO_id = 0;
+    }*/
+    for (auto& vertice_VBO_id : m_vertices_VBO_ids) {
+        glsafe(::glDeleteBuffers(1, &vertice_VBO_id));
+        vertice_VBO_id = 0;
     }
     for (auto& triangle_indices_VBO_id : m_triangle_indices_VBO_ids) {
         glsafe(::glDeleteBuffers(1, &triangle_indices_VBO_id));
@@ -1325,23 +1358,33 @@ void TriangleSelectorPatch::release_geometry()
 
 void TriangleSelectorPatch::finalize_vertices()
 {
-    assert(m_vertices_VBO_id == 0);
+    /*assert(m_vertices_VBO_id == 0);
     if (!this->m_patch_vertices.empty()) {
         glsafe(::glGenBuffers(1, &this->m_vertices_VBO_id));
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, this->m_vertices_VBO_id));
         glsafe(::glBufferData(GL_ARRAY_BUFFER, this->m_patch_vertices.size() * sizeof(float), this->m_patch_vertices.data(), GL_STATIC_DRAW));
         glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
         this->m_patch_vertices.clear();
-    }
+    }*/
 }
 
 void TriangleSelectorPatch::finalize_triangle_indices()
 {
+    m_vertices_VBO_ids.resize(m_triangle_patches.size());
     m_triangle_indices_VBO_ids.resize(m_triangle_patches.size());
     m_triangle_indices_sizes.resize(m_triangle_patches.size());
     assert(std::all_of(m_triangle_indices_VBO_ids.cbegin(), m_triangle_indices_VBO_ids.cend(), [](const auto& ti_VBO_id) { return ti_VBO_id == 0; }));
 
     for (size_t buffer_idx = 0; buffer_idx < m_triangle_patches.size(); ++buffer_idx) {
+        std::vector<float>& patch_vertices = m_triangle_patches[buffer_idx].patch_vertices;
+        if (!patch_vertices.empty()) {
+            glsafe(::glGenBuffers(1, &m_vertices_VBO_ids[buffer_idx]));
+            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, m_vertices_VBO_ids[buffer_idx]));
+            glsafe(::glBufferData(GL_ARRAY_BUFFER, patch_vertices.size() * sizeof(float), patch_vertices.data(), GL_STATIC_DRAW));
+            glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+            patch_vertices.clear();
+        }
+
         std::vector<int>& triangle_indices = m_triangle_patches[buffer_idx].triangle_indices;
         m_triangle_indices_sizes[buffer_idx] = triangle_indices.size();
         if (!triangle_indices.empty()) {

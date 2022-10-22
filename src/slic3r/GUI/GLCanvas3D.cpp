@@ -731,6 +731,8 @@ bool GLCanvas3D::init()
     Bed3D::load_render_colors();
 #endif
 
+    if (wxGetApp().is_gl_version_greater_or_equal_to(3, 0))
+        wxGetApp().plater()->enable_wireframe(true);
     m_initialized = true;
 
     return true;
@@ -2670,10 +2672,8 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
 #endif
                 }
                 else  if (evt.ShiftDown() && evt.ControlDown() && keyCode == WXK_RETURN) {
-#if !BBL_RELEASE_TO_PUBLIC
                     wxGetApp().plater()->toggle_show_wireframe();
                     m_dirty = true;
-#endif
                 }
                 else if (m_tab_down && keyCode == WXK_TAB && !evt.HasAnyModifiers()) {
                     // Enable switching between 3D and Preview with Tab
@@ -5762,6 +5762,12 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
             //                GLGizmosManager::EType type = gm.get_current_type();
             if (dynamic_cast<GLGizmoPainterBase*>(gm.get_current()) == nullptr)
             {
+                if (wxGetApp().plater()->is_wireframe_enabled()) {
+                    if (wxGetApp().plater()->is_show_wireframe())
+                        shader->set_uniform("show_wireframe", true);
+                    else
+                        shader->set_uniform("show_wireframe", false);
+                }
                 //BBS:add assemble view related logic
                 // do not cull backfaces to show broken geometry, if any
                 m_volumes.render(type, m_picking_enabled, wxGetApp().plater()->get_camera().get_view_matrix(), [this, canvas_type](const GLVolume& volume) {
@@ -5777,7 +5783,6 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
                 // In case a painting gizmo is open, it should render the painted triangles
                 // before transparent objects are rendered. Otherwise they would not be
                 // visible when inside modifier meshes etc.
-
 //                GLGizmosManager::EType type = gm.get_current_type();
                 if (dynamic_cast<GLGizmoPainterBase*>(gm.get_current())) {
                     shader->stop_using();
@@ -5790,6 +5795,12 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
         }
         case GLVolumeCollection::ERenderType::Transparent:
         {
+            if (wxGetApp().plater()->is_wireframe_enabled()) {
+                if (wxGetApp().plater()->is_show_wireframe())
+                    shader->set_uniform("show_wireframe", true);
+                else
+                    shader->set_uniform("show_wireframe", false);
+            }
             //BBS:add assemble view related logic
             m_volumes.render(type, false, wxGetApp().plater()->get_camera().get_view_matrix(), [this, canvas_type](const GLVolume& volume) {
                 if (canvas_type == ECanvasType::CanvasAssembleView) {
@@ -5807,6 +5818,10 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
             }
             break;
         }
+        }
+
+        if (wxGetApp().plater()->is_wireframe_enabled()) {
+            shader->set_uniform("show_wireframe", false);
         }
 
         shader->stop_using();

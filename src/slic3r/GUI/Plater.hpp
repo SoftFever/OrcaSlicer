@@ -624,6 +624,8 @@ public:
 
     void toggle_show_wireframe();
     bool is_show_wireframe() const;
+    void enable_wireframe(bool status);
+    bool is_wireframe_enabled() const;
 
 	// Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.
 	bool PopupMenu(wxMenu *menu, const wxPoint& pos = wxDefaultPosition);

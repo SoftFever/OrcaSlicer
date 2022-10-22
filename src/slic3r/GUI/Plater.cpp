@@ -1632,6 +1632,7 @@ struct Plater::priv
 
     bool                        show_render_statistic_dialog{ false };
     bool                        show_wireframe{ false };
+    bool                        wireframe_enabled{ false };
 
     static const std::regex pattern_bundle;
     static const std::regex pattern_3mf;
@@ -10601,6 +10602,16 @@ void Plater::toggle_show_wireframe()
 bool Plater::is_show_wireframe() const
 {
     return p->show_wireframe;
+}
+
+void Plater::enable_wireframe(bool status)
+{
+    p->wireframe_enabled = status;
+}
+
+bool Plater::is_wireframe_enabled() const
+{
+    return p->wireframe_enabled;
 }
 
 

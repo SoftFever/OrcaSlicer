@@ -45,7 +45,7 @@ std::pair<bool, std::string> GLShadersManager::init()
     // used to render extrusion and travel paths as lines in gcode preview
     valid &= append_shader("toolpaths_lines", { "toolpaths_lines.vs", "toolpaths_lines.fs" });
     // used to render objects in 3d editor
-    if (0) {
+    if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 0)) {
         valid &= append_shader("gouraud", { "gouraud_130.vs", "gouraud_130.fs" }
 #if ENABLE_ENVIRONMENT_MAP
             , { "ENABLE_ENVIRONMENT_MAP"sv }
@@ -69,10 +69,18 @@ std::pair<bool, std::string> GLShadersManager::init()
     // Based on https://stackoverflow.com/a/66206648, the similar behavior was also spotted on some other devices with Arm CPU.
     // Since macOS 12 (Monterey), this issue with the opposite direction on Apple's Arm CPU seems to be fixed, and computed
     // triangle normals inside fragment shader have the right direction.
-    if (platform_flavor() == PlatformFlavor::OSXOnArm && wxPlatformInfo::Get().GetOSMajorVersion() < 12)
-        valid &= append_shader("mm_gouraud", {"mm_gouraud.vs", "mm_gouraud.fs"}, {"FLIP_TRIANGLE_NORMALS"sv});
-    else
-        valid &= append_shader("mm_gouraud", {"mm_gouraud.vs", "mm_gouraud.fs"});
+    if (platform_flavor() == PlatformFlavor::OSXOnArm && wxPlatformInfo::Get().GetOSMajorVersion() < 12) {
+        if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 0))
+            valid &= append_shader("mm_gouraud", {"mm_gouraud_130.vs", "mm_gouraud_130.fs"}, {"FLIP_TRIANGLE_NORMALS"sv});
+        else
+            valid &= append_shader("mm_gouraud", {"mm_gouraud.vs", "mm_gouraud.fs"}, {"FLIP_TRIANGLE_NORMALS"sv});
+    }
+    else {
+         if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 0))
+            valid &= append_shader("mm_gouraud", {"mm_gouraud_130.vs", "mm_gouraud_130.fs"});
+        else
+            valid &= append_shader("mm_gouraud", {"mm_gouraud.vs", "mm_gouraud.fs"});
+    }
 
     //BBS: add shader for outline
     valid &= append_shader("outline", { "outline.vs", "outline.fs" });
