@@ -503,6 +503,9 @@ void ArrangeJob::process()
     if (params.is_seq_print)
         params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius));
 
+    if (params.avoid_extrusion_cali_region && print.full_print_config().opt_bool("scan_first_layer"))
+        m_plater->get_partplate_list().preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
+        
     double skirt_distance = print.has_skirt() ? print.config().skirt_distance.value : 0;
     double brim_max = 0;
     std::for_each(m_selected.begin(), m_selected.end(), [&](ArrangePolygon ap) {  brim_max = std::max(brim_max, ap.brim_width); });
@@ -514,21 +517,26 @@ void ArrangeJob::process()
     params.bed_shrink_y = settings.bed_shrink_y + params.brim_skirt_distance;
     // for sequential print, we need to inflate the bed because cleareance_radius is so large
     if (params.is_seq_print) {
-        params.bed_shrink_x -= params.cleareance_radius/2;
-        params.bed_shrink_y -= params.cleareance_radius/2;
+        float shift_dist = params.cleareance_radius / 2 - 5;
+        params.bed_shrink_x -= shift_dist;
+        params.bed_shrink_y -= shift_dist;
         // dont forget to move the excluded region
         for (auto& region : m_unselected) {
             if (region.is_virt_object)
-                region.poly.translate(-scaled(params.cleareance_radius/2), -scaled(params.cleareance_radius/2));
+                region.poly.translate(-scaled(shift_dist), -scaled(shift_dist));
         }
     }
 
     // do not inflate brim_width. Objects are allowed to have overlapped brim.
     std::for_each(m_selected.begin(), m_selected.end(), [&](auto& ap) {ap.inflation = params.min_obj_distance / 2; });
-    std::for_each(m_unselected.begin(), m_unselected.end(), [&](auto& ap) {ap.inflation = ap.is_virt_object ? scaled(params.brim_skirt_distance) : params.min_obj_distance / 2; });
+    // For occulusion regions, inflation should be larger to prevent genrating brim on them.
+    // However, extrusion cali regions are exceptional, since we can allow brim overlaps them.
+    std::for_each(m_unselected.begin(), m_unselected.end(), [&](auto &ap) {
+        ap.inflation = !ap.is_virt_object ?
+                           params.min_obj_distance / 2 :
+                           (ap.is_extrusion_cali_object ? scaled(params.cleareance_radius / 2) : scaled(params.brim_skirt_distance + params.cleareance_radius / 2));
+    });
 
-    if (params.avoid_extrusion_cali_region && print.full_print_config().opt_bool("scan_first_layer"))
-        m_plater->get_partplate_list().preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
 
     m_plater->get_partplate_list().preprocess_exclude_areas(params.excluded_regions, 1);
 

@@ -3461,6 +3461,7 @@ bool PartPlateList::preprocess_nonprefered_areas(arrangement::ArrangePolygons& r
 			ret.translation = Vec2crd(0, 0);
 			ret.rotation = 0.0f;
 			ret.is_virt_object = true;
+            ret.is_extrusion_cali_object = true;
 			ret.bed_idx = j;
 			ret.height = 1;
 			ret.name = "NonpreferedRegion" + std::to_string(index);

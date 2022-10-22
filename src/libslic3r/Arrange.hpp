@@ -52,6 +52,7 @@ struct ArrangePolygon {
     //BBS: add locked_plate to indicate whether it is in the locked plate
     int       locked_plate{ -1 };
     bool      is_virt_object{ false };
+    bool      is_extrusion_cali_object{ false };
     bool      is_wipe_tower{false};
     //BBS: add row/col for sudoku-style layout
     int       row{0};
