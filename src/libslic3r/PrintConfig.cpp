@@ -98,6 +98,7 @@ static t_config_enum_values s_keys_map_GCodeFlavor {
     { "makerware",      gcfMakerWare },
     { "marlin2",        gcfMarlinFirmware },
     { "sailfish",       gcfSailfish },
+    { "klipper",        gcfKlipper },
     { "smoothie",       gcfSmoothie },
     { "mach3",          gcfMach3 },
     { "machinekit",     gcfMachinekit },
@@ -1529,7 +1530,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("What kind of gcode the printer is compatible with");
     def->enum_keys_map = &ConfigOptionEnum<GCodeFlavor>::get_enum_values();
     def->enum_values.push_back("marlin");
-    //def->enum_values.push_back("reprap");
+    def->enum_values.push_back("klipper");
     //def->enum_values.push_back("reprapfirmware");
     //def->enum_values.push_back("repetier");
     //def->enum_values.push_back("teacup");

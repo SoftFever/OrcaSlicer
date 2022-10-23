@@ -1636,7 +1636,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                             m_config.pressure_advance.values.front());
     } else {
       if (m_config.enable_pressure_advance.value) {
-        file.write_format("M900 K%.3f ; Override pressure advance value\n",
+        if(print.config().gcode_flavor.value == gcfKlipper)
+            file.write_format("SET_PRESSURE_ADVANCE ADVANCE=%.3f ; Override pressure advance value\n",
+                          m_config.pressure_advance.values.front());
+        else
+            file.write_format("M900 K%.3f ; Override pressure advance value\n",
                           m_config.pressure_advance.values.front());
       }
     }
