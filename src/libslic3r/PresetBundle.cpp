@@ -90,7 +90,7 @@ PresetBundle::PresetBundle()
     for (size_t i = 0; i < 1; ++i) {
         // The following ugly switch is to avoid printers.preset(0) to return the edited instance, as the 0th default is the current one.
         Preset &preset = this->printers.default_preset(i);
-        for (const char *key : {"printer_settings_id", "printer_model", "printer_variant"}) preset.config.optptr(key, true);
+        for (const char *key : {"printer_settings_id", "printer_model", "printer_variant", "thumbnails"}) preset.config.optptr(key, true);
         //if (i == 0) {
             preset.config.optptr("default_print_profile", true);
             preset.config.option<ConfigOptionStrings>("default_filament_profile", true);

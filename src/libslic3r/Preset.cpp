@@ -774,7 +774,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "printhost_cafile","printhost_port","printhost_authorization_type",
         "printhost_user",
     "printhost_password",
-    "printhost_ssl_ignore_revoke"
+    "printhost_ssl_ignore_revoke", "thumbnails"
 };
 
 static std::vector<std::string> s_Preset_sla_print_options {
@@ -2269,7 +2269,7 @@ inline t_config_option_keys deep_diff(const ConfigBase &config_this, const Confi
         if (this_opt != nullptr && other_opt != nullptr && *this_opt != *other_opt)
         {
             //BBS: add bed_exclude_area
-            if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "compatible_prints" || opt_key == "compatible_printers") {
+            if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "compatible_prints" || opt_key == "compatible_printers" || opt_key == "thumbnails") {
                 // Scalar variable, or a vector variable, which is independent from number of extruders,
                 // thus the vector is presented to the user as a single input.
                 diff.emplace_back(opt_key);

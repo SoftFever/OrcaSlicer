@@ -134,7 +134,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "wipe_distance",
         "curr_bed_type",
         "nozzle_volume",
-        "chamber_temperature"
+        "chamber_temperature",
+        "thumbnails"
     };
 
     static std::unordered_set<std::string> steps_ignore;

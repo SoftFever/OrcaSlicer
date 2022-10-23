@@ -1315,7 +1315,7 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
     }
     case coPoints: {
         //BBS: add bed_exclude_area
-        if (opt_key == "printable_area") {
+        if (opt_key == "printable_area" || opt_key == "thumbnails") {
             ConfigOptionPoints points = *config.option<ConfigOptionPoints>(opt_key);
             //BuildVolume build_volume = {points.values, 0.};
             return get_thumbnails_string(points.values);

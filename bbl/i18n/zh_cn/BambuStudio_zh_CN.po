@@ -5895,6 +5895,9 @@ msgstr "如果机器有辅助部件冷却风扇，勾选该选项"
 msgid "G-code flavor"
 msgstr "G-code风格"
 
+msgid "G-code thumbnails"
+msgstr "G-code缩略图尺寸"
+
 msgid "What kind of gcode the printer is compatible with"
 msgstr "打印机兼容的G-code风格'"
 

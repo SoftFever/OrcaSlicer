@@ -802,6 +802,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     //BBS
     ((ConfigOptionEnum<NozzleType>,    nozzle_type))
     ((ConfigOptionBool,                auxiliary_fan))
+
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.
@@ -911,7 +912,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               has_prime_tower))
     ((ConfigOptionFloat,              nozzle_volume))
     ((ConfigOptionEnum<TimelapseType>,    timelapse_type))
-
+    ((ConfigOptionPoints,              thumbnails))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Full.

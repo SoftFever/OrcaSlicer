@@ -1391,8 +1391,18 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 .c_str());
 
         // BBS: add plate id into thumbnail render logic
+        //     if (const auto [thumbnails, thumbnails_format] = std::make_pair(
+        //     print.full_print_config().option<ConfigOptionPoints>("thumbnails"),
+        //     print.full_print_config().option<ConfigOptionEnum<GCodeThumbnailsFormat>>("thumbnails_format"));
+        // thumbnails)
+        // GCodeThumbnails::export_thumbnails_to_file(
+        //     thumbnail_cb, thumbnails->values, thumbnails_format ? thumbnails_format->value : GCodeThumbnailsFormat::PNG,
+        //     [&file](const char* sz) { file.write(sz); },
+        //     [&print]() { print.throw_if_canceled(); });
+
+
         DoExport::export_thumbnails_to_file(
-            thumbnail_cb, print.get_plate_index(), {Vec2d(300, 300)},
+            thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
             [&file](const char *sz) { file.write(sz); },
             [&print]() { print.throw_if_canceled(); });
       }
