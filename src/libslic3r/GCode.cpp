@@ -1794,10 +1794,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write(m_writer.set_fan(0));
     //BBS: make sure the additional fan is closed when end
     file.write(m_writer.set_additional_fan(0));
-    //BBS: close spaghetti detector
-    //Note: M981 is also used to tell xcam the last layer is finished, so we need always send it even if spaghetti option is disabled.
-    //if (print.config().spaghetti_detector.value)
-    file.write("M981 S0 P20000 ; close spaghetti detector\n");
+    if (is_bbl_printers) {
+        //BBS: close spaghetti detector
+        //Note: M981 is also used to tell xcam the last layer is finished, so we need always send it even if spaghetti option is disabled.
+        //if (print.config().spaghetti_detector.value)
+        file.write("M981 S0 P20000 ; close spaghetti detector\n");
+    }
 
     // adds tag for processor
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
@@ -1874,6 +1876,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
               .c_str());
 
     }
+    file.write("\n");
 
     print.throw_if_canceled();
 }
