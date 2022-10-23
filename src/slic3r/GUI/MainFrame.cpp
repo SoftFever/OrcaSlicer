@@ -73,6 +73,7 @@ wxDEFINE_EVENT(EVT_USER_LOGIN, wxCommandEvent);
 // BBS: backup
 wxDEFINE_EVENT(EVT_BACKUP_POST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_LOAD_URL, wxCommandEvent);
+wxDEFINE_EVENT(EVT_LOAD_PRINTER_URL, wxCommandEvent);
 
 enum class ERescaleTarget
 {
@@ -934,6 +935,13 @@ void MainFrame::init_tabpanel()
     m_monitor = new MonitorPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_tabpanel->AddPage(m_monitor, _L("Device"), std::string("tab_monitor_active"), std::string("tab_monitor_active"));
 
+    m_printer_view = new PrinterWebView(m_tabpanel);
+    Bind(EVT_LOAD_PRINTER_URL, [this](wxCommandEvent &evt) {
+        wxString url = evt.GetString();
+        //select_tab(MainFrame::tpMonitor);
+        m_printer_view->load_url(url);
+    });
+
     m_auxiliary = new AuxiliaryPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_tabpanel->AddPage(m_auxiliary, _L("Project"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"));
 
@@ -950,6 +958,33 @@ void MainFrame::init_tabpanel()
         }
     }
 }
+
+    // SoftFever
+void MainFrame::show_device(bool bBBLPrinter) {
+  if (m_tabpanel->GetPage(3) != m_monitor &&
+      m_tabpanel->GetPage(3) != m_printer_view) {
+    BOOST_LOG_TRIVIAL(error) << "Failed to find device tab";
+    return;
+  }
+  if (bBBLPrinter) {
+    if (m_tabpanel->GetPage(3) != m_monitor) {
+      m_tabpanel->RemovePage(3);
+      m_tabpanel->InsertPage(3, m_monitor, _L("Device"),
+                             std::string("tab_monitor_active"),
+                             std::string("tab_monitor_active"));
+    }
+  } else {
+    if (m_tabpanel->GetPage(3) != m_printer_view) {
+      m_tabpanel->RemovePage(3);
+      m_tabpanel->InsertPage(3, m_printer_view, _L("Device"),
+                          std::string("tab_monitor_active"),
+                          std::string("tab_monitor_active"));
+    }
+  }
+
+
+}
+
 
 #ifdef WIN32
 void MainFrame::register_win32_callbacks()
@@ -2859,6 +2894,13 @@ void MainFrame::load_url(wxString url)
     wxQueueEvent(this, evt);
 }
 
+void MainFrame::load_printer_url(wxString url)
+{
+    BOOST_LOG_TRIVIAL(trace) << "load_printer_url:" << url;
+    auto evt = new wxCommandEvent(EVT_LOAD_PRINTER_URL, this->GetId());
+    evt->SetString(url);
+    wxQueueEvent(this, evt);
+}
 void MainFrame::refresh_plugin_tips()
 {
     if (m_webview != nullptr)

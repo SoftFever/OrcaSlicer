@@ -911,30 +911,22 @@ void Sidebar::update_all_preset_comboboxes()
 
     bool is_bbl_preset = preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle);
 
+    auto p_mainframe = wxGetApp().mainframe;
+
+    p_mainframe->show_device(is_bbl_preset);
     if (is_bbl_preset) {
         //only show connection button for not-BBL printer
         connection_btn->Hide();
         //only show sync-ams button for BBL printer
         ams_btn->Show();
         //update print button default value for bbl or third-party printer
-        wxGetApp().mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
-        MonitorPanel *curr_monitor = wxGetApp().mainframe->m_monitor;
-        if(wxGetApp().mainframe->m_tabpanel->GetPage(3) !=
-            curr_monitor){
-        wxGetApp().mainframe->m_tabpanel->InsertPage(3,
-            curr_monitor, _L("Device"),
-                            std::string("tab_monitor_active"),
-                            std::string("tab_monitor_active"));
-        }
+        p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
 
     } else {
         connection_btn->Show();
         ams_btn->Hide();
-        wxGetApp().mainframe->set_print_button_to_default(MainFrame::PrintSelectType::eSendGcode);
-        MonitorPanel *curr_monitor = wxGetApp().mainframe->m_monitor;
-        if (wxGetApp().mainframe->m_tabpanel->GetPage(3) == curr_monitor) {
-          wxGetApp().mainframe->m_tabpanel->RemovePage(3);
-        }
+        p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::eSendGcode);
+        p_mainframe->load_printer_url(wxString::Format("http://%s",preset_bundle.printers.get_edited_preset().config.opt_string("print_host")));
     }
 
     // Update the print choosers to only contain the compatible presets, update the dirty flags.
