@@ -534,7 +534,7 @@ bool ConfigBase::set_deserialize_nothrow(const t_config_option_key &opt_key_src,
     this->handle_legacy(opt_key, value);
     if (opt_key.empty()) {
         // Ignore the option.
-        //BBS: record these options, keep only one repeated opt_key 
+        //BBS: record these options, keep only one repeated opt_key
         auto iter = std::find(substitutions_ctxt.unrecogized_keys.begin(), substitutions_ctxt.unrecogized_keys.end(), opt_key_src);
         if (iter == substitutions_ctxt.unrecogized_keys.end())
             substitutions_ctxt.unrecogized_keys.push_back(opt_key_src);
@@ -757,7 +757,7 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
             if (boost::iequals(it.key(),BBL_JSON_KEY_VERSION)) {
                 key_values.emplace(BBL_JSON_KEY_VERSION, it.value());
             }
-            if (boost::iequals(it.key(), BBL_JSON_KEY_IS_CUSTOM)) {
+            else if (boost::iequals(it.key(), BBL_JSON_KEY_IS_CUSTOM)) {
                 key_values.emplace(BBL_JSON_KEY_IS_CUSTOM, it.value());
             }
             else if (boost::iequals(it.key(), BBL_JSON_KEY_NAME)) {
