@@ -1404,15 +1404,21 @@ void Print::process()
                 obj->set_done(posIroning);
         }
     }
-    for (PrintObject *obj : m_objects) {
-        if (need_slicing_objects.count(obj) != 0) {
-            obj->generate_support_material();
+
+    tbb::parallel_for(tbb::blocked_range<int>(0, int(m_objects.size())),
+        [this, need_slicing_objects](const tbb::blocked_range<int>& range) {
+            for (int i = range.begin(); i < range.end(); i++) {
+                PrintObject* obj = m_objects[i];
+                if (need_slicing_objects.count(obj) != 0) {
+                    obj->generate_support_material();
+                }
+                else {
+                    if (obj->set_started(posSupportMaterial))
+                        obj->set_done(posSupportMaterial);
+                }
+            }
         }
-        else {
-            if (obj->set_started(posSupportMaterial))
-                obj->set_done(posSupportMaterial);
-        }
-    }
+    );
 
     for (PrintObject *obj : m_objects)
     {
