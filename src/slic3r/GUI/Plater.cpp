@@ -2492,7 +2492,12 @@ void Plater::setPrintSpeedTable(GlobalSpeedMap &printSpeedMap) {
         if (printSpeedMap.supportSpeed > printSpeedMap.maxSpeed)
             printSpeedMap.maxSpeed = printSpeedMap.supportSpeed;
     }
+    if (config.has("small_perimeter_speed")) {
+        printSpeedMap.smallPerimeterSpeed = config.get_abs_value("small_perimeter_speed");
 
+        if (printSpeedMap.smallPerimeterSpeed > printSpeedMap.maxSpeed)
+            printSpeedMap.maxSpeed = printSpeedMap.smallPerimeterSpeed;
+    }
     /*        "inner_wall_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed",
         "top_surface_speed", "support_speed", "support_object_xy_distance", "support_interface_speed",
         "bridge_speed", "gap_infill_speed", "travel_speed", "initial_layer_speed"*/

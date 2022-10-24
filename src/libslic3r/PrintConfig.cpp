@@ -934,6 +934,18 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(60));
 
+    def = this->add("small_perimeter_speed", coFloatOrPercent);
+    def->label = L("Small perimeters");
+    def->category = L("Speed");
+    def->tooltip = L("This separate setting will affect the speed of perimeters having radius <= 6.5mm "
+                   "(usually holes). If expressed as percentage (for example: 80%) it will be calculated "
+                   "on the outer wall speed setting above. Set to zero for auto.");
+    def->sidetext = L("mm/s or %");
+    def->ratio_over = "outer_wall_speed";
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(15, false));
+    
     def = this->add("wall_infill_order", coEnum);
     def->label = L("Order of inner wall/outer wall/infil");
     def->category = L("Quality");
@@ -3584,6 +3596,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
                 opt_key == "top_surface_speed"            ||
                 opt_key == "support_interface_speed"      ||
                 opt_key == "outer_wall_speed"             ||
+                opt_key == "small_perimeter_speed"        ||
                 opt_key == "support_object_xy_distance")     && value.find("%") != std::string::npos) {
         //BBS: this is old profile in which value is expressed as percentage.
         //But now these key-value must be absolute value.
@@ -3623,7 +3636,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         // BBS
         , "support_sharp_tails","remove_small_overhangs", "support_with_sheath",
         "tree_support_branch_diameter_angle", "tree_support_collision_resolution",
-        "small_perimeter_speed", "max_volumetric_speed", "max_print_speed",
+        "max_volumetric_speed", "max_print_speed",
         "support_bottom_z_distance", "support_closing_radius", "slicing_mode",
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",

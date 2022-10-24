@@ -3225,8 +3225,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     // BBS: remove small small_perimeter_speed config, and will absolutely
     // remove related code if no other issue in the coming release.
     // apply the small perimeter speed
-    //if (is_perimeter(paths.front().role()) && loop.length() <= SMALL_PERIMETER_LENGTH && speed == -1)
-    //    speed = m_config.small_perimeter_speed.get_abs_value(m_config.inner_wall_speed);
+    if (is_perimeter(paths.front().role()) && loop.length() <= SMALL_PERIMETER_LENGTH && speed == -1)
+       speed = m_config.small_perimeter_speed.get_abs_value(m_config.outer_wall_speed);
 
     // extrude along the path
     std::string gcode;

@@ -170,6 +170,7 @@ void Layer::make_perimeters()
 		                && config.wall_loops                  == other_config.wall_loops
 		                && config.inner_wall_speed             == other_config.inner_wall_speed
 		                && config.outer_wall_speed    == other_config.outer_wall_speed
+		                && config.small_perimeter_speed    == other_config.small_perimeter_speed
 		                && config.gap_infill_speed.value == other_config.gap_infill_speed.value
 		                && config.detect_overhang_wall                   == other_config.detect_overhang_wall
 		                && config.opt_serialize("inner_wall_line_width") == other_config.opt_serialize("inner_wall_line_width")
