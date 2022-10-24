@@ -7200,7 +7200,7 @@ void Plater::add_model(bool imperial_units/* = false*/)
     if (!load_files(paths, strategy, ask_multi).empty()) {
 
         if (get_project_name() == _L("Untitled") && paths.size() > 0) {
-            p->set_project_filename(wxString(paths[0].string()));
+            p->set_project_filename(wxString::FromUTF8(paths[0].string()));
         }
 
         wxGetApp().mainframe->update_title();
