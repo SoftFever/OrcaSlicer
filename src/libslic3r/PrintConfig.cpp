@@ -980,8 +980,17 @@ void PrintConfigDef::init_fff_params()
     def->ratio_over = "outer_wall_speed";
     def->min = 0;
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(15, false));
-    
+    def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
+
+    def = this->add("small_perimeter_threshold", coFloat);
+    def->label = L("Small perimeters threshold");
+    def->category = L("Speed");
+    def->tooltip = L("This sets the threshold for small perimeter length. Default threshold is 6.5mm");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(6.5));
+
     def = this->add("wall_infill_order", coEnum);
     def->label = L("Order of inner wall/outer wall/infil");
     def->category = L("Quality");
@@ -3755,7 +3764,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
                 opt_key == "top_surface_speed"            ||
                 opt_key == "support_interface_speed"      ||
                 opt_key == "outer_wall_speed"             ||
-                opt_key == "small_perimeter_speed"        ||
                 opt_key == "support_object_xy_distance")     && value.find("%") != std::string::npos) {
         //BBS: this is old profile in which value is expressed as percentage.
         //But now these key-value must be absolute value.

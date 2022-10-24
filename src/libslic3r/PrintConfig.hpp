@@ -672,6 +672,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                outer_wall_line_width))
     ((ConfigOptionFloat,                outer_wall_speed))
     ((ConfigOptionFloatOrPercent,       small_perimeter_speed))
+    ((ConfigOptionFloat,                small_perimeter_threshold))
     ((ConfigOptionFloat,                infill_direction))
     ((ConfigOptionPercent,              sparse_infill_density))
     ((ConfigOptionEnum<InfillPattern>,  sparse_infill_pattern))
@@ -1281,7 +1282,12 @@ public:
     const ConfigOption*         option(const t_config_option_key &opt_key) const { return m_data.option(opt_key); }
     int                         opt_int(const t_config_option_key &opt_key) const { return m_data.opt_int(opt_key); }
     int                         extruder() const { return opt_int("extruder"); }
-    double                      opt_float(const t_config_option_key &opt_key) const { return m_data.opt_float(opt_key); }
+    double opt_float(const t_config_option_key &opt_key) const {
+      return m_data.opt_float(opt_key);
+    }
+    double get_abs_value(const t_config_option_key &opt_key) const {
+      return m_data.get_abs_value(opt_key);
+    }
     std::string                 opt_serialize(const t_config_option_key &opt_key) const { return m_data.opt_serialize(opt_key); }
 
     // Return an optional timestamp of this object.

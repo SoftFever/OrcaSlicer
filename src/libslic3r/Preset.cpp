@@ -695,7 +695,7 @@ static std::vector<std::string> s_Preset_print_options {
 #ifdef HAS_PRESSURE_EQUALIZER
     "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative",
 #endif /* HAS_PRESSURE_EQUALIZER */
-    "inner_wall_speed", "outer_wall_speed", "small_perimeter_speed", "sparse_infill_speed", "internal_solid_infill_speed",
+    "inner_wall_speed", "outer_wall_speed", "small_perimeter_speed", "small_perimeter_threshold", "sparse_infill_speed", "internal_solid_infill_speed",
     "top_surface_speed", "support_speed", "support_object_xy_distance", "support_interface_speed",
     "bridge_speed", "bridge_angle", "gap_infill_speed", "travel_speed", "travel_speed_z", "initial_layer_speed",
     "outer_wall_acceleration", "inner_wall_acceleration", "initial_layer_acceleration", "top_surface_acceleration", "default_acceleration", "travel_acceleration", "skirt_loops", "skirt_distance", "skirt_height", "draft_shield",

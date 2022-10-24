@@ -1030,6 +1030,12 @@ msgstr "自动Brim"
 msgid "Outer wall speed"
 msgstr "外墙速度"
 
+msgid "Small perimeters"
+msgstr "微小部位"
+
+msgid "Small perimeters threshold"
+msgstr "微小部位周长阈值"
+
 msgid "Plate"
 msgstr "盘"
 
