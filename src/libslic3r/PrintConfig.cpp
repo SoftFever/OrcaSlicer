@@ -1064,12 +1064,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 60 });
 
-    def = this->add("filament_colour", coStrings);
-    def->label = L("Color");
-    def->tooltip = L("Only used as a visual help on UI");
+    def           = this->add("filament_colour", coStrings);
+    def->label    = L("Defualt color");
+    def->tooltip  = L("Only used as a visual help on UI");
     def->gui_type = ConfigOptionDef::GUIType::color;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionStrings{ "#00AE42" });
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionStrings{"#00AE42"});
 
     def = this->add("filament_max_volumetric_speed", coFloats);
     def->label = L("Max volumetric speed");
@@ -2926,7 +2926,7 @@ void PrintConfigDef::init_filament_option_keys()
         "filament_diameter", "min_layer_height", "max_layer_height",
         "retraction_length", "z_hop", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
-        "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", /*"filament_colour",*/
+        "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "filament_colour",
         "default_filament_profile"
     };
 
