@@ -469,7 +469,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         toggle_field(el, has_solid_infill);
 
     for (auto el : { "infill_direction", "sparse_infill_line_width",
-                    "sparse_infill_speed", "bridge_speed" })
+                    "sparse_infill_speed", "bridge_speed", "bridge_angle" })
         toggle_field(el, have_infill || has_solid_infill);
 
     toggle_field("top_shell_thickness", ! has_spiral_vase && has_top_solid_infill);
@@ -483,8 +483,13 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     bool have_default_acceleration = config->opt_float("default_acceleration") > 0;
     //BBS
-    for (auto el : { "initial_layer_acceleration", "top_surface_acceleration" })
+    for (auto el : { "outer_wall_acceleration", "inner_wall_acceleration", "initial_layer_acceleration", "top_surface_acceleration","travel_acceleration" })
         toggle_field(el, have_default_acceleration);
+
+    bool have_default_jerk = config->opt_float("default_jerk") > 0;
+
+    for (auto el : { "outer_wall_jerk", "inner_wall_jerk", "initial_layer_jerk", "top_surface_jerk","travel_jerk" })
+        toggle_field(el, have_default_jerk);
 
     bool have_skirt = config->opt_int("skirt_loops") > 0;
     toggle_field("skirt_height", have_skirt && config->opt_enum<DraftShield>("draft_shield") != dsEnabled);

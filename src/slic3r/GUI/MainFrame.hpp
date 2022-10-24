@@ -28,6 +28,8 @@
 #include "BBLTopbar.hpp"
 
 
+#include "PrinterWebView.hpp"
+
 #define ENABEL_PRINT_ALL 0
 
 class Notebook;
@@ -307,8 +309,12 @@ public:
 
     //BBS
     void        load_url(wxString url);
+    void        load_printer_url(wxString url);
     void        refresh_plugin_tips();
     void RunScript(wxString js);
+
+    //SoftFever
+    void show_device(bool bBBLPrinter);
 
     // BBS. Replace title bar and menu bar with top bar.
     BBLTopbar*            m_topbar{ nullptr };
@@ -318,6 +324,7 @@ public:
     MonitorPanel*         m_monitor{ nullptr };
     AuxiliaryPanel*       m_auxiliary{ nullptr };
     WebViewPanel*         m_webview { nullptr };
+    PrinterWebView*       m_printer_view{nullptr};
     wxLogWindow*          m_log_window { nullptr };
     // BBS
     //wxBookCtrlBase*       m_tabpanel { nullptr };

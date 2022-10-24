@@ -7,6 +7,7 @@
 #include "ConfigWizard.hpp"
 #include "OpenGLManager.hpp"
 #include "libslic3r/Preset.hpp"
+#include "wxExtensions.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
@@ -45,6 +46,7 @@ class AppConfig;
 class PresetBundle;
 class PresetUpdater;
 class ModelObject;
+// class PrintHostJobQueue;
 class Model;
 class DeviceManager;
 class NetworkAgent;

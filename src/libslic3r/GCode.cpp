@@ -14,7 +14,7 @@
 #include "libslic3r.h"
 #include "LocalesUtils.hpp"
 #include "libslic3r/format.hpp"
-
+#include "Time.hpp"
 #include <algorithm>
 #include <cstdlib>
 #include <chrono>
@@ -79,7 +79,7 @@ static const float g_min_purge_volume = 100.f;
 static const float g_purge_volume_one_time = 135.f;
 static const int g_max_flush_count = 4;
 
-bool GCode::gcode_label_objects = false;
+bool GCode::gcode_label_objects = true;
 
 // Only add a newline in case the current G-code does not end with a newline.
     static inline void check_add_eol(std::string& gcode)
@@ -908,6 +908,11 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     BOOST_LOG_TRIVIAL(info) << boost::format("Will export G-code to %1% soon")%path;
     print->set_started(psGCodeExport);
 
+    if (print->is_BBL_printer())
+      gcode_label_objects = false;
+    else
+      gcode_label_objects = true;
+
     // check if any custom gcode contains keywords used by the gcode processor to
     // produce time estimation and gcode toolpaths
     std::vector<std::pair<std::string, std::string>> validation_res = DoExport::validate_custom_gcode(*print);
@@ -1164,10 +1169,10 @@ namespace DoExport {
 	    print_statistics.clear();
         print_statistics.total_toolchanges = std::max(0, wipe_tower_data.number_of_toolchanges);
 	    if (! extruders.empty()) {
-	        //std::pair<std::string, unsigned int> out_filament_used_mm ("; filament used [mm] = ", 0);
-	        //std::pair<std::string, unsigned int> out_filament_used_cm3("; filament used [cm3] = ", 0);
-	        //std::pair<std::string, unsigned int> out_filament_used_g  ("; filament used [g] = ", 0);
-	        //std::pair<std::string, unsigned int> out_filament_cost    ("; filament cost = ", 0);
+	        std::pair<std::string, unsigned int> out_filament_used_mm ("; filament used [mm] = ", 0);
+	        std::pair<std::string, unsigned int> out_filament_used_cm3("; filament used [cm3] = ", 0);
+	        std::pair<std::string, unsigned int> out_filament_used_g  ("; filament used [g] = ", 0);
+	        std::pair<std::string, unsigned int> out_filament_cost    ("; filament cost = ", 0);
 	        for (const Extruder &extruder : extruders) {
 	            double used_filament   = extruder.used_filament() + (has_wipe_tower ? wipe_tower_data.used_filament[extruder.id()] : 0.f);
 	            double extruded_volume = extruder.extruded_volume() + (has_wipe_tower ? wipe_tower_data.used_filament[extruder.id()] * 2.4052f : 0.f); // assumes 1.75mm filament diameter
@@ -1187,14 +1192,14 @@ namespace DoExport {
 	                dst.first += buf;
 	                ++ dst.second;
 	            };
-	            //append(out_filament_used_mm,  "%.2lf", used_filament);
-	            //append(out_filament_used_cm3, "%.2lf", extruded_volume * 0.001);
+	            append(out_filament_used_mm,  "%.2lf", used_filament);
+	            append(out_filament_used_cm3, "%.2lf", extruded_volume * 0.001);
 	            if (filament_weight > 0.) {
 	                print_statistics.total_weight = print_statistics.total_weight + filament_weight;
-	                //append(out_filament_used_g, "%.2lf", filament_weight);
+	                append(out_filament_used_g, "%.2lf", filament_weight);
 	                if (filament_cost > 0.) {
 	                    print_statistics.total_cost = print_statistics.total_cost + filament_cost;
-	                    //append(out_filament_cost, "%.2lf", filament_cost);
+	                    append(out_filament_cost, "%.2lf", filament_cost);
 	                }
 	            }
 	            print_statistics.total_used_filament += used_filament;
@@ -1202,12 +1207,12 @@ namespace DoExport {
 	            print_statistics.total_wipe_tower_filament += has_wipe_tower ? used_filament - extruder.used_filament() : 0.;
 	            print_statistics.total_wipe_tower_cost += has_wipe_tower ? (extruded_volume - extruder.extruded_volume())* extruder.filament_density() * 0.001 * extruder.filament_cost() * 0.001 : 0.;
 	        }
-	        //filament_stats_string_out += out_filament_used_mm.first;
-            //filament_stats_string_out += "\n" + out_filament_used_cm3.first;
-            //if (out_filament_used_g.second)
-                //filament_stats_string_out += "\n" + out_filament_used_g.first;
-            //if (out_filament_cost.second)
-            //    filament_stats_string_out += "\n" + out_filament_cost.first;
+	        filament_stats_string_out += out_filament_used_mm.first;
+            filament_stats_string_out += "\n" + out_filament_used_cm3.first;
+            if (out_filament_used_g.second)
+                filament_stats_string_out += "\n" + out_filament_used_g.first;
+            if (out_filament_cost.second)
+               filament_stats_string_out += "\n" + out_filament_cost.first;
         }
         return filament_stats_string_out;
     }
@@ -1285,7 +1290,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     // modifies m_silent_time_estimator_enabled
     DoExport::init_gcode_processor(print.config(), m_processor, m_silent_time_estimator_enabled);
-
+    const bool is_bbl_printers = print.is_BBL_printer();
     // resets analyzer's tracking data
     m_last_height  = 0.f;
     m_last_layer_z = 0.f;
@@ -1349,30 +1354,65 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Estimated_Printing_Time_Placeholder).c_str());
     file.write_format("; HEADER_BLOCK_END\n\n");
 
-    //BBS: write global config at the beginning of gcode file because printer need these config information
-    // Append full config, delimited by two 'phony' configuration keys CONFIG_BLOCK_START and CONFIG_BLOCK_END.
-    // The delimiters are structured as configuration key / value pairs to be parsable by older versions of PrusaSlicer G-code viewer.
+    
+      // BBS: write global config at the beginning of gcode file because printer
+      // need these config information
+      // Append full config, delimited by two 'phony' configuration keys
+      // CONFIG_BLOCK_START and CONFIG_BLOCK_END. The delimiters are structured
+      // as configuration key / value pairs to be parsable by older versions of
+      // PrusaSlicer G-code viewer.
     {
+      if (is_bbl_printers) {
         file.write("; CONFIG_BLOCK_START\n");
         std::string full_config;
         append_full_config(print, full_config);
         if (!full_config.empty())
-            file.write(full_config);
+          file.write(full_config);
+
+        // SoftFever: write compatiple image
+        std::vector<int> temps_per_bed;
+        int first_layer_bed_temperature = 0;
+        get_bed_temperature(0, true, temps_per_bed,
+                            first_layer_bed_temperature);
+        file.write_format("; first_layer_bed_temperature = %d\n",
+                          first_layer_bed_temperature);
+        file.write_format(
+            "; first_layer_temperature = %d\n",
+            print.config().nozzle_temperature_initial_layer.get_at(0));
         file.write("; CONFIG_BLOCK_END\n\n");
+      } else {
+        file.write_format("; hack-fix: write fake slicer info here so that "
+                          "Moonraker will extract thumbs.\n");
+        file.write_format(
+            "; %s\n\n",
+            std::string(
+                std::string("generated by SuperSlicer " SLIC3R_VERSION " on ") +
+                Slic3r::Utils::utc_timestamp())
+                .c_str());
+
+        // BBS: add plate id into thumbnail render logic
+        //     if (const auto [thumbnails, thumbnails_format] = std::make_pair(
+        //     print.full_print_config().option<ConfigOptionPoints>("thumbnails"),
+        //     print.full_print_config().option<ConfigOptionEnum<GCodeThumbnailsFormat>>("thumbnails_format"));
+        // thumbnails)
+        // GCodeThumbnails::export_thumbnails_to_file(
+        //     thumbnail_cb, thumbnails->values, thumbnails_format ? thumbnails_format->value : GCodeThumbnailsFormat::PNG,
+        //     [&file](const char* sz) { file.write(sz); },
+        //     [&print]() { print.throw_if_canceled(); });
+
+
+        DoExport::export_thumbnails_to_file(
+            thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
+            [&file](const char *sz) { file.write(sz); },
+            [&print]() { print.throw_if_canceled(); });
+      }
     }
-
-    //BBS: add plate id into thumbnail render logic
-    //DoExport::export_thumbnails_to_file(thumbnail_cb, print.get_plate_index(), THUMBNAIL_SIZE,
-    //    [&file](const char* sz) { file.write(sz); },
-    //    [&print]() { print.throw_if_canceled(); });
-
+    
 
     // Write some terse information on the slicing parameters.
     const PrintObject *first_object         = print.objects().front();
     const double       layer_height         = first_object->config().layer_height.value;
     const double       initial_layer_print_height   = print.config().initial_layer_print_height.value;
-    //BBS: remove useless information in gcode file
-#if 0
     for (size_t region_id = 0; region_id < print.num_print_regions(); ++ region_id) {
         const PrintRegion &region = print.get_print_region(region_id);
         file.write_format("; external perimeters extrusion width = %.2fmm\n", region.flow(*first_object, frExternalPerimeter, layer_height).width());
@@ -1386,8 +1426,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             file.write_format("; first layer extrusion width = %.2fmm\n",   region.flow(*first_object, frPerimeter, initial_layer_print_height, true).width());
         file.write_format("\n");
     }
-    print.throw_if_canceled();
-#endif
 
     file.write_format("; EXECUTABLE_BLOCK_START\n");
     // adds tags for time estimators
@@ -1512,7 +1550,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_placeholder_parser.set("first_layer_print_max",  new ConfigOptionFloats({ bbox.max.x(), bbox.max.y() }));
         m_placeholder_parser.set("first_layer_print_size", new ConfigOptionFloats({ bbox.size().x(), bbox.size().y() }));
     }
-
+    float outer_wall_volumetric_speed = 0.0f;
     {
         int curr_bed_type = m_config.curr_bed_type.getInt();
 
@@ -1524,6 +1562,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_placeholder_parser.set("bed_temperature", new ConfigOptionInts(*bed_temp_opt));
         m_placeholder_parser.set("bed_temperature_initial_layer_single", new ConfigOptionInt(first_bed_temp_opt->get_at(initial_extruder_id)));
         m_placeholder_parser.set("bed_temperature_initial_layer_vector", new ConfigOptionString(""));
+        m_placeholder_parser.set("chamber_temperature",new ConfigOptionInt(m_config.chamber_temperature));
 
         //BBS: calculate the volumetric speed of outer wall. Ignore pre-object setting and multi-filament, and just use the default setting
         {
@@ -1535,7 +1574,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             }
             Flow outer_wall_flow = Flow(outer_wall_line_width, m_config.layer_height, m_config.nozzle_diameter.get_at(initial_extruder_id));
             float outer_wall_speed = print.default_region_config().outer_wall_speed.value;
-            float outer_wall_volumetric_speed = outer_wall_speed * outer_wall_flow.mm3_per_mm();
+            outer_wall_volumetric_speed = outer_wall_speed * outer_wall_flow.mm3_per_mm();
             if (outer_wall_volumetric_speed > filament_max_volumetric_speed)
                 outer_wall_volumetric_speed = filament_max_volumetric_speed;
             m_placeholder_parser.set("outer_wall_volumetric_speed", new ConfigOptionFloat(outer_wall_volumetric_speed));
@@ -1598,8 +1637,23 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     if (this->m_objsWithBrim.empty() && this->m_objSupportsWithBrim.empty()) m_brim_done = true;
 
     //BBS: open spaghetti detector
-    // if (print.config().spaghetti_detector.value)
-        file.write("M981 S1 P20000 ;open spaghetti detector\n");
+    if (is_bbl_printers) {
+      // if (print.config().spaghetti_detector.value)
+      file.write("M981 S1 P20000 ;open spaghetti detector\n");
+      file.write_format("M900 K%.3f M%0.3f ; Override pressure advance value\n",
+                        m_config.pressure_advance.values.front(),
+                        outer_wall_volumetric_speed / (1.75 * 1.75 / 4 * 3.14) *
+                            m_config.pressure_advance.values.front());
+    } else {
+      if (m_config.enable_pressure_advance.value) {
+        if(print.config().gcode_flavor.value == gcfKlipper)
+            file.write_format("SET_PRESSURE_ADVANCE ADVANCE=%.3f ; Override pressure advance value\n",
+                          m_config.pressure_advance.values.front());
+        else
+            file.write_format("M900 K%.3f ; Override pressure advance value\n",
+                          m_config.pressure_advance.values.front());
+      }
+    }
 
     // Do all objects for each layer.
     if (print.config().print_sequence == PrintSequence::ByObject) {
@@ -1663,7 +1717,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             this->process_layers(print, tool_ordering, collect_layers_to_print(object), *print_object_instance_sequential_active - object.instances().data(), file, prime_extruder);
             //BBS: close powerlost recovery
             {
-                if (m_second_layer_things_done) {
+                if (is_bbl_printers && m_second_layer_things_done) {
                     file.write("; close powerlost recovery\n");
                     file.write("M1003 S0\n");
                 }
@@ -1734,7 +1788,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         this->process_layers(print, tool_ordering, print_object_instances_ordering, layers_to_print, file);
         //BBS: close powerlost recovery
         {
-            if (m_second_layer_things_done) {
+            if (is_bbl_printers && m_second_layer_things_done) {
                 file.write("; close powerlost recovery\n");
                 file.write("M1003 S0\n");
             }
@@ -1754,10 +1808,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write(m_writer.set_fan(0));
     //BBS: make sure the additional fan is closed when end
     file.write(m_writer.set_additional_fan(0));
-    //BBS: close spaghetti detector
-    //Note: M981 is also used to tell xcam the last layer is finished, so we need always send it even if spaghetti option is disabled.
-    //if (print.config().spaghetti_detector.value)
-    file.write("M981 S0 P20000 ; close spaghetti detector\n");
+    if (is_bbl_printers) {
+        //BBS: close spaghetti detector
+        //Note: M981 is also used to tell xcam the last layer is finished, so we need always send it even if spaghetti option is disabled.
+        //if (print.config().spaghetti_detector.value)
+        file.write("M981 S0 P20000 ; close spaghetti detector\n");
+    }
 
     // adds tag for processor
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
@@ -1800,11 +1856,41 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_writer.extruders(),
         // Modifies
         print.m_print_statistics));
-    //file.write("\n");
-    //file.write_format("; total filament weight [g] = %.2lf\n", print.m_print_statistics.total_weight);
-    //file.write_format("; total filament cost = %.2lf\n", print.m_print_statistics.total_cost);
-    //if (print.m_print_statistics.total_toolchanges > 0)
-    //	file.write_format("; total filament change = %i\n", print.m_print_statistics.total_toolchanges);
+    if (!is_bbl_printers) {
+      file.write("\n");
+      file.write("; CONFIG_BLOCK_START\n");
+      std::string full_config;
+      append_full_config(print, full_config);
+      if (!full_config.empty())
+        file.write(full_config);
+
+      // SoftFever: write compatiple info
+      std::vector<int> temps_per_bed;
+      int first_layer_bed_temperature = 0;
+      get_bed_temperature(0, true, temps_per_bed, first_layer_bed_temperature);
+      file.write_format("; first_layer_bed_temperature = %d\n",
+                        first_layer_bed_temperature);
+      file.write_format(
+          "; first_layer_temperature = %d\n",
+          print.config().nozzle_temperature_initial_layer.get_at(0));
+      file.write("; CONFIG_BLOCK_END\n\n");
+      file.write_format("; total filament used [g] = %.2lf\n",
+                        print.m_print_statistics.total_weight);
+      file.write_format("; total filament cost = %.2lf\n",
+                        print.m_print_statistics.total_cost);
+      if (print.m_print_statistics.total_toolchanges > 0)
+        file.write_format("; total filament change = %i\n",
+                          print.m_print_statistics.total_toolchanges);
+
+      file.write_format("; total layers count = %i\n", m_layer_count);
+      file.write_format(
+          ";%s\n",
+          GCodeProcessor::reserved_tag(
+              GCodeProcessor::ETags::Estimated_Printing_Time_Placeholder)
+              .c_str());
+
+    }
+    file.write("\n");
 
     print.throw_if_canceled();
 }
@@ -2501,28 +2587,41 @@ GCode::LayerResult GCode::process_layer(
             double acceleration = m_config.initial_layer_acceleration.value;
             gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
         }
+
+        if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
+            double jerk = m_config.initial_layer_jerk.value;
+            gcode += m_writer.set_jerk_xy((unsigned int)floor(jerk + 0.5));
+        }
+
     }
 
     if (! first_layer && ! m_second_layer_things_done) {
-        //BBS: open powerlost recovery
+      if (print.is_BBL_printer()) {
+        // BBS: open powerlost recovery
         {
-            gcode += "; open powerlost recovery\n";
-            gcode += "M1003 S1\n";
+          gcode += "; open powerlost recovery\n";
+          gcode += "M1003 S1\n";
         }
         // BBS: open first layer inspection at second layer
         if (print.config().scan_first_layer.value) {
-            // BBS: retract first to avoid droping when scan model
-            gcode += this->retract();
-            gcode += "M976 S1 P1 ; scan model before printing 2nd layer\n";
-            gcode += "M400 P100\n";
-            gcode += this->unretract();
+          // BBS: retract first to avoid droping when scan model
+          gcode += this->retract();
+          gcode += "M976 S1 P1 ; scan model before printing 2nd layer\n";
+          gcode += "M400 P100\n";
+          gcode += this->unretract();
         }
-
+      }
         //BBS:  reset acceleration at sencond layer
         if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {
             double acceleration = m_config.default_acceleration.value;
             gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
         }
+
+        if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0) {
+            double jerk = m_config.default_jerk.value;
+            gcode += m_writer.set_jerk_xy((unsigned int)floor(jerk + 0.5));
+        }
+
         // Transition from 1st to 2nd layer. Adjust nozzle temperatures as prescribed by the nozzle dependent
         // nozzle_temperature_initial_layer vs. temperature settings.
         for (const Extruder &extruder : m_writer.extruders()) {
@@ -3237,9 +3336,13 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     }
 
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
-    if (!this->on_first_layer())
+    if (!this->on_first_layer()){
         // reset acceleration
-        gcode += m_writer.set_acceleration((unsigned int)(m_config.default_acceleration.value + 0.5));
+        if(m_config.default_acceleration.value > 0)
+            gcode += m_writer.set_acceleration((unsigned int)(m_config.default_acceleration.value + 0.5));
+        if(m_config.default_jerk.value > 0)
+            gcode += m_writer.set_jerk_xy((unsigned int)(m_config.default_jerk.value + 0.5));
+        }
 
     // BBS
     if (m_wipe.enable) {
@@ -3312,9 +3415,12 @@ std::string GCode::extrude_multi_path(ExtrusionMultiPath multipath, std::string 
         m_wipe.path.reverse();
     }
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
-    if (!this->on_first_layer())
+    if (!this->on_first_layer()) {
         // reset acceleration
         gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
+        if(m_config.default_jerk.value > 0)
+            gcode += m_writer.set_jerk_xy((unsigned int)floor(m_config.default_jerk.value + 0.5));
+        }
     return gcode;
 }
 
@@ -3340,9 +3446,13 @@ std::string GCode::extrude_path(ExtrusionPath path, std::string description, dou
         m_wipe.path.reverse();
     }
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
-    if (!this->on_first_layer())
+    if (!this->on_first_layer()){
         // reset acceleration
         gcode += m_writer.set_acceleration((unsigned int)floor(m_config.default_acceleration.value + 0.5));
+        if(m_config.default_jerk.value > 0)
+            gcode += m_writer.set_jerk_xy((unsigned int)floor(m_config.default_jerk.value + 0.5));
+
+        }
     return gcode;
 }
 
@@ -3541,12 +3651,33 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         } else if (m_config.perimeter_acceleration.value > 0 && is_perimeter(path.role())) {
             acceleration = m_config.perimeter_acceleration.value;
 #endif
+        } else if (m_config.outer_wall_acceleration.value > 0 && is_external_perimeter(path.role())) {
+             acceleration = m_config.outer_wall_acceleration.value;
+        } else if (m_config.inner_wall_acceleration.value > 0 && is_internal_perimeter(path.role())) {
+            acceleration = m_config.inner_wall_acceleration.value;
         } else if (m_config.top_surface_acceleration.value > 0 && is_top_surface(path.role())) {
             acceleration = m_config.top_surface_acceleration.value;
         } else {
             acceleration = m_config.default_acceleration.value;
         }
         gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
+    }
+
+    // adjust X Y jerk
+    if (m_config.default_jerk.value > 0) {
+        double jerk;
+        if (this->on_first_layer() && m_config.initial_layer_jerk.value > 0) {
+            jerk = m_config.initial_layer_jerk.value;
+        } else if (m_config.outer_wall_jerk.value > 0 && is_external_perimeter(path.role())) {
+             jerk = m_config.outer_wall_jerk.value;
+        } else if (m_config.inner_wall_jerk.value > 0 && is_internal_perimeter(path.role())) {
+            jerk = m_config.inner_wall_jerk.value;
+        } else if (m_config.top_surface_jerk.value > 0 && is_top_surface(path.role())) {
+            jerk = m_config.top_surface_jerk.value;
+        } else {
+            jerk = m_config.default_jerk.value;
+        }
+        gcode += m_writer.set_jerk_xy((unsigned int)floor(jerk + 0.5));
     }
 
     // calculate extrusion length per distance unit
@@ -3761,7 +3892,34 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     bool could_be_wipe_disabled       = false;
     // Save state of use_external_mp_once for the case that will be needed to call twice m_avoid_crossing_perimeters.travel_to.
     const bool used_external_mp_once  = m_avoid_crossing_perimeters.used_external_mp_once();
+    std::string gcode;
 
+    // SoftFever
+    if (this->on_first_layer()) {
+        if(m_config.default_acceleration.value > 0)
+        {        
+            auto jerk = (unsigned int)floor(m_config.initial_layer_jerk.value + 0.5);
+            auto accel = (unsigned int)floor(m_config.initial_layer_acceleration.value + 0.5);
+            if(jerk > 0)
+                gcode += m_writer.set_jerk_xy(jerk);
+            
+            if(accel > 0)
+                gcode += m_writer.set_acceleration(accel);
+        }
+    }
+    else
+    {
+        if(m_config.default_jerk.value > 0)
+        {
+            auto jerk = (unsigned int)floor(m_config.travel_jerk.value + 0.5);
+            auto accel = (unsigned int)floor(m_config.travel_acceleration.value + 0.5);
+            if(jerk > 0)
+                gcode += m_writer.set_jerk_xy(jerk);
+            
+            if(accel > 0)
+                gcode += m_writer.set_acceleration(accel);
+        }
+    }
     // if a retraction would be needed, try to use reduce_crossing_wall to plan a
     // multi-hop travel path inside the configuration space
     if (needs_retraction
@@ -3777,7 +3935,6 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     m_avoid_crossing_perimeters.reset_once_modifiers();
 
     // generate G-code for the travel move
-    std::string gcode;
     if (needs_retraction) {
         if (m_config.reduce_crossing_wall && could_be_wipe_disabled)
             m_wipe.reset_path();
@@ -3808,9 +3965,9 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
             if (i == travel.size() - 1 && !m_spiral_vase) {
                 Vec2d dest2d = this->point_to_gcode(travel.points[i]);
                 Vec3d dest3d(dest2d(0), dest2d(1), m_nominal_z);
-                gcode += m_writer.travel_to_xyz(dest3d, comment);
+                gcode += m_writer.travel_to_xyz(dest3d, comment+" travel_to_xyz");
             } else {
-                gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment);
+                gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment+" travel_to_xy");
             }
         }
         this->set_last_pos(travel.points.back());
@@ -3884,7 +4041,11 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction)
     if (m_writer.extruder()->retraction_length() > 0) {
         // BBS: don't do lazy_lift when enable spiral vase
         size_t extruder_id = m_writer.extruder()->id();
-        gcode += m_writer.lift(!m_spiral_vase ?  LiftType::SpiralLift : LiftType::NormalLift);
+        auto _lift = m_config.z_lift_type.value;
+        if(m_spiral_vase)
+            _lift = NormalLift;
+
+        gcode += m_writer.lift(_lift);
     }
 
     return gcode;

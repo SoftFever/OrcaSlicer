@@ -296,8 +296,10 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                 printf("Processing bridge at layer %zu:\n", this->layer()->id());
                 #endif
                 //BBS: use 0 as custom angle to enable auto detection all the time
-				double custom_angle = Geometry::deg2rad(0.0);
-				if (bd.detect_angle(custom_angle)) {
+                double custom_angle = Geometry::deg2rad(this->region().config().bridge_angle.value);
+                if(custom_angle > 0)
+                        bridges[idx_last].bridge_angle = custom_angle;
+				else if (bd.detect_angle(custom_angle)) {
                     bridges[idx_last].bridge_angle = bd.angle;
                     if (this->layer()->object()->has_support()) {
 //                        polygons_append(this->bridged, bd.coverage());

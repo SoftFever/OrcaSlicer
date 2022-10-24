@@ -15,15 +15,16 @@
 
 namespace Slic3r {
 
-const bool GCodeWriter::full_gcode_comment = false;
+const bool GCodeWriter::full_gcode_comment = true;
 const double GCodeWriter::slope_threshold = 3 * PI / 180;
 
 void GCodeWriter::apply_print_config(const PrintConfig &print_config)
 {
     this->config.apply(print_config, true);
     m_single_extruder_multi_material = print_config.single_extruder_multi_material.value;
-    bool is_marlin = print_config.gcode_flavor.value == gcfMarlinLegacy || print_config.gcode_flavor.value == gcfMarlinFirmware;
+    bool is_marlin = print_config.gcode_flavor.value == gcfMarlinLegacy || print_config.gcode_flavor.value == gcfMarlinFirmware || print_config.gcode_flavor.value == gcfKlipper;
     m_max_acceleration = std::lrint(is_marlin ? print_config.machine_max_acceleration_extruding.values.front() : 0);
+    m_max_jerk = std::lrint(is_marlin ? std::min(print_config.machine_max_jerk_x.values.front(), print_config.machine_max_jerk_y.values.front()) : 0);
 }
 
 void GCodeWriter::set_extruders(std::vector<unsigned int> extruder_ids)
@@ -54,7 +55,8 @@ std::string GCodeWriter::preamble()
         FLAVOR_IS(gcfMarlinFirmware) ||
         FLAVOR_IS(gcfTeacup) ||
         FLAVOR_IS(gcfRepetier) ||
-        FLAVOR_IS(gcfSmoothie))
+        FLAVOR_IS(gcfSmoothie) ||
+        FLAVOR_IS(gcfKlipper))
     {
         if (RELATIVE_E_AXIS) {
             gcode << "M83 ; only support relative e\n";
@@ -181,6 +183,30 @@ std::string GCodeWriter::set_acceleration(unsigned int acceleration)
     gcode << "\n";
     
     return gcode.str();
+}
+
+std::string GCodeWriter::set_jerk_xy(unsigned int jerk)
+{
+    // Clamp the jerk to the allowed maximum.
+    if (m_max_jerk > 0 && jerk > m_max_jerk)
+        jerk = m_max_jerk;
+
+    if (jerk < 1 || jerk == m_last_jerk)
+        return std::string();
+    
+    m_last_jerk = jerk;
+    
+    std::ostringstream gcode;
+    if(FLAVOR_IS(gcfKlipper))
+        gcode << "SET_VELOCITY_LIMIT SQUARE_CORNER_VELOCITY=" << jerk;
+    else
+        gcode << "M205 X" << jerk << " Y" << jerk;
+        
+    if (GCodeWriter::full_gcode_comment) gcode << " ; adjust jerk";
+    gcode << "\n";
+
+    return gcode.str();
+
 }
 
 std::string GCodeWriter::reset_e(bool force)

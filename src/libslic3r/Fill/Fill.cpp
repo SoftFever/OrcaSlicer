@@ -92,7 +92,7 @@ struct SurfaceFillParams
 				this->overlap 			== rhs.overlap 			&&
 				this->angle   			== rhs.angle   			&&
 				this->bridge   			== rhs.bridge   		&&
-//				this->bridge_angle 		== rhs.bridge_angle		&&
+				this->bridge_angle 		== rhs.bridge_angle		&&
 				this->density   		== rhs.density   		&&
 //				this->dont_adjust   	== rhs.dont_adjust 		&&
 				this->anchor_length  	== rhs.anchor_length    &&

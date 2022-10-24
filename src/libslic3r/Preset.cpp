@@ -697,8 +697,9 @@ static std::vector<std::string> s_Preset_print_options {
 #endif /* HAS_PRESSURE_EQUALIZER */
     "inner_wall_speed", "outer_wall_speed", "small_perimeter_speed", "sparse_infill_speed", "internal_solid_infill_speed",
     "top_surface_speed", "support_speed", "support_object_xy_distance", "support_interface_speed",
-    "bridge_speed", "gap_infill_speed", "travel_speed", "travel_speed_z", "initial_layer_speed",
-    "initial_layer_acceleration", "top_surface_acceleration", "default_acceleration", "skirt_loops", "skirt_distance", "skirt_height", "draft_shield",
+    "bridge_speed", "bridge_angle", "gap_infill_speed", "travel_speed", "travel_speed_z", "initial_layer_speed",
+    "outer_wall_acceleration", "inner_wall_acceleration", "initial_layer_acceleration", "top_surface_acceleration", "default_acceleration", "travel_acceleration", "skirt_loops", "skirt_distance", "skirt_height", "draft_shield",
+    "default_jerk", "outer_wall_jerk", "inner_wall_jerk", "top_surface_jerk", "initial_layer_jerk","travel_jerk",
     "brim_width", "brim_object_gap", "brim_type", "enable_support", "support_type", "support_threshold_angle", "enforce_support_layers",
     "raft_layers", "raft_first_layer_density", "raft_first_layer_expansion", "raft_contact_distance", "raft_expansion",
     "support_base_pattern", "support_base_pattern_spacing", "support_style",
@@ -722,14 +723,17 @@ static std::vector<std::string> s_Preset_print_options {
      "detect_narrow_internal_solid_infill",
      "gcode_add_line_number", "enable_arc_fitting", "infill_combination", "adaptive_layer_height",
      "support_bottom_interface_spacing", "enable_overhang_speed", "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed",
-     "initial_layer_infill_speed", "only_one_wall_top", 
-     "timelapse_type"
+     "initial_layer_infill_speed", "only_one_wall_top", "only_one_wall_first_layer",
+     "timelapse_type",
+     //SoftFever
+     "top_solid_infill_flow_ratio","bottom_solid_infill_flow_ratio"
+
 };
 
 static std::vector<std::string> s_Preset_filament_options {
     /*"filament_colour", */"filament_diameter", "filament_type", "filament_soluble", "filament_is_support", "filament_max_volumetric_speed",
-    "filament_flow_ratio", "filament_density", "filament_cost", "filament_minimal_purge_on_wipe_tower",
-    "nozzle_temperature", "nozzle_temperature_initial_layer",
+    "filament_flow_ratio", "enable_pressure_advance", "pressure_advance", "filament_density", "filament_cost", "filament_minimal_purge_on_wipe_tower",
+    "chamber_temperature", "nozzle_temperature", "nozzle_temperature_initial_layer",
     // BBS
     "cool_plate_temp", "eng_plate_temp", "hot_plate_temp", "textured_plate_temp", "cool_plate_temp_initial_layer", "eng_plate_temp_initial_layer", "hot_plate_temp_initial_layer","textured_plate_temp_initial_layer",
     // "bed_type",
@@ -757,18 +761,20 @@ static std::vector<std::string> s_Preset_machine_limits_options {
 
 static std::vector<std::string> s_Preset_printer_options {
     "printer_technology",
-    "printable_area", "bed_exclude_area", "gcode_flavor",
+    "printable_area", "bed_exclude_area", "gcode_flavor","z_lift_type",
     "single_extruder_multi_material", "machine_start_gcode", "machine_end_gcode", "before_layer_change_gcode", "layer_change_gcode", "change_filament_gcode",
     "printer_model", "printer_variant", "printable_height", "extruder_clearance_radius", "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod",
     "default_print_profile", "inherits",
     "silent_mode",
     // BBS
     "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode",
-    "nozzle_type", "auxiliary_fan", "nozzle_volume",
+    "nozzle_type", "nozzle_diameter", "auxiliary_fan", "nozzle_volume",
     //SoftFever
     "host_type", "print_host", "printhost_apikey", 
     "printhost_cafile","printhost_port","printhost_authorization_type",
-    "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke"
+        "printhost_user",
+    "printhost_password",
+    "printhost_ssl_ignore_revoke", "thumbnails"
 };
 
 static std::vector<std::string> s_Preset_sla_print_options {
@@ -2238,6 +2244,21 @@ void add_correct_opts_to_diff(const std::string &opt_key, t_config_option_keys& 
     }
 }
 
+// template<class T>
+// void add_correct_opt_to_diff(const std::string &opt_key, t_config_option_keys& vec, const ConfigBase &other, const ConfigBase &this_c)
+// {
+//     const T* opt_init = static_cast<const T*>(other.option(opt_key));
+//     const T* opt_cur = static_cast<const T*>(this_c.option(opt_key));
+//     int opt_init_max_id = opt_init->values.size() - 1;
+//     for (int i = 0; i < int(opt_cur->values.size()); i++)
+//     {
+//         int init_id = i <= opt_init_max_id ? i : 0;
+//         if (opt_cur->values[i] != opt_init->values[init_id])
+//             vec.emplace_back(opt_key + "#" + std::to_string(i));
+//     }
+// }
+
+
 // Use deep_diff to correct return of changed options, considering individual options for each extruder.
 inline t_config_option_keys deep_diff(const ConfigBase &config_this, const ConfigBase &config_other)
 {
@@ -2248,7 +2269,7 @@ inline t_config_option_keys deep_diff(const ConfigBase &config_this, const Confi
         if (this_opt != nullptr && other_opt != nullptr && *this_opt != *other_opt)
         {
             //BBS: add bed_exclude_area
-            if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "compatible_prints" || opt_key == "compatible_printers") {
+            if (opt_key == "printable_area" || opt_key == "bed_exclude_area" || opt_key == "compatible_prints" || opt_key == "compatible_printers" || opt_key == "thumbnails") {
                 // Scalar variable, or a vector variable, which is independent from number of extruders,
                 // thus the vector is presented to the user as a single input.
                 diff.emplace_back(opt_key);
@@ -2261,6 +2282,7 @@ inline t_config_option_keys deep_diff(const ConfigBase &config_this, const Confi
                 case coBools:   add_correct_opts_to_diff<ConfigOptionBools      >(opt_key, diff, config_other, config_this);  break;
                 case coFloats:  add_correct_opts_to_diff<ConfigOptionFloats     >(opt_key, diff, config_other, config_this);  break;
                 case coStrings: add_correct_opts_to_diff<ConfigOptionStrings    >(opt_key, diff, config_other, config_this);  break;
+                // case coString:  add_correct_opts_to_diff<ConfigOptionString     >(opt_key, diff, config_other, config_this);  break;
                 case coPercents:add_correct_opts_to_diff<ConfigOptionPercents   >(opt_key, diff, config_other, config_this);  break;
                 case coPoints:  add_correct_opts_to_diff<ConfigOptionPoints     >(opt_key, diff, config_other, config_this);  break;
                 // BBS
@@ -2741,6 +2763,8 @@ void PhysicalPrinterCollection::load_printers(
     // see https://github.com/prusa3d/PrusaSlicer/issues/732
     boost::filesystem::path dir = boost::filesystem::absolute(boost::filesystem::path(dir_path) / subdir).make_preferred();
     m_dir_path = dir.string();
+    if(!boost::filesystem::exists(dir))
+        return;
     std::string errors_cummulative;
     // Store the loaded printers into a new vector, otherwise the binary search for already existing presets would be broken.
     std::deque<PhysicalPrinter> printers_loaded;

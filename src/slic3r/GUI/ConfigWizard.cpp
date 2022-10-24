@@ -2394,7 +2394,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->load_vendors();
     //BBS: add bed exclude areas
     p->custom_config.reset(DynamicPrintConfig::new_from_defaults_keys({
-        "gcode_flavor", "printable_area", "bed_exclude_area", "nozzle_diameter", "filament_diameter", "nozzle_temperature", /*"bed_temperature",*/
+        "gcode_flavor", "printable_area", "bed_exclude_area", "filament_diameter", "nozzle_temperature", "thumbnails"/*"bed_temperature",*/
     }));
 
     auto *vsizer = new wxBoxSizer(wxVERTICAL);

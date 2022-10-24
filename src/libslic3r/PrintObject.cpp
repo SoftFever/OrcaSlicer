@@ -667,6 +667,7 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (
                opt_key == "wall_loops"
             || opt_key == "only_one_wall_top"
+            || opt_key == "only_one_wall_first_layer"
             || opt_key == "initial_layer_line_width"
             || opt_key == "inner_wall_line_width"
             || opt_key == "infill_wall_overlap") {
@@ -762,13 +763,15 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "minimum_sparse_infill_area"
             || opt_key == "sparse_infill_filament"
             || opt_key == "solid_infill_filament"
-            || opt_key == "sparse_infill_line_width") {
+            || opt_key == "sparse_infill_line_width"
+            || opt_key == "infill_direction"
+            || opt_key == "bridge_angle") {
             steps.emplace_back(posPrepareInfill);
         } else if (
                opt_key == "top_surface_pattern"
             || opt_key == "bottom_surface_pattern"
             || opt_key == "external_fill_link_max_length"
-            || opt_key == "infill_direction"
+            || opt_key == "sparse_infill_pattern"
             || opt_key == "top_surface_line_width"
             || opt_key == "initial_layer_line_width") {
             steps.emplace_back(posInfill);

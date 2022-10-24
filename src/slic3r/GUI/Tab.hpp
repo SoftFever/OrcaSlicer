@@ -547,6 +547,7 @@ private:
     std::vector<PageShp>			m_pages_fff;
     std::vector<PageShp>			m_pages_sla;
 
+    wxBoxSizer*         m_presets_sizer                 {nullptr};
 public:
 	ScalableButton*	m_reset_to_filament_color = nullptr;
 
@@ -582,9 +583,10 @@ public:
 	void		msw_rescale() override;
 	bool 		supports_printer_technology(const PrinterTechnology /* tech */) const override { return true; }
 
-	//wxSizer*	create_bed_shape_widget(wxWindow* parent);
+	wxSizer*	create_bed_shape_widget(wxWindow* parent);
 	void		cache_extruder_cnt();
 	bool		apply_extruder_cnt_from_cache();
+
 };
 
 class TabSLAMaterial : public Tab

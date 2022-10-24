@@ -911,17 +911,22 @@ void Sidebar::update_all_preset_comboboxes()
 
     bool is_bbl_preset = preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle);
 
+    auto p_mainframe = wxGetApp().mainframe;
+
+    p_mainframe->show_device(is_bbl_preset);
     if (is_bbl_preset) {
         //only show connection button for not-BBL printer
         connection_btn->Hide();
         //only show sync-ams button for BBL printer
         ams_btn->Show();
         //update print button default value for bbl or third-party printer
-        wxGetApp().mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
+        p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
+
     } else {
         connection_btn->Show();
         ams_btn->Hide();
-        wxGetApp().mainframe->set_print_button_to_default(MainFrame::PrintSelectType::eSendGcode);
+        p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::eSendGcode);
+        p_mainframe->load_printer_url(wxString::Format("http://%s",preset_bundle.printers.get_edited_preset().config.opt_string("print_host")));
     }
 
     // Update the print choosers to only contain the compatible presets, update the dirty flags.
@@ -9080,7 +9085,7 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn, bool up
         upload_job.printhost->get_groups(groups);
     }
 
-    PrintHostSendDialog dlg(default_output_file, upload_job.printhost->get_post_upload_actions(), groups, upload_only);
+    PrintHostSendDialog dlg(default_output_file, upload_job.printhost->get_post_upload_actions(), groups);
     if (dlg.ShowModal() == wxID_OK) {
         upload_job.upload_data.upload_path = dlg.filename();
         upload_job.upload_data.post_action = dlg.post_action();

@@ -23,7 +23,7 @@
 #include "format.hpp"
 #include "Tab.hpp"
 #include "wxExtensions.hpp"
-//#include "PrintHostDialogs.hpp"
+#include "PrintHostDialogs.hpp"
 #include "../Utils/ASCIIFolding.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/FixModelByWin10.hpp"
@@ -189,7 +189,6 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     Option option = m_optgroup->get_option("print_host");
     option.opt.width = Field::def_width_wider();
     Line host_line = m_optgroup->create_single_option_line(option);
-    //do not support now
     host_line.append_widget(printhost_browse);
     host_line.append_widget(print_host_test);
     m_optgroup->append_line(host_line);
@@ -228,36 +227,36 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
         };
 
         cafile_line.append_widget(printhost_cafile_browse);
-        //m_optgroup->append_line(cafile_line);
+        m_optgroup->append_line(cafile_line);
 
-        /*Line cafile_hint{ "", "" };
+        Line cafile_hint{ "", "" };
         cafile_hint.full_width = 1;
         cafile_hint.widget = [ca_file_hint](wxWindow* parent) {
             auto txt = new wxStaticText(parent, wxID_ANY, ca_file_hint);
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             sizer->Add(txt);
             return sizer;
-        };*/
-        //m_optgroup->append_line(cafile_hint);
+        };
+        m_optgroup->append_line(cafile_hint);
     }
     else {
         
-        //Line line{ "", "" };
-        //line.full_width = 1;
+        Line line{ "", "" };
+        line.full_width = 1;
 
-        //line.widget = [ca_file_hint](wxWindow* parent) {
-        //    std::string info = _u8L("HTTPS CA File") + ":\n\t" +
-        //        (boost::format(_u8L("On this system, %s uses HTTPS certificates from the system Certificate Store or Keychain.")) % SLIC3R_APP_NAME).str() +
-        //        "\n\t" + _u8L("To use a custom CA file, please import your CA file into Certificate Store / Keychain.");
+        line.widget = [ca_file_hint](wxWindow* parent) {
+            std::string info = _u8L("HTTPS CA File") + ":\n\t" +
+                (boost::format(_u8L("On this system, %s uses HTTPS certificates from the system Certificate Store or Keychain.")) % SLIC3R_APP_NAME).str() +
+                "\n\t" + _u8L("To use a custom CA file, please import your CA file into Certificate Store / Keychain.");
 
-        //    //auto txt = new wxStaticText(parent, wxID_ANY, from_u8((boost::format("%1%\n\n\t%2%") % info % ca_file_hint).str()));
-        //    auto txt = new wxStaticText(parent, wxID_ANY, from_u8((boost::format("%1%\n\t%2%") % info % ca_file_hint).str()));
-        //    txt->SetFont(wxGetApp().normal_font());
-        //    auto sizer = new wxBoxSizer(wxHORIZONTAL);
-        //    sizer->Add(txt, 1, wxEXPAND);
-        //    return sizer;
-        //};
-        //m_optgroup->append_line(line);
+            //auto txt = new wxStaticText(parent, wxID_ANY, from_u8((boost::format("%1%\n\n\t%2%") % info % ca_file_hint).str()));
+            auto txt = new wxStaticText(parent, wxID_ANY, from_u8((boost::format("%1%\n\t%2%") % info % ca_file_hint).str()));
+            txt->SetFont(wxGetApp().normal_font());
+            auto sizer = new wxBoxSizer(wxHORIZONTAL);
+            sizer->Add(txt, 1, wxEXPAND);
+            return sizer;
+        };
+        m_optgroup->append_line(line);
     }
 
     for (const std::string& opt_key : std::vector<std::string>{ "printhost_user", "printhost_password" }) {        
@@ -267,13 +266,10 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     }
 
 #ifdef WIN32
-    /*
     option = m_optgroup->get_option("printhost_ssl_ignore_revoke");
     option.opt.width = Field::def_width_wider();
     m_optgroup->append_single_option_line(option);
-    */
 #endif
-    
 
     m_optgroup->activate();
 
@@ -422,6 +418,7 @@ void PhysicalPrinterDialog::update(bool printer_change)
                 m_optgroup->hide_field(opt_key);
             supports_multiple_printers = opt && opt->value == htRepetier;
         }
+        
     }
     else {
         m_optgroup->set_value("host_type", int(PrintHostType::htOctoPrint), false);

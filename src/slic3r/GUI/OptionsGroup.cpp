@@ -670,7 +670,7 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
     else if (m_opt_map.find(opt_key) == m_opt_map.end() ||
 		    // This option don't have corresponded field
 		     opt_key == "printable_area"				||
-		     opt_key == "compatible_printers"	|| opt_key == "compatible_prints" ) {
+		     opt_key == "compatible_printers"	|| opt_key == "compatible_prints" || opt_key == "thumbnails" ) {
         value = get_config_value(config, opt_key);
         this->change_opt_value(opt_key, value);
         return;
@@ -950,6 +950,14 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
         case coInts:
             ret = config.option<ConfigOptionIntsNullable>(opt_key)->get_at(idx);
             break;
+        case coPoints:
+		if (opt_key == "bed_shape")
+			ret = config.option<ConfigOptionPoints>(opt_key)->values;
+        else if (opt_key == "thumbnails")
+            ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
+		else
+			ret = config.option<ConfigOptionPoints>(opt_key)->get_at(idx);
+		break;
         default:
             break;
         }
@@ -1026,6 +1034,8 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 		if (opt_key == "printable_area")
 			ret = config.option<ConfigOptionPoints>(opt_key)->values;
         else if (opt_key == "bed_exclude_area")
+            ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
+        else if (opt_key == "thumbnails")
             ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
 		else
 			ret = config.option<ConfigOptionPoints>(opt_key)->get_at(idx);
@@ -1136,6 +1146,8 @@ boost::any ConfigOptionsGroup::get_config_value2(const DynamicPrintConfig& confi
         if (opt_key == "printable_area")
             ret = config.option<ConfigOptionPoints>(opt_key)->values;
         else if (opt_key == "bed_exclude_area")
+            ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
+        else if (opt_key == "thumbnails")
             ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
         else
             ret = config.option<ConfigOptionPoints>(opt_key)->get_at(idx);

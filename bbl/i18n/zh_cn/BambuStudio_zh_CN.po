@@ -3065,7 +3065,7 @@ msgid "Click to edit preset"
 msgstr "点击编辑配置"
 
 msgid "Connection"
-msgstr ""
+msgstr "连接打印机"
 
 msgid "Bed type"
 msgstr "热床类型"
@@ -5267,18 +5267,40 @@ msgstr ""
 msgid "Bridge flow"
 msgstr "桥接流量"
 
+msgid "Top surface flow ratio"
+msgstr "顶面流量"
+
+msgid "Bottom surface flow ratio"
+msgstr "首层流量"
+
+msgid "This factor affects the amount of material for bottom solid infill"
+msgstr "首层流量调整系数，默认为1.0"
+
+msgid ""
+"This factor affects the amount of material for top solid infill. "
+"You can decrease it slightly to have smooth surface finish"
+msgstr "稍微减小这个数值（比如0.97）可以来改善顶面的光滑程度。"
+
 msgid ""
 "Decrease this value slightly(for example 0.9) to reduce the amount of "
 "material for bridge, to improve sag"
 msgstr "稍微减小这个数值（比如0.9）可以减小桥接的材料量，来改善下垂。"
 
-msgid "Only one wall on top surfaces"
-msgstr "顶面单层墙"
+msgid "Only one wall on first layer"
+msgstr "首层单层墙"
 
 msgid ""
 "Use only one wall on flat top surface, to give more space to the top infill "
 "pattern"
 msgstr "顶面只使用单层墙，从而更多的空间能够使用顶部填充图案"
+
+msgid "Only one wall on top surfaces"
+msgstr "顶面单层墙"
+
+msgid ""
+"Use only one wall on first layer, to give more space to the bottom infill "
+"pattern"
+msgstr "首层只使用单层墙，从而更多的空间能够使用底部填充图案"
 
 msgid "Slow down for overhang"
 msgstr "悬垂降速"
@@ -5655,6 +5677,9 @@ msgstr "（未定义）"
 msgid "Infill direction"
 msgstr "填充方向"
 
+msgid "Bridge infill direction"
+msgstr "拉桥填充方向"
+
 msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
 "of line"
@@ -5706,6 +5731,45 @@ msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
 "adhensive"
 msgstr "首层加速度。使用较低值可以改善和构建板的粘接。"
+
+msgid "Acceleration of outer walls"
+msgstr "外墙的加速度。它通常使用比内壁速度慢的加速度，以获得更好的质量"
+
+msgid "Acceleration of inner walls"
+msgstr "内圈墙加速度，使用较低值可以改善质量。"
+
+msgid "Acceleration of travel moves"
+msgstr "空驶加速度"
+
+msgid "Jerk(XY)"
+msgstr "抖动（XY）"
+
+msgid "Jerk of outer walls"
+msgstr "外墙抖动值"
+
+msgid "Jerk of inner walls"
+msgstr "内墙抖动值"
+
+msgid "Jerk for top surface"
+msgstr "顶面抖动值"
+
+msgid "Jerk for initial layer"
+msgstr "首层抖动值"
+
+msgid "Jerk for travel"
+msgstr "空驶抖动值"
+
+msgid "Enable pressure advance"
+msgstr "启用压力提前"
+
+msgid "Pressure advance"
+msgstr "压力提前"
+
+msgid "Pressure advnce(Klipper) AKA Linear advance factor(Marlin)"
+msgstr "压力提前(Klipper)或者线性提前(Marlin)"
+
+msgid "Enable pressure advance, auto calibration result will be overwriten once enabled."
+msgstr "启用压力提前，一旦启用会覆盖自动检测的结果"
 
 msgid "Line width of initial layer"
 msgstr "首层的线宽"
@@ -5830,6 +5894,9 @@ msgstr "如果机器有辅助部件冷却风扇，勾选该选项"
 
 msgid "G-code flavor"
 msgstr "G-code风格"
+
+msgid "G-code thumbnails"
+msgstr "G-code缩略图尺寸"
 
 msgid "What kind of gcode the printer is compatible with"
 msgstr "打印机兼容的G-code风格'"
@@ -6210,6 +6277,15 @@ msgstr ""
 msgid "Z hop when retract"
 msgstr "回抽时抬升Z"
 
+msgid "Z hop type"
+msgstr "抬Z类型"
+
+msgid "NormalLift"
+msgstr "直接抬Z"
+
+msgid "SpiralLift"
+msgstr "螺旋抬Z"
+
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
 "clearance between nozzle and the print. It prevents nozzle from hitting the "
@@ -6538,6 +6614,9 @@ msgstr "除首层外的其它层的喷嘴温度"
 
 msgid "Nozzle temperature"
 msgstr "喷嘴温度"
+
+msgid "Chamber temperature"
+msgstr "机箱温度"
 
 msgid "Bed temperature difference"
 msgstr "热床温差"

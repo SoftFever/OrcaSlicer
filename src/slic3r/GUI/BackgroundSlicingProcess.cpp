@@ -183,6 +183,13 @@ std::string BackgroundSlicingProcess::output_filepath_for_project(const boost::f
 void BackgroundSlicingProcess::process_fff()
 {
 	assert(m_print == m_fff_print);
+	PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
+
+	m_fff_print->is_BBL_printer() =
+            preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(
+                &preset_bundle);
+        
+
 	//BBS: add the logic to process from an existed gcode file
 	if (m_print->finished()) {
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: skip slicing, to process previous gcode file")%__LINE__;
@@ -837,8 +844,9 @@ void BackgroundSlicingProcess::prepare_upload()
 			m_upload_job.upload_data.upload_path = output_name_str;
     } else {
         m_upload_job.upload_data.upload_path = m_sla_print->print_statistics().finalize_output_path(m_upload_job.upload_data.upload_path.string());
+        
         ThumbnailsList thumbnails = this->render_thumbnails(
-			ThumbnailsParams{current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, true, true});
+        	ThumbnailsParams{current_print()->full_print_config().option<ConfigOptionPoints>("thumbnails")->values, true, true, true, true});
 																												 // true, false, true, true); // renders also supports and pad
         Zipper zipper{source_path.string()};
         m_sla_archive.export_print(zipper, *m_sla_print, m_upload_job.upload_data.upload_path.string());

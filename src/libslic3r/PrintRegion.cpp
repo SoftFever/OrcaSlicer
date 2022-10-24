@@ -22,10 +22,15 @@ Flow PrintRegion::flow(const PrintObject &object, FlowRole role, double layer_he
 {
     const PrintConfig          &print_config = object.print()->config();
     ConfigOptionFloat  config_width;
+    double flow_ratio = 1.0;
     // Get extrusion width from configuration.
     // (might be an absolute value, or a percent value, or zero for auto)
-    if (first_layer && print_config.initial_layer_line_width.value > 0) {
-        config_width = print_config.initial_layer_line_width;
+    if (first_layer) { 
+        if(role != frExternalPerimeter)
+            flow_ratio = m_config.bottom_solid_infill_flow_ratio;
+        if(print_config.initial_layer_line_width.value > 0) {
+            config_width = print_config.initial_layer_line_width;
+        }
     } else if (role == frExternalPerimeter) {
         config_width = m_config.outer_wall_line_width;
     } else if (role == frPerimeter) {
@@ -36,6 +41,7 @@ Flow PrintRegion::flow(const PrintObject &object, FlowRole role, double layer_he
         config_width = m_config.internal_solid_infill_line_width;
     } else if (role == frTopSolidInfill) {
         config_width = m_config.top_surface_line_width;
+        flow_ratio = m_config.top_solid_infill_flow_ratio;
     } else {
         throw Slic3r::InvalidArgument("Unknown role");
     }
@@ -46,7 +52,7 @@ Flow PrintRegion::flow(const PrintObject &object, FlowRole role, double layer_he
     // Get the configured nozzle_diameter for the extruder associated to the flow role requested.
     // Here this->extruder(role) - 1 may underflow to MAX_INT, but then the get_at() will follback to zero'th element, so everything is all right.
     auto nozzle_diameter = float(print_config.nozzle_diameter.get_at(this->extruder(role) - 1));
-    return Flow::new_from_config_width(role, config_width, nozzle_diameter, float(layer_height));
+    return Flow::new_from_config_width(role, config_width, nozzle_diameter, float(layer_height)).with_flow_ratio(flow_ratio);
 }
 
 coordf_t PrintRegion::nozzle_dmr_avg(const PrintConfig &print_config) const

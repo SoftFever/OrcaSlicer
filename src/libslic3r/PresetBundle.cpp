@@ -38,9 +38,9 @@ static std::vector<std::string> s_project_options {
     "wipe_tower_y",
     "wipe_tower_rotation_angle",
     "curr_bed_type",
-#if !BBL_RELEASE_TO_PUBLIC
+// #if !BBL_RELEASE_TO_PUBLIC
     "flush_multiplier",
-#endif
+// #endif
 };
 
 //BBS: add BBL as default
@@ -90,7 +90,7 @@ PresetBundle::PresetBundle()
     for (size_t i = 0; i < 1; ++i) {
         // The following ugly switch is to avoid printers.preset(0) to return the edited instance, as the 0th default is the current one.
         Preset &preset = this->printers.default_preset(i);
-        for (const char *key : {"printer_settings_id", "printer_model", "printer_variant"}) preset.config.optptr(key, true);
+        for (const char *key : {"printer_settings_id", "printer_model", "printer_variant", "thumbnails"}) preset.config.optptr(key, true);
         //if (i == 0) {
             preset.config.optptr("default_print_profile", true);
             preset.config.option<ConfigOptionStrings>("default_filament_profile", true);
@@ -1419,8 +1419,10 @@ DynamicPrintConfig PresetBundle::full_config() const
 DynamicPrintConfig PresetBundle::full_config_secure() const
 {
     DynamicPrintConfig config = this->full_config();
-    //BBS example: config.erase("print_host");
-    return config;
+    //FIXME legacy, the keys should not be there after conversion to a Physical Printer profile.
+    config.erase("print_host");
+    config.erase("printhost_apikey");
+    config.erase("printhost_cafile");    return config;
 }
 
 const std::set<std::string> ignore_settings_list ={
@@ -2960,7 +2962,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             //parse error
             std::string subfile_path = path + "/" + vendor_name + "/" + subfile.second;
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", got error when parse process setting from %1%") % subfile_path;
-            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path %vendor_system_path).str());
+            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly.\nReason: %3%") % subfile_path %vendor_system_path %reason).str());
         }
     }
 

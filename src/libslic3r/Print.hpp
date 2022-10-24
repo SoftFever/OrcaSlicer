@@ -728,7 +728,11 @@ public:
     // Return 4 wipe tower corners in the world coordinates (shifted and rotated), including the wipe tower brim.
     std::vector<Point>  first_layer_wipe_tower_corners(bool check_wipe_tower_existance=true) const;
 
-protected:
+    //SoftFever
+    bool &is_BBL_printer() { return m_isBBLPrinter; }
+    const bool is_BBL_printer() const { return m_isBBLPrinter; }
+
+  protected:
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);
 
@@ -750,6 +754,9 @@ private:
     PrintRegionConfig                       m_default_region_config;
     PrintObjectPtrs                         m_objects;
     PrintRegionPtrs                         m_print_regions;
+    
+    //SoftFever
+    bool m_isBBLPrinter;
 
     // Ordered collections of extrusion paths to build skirt loops and brim.
     ExtrusionEntityCollection               m_skirt;
