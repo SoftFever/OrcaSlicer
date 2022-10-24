@@ -443,7 +443,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                         single_object_exception.object = instance.model_instance->get_object();
                     }
                     else {
-                        single_object_exception.string += (boost::format(L("\n%1% is too close to exclusion area, there may be collisions when printing.")) %instance.model_instance->get_object()->name).str();
+                        single_object_exception.string += "\n"+(boost::format(L("%1% is too close to exclusion area, there may be collisions when printing.")) %instance.model_instance->get_object()->name).str();
                         single_object_exception.object = nullptr;
                     }
                     //if (polygons) {

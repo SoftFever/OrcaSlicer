@@ -4234,7 +4234,7 @@ void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_remova
         return;
 
     if (background_process.is_export_scheduled()) {
-        GUI::show_error(q, _L("Another export job is currently running."));
+        GUI::show_error(q, _L("Another export job is running."));
         return;
     }
 
