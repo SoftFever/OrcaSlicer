@@ -921,12 +921,16 @@ void Sidebar::update_all_preset_comboboxes()
         ams_btn->Show();
         //update print button default value for bbl or third-party printer
         p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
+        m_bed_type_list->Enable();
+
 
     } else {
         connection_btn->Show();
         ams_btn->Hide();
         p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::eSendGcode);
         p_mainframe->load_printer_url(wxString::Format("http://%s",preset_bundle.printers.get_edited_preset().config.opt_string("print_host")));
+        m_bed_type_list->SelectAndNotify(btPEI);
+        m_bed_type_list->Disable();
     }
 
     // Update the print choosers to only contain the compatible presets, update the dirty flags.

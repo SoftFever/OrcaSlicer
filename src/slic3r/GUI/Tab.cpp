@@ -2656,6 +2656,12 @@ void TabFilament::toggle_options()
 {
     if (!m_active_page)
         return;
+    bool is_BBL_printer = false;
+    if (m_preset_bundle) {
+      is_BBL_printer =
+          m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(
+              m_preset_bundle);
+    }
 
     if (m_active_page->title() == "Cooling")
     {
@@ -2670,6 +2676,10 @@ void TabFilament::toggle_options()
     {
         bool pa = m_config->opt_bool("enable_pressure_advance");
         toggle_option("pressure_advance", pa);
+
+        toggle_line("cool_plate_temp_initial_layer", is_BBL_printer);
+        toggle_line("eng_plate_temp_initial_layer", is_BBL_printer);
+        toggle_line("textured_plate_temp_initial_layer", is_BBL_printer);
     }
     if (m_active_page->title() == "Setting Overrides")
         update_filament_overrides_page();
@@ -3440,6 +3450,12 @@ void TabPrinter::toggle_options()
         //BBS: extruder clearance of BBL printer can't be edited.
         for (auto el : { "extruder_clearance_radius", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
             toggle_option(el, !is_BBL_printer);
+
+        // SoftFever: hide BBL specific settings
+        for (auto el :
+             {"scan_first_layer", "machine_load_filament_time",
+                        "machine_unload_filament_time", "nozzle_type", "bed_exclude_area"})
+          toggle_line(el, is_BBL_printer);
     }
 
     wxString extruder_number;

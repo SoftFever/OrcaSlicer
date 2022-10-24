@@ -73,6 +73,12 @@ void ComboBox::SetSelection(int n)
         SetIcon(icons[drop.selection]);
 }
 
+void ComboBox::SelectAndNotify(int n) { 
+    SetSelection(n);
+    sendComboBoxEvent();
+}
+
+
 void ComboBox::Rescale()
 {
     TextInput::Rescale();
