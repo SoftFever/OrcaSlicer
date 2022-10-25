@@ -2527,7 +2527,7 @@ void Plater::setExtruderParams(std::map<size_t, Slic3r::ExtruderParams>& extPara
     for (unsigned int i = 0; i != numExtruders; ++i) {
         std::string matName = "";
         // BBS
-        int bedTemp = 0;
+        int bedTemp = 35;
         double endTemp = 0.f;
         if (config.has("filament_type")) {
             matName = config.opt_string("filament_type", i);
@@ -2536,10 +2536,14 @@ void Plater::setExtruderParams(std::map<size_t, Slic3r::ExtruderParams>& extPara
             endTemp = config.opt_int("nozzle_temperature", i);
         }
 
+        // FIXME: curr_bed_type is now a plate config rather than a global config.
+        // Currently bed temp is not used for brim generation, so just comment it for now.
+#if 0
         if (config.has("curr_bed_type")) {
             BedType curr_bed_type = config.opt_enum<BedType>("curr_bed_type");
             bedTemp = config.opt_int(get_bed_temp_key(curr_bed_type), i);
         }
+#endif
         if (i == 0) extParas.insert({ i,{matName, bedTemp, endTemp} });
         extParas.insert({ i + 1,{matName, bedTemp, endTemp} });
     }
@@ -5146,6 +5150,7 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
 
     DynamicPrintConfig& config = wxGetApp().preset_bundle->project_config;
     const t_config_enum_values* keys_map = print_config_def.get("curr_bed_type")->enum_keys_map;
+
     if (keys_map) {
         BedType bed_type = btCount;
         for (auto item : *keys_map) {
@@ -5155,6 +5160,11 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
 
         if (bed_type != btCount) {
             config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
+
+            // clear all plates' bed type config
+            for (int i = 0; i < partplate_list.get_plate_count(); i++)
+                partplate_list.get_plate(i)->reset_bed_type();
+
             // update plater with new config
             q->on_config_change(wxGetApp().preset_bundle->full_config());
 
@@ -5781,7 +5791,7 @@ void Plater::priv::on_action_export_to_sdcard(SimpleEvent&)
 void Plater::priv::on_plate_selected(SimpleEvent&)
 {
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received plate selected event\n" ;
-    //sidebar->obj_list()->on_plate_selected(partplate_list.get_curr_plate_index());
+    sidebar->obj_list()->on_plate_selected(partplate_list.get_curr_plate_index());
 }
 
 void Plater::priv::on_action_request_model_id(wxCommandEvent& evt)
@@ -10084,6 +10094,9 @@ int Plater::select_plate(int plate_index, bool need_slice)
             }
         }
     }
+
+    p->on_plate_selected(SimpleEvent(EVT_GLCANVAS_PLATE_SELECT));
+
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: plate %2%, return %3%")%__LINE__ %plate_index %ret;
     return ret;
 }

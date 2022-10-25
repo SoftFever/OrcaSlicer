@@ -67,6 +67,7 @@ struct PlateData
     std::string     gcode_prediction;
     std::string     gcode_weight;
     std::vector<FilamentInfo> slice_filaments_info;
+    DynamicPrintConfig config;
     bool            is_sliced_valid = false;
     bool            toolpath_outside {false};
 

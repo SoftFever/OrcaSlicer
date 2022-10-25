@@ -654,7 +654,10 @@ Print::ApplyStatus BackgroundSlicingProcess::apply(const Model &model, const Dyn
 {
 	assert(m_print != nullptr);
 	assert(config.opt_enum<PrinterTechnology>("printer_technology") == m_print->technology());
-	Print::ApplyStatus invalidated = m_print->apply(model, config);
+	// TODO: add partplate config
+	DynamicPrintConfig new_config = config;
+	new_config.apply(*m_current_plate->config());
+	Print::ApplyStatus invalidated = m_print->apply(model, new_config);
 	if ((invalidated & PrintBase::APPLY_STATUS_INVALIDATED) != 0 && m_print->technology() == ptFFF &&
 		!m_fff_print->is_step_done(psGCodeExport)) {
 		// Some FFF status was invalidated, and the G-code was not exported yet.

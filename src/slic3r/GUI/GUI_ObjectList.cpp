@@ -4036,11 +4036,18 @@ void ObjectList::select_items(const std::vector<ObjectVolumeID>& ov_ids)
 void ObjectList::select_items(const wxDataViewItemArray& sels)
 {
     m_prevent_list_events = true;
-
     m_last_selected_item = sels.empty() ? wxDataViewItem(nullptr) : sels.back();
 
     UnselectAll();
-    SetSelections(sels);
+
+    if (!sels.empty()) {
+        SetSelections(sels);
+    }
+    else {
+        int curr_plate_idx = wxGetApp().plater()->get_partplate_list().get_curr_plate_index();
+        on_plate_selected(curr_plate_idx);
+    }
+
     part_selection_changed();
 
     m_prevent_list_events = false;

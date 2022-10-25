@@ -142,6 +142,9 @@ private:
     int m_hover_id;
     bool m_selected;
 
+    // BBS
+    DynamicPrintConfig m_config;
+
     void init();
     bool valid_instance(int obj_id, int instance_id);
     void generate_print_polygon(ExPolygon &print_polygon);
@@ -199,6 +202,11 @@ public:
 
     //clear alll the instances in plate
     void clear(bool clear_sliced_result = true);
+
+    BedType get_bed_type();
+    void set_bed_type(BedType);
+    void reset_bed_type();
+    DynamicPrintConfig* config() { return &m_config; }
 
     //static const int plate_x_offset = 20; //mm
     //static const double plate_x_gap = 0.2;
@@ -373,7 +381,7 @@ public:
         std::vector<std::pair<int, int>>	objects_and_instances;
         std::vector<std::pair<int, int>>	instances_outside;
 
-        ar(m_plate_index, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside);
+        ar(m_plate_index, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside, m_config);
 
         for (std::vector<std::pair<int, int>>::iterator it = objects_and_instances.begin(); it != objects_and_instances.end(); ++it)
             obj_to_instance_set.insert(std::pair(it->first, it->second));
@@ -391,7 +399,7 @@ public:
         for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
             objects_and_instances.emplace_back(it->first, it->second);
 
-        ar(m_plate_index, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside);
+        ar(m_plate_index, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside, m_config);
     }
     /*template<class Archive> void serialize(Archive& ar)
     {

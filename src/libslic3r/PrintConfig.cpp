@@ -564,7 +564,7 @@ void PrintConfigDef::init_fff_params()
     def->max        = 120;
     def->set_default_value(new ConfigOptionInts{45});
 
-    def = this->add("curr_bed_type", coEnums);
+    def = this->add("curr_bed_type", coEnum);
     def->label = L("Bed type");
     def->tooltip = L("Bed types supported by the printer");
     def->mode = comSimple;

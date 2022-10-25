@@ -130,6 +130,33 @@ void PartPlate::init()
 	m_print = nullptr;
 }
 
+BedType PartPlate::get_bed_type()
+{
+	std::string bed_type_key = "curr_bed_type";
+
+	if (m_config.has(bed_type_key))
+		return m_config.opt_enum<BedType>(bed_type_key);
+
+	if (m_plater) {
+		// In GUI mode
+		DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
+		if (proj_cfg.has(bed_type_key))
+			return proj_cfg.opt_enum<BedType>(bed_type_key);
+	}
+
+	return BedType::btPC;
+}
+
+void PartPlate::set_bed_type(BedType bed_type)
+{
+	m_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
+}
+
+void PartPlate::reset_bed_type()
+{
+	m_config.erase("curr_bed_type");
+}
+
 bool PartPlate::valid_instance(int obj_id, int instance_id)
 {
 	if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
@@ -4015,6 +4042,7 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 		plate_data_item->locked = m_plate_list[i]->m_locked;
 		plate_data_item->plate_index = m_plate_list[i]->m_plate_index;
 		plate_data_item->plate_thumbnail.load_from(m_plate_list[i]->thumbnail_data);
+		plate_data_item->config.apply(*m_plate_list[i]->config());
 
 		if (m_plate_list[i]->obj_to_instance_set.size() > 0)
 		{
@@ -4080,6 +4108,7 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 	{
 		int index = create_plate(false);
 		m_plate_list[index]->m_locked = plate_data_list[i]->locked;
+		m_plate_list[index]->config()->apply(plate_data_list[i]->config);
 		if (plate_data_list[i]->plate_index != index)
 		{
 			BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":plate index %1% seems invalid, skip it")% plate_data_list[i]->plate_index;

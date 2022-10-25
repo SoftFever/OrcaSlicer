@@ -235,6 +235,7 @@ static constexpr const char* FIRST_TRIANGLE_ID_ATTR = "firstid";
 static constexpr const char* LAST_TRIANGLE_ID_ATTR = "lastid";
 static constexpr const char* SUBTYPE_ATTR = "subtype";
 static constexpr const char* LOCK_ATTR = "locked";
+static constexpr const char* BED_TYPE_ATTR = "bed_type";
 static constexpr const char* GCODE_FILE_ATTR = "gcode_file";
 static constexpr const char* THUMBNAIL_FILE_ATTR = "thumbnail_file";
 static constexpr const char* PATTERN_FILE_ATTR = "pattern_file";
@@ -3131,6 +3132,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             {
                 std::istringstream(value) >> std::boolalpha >> m_curr_plater->locked;
             }
+            else if (key == BED_TYPE_ATTR)
+            {
+                BedType bed_type = BedType::btPC;
+                ConfigOptionEnum<BedType>::from_string(value, bed_type);
+                m_curr_plater->config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
+            }
             else if (key == GCODE_FILE_ATTR)
             {
                 m_curr_plater->gcode_file = value;
@@ -5563,6 +5570,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 //plate index
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PLATERID_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->plate_index + 1 << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << LOCK_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->locked<< "\"/>\n";
+                ConfigOption* bed_type_opt = plate_data->config.option("curr_bed_type");
+                t_config_enum_names bed_type_names = ConfigOptionEnum<BedType>::get_enum_names();
+                if (bed_type_opt != nullptr && bed_type_names.size() > bed_type_opt->getInt())
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << BED_TYPE_ATTR << "\" " << VALUE_ATTR << "=\"" << bed_type_names[bed_type_opt->getInt()] << "\"/>\n";
+
                 if (save_gcode)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << GCODE_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << xml_escape(plate_data->gcode_file) << "\"/>\n";
                 if (!plate_data->gcode_file.empty()) {
