@@ -98,6 +98,7 @@ bool GLGizmoFdmSupports::on_init()
     m_desc["tool_type"]             = _L("Tool type");
     m_desc["smart_fill_angle_caption"] = _L("Ctrl + Mouse wheel");
     m_desc["smart_fill_angle"]      = _L("Smart fill angle");
+    m_desc["on_overhangs_only"] = _L("On overhangs only");
 
     memset(&m_print_instance, sizeof(m_print_instance), 0);
     return true;
@@ -216,6 +217,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     const float cursor_slider_left      = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.5f);
     const float gap_fill_slider_left    = m_imgui->calc_text_size(m_desc.at("gap_fill")).x + m_imgui->scaled(1.5f);
     const float highlight_slider_left   = m_imgui->calc_text_size(m_desc.at("highlight_by_angle")).x + m_imgui->scaled(1.5f);
+    const float on_overhangs_only_width  = m_imgui->calc_text_size(m_desc["on_overhangs_only"]).x + m_imgui->scaled(1.5f);
     const float remove_btn_width        = m_imgui->calc_text_size(m_desc.at("remove_all")).x + m_imgui->scaled(1.5f);
     const float filter_btn_width        = m_imgui->calc_text_size(m_desc.at("perform")).x + m_imgui->scaled(1.5f);
     const float buttons_width           = remove_btn_width + filter_btn_width + m_imgui->scaled(1.5f);
@@ -281,6 +283,11 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
             m_imgui->tooltip(tool_tips[i], max_tooltip_width);
         }
     }
+
+    m_imgui->checkbox(m_desc["on_overhangs_only"], m_paint_on_overhangs_only);
+    if (ImGui::IsItemHovered())
+        m_imgui->tooltip(format_wxstr(_L("Allows painting only on facets selected by: \"%1%\""), m_desc["highlight_by_angle"]), max_tooltip_width);
+    ImGui::Separator();
 
     if (m_current_tool != old_tool)
         this->tool_changed(old_tool, m_current_tool);
@@ -379,7 +386,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     ImGui::SameLine(drag_left_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
     ImGui::BBLDragFloat("##angle_threshold_deg_input", &m_highlight_by_angle_threshold_deg, 0.05f, 0.0f, 0.0f, "%.2f");
-    
+
     if (m_current_tool != ImGui::GapFillIcon) {
         ImGui::Separator();
         ImGui::AlignTextToFramePadding();
@@ -796,7 +803,7 @@ void GLGizmoFdmSupports::update_support_volumes()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "join thread returns "<<ret;
     }
     m_cancel = false;
-    m_thread = create_thread([this]{this->run_thread();});    
+    m_thread = create_thread([this]{this->run_thread();});
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",created thread to generate support volumes";
     return;
 }
