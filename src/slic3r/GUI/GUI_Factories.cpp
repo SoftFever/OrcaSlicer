@@ -1342,6 +1342,12 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
     if (sels.IsEmpty())
         return;
 
+    if (sels.Count() == 1) {
+        const auto sel_vol = obj_list()->get_selected_model_volume();
+        if (sel_vol && sel_vol->type() != ModelVolumeType::MODEL_PART && sel_vol->type() != ModelVolumeType::PARAMETER_MODIFIER)
+            return;
+    }
+
     std::vector<wxBitmap*> icons = get_extruder_color_icons(true);
     if (icons.size() < filaments_cnt) {
         BOOST_LOG_TRIVIAL(warning) << boost::format("Warning: icons size %1%, filaments_cnt=%2%")%icons.size()%filaments_cnt;

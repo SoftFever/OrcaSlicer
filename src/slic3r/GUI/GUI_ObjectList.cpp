@@ -80,7 +80,7 @@ ObjectList::ObjectList(wxWindow* parent) :
 #ifdef __WXMSW__
     GenericGetHeader()->SetFont(Label::sysFont(13));
 #endif
-    
+
     // create control
     create_objects_ctrl();
 
@@ -4805,6 +4805,16 @@ void ObjectList::set_extruder_for_selected_items(const int extruder)
         ItemType sel_item_type = m_objects_model->GetItemType(sel_item);
         wxDataViewItem item = (sel_item_type & itInstance) ? m_objects_model->GetObject(item) : sel_item;
         ItemType type = m_objects_model->GetItemType(item);
+        if (type & itVolume) {
+            const int obj_idx = m_objects_model->GetObjectIdByItem(item);
+            const int vol_idx = m_objects_model->GetVolumeIdByItem(item);
+
+            if ((obj_idx < m_objects->size()) && (obj_idx < (*m_objects)[obj_idx]->volumes.size())) {
+                auto volume_type = (*m_objects)[obj_idx]->volumes[vol_idx]->type();
+                if (volume_type != ModelVolumeType::MODEL_PART && volume_type != ModelVolumeType::PARAMETER_MODIFIER)
+                    continue;
+            }
+        }
 
         ModelConfig& config = get_item_config(item);
         if (config.has("extruder"))
