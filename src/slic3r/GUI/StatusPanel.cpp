@@ -7,10 +7,13 @@
 #include "BitmapCache.hpp"
 #include "GUI_App.hpp"
 
+#include "MsgDialog.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "libslic3r/Thread.hpp"
+
 #include "RecenterDialog.hpp"
 #include "ReleaseNote.hpp"
+
 
 namespace Slic3r { namespace GUI {
 
@@ -2227,6 +2230,17 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
 void StatusPanel::on_ams_refresh_rfid(wxCommandEvent &event)
 {
     if (obj) {
+
+        if (obj->is_filament_at_extruder()) {
+            MessageDialog msg_dlg(
+                nullptr,
+                _L("Cannot read filament info: the filament is loaded to the tool head,please unload the filament and try again."),
+                wxEmptyString,
+                wxICON_WARNING | wxYES);
+            msg_dlg.ShowModal();
+            return;
+        }
+
         std::string curr_ams_id = m_ams_control->GetCurentAms();
         std::string curr_can_id = event.GetString().ToStdString();
 
