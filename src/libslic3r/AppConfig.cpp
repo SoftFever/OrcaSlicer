@@ -482,7 +482,14 @@ std::string AppConfig::load()
                             } else {
                                 m_storage[it.key()][iter.key()] = "false";
                             }
-                        } else {
+                        } else if (iter.key() == "filament_presets") {
+                            m_filament_presets = iter.value().get<std::vector<std::string>>();
+                        } else if (iter.key() == "filament_colors") {
+                            m_filament_colors = iter.value().get<std::vector<std::string>>();
+                        } else if (iter.key() == "flushing_volumes") {
+                            m_flush_volumes_matrix = iter.value().get<std::vector<float>>();
+                        }
+                        else {
                             if (iter.value().is_string())
                                 m_storage[it.key()][iter.key()] = iter.value().get<std::string>();
                             else {
@@ -563,6 +570,18 @@ void AppConfig::save()
             continue;
         }
         j["app"][kvp.first] = kvp.second;
+    }
+
+    for (const auto &filament_preset : m_filament_presets) {
+        j["app"]["filament_presets"].push_back(filament_preset);
+    }
+
+    for (const auto &filament_color : m_filament_colors) {
+        j["app"]["filament_colors"].push_back(filament_color);
+    }
+
+    for (double flushing_volume : m_flush_volumes_matrix) {
+        j["app"]["flushing_volumes"].push_back(flushing_volume);
     }
 
     // Write the other categories.

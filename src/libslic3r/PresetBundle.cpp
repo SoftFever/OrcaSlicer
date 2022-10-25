@@ -809,6 +809,36 @@ void PresetBundle::update_system_preset_setting_ids(std::map<std::string, std::m
     return;
 }
 
+void PresetBundle::load_default_setting_from_app_config(const AppConfig &config) {
+    auto config_filament_presets = config.get_filament_presets();
+    if (!config_filament_presets.empty())
+        this->filament_presets = config_filament_presets;
+
+    auto config_filament_colors = config.get_filament_colors();
+    if (!config_filament_colors.empty()) {
+        ConfigOptionStrings *filament_color = project_config.option<ConfigOptionStrings>("filament_colour");
+        filament_color->resize(config_filament_colors.size());
+        filament_color->values = config_filament_colors;
+    }
+
+    auto config_flush_volumes_matrix = config.get_flush_volumes_matrix();
+    if (!config_flush_volumes_matrix.empty()) {
+        ConfigOptionFloats *flush_volumes_matrix = project_config.option<ConfigOptionFloats>("flush_volumes_matrix");
+        flush_volumes_matrix->values = std::vector<double>(config_flush_volumes_matrix.begin(), config_flush_volumes_matrix.end());
+    }
+}
+
+void PresetBundle::update_filament_info_to_app_config(AppConfig &config)
+{
+    config.set_filament_presets(this->filament_presets);
+
+    ConfigOptionStrings *filament_color = project_config.option<ConfigOptionStrings>("filament_colour");
+    config.set_filament_colors(filament_color->values);
+
+    ConfigOptionFloats *flush_volumes_matrix = project_config.option<ConfigOptionFloats>("flush_volumes_matrix");
+    config.set_flush_volumes_matrix(std::vector<float>(flush_volumes_matrix->values.begin(), flush_volumes_matrix->values.end()));
+}
+
 //BBS: validate printers from previous project
 bool PresetBundle::validate_printers(const std::string &name, DynamicPrintConfig& config)
 {

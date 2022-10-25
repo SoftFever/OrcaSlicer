@@ -11,6 +11,8 @@
 
 #include <wx/sizer.h>
 
+using namespace Slic3r::GUI;
+
 int scale(const int val) { return val * Slic3r::GUI::wxGetApp().em_unit() / 10; }
 int ITEM_WIDTH() { return scale(30); }
 static const wxColour text_color = wxColour(107, 107, 107, 255);
@@ -253,7 +255,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
 
         for (unsigned int j = 0; j < m_number_of_extruders; ++j) {
 #ifdef _WIN32
-            wxTextCtrl* text = new wxTextCtrl(m_page_advanced, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(ITEM_WIDTH(), -1), wxTE_CENTER | wxBORDER_NONE);
+            wxTextCtrl* text = new wxTextCtrl(m_page_advanced, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(ITEM_WIDTH(), -1), wxTE_CENTER | wxBORDER_NONE | wxTE_PROCESS_ENTER);
             update_ui(text);
             edit_boxes.back().push_back(text);
 #else
@@ -272,12 +274,27 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
                     wxString str = edit_boxes[i][j]->GetValue();
                     int value = wxAtoi(str);
                     if (value > MAX_FLUSH_VALUE) {
-                        value = MAX_FLUSH_VALUE;
                         str = wxString::Format(("%d"), MAX_FLUSH_VALUE);
                         edit_boxes[i][j]->SetValue(str);
                     }
                     });
 
+                auto on_apply_text_modify = [this, i, j](wxEvent &e) {
+                    wxString str   = edit_boxes[i][j]->GetValue();
+                    int      value = wxAtoi(str);
+                    if (value < int(m_extra_flush_volume)) {
+                        wxGetApp().plater();
+                        str = wxString::Format(("%d"), int(m_extra_flush_volume));
+                        edit_boxes[i][j]->SetValue(str);
+                        MessageDialog dlg(nullptr,
+                                          _L("The flush volume is less than the minimum value and will be automatically set to the minimum value."),
+                                          _L("Warning"), wxICON_WARNING | wxOK);
+                        dlg.ShowModal();
+                    }
+                };
+
+                edit_boxes[i][j]->Bind(wxEVT_TEXT_ENTER, on_apply_text_modify);
+                edit_boxes[i][j]->Bind(wxEVT_KILL_FOCUS, on_apply_text_modify);
             }
         }
     }

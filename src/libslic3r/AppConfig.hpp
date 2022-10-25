@@ -164,6 +164,22 @@ public:
 	void 				set_vendors(VendorMap &&vendors) { m_vendors = std::move(vendors); m_dirty = true; }
 	const VendorMap&    vendors() const { return m_vendors; }
 
+	const std::vector<std::string> &get_filament_presets() const { return m_filament_presets; }
+    void set_filament_presets(const std::vector<std::string> &filament_presets){
+        m_filament_presets = filament_presets;
+        m_dirty            = true;
+    }
+    const std::vector<std::string> &get_filament_colors() const { return m_filament_colors; }
+    void set_filament_colors(const std::vector<std::string> &filament_colors){
+        m_filament_colors = filament_colors;
+        m_dirty                = true;
+    }
+    const std::vector<float> &get_flush_volumes_matrix() const { return m_flush_volumes_matrix; }
+    void set_flush_volumes_matrix(const std::vector<float> &flush_volumes_matrix){
+        m_flush_volumes_matrix = flush_volumes_matrix;
+        m_dirty                = true;
+    }
+
 	// return recent/last_opened_folder or recent/settings_folder or empty string.
 	std::string 		get_last_dir() const;
 	void 				update_config_dir(const std::string &dir);
@@ -259,6 +275,10 @@ private:
 	bool                                                        m_legacy_datadir;
 
 	std::string                                                 m_loading_path;
+
+	std::vector<std::string>									m_filament_presets;
+    std::vector<std::string>									m_filament_colors;
+    std::vector<float>											m_flush_volumes_matrix;
 };
 
 } // namespace Slic3r

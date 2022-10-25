@@ -663,6 +663,7 @@ Sidebar::Sidebar(Plater *parent)
 #if !BBL_RELEASE_TO_PUBLIC
                 (project_config.option<ConfigOptionFloat>("flush_multiplier"))->set(new ConfigOptionFloat(dlg.get_flush_multiplier()));
 #endif
+                wxGetApp().preset_bundle->update_filament_info_to_app_config(*wxGetApp().app_config);
 
                 wxGetApp().plater()->update_project_dirty_from_presets();
                 wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
@@ -685,6 +686,7 @@ Sidebar::Sidebar(Plater *parent)
         wxGetApp().preset_bundle->set_num_filaments(filament_count, new_color);
         wxGetApp().plater()->on_filaments_change(filament_count);
         wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
+        wxGetApp().preset_bundle->update_filament_info_to_app_config(*wxGetApp().app_config);
     });
     p->m_bpButton_add_filament = add_btn;
 
@@ -709,6 +711,7 @@ Sidebar::Sidebar(Plater *parent)
         wxGetApp().preset_bundle->set_num_filaments(filament_count);
         wxGetApp().plater()->on_filaments_change(filament_count);
         wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
+        wxGetApp().preset_bundle->update_filament_info_to_app_config(*wxGetApp().app_config);
     });
     p->m_bpButton_del_filament = del_btn;
 
@@ -1288,6 +1291,7 @@ void Sidebar::sync_ams_list()
     for (auto &c : p->combos_filament)
         c->update();
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
+    wxGetApp().preset_bundle->update_filament_info_to_app_config(*wxGetApp().app_config);
 }
 
 ObjectList* Sidebar::obj_list()
@@ -5200,6 +5204,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     if (preset_type == Preset::TYPE_FILAMENT) {
         wxGetApp().preset_bundle->set_filament_preset(idx, preset_name);
         wxGetApp().plater()->update_project_dirty_from_presets();
+        wxGetApp().preset_bundle->update_filament_info_to_app_config(*wxGetApp().app_config);
     }
 
     bool select_preset = !combo->selection_is_changed_according_to_physical_printers();
@@ -7084,6 +7089,7 @@ void Plater::load_project(wxString const& filename2,
 
     reset_project_dirty_initial_presets();
     update_project_dirty_from_presets();
+    wxGetApp().preset_bundle->update_filament_info_to_app_config(*wxGetApp().app_config);
 
     // if res is empty no data has been loaded
     if (!res.empty() && (load_restore || !(strategy & LoadStrategy::Silence))) {
