@@ -1,4 +1,4 @@
-#version 130
+#version 110
 
 #define INTENSITY_CORRECTION 0.6
 
@@ -45,6 +45,10 @@ float edgeFactor(float lineWidth) {
 
 vec3 wireframe(vec3 fill, vec3 stroke, float lineWidth) {
     return mix(stroke, fill, edgeFactor(lineWidth));
+	//if (any(lessThan(barycentric_coordinates, vec3(0.005, 0.005, 0.005))))
+	//	return vec3(1.0, 0.0, 0.0);
+	//else
+	//	return fill;
 }
 
 vec3 getWireframeColor(vec3 fill) {

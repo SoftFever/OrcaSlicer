@@ -73,6 +73,8 @@ public:
     // to be already set.
     virtual void render(ImGuiWrapper *imgui);
     void         render() { this->render(nullptr); }
+    void         set_wireframe_needed(bool need_wireframe) { m_need_wireframe = need_wireframe; }
+    bool         get_wireframe_needed() { return m_need_wireframe; }
 
     // BBS
     void request_update_render_data(bool paint_changed = false)
@@ -108,6 +110,7 @@ private:
 
 protected:
     GLPaintContour                      m_paint_contour;
+    bool                                m_need_wireframe {false};
 };
 
 // BBS
@@ -198,7 +201,7 @@ protected:
 
 private:
     void update_render_data();
-    void render(int buffer_idx);
+    void render(int buffer_idx, int position_id = -1, int barycentric_id = -1);
 };
 
 

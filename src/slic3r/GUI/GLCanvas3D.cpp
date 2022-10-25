@@ -731,8 +731,8 @@ bool GLCanvas3D::init()
     Bed3D::load_render_colors();
 #endif
 
-    if (wxGetApp().is_gl_version_greater_or_equal_to(3, 0))
-        wxGetApp().plater()->enable_wireframe(true);
+    //if (!wxGetApp().is_gl_version_greater_or_equal_to(3, 0))
+    //    wxGetApp().plater()->enable_wireframe(false);
     m_initialized = true;
 
     return true;
@@ -5762,12 +5762,12 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
             //                GLGizmosManager::EType type = gm.get_current_type();
             if (dynamic_cast<GLGizmoPainterBase*>(gm.get_current()) == nullptr)
             {
-                if (wxGetApp().plater()->is_wireframe_enabled()) {
+                /*if (wxGetApp().plater()->is_wireframe_enabled()) {
                     if (wxGetApp().plater()->is_show_wireframe())
                         shader->set_uniform("show_wireframe", true);
                     else
                         shader->set_uniform("show_wireframe", false);
-                }
+                }*/
                 //BBS:add assemble view related logic
                 // do not cull backfaces to show broken geometry, if any
                 m_volumes.render(type, m_picking_enabled, wxGetApp().plater()->get_camera().get_view_matrix(), [this, canvas_type](const GLVolume& volume) {
@@ -5795,12 +5795,12 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
         }
         case GLVolumeCollection::ERenderType::Transparent:
         {
-            if (wxGetApp().plater()->is_wireframe_enabled()) {
+            /*if (wxGetApp().plater()->is_wireframe_enabled()) {
                 if (wxGetApp().plater()->is_show_wireframe())
                     shader->set_uniform("show_wireframe", true);
                 else
                     shader->set_uniform("show_wireframe", false);
-            }
+            }*/
             //BBS:add assemble view related logic
             m_volumes.render(type, false, wxGetApp().plater()->get_camera().get_view_matrix(), [this, canvas_type](const GLVolume& volume) {
                 if (canvas_type == ECanvasType::CanvasAssembleView) {
@@ -5820,9 +5820,9 @@ void GLCanvas3D::_render_objects(GLVolumeCollection::ERenderType type, bool with
         }
         }
 
-        if (wxGetApp().plater()->is_wireframe_enabled()) {
+        /*if (wxGetApp().plater()->is_wireframe_enabled()) {
             shader->set_uniform("show_wireframe", false);
-        }
+        }*/
 
         shader->stop_using();
     }

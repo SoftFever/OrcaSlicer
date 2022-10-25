@@ -131,6 +131,10 @@ bool GLGizmoMmuSegmentation::on_init()
     m_desc["height_range_caption"] = _L("Ctrl + Mouse wheel");
     m_desc["height_range"]         = _L("Height range");
 
+    //add toggle wire frame hint
+    m_desc["toggle_wireframe_caption"]        = _L("Ctrl + Shift + Enter");
+    m_desc["toggle_wireframe"]                = _L("Toggle Wireframe");
+
     init_extruders_data();
 
     return true;
@@ -315,16 +319,16 @@ void GLGizmoMmuSegmentation::show_tooltip_information(float caption_max, float x
         std::vector<std::string> tip_items;
         switch (m_tool_type) {
             case ToolType::BRUSH:
-                tip_items = {"paint", "erase", "cursor_size", "clipping_of_view"};
+                tip_items = {"paint", "erase", "cursor_size", "clipping_of_view", "toggle_wireframe"};
                 break;
             case ToolType::BUCKET_FILL:
-                tip_items = {"paint", "erase", "smart_fill_angle", "clipping_of_view"};
+                tip_items = {"paint", "erase", "smart_fill_angle", "clipping_of_view", "toggle_wireframe"};
                 break;
             case ToolType::SMART_FILL:
                 // TODO:
                 break;
             case ToolType::GAP_FILL:
-                tip_items = {"gap_area"};
+                tip_items = {"gap_area", "toggle_wireframe"};
                 break;
             default:
                 break;
@@ -411,7 +415,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         std::string color_label = std::string("##extruder color ") + std::to_string(extruder_idx);
         std::string item_text = std::to_string(extruder_idx + 1);
         const ImVec2 label_size = ImGui::CalcTextSize(item_text.c_str(), NULL, true);
-        
+
         const ImVec2 button_size(max_label_size.x + m_imgui->scaled(0.5f),0.f);
 
         float button_offset = start_pos_x;
@@ -727,6 +731,7 @@ void GLGizmoMmuSegmentation::init_model_triangle_selectors()
         EnforcerBlockerType max_ebt = (EnforcerBlockerType)std::min(m_extruders_colors.size(), (size_t)EnforcerBlockerType::ExtruderMax);
         m_triangle_selectors.back()->deserialize(mv->mmu_segmentation_facets.get_data(), false, max_ebt);
         m_triangle_selectors.back()->request_update_render_data();
+        m_triangle_selectors.back()->set_wireframe_needed(true);
         m_volumes_extruder_idxs.push_back(mv->extruder_id());
     }
 }

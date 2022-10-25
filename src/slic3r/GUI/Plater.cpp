@@ -1632,7 +1632,7 @@ struct Plater::priv
 
     bool                        show_render_statistic_dialog{ false };
     bool                        show_wireframe{ false };
-    bool                        wireframe_enabled{ false };
+    bool                        wireframe_enabled{ true };
 
     static const std::regex pattern_bundle;
     static const std::regex pattern_3mf;
