@@ -252,6 +252,14 @@ function OnLoginOrRegister()
 	SendWXMessage( JSON.stringify(tSend) );	
 }
 
+function OnClickModelDepot()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_modeldepot";
+	
+	SendWXMessage( JSON.stringify(tSend) );		
+}
 
 function OnClickNewProject()
 {

@@ -3237,6 +3237,9 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 CallAfter([this] {
                     wxGetApp().request_user_logout();
                 });
+            }            
+            else if (command_str.compare("homepage_modeldepot") == 0) {
+                
             }
             else if (command_str.compare("homepage_newproject") == 0) {
                 this->request_open_project("<new>");

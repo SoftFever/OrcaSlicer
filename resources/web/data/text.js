@@ -81,7 +81,9 @@ var LangText={
 		"t86":"Close",
 		"t87":"User Manual",
 		"t88":"Remove",
-		"t89":"Open Containing Folder"
+		"t89":"Open Containing Folder",
+		"t90":"3D Model",
+		"t91":"Download 3D Models"
 	},
 	"zh_CN":{
 		"t1":"欢迎使用Bambu Studio",
@@ -166,6 +168,8 @@ var LangText={
 		"t87":"使用引导",
 		"t88":"移除",
 		"t89":"打开所在的文件夹",
+		"t90":"3D 模型",
+		"t91":"下载3D模型",
 		"wk1":"快速入门指南",
 		"wk2":"本文介绍了Bambu Studio的最基本用法。它指导用户配置软件，创建项目，并逐步完成第一个打印任务。",
 		"wk3":"基于项目的工作流",
