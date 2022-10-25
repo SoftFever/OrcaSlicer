@@ -244,10 +244,11 @@ AboutDialog::AboutDialog()
     // version
     {
         vesizer->Add(0, FromDIP(165), 1, wxEXPAND, FromDIP(5));
+        auto version_text = GUI_App::format_display_version();
 #if BBL_INTERNAL_TESTING
-        auto version_string = _L("Internal Version") + " " + std::string(SLIC3R_VERSION);
+        auto version_string = _L("Internal Version") + " " + std::string(version_text);
 #else
-        auto version_string = _L("Version") + " " + std::string(SLIC3R_VERSION);
+        auto version_string = _L("Version") + " " + std::string(version_text);
 #endif
         wxStaticText* version = new wxStaticText(this, wxID_ANY, version_string.c_str(), wxDefaultPosition, wxDefaultSize);
         wxFont version_font = GetFont();
@@ -416,7 +417,7 @@ void AboutDialog::onCopyrightBtn(wxEvent &)
 void AboutDialog::onCopyToClipboard(wxEvent&)
 {
     wxTheClipboard->Open();
-    wxTheClipboard->SetData(new wxTextDataObject(_L("Version") + " " + std::string(SLIC3R_VERSION)));
+    wxTheClipboard->SetData(new wxTextDataObject(_L("Version") + " " + GUI_App::format_display_version()));
     wxTheClipboard->Close();
 }
 

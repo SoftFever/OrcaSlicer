@@ -266,6 +266,7 @@ private:
     std::shared_ptr<UpgradeNetworkJob> m_upgrade_network_job;
 
     VersionInfo version_info;
+    static std::string version_display;
     HMSQuery    *hms_query { nullptr };
 
     boost::thread    m_sync_update_thread;
@@ -397,6 +398,7 @@ public:
     void            enter_force_upgrade();
     void            set_skip_version(bool skip = true);
     void            no_new_version();
+    static std::string format_display_version();
     void            show_dialog(wxString msg);
     void            reload_settings();
     void            remove_user_presets();

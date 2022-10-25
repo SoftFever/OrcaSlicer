@@ -386,7 +386,7 @@ private:
             title = wxGetApp().is_editor() ? SLIC3R_APP_FULL_NAME : GCODEVIEWER_APP_NAME;
 
             // dynamically get the version to display
-            version = _L("V") + " " + std::string(SLIC3R_VERSION);
+            version = _L("V") + " " + GUI_App::format_display_version();
 
             // credits infornation
             credits = "";
@@ -554,10 +554,11 @@ private:
             title = wxGetApp().is_editor() ? SLIC3R_APP_FULL_NAME : GCODEVIEWER_APP_NAME;
 
             // dynamically get the version to display
+            auto version_text = GUI_App::format_display_version();
 #if BBL_INTERNAL_TESTING
-            version = _L("Internal Version") + " " + std::string(SLIC3R_VERSION);
+            version = _L("Internal Version") + " " + std::string(version_text);
 #else
-            version = _L("Version") + " " + std::string(SLIC3R_VERSION);
+            version = _L("Version") + " " + std::string(version_text);
 #endif
 
             // credits infornation
@@ -3617,6 +3618,25 @@ void GUI_App::no_new_version()
 {
     wxCommandEvent* evt = new wxCommandEvent(EVT_SHOW_NO_NEW_VERSION);
     GUI::wxGetApp().QueueEvent(evt);
+}
+
+std::string GUI_App::version_display = "";
+std::string GUI_App::format_display_version()
+{
+    if (!version_display.empty()) return version_display;
+
+    auto version_text = std::string(SLIC3R_VERSION);
+    int len = version_text.length();
+    for (int i = 0, j = 0; i < len; ++i) {
+        if (!(version_text[i] == '0' && j == 0))
+            version_display += version_text[i];
+
+        if (version_text[i] == '.')
+            j = 0;
+        else
+            ++j;
+    }
+    return version_display;
 }
 
 void GUI_App::show_dialog(wxString msg)
