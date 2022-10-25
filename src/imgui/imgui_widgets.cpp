@@ -7917,7 +7917,7 @@ void ImGui::EndMenu()
     EndPopup();
 }
 
-bool ImGui::BBLMenuItem(const char* label, const char* shortcut, bool selected, bool enabled)
+bool ImGui::BBLMenuItem(const char* label, const char* shortcut, bool selected, bool enabled, float size_arg_y)
 {
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
@@ -7939,7 +7939,7 @@ bool ImGui::BBLMenuItem(const char* label, const char* shortcut, bool selected, 
         float w = label_size.x;
         window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * 0.5f);
         PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(style.ItemSpacing.x * 2.0f, style.ItemSpacing.y));
-        pressed = BBLSelectable(label, selected, flags, ImVec2(w, 0.0f));
+        pressed = BBLSelectable(label, selected, flags, ImVec2(w, size_arg_y));
         PopStyleVar();
         window->DC.CursorPos.x += IM_FLOOR(style.ItemSpacing.x * (-1.0f + 0.5f)); // -1 spacing to compensate the spacing added when Selectable() did a SameLine(). It would also work to call SameLine() ourselves after the PopStyleVar().
     }
@@ -7951,7 +7951,7 @@ bool ImGui::BBLMenuItem(const char* label, const char* shortcut, bool selected, 
         float shortcut_w = shortcut ? CalcTextSize(shortcut, NULL).x : 0.0f;
         float min_w = window->DC.MenuColumns.DeclColumns(label_size.x, shortcut_w, IM_FLOOR(g.FontSize * 1.20f)); // Feedback for next frame
         float extra_w = ImMax(0.0f, GetContentRegionAvail().x - min_w);
-        pressed = BBLSelectable(label, false, flags | ImGuiSelectableFlags_SpanAvailWidth | ImGuiComboFlags_NoArrowButton, ImVec2(min_w, 0.0f));
+        pressed = BBLSelectable(label, false, flags | ImGuiSelectableFlags_SpanAvailWidth | ImGuiComboFlags_NoArrowButton, ImVec2(min_w, size_arg_y));
         if (shortcut_w > 0.0f)
         {
             PushStyleColor(ImGuiCol_Text, g.Style.Colors[ImGuiCol_TextDisabled]);

@@ -346,7 +346,7 @@ inline std::string short_time(const std::string &time)
     int days = 0;
     int hours = 0;
     int minutes = 0;
-    int seconds = 0;
+    float seconds = 0;
     if (time.find('d') != std::string::npos)
         ::sscanf(time.c_str(), "%dd %dh %dm %ds", &days, &hours, &minutes, &seconds);
     else if (time.find('h') != std::string::npos)
@@ -354,7 +354,7 @@ inline std::string short_time(const std::string &time)
     else if (time.find('m') != std::string::npos)
         ::sscanf(time.c_str(), "%dm %ds", &minutes, &seconds);
     else if (time.find('s') != std::string::npos)
-        ::sscanf(time.c_str(), "%ds", &seconds);
+        ::sscanf(time.c_str(), "%fs", &seconds);
     // Round to full minutes.
     if (days + hours + minutes > 0 && seconds >= 30) {
         if (++minutes == 60) {
@@ -372,9 +372,13 @@ inline std::string short_time(const std::string &time)
     else if (hours > 0)
         ::sprintf(buffer, "%dh%dm", hours, minutes);
     else if (minutes > 0)
-        ::sprintf(buffer, "%dm%ds", minutes, seconds);
-    else
-        ::sprintf(buffer, "%ds", seconds);
+        ::sprintf(buffer, "%dm%ds", minutes, (int)seconds);
+    else if (seconds > 1)
+        ::sprintf(buffer, "%ds", (int)seconds);
+    else if (seconds > 0)
+        ::sprintf(buffer, "<1s");
+    else if (seconds == 0)
+        ::sprintf(buffer, "0s");
     return buffer;
 }
 
@@ -395,8 +399,10 @@ inline std::string get_time_dhms(float time_in_secs)
         ::sprintf(buffer, "%dh %dm %ds", hours, minutes, (int)time_in_secs);
     else if (minutes > 0)
         ::sprintf(buffer, "%dm %ds", minutes, (int)time_in_secs);
-    else
+    else if (time_in_secs > 1)
         ::sprintf(buffer, "%ds", (int)time_in_secs);
+    else
+        ::sprintf(buffer, "%fs", time_in_secs);
 
     return buffer;
 }
