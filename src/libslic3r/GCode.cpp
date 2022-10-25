@@ -1390,17 +1390,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 Slic3r::Utils::utc_timestamp())
                 .c_str());
 
-        // BBS: add plate id into thumbnail render logic
-        //     if (const auto [thumbnails, thumbnails_format] = std::make_pair(
-        //     print.full_print_config().option<ConfigOptionPoints>("thumbnails"),
-        //     print.full_print_config().option<ConfigOptionEnum<GCodeThumbnailsFormat>>("thumbnails_format"));
-        // thumbnails)
-        // GCodeThumbnails::export_thumbnails_to_file(
-        //     thumbnail_cb, thumbnails->values, thumbnails_format ? thumbnails_format->value : GCodeThumbnailsFormat::PNG,
-        //     [&file](const char* sz) { file.write(sz); },
-        //     [&print]() { print.throw_if_canceled(); });
-
-
         DoExport::export_thumbnails_to_file(
             thumbnail_cb, print.get_plate_index(), print.full_print_config().option<ConfigOptionPoints>("thumbnails")->values,
             [&file](const char *sz) { file.write(sz); },
@@ -1582,16 +1571,26 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     }
     std::string machine_start_gcode = this->placeholder_parser_process("machine_start_gcode", print.config().machine_start_gcode.value, initial_extruder_id);
-    // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
-    this->_print_first_layer_bed_temperature(file, print, machine_start_gcode, initial_extruder_id, true);
-    // Set extruder(s) temperature before and after start G-code.
-    this->_print_first_layer_extruder_temperatures(file, print, machine_start_gcode, initial_extruder_id, false);
+    if (print.config().gcode_flavor != gcfKlipper) {
+        // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
+        this->_print_first_layer_bed_temperature(file, print, machine_start_gcode, initial_extruder_id, true);
+        // Set extruder(s) temperature before and after start G-code.
+        this->_print_first_layer_extruder_temperatures(file, print, machine_start_gcode, initial_extruder_id, false);
+    }
 
     // adds tag for processor
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
 
     // Write the custom start G-code
     file.writeln(machine_start_gcode);
+
+    if (print.config().gcode_flavor == gcfKlipper) {
+
+      this->_print_first_layer_bed_temperature(file, print, "",
+                                               initial_extruder_id, true);
+      this->_print_first_layer_extruder_temperatures(
+          file, print, "", initial_extruder_id, false);
+    }
     //BBS: gcode writer doesn't know where the real position of extruder is after inserting custom gcode
     m_writer.set_current_position_clear(false);
 
