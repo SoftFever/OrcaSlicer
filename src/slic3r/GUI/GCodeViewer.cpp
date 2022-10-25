@@ -901,11 +901,9 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
     view_type_items.push_back(EViewType::Height);
     view_type_items.push_back(EViewType::Width);
     view_type_items.push_back(EViewType::VolumetricRate);
-    if (mode == ConfigOptionMode::comDevelop) {
-        view_type_items.push_back(EViewType::FanSpeed);
-        view_type_items.push_back(EViewType::Temperature);
-        view_type_items.push_back(EViewType::Tool);
-    }
+    view_type_items.push_back(EViewType::FanSpeed);
+    view_type_items.push_back(EViewType::Temperature);
+    view_type_items.push_back(EViewType::Tool);
 
     for (int i = 0; i < view_type_items.size(); i++) {
         view_type_items_str.push_back(get_view_type_string(view_type_items[i]));
