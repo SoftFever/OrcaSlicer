@@ -2053,7 +2053,8 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
                     const Node& node = *p_node;
                     ExPolygon area;
-                    if (node.type == ePolygon) {
+                    // 如果是混合支撑里的普通部分，或没有启用顶部接触层，则直接从overhang多边形生成
+                    if (node.type == ePolygon || (top_interface_layers>0 &&node.support_roof_layers_below > 0)) {
                         area = offset_ex({ *node.overhang }, scale_(m_ts_data->m_xy_distance))[0];
                     }
                     else {
@@ -2999,6 +3000,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
                             constexpr size_t distance_to_top = 0;
                             constexpr bool to_buildplate = true;
                             Node* contact_node = new Node(candidate, distance_to_top, (layer_nr + z_distance_top_layers) % 2, support_roof_layers, to_buildplate, Node::NO_PARENT,print_z,height);
+                            contact_node->overhang = &overhang_part;
                             curr_nodes.emplace_back(contact_node);
                             added = true;
                         }
@@ -3021,6 +3023,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
                     constexpr size_t distance_to_top = 0;
                     constexpr bool   to_buildplate   = true;
                     Node *           contact_node    = new Node(candidate, distance_to_top, layer_nr % 2, support_roof_layers, to_buildplate, Node::NO_PARENT, print_z, height);
+                    contact_node->overhang           = &overhang_part;
                     curr_nodes.emplace_back(contact_node);
                 }
             }
@@ -3033,6 +3036,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
                     auto v2 = (pt - points[(i + 1) % points.size()]).normalized();
                     if (v1.dot(v2) > -0.7) {
                         Node *contact_node = new Node(pt, 0, layer_nr % 2, support_roof_layers, true, Node::NO_PARENT, print_z, height);
+                        contact_node->overhang = &overhang_part;
                         curr_nodes.emplace_back(contact_node);
                     }
                 }
