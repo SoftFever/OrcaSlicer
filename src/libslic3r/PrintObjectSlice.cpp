@@ -141,13 +141,11 @@ static std::vector<VolumeSlices> slice_volumes_inner(
     //BBS: 0.0025mm is safe enough to simplify the data to speed slicing up for high-resolution model.
     //Also has on influence on arc fitting which has default resolution 0.0125mm.
     params_base.resolution     = 0.0025;
-    //BBS: remove slice mode, always regular
-    //switch (print_object_config.slicing_mode.value) {
-    //case SlicingMode::Regular:    params_base.mode = MeshSlicingParams::SlicingMode::Regular; break;
-    //case SlicingMode::EvenOdd:    params_base.mode = MeshSlicingParams::SlicingMode::EvenOdd; break;
-    //case SlicingMode::CloseHoles: params_base.mode = MeshSlicingParams::SlicingMode::Positive; break;
-    //}
-    params_base.mode = MeshSlicingParams::SlicingMode::Regular;
+    switch (print_object_config.slicing_mode.value) {
+    case SlicingMode::Regular:    params_base.mode = MeshSlicingParams::SlicingMode::Regular; break;
+    case SlicingMode::EvenOdd:    params_base.mode = MeshSlicingParams::SlicingMode::EvenOdd; break;
+    case SlicingMode::CloseHoles: params_base.mode = MeshSlicingParams::SlicingMode::Positive; break;
+    }
 
     params_base.mode_below     = params_base.mode;
 

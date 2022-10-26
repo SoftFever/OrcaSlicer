@@ -2323,6 +2323,20 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.049));
 
+    def = this->add("slicing_mode", coEnum);
+    def->label = L("Slicing Mode");
+    def->category = L("Other");
+    def->tooltip = L("Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model.");
+    def->enum_keys_map = &ConfigOptionEnum<SlicingMode>::get_enum_values();
+    def->enum_values.push_back("regular");
+    def->enum_values.push_back("even_odd");
+    def->enum_values.push_back("close_holes");
+    def->enum_labels.push_back(L("Regular"));
+    def->enum_labels.push_back(L("Even-odd"));
+    def->enum_labels.push_back(L("Close holes"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<SlicingMode>(SlicingMode::Regular));
+
     def = this->add("enable_support", coBool);
     //BBS: remove material behind support
     def->label = L("Enable support");
@@ -3703,7 +3717,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         , "support_sharp_tails","remove_small_overhangs", "support_with_sheath",
         "tree_support_branch_diameter_angle", "tree_support_collision_resolution",
         "small_perimeter_speed", "max_volumetric_speed", "max_print_speed",
-        "support_bottom_z_distance", "support_closing_radius", "slicing_mode",
+        "support_bottom_z_distance", "support_closing_radius",
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector"
