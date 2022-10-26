@@ -3,6 +3,9 @@
     "name": "fdm_filament_common",
     "from": "system",
     "instantiation": "false",
+    "required_nozzle_HRC": [
+        "20"
+    ],
     "cool_plate_temp" : [
         "60"
     ],

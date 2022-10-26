@@ -1089,6 +1089,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionStrings{ "#00AE42" });
 
+    //bbs
+    def          = this->add("required_nozzle_HRC", coInts);
+    def->label   = L("Required nozzle HRC");
+    def->tooltip = L("the HRC of nozzle when print the filament. zeros means the setting not be used");
+    def->min     = 0;
+    def->max     = 500;
+    def->mode    = comDevelop;
+    def->set_default_value(new ConfigOptionInts{0});
+
     def = this->add("filament_max_volumetric_speed", coFloats);
     def->label = L("Max volumetric speed");
     def->tooltip = L("This setting stands for how much volume of filament can be melted and extruded per second. "
@@ -1433,6 +1442,15 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Brass"));
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionEnum<NozzleType>(ntUndefine));
+
+    def                = this->add("nozzle_hrc", coInt);
+    def->label         = L("Nozzle HRC");
+    def->tooltip       = L("The hardness of nozzle. zeros means the setting not be used");
+    def->sidetext      = L("HRC");
+    def->min           = 0;
+    def->max           = 500;
+    def->mode          = comDevelop;
+    def->set_default_value(new ConfigOptionInt{0});
 
     def = this->add("auxiliary_fan", coBool);
     def->label = L("Auxiliary part cooling fan");

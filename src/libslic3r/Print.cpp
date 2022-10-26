@@ -130,7 +130,9 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         // BBS
         "wipe_distance",
         "curr_bed_type",
-        "nozzle_volume"
+        "nozzle_volume",
+        "nozzle_hrc", 
+        "required_nozzle_HRC"
     };
 
     static std::unordered_set<std::string> steps_ignore;

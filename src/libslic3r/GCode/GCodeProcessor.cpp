@@ -35,6 +35,7 @@ static const float DEFAULT_TRAVEL_ACCELERATION = 1250.0f;
 
 static const size_t MIN_EXTRUDERS_COUNT = 5;
 static const float DEFAULT_FILAMENT_DIAMETER = 1.75f;
+static const int   DEFAULT_FILAMENT_HRC = 0;
 static const float DEFAULT_FILAMENT_DENSITY = 1.245f;
 static const int   DEFAULT_FILAMENT_VITRIFICATION_TEMPERATURE = 0;
 static const Slic3r::Vec3f DEFAULT_EXTRUDER_OFFSET = Slic3r::Vec3f::Zero();
@@ -778,6 +779,7 @@ void GCodeProcessorResult::reset() {
     extruders_count = 0;
     extruder_colors = std::vector<std::string>();
     filament_diameters = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DIAMETER);
+    required_nozzle_HRC = std::vector<int>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_HRC);
     filament_densities = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DENSITY);
     custom_gcode_per_print_z = std::vector<CustomGCode::Item>();
     warnings.clear();
@@ -881,14 +883,17 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_extruder_offsets.resize(extruders_count);
     m_extruder_colors.resize(extruders_count);
     m_result.filament_diameters.resize(extruders_count);
+    m_result.required_nozzle_HRC.resize(extruders_count);
     m_result.filament_densities.resize(extruders_count);
     m_result.filament_vitrification_temperature.resize(extruders_count);
     m_extruder_temps.resize(extruders_count);
+    m_result.nozzle_hrc = static_cast<int>(config.nozzle_hrc.getInt());
 
     for (size_t i = 0; i < extruders_count; ++ i) {
         m_extruder_offsets[i]           = to_3d(config.extruder_offset.get_at(i).cast<float>().eval(), 0.f);
         m_extruder_colors[i]            = static_cast<unsigned char>(i);
         m_result.filament_diameters[i]  = static_cast<float>(config.filament_diameter.get_at(i));
+        m_result.required_nozzle_HRC[i] = static_cast<int>(config.required_nozzle_HRC.get_at(i));
         m_result.filament_densities[i]  = static_cast<float>(config.filament_density.get_at(i));
         m_result.filament_vitrification_temperature[i] = static_cast<float>(config.temperature_vitrification.get_at(i));
     }
@@ -935,6 +940,9 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     if (nozzle_volume != nullptr)
         m_nozzle_volume = nozzle_volume->value;
 
+    const ConfigOptionInt *nozzle_HRC = config.option<ConfigOptionInt>("nozzle_hrc");
+    if (nozzle_HRC != nullptr) m_result.nozzle_hrc = nozzle_HRC->value;
+
     const ConfigOptionEnum<GCodeFlavor>* gcode_flavor = config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor");
     if (gcode_flavor != nullptr)
         m_flavor = gcode_flavor->value;
@@ -975,6 +983,18 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     if (m_result.filament_diameters.size() < m_result.extruders_count) {
         for (size_t i = m_result.filament_diameters.size(); i < m_result.extruders_count; ++i) {
             m_result.filament_diameters.emplace_back(DEFAULT_FILAMENT_DIAMETER);
+        }
+    }
+
+    const ConfigOptionInts *filament_HRC = config.option<ConfigOptionInts>("required_nozzle_HRC");
+    if (filament_HRC != nullptr) {
+        m_result.required_nozzle_HRC.clear();
+        m_result.required_nozzle_HRC.resize(filament_HRC->values.size());
+        for (size_t i = 0; i < filament_HRC->values.size(); ++i) { m_result.required_nozzle_HRC[i] = static_cast<float>(filament_HRC->values[i]); }
+    }
+
+    if (m_result.required_nozzle_HRC.size() < m_result.extruders_count) {
+        for (size_t i = m_result.required_nozzle_HRC.size(); i < m_result.extruders_count; ++i) { m_result.required_nozzle_HRC.emplace_back(DEFAULT_FILAMENT_HRC);
         }
     }
 
@@ -3996,6 +4016,20 @@ void GCodeProcessor::update_slice_warnings()
     if (!warning.params.empty()) {
         warning.msg   = BED_TEMP_TOO_HIGH_THAN_FILAMENT;
         m_result.warnings.push_back(warning);
+
+    //bbs:HRC checker
+    if (m_result.nozzle_hrc!=0) {
+        for (size_t i = 0; i < used_extruders.size(); i++) {
+            int HRC=0;
+            if (used_extruders[i] < m_result.required_nozzle_HRC.size())
+                HRC = m_result.required_nozzle_HRC[used_extruders[i]];
+            if (HRC != 0 && (m_result.nozzle_hrc<HRC)) {
+                GCodeProcessorResult::SliceWarning warning;
+                warning.level = 1;
+                warning.msg   = THE_ACTUAL_NOZZLE_HRC_SMALLER_THAN__THE_REQUAIRED_NOZZLE_HRC;
+                m_result.warnings.emplace_back(std::move(warning));
+            }
+        }
     }
 
     m_result.warnings.shrink_to_fit();

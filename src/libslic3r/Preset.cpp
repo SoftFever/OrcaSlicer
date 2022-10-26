@@ -734,7 +734,8 @@ static std::vector<std::string> s_Preset_print_options {
 };
 
 static std::vector<std::string> s_Preset_filament_options {
-    /* "filament_colour",*/ "default_filament_colour", "filament_diameter", "filament_type", "filament_soluble", "filament_is_support", "filament_max_volumetric_speed",
+    /*"filament_colour", */ "default_filament_colour","required_nozzle_HRC","filament_diameter", "filament_type", "filament_soluble", "filament_is_support",
+    "filament_max_volumetric_speed",
     "filament_flow_ratio", "filament_density", "filament_cost", "filament_minimal_purge_on_wipe_tower",
     "nozzle_temperature", "nozzle_temperature_initial_layer",
     // BBS
@@ -771,7 +772,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "silent_mode",
     // BBS
     "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode",
-    "nozzle_type", "auxiliary_fan", "nozzle_volume",
+    "nozzle_type", "nozzle_hrc","auxiliary_fan", "nozzle_volume",
     //SoftFever
     "host_type", "print_host", "printhost_apikey", 
     "printhost_cafile","printhost_port","printhost_authorization_type",

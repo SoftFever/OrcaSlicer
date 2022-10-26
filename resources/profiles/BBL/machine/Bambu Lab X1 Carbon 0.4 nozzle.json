@@ -29,5 +29,6 @@
   "machine_load_filament_time": "17",
   "machine_unload_filament_time": "16",
   "nozzle_type": "hardened_steel",
+  "nozzle_hrc": "55",
   "auxiliary_fan": "1"
 }

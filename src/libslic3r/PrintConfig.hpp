@@ -759,6 +759,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,             default_filament_colour))
     ((ConfigOptionInts,                temperature_vitrification))  //BBS
     ((ConfigOptionFloats,              filament_max_volumetric_speed))
+    ((ConfigOptionInts,                required_nozzle_HRC))
     ((ConfigOptionFloat,               machine_load_filament_time))
     ((ConfigOptionFloat,               machine_unload_filament_time))
     ((ConfigOptionFloats,              filament_minimal_purge_on_wipe_tower))
@@ -792,6 +793,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionString,              template_custom_gcode))
     //BBS
     ((ConfigOptionEnum<NozzleType>,    nozzle_type))
+    ((ConfigOptionInt,                 nozzle_hrc))
     ((ConfigOptionBool,                auxiliary_fan))
 )
 

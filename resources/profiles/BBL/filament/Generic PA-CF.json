@@ -6,6 +6,9 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pa",
+    "required_nozzle_HRC": [
+      "55"
+    ],
     "filament_type": [
       "PA-CF"
   ],
@@ -34,6 +37,7 @@
       "Bambu Lab X1 Carbon 0.4 nozzle",
       "Bambu Lab X1 Carbon 0.6 nozzle",
       "Bambu Lab X1 Carbon 0.8 nozzle",
+      "Bambu Lab X1 0.4 nozzle",
       "Bambu Lab X1 0.6 nozzle",
       "Bambu Lab X1 0.8 nozzle"
     ]  

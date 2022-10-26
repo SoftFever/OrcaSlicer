@@ -17,6 +17,7 @@
 namespace Slic3r {
 
 // slice warnings enum strings
+#define THE_ACTUAL_NOZZLE_HRC_SMALLER_THAN__THE_REQUAIRED_NOZZLE_HRC "the_actual_nozzle_hrc_smaller_than_the_required_nozzle_hrc"
 #define BED_TEMP_TOO_HIGH_THAN_FILAMENT     "bed_temperature_too_high_than_filament"
 
     enum class EMoveType : unsigned char
@@ -86,6 +87,7 @@ namespace Slic3r {
 
     struct GCodeProcessorResult
     {
+
         struct SettingsIds
         {
             std::string print;
@@ -152,12 +154,14 @@ namespace Slic3r {
         size_t extruders_count;
         std::vector<std::string> extruder_colors;
         std::vector<float> filament_diameters;
+        std::vector<int>   required_nozzle_HRC;
         std::vector<float> filament_densities;
         std::vector<int> filament_vitrification_temperature;
         PrintEstimatedStatistics print_statistics;
         std::vector<CustomGCode::Item> custom_gcode_per_print_z;
         //BBS
         std::vector<SliceWarning> warnings;
+        int nozzle_hrc;
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
         int64_t time{ 0 };
@@ -575,7 +579,6 @@ namespace Slic3r {
         std::vector<Vec3f> m_extruder_offsets;
         GCodeFlavor m_flavor;
         float       m_nozzle_volume;
-
         AxisCoords m_start_position; // mm
         AxisCoords m_end_position; // mm
         AxisCoords m_origin; // mm
@@ -832,7 +835,6 @@ namespace Slic3r {
         float get_filament_load_time(size_t extruder_id);
         float get_filament_unload_time(size_t extruder_id);
         int   get_filament_vitrification_temperature(size_t extrude_id);
-
         void process_custom_gcode_time(CustomGCode::Type code);
         void process_filaments(CustomGCode::Type code);
 
