@@ -392,6 +392,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
         Polygon        hull_polygon;
         int                  index;
         double         arrange_score;
+        double               height;
     };
     std::vector<struct print_instance_info> print_instance_with_bounding_box;
     {
@@ -469,6 +470,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                     }
                 }
                 struct print_instance_info print_info {&instance, convex_hull.bounding_box(), convex_hull};
+                print_info.height = instance.print_object->height();
                 print_instance_with_bounding_box.push_back(std::move(print_info));
                 convex_hulls_other.emplace_back(std::move(convex_hull));
             }
@@ -484,6 +486,10 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
     }
 
     // calc sort order
+    double hc1              = scale_(print.config().extruder_clearance_height_to_lid);
+    double hc2              = scale_(print.config().extruder_clearance_height_to_rod);
+    double printable_height = scale_(print.config().printable_height);
+
     auto bed_points = get_bed_shape(print_config);
     float bed_width = bed_points[1].x() - bed_points[0].x();
     // 如果扩大以后的多边形的距离小于这个值，就需要严格保证从左到右的打印顺序，否则会撞工具头右侧
@@ -497,9 +503,9 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
     }
     for (size_t i = 0; i < print_instance_with_bounding_box.size(); i++) {
         auto &inst         = print_instance_with_bounding_box[i];        
+        auto &l            = print_instance_with_bounding_box[i];
         for (size_t j = 0; j < print_instance_with_bounding_box.size(); j++) {
             if (j != i) { 
-                auto &l        = print_instance_with_bounding_box[i];
                 auto &r        = print_instance_with_bounding_box[j];
                 auto ly1       = l.bounding_box.min.y();
                 auto ly2       = l.bounding_box.max.y();
@@ -516,22 +522,30 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                 inter_max      = std::min(lx2, rx2);
                 auto inter_x   = inter_max - inter_min;
 
-                // 如果y方向有重合，说明两个物体在一行，应该先打左边的物体，即先比较二者的x坐标。
-                if (inter_y > 0) {
+                // 如果y方向的重合超过轮廓的膨胀量，说明两个物体在一行，应该先打左边的物体，即先比较二者的x坐标。
+                if (inter_y > scale_(0.5 * print.config().extruder_clearance_radius.value)) {
                     if (std::max(rx1 - lx2, lx1 - rx2) < unsafe_dist) {
                         std::string dir = "left";
                         if (lx1 > rx1) {
                             left_right_pair.emplace_back(j, i);
-                            print_instance_with_bounding_box[i].arrange_score = std::max(inst.arrange_score, r.arrange_score + bed_width);
+                            l.arrange_score = std::max(l.arrange_score, r.arrange_score + bed_width);
                         } else {
                             left_right_pair.emplace_back(i, j);
-                            print_instance_with_bounding_box[j].arrange_score = std::max(r.arrange_score, l.arrange_score + bed_width);
+                            r.arrange_score = std::max(r.arrange_score, l.arrange_score + bed_width);
                             dir             = "right";
                         }
                         BOOST_LOG_TRIVIAL(debug) << "print_instance " << inst.print_instance->model_instance->get_object()->name
                                                  << ", right=" << r.print_instance->model_instance->get_object()->name << ", l.score: " << l.arrange_score
                                                  << ", r.score: " << r.arrange_score << ", dist:" << std::max(rx1 - lx2, lx1 - rx2) << ", dir: " << dir;
                     }
+                } 
+                if (l.height>hc2) {
+                    // 如果当前物体的高度超过滑杆，且比r高，就给它加一点代价
+                    if (l.height > r.height)
+                        l.arrange_score = std::max(l.arrange_score, r.arrange_score + bed_width);
+                    BOOST_LOG_TRIVIAL(debug) << "height print_instance " << inst.print_instance->model_instance->get_object()->name
+                                             << ", right=" << r.print_instance->model_instance->get_object()->name << ", l.score: " << l.arrange_score
+                                             << ", r.score: " << r.arrange_score;
                 }
             }
         }
@@ -548,6 +562,10 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
             return true;
         else
             return l.arrange_score < r.arrange_score;});
+
+    for (auto &inst : print_instance_with_bounding_box)
+        BOOST_LOG_TRIVIAL(debug) << "after sorting print_instance " << inst.print_instance->model_instance->get_object()->name << ", score: " << inst.arrange_score
+                                 << ", height:"<< inst.height;
 
     // sequential_print_vertical_clearance_valid
     {
@@ -578,9 +596,6 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                 break;
         }*/
 
-        double hc1 = scale_(print.config().extruder_clearance_height_to_lid);
-        double hc2 = scale_(print.config().extruder_clearance_height_to_rod);
-        double printable_height = scale_(print.config().printable_height);
 
         // if objects are not overlapped on y-axis, they will not collide even if they are taller than extruder_clearance_height_to_rod
         int print_instance_count = print_instance_with_bounding_box.size();
