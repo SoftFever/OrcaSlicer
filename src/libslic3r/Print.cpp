@@ -88,6 +88,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "fan_cooling_layer_time",
         "full_fan_speed_layer",
         "filament_colour",
+        "default_filament_colour",
         "filament_diameter",
         "filament_density",
         "filament_cost",

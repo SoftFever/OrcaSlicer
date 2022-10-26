@@ -1064,12 +1064,19 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 60 });
 
-    def           = this->add("filament_colour", coStrings);
+    def           = this->add("default_filament_colour", coStrings);
     def->label    = L("Defualt color");
-    def->tooltip  = L("Only used as a visual help on UI");
+    def->tooltip  = L("Default filament colour");
     def->gui_type = ConfigOptionDef::GUIType::color;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionStrings{"#00AE42"});
+
+    def = this->add("filament_colour", coStrings);
+    def->label = L("Color");
+    def->tooltip = L("Only used as a visual help on UI");
+    def->gui_type = ConfigOptionDef::GUIType::color;
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionStrings{ "#00AE42" });
 
     def = this->add("filament_max_volumetric_speed", coFloats);
     def->label = L("Max volumetric speed");

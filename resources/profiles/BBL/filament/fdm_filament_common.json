@@ -3,9 +3,6 @@
     "name": "fdm_filament_common",
     "from": "system",
     "instantiation": "false",
-    "filament_colour":[
-        "#00AE42"
-    ],
     "cool_plate_temp" : [
         "60"
     ],

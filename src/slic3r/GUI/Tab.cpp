@@ -2421,7 +2421,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_soluble");
         // BBS
         optgroup->append_single_option_line("filament_is_support");
-        optgroup->append_single_option_line("filament_colour");
+        optgroup->append_single_option_line("default_filament_colour");
         optgroup->append_single_option_line("filament_diameter");
         optgroup->append_single_option_line("filament_flow_ratio");
         optgroup->append_single_option_line("filament_density");
