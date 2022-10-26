@@ -816,7 +816,6 @@ void AssembleView::reload_scene(bool refresh_immediately, bool force_full_scene_
             m_canvas->render(true);
         }
         m_canvas->reload_scene(refresh_immediately, force_full_scene_refresh);
-        m_canvas->reload_scene(refresh_immediately, force_full_scene_refresh);
     }
 }
 

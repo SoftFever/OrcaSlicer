@@ -345,7 +345,7 @@ void GLGizmosManager::update(const Linef3& mouse_ray, const Point& mouse_pos)
 void GLGizmosManager::update_assemble_view_data()
 {
     if (m_assemble_view_data) {
-        if (m_parent.get_canvas_type() != GLCanvas3D::CanvasAssembleView)
+        if (!wxGetApp().plater()->get_assmeble_canvas3D()->get_wxglcanvas()->IsShown())
             m_assemble_view_data->update(AssembleViewDataID(0));
         else
             m_assemble_view_data->update(AssembleViewDataID((int)AssembleViewDataID::ModelObjectsInfo | (int)AssembleViewDataID::ModelObjectsClipper));

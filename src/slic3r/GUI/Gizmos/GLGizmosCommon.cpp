@@ -611,6 +611,9 @@ void ModelObjectsInfo::on_update()
     if (!get_pool()->get_canvas()->get_model()->objects.empty()) {
         m_model_objects = get_pool()->get_canvas()->get_model()->objects;
     }
+    else {
+        m_model_objects.clear();
+    }
 }
 
 void ModelObjectsInfo::on_release()
