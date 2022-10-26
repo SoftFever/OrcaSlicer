@@ -573,7 +573,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     bool has_ironing = (config->opt_enum<IroningType>("ironing_type") != IroningType::NoIroning);
     for (auto el : { "ironing_flow", "ironing_spacing", "ironing_speed" })
-    	toggle_field(el, has_ironing);
+        toggle_line(el, has_ironing);
 
     // bool have_sequential_printing = (config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject);
     // for (auto el : { "extruder_clearance_radius", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
@@ -583,19 +583,21 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("standby_temperature_delta", have_ooze_prevention);
 
     bool have_prime_tower = config->opt_bool("enable_prime_tower");
-    for (auto el : { "prime_tower_width", "prime_volume"})
-        toggle_field(el, have_prime_tower);
+    for (auto el : { "prime_tower_width", "prime_volume", "prime_tower_brim_width"})
+        toggle_line(el, have_prime_tower);
 
     bool have_avoid_crossing_perimeters = config->opt_bool("reduce_crossing_wall");
-    toggle_field("max_travel_detour_distance", have_avoid_crossing_perimeters);
+    toggle_line("max_travel_detour_distance", have_avoid_crossing_perimeters);
 
     bool has_overhang_speed = config->opt_bool("enable_overhang_speed");
-    toggle_line("overhang_1_4_speed", has_overhang_speed);
-    toggle_line("overhang_2_4_speed", has_overhang_speed);
-    toggle_line("overhang_3_4_speed", has_overhang_speed);
-    toggle_line("overhang_4_4_speed", has_overhang_speed);
+    for (auto el : { "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed"})
+        toggle_line(el, has_overhang_speed);
 
     toggle_line("flush_into_objects", !is_global_config);
+
+    bool has_fuzzy_skin = (config->opt_enum<FuzzySkinType>("fuzzy_skin") != FuzzySkinType::None);
+    for (auto el : { "fuzzy_skin_thickness", "fuzzy_skin_point_distance"})
+        toggle_line(el, has_fuzzy_skin);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

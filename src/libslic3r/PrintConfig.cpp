@@ -1353,7 +1353,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The width within which to jitter. It's adversed to be below outer wall line width");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(0.3));
 
     def = this->add("fuzzy_skin_point_distance", coFloat);
@@ -1361,7 +1361,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Others");
     def->tooltip = L("The average diatance between the random points introducded on each line segment");
     def->sidetext = L("mm");
-    def->mode = comDevelop;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(0.8));
 
     def = this->add("gap_infill_speed", coFloat);
@@ -1569,7 +1569,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Print speed of ironing lines");
     def->sidetext = L("mm/s");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(20));
 
     def = this->add("layer_change_gcode", coString);
