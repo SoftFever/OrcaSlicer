@@ -928,7 +928,15 @@ void Sidebar::update_all_preset_comboboxes()
         connection_btn->Show();
         ams_btn->Hide();
         p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::eSendGcode);
-        p_mainframe->load_printer_url(wxString::Format("http://%s",preset_bundle.printers.get_edited_preset().config.opt_string("print_host")));
+        wxString host_url = preset_bundle.printers.get_edited_preset().config.opt_string("print_host");
+        if(!host_url.empty()) 
+        {
+            if(!host_url.Lower().starts_with("http"))
+                host_url = wxString::Format("http://%s",host_url);
+
+            p_mainframe->load_printer_url(host_url);
+        }
+
         m_bed_type_list->SelectAndNotify(btPEI);
         m_bed_type_list->Disable();
     }
