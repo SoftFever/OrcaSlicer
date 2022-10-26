@@ -112,6 +112,7 @@ class MainFrame : public DPIFrame
     bool can_export_toolpaths() const;
     bool can_export_supports() const;
     bool can_export_gcode() const;
+    bool can_export_all_gcode() const;
     bool can_print_3mf() const;
     bool can_send_gcode() const;
     //bool can_export_gcode_sd() const;
@@ -169,6 +170,7 @@ class MainFrame : public DPIFrame
 
     ESettingsLayout m_layout{ ESettingsLayout::Unknown };
 
+
     enum SliceSelectType
     {
         eSliceAll = 0,
@@ -207,7 +209,8 @@ public:
         eExportGcode = 3,
         eSendGcode = 4,
         eSendToPrinter = 5,
-        eUploadGcode = 6
+        eUploadGcode = 6,
+        eExportAllSlicedFile = 7
     };
 
     //BBS: add slice&&print status update logic

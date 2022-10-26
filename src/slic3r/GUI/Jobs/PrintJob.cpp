@@ -132,16 +132,21 @@ void PrintJob::process()
         return;
     }
 
+    // task name
     std::string project_name = wxGetApp().plater()->get_project_name().ToUTF8().data();
     int curr_plate_idx = 0;
     if (job_data.plate_idx >= 0)
         curr_plate_idx = job_data.plate_idx + 1;
     else if (job_data.plate_idx == PLATE_CURRENT_IDX)
         curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
+    else if (job_data.plate_idx == PLATE_ALL_IDX)
+        curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
+    else
+        curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
 
     BBL::PrintParams params;
     params.dev_id = m_dev_id;
-    params.project_name = wxGetApp().plater()->get_project_name().ToUTF8().data();
+    params.project_name = project_name;
     params.preset_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
     params.filename = job_data._3mf_path.string();
     params.config_filename = job_data._3mf_config_path.string();

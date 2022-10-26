@@ -4056,7 +4056,7 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 		if (with_slice_info) {
             if (m_plate_list[i]->get_slice_result() && m_plate_list[i]->is_slice_result_valid()) {
                 // BBS only include current palte_idx
-                if (plate_idx == i || plate_idx == -1) {
+                if (plate_idx == i || plate_idx == PLATE_CURRENT_IDX || plate_idx == PLATE_ALL_IDX) {
                     //load calibration thumbnail
                     if (m_plate_list[i]->cali_thumbnail_data.is_valid())
                         plate_data_item->pattern_file = "valid_pattern";

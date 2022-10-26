@@ -1899,6 +1899,7 @@ struct Plater::priv
     void on_action_send_gcode(SimpleEvent&);
     void on_action_upload_gcode(SimpleEvent&);
     void on_action_export_sliced_file(SimpleEvent&);
+    void on_action_export_all_sliced_file(SimpleEvent&);
     void on_action_select_sliced_plate(wxCommandEvent& evt);
 
     void on_update_geometry(Vec3dsEvent<2>&);
@@ -1951,7 +1952,7 @@ struct Plater::priv
     // returns the path to project file with the given extension (none if extension == wxEmptyString)
     // extension should contain the leading dot, i.e.: ".3mf"
     wxString get_project_filename(const wxString& extension = wxEmptyString) const;
-    wxString get_export_gcode_filename(const wxString& extension = wxEmptyString, bool only_filename = false) const;
+    wxString get_export_gcode_filename(const wxString& extension = wxEmptyString, bool only_filename = false, bool export_all = false) const;
     void set_project_filename(const wxString& filename);
 
     //BBS store bbs project name
@@ -2290,6 +2291,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLTOOLBAR_SEND_GCODE, &priv::on_action_send_gcode, this);
         q->Bind(EVT_GLTOOLBAR_UPLOAD_GCODE, &priv::on_action_upload_gcode, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_SLICED_FILE, &priv::on_action_export_sliced_file, this);
+        q->Bind(EVT_GLTOOLBAR_EXPORT_ALL_SLICED_FILE, &priv::on_action_export_all_sliced_file, this);
         q->Bind(EVT_GLTOOLBAR_SEND_TO_PRINTER, &priv::on_action_export_to_sdcard, this);
         q->Bind(EVT_GLCANVAS_PLATE_SELECT, &priv::on_plate_selected, this);
         q->Bind(EVT_DOWNLOAD_PROJECT, &priv::on_action_download_project, this);
@@ -5788,6 +5790,14 @@ void Plater::priv::on_action_export_sliced_file(SimpleEvent&)
     }
 }
 
+void Plater::priv::on_action_export_all_sliced_file(SimpleEvent &)
+{
+    if (q != nullptr) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received export all sliced file event\n";
+        q->export_gcode_3mf(true);
+    }
+}
+
 void Plater::priv::on_action_export_to_sdcard(SimpleEvent&)
 {
 	if (q != nullptr) {
@@ -6068,19 +6078,31 @@ wxString Plater::priv::get_project_filename(const wxString& extension) const
     }
 }
 
-wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool only_filename) const
+wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool only_filename, bool export_all) const
 {
     std::string plate_index_str = (boost::format("_plate_%1%") % std::to_string(partplate_list.get_curr_plate_index() + 1)).str();
     if (!m_project_folder.empty()) {
         if (!only_filename) {
-            auto full_filename = m_project_folder / std::string((m_project_name + plate_index_str + extension).mb_str(wxConvUTF8));
-            return from_path(full_filename);
+            if (export_all) {
+                auto full_filename = m_project_folder / std::string((m_project_name + extension).mb_str(wxConvUTF8));
+                return from_path(full_filename);
+            } else {
+                auto full_filename = m_project_folder / std::string((m_project_name + plate_index_str + extension).mb_str(wxConvUTF8));
+                return from_path(full_filename);
+            }
         } else {
-            return m_project_name + wxString(plate_index_str) + extension;
+            if (export_all)
+                return m_project_name + wxString(plate_index_str) + extension;
+            else
+                return m_project_name + extension;
         }
     } else {
-        if (only_filename)
-            return m_project_name + wxString(plate_index_str) + extension;
+        if (only_filename) {
+            if (export_all)
+                return m_project_name + extension;
+            else
+                return m_project_name + wxString(plate_index_str) + extension;
+        }
         else
             return "";
     }
@@ -8617,7 +8639,7 @@ void Plater::send_to_printer()
 }
 
 //BBS export gcode 3mf to file
-void Plater::export_gcode_3mf()
+void Plater::export_gcode_3mf(bool export_all)
 {
     if (p->model.objects.empty())
         return;
@@ -8629,11 +8651,11 @@ void Plater::export_gcode_3mf()
     fs::path default_output_file;
     AppConfig& appconfig = *wxGetApp().app_config;
     std::string start_dir;
-    default_output_file = into_path(get_export_gcode_filename(".3mf"));
+    default_output_file = into_path(get_export_gcode_filename(".3mf", false, export_all));
     if (default_output_file.empty()) {
         try {
             start_dir = appconfig.get_last_output_dir("", false);
-            wxString filename = get_export_gcode_filename(".3mf", true);
+            wxString filename = get_export_gcode_filename(".3mf", true, export_all);
             std::string full_filename = start_dir + "/" + filename.utf8_string();
             default_output_file = boost::filesystem::path(full_filename);
         } catch(...) {
@@ -8647,7 +8669,6 @@ void Plater::export_gcode_3mf()
 
     //Get a last save path
     start_dir = appconfig.get_last_output_dir(default_output_file.parent_path().string(), false);
-
 
     fs::path output_path;
     {
@@ -8674,8 +8695,10 @@ void Plater::export_gcode_3mf()
         //BBS do not save last output path
         p->last_output_path = output_path.string();
         p->last_output_dir_path = output_path.parent_path().string();
-        int curr_plate_idx = get_partplate_list().get_curr_plate_index();
-        export_3mf(output_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode | SaveStrategy::SkipModel, curr_plate_idx); // BBS: silence
+        int plate_idx = get_partplate_list().get_curr_plate_index();
+        if (export_all)
+            plate_idx = PLATE_ALL_IDX;
+        export_3mf(output_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode | SaveStrategy::SkipModel, plate_idx); // BBS: silence
 
         RemovableDriveManager& removable_drive_manager = *wxGetApp().removable_drive_manager();
 
@@ -9307,7 +9330,9 @@ int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
     if (plate_idx == PLATE_CURRENT_IDX) {
         p->m_print_job_data.plate_idx = get_partplate_list().get_curr_plate_index();
     }
-    else {
+    else if (plate_idx == PLATE_ALL_IDX) {
+        p->m_print_job_data.plate_idx = get_partplate_list().get_curr_plate_index();
+    } else {
         p->m_print_job_data.plate_idx = plate_idx;
     }
 
@@ -9726,9 +9751,9 @@ wxString Plater::get_project_filename(const wxString& extension) const
     return p->get_project_filename(extension);
 }
 
-wxString Plater::get_export_gcode_filename(const wxString & extension, bool only_filename) const
+wxString Plater::get_export_gcode_filename(const wxString & extension, bool only_filename, bool export_all) const
 {
-    return p->get_export_gcode_filename(extension, only_filename);
+    return p->get_export_gcode_filename(extension, only_filename, export_all);
 }
 
 void Plater::set_project_filename(const wxString& filename)
