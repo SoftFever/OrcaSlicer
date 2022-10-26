@@ -644,6 +644,17 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.emplace_back("95%");
     def->set_default_value(new ConfigOptionEnumsGeneric{ (int)Overhang_threshold_bridge });
 
+    def = this->add("bridge_angle", coFloat);
+    def->label = L("Bridge direction");
+    def->category = L("Strength");
+    def->tooltip = L("Bridging angle override. If left to zero, the bridging angle will be calculated "
+        "automatically. Otherwise the provided angle will be used for external bridges. "
+        "Use 180°for zero angle.");
+    def->sidetext = L("°");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
     def = this->add("bridge_flow", coFloat);
     def->label = L("Bridge flow");
     def->category = L("Quality");

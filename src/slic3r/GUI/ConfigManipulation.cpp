@@ -488,7 +488,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     for (auto el : { "top_surface_pattern", "bottom_surface_pattern", "solid_infill_filament"})
         toggle_field(el, has_solid_infill);
 
-    for (auto el : { "infill_direction", "sparse_infill_line_width",
+    for (auto el : { "infill_direction", "sparse_infill_line_width", "bridge_angle",
                     "sparse_infill_speed", "bridge_speed" })
         toggle_field(el, have_infill || has_solid_infill);
 
