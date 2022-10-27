@@ -2647,7 +2647,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("°C");
     def->min = 0;
     def->max = max_temp;
-    def->set_default_value(new ConfigOptionInts { 0 });
+    def->set_default_value(new ConfigOptionInts { 190 });
 
     def = this->add("nozzle_temperature_range_high", coInts);
     def->label = L("Max");
@@ -2655,7 +2655,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("°C");
     def->min = 0;
     def->max = max_temp;
-    def->set_default_value(new ConfigOptionInts { 0 });
+    def->set_default_value(new ConfigOptionInts { 240 });
 
     def = this->add("bed_temperature_difference", coInts);
     def->label = L("Bed temperature difference");
