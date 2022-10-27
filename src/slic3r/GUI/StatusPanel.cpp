@@ -179,8 +179,10 @@ void StatusBasePanel::init_bitmaps()
     m_thumbnail_placeholder  = ScalableBitmap(this, "monitor_placeholder", 120);
     m_thumbnail_sdcard       = ScalableBitmap(this, "monitor_sdcard_thumbnail", 120);
     //m_bitmap_camera          = create_scaled_bitmap("monitor_camera", nullptr, 18);
-    m_bitmap_extruder        = *cache.load_png("monitor_extruder", FromDIP(28), FromDIP(70), false, false);
-    m_bitmap_extruder_load   = *cache.load_png("monitor_extruder_load", FromDIP(28), FromDIP(70), false, false);
+    m_bitmap_extruder_empty_load      = *cache.load_png("monitor_extruder_empty_load", FromDIP(28), FromDIP(70), false, false);
+    m_bitmap_extruder_filled_load     = *cache.load_png("monitor_extruder_filled_load", FromDIP(28), FromDIP(70), false, false);
+    m_bitmap_extruder_empty_unload    = *cache.load_png("monitor_extruder_empty_unload", FromDIP(28), FromDIP(70), false, false);
+    m_bitmap_extruder_filled_unload   = *cache.load_png("monitor_extruder_filled_unload", FromDIP(28), FromDIP(70), false, false);
     m_bitmap_sdcard_state_on    = create_scaled_bitmap("sdcard_state_on", nullptr, 20);
     m_bitmap_sdcard_state_off    = create_scaled_bitmap("sdcard_state_off", nullptr, 20);
 }
@@ -916,7 +918,7 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
     bSizer_e_ctrl->Add(m_bpButton_e_10, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     bSizer_e_ctrl->Add(0, FromDIP(7), 0, 0, 0);
 
-    m_bitmap_extruder_img = new wxStaticBitmap(panel, wxID_ANY, m_bitmap_extruder, wxDefaultPosition, wxDefaultSize, 0);
+    m_bitmap_extruder_img = new wxStaticBitmap(panel, wxID_ANY, m_bitmap_extruder_empty_load, wxDefaultPosition, wxDefaultSize, 0);
     m_bitmap_extruder_img->SetMinSize(EXTRUDER_IMAGE_SIZE);
 
     bSizer_e_ctrl->Add(m_bitmap_extruder_img, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP | wxBOTTOM, FromDIP(5));
@@ -1311,13 +1313,6 @@ void StatusPanel::update(MachineObject *obj)
     update_temp_ctrl(obj);
     update_misc_ctrl(obj);
 
-    if (obj && obj->is_filament_at_extruder()) {
-        m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_load);
-    }
-    else {
-        m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder);
-    }
-
     // BBS hide tasklist info
     // update_tasklist(obj);
     update_ams(obj);
@@ -1550,6 +1545,9 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
         } 
     }
 
+    // update extruder icon
+    update_extruder_status(obj);
+
     // nozzle fan
     if (m_switch_nozzle_fan_timeout > 0)
         m_switch_nozzle_fan_timeout--;
@@ -1579,6 +1577,23 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
         this->speed_lvl = obj->printing_speed_lvl;
             wxString text_speed = wxString::Format("%d%%", obj->printing_speed_mag);
             m_switch_speed->SetLabels(text_speed, text_speed);
+    }
+}
+
+void StatusPanel::update_extruder_status(MachineObject* obj)
+{
+    if (!obj) return;
+    if (obj->is_filament_at_extruder()) {
+        if (obj->extruder_axis_status == MachineObject::ExtruderAxisStatus::LOAD)
+            m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_filled_load);
+        else
+            m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_filled_unload);
+    }
+    else {
+        if (obj->extruder_axis_status == MachineObject::ExtruderAxisStatus::LOAD)
+            m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_empty_load);
+        else
+            m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_empty_unload);
     }
 }
 
@@ -2619,7 +2634,7 @@ void StatusPanel::msw_rescale()
     m_bpButton_xy->SetMinSize(AXIS_MIN_SIZE);
     m_bpButton_xy->SetSize(AXIS_MIN_SIZE);
     m_temp_extruder_line->SetSize(wxSize(FromDIP(1), -1));
-    m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder);
+    update_extruder_status(obj);
     m_bitmap_extruder_img->SetMinSize(EXTRUDER_IMAGE_SIZE);
 
     for (Button *btn : m_buttons) { btn->Rescale(); }

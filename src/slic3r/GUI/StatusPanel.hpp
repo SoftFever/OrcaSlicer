@@ -80,8 +80,10 @@ protected:
     ScalableBitmap m_bitmap_fan_off;
     ScalableBitmap m_bitmap_use_time;
     ScalableBitmap m_bitmap_use_weight;
-    wxBitmap m_bitmap_extruder;
-    wxBitmap m_bitmap_extruder_load;
+    wxBitmap m_bitmap_extruder_empty_load;
+    wxBitmap m_bitmap_extruder_filled_load;
+    wxBitmap m_bitmap_extruder_empty_unload;
+    wxBitmap m_bitmap_extruder_filled_unload;
 
     CameraRecordingStatus m_state_recording{CameraRecordingStatus::RECORDING_NONE};
     CameraTimelapseStatus m_state_timelapse{CameraTimelapseStatus::TIMELAPSE_NONE};
@@ -340,6 +342,7 @@ protected:
     void update_temp_ctrl(MachineObject *obj);
     void update_misc_ctrl(MachineObject *obj);
     void update_ams(MachineObject* obj);
+    void update_extruder_status(MachineObject* obj);
     void update_cali(MachineObject* obj);
 
     void reset_printing_values();

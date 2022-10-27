@@ -310,6 +310,13 @@ public:
         UpgradingFinished = 3
     };
 
+    enum ExtruderAxisStatus {
+        LOAD = 0,
+        UNLOAD =1,
+        STATUS_NUMS = 2
+    };
+    enum ExtruderAxisStatus extruder_axis_status = LOAD;
+
     class ModuleVersionInfo
     {
     public:

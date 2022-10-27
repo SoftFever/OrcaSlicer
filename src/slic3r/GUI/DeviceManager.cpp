@@ -1443,6 +1443,7 @@ int MachineObject::command_axis_control(std::string axis, double unit, double va
     }
     else if (axis.compare("E") == 0) {
         sprintf(cmd, "M83 \nG0 %s%0.1f F%d\n", axis.c_str(), value * unit, speed);
+        extruder_axis_status = (value >= 0.0f)? LOAD : UNLOAD;
     }
     else {
         return -1;
@@ -1634,6 +1635,7 @@ void MachineObject::reset()
     print_status = "";
     last_mc_print_stage = -1;
     m_new_ver_list_exist = false;
+    extruder_axis_status = LOAD;
 
     subtask_ = nullptr;
 
