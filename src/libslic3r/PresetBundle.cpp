@@ -13,7 +13,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/clamp.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-
+#include <boost/range/adaptor/transformed.hpp>
 #include <boost/nowide/cenv.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/fstream.hpp>
@@ -1288,8 +1288,6 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
 	sla_prints.select_preset_by_name_strict(initial_sla_print_profile_name);
     sla_materials.select_preset_by_name_strict(initial_sla_material_profile_name);
 
-    // BBS: filament_presets are now considered as project config instead of app config
-#if 0
     // Load the names of the other filament profiles selected for a multi-material printer.
     // Load it even if the current printer technology is SLA.
     // The possibly excessive filament names will be later removed with this->update_multi_material_filament_presets()
@@ -1302,7 +1300,22 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
             break;
         this->filament_presets.emplace_back(remove_ini_suffix(config.get("presets", name)));
     }
-#endif
+    std::vector<std::string> filament_colors;
+    if (config.has("presets", "filament_colors")) {
+        boost::algorithm::split(filament_colors, config.get("presets", "filament_colors"), boost::algorithm::is_any_of(","));
+        project_config.option<ConfigOptionStrings>("filament_colour")->values = filament_colors;
+    }
+    std::vector<std::string> matrix;
+    if (config.has("presets", "flush_volumes_matrix")) {
+        boost::algorithm::split(matrix, config.get("presets", "flush_volumes_matrix"), boost::algorithm::is_any_of("|"));
+        auto flush_volumes_matrix = matrix | boost::adaptors::transformed(boost::lexical_cast<double, std::string>);
+        project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values = std::vector<double>(flush_volumes_matrix.begin(), flush_volumes_matrix.end());
+    }
+    if (config.has("presets", "flush_volumes_vector")) {
+        boost::algorithm::split(matrix, config.get("presets", "flush_volumes_vector"), boost::algorithm::is_any_of("|"));
+        auto flush_volumes_vector = matrix | boost::adaptors::transformed(boost::lexical_cast<double, std::string>);
+        project_config.option<ConfigOptionFloats>("flush_volumes_vector")->values = std::vector<double>(flush_volumes_vector.begin(), flush_volumes_vector.end());
+    }
 
     // Update visibility of presets based on their compatibility with the active printer.
     // Always try to select a compatible print and filament preset to the current printer preset,
@@ -1354,6 +1367,16 @@ void PresetBundle::export_selections(AppConfig &config)
         sprintf(name, "filament_%u", i);
         config.set("presets", name, filament_presets[i]);
     }
+    std::string filament_colors = boost::algorithm::join(project_config.option<ConfigOptionStrings>("filament_colour")->values, ",");
+    config.set("presets", "filament_colors", filament_colors);
+    std::string flush_volumes_matrix = boost::algorithm::join(project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values |
+                                                             boost::adaptors::transformed(static_cast<std::string (*)(double)>(std::to_string)),
+                                                         "|");
+    config.set("presets", "flush_volumes_matrix", flush_volumes_matrix);
+    std::string flush_volumes_vector = boost::algorithm::join(project_config.option<ConfigOptionFloats>("flush_volumes_vector")->values |
+                                                             boost::adaptors::transformed(static_cast<std::string (*)(double)>(std::to_string)),
+                                                         "|");
+    config.set("presets", "flush_volumes_vector", flush_volumes_vector);
 
     config.set("presets", PRESET_PRINTER_NAME, printers.get_selected_preset_name());
     // BBS

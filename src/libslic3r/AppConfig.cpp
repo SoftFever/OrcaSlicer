@@ -458,8 +458,6 @@ std::string AppConfig::load()
             } else if (it.key() == "presets") {
                 for (auto iter = it.value().begin(); iter != it.value().end(); iter++) {
                     if (iter.key() == "filaments") {
-                        // BBS: filament presets is now considered as project config instead of app config
-#if 0
                         int idx = 0;
                         for(auto& element: iter.value()) {
                             if (idx == 0)
@@ -468,7 +466,6 @@ std::string AppConfig::load()
                                 m_storage[it.key()]["filament_" + std::to_string(idx)] = element;
                             idx++;
                         }
-#endif
                     } else {
                         m_storage[it.key()][iter.key()] = iter.value().get<std::string>();
                     }
@@ -598,7 +595,7 @@ void AppConfig::save()
         } else if (category.first == "presets") {
             json j_filament_array;
             for(const auto& kvp : category.second) {
-                if (boost::starts_with(kvp.first, "filament")) {
+                if (boost::starts_with(kvp.first, "filament") && kvp.first != "filament_colors") {
                     j_filament_array.push_back(kvp.second);
                 } else {
                     j[category.first][kvp.first] = kvp.second;
