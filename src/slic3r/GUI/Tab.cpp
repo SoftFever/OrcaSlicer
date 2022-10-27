@@ -1855,6 +1855,11 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_critical_regions_only");
         //optgroup->append_single_option_line("enforce_support_layers");
 
+        optgroup = page->new_optgroup(L("Raft"), L"param_raft");
+        optgroup->append_single_option_line("raft_layers");
+        optgroup->append_single_option_line("raft_first_layer_density");
+        optgroup->append_single_option_line("raft_first_layer_expansion");
+
         optgroup = page->new_optgroup(L("Support filament"), L"param_support_filament");
         optgroup->append_single_option_line("support_filament", "support#support-filament");
         optgroup->append_single_option_line("support_interface_filament", "support#support-filament");
@@ -1893,9 +1898,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("brim_type", "auto-brim");
         optgroup->append_single_option_line("brim_width", "auto-brim#manual");
         optgroup->append_single_option_line("brim_object_gap", "auto-brim#brim-object-gap");
-        optgroup->append_single_option_line("raft_layers");
-        //optgroup->append_single_option_line("raft_first_layer_density");
-        //optgroup->append_single_option_line("raft_first_layer_expansion");
 
         optgroup = page->new_optgroup(L("Prime tower"), L"param_tower");
         optgroup->append_single_option_line("enable_prime_tower");

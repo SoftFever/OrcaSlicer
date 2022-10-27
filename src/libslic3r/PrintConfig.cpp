@@ -1958,7 +1958,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Z gap between object and raft. Ignored for soluble interface");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.1));
 
     def = this->add("raft_expansion", coFloat);
@@ -1967,7 +1967,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Expand all raft layers in XY plane");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1.5));
 
     def = this->add("raft_first_layer_density", coPercent);
@@ -1977,7 +1977,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("%");
     def->min = 10;
     def->max = 100;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(90));
 
     def = this->add("raft_first_layer_expansion", coFloat);
@@ -1986,7 +1986,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Expand the first raft or support layer to improve bed plate adhesion");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     //BBS: change from 3.0 to 2.0
     def->set_default_value(new ConfigOptionFloat(2.0));
 
@@ -1998,7 +1998,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("layers");
     def->min = 0;
     def->max = 100;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("resolution", coFloat);
