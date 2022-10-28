@@ -9370,6 +9370,8 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         if (seq_print->value == PrintSequence::ByObject) {
             std::string info_text = L("Print By Object: \nSuggest to use auto-arrange to avoid collisions when printing.");
             notify_manager->bbl_show_seqprintinfo_notification(info_text);
+            //always show label when switch to sequence print
+            this->show_view3D_labels(true);
         }
         else
             notify_manager->bbl_close_seqprintinfo_notification();
