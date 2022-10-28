@@ -2076,7 +2076,7 @@ void ObjectList::load_mesh_part(const TriangleMesh& mesh, const wxString& name, 
 
     ModelVolume* mv = mo->add_volume(mesh);
     Vec3d instance_bbox = mo->mesh().bounding_box().size();
-    Vec3d offset = mv->get_offset() + Vec3d(0, 0, instance_bbox[2] / 2);
+    Vec3d offset = Vec3d(0, 0, instance_bbox[2] / 2);
     mv->set_offset(offset);
     mv->name = name.ToStdString();
 
