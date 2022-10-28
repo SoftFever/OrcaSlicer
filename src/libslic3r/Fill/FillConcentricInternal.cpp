@@ -5,6 +5,7 @@
 #include "Arachne/WallToolPaths.hpp"
 
 #include "FillConcentricInternal.hpp"
+#include <libslic3r/ShortestPath.hpp>
 
 namespace Slic3r {
 
@@ -76,6 +77,8 @@ void FillConcentricInternal::fill_surface_extrusion(const Surface* surface, cons
         }
         if (j < thick_polylines_out.size())
             thick_polylines_out.erase(thick_polylines_out.begin() + int(j), thick_polylines_out.end());
+
+        reorder_by_shortest_traverse(thick_polylines_out);
     }
 
     ExtrusionEntityCollection *coll_nosort = new ExtrusionEntityCollection();
