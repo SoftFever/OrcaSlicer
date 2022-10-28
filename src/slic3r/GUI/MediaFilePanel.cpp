@@ -95,11 +95,12 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_delete->SetTextColorNormal(wxColor("#FF6F00"));
     m_button_management->SetBorderWidth(0);
     m_button_management->SetBackgroundColorNormal(wxColor("#00AE42"));
+    m_button_management->SetTextColorNormal(*wxWHITE);
 
     wxBoxSizer *manage_sizer = new wxBoxSizer(wxHORIZONTAL);
     manage_sizer->AddStretchSpacer(1);
-    manage_sizer->Add(m_button_delete, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24)->Show(false);
     manage_sizer->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL)->Show(false);
+    manage_sizer->Add(m_button_delete, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24)->Show(false);
     manage_sizer->Add(m_button_management, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24);
     m_manage_panel->SetSizer(manage_sizer);
     top_sizer->Add(m_manage_panel, 1, wxEXPAND);
