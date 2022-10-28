@@ -56,11 +56,29 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER"
 };
 
+const std::vector<std::string> GCodeProcessor::Reserved_Tags_compatible = {
+    "TYPE:",
+    "WIPE_START",
+    "WIPE_END",
+    "HEIGHT:",
+    "WIDTH:",
+    "LAYER_CHANGE",
+    "COLOR_CHANGE",
+    "PAUSE_PRINT",
+    "CUSTOM_GCODE",
+    "_GP_FIRST_LINE_M73_PLACEHOLDER",
+    "_GP_LAST_LINE_M73_PLACEHOLDER",
+    "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER"
+};
+
+
 const std::string GCodeProcessor::Flush_Start_Tag = " FLUSH_START";
 const std::string GCodeProcessor::Flush_End_Tag = " FLUSH_END";
 
 const float GCodeProcessor::Wipe_Width = 0.05f;
 const float GCodeProcessor::Wipe_Height = 0.05f;
+
+bool GCodeProcessor::s_IsBBLPrinter = true;
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
 const std::string GCodeProcessor::Mm3_Per_Mm_Tag = "MM3_PER_MM:";
@@ -808,11 +826,12 @@ bool GCodeProcessor::contains_reserved_tag(const std::string& gcode, std::string
     bool ret = false;
 
     GCodeReader parser;
-    parser.parse_buffer(gcode, [&ret, &found_tag](GCodeReader& parser, const GCodeReader::GCodeLine& line) {
+    auto& _tags = s_IsBBLPrinter ? Reserved_Tags : Reserved_Tags_compatible;
+    parser.parse_buffer(gcode, [&ret, &found_tag, _tags](GCodeReader& parser, const GCodeReader::GCodeLine& line) {
         std::string comment = line.raw();
         if (comment.length() > 2 && comment.front() == ';') {
             comment = comment.substr(1);
-            for (const std::string& s : Reserved_Tags) {
+            for (const std::string& s : _tags) {
                 if (boost::starts_with(comment, s)) {
                     ret = true;
                     found_tag = comment;
@@ -835,11 +854,12 @@ bool GCodeProcessor::contains_reserved_tags(const std::string& gcode, unsigned i
     CNumericLocalesSetter locales_setter;
 
     GCodeReader parser;
-    parser.parse_buffer(gcode, [&ret, &found_tag, max_count](GCodeReader& parser, const GCodeReader::GCodeLine& line) {
+    auto& _tags = s_IsBBLPrinter ? Reserved_Tags : Reserved_Tags_compatible;
+    parser.parse_buffer(gcode, [&ret, &found_tag, max_count, _tags](GCodeReader& parser, const GCodeReader::GCodeLine& line) {
         std::string comment = line.raw();
         if (comment.length() > 2 && comment.front() == ';') {
             comment = comment.substr(1);
-            for (const std::string& s : Reserved_Tags) {
+            for (const std::string& s : _tags) {
                 if (boost::starts_with(comment, s)) {
                     ret = true;
                     found_tag.push_back(comment);

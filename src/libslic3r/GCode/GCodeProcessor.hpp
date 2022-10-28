@@ -197,6 +197,7 @@ namespace Slic3r {
     class GCodeProcessor
     {
         static const std::vector<std::string> Reserved_Tags;
+        static const std::vector<std::string> Reserved_Tags_compatible;
         static const std::string Flush_Start_Tag;
         static const std::string Flush_End_Tag;
 
@@ -217,7 +218,7 @@ namespace Slic3r {
             Estimated_Printing_Time_Placeholder
         };
 
-        static const std::string& reserved_tag(ETags tag) { return Reserved_Tags[static_cast<unsigned char>(tag)]; }
+        static const std::string& reserved_tag(ETags tag) { return s_IsBBLPrinter ? Reserved_Tags[static_cast<unsigned char>(tag)] : Reserved_Tags_compatible[static_cast<unsigned char>(tag)]; }
         // checks the given gcode for reserved tags and returns true when finding the 1st (which is returned into found_tag) 
         static bool contains_reserved_tag(const std::string& gcode, std::string& found_tag);
         // checks the given gcode for reserved tags and returns true when finding any
@@ -226,6 +227,8 @@ namespace Slic3r {
 
         static const float Wipe_Width;
         static const float Wipe_Height;
+
+        static bool s_IsBBLPrinter;
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         static const std::string Mm3_Per_Mm_Tag;

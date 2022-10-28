@@ -913,6 +913,8 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     else
       gcode_label_objects = true;
 
+    GCodeProcessor::s_IsBBLPrinter = print->is_BBL_printer();
+
     // check if any custom gcode contains keywords used by the gcode processor to
     // produce time estimation and gcode toolpaths
     std::vector<std::pair<std::string, std::string>> validation_res = DoExport::validate_custom_gcode(*print);
@@ -1857,6 +1859,19 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // Modifies
         print.m_print_statistics));
     if (!is_bbl_printers) {
+        file.write_format("; total filament used [g] = %.2lf\n",
+            print.m_print_statistics.total_weight);
+        file.write_format("; total filament cost = %.2lf\n",
+            print.m_print_statistics.total_cost);
+        if (print.m_print_statistics.total_toolchanges > 0)
+            file.write_format("; total filament change = %i\n",
+                print.m_print_statistics.total_toolchanges);
+        file.write_format("; total layers count = %i\n", m_layer_count);
+        file.write_format(
+            ";%s\n",
+            GCodeProcessor::reserved_tag(
+                GCodeProcessor::ETags::Estimated_Printing_Time_Placeholder)
+            .c_str());
       file.write("\n");
       file.write("; CONFIG_BLOCK_START\n");
       std::string full_config;
@@ -1873,21 +1888,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
       file.write_format(
           "; first_layer_temperature = %d\n",
           print.config().nozzle_temperature_initial_layer.get_at(0));
-      file.write("; CONFIG_BLOCK_END\n\n");
-      file.write_format("; total filament used [g] = %.2lf\n",
-                        print.m_print_statistics.total_weight);
-      file.write_format("; total filament cost = %.2lf\n",
-                        print.m_print_statistics.total_cost);
-      if (print.m_print_statistics.total_toolchanges > 0)
-        file.write_format("; total filament change = %i\n",
-                          print.m_print_statistics.total_toolchanges);
-
-      file.write_format("; total layers count = %i\n", m_layer_count);
       file.write_format(
-          ";%s\n",
-          GCodeProcessor::reserved_tag(
-              GCodeProcessor::ETags::Estimated_Printing_Time_Placeholder)
-              .c_str());
+          "; first_layer_height = %.3f\n",
+          print.config().initial_layer_print_height.value);
+   
+      file.write("; CONFIG_BLOCK_END\n\n");
 
     }
     file.write("\n");
@@ -2544,7 +2549,7 @@ GCode::LayerResult GCode::process_layer(
     gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Layer_Change) + "\n";
     // export layer z
     char buf[64];
-    sprintf(buf, "; Z_HEIGHT: %g\n", print_z);
+    sprintf(buf, print.is_BBL_printer() ? "; Z_HEIGHT: %g\n" : ";Z:%g\n", print_z);
     gcode += buf;
     // export layer height
     float height = first_layer ? static_cast<float>(print_z) : static_cast<float>(print_z) - m_last_layer_z;
