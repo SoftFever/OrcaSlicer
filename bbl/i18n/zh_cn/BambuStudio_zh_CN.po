@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-21 14:33+0800\n"
+"POT-Creation-Date: 2022-10-31 09:32+0800\n"
 "PO-Revision-Date: 2022-10-17 22:14+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -71,6 +71,9 @@ msgstr "工具类型"
 msgid "Smart fill angle"
 msgstr "智能填充角度"
 
+msgid "On overhangs only"
+msgstr "仅对悬空区生效"
+
 msgid "Auto support threshold angle: "
 msgstr "自动支撑角度阈值："
 
@@ -85,6 +88,10 @@ msgstr "填充"
 
 msgid "Gap Fill"
 msgstr "缝隙填充"
+
+#, boost-format
+msgid "Allows painting only on facets selected by: \"%1%\""
+msgstr "绘制仅对由%1%选中的面片生效"
 
 msgid "Highlight faces according to overhang angle."
 msgstr "根据当前设置的悬空角度来高亮片面。"
@@ -140,6 +147,12 @@ msgstr "批量填充"
 
 msgid "Height range"
 msgstr "高度范围"
+
+msgid "Ctrl + Shift + Enter"
+msgstr ""
+
+msgid "Toggle Wireframe"
+msgstr "显示/隐藏线框"
 
 msgid "Shortcut Key "
 msgstr "快捷键 "
@@ -1675,6 +1688,13 @@ msgstr ""
 "请保持打印机在打印过程中敞开，保证空气流通或降低热床温度"
 
 msgid ""
+"Too small max volumetric speed.\n"
+"Reset to 0.5"
+msgstr ""
+"最大体积流量设置过小\n"
+"重置为0.5"
+
+msgid ""
 "Too small layer height.\n"
 "Reset to 0.2"
 msgstr "层高过小。将重置为0.2"
@@ -2531,10 +2551,10 @@ msgstr ""
 msgid "Export toolpaths as OBJ"
 msgstr ""
 
-msgid "Open &PrusaSlicer"
+msgid "Open &Studio"
 msgstr ""
 
-msgid "Open PrusaSlicer"
+msgid "Open Studio"
 msgstr ""
 
 msgid "&Quit"
@@ -2810,6 +2830,11 @@ msgstr "你确定要取消这次打印吗？"
 
 msgid "Downloading..."
 msgstr "下载中..."
+
+msgid ""
+"Cannot read filament info: the filament is loaded to the tool head,please "
+"unload the filament and try again."
+msgstr "无法读取耗材丝信息：耗材丝已经加载到工具头，请退出耗材丝后再重试。"
 
 msgid "This only takes effect during printing"
 msgstr "仅在打印过程中生效"
@@ -3854,7 +3879,7 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing."
 msgstr "请在发起打印前插入SD卡"
 
-msgid "An SD card needs to be inserted to recording timelapse"
+msgid "An SD card needs to be inserted to record timelapse."
 msgstr "开启延迟摄影功能需要插入SD卡"
 
 msgid "Please check the following infomation:\n"
@@ -3919,18 +3944,17 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr ""
 
 msgid ""
-"Prime tower is required by smooth timeplase. If whthout prime tower, there "
-"will be flaws on the model. Are you sure you want to disable prime tower?"
+"Prime tower is required for smooth timeplase. There may be flaws on the "
+"model without prime tower. Are you sure you want to disable prime tower?"
 msgstr ""
-"平滑模式的延时摄影需要擦料塔。如果没有，模型上就可能会有缺陷。你确定要禁用擦"
-"料塔吗？"
+"平滑模式的延时摄影需要擦料塔，否则打印件上可能会有瑕疵。您确定要关闭擦料塔"
+"吗？"
 
 msgid ""
-"Prime tower is required by smooth timelapse. If whthout prime tower, there "
-"will be flaws on the model. Do you want to enable prime tower?"
+"Prime tower is required for smooth timelapse. There may be flaws on the "
+"model without prime tower. Do you want to enable prime tower?"
 msgstr ""
-"平滑模式的延时摄影需要擦料塔。如果没有，模型上就可能会有缺陷。你想要启用擦料"
-"塔吗？"
+"平滑模式的延时摄影需要擦料塔，否则打印件上可能会有瑕疵。您想打开擦料塔吗？"
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
@@ -3978,6 +4002,9 @@ msgstr "空驶速度"
 
 msgid "Acceleration"
 msgstr "加速度"
+
+msgid "Raft"
+msgstr "筏层"
 
 msgid "Support filament"
 msgstr "支撑耗材"
@@ -4376,6 +4403,11 @@ msgstr "自动计算"
 
 msgid "Flushing volumes for filament change"
 msgstr "耗材丝更换时的冲刷体积"
+
+msgid ""
+"The flush volume is less than the minimum value and will be automatically "
+"set to the minimum value."
+msgstr "冲刷体积小于最小值，将被自动设置为最小值"
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "在两个耗材丝间切换所需的冲刷量（mm³）"
@@ -4937,12 +4969,6 @@ msgid ""
 msgstr "%1%离屏蔽区域太近，可能会发生碰撞。"
 
 #, boost-format
-msgid ""
-"\n"
-"%1% is too close to exclusion area, there may be collisions when printing."
-msgstr ""
-
-#, boost-format
 msgid "%1% is too close to others, and collisions may be caused."
 msgstr "%1%离其它对象太近，可能会发生碰撞。"
 
@@ -5291,6 +5317,15 @@ msgstr ""
 "当打印部分的悬垂程度超出设定值，强制冷却风扇为设置的速度。悬垂程度表示为未被"
 "低层支撑的部分占线宽的百分比"
 
+msgid "Bridge direction"
+msgstr "桥接方向"
+
+msgid ""
+"Bridging angle override. If left to zero, the bridging angle will be "
+"calculated automatically. Otherwise the provided angle will be used for "
+"external bridges. Use 180°for zero angle."
+msgstr ""
+
 msgid "Bridge flow"
 msgstr "桥接流量"
 
@@ -5548,6 +5583,14 @@ msgid ""
 "object printing."
 msgstr ""
 
+msgid "Max Radius"
+msgstr ""
+
+msgid ""
+"Max clearance radius around extruder. Used as input of auto-arranging to "
+"avoid collision when printing by object"
+msgstr ""
+
 msgid "Extruder Color"
 msgstr "挤出机颜色"
 
@@ -5598,8 +5641,22 @@ msgstr ""
 msgid "s"
 msgstr "秒"
 
+msgid "Default color"
+msgstr "缺省颜色"
+
+msgid "Default filament color"
+msgstr "缺省材料颜色"
+
 msgid "Color"
 msgstr "颜色"
+
+msgid "Required nozzle HRC"
+msgstr "喷嘴硬度要求"
+
+msgid ""
+"Minimum HRC of nozzle required to print the filament. Zero means no checking "
+"of nozzle's HRC."
+msgstr "打印此材料的所需的最小喷嘴硬度。零值表示不检查喷嘴硬度。"
 
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
@@ -5607,10 +5664,10 @@ msgstr "最大体积速度"
 msgid ""
 "This setting stands for how much volume of filament can be melted and "
 "extruded per second. Printing speed is limited by max volumetric speed, in "
-"case of too high and unreasonable speed setting. Zero means no limit"
+"case of too high and unreasonable speed setting. Can't be zero"
 msgstr ""
 "这个设置表示在1秒内能够融化和挤出的耗材丝体积。打印速度会受到最大体积速度的限"
-"制，防止设置过高和不合理的速度。0表示没有限制。"
+"制，防止设置过高和不合理的速度。不允许设置为0。"
 
 msgid "mm³/s"
 msgstr "mm³/s"
@@ -5737,6 +5794,9 @@ msgid ""
 "surface quality"
 msgstr "顶面填充的加速度。使用较低值可能会改善顶面质量"
 
+msgid "Acceleration of outer wall. Using a lower value can improve quality"
+msgstr ""
+
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
 "adhensive"
@@ -5859,6 +5919,17 @@ msgstr "不锈钢"
 
 msgid "Brass"
 msgstr "黄铜"
+
+msgid "Nozzle HRC"
+msgstr "喷嘴洛氏硬度"
+
+msgid ""
+"The nozzle's hardness. Zero means no checking for nozzle's hardness during "
+"slicing."
+msgstr "喷嘴硬度。零值表示在切片时不检查喷嘴硬度。"
+
+msgid "HRC"
+msgstr "洛氏硬度"
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "如果机器有辅助部件冷却风扇，勾选该选项"
@@ -6680,20 +6751,22 @@ msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
 "printed with transparent filament, the mixed color infill will be seen "
-"outside"
+"outside. It will not take effect, unless the prime tower is enabled."
 msgstr ""
 "换料后的过渡料会被用来打印对象的填充。这样可以减少材料浪费和缩短打印时间，但"
 "是如果对象的内外墙是采用透明材料打印的，则可以从模型外观上看到内部的混色过渡"
-"料"
+"料。该功能只有在启用料塔的时候才生效。"
 
 msgid "Flush into objects' support"
 msgstr "冲刷到对象的支撑"
 
 msgid ""
 "Purging after filament change will be done inside objects' support. This may "
-"lower the amount of waste and decrease the print time"
+"lower the amount of waste and decrease the print time. It will not take "
+"effect, unless the prime tower is enabled."
 msgstr ""
-"换料后的过渡料会被用来打印对象的支撑。这样可以减少材料浪费以及缩短打印时间"
+"换料后的过渡料会被用来打印对象的支撑。这样可以减少材料浪费以及缩短打印时间。"
+"该功能只有在启用料塔的时候才生效。"
 
 msgid "Flush into this object"
 msgstr "冲刷到这个对象"
@@ -6701,10 +6774,10 @@ msgstr "冲刷到这个对象"
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
 "filament and decrease the print time. Colours of the objects will be mixed "
-"as a result"
+"as a result. It will not take effect, unless the prime tower is enabled."
 msgstr ""
 "换料后的过渡料会被用来打印这个对象。这样可以减少材料浪费和缩短打印时间，但是"
-"这个对象的外观会是混色的"
+"这个对象的外观会是混色的。该功能只有在启用料塔的时候才生效。"
 
 msgid "X-Y hole compensation"
 msgstr "X-Y 孔洞尺寸补偿"
@@ -8880,9 +8953,6 @@ msgstr ""
 #~ msgid "Value is out of range, continue?"
 #~ msgstr "值越界，是否继续？"
 
-#~ msgid "Default color"
-#~ msgstr "缺省颜色"
-
 #~ msgid "Tool Rotate"
 #~ msgstr "工具 旋转"
 
@@ -9829,9 +9899,6 @@ msgstr ""
 #~ msgid "Enforce"
 #~ msgstr "添加"
 
-#~ msgid "On overhangs only"
-#~ msgstr "仅对悬空区生效"
-
 #~ msgid "Overhang Threshold Angle"
 #~ msgstr "悬空角度阈值"
 
@@ -9842,9 +9909,6 @@ msgstr ""
 #~ "Paints neighboring facets whose relative angle is less or equal to set "
 #~ "angle."
 #~ msgstr "绘制一组连续面片，满足相邻面片之间的相对角度小于等于设定的阈值。"
-
-#~ msgid "Allows painting only on facets selected by: \"%1%\""
-#~ msgstr "绘制仅对由%1%选中的面片生效"
 
 #~ msgid "Paints only one facet."
 #~ msgstr "仅绘制单个面片。"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-21 14:33+0800\n"
+"POT-Creation-Date: 2022-10-31 09:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -67,6 +67,9 @@ msgstr "Gereedschap type"
 msgid "Smart fill angle"
 msgstr "Slim vullen hoek"
 
+msgid "On overhangs only"
+msgstr ""
+
 msgid "Auto support threshold angle: "
 msgstr "Maximale hoek automatische support: "
 
@@ -80,6 +83,10 @@ msgid "Fill"
 msgstr "Vullen"
 
 msgid "Gap Fill"
+msgstr ""
+
+#, boost-format
+msgid "Allows painting only on facets selected by: \"%1%\""
 msgstr ""
 
 msgid "Highlight faces according to overhang angle."
@@ -138,6 +145,12 @@ msgstr "Emmer vullen"
 
 msgid "Height range"
 msgstr "Hoogtebereik"
+
+msgid "Ctrl + Shift + Enter"
+msgstr ""
+
+msgid "Toggle Wireframe"
+msgstr ""
 
 msgid "Shortcut Key "
 msgstr "Sneltoest "
@@ -1747,6 +1760,11 @@ msgid ""
 msgstr ""
 
 msgid ""
+"Too small max volumetric speed.\n"
+"Reset to 0.5"
+msgstr ""
+
+msgid ""
 "Too small layer height.\n"
 "Reset to 0.2"
 msgstr ""
@@ -2612,11 +2630,11 @@ msgstr "Exporteer &Toolpaths als OBJ"
 msgid "Export toolpaths as OBJ"
 msgstr "Toolpaths exporteren als OBJ"
 
-msgid "Open &PrusaSlicer"
-msgstr "Open &PrusaSlicer"
+msgid "Open &Studio"
+msgstr ""
 
-msgid "Open PrusaSlicer"
-msgstr "Open PrusaSlicer"
+msgid "Open Studio"
+msgstr ""
 
 msgid "&Quit"
 msgstr "&Afsluiten"
@@ -2888,6 +2906,11 @@ msgstr ""
 
 msgid "Downloading..."
 msgstr "Downloaden..."
+
+msgid ""
+"Cannot read filament info: the filament is loaded to the tool head,please "
+"unload the filament and try again."
+msgstr ""
 
 msgid "This only takes effect during printing"
 msgstr ""
@@ -3351,9 +3374,6 @@ msgstr "Het geselecteerde object kan niet opgesplitst worden."
 
 msgid "Another export job is running."
 msgstr "Er is reeds een export taak actief."
-
-msgid "Another export job is currently running."
-msgstr ""
 
 msgid "Select a new file"
 msgstr ""
@@ -3976,7 +3996,7 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing."
 msgstr ""
 
-msgid "An SD card needs to be inserted to recording timelapse"
+msgid "An SD card needs to be inserted to record timelapse."
 msgstr ""
 
 msgid "Please check the following infomation:\n"
@@ -4041,13 +4061,13 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr ""
 
 msgid ""
-"Prime tower is required by smooth timeplase. If whthout prime tower, there "
-"will be flaws on the model. Are you sure you want to disable prime tower?"
+"Prime tower is required for smooth timeplase. There may be flaws on the "
+"model without prime tower. Are you sure you want to disable prime tower?"
 msgstr ""
 
 msgid ""
-"Prime tower is required by smooth timelapse. If whthout prime tower, there "
-"will be flaws on the model. Do you want to enable prime tower?"
+"Prime tower is required for smooth timelapse. There may be flaws on the "
+"model without prime tower. Do you want to enable prime tower?"
 msgstr ""
 
 msgid ""
@@ -4096,6 +4116,9 @@ msgstr "Verplaatsing-sneleheid"
 
 msgid "Acceleration"
 msgstr "Versnelling"
+
+msgid "Raft"
+msgstr ""
 
 msgid "Support filament"
 msgstr "Support filament"
@@ -4531,6 +4554,11 @@ msgstr "Automatisch berekenen"
 
 msgid "Flushing volumes for filament change"
 msgstr "Volumes reinigen voor filament wijziging"
+
+msgid ""
+"The flush volume is less than the minimum value and will be automatically "
+"set to the minimum value."
+msgstr ""
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Spoelvolume (mm³) voor elk filamentpaar."
@@ -5102,12 +5130,6 @@ msgid ""
 msgstr ""
 
 #, boost-format
-msgid ""
-"\n"
-"%1% is too close to exclusion area, there may be collisions when printing."
-msgstr ""
-
-#, boost-format
 msgid "%1% is too close to others, and collisions may be caused."
 msgstr "%1% staat te dicht bij anderen en er kunnen botsingen ontstaan."
 
@@ -5502,6 +5524,15 @@ msgstr ""
 "Forceer de snelheid van de koelventilator wanneer de overhanggraad van het  "
 "onderdeel deze waarde overschrijdt. Uitgedrukt als percentage "
 
+msgid "Bridge direction"
+msgstr ""
+
+msgid ""
+"Bridging angle override. If left to zero, the bridging angle will be "
+"calculated automatically. Otherwise the provided angle will be used for "
+"external bridges. Use 180°for zero angle."
+msgstr ""
+
 msgid "Bridge flow"
 msgstr "Brugflow"
 
@@ -5783,6 +5814,14 @@ msgid ""
 "object printing."
 msgstr ""
 
+msgid "Max Radius"
+msgstr ""
+
+msgid ""
+"Max clearance radius around extruder. Used as input of auto-arranging to "
+"avoid collision when printing by object"
+msgstr ""
+
 msgid "Extruder Color"
 msgstr "Extruder kleur"
 
@@ -5839,8 +5878,22 @@ msgstr ""
 msgid "s"
 msgstr "s"
 
+msgid "Default color"
+msgstr ""
+
+msgid "Default filament color"
+msgstr ""
+
 msgid "Color"
 msgstr "Kleur"
+
+msgid "Required nozzle HRC"
+msgstr ""
+
+msgid ""
+"Minimum HRC of nozzle required to print the filament. Zero means no checking "
+"of nozzle's HRC."
+msgstr ""
 
 msgid "Max volumetric speed"
 msgstr "Maximale volumetrische snelheid"
@@ -5848,12 +5901,8 @@ msgstr "Maximale volumetrische snelheid"
 msgid ""
 "This setting stands for how much volume of filament can be melted and "
 "extruded per second. Printing speed is limited by max volumetric speed, in "
-"case of too high and unreasonable speed setting. Zero means no limit"
+"case of too high and unreasonable speed setting. Can't be zero"
 msgstr ""
-"Deze instelling staat voor het volume filament dat per seconde kan worden "
-"gesmolten en geëxtrudeerd. De printsnelheid wordt beperkt door de maximale "
-"volumetrische snelheid in het geval van een te hoge en onredelijke "
-"snelheidsinstelling. 0 betekent geen limiet."
 
 msgid "mm³/s"
 msgstr "mm³/s"
@@ -5997,6 +6046,9 @@ msgid ""
 msgstr ""
 "Versnelling van de topoppervlakte-invulling. Gebruik van een lagere waarde "
 "kan de kwaliteit van de bovenlaag verbeteren."
+
+msgid "Acceleration of outer wall. Using a lower value can improve quality"
+msgstr ""
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
@@ -6146,6 +6198,17 @@ msgstr "Roestvrij staal"
 
 msgid "Brass"
 msgstr "Messing"
+
+msgid "Nozzle HRC"
+msgstr ""
+
+msgid ""
+"The nozzle's hardness. Zero means no checking for nozzle's hardness during "
+"slicing."
+msgstr ""
+
+msgid "HRC"
+msgstr ""
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr ""
@@ -7048,22 +7111,17 @@ msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
 "printed with transparent filament, the mixed color infill will be seen "
-"outside"
+"outside. It will not take effect, unless the prime tower is enabled."
 msgstr ""
-"Het wisselen van filament wordt uitgevoerd in de vulling van objecten. Dit "
-"kan de hoeveelheid afval verminderen en de print tijd verkorten. Let op: "
-"indien de wanden zijn geprint met transparant filament, is de vulling met "
-"gemengde kleuren zichtbaar."
 
 msgid "Flush into objects' support"
 msgstr "Flush in de support van objecten"
 
 msgid ""
 "Purging after filament change will be done inside objects' support. This may "
-"lower the amount of waste and decrease the print time"
+"lower the amount of waste and decrease the print time. It will not take "
+"effect, unless the prime tower is enabled."
 msgstr ""
-"Het wisselen van filament vindt plaats in de support van objecten. Dit kan "
-"de hoeveelheid afval verminderen en de print tijd verkorten."
 
 msgid "Flush into this object"
 msgstr "Flush in dit object"
@@ -7071,11 +7129,8 @@ msgstr "Flush in dit object"
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
 "filament and decrease the print time. Colours of the objects will be mixed "
-"as a result"
+"as a result. It will not take effect, unless the prime tower is enabled."
 msgstr ""
-"Dit object wordt gebruikt om de nozzle te reinigen na een filamentwissel om "
-"filament te besparen en de print tijd te verkorten. De kleuren van de "
-"objecten worden gemengd als resultaat"
 
 msgid "X-Y hole compensation"
 msgstr "X-Y-gaten compensatie"

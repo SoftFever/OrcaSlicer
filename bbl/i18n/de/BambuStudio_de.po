@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-21 14:33+0800\n"
+"POT-Creation-Date: 2022-10-31 09:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -67,6 +67,9 @@ msgstr "Werkzeugtyp"
 msgid "Smart fill angle"
 msgstr "Intelligenter Füllwinkel"
 
+msgid "On overhangs only"
+msgstr ""
+
 msgid "Auto support threshold angle: "
 msgstr "Winkel für automatische Supports: "
 
@@ -80,6 +83,10 @@ msgid "Fill"
 msgstr "Ausfüllen"
 
 msgid "Gap Fill"
+msgstr ""
+
+#, boost-format
+msgid "Allows painting only on facets selected by: \"%1%\""
 msgstr ""
 
 msgid "Highlight faces according to overhang angle."
@@ -138,6 +145,12 @@ msgstr "Eimerfüllung"
 
 msgid "Height range"
 msgstr "Höhenreichweite"
+
+msgid "Ctrl + Shift + Enter"
+msgstr ""
+
+msgid "Toggle Wireframe"
+msgstr ""
 
 msgid "Shortcut Key "
 msgstr "Shortcut Taste "
@@ -1752,6 +1765,11 @@ msgid ""
 msgstr ""
 
 msgid ""
+"Too small max volumetric speed.\n"
+"Reset to 0.5"
+msgstr ""
+
+msgid ""
 "Too small layer height.\n"
 "Reset to 0.2"
 msgstr ""
@@ -2617,11 +2635,11 @@ msgstr "Werkzeugwege als OBJ expor&tieren"
 msgid "Export toolpaths as OBJ"
 msgstr "Werkzeugweg als OBJ exportieren"
 
-msgid "Open &PrusaSlicer"
-msgstr "Öffne &PrusaSlicer"
+msgid "Open &Studio"
+msgstr ""
 
-msgid "Open PrusaSlicer"
-msgstr "PrusaSlicer öffnen"
+msgid "Open Studio"
+msgstr ""
 
 msgid "&Quit"
 msgstr "&Beenden"
@@ -2893,6 +2911,11 @@ msgstr ""
 
 msgid "Downloading..."
 msgstr "Downloading..."
+
+msgid ""
+"Cannot read filament info: the filament is loaded to the tool head,please "
+"unload the filament and try again."
+msgstr ""
 
 msgid "This only takes effect during printing"
 msgstr ""
@@ -3347,9 +3370,6 @@ msgstr "Das ausgewählte Objekt konnte nicht geteilt werden."
 
 msgid "Another export job is running."
 msgstr "Ein weiterer Exportauftrag läuft gerade."
-
-msgid "Another export job is currently running."
-msgstr ""
 
 msgid "Select a new file"
 msgstr ""
@@ -3975,7 +3995,7 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing."
 msgstr ""
 
-msgid "An SD card needs to be inserted to recording timelapse"
+msgid "An SD card needs to be inserted to record timelapse."
 msgstr ""
 
 msgid "Please check the following infomation:\n"
@@ -4041,13 +4061,13 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr ""
 
 msgid ""
-"Prime tower is required by smooth timeplase. If whthout prime tower, there "
-"will be flaws on the model. Are you sure you want to disable prime tower?"
+"Prime tower is required for smooth timeplase. There may be flaws on the "
+"model without prime tower. Are you sure you want to disable prime tower?"
 msgstr ""
 
 msgid ""
-"Prime tower is required by smooth timelapse. If whthout prime tower, there "
-"will be flaws on the model. Do you want to enable prime tower?"
+"Prime tower is required for smooth timelapse. There may be flaws on the "
+"model without prime tower. Do you want to enable prime tower?"
 msgstr ""
 
 msgid ""
@@ -4096,6 +4116,9 @@ msgstr "Fahrgeschwindigkeit"
 
 msgid "Acceleration"
 msgstr "Beschleunigung"
+
+msgid "Raft"
+msgstr ""
 
 msgid "Support filament"
 msgstr "Supportfilament"
@@ -4533,6 +4556,11 @@ msgstr "Automatisch berechnen"
 
 msgid "Flushing volumes for filament change"
 msgstr "Säuberungsvolumen für Filamentwechsel"
+
+msgid ""
+"The flush volume is less than the minimum value and will be automatically "
+"set to the minimum value."
+msgstr ""
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Säuberungvolumen (mm³) für jedes Filamentpaar."
@@ -5108,12 +5136,6 @@ msgid ""
 msgstr ""
 
 #, boost-format
-msgid ""
-"\n"
-"%1% is too close to exclusion area, there may be collisions when printing."
-msgstr ""
-
-#, boost-format
 msgid "%1% is too close to others, and collisions may be caused."
 msgstr ""
 "%1% ist zu nah an anderen, und es können Kollisionen verursacht werden."
@@ -5515,6 +5537,15 @@ msgstr ""
 "der angibt, wie groß die Breite der Linie ohne Unterstützung durch die "
 "untere Schicht ist"
 
+msgid "Bridge direction"
+msgstr ""
+
+msgid ""
+"Bridging angle override. If left to zero, the bridging angle will be "
+"calculated automatically. Otherwise the provided angle will be used for "
+"external bridges. Use 180°for zero angle."
+msgstr ""
+
 msgid "Bridge flow"
 msgstr "Fluss der Brücke"
 
@@ -5792,6 +5823,14 @@ msgid ""
 "object printing."
 msgstr ""
 
+msgid "Max Radius"
+msgstr ""
+
+msgid ""
+"Max clearance radius around extruder. Used as input of auto-arranging to "
+"avoid collision when printing by object"
+msgstr ""
+
 msgid "Extruder Color"
 msgstr "Extruder Farbe"
 
@@ -5848,8 +5887,22 @@ msgstr ""
 msgid "s"
 msgstr "s"
 
+msgid "Default color"
+msgstr ""
+
+msgid "Default filament color"
+msgstr ""
+
 msgid "Color"
 msgstr "Farbe"
+
+msgid "Required nozzle HRC"
+msgstr ""
+
+msgid ""
+"Minimum HRC of nozzle required to print the filament. Zero means no checking "
+"of nozzle's HRC."
+msgstr ""
 
 msgid "Max volumetric speed"
 msgstr "Maximale Volumengeschwindigkeit"
@@ -5857,12 +5910,8 @@ msgstr "Maximale Volumengeschwindigkeit"
 msgid ""
 "This setting stands for how much volume of filament can be melted and "
 "extruded per second. Printing speed is limited by max volumetric speed, in "
-"case of too high and unreasonable speed setting. Zero means no limit"
+"case of too high and unreasonable speed setting. Can't be zero"
 msgstr ""
-"Diese Einstellung gibt an, wie viel Volumen an Material pro Sekunde "
-"geschmolzen und extrudiert werden kann. Die Druckgeschwindigkeit wird durch "
-"die maximale volumetrische Geschwindigkeit begrenzt, falls die Einstellung "
-"zu hoch und unangemessen ist. Null bedeutet keine Begrenzung."
 
 msgid "mm³/s"
 msgstr "mm³/s"
@@ -6005,6 +6054,9 @@ msgstr ""
 "Dies ist die Beschleunigung der Füllung der oberen Oberfläche. Die "
 "Verwendung eines niedrigeren Werts kann die Qualität der oberen Oberfläche "
 "verbessern."
+
+msgid "Acceleration of outer wall. Using a lower value can improve quality"
+msgstr ""
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
@@ -6151,6 +6203,17 @@ msgstr "Rostfreier Edelstahl"
 
 msgid "Brass"
 msgstr "Messing"
+
+msgid "Nozzle HRC"
+msgstr ""
+
+msgid ""
+"The nozzle's hardness. Zero means no checking for nozzle's hardness during "
+"slicing."
+msgstr ""
+
+msgid "HRC"
+msgstr ""
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr ""
@@ -7042,23 +7105,17 @@ msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
 "printed with transparent filament, the mixed color infill will be seen "
-"outside"
+"outside. It will not take effect, unless the prime tower is enabled."
 msgstr ""
-"Die Spülung der Druckdüse nach dem Filamentwechsel erfolgt innerhalb der "
-"Füllungen der Objekte. Dies kann die Abfallmenge verringern und die "
-"Druckzeit verkürzen. Wenn die Wände mit transparentem Filament gedruckt "
-"werden, ist die gemischte Farbe der Füllung sichtbar."
 
 msgid "Flush into objects' support"
 msgstr "Druckdüse in der Supportstruktur des Objekts säubern"
 
 msgid ""
 "Purging after filament change will be done inside objects' support. This may "
-"lower the amount of waste and decrease the print time"
+"lower the amount of waste and decrease the print time. It will not take "
+"effect, unless the prime tower is enabled."
 msgstr ""
-"Die Reinigung der Druckdüse nach dem Filamentwechsel erfolgt innerhalb des "
-"Objektsupport. Dies kann die Abfallmenge verringern und die Druckzeit "
-"verkürzen."
 
 msgid "Flush into this object"
 msgstr "Druckdüse in diesem Objekt säubern"
@@ -7066,11 +7123,8 @@ msgstr "Druckdüse in diesem Objekt säubern"
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
 "filament and decrease the print time. Colours of the objects will be mixed "
-"as a result"
+"as a result. It will not take effect, unless the prime tower is enabled."
 msgstr ""
-"Dieses Objekt wird verwendet, um die Düse nach einem Filamentwechsel zu "
-"säubern, um Filament zu sparen und die Druckzeit zu verkürzen. Die Farben "
-"der Objekte werden als Ergebnis gemischt"
 
 msgid "X-Y hole compensation"
 msgstr "X-Y-Loch-Kompensation"

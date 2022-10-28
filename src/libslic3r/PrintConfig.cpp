@@ -1076,8 +1076,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts { 60 });
 
     def           = this->add("default_filament_colour", coStrings);
-    def->label    = L("Defualt color");
-    def->tooltip  = L("Default filament colour");
+    def->label    = L("Default color");
+    def->tooltip  = L("Default filament color");
     def->gui_type = ConfigOptionDef::GUIType::color;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionStrings{"#00AE42"});
@@ -1092,7 +1092,7 @@ void PrintConfigDef::init_fff_params()
     //bbs
     def          = this->add("required_nozzle_HRC", coInts);
     def->label   = L("Required nozzle HRC");
-    def->tooltip = L("the HRC of nozzle when print the filament. zeros means the setting not be used");
+    def->tooltip = L("Minimum HRC of nozzle required to print the filament. Zero means no checking of nozzle's HRC.");
     def->min     = 0;
     def->max     = 500;
     def->mode    = comDevelop;
@@ -1445,7 +1445,7 @@ void PrintConfigDef::init_fff_params()
 
     def                = this->add("nozzle_hrc", coInt);
     def->label         = L("Nozzle HRC");
-    def->tooltip       = L("The hardness of nozzle. zeros means the setting not be used");
+    def->tooltip       = L("The nozzle's hardness. Zero means no checking for nozzle's hardness during slicing.");
     def->sidetext      = L("HRC");
     def->min           = 0;
     def->max           = 500;

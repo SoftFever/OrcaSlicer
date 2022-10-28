@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-21 14:33+0800\n"
+"POT-Creation-Date: 2022-10-31 09:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -67,6 +67,9 @@ msgstr "Eszköz típusa"
 msgid "Smart fill angle"
 msgstr "Okos kitöltési szög"
 
+msgid "On overhangs only"
+msgstr ""
+
 msgid "Auto support threshold angle: "
 msgstr "Automatikus támasz szögének határértéke: "
 
@@ -81,6 +84,10 @@ msgstr "Kitöltés"
 
 msgid "Gap Fill"
 msgstr "Hézagok kitöltése"
+
+#, boost-format
+msgid "Allows painting only on facets selected by: \"%1%\""
+msgstr ""
 
 msgid "Highlight faces according to overhang angle."
 msgstr "Felületek kiemelése a túlnyúlási szögnek megfelelően."
@@ -137,6 +144,12 @@ msgstr "Vödör kitöltés"
 
 msgid "Height range"
 msgstr "Magasságtartomány"
+
+msgid "Ctrl + Shift + Enter"
+msgstr ""
+
+msgid "Toggle Wireframe"
+msgstr ""
 
 msgid "Shortcut Key "
 msgstr "Gyorsgomb "
@@ -1744,6 +1757,11 @@ msgid ""
 msgstr ""
 
 msgid ""
+"Too small max volumetric speed.\n"
+"Reset to 0.5"
+msgstr ""
+
+msgid ""
 "Too small layer height.\n"
 "Reset to 0.2"
 msgstr ""
@@ -2611,11 +2629,11 @@ msgstr "Export &Toolpaths as OBJ"
 msgid "Export toolpaths as OBJ"
 msgstr "Szerszámút exportálása OBJ-ként"
 
-msgid "Open &PrusaSlicer"
-msgstr "Open &PrusaSlicer"
+msgid "Open &Studio"
+msgstr ""
 
-msgid "Open PrusaSlicer"
-msgstr "Open PrusaSlicer"
+msgid "Open Studio"
+msgstr ""
 
 msgid "&Quit"
 msgstr "&Kilépés"
@@ -2892,6 +2910,11 @@ msgstr ""
 
 msgid "Downloading..."
 msgstr "Letöltés..."
+
+msgid ""
+"Cannot read filament info: the filament is loaded to the tool head,please "
+"unload the filament and try again."
+msgstr ""
 
 msgid "This only takes effect during printing"
 msgstr ""
@@ -3339,9 +3362,6 @@ msgstr "The selected object couldn't be split."
 
 msgid "Another export job is running."
 msgstr "Egy másik exportálási feladat is fut."
-
-msgid "Another export job is currently running."
-msgstr ""
 
 msgid "Select a new file"
 msgstr ""
@@ -3955,7 +3975,7 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing."
 msgstr ""
 
-msgid "An SD card needs to be inserted to recording timelapse"
+msgid "An SD card needs to be inserted to record timelapse."
 msgstr ""
 
 msgid "Please check the following infomation:\n"
@@ -4018,13 +4038,13 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr ""
 
 msgid ""
-"Prime tower is required by smooth timeplase. If whthout prime tower, there "
-"will be flaws on the model. Are you sure you want to disable prime tower?"
+"Prime tower is required for smooth timeplase. There may be flaws on the "
+"model without prime tower. Are you sure you want to disable prime tower?"
 msgstr ""
 
 msgid ""
-"Prime tower is required by smooth timelapse. If whthout prime tower, there "
-"will be flaws on the model. Do you want to enable prime tower?"
+"Prime tower is required for smooth timelapse. There may be flaws on the "
+"model without prime tower. Do you want to enable prime tower?"
 msgstr ""
 
 msgid ""
@@ -4072,6 +4092,9 @@ msgstr "Mozgás sebessége"
 
 msgid "Acceleration"
 msgstr "Gyorsulás"
+
+msgid "Raft"
+msgstr ""
 
 msgid "Support filament"
 msgstr "Filament a támaszhoz"
@@ -4501,6 +4524,11 @@ msgstr "Automatikus számítás"
 
 msgid "Flushing volumes for filament change"
 msgstr "Filament csere öblítési mennyisége"
+
+msgid ""
+"The flush volume is less than the minimum value and will be automatically "
+"set to the minimum value."
+msgstr ""
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Egyes filament párok öblítési mennyisége (mm³)."
@@ -5069,12 +5097,6 @@ msgid ""
 msgstr ""
 
 #, boost-format
-msgid ""
-"\n"
-"%1% is too close to exclusion area, there may be collisions when printing."
-msgstr ""
-
-#, boost-format
 msgid "%1% is too close to others, and collisions may be caused."
 msgstr ""
 "%1% túl közel van más tárgyakhoz, a nyomtatás során előfordulhatnak "
@@ -5465,6 +5487,15 @@ msgstr ""
 "parts exceed the set value. It is expressed as percentage which indicates "
 "how much line is acceptable without support from lower layers."
 
+msgid "Bridge direction"
+msgstr ""
+
+msgid ""
+"Bridging angle override. If left to zero, the bridging angle will be "
+"calculated automatically. Otherwise the provided angle will be used for "
+"external bridges. Use 180°for zero angle."
+msgstr ""
+
 msgid "Bridge flow"
 msgstr "Áthidalás áramlási sebessége"
 
@@ -5743,6 +5774,14 @@ msgid ""
 "object printing."
 msgstr ""
 
+msgid "Max Radius"
+msgstr ""
+
+msgid ""
+"Max clearance radius around extruder. Used as input of auto-arranging to "
+"avoid collision when printing by object"
+msgstr ""
+
 msgid "Extruder Color"
 msgstr "Extruder szín"
 
@@ -5800,8 +5839,22 @@ msgstr ""
 msgid "s"
 msgstr "mp"
 
+msgid "Default color"
+msgstr ""
+
+msgid "Default filament color"
+msgstr ""
+
 msgid "Color"
 msgstr "Szín"
+
+msgid "Required nozzle HRC"
+msgstr ""
+
+msgid ""
+"Minimum HRC of nozzle required to print the filament. Zero means no checking "
+"of nozzle's HRC."
+msgstr ""
 
 msgid "Max volumetric speed"
 msgstr "Max. volumetrikus sebesség"
@@ -5809,11 +5862,8 @@ msgstr "Max. volumetrikus sebesség"
 msgid ""
 "This setting stands for how much volume of filament can be melted and "
 "extruded per second. Printing speed is limited by max volumetric speed, in "
-"case of too high and unreasonable speed setting. Zero means no limit"
+"case of too high and unreasonable speed setting. Can't be zero"
 msgstr ""
-"Use this to set the maximum volume of filament that can be melted and "
-"extruded per second. Printing speed is limited by maximum volumetric speed "
-"if settings are unreasonably high. 0 means there is no limit."
 
 msgid "mm³/s"
 msgstr "mm³/s"
@@ -5957,6 +6007,9 @@ msgstr ""
 "A felső felületi kitöltés gyorsulása. Alacsonyabb érték használata "
 "javíthatja a felső felület minőségét"
 
+msgid "Acceleration of outer wall. Using a lower value can improve quality"
+msgstr ""
+
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
 "adhensive"
@@ -6099,6 +6152,17 @@ msgstr "Rozsdamentes acél"
 
 msgid "Brass"
 msgstr "Sárgaréz"
+
+msgid "Nozzle HRC"
+msgstr ""
+
+msgid ""
+"The nozzle's hardness. Zero means no checking for nozzle's hardness during "
+"slicing."
+msgstr ""
+
+msgid "HRC"
+msgstr ""
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr ""
@@ -6992,21 +7056,17 @@ msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
 "printed with transparent filament, the mixed color infill will be seen "
-"outside"
+"outside. It will not take effect, unless the prime tower is enabled."
 msgstr ""
-"A filament csere utáni tisztítás a tárgyak kitöltésén belül történik. Ez "
-"csökkentheti a hulladék mennyiségét és a nyomtatási időt. Ha a falakat "
-"átlátszó filamenttel nyomtatod, a vegyes színű kitöltés kívülről látható lesz"
 
 msgid "Flush into objects' support"
 msgstr "Öblítés a tárgyak támaszába"
 
 msgid ""
 "Purging after filament change will be done inside objects' support. This may "
-"lower the amount of waste and decrease the print time"
+"lower the amount of waste and decrease the print time. It will not take "
+"effect, unless the prime tower is enabled."
 msgstr ""
-"A filament csere utáni tisztítás a tárgyak támaszon belül történik. Ez "
-"csökkentheti a hulladék mennyiségét és a nyomtatási időt"
 
 msgid "Flush into this object"
 msgstr "Öblítés ebbe a tárgyba"
@@ -7014,11 +7074,8 @@ msgstr "Öblítés ebbe a tárgyba"
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
 "filament and decrease the print time. Colours of the objects will be mixed "
-"as a result"
+"as a result. It will not take effect, unless the prime tower is enabled."
 msgstr ""
-"This object will be used to purge the nozzle after a filament change to save "
-"filament and decrease the print time. Colors of the objects will be mixed as "
-"a result."
 
 msgid "X-Y hole compensation"
 msgstr "X-Y furatkompenzáció"

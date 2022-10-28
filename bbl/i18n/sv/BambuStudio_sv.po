@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-21 14:33+0800\n"
+"POT-Creation-Date: 2022-10-31 09:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -67,6 +67,9 @@ msgstr "Verktygs typ"
 msgid "Smart fill angle"
 msgstr "Smart fyllningsvinkel"
 
+msgid "On overhangs only"
+msgstr ""
+
 msgid "Auto support threshold angle: "
 msgstr "Automatisk support tröskelsvinkel: "
 
@@ -80,6 +83,10 @@ msgid "Fill"
 msgstr "Fyll"
 
 msgid "Gap Fill"
+msgstr ""
+
+#, boost-format
+msgid "Allows painting only on facets selected by: \"%1%\""
 msgstr ""
 
 msgid "Highlight faces according to overhang angle."
@@ -138,6 +145,12 @@ msgstr "Hinkfyllning"
 
 msgid "Height range"
 msgstr "Höjd intervall"
+
+msgid "Ctrl + Shift + Enter"
+msgstr ""
+
+msgid "Toggle Wireframe"
+msgstr ""
 
 msgid "Shortcut Key "
 msgstr "Snabbkommando "
@@ -1721,6 +1734,11 @@ msgid ""
 msgstr ""
 
 msgid ""
+"Too small max volumetric speed.\n"
+"Reset to 0.5"
+msgstr ""
+
+msgid ""
 "Too small layer height.\n"
 "Reset to 0.2"
 msgstr ""
@@ -2582,11 +2600,11 @@ msgstr "Exportera &Toolpaths som OBJ"
 msgid "Export toolpaths as OBJ"
 msgstr "Exportera toolpaths som OBJ"
 
-msgid "Open &PrusaSlicer"
-msgstr "Öppna &PrusaSlicer"
+msgid "Open &Studio"
+msgstr ""
 
-msgid "Open PrusaSlicer"
-msgstr "Öppna PrusaSlicer"
+msgid "Open Studio"
+msgstr ""
 
 msgid "&Quit"
 msgstr "&Avsluta"
@@ -2858,6 +2876,11 @@ msgstr ""
 
 msgid "Downloading..."
 msgstr "Laddar ner..."
+
+msgid ""
+"Cannot read filament info: the filament is loaded to the tool head,please "
+"unload the filament and try again."
+msgstr ""
 
 msgid "This only takes effect during printing"
 msgstr ""
@@ -3305,9 +3328,6 @@ msgstr "Det valda objektet kan inte delas."
 
 msgid "Another export job is running."
 msgstr "En annan exportering pågår."
-
-msgid "Another export job is currently running."
-msgstr ""
 
 msgid "Select a new file"
 msgstr ""
@@ -3911,7 +3931,7 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing."
 msgstr ""
 
-msgid "An SD card needs to be inserted to recording timelapse"
+msgid "An SD card needs to be inserted to record timelapse."
 msgstr ""
 
 msgid "Please check the following infomation:\n"
@@ -3974,13 +3994,13 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr ""
 
 msgid ""
-"Prime tower is required by smooth timeplase. If whthout prime tower, there "
-"will be flaws on the model. Are you sure you want to disable prime tower?"
+"Prime tower is required for smooth timeplase. There may be flaws on the "
+"model without prime tower. Are you sure you want to disable prime tower?"
 msgstr ""
 
 msgid ""
-"Prime tower is required by smooth timelapse. If whthout prime tower, there "
-"will be flaws on the model. Do you want to enable prime tower?"
+"Prime tower is required for smooth timelapse. There may be flaws on the "
+"model without prime tower. Do you want to enable prime tower?"
 msgstr ""
 
 msgid ""
@@ -4028,6 +4048,9 @@ msgstr "Förflyttnings hastighet"
 
 msgid "Acceleration"
 msgstr "Acceleration"
+
+msgid "Raft"
+msgstr ""
 
 msgid "Support filament"
 msgstr "Support filament"
@@ -4457,6 +4480,11 @@ msgstr "Autoberäkna"
 
 msgid "Flushing volumes for filament change"
 msgstr "Rensnings volym för filament byte"
+
+msgid ""
+"The flush volume is less than the minimum value and will be automatically "
+"set to the minimum value."
+msgstr ""
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Rensnings volym (mm³) för varje filament."
@@ -5019,12 +5047,6 @@ msgid ""
 msgstr ""
 
 #, boost-format
-msgid ""
-"\n"
-"%1% is too close to exclusion area, there may be collisions when printing."
-msgstr ""
-
-#, boost-format
 msgid "%1% is too close to others, and collisions may be caused."
 msgstr "%1% är för nära andra och kan orsaka kollisioner."
 
@@ -5402,6 +5424,15 @@ msgstr ""
 "Tvinga kylfläktens hastighet när överhängsgraderna överstiger detta värde. "
 "Uttryckt i procent som indikerar linjebredden utan stöd från lägre lager"
 
+msgid "Bridge direction"
+msgstr ""
+
+msgid ""
+"Bridging angle override. If left to zero, the bridging angle will be "
+"calculated automatically. Otherwise the provided angle will be used for "
+"external bridges. Use 180°for zero angle."
+msgstr ""
+
 msgid "Bridge flow"
 msgstr "Bridge/Brygg flöde"
 
@@ -5673,6 +5704,14 @@ msgid ""
 "object printing."
 msgstr ""
 
+msgid "Max Radius"
+msgstr ""
+
+msgid ""
+"Max clearance radius around extruder. Used as input of auto-arranging to "
+"avoid collision when printing by object"
+msgstr ""
+
 msgid "Extruder Color"
 msgstr "Extruder Färg"
 
@@ -5727,8 +5766,22 @@ msgstr ""
 msgid "s"
 msgstr "s"
 
+msgid "Default color"
+msgstr ""
+
+msgid "Default filament color"
+msgstr ""
+
 msgid "Color"
 msgstr "Färg"
+
+msgid "Required nozzle HRC"
+msgstr ""
+
+msgid ""
+"Minimum HRC of nozzle required to print the filament. Zero means no checking "
+"of nozzle's HRC."
+msgstr ""
 
 msgid "Max volumetric speed"
 msgstr "Max volymetrisk hastighet"
@@ -5736,12 +5789,8 @@ msgstr "Max volymetrisk hastighet"
 msgid ""
 "This setting stands for how much volume of filament can be melted and "
 "extruded per second. Printing speed is limited by max volumetric speed, in "
-"case of too high and unreasonable speed setting. Zero means no limit"
+"case of too high and unreasonable speed setting. Can't be zero"
 msgstr ""
-"Denna inställning står för volymen av filament som kan smältas och "
-"extruderas per sekund. Utskriftshastigheten begränsas av max volymetrisk "
-"hastighet vid för hög och orimlig hastighetsinställning. 0 betyder ingen "
-"gräns"
 
 msgid "mm³/s"
 msgstr "mm³/s"
@@ -5883,6 +5932,9 @@ msgid ""
 msgstr ""
 "Acceleration av fyllning av toppytan. Att använda ett lägre värde kan "
 "förbättra ytkvaliteten"
+
+msgid "Acceleration of outer wall. Using a lower value can improve quality"
+msgstr ""
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
@@ -6028,6 +6080,17 @@ msgstr "Rostfritt stål"
 
 msgid "Brass"
 msgstr "Mässing"
+
+msgid "Nozzle HRC"
+msgstr ""
+
+msgid ""
+"The nozzle's hardness. Zero means no checking for nozzle's hardness during "
+"slicing."
+msgstr ""
+
+msgid "HRC"
+msgstr ""
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "Aktivera detta val om maskinen har extra kylfläkt"
@@ -6705,8 +6768,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för "
-"lösligt(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
+"(material) stödgränssnittet är koncentriskt"
 
 msgid "Base pattern spacing"
 msgstr "Basens mönster mellanrum"
@@ -6904,22 +6967,17 @@ msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
 "printed with transparent filament, the mixed color infill will be seen "
-"outside"
+"outside. It will not take effect, unless the prime tower is enabled."
 msgstr ""
-"Rensning efter filamentbyte kommer att göras inuti objektens fyllningar. "
-"Detta kan minska mängden avfall och minska utskriftstiden. Om väggarna är "
-"tryckta med transparent filament kommer den blandade färgfyllningen att "
-"synas."
 
 msgid "Flush into objects' support"
 msgstr "Rensa in i objektets support"
 
 msgid ""
 "Purging after filament change will be done inside objects' support. This may "
-"lower the amount of waste and decrease the print time"
+"lower the amount of waste and decrease the print time. It will not take "
+"effect, unless the prime tower is enabled."
 msgstr ""
-"Rensning efter filamentändring kommer att göras inuti objektens support. "
-"Detta kan minska mängden avfall och minska utskriftstiden."
 
 msgid "Flush into this object"
 msgstr "Rensa in i det här objektet"
@@ -6927,11 +6985,8 @@ msgstr "Rensa in i det här objektet"
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
 "filament and decrease the print time. Colours of the objects will be mixed "
-"as a result"
+"as a result. It will not take effect, unless the prime tower is enabled."
 msgstr ""
-"Detta objekt kommer att användas för att rensa nozzlen efter ett filament "
-"byte för att spara filament och minska utskriftstiden. Objektens färger "
-"blandas som ett resultat"
 
 msgid "X-Y hole compensation"
 msgstr "X-Y håls kompensation"
