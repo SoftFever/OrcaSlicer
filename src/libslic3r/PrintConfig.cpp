@@ -968,7 +968,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("extruder_clearance_height_to_rod", coFloat);
     def->label = L("Height to rod");
     def->tooltip = L("Distance of the nozzle tip to the lower rod. "
-        "Used as input of auto-arranging to avoid collision when printing by object");
+        "Used for collision avoidance in by-object printing.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -978,7 +978,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("extruder_clearance_height_to_lid", coFloat);
     def->label = L("Height to lid");
     def->tooltip = L("Distance of the nozzle tip to the lid. "
-        "Used as input of auto-arranging to avoid collision when printing by object");
+        "Used for collision avoidance in by-object printing.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -986,7 +986,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("extruder_clearance_radius", coFloat);
     def->label = L("Radius");
-    def->tooltip = L("Clearance radius around extruder. Used as input of auto-arranging to avoid collision when printing by object");
+    def->tooltip = L("Clearance radius around extruder. Used for collision avoidance in by-object printing.");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
@@ -994,7 +994,7 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("extruder_clearance_max_radius", coFloat);
     def->label    = L("Max Radius");
-    def->tooltip  = L("Max clearance radius around extruder. Used as input of auto-arranging to avoid collision when printing by object");
+    def->tooltip  = L("Max clearance radius around extruder. Used for collision avoidance in by-object printing.");
     def->sidetext = L("mm");
     def->min      = 0;
     def->mode     = comAdvanced;

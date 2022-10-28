@@ -575,6 +575,7 @@ void ArrangeJob::process()
             << ", bed_temp: " << selected.first_bed_temp << ", print_temp: " << selected.print_temp;
         BOOST_LOG_TRIVIAL(debug) << "items unselected before arrange: ";
         for (auto item : m_unselected)
+            if (!item.is_virt_object)
             BOOST_LOG_TRIVIAL(debug) << item.name << ", extruder: " << item.extrude_ids.back() << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
     }
 

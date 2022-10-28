@@ -84,6 +84,15 @@ public:
 
         std::sort(store_.begin(), store_.end(), sortfunc);
 
+        // debug: write down intitial order
+        for (auto it = store_.begin(); it != store_.end(); ++it) {
+            std::stringstream ss;
+            ss << "initial order: " << it->get().name << ", p=" << it->get().priority() << ", bed_temp=" << it->get().bed_temp << ", height=" << it->get().height
+               << ", area=" << it->get().area();
+            if (this->unfitindicator_)
+                this->unfitindicator_(ss.str());
+        }
+
         int item_id = 0;
         auto makeProgress = [this, &item_id](Placer &placer, size_t bin_idx) {
             packed_bins_[bin_idx] = placer.getItems();
@@ -102,7 +111,7 @@ public:
             bool was_packed = false;
             int best_bed_id = -1;
             int bed_id_firstfit = -1;
-            double score = LARGE_COST_TO_REJECT, best_score = LARGE_COST_TO_REJECT;
+            double score = LARGE_COST_TO_REJECT+1, best_score = LARGE_COST_TO_REJECT+1;
             double score_all_plates = 0, score_all_plates_best = std::numeric_limits<double>::max();
             typename Placer::PackResult result, result_best, result_firstfit;
             size_t j = 0;
@@ -130,8 +139,8 @@ public:
                     // item is not fit because we have tried all possible plates to find a good enough fit
                     if (bed_id_firstfit == MAX_NUM_PLATES) {
                         it->get().binId(BIN_ID_UNFIT);
-                        //if (this->unfitindicator_)
-                        //    this->unfitindicator_(it->get().name + " bed_id_firstfit == MAX_NUM_PLATES" + ",best_score=" + std::to_string(best_score));
+                        if (this->unfitindicator_)
+                            this->unfitindicator_(it->get().name + " bed_id_firstfit == MAX_NUM_PLATES" + ",best_score=" + std::to_string(best_score));
                         break;
                     }
                     else {
@@ -152,10 +161,13 @@ public:
                 }
 
                 if(!was_packed){
-                    //if (this->unfitindicator_)
-                    //    this->unfitindicator_(it->get().name + " ,plate_id=" + std::to_string(j) + ",score=" + std::to_string(score)
-                    //        + ", score_all_plates=" + std::to_string(score_all_plates)
-                    //        + ", overfit=" + std::to_string(result.overfit()));
+                    if (this->unfitindicator_ && !placers.empty())
+                        this->unfitindicator_(it->get().name + ", height=" +std::to_string(it->get().height)
+                            + " ,plate_id=" + std::to_string(j-1)
+                            + ", score=" + std::to_string(score)
+                            + ", best_bed_id=" + std::to_string(best_bed_id)
+                            + ", score_all_plates=" + std::to_string(score_all_plates)
+                            +", overfit=" + std::to_string(result.overfit()));
 
                     placers.emplace_back(bin);
                     placers.back().plateID(placers.size() - 1);
