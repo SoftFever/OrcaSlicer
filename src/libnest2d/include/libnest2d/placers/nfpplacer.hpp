@@ -481,7 +481,7 @@ public:
         auto d = bbin.center() - bb.center();
         _Rectangle<RawShape> rect(bb.width(), bb.height());
         rect.translate(bb.minCorner() + d);
-        return sl::isInside(rect.transformedShape(), bin) ? -1.0 : 1;
+        return sl::isInside(rect.transformedShape(), bin) ? -1.5 : 1;
     }
 
     static inline double overfit(const RawShape& chull, const RawShape& bin) {
@@ -907,7 +907,7 @@ private:
                     }
                 }
 
-                if( best_score < global_score && best_score< LARGE_COST_TO_REJECT) {
+                if( best_score < global_score) {
                     auto d = (getNfpPoint(optimum) - iv) + startpos;
                     final_tr = d;
                     final_rot = initial_rot + rot;
@@ -922,7 +922,10 @@ private:
 
 #ifdef SVGTOOLS_HPP
         svg::SVGWriter<RawShape> svgwriter;
-        svgwriter.setSize(binbb);
+        Box binbb2(binbb.width() * 2, binbb.height() * 2, binbb.center()); // expand bbox to allow object be drawed outside
+        svgwriter.setSize(binbb2);
+        svgwriter.conf_.x0 = binbb.width();
+        svgwriter.conf_.y0 = -binbb.height()/2; // origin is top left corner
         svgwriter.writeShape(box2RawShape(binbb), "none", "black");
         for (int i = 0; i < nfps.size(); i++)
             svgwriter.writeShape(nfps[i], "none", "blue");

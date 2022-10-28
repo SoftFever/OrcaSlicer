@@ -241,6 +241,10 @@ void ArrangeJob::prepare_wipe_tower()
 {
     bool need_wipe_tower = false;
 
+    // if wipe tower is explicitly disabled, no need to estimate
+    auto &print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+    if (!print.config().enable_prime_tower) return;
+
     // estimate if we need wipe tower for all plates:
     // if multile extruders have same bed temp, we need wipe tower
     if (!params.is_seq_print) {
@@ -531,10 +535,13 @@ void ArrangeJob::process()
     std::for_each(m_selected.begin(), m_selected.end(), [&](auto& ap) {ap.inflation = params.min_obj_distance / 2; });
     // For occulusion regions, inflation should be larger to prevent genrating brim on them.
     // However, extrusion cali regions are exceptional, since we can allow brim overlaps them.
+    // 屏蔽区域只需要膨胀brim宽度，防止brim长过去；挤出标定区域不需要膨胀，brim可以长过去。
+    // 以前我们认为还需要膨胀clearance_radius/2，这其实是不需要的，因为这些区域并不会真的摆放物体，
+    // 其他物体的膨胀轮廓是可以跟它们重叠的。
     std::for_each(m_unselected.begin(), m_unselected.end(), [&](auto &ap) {
         ap.inflation = !ap.is_virt_object ?
                            params.min_obj_distance / 2 :
-                           (ap.is_extrusion_cali_object ? scaled(params.cleareance_radius / 2) : scaled(params.brim_skirt_distance + params.cleareance_radius / 2));
+                           (ap.is_extrusion_cali_object ? 0 : scaled(params.brim_skirt_distance));
     });
 
 

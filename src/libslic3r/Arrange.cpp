@@ -202,14 +202,20 @@ protected:
         // 1) Y distance of item corner to bed corner. Must be put above bed corner. (high weight)
         // 2) X distance of item corner to bed corner (low weight)
         // 3) item row occupancy (useful when rotation is enabled)
+        // 4）需要允许往屏蔽区域的左边或下边去一点，不然很多物体可能认为摆不进去，实际上我们最后是可以做平移的
     double dist_for_BOTTOM_LEFT(Box ibb, const ClipperLib::IntPoint& origin_pack)
     {
         double dist_corner_y = ibb.minCorner().y() - origin_pack.y();
         double dist_corner_x = ibb.minCorner().x() - origin_pack.x();
-        if (dist_corner_y < 0 || dist_corner_x<0)
-            return LARGE_COST_TO_REJECT;
-        double bindist = norm(dist_corner_y + 1 * dist_corner_x
-            + 1 * double(ibb.maxCorner().y() - ibb.minCorner().y()));  // occupy as few rows as possible
+        // occupy as few rows as possible if we have rotations
+        double bindist       = double(ibb.maxCorner().y() - ibb.minCorner().y());
+        if (dist_corner_x >= 0 && dist_corner_y >= 0)
+            bindist += dist_corner_y + 1 * dist_corner_x;
+        else {
+            if (dist_corner_x < 0) bindist += 10 * (-dist_corner_x);
+            if (dist_corner_y < 0) bindist += 10 * (-dist_corner_y);
+        }
+        bindist = norm(bindist);
         return bindist;
     }
 
@@ -513,13 +519,15 @@ public:
         m_pconf.on_preload = [this](const ItemGroup &items, PConfig &cfg) {
             if (items.empty()) return;
 
-            auto bb = sl::boundingBox(m_bin);
+            auto binbb = sl::boundingBox(m_bin);
             // BBS: excluded region (virtual object but not wipe tower) should not affect final alignment
             bool all_is_excluded_region = std::all_of(items.begin(), items.end(), [](Item &itm) { return itm.is_virt_object && !itm.is_wipe_tower; });
             if (!all_is_excluded_region)
                 cfg.alignment = PConfig::Alignment::DONT_ALIGN;
+            else
+                cfg.alignment = PConfig::Alignment::CENTER;
 
-            auto starting_point = cfg.starting_point == PConfig::Alignment::BOTTOM_LEFT ? bb.minCorner() : bb.center();
+            auto starting_point = cfg.starting_point == PConfig::Alignment::BOTTOM_LEFT ? binbb.minCorner() : binbb.center();
             // if we have wipe tower, items should be arranged around wipe tower
             for (Item itm : items) {
                 if (itm.is_wipe_tower) {
@@ -528,12 +536,16 @@ public:
                 }
             }
 
-            cfg.object_function = [this, bb, starting_point](const Item& item, const ItemGroup& packed_items) {
-                bool packed_are_excluded_region = std::all_of(packed_items.begin(), packed_items.end(), [](Item& itm) { return itm.is_virt_object && !itm.is_wipe_tower; });
-                if(packed_are_excluded_region)
-                    return fixed_overfit_topright_sliding(objfunc(item, starting_point), bb);
-                else
-                    return fixed_overfit(objfunc(item, starting_point), bb);
+            cfg.object_function = [this, binbb, starting_point](const Item& item, const ItemGroup& packed_items) {
+                // 在我们的摆盘中，没有天然的固定对象。固定对象只有：屏蔽区域、挤出补偿区域、料塔。
+                // 对于屏蔽区域，摆入的对象仍然是可以向右上滑动的；
+                // 对挤出料塔，摆入的对象不能滑动（必须围绕料塔）
+                bool pack_around_wipe_tower = std::any_of(packed_items.begin(), packed_items.end(), [](Item& itm) { return itm.is_wipe_tower; });
+                if(pack_around_wipe_tower)
+                    return fixed_overfit(objfunc(item, starting_point), binbb);
+                else {
+                    return fixed_overfit_topright_sliding(objfunc(item, starting_point), binbb);
+                }
             };
         };
 
@@ -611,16 +623,18 @@ template<> std::function<double(const Item&, const ItemGroup&)> AutoArranger<Box
         double score = std::get<0>(result);
         auto& fullbb = std::get<1>(result);
 
-        if (m_pconf.starting_point == PConfig::Alignment::BOTTOM_LEFT)
-        {
-            if (!sl::isInside(fullbb, m_bin))
-                score += LARGE_COST_TO_REJECT;
-        }
-        else
+        //if (m_pconf.starting_point == PConfig::Alignment::BOTTOM_LEFT)
+        //{
+        //    if (!sl::isInside(fullbb, m_bin))
+        //        score += LARGE_COST_TO_REJECT;
+        //}
+        //else
         {
             double miss = Placer::overfit(fullbb, m_bin);
             miss = miss > 0 ? miss : 0;
             score += miss * miss;
+            if (score > LARGE_COST_TO_REJECT)
+                score = 1.5 * LARGE_COST_TO_REJECT;
         }
 
         return score;

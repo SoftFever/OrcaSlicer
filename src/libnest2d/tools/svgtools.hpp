@@ -35,8 +35,9 @@ public:
 
     };
 
-private:
     Config conf_;
+
+private:
     std::vector<std::string> svg_layers_;
     bool finished_ = false;
 public:

@@ -529,12 +529,9 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                 auto inter_min = std::max(ly1, ry1);
                 auto inter_max = std::min(ly2, ry2);
                 auto inter_y   = inter_max - inter_min;
-                inter_min      = std::max(lx1, rx1);
-                inter_max      = std::min(lx2, rx2);
-                auto inter_x   = inter_max - inter_min;
 
                 // 如果y方向的重合超过轮廓的膨胀量，说明两个物体在一行，应该先打左边的物体，即先比较二者的x坐标。
-                if (inter_y > scale_(1)) {
+                if (inter_y > scale_(0.5 * print.config().extruder_clearance_radius.value)) {
                     if (std::max(rx1 - lx2, lx1 - rx2) < unsafe_dist) {
                         if (lx1 > rx1) {
                             left_right_pair.insert({j, i});
@@ -555,7 +552,8 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                 }
                 else if (l.height > hc2 && l.height > r.height && l.arrange_score<r.arrange_score) {
                     // 如果当前物体的高度超过滑杆，且比r高，就给它加一点代价，尽量让高的物体后打（只有物体高度超过滑杆时才有必要按高度来）
-                    l.arrange_score = std::max(l.arrange_score, r.arrange_score + bed_width/2);
+                    if (l.arrange_score < r.arrange_score)
+                        l.arrange_score = r.arrange_score + 10;
                     BOOST_LOG_TRIVIAL(debug) << "height>hc2, print_instance " << inst.print_instance->model_instance->get_object()->name
                                              << ", right=" << r.print_instance->model_instance->get_object()->name << ", l.score: " << l.arrange_score
                                              << ", r.score: " << r.arrange_score;
@@ -563,7 +561,6 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
             }
         }
     }
-    BOOST_LOG_TRIVIAL(debug) << "bed width: " << bed_width << ", unsafe_dist:" << unsafe_dist;
     // 多做几次代价传播，因为前一次有些值没有更新。
     // TODO 更好的办法是建立一颗树，一步到位。不过我暂时没精力搞，先就这样吧
     for (int k=0;k<5;k++)
@@ -571,14 +568,15 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
         auto &l = print_instance_with_bounding_box[p(0)];
         auto &r = print_instance_with_bounding_box[p(1)];
         if(r.arrange_score<l.arrange_score)
-            r.arrange_score = l.arrange_score + bed_width/2;
+            r.arrange_score = l.arrange_score + 10;
     }
     
+    BOOST_LOG_TRIVIAL(debug) << "bed width: " << unscale_(bed_width) << ", unsafe_dist:" << unscale_(unsafe_dist) << ", height_to_lid: " << unscale_(hc1) << ", height_to_rod:" << unscale_(hc2) << ", final dependency:";
     for (auto p : left_right_pair) {
         auto &l         = print_instance_with_bounding_box[p(0)];
         auto &r         = print_instance_with_bounding_box[p(1)];
-        BOOST_LOG_TRIVIAL(debug) << "print_instance " << l.print_instance->model_instance->get_object()->name << "(" << l.arrange_score << ")"
-                                 << " -> " << r.print_instance->model_instance->get_object()->name << "(" << r.arrange_score << ")";
+        BOOST_LOG_TRIVIAL(debug) << "print_instance " << I18N::translate(l.print_instance->model_instance->get_object()->name) << "(" << l.arrange_score << ")"
+                                 << " -> " << I18N::translate(r.print_instance->model_instance->get_object()->name) << "(" << r.arrange_score << ")";
     }
     // sort the print instance
     std::sort(print_instance_with_bounding_box.begin(), print_instance_with_bounding_box.end(),
