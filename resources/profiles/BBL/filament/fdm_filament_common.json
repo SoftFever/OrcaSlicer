@@ -4,7 +4,7 @@
     "from": "system",
     "instantiation": "false",
     "required_nozzle_HRC": [
-        "20"
+        "3"
     ],
     "cool_plate_temp" : [
         "60"

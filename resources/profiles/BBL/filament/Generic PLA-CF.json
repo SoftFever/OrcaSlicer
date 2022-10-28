@@ -6,14 +6,14 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pla",
+    "required_nozzle_HRC": [
+        "40"
+    ],
     "filament_flow_ratio": [
         "0.95"
     ],
     "filament_type": [
         "PLA-CF"
-    ],
-    "required_nozzle_HRC": [
-        "55"
     ],
     "filament_max_volumetric_speed": [
         "12"

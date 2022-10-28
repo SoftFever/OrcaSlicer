@@ -6,6 +6,9 @@
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_pa",
+    "required_nozzle_HRC": [
+      "3"
+    ],
     "nozzle_temperature_initial_layer": [
       "280"
     ],

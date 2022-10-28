@@ -6,7 +6,7 @@
     "instantiation": "false",
     "inherits": "fdm_filament_pet",
     "required_nozzle_HRC": [
-        "55"
+        "40"
     ],
     "filament_vendor": [
         "Bambu Lab"
