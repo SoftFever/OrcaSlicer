@@ -360,6 +360,8 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     home_flag = -1;
     hw_switch_state = 0;
     printing_speed_lvl   = PrintingSpeedLevel::SPEED_LEVEL_INVALID;
+
+    has_ipcam = true; // default true
 }
 
 MachineObject::~MachineObject()
