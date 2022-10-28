@@ -475,6 +475,7 @@ void GLGizmoFdmSupports::show_tooltip_information(float caption_max, float x, fl
     float font_size = ImGui::GetFontSize();
     ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0, ImGui::GetStyle().FramePadding.y });
     ImGui::ImageButton3(normal_id, hover_id, button_size);
 
     if (ImGui::IsItemHovered()) {
@@ -506,7 +507,7 @@ void GLGizmoFdmSupports::show_tooltip_information(float caption_max, float x, fl
 
         ImGui::EndTooltip();
     }
-    ImGui::PopStyleVar(1);
+    ImGui::PopStyleVar(2);
 }
 
 // BBS

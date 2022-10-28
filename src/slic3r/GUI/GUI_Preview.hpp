@@ -66,6 +66,10 @@ public:
     void center_selected();
     void mirror_selection(Axis axis);
 
+    bool is_layers_editing_enabled() const;
+    bool is_layers_editing_allowed() const;
+    void enable_layers_editing(bool enable);
+
     bool is_dragging() const;
     bool is_reload_delayed() const;
 

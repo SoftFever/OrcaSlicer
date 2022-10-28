@@ -306,6 +306,7 @@ void GLGizmoMmuSegmentation::show_tooltip_information(float caption_max, float x
     float font_size = ImGui::GetFontSize();
     ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0, ImGui::GetStyle().FramePadding.y });
     ImGui::ImageButton3(normal_id, hover_id, button_size);
 
     if (ImGui::IsItemHovered()) {
@@ -336,7 +337,7 @@ void GLGizmoMmuSegmentation::show_tooltip_information(float caption_max, float x
         for (const auto &t : tip_items) draw_text_with_caption(m_desc.at(t + "_caption") + ": ", m_desc.at(t));
         ImGui::EndTooltip();
     }
-    ImGui::PopStyleVar(1);
+    ImGui::PopStyleVar(2);
 }
 
 void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bottom_limit)

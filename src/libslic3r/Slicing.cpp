@@ -400,31 +400,32 @@ std::vector<double> smooth_height_profile(const std::vector<double>& profile, co
     };
 
     //BBS: avoid the layer height change to be too steep
-    auto has_steep_height_change = [&slicing_params](const std::vector<double>& profile, const double height_step) {
-        //BBS: skip first layer
-        size_t skip_count = slicing_params.first_object_layer_height_fixed() ? 4 : 0;
-        size_t size = profile.size();
-        //BBS: not enough data to smmoth, return false directly
-        if ((int)size - (int)skip_count < 6)
-            return false;
+    //auto has_steep_height_change = [&slicing_params](const std::vector<double>& profile, const double height_step) {
+    //    //BBS: skip first layer
+    //    size_t skip_count = slicing_params.first_object_layer_height_fixed() ? 4 : 0;
+    //    size_t size = profile.size();
+    //    //BBS: not enough data to smmoth, return false directly
+    //    if ((int)size - (int)skip_count < 6)
+    //        return false;
 
-        //BBS: Don't need to check the difference between top layer and the last 2th layer
-        for (size_t i = skip_count; i < size - 6; i += 2) {
-            if (abs(profile[i + 1] - profile[i + 3]) > height_step)
-                return true;
-        }
-        return false;
-    };
+    //    //BBS: Don't need to check the difference between top layer and the last 2th layer
+    //    for (size_t i = skip_count; i < size - 6; i += 2) {
+    //        if (abs(profile[i + 1] - profile[i + 3]) > height_step)
+    //            return true;
+    //    }
+    //    return false;
+    //};
 
-    int count = 0;
-    std::vector<double> ret = profile;
-    bool has_steep_change = has_steep_height_change(ret, LAYER_HEIGHT_CHANGE_STEP);
-    while (has_steep_change && count < 6) {
-        ret = gauss_blur(ret, smoothing_params);
-        has_steep_change = has_steep_height_change(ret, LAYER_HEIGHT_CHANGE_STEP);
-        count++;
-    }
-    return ret;
+    //int count = 0;
+    //std::vector<double> ret = profile;
+    //bool has_steep_change = has_steep_height_change(ret, LAYER_HEIGHT_CHANGE_STEP);
+    //while (has_steep_change && count < 6) {
+    //    ret = gauss_blur(ret, smoothing_params);
+    //    has_steep_change = has_steep_height_change(ret, LAYER_HEIGHT_CHANGE_STEP);
+    //    count++;
+    //}
+    //return ret;
+    return gauss_blur(profile, smoothing_params);
 }
 
 void adjust_layer_height_profile(

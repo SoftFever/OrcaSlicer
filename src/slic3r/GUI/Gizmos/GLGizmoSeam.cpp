@@ -132,6 +132,7 @@ void GLGizmoSeam::show_tooltip_information(float caption_max, float x, float y)
     float font_size = ImGui::GetFontSize();
     ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0, ImGui::GetStyle().FramePadding.y });
     ImGui::ImageButton3(normal_id, hover_id, button_size);
 
     if (ImGui::IsItemHovered()) {
@@ -145,7 +146,7 @@ void GLGizmoSeam::show_tooltip_information(float caption_max, float x, float y)
         for (const auto &t : std::array<std::string, 5>{"enforce", "block", "remove", "cursor_size", "clipping_of_view"}) draw_text_with_caption(m_desc.at(t + "_caption") + ": ", m_desc.at(t));
         ImGui::EndTooltip();
     }
-    ImGui::PopStyleVar(1);
+    ImGui::PopStyleVar(2);
 }
 
 void GLGizmoSeam::tool_changed(wchar_t old_tool, wchar_t new_tool)

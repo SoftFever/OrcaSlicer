@@ -256,6 +256,12 @@ public:
         else
             return nullptr;
     }
+    void* get_icon_texture_id(MENU_ICON_NAME icon) const{
+        if (icon_list.find((int)icon) != icon_list.end())
+            return icon_list.at(icon);
+        else
+            return nullptr;
+    }
 
     Vec3d get_flattening_normal() const;
 
