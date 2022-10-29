@@ -906,6 +906,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
         return;
 
     BOOST_LOG_TRIVIAL(info) << boost::format("Will export G-code to %1% soon")%path;
+    GCodeProcessor::s_IsBBLPrinter = print->is_BBL_printer();
     print->set_started(psGCodeExport);
 
     if (print->is_BBL_printer())
@@ -913,7 +914,6 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     else
       gcode_label_objects = true;
 
-    GCodeProcessor::s_IsBBLPrinter = print->is_BBL_printer();
 
     // check if any custom gcode contains keywords used by the gcode processor to
     // produce time estimation and gcode toolpaths

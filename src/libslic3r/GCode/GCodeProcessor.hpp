@@ -794,6 +794,9 @@ namespace Slic3r {
         // Advanced settings
         void process_M205(const GCodeReader::GCodeLine& line);
 
+        // Klipper SET_VELOCITY_LIMIT
+        void process_SET_VELOCITY_LIMIT(const GCodeReader::GCodeLine& line);
+
         // Set extrude factor override percentage
         void process_M221(const GCodeReader::GCodeLine& line);
 
