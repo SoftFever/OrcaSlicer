@@ -129,8 +129,12 @@ namespace GUI {
                 if (j["data"].contains("download_url"))
                     download_url = j["data"]["download_url"].get<std::string>();
 
+                std::string filename = "";
+                if (j["data"].contains("filename"))
+                    download_url = j["data"]["filename"].get<std::string>();
+
                 if (download_url.empty()) return;
-                wxGetApp().plater()->request_model_download(download_url);
+                wxGetApp().plater()->request_model_download(download_url, filename);
             }
           
         }

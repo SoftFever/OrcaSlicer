@@ -3216,7 +3216,11 @@ std::string GUI_App::handle_web_request(std::string cmd)
             if (j["data"].contains("download_url"))
                 download_url = j["data"]["download_url"].get<std::string>();
 
-            this->request_model_download(download_url);
+            std::string filename = "";
+            if (j["data"].contains("filename"))
+                download_url = j["data"]["filename"].get<std::string>();
+
+            this->request_model_download(download_url, filename);
         }
 
         std::stringstream ss(cmd), oss;
@@ -3388,12 +3392,12 @@ void GUI_App::handle_script_message(std::string msg)
     }
 }
 
-void GUI_App::request_model_download(std::string import_json)
+void GUI_App::request_model_download(std::string url, std::string filename)
 {
     if (!check_login()) return;
 
     if (plater_) {
-        plater_->request_model_download(import_json);
+        plater_->request_model_download(url, filename);
     }
 }
 

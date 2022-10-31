@@ -7155,12 +7155,17 @@ int Plater::save_project(bool saveAs)
 }
 
 //BBS import model by model id
-void Plater::import_model_id(const std::string& download_url)
+void Plater::import_model_id(const std::string& download_info)
 {
-    /* json j;
-     std::string model_id = "";
-     std::string profile_id = "";
-     std::string design_id;*/
+    std::string download_url = "";
+    wxString filename = "";
+
+    auto selection_data_arr = wxSplit(download_info, '|');
+
+    if (selection_data_arr.size() == 2) {
+        download_url = selection_data_arr[0].ToStdString();
+        filename = selection_data_arr[1].ToStdString();
+    }
 
 
     bool download_ok = false;
@@ -7175,7 +7180,7 @@ void Plater::import_model_id(const std::string& download_url)
     bool cancel = false;
     wxString msg;
     wxString dlg_title = _L("Importing Model");
-    wxString filename;
+
     int percent = 1;
     ProgressDialog dlg(dlg_title,
         wxString(' ', 100) + "\n\n\n\n",
@@ -7212,8 +7217,6 @@ void Plater::import_model_id(const std::string& download_url)
             return;
         }*/
         //filename = from_u8(profile->filename);
-
-        
         //filename = from_u8(fs::path(download_url).filename().string());
 
         //gets the number of files with the same name
@@ -7222,7 +7225,7 @@ void Plater::import_model_id(const std::string& download_url)
 
 
         target_path = fs::path(wxGetApp().app_config->get("download_path"));
-        filename = from_u8(fs::path(download_url).filename().string());
+        //filename = from_u8(fs::path(download_url).filename().string());
 
         try
         {
@@ -7248,13 +7251,11 @@ void Plater::import_model_id(const std::string& download_url)
 
         //update filename
         if (is_already_exist && vecFiles.size() >= 1) {
-            wxString extension = fs::path(download_url).extension().c_str();
+            wxString extension = fs::path(filename).extension().c_str();
             wxString name = filename.SubString(0, filename.length() - extension.length() - 1);
             filename = wxString::Format("%s(%d)%s",name, vecFiles.size() + 1, extension);
         }
-        else {
-            filename = from_u8(fs::path(download_url).filename().string());
-        }
+       
 
         msg = _L("downloading project ...");
 
@@ -7347,10 +7348,10 @@ void Plater::download_project(const wxString& project_id)
     return;
 }
 
-void Plater::request_model_download(std::string import_json)
+void Plater::request_model_download(std::string url, std::string filename)
 {
     wxCommandEvent* event = new wxCommandEvent(EVT_IMPORT_MODEL_ID);
-    event->SetString(wxString(import_json));
+    event->SetString(wxString::Format("%s|%s", wxString(url), wxString(filename)));
     wxQueueEvent(this, event);
 }
 
