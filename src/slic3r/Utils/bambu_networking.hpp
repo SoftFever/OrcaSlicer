@@ -32,11 +32,13 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_INVALID_RESULT                -23
 #define BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED             -24
 #define BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED              -25
+#define BAMBU_NETWORK_ERR_GET_MODEL_PUBLISH_PAGE        -26
+#define BAMBU_NETWORK_ERR_GET_MODEL_MALL_HOME_PAGE      -27
 
 
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
-#define BAMBU_NETWORK_AGENT_VERSION         "01.03.01.02"
+#define BAMBU_NETWORK_AGENT_VERSION         "01.04.00.01"
 
 
 //iot preset type strings
