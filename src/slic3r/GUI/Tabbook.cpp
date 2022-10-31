@@ -75,7 +75,7 @@ void TabButtonsListCtrl::OnPaint(wxPaintEvent &)
         
         wxPoint pos = btn->GetPosition();
         wxSize size = btn->GetSize();
-        const wxColour &clr  = idx == m_selection ? btn_marker_color : TAB_BUTTON_BG;
+        const wxColour &clr  = StateColor::darkModeColorFor(idx == m_selection ? btn_marker_color : TAB_BUTTON_BG);
         dc.SetPen(clr);
         dc.SetBrush(clr);
         dc.DrawRectangle(pos.x, pos.y + size.y, size.x, sz.y - size.y);

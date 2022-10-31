@@ -2616,10 +2616,10 @@ const wxColour GUI_App::get_label_default_clr_modified()
 
 void GUI_App::init_label_colours()
 {
-    m_color_label_modified          = wxColour("#F1754E");
-    m_color_label_sys               = wxColour("#323A3D");
-
     bool is_dark_mode = dark_mode();
+    m_color_label_modified = is_dark_mode ? wxColour("#F1754E") : wxColour("#F1754E");
+    m_color_label_sys      = is_dark_mode ? wxColour("#B2B3B5") : wxColour("#363636");
+
 #ifdef _WIN32
     m_color_label_default           = is_dark_mode ? wxColour(250, 250, 250) : m_color_label_sys; // wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     m_color_highlight_label_default = is_dark_mode ? wxColour(230, 230, 230): wxSystemSettings::GetColour(/*wxSYS_COLOUR_HIGHLIGHTTEXT*/wxSYS_COLOUR_WINDOWTEXT);
@@ -2630,6 +2630,7 @@ void GUI_App::init_label_colours()
     m_color_label_default = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
 #endif
     m_color_window_default          = is_dark_mode ? wxColour(43, 43, 43)   : wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+    StateColor::SetDarkMode(is_dark_mode);
 }
 
 void GUI_App::update_label_colours_from_appconfig()
@@ -2645,8 +2646,10 @@ void GUI_App::update_label_colours()
 
 void GUI_App::UpdateDarkUI(wxWindow* window, bool highlited/* = false*/, bool just_font/* = false*/)
 {
-    //BBS disable DarkUI mode
-    return;
+    if (wxButton *btn = dynamic_cast<wxButton *>(window)) {
+        if (btn->GetWindowStyleFlag() & wxBU_AUTODRAW)
+            return;
+    }
 
 #ifdef _WIN32
     if (wxButton* btn = dynamic_cast<wxButton*>(window)) {

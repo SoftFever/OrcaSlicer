@@ -44,7 +44,6 @@ ImageGrid::ImageGrid(wxWindow * parent)
 {
     SetBackgroundStyle(wxBG_STYLE_PAINT);
     SetBackgroundColour(0xEEEEEE);
-    SetForegroundColour(*wxWHITE); // time text color
     SetFont(Label::Head_20);
 
     m_timer.Bind(wxEVT_TIMER, [this](auto & e) { Refresh(); });
@@ -558,6 +557,7 @@ void ImageGrid::render(wxDC& dc)
                     dc.DrawBitmap(file.IsSelect() ? m_checked_icon.bmp() : m_unchecked_icon.bmp(),
                                   pt + wxPoint{10, m_image_size.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
             } else {
+                dc.SetTextForeground(*wxWHITE); // time text color
                 auto date = wxDateTime((time_t) file.time).Format(_L(formats[m_file_sys->GetGroupMode()]));
                 dc.DrawText(date, pt + wxPoint{24, 16});
             }
@@ -582,7 +582,7 @@ void ImageGrid::render(wxDC& dc)
         auto date1 = wxDateTime((time_t) file1.time).Format(_L(formats[m_file_sys->GetGroupMode()]));
         auto date2 = wxDateTime((time_t) file2.time).Format(_L(formats[m_file_sys->GetGroupMode()]));
         dc.SetFont(Label::Head_16);
-        dc.SetTextForeground(wxColor("#262E30"));
+        dc.SetTextForeground(StateColor::darkModeColorFor("#262E30"));
         dc.DrawText(date1 + " - " + date2, wxPoint{off.x, 2});
     }
     // Draw bottom background
@@ -627,13 +627,12 @@ void Slic3r::GUI::ImageGrid::renderButtons(wxDC &dc, wxStringList const &texts, 
         rect.Inflate(10, 5);
         rect.Offset(rect.GetWidth(), 0);
     }
-    dc.SetTextForeground(*wxWHITE); // time text color
     dc.SetFont(GetFont());
 }
 
 void Slic3r::GUI::ImageGrid::renderText(wxDC &dc, wxString const &text, wxRect const &rect, int states)
 {
-    dc.SetTextForeground(m_buttonTextColor.colorForStates(states));
+    dc.SetTextForeground(m_buttonTextColor.colorForStatesNoDark(states));
     wxRect rc({0, 0}, dc.GetTextExtent(text));
     rc = rc.CenterIn(rect);
     dc.DrawText(text, rc.GetTopLeft());

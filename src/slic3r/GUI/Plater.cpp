@@ -1137,8 +1137,16 @@ void Sidebar::sys_color_changed()
     for (wxWindow* win : std::vector<wxWindow*>{ p->scrolled, p->presets_panel })
         wxGetApp().UpdateAllStaticTextDarkUI(win);
 #endif
-    for (wxWindow* btn : std::vector<wxWindow*>{ p->btn_reslice, p->btn_export_gcode })
-        wxGetApp().UpdateDarkUI(btn, true);
+    //for (wxWindow* btn : std::vector<wxWindow*>{ p->btn_reslice, p->btn_export_gcode })
+    //    wxGetApp().UpdateDarkUI(btn, true);
+    p->m_printer_icon->msw_rescale();
+    p->m_printer_setting->msw_rescale();
+    p->m_filament_icon->msw_rescale();
+    p->m_bpButton_add_filament->msw_rescale();
+    p->m_bpButton_del_filament->msw_rescale();
+    p->m_bpButton_ams_filament->msw_rescale();
+    p->m_bpButton_set_filament->msw_rescale();
+    p->m_flushing_volume_btn->Rescale();
 
     // BBS
 #if 0
@@ -10211,7 +10219,6 @@ void Plater::sys_color_changed()
 {
     p->preview->sys_color_changed();
     p->sidebar->sys_color_changed();
-
     p->menus.sys_color_changed();
 
     Layout();

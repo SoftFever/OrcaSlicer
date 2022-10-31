@@ -1770,6 +1770,7 @@ void MainFrame::on_sys_color_changed()
 
     // BBS
     m_tabpanel->Rescale();
+    m_param_panel->msw_rescale();
 
     // update Plater
     wxGetApp().plater()->sys_color_changed();

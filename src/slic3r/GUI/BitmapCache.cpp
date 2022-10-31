@@ -322,10 +322,13 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
 
     // map of color replaces
     std::map<std::string, std::string> replaces;
-    if (dark_mode)
-        replaces["\"#808080\""] = "\"#FFFFFF\"";
-    if (!new_color.empty())
-        replaces["\"#ED6B21\""] = "\"" + new_color + "\"";
+    if (dark_mode) {
+        replaces["\"#262E30\""] = "\"#EFEFF0\"";
+        replaces["\"#323A3D\""] = "\"#B3B3B5\"";
+        replaces["\"#808080\""] = "\"#818183\"";
+    }
+    //if (!new_color.empty())
+    //    replaces["\"#ED6B21\""] = "\"" + new_color + "\"";
 
     NSVGimage *image =  nsvgParseFromFileWithReplace(Slic3r::var(bitmap_name + ".svg").c_str(), "px", 96.0f, replaces);
     if (image == nullptr)

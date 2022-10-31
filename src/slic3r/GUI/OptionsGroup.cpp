@@ -453,6 +453,7 @@ bool OptionsGroup::activate(std::function<void()> throw_if_canceled/* = [](){}*/
 		if (staticbox) {
 			wxStaticBox * stb = new wxStaticBox(m_parent, wxID_ANY, _(title));
 			if (!wxOSX) stb->SetBackgroundStyle(wxBG_STYLE_PAINT);
+            stb->SetBackgroundColour(m_parent->GetBackgroundColour());
 			stb->SetFont(wxOSX ? wxGetApp().normal_font() : wxGetApp().bold_font());
 			wxGetApp().UpdateDarkUI(stb);
 			// BBS: new layout

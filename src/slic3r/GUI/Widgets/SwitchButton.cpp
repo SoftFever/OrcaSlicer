@@ -57,6 +57,7 @@ void SwitchButton::Rescale()
 		m_off.msw_rescale();
 	}
 	else {
+        SetBackgroundColour(StaticBox::GetParentBackgroundColor(GetParent()));
 #ifdef __WXOSX__
         auto scale = Slic3r::GUI::mac_max_scaling_factor();
         int BS = (int) scale;

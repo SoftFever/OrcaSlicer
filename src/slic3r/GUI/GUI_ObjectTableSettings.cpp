@@ -168,7 +168,7 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
             btn->SetToolTip(_(L("Reset parameter")));
 
             #ifdef __WINDOWS__
-            btn->SetBackgroundColour(*wxWHITE);
+            btn->SetBackgroundColour(parent->GetBackgroundColour());
             #endif // DEBUG
 
             

@@ -730,7 +730,7 @@ void CheckBox::BUILD() {
 	// BBS: use ::CheckBox
 	auto temp = new ::CheckBox(m_parent); 
 	if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
-	temp->SetBackgroundColour(*wxWHITE);
+	//temp->SetBackgroundColour(*wxWHITE);
 	temp->SetValue(check_value);
 
 	temp->Bind(wxEVT_TOGGLEBUTTON, ([this](wxCommandEvent & e) {

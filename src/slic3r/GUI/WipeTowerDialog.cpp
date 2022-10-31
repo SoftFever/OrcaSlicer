@@ -194,7 +194,7 @@ void WipingPanel::create_panels(wxWindow* parent, const int num) {
         auto sizer = new wxBoxSizer(wxHORIZONTAL);
         panel->SetSizer(sizer);
 
-        wxButton* icon = new wxButton(panel, wxID_ANY, wxString("") << i + 1, wxDefaultPosition, ICON_SIZE, wxBORDER_NONE);
+        wxButton *icon = new wxButton(panel, wxID_ANY, wxString("") << i + 1, wxDefaultPosition, ICON_SIZE, wxBORDER_NONE | wxBU_AUTODRAW);
         icon->SetBackgroundColour(m_colours[i]);
         //auto icon_style = icon->GetWindowStyle() & ~(wxBORDER_NONE | wxBORDER_SIMPLE);
         //icon->SetWindowStyle(m_colours[i].Red() > 224 && m_colours[i].Blue() > 224 && m_colours[i].Green() > 224 ? (icon_style | wxBORDER_SIMPLE) : (icon_style | wxBORDER_NONE));
@@ -307,7 +307,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
 
     header_line_sizer->AddSpacer(HEADER_BEG_PADDING);
     for (unsigned int i = 0; i < m_number_of_extruders; ++i) {
-        wxButton* icon = new wxButton(header_line_panel, wxID_ANY, wxString("") << i + 1, wxDefaultPosition, ICON_SIZE, wxBORDER_NONE);
+        wxButton* icon = new wxButton(header_line_panel, wxID_ANY, wxString("") << i + 1, wxDefaultPosition, ICON_SIZE, wxBORDER_NONE | wxBU_AUTODRAW);
         icon->SetBackgroundColour(m_colours[i]);
         //auto icon_style = icon->GetWindowStyle() & ~(wxBORDER_NONE | wxBORDER_SIMPLE);
         //icon->SetWindowStyle(m_colours[i].Red() > 224 && m_colours[i].Blue() > 224 && m_colours[i].Green() > 224 ? (icon_style | wxBORDER_SIMPLE) : (icon_style | wxBORDER_NONE));
