@@ -370,7 +370,7 @@ void ImageGrid::resize(wxSizeEvent& event)
 
 void ImageGrid::mouseWheelMoved(wxMouseEvent &event)
 {
-    auto delta = (event.GetWheelRotation() < 0 == event.IsWheelInverted()) ? -1 : 1;
+    auto delta = event.GetWheelRotation() < 0 ? 1 : -1;
     int off = m_row_offset + delta;
     if (off >= 0 && off < m_row_count) {
         m_row_offset = off;

@@ -288,7 +288,7 @@ void SpinInput::onTextEnter(wxCommandEvent &event)
 
 void SpinInput::mouseWheelMoved(wxMouseEvent &event)
 {
-    auto delta = (event.GetWheelRotation() < 0 == event.IsWheelInverted()) ? 1 : -1;
+    auto delta = event.GetWheelRotation() < 0 ? 1 : -1;
     SetValue(val + delta);
     sendSpinEvent();
     text_ctrl->SetFocus();

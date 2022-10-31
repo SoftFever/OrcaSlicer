@@ -222,7 +222,7 @@ void ComboBox::mouseWheelMoved(wxMouseEvent &event)
 {
     event.Skip();
     if (drop_down) return;
-    auto delta = (event.GetWheelRotation() < 0 == event.IsWheelInverted()) ? -1 : 1;
+    auto delta = event.GetWheelRotation() < 0 ? 1 : -1;
     unsigned int n = GetSelection() + delta;
     if (n < GetCount()) {
         SetSelection((int) n);
