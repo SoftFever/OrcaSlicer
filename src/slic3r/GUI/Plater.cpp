@@ -9296,6 +9296,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 {
     bool update_scheduled = false;
     bool bed_shape_changed = false;
+    bool print_sequence_changed = false;
     t_config_option_keys diff_keys = p->config->diff(config);
     for (auto opt_key : diff_keys) {
         if (opt_key == "filament_colour") {
@@ -9346,6 +9347,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         }
         else if (opt_key == "print_sequence") {
             update_scheduled = true;
+            print_sequence_changed = true;
         }
         else if (opt_key == "printer_model") {
             p->reset_gcode_toolpaths();
@@ -9371,7 +9373,8 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             std::string info_text = L("Print By Object: \nSuggest to use auto-arrange to avoid collisions when printing.");
             notify_manager->bbl_show_seqprintinfo_notification(info_text);
             //always show label when switch to sequence print
-            this->show_view3D_labels(true);
+            if (print_sequence_changed)
+                this->show_view3D_labels(true);
         }
         else
             notify_manager->bbl_close_seqprintinfo_notification();
