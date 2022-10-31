@@ -515,7 +515,6 @@ private:
     // This was a per-object setting and now we default enable it.
     static bool clip_multipart_objects;
     static bool infill_only_where_needed;
-    static bool ensure_vertical_shell_thickness;
 };
 
 struct WipeTowerData

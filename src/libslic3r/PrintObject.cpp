@@ -770,6 +770,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "sparse_infill_filament"
             || opt_key == "solid_infill_filament"
             || opt_key == "sparse_infill_line_width"
+            || opt_key == "ensure_vertical_shell_thickness"
             || opt_key == "bridge_angle") {
             steps.emplace_back(posPrepareInfill);
         } else if (
@@ -1224,9 +1225,7 @@ void PrintObject::discover_vertical_shells()
         bool has_extra_layers = false;
         for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
             const PrintRegionConfig &config = this->printing_region(region_id).config();
-            //BBS
-            //if (config.ensure_vertical_shell_thickness.value && has_extra_layers_fn(config)) {
-            if (PrintObject::ensure_vertical_shell_thickness && has_extra_layers_fn(config)) {
+            if (config.ensure_vertical_shell_thickness.value && has_extra_layers_fn(config)) {
                 has_extra_layers = true;
                 break;
             }
@@ -1306,9 +1305,7 @@ void PrintObject::discover_vertical_shells()
         PROFILE_BLOCK(discover_vertical_shells_region);
 
         const PrintRegion &region = this->printing_region(region_id);
-        //BBS
-        //if (! region.config().ensure_vertical_shell_thickness.value)
-        if (! PrintObject::ensure_vertical_shell_thickness)
+        if (! region.config().ensure_vertical_shell_thickness.value)
             // This region will be handled by discover_horizontal_shells().
             continue;
         if (! has_extra_layers_fn(region.config()))
@@ -2049,9 +2046,7 @@ void PrintObject::discover_horizontal_shells()
 #endif
 
             // If ensure_vertical_shell_thickness, then the rest has already been performed by discover_vertical_shells().
-            //BBS
-            //if (region_config.ensure_vertical_shell_thickness.value)
-            if (PrintObject::ensure_vertical_shell_thickness)
+            if (region_config.ensure_vertical_shell_thickness.value)
                 continue;
 
             coordf_t print_z  = layer->print_z;

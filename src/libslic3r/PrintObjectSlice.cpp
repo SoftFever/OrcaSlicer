@@ -18,7 +18,6 @@ namespace Slic3r {
 
 bool PrintObject::clip_multipart_objects = true;
 bool PrintObject::infill_only_where_needed = false;
-bool PrintObject::ensure_vertical_shell_thickness = true;
 
 LayerPtrs new_layers(
     PrintObject                 *print_object,
