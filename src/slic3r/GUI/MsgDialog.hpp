@@ -13,6 +13,7 @@
 #include <wx/textctrl.h>
 #include <wx/statline.h>
 #include "Widgets/Button.hpp"
+#include "Widgets/CheckBox.hpp"
 #include "BBLStatusBar.hpp"
 #include "BBLStatusBarSend.hpp"
 
@@ -59,7 +60,9 @@ struct MsgDialog : DPIDialog
 	MsgDialog &operator=(const MsgDialog &) = delete;
 	virtual ~MsgDialog();
 
-	virtual void on_dpi_changed(const wxRect &suggested_rect);
+	void show_dsa_button();
+	bool get_checkbox_state();
+	virtual void on_dpi_changed(const wxRect& suggested_rect);
 	void SetButtonLabel(wxWindowID btn_id, const wxString& label, bool set_focus = false);
 
 protected:
@@ -84,10 +87,12 @@ protected:
 	wxFont boldfont;
 	wxBoxSizer *content_sizer;
 	wxBoxSizer *btn_sizer;
+	wxBoxSizer *m_dsa_sizer;
 	wxStaticBitmap *logo;
     MsgButtonsHash  m_buttons;
+	CheckBox* m_checkbox_dsa{nullptr};
 };
-
+wxDECLARE_EVENT(EVT_CHECKBOX_CHANGE, wxCommandEvent);
 
 // Generic error dialog, used for displaying exceptions
 class ErrorDialog : public MsgDialog

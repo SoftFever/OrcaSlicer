@@ -26,6 +26,7 @@
 namespace Slic3r {
 namespace GUI {
 
+wxDEFINE_EVENT(EVT_CHECKBOX_CHANGE, wxCommandEvent);
 
 MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, long style, wxBitmap bitmap)
 	: DPIDialog(parent ? parent : dynamic_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, title, wxDefaultPosition, wxSize(360, -1),wxDEFAULT_DIALOG_STYLE)
@@ -59,6 +60,10 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
     btn_sizer->AddStretchSpacer();
 
     main_sizer->Add(topsizer, 1, wxEXPAND);
+
+    m_dsa_sizer = new wxBoxSizer(wxHORIZONTAL);
+    btn_sizer->Add(m_dsa_sizer,1,wxEXPAND,0);
+    btn_sizer->Add(0, 0, 1, wxEXPAND, 5);
     main_sizer->Add(btn_sizer, 0, wxBOTTOM | wxRIGHT | wxEXPAND, BORDER);
 
     apply_style(style);
@@ -69,6 +74,34 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
  MsgDialog::~MsgDialog()
 {
     for (auto mb : m_buttons) { delete mb.second->buttondata ; delete mb.second; }
+}
+
+void MsgDialog::show_dsa_button()
+{
+    m_checkbox_dsa = new CheckBox(this);
+    m_dsa_sizer->Add(m_checkbox_dsa, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
+    m_checkbox_dsa->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
+        auto event = wxCommandEvent(EVT_CHECKBOX_CHANGE);
+        event.SetInt(m_checkbox_dsa->GetValue()?1:0);
+        event.SetEventObject(this);
+        wxPostEvent(this, event);
+        e.Skip();
+    });
+
+    auto  m_text_dsa = new wxStaticText(this, wxID_ANY, _L("Don't show again"), wxDefaultPosition, wxDefaultSize, 0);
+    m_dsa_sizer->Add(m_text_dsa, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
+    m_text_dsa->SetFont(::Label::Body_13);
+    m_text_dsa->SetForegroundColour(wxColour(0x32,0x3A,0x3D));
+    btn_sizer->Layout();
+    //Fit();
+}
+
+bool MsgDialog::get_checkbox_state() 
+{
+    if (m_checkbox_dsa) {
+        return m_checkbox_dsa->GetValue();
+    }
+    return false;
 }
 
 void MsgDialog::on_dpi_changed(const wxRect &suggested_rect) 
