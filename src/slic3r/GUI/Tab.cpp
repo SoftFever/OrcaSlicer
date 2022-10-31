@@ -2414,8 +2414,6 @@ void TabFilament::build()
     load_initial_data();
 
     auto page = add_options_page(L("Filament"), "spool");
-    page->m_split_multi_line = true;
-    page->m_option_label_at_right = true;
         //BBS
         auto optgroup = page->new_optgroup(L("Basic information"), L"param_information");
         // Set size as all another fields for a better alignment
@@ -2443,8 +2441,6 @@ void TabFilament::build()
         optgroup->append_single_option_line("bed_temperature_difference");
 
         optgroup = page->new_optgroup(L("Print temperature"), L"param_temperature");
-        optgroup->split_multi_line = true;
-        optgroup->option_label_at_right = true;
         line = { L("Nozzle"), L("Nozzle temperature when printing") };
         line.append_option(optgroup->get_option("nozzle_temperature_initial_layer"));
         line.append_option(optgroup->get_option("nozzle_temperature"));
