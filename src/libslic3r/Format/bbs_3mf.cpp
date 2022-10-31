@@ -230,7 +230,7 @@ static constexpr const char* CUSTOM_SUPPORTS_ATTR = "paint_supports";
 static constexpr const char* CUSTOM_SEAM_ATTR = "paint_seam";
 static constexpr const char* MMU_SEGMENTATION_ATTR = "paint_color";
 // BBS
-static constexpr const char* FACE_PROPERTY_ATTR = "bbs:face_property";
+static constexpr const char* FACE_PROPERTY_ATTR = "face_property";
 
 static constexpr const char* KEY_ATTR = "key";
 static constexpr const char* VALUE_ATTR = "value";
