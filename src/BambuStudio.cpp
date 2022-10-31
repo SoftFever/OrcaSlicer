@@ -126,7 +126,7 @@ int CLI::run(int argc, char **argv)
         BOOST_LOG_TRIVIAL(info) << "index="<< index <<", arg is "<< argv[index] <<std::endl;
     int debug_argc = 9;
     char *debug_argv[] = {
-        "E:\work\projects\bambu_studio\bamboo_slicer\build\src\Debug\bambu-studio.exe",
+        "E:\work\projects\bambu_release\bamboo_slicer\build_debug\src\Debug\bambu-studio.exe",
         "--slice",
         "0",
         "--export-3mf=output.3mf",
@@ -1330,6 +1330,13 @@ int CLI::run(int argc, char **argv)
                         unsigned char  rgb_color[3] = {};
                         Slic3r::GUI::BitmapCache::parse_color(color, rgb_color);
                         glvolume_collection.volumes.back()->set_render_color( float(rgb_color[0]) / 255.f, float(rgb_color[1]) / 255.f, float(rgb_color[2]) / 255.f, 1.f);
+
+                        std::array<float, 4> new_color;
+                        new_color[0] = float(rgb_color[0]) / 255.f;
+                        new_color[1] = float(rgb_color[1]) / 255.f;
+                        new_color[2] = float(rgb_color[2]) / 255.f;
+                        new_color[3] = 1.f;
+                        glvolume_collection.volumes.back()->set_color(new_color);
                     }
                 }
             }

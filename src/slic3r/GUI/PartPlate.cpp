@@ -4137,19 +4137,19 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 		gcode_result->toolpath_outside = plate_data_list[i]->toolpath_outside;
 		m_plate_list[index]->slice_filaments_info = plate_data_list[i]->slice_filaments_info;
 		gcode_result->warnings = plate_data_list[i]->warnings;
-		if (!plate_data_list[i]->thumbnail_file.empty()) {
+		if (m_plater && !plate_data_list[i]->thumbnail_file.empty()) {
 			if (boost::filesystem::exists(plate_data_list[i]->thumbnail_file)) {
 				m_plate_list[index]->load_thumbnail_data(plate_data_list[i]->thumbnail_file);
 			}
 		}
 
-		if (!plate_data_list[i]->pattern_file.empty()) {
+		if (m_plater && !plate_data_list[i]->pattern_file.empty()) {
 			if (boost::filesystem::exists(plate_data_list[i]->pattern_file)) {
 				//no need to load pattern data currently
 				//m_plate_list[index]->load_pattern_thumbnail_data(plate_data_list[i]->pattern_file);
 			}
 		}
-		if (!plate_data_list[i]->pattern_bbox_file.empty()) {
+		if (m_plater && !plate_data_list[i]->pattern_bbox_file.empty()) {
 			if (boost::filesystem::exists(plate_data_list[i]->pattern_bbox_file)) {
 				m_plate_list[index]->load_pattern_box_data(plate_data_list[i]->pattern_bbox_file);
 			}
