@@ -4907,21 +4907,22 @@ void GUI_App::load_url(wxString url)
 void GUI_App::open_mall_page_dialog()
 {
     std::string url;
-    getAgent()->get_model_mall_home_url(&url);
 
-    if (mainframe) {
+    if (getAgent() && mainframe) {
+        getAgent()->get_model_mall_home_url(&url);
+
         ModelMallDialog modelMallDialog;
         modelMallDialog.go_to_mall(url);
         modelMallDialog.ShowModal();
-    }
+    }   
 }
 
 void GUI_App::open_publish_page_dialog()
 {
     std::string url;
-    getAgent()->get_model_publish_url(&url);
+    if (getAgent() && mainframe) {
+        getAgent()->get_model_publish_url(&url);
 
-    if (mainframe) {
         ModelMallDialog modelMallDialog;
         modelMallDialog.go_to_publish(url);
         modelMallDialog.ShowModal();
