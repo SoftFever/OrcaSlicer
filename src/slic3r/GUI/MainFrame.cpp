@@ -2929,7 +2929,7 @@ void MainFrame::open_recent_project(size_t file_id, wxString const & filename)
     }
     else
     {
-        MessageDialog msg(this, _L("The project is no longer available."), _L("Error"), wxYES | wxYES_DEFAULT);
+        MessageDialog msg(this, _L("The project is no longer available."), _L("Error"), wxOK | wxYES_DEFAULT);
         if (msg.ShowModal() == wxID_YES)
         {
             m_recent_projects.RemoveFileFromHistory(file_id);

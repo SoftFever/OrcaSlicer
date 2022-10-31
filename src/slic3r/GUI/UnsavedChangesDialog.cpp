@@ -772,7 +772,7 @@ std::vector<std::string> DiffViewCtrl::selected_options()
 
 static std::string none{"none"};
 #define UNSAVE_CHANGE_DIALOG_SCROLL_WINDOW_SIZE wxSize(FromDIP(490), FromDIP(374))
-#define UNSAVE_CHANGE_DIALOG_ACTION_LINE_SIZE wxSize(FromDIP(490), FromDIP(40))
+#define UNSAVE_CHANGE_DIALOG_ACTION_LINE_SIZE wxSize(FromDIP(490), FromDIP(60))
 #define UNSAVE_CHANGE_DIALOG_FIRST_VALUE_WIDTH FromDIP(190)
 #define UNSAVE_CHANGE_DIALOG_VALUE_WIDTH FromDIP(150)
 #define UNSAVE_CHANGE_DIALOG_ITEM_HEIGHT FromDIP(24)
@@ -952,7 +952,8 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
             (*btn)->SetTextColor(wxColour(107, 107, 107));
         }
 
-        (*btn)->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
+        //(*btn)->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
+        (*btn)->SetMinSize(wxSize(-1,-1));
         (*btn)->SetCornerRadius(FromDIP(12));
 
         (*btn)->Bind(wxEVT_BUTTON, [this, close_act, dependent_presets](wxEvent &) {
@@ -1377,7 +1378,7 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
     }
 
     wxString action_msg;
-    action_msg = format_wxstr(_L("You have changed some preset settings. \nWould you like to keep these changed settings after switching preset?"));
+    action_msg = format_wxstr(_L("You have changed some preset settings. \nWould you like to keep these changed settings (new value) after switching preset?"));
     m_action_line->SetLabel(action_msg);
 
     update_tree(type, presets);
