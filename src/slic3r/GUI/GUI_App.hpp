@@ -63,6 +63,7 @@ class NotificationManager;
 struct GUI_InitParams;
 class ParamsDialog;
 class HMSQuery;
+class ModelMallDialog;
 
 
 enum FileType
@@ -463,7 +464,10 @@ public:
     ParamsDialog*        params_dialog();
     Model&      		 model();
     NotificationManager * notification_manager();
-    //BBS
+
+    ModelMallDialog*    m_mall_home_dialog{ nullptr };
+    ModelMallDialog*    m_mall_publish_dialog{ nullptr };
+
     void            load_url(wxString url);
     void            open_mall_page_dialog();
     void            open_publish_page_dialog();

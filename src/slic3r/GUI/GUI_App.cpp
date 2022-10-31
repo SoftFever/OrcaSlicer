@@ -4915,10 +4915,15 @@ void GUI_App::open_mall_page_dialog()
     if (getAgent() && mainframe) {
         getAgent()->get_model_mall_home_url(&url);
 
-        ModelMallDialog modelMallDialog;
-        modelMallDialog.go_to_mall(url);
-        modelMallDialog.ShowModal();
-    }   
+        if (!m_mall_home_dialog) {
+            m_mall_home_dialog = new ModelMallDialog();
+            m_mall_home_dialog->go_to_mall(url);
+        }
+        else {
+            m_mall_home_dialog->go_to_mall(url);
+        }
+        m_mall_home_dialog->Show();
+    }
 }
 
 void GUI_App::open_publish_page_dialog()
@@ -4927,9 +4932,14 @@ void GUI_App::open_publish_page_dialog()
     if (getAgent() && mainframe) {
         getAgent()->get_model_publish_url(&url);
 
-        ModelMallDialog modelMallDialog;
-        modelMallDialog.go_to_publish(url);
-        modelMallDialog.ShowModal();
+        if (!m_mall_publish_dialog) {
+            m_mall_publish_dialog = new ModelMallDialog();
+            m_mall_publish_dialog->go_to_mall(url);
+        }
+        else {
+            m_mall_publish_dialog->go_to_publish(url);
+        }
+        m_mall_publish_dialog->Show();
     }
 }
 

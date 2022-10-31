@@ -56,9 +56,11 @@ namespace Slic3r { namespace GUI {
         void show_control(bool show);
         void go_to_mall(wxString url);
         void go_to_publish(wxString url);
+        void on_refresh(wxMouseEvent& evt);
     public:
         wxPanel* m_web_control_panel{nullptr};
         wxWebView* m_browser{nullptr};
+        wxString m_url;
     };
 
 }} // namespace Slic3r::GUI

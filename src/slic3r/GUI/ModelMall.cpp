@@ -26,6 +26,10 @@ namespace GUI {
 
         wxBoxSizer* m_sizer_main = new wxBoxSizer(wxVERTICAL);
 
+        auto m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+        m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
+        m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
+
         m_web_control_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, MODEL_MALL_PAGE_CONTROL_SIZE, wxTAB_TRAVERSAL);
         m_web_control_panel->SetBackgroundColour(*wxWHITE);
         m_web_control_panel->SetSize(MODEL_MALL_PAGE_CONTROL_SIZE);
@@ -55,6 +59,13 @@ namespace GUI {
         m_control_forward->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCursor(wxCURSOR_HAND)); });
         m_control_forward->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCursor(wxCURSOR_ARROW)); });
 
+        auto m_control_refresh = new ScalableButton(m_web_control_panel, wxID_ANY, "mall_control_refresh", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+        m_control_refresh->SetBackgroundColour(*wxWHITE);
+        m_control_refresh->SetSize(wxSize(FromDIP(25), FromDIP(30)));
+        m_control_refresh->SetMinSize(wxSize(FromDIP(25), FromDIP(30)));
+        m_control_refresh->SetMaxSize(wxSize(FromDIP(25), FromDIP(30)));
+        m_control_refresh->Bind(wxEVT_LEFT_DOWN, &ModelMallDialog::on_refresh, this);
+
 
 #ifdef __APPLE__
         m_control_back->SetToolTip(_L("Click to return (Command + Left Arrow)"));
@@ -73,6 +84,7 @@ namespace GUI {
         
         m_sizer_web_control->Add( m_control_back, 0, wxALIGN_CENTER | wxLEFT, FromDIP(26) );
         m_sizer_web_control->Add(m_control_forward, 0, wxALIGN_CENTER | wxLEFT, FromDIP(26));
+        m_sizer_web_control->Add(m_control_refresh, 0, wxALIGN_CENTER | wxLEFT, FromDIP(26));
         //m_sizer_web_control->Add(m_button1, 0, wxALIGN_CENTER|wxLEFT, 5);
         //m_sizer_web_control->Add(m_textCtrl1, 0, wxALIGN_CENTER|wxLEFT, 5);
 
@@ -100,6 +112,10 @@ namespace GUI {
 
         Centre(wxBOTH);
         Bind(wxEVT_SHOW, &ModelMallDialog::on_show, this);
+
+        Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {
+            this->Hide();
+        });
     }
 
 
@@ -131,7 +147,7 @@ namespace GUI {
 
                 std::string filename = "";
                 if (j["data"].contains("filename"))
-                    download_url = j["data"]["filename"].get<std::string>();
+                    filename = j["data"]["filename"].get<std::string>();
 
                 if (download_url.empty()) return;
                 wxGetApp().plater()->request_model_download(download_url, filename);
@@ -149,7 +165,20 @@ namespace GUI {
 
     void ModelMallDialog::on_show(wxShowEvent& event)
     {
+        if (event.IsShown()) {
+            Centre(wxBOTH);
+        }
+        else {
+            go_to_url(m_url);
+        }
         event.Skip();
+    }
+
+    void ModelMallDialog::on_refresh(wxMouseEvent& evt)
+    {
+        if (!m_browser->GetCurrentURL().empty()) {
+            m_browser->Reload();
+        }
     }
 
     void ModelMallDialog::on_back(wxMouseEvent& evt)
@@ -181,15 +210,21 @@ namespace GUI {
 
     void ModelMallDialog::go_to_mall(wxString url)
     {
-        //show_control(true);
-        //m_browser->ClearHistory();
+        /*if (!url.empty() && m_homepage_url.empty()) {
+            m_homepage_url = url;
+        }*/
+        if(url.empty())return;
+        m_url = url;
         go_to_url(url);
     }
 
     void ModelMallDialog::go_to_publish(wxString url)
     {
-        //show_control(true);
-        //m_browser->ClearHistory();
+        /*if (!url.empty() && m_publish_url.empty()) {
+            m_publish_url = url;
+        }*/
+        if(url.empty())return;
+        m_url = url;
         go_to_url(url);
     }
 

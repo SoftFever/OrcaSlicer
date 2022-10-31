@@ -7158,7 +7158,7 @@ int Plater::save_project(bool saveAs)
 void Plater::import_model_id(const std::string& download_info)
 {
     std::string download_url = "";
-    wxString filename = "";
+    std::string filename = "";
 
     auto selection_data_arr = wxSplit(download_info, '|');
 
@@ -7207,17 +7207,6 @@ void Plater::import_model_id(const std::string& download_info)
         std::string http_body;
 
         msg = _L("prepare 3mf file...");
-        //BBLProfile* profile = new BBLProfile();
-        //profile->profile_id = profile_id;
-        //profile->model_id = model_id;
-        //res = m_agent->get_profile_3mf(profile);
-        /*if (res < 0 && profile->url.empty() && profile->md5.empty()) {
-            wxString error_msg = wxString::Format(_devL("get_des,err:code=%u,msg=%s"), http_code, http_body);
-            msg = _L("Import project failed, Please try again!") + error_msg;
-            return;
-        }*/
-        //filename = from_u8(profile->filename);
-        //filename = from_u8(fs::path(download_url).filename().string());
 
         //gets the number of files with the same name
         std::vector<wxString>   vecFiles;
@@ -7225,19 +7214,20 @@ void Plater::import_model_id(const std::string& download_info)
 
 
         target_path = fs::path(wxGetApp().app_config->get("download_path"));
-        //filename = from_u8(fs::path(download_url).filename().string());
 
         try
         {
             vecFiles.clear();
+            wxString extension = fs::path(filename).extension().c_str();
+            auto name = filename.substr(0, filename.length() - extension.length() - 1);
+
             for (const auto& iter : boost::filesystem::directory_iterator(target_path))
             {
                 if (boost::filesystem::is_directory(iter.path()))
                     continue;
 
                 wxString sFile = iter.path().filename().string().c_str();
-                
-                if ( strstr(sFile.c_str(), filename.c_str()) != NULL) {
+                if (strstr(sFile.c_str(), name.c_str()) != NULL) {
                     vecFiles.push_back(sFile);
                 }
 
@@ -7252,8 +7242,8 @@ void Plater::import_model_id(const std::string& download_info)
         //update filename
         if (is_already_exist && vecFiles.size() >= 1) {
             wxString extension = fs::path(filename).extension().c_str();
-            wxString name = filename.SubString(0, filename.length() - extension.length() - 1);
-            filename = wxString::Format("%s(%d)%s",name, vecFiles.size() + 1, extension);
+            wxString name = filename.substr(0, filename.length() - extension.length() - 1);
+            filename = wxString::Format("%s(%d)%s", name, vecFiles.size() + 1, extension).ToStdString();
         }
        
 
@@ -7265,6 +7255,10 @@ void Plater::import_model_id(const std::string& download_info)
         //target_path = wxGetApp().get_local_models_path().c_str();
         boost::uuids::uuid uuid = boost::uuids::random_generator()();
         std::string unique = to_string(uuid).substr(0, 6);
+
+        if (filename.empty()) {
+            filename = "untitled.3mf";
+        }
 
         //target_path /= (boost::format("%1%_%2%.3mf") % filename % unique).str();
         target_path /= filename.c_str();
