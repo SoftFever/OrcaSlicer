@@ -56,9 +56,9 @@ static SettingsFactory::Bundle FREQ_SETTINGS_BUNDLE_FFF =
     // BBS
     { L("Support")     , { "enable_support", "support_type", "support_threshold_angle",
                                     "support_base_pattern", "support_on_build_plate_only","support_critical_regions_only",
-                                    "support_base_pattern_spacing" } }
+                                    "support_base_pattern_spacing" } },
     //BBS
-    //{ L("Wipe options")         , { "flush_into_infill", "flush_into_objects" } }
+    //{ L("Flush options")         , { "flush_into_infill", "flush_into_objects", "flush_into_support"} }
 };
 
 // pt_SLA
@@ -723,6 +723,55 @@ void MenuFactory::append_menu_item_scale_selection_to_fit_print_volume(wxMenu* m
         [](wxCommandEvent&) { plater()->scale_selection_to_fit_print_volume(); }, "", menu);
 }
 
+void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
+{
+    const wxString name = _L("Flush Options");
+    // Delete old menu item
+    const int item_id = menu->FindItem(name);
+    if (item_id != wxNOT_FOUND)
+        menu->Destroy(item_id);
+
+
+    ObjectList* object_list = obj_list();
+    const Selection& selection = get_selection();
+    ModelConfig& select_object_config = object_list->object(selection.get_object_idx())->config;
+    auto keys = select_object_config.keys();
+
+    DynamicPrintConfig& global_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+
+    for (auto key : { "flush_into_infill" , "flush_into_objects" ,"flush_into_support" }) {
+        if (find(keys.begin(), keys.end(), key) == keys.end()) {
+            const ConfigOption* option = global_config.option(key);
+            select_object_config.set_key_value(key, option->clone());
+        }
+    }
+
+
+    wxMenu* flush_options_menu = new wxMenu();
+    append_menu_check_item(flush_options_menu, wxID_ANY, _L("Flush into objects' infill"), "",
+        [&select_object_config](wxCommandEvent&) {
+            const ConfigOption* option = select_object_config.option("flush_into_infill");
+            select_object_config.set_key_value("flush_into_infill", new ConfigOptionBool(!option->getBool()));
+            wxGetApp().obj_settings()->UpdateAndShow(true);
+        }, menu, []() {return true; }, [&select_object_config]() {const ConfigOption* option = select_object_config.option("flush_into_infill"); return option->getBool(); }, m_parent);
+
+    append_menu_check_item(flush_options_menu, wxID_ANY, _L("Flush into this object"), "",
+        [&select_object_config](wxCommandEvent&) {
+            const ConfigOption* option = select_object_config.option("flush_into_objects");
+            select_object_config.set_key_value("flush_into_objects", new ConfigOptionBool(!option->getBool()));
+            wxGetApp().obj_settings()->UpdateAndShow(true);
+        }, menu, []() {return true; }, [&select_object_config]() {const ConfigOption* option = select_object_config.option("flush_into_objects"); return option->getBool(); }, m_parent);
+
+    append_menu_check_item(flush_options_menu, wxID_ANY, _L("Flush into objects' support"), "",
+        [&select_object_config](wxCommandEvent&) {
+            const ConfigOption* option = select_object_config.option("flush_into_support");
+            select_object_config.set_key_value("flush_into_support", new ConfigOptionBool(!option->getBool()));
+            wxGetApp().obj_settings()->UpdateAndShow(true);
+        }, menu, []() {return true; }, [&select_object_config]() {const ConfigOption* option = select_object_config.option("flush_into_support"); return option->getBool(); }, m_parent);
+
+    menu->Append(wxID_ANY, _L("Flush Options"), flush_options_menu);
+}
+
 void MenuFactory::append_menu_items_convert_unit(wxMenu* menu)
 {
     std::vector<int> obj_idxs, vol_idxs;
@@ -1131,6 +1180,7 @@ wxMenu* MenuFactory::object_menu()
 {
     append_menu_item_change_filament(&m_object_menu);
     append_menu_items_convert_unit(&m_object_menu);
+    append_menu_items_flush_options(&m_object_menu);
     return &m_object_menu;
 }
 
