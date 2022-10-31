@@ -4026,7 +4026,7 @@ void GCodeProcessor::update_slice_warnings()
             if (HRC != 0 && (m_result.nozzle_hrc<HRC)) {
                 GCodeProcessorResult::SliceWarning warning;
                 warning.level = 1;
-                warning.msg   = THE_ACTUAL_NOZZLE_HRC_SMALLER_THAN__THE_REQUAIRED_NOZZLE_HRC;
+                warning.msg   = THE_ACTUAL_NOZZLE_HRC_SMALLER_THAN_THE_REQUAIRED_NOZZLE_HRC;
                 m_result.warnings.emplace_back(std::move(warning));
             }
         }
