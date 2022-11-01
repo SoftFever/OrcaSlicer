@@ -1303,7 +1303,9 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
     std::string download_url;
     Slic3r::Http http_url = Slic3r::Http::get(url);
     BOOST_LOG_TRIVIAL(info) << "[download_plugin]: check the plugin from " << url;
-    http_url.on_complete(
+    http_url.timeout_connect(TIMEOUT_CONNECT)
+        .timeout_max(TIMEOUT_RESPONSE)
+        .on_complete(
         [&download_url](std::string body, unsigned status) {
             try {
                 json j = json::parse(body);
@@ -3578,7 +3580,8 @@ void GUI_App::check_new_version(bool show_tips, int by_user)
     Slic3r::Http http = Slic3r::Http::get(url);
 
     http.header("accept", "application/json")
-        .timeout_max(10)
+        .timeout_connect(TIMEOUT_CONNECT)
+        .timeout_max(TIMEOUT_RESPONSE)
         .on_complete([this, show_tips, by_user](std::string body, unsigned) {
         try {
             json j = json::parse(body);
