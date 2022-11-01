@@ -3983,16 +3983,19 @@ void GCodeProcessor::update_slice_warnings()
 
     auto used_extruders = get_used_extruders();
     assert(!used_extruders.empty());
+    GCodeProcessorResult::SliceWarning warning;
+    warning.level = 1;
     if (m_highest_bed_temp != 0) {
         for (size_t i = 0; i < used_extruders.size(); i++) {
             int temperature = get_filament_vitrification_temperature(used_extruders[i]);
-            if (temperature != 0 && m_highest_bed_temp > temperature) {
-                GCodeProcessorResult::SliceWarning warning;
-                warning.level = 1;
-                warning.msg = BED_TEMP_TOO_HIGH_THAN_FILAMENT;
-                m_result.warnings.emplace_back(std::move(warning));
-            }
+            if (temperature != 0 && m_highest_bed_temp > temperature)
+                warning.params.push_back(std::to_string(used_extruders[i]));
         }
+    }
+
+    if (!warning.params.empty()) {
+        warning.msg   = BED_TEMP_TOO_HIGH_THAN_FILAMENT;
+        m_result.warnings.push_back(warning);
     }
 
     m_result.warnings.shrink_to_fit();
