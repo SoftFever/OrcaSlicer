@@ -1774,7 +1774,7 @@ bool SelectMachineDialog::is_same_printer_model()
 
 void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 {
-    wxString confirm_text = _L("Please check the following infomation:\n");
+    wxString confirm_text = _L("Please check the following infomation and click Confirm to continue sending print:\n");
 
     //Check Printer Model Id
     bool is_same_printer_type = is_same_printer_model();
@@ -1803,7 +1803,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     if (!is_same_printer_type
         || has_slice_warnings
         ) {
-        wxString confirm_title = _L("Confirm");
+        wxString confirm_title = _L("Warning");
         SecondaryCheckDialog confirm_dlg(this, wxID_ANY, confirm_title);
         confirm_dlg.update_text(confirm_text);
         if (confirm_dlg.ShowModal() == wxID_YES) {
