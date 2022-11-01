@@ -785,7 +785,7 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
 static std::map<std::string, bool> filament_is_high_temp {
         {"PLA",     false},
         {"PLA-CF",  false},
-        {"PETG",    true},
+        //{"PETG",    true},
         {"ABS",     true},
         {"TPU",     false},
         {"PA",      true},
@@ -832,7 +832,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     if (extruders.empty())
         return { L("No extrusions under current settings.") };
 
-    if (extruders.size() > 1) {
+    if (extruders.size() > 1 && m_config.print_sequence != PrintSequence::ByObject) {
         auto ret = check_multi_filament_valid(*this);
         if (!ret.string.empty())
             return ret;
