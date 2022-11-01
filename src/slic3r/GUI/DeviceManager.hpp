@@ -498,6 +498,7 @@ public:
     /* camera */
     bool has_ipcam { false };
     bool camera_recording { false };
+    bool camera_recording_when_printing { false };
     bool camera_timelapse { false };
     bool camera_has_sdcard { false };
     bool xcam_first_layer_inspector { false };
@@ -532,7 +533,8 @@ public:
     bool is_sdcard_printing();
     bool has_sdcard();
     bool has_timelapse();
-    bool has_recording();
+    bool is_recording_enable();
+    bool is_recording();
 
 
     MachineObject(NetworkAgent* agent, std::string name, std::string id, std::string ip);

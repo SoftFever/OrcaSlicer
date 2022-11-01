@@ -1148,7 +1148,12 @@ bool MachineObject::has_timelapse()
     return camera_timelapse;
 }
 
-bool MachineObject::has_recording()
+bool MachineObject::is_recording_enable()
+{
+    return camera_recording_when_printing;
+}
+
+bool MachineObject::is_recording()
 {
     return camera_recording;
 }
@@ -1621,6 +1626,7 @@ void MachineObject::reset()
     last_update_time = std::chrono::system_clock::now();
     m_push_count = 0;
     camera_recording = false;
+    camera_recording_when_printing = false;
     camera_timelapse = false;
     printing_speed_mag = 100;
     gcode_file_prepare_percent = 0;
@@ -2198,16 +2204,32 @@ int MachineObject::parse_json(std::string payload)
                     }
 #pragma endregion
 
+#pragma region  options
+                    try {
+                        if (jj.contains("option")) {
+                            if (jj["option"].is_number()) {
+                                int option = jj["option"].get<int>();
+                                if ((option & (1 << 0)) != 0) {
+                                    camera_recording = true;
+                                } else {
+                                    camera_recording = false;
+                                }
+                            }
+                        }
+                    }
+                    catch(...) {
+                    }
+#pragma endregion
 #pragma region  camera
                     // parse camera info
                     try {
                         if (jj.contains("ipcam")) {
                             if (jj["ipcam"].contains("ipcam_record")) {
                                 if (jj["ipcam"]["ipcam_record"].get<std::string>() == "enable") {
-                                    camera_recording = true;
+                                    camera_recording_when_printing = true;
                                 }
                                 else {
-                                    camera_recording = false;
+                                    camera_recording_when_printing = false;
                                 }
                             }
                             if (jj["ipcam"].contains("timelapse")) {
@@ -2597,9 +2619,9 @@ int MachineObject::parse_json(std::string payload)
                             this->camera_timelapse = false;
                     } else if (j["camera"]["command"].get<std::string>() == "ipcam_record_set") {
                         if (j["camera"]["control"].get<std::string>() == "enable")
-                            this->camera_recording = true;
+                            this->camera_recording_when_printing = true;
                         if (j["camera"]["control"].get<std::string>() == "disable")
-                            this->camera_recording = false;
+                            this->camera_recording_when_printing = false;
                     }
                 }
             }

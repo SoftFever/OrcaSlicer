@@ -54,7 +54,7 @@ CameraPopup::CameraPopup(wxWindow *parent, MachineObject* obj)
     m_text_recording->SetForegroundColour(TEXT_COL);
     m_switch_recording = new SwitchButton(m_panel);
     if (obj)
-        m_switch_recording->SetValue(obj->camera_recording);
+        m_switch_recording->SetValue(obj->camera_recording_when_printing);
 
     top_sizer->Add(m_text_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
     top_sizer->Add(m_switch_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));

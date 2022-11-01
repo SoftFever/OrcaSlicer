@@ -1371,7 +1371,7 @@ void StatusPanel::update(MachineObject *obj)
         update_error_message();
     }
 
-    upodate_camera_state(obj->has_recording(), obj->has_timelapse(), obj->has_sdcard());
+    upodate_camera_state(obj->is_recording_enable(), obj->has_timelapse(), obj->has_sdcard());
     m_machine_ctrl_panel->Thaw();
 }
 
@@ -1744,20 +1744,11 @@ void StatusPanel::update_ams(MachineObject *obj)
             for (auto tray_it = ams_it->second->trayList.begin(); tray_it != ams_it->second->trayList.end(); tray_it++) {
                 std::string tray_id     = tray_it->first;
                 int         tray_id_int = atoi(tray_id.c_str());
-                if (obj->ams_insert_flag < 0) {
-                    // old protocol
-                    if ((obj->tray_read_done_bits & (1 << (ams_id_int * 4 + tray_id_int))) == 0) {
-                        m_ams_control->PlayRridLoading(ams_id, tray_id);
-                    } else {
-                        m_ams_control->StopRridLoading(ams_id, tray_id);
-                    }
+                // new protocol
+                if ((obj->tray_reading_bits & (1 << (ams_id_int * 4 + tray_id_int))) != 0) {
+                    m_ams_control->PlayRridLoading(ams_id, tray_id);
                 } else {
-                    // new protocol
-                    if ((obj->tray_reading_bits & (1 << (ams_id_int * 4 + tray_id_int))) != 0) {
-                        m_ams_control->PlayRridLoading(ams_id, tray_id);
-                    } else {
-                        m_ams_control->StopRridLoading(ams_id, tray_id);
-                    }
+                    m_ams_control->StopRridLoading(ams_id, tray_id);
                 }
             }
         } catch (...) {}
