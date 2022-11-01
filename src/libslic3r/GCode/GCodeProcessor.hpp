@@ -17,7 +17,7 @@
 namespace Slic3r {
 
 // slice warnings enum strings
-#define THE_ACTUAL_NOZZLE_HRC_SMALLER_THAN_THE_REQUAIRED_NOZZLE_HRC "the_actual_nozzle_hrc_smaller_than_the_required_nozzle_hrc"
+#define NOZZLE_HRC_CHECKER                                          "the_actual_nozzle_hrc_smaller_than_the_required_nozzle_hrc"
 #define BED_TEMP_TOO_HIGH_THAN_FILAMENT                             "bed_temperature_too_high_than_filament"
 
     enum class EMoveType : unsigned char
