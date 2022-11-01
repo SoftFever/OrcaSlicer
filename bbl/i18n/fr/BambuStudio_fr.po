@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-31 09:32+0800\n"
+"POT-Creation-Date: 2022-11-01 11:55+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2367,17 +2367,20 @@ msgstr "Tout trancher"
 msgid "Slice plate"
 msgstr "Assiette à trancher"
 
-msgid "Print all"
-msgstr "Tout imprimer"
-
 msgid "Export G-code file"
 msgstr ""
 
-msgid "Export sliced file"
-msgstr "Exporter le fichier découpé"
+msgid "Print plate"
+msgstr ""
 
-msgid "Export Sliced File"
-msgstr "Exporter le fichier découpé"
+msgid "Export plate sliced file"
+msgstr ""
+
+msgid "Export all sliced file"
+msgstr ""
+
+msgid "Print all"
+msgstr "Tout imprimer"
 
 msgid "Keyboard Shortcuts"
 msgstr "Raccourcis clavier"
@@ -2402,6 +2405,12 @@ msgid "Show Tip of the Day"
 msgstr ""
 
 msgid "Open Network Test"
+msgstr ""
+
+msgid "Upload Models"
+msgstr ""
+
+msgid "Download Models"
 msgstr ""
 
 msgid "Default View"
@@ -2496,8 +2505,11 @@ msgstr "Export Generic 3MF"
 msgid "Export 3mf file without using some 3mf-extensions"
 msgstr "Export 3mf file without using some 3mf-extensions"
 
-msgid "Export current Sliced file"
-msgstr "Exporter le fichier en tranches actuel"
+msgid "Export current sliced file"
+msgstr ""
+
+msgid "Export all plate sliced file"
+msgstr ""
 
 msgid "Export G-code"
 msgstr "Exporter le code G"
@@ -2588,6 +2600,9 @@ msgstr "Voir"
 
 msgid "Help"
 msgstr "Aider"
+
+msgid "3D Models"
+msgstr ""
 
 msgid "&Open G-code"
 msgstr "&Ouvrir G-code"
@@ -2922,6 +2937,9 @@ msgstr "HMS"
 msgid "Failed to connect to the printer"
 msgstr "Échec de la connexion à l'imprimante"
 
+msgid "Don't show again"
+msgstr "Ne plus afficher"
+
 msgid "Yes"
 msgstr "Oui"
 
@@ -3108,9 +3126,6 @@ msgstr ""
 "Basculez vers le mode de réglage par objet pour modifier les paramètres du "
 "modificateur."
 
-msgid "Don't show again"
-msgstr "Ne plus afficher"
-
 msgid "Global"
 msgstr "Mondial"
 
@@ -3225,6 +3240,12 @@ msgstr "Restaurer"
 msgid ""
 "The bed temperature exceeds filament's vitrification temperature. Please "
 "open the front door of printer before printing to avoid nozzle clog."
+msgstr ""
+
+msgid ""
+"The nozzle hardness required by the filament is higher than the default "
+"nozzle hardness of the printer. Please replace the hardened nozzle or "
+"filament, otherwise, the nozzle will be attrited or damaged."
 msgstr ""
 
 #, c-format, boost-format
@@ -3392,6 +3413,19 @@ msgstr "Créer un nouveau projet"
 
 msgid "Load project"
 msgstr "Charger le projet"
+
+msgid "Importing Model"
+msgstr ""
+
+msgid "prepare 3mf file..."
+msgstr ""
+
+msgid "downloading project ..."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Project downloaded %d%%"
+msgstr ""
 
 msgid "The selected file"
 msgstr "Le fichier sélectionné"
@@ -5496,15 +5530,13 @@ msgstr ""
 msgid "Cooling overhang threshold"
 msgstr "Seuil de dépassement de refroidissement"
 
+#, c-format
 msgid ""
 "Force cooling fan to be specific speed when overhang degree of printed part "
 "exceeds this value. Expressed as percentage which indicides how much width "
-"of the line without support from lower layer"
+"of the line without support from lower layer. 0% means forcing cooling for "
+"all outer wall no matter how much overhang degree"
 msgstr ""
-"Forcer le ventilateur de refroidissement à une vitesse spécifique lorsque le "
-"degré de surplomb de la pièce imprimée dépasse cette valeur. Exprimé en "
-"pourcentage qui indique la largeur de la ligne sans support de la couche "
-"inférieure"
 
 msgid "Bridge direction"
 msgstr ""
@@ -5700,6 +5732,14 @@ msgstr "Terminer le code G lorsque vous avez terminé toute l'impression"
 msgid "End G-code when finish the printing of this filament"
 msgstr "Fin du code G lorsque l'impression de ce filament est terminée"
 
+msgid "Ensure vertical shell thickness"
+msgstr ""
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr ""
+
 msgid "Top surface pattern"
 msgstr "Modèle de surface supérieure"
 
@@ -5798,8 +5838,8 @@ msgid "Max Radius"
 msgstr ""
 
 msgid ""
-"Max clearance radius around extruder. Used as input of auto-arranging to "
-"avoid collision when printing by object"
+"Max clearance radius around extruder. Used for collision avoidance in by-"
+"object printing."
 msgstr ""
 
 msgid "Extruder Color"
@@ -7471,6 +7511,25 @@ msgid ""
 "Did you know that you can set slicing parameters for all selected objects at "
 "one time?"
 msgstr ""
+
+#~ msgid "Export sliced file"
+#~ msgstr "Exporter le fichier découpé"
+
+#~ msgid "Export Sliced File"
+#~ msgstr "Exporter le fichier découpé"
+
+#~ msgid "Export current Sliced file"
+#~ msgstr "Exporter le fichier en tranches actuel"
+
+#~ msgid ""
+#~ "Force cooling fan to be specific speed when overhang degree of printed "
+#~ "part exceeds this value. Expressed as percentage which indicides how much "
+#~ "width of the line without support from lower layer"
+#~ msgstr ""
+#~ "Forcer le ventilateur de refroidissement à une vitesse spécifique lorsque "
+#~ "le degré de surplomb de la pièce imprimée dépasse cette valeur. Exprimé "
+#~ "en pourcentage qui indique la largeur de la ligne sans support de la "
+#~ "couche inférieure"
 
 #~ msgid "Erase painting"
 #~ msgstr "Effacer la peinture"

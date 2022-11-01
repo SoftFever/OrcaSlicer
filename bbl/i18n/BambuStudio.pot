@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-31 09:32+0800\n"
+"POT-Creation-Date: 2022-11-01 11:55+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2236,16 +2236,19 @@ msgstr ""
 msgid "Slice plate"
 msgstr ""
 
-msgid "Print all"
-msgstr ""
-
 msgid "Export G-code file"
 msgstr ""
 
-msgid "Export sliced file"
+msgid "Print plate"
 msgstr ""
 
-msgid "Export Sliced File"
+msgid "Export plate sliced file"
+msgstr ""
+
+msgid "Export all sliced file"
+msgstr ""
+
+msgid "Print all"
 msgstr ""
 
 msgid "Keyboard Shortcuts"
@@ -2271,6 +2274,12 @@ msgid "Show Tip of the Day"
 msgstr ""
 
 msgid "Open Network Test"
+msgstr ""
+
+msgid "Upload Models"
+msgstr ""
+
+msgid "Download Models"
 msgstr ""
 
 msgid "Default View"
@@ -2365,7 +2374,10 @@ msgstr ""
 msgid "Export 3mf file without using some 3mf-extensions"
 msgstr ""
 
-msgid "Export current Sliced file"
+msgid "Export current sliced file"
+msgstr ""
+
+msgid "Export all plate sliced file"
 msgstr ""
 
 msgid "Export G-code"
@@ -2456,6 +2468,9 @@ msgid "View"
 msgstr ""
 
 msgid "Help"
+msgstr ""
+
+msgid "3D Models"
 msgstr ""
 
 msgid "&Open G-code"
@@ -2791,6 +2806,9 @@ msgstr ""
 msgid "Failed to connect to the printer"
 msgstr ""
 
+msgid "Don't show again"
+msgstr ""
+
 msgid "Yes"
 msgstr ""
 
@@ -2972,9 +2990,6 @@ msgstr ""
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr ""
 
-msgid "Don't show again"
-msgstr ""
-
 msgid "Global"
 msgstr ""
 
@@ -3089,6 +3104,12 @@ msgstr ""
 msgid ""
 "The bed temperature exceeds filament's vitrification temperature. Please "
 "open the front door of printer before printing to avoid nozzle clog."
+msgstr ""
+
+msgid ""
+"The nozzle hardness required by the filament is higher than the default "
+"nozzle hardness of the printer. Please replace the hardened nozzle or "
+"filament, otherwise, the nozzle will be attrited or damaged."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -3244,6 +3265,19 @@ msgid "Creating a new project"
 msgstr ""
 
 msgid "Load project"
+msgstr ""
+
+msgid "Importing Model"
+msgstr ""
+
+msgid "prepare 3mf file..."
+msgstr ""
+
+msgid "downloading project ..."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Project downloaded %d%%"
 msgstr ""
 
 msgid "The selected file"
@@ -5176,10 +5210,12 @@ msgstr ""
 msgid "Cooling overhang threshold"
 msgstr ""
 
+#, possible-c-format
 msgid ""
 "Force cooling fan to be specific speed when overhang degree of printed part "
 "exceeds this value. Expressed as percentage which indicides how much width "
-"of the line without support from lower layer"
+"of the line without support from lower layer. 0% means forcing cooling for "
+"all outer wall no matter how much overhang degree"
 msgstr ""
 
 msgid "Bridge direction"
@@ -5348,6 +5384,14 @@ msgstr ""
 msgid "End G-code when finish the printing of this filament"
 msgstr ""
 
+msgid "Ensure vertical shell thickness"
+msgstr ""
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr ""
+
 msgid "Top surface pattern"
 msgstr ""
 
@@ -5440,8 +5484,8 @@ msgid "Max Radius"
 msgstr ""
 
 msgid ""
-"Max clearance radius around extruder. Used as input of auto-arranging to "
-"avoid collision when printing by object"
+"Max clearance radius around extruder. Used for collision avoidance in by-"
+"object printing."
 msgstr ""
 
 msgid "Extruder Color"

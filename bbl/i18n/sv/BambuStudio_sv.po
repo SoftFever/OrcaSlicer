@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-31 09:32+0800\n"
+"POT-Creation-Date: 2022-11-01 11:55+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2360,17 +2360,20 @@ msgstr "Bered allt"
 msgid "Slice plate"
 msgstr "Bered plattan"
 
-msgid "Print all"
-msgstr "Skriv ut allt"
-
 msgid "Export G-code file"
 msgstr ""
 
-msgid "Export sliced file"
-msgstr "Exportera beredd fil"
+msgid "Print plate"
+msgstr ""
 
-msgid "Export Sliced File"
-msgstr "Exportera Beredd fil"
+msgid "Export plate sliced file"
+msgstr ""
+
+msgid "Export all sliced file"
+msgstr ""
+
+msgid "Print all"
+msgstr "Skriv ut allt"
 
 msgid "Keyboard Shortcuts"
 msgstr "Kortkommando"
@@ -2395,6 +2398,12 @@ msgid "Show Tip of the Day"
 msgstr ""
 
 msgid "Open Network Test"
+msgstr ""
+
+msgid "Upload Models"
+msgstr ""
+
+msgid "Download Models"
 msgstr ""
 
 msgid "Default View"
@@ -2489,8 +2498,11 @@ msgstr "Exportera generisk 3mf"
 msgid "Export 3mf file without using some 3mf-extensions"
 msgstr "Exportera 3mf fil utan några 3mf-tillägg"
 
-msgid "Export current Sliced file"
-msgstr "Exportera nuvarande Beredda fil"
+msgid "Export current sliced file"
+msgstr ""
+
+msgid "Export all plate sliced file"
+msgstr ""
 
 msgid "Export G-code"
 msgstr "Exportera G-kod"
@@ -2581,6 +2593,9 @@ msgstr "Vy"
 
 msgid "Help"
 msgstr "Hjälp"
+
+msgid "3D Models"
+msgstr ""
 
 msgid "&Open G-code"
 msgstr "&Öppna G-kod"
@@ -2915,6 +2930,9 @@ msgstr "HMS"
 msgid "Failed to connect to the printer"
 msgstr "Uppkoppling till printern misslyckades"
 
+msgid "Don't show again"
+msgstr "Visa inte igen"
+
 msgid "Yes"
 msgstr "Ja"
 
@@ -3099,9 +3117,6 @@ msgstr ""
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr "Ändra till per objekt inställningsläge till redigerings inställningar."
 
-msgid "Don't show again"
-msgstr "Visa inte igen"
-
 msgid "Global"
 msgstr "Global"
 
@@ -3216,6 +3231,12 @@ msgstr "Återställ"
 msgid ""
 "The bed temperature exceeds filament's vitrification temperature. Please "
 "open the front door of printer before printing to avoid nozzle clog."
+msgstr ""
+
+msgid ""
+"The nozzle hardness required by the filament is higher than the default "
+"nozzle hardness of the printer. Please replace the hardened nozzle or "
+"filament, otherwise, the nozzle will be attrited or damaged."
 msgstr ""
 
 #, c-format, boost-format
@@ -3378,6 +3399,19 @@ msgstr "Skapar nytt projekt"
 
 msgid "Load project"
 msgstr "Ladda projekt"
+
+msgid "Importing Model"
+msgstr ""
+
+msgid "prepare 3mf file..."
+msgstr ""
+
+msgid "downloading project ..."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Project downloaded %d%%"
+msgstr ""
 
 msgid "The selected file"
 msgstr "Den valda filen"
@@ -5416,13 +5450,13 @@ msgstr ""
 msgid "Cooling overhang threshold"
 msgstr "Överhängs kylningens tröskel"
 
+#, c-format
 msgid ""
 "Force cooling fan to be specific speed when overhang degree of printed part "
 "exceeds this value. Expressed as percentage which indicides how much width "
-"of the line without support from lower layer"
+"of the line without support from lower layer. 0% means forcing cooling for "
+"all outer wall no matter how much overhang degree"
 msgstr ""
-"Tvinga kylfläktens hastighet när överhängsgraderna överstiger detta värde. "
-"Uttryckt i procent som indikerar linjebredden utan stöd från lägre lager"
 
 msgid "Bridge direction"
 msgstr ""
@@ -5614,6 +5648,14 @@ msgstr "Lägg till slut G-kod när utskriften har avslutas"
 msgid "End G-code when finish the printing of this filament"
 msgstr "Lägg till slut G-kod när utskriften har avslutas med detta filament"
 
+msgid "Ensure vertical shell thickness"
+msgstr ""
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr ""
+
 msgid "Top surface pattern"
 msgstr "Topp ytans mönster"
 
@@ -5708,8 +5750,8 @@ msgid "Max Radius"
 msgstr ""
 
 msgid ""
-"Max clearance radius around extruder. Used as input of auto-arranging to "
-"avoid collision when printing by object"
+"Max clearance radius around extruder. Used for collision avoidance in by-"
+"object printing."
 msgstr ""
 
 msgid "Extruder Color"
@@ -6768,8 +6810,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
-"(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för "
+"lösligt(material) stödgränssnittet är koncentriskt"
 
 msgid "Base pattern spacing"
 msgstr "Basens mönster mellanrum"
@@ -7342,6 +7384,24 @@ msgid ""
 "Did you know that you can set slicing parameters for all selected objects at "
 "one time?"
 msgstr ""
+
+#~ msgid "Export sliced file"
+#~ msgstr "Exportera beredd fil"
+
+#~ msgid "Export Sliced File"
+#~ msgstr "Exportera Beredd fil"
+
+#~ msgid "Export current Sliced file"
+#~ msgstr "Exportera nuvarande Beredda fil"
+
+#~ msgid ""
+#~ "Force cooling fan to be specific speed when overhang degree of printed "
+#~ "part exceeds this value. Expressed as percentage which indicides how much "
+#~ "width of the line without support from lower layer"
+#~ msgstr ""
+#~ "Tvinga kylfläktens hastighet när överhängsgraderna överstiger detta "
+#~ "värde. Uttryckt i procent som indikerar linjebredden utan stöd från lägre "
+#~ "lager"
 
 #~ msgid "Erase painting"
 #~ msgstr "Radera färgläggning"

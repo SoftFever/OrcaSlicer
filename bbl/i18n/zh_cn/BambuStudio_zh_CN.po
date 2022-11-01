@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-31 09:32+0800\n"
-"PO-Revision-Date: 2022-10-17 22:14+0800\n"
+"POT-Creation-Date: 2022-11-01 11:55+0800\n"
+"PO-Revision-Date: 2022-11-01 11:29+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -2311,17 +2311,20 @@ msgstr "切片所有盘"
 msgid "Slice plate"
 msgstr "切片单盘"
 
-msgid "Print all"
-msgstr "打印所有盘"
-
 msgid "Export G-code file"
 msgstr "导出G-code文件"
 
-msgid "Export sliced file"
-msgstr "导出切片文件"
+msgid "Print plate"
+msgstr "打印单盘"
 
-msgid "Export Sliced File"
-msgstr "导出切片文件"
+msgid "Export plate sliced file"
+msgstr "导出单盘切片文件"
+
+msgid "Export all sliced file"
+msgstr "导出所有切片文件"
+
+msgid "Print all"
+msgstr "打印所有盘"
 
 msgid "Keyboard Shortcuts"
 msgstr "快捷键"
@@ -2347,6 +2350,12 @@ msgstr "展示每日小贴士"
 
 msgid "Open Network Test"
 msgstr "打开网络测试"
+
+msgid "Upload Models"
+msgstr "上传模型"
+
+msgid "Download Models"
+msgstr "下载模型"
 
 msgid "Default View"
 msgstr "默认视图"
@@ -2440,8 +2449,11 @@ msgstr "导出通用 3MF"
 msgid "Export 3mf file without using some 3mf-extensions"
 msgstr "导出不含 3mf 扩展的 3mf 文件"
 
-msgid "Export current Sliced file"
+msgid "Export current sliced file"
 msgstr "导出当前已切片的文件"
+
+msgid "Export all plate sliced file"
+msgstr "导出所有盘已切片的文件"
 
 msgid "Export G-code"
 msgstr "导出 G-code"
@@ -2532,6 +2544,9 @@ msgstr "视图"
 
 msgid "Help"
 msgstr "帮助"
+
+msgid "3D Models"
+msgstr "3D模型"
 
 msgid "&Open G-code"
 msgstr "打开G-code"
@@ -2869,6 +2884,9 @@ msgstr ""
 msgid "Failed to connect to the printer"
 msgstr "无法连接打印机"
 
+msgid "Don't show again"
+msgstr "不再显示"
+
 msgid "Yes"
 msgstr "是"
 
@@ -3048,9 +3066,6 @@ msgstr "首层扫描"
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr "切换到对象模式以编辑修改器的设置。"
 
-msgid "Don't show again"
-msgstr "不再显示"
-
 msgid "Global"
 msgstr "全局"
 
@@ -3166,6 +3181,14 @@ msgid ""
 "The bed temperature exceeds filament's vitrification temperature. Please "
 "open the front door of printer before printing to avoid nozzle clog."
 msgstr "热床温度超过了材料的软化温度。请在打印前打开打印机前门以防堵头。"
+
+msgid ""
+"The nozzle hardness required by the filament is higher than the default "
+"nozzle hardness of the printer. Please replace the hardened nozzle or "
+"filament, otherwise, the nozzle will be attrited or damaged."
+msgstr ""
+"打印丝所要求的喷嘴硬度高于打印机默认的喷嘴硬度。请更换硬化的喷嘴或打印丝，否"
+"则喷嘴可能被磨损或损坏。"
 
 #, c-format, boost-format
 msgid "Loading file: %s"
@@ -3330,6 +3353,19 @@ msgstr "创建新项目"
 
 msgid "Load project"
 msgstr "加载项目"
+
+msgid "Importing Model"
+msgstr "正在导入模型"
+
+msgid "prepare 3mf file..."
+msgstr "正在准备3mf文件..."
+
+msgid "downloading project ..."
+msgstr "项目下载中..."
+
+#, c-format, boost-format
+msgid "Project downloaded %d%%"
+msgstr "项目已下载%d%%"
 
 msgid "The selected file"
 msgstr "已选择的文件"
@@ -5309,13 +5345,13 @@ msgstr ""
 msgid "Cooling overhang threshold"
 msgstr "冷却悬空阈值"
 
+#, c-format
 msgid ""
 "Force cooling fan to be specific speed when overhang degree of printed part "
 "exceeds this value. Expressed as percentage which indicides how much width "
-"of the line without support from lower layer"
+"of the line without support from lower layer. 0% means forcing cooling for "
+"all outer wall no matter how much overhang degree"
 msgstr ""
-"当打印部分的悬垂程度超出设定值，强制冷却风扇为设置的速度。悬垂程度表示为未被"
-"低层支撑的部分占线宽的百分比"
 
 msgid "Bridge direction"
 msgstr "桥接方向"
@@ -5325,6 +5361,8 @@ msgid ""
 "calculated automatically. Otherwise the provided angle will be used for "
 "external bridges. Use 180°for zero angle."
 msgstr ""
+"搭桥角度覆盖。如果设置为零，该角度将自动计算。否则外部的桥接将用提供的值。"
+"180°表示0度。"
 
 msgid "Bridge flow"
 msgstr "桥接流量"
@@ -5495,6 +5533,14 @@ msgstr "所有打印结束时的结尾G-code"
 msgid "End G-code when finish the printing of this filament"
 msgstr "结束使用该耗材打印时的结尾G-code"
 
+msgid "Ensure vertical shell thickness"
+msgstr ""
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr ""
+
 msgid "Top surface pattern"
 msgstr "顶面图案"
 
@@ -5557,7 +5603,7 @@ msgstr "到横杆高度"
 msgid ""
 "Distance of the nozzle tip to the lower rod. Used for collision avoidance in "
 "by-object printing."
-msgstr ""
+msgstr "喷嘴尖端到下方滑杆的距离。用于在逐件打印中避免碰撞。"
 
 msgid "Height to lid"
 msgstr "到顶盖高度"
@@ -5565,7 +5611,7 @@ msgstr "到顶盖高度"
 msgid ""
 "Distance of the nozzle tip to the lid. Used for collision avoidance in by-"
 "object printing."
-msgstr ""
+msgstr "喷嘴尖端到顶盖的距离。用于在逐件打印中避免碰撞。"
 
 msgid "Radius"
 msgstr "半径"
@@ -5573,23 +5619,15 @@ msgstr "半径"
 msgid ""
 "Clearance radius around extruder. Used for collision avoidance in by-object "
 "printing."
-msgstr ""
+msgstr "挤出机四周的避让半径。用于在逐件打印中避免碰撞。"
 
 msgid "Max Radius"
-msgstr ""
+msgstr "最大半径"
 
 msgid ""
 "Max clearance radius around extruder. Used for collision avoidance in by-"
 "object printing."
-msgstr ""
-
-msgid "Max Radius"
-msgstr ""
-
-msgid ""
-"Max clearance radius around extruder. Used as input of auto-arranging to "
-"avoid collision when printing by object"
-msgstr ""
+msgstr "挤出机四周的最大避让半径。用于在逐件打印中避免碰撞。"
 
 msgid "Extruder Color"
 msgstr "挤出机颜色"
@@ -5795,7 +5833,7 @@ msgid ""
 msgstr "顶面填充的加速度。使用较低值可能会改善顶面质量"
 
 msgid "Acceleration of outer wall. Using a lower value can improve quality"
-msgstr ""
+msgstr "外墙加速度。使用较小的值可以提高质量。"
 
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
@@ -7014,7 +7052,7 @@ msgid ""
 "printing by a simple click?"
 msgstr ""
 "自动朝向\n"
-"您知道吗？您只需单击鼠标，即可将对象旋转到适合的打印方向？"
+"您知道吗，您只需单击鼠标，即可将对象旋转到适合的打印方向。"
 
 #: resources/data/hints.ini: [hint:Lay on Face]
 msgid ""
@@ -7024,7 +7062,7 @@ msgid ""
 "<b>F</b> key."
 msgstr ""
 "放置在面部\n"
-"您知道吗？您可以快速指定模型的底面，使其位于打印床上。选择“放置在面部”功能或"
+"您知道吗，您可以快速指定模型的底面，使其位于打印床上。选择“放置在面部”功能或"
 "按<b>F</b>键。"
 
 #: resources/data/hints.ini: [hint:Object List]
@@ -7045,7 +7083,7 @@ msgid ""
 "more in the documentation."
 msgstr ""
 "简化模型\n"
-"您知道吗？您可以使用“简化模型”功能减少模型的三角形数。在模型上单击鼠标右键，"
+"您知道吗，您可以使用“简化模型”功能减少模型的三角形数。在模型上单击鼠标右键，"
 "然后选择“简化模型”。"
 
 #: resources/data/hints.ini: [hint:Slicing Parameter Table]
@@ -7064,7 +7102,7 @@ msgid ""
 "colorizing or printing?"
 msgstr ""
 "分割成对象/零件\n"
-"您知道吗？您可以把一个大对象分割成多个小对象/零件以便着色或打印吗？"
+"您知道吗，您可以把一个大对象分割成多个小对象/零件以便着色或打印。"
 
 #: resources/data/hints.ini: [hint:Subtract a Part]
 msgid ""
@@ -7074,8 +7112,8 @@ msgid ""
 "directly in Bambu Studio. Read more in the documentation."
 msgstr ""
 "减去部分几何体\n"
-"您知道吗？您可以使用负零件从另一个几何体中减去另一个几何体。例如，这样可以直"
-"接在Bambu Studio中创建可轻松调整大小的孔。"
+"您知道吗，您可以使用负零件从另一个几何体中减去另一个几何体。例如，可以直接在"
+"Bambu Studio中创建可轻松调整大小的孔。"
 
 #: resources/data/hints.ini: [hint:STEP]
 msgid ""
@@ -7086,7 +7124,7 @@ msgid ""
 "lower resolution STL. Give it a try!"
 msgstr ""
 "STEP文件\n"
-"您知道吗？通过切片STEP文件而不是STL文件可以提高打印质量？\n"
+"您知道吗，通过切片STEP文件而不是STL文件可以提高打印质量。\n"
 "Bambu Studio支持切片STEP文件，提供比低分辨率STL更平滑的结果。试试看！"
 
 #: resources/data/hints.ini: [hint:Z seam location]
@@ -7097,8 +7135,8 @@ msgid ""
 "the overall look of your model. Check it out!"
 msgstr ""
 "Z接缝位置\n"
-"您知道吗？您可以自定义Z接缝的位置，甚至可以将其绘制在打印上，使其位于不太可见"
-"的位置？这样可以改善模型的整体外观。试试看！"
+"您知道吗，您可以自定义Z接缝的位置，甚至可以将其绘制在打印上，使其位于不太可见"
+"的位置。这样可以改善模型的整体外观。试试看！"
 
 #: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
 msgid ""
@@ -7108,8 +7146,8 @@ msgid ""
 "printed model by doing some fine-tuning."
 msgstr ""
 "流量微调\n"
-"你知道吗？您可以微调流量，以获得更好看的打印效果吗？根据材料的不同，可以通过"
-"进行一些微调来提高打印模型的整体光洁度。"
+"你知道吗，您可以微调流量，以获得更好看的打印效果。根据材料的不同，可以通过进"
+"行一些微调来提高打印模型的整体光洁度。"
 
 #: resources/data/hints.ini: [hint:Split your prints into plates]
 msgid ""
@@ -7119,7 +7157,7 @@ msgid ""
 "track of all the parts."
 msgstr ""
 "分盘打印\n"
-"您知道吗？您可以把一个有很多零件的模型安排到多个独立的分盘，然后打印出来，这"
+"您知道吗，您可以把一个有很多零件的模型安排到多个独立的分盘，然后打印出来，这"
 "将简化对所有零件的管理。"
 
 #: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
@@ -7130,7 +7168,7 @@ msgid ""
 "Layer Height option? Check it out!"
 msgstr ""
 "自适应层高度加速打印\n"
-"您知道吗？您可以使用“自适应层高度”选项可以更快地打印模型。试试看！"
+"您知道吗，您可以使用“自适应层高度”选项可以更快地打印模型。试试看！"
 
 #: resources/data/hints.ini: [hint:Support painting]
 msgid ""
@@ -7140,7 +7178,7 @@ msgid ""
 "model that actually need it."
 msgstr ""
 "绘制支撑\n"
-"您知道吗？您可以手动绘制添加/屏蔽支撑的位置，此功能使仅将支撑材料放置在实际需"
+"您知道吗，您可以手动绘制添加/屏蔽支撑的位置，此功能使仅将支撑材料放置在实际需"
 "要的模型截面上变得容易。"
 
 #: resources/data/hints.ini: [hint:Different types of supports]
@@ -7151,7 +7189,7 @@ msgid ""
 "print speed. Check them out!"
 msgstr ""
 "支撑类型\n"
-"您知道吗？有多种可选的支撑类型，树状支撑非常适合人物/动物模型，同时可以节耗材"
+"您知道吗，有多种可选的支撑类型，树状支撑非常适合人物/动物模型，同时可以节耗材"
 "并提高打印速度。试试看！"
 
 #: resources/data/hints.ini: [hint:Printing Silk Filament]
@@ -7162,8 +7200,8 @@ msgid ""
 "the best results."
 msgstr ""
 "打印丝绸耗材\n"
-"你知道丝绸耗材需要特别考虑才能成功打印吗？为了获得最佳效果，通常建议使用较高"
-"的温度和较低的速度。"
+"你知道吗，丝绸耗材需要特别考虑才能成功打印。为了获得最佳效果，通常建议使用较"
+"高的温度和较低的速度。"
 
 #: resources/data/hints.ini: [hint:Brim for better adhesion]
 msgid ""
@@ -7181,7 +7219,48 @@ msgid ""
 "one time?"
 msgstr ""
 "为多个对象设置参数\n"
-"您知道可以同时为所有选定对象设置切片参数吗？"
+"您知道吗，可以同时为所有选定对象设置切片参数。"
+
+#~ msgid "Export sliced file"
+#~ msgstr "导出切片文件"
+
+#~ msgid "Export Sliced File"
+#~ msgstr "导出切片文件"
+
+#~ msgid "Add Custom Printer"
+#~ msgstr "添加自定义打印机"
+
+#~ msgid "Show Log"
+#~ msgstr "显示日志"
+
+#~ msgid "Export current Sliced file"
+#~ msgstr "导出当前已切片的文件"
+
+#~ msgid "Publish Project"
+#~ msgstr "发布项目"
+
+#~ msgid ""
+#~ "Force cooling fan to be specific speed when overhang degree of printed "
+#~ "part exceeds this value. Expressed as percentage which indicides how much "
+#~ "width of the line without support from lower layer"
+#~ msgstr ""
+#~ "当打印部分的悬垂程度超出设定值，强制冷却风扇为设置的速度。悬垂程度表示为未"
+#~ "被低层支撑的部分占线宽的百分比"
+
+#~ msgid ""
+#~ "Distance of the nozzle tip to the lower rod. Used as input of auto-"
+#~ "arranging to avoid collision when printing by object"
+#~ msgstr "挤出头尖端到下方滑杆的距离。用于逐件打印的自动摆盘"
+
+#~ msgid ""
+#~ "Distance of the nozzle tip to the lid. Used as input of auto-arranging to "
+#~ "avoid collision when printing by object"
+#~ msgstr "挤出头尖端到顶盖的距离。用于逐件打印的自动摆盘。"
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used as input of auto-arranging to "
+#~ "avoid collision when printing by object"
+#~ msgstr "挤出机的避让半径。用于逐件打印的自动摆盘"
 
 #~ msgid "Send and Print"
 #~ msgstr "发送并打印"
@@ -7897,20 +7976,8 @@ msgstr ""
 #~ msgid "Object %s has zero size and can't be arranged."
 #~ msgstr "对象%s的尺寸为0，无法被自动摆放。"
 
-#~ msgid "Importing Model"
-#~ msgstr "正在导入模型"
-
-#~ msgid "prepare 3mf file..."
-#~ msgstr "正在准备3mf文件..."
-
 #~ msgid "Import project failed, Please try again!"
 #~ msgstr "加载项目失败，请重试！"
-
-#~ msgid "downloading project ..."
-#~ msgstr "项目下载中..."
-
-#~ msgid "Project downloaded %d%%"
-#~ msgstr "项目已下载%d%%"
 
 #~ msgid "Failed to publish your project. Please try agian!"
 #~ msgstr "项目发布失败。请重试！"
@@ -8759,9 +8826,6 @@ msgstr ""
 
 #~ msgid "New Version of BambuStudio"
 #~ msgstr "新版本的BambuStudio"
-
-#~ msgid "Print plate"
-#~ msgstr "打印单盘"
 
 #~ msgid "Switching Presets: Unsaved Changes"
 #~ msgstr "切换预设:未保存的更改"

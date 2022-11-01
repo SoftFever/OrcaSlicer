@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-31 09:32+0800\n"
+"POT-Creation-Date: 2022-11-01 11:55+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2389,17 +2389,20 @@ msgstr "Összes szeletelése"
 msgid "Slice plate"
 msgstr "Tálca szeletelése"
 
-msgid "Print all"
-msgstr "Összes nyomtatása"
-
 msgid "Export G-code file"
 msgstr ""
 
-msgid "Export sliced file"
-msgstr "Szeletelt fájl exportálása"
+msgid "Print plate"
+msgstr ""
 
-msgid "Export Sliced File"
-msgstr "Szeletelt fájl exportálása"
+msgid "Export plate sliced file"
+msgstr ""
+
+msgid "Export all sliced file"
+msgstr ""
+
+msgid "Print all"
+msgstr "Összes nyomtatása"
 
 msgid "Keyboard Shortcuts"
 msgstr "Gyorsbillentyűk"
@@ -2424,6 +2427,12 @@ msgid "Show Tip of the Day"
 msgstr ""
 
 msgid "Open Network Test"
+msgstr ""
+
+msgid "Upload Models"
+msgstr ""
+
+msgid "Download Models"
 msgstr ""
 
 msgid "Default View"
@@ -2518,8 +2527,11 @@ msgstr "Export Generic 3MF"
 msgid "Export 3mf file without using some 3mf-extensions"
 msgstr "Export 3mf file without using some 3mf-extensions"
 
-msgid "Export current Sliced file"
-msgstr "Jelenlegi szeletelt fájl exportálása"
+msgid "Export current sliced file"
+msgstr ""
+
+msgid "Export all plate sliced file"
+msgstr ""
 
 msgid "Export G-code"
 msgstr "G-kód exportálása"
@@ -2610,6 +2622,9 @@ msgstr "Nézet"
 
 msgid "Help"
 msgstr "Segítség"
+
+msgid "3D Models"
+msgstr ""
 
 msgid "&Open G-code"
 msgstr "&Open G-code"
@@ -2949,6 +2964,9 @@ msgstr "HMS"
 msgid "Failed to connect to the printer"
 msgstr "Nem sikerült csatlakozni a nyomtatóhoz"
 
+msgid "Don't show again"
+msgstr "Ne mutasd újra"
+
 msgid "Yes"
 msgstr "Igen"
 
@@ -3134,9 +3152,6 @@ msgstr ""
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr "Switch to per-object setting mode to edit modifier settings."
 
-msgid "Don't show again"
-msgstr "Ne mutasd újra"
-
 msgid "Global"
 msgstr "Globális"
 
@@ -3251,6 +3266,12 @@ msgstr "Visszaállítás"
 msgid ""
 "The bed temperature exceeds filament's vitrification temperature. Please "
 "open the front door of printer before printing to avoid nozzle clog."
+msgstr ""
+
+msgid ""
+"The nozzle hardness required by the filament is higher than the default "
+"nozzle hardness of the printer. Please replace the hardened nozzle or "
+"filament, otherwise, the nozzle will be attrited or damaged."
 msgstr ""
 
 #, c-format, boost-format
@@ -3414,6 +3435,19 @@ msgstr "Új projekt létrehozása"
 
 msgid "Load project"
 msgstr "Load project"
+
+msgid "Importing Model"
+msgstr ""
+
+msgid "prepare 3mf file..."
+msgstr ""
+
+msgid "downloading project ..."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Project downloaded %d%%"
+msgstr ""
 
 msgid "The selected file"
 msgstr "The selected file"
@@ -5478,14 +5512,13 @@ msgstr ""
 msgid "Cooling overhang threshold"
 msgstr "Túlnyúlás hűtésének küszöbértéke"
 
+#, c-format
 msgid ""
 "Force cooling fan to be specific speed when overhang degree of printed part "
 "exceeds this value. Expressed as percentage which indicides how much width "
-"of the line without support from lower layer"
+"of the line without support from lower layer. 0% means forcing cooling for "
+"all outer wall no matter how much overhang degree"
 msgstr ""
-"This forces the cooling fan to use a specific speed when overhang degrees of "
-"parts exceed the set value. It is expressed as percentage which indicates "
-"how much line is acceptable without support from lower layers."
 
 msgid "Bridge direction"
 msgstr ""
@@ -5682,6 +5715,14 @@ msgstr "Befejező G-kód az egész nyomtatás befejezésekor"
 msgid "End G-code when finish the printing of this filament"
 msgstr "Befejező G-kód a filament nyomtatásának befejezésekor"
 
+msgid "Ensure vertical shell thickness"
+msgstr ""
+
+msgid ""
+"Add solid infill near sloping surfaces to guarantee the vertical shell "
+"thickness (top+bottom solid layers)"
+msgstr ""
+
 msgid "Top surface pattern"
 msgstr "Felső felület mintázata"
 
@@ -5778,8 +5819,8 @@ msgid "Max Radius"
 msgstr ""
 
 msgid ""
-"Max clearance radius around extruder. Used as input of auto-arranging to "
-"avoid collision when printing by object"
+"Max clearance radius around extruder. Used for collision avoidance in by-"
+"object printing."
 msgstr ""
 
 msgid "Extruder Color"
@@ -7431,6 +7472,24 @@ msgid ""
 "Did you know that you can set slicing parameters for all selected objects at "
 "one time?"
 msgstr ""
+
+#~ msgid "Export sliced file"
+#~ msgstr "Szeletelt fájl exportálása"
+
+#~ msgid "Export Sliced File"
+#~ msgstr "Szeletelt fájl exportálása"
+
+#~ msgid "Export current Sliced file"
+#~ msgstr "Jelenlegi szeletelt fájl exportálása"
+
+#~ msgid ""
+#~ "Force cooling fan to be specific speed when overhang degree of printed "
+#~ "part exceeds this value. Expressed as percentage which indicides how much "
+#~ "width of the line without support from lower layer"
+#~ msgstr ""
+#~ "This forces the cooling fan to use a specific speed when overhang degrees "
+#~ "of parts exceed the set value. It is expressed as percentage which "
+#~ "indicates how much line is acceptable without support from lower layers."
 
 #~ msgid "Erase painting"
 #~ msgstr "Festés törlése"
