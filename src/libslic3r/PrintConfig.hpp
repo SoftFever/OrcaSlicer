@@ -56,7 +56,7 @@ enum InfillPattern : int {
     ipConcentric, ipRectilinear, ipGrid, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
     ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricInternal,
 #if HAS_LIGHTNING_INFILL
-    ipLightning, 
+    ipLightning,
 #endif // HAS_LIGHTNING_INFILL
 ipCount,
 };
@@ -340,6 +340,9 @@ public:
     const ConfigDef*    def() const override { return &print_config_def; }
 
     void                normalize_fdm(int used_filaments = 0);
+    void                normalize_fdm_1();
+    //return the changed param set
+    t_config_option_keys normalize_fdm_2(int used_filaments = 0);
 
     void                set_num_extruders(unsigned int num_extruders);
 
@@ -801,7 +804,7 @@ PRINT_CONFIG_CLASS_DEFINE(
 
 // This object is mapped to Perl as Slic3r::Config::Print.
 PRINT_CONFIG_CLASS_DERIVED_DEFINE(
-    PrintConfig, 
+    PrintConfig,
     (MachineEnvelopeConfig, GCodeConfig),
 
     //BBS

@@ -3834,6 +3834,102 @@ void DynamicPrintConfig::normalize_fdm(int used_filaments)
     }
 }
 
+//BBS:divide normalize_fdm to 2 steps and call them one by one in Print::Apply
+void DynamicPrintConfig::normalize_fdm_1()
+{
+    if (this->has("extruder")) {
+        int extruder = this->option("extruder")->getInt();
+        this->erase("extruder");
+        if (extruder != 0) {
+            if (!this->has("sparse_infill_filament"))
+                this->option("sparse_infill_filament", true)->setInt(extruder);
+            if (!this->has("wall_filament"))
+                this->option("wall_filament", true)->setInt(extruder);
+            // Don't propagate the current extruder to support.
+            // For non-soluble supports, the default "0" extruder means to use the active extruder,
+            // for soluble supports one certainly does not want to set the extruder to non-soluble.
+            // if (!this->has("support_filament"))
+            //     this->option("support_filament", true)->setInt(extruder);
+            // if (!this->has("support_interface_filament"))
+            //     this->option("support_interface_filament", true)->setInt(extruder);
+        }
+    }
+
+    if (!this->has("solid_infill_filament") && this->has("sparse_infill_filament"))
+        this->option("solid_infill_filament", true)->setInt(this->option("sparse_infill_filament")->getInt());
+
+    if (this->has("spiral_mode") && this->opt<ConfigOptionBool>("spiral_mode", true)->value) {
+        {
+            // this should be actually done only on the spiral layers instead of all
+            auto* opt = this->opt<ConfigOptionBools>("retract_when_changing_layer", true);
+            opt->values.assign(opt->values.size(), false);  // set all values to false
+            // Disable retract on layer change also for filament overrides.
+            auto* opt_n = this->opt<ConfigOptionBoolsNullable>("filament_retract_when_changing_layer", true);
+            opt_n->values.assign(opt_n->values.size(), false);  // Set all values to false.
+        }
+        {
+            this->opt<ConfigOptionInt>("wall_loops", true)->value       = 1;
+            this->opt<ConfigOptionInt>("top_shell_layers", true)->value = 0;
+            this->opt<ConfigOptionPercent>("sparse_infill_density", true)->value = 0;
+        }
+    }
+
+    if (auto *opt_gcode_resolution = this->opt<ConfigOptionFloat>("resolution", false); opt_gcode_resolution)
+        // Resolution will be above 1um.
+        opt_gcode_resolution->value = std::max(opt_gcode_resolution->value, 0.001);
+
+    return;
+}
+
+t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int used_filaments)
+{
+    t_config_option_keys changed_keys;
+    ConfigOptionBool* ept_opt = this->option<ConfigOptionBool>("enable_prime_tower");
+    if (used_filaments > 0 && ept_opt != nullptr) {
+        ConfigOptionBool* islh_opt = this->option<ConfigOptionBool>("independent_support_layer_height", true);
+        ConfigOptionBool* alh_opt = this->option<ConfigOptionBool>("adaptive_layer_height");
+        ConfigOptionEnum<PrintSequence>* ps_opt = this->option<ConfigOptionEnum<PrintSequence>>("print_sequence");
+
+        ConfigOptionEnum<TimelapseType>* timelapse_opt = this->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
+        bool is_smooth_timelapse = timelapse_opt != nullptr && timelapse_opt->value == TimelapseType::tlSmooth;
+        if (!is_smooth_timelapse && (used_filaments == 1 || ps_opt->value == PrintSequence::ByObject)) {
+            if (ept_opt->value) {
+                ept_opt->value = false;
+                changed_keys.push_back("enable_prime_tower");
+            }
+            //ept_opt->value = false;
+        }
+
+        if (ept_opt->value) {
+            if (islh_opt) {
+                if (islh_opt->value) {
+                    islh_opt->value = false;
+                    changed_keys.push_back("independent_support_layer_height");
+                }
+                //islh_opt->value = false;
+            }
+            if (alh_opt) {
+                if (alh_opt->value) {
+                    alh_opt->value = false;
+                    changed_keys.push_back("adaptive_layer_height");
+                }
+                //alh_opt->value = false;
+            }
+        }
+        else {
+            if (islh_opt) {
+                if (!islh_opt->value) {
+                    islh_opt->value = true;
+                    changed_keys.push_back("independent_support_layer_height");
+                }
+                //islh_opt->value = true;
+            }
+        }
+    }
+
+    return changed_keys;
+}
+
 void  handle_legacy_sla(DynamicPrintConfig &config)
 {
     for (std::string corr : {"relative_correction", "material_correction"}) {
