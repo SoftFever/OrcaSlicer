@@ -153,7 +153,8 @@ void HMSPanel::append_hms_panel(HMSItem& item) {
         m_top_sizer->Add(m_notify_item, 0, wxALIGN_CENTER_HORIZONTAL);
     else {
         // debug for hms display error info
-        m_top_sizer->Add(m_notify_item, 0, wxALIGN_CENTER_HORIZONTAL);
+        // m_top_sizer->Add(m_notify_item, 0, wxALIGN_CENTER_HORIZONTAL);
+        BOOST_LOG_TRIVIAL(info) << "hms: do not display empty_item";
     }
 }
 

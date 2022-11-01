@@ -188,6 +188,7 @@ wxString HMSQuery::query_error_msg(std::string error_code)
         }
     }
     else {
+        BOOST_LOG_TRIVIAL(info) << "device_error is not exists";
         return wxEmptyString;
     }
     return wxEmptyString;

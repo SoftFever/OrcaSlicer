@@ -1407,15 +1407,21 @@ void StatusPanel::update_error_message()
             if (print_error_str.size() > 4) {
                 print_error_str.insert(4, " ");
             }
-            wxString error_msg = wxString::Format("%s[%s]",
-                wxGetApp().get_hms_query()->query_print_error_msg(obj->print_error),
-                print_error_str);
-            show_error_message(error_msg);
-            //hint dialog
-            BOOST_LOG_TRIVIAL(info) << "Print error! " << error_msg;
-            SecondaryCheckDialog print_error_dlg(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
-            print_error_dlg.update_text(error_msg);
-            print_error_dlg.ShowModal();
+            
+            wxString error_msg = wxGetApp().get_hms_query()->query_print_error_msg(obj->print_error);
+            if (!error_msg.IsEmpty()) {
+                error_msg = wxString::Format("%s[%s]",
+                    error_msg,
+                    print_error_str);
+                show_error_message(error_msg);
+
+                BOOST_LOG_TRIVIAL(info) << "show print error! error_msg = " << error_msg;
+                SecondaryCheckDialog print_error_dlg(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
+                print_error_dlg.update_text(error_msg);
+                print_error_dlg.ShowModal();
+            } else {
+                BOOST_LOG_TRIVIAL(info) << "show print error! error_msg is empty, print error = " << obj->print_error;
+            }
         }
     }
 }
