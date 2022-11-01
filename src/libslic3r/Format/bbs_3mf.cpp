@@ -5704,7 +5704,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 }
 
                 for (auto it = plate_data->warnings.begin(); it != plate_data->warnings.end(); it++) {
-                    stream << "    <" << SLICE_WARNING_TAG << " " << "msg=\"" << it->msg << "\" " << "level=\"" << std::to_string(it->level) << "\"  />\n";
+                    stream << "    <" << SLICE_WARNING_TAG << " msg=\"" << it->msg << "\" level=\"" << std::to_string(it->level) << "\" error_code =\"" << it->error_code << "\"  />\n";
                 }
                 stream << "  </" << PLATE_TAG << ">\n";
             }

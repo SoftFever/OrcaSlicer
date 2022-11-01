@@ -136,6 +136,7 @@ namespace Slic3r {
         struct SliceWarning {
             int         level;                  // 0: normal tips, 1: warning; 2: error
             std::string msg;                    // enum string
+            std::string error_code;             // error code for studio
             std::vector<std::string> params;    // extra msg info
         };
 
