@@ -35,9 +35,9 @@
 #include "Widgets/Button.hpp"
 
 
-#define MODEL_MALL_PAGE_SIZE wxSize(FromDIP(1400), FromDIP(1040))
-#define MODEL_MALL_PAGE_CONTROL_SIZE wxSize(FromDIP(1400), FromDIP(40))
-#define MODEL_MALL_PAGE_WEB_SIZE wxSize(FromDIP(1400), FromDIP(1000))
+#define MODEL_MALL_PAGE_SIZE wxSize(FromDIP(1400 * 0.75), FromDIP(1040 * 0.75))
+#define MODEL_MALL_PAGE_CONTROL_SIZE wxSize(FromDIP(1400 * 0.75), FromDIP(40 * 0.75))
+#define MODEL_MALL_PAGE_WEB_SIZE wxSize(FromDIP(1400 * 0.75), FromDIP(1000 * 0.75))
 
 namespace Slic3r { namespace GUI {
 

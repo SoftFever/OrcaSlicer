@@ -944,7 +944,8 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
             iot_environment_map["pre_host"] = ENV_PRE_HOST;
             iot_environment_map["product_host"] = ENV_PRODUCT_HOST;
 
-            if (iot_environment_map[param] != m_iot_environment_def) {
+            //if (iot_environment_map[param] != m_iot_environment_def) {
+            if (true) {
                 NetworkAgent* agent = wxGetApp().getAgent();
                 if (param == "dev_host") {
                     app_config->set("iot_environment", ENV_DEV_HOST);
