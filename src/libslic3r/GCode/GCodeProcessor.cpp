@@ -2740,23 +2740,30 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             float v_factor = 1.0f;
             bool limited = false;
 
-            //BBS: currently jerk in x,y,z axis are combined to one value and be limited together in MC side
-            //So we only need to handle Z axis
             for (unsigned char a = X; a <= E; ++a) {
                 // Limit an axis. We have to differentiate coasting from the reversal of an axis movement, or a full stop.
-                //BBS
-                float jerk = 0;
                 if (a == X) {
                     Vec3f exit_v = prev.feedrate * (prev.exit_direction);
-                    exit_v(2, 0) = 0;
                     if (prev_speed_larger)
                         exit_v *= smaller_speed_factor;
                     Vec3f entry_v = block.feedrate_profile.cruise * (curr.enter_direction);
                     Vec3f jerk_v = entry_v - exit_v;
-                    jerk = jerk_v.norm();
-                } else if (a == Y || a == Z) {
+                    jerk_v = Vec3f(abs(jerk_v.x()), abs(jerk_v.y()), abs(jerk_v.z()));
+                    Vec3f max_xyz_jerk_v = get_xyz_max_jerk(static_cast<PrintEstimatedStatistics::ETimeMode>(i));
+
+                    for (size_t i = 0; i < 3; i++)
+                    {
+                        if (jerk_v[i] > max_xyz_jerk_v[i]) {
+                            v_factor *= max_xyz_jerk_v[i] / jerk_v[i];
+                            jerk_v *= v_factor;
+                            limited = true;
+                        }
+                    }
+                }
+                else if (a == Y || a == Z) {
                     continue;
-                } else {
+                }
+                else {
                     float v_exit = prev.axis_feedrate[a];
                     float v_entry = curr.axis_feedrate[a];
 
@@ -2769,7 +2776,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
                     }
 
                     // Calculate the jerk depending on whether the axis is coasting in the same direction or reversing a direction.
-                    jerk =
+                    float jerk =
                         (v_exit > v_entry) ?
                         (((v_entry > 0.0f) || (v_exit < 0.0f)) ?
                             // coasting
@@ -2782,12 +2789,13 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
                             (v_entry - v_exit) :
                             // axis reversal
                             std::max(-v_exit, v_entry));
-                }
 
-                float axis_max_jerk = get_axis_max_jerk(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a));
-                if (jerk > axis_max_jerk) {
-                    v_factor *= axis_max_jerk / jerk;
-                    limited = true;
+
+                    float axis_max_jerk = get_axis_max_jerk(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a));
+                    if (jerk > axis_max_jerk) {
+                        v_factor *= axis_max_jerk / jerk;
+                        limited = true;
+                    }
                 }
             }
 
@@ -3135,22 +3143,30 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
             float v_factor = 1.0f;
             bool limited = false;
 
-            //BBS: currently jerk in x,y,z axis are combined to one value and be limited together in MC side
-            //So we only need to handle Z axis
             for (unsigned char a = X; a <= E; ++a) {
                 //BBS: Limit an axis. We have to differentiate coasting from the reversal of an axis movement, or a full stop.
-                float jerk = 0;
                 if (a == X) {
                     Vec3f exit_v = prev.feedrate * (prev.exit_direction);
-                    exit_v(2, 0) = 0;
                     if (prev_speed_larger)
                         exit_v *= smaller_speed_factor;
                     Vec3f entry_v = block.feedrate_profile.cruise * (curr.enter_direction);
                     Vec3f jerk_v = entry_v - exit_v;
-                    jerk = jerk_v.norm();
-                } else if (a == Y || a == Z) {
+                    jerk_v = Vec3f(abs(jerk_v.x()), abs(jerk_v.y()), abs(jerk_v.z()));
+                    Vec3f max_xyz_jerk_v = get_xyz_max_jerk(static_cast<PrintEstimatedStatistics::ETimeMode>(i));
+
+                    for (size_t i = 0; i < 3; i++)
+                    {
+                        if (jerk_v[i] > max_xyz_jerk_v[i]) {
+                            v_factor *= max_xyz_jerk_v[i] / jerk_v[i];
+                            jerk_v *= v_factor;
+                            limited = true;
+                        }
+                    }
+                }
+                else if (a == Y || a == Z) {
                     continue;
-                } else {
+                } 
+                else {
                     float v_exit = prev.axis_feedrate[a];
                     float v_entry = curr.axis_feedrate[a];
 
@@ -3163,7 +3179,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
                     }
 
                     //BBS: Calculate the jerk depending on whether the axis is coasting in the same direction or reversing a direction.
-                    jerk =
+                    float jerk =
                         (v_exit > v_entry) ?
                         (((v_entry > 0.0f) || (v_exit < 0.0f)) ?
                             //BBS: coasting
@@ -3175,12 +3191,13 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
                             (v_entry - v_exit) :
                             //BBS: axis reversal
                             std::max(-v_exit, v_entry));
-                }
 
-                float axis_max_jerk = get_axis_max_jerk(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a));
-                if (jerk > axis_max_jerk) {
-                    v_factor *= axis_max_jerk / jerk;
-                    limited = true;
+
+                    float axis_max_jerk = get_axis_max_jerk(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a));
+                    if (jerk > axis_max_jerk) {
+                        v_factor *= axis_max_jerk / jerk;
+                        limited = true;
+                    }
                 }
             }
 
@@ -3855,6 +3872,13 @@ float GCodeProcessor::get_axis_max_jerk(PrintEstimatedStatistics::ETimeMode mode
     case E: { return get_option_value(m_time_processor.machine_limits.machine_max_jerk_e, static_cast<size_t>(mode)); }
     default: { return 0.0f; }
     }
+}
+
+Vec3f GCodeProcessor::get_xyz_max_jerk(PrintEstimatedStatistics::ETimeMode mode) const
+{
+    return Vec3f(get_option_value(m_time_processor.machine_limits.machine_max_jerk_x, static_cast<size_t>(mode)),
+        get_option_value(m_time_processor.machine_limits.machine_max_jerk_y, static_cast<size_t>(mode)),
+        get_option_value(m_time_processor.machine_limits.machine_max_jerk_z, static_cast<size_t>(mode)));
 }
 
 float GCodeProcessor::get_retract_acceleration(PrintEstimatedStatistics::ETimeMode mode) const

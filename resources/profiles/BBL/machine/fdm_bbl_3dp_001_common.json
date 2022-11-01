@@ -93,8 +93,8 @@
         "9"
     ],
     "machine_max_jerk_z": [
-        "0.2",
-        "0.4"
+        "3",
+        "3"
     ],
     "machine_min_extruding_rate": [
         "0",
