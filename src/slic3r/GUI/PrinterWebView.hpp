@@ -36,24 +36,13 @@ public:
     virtual ~PrinterWebView();
 
     void load_url(wxString& url);
-
     void UpdateState();
-    void OnUrl(wxCommandEvent& evt);
-    void OnReload(wxCommandEvent& evt);
-        void OnClose(wxCloseEvent& evt);
+    void OnClose(wxCloseEvent& evt);
 
 private:
 
     wxWebView* m_browser;
-    wxBoxSizer *bSizer_toolbar;
-    wxButton *  m_button_reload;
-    wxTextCtrl *m_url;
-
     long m_zoomFactor;
-
-    // Last executed JavaScript snippet, for convenience.
-    // wxString m_javascript;
-    // wxString m_response_js;
 
     // DECLARE_EVENT_TABLE()
 };

@@ -941,6 +941,7 @@ void MainFrame::init_tabpanel()
         //select_tab(MainFrame::tpMonitor);
         m_printer_view->load_url(url);
     });
+    m_printer_view->Hide();
 
     m_auxiliary = new AuxiliaryPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_tabpanel->AddPage(m_auxiliary, _L("Project"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"));
@@ -979,6 +980,7 @@ void MainFrame::show_device(bool bBBLPrinter) {
       m_tabpanel->InsertPage(3, m_printer_view, _L("Device"),
                           std::string("tab_monitor_active"),
                           std::string("tab_monitor_active"));
+        m_printer_view->Show();
     }
   }
 

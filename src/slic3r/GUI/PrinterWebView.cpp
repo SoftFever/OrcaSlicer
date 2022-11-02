@@ -23,17 +23,7 @@ PrinterWebView::PrinterWebView(wxWindow *parent)
 
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
 
-    // Create the button
-    bSizer_toolbar = new wxBoxSizer(wxHORIZONTAL);
-
-    //m_button_reload = new wxButton(this, wxID_ANY, wxT("Reload"), wxDefaultPosition, wxDefaultSize, 0);
-    //bSizer_toolbar->Add(m_button_reload, 0, wxALL, 5);
-
-    m_url = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
-    bSizer_toolbar->Add(m_url, 1, wxALL | wxEXPAND, 5);
-
-  
-    // Create the webview
+      // Create the webview
     m_browser = WebView::CreateWebView(this, "");
     if (m_browser == nullptr) {
         wxLogError("Could not init m_browser");
@@ -55,9 +45,6 @@ PrinterWebView::PrinterWebView(wxWindow *parent)
     //Zoom
     m_zoomFactor = 100;
 
-    // Connect the button events
-    //Bind(wxEVT_BUTTON, &PrinterWebView::OnReload, this, m_button_reload->GetId());
-    Bind(wxEVT_TEXT_ENTER, &PrinterWebView::OnUrl, this, m_url->GetId());
     //Connect the idle events
     Bind(wxEVT_CLOSE_WINDOW, &PrinterWebView::OnClose, this);
 
@@ -74,12 +61,9 @@ PrinterWebView::~PrinterWebView()
 
 void PrinterWebView::load_url(wxString& url)
 {
-    //this->Show();
-    //this->Raise();
-    m_url->SetLabelText(url);
+//    this->Show();
+//    this->Raise();
 
-    if (wxGetApp().get_mode() == comDevelop)
-        wxLogMessage(m_url->GetValue());
     m_browser->LoadURL(url);
     //m_browser->SetFocus();
     UpdateState();
@@ -90,28 +74,7 @@ void PrinterWebView::load_url(wxString& url)
  */
 void PrinterWebView::UpdateState() {
   // SetTitle(m_browser->GetCurrentTitle());
-  m_url->SetValue(m_browser->GetCurrentURL());
-}
 
-/**
-    * Callback invoked when user entered an URL and pressed enter
-    */
-void PrinterWebView::OnUrl(wxCommandEvent& WXUNUSED(evt))
-{
-    if (wxGetApp().get_mode() == comDevelop)
-        wxLogMessage(m_url->GetValue());
-    m_browser->LoadURL(m_url->GetValue());
-    m_browser->SetFocus();
-    UpdateState();
-}
-
-/**
-    * Callback invoked when user pressed the "reload" button
-    */
-void PrinterWebView::OnReload(wxCommandEvent& WXUNUSED(evt))
-{
-    m_browser->Reload();
-    UpdateState();
 }
 
 void PrinterWebView::OnClose(wxCloseEvent& evt)
