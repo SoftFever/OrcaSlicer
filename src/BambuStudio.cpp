@@ -75,6 +75,54 @@
 
 using namespace Slic3r;
 
+/*typedef struct _error_message{
+    int code;
+    std::string message;
+}error_message;*/
+
+#define CLI_SUCCESS                 0
+#define CLI_ENVIRONMENT_ERROR       -1
+#define CLI_INVALID_PARAMS          -2
+#define CLI_FILE_NOTFOUND           -3
+#define CLI_FILELIST_INVALID_ORDER  -4
+#define CLI_CONFIG_FILE_ERROR       -5
+#define CLI_DATA_FILE_ERROR         -6
+#define CLI_INVALID_PRINTER_TECH    -7
+#define CLI_UNSUPPORTED_OPERATION   -8
+
+#define CLI_COPY_OBJECTS_ERROR      -9
+#define CLI_SCALE_TO_FIT_ERROR      -10
+#define CLI_EXPORT_STL_ERROR        -11
+#define CLI_EXPORT_OBJ_ERROR        -12
+#define CLI_EXPORT_3MF_ERROR        -13
+
+#define CLI_NO_SUITABLE_OBJECTS     -50
+#define CLI_VALIDATE_ERROR          -51
+#define CLI_SLICING_ERROR           -100
+
+
+
+std::map<int, std::string> cli_errors = {
+    {CLI_SUCCESS, "Success"},
+    {CLI_ENVIRONMENT_ERROR, "Environment setup failed"},
+    {CLI_INVALID_PARAMS, "Input param invalid"},
+    {CLI_FILE_NOTFOUND, "Input file not found"},
+    {CLI_FILELIST_INVALID_ORDER, "File list order invalid(please make sure 3mf in the first place)"},
+    {CLI_CONFIG_FILE_ERROR, "Invalid config file, could not be parsed"},
+    {CLI_DATA_FILE_ERROR, "Invalid model file, could not be loaded"},
+    {CLI_INVALID_PRINTER_TECH, "Invalid printer technoledge"},
+    {CLI_UNSUPPORTED_OPERATION, "Unsupported operation"},
+    {CLI_COPY_OBJECTS_ERROR, "Copy objects error"},
+    {CLI_SCALE_TO_FIT_ERROR, "Scale to fit error"},
+    {CLI_EXPORT_STL_ERROR, "Export stl error"},
+    {CLI_EXPORT_OBJ_ERROR, "Export obj error"},
+    {CLI_EXPORT_3MF_ERROR, "Export 3mf error"},
+    {CLI_NO_SUITABLE_OBJECTS, "Found no objects in print volume to slice"},
+    {CLI_VALIDATE_ERROR, "Validate print error"},
+    {CLI_SLICING_ERROR, "Slice error"}
+};
+
+
 static PrinterTechnology get_printer_technology(const DynamicConfig &config)
 {
     const ConfigOptionEnum<PrinterTechnology> *opt = config.option<ConfigOptionEnum<PrinterTechnology>>("printer_technology");
@@ -85,7 +133,7 @@ static PrinterTechnology get_printer_technology(const DynamicConfig &config)
 #define flush_and_exit(ret)     { boost::nowide::cout << __FUNCTION__ << " found error, exit" << std::endl;\
     boost::nowide::cout.flush();\
     boost::nowide::cerr.flush();\
-    exit(ret);}
+    return(ret);}
 
 static void glfw_callback(int error_code, const char* description)
 {
@@ -117,7 +165,7 @@ int CLI::run(int argc, char **argv)
             MessageBoxA(NULL, text.c_str(), caption.c_str(), MB_OK | MB_ICONERROR);
     #endif
         boost::nowide::cerr << text.c_str() << std::endl;
-        return 1;
+        return CLI_ENVIRONMENT_ERROR;
     }
     BOOST_LOG_TRIVIAL(info) << "Current BambuStudio Version "<< SLIC3R_VERSION << std::endl;
 
@@ -140,7 +188,7 @@ int CLI::run(int argc, char **argv)
     if (!this->setup(argc, argv))
     {
         boost::nowide::cerr << "setup params error" << std::endl;
-        return 1;
+        return CLI_INVALID_PARAMS;
     }
     BOOST_LOG_TRIVIAL(info) << "finished setup params, argc="<< argc << std::endl;
     std::string temp_path = wxFileName::GetTempDir().utf8_str().data();
@@ -227,7 +275,7 @@ int CLI::run(int argc, char **argv)
     for (auto const &file : load_configs) {
         if (! boost::filesystem::exists(file)) {
             boost::nowide::cerr << "can not find setting file: " << file << std::endl;
-            flush_and_exit(1);
+            flush_and_exit(CLI_FILE_NOTFOUND);
         }
         DynamicPrintConfig  config;
         ConfigSubstitutions config_substitutions;
@@ -239,12 +287,12 @@ int CLI::run(int argc, char **argv)
             config_substitutions = config.load_from_json(file, config_substitution_rule, key_values, reason);
             if (!reason.empty()) {
                 BOOST_LOG_TRIVIAL(error) << "Can not load config from file "<<file<<"\n";
-                flush_and_exit(1);
+                flush_and_exit(CLI_CONFIG_FILE_ERROR);
             }
             //BOOST_LOG_TRIVIAL(info) << "got printable_area "<< config.option("printable_area")->serialize() << std::endl;
         } catch (std::exception &ex) {
             boost::nowide::cerr << "Loading setting file \"" << file << "\" failed: " << ex.what() << std::endl;
-            flush_and_exit(1);
+            flush_and_exit(CLI_CONFIG_FILE_ERROR);
         }
         if (! config_substitutions.empty()) {
             BOOST_LOG_TRIVIAL(info) << "Found legacy configuration values, substituted when loading " << file << ":\n";
@@ -262,7 +310,7 @@ int CLI::run(int argc, char **argv)
 
         if ((printer_technology != other_printer_technology)&&(other_printer_technology != ptUnknown)){
             boost::nowide::cerr << "invalid printer_technology " <<printer_technology<<", from config "<< file <<std::endl;
-            flush_and_exit(1);
+            flush_and_exit(CLI_INVALID_PRINTER_TECH);
         }
         m_print_config.apply(config);
     }
@@ -273,7 +321,7 @@ int CLI::run(int argc, char **argv)
         const std::string& file = load_filaments[index];
         if (! boost::filesystem::exists(file)) {
             boost::nowide::cerr << "can not find filament file: " << file << std::endl;
-            flush_and_exit(1);
+            flush_and_exit(CLI_FILE_NOTFOUND);
         }
         DynamicPrintConfig  config;
         ConfigSubstitutions config_substitutions;
@@ -284,12 +332,12 @@ int CLI::run(int argc, char **argv)
             config_substitutions = config.load_from_json(file, config_substitution_rule, key_values, reason);
             if (!reason.empty()) {
                 BOOST_LOG_TRIVIAL(error) << "Can not load filament config from file "<<file<<"\n";
-                flush_and_exit(1);
+                flush_and_exit(CLI_CONFIG_FILE_ERROR);
             }
             //BOOST_LOG_TRIVIAL(info) << "got printable_area "<< config.option("printable_area")->serialize() << std::endl;
         } catch (std::exception &ex) {
             boost::nowide::cerr << "Loading filament file \"" << file << "\" failed: " << ex.what() << std::endl;
-            flush_and_exit(1);
+            flush_and_exit(CLI_CONFIG_FILE_ERROR);
         }
         if (! config_substitutions.empty()) {
             BOOST_LOG_TRIVIAL(info) << "Found legacy configuration values, substituted when loading " << file << ":\n";
@@ -307,7 +355,7 @@ int CLI::run(int argc, char **argv)
 
         if ((printer_technology != other_printer_technology) && (other_printer_technology != ptUnknown)) {
             boost::nowide::cerr << "invalid printer_technology " <<printer_technology<<", from filament file "<< file <<std::endl;
-            flush_and_exit(1);
+            flush_and_exit(CLI_INVALID_PRINTER_TECH);
         }
         ConfigOptionStrings *opt_filament_settings = static_cast<ConfigOptionStrings *> (m_print_config.option("filament_settings_id", true));
         ConfigOptionStrings *opt_filament_settings_src = static_cast<ConfigOptionStrings *>(config.option("filament_settings_id", false));
@@ -339,7 +387,7 @@ int CLI::run(int argc, char **argv)
             if (source_opt == nullptr) {
                 // The key was not found in the source config, therefore it will not be initialized!
                 boost::nowide::cerr << "can not found option " <<opt_key<<"from filament file "<< file <<std::endl;
-                flush_and_exit(1);
+                flush_and_exit(CLI_CONFIG_FILE_ERROR);
             }
             if (opt_key == "compatible_prints" || opt_key == "compatible_printers")
                 continue;
@@ -371,7 +419,7 @@ int CLI::run(int argc, char **argv)
                     // opt_key does not exist in this ConfigBase and it cannot be created, because it is not defined by this->def().
                     // This is only possible if other is of DynamicConfig type.
                     boost::nowide::cerr << "can not create option " <<opt_key<<"to config, from filament file "<< file <<std::endl;
-                    flush_and_exit(1);
+                    flush_and_exit(CLI_CONFIG_FILE_ERROR);
                 }
                 ConfigOptionVectorBase* opt_vec_dst = static_cast<ConfigOptionVectorBase*>(opt);
                 const ConfigOptionVectorBase* opt_vec_src = static_cast<const ConfigOptionVectorBase*>(source_opt);
@@ -426,7 +474,7 @@ int CLI::run(int argc, char **argv)
         for (const std::string& file : m_input_files) {
             if (!boost::filesystem::exists(file)) {
                 boost::nowide::cerr << "No such file: " << file << std::endl;
-                flush_and_exit(1);
+                flush_and_exit(CLI_FILE_NOTFOUND);
             }
             Model model;
             //BBS: add plate related logic
@@ -455,7 +503,7 @@ int CLI::run(int argc, char **argv)
                     if (!first_file)
                     {
                         BOOST_LOG_TRIVIAL(info) << "The BBL 3mf file should be placed at the first position, filename=" << file << "\n";
-                        flush_and_exit(1);
+                        flush_and_exit(CLI_FILELIST_INVALID_ORDER);
                     }
                     BOOST_LOG_TRIVIAL(info) << "the first file is a 3mf, got plate count:" << plate_data.size() << "\n";
                     need_arrange = false;
@@ -490,7 +538,7 @@ int CLI::run(int argc, char **argv)
                 }
                 if ((printer_technology != other_printer_technology) && (other_printer_technology != ptUnknown)) {
                     boost::nowide::cerr << "invalid printer_technology " <<printer_technology<<", from source file "<< file <<std::endl;
-                    flush_and_exit(1);
+                    flush_and_exit(CLI_INVALID_PRINTER_TECH);
                 }
                 if (!config_substitutions.substitutions.empty()) {
                     BOOST_LOG_TRIVIAL(info) << "Found legacy configuration values, substituted when loading " << file << ":\n";
@@ -504,7 +552,7 @@ int CLI::run(int argc, char **argv)
             }
             catch (std::exception& e) {
                 boost::nowide::cerr << file << ": " << e.what() << std::endl;
-                flush_and_exit(1);
+                flush_and_exit(CLI_DATA_FILE_ERROR);
             }
             if (model.objects.empty()) {
                 boost::nowide::cerr << "Error: file is empty: " << file << std::endl;
@@ -573,7 +621,7 @@ int CLI::run(int argc, char **argv)
     std::string validity = m_print_config.validate();
     if (!validity.empty()) {
         boost::nowide::cerr <<"Error: The composite configation is not valid: " << validity << std::endl;
-        flush_and_exit(1);
+        flush_and_exit(CLI_INVALID_PRINTER_TECH);
     }
 
     //BBS: partplate list
@@ -677,7 +725,7 @@ int CLI::run(int argc, char **argv)
                     }
                 } catch (std::exception &ex) {
                     boost::nowide::cerr << "error: " << ex.what() << std::endl;
-                    flush_and_exit(1);
+                    flush_and_exit(CLI_COPY_OBJECTS_ERROR);
                 }
             }
         } else if (opt_key == "center") {
@@ -746,7 +794,7 @@ int CLI::run(int argc, char **argv)
             const Vec3d &opt = m_config.opt<ConfigOptionPoint3>(opt_key)->value;
             if (opt.x() <= 0 || opt.y() <= 0 || opt.z() <= 0) {
                 boost::nowide::cerr << "--scale-to-fit requires a positive volume" << std::endl;
-                flush_and_exit(1);
+                flush_and_exit(CLI_SCALE_TO_FIT_ERROR);
             }
             for (auto &model : m_models)
                 for (auto &o : model.objects)
@@ -836,7 +884,7 @@ int CLI::run(int argc, char **argv)
             //    model.repair();
         } else {
             boost::nowide::cerr << "error: option not implemented yet: " << opt_key << std::endl;
-            flush_and_exit(1);
+            flush_and_exit(CLI_UNSUPPORTED_OPERATION);
         }
     }
 
@@ -1017,12 +1065,12 @@ int CLI::run(int argc, char **argv)
             for (auto &model : m_models)
                 model.add_default_instances();
             if (! this->export_models(IO::STL))
-                flush_and_exit(1);
-        } else if (opt_key == "export_obj") {
+                flush_and_exit(CLI_EXPORT_STL_ERROR);
+        } else if (opt_key == "expor1t_obj") {
             for (auto &model : m_models)
                 model.add_default_instances();
             if (! this->export_models(IO::OBJ))
-                flush_and_exit(1);
+                flush_and_exit(CLI_EXPORT_OBJ_ERROR);
         }/* else if (opt_key == "export_amf") {
             if (! this->export_models(IO::AMF))
                 return 1;
@@ -1136,8 +1184,8 @@ int CLI::run(int argc, char **argv)
                         BOOST_LOG_TRIVIAL(info) << "got warnings: "<< warning.string << std::endl;
 
                     if (print->empty()) {
-                        BOOST_LOG_TRIVIAL(info) << "Nothing to print for " << outfile << " . Either the print is empty or no object is fully inside the print volume." << std::endl;
-                        flush_and_exit(1);
+                        BOOST_LOG_TRIVIAL(error) << "Nothing to be sliced, Either the print is empty or no object is fully inside the print volume." << std::endl;
+                        flush_and_exit(CLI_NO_SUITABLE_OBJECTS);
                     }
                     else
                         try {
@@ -1180,7 +1228,7 @@ int CLI::run(int argc, char **argv)
                             BOOST_LOG_TRIVIAL(info) << "found slicing or export error for partplate "<<index << std::endl;
                             boost::nowide::cerr << ex.what() << std::endl;
                             //continue;
-                            flush_and_exit(1);
+                            flush_and_exit(CLI_SLICING_ERROR);
                         }
                 }//end for partplate
 /*
@@ -1216,7 +1264,7 @@ int CLI::run(int argc, char **argv)
             }
         } else {
             boost::nowide::cerr << "error: option not supported yet: " << opt_key << std::endl;
-            flush_and_exit(1);
+            flush_and_exit(CLI_UNSUPPORTED_OPERATION);
         }
     }
 
@@ -1446,7 +1494,7 @@ int CLI::run(int argc, char **argv)
         if (! this->export_project(&m_models[0], export_3mf_file, plate_data_list, project_presets, thumbnails, calibration_thumbnails, plate_bboxes, &m_print_config))
         {
             release_PlateData_list(plate_data_list);
-            flush_and_exit(1);
+            flush_and_exit(CLI_EXPORT_3MF_ERROR);
         }
         release_PlateData_list(plate_data_list);
         for (unsigned int i = 0; i < thumbnails.size(); i++)
