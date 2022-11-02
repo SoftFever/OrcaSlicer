@@ -3650,8 +3650,15 @@ void GUI_App::sync_preset(Preset* preset)
                     preset->setting_id.clear();
                     result = 0;
                 }
-                else
+                else {
                     result = m_agent->put_setting(preset->setting_id, preset->name, &values_map, &http_code);
+                    if (http_code >= 400) {
+                        result = 0;
+                        updated_info = "hold";
+                        BOOST_LOG_TRIVIAL(error) << "[sync_preset] put setting_id = " << preset->setting_id << " failed, http_code = " << http_code;
+                    }
+                }
+
             }
             else {
                 BOOST_LOG_TRIVIAL(trace) << "[sync_preset]update: can not generate differed key-values, we need to skip this preset "<< preset->name;
@@ -3760,8 +3767,10 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                                 it = delete_cache_presets.erase(it);
                                 BOOST_LOG_TRIVIAL(trace) << "sync_preset: sync operation: delete success! setting id = " << del_setting_id;
                             }
-                            else
+                            else {
+                                BOOST_LOG_TRIVIAL(info) << "delete setting = " <<del_setting_id << " failed";
                                 it++;
+                            }
                         }
                     }
                 } else {
