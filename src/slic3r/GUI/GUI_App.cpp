@@ -1212,7 +1212,10 @@ void GUI_App::shutdown()
     }
 
     if (m_agent) {
+        //BBS avoid a crash on mac platform
+#ifdef __WINDOWS__
         m_agent->start_discovery(false, false);
+#endif
         delete m_agent;
         m_agent = nullptr;
     }
