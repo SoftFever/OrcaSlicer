@@ -261,17 +261,12 @@ public:
 
     void UseDefaultColors(bool def_colors_on) { m_ticks.set_default_colors(def_colors_on); }
 
-    void add_custom_gcode(std::string custom_gcode);
-    void add_code_as_tick(Type type, int selected_extruder = -1);
     void post_ticks_changed_event(Type type = Custom);
     bool check_ticks_changed_event(Type type);
     bool switch_one_layer_mode();
+    void show_go_to_layer(bool show) { m_show_go_to_layer_dialog = show; }
 
     bool render(int canvas_width, int canvas_height);
-
-    void render_menu();
-
-    void render_input_custom_gcode();
 
     //BBS update scroll value changed
     bool is_dirty() { return m_dirty; }
@@ -286,10 +281,17 @@ public:
     ExtrudersSequence m_extruders_sequence;
     float m_scale = 1.0;
     void set_scale(float scale = 1.0);
+
 protected:
+    void add_custom_gcode(std::string custom_gcode);
+    void add_code_as_tick(Type type, int selected_extruder = -1);
+    void do_go_to_layer(size_t layer_number);
     void correct_lower_value();
     void correct_higher_value();
     bool horizontal_slider(const char* str_id, int* v, int v_min, int v_max, const ImVec2& pos, const ImVec2& size, float scale = 1.0);
+    void render_go_to_layer_dialog();
+    void render_input_custom_gcode();
+    void render_menu();
     void draw_background(const ImRect& groove);
     void draw_colored_band(const ImRect& groove, const ImRect& slideable_region);
     void draw_ticks(const ImRect& slideable_region);
@@ -304,8 +306,6 @@ private:
     double get_double_value(const SelectedSlider& selection);
     int    get_tick_from_value(double value, bool force_lower_bound = false);
     float get_pos_from_value(int v_min, int v_max, int value, const ImRect& rect);
-
-
 
     std::string get_color_for_tool_change_tick(std::set<TickCode>::const_iterator it) const;
     // Get active extruders for tick.
@@ -331,6 +331,7 @@ private:
     bool m_is_focused         = false;
     bool m_show_menu         = false;
     bool m_show_custom_gcode_window = false;
+    bool m_show_go_to_layer_dialog = false;
     bool m_force_mode_apply   = true;
     bool m_enable_action_icon = true;
     bool m_enable_cog_icon    = false;
@@ -373,6 +374,7 @@ private:
     std::vector<double> m_alternate_values;
 
     char m_custom_gcode[1024] = { 0 };
+    char m_layer_number[64] = { 0 };
 };
 
 }

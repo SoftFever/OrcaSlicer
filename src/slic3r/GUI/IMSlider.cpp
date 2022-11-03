@@ -1223,6 +1223,8 @@ bool IMSlider::render(int canvas_width, int canvas_height)
 
     render_input_custom_gcode();
 
+    render_go_to_layer_dialog();
+
     if (is_horizontal()) {
         float  pos_x = std::max(LEFT_MARGIN, 0.2f * canvas_width);
         float  pos_y = (canvas_height - HORIZONTAL_SLIDER_SIZE.y * m_scale);
@@ -1282,11 +1284,12 @@ void IMSlider::render_input_custom_gcode()
         return;
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     static bool move_to_center = true;
+    static bool set_focus_when_appearing = true;
     if (move_to_center) {
-        move_to_center = false;
         auto pos_x = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_width() / 2;
         auto pos_y = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height() / 2;
         imgui.set_next_window_pos(pos_x, pos_y, ImGuiCond_Always, 0.5f, 0.5f);
+        move_to_center = false;
     }
 
     imgui.push_common_window_style(m_scale);
@@ -1301,6 +1304,10 @@ void IMSlider::render_input_custom_gcode()
         | ImGuiWindowFlags_NoScrollWithMouse;
     imgui.begin(_u8L("Custom G-code"), windows_flag);
     imgui.text(_u8L("Enter Custom G-code used on current layer:"));
+    if (set_focus_when_appearing) {
+        ImGui::SetKeyboardFocusHere(0);
+        set_focus_when_appearing = false;
+    }
     int text_height = 6;
     ImGui::InputTextMultiline("##text", m_custom_gcode, sizeof(m_custom_gcode), ImVec2(-1, ImGui::GetTextLineHeight() * text_height));
     //text_height = 5;
@@ -1311,29 +1318,103 @@ void IMSlider::render_input_custom_gcode()
 
     ImGui::NewLine();
     ImGui::SameLine(ImGui::GetStyle().WindowPadding.x * 14);
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f / 255.f, 174.f / 255.f, 66.f / 255.f, 1.f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(61.f / 255.f, 203.f / 255.f, 115.f / 255.f, 1.f));    
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(27.f / 255.f, 136.f / 255.f, 68.f / 255.f, 1.f));
-    ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.f, 1.f, 1.f, 1.f));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));  
+    imgui.push_confirm_button_style();
     if (imgui.bbl_button(_L("OK"))) {
         m_show_custom_gcode_window = false;
         add_custom_gcode(m_custom_gcode);
         move_to_center = true;
+        set_focus_when_appearing = true;
     }
-    ImGui::PopStyleColor(5);
+    imgui.pop_confirm_button_style();
 
     ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(255.f / 255.f, 255.f / 255.f, 255.f / 255.f, 1.f));    
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(238.f / 255.f, 238.f / 255.f, 238.f / 255.f, 1.f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(206.f / 255.f, 206.f / 255.f, 206.f / 255.f, 1.f));
-    ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.f, 0.f, 0.f, 1.f));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(38.f / 255.0f, 46.f / 255.0f, 48.f / 255.0f, 1.00f));  
+    imgui.push_cancel_button_style();
     if (imgui.bbl_button(_L("Cancel"))) {
         m_show_custom_gcode_window = false;
         move_to_center = true;
+        set_focus_when_appearing = true;
     }
-    ImGui::PopStyleColor(5);
+    imgui.pop_cancel_button_style();
+
+    imgui.end();
+    ImGui::PopStyleVar(3);
+    imgui.pop_common_window_style();
+}
+
+void IMSlider::do_go_to_layer(size_t layer_number) {
+    clamp((int)layer_number, m_min_value, m_max_value);
+    GetSelection() == ssLower ? SetLowerValue(layer_number) : SetHigherValue(layer_number);
+}
+
+void IMSlider::render_go_to_layer_dialog(){
+    if (!m_show_go_to_layer_dialog)
+        return;
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    static bool move_to_center = true;
+    static bool set_focus_when_appearing = true;
+    if (move_to_center) {
+        auto pos_x = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_width() / 2;
+        auto pos_y = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height() / 2;
+        imgui.set_next_window_pos(pos_x, pos_y, ImGuiCond_Always, 0.5f, 0.5f);
+        move_to_center = false;
+    }
+
+    imgui.push_common_window_style(m_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 12.f * m_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 3) * m_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10, 7) * m_scale);
+    int windows_flag =
+        ImGuiWindowFlags_NoCollapse
+        | ImGuiWindowFlags_AlwaysAutoResize
+        | ImGuiWindowFlags_NoResize
+        | ImGuiWindowFlags_NoScrollbar
+        | ImGuiWindowFlags_NoScrollWithMouse;
+    imgui.begin(_u8L("Go to layer"), windows_flag);
+    imgui.text(_u8L("Layer number") + " (" + std::to_string(m_min_value) + " - " + std::to_string(m_max_value) + "):");
+    ImGui::PushItemWidth(210 * m_scale);
+    if (set_focus_when_appearing) {
+        ImGui::SetKeyboardFocusHere(0);
+        set_focus_when_appearing = false;
+    }
+    ImGui::InputText("##input_layer_number", m_layer_number, sizeof(m_layer_number));
+
+    ImGui::NewLine();
+    ImGui::SameLine(GImGui->Style.WindowPadding.x * 6);
+    imgui.push_confirm_button_style();
+    bool disable_button = false;
+    if (strlen(m_layer_number) == 0)
+        disable_button = true;
+    else {
+        for (size_t i = 0; i< strlen(m_layer_number); i++)
+            if (!isdigit(m_layer_number[i]))
+                disable_button = true;
+        if (!disable_button && (m_min_value > atoi(m_layer_number) || atoi(m_layer_number) > m_max_value))
+            disable_button = true;
+    }
+    if (disable_button) {
+        ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+        imgui.push_button_disable_style();
+    }
+    if (imgui.bbl_button(_L("OK"))) {
+        do_go_to_layer(atoi(m_layer_number));
+        m_show_go_to_layer_dialog = false;
+        move_to_center = true;
+        set_focus_when_appearing = true;
+    }
+    if (disable_button) {
+        ImGui::PopItemFlag();
+        imgui.pop_button_disable_style();
+    }
+    imgui.pop_confirm_button_style();
+
+    ImGui::SameLine();
+    imgui.push_cancel_button_style();
+    if (imgui.bbl_button(_L("Cancel"))) {
+        m_show_go_to_layer_dialog = false;
+        move_to_center = true;
+        set_focus_when_appearing = true;
+    }
+    imgui.pop_cancel_button_style();
 
     imgui.end();
     ImGui::PopStyleVar(3);
@@ -1354,8 +1435,11 @@ void IMSlider::render_menu()
     if (ImGui::BeginPopup("slider_menu_popup")) {
         if ((m_selection == ssLower && GetLowerValueD() == m_zero_layer_height) || (m_selection == ssHigher && GetHigherValueD() == m_zero_layer_height))
         {
-            menu_item_with_icon(_u8L("Add Pause").c_str(), "", ImVec2(0, 0), 0, false, false);
-        }else
+            if (menu_item_with_icon(_u8L("Jump to Layer").c_str(), "")) {
+                m_show_go_to_layer_dialog = true;
+            }
+        }
+        else
         {
             if (menu_item_with_icon(_u8L("Add Pause").c_str(), "")) {
                 add_code_as_tick(PausePrint);
@@ -1367,6 +1451,9 @@ void IMSlider::render_menu()
                 if (menu_item_with_icon(_u8L("Add Custom Template").c_str(), "")) {
                     add_code_as_tick(Template);
                 }
+            }
+            if (menu_item_with_icon(_u8L("Jump to Layer").c_str(), "")) {
+                m_show_go_to_layer_dialog = true;
             }
         }
 

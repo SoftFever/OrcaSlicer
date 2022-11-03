@@ -1694,9 +1694,9 @@ void ImGuiWrapper::push_common_window_style(const float scale) {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 3.0f * scale);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(38 / 255.0f, 46 / 255.0f, 48 / 255.0f, 1.00f));              // 1
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGuiWrapper::COL_WINDOW_BG);                                   // 2
-    ImGui::PushStyleColor(ImGuiCol_TitleBg, ImGuiWrapper::COL_TITLE_BG);                                     // 3
-    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImGuiWrapper::COL_TITLE_BG);                               // 4
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));                            // 2
+    ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(245 / 255.0f, 245 / 255.0f, 245 / 255.0f, 1.00f));        // 3
+    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(245 / 255.0f, 245 / 255.0f, 245 / 255.0f, 1.00f));  // 4
     ImGui::PushStyleColor(ImGuiCol_Separator, ImGuiWrapper::COL_SEPARATOR);                                  // 5
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));                              // 6
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));                       // 7
@@ -1712,6 +1712,40 @@ void ImGuiWrapper::push_common_window_style(const float scale) {
 void ImGuiWrapper::pop_common_window_style() {
     ImGui::PopStyleColor(14);
     ImGui::PopStyleVar(5);
+}
+
+void ImGuiWrapper::push_confirm_button_style() {
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f / 255.f, 174.f / 255.f, 66.f / 255.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(61.f / 255.f, 203.f / 255.f, 115.f / 255.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(27.f / 255.f, 136.f / 255.f, 68.f / 255.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.f, 1.f, 1.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+}
+
+void ImGuiWrapper::pop_confirm_button_style() {
+    ImGui::PopStyleColor(5);
+}
+
+void ImGuiWrapper::push_cancel_button_style() {
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(255.f / 255.f, 255.f / 255.f, 255.f / 255.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(238.f / 255.f, 238.f / 255.f, 238.f / 255.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(206.f / 255.f, 206.f / 255.f, 206.f / 255.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.f, 0.f, 0.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(38.f / 255.0f, 46.f / 255.0f, 48.f / 255.0f, 1.00f));
+}
+
+void ImGuiWrapper::pop_cancel_button_style() {
+    ImGui::PopStyleColor(5);
+}
+
+void ImGuiWrapper::push_button_disable_style() {
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(206.f / 255.f, 206.f / 255.f, 206.f / 255.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(206.f / 255.f, 206.f / 255.f, 206.f / 255.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+}
+
+void ImGuiWrapper::pop_button_disable_style() {
+    ImGui::PopStyleColor(3);
 }
 
 void ImGuiWrapper::init_font(bool compress)

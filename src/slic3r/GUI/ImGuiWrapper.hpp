@@ -194,6 +194,12 @@ public:
     static void pop_menu_style();
     static void push_common_window_style(const float scale);
     static void pop_common_window_style();
+    static void push_confirm_button_style();
+    static void pop_confirm_button_style();
+    static void push_cancel_button_style();
+    static void pop_cancel_button_style();
+    static void push_button_disable_style();
+    static void pop_button_disable_style();
 
     //BBS
     static int TOOLBAR_WINDOW_FLAGS;
