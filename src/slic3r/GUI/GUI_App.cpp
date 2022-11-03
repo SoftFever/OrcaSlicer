@@ -1985,6 +1985,9 @@ bool GUI_App::on_init_inner()
 
     // Set initialization of image handlers before any UI actions - See GH issue #7469
     wxInitAllImageHandlers();
+#ifdef NDEBUG
+    wxImage::SetDefaultLoadFlags(0); // ignore waring in release build
+#endif
 
 #if defined(_WIN32) && ! defined(_WIN64)
     // BBS: remove 32bit build prompt
