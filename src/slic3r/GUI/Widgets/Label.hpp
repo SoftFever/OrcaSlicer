@@ -17,6 +17,8 @@ public:
 
     void SetWindowStyleFlag(long style) override;
 
+	void Wrap(int width);
+
 private:
     wxFont font;
     wxColour color;
