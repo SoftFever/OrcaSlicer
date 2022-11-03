@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-01 11:55+0800\n"
+"POT-Creation-Date: 2022-11-03 16:29+0800\n"
 "PO-Revision-Date: 2022-11-01 11:29+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -728,6 +728,18 @@ msgstr "缩放到构建空间大小"
 
 msgid "Scale an object to fit the build volume"
 msgstr "缩放对象以适应构建空间大小"
+
+msgid "Flush Options"
+msgstr ""
+
+msgid "Flush into objects' infill"
+msgstr "冲刷到对象的填充"
+
+msgid "Flush into this object"
+msgstr "冲刷到这个对象"
+
+msgid "Flush into objects' support"
+msgstr "冲刷到对象的支撑"
 
 msgid "Convert from inch"
 msgstr "从英寸转换"
@@ -3918,8 +3930,10 @@ msgstr "请在发起打印前插入SD卡"
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "开启延迟摄影功能需要插入SD卡"
 
-msgid "Please check the following infomation:\n"
-msgstr "请确认以下信息后发送打印：\n"
+msgid ""
+"Please check the following infomation and click Confirm to continue sending "
+"print:\n"
+msgstr ""
 
 msgid ""
 "The printer type used to generate G-code is not the same type as the "
@@ -4337,10 +4351,9 @@ msgstr "预设“%1%”和新的工艺预设不兼容，并且它包含以下未
 
 msgid ""
 "You have changed some preset settings. \n"
-"Would you like to keep these changed settings after switching preset?"
+"Would you like to keep these changed settings (new value) after switching "
+"preset?"
 msgstr ""
-"您有一些修改过的设置。\n"
-"切换预设后，是否要保留这些更改过的设置？"
 
 msgid "Extruders count"
 msgstr "挤出机数量"
@@ -6782,9 +6795,6 @@ msgstr "宽度"
 msgid "Width of prime tower"
 msgstr "擦拭塔宽度"
 
-msgid "Flush into objects' infill"
-msgstr "冲刷到对象的填充"
-
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
@@ -6795,9 +6805,6 @@ msgstr ""
 "是如果对象的内外墙是采用透明材料打印的，则可以从模型外观上看到内部的混色过渡"
 "料。该功能只有在启用料塔的时候才生效。"
 
-msgid "Flush into objects' support"
-msgstr "冲刷到对象的支撑"
-
 msgid ""
 "Purging after filament change will be done inside objects' support. This may "
 "lower the amount of waste and decrease the print time. It will not take "
@@ -6805,9 +6812,6 @@ msgid ""
 msgstr ""
 "换料后的过渡料会被用来打印对象的支撑。这样可以减少材料浪费以及缩短打印时间。"
 "该功能只有在启用料塔的时候才生效。"
-
-msgid "Flush into this object"
-msgstr "冲刷到这个对象"
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
@@ -7220,6 +7224,16 @@ msgid ""
 msgstr ""
 "为多个对象设置参数\n"
 "您知道吗，可以同时为所有选定对象设置切片参数。"
+
+#~ msgid "Please check the following infomation:\n"
+#~ msgstr "请确认以下信息后发送打印：\n"
+
+#~ msgid ""
+#~ "You have changed some preset settings. \n"
+#~ "Would you like to keep these changed settings after switching preset?"
+#~ msgstr ""
+#~ "您有一些修改过的设置。\n"
+#~ "切换预设后，是否要保留这些更改过的设置？"
 
 #~ msgid "Export sliced file"
 #~ msgstr "导出切片文件"

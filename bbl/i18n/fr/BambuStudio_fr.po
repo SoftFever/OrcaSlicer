@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-01 11:55+0800\n"
+"POT-Creation-Date: 2022-11-03 16:29+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -745,6 +745,18 @@ msgstr "Échelle pour créer du volume"
 
 msgid "Scale an object to fit the build volume"
 msgstr "Mettre à l'échelle un objet pour l'adapter au volume de construction"
+
+msgid "Flush Options"
+msgstr ""
+
+msgid "Flush into objects' infill"
+msgstr "Purger dans le remplissage d'objet"
+
+msgid "Flush into this object"
+msgstr "Purger dans cet objet"
+
+msgid "Flush into objects' support"
+msgstr "Purger dans les supports de l'objet"
 
 msgid "Convert from inch"
 msgstr "Convertir en pouce"
@@ -4003,7 +4015,9 @@ msgstr ""
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr ""
 
-msgid "Please check the following infomation:\n"
+msgid ""
+"Please check the following infomation and click Confirm to continue sending "
+"print:\n"
 msgstr ""
 
 msgid ""
@@ -4453,10 +4467,9 @@ msgstr ""
 
 msgid ""
 "You have changed some preset settings. \n"
-"Would you like to keep these changed settings after switching preset?"
+"Would you like to keep these changed settings (new value) after switching "
+"preset?"
 msgstr ""
-"Vous avez modifié certains paramètres prédéfinis. Souhaitez-vous conserver "
-"ces paramètres modifiés après avoir changé de préréglage ?"
 
 msgid "Extruders count"
 msgstr "Les extrudeuses comptent"
@@ -7123,9 +7136,6 @@ msgstr "Largeur"
 msgid "Width of prime tower"
 msgstr "Largeur de la tour principale"
 
-msgid "Flush into objects' infill"
-msgstr "Purger dans le remplissage d'objet"
-
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
@@ -7133,17 +7143,11 @@ msgid ""
 "outside. It will not take effect, unless the prime tower is enabled."
 msgstr ""
 
-msgid "Flush into objects' support"
-msgstr "Purger dans les supports de l'objet"
-
 msgid ""
 "Purging after filament change will be done inside objects' support. This may "
 "lower the amount of waste and decrease the print time. It will not take "
 "effect, unless the prime tower is enabled."
 msgstr ""
-
-msgid "Flush into this object"
-msgstr "Purger dans cet objet"
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
@@ -7511,6 +7515,13 @@ msgid ""
 "Did you know that you can set slicing parameters for all selected objects at "
 "one time?"
 msgstr ""
+
+#~ msgid ""
+#~ "You have changed some preset settings. \n"
+#~ "Would you like to keep these changed settings after switching preset?"
+#~ msgstr ""
+#~ "Vous avez modifié certains paramètres prédéfinis. Souhaitez-vous "
+#~ "conserver ces paramètres modifiés après avoir changé de préréglage ?"
 
 #~ msgid "Export sliced file"
 #~ msgstr "Exporter le fichier découpé"

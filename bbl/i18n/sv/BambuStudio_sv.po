@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-01 11:55+0800\n"
+"POT-Creation-Date: 2022-11-03 16:29+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -737,6 +737,18 @@ msgstr "Skala till bygg volymen"
 
 msgid "Scale an object to fit the build volume"
 msgstr "Anpassa skalning av ett objekt till byggvolymen"
+
+msgid "Flush Options"
+msgstr ""
+
+msgid "Flush into objects' infill"
+msgstr "Rensa in i föremålens ifyllnad"
+
+msgid "Flush into this object"
+msgstr "Rensa in i det här objektet"
+
+msgid "Flush into objects' support"
+msgstr "Rensa in i objektets support"
 
 msgid "Convert from inch"
 msgstr "Konvertera ifrån inch"
@@ -3968,7 +3980,9 @@ msgstr ""
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr ""
 
-msgid "Please check the following infomation:\n"
+msgid ""
+"Please check the following infomation and click Confirm to continue sending "
+"print:\n"
 msgstr ""
 
 msgid ""
@@ -4410,10 +4424,9 @@ msgstr ""
 
 msgid ""
 "You have changed some preset settings. \n"
-"Would you like to keep these changed settings after switching preset?"
+"Would you like to keep these changed settings (new value) after switching "
+"preset?"
 msgstr ""
-"Förinställningarna har ändrats. \n"
-"Behålla dessa ändrade inställningar efter byte av förinställningar?"
 
 msgid "Extruders count"
 msgstr "Extruder kalkylering"
@@ -7002,9 +7015,6 @@ msgstr "Bredd"
 msgid "Width of prime tower"
 msgstr "Prime tornets bredd"
 
-msgid "Flush into objects' infill"
-msgstr "Rensa in i föremålens ifyllnad"
-
 msgid ""
 "Purging after filament change will be done inside objects' infills. This may "
 "lower the amount of waste and decrease the print time. If the walls are "
@@ -7012,17 +7022,11 @@ msgid ""
 "outside. It will not take effect, unless the prime tower is enabled."
 msgstr ""
 
-msgid "Flush into objects' support"
-msgstr "Rensa in i objektets support"
-
 msgid ""
 "Purging after filament change will be done inside objects' support. This may "
 "lower the amount of waste and decrease the print time. It will not take "
 "effect, unless the prime tower is enabled."
 msgstr ""
-
-msgid "Flush into this object"
-msgstr "Rensa in i det här objektet"
 
 msgid ""
 "This object will be used to purge the nozzle after a filament change to save "
@@ -7384,6 +7388,13 @@ msgid ""
 "Did you know that you can set slicing parameters for all selected objects at "
 "one time?"
 msgstr ""
+
+#~ msgid ""
+#~ "You have changed some preset settings. \n"
+#~ "Would you like to keep these changed settings after switching preset?"
+#~ msgstr ""
+#~ "Förinställningarna har ändrats. \n"
+#~ "Behålla dessa ändrade inställningar efter byte av förinställningar?"
 
 #~ msgid "Export sliced file"
 #~ msgstr "Exportera beredd fil"
