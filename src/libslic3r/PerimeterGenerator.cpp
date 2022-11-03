@@ -576,7 +576,17 @@ void PerimeterGenerator::process()
                     //set the clip to a virtual "second perimeter"
                     fill_clip = offset_ex(last, -double(ext_perimeter_spacing));
                     // get the real top surface
-                    ExPolygons top_polygons = diff_ex(last, grown_upper_slices, ApplySafetyOffset::Yes);
+                    ExPolygons grown_lower_slices;
+                    ExPolygons bridge_checker;
+                    // BBS: check whether surface be bridge or not
+                    if (this->lower_slices != NULL) {
+                        grown_lower_slices =*this->lower_slices;
+                        double bridge_offset = std::max(double(ext_perimeter_spacing), (double(perimeter_width)));
+                        bridge_checker       = offset_ex(diff_ex(last, grown_lower_slices, ApplySafetyOffset::Yes), 1.5 * bridge_offset);
+                    }
+                    ExPolygons delete_bridge = diff_ex(last, bridge_checker, ApplySafetyOffset::Yes);
+
+                    ExPolygons top_polygons = diff_ex(delete_bridge, grown_upper_slices, ApplySafetyOffset::Yes);
 
                     //get the not-top surface, from the "real top" but enlarged by external_infill_margin (and the min_width_top_surface we removed a bit before)
                     ExPolygons inner_polygons = diff_ex(last,
