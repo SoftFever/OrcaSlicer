@@ -2055,7 +2055,9 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                     ExPolygon area;
                     // 如果是混合支撑里的普通部分，或没有启用顶部接触层，则直接从overhang多边形生成
                     if (node.type == ePolygon || (top_interface_layers>0 &&node.support_roof_layers_below > 0)) {
-                        area = offset_ex({ *node.overhang }, scale_(m_ts_data->m_xy_distance))[0];
+                        auto tmp = offset_ex({ *node.overhang }, scale_(m_ts_data->m_xy_distance));
+                        if(!tmp.empty()) // 对于有缺陷的模型，overhang膨胀以后可能是空的！
+                            area = tmp[0];
                     }
                     else {
                         Polygon circle;
