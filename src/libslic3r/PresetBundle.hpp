@@ -9,6 +9,8 @@
 #include <unordered_map>
 #include <boost/filesystem/path.hpp>
 
+#define DEFAULT_USER_FOLDER_NAME     "default"
+
 namespace Slic3r {
 
 // Bundle of Print + Filament + Printer presets.
