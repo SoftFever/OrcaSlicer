@@ -583,7 +583,7 @@ void PrintObject::slice()
     //BBS: send warning message to slicing callback
     if (!warning.empty()) {
         BOOST_LOG_TRIVIAL(info) << warning;
-        this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning+L(" Object:")+this->m_model_object->name, PrintStateBase::SlicingReplaceInitEmptyLayers);
+        this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning, PrintStateBase::SlicingReplaceInitEmptyLayers);
     }
     // Update bounding boxes, back up raw slices of complex models.
     tbb::parallel_for(
@@ -937,8 +937,7 @@ void PrintObject::slice_volumes()
             //this->active_step_add_warning(
             //    PrintStateBase::WarningLevel::CRITICAL,
             //    L("An object has enabled XY Size compensation which will not be used because it is also multi-material painted.\nXY Size "
-            //      "compensation cannot be combined with multi-material painting.") +
-            //        "\n" + (L("Object")) + ": " + this->model_object()->name);
+            //      "compensation cannot be combined with multi-material painting."));
             BOOST_LOG_TRIVIAL(info) << "xy compensation will not work for object " << this->model_object()->name << " for multi filament.";
         }
 
