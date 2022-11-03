@@ -47,6 +47,12 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent)
     create_player();
 }
 
+wxMediaCtrl2::~wxMediaCtrl2()
+{
+    BambuPlayer * player = (BambuPlayer *) m_player;
+    [player dealloc];
+}
+
 void wxMediaCtrl2::create_player()
 {
 	auto module = Slic3r::NetworkAgent::get_bambu_source_entry();
