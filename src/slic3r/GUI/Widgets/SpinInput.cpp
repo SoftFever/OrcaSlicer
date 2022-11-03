@@ -230,19 +230,22 @@ Button *SpinInput::createButton(bool inc)
         delta = inc ? 1 : -1;
         SetValue(val + delta);
         text_ctrl->SetFocus();
-        btn->CaptureMouse();
+        if (!btn->HasCapture())
+            btn->CaptureMouse();
         delta *= 8;
         timer.Start(100);
         sendSpinEvent();
     });
     btn->Bind(wxEVT_LEFT_DCLICK, [=](auto &e) {
         delta = inc ? 1 : -1;
-        btn->CaptureMouse();
+        if (!btn->HasCapture())
+            btn->CaptureMouse();
         SetValue(val + delta);
         sendSpinEvent();
     });
     btn->Bind(wxEVT_LEFT_UP, [=](auto &e) {
-        btn->ReleaseMouse();
+        if (btn->HasCapture())
+            btn->ReleaseMouse();
         timer.Stop();
         text_ctrl->SelectAll();
         delta = 0;

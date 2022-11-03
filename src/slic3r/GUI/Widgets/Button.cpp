@@ -237,7 +237,8 @@ void Button::mouseDown(wxMouseEvent& event)
     pressedDown = true;
     if (canFocus)
         SetFocus();
-    CaptureMouse();
+    if (!HasCapture())
+        CaptureMouse();
 }
 
 void Button::mouseReleased(wxMouseEvent& event)
