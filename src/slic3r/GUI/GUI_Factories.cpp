@@ -924,7 +924,7 @@ void MenuFactory::create_object_menu()
         []() { return plater()->can_split(false); }, m_parent);
 
     append_submenu(&m_object_menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
-        []() { return plater()->can_split(true); }, m_parent);
+        []() { return plater()->can_split(true) || plater()->can_split(false); }, m_parent);
     m_object_menu.AppendSeparator();
 
     // BBS: remove Layers Editing
