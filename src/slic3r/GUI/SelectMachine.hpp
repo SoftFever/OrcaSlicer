@@ -158,8 +158,8 @@ protected:
     void on_mouse_left_up(wxMouseEvent &evt);
 };
 
-#define SELECT_MACHINE_POPUP_SIZE wxSize(FromDIP(218), FromDIP(364))
-#define SELECT_MACHINE_LIST_SIZE wxSize(FromDIP(214), FromDIP(360))  
+#define SELECT_MACHINE_POPUP_SIZE wxSize(FromDIP(214), FromDIP(364))
+#define SELECT_MACHINE_LIST_SIZE wxSize(FromDIP(210), FromDIP(360))  
 #define SELECT_MACHINE_ITEM_SIZE wxSize(FromDIP(180), FromDIP(35))
 #define SELECT_MACHINE_GREY900 wxColour(38, 46, 48)
 #define SELECT_MACHINE_GREY600 wxColour(144,144,144)

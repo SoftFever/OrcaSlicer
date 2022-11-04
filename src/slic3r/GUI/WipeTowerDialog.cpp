@@ -184,6 +184,8 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
         else
             e.Skip();
         });
+
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void WipingPanel::create_panels(wxWindow* parent, const int num) {

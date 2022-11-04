@@ -73,6 +73,7 @@ ReleaseNoteDialog::ReleaseNoteDialog(Plater *plater /*= nullptr*/)
     m_sizer_main->Fit(this);
 
     Centre(wxBOTH);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 ReleaseNoteDialog::~ReleaseNoteDialog() {}
@@ -221,6 +222,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_sizer_main->Fit(this);
 
     Centre(wxBOTH);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 UpdateVersionDialog::~UpdateVersionDialog() {}

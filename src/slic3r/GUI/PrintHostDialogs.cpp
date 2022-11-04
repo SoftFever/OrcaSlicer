@@ -315,6 +315,8 @@ PrintHostQueueDialog::PrintHostQueueDialog(wxWindow *parent)
         if (selected == wxNOT_FOUND) { return; }
         GUI::show_error(nullptr, job_list->GetTextValue(selected, COL_ERRORMSG));
     });
+
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void PrintHostQueueDialog::append_job(const PrintHostJob &job)

@@ -38,6 +38,7 @@ namespace GUI {
      wxBoxSizer *m_sizere_left_v= new wxBoxSizer(wxVERTICAL);
 
      auto m_printer_img = new wxStaticBitmap(m_panel_left, wxID_ANY, create_scaled_bitmap("printer_thumbnail", nullptr, 96), wxDefaultPosition, wxSize(FromDIP(100), FromDIP(96)), 0);
+     m_printer_img->SetBackgroundColour(BIND_DIALOG_GREY200);
      m_printer_name = new wxStaticText(m_panel_left, wxID_ANY, wxEmptyString);
      m_printer_name->SetBackgroundColour(BIND_DIALOG_GREY200);
      m_printer_name->SetFont(::Label::Head_14);
@@ -133,7 +134,7 @@ namespace GUI {
                              std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
      m_button_bind->SetBackgroundColor(btn_bg_green);
      m_button_bind->SetBorderColor(wxColour(0, 174, 66));
-     m_button_bind->SetTextColor(*wxWHITE);
+     m_button_bind->SetTextColor(wxColour("#FFFFFE"));
      m_button_bind->SetSize(BIND_DIALOG_BUTTON_SIZE);
      m_button_bind->SetMinSize(BIND_DIALOG_BUTTON_SIZE);
      m_button_bind->SetCornerRadius(FromDIP(12));
@@ -182,6 +183,8 @@ namespace GUI {
      this->Connect(EVT_BIND_MACHINE_SUCCESS, wxCommandEventHandler(BindMachineDialog::on_bind_success), NULL, this);
      this->Connect(EVT_BIND_UPDATE_MESSAGE, wxCommandEventHandler(BindMachineDialog::on_update_message), NULL, this);
      m_simplebook->SetSelection(1);
+
+     wxGetApp().UpdateDlgDarkUI(this);
  }
 
  BindMachineDialog::~BindMachineDialog()
@@ -299,8 +302,8 @@ UnBindMachineDialog::UnBindMachineDialog(Plater *plater /*= nullptr*/)
      wxBoxSizer *m_sizere_left_h = new wxBoxSizer(wxHORIZONTAL);
      wxBoxSizer *m_sizere_left_v= new wxBoxSizer(wxVERTICAL);
 
-     auto m_printer_img = new wxStaticBitmap(m_panel_left, wxID_ANY, create_scaled_bitmap("printer_thumbnail", nullptr, 96), wxDefaultPosition, wxSize(FromDIP(100), FromDIP(96)),
-                                             0);
+     auto m_printer_img = new wxStaticBitmap(m_panel_left, wxID_ANY, create_scaled_bitmap("printer_thumbnail", nullptr, 96), wxDefaultPosition, wxSize(FromDIP(100), FromDIP(96)),0);
+     m_printer_img->SetBackgroundColour(BIND_DIALOG_GREY200);
      m_printer_name     = new wxStaticText(m_panel_left, wxID_ANY, wxEmptyString);
      m_printer_name->SetFont(::Label::Head_14);
      m_printer_name->SetBackgroundColour(BIND_DIALOG_GREY200);
@@ -392,7 +395,7 @@ UnBindMachineDialog::UnBindMachineDialog(Plater *plater /*= nullptr*/)
                              std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
      m_button_unbind->SetBackgroundColor(btn_bg_green);
      m_button_unbind->SetBorderColor(wxColour(0, 174, 66));
-     m_button_unbind->SetTextColor(*wxWHITE);
+     m_button_unbind->SetTextColor(wxColour("#FFFFFE"));
      m_button_unbind->SetSize(BIND_DIALOG_BUTTON_SIZE);
      m_button_unbind->SetMinSize(BIND_DIALOG_BUTTON_SIZE);
      m_button_unbind->SetCornerRadius(FromDIP(12));
@@ -426,6 +429,7 @@ UnBindMachineDialog::UnBindMachineDialog(Plater *plater /*= nullptr*/)
      Bind(wxEVT_SHOW, &UnBindMachineDialog::on_show, this);
      m_button_unbind->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDialog::on_unbind_printer), NULL, this);
      m_button_cancel->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(UnBindMachineDialog::on_cancel), NULL, this);
+     wxGetApp().UpdateDlgDarkUI(this);
  }
 
  UnBindMachineDialog::~UnBindMachineDialog()

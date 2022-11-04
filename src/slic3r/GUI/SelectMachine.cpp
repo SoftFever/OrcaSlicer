@@ -158,7 +158,7 @@ MachineObjectPanel::MachineObjectPanel(wxWindow *parent, wxWindowID id, const wx
     wxPanel::Create(parent, id, pos, SELECT_MACHINE_ITEM_SIZE, style, name);
     Bind(wxEVT_PAINT, &MachineObjectPanel::OnPaint, this);
 
-    SetBackgroundColour(*wxWHITE);
+    SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
 
     m_unbind_img        = ScalableBitmap(this, "unbind", 18);
     m_edit_name_img     = ScalableBitmap(this, "edit_button", 18);
@@ -251,7 +251,7 @@ void MachineObjectPanel::doRender(wxDC &dc)
     left += dwbitmap.GetBmpSize().x + 8;
     dc.SetFont(Label::Body_13);
     dc.SetBackgroundMode(wxTRANSPARENT);
-    dc.SetTextForeground(SELECT_MACHINE_GREY900);
+    dc.SetTextForeground(StateColor::darkModeColorFor(SELECT_MACHINE_GREY900));
     wxString dev_name = "";
     if (m_info) {
         dev_name = from_u8(m_info->dev_name);
@@ -280,7 +280,7 @@ void MachineObjectPanel::doRender(wxDC &dc)
         if (m_show_bind) {
             if (m_bind_state == ALLOW_UNBIND) { 
                 left = size.x - m_unbind_img.GetBmpSize().x - 6;
-                dc.DrawBitmap(m_select_unbind_img.bmp(), left, (size.y - m_unbind_img.GetBmpSize().y) / 2);
+                dc.DrawBitmap(m_unbind_img.bmp(), left, (size.y - m_unbind_img.GetBmpSize().y) / 2);
             } 
         }
 
@@ -650,7 +650,7 @@ void SelectMachinePopup::update_other_devices()
     m_placeholder_panel->Layout();
     placeholder_sizer->Fit(m_placeholder_panel);
 
-    m_placeholder_panel->SetBackgroundColour(*wxWHITE);
+    m_placeholder_panel->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     m_sizer_other_devices->Add(m_placeholder_panel, 0, wxEXPAND, 0);
 
     //m_sizer_other_devices->Layout();
@@ -1113,7 +1113,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_button_refresh = new Button(this, _L("Refresh"));
     m_button_refresh->SetBackgroundColor(btn_bg_enable);
     m_button_refresh->SetBorderColor(btn_bg_enable);
-    m_button_refresh->SetTextColor(*wxWHITE);
+    m_button_refresh->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
     m_button_refresh->SetSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_button_refresh->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_button_refresh->SetCornerRadius(FromDIP(10));
@@ -1172,7 +1172,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_button_ensure = new Button(m_panel_prepare, _L("Send"));
     m_button_ensure->SetBackgroundColor(btn_bg_enable);
     m_button_ensure->SetBorderColor(btn_bg_enable);
-    m_button_ensure->SetTextColor(*wxWHITE);
+    m_button_ensure->SetTextColor(StateColor::darkModeColorFor("#FFFFFE"));
     m_button_ensure->SetSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_button_ensure->SetMinSize(SELECT_MACHINE_DIALOG_BUTTON_SIZE);
     m_button_ensure->SetCornerRadius(FromDIP(12));
@@ -1263,6 +1263,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     init_timer();
     // CenterOnParent();
     Centre(wxBOTH);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *parent, wxString tooltip)
@@ -1282,7 +1283,7 @@ wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *par
 
     auto text = new wxStaticText(checkbox, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
     text->SetFont(::Label::Body_13);
-    text->SetForegroundColour(wxColour(107, 107, 107));
+    text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3C")));
     text->Wrap(-1);
     sizer_checkbox->Add(text, 0, wxALIGN_CENTER, FromDIP(5));
 
@@ -1337,7 +1338,7 @@ wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *pa
 
     auto text = new wxStaticText(checkbox, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     text->SetFont(::Label::Body_13);
-    text->SetForegroundColour(wxColour(107, 107, 107));
+    text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3C")));
     text->Wrap(-1);
     text->SetMinSize(wxSize(FromDIP(120), -1));
     text->SetMaxSize(wxSize(FromDIP(120), -1));
@@ -2954,6 +2955,7 @@ EditDevNameDialog::EditDevNameDialog(Plater *plater /*= nullptr*/)
     Layout();
     Fit();
     Centre(wxBOTH);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 EditDevNameDialog::~EditDevNameDialog() {}

@@ -27,6 +27,7 @@
 #include "BedShapeDialog.hpp"
 #include "GUI.hpp"
 #include "wxExtensions.hpp"
+#include "Widgets/Button.hpp"
 
 
 namespace fs = boost::filesystem;
@@ -549,10 +550,10 @@ struct ConfigWizard::priv
     ConfigWizardPage *page_current = nullptr;
     ConfigWizardIndex *index = nullptr;
     //wxButton *btn_sel_all = nullptr;
-    wxButton *btn_prev = nullptr;
-    wxButton *btn_next = nullptr;
-    wxButton *btn_finish = nullptr;
-    wxButton *btn_cancel = nullptr;
+    Button *btn_prev = nullptr;
+    Button *btn_next = nullptr;
+    Button *btn_finish = nullptr;
+    Button *btn_cancel = nullptr;
 
     //PagePrinters     *page_fff = nullptr;
     //PagePrinters     *page_msla = nullptr;

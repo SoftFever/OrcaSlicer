@@ -1,6 +1,6 @@
 #include "PrintOptionsDialog.hpp"
 #include "I18N.hpp"
-
+#include "GUI_App.hpp"
 #include "libslic3r/Utils.hpp"
 
 #define DLG_SIZE  (wxSize(FromDIP(360), FromDIP(160)))
@@ -60,6 +60,8 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         }
         evt.Skip();
     });
+
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 PrintOptionsDialog::~PrintOptionsDialog()

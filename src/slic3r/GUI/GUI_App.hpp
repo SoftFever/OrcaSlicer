@@ -31,6 +31,11 @@
 #define TIMEOUT_CONNECT             15
 #define TIMEOUT_RESPONSE            15
 
+#define BE_UNACTED_ON               0x00200001
+#ifndef _MSW_DARK_MODE
+    #define _MSW_DARK_MODE            1
+#endif // _MSW_DARK_MODE
+
 class wxMenuItem;
 class wxMenuBar;
 class wxTopLevelWindow;
@@ -220,14 +225,15 @@ private:
     bool            m_opengl_initialized{ false };
 #endif
 
+   
+//#ifdef _WIN32
     wxColour        m_color_label_modified;
     wxColour        m_color_label_sys;
     wxColour        m_color_label_default;
     wxColour        m_color_window_default;
-    // BBS
-//#ifdef _WIN32
     wxColour        m_color_highlight_label_default;
     wxColour        m_color_hovered_btn_label;
+    wxColour        m_color_default_btn_label;
     wxColour        m_color_highlight_default;
     wxColour        m_color_selected_btn_bg;
     bool            m_force_colors_update { false };
@@ -274,7 +280,7 @@ private:
 
     boost::thread    m_sync_update_thread;
     bool             enable_sync = false;
-
+    bool             m_is_dark_mode{ false };
     bool             m_adding_script_handler { false };
 public:
     std::string     get_local_models_path();
@@ -317,8 +323,9 @@ public:
     void            update_label_colours();
     // update color mode for window
     void            UpdateDarkUI(wxWindow *window, bool highlited = false, bool just_font = false);
+    void            UpdateDarkUIWin(wxWindow* win);
     // update color mode for whole dialog including all children
-    void            UpdateDlgDarkUI(wxDialog* dlg, bool just_buttons_update = false);
+    void            UpdateDlgDarkUI(wxDialog* dlg);
     // update color mode for DataViewControl
     void            UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited = false);
     // update color mode for panel including all static texts controls

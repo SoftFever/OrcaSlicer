@@ -42,10 +42,12 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
 
     m_sizer_bottom->Add(m_prog, 1, wxALIGN_CENTER, 0);
 
+     StateColor btn_bd_white(std::pair<wxColour, int>(*wxWHITE, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+
     m_cancelbutton = new Button(m_self, _L("Cancel"));
     m_cancelbutton->SetMinSize(wxSize(m_self->FromDIP(64), m_self->FromDIP(24)));
-    m_cancelbutton->SetTextColor(wxColour(107, 107, 107));
     m_cancelbutton->SetBackgroundColor(wxColour(255, 255, 255));
+    m_cancelbutton->SetBorderColor(btn_bd_white);
     m_cancelbutton->SetCornerRadius(m_self->FromDIP(12));
     m_cancelbutton->Bind(wxEVT_BUTTON, 
         [this](wxCommandEvent &evt) {

@@ -258,16 +258,24 @@ void Tab::create_preset_tab()
     m_btn_search->SetToolTip(_L("Search in preset"));
 
     //search input
-    m_search_item = new RoundedRectangle(m_top_panel, wxColour(238, 238, 238), wxDefaultPosition, wxSize(m_top_panel->GetSize().GetWidth(), 3 * wxGetApp().em_unit()), 8);
-    auto search_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_search_input = new wxTextCtrl(m_search_item, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 | wxBORDER_NONE);
+    m_search_item = new StaticBox(m_top_panel);
+    StateColor box_colour(std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+    StateColor box_border_colour(std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
 
+    m_search_item->SetBackgroundColor(box_colour);
+    m_search_item->SetBorderColor(box_border_colour);
+    m_search_item->SetCornerRadius(5);
+
+
+    //StateColor::darkModeColorFor(wxColour(238, 238, 238)), wxDefaultPosition, wxSize(m_top_panel->GetSize().GetWidth(), 3 * wxGetApp().em_unit()), 8);
+    auto search_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_search_input = new TextInput(m_search_item, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 | wxBORDER_NONE);
     m_search_input->SetBackgroundColour(wxColour(238, 238, 238));
     m_search_input->SetForegroundColour(wxColour(43, 52, 54));
     m_search_input->SetFont(wxGetApp().bold_font());
 
-    search_sizer->Add(new wxWindow(m_search_item, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND | wxLEFT, 16);
-    search_sizer->Add(m_search_input, 1, wxEXPAND | wxALL, wxGetApp().em_unit() / 2);
+    search_sizer->Add(new wxWindow(m_search_item, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(6));
+    search_sizer->Add(m_search_input, 1, wxEXPAND | wxALL, FromDIP(2));
     //bbl for linux
     //search_sizer->Add(new wxWindow(m_search_input, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND | wxLEFT, 16);
 
@@ -655,14 +663,14 @@ void Tab::OnActivate()
     // Because of DarkMode we use our own Notebook (inherited from wxSiplebook) instead of wxNotebook
     // And it looks like first Layout of the page doesn't update a size of the m_presets_choice
     // So we have to set correct size explicitely
-    if (wxSize ok_sz = wxSize(35 * m_em_unit, m_presets_choice->GetBestSize().y);
+   /* if (wxSize ok_sz = wxSize(35 * m_em_unit, m_presets_choice->GetBestSize().y);
         ok_sz != m_presets_choice->GetSize()) {
         m_presets_choice->SetMinSize(ok_sz);
         m_presets_choice->SetSize(ok_sz);
         GetSizer()->GetItem(size_t(0))->GetSizer()->Layout();
         if (wxGetApp().tabs_as_menu())
             m_presets_choice->update();
-    }
+    }*/
 #endif // _MSW_DARK_MODE
     Refresh();
 

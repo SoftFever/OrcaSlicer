@@ -14,7 +14,7 @@
 
 wxDEFINE_EVENT(wxCUSTOMEVT_TABBOOK_SEL_CHANGED, wxCommandEvent);
 
-const static wxColour TAB_BUTTON_BG  = wxColour(255, 255, 255, 255);
+const static wxColour TAB_BUTTON_BG  = wxColour("#FEFFFF");
 const static wxColour TAB_BUTTON_SEL = wxColour(219, 253, 213, 255);
 
 static const wxFont& TAB_BUTTON_FONT     = Label::Body_14;

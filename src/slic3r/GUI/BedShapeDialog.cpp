@@ -139,7 +139,7 @@ void BedShapeDialog::build_dialog(const ConfigOptionPoints& default_pt, const Co
 	main_sizer->Add(m_panel, 1, wxEXPAND);
 	main_sizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, 10);
 
-    wxGetApp().UpdateDlgDarkUI(this, true);
+    wxGetApp().UpdateDlgDarkUI(this);
 
 	SetSizer(main_sizer);
 	SetMinSize(GetSize());
@@ -200,7 +200,7 @@ void BedShapePanel::build_panel(const ConfigOptionPoints& default_pt, const Conf
 	Line line{ "", "" };
 	line.full_width = 1;
 	line.widget = [this](wxWindow* parent) {
-        wxButton* shape_btn = new wxButton(parent, wxID_ANY, _L("Load shape from STL..."));
+        Button* shape_btn = new Button(parent, _L("Load shape from STL..."));
         wxSizer* shape_sizer = new wxBoxSizer(wxHORIZONTAL);
         shape_sizer->Add(shape_btn, 1, wxEXPAND);
 
@@ -269,7 +269,7 @@ void BedShapePanel::activate_options_page(ConfigOptionsGroupShp options_group)
 wxPanel* BedShapePanel::init_texture_panel()
 {
     wxPanel* panel = new wxPanel(this);
-    wxGetApp().UpdateDarkUI(panel, true);
+    panel->SetBackgroundColour(*wxWHITE);
     ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(panel, _L("Texture"));
 
     optgroup->label_width = 10;
@@ -280,7 +280,17 @@ wxPanel* BedShapePanel::init_texture_panel()
     Line line{ "", "" };
     line.full_width = 1;
     line.widget = [this](wxWindow* parent) {
-        wxButton* load_btn = new wxButton(parent, wxID_ANY, _L("Load..."));
+
+        StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+            std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Hovered),
+            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+
+        StateColor btn_bd_white(std::pair<wxColour, int>(*wxWHITE, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+
+        Button* load_btn = new Button(parent, _L("Load..."));
+        load_btn->SetBackgroundColor(btn_bg_white);
+        load_btn->SetBorderColor(btn_bd_white);
+        load_btn->SetBackgroundColour(*wxWHITE);
         wxSizer* load_sizer = new wxBoxSizer(wxHORIZONTAL);
         load_sizer->Add(load_btn, 1, wxEXPAND);
 
@@ -289,9 +299,15 @@ wxPanel* BedShapePanel::init_texture_panel()
         wxSizer* filename_sizer = new wxBoxSizer(wxHORIZONTAL);
         filename_sizer->Add(filename_lbl, 1, wxEXPAND);
 
-        wxButton* remove_btn = new wxButton(parent, wxID_ANY, _L("Remove"));
+        Button* remove_btn = new Button(parent, _L("Remove"));
+        remove_btn->SetBackgroundColor(btn_bg_white);
+        remove_btn->SetBorderColor(btn_bd_white);
+        remove_btn->SetBackgroundColour(*wxWHITE);
         wxSizer* remove_sizer = new wxBoxSizer(wxHORIZONTAL);
         remove_sizer->Add(remove_btn, 1, wxEXPAND);
+
+        wxGetApp().UpdateDarkUI(load_btn);
+        wxGetApp().UpdateDarkUI(remove_btn);
 
         wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
         sizer->Add(filename_sizer, 1, wxEXPAND);
@@ -340,7 +356,7 @@ wxPanel* BedShapePanel::init_texture_panel()
 wxPanel* BedShapePanel::init_model_panel()
 {
     wxPanel* panel = new wxPanel(this);
-    wxGetApp().UpdateDarkUI(panel, true);
+    panel->SetBackgroundColour(*wxWHITE);
     ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(panel, _L("Model"));
 
     optgroup->label_width = 10;
@@ -348,10 +364,21 @@ wxPanel* BedShapePanel::init_model_panel()
         update_shape();
     };
 
+
     Line line{ "", "" };
     line.full_width = 1;
     line.widget = [this](wxWindow* parent) {
-        wxButton* load_btn = new wxButton(parent, wxID_ANY, _L("Load..."));
+        StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+            std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Hovered),
+            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+
+        StateColor btn_bd_white(std::pair<wxColour, int>(*wxWHITE, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+
+
+        Button* load_btn = new Button(parent, _L("Load..."));
+        load_btn->SetBackgroundColor(btn_bg_white);
+        load_btn->SetBorderColor(btn_bd_white);
+        load_btn->SetBackgroundColour(*wxWHITE);
         wxSizer* load_sizer = new wxBoxSizer(wxHORIZONTAL);
         load_sizer->Add(load_btn, 1, wxEXPAND);
 
@@ -359,9 +386,15 @@ wxPanel* BedShapePanel::init_model_panel()
         wxSizer* filename_sizer = new wxBoxSizer(wxHORIZONTAL);
         filename_sizer->Add(filename_lbl, 1, wxEXPAND);
 
-        wxButton* remove_btn = new wxButton(parent, wxID_ANY, _L("Remove"));
+        Button* remove_btn = new Button(parent, _L("Remove"));
+        remove_btn->SetBackgroundColor(btn_bg_white);
+        remove_btn->SetBorderColor(btn_bd_white);
+        remove_btn->SetBackgroundColour(*wxWHITE);
         wxSizer* remove_sizer = new wxBoxSizer(wxHORIZONTAL);
         remove_sizer->Add(remove_btn, 1, wxEXPAND);
+
+        wxGetApp().UpdateDarkUI(load_btn);
+        wxGetApp().UpdateDarkUI(remove_btn);
 
         wxSizer* sizer = new wxBoxSizer(wxVERTICAL);
         sizer->Add(filename_sizer, 1, wxEXPAND);

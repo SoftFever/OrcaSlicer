@@ -554,6 +554,11 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         }
         evt.Skip();
     });
+
+#ifdef _MSW_DARK_MODE
+    wxGetApp().UpdateDarkUIWin(this);
+#endif // _MSW_DARK_MODE
+
 }
 
 #ifdef __WIN32__
@@ -1635,26 +1640,23 @@ void MainFrame::update_side_button_style()
     m_slice_btn->SetCornerRadius(FromDIP(12));
     m_slice_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(10)));
     m_slice_btn->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_slice_btn->SetBottomColour(wxColour(0x3B4446));
 
     m_slice_option_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center);
     m_slice_option_btn->SetCornerRadius(FromDIP(12));
     m_slice_option_btn->SetExtraSize(wxSize(FromDIP(10), FromDIP(10)));
     m_slice_option_btn->SetIconOffset(FromDIP(2));
     m_slice_option_btn->SetMinSize(wxSize(FromDIP(24), FromDIP(24)));
-    m_slice_option_btn->SetBottomColour(wxColour(0x3B4446));
 
     m_print_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Left, FromDIP(15));
     m_print_btn->SetCornerRadius(FromDIP(12));
     m_print_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(10)));
     m_print_btn->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_print_btn->SetBottomColour(wxColour(0x3B4446));
+
     m_print_option_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center);
     m_print_option_btn->SetCornerRadius(FromDIP(12));
     m_print_option_btn->SetExtraSize(wxSize(FromDIP(10), FromDIP(10)));
     m_print_option_btn->SetIconOffset(FromDIP(2));
     m_print_option_btn->SetMinSize(wxSize(FromDIP(24), FromDIP(24)));
-    m_print_option_btn->SetBottomColour(wxColour(0x3B4446));
 }
 
 void MainFrame::update_slice_print_status(SlicePrintEventType event, bool can_slice, bool can_print)
@@ -1759,6 +1761,12 @@ void MainFrame::on_sys_color_changed()
 
     // update label colors in respect to the system mode
     wxGetApp().init_label_colours();
+
+#ifdef __APPLE__
+    wxGetApp().force_colors_update();
+    wxGetApp().update_ui_from_settings();
+#endif //__APPLE__
+
 #ifdef __WXMSW__
     wxGetApp().UpdateDarkUI(m_tabpanel);
  //   m_statusbar->update_dark_ui();
@@ -2756,12 +2764,12 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
         if (m_tabpanel->GetSelection() != (int)new_selection)
             m_tabpanel->SetSelection(new_selection);
 #ifdef _MSW_DARK_MODE
-        if (wxGetApp().tabs_as_menu()) {
+        /*if (wxGetApp().tabs_as_menu()) {
             if (Tab* cur_tab = dynamic_cast<Tab*>(m_tabpanel->GetPage(new_selection)))
                 update_marker_for_tabs_menu((m_layout == ESettingsLayout::Old ? m_menubar : m_settings_dialog.menubar()), cur_tab->title(), m_layout == ESettingsLayout::Old);
             else if (tab == 0 && m_layout == ESettingsLayout::Old)
                 m_plater->get_current_canvas3D()->render();
-        }
+        }*/
 #endif
         if (tab == MainFrame::tp3DEditor && m_layout == ESettingsLayout::Old)
             m_plater->canvas3D()->render();
@@ -3106,7 +3114,7 @@ std::string MainFrame::get_dir_name(const wxString &full_name) const
 // ----------------------------------------------------------------------------
 
 SettingsDialog::SettingsDialog(MainFrame* mainframe)
-:DPIFrame(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Settings"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "settings_dialog"),
+:DPIDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Settings"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "settings_dialog"),
 //: DPIDialog(mainframe, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Settings"), wxDefaultPosition, wxDefaultSize,
 //        wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMINIMIZE_BOX | wxMAXIMIZE_BOX, "settings_dialog"),
     m_main_frame(mainframe)
@@ -3141,9 +3149,9 @@ SettingsDialog::SettingsDialog(MainFrame* mainframe)
 #ifdef _MSW_DARK_MODE
     if (wxGetApp().tabs_as_menu()) {
         // menubar
-        m_menubar = new wxMenuBar();
-        add_tabs_as_menu(m_menubar, mainframe, this);
-        this->SetMenuBar(m_menubar);
+        //m_menubar = new wxMenuBar();
+        //add_tabs_as_menu(m_menubar, mainframe, this);
+        //this->SetMenuBar(m_menubar);
     }
 #endif
 

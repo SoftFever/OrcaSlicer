@@ -798,6 +798,7 @@ UnsavedChangesDialog::UnsavedChangesDialog(const wxString &caption, const wxStri
 {
     build(Preset::TYPE_INVALID, nullptr, "", header);
     this->CenterOnScreen();
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection *dependent_presets, const std::string &new_selected_preset, bool no_transfer)
@@ -812,16 +813,16 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection *
         m_buttons &= ~ActionButtons::TRANSFER;
     build(type, dependent_presets, new_selected_preset);
     this->CenterOnScreen();
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 
 void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_presets, const std::string &new_selected_preset, const wxString &header)
 {
+    SetBackgroundColour(*wxWHITE);
     // icon
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
-
-
 
     wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
 
@@ -947,7 +948,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
         if (focus) {
             (*btn)->SetBackgroundColor(btn_bg_green);
             (*btn)->SetBorderColor(wxColour(0, 174, 66));
-            (*btn)->SetTextColor(wxColour(255, 255, 255));
+            (*btn)->SetTextColor(wxColour("#FFFFFE"));
         } else {
             (*btn)->SetTextColor(wxColour(107, 107, 107));
         }
@@ -1767,7 +1768,7 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
 
     int border = 10;
     int em = em_unit();
-
+    SetBackgroundColour(*wxWHITE);
     assert(wxGetApp().preset_bundle);
 
     m_preset_bundle_left  = std::make_unique<PresetBundle>(*wxGetApp().preset_bundle);
@@ -1853,6 +1854,7 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
     this->SetMinSize(wxSize(80 * em, 30 * em));
     this->SetSizer(topSizer);
     topSizer->SetSizeHints(this);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void DiffPresetDialog::update_controls_visibility(Preset::Type type /* = Preset::TYPE_INVALID*/)
@@ -1893,6 +1895,7 @@ void DiffPresetDialog::show(Preset::Type type /* = Preset::TYPE_INVALID*/)
         Fit();
 
     update_tree();
+    wxGetApp().UpdateDlgDarkUI(this);
 
     // if this dialog is shown it have to be Hide and show again to be placed on the very Top of windows
     if (IsShown())

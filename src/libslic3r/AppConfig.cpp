@@ -185,13 +185,13 @@ void AppConfig::set_defaults()
 
 #ifdef SUPPORT_DARK_MODE
     if (get("dark_color_mode").empty())
-        set_bool("dark_color_mode", false);
+        set("dark_color_mode", "0");
 #endif
 
-#ifdef SUPPORT_SYS_MENU
+//#ifdef SUPPORT_SYS_MENU
     if (get("sys_menu_enabled").empty())
-        set_bool("sys_menu_enabled", true);
-#endif
+        set("sys_menu_enabled", "1");
+//#endif
 #endif // _WIN32
 
     // BBS

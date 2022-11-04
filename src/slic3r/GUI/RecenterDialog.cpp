@@ -1,4 +1,5 @@
 #include "RecenterDialog.hpp"
+#include "GUI_App.hpp"
 #include <slic3r/GUI/I18N.hpp>
 #include <wx/dcgraph.h>
 #include <wx/dcmemory.h>
@@ -67,6 +68,8 @@ RecenterDialog::RecenterDialog(wxWindow* parent, wxWindowID id, const wxString& 
     this->Bind(wxEVT_PAINT, &RecenterDialog::OnPaint, this);
     m_button_confirm->Bind(wxEVT_BUTTON, &RecenterDialog::on_button_confirm, this);
     m_button_close->Bind(wxEVT_BUTTON, &RecenterDialog::on_button_close, this);
+
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 RecenterDialog::~RecenterDialog() {}

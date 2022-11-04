@@ -98,9 +98,13 @@
 #ifdef __WXMSW__
 #include <dbt.h>
 #include <shlobj.h>
+
+#ifdef __WINDOWS__
 #ifdef _MSW_DARK_MODE
-#include <wx/msw/dark_mode.h>
+#include "dark_mode.hpp"
 #endif // _MSW_DARK_MODE
+#endif // __WINDOWS__
+
 #endif
 #ifdef _WIN32
 #include <boost/dll/runtime_symbol_info.hpp>
@@ -2089,15 +2093,38 @@ bool GUI_App::on_init_inner()
 
     // If load_language() fails, the application closes.
     load_language(wxString(), true);
-#ifdef SUPPORT_DARK_MODE
 #ifdef _MSW_DARK_MODE
-    NppDarkMode::InitDarkMode(app_config->get("dark_color_mode") == "1", app_config->get("sys_menu_enabled") == "1");
-#endif
+    bool init_dark_color_mode = app_config->get("dark_color_mode") == "1";
+    bool init_sys_menu_enabled = app_config->get("sys_menu_enabled") == "1";
+#ifdef __WINDOWS__
+     NppDarkMode::InitDarkMode(init_dark_color_mode, init_sys_menu_enabled);
+#endif // __WINDOWS__
+
 #endif
 
     // initialize label colors and fonts
     init_label_colours();
     init_fonts();
+
+
+#ifdef _MSW_DARK_MODE
+    // app_config can be updated in check_older_app_config(), so check if dark_color_mode and sys_menu_enabled was changed
+    if (bool new_dark_color_mode = app_config->get("dark_color_mode") == "1";
+        init_dark_color_mode != new_dark_color_mode) {
+
+#ifdef __WINDOWS__
+        NppDarkMode::SetDarkMode(new_dark_color_mode);
+#endif // __WINDOWS__
+
+        init_label_colours();
+        //update_label_colours_from_appconfig();
+    }
+    if (bool new_sys_menu_enabled = app_config->get("sys_menu_enabled") == "1";
+        init_sys_menu_enabled != new_sys_menu_enabled)
+#ifdef __WINDOWS__
+        NppDarkMode::SetSystemMenuForApp(new_sys_menu_enabled);
+#endif
+#endif
 
     if (m_last_config_version) {
         int last_major = m_last_config_version->maj();
@@ -2639,7 +2666,17 @@ void GUI_App::init_label_colours()
 
 void GUI_App::update_label_colours_from_appconfig()
 {
-    ;
+    if (app_config->has("label_clr_sys")) {
+        auto str = app_config->get("label_clr_sys");
+        if (str != "")
+            m_color_label_sys = wxColour(str);
+    }
+
+    if (app_config->has("label_clr_modified")) {
+        auto str = app_config->get("label_clr_modified");
+        if (str != "")
+            m_color_label_modified = wxColour(str);
+    }
 }
 
 void GUI_App::update_label_colours()
@@ -2655,81 +2692,79 @@ void GUI_App::UpdateDarkUI(wxWindow* window, bool highlited/* = false*/, bool ju
             return;
     }
 
-#ifdef _WIN32
-    if (wxButton* btn = dynamic_cast<wxButton*>(window)) {
-        if (!(btn->GetWindowStyle() & wxNO_BORDER)) {
-            btn->SetWindowStyle(btn->GetWindowStyle() | wxNO_BORDER);
-            highlited = true;
-        }
-        // hovering for buttons
-        {
-            auto focus_button = [this, btn](const bool focus) {
-                btn->SetForegroundColour(focus ? m_color_hovered_btn_label : m_color_label_default);
-                btn->Refresh();
-                btn->Update();
-            };
+    if (Button* btn = dynamic_cast<Button*>(window)) {
+        if (btn->GetWindowStyleFlag() & wxBU_AUTODRAW)
+            return;
+    }
 
-            btn->Bind(wxEVT_ENTER_WINDOW, [focus_button](wxMouseEvent& event) { focus_button(true); event.Skip(); });
-            btn->Bind(wxEVT_LEAVE_WINDOW, [focus_button](wxMouseEvent& event) { focus_button(false); event.Skip(); });
+    if (m_is_dark_mode != dark_mode())
+        m_is_dark_mode = dark_mode();
+
+    if (m_is_dark_mode) {
+        auto original_col = window->GetBackgroundColour();
+        auto bg_col = StateColor::darkModeColorFor(original_col);
+
+        if (bg_col != original_col) {
+            window->SetBackgroundColour(bg_col);
+        }
+
+        original_col = window->GetForegroundColour();
+        auto fg_col = StateColor::darkModeColorFor(original_col);
+
+        if (fg_col != original_col) {
+            window->SetForegroundColour(fg_col);
         }
     }
-    else if (wxTextCtrl* text = dynamic_cast<wxTextCtrl*>(window)) {
-        if (text->GetBorder() != wxBORDER_SIMPLE)
-            text->SetWindowStyle(text->GetWindowStyle() | wxBORDER_SIMPLE);
-    }
-    else if (wxCheckListBox* list = dynamic_cast<wxCheckListBox*>(window)) {
-        list->SetWindowStyle(list->GetWindowStyle() | wxBORDER_SIMPLE);
-        list->SetBackgroundColour(highlited ? m_color_highlight_default : m_color_window_default);
-        for (size_t i = 0; i < list->GetCount(); i++)
-            if (wxOwnerDrawn* item = list->GetItem(i)) {
-                item->SetBackgroundColour(highlited ? m_color_highlight_default : m_color_window_default);
-                item->SetTextColour(m_color_label_default);
-            }
-        return;
-    }
-    else if (dynamic_cast<wxListBox*>(window))
-        window->SetWindowStyle(window->GetWindowStyle() | wxBORDER_SIMPLE);
+    else {
+        auto original_col = window->GetBackgroundColour();
+        auto bg_col = StateColor::lightModeColorFor(original_col);
 
-    if (!just_font)
-        window->SetBackgroundColour(highlited ? m_color_highlight_default : m_color_window_default);
-    window->SetForegroundColour(m_color_label_default);
-#endif
+        if (bg_col != original_col) {
+            window->SetBackgroundColour(bg_col);
+        }
+
+        original_col = window->GetForegroundColour();
+        auto fg_col = StateColor::lightModeColorFor(original_col);
+
+        if (fg_col != original_col) {
+            window->SetForegroundColour(fg_col);
+        }
+    }
 }
 
 // recursive function for scaling fonts for all controls in Window
-#ifdef _WIN32
 static void update_dark_children_ui(wxWindow* window, bool just_buttons_update = false)
 {
-    bool is_btn = dynamic_cast<wxButton*>(window) != nullptr;
-    if (!(just_buttons_update && !is_btn))
-        wxGetApp().UpdateDarkUI(window, is_btn);
+    /*bool is_btn = dynamic_cast<wxButton*>(window) != nullptr;
+    is_btn = false;*/
+    wxGetApp().UpdateDarkUI(window);
 
     auto children = window->GetChildren();
     for (auto child : children) {
         update_dark_children_ui(child);
     }
 }
-#endif
 
 // Note: Don't use this function for Dialog contains ScalableButtons
-void GUI_App::UpdateDlgDarkUI(wxDialog* dlg, bool just_buttons_update/* = false*/)
+void GUI_App::UpdateDarkUIWin(wxWindow* win)
 {
-    //BBS disable DarkUI mode
-    return;
+    update_dark_children_ui(win);
+}
 
-#ifdef _WIN32
-    update_dark_children_ui(dlg, just_buttons_update);
+void GUI_App::UpdateDlgDarkUI(wxDialog* dlg)
+{
+#ifdef __WINDOWS__
+    NppDarkMode::SetDarkExplorerTheme(dlg->GetHWND());
+    NppDarkMode::SetDarkTitleBar(dlg->GetHWND());
 #endif
+    update_dark_children_ui(dlg);
 }
 void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/)
 {
-    //BBS disable DarkUI mode
-    return;
-
-#ifdef _WIN32
+#ifdef __WINDOWS__
     UpdateDarkUI(dvc, highlited ? dark_mode() : false);
 #ifdef _MSW_DARK_MODE
-    dvc->RefreshHeaderDarkMode(&m_normal_font);
+    //dvc->RefreshHeaderDarkMode(&m_normal_font);
 #endif //_MSW_DARK_MODE
     if (dvc->HasFlag(wxDV_ROW_LINES))
         dvc->SetAlternateRowColour(m_color_highlight_default);
@@ -2740,10 +2775,7 @@ void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/)
 
 void GUI_App::UpdateAllStaticTextDarkUI(wxWindow* parent)
 {
-    //BBS disable DarkUI mode
-    return;
-
-#ifdef _WIN32
+#ifdef __WINDOWS__
     wxGetApp().UpdateDarkUI(parent);
 
     auto children = parent->GetChildren();
@@ -3027,8 +3059,7 @@ void fatal_error(wxWindow* parent)
     //     exit 1; // #ys_FIXME
 }
 
-#ifdef _WIN32
-
+#ifdef __WINDOWS__
 #ifdef _MSW_DARK_MODE
 static void update_scrolls(wxWindow* window)
 {
@@ -3054,35 +3085,46 @@ void GUI_App::force_menu_update()
     NppDarkMode::SetSystemMenuForApp(app_config->get("sys_menu_enabled") == "1");
 }
 #endif //_MSW_DARK_MODE
+#endif //__WINDOWS__
 
 void GUI_App::force_colors_update()
 {
 #ifdef _MSW_DARK_MODE
+#ifdef __WINDOWS__
     NppDarkMode::SetDarkMode(app_config->get("dark_color_mode") == "1");
     if (WXHWND wxHWND = wxToolTip::GetToolTipCtrl())
         NppDarkMode::SetDarkExplorerTheme((HWND)wxHWND);
     NppDarkMode::SetDarkTitleBar(mainframe->GetHWND());
+
+
+    //NppDarkMode::SetDarkExplorerTheme((HWND)mainframe->m_settings_dialog.GetHWND());
+    //NppDarkMode::SetDarkTitleBar(mainframe->m_settings_dialog.GetHWND());
+    //mainframe->m_settings_dialog.Refresh();
+    //mainframe->m_settings_dialog.Update();
+
+#endif // __WINDOWS__
 #endif //_MSW_DARK_MODE
     m_force_colors_update = true;
 }
-#endif //_WIN32
 
 // Called after the Preferences dialog is closed and the program settings are saved.
 // Update the UI based on the current preferences.
 void GUI_App::update_ui_from_settings()
 {
     update_label_colours();
-#ifdef _WIN32
     // Upadte UI colors before Update UI from settings
     if (m_force_colors_update) {
         m_force_colors_update = false;
+        //UpdateDlgDarkUI(&mainframe->m_settings_dialog);
+        //mainframe->m_settings_dialog.Refresh();
+        //mainframe->m_settings_dialog.Update();
+#ifdef __WINDOWS__
         mainframe->force_color_changed();
-        mainframe->diff_dialog.force_color_changed();
-#ifdef _MSW_DARK_MODE
         update_scrolls(mainframe);
+        update_scrolls(&mainframe->m_settings_dialog);
 #endif //_MSW_DARK_MODE
+        update_dark_children_ui(mainframe);
     }
-#endif
     mainframe->update_ui_from_settings();
 }
 

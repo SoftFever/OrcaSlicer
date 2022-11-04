@@ -536,6 +536,7 @@ Sidebar::Sidebar(Plater *parent)
         // Bed type selection
         wxBoxSizer* bed_type_sizer = new wxBoxSizer(wxHORIZONTAL);
         wxStaticText* bed_type_title = new wxStaticText(p->m_panel_printer_content, wxID_ANY, _L("Bed type"));
+        //bed_type_title->SetBackgroundColour();
         bed_type_title->Wrap(-1);
         bed_type_title->SetFont(Label::Body_14);
         m_bed_type_list = new ComboBox(p->m_panel_printer_content, wxID_ANY, wxString(""), wxDefaultPosition, {-1, FromDIP(24)}, 0, nullptr, wxCB_READONLY);
@@ -1433,7 +1434,7 @@ void Sidebar::collapse(bool collapse)
 #ifdef _MSW_DARK_MODE
 void Sidebar::show_mode_sizer(bool show)
 {
-    p->mode_sizer->Show(show);
+    //p->mode_sizer->Show(show);
 }
 #endif
 
@@ -7755,7 +7756,7 @@ public:
     wxStaticText *m_fname_title;
     wxStaticText *m_fname_f;
     wxStaticText *m_fname_s;
-    RoundedRectangle * m_panel_select;
+    StaticBox * m_panel_select;
     Button *    m_confirm;
     Button *    m_cancel;
 
@@ -7832,7 +7833,13 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
 
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, 5);
 
-    m_panel_select = new RoundedRectangle(this, wxColour(248, 248, 248), wxDefaultPosition, PROJECT_DROP_DIALOG_SELECT_PLANE_SIZE, 6);
+    m_panel_select = new StaticBox(this, wxID_ANY, wxDefaultPosition, PROJECT_DROP_DIALOG_SELECT_PLANE_SIZE);
+    StateColor box_colour(std::pair<wxColour, int>(wxColour("#F8F8F8"), StateColor::Normal));
+    StateColor box_border_colour(std::pair<wxColour, int>(wxColour(*wxWHITE), StateColor::Normal));
+
+    m_panel_select->SetBackgroundColor(box_colour);
+    m_panel_select->SetBorderColor(box_border_colour);
+    m_panel_select->SetCornerRadius(5);
 
     wxBoxSizer *m_sizer_select_h = new wxBoxSizer(wxHORIZONTAL);
 
@@ -7875,7 +7882,7 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
 
     m_confirm->SetBackgroundColor(btn_bg_green);
     m_confirm->SetBorderColor(wxColour(0, 174, 66));
-    m_confirm->SetTextColor(wxColour(255, 255, 255));
+    m_confirm->SetTextColor(wxColour("#FFFFFE"));
     m_confirm->SetSize(PROJECT_DROP_DIALOG_BUTTON_SIZE);
     m_confirm->SetMinSize(PROJECT_DROP_DIALOG_BUTTON_SIZE);
     m_confirm->SetCornerRadius(FromDIP(12));
@@ -7921,6 +7928,8 @@ ProjectDropDialog::ProjectDropDialog(const std::string &filename)
 
     m_fname_f->SetLabel(fstring);
     m_fname_s->SetLabel(bstring);
+
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 wxBoxSizer *ProjectDropDialog ::create_item_radiobox(wxString title, wxWindow *parent, int select_id, int groupid)
@@ -10191,7 +10200,7 @@ void Plater::clone_selection()
     selection.clone(res);
 }
 
-void Plater::search(bool plater_is_active, Preset::Type type, wxWindow *tag, wxTextCtrl *etag, wxWindow *stag)
+void Plater::search(bool plater_is_active, Preset::Type type, wxWindow *tag, TextInput *etag, wxWindow *stag)
 {
     if (plater_is_active) {
         if (is_preview_shown())

@@ -150,7 +150,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     StateColor btn_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled));
     m_button_upgrade_firmware->SetBackgroundColor(btn_bg);
     m_button_upgrade_firmware->SetBorderColor(btn_bd);
-    m_button_upgrade_firmware->SetTextColor(btn_text);
+    m_button_upgrade_firmware->SetTextColor(wxColour("#FFFFFE"));
     m_button_upgrade_firmware->SetFont(Label::Body_10);
     m_button_upgrade_firmware->SetMinSize(wxSize(FromDIP(-1), FromDIP(24)));
     m_button_upgrade_firmware->SetCornerRadius(FromDIP(12));
@@ -212,6 +212,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
 
     m_staticText_release_note->Bind(wxEVT_LEFT_DOWN, &MachineInfoPanel::on_show_release_note, this);
     m_button_upgrade_firmware->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(MachineInfoPanel::on_upgrade_firmware), NULL, this);
+    wxGetApp().UpdateDarkUIWin(this);
 }
 
 
@@ -231,6 +232,7 @@ wxPanel *MachineInfoPanel::create_caption_panel(wxWindow *parent)
     m_caption_sizer->Add(m_upgrade_status_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
     m_caption_text = new wxStaticText(caption_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize);
+    m_caption_text->SetForegroundColour("#262E30");
     m_caption_text->Wrap(-1);
     m_caption_sizer->Add(m_caption_text, 1, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
@@ -868,14 +870,17 @@ bool UpgradePanel::Show(bool show)
      ams_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 
      m_staticText_ams = new wxStaticText(this, wxID_ANY, "-", wxDefaultPosition, wxDefaultSize, 0);
+     m_staticText_ams->SetForegroundColour("#262E30");
      m_staticText_ams->SetFont(Label::Head_14);
      m_staticText_ams->Wrap(-1);
 
      auto m_staticText_ams_sn = new wxStaticText(this, wxID_ANY, _L("Serial:"), wxDefaultPosition, wxDefaultSize, 0);
+     m_staticText_ams_sn->SetForegroundColour("#262E30");
      m_staticText_ams_sn->Wrap(-1);
      m_staticText_ams_sn->SetFont(Label::Head_14);
 
      m_staticText_ams_sn_val = new wxStaticText(this, wxID_ANY, "-", wxDefaultPosition, wxDefaultSize, 0);
+     m_staticText_ams_sn_val->SetForegroundColour("#262E30");
      m_staticText_ams_sn_val->Wrap(-1);
 
      wxBoxSizer *m_ams_ver_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -890,9 +895,11 @@ bool UpgradePanel::Show(bool show)
      auto m_staticText_ams_ver = new wxStaticText(this, wxID_ANY, _L("Version:"), wxDefaultPosition, wxDefaultSize, 0);
      m_staticText_ams_ver->Wrap(-1);
      m_staticText_ams_ver->SetFont(Label::Head_14);
+     m_staticText_ams_ver->SetForegroundColour("#262E30");
      m_ams_ver_sizer->Add(m_staticText_ams_ver, 0, wxALL, FromDIP(5));
 
      m_staticText_ams_ver_val = new wxStaticText(this, wxID_ANY, "-", wxDefaultPosition, wxDefaultSize, 0);
+     m_staticText_ams_ver_val->SetForegroundColour("#262E30");
      m_staticText_ams_ver_val->Wrap(-1);
 
      ams_sizer->Add(m_staticText_ams, 0, wxALIGN_RIGHT | wxALL, FromDIP(5));

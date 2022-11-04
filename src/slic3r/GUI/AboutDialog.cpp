@@ -214,9 +214,7 @@ AboutDialog::AboutDialog()
         wxDefaultSize, /*wxCAPTION*/wxDEFAULT_DIALOG_STYLE)
 {
     SetFont(wxGetApp().normal_font());
-
-    wxColour bgr_clr = wxGetApp().get_window_default_clr();//wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-	SetBackgroundColour(bgr_clr);
+	SetBackgroundColour(*wxWHITE);
 
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -259,8 +257,8 @@ AboutDialog::AboutDialog()
         #endif
         version_font.SetPointSize(FromDIP(16));
         version->SetFont(version_font);
-        version->SetForegroundColour(wxColour(255, 255, 255));
-        version->SetBackgroundColour(wxColour(0, 174, 66));
+        version->SetForegroundColour(wxColour("#FFFFFE"));
+        version->SetBackgroundColour(wxColour("#00AF42"));
         vesizer->Add(version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
         vesizer->Add(0, 0, 1, wxEXPAND, FromDIP(5));
     }
@@ -282,6 +280,7 @@ AboutDialog::AboutDialog()
     {
         auto staticText = new wxStaticText( this, wxID_ANY, wxEmptyString,wxDefaultPosition,wxSize(FromDIP(520), -1), wxALIGN_LEFT );
         staticText->SetForegroundColour(wxColour(107, 107, 107));
+        staticText->SetBackgroundColour(*wxWHITE);
         staticText->SetMinSize(wxSize(FromDIP(520), -1));
         staticText->SetFont(Label::Body_12);
         if (is_zh) {
@@ -366,6 +365,7 @@ AboutDialog::AboutDialog()
     ver_sizer->Add( 0, 0, 0, wxTOP, FromDIP(30));
     button_portions->Bind(wxEVT_BUTTON, &AboutDialog::onCopyrightBtn, this);
 
+    wxGetApp().UpdateDlgDarkUI(this);
 	SetSizer(main_sizer);
     Layout();
     Fit();
@@ -393,7 +393,6 @@ void AboutDialog::on_dpi_changed(const wxRect &suggested_rect)
 
     SetMinSize(size);
     Fit();
-
     Refresh();
 }
 

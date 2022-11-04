@@ -133,6 +133,7 @@ PublishDialog::PublishDialog(Plater *plater)
         });
 
     Bind(wxEVT_CLOSE_WINDOW, &PublishDialog::on_close, this);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void PublishDialog::cancel()

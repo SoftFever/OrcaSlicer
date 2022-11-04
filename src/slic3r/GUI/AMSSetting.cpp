@@ -1,4 +1,5 @@
 #include "AMSSetting.hpp"
+#include "GUI_App.hpp"
 #include "I18N.hpp"
 
 namespace Slic3r { namespace GUI {
@@ -7,6 +8,7 @@ AMSSetting::AMSSetting(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     : DPIDialog(parent, id, wxEmptyString, pos, size, style)
 {
     create();
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 AMSSetting::~AMSSetting() {}
 
@@ -14,13 +16,16 @@ void AMSSetting::create()
 {
     wxBoxSizer *m_sizer_main;
     m_sizer_main = new wxBoxSizer(wxVERTICAL);
+    SetBackgroundColour(*wxWHITE);
 
     auto m_static_ams_settings = new wxStaticText(this, wxID_ANY, _L("AMS Settings"), wxDefaultPosition, wxDefaultSize, 0);
     m_static_ams_settings->SetFont(::Label::Head_14);
     m_static_ams_settings->SetForegroundColour(AMS_SETTING_GREY800);
+    m_sizer_main->Add(0,0,0,wxTOP,FromDIP(10));
     m_sizer_main->Add(m_static_ams_settings, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(24));
 
     m_panel_body = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, -1), wxTAB_TRAVERSAL);
+    m_panel_body->SetBackgroundColour(*wxWHITE);
     wxBoxSizer *m_sizerl_body;
     m_sizerl_body = new wxBoxSizer(wxVERTICAL);
 
@@ -188,6 +193,7 @@ void AMSSetting::create()
     m_sizer_main->Fit(this);
 
     this->Centre(wxBOTH);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void AMSSetting::update_insert_material_read_mode(bool selected)

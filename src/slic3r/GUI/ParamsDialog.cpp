@@ -55,6 +55,8 @@ ParamsDialog::ParamsDialog(wxWindow * parent)
         Hide();
 #endif
     });
+
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void ParamsDialog::Popup()

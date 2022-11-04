@@ -77,6 +77,7 @@ ProgressDialog::ProgressDialog(const wxString &title, const wxString &message, i
     Create(title, message, maximum, parent, style);
     Bind(wxEVT_PAINT, &ProgressDialog::OnPaint, this);
     Bind(wxEVT_CLOSE_WINDOW, &ProgressDialog::OnClose, this);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void ProgressDialog::OnPaint(wxPaintEvent &evt) {}

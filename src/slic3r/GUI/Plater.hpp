@@ -426,7 +426,7 @@ public:
     //BBS: add clone logic
     void clone_selection();
     void center_selection();
-    void search(bool plater_is_active, Preset::Type  type, wxWindow *tag, wxTextCtrl *etag, wxWindow *stag);
+    void search(bool plater_is_active, Preset::Type  type, wxWindow *tag, TextInput *etag, wxWindow *stag);
     void mirror(Axis axis);
     void split_object();
     void split_volume();

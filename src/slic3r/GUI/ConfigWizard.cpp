@@ -345,9 +345,14 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, wxSt
     if (titles.size() > 1 || is_variants) {
         // It only makes sense to add the All / None buttons if there's multiple printers
         // All Standard button is added when there are more variants for at least one printer
-        auto *sel_all_std = new wxButton(this, wxID_ANY, titles.size() > 1 ? _L("All standard") : _L("Standard"));
-        auto *sel_all = new wxButton(this, wxID_ANY, _L("All"));
-        auto *sel_none = new wxButton(this, wxID_ANY, _L("None"));
+        auto *sel_all_std = new Button(this, titles.size() > 1 ? _L("All standard") : _L("Standard"));
+        auto *sel_all = new Button(this, _L("All"));
+        auto *sel_none = new Button(this, _L("None"));
+
+        wxGetApp().UpdateDarkUI(sel_all_std);
+        wxGetApp().UpdateDarkUI(sel_all);
+        wxGetApp().UpdateDarkUI(sel_none);
+
         if (is_variants) 
             sel_all_std->Bind(wxEVT_BUTTON, [this](const wxCommandEvent& event) { this->select_all(true, false); });
         sel_all->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &event) { this->select_all(true, true); });
@@ -450,13 +455,12 @@ ConfigWizardPage::ConfigWizardPage(ConfigWizard *parent, wxString title, wxStrin
     , shortname(std::move(shortname))
     , indent(indent)
 {
-    wxGetApp().UpdateDarkUI(this);
-
     auto *sizer = new wxBoxSizer(wxVERTICAL);
 
     auto *text = new wxStaticText(this, wxID_ANY, std::move(title), wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
     const auto font = GetFont().MakeBold().Scaled(1.5);
     text->SetFont(font);
+    text->SetForegroundColour(*wxBLACK);
     sizer->Add(text, 0, wxALIGN_LEFT, 0);
     sizer->AddSpacer(10);
 
@@ -474,6 +478,8 @@ ConfigWizardPage::ConfigWizardPage(ConfigWizard *parent, wxString title, wxStrin
         this->Layout();
         event.Skip();
     });
+
+    wxGetApp().UpdateDarkUI(this);
 }
 
 ConfigWizardPage::~ConfigWizardPage() {}
@@ -640,6 +646,7 @@ PageMaterials::PageMaterials(ConfigWizard *parent, Materials *materials, wxStrin
     , list_vendor(new StringList(this))
     , list_profile(new PresetList(this))
 {
+    SetBackgroundColour(*wxWHITE);
     append_spacer(VERTICAL_SPACING);
 
     const int em = parent->em_unit();
@@ -650,8 +657,6 @@ PageMaterials::PageMaterials(ConfigWizard *parent, Materials *materials, wxStrin
     list_type->SetMinSize(wxSize(13*em, list_h));
     list_vendor->SetMinSize(wxSize(13*em, list_h));
     list_profile->SetMinSize(wxSize(23*em, list_h));
-
-
 
     grid = new wxFlexGridSizer(4, em/2, em);
     grid->AddGrowableCol(3, 1);
@@ -668,8 +673,13 @@ PageMaterials::PageMaterials(ConfigWizard *parent, Materials *materials, wxStrin
     grid->Add(list_profile, 1, wxEXPAND);
 
     auto *btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto *sel_all = new wxButton(this, wxID_ANY, _L("All"));
-    auto *sel_none = new wxButton(this, wxID_ANY, _L("None"));
+    auto *sel_all = new Button(this, _L("All"));
+    auto *sel_none = new Button(this, _L("None"));
+
+    wxGetApp().UpdateDarkUI(sel_all);
+    wxGetApp().UpdateDarkUI(sel_none);
+
+
     btn_sizer->Add(sel_all, 0, wxRIGHT, em / 2);
     btn_sizer->Add(sel_none);
 
@@ -678,6 +688,7 @@ PageMaterials::PageMaterials(ConfigWizard *parent, Materials *materials, wxStrin
     wxGetApp().UpdateDarkUI(list_vendor);
     wxGetApp().UpdateDarkUI(sel_all);
     wxGetApp().UpdateDarkUI(sel_none);
+    wxGetApp().UpdateDarkUI(list_profile);
 
     grid->Add(new wxBoxSizer(wxHORIZONTAL));
     grid->Add(new wxBoxSizer(wxHORIZONTAL));
@@ -756,16 +767,16 @@ void PageMaterials::reload_presets()
 
 void PageMaterials::set_compatible_printers_html_window(const std::vector<std::string>& printer_names, bool all_printers)
 {
-    const auto bgr_clr = 
-#if defined(__APPLE__)
-        html_window->GetParent()->GetBackgroundColour();
-#else 
-#if defined(_WIN32)
-        wxGetApp().get_window_default_clr();
-#else
-        wxSystemSettings::GetColour(wxSYS_COLOUR_MENU);
-#endif
-#endif
+    const auto bgr_clr = html_window->GetParent()->GetBackgroundColour();
+//#if defined(__APPLE__)
+//        html_window->GetParent()->GetBackgroundColour();
+//#else 
+//#if defined(_WIN32)
+//        html_window->GetParent()->GetBackgroundColour();
+//#else
+//        wxSystemSettings::GetColour(wxSYS_COLOUR_MENU);
+//#endif
+//#endif
     const auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
     const auto text_clr = wxGetApp().get_label_clr_default();//wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     const auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
@@ -1049,7 +1060,7 @@ void PageMaterials::update_lists(int sel_type, int sel_vendor, int last_selected
 
 		sel_vendor_prev = sel_vendor;
 	}
-    wxGetApp().UpdateDarkUI(list_profile);
+    //wxGetApp().UpdateDarkUI(list_profile);
 }
 
 void PageMaterials::sort_list_data(StringList* list, bool add_All_item, bool material_type_ordering)
@@ -1219,6 +1230,7 @@ PageCustom::PageCustom(ConfigWizard *parent)
     append(cb_custom);
     append(label);
     append(tc_profile_name);
+    wxGetApp().UpdateDarkUI(this);
 }
 
 PageFirmware::PageFirmware(ConfigWizard *parent)
@@ -2640,7 +2652,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     , p(new priv(this))
 {
     this->SetFont(wxGetApp().normal_font());
-
+    SetBackgroundColour(*wxWHITE);
     p->load_vendors();
     //BBS: add bed exclude areas
     p->custom_config.reset(DynamicPrintConfig::new_from_defaults_keys({
@@ -2661,14 +2673,19 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     p->hscroll_sizer = new wxBoxSizer(wxHORIZONTAL);
     p->hscroll->SetSizer(p->hscroll_sizer);
 
+    wxGetApp().UpdateDarkUI(p->hscroll);
+
     topsizer->Add(p->index, 0, wxEXPAND);
     topsizer->AddSpacer(INDEX_MARGIN);
     topsizer->Add(p->hscroll, 1, wxEXPAND);
 
-    p->btn_prev = new wxButton(this, wxID_ANY, _L("< &Back"));
-    p->btn_next = new wxButton(this, wxID_ANY, _L("&Next >"));
-    p->btn_finish = new wxButton(this, wxID_APPLY, _L("&Finish"));
-    p->btn_cancel = new wxButton(this, wxID_CANCEL, _L("Cancel"));   // Note: The label needs to be present, otherwise we get accelerator bugs on Mac
+    p->btn_prev = new Button(this, _L("<Back"));
+    p->btn_next = new Button(this, _L("Next>"));
+    p->btn_finish = new Button(this,_L("Finish"));
+    p->btn_finish->SetId(wxID_APPLY);
+    p->btn_cancel = new Button(this, _L("Cancel"));   // Note: The label needs to be present, otherwise we get accelerator bugs on Mac
+    p->btn_cancel->SetId(wxID_CANCEL);
+    
     p->btnsizer->AddStretchSpacer();
     p->btnsizer->Add(p->btn_prev, 0, wxLEFT, BTN_SPACING);
     p->btnsizer->Add(p->btn_next, 0, wxLEFT, BTN_SPACING);
@@ -2747,6 +2764,8 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
         this->Bind(wxEVT_SHOW, [this, vsizer](const wxShowEvent& e) {
             ;
         });
+
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 ConfigWizard::~ConfigWizard() {}

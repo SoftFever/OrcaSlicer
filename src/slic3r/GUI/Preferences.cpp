@@ -17,14 +17,18 @@
 #include <wx/listimpl.cpp>
 #include <map>
 
+#ifdef __WINDOWS__
+#ifdef _MSW_DARK_MODE
+#include "dark_mode.hpp"
+#endif // _MSW_DARK_MODE
+#endif //__WINDOWS__
+
 namespace Slic3r { namespace GUI {
 
 WX_DEFINE_LIST(RadioSelectorList);
 wxDEFINE_EVENT(EVT_PREFERENCES_SELECT_TAB, wxCommandEvent);
 
-// @class:  PreferencesDialog
-// @ret:    items
-// @birth:  created by onion
+
 wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *parent, wxString tooltip)
 {
     wxBoxSizer *m_sizer_title = new wxBoxSizer(wxHORIZONTAL);
@@ -371,8 +375,10 @@ wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow
     input_title->Wrap(-1);
 
     auto input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
-    input->GetTextCtrl()->SetFont(::Label::Body_13);
+    StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled));
+    input->SetBackgroundColor(input_bg);
     input->GetTextCtrl()->SetValue(app_config->get(param));
+
 
     auto second_title = new wxStaticText(parent, wxID_ANY, _L("Second"), wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
     second_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
@@ -408,8 +414,10 @@ wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow
 
     if (app_config->get("backup_switch") == "true") {
         input->Enable(true);
+        input->Refresh();
     } else {
         input->Enable(false);
+        input->Refresh();
     }
 
     if (param == "backup_interval") { m_backup_interval_textinput = input; }
@@ -443,6 +451,59 @@ wxBoxSizer *PreferencesDialog::create_item_switch(wxString title, wxWindow *pare
          e.Skip();
     });
     return m_sizer_switch;
+}
+
+wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxWindow* parent, wxString tooltip, int padding_left, std::string param)
+{
+    wxBoxSizer* m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
+
+    m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
+
+    auto checkbox = new ::CheckBox(parent);
+    checkbox->SetValue((app_config->get(param) == "1") ? true : false);
+    m_dark_mode_ckeckbox = checkbox;
+
+    m_sizer_checkbox->Add(checkbox, 0, wxALIGN_CENTER, 0);
+    m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 8);
+
+    auto checkbox_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
+    checkbox_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    checkbox_title->SetFont(::Label::Body_13);
+
+    auto size = checkbox_title->GetTextExtent(title);
+    checkbox_title->SetMinSize(wxSize(size.x + FromDIP(40), -1));
+    checkbox_title->Wrap(-1);
+    m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxALL, 3);
+
+
+    //// save config
+    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent& e) {
+        app_config->set(param, checkbox->GetValue() ? "1" : "0");
+        app_config->save();
+
+        //dark mode
+#ifdef _MSW_DARK_MODE
+        wxGetApp().force_colors_update();
+        wxGetApp().update_ui_from_settings();
+        set_dark_mode();   
+#endif
+
+        e.Skip();
+        });
+
+    checkbox->SetToolTip(tooltip);
+    return m_sizer_checkbox;
+}
+
+void PreferencesDialog::set_dark_mode()
+{
+#ifdef __WINDOWS__
+#ifdef _MSW_DARK_MODE
+    NppDarkMode::SetDarkExplorerTheme(this->GetHWND());
+    NppDarkMode::SetDarkTitleBar(this->GetHWND());
+    wxGetApp().UpdateDlgDarkUI(this);
+#endif
+#endif
 }
 
 wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param)
@@ -609,6 +670,7 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
 {
     SetBackgroundColour(*wxWHITE);
     create();
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void PreferencesDialog::create()
@@ -637,9 +699,6 @@ void PreferencesDialog::create()
 #if !BBL_RELEASE_TO_PUBLIC
     auto debug_page   = create_debug_page();
 #endif
-    /* create_gui_page();
-     create_sync_page();
-     create_shortcuts_page();*/
 
     m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(28));
     m_sizer_body->Add(general_page, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(38));
@@ -769,6 +828,10 @@ wxWindow* PreferencesDialog::create_general_page()
     auto title_downloads = create_item_title(_L("Downloads"), page, _L("Downloads"));
     auto item_downloads = create_item_downloads(page,50,"download_path");
 
+    //dark mode
+    auto title_darkmode = create_item_title(_L("Dark Mode"), page, _L("Dark Mode"));
+    auto item_darkmode = create_item_darkmode_checkbox(_L("Enable Dark mode"), page,_L("Enable Dark mode"), 50, "dark_color_mode");
+
     sizer_page->Add(title_general_settings, 0, wxEXPAND, 0);
     sizer_page->Add(item_language, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_region, 0, wxTOP, FromDIP(3));
@@ -785,10 +848,12 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(title_backup, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_backup, 0, wxTOP,FromDIP(3));
     sizer_page->Add(item_backup_interval, 0, wxTOP,FromDIP(3));
-    //sizer_page->Add(0, 0, 0, wxTOP, 26);
 
     sizer_page->Add(title_downloads, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_downloads, 0, wxEXPAND, FromDIP(3));
+
+    sizer_page->Add(title_darkmode, 0, wxTOP | wxEXPAND, FromDIP(20));
+    sizer_page->Add(item_darkmode, 0, wxEXPAND, FromDIP(3));
 
 
     page->SetSizer(sizer_page);
@@ -903,9 +968,19 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
         on_select_radio("product_host");
     }
 
-    wxButton *debug_button = new wxButton(m_scrolledWindow, wxID_ANY, _L("debug save button"), wxDefaultPosition, wxDefaultSize, 0);
-    debug_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
 
+    StateColor btn_bg_white(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Pressed),
+        std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Hovered),
+        std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Normal));
+    StateColor btn_bd_white(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+
+    Button* debug_button = new Button(m_scrolledWindow, _L("debug save button"));
+    debug_button->SetBackgroundColor(btn_bg_white);
+    debug_button->SetBorderColor(btn_bd_white);
+    debug_button->SetFont(Label::Body_13);
+
+
+    debug_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         // success message box
         MessageDialog dialog(this, _L("save debug settings"), _L("DEBUG settings have saved successfully!"), wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION);
         switch (dialog.ShowModal()) {

@@ -20,7 +20,7 @@ ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, wxBoxSizer* side_tools) :
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
-    wxColour default_btn_bg("#3B4446"); // Gradient #414B4E
+    wxColour default_btn_bg = wxColour("#3B4446"); // Gradient #414B4E
     SetBackgroundColour(default_btn_bg);
 
     int em = em_unit(this);// Slic3r::GUI::wxGetApp().em_unit();
@@ -48,6 +48,9 @@ ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, wxBoxSizer* side_tools) :
 
     // BBS: disable custom paint
     //this->Bind(wxEVT_PAINT, &ButtonsListCtrl::OnPaint, this);
+    Bind(wxEVT_SYS_COLOUR_CHANGED, [this](auto& e){
+        auto a = 10;
+    });
 }
 
 void ButtonsListCtrl::OnPaint(wxPaintEvent&)
@@ -139,8 +142,7 @@ void ButtonsListCtrl::SetSelection(int sel)
         std::pair{wxColour(59, 68, 70), (int) StateColor::Normal});
         m_pageButtons[m_selection]->SetBackgroundColor(bg_color);
         StateColor text_color = StateColor(
-        std::pair{wxColour(255, 255, 255), (int) StateColor::Hovered},
-        std::pair{wxColour(238,238, 238), (int) StateColor::Normal}
+        std::pair{wxColour(254,254, 254), (int) StateColor::Normal}
         );
         m_pageButtons[m_selection]->SetSelected(false);
         m_pageButtons[m_selection]->SetTextColor(text_color);
@@ -153,8 +155,7 @@ void ButtonsListCtrl::SetSelection(int sel)
     m_pageButtons[m_selection]->SetBackgroundColor(bg_color);
 
     StateColor text_color = StateColor(
-        std::pair{wxColour(255, 255, 255), (int) StateColor::Hovered},
-        std::pair{wxColour(255, 255, 255), (int) StateColor::Normal}
+        std::pair{wxColour(254, 254, 254), (int) StateColor::Normal}
         );
     m_pageButtons[m_selection]->SetSelected(true);
     m_pageButtons[m_selection]->SetTextColor(text_color);
@@ -177,8 +178,7 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString &text, bool bSelect /*
 
     btn->SetBackgroundColor(bg_color);
     StateColor text_color = StateColor(
-        std::pair{wxColour(255, 255, 255), (int) StateColor::Hovered},
-        std::pair{wxColour(238,238, 238), (int) StateColor::Normal});
+        std::pair{wxColour(254,254, 254), (int) StateColor::Normal});
     btn->SetTextColor(text_color);
     btn->SetInactiveIcon(inactive_bmp_name);
     btn->SetSelected(false);

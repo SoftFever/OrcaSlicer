@@ -3,10 +3,11 @@
 
 #include <wx/dcgraph.h>
 
+StateColor blank_bg(StateColor(std::make_pair(wxColour("#FFFFFF"), (int)StateColor::Normal)));
+static const wxColour BUTTON_BG_COL = wxColour("#EEEEEE");
+static const wxColour BUTTON_IN_BG_COL = wxColour("#CECECE");
+
 static const wxColour bd = wxColour(0, 174, 66);
-static const wxColour BUTTON_BG_COL = wxColour(238, 238, 238);
-static const wxColour BUTTON_IN_BG_COL = wxColour(206, 206, 206);
-static const wxColour blank_bg = wxColour(0xFFFFFF);
 static const wxColour text_num_color = wxColour(0x898989);
 static const wxColour BUTTON_PRESS_COL = wxColour(172, 172, 172);
 static const double sqrt2 = std::sqrt(2);
@@ -155,16 +156,16 @@ void AxisCtrlButton::render(wxDC& dc)
     wxGraphicsPath outer_path = gc->CreatePath();
     outer_path.AddCircle(0, 0, r_outer);
     outer_path.AddCircle(0, 0, r_inner);
-    gc->SetPen(BUTTON_BG_COL);
-    gc->SetBrush(BUTTON_BG_COL);
+    gc->SetPen(StateColor::darkModeColorFor(BUTTON_BG_COL));
+    gc->SetBrush(StateColor::darkModeColorFor(BUTTON_BG_COL));
     gc->DrawPath(outer_path);
 
 	//draw the inner ring
     wxGraphicsPath inner_path = gc->CreatePath();
     inner_path.AddCircle(0, 0, r_inner);
     inner_path.AddCircle(0, 0, r_blank);
-    gc->SetPen(BUTTON_IN_BG_COL);
-    gc->SetBrush(BUTTON_IN_BG_COL);
+    gc->SetPen(StateColor::darkModeColorFor(BUTTON_IN_BG_COL));
+    gc->SetBrush(StateColor::darkModeColorFor(BUTTON_IN_BG_COL));
 	gc->DrawPath(inner_path);
 
 	//draw an arc in corresponding position
@@ -187,8 +188,8 @@ void AxisCtrlButton::render(wxDC& dc)
 	}
 
 	//draw rectangle gap
-	gc->SetPen(blank_bg);
-	gc->SetBrush(blank_bg);
+	gc->SetPen(blank_bg.colorForStates(StateColor::Normal));
+	gc->SetBrush(blank_bg.colorForStates(StateColor::Normal));
 	gc->PushState();
 	gc->Rotate(-PI / 4);
 	gc->DrawRectangle(-sqrt2 * size.x / 2, -sqrt2 * gap / 2, sqrt2 * size.x, sqrt2 * gap);
@@ -205,8 +206,8 @@ void AxisCtrlButton::render(wxDC& dc)
         gc->SetPen(wxPen(border_color.colorForStates(states), 2));
         gc->SetBrush(wxBrush(background_color.colorForStates(states)));
     } else {
-        gc->SetPen(BUTTON_BG_COL);
-        gc->SetBrush(BUTTON_BG_COL);
+        gc->SetPen(StateColor::darkModeColorFor(BUTTON_BG_COL));
+        gc->SetBrush(StateColor::darkModeColorFor(BUTTON_BG_COL));
     }
     gc->DrawPath(home_path);
 

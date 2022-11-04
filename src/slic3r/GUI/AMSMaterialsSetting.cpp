@@ -15,6 +15,7 @@ AMSMaterialsSetting::AMSMaterialsSetting(wxWindow *parent, wxWindowID id)
     : DPIDialog(parent, id, _L("AMS Materials Setting"), wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
 {
     create();
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void AMSMaterialsSetting::create()
@@ -63,12 +64,13 @@ void AMSMaterialsSetting::create()
     m_clrData->SetChooseFull(true);
     m_clrData->SetChooseAlpha(false);
 
-    m_clr_picker        = new Button(this, "", "");
+    m_clr_picker        = new wxButton(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,wxBU_AUTODRAW);
     m_clr_picker->SetCanFocus(false);
     m_clr_picker->SetSize(FromDIP(50), FromDIP(25));
     m_clr_picker->SetMinSize(wxSize(FromDIP(50), FromDIP(25)));
-    m_clr_picker->SetCornerRadius(FromDIP(6));
-    m_clr_picker->SetBorderColor(wxColour(172, 172, 172));
+    //m_clr_picker->SetCornerRadius(FromDIP(6));
+    //m_clr_picker->SetBorderColor(wxColour(172, 172, 172));
+    m_clr_picker->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     m_clr_picker->Bind(wxEVT_BUTTON, &AMSMaterialsSetting::on_clr_picker, this);
     m_sizer_colour->Add(m_clr_picker, 0, 0, 0);
 
@@ -197,7 +199,7 @@ void AMSMaterialsSetting::create()
                             std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     m_button_confirm->SetBackgroundColor(m_btn_bg_green);
     m_button_confirm->SetBorderColor(wxColour(0, 174, 66));
-    m_button_confirm->SetTextColor(AMS_MATERIALS_SETTING_GREY200);
+    m_button_confirm->SetTextColor(wxColour("#FFFFFE"));
     m_button_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
     m_button_confirm->SetCornerRadius(FromDIP(12));
     m_button_confirm->Bind(wxEVT_BUTTON, &AMSMaterialsSetting::on_select_ok, this);
@@ -233,16 +235,16 @@ void AMSMaterialsSetting::create()
     SetSizer(m_sizer_main);
     Layout();
     Fit();
-
-     Bind(wxEVT_PAINT, &AMSMaterialsSetting::paintEvent, this);
-     COMBOBOX_FILAMENT->Connect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(AMSMaterialsSetting::on_select_filament), NULL, this);
+    
+    Bind(wxEVT_PAINT, &AMSMaterialsSetting::paintEvent, this);
+    COMBOBOX_FILAMENT->Connect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(AMSMaterialsSetting::on_select_filament), NULL, this);
 }
 
 void AMSMaterialsSetting::paintEvent(wxPaintEvent &evt) 
 {
     auto      size = GetSize();
     wxPaintDC dc(this);
-    dc.SetPen(wxPen(wxColour(38, 46, 48), 1, wxSOLID));
+    dc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour(38, 46, 48)), 1, wxSOLID));
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
     dc.DrawRectangle(0, 0, size.x, size.y);
 }
@@ -363,7 +365,7 @@ void AMSMaterialsSetting::on_clr_picker(wxCommandEvent & event)
     show_flag = true;
     if (clr_dialog->ShowModal() == wxID_OK) {
         m_clrData = &(clr_dialog->GetColourData());
-        m_clr_picker->SetBackgroundColor(m_clrData->GetColour());
+        m_clr_picker->SetBackgroundColour(m_clrData->GetColour());
     }
 }
 
@@ -379,7 +381,7 @@ bool AMSMaterialsSetting::Show(bool show)
 
 void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_min, wxString temp_max)
 {
-    m_clr_picker->SetBackgroundColor(m_clrData->GetColour());
+    m_clr_picker->SetBackgroundColour(m_clrData->GetColour());
 
     if (!m_is_third) {
         m_button_confirm->Hide();

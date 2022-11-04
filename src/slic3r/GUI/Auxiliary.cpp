@@ -52,7 +52,7 @@ AuFile::AuFile(wxWindow *parent, fs::path file_path, wxString file_name, Auxilia
 
     wxSize panel_size = m_type == MODEL_PICTURE ? AUFILE_PICTURES_PANEL_SIZE : AUFILE_PANEL_SIZE;
     wxPanel::Create(parent, id, pos, panel_size, style);
-    SetBackgroundColour(AUFILE_GREY300);
+    SetBackgroundColour(StateColor::darkModeColorFor(AUFILE_GREY300));
     wxBoxSizer *sizer_body = new wxBoxSizer(wxVERTICAL);
 
    SetSize(panel_size);
@@ -102,12 +102,14 @@ AuFile::AuFile(wxWindow *parent, fs::path file_path, wxString file_name, Auxilia
     
 
     auto m_text_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(panel_size.x, AUFILE_TEXT_HEIGHT), wxTAB_TRAVERSAL);
-    m_text_panel->SetBackgroundColour(AUFILE_GREY300);
+    m_text_panel->SetBackgroundColour(StateColor::darkModeColorFor(AUFILE_GREY300));
+    
 
     wxBoxSizer *m_text_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_text_name              = new wxStaticText(m_text_panel, wxID_ANY, m_file_name, wxDefaultPosition, wxSize(panel_size.x, -1), wxST_ELLIPSIZE_END);
     m_text_name->Wrap(panel_size.x - FromDIP(10));
     m_text_name->SetFont(::Label::Body_14);
+    m_text_name->SetForegroundColour(StateColor::darkModeColorFor(*wxBLACK));
 
     m_input_name = new ::TextInput(m_text_panel, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(panel_size.x - FromDIP(28), FromDIP(32)), wxTE_PROCESS_ENTER);
     m_input_name->GetTextCtrl()->SetFont(::Label::Body_13);
@@ -205,7 +207,7 @@ void AuFile::PaintBackground(wxDC &dc)
     {
         auto pen_width = FromDIP(2);
         dc.SetPen(wxPen(AUFILE_GREY500, pen_width));
-        dc.SetBrush(AUFILE_GREY200);
+        dc.SetBrush(StateColor::darkModeColorFor(AUFILE_GREY200));
         dc.DrawRoundedRectangle(pen_width / 2, pen_width / 2, size.x - pen_width / 2, size.y - pen_width / 2, AUFILE_ROUNDING);
 
         auto line_length = FromDIP(50);
@@ -238,7 +240,7 @@ void AuFile::PaintForeground(wxDC &dc)
         if (m_type == AddFileButton) {
             auto pen_width = FromDIP(2);
             dc.SetPen(wxPen(AUFILE_BRAND, pen_width));
-            dc.SetBrush(AUFILE_BRAND_TRANSPARENT);
+            dc.SetBrush(StateColor::darkModeColorFor(AUFILE_BRAND_TRANSPARENT));
             dc.DrawRoundedRectangle(pen_width / 2, pen_width / 2, size.x - pen_width / 2, size.y - pen_width / 2, AUFILE_ROUNDING);
 
             auto line_length = FromDIP(50);
@@ -818,7 +820,7 @@ void AuxiliaryPanel::init_tabpanel()
     wxBoxSizer *sizer_side_tools = new wxBoxSizer(wxVERTICAL);
     sizer_side_tools->Add(m_side_tools, 1, wxEXPAND, 0);
     m_tabpanel = new Tabbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sizer_side_tools, wxNB_LEFT | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
-    m_tabpanel->SetBackgroundColour(*wxWHITE);
+    m_tabpanel->SetBackgroundColour(wxColour("#FEFFFF"));
     m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent &e) { ; });
 
     m_designer_panel = new DesignerPanel(m_tabpanel, AuxiliaryFolderType::DESIGNER);

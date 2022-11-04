@@ -114,6 +114,7 @@ DownloadProgressDialog::DownloadProgressDialog(wxString title)
     CentreOnParent();
 
     Bind(wxEVT_CLOSE_WINDOW, &DownloadProgressDialog::on_close, this);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 wxString DownloadProgressDialog::format_text(wxStaticText* st, wxString str, int warp)

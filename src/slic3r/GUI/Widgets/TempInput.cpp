@@ -19,7 +19,7 @@ END_EVENT_TABLE()
 
 
 TempInput::TempInput()
-    : label_color(std::make_pair(wxColour(0xAC,0xAC,0xAC), (int) StateColor::Disabled),std::make_pair(0x323A3D, (int) StateColor::Normal))
+    : label_color(std::make_pair(wxColour(0xAC,0xAC,0xAC), (int) StateColor::Disabled),std::make_pair(0x323A3C, (int) StateColor::Normal))
     , text_color(std::make_pair(wxColour(0xAC,0xAC,0xAC), (int) StateColor::Disabled), std::make_pair(0x6B6B6B, (int) StateColor::Normal))
 {
     hover  = false;
@@ -46,6 +46,7 @@ void TempInput::Create(wxWindow *parent, wxString text, wxString label, wxString
     state_handler.attach({&label_color, &text_color});
     state_handler.update_binds();
     text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {5, 5}, wxDefaultSize, wxTE_PROCESS_ENTER | wxBORDER_NONE, wxTextValidator(wxFILTER_NUMERIC), wxTextCtrlNameStr);
+    text_ctrl->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     text_ctrl->SetMaxLength(3);
     state_handler.attach_child(text_ctrl);
     text_ctrl->Bind(wxEVT_SET_FOCUS, [this](auto &e) {
@@ -417,6 +418,8 @@ void TempInput::render(wxDC &dc)
     } else {
         pt.y = (size.y - labelSize.y) / 2;
     }
+
+    dc.SetTextForeground(StateColor::darkModeColorFor("#323A3C"));
     dc.DrawText(text, pt);
 
     // separator

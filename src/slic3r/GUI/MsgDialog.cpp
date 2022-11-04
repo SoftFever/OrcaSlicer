@@ -67,8 +67,8 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
     main_sizer->Add(btn_sizer, 0, wxBOTTOM | wxRIGHT | wxEXPAND, BORDER);
 
     apply_style(style);
-
 	SetSizerAndFit(main_sizer);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
  MsgDialog::~MsgDialog()
@@ -164,7 +164,7 @@ Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, con
     );
 
     StateColor btn_text_green(
-        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
+        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
     );
 
     StateColor btn_bg_white(
@@ -239,6 +239,7 @@ void MsgDialog::finalize()
 static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxString msg, bool monospaced_font = false, bool is_marked_msg = false)
 {
     wxHtmlWindow* html = new wxHtmlWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO);
+    html->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
 
     // count lines in the message
     int msg_lines = 0;
@@ -260,11 +261,7 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
 
     wxFont      font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     wxFont      monospace = wxGetApp().code_font();
-#if 1
     wxColour    text_clr = wxGetApp().get_label_clr_default();
-#else
-    wxColour    text_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
-#endif
     wxColour    bgr_clr = parent->GetBackgroundColour(); //wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
     auto        text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
     auto        bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
@@ -318,7 +315,7 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
         msg_escaped = std::string("<pre><code>") + msg_escaped + "</code></pre>";
     html->SetPage("<html><body bgcolor=\"" + bgr_clr_str + "\"><font color=\"" + text_clr_str + "\">" + wxString::FromUTF8(msg_escaped.data()) + "</font></body></html>");
     content_sizer->Add(html, 1, wxEXPAND);
-    wxGetApp().UpdateDarkUI(html);
+    wxGetApp().UpdateDarkUIWin(html);
 }
 
 // ErrorDialog
@@ -362,6 +359,7 @@ MessageDialog::MessageDialog(wxWindow* parent,
 {
     add_msg_content(this, content_sizer, message);
     finalize();
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 

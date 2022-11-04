@@ -17,13 +17,13 @@
 #include <wx/listbook.h>
 #include <wx/window.h>
 
-#ifdef _WIN32
+#ifdef __WINDOWS__
 #include <wx/msw/dcclient.h>
 #include <wx/msw/private.h>
 #ifdef _MSW_DARK_MODE
-#include <wx/msw/dark_mode.h>
+#include "dark_mode.hpp"
 #endif //_MSW_DARK_MODE
-#endif
+#endif //__WINDOWS__
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PrintConfig.hpp"
@@ -254,11 +254,11 @@ void BitmapComboBox::DrawBackground_(wxDC& dc, const wxRect& rect, int WXUNUSED(
         dc.SetTextForeground(flags & ODCB_PAINTING_DISABLED ? wxColour(108,108,108) : wxGetApp().get_label_clr_default());
 
         wxColour selCol = flags & ODCB_PAINTING_DISABLED ? 
-#ifdef _MSW_DARK_MODE
-            wxRGBToColour(NppDarkMode::GetSofterBackgroundColor()) :
-#else
+//#ifdef _MSW_DARK_MODE
+            //wxRGBToColour(NppDarkMode::GetSofterBackgroundColor()) :
+//#else
             wxGetApp().get_highlight_default_clr() :
-#endif
+//#endif
             wxGetApp().get_window_default_clr();
         dc.SetPen(selCol);
         dc.SetBrush(selCol);

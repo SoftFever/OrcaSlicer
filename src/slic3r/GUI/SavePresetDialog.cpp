@@ -74,18 +74,22 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string &suffix, wxBox
     //    combo_sizer->Add(m_combo, 1, wxEXPAND, BORDER_W);
 
 
-    m_input_area = new RoundedRectangle(m_parent, wxColor(172, 172, 172), wxDefaultPosition, wxSize(-1,-1), 3, 1);
+    StateColor box_border_colour(std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
+    m_input_area = new StaticBox(m_parent, wxID_ANY, wxDefaultPosition, SAVE_PRESET_DIALOG_INPUT_SIZE, wxBORDER_NONE);
     m_input_area->SetMinSize(SAVE_PRESET_DIALOG_INPUT_SIZE);
+    m_input_area->SetBorderColor(box_border_colour);
+    m_input_area->SetBackgroundColor(box_border_colour);
+    m_input_area->SetCornerRadius(FromDIP(3));
 
     wxBoxSizer *input_sizer_h = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *input_sizer_v  = new wxBoxSizer(wxVERTICAL);
 
-    m_input_ctrl = new wxTextCtrl(m_input_area, -1, from_u8(preset_name), wxDefaultPosition, wxSize(SAVE_PRESET_DIALOG_INPUT_SIZE.x, -1), 0 | wxBORDER_NONE);
-    m_input_ctrl->SetBackgroundColour(SAVE_PRESET_DIALOG_DEF_COLOUR);
+    m_input_ctrl = new wxTextCtrl(m_input_area, -1, from_u8(preset_name), wxDefaultPosition, wxSize(SAVE_PRESET_DIALOG_INPUT_SIZE.x - 2, SAVE_PRESET_DIALOG_INPUT_SIZE.y - 2), 0 | wxBORDER_NONE);
+    //m_input_ctrl->SetBackgroundColour(GetParent()->GetBackgroundColour());
     m_input_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &) { update(); });
 
 
-    input_sizer_v->Add(m_input_ctrl, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 12);
+    input_sizer_v->Add(m_input_ctrl, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 1);
     input_sizer_h->Add(input_sizer_v, 0, wxALIGN_CENTER, 0);
 
     m_input_area->SetSizer(input_sizer_h);
@@ -295,12 +299,14 @@ SavePresetDialog::SavePresetDialog(wxWindow *parent, Preset::Type type, std::str
     : DPIDialog(parent, wxID_ANY, _L("Save preset"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     build(std::vector<Preset::Type>{type}, suffix);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 SavePresetDialog::SavePresetDialog(wxWindow *parent, std::vector<Preset::Type> types, std::string suffix)
     : DPIDialog(parent, wxID_ANY, _L("Save preset"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     build(types, suffix);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 SavePresetDialog::~SavePresetDialog()
@@ -337,7 +343,7 @@ void SavePresetDialog::build(std::vector<Preset::Type> types, std::string suffix
                             std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     m_confirm->SetBackgroundColor(btn_bg_green);
     m_confirm->SetBorderColor(wxColour(0, 174, 66));
-    m_confirm->SetTextColor(wxColour(255, 255, 255));
+    m_confirm->SetTextColor(wxColour("#FFFFFE"));
     m_confirm->SetMinSize(SAVE_PRESET_DIALOG_BUTTON_SIZE);
     m_confirm->SetCornerRadius(FromDIP(12));
     m_confirm->Bind(wxEVT_BUTTON, &SavePresetDialog::accept, this);
@@ -349,7 +355,6 @@ void SavePresetDialog::build(std::vector<Preset::Type> types, std::string suffix
 
     m_cancel = new Button(this, _L("Cancel"));
     m_cancel->SetMinSize(SAVE_PRESET_DIALOG_BUTTON_SIZE);
-    m_cancel->SetTextColor(wxColour(107, 107, 107));
     m_cancel->SetCornerRadius(FromDIP(12));
     m_cancel->Bind(wxEVT_BUTTON, &SavePresetDialog::on_select_cancel, this);
     btns->Add(m_cancel, 0, wxEXPAND, 0);

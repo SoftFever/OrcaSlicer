@@ -226,7 +226,7 @@ void AMSrefresh::paintEvent(wxPaintEvent &evt)
     wxSize    size = GetSize();
     wxPaintDC dc(this);
 
-    auto colour = AMS_CONTROL_GRAY700;
+    auto colour = StateColor::darkModeColorFor(AMS_CONTROL_GRAY700);
     if (!wxWindow::IsEnabled()) { colour = AMS_CONTROL_GRAY500; }
 
     auto pot = wxPoint((size.x - m_bitmap_selected.GetBmpSize().x) / 2, (size.y - m_bitmap_selected.GetBmpSize().y) / 2);
@@ -347,7 +347,7 @@ void AMSextruderImage::doRender(wxDC &dc)
     auto size = GetSize();
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(m_colour);
-    dc.DrawRectangle(0, 0, size.x, size.y - FromDIP(5));
+    dc.DrawRectangle(0, FromDIP(18), size.x, size.y - FromDIP(18) - FromDIP(5));
     dc.DrawBitmap(m_ams_extruder.bmp(), wxPoint((size.x - m_ams_extruder.GetBmpSize().x) / 2, (size.y - m_ams_extruder.GetBmpSize().y) / 2));
 }
 
@@ -358,7 +358,6 @@ AMSextruderImage::AMSextruderImage(wxWindow *parent, wxWindowID id, const wxPoin
     SetBackgroundColour(*wxWHITE);
 
     m_ams_extruder = ScalableBitmap(this, "monitor_ams_extruder",55);
-
     SetSize(AMS_EXTRUDER_BITMAP_SIZE);
     SetMinSize(AMS_EXTRUDER_BITMAP_SIZE);
     SetMaxSize(AMS_EXTRUDER_BITMAP_SIZE);
@@ -393,7 +392,7 @@ void AMSextruder::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
 
     m_bitmap_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, AMS_EXTRUDER_BITMAP_SIZE, wxTAB_TRAVERSAL);
-    m_bitmap_panel->SetBackgroundColour(wxColour(AMS_EXTRUDER_DEF_COLOUR));
+    m_bitmap_panel->SetBackgroundColour(AMS_EXTRUDER_DEF_COLOUR);
     m_bitmap_panel->SetDoubleBuffered(true);
     m_bitmap_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1080,8 +1079,8 @@ void AMSItem::render(wxDC &dc)
 void AMSItem::doRender(wxDC &dc)
 {
     wxSize size = GetSize();
-    dc.SetPen(wxPen(m_background_colour));
-    dc.SetBrush(wxBrush(m_background_colour));
+    dc.SetPen(wxPen(StateColor::darkModeColorFor(m_background_colour)));
+    dc.SetBrush(wxBrush(StateColor::darkModeColorFor(m_background_colour)));
     dc.DrawRoundedRectangle(0, 0, size.x, size.y, 3);
 
     auto left = m_padding;
@@ -1219,6 +1218,7 @@ void AmsCans::Update(AMSinfo info)
 void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan)
 {
     auto        amscan      = new wxWindow(this, wxID_ANY);
+    amscan->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
     wxBoxSizer *m_sizer_ams = new wxBoxSizer(wxVERTICAL);
     m_sizer_ams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
     auto m_panel_refresh = new AMSrefresh(amscan, wxID_ANY, m_can_count + 1, caninfo);
@@ -1445,7 +1445,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_panel_can = new StaticBox(m_amswin, wxID_ANY, wxDefaultPosition, AMS_CANS_SIZE, wxBORDER_NONE);
     m_panel_can->SetMinSize(AMS_CANS_SIZE);
     m_panel_can->SetCornerRadius(FromDIP(10));
-    m_panel_can->SetBackgroundColor(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    m_panel_can->SetBackgroundColor(StateColor(std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Normal)));
 
     m_sizer_cans = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1515,7 +1515,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_extruder_feed = new Button(m_amswin, _L("Load Filament"));
     m_button_extruder_feed->SetBackgroundColor(btn_bg_green);
     m_button_extruder_feed->SetBorderColor(btn_bd_green);
-    m_button_extruder_feed->SetTextColor(btn_text_green);
+    m_button_extruder_feed->SetTextColor(wxColour("#FFFFFE"));
     m_button_extruder_feed->SetFont(Label::Body_13);
    
     m_button_extruder_back = new Button(m_amswin, _L("Unload Filament"));
@@ -1575,12 +1575,14 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_guide = new Button(m_amswin, _L("Guide"));
     m_button_guide->SetFont(Label::Body_13);
     m_button_guide->SetCornerRadius(FromDIP(12));
+    m_button_guide->SetBorderColor(btn_bd_white);
     m_button_guide->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_guide->SetBackgroundColor(btn_bg_white);
 
     m_button_retry = new Button(m_amswin, _L("Retry"));
     m_button_retry->SetFont(Label::Body_13);
     m_button_retry->SetCornerRadius(FromDIP(12));
+    m_button_retry->SetBorderColor(btn_bd_white);
     m_button_retry->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_retry->SetBackgroundColor(btn_bg_white);
 

@@ -46,9 +46,6 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
     DPIDialog(parent, wxID_ANY, _L("Physical Printer"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), -1), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     SetFont(wxGetApp().normal_font());
-#ifndef _WIN32
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-#endif
 
     // input the preset name
     Tab *tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
@@ -87,7 +84,8 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
     input_sizer->Add(m_input_area, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, BORDER_W);
     input_sizer->Add(m_valid_label, 0, wxEXPAND | wxLEFT | wxRIGHT, BORDER_W);
 
-
+    SetBackgroundColour(*wxWHITE);
+   
     m_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
     m_optgroup = new ConfigOptionsGroup(this, _L("Print Host upload"), m_config);
     build_printhost_settings(m_optgroup);
@@ -98,7 +96,7 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
     btnOK->Bind(wxEVT_BUTTON, &PhysicalPrinterDialog::OnOK, this);
 
     wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)));
-
+    (static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)))->Hide();
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
@@ -110,6 +108,7 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
     SetSizer(topSizer);
     topSizer->SetSizeHints(this);
     this->CenterOnParent();
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 PhysicalPrinterDialog::~PhysicalPrinterDialog()

@@ -39,6 +39,7 @@
 #include "Notebook.hpp"
 #include "ParamsPanel.hpp"
 #include "Widgets/RoundedRectangle.hpp"
+#include "Widgets/TextInput.hpp"
 
 class TabCtrl;
 
@@ -182,8 +183,8 @@ protected:
 	ScalableButton*			m_undo_to_sys_btn;
 	//ScalableButton*			m_question_btn;
 	ScalableButton*			m_btn_search;
-    RoundedRectangle *		m_search_item;
-    wxTextCtrl *			m_search_input;
+    StaticBox *				m_search_item;
+    TextInput *				m_search_input;
 
 	// Cached bitmaps.
 	// A "flag" icon to be displayned next to the preset name in the Tab's combo box.

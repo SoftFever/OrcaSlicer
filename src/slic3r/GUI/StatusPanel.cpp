@@ -39,7 +39,7 @@ static const wxColour BUTTON_PRESS_COL   = wxColour(172, 172, 172);
 static const wxColour BUTTON_HOVER_COL   = wxColour(0, 174, 66);
 
 static const wxColour DISCONNECT_TEXT_COL = wxColour(172, 172, 172);
-static const wxColour NORMAL_TEXT_COL     = wxColour(50, 58, 61);
+static const wxColour NORMAL_TEXT_COL     = wxColour(48,58,60);
 static const wxColour NORMAL_FAN_TEXT_COL = wxColour(107, 107, 107);
 static const wxColour WARNING_INFO_BG_COL = wxColour(255, 111, 0);
 static const wxColour STAGE_TEXT_COL      = wxColour(0, 174, 66);
@@ -585,7 +585,7 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     m_options_btn = new Button(m_panel_control_title, _L("Print Options"));
     m_options_btn->SetBackgroundColor(btn_bg_green);
     m_options_btn->SetBorderColor(btn_bd_green);
-    m_options_btn->SetTextColor(*wxWHITE);
+    m_options_btn->SetTextColor(wxColour("#FFFFFE"));
     m_options_btn->SetSize(wxSize(FromDIP(128), FromDIP(26)));
     m_options_btn->SetMinSize(wxSize(-1, FromDIP(26)));
 
@@ -593,7 +593,7 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     m_calibration_btn = new Button(m_panel_control_title, _L("Calibration"));
     m_calibration_btn->SetBackgroundColor(btn_bg_green);
     m_calibration_btn->SetBorderColor(btn_bd_green);
-    m_calibration_btn->SetTextColor(*wxWHITE);
+    m_calibration_btn->SetTextColor(wxColour("#FFFFFE"));
     m_calibration_btn->SetSize(wxSize(FromDIP(128), FromDIP(26)));
     m_calibration_btn->SetMinSize(wxSize(-1, FromDIP(26)));
 
@@ -623,7 +623,14 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
 wxBoxSizer *StatusBasePanel::create_temp_axis_group(wxWindow *parent)
 {
     auto        sizer         = new wxBoxSizer(wxVERTICAL);
-    auto        box           = new RoundedRectangle(parent, wxColour(0xEE, 0xEE, 0xEE), wxDefaultPosition, wxSize(FromDIP(510), -1), 5, 1);
+    auto        box           = new StaticBox(parent);
+
+    StateColor box_colour(std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+    StateColor box_border_colour(std::pair<wxColour, int>(STATUS_PANEL_BG, StateColor::Normal));
+
+    box->SetBackgroundColor(box_colour);
+    box->SetBorderColor(box_border_colour);
+    box->SetCornerRadius(5);
 
     box->SetMinSize(wxSize(FromDIP(530), -1));
     box->SetMaxSize(wxSize(FromDIP(530), -1));
@@ -632,7 +639,7 @@ wxBoxSizer *StatusBasePanel::create_temp_axis_group(wxWindow *parent)
     wxBoxSizer *m_temp_ctrl   = create_temp_control(box);
     content_sizer->Add(m_temp_ctrl, 0, wxEXPAND | wxALL, FromDIP(5));
 
-    m_temp_extruder_line = new StaticLine(box, true);
+    m_temp_extruder_line = new StaticLine(box, true);  
     m_temp_extruder_line->SetLineColour(STATIC_BOX_LINE_COL);
     content_sizer->Add(m_temp_extruder_line, 0, wxEXPAND, 1);
     content_sizer->Add(FromDIP(9), 0, 0, wxEXPAND, 1);
@@ -665,9 +672,13 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     m_tempCtrl_nozzle->SetMinTemp(nozzle_temp_range[0]);
     m_tempCtrl_nozzle->SetMaxTemp(nozzle_temp_range[1]);
     m_tempCtrl_nozzle->SetBorderWidth(FromDIP(2));
-    m_tempCtrl_nozzle->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
-    m_tempCtrl_nozzle->SetBorderColor(StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Focused),
-                                                 std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Hovered), std::make_pair(*wxWHITE, (int) StateColor::Normal)));
+
+    StateColor tempinput_text_colour(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal));
+    StateColor tempinput_border_colour(std::make_pair(*wxWHITE, (int)StateColor::Disabled), std::make_pair(BUTTON_HOVER_COL, (int)StateColor::Focused),
+        std::make_pair(BUTTON_HOVER_COL, (int)StateColor::Hovered), std::make_pair(*wxWHITE, (int)StateColor::Normal));
+
+    m_tempCtrl_nozzle->SetTextColor(tempinput_text_colour);
+    m_tempCtrl_nozzle->SetBorderColor(tempinput_border_colour);
 
     sizer->Add(m_tempCtrl_nozzle, 0, wxEXPAND | wxALL, 1);
 
@@ -683,9 +694,8 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     m_tempCtrl_bed->SetMaxTemp(bed_temp_range[1]);
     m_tempCtrl_bed->SetMinSize(TEMP_CTRL_MIN_SIZE);
     m_tempCtrl_bed->SetBorderWidth(FromDIP(2));
-    m_tempCtrl_bed->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
-    m_tempCtrl_bed->SetBorderColor(StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Focused),
-                                              std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Hovered), std::make_pair(*wxWHITE, (int) StateColor::Normal)));
+    m_tempCtrl_bed->SetTextColor(tempinput_text_colour);
+    m_tempCtrl_bed->SetBorderColor(tempinput_border_colour);
     sizer->Add(m_tempCtrl_bed, 0, wxEXPAND | wxALL, 1);
 
     auto line = new StaticLine(parent);
@@ -698,9 +708,9 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     m_tempCtrl_frame->SetReadOnly(true);
     m_tempCtrl_frame->SetMinSize(TEMP_CTRL_MIN_SIZE);
     m_tempCtrl_frame->SetBorderWidth(FromDIP(2));
-    m_tempCtrl_frame->SetTextColor(StateColor(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled), std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal)));
-    m_tempCtrl_frame->SetBorderColor(StateColor(std::make_pair(*wxWHITE, (int) StateColor::Disabled), std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Focused),
-                                                std::make_pair(BUTTON_HOVER_COL, (int) StateColor::Hovered), std::make_pair(*wxWHITE, (int) StateColor::Normal)));
+    m_tempCtrl_frame->SetTextColor(tempinput_text_colour);
+    m_tempCtrl_frame->SetBorderColor(tempinput_border_colour);
+
     sizer->Add(m_tempCtrl_frame, 0, wxEXPAND | wxALL, 1);
     line = new StaticLine(parent);
     line->SetLineColour(STATIC_BOX_LINE_COL);
@@ -977,7 +987,16 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
 {
     auto sizer     = new wxBoxSizer(wxVERTICAL);
     auto sizer_box = new wxBoxSizer(wxVERTICAL);
-    m_ams_control_box = new RoundedRectangle(parent, wxColour(0xEE, 0xEE, 0xEE), wxDefaultPosition, wxDefaultSize, 5, 1);
+
+    m_ams_control_box = new StaticBox(parent);
+
+    StateColor box_colour(std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+    StateColor box_border_colour(std::pair<wxColour, int>(STATUS_PANEL_BG, StateColor::Normal));
+
+    m_ams_control_box->SetBackgroundColor(box_colour);
+    m_ams_control_box->SetBorderColor(box_border_colour);
+    m_ams_control_box->SetCornerRadius(5);
+
     m_ams_control_box->SetMinSize(wxSize(FromDIP(530), -1));
     m_ams_control_box->SetBackgroundColour(*wxWHITE);
 #if !BBL_RELEASE_TO_PUBLIC
@@ -2393,7 +2412,7 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
 #else
     wxPopupTransientWindow *popUp = new wxPopupTransientWindow(m_switch_speed);
 #endif
-    popUp->SetBackgroundColour(0xeeeeee);
+    popUp->SetBackgroundColour(StateColor::darkModeColorFor(0xeeeee));
     StepCtrl *step = new StepCtrl(popUp, wxID_ANY);
     wxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(step, 1, wxEXPAND, 0);

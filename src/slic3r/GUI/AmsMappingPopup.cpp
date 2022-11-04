@@ -42,6 +42,7 @@ wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
     SetBackgroundColour(*wxWHITE);
 
     Bind(wxEVT_PAINT, &MaterialItem::paintEvent, this);
+    wxGetApp().UpdateDarkUI(this);
  }
 
  MaterialItem::~MaterialItem() {}
@@ -482,7 +483,7 @@ void AmsMapingPopup::paintEvent(wxPaintEvent &evt)
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
-    SetBackgroundColour(*wxWHITE);
+    SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     Bind(wxEVT_PAINT, &MappingItem::paintEvent, this);
 }
 

@@ -64,7 +64,7 @@ struct PresetTab {
 // SettingsDialog
 // ----------------------------------------------------------------------------
 
-class SettingsDialog : public DPIFrame//DPIDialog
+class SettingsDialog : public DPIDialog//DPIDialog
 {
     //wxNotebook* m_tabpanel { nullptr };
     Notebook* m_tabpanel{ nullptr };

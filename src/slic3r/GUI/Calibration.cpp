@@ -147,7 +147,7 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     m_calibration_btn = new Button(cali_right_panel, _L("Start Calibration"));
     m_calibration_btn->SetBackgroundColor(btn_bg_green);
     m_calibration_btn->SetBorderColor(btn_bd_green);
-    m_calibration_btn->SetTextColor(*wxWHITE);
+    m_calibration_btn->SetTextColor(wxColour("#FFFFFE"));
     m_calibration_btn->SetSize(wxSize(FromDIP(128), FromDIP(26)));
     m_calibration_btn->SetMinSize(wxSize(FromDIP(128), FromDIP(26)));
 
@@ -174,6 +174,7 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     Fit();
 
     m_calibration_btn->Bind(wxEVT_LEFT_DOWN, &CalibrationDialog::on_start_calibration, this);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 CalibrationDialog::~CalibrationDialog() {}
