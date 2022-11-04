@@ -5561,6 +5561,21 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     //BBS: remove this update here, will be updated in update_fff_scene later
     //this->object_list_changed();
 
+    // BBS, Generate calibration thumbnail for current plate
+    if (preview) {
+        // generate calibration data
+        /* BBS generate calibration data by printer
+        preview->reload_print();
+        ThumbnailData* calibration_data = &partplate_list.get_curr_plate()->cali_thumbnail_data;
+        const ThumbnailsParams calibration_params = { {}, false, true, true, true, partplate_list.get_curr_plate_index() };
+        generate_calibration_thumbnail(*calibration_data, PartPlate::cali_thumbnail_width, PartPlate::cali_thumbnail_height, calibration_params);
+        preview->get_canvas3d()->reset_gcode_toolpaths();*/
+
+        // generate bbox data
+        PlateBBoxData* plate_bbox_data = &partplate_list.get_curr_plate()->cali_bboxes_data;
+        *plate_bbox_data = generate_first_layer_bbox();
+    }
+
     // refresh preview
     if (view3D->is_dragging()) // updating scene now would interfere with the gizmo dragging
         delayed_scene_refresh = true;
@@ -5620,6 +5635,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     //        m_is_publishing = false;
     //    }
     //}
+
 
     if (is_finished)
     {
@@ -9043,10 +9059,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
             int index = p->partplate_list.get_curr_plate_index();
             ThumbnailData* calibration_data = calibration_thumbnails[index];
             const ThumbnailsParams calibration_params = { {}, false, true, true, true, p->partplate_list.get_curr_plate_index() };
-            //BBS fixed size
-            const int thumbnail_width = 2560;
-            const int thumbnail_height = 2560;
-            p->generate_calibration_thumbnail(*calibration_data, thumbnail_width, thumbnail_height, calibration_params);
+            p->generate_calibration_thumbnail(*calibration_data, PartPlate::cali_thumbnail_width, PartPlate::cali_thumbnail_height, calibration_params);
             if (using_exported_file()) {
                 //do nothing
             }

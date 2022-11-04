@@ -223,6 +223,8 @@ public:
 
     ThumbnailData cali_thumbnail_data;
     PlateBBoxData cali_bboxes_data;
+    static const int cali_thumbnail_width = 2560;
+    static const int cali_thumbnail_height = 2560;
 
     //set the plate's index
     void set_index(int index);
