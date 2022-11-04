@@ -4810,6 +4810,12 @@ msgstr "桥接"
 msgid "Gap infill"
 msgstr "填缝"
 
+msgid "Filter out tiny gaps"
+msgstr "忽略微小间隙"
+
+msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
+msgstr "小于指定阈值的微小间隙不填充。本设置不会对顶/底层起作用"
+
 msgid "Support interface"
 msgstr "支撑面"
 

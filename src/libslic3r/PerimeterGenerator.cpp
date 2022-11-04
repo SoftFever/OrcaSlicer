@@ -715,6 +715,15 @@ void PerimeterGenerator::process()
                 ++ irun;
             }
 #endif
+            // SoftFever: don't filter out tiny gap fills for first and top layer. So that the print looks better :)
+            if (this->layer_id != 0 && this->upper_slices != nullptr)
+            {
+                polylines.erase(std::remove_if(polylines.begin(), polylines.end(),
+                    [&](const ThickPolyline& p) {
+                        return p.length() < scale_(config->filter_out_gap_fill.value);
+                    }), polylines.end());
+            }
+
 
             if (! polylines.empty()) {
 				ExtrusionEntityCollection gap_fill;
@@ -728,7 +737,8 @@ void PerimeterGenerator::process()
                 //FIXME Vojtech: This grows by a rounded extrusion width, not by line spacing,
                 // therefore it may cover the area, but no the volume.
                 last = diff_ex(last, gap_fill.polygons_covered_by_width(10.f));
-				this->gap_fill->append(std::move(gap_fill.entities));
+                this->gap_fill->append(std::move(gap_fill.entities));
+
 			}
         }
 

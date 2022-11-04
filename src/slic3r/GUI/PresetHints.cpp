@@ -103,7 +103,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
     double bridge_flow                = print_config.opt_float("bridge_flow");
     double inner_wall_speed                  = print_config.opt_float("inner_wall_speed");
     double outer_wall_speed         = print_config.get_abs_value("outer_wall_speed", inner_wall_speed);
-    // double gap_infill_speed                   = print_config.opt_bool("gap_fill_enabled") ? print_config.opt_float("gap_infill_speed") : 0.;
+    // double gap_infill_speed                   = print_config.opt_bool("filter_out_gap_fill") ? print_config.opt_float("gap_infill_speed") : 0.;
     double sparse_infill_speed                     = print_config.opt_float("sparse_infill_speed");
     double small_perimeter_speed            = print_config.get_abs_value("small_perimeter_speed", inner_wall_speed);
     double internal_solid_infill_speed               = print_config.opt_float("internal_solid_infill_speed");

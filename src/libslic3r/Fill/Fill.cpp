@@ -467,6 +467,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		params.no_extrusion_overlap = surface_fill.params.overlap;
 
 		LayerRegion* layerm = this->m_regions[surface_fill.region_id];
+		params.config = &layerm->region().config();
 		for (ExPolygon& expoly : surface_fill.expolygons) {
 			f->no_overlap_expolygons = intersection_ex(layerm->fill_no_overlap_expolygons, ExPolygons() = { expoly });
 			// Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.
