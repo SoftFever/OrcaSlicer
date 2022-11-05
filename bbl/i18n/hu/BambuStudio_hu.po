@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-19 09:33+0800\n"
+"POT-Creation-Date: 2022-11-05 12:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2349,9 +2349,6 @@ msgstr "Projekt"
 msgid "Slice"
 msgstr "Szeletelés"
 
-msgid "Send and Print"
-msgstr ""
-
 msgid "Slice all"
 msgstr "Összes szeletelése"
 
@@ -2363,9 +2360,6 @@ msgstr "Összes nyomtatása"
 
 msgid "Export G-code file"
 msgstr ""
-
-msgid "Send"
-msgstr "Küldés"
 
 msgid "Export sliced file"
 msgstr "Szeletelt fájl exportálása"
@@ -2784,6 +2778,10 @@ msgstr "Loading file list..."
 
 msgid "No files"
 msgstr "No files"
+
+#, c-format, boost-format
+msgid "File '%s' was lost! Please download it again."
+msgstr ""
 
 msgid "Download waiting..."
 msgstr ""
@@ -3854,6 +3852,9 @@ msgstr "Bambu Engineering Plate"
 msgid "Bamabu High Temperature Plate"
 msgstr "Bambu High Temperature Plate"
 
+msgid "Send print job to"
+msgstr "Nyomtatási feladat küldése"
+
 msgid "Refresh"
 msgstr "Frissítés"
 
@@ -3863,8 +3864,8 @@ msgstr "Asztalszintezés"
 msgid "Flow Calibration"
 msgstr "Anyagáramlás kalibráció"
 
-msgid "Can't connect to the printer"
-msgstr ""
+msgid "Send"
+msgstr "Küldés"
 
 msgid "send completed"
 msgstr "küldés befejezve"
@@ -5692,24 +5693,32 @@ msgid "Height to rod"
 msgstr "Height to rod"
 
 msgid ""
-"Distance of the nozzle tip to the lower rod. Used as input of auto-arranging "
-"to avoid collision when printing by object"
+"Distance of the nozzle tip to the lower rod. Used for collision avoidance in "
+"by-object printing."
 msgstr ""
 
 msgid "Height to lid"
 msgstr "Height to lid"
 
 msgid ""
-"Distance of the nozzle tip to the lid. Used as input of auto-arranging to "
-"avoid collision when printing by object"
+"Distance of the nozzle tip to the lid. Used for collision avoidance in by-"
+"object printing."
 msgstr ""
 
 msgid "Radius"
 msgstr "Radius"
 
 msgid ""
-"Clearance radius around extruder. Used as input of auto-arranging to avoid "
-"collision when printing by object"
+"Clearance radius around extruder. Used for collision avoidance in by-object "
+"printing."
+msgstr ""
+
+msgid "Max Radius"
+msgstr ""
+
+msgid ""
+"Max clearance radius around extruder. Used for collision avoidance in by-"
+"object printing."
 msgstr ""
 
 msgid "Extruder Color"
@@ -7364,9 +7373,6 @@ msgstr ""
 
 #~ msgid "Open"
 #~ msgstr "Open"
-
-#~ msgid "Send print job to"
-#~ msgstr "Nyomtatási feladat küldése"
 
 #~ msgid ""
 #~ "%1% is too close to exclusion area, there will be collisions when "

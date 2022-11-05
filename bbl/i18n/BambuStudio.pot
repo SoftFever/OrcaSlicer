@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-19 09:33+0800\n"
+"POT-Creation-Date: 2022-11-05 12:18+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2196,9 +2196,6 @@ msgstr ""
 msgid "Slice"
 msgstr ""
 
-msgid "Send and Print"
-msgstr ""
-
 msgid "Slice all"
 msgstr ""
 
@@ -2209,9 +2206,6 @@ msgid "Print all"
 msgstr ""
 
 msgid "Export G-code file"
-msgstr ""
-
-msgid "Send"
 msgstr ""
 
 msgid "Export sliced file"
@@ -2625,6 +2619,10 @@ msgid "Loading file list..."
 msgstr ""
 
 msgid "No files"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "File '%s' was lost! Please download it again."
 msgstr ""
 
 msgid "Download waiting..."
@@ -3671,6 +3669,9 @@ msgstr ""
 msgid "Bamabu High Temperature Plate"
 msgstr ""
 
+msgid "Send print job to"
+msgstr ""
+
 msgid "Refresh"
 msgstr ""
 
@@ -3680,7 +3681,7 @@ msgstr ""
 msgid "Flow Calibration"
 msgstr ""
 
-msgid "Can't connect to the printer"
+msgid "Send"
 msgstr ""
 
 msgid "send completed"
@@ -5354,24 +5355,32 @@ msgid "Height to rod"
 msgstr ""
 
 msgid ""
-"Distance of the nozzle tip to the lower rod. Used as input of auto-arranging "
-"to avoid collision when printing by object"
+"Distance of the nozzle tip to the lower rod. Used for collision avoidance in "
+"by-object printing."
 msgstr ""
 
 msgid "Height to lid"
 msgstr ""
 
 msgid ""
-"Distance of the nozzle tip to the lid. Used as input of auto-arranging to "
-"avoid collision when printing by object"
+"Distance of the nozzle tip to the lid. Used for collision avoidance in by-"
+"object printing."
 msgstr ""
 
 msgid "Radius"
 msgstr ""
 
 msgid ""
-"Clearance radius around extruder. Used as input of auto-arranging to avoid "
-"collision when printing by object"
+"Clearance radius around extruder. Used for collision avoidance in by-object "
+"printing."
+msgstr ""
+
+msgid "Max Radius"
+msgstr ""
+
+msgid ""
+"Max clearance radius around extruder. Used for collision avoidance in by-"
+"object printing."
 msgstr ""
 
 msgid "Extruder Color"

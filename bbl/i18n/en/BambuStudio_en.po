@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-19 09:33+0800\n"
+"POT-Creation-Date: 2022-11-05 12:18+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2311,9 +2311,6 @@ msgstr "Project"
 msgid "Slice"
 msgstr "Slice"
 
-msgid "Send and Print"
-msgstr ""
-
 msgid "Slice all"
 msgstr "Slice all"
 
@@ -2325,9 +2322,6 @@ msgstr "Print all"
 
 msgid "Export G-code file"
 msgstr ""
-
-msgid "Send"
-msgstr "Send"
 
 msgid "Export sliced file"
 msgstr "Export Sliced File"
@@ -2744,6 +2738,10 @@ msgid "Loading file list..."
 msgstr ""
 
 msgid "No files"
+msgstr ""
+
+#, c-format, boost-format
+msgid "File '%s' was lost! Please download it again."
 msgstr ""
 
 msgid "Download waiting..."
@@ -3810,6 +3808,9 @@ msgstr "Bambu Engineering Plate"
 msgid "Bamabu High Temperature Plate"
 msgstr "Bambu High Temperature Plate"
 
+msgid "Send print job to"
+msgstr "Send print job to"
+
 msgid "Refresh"
 msgstr "Refresh"
 
@@ -3819,8 +3820,8 @@ msgstr "Bed leveling"
 msgid "Flow Calibration"
 msgstr "Flow calibration"
 
-msgid "Can't connect to the printer"
-msgstr ""
+msgid "Send"
+msgstr "Send"
 
 msgid "send completed"
 msgstr "Send complete"
@@ -5627,24 +5628,32 @@ msgid "Height to rod"
 msgstr "Height to rod"
 
 msgid ""
-"Distance of the nozzle tip to the lower rod. Used as input of auto-arranging "
-"to avoid collision when printing by object"
+"Distance of the nozzle tip to the lower rod. Used for collision avoidance in "
+"by-object printing."
 msgstr ""
 
 msgid "Height to lid"
 msgstr "Height to lid"
 
 msgid ""
-"Distance of the nozzle tip to the lid. Used as input of auto-arranging to "
-"avoid collision when printing by object"
+"Distance of the nozzle tip to the lid. Used for collision avoidance in by-"
+"object printing."
 msgstr ""
 
 msgid "Radius"
 msgstr "Radius"
 
 msgid ""
-"Clearance radius around extruder. Used as input of auto-arranging to avoid "
-"collision when printing by object"
+"Clearance radius around extruder. Used for collision avoidance in by-object "
+"printing."
+msgstr ""
+
+msgid "Max Radius"
+msgstr ""
+
+msgid ""
+"Max clearance radius around extruder. Used for collision avoidance in by-"
+"object printing."
 msgstr ""
 
 msgid "Extruder Color"
@@ -7272,9 +7281,6 @@ msgstr ""
 
 #~ msgid "Initialize failed [%d]!"
 #~ msgstr "Initalization failed [%d]!"
-
-#~ msgid "Send print job to"
-#~ msgstr "Send print job to"
 
 #~ msgid ""
 #~ "%1% is too close to exclusion area, there will be collisions when "

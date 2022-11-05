@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-19 09:33+0800\n"
+"POT-Creation-Date: 2022-11-05 12:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2320,9 +2320,6 @@ msgstr "Projekt"
 msgid "Slice"
 msgstr "Bered"
 
-msgid "Send and Print"
-msgstr ""
-
 msgid "Slice all"
 msgstr "Bered allt"
 
@@ -2334,9 +2331,6 @@ msgstr "Skriv ut allt"
 
 msgid "Export G-code file"
 msgstr ""
-
-msgid "Send"
-msgstr "Skicka"
 
 msgid "Export sliced file"
 msgstr "Exportera beredd fil"
@@ -2750,6 +2744,10 @@ msgstr "Laddar fil lista..."
 
 msgid "No files"
 msgstr "Inga filer"
+
+#, c-format, boost-format
+msgid "File '%s' was lost! Please download it again."
+msgstr ""
 
 msgid "Download waiting..."
 msgstr ""
@@ -3811,6 +3809,9 @@ msgstr "Bambu Engineering Plate"
 msgid "Bamabu High Temperature Plate"
 msgstr "Bambu High Temperature Plate"
 
+msgid "Send print job to"
+msgstr "Skicka utskriftsjobb till"
+
 msgid "Refresh"
 msgstr "Uppdatera"
 
@@ -3820,8 +3821,8 @@ msgstr "Justering av Byggplattan"
 msgid "Flow Calibration"
 msgstr "Flödes Kalibrering"
 
-msgid "Can't connect to the printer"
-msgstr ""
+msgid "Send"
+msgstr "Skicka"
 
 msgid "send completed"
 msgstr "Skicka komplett"
@@ -5622,24 +5623,32 @@ msgid "Height to rod"
 msgstr "Höjd till axel"
 
 msgid ""
-"Distance of the nozzle tip to the lower rod. Used as input of auto-arranging "
-"to avoid collision when printing by object"
+"Distance of the nozzle tip to the lower rod. Used for collision avoidance in "
+"by-object printing."
 msgstr ""
 
 msgid "Height to lid"
 msgstr "Höjd till locket"
 
 msgid ""
-"Distance of the nozzle tip to the lid. Used as input of auto-arranging to "
-"avoid collision when printing by object"
+"Distance of the nozzle tip to the lid. Used for collision avoidance in by-"
+"object printing."
 msgstr ""
 
 msgid "Radius"
 msgstr "Radie"
 
 msgid ""
-"Clearance radius around extruder. Used as input of auto-arranging to avoid "
-"collision when printing by object"
+"Clearance radius around extruder. Used for collision avoidance in by-object "
+"printing."
+msgstr ""
+
+msgid "Max Radius"
+msgstr ""
+
+msgid ""
+"Max clearance radius around extruder. Used for collision avoidance in by-"
+"object printing."
 msgstr ""
 
 msgid "Extruder Color"
@@ -6674,8 +6683,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
-"(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för "
+"lösligt(material) stödgränssnittet är koncentriskt"
 
 msgid "Base pattern spacing"
 msgstr "Basens mönster mellanrum"
@@ -7277,9 +7286,6 @@ msgstr ""
 
 #~ msgid "Open"
 #~ msgstr "Öppna"
-
-#~ msgid "Send print job to"
-#~ msgstr "Skicka utskriftsjobb till"
 
 #~ msgid ""
 #~ "%1% is too close to exclusion area, there will be collisions when "
