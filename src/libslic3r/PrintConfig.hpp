@@ -760,7 +760,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionString,              machine_end_gcode))
     ((ConfigOptionStrings,             filament_end_gcode))
     ((ConfigOptionFloats,              filament_flow_ratio))
-    ((ConfigOptionBool,                enable_pressure_advance))
+    ((ConfigOptionBools,               enable_pressure_advance))
     ((ConfigOptionFloats,              pressure_advance))
     ((ConfigOptionFloats,              filament_diameter))
     ((ConfigOptionFloats,              filament_density))

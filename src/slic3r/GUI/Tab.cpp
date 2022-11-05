@@ -2675,7 +2675,7 @@ void TabFilament::toggle_options()
     }
     if (m_active_page->title() == "Filament")
     {
-        bool pa = m_config->opt_bool("enable_pressure_advance");
+        bool pa = m_config->opt_bool("enable_pressure_advance", 0);
         toggle_option("pressure_advance", pa);
 
         toggle_line("cool_plate_temp_initial_layer", is_BBL_printer);

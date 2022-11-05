@@ -1085,10 +1085,10 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 1. });
 
-    def = this->add("enable_pressure_advance", coBool);
+    def = this->add("enable_pressure_advance", coBools);
     def->label = L("Enable pressure advance");
     def->tooltip = L("Enable pressure advance, auto calibration result will be overwriten once enabled.");
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBools{ false });
 
     def = this->add("pressure_advance", coFloats);
     def->label = L("Pressure advance");
