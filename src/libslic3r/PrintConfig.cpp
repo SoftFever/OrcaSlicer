@@ -4342,6 +4342,12 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->tooltip = L("Export settings to a file.");
     def->cli_params = "settings.json";
     def->set_default_value(new ConfigOptionString("output.json"));
+
+    def = this->add("pipe", coString);
+    def->label = L("Send progress to pipe");
+    def->tooltip = L("Send progress to pipe.");
+    def->cli_params = "pipename";
+    def->set_default_value(new ConfigOptionString("cli_pipe"));
 }
 
 //BBS: remove unused command currently

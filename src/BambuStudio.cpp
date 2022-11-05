@@ -22,6 +22,13 @@
 #include <cstring>
 #include <iostream>
 #include <math.h>
+
+#if defined(__linux__) || defined(__LINUX__)
+#include <condition_variable>
+#include <mutex>
+#include <boost/thread.hpp>
+#endif
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/args.hpp>
@@ -98,6 +105,8 @@ using namespace Slic3r;
 
 #define CLI_NO_SUITABLE_OBJECTS     -50
 #define CLI_VALIDATE_ERROR          -51
+#define CLI_OBJECTS_PARTLY_INSIDE   -52
+
 #define CLI_SLICING_ERROR           -100
 
 
@@ -122,6 +131,155 @@ std::map<int, std::string> cli_errors = {
     {CLI_SLICING_ERROR, "Slice error"}
 };
 
+#if defined(__linux__) || defined(__LINUX__)
+#define PIPE_BUFFER_SIZE 64
+
+typedef struct _cli_callback_mgr {
+    int                 m_plate_count {0};
+    int                 m_plate_index;
+    int                 m_progress { 0 };
+    std::string         m_message;
+    int                 m_warning_step;
+    bool                m_exit {false};
+    bool                m_data_ready {false};
+    bool                m_started {false};
+    boost::thread               m_thread;
+    // Mutex and condition variable to synchronize m_thread with the UI thread.
+    std::mutex                  m_mutex;
+    std::condition_variable     m_condition;
+    int                 m_pipe_fd{-1};
+
+    bool    is_started()
+    {
+        bool result;
+        std::unique_lock<std::mutex> lck(m_mutex);
+        result = m_started;
+        lck.unlock();
+
+        return result;
+    }
+
+    void set_plate_info(int index, int count)
+    {
+        std::unique_lock<std::mutex> lck(m_mutex);
+        m_plate_count = count;
+        m_plate_index = index;
+        lck.unlock();
+
+        return;
+    }
+
+    void    notify()
+    {
+        if (m_pipe_fd < 0)
+            return;
+
+        std::string notify_message;
+        notify_message = "Plate "+ std::to_string(m_plate_index) + "/" +std::to_string(m_plate_count)+  ": Percent " + std::to_string(m_progress) + ": "+m_message;
+
+        char pipe_message[PIPE_BUFFER_SIZE] = {0};
+        strncpy(pipe_message, notify_message.c_str(), PIPE_BUFFER_SIZE);
+
+        int ret = write(m_pipe_fd, pipe_message,PIPE_BUFFER_SIZE);
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": write returns "<<ret;
+
+        return;
+    }
+
+    void    thread_proc()
+    {
+        std::unique_lock<std::mutex> lck(m_mutex);
+        m_started = true;
+        m_data_ready = false;
+        lck.unlock();
+        m_condition.notify_one();
+        BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::thread_proc started.";
+        while(1) {
+            lck.lock();
+            m_condition.wait(lck, [this](){ return m_data_ready || m_exit; });
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": wakup.";
+            if (m_exit) {
+                BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::thread_proc will exit.";
+                break;
+            }
+            notify();
+            m_data_ready = false;
+            lck.unlock();
+            m_condition.notify_one();
+        }
+        lck.unlock();
+        BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::thread_proc exit.";
+    }
+
+    void    update(int percent, std::string message, int warning_step)
+    {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": percent="<<percent<< ", warning_step = "<< m_warning_step<<", message="<<message;
+        std::unique_lock<std::mutex> lck(m_mutex);
+        if (!m_started) {
+            lck.unlock();
+            return;
+        }
+
+        if (m_progress >= percent) {
+            //already update before
+            lck.unlock();
+            return;
+        }
+        m_message = message;
+        m_progress = percent;
+        m_warning_step = warning_step;
+        m_data_ready = true;
+        lck.unlock();
+        m_condition.notify_one();
+        return;
+    }
+
+    bool start(std::string pipe_name)
+    {
+        BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::start enter.";
+        m_pipe_fd = open(pipe_name.c_str(),O_WRONLY|O_NONBLOCK);
+        if (m_pipe_fd < 0) {
+            BOOST_LOG_TRIVIAL(error) << "could not create pipe for "<<pipe_name;
+            return false;
+        }
+        std::unique_lock<std::mutex> lck(m_mutex);
+        m_thread = create_thread([this]{
+                this->thread_proc();
+        });
+        lck.unlock();
+        BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::start successfully.";
+        return true;
+    }
+
+    void stop()
+    {
+        BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::stop enter.";
+        std::unique_lock<std::mutex> lck(m_mutex);
+        if (m_pipe_fd > 0) {
+            close(m_pipe_fd);
+            m_pipe_fd = -1;
+        }
+        if (!m_started) {
+            lck.unlock();
+            return;
+        }
+        m_exit = true;
+        lck.unlock();
+        m_condition.notify_one();
+        // Wait until the worker thread exits.
+        m_thread.join();
+        BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::stop successfully.";
+    }
+}cli_callback_mgr_t;
+
+cli_callback_mgr_t g_cli_callback_mgr;
+
+void cli_status_callback(const PrintBase::SlicingStatus& slicing_status)
+{
+    g_cli_callback_mgr.update(slicing_status.percent, slicing_status.text, slicing_status.warning_step);
+    return;
+}
+#endif
 
 static PrinterTechnology get_printer_technology(const DynamicConfig &config)
 {
@@ -130,10 +288,18 @@ static PrinterTechnology get_printer_technology(const DynamicConfig &config)
 }
 
 //BBS: add flush and exit
+#if defined(__linux__) || defined(__LINUX__)
+#define flush_and_exit(ret)     { boost::nowide::cout << __FUNCTION__ << " found error, return "<<ret<<", exit..." << std::endl;\
+    g_cli_callback_mgr.stop();\
+    boost::nowide::cout.flush();\
+    boost::nowide::cerr.flush();\
+    return(ret);}
+#else
 #define flush_and_exit(ret)     { boost::nowide::cout << __FUNCTION__ << " found error, exit" << std::endl;\
     boost::nowide::cout.flush();\
     boost::nowide::cerr.flush();\
     return(ret);}
+#endif
 
 static void glfw_callback(int error_code, const char* description)
 {
@@ -604,7 +770,7 @@ int CLI::run(int argc, char **argv)
         m_print_config.apply(fff_print_config, true);
     } else {
         boost::nowide::cerr << "invalid printer_technology " << std::endl;
-        flush_and_exit(1);
+        flush_and_exit(CLI_INVALID_PRINTER_TECH);
         /*assert(printer_technology == ptSLA);
         sla_print_config.filename_format.value = "[input_filename_base].sl1";
 
@@ -1050,6 +1216,11 @@ int CLI::run(int argc, char **argv)
             this->print_help(true, ptFFF);
         } else if (opt_key == "help_sla") {
             this->print_help(true, ptSLA);
+        } else if (opt_key == "pipe") {
+#if defined(__linux__) || defined(__LINUX__)
+            std::string pipe_name = m_config.option<ConfigOptionString>("pipe")->value;
+            g_cli_callback_mgr.start(pipe_name);
+#endif
         } else if (opt_key == "export_settings") {
             //FIXME check for mixing the FFF / SLA parameters.
             // or better save fff_print_config vs. sla_print_config
@@ -1147,6 +1318,20 @@ int CLI::run(int argc, char **argv)
                     BuildVolume build_volume(part_plate->get_shape(), print_height);
                     model.update_print_volume_state(build_volume);
                     unsigned int count = model.update_print_volume_state(build_volume);
+
+                    if (count == 0) {
+                        BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": Nothing to be sliced, Either the print is empty or no object is fully inside the print volume before apply." << std::endl;
+                        flush_and_exit(CLI_NO_SUITABLE_OBJECTS);
+                    }
+                    else {
+                        for (ModelObject* model_object : model.objects)
+                            for (ModelInstance *i : model_object->instances)
+                                if (i->print_volume_state == ModelInstancePVS_Partly_Outside)
+                                {
+                                    BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": Found Object " << model_object->name <<" partly inside, can not be sliced." << std::endl;
+                                    flush_and_exit(CLI_OBJECTS_PARTLY_INSIDE);
+                                }
+                    }
                     // BBS: TODO
                     //BOOST_LOG_TRIVIAL(info) << boost::format("print_volume {%1%,%2%,%3%}->{%4%, %5%, %6%}, has %7% printables") % print_volume.min(0) % print_volume.min(1)
                     //    % print_volume.min(2) % print_volume.max(0) % print_volume.max(1) % print_volume.max(2) % count << std::endl;
@@ -1178,19 +1363,27 @@ int CLI::run(int argc, char **argv)
                         boost::nowide::cerr << err.string << std::endl;
                         //BBS: continue for other plates
                         //continue;
-                        flush_and_exit(1);
+                        flush_and_exit(CLI_VALIDATE_ERROR);
                     }
                     else if (!warning.string.empty())
                         BOOST_LOG_TRIVIAL(info) << "got warnings: "<< warning.string << std::endl;
 
                     if (print->empty()) {
-                        BOOST_LOG_TRIVIAL(error) << "Nothing to be sliced, Either the print is empty or no object is fully inside the print volume." << std::endl;
+                        BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": Nothing to be sliced, Either the print is empty or no object is fully inside the print volume after apply." << std::endl;
                         flush_and_exit(CLI_NO_SUITABLE_OBJECTS);
                     }
                     else
                         try {
                             std::string outfile_final;
-                            BOOST_LOG_TRIVIAL(info) << "start Print::process for partplate "<<index << std::endl;
+                            BOOST_LOG_TRIVIAL(info) << "start Print::process for partplate "<<index+1 << std::endl;
+#if defined(__linux__) || defined(__LINUX__)
+                            BOOST_LOG_TRIVIAL(info) << "cli callback mgr started:  "<<g_cli_callback_mgr.m_started << std::endl;
+                            if (g_cli_callback_mgr.is_started()) {
+                                BOOST_LOG_TRIVIAL(info) << "set print's callback to cli_status_callback.";
+                                print->set_status_callback(cli_status_callback);
+                                g_cli_callback_mgr.set_plate_info(index+1, (plate_to_slice== 0)?partplate_list.get_plate_count():1);
+                            }
+#endif
                             print->process();
                             if (printer_technology == ptFFF) {
                                 // The outfile is processed by a PlaceholderParser.
@@ -1225,7 +1418,7 @@ int CLI::run(int argc, char **argv)
                             BOOST_LOG_TRIVIAL(info) << "Slicing result exported to " << outfile << std::endl;
                             part_plate->update_slice_result_valid_state(true);
                         } catch (const std::exception &ex) {
-                            BOOST_LOG_TRIVIAL(info) << "found slicing or export error for partplate "<<index << std::endl;
+                            BOOST_LOG_TRIVIAL(info) << "found slicing or export error for partplate "<<index+1 << std::endl;
                             boost::nowide::cerr << ex.what() << std::endl;
                             //continue;
                             flush_and_exit(CLI_SLICING_ERROR);
@@ -1512,6 +1705,10 @@ int CLI::run(int argc, char **argv)
         glfwTerminate();
     }
 
+#if defined(__linux__) || defined(__LINUX__)
+    g_cli_callback_mgr.stop();
+#endif
+
     //BBS: flush logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", Finished" << std::endl;
     boost::nowide::cout.flush();
@@ -1630,7 +1827,7 @@ bool CLI::setup(int argc, char **argv)
 void CLI::print_help(bool include_print_options, PrinterTechnology printer_technology) const
 {
     boost::nowide::cout
-        << SLIC3R_BUILD_ID << ":"
+        << SLIC3R_APP_KEY <<"-"<< SLIC3R_VERSION << ":"
         << std::endl
         << "Usage: bambu-studio [ OPTIONS ] [ file.3mf/file.stl ... ]" << std::endl
         << std::endl
