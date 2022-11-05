@@ -82,6 +82,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "extruder_clearance_height_to_rod",
         "extruder_clearance_height_to_lid",
         "extruder_clearance_radius",
+        "extruder_clearance_max_radius",
         "extruder_colour",
         "extruder_offset",
         "filament_flow_ratio",
@@ -398,6 +399,9 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
         const PrintInstance *print_instance;
         BoundingBox    bounding_box;
         Polygon        hull_polygon;
+        int                  index;
+        double         arrange_score;
+        double               height;
     };
     std::vector<struct print_instance_info> print_instance_with_bounding_box;
     {
@@ -475,6 +479,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                     }
                 }
                 struct print_instance_info print_info {&instance, convex_hull.bounding_box(), convex_hull};
+                print_info.height = instance.print_object->height();
                 print_instance_with_bounding_box.push_back(std::move(print_info));
                 convex_hulls_other.emplace_back(std::move(convex_hull));
             }
@@ -489,22 +494,104 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
         }
     }
 
-    //sort the print instance
+    // calc sort order
+    double hc1              = scale_(print.config().extruder_clearance_height_to_lid); // height to lid
+    double hc2              = scale_(print.config().extruder_clearance_height_to_rod); // height to rod
+    double printable_height = scale_(print.config().printable_height);
+
+    auto bed_points = get_bed_shape(print_config);
+    float bed_width = bed_points[1].x() - bed_points[0].x();
+    // 如果扩大以后的多边形的距离小于这个值，就需要严格保证从左到右的打印顺序，否则会撞工具头右侧
+    float unsafe_dist = scale_(print_config.extruder_clearance_max_radius.value - print_config.extruder_clearance_radius.value);
+    struct VecHash
+    {
+        size_t operator()(const Vec2i &n1) const
+        {
+            return std::hash<coord_t>()(int(n1(0) * 100 + 100)) + std::hash<coord_t>()(int(n1(1) * 100 + 100)) * 101;
+        }
+    };
+    std::unordered_set<Vec2i, VecHash> left_right_pair; // pairs in this vector must strictly obey the left-right order
+    for (size_t i = 0; i < print_instance_with_bounding_box.size();i++) { 
+        auto &inst         = print_instance_with_bounding_box[i];
+        inst.index         = i;
+        Point pt           = inst.bounding_box.center();
+        inst.arrange_score = pt.x() / 2 + pt.y(); // we prefer print row-by-row, so cost on x-direction is smaller
+    }
+    for (size_t i = 0; i < print_instance_with_bounding_box.size(); i++) {
+        auto &inst         = print_instance_with_bounding_box[i];        
+        auto &l            = print_instance_with_bounding_box[i];
+        for (size_t j = 0; j < print_instance_with_bounding_box.size(); j++) {
+            if (j != i) { 
+                auto &r        = print_instance_with_bounding_box[j];
+                auto ly1       = l.bounding_box.min.y();
+                auto ly2       = l.bounding_box.max.y();
+                auto ry1       = r.bounding_box.min.y();
+                auto ry2       = r.bounding_box.max.y();
+                auto lx1       = l.bounding_box.min.x();
+                auto rx1       = r.bounding_box.min.x();
+                auto lx2       = l.bounding_box.max.x();
+                auto rx2       = r.bounding_box.max.x();
+                auto inter_min = std::max(ly1, ry1);
+                auto inter_max = std::min(ly2, ry2);
+                auto inter_y   = inter_max - inter_min;
+                inter_min      = std::max(lx1, rx1);
+                inter_max      = std::min(lx2, rx2);
+                auto inter_x   = inter_max - inter_min;
+
+                // 如果y方向的重合超过轮廓的膨胀量，说明两个物体在一行，应该先打左边的物体，即先比较二者的x坐标。
+                if (inter_y > scale_(1)) {
+                    if (std::max(rx1 - lx2, lx1 - rx2) < unsafe_dist) {
+                        if (lx1 > rx1) {
+                            left_right_pair.insert({j, i});
+                            BOOST_LOG_TRIVIAL(debug) << "in-a-row, print_instance " << r.print_instance->model_instance->get_object()->name << "(" << r.arrange_score << ")"
+                                                     << " -> " << l.print_instance->model_instance->get_object()->name << "(" << l.arrange_score << ")";
+                        } else {
+                            left_right_pair.insert({i, j});
+                            BOOST_LOG_TRIVIAL(debug) << "in-a-row, print_instance " << l.print_instance->model_instance->get_object()->name << "(" << l.arrange_score << ")"
+                                                     << " -> " << r.print_instance->model_instance->get_object()->name << "(" << r.arrange_score << ")";
+                        }
+                    }
+                } 
+                if (l.height > hc1 && r.height < hc1) {
+                    // 当前物体超过了顶盖高度，必须后打
+                    left_right_pair.insert({j, i});
+                    BOOST_LOG_TRIVIAL(debug) << "height>hc1, print_instance " << r.print_instance->model_instance->get_object()->name << "(" << r.arrange_score << ")"
+                                             << " -> " << l.print_instance->model_instance->get_object()->name << "(" << l.arrange_score << ")";
+                }
+                else if (l.height > hc2 && l.height > r.height && l.arrange_score<r.arrange_score) {
+                    // 如果当前物体的高度超过滑杆，且比r高，就给它加一点代价，尽量让高的物体后打（只有物体高度超过滑杆时才有必要按高度来）
+                    l.arrange_score = std::max(l.arrange_score, r.arrange_score + bed_width/2);
+                    BOOST_LOG_TRIVIAL(debug) << "height>hc2, print_instance " << inst.print_instance->model_instance->get_object()->name
+                                             << ", right=" << r.print_instance->model_instance->get_object()->name << ", l.score: " << l.arrange_score
+                                             << ", r.score: " << r.arrange_score;
+                }
+            }
+        }
+    }
+    BOOST_LOG_TRIVIAL(debug) << "bed width: " << bed_width << ", unsafe_dist:" << unsafe_dist;
+    // 多做几次代价传播，因为前一次有些值没有更新。
+    // TODO 更好的办法是建立一颗树，一步到位。不过我暂时没精力搞，先就这样吧
+    for (int k=0;k<5;k++)
+    for (auto p : left_right_pair) {
+        auto &l = print_instance_with_bounding_box[p(0)];
+        auto &r = print_instance_with_bounding_box[p(1)];
+        if(r.arrange_score<l.arrange_score)
+            r.arrange_score = l.arrange_score + bed_width/2;
+    }
+    
+    for (auto p : left_right_pair) {
+        auto &l         = print_instance_with_bounding_box[p(0)];
+        auto &r         = print_instance_with_bounding_box[p(1)];
+        BOOST_LOG_TRIVIAL(debug) << "print_instance " << l.print_instance->model_instance->get_object()->name << "(" << l.arrange_score << ")"
+                                 << " -> " << r.print_instance->model_instance->get_object()->name << "(" << r.arrange_score << ")";
+    }
+    // sort the print instance
     std::sort(print_instance_with_bounding_box.begin(), print_instance_with_bounding_box.end(),
-        [](auto &l, auto &r) {
-            auto ly1       = l.bounding_box.min.y();
-            auto ly2       = l.bounding_box.max.y();
-            auto ry1       = r.bounding_box.min.y();
-            auto ry2       = r.bounding_box.max.y();
-            auto inter_min = std::max(ly1, ry1);
-            auto inter_max = std::min(ly2, ry2);
-            auto lx        = l.bounding_box.min.x();
-            auto rx        = r.bounding_box.min.x();
-            if (inter_max - inter_min > 0)
-                return (lx < rx) || ((lx == rx) && (ly1 < ry1));
-            else
-                return (ly1 < ry1);
-        });
+        [](print_instance_info& l, print_instance_info& r) {return l.arrange_score < r.arrange_score;});
+
+    for (auto &inst : print_instance_with_bounding_box)
+        BOOST_LOG_TRIVIAL(debug) << "after sorting print_instance " << inst.print_instance->model_instance->get_object()->name << ", score: " << inst.arrange_score
+                                 << ", height:"<< inst.height;
 
     // sequential_print_vertical_clearance_valid
     {
@@ -535,9 +622,6 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                 break;
         }*/
 
-        double hc1 = scale_(print.config().extruder_clearance_height_to_lid);
-        double hc2 = scale_(print.config().extruder_clearance_height_to_rod);
-        double printable_height = scale_(print.config().printable_height);
 
         // if objects are not overlapped on y-axis, they will not collide even if they are taller than extruder_clearance_height_to_rod
         int print_instance_count = print_instance_with_bounding_box.size();
@@ -545,7 +629,8 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
         for (int k = 0; k < print_instance_count; k++)
         {
             auto inst = print_instance_with_bounding_box[k].print_instance;
-            auto bbox = print_instance_with_bounding_box[k].bounding_box;
+            // 只需要考虑喷嘴到滑杆的偏移量，这个比整个工具头的碰撞半径要小得多
+            auto bbox = print_instance_with_bounding_box[k].bounding_box.inflated(-scale_(0.5 * print.config().extruder_clearance_radius.value));
             auto iy1 = bbox.min.y();
             auto iy2 = bbox.max.y();
             (const_cast<ModelInstance*>(inst->model_instance))->arrange_order = k+1;

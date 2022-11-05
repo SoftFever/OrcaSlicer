@@ -404,8 +404,8 @@ protected:
                 hasLidHeightConflict |= (p.height > clearance_height_to_lid);
             }
 
-            double lambda3 = LARGE_COST_TO_REJECT;
-            double lambda4 = LARGE_COST_TO_REJECT;
+            double lambda3 = LARGE_COST_TO_REJECT*1.1;
+            double lambda4 = LARGE_COST_TO_REJECT*1.2;
             for (int i = 0; i < m_items.size(); i++) {
                 Item& p = m_items[i];
                 if (p.is_virt_object) continue;
@@ -556,12 +556,11 @@ public:
                     }
                 });
 
-        //if (progressind) {
-        //    m_pck.unfitIndicator([this, progressind](std::string name) {
-        //        progressind(100, name+" not fit!");
-        //        BOOST_LOG_TRIVIAL(debug) << "arrange not fit: " + name;
-        //        });
-        //}
+        if (progressind) {
+            m_pck.unfitIndicator([this, progressind](std::string name) {
+                BOOST_LOG_TRIVIAL(debug) << "arrange not fit: " + name;
+                });
+        }
 
         if (stopcond) m_pck.stopCondition(stopcond);
 

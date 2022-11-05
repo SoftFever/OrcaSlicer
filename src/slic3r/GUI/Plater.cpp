@@ -2020,7 +2020,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     //BBS: add bed_exclude_area
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
         "printable_area", "bed_exclude_area", "print_sequence",
-        "extruder_clearance_radius", "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod", "skirt_loops", "skirt_distance",
+        "extruder_clearance_radius", "extruder_clearance_max_radius",
+        "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod", "skirt_loops", "skirt_distance",
         "brim_width", "brim_object_gap", "brim_type", "nozzle_diameter", "single_extruder_multi_material",
         "enable_prime_tower", "wipe_tower_x", "wipe_tower_y", "prime_tower_width", "prime_tower_brim_width", "prime_volume",
         "extruder_colour", "filament_colour", "material_colour", "printable_height", "printer_model", "printer_technology",
@@ -7224,7 +7225,7 @@ void Plater::add_model(bool imperial_units/* = false*/)
     if (!load_files(paths, strategy, ask_multi).empty()) {
 
         if (get_project_name() == _L("Untitled") && paths.size() > 0) {
-            p->set_project_filename(wxString(paths[0].string()));
+            p->set_project_filename(wxString::FromUTF8(paths[0].string()));
         }
 
         wxGetApp().mainframe->update_title();
@@ -9319,6 +9320,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 {
     bool update_scheduled = false;
     bool bed_shape_changed = false;
+    bool print_sequence_changed = false;
     t_config_option_keys diff_keys = p->config->diff(config);
     for (auto opt_key : diff_keys) {
         if (opt_key == "filament_colour") {
@@ -9369,6 +9371,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         }
         else if (opt_key == "print_sequence") {
             update_scheduled = true;
+            print_sequence_changed = true;
         }
         else if (opt_key == "printer_model") {
             p->reset_gcode_toolpaths();
@@ -9393,6 +9396,9 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         if (seq_print->value == PrintSequence::ByObject) {
             std::string info_text = L("Print By Object: \nSuggest to use auto-arrange to avoid collisions when printing.");
             notify_manager->bbl_show_seqprintinfo_notification(info_text);
+            //always show label when switch to sequence print
+            if (print_sequence_changed)
+                this->show_view3D_labels(true);
         }
         else
             notify_manager->bbl_close_seqprintinfo_notification();

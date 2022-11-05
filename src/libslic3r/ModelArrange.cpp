@@ -127,11 +127,11 @@ ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::
 
         const ConfigOptionInts* bed_opt = config.option<ConfigOptionInts>(get_bed_temp_key(curr_bed_type));
         if (bed_opt != nullptr)
-            ap.bed_temp = bed_opt->get_at(ap.extrude_ids.back());
+            ap.bed_temp = bed_opt->get_at(ap.extrude_ids.back()-1);
 
         const ConfigOptionInts* bed_opt_1st_layer = config.option<ConfigOptionInts>(get_bed_temp_1st_layer_key(curr_bed_type));
         if (bed_opt_1st_layer != nullptr)
-            ap.first_bed_temp = bed_opt_1st_layer->get_at(ap.extrude_ids.back());
+            ap.first_bed_temp = bed_opt_1st_layer->get_at(ap.extrude_ids.back()-1);
     }
 
     if (config.has("nozzle_temperature")) //get the print temperature

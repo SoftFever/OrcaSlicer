@@ -248,7 +248,8 @@ void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_
                 return owner.model_instance_id == id;
                 });
             if (it != owners.end())
-                it->print_order = std::string((_(L("Sequence"))).ToUTF8()) + "#: " + std::to_string(i + 1);
+                //it->print_order = std::string((_(L("Sequence"))).ToUTF8()) + "#: " + std::to_string(i + 1);
+                it->print_order = std::string((_(L("Sequence"))).ToUTF8()) + "#: " + std::to_string(sorted_instances[i]->arrange_order);
         }
     }
 
@@ -6032,10 +6033,20 @@ void GLCanvas3D::_render_overlays()
     bool sequential_print = opt != nullptr && (opt->value == PrintSequence::ByObject);
     std::vector<const ModelInstance*> sorted_instances;
     if (sequential_print) {
-        for (ModelObject* model_object : m_model->objects)
+        const Print* print = fff_print();
+        if (print) {
+            for (const PrintObject *print_object : print->objects())
+            {
+                for (const PrintInstance &instance : print_object->instances())
+                {
+                    sorted_instances.emplace_back(instance.model_instance);
+                }
+            }
+        }
+        /*for (ModelObject* model_object : m_model->objects)
             for (ModelInstance* model_instance : model_object->instances) {
                 sorted_instances.emplace_back(model_instance);
-            }
+            }*/
     }
     m_labels.render(sorted_instances);
 

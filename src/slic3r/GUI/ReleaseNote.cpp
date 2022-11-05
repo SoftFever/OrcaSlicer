@@ -89,6 +89,7 @@ void ReleaseNoteDialog::update_release_note(wxString release_note, std::string v
     sizer_text_release_note->Add(m_staticText_release_note, 0, wxALL, 5);
     m_vebview_release_note->SetSizer(sizer_text_release_note);
     m_vebview_release_note->Layout();
+    m_vebview_release_note->Fit();
 }
 
 void UpdateVersionDialog::alter_choice(wxCommandEvent& event)
@@ -333,6 +334,7 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
         sizer_text_release_note->Add(m_staticText_release_note, 0, wxALL, 5);
         m_scrollwindows_release_note->SetSizer(sizer_text_release_note);
         m_scrollwindows_release_note->Layout();
+        m_scrollwindows_release_note->Fit();
     }  
 }
 

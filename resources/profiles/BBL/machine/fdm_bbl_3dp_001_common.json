@@ -111,9 +111,10 @@
         "0.08"
     ],
     "printable_height": "250",
-    "extruder_clearance_radius": "32",
+    "extruder_clearance_radius": "57",
+    "extruder_clearance_max_radius": "68",
     "extruder_clearance_height_to_rod": "36",
-    "extruder_clearance_height_to_lid": "140",
+    "extruder_clearance_height_to_lid": "90",
     "nozzle_volume": "118",
     "nozzle_diameter": [
         "0.4"
