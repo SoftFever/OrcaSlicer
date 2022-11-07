@@ -84,8 +84,6 @@ SlicingParameters SlicingParameters::create_from_config(
     params.object_print_z_max = object_height;
     params.base_raft_layers = object_config.raft_layers.value;
     params.soluble_interface = soluble_interface;
-    //BBS
-    params.adaptive_layer_height = print_config.enable_prime_tower ? false : object_config.adaptive_layer_height;
 
     // Miniumum/maximum of the minimum layer height over all extruders.
     params.min_layer_height = MIN_LAYER_HEIGHT;

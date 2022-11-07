@@ -50,7 +50,7 @@ static bool is_improper_category(const std::string& category, const int filament
 static SettingsFactory::Bundle FREQ_SETTINGS_BUNDLE_FFF =
 {
     //BBS
-    { L("Quality"), { "layer_height" , "adaptive_layer_height" } },
+    { L("Quality"), { "layer_height" } },
     { L("Shell"), { "wall_loops", "top_shell_layers", "bottom_shell_layers"} },
     { L("Infill")               , { "sparse_infill_density", "sparse_infill_pattern" } },
     // BBS
@@ -72,9 +72,9 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
 {
     { L("Quality"), {{"layer_height", "",1},
                     //{"initial_layer_print_height", "",2},
-                    {"adaptive_layer_height", "",2},{"seam_position", "",3},
-                    {"slice_closing_radius", "",4}, {"resolution", "",5},
-                    {"xy_hole_compensation", "",6}, {"xy_contour_compensation", "",7}, {"elefant_foot_compensation", "",8}
+                    {"seam_position", "",2},
+                    {"slice_closing_radius", "",3}, {"resolution", "",4},
+                    {"xy_hole_compensation", "",5}, {"xy_contour_compensation", "",6}, {"elefant_foot_compensation", "",7}
                     }},
     { L("Support"), {{"brim_type", "",1},{"brim_width", "",2},{"brim_object_gap", "",3},
                     {"enable_support", "",4},{"support_type", "",5},{"support_threshold_angle", "",6},{"support_on_build_plate_only", "",7},
@@ -90,7 +90,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
 
 std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CATEGORY_SETTINGS=
 {
-    { L("Quality"), {{"ironing_type", "",9},{"ironing_flow", "",10},{"ironing_spacing", "",11},{"bridge_flow", "",12}
+    { L("Quality"), {{"ironing_type", "",8},{"ironing_flow", "",9},{"ironing_spacing", "",10},{"bridge_flow", "",11}
                     }},
     { L("Strength"), {{"wall_loops", "",1},{"top_shell_layers", L("Top Solid Layers"),1},{"top_shell_thickness", L("Top Minimum Shell Thickness"),1},
                     {"bottom_shell_layers", L("Bottom Solid Layers"),1}, {"bottom_shell_thickness", L("Bottom Minimum Shell Thickness"),1},
