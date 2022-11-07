@@ -1155,7 +1155,12 @@ void GUI_App::post_init()
            while (files_vec.size() > LOG_FILES_MAX_NUM) {
                auto full_path = log_folder / boost::filesystem::path(files_vec[files_vec.size() - 1].second);
                BOOST_LOG_TRIVIAL(info) << "delete log file over " << LOG_FILES_MAX_NUM << ", filename: "<< files_vec[files_vec.size() - 1].second;
-               boost::filesystem::remove(full_path);
+               try {
+                   boost::filesystem::remove(full_path);
+               }
+               catch (const std::exception& ex) {
+                   BOOST_LOG_TRIVIAL(error) << "failed to delete log file: "<< files_vec[files_vec.size() - 1].second << ". Error: " << ex.what();
+               }
                files_vec.pop_back();
            }
         }
