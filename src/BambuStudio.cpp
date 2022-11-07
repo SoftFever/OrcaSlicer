@@ -140,8 +140,9 @@ std::map<int, std::string> cli_errors = {
 
 typedef struct _cli_callback_mgr {
     int                 m_plate_count {0};
-    int                 m_plate_index;
+    int                 m_plate_index {0};
     int                 m_progress { 0 };
+    int                 m_total_progress { 0 };
     std::string         m_message;
     int                 m_warning_step;
     bool                m_exit {false};
@@ -165,9 +166,11 @@ typedef struct _cli_callback_mgr {
 
     void set_plate_info(int index, int count)
     {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": index="<<index<< ", count = "<< count;
         std::unique_lock<std::mutex> lck(m_mutex);
         m_plate_count = count;
         m_plate_index = index;
+        m_progress = 0;
         lck.unlock();
 
         return;
@@ -182,7 +185,8 @@ typedef struct _cli_callback_mgr {
         //record the headers
         j["plate_index"] = m_plate_index;
         j["plate_count"] = m_plate_count;
-        j["percent"] = m_progress;
+        j["plate_percent"] = m_progress;
+        j["total_percent"] = m_total_progress;
         j["message"] = m_message;
 
         std::string notify_message = j.dump();
@@ -209,12 +213,14 @@ typedef struct _cli_callback_mgr {
             lck.lock();
             m_condition.wait(lck, [this](){ return m_data_ready || m_exit; });
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": wakup.";
+            if (m_data_ready) {
+                notify();
+                m_data_ready = false;
+            }
             if (m_exit) {
                 BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::thread_proc will exit.";
                 break;
             }
-            notify();
-            m_data_ready = false;
             lck.unlock();
             m_condition.notify_one();
         }
@@ -224,7 +230,7 @@ typedef struct _cli_callback_mgr {
 
     void    update(int percent, std::string message, int warning_step)
     {
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": percent="<<percent<< ", warning_step = "<< m_warning_step<<", message="<<message;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": percent="<<percent<< ", plate_index = "<< m_plate_index<<", plate_count="<< m_plate_count<<", message="<<message;
         std::unique_lock<std::mutex> lck(m_mutex);
         if (!m_started) {
             lck.unlock();
@@ -236,8 +242,17 @@ typedef struct _cli_callback_mgr {
             lck.unlock();
             return;
         }
-        m_message = message;
         m_progress = percent;
+        if ((m_plate_index >= 1)&&(m_plate_index <= m_plate_count)) {
+            if (m_plate_count <= 1)
+                m_total_progress = 0.9*m_progress;
+            else {
+                m_total_progress = ((float)(m_plate_index - 1)*90)/m_plate_count + ((float)m_progress*0.9)/m_plate_count;
+            }
+        }
+        else
+            m_total_progress = 0.9*m_progress;
+        m_message = message;
         m_warning_step = warning_step;
         m_data_ready = true;
         lck.unlock();
@@ -266,10 +281,6 @@ typedef struct _cli_callback_mgr {
     {
         BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::stop enter.";
         std::unique_lock<std::mutex> lck(m_mutex);
-        if (m_pipe_fd > 0) {
-            close(m_pipe_fd);
-            m_pipe_fd = -1;
-        }
         if (!m_started) {
             lck.unlock();
 	    BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::stop not started before, return directly.";
@@ -280,6 +291,10 @@ typedef struct _cli_callback_mgr {
         m_condition.notify_one();
         // Wait until the worker thread exits.
         m_thread.join();
+        if (m_pipe_fd > 0) {
+            close(m_pipe_fd);
+            m_pipe_fd = -1;
+        }
         BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::stop successfully.";
     }
 }cli_callback_mgr_t;
@@ -1429,6 +1444,12 @@ int CLI::run(int argc, char **argv)
                             //run_post_process_scripts(outfile, print->full_print_config());
                             BOOST_LOG_TRIVIAL(info) << "Slicing result exported to " << outfile << std::endl;
                             part_plate->update_slice_result_valid_state(true);
+#if defined(__linux__) || defined(__LINUX__)
+                            if (g_cli_callback_mgr.is_started()) {
+                                PrintBase::SlicingStatus slicing_status{100, "Slicing finished"};
+                                cli_status_callback(slicing_status);
+                            }
+#endif
                         } catch (const std::exception &ex) {
                             BOOST_LOG_TRIVIAL(info) << "found slicing or export error for partplate "<<index+1 << std::endl;
                             boost::nowide::cerr << ex.what() << std::endl;
@@ -1436,6 +1457,13 @@ int CLI::run(int argc, char **argv)
                             flush_and_exit(CLI_SLICING_ERROR);
                         }
                 }//end for partplate
+
+#if defined(__linux__) || defined(__LINUX__)
+                if (g_cli_callback_mgr.is_started()) {
+                    int plate_count = (plate_to_slice== 0)?partplate_list.get_plate_count():1;
+                    g_cli_callback_mgr.set_plate_info(plate_count+1, plate_count);
+                }
+#endif
 /*
                 print.center = ! m_config.has("center")
                     && ! m_config.has("align_xy")
@@ -1484,6 +1512,13 @@ int CLI::run(int argc, char **argv)
         if (!outfile_dir.empty()) {
             export_3mf_file = outfile_dir + "/"+export_3mf_file;
         }
+
+#if defined(__linux__) || defined(__LINUX__)
+        if (g_cli_callback_mgr.is_started()) {
+            PrintBase::SlicingStatus slicing_status{91, "Generate thumbnails"};
+            cli_status_callback(slicing_status);
+        }
+#endif
 
         // get type and color for platedata
         auto* filament_types = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_type"));
@@ -1695,6 +1730,13 @@ int CLI::run(int argc, char **argv)
             }
         }
 
+#if defined(__linux__) || defined(__LINUX__)
+        if (g_cli_callback_mgr.is_started()) {
+            PrintBase::SlicingStatus slicing_status{95, "Exporting 3mf"};
+            cli_status_callback(slicing_status);
+        }
+#endif
+
         BOOST_LOG_TRIVIAL(info) << "will export 3mf to " << export_3mf_file << std::endl;
         if (! this->export_project(&m_models[0], export_3mf_file, plate_data_list, project_presets, thumbnails, calibration_thumbnails, plate_bboxes, &m_print_config))
         {
@@ -1718,6 +1760,11 @@ int CLI::run(int argc, char **argv)
     }
 
 #if defined(__linux__) || defined(__LINUX__)
+    if (g_cli_callback_mgr.is_started()) {
+        PrintBase::SlicingStatus slicing_status{100, "All done, Success"};
+        cli_status_callback(slicing_status);
+    }
+
     g_cli_callback_mgr.stop();
 #endif
 
