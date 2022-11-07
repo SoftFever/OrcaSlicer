@@ -1733,8 +1733,9 @@ void GUI_App::init_networking_callbacks()
             CallAfter([this, dev_id, msg] {
                 if (m_is_closing)
                     return;
+
                 MachineObject* obj = m_device_manager->get_my_machine(dev_id);
-                if (!obj) {
+                if (!obj || !obj->is_lan_mode_printer()) {
                     obj = m_device_manager->get_local_machine(dev_id);
                 }
 
