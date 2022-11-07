@@ -27,6 +27,10 @@
 #include <condition_variable>
 #include <mutex>
 #include <boost/thread.hpp>
+//add json logic
+#include "nlohmann/json.hpp"
+
+using namespace nlohmann;
 #endif
 
 #include <boost/algorithm/string/predicate.hpp>
@@ -132,7 +136,7 @@ std::map<int, std::string> cli_errors = {
 };
 
 #if defined(__linux__) || defined(__LINUX__)
-#define PIPE_BUFFER_SIZE 64
+#define PIPE_BUFFER_SIZE 128
 
 typedef struct _cli_callback_mgr {
     int                 m_plate_count {0};
@@ -174,8 +178,15 @@ typedef struct _cli_callback_mgr {
         if (m_pipe_fd < 0)
             return;
 
-        std::string notify_message;
-        notify_message = "Plate "+ std::to_string(m_plate_index) + "/" +std::to_string(m_plate_count)+  ": Percent " + std::to_string(m_progress) + ": "+m_message;
+        json j;
+        //record the headers
+        j["plate_index"] = m_plate_index;
+        j["plate_count"] = m_plate_count;
+        j["percent"] = m_progress;
+        j["message"] = m_message;
+
+        std::string notify_message = j.dump();
+        //notify_message = "Plate "+ std::to_string(m_plate_index) + "/" +std::to_string(m_plate_count)+  ": Percent " + std::to_string(m_progress) + ": "+m_message;
 
         char pipe_message[PIPE_BUFFER_SIZE] = {0};
         strncpy(pipe_message, notify_message.c_str(), PIPE_BUFFER_SIZE);
@@ -239,7 +250,7 @@ typedef struct _cli_callback_mgr {
         BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::start enter.";
         m_pipe_fd = open(pipe_name.c_str(),O_WRONLY|O_NONBLOCK);
         if (m_pipe_fd < 0) {
-            BOOST_LOG_TRIVIAL(error) << "could not create pipe for "<<pipe_name;
+            BOOST_LOG_TRIVIAL(warning) << "could not create pipe for "<<pipe_name;
             return false;
         }
         std::unique_lock<std::mutex> lck(m_mutex);
@@ -261,6 +272,7 @@ typedef struct _cli_callback_mgr {
         }
         if (!m_started) {
             lck.unlock();
+	    BOOST_LOG_TRIVIAL(info) << "cli_callback_mgr_t::stop not started before, return directly.";
             return;
         }
         m_exit = true;
