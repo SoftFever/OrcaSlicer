@@ -397,6 +397,9 @@ std::string GLCanvas3D::LayersEditing::get_tooltip(const GLCanvas3D& canvas) con
 
 void GLCanvas3D::LayersEditing::render_background_texture(const GLCanvas3D& canvas, const Rect& bar_rect)
 {
+    if (!m_enabled)
+        return;
+
     GLShaderProgram* shader = wxGetApp().get_shader("variable_layer_height");
     if (shader == nullptr)
         return;
@@ -433,6 +436,9 @@ void GLCanvas3D::LayersEditing::render_background_texture(const GLCanvas3D& canv
 
 void GLCanvas3D::LayersEditing::render_curve(const Rect & bar_rect)
 {
+    if (!m_enabled)
+        return;
+
     //FIXME show some kind of legend.
     if (!m_slicing_parameters)
         return;
@@ -2818,7 +2824,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #else /* __APPLE__ */
         case WXK_CONTROL_A:
 #endif /* __APPLE__ */
-            if (!is_in_painting_mode)
+            if (!is_in_painting_mode && !m_layers_editing.is_enabled())
                 post_event(SimpleEvent(EVT_GLCANVAS_SELECT_ALL));
         break;
 #ifdef __APPLE__
