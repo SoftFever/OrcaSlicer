@@ -660,7 +660,7 @@ std::vector<WipeTower::ToolChangeResult> WipeTower::prime(
     return std::vector<ToolChangeResult>();
 }
 
-WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_perimeter)
+WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_perimeter, bool first_toolchange_to_nonsoluble)
 {
     size_t old_tool = m_current_tool;
 
@@ -729,6 +729,12 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
             writer.rectangle(wt_box);
             writer.travel(initial_position);
         }
+
+        if (first_toolchange_to_nonsoluble) {
+            writer.travel(Vec2f(0, 0));
+            writer.travel(initial_position);
+        }
+
         toolchange_Wipe(writer, cleaning_box, wipe_length);     // Wipe the newly loaded filament until the end of the assigned wipe area.
         ++ m_num_tool_changes;
     } else
@@ -1514,7 +1520,11 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
                 finish_layer_tcr = finish_layer(false, layer.extruder_fill);
             }
             else {
-                layer_result.emplace_back(tool_change(layer.tool_changes[i].new_tool));
+                if (idx == -1 && i == 0) {
+                    layer_result.emplace_back(tool_change(layer.tool_changes[i].new_tool, false, true));
+                } else {
+                    layer_result.emplace_back(tool_change(layer.tool_changes[i].new_tool));
+                }
             }
         }
 
