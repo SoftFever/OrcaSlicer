@@ -4065,6 +4065,10 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
             gcode += this->placeholder_parser_process("filament_start_gcode", filament_start_gcode, extruder_id);
             check_add_eol(gcode);
         }
+        if (m_config.enable_pressure_advance.get_at(extruder_id)) {
+            gcode += m_writer.set_pressure_advance(m_config.pressure_advance.get_at(extruder_id));
+        }
+
         gcode += m_writer.toolchange(extruder_id);
         return gcode;
     }
