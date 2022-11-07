@@ -537,7 +537,7 @@ void AppConfig::save()
     {
         // Returns "undefined" if the thread naming functionality is not supported by the operating system.
         std::optional<std::string> current_thread_name = get_current_thread_name();
-        if (current_thread_name && *current_thread_name != "bambustu_main") {
+        if (current_thread_name && *current_thread_name != "bambustu_main" && *current_thread_name != "main") {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__<<", current_thread_name is " << *current_thread_name;
             throw CriticalException("Calling AppConfig::save() from a worker thread, thread name: " + *current_thread_name);
         }
