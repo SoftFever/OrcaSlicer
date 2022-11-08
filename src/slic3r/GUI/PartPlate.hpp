@@ -132,6 +132,8 @@ private:
     mutable unsigned int m_orient_vbo_id{ 0 };
     GeometryBuffer m_lock_icon;
     mutable unsigned int m_lock_vbo_id{ 0 };
+    GeometryBuffer m_bedtype_icon;
+    mutable unsigned int m_bedtype_vbo_id{ 0 };
     GeometryBuffer m_plate_idx_icon;
     mutable unsigned int m_plate_idx_vbo_id{ 0 };
     GLTexture m_texture;
@@ -160,6 +162,7 @@ private:
     void calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer);
     void render_background(bool force_default_color = false) const;
     void render_logo(bool bottom) const;
+    void render_logo_texture(GLTexture& logo_texture, bool bottom) const;
     void render_exclude_area(bool force_default_color) const;
     //void render_background_for_picking(const float* render_color) const;
     void render_grid(bool bottom) const;
@@ -180,7 +183,7 @@ private:
 
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
-    static const unsigned int GRABBER_COUNT = 5;
+    static const unsigned int GRABBER_COUNT = 6;
 
     static std::array<float, 4> SELECT_COLOR;
     static std::array<float, 4> UNSELECT_COLOR;
@@ -203,7 +206,7 @@ public:
     //clear alll the instances in plate
     void clear(bool clear_sliced_result = true);
 
-    BedType get_bed_type();
+    BedType get_bed_type() const;
     void set_bed_type(BedType);
     void reset_bed_type();
     DynamicPrintConfig* config() { return &m_config; }
@@ -450,7 +453,12 @@ class PartPlateList : public ObjectBase
     GLTexture m_locked_hovered_texture;
     GLTexture m_lockopen_texture;
     GLTexture m_lockopen_hovered_texture;
+    GLTexture m_bedtype_texture;
+    GLTexture m_bedtype_hovered_texture;
     GLTexture m_idx_textures[MAX_PLATE_COUNT];
+    // set render option
+    bool render_bedtype_logo = true;
+    bool render_bedtype_setting = true;
 
     void init();
     //compute the origin for printable plate with index i
@@ -469,6 +477,8 @@ class PartPlateList : public ObjectBase
 
 public:
     static const unsigned int MAX_PLATES_COUNT = MAX_PLATE_COUNT;
+    static GLTexture bed_textures[(unsigned int)btCount];
+    static bool is_load_bedtype_textures;
 
     PartPlateList(int width, int depth, int height, Plater* platerObj, Model* modelObj, PrinterTechnology tech = ptFFF);
     PartPlateList(Plater* platerObj, Model* modelObj, PrinterTechnology tech = ptFFF);
@@ -596,6 +606,7 @@ public:
     /*rendering related functions*/
     void render(bool bottom,    bool only_current = false, bool only_body = false, int hover_id = -1);
     void render_for_picking_pass();
+    void set_render_option(bool bedtype_texture, bool bedtype_settings);
     BoundingBoxf3& get_bounding_box() { return m_bounding_box; }
     //int select_plate_by_hover_id(int hover_id);
     int select_plate_by_obj(int obj_index, int instance_index);
@@ -649,6 +660,8 @@ public:
         ar(m_shape, m_plate_width, m_plate_depth, m_plate_height, m_height_to_lid, m_height_to_rod, m_height_limit_mode, m_plate_count, m_current_plate, m_plate_list, unprintable_plate);
         //ar(m_plate_width, m_plate_depth, m_plate_height, m_plate_count, m_current_plate);
     }
+
+    static void load_bedtype_textures();
 };
 
 } // namespace GUI

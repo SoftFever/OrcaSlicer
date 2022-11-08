@@ -128,6 +128,7 @@
 
 #include "PhysicalPrinterDialog.hpp"
 #include "PrintHostDialogs.hpp"
+#include "SetBedTypeDialog.hpp"
 
 using boost::optional;
 namespace fs = boost::filesystem;
@@ -5209,6 +5210,10 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
             // update app_config
             AppConfig *app_config = wxGetApp().app_config;
             app_config->set("curr_bed_type", std::to_string(int(bed_type)));
+
+            // update render
+            view3D->get_canvas3d()->render();
+            preview->msw_rescale();
         }
     }
 }
@@ -10570,6 +10575,25 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
         //lock the plate
         take_snapshot("lock partplate");
         ret = p->partplate_list.lock_plate(plate_index, !p->partplate_list.is_locked(plate_index));
+    }
+    else if ((action == 5)&&(!right_click))
+    {
+        //set the plate type
+        ret = select_plate(plate_index);
+        if (!ret) {
+            SetBedTypeDialog dlg(this, wxID_ANY, _L("Select bed type"));
+            dlg.sync_bed_type(p->partplate_list.get_curr_plate()->get_bed_type());
+            dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index](wxCommandEvent& e) {
+                auto type = (BedType)(e.GetInt());
+                p->partplate_list.get_curr_plate()->set_bed_type(type);
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select bed type %1% for plate %2% at plate side")%type %plate_index;
+                });
+            dlg.ShowModal();
+        }
+        else {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not select plate %1%" << plate_index;
+            ret = -1;
+        }
     }
     else
     {

@@ -265,6 +265,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/RemovableDriveManager.hpp
     GUI/SendSystemInfoDialog.cpp
     GUI/SendSystemInfoDialog.hpp
+    GUI/SetBedTypeDialog.cpp
+    GUI/SetBedTypeDialog.hpp
     GUI/ImGuiWrapper.hpp
     GUI/ImGuiWrapper.cpp
     GUI/DeviceManager.hpp

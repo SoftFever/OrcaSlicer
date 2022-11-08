@@ -130,7 +130,7 @@ void PartPlate::init()
 	m_print = nullptr;
 }
 
-BedType PartPlate::get_bed_type()
+BedType PartPlate::get_bed_type() const
 {
 	std::string bed_type_key = "curr_bed_type";
 
@@ -384,71 +384,13 @@ void PartPlate::render_background(bool force_default_color) const {
 	glsafe(::glDepthMask(GL_TRUE));
 }
 
-void PartPlate::render_logo(bool bottom) const
+void PartPlate::render_logo_texture(GLTexture &logo_texture, bool bottom) const
 {
-	//GLTexture* texture = const_cast<GLTexture*>(&m_logo_texture);
-
-	if (m_partplate_list->m_logo_texture_filename.empty()) {
-		m_partplate_list->m_logo_texture.reset();
-		return;
-	}
-
-	//GLTexture* temp_texture = const_cast<GLTexture*>(&m_temp_texture);
-
-	if (m_partplate_list->m_logo_texture.get_id() == 0 || m_partplate_list->m_logo_texture.get_source() != m_partplate_list->m_logo_texture_filename) {
-		m_partplate_list->m_logo_texture.reset();
-
-		if (boost::algorithm::iends_with(m_partplate_list->m_logo_texture_filename, ".svg")) {
-			/*// use higher resolution images if graphic card and opengl version allow
-			GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
-			if (temp_texture->get_id() == 0 || temp_texture->get_source() != m_texture_filename) {
-				// generate a temporary lower resolution texture to show while no main texture levels have been compressed
-				if (!temp_texture->load_from_svg_file(m_texture_filename, false, false, false, max_tex_size / 8)) {
-					render_default(bottom, false);
-					return;
-				}
-				canvas.request_extra_frame();
-			}*/
-
-			// starts generating the main texture, compression will run asynchronously
-			GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
-			GLint logo_tex_size = (max_tex_size < 2048)?max_tex_size: 2048;
-			if (!m_partplate_list->m_logo_texture.load_from_svg_file(m_partplate_list->m_logo_texture_filename, true, true, true, logo_tex_size)) {
-				BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!")%m_partplate_list->m_logo_texture_filename;
-				return;
-			}
-		}
-		else if (boost::algorithm::iends_with(m_partplate_list->m_logo_texture_filename, ".png")) {
-			// generate a temporary lower resolution texture to show while no main texture levels have been compressed
-			/* if (temp_texture->get_id() == 0 || temp_texture->get_source() != m_logo_texture_filename) {
-				if (!temp_texture->load_from_file(m_logo_texture_filename, false, GLTexture::None, false)) {
-					render_default(bottom, false);
-					return;
-				}
-				canvas.request_extra_frame();
-			}*/
-
-			// starts generating the main texture, compression will run asynchronously
-			if (!m_partplate_list->m_logo_texture.load_from_file(m_partplate_list->m_logo_texture_filename, true, GLTexture::MultiThreaded, true)) {
-				BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!")%m_partplate_list->m_logo_texture_filename;
-				return;
-			}
-		}
-		else {
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": can not load logo texture from %1%, unsupported format")%m_partplate_list->m_logo_texture_filename;
-            return;
-		}
-	}
-    else if (m_partplate_list->m_logo_texture.unsent_compressed_data_available()) {
+	//check valid
+	if (logo_texture.unsent_compressed_data_available()) {
 		// sends to gpu the already available compressed levels of the main texture
-		m_partplate_list->m_logo_texture.send_compressed_data_to_gpu();
-
-		// the temporary texture is not needed anymore, reset it
-		//if (temp_texture->get_id() != 0)
-		//    temp_texture->reset();
-
-		//canvas.request_extra_frame();
-    }
+		logo_texture.send_compressed_data_to_gpu();
+	}
 
 	if (m_logo_triangles.get_vertices_count() > 0) {
 		GLShaderProgram* shader = wxGetApp().get_shader("printbed");
@@ -476,7 +418,7 @@ void PartPlate::render_logo(bool bottom) const
 			}
 
 			// show the temporary texture while no compressed data is available
-			GLuint tex_id = (GLuint)m_partplate_list->m_logo_texture.get_id();
+			GLuint tex_id = (GLuint)logo_texture.get_id();
 			unsigned int* vbo_id = const_cast<unsigned int*>(&m_vbo_id);
 			if (*vbo_id == 0) {
 				glsafe(::glGenBuffers(1, vbo_id));
@@ -511,6 +453,82 @@ void PartPlate::render_logo(bool bottom) const
 			shader->stop_using();
 		}
 	}
+}
+
+void PartPlate::render_logo(bool bottom) const
+{
+	if (!m_partplate_list->render_bedtype_logo) {
+		// render third-party printer texture logo
+		if (m_partplate_list->m_logo_texture_filename.empty()) {
+			m_partplate_list->m_logo_texture.reset();
+			return;
+		}
+
+		//GLTexture* temp_texture = const_cast<GLTexture*>(&m_temp_texture);
+
+		if (m_partplate_list->m_logo_texture.get_id() == 0 || m_partplate_list->m_logo_texture.get_source() != m_partplate_list->m_logo_texture_filename) {
+			m_partplate_list->m_logo_texture.reset();
+
+			if (boost::algorithm::iends_with(m_partplate_list->m_logo_texture_filename, ".svg")) {
+				/*// use higher resolution images if graphic card and opengl version allow
+				GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
+				if (temp_texture->get_id() == 0 || temp_texture->get_source() != m_texture_filename) {
+					// generate a temporary lower resolution texture to show while no main texture levels have been compressed
+					if (!temp_texture->load_from_svg_file(m_texture_filename, false, false, false, max_tex_size / 8)) {
+						render_default(bottom, false);
+						return;
+					}
+					canvas.request_extra_frame();
+				}*/
+
+				// starts generating the main texture, compression will run asynchronously
+				GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
+				GLint logo_tex_size = (max_tex_size < 2048) ? max_tex_size : 2048;
+				if (!m_partplate_list->m_logo_texture.load_from_svg_file(m_partplate_list->m_logo_texture_filename, true, true, true, logo_tex_size)) {
+					BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!") % m_partplate_list->m_logo_texture_filename;
+					return;
+				}
+			}
+			else if (boost::algorithm::iends_with(m_partplate_list->m_logo_texture_filename, ".png")) {
+				// generate a temporary lower resolution texture to show while no main texture levels have been compressed
+				/* if (temp_texture->get_id() == 0 || temp_texture->get_source() != m_logo_texture_filename) {
+					if (!temp_texture->load_from_file(m_logo_texture_filename, false, GLTexture::None, false)) {
+						render_default(bottom, false);
+						return;
+					}
+					canvas.request_extra_frame();
+				}*/
+
+				// starts generating the main texture, compression will run asynchronously
+				if (!m_partplate_list->m_logo_texture.load_from_file(m_partplate_list->m_logo_texture_filename, true, GLTexture::MultiThreaded, true)) {
+					BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!") % m_partplate_list->m_logo_texture_filename;
+					return;
+				}
+			}
+			else {
+				BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": can not load logo texture from %1%, unsupported format") % m_partplate_list->m_logo_texture_filename;
+				return;
+			}
+		}
+		else if (m_partplate_list->m_logo_texture.unsent_compressed_data_available()) {
+			// sends to gpu the already available compressed levels of the main texture
+			m_partplate_list->m_logo_texture.send_compressed_data_to_gpu();
+
+			// the temporary texture is not needed anymore, reset it
+			//if (temp_texture->get_id() != 0)
+			//    temp_texture->reset();
+
+			//canvas.request_extra_frame();
+		}
+
+		render_logo_texture(m_partplate_list->m_logo_texture, bottom);
+		return;
+	}
+
+	PartPlateList::load_bedtype_textures();
+
+	int bed_type_idx = (int)get_bed_type();
+	render_logo_texture(PartPlateList::bed_textures[bed_type_idx], bottom);
 }
 
 void PartPlate::render_exclude_area(bool force_default_color) const {
@@ -670,6 +688,13 @@ void PartPlate::render_icons(bool bottom, int hover_id) const
                 render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_locked_texture, m_lock_vbo_id);
             else
                 render_icon_texture(position_id, tex_coords_id, m_lock_icon, m_partplate_list->m_lockopen_texture, m_lock_vbo_id);
+        }
+
+        if (m_partplate_list->render_bedtype_setting) {
+            if (hover_id == 5)
+                render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_hovered_texture, m_bedtype_vbo_id);
+            else
+                render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_texture, m_bedtype_vbo_id);
         }
 
         if (m_plate_index >=0 && m_plate_index < MAX_PLATE_COUNT) {
@@ -1000,6 +1025,14 @@ void PartPlate::on_render_for_picking() const {
 	m_grabber_color[3] = color[3];
 	//render_right_arrow(m_grabber_color, false);
 	render_rectangle_for_picking(m_lock_icon, m_grabber_color);
+	hover_id = 5;
+	color = picking_color_component(hover_id);
+	m_grabber_color[0] = color[0];
+	m_grabber_color[1] = color[1];
+	m_grabber_color[2] = color[2];
+	m_grabber_color[3] = color[3];
+    if (m_partplate_list->render_bedtype_setting)
+        render_rectangle_for_picking(m_bedtype_icon, m_grabber_color);
 }
 
 std::array<float, 4> PartPlate::picking_color_component(int idx) const
@@ -1035,6 +1068,10 @@ void PartPlate::release_opengl_resource()
 	if (m_lock_vbo_id > 0) {
 		glsafe(::glDeleteBuffers(1, &m_lock_vbo_id));
 		m_lock_vbo_id = 0;
+	}
+	if (m_bedtype_vbo_id > 0) {
+		glsafe(::glDeleteBuffers(1, &m_bedtype_vbo_id));
+		m_bedtype_vbo_id = 0;
 	}
 	if (m_plate_idx_vbo_id > 0) {
 		glsafe(::glDeleteBuffers(1, &m_plate_idx_vbo_id));
@@ -1851,6 +1888,7 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 		calc_vertex_for_icons(1, m_orient_icon);
 		calc_vertex_for_icons(2, m_arrange_icon);
 		calc_vertex_for_icons(3, m_lock_icon);
+		calc_vertex_for_icons(4, m_bedtype_icon);
 		//calc_vertex_for_number(0, (m_plate_index < 9), m_plate_idx_icon);
 		calc_vertex_for_number(0, false, m_plate_idx_icon);
 	}
@@ -1919,8 +1957,9 @@ void PartPlate::render(bool bottom, bool only_body, bool force_background_color,
 
 	render_grid(bottom);
 
-	if (!bottom && m_selected && !force_background_color)
+	if (!bottom && m_selected && !force_background_color) {
 		render_logo(bottom);
+	}
 
 	render_height_limit(mode);
 
@@ -2364,6 +2403,22 @@ void PartPlateList::generate_icon_textures()
 		}
 	}
 
+	if (m_bedtype_texture.get_id() == 0)
+	{
+		file_name = path + "plate_set_bedtype.svg";
+		if (!m_bedtype_texture.load_from_svg_file(file_name, true, false, false, max_tex_size / 8)) {
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+		}
+	}
+
+	if (m_bedtype_hovered_texture.get_id() == 0)
+	{
+		file_name = path + "plate_set_bedtype_hover.svg";
+		if (!m_bedtype_hovered_texture.load_from_svg_file(file_name, true, false, false, max_tex_size / 8)) {
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+		}
+	}
+
 	auto is_font_suitable = [](std::string text_str, wxFont& font, int max_size) {
 		wxMemoryDC memDC;
 		wxCoord w, h;
@@ -2409,6 +2464,7 @@ void PartPlateList::generate_icon_textures()
 
 void PartPlateList::release_icon_textures()
 {
+	m_logo_texture.reset();
 	m_del_texture.reset();
 	m_del_hovered_texture.reset();
 	m_arrange_texture.reset();
@@ -2419,8 +2475,16 @@ void PartPlateList::release_icon_textures()
 	m_locked_hovered_texture.reset();
 	m_lockopen_texture.reset();
 	m_lockopen_hovered_texture.reset();
+	m_bedtype_texture.reset();
+	m_bedtype_hovered_texture.reset();
+
 	for (int i = 0;i < MAX_PLATE_COUNT; i++) {
 		m_idx_textures[i].reset();
+	}
+	//reset
+	PartPlateList::is_load_bedtype_textures = false;
+	for (int i = 0; i < btCount; i++) {
+		PartPlateList::bed_textures[i].reset();
 	}
 }
 
@@ -3702,6 +3766,12 @@ void PartPlateList::render_for_picking_pass()
 	return 0;
 }*/
 
+void PartPlateList::set_render_option(bool bedtype_texture, bool bedtype_setting)
+{
+	render_bedtype_logo		= bedtype_texture;
+    render_bedtype_setting = bedtype_setting;
+}
+
 int PartPlateList::select_plate_by_obj(int obj_index, int instance_index)
 {
 	int ret = 0, index;
@@ -4205,6 +4275,34 @@ void PartPlateList::print() const
 
 	flush_logs();
 	return;
+}
+
+bool PartPlateList::is_load_bedtype_textures = false;
+
+static std::string bed_textures_filenames[btCount] = {
+    "bbl-3dp-PC-logo.svg",
+    "bbl-3dp-EP-logo.svg",
+    "bbl-3dp-PEI-logo.svg",
+    "bbl-3dp-PTE-logo.svg"
+};
+
+GLTexture PartPlateList::bed_textures[(unsigned int)btCount];
+
+void PartPlateList::load_bedtype_textures()
+{
+	if (PartPlateList::is_load_bedtype_textures) return;
+
+	GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
+	GLint logo_tex_size = (max_tex_size < 2048) ? max_tex_size : 2048;
+	for (int i = 0; i < (unsigned int)btCount; ++i) {
+		std::string filename = resources_dir() + "/images/" + bed_textures_filenames[i];
+		if (boost::filesystem::exists(filename)) {
+			if (!PartPlateList::bed_textures[i].load_from_svg_file(filename, true, true, true, logo_tex_size)) {
+				BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!") % filename;
+			}
+		}
+	}
+	PartPlateList::is_load_bedtype_textures = true;
 }
 
 }//end namespace GUI
