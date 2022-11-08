@@ -192,13 +192,14 @@ static std::string bed_type_to_gcode_string(const BedType type)
         type_str = "cool_plate";
         break;
     case btEP:
-        type_str = "engineering_plate";
+        type_str = "eng_plate";
         break;
     case btPEI:
-        type_str = "high_temp_plate";
+        type_str = "hot_plate";
         break;
     case btPTE:
-        type_str = "frosted_plate";
+        type_str = "textured_plate";
+        break;
     default:
         type_str = "unknown";
         break;

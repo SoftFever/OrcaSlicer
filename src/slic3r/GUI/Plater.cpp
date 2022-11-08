@@ -6056,6 +6056,7 @@ PlateBBoxData Plater::priv::generate_first_layer_bbox()
     auto                   print = this->background_process.m_fff_print;
     bboxdata.is_seq_print = (print->config().print_sequence == PrintSequence::ByObject);
     bboxdata.first_extruder = print->get_tool_ordering().first_extruder();
+    bboxdata.bed_type       = bed_type_to_gcode_string(print->config().curr_bed_type.value);
     // get nozzle diameter
     auto opt_nozzle_diameters = print->config().option<ConfigOptionFloats>("nozzle_diameter");
     if (opt_nozzle_diameters != nullptr)
