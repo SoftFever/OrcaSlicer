@@ -50,10 +50,11 @@ void wxMediaCtrl2::Load(wxURI url)
     }
     {
         wxRegKey key1(wxRegKey::HKCR, L"CLSID\\" CLSID_BAMBU_SOURCE L"\\InProcServer32");
-        wxString path = key1.QueryDefaultValue();
+        wxString path = key1.Exists() ? key1.QueryDefaultValue() : wxString{};
         wxRegKey key2(wxRegKey::HKCR, "bambu");
         wxString clsid;
-        key2.QueryRawValue("Source Filter", clsid);
+        if (key2.Exists())
+            key2.QueryRawValue("Source Filter", clsid);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": clsid %1% path %2%") % clsid % path;
 
         if (path.empty() || !wxFile::Exists(path) || clsid != CLSID_BAMBU_SOURCE) {

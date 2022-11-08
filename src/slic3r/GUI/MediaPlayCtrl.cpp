@@ -142,7 +142,7 @@ void MediaPlayCtrl::Play()
     m_button_play->SetIcon("media_stop");
     SetStatus(_L("Initializing..."));
 
-    if (!m_lan_ip.empty()) {
+    if (!m_lan_ip.empty() && !m_lan_passwd.empty()) {
         m_url        = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
         m_last_state = MEDIASTATE_LOADING;
         SetStatus(_L("Loading..."));
@@ -161,7 +161,7 @@ void MediaPlayCtrl::Play()
         m_cond.notify_all();
         return;
     }
-    
+
     if (m_lan_mode) {
         Stop();
         SetStatus(m_lan_passwd.empty() 
@@ -172,7 +172,9 @@ void MediaPlayCtrl::Play()
     
     if (!m_tutk_support) { // not support tutk
         Stop();
-        SetStatus(_L("Initialize failed (Not supported without remote video tunnel)!"));
+        SetStatus(m_lan_ip.empty() 
+            ? _L("Initialize failed (Missing LAN ip of printer)!") 
+            : _L("Initialize failed (Not supported by printer)!"));
         return;
     }
 
@@ -335,7 +337,13 @@ void MediaPlayCtrl::ToggleStream()
     agent->get_camera_url(m_machine, [this, m = m_machine](std::string url) {
             BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
         CallAfter([this, m, url] {
-            if (m != m_machine || url.empty()) return;
+            if (m != m_machine) return;
+            if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
+                MessageDialog(this, wxString::Format(_L("Virtual camera initialize failed (%s)!"), url.empty() ? _L("Network unreachable") : from_u8(url)), _L("Information"),
+                              wxICON_INFORMATION)
+                    .ShowModal();
+                return;
+            }
             std::string             file_url = data_dir() + "/cameratools/url.txt";
             boost::nowide::ofstream file(file_url);
             auto                    url2 = encode_path((url + "&device=" + m).c_str());
