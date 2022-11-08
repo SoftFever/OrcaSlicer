@@ -300,7 +300,7 @@ void MachineObject::set_access_code(std::string code)
 bool MachineObject::is_lan_mode_printer()
 {
     bool result = false;
-    if (connection_type() == "lan")
+    if (!dev_connection_type.empty() && dev_connection_type == "lan")
         return true;
     return result;
 }

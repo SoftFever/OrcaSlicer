@@ -399,7 +399,7 @@ struct SlabLines {
     std::vector<IntersectionLines>  at_slice;
     // Projections of triangle set boundary lines into layer below (for projection from the top)
     // or into layer above (for projection from the bottom).
-    // In both cases the intersection lines are CCW oriented.
+    // In both cases the intersection liens are CCW oriented.
     std::vector<IntersectionLines>  between_slices;
 };
 
@@ -790,8 +790,7 @@ inline std::pair<SlabLines, SlabLines> slice_slabs_make_lines(
                         }
                     slice_facet_with_slabs<true>(vertices, indices, face_idx, neighbors, edge_ids, num_edges, zs, lines_top, lines_mutex_top);
                 }
-                // BBS: add vertical faces option
-                if (bottom && (fo == FaceOrientation::Down || fo == FaceOrientation::Vertical || fo == FaceOrientation::Degenerate)) {
+                if (bottom && (fo == FaceOrientation::Down || fo == FaceOrientation::Degenerate)) {
                     Vec3i neighbors = face_neighbors[face_idx];
                     // Reset neighborship of this triangle in case the other triangle is oriented backwards from this one.
                     for (int i = 0; i < 3; ++ i)

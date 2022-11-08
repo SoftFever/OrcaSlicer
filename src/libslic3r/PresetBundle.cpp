@@ -248,7 +248,7 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
         dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/" + config.get("preset_folder");
     }
     else {
-        dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/default";
+        dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/" + DEFAULT_USER_FOLDER_NAME;
     }
     fs::path user_folder(data_dir() + "/" + PRESET_USER_DIR);
     if (!fs::exists(user_folder))
@@ -698,8 +698,11 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
 //BBS save user preset to user_id preset folder
 void PresetBundle::save_user_presets(AppConfig& config, std::vector<std::string>& need_to_delete_list)
 {
+    std::string user_sub_folder = DEFAULT_USER_FOLDER_NAME;
+    if (!config.get("preset_folder").empty())
+        user_sub_folder = config.get("preset_folder");
     //BBS: change directory by design
-    const std::string dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/"+ config.get("preset_folder");
+    const std::string dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/"+ user_sub_folder;
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" enter, save to %1%")%dir_user_presets;
 

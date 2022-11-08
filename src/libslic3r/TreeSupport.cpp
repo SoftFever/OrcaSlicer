@@ -708,7 +708,7 @@ void TreeSupport::detect_object_overhangs()
     if (m_object->tree_support_layer_count() >= m_object->layer_count())
         return;
 
-    // Clear and create Tree Support Layers
+    // Create Tree Support Layers
     m_object->clear_tree_support_layers();
     m_object->clear_tree_support_preview_cache();
 
@@ -721,11 +721,11 @@ void TreeSupport::detect_object_overhangs()
     const coordf_t extrusion_width = config.line_width.value;
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     const coordf_t max_bridge_length = scale_(config.max_bridge_length.value);
-    const bool bridge_no_support = max_bridge_length > 0;
+    const bool bridge_no_support = max_bridge_length > 0;// config.bridge_no_support.value;
     const bool support_critical_regions_only = config.support_critical_regions_only.value;
     const int enforce_support_layers = config.enforce_support_layers.value;
-    const double area_thresh_well_supported = SQ(scale_(6));
-    const double length_thresh_well_supported = scale_(6);
+    const double area_thresh_well_supported = SQ(scale_(6));  // min: 6x6=36mm^2
+    const double length_thresh_well_supported = scale_(6);  // min: 6mm
     static const double sharp_tail_max_support_height = 8.f;
     // a region is considered well supported if the number of layers below it exceeds this threshold
     const int thresh_layers_below = 10 / config.layer_height;
@@ -822,19 +822,20 @@ void TreeSupport::detect_object_overhangs()
             region2clusterInd.emplace(&region, regionClusters.size() - 1);
         }
     };
-    // main part of sharptail detections
+
     has_sharp_tail = false;
     if (std::set<SupportType>{stTreeAuto, stHybridAuto, stTree}.count(stype))// == stTreeAuto || stype == stHybridAuto || stype == stTree)
     {
         double threshold_rad = (config.support_threshold_angle.value < EPSILON ? 30 : config.support_threshold_angle.value+1) * M_PI / 180.;
-        ExPolygons regions_well_supported;
-        std::map<ExPolygon, int, ExPolygonComp> region_layers_below;
-        ExPolygons lower_overhang_dilated;
-        
-        for (size_t layer_nr = 0; layer_nr < m_object->layer_count(); layer_nr++){
+        ExPolygons regions_well_supported; // regions on buildplate or well supported
+        std::map<ExPolygon, int, ExPolygonComp> region_layers_below;  // regions and the number of layers below
+        ExPolygons lower_overhang_dilated;  // for small overhang
+
+        for (size_t layer_nr = 0; layer_nr < m_object->layer_count(); layer_nr++)
+        {
             if (m_object->print()->canceled())
                 break;
-            
+
             if (!is_auto && layer_nr > enforce_support_layers)
                 continue;
 
@@ -872,7 +873,7 @@ void TreeSupport::detect_object_overhangs()
             // normal overhang
             ExPolygons lower_layer_offseted = offset_ex(lower_polys, support_offset_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS);
             ExPolygons overhang_areas = std::move(diff_ex(curr_polys, lower_layer_offseted));
-
+            // overhang_areas = std::move(offset2_ex(overhang_areas, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
             overhang_areas.erase(std::remove_if(overhang_areas.begin(), overhang_areas.end(),
                                                 [extrusion_width_scaled](ExPolygon &area) { return offset_ex(area, -0.1 * extrusion_width_scaled).empty(); }),
                                     overhang_areas.end());
@@ -960,7 +961,7 @@ void TreeSupport::detect_object_overhangs()
 
                         // 2.4 if the area grows fast than threshold, it get connected to other part or
                         // it has a sharp slop and will be auto supported.
-                        ExPolygons new_overhang_expolys = diff_ex({expoly}, lower_layer_sharptails);
+                        ExPolygons new_overhang_expolys = diff_ex({ expoly }, lower_layer_sharptails);
                         if (!offset_ex(new_overhang_expolys, -5.0 * extrusion_width_scaled).empty()) {
                             is_sharp_tail = false;
                             break;
@@ -1132,6 +1133,7 @@ void TreeSupport::detect_object_overhangs()
                 // if (erode1.empty() && !inter_with_others.empty())
                 //    blockers[layer_nr].push_back(p_overhang->contour);
             }
+            
         }
     }
 
@@ -1154,13 +1156,12 @@ void TreeSupport::detect_object_overhangs()
         for (auto &area : ts_layer->overhang_areas) {
             ts_layer->overhang_types.emplace(&area, TreeSupportLayer::Detected);
         }
-        // enforcers
+
         if (layer_nr < enforcers.size()) {
             Polygons& enforcer = enforcers[layer_nr];
             // coconut: enforcer can't do offset2_ex, otherwise faces with angle near 90 degrees can't have enforcers, which
             // is not good. For example: tails of animals needs extra support except the lowest tip.
             //enforcer = std::move(offset2_ex(enforcer, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
-            enforcer = offset(enforcer, 0.1 * extrusion_width_scaled);
             for (const Polygon& poly : enforcer) {
                 ts_layer->overhang_areas.emplace_back(poly);
                 ts_layer->overhang_types.emplace(&ts_layer->overhang_areas.back(), TreeSupportLayer::Enforced);
@@ -1870,30 +1871,30 @@ void TreeSupport::generate_support_areas()
     if (!tree_support_enable)
         return;
 
-    std::vector<std::vector<Node*>> contact_nodes(m_object->layers().size());
+    std::vector<std::vector<Node*>> contact_nodes(m_object->layers().size()); //Generate empty layers to store the points in.
 
     profiler.stage_start(STAGE_total);
 
     // Generate overhang areas
     profiler.stage_start(STAGE_DETECT_OVERHANGS);
     m_object->print()->set_status(55, _L("Support: detect overhangs"));
-    detect_object_overhangs();  // Entry of step#1;
+    detect_object_overhangs();
     profiler.stage_finish(STAGE_DETECT_OVERHANGS);
 
     // Generate contact points of tree support
     profiler.stage_start(STAGE_GENERATE_CONTACT_NODES);
     m_object->print()->set_status(56, _L("Support: generate contact points"));
-    generate_contact_points(contact_nodes); // Entry of step#2;
+    generate_contact_points(contact_nodes);
     profiler.stage_finish(STAGE_GENERATE_CONTACT_NODES);
 
     //Drop nodes to lower layers.
     profiler.stage_start(STAGE_DROP_DOWN_NODES);
     m_object->print()->set_status(60, _L("Support: propagate branches"));
-    drop_nodes(contact_nodes);  // Entry of step#3;
+    drop_nodes(contact_nodes);
     profiler.stage_finish(STAGE_DROP_DOWN_NODES);
 
     // Adjust support layer heights
-    adjust_layer_heights(contact_nodes);    // Entry of step#4;
+    adjust_layer_heights(contact_nodes);
 
     //Generate support areas.
     profiler.stage_start(STAGE_DRAW_CIRCLES);

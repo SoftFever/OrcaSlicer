@@ -13,6 +13,7 @@
 
 #include <cassert>
 #include <limits>
+#include <algorithm>
 
 #include <libslic3r.h>
 
@@ -20,45 +21,35 @@ namespace Slic3r {
 
 const static bool g_wipe_into_objects = false;
 
-void dfs_get_all_sorted_extruders(const std::vector<std::vector<float>> &     wipe_volumes,
-                                  const std::vector<unsigned int> &           all_extruders,
-                                  std::vector<unsigned int> &                 sorted_extruders,
-                                  float                                       flush_volume,
-                                  std::map<float, std::vector<unsigned int>> &volumes_to_extruder_order)
-{
-    if (sorted_extruders.size() == all_extruders.size()) {
-        volumes_to_extruder_order.insert(std::pair(flush_volume, sorted_extruders));
-        return;
-    }
-
-    for (auto extruder_id : all_extruders) {
-        if (sorted_extruders.empty()) {
-            sorted_extruders.push_back(extruder_id);
-            dfs_get_all_sorted_extruders(wipe_volumes, all_extruders, sorted_extruders, flush_volume, volumes_to_extruder_order);
-            sorted_extruders.pop_back();
-        } else {
-            auto itor = std::find(sorted_extruders.begin(), sorted_extruders.end(), extruder_id);
-            if (itor == sorted_extruders.end()) {
-                float delta_flush_volume = wipe_volumes[sorted_extruders.back()][extruder_id];
-                flush_volume += delta_flush_volume;
-                sorted_extruders.push_back(extruder_id);
-                dfs_get_all_sorted_extruders(wipe_volumes, all_extruders, sorted_extruders, flush_volume, volumes_to_extruder_order);
-                flush_volume -= delta_flush_volume;
-                sorted_extruders.pop_back();
-            }
-        }
-    }
-}
-
 std::vector<unsigned int> get_extruders_order(const std::vector<std::vector<float>> &wipe_volumes, std::vector<unsigned int> all_extruders, unsigned int start_extruder_id)
 {
     if (all_extruders.size() > 1) {
-        std::vector<unsigned int> sorted_extruders;
-        auto                      iter = std::find(all_extruders.begin(), all_extruders.end(), start_extruder_id);
-        if (iter != all_extruders.end()) { sorted_extruders.push_back(start_extruder_id); }
-        std::map<float, std::vector<unsigned int>> volumes_to_extruder_order;
-        dfs_get_all_sorted_extruders(wipe_volumes, all_extruders, sorted_extruders, 0, volumes_to_extruder_order);
-        if (volumes_to_extruder_order.size() > 0) return volumes_to_extruder_order.begin()->second;
+        int begin_index = 0;
+        auto iter = std::find(all_extruders.begin(), all_extruders.end(), start_extruder_id);
+        if (iter != all_extruders.end()) {
+            for (int i = 0; i < all_extruders.size(); ++i) {
+                if (all_extruders[i] == start_extruder_id) {
+                    std::swap(all_extruders[i], all_extruders[0]);
+                }
+            }
+            begin_index = 1;
+        }
+
+        std::pair<float, std::vector<unsigned int>> volumes_to_extruder_order;
+        volumes_to_extruder_order.first = 10000 * all_extruders.size();
+        std::sort(all_extruders.begin() + begin_index, all_extruders.end());
+        do {
+            float flush_volume = 0;
+            for (int i = 0; i < all_extruders.size() - 1; ++i) {
+                flush_volume += wipe_volumes[all_extruders[i]][all_extruders[i + 1]];
+            }
+            if (flush_volume < volumes_to_extruder_order.first) {
+                volumes_to_extruder_order = std::pair(flush_volume, all_extruders);
+            }
+        } while (std::next_permutation(all_extruders.begin() + begin_index, all_extruders.end()));
+
+        if (volumes_to_extruder_order.second.size() > 0)
+            return volumes_to_extruder_order.second;
     }
     return all_extruders;
 }
@@ -737,7 +728,10 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume()
     for (LayerTools& lt : m_layer_tools) {
         if (lt.extruders.empty())
             continue;
-        lt.extruders = get_extruders_order(wipe_volumes, lt.extruders, current_extruder_id);
+        // todo: The algorithm complexity is too high(o(n2)), currently only 8 colors are supported
+        if (lt.extruders.size() <= 8) {
+            lt.extruders = get_extruders_order(wipe_volumes, lt.extruders, current_extruder_id);
+        }
         current_extruder_id = lt.extruders.back();
     }
 }

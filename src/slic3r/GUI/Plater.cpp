@@ -9394,7 +9394,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
     if ( seq_print && view3d_canvas && view3d_canvas->is_initialized()  && view3d_canvas->is_rendering_enabled() ) {
         NotificationManager *notify_manager = get_notification_manager();
         if (seq_print->value == PrintSequence::ByObject) {
-            std::string info_text = L("Print By Object: \nSuggest to use auto-arrange to avoid collisions when printing.");
+            std::string info_text = _u8L("Print By Object: \nSuggest to use auto-arrange to avoid collisions when printing.");
             notify_manager->bbl_show_seqprintinfo_notification(info_text);
             //always show label when switch to sequence print
             if (print_sequence_changed)

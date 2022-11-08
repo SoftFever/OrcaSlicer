@@ -1156,7 +1156,12 @@ void GUI_App::post_init()
            while (files_vec.size() > LOG_FILES_MAX_NUM) {
                auto full_path = log_folder / boost::filesystem::path(files_vec[files_vec.size() - 1].second);
                BOOST_LOG_TRIVIAL(info) << "delete log file over " << LOG_FILES_MAX_NUM << ", filename: "<< files_vec[files_vec.size() - 1].second;
-               boost::filesystem::remove(full_path);
+               try {
+                   boost::filesystem::remove(full_path);
+               }
+               catch (const std::exception& ex) {
+                   BOOST_LOG_TRIVIAL(error) << "failed to delete log file: "<< files_vec[files_vec.size() - 1].second << ". Error: " << ex.what();
+               }
                files_vec.pop_back();
            }
         }
@@ -1213,7 +1218,10 @@ void GUI_App::shutdown()
     }
 
     if (m_agent) {
+        //BBS avoid a crash on mac platform
+#ifdef __WINDOWS__
         m_agent->start_discovery(false, false);
+#endif
         delete m_agent;
         m_agent = nullptr;
     }
@@ -3094,6 +3102,7 @@ void GUI_App::request_user_logout()
 
         m_agent->user_logout();
         m_agent->set_user_selected_machine("");
+        app_config->set("preset_folder", "");
         /* delete old user settings */
         m_device_manager->clean_user_info();
         GUI::wxGetApp().sidebar().load_ams_list({});
@@ -3651,8 +3660,15 @@ void GUI_App::sync_preset(Preset* preset)
                     preset->setting_id.clear();
                     result = 0;
                 }
-                else
+                else {
                     result = m_agent->put_setting(preset->setting_id, preset->name, &values_map, &http_code);
+                    if (http_code >= 400) {
+                        result = 0;
+                        updated_info = "hold";
+                        BOOST_LOG_TRIVIAL(error) << "[sync_preset] put setting_id = " << preset->setting_id << " failed, http_code = " << http_code;
+                    }
+                }
+
             }
             else {
                 BOOST_LOG_TRIVIAL(trace) << "[sync_preset]update: can not generate differed key-values, we need to skip this preset "<< preset->name;
@@ -3761,8 +3777,10 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
                                 it = delete_cache_presets.erase(it);
                                 BOOST_LOG_TRIVIAL(trace) << "sync_preset: sync operation: delete success! setting id = " << del_setting_id;
                             }
-                            else
+                            else {
+                                BOOST_LOG_TRIVIAL(info) << "delete setting = " <<del_setting_id << " failed";
                                 it++;
+                            }
                         }
                     }
                 } else {
