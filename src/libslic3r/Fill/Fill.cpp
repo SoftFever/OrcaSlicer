@@ -151,9 +151,18 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 		        if (surface.is_solid()) {
 		            params.density = 100.f;
 					//FIXME for non-thick bridges, shall we allow a bottom surface pattern?
-		            params.pattern = (surface.is_external() && ! is_bridge) ? 
-						(surface.is_top() ? region_config.top_surface_pattern.value : region_config.bottom_surface_pattern.value) :
-		                region_config.top_surface_pattern == ipMonotonic ? ipMonotonic : ipRectilinear;
+                    if (surface.is_external() && ! is_bridge) {
+                        if(surface.is_top())
+                            params.pattern = region_config.top_surface_pattern.value;
+                        else
+                            params.pattern = region_config.bottom_surface_pattern.value;
+                    }
+                    else {
+                        if(region_config.top_surface_pattern == ipMonotonic || region_config.top_surface_pattern == ipMonotonicLine)
+                            params.pattern = region_config.top_surface_pattern;
+                        else
+                            params.pattern = ipRectilinear;
+                    }
 		        } else if (params.density <= 0)
 		            continue;
 
@@ -301,7 +310,11 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 	        if (internal_solid_fill == nullptr) {
 	        	// Produce another solid fill.
 		        params.extruder 	 = layerm.region().extruder(frSolidInfill);
-	            params.pattern 		 = layerm.region().config().top_surface_pattern == ipMonotonic ? ipMonotonic : ipRectilinear;
+                const auto top_pattern = layerm.region().config().top_surface_pattern;
+                if(top_pattern == ipMonotonic || top_pattern == ipMonotonicLine)
+                    params.pattern = top_pattern;
+                else
+                    params.pattern 		 = ipRectilinear;
 	            params.density 		 = 100.f;
 		        params.extrusion_role = erInternalInfill;
 		        params.angle 		= float(Geometry::deg2rad(layerm.region().config().infill_direction.value));
