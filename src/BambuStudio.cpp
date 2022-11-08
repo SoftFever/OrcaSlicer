@@ -751,7 +751,7 @@ int CLI::run(int argc, char **argv)
                 boost::nowide::cerr << "Error: file is empty: " << file << std::endl;
                 continue;
             }
-            m_models.push_back(model);
+            m_models.push_back(std::move(model));
         }
     //}
 
