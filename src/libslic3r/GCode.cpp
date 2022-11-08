@@ -1883,6 +1883,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
       file.write_format(
           "; first_layer_height = %.3f\n",
           print.config().initial_layer_print_height.value);
+      file.write_format("; variable_layer_height = %d\n", m_config.adaptive_layer_height ? 1 : 0);
    
       file.write("; CONFIG_BLOCK_END\n\n");
 
