@@ -3275,7 +3275,12 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         double l2 = v.squaredNorm();
         // Shift by no more than a nozzle diameter.
         //FIXME Hiding the seams will not work nicely for very densely discretized contours!
-        Point  pt = ((nd * nd >= l2) ? p2 : (p1 + v * (nd / sqrt(l2)))).cast<coord_t>();
+        //BBS. shorten the travel distant before the wipe path
+        double threshold = 0.2;
+        Point  pt = (p1 + v * threshold).cast<coord_t>();
+        if (nd * nd < l2)
+            pt = (p1 + threshold * v * (nd / sqrt(l2))).cast<coord_t>();
+        //Point pt = ((nd * nd >= l2) ? (p1+v*0.4): (p1 + 0.2 * v * (nd / sqrt(l2)))).cast<coord_t>();
         pt.rotate(angle, paths.front().polyline.points.front());
         // generate the travel move
         gcode += m_writer.travel_to_xy(this->point_to_gcode(pt), "move inwards before travel");
