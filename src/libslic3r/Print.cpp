@@ -947,16 +947,25 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             }
 
             // BBS: remove obsolete logics and _L()
-#if 0
             if (has_custom_layering) {
-                for (size_t idx_object = 0; idx_object < m_objects.size(); ++ idx_object) {
-                    if (idx_object == tallest_object_idx)
-                        continue;
-                    if (layer_height_profiles[idx_object] != layer_height_profiles[tallest_object_idx])
-                        return {("The prime tower is only supported if all objects have the same variable layer height"), m_objects[idx_object]};
+                for (size_t idx_object = 0; idx_object < m_objects.size(); ++idx_object) {
+                    if (idx_object == tallest_object_idx) continue;
+                    // Check that the layer height profiles are equal. This will happen when one object is
+                    // a copy of another, or when a layer height modifier is used the same way on both objects.
+                    // The latter case might create a floating point inaccuracy mismatch, so compare
+                    // element-wise using an epsilon check.
+                    size_t         i   = 0;
+                    const coordf_t eps = 0.5 * EPSILON; // layers closer than EPSILON will be merged later. Let's make
+                    // this check a bit more sensitive to make sure we never consider two different layers as one.
+                    while (i < layer_height_profiles[idx_object].size() && i < layer_height_profiles[tallest_object_idx].size()) {
+                        if (i % 2 == 0 && layer_height_profiles[tallest_object_idx][i] > layer_height_profiles[idx_object][layer_height_profiles[idx_object].size() - 2])
+                            break;
+                        if (std::abs(layer_height_profiles[idx_object][i] - layer_height_profiles[tallest_object_idx][i]) > eps)
+                            return {L("The prime tower is only supported if all objects have the same variable layer height")};
+                        ++i;
+                    }
                 }
             }
-#endif
         }
     }
 

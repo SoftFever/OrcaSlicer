@@ -654,7 +654,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                tree_support_wall_count))
     ((ConfigOptionBool,               tree_support_with_infill))
     ((ConfigOptionBool,               detect_narrow_internal_solid_infill))
-    ((ConfigOptionBool,               adaptive_layer_height))
+    // ((ConfigOptionBool,               adaptive_layer_height))
     ((ConfigOptionFloat,              support_bottom_interface_spacing))
 )
 

@@ -1401,7 +1401,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         // BBS
         for (PrintObject* object : m_objects) {
             auto ept_iter = std::find(print_diff.begin(), print_diff.end(), "enable_prime_tower");
-            if (object->config().adaptive_layer_height && ept_iter != print_diff.end()) {
+            if (/*object->config().adaptive_layer_height &&*/ ept_iter != print_diff.end()) {
                 update_apply_status(object->invalidate_step(posSlice));
             }
         }

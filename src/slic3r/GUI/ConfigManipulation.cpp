@@ -447,7 +447,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase *, ModelConfig *> const &configs)
 {
     for (auto &k : keys) {
-        if (k == "adaptive_layer_height" || k == "independent_support_layer_height" || k == "enable_support" || k == "detect_thin_wall")
+        if (/*k == "adaptive_layer_height" || */k == "independent_support_layer_height" || k == "enable_support" || k == "detect_thin_wall")
             config->set_key_value(k, new ConfigOptionBool(true));
         else if (k == "wall_loops")
             config->set_key_value(k, new ConfigOptionInt(0));

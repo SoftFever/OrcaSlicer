@@ -1328,13 +1328,13 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(0.2));
 
-    def = this->add("adaptive_layer_height", coBool);
-    def->label = L("Adaptive layer height");
-    def->category = L("Quality");
-    def->tooltip = L("Enabling this option means the height of every layer except the first will be automatically calculated "
-        "during slicing according to the slope of the model’s surface.\n"
-        "Note that this option only takes effect if no prime tower is generated in current plate.");
-    def->set_default_value(new ConfigOptionBool(0));
+    //def = this->add("adaptive_layer_height", coBool);
+    //def->label = L("Adaptive layer height");
+    //def->category = L("Quality");
+    //def->tooltip = L("Enabling this option means the height of every layer except the first will be automatically calculated "
+    //    "during slicing according to the slope of the model’s surface.\n"
+    //    "Note that this option only takes effect if no prime tower is generated in current plate.");
+    //def->set_default_value(new ConfigOptionBool(0));
 
     def = this->add("initial_layer_speed", coFloat);
     def->label = L("Initial layer");
@@ -3720,7 +3720,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "support_bottom_z_distance", "support_closing_radius",
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
-        "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height"
+        "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector"/*, "adaptive_layer_height"*/
     };
 
     if (ignore.find(opt_key) != ignore.end()) {
@@ -3826,7 +3826,7 @@ void DynamicPrintConfig::normalize_fdm(int used_filaments)
     ConfigOptionBool* ept_opt = this->option<ConfigOptionBool>("enable_prime_tower");
     if (used_filaments > 0 && ept_opt != nullptr) {
         ConfigOptionBool* islh_opt = this->option<ConfigOptionBool>("independent_support_layer_height", true);
-        ConfigOptionBool* alh_opt = this->option<ConfigOptionBool>("adaptive_layer_height");
+        //ConfigOptionBool* alh_opt = this->option<ConfigOptionBool>("adaptive_layer_height");
         ConfigOptionEnum<PrintSequence>* ps_opt = this->option<ConfigOptionEnum<PrintSequence>>("print_sequence");
 
         ConfigOptionEnum<TimelapseType>* timelapse_opt = this->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
@@ -3838,8 +3838,8 @@ void DynamicPrintConfig::normalize_fdm(int used_filaments)
         if (ept_opt->value) {
             if (islh_opt)
                 islh_opt->value = false;
-            if (alh_opt)
-                alh_opt->value = false;
+            //if (alh_opt)
+            //    alh_opt->value = false;
         }
         else {
             if (islh_opt)
@@ -3901,7 +3901,7 @@ t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int used_filaments)
     ConfigOptionBool* ept_opt = this->option<ConfigOptionBool>("enable_prime_tower");
     if (used_filaments > 0 && ept_opt != nullptr) {
         ConfigOptionBool* islh_opt = this->option<ConfigOptionBool>("independent_support_layer_height", true);
-        ConfigOptionBool* alh_opt = this->option<ConfigOptionBool>("adaptive_layer_height");
+        //ConfigOptionBool* alh_opt = this->option<ConfigOptionBool>("adaptive_layer_height");
         ConfigOptionEnum<PrintSequence>* ps_opt = this->option<ConfigOptionEnum<PrintSequence>>("print_sequence");
 
         ConfigOptionEnum<TimelapseType>* timelapse_opt = this->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
@@ -3922,13 +3922,13 @@ t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int used_filaments)
                 }
                 //islh_opt->value = false;
             }
-            if (alh_opt) {
-                if (alh_opt->value) {
-                    alh_opt->value = false;
-                    changed_keys.push_back("adaptive_layer_height");
-                }
-                //alh_opt->value = false;
-            }
+            //if (alh_opt) {
+            //    if (alh_opt->value) {
+            //        alh_opt->value = false;
+            //        changed_keys.push_back("adaptive_layer_height");
+            //    }
+            //    //alh_opt->value = false;
+            //}
         }
         else {
             if (islh_opt) {
