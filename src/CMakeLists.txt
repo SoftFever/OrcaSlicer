@@ -7,6 +7,7 @@ add_subdirectory(admesh)
 # boost/nowide
 add_subdirectory(boost)
 add_subdirectory(clipper)
+add_subdirectory(clipper2)
 add_subdirectory(miniz)
 add_subdirectory(minilzo)
 add_subdirectory(glu-libtess)

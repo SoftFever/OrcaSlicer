@@ -35,6 +35,8 @@ set(lisbslic3r_sources
     clipper.hpp
     ClipperUtils.cpp
     ClipperUtils.hpp
+    Clipper2Utils.cpp
+    Clipper2Utils.hpp
     Config.cpp
     Config.hpp
     CurveAnalyzer.cpp
@@ -476,6 +478,7 @@ target_link_libraries(libslic3r
     PNG::PNG
     ZLIB::ZLIB
     ${OCCT_LIBS}
+    Clipper2
     )
 
 if(NOT WIN32)
