@@ -195,8 +195,8 @@ static t_config_enum_values s_keys_map_SupportType{
     { "normal(auto)",   stNormalAuto },
     { "tree(auto)", stTreeAuto },
     { "hybrid(auto)", stHybridAuto },
-    { "normal", stNormal },
-    { "tree", stTree }
+    { "normal(manual)", stNormal },
+    { "tree(manual)", stTree }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportType)
 
@@ -2353,13 +2353,13 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("normal(auto)");
     def->enum_values.push_back("tree(auto)");
     def->enum_values.push_back("hybrid(auto)");
-    def->enum_values.push_back("normal");
-    def->enum_values.push_back("tree");
+    def->enum_values.push_back("normal(manual)");
+    def->enum_values.push_back("tree(manual)");
     def->enum_labels.push_back(L("normal(auto)"));
     def->enum_labels.push_back(L("tree(auto)"));
     def->enum_labels.push_back(L("hybrid(auto)"));
-    def->enum_labels.push_back(L("normal"));
-    def->enum_labels.push_back(L("tree"));
+    def->enum_labels.push_back(L("normal(manual)"));
+    def->enum_labels.push_back(L("tree(manual)"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<SupportType>(stNormalAuto));
 
