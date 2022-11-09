@@ -4950,6 +4950,20 @@ void GUI_App::open_publish_page_dialog()
     }
 }
 
+void GUI_App::remove_mall_system_dialog()
+{
+    if (m_mall_publish_dialog != nullptr) {
+        m_mall_publish_dialog->Destroy();
+        delete m_mall_publish_dialog;
+    }
+
+
+    if (m_mall_home_dialog != nullptr) {
+        m_mall_home_dialog->Destroy();
+        delete m_mall_home_dialog;
+    }
+}
+
 void GUI_App::run_script(wxString js)
 {
     if (mainframe)

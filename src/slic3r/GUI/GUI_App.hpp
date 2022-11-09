@@ -473,6 +473,7 @@ public:
     void            load_url(wxString url);
     void            open_mall_page_dialog();
     void            open_publish_page_dialog();
+    void remove_mall_system_dialog();
     void            run_script(wxString js);
     bool            is_adding_script_handler() { return m_adding_script_handler; }
     void            set_adding_script_handler(bool status) { m_adding_script_handler = status; }
