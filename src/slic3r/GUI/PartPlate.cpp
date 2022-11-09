@@ -710,8 +710,12 @@ void PartPlate::render_icons(bool bottom, int hover_id) const
         if (m_partplate_list->render_bedtype_setting) {
             if (hover_id == 5)
                 render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_hovered_texture, m_bedtype_vbo_id);
-            else
-                render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_texture, m_bedtype_vbo_id);
+            else {
+                if (render_bedtype_setting_warned)
+                    render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_warned_texture, m_bedtype_vbo_id);
+                else
+                    render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_texture, m_bedtype_vbo_id);
+            }
         }
 
         if (m_plate_index >=0 && m_plate_index < MAX_PLATE_COUNT) {
@@ -2020,6 +2024,11 @@ void PartPlate::render(bool bottom, bool only_body, bool force_background_color,
 	glsafe(::glDisable(GL_DEPTH_TEST));
 }
 
+void PartPlate::set_plate_render_option(bool bedtype_setting_warned)
+{
+    render_bedtype_setting_warned = bedtype_setting_warned;
+}
+
 void PartPlate::set_selected() {
 	m_selected = true;
 }
@@ -2428,6 +2437,14 @@ void PartPlateList::generate_icon_textures()
 		}
 	}
 
+	if (m_bedtype_warned_texture.get_id() == 0)
+	{
+		file_name = path + "plate_set_bedtype_warned.svg";
+		if (!m_bedtype_warned_texture.load_from_svg_file(file_name, true, false, false, max_tex_size / 8)) {
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+		}
+	}
+
 	if (m_bedtype_hovered_texture.get_id() == 0)
 	{
 		file_name = path + "plate_set_bedtype_hover.svg";
@@ -2493,6 +2510,7 @@ void PartPlateList::release_icon_textures()
 	m_lockopen_texture.reset();
 	m_lockopen_hovered_texture.reset();
 	m_bedtype_texture.reset();
+	m_bedtype_warned_texture.reset();
 	m_bedtype_hovered_texture.reset();
 
 	for (int i = 0;i < MAX_PLATE_COUNT; i++) {

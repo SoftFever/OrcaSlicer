@@ -138,6 +138,9 @@ private:
     mutable unsigned int m_plate_idx_vbo_id{ 0 };
     GLTexture m_texture;
 
+    // plate render option
+    bool render_bedtype_setting_warned = false;
+
     mutable float m_grabber_color[4];
     float m_scale_factor{ 1.0f };
     GLUquadricObject* m_quadric;
@@ -207,6 +210,7 @@ public:
     void clear(bool clear_sliced_result = true);
 
     BedType get_bed_type() const;
+    bool is_bedtype_same_as_global = true;
     void set_bed_type(BedType, bool& same_as_global);
     void reset_bed_type();
     DynamicPrintConfig* config() { return &m_config; }
@@ -298,6 +302,7 @@ public:
 
     void render(bool bottom, bool only_body = false, bool force_background_color = false, HeightLimitMode mode = HEIGHT_LIMIT_NONE, int hover_id = -1);
     void render_for_picking() const { on_render_for_picking(); }
+    void set_plate_render_option(bool bedtype_setting_warned);
     void set_selected();
     void set_unselected();
     void set_hover_id(int id) { m_hover_id = id; }
@@ -454,6 +459,7 @@ class PartPlateList : public ObjectBase
     GLTexture m_lockopen_texture;
     GLTexture m_lockopen_hovered_texture;
     GLTexture m_bedtype_texture;
+    GLTexture m_bedtype_warned_texture;
     GLTexture m_bedtype_hovered_texture;
     GLTexture m_idx_textures[MAX_PLATE_COUNT];
     // set render option
@@ -528,6 +534,8 @@ public:
 
     int get_curr_plate_index() const { return m_current_plate; }
     PartPlate* get_curr_plate() { return m_plate_list[m_current_plate]; }
+
+    std::vector<PartPlate*>& get_plate_list() { return m_plate_list; };
 
     PartPlate* get_selected_plate();
 
