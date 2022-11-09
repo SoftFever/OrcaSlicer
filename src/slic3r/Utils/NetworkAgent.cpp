@@ -86,6 +86,7 @@ func_check_user_task_report         NetworkAgent::check_user_task_report_ptr = n
 func_get_user_print_info            NetworkAgent::get_user_print_info_ptr = nullptr;
 func_get_printer_firmware           NetworkAgent::get_printer_firmware_ptr = nullptr;
 func_get_task_plate_index           NetworkAgent::get_task_plate_index_ptr = nullptr;
+func_get_user_info                  NetworkAgent::get_user_info_ptr = nullptr;
 func_get_slice_info                 NetworkAgent::get_slice_info_ptr = nullptr;
 func_query_bind_status              NetworkAgent::query_bind_status_ptr = nullptr;
 func_modify_printer_name            NetworkAgent::modify_printer_name_ptr = nullptr;
@@ -226,6 +227,7 @@ int NetworkAgent::initialize_network_module(bool using_backup)
     get_user_print_info_ptr           =  reinterpret_cast<func_get_user_print_info>(get_network_function("bambu_network_get_user_print_info"));
     get_printer_firmware_ptr          =  reinterpret_cast<func_get_printer_firmware>(get_network_function("bambu_network_get_printer_firmware"));
     get_task_plate_index_ptr          =  reinterpret_cast<func_get_task_plate_index>(get_network_function("bambu_network_get_task_plate_index"));
+    get_user_info_ptr                 =  reinterpret_cast<func_get_user_info>(get_network_function("bambu_network_get_user_info"));
     get_slice_info_ptr                =  reinterpret_cast<func_get_slice_info>(get_network_function("bambu_network_get_slice_info"));
     query_bind_status_ptr             =  reinterpret_cast<func_query_bind_status>(get_network_function("bambu_network_query_bind_status"));
     modify_printer_name_ptr           =  reinterpret_cast<func_modify_printer_name>(get_network_function("bambu_network_modify_printer_name"));
@@ -320,6 +322,7 @@ int NetworkAgent::unload_network_module()
     get_user_print_info_ptr           =  nullptr;
     get_printer_firmware_ptr          =  nullptr;
     get_task_plate_index_ptr          =  nullptr;
+    get_user_info_ptr                 =  nullptr;
     get_slice_info_ptr                =  nullptr;
     query_bind_status_ptr             =  nullptr;
     modify_printer_name_ptr           =  nullptr;
@@ -998,6 +1001,17 @@ int NetworkAgent::get_task_plate_index(std::string task_id, int* plate_index)
         ret = get_task_plate_index_ptr(network_agent, task_id, plate_index);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, task_id=%3%")%network_agent %ret %task_id;
+    }
+    return ret;
+}
+
+int NetworkAgent::get_user_info(int* identifier)
+{
+    int ret = 0;
+    if (network_agent && get_user_info_ptr) {
+        ret = get_user_info_ptr(network_agent, identifier);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
     }
     return ret;
 }

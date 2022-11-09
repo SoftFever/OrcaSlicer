@@ -14,15 +14,14 @@
 namespace Slic3r {
 namespace GUI {
     ModelMallDialog::ModelMallDialog(Plater* plater /*= nullptr*/)
-        :DPIDialog(static_cast<wxWindow*>(nullptr), wxID_ANY, _L("3D Models"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxDIALOG_NO_PARENT|wxMINIMIZE_BOX)
+        :DPIDialog(static_cast<wxWindow*>(nullptr), wxID_ANY, _L("3D Models"), wxDefaultPosition, wxDefaultSize, wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxRESIZE_BORDER)
     {
         // icon
         std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
         SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
         SetSize(MODEL_MALL_PAGE_SIZE);
-        SetMaxSize(MODEL_MALL_PAGE_SIZE);
-        SetMinSize(MODEL_MALL_PAGE_SIZE);
+        SetMinSize(wxSize(MODEL_MALL_PAGE_SIZE.x / 4, MODEL_MALL_PAGE_SIZE.y / 4));
 
         wxBoxSizer* m_sizer_main = new wxBoxSizer(wxVERTICAL);
 
@@ -33,8 +32,7 @@ namespace GUI {
         m_web_control_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, MODEL_MALL_PAGE_CONTROL_SIZE, wxTAB_TRAVERSAL);
         m_web_control_panel->SetBackgroundColour(*wxWHITE);
         m_web_control_panel->SetSize(MODEL_MALL_PAGE_CONTROL_SIZE);
-        m_web_control_panel->SetMaxSize(MODEL_MALL_PAGE_CONTROL_SIZE);
-        m_web_control_panel->SetMinSize(MODEL_MALL_PAGE_CONTROL_SIZE);
+
 
         wxBoxSizer* m_sizer_web_control = new wxBoxSizer(wxHORIZONTAL);
 
@@ -100,12 +98,10 @@ namespace GUI {
 
         m_browser->SetSize(MODEL_MALL_PAGE_WEB_SIZE);
         m_browser->SetMinSize(MODEL_MALL_PAGE_WEB_SIZE);
-        m_browser->SetMaxSize(MODEL_MALL_PAGE_WEB_SIZE);
-
         m_browser->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &ModelMallDialog::OnScriptMessage, this, m_browser->GetId());
 
         m_sizer_main->Add(m_web_control_panel, 0, wxEXPAND, 0);
-        m_sizer_main->Add(m_browser, 0, wxEXPAND, 0);
+        m_sizer_main->Add(m_browser, 1, wxEXPAND, 0);
         SetSizer(m_sizer_main);
         Layout();
         Fit();

@@ -89,7 +89,9 @@ class MainFrame : public DPIFrame
     wxString    m_qs_last_input_file = wxEmptyString;
     wxString    m_qs_last_output_file = wxEmptyString;
     wxString    m_last_config = wxEmptyString;
+
     wxMenuBar*  m_menubar{ nullptr };
+    wxMenu* publishMenu{ nullptr };
 
 #if 0
     wxMenuItem* m_menu_item_repeat { nullptr }; // doesn't used now
@@ -234,6 +236,7 @@ public:
     BBLTopbar* topbar() { return m_topbar; }
 
     void        update_title();
+    void        show_publish_button(bool show);
 
 	void        update_title_colour_after_set_title();
     void        show_option(bool show);

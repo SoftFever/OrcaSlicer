@@ -251,10 +251,11 @@ void BBLTopbar::Init(wxFrame* parent)
     this->AddStretchSpacer(1);
 
 #if !BBL_RELEASE_TO_PUBLIC
-    wxBitmap m_publish_bitmap = create_scaled_bitmap("topbar_publish", nullptr, TOPBAR_ICON_SIZE);
-    m_publish_item            = this->AddTool(ID_PUBLISH, "", m_publish_bitmap);
-    wxBitmap m_publish_disable_bitmap = create_scaled_bitmap("topbar_publish_disable", nullptr, TOPBAR_ICON_SIZE);
+    m_publish_bitmap = create_scaled_bitmap("topbar_publish", nullptr, TOPBAR_ICON_SIZE);
+    m_publish_item = this->AddTool(ID_PUBLISH, "", m_publish_bitmap);
+    m_publish_disable_bitmap = create_scaled_bitmap("topbar_publish_disable", nullptr, TOPBAR_ICON_SIZE);
     m_publish_item->SetDisabledBitmap(m_publish_disable_bitmap);
+    this->EnableTool(m_publish_item->GetId(), false);
     this->AddSpacer(FromDIP(12));
 #endif
 
@@ -318,6 +319,12 @@ BBLTopbar::~BBLTopbar()
     m_file_menu_item = nullptr;
     m_dropdown_menu_item = nullptr;
     m_file_menu = nullptr;
+}
+
+void BBLTopbar::show_publish_button(bool show)
+{
+    this->EnableTool(m_publish_item->GetId(), show);
+    Refresh();
 }
 
 void BBLTopbar::OnOpenProject(wxAuiToolBarEvent& event)

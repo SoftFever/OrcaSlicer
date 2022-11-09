@@ -2150,7 +2150,7 @@ void MainFrame::init_menubar_as_editor()
     // BBS
 
     //publish menu
-    wxMenu* publishMenu = nullptr;
+    
     if (m_plater) {
         publishMenu = new wxMenu();
         add_common_publish_menu_items(publishMenu, this);
@@ -2364,11 +2364,19 @@ void MainFrame::init_menubar_as_editor()
         m_menubar->Append(editMenu, wxString::Format("&%s", _L("Edit")));
     if (viewMenu)
         m_menubar->Append(viewMenu, wxString::Format("&%s", _L("View")));
-    if (publishMenu)
-        m_menubar->Append(publishMenu, wxString::Format("&%s", _L("3D Models")));
+    /*if (publishMenu)
+        m_menubar->Append(publishMenu, wxString::Format("&%s", _L("3D Models")));*/
     if (helpMenu)
         m_menubar->Append(helpMenu, wxString::Format("&%s", _L("Help")));
     SetMenuBar(m_menubar);
+
+    if (wxGetApp().getAgent()->is_user_login()) {
+        int identifier;
+        int result = wxGetApp().getAgent()->get_user_info(&identifier);
+        auto publish_identifier = identifier & 1;
+        show_publish_button(publish_identifier == 0 ? false : true);
+    }
+
 #endif
 
 #ifdef _MSW_DARK_MODE
@@ -2386,6 +2394,18 @@ void MainFrame::init_menubar_as_editor()
         }, wxID_EXIT);
     }
 #endif // __APPLE__
+}
+
+void MainFrame::show_publish_button(bool show)
+{
+    if (!m_menubar) return;
+
+    if (show){
+        m_menubar->Insert(4, publishMenu, wxString::Format("&%s", _L("3D Models")));
+    }
+    else {
+        m_menubar->Remove(4);
+    }
 }
 
 void MainFrame::open_menubar_item(const wxString& menu_name,const wxString& item_name)

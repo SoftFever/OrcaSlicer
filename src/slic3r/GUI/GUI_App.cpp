@@ -3200,6 +3200,12 @@ void GUI_App::request_user_logout()
         GUI::wxGetApp().sidebar().load_ams_list({});
         GUI::wxGetApp().remove_user_presets();
         GUI::wxGetApp().stop_sync_user_preset();
+
+#ifdef __WINDOWS__
+        wxGetApp().mainframe->topbar()->show_publish_button(false);
+#else
+        wxGetApp().mainframe->show_publish_button(false);
+#endif
     }
 }
 
@@ -3529,6 +3535,21 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
     GUI::wxGetApp().preset_bundle->update_user_presets_directory(user_id);
     if (online_login)
         GUI::wxGetApp().mainframe->show_sync_dialog();
+
+    //show publish button
+    if (m_agent->is_user_login() && mainframe) {
+        int identifier;
+        int result = m_agent->get_user_info(&identifier);
+        auto publish_identifier = identifier & 1;
+
+#ifdef __WINDOWS__
+        if (result == 0 && publish_identifier >= 0) {
+            mainframe->m_topbar->show_publish_button(publish_identifier == 0 ? false : true);
+        }
+#else
+        mainframe->show_publish_button(publish_identifier == 0 ? false : true);
+#endif
+    }
 }
 
 bool GUI_App::is_studio_active()
