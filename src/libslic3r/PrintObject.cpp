@@ -1642,6 +1642,10 @@ void PrintObject::bridge_over_infill()
                     to_bridge_pp = intersection(to_bridge_pp, lower_internal);
                 }
 
+                // BBS: expand to make avoid gap between bridge and inner wall
+                to_bridge_pp = expand(to_bridge_pp, bridge_flow.scaled_width());
+                to_bridge_pp = intersection(to_bridge_pp, internal_solid);
+
                 // there's no point in bridging too thin/short regions
                 //FIXME Vojtech: The offset2 function is not a geometric offset,
                 // therefore it may create 1) gaps, and 2) sharp corners, which are outside the original contour.
