@@ -839,7 +839,7 @@ void NotificationManager::HintNotification::render_text(ImGuiWrapper& imgui, con
 
 	float	x_offset = m_left_indentation;
 	int		last_end = 0;
-	float	starting_y = (m_lines_count < 4 ? m_line_height / 2 * (4 - m_lines_count + 1) : m_line_height / 2);
+	float	starting_y = (/*m_lines_count < 4 ? m_line_height / 2 * (4 - m_lines_count + 1) :*/ m_line_height / 2);
 	float	shift_y = m_line_height;
 	std::string line;
 
@@ -932,41 +932,29 @@ void NotificationManager::HintNotification::render_close_button(ImGuiWrapper& im
 	std::string button_text;
 	button_text = ImGui::CloseNotifButton;
 
-	if (ImGui::IsMouseHoveringRect(ImVec2(win_pos.x - win_size.x / 10.f, win_pos.y),
-		ImVec2(win_pos.x, win_pos.y + win_size.y - 2 * m_line_height),
-		true))
-	{
-		button_text = ImGui::CloseNotifHoverButton;
-	}
 	ImVec2 button_pic_size = ImGui::CalcTextSize(button_text.c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
 	m_close_b_w = button_size.y;
-	if (m_lines_count <= 3) {
-		m_close_b_y = win_size.y / 2 - button_size.y * 1.25f;
-		ImGui::SetCursorPosX(win_size.x - m_line_height * 2.75f);
-		ImGui::SetCursorPosY(m_close_b_y);
+	if (ImGui::IsMouseHoveringRect(ImVec2(win_pos.x - win_size.x / 10.f, win_pos.y + win_size.y / 2 - button_pic_size.y),
+		ImVec2(win_pos.x, win_pos.y + win_size.y / 2 + button_pic_size.y),
+		true))
+	{
+		button_text = ImGui::CloseNotifHoverButton;
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+			close();
 	}
-	else {
-		ImGui::SetCursorPosX(win_size.x - m_line_height * 2.75f);
-		ImGui::SetCursorPosY(win_size.y / 2 - button_size.y);
-	}
+	ImGui::SetCursorPosX(win_size.x - m_line_height * 2.75f);
+	ImGui::SetCursorPosY(win_size.y / 2 - button_size.y);
 	if (imgui.button(button_text.c_str(), button_size.x, button_size.y))
 	{
 		close();
 	}
 
-	//invisible large button
-	ImGui::SetCursorPosX(win_size.x - m_line_height * 2.35f);
-	ImGui::SetCursorPosY(0);
-	if (imgui.button(" ", m_line_height * 2.125, win_size.y - 2 * m_line_height))
-	{
-		close();
-	}
 
 	ImGui::PopStyleColor(5);
 
 
-	//render_right_arrow_button(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
+	render_right_arrow_button(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
 	//render_logo(imgui, win_size_x, win_size_y, win_pos_x, win_pos_y);
 	render_preferences_button(imgui, win_pos_x, win_pos_y);
 	if (!m_documentation_link.empty() && wxGetApp().app_config->get("suppress_hyperlinks") != "1")
@@ -978,7 +966,7 @@ void NotificationManager::HintNotification::render_close_button(ImGuiWrapper& im
 
 void NotificationManager::HintNotification::render_preferences_button(ImGuiWrapper& imgui, const float win_pos_x, const float win_pos_y)
 {
-
+	auto scale = wxGetApp().plater()->get_current_canvas3D()->get_scale();
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(.0f, .0f, .0f, .0f));
 	push_style_color(ImGuiCol_ButtonActive, ImGui::GetStyleColorVec4(ImGuiCol_WindowBg), m_state == EState::FadingOut, m_current_fade_opacity);
@@ -988,37 +976,28 @@ void NotificationManager::HintNotification::render_preferences_button(ImGuiWrapp
 	std::string button_text;
 	button_text = ImGui::PreferencesButton;
 	//hover
-	if (ImGui::IsMouseHoveringRect(ImVec2(win_pos_x - m_window_width / 15.f, win_pos_y + m_window_height - 1.75f * m_line_height),
+	if (ImGui::IsMouseHoveringRect(ImVec2(win_pos_x - m_window_width / 15.f, win_pos_y + m_window_height - 1.5f * m_line_height),
 		ImVec2(win_pos_x, win_pos_y + m_window_height),
 		true)) {
 		button_text = ImGui::PreferencesHoverButton;
 		// tooltip
-		long time_now = wxGetLocalTime();
-		if (m_prefe_hover_time > 0 && m_prefe_hover_time < time_now) {
-			ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
-			ImGui::BeginTooltip();
-			imgui.text(_u8L("Open Preferences."));
-			ImGui::EndTooltip();
-			ImGui::PopStyleColor();
-		}
-		if (m_prefe_hover_time == 0)
-			m_prefe_hover_time = time_now;
+		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
+		ImGui::PushStyleColor(ImGuiCol_Border, { 0,0,0,0 });
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 8 * scale, 1 * scale });
+		ImGui::BeginTooltip();
+		imgui.text(_u8L("Open Preferences."));
+		ImGui::EndTooltip();
+		ImGui::PopStyleColor(2);
+		ImGui::PopStyleVar();
 	}
-	else
-		m_prefe_hover_time = 0;
 
 	ImVec2 button_pic_size = ImGui::CalcTextSize(button_text.c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
 	ImGui::SetCursorPosX(m_window_width - m_line_height * 1.75f);
-	if (m_lines_count <= 3) {
-		ImGui::SetCursorPosY(m_close_b_y + m_close_b_w / 4.f * 7.f);
-	}
-	else {
-		ImGui::SetCursorPosY(m_window_height - button_size.y - m_close_b_w / 4.f);
-	}
+	ImGui::SetCursorPosY(m_window_height - button_size.y - m_close_b_w / 4.f);
 	if (imgui.button(button_text.c_str(), button_size.x, button_size.y))
 	{
-		wxGetApp().open_preferences(1, "GUI");// 1 is to modify
+		wxGetApp().open_preferences();
 	}
 
 	ImGui::PopStyleColor(5);
@@ -1028,7 +1007,7 @@ void NotificationManager::HintNotification::render_preferences_button(ImGuiWrapp
 void NotificationManager::HintNotification::render_right_arrow_button(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
 	// Used for debuging
-
+	auto scale = wxGetApp().plater()->get_current_canvas3D()->get_scale();
 	ImVec2 win_size(win_size_x, win_size_y);
 	ImVec2 win_pos(win_pos_x, win_pos_y);
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
@@ -1042,12 +1021,23 @@ void NotificationManager::HintNotification::render_right_arrow_button(ImGuiWrapp
 
 	ImVec2 button_pic_size = ImGui::CalcTextSize(button_text.c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
-
+	if (ImGui::IsMouseHoveringRect(ImVec2(win_pos_x - m_window_width / 7.5f, win_pos_y + m_window_height - 1.5f * m_line_height),
+		ImVec2(win_pos_x - m_window_width / 15.f, win_pos_y + m_window_height),
+		true))
+	{
+		button_text = ImGui::RightArrowHoverButton;
+		// tooltip
+		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
+		ImGui::PushStyleColor(ImGuiCol_Border, { 0,0,0,0 });
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 8 * scale, 1 * scale });
+		ImGui::BeginTooltip();
+		imgui.text(_u8L("Open next tip."));
+		ImGui::EndTooltip();
+		ImGui::PopStyleColor(2);
+		ImGui::PopStyleVar();
+	}
 	ImGui::SetCursorPosX(m_window_width - m_line_height * 3.f);
-	if (m_lines_count <= 3)
-		ImGui::SetCursorPosY(m_close_b_y + m_close_b_w / 4.f * 7.f);
-	else
-		ImGui::SetCursorPosY(m_window_height - button_size.y - m_close_b_w / 4.f);
+	ImGui::SetCursorPosY(m_window_height - button_size.y - m_close_b_w / 4.f);
 	if (imgui.button(button_text.c_str(), button_size.x * 0.8f, button_size.y * 1.f))
 	{
 		retrieve_data();
@@ -1068,6 +1058,7 @@ void NotificationManager::HintNotification::render_logo(ImGuiWrapper& imgui, con
 }
 void NotificationManager::HintNotification::render_documentation_button(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
+	auto scale = wxGetApp().plater()->get_current_canvas3D()->get_scale();
 	ImVec2 win_size(win_size_x, win_size_y);
 	ImVec2 win_pos(win_pos_x, win_pos_y);
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
@@ -1081,39 +1072,28 @@ void NotificationManager::HintNotification::render_documentation_button(ImGuiWra
 	std::string placeholder_text;
 	placeholder_text = ImGui::EjectButton;
 
-	if (ImGui::IsMouseHoveringRect(ImVec2(win_pos.x - m_line_height * 5.f, win_pos.y),
-		ImVec2(win_pos.x - m_line_height * 2.5f, win_pos.y + win_size.y - 2 * m_line_height),
+	ImVec2 button_pic_size = ImGui::CalcTextSize(placeholder_text.c_str());
+	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
+	if (ImGui::IsMouseHoveringRect(ImVec2(win_pos.x - m_line_height * 5.f, win_pos.y + win_size.y / 2 - button_pic_size.y),
+		ImVec2(win_pos.x - m_line_height * 2.5f, win_pos.y + win_size.y / 2 + button_pic_size.y),
 		true))
 	{
 		button_text = ImGui::DocumentationHoverButton;
 		// tooltip
-		long time_now = wxGetLocalTime();
-		if (m_docu_hover_time > 0 && m_docu_hover_time < time_now) {
-			ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
-			ImGui::BeginTooltip();
-			imgui.text(_u8L("Open Documentation in web browser."));
-			ImGui::EndTooltip();
-			ImGui::PopStyleColor();
-		}
-		if (m_docu_hover_time == 0)
-			m_docu_hover_time = time_now;
+		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
+		ImGui::PushStyleColor(ImGuiCol_Border, { 0,0,0,0 });
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 8 * scale, 1 * scale });
+		ImGui::BeginTooltip();
+		imgui.text(_u8L("Open Documentation in web browser."));
+		ImGui::EndTooltip();
+		ImGui::PopStyleColor(2);
+		ImGui::PopStyleVar();
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+			open_documentation();
 	}
-	else
-		m_docu_hover_time = 0;
-
-	ImVec2 button_pic_size = ImGui::CalcTextSize(placeholder_text.c_str());
-	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
 	ImGui::SetCursorPosX(win_size.x - m_line_height * 5.0f);
 	ImGui::SetCursorPosY(win_size.y / 2 - button_size.y);
 	if (imgui.button(button_text.c_str(), button_size.x, button_size.y))
-	{
-		open_documentation();
-	}
-
-	//invisible large button
-	ImGui::SetCursorPosX(win_size.x - m_line_height * 4.625f);
-	ImGui::SetCursorPosY(0);
-	if (imgui.button("  ", m_line_height * 2.f, win_size.y - 2 * m_line_height))
 	{
 		open_documentation();
 	}
