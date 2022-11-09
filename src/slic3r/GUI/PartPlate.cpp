@@ -150,6 +150,8 @@ BedType PartPlate::get_bed_type() const
 void PartPlate::set_bed_type(BedType bed_type)
 {
 	m_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
+	if (m_plater)
+		m_plater->schedule_background_process();
 }
 
 void PartPlate::reset_bed_type()
