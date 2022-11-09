@@ -10585,8 +10585,9 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
             SetBedTypeDialog dlg(this, wxID_ANY, _L("Select bed type"));
             dlg.sync_bed_type(p->partplate_list.get_curr_plate()->get_bed_type());
             dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index](wxCommandEvent& e) {
+                bool same_as_global = false;
                 auto type = (BedType)(e.GetInt());
-                p->partplate_list.get_curr_plate()->set_bed_type(type);
+                p->partplate_list.get_curr_plate()->set_bed_type(type, same_as_global);
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select bed type %1% for plate %2% at plate side")%type %plate_index;
                 });
             dlg.ShowModal();

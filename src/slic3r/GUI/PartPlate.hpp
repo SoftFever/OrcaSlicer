@@ -207,7 +207,7 @@ public:
     void clear(bool clear_sliced_result = true);
 
     BedType get_bed_type() const;
-    void set_bed_type(BedType);
+    void set_bed_type(BedType, bool& same_as_global);
     void reset_bed_type();
     DynamicPrintConfig* config() { return &m_config; }
 
