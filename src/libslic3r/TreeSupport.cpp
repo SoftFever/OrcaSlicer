@@ -2818,8 +2818,9 @@ void TreeSupport::adjust_layer_heights(std::vector<std::vector<Node*>>& contact_
     if (contact_nodes.empty())
         return;
 
+    const PrintConfig& print_config = m_object->print()->config();
     const PrintObjectConfig& config = m_object->config();
-    if (!config.independent_support_layer_height) {
+    if (!print_config.independent_support_layer_height) {
         for (int layer_nr = 0; layer_nr < contact_nodes.size(); layer_nr++) {
             std::vector<Node*>& curr_layer_nodes = contact_nodes[layer_nr];
             for (Node* node : curr_layer_nodes) {

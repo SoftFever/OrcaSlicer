@@ -1839,7 +1839,7 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
         bottom_z = (layer_id == 1) ? slicing_params.object_print_z_min : layer.lower_layer->lower_layer->print_z;
     } else {
         print_z  = layer.bottom_z() - slicing_params.gap_support_object;
-        height   = object_config.independent_support_layer_height ? 0. : object_config.layer_height;
+        height   = print_config.independent_support_layer_height ? 0. : object_config.layer_height;
         bottom_z = print_z - height;
         // Ignore this contact area if it's too low.
         // Don't want to print a layer below the first layer height as it may not stick well.
@@ -1870,7 +1870,7 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
                 bridging_height += region->region().bridging_height_avg(print_config);
             bridging_height /= coordf_t(layer.regions().size());
             // BBS: align bridging height
-            if (!object_config.independent_support_layer_height)
+            if (!print_config.independent_support_layer_height)
                 bridging_height = std::ceil(bridging_height / object_config.layer_height - EPSILON) * object_config.layer_height;
             coordf_t bridging_print_z = layer.print_z - bridging_height - slicing_params.gap_support_object;
             if (bridging_print_z >= min_print_z) {
@@ -1890,7 +1890,7 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
                     } else {
                         // BBS: if independent_support_layer_height is not enabled, the support layer_height should be the same as layer height.
                         // Note that for this case, adaptive layer height must be disabled.
-                        bridging_layer->height = object_config.independent_support_layer_height ? 0. : object_config.layer_height;
+                        bridging_layer->height = print_config.independent_support_layer_height ? 0. : object_config.layer_height;
                         // Don't know the height yet.
                         bridging_layer->bottom_z = bridging_print_z - bridging_layer->height;
                     }
@@ -2423,7 +2423,7 @@ static inline PrintObjectSupportMaterial::MyLayer* detect_bottom_contacts(
     // top shapes so this can be done here
     //FIXME calculate layer height based on the actual thickness of the layer:
     // If the layer is extruded with no bridging flow, support just the normal extrusions.
-    layer_new.height = slicing_params.soluble_interface || !object.config().independent_support_layer_height ?
+    layer_new.height = slicing_params.soluble_interface || !object.print()->config().independent_support_layer_height ?
         // Align the interface layer with the object's layer height.
         layer.upper_layer->height :
         // Place a bridge flow interface layer or the normal flow interface layer over the top surface.

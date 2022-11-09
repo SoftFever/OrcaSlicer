@@ -636,7 +636,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               support_speed))
     ((ConfigOptionEnum<SupportMaterialStyle>, support_style))
     // BBS
-    ((ConfigOptionBool,                independent_support_layer_height))
+    //((ConfigOptionBool,                independent_support_layer_height))
     ((ConfigOptionBool,                thick_bridges))
     // Overhang angle threshold.
     ((ConfigOptionInt,                 support_threshold_angle))
@@ -902,7 +902,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               has_prime_tower))
     ((ConfigOptionFloat,              nozzle_volume))
     ((ConfigOptionEnum<TimelapseType>,    timelapse_type))
-
+    // BBS: move from PrintObjectConfig
+    ((ConfigOptionBool, independent_support_layer_height))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Full.

@@ -1424,7 +1424,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 
         update_apply_status(this->invalidate_step(psGCodeExport));
 
-        if (full_config_diff.empty()) {
+        if (!full_config_diff.empty()) {
             //BBS: previous empty
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: full_config_diff previous empty, need to apply now.")%__LINE__;
 
