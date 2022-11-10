@@ -137,7 +137,7 @@ std::map<int, std::string> cli_errors = {
 };
 
 #if defined(__linux__) || defined(__LINUX__)
-#define PIPE_BUFFER_SIZE 128
+#define PIPE_BUFFER_SIZE 512
 
 typedef struct _cli_callback_mgr {
     int                 m_plate_count {0};
@@ -188,7 +188,10 @@ typedef struct _cli_callback_mgr {
         j["plate_count"] = m_plate_count;
         j["plate_percent"] = m_progress;
         j["total_percent"] = m_total_progress;
-        j["message"] = m_message;
+        if (m_warning_step >= 0)
+            j["warning"] = m_message;
+        else
+            j["message"] = m_message;
 
         std::string notify_message = j.dump();
         //notify_message = "Plate "+ std::to_string(m_plate_index) + "/" +std::to_string(m_plate_count)+  ": Percent " + std::to_string(m_progress) + ": "+m_message;
@@ -231,28 +234,30 @@ typedef struct _cli_callback_mgr {
 
     void    update(int percent, std::string message, int warning_step)
     {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": percent="<<percent<< ", plate_index = "<< m_plate_index<<", plate_count="<< m_plate_count<<", message="<<message;
         std::unique_lock<std::mutex> lck(m_mutex);
         if (!m_started) {
             lck.unlock();
             return;
         }
 
-        if (m_progress >= percent) {
+        if ((m_progress >= percent)&&(warning_step == -1)) {
             //already update before
             lck.unlock();
             return;
         }
-        m_progress = percent;
-        if ((m_plate_index >= 1)&&(m_plate_index <= m_plate_count)) {
-            if (m_plate_count <= 1)
-                m_total_progress = 0.9*m_progress;
-            else {
-                m_total_progress = ((float)(m_plate_index - 1)*90)/m_plate_count + ((float)m_progress*0.9)/m_plate_count;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": percent="<<percent<< ", warning_step=" << warning_step << ", plate_index = "<< m_plate_index<<", plate_count="<< m_plate_count<<", message="<<message;
+	if (warning_step == -1) {
+            m_progress = percent;
+            if ((m_plate_index >= 1)&&(m_plate_index <= m_plate_count)) {
+                if (m_plate_count <= 1)
+                    m_total_progress = 0.9*m_progress;
+                else {
+                    m_total_progress = ((float)(m_plate_index - 1)*90)/m_plate_count + ((float)m_progress*0.9)/m_plate_count;
+                }
             }
-        }
-        else
-            m_total_progress = m_progress;
+            else
+                m_total_progress = m_progress;
+	}
         m_message = message;
         m_warning_step = warning_step;
         m_data_ready = true;
@@ -1410,6 +1415,10 @@ int CLI::run(int argc, char **argv)
                                 BOOST_LOG_TRIVIAL(info) << "set print's callback to cli_status_callback.";
                                 print->set_status_callback(cli_status_callback);
                                 g_cli_callback_mgr.set_plate_info(index+1, (plate_to_slice== 0)?partplate_list.get_plate_count():1);
+                                if (!warning.string.empty()) {
+                                    PrintBase::SlicingStatus slicing_status{2, warning.string, 0, 0};
+                                    cli_status_callback(slicing_status);
+                                }
                             }
 #endif
                             print->process();
