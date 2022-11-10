@@ -3802,69 +3802,71 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             _perform_layer_editing_action(&evt);
         }
 
-        // BBS: define Alt key to enable volume selection mode
-        m_selection.set_volume_selection_mode(evt.AltDown() ? Selection::Volume : Selection::Instance);
-        if (evt.LeftDown() && evt.ShiftDown() && m_picking_enabled && m_layers_editing.state != LayersEditing::Editing) {
-            if (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports
-             && m_gizmos.get_current_type() != GLGizmosManager::FdmSupports
-             && m_gizmos.get_current_type() != GLGizmosManager::Seam
-             && m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation) {
-                m_rectangle_selection.start_dragging(m_mouse.position, evt.ShiftDown() ? GLSelectionRectangle::Select : GLSelectionRectangle::Deselect);
-                m_dirty = true;
-            }
-        }
         else {
-            // Select volume in this 3D canvas.
-            // Don't deselect a volume if layer editing is enabled or any gizmo is active. We want the object to stay selected
-            // during the scene manipulation.
-
-            if (m_picking_enabled && (!any_gizmo_active || !evt.CmdDown()) && (!m_hover_volume_idxs.empty())) {
-                if (evt.LeftDown() && !m_hover_volume_idxs.empty()) {
-                    int volume_idx = get_first_hover_volume_idx();
-                    bool already_selected = m_selection.contains_volume(volume_idx);
-                    bool ctrl_down = evt.CmdDown();
-
-                    Selection::IndicesList curr_idxs = m_selection.get_volume_idxs();
-
-                    if (already_selected && ctrl_down)
-                        m_selection.remove(volume_idx);
-                    else {
-                        m_selection.add(volume_idx, !ctrl_down, true);
-                        m_mouse.drag.move_requires_threshold = !already_selected;
-                        if (already_selected)
-                            m_mouse.set_move_start_threshold_position_2D_as_invalid();
-                        else
-                            m_mouse.drag.move_start_threshold_position_2D = pos;
-                    }
-
-                    // propagate event through callback
-                    if (curr_idxs != m_selection.get_volume_idxs()) {
-                        if (m_selection.is_empty())
-                            m_gizmos.reset_all_states();
-                        else
-                            m_gizmos.refresh_on_off_state();
-
-                        m_gizmos.update_data();
-                        post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
-                        m_dirty = true;
-                    }
+            // BBS: define Alt key to enable volume selection mode
+            m_selection.set_volume_selection_mode(evt.AltDown() ? Selection::Volume : Selection::Instance);
+            if (evt.LeftDown() && evt.ShiftDown() && m_picking_enabled && m_layers_editing.state != LayersEditing::Editing) {
+                if (m_gizmos.get_current_type() != GLGizmosManager::SlaSupports
+                    && m_gizmos.get_current_type() != GLGizmosManager::FdmSupports
+                    && m_gizmos.get_current_type() != GLGizmosManager::Seam
+                    && m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation) {
+                    m_rectangle_selection.start_dragging(m_mouse.position, evt.ShiftDown() ? GLSelectionRectangle::Select : GLSelectionRectangle::Deselect);
+                    m_dirty = true;
                 }
             }
+            else {
+                // Select volume in this 3D canvas.
+                // Don't deselect a volume if layer editing is enabled or any gizmo is active. We want the object to stay selected
+                // during the scene manipulation.
 
-            if (!m_hover_volume_idxs.empty()) {
-                if (evt.LeftDown() && m_moving_enabled && m_mouse.drag.move_volume_idx == -1) {
-                    // Only accept the initial position, if it is inside the volume bounding box.
-                    int volume_idx = get_first_hover_volume_idx();
-                    BoundingBoxf3 volume_bbox = m_volumes.volumes[volume_idx]->transformed_bounding_box();
-                    volume_bbox.offset(1.0);
-                    if ((!any_gizmo_active || !evt.CmdDown()) && volume_bbox.contains(m_mouse.scene_position)) {
-                        m_volumes.volumes[volume_idx]->hover = GLVolume::HS_None;
-                        // The dragging operation is initiated.
-                        m_mouse.drag.move_volume_idx = volume_idx;
-                        m_selection.start_dragging();
-                        m_mouse.drag.start_position_3D = m_mouse.scene_position;
-                        m_sequential_print_clearance_first_displacement = true;
-                        m_moving = true;
+                if (m_picking_enabled && (!any_gizmo_active || !evt.CmdDown()) && (!m_hover_volume_idxs.empty())) {
+                    if (evt.LeftDown() && !m_hover_volume_idxs.empty()) {
+                        int volume_idx = get_first_hover_volume_idx();
+                        bool already_selected = m_selection.contains_volume(volume_idx);
+                        bool ctrl_down = evt.CmdDown();
+
+                        Selection::IndicesList curr_idxs = m_selection.get_volume_idxs();
+
+                        if (already_selected && ctrl_down)
+                            m_selection.remove(volume_idx);
+                        else {
+                            m_selection.add(volume_idx, !ctrl_down, true);
+                            m_mouse.drag.move_requires_threshold = !already_selected;
+                            if (already_selected)
+                                m_mouse.set_move_start_threshold_position_2D_as_invalid();
+                            else
+                                m_mouse.drag.move_start_threshold_position_2D = pos;
+                        }
+
+                        // propagate event through callback
+                        if (curr_idxs != m_selection.get_volume_idxs()) {
+                            if (m_selection.is_empty())
+                                m_gizmos.reset_all_states();
+                            else
+                                m_gizmos.refresh_on_off_state();
+
+                            m_gizmos.update_data();
+                            post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
+                            m_dirty = true;
+                        }
+                    }
+                }
+
+                if (!m_hover_volume_idxs.empty()) {
+                    if (evt.LeftDown() && m_moving_enabled && m_mouse.drag.move_volume_idx == -1) {
+                        // Only accept the initial position, if it is inside the volume bounding box.
+                        int volume_idx = get_first_hover_volume_idx();
+                        BoundingBoxf3 volume_bbox = m_volumes.volumes[volume_idx]->transformed_bounding_box();
+                        volume_bbox.offset(1.0);
+                        if ((!any_gizmo_active || !evt.CmdDown()) && volume_bbox.contains(m_mouse.scene_position)) {
+                            m_volumes.volumes[volume_idx]->hover = GLVolume::HS_None;
+                            // The dragging operation is initiated.
+                            m_mouse.drag.move_volume_idx = volume_idx;
+                            m_selection.start_dragging();
+                            m_mouse.drag.start_position_3D = m_mouse.scene_position;
+                            m_sequential_print_clearance_first_displacement = true;
+                            m_moving = true;
+                        }
                     }
                 }
             }
