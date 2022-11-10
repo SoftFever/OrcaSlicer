@@ -958,8 +958,8 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                     const coordf_t eps = 0.5 * EPSILON; // layers closer than EPSILON will be merged later. Let's make
                     // this check a bit more sensitive to make sure we never consider two different layers as one.
                     while (i < layer_height_profiles[idx_object].size() && i < layer_height_profiles[tallest_object_idx].size()) {
-                        if (i % 2 == 0 && layer_height_profiles[tallest_object_idx][i] > layer_height_profiles[idx_object][layer_height_profiles[idx_object].size() - 2])
-                            break;
+                        //if (i % 2 == 0 && layer_height_profiles[tallest_object_idx][i] > layer_height_profiles[idx_object][layer_height_profiles[idx_object].size() - 2])
+                        //    break;
                         if (std::abs(layer_height_profiles[idx_object][i] - layer_height_profiles[tallest_object_idx][i]) > eps)
                             return {L("The prime tower is only supported if all objects have the same variable layer height")};
                         ++i;
