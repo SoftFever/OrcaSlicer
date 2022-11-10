@@ -1242,6 +1242,8 @@ void WipeTower::plan_toolchange(float z_par, float layer_height_par, unsigned in
 	// this is an actual toolchange - let's calculate depth to reserve on the wipe tower
     float depth = 0.f;
     float width = m_wipe_tower_width - 2 * m_perimeter_width;
+    if (width <= EPSILON)
+        return;
 
     // BBS: remove old filament ramming and first line
 #if 0

@@ -2822,7 +2822,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Prime volume");
     def->tooltip = L("The volume of material to prime extruder on tower.");
     def->sidetext = L("mm³");
-    def->min = 0;
+    def->min = 1.0;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(45.));
 
@@ -2846,6 +2846,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Width");
     def->tooltip = L("Width of prime tower");
     def->sidetext = L("mm");
+    def->min = 2.0;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(35.));
 
