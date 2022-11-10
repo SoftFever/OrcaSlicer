@@ -37,7 +37,7 @@
     "gap_infill_speed": "50",
     "infill_combination": "0",
     "sparse_infill_line_width": "0.45",
-    "infill_wall_overlap": "25%",
+    "infill_wall_overlap": "15%",
     "sparse_infill_speed": "250",
     "interface_shells": "0",
     "ironing_flow": "10%",

@@ -1093,7 +1093,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip  = L("Default filament color");
     def->gui_type = ConfigOptionDef::GUIType::color;
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionStrings{"#00AE42"});
+    def->set_default_value(new ConfigOptionStrings{""});
 
     def = this->add("filament_colour", coStrings);
     def->label = L("Color");
