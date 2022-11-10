@@ -204,7 +204,7 @@ bool ObjectSettings::update_settings_list()
     for (auto item : items) {
         auto type = objects_model->GetItemType(item);
         if (type != itObject && type != itVolume) {
-            return false;
+            continue;
         }
         const int obj_idx = objects_model->GetObjectIdByItem(item);
         assert(obj_idx >= 0);
