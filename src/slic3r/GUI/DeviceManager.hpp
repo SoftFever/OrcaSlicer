@@ -439,7 +439,7 @@ public:
     /* upgrade */
     bool upgrade_force_upgrade { false };
     bool upgrade_new_version { false };
-    bool upgrade_consistency_request;
+    bool upgrade_consistency_request { false };
     int upgrade_display_state = 0;           // 0 : upgrade unavailable, 1: upgrade idle, 2: upgrading, 3: upgrade_finished
     PrinterFirmwareType       firmware_type; // engineer|production
     std::string upgrade_progress;

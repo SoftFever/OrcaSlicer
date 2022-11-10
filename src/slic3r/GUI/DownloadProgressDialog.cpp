@@ -145,7 +145,7 @@ bool DownloadProgressDialog::Show(bool show)
         m_upgrade_job->set_event_handle(this);
         m_status_bar->set_progress(0);
         Bind(EVT_UPGRADE_NETWORK_SUCCESS, [this](wxCommandEvent& evt) {
-            m_status_bar->change_button_label(_L("Finish"));
+            m_status_bar->change_button_label(_L("Close"));
             on_finish();
             m_status_bar->set_cancel_callback_fina(
                 [this]() {

@@ -4039,7 +4039,7 @@ void GCodeProcessor::update_slice_warnings()
 
     if (!warning.params.empty()) {
         warning.msg         = BED_TEMP_TOO_HIGH_THAN_FILAMENT;
-        warning.error_code  = "10004001";
+        warning.error_code  = "1000C001";
         m_result.warnings.push_back(warning);
 
     //bbs:HRC checker
@@ -4055,6 +4055,12 @@ void GCodeProcessor::update_slice_warnings()
                 m_result.warnings.emplace_back(std::move(warning));
             }
         }
+    }
+
+    if (!warning.params.empty()) {
+        warning.msg = NOZZLE_HRC_CHECKER;
+        warning.error_code = "1000C002";
+        m_result.warnings.push_back(warning);
     }
 
     m_result.warnings.shrink_to_fit();
