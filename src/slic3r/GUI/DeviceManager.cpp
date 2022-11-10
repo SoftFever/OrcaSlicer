@@ -334,6 +334,7 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     ams_insert_flag = false;
     ams_power_on_flag = false;
     ams_support_use_ams = false;
+    ams_humidity = -1;
 
     /* signals */
     wifi_signal = "";
@@ -1119,6 +1120,12 @@ void MachineObject::parse_state_changed_event()
     last_mc_print_stage = mc_print_stage;
 }
 
+void MachineObject::parse_status(int flag)
+{
+    camera_recording            = ((flag >> 5) & 0x1) != 0;
+    ams_calibrate_remain_flag   = ((flag >> 7) & 0x1) != 0;
+}
+
 PrintingSpeedLevel MachineObject::_parse_printing_speed_lvl(int lvl)
 {
     if (lvl < (int)SPEED_LEVEL_COUNT)
@@ -1325,19 +1332,43 @@ int MachineObject::command_ams_change_filament(int tray_id, int old_temp, int ne
     return this->publish_json(j.dump());
 }
 
-int MachineObject::command_ams_user_settings(int ams_id, bool start_read_opt, bool tray_read_opt)
+int MachineObject::command_ams_user_settings(int ams_id, bool start_read_opt, bool tray_read_opt, bool remain_flag)
 {
     json j;
     j["print"]["command"] = "ams_user_setting";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["ams_id"] = ams_id;
-    j["print"]["startup_read_option"] = start_read_opt;
-    j["print"]["tray_read_option"]    = tray_read_opt;
+    j["print"]["startup_read_option"]   = start_read_opt;
+    j["print"]["tray_read_option"]      = tray_read_opt;
+    j["print"]["calibrate_remain_flag"] = remain_flag;
 
     ams_insert_flag = tray_read_opt;
     ams_power_on_flag = start_read_opt;
+    ams_calibrate_remain_flag = remain_flag;
     ams_user_setting_hold_count = HOLD_COUNT_MAX;
 
+    return this->publish_json(j.dump());
+}
+
+int MachineObject::command_ams_user_settings(int ams_id, AmsOptionType op, bool value)
+{
+    json j;
+    j["print"]["command"]               = "ams_user_setting";
+    j["print"]["sequence_id"]           = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["ams_id"]                = ams_id;
+    if (op == AmsOptionType::AMS_OP_STARTUP_READ) {
+        j["print"]["startup_read_option"] = value;
+        ams_power_on_flag                 = value;
+    } else if (op == AmsOptionType::AMS_OP_TRAY_READ) {
+        j["print"]["tray_read_option"] = value;
+        ams_insert_flag                = value;
+    } else if (op == AmsOptionType::AMS_OP_CALIBRATE_REMAIN) {
+        j["print"]["calibrate_remain_flag"] = value;
+        ams_calibrate_remain_flag = value;
+    } else {
+        return -1;
+    }
+    ams_user_setting_hold_count = HOLD_COUNT_MAX;
     return this->publish_json(j.dump());
 }
 
@@ -1584,6 +1615,7 @@ bool MachineObject::is_in_printing_status(std::string status)
 {
     if (status.compare("PAUSE") == 0
         || status.compare("RUNNING") == 0
+        || status.compare("SLICING") == 0
         || status.compare("PREPARE") == 0) {
         return true;
     }
@@ -1861,6 +1893,7 @@ int MachineObject::parse_json(std::string payload)
 
                     if (jj.contains("home_flag")) {
                         home_flag = jj["home_flag"].get<int>();
+                        parse_status(home_flag);
                     }
                     if (jj.contains("hw_switch_state")) {
                         hw_switch_state = jj["hw_switch_state"].get<int>();
@@ -2206,22 +2239,6 @@ int MachineObject::parse_json(std::string payload)
                     }
 #pragma endregion
 
-#pragma region  options
-                    try {
-                        if (jj.contains("option")) {
-                            if (jj["option"].is_number()) {
-                                int option = jj["option"].get<int>();
-                                if ((option & (1 << 0)) != 0) {
-                                    camera_recording = true;
-                                } else {
-                                    camera_recording = false;
-                                }
-                            }
-                        }
-                    }
-                    catch(...) {
-                    }
-#pragma endregion
 #pragma region  camera
                     // parse camera info
                     try {
@@ -2353,6 +2370,16 @@ int MachineObject::parse_json(std::string payload)
                             }
                             if (jj["ams"].contains("ams_rfid_status"))
                                 ams_rfid_status = jj["ams"]["ams_rfid_status"].get<int>();
+                            if (jj["ams"].contains("humidity")) {
+                                if (jj["ams"]["humidity"].is_string()) {
+                                    std::string humidity_str = jj["ams"]["humidity"].get<std::string>();
+                                    try {
+                                        ams_humidity = atoi(humidity_str.c_str());
+                                    } catch (...) {
+                                        ;
+                                    }
+                                }
+                            }
 
                             if (jj["ams"].contains("insert_flag") || jj["ams"].contains("power_on_flag")) {
                                 if (ams_user_setting_hold_count > 0) {
@@ -2503,6 +2530,9 @@ int MachineObject::parse_json(std::string payload)
                                             curr_tray->update_color_from_str(color);
                                         } else {
                                             curr_tray->color = "";
+                                        }
+                                        if (tray_it->contains("remain")) {
+                                            curr_tray->remain = (*tray_it)["remain"].get<int>();
                                         }
                                         try {
                                             if (!ams_id.empty() && !curr_tray->id.empty()) {

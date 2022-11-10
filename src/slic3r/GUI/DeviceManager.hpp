@@ -127,6 +127,12 @@ enum AmsRfidStatus {
     AMS_RFID_HAS_FILAMENT   = 6
 };
 
+enum AmsOptionType {
+    AMS_OP_STARTUP_READ,
+    AMS_OP_TRAY_READ,
+    AMS_OP_CALIBRATE_REMAIN
+};
+
 class AmsTray {
 public:
     AmsTray(std::string tray_id) {
@@ -178,6 +184,7 @@ public:
     bool            is_bbl;
     bool            is_exists = false;
     int             hold_count = 0;
+    int             remain;         // filament remain: 0 ~ 100
 
     AmsRoadPosition road_position;
     AmsStep         step_state;
@@ -376,7 +383,9 @@ public:
     int   ams_rfid_status = 0;
     bool  ams_insert_flag { false };
     bool  ams_power_on_flag { false };
+    bool  ams_calibrate_remain_flag { false };
     bool  ams_support_use_ams { false };
+    int   ams_humidity;
     int   ams_user_setting_hold_count = 0;
     AmsStatusMain ams_status_main;
     int   ams_status_sub;
@@ -495,6 +504,7 @@ public:
     bool is_calibration_done();
 
     void parse_state_changed_event();
+    void parse_status(int flag);
 
     /* printing status */
     std::string print_status;      /* enum string: FINISH, RUNNING, PAUSE, INIT, FAILED */
@@ -569,7 +579,8 @@ public:
     // ams controls
     int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);
     int command_ams_change_filament(int tray_id, int old_temp = 210, int new_temp = 210);
-    int command_ams_user_settings(int ams_id, bool start_read_opt, bool tray_read_opt);
+    int command_ams_user_settings(int ams_id, bool start_read_opt, bool tray_read_opt, bool remain_flag = false);
+    int command_ams_user_settings(int ams_id, AmsOptionType op, bool value);
     int command_ams_calibrate(int ams_id);
     int command_ams_filament_settings(int ams_id, int tray_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max);
     int command_ams_select_tray(std::string tray_id);
