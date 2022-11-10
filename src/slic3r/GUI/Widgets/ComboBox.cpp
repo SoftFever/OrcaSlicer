@@ -179,6 +179,13 @@ void ComboBox::SetString(unsigned int n, wxString const &value)
 
 wxBitmap ComboBox::GetItemBitmap(unsigned int n) { return icons[n]; }
 
+void ComboBox::SetItemBitmap(unsigned int n, wxBitmap const &bitmap)
+{
+    if (n >= texts.size()) return;
+    icons[n] = bitmap;
+    drop.Invalidate();
+}
+
 int ComboBox::DoInsertItems(const wxArrayStringsAdapter &items,
                             unsigned int                 pos,
                             void **                      clientData,

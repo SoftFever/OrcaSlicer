@@ -224,16 +224,22 @@ int PresetComboBox::update_ams_color()
 {
     if (m_filament_idx < 0) return -1;
     int idx = selected_ams_filament();
-    if (idx < 0) return -1;
-    auto &ams_list = wxGetApp().preset_bundle->filament_ams_list;
-    if (idx >= ams_list.size()) {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": ams %1% out of range %2%") % idx % ams_list.size();
-        return -1;
+    std::string color;
+    if (idx < 0) {
+        auto *preset = m_collection->find_preset(Preset::remove_suffix_modified(GetLabel().ToUTF8().data()));
+        if (preset) color = preset->config.opt_string("default_filament_colour", 0u);
+        if (color.empty()) return -1;
+    } else {
+        auto &ams_list = wxGetApp().preset_bundle->filament_ams_list;
+        if (idx >= ams_list.size()) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": ams %1% out of range %2%") % idx % ams_list.size();
+            return -1;
+        }
+        color = ams_list[idx].opt_string("filament_colour", 0u);
     }
     DynamicPrintConfig *cfg        = &wxGetApp().preset_bundle->project_config;
     auto colors = static_cast<ConfigOptionStrings*>(cfg->option("filament_colour")->clone());
-    colors->values[m_filament_idx] = ams_list[idx]
-        .opt_string("filament_colour", 0u);
+    colors->values[m_filament_idx] = color;
     DynamicPrintConfig new_cfg;
     new_cfg.set_key_value("filament_colour", colors);
     cfg->apply(new_cfg);
@@ -304,15 +310,7 @@ void PresetComboBox::update(std::string select_preset_name)
         if (select_preset_name.empty() && is_enabled)
             select_preset_name = preset.name;
 
-        std::string   bitmap_key = "cb";
-        if (m_type == Preset::TYPE_PRINTER) {
-            bitmap_key += "_printer";
-            if (preset.printer_technology() == ptSLA)
-                bitmap_key += "_sla";
-        }
-        std::string main_icon_name = m_type == Preset::TYPE_PRINTER && preset.printer_technology() == ptSLA ? "printer" : m_main_bitmap_name;
-
-        wxBitmap* bmp = get_bmp(bitmap_key, main_icon_name, "unlock_normal", is_enabled, preset.is_compatible, preset.is_system || preset.is_default);
+        wxBitmap* bmp = get_bmp(preset);
         assert(bmp);
 
         if (!is_enabled)
@@ -523,7 +521,36 @@ wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, bool wide_icons, con
 #endif
 }
 
-wxBitmap* PresetComboBox::get_bmp(  std::string bitmap_key, const std::string& main_icon_name, const std::string& next_icon_name,
+wxBitmap *PresetComboBox::get_bmp(Preset const &preset)
+{
+    static wxBitmap sbmp;
+    if (m_type == Preset::TYPE_FILAMENT) {
+        Preset const & preset2 = &m_collection->get_selected_preset() == &preset ? m_collection->get_edited_preset() : preset;
+        wxString color = preset2.config.opt_string("default_filament_colour", 0);
+        wxColour clr(color);
+        if (clr.IsOk()) {
+            std::string bitmap_key = "default_filament_colour_" + color.ToStdString();
+            wxBitmap *bmp        = bitmap_cache().find(bitmap_key);
+            if (bmp == nullptr) {
+                wxImage img(16, 16);
+                if (clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224) {
+                    img.SetRGB(wxRect({0, 0}, img.GetSize()), 128, 128, 128);
+                    img.SetRGB(wxRect({1, 1}, img.GetSize() - wxSize{2, 2}), clr.Red(), clr.Green(), clr.Blue());
+                } else {
+                    img.SetRGB(wxRect({0, 0}, img.GetSize()), clr.Red(), clr.Green(), clr.Blue());
+                }
+                bmp = new wxBitmap(img);
+                bmp = bitmap_cache().insert(bitmap_key, *bmp);
+            }
+            return bmp;
+        }
+    }
+    return &sbmp;
+}
+
+wxBitmap *PresetComboBox::get_bmp(std::string        bitmap_key,
+                                  const std::string &main_icon_name,
+                                  const std::string &next_icon_name,
                                     bool is_enabled/* = true*/, bool is_compatible/* = true*/, bool is_system/* = false*/)
 {
     // BBS: no icon
@@ -939,9 +966,6 @@ void PlaterPresetComboBox::update()
         if (!preset.is_visible || (!preset.is_compatible && !is_selected))
             continue;
 
-        std::string bitmap_key, filament_rgb, extruder_rgb, material_rgb;
-        std::string bitmap_type_name = bitmap_key = m_type == Preset::TYPE_PRINTER && preset.printer_technology() == ptSLA ? "sla_printer" : m_main_bitmap_name;
-
         bool single_bar = false;
         if (m_type == Preset::TYPE_FILAMENT)
         {
@@ -955,15 +979,8 @@ void PlaterPresetComboBox::update()
             bitmap_key += single_bar ? filament_rgb : filament_rgb + extruder_rgb;
 #endif
         }
-        else if (m_type == Preset::TYPE_SLA_MATERIAL) {
-            material_rgb = is_selected ? m_preset_bundle->sla_materials.get_edited_preset().config.opt_string("material_colour") : preset.config.opt_string("material_colour");
-            if (material_rgb.empty())
-                material_rgb = print_config_def.get("material_colour")->get_default_value<ConfigOptionString>()->value;
-        }
 
-        wxBitmap* bmp = get_bmp(bitmap_key, wide_icons, bitmap_type_name,
-                                preset.is_compatible, preset.is_system || preset.is_default,
-                                single_bar, filament_rgb, extruder_rgb, material_rgb);
+        wxBitmap* bmp = get_bmp(preset);
         assert(bmp);
 
         const std::string name = preset.alias.empty() ? preset.name : preset.alias;
@@ -1198,15 +1215,7 @@ void TabPresetComboBox::update()
         // marker used for disable incompatible printer models for the selected physical printer
         bool is_enabled = true;
 
-        std::string bitmap_key = "tab";
-        if (m_type == Preset::TYPE_PRINTER) {
-            bitmap_key += "_printer";
-            if (preset.printer_technology() == ptSLA)
-                bitmap_key += "_sla";
-        }
-        std::string main_icon_name = m_type == Preset::TYPE_PRINTER && preset.printer_technology() == ptSLA ? "sla_printer" : m_main_bitmap_name;
-
-        wxBitmap* bmp = get_bmp(bitmap_key, main_icon_name, "unlock_normal", is_enabled, preset.is_compatible, preset.is_system || preset.is_default);
+        wxBitmap* bmp = get_bmp(preset);
         assert(bmp);
 
         if (preset.is_default || preset.is_system) {
@@ -1361,6 +1370,7 @@ void TabPresetComboBox::update_dirty()
 
             if (old_label != new_label) {
                 SetString(ui_id, from_u8(new_label));
+                SetItemBitmap(ui_id, *get_bmp(*preset));
                 if (ui_id == GetSelection()) SetToolTip(wxString::FromUTF8(new_label.c_str())); // BBS
             }
         }

@@ -58,6 +58,7 @@ public:
     void     SetString(unsigned int n, wxString const &value) override;
 
     wxBitmap GetItemBitmap(unsigned int n);
+    void     SetItemBitmap(unsigned int n, wxBitmap const &bitmap);
 
 protected:
     virtual int  DoInsertItems(const wxArrayStringsAdapter &items,

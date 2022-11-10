@@ -1444,14 +1444,21 @@ void ColourPicker::set_undef_value(wxColourPickerCtrl* field)
     field->SetColour(wxTransparentColour);
 
     wxButton* btn = dynamic_cast<wxButton*>(field->GetPickerCtrl());
-    wxBitmap bmp = btn->GetBitmap();
+    wxImage image(btn->GetBitmap().GetSize());
+    image.InitAlpha();
+    memset(image.GetAlpha(), 0, image.GetWidth() * image.GetHeight());
+    wxBitmap   bmp(std::move(image));
     wxMemoryDC dc(bmp);
     if (!dc.IsOk()) return;
-    dc.SetTextForeground(*wxWHITE);
-    dc.SetFont(wxGetApp().normal_font());
+#ifdef __WXMSW__
+    wxGCDC dc2(dc);
+#else
+    wxDC &dc2(dc);
+#endif
+    dc2.SetPen(wxPen("#F1754E", 1));
 
     const wxRect rect = wxRect(0, 0, bmp.GetWidth(), bmp.GetHeight());
-    dc.DrawLabel("undef", rect, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL);
+    dc2.DrawLine(rect.GetLeftBottom(), rect.GetTopRight());
 
     dc.SelectObject(wxNullBitmap);
     btn->SetBitmapLabel(bmp);
