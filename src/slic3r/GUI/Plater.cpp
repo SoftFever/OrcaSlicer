@@ -1260,6 +1260,7 @@ void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
                                     << boost::format(": ams %1% tray %2% id %3% color %4%") % ams.first % tray.first % tray.second->setting_id % tray.second->color;
             DynamicPrintConfig ams;
             ams.set_key_value("filament_id", new ConfigOptionStrings{tray.second->setting_id});
+            ams.set_key_value("filament_type", new ConfigOptionStrings{tray.second->type});
             ams.set_key_value("filament_colour", new ConfigOptionStrings{"#" + tray.second->color.substr(0, 6)});
             filament_ams_list.emplace_back(std::move(ams));
         }
@@ -1283,13 +1284,20 @@ void Sidebar::sync_ams_list()
         _L("Sync filaments with AMS will drop all current selected filament presets and colors. Do you want to continue?"),
         _L("Sync filaments with AMS"), wxYES_NO);
     if (dlg.ShowModal() != wxID_YES) return;
-    auto n = wxGetApp().preset_bundle->sync_ams_list();
+    unsigned int unknowns = 0;
+    auto n = wxGetApp().preset_bundle->sync_ams_list(unknowns);
     if (n == 0) {
         MessageDialog dlg(this,
             _L("There are no compatible filaments, and sync is not performed."),
             _L("Sync filaments with AMS"), wxOK);
         dlg.ShowModal();
         return;
+    }
+    if (unknowns > 0) {
+        MessageDialog dlg(this,
+            _L("There are some unknown filaments mapped to generic preset. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."),
+            _L("Sync filaments with AMS"), wxOK);
+        dlg.ShowModal();
     }
     wxGetApp().plater()->on_filaments_change(n);
     for (auto &c : p->combos_filament)

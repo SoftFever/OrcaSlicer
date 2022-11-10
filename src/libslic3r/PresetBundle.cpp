@@ -1412,7 +1412,7 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
     update_multi_material_filament_presets();
 }
 
-unsigned int PresetBundle::sync_ams_list()
+unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
 {
     std::vector<std::string> filament_presets;
     std::vector<std::string> filament_colors;
@@ -1422,7 +1422,16 @@ unsigned int PresetBundle::sync_ams_list()
         auto iter = std::find_if(filaments.begin(), filaments.end(), [&filament_id](auto &f) { return f.is_compatible && f.is_system && f.filament_id == filament_id; });
         if (iter == filaments.end()) {
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;
-            continue;
+            auto filament_type = "Generic " + ams.opt_string("filament_type", 0u);
+            iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) { return f.is_compatible && f.is_system 
+                    && boost::algorithm::starts_with(f.name, filament_type);
+            });
+            if (iter == filaments.end())
+                iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) { return f.is_compatible && f.is_system; });
+            if (iter == filaments.end())
+                continue;
+            ++unknowns;
+            filament_id = iter->filament_id;
         }
         filament_presets.push_back(iter->name);
         filament_colors.push_back(filament_color);
