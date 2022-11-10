@@ -1753,14 +1753,23 @@ void GUI_App::init_networking_callbacks()
 
 GUI_App::~GUI_App()
 {
-    if (app_config != nullptr)
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": enter");
+    if (app_config != nullptr) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": destroy app_config");
         delete app_config;
+    }
 
-    if (preset_bundle != nullptr)
+    if (preset_bundle != nullptr) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": destroy preset_bundle");
         delete preset_bundle;
+    }
 
-    if (preset_updater != nullptr)
+    if (preset_updater != nullptr) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": destroy preset updater");
         delete preset_updater;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": exit");
 }
 
 // If formatted for github, plaintext with OpenGL extensions enclosed into <details>.
@@ -3271,7 +3280,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 CallAfter([this] {
                     wxGetApp().request_user_logout();
                 });
-            }            
+            }
             else if (command_str.compare("homepage_modeldepot") == 0) {
                 CallAfter([this] {
                     wxGetApp().open_mall_page_dialog();

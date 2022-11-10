@@ -132,6 +132,7 @@ std::map<int, std::string> cli_errors = {
     {CLI_EXPORT_3MF_ERROR, "Export 3mf error"},
     {CLI_NO_SUITABLE_OBJECTS, "Found no objects in print volume to slice"},
     {CLI_VALIDATE_ERROR, "Validate print error"},
+    {CLI_OBJECTS_PARTLY_INSIDE, "Objects partly inside"},
     {CLI_SLICING_ERROR, "Slice error"}
 };
 
@@ -193,9 +194,9 @@ typedef struct _cli_callback_mgr {
         //notify_message = "Plate "+ std::to_string(m_plate_index) + "/" +std::to_string(m_plate_count)+  ": Percent " + std::to_string(m_progress) + ": "+m_message;
 
         char pipe_message[PIPE_BUFFER_SIZE] = {0};
-        strncpy(pipe_message, notify_message.c_str(), PIPE_BUFFER_SIZE);
+        sprintf(pipe_message, "%s\n", notify_message.c_str());
 
-        int ret = write(m_pipe_fd, pipe_message,PIPE_BUFFER_SIZE);
+        int ret = write(m_pipe_fd, pipe_message, strlen(pipe_message));
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": write returns "<<ret;
 
         return;
@@ -251,7 +252,7 @@ typedef struct _cli_callback_mgr {
             }
         }
         else
-            m_total_progress = 0.9*m_progress;
+            m_total_progress = m_progress;
         m_message = message;
         m_warning_step = warning_step;
         m_data_ready = true;
@@ -362,7 +363,7 @@ int CLI::run(int argc, char **argv)
     }
     BOOST_LOG_TRIVIAL(info) << "Current BambuStudio Version "<< SLIC3R_VERSION << std::endl;
 
-    /*BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc="<< argc << std::endl;
+    /*BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
     for (int index=0; index < argc; index++)
         BOOST_LOG_TRIVIAL(info) << "index="<< index <<", arg is "<< argv[index] <<std::endl;
     int debug_argc = 9;
@@ -371,11 +372,11 @@ int CLI::run(int argc, char **argv)
         "--slice",
         "0",
         "--export-3mf=output.3mf",
-        "test_thumbnail.3mf",
-        "--load-settings",
-        "machine.json;process.json",
+        "--curr-bed-type",
+        "Engineering Plate",
         "--load-filaments",
-        "filament.json;filament.json;filament.json;filament.json"
+        "GFSU00.json",
+        "fujian.3mf"
         };
     if (! this->setup(debug_argc, debug_argv))*/
     if (!this->setup(argc, argv))
