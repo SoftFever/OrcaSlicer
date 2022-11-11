@@ -722,7 +722,7 @@ Sidebar::Sidebar(Plater *parent)
 
     ams_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
                                                  wxBU_EXACTFIT | wxNO_BORDER, false, 18);
-    ams_btn->SetToolTip(_L("Sync material list from AMS"));
+    ams_btn->SetToolTip(_L("Synchronize filament list from AMS"));
     ams_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent &e) {
         sync_ams_list();
     });

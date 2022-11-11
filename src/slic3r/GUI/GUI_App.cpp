@@ -3336,8 +3336,8 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     {
                         boost::filesystem::path NowFile(path.value());
 
-                        std::string FolderPath = NowFile.parent_path().make_preferred().string();
-                        desktop_open_any_folder(FolderPath);
+                        std::string FilePath = NowFile.make_preferred().string();
+                        desktop_open_any_folder(FilePath);
                     }
                 }
             }

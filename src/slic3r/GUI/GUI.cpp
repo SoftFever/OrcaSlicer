@@ -4,7 +4,9 @@
 #include "I18N.hpp"
 
 #include "libslic3r/LocalesUtils.hpp"
-
+#ifdef __APPLE__
+#include "slic3r/Utils/MacDarkMode.hpp"
+#endif
 #include <string>
 
 #include <boost/algorithm/string.hpp>
@@ -545,11 +547,9 @@ void desktop_open_any_folder( const std::string path )
 
 #ifdef _WIN32
     const wxString widepath = from_u8(path);
-    const wchar_t *argv[]   = {L"explorer", widepath.GetData(), nullptr};
-    ::wxExecute(const_cast<wchar_t **>(argv), wxEXEC_ASYNC, nullptr);
+    ::wxExecute(L"explorer /select," + widepath, wxEXEC_ASYNC, nullptr);
 #elif __APPLE__
-    const char *argv[] = {"open", path.data(), nullptr};
-    ::wxExecute(const_cast<char **>(argv), wxEXEC_ASYNC, nullptr);
+    openFolderForFile(from_u8(path));
 #else
     const char *argv[] = {"xdg-open", path.data(), nullptr};
 
