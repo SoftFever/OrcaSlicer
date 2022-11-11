@@ -1393,23 +1393,36 @@ void StatusPanel::show_recenter_dialog() {
 
 void StatusPanel::show_error_message(wxString msg)
 {
-    m_error_text->SetLabel(msg);
-    m_staticline->Show();
-    m_panel_error_txt->Show();
+    if (msg.IsEmpty()) {
+        if (m_panel_error_txt->IsShown()) {
+            error_info_reset();
+        }
+        if (m_print_error_dlg.get() != nullptr) {
+            if (m_print_error_dlg.get()->IsShown()) {
+                m_print_error_dlg.get()->EndModal(wxID_OK);
+            }
+        }
+    } else {
+        m_error_text->SetLabel(msg);
+        m_staticline->Show();
+        m_panel_error_txt->Show();
+
+        BOOST_LOG_TRIVIAL(info) << "show print error! error_msg = " << msg;
+        m_print_error_dlg = std::make_shared<SecondaryCheckDialog>(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
+        m_print_error_dlg.get()->update_text(msg);
+        m_print_error_dlg.get()->ShowModal();
+    }
 }
 
 void StatusPanel::update_error_message()
 {
     if (obj->print_error <= 0) {
         before_error_code = obj->print_error;
-
-        if (m_panel_error_txt->IsShown())
-            error_info_reset();
+        show_error_message(wxEmptyString);
         return;
-    }
-
-    if (before_error_code != obj->print_error) {
+    } else if (before_error_code != obj->print_error) {
         before_error_code = obj->print_error;
+
         if (wxGetApp().get_hms_query()) {
             char buf[32];
             ::sprintf(buf, "%08X", obj->print_error);
@@ -1424,11 +1437,6 @@ void StatusPanel::update_error_message()
                     error_msg,
                     print_error_str);
                 show_error_message(error_msg);
-
-                BOOST_LOG_TRIVIAL(info) << "show print error! error_msg = " << error_msg;
-                SecondaryCheckDialog print_error_dlg(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
-                print_error_dlg.update_text(error_msg);
-                print_error_dlg.ShowModal();
             } else {
                 BOOST_LOG_TRIVIAL(info) << "show print error! error_msg is empty, print error = " << obj->print_error;
             }
