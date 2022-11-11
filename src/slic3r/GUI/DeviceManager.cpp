@@ -1381,6 +1381,8 @@ int MachineObject::command_ams_calibrate(int ams_id)
 
 int MachineObject::command_ams_filament_settings(int ams_id, int tray_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max)
 {
+    BOOST_LOG_TRIVIAL(info) << "command_ams_filament_settings, ams_id = " << ams_id << ", tray_id = " << tray_id << ", tray_color = " << tray_color
+                            << ", tray_type = " << tray_type;
     json j;
     j["print"]["command"] = "ams_filament_setting";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -2583,11 +2585,14 @@ int MachineObject::parse_json(std::string payload)
                         }
                     }
                 } else if (jj["command"].get<std::string>() == "ams_filament_setting") {
+                    // BBS trigger ams UI update
+                    ams_version = -1;
+
                     if (jj["ams_id"].is_number()) {
                         int ams_id = jj["ams_id"].get<int>();
                         auto ams_it = amsList.find(std::to_string(ams_id));
                         if (ams_it != amsList.end()) {
-                            int tray_id = jj["tray_id"].get<int>() - ams_id * 4;
+                            int tray_id = jj["tray_id"].get<int>();
                             auto tray_it = ams_it->second->trayList.find(std::to_string(tray_id));
                             if (tray_it != ams_it->second->trayList.end()) {
                                 BOOST_LOG_TRIVIAL(trace) << "ams_filament_setting, parse tray info";
