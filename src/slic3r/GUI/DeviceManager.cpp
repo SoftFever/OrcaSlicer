@@ -1790,6 +1790,9 @@ bool MachineObject::is_function_supported(PrinterFunction func)
     case FUNC_PRINT_WITHOUT_SD:
         func_name = "FUNC_PRINT_WITHOUT_SD";
         break;
+    case FUNC_USE_AMS:
+        func_name = "FUNC_USE_AMS";
+        break;
     default:
         return true;
     }

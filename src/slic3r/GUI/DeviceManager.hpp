@@ -71,6 +71,7 @@ enum PrinterFunction {
     FUNC_LOCAL_TUNNEL,
     FUNC_PRINT_WITHOUT_SD,
     FUNC_VIRTUAL_CAMERA,
+    FUNC_USE_AMS,
     FUNC_MAX
 };
 

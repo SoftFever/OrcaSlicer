@@ -2175,8 +2175,12 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 
 void SelectMachineDialog::update_ams_check(MachineObject* obj)
 {
-    if (obj && obj->ams_support_use_ams && obj->has_ams()) {
+    if (obj && obj->is_function_supported(FUNC_USE_AMS)
+        && obj->ams_support_use_ams
+        && obj->has_ams()) {
         select_use_ams->Show();
+        // set ams_check to true by default
+        ams_check->SetValue(true);
     } else {
         select_use_ams->Hide();
     }
