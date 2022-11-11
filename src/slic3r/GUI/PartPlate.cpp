@@ -157,10 +157,10 @@ void PartPlate::set_bed_type(BedType bed_type, bool& same_as_global)
 
 	m_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
 	if (m_plater) {
-		m_plater->schedule_background_process();
+		//m_plater->schedule_background_process();
 		DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
 		if (proj_cfg.has(bed_type_key)) {
-			std::string bed_type_key = "curr_bed_type";
+			//std::string bed_type_key = "curr_bed_type";
 			BedType global_bed_type = proj_cfg.opt_enum<BedType>(bed_type_key);
 			same_as_global = bed_type == global_bed_type;
 			is_same_bedtype_with_global = same_as_global;
@@ -3971,10 +3971,10 @@ bool PartPlateList::is_all_plates_ready_for_slice() const
 {
     for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
-		if (!m_plate_list[i]->can_slice())
-			return false;
+		if (m_plate_list[i]->can_slice())
+			return true;
 	}
-	return true;
+	return false;
 }
 
 //will create a plate and load gcode, return the plate index

@@ -1535,6 +1535,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->thumbnail_file = (m_load_restore || it->second->thumbnail_file.empty()) ? it->second->thumbnail_file : m_backup_path + "/" + it->second->thumbnail_file;
             plate_data_list[it->first-1]->pattern_file = (m_load_restore || it->second->pattern_file.empty()) ? it->second->pattern_file : m_backup_path + "/" + it->second->pattern_file;
             plate_data_list[it->first-1]->pattern_bbox_file = (m_load_restore || it->second->pattern_bbox_file.empty()) ? it->second->pattern_bbox_file : m_backup_path + "/" + it->second->pattern_bbox_file;
+            plate_data_list[it->first-1]->config = it->second->config;
             it++;
         }
 
@@ -4110,8 +4111,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
         }
 
-
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(",before add calibration data, count %1%\n")%calibration_data.size();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(",before add calibration thumbnails, count %1%\n")%calibration_data.size();
         //BBS add calibration thumbnail for each plate
         if (!m_skip_static && calibration_data.size() > 0) {
             // Adds the file Metadata/calibration_p[X].png.
@@ -4131,7 +4131,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         return false;
                     }
                 }
+            }
+        }
 
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(",before add calibration boundingbox, count %1%\n")%id_bboxes.size();
+        if (!m_skip_static && id_bboxes.size() > 0) {
+            // Adds the file Metadata/calibration_p[X].png.
+            for (unsigned int index = 0; index < id_bboxes.size(); index++)
+            {
                 // BBS: save bounding box to json
                 if (id_bboxes[index]->is_valid()) {
                     if (!_add_bbox_file_to_archive(archive, *id_bboxes[index], index)) {

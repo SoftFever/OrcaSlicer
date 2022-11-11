@@ -1388,7 +1388,9 @@ int CLI::run(int argc, char **argv)
                         if (format == static_cast<const ConfigOptionString*>(m_print_config.def()->get("filename_format")->default_value.get())->value)
                             format = "[input_filename_base].SL1";
                     }*/
-                    print->apply(model, m_print_config);
+                    DynamicPrintConfig new_print_config = m_print_config;
+                    new_print_config.apply(*part_plate->config());
+                    print->apply(model, new_print_config);
                     StringObjectException warning;
                     auto err = print->validate(&warning);
                     if (!err.string.empty()) {
@@ -1687,9 +1689,11 @@ int CLI::run(int argc, char **argv)
                     int print_index;
                     part_plate->get_print(&print_base, &gcode_result, &print_index);
 
-                    BuildVolume build_volume(part_plate->get_shape(), print_height);
-                    const std::vector<BoundingBoxf3>& exclude_bounding_box = part_plate->get_exclude_areas();
                     Print *print = dynamic_cast<Print *>(print_base);
+
+                     //don't render calibration picture
+                    /*BuildVolume build_volume(part_plate->get_shape(), print_height);
+                    const std::vector<BoundingBoxf3>& exclude_bounding_box = part_plate->get_exclude_areas();
                     Slic3r::GUI::GCodeViewer gcode_viewer;
                     gcode_viewer.init(ConfigOptionMode::comAdvanced, nullptr);
                     gcode_viewer.load(*gcode_result, *print, build_volume, exclude_bounding_box, false, ConfigOptionMode::comAdvanced, false);
@@ -1708,7 +1712,7 @@ int CLI::run(int argc, char **argv)
                         calibration_params, partplate_list, opengl_mgr);
                     //generate_calibration_thumbnail(*calibration_data, thumbnail_width, thumbnail_height, calibration_params);
                     //*plate_bboxes[index] = p->generate_first_layer_bbox();
-                    calibration_thumbnails.push_back(calibration_data);
+                    calibration_thumbnails.push_back(calibration_data);*/
 
                     PlateBBoxData* plate_bbox = new PlateBBoxData();
                     std::vector<BBoxData>& id_bboxes = plate_bbox->bbox_objs;
@@ -1733,6 +1737,23 @@ int CLI::run(int argc, char **argv)
                         data.id = obj->id().id;
                         data.bbox = { bb.min.x(),bb.min.y(),bb.max.x(),bb.max.y() };
                         id_bboxes.emplace_back(std::move(data));
+                    }
+                    // add wipe tower bounding box
+                    if (print->has_wipe_tower()) {
+                        BBoxData data;
+                        auto   wt_corners = print->first_layer_wipe_tower_corners();
+                        // when loading gcode.3mf, wipe tower info may not be correct
+                        if (!wt_corners.empty()) {
+                            BoundingBox bb_scaled = {wt_corners[0], wt_corners[2]};
+                            auto        bb        = unscaled(bb_scaled);
+                            bb.min -= orig2d;
+                            bb.max -= orig2d;
+                            bbox_all.merge(bb);
+                            data.name = "wipe_tower";
+                            data.id   = partplate_list.get_curr_plate()->get_index() + 1000;
+                            data.bbox = {bb.min.x(), bb.min.y(), bb.max.x(), bb.max.y()};
+                            id_bboxes.emplace_back(std::move(data));
+                        }
                     }
                     plate_bbox->bbox_all = { bbox_all.min.x(),bbox_all.min.y(),bbox_all.max.x(),bbox_all.max.y() };
                     plate_bboxes.push_back(plate_bbox);

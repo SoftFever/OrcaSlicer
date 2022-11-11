@@ -1984,7 +1984,7 @@ struct Plater::priv
     //BBS store machine_sn and 3mf_path for PrintJob
     PrintPrepareData            m_print_job_data;
     bool                        inside_snapshot_capture() { return m_prevent_snapshots != 0; }
-    bool                        process_completed_with_error { false };
+    int                         process_completed_with_error { -1 }; //-1 means no error
 
     //BBS: project
     BBLProject                  project;
@@ -2162,7 +2162,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     if (wxGetApp().is_editor()) {
         // 3DScene events:
-        view3D_canvas->Bind(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) { 
+        view3D_canvas->Bind(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, [this](SimpleEvent&) {
             delayed_error_message.clear();
             this->background_process_timer.Start(500, wxTIMER_ONE_SHOT);
             });
@@ -4096,6 +4096,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": validate err=%1%, warning=%2%")%err.string%warning.string;
 
         if (err.string.empty()) {
+            this->partplate_list.get_curr_plate()->update_apply_result_invalid(false);
             notification_manager->set_all_slicing_errors_gray(true);
             notification_manager->close_notification_of_type(NotificationType::ValidateError);
             if (invalidated != Print::APPLY_STATUS_UNCHANGED && background_processing_enabled())
@@ -4111,9 +4112,12 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
             }
         }
         else {
+            this->partplate_list.get_curr_plate()->update_apply_result_invalid(true);
             // The print is not valid.
             // Show error as notification.
             notification_manager->push_validate_error_notification(err);
+            //also update the warnings
+            process_validation_warning(warning);
             return_state |= UPDATE_BACKGROUND_PROCESS_INVALID;
             if (printer_technology == ptFFF) {
                 const Print* print = background_process.fff_print();
@@ -4138,7 +4142,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         actualize_slicing_warnings(*this->background_process.current_print());
         actualize_object_warnings(*this->background_process.current_print());
         show_warning_dialog = false;
-        process_completed_with_error = false;
+        process_completed_with_error = -1;
     }
 
     if (invalidated != Print::APPLY_STATUS_UNCHANGED && was_running && ! this->background_process.running() &&
@@ -4157,7 +4161,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         //BBS: add slice&&print status update logic
         this->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, false);
 
-        process_completed_with_error = true;
+        process_completed_with_error = partplate_list.get_curr_plate_index();
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: set to process_completed_with_error, return_state=%2%")%__LINE__%return_state;
     }
     else
@@ -5535,7 +5539,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
             for (auto btn : { ActionButtonType::abReslice, ActionButtonType::abSendGCode, ActionButtonType::abExport })
                 sidebar->set_btn_label(btn, invalid_str);
 #endif
-            process_completed_with_error = true;
+            process_completed_with_error = partplate_list.get_curr_plate_index();;
         }
         has_error = true;
         is_finished = true;
@@ -5562,21 +5566,6 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     // the "Slice now" and "Export G-code" buttons based on their "out of bed" status.
     //BBS: remove this update here, will be updated in update_fff_scene later
     //this->object_list_changed();
-
-    // BBS, Generate calibration thumbnail for current plate
-    if (preview) {
-        // generate calibration data
-        /* BBS generate calibration data by printer
-        preview->reload_print();
-        ThumbnailData* calibration_data = &partplate_list.get_curr_plate()->cali_thumbnail_data;
-        const ThumbnailsParams calibration_params = { {}, false, true, true, true, partplate_list.get_curr_plate_index() };
-        generate_calibration_thumbnail(*calibration_data, PartPlate::cali_thumbnail_width, PartPlate::cali_thumbnail_height, calibration_params);
-        preview->get_canvas3d()->reset_gcode_toolpaths();*/
-
-        // generate bbox data
-        PlateBBoxData* plate_bbox_data = &partplate_list.get_curr_plate()->cali_bboxes_data;
-        *plate_bbox_data = generate_first_layer_bbox();
-    }
 
     // refresh preview
     if (view3D->is_dragging()) // updating scene now would interfere with the gizmo dragging
@@ -5623,6 +5612,21 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         }else
         if (exporting_status == ExportingStatus::EXPORTING_TO_LOCAL && !has_error)
             notification_manager->push_exporting_finished_notification(last_output_path, last_output_dir_path, false);
+
+        // BBS, Generate calibration thumbnail for current plate
+        if (!has_error && preview) {
+            // generate calibration data
+            /* BBS generate calibration data by printer
+            preview->reload_print();
+            ThumbnailData* calibration_data = &partplate_list.get_curr_plate()->cali_thumbnail_data;
+            const ThumbnailsParams calibration_params = { {}, false, true, true, true, partplate_list.get_curr_plate_index() };
+            generate_calibration_thumbnail(*calibration_data, PartPlate::cali_thumbnail_width, PartPlate::cali_thumbnail_height, calibration_params);
+            preview->get_canvas3d()->reset_gcode_toolpaths();*/
+
+            // generate bbox data
+            PlateBBoxData* plate_bbox_data = &partplate_list.get_curr_plate()->cali_bboxes_data;
+            *plate_bbox_data = generate_first_layer_bbox();
+        }
     }
 
     exporting_status = ExportingStatus::NOT_EXPORTING;
@@ -5664,7 +5668,11 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         q->Freeze();
         q->select_plate(m_cur_slice_plate);
         partplate_list.select_plate_view();
-        q->start_next_slice();
+        int ret = q->start_next_slice();
+        if (ret) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":slicing all, plate %1% can not be sliced, will stop")%m_cur_slice_plate;
+            m_is_slicing = false;
+        }
         //not the last plate
         update_fff_scene_only_shells();
         q->Thaw();
@@ -5757,7 +5765,7 @@ void Plater::priv::on_action_publish(wxCommandEvent &event)
     if (q != nullptr) {
         if (event.GetInt() == EVT_PUBLISHING_START) {
             // update by background slicing process
-            if (process_completed_with_error) {
+            if (process_completed_with_error >= 0) {
                 wxString msg = _L("Please resolve the slicing errors and publish again.");
                 this->m_publish_dlg->UpdateStatus(msg, false);
                 return;
@@ -8354,7 +8362,7 @@ int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check)
     auto result = MessageDialog(static_cast<wxWindow*>(this), _L("The current project has unsaved changes, save it before continue?"),
         wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Save"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal();
     if (result == wxID_CANCEL)
-        return result;      
+        return result;
     else if (result == wxID_YES) {
         result = save_project();
         if (result == wxID_CANCEL)
@@ -8659,7 +8667,7 @@ void Plater::export_gcode(bool prefer_removable)
     //if (get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode(true))
     //    return;
 
-    if (p->process_completed_with_error)
+    if (p->process_completed_with_error == p->partplate_list.get_curr_plate_index())
         return;
 
     // If possible, remove accents from accented latin characters.
@@ -8744,7 +8752,7 @@ void Plater::export_gcode_3mf(bool export_all)
     if (p->model.objects.empty())
         return;
 
-    if (p->process_completed_with_error)
+    if (p->process_completed_with_error == p->partplate_list.get_curr_plate_index())
         return;
 
     //calc default_output_file, get default output file from background process
@@ -9214,7 +9222,7 @@ void Plater::reslice()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: enter, process_completed_with_error=%2%")%__LINE__ %p->process_completed_with_error;
     // There is "invalid data" button instead "slice now"
-    if (p->process_completed_with_error)
+    if (p->process_completed_with_error == p->partplate_list.get_curr_plate_index())
     {
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": process_completed_with_error, return directly");
         reset_gcode_toolpaths();
@@ -9312,7 +9320,7 @@ void Plater::reslice()
 }
 
 //BBS: add project slicing related logic
-void Plater::start_next_slice()
+int Plater::start_next_slice()
 {
     // Stop arrange and (or) optimize rotation tasks.
     //this->stop_jobs();
@@ -9324,6 +9332,12 @@ void Plater::start_next_slice()
         this->p->view3D->reload_scene(false);
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": update_background_process returns %1%")%state;
+    if (p->partplate_list.get_curr_plate()->is_apply_result_invalid()) {
+        p->process_completed_with_error = p->partplate_list.get_curr_plate_index();
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": found invalidated apply in update_background_process.");
+        return -1;
+    }
+
     // Only restarts if the state is valid.
     bool result = this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
     if (!result)
@@ -9335,6 +9349,8 @@ void Plater::start_next_slice()
         wxQueueEvent(this, evt.Clone());
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": restart_background_process returns %1%")%result;
+
+    return 0;
 }
 
 
@@ -10264,6 +10280,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
 
         //always apply the current plate's print
         invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config());
+        bool model_fits, validate_err;
 
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: plate %2%, after apply, invalidated= %3%, previous result_valid %4% ")%__LINE__ %plate_index  %invalidated %result_valid;
         if (result_valid)
@@ -10273,12 +10290,13 @@ int Plater::select_plate(int plate_index, bool need_slice)
                 if (need_slice) { //from preview's thumbnail
                     if ((invalidated & PrintBase::APPLY_STATUS_INVALIDATED) || (gcode_result->moves.empty())){
                         //part_plate->update_slice_result_valid_state(false);
-                        p->process_completed_with_error = false;
+                        p->process_completed_with_error = -1;
                         p->m_slice_all = false;
                         reset_gcode_toolpaths();
                         reslice();
                     }
                     else {
+                        validate_current_plate(model_fits, validate_err);
                         //just refresh_print
                         refresh_print();
                         p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false, true);
@@ -10290,6 +10308,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
             }
             else
             {
+                validate_current_plate(model_fits, validate_err);
                 if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
                 {
                     part_plate->update_slice_result_valid_state(false);
@@ -10313,11 +10332,12 @@ int Plater::select_plate(int plate_index, bool need_slice)
         {
             //check inside status
             bool model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
+            //bool validate_err = false;
             if (is_preview_shown())
             {
                 if (need_slice)
                 {
-                    p->process_completed_with_error = false;
+                    p->process_completed_with_error = -1;
                     p->m_slice_all = false;
                     reset_gcode_toolpaths();
                     if (model_fits)
@@ -10331,60 +10351,13 @@ int Plater::select_plate(int plate_index, bool need_slice)
             }
             else
             {
-                if (p->printer_technology == ptFFF) {
-                    StringObjectException warning;
-                    Polygons polygons;
-                    std::vector<std::pair<Polygon, float>> height_polygons;
-                    StringObjectException err = p->background_process.validate(&warning, &polygons, &height_polygons);
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": validate err=%1%, warning=%2%")%err.string%warning.string;
-
-                    if (err.string.empty()) {
-                        p->notification_manager->set_all_slicing_errors_gray(true);
-                        p->notification_manager->close_notification_of_type(NotificationType::ValidateError);
-
-                        // Pass a warning from validation and either show a notification,
-                        // or hide the old one.
-                        p->process_validation_warning(warning);
-                        p->view3D->get_canvas3d()->reset_sequential_print_clearance();
-                        p->view3D->get_canvas3d()->set_as_dirty();
-                        p->view3D->get_canvas3d()->request_extra_frame();
-                    }
-                    else {
-                        // The print is not valid.
-                        // Show error as notification.
-                        p->notification_manager->push_validate_error_notification(err);
-                        model_fits = false;
-                        p->view3D->get_canvas3d()->set_sequential_print_clearance_visible(true);
-                        p->view3D->get_canvas3d()->set_sequential_print_clearance_render_fill(true);
-                        p->view3D->get_canvas3d()->set_sequential_print_clearance_polygons(polygons, height_polygons);
-                    }
-                    /*if (fff_print->config().print_sequence == PrintSequence::ByObject)
-                    {
-                        Polygons polygons;
-                        std::vector<std::pair<Polygon, float>> height_polygons;
-                        auto ret = Print::sequential_print_clearance_valid(*fff_print, &polygons, &height_polygons);
-                        if (!ret.string.empty()) {
-                            model_fits = false;
-                            p->view3D->get_canvas3d()->set_sequential_print_clearance_visible(true);
-                            p->view3D->get_canvas3d()->set_sequential_print_clearance_render_fill(true);
-                            p->view3D->get_canvas3d()->set_sequential_print_clearance_polygons(polygons, height_polygons);
-                        }
-                        else {
-                            p->view3D->get_canvas3d()->reset_sequential_print_clearance();
-                            p->view3D->get_canvas3d()->set_as_dirty();
-                            p->view3D->get_canvas3d()->request_extra_frame();
-                        }
-                    }*/
-                }
-                //BBS: add partplate logic
-                PartPlate* part_plate = p->partplate_list.get_curr_plate();
-                part_plate->update_slice_ready_status(model_fits);
-
-                if (model_fits){
-                    p->process_completed_with_error = false;
+                validate_current_plate(model_fits, validate_err);
+                //check inside status
+                if (model_fits && !validate_err){
+                    p->process_completed_with_error = -1;
                 }
                 else {
-                    p->process_completed_with_error = true;
+                    p->process_completed_with_error = p->partplate_list.get_curr_plate_index();
                 }
 
                 // BBS: don't show action buttons
@@ -10430,6 +10403,50 @@ int Plater::select_sliced_plate(int plate_index)
     return ret;
 }
 
+void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
+{
+    model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
+    validate_error = false;
+    if (p->printer_technology == ptFFF) {
+        StringObjectException warning;
+        Polygons polygons;
+        std::vector<std::pair<Polygon, float>> height_polygons;
+        StringObjectException err = p->background_process.validate(&warning, &polygons, &height_polygons);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": validate err=%1%, warning=%2%, model_fits %3%")%err.string%warning.string %model_fits;
+
+        if (err.string.empty()) {
+            p->partplate_list.get_curr_plate()->update_apply_result_invalid(false);
+            p->notification_manager->set_all_slicing_errors_gray(true);
+            p->notification_manager->close_notification_of_type(NotificationType::ValidateError);
+
+            // Pass a warning from validation and either show a notification,
+            // or hide the old one.
+            p->process_validation_warning(warning);
+            p->view3D->get_canvas3d()->reset_sequential_print_clearance();
+            p->view3D->get_canvas3d()->set_as_dirty();
+            p->view3D->get_canvas3d()->request_extra_frame();
+        }
+        else {
+            // The print is not valid.
+            p->partplate_list.get_curr_plate()->update_apply_result_invalid(true);
+            // Show error as notification.
+            p->notification_manager->push_validate_error_notification(err);
+            p->process_validation_warning(warning);
+            //model_fits = false;
+            validate_error = true;
+            p->view3D->get_canvas3d()->set_sequential_print_clearance_visible(true);
+            p->view3D->get_canvas3d()->set_sequential_print_clearance_render_fill(true);
+            p->view3D->get_canvas3d()->set_sequential_print_clearance_polygons(polygons, height_polygons);
+        }
+    }
+
+    PartPlate* part_plate = p->partplate_list.get_curr_plate();
+    part_plate->update_slice_ready_status(model_fits);
+
+    return;
+}
+
+
 //BBS: select Plate by hover_id
 int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
 {
@@ -10460,12 +10477,16 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
             part_plate->get_print(&print, &gcode_result, NULL);
             //always apply the current plate's print
             invalidated = p->background_process.apply(this->model(), wxGetApp().preset_bundle->full_config());
+            bool model_fits, validate_err;
+            validate_current_plate(model_fits, validate_err);
 
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: after apply, invalidated= %2%, previous result_valid %3% ")%__LINE__ % invalidated %result_valid;
             if (result_valid)
             {
                 if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
                 {
+                    //bool model_fits, validate_err;
+                    //validate_current_plate(model_fits, validate_err);
                     part_plate->update_slice_result_valid_state(false);
 
                     // BBS
@@ -10477,6 +10498,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                 {
                     // BBS
                     //p->show_action_buttons(false);
+                    //validate_current_plate(model_fits, validate_err);
                     p->ready_to_slice = false;
                     p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
 
@@ -10486,61 +10508,11 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
             else
             {
                 //check inside status
-                bool model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
-                if (p->printer_technology == ptFFF) {
-                    StringObjectException warning;
-                    Polygons polygons;
-                    std::vector<std::pair<Polygon, float>> height_polygons;
-                    StringObjectException err = p->background_process.validate(&warning, &polygons, &height_polygons);
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": validate err=%1%, warning=%2%, model_fits %3%")%err.string%warning.string %model_fits;
-
-                    if (err.string.empty()) {
-                        p->notification_manager->set_all_slicing_errors_gray(true);
-                        p->notification_manager->close_notification_of_type(NotificationType::ValidateError);
-
-                        // Pass a warning from validation and either show a notification,
-                        // or hide the old one.
-                        p->process_validation_warning(warning);
-                        p->view3D->get_canvas3d()->reset_sequential_print_clearance();
-                        p->view3D->get_canvas3d()->set_as_dirty();
-                        p->view3D->get_canvas3d()->request_extra_frame();
-                    }
-                    else {
-                        // The print is not valid.
-                        // Show error as notification.
-                        p->notification_manager->push_validate_error_notification(err);
-                        model_fits = false;
-                        p->view3D->get_canvas3d()->set_sequential_print_clearance_visible(true);
-                        p->view3D->get_canvas3d()->set_sequential_print_clearance_render_fill(true);
-                        p->view3D->get_canvas3d()->set_sequential_print_clearance_polygons(polygons, height_polygons);
-                    }
-                    /*if (fff_print->config().print_sequence == PrintSequence::ByObject)
-                    {
-                        Polygons polygons;
-                        std::vector<std::pair<Polygon, float>> height_polygons;
-                        auto ret = Print::sequential_print_clearance_valid(*fff_print, &polygons, &height_polygons);
-                        if (!ret.string.empty()) {
-                            model_fits = false;
-                            p->view3D->get_canvas3d()->set_sequential_print_clearance_visible(true);
-                            p->view3D->get_canvas3d()->set_sequential_print_clearance_render_fill(true);
-                            p->view3D->get_canvas3d()->set_sequential_print_clearance_polygons(polygons, height_polygons);
-                        }
-                        else {
-                            p->view3D->get_canvas3d()->reset_sequential_print_clearance();
-                            p->view3D->get_canvas3d()->set_as_dirty();
-                            p->view3D->get_canvas3d()->request_extra_frame();
-                        }
-                    }*/
-                }
-                //BBS: add partplate logic
-                PartPlate* part_plate = p->partplate_list.get_curr_plate();
-                part_plate->update_slice_ready_status(model_fits);
-
-                if (model_fits){
-                    p->process_completed_with_error = false;
+                if (model_fits && !validate_err){
+                    p->process_completed_with_error = -1;
                 }
                 else {
-                    p->process_completed_with_error = true;
+                    p->process_completed_with_error = p->partplate_list.get_curr_plate_index();
                 }
 
                 // BBS: don't show action buttons
@@ -10618,6 +10590,8 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select bed type %1% for plate %2% at plate side")%type %plate_index;
                 });
             dlg.ShowModal();
+
+            this->schedule_background_process();
         }
         else {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not select plate %1%" << plate_index;
