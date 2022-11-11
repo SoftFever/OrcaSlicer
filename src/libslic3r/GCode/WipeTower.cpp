@@ -240,6 +240,44 @@ public:
         return (*this);
     }
 
+    WipeTowerWriter &rectangle_fill_box(const WipeTower* wipe_tower, const Vec2f &ld, float width, float height, const float f = 0.f)
+    {
+        bool need_change_flow = wipe_tower->need_thick_bridge_flow(ld.y());
+
+        Vec2f corners[4];
+        corners[0]           = ld;
+        corners[1]           = ld + Vec2f(width, 0.f);
+        corners[2]           = ld + Vec2f(width, height);
+        corners[3]           = ld + Vec2f(0.f, height);
+        int index_of_closest = 0;
+        if (x() - ld.x() > ld.x() + width - x()) // closer to the right
+            index_of_closest = 1;
+        if (y() - ld.y() > ld.y() + height - y()) // closer to the top
+            index_of_closest = (index_of_closest == 0 ? 3 : 2);
+
+        travel(corners[index_of_closest].x(), y()); // travel to the closest corner
+        travel(x(), corners[index_of_closest].y());
+
+        int i = index_of_closest;
+        bool flow_changed = false;
+        do {
+            ++i;
+            if (i == 4) i = 0;
+            if (need_change_flow) { 
+                if (i == 1) {
+                    set_extrusion_flow(wipe_tower->extrusion_flow(0.2));
+                    append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(0.2) + "\n");
+                    flow_changed = true;
+                } else if (i == 2 && flow_changed) {
+                    set_extrusion_flow(wipe_tower->get_extrusion_flow());
+                    append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(m_layer_height) + "\n");
+                }
+            }
+            extrude(corners[i], f);
+        } while (i != index_of_closest);
+        return (*this);
+    }
+
     WipeTowerWriter& rectangle(const WipeTower::box_coordinates& box, const float f = 0.f)
     {
         rectangle(Vec2f(box.ld.x(), box.ld.y()),
@@ -976,6 +1014,11 @@ void WipeTower::toolchange_Wipe(
 	// Increase flow on first layer, slow down print.
     writer.set_extrusion_flow(m_extrusion_flow * (is_first_layer() ? 1.15f : 1.f))
 		  .append("; CP TOOLCHANGE WIPE\n");
+
+    if (is_first_layer()) {
+        writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Width) + std::to_string(1.15 * m_perimeter_width) + "\n");
+    }
+
 	const float& xl = cleaning_box.ld.x();
 	const float& xr = cleaning_box.rd.x();
 
@@ -1007,6 +1050,7 @@ void WipeTower::toolchange_Wipe(
         writer.travel(xl, writer.y() + dy);
 #endif
     
+    bool need_change_flow = false;
     // now the wiping itself:
 	for (int i = 0; true; ++i)	{
 		if (i!=0) {
@@ -1016,10 +1060,21 @@ void WipeTower::toolchange_Wipe(
             else wipe_speed = std::min(target_speed, wipe_speed + 50.f);
 		}
 
+        if (need_change_flow || need_thick_bridge_flow(writer.y())) {
+            writer.set_extrusion_flow(extrusion_flow(0.2));
+            writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(0.2) + "\n");
+            need_change_flow = true;
+        }
+
         if (m_left_to_right)
             writer.extrude(xr + 0.25f * m_perimeter_width, writer.y(), wipe_speed);
         else
             writer.extrude(xl - 0.25f * m_perimeter_width, writer.y(), wipe_speed);
+
+        if (need_change_flow) {
+            writer.set_extrusion_flow(m_extrusion_flow);
+            writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(m_layer_height) + "\n");
+        }
 
         if (writer.y() - float(EPSILON) > cleaning_box.lu.y())
             break;		// in case next line would not fit
@@ -1046,6 +1101,9 @@ void WipeTower::toolchange_Wipe(
         m_left_to_right = !m_left_to_right;
 
     writer.set_extrusion_flow(m_extrusion_flow); // Reset the extrusion flow.
+    if (is_first_layer()) {
+        writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Width) + std::to_string(m_perimeter_width) + "\n");
+    }
 }
 
 
@@ -1101,7 +1159,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter, bool
 
     // inner perimeter of the sparse section, if there is space for it:
     if (fill_box.ru.y() - fill_box.rd.y() > m_perimeter_width - WT_EPSILON)
-        writer.rectangle(fill_box.ld, fill_box.rd.x() - fill_box.ld.x(), fill_box.ru.y() - fill_box.rd.y(), feedrate);
+        writer.rectangle_fill_box(this, fill_box.ld, fill_box.rd.x() - fill_box.ld.x(), fill_box.ru.y() - fill_box.rd.y(), feedrate);
 
     // we are in one of the corners, travel to ld along the perimeter:
     if (writer.x() > fill_box.ld.x() + EPSILON) writer.travel(fill_box.ld.x(), writer.y());
@@ -1591,6 +1649,32 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall()
         if (m_current_tool < m_used_filament_length.size()) m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
     return construct_tcr(writer, false, old_tool, true, 0.f);
+}
+
+bool WipeTower::get_floating_area(float &start_pos_y, float &end_pos_y) const {
+    if (m_layer_info == m_plan.begin() || (m_layer_info - 1) == m_plan.begin())
+        return false;
+
+    float last_layer_fill_box_y = (m_layer_info - 1)->toolchanges_depth() + m_perimeter_width;
+    float last_layer_wipe_depth = (m_layer_info - 1)->depth;
+    if (last_layer_wipe_depth - last_layer_fill_box_y <= 2 * m_perimeter_width)
+        return false;
+
+    start_pos_y = last_layer_fill_box_y + m_perimeter_width;
+    end_pos_y   = last_layer_wipe_depth - m_perimeter_width;
+
+    return true;
+}
+
+bool WipeTower::need_thick_bridge_flow(float pos_y) const {
+    if (m_extrusion_flow >= extrusion_flow(0.2))
+        return false;
+
+    float y_min = 0., y_max = 0.;
+    if (get_floating_area(y_min, y_max)) {
+        return pos_y > y_min && pos_y < y_max;
+    }
+    return false;
 }
 
 } // namespace Slic3r
