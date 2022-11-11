@@ -35,7 +35,6 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     std::string strlang = wxGetApp().app_config->get("language");
     if (strlang != "")
         url = wxString::Format("file://%s/web/homepage/index.html?lang=%s", from_u8(resources_dir()), strlang);
-    m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION);
 
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
 
@@ -87,6 +86,18 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
 
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
 
+    Bind(EVT_WEBVIEW_RECREATED, [this](auto &evt) {
+#ifdef __WXMSW__
+        m_browser = dynamic_cast<wxWebView *>(evt.GetEventObject());
+        if (m_browser == nullptr) {
+            wxLogError("Could not recreate browser");
+            return;
+        }
+        GetSizer()->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
+        GetSizer()->Layout();
+#endif
+    });
+
     // Log backend information
     if (wxGetApp().get_mode() == comDevelop) {
         wxLogMessage(wxWebView::GetBackendVersionInfo().ToString());
@@ -94,7 +105,6 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
             wxWebView::GetBackendVersionInfo().ToString());
         wxLogMessage("User Agent: %s", m_browser->GetUserAgent());
     }
-
 
     // Create the Tools menu
     m_tools_menu = new wxMenu();

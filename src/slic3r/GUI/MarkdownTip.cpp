@@ -81,6 +81,16 @@ MarkdownTip::MarkdownTip()
 
     _timer = new wxTimer;
     _timer->Bind(wxEVT_TIMER, &MarkdownTip::OnTimer, this);
+
+    Bind(EVT_WEBVIEW_RECREATED, [this](auto &evt) {
+        Hide();
+        _lastTip.clear();
+#ifdef __WXMSW__
+        _tipView = dynamic_cast<wxWebView *>(evt.GetEventObject());
+        GetSizer()->Add(_tipView, wxSizerFlags().Expand().Proportion(1));
+        Layout();
+#endif
+    });
 }
 
 MarkdownTip::~MarkdownTip() { delete _timer; }

@@ -57,6 +57,7 @@
 #include "MarkdownTip.hpp"
 #include "NetworkTestDialog.hpp"
 #include "ConfigWizard.hpp"
+#include "Widgets/WebView.hpp"
 
 #ifdef _WIN32
 #include <dbt.h>
@@ -1782,6 +1783,8 @@ void MainFrame::on_sys_color_changed()
         tab->sys_color_changed();
 
     MenuFactory::sys_color_changed(m_menubar);
+
+    WebView::RecreateAll();
 
     this->Refresh();
 }
