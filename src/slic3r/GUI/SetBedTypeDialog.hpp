@@ -41,7 +41,7 @@ protected:
     std::vector<RadioBox*> radio_buttons;
 
     wxWindow *  create_item_radiobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, int groupid, std::string param);
-    void select_curr_radiobox(wxMouseEvent &e);
+    void select_curr_radiobox(int btn_idx);
 };
 
 }} // namespace Slic3r::GUI

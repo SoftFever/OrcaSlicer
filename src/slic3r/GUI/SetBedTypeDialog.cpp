@@ -101,40 +101,40 @@ wxWindow* SetBedTypeDialog::create_item_radiobox(wxString title, wxWindow* paren
 
     RadioBox *radiobox = new RadioBox(item);
     radiobox->SetPosition(wxPoint(padding_left, (item->GetSize().GetHeight() - radiobox->GetSize().GetHeight()) / 2));
-    radiobox->Bind(wxEVT_LEFT_DOWN, &SetBedTypeDialog::select_curr_radiobox, this);
     radio_buttons.push_back(radiobox);
+    int btn_idx = radio_buttons.size() - 1;
+    radiobox->Bind(wxEVT_LEFT_DOWN, [this, btn_idx](wxMouseEvent &e) {
+        SetBedTypeDialog::select_curr_radiobox(btn_idx);
+        });
 
     wxStaticText *text = new wxStaticText(item, wxID_ANY, title, wxDefaultPosition, wxDefaultSize);
     text->SetPosition(wxPoint(padding_left + radiobox->GetSize().GetWidth() + 10, (item->GetSize().GetHeight() - text->GetSize().GetHeight()) / 2));
     text->SetFont(Label::Body_14);
     text->SetForegroundColour(0x686868);
+    text->Bind(wxEVT_LEFT_DOWN, [this, btn_idx](wxMouseEvent &e) {
+        SetBedTypeDialog::select_curr_radiobox(btn_idx);
+        });
 
     radiobox->SetToolTip(tooltip);
     text->SetToolTip(tooltip);
     return item;
 }
 
-void SetBedTypeDialog::select_curr_radiobox(wxMouseEvent &e)
+void SetBedTypeDialog::select_curr_radiobox(int btn_idx)
 {
     int len = radio_buttons.size();
-    for (auto rbtn:radio_buttons) {
-        if (rbtn->GetId() == e.GetId())
-           rbtn->SetValue(true);
+    for (int i = 0; i < len; ++i) {
+        if (i == btn_idx)
+            radio_buttons[i]->SetValue(true);
         else
-           rbtn->SetValue(false);
+            radio_buttons[i]->SetValue(false);
     }
 }
 
 void SetBedTypeDialog::sync_bed_type(BedType type)
 {
     int select_type = (int)(type);
-    int len = radio_buttons.size();
-    for (int i = 0; i < len; ++i) {
-        if (i == select_type)
-           radio_buttons[i]->SetValue(true);
-        else
-           radio_buttons[i]->SetValue(false);
-    }
+    select_curr_radiobox(select_type);
 }
 
 void SetBedTypeDialog::on_dpi_changed(const wxRect& suggested_rect)

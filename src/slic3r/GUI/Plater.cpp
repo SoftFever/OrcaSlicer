@@ -5222,7 +5222,9 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
             // update render
             auto plate_list = partplate_list.get_plate_list();
             for (auto plate : plate_list) {
-                plate->set_plate_render_option(false);
+                bool same_as_global = false;
+                auto type = plate->get_bed_type();
+                plate->set_bed_type(type, same_as_global);
             }
             view3D->get_canvas3d()->render();
             preview->msw_rescale();
@@ -10607,13 +10609,12 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
         //set the plate type
         ret = select_plate(plate_index);
         if (!ret) {
-            SetBedTypeDialog dlg(this, wxID_ANY, _L("Select bed type"));
+            SetBedTypeDialog dlg(this, wxID_ANY, _L("Select Bed Type"));
             dlg.sync_bed_type(p->partplate_list.get_curr_plate()->get_bed_type());
             dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index](wxCommandEvent& e) {
                 bool same_as_global = false;
                 auto type = (BedType)(e.GetInt());
                 p->partplate_list.get_curr_plate()->set_bed_type(type, same_as_global);
-                p->partplate_list.get_curr_plate()->set_plate_render_option(same_as_global?false:true);
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select bed type %1% for plate %2% at plate side")%type %plate_index;
                 });
             dlg.ShowModal();

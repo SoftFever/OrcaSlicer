@@ -149,6 +149,7 @@ BedType PartPlate::get_bed_type() const
 
 void PartPlate::set_bed_type(BedType bed_type, bool& same_as_global)
 {
+	is_same_bedtype_with_global = true;
 	// should be called in GUI context
 	assert(m_plater != nullptr);
 
@@ -162,11 +163,13 @@ void PartPlate::set_bed_type(BedType bed_type, bool& same_as_global)
 			std::string bed_type_key = "curr_bed_type";
 			BedType global_bed_type = proj_cfg.opt_enum<BedType>(bed_type_key);
 			same_as_global = bed_type == global_bed_type;
+			is_same_bedtype_with_global = same_as_global;
 			return;
 		}
 	}
 
 	same_as_global = false;
+	is_same_bedtype_with_global = same_as_global;
 }
 
 void PartPlate::reset_bed_type()
@@ -708,13 +711,17 @@ void PartPlate::render_icons(bool bottom, int hover_id) const
         }
 
         if (m_partplate_list->render_bedtype_setting) {
-            if (hover_id == 5)
-                render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_hovered_texture, m_bedtype_vbo_id);
-            else {
-                if (render_bedtype_setting_warned)
-                    render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_warned_texture, m_bedtype_vbo_id);
+            if (hover_id == 5) {
+                if (is_same_bedtype_with_global)
+                    render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_hovered_texture, m_bedtype_vbo_id);
                 else
+                    render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_changed_hovered_texture, m_bedtype_vbo_id);
+            }
+            else {
+                if (is_same_bedtype_with_global)
                     render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_texture, m_bedtype_vbo_id);
+                else
+                    render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_changed_texture, m_bedtype_vbo_id);
             }
         }
 
@@ -2024,11 +2031,6 @@ void PartPlate::render(bool bottom, bool only_body, bool force_background_color,
 	glsafe(::glDisable(GL_DEPTH_TEST));
 }
 
-void PartPlate::set_plate_render_option(bool bedtype_setting_warned)
-{
-    render_bedtype_setting_warned = bedtype_setting_warned;
-}
-
 void PartPlate::set_selected() {
 	m_selected = true;
 }
@@ -2437,10 +2439,10 @@ void PartPlateList::generate_icon_textures()
 		}
 	}
 
-	if (m_bedtype_warned_texture.get_id() == 0)
+	if (m_bedtype_changed_texture.get_id() == 0)
 	{
-		file_name = path + "plate_set_bedtype_warned.svg";
-		if (!m_bedtype_warned_texture.load_from_svg_file(file_name, true, false, false, max_tex_size / 8)) {
+		file_name = path + "plate_set_bedtype_changed.svg";
+		if (!m_bedtype_changed_texture.load_from_svg_file(file_name, true, false, false, max_tex_size / 8)) {
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
 		}
 	}
@@ -2449,6 +2451,14 @@ void PartPlateList::generate_icon_textures()
 	{
 		file_name = path + "plate_set_bedtype_hover.svg";
 		if (!m_bedtype_hovered_texture.load_from_svg_file(file_name, true, false, false, max_tex_size / 8)) {
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+		}
+	}
+
+	if (m_bedtype_changed_hovered_texture.get_id() == 0)
+	{
+		file_name = path + "plate_set_bedtype_changed_hover.svg";
+		if (!m_bedtype_changed_hovered_texture.load_from_svg_file(file_name, true, false, false, max_tex_size / 8)) {
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
 		}
 	}
@@ -2510,8 +2520,9 @@ void PartPlateList::release_icon_textures()
 	m_lockopen_texture.reset();
 	m_lockopen_hovered_texture.reset();
 	m_bedtype_texture.reset();
-	m_bedtype_warned_texture.reset();
+	m_bedtype_changed_texture.reset();
 	m_bedtype_hovered_texture.reset();
+	m_bedtype_changed_hovered_texture.reset();
 
 	for (int i = 0;i < MAX_PLATE_COUNT; i++) {
 		m_idx_textures[i].reset();
