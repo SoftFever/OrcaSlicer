@@ -1929,8 +1929,8 @@ void SelectMachineDialog::on_ok()
         m_checkbox_list["bed_leveling"]->GetValue(),
         m_checkbox_list["flow_cali"]->GetValue(),
         false,
-        false,
-        timelapse_option);
+        timelapse_option,
+        true);
 
     if (obj_->has_ams()) {
         m_print_job->task_use_ams = ams_check->GetValue();

@@ -146,9 +146,8 @@ enum BrimType {
 };
 
 enum TimelapseType {
-    tlNone,
-    tlSmooth,
-    tlTraditional
+    tlTraditional,
+    tlSmooth
 };
 
 enum DraftShield {

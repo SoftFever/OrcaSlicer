@@ -236,11 +236,10 @@ static const t_config_enum_values s_keys_map_BrimType = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BrimType)
 
-// using 0,1,2 to compatible with old files
+// using 0,1 to compatible with old files
 static const t_config_enum_values s_keys_map_TimelapseType = {
-    {"0",       tlNone},
-    {"1",       tlSmooth},
-    {"2",       tlTraditional}
+    {"0",       tlTraditional},
+    {"1",       tlSmooth}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(TimelapseType)
 
@@ -2263,12 +2262,10 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<TimelapseType>::get_enum_values();
     def->enum_values.emplace_back("0");
     def->enum_values.emplace_back("1");
-    def->enum_values.emplace_back("2");
-    def->enum_labels.emplace_back(L("None"));
-    def->enum_labels.emplace_back(L("Smooth"));
     def->enum_labels.emplace_back(L("Traditional"));
+    def->enum_labels.emplace_back(L("Smooth"));
     def->mode = comSimple;
-    def->set_default_value(new ConfigOptionEnum<TimelapseType>(tlNone));
+    def->set_default_value(new ConfigOptionEnum<TimelapseType>(tlTraditional));
 
     def = this->add("standby_temperature_delta", coInt);
     def->label = L("Temperature variation");
@@ -3693,6 +3690,10 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "slow_down_for_layer_cooling";
     } else if (opt_key == "timelapse_no_toolhead") {
         opt_key = "timelapse_type";
+    } else if (opt_key == "timelapse_type" && value == "2") {
+        // old file "0" is None, "2" is Traditional
+        // new file "0" is Traditional, erase "2"
+        value = "0";
     } else if (opt_key == "different_settings_to_system") {
         std::string copy_value = value;
         copy_value.erase(std::remove(copy_value.begin(), copy_value.end(), '\"'), copy_value.end()); // remove '"' in string
