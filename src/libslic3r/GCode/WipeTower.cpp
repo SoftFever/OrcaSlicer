@@ -265,6 +265,7 @@ public:
             if (i == 4) i = 0;
             if (need_change_flow) { 
                 if (i == 1) {
+                    // using bridge flow in bridge area, and add notes for gcode-check when flow changed
                     set_extrusion_flow(wipe_tower->extrusion_flow(0.2));
                     append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(0.2) + "\n");
                     flow_changed = true;
@@ -1015,6 +1016,7 @@ void WipeTower::toolchange_Wipe(
     writer.set_extrusion_flow(m_extrusion_flow * (is_first_layer() ? 1.15f : 1.f))
 		  .append("; CP TOOLCHANGE WIPE\n");
 
+    // BBS: add the note for gcode-check, when the flow changed, the width should follow the change
     if (is_first_layer()) {
         writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Width) + std::to_string(1.15 * m_perimeter_width) + "\n");
     }
@@ -1060,6 +1062,7 @@ void WipeTower::toolchange_Wipe(
             else wipe_speed = std::min(target_speed, wipe_speed + 50.f);
 		}
 
+        // BBS: check the bridging area and use the bridge flow
         if (need_change_flow || need_thick_bridge_flow(writer.y())) {
             writer.set_extrusion_flow(extrusion_flow(0.2));
             writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(0.2) + "\n");
@@ -1071,6 +1074,7 @@ void WipeTower::toolchange_Wipe(
         else
             writer.extrude(xl - 0.25f * m_perimeter_width, writer.y(), wipe_speed);
 
+        // BBS: recover the flow in non-bridging area
         if (need_change_flow) {
             writer.set_extrusion_flow(m_extrusion_flow);
             writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(m_layer_height) + "\n");
@@ -1101,6 +1105,7 @@ void WipeTower::toolchange_Wipe(
         m_left_to_right = !m_left_to_right;
 
     writer.set_extrusion_flow(m_extrusion_flow); // Reset the extrusion flow.
+    // BBS: add the note for gcode-check when the flow changed
     if (is_first_layer()) {
         writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Width) + std::to_string(m_perimeter_width) + "\n");
     }
@@ -1300,6 +1305,8 @@ void WipeTower::plan_toolchange(float z_par, float layer_height_par, unsigned in
 	// this is an actual toolchange - let's calculate depth to reserve on the wipe tower
     float depth = 0.f;
     float width = m_wipe_tower_width - 2 * m_perimeter_width;
+
+    // BBS: if the wipe tower width is too small, the depth will be infinity
     if (width <= EPSILON)
         return;
 
