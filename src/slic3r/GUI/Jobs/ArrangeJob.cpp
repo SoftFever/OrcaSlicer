@@ -527,6 +527,12 @@ void ArrangeJob::process()
         }
     }
 
+    if (print.full_print_config().opt_bool("enable_support")) {
+        params.bed_shrink_x = std::max(5.f, params.bed_shrink_x);
+        params.bed_shrink_y = std::max(5.f, params.bed_shrink_y);
+        params.min_obj_distance = std::max(scaled(10.0), params.min_obj_distance);
+    }
+
     // do not inflate brim_width. Objects are allowed to have overlapped brim.
     std::for_each(m_selected.begin(), m_selected.end(), [&](auto& ap) {ap.inflation = params.min_obj_distance / 2; });
     // For occulusion regions, inflation should be larger to prevent genrating brim on them.

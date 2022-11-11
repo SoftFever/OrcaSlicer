@@ -2550,9 +2550,22 @@ void Plater::setPrintSpeedTable(GlobalSpeedMap &printSpeedMap) {
             printSpeedMap.maxSpeed = printSpeedMap.supportSpeed;
     }
 
-    /*        "inner_wall_speed", "outer_wall_speed", "sparse_infill_speed", "internal_solid_infill_speed",
-        "top_surface_speed", "support_speed", "support_object_xy_distance", "support_interface_speed",
-        "bridge_speed", "gap_infill_speed", "travel_speed", "initial_layer_speed"*/
+
+    auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
+    auto print_config = print.config();
+    printSpeedMap.bed_poly.points = get_bed_shape(*(wxGetApp().plater()->config()));
+    Pointfs excluse_area_points = print_config.bed_exclude_area.values;
+    Polygons exclude_polys;
+    Polygon exclude_poly;
+    for (int i = 0; i < excluse_area_points.size(); i++) {
+        auto pt = excluse_area_points[i];
+        exclude_poly.points.emplace_back(scale_(pt.x()), scale_(pt.y()));
+        if (i % 4 == 3) {  // exclude areas are always rectangle
+            exclude_polys.push_back(exclude_poly);
+            exclude_poly.points.clear();
+        }
+    }
+    printSpeedMap.bed_poly = diff({ printSpeedMap.bed_poly }, exclude_polys)[0];
 }
 
 // find temperature of heatend and bed and matierial of an given extruder

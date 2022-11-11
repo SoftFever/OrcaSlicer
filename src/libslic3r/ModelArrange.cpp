@@ -145,6 +145,7 @@ ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::
 
     // get brim width
     auto obj = instance->get_object();
+#if 0
     ap.brim_width = instance->get_auto_brim_width();
     auto brim_type_ptr = obj->get_config_value<ConfigOptionEnum<BrimType>>(config, "brim_type");
     if (brim_type_ptr) {
@@ -154,7 +155,9 @@ ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::
         else if (brim_type == btNoBrim)
             ap.brim_width = 0;
     }        
-
+#else
+    ap.brim_width = 0;
+#endif
     
     ap.height = obj->bounding_box().size().z();
     ap.name = obj->name;

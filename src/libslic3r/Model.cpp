@@ -2917,6 +2917,7 @@ double getTemperatureFromExtruder(const ModelVolumePtrs objectVolumes) {
 
 double ModelInstance::get_auto_brim_width() const
 {
+    return 0.;
     double adhcoeff = getadhesionCoeff(object->volumes);
     double DeltaT = getTemperatureFromExtruder(object->volumes);
     // get auto brim width (Note even if the global brim_type=btOuterBrim, we can still go into this branch)

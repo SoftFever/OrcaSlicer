@@ -1212,6 +1212,7 @@ struct GlobalSpeedMap
     double topSolidInfillSpeed;
     double supportSpeed;
     double maxSpeed;
+    Polygon bed_poly;
 };
 
 /* info in ModelDesignInfo can not changed after initialization */
@@ -1307,6 +1308,7 @@ public:
     static double findMaxSpeed(const ModelObject* object);
     static double getThermalLength(const ModelVolume* modelVolumePtr);
     static double getThermalLength(const std::vector<ModelVolume*> modelVolumePtrs);
+    static Polygon getBedPolygon() { return Model::printSpeedMap.bed_poly; }
 
     // BBS: backup
     static Model read_from_archive(

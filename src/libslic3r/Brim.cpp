@@ -876,6 +876,8 @@ static ExPolygons outer_inner_brim_area(const Print& print,
         brimToWrite.insert({ objectWithExtruder.first, {true,true} });
 
     ExPolygons objectIslands;
+    auto bedPoly = Model::getBedPolygon();
+    auto bedExPoly = diff_ex((offset(bedPoly, scale_(30.), jtRound, SCALED_RESOLUTION)), { bedPoly });
 
     for (unsigned int extruderNo : printExtruders) {
         ++extruderNo;
@@ -1036,7 +1038,9 @@ static ExPolygons outer_inner_brim_area(const Print& print,
             }
         }
     }
-    for (const PrintObject* object : print.objects()) 
+    if (!bedExPoly.empty())
+        no_brim_area.push_back(bedExPoly.front());
+    for (const PrintObject* object : print.objects())
         if (brimAreaMap.find(object->id()) != brimAreaMap.end()) {
             brimAreaMap[object->id()] = diff_ex(brimAreaMap[object->id()], no_brim_area);
 
