@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-03 16:29+0800\n"
+"POT-Creation-Date: 2022-11-11 18:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1132,6 +1132,15 @@ msgstr ""
 msgid "OK"
 msgstr "OK"
 
+msgid "Go to layer"
+msgstr ""
+
+msgid "Layer number"
+msgstr ""
+
+msgid "Jump to Layer"
+msgstr ""
+
 msgid "Add Pause"
 msgstr ""
 
@@ -2076,6 +2085,12 @@ msgstr ""
 msgid "Flow: "
 msgstr ""
 
+msgid "Fan Speed: "
+msgstr ""
+
+msgid "Temperature: "
+msgstr ""
+
 msgid "Loading G-codes"
 msgstr "Laden von G-Codes"
 
@@ -2084,6 +2099,9 @@ msgstr "Erzeugen von Geometrie-Eckpunktdaten"
 
 msgid "Generating geometry index data"
 msgstr "Erzeugung von Geometrie-Indexdaten"
+
+msgid "Display"
+msgstr "Anzeigen"
 
 msgid "up to"
 msgstr "bis zu"
@@ -2100,14 +2118,11 @@ msgstr "bis"
 msgid "Color Scheme"
 msgstr "Farbschema"
 
-msgid "Percent"
-msgstr "Prozent"
-
 msgid "Time"
 msgstr "Zeit"
 
-msgid "Display"
-msgstr "Anzeigen"
+msgid "Percent"
+msgstr "Prozent"
 
 msgid "Layer Height (mm)"
 msgstr "Schichthöhe (mm)"
@@ -2130,14 +2145,17 @@ msgstr "Volumetrische Flussrate (mm³/s)"
 msgid "Used filament"
 msgstr "Genutztes Filament"
 
-msgid "Filament N XX"
-msgstr "Filament N XX"
+msgid "Flushed"
+msgstr ""
 
-msgid "Color Print"
-msgstr "Farbdruck"
+msgid "Tower"
+msgstr ""
 
-msgid "Comsumption"
-msgstr "Verbrauch"
+msgid "Total"
+msgstr "Gesamt"
+
+msgid "Filamet"
+msgstr ""
 
 msgid "Travel"
 msgstr "Eilgang"
@@ -2166,17 +2184,11 @@ msgstr "bewegung"
 msgid "Extruder"
 msgstr "Extruder"
 
-msgid "Filament 1"
-msgstr "Filament 1"
-
-msgid "Flushed filament"
-msgstr "gereinigtes Filament"
-
-msgid "Total"
-msgstr "Gesamt"
-
 msgid "Filament change times"
 msgstr "Filamentwechselzeiten"
+
+msgid "Cost"
+msgstr "Kosten"
 
 msgid "Color change"
 msgstr "Farbwechsel"
@@ -2196,11 +2208,11 @@ msgstr "Druckeinstellungen"
 msgid "Total Estimation"
 msgstr "Gesamtvorhersage"
 
+msgid "Time Estimation"
+msgstr ""
+
 msgid "Normal mode"
 msgstr "Normaler Modus"
-
-msgid "Cost"
-msgstr "Kosten"
 
 msgid "Prepare time"
 msgstr "Vorbereitungszeit"
@@ -2208,11 +2220,62 @@ msgstr "Vorbereitungszeit"
 msgid "Model printing time"
 msgstr "Druckzeit des Modell"
 
+msgid "Total time"
+msgstr ""
+
 msgid "Switch to silent mode"
 msgstr "Zum Leisemodus wechseln"
 
 msgid "Switch to normal mode"
 msgstr "Zum Normalen Modus wechseln"
+
+msgid "Variable layer height"
+msgstr ""
+
+msgid "Adaptive"
+msgstr ""
+
+msgid "Quality / Speed"
+msgstr ""
+
+msgid "Smooth"
+msgstr ""
+
+msgid "Radius"
+msgstr "Radius"
+
+msgid "Keep min"
+msgstr ""
+
+msgid "Left mouse button:"
+msgstr ""
+
+msgid "Add detail"
+msgstr ""
+
+msgid "Right mouse button:"
+msgstr ""
+
+msgid "Remove detail"
+msgstr ""
+
+msgid "Shift + Left mouse button:"
+msgstr ""
+
+msgid "Reset to base"
+msgstr ""
+
+msgid "Shift + Right mouse button:"
+msgstr ""
+
+msgid "Smoothing"
+msgstr ""
+
+msgid "Mouse wheel:"
+msgstr ""
+
+msgid "Increase/decrease edit area"
+msgstr ""
 
 msgid "Sequence"
 msgstr "Reihenfolge"
@@ -2756,7 +2819,10 @@ msgstr ""
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
 msgstr ""
 
-msgid "Initialize failed (Not supported without remote video tunnel)!"
+msgid "Initialize failed (Missing LAN ip of printer)!"
+msgstr ""
+
+msgid "Initialize failed (Not supported by printer)!"
 msgstr ""
 
 #, c-format, boost-format
@@ -2772,6 +2838,32 @@ msgstr ""
 
 msgid "Stopped."
 msgstr "Gestoppt."
+
+msgid ""
+"Virtual Camera Tools is required for this task!\n"
+"Do you want to install them?"
+msgstr ""
+
+msgid "Downloading Virtual Camera Tools"
+msgstr ""
+
+msgid ""
+"Another virtual camera is running.\n"
+"Bambu Studio supports only a single virtual camera.\n"
+"Do you want to stop this virtual camera?"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Virtual camera initialize failed (%s)!"
+msgstr ""
+
+msgid "Information"
+msgstr ""
+
+msgid ""
+"Virtual camera is started.\n"
+"Press 'OK' to navigate the guide page of 'Streaming video of Bambu Printer'."
+msgstr ""
 
 msgid "Playing..."
 msgstr "Laufend..."
@@ -2883,6 +2975,9 @@ msgid "Swap Y/Z axes"
 msgstr "Y/Z-Achsen vertauschen"
 
 msgid "Camera"
+msgstr ""
+
+msgid "Virtual Camera"
 msgstr ""
 
 msgid "Printing Progress"
@@ -3255,6 +3350,12 @@ msgstr ""
 msgid "There are no compatible filaments, and sync is not performed."
 msgstr ""
 
+msgid ""
+"There are some unknown filaments mapped to generic preset. Please update "
+"Bambu Studio or restart Bambu Studio to check if there is an update to "
+"system presets."
+msgstr ""
+
 msgid "Untitled"
 msgstr "Unbenannt"
 
@@ -3548,6 +3649,9 @@ msgstr ""
 
 msgid "Invalid number"
 msgstr "Ungültige Nummer"
+
+msgid "Select Bed Type"
+msgstr ""
 
 #, boost-format
 msgid "Part name: %1%\n"
@@ -5270,6 +5374,11 @@ msgstr ""
 "Der Prime Turm setzt voraus, dass alle Objekte mit den gleichen Schichthöhen "
 "gesliced werden."
 
+msgid ""
+"The prime tower is only supported if all objects have the same variable "
+"layer height"
+msgstr ""
+
 msgid "Too small line width"
 msgstr "Zu geringe Linienbreite"
 
@@ -5859,9 +5968,6 @@ msgid ""
 "object printing."
 msgstr ""
 
-msgid "Radius"
-msgstr "Radius"
-
 msgid ""
 "Clearance radius around extruder. Used for collision avoidance in by-object "
 "printing."
@@ -6129,22 +6235,6 @@ msgid ""
 msgstr ""
 "Höhe der ersten Schicht. Eine etwas dickere erste Schicht kann die Haftung "
 "der Druckplatte verbessern"
-
-msgid "Adaptive layer height"
-msgstr "Adaptive Schichthöhe"
-
-msgid ""
-"Enabling this option means the height of every layer except the first will "
-"be automatically calculated during slicing according to the slope of the "
-"model’s surface.\n"
-"Note that this option only takes effect if no prime tower is generated in "
-"current plate."
-msgstr ""
-"Die Aktivierung dieser Option bedeutet, dass die Höhe jeder Schicht außer "
-"der ersten während des Slicing automatisch entsprechend der Neigung der "
-"Oberfläche des Modells berechnet wird.\n"
-"Beachten Sie, dass diese Option nur wirksam wird, wenn in der aktuellen "
-"Druckplatte kein Prime Turm erzeugt wird."
 
 msgid "Speed of initial layer except the solid infill part"
 msgstr "Geschwindigkeit der ersten Schicht mit Ausnahme des festen Füllteils"
@@ -6789,9 +6879,6 @@ msgid ""
 "wipe nozzle."
 msgstr ""
 
-msgid "Smooth"
-msgstr ""
-
 msgid "Traditional"
 msgstr ""
 
@@ -6814,6 +6901,23 @@ msgid ""
 "Cracks smaller than 2x gap closing radius are being filled during the "
 "triangle mesh slicing. The gap closing operation may reduce the final print "
 "resolution, therefore it is advisable to keep the value reasonably low."
+msgstr ""
+
+msgid "Slicing Mode"
+msgstr ""
+
+msgid ""
+"Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to "
+"close all holes in the model."
+msgstr ""
+
+msgid "Regular"
+msgstr ""
+
+msgid "Even-odd"
+msgstr ""
+
+msgid "Close holes"
 msgstr ""
 
 msgid "Enable support"
@@ -6839,11 +6943,11 @@ msgstr "Baum(automatisch)"
 msgid "hybrid(auto)"
 msgstr "Hybrid(automatisch)"
 
-msgid "normal"
-msgstr "Normal"
+msgid "normal(manual)"
+msgstr ""
 
-msgid "tree"
-msgstr "Baum"
+msgid "tree(manual)"
+msgstr ""
 
 msgid "Support/object xy distance"
 msgstr "XY-Abstand der Supports zum Objekt"
@@ -7237,6 +7341,12 @@ msgstr "Einstellungen exportieren"
 msgid "Export settings to a file."
 msgstr "Einstellungen in eine Datei exportieren."
 
+msgid "Send progress to pipe"
+msgstr ""
+
+msgid "Send progress to pipe."
+msgstr ""
+
 msgid "Arrange Options"
 msgstr "Anordnungsoptionen"
 
@@ -7333,9 +7443,6 @@ msgstr ""
 
 msgid "Slicing mesh"
 msgstr "Slicen des Netzes"
-
-msgid " Object:"
-msgstr " Objekt:"
 
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
@@ -7531,6 +7638,46 @@ msgid ""
 "Did you know that you can set slicing parameters for all selected objects at "
 "one time?"
 msgstr ""
+
+#~ msgid "Filament N XX"
+#~ msgstr "Filament N XX"
+
+#~ msgid "Color Print"
+#~ msgstr "Farbdruck"
+
+#~ msgid "Comsumption"
+#~ msgstr "Verbrauch"
+
+#~ msgid "Filament 1"
+#~ msgstr "Filament 1"
+
+#~ msgid "Flushed filament"
+#~ msgstr "gereinigtes Filament"
+
+#~ msgid "Adaptive layer height"
+#~ msgstr "Adaptive Schichthöhe"
+
+#~ msgid ""
+#~ "Enabling this option means the height of every layer except the first "
+#~ "will be automatically calculated during slicing according to the slope of "
+#~ "the model’s surface.\n"
+#~ "Note that this option only takes effect if no prime tower is generated in "
+#~ "current plate."
+#~ msgstr ""
+#~ "Die Aktivierung dieser Option bedeutet, dass die Höhe jeder Schicht außer "
+#~ "der ersten während des Slicing automatisch entsprechend der Neigung der "
+#~ "Oberfläche des Modells berechnet wird.\n"
+#~ "Beachten Sie, dass diese Option nur wirksam wird, wenn in der aktuellen "
+#~ "Druckplatte kein Prime Turm erzeugt wird."
+
+#~ msgid "normal"
+#~ msgstr "Normal"
+
+#~ msgid "tree"
+#~ msgstr "Baum"
+
+#~ msgid " Object:"
+#~ msgstr " Objekt:"
 
 #~ msgid ""
 #~ "You have changed some preset settings. \n"

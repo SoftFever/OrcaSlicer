@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-03 16:29+0800\n"
+"POT-Creation-Date: 2022-11-11 18:21+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1091,6 +1091,15 @@ msgstr ""
 msgid "OK"
 msgstr ""
 
+msgid "Go to layer"
+msgstr ""
+
+msgid "Layer number"
+msgstr ""
+
+msgid "Jump to Layer"
+msgstr ""
+
 msgid "Add Pause"
 msgstr ""
 
@@ -1922,6 +1931,12 @@ msgstr ""
 msgid "Flow: "
 msgstr ""
 
+msgid "Fan Speed: "
+msgstr ""
+
+msgid "Temperature: "
+msgstr ""
+
 msgid "Loading G-codes"
 msgstr ""
 
@@ -1929,6 +1944,9 @@ msgid "Generating geometry vertex data"
 msgstr ""
 
 msgid "Generating geometry index data"
+msgstr ""
+
+msgid "Display"
 msgstr ""
 
 msgid "up to"
@@ -1946,13 +1964,10 @@ msgstr ""
 msgid "Color Scheme"
 msgstr ""
 
-msgid "Percent"
-msgstr ""
-
 msgid "Time"
 msgstr ""
 
-msgid "Display"
+msgid "Percent"
 msgstr ""
 
 msgid "Layer Height (mm)"
@@ -1976,13 +1991,16 @@ msgstr ""
 msgid "Used filament"
 msgstr ""
 
-msgid "Filament N XX"
+msgid "Flushed"
 msgstr ""
 
-msgid "Color Print"
+msgid "Tower"
 msgstr ""
 
-msgid "Comsumption"
+msgid "Total"
+msgstr ""
+
+msgid "Filamet"
 msgstr ""
 
 msgid "Travel"
@@ -2012,16 +2030,10 @@ msgstr ""
 msgid "Extruder"
 msgstr ""
 
-msgid "Filament 1"
-msgstr ""
-
-msgid "Flushed filament"
-msgstr ""
-
-msgid "Total"
-msgstr ""
-
 msgid "Filament change times"
+msgstr ""
+
+msgid "Cost"
 msgstr ""
 
 msgid "Color change"
@@ -2042,10 +2054,10 @@ msgstr ""
 msgid "Total Estimation"
 msgstr ""
 
-msgid "Normal mode"
+msgid "Time Estimation"
 msgstr ""
 
-msgid "Cost"
+msgid "Normal mode"
 msgstr ""
 
 msgid "Prepare time"
@@ -2054,10 +2066,61 @@ msgstr ""
 msgid "Model printing time"
 msgstr ""
 
+msgid "Total time"
+msgstr ""
+
 msgid "Switch to silent mode"
 msgstr ""
 
 msgid "Switch to normal mode"
+msgstr ""
+
+msgid "Variable layer height"
+msgstr ""
+
+msgid "Adaptive"
+msgstr ""
+
+msgid "Quality / Speed"
+msgstr ""
+
+msgid "Smooth"
+msgstr ""
+
+msgid "Radius"
+msgstr ""
+
+msgid "Keep min"
+msgstr ""
+
+msgid "Left mouse button:"
+msgstr ""
+
+msgid "Add detail"
+msgstr ""
+
+msgid "Right mouse button:"
+msgstr ""
+
+msgid "Remove detail"
+msgstr ""
+
+msgid "Shift + Left mouse button:"
+msgstr ""
+
+msgid "Reset to base"
+msgstr ""
+
+msgid "Shift + Right mouse button:"
+msgstr ""
+
+msgid "Smoothing"
+msgstr ""
+
+msgid "Mouse wheel:"
+msgstr ""
+
+msgid "Increase/decrease edit area"
 msgstr ""
 
 msgid "Sequence"
@@ -2597,7 +2660,10 @@ msgstr ""
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
 msgstr ""
 
-msgid "Initialize failed (Not supported without remote video tunnel)!"
+msgid "Initialize failed (Missing LAN ip of printer)!"
+msgstr ""
+
+msgid "Initialize failed (Not supported by printer)!"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -2612,6 +2678,32 @@ msgid "Stopped [%d]!"
 msgstr ""
 
 msgid "Stopped."
+msgstr ""
+
+msgid ""
+"Virtual Camera Tools is required for this task!\n"
+"Do you want to install them?"
+msgstr ""
+
+msgid "Downloading Virtual Camera Tools"
+msgstr ""
+
+msgid ""
+"Another virtual camera is running.\n"
+"Bambu Studio supports only a single virtual camera.\n"
+"Do you want to stop this virtual camera?"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Virtual camera initialize failed (%s)!"
+msgstr ""
+
+msgid "Information"
+msgstr ""
+
+msgid ""
+"Virtual camera is started.\n"
+"Press 'OK' to navigate the guide page of 'Streaming video of Bambu Printer'."
 msgstr ""
 
 msgid "Playing..."
@@ -2724,6 +2816,9 @@ msgid "Swap Y/Z axes"
 msgstr ""
 
 msgid "Camera"
+msgstr ""
+
+msgid "Virtual Camera"
 msgstr ""
 
 msgid "Printing Progress"
@@ -3090,6 +3185,12 @@ msgstr ""
 msgid "There are no compatible filaments, and sync is not performed."
 msgstr ""
 
+msgid ""
+"There are some unknown filaments mapped to generic preset. Please update "
+"Bambu Studio or restart Bambu Studio to check if there is an update to "
+"system presets."
+msgstr ""
+
 msgid "Untitled"
 msgstr ""
 
@@ -3364,6 +3465,9 @@ msgid "Custom supports and color painting were removed before repairing."
 msgstr ""
 
 msgid "Invalid number"
+msgstr ""
+
+msgid "Select Bed Type"
 msgstr ""
 
 #, possible-boost-format
@@ -4968,6 +5072,11 @@ msgid ""
 "heights."
 msgstr ""
 
+msgid ""
+"The prime tower is only supported if all objects have the same variable "
+"layer height"
+msgstr ""
+
 msgid "Too small line width"
 msgstr ""
 
@@ -5479,9 +5588,6 @@ msgid ""
 "object printing."
 msgstr ""
 
-msgid "Radius"
-msgstr ""
-
 msgid ""
 "Clearance radius around extruder. Used for collision avoidance in by-object "
 "printing."
@@ -5714,17 +5820,6 @@ msgstr ""
 msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
 "can improve build plate adhension"
-msgstr ""
-
-msgid "Adaptive layer height"
-msgstr ""
-
-msgid ""
-"Enabling this option means the height of every layer except the first will "
-"be automatically calculated during slicing according to the slope of the "
-"model’s surface.\n"
-"Note that this option only takes effect if no prime tower is generated in "
-"current plate."
 msgstr ""
 
 msgid "Speed of initial layer except the solid infill part"
@@ -6291,9 +6386,6 @@ msgid ""
 "wipe nozzle."
 msgstr ""
 
-msgid "Smooth"
-msgstr ""
-
 msgid "Traditional"
 msgstr ""
 
@@ -6318,6 +6410,23 @@ msgid ""
 "resolution, therefore it is advisable to keep the value reasonably low."
 msgstr ""
 
+msgid "Slicing Mode"
+msgstr ""
+
+msgid ""
+"Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to "
+"close all holes in the model."
+msgstr ""
+
+msgid "Regular"
+msgstr ""
+
+msgid "Even-odd"
+msgstr ""
+
+msgid "Close holes"
+msgstr ""
+
 msgid "Enable support"
 msgstr ""
 
@@ -6338,10 +6447,10 @@ msgstr ""
 msgid "hybrid(auto)"
 msgstr ""
 
-msgid "normal"
+msgid "normal(manual)"
 msgstr ""
 
-msgid "tree"
+msgid "tree(manual)"
 msgstr ""
 
 msgid "Support/object xy distance"
@@ -6670,6 +6779,12 @@ msgstr ""
 msgid "Export settings to a file."
 msgstr ""
 
+msgid "Send progress to pipe"
+msgstr ""
+
+msgid "Send progress to pipe."
+msgstr ""
+
 msgid "Arrange Options"
 msgstr ""
 
@@ -6759,9 +6874,6 @@ msgid "The model has too many empty layers."
 msgstr ""
 
 msgid "Slicing mesh"
-msgstr ""
-
-msgid " Object:"
 msgstr ""
 
 #, possible-c-format, possible-boost-format

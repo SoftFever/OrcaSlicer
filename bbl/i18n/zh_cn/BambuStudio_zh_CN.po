@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-03 16:29+0800\n"
+"POT-Creation-Date: 2022-11-11 18:21+0800\n"
 "PO-Revision-Date: 2022-11-01 11:29+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1091,6 +1091,15 @@ msgstr "输入当前层上使用的自定义G-code"
 msgid "OK"
 msgstr "确认"
 
+msgid "Go to layer"
+msgstr ""
+
+msgid "Layer number"
+msgstr ""
+
+msgid "Jump to Layer"
+msgstr ""
+
 msgid "Add Pause"
 msgstr "添加暂停打印"
 
@@ -1990,6 +1999,12 @@ msgstr ""
 msgid "Flow: "
 msgstr ""
 
+msgid "Fan Speed: "
+msgstr ""
+
+msgid "Temperature: "
+msgstr ""
+
 msgid "Loading G-codes"
 msgstr "正在加载G-code"
 
@@ -1998,6 +2013,9 @@ msgstr "正在生成几何顶点数据"
 
 msgid "Generating geometry index data"
 msgstr "正在生成几何索引数据"
+
+msgid "Display"
+msgstr "显示"
 
 msgid "up to"
 msgstr "达到"
@@ -2014,14 +2032,11 @@ msgstr "到"
 msgid "Color Scheme"
 msgstr "颜色方案"
 
-msgid "Percent"
-msgstr "百分比"
-
 msgid "Time"
 msgstr "时间"
 
-msgid "Display"
-msgstr "显示"
+msgid "Percent"
+msgstr "百分比"
 
 msgid "Layer Height (mm)"
 msgstr "层高（mm）"
@@ -2044,14 +2059,17 @@ msgstr "体积流量速度（mm³/s）"
 msgid "Used filament"
 msgstr "使用的耗材丝"
 
-msgid "Filament N XX"
-msgstr "打印丝 N XX"
+msgid "Flushed"
+msgstr ""
 
-msgid "Color Print"
-msgstr "彩色打印"
+msgid "Tower"
+msgstr ""
 
-msgid "Comsumption"
-msgstr "消耗"
+msgid "Total"
+msgstr "总计"
+
+msgid "Filamet"
+msgstr ""
 
 msgid "Travel"
 msgstr "空驶"
@@ -2080,17 +2098,11 @@ msgstr "空驶"
 msgid "Extruder"
 msgstr "挤出机"
 
-msgid "Filament 1"
-msgstr "耗材丝 1"
-
-msgid "Flushed filament"
-msgstr "换料冲刷消耗"
-
-msgid "Total"
-msgstr "总计"
-
 msgid "Filament change times"
 msgstr "换料次数"
+
+msgid "Cost"
+msgstr "成本"
 
 msgid "Color change"
 msgstr "颜色更换"
@@ -2110,11 +2122,11 @@ msgstr "打印设置"
 msgid "Total Estimation"
 msgstr "总预估"
 
+msgid "Time Estimation"
+msgstr ""
+
 msgid "Normal mode"
 msgstr "普通模式"
-
-msgid "Cost"
-msgstr "成本"
 
 msgid "Prepare time"
 msgstr "准备时间"
@@ -2122,11 +2134,62 @@ msgstr "准备时间"
 msgid "Model printing time"
 msgstr "模型打印时间"
 
+msgid "Total time"
+msgstr ""
+
 msgid "Switch to silent mode"
 msgstr "切换到静音模式"
 
 msgid "Switch to normal mode"
 msgstr "切换到普通模式"
+
+msgid "Variable layer height"
+msgstr "可变层高"
+
+msgid "Adaptive"
+msgstr "自适应"
+
+msgid "Quality / Speed"
+msgstr "细节/速度"
+
+msgid "Smooth"
+msgstr "平滑模式"
+
+msgid "Radius"
+msgstr "半径"
+
+msgid "Keep min"
+msgstr "保留最小"
+
+msgid "Left mouse button:"
+msgstr "鼠标左键："
+
+msgid "Add detail"
+msgstr "减小层高"
+
+msgid "Right mouse button:"
+msgstr "鼠标右键："
+
+msgid "Remove detail"
+msgstr "增大层高"
+
+msgid "Shift + Left mouse button:"
+msgstr "Shift + 鼠标左键："
+
+msgid "Reset to base"
+msgstr "设置到基础层高"
+
+msgid "Shift + Right mouse button:"
+msgstr "Shift + 鼠标右键："
+
+msgid "Smoothing"
+msgstr "平滑"
+
+msgid "Mouse wheel:"
+msgstr "鼠标滚轮："
+
+msgid "Increase/decrease edit area"
+msgstr "增加/减小编辑区域"
 
 msgid "Sequence"
 msgstr "顺序"
@@ -2675,8 +2738,11 @@ msgstr "初始化失败（不支持局域网模式的视频连接）"
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
 msgstr "初始化失败（局域网描述不可访问）"
 
-msgid "Initialize failed (Not supported without remote video tunnel)!"
-msgstr "初始化失败（不支持远程视频连接）"
+msgid "Initialize failed (Missing LAN ip of printer)!"
+msgstr ""
+
+msgid "Initialize failed (Not supported by printer)!"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -2691,6 +2757,32 @@ msgstr ""
 
 msgid "Stopped."
 msgstr "已经停止。"
+
+msgid ""
+"Virtual Camera Tools is required for this task!\n"
+"Do you want to install them?"
+msgstr ""
+
+msgid "Downloading Virtual Camera Tools"
+msgstr ""
+
+msgid ""
+"Another virtual camera is running.\n"
+"Bambu Studio supports only a single virtual camera.\n"
+"Do you want to stop this virtual camera?"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Virtual camera initialize failed (%s)!"
+msgstr ""
+
+msgid "Information"
+msgstr "信息"
+
+msgid ""
+"Virtual camera is started.\n"
+"Press 'OK' to navigate the guide page of 'Streaming video of Bambu Printer'."
+msgstr ""
 
 msgid "Playing..."
 msgstr "正在播放中……"
@@ -2803,6 +2895,9 @@ msgstr "交换Y/Z轴"
 
 msgid "Camera"
 msgstr "摄像机"
+
+msgid "Virtual Camera"
+msgstr ""
 
 msgid "Printing Progress"
 msgstr "打印进度"
@@ -3166,6 +3261,12 @@ msgstr "同步到 AMS 的材料列表将丢弃所有当前配置的材料预设�
 msgid "There are no compatible filaments, and sync is not performed."
 msgstr "没有如任何兼容的材料，同步操作未执行。"
 
+msgid ""
+"There are some unknown filaments mapped to generic preset. Please update "
+"Bambu Studio or restart Bambu Studio to check if there is an update to "
+"system presets."
+msgstr ""
+
 msgid "Untitled"
 msgstr "未命名"
 
@@ -3454,6 +3555,9 @@ msgstr "自定义的支撑和涂色在模型修复之前将被清除。"
 
 msgid "Invalid number"
 msgstr "无效数字"
+
+msgid "Select Bed Type"
+msgstr "选择热床样式"
 
 #, boost-format
 msgid "Part name: %1%\n"
@@ -5090,6 +5194,11 @@ msgid ""
 "heights."
 msgstr "擦拭塔要求各个对象拥有同样的层高。"
 
+msgid ""
+"The prime tower is only supported if all objects have the same variable "
+"layer height"
+msgstr ""
+
 msgid "Too small line width"
 msgstr "线宽太小"
 
@@ -5626,9 +5735,6 @@ msgid ""
 "object printing."
 msgstr "喷嘴尖端到顶盖的距离。用于在逐件打印中避免碰撞。"
 
-msgid "Radius"
-msgstr "半径"
-
 msgid ""
 "Clearance radius around extruder. Used for collision avoidance in by-object "
 "printing."
@@ -5863,20 +5969,6 @@ msgid ""
 "Height of initial layer. Making initial layer height to be thick slightly "
 "can improve build plate adhension"
 msgstr "首层层高"
-
-msgid "Adaptive layer height"
-msgstr "自适应层高"
-
-msgid ""
-"Enabling this option means the height of every layer except the first will "
-"be automatically calculated during slicing according to the slope of the "
-"model’s surface.\n"
-"Note that this option only takes effect if no prime tower is generated in "
-"current plate."
-msgstr ""
-"开启这个选项，程序会在切片的过程中根据模型表面的倾斜度自动计算每层的层高，首"
-"层除外。\n"
-"注意这个选项仅在当前盘不存在擦拭塔的情况下生效。"
 
 msgid "Speed of initial layer except the solid infill part"
 msgstr "首层除实心填充之外的其他部分的打印速度"
@@ -6468,9 +6560,6 @@ msgstr ""
 "平滑模式，打印完每层后，工具头将移动到吐料槽，然后拍摄快照。由于平滑模式在拍"
 "摄快照的过程中熔丝可能会从喷嘴中泄漏，因此需要使用擦拭塔进行喷嘴擦拭。"
 
-msgid "Smooth"
-msgstr "平滑模式"
-
 msgid "Traditional"
 msgstr "传统模式"
 
@@ -6497,6 +6586,23 @@ msgstr ""
 "在三角形网格切片过程中，小于2倍间隙闭合半径的裂纹将被填充。间隙闭合操作可能会"
 "降低最终打印分辨率，因此建议降值保持在合理的较低水平"
 
+msgid "Slicing Mode"
+msgstr "切片模式"
+
+msgid ""
+"Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to "
+"close all holes in the model."
+msgstr ""
+
+msgid "Regular"
+msgstr ""
+
+msgid "Even-odd"
+msgstr ""
+
+msgid "Close holes"
+msgstr ""
+
 msgid "Enable support"
 msgstr "开启支撑"
 
@@ -6519,11 +6625,11 @@ msgstr "树状(自动)"
 msgid "hybrid(auto)"
 msgstr "混合(自动)"
 
-msgid "normal"
-msgstr "普通"
+msgid "normal(manual)"
+msgstr ""
 
-msgid "tree"
-msgstr "树状"
+msgid "tree(manual)"
+msgstr ""
 
 msgid "Support/object xy distance"
 msgstr "支撑/模型xy间距"
@@ -6879,6 +6985,12 @@ msgstr "导出配置"
 msgid "Export settings to a file."
 msgstr "导出配置到文件。"
 
+msgid "Send progress to pipe"
+msgstr ""
+
+msgid "Send progress to pipe."
+msgstr ""
+
 msgid "Arrange Options"
 msgstr "摆放选项"
 
@@ -6971,9 +7083,6 @@ msgstr "模型有太多空层。"
 
 msgid "Slicing mesh"
 msgstr "正在切片网格"
-
-msgid " Object:"
-msgstr " 对象："
 
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
@@ -7224,6 +7333,47 @@ msgid ""
 msgstr ""
 "为多个对象设置参数\n"
 "您知道吗，可以同时为所有选定对象设置切片参数。"
+
+#~ msgid "Filament N XX"
+#~ msgstr "打印丝 N XX"
+
+#~ msgid "Color Print"
+#~ msgstr "彩色打印"
+
+#~ msgid "Comsumption"
+#~ msgstr "消耗"
+
+#~ msgid "Filament 1"
+#~ msgstr "耗材丝 1"
+
+#~ msgid "Flushed filament"
+#~ msgstr "换料冲刷消耗"
+
+#~ msgid "Initialize failed (Not supported without remote video tunnel)!"
+#~ msgstr "初始化失败（不支持远程视频连接）"
+
+#~ msgid "Adaptive layer height"
+#~ msgstr "自适应层高"
+
+#~ msgid ""
+#~ "Enabling this option means the height of every layer except the first "
+#~ "will be automatically calculated during slicing according to the slope of "
+#~ "the model’s surface.\n"
+#~ "Note that this option only takes effect if no prime tower is generated in "
+#~ "current plate."
+#~ msgstr ""
+#~ "开启这个选项，程序会在切片的过程中根据模型表面的倾斜度自动计算每层的层高，"
+#~ "首层除外。\n"
+#~ "注意这个选项仅在当前盘不存在擦拭塔的情况下生效。"
+
+#~ msgid "normal"
+#~ msgstr "普通"
+
+#~ msgid "tree"
+#~ msgstr "树状"
+
+#~ msgid " Object:"
+#~ msgstr " 对象："
 
 #~ msgid "Please check the following infomation:\n"
 #~ msgstr "请确认以下信息后发送打印：\n"
@@ -9768,9 +9918,6 @@ msgstr ""
 #~ msgid "Use single nozzle to print multi filament"
 #~ msgstr "使用单喷嘴打印多耗材"
 
-#~ msgid "Slicing Mode"
-#~ msgstr "切片模式"
-
 #~ msgid "Bottom contact Z distance"
 #~ msgstr "底部Z距离"
 
@@ -10152,9 +10299,6 @@ msgstr ""
 
 #~ msgid "Physical Printer"
 #~ msgstr "物理打印机"
-
-#~ msgid "Information"
-#~ msgstr "信息"
 
 #~ msgid "Please check your object list before preset changing."
 #~ msgstr "请在预设更改之前检查对象列表。"
@@ -10978,50 +11122,8 @@ msgstr ""
 #~ msgid "Set Unprintable Instance"
 #~ msgstr "设置不可打印的实例"
 
-#~ msgid "Variable layer height"
-#~ msgstr "可变层高"
-
-#~ msgid "Left mouse button:"
-#~ msgstr "鼠标左键："
-
-#~ msgid "Add detail"
-#~ msgstr "减小层高"
-
-#~ msgid "Right mouse button:"
-#~ msgstr "鼠标右键："
-
-#~ msgid "Remove detail"
-#~ msgstr "增大层高"
-
-#~ msgid "Shift + Left mouse button:"
-#~ msgstr "Shift + 鼠标左键："
-
-#~ msgid "Reset to base"
-#~ msgstr "设置到基础层高"
-
-#~ msgid "Shift + Right mouse button:"
-#~ msgstr "Shift + 鼠标右键："
-
-#~ msgid "Smoothing"
-#~ msgstr "平滑"
-
-#~ msgid "Mouse wheel:"
-#~ msgstr "鼠标滚轮："
-
-#~ msgid "Increase/decrease edit area"
-#~ msgstr "增加/减小编辑区域"
-
-#~ msgid "Adaptive"
-#~ msgstr "自适应"
-
-#~ msgid "Quality / Speed"
-#~ msgstr "细节/速度"
-
 #~ msgid "Higher print quality versus higher print speed."
 #~ msgstr "高精度 vs 高速度。"
-
-#~ msgid "Keep min"
-#~ msgstr "保留最小"
 
 #~ msgid "Variable layer height - Manual edit"
 #~ msgstr "可变层高 - 手动编辑"

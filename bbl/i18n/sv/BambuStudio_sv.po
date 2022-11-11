@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-03 16:29+0800\n"
+"POT-Creation-Date: 2022-11-11 18:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1116,6 +1116,15 @@ msgstr ""
 msgid "OK"
 msgstr "OK"
 
+msgid "Go to layer"
+msgstr ""
+
+msgid "Layer number"
+msgstr ""
+
+msgid "Jump to Layer"
+msgstr ""
+
 msgid "Add Pause"
 msgstr ""
 
@@ -2041,6 +2050,12 @@ msgstr ""
 msgid "Flow: "
 msgstr ""
 
+msgid "Fan Speed: "
+msgstr ""
+
+msgid "Temperature: "
+msgstr ""
+
 msgid "Loading G-codes"
 msgstr "Laddar G-koder"
 
@@ -2049,6 +2064,9 @@ msgstr "Genererar geometrisk vertex data"
 
 msgid "Generating geometry index data"
 msgstr "Genererar geometrisk index data"
+
+msgid "Display"
+msgstr "Visa"
 
 msgid "up to"
 msgstr "upp till"
@@ -2065,14 +2083,11 @@ msgstr "till"
 msgid "Color Scheme"
 msgstr "Färgschema"
 
-msgid "Percent"
-msgstr "Procent"
-
 msgid "Time"
 msgstr "Tid"
 
-msgid "Display"
-msgstr "Visa"
+msgid "Percent"
+msgstr "Procent"
 
 msgid "Layer Height (mm)"
 msgstr "Lagerhöjd (mm)"
@@ -2095,14 +2110,17 @@ msgstr "Volymetrisk flödeshastighet (mm³/s)"
 msgid "Used filament"
 msgstr "Använt filament"
 
-msgid "Filament N XX"
-msgstr "Filament N XX"
+msgid "Flushed"
+msgstr ""
 
-msgid "Color Print"
-msgstr "Färg Utskrift"
+msgid "Tower"
+msgstr ""
 
-msgid "Comsumption"
-msgstr "Konsumtion"
+msgid "Total"
+msgstr "Totalt"
+
+msgid "Filamet"
+msgstr ""
 
 msgid "Travel"
 msgstr "Flytta"
@@ -2131,17 +2149,11 @@ msgstr "flytta"
 msgid "Extruder"
 msgstr "Extruder"
 
-msgid "Filament 1"
-msgstr "Filament 1"
-
-msgid "Flushed filament"
-msgstr "Rensat filament"
-
-msgid "Total"
-msgstr "Totalt"
-
 msgid "Filament change times"
 msgstr "Filament bytes tider"
+
+msgid "Cost"
+msgstr "Kostnad"
 
 msgid "Color change"
 msgstr "Färg byte"
@@ -2161,11 +2173,11 @@ msgstr "Utskrifts inställningar"
 msgid "Total Estimation"
 msgstr "Total Uppskattning"
 
+msgid "Time Estimation"
+msgstr ""
+
 msgid "Normal mode"
 msgstr "Normalt läge"
-
-msgid "Cost"
-msgstr "Kostnad"
 
 msgid "Prepare time"
 msgstr "Förbered tid"
@@ -2173,11 +2185,62 @@ msgstr "Förbered tid"
 msgid "Model printing time"
 msgstr "Utskriftstid för modellen"
 
+msgid "Total time"
+msgstr ""
+
 msgid "Switch to silent mode"
 msgstr "Ändra till tyst läge"
 
 msgid "Switch to normal mode"
 msgstr "Ändra till normal läge"
+
+msgid "Variable layer height"
+msgstr ""
+
+msgid "Adaptive"
+msgstr ""
+
+msgid "Quality / Speed"
+msgstr ""
+
+msgid "Smooth"
+msgstr ""
+
+msgid "Radius"
+msgstr "Radie"
+
+msgid "Keep min"
+msgstr ""
+
+msgid "Left mouse button:"
+msgstr ""
+
+msgid "Add detail"
+msgstr ""
+
+msgid "Right mouse button:"
+msgstr ""
+
+msgid "Remove detail"
+msgstr ""
+
+msgid "Shift + Left mouse button:"
+msgstr ""
+
+msgid "Reset to base"
+msgstr ""
+
+msgid "Shift + Right mouse button:"
+msgstr ""
+
+msgid "Smoothing"
+msgstr ""
+
+msgid "Mouse wheel:"
+msgstr ""
+
+msgid "Increase/decrease edit area"
+msgstr ""
 
 msgid "Sequence"
 msgstr "Sekvens"
@@ -2721,7 +2784,10 @@ msgstr ""
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
 msgstr ""
 
-msgid "Initialize failed (Not supported without remote video tunnel)!"
+msgid "Initialize failed (Missing LAN ip of printer)!"
+msgstr ""
+
+msgid "Initialize failed (Not supported by printer)!"
 msgstr ""
 
 #, c-format, boost-format
@@ -2737,6 +2803,32 @@ msgstr ""
 
 msgid "Stopped."
 msgstr "Avbruten."
+
+msgid ""
+"Virtual Camera Tools is required for this task!\n"
+"Do you want to install them?"
+msgstr ""
+
+msgid "Downloading Virtual Camera Tools"
+msgstr ""
+
+msgid ""
+"Another virtual camera is running.\n"
+"Bambu Studio supports only a single virtual camera.\n"
+"Do you want to stop this virtual camera?"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Virtual camera initialize failed (%s)!"
+msgstr ""
+
+msgid "Information"
+msgstr ""
+
+msgid ""
+"Virtual camera is started.\n"
+"Press 'OK' to navigate the guide page of 'Streaming video of Bambu Printer'."
+msgstr ""
 
 msgid "Playing..."
 msgstr "Spelar..."
@@ -2848,6 +2940,9 @@ msgid "Swap Y/Z axes"
 msgstr "Byta Y/Z axes"
 
 msgid "Camera"
+msgstr ""
+
+msgid "Virtual Camera"
 msgstr ""
 
 msgid "Printing Progress"
@@ -3217,6 +3312,12 @@ msgstr ""
 msgid "There are no compatible filaments, and sync is not performed."
 msgstr ""
 
+msgid ""
+"There are some unknown filaments mapped to generic preset. Please update "
+"Bambu Studio or restart Bambu Studio to check if there is an update to "
+"system presets."
+msgstr ""
+
 msgid "Untitled"
 msgstr "Ej namngiven"
 
@@ -3500,6 +3601,9 @@ msgstr "Custom support och färgläggning raderades innan reparation."
 
 msgid "Invalid number"
 msgstr "Ogiltligt nummer"
+
+msgid "Select Bed Type"
+msgstr ""
 
 #, boost-format
 msgid "Part name: %1%\n"
@@ -5176,6 +5280,11 @@ msgid ""
 "heights."
 msgstr "Ett Prime Torn kräver att alla object är beredda med samma lagerhöjd."
 
+msgid ""
+"The prime tower is only supported if all objects have the same variable "
+"layer height"
+msgstr ""
+
 msgid "Too small line width"
 msgstr "För liten linjebredd"
 
@@ -5743,9 +5852,6 @@ msgid ""
 "object printing."
 msgstr ""
 
-msgid "Radius"
-msgstr "Radie"
-
 msgid ""
 "Clearance radius around extruder. Used for collision avoidance in by-object "
 "printing."
@@ -6010,22 +6116,6 @@ msgid ""
 msgstr ""
 "Första lagerhöjd. Högre första lager kan förbättra objektets fäste på "
 "byggplattan"
-
-msgid "Adaptive layer height"
-msgstr "Adaptiv lagerhöjd"
-
-msgid ""
-"Enabling this option means the height of every layer except the first will "
-"be automatically calculated during slicing according to the slope of the "
-"model’s surface.\n"
-"Note that this option only takes effect if no prime tower is generated in "
-"current plate."
-msgstr ""
-"Aktivera detta alternativet så innebär det att höjden på varje lager efter "
-"det första kommer att beräknas automatiskt enligt lutningen på modellens "
-"yta.\n"
-"Observera att detta alternativ endast träder i kraft om det inte finns något "
-"prime torn genererat på den aktuella plattan."
 
 msgid "Speed of initial layer except the solid infill part"
 msgstr ""
@@ -6663,9 +6753,6 @@ msgid ""
 "wipe nozzle."
 msgstr ""
 
-msgid "Smooth"
-msgstr ""
-
 msgid "Traditional"
 msgstr ""
 
@@ -6688,6 +6775,23 @@ msgid ""
 "Cracks smaller than 2x gap closing radius are being filled during the "
 "triangle mesh slicing. The gap closing operation may reduce the final print "
 "resolution, therefore it is advisable to keep the value reasonably low."
+msgstr ""
+
+msgid "Slicing Mode"
+msgstr ""
+
+msgid ""
+"Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to "
+"close all holes in the model."
+msgstr ""
+
+msgid "Regular"
+msgstr ""
+
+msgid "Even-odd"
+msgstr ""
+
+msgid "Close holes"
 msgstr ""
 
 msgid "Enable support"
@@ -6713,11 +6817,11 @@ msgstr "träd(auto)"
 msgid "hybrid(auto)"
 msgstr "hybrid(auto)"
 
-msgid "normal"
-msgstr "normal"
+msgid "normal(manual)"
+msgstr ""
 
-msgid "tree"
-msgstr "träd"
+msgid "tree(manual)"
+msgstr ""
 
 msgid "Support/object xy distance"
 msgstr "Support/objekt xy distans"
@@ -7098,6 +7202,12 @@ msgstr "Exportera inställningar"
 msgid "Export settings to a file."
 msgstr "Exportera inställningar till en fil."
 
+msgid "Send progress to pipe"
+msgstr ""
+
+msgid "Send progress to pipe."
+msgstr ""
+
 msgid "Arrange Options"
 msgstr "Placera Val"
 
@@ -7190,9 +7300,6 @@ msgstr ""
 
 msgid "Slicing mesh"
 msgstr "Bereder mesh"
-
-msgid " Object:"
-msgstr " Objekt:"
 
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
@@ -7388,6 +7495,46 @@ msgid ""
 "Did you know that you can set slicing parameters for all selected objects at "
 "one time?"
 msgstr ""
+
+#~ msgid "Filament N XX"
+#~ msgstr "Filament N XX"
+
+#~ msgid "Color Print"
+#~ msgstr "Färg Utskrift"
+
+#~ msgid "Comsumption"
+#~ msgstr "Konsumtion"
+
+#~ msgid "Filament 1"
+#~ msgstr "Filament 1"
+
+#~ msgid "Flushed filament"
+#~ msgstr "Rensat filament"
+
+#~ msgid "Adaptive layer height"
+#~ msgstr "Adaptiv lagerhöjd"
+
+#~ msgid ""
+#~ "Enabling this option means the height of every layer except the first "
+#~ "will be automatically calculated during slicing according to the slope of "
+#~ "the model’s surface.\n"
+#~ "Note that this option only takes effect if no prime tower is generated in "
+#~ "current plate."
+#~ msgstr ""
+#~ "Aktivera detta alternativet så innebär det att höjden på varje lager "
+#~ "efter det första kommer att beräknas automatiskt enligt lutningen på "
+#~ "modellens yta.\n"
+#~ "Observera att detta alternativ endast träder i kraft om det inte finns "
+#~ "något prime torn genererat på den aktuella plattan."
+
+#~ msgid "normal"
+#~ msgstr "normal"
+
+#~ msgid "tree"
+#~ msgstr "träd"
+
+#~ msgid " Object:"
+#~ msgstr " Objekt:"
 
 #~ msgid ""
 #~ "You have changed some preset settings. \n"
