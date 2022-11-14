@@ -720,6 +720,8 @@ public:
     void export_gcode_from_previous_file(const std::string& file, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
     //BBS: add modify_count logic
     int get_modified_count() const {return m_modified_count;}
+    //BBS: add status for whether support used
+    bool is_support_used() const {return m_support_used;}
 
     //BBS
     static StringObjectException sequential_print_clearance_valid(const Print &print, Polygons *polygons = nullptr, std::vector<std::pair<Polygon, float>>* height_polygons = nullptr);
@@ -769,6 +771,7 @@ private:
 
     // Estimated print time, filament consumed.
     PrintStatistics                         m_print_statistics;
+    bool                                    m_support_used {false};
 
     //BBS: plate's origin
     Vec3d   m_origin;

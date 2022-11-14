@@ -4157,7 +4157,11 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 		PlateData* plate_data_item = new PlateData();
 		plate_data_item->locked = m_plate_list[i]->m_locked;
 		plate_data_item->plate_index = m_plate_list[i]->m_plate_index;
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1% before load, width %2%, height %3%, size %4%!")
+			%(i+1) %m_plate_list[i]->thumbnail_data.width %m_plate_list[i]->thumbnail_data.height %m_plate_list[i]->thumbnail_data.pixels.size();
 		plate_data_item->plate_thumbnail.load_from(m_plate_list[i]->thumbnail_data);
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1% after load, width %2%, height %3%, size %4%!")
+			%(i+1) %plate_data_item->plate_thumbnail.width %plate_data_item->plate_thumbnail.height %plate_data_item->plate_thumbnail.pixels.size();
 		plate_data_item->config.apply(*m_plate_list[i]->config());
 
 		if (m_plate_list[i]->obj_to_instance_set.size() > 0)
@@ -4170,37 +4174,38 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 			%i %m_plate_list[i]->m_gcode_result->filename % with_slice_info %m_plate_list[i]->is_slice_result_valid();
 
 		if (with_slice_info) {
-            if (m_plate_list[i]->get_slice_result() && m_plate_list[i]->is_slice_result_valid()) {
-                // BBS only include current palte_idx
-                if (plate_idx == i || plate_idx == PLATE_CURRENT_IDX || plate_idx == PLATE_ALL_IDX) {
-                    //load calibration thumbnail
-                    if (m_plate_list[i]->cali_thumbnail_data.is_valid())
-                        plate_data_item->pattern_file = "valid_pattern";
-                    if (m_plate_list[i]->cali_bboxes_data.is_valid())
-                        plate_data_item->pattern_bbox_file = "valid_pattern_bbox";
-                    plate_data_item->gcode_file       = m_plate_list[i]->m_gcode_result->filename;
-                    plate_data_item->is_sliced_valid  = true;
-                    plate_data_item->gcode_prediction = std::to_string(
-                        (int) m_plate_list[i]->get_slice_result()->print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time);
-                    plate_data_item->toolpath_outside = m_plate_list[i]->m_gcode_result->toolpath_outside;
-                    Print *print                      = nullptr;
-                    m_plate_list[i]->get_print((PrintBase **) &print, nullptr, nullptr);
-                    if (print) {
-                        const PrintStatistics &ps = print->print_statistics();
-                        if (ps.total_weight != 0.0) {
+			if (m_plate_list[i]->get_slice_result() && m_plate_list[i]->is_slice_result_valid()) {
+				// BBS only include current palte_idx
+				if (plate_idx == i || plate_idx == PLATE_CURRENT_IDX || plate_idx == PLATE_ALL_IDX) {
+					//load calibration thumbnail
+					if (m_plate_list[i]->cali_thumbnail_data.is_valid())
+						plate_data_item->pattern_file = "valid_pattern";
+					if (m_plate_list[i]->cali_bboxes_data.is_valid())
+						plate_data_item->pattern_bbox_file = "valid_pattern_bbox";
+					plate_data_item->gcode_file       = m_plate_list[i]->m_gcode_result->filename;
+					plate_data_item->is_sliced_valid  = true;
+					plate_data_item->gcode_prediction = std::to_string(
+						(int) m_plate_list[i]->get_slice_result()->print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time);
+					plate_data_item->toolpath_outside = m_plate_list[i]->m_gcode_result->toolpath_outside;
+					Print *print                      = nullptr;
+					m_plate_list[i]->get_print((PrintBase **) &print, nullptr, nullptr);
+					if (print) {
+						const PrintStatistics &ps = print->print_statistics();
+						if (ps.total_weight != 0.0) {
 							CNumericLocalesSetter locales_setter;
 							plate_data_item->gcode_weight =wxString::Format("%.2f", ps.total_weight).ToStdString();
 						}
-                    } else {
-                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("print is null!");
-                    }
+						plate_data_item->is_support_used = print->is_support_used();
+					} else {
+						BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("print is null!");
+					}
 					//parse filament info
-                    plate_data_item->parse_filament_info(m_plate_list[i]->get_slice_result());
-                } else {
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "slice result = " << m_plate_list[i]->get_slice_result()
-                                            << ", result valid = " << m_plate_list[i]->is_slice_result_valid();
-                }
-            }
+					plate_data_item->parse_filament_info(m_plate_list[i]->get_slice_result());
+				} else {
+					BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "slice result = " << m_plate_list[i]->get_slice_result()
+										<< ", result valid = " << m_plate_list[i]->is_slice_result_valid();
+				}
+			}
 		}
 
 		plate_data_list.push_back(plate_data_item);
@@ -4229,8 +4234,8 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 		{
 			BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":plate index %1% seems invalid, skip it")% plate_data_list[i]->plate_index;
 		}
-		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, gcode_file %2%, is_sliced_valid %3%, toolpath_outside %4%")
-			%i %plate_data_list[i]->gcode_file %plate_data_list[i]->is_sliced_valid %plate_data_list[i]->toolpath_outside;
+		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, gcode_file %2%, is_sliced_valid %3%, toolpath_outside %4%, is_support_used %5%")
+			%i %plate_data_list[i]->gcode_file %plate_data_list[i]->is_sliced_valid %plate_data_list[i]->toolpath_outside %plate_data_list[i]->is_support_used;
 		//load object and instance from 3mf
 		//just test for file correct or not, we will rebuild later
 		/*for (std::vector<std::pair<int, int>>::iterator it = plate_data_list[i]->objects_and_instances.begin(); it != plate_data_list[i]->objects_and_instances.end(); ++it)
@@ -4254,8 +4259,11 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list)
 		m_plate_list[index]->slice_filaments_info = plate_data_list[i]->slice_filaments_info;
 		gcode_result->warnings = plate_data_list[i]->warnings;
 		if (m_plater && !plate_data_list[i]->thumbnail_file.empty()) {
+			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, load thumbnail from %2%.")%(i+1) %plate_data_list[i]->thumbnail_file;
 			if (boost::filesystem::exists(plate_data_list[i]->thumbnail_file)) {
 				m_plate_list[index]->load_thumbnail_data(plate_data_list[i]->thumbnail_file);
+				BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<boost::format(": plate %1% after load, width %2%, height %3%, size %4%!")
+					%(i+1) %m_plate_list[index]->thumbnail_data.width %m_plate_list[index]->thumbnail_data.height %m_plate_list[index]->thumbnail_data.pixels.size();
 			}
 		}
 
