@@ -2885,6 +2885,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         } else if (m_curr_metadata_name == BBL_REGION_TAG) {
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found region = " << m_curr_characters;
             m_contry_code = xml_unescape(m_curr_characters);
+        } else {
+            // BBS store metadata list
+            BOOST_LOG_TRIVIAL(info) << "load_3mf found metadata = " << m_curr_characters;
+            ModelInfo::MetaDataItem item;
+            item.key   = m_curr_metadata_name;
+            item.value = xml_unescape(m_curr_characters);
+            model_info.metadata_items.push_back(item);
         }
 
         return true;
@@ -4614,6 +4621,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 copyright    = model.model_info->copyright;
                 name         = model.model_info->model_name;
                 BOOST_LOG_TRIVIAL(trace) << "design_info, save_3mf found designer_cover = " << design_cover;
+                // write metadata
+                for (int i = 0; i < model.model_info.get()->metadata_items.size(); i++) {
+                    BOOST_LOG_TRIVIAL(info) << "bbs_3mf: save key= " << model.model_info.get()->metadata_items[i].key
+                                            << ", value = " << xml_escape(model.model_info.get()->metadata_items[i].value);
+                    stream << " <" << METADATA_TAG << " name=\"" << model.model_info.get()->metadata_items[i].key << "\">"
+                           << xml_escape(model.model_info.get()->metadata_items[i].value) << "</" << METADATA_TAG << ">\n";
+                }
             }
 
             if (project) {
