@@ -180,7 +180,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     text_ai_monitoring_caption->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
     text_ai_monitoring_caption->Wrap(-1);
 
-    ai_monitoring_level_list = new ComboBox( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(120),-1), 0, NULL, wxCB_READONLY );
+    ai_monitoring_level_list = new ComboBox( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(100),-1), 0, NULL, wxCB_READONLY );
     for (auto i = AiMonitorSensitivityLevel::LOW; i < LEVELS_NUM; i = (AiMonitorSensitivityLevel) (i + 1)) {
         wxString level_option = sensitivity_level_to_label_string(i);
         ai_monitoring_level_list->Append(level_option);
@@ -210,11 +210,8 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     wxString caption_text = _L(
         "The localization tag of build plate is detected, and printing is paused if the tag is not in predefined range."
     );
-    caption_text = format_text(text_plate_mark, caption_text, FromDIP(250));
-    text_plate_mark_caption = new wxStaticText(parent, wxID_ANY, caption_text);
-    if (is_english_text(caption_text)) {
-       text_plate_mark_caption->Wrap(FromDIP(250));
-    }
+    text_plate_mark_caption = new Label(parent, caption_text);
+    text_plate_mark_caption->Wrap(FromDIP(260));
     text_plate_mark_caption->SetFont(Label::Body_14);
     text_plate_mark_caption->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
     line_sizer->Add(FromDIP(30), 0, 0, 0);
@@ -309,52 +306,6 @@ bool PrintOptionsDialog::Show(bool show)
 {
     if (show) { CentreOnParent(); }
     return DPIDialog::Show(show);
-}
-
-bool PrintOptionsDialog::is_english_text(wxString str)
-{
-    std::regex reg("^[0-9a-zA-Z]+$");
-    std::smatch matchResult;
-
-    std::string pattern_Special = "{}[]<>~!@#$%^&*(),.?/ :";
-    for (auto i = 0; i < str.Length(); i++) {
-        std::string regex_str = wxString(str[i]).ToStdString();
-        if(std::regex_match(regex_str, matchResult, reg)){
-            continue;
-        }
-        else {
-            int result = pattern_Special.find(regex_str.c_str());
-            if (result < 0 || result > pattern_Special.length()) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-wxString PrintOptionsDialog::format_text(wxStaticText* st, wxString str, int warp)
-{
-    if (is_english_text(str)) return str;
-
-    wxString out_txt = str;
-    wxString count_txt = "";
-    int      new_line_pos = 0;
-
-    for (int i = 0; i < str.length(); i++) {
-        if (str[i] == '\n') {
-            count_txt = "";
-            continue;
-        }
-        auto text_size = st->GetTextExtent(count_txt);
-        if (text_size.x < warp) {
-            count_txt += str[i];
-        }
-        else {
-            out_txt.insert(i - 1, '\n');
-            count_txt = "";
-        }
-    }
-    return out_txt;
 }
 
 }} // namespace Slic3r::GUI

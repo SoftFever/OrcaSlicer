@@ -21,7 +21,6 @@
 #include "Plater.hpp"
 #include "BitmapCache.hpp"
 #include "BindDialog.hpp"
-#include "ConfirmHintDialog.hpp"
 #include "ReleaseNote.hpp"
 
 namespace Slic3r { namespace GUI {

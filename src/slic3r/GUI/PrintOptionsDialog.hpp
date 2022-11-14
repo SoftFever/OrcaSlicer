@@ -41,9 +41,6 @@ protected:
 
     bool print_halt = false;
 
-    bool is_english_text(wxString str);
-    wxString format_text(wxStaticText* st, wxString str, int warp);
-
 public:
     PrintOptionsDialog(wxWindow* parent);
     ~PrintOptionsDialog();

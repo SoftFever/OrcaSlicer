@@ -192,7 +192,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     });
 
     m_button_cancel = new Button(this, _L("Cancel"));
-    m_button_cancel->SetBackgroundColor(*wxWHITE);
+    m_button_cancel->SetBackgroundColor(btn_bg_white);
     m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
     m_button_cancel->SetFont(Label::Body_12);
     m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
@@ -347,7 +347,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     SetBackgroundColour(*wxWHITE);
-    wxBoxSizer* m_sizer_main = new wxBoxSizer(wxVERTICAL);
+    m_sizer_main = new wxBoxSizer(wxVERTICAL);
     auto        m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(480), 1));
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
@@ -360,9 +360,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_vebview_release_note = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
     m_vebview_release_note->SetScrollRate(0, 5);
     m_vebview_release_note->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
-    m_vebview_release_note->SetSize(wxSize(FromDIP(280), FromDIP(280)));
     m_vebview_release_note->SetMinSize(wxSize(FromDIP(280), FromDIP(280)));
-    m_vebview_release_note->SetMaxSize(wxSize(FromDIP(280), FromDIP(280)));
 
 
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
@@ -392,7 +390,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
         });
 
     m_button_cancel = new Button(this, _L("Cancel"));
-    m_button_cancel->SetBackgroundColor(*wxWHITE);
+    m_button_cancel->SetBackgroundColor(btn_bg_white);
     m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
     m_button_cancel->SetFont(Label::Body_12);
     m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
@@ -430,19 +428,30 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
 void SecondaryCheckDialog::update_text(wxString text)
 {
     wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
-    auto        m_staticText_release_note = new wxStaticText(m_vebview_release_note, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+    auto        m_staticText_release_note = new Label(m_vebview_release_note, text);
+    m_staticText_release_note->Wrap(FromDIP(260));
     m_staticText_release_note->SetSize(wxSize(FromDIP(260), -1));
     m_staticText_release_note->SetMaxSize(wxSize(FromDIP(260), -1));
     m_staticText_release_note->SetMinSize(wxSize(FromDIP(260), -1));
 
-    text = format_text(m_staticText_release_note, text, FromDIP(240));
+    wxBoxSizer* top_blank_sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* bottom_blank_sizer = new wxBoxSizer(wxVERTICAL);
+    top_blank_sizer->Add(FromDIP(5), 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+    bottom_blank_sizer->Add(FromDIP(5), 0, wxALIGN_CENTER | wxALL, FromDIP(5));
 
-    m_staticText_release_note->SetLabelText(text);
-    m_staticText_release_note->Wrap(FromDIP(240));
-    sizer_text_release_note->Add(m_staticText_release_note, 0, wxALIGN_CENTER, 5);
+    sizer_text_release_note->Add(top_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+    sizer_text_release_note->Add(m_staticText_release_note, 0, wxALIGN_CENTER, FromDIP(5));
+    sizer_text_release_note->Add(bottom_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
     m_vebview_release_note->SetSizer(sizer_text_release_note);
+    auto text_size = m_staticText_release_note->GetSize();
+    if (text_size.y < FromDIP(280))
+        m_vebview_release_note->SetMinSize(wxSize(FromDIP(280), text_size.y + FromDIP(25)));
+    else
+        m_vebview_release_note->SetMinSize(wxSize(FromDIP(300), FromDIP(280)));
+
     m_vebview_release_note->Layout();
-    //Fit();
+    m_sizer_main->Layout();
+    m_sizer_main->Fit(this);
 }
 
 wxString SecondaryCheckDialog::format_text(wxStaticText* st, wxString str, int warp)
@@ -477,7 +486,8 @@ SecondaryCheckDialog::~SecondaryCheckDialog()
 
 void SecondaryCheckDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
-
+    m_button_ok->Rescale();
+    m_button_cancel->Rescale();
 }
 
  }} // namespace Slic3r::GUI

@@ -102,6 +102,7 @@ public:
     ~SecondaryCheckDialog();
     void on_dpi_changed(const wxRect& suggested_rect) override;
 
+    wxBoxSizer* m_sizer_main;
     wxScrolledWindow *m_vebview_release_note {nullptr};
     Button* m_button_ok;
     Button* m_button_cancel;
