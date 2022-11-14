@@ -1339,7 +1339,9 @@ void StatusPanel::update(MachineObject *obj)
 
 
         if (obj->is_function_supported(PrinterFunction::FUNC_FIRSTLAYER_INSPECT)
-            || obj->is_function_supported(PrinterFunction::FUNC_SPAGHETTI)) {
+            || obj->is_function_supported(PrinterFunction::FUNC_AI_MONITORING)
+            || obj->is_function_supported(PrinterFunction::FUNC_BUILDPLATE_MARKER_DETECT)
+            || obj->is_function_supported(PrinterFunction::FUNC_AUTO_RECOVERY_STEP_LOSS)) {
             m_options_btn->Show();
             if (print_options_dlg == nullptr) {
                 print_options_dlg = new PrintOptionsDialog(this);

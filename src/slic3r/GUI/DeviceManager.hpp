@@ -61,7 +61,9 @@ enum PrinterFunction {
     FUNC_TIMELAPSE,
     FUNC_RECORDING,
     FUNC_FIRSTLAYER_INSPECT,
-    FUNC_SPAGHETTI,
+    FUNC_AI_MONITORING,
+    FUNC_BUILDPLATE_MARKER_DETECT,
+    FUNC_AUTO_RECOVERY_STEP_LOSS,
     FUNC_FLOW_CALIBRATION,
     FUNC_AUTO_LEVELING,
     FUNC_CHAMBER_TEMP,
@@ -297,6 +299,8 @@ private:
     NetworkAgent* m_agent { nullptr };
 
     bool check_valid_ip();
+    void _parse_print_option_ack(int option);
+
 public:
 
     enum LIGHT_EFFECT {
@@ -325,6 +329,11 @@ public:
         STATUS_NUMS = 2
     };
     enum ExtruderAxisStatus extruder_axis_status = LOAD;
+
+    enum PrintOption {
+        PRINT_OP_AUTO_RECOVERY = 0,
+        PRINT_OP_MAX,
+    };
 
     class ModuleVersionInfo
     {
@@ -522,9 +531,14 @@ public:
     bool camera_has_sdcard { false };
     bool xcam_first_layer_inspector { false };
     int  xcam_first_layer_hold_count = 0;
-    bool xcam_spaghetti_detector { false };
-    bool xcam_spaghetti_print_halt{ false };
-    int  xcam_spaghetti_hold_count = 0;
+
+    bool xcam_ai_monitoring{ false };
+    int  xcam_ai_monitoring_hold_count = 0;
+    std::string xcam_ai_monitoring_sensitivity;
+    bool xcam_buildplate_marker_detector{ false };
+    int  xcam_buildplate_marker_hold_count = 0;
+    bool xcam_auto_recovery_step_loss{ false };
+    int  xcam_auto_recovery_hold_count = 0;
 
     /* HMS */
     std::vector<HMSItem>    hms_list;
@@ -593,6 +607,9 @@ public:
     // set printing speed
     int command_set_printing_speed(PrintingSpeedLevel lvl);
 
+    // set print option
+    int command_set_printing_option(bool auto_recovery);
+
     // axis string is X, Y, Z, E
     int command_axis_control(std::string axis, double unit = 1.0f, double value = 1.0f, int speed = 3000);
 
@@ -604,9 +621,11 @@ public:
     // camera control
     int command_ipcam_record(bool on_off);
     int command_ipcam_timelapse(bool on_off);
-    int command_xcam_control(std::string module_name, bool on_off, bool print_halt);
+    int command_xcam_control(std::string module_name, bool on_off, std::string lvl = "");
+    int command_xcam_control_ai_monitoring(bool on_off, std::string lvl);
     int command_xcam_control_first_layer_inspector(bool on_off, bool print_halt);
-    int command_xcam_control_spaghetti_detector(bool on_off, bool print_halt);
+    int command_xcam_control_buildplate_marker_detector(bool on_off);
+    int command_xcam_control_auto_recovery_step_loss(bool on_off);
 
     /* common apis */
     inline bool is_local() { return !dev_ip.empty(); }
