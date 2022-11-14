@@ -1095,7 +1095,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
 
     m_button_pause_resume->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
-    m_button_clean->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_clean), NULL, this);
+    m_button_clean->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_print_error_clean), NULL, this);
     m_tempCtrl_bed->Connect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_kill_focus), NULL, this);
     m_tempCtrl_bed->Connect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_set_focus), NULL, this);
     m_tempCtrl_nozzle->Connect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_kill_focus), NULL, this);
@@ -1134,7 +1134,7 @@ StatusPanel::~StatusPanel()
     m_vcamera_button->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_switch_vcamera), NULL, this);
     m_button_pause_resume->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
-    m_button_clean->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_clean), NULL, this);
+    m_button_clean->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_print_error_clean), NULL, this);
     m_tempCtrl_bed->Disconnect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_kill_focus), NULL, this);
     m_tempCtrl_bed->Disconnect(wxEVT_SET_FOCUS, wxFocusEventHandler(StatusPanel::on_bed_temp_set_focus), NULL, this);
     m_tempCtrl_nozzle->Disconnect(wxEVT_KILL_FOCUS, wxFocusEventHandler(StatusPanel::on_nozzle_temp_kill_focus), NULL, this);
@@ -1257,9 +1257,13 @@ void StatusPanel::error_info_reset()
     before_error_code = 0;
 }
 
-void StatusPanel::on_subtask_clean(wxCommandEvent &event)
+void StatusPanel::on_print_error_clean(wxCommandEvent &event)
 {
     error_info_reset();
+    skip_print_error = obj->print_error;
+    char buf[32];
+    ::sprintf(buf, "%08X", skip_print_error);
+    BOOST_LOG_TRIVIAL(info) << "skip_print_error: " << buf;
     before_error_code = obj->print_error;
 }
 
@@ -1422,7 +1426,7 @@ void StatusPanel::update_error_message()
         before_error_code = obj->print_error;
         show_error_message(wxEmptyString);
         return;
-    } else if (before_error_code != obj->print_error) {
+    } else if (before_error_code != obj->print_error && obj->print_error != skip_print_error) {
         before_error_code = obj->print_error;
 
         if (wxGetApp().get_hms_query()) {
@@ -2023,6 +2027,7 @@ void StatusPanel::reset_printing_values()
     m_bitmap_thumbnail->SetBitmap(m_thumbnail_placeholder.bmp());
     m_start_loading_thumbnail = false;
     m_load_sdcard_thumbnail   = false;
+    skip_print_error = 0;
     this->Layout();
 }
 

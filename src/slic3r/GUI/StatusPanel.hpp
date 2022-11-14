@@ -234,6 +234,7 @@ public:
 
     void reset_temp_misc_control();
     int before_error_code = 0;
+    int skip_print_error = 0;
     wxBoxSizer *create_ams_group(wxWindow *parent);
     wxBoxSizer *create_settings_group(wxWindow *parent);
 
@@ -280,7 +281,7 @@ protected:
 
     void on_subtask_pause_resume(wxCommandEvent &event);
     void on_subtask_abort(wxCommandEvent &event);
-    void on_subtask_clean(wxCommandEvent &event);
+    void on_print_error_clean(wxCommandEvent &event);
     void show_error_message(wxString msg);
     void error_info_reset();
     void show_recenter_dialog();
