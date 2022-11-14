@@ -1899,14 +1899,20 @@ void StatusPanel::update_subtask(MachineObject *obj)
         || obj->is_in_calibration()) {
         reset_printing_values();
     } else if (obj->is_in_printing() || obj->print_status == "FINISH") {
-        if (obj->is_in_prepare()) {
+        if (obj->is_in_prepare() || obj->print_status == "SLICING") {
             m_button_abort->Enable(false);
             m_button_abort->SetBitmap_("print_control_stop_disable");
 
             m_button_pause_resume->Enable(false);
             m_button_pause_resume->SetBitmap_("print_control_pause_disable");
+            wxString prepare_text;
+            if (obj->is_in_prepare())
+                prepare_text = wxString::Format(_L("Downloading..."));
+            else if (obj->print_status == "SLICING")
+                prepare_text = wxString::Format(_L("Cloud Slicing..."));
+            else
+                prepare_text = wxString::Format(_L("Downloading..."));
 
-            wxString prepare_text = wxString::Format(_L("Downloading..."));
             if (obj->gcode_file_prepare_percent >= 0 && obj->gcode_file_prepare_percent <= 100)
                 prepare_text += wxString::Format("(%d%%)", obj->gcode_file_prepare_percent);
             m_printing_stage_value->SetLabelText(prepare_text);
