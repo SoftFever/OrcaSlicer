@@ -732,10 +732,22 @@ void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
     if (item_id != wxNOT_FOUND)
         menu->Destroy(item_id);
 
-
+    bool show_flush_option_menu = false;
     ObjectList* object_list = obj_list();
     const Selection& selection = get_selection();
+    if (wxGetApp().plater()->get_partplate_list().get_curr_plate()->contains(selection.get_bounding_box())) {
+        auto plate_extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_extruders();
+        for (auto extruder : plate_extruders) {
+            if (extruder != plate_extruders[0])
+                show_flush_option_menu = true;
+        }
+    }
+    if (!show_flush_option_menu)
+        return;
+
+    DynamicPrintConfig& global_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     ModelConfig& select_object_config = object_list->object(selection.get_object_idx())->config;
+    
     auto keys = select_object_config.keys();
 
     DynamicPrintConfig& global_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
