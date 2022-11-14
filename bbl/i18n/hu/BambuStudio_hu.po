@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-11 18:21+0800\n"
+"POT-Creation-Date: 2022-11-14 11:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4151,6 +4151,18 @@ msgstr ""
 msgid "The printer is required to be in the same LAN as Bambu Studio."
 msgstr ""
 
+msgid "Cool Plate"
+msgstr "Cool Plate"
+
+msgid "Engineering Plate"
+msgstr "Engineering Plate"
+
+msgid "High Temp Plate"
+msgstr "High Temp Plate"
+
+msgid "Textured PEI Plate"
+msgstr ""
+
 msgid "Log in printer"
 msgstr "Log in printer"
 
@@ -4336,9 +4348,6 @@ msgstr ""
 "Asztalhőmérséklet a mérnöki tálca használatával. A 0 érték azt jelenti, hogy "
 "a filament nem támogatja az Engineering Plate-re történő nyomtatást"
 
-msgid "High Temp Plate"
-msgstr "High Temp Plate"
-
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
@@ -4346,9 +4355,6 @@ msgstr ""
 "Asztalhőmérséklet a magas hőmérsékletű tálca használatával. A 0 érték azt "
 "jelenti, hogy a filament nem támogatja a High Temp Plate-re történő "
 "nyomtatást"
-
-msgid "Textured PEI Plate"
-msgstr ""
 
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
@@ -5570,12 +5576,6 @@ msgstr ""
 
 msgid "Bed types supported by the printer"
 msgstr "Nyomtató által támogatott asztaltípusok"
-
-msgid "Cool Plate"
-msgstr "Cool Plate"
-
-msgid "Engineering Plate"
-msgstr "Engineering Plate"
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "This G-code is inserted at every layer change before lifting z."

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-11 18:21+0800\n"
+"POT-Creation-Date: 2022-11-14 11:18+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -4105,6 +4105,18 @@ msgstr ""
 msgid "The printer is required to be in the same LAN as Bambu Studio."
 msgstr ""
 
+msgid "Cool Plate"
+msgstr "Cool Plate"
+
+msgid "Engineering Plate"
+msgstr "Engineering Plate"
+
+msgid "High Temp Plate"
+msgstr "High Temp Plate"
+
+msgid "Textured PEI Plate"
+msgstr ""
+
 msgid "Log in printer"
 msgstr "Log in printer"
 
@@ -4288,9 +4300,6 @@ msgstr ""
 "This is the bed temperature when the engineering plate is installed. A value "
 "of 0 means the filament does not support printing on the Engineering Plate."
 
-msgid "High Temp Plate"
-msgstr "High Temp Plate"
-
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
@@ -4298,9 +4307,6 @@ msgstr ""
 "This is the bed temperature when the high temperature plate is installed. A "
 "value of 0 means the filament does not support printing on the High Temp "
 "Plate."
-
-msgid "Textured PEI Plate"
-msgstr ""
 
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
@@ -5508,12 +5514,6 @@ msgstr ""
 
 msgid "Bed types supported by the printer"
 msgstr "Bed types supported by the printer"
-
-msgid "Cool Plate"
-msgstr "Cool Plate"
-
-msgid "Engineering Plate"
-msgstr "Engineering Plate"
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "This G-code is inserted at every layer change before lifting z."

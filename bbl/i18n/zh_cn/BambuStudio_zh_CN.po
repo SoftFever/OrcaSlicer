@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-11 18:21+0800\n"
+"POT-Creation-Date: 2022-11-14 11:18+0800\n"
 "PO-Revision-Date: 2022-11-01 11:29+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -368,13 +368,13 @@ msgid "Remove selection"
 msgstr "移除绘制"
 
 msgid "Entering Seam painting"
-msgstr ""
+msgstr "进入Z缝绘制"
 
 msgid "Leaving Seam painting"
-msgstr "推出Z缝绘制"
+msgstr "退出Z缝绘制"
 
 msgid "Paint-on seam editing"
-msgstr ""
+msgstr "编辑手绘填缝"
 
 msgid "Text shape"
 msgstr "文本形状"
@@ -730,7 +730,7 @@ msgid "Scale an object to fit the build volume"
 msgstr "缩放对象以适应构建空间大小"
 
 msgid "Flush Options"
-msgstr ""
+msgstr "换料冲刷选项"
 
 msgid "Flush into objects' infill"
 msgstr "冲刷到对象的填充"
@@ -1086,16 +1086,16 @@ msgid "Custom G-code"
 msgstr "自定义 G-code"
 
 msgid "Enter Custom G-code used on current layer:"
-msgstr "输入当前层上使用的自定义G-code"
+msgstr "输入当前层上使用的自定义G-code："
 
 msgid "OK"
 msgstr "确认"
 
 msgid "Go to layer"
-msgstr ""
+msgstr "跳转到层"
 
 msgid "Layer number"
-msgstr ""
+msgstr "层数"
 
 msgid "Jump to Layer"
 msgstr ""
@@ -1263,10 +1263,10 @@ msgid "Failure of printer login"
 msgstr "登录设备失败"
 
 msgid "Failed to get ticket"
-msgstr ""
+msgstr "获取Ticket失败"
 
 msgid "User authorization timeout"
-msgstr ""
+msgstr "用户鉴权超时"
 
 msgid "Failure of bind"
 msgstr "设备登录失败"
@@ -1441,7 +1441,7 @@ msgid "The input value should be greater than %1% and less than %2%"
 msgstr "输入的范围在 %1% 和 %2% 之间"
 
 msgid "SN"
-msgstr ""
+msgstr "序列号"
 
 msgid "Confirm"
 msgstr "确定"
@@ -2753,7 +2753,7 @@ msgstr "网络不可访问"
 
 #, c-format, boost-format
 msgid "Stopped [%d]!"
-msgstr ""
+msgstr "已停止 [%d]!"
 
 msgid "Stopped."
 msgstr "已经停止。"
@@ -3226,7 +3226,7 @@ msgid "Click to edit preset"
 msgstr "点击编辑配置"
 
 msgid "Connection"
-msgstr ""
+msgstr "连接"
 
 msgid "Bed type"
 msgstr "热床类型"
@@ -3577,7 +3577,7 @@ msgstr "大小： %1% x %2% x %3% 毫米\n"
 
 #, boost-format
 msgid "Volume: %1% in³\n"
-msgstr ""
+msgstr "体积： %1% 英寸³\n"
 
 #, boost-format
 msgid "Volume: %1% mm³\n"
@@ -4037,7 +4037,7 @@ msgstr "开启延迟摄影功能需要插入SD卡"
 msgid ""
 "Please check the following infomation and click Confirm to continue sending "
 "print:\n"
-msgstr ""
+msgstr "请检查以下信息，点击确认后继续发送打印：\n"
 
 msgid ""
 "The printer type used to generate G-code is not the same type as the "
@@ -4058,6 +4058,18 @@ msgstr "发送到打印机"
 
 msgid "The printer is required to be in the same LAN as Bambu Studio."
 msgstr "打印机需要与Bambu Studio在同一个局域网内。"
+
+msgid "Cool Plate"
+msgstr "低温打印热床"
+
+msgid "Engineering Plate"
+msgstr "工程材料热床"
+
+msgid "High Temp Plate"
+msgstr "高温打印热床"
+
+msgid "Textured PEI Plate"
+msgstr "纹理PEI热床"
 
 msgid "Log in printer"
 msgstr "登录打印机"
@@ -4095,7 +4107,7 @@ msgid "Search in preset"
 msgstr "在预设中搜索"
 
 msgid "Click to reset all settings to the last saved preset."
-msgstr ""
+msgstr "点击以将所有设置还原到最后一次保存的版本。"
 
 msgid ""
 "Prime tower is required for smooth timeplase. There may be flaws on the "
@@ -4237,16 +4249,10 @@ msgid ""
 "filament does not support to print on the Engineering Plate"
 msgstr "安装工程材料热床时的热床温度。0值表示这个耗材丝不支持工程材料热床"
 
-msgid "High Temp Plate"
-msgstr "高温打印热床"
-
 msgid ""
 "Bed temperature when high temperature plate is installed. Value 0 means the "
 "filament does not support to print on the High Temp Plate"
 msgstr "安装高温打印热床时的热床温度。0值表示这个耗材丝不支持高温打印热床"
-
-msgid "Textured PEI Plate"
-msgstr "纹理PEI热床"
 
 msgid ""
 "Bed temperature when Textured PEI Plate is installed. Value 0 means the "
@@ -4298,7 +4304,7 @@ msgid "Printable space"
 msgstr "可打印区域"
 
 msgid "Extruder Clearance"
-msgstr ""
+msgstr "挤出机避让空间"
 
 msgid "Accessory"
 msgstr "配件"
@@ -4457,7 +4463,7 @@ msgid ""
 "You have changed some preset settings. \n"
 "Would you like to keep these changed settings (new value) after switching "
 "preset?"
-msgstr ""
+msgstr "您已经更改了预设参数，是否在切换后要保留这些更改的预设参数？"
 
 msgid "Extruders count"
 msgstr "挤出机数量"
@@ -4842,7 +4848,7 @@ msgid "Version:"
 msgstr "版本："
 
 msgid "Update firmware"
-msgstr ""
+msgstr "更新固件"
 
 msgid "Printing"
 msgstr "打印中"
@@ -5130,11 +5136,11 @@ msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1%太高，会发生碰撞。"
 
 msgid " is too close to others, there may be collisions when printing.\n"
-msgstr ""
+msgstr "到其他对象的距离太近了，可能在打印过程中发生碰撞。\n"
 
 msgid ""
 " is too close to exclusion area, there may be collisions when printing.\n"
-msgstr ""
+msgstr "到屏蔽区域的距离太近了，可能在打印过程中发生碰撞。\n"
 
 msgid "Prime Tower"
 msgstr "擦拭塔"
@@ -5247,10 +5253,10 @@ msgstr ""
 "断耗材丝。这个多边形区域由以下格式的点表示：“XxY，XxY，…”"
 
 msgid "Bed custom texture"
-msgstr ""
+msgstr "自定义热床纹理"
 
 msgid "Bed custom model"
-msgstr ""
+msgstr "自定义热床模型"
 
 msgid "Elephant foot compensation"
 msgstr "象脚补偿"
@@ -5294,7 +5300,7 @@ msgid ""
 msgstr ""
 
 msgid "Name of the printer"
-msgstr ""
+msgstr "打印机名称"
 
 msgid "HTTPS CA File"
 msgstr ""
@@ -5410,12 +5416,6 @@ msgstr "首层热床温度。0值表示这个耗材丝不支持纹理PEI热床"
 
 msgid "Bed types supported by the printer"
 msgstr "打印机所支持的热床类型"
-
-msgid "Cool Plate"
-msgstr "低温打印热床"
-
-msgid "Engineering Plate"
-msgstr "工程材料热床"
 
 msgid "This G-code is inserted at every layer change before lifting z"
 msgstr "在每次换层抬升z高度之前插入这段G-code"
@@ -5656,12 +5656,12 @@ msgid "End G-code when finish the printing of this filament"
 msgstr "结束使用该耗材打印时的结尾G-code"
 
 msgid "Ensure vertical shell thickness"
-msgstr ""
+msgstr "确保垂直外壳厚度"
 
 msgid ""
 "Add solid infill near sloping surfaces to guarantee the vertical shell "
 "thickness (top+bottom solid layers)"
-msgstr ""
+msgstr "在斜面表面附近添加实心填充，以保证垂直外壳厚度（顶部+底部实心层）"
 
 msgid "Top surface pattern"
 msgstr "顶面图案"
@@ -6052,7 +6052,7 @@ msgid ""
 msgstr "喷嘴的金属材料。这将决定喷嘴的耐磨性，以及可打印材料的种类"
 
 msgid "Undefine"
-msgstr ""
+msgstr "未定义"
 
 msgid "Hardened steel"
 msgstr "硬化钢"
@@ -6167,10 +6167,10 @@ msgstr "机器是否支持使用低加速度打印的静音模式。"
 msgid ""
 "This G-code will be used as a code for the pause print. User can insert "
 "pause G-code in gcode viewer"
-msgstr ""
+msgstr "该G-code用于暂停打印。您可以在gcode预览中插入暂停G-code"
 
 msgid "This G-code will be used as a custom code"
-msgstr ""
+msgstr "该G-code是定制化指令"
 
 msgid "Maximum speed X"
 msgstr "X最大速度"
@@ -6593,15 +6593,16 @@ msgid ""
 "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to "
 "close all holes in the model."
 msgstr ""
+"对3DLabPrint的飞机模型使用 \"奇偶\"。使用 \"闭孔 \"来关闭模型上的所有孔。"
 
 msgid "Regular"
-msgstr ""
+msgstr "常规"
 
 msgid "Even-odd"
-msgstr ""
+msgstr "奇偶"
 
 msgid "Close holes"
-msgstr ""
+msgstr "闭孔"
 
 msgid "Enable support"
 msgstr "开启支撑"
@@ -6626,10 +6627,10 @@ msgid "hybrid(auto)"
 msgstr "混合(自动)"
 
 msgid "normal(manual)"
-msgstr ""
+msgstr "普通(手动)"
 
 msgid "tree(manual)"
-msgstr ""
+msgstr "树状(手动)"
 
 msgid "Support/object xy distance"
 msgstr "支撑/模型xy间距"
@@ -6740,7 +6741,7 @@ msgid "Style"
 msgstr "样式"
 
 msgid "Snug"
-msgstr ""
+msgstr "紧贴"
 
 msgid "Independent support layer height"
 msgstr "支撑独立层高"
