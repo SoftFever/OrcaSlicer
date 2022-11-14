@@ -177,15 +177,17 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
 {
     std::string machine = obj ? obj->dev_id : "";
     if (obj && obj->is_function_supported(PrinterFunction::FUNC_MEDIA_FILE)) {
+        m_supported = true;
         m_lan_mode     = obj->is_lan_mode_printer();
         m_lan_ip       = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->dev_ip : "";
         m_lan_passwd   = obj->access_code;
         m_tutk_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
     } else {
-        m_lan_mode = false;
+        m_supported = false;
+        m_lan_mode  = false;
         m_lan_ip.clear();
         m_lan_passwd.clear();
-        m_tutk_support = true;
+        m_tutk_support = false;
     }
     if (machine == m_machine)
         return;
@@ -200,8 +202,8 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
     SetSelecting(false);
     if (m_machine.empty()) {
         m_image_grid->SetStatus(m_bmp_failed.bmp(), _L("No printers."));    
-    } else if (m_lan_ip.empty() && (m_lan_mode && !m_tutk_support)) {
-        m_image_grid->SetStatus(m_bmp_failed.bmp(), _L("Not supported."));
+    } else if (!m_supported) {
+        m_image_grid->SetStatus(m_bmp_failed.bmp(), _L("Not supported by this model of printer!"));
     } else {
         boost::shared_ptr<PrinterFileSystem> fs(new PrinterFileSystem);
         fs->Attached();
@@ -233,7 +235,7 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
             wxBitmap icon;
             wxString msg;
             switch (e.GetInt()) {
-            case PrinterFileSystem::Initializing: icon = m_bmp_loading.bmp(); msg = _L("Initializing..."); fetchUrl(boost::weak_ptr(fs)); break;
+            case PrinterFileSystem::Initializing: icon = m_bmp_loading.bmp(); msg = _L("Initializing..."); break;
             case PrinterFileSystem::Connecting: icon = m_bmp_loading.bmp(); msg = _L("Connecting..."); break;
             case PrinterFileSystem::Failed: icon = m_bmp_failed.bmp(); msg = _L("Connect failed [%d]!"); break;
             case PrinterFileSystem::ListSyncing: icon = m_bmp_loading.bmp(); msg = _L("Loading file list..."); break;
@@ -241,8 +243,8 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
             }
             if (fs->GetCount() == 0)
                 m_image_grid->SetStatus(icon, msg);
-            else
-                (void) 0; // TODO: show dialog
+            if (e.GetInt() == PrinterFileSystem::Initializing)
+                fetchUrl(boost::weak_ptr(fs));
         });
         if (IsShown()) fs->Start();
     }
@@ -301,14 +303,19 @@ void MediaFilePanel::modeChanged(wxCommandEvent& e1)
 
 void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
 {
+    boost::shared_ptr fs(wfs.lock());
+    if (!fs || fs != m_image_grid->GetFileSystem()) return;
     if (!m_lan_ip.empty()) {
-       std::string url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
-        boost::shared_ptr fs(wfs.lock());
-        if (!fs || fs != m_image_grid->GetFileSystem()) return;
+        std::string url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
         fs->SetUrl(url);
         return;
     }
-    if (m_lan_mode && !m_tutk_support) { // not support tutk
+    if (m_lan_mode ) { // not support tutk
+        m_image_grid->SetStatus(m_bmp_failed.bmp(), _L("Not accessible in LAN-only mode!"));
+        return;
+    }
+    if (!m_tutk_support) { // not support tutk
+        m_image_grid->SetStatus(m_bmp_failed.bmp(), _L("Missing LAN ip of printer!"));
         return;
     }
     NetworkAgent *agent = wxGetApp().getAgent();
@@ -319,7 +326,10 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
             CallAfter([this, url, wfs] {
                 boost::shared_ptr fs(wfs.lock());
                 if (!fs || fs != m_image_grid->GetFileSystem()) return;
-                fs->SetUrl(url);
+                if (boost::algorithm::starts_with(url, "bambu:///"))
+                    fs->SetUrl(url);
+                else
+                    m_image_grid->SetStatus(m_bmp_failed.bmp(), url.empty() ? _L("Network unreachable") : from_u8(url));
             });
         });
     }
