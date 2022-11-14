@@ -398,6 +398,7 @@ protected:
     void                         reset_ams_material();
     void                         update_show_status();
     void                         update_ams_check(MachineObject* obj);
+    bool                         is_show_timelapse();
 
     wxTimer *m_refresh_timer { nullptr };
 

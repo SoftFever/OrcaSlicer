@@ -1370,7 +1370,8 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     }
 
     if (obj && obj->is_function_supported(PrinterFunction::FUNC_TIMELAPSE)
-        && obj->is_support_print_with_timelapse()) {
+        && obj->is_support_print_with_timelapse()
+        && is_show_timelapse()) {
         select_timelapse->Show();
     } else {
         select_timelapse->Hide();
@@ -2536,6 +2537,49 @@ void SelectMachineDialog::update_show_status()
             return;
         }
     }
+}
+
+bool SelectMachineDialog::is_show_timelapse()
+{
+    auto compare_version = [](const std::string &version1, const std::string &version2) -> bool {
+        int i = 0, j = 0;
+        int max_size = std::max(version1.size(), version2.size());
+        while (i < max_size || j < max_size) {
+            int v1 = 0, v2 = 0;
+            while (i < version1.size() && version1[i] != '.') v1 = 10 * v1 + (version1[i++] - '0');
+            while (j < version2.size() && version2[j] != '.') v2 = 10 * v2 + (version2[j++] - '0');
+            if (v1 > v2) return true;
+            if (v1 < v2) return false;
+            ++i;
+            ++j;
+        }
+        return false;
+    };
+
+    std::string standard_version = "01.04.00.00";
+    PartPlate *plate      = m_plater->get_partplate_list().get_curr_plate();
+    fs::path   gcode_path = plate->get_tmp_gcode_path();
+
+    std::string   line;
+    std::ifstream gcode_file;
+    gcode_file.open(gcode_path.string());
+    if (gcode_file.fail()) {
+    } else {
+        bool is_version = false;
+        while (gcode_file >> line) {
+            if (is_version) {
+                if (compare_version(standard_version, line)) {
+                    gcode_file.close();
+                    return false;
+                }
+                break;
+            }
+            if (line == "BambuStudio")
+                is_version = true;
+        }
+    }
+    gcode_file.close();
+    return true;
 }
 
 void SelectMachineDialog::reset_ams_material()
