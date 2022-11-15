@@ -268,9 +268,6 @@ GLToolbar::~GLToolbar()
 
 bool GLToolbar::init(const BackgroundTexture::Metadata& background_texture)
 {
-    if (m_background_texture.texture.get_id() != 0)
-        return true;
-
     std::string path = resources_dir() + "/images/";
     bool res = false;
 

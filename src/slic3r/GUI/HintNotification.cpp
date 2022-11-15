@@ -929,17 +929,17 @@ void NotificationManager::HintNotification::render_close_button(ImGuiWrapper& im
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(.0f, .0f, .0f, .0f));
 
 
-	std::string button_text;
-	button_text = ImGui::CloseNotifButton;
+	std::wstring button_text;
+	button_text = m_is_dark_mode ? ImGui::CloseNotifDarkButton : ImGui::CloseNotifButton;
 
-	ImVec2 button_pic_size = ImGui::CalcTextSize(button_text.c_str());
+	ImVec2 button_pic_size = ImGui::CalcTextSize(into_u8(button_text).c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
 	m_close_b_w = button_size.y;
 	if (ImGui::IsMouseHoveringRect(ImVec2(win_pos.x - win_size.x / 10.f, win_pos.y + win_size.y / 2 - button_pic_size.y),
 		ImVec2(win_pos.x, win_pos.y + win_size.y / 2 + button_pic_size.y),
 		true))
 	{
-		button_text = ImGui::CloseNotifHoverButton;
+		button_text = m_is_dark_mode ? ImGui::CloseNotifHoverDarkButton : ImGui::CloseNotifHoverButton;
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 			close();
 	}
@@ -973,13 +973,13 @@ void NotificationManager::HintNotification::render_preferences_button(ImGuiWrapp
 	push_style_color(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f), m_state == EState::FadingOut, m_current_fade_opacity);
 	push_style_color(ImGuiCol_TextSelectedBg, ImVec4(0, .75f, .75f, 1.f), m_state == EState::FadingOut, m_current_fade_opacity);
 
-	std::string button_text;
-	button_text = ImGui::PreferencesButton;
+	std::wstring button_text;
+	button_text = m_is_dark_mode ? ImGui::PreferencesDarkButton : ImGui::PreferencesButton;
 	//hover
 	if (ImGui::IsMouseHoveringRect(ImVec2(win_pos_x - m_window_width / 15.f, win_pos_y + m_window_height - 1.5f * m_line_height),
 		ImVec2(win_pos_x, win_pos_y + m_window_height),
 		true)) {
-		button_text = ImGui::PreferencesHoverButton;
+		button_text = m_is_dark_mode ? ImGui::PreferencesHoverDarkButton : ImGui::PreferencesHoverButton;
 		// tooltip
 		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
 		ImGui::PushStyleColor(ImGuiCol_Border, { 0,0,0,0 });
@@ -991,7 +991,7 @@ void NotificationManager::HintNotification::render_preferences_button(ImGuiWrapp
 		ImGui::PopStyleVar();
 	}
 
-	ImVec2 button_pic_size = ImGui::CalcTextSize(button_text.c_str());
+	ImVec2 button_pic_size = ImGui::CalcTextSize(into_u8(button_text).c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
 	ImGui::SetCursorPosX(m_window_width - m_line_height * 1.75f);
 	ImGui::SetCursorPosY(m_window_height - button_size.y - m_close_b_w / 4.f);
@@ -1016,16 +1016,16 @@ void NotificationManager::HintNotification::render_right_arrow_button(ImGuiWrapp
 	push_style_color(ImGuiCol_TextSelectedBg, ImVec4(0, .75f, .75f, 1.f), m_state == EState::FadingOut, m_current_fade_opacity);
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(.0f, .0f, .0f, .0f));
 
-	std::string button_text;
-	button_text = ImGui::RightArrowButton;
+	std::wstring button_text;
+	button_text = m_is_dark_mode ? ImGui::RightArrowDarkButton : ImGui::RightArrowButton;
 
-	ImVec2 button_pic_size = ImGui::CalcTextSize(button_text.c_str());
+	ImVec2 button_pic_size = ImGui::CalcTextSize(into_u8(button_text).c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
 	if (ImGui::IsMouseHoveringRect(ImVec2(win_pos_x - m_window_width / 7.5f, win_pos_y + m_window_height - 1.5f * m_line_height),
 		ImVec2(win_pos_x - m_window_width / 15.f, win_pos_y + m_window_height),
 		true))
 	{
-		button_text = ImGui::RightArrowHoverButton;
+		button_text = m_is_dark_mode ? ImGui::RightArrowHoverDarkButton : ImGui::RightArrowHoverButton;
 		// tooltip
 		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
 		ImGui::PushStyleColor(ImGuiCol_Border, { 0,0,0,0 });
@@ -1068,7 +1068,7 @@ void NotificationManager::HintNotification::render_documentation_button(ImGuiWra
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(.0f, .0f, .0f, .0f));
 
 	std::wstring button_text;
-	button_text = ImGui::DocumentationButton;
+	button_text = m_is_dark_mode ? ImGui::DocumentationDarkButton : ImGui::DocumentationButton;
 	std::string placeholder_text;
 	placeholder_text = ImGui::EjectButton;
 
@@ -1078,7 +1078,7 @@ void NotificationManager::HintNotification::render_documentation_button(ImGuiWra
 		ImVec2(win_pos.x - m_line_height * 2.5f, win_pos.y + win_size.y / 2 + button_pic_size.y),
 		true))
 	{
-		button_text = ImGui::DocumentationHoverButton;
+		button_text = m_is_dark_mode ? ImGui::DocumentationHoverDarkButton : ImGui::DocumentationHoverButton;
 		// tooltip
 		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
 		ImGui::PushStyleColor(ImGuiCol_Border, { 0,0,0,0 });

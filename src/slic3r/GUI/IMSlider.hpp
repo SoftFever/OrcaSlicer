@@ -341,13 +341,14 @@ private:
     int  m_selected_tick_value = -1;
 
     /* BBS slider images */
-    void *m_reset_normal_id;
-    void *m_reset_hover_id;
     void *m_one_layer_on_id;
     void *m_one_layer_on_hover_id;
-    void *m_one_layer_arrow_id;
     void *m_one_layer_off_id;
     void *m_one_layer_off_hover_id;
+    void* m_one_layer_on_dark_id;
+    void* m_one_layer_on_hover_dark_id;
+    void* m_one_layer_off_dark_id;
+    void* m_one_layer_off_hover_dark_id;
     void *m_pause_icon_id;
     void *m_delete_icon_id;
 

@@ -153,11 +153,9 @@ public:
         IC_TOOLBAR_TOOLTIP,
         IC_TOOLBAR_TOOLTIP_HOVER,
         IC_TEXT_B,
-        IC_TEXT_B_HOVER,
-        IC_TEXT_B_PRESS,
+        IC_TEXT_B_DARK,
         IC_TEXT_T,
-        IC_TEXT_T_HOVER,
-        IC_TEXT_T_PRESS,
+        IC_TEXT_T_DARK,
         IC_NAME_COUNT,
     };
 
@@ -209,6 +207,7 @@ public:
     bool is_enabled() const { return m_enabled; }
     void set_enabled(bool enable) { m_enabled = enable; }
 
+    void set_icon_dirty() { m_icons_texture_dirty = true; }
     void set_overlay_icon_size(float size);
     void set_overlay_scale(float scale);
 
@@ -284,7 +283,7 @@ public:
     void render_painter_gizmo() const;
     void render_painter_assemble_view() const;
 
-    void render_overlay() const;
+    void render_overlay();
 
     void render_arrow(const GLCanvas3D& parent, EType highlighted_type) const;
 

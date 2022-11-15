@@ -395,6 +395,8 @@ private:
 		void                   reset_timer() { m_notification_start = GLCanvas3D::timestamp_now(); m_state = EState::Shown; }
         void set_Multiline(bool Multi) { m_multiline = Multi; }
 
+		bool m_is_dark_mode = false;
+
 	protected:
 		// Call after every size change
 		virtual void init();

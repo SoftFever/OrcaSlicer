@@ -22,6 +22,7 @@
 
 static const float GROUND_Z = -0.04f;
 static const std::array<float, 4> DEFAULT_MODEL_COLOR = { 0.3255f, 0.337f, 0.337f, 1.0f };
+static const std::array<float, 4> DEFAULT_MODEL_COLOR_DARK = { 0.255f, 0.255f, 0.283f, 1.0f };
 static const std::array<float, 4> PICKING_MODEL_COLOR = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 namespace Slic3r {
@@ -334,7 +335,7 @@ void Bed3D::render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
 
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    m_model.set_color(-1, DEFAULT_MODEL_COLOR);
+    m_model.set_color(-1, wxGetApp().app_config->get("dark_color_mode") == "1" ? DEFAULT_MODEL_COLOR_DARK : DEFAULT_MODEL_COLOR);
 
     switch (m_type)
     {
@@ -651,7 +652,7 @@ void Bed3D::render_model() const
     GLModel* model = const_cast<GLModel*>(&m_model);
 
     if (model->get_filename() != m_model_filename && model->init_from_file(m_model_filename)) {
-        model->set_color(-1, DEFAULT_MODEL_COLOR);
+        model->set_color(-1, wxGetApp().app_config->get("dark_color_mode") == "1" ? DEFAULT_MODEL_COLOR_DARK : DEFAULT_MODEL_COLOR);
 
         update_model_offset();
     }

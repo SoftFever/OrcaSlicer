@@ -78,7 +78,9 @@ static const float SLIDER_RIGHT_MARGIN          = 105.0f;
 static const float SLIDER_BOTTOM_MARGIN         = 90.0f;
 
 float GLCanvas3D::DEFAULT_BG_LIGHT_COLOR[3] = { 0.906f, 0.906f, 0.906f };
+float GLCanvas3D::DEFAULT_BG_LIGHT_COLOR_DARK[3] = { 0.329f, 0.329f, 0.353f };
 float GLCanvas3D::ERROR_BG_LIGHT_COLOR[3] = { 0.753f, 0.192f, 0.039f };
+float GLCanvas3D::ERROR_BG_LIGHT_COLOR_DARK[3] = { 0.753f, 0.192f, 0.039f };
 
 void GLCanvas3D::update_render_colors()
 {
@@ -241,8 +243,10 @@ void GLCanvas3D::LayersEditing::render_variable_layer_height_dialog(const GLCanv
     if (imgui.button(_L("Adaptive")))
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), Event<float>(EVT_GLCANVAS_ADAPTIVE_LAYER_HEIGHT_PROFILE, m_adaptive_quality));
     ImGui::SameLine();
-    float text_align = ImGui::GetCursorPosX();
+    static float text_align = ImGui::GetCursorPosX();
     ImGui::AlignTextToFramePadding();
+    text_align = std::max(text_align, ImGui::GetCursorPosX());
+    ImGui::SetCursorPosX(text_align);
     imgui.text(_L("Quality / Speed"));
     if (ImGui::IsItemHovered()) {
         //ImGui::BeginTooltip();
@@ -250,22 +254,28 @@ void GLCanvas3D::LayersEditing::render_variable_layer_height_dialog(const GLCanv
         //ImGui::EndTooltip();
     }
     ImGui::SameLine();
-    float slider_align = ImGui::GetCursorPosX();
+    static float slider_align = ImGui::GetCursorPosX();
     ImGui::PushItemWidth(sliders_width);
     m_adaptive_quality = std::clamp(m_adaptive_quality, 0.0f, 1.f);
+    slider_align = std::max(slider_align, ImGui::GetCursorPosX());
+    ImGui::SetCursorPosX(slider_align);
     imgui.bbl_slider_float_style("##adaptive_slider", &m_adaptive_quality, 0.0f, 1.f, "%.2f");
     ImGui::SameLine();
-    float input_align = ImGui::GetCursorPosX();
+    static float input_align = ImGui::GetCursorPosX();
     ImGui::PushItemWidth(input_box_width);
+    input_align = std::max(input_align, ImGui::GetCursorPosX());
+    ImGui::SetCursorPosX(input_align);
     ImGui::BBLDragFloat("##adaptive_input", &m_adaptive_quality, 0.05f, 0.0f, 0.0f, "%.2f");
 
     if (imgui.button(_L("Smooth")))
         wxPostEvent((wxEvtHandler*)canvas.get_wxglcanvas(), HeightProfileSmoothEvent(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, m_smooth_params));
     ImGui::SameLine();
+    text_align = std::max(text_align, ImGui::GetCursorPosX());
     ImGui::SetCursorPosX(text_align);
     ImGui::AlignTextToFramePadding();
     imgui.text(_L("Radius"));
     ImGui::SameLine();
+    slider_align = std::max(slider_align, ImGui::GetCursorPosX());
     ImGui::SetCursorPosX(slider_align);
     ImGui::PushItemWidth(sliders_width);
     int radius = (int)m_smooth_params.radius;
@@ -282,6 +292,7 @@ void GLCanvas3D::LayersEditing::render_variable_layer_height_dialog(const GLCanv
     ImGui::PopStyleColor(4);
     ImGui::PopStyleVar();
     ImGui::SameLine();
+    input_align = std::max(input_align, ImGui::GetCursorPosX());
     ImGui::SetCursorPosX(input_align);
     ImGui::PushItemWidth(input_box_width);
     ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
@@ -5658,8 +5669,10 @@ bool GLCanvas3D::_init_main_toolbar()
     if (!m_main_toolbar.is_enabled())
         return true;
 
+    bool dark_mode = wxGetApp().app_config->get("dark_color_mode") == "1";
+
     BackgroundTexture::Metadata background_data;
-    background_data.filename = "toolbar_background.png";
+    background_data.filename = dark_mode ? "toolbar_background_dark.png" : "toolbar_background.png";
     background_data.left = 16;
     background_data.top = 16;
     background_data.right = 16;
@@ -5696,10 +5709,12 @@ bool GLCanvas3D::_init_main_toolbar()
     m_main_toolbar.set_separator_size(5);
     m_main_toolbar.set_gap_size(4);
 
+    m_main_toolbar.del_all_item();
+
     GLToolbarItem::Data item;
 
     item.name = "add";
-    item.icon_filename = "toolbar_open.svg";
+    item.icon_filename = dark_mode ? "toolbar_open_dark.svg" : "toolbar_open.svg";
     item.tooltip = _utf8(L("Add")) + " [" + GUI::shortkey_ctrl_prefix() + "I]";
     item.sprite_id = 0;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ADD)); };
@@ -5708,7 +5723,7 @@ bool GLCanvas3D::_init_main_toolbar()
         return false;
 
     item.name = "addplate";
-    item.icon_filename = "toolbar_add_plate.svg";
+    item.icon_filename = dark_mode ? "toolbar_add_plate_dark.svg" : "toolbar_add_plate.svg";
     item.tooltip = _utf8(L("Add plate"));
     item.sprite_id++;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ADD_PLATE)); };
@@ -5717,7 +5732,7 @@ bool GLCanvas3D::_init_main_toolbar()
         return false;
 
     item.name = "orient";
-    item.icon_filename = "toolbar_orient.svg";
+    item.icon_filename = dark_mode ? "toolbar_orient_dark.svg" : "toolbar_orient.svg";
     item.tooltip = _utf8(L("Auto orient"));
     item.sprite_id++;
     item.left.render_callback = nullptr;
@@ -5737,7 +5752,7 @@ bool GLCanvas3D::_init_main_toolbar()
         return false;
 
     item.name = "arrange";
-    item.icon_filename = "toolbar_arrange.svg";
+    item.icon_filename = dark_mode ? "toolbar_arrange_dark.svg" : "toolbar_arrange.svg";
     item.tooltip = _utf8(L("Arrange all objects")) + " [A]\n" + _utf8(L("Arrange objects on selected plates")) + " [Shift+A]";
     item.sprite_id++;
     item.left.action_callback = []() {};
@@ -5761,7 +5776,7 @@ bool GLCanvas3D::_init_main_toolbar()
         return false;
 
     item.name = "splitobjects";
-    item.icon_filename = "split_objects.svg";
+    item.icon_filename = dark_mode ? "split_objects_dark.svg" : "split_objects.svg";
     item.tooltip = _utf8(L("Split to objects"));
     item.sprite_id++;
     item.left.render_callback = nullptr;
@@ -5772,7 +5787,7 @@ bool GLCanvas3D::_init_main_toolbar()
         return false;
 
     item.name = "splitvolumes";
-    item.icon_filename = "split_parts.svg";
+    item.icon_filename = dark_mode ? "split_parts_dark.svg" : "split_parts.svg";
     item.tooltip = _utf8(L("Split to parts"));
     item.sprite_id++;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_VOLUMES)); };
@@ -5782,7 +5797,7 @@ bool GLCanvas3D::_init_main_toolbar()
         return false;
 
     item.name = "layersediting";
-    item.icon_filename = "toolbar_variable_layer_height.svg";
+    item.icon_filename = dark_mode ? "toolbar_variable_layer_height_dark.svg" : "toolbar_variable_layer_height.svg";
     item.tooltip = _utf8(L("Variable layer height"));
     item.sprite_id++;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING)); };
@@ -5839,8 +5854,10 @@ bool GLCanvas3D::_init_assemble_view_toolbar()
     if (!m_assemble_view_toolbar.is_enabled())
         return true;
 
+    bool dark_mode = wxGetApp().app_config->get("dark_color_mode") == "1";
+
     BackgroundTexture::Metadata background_data;
-    background_data.filename = "toolbar_background.png";
+    background_data.filename = dark_mode ? "toolbar_background_dark.png" : "toolbar_background.png";
     background_data.left = 16;
     background_data.top = 16;
     background_data.right = 16;
@@ -5860,6 +5877,8 @@ bool GLCanvas3D::_init_assemble_view_toolbar()
     m_assemble_view_toolbar.set_border(5.0f);
     m_assemble_view_toolbar.set_separator_size(10);
     m_assemble_view_toolbar.set_gap_size(4);
+
+    m_assemble_view_toolbar.del_all_item();
 
     GLToolbarItem::Data item;
     item.name = "assembly_view";
@@ -5894,9 +5913,10 @@ bool GLCanvas3D::_init_separator_toolbar()
     if (!m_separator_toolbar.is_enabled())
         return true;
 
+    bool dark_mode = wxGetApp().app_config->get("dark_color_mode") == "1";
 
     BackgroundTexture::Metadata background_data;
-    background_data.filename = "toolbar_background.png";
+    background_data.filename = dark_mode ? "toolbar_background_dark.png" : "toolbar_background.png";
     background_data.left = 0;
     background_data.top = 0;
     background_data.right = 0;
@@ -5914,6 +5934,8 @@ bool GLCanvas3D::_init_separator_toolbar()
     m_separator_toolbar.set_horizontal_orientation(GLToolbar::Layout::HO_Left);
     m_separator_toolbar.set_vertical_orientation(GLToolbar::Layout::VO_Top);
     m_separator_toolbar.set_border(5.0f);
+
+    m_separator_toolbar.del_all_item();
 
     GLToolbarItem::Data sperate_item;
     sperate_item.name = "start_seperator";
@@ -6246,18 +6268,21 @@ void GLCanvas3D::_render_background() const
 
     ::glBegin(GL_QUADS);
 
+    float* background_color = wxGetApp().app_config->get("dark_color_mode") == "1" ? DEFAULT_BG_LIGHT_COLOR_DARK : DEFAULT_BG_LIGHT_COLOR;
+    float* error_background_color = wxGetApp().app_config->get("dark_color_mode") == "1" ? ERROR_BG_LIGHT_COLOR_DARK : ERROR_BG_LIGHT_COLOR;
+
     if (use_error_color)
-        ::glColor3fv(ERROR_BG_LIGHT_COLOR);
+        ::glColor3fv(error_background_color);
     else
-        ::glColor3fv(DEFAULT_BG_LIGHT_COLOR);
+        ::glColor3fv(background_color);
 
     ::glVertex2f(-1.0f, -1.0f);
     ::glVertex2f(1.0f, -1.0f);
 
     if (use_error_color)
-        ::glColor3fv(ERROR_BG_LIGHT_COLOR);
+        ::glColor3fv(error_background_color);
     else
-        ::glColor3fv(DEFAULT_BG_LIGHT_COLOR);
+        ::glColor3fv(background_color);
 
     ::glVertex2f(1.0f, 1.0f);
     ::glVertex2f(-1.0f, 1.0f);
@@ -6668,13 +6693,35 @@ void GLCanvas3D::_render_overlays()
     m_gizmos.set_overlay_icon_size(gizmo_size);
 #endif // ENABLE_RETINA_GL
 
-    _render_separator_toolbar_right();
-    _render_separator_toolbar_left();
-    _render_main_toolbar();
+    static bool last_dark_mode_tatus = wxGetApp().app_config->get("dark_color_mode") == "1";
+    bool dark_mode_status = wxGetApp().app_config->get("dark_color_mode") == "1";
+    if (dark_mode_status != last_dark_mode_tatus) {
+        last_dark_mode_tatus = dark_mode_status;
+        // reset svg
+        _init_toolbars();
+        m_gizmos.init();
+        // re-generate icon texture
+        m_separator_toolbar.set_icon_dirty();
+        _render_separator_toolbar_right();
+        m_separator_toolbar.set_icon_dirty();
+        _render_separator_toolbar_left();
+        m_main_toolbar.set_icon_dirty();
+        _render_main_toolbar();
+        wxGetApp().plater()->get_collapse_toolbar().set_icon_dirty();
+        _render_collapse_toolbar();
+        m_assemble_view_toolbar.set_icon_dirty();
+        _render_assemble_view_toolbar();
+        m_gizmos.set_icon_dirty();
+    }
+    else {
+        _render_separator_toolbar_right();
+        _render_separator_toolbar_left();
+        _render_main_toolbar();
+        _render_collapse_toolbar();
+        _render_assemble_view_toolbar();
+    }
     //BBS: GUI refactor: GLToolbar
     _render_imgui_select_plate_toolbar();
-    _render_collapse_toolbar();
-    _render_assemble_view_toolbar();
     _render_return_toolbar();
     // BBS
     //_render_view_toolbar();

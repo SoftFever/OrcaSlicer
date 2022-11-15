@@ -6381,8 +6381,10 @@ bool Plater::priv::init_collapse_toolbar()
         // already initialized
         return true;
 
+    bool dark_mode = wxGetApp().app_config->get("dark_color_mode") == "1";
+
     BackgroundTexture::Metadata background_data;
-    background_data.filename = "toolbar_background.png";
+    background_data.filename = dark_mode ? "toolbar_background_dark.png" : "toolbar_background.png";
     background_data.left = 16;
     background_data.top = 16;
     background_data.right = 16;
@@ -6397,6 +6399,8 @@ bool Plater::priv::init_collapse_toolbar()
     collapse_toolbar.set_border(5.0f);
     collapse_toolbar.set_separator_size(5);
     collapse_toolbar.set_gap_size(2);
+
+    collapse_toolbar.del_all_item();
 
     GLToolbarItem::Data item;
 

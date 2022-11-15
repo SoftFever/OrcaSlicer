@@ -356,6 +356,7 @@ public:
 
     Layout::EType get_layout_type() const;
     void set_layout_type(Layout::EType type);
+    void set_icon_dirty() { m_icons_texture_dirty = true; }
     Layout::EHorizontalOrientation get_horizontal_orientation() const { return m_layout.horizontal_orientation; }
     void set_horizontal_orientation(Layout::EHorizontalOrientation orientation) { m_layout.horizontal_orientation = orientation; }
     Layout::EVerticalOrientation get_vertical_orientation() const { return m_layout.vertical_orientation; }

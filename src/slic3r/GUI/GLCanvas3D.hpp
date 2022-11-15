@@ -200,7 +200,9 @@ class GLCanvas3D
 
 
     static float DEFAULT_BG_LIGHT_COLOR[3];
+    static float DEFAULT_BG_LIGHT_COLOR_DARK[3];
     static float ERROR_BG_LIGHT_COLOR[3];
+    static float ERROR_BG_LIGHT_COLOR_DARK[3];
 
     static void update_render_colors();
     static void load_render_colors();

@@ -330,9 +330,8 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
 
     static float last_window_width = 0.0f;
     static size_t last_text_length = 0;
-    static const ImU32 text_name_clr = IM_COL32(38, 46, 48, 255);
-    static const ImU32 text_value_clr = IM_COL32(144, 144, 144, 255);
-    static const ImU32 window_bg_clr = IM_COL32(255, 255, 255, 255);
+    const ImU32 text_name_clr = wxGetApp().app_config->get("dark_color_mode") == "1" ? IM_COL32(255, 255, 255, 0.88 * 255) : IM_COL32(38, 46, 48, 255);
+    const ImU32 text_value_clr = wxGetApp().app_config->get("dark_color_mode") == "1" ? IM_COL32(255, 255, 255, 0.4 * 255) : IM_COL32(144, 144, 144, 255);
 
     auto it = std::find_if(moves.begin(), moves.end(), [&curr_line_id](auto move) {
         return move.gcode_id == curr_line_id;
@@ -347,7 +346,6 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     imgui.push_toolbar_style(m_scale);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0, 4.0 * m_scale));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0 * m_scale, 6.0 * m_scale));
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, window_bg_clr);
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, text_name_clr);
     ImGui::PushStyleColor(ImGuiCol_Text, text_value_clr);
     imgui.begin(std::string("ExtruderPosition"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
@@ -465,9 +463,9 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     }
 
     imgui.end();
-    imgui.pop_toolbar_style();
     ImGui::PopStyleVar(2);
-    ImGui::PopStyleColor(3);
+    ImGui::PopStyleColor(2);
+    imgui.pop_toolbar_style();
 }
 
 void GCodeViewer::SequentialView::GCodeWindow::load_gcode(const std::string& filename, std::vector<size_t> &&lines_ends)

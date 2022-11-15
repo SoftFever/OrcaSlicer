@@ -125,7 +125,8 @@ bool GLGizmosManager::init()
     bool result = init_icon_textures();
     if (!result) return result;
 
-    m_background_texture.metadata.filename = "toolbar_background.png";
+    bool dark_mode = wxGetApp().app_config->get("dark_color_mode") == "1";
+    m_background_texture.metadata.filename = dark_mode ? "toolbar_background_dark.png" : "toolbar_background.png";
     m_background_texture.metadata.left = 16;
     m_background_texture.metadata.top = 16;
     m_background_texture.metadata.right = 16;
@@ -139,16 +140,17 @@ bool GLGizmosManager::init()
 
     // Order of gizmos in the vector must match order in EType!
     //BBS: GUI refactor: add obj manipulation
+    m_gizmos.clear();
     unsigned int sprite_id = 0;
-    m_gizmos.emplace_back(new GLGizmoMove3D(m_parent, "toolbar_move.svg", EType::Move, &m_object_manipulation));
-    m_gizmos.emplace_back(new GLGizmoRotate3D(m_parent, "toolbar_rotate.svg", EType::Rotate, &m_object_manipulation));
-    m_gizmos.emplace_back(new GLGizmoScale3D(m_parent, "toolbar_scale.svg", EType::Scale, &m_object_manipulation));
-    m_gizmos.emplace_back(new GLGizmoFlatten(m_parent, "toolbar_flatten.svg", EType::Flatten));
-    m_gizmos.emplace_back(new GLGizmoAdvancedCut(m_parent, "toolbar_cut.svg", EType::Cut));
-    m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, "toolbar_support.svg", EType::FdmSupports));
-    m_gizmos.emplace_back(new GLGizmoSeam(m_parent, "toolbar_seam.svg", EType::Seam));
-    m_gizmos.emplace_back(new GLGizmoText(m_parent, "toolbar_text.svg", EType::Text));
-    m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, "mmu_segmentation.svg", EType::MmuSegmentation));
+    m_gizmos.emplace_back(new GLGizmoMove3D(m_parent, dark_mode ? "toolbar_move_dark.svg" : "toolbar_move.svg", EType::Move, &m_object_manipulation));
+    m_gizmos.emplace_back(new GLGizmoRotate3D(m_parent, dark_mode ? "toolbar_rotate_dark.svg" : "toolbar_rotate.svg", EType::Rotate, &m_object_manipulation));
+    m_gizmos.emplace_back(new GLGizmoScale3D(m_parent, dark_mode ? "toolbar_scale_dark.svg" : "toolbar_scale.svg", EType::Scale, &m_object_manipulation));
+    m_gizmos.emplace_back(new GLGizmoFlatten(m_parent, dark_mode ? "toolbar_flatten_dark.svg" : "toolbar_flatten.svg", EType::Flatten));
+    m_gizmos.emplace_back(new GLGizmoAdvancedCut(m_parent, dark_mode ? "toolbar_cut_dark.svg" : "toolbar_cut.svg", EType::Cut));
+    m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, dark_mode ? "toolbar_support_dark.svg" : "toolbar_support.svg", EType::FdmSupports));
+    m_gizmos.emplace_back(new GLGizmoSeam(m_parent, dark_mode ? "toolbar_seam_dark.svg" : "toolbar_seam.svg", EType::Seam));
+    m_gizmos.emplace_back(new GLGizmoText(m_parent, dark_mode ? "toolbar_text_dark.svg" : "toolbar_text.svg", EType::Text));
+    m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, dark_mode ? "mmu_segmentation_dark.svg" : "mmu_segmentation.svg", EType::MmuSegmentation));
     m_gizmos.emplace_back(new GLGizmoSimplify(m_parent, "reduce_triangles.svg", EType::Simplify));
     //m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", sprite_id++));
     //m_gizmos.emplace_back(new GLGizmoFaceDetector(m_parent, "face recognition.svg", sprite_id++));
@@ -203,30 +205,20 @@ bool GLGizmosManager::init_icon_textures()
     else
         return false;
 
-     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_B_hover.svg", 20, 20, texture_id))
-        icon_list.insert(std::make_pair((int)IC_TEXT_B_HOVER, texture_id));
-    else
-        return false;
-
-     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_B_press.svg", 20, 20, texture_id))
-        icon_list.insert(std::make_pair((int)IC_TEXT_B_PRESS, texture_id));
-    else
-        return false;
+     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_B_dark.svg", 20, 20, texture_id))
+         icon_list.insert(std::make_pair((int)IC_TEXT_B_DARK, texture_id));
+     else
+         return false;
 
      if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_T.svg", 20, 20, texture_id))
         icon_list.insert(std::make_pair((int)IC_TEXT_T, texture_id));
     else
         return false;
 
-     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_T_hover.svg", 20, 20, texture_id))
-        icon_list.insert(std::make_pair((int)IC_TEXT_T_HOVER, texture_id));
-    else
-        return false;
-
-     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_T_press.svg", 20, 20, texture_id))
-        icon_list.insert(std::make_pair((int)IC_TEXT_T_PRESS, texture_id));
-    else
-        return false;
+     if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/text_T_dark.svg", 20, 20, texture_id))
+         icon_list.insert(std::make_pair((int)IC_TEXT_T_DARK, texture_id));
+     else
+         return false;
 
     return true;
 }
@@ -653,7 +645,7 @@ void GLGizmosManager::render_current_gizmo_for_picking_pass() const
     m_gizmos[m_current]->render_for_picking();
 }
 
-void GLGizmosManager::render_overlay() const
+void GLGizmosManager::render_overlay()
 {
     if (!m_enabled)
         return;

@@ -34,6 +34,8 @@ protected:
     virtual void on_render_for_picking() override;
     void push_combo_style(const float scale);
     void pop_combo_style();
+    void push_button_style(bool pressed);
+    void pop_button_style();
     virtual void on_set_state() override;
     virtual CommonGizmosDataID on_get_requirements() const override;
     virtual void on_render_input_window(float x, float y, float bottom_limit);

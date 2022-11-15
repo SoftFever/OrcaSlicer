@@ -26,7 +26,7 @@
 #include "nanosvg/nanosvgrast.h"
 
 #include "libslic3r/Utils.hpp"
-
+#include "GUI_App.hpp"
 namespace Slic3r {
 namespace GUI {
 
@@ -244,6 +244,8 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
     if (filenames.empty() || states.empty() || sprite_size_px == 0)
         return false;
 
+    bool dark_mode = wxGetApp().app_config->get("dark_color_mode") == "1";
+
     // every tile needs to have a 1px border around it to avoid artifacts when linear sampling on its edges
     unsigned int sprite_size_px_ex = sprite_size_px + 1;
 
@@ -262,14 +264,23 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
 
     std::vector<unsigned char> data(n_pixels * 4, 0);
     std::vector<unsigned char> sprite_data(sprite_bytes, 0);
-    std::vector<unsigned char> sprite_white_only_data(sprite_bytes, 0);
-    std::vector<unsigned char> sprite_gray_only_data(sprite_bytes, 0);
+    std::vector<unsigned char> sprite_white_only_data(sprite_bytes, 0); // normal
+    std::vector<unsigned char> sprite_gray_only_data(sprite_bytes, 0); // disable
     std::vector<unsigned char> output_data(sprite_bytes, 0);
 
     //BBS
-    std::vector<unsigned char> pressed_data(sprite_bytes, 0);
+    std::vector<unsigned char> pressed_data(sprite_bytes, 0); // (gizmo) pressed
     std::vector<unsigned char> disable_data(sprite_bytes, 0);
-    std::vector<unsigned char> hover_data(sprite_bytes, 0);
+    std::vector<unsigned char> hover_data(sprite_bytes, 0); // hover
+
+    const unsigned char pressed_color[3] = {255, 255, 255};
+    const unsigned char hover_color[3] = {255, 255, 255};
+    const unsigned char normal_color[3] = {43, 52, 54};
+    const unsigned char disable_color[3] = {200, 200, 200};
+    const unsigned char pressed_color_dark[3] = {60, 60, 65};
+    const unsigned char hover_color_dark[3] = {60, 60, 65};
+    const unsigned char normal_color_dark[3] = {182, 182, 182};
+    const unsigned char disable_color_dark[3] = {76, 76, 85};
 
     NSVGrasterizer* rast = nsvgCreateRasterizer();
     if (rast == nullptr) {
@@ -299,12 +310,13 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
         ::memcpy((void*)pressed_data.data(), (const void*)sprite_data.data(), sprite_bytes);
         for (int i = 0; i < sprite_n_pixels; ++i) {
             int offset = i * 4;
-            if (pressed_data.data()[offset + 0] == 0 && 
+            if (pressed_data.data()[offset + 0] == 0 &&
                 pressed_data.data()[offset + 1] == 0 &&
                 pressed_data.data()[offset + 2] == 0) {
-                ::memset((void*)&pressed_data.data()[offset], 238, 3);
-                pressed_data.data()[offset + 3] = (unsigned char) 225;
-            } 
+                hover_data.data()[offset + 0] = dark_mode ? pressed_color_dark[0] : pressed_color[0];
+                hover_data.data()[offset + 0] = dark_mode ? pressed_color_dark[1] : pressed_color[1];
+                hover_data.data()[offset + 0] = dark_mode ? pressed_color_dark[2] : pressed_color[2];
+            }
         }
 
         ::memcpy((void*)disable_data.data(), (const void*)sprite_data.data(), sprite_bytes);
@@ -319,23 +331,23 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
             int offset = i * 4;
             if (hover_data.data()[offset + 0] == 0 &&
                 hover_data.data()[offset + 1] == 0 &&
-                hover_data.data()[offset + 2] == 0) 
+                hover_data.data()[offset + 2] == 0)
             {
-                ::memset((void *) &hover_data.data()[offset], 238, 3);
-                hover_data.data()[offset + 3] = (unsigned char) 75;
+                hover_data.data()[offset + 0] = dark_mode ? hover_color_dark[0] : hover_color[0];
+                hover_data.data()[offset + 1] = dark_mode ? hover_color_dark[1] : hover_color[1];
+                hover_data.data()[offset + 2] = dark_mode ? hover_color_dark[2] : hover_color[2];
             }
         }
-
 
         ::memcpy((void*)sprite_white_only_data.data(), (const void*)sprite_data.data(), sprite_bytes);
         for (int i = 0; i < sprite_n_pixels; ++i) {
             int offset = i * 4;
             if (sprite_white_only_data.data()[offset + 0] != 0 ||
-                sprite_white_only_data.data()[offset + 1] != 0 || 
-                sprite_white_only_data.data()[offset + 2] != 0){
-                sprite_white_only_data.data()[offset + 0] = (unsigned char) 43;
-                sprite_white_only_data.data()[offset + 1] = (unsigned char) 52;
-                sprite_white_only_data.data()[offset + 2] = (unsigned char) 54;
+                sprite_white_only_data.data()[offset + 1] != 0 ||
+                sprite_white_only_data.data()[offset + 2] != 0) {
+                sprite_white_only_data.data()[offset + 0] = dark_mode ? normal_color_dark[0] : normal_color[0];
+                sprite_white_only_data.data()[offset + 1] = dark_mode ? normal_color_dark[1] : normal_color[1];
+                sprite_white_only_data.data()[offset + 2] = dark_mode ? normal_color_dark[2] : normal_color[2];
             }
         }
 
@@ -343,9 +355,11 @@ bool GLTexture::load_from_svg_files_as_sprites_array(const std::vector<std::stri
         for (int i = 0; i < sprite_n_pixels; ++i) {
             int offset = i * 4;
             if (sprite_gray_only_data.data()[offset + 0] != 0 ||
-                sprite_gray_only_data.data()[offset + 1] != 0 || 
-                sprite_gray_only_data.data()[offset + 2] != 0 ) {
-                ::memset((void*)&sprite_gray_only_data.data()[offset], 200, 3);
+                sprite_gray_only_data.data()[offset + 1] != 0 ||
+                sprite_gray_only_data.data()[offset + 2] != 0) {
+                sprite_gray_only_data.data()[offset + 0] = dark_mode ? disable_color_dark[0] : disable_color[0];
+                sprite_gray_only_data.data()[offset + 1] = dark_mode ? disable_color_dark[1] : disable_color[1];
+                sprite_gray_only_data.data()[offset + 2] = dark_mode ? disable_color_dark[2] : disable_color[2];
             }
         }
 

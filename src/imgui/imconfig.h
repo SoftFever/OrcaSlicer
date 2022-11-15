@@ -139,16 +139,21 @@ namespace ImGui
     const wchar_t EjectHoverButton         = 0x13;
     const wchar_t CancelButton             = 0x14;
     const wchar_t CancelHoverButton        = 0x15;
+    const wchar_t CloseNotifDarkButton     = 0x16;
+    const wchar_t CloseNotifHoverDarkButton = 0x17;
 //    const wchar_t VarLayerHeightMarker     = 0x16;
 
     const wchar_t RightArrowButton         = 0x18;
     const wchar_t RightArrowHoverButton    = 0x19;
     const wchar_t PreferencesButton        = 0x1A;
     const wchar_t PreferencesHoverButton   = 0x1B;
+    const wchar_t DocumentationDarkButton  = 0x1C;
+    const wchar_t DocumentationHoverDarkButton = 0x1D;
 //    const wchar_t SinkingObjectMarker      = 0x1C;
 //    const wchar_t CustomSupportsMarker     = 0x1D;
 //    const wchar_t CustomSeamMarker         = 0x1E;
 //    const wchar_t MmuSegmentationMarker    = 0x1F;
+
     // Do not forget use following letters only in wstring
     //BBS use 08xx to avoid unicode character which may be used
     const wchar_t DocumentationButton      = 0x0800;
@@ -166,6 +171,13 @@ namespace ImGui
     const wchar_t UnfoldButtonIcon         = 0x0815;
     const wchar_t SphereButtonIcon         = 0x0816;
     const wchar_t GapFillIcon              = 0x0817;
+
+    const wchar_t MinimalizeDarkButton           = 0x081C;
+    const wchar_t MinimalizeHoverDarkButton      = 0x081D;
+    const wchar_t RightArrowDarkButton           = 0x081E;
+    const wchar_t RightArrowHoverDarkButton      = 0x081F;
+    const wchar_t PreferencesDarkButton          = 0x0820;
+    const wchar_t PreferencesHoverDarkButton     = 0x0821;
 
 //    void MyFunction(const char* name, const MyMatrix44& v);
 }

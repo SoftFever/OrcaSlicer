@@ -191,7 +191,9 @@ public:
     static const ImVec4 COL_ACTIVE;
     static const ImVec4 COL_TITLE_BG;
     static const ImVec4 COL_WINDOW_BG;
+    static const ImVec4 COL_WINDOW_BG_DARK;
     static const ImVec4 COL_SEPARATOR;
+    static const ImVec4 COL_SEPARATOR_DARK;
 
     //BBS
     static void push_toolbar_style(const float scale);

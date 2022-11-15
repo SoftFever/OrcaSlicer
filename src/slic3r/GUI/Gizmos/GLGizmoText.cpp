@@ -68,17 +68,65 @@ void GLGizmoText::on_render_for_picking()
     // TODO:
 }
 
-void GLGizmoText::push_combo_style(const float scale)
-{
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f * scale);
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
-    ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG);
-    ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
-    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 0.0f));
-    ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG);
-    ImGui::PushStyleColor(ImGuiCol_Button, { 1.00f, 1.00f, 1.00f, 0.0f });
+void GLGizmoText::push_button_style(bool pressed) {
+    if (wxGetApp().app_config->get("dark_color_mode") == "1") {
+        if (pressed) {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(43 / 255.f, 64 / 255.f, 54 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(43 / 255.f, 64 / 255.f, 54 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(43 / 255.f, 64 / 255.f, 54 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f, 174 / 255.f, 66 / 255.f, 1.f));
+        }
+        else {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(45.f / 255.f, 45.f / 255.f, 49.f / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(84 / 255.f, 84 / 255.f, 90 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(84 / 255.f, 84 / 255.f, 90 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(45.f / 255.f, 45.f / 255.f, 49.f / 255.f, 1.f));
+        }
+    }
+    else {
+        if (pressed) {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(219 / 255.f, 253 / 255.f, 231 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(219 / 255.f, 253 / 255.f, 231 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(219 / 255.f, 253 / 255.f, 231 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f, 174 / 255.f, 66 / 255.f, 1.f));
+        }
+        else {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.f, 1.f, 1.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(238 / 255.f, 238 / 255.f, 238 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(238 / 255.f, 238 / 255.f, 238 / 255.f, 1.f));
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.f, 1.f, 1.f, 1.f));
+        }
+    
+    }
+}
+
+void GLGizmoText::pop_button_style() {
+    ImGui::PopStyleColor(4);
+}
+
+void GLGizmoText::push_combo_style(const float scale) {
+    if (wxGetApp().app_config->get("dark_color_mode") == "1") {
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
+        ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
+        ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 0.0f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
+        ImGui::PushStyleColor(ImGuiCol_Button, { 1.00f, 1.00f, 1.00f, 0.0f });
+    }
+    else {
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
+        ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG);
+        ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 0.0f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG);
+        ImGui::PushStyleColor(ImGuiCol_Button, { 1.00f, 1.00f, 1.00f, 0.0f });
+    }
 }
 
 void GLGizmoText::pop_combo_style()
@@ -116,12 +164,9 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     float input_size = input_text_size - button_size * 2 - ImGui::GetStyle().ItemSpacing.x * 4;
 
     ImTextureID normal_B = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TEXT_B);
-    ImTextureID press_B_hover = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TEXT_B_HOVER);
-    ImTextureID press_B_press = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TEXT_B_PRESS);
-
     ImTextureID normal_T = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TEXT_T);
-    ImTextureID press_T_hover = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TEXT_T_HOVER);
-    ImTextureID press_T_press = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TEXT_T_PRESS);
+    ImTextureID normal_B_dark = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TEXT_B_DARK);
+    ImTextureID normal_T_dark = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TEXT_T_DARK);
 
     // adjust window position to avoid overlap the view toolbar
     if (last_h != win_h || last_y != y) {
@@ -174,12 +219,20 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     if (m_font_size < 3.0f)m_font_size = 3.0f;
     ImGui::SameLine();
 
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0.0,0.0});
-    ImGui::BBLImageButton(normal_B,press_B_hover,press_B_press,{button_size,button_size},m_bold);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * currt_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {1.0f * currt_scale, 1.0f * currt_scale });
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f * currt_scale);
+    push_button_style(m_bold);
+    bool dark_mode = wxGetApp().app_config->get("dark_color_mode") == "1";
+    if (ImGui::ImageButton(dark_mode ? normal_B_dark : normal_B, { button_size - 2 * ImGui::GetStyle().FramePadding.x, button_size - 2 * ImGui::GetStyle().FramePadding.y }))
+        m_bold = !m_bold;
+    pop_button_style();
     ImGui::SameLine();
-    ImGui::BBLImageButton(normal_T,press_T_hover,press_T_press,{button_size,button_size},m_italic);
-    ImGui::PopStyleVar(2);
+    push_button_style(m_italic);
+    if (ImGui::ImageButton(dark_mode ? normal_T_dark : normal_T, { button_size - 2 * ImGui::GetStyle().FramePadding.x, button_size  - 2 * ImGui::GetStyle().FramePadding.y }))
+        m_italic = !m_italic;
+    pop_button_style();
+    ImGui::PopStyleVar(3);
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(_L("Thickness"));

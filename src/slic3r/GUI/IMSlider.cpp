@@ -453,13 +453,14 @@ bool IMSlider::init_texture()
     bool result = true;
     if (!is_horizontal()) {
         // BBS init image texture id
-        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/reset_normal.svg", 20, 20, m_reset_normal_id);
-        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/reset_hover.svg", 20, 20, m_reset_hover_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_on.svg", 24, 24, m_one_layer_on_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_on_hover.svg", 28, 28, m_one_layer_on_hover_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_off.svg", 28, 28, m_one_layer_off_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_off_hover.svg", 28, 28, m_one_layer_off_hover_id);
-        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_arrow.svg", 28, 28, m_one_layer_arrow_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_on_dark.svg", 24, 24, m_one_layer_on_dark_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_on_hover_dark.svg", 28, 28, m_one_layer_on_hover_dark_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_off_dark.svg", 28, 28, m_one_layer_off_dark_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_off_hover_dark.svg", 28, 28, m_one_layer_off_hover_dark_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/im_gcode_pause.svg", 14, 14, m_pause_icon_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/im_slider_delete.svg", 14, 14, m_delete_icon_id);
     }
@@ -723,8 +724,8 @@ bool IMSlider::switch_one_layer_mode()
 }
 
 void IMSlider::draw_background(const ImRect& groove) {
-    const ImU32 bg_rect_col = IM_COL32(255, 255, 255, 255);
-    const ImU32 groove_col = IM_COL32(206, 206, 206, 255);
+    const ImU32 bg_rect_col = wxGetApp().app_config->get("dark_color_mode") == "1" ? IM_COL32(65, 65, 71, 255) : IM_COL32(255, 255, 255, 255);
+    const ImU32 groove_col = wxGetApp().app_config->get("dark_color_mode") == "1" ? IM_COL32(45, 45, 49, 255) : IM_COL32(206, 206, 206, 255);
 
     if (is_horizontal() || m_ticks.empty()) {
         ImVec2 groove_padding = ImVec2(2.0f, 2.0f) * m_scale;
@@ -773,9 +774,9 @@ bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int 
     float  triangle_offsets[3] = {-3.5f * m_scale, 3.5f * m_scale, -6.06f * m_scale};
 
 
-    const ImU32 white_bg = IM_COL32(255, 255, 255, 255);
+    const ImU32 white_bg = wxGetApp().app_config->get("dark_color_mode") == "1" ? IM_COL32(65, 65, 71, 255) : IM_COL32(255, 255, 255, 255);
     const ImU32 handle_clr = IM_COL32(0, 174, 66, 255);
-    const ImU32 handle_border_clr = IM_COL32(248, 248, 248, 255);
+    const ImU32 handle_border_clr = wxGetApp().app_config->get("dark_color_mode") == "1" ? IM_COL32(65, 65, 71, 255) : IM_COL32(248, 248, 248, 255);
 
     // calc groove size
     ImVec2 groove_start = ImVec2(pos.x + handle_dummy_width, pos.y + size.y - groove_y - bottom_dummy);
@@ -836,7 +837,7 @@ void IMSlider::draw_colored_band(const ImRect& groove, const ImRect& slideable_r
     if (m_ticks.empty())
         return;
 
-    const ImU32 blank_col = IM_COL32(255, 255, 255, 255);
+    const ImU32 blank_col = wxGetApp().app_config->get("dark_color_mode") == "1" ? IM_COL32(65, 65, 71, 255) : IM_COL32(255, 255, 255, 255);
 
     ImVec2 blank_padding = ImVec2(6.0f, 5.0f) * m_scale;
     float  blank_width   = 1.0f * m_scale;
@@ -909,8 +910,7 @@ void IMSlider::draw_ticks(const ImRect& slideable_region) {
     ImVec2 icon_size     = ImVec2(14.0f, 14.0f) * m_scale;
 
     const ImU32 tick_clr = IM_COL32(144, 144, 144, 255);
-    const ImU32 tick_hover_box_clr = IM_COL32(219, 253, 231, 255);
-    const ImU32 delete_btn_clr = IM_COL32(144, 144, 144, 255);
+    const ImU32 tick_hover_box_clr = wxGetApp().app_config->get("dark_color_mode") == "1" ? IM_COL32(65, 65, 71, 255) : IM_COL32(219, 253, 231, 255);
 
     auto get_tick_pos = [this, slideable_region](int tick)
     {
@@ -1011,10 +1011,9 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
     ImVec2 text_content_size;
     ImVec2 text_size;
 
-    const ImU32 white_bg = IM_COL32(255, 255, 255, 255);
+    const ImU32 white_bg = wxGetApp().app_config->get("dark_color_mode") == "1" ? IM_COL32(65, 65, 71, 255) : IM_COL32(255, 255, 255, 255);
     const ImU32 handle_clr = IM_COL32(0, 174, 66, 255);
-    const ImU32 handle_border_clr = IM_COL32(248, 248, 248, 255);
-    const ImU32 delete_btn_clr = IM_COL32(144, 144, 144, 255);
+    const ImU32 handle_border_clr = wxGetApp().app_config->get("dark_color_mode") == "1" ? IM_COL32(65, 65, 71, 255) : IM_COL32(248, 248, 248, 255);
 
     // calc slider groove size
     ImVec2 groove_start = ImVec2(pos.x + size.x - groove_x - right_dummy, pos.y + text_dummy_height);
@@ -1264,8 +1263,13 @@ bool IMSlider::render(int canvas_width, int canvas_height)
 
         ImGui::Spacing();
         ImGui::SameLine((VERTICAL_SLIDER_SIZE.x - ONE_LAYER_OFFSET.x) * scale * m_scale);
-        ImTextureID normal_id = is_one_layer() ? m_one_layer_on_id : m_one_layer_off_id;
-        ImTextureID hover_id  = is_one_layer() ? m_one_layer_on_hover_id : m_one_layer_off_hover_id;
+        bool dark_mode = wxGetApp().app_config->get("dark_color_mode") == "1";
+        ImTextureID normal_id = dark_mode ? 
+            is_one_layer() ? m_one_layer_on_dark_id : m_one_layer_off_dark_id :
+            is_one_layer() ? m_one_layer_on_id : m_one_layer_off_id;
+        ImTextureID hover_id  = dark_mode ? 
+            is_one_layer() ? m_one_layer_on_hover_dark_id : m_one_layer_off_hover_dark_id :
+            is_one_layer() ? m_one_layer_on_hover_id : m_one_layer_off_hover_id;
         if (ImGui::ImageButton3(normal_id, hover_id, ImVec2(28 * m_scale, 28 * m_scale))) {
             switch_one_layer_mode();
         }
@@ -1320,7 +1324,7 @@ void IMSlider::render_input_custom_gcode()
     ImGui::NewLine();
     ImGui::SameLine(ImGui::GetStyle().WindowPadding.x * 14);
     imgui.push_confirm_button_style();
-    if (imgui.bbl_button(_L("OK"))) {
+    if (imgui.bbl_button(_L("OK")) || ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Enter))) {
         m_show_custom_gcode_window = false;
         add_custom_gcode(m_custom_gcode);
         move_to_center = true;
@@ -1330,7 +1334,7 @@ void IMSlider::render_input_custom_gcode()
 
     ImGui::SameLine();
     imgui.push_cancel_button_style();
-    if (imgui.bbl_button(_L("Cancel"))) {
+    if (imgui.bbl_button(_L("Cancel")) || ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
         m_show_custom_gcode_window = false;
         move_to_center = true;
         set_focus_when_appearing = true;
