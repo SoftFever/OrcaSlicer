@@ -770,7 +770,9 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "solid_infill_filament"
             || opt_key == "sparse_infill_line_width"
             || opt_key == "ensure_vertical_shell_thickness"
-            || opt_key == "bridge_angle") {
+            || opt_key == "bridge_angle"
+            //BBS
+            || opt_key == "internal_bridge_support_thickness") {
             steps.emplace_back(posPrepareInfill);
         } else if (
                opt_key == "top_surface_pattern"
@@ -1611,6 +1613,7 @@ void PrintObject::bridge_over_infill()
 
             Layer       *layer       = *layer_it;
             LayerRegion *layerm      = layer->m_regions[region_id];
+            const PrintObjectConfig& object_config = layer->object()->config();
             //BBS: enable thick bridge for internal bridge only
             Flow         bridge_flow = layerm->bridging_flow(frSolidInfill, true);
 
@@ -1678,8 +1681,43 @@ void PrintObject::bridge_over_infill()
                     (layerm->fill_surfaces.surfaces.end() - 1)->bridge_angle = ibd.angle;
                 }
             }
+
             for (ExPolygon &ex : not_to_bridge)
                 layerm->fill_surfaces.surfaces.push_back(Surface(stInternalSolid, ex));
+
+            //BBS: modify stInternal to be stInternalWithLoop to give better support to internal bridge
+            if (!to_bridge.empty()){
+                float internal_loop_thickness = object_config.internal_bridge_support_thickness.value;
+                double bottom_z = layer->print_z - layer->height - internal_loop_thickness + EPSILON;
+                //BBS: lighting infill doesn't support this feature. Don't need to add loop when infill density is high than 50%
+                if (region.config().sparse_infill_pattern != InfillPattern::ipLightning && region.config().sparse_infill_density.value < 50)
+                    for (int i = int(layer_it - m_layers.begin()) - 1; i >= 0; --i) {
+                        const Layer* lower_layer = m_layers[i];
+
+                        if (lower_layer->print_z < bottom_z) break;
+
+                        for (LayerRegion* lower_layerm : lower_layer->m_regions) {
+                            Polygons lower_internal;
+                            lower_layerm->fill_surfaces.filter_by_type(stInternal, &lower_internal);
+                            ExPolygons internal_with_loop = intersection_ex(lower_internal, to_bridge);
+                            ExPolygons internal = diff_ex(lower_internal, to_bridge);
+                            if (internal_with_loop.empty()) {
+                                //BBS: don't need to do anything
+                            }
+                            else if (internal.empty()) {
+                                lower_layerm->fill_surfaces.change_to_new_type(stInternal, stInternalWithLoop);
+                            }
+                            else {
+                                lower_layerm->fill_surfaces.remove_type(stInternal);
+                                for (ExPolygon& ex : internal_with_loop)
+                                    lower_layerm->fill_surfaces.surfaces.push_back(Surface(stInternalWithLoop, ex));
+                                for (ExPolygon& ex : internal)
+                                    lower_layerm->fill_surfaces.surfaces.push_back(Surface(stInternal, ex));
+                            }
+                        }
+                    }
+            }
+
             /*
             # exclude infill from the layers below if needed
             # see discussion at https://github.com/alexrj/Slic3r/issues/240

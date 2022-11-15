@@ -29,7 +29,7 @@
 namespace Slic3r {
 
 //BBS: 0% of sparse_infill_line_width, no anchor at the start of sparse infill
-float Fill::infill_anchor = 0;
+float Fill::infill_anchor = 400;
 //BBS: 20mm
 float Fill::infill_anchor_max = 20;
 
@@ -122,13 +122,57 @@ void Fill::fill_surface_extrusion(const Surface* surface, const FillParams& para
 {
     Polylines polylines;
     ThickPolylines thick_polylines;
-    try {
-        if (params.use_arachne)
-            thick_polylines = this->fill_surface_arachne(surface, params);
-        else
-            polylines = this->fill_surface(surface, params);
+    if (!params.with_loop) {
+        try {
+            if (params.use_arachne)
+                thick_polylines = this->fill_surface_arachne(surface, params);
+            else
+                polylines = this->fill_surface(surface, params);
+        }
+        catch (InfillFailedException&) {}
     }
-    catch (InfillFailedException&) {}
+    //BBS: add handling for infill pattern with loop
+    else {
+        Slic3r::ExPolygons expp = offset_ex(surface->expolygon, float(scale_(this->overlap - 0.5 * this->spacing)));
+        Polylines loop_polylines = to_polylines(expp);
+        {
+            //BBS: clip the loop
+            size_t j = 0;
+            for (size_t i = 0; i < loop_polylines.size(); ++i) {
+                loop_polylines[i].clip_end(this->loop_clipping);
+                if (loop_polylines[i].is_valid()) {
+                    if (j < i)
+                        loop_polylines[j] = std::move(loop_polylines[i]);
+                    ++j;
+                }
+            }
+            if (j < loop_polylines.size())
+                loop_polylines.erase(loop_polylines.begin() + int(j), loop_polylines.end());
+        }
+
+        if (!loop_polylines.empty()) {
+            if (params.use_arachne)
+                append(thick_polylines, to_thick_polylines(std::move(loop_polylines), scaled<coord_t>(this->spacing)));
+            else
+                append(polylines, std::move(loop_polylines));
+            expp = offset_ex(expp, float(scale_(0 - 0.5 * this->spacing)));
+        } else {
+            //BBS: the area is too narrow to place a loop, return to original expolygon
+            expp = { surface->expolygon };
+        }
+
+        Surface temp_surface = *surface;
+        for (ExPolygon& ex : expp) {
+            temp_surface.expolygon = ex;
+            try {
+                if (params.use_arachne)
+                    append(thick_polylines, std::move(this->fill_surface_arachne(&temp_surface, params)));
+                else
+                    append(polylines, std::move(this->fill_surface(&temp_surface, params)));
+            }
+            catch (InfillFailedException&) {}
+        }
+    }
 
     if (!polylines.empty() || !thick_polylines.empty()) {
         // calculate actual flow from spacing (which might have been adjusted by the infill

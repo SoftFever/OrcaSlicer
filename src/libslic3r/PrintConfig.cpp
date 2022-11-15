@@ -916,6 +916,19 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
+    def = this->add("internal_bridge_support_thickness", coFloat);
+    def->label = L("Internal bridge support thickness");
+    def->category = L("Strength");
+    def->tooltip = L("When sparse infill density is low, the internal solid infill or internal bridge may have no archor at the end of line. "
+                     "This cause falling and bad quality when printing internal solid infill. "
+                     "When enable this feature, loop paths will be added to the sparse fill of the lower layers for specific thickness, so that better archor can be provided for internal bridge. "
+                     "0 means disable this feature");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
     auto def_top_fill_pattern = def = this->add("top_surface_pattern", coEnum);
     def->label = L("Top surface pattern");
     def->category = L("Strength");

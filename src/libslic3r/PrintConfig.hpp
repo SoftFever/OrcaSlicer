@@ -655,6 +655,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,               detect_narrow_internal_solid_infill))
     // ((ConfigOptionBool,               adaptive_layer_height))
     ((ConfigOptionFloat,              support_bottom_interface_spacing))
+    ((ConfigOptionFloat,              internal_bridge_support_thickness))
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.
