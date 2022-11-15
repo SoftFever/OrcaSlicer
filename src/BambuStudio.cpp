@@ -371,17 +371,15 @@ int CLI::run(int argc, char **argv)
     /*BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
     for (int index=0; index < argc; index++)
         BOOST_LOG_TRIVIAL(info) << "index="<< index <<", arg is "<< argv[index] <<std::endl;
-    int debug_argc = 9;
+    int debug_argc = 7;
     char *debug_argv[] = {
         "E:\work\projects\bambu_release\bamboo_slicer\build_debug\src\Debug\bambu-studio.exe",
         "--slice",
-        "0",
+        "1",
         "--export-3mf=output.3mf",
-        "--curr-bed-type",
-        "Engineering Plate",
-        "--load-filaments",
-        "GFSU00.json",
-        "fujian.3mf"
+        "--debug",
+        "2",
+        "Demo_F1_RaceCar.3mf"
         };
     if (! this->setup(debug_argc, debug_argv))*/
     if (!this->setup(argc, argv))
@@ -656,6 +654,7 @@ int CLI::run(int argc, char **argv)
     //BBS: add plate data related logic
     PlateDataPtrs plate_data_src;
     int arrange_option;
+    int plate_to_slice = 0;
     bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false;
     Semver file_version;
     std::map<size_t, bool> orients_requirement;
@@ -663,6 +662,9 @@ int CLI::run(int argc, char **argv)
 
     // Read input file(s) if any.
     BOOST_LOG_TRIVIAL(info) << "Will start to read model file now, file count :" << m_input_files.size() << "\n";
+    ConfigOptionInt* slice_option = m_config.option<ConfigOptionInt>("slice");
+    if (slice_option)
+        plate_to_slice = slice_option->value;
     /*for (const std::string& file : m_input_files)
         if (is_gcode_file(file) && boost::filesystem::exists(file)) {
             start_as_gcodeviewer = true;
@@ -696,7 +698,7 @@ int CLI::run(int argc, char **argv)
                 // BBS: adjust whebackup
                 //LoadStrategy strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig|LoadStrategy::AddDefaultInstances;
                 //if (load_aux) strategy = strategy | LoadStrategy::LoadAuxiliary;
-                model = Model::read_from_file(file, &config, &config_substitutions, strategy, &plate_data_src, &project_presets, &is_bbl_3mf, &file_version);
+                model = Model::read_from_file(file, &config, &config_substitutions, strategy, &plate_data_src, &project_presets, &is_bbl_3mf, &file_version, nullptr, nullptr, nullptr, nullptr, nullptr, plate_to_slice);
                 if (is_bbl_3mf)
                 {
                     if (!first_file)
@@ -1240,7 +1242,6 @@ int CLI::run(int argc, char **argv)
 
     // loop through action options
     bool export_to_3mf = false;
-    int plate_to_slice = 0;
     std::string export_3mf_file;
     std::string outfile_dir = m_config.opt_string("outputdir");
     std::vector<ThumbnailData*> calibration_thumbnails;

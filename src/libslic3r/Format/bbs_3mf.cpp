@@ -678,6 +678,147 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         typedef std::map<int, std::vector<sla::SupportPoint>> IdToSlaSupportPointsMap;
         typedef std::map<int, std::vector<sla::DrainHole>> IdToSlaDrainHolesMap;*/
 
+        struct ObjectImporter
+        {
+            IdToCurrentObjectMap object_list;
+            CurrentObject *current_object{nullptr};
+            std::string object_path;
+            std::string zip_path;
+            _BBS_3MF_Importer *top_importer{nullptr};
+            XML_Parser object_xml_parser;
+            bool obj_parse_error { false };
+            std::string obj_parse_error_message;
+
+            //local parsed datas
+            std::string obj_curr_metadata_name;
+            std::string obj_curr_characters;
+            float object_unit_factor;
+            int object_current_color_group{-1};
+            std::map<int, std::string> object_group_id_to_color;
+            bool is_bbl_3mf { false };
+
+            ObjectImporter(_BBS_3MF_Importer *importer, std::string file_path, std::string obj_path)
+            {
+                top_importer = importer;
+                object_path = obj_path;
+                zip_path = file_path;
+            }
+
+            ~ObjectImporter()
+            {
+                _destroy_object_xml_parser();
+            }
+
+            void _destroy_object_xml_parser()
+            {
+                if (object_xml_parser != nullptr) {
+                    XML_ParserFree(object_xml_parser);
+                    object_xml_parser = nullptr;
+                }
+            }
+
+            void _stop_object_xml_parser(const std::string& msg = std::string())
+            {
+                assert(! obj_parse_error);
+                assert(obj_parse_error_message.empty());
+                assert(object_xml_parser != nullptr);
+                obj_parse_error = true;
+                obj_parse_error_message = msg;
+                XML_StopParser(object_xml_parser, false);
+            }
+
+            bool        object_parse_error()         const { return obj_parse_error; }
+            const char* object_parse_error_message() const {
+                return obj_parse_error ?
+                    // The error was signalled by the user code, not the expat parser.
+                    (obj_parse_error_message.empty() ? "Invalid 3MF format" : obj_parse_error_message.c_str()) :
+                    // The error was signalled by the expat parser.
+                    XML_ErrorString(XML_GetErrorCode(object_xml_parser));
+            }
+
+            bool _extract_object_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
+
+            bool extract_object_model()
+            {
+                mz_zip_archive archive;
+                mz_zip_archive_file_stat stat;
+                mz_zip_zero_struct(&archive);
+
+                if (!open_zip_reader(&archive, zip_path)) {
+                    top_importer->add_error("Unable to open the zipfile "+ zip_path);
+                    return false;
+                }
+
+                if (!top_importer->_extract_from_archive(archive, object_path, [this] (mz_zip_archive& archive, const mz_zip_archive_file_stat& stat) {
+                    return _extract_object_from_archive(archive, stat);
+                }, top_importer->m_load_restore)) {
+                    std::string error_msg = std::string("Archive does not contain a valid model for ") + object_path;
+                    top_importer->add_error(error_msg);
+
+                    close_zip_reader(&archive);
+                    return false;
+                }
+
+                close_zip_reader(&archive);
+
+                if (obj_parse_error) {
+                    //already add_error inside
+                    //top_importer->add_error(object_parse_error_message());
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Found error while extrace object %1%\n")%object_path;
+                    return false;
+                }
+                return true;
+            }
+
+            bool _handle_object_start_model(const char** attributes, unsigned int num_attributes);
+            bool _handle_object_end_model();
+
+            bool _handle_object_start_resources(const char** attributes, unsigned int num_attributes);
+            bool _handle_object_end_resources();
+
+            bool _handle_object_start_object(const char** attributes, unsigned int num_attributes);
+            bool _handle_object_end_object();
+
+            bool _handle_object_start_color_group(const char **attributes, unsigned int num_attributes);
+            bool _handle_object_end_color_group();
+
+            bool _handle_object_start_color(const char **attributes, unsigned int num_attributes);
+            bool _handle_object_end_color();
+
+            bool _handle_object_start_mesh(const char** attributes, unsigned int num_attributes);
+            bool _handle_object_end_mesh();
+
+            bool _handle_object_start_vertices(const char** attributes, unsigned int num_attributes);
+            bool _handle_object_end_vertices();
+
+            bool _handle_object_start_vertex(const char** attributes, unsigned int num_attributes);
+            bool _handle_object_end_vertex();
+
+            bool _handle_object_start_triangles(const char** attributes, unsigned int num_attributes);
+            bool _handle_object_end_triangles();
+
+            bool _handle_object_start_triangle(const char** attributes, unsigned int num_attributes);
+            bool _handle_object_end_triangle();
+
+            bool _handle_object_start_components(const char** attributes, unsigned int num_attributes);
+            bool _handle_object_end_components();
+
+            bool _handle_object_start_component(const char** attributes, unsigned int num_attributes);
+            bool _handle_object_end_component();
+
+            bool _handle_object_start_metadata(const char** attributes, unsigned int num_attributes);
+            bool _handle_object_end_metadata();
+
+            void _handle_object_start_model_xml_element(const char* name, const char** attributes);
+            void _handle_object_end_model_xml_element(const char* name);
+            void _handle_object_xml_characters(const XML_Char* s, int len);
+
+            // callbacks to parse the .model file of an object
+            static void XMLCALL _handle_object_start_model_xml_element(void* userData, const char* name, const char** attributes);
+            static void XMLCALL _handle_object_end_model_xml_element(void* userData, const char* name);
+            static void XMLCALL _handle_object_xml_characters(void* userData, const XML_Char* s, int len);
+        };
+
         // Version of the 3mf file
         unsigned int m_version;
         bool m_check_version;
@@ -729,6 +870,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         std::string m_start_part_path;
         std::string m_thumbnail_path;
         std::vector<std::string> m_sub_model_paths;
+        std::vector<ObjectImporter*> m_object_importers;
 
         std::map<int, ModelVolume*> m_shared_meshes;
 
@@ -748,7 +890,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         //BBS: add plate data related logic
         // add backup & restore logic
-        bool load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, LoadStrategy strategy, bool& is_bbl_3mf, Semver& file_version, Import3mfProgressFn proFn = nullptr, BBLProject *project = nullptr);
+        bool load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config,
+            ConfigSubstitutionContext& config_substitutions, LoadStrategy strategy, bool& is_bbl_3mf, Semver& file_version, Import3mfProgressFn proFn = nullptr, BBLProject *project = nullptr, int plate_id = 0);
         bool get_thumbnail(const std::string &filename, std::string &data);
         unsigned int version() const { return m_version; }
 
@@ -768,7 +911,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         //BBS: add plate data related logic
         // add backup & restore logic
         bool _load_model_from_file(std::string filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, Import3mfProgressFn proFn = nullptr,
-            BBLProject* project = nullptr);
+            BBLProject* project = nullptr, int plate_id = 0);
         bool _extract_from_archive(mz_zip_archive& archive, std::string const & path, std::function<bool (mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)>, bool restore = false);
         bool _extract_xml_from_archive(mz_zip_archive& archive, std::string const & path, XML_StartElementHandler start_handler, XML_EndElementHandler end_handler);
         bool _extract_xml_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, XML_StartElementHandler start_handler, XML_EndElementHandler end_handler);
@@ -889,7 +1032,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         bool _handle_start_relationship(const char** attributes, unsigned int num_attributes);
 
-        void _generate_current_object_list(std::vector<Component> &sub_objects, Id object_id, IdToCurrentObjectMap current_objects);
+        void _generate_current_object_list(std::vector<Component> &sub_objects, Id object_id, IdToCurrentObjectMap& current_objects);
         bool _generate_volumes_new(ModelObject& object, const std::vector<Component> &sub_objects, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions);
         bool _generate_volumes(ModelObject& object, const Geometry& geometry, const ObjectMetadata::VolumeMetadataList& volumes, ConfigSubstitutionContext& config_substitutions);
 
@@ -944,7 +1087,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
     //BBS: add plate data related logic
         // add backup & restore logic
-    bool _BBS_3MF_Importer::load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config, ConfigSubstitutionContext& config_substitutions, LoadStrategy strategy, bool& is_bbl_3mf, Semver& file_version, Import3mfProgressFn proFn, BBLProject *project)
+    bool _BBS_3MF_Importer::load_model_from_file(const std::string& filename, Model& model, PlateDataPtrs& plate_data_list, std::vector<Preset*>& project_presets, DynamicPrintConfig& config,
+        ConfigSubstitutionContext& config_substitutions, LoadStrategy strategy, bool& is_bbl_3mf, Semver& file_version, Import3mfProgressFn proFn, BBLProject *project, int plate_id)
     {
         m_version = 0;
         m_fdm_supports_painting_version = 0;
@@ -993,7 +1137,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         else {
             m_backup_path = model.get_backup_path();
         }
-        bool result = _load_model_from_file(filename, model, plate_data_list, project_presets, config, config_substitutions, proFn, project);
+        bool result = _load_model_from_file(filename, model, plate_data_list, project_presets, config, config_substitutions, proFn, project, plate_id);
         is_bbl_3mf = m_is_bbl_3mf;
         if (m_bambuslicer_generator_version)
             file_version = *m_bambuslicer_generator_version;
@@ -1071,7 +1215,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         DynamicPrintConfig& config,
         ConfigSubstitutionContext& config_substitutions,
         Import3mfProgressFn proFn,
-        BBLProject *project)
+        BBLProject *project,
+        int plate_id)
     {
         bool cb_cancel = false;
         //BBS progress point
@@ -1148,13 +1293,16 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             _extract_xml_from_archive(archive, sub_rels, _handle_start_relationships_element, _handle_end_relationships_element);
             int index = 0;
 
+#if 0
             for (auto path : m_sub_model_paths) {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_READ_FILES\n");
                 if (proFn) {
                     proFn(IMPORT_STAGE_READ_FILES, ++index, 3 + m_sub_model_paths.size(), cb_cancel);
                     if (cb_cancel)
                         return false;
                 }
+                else
+                    ++index;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", read %1%th sub model file %2%\n")%index %path;
                 m_sub_model_path = path;
                 if (!_extract_from_archive(archive, path, [this] (mz_zip_archive& archive, const mz_zip_archive_file_stat& stat) {
                     return _extract_model_from_archive(archive, stat);
@@ -1164,6 +1312,43 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 }
                 m_sub_model_path.clear();
             }
+#else
+            for (auto path : m_sub_model_paths) {
+                ObjectImporter *object_importer = new ObjectImporter(this, filename, path);
+                m_object_importers.push_back(object_importer);
+            }
+
+            bool object_load_result = true;
+            boost::mutex mutex;
+            tbb::parallel_for(
+                tbb::blocked_range<size_t>(0, m_object_importers.size()),
+                [this, &mutex, &object_load_result](const tbb::blocked_range<size_t>& importer_range) {
+                    for (size_t object_index = importer_range.begin(); object_index < importer_range.end(); ++ object_index) {
+                        bool result = m_object_importers[object_index]->extract_object_model();
+                        {
+                            boost::unique_lock l(mutex);
+                            object_load_result &= result;
+                        }
+                    }
+                }
+            );
+
+            if (!object_load_result) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", loading sub-objects error\n");
+                return false;
+            }
+
+            //merge these objects into one
+            for (auto obj_importer : m_object_importers) {
+                for (const IdToCurrentObjectMap::value_type&  obj : obj_importer->object_list)
+                    m_current_objects.insert({ std::move(obj.first), std::move(obj.second)});
+                for (auto group_color : obj_importer->object_group_id_to_color)
+                    m_group_id_to_color.insert(std::move(group_color));
+
+                delete obj_importer;
+            }
+            m_object_importers.clear();
+#endif
             // BBS: load root model
             if (proFn) {
                 proFn(IMPORT_STAGE_READ_FILES, 2, 3, cb_cancel);
@@ -1222,7 +1407,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 std::string name(stat.m_filename);
                 std::replace(name.begin(), name.end(), '\\', '/');
 
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("extract file %1%\n")%name;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("extract %1%th file %2%, total=%3%\n")%(i+1)%name%num_entries;
 
                 if (boost::algorithm::iequals(name, BBS_LAYER_HEIGHTS_PROFILE_FILE)) {
                     // extract slic3r layer heights profile file
@@ -1310,6 +1495,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         if (m_version == 0) {
             // if the 3mf was not produced by BambuStudio and there is more than one instance,
             // split the object in as many objects as instances
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", found 3mf from other vendor, split as instance");
             for (const IdToModelObjectMap::value_type& object : m_objects) {
                 if (object.second >= int(m_model->objects.size())) {
                     add_error("3rd 3mf, invalid object, id: "+std::to_string(object.first.second));
@@ -1351,6 +1537,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
         }
 
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", process group colors, size %1%\n")%m_group_id_to_color.size();
         std::map<int, int> color_group_id_to_extruder_id_map;
         std::map<std::string, int> color_to_extruder_id_map;
         int extruder_id = 0;
@@ -1365,10 +1552,27 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
         }
 
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", begin to assemble objects, size %1%\n")%m_objects.size();
+        //only load objects in plate_id
+        PlateData* current_plate_data = nullptr;
+        if ((plate_id > 0) && (plate_id <= m_plater_data.size())) {
+            std::map<int, PlateData*>::iterator it =m_plater_data.find(plate_id);
+            if (it != m_plater_data.end()) {
+                current_plate_data = it->second;
+            }
+        }
         for (const IdToModelObjectMap::value_type& object : m_objects) {
             if (object.second >= int(m_model->objects.size())) {
                 add_error("invalid object, id: "+std::to_string(object.first.second));
                 return false;
+            }
+            if (current_plate_data) {
+                std::map<int, int>::iterator it = current_plate_data->obj_inst_map.find(object.first.second);
+                if (it == current_plate_data->obj_inst_map.end()) {
+                    //not in current plate, skip
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", could not find object %1% in plate %2%, skip it\n")%object.first.second %plate_id;
+                    continue;
+                }
             }
             ModelObject* model_object = m_model->objects[object.second];
             /*IdToGeometryMap::const_iterator obj_geometry = m_geometries.find(object.first);
@@ -1527,7 +1731,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
             plate_data_list[it->first-1]->locked = it->second->locked;
             plate_data_list[it->first-1]->plate_index = it->second->plate_index-1;
-            plate_data_list[it->first-1]->objects_and_instances = it->second->objects_and_instances;
+            plate_data_list[it->first-1]->obj_inst_map = it->second->obj_inst_map;
             plate_data_list[it->first-1]->gcode_file = (m_load_restore || it->second->gcode_file.empty()) ? it->second->gcode_file : m_backup_path + "/" + it->second->gcode_file;
             plate_data_list[it->first-1]->gcode_prediction = it->second->gcode_prediction;
             plate_data_list[it->first-1]->gcode_weight = it->second->gcode_weight;
@@ -1541,6 +1745,21 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->config = it->second->config;
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", plate %1%, thumbnail_file=%2%")%it->first %plate_data_list[it->first-1]->thumbnail_file;
             it++;
+        }
+
+        if ((plate_id > 0) && (plate_id <= m_plater_data.size())) {
+            //remove the no need objects
+            std::vector<size_t> delete_ids;
+            for (int index = 0; index < m_model->objects.size(); index++) {
+                ModelObject* obj =  m_model->objects[index];
+                if (obj->volumes.size() == 0) {
+                    //remove this model objects
+                    delete_ids.push_back(index);
+                }
+            }
+
+            for (int index = delete_ids.size() - 1; index >= 0; index--)
+                m_model->delete_object(delete_ids[index]);
         }
 
         //BBS progress point
@@ -3171,7 +3390,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
             else if (key == OBJECT_ID_ATTR)
             {
-                int obj_id = atoi(value.c_str());
+                m_curr_instance.object_id = atoi(value.c_str());
+                /*int obj_id = atoi(value.c_str());
                 m_curr_instance.object_id = -1;
                 IndexToPathMap::iterator index_iter = m_index_paths.find(obj_id);
                 if (index_iter == m_index_paths.end()) {
@@ -3186,7 +3406,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         << boost::format(", can not find object for plate's item, ID <%1%, %2%>, skip this object")%index_iter->second %index_iter->first;
                     return true;
                 }
-                m_curr_instance.object_id = object_item->second;
+                m_curr_instance.object_id = object_item->second;*/
             }
             else if (key == PLATE_IDX_ATTR)
             {
@@ -3324,7 +3544,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             return true;
         }
 
-        m_curr_plater->objects_and_instances.emplace_back(m_curr_instance.object_id, m_curr_instance.instance_id);
+        m_curr_plater->obj_inst_map.emplace(m_curr_instance.object_id, m_curr_instance.instance_id);
         m_curr_instance.object_id = m_curr_instance.instance_id = -1;
         return true;
     }
@@ -3428,7 +3648,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return true;
     }
 
-    void _BBS_3MF_Importer::_generate_current_object_list(std::vector<Component> &sub_objects, Id object_id, IdToCurrentObjectMap current_objects)
+    void _BBS_3MF_Importer::_generate_current_object_list(std::vector<Component> &sub_objects, Id object_id, IdToCurrentObjectMap& current_objects)
     {
         std::list<Component> id_list;
         id_list.push_back({ object_id, Transform3d::Identity() });
@@ -3841,6 +4061,468 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         _BBS_3MF_Importer* importer = (_BBS_3MF_Importer*)userData;
         if (importer != nullptr)
             importer->_handle_end_config_xml_element(name);
+    }
+
+
+    /* functions of ObjectImporter */
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_start_model(const char** attributes, unsigned int num_attributes)
+    {
+        object_unit_factor = bbs_get_unit_factor(bbs_get_attribute_value_string(attributes, num_attributes, UNIT_ATTR));
+
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_end_model()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_start_resources(const char** attributes, unsigned int num_attributes)
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_end_resources()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_start_object(const char** attributes, unsigned int num_attributes)
+    {
+        // reset current object data
+        if (current_object) {
+            delete current_object;
+            current_object = nullptr;
+        }
+
+        std::string object_type = bbs_get_attribute_value_string(attributes, num_attributes, TYPE_ATTR);
+
+        if (bbs_is_valid_object_type(object_type)) {
+            if (!current_object) {
+                current_object = new CurrentObject();
+            }
+
+            current_object->id = bbs_get_attribute_value_int(attributes, num_attributes, ID_ATTR);
+            current_object->name = bbs_get_attribute_value_string(attributes, num_attributes, NAME_ATTR);
+
+            current_object->uuid = bbs_get_attribute_value_string(attributes, num_attributes, PUUID_ATTR);
+            current_object->pid = bbs_get_attribute_value_int(attributes, num_attributes, PID_ATTR);
+        }
+
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_end_object()
+    {
+        if (!current_object || (current_object->id == -1)) {
+            top_importer->add_error("Found invalid object for "+ object_path);
+            return false;
+        }
+        else {
+            if (is_bbl_3mf && boost::ends_with(current_object->uuid, OBJECT_UUID_SUFFIX) && top_importer->m_load_restore) {
+                std::istringstream iss(current_object->uuid);
+                int backup_id;
+                bool need_replace = false;
+                if (iss >> std::hex >> backup_id) {
+                    need_replace = (current_object->id != backup_id);
+                    current_object->id = backup_id;
+                }
+                //if (need_replace)
+                {
+                    for (int index = 0; index < current_object->components.size(); index++)
+                    {
+                        int temp_id = (index + 1) << 16 | backup_id;
+                        Component& component = current_object->components[index];
+                        std::string new_path = component.object_id.first;
+                        Id new_id = std::make_pair(new_path, temp_id);
+                        IdToCurrentObjectMap::iterator object_it = object_list.find(component.object_id);
+                        if (object_it != object_list.end()) {
+                            CurrentObject new_object;
+                            new_object.geometry = std::move(object_it->second.geometry);
+                            new_object.id = temp_id;
+                            new_object.model_object_idx = object_it->second.model_object_idx;
+                            new_object.name = object_it->second.name;
+                            new_object.uuid = object_it->second.uuid;
+
+                            object_list.erase(object_it);
+                            object_list.insert({ new_id, std::move(new_object) });
+                        }
+                        else {
+                            top_importer->add_error("can not find object for component, id=" + std::to_string(component.object_id.second));
+                            delete current_object;
+                            current_object = nullptr;
+                            return false;
+                        }
+
+                        component.object_id.second = temp_id;
+                    }
+                }
+            }
+            Id id = std::make_pair(object_path, current_object->id);
+            if (object_list.find(id) == object_list.end()) {
+                object_list.insert({ id, std::move(*current_object) });
+                delete current_object;
+                current_object = nullptr;
+            }
+            else {
+                top_importer->add_error("Found object with duplicate id for "+object_path);
+                delete current_object;
+                current_object = nullptr;
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_start_color_group(const char **attributes, unsigned int num_attributes)
+    {
+        object_current_color_group = bbs_get_attribute_value_int(attributes, num_attributes, ID_ATTR);
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_end_color_group()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_start_color(const char **attributes, unsigned int num_attributes)
+    {
+        std::string color = bbs_get_attribute_value_string(attributes, num_attributes, COLOR_ATTR);
+        object_group_id_to_color[object_current_color_group] = color;
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_end_color()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_start_mesh(const char** attributes, unsigned int num_attributes)
+    {
+        // reset current geometry
+        if (current_object)
+            current_object->geometry.reset();
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_end_mesh()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_start_vertices(const char** attributes, unsigned int num_attributes)
+    {
+        // reset current vertices
+        if (current_object)
+            current_object->geometry.vertices.clear();
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_end_vertices()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_start_vertex(const char** attributes, unsigned int num_attributes)
+    {
+        // appends the vertex coordinates
+        // missing values are set equal to ZERO
+        if (current_object)
+            current_object->geometry.vertices.emplace_back(
+                object_unit_factor * bbs_get_attribute_value_float(attributes, num_attributes, X_ATTR),
+                object_unit_factor * bbs_get_attribute_value_float(attributes, num_attributes, Y_ATTR),
+                object_unit_factor * bbs_get_attribute_value_float(attributes, num_attributes, Z_ATTR));
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_end_vertex()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_start_triangles(const char** attributes, unsigned int num_attributes)
+    {
+        // reset current triangles
+        if (current_object)
+            current_object->geometry.triangles.clear();
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_end_triangles()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_start_triangle(const char** attributes, unsigned int num_attributes)
+    {
+        // we are ignoring the following attributes:
+        // p1
+        // p2
+        // p3
+        // pid
+        // see specifications
+
+        // appends the triangle's vertices indices
+        // missing values are set equal to ZERO
+        if (current_object) {
+            current_object->geometry.triangles.emplace_back(
+                bbs_get_attribute_value_int(attributes, num_attributes, V1_ATTR),
+                bbs_get_attribute_value_int(attributes, num_attributes, V2_ATTR),
+                bbs_get_attribute_value_int(attributes, num_attributes, V3_ATTR));
+
+            current_object->geometry.custom_supports.push_back(bbs_get_attribute_value_string(attributes, num_attributes, CUSTOM_SUPPORTS_ATTR));
+            current_object->geometry.custom_seam.push_back(bbs_get_attribute_value_string(attributes, num_attributes, CUSTOM_SEAM_ATTR));
+            current_object->geometry.mmu_segmentation.push_back(bbs_get_attribute_value_string(attributes, num_attributes, MMU_SEGMENTATION_ATTR));
+            // BBS
+            current_object->geometry.face_properties.push_back(bbs_get_attribute_value_string(attributes, num_attributes, FACE_PROPERTY_ATTR));
+        }
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_end_triangle()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_start_components(const char** attributes, unsigned int num_attributes)
+    {
+        // reset current components
+        if (current_object)
+            current_object->components.clear();
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_end_components()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_start_component(const char** attributes, unsigned int num_attributes)
+    {
+        int object_id = bbs_get_attribute_value_int(attributes, num_attributes, OBJECTID_ATTR);
+        Transform3d transform = bbs_get_transform_from_3mf_specs_string(bbs_get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
+
+        /*Id id = std::make_pair(m_sub_model_path, object_id);
+        IdToModelObjectMap::iterator object_item = m_objects.find(id);
+        if (object_item == m_objects.end()) {
+            IdToAliasesMap::iterator alias_item = m_objects_aliases.find(id);
+            if (alias_item == m_objects_aliases.end()) {
+                add_error("Found component with invalid object id");
+                return false;
+            }
+        }*/
+
+        if (current_object) {
+            Id id = std::make_pair(object_path, object_id);
+            current_object->components.emplace_back(id, transform);
+        }
+
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_end_component()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_start_metadata(const char** attributes, unsigned int num_attributes)
+    {
+        obj_curr_metadata_name.clear();
+
+        std::string name = bbs_get_attribute_value_string(attributes, num_attributes, NAME_ATTR);
+        if (!name.empty()) {
+            obj_curr_metadata_name = name;
+        }
+
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_handle_object_end_metadata()
+    {
+        if ((obj_curr_metadata_name == BBS_3MF_VERSION)||(obj_curr_metadata_name == BBS_3MF_VERSION1)) {
+            is_bbl_3mf = true;
+        }
+        return true;
+    }
+    void _BBS_3MF_Importer::ObjectImporter::_handle_object_start_model_xml_element(const char* name, const char** attributes)
+    {
+        if (object_xml_parser == nullptr)
+            return;
+
+        bool res = true;
+        unsigned int num_attributes = (unsigned int)XML_GetSpecifiedAttributeCount(object_xml_parser);
+
+        if (::strcmp(MODEL_TAG, name) == 0)
+            res = _handle_object_start_model(attributes, num_attributes);
+        else if (::strcmp(RESOURCES_TAG, name) == 0)
+            res = _handle_object_start_resources(attributes, num_attributes);
+        else if (::strcmp(OBJECT_TAG, name) == 0)
+            res = _handle_object_start_object(attributes, num_attributes);
+        else if (::strcmp(COLOR_GROUP_TAG, name) == 0)
+            res = _handle_object_start_color_group(attributes, num_attributes);
+        else if (::strcmp(COLOR_TAG, name) == 0)
+            res = _handle_object_start_color(attributes, num_attributes);
+        else if (::strcmp(MESH_TAG, name) == 0)
+            res = _handle_object_start_mesh(attributes, num_attributes);
+        else if (::strcmp(VERTICES_TAG, name) == 0)
+            res = _handle_object_start_vertices(attributes, num_attributes);
+        else if (::strcmp(VERTEX_TAG, name) == 0)
+            res = _handle_object_start_vertex(attributes, num_attributes);
+        else if (::strcmp(TRIANGLES_TAG, name) == 0)
+            res = _handle_object_start_triangles(attributes, num_attributes);
+        else if (::strcmp(TRIANGLE_TAG, name) == 0)
+            res = _handle_object_start_triangle(attributes, num_attributes);
+        else if (::strcmp(COMPONENTS_TAG, name) == 0)
+            res = _handle_object_start_components(attributes, num_attributes);
+        else if (::strcmp(COMPONENT_TAG, name) == 0)
+            res = _handle_object_start_component(attributes, num_attributes);
+        else if (::strcmp(METADATA_TAG, name) == 0)
+            res = _handle_object_start_metadata(attributes, num_attributes);
+
+        if (!res)
+            _stop_object_xml_parser();
+    }
+
+    void _BBS_3MF_Importer::ObjectImporter::_handle_object_end_model_xml_element(const char* name)
+    {
+        if (object_xml_parser == nullptr)
+            return;
+
+        bool res = true;
+
+        if (::strcmp(MODEL_TAG, name) == 0)
+            res = _handle_object_end_model();
+        else if (::strcmp(RESOURCES_TAG, name) == 0)
+            res = _handle_object_end_resources();
+        else if (::strcmp(OBJECT_TAG, name) == 0)
+            res = _handle_object_end_object();
+        else if (::strcmp(COLOR_GROUP_TAG, name) == 0)
+            res = _handle_object_end_color_group();
+        else if (::strcmp(COLOR_TAG, name) == 0)
+            res = _handle_object_end_color();
+        else if (::strcmp(MESH_TAG, name) == 0)
+            res = _handle_object_end_mesh();
+        else if (::strcmp(VERTICES_TAG, name) == 0)
+            res = _handle_object_end_vertices();
+        else if (::strcmp(VERTEX_TAG, name) == 0)
+            res = _handle_object_end_vertex();
+        else if (::strcmp(TRIANGLES_TAG, name) == 0)
+            res = _handle_object_end_triangles();
+        else if (::strcmp(TRIANGLE_TAG, name) == 0)
+            res = _handle_object_end_triangle();
+        else if (::strcmp(COMPONENTS_TAG, name) == 0)
+            res = _handle_object_end_components();
+        else if (::strcmp(COMPONENT_TAG, name) == 0)
+            res = _handle_object_end_component();
+        else if (::strcmp(METADATA_TAG, name) == 0)
+            res = _handle_object_end_metadata();
+
+        if (!res)
+            _stop_object_xml_parser();
+    }
+
+    void _BBS_3MF_Importer::ObjectImporter::_handle_object_xml_characters(const XML_Char* s, int len)
+    {
+        obj_curr_characters.append(s, len);
+    }
+
+    void XMLCALL _BBS_3MF_Importer::ObjectImporter::_handle_object_start_model_xml_element(void* userData, const char* name, const char** attributes)
+    {
+        ObjectImporter* importer = (ObjectImporter*)userData;
+        if (importer != nullptr)
+            importer->_handle_object_start_model_xml_element(name, attributes);
+    }
+
+    void XMLCALL _BBS_3MF_Importer::ObjectImporter::_handle_object_end_model_xml_element(void* userData, const char* name)
+    {
+        ObjectImporter* importer = (ObjectImporter*)userData;
+        if (importer != nullptr)
+            importer->_handle_object_end_model_xml_element(name);
+    }
+
+    void XMLCALL _BBS_3MF_Importer::ObjectImporter::_handle_object_xml_characters(void* userData, const XML_Char* s, int len)
+    {
+        ObjectImporter* importer = (ObjectImporter*)userData;
+        if (importer != nullptr)
+            importer->_handle_object_xml_characters(s, len);
+    }
+
+    bool _BBS_3MF_Importer::ObjectImporter::_extract_object_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)
+    {
+        if (stat.m_uncomp_size == 0) {
+            top_importer->add_error("Found invalid size for "+object_path);
+            return false;
+        }
+
+        object_xml_parser = XML_ParserCreate(nullptr);
+        if (object_xml_parser == nullptr) {
+            top_importer->add_error("Unable to create parser for "+object_path);
+            return false;
+        }
+
+        XML_SetUserData(object_xml_parser, (void*)this);
+        XML_SetElementHandler(object_xml_parser, _BBS_3MF_Importer::ObjectImporter::_handle_object_start_model_xml_element, _BBS_3MF_Importer::ObjectImporter::_handle_object_end_model_xml_element);
+        XML_SetCharacterDataHandler(object_xml_parser, _BBS_3MF_Importer::ObjectImporter::_handle_object_xml_characters);
+
+        struct CallbackData
+        {
+            XML_Parser& parser;
+            _BBS_3MF_Importer::ObjectImporter& importer;
+            const mz_zip_archive_file_stat& stat;
+
+            CallbackData(XML_Parser& parser, _BBS_3MF_Importer::ObjectImporter& importer, const mz_zip_archive_file_stat& stat) : parser(parser), importer(importer), stat(stat) {}
+        };
+
+        CallbackData data(object_xml_parser, *this, stat);
+
+        mz_bool res = 0;
+
+        try
+        {
+            mz_file_write_func callback = [](void* pOpaque, mz_uint64 file_ofs, const void* pBuf, size_t n)->size_t {
+                CallbackData* data = (CallbackData*)pOpaque;
+                if (!XML_Parse(data->parser, (const char*)pBuf, (int)n, (file_ofs + n == data->stat.m_uncomp_size) ? 1 : 0) || data->importer.object_parse_error()) {
+                    char error_buf[1024];
+                    ::sprintf(error_buf, "Error (%s) while parsing '%s' at line %d", data->importer.object_parse_error_message(), data->stat.m_filename, (int)XML_GetCurrentLineNumber(data->parser));
+                    throw Slic3r::FileIOError(error_buf);
+                }
+                return n;
+            };
+            void* opaque = &data;
+            res = mz_zip_reader_extract_to_callback(&archive, stat.m_file_index, callback, opaque, 0);
+        }
+        catch (const version_error& e)
+        {
+            // rethrow the exception
+            std::string error_message = std::string(e.what()) + " for " + object_path;
+            throw Slic3r::FileIOError(error_message);
+        }
+        catch (std::exception& e)
+        {
+            std::string error_message = std::string(e.what()) + " for " + object_path;
+            top_importer->add_error(error_message);
+            return false;
+        }
+
+        if (res == 0) {
+            top_importer->add_error("Error while extracting model data from zip archive for "+object_path);
+            return false;
+        }
+
+        return true;
     }
 
 
@@ -6328,7 +7010,8 @@ private:
 
 
 //BBS: add plate data list related logic
-bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets, bool* is_bbl_3mf, Semver* file_version, Import3mfProgressFn proFn, LoadStrategy strategy, BBLProject *project)
+bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets,
+                    bool* is_bbl_3mf, Semver* file_version, Import3mfProgressFn proFn, LoadStrategy strategy, BBLProject *project, int plate_id)
 {
     if (path == nullptr || config == nullptr || model == nullptr)
         return false;
@@ -6336,7 +7019,7 @@ bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstituti
     // All import should use "C" locales for number formatting.
     CNumericLocalesSetter locales_setter;
     _BBS_3MF_Importer importer;
-    bool res = importer.load_model_from_file(path, *model, *plate_data_list, *project_presets, *config, *config_substitutions, strategy, *is_bbl_3mf, *file_version, proFn, project);
+    bool res = importer.load_model_from_file(path, *model, *plate_data_list, *project_presets, *config, *config_substitutions, strategy, *is_bbl_3mf, *file_version, proFn, project, plate_id);
     importer.log_errors();
     //BBS: remove legacy project logic currently
     //handle_legacy_project_loaded(importer.version(), *config);
