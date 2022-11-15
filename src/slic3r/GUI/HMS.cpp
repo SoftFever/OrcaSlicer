@@ -47,6 +47,8 @@ int HMSQuery::download_hms_info()
     std::string lang_code = wxGetApp().app_config->get_language_code();
     std::string url = (boost::format("https://%1%/query.php?lang=%2%") % hms_host % lang_code).str();
 
+    BOOST_LOG_TRIVIAL(info) << "hms: download url = " << url;
+
     Slic3r::Http http = Slic3r::Http::get(url);
 
     http.on_complete([this](std::string body, unsigned status) {
@@ -102,6 +104,7 @@ int HMSQuery::load_from_local(std::string &version_info)
         }
     } catch(...) {
         version_info = "";
+        BOOST_LOG_TRIVIAL(error) << "HMS: load_from_local failed";
         return -1;
     }
     version_info = "";
@@ -125,6 +128,7 @@ int HMSQuery::save_to_local()
         json_file.close();
         return 0;
     }
+    BOOST_LOG_TRIVIAL(error) << "HMS: save_to_local failed";
     return -1;
 }
 
@@ -162,6 +166,7 @@ wxString HMSQuery::query_hms_msg(std::string long_error_code)
             BOOST_LOG_TRIVIAL(info) << "hms: query_hms_msg, not found error_code = " << long_error_code;
         }
     } else {
+        BOOST_LOG_TRIVIAL(info) << "device_hms is not exists";
         return wxEmptyString;
     }
     return wxEmptyString;
