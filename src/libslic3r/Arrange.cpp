@@ -356,9 +356,10 @@ protected:
                 score = dist_for_BOTTOM_LEFT(ibb, origin_pack);
             }
             else {
-                score = 0.5 * norm(pl::distance(ibb.center(), origin_pack));
                 if (m_pilebb.defined)
-                    score += 0.5 * norm(pl::distance(ibb.center(), m_pilebb.center()));
+                    score = 0.5 * norm(pl::distance(ibb.center(), m_pilebb.center()));
+                else
+                    score = 0.5 * norm(pl::distance(ibb.center(), origin_pack));
             }
             break;
         }
