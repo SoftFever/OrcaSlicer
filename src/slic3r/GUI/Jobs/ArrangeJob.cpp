@@ -237,39 +237,48 @@ void ArrangeJob::prepare_all() {
     prepare_wipe_tower();
 }
 
+// 准备料塔。逻辑如下：
+// 1. 如果料塔被禁用，或是逐件打印，则不需要料塔
+// 2. 以下两种情况需要料塔：1）某对象是多色对象；2）打开了支撑，且支撑体与接触面使用的是不同材料
+// 3. 如果允许不同材料落在相同盘，则以下情况也需要料塔：1）所有选定对象中使用了多种热床温度相同的材料（比如颜色不同的PLA）
 void ArrangeJob::prepare_wipe_tower()
 {
     bool need_wipe_tower = false;
 
     // if wipe tower is explicitly disabled, no need to estimate
-    auto &print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
-    if (!print.config().enable_prime_tower) return;
+    DynamicPrintConfig &current_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto                op             = current_config.option("enable_prime_tower");
+    if (op && op->getBool() == false || params.is_seq_print) return;
 
     // estimate if we need wipe tower for all plates:
+    // need wipe tower if some object has multiple extruders (has paint-on colors or support material)
+    for (const auto &item : m_selected) {
+        std::set<int> obj_extruders;
+        for (int id : item.extrude_ids) obj_extruders.insert(id);
+        if (obj_extruders.size() > 1) {
+            need_wipe_tower = true;
+            BOOST_LOG_TRIVIAL(info) << "arrange: need wipe tower because object " << item.name << " has multiple extruders (has paint-on colors)";
+            break;
+        }
+    }
+     
     // if multile extruders have same bed temp, we need wipe tower
-    if (!params.is_seq_print) {
-        // need wipe tower if some object has multiple extruders (has paint-on colors)
-        if (!params.allow_multi_materials_on_same_plate) {
-            for (const auto &item : m_selected)
-                if (item.extrude_ids.size() > 1) {
-                    need_wipe_tower = true;
-                    break;
-                }
-        } else {
-            std::map<int, std::set<int>> bedTemp2extruderIds;
-            for (const auto &item : m_selected)
-                for (auto id : item.extrude_ids) { bedTemp2extruderIds[item.bed_temp].insert(id); }
-            for (const auto &be : bedTemp2extruderIds) {
-                if (be.second.size() > 1) {
-                    need_wipe_tower = true;
-                    break;
-                }
+     if (params.allow_multi_materials_on_same_plate) {
+        std::map<int, std::set<int>> bedTemp2extruderIds;
+        for (const auto &item : m_selected)
+            for (auto id : item.extrude_ids) { bedTemp2extruderIds[item.bed_temp].insert(id); }
+        for (const auto &be : bedTemp2extruderIds) {
+            if (be.second.size() > 1) {
+                need_wipe_tower = true;
+                BOOST_LOG_TRIVIAL(info) << "arrange: need wipe tower because allow_multi_materials_on_same_plate=true and we have multiple extruders of same type";
+                break;
             }
         }
     }
+    BOOST_LOG_TRIVIAL(info) << "arrange: need_wipe_tower=" << need_wipe_tower;
 
     if (need_wipe_tower) {
-        // BBS: prepare wipe tower for all possible plates
+        // check all plates to see if wipe tower is already there
         ArrangePolygon    wipe_tower_ap;
         std::vector<bool> plates_have_wipe_tower(MAX_NUM_PLATES, false);
         for (int bedid = 0; bedid < MAX_NUM_PLATES; bedid++)
@@ -299,20 +308,6 @@ void ArrangeJob::prepare_wipe_tower()
     }
 }
 
-
-arrangement::ArrangePolygon ArrangeJob::get_arrange_poly_(ModelInstance *mi)
-{
-    arrangement::ArrangePolygon ap = get_arrange_poly(mi);
-
-    auto setter = ap.setter;
-    ap.setter = [this, setter, mi](const arrangement::ArrangePolygon &set_ap) {
-        setter(set_ap);
-        if (!set_ap.is_arranged())
-            m_unarranged.emplace_back(mi);
-    };
-
-    return ap;
-}
 
 //BBS: prepare current part plate for arranging
 void ArrangeJob::prepare_partplate() {

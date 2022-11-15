@@ -836,7 +836,7 @@ static void process_arrangeable(const ArrangePolygon &arrpoly,
     item.binId(arrpoly.bed_idx);
     item.priority(arrpoly.priority);
     item.itemId(arrpoly.itemid);
-    item.extrude_id = arrpoly.extrude_ids.back();
+    item.extrude_id = arrpoly.extrude_ids.front();
     item.height = arrpoly.height;
     item.name = arrpoly.name;
     //BBS: add virtual object logic

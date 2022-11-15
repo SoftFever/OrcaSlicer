@@ -88,9 +88,9 @@ void duplicate_objects(Model &model, size_t copies_num)
 
 // Set up arrange polygon for a ModelInstance and Wipe tower
 template<class T>
-arrangement::ArrangePolygon get_arrange_poly(T obj)
+arrangement::ArrangePolygon get_arrange_poly(T obj, const Slic3r::DynamicPrintConfig& config)
 {
-    ArrangePolygon ap = obj.get_arrange_polygon();
+    ArrangePolygon ap = obj.get_arrange_polygon(config);
     //BBS: always set bed_idx to 0 to use original transforms with no bed_idx
     //if this object is not arranged, it can keep the original transforms
     //ap.bed_idx        = ap.translation.x() / bed_stride_x(plater);
@@ -110,14 +110,14 @@ arrangement::ArrangePolygon get_arrange_poly(T obj)
 }
 
 template<>
-arrangement::ArrangePolygon get_arrange_poly(ModelInstance* inst)
+arrangement::ArrangePolygon get_arrange_poly(ModelInstance* inst, const Slic3r::DynamicPrintConfig& config)
 {
-    return get_arrange_poly(PtrWrapper{ inst });
+    return get_arrange_poly(PtrWrapper{ inst },config);
 }
 
 ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::DynamicPrintConfig& config)
 {
-    ArrangePolygon ap = get_arrange_poly(PtrWrapper{ instance });
+    ArrangePolygon ap = get_arrange_poly(PtrWrapper{ instance }, config);
     
     //BBS: add temperature information
     if (config.has("curr_bed_type")) {
@@ -127,20 +127,20 @@ ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::
 
         const ConfigOptionInts* bed_opt = config.option<ConfigOptionInts>(get_bed_temp_key(curr_bed_type));
         if (bed_opt != nullptr)
-            ap.bed_temp = bed_opt->get_at(ap.extrude_ids.back()-1);
+            ap.bed_temp = bed_opt->get_at(ap.extrude_ids.front()-1);
 
         const ConfigOptionInts* bed_opt_1st_layer = config.option<ConfigOptionInts>(get_bed_temp_1st_layer_key(curr_bed_type));
         if (bed_opt_1st_layer != nullptr)
-            ap.first_bed_temp = bed_opt_1st_layer->get_at(ap.extrude_ids.back()-1);
+            ap.first_bed_temp = bed_opt_1st_layer->get_at(ap.extrude_ids.front()-1);
     }
 
     if (config.has("nozzle_temperature")) //get the print temperature
-        ap.print_temp = config.opt_int("nozzle_temperature", ap.extrude_ids.back() - 1);
+        ap.print_temp = config.opt_int("nozzle_temperature", ap.extrude_ids.front() - 1);
     if (config.has("nozzle_temperature_initial_layer")) //get the nozzle_temperature_initial_layer
-        ap.first_print_temp = config.opt_int("nozzle_temperature_initial_layer", ap.extrude_ids.back() - 1);
+        ap.first_print_temp = config.opt_int("nozzle_temperature_initial_layer", ap.extrude_ids.front() - 1);
     
     if (config.has("temperature_vitrification")) {
-        ap.vitrify_temp = config.opt_int("temperature_vitrification", ap.extrude_ids.back() - 1);
+        ap.vitrify_temp = config.opt_int("temperature_vitrification", ap.extrude_ids.front() - 1);
     }
 
     // get brim width

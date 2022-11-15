@@ -2923,7 +2923,7 @@ double ModelInstance::get_auto_brim_width() const
     return get_auto_brim_width(DeltaT, adhcoeff);
 }
 
-void ModelInstance::get_arrange_polygon(void* ap) const
+void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConfig &config_global) const
 {
 //    static const double SIMPLIFY_TOLERANCE_MM = 0.1;
 
@@ -2962,6 +2962,16 @@ void ModelInstance::get_arrange_polygon(void* ap) const
     ret.extrude_ids = volume->get_extruders();
     if (ret.extrude_ids.empty()) //the default extruder
         ret.extrude_ids.push_back(1);
+
+    // get per-object support extruders
+    auto op = object->get_config_value<ConfigOptionBool>(config_global, "enable_support");
+    bool is_support_enabled = op && op->getBool();
+    if (is_support_enabled) {
+        auto op1 = object->get_config_value<ConfigOptionInt>(config_global, "support_filament");
+        auto op2 = object->get_config_value<ConfigOptionInt>(config_global, "support_interface_filament");
+        if (op1) ret.extrude_ids.push_back(op1->getInt());
+        if (op2) ret.extrude_ids.push_back(op2->getInt());
+    }
 }
 
 indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, EnforcerBlockerType type) const

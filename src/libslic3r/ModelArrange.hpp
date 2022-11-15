@@ -71,10 +71,10 @@ template<class T> struct PtrWrapper
 
     explicit PtrWrapper(T* p) : ptr{ p } {}
 
-    arrangement::ArrangePolygon get_arrange_polygon() const
+    arrangement::ArrangePolygon get_arrange_polygon(const Slic3r::DynamicPrintConfig &config = Slic3r::DynamicPrintConfig()) const
     {
         arrangement::ArrangePolygon ap;
-        ptr->get_arrange_polygon(&ap);
+        ptr->get_arrange_polygon(&ap, config);
         return ap;
     }
 
@@ -86,12 +86,12 @@ template<class T> struct PtrWrapper
 };
 
 template<class T>
-arrangement::ArrangePolygon get_arrange_poly(T obj);
+arrangement::ArrangePolygon get_arrange_poly(T obj, const DynamicPrintConfig &config = DynamicPrintConfig());
 
 template<>
-arrangement::ArrangePolygon get_arrange_poly(ModelInstance* inst);
+arrangement::ArrangePolygon get_arrange_poly(ModelInstance* inst, const DynamicPrintConfig& config);
 
-ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const Slic3r::DynamicPrintConfig& config);
+ArrangePolygon get_instance_arrange_poly(ModelInstance* instance, const DynamicPrintConfig& config);
 }
 
 #endif // MODELARRANGE_HPP
