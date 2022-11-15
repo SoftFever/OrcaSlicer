@@ -187,8 +187,6 @@ void Slic3r::GUI::ImageGrid::DoAction(size_t index, int action)
                     openFolderForFile(from_u8(file.path));
 #else
 #endif
-                } else {
-                    m_file_sys->DownloadCancel(index);
                 }
                 return;
             }
@@ -288,7 +286,7 @@ std::pair<int, size_t> Slic3r::GUI::ImageGrid::HitTest(wxPoint const &pt)
     if (!m_selecting) {
         wxRect  hover_rect{0, m_image_size.y - 40, m_image_size.GetWidth(), 40};
         auto & file = m_file_sys->GetFile(index);
-        int    btn  = file.IsDownload() && file.progress >= 100 ? 3 : 2;
+        int    btn  = file.IsDownload() && file.progress >= 0 ? 3 : 2;
         if (hover_rect.Contains(off.x, off.y)) { return {HIT_ACTION, index * 4 + off.x * btn / hover_rect.GetWidth()}; } // Two buttons
     }
     return {HIT_ITEM, index};
@@ -545,6 +543,7 @@ void ImageGrid::render(wxDC& dc)
                     } else {
                         secondAction = _L("Cancel");
                         nonHoverText = wxString::Format(_L("Downloading %d%%..."), file.progress);
+                        thirdAction  = wxString::Format(L"%d%%...", file.progress);
                     }
                 }
                 // Draw buttons on hovered item
