@@ -7,6 +7,7 @@
 #include "ObjectDataViewModel.hpp"
 #include "GUI_ObjectList.hpp"
 #include "ParamsPanel.hpp"
+#include "MainFrame.hpp"
 #include "libslic3r/Config.hpp"
 #include "format.hpp"
 
@@ -1582,7 +1583,9 @@ void NotificationManager::push_validate_error_notification(StringObjectException
             if (iter != objects.end())
 				wxGetApp().params_panel()->switch_to_object();
             wxGetApp().sidebar().jump_to_option(opt, Preset::TYPE_PRINT, L"");
-		}
+        } else {
+            wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+        }
 		return false;
 	} : std::function<bool(wxEvtHandler *)>();
     auto link = (mo || !error.opt_key.empty()) ? _u8L("Jump to") : "";
@@ -1592,10 +1595,21 @@ void NotificationManager::push_validate_error_notification(StringObjectException
 	set_slicing_progress_hidden();
 }
 
-void NotificationManager::push_slicing_error_notification(const std::string& text)
+void NotificationManager::push_slicing_error_notification(const std::string &text, ModelObject const *obj)
 {
-	set_all_slicing_errors_gray(false);
-	push_notification_data({ NotificationType::SlicingError, NotificationLevel::ErrorNotificationLevel, 0,  _u8L("Error:") + "\n" + text }, 0);
+	auto callback = obj ? [id = obj->id()](wxEvtHandler *) {
+		auto & objects = wxGetApp().model().objects;
+		auto iter = std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; });
+        if (iter != objects.end()) {
+			wxGetApp().obj_list()->select_items({{*iter, nullptr}});
+            wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+		}
+		return false;
+	} : std::function<bool(wxEvtHandler *)>();
+    auto link     = callback ? _u8L("Jump to") : "";
+    if (obj) link += std::string(" [") + obj->name + "]";
+    set_all_slicing_errors_gray(false);
+	push_notification_data({ NotificationType::SlicingError, NotificationLevel::ErrorNotificationLevel, 0,  _u8L("Error:") + "\n" + text, link, callback }, 0);
 	set_slicing_progress_hidden();
 }
 void NotificationManager::push_slicing_warning_notification(const std::string& text, bool gray, ModelObject const * obj, ObjectID oid, int warning_step, int warning_msg_id)
@@ -1603,8 +1617,10 @@ void NotificationManager::push_slicing_warning_notification(const std::string& t
     auto callback = obj ? [id = obj->id()](wxEvtHandler *) {
 		auto & objects = wxGetApp().model().objects;
 		auto iter = std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; });
-        if (iter != objects.end())
+        if (iter != objects.end()) {
 			wxGetApp().obj_list()->select_items({{*iter, nullptr}});
+            wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+		}
 		return false;
 	} : std::function<bool(wxEvtHandler *)>();
     auto link = callback ? _u8L("Jump to") : "";

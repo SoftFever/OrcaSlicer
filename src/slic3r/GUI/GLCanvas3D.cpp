@@ -8413,7 +8413,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         break;
     case SLICING_ERROR:
         if (state)
-            notification_manager.push_slicing_error_notification(text);
+            notification_manager.push_slicing_error_notification(text, nullptr);
         else
             notification_manager.close_slicing_error_notification(text);
         break;

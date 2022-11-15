@@ -188,7 +188,7 @@ public:
 	void upload_job_notification_show_canceled(int id, const std::string& filename, const std::string& host);
 	void upload_job_notification_show_error(int id, const std::string& filename, const std::string& host);
 	// Creates Slicing Error notification with a custom text and no fade out.
-	void push_slicing_error_notification(const std::string& text);
+    void push_slicing_error_notification(const std::string &text, ModelObject const *obj);
 	// Creates Slicing Warning notification with a custom text and no fade out.
     void push_slicing_warning_notification(const std::string &text, bool gray, ModelObject const *obj, ObjectID oid, int warning_step, int warning_msg_id);
 	// marks slicing errors as gray
