@@ -3486,8 +3486,10 @@ std::vector<std::string> PresetBundle::export_current_configs(const std::string 
 // an optional "(modified)" suffix will be removed from the filament name.
 void PresetBundle::set_filament_preset(size_t idx, const std::string &name)
 {
-	if (idx >= filament_presets.size())
-        filament_presets.resize(idx + 1, filaments.default_preset().name);
+    if (idx >= filament_presets.size()) {
+        BOOST_LOG_TRIVIAL(warning) << boost::format("Warning: set_filament_preset out of range %1% - %2%") % idx % filament_presets.size();
+        return;
+    }
     filament_presets[idx] = Preset::remove_suffix_modified(name);
 }
 
