@@ -1685,6 +1685,7 @@ void GUI_App::init_networking_callbacks()
                                 obj->command_get_version();
                             } else if (state == ConnectStatus::ConnectStatusFailed) {
                                 obj->set_access_code("");
+                                m_device_manager->set_selected_machine("");
                                 wxString text;
                                 if (msg == "5") {
                                     text = wxString::Format(_L("Incorrect password"));
