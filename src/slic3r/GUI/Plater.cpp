@@ -2583,16 +2583,26 @@ void Plater::setExtruderParams(std::map<size_t, Slic3r::ExtruderParams>& extPara
 wxColour Plater::get_next_color_for_filament()
 {
     static int curr_color_filamenet = 0;
-    wxColour colors[7] = {
+    // refs to https://www.ebaomonthly.com/window/photo/lesson/colorList.htm
+    wxColour colors[FILAMENT_SYSTEM_COLORS_NUM] = {
         *wxYELLOW,
         * wxRED,
         *wxBLUE,
         *wxCYAN,
         *wxLIGHT_GREY,
         *wxWHITE,
-        *wxBLACK
+        *wxBLACK,
+        wxColour(0,127,255),
+        wxColour(139,0,255),
+        wxColour(102,255,0),
+        wxColour(255,215,0),
+        wxColour(0,35,100),
+        wxColour(255,0,255),
+        wxColour(8,37,103),
+        wxColour(127,255,212),
+        wxColour(255,191,0)
     };
-    return colors[curr_color_filamenet++ % 7];
+    return colors[curr_color_filamenet++ % FILAMENT_SYSTEM_COLORS_NUM];
 }
 
 wxString Plater::get_slice_warning_string(GCodeProcessorResult::SliceWarning& warning)

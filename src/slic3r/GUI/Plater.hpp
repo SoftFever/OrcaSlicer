@@ -23,6 +23,8 @@
 #include "Jobs/SendJob.hpp"
 #include "libslic3r/Model.hpp"
 
+#define FILAMENT_SYSTEM_COLORS_NUM      16
+
 class wxButton;
 class ScalableButton;
 class wxScrolledWindow;
