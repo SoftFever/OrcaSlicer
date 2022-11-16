@@ -4373,6 +4373,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     std::vector<double> flushed_filaments_m;
     std::vector<double> flushed_filaments_g;
     double total_flushed_filament_m = 0, total_flushed_filament_g = 0;
+    bool show_model_used_filaments = true;
+    bool show_flushed_filaments = true;
     const PrintStatistics& ps = wxGetApp().plater()->get_partplate_list().get_current_fff_print().print_statistics();
     double koef = imperial_units ? GizmoObjectManipulation::in_to_mm : 1000.0;
     double unit_conver = imperial_units ? GizmoObjectManipulation::oz_to_g : 1;
@@ -4454,6 +4456,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             total_model_used_filament_m += model_used_filament_m;
             total_model_used_filament_g += model_used_filament_g;
         }
+        if (model_used_filaments_m.size() == 0 || model_used_filaments_g.size() == 0)
+            show_model_used_filaments = false;
 
         for (size_t extruder_id : m_extruder_ids) {
             if (m_print_statistics.flush_per_filament.find(extruder_id) == m_print_statistics.flush_per_filament.end()) continue;
@@ -4464,6 +4468,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             total_flushed_filament_m += flushed_filament_m;
             total_flushed_filament_g += flushed_filament_g;
         }
+        if (flushed_filaments_m.size() == 0 || flushed_filaments_g.size() == 0)
+            show_flushed_filaments = false;
 
         std::vector<std::string> total_filaments;
         char buffer[64];
@@ -4471,7 +4477,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         total_filaments.push_back(buffer);
 
         offsets = calculate_offsets({ {_u8L("Filament"), {""}}, {_u8L("Model"), total_filaments}, {_u8L("Flushed"), total_filaments}, {_u8L("Tower"), total_filaments}, {_u8L("Total"), total_filaments} }, icon_size);
-        if (m_extruder_ids.size() == 1)
+        if (!show_flushed_filaments)
             append_headers({ {_u8L("Filamet"), offsets[0]}, {_u8L("Model"), offsets[2]}});
         else
             append_headers({ {_u8L("Filamet"), offsets[0]}, {_u8L("Model"), offsets[1]}, {_u8L("Flushed"), offsets[2]}, {_u8L(""), offsets[3]}, {_u8L("Total"), offsets[4]}});// to add Tower
@@ -4594,7 +4600,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                     columns_offsets.push_back({ std::to_string(extruder_idx + 1), offsets[0] });
 
                     char buf[64];
-                    ::sprintf(buf, imperial_units ? "%.2f in    %.2f g" : "%.2f m    %.2f g", model_used_filaments_m[0] , model_used_filaments_g[0]);
+                    ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", model_used_filaments_m[0] , model_used_filaments_g[0]);
                     columns_offsets.push_back({ buf, offsets[2] });
 
                     append_item(EItemType::Rect, m_tools.m_tool_colors[extruder_idx], columns_offsets);
@@ -4627,14 +4633,21 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                         columns_offsets.push_back({ std::to_string(extruder_idx + 1), offsets[0] });
 
                         char buf[64];
-                        ::sprintf(buf, imperial_units ? "%.2f in\n%.2f g" : "%.2f m\n%.2f g", model_used_filaments_m[i], model_used_filaments_g[i]);
-                        columns_offsets.push_back({ buf, offsets[1]});
+                        if (show_flushed_filaments) {
+                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f g" : "%.2f m\n%.2f g", model_used_filaments_m[i], model_used_filaments_g[i]);
+                            columns_offsets.push_back({ buf, offsets[1] });
 
-                        ::sprintf(buf, imperial_units ? "%.2f in\n%.2f g" : "%.2f m\n%.2f g", flushed_filaments_m[i], flushed_filaments_g[i]);
-                        columns_offsets.push_back({ buf, offsets[2] });
+                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f g" : "%.2f m\n%.2f g", flushed_filaments_m[i], flushed_filaments_g[i]);
+                            columns_offsets.push_back({ buf, offsets[2] });
 
-                        ::sprintf(buf, imperial_units ? "%.2f in\n%.2f g" : "%.2f m\n%.2f g", model_used_filaments_m[i] + flushed_filaments_m[i], model_used_filaments_g[i] + flushed_filaments_g[i]);
-                        columns_offsets.push_back({ buf, offsets[4] });
+                            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f g" : "%.2f m\n%.2f g", model_used_filaments_m[i] + flushed_filaments_m[i], model_used_filaments_g[i] + flushed_filaments_g[i]);
+                            columns_offsets.push_back({ buf, offsets[4] });
+                        }
+                        else {
+                            char buf[64];
+                            ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", model_used_filaments_m[i], model_used_filaments_g[i]);
+                            columns_offsets.push_back({ buf, offsets[2] });
+                        }
 
                         append_item(EItemType::Rect, m_tools.m_tool_colors[extruder_idx], columns_offsets, filament_visible, [this, extruder_idx]() {
                                 m_tools.m_tool_visibles[extruder_idx] = !m_tools.m_tool_visibles[extruder_idx];
@@ -4674,12 +4687,17 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             append_option_item(item, offsets);
 
         
-        if (m_print_statistics.total_filamentchanges > 0 && ( flushed_filaments_m.size() > 0 || flushed_filaments_g.size() > 0)) {
-            ImGui::Separator();
-            std::vector<std::pair<std::string, float>> columns_offsets;
-            char buf[64];
-            columns_offsets.push_back({ _u8L("Total"), offsets[0] });
+        ImGui::Separator();
+        std::vector<std::pair<std::string, float>> columns_offsets;
+        char buf[64];
+        columns_offsets.push_back({ _u8L("Total"), offsets[0] });
+        if (!show_flushed_filaments) {
+            ::sprintf(buf, imperial_units ? "%.2f in    %.2f oz" : "%.2f m    %.2f g", total_model_used_filament_m, total_model_used_filament_g);
+            columns_offsets.push_back({ buf, offsets[2] });
 
+            append_item(EItemType::None, m_tools.m_tool_colors[0], columns_offsets);
+        }
+        else {
             ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", total_model_used_filament_m, total_model_used_filament_g);
             columns_offsets.push_back({ buf, offsets[1] });
 
@@ -4687,27 +4705,26 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             columns_offsets.push_back({ buf, offsets[2] });
 
             bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
-            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", ps.total_used_filament / /*1000*/koef, ps.total_weight / unit_conver);
+            ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", (total_model_used_filament_m + total_flushed_filament_m) * 1000 / /*1000*/koef, (total_model_used_filament_g + total_flushed_filament_g) / unit_conver);
             columns_offsets.push_back({ buf, offsets[4] });
 
             append_item(EItemType::None, m_tools.m_tool_colors[0], columns_offsets);
-
-            //BBS display filament change times
-            ImGui::Dummy({window_padding, window_padding});
-            ImGui::SameLine();
-            imgui.text(_u8L("Filament change times") + ":");
-            ImGui::SameLine();
-            ::sprintf(buf, "%d", m_print_statistics.total_filamentchanges);
-            imgui.text(buf);
-
-            //BBS display cost
-            ImGui::Dummy({ window_padding, window_padding });
-            ImGui::SameLine();
-            imgui.text(_u8L("Cost")+":");
-            ImGui::SameLine();
-            ::sprintf(buf, "%.2f", ps.total_cost);
-            imgui.text(buf);
         }
+        //BBS display filament change times
+        ImGui::Dummy({window_padding, window_padding});
+        ImGui::SameLine();
+        imgui.text(_u8L("Filament change times") + ":");
+        ImGui::SameLine();
+        ::sprintf(buf, "%d", m_print_statistics.total_filamentchanges);
+        imgui.text(buf);
+
+        //BBS display cost
+        ImGui::Dummy({ window_padding, window_padding });
+        ImGui::SameLine();
+        imgui.text(_u8L("Cost")+":");
+        ImGui::SameLine();
+        ::sprintf(buf, "%.2f", ps.total_cost);
+        imgui.text(buf);
 
         break;
     }
