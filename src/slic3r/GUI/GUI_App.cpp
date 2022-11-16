@@ -3129,6 +3129,14 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
         input_file = dialog.GetPath();
 }
 
+wxString GUI_App::transition_tridid(int trid_id)
+{
+    wxString maping_dict[8] = { "A", "B", "C", "D", "E", "F", "G" };
+    int id_index = ceil(trid_id / 4);
+    int id_suffix = (trid_id + 1) % 4 == 0 ? 4 : (trid_id + 1) % 4;
+    return wxString::Format("%s%d", maping_dict[id_index], id_suffix);
+}
+
 //BBS
 void GUI_App::request_login(bool show_user_info)
 {

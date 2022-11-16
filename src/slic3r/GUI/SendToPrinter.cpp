@@ -31,6 +31,7 @@ wxDEFINE_EVENT(EVT_UPDATE_USER_MACHINE_LIST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PRINT_JOB_CANCEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEND_JOB_SUCCESS, wxCommandEvent);
 
+
 void SendToPrinterDialog::stripWhiteSpace(std::string& str)
 {
     if (str == "") { return; }
@@ -68,6 +69,72 @@ wxString SendToPrinterDialog::format_text(wxString &m_msg)
 		}
 	}
 	return out_txt;
+}
+
+void SendToPrinterDialog::on_kill_focus(wxFocusEvent& event)
+{
+    if (m_rename_switch_panel->GetSelection() == 1) {
+        m_rename_switch_panel->SetSelection(0);
+        m_rename_text->SetLabel(m_current_project_name);
+        m_rename_normal_panel->Layout();
+        
+    }
+    event.Skip();
+}
+
+void SendToPrinterDialog::on_rename_click(wxCommandEvent& event)
+{
+    m_rename_input->GetTextCtrl()->SetValue(m_current_project_name);
+    m_rename_switch_panel->SetSelection(1);
+    m_rename_input->GetTextCtrl()->SetFocus();
+}
+
+void SendToPrinterDialog::on_rename_enter(wxCommandEvent& event)
+{
+    auto     new_file_name = m_rename_input->GetTextCtrl()->GetValue();
+    auto     m_valid_type = Valid;
+    wxString info_line;
+
+    const char* unusable_symbols = "<>[]:/\\|?*\"";
+
+    const std::string unusable_suffix = PresetCollection::get_suffix_modified(); //"(modified)";
+    for (size_t i = 0; i < std::strlen(unusable_symbols); i++) {
+        if (new_file_name.find_first_of(unusable_symbols[i]) != std::string::npos) {
+            info_line = _L("Name is invalid;") + "\n" + _L("illegal characters:") + " " + unusable_symbols;
+            m_valid_type = NoValid;
+            break;
+        }
+    }
+
+    if (m_valid_type == Valid && new_file_name.find(unusable_suffix) != std::string::npos) {
+        info_line = _L("Name is invalid;") + "\n" + _L("illegal suffix:") + "\n\t" + from_u8(PresetCollection::get_suffix_modified());
+        m_valid_type = NoValid;
+    }
+
+    if (m_valid_type == Valid && new_file_name.empty()) {
+        info_line = _L("The name is not allowed to be empty.");
+        m_valid_type = NoValid;
+    }
+
+    if (m_valid_type == Valid && new_file_name.find_first_of(' ') == 0) {
+        info_line = _L("The name is not allowed to start with space character.");
+        m_valid_type = NoValid;
+    }
+
+    if (m_valid_type == Valid && new_file_name.find_last_of(' ') == new_file_name.length() - 1) {
+        info_line = _L("The name is not allowed to end with space character.");
+        m_valid_type = NoValid;
+    }
+
+    if (m_valid_type != Valid) {
+        MessageDialog msg_wingow(nullptr, info_line, "", wxICON_WARNING | wxOK);
+        if (msg_wingow.ShowModal() == wxOK) { return; }
+    }
+
+    m_current_project_name = new_file_name;
+    m_rename_switch_panel->SetSelection(0);
+    m_rename_text->SetLabel(m_current_project_name);
+    m_rename_normal_panel->Layout();
 }
 
 SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
@@ -237,20 +304,86 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
 	m_scrollable_region->SetSizer(m_sizer_scrollable_region);
 	m_scrollable_region->Layout();
 
+    //file name
+    //rename normal
+    m_rename_switch_panel = new wxSimplebook(this);
+    m_rename_switch_panel->SetSize(wxSize(FromDIP(420), FromDIP(25)));
+    m_rename_switch_panel->SetMinSize(wxSize(FromDIP(420), FromDIP(25)));
+    m_rename_switch_panel->SetMaxSize(wxSize(FromDIP(420), FromDIP(25)));
+
+    m_rename_normal_panel = new wxPanel(m_rename_switch_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_rename_normal_panel->SetBackgroundColour(*wxWHITE);
+    rename_sizer_v = new wxBoxSizer(wxVERTICAL);
+    rename_sizer_h = new wxBoxSizer(wxHORIZONTAL);
+
+    m_rename_text = new wxStaticText(m_rename_normal_panel, wxID_ANY, wxT("MyLabel"), wxDefaultPosition, wxDefaultSize, 0);
+    m_rename_text->SetFont(::Label::Body_13);
+    m_rename_text->SetMaxSize(wxSize(FromDIP(390), -1));
+    m_rename_button = new Button(m_rename_normal_panel, "", "ams_editable", wxBORDER_NONE, FromDIP(10));
+    m_rename_button->SetBackgroundColor(*wxWHITE);
+    m_rename_button->SetBackgroundColour(*wxWHITE);
+
+    rename_sizer_h->Add(m_rename_text, 0, wxALIGN_CENTER, 0);
+    rename_sizer_h->Add(m_rename_button, 0, wxALIGN_CENTER, 0);
+    rename_sizer_v->Add(rename_sizer_h, 1, wxALIGN_CENTER, 0);
+    m_rename_normal_panel->SetSizer(rename_sizer_v);
+    m_rename_normal_panel->Layout();
+    rename_sizer_v->Fit(m_rename_normal_panel);
+
+    //rename edit
+    auto m_rename_edit_panel = new wxPanel(m_rename_switch_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_rename_edit_panel->SetBackgroundColour(*wxWHITE);
+    auto rename_edit_sizer_v = new wxBoxSizer(wxVERTICAL);
+
+    m_rename_input = new ::TextInput(m_rename_edit_panel, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    m_rename_input->GetTextCtrl()->SetFont(::Label::Body_13);
+    m_rename_input->SetSize(wxSize(FromDIP(380), FromDIP(24)));
+    m_rename_input->SetMinSize(wxSize(FromDIP(380), FromDIP(24)));
+    m_rename_input->SetMaxSize(wxSize(FromDIP(380), FromDIP(24)));
+    rename_edit_sizer_v->Add(m_rename_input, 1, wxALIGN_CENTER, 0);
+
+
+    m_rename_edit_panel->SetSizer(rename_edit_sizer_v);
+    m_rename_edit_panel->Layout();
+    rename_edit_sizer_v->Fit(m_rename_edit_panel);
+
+    m_rename_input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS,  &SendToPrinterDialog::on_kill_focus, this);
+    m_rename_input->Bind(wxEVT_TEXT_ENTER, &SendToPrinterDialog::on_rename_enter, this);
+    m_rename_button->Bind(wxEVT_BUTTON, &SendToPrinterDialog::on_rename_click, this);
+
+
+    m_rename_switch_panel->AddPage(m_rename_normal_panel, wxEmptyString, true);
+    m_rename_switch_panel->AddPage(m_rename_edit_panel, wxEmptyString, false);
+
+    Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent& e) {
+        if (e.GetKeyCode() == WXK_ESCAPE) {
+            if (m_rename_switch_panel->GetSelection() == 0) {
+                e.Skip();
+            }
+            else {
+                m_rename_switch_panel->SetSelection(0);
+                m_rename_text->SetLabel(m_current_project_name);
+                m_rename_normal_panel->Layout();
+            }
+        }
+        else {
+            e.Skip();
+        }
+        });
+
 
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(22));
     m_sizer_main->Add(m_scrollable_region, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
+    m_sizer_main->Add(m_rename_switch_panel, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
     m_sizer_main->Add(m_line_materia, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(15));
     m_sizer_main->Add(m_sizer_printer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(5));
-    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(8));
+    m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(13));
     m_sizer_main->Add(m_statictext_printer_msg, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-    m_sizer_main->Add(0, 1, 0, wxTOP, FromDIP(20));
-    m_sizer_main->Add(0, 1, 0, wxTOP, FromDIP(12));
+    m_sizer_main->Add(0, 1, 0, wxTOP, FromDIP(32));
     m_sizer_main->Add(m_line_schedule, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
     m_sizer_main->Add(m_simplebook, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_main->Add(m_sizer_bottom, 0, wxALIGN_CENTER_HORIZONTAL);
@@ -485,6 +618,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     m_send_job->connection_type     = obj_->connection_type();
     m_send_job->cloud_print_only    = true;
     m_send_job->has_sdcard          = obj_->has_sdcard();
+    m_send_job->set_project_name(m_current_project_name.utf8_string());
 
 
     m_send_job->on_success([this]() {
@@ -896,6 +1030,19 @@ void SendToPrinterDialog::on_dpi_changed(const wxRect &suggested_rect)
 
 void SendToPrinterDialog::set_default()
 {
+    //project name
+    m_rename_switch_panel->SetSelection(0);
+    wxString filename = m_plater->get_export_gcode_filename("", false);
+
+    if (filename.empty()) {
+        filename = m_plater->get_export_gcode_filename("", true);
+    }
+
+    fs::path filename_path(filename.c_str());
+    m_current_project_name = wxString::FromUTF8(filename_path.filename().string());
+    m_rename_text->SetLabelText(m_current_project_name);
+    m_rename_normal_panel->Layout();
+
     enable_prepare_mode = true;
     prepare_mode();
 

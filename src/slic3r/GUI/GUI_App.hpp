@@ -364,6 +364,7 @@ public:
     void            import_model(wxWindow *parent, wxArrayString& input_files) const;
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
 
+    wxString transition_tridid(int trid_id);
     void            ShowUserGuide();
     void            ShowDownNetPluginDlg();
     void            ShowUserLogin();

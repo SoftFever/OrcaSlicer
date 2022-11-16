@@ -158,6 +158,27 @@ public:
     wxStaticText *   m_tip_disable_ams;
 };
 
+class AmsTutorialPopup : public wxPopupTransientWindow
+{
+public:
+    Label* text_title;
+    wxStaticBitmap* img_top;
+    wxStaticBitmap* arrows_top;
+    wxStaticText* tip_top;
+    wxStaticBitmap* arrows_bottom;
+    wxStaticText* tip_bottom;
+    wxStaticBitmap* img_middle;
+    wxStaticText* tip_middle;
+    wxStaticBitmap* img_botton;
+
+    AmsTutorialPopup(wxWindow* parent);
+    ~AmsTutorialPopup() {};
+
+    void paintEvent(wxPaintEvent& evt);
+    virtual void OnDismiss() wxOVERRIDE;
+    virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
+};
+
 
 wxDECLARE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
 

@@ -292,6 +292,14 @@ protected:
     wxPanel *     m_line_materia{nullptr};
     wxStaticText *m_stext_printer_title{nullptr};
 
+    wxBoxSizer* rename_sizer_v{ nullptr };
+    wxBoxSizer* rename_sizer_h{ nullptr };
+    wxStaticText* m_rename_text{nullptr};
+    TextInput* m_rename_input{nullptr};
+    Button* m_rename_button{nullptr};
+    wxPanel* m_rename_normal_panel{nullptr};
+    wxSimplebook* m_rename_switch_panel{nullptr};
+
     wxStaticText *m_statictext_ams_msg{nullptr};
     wxStaticText * m_statictext_printer_msg{nullptr};
     wxStaticBitmap* m_staticbitmap {nullptr};
@@ -380,7 +388,8 @@ protected:
     wxButton *                   m_button_cancel{nullptr};
     AmsMapingPopup               m_mapping_popup{nullptr};
     AmsMapingTipPopup            m_mapping_tip_popup{nullptr};
-
+    AmsTutorialPopup             m_mapping_tutorial_popup{nullptr};
+    wxString                     m_current_project_name;
     std::string                  m_print_info;
     int                          timeout_count = 0;
     bool                         is_timeout();
@@ -395,6 +404,9 @@ protected:
     std::shared_ptr<PrintJob> m_print_job;
 
     // Virtual event handlers, overide them in your derived class
+    void                     on_rename_click(wxCommandEvent &event);
+    void                     on_rename_enter(wxCommandEvent &event);
+
     void                     update_printer_combobox(wxCommandEvent &event);
     void                     on_cancel(wxCloseEvent &event);
     void                     on_ok_btn(wxCommandEvent &event);

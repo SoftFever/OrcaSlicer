@@ -146,7 +146,8 @@ void PrintJob::process()
 
     BBL::PrintParams params;
     params.dev_id = m_dev_id;
-    params.project_name = project_name;
+    //params.project_name = project_name;
+    params.project_name = m_project_name + ".gcode.3mf";
     params.preset_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
     params.filename = job_data._3mf_path.string();
     params.config_filename = job_data._3mf_config_path.string();
@@ -337,6 +338,11 @@ void PrintJob::finalize() {
     if (was_canceled()) return;
 
     Job::finalize();
+}
+
+void PrintJob::set_project_name(std::string name)
+{
+    m_project_name = name;
 }
 
 }} // namespace Slic3r::GUI

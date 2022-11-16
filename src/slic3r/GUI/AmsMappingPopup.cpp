@@ -379,11 +379,12 @@ std::vector<TrayData> AmsMapingPopup::parse_ams_mapping(std::map<std::string, Am
 void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
 { 
     auto sizer_mapping_list = new wxBoxSizer(wxHORIZONTAL);
+
     for (auto i = 0; i < tray_data.size(); i++) {
         wxBoxSizer *sizer_mapping_item   = new wxBoxSizer(wxVERTICAL);
 
         // set number
-        auto number = new wxStaticText(this, wxID_ANY, wxString::Format("%02d",tray_data[i].id + 1), wxDefaultPosition, wxDefaultSize, 0);
+        auto number = new wxStaticText(this, wxID_ANY, wxGetApp().transition_tridid(tray_data[i].id), wxDefaultPosition, wxDefaultSize, 0);
         number->SetFont(::Label::Body_13);
         number->SetForegroundColour(wxColour(0X6B, 0X6B, 0X6B));
         number->Wrap(-1);
@@ -476,9 +477,11 @@ void AmsMapingPopup::paintEvent(wxPaintEvent &evt)
 
 void MappingItem::send_event(int fliament_id) 
 {
+    auto number = wxGetApp().transition_tridid(m_tray_data.id);
     wxCommandEvent event(EVT_SET_FINISH_MAPPING);
     event.SetInt(m_tray_data.id);
-    wxString param = wxString::Format("%d|%d|%d|%02d|%d", m_coloul.Red(), m_coloul.Green(), m_coloul.Blue(), m_tray_data.id + 1, fliament_id);
+
+    wxString param = wxString::Format("%d|%d|%d|%s|%d", m_coloul.Red(), m_coloul.Green(), m_coloul.Blue(), number, fliament_id);
     event.SetString(param);
     event.SetEventObject(this->GetParent()->GetParent());
     wxPostEvent(this->GetParent()->GetParent(), event);
@@ -654,5 +657,108 @@ void AmsMapingTipPopup::OnDismiss() {}
 
 bool AmsMapingTipPopup::ProcessLeftDown(wxMouseEvent &event) { 
     return wxPopupTransientWindow::ProcessLeftDown(event); }
+
+AmsTutorialPopup::AmsTutorialPopup(wxWindow* parent)
+:wxPopupTransientWindow(parent, wxBORDER_NONE)
+{
+    Bind(wxEVT_PAINT, &AmsTutorialPopup::paintEvent, this);
+    SetBackgroundColour(*wxWHITE);
+
+    wxBoxSizer* sizer_main;
+    sizer_main = new wxBoxSizer(wxVERTICAL);
+
+    text_title = new Label(this, Label::Head_14, _L("Config which AMS slot should be used for a filament used in the print job"));
+    text_title->SetSize(wxSize(FromDIP(350), -1));
+    text_title->Wrap(FromDIP(350));
+    sizer_main->Add(text_title, 0, wxALIGN_CENTER | wxTOP, 18);
+
+
+    sizer_main->Add(0, 0, 0, wxTOP, 30);
+
+    wxBoxSizer* sizer_top;
+    sizer_top = new wxBoxSizer(wxHORIZONTAL);
+
+    img_top = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ams_item_examples", this, 30), wxDefaultPosition, wxSize(FromDIP(50), FromDIP(30)), 0);
+    sizer_top->Add(img_top, 0, wxALIGN_CENTER, 0);
+
+
+    sizer_top->Add(0, 0, 0, wxLEFT, 10);
+
+    wxBoxSizer* sizer_top_tips = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* sizer_tip_top = new wxBoxSizer(wxHORIZONTAL);
+
+    arrows_top = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ams_arrow", this, 8), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(8)), 0);
+    sizer_tip_top->Add(arrows_top, 0, wxALIGN_CENTER, 0);
+
+    tip_top = new wxStaticText(this, wxID_ANY, _L("Filament used in this print job"), wxDefaultPosition, wxDefaultSize, 0);
+    tip_top->SetForegroundColour(wxColour("#686868"));
+    
+    sizer_tip_top->Add(tip_top, 0, wxALL, 0);
+
+
+    sizer_top_tips->Add(sizer_tip_top, 0, wxEXPAND, 0);
+
+
+    sizer_top_tips->Add(0, 0, 0, wxTOP, 6);
+
+    wxBoxSizer* sizer_tip_bottom = new wxBoxSizer(wxHORIZONTAL);
+
+    arrows_bottom = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ams_arrow", this, 8), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(8)), 0);
+    tip_bottom = new wxStaticText(this, wxID_ANY, _L("AMS slot used for this filament"), wxDefaultPosition, wxDefaultSize, 0);
+    tip_bottom->SetForegroundColour(wxColour("#686868"));
+
+
+    sizer_tip_bottom->Add(arrows_bottom, 0, wxALIGN_CENTER, 0);
+    sizer_tip_bottom->Add(tip_bottom, 0, wxALL, 0);
+
+
+    sizer_top_tips->Add(sizer_tip_bottom, 0, wxEXPAND, 0);
+
+
+    sizer_top->Add(sizer_top_tips, 0, wxALIGN_CENTER, 0);
+
+
+    
+
+    wxBoxSizer* sizer_middle = new wxBoxSizer(wxHORIZONTAL);
+
+    img_middle= new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ams_item_examples", this, 30), wxDefaultPosition, wxSize(FromDIP(50), FromDIP(30)), 0);
+    sizer_middle->Add(img_middle, 0, wxALIGN_CENTER, 0);
+
+    tip_middle = new wxStaticText(this, wxID_ANY, _L("Click to select AMS slot manually"), wxDefaultPosition, wxDefaultSize, 0);
+    tip_middle->SetForegroundColour(wxColour("#686868"));
+    sizer_middle->Add(0, 0, 0,wxLEFT, 15);
+    sizer_middle->Add(tip_middle, 0, wxALIGN_CENTER, 0);
+
+
+    sizer_main->Add(sizer_top, 0, wxLEFT, 40);
+    sizer_main->Add(0, 0, 0, wxTOP, 10);
+    sizer_main->Add(sizer_middle, 0, wxLEFT, 40);
+    sizer_main->Add(0, 0, 0, wxTOP, 10);
+
+
+    img_botton = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ams_mapping_examples", this, 87), wxDefaultPosition, wxDefaultSize, 0);
+    sizer_main->Add(img_botton, 0, wxLEFT | wxRIGHT, 40);
+    sizer_main->Add(0, 0, 0, wxTOP, 12);
+
+    SetSizer(sizer_main);
+    Layout();
+    Fit();
+}
+
+void AmsTutorialPopup::paintEvent(wxPaintEvent& evt)
+{
+    wxPaintDC dc(this);
+    dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
+}
+
+void AmsTutorialPopup::OnDismiss() {}
+
+bool AmsTutorialPopup::ProcessLeftDown(wxMouseEvent& event) {
+    return wxPopupTransientWindow::ProcessLeftDown(event);
+}
+
 
 }} // namespace Slic3r::GUI

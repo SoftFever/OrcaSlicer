@@ -922,6 +922,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     , m_plater(plater), m_export_3mf_cancel(false)
     , m_mapping_popup(AmsMapingPopup(this))
     , m_mapping_tip_popup(AmsMapingTipPopup(this))
+    , m_mapping_tutorial_popup(AmsTutorialPopup(this))
 {
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
@@ -954,6 +955,73 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_scrollable_region       = new wxPanel(m_scrollable_view, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_sizer_scrollable_region = new wxBoxSizer(wxVERTICAL); 
 
+
+    //rename normal
+    m_rename_switch_panel = new wxSimplebook(m_scrollable_region);
+    m_rename_switch_panel->SetSize(wxSize(FromDIP(420), FromDIP(25)));
+    m_rename_switch_panel->SetMinSize(wxSize(FromDIP(420), FromDIP(25)));
+    m_rename_switch_panel->SetMaxSize(wxSize(FromDIP(420), FromDIP(25)));
+
+    m_rename_normal_panel = new wxPanel(m_rename_switch_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_rename_normal_panel->SetBackgroundColour(*wxWHITE);
+    rename_sizer_v = new wxBoxSizer(wxVERTICAL);
+    rename_sizer_h = new wxBoxSizer(wxHORIZONTAL);
+
+    m_rename_text = new wxStaticText(m_rename_normal_panel, wxID_ANY, wxT("MyLabel"), wxDefaultPosition, wxDefaultSize, 0);
+    m_rename_text->SetFont(::Label::Body_13);
+    m_rename_text->SetMaxSize(wxSize(FromDIP(390), -1));
+    m_rename_button = new Button(m_rename_normal_panel, "", "ams_editable", wxBORDER_NONE, FromDIP(10));
+    m_rename_button->SetBackgroundColor(*wxWHITE);
+    m_rename_button->SetBackgroundColour(*wxWHITE);
+
+    rename_sizer_h->Add(m_rename_text, 0, wxALIGN_CENTER, 0);
+    rename_sizer_h->Add(m_rename_button, 0, wxALIGN_CENTER, 0);
+    rename_sizer_v->Add(rename_sizer_h, 1, wxALIGN_CENTER, 0);
+    m_rename_normal_panel->SetSizer(rename_sizer_v);
+    m_rename_normal_panel->Layout();
+    rename_sizer_v->Fit(m_rename_normal_panel);
+
+    //rename edit
+    auto m_rename_edit_panel = new wxPanel(m_rename_switch_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_rename_edit_panel->SetBackgroundColour(*wxWHITE);
+    auto rename_edit_sizer_v = new wxBoxSizer(wxVERTICAL);
+
+    m_rename_input = new ::TextInput(m_rename_edit_panel, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    m_rename_input->GetTextCtrl()->SetFont(::Label::Body_13);
+    m_rename_input->SetSize(wxSize(FromDIP(380), FromDIP(24)));
+    m_rename_input->SetMinSize(wxSize(FromDIP(380), FromDIP(24)));
+    m_rename_input->SetMaxSize(wxSize(FromDIP(380), FromDIP(24)));
+    rename_edit_sizer_v->Add(m_rename_input, 1, wxALIGN_CENTER, 0);
+
+
+    m_rename_edit_panel->SetSizer(rename_edit_sizer_v);
+    m_rename_edit_panel->Layout();
+    rename_edit_sizer_v->Fit(m_rename_edit_panel);
+
+    m_rename_input->Bind(wxEVT_TEXT_ENTER, &SelectMachineDialog::on_rename_enter, this);
+    m_rename_button->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_rename_click, this);
+
+
+    m_rename_switch_panel->AddPage(m_rename_normal_panel, wxEmptyString, true);
+    m_rename_switch_panel->AddPage(m_rename_edit_panel, wxEmptyString, false);
+
+    Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent& e) {
+        if (e.GetKeyCode() == WXK_ESCAPE) {
+            if (m_rename_switch_panel->GetSelection() == 0) {
+                e.Skip();
+            }
+            else {
+                m_rename_switch_panel->SetSelection(0);
+                m_rename_text->SetLabel(m_current_project_name);
+                m_rename_normal_panel->Layout();
+            }
+        }
+        else {
+            e.Skip();
+        }
+    });
+
+
     m_panel_image = new wxPanel(m_scrollable_region, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_panel_image->SetBackgroundColour(m_colour_def_color);
 
@@ -983,7 +1051,38 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_basic_time->Add(m_stext_weight, 0, wxALL, FromDIP(5));
     m_sizer_basic->Add(m_sizer_basic_time, 0, wxALIGN_CENTER, 0);
 
-    m_sizer_material = new wxGridSizer(0, 4, 0, 0);
+    auto m_sizer_material_area = new wxBoxSizer(wxHORIZONTAL);
+
+    wxBoxSizer* m_sizer_material_tips = new wxBoxSizer(wxHORIZONTAL);
+
+
+    auto img_amsmapping_tip = new wxStaticBitmap(m_scrollable_region, wxID_ANY, create_scaled_bitmap("enable_ams", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+    m_sizer_material_tips->Add(img_amsmapping_tip, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
+
+    img_amsmapping_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_amsmapping_tip](auto& e) {
+        wxPoint img_pos = img_amsmapping_tip->ClientToScreen(wxPoint(0, 0));
+        wxPoint popup_pos(img_pos.x, img_pos.y + img_amsmapping_tip->GetRect().height);
+        m_mapping_tutorial_popup.Position(popup_pos, wxSize(0, 0));
+        m_mapping_tutorial_popup.Popup();
+
+        if (m_mapping_tutorial_popup.ClientToScreen(wxPoint(0, 0)).y < img_pos.y) {
+            m_mapping_tutorial_popup.Dismiss();
+            popup_pos = wxPoint(img_pos.x, img_pos.y - m_mapping_tutorial_popup.GetRect().height);
+            m_mapping_tutorial_popup.Position(popup_pos, wxSize(0, 0));
+            m_mapping_tutorial_popup.Popup();
+        }
+        });
+
+    img_amsmapping_tip->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
+        m_mapping_tutorial_popup.Dismiss();
+        });
+
+
+    m_sizer_material = new wxGridSizer(0, 4, 0, FromDIP(5));
+
+
+    m_sizer_material_area->Add(m_sizer_material_tips, 0, wxALIGN_CENTER|wxLEFT, FromDIP(8));
+    m_sizer_material_area->Add(m_sizer_material, 0, wxLEFT, FromDIP(15));
 
     m_statictext_ams_msg = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
     m_statictext_ams_msg->SetFont(::Label::Body_13);
@@ -1120,11 +1219,13 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     Bind(EVT_PRINT_JOB_CANCEL, &SelectMachineDialog::on_print_job_cancel, this);
     Bind(EVT_SET_FINISH_MAPPING, &SelectMachineDialog::on_set_finish_mapping, this);
 
-
+    m_sizer_scrollable_region->Add(m_rename_switch_panel, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_scrollable_region->Add(0, 0, 0, wxTOP, FromDIP(8));
     m_sizer_scrollable_region->Add(m_panel_image, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_scrollable_region->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_sizer_scrollable_region->Add(m_sizer_basic, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-    m_sizer_scrollable_region->Add(m_sizer_material, 0, wxALIGN_CENTER_HORIZONTAL);
+    //m_sizer_scrollable_region->Add(m_sizer_material, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_scrollable_region->Add(m_sizer_material_area, 0, wxLEFT, FromDIP(10));
 
     m_scrollable_region->SetSizer(m_sizer_scrollable_region);
     m_scrollable_region->Layout();
@@ -1342,7 +1443,8 @@ void SelectMachineDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &res
                 wxColour ams_col;
 
                 if (f->tray_id >= 0) {
-                    ams_id = wxString::Format("%02d", f->tray_id + 1);
+                    ams_id = wxGetApp().transition_tridid(f->tray_id);
+                    //ams_id = wxString::Format("%02d", f->tray_id + 1);
                 } else {
                     ams_id = "-";
                 }
@@ -1936,6 +2038,8 @@ void SelectMachineDialog::on_ok()
     m_print_job->m_dev_ip      = obj_->dev_ip;
     m_print_job->m_access_code = obj_->access_code;
     m_print_job->connection_type = obj_->connection_type();
+    m_print_job->set_project_name(m_current_project_name.utf8_string());
+
     if (obj_->is_support_ams_mapping()) {
         m_print_job->task_ams_mapping = ams_mapping_array;
         m_print_job->task_ams_mapping_info = ams_mapping_info;
@@ -2148,6 +2252,60 @@ void SelectMachineDialog::update_user_printer()
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << m_printer_last_select << std::endl;
+}
+
+void SelectMachineDialog::on_rename_click(wxCommandEvent& event)
+{
+    m_rename_input->GetTextCtrl()->SetValue(m_current_project_name);
+    m_rename_switch_panel->SetSelection(1);
+}
+
+void SelectMachineDialog::on_rename_enter(wxCommandEvent& event)
+{
+    auto     new_file_name = m_rename_input->GetTextCtrl()->GetValue();
+    auto     m_valid_type = Valid;
+    wxString info_line;
+
+    const char* unusable_symbols = "<>[]:/\\|?*\"";
+
+    const std::string unusable_suffix = PresetCollection::get_suffix_modified(); //"(modified)";
+    for (size_t i = 0; i < std::strlen(unusable_symbols); i++) {
+        if (new_file_name.find_first_of(unusable_symbols[i]) != std::string::npos) {
+            info_line = _L("Name is invalid;") + "\n" + _L("illegal characters:") + " " + unusable_symbols;
+            m_valid_type = NoValid;
+            break;
+        }
+    }
+
+    if (m_valid_type == Valid && new_file_name.find(unusable_suffix) != std::string::npos) {
+        info_line = _L("Name is invalid;") + "\n" + _L("illegal suffix:") + "\n\t" + from_u8(PresetCollection::get_suffix_modified());
+        m_valid_type = NoValid;
+    }
+
+    if (m_valid_type == Valid && new_file_name.empty()) {
+        info_line = _L("The name is not allowed to be empty.");
+        m_valid_type = NoValid;
+    }
+
+    if (m_valid_type == Valid && new_file_name.find_first_of(' ') == 0) {
+        info_line = _L("The name is not allowed to start with space character.");
+        m_valid_type = NoValid;
+    }
+
+    if (m_valid_type == Valid && new_file_name.find_last_of(' ') == new_file_name.length() - 1) {
+        info_line = _L("The name is not allowed to end with space character.");
+        m_valid_type = NoValid;
+    }
+
+    if (m_valid_type != Valid) {
+        MessageDialog msg_wingow(nullptr, info_line, "", wxICON_WARNING | wxOK);
+        if (msg_wingow.ShowModal() == wxOK) { return; }
+    }
+
+    m_current_project_name = new_file_name;
+    m_rename_switch_panel->SetSelection(0);
+    m_rename_text->SetLabel(m_current_project_name);
+    m_rename_normal_panel->Layout();
 }
 
 void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
@@ -2454,6 +2612,20 @@ wxImage *SelectMachineDialog::LoadImageFromBlob(const unsigned char *data, int s
 
 void SelectMachineDialog::set_default()
 {
+    //project name
+    m_rename_switch_panel->SetSelection(0);
+    wxString filename = m_plater->get_export_gcode_filename("", false);
+
+    if (filename.empty()) {
+        filename = m_plater->get_export_gcode_filename("", true);
+    }
+
+    fs::path filename_path(filename.c_str());
+    m_current_project_name = wxString::FromUTF8(filename_path.filename().string());
+    m_rename_text->SetLabelText(m_current_project_name);
+    m_rename_normal_panel->Layout();
+   
+
     //clear combobox
     m_list.clear();
     m_comboBox_printer->Clear();
@@ -2520,8 +2692,6 @@ void SelectMachineDialog::set_default()
     }
 
     // material info
-    
-    //auto        extruders1 = m_plater->get_partplate_list().get_curr_plate()->get_extruders();
     auto        extruders = wxGetApp().plater()->get_preview_canvas3D()->get_gcode_viewer().get_plater_extruder();
     BitmapCache bmcache;
 
@@ -2536,7 +2706,6 @@ void SelectMachineDialog::set_default()
 
     m_sizer_material->Clear();
     m_materialList.clear();
-
     m_filaments.clear();
 
     for (auto i = 0; i < extruders.size(); i++) {
@@ -2548,6 +2717,16 @@ void SelectMachineDialog::set_default()
         auto          colour_rgb = wxColour((int) rgb[0], (int) rgb[1], (int) rgb[2]);
         if (extruder >= materials.size() || extruder < 0 || extruder >= display_materials.size())
             continue;
+
+       /* if (m_materialList.size() == 0) {
+            auto tips_panel = new wxPanel(m_scrollable_region, wxID_ANY);
+            tips_panel->SetSize(wxSize(60,40));
+            tips_panel->SetMinSize(wxSize(60,40));
+            tips_panel->SetMaxSize(wxSize(60,40));
+            tips_panel->SetBackgroundColour(*wxRED);
+            m_sizer_material->Add(tips_panel, 0, wxALL, FromDIP(4));
+        }*/
+
         MaterialItem *item = new MaterialItem(m_scrollable_region, colour_rgb, _L(display_materials[extruder]));
         m_sizer_material->Add(item, 0, wxALL, FromDIP(4));
 
