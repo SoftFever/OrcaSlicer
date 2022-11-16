@@ -115,7 +115,7 @@
     "extruder_clearance_max_radius": "68",
     "extruder_clearance_height_to_rod": "36",
     "extruder_clearance_height_to_lid": "90",
-    "nozzle_volume": "118",
+    "nozzle_volume": "107",
     "nozzle_diameter": [
         "0.4"
     ],
