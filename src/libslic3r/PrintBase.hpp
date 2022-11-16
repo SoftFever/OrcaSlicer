@@ -16,12 +16,20 @@
 
 namespace Slic3r {
 
+enum StringExceptionType {
+    STRING_EXCEPT_NOT_DEFINED                   = 0,
+    STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE   = 1,
+    STRING_EXCEPT_COUNT
+};
+
 // BBS: error with object
 struct StringObjectException
 {
     std::string string;
     ObjectBase const *object = nullptr;
     std::string opt_key;
+    StringExceptionType         type;   // warning type for tips
+    std::vector<std::string>    params; // warning params for tips
 };
 
 class CanceledException : public std::exception

@@ -4103,6 +4103,8 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         Polygons polygons;
         std::vector<std::pair<Polygon, float>> height_polygons;
         StringObjectException err = background_process.validate(&warning, &polygons, &height_polygons);
+        // update string by type
+        q->post_process_string_object_exception(err);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": validate err=%1%, warning=%2%")%err.string%warning.string;
 
         if (err.string.empty()) {
@@ -10426,6 +10428,8 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
         Polygons polygons;
         std::vector<std::pair<Polygon, float>> height_polygons;
         StringObjectException err = p->background_process.validate(&warning, &polygons, &height_polygons);
+        // update string by type
+        post_process_string_object_exception(err);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": validate err=%1%, warning=%2%, model_fits %3%")%err.string%warning.string %model_fits;
 
         if (err.string.empty()) {
@@ -10752,6 +10756,29 @@ void Plater::show_object_info()
 bool Plater::show_publish_dialog(bool show)
 {
     return p->show_publish_dlg(show);
+}
+
+void Plater::post_process_string_object_exception(StringObjectException &err)
+{
+    if (err.type == StringExceptionType::STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE) {
+        try {
+            int extruder_id = atoi(err.params[2].c_str()) - 1;
+            if (extruder_id < wxGetApp().preset_bundle->filament_presets.size()) {
+                std::string filament_name = wxGetApp().preset_bundle->filament_presets[extruder_id];
+                for (auto filament : wxGetApp().preset_bundle->filaments) {
+                    if (filament.name == filament_name) {
+                        filament_name = filament.alias;
+                        break;
+                    }
+                }
+                err.string = format(L("Plate %d: %s does not support filament %s (%s).\n"), err.params[0], err.params[1], err.params[2], filament_name);
+            }
+        } catch (...) {
+            ;
+        }
+    }
+
+    return;
 }
 
 #if ENABLE_ENVIRONMENT_MAP

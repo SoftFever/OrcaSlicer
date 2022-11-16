@@ -22,6 +22,7 @@
 #include "Jobs/PrintJob.hpp"
 #include "Jobs/SendJob.hpp"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/PrintBase.hpp"
 
 #define FILAMENT_SYSTEM_COLORS_NUM      16
 
@@ -504,6 +505,8 @@ public:
     void show_object_info();
     //BBS
     bool show_publish_dialog(bool show = true);
+    //BBS: post process string object exception strings by warning types
+    void post_process_string_object_exception(StringObjectException &err);
 
 #if ENABLE_ENVIRONMENT_MAP
     void init_environment_texture();

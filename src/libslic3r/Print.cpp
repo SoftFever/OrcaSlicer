@@ -1098,9 +1098,15 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                         break;
                     }
                 }
-
-                return { format(L("Plate %d: %s does not support filament %s.\n"), this->get_plate_index() + 1,
-                                L(bed_type_name), extruder_id + 1) };
+                
+                StringObjectException except;
+                except.string = format(L("Plate %d: %s does not support filament %s\n"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
+                except.type   = STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE;
+                except.params.push_back(std::to_string(this->get_plate_index() + 1));
+                except.params.push_back(L(bed_type_name));
+                except.params.push_back(std::to_string(extruder_id+1));
+                except.object = nullptr;
+                return except;
             }
         }
     }
