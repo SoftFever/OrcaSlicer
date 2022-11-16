@@ -501,36 +501,42 @@ bool MachineObject::is_U0_firmware()
 
 bool MachineObject::is_support_ams_mapping()
 {
-    AppConfig* config = Slic3r::GUI::wxGetApp().app_config;
-    if (config) {
-        if (config->get("check_ams_version") == "0")
-            return false;
-    }
-    bool need_upgrade = false;
-    if (has_ams()) {
-        // compare ota version and ams version
-        auto ota_ver_it = module_vers.find("ota");
-        if (ota_ver_it != module_vers.end()) {
-            if (!MachineObject::is_support_ams_mapping_version("ota", ota_ver_it->second.sw_ver)) {
-                need_upgrade = true;
-            }
+    if (printer_type == "BL-P001" || printer_type == "BL-P002") {
+        AppConfig* config = Slic3r::GUI::wxGetApp().app_config;
+        if (config) {
+            if (config->get("check_ams_version") == "0")
+                return true;
         }
-        for (int i = 0; i < 4; i++) {
-            std::string ams_id = (boost::format("ams/%1%") % i).str();
-            auto ams_ver_it = module_vers.find(ams_id);
-            if (ams_ver_it != module_vers.end()) {
-                if (!MachineObject::is_support_ams_mapping_version("ams", ams_ver_it->second.sw_ver)) {
+        bool need_upgrade = false;
+        if (has_ams()) {
+            // compare ota version and ams version
+            auto ota_ver_it = module_vers.find("ota");
+            if (ota_ver_it != module_vers.end()) {
+                if (!MachineObject::is_support_ams_mapping_version("ota", ota_ver_it->second.sw_ver)) {
                     need_upgrade = true;
                 }
             }
+            for (int i = 0; i < 4; i++) {
+                std::string ams_id = (boost::format("ams/%1%") % i).str();
+                auto ams_ver_it = module_vers.find(ams_id);
+                if (ams_ver_it != module_vers.end()) {
+                    if (!MachineObject::is_support_ams_mapping_version("ams", ams_ver_it->second.sw_ver)) {
+                        need_upgrade = true;
+                    }
+                }
+            }
         }
+        return !need_upgrade;
     }
-    return !need_upgrade;
+    else {
+        return true;
+    }
 }
 
 bool MachineObject::is_support_ams_mapping_version(std::string module, std::string version)
 {
     bool result = true;
+
     if (module == "ota") {
         if (version.compare("00.01.04.03") < 0)
             return false;
