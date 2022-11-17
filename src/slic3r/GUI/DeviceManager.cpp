@@ -806,7 +806,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
     std::vector<FilamentInfo> cache_map_result = result;
 
     //check ams mapping result
-    if (is_valid_mapping_result(result)) {
+    if (is_valid_mapping_result(result, true)) {
         return 0;
     }
 
@@ -834,7 +834,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
         }
 
         //check order mapping result
-        if (is_valid_mapping_result(result)) {
+        if (is_valid_mapping_result(result, true)) {
             return 0;
         }
     } catch(...) {
@@ -854,7 +854,7 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
     return 0;
 }
 
-bool MachineObject::is_valid_mapping_result(std::vector<FilamentInfo>& result)
+bool MachineObject::is_valid_mapping_result(std::vector<FilamentInfo>& result, bool check_empty_slot)
 {
     bool valid_ams_mapping_result = true;
     if (result.empty()) return false;
@@ -870,15 +870,17 @@ bool MachineObject::is_valid_mapping_result(std::vector<FilamentInfo>& result)
                 result[i].tray_id = -1;
                 valid_ams_mapping_result = false;
             } else {
-                int tray_id = result[i].tray_id % 4;
-                auto tray_item = ams_item->second->trayList.find(std::to_string(tray_id));
-                if (tray_item == ams_item->second->trayList.end()) {
-                    result[i].tray_id = -1;
-                    valid_ams_mapping_result = false;
-                } else {
-                    if (!tray_item->second->is_exists) {
+                if (check_empty_slot) {
+                    int  tray_id   = result[i].tray_id % 4;
+                    auto tray_item = ams_item->second->trayList.find(std::to_string(tray_id));
+                    if (tray_item == ams_item->second->trayList.end()) {
                         result[i].tray_id        = -1;
                         valid_ams_mapping_result = false;
+                    } else {
+                        if (!tray_item->second->is_exists) {
+                            result[i].tray_id        = -1;
+                            valid_ams_mapping_result = false;
+                        }
                     }
                 }
             }
@@ -3139,6 +3141,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
             obj->wifi_signal = printer_signal;
             obj->dev_connection_type = connect_type;
             obj->bind_state = bind_state;
+            obj->printer_type = MachineObject::parse_printer_type(printer_type_str);
 
             // U0 firmware
             if (obj->dev_connection_type.empty() && obj->bind_state.empty())
