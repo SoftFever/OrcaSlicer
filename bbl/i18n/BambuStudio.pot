@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-14 11:18+0800\n"
+"POT-Creation-Date: 2022-11-17 09:45+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -591,6 +591,9 @@ msgstr ""
 msgid "Support"
 msgstr ""
 
+msgid "Flush options"
+msgstr ""
+
 msgid "Speed"
 msgstr ""
 
@@ -1079,6 +1082,9 @@ msgstr ""
 msgid "Open Preferences."
 msgstr ""
 
+msgid "Open next tip."
+msgstr ""
+
 msgid "Open Documentation in web browser."
 msgstr ""
 
@@ -1427,6 +1433,9 @@ msgid "The input value should be greater than %1% and less than %2%"
 msgstr ""
 
 msgid "SN"
+msgstr ""
+
+msgid "Setting AMS slot information while printing is not supported"
 msgstr ""
 
 msgid "Confirm"
@@ -2338,14 +2347,14 @@ msgstr ""
 msgid "Show Configuration Folder"
 msgstr ""
 
+msgid "Show Tip of the Day"
+msgstr ""
+
 msgid "Check for Update"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "&About %s"
-msgstr ""
-
-msgid "Show Tip of the Day"
 msgstr ""
 
 msgid "Open Network Test"
@@ -2758,7 +2767,7 @@ msgstr ""
 msgid "No printers."
 msgstr ""
 
-msgid "Not supported."
+msgid "Not supported by this model of printer!"
 msgstr ""
 
 msgid "Connecting..."
@@ -2772,6 +2781,12 @@ msgid "Loading file list..."
 msgstr ""
 
 msgid "No files"
+msgstr ""
+
+msgid "Not accessible in LAN-only mode!"
+msgstr ""
+
+msgid "Missing LAN ip of printer!"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -2873,6 +2888,9 @@ msgid "Are you sure you want to cancel this print?"
 msgstr ""
 
 msgid "Downloading..."
+msgstr ""
+
+msgid "Cloud Slicing..."
 msgstr ""
 
 msgid ""
@@ -3085,13 +3103,24 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr ""
 
-msgid "Spaghetti and Excess Chute Pileup Detection"
+msgid "Enable AI monitoring of printing"
 msgstr ""
 
-msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
+msgid "Sensitivity of pausing is"
+msgstr ""
+
+msgid "Enable detection of build plate position"
+msgstr ""
+
+msgid ""
+"The localization tag of build plate is detected, and printing is paused if "
+"the tag is not in predefined range."
 msgstr ""
 
 msgid "First Layer Inspection"
+msgstr ""
+
+msgid "Auto-recovery from step loss"
 msgstr ""
 
 msgid "Switch to per-object setting mode to edit modifier settings."
@@ -3164,7 +3193,7 @@ msgstr ""
 msgid "Remove last filament"
 msgstr ""
 
-msgid "Sync material list from AMS"
+msgid "Synchronize filament list from AMS"
 msgstr ""
 
 msgid "Set filaments to use"
@@ -4071,9 +4100,6 @@ msgid "Support filament"
 msgstr ""
 
 msgid "Prime tower"
-msgstr ""
-
-msgid "Flush options"
 msgstr ""
 
 msgid "Special mode"
@@ -6993,4 +7019,16 @@ msgstr ""
 
 #: resources/data/hints.ini: [hint:Set parameters for multiple objects]
 msgid "Set parameters for multiple objects\nDid you know that you can set slicing parameters for all selected objects at one time?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Stack objects]
+msgid "Stack objects\nDid you know that you can stack objects as a whole one?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Flush into support/objects/infill]
+msgid "Flush into support/objects/infill\nDid you know that you can save the wasted filament by flushing them into support/objects/infill during filament change?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Improve strength]
+msgid "Improve strength\nDid you know that you can use more wall loops and higher sparse infill density to improve the strength of the model?"
 msgstr ""

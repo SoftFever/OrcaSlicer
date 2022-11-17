@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-14 11:18+0800\n"
+"POT-Creation-Date: 2022-11-17 09:45+0800\n"
 "PO-Revision-Date: 2022-11-01 11:29+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -596,6 +596,9 @@ msgstr "填充"
 msgid "Support"
 msgstr "支撑"
 
+msgid "Flush options"
+msgstr "换料冲刷选项"
+
 msgid "Speed"
 msgstr "速度"
 
@@ -1079,6 +1082,9 @@ msgstr "详情"
 msgid "Open Preferences."
 msgstr "打开首选项。"
 
+msgid "Open next tip."
+msgstr ""
+
 msgid "Open Documentation in web browser."
 msgstr "在web浏览器中打开文档。"
 
@@ -1442,6 +1448,9 @@ msgstr "输入的范围在 %1% 和 %2% 之间"
 
 msgid "SN"
 msgstr "序列号"
+
+msgid "Setting AMS slot information while printing is not supported"
+msgstr ""
 
 msgid "Confirm"
 msgstr "确定"
@@ -2413,15 +2422,15 @@ msgstr "配置向导"
 msgid "Show Configuration Folder"
 msgstr "打开配置文件夹"
 
+msgid "Show Tip of the Day"
+msgstr "展示每日小贴士"
+
 msgid "Check for Update"
 msgstr "检查新版本"
 
 #, c-format, boost-format
 msgid "&About %s"
 msgstr "关于 %s"
-
-msgid "Show Tip of the Day"
-msgstr "展示每日小贴士"
 
 msgid "Open Network Test"
 msgstr "打开网络测试"
@@ -2474,7 +2483,7 @@ msgid "Right View"
 msgstr "右视图"
 
 msgid "Start a new window"
-msgstr ""
+msgstr "打开新窗口"
 
 msgid "New Project"
 msgstr "新建项目"
@@ -2736,13 +2745,13 @@ msgid "Initialize failed (Not supported with LAN-only mode)!"
 msgstr "初始化失败（不支持局域网模式的视频连接）"
 
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
-msgstr "初始化失败（局域网描述不可访问）"
+msgstr "初始化失败（在局域网模式中不可访问）！"
 
 msgid "Initialize failed (Missing LAN ip of printer)!"
-msgstr ""
+msgstr "初始化失败（未找到打印机的局域网地址）！"
 
 msgid "Initialize failed (Not supported by printer)!"
-msgstr ""
+msgstr "初始化失败（打印机不支持该功能）！"
 
 #, c-format, boost-format
 msgid "Initialize failed (%s)!"
@@ -2761,20 +2770,23 @@ msgstr "已经停止。"
 msgid ""
 "Virtual Camera Tools is required for this task!\n"
 "Do you want to install them?"
-msgstr ""
+msgstr "该功能需要“虚拟摄像头工具包”，是否下载并安装该工具包？"
 
 msgid "Downloading Virtual Camera Tools"
-msgstr ""
+msgstr "正在下载“虚拟摄像头工具包”"
 
 msgid ""
 "Another virtual camera is running.\n"
 "Bambu Studio supports only a single virtual camera.\n"
 "Do you want to stop this virtual camera?"
 msgstr ""
+"另一个虚拟摄像头正在工作。\n"
+"Bambu Studio 同时只能支持一个虚拟摄像头。\n"
+"是否停止十一个虚拟摄像头？"
 
 #, c-format, boost-format
 msgid "Virtual camera initialize failed (%s)!"
-msgstr ""
+msgstr "虚拟摄像头初始化失败(%s)！"
 
 msgid "Information"
 msgstr "信息"
@@ -2783,6 +2795,8 @@ msgid ""
 "Virtual camera is started.\n"
 "Press 'OK' to navigate the guide page of 'Streaming video of Bambu Printer'."
 msgstr ""
+"虚拟摄像头已经启动。点击“确认”打开相关帮助页面：'Streaming video of Bambu "
+"Printer'。"
 
 msgid "Playing..."
 msgstr "正在播放中……"
@@ -2836,8 +2850,8 @@ msgstr "批量管理文件"
 msgid "No printers."
 msgstr "未选择打印机"
 
-msgid "Not supported."
-msgstr "不支持"
+msgid "Not supported by this model of printer!"
+msgstr "该型号的打印机不支持该功能！"
 
 msgid "Connecting..."
 msgstr "连接中..."
@@ -2852,12 +2866,18 @@ msgstr "加载文件列表..."
 msgid "No files"
 msgstr "文件列表为空"
 
+msgid "Not accessible in LAN-only mode!"
+msgstr "在局域网模式中不可访问！"
+
+msgid "Missing LAN ip of printer!"
+msgstr "未找到打印机的局域网地址！"
+
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "文件%s丢失，请重新下载。"
 
 msgid "Download waiting..."
-msgstr "正在下载中..."
+msgstr "等待下载中..."
 
 msgid "Play"
 msgstr "播放"
@@ -2897,7 +2917,7 @@ msgid "Camera"
 msgstr "摄像机"
 
 msgid "Virtual Camera"
-msgstr ""
+msgstr "虚拟摄像头"
 
 msgid "Printing Progress"
 msgstr "打印进度"
@@ -2952,6 +2972,9 @@ msgstr "你确定要取消这次打印吗？"
 
 msgid "Downloading..."
 msgstr "下载中..."
+
+msgid "Cloud Slicing..."
+msgstr ""
 
 msgid ""
 "Cannot read filament info: the filament is loaded to the tool head,please "
@@ -3161,14 +3184,25 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "底部"
 
-msgid "Spaghetti and Excess Chute Pileup Detection"
-msgstr "炒面与堆料检查"
+msgid "Enable AI monitoring of printing"
+msgstr ""
 
-msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
-msgstr "当发生炒面或废料口堆料时停止打印"
+msgid "Sensitivity of pausing is"
+msgstr ""
+
+msgid "Enable detection of build plate position"
+msgstr ""
+
+msgid ""
+"The localization tag of build plate is detected, and printing is paused if "
+"the tag is not in predefined range."
+msgstr ""
 
 msgid "First Layer Inspection"
 msgstr "首层扫描"
+
+msgid "Auto-recovery from step loss"
+msgstr ""
 
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr "切换到对象模式以编辑修改器的设置。"
@@ -3240,8 +3274,8 @@ msgstr "增加一个材料"
 msgid "Remove last filament"
 msgstr "删除最后一个材料"
 
-msgid "Sync material list from AMS"
-msgstr "同步到 AMS 的材料列表"
+msgid "Synchronize filament list from AMS"
+msgstr "从AMS同步材料列表"
 
 msgid "Set filaments to use"
 msgstr "配置可选择的材料"
@@ -3265,7 +3299,7 @@ msgid ""
 "There are some unknown filaments mapped to generic preset. Please update "
 "Bambu Studio or restart Bambu Studio to check if there is an update to "
 "system presets."
-msgstr ""
+msgstr "有一些未知型号的材料，映射到通用预设。请更新或者重启 Bambu Studio，以检查系统预设有没有更新。"
 
 msgid "Untitled"
 msgstr "未命名"
@@ -4177,9 +4211,6 @@ msgstr "支撑耗材"
 
 msgid "Prime tower"
 msgstr "擦拭塔"
-
-msgid "Flush options"
-msgstr "换料冲刷选项"
 
 msgid "Special mode"
 msgstr "特殊模式"
@@ -7334,6 +7365,38 @@ msgid ""
 msgstr ""
 "为多个对象设置参数\n"
 "您知道吗，可以同时为所有选定对象设置切片参数。"
+
+#: resources/data/hints.ini: [hint:Stack objects]
+msgid ""
+"Stack objects\n"
+"Did you know that you can stack objects as a whole one?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Flush into support/objects/infill]
+msgid ""
+"Flush into support/objects/infill\n"
+"Did you know that you can save the wasted filament by flushing them into "
+"support/objects/infill during filament change?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Improve strength]
+msgid ""
+"Improve strength\n"
+"Did you know that you can use more wall loops and higher sparse infill "
+"density to improve the strength of the model?"
+msgstr ""
+
+#~ msgid "Not supported."
+#~ msgstr "不支持"
+
+#~ msgid "Spaghetti and Excess Chute Pileup Detection"
+#~ msgstr "炒面与堆料检查"
+
+#~ msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
+#~ msgstr "当发生炒面或废料口堆料时停止打印"
+
+#~ msgid "Sync material list from AMS"
+#~ msgstr "同步到 AMS 的材料列表"
 
 #~ msgid "Filament N XX"
 #~ msgstr "打印丝 N XX"

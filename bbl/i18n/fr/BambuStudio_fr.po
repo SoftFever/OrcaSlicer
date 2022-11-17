@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-14 11:18+0800\n"
+"POT-Creation-Date: 2022-11-17 09:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -613,6 +613,9 @@ msgstr "Remplissage"
 msgid "Support"
 msgstr "Supports"
 
+msgid "Flush options"
+msgstr "Options de purge"
+
 msgid "Speed"
 msgstr "La rapidité"
 
@@ -1114,6 +1117,9 @@ msgstr "Suite"
 msgid "Open Preferences."
 msgstr ""
 
+msgid "Open next tip."
+msgstr ""
+
 msgid "Open Documentation in web browser."
 msgstr ""
 
@@ -1489,6 +1495,9 @@ msgstr "La valeur saisie doit être supérieure à %1% et inférieure à %2%"
 
 msgid "SN"
 msgstr "Numéro de série"
+
+msgid "Setting AMS slot information while printing is not supported"
+msgstr ""
 
 msgid "Confirm"
 msgstr "Confirmer"
@@ -2469,15 +2478,15 @@ msgstr "Assistant de configuration"
 msgid "Show Configuration Folder"
 msgstr "Afficher le dossier de configuration"
 
+msgid "Show Tip of the Day"
+msgstr ""
+
 msgid "Check for Update"
 msgstr "Vérifier la mise à jour"
 
 #, c-format, boost-format
 msgid "&About %s"
 msgstr "&À propos de %s"
-
-msgid "Show Tip of the Day"
-msgstr ""
 
 msgid "Open Network Test"
 msgstr ""
@@ -2889,7 +2898,7 @@ msgstr ""
 msgid "No printers."
 msgstr "No printers."
 
-msgid "Not supported."
+msgid "Not supported by this model of printer!"
 msgstr ""
 
 msgid "Connecting..."
@@ -2904,6 +2913,12 @@ msgstr "Loading file list..."
 
 msgid "No files"
 msgstr "No files"
+
+msgid "Not accessible in LAN-only mode!"
+msgstr ""
+
+msgid "Missing LAN ip of printer!"
+msgstr ""
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -3005,6 +3020,9 @@ msgstr ""
 
 msgid "Downloading..."
 msgstr "Downloading..."
+
+msgid "Cloud Slicing..."
+msgstr ""
 
 msgid ""
 "Cannot read filament info: the filament is loaded to the tool head,please "
@@ -3219,13 +3237,24 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Fond"
 
-msgid "Spaghetti and Excess Chute Pileup Detection"
+msgid "Enable AI monitoring of printing"
 msgstr ""
 
-msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
+msgid "Sensitivity of pausing is"
+msgstr ""
+
+msgid "Enable detection of build plate position"
+msgstr ""
+
+msgid ""
+"The localization tag of build plate is detected, and printing is paused if "
+"the tag is not in predefined range."
 msgstr ""
 
 msgid "First Layer Inspection"
+msgstr ""
+
+msgid "Auto-recovery from step loss"
 msgstr ""
 
 msgid "Switch to per-object setting mode to edit modifier settings."
@@ -3300,7 +3329,7 @@ msgstr ""
 msgid "Remove last filament"
 msgstr ""
 
-msgid "Sync material list from AMS"
+msgid "Synchronize filament list from AMS"
 msgstr ""
 
 msgid "Set filaments to use"
@@ -4260,9 +4289,6 @@ msgstr "Filament de support"
 
 msgid "Prime tower"
 msgstr "Tour principale"
-
-msgid "Flush options"
-msgstr "Options de purge"
 
 msgid "Special mode"
 msgstr "Mode spécial"
@@ -7621,6 +7647,26 @@ msgid ""
 "Set parameters for multiple objects\n"
 "Did you know that you can set slicing parameters for all selected objects at "
 "one time?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Stack objects]
+msgid ""
+"Stack objects\n"
+"Did you know that you can stack objects as a whole one?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Flush into support/objects/infill]
+msgid ""
+"Flush into support/objects/infill\n"
+"Did you know that you can save the wasted filament by flushing them into "
+"support/objects/infill during filament change?"
+msgstr ""
+
+#: resources/data/hints.ini: [hint:Improve strength]
+msgid ""
+"Improve strength\n"
+"Did you know that you can use more wall loops and higher sparse infill "
+"density to improve the strength of the model?"
 msgstr ""
 
 #~ msgid "Filament N XX"
