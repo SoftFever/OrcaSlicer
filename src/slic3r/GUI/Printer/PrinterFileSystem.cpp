@@ -42,7 +42,7 @@ PrinterFileSystem::PrinterFileSystem()
     for (int i = 0; i < 100; ++i) {
         auto name = wxString::Format(L"img-%03d.jpg", i + 1);
         wxImage im(L"D:\\work\\pic\\" + name);
-        m_file_list.push_back({name.ToUTF8().data(), time.GetTicks(), 26937, im, i < 20 ? FF_DOWNLOAD : 0, i * 10 - 40});
+        m_file_list.push_back({name.ToUTF8().data(), time.GetTicks(), 26937, i > 3 ? im : default_thumbnail, i < 20 ? FF_DOWNLOAD : 0, i * 10 - 40 - 1});
         time.Add(wxDateSpan::Days(-1));
     }
     m_file_list[0].thumbnail = default_thumbnail;
@@ -224,6 +224,8 @@ void PrinterFileSystem::DownloadCancel(size_t index)
     if ((file.flags & FF_DOWNLOAD) == 0) return;
     if (file.progress >= 0)
         CancelRequest(m_download_seq);
+    else
+        file.flags &= ~FF_DOWNLOAD;
 }
 
 size_t PrinterFileSystem::GetCount() const
