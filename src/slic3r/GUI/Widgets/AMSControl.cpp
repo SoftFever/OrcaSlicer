@@ -58,6 +58,7 @@ bool AMSinfo::parse_ams_info(Ams *ams)
 {
     if (!ams) return false;
     this->ams_id = ams->id;
+    this->ams_humidity = ams->humidity;
     cans.clear();
     for (int i = 0; i < 4; i++) {
         auto    it = ams->trayList.find(std::to_string(i));
@@ -79,6 +80,9 @@ bool AMSinfo::parse_ams_info(Ams *ams)
                 } else {
                     info.material_state = AMSCanType::AMS_CAN_TYPE_THIRDBRAND;
                 }
+     
+                info.material_remain = it->second->remain < 0 ? 100 :it->second->remain;
+                
             } else {
                 info.can_id = it->second->id;
                 info.material_name = "";
@@ -521,6 +525,10 @@ void AMSLib::render(wxDC &dc)
         temp_text_colour = AMS_CONTROL_GRAY800;
     }
 
+    if (m_info.material_remain < 50) {
+        temp_text_colour = AMS_CONTROL_GRAY800;
+    }
+
     //if (!wxWindow::IsEnabled()) {
         //temp_text_colour = AMS_CONTROL_DISABLE_TEXT_COLOUR;
     //}
@@ -568,15 +576,25 @@ void AMSLib::render(wxDC &dc)
 
 void AMSLib::doRender(wxDC &dc)
 {
-    wxSize size             = GetSize();
-    auto   tmp_lib_colour   = m_info.material_colour;
+    wxSize size                   = GetSize();
+    auto   tmp_lib_colour         = m_info.material_colour;
     auto   temp_bitmap_third      = m_bitmap_editable_light;
     auto   temp_bitmap_brand      = m_bitmap_readonly_light;
+
+    //draw def background
+    dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+    dc.SetBrush(wxBrush(AMS_CONTROL_DEF_LIB_BK_COLOUR));
+    dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), size.x - FromDIP(8), size.y - FromDIP(8), m_radius);
 
     if (tmp_lib_colour.GetLuminance() < 0.5) {
         temp_bitmap_third = m_bitmap_editable_light;
         temp_bitmap_brand = m_bitmap_readonly_light;
     } else {
+        temp_bitmap_third = m_bitmap_editable;
+        temp_bitmap_brand = m_bitmap_readonly;
+    }
+
+    if (m_info.material_remain < 50) {
         temp_bitmap_third = m_bitmap_editable;
         temp_bitmap_brand = m_bitmap_readonly;
     }
@@ -598,11 +616,11 @@ void AMSLib::doRender(wxDC &dc)
 
         dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
         dc.SetBrush(wxBrush(tmp_lib_colour));
-        if (m_radius == 0) {
-            dc.DrawRectangle(0, 0, size.x, size.y);
-        } else {
-            dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), size.x - FromDIP(8), size.y - FromDIP(8), m_radius);
-        }
+        /* if (m_radius == 0) {
+             dc.DrawRectangle(0, 0, size.x, size.y);
+         } else {
+             dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), size.x - FromDIP(8), size.y - FromDIP(8), m_radius);
+         }*/
     }
     
     if (!m_selected && m_hover) {
@@ -610,26 +628,54 @@ void AMSLib::doRender(wxDC &dc)
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
         if (m_radius == 0) {
             dc.DrawRectangle(0, 0, size.x, size.y);
-        } else {
+        }
+        else {
             dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(1), size.y - FromDIP(1), m_radius);
         }
 
         dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
         dc.SetBrush(wxBrush(tmp_lib_colour));
-        if (m_radius == 0) {
+       /* if (m_radius == 0) {
             dc.DrawRectangle(0, 0, size.x, size.y);
         } else {
             dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), size.x - FromDIP(8), size.y - FromDIP(8), m_radius);
-        }
+        }*/
     } else {
         dc.SetPen(wxPen(tmp_lib_colour, 1, wxSOLID));
         dc.SetBrush(wxBrush(tmp_lib_colour));
-        if (m_radius == 0) {
+        /*if (m_radius == 0) {
             dc.DrawRectangle(0, 0, size.x, size.y);
         } else {
             dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), size.x - FromDIP(8), size.y - FromDIP(8), m_radius);
+        }*/
+    }
+
+    //draw remain
+    int height = size.y - FromDIP(8);
+    int curr_height = height * float(m_info.material_remain * 1.0 / 100.0);
+
+    if (curr_height < FromDIP(6)) {
+        curr_height = FromDIP(6);
+    }
+
+    int top = height - curr_height;
+    dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius);
+
+    if (top > 2) {
+        dc.DrawRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), FromDIP(2));
+        if (tmp_lib_colour.Red() > 238 && tmp_lib_colour.Green() > 238 && tmp_lib_colour.Blue() > 238) {
+            dc.SetPen(wxPen(wxColour(130, 129, 128), 1, wxSOLID));
+            dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+            dc.DrawLine(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(4), FromDIP(4) + top);
         }
     }
+        
+    
+
+    //border
+    dc.SetPen(wxPen(wxColour(130, 130, 128), 1, wxSOLID));
+    dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+    dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), size.x - FromDIP(8), size.y - FromDIP(8), m_radius);
     
     // edit icon
     if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE)
@@ -696,6 +742,12 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
         m_rode_mode = AMSRoadMode::AMS_ROAD_MODE_LEFT;
     }
 
+    ams_humidity_0 = ScalableBitmap(this, "ams_humidity_0", 18);
+    ams_humidity_1 = ScalableBitmap(this, "ams_humidity_1", 18);
+    ams_humidity_2 = ScalableBitmap(this, "ams_humidity_2", 18);
+    ams_humidity_3 = ScalableBitmap(this, "ams_humidity_3", 18);
+    ams_humidity_4 = ScalableBitmap(this, "ams_humidity_4", 18);
+
     create(parent, id, pos, size);
     Bind(wxEVT_PAINT, &AMSRoad::paintEvent, this);
     wxWindow::SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
@@ -703,8 +755,9 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
 
 void AMSRoad::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) { wxWindow::Create(parent, id, pos, size); }
 
-void AMSRoad::Update(Caninfo info, int canindex, int maxcan)
+void AMSRoad::Update(AMSinfo amsinfo, Caninfo info, int canindex, int maxcan)
 {
+    m_amsinfo = amsinfo;
     m_info     = info;
     m_canindex = canindex;
     if (m_canindex == 0 && maxcan == 1) {
@@ -822,6 +875,27 @@ void AMSRoad::doRender(wxDC &dc)
         dc.SetBrush(wxBrush(m_road_def_color));
         dc.DrawRoundedRectangle(size.x * 0.37 / 2, size.y * 0.6 - size.y / 6, size.x * 0.63, size.y / 3, m_radius);
     }
+
+    if (m_canindex == 3) {
+        if (m_amsinfo.ams_humidity == 5) {
+            dc.DrawBitmap(ams_humidity_0.bmp(), wxPoint(size.x - ams_humidity_0.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_0.GetBmpSize().y - FromDIP(8)));
+        }
+        else if (m_amsinfo.ams_humidity == 4) {
+            dc.DrawBitmap(ams_humidity_1.bmp(), wxPoint(size.x - ams_humidity_0.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_0.GetBmpSize().y - FromDIP(8)));
+        }
+        else if (m_amsinfo.ams_humidity == 3) {
+            dc.DrawBitmap(ams_humidity_2.bmp(), wxPoint(size.x - ams_humidity_0.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_0.GetBmpSize().y - FromDIP(8)));
+        }
+        else if (m_amsinfo.ams_humidity == 2) {
+            dc.DrawBitmap(ams_humidity_3.bmp(), wxPoint(size.x - ams_humidity_0.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_0.GetBmpSize().y - FromDIP(8)));
+        }
+        else if (m_amsinfo.ams_humidity == 1) {
+            dc.DrawBitmap(ams_humidity_4.bmp(), wxPoint(size.x - ams_humidity_0.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_0.GetBmpSize().y - FromDIP(8)));
+        }
+        else {
+            dc.DrawBitmap(ams_humidity_0.bmp(), wxPoint(size.x - ams_humidity_0.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_0.GetBmpSize().y - FromDIP(8)));
+        }
+    }
 }
 
 void AMSRoad::UpdatePassRoad(int tag_index, AMSPassRoadType type, AMSPassRoadSTEP step) {}
@@ -886,13 +960,19 @@ AMSItem::AMSItem() {}
 
 AMSItem::AMSItem(wxWindow *parent, wxWindowID id, AMSinfo amsinfo, const wxSize cube_size, const wxPoint &pos, const wxSize &size) : AMSItem()
 {
+
+    ams_humidity_0 = ScalableBitmap(this, "ams_humidity_0", 18);
+    ams_humidity_1 = ScalableBitmap(this, "ams_humidity_1", 18);
+    ams_humidity_2 = ScalableBitmap(this, "ams_humidity_2", 18);
+    ams_humidity_3 = ScalableBitmap(this, "ams_humidity_3", 18);
+    ams_humidity_4 = ScalableBitmap(this, "ams_humidity_4", 18);
+
     m_amsinfo   = amsinfo;
     m_cube_size = cube_size;
     create(parent, id, pos, size);
     Bind(wxEVT_PAINT, &AMSItem::paintEvent, this);
     Bind(wxEVT_ENTER_WINDOW, &AMSItem::OnEnterWindow, this);
     Bind(wxEVT_LEAVE_WINDOW, &AMSItem::OnLeaveWindow, this);
-    // Bind(wxEVT_LEFT_DOWN, &AMSItem::OnSelected, this);
 }
 
 void AMSItem::Open()
@@ -1025,12 +1105,30 @@ void AMSItem::doRender(wxDC &dc)
         dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
         dc.DrawLine(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, left, ((size.y - AMS_ITEM_CUBE_SIZE.y) / 2) + AMS_ITEM_CUBE_SIZE.y);
 
-        left += m_space;
-        dc.SetFont(::Label::Body_13);
-        dc.SetTextForeground(AMS_CONTROL_GRAY800);
-        auto tsize = dc.GetTextExtent("00% RH");
-        auto text  = wxString::Format("%d%% RH", m_humidity);
-        dc.DrawText(text, wxPoint(left, (size.y - tsize.y) / 2));
+        left += m_space + m_space / 2;
+        /* dc.SetFont(::Label::Body_13);
+         dc.SetTextForeground(AMS_CONTROL_GRAY800);
+         auto tsize = dc.GetTextExtent("00% RH");
+         auto text  = wxString::Format("%d%% RH", m_humidity);*/
+
+        if (m_amsinfo.ams_humidity == 5) {
+            dc.DrawBitmap(ams_humidity_0.bmp(), wxPoint(left, (size.y - ams_humidity_0.GetBmpSize().y) / 2));
+        }
+        else if (m_amsinfo.ams_humidity == 4) {
+            dc.DrawBitmap(ams_humidity_1.bmp(), wxPoint(left, (size.y - ams_humidity_1.GetBmpSize().y) / 2));
+        }
+        else if (m_amsinfo.ams_humidity == 3) {
+            dc.DrawBitmap(ams_humidity_2.bmp(), wxPoint(left, (size.y - ams_humidity_2.GetBmpSize().y) / 2));
+        }
+        else if (m_amsinfo.ams_humidity == 2) {
+            dc.DrawBitmap(ams_humidity_3.bmp(), wxPoint(left, (size.y - ams_humidity_3.GetBmpSize().y) / 2));
+        }
+        else if (m_amsinfo.ams_humidity == 1) {
+            dc.DrawBitmap(ams_humidity_4.bmp(), wxPoint(left, (size.y - ams_humidity_4.GetBmpSize().y) / 2));
+        }
+        else {
+            dc.DrawBitmap(ams_humidity_0.bmp(), wxPoint(left, (size.y - ams_humidity_0.GetBmpSize().y) / 2));
+        }
     }
 
     auto border_colour = AMS_CONTROL_BRAND_COLOUR;
@@ -1107,7 +1205,7 @@ void AmsCans::Update(AMSinfo info)
     for (auto i = 0; i < m_can_road_list.GetCount(); i++) {
         CanRoads *road = m_can_road_list[i];
         if (i < m_can_count) {
-            road->canRoad->Update(info.cans[i], i, m_can_count);
+            road->canRoad->Update(m_info, info.cans[i], i, m_can_count);
             road->canRoad->Show();
         } else {
             road->canRoad->Hide();
@@ -1902,7 +2000,7 @@ void AMSControl::SwitchAms(std::string ams_id)
             //item->amsItem->HideHumidity();
         }
         m_sizer_top->Layout();
-        // m_panel_top->Fit();
+        m_panel_top->Fit();
     }
 
     for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {

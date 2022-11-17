@@ -334,7 +334,7 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     ams_insert_flag = false;
     ams_power_on_flag = false;
     ams_support_use_ams = false;
-    ams_humidity = -1;
+    ams_humidity = 5;
 
     /* signals */
     wifi_signal = "";
@@ -2530,6 +2530,18 @@ int MachineObject::parse_json(std::string payload)
                                     curr_ams = ams_it->second;
                                 }
                                 if (!curr_ams) continue;
+
+                                if (it->contains("humidity")) {
+                                    std::string humidity = (*it)["humidity"].get<std::string>();
+
+                                    try {
+                                        curr_ams->humidity = atoi(humidity.c_str());
+                                    }
+                                    catch (...) {
+                                        ;
+                                    }
+                                }
+                                
 
                                 if (it->contains("tray")) {
                                     std::set<std::string> tray_id_set;

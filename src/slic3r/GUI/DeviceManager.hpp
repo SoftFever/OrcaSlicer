@@ -210,6 +210,7 @@ public:
         id = ams_id;
     }
     std::string   id;
+    int           humidity = 5;
     bool          startup_read_opt{true};
     bool          tray_read_opt{false};
     bool          is_exists{false};
