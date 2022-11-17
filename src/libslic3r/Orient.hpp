@@ -61,14 +61,14 @@ struct OrientParamsArea {
     float height_offset = 2.3728f;
     float height_log = 0.041375f;
     float height_log_k = 1.9325457f;
-    float LAF_MAX = 0.9997f; // cos(1.4\degree) for low angle face
-    float LAF_MIN = 0.9703f;  // cos(14\degree)
-    float TAR_LAF = 0.01f;
+    float LAF_MAX = 0.999f; // cos(1.4\degree) for low angle face 0.9997f
+    float LAF_MIN = 0.97f;  // cos(14\degree) 0.9703f
+    float TAR_LAF = 0.001f; //0.01f
     float TAR_PROJ_AREA = 0.1f;
     float BOTTOM_MIN = 0.1f;  // min bottom area. If lower than it the object may be unstable
-    float BOTTOM_MAX = 400;  // max bottom area. If get to it the object is stable enough (further increase bottom area won't do more help)
+    float BOTTOM_MAX = 2000;  // max bottom area. If get to it the object is stable enough (further increase bottom area won't do more help)
     float height_to_bottom_hull_ratio_MIN = 1;
-    float BOTTOM_HULL_MAX = 600;// max bottom hull area
+    float BOTTOM_HULL_MAX = 2000;// max bottom hull area
     float APPERANCE_FACE_SUPP=3; // penalty of generating supports on appearance face
 
     float overhang_angle = 60.f;
@@ -109,14 +109,14 @@ struct OrientParams {
     float height_offset = 2.7417608343142073f;
     float height_log = 0.06442030687034085f;
     float height_log_k = 0.3933594673063997f;
-    float LAF_MAX = 0.9997f; // cos(1.4\degree) for low angle face
-    float LAF_MIN= 0.9703f;  // cos(14\degree)
-    float TAR_LAF= 0.1f;
+    float LAF_MAX = 0.999f; // cos(1.4\degree) for low angle face //0.9997f;
+    float LAF_MIN= 0.9703f;  // cos(14\degree) 0.9703f;
+    float TAR_LAF = 0.01f; //0.1f
     float TAR_PROJ_AREA = 0.1f;
     float BOTTOM_MIN = 0.1f;  // min bottom area. If lower than it the objects may be unstable
-    float BOTTOM_MAX = 400;
+    float BOTTOM_MAX = 2000; //400
     float height_to_bottom_hull_ratio_MIN = 1;
-    float BOTTOM_HULL_MAX = 600;// max bottom hull area to clip
+    float BOTTOM_HULL_MAX = 2000;// max bottom hull area to clip //600
     float APPERANCE_FACE_SUPP=3; // penalty of generating supports on appearance face
 
     float overhang_angle = 60.f;

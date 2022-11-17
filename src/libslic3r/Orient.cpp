@@ -246,7 +246,7 @@ public:
     /// remove duplicate orientations
     /// </summary>
     /// <param name="tol">tolerance. default 0.01 =sin(0.57\degree)</param>
-    void remove_duplicates(float tol=0.01)
+    void remove_duplicates(float tol=0.001)
     {
         for (auto it = orientations.begin()+1; it < orientations.end(); )
         {
