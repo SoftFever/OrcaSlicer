@@ -108,7 +108,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     sizer->Add(top_sizer, 0, wxEXPAND);
 
     m_image_grid = new ImageGrid(this);
-    m_image_grid->SetStatus(m_bmp_failed.bmp(), _L("No printers."));
+    m_image_grid->SetStatus(m_bmp_failed, _L("No printers."));
     sizer->Add(m_image_grid, 1, wxEXPAND);
 
     SetSizer(sizer);
@@ -201,9 +201,9 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
     m_button_management->Enable(false);
     SetSelecting(false);
     if (m_machine.empty()) {
-        m_image_grid->SetStatus(m_bmp_failed.bmp(), _L("No printers."));    
+        m_image_grid->SetStatus(m_bmp_failed, _L("No printers."));
     } else if (!m_supported) {
-        m_image_grid->SetStatus(m_bmp_failed.bmp(), _L("Not supported by this model of printer!"));
+        m_image_grid->SetStatus(m_bmp_failed, _L("Not supported by this model of printer!"));
     } else {
         boost::shared_ptr<PrinterFileSystem> fs(new PrinterFileSystem);
         fs->Attached();
@@ -232,14 +232,14 @@ void MediaFilePanel::SetMachineObject(MachineObject* obj)
             boost::shared_ptr fs(wfs.lock());
             if (m_image_grid->GetFileSystem() != fs) // canceled
                 return;
-            wxBitmap icon;
+            ScalableBitmap icon;
             wxString msg;
             switch (e.GetInt()) {
-            case PrinterFileSystem::Initializing: icon = m_bmp_loading.bmp(); msg = _L("Initializing..."); break;
-            case PrinterFileSystem::Connecting: icon = m_bmp_loading.bmp(); msg = _L("Connecting..."); break;
-            case PrinterFileSystem::Failed: icon = m_bmp_failed.bmp(); msg = _L("Connect failed [%d]!"); break;
-            case PrinterFileSystem::ListSyncing: icon = m_bmp_loading.bmp(); msg = _L("Loading file list..."); break;
-            case PrinterFileSystem::ListReady: icon = m_bmp_empty.bmp(); msg = _L("No files"); break;
+            case PrinterFileSystem::Initializing: icon = m_bmp_loading; msg = _L("Initializing..."); break;
+            case PrinterFileSystem::Connecting: icon = m_bmp_loading; msg = _L("Connecting..."); break;
+            case PrinterFileSystem::Failed: icon = m_bmp_failed; msg = _L("Connect failed [%d]!"); break;
+            case PrinterFileSystem::ListSyncing: icon = m_bmp_loading; msg = _L("Loading file list..."); break;
+            case PrinterFileSystem::ListReady: icon = m_bmp_empty; msg = _L("No files"); break;
             }
             if (fs->GetCount() == 0)
                 m_image_grid->SetStatus(icon, msg);
@@ -311,11 +311,11 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
         return;
     }
     if (m_lan_mode ) { // not support tutk
-        m_image_grid->SetStatus(m_bmp_failed.bmp(), _L("Not accessible in LAN-only mode!"));
+        m_image_grid->SetStatus(m_bmp_failed, _L("Not accessible in LAN-only mode!"));
         return;
     }
     if (!m_tutk_support) { // not support tutk
-        m_image_grid->SetStatus(m_bmp_failed.bmp(), _L("Missing LAN ip of printer!"));
+        m_image_grid->SetStatus(m_bmp_failed, _L("Missing LAN ip of printer!"));
         return;
     }
     NetworkAgent *agent = wxGetApp().getAgent();
@@ -329,7 +329,7 @@ void MediaFilePanel::fetchUrl(boost::weak_ptr<PrinterFileSystem> wfs)
                 if (boost::algorithm::starts_with(url, "bambu:///"))
                     fs->SetUrl(url);
                 else
-                    m_image_grid->SetStatus(m_bmp_failed.bmp(), url.empty() ? _L("Network unreachable") : from_u8(url));
+                    m_image_grid->SetStatus(m_bmp_failed, url.empty() ? _L("Network unreachable") : from_u8(url));
             });
         });
     }

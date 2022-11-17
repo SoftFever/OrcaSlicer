@@ -34,8 +34,12 @@ struct StaticBambuLib : BambuLib {
 PrinterFileSystem::PrinterFileSystem()
     : BambuLib(StaticBambuLib::get())
 {
-    if (!default_thumbnail.IsOk())
+    if (!default_thumbnail.IsOk()) {
         default_thumbnail = *Slic3r::GUI::BitmapCache().load_svg("printer_file", 0, 0);
+#ifdef __APPLE__
+        default_thumbnail = wxBitmap(default_thumbnail.ConvertToImage(), -1, 1);
+#endif
+    }
     m_session.owner = this;
 #ifdef PRINTER_FILE_SYSTEM_TEST
     auto time = wxDateTime::Now();

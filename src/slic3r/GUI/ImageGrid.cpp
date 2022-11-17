@@ -72,7 +72,7 @@ void ImageGrid::SetFileSystem(boost::shared_ptr<PrinterFileSystem> file_sys)
     UpdateFileSystem();
 }
 
-void ImageGrid::SetStatus(wxBitmap const & icon, wxString const &msg)
+void ImageGrid::SetStatus(ScalableBitmap const & icon, wxString const &msg)
 {
     int code     = m_file_sys ? m_file_sys->GetLastError() : 1;
     m_status_icon = icon;
@@ -475,10 +475,10 @@ void ImageGrid::render(wxDC& dc)
     if (!m_file_sys || m_file_sys->GetCount() == 0) {
         dc.DrawRectangle({ 0, 0, size.x, size.y });
         if (!m_status_msg.IsEmpty()) {
-            auto   si = m_status_icon.GetSize();
+            auto   si = m_status_icon.GetBmpSize();
             auto   st = dc.GetTextExtent(m_status_msg);
             auto   rect = wxRect{0, 0, max(st.x, si.x), si.y + 26 + st.y}.CenterIn(wxRect({0, 0}, size));
-            dc.DrawBitmap(m_status_icon, rect.x + (rect.width - si.x) / 2, rect.y);
+            dc.DrawBitmap(m_status_icon.bmp(), rect.x + (rect.width - si.x) / 2, rect.y);
             dc.SetTextForeground(wxColor(0x909090));
             dc.DrawText(m_status_msg, rect.x + (rect.width - st.x) / 2, rect.GetBottom() - st.y);
         }
