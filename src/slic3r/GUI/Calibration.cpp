@@ -218,7 +218,8 @@ void CalibrationDialog::on_start_calibration(wxMouseEvent &event)
             Close();
         } else {
             BOOST_LOG_TRIVIAL(info) << "on_start_calibration";
-            m_obj->command_start_calibration();
+            //TODO set checkbox value here
+            m_obj->command_start_calibration(true, true, true);
         }
     }
 }

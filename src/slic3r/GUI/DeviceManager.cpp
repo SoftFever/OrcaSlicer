@@ -1513,10 +1513,23 @@ int MachineObject::command_axis_control(std::string axis, double unit, double va
     return this->publish_gcode(cmd);
 }
 
-int MachineObject::command_start_calibration()
+
+bool MachineObject::is_support_command_calibration()
 {
     if (printer_type == "BL-P001"
         || printer_type == "BL-P002") {
+        auto ap_ver_it = module_vers.find("rv1126");
+        if (ap_ver_it != module_vers.end()) {
+            if (ap_ver_it->second.sw_ver.compare("00.00.15.79") < 0)
+                return false;
+        }
+    }
+    return true;
+}
+
+int MachineObject::command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali)
+{
+    if (!is_support_command_calibration()) {
         // fixed gcode file
         json j;
         j["print"]["command"] = "gcode_file";
@@ -1527,6 +1540,9 @@ int MachineObject::command_start_calibration()
         json j;
         j["print"]["command"] = "calibration";
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+        j["print"]["option"] =      (vibration    ? 1 << 2 : 0)
+                                +   (bed_leveling ? 1 << 1 : 0)
+                                +   (xcam_cali    ? 1 << 0 : 0);
         return this->publish_json(j.dump());
     }
 }

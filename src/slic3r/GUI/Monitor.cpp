@@ -506,7 +506,7 @@ void MonitorPanel::show_status(int status)
         return;
     last_status = status;
 
-    BOOST_LOG_TRIVIAL(trace) << "monitor: show_status = " << status;
+    BOOST_LOG_TRIVIAL(info) << "monitor: show_status = " << status;
 
     if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0) || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)) {
         if ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER))

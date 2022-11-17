@@ -614,7 +614,8 @@ public:
     int command_axis_control(std::string axis, double unit = 1.0f, double value = 1.0f, int speed = 3000);
 
     // calibration printer
-    int command_start_calibration();
+    bool is_support_command_calibration();
+    int command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali);
 
     int command_unload_filament();
 
