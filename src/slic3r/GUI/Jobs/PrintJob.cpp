@@ -168,18 +168,26 @@ void PrintJob::process()
     wxString error_text;
     wxString msg_text;
 
-    auto update_fn = [this, &msg, &curr_percent, &error_text](int stage, int code, std::string info) {
+
+    const int StagePercentPoint[(int)PrintingStageFinished + 1] = {
+        20,     // PrintingStageCreate
+        30,     // PrintingStageUpload
+        70,     // PrintingStageWaiting
+        75,     // PrintingStageRecord
+        99,     // PrintingStageSending
+        100     // PrintingStageFinished
+    };
+
+    auto update_fn = [this, &msg, &curr_percent, &error_text, StagePercentPoint](int stage, int code, std::string info) {
                         if (stage == BBL::SendingPrintJobStage::PrintingStageCreate) {
                             if (this->connection_type == "lan") {
                                 msg = _L("Sending print job over LAN");
                             } else {
                                 msg = _L("Sending print job through cloud service");
                             }
-                            curr_percent = 25;
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageUpload) {
-                            curr_percent = 30;
-                            if (code == 0 && !info.empty()) {
+                            if (code >= 0 && code <= 100 && !info.empty()) {
                                 if (this->connection_type == "lan") {
                                     msg = _L("Sending print job over LAN");
                                 } else {
@@ -194,10 +202,8 @@ void PrintJob::process()
                             } else {
                                 msg = _L("Sending print job through cloud service");
                             }
-                            curr_percent = 50;
                         }
                         else  if (stage == BBL::SendingPrintJobStage::PrintingStageRecord) {
-                            curr_percent = 70;
                             msg = _L("Sending print configuration");
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageSending) {
@@ -206,10 +212,8 @@ void PrintJob::process()
                             } else {
                                 msg = _L("Sending print job through cloud service");
                             }
-                            curr_percent = 90;
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageFinished) {
-                            curr_percent = 100;
                             msg = wxString::Format(_L("Successfully sent. Will automatically jump to the device page in %s s"), info);
                         } else {
                             if (this->connection_type == "lan") {
@@ -218,7 +222,18 @@ void PrintJob::process()
                                 msg = _L("Sending print job through cloud service");
                             }
                         }
-                        if (code != 0) {
+
+                        // update current percnet
+                        if (stage >= 0 && stage <= (int) PrintingStageFinished) {
+                            curr_percent = StagePercentPoint[stage];
+                            if ((stage == BBL::SendingPrintJobStage::PrintingStageUpload
+                                || stage == BBL::SendingPrintJobStage::PrintingStageRecord)
+                                && (code > 0 && code <= 100)) {
+                                curr_percent = (StagePercentPoint[stage + 1] - StagePercentPoint[stage]) * code / 100 + StagePercentPoint[stage];
+                            }
+                        }
+
+                        if (code > 100 || code < 0) {
                             error_text = this->get_http_error_msg(code, info);
                             msg += wxString::Format("[%s]", error_text);
                         }

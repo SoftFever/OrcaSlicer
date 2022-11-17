@@ -168,30 +168,37 @@ void SendJob::process()
     wxString error_text;
     wxString msg_text;
 
-    auto update_fn = [this, &msg, &curr_percent, &error_text](int stage, int code, std::string info) {
+    const int StagePercentPoint[(int)PrintingStageFinished + 1] = {
+        20,  // PrintingStageCreate
+        30,  // PrintingStageUpload
+        99, // PrintingStageWaiting
+        99, // PrintingStageRecord
+        99, // PrintingStageSending
+        100  // PrintingStageFinished
+    };
+
+    auto update_fn = [this, &msg, &curr_percent, &error_text, StagePercentPoint](int stage, int code, std::string info) {
                         if (stage == SendingPrintJobStage::PrintingStageCreate) {
                             if (this->connection_type == "lan") {
                                 msg = _L("Sending gcode file over LAN");
                             } else {
                                 msg = _L("Sending gcode file to sdcard");
                             }
-                            curr_percent = 25;
                         }
                         else if (stage == SendingPrintJobStage::PrintingStageUpload) {
-							if (code == 0 && !info.empty()) {
-								if (this->connection_type == "lan") {
-									msg = _L("Sending gcode file over LAN");
-								}
-								else {
-									msg = _L("Sending gcode file to sdcard");
-								}
-								msg += wxString::Format("(%s)", info);
-                                curr_percent = 40;
-                                this->update_status(curr_percent, msg);
-							}
+                            if (code >= 0 && code <= 100 && !info.empty()) {
+							    if (this->connection_type == "lan") {
+								    msg = _L("Sending gcode file over LAN");
+							    }
+							    else {
+								    msg = _L("Sending gcode file to sdcard");
+							    }
+                                if (!info.empty()) {
+                                    msg += wxString::Format("(%s)", info);
+                                }
+                            }
                         }
 						else if (stage == SendingPrintJobStage::PrintingStageFinished) {
-                            curr_percent = 100;
                             msg = wxString::Format(_L("Successfully sent. Close current page in %s s"), info);
 						}
 						else {
@@ -200,10 +207,19 @@ void SendJob::process()
 							}
 							else {
                                 msg = _L("Sending gcode file over LAN");
-								//msg = _L("Sending gcode file through cloud service");
 							}
 						}
-                        if (code != 0) {
+
+                        // update current percnet
+                        if (stage >= 0 && stage <= (int) PrintingStageFinished) {
+                            curr_percent = StagePercentPoint[stage];
+                            if ((stage == BBL::SendingPrintJobStage::PrintingStageUpload) &&
+                                (code > 0 && code <= 100)) {
+                                curr_percent = (StagePercentPoint[stage + 1] - StagePercentPoint[stage]) * code / 100 + StagePercentPoint[stage];
+                            }
+                        }
+
+                        if (code < 0 || code > 100) {
                             error_text = this->get_http_error_msg(code, info);
                             msg += wxString::Format("[%s]", error_text);
                         }
