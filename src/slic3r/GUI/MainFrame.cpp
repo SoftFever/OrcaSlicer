@@ -526,8 +526,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         if (evt.CmdDown() && evt.GetKeyCode() == 'J') { m_printhost_queue_dlg->Show(); return; }
         if (evt.CmdDown() && evt.GetKeyCode() == 'N') { m_plater->new_project(); return;}
         if (evt.CmdDown() && evt.GetKeyCode() == 'O') { m_plater->load_project(); return;}
-        if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'S') { if (m_plater) m_plater->save_project(true); return;}
-        else if (evt.CmdDown() && evt.GetKeyCode() == 'S') { if (m_plater) m_plater->save_project(); return;}
+        if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'S') { if (can_save_as()) m_plater->save_project(true); return;}
+        else if (evt.CmdDown() && evt.GetKeyCode() == 'S') { if (can_save()) m_plater->save_project(); return;}
 
 #ifdef __APPLE__
         if (evt.CmdDown() && evt.GetKeyCode() == ',')
@@ -1083,13 +1083,13 @@ bool MainFrame::can_save() const
 {
     return (m_plater != nullptr) &&
         !m_plater->get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode(false) &&
-        m_plater->is_project_dirty();
+        m_plater->is_project_dirty() && !m_plater->using_exported_file() && !m_plater->only_gcode_mode();
 }
 
 bool MainFrame::can_save_as() const
 {
     return (m_plater != nullptr) &&
-        !m_plater->get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode(false);
+        !m_plater->get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode(false) && !m_plater->using_exported_file() && !m_plater->only_gcode_mode();
 }
 
 void MainFrame::save_project()
@@ -1512,20 +1512,26 @@ bool MainFrame::get_enable_slice_status()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": on slicing, return false directly!");
         return false;
     }
+    else if  (m_plater->only_gcode_mode() || m_plater->using_exported_file()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": in gcode/exported 3mf mode, return false directly!");
+        return false;
+    }
 
     PartPlateList &part_plate_list = m_plater->get_partplate_list();
     PartPlate *current_plate = part_plate_list.get_curr_plate();
 
     if (m_slice_select == eSliceAll)
     {
-        if (part_plate_list.is_all_slice_results_valid())
+        /*if (part_plate_list.is_all_slice_results_valid())
         {
             enable = false;
         }
         else if (!part_plate_list.is_all_plates_ready_for_slice())
         {
             enable = false;
-        }
+        }*/
+        //always enable slice_all button
+        enable = true;
     }
     else if (m_slice_select == eSlicePlate)
     {
@@ -2150,13 +2156,13 @@ void MainFrame::init_menubar_as_editor()
     // BBS
 
     //publish menu
-    
+
     if (m_plater) {
         publishMenu = new wxMenu();
         add_common_publish_menu_items(publishMenu, this);
         publishMenu->AppendSeparator();
     }
-        
+
     // View menu
     wxMenu* viewMenu = nullptr;
     if (m_plater) {

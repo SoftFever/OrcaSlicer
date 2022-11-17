@@ -9068,7 +9068,12 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     if (!(strategy & SaveStrategy::Backup)) {
         for (int i = 0; i < p->partplate_list.get_plate_count(); i++) {
             ThumbnailData* thumbnail_data = &p->partplate_list.get_plate(i)->thumbnail_data;
-            if (!p->partplate_list.get_plate(i)->thumbnail_data.is_valid()) {
+            if (p->partplate_list.get_plate(i)->thumbnail_data.is_valid() &&  using_exported_file()) {
+                //no need to generate thumbnail
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": non need to re-generate thumbnail for gcode/exported mode of plate %1%")%i;
+            }
+            else {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": re-generate thumbnail for plate %1%") % i;
                 const ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i };
                 p->generate_thumbnail(p->partplate_list.get_plate(i)->thumbnail_data, THUMBNAIL_SIZE_3MF.first, THUMBNAIL_SIZE_3MF.second, thumbnail_params, Camera::EType::Ortho);
             }
@@ -9270,6 +9275,14 @@ void Plater::reslice()
     //BBS: jusdge the result
     bool result = this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: restart background,state=%2%, result=%3%")%__LINE__%state %result;
+    if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
+    {
+        //BBS: add logs
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": state %1% is UPDATE_BACKGROUND_PROCESS_INVALID, can not slice") % state;
+        p->update_fff_scene_only_shells();
+        return;
+    }
+
     if ((!result) && p->m_slice_all && (p->m_cur_slice_plate < (p->partplate_list.get_plate_count() - 1)))
     {
         //slice next
@@ -9288,13 +9301,6 @@ void Plater::reslice()
     if (result) {
         p->m_is_slicing = true;
         this->SetDropTarget(nullptr);
-    }
-
-    if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
-    {
-        //BBS: add logs
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": state %1% is UPDATE_BACKGROUND_PROCESS_INVALID, can not slice") % state ;
-        return;
     }
 
     bool clean_gcode_toolpaths = true;
