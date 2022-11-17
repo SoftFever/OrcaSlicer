@@ -1233,12 +1233,7 @@ public:
     std::string copyright;      // utf8 format
     std::string model_name;     // utf8 format
 
-    struct MetaDataItem
-    {
-        std::string key;
-        std::string value;
-    };
-    std::vector<MetaDataItem> metadata_items; // other meta data items
+    std::map<std::string, std::string> metadata_items; // other meta data items
 
     void load(ModelInfo &info) {
         this->cover_file    = info.cover_file;

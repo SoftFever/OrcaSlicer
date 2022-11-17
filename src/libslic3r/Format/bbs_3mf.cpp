@@ -116,6 +116,9 @@ const std::string BBL_DESCRIPTION_TAG               = "Description";
 const std::string BBL_COPYRIGHT_TAG                 = "CopyRight";
 const std::string BBL_LICENSE_TAG                   = "License";
 const std::string BBL_REGION_TAG                    = "Region";
+const std::string BBL_MODIFICATION_TAG              = "ModificationDate";
+const std::string BBL_CREATION_DATE_TAG             = "CreationDate";
+const std::string BBL_APPLICATION_TAG               = "Application";
 
 const std::string MODEL_FOLDER = "3D/";
 const std::string MODEL_EXTENSION = ".model";
@@ -3064,7 +3067,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 const std::string msg = (boost::format(_(L("The selected 3mf file has been saved with a newer version of %1% and is not compatible."))) % std::string(SLIC3R_APP_NAME)).str();
                 throw version_error(msg);
             }*/
-        } else if (m_curr_metadata_name == "Application") {
+        } else if (m_curr_metadata_name == BBL_APPLICATION_TAG) {
             // Generator application of the 3MF.
             // SLIC3R_APP_KEY - SLIC3R_VERSION
             if (boost::starts_with(m_curr_characters, "BambuStudio-"))
@@ -3108,13 +3111,16 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         } else if (m_curr_metadata_name == BBL_REGION_TAG) {
             BOOST_LOG_TRIVIAL(trace) << "design_info, load_3mf found region = " << m_curr_characters;
             m_contry_code = xml_unescape(m_curr_characters);
+        } else if (m_curr_metadata_name == BBL_CREATION_DATE_TAG) {
+            ;
+        } else if (m_curr_metadata_name == BBL_MODIFICATION_TAG) {
+            ;
         } else {
-            // BBS store metadata list
+            ;
+        }
+        if (!m_curr_metadata_name.empty()) {
             BOOST_LOG_TRIVIAL(info) << "load_3mf found metadata = " << m_curr_characters;
-            ModelInfo::MetaDataItem item;
-            item.key   = m_curr_metadata_name;
-            item.value = xml_unescape(m_curr_characters);
-            model_info.metadata_items.push_back(item);
+            model_info.metadata_items[m_curr_metadata_name] = xml_unescape(m_curr_characters);
         }
 
         return true;
@@ -5294,17 +5300,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (m_production_ext)
                 stream << " xmlns:p=\"http://schemas.microsoft.com/3dmanufacturing/production/2015/06\" requiredextensions=\"p\"";
             stream << ">\n";
-            stream << " <" << METADATA_TAG << " name=\"" << BBS_3MF_VERSION << "\">" << VERSION_BBS_3MF << "</" << METADATA_TAG << ">\n";
-
-            //TODO: currently use version 0, no need to load&&save this string
-            /*if (model.is_fdm_support_painted())
-                stream << " <" << METADATA_TAG << " name=\"" << BBS_FDM_SUPPORTS_PAINTING_VERSION << "\">" << FDM_SUPPORTS_PAINTING_VERSION << "</" << METADATA_TAG << ">\n";
-
-            if (model.is_seam_painted())
-                stream << " <" << METADATA_TAG << " name=\"" << BBS_SEAM_PAINTING_VERSION << "\">" << SEAM_PAINTING_VERSION << "</" << METADATA_TAG << ">\n";
-
-            if (model.is_mm_painted())
-                stream << " <" << METADATA_TAG << " name=\"" << BBS_MM_PAINTING_VERSION << "\">" << MM_PAINTING_VERSION << "</" << METADATA_TAG << ">\n";*/
 
             std::string name;
             std::string user_name;
@@ -5323,6 +5318,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                  BOOST_LOG_TRIVIAL(trace) << "design_info, save_3mf found designer_user_id = " << user_id;
             }
 
+            if (project) {
+                model_id    = project->project_model_id;
+                region_code = project->project_country_code;
+            }
+
             if (model.model_info) {
                 design_cover = model.model_info->cover_file;
                 license      = model.model_info->license;
@@ -5330,40 +5330,43 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 copyright    = model.model_info->copyright;
                 name         = model.model_info->model_name;
                 BOOST_LOG_TRIVIAL(trace) << "design_info, save_3mf found designer_cover = " << design_cover;
-                // write metadata
-                for (int i = 0; i < model.model_info.get()->metadata_items.size(); i++) {
-                    BOOST_LOG_TRIVIAL(info) << "bbs_3mf: save key= " << model.model_info.get()->metadata_items[i].key
-                                            << ", value = " << xml_escape(model.model_info.get()->metadata_items[i].value);
-                    stream << " <" << METADATA_TAG << " name=\"" << model.model_info.get()->metadata_items[i].key << "\">"
-                           << xml_escape(model.model_info.get()->metadata_items[i].value) << "</" << METADATA_TAG << ">\n";
-                }
             }
-
-            if (project) {
-                model_id = project->project_model_id;
-                region_code = project->project_country_code;
-            }
+            // remember to use metadata_item_map to store metadata info
+            std::map<std::string, std::string> metadata_item_map;
+            metadata_item_map[BBS_3MF_VERSION] = VERSION_BBS_3MF;
             if (!sub_model) {
-                stream << " <" << METADATA_TAG << " name=\"" << BBL_MODEL_NAME_TAG          << "\">" << xml_escape(name)         << "</" << METADATA_TAG << ">\n";
-                stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_TAG            << "\">" << xml_escape(user_name)    << "</" << METADATA_TAG << ">\n";
-                stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_USER_ID_TAG    << "\">" << user_id                  << "</" << METADATA_TAG << ">\n";
-                stream << " <" << METADATA_TAG << " name=\"" << BBL_DESIGNER_COVER_FILE_TAG << "\">" << xml_escape(design_cover) << "</" << METADATA_TAG << ">\n";
-                stream << " <" << METADATA_TAG << " name=\"" << BBL_DESCRIPTION_TAG         << "\">" << xml_escape(description)  << "</" << METADATA_TAG << ">\n";
-                stream << " <" << METADATA_TAG << " name=\"" << BBL_COPYRIGHT_TAG           << "\">" << xml_escape(copyright)    << "</" << METADATA_TAG << ">\n";
-                stream << " <" << METADATA_TAG << " name=\"" << BBL_LICENSE_TAG             << "\">" << xml_escape(license)      << "</" << METADATA_TAG << ">\n";
+                // update metadat_items
+                if (model.model_info && model.model_info.get()) {
+                    metadata_item_map = model.model_info.get()->metadata_items;
+                }
+
+                metadata_item_map[BBL_MODEL_NAME_TAG]           = xml_escape(name);
+                metadata_item_map[BBL_DESIGNER_TAG]             = xml_escape(user_name);
+                metadata_item_map[BBL_DESIGNER_USER_ID_TAG]     = user_id;
+                metadata_item_map[BBL_DESIGNER_COVER_FILE_TAG]  = xml_escape(design_cover);
+                metadata_item_map[BBL_DESCRIPTION_TAG]          = xml_escape(description);
+                metadata_item_map[BBL_COPYRIGHT_TAG]            = xml_escape(copyright);
+                metadata_item_map[BBL_LICENSE_TAG]              = xml_escape(license);
 
                 /* save model info */
                 if (!model_id.empty()) {
-                    stream << " <" << METADATA_TAG << " name=\"" << BBL_MODEL_ID_TAG << "\">" << model_id    << "</" << METADATA_TAG << ">\n";
-                    stream << " <" << METADATA_TAG << " name=\"" << BBL_REGION_TAG << "\">"   << region_code << "</" << METADATA_TAG << ">\n";
+                    metadata_item_map[BBL_MODEL_ID_TAG] = model_id;
+                    metadata_item_map[BBL_REGION_TAG]   = region_code;
                 }
 
                 std::string date = Slic3r::Utils::utc_timestamp(Slic3r::Utils::get_current_time_utc());
                 // keep only the date part of the string
                 date = date.substr(0, 10);
-                stream << " <" << METADATA_TAG << " name=\"CreationDate\">" << date << "</" << METADATA_TAG << ">\n";
-                stream << " <" << METADATA_TAG << " name=\"ModificationDate\">" << date << "</" << METADATA_TAG << ">\n";
-                stream << " <" << METADATA_TAG << " name=\"Application\">" << SLIC3R_APP_KEY << "-" << SLIC3R_VERSION << "</" << METADATA_TAG << ">\n";
+                metadata_item_map[BBL_CREATION_DATE_TAG] = date;
+                metadata_item_map[BBL_MODIFICATION_TAG]  = date;
+                metadata_item_map[BBL_APPLICATION_TAG]   = (boost::format("%1%-%2%") % SLIC3R_APP_KEY % SLIC3R_VERSION).str();
+            }
+
+            // store metadata info
+            for (auto item : metadata_item_map) {
+                BOOST_LOG_TRIVIAL(info) << "bbs_3mf: save key= " << item.first << ", value = " << xml_escape(item.second);
+                stream << " <" << METADATA_TAG << " name=\"" << item.first << "\">"
+                       << xml_escape(item.second) << "</" << METADATA_TAG << ">\n";
             }
 
             stream << " <" << RESOURCES_TAG << ">\n";
