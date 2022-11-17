@@ -134,7 +134,8 @@ public:
     void         on_left_down(wxMouseEvent &evt);
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;
-    void paintEvent(wxPaintEvent &evt);
+    void         paintEvent(wxPaintEvent &evt);
+    std::vector<TrayData> parse_ams_mapping(std::map<std::string, Ams*> amsList);
 };
 
 class AmsMapingTipPopup : public wxPopupTransientWindow

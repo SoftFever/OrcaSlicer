@@ -1773,38 +1773,68 @@ bool SelectMachineDialog::is_same_printer_model()
 
 void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 {
-    wxString confirm_text = _L("Please check the following infomation and click Confirm to continue sending print:\n");
+    std::vector<wxString> confirm_text;
+    confirm_text.push_back(_L("Please check the following infomation and click Confirm to continue sending print:\n"));
 
     //Check Printer Model Id
     bool is_same_printer_type = is_same_printer_model();
     if (!is_same_printer_type)
-        confirm_text += _L("The printer type used to generate G-code is not the same type as the currently selected physical printer. It is recommend to re-slice by selecting the same printer type.\n");
+        confirm_text.push_back(_L("The printer type used to generate G-code is not the same type as the currently selected physical printer. It is recommend to re-slice by selecting the same printer type.\n"));
 
     //Check slice warnings
     bool has_slice_warnings = false;
     PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (dev) {
-        MachineObject* obj_ = dev->get_selected_machine();
-        for (auto warning : plate->get_slice_result()->warnings) {
-            if (warning.msg == BED_TEMP_TOO_HIGH_THAN_FILAMENT) {
-                if ((obj_->printer_type == "BL-P001" || obj_->printer_type == "BL-P002")) {
-                    confirm_text += Plater::get_slice_warning_string(warning) + "\n";
-                    has_slice_warnings = true;
-                }
-            }
-            else {
+
+    if(!dev) return;
+
+    MachineObject* obj_ = dev->get_selected_machine();
+    for (auto warning : plate->get_slice_result()->warnings) {
+        if (warning.msg == BED_TEMP_TOO_HIGH_THAN_FILAMENT) {
+            if ((obj_->printer_type == "BL-P001" || obj_->printer_type == "BL-P002")) {
+                confirm_text.push_back(Plater::get_slice_warning_string(warning) + "\n");
                 has_slice_warnings = true;
+            }
+        }
+        else {
+            has_slice_warnings = true;
+        }
+    }
+ 
+
+    //check for unidentified material
+    auto mapping_result = m_mapping_popup.parse_ams_mapping(obj_->amsList);
+    auto has_unknown_filament = false;
+
+    for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
+        auto tid = m_ams_mapping_result[i].tray_id;
+        for (auto miter : mapping_result) {
+            //matching
+            if (miter.id == tid) {
+                if (miter.type == TrayType::THIRD || miter.type == TrayType::EMPTY) {
+                    has_unknown_filament = true;
+                    break;
+                }
             }
         }
     }
 
-    if (!is_same_printer_type
-        || has_slice_warnings
-        ) {
+    if (has_unknown_filament) {
+        has_slice_warnings = true;
+        confirm_text.push_back(_L("There are some unknown filaments in the AMS mappings. Please check whether they are the required filaments. If they are okay, press \"Confirm\" to start printing.") + "\n");
+    }
+
+    if (!is_same_printer_type || has_slice_warnings) {
         wxString confirm_title = _L("Warning");
         SecondaryCheckDialog confirm_dlg(this, wxID_ANY, confirm_title);
-        confirm_dlg.update_text(confirm_text);
+        wxString info_msg = wxEmptyString;
+
+        for (auto i = 0; i < confirm_text.size(); i++) {
+            if (i == 0)
+                continue;
+            info_msg += wxString::Format("%d:%s\n",i, confirm_text[i]);
+        }
+        confirm_dlg.update_text(info_msg);
         if (confirm_dlg.ShowModal() == wxID_YES) {
             this->on_ok();
         }

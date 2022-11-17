@@ -370,7 +370,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
         std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
 
-    m_button_ok = new Button(this, _L("OK"));
+    m_button_ok = new Button(this, _L("Confirm"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
     m_button_ok->SetBorderColor(*wxWHITE);
     m_button_ok->SetTextColor(*wxWHITE);
@@ -414,8 +414,9 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
 
 
-    m_sizer_right->Add(m_vebview_release_note, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(20));
-    m_sizer_right->Add(sizer_button, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(20));
+    m_sizer_right->Add(m_vebview_release_note, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(35));
+    m_sizer_right->Add(sizer_button, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(35));
+    m_sizer_right->Add(0, 0, 0, wxTOP,FromDIP(18));
 
 
     SetSizer(m_sizer_right);
