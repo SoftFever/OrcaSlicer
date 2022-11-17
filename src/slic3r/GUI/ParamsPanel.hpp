@@ -43,9 +43,10 @@ class TipsDialog : public DPIDialog
 {
 private:
     bool m_show_again{false};
+    std::string m_app_key;
 
 public:
-    TipsDialog(wxWindow *parent, const wxString &title);
+    TipsDialog(wxWindow *parent, const wxString &title, const wxString &description, std::string app_key = "");
     Button *m_confirm{nullptr};
     Button *m_cancel{nullptr};
     wxPanel *m_top_line{nullptr};

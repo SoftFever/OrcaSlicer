@@ -1979,7 +1979,18 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
 
     //Show Dialog
     if (wxGetApp().app_config->get("do_not_show_modifer_tips").empty()) {
-        TipsDialog dlg(wxGetApp().mainframe, _L("Add Modifier"));
+        TipsDialog dlg(wxGetApp().mainframe, _L("Add Modifier"), _L("Switch to per-object setting mode to edit modifier settings."), "do_not_show_modifer_tips");
+        dlg.ShowModal();
+    }
+}
+
+void ObjectList::switch_to_object_process()
+{
+    wxGetApp().params_panel()->switch_to_object(true);
+
+    // Show Dialog
+    if (wxGetApp().app_config->get("do_not_show_object_process_tips").empty()) {
+        TipsDialog dlg(wxGetApp().mainframe, _L("Edit Object Process"), _L("Switch to per-object setting mode to edit object process."), "do_not_show_object_process_tips");
         dlg.ShowModal();
     }
 }

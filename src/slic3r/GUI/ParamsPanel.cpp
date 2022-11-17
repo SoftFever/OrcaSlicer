@@ -22,8 +22,9 @@ namespace Slic3r {
 namespace GUI {
 
 
-TipsDialog::TipsDialog(wxWindow *parent, const wxString &title)
-    : DPIDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+TipsDialog::TipsDialog(wxWindow *parent, const wxString &title, const wxString &description, std::string app_key)
+    : DPIDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX),
+    m_app_key(app_key)
 {
     SetBackgroundColour(*wxWHITE);
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
@@ -38,7 +39,7 @@ TipsDialog::TipsDialog(wxWindow *parent, const wxString &title)
 
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(20));
 
-    m_msg = new wxStaticText(this, wxID_ANY, _L("Switch to per-object setting mode to edit modifier settings."), wxDefaultPosition, wxDefaultSize, 0);
+    m_msg = new wxStaticText(this, wxID_ANY, description, wxDefaultPosition, wxDefaultSize, 0);
     m_msg->Wrap(-1);
     m_msg->SetFont(::Label::Body_13);
     m_msg->SetForegroundColour(wxColour(107, 107, 107));
@@ -51,7 +52,7 @@ TipsDialog::TipsDialog(wxWindow *parent, const wxString &title)
     wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *m_sizer_left   = new wxBoxSizer(wxHORIZONTAL);
 
-    auto dont_show_again = create_item_checkbox(_L("Don't show again"), this, _L("Don't show again"), "do_not_show_modifer_tips");
+    auto dont_show_again = create_item_checkbox(_L("Don't show again"), this, _L("Don't show again"), "do_not_show_tips");
     m_sizer_left->Add(dont_show_again, 1, wxALL, FromDIP(5));
 
     m_sizer_bottom->Add(m_sizer_left, 1, wxEXPAND, FromDIP(5));
@@ -119,7 +120,8 @@ void TipsDialog::on_dpi_changed(const wxRect &suggested_rect)
 void TipsDialog::on_ok(wxMouseEvent &event)
 {
     if (m_show_again) {
-        wxGetApp().app_config->set_bool("do_not_show_modifer_tips", m_show_again);
+        if (!m_app_key.empty())
+        wxGetApp().app_config->set_bool(m_app_key, m_show_again);
     }
     EndModal(wxID_OK);
 }

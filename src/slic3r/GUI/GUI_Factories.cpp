@@ -979,6 +979,7 @@ void MenuFactory::create_bbl_object_menu()
     // Set filament insert menu item here
     // Set Printable
     wxMenuItem* menu_item_printable = append_menu_item_printable(&m_object_menu);
+    append_menu_item_per_object_process(&m_object_menu);
     // Enter per object parameters
     append_menu_item_per_object_settings(&m_object_menu);
     m_object_menu.AppendSeparator();
@@ -1360,6 +1361,19 @@ void MenuFactory::append_menu_item_center(wxMenu* menu)
                 Vec3d center_pos = plate->get_center_origin();
                 return !( (model_pos.x() == center_pos.x()) && (model_pos.y() == center_pos.y()) );
             } //disable if model is at center / not in View3D
+        }, m_parent);
+}
+
+void MenuFactory::append_menu_item_per_object_process(wxMenu* menu)
+{
+    const std::vector<wxString> names = {_L("Edit Object Process"), _L("Edit Object Process")};
+    append_menu_item(menu, wxID_ANY, names[0], names[1],
+        [](wxCommandEvent&) {
+            wxGetApp().obj_list()->switch_to_object_process();
+        }, "", nullptr,
+        []() {
+            Selection& selection = plater()->canvas3D()->get_selection();
+            return selection.is_single_full_object() || selection.is_single_full_instance() || selection.is_single_volume();
         }, m_parent);
 }
 
