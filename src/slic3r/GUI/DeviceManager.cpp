@@ -855,34 +855,35 @@ int MachineObject::ams_filament_mapping(std::vector<FilamentInfo> filaments, std
 
 bool MachineObject::is_valid_mapping_result(std::vector<FilamentInfo>& result)
 {
-    if (is_support_ams_mapping()) {
-        bool valid_ams_mapping_result = true;
-        for (int i = 0; i < result.size(); i++) {
-            if (result[i].tray_id == -1) {
-                valid_ams_mapping_result = false;
-                break;
-            }
-        }
-        return valid_ams_mapping_result;
-    } else {
-        bool is_valid = true;
+    bool valid_ams_mapping_result = true;
+    if (result.empty()) return false;
+
+    for (int i = 0; i < result.size(); i++) {
         // invalid mapping result
-        if (result.empty()) return false;
-        for (int i = 0; i < result.size(); i++) {
-            // invalid mapping result
-            if (result[i].tray_id < 0)
-                is_valid = false;
-            else {
-                int ams_id = result[i].tray_id / 4;
-                if (amsList.find(std::to_string(ams_id)) == amsList.end()) {
+        if (result[i].tray_id < 0)
+            valid_ams_mapping_result = false;
+        else {
+            int ams_id = result[i].tray_id / 4;
+            auto ams_item = amsList.find(std::to_string(ams_id));
+            if (ams_item == amsList.end()) {
+                result[i].tray_id = -1;
+                valid_ams_mapping_result = false;
+            } else {
+                int tray_id = result[i].tray_id % 4;
+                auto tray_item = ams_item->second->trayList.find(std::to_string(tray_id));
+                if (tray_item == ams_item->second->trayList.end()) {
                     result[i].tray_id = -1;
-                    is_valid = false;
+                    valid_ams_mapping_result = false;
+                } else {
+                    if (!tray_item->second->is_exists) {
+                        result[i].tray_id        = -1;
+                        valid_ams_mapping_result = false;
+                    }
                 }
             }
         }
-        return is_valid;
     }
-    return true;
+    return valid_ams_mapping_result;
 }
 
 bool MachineObject::is_mapping_exceed_filament(std::vector<FilamentInfo> & result, int &exceed_index)
