@@ -847,10 +847,14 @@ void ObjectList::update_name_in_model(const wxDataViewItem& item) const
 
     ModelObject* obj = object(obj_idx);
     if (m_objects_model->GetItemType(item) & itObject) {
-        obj->name = m_objects_model->GetName(item).ToUTF8().data();
-        // if object has just one volume, rename this volume too
-        if (obj->volumes.size() == 1)
-            obj->volumes[0]->name = obj->name;
+        std::string name = m_objects_model->GetName(item).ToUTF8().data();
+        if (obj->name != name) {
+            obj->name = name;
+            // if object has just one volume, rename this volume too
+            if (obj->volumes.size() == 1)
+                obj->volumes[0]->name = obj->name;
+            Slic3r::save_object_mesh(*obj);
+        }
         return;
     }
 
