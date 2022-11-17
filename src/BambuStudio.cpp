@@ -375,11 +375,11 @@ int CLI::run(int argc, char **argv)
     char *debug_argv[] = {
         "E:\work\projects\bambu_release\bamboo_slicer\build_debug\src\Debug\bambu-studio.exe",
         "--slice",
-        "1",
-        "--export-3mf=output.3mf",
-        "--debug",
         "2",
-        "Demo_F1_RaceCar.3mf"
+        "--export-3mf=output.3mf",
+        "--load-filaments",
+        "GFSA05.json;GFSA04.json;;GFSA05.json;GFSL23.json",
+        "majiang.3mf"
         };
     if (! this->setup(debug_argc, debug_argv))*/
     if (!this->setup(argc, argv))
@@ -514,11 +514,20 @@ int CLI::run(int argc, char **argv)
 
     //load filaments files
     int filament_count = load_filaments.size();
+    std::vector<int> load_filaments_index;
+    std::vector<DynamicPrintConfig> load_filaments_config;
+    std::vector<std::string> load_filaments_id;
+    std::vector<std::string> load_filaments_name;
+    int current_index = 0;
     for (int index = 0; index < filament_count; index++) {
         const std::string& file = load_filaments[index];
-        if (! boost::filesystem::exists(file)) {
+        if (!file.empty() && ! boost::filesystem::exists(file)) {
             boost::nowide::cerr << "can not find filament file: " << file << std::endl;
             flush_and_exit(CLI_FILE_NOTFOUND);
+        }
+        current_index++;
+        if (file.empty()) {
+            continue;
         }
         DynamicPrintConfig  config;
         ConfigSubstitutions config_substitutions;
@@ -544,6 +553,19 @@ int CLI::run(int argc, char **argv)
         else {
             BOOST_LOG_TRIVIAL(info) << "no substitutions performed from file " << file << "\n";
         }
+
+        std::string filament_id;
+        auto filament_id_iter = key_values.find(BBL_JSON_KEY_FILAMENT_ID);
+        if (filament_id_iter != key_values.end())
+            filament_id = filament_id_iter->second;
+        load_filaments_id.push_back(filament_id);
+
+        std::string filament_name;
+        auto filament_name_iter = key_values.find(BBL_JSON_KEY_NAME);
+        if (filament_name_iter != key_values.end())
+            filament_name = filament_name_iter->second;
+        load_filaments_name.push_back(filament_name);
+
         config.normalize_fdm();
         PrinterTechnology other_printer_technology = get_printer_technology(config);
         if (printer_technology == ptUnknown) {
@@ -554,7 +576,12 @@ int CLI::run(int argc, char **argv)
             boost::nowide::cerr << "invalid printer_technology " <<printer_technology<<", from filament file "<< file <<std::endl;
             flush_and_exit(CLI_INVALID_PRINTER_TECH);
         }
-        ConfigOptionStrings *opt_filament_settings = static_cast<ConfigOptionStrings *> (m_print_config.option("filament_settings_id", true));
+
+        load_filaments_config.push_back(std::move(config));
+        load_filaments_index.push_back(current_index);
+
+        //move this logic behind of 3mf
+        /*ConfigOptionStrings *opt_filament_settings = static_cast<ConfigOptionStrings *> (m_print_config.option("filament_settings_id", true));
         ConfigOptionStrings *opt_filament_settings_src = static_cast<ConfigOptionStrings *>(config.option("filament_settings_id", false));
         if (opt_filament_settings_src)
             opt_filament_settings->set_at(opt_filament_settings_src, index, 0);
@@ -636,7 +663,7 @@ int CLI::run(int argc, char **argv)
                     opt_vec_dst->set_at(opt_vec_src, index, 0);
                 }
             }
-        }
+        }*/
     }
 
     // are we starting as gcodeviewer ?
@@ -762,6 +789,83 @@ int CLI::run(int argc, char **argv)
             m_models.push_back(std::move(model));
         }
     //}
+
+    //set the filament settings into print config
+    if (load_filaments_config.size() > 0)
+    {
+        for (int index = 0; index < load_filaments_config.size(); index++) {
+            DynamicPrintConfig&  config = load_filaments_config[index];
+            int filament_index = load_filaments_index[index];
+            ConfigOptionStrings *opt_filament_settings = static_cast<ConfigOptionStrings *> (m_print_config.option("filament_settings_id", true));
+            std::string& filament_name = load_filaments_name[index];
+            ConfigOptionString* filament_name_setting = new ConfigOptionString(filament_name);
+            if (opt_filament_settings->size() < filament_count)
+                opt_filament_settings->resize(filament_count, filament_name_setting);
+            opt_filament_settings->set_at(filament_name_setting, filament_index-1, 0);
+            config.erase("filament_settings_id");
+
+            std::string& filament_id = load_filaments_id[index];
+            ConfigOptionStrings *opt_filament_ids = static_cast<ConfigOptionStrings *> (m_print_config.option("filament_ids", true));
+            ConfigOptionString* filament_id_setting = new ConfigOptionString(filament_id);
+            if (opt_filament_ids->size() < filament_count)
+                opt_filament_ids->resize(filament_count, filament_id_setting);
+            opt_filament_ids->set_at(filament_id_setting,  filament_index-1, 0);
+            //parse the filament value to index th
+            //loop through options and apply them
+            for (const t_config_option_key &opt_key : config.keys()) {
+                // Create a new option with default value for the key.
+                // If the key is not in the parameter definition, or this ConfigBase is a static type and it does not support the parameter,
+                // an exception is thrown if not ignore_nonexistent.
+
+                const ConfigOption *source_opt = config.option(opt_key);
+                if (source_opt == nullptr) {
+                    // The key was not found in the source config, therefore it will not be initialized!
+                    boost::nowide::cerr << "can not found option " <<opt_key<<"from filament file "<< load_filaments[filament_index -1] <<std::endl;
+                    flush_and_exit(CLI_CONFIG_FILE_ERROR);
+                }
+                if (opt_key == "compatible_prints" || opt_key == "compatible_printers")
+                    continue;
+                else if (source_opt->is_scalar()) {
+                    if (opt_key == "compatible_printers_condition") {
+                        ConfigOption *opt = m_print_config.option("compatible_machine_expression_group", true);
+                        ConfigOptionStrings* opt_vec_dst = static_cast<ConfigOptionStrings*>(opt);
+                        if (opt_vec_dst->size() == 0)
+                            opt_vec_dst->resize(filament_count+2, new ConfigOptionString());
+                        opt_vec_dst->set_at(source_opt, filament_index, 0);
+                    }
+                    else if (opt_key == "compatible_prints_condition") {
+                        ConfigOption *opt = m_print_config.option("compatible_process_expression_group", true);
+                        ConfigOptionStrings* opt_vec_dst = static_cast<ConfigOptionStrings*>(opt);
+                        if (opt_vec_dst->size() == 0)
+                            opt_vec_dst->resize(filament_count+2, new ConfigOptionString());
+                        opt_vec_dst->set_at(source_opt, filament_index-1, 0);
+                    }
+                    else {
+                        //skip the scalar values
+                        BOOST_LOG_TRIVIAL(warning) << "skip scalar option " <<opt_key<<" from filament file "<< load_filaments[filament_index -1] <<std::endl;
+                        continue;
+                    }
+                }
+                else
+                {
+                    ConfigOption *opt = m_print_config.option(opt_key, true);
+                    if (opt == nullptr) {
+                        // opt_key does not exist in this ConfigBase and it cannot be created, because it is not defined by this->def().
+                        // This is only possible if other is of DynamicConfig type.
+                        boost::nowide::cerr << "can not create option " <<opt_key<<"to config, from filament file "<< load_filaments[filament_index -1] <<std::endl;
+                        flush_and_exit(CLI_CONFIG_FILE_ERROR);
+                    }
+                    ConfigOptionVectorBase* opt_vec_dst = static_cast<ConfigOptionVectorBase*>(opt);
+                    const ConfigOptionVectorBase* opt_vec_src = static_cast<const ConfigOptionVectorBase*>(source_opt);
+                    if (opt_key == "compatible_prints" || opt_key == "compatible_printers" || opt_key == "model_id" || opt_key == "dev_model_name")
+                        continue;
+                    else {
+                        opt_vec_dst->set_at(opt_vec_src, filament_index-1, 0);
+                    }
+                }
+            }
+        }
+    }
 
     //BBS: set default to ptFFF
     if (printer_technology == ptUnknown)
