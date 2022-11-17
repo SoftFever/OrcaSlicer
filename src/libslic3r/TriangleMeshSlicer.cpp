@@ -753,7 +753,9 @@ inline std::pair<SlabLines, SlabLines> slice_slabs_make_lines(
     const std::vector<float>                        &zs,
     bool                                             top,
     bool                                             bottom,
-    const ThrowOnCancel                              throw_on_cancel_fn)
+    const ThrowOnCancel                              throw_on_cancel_fn,
+    // BBS: solve conflicts (see declaration) and most elegant way I can get
+    SlabSlicingConfig                                config)
 {
     std::pair<SlabLines, SlabLines> out;
     SlabLines   &lines_top      = out.first;
@@ -772,7 +774,7 @@ inline std::pair<SlabLines, SlabLines> slice_slabs_make_lines(
 
     tbb::parallel_for(
         tbb::blocked_range<int>(0, int(indices.size())),
-        [&vertices, &indices, &face_neighbors, &face_edge_ids, num_edges, &face_orientation, &zs, top, bottom, &lines_top, &lines_bottom, &lines_mutex_top, &lines_mutex_bottom, throw_on_cancel_fn]
+        [&vertices, &indices, &face_neighbors, &face_edge_ids, num_edges, &face_orientation, &zs, top, bottom, &lines_top, &lines_bottom, &lines_mutex_top, &lines_mutex_bottom, throw_on_cancel_fn, &config]
         (const tbb::blocked_range<int> &range) {
             for (int face_idx = range.begin(); face_idx < range.end(); ++ face_idx) {
                 if ((face_idx & 0x0ffff) == 0)
@@ -790,7 +792,8 @@ inline std::pair<SlabLines, SlabLines> slice_slabs_make_lines(
                         }
                     slice_facet_with_slabs<true>(vertices, indices, face_idx, neighbors, edge_ids, num_edges, zs, lines_top, lines_mutex_top);
                 }
-                if (bottom && (fo == FaceOrientation::Down || fo == FaceOrientation::Degenerate)) {
+                // BBS: add vertical faces option
+                if (bottom && (fo == FaceOrientation::Down || (config.isVertical && fo == FaceOrientation::Vertical) || fo == FaceOrientation::Degenerate)) {
                     Vec3i neighbors = face_neighbors[face_idx];
                     // Reset neighborship of this triangle in case the other triangle is oriented backwards from this one.
                     for (int i = 0; i < 3; ++ i)
@@ -1895,7 +1898,8 @@ void slice_mesh_slabs(
     const Transform3d                &trafo,
     std::vector<Polygons>            *out_top,
     std::vector<Polygons>            *out_bottom,
-    std::function<void()>             throw_on_cancel)
+    std::function<void()>             throw_on_cancel,
+    SlabSlicingConfig                config)
 {
     BOOST_LOG_TRIVIAL(debug) << "slice_mesh_slabs to polygons";
 
@@ -1974,7 +1978,7 @@ void slice_mesh_slabs(
     std::vector<Vec3i> face_edge_ids  = its_face_edge_ids(mesh, face_neighbors, true, &num_edges);
     std::pair<SlabLines, SlabLines> lines = slice_slabs_make_lines(
         vertices_transformed, mesh.indices, face_neighbors, face_edge_ids, num_edges, face_orientation, zs, 
-        out_top != nullptr, out_bottom != nullptr, throw_on_cancel);
+        out_top != nullptr, out_bottom != nullptr, throw_on_cancel, config);
 
     throw_on_cancel();
 
