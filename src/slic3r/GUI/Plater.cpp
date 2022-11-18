@@ -5224,6 +5224,7 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
         if (bed_type != btCount) {
             config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
 
+            wxGetApp().plater()->update_project_dirty_from_presets();
             // clear all plates' bed type config
             for (int i = 0; i < partplate_list.get_plate_count(); i++)
                 partplate_list.get_plate(i)->reset_bed_type();

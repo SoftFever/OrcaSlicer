@@ -157,6 +157,7 @@ void PartPlate::set_bed_type(BedType bed_type, bool& same_as_global)
 
 	m_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
 	if (m_plater) {
+        m_plater->update_project_dirty_from_presets();
 		//m_plater->schedule_background_process();
 		DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
 		if (proj_cfg.has(bed_type_key)) {
