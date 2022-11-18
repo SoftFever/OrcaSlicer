@@ -439,7 +439,7 @@ void MenuFactory::append_menu_item_delete(wxMenu* menu)
         [](wxCommandEvent&) { plater()->remove_selected(); }, "menu_delete", nullptr,
         []() { return plater()->can_delete(); }, m_parent);
 #else
-    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Delete the selected object"),
+    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tBackSpace", _L("Delete the selected object"),
         [](wxCommandEvent&) { plater()->remove_selected(); }, "", nullptr,
         []() { return plater()->can_delete(); }, m_parent);
 #endif
@@ -1132,7 +1132,7 @@ void MenuFactory::create_plate_menu()
         [](wxCommandEvent&) { plater()->delete_plate(); }, "menu_delete", nullptr,
         []() { return plater()->can_delete_plate(); }, m_parent);
 #else
-    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Remove the selected plate"),
+    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tBackSpace", _L("Remove the selected plate"),
         [](wxCommandEvent&) { plater()->delete_plate(); }, "", nullptr,
         []() { return plater()->can_delete_plate(); }, m_parent);
 #endif

@@ -2112,7 +2112,7 @@ void MainFrame::init_menubar_as_editor()
             _L("Paste clipboard"), [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); },
             "", nullptr, [this](){return m_plater->can_paste_from_clipboard(); }, this);
         // BBS Delete selected
-        append_menu_item(editMenu, wxID_ANY, _L("Delete selected") + "\tDel",
+        append_menu_item(editMenu, wxID_ANY, _L("Delete selected") + "\tBackSpace",
             _L("Deletes the current selection"),[this](wxCommandEvent&) { m_plater->remove_selected(); },
             "", nullptr, [this](){return can_delete(); }, this);
         //BBS: delete all
