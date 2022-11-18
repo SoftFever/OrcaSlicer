@@ -90,13 +90,14 @@ protected:
     CameraTimelapseStatus m_state_timelapse{CameraTimelapseStatus::TIMELAPSE_NONE};
 
 
-    CameraItem *m_timelapse_button;
-    CameraItem *m_recording_button;
-    CameraItem *m_vcamera_button;
+    CameraItem *m_setting_button;
 
     wxBitmap m_bitmap_camera;
     wxBitmap m_bitmap_sdcard_state_on;
-    wxBitmap m_bitmap_sdcard_state_off;
+    wxBitmap m_bitmap_sdcard_state_abnormal;
+    wxBitmap m_bitmap_recording;
+    wxBitmap m_bitmap_timelapse;
+    wxBitmap m_bitmap_vcamera;
 
     /* title panel */
     wxPanel *       media_ctrl_panel;
@@ -112,8 +113,10 @@ protected:
 
     wxStaticBitmap *m_bitmap_camera_img;
     wxStaticBitmap *m_bitmap_recording_img;
+    wxStaticBitmap *m_bitmap_timelapse_img;
+    wxStaticBitmap* m_bitmap_vcamera_img;
     wxStaticBitmap *m_bitmap_sdcard_on_img;
-    wxStaticBitmap *m_bitmap_sdcard_off_img;
+    wxStaticBitmap *m_bitmap_sdcard_abnormal_img;
     wxStaticBitmap *m_bitmap_static_use_time;
     wxStaticBitmap *m_bitmap_static_use_weight;
 
@@ -239,7 +242,6 @@ public:
     wxBoxSizer *create_settings_group(wxWindow *parent);
 
     void show_ams_group(bool show = true);
-    void upodate_camera_state(bool recording, bool timelapse, bool has_sdcard);
 };
 
 
@@ -259,6 +261,7 @@ protected:
     AMSMaterialsSetting *m_filament_setting_dlg{nullptr};
     SecondaryCheckDialog* m_print_error_dlg = nullptr;
     SecondaryCheckDialog* abort_dlg = nullptr;
+    SecondaryCheckDialog* sdcard_hint_dlg = nullptr;
 
     wxString     m_request_url;
     bool         m_start_loading_thumbnail = false;
@@ -323,7 +326,6 @@ protected:
     void on_nozzle_fan_switch(wxCommandEvent &event);
     void on_thumbnail_enter(wxMouseEvent &event);
     void on_thumbnail_leave(wxMouseEvent &event);
-    void on_switch_recording(wxMouseEvent &event);
     void on_switch_vcamera(wxMouseEvent &event);
     void on_camera_enter(wxMouseEvent &event);
     void on_camera_leave(wxMouseEvent& event);
@@ -354,6 +356,11 @@ protected:
     void reset_printing_values();
     void on_webrequest_state(wxWebRequestEvent &evt);
     bool is_task_changed(MachineObject* obj);
+
+    /* camera */
+    void update_camera_state(bool recording, bool timelapse, MachineObject::SdcardState sdcard_state);
+    void update_img_status(wxStaticBitmap* img, bool on_off);
+    bool show_vcamera = false;
 
 public:
     StatusPanel(wxWindow *      parent,

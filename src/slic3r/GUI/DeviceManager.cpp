@@ -1149,8 +1149,9 @@ void MachineObject::parse_status(int flag)
     else {
         ams_auto_switch_filament_flag = ((flag >> 10) & 0x1) != 0;
     }
+
+    sdcard_state = MachineObject::SdcardState((flag >> 8) & 0x11);
 }
-    
 
 PrintingSpeedLevel MachineObject::_parse_printing_speed_lvl(int lvl)
 {
@@ -1173,7 +1174,12 @@ bool MachineObject::is_sdcard_printing()
 
 bool MachineObject::has_sdcard()
 {
-    return camera_has_sdcard;
+    return (sdcard_state == MachineObject::SdcardState::HAS_SDCARD_NORMAL);
+}
+
+MachineObject::SdcardState MachineObject::get_sdcard_state()
+{
+    return sdcard_state;
 }
 
 bool MachineObject::has_timelapse()
@@ -1608,6 +1614,16 @@ int MachineObject::command_ipcam_timelapse(bool on_off)
     return this->publish_json(j.dump());
 }
 
+int MachineObject::command_ipcam_resolution_set(std::string resolution)
+{
+    json j;
+    j["camera"]["command"] = "ipcam_resolution_set";
+    j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["camera"]["resolution"] = resolution;
+    BOOST_LOG_TRIVIAL(info) << "command:ipcam_resolution_set" << ", resolution:" << resolution;
+    return this->publish_json(j.dump());
+}
+
 int MachineObject::command_xcam_control(std::string module_name, bool on_off, std::string lvl)
 {
     json j;
@@ -1620,8 +1636,7 @@ int MachineObject::command_xcam_control(std::string module_name, bool on_off, st
     if (!lvl.empty()) {
         j["xcam"]["halt_print_sensitivity"] = lvl;
     }
-    BOOST_LOG_TRIVIAL(info) << "command:xcam_control_set" << ", sequence_id:" << std::to_string(MachineObject::m_sequence_id)<<
-        ", module_name:" << module_name << ", control:" << on_off << ", halt_print_sensitivity:" << lvl;
+    BOOST_LOG_TRIVIAL(info) << "command:xcam_control_set" << ", module_name:" << module_name << ", control:" << on_off << ", halt_print_sensitivity:" << lvl;
     return this->publish_json(j.dump());
 }
 
@@ -1753,6 +1768,7 @@ void MachineObject::reset()
     camera_recording = false;
     camera_recording_when_printing = false;
     camera_timelapse = false;
+    camera_resolution = "";
     printing_speed_mag = 100;
     gcode_file_prepare_percent = 0;
     iot_print_status = "";
@@ -1889,10 +1905,18 @@ bool MachineObject::is_function_supported(PrinterFunction func)
     case FUNC_USE_AMS:
         func_name = "FUNC_USE_AMS";
         break;
+    case FUNC_ALTER_RESOLUTION:
+        func_name = "FUNC_ALTER_RESOLUTION";
+        break;
     default:
         return true;
     }
     return DeviceManager::is_function_supported(printer_type, func_name);
+}
+
+std::vector<std::string> MachineObject::get_resolution_supported()
+{
+    return DeviceManager::get_resolution_supported(printer_type);
 }
 
 bool MachineObject::is_support_print_with_timelapse()
@@ -2239,10 +2263,13 @@ int MachineObject::parse_json(std::string payload)
                     // media
                     try {
                         if (jj.contains("sdcard")) {
-                            camera_has_sdcard = jj["sdcard"].get<bool>();
+                            if (jj["sdcard"].get<bool>())
+                                sdcard_state = MachineObject::SdcardState::HAS_SDCARD_NORMAL;
+                            else
+                                sdcard_state = MachineObject::SdcardState::NO_SDCARD;
                         } else {
                             //do not check sdcard if no sdcard field
-                            camera_has_sdcard = false;
+                            sdcard_state = MachineObject::SdcardState::NO_SDCARD;
                         }
                     }
                     catch (...) {
@@ -2366,6 +2393,9 @@ int MachineObject::parse_json(std::string payload)
                                 } else {
                                     has_ipcam = false;
                                 }
+                            }
+                            if (jj["ipcam"].contains("resolution")) {
+                                camera_resolution = jj["ipcam"]["resolution"].get<std::string>();
                             }
                         }
                     }
@@ -2831,6 +2861,8 @@ int MachineObject::parse_json(std::string payload)
                             this->camera_recording_when_printing = true;
                         if (j["camera"]["control"].get<std::string>() == "disable")
                             this->camera_recording_when_printing = false;
+                    } else if (j["camera"]["command"].get<std::string>() == "ipcam_resolution_set") {
+                        this->camera_resolution = j["camera"]["resolution"].get<std::string>();
                     }
                 }
             }
@@ -3522,6 +3554,22 @@ bool DeviceManager::is_function_supported(std::string type_str, std::string func
         }
     }
     return true;
+}
+
+std::vector<std::string> DeviceManager::get_resolution_supported(std::string type_str)
+{
+    std::vector<std::string> resolution_supported;
+    if (DeviceManager::function_table.contains("printers")) {
+        for (auto printer : DeviceManager::function_table["printers"]) {
+            if (printer.contains("model_id") && printer["model_id"].get<std::string>() == type_str) {
+                if (printer.contains("camera_resolution")) {
+                    for (auto res : printer["camera_resolution"])
+                        resolution_supported.emplace_back(res.get<std::string>());
+                }
+            }
+        }
+    }
+    return resolution_supported;
 }
 
 bool DeviceManager::load_functional_config(std::string config_file)

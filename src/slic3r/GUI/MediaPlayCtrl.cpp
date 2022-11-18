@@ -273,7 +273,7 @@ void MediaPlayCtrl::ToggleStream()
         std::string file_ff_cfg = data_dir() + "/cameratools/ffmpeg.cfg";
 #endif
         if (!boost::filesystem::exists(file_source) || !boost::filesystem::exists(file_ffmpeg) || !boost::filesystem::exists(file_ff_cfg)) {
-            auto res = MessageDialog(this, _L("Virtual Camera Tools is required for this task!\nDo you want to install them?"), _L("Error"),
+            auto res = MessageDialog(this, _L("Virtual Camera Tools is required for this task!\nDo you want to install them?"), _L("Info"),
                                     wxOK | wxCANCEL).ShowModal();
             if (res == wxID_OK) {
                 // download tools
@@ -345,18 +345,6 @@ void MediaPlayCtrl::ToggleStream()
             file.write(url2.c_str(), url2.size());
             file.close();
             m_streaming = true;
-            if (wxGetApp().app_config->get("not_show_vcamera_wiki") != "1") {
-                MessageDialog dlg(this, _L("Virtual camera is started.\nPress 'OK' to navigate the guide page of 'Streaming video of Bambu Printer'."), _L("Information"),
-                                         wxOK | wxCANCEL | wxICON_INFORMATION);
-                dlg.show_dsa_button();
-                auto res = dlg.ShowModal();
-                if (dlg.get_checkbox_state())
-                    wxGetApp().app_config->set("not_show_vcamera_wiki", "1");
-                if (res == wxID_OK) {
-                    auto url = wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/virtual-camera", L"en");
-                    wxLaunchDefaultBrowser(url);
-                }
-            }
         });
     });
 }

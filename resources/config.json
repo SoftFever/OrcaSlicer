@@ -5,6 +5,7 @@
             "func": {
                 "FUNC_LOCAL_TUNNEL": false
             },
+            "camera_resolution":["720p","1080p"],
             "model_id": "BL-P002",
             "printer_type": "3DPrinter-X1"
         },
@@ -14,6 +15,7 @@
                 "FUNC_LOCAL_TUNNEL": false
             },
             "model_id": "BL-P001",
+            "camera_resolution":["720p","1080p"],
             "printer_type": "3DPrinter-X1-Carbon"
         }
     ]

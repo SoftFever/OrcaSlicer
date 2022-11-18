@@ -186,7 +186,10 @@ void StatusBasePanel::init_bitmaps()
     m_bitmap_extruder_empty_unload    = *cache.load_png("monitor_extruder_empty_unload", FromDIP(28), FromDIP(70), false, false);
     m_bitmap_extruder_filled_unload   = *cache.load_png("monitor_extruder_filled_unload", FromDIP(28), FromDIP(70), false, false);
     m_bitmap_sdcard_state_on    = create_scaled_bitmap("sdcard_state_on", nullptr, 20);
-    m_bitmap_sdcard_state_off    = create_scaled_bitmap("sdcard_state_off", nullptr, 20);
+    m_bitmap_sdcard_state_abnormal = create_scaled_bitmap("sdcard_state_abnormal", nullptr, 20);
+    m_bitmap_recording = create_scaled_bitmap("recording", nullptr, 20);
+    m_bitmap_timelapse = create_scaled_bitmap("timelapse", nullptr, 20);
+    m_bitmap_vcamera = create_scaled_bitmap("vcamera", nullptr, 20);
 }
 
 wxBoxSizer *StatusBasePanel::create_monitoring_page()
@@ -223,33 +226,42 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     //m_bitmap_camera_img->SetMinSize(wxSize(FromDIP(32), FromDIP(18)));
     //bSizer_monitoring_title->Add(m_bitmap_camera_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
-    m_bitmap_sdcard_off_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, m_bitmap_sdcard_state_off, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
-    m_bitmap_sdcard_off_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
+    m_bitmap_sdcard_abnormal_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, m_bitmap_sdcard_state_abnormal, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
+    m_bitmap_sdcard_abnormal_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
     m_bitmap_sdcard_on_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, m_bitmap_sdcard_state_on, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
     m_bitmap_sdcard_on_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
     m_bitmap_sdcard_on_img->Hide();
+    m_bitmap_sdcard_abnormal_img->Hide();
    
-    m_timelapse_button = new CameraItem(m_panel_monitoring_title, "timelapse_off_normal", "timelapse_on_normal", "timelapse_off_hover", "timelapse_on_hover");
-    m_timelapse_button->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
-    m_timelapse_button->SetBackgroundColour(STATUS_TITLE_BG);
+    m_bitmap_timelapse_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, m_bitmap_timelapse, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
+    m_bitmap_timelapse_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
+    m_bitmap_timelapse_img->Hide();
 
-    m_recording_button = new CameraItem(m_panel_monitoring_title, "recording_off_normal", "recording_on_normal", "recording_off_hover", "recording_on_hover");
-    m_recording_button->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
-    m_recording_button->SetBackgroundColour(STATUS_TITLE_BG);
+    m_bitmap_recording_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, m_bitmap_recording, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
+    m_bitmap_recording_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
+    m_bitmap_timelapse_img->Hide();
 
-    m_vcamera_button = new CameraItem(m_panel_monitoring_title, "vcamera_off_normal", "vcamera_on_normal", "vcamera_off_hover", "vcamera_on_hover");
-    m_vcamera_button->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
-    m_vcamera_button->SetBackgroundColour(STATUS_TITLE_BG);
+    m_bitmap_vcamera_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, m_bitmap_vcamera, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
+    m_bitmap_vcamera_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
+    m_bitmap_vcamera_img->Hide();
 
-    m_timelapse_button->SetToolTip(_L("Timelapse"));
-    m_recording_button->SetToolTip(_L("Video"));
-    m_vcamera_button->SetToolTip(_L("Virtual Camera"));
+    m_setting_button = new CameraItem(m_panel_monitoring_title, "camera_setting", "camera_setting_hover");
+    m_setting_button->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
+    m_setting_button->SetBackgroundColour(STATUS_TITLE_BG);
 
-    bSizer_monitoring_title->Add(m_bitmap_sdcard_off_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    m_bitmap_sdcard_on_img->SetToolTip(_L("SD Card"));
+    m_bitmap_sdcard_abnormal_img->SetToolTip(_L("SD Card Abnormal"));
+    m_bitmap_timelapse_img->SetToolTip(_L("Timelapse"));
+    m_bitmap_recording_img->SetToolTip(_L("Video"));
+    m_bitmap_vcamera_img->SetToolTip(_L("Virtual Camera"));
+    m_setting_button->SetToolTip(_L("Camera Setting"));
+
+    bSizer_monitoring_title->Add(m_bitmap_sdcard_abnormal_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     bSizer_monitoring_title->Add(m_bitmap_sdcard_on_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    bSizer_monitoring_title->Add(m_timelapse_button, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    bSizer_monitoring_title->Add(m_recording_button, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    bSizer_monitoring_title->Add(m_vcamera_button, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    bSizer_monitoring_title->Add(m_bitmap_timelapse_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    bSizer_monitoring_title->Add(m_bitmap_recording_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    bSizer_monitoring_title->Add(m_bitmap_vcamera_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    bSizer_monitoring_title->Add(m_setting_button, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
     bSizer_monitoring_title->Add(FromDIP(13), 0, 0);
 
@@ -1027,39 +1039,46 @@ void StatusBasePanel::show_ams_group(bool show)
     m_show_ams_group = show;
 }
 
-void StatusBasePanel::upodate_camera_state(bool recording, bool timelapse, bool has_sdcard)
+void StatusPanel::update_img_status(wxStaticBitmap* img, bool on_off)
 {
+    if (on_off)
+        img->Show();
+    else
+        img->Hide();
+}
 
+void StatusPanel::update_camera_state(bool recording, bool timelapse, MachineObject::SdcardState sdcard_state)
+{
     //sdcard
-   /* if (has_sdcard && !m_bitmap_sdcard_img->IsShown()) {
-        m_bitmap_sdcard_img->Show();
-        m_panel_monitoring_title->Layout();
+    switch (sdcard_state) {
+    case MachineObject::SdcardState::NO_SDCARD:
+        m_bitmap_sdcard_on_img->Hide();
+        m_bitmap_sdcard_abnormal_img->Hide();
+        break;
+    case MachineObject::SdcardState::HAS_SDCARD_NORMAL:
+        m_bitmap_sdcard_on_img->Show();
+        m_bitmap_sdcard_abnormal_img->Hide();
+        break;
+    case MachineObject::SdcardState::HAS_SDCARD_ABNORMAL:
+        m_bitmap_sdcard_on_img->Hide();
+        m_bitmap_sdcard_abnormal_img->Show();
+        break;
+    default:
+        ;
     }
-    if (!has_sdcard && m_bitmap_sdcard_img->IsShown()) {
-        m_bitmap_sdcard_img->Hide();
-        m_panel_monitoring_title->Layout();
-    }*/
-
-    if (has_sdcard) {
-        if (m_bitmap_sdcard_off_img->IsShown()) {
-            m_bitmap_sdcard_on_img->Show();
-            m_bitmap_sdcard_off_img->Hide();
-            m_panel_monitoring_title->Layout();
-        }
-    } else {
-        if (m_bitmap_sdcard_on_img->IsShown()) {
-            m_bitmap_sdcard_on_img->Hide();
-            m_bitmap_sdcard_off_img->Show();
-            m_panel_monitoring_title->Layout();
-        }
-    }
-
-     //recording
-    m_recording_button->set_switch(recording);
-    m_vcamera_button->set_switch(m_media_play_ctrl->IsStreaming());
-
+    //recording
+    update_img_status(m_bitmap_recording_img, recording);
     //timelapse
-    m_timelapse_button->set_switch(timelapse);
+    update_img_status(m_bitmap_timelapse_img, timelapse);
+    //vcamera
+    update_img_status(m_bitmap_vcamera_img, m_media_play_ctrl->IsStreaming());
+    show_vcamera = m_media_play_ctrl->IsStreaming();
+    //camera setting
+    if (m_camera_popup) {
+        m_camera_popup->update();
+        m_camera_popup->sync_vcamera_state(show_vcamera);
+    }
+    m_panel_monitoring_title->Layout();
 }
 
 StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
@@ -1110,10 +1129,8 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     // Connect Events
     //m_bitmap_thumbnail->Connect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_enter), NULL, this);
     //m_bitmap_thumbnail->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
-    m_recording_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_switch_recording), NULL, this);
-    m_vcamera_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_switch_vcamera), NULL, this);
+    m_setting_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_camera_enter), NULL, this);
     m_project_task_panel->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
-
     m_button_pause_resume->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
     m_button_clean->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_print_error_clean), NULL, this);
@@ -1151,8 +1168,7 @@ StatusPanel::~StatusPanel()
     // Disconnect Events
     //m_bitmap_thumbnail->Disconnect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_enter), NULL, this);
     //m_bitmap_thumbnail->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
-    m_recording_button->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_switch_recording), NULL, this);
-    m_vcamera_button->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_switch_vcamera), NULL, this);
+    m_setting_button->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_camera_enter), NULL, this);
     m_button_pause_resume->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
     m_button_clean->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_print_error_clean), NULL, this);
@@ -1181,6 +1197,9 @@ StatusPanel::~StatusPanel()
 
     if (abort_dlg != nullptr)
         delete abort_dlg;
+
+    if (sdcard_hint_dlg != nullptr)
+        delete sdcard_hint_dlg;
 }
 
 void StatusPanel::init_scaled_buttons()
@@ -1388,24 +1407,6 @@ void StatusPanel::update(MachineObject *obj)
             m_options_btn->Hide();
         }
 
-        if (obj->is_function_supported(PrinterFunction::FUNC_TIMELAPSE)) {
-            m_timelapse_button->Show();
-        } else {
-            m_timelapse_button->Hide();
-        }
-
-        if (obj->is_function_supported(PrinterFunction::FUNC_RECORDING) || obj->has_ipcam) {
-            m_recording_button->Show();
-        } else {
-            m_recording_button->Hide();
-        }
-
-        if (obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_CAMERA) && obj->has_ipcam) {
-            m_vcamera_button->Show();
-        } else {
-            m_vcamera_button->Hide();
-        }
-
         if (obj->is_function_supported(PrinterFunction::FUNC_CHAMBER_TEMP)) {
             m_tempCtrl_frame->Enable();
         } else {
@@ -1417,7 +1418,8 @@ void StatusPanel::update(MachineObject *obj)
         update_error_message();
     }
 
-    upodate_camera_state(obj->is_recording_enable(), obj->has_timelapse(), obj->has_sdcard());
+    update_camera_state(obj->is_recording_enable(), obj->has_timelapse(), obj->get_sdcard_state());
+
     m_machine_ctrl_panel->Thaw();
 }
 
@@ -2552,25 +2554,30 @@ void StatusPanel::on_thumbnail_leave(wxMouseEvent &event)
     }
 }
 
-void StatusPanel::on_switch_recording(wxMouseEvent &event)
-{
-    if (!obj) return;
-    bool value = m_recording_button->get_switch_status();
-    obj->command_ipcam_record(!value);
-}
-
 void StatusPanel::on_switch_vcamera(wxMouseEvent &event)
 {
     //if (!obj) return;
     //bool value = m_recording_button->get_switch_status();
     //obj->command_ipcam_record(!value);
     m_media_play_ctrl->ToggleStream();
+    show_vcamera = m_media_play_ctrl->IsStreaming();
+    if (m_camera_popup)
+        m_camera_popup->sync_vcamera_state(show_vcamera);
 }
 
 void StatusPanel::on_camera_enter(wxMouseEvent& event)
 {
     if (obj) {
         m_camera_popup = std::make_shared<CameraPopup>(this, obj);
+        m_camera_popup->sync_vcamera_state(show_vcamera);
+        m_camera_popup->Bind(EVT_VCAMERA_SWITCH, &StatusPanel::on_switch_vcamera, this);
+        m_camera_popup->Bind(EVT_SDCARD_ABSENT_HINT, [this](wxCommandEvent &e) {
+            if (sdcard_hint_dlg == nullptr) {
+                sdcard_hint_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
+                sdcard_hint_dlg->update_text(_L("Can't start this without SD card."));
+            }
+            sdcard_hint_dlg->on_show();
+            });
         wxWindow* ctrl = (wxWindow*)event.GetEventObject();
         wxPoint   pos = ctrl->ClientToScreen(wxPoint(0, 0));
         wxSize    sz = ctrl->GetSize();
@@ -2654,9 +2661,10 @@ void StatusPanel::set_default()
     m_show_ams_group = false;
     reset_printing_values();
 
-    m_timelapse_button->Show();
-    m_recording_button->Show();
-    m_vcamera_button->Show();
+    m_bitmap_timelapse_img->Hide();
+    m_bitmap_recording_img->Hide();
+    m_bitmap_vcamera_img->Hide();
+    m_setting_button->Show();
     m_tempCtrl_frame->Show();
     m_options_btn->Show();
 
@@ -2730,10 +2738,11 @@ void StatusPanel::msw_rescale()
     //m_bitmap_camera_img->SetBitmap(m_bitmap_camera);
     //m_bitmap_camera_img->SetMinSize(wxSize(FromDIP(32), FromDIP(18)));
 
-    m_timelapse_button->SetMinSize(wxSize(38, 24));
-    m_recording_button->SetMinSize(wxSize(38, 24));
-    m_vcamera_button->SetMinSize(wxSize(38, 24));
-    m_bitmap_sdcard_off_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
+    m_bitmap_timelapse_img->SetMinSize(wxSize(38, 24));
+    m_bitmap_recording_img->SetMinSize(wxSize(38, 24));
+    m_bitmap_vcamera_img->SetMinSize(wxSize(38, 24));
+    m_setting_button->SetMinSize(wxSize(38, 24));
+    m_bitmap_sdcard_abnormal_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
     m_bitmap_sdcard_on_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
 
     m_bpButton_xy->Rescale();

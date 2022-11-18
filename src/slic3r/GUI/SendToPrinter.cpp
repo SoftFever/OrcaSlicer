@@ -904,7 +904,7 @@ void SendToPrinterDialog::update_show_status()
     // check sdcard when if lan mode printer
    /* if (obj_->is_lan_mode_printer()) {
     }*/
-	if (!obj_->has_sdcard()) {
+	if (obj_->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
 		show_status(PrintDialogStatus::PrintStatusNoSdcard);
 		return;
 	}

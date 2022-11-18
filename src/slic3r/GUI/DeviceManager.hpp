@@ -11,6 +11,7 @@
 #include "libslic3r/ProjectTask.hpp"
 #include "slic3r/Utils/json_diff.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
+#include "CameraPopup.hpp"
 
 #define USE_LOCAL_SOCKET_BIND 0
 
@@ -74,6 +75,7 @@ enum PrinterFunction {
     FUNC_PRINT_WITHOUT_SD,
     FUNC_VIRTUAL_CAMERA,
     FUNC_USE_AMS,
+    FUNC_ALTER_RESOLUTION,
     FUNC_MAX
 };
 
@@ -346,6 +348,13 @@ public:
         std::string sw_new_ver;
     };
 
+    enum SdcardState {
+        NO_SDCARD = 0,
+        HAS_SDCARD_NORMAL = 1,
+        HAS_SDCARD_ABNORMAL = 2,
+        SDCARD_STATE_NUM = 3
+    };
+
     /* static members and functions */
     static inline int m_sequence_id = 20000;
     static std::string parse_printer_type(std::string type_str);
@@ -530,7 +539,7 @@ public:
     bool camera_recording { false };
     bool camera_recording_when_printing { false };
     bool camera_timelapse { false };
-    bool camera_has_sdcard { false };
+    std::string camera_resolution = "";
     bool xcam_first_layer_inspector { false };
     int  xcam_first_layer_hold_count = 0;
 
@@ -542,6 +551,10 @@ public:
     bool xcam_auto_recovery_step_loss{ false };
     int  xcam_auto_recovery_hold_count = 0;
     int  ams_print_option_count = 0;
+
+    /* sdcard */
+    MachineObject::SdcardState sdcard_state { NO_SDCARD };
+    MachineObject::SdcardState get_sdcard_state();
 
     /* HMS */
     std::vector<HMSItem>    hms_list;
@@ -626,6 +639,7 @@ public:
     // camera control
     int command_ipcam_record(bool on_off);
     int command_ipcam_timelapse(bool on_off);
+    int command_ipcam_resolution_set(std::string resolution);
     int command_xcam_control(std::string module_name, bool on_off, std::string lvl = "");
     int command_xcam_control_ai_monitoring(bool on_off, std::string lvl);
     int command_xcam_control_first_layer_inspector(bool on_off, bool print_halt);
@@ -655,6 +669,7 @@ public:
     bool is_online() { return m_is_online; }
     bool is_info_ready();
     bool is_function_supported(PrinterFunction func);
+    std::vector<std::string> get_resolution_supported();
     bool is_support_print_with_timelapse();
 
 
@@ -724,6 +739,7 @@ public:
     static std::string parse_printer_type(std::string type_str);
     static std::string get_printer_display_name(std::string type_str);
     static bool is_function_supported(std::string type_str, std::string function_name);
+    static std::vector<std::string> get_resolution_supported(std::string type_str);
 
     static bool load_functional_config(std::string config_file);
 };
