@@ -250,14 +250,12 @@ void BBLTopbar::Init(wxFrame* parent)
     this->AddSpacer(FromDIP(10));
     this->AddStretchSpacer(1);
 
-#if !BBL_RELEASE_TO_PUBLIC
     m_publish_bitmap = create_scaled_bitmap("topbar_publish", nullptr, TOPBAR_ICON_SIZE);
     m_publish_item = this->AddTool(ID_PUBLISH, "", m_publish_bitmap);
     m_publish_disable_bitmap = create_scaled_bitmap("topbar_publish_disable", nullptr, TOPBAR_ICON_SIZE);
     m_publish_item->SetDisabledBitmap(m_publish_disable_bitmap);
     this->EnableTool(m_publish_item->GetId(), false);
     this->AddSpacer(FromDIP(12));
-#endif
 
     /*wxBitmap model_store_bitmap = create_scaled_bitmap("topbar_store", nullptr, TOPBAR_ICON_SIZE);
     m_model_store_item = this->AddTool(ID_MODEL_STORE, "", model_store_bitmap);
