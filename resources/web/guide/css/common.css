@@ -57,7 +57,7 @@ body
 	height: 76%;
 	padding: 20px 40px;
 	overflow-x: hidden;
-	overflow-y:hidden;
+	overflow-y: auto;
 	text-align: left;
 	font-size: 14px;
 	line-height: 22px;
