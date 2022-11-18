@@ -294,11 +294,6 @@ void PrintJob::process()
         }
     }
 
-    if (was_canceled()) {
-        update_status(curr_percent, printjob_cancel_str);
-        return;
-    }
-
     if (result < 0) {
         if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
             msg_text = upload_failed_str;
