@@ -3119,7 +3119,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             ;
         }
         if (!m_curr_metadata_name.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "load_3mf found metadata = " << m_curr_characters;
+            BOOST_LOG_TRIVIAL(info) << "load_3mf found metadata key = " << m_curr_metadata_name << ", value = " << xml_unescape(m_curr_characters);
             model_info.metadata_items[m_curr_metadata_name] = xml_unescape(m_curr_characters);
         }
 
@@ -5333,7 +5333,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
             // remember to use metadata_item_map to store metadata info
             std::map<std::string, std::string> metadata_item_map;
-            metadata_item_map[BBS_3MF_VERSION] = VERSION_BBS_3MF;
+            metadata_item_map[BBS_3MF_VERSION] = std::to_string(VERSION_BBS_3MF);
             if (!sub_model) {
                 // update metadat_items
                 if (model.model_info && model.model_info.get()) {
@@ -5364,7 +5364,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             // store metadata info
             for (auto item : metadata_item_map) {
-                BOOST_LOG_TRIVIAL(info) << "bbs_3mf: save key= " << item.first << ", value = " << xml_escape(item.second);
+                BOOST_LOG_TRIVIAL(info) << "bbs_3mf: save key= " << item.first << ", value = " << item.second;
                 stream << " <" << METADATA_TAG << " name=\"" << item.first << "\">"
                        << xml_escape(item.second) << "</" << METADATA_TAG << ">\n";
             }
