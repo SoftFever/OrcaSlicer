@@ -673,7 +673,7 @@ GLCanvas3D::Mouse::Mouse()
 
 void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_instances) const
 {
-    if (!m_enabled || !is_shown())
+    if (!m_enabled || !is_shown() || m_canvas.get_gizmos_manager().is_running())
         return;
 
     const Camera& camera = wxGetApp().plater()->get_camera();
@@ -701,10 +701,14 @@ void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_
     // collect owners world bounding boxes and data from volumes
     std::vector<Owner> owners;
     const GLVolumeCollection& volumes = m_canvas.get_volumes();
+    PartPlate* cur_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
     for (const GLVolume* volume : volumes.volumes) {
         int obj_idx = volume->object_idx();
         if (0 <= obj_idx && obj_idx < (int)model->objects.size()) {
             int inst_idx = volume->instance_idx();
+            //only show current plate's label
+            if (!cur_plate->contain_instance(obj_idx, inst_idx))
+                continue;
             std::vector<Owner>::iterator it = std::find_if(owners.begin(), owners.end(), [obj_idx, inst_idx](const Owner& owner) {
                 return (owner.obj_idx == obj_idx) && (owner.inst_idx == inst_idx);
                 });
