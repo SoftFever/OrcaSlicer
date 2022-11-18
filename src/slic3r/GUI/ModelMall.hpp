@@ -35,13 +35,13 @@
 #include "Widgets/Button.hpp"
 
 
-#define MODEL_MALL_PAGE_SIZE wxSize(FromDIP(1400 * 0.8), FromDIP(1040 * 0.8))
-#define MODEL_MALL_PAGE_CONTROL_SIZE wxSize(FromDIP(1400 * 0.8), FromDIP(40 * 0.8))
-#define MODEL_MALL_PAGE_WEB_SIZE wxSize(FromDIP(1400 * 0.8), FromDIP(1000 * 0.8))
+#define MODEL_MALL_PAGE_SIZE wxSize(FromDIP(1400 * 0.85), FromDIP(1040 * 0.75))
+#define MODEL_MALL_PAGE_CONTROL_SIZE wxSize(FromDIP(1400 * 0.85), FromDIP(40 * 0.75))
+#define MODEL_MALL_PAGE_WEB_SIZE wxSize(FromDIP(1400 * 0.85), FromDIP(1000 * 0.75))
 
 namespace Slic3r { namespace GUI {
 
-    class ModelMallDialog : public DPIDialog
+    class ModelMallDialog : public DPIFrame
     {
     public:
         ModelMallDialog(Plater* plater = nullptr);

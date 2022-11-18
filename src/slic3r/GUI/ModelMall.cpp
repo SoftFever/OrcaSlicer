@@ -14,7 +14,7 @@
 namespace Slic3r {
 namespace GUI {
     ModelMallDialog::ModelMallDialog(Plater* plater /*= nullptr*/)
-        :DPIDialog(static_cast<wxWindow*>(nullptr), wxID_ANY, _L("3D Models"), wxDefaultPosition, wxDefaultSize, wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxRESIZE_BORDER)
+        :DPIFrame(nullptr, wxID_ANY, _L("3D Models"), wxDefaultPosition, wxDefaultSize, wxCLOSE_BOX|wxDEFAULT_DIALOG_STYLE|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxRESIZE_BORDER)
     {
         // icon
         std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
