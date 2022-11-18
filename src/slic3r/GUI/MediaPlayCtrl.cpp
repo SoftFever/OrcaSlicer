@@ -142,7 +142,7 @@ void MediaPlayCtrl::Play()
     m_button_play->SetIcon("media_stop");
     SetStatus(_L("Initializing..."));
 
-    if (!m_lan_ip.empty() && !m_lan_passwd.empty()) {
+    if (!m_lan_ip.empty() && (!m_lan_mode || !m_lan_passwd.empty())) {
         m_url        = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
         m_last_state = MEDIASTATE_LOADING;
         SetStatus(_L("Loading..."));
