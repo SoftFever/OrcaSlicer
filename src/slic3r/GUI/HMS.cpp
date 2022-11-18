@@ -44,7 +44,7 @@ int HMSQuery::download_hms_info()
     if (!config) return -1;
 
     std::string hms_host = wxGetApp().app_config->get_hms_host();
-    std::string lang_code = wxGetApp().app_config->get_language_code();
+    std::string lang_code = HMSQuery::hms_language_code();
     std::string url = (boost::format("https://%1%/query.php?lang=%2%") % hms_host % lang_code).str();
 
     BOOST_LOG_TRIVIAL(info) << "hms: download url = " << url;
@@ -132,24 +132,37 @@ int HMSQuery::save_to_local()
     return -1;
 }
 
-std::string HMSQuery::get_hms_file()
+std::string HMSQuery::hms_language_code()
 {
     AppConfig* config = wxGetApp().app_config;
     if (!config)
-        return HMS_INFO_FILE;
+        // set language code to en by default
+        return "en";
     std::string lang_code = wxGetApp().app_config->get_language_code();
+    if (lang_code.empty()) {
+        // set language code to en by default
+        return "en";
+    }
+}
+
+std::string HMSQuery::get_hms_file()
+{
+    std::string lang_code = HMSQuery::hms_language_code();
     return (boost::format("hms_%1%.json") % lang_code).str();
 }
 
 wxString HMSQuery::query_hms_msg(std::string long_error_code)
 {
-    if (long_error_code.empty())
-        return wxEmptyString;
     AppConfig* config = wxGetApp().app_config;
     if (!config) return wxEmptyString;
+    std::string lang_code = HMSQuery::hms_language_code();
+    return _query_hms_msg(long_error_code, lang_code);
+}
 
-    std::string hms_host = wxGetApp().app_config->get_hms_host();
-    std::string lang_code = wxGetApp().app_config->get_language_code();
+wxString HMSQuery::_query_hms_msg(std::string long_error_code, std::string lang_code)
+{
+    if (long_error_code.empty())
+        return wxEmptyString;
 
     if (m_hms_json.contains("device_hms")) {
         if (m_hms_json["device_hms"].contains(lang_code)) {
@@ -164,6 +177,23 @@ wxString HMSQuery::query_hms_msg(std::string long_error_code)
                 }
             }
             BOOST_LOG_TRIVIAL(info) << "hms: query_hms_msg, not found error_code = " << long_error_code;
+        } else {
+            BOOST_LOG_TRIVIAL(error) << "hms: query_hms_msg, do not contains lang_code = " << lang_code;
+            // return first language
+            if (!m_hms_json["device_hms"].empty()) {
+                for (auto lang : m_hms_json["device_hms"]) {
+                    for (auto item = lang.begin(); item != lang.end(); item++) {
+                        if (item->contains("ecode")) {
+                            std::string temp_string = (*item)["ecode"].get<std::string>();
+                            if (boost::to_upper_copy(temp_string) == long_error_code) {
+                                if (item->contains("intro")) {
+                                    return wxString::FromUTF8((*item)["intro"].get<std::string>());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     } else {
         BOOST_LOG_TRIVIAL(info) << "device_hms is not exists";
@@ -172,24 +202,32 @@ wxString HMSQuery::query_hms_msg(std::string long_error_code)
     return wxEmptyString;
 }
 
-wxString HMSQuery::query_error_msg(std::string error_code)
+wxString HMSQuery::_query_error_msg(std::string error_code, std::string lang_code)
 {
-    AppConfig* config = wxGetApp().app_config;
-    if (!config) return wxEmptyString;
-
-    std::string hms_host = wxGetApp().app_config->get_hms_host();
-    std::string lang_code = wxGetApp().app_config->get_language_code();
-
     if (m_hms_json.contains("device_error")) {
         if (m_hms_json["device_error"].contains(lang_code)) {
             for (auto item = m_hms_json["device_error"][lang_code].begin(); item != m_hms_json["device_error"][lang_code].end(); item++) {
-                if (item->contains("ecode") && (*item)["ecode"].get<std::string>() == error_code) {
+                if (item->contains("ecode") && boost::to_upper_copy((*item)["ecode"].get<std::string>()) == error_code) {
                     if (item->contains("intro")) {
                         return wxString::FromUTF8((*item)["intro"].get<std::string>());
                     }
                 }
             }
             BOOST_LOG_TRIVIAL(info) << "hms: query_error_msg, not found error_code = " << error_code;
+        } else {
+            BOOST_LOG_TRIVIAL(error) << "hms: query_error_msg, do not contains lang_code = " << lang_code;
+            // return first language
+            if (!m_hms_json["device_error"].empty()) {
+                for (auto lang : m_hms_json["device_error"]) {
+                    for (auto item = lang.begin(); item != lang.end(); item++) {
+                        if (item->contains("ecode") && boost::to_upper_copy((*item)["ecode"].get<std::string>()) == error_code) {
+                            if (item->contains("intro")) {
+                                return wxString::FromUTF8((*item)["intro"].get<std::string>());
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     else {
@@ -203,7 +241,8 @@ wxString HMSQuery::query_print_error_msg(int print_error)
 {
     char buf[32];
     ::sprintf(buf, "%08X", print_error);
-    return query_error_msg(std::string(buf));
+    std::string lang_code = HMSQuery::hms_language_code();
+    return _query_error_msg(std::string(buf), lang_code);
 }
 
 int HMSQuery::check_hms_info()
@@ -236,7 +275,7 @@ std::string get_hms_wiki_url(std::string error_code)
     if (!config) return "";
 
     std::string hms_host = wxGetApp().app_config->get_hms_host();
-    std::string lang_code = wxGetApp().app_config->get_language_code();
+    std::string lang_code = HMSQuery::hms_language_code();
     std::string url = (boost::format("https://%1%/index.php?e=%2%&s=device_hms&lang=%3%")
                        % hms_host
                        % error_code
