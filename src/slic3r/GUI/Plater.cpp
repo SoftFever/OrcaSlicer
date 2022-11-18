@@ -5036,7 +5036,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
     }
 
     wxPanel* old_panel = current_panel;
-#if BBL_HAS_FIRST_PAGE
+//#if BBL_HAS_FIRST_PAGE
     if (!old_panel) {
         //BBS: only switch to the first panel when visible
         panel->Show();
@@ -5044,7 +5044,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
         if (!panel->IsShownOnScreen())
             return;
     }
-#endif
+//#endif
     current_panel = panel;
     //BBS: add the collapse logic
     if (current_panel == preview && q->only_gcode_mode()) {

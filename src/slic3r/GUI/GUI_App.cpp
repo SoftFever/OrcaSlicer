@@ -995,7 +995,12 @@ void GUI_App::post_init()
             }
         }
     }
-#if BBL_HAS_FIRST_PAGE
+//#if BBL_HAS_FIRST_PAGE
+    bool slow_bootup = false;
+    if (app_config->get("slow_bootup") == "true") {
+        slow_bootup = true;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", slow bootup, won't render gl here.";
+    }
     if (!switch_to_3d) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", begin load_gl_resources";
         mainframe->Freeze();
@@ -1016,17 +1021,19 @@ void GUI_App::post_init()
 
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init imgui frame";
         plater_->canvas3D()->enable_render(true);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to render a first frame for test";
 
-        plater_->canvas3D()->render(false);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished rendering a first frame for test";
+        if (!slow_bootup) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to render a first frame for test";
+            plater_->canvas3D()->render(false);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished rendering a first frame for test";
+        }
         if (is_editor())
             mainframe->select_tab(size_t(0));
         mainframe->Thaw();
         plater_->trigger_restore_project(1);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", end load_gl_resources";
     }
-#endif
+//#endif
 
     //BBS: remove GCodeViewer as seperate APP logic
     /*if (this->init_params->start_as_gcodeviewer) {
@@ -2342,7 +2349,7 @@ bool GUI_App::on_init_inner()
     mainframe->Show(true);
     BOOST_LOG_TRIVIAL(info) << "main frame firstly shown";
 
-#if BBL_HAS_FIRST_PAGE
+//#if BBL_HAS_FIRST_PAGE
     //BBS: set tp3DEditor firstly
     /*plater_->canvas3D()->enable_render(false);
     mainframe->select_tab(size_t(MainFrame::tp3DEditor));
@@ -2358,9 +2365,9 @@ bool GUI_App::on_init_inner()
     plater_->canvas3D()->render();
     if (is_editor())
         mainframe->select_tab(size_t(0));*/
-#else
-    plater_->trigger_restore_project(1);
-#endif
+//#else
+    //plater_->trigger_restore_project(1);
+//#endif
 
     obj_list()->set_min_height();
 
