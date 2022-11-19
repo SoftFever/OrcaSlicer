@@ -3226,9 +3226,18 @@ bool DeviceManager::set_selected_machine(std::string dev_id)
     auto it = my_machine_list.find(dev_id);
     if (it != my_machine_list.end()) {
         if (selected_machine == dev_id) {
-            // only reset update time
-            it->second->reset_update_time();
-            return true;
+            if (it->second->connection_type() != "lan") {
+                // only reset update time
+                it->second->reset_update_time();
+                return true;
+            } else {
+                // lan mode printer reconnect printer
+                if (m_agent) {
+                    m_agent->disconnect_printer();
+                    it->second->reset();
+                    it->second->connect();
+                }
+            }
         } else {
             if (m_agent) {
                 if (it->second->connection_type() != "lan" || it->second->connection_type().empty()) {
