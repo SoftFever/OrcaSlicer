@@ -14,10 +14,17 @@ SideButton::SideButton(wxWindow* parent, wxString text, wxString icon, long stly
     , state_handler(this)
 {
     radius = 12;
+#ifdef __APPLE__
+    extra_size = wxSize(38 + FromDIP(20), 10);
+    text_margin = 15 + FromDIP(20);
+#else
     extra_size = wxSize(38, 10);
+    text_margin = 15;
+#endif
+    
     icon_offset = 0;
     text_orientation = HO_Left;
-    text_margin = 15;
+    
 
 
     border_color.append(0x6B6B6B, StateColor::Disabled);

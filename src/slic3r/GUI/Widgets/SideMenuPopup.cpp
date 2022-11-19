@@ -50,6 +50,11 @@ void SidePopup::Popup(wxWindow* focus)
     }
     if (focus) {
         wxPoint pos = focus->ClientToScreen(wxPoint(0, -6));
+
+#ifdef __APPLE__
+         pos.x = pos.x - FromDIP(20);
+#endif // __APPLE__
+       
         if (pos.x + max_width > screenwidth)
             Position({pos.x - (pos.x + max_width - screenwidth),pos.y}, {0, focus->GetSize().y + 12});
         else
