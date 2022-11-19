@@ -91,6 +91,10 @@ public:
     bool is_current_position_clear() const { return m_is_current_pos_clear; };
     //BBS:
     static const bool full_gcode_comment;
+    
+    //SoftFever
+    void set_is_bbl_machine(bool bval) {m_is_bbl_printers = bval;}
+    const bool is_bbl_printers() const {return m_is_bbl_printers;}
 
 private:
 	// Extruders are sorted by their ID, so that binary search is possible.
@@ -129,7 +133,10 @@ private:
 
     //Radian threshold of slope for lazy lift and spiral lift;
     static const double slope_threshold;
-
+    
+    //SoftFever
+    bool            m_is_bbl_printers = false;
+    
     std::string _travel_to_z(double z, const std::string &comment);
     std::string _spiral_travel_to_z(double z, const Vec2d &ij_offset, const std::string &comment);
     std::string _retract(double length, double restart_extra, const std::string &comment);
