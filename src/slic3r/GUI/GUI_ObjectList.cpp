@@ -354,6 +354,9 @@ void ObjectList::create_objects_ctrl()
     bmp_choice_renderer->set_default_extruder_idx([this]() {
         return m_objects_model->GetDefaultExtruderIdx(GetSelection());
     });
+    bmp_choice_renderer->set_has_default_extruder([this]() {
+        return m_objects_model->GetVolumeType(GetSelection()) == ModelVolumeType::PARAMETER_MODIFIER;
+    });
     AppendColumn(new wxDataViewColumn(_L("Fila."), bmp_choice_renderer,
         colFilament, m_columns_width[colFilament] * em, wxALIGN_CENTER_HORIZONTAL, 0));
 
@@ -1367,7 +1370,7 @@ void ObjectList::key_event(wxKeyEvent& event)
     //else if (event.GetUnicodeKey() == 'p')
     //    toggle_printable_state();
     else if (filaments_count() > 1) {
-        std::vector<wxChar> numbers = { '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+        std::vector<wxChar> numbers = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
         wxChar key_char = event.GetUnicodeKey();
         if (std::find(numbers.begin(), numbers.end(), key_char) != numbers.end()) {
             long extruder_number;
@@ -1846,7 +1849,7 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
         // set a default extruder value, since user can't add it manually
         // BBS
         int extruder_id = 0;
-        if (model_object.config.has("extruder"))
+        if (new_volume->type() == ModelVolumeType::MODEL_PART && model_object.config.has("extruder"))
             extruder_id = model_object.config.opt_int("extruder");
         new_volume->config.set_key_value("extruder", new ConfigOptionInt(extruder_id));
         // update source data
@@ -1949,10 +1952,11 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const Mode
 
     const wxString name = _L("Generic") + "-" + _(type_name);
     new_volume->name = into_u8(name);
+
     // set a default extruder value, since user can't add it manually
     // BBS
     int extruder_id = 0;
-    if (model_object.config.has("extruder"))
+    if (new_volume->type() == ModelVolumeType::MODEL_PART && model_object.config.has("extruder"))
         extruder_id = model_object.config.opt_int("extruder");
     new_volume->config.set_key_value("extruder", new ConfigOptionInt(extruder_id));
     new_volume->source.is_from_builtin_objects = true;
@@ -4844,11 +4848,11 @@ void ObjectList::set_extruder_for_selected_items(const int extruder)
         else
             config.set_key_value("extruder", new ConfigOptionInt(extruder));
 
-        // for object, clear all its volume's extruder config
+        // for object, clear all its part volume's extruder config
         if (type & itObject) {
             ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
             for (ModelVolume* mv : node->m_model_object->volumes) {
-                if (mv->config.has("extruder"))
+                if (mv->type() == ModelVolumeType::MODEL_PART && mv->config.has("extruder"))
                     mv->config.erase("extruder");
             }
         }

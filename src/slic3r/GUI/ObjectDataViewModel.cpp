@@ -349,6 +349,11 @@ void ObjectDataViewModelNode::UpdateExtruderAndColorIcon(wxString extruder /*= "
         else if (m_type & itVolume && m_volume_type == ModelVolumeType::MODEL_PART) {
             extruder_idx = atoi(m_parent->GetExtruder().c_str());
         }
+        // BBS
+        else if (m_type & itVolume && m_volume_type == ModelVolumeType::PARAMETER_MODIFIER) {
+            m_extruder_bmp = *get_default_extruder_color_icon();
+            return;
+        }
         else {
             m_extruder_bmp = wxNullBitmap;
             return;
@@ -546,10 +551,20 @@ wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent
         if (insert_position >= 0) insert_position++;
 	}
 
-    wxString extruder_str = extruder == 0 ? _(L("default")) : wxString::Format("%d", extruder);
+    // BBS
+    wxString extruder_str;
+    if (extruder == 0) {
+        if (volume_type == ModelVolumeType::PARAMETER_MODIFIER)
+            extruder_str = _L("default");
+        else
+            extruder_str = root->m_extruder;
+    }
+    else {
+        extruder_str = wxString::Format("%d", extruder);
+    }
 
     const auto node = new ObjectDataViewModelNode(root, name, volume_type, GetVolumeIcon(volume_type, warning_icon_name),
-        extruder == 0 ? root->m_extruder : extruder_str, root->m_volumes_cnt, warning_icon_name);
+        extruder_str, root->m_volumes_cnt, warning_icon_name);
     insert_position < 0 ? root->Append(node) : root->Insert(node, insert_position);
 
     // if part with errors is added, but object wasn't marked, then mark it
@@ -1378,7 +1393,7 @@ void ObjectDataViewModel::UpdateVolumesExtruderBitmap(wxDataViewItem obj_item, b
         return;
     ObjectDataViewModelNode* obj_node = static_cast<ObjectDataViewModelNode*>(obj_item.GetID());
     for (auto child : obj_node->GetChildren())
-        if (child->GetVolumeType() == ModelVolumeType::MODEL_PART || child->GetVolumeType() == ModelVolumeType::PARAMETER_MODIFIER)
+        if (child->GetVolumeType() == ModelVolumeType::MODEL_PART)
             child->UpdateExtruderAndColorIcon(use_obj_extruder ? obj_node->GetExtruder() : "");
 }
 

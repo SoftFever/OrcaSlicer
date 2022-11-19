@@ -1436,22 +1436,34 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
     int initial_extruder = -1; // negative value for multiple object/part selection
     if (sels.Count() == 1) {
         const ModelConfig& config = obj_list()->get_item_config(sels[0]);
-        // BBS: set default extruder to 1
-        initial_extruder = config.has("extruder") ? config.extruder() : 1;
+        // BBS
+        const auto sel_vol = obj_list()->get_selected_model_volume();
+        if (sel_vol && sel_vol->type() == ModelVolumeType::PARAMETER_MODIFIER)
+            initial_extruder = config.has("extruder") ? config.extruder() : 0;
+        else
+            initial_extruder = config.has("extruder") ? config.extruder() : 1;
     }
 
-    for (int i = 1; i <= filaments_cnt; i++)
+    // BBS
+    bool has_modifier = false;
+    for (auto sel : sels) {
+        if (obj_list()->GetModel()->GetVolumeType(sel) == ModelVolumeType::PARAMETER_MODIFIER) {
+            has_modifier = true;
+            break;
+        }
+    }
+
+    for (int i = has_modifier ? 0 : 1; i <= filaments_cnt; i++)
     {
         // BBS
         //bool is_active_extruder = i == initial_extruder;
         bool is_active_extruder = false;
-        int icon_idx = i == 0 ? 0 : i - 1;
 
-        const wxString& item_name = wxString::Format(_L("Filament %d"), i) +
+        const wxString& item_name = (i == 0 ? _L("Default") : wxString::Format(_L("Filament %d"), i)) +
             (is_active_extruder ? " (" + _L("current") + ")" : "");
 
         append_menu_item(extruder_selection_menu, wxID_ANY, item_name, "",
-            [i](wxCommandEvent&) { obj_list()->set_extruder_for_selected_items(i); }, *icons[icon_idx], menu,
+            [i](wxCommandEvent&) { obj_list()->set_extruder_for_selected_items(i); }, i == 0 ? wxNullBitmap : *icons[i - 1], menu,
             [is_active_extruder]() { return !is_active_extruder; }, m_parent);
     }
     menu->Append(wxID_ANY, name, extruder_selection_menu, _L("Change Filament"));
