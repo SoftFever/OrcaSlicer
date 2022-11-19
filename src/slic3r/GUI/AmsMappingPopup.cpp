@@ -163,6 +163,19 @@ void MaterialItem::doRender(wxDC &dc)
     dc.DrawRectangle(FromDIP(1), FromDIP(18), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(8));
 
     ////border
+#if __APPLE__
+    if (m_material_coloul == *wxWHITE || m_ams_coloul == *wxWHITE) {
+        dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawRoundedRectangle(1, 1, MATERIAL_ITEM_SIZE.x - 1, MATERIAL_ITEM_SIZE.y - 1, 5);
+    }
+
+    if (m_selected) {
+        dc.SetPen(wxColour(0x00, 0xAE, 0x42));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawRoundedRectangle(1, 1, MATERIAL_ITEM_SIZE.x - 1, MATERIAL_ITEM_SIZE.y - 1, 5);
+    }
+#else
     if (m_material_coloul == *wxWHITE || m_ams_coloul == *wxWHITE) {
         dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
@@ -174,6 +187,9 @@ void MaterialItem::doRender(wxDC &dc)
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y, 5);
     }
+#endif
+
+    
 }
 
  AmsMapingPopup::AmsMapingPopup(wxWindow *parent) 
@@ -555,7 +571,13 @@ void MappingItem::doRender(wxDC &dc)
     dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y,5);
     if (m_coloul == *wxWHITE) {
         dc.SetPen(wxPen(wxColour(0xAC, 0xAC, 0xAC),1));
-        dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 5);
+#ifdef __APPLE__
+    dc.DrawRoundedRectangle(1, 1, GetSize().x - 1, GetSize().y - 1, 5);
+#else
+    dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 5);
+#endif // __APPLE__
+
+        
     } 
 }
 
