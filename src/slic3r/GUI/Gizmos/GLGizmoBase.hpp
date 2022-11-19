@@ -155,14 +155,14 @@ public:
     virtual bool wants_enter_leave_snapshots() const { return false; }
     virtual std::string get_gizmo_entering_text() const { assert(false); return ""; }
     virtual std::string get_gizmo_leaving_text() const { assert(false); return ""; }
-    virtual std::string get_action_snapshot_name() { return _u8L("Gizmo action"); }
+    virtual std::string get_action_snapshot_name() { return "Gizmo action"; }
     void set_common_data_pool(CommonGizmosDataPool* ptr) { m_c = ptr; }
 
     unsigned int get_sprite_id() const { return m_sprite_id; }
 
     int get_hover_id() const { return m_hover_id; }
     void set_hover_id(int id);
-    
+
     void set_highlight_color(const std::array<float, 4>& color);
 
     void enable_grabber(unsigned int id);
