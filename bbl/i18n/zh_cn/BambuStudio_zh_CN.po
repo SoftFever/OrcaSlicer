@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-17 09:45+0800\n"
+"POT-Creation-Date: 2022-11-19 12:59+0800\n"
 "PO-Revision-Date: 2022-11-01 11:29+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -861,6 +861,9 @@ msgstr "简化模型"
 msgid "Center"
 msgstr "居中"
 
+msgid "Edit Object Process"
+msgstr ""
+
 msgid "Edit in Parameter Table"
 msgstr "在参数表格中编辑"
 
@@ -944,6 +947,12 @@ msgstr "通用"
 
 msgid "Add Modifier"
 msgstr "添加修改器"
+
+msgid "Switch to per-object setting mode to edit modifier settings."
+msgstr "切换到对象模式以编辑修改器的设置。"
+
+msgid "Switch to per-object setting mode to edit object process."
+msgstr ""
 
 msgid "Deleting the last solid part is not allowed."
 msgstr "不允许删除对象的最后一个实体零件。"
@@ -1476,6 +1485,19 @@ msgstr "不启用AMS"
 
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "使用机箱背后挂载的材料打印"
+
+msgid ""
+"Config which AMS slot should be used for a filament used in the print job"
+msgstr ""
+
+msgid "Filament used in this print job"
+msgstr ""
+
+msgid "AMS slot used for this filament"
+msgstr ""
+
+msgid "Click to select AMS slot manually"
+msgstr ""
 
 msgid "AMS Settings"
 msgstr "AMS 设置"
@@ -3185,27 +3207,24 @@ msgid "Bottom"
 msgstr "底部"
 
 msgid "Enable AI monitoring of printing"
-msgstr ""
+msgstr "启用AI监控进行打印"
 
 msgid "Sensitivity of pausing is"
-msgstr ""
+msgstr "暂停的灵敏度为"
 
 msgid "Enable detection of build plate position"
-msgstr ""
+msgstr "启用构建板位置检测"
 
 msgid ""
 "The localization tag of build plate is detected, and printing is paused if "
 "the tag is not in predefined range."
-msgstr ""
+msgstr "检测到构建板的定位标记，如果 标记不在预定义范围内。"
 
 msgid "First Layer Inspection"
 msgstr "首层扫描"
 
 msgid "Auto-recovery from step loss"
-msgstr ""
-
-msgid "Switch to per-object setting mode to edit modifier settings."
-msgstr "切换到对象模式以编辑修改器的设置。"
+msgstr "自动恢复步长损失"
 
 msgid "Global"
 msgstr "全局"
@@ -3299,7 +3318,9 @@ msgid ""
 "There are some unknown filaments mapped to generic preset. Please update "
 "Bambu Studio or restart Bambu Studio to check if there is an update to "
 "system presets."
-msgstr "有一些未知型号的材料，映射到通用预设。请更新或者重启 Bambu Studio，以检查系统预设有没有更新。"
+msgstr ""
+"有一些未知型号的材料，映射到通用预设。请更新或者重启 Bambu Studio，以检查系统"
+"预设有没有更新。"
 
 msgid "Untitled"
 msgstr "未命名"
@@ -3620,6 +3641,10 @@ msgstr "体积： %1% 毫米³\n"
 #, boost-format
 msgid "Triangles: %1%\n"
 msgstr "三角形：%1%\n"
+
+#, c-format, boost-format
+msgid "Plate %d: %s does not support filament %s (%s).\n"
+msgstr ""
 
 msgid "Switching the language requires application restart.\n"
 msgstr "切换语言要求重启应用程序。\n"
@@ -4080,6 +4105,14 @@ msgid ""
 msgstr ""
 "用于生成G-code的打印机类型与当前选定的物理打印机类型不同，建议选择相同的打印"
 "机类型重新切片。\n"
+
+msgid ""
+"There are some unknown filaments in the AMS mappings. Please check whether "
+"they are the required filaments. If they are okay, press \"Confirm\" to "
+"start printing."
+msgstr ""
+"AMS映射中存在一些未知的耗材。请检查它们是否符合预期。如果符合，按“确定”以开始"
+"打印任务。"
 
 msgid "Preparing print job"
 msgstr "正在准备打印任务"
@@ -5254,8 +5287,8 @@ msgid "Layer height cannot exceed nozzle diameter"
 msgstr "层高不能超过喷嘴直径"
 
 #, c-format, boost-format
-msgid "Plate %d: %s does not support filament %s.\n"
-msgstr "盘%d：%s不支持耗材丝%s\n"
+msgid "Plate %d: %s does not support filament %s\n"
+msgstr ""
 
 msgid "Generating skirt & brim"
 msgstr "正在生成skirt和brim"
@@ -5693,6 +5726,18 @@ msgid ""
 "Add solid infill near sloping surfaces to guarantee the vertical shell "
 "thickness (top+bottom solid layers)"
 msgstr "在斜面表面附近添加实心填充，以保证垂直外壳厚度（顶部+底部实心层）"
+
+msgid "Internal bridge support thickness"
+msgstr ""
+
+msgid ""
+"When sparse infill density is low, the internal solid infill or internal "
+"bridge may have no archor at the end of line. This cause falling and bad "
+"quality when printing internal solid infill. When enable this feature, loop "
+"paths will be added to the sparse fill of the lower layers for specific "
+"thickness, so that better archor can be provided for internal bridge. 0 "
+"means disable this feature"
+msgstr ""
 
 msgid "Top surface pattern"
 msgstr "顶面图案"
@@ -7385,6 +7430,10 @@ msgid ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 msgstr ""
+
+#, c-format, boost-format
+#~ msgid "Plate %d: %s does not support filament %s.\n"
+#~ msgstr "盘%d：%s不支持耗材丝%s\n"
 
 #~ msgid "Not supported."
 #~ msgstr "不支持"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-17 09:45+0800\n"
+"POT-Creation-Date: 2022-11-19 12:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -877,6 +877,9 @@ msgstr ""
 msgid "Center"
 msgstr ""
 
+msgid "Edit Object Process"
+msgstr ""
+
 msgid "Edit in Parameter Table"
 msgstr ""
 
@@ -969,6 +972,14 @@ msgstr "Algemeen"
 
 msgid "Add Modifier"
 msgstr "Aanpasser toevoegen"
+
+msgid "Switch to per-object setting mode to edit modifier settings."
+msgstr ""
+"Schakel over naar instellingsmodus per object om instellingen van de "
+"aanpassing te bewerken."
+
+msgid "Switch to per-object setting mode to edit object process."
+msgstr ""
 
 msgid "Deleting the last solid part is not allowed."
 msgstr "Het is niet toegestaand om het laaste vaste deel te verwijderen."
@@ -1531,6 +1542,19 @@ msgid "Disable AMS"
 msgstr ""
 
 msgid "Print with the filament mounted on the back of chassis"
+msgstr ""
+
+msgid ""
+"Config which AMS slot should be used for a filament used in the print job"
+msgstr ""
+
+msgid "Filament used in this print job"
+msgstr ""
+
+msgid "AMS slot used for this filament"
+msgstr ""
+
+msgid "Click to select AMS slot manually"
 msgstr ""
 
 msgid "AMS Settings"
@@ -3289,11 +3313,6 @@ msgstr ""
 msgid "Auto-recovery from step loss"
 msgstr ""
 
-msgid "Switch to per-object setting mode to edit modifier settings."
-msgstr ""
-"Schakel over naar instellingsmodus per object om instellingen van de "
-"aanpassing te bewerken."
-
 msgid "Global"
 msgstr "Globale"
 
@@ -3712,6 +3731,10 @@ msgstr "Volume: %1% mm³\n"
 #, boost-format
 msgid "Triangles: %1%\n"
 msgstr "Driehoeken: %1%\n"
+
+#, c-format, boost-format
+msgid "Plate %d: %s does not support filament %s (%s).\n"
+msgstr ""
 
 msgid "Switching the language requires application restart.\n"
 msgstr ""
@@ -4187,6 +4210,12 @@ msgid ""
 "The printer type used to generate G-code is not the same type as the "
 "currently selected physical printer. It is recommend to re-slice by "
 "selecting the same printer type.\n"
+msgstr ""
+
+msgid ""
+"There are some unknown filaments in the AMS mappings. Please check whether "
+"they are the required filaments. If they are okay, press \"Confirm\" to "
+"start printing."
 msgstr ""
 
 msgid "Preparing print job"
@@ -5428,8 +5457,8 @@ msgid "Layer height cannot exceed nozzle diameter"
 msgstr "De laaghoogte kan niet groter zijn dan de diameter van de nozzle"
 
 #, c-format, boost-format
-msgid "Plate %d: %s does not support filament %s.\n"
-msgstr "Printbed %d: %s onderstand filament %s niet.\n"
+msgid "Plate %d: %s does not support filament %s\n"
+msgstr ""
 
 msgid "Generating skirt & brim"
 msgstr "Skirt en brim worden gegenereerd"
@@ -5907,6 +5936,18 @@ msgstr ""
 msgid ""
 "Add solid infill near sloping surfaces to guarantee the vertical shell "
 "thickness (top+bottom solid layers)"
+msgstr ""
+
+msgid "Internal bridge support thickness"
+msgstr ""
+
+msgid ""
+"When sparse infill density is low, the internal solid infill or internal "
+"bridge may have no archor at the end of line. This cause falling and bad "
+"quality when printing internal solid infill. When enable this feature, loop "
+"paths will be added to the sparse fill of the lower layers for specific "
+"thickness, so that better archor can be provided for internal bridge. 0 "
+"means disable this feature"
 msgstr ""
 
 msgid "Top surface pattern"
@@ -7686,6 +7727,10 @@ msgid ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 msgstr ""
+
+#, c-format, boost-format
+#~ msgid "Plate %d: %s does not support filament %s.\n"
+#~ msgstr "Printbed %d: %s onderstand filament %s niet.\n"
 
 #~ msgid "Filament N XX"
 #~ msgstr "Filament N XX"
