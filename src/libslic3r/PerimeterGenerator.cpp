@@ -673,26 +673,30 @@ void PerimeterGenerator::process()
             // TODO: add test for perimeter order
             bool is_outer_wall_first =
                 this->print_config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
-                this->print_config->wall_infill_order == WallInfillOrder::InfillOuterInner;
+                this->print_config->wall_infill_order == WallInfillOrder::InfillOuterInner || 
+                this->print_config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill;
             if (is_outer_wall_first ||
                 //BBS: always print outer wall first when there indeed has brim.
                 (this->layer_id == 0 &&
                     this->object_config->brim_type == BrimType::btOuterOnly &&
                     this->object_config->brim_width.value > 0))
             {
-                //entities.reverse();
-                if (entities.entities.size() > 1) {
-                    std::vector<int> extPs;
-                    for (int i = 0; i < entities.entities.size(); ++i) {
-                        if (entities.entities[i]->role() == erExternalPerimeter)
-                            extPs.push_back(i);
-                    }
-                    for (int i = 0; i < extPs.size(); ++i) {
-                        if (extPs[i] == 0 || extPs[i] - 1 == extPs[i - 1])
-                            continue;
-                        std::swap(entities.entities[extPs[i]], entities.entities[extPs[i] - 1]);
+                if (this->print_config->wall_infill_order == WallInfillOrder::InnerOuterInnerInfill) {
+                    if (entities.entities.size() > 1) {
+                        std::vector<int> extPs;
+                        for (int i = 0; i < entities.entities.size(); ++i) {
+                            if (entities.entities[i]->role() == erExternalPerimeter)
+                                extPs.push_back(i);
+                        }
+                        for (int i = 0; i < extPs.size(); ++i) {
+                            if (extPs[i] == 0 || (i > 0 && extPs[i] - 1 == extPs[i - 1]))
+                                continue;
+                            std::swap(entities.entities[extPs[i]], entities.entities[extPs[i] - 1]);
+                        }
                     }
                 }
+                else
+                    entities.reverse();
             }
             // append perimeters for this slice as a collection
             if (! entities.empty())
