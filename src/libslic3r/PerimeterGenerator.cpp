@@ -612,18 +612,13 @@ void PerimeterGenerator::process()
             }
 
             // nest loops: holes first
-            int idx;
-            for (int d = -1; d < loop_number; ++ d) {
-                idx = d;
-                if (idx == -1)
-                    idx = loop_number;
-
-                PerimeterGeneratorLoops &holes_d = holes[idx];
+            for (int d = 0; d <= loop_number; ++ d) {
+                PerimeterGeneratorLoops &holes_d = holes[d];
                 // loop through all holes having depth == d
                 for (int i = 0; i < (int)holes_d.size(); ++ i) {
                     const PerimeterGeneratorLoop &loop = holes_d[i];
                     // find the hole loop that contains this one, if any
-                    for (int t = idx + 1; t <= loop_number; ++ t) {
+                    for (int t = d + 1; t <= loop_number; ++ t) {
                         for (int j = 0; j < (int)holes[t].size(); ++ j) {
                             PerimeterGeneratorLoop &candidate_parent = holes[t][j];
                             if (candidate_parent.polygon.contains(loop.polygon.first_point())) {
@@ -650,16 +645,13 @@ void PerimeterGenerator::process()
                 }
             }
             // nest contour loops
-            for (int d = loop_number-1; d >= 0; -- d) {
-                idx = d;
-                if (idx == 0)
-                    idx = loop_number;
-                PerimeterGeneratorLoops &contours_d = contours[idx];
+            for (int d = loop_number; d >= 1; -- d) {
+                PerimeterGeneratorLoops &contours_d = contours[d];
                 // loop through all contours having depth == d
                 for (int i = 0; i < (int)contours_d.size(); ++ i) {
                     const PerimeterGeneratorLoop &loop = contours_d[i];
                     // find the contour loop that contains it
-                    for (int t = idx - 1; t >= 0; -- t) {
+                    for (int t = d - 1; t >= 0; -- t) {
                         for (size_t j = 0; j < contours[t].size(); ++ j) {
                             PerimeterGeneratorLoop &candidate_parent = contours[t][j];
                             if (candidate_parent.polygon.contains(loop.polygon.first_point())) {
@@ -675,18 +667,33 @@ void PerimeterGenerator::process()
             }
             // at this point, all loops should be in contours[0]
             ExtrusionEntityCollection entities = traverse_loops(*this, contours.front(), thin_walls);
+
             // if brim will be printed, reverse the order of perimeters so that
             // we continue inwards after having finished the brim
             // TODO: add test for perimeter order
-            bool is_outer_wall_first = 
+            bool is_outer_wall_first =
                 this->print_config->wall_infill_order == WallInfillOrder::OuterInnerInfill ||
                 this->print_config->wall_infill_order == WallInfillOrder::InfillOuterInner;
             if (is_outer_wall_first ||
                 //BBS: always print outer wall first when there indeed has brim.
                 (this->layer_id == 0 &&
-                 this->object_config->brim_type == BrimType::btOuterOnly &&
-                 this->object_config->brim_width.value > 0))
-                entities.reverse();
+                    this->object_config->brim_type == BrimType::btOuterOnly &&
+                    this->object_config->brim_width.value > 0))
+            {
+                //entities.reverse();
+                if (entities.entities.size() > 1) {
+                    std::vector<int> extPs;
+                    for (int i = 0; i < entities.entities.size(); ++i) {
+                        if (entities.entities[i]->role() == erExternalPerimeter)
+                            extPs.push_back(i);
+                    }
+                    for (int i = 0; i < extPs.size(); ++i) {
+                        if (extPs[i] == 0 || extPs[i] - 1 == extPs[i - 1])
+                            continue;
+                        std::swap(entities.entities[extPs[i]], entities.entities[extPs[i] - 1]);
+                    }
+                }
+            }
             // append perimeters for this slice as a collection
             if (! entities.empty())
                 this->loops->append(entities);
