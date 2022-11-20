@@ -619,6 +619,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                support_on_build_plate_only))
     ((ConfigOptionBool,                support_critical_regions_only))
     ((ConfigOptionFloat,               support_top_z_distance))
+    ((ConfigOptionFloat,               support_bottom_z_distance))
     ((ConfigOptionInt,                 enforce_support_layers))
     ((ConfigOptionInt,                 support_filament))
     ((ConfigOptionFloat,               support_line_width))

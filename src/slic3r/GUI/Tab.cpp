@@ -1890,6 +1890,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("tree_support_wall_count");
         optgroup->append_single_option_line("tree_support_with_infill");
         optgroup->append_single_option_line("support_top_z_distance", "support#top-z-distance");
+        optgroup->append_single_option_line("support_bottom_z_distance", "support#bottom-z-distance");
         optgroup->append_single_option_line("support_base_pattern", "support#base-pattern");
         optgroup->append_single_option_line("support_base_pattern_spacing", "support#base-pattern");
         //optgroup->append_single_option_line("support_angle");

@@ -2150,9 +2150,12 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 {
                     if (layer_nr >= bottom_interface_layers + bottom_gap_layers)
                     {
-                        const Layer* below_layer = m_object->get_layer(layer_nr - bottom_interface_layers);
-                        ExPolygons bottom_interface = std::move(intersection_ex(base_areas, below_layer->lslices));
-                        floor_areas.insert(floor_areas.end(), bottom_interface.begin(), bottom_interface.end());
+                        for (size_t i = 0; i <= bottom_gap_layers; i++)
+                        {
+                            const Layer* below_layer = m_object->get_layer(layer_nr - bottom_interface_layers - i);
+                            ExPolygons bottom_interface = std::move(intersection_ex(base_areas, below_layer->lslices));
+                            floor_areas.insert(floor_areas.end(), bottom_interface.begin(), bottom_interface.end());
+                        }
                     }
                     if (floor_areas.empty() == false) {
                         floor_areas = std::move(diff_ex(floor_areas, avoid_region_interface));

@@ -2430,6 +2430,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.2));
 
+    // BBS:MusangKing
+    def = this->add("support_bottom_z_distance", coFloat);
+    def->label = L("Bottom Z distance");
+    def->category = L("Support");
+    def->tooltip = L("The z gap between the bottom support interface and object");
+    def->sidetext = L("mm");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.2));
+
     def = this->add("enforce_support_layers", coInt);
     //def->label = L("Enforce support for the first");
     def->category = L("Support");
@@ -3733,7 +3742,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         , "support_sharp_tails","remove_small_overhangs", "support_with_sheath",
         "tree_support_branch_diameter_angle", "tree_support_collision_resolution",
         "small_perimeter_speed", "max_volumetric_speed", "max_print_speed",
-        "support_bottom_z_distance", "support_closing_radius",
+        "support_closing_radius",
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height"
