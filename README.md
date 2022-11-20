@@ -7,6 +7,25 @@ You can download it here: https://github.com/SoftFever/BambuStudio-SoftFever/rel
 
 ## BambuStudio SoftFever change notes:
 
+### [V1.3.3 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.3.3):
+1. Improve top surface quality. 
+	Fix a bug that internal solid infills didn't use monotonic when top surface is using monotonic lines
+2. New feature: filter out tiny gaps.
+	Note: for aesthetic considerations, this setting won't affect top/bottom layers. In other words, gap fills that can be seen from outside won't be filtered out
+3. PA(pressure advance) now support multi-color printing. A new PA value from the selected filament profile will be applied whenever there is 
+a filament/extruder change action. This change only affects multi-color printing.
+5. Users can now set float values of layer time in Filament->Cooling tab. 
+6. Allow to set target bed temp to 0
+7. Fix a bug that layer number is not displayed correctly in klipper UIs
+8. Force using linear PA model when manual PA override is enabled for Bambu machines
+9. Remember the last used filament
+10. Skip checking BL network plugin for third-party printers.
+### [V1.3.2 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.3.2-sf):
+1. Support device control view for 3rd party printers
+2. Port `Small perimeters` feature from PrusaSlicer. I also add an extra option to adjust the small perimeter threshold
+You might want to reduce speed for small perimeter parts to prevent failures like bellow:
+3. Add fan speed preview mode
+4. Fix an issue that print time estimation is inaccurate when `Klipper` g-code style is used.
 ### [V1.3.1 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.3.1-sf):
 1. Support change bed size and nozzle diameter
 2. Allow users to specify the bridge infill direction
@@ -56,11 +75,14 @@ You can download it here: https://github.com/SoftFever/BambuStudio-SoftFever/rel
 Demo video: https://youtu.be/vSNE9iGj2II  
  
 ## NOTE: 
-## - If you have troubles to run the build, you might need to install following runtimes:  
+## 1. For Apple M1 users, please take a look at this [article](https://www.howtogeek.com/803598/app-is-damaged-and-cant-be-opened/ ) about how to run unsigned applications on your machine. Or better, you can build it from the source codes if you want:) 
+  Apple requires a subscription(costs 99$ yearly) for developers to sign their app. I don't do a lot of dev work on Mac, and this is a nonprofit open-source project, so I decided not to pay the money ;)   
+
+## 2. If you have troubles to run the build, you might need to install following runtimes:  
 - [MicrosoftEdgeWebView2RuntimeInstallerX64](https://github.com/SoftFever/BambuStudio-SoftFever/releases/download/v1.0.10-sf2/MicrosoftEdgeWebView2RuntimeInstallerX64.exe)  
 - [vcredist2019_x64](https://github.com/SoftFever/BambuStudio-SoftFever/releases/download/v1.0.10-sf2/vcredist2019_x64.exe)  
 
-## - BambuStudio use G2/G3 commands by default. You need to turn on ARC support in your printer's firmware use with this slicer.
+## 3. BambuStudio use G2/G3 commands by default. You need to turn on ARC support in your printer's firmware use with this slicer.
 - For Voron and any Klipper based printers:  
 You can enable gcode_arcs(G2/G3) support by adding following section into you printer.cfg file:  
 ```

@@ -1306,6 +1306,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     m_last_mm3_per_mm = 0.;
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+    
+    m_writer.set_is_bbl_machine(is_bbl_printers);
 
     // How many times will be change_layer() called?
     // change_layer() in turn increments the progress bar status.
@@ -3302,7 +3304,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     if (!m_config.spiral_mode && description == "perimeter") {
         assert(m_layer != nullptr);
         bool is_outer_wall_first = m_config.wall_infill_order == WallInfillOrder::OuterInnerInfill
-                                || m_config.wall_infill_order == WallInfillOrder::InfillOuterInner;
+                                || m_config.wall_infill_order == WallInfillOrder::InfillOuterInner
+                                || m_config.wall_infill_order == WallInfillOrder::InnerOuterInnerInfill;
         m_seam_placer.place_seam(m_layer, loop, is_outer_wall_first, this->last_pos());
     } else
         loop.split_at(last_pos, false);

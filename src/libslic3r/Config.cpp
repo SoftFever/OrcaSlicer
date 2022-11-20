@@ -1150,7 +1150,7 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
         bool end_found   = false;
         std::string line;
         while (std::getline(ifs, line))
-            if (line == "; CONFIG_BLOCK_START") {
+            if (line.rfind("; CONFIG_BLOCK_START",0)==0) {
                 begin_found = true;
                 break;
             }
@@ -1160,7 +1160,7 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
         }
         std::string key, value;
         while (std::getline(ifs, line)) {
-            if (line == "; CONFIG_BLOCK_END") {
+            if (line.rfind("; CONFIG_BLOCK_END",0)==0) {
                 end_found = true;
                 break;
             }
