@@ -885,6 +885,9 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 {
     PROFILE_CLEAR();
 
+    // BBS
+    m_curr_print = print;
+
     CNumericLocalesSetter locales_setter;
 
     // Does the file exist? If so, we hope that it is still valid.
@@ -3655,7 +3658,8 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     Polyline travel { this->last_pos(), point };
 
     // check whether a straight travel move would need retraction
-    bool needs_retraction             = this->needs_retraction(travel, role);
+    LiftType lift_type = LiftType::SpiralLift;
+    bool needs_retraction = this->needs_retraction(travel, role, lift_type);
     // check whether wipe could be disabled without causing visible stringing
     bool could_be_wipe_disabled       = false;
     // Save state of use_external_mp_once for the case that will be needed to call twice m_avoid_crossing_perimeters.travel_to.
@@ -3670,9 +3674,14 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
         && m_writer.is_current_position_clear()) {
         travel = m_avoid_crossing_perimeters.travel_to(*this, point, &could_be_wipe_disabled);
         // check again whether the new travel path still needs a retraction
-        needs_retraction = this->needs_retraction(travel, role);
+        needs_retraction = this->needs_retraction(travel, role, lift_type);
         //if (needs_retraction && m_layer_index > 1) exit(0);
     }
+
+    if (lift_type == LiftType::LazyLift)
+        printf("lazy lift\n");
+    else if (lift_type == LiftType::SpiralLift)
+        printf("spiral lift\n");
 
     // Re-allow reduce_crossing_wall for the next travel moves
     m_avoid_crossing_perimeters.reset_once_modifiers();
@@ -3684,7 +3693,7 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
             m_wipe.reset_path();
 
         Point last_post_before_retract = this->last_pos();
-        gcode += this->retract();
+        gcode += this->retract(false, false, lift_type);
         // When "Wipe while retracting" is enabled, then extruder moves to another position, and travel from this position can cross perimeters.
         // Because of it, it is necessary to call avoid crossing perimeters again with new starting point after calling retraction()
         // FIXME Lukas H.: Try to predict if this second calling of avoid crossing perimeters will be needed or not. It could save computations.
@@ -3719,35 +3728,100 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     return gcode;
 }
 
-bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
+bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftType& lift_type)
 {
     if (travel.length() < scale_(EXTRUDER_CONFIG(retraction_minimum_travel))) {
         // skip retraction if the move is shorter than the configured threshold
         return false;
     }
 
+    auto is_through_overhang = [this](const Polyline& travel) {
+        const float protect_z_scaled = scale_(0.4);
+        std::pair<float, float> z_range;
+        z_range.second = m_layer ? m_layer->print_z : 0.f;
+        z_range.first = std::max(0.f, z_range.second - protect_z_scaled);
+        for (auto object : m_curr_print->objects()) {
+            BoundingBox obj_bbox = object->bounding_box();
+            BoundingBox travel_bbox = get_extents(travel);
+            obj_bbox.offset(scale_(EPSILON));
+            if (!obj_bbox.overlap(travel_bbox))
+                continue;
+
+            for (auto layer : object->layers()) {
+                if (layer->print_z < z_range.first)
+                    continue;
+
+                if (layer->print_z > z_range.second + EPSILON)
+                    break;
+
+                for (ExPolygon& overhang : layer->loverhangs) {
+                    if (overhang.contains(travel))
+                        return true;
+                }
+            }
+        }
+
+        return false;
+    };
+
+    auto to_lift_type = [](ZHopType z_hop_type) {
+        if (z_hop_type == ZHopType::zhtNormal)
+            return LiftType::NormalLift;
+
+        if (z_hop_type == ZHopType::zhtSlope)
+            return LiftType::LazyLift;
+
+        if (z_hop_type == ZHopType::zhtSpiral)
+            return LiftType::SpiralLift;
+
+        // if no corresponding lift type, use normal lift
+        return LiftType::NormalLift;
+    };
+
+    float max_z_hop = 0.f;
+    for (int i = 0; i < m_config.z_hop.size(); i++)
+        max_z_hop = std::max(max_z_hop, (float)m_config.z_hop.get_at(i));
+    float travel_len_thresh = max_z_hop / tan(GCodeWriter::slope_threshold);
+    float accum_len = 0.f;
+    Polyline clipped_travel;
+    for (auto line : travel.lines()) {
+        if (accum_len + line.length() > travel_len_thresh + EPSILON) {
+            Point end_pnt = line.a + line.normal() * (travel_len_thresh - accum_len);
+            clipped_travel.append(Polyline(line.a, end_pnt));
+            break;
+        }
+        else {
+            clipped_travel.append(Polyline(line.a, line.b));
+            accum_len += line.length();
+        }
+    }
+
     //BBS: force to retract when leave from external perimeter for a long travel
     //Better way is judging whether the travel move direction is same with last extrusion move.
-    if (is_perimeter(m_last_processor_extrusion_role) && m_last_processor_extrusion_role != erPerimeter)
+    if (is_perimeter(m_last_processor_extrusion_role) && m_last_processor_extrusion_role != erPerimeter) {
+        if (m_config.z_hop_type == ZHopType::zhtAuto) {
+            lift_type = is_through_overhang(clipped_travel) ? LiftType::SpiralLift : LiftType::LazyLift;
+        }
+        else {
+            lift_type = to_lift_type(m_config.z_hop_type);
+        }
         return true;
+    }
 
     if (role == erSupportMaterial || role == erSupportTransition) {
         const SupportLayer* support_layer = dynamic_cast<const SupportLayer*>(m_layer);
-
         //FIXME support_layer->support_islands.contains should use some search structure!
         if (support_layer != NULL && support_layer->support_islands.contains(travel))
             // skip retraction if this is a travel move inside a support material island
             //FIXME not retracting over a long path may cause oozing, which in turn may result in missing material
             // at the end of the extrusion path!
             return false;
-
         //reduce the retractions in lightning infills for tree support
         if (support_layer != NULL && support_layer->support_type==stInnerTree)
             for (auto &area : support_layer->base_areas)
                 if (area.contains(travel))
                     return false;
     }
-
     //BBS: need retract when long moving to print perimeter to avoid dropping of material
     if (!is_perimeter(role) && m_config.reduce_infill_retraction && m_layer != nullptr &&
         m_config.sparse_infill_density.value > 0 && m_layer->any_internal_region_slice_contains(travel))
@@ -3757,10 +3831,16 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
         return false;
 
     // retract if reduce_infill_retraction is disabled or doesn't apply when role is perimeter
+    if (m_config.z_hop_type == ZHopType::zhtAuto) {
+        lift_type = is_through_overhang(clipped_travel) ? LiftType::SpiralLift : LiftType::LazyLift;
+    }
+    else {
+        lift_type = to_lift_type(m_config.z_hop_type);
+    }
     return true;
 }
 
-std::string GCode::retract(bool toolchange, bool is_last_retraction)
+std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType lift_type)
 {
     std::string gcode;
 
@@ -3784,7 +3864,7 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction)
     if (m_writer.extruder()->retraction_length() > 0) {
         // BBS: don't do lazy_lift when enable spiral vase
         size_t extruder_id = m_writer.extruder()->id();
-        gcode += m_writer.lift(!m_spiral_vase ?  LiftType::SpiralLift : LiftType::NormalLift);
+        gcode += m_writer.lift(!m_spiral_vase ? lift_type : LiftType::NormalLift);
     }
 
     return gcode;

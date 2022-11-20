@@ -292,6 +292,14 @@ static t_config_enum_values s_keys_map_PerimeterGeneratorType{
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PerimeterGeneratorType)
 
+static const t_config_enum_values s_keys_map_ZHopType = {
+    { "Auto Lift",          zhtAuto },
+    { "Normal Lift",        zhtNormal },
+    { "Slope Lift",         zhtSlope },
+    { "Spiral Lift",        zhtSpiral }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ZHopType)
+
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
     for (std::pair<const t_config_option_key, ConfigOptionDef> &kvp : options)
@@ -2126,6 +2134,21 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloats { 0.4 });
+
+    def = this->add("z_hop_type", coEnum);
+    def->label = L("Z Hop Type");
+    def->tooltip = L("");
+    def->enum_keys_map = &ConfigOptionEnum<ZHopType>::get_enum_values();
+    def->enum_values.push_back("auto");
+    def->enum_values.push_back("normal");
+    def->enum_values.push_back("slope");
+    def->enum_values.push_back("spiral");
+    def->enum_labels.push_back(L("Auto"));
+    def->enum_labels.push_back(L("Normal"));
+    def->enum_labels.push_back(L("Slope"));
+    def->enum_labels.push_back(L("Spiral"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum{ ZHopType::zhtSpiral });
 
     def = this->add("retract_restart_extra", coFloats);
     //def->label = L("Extra length on restart");

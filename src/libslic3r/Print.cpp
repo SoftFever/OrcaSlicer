@@ -224,6 +224,9 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             osteps.emplace_back(posSimplifyPath);
             osteps.emplace_back(posSimplifySupportPath);
             steps.emplace_back(psSkirtBrim);
+        }
+        else if (opt_key == "z_hop_type") {
+            osteps.emplace_back(posDetectOverhangsForLift);
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
             //FIXME invalidate all steps of all objects as well?
@@ -1628,6 +1631,17 @@ void Print::process(bool use_cache)
                 obj->set_done(posSimplifyPath);
             if (obj->set_started(posSimplifySupportPath))
                 obj->set_done(posSimplifySupportPath);
+        }
+    }
+
+    // BBS
+    for (PrintObject* obj : m_objects) {
+        if (need_slicing_objects.count(obj) != 0) {
+            obj->detect_overhangs_for_lift();
+        }
+        else {
+            if (obj->set_started(posDetectOverhangsForLift))
+                obj->set_done(posDetectOverhangsForLift);
         }
     }
 

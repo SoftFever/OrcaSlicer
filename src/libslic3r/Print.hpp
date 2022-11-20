@@ -84,7 +84,10 @@ enum PrintStep {
 
 enum PrintObjectStep {
     posSlice, posPerimeters, posPrepareInfill,
-    posInfill, posIroning, posSupportMaterial, posSimplifyPath, posSimplifySupportPath, posCount,
+    posInfill, posIroning, posSupportMaterial, posSimplifyPath, posSimplifySupportPath,
+    // BBS
+    posDetectOverhangsForLift,
+    posCount,
 };
 
 // A PrintRegion object represents a group of volumes to print
@@ -445,6 +448,10 @@ private:
     void slice_volumes();
     //BBS
     ExPolygons _shrink_contour_holes(double contour_delta, double hole_delta, const ExPolygons& polys) const;
+    // BBS
+    void detect_overhangs_for_lift();
+    void clear_overhangs_for_lift();
+
     // Has any support (not counting the raft).
     void detect_surfaces_type();
     void process_external_surfaces();

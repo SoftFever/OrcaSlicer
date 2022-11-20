@@ -409,6 +409,48 @@ void PrintObject::ironing()
     }
 }
 
+// BBS
+void PrintObject::clear_overhangs_for_lift()
+{
+    if (!m_shared_object) {
+        for (Layer* l : m_layers)
+            l->loverhangs.clear();
+    }
+}
+
+static const float g_min_overhang_percent_for_lift = 0.3f;
+
+void PrintObject::detect_overhangs_for_lift()
+{
+    if (this->set_started(posDetectOverhangsForLift)) {
+        const float min_overlap = m_config.line_width * g_min_overhang_percent_for_lift;
+        size_t num_layers = this->layer_count();
+        size_t num_raft_layers = m_slicing_params.raft_layers();
+
+        m_print->set_status(78, L("Detect overhangs for auto-lift"));
+
+        this->clear_overhangs_for_lift();
+
+        if (m_print->config().z_hop_type != ZHopType::zhtAuto)
+            return;
+
+        tbb::spin_mutex layer_storage_mutex;
+        tbb::parallel_for(tbb::blocked_range<size_t>(num_raft_layers + 1, num_layers),
+            [this, min_overlap](const tbb::blocked_range<size_t>& range)
+            {
+                for (size_t layer_id = range.begin(); layer_id < range.end(); ++layer_id) {
+                    Layer& layer = *m_layers[layer_id];
+                    Layer& lower_layer = *layer.lower_layer;
+
+                    ExPolygons overhangs = diff_ex(layer.lslices, offset_ex(lower_layer.lslices, scale_(min_overlap)));
+                    layer.loverhangs = std::move(offset2_ex(overhangs, -0.1f * scale_(m_config.line_width), 0.1f * scale_(m_config.line_width)));
+                }
+            });
+
+        this->set_done(posDetectOverhangsForLift);
+    }
+}
+
 void PrintObject::generate_support_material()
 {
     if (this->set_started(posSupportMaterial)) {

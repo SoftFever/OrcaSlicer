@@ -200,6 +200,15 @@ enum NozzleType {
     ntCount
 };
 
+// BBS
+enum ZHopType {
+    zhtAuto = 0,
+    zhtNormal,
+    zhtSlope,
+    zhtSpiral,
+    zhtCount
+};
+
 static std::string bed_type_to_gcode_string(const BedType type)
 {
     std::string type_str;
@@ -812,6 +821,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              retraction_length))
     ((ConfigOptionFloats,              retract_length_toolchange))
     ((ConfigOptionFloats,              z_hop))
+    // BBS
+    ((ConfigOptionEnum<ZHopType>,      z_hop_type))
     ((ConfigOptionFloats,              retract_restart_extra))
     ((ConfigOptionFloats,              retract_restart_extra_toolchange))
     ((ConfigOptionFloats,              retraction_speed))

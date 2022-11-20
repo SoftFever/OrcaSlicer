@@ -93,6 +93,8 @@ public:
     bool is_current_position_clear() const { return m_is_current_pos_clear; };
     //BBS:
     static const bool full_gcode_comment;
+    //Radian threshold of slope for lazy lift and spiral lift;
+    static const double slope_threshold;
 
 private:
 	// Extruders are sorted by their ID, so that binary search is possible.
@@ -120,9 +122,6 @@ private:
     //BBS: x, y offset for gcode generated
     double          m_x_offset{ 0 };
     double          m_y_offset{ 0 };
-
-    //Radian threshold of slope for lazy lift and spiral lift;
-    static const double slope_threshold;
 
     std::string _travel_to_z(double z, const std::string &comment);
     std::string _spiral_travel_to_z(double z, const Vec2d &ij_offset, const std::string &comment);
