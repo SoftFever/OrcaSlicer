@@ -53,7 +53,7 @@ struct OrientParamsArea {
     float TAR_E = 0.0115f;
     float FIRST_LAY_H = 0.2f;//0.0475;
     float VECTOR_TOL = -0.00083f;
-    float NEGL_FACE_SIZE = 0.1f;
+    float NEGL_FACE_SIZE = 0.01f;
     float ASCENT = -0.5f;
     float PLAFOND_ADV = 0.0599f;
     float CONTOUR_AMOUNT = 0.0182427f;

@@ -111,7 +111,7 @@ public:
     {
         orientations = { { 0,0,-1 } }; // original orientation
 
-        area_cumulation(normals, areas);
+        area_cumulation(normals, areas, 10);
 
         area_cumulation(normals_hull, areas_hull, 10);
 
@@ -152,7 +152,22 @@ public:
         if (progressind)
             progressind(80);
 
+        //To avoid flipping, we need to verify if there are orientations with same unprintability.
+        Vec3f n1 = {0, 0, 1};
         auto best_orientation = results_vector[0].first;
+
+        for (int i = 1; i< results_vector.size()-1; i++) {
+            if (abs(results_vector[i].second.unprintability - results_vector[0].second.unprintability) < EPSILON && abs(results_vector[0].first.dot(n1)-1) > EPSILON) {
+                if (abs(results_vector[i].first.dot(n1)-1) < EPSILON) { 
+                    best_orientation = n1;
+                    break; 
+                }
+            }
+            else {
+                break;
+            }
+
+        }
 
         BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(6) << "best:" << best_orientation.transpose() << ", costs:" << results_vector[0].second.field_values();
         std::cout << std::fixed << std::setprecision(6) << "best:" << best_orientation.transpose() << ", costs:" << results_vector[0].second.field_values() << std::endl;
@@ -227,6 +242,7 @@ public:
         for (size_t i = 0; i < num_directions; i++)
         {
             orientations.push_back(align_counts[i].first);
+            //orientations.push_back(its_face_normals(mesh->its)[i]);
             BOOST_LOG_TRIVIAL(debug) << align_counts[i].first.transpose() << ", area: " << align_counts[i].second;
         }
     }
@@ -246,7 +262,7 @@ public:
     /// remove duplicate orientations
     /// </summary>
     /// <param name="tol">tolerance. default 0.01 =sin(0.57\degree)</param>
-    void remove_duplicates(float tol=0.001)
+    void remove_duplicates(double tol=0.00000001)
     {
         for (auto it = orientations.begin()+1; it < orientations.end(); )
         {
@@ -332,8 +348,14 @@ public:
 
         float total_min_z = z_projected.minCoeff();
         // filter bottom area
-        auto bottom_condition = z_max.array() < total_min_z + this->params.FIRST_LAY_H;
-        costs.bottom = bottom_condition.select(areas, 0).sum();
+        auto bottom_condition = z_max.array() < total_min_z + this->params.FIRST_LAY_H - EPSILON;
+        auto bottom_condition_hull = z_max_hull.array() < total_min_z + this->params.FIRST_LAY_H - EPSILON;
+        auto bottom_condition_2nd = z_max.array() < total_min_z + this->params.FIRST_LAY_H/2.f - EPSILON;
+        //The first layer is sliced on half of the first layer height. 
+        //The bottom area is measured by accumulating first layer area with the facets area below first layer height.
+        //By combining these two factors, we can avoid the wrong orientation of large planar faces while not influence the
+        //orientations of complex objects with small bottom areas.
+        costs.bottom = bottom_condition.select(areas, 0).sum()*0.5 + bottom_condition_2nd.select(areas, 0).sum();
 
         // filter overhang
         Eigen::VectorXf normal_projection(normals.rows(), 1);// = this->normals.dot(orientation);
@@ -378,7 +400,7 @@ public:
         }
 
         // bottom of convex hull
-        costs.bottom_hull = (z_max_hull.array()< total_min_z + this->params.FIRST_LAY_H).select(areas_hull, 0).sum();
+        costs.bottom_hull = (bottom_condition_hull).select(areas_hull, 0).sum();
 
         // low angle faces
         auto normal_projection_abs = normal_projection.cwiseAbs();
@@ -400,7 +422,7 @@ public:
         if (min_volume)
         {
             float overhang = costs.overhang / 25;
-            cost = params.TAR_A * (overhang + params.TAR_B) + params.RELATIVE_F * (/*costs.volume/100*/overhang*params.TAR_C + params.TAR_D + params.TAR_LAF * costs.area_laf * params.use_low_angle_face) / (params.TAR_D + params.CONTOUR_F * costs.contour + params.BOTTOM_F * bottom + params.BOTTOM_HULL_F * bottom_hull + params.TAR_E * overhang + params.TAR_PROJ_AREA * costs.area_projected);
+            cost = params.TAR_A * (overhang + params.TAR_B) + params.RELATIVE_F * (/*costs.volume/100*/overhang*params.TAR_C + params.TAR_D/10.f + params.TAR_LAF * costs.area_laf * params.use_low_angle_face) / (params.TAR_D + params.CONTOUR_F * costs.contour + params.BOTTOM_F * bottom + params.BOTTOM_HULL_F * bottom_hull + params.TAR_E * overhang + params.TAR_PROJ_AREA * costs.area_projected);
         }
         else {
             float overhang = costs.overhang;
