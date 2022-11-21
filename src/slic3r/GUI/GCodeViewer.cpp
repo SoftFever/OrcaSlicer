@@ -4168,7 +4168,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
         // BBS render column item
         {
-            float dummy_size = type == EItemType::None ? window_padding * 3 : ImGui::GetStyle().ItemSpacing.x + icon_size * m_scale;
+            float dummy_size = type == EItemType::None ? window_padding * 3 : ImGui::GetStyle().ItemSpacing.x + icon_size;
             ImGui::SameLine(dummy_size);
             imgui.text(columns_offsets[0].first);
 
