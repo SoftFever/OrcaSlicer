@@ -30,11 +30,21 @@
 #include "Widgets/Label.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/StepCtrl.hpp"
+#include "Widgets/CheckBox.hpp"
 
 namespace Slic3r { namespace GUI {
 
 class CalibrationDialog : public DPIDialog
 {
+private:
+    std::map<std::string, ::CheckBox*> m_checkbox_list;
+
+    wxWindow* select_xcam_cali { nullptr };
+    wxWindow* select_bed_leveling { nullptr };
+    wxWindow* select_vibration { nullptr };
+
+    wxWindow* create_check_option(wxString title, wxWindow *parent, wxString tooltip, std::string param);
+
 public:
     CalibrationDialog(Plater *plater = nullptr);
     ~CalibrationDialog();

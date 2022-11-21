@@ -11,6 +11,9 @@
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/StaticBox.hpp"
 
+static wxColour FG_COLOR = wxColour(0x32, 0x3A, 0x3D);
+static wxColour BG_COLOR = wxColour(0xF8, 0xF8, 0xF8);
+
 namespace Slic3r { namespace GUI {
 
 CalibrationDialog::CalibrationDialog(Plater *plater)
@@ -31,17 +34,39 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
 
     body_panel->SetBackgroundColour(*wxWHITE);
     auto cali_left_panel = new StaticBox(body_panel, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(303), FromDIP(243)));
-    cali_left_panel->SetBackgroundColor(wxColour(0xF8, 0xF8, 0xF8));
-    cali_left_panel->SetBorderColor(wxColour(0xF8, 0xF8, 0xF8));
+    cali_left_panel->SetBackgroundColor(BG_COLOR);
+    cali_left_panel->SetBorderColor(BG_COLOR);
 
     wxBoxSizer *cali_left_sizer = new wxBoxSizer(wxVERTICAL);
     cali_left_sizer->Add(0, 0, 0, wxTOP, FromDIP(25));
 
+    // calibration step selection
+    auto cali_step_select_title = new wxStaticText(cali_left_panel, wxID_ANY, _L("Calibration step selection"), wxDefaultPosition, wxDefaultSize, 0);
+    cali_step_select_title->SetFont(::Label::Head_14);
+    cali_step_select_title->Wrap(-1);
+    cali_step_select_title->SetForegroundColour(FG_COLOR);
+    cali_step_select_title->SetBackgroundColour(BG_COLOR);
+    cali_left_sizer->Add(cali_step_select_title, 0, wxLEFT, FromDIP(15));
+
+    select_xcam_cali    = create_check_option(_L("Micro lidar calibration"), cali_left_panel, _L("Micro lidar calibration"),            "xcam_cali");
+    select_bed_leveling = create_check_option(_L("Bed leveling"),            cali_left_panel, _L("Bed leveling"),                       "bed_leveling");
+    select_vibration    = create_check_option(_L("Resonance frequency identification"), cali_left_panel, _L("Resonance frequency identification"), "vibration");
+
+    m_checkbox_list["xcam_cali"]->SetValue(true);
+    m_checkbox_list["bed_leveling"]->SetValue(true);
+    m_checkbox_list["vibration"]->SetValue(true);
+
+    cali_left_sizer->Add(0, FromDIP(18), 0, wxEXPAND, 0);
+    cali_left_sizer->Add(select_xcam_cali, 0, wxLEFT, FromDIP(15));
+    cali_left_sizer->Add(select_bed_leveling, 0, wxLEFT, FromDIP(15));
+    cali_left_sizer->Add(select_vibration, 0, wxLEFT, FromDIP(15));
+    cali_left_sizer->Add(0, FromDIP(30), 0, wxEXPAND, 0);
+
     auto cali_left_text_top = new wxStaticText(cali_left_panel, wxID_ANY, _L("Calibration program"), wxDefaultPosition, wxDefaultSize, 0);
     cali_left_text_top->SetFont(::Label::Head_14);
     cali_left_text_top->Wrap(-1);
-    cali_left_text_top->SetForegroundColour(wxColour(0x32, 0x3A, 0x3D));
-    cali_left_text_top->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
+    cali_left_text_top->SetForegroundColour(FG_COLOR);
+    cali_left_text_top->SetBackgroundColour(BG_COLOR);
 
     cali_left_sizer->Add(cali_left_text_top, 0, wxLEFT, FromDIP(15));
 
@@ -53,7 +78,7 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
                          wxDefaultPosition, wxSize(FromDIP(260), -1), 0);
     cali_left_text_body->Wrap(FromDIP(260));
     cali_left_text_body->SetForegroundColour(wxColour(0x6B, 0x6B, 0x6B));
-    cali_left_text_body->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
+    cali_left_text_body->SetBackgroundColour(BG_COLOR);
     cali_left_text_body->SetFont(::Label::Body_13);
     cali_left_sizer->Add(cali_left_text_body, 0, wxLEFT, FromDIP(15));
 
@@ -86,25 +111,25 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     wxBoxSizer *cali_right_sizer_v = new wxBoxSizer(wxVERTICAL);
 
     auto cali_right_panel = new StaticBox(body_panel, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(182), FromDIP(160)));
-    cali_right_panel->SetBackgroundColor(wxColour(0xF8, 0xF8, 0xF8));
-    cali_right_panel->SetBorderColor(wxColour(0xF8, 0xF8, 0xF8));
+    cali_right_panel->SetBackgroundColor(BG_COLOR);
+    cali_right_panel->SetBorderColor(BG_COLOR);
 
     auto cali_text_right_top = new wxStaticText(cali_right_panel, wxID_ANY, _L("Calibration Flow"), wxDefaultPosition, wxDefaultSize, 0);
     cali_text_right_top->Wrap(-1);
     cali_text_right_top->SetFont(::Label::Head_14);
     cali_text_right_top->SetForegroundColour(wxColour(0x00, 0xAE, 0x42));
-    cali_text_right_top->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
+    cali_text_right_top->SetBackgroundColour(BG_COLOR);
 
     auto staticline = new ::StaticLine(cali_right_panel);
     staticline->SetLineColour(wxColour(0x00, 0xAE, 0x42));
     auto calibration_panel = new wxPanel(cali_right_panel);
-    calibration_panel->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
+    calibration_panel->SetBackgroundColour(BG_COLOR);
     auto calibration_sizer = new wxBoxSizer(wxVERTICAL);
     calibration_panel->SetMinSize(wxSize(FromDIP(170), FromDIP(160)));
     calibration_panel->SetSize(wxSize(FromDIP(170), FromDIP(160)));
    
     m_calibration_flow = new StepIndicator(calibration_panel, wxID_ANY);
-    StateColor bg_color(std::pair<wxColour, int>(wxColour(248, 248, 248), StateColor::Normal));
+    StateColor bg_color(std::pair<wxColour, int>(BG_COLOR, StateColor::Normal));
     m_calibration_flow->SetBackgroundColor(bg_color);
     m_calibration_flow->SetFont(Label::Body_12);
 
@@ -155,9 +180,48 @@ CalibrationDialog::~CalibrationDialog() {}
 
 void CalibrationDialog::on_dpi_changed(const wxRect &suggested_rect) {}
 
+wxWindow* CalibrationDialog::create_check_option(wxString title, wxWindow* parent, wxString tooltip, std::string param)
+{
+    auto checkbox = new wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    checkbox->SetBackgroundColour(BG_COLOR);
+
+    wxBoxSizer* sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* sizer_check = new wxBoxSizer(wxVERTICAL);
+
+    auto check = new ::CheckBox(checkbox);
+
+    sizer_check->Add(check, 0, wxBOTTOM | wxEXPAND | wxTOP, FromDIP(5));
+
+    sizer_checkbox->Add(sizer_check, 0, wxEXPAND, FromDIP(5));
+    sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(11));
+
+    auto text = new wxStaticText(checkbox, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    text->SetFont(::Label::Body_13);
+    text->SetForegroundColour(wxColour(107, 107, 107));
+    text->Wrap(-1);
+    sizer_checkbox->Add(text, 0, wxBOTTOM | wxEXPAND | wxTOP, FromDIP(5));
+
+    checkbox->SetSizer(sizer_checkbox);
+    checkbox->Layout();
+    sizer_checkbox->Fit(checkbox);
+
+    checkbox->SetToolTip(tooltip);
+    text->SetToolTip(tooltip);
+
+    text->Bind(wxEVT_LEFT_DOWN, [this, check](wxMouseEvent&) { check->SetValue(check->GetValue() ? false : true); });
+    m_checkbox_list[param] = check;
+    return checkbox;
+}
+
 void CalibrationDialog::update_cali(MachineObject *obj)
 {
     if (!obj) return;
+    if (obj->is_function_supported(PrinterFunction::FUNC_AI_MONITORING)) {
+        select_xcam_cali->Show();
+    } else {
+        select_xcam_cali->Hide();
+    }
+
     if (obj->is_calibration_running() || obj->is_calibration_done()) {
         if (obj->is_calibration_done()) {
             m_calibration_btn->Enable();
@@ -218,8 +282,11 @@ void CalibrationDialog::on_start_calibration(wxMouseEvent &event)
             Close();
         } else {
             BOOST_LOG_TRIVIAL(info) << "on_start_calibration";
-            //TODO set checkbox value here
-            m_obj->command_start_calibration(true, true, true);
+            m_obj->command_start_calibration(
+                m_checkbox_list["vibration"]->GetValue(),
+                m_checkbox_list["bed_leveling"]->GetValue(),
+                m_checkbox_list["xcam_cali"]->GetValue()
+                );
         }
     }
 }

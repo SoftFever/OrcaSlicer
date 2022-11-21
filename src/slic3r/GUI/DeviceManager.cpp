@@ -1491,6 +1491,7 @@ int MachineObject::command_set_printing_option(bool auto_recovery)
     j["print"]["command"]       = "print_option";
     j["print"]["sequence_id"]   = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["option"]        = print_option;
+    j["print"]["auto_recovery"] = auto_recovery;
 
     return this->publish_json(j.dump());
 }
@@ -2749,6 +2750,9 @@ int MachineObject::parse_json(std::string payload)
                                   int option = jj["option"].get<int>();
                                   _parse_print_option_ack(option);
                               }
+                          }
+                          if (jj.contains("auto_recovery")) {
+                              xcam_auto_recovery_step_loss = jj["auto_recovery"].get<bool>();
                           }
                      }
                      catch(...) {
