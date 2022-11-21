@@ -779,7 +779,15 @@ void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
             wxGetApp().obj_settings()->UpdateAndShow(true);
         }, menu, []() {return true; }, [&select_object_config]() {const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2]); return option->getBool(); }, m_parent);
 
-    menu->Append(wxID_ANY, _L("Flush Options"), flush_options_menu);
+    size_t i = 0;
+    for (auto node = menu->GetMenuItems().GetFirst(); node; node = node->GetNext())
+    {
+        i++;
+        wxMenuItem* item = node->GetData();
+        if (item->GetItemLabelText() == "Edit in Parameter Table")
+            break;
+    }
+    menu->Insert(i, wxID_ANY, _L("Flush Options"), flush_options_menu);
 }
 
 void MenuFactory::append_menu_items_convert_unit(wxMenu* menu)
@@ -897,6 +905,12 @@ void MenuFactory::create_default_menu()
     append_submenu(&m_default_menu, sub_menu, wxID_ANY, _L("Add Primitive"), "", "",
         []() {return true; }, m_parent);
 #endif
+
+    m_default_menu.AppendSeparator();
+
+    append_menu_check_item(&m_default_menu, wxID_ANY, _L("Show Labels"), "",
+        [](wxCommandEvent&) { plater()->show_view3D_labels(!plater()->are_view3D_labels_shown()); plater()->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, &m_default_menu,
+        []() { return plater()->is_view3D_shown(); }, [this]() { return plater()->are_view3D_labels_shown(); }, m_parent);
 }
 
 void MenuFactory::create_common_object_menu(wxMenu* menu)
@@ -1533,9 +1547,11 @@ void MenuFactory::update_object_menu()
 
 void MenuFactory::update_default_menu()
 {
-    const auto menu_item_id = m_default_menu.FindItem(_("Add Primitive"));
-    if (menu_item_id != wxNOT_FOUND)
-        m_default_menu.Destroy(menu_item_id);
+    for (auto& name : { _L("Add Primitive") , _L("Show Labels") }) {
+        const auto menu_item_id = m_default_menu.FindItem(name);
+        if (menu_item_id != wxNOT_FOUND)
+            m_default_menu.Destroy(menu_item_id);
+    }
     create_default_menu();
 }
 
