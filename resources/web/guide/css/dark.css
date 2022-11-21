@@ -1,0 +1,49 @@
+*
+{
+	color: #fff;
+}
+
+body
+{
+	background-color:#54545A;
+	color: #fff;
+}
+
+
+/*-----Button-----*/
+.GrayBtn
+{
+	border: 1px solid #B9B9BC;
+	color: #B9B9BC;	
+}
+
+.GrayBtn:hover
+{
+	background-color:#E8E8E8;
+	color: #565656;
+}
+
+/*-------Text------*/
+
+.TextS1
+{
+
+}
+
+.TextS2
+{
+	color:#B9B9BC;
+}
+
+/*---Policy---*/
+.TextArea1
+{
+	background-color: #4A4A51;
+	color: #BEBEC0;
+}
+
+/*----Region---*/
+.RegionItem:hover
+{
+	background-color:#4C4C55;
+}

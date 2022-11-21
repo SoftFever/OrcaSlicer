@@ -117,7 +117,7 @@ function HandleStudio( pVal )
 		{
 			$("#NoPluginTip").hide();
 		}
-	}	
+	}
 }
 
 function GotoMenu( strMenu )
@@ -188,7 +188,7 @@ function ShowRecentFileList( pList )
 		let TmpHtml='<div class="FileItem"  fpath="'+sPath+'"  >'+
 				'<a class="FileTip" title="'+sPath+'"></a>'+
 				'<div class="FileImg" ><img src="'+sImg+'" onerror="this.onerror=null;this.src=\'img/d.png\';"  alt="No Image"  /></div>'+
-				'<a>'+sName+'</a>'+
+				'<a class="TextS1">'+sName+'</a>'+
 				'<div class="FileDate">'+sTime+'</div>'+
 			    '</div>';
 		

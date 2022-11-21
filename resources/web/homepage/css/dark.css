@@ -1,0 +1,50 @@
+body
+{
+	background-color:black;
+}
+
+*
+{
+	border-color: #494949;
+}
+
+
+.TextS1
+{
+	color:#fff;
+}
+
+
+
+
+/*----Left Menu Button----*/
+#LogoutBtn:hover
+{
+	background: #243E30;
+	color: #fff;
+}
+
+
+.BtnItem:hover
+{
+	color: #000;
+	background-color: #243E30;
+}
+
+.BtnItemSelected
+{
+	background-color: #243E30;
+}
+
+/*-----Right Top MenuBtn-----*/
+.MenuItem:hover
+{
+	border-color: #4CAA50;
+	background-color: #243E30;
+}
+
+/*----User Manual------*/
+.UG_DESC
+{
+	color:#A4A4A4;
+}

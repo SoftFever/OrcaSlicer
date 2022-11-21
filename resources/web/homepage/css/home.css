@@ -4,6 +4,7 @@
 	border: 0px;
 	margin: 0px;
     font-family: "system-ui", "Segoe UI", Roboto, Oxygen, Ubuntu, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-sans;
+	border-color: #D7D7D7;
 }
 
 html, body {
@@ -48,7 +49,8 @@ body
 
 #LeftBoard
 {
-	border-right: 1px solid #EFF0F0;
+	border-right-width: 1px;
+	border-right-style: solid;
 	width:262px;
 	height: 100%;
 }
@@ -228,7 +230,8 @@ body
 
 .MenuItem
 {
-	border: 1px solid #EEEEEE;
+	border-width: 1px;
+	border-style: solid;
 	border-radius: 12px;
 	height: 101px;
 	width: 253px;
@@ -288,7 +291,8 @@ body
 	display:flex;
 	align-items: center;
 	padding: 6px;
-    border-bottom: 1px solid #D9D9D9;	
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
 }
 
 #RecentClearAllBtn
