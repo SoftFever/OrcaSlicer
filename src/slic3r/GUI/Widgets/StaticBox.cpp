@@ -21,7 +21,7 @@ StaticBox::StaticBox()
     , radius(8)
 {
     border_color = StateColor(
-        std::make_pair(*wxLIGHT_GREY, (int) StateColor::Disabled), 
+        std::make_pair(0xF0F0F1, (int) StateColor::Disabled), 
         std::make_pair(0x303A3C, (int) StateColor::Normal));
 }
 

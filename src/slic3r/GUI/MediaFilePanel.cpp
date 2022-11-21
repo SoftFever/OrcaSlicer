@@ -96,6 +96,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_management->SetBorderWidth(0);
     m_button_management->SetBackgroundColorNormal(wxColor("#00AE42"));
     m_button_management->SetTextColorNormal(*wxWHITE);
+    m_button_management->Enable(false);
 
     wxBoxSizer *manage_sizer = new wxBoxSizer(wxHORIZONTAL);
     manage_sizer->AddStretchSpacer(1);
