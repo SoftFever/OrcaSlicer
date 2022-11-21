@@ -158,7 +158,10 @@ StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint 
     this->Layout();
 }
 
-StatusBasePanel::~StatusBasePanel() { delete m_media_play_ctrl; }
+StatusBasePanel::~StatusBasePanel()
+{
+    delete m_media_play_ctrl;
+}
 
 void StatusBasePanel::init_bitmaps()
 {

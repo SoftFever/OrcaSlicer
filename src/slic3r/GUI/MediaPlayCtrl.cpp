@@ -59,13 +59,8 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
 //    m_next_retry = wxDateTime::Now();
 //#endif
 
-    auto onShowHide = [this](auto &e) {
-        e.Skip();
-        if (m_isBeingDeleted) return;
-        IsShownOnScreen() ? Play() : Stop();
-    };
-    parent->Bind(wxEVT_SHOW, onShowHide);
-    parent->GetParent()->GetParent()->Bind(wxEVT_SHOW, onShowHide);
+    parent->Bind(wxEVT_SHOW, &MediaPlayCtrl::on_show_hide, this);
+    parent->GetParent()->GetParent()->Bind(wxEVT_SHOW, &MediaPlayCtrl::on_show_hide, this);
 
     m_lan_user = "bblp";
     m_lan_passwd = "bblp";
@@ -386,6 +381,13 @@ void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
 }
 
 bool MediaPlayCtrl::IsStreaming() const { return m_streaming; }
+
+void MediaPlayCtrl::on_show_hide(wxShowEvent &evt)
+{
+    evt.Skip();
+    if (m_isBeingDeleted) return;
+    IsShownOnScreen() ? Play() : Stop();
+}
 
 void MediaPlayCtrl::media_proc()
 {

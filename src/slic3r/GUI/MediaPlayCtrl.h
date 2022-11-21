@@ -51,6 +51,8 @@ protected:
     void SetStatus(wxString const &msg, bool hyperlink = true);
 
 private:
+    void on_show_hide(wxShowEvent & evt);
+
     void media_proc();
 
     bool get_stream_url(std::string * url = nullptr);
