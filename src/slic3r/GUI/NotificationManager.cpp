@@ -2120,11 +2120,11 @@ void NotificationManager::render_notifications(GLCanvas3D &canvas, float overlay
 {
 	sort_notifications();
 
-	float last_y = bottom_margin;
+	float last_y = bottom_margin * m_scale;
 
 	for (const auto& notification : m_pop_notifications) {
 		if (notification->get_state() != PopNotification::EState::Hidden) {
-            notification->render(canvas, last_y * m_scale, m_move_from_overlay && !m_in_preview, overlay_width * m_scale, right_margin * m_scale);
+            notification->render(canvas, last_y, m_move_from_overlay && !m_in_preview, overlay_width * m_scale, right_margin * m_scale);
 			if (notification->get_state() != PopNotification::EState::Finished)
 				last_y = notification->get_top() + GAP_WIDTH;
 		}
