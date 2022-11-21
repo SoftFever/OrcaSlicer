@@ -1846,6 +1846,13 @@ void ObjectList::load_modifier(const wxArrayString& input_files, ModelObject& mo
         // Mesh will be centered when loading.
         ModelVolume* new_volume = model_object.add_volume(std::move(mesh), type);
         new_volume->name = boost::filesystem::path(input_file).filename().string();
+
+        // adjust the position according to the bounding box
+        const BoundingBoxf3 mesh_bb = new_volume->mesh().bounding_box();
+        new_volume->set_transformation(Geometry::Transformation::volume_to_bed_transformation(v->get_instance_transformation(), mesh_bb));
+        auto offset = Vec3d(instance_bb.max.x(), instance_bb.min.y(), instance_bb.min.z()) + 0.5 * mesh_bb.size() - v->get_instance_offset();
+        new_volume->set_offset(v->get_instance_transformation().get_matrix(true).inverse() * offset);
+
         // set a default extruder value, since user can't add it manually
         // BBS
         int extruder_id = 0;
