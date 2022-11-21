@@ -425,12 +425,20 @@ protected:
                 Item& p = m_items[i];
                 if (p.is_virt_object) {
                     // Better not put items above wipe tower
-                    if (p.is_wipe_tower)
-                        score += ibb.maxCorner().y() > p.boundingBox().maxCorner().y();
+                    if (p.is_wipe_tower) {
+                        if (ibb.maxCorner().y() > p.boundingBox().maxCorner().y())
+                            score += 1;
+                        else if(m_pilebb.defined)
+                            score += norm(pl::distance(ibb.center(), m_pilebb.center()));
+                    }
                     else
                         continue;
-                } else
+                } else {
+                    // 高度接近的件尽量摆到一起
+                    score += (1- std::abs(item.height - p.height) / params.printable_height)
+                        * norm(pl::distance(ibb.center(), p.boundingBox().center()));
                     score += LARGE_COST_TO_REJECT * (item.bed_temp - p.bed_temp != 0);
+                }
             }
         }
 

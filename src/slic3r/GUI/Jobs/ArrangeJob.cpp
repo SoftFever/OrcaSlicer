@@ -388,6 +388,7 @@ void ArrangeJob::prepare()
         params.clearance_height_to_rod             = print.config().extruder_clearance_height_to_rod.value;
         params.clearance_height_to_lid             = print.config().extruder_clearance_height_to_lid.value;
         params.cleareance_radius                   = print.config().extruder_clearance_radius.value;
+        params.printable_height                    = print.config().printable_height.value;
         params.allow_rotations                     = settings.enable_rotation;
         params.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
         params.avoid_extrusion_cali_region         = settings.avoid_extrusion_cali_region;
@@ -562,13 +563,6 @@ void ArrangeJob::process()
     params.progressind = [this](unsigned num_finished, std::string str="") {
         update_status(num_finished, _L("Arranging") + " " + str);
     };
-
-    if(!params.is_seq_print)
-    {
-        // force all heights be the same, so items are sorted by area
-        for (auto& ap : m_selected) ap.height = 1;
-        for (auto& ap : m_unselected) ap.height = 1;
-    }
 
     {
         BOOST_LOG_TRIVIAL(debug) << "items selected before arrange: ";
