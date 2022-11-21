@@ -2048,6 +2048,9 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
     new_object->invalidate_bounding_box();
     new_object->translate(-bb.center());
 
+    // BBS: backup
+    Slic3r::save_object_mesh(*new_object);
+
     // BBS: find an empty cell to put the copied object
     auto start_point = wxGetApp().plater()->build_volume().bounding_volume2d().center();
     auto empty_cell  = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({start_point(0), start_point(1)});
