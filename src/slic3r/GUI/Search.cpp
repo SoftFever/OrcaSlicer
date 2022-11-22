@@ -623,6 +623,7 @@ void SearchDialog::Popup(wxPoint position /*= wxDefaultPosition*/)
     //const std::string &line = searcher->search_string();
     //searcher->search(into_u8(line), true);
     wxPopupTransientWindow::Popup();
+    search_line->SetFocus();
     update_list();
 }
 
@@ -638,7 +639,11 @@ void SearchDialog::OnDismiss() { }
 void SearchDialog::Dismiss()
 {
     auto pos = wxGetMousePosition();
-    if (!m_event_tag->GetScreenRect().Contains(pos) && !this->GetScreenRect().Contains(pos) && !m_search_item_tag->GetScreenRect().Contains(pos)) { 
+
+    if (!search_line->HasFocus() && !this->HasFocus()) {
+        Die();
+    }
+    else if (!m_event_tag->GetScreenRect().Contains(pos) && !this->GetScreenRect().Contains(pos) && !m_search_item_tag->GetScreenRect().Contains(pos)) {
         Die();
     }
 }
