@@ -2459,6 +2459,10 @@ void GUI_App::copy_network_if_available()
 #endif
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": checking network_library " << network_library << ", player_library " << player_library;
+    if (!boost::filesystem::exists(plugin_folder)) {
+        BOOST_LOG_TRIVIAL(info)<< __FUNCTION__ << ": create directory "<<plugin_folder.string();
+        boost::filesystem::create_directory(plugin_folder);
+    }
     std::string error_message;
     if (boost::filesystem::exists(network_library)) {
         CopyFileResult cfr = copy_file(network_library, network_library_dst, error_message, false);

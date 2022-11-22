@@ -818,7 +818,7 @@ CopyFileResult copy_file_inner(const std::string& from, const std::string& to, s
 	if (ec) {
 		error_message = ec.message();
         BOOST_LOG_TRIVIAL(error) << boost::format("###copy_file from %1% to %2% failed, error: %3% ")
-            %source.string() %target.string() << error_message;
+            %source.string() %target.string() % error_message;
 		return FAIL_COPY_FILE;
 	}
 	ec.clear();
