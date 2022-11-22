@@ -153,6 +153,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/AMSSetting.hpp
     GUI/AMSMaterialsSetting.cpp
     GUI/AMSMaterialsSetting.hpp
+    GUI/ExtrusionCalibration.cpp
+    GUI/ExtrusionCalibration.hpp
     GUI/PresetHints.cpp
     GUI/PresetHints.hpp
     GUI/GUI.cpp

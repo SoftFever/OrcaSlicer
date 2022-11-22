@@ -920,4 +920,89 @@ bool AmsTutorialPopup::ProcessLeftDown(wxMouseEvent& event) {
 }
 
 
+AmsIntroducePopup::AmsIntroducePopup(wxWindow* parent)
+:wxPopupTransientWindow(parent, wxBORDER_NONE)
+{
+    Bind(wxEVT_PAINT, &AmsIntroducePopup::paintEvent, this);
+    SetBackgroundColour(*wxWHITE);
+
+    SetMinSize(wxSize(FromDIP(200), FromDIP(200)));
+    SetMaxSize(wxSize(FromDIP(200), FromDIP(200)));
+
+    wxBoxSizer* bSizer4 = new wxBoxSizer(wxVERTICAL);
+
+    m_staticText_top = new Label(this, _L("Do not Enable AMS"));
+    m_staticText_top->SetFont(::Label::Head_13);
+    m_staticText_top->SetForegroundColour(wxColour(0x323A3D));
+    m_staticText_top->Wrap(-1);
+    bSizer4->Add(m_staticText_top, 0, wxALL, 5);
+
+    m_staticText_bottom =  new Label(this, _L("Print using materials mounted on the back of the case"));
+    m_staticText_bottom->Wrap(-1);
+    m_staticText_bottom->SetFont(::Label::Body_13);
+    m_staticText_bottom->SetForegroundColour(wxColour(0x6B6B6B));
+    bSizer4->Add(m_staticText_bottom, 0, wxALL, 5);
+
+    wxBoxSizer* bSizer5;
+    bSizer5 = new wxBoxSizer(wxHORIZONTAL);
+
+    m_img_enable_ams = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("monitor_upgrade_ams", this, FromDIP(140)), wxDefaultPosition, wxDefaultSize, 0);
+    m_img_disable_ams = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("disable_ams_demo_icon", this, FromDIP(110)), wxDefaultPosition, wxDefaultSize, 0);
+
+    m_img_enable_ams->SetMinSize(wxSize(FromDIP(96), FromDIP(110)));
+    m_img_disable_ams->SetMinSize(wxSize(FromDIP(96), FromDIP(110)));
+
+    bSizer5->Add(m_img_enable_ams, 0, wxALIGN_CENTER, 0);
+    bSizer5->Add(m_img_disable_ams, 0, wxALIGN_CENTER, 0);
+
+    m_img_disable_ams->Hide();
+    m_img_disable_ams->Hide();
+
+
+    bSizer4->Add(bSizer5, 0, wxALIGN_CENTER | wxBOTTOM, FromDIP(1));
+
+
+    SetSizer(bSizer4);
+    Layout();
+    Fit();
+
+    wxGetApp().UpdateDarkUIWin(this);
+}
+
+void AmsIntroducePopup::set_mode(bool enable_ams) 
+{
+    if (enable_ams) {
+        m_staticText_top->SetLabelText(_L("Enable AMS"));
+        m_staticText_bottom->SetLabelText(_L("Print with filaments in ams"));
+        m_img_enable_ams->Show();
+        m_img_disable_ams->Hide();
+    }
+    else {
+        m_staticText_top->SetLabelText(_L("Do not Enable AMS"));
+        m_staticText_bottom->SetLabelText(_L("Print with filaments mounted on the back of the chassis"));
+        m_staticText_bottom->SetMinSize(wxSize(FromDIP(180), -1));
+        m_staticText_bottom->Wrap(FromDIP(180));
+        m_img_enable_ams->Hide();
+        m_img_disable_ams->Show();
+    }
+    Layout();
+    Fit();
+}
+
+void AmsIntroducePopup::paintEvent(wxPaintEvent& evt)
+{
+    wxPaintDC dc(this);
+    dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
+}
+
+
+void AmsIntroducePopup::OnDismiss() {}
+
+bool AmsIntroducePopup::ProcessLeftDown(wxMouseEvent& event) {
+    return wxPopupTransientWindow::ProcessLeftDown(event);
+}
+
+
 }} // namespace Slic3r::GUI

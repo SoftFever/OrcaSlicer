@@ -203,6 +203,25 @@ public:
 };
 
 
+class AmsIntroducePopup : public wxPopupTransientWindow
+{
+public:
+    bool          is_enable_ams = {false};
+    Label* m_staticText_top;
+    Label* m_staticText_bottom;
+    wxStaticBitmap* m_img_enable_ams;
+    wxStaticBitmap* m_img_disable_ams;
+
+    AmsIntroducePopup(wxWindow* parent);
+    ~AmsIntroducePopup() {};
+
+    void set_mode(bool enable_ams);
+    void paintEvent(wxPaintEvent& evt);
+    virtual void OnDismiss() wxOVERRIDE;
+    virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
+};
+
+
 wxDECLARE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
 
 }} // namespace Slic3r::GUI
