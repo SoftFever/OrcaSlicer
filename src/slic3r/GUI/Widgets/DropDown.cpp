@@ -432,7 +432,7 @@ void DropDown::mouseMove(wxMouseEvent &event)
 
 void DropDown::mouseWheelMoved(wxMouseEvent &event)
 {
-    auto delta = event.GetWheelRotation() > 0 ? rowSize.y : -rowSize.y;
+    auto delta = event.GetWheelRotation();
     wxPoint pt2 = offset + wxPoint{0, delta};
     if (pt2.y > 0)
         pt2.y = 0;

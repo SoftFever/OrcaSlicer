@@ -122,6 +122,7 @@ private:
     int     m_hit_type = HIT_NONE;
     size_t  m_hit_item = size_t(-1);
 
+    int m_scroll_offset = 0;
     int m_row_offset = 0; // 1/4 row height
     int m_row_count = 0; // 1/4 row height
     int m_col_count = 1;

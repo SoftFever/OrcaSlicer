@@ -368,14 +368,17 @@ void ImageGrid::resize(wxSizeEvent& event)
 
 void ImageGrid::mouseWheelMoved(wxMouseEvent &event)
 {
-    auto delta = event.GetWheelRotation() < 0 ? 1 : -1;
-    int off = m_row_offset + delta;
-    if (off >= 0 && off < m_row_count) {
-        m_row_offset = off;
-        m_timer.StartOnce(4000); // Show position bar
-        UpdateFocusRange();
-        Refresh();
-    }
+    auto delta = -event.GetWheelRotation();
+    m_scroll_offset += delta;
+    int max = m_row_count * m_cell_size.GetHeight() / 4;
+    if (m_scroll_offset < 0)
+        m_scroll_offset = 0;
+    else if (m_scroll_offset >= max)
+        m_scroll_offset = max - 1;
+    m_row_offset = m_scroll_offset * 4 / m_cell_size.GetHeight();
+    m_timer.StartOnce(4000); // Show position bar
+    UpdateFocusRange();
+    Refresh();
 }
 
 void Slic3r::GUI::ImageGrid::changedEvent(wxCommandEvent& evt)
