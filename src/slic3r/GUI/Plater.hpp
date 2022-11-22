@@ -306,6 +306,7 @@ public:
     void send_to_printer();
     void export_gcode(bool prefer_removable);
     void export_gcode_3mf(bool export_all = false);
+    void send_gcode_finish(wxString name);
     void export_core_3mf();
     void export_stl(bool extended = false, bool selection_only = false);
     //BBS: remove amf

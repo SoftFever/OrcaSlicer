@@ -8869,6 +8869,12 @@ void Plater::export_gcode_3mf(bool export_all)
     }
 }
 
+void Plater::send_gcode_finish(wxString name)
+{
+    wxString out_str = wxString::Format(_L("The file %s has been sent to the printer's storage space and can be viewed on the printer."), name);
+    p->notification_manager->push_exporting_finished_notification(out_str.ToStdString(), "", false);
+}
+
 void Plater::export_core_3mf()
 {
     wxString path = p->get_export_file(FT_3MF);
@@ -9572,8 +9578,9 @@ void Plater::send_job_finished(wxCommandEvent& evt)
 {
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
-    dev->set_selected_machine(evt.GetString().ToStdString());
+    //dev->set_selected_machine(evt.GetString().ToStdString());
 
+    send_gcode_finish(evt.GetString());
     p->hide_send_to_printer_dlg();
     //p->main_frame->request_select_tab(MainFrame::TabPosition::tpMonitor);
     ////jump to monitor and select device status panel
