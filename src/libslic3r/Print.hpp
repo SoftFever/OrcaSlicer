@@ -628,10 +628,13 @@ public:
 
     ApplyStatus         apply(const Model &model, DynamicPrintConfig config) override;
 
-    void                process() override;
+    void                process(bool use_cache = false) override;
     // Exports G-code into a file name based on the path_template, returns the file path of the generated G-code file.
     // If preview_data is not null, the preview_data is filled in for the G-code visualization (not used by the command line Slic3r).
     std::string         export_gcode(const std::string& path_template, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
+    //return 0 means successful
+    int                 export_cached_data(const std::string& dir_path, bool with_space=false);
+    int                 load_cached_data(const std::string& directory);
 
     // methods for handling state
     bool                is_step_done(PrintStep step) const { return Inherited::is_step_done(step); }
@@ -787,6 +790,7 @@ public:
     //BBS: this was a print config and now seems to be useless so we move it to here
     static float min_skirt_length;
 };
+
 
 } /* slic3r_Print_hpp_ */
 

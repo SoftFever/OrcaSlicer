@@ -4333,6 +4333,18 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->cli_params = "filename.3mf";
     def->set_default_value(new ConfigOptionString("output.3mf"));
 
+    def = this->add("export_slicedata", coString);
+    def->label = L("Export slicing data");
+    def->tooltip = L("Export slicing data to a folder.");
+    def->cli_params = "slicing_data_directory";
+    def->set_default_value(new ConfigOptionString("cached_data"));
+
+    def = this->add("load_slicedata", coStrings);
+    def->label = L("Load slicing data");
+    def->tooltip = L("Load cached slicing data from directory");
+    def->cli_params = "slicing_data_directory";
+    def->set_default_value(new ConfigOptionString("cached_data"));
+
     /*def = this->add("export_amf", coBool);
     def->label = L("Export AMF");
     def->tooltip = L("Export the model(s) as AMF.");

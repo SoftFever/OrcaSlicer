@@ -57,7 +57,7 @@ struct PlateData
 
     int plate_index;
     std::vector<std::pair<int, int>> objects_and_instances;
-    std::map<int, int> obj_inst_map;
+    std::map<int, std::pair<int, int>> obj_inst_map;
     std::string     gcode_file;
     std::string     gcode_file_md5;
     std::string     thumbnail_file;

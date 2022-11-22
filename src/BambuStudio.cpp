@@ -91,29 +91,6 @@ using namespace Slic3r;
     std::string message;
 }error_message;*/
 
-#define CLI_SUCCESS                 0
-#define CLI_ENVIRONMENT_ERROR       -1
-#define CLI_INVALID_PARAMS          -2
-#define CLI_FILE_NOTFOUND           -3
-#define CLI_FILELIST_INVALID_ORDER  -4
-#define CLI_CONFIG_FILE_ERROR       -5
-#define CLI_DATA_FILE_ERROR         -6
-#define CLI_INVALID_PRINTER_TECH    -7
-#define CLI_UNSUPPORTED_OPERATION   -8
-
-#define CLI_COPY_OBJECTS_ERROR      -9
-#define CLI_SCALE_TO_FIT_ERROR      -10
-#define CLI_EXPORT_STL_ERROR        -11
-#define CLI_EXPORT_OBJ_ERROR        -12
-#define CLI_EXPORT_3MF_ERROR        -13
-
-#define CLI_NO_SUITABLE_OBJECTS     -50
-#define CLI_VALIDATE_ERROR          -51
-#define CLI_OBJECTS_PARTLY_INSIDE   -52
-
-#define CLI_SLICING_ERROR           -100
-
-
 
 std::map<int, std::string> cli_errors = {
     {CLI_SUCCESS, "Success"},
@@ -130,9 +107,15 @@ std::map<int, std::string> cli_errors = {
     {CLI_EXPORT_STL_ERROR, "Export stl error"},
     {CLI_EXPORT_OBJ_ERROR, "Export obj error"},
     {CLI_EXPORT_3MF_ERROR, "Export 3mf error"},
+    {CLI_OUT_OF_MEMORY, "Out of memory"},
     {CLI_NO_SUITABLE_OBJECTS, "Found no objects in print volume to slice"},
     {CLI_VALIDATE_ERROR, "Validate print error"},
     {CLI_OBJECTS_PARTLY_INSIDE, "Objects partly inside"},
+    {CLI_EXPORT_CACHE_DIRECTORY_CREATE_FAILED, "Objects partly inside"},
+    {CLI_EXPORT_CACHE_WRITE_FAILED, "export cached slicedata failed"},
+    {CLI_IMPORT_CACHE_NOT_FOUND, "cached slicedata can not be found"},
+    {CLI_IMPORT_CACHE_DATA_CAN_NOT_USE, "cached slicedata can not be used"},
+    {CLI_IMPORT_CACHE_LOAD_FAILED, "load cached slicedata failed"},
     {CLI_SLICING_ERROR, "Slice error"}
 };
 
@@ -374,12 +357,12 @@ int CLI::run(int argc, char **argv)
     int debug_argc = 7;
     char *debug_argv[] = {
         "E:\work\projects\bambu_release\bamboo_slicer\build_debug\src\Debug\bambu-studio.exe",
+        "--load-slicedata",
+        "cached_data",
         "--slice",
-        "2",
+        "0",
         "--export-3mf=output.3mf",
-        "--load-filaments",
-        "GFSA05.json;GFSA04.json;;GFSA05.json;GFSL23.json",
-        "majiang.3mf"
+        "test.3mf"
         };
     if (! this->setup(debug_argc, debug_argv))*/
     if (!this->setup(argc, argv))
@@ -1345,8 +1328,8 @@ int CLI::run(int argc, char **argv)
                 o->ensure_on_bed();
 
     // loop through action options
-    bool export_to_3mf = false;
-    std::string export_3mf_file;
+    bool export_to_3mf = false, load_slicedata = false, export_slicedata = false, export_slicedata_error = false;
+    std::string export_3mf_file, load_slice_data_dir, export_slice_data_dir;
     std::string outfile_dir = m_config.opt_string("outputdir");
     std::vector<ThumbnailData*> calibration_thumbnails;
     for (auto const &opt_key : m_actions) {
@@ -1361,6 +1344,13 @@ int CLI::run(int argc, char **argv)
             std::string pipe_name = m_config.option<ConfigOptionString>("pipe")->value;
             g_cli_callback_mgr.start(pipe_name);
 #endif
+        } else if (opt_key == "load_slicedata") {
+            load_slicedata = true;
+            load_slice_data_dir = m_config.opt_string(opt_key);
+            if (export_slicedata) {
+                BOOST_LOG_TRIVIAL(error) << "should not set load_slicedata and export_slicedata together." << std::endl;
+                flush_and_exit(CLI_INVALID_PARAMS);
+            }
         } else if (opt_key == "export_settings") {
             //FIXME check for mixing the FFF / SLA parameters.
             // or better save fff_print_config vs. sla_print_config
@@ -1377,7 +1367,7 @@ int CLI::run(int argc, char **argv)
                 model.add_default_instances();
             if (! this->export_models(IO::STL))
                 flush_and_exit(CLI_EXPORT_STL_ERROR);
-        } else if (opt_key == "expor1t_obj") {
+        } else if (opt_key == "export_obj") {
             for (auto &model : m_models)
                 model.add_default_instances();
             if (! this->export_models(IO::OBJ))
@@ -1389,6 +1379,13 @@ int CLI::run(int argc, char **argv)
             export_to_3mf = true;
             export_3mf_file = m_config.opt_string(opt_key);
         //} else if (opt_key == "export_gcode" || opt_key == "export_sla" || opt_key == "slice") {
+        } else if (opt_key == "export_slicedata") {
+            export_slicedata = true;
+            export_slice_data_dir = m_config.opt_string(opt_key);
+            if (load_slicedata) {
+                BOOST_LOG_TRIVIAL(error) << "should not set load_slicedata and export_slicedata together." << std::endl;
+                flush_and_exit(CLI_INVALID_PARAMS);
+            }
         } else if (opt_key == "slice") {
             //BBS: slice 0 means all plates, i means plate i;
             plate_to_slice = m_config.option<ConfigOptionInt>("slice")->value;
@@ -1530,7 +1527,23 @@ int CLI::run(int argc, char **argv)
                                 }
                             }
 #endif
-                            print->process();
+                            if (load_slicedata) {
+                                std::string plate_dir = load_slice_data_dir+"/"+std::to_string(index+1);
+                                int ret = print->load_cached_data(plate_dir);
+                                if (ret) {
+                                    BOOST_LOG_TRIVIAL(warning) << "plate "<< index+1<< ": load Slicing data error, ret=" << ret;
+                                    BOOST_LOG_TRIVIAL(warning) << "plate "<< index+1<< ": switch normal slicing";
+                                    print->process();
+                                }
+                                else {
+                                    BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ": load cached data success, go on.";
+                                    print->process(true);
+                                    BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ": finished print::process.";
+                                }
+                            }
+                            else {
+                                print->process();
+                            }
                             if (printer_technology == ptFFF) {
                                 // The outfile is processed by a PlaceholderParser.
                                 //outfile = part_plate->get_tmp_gcode_path();
@@ -1569,6 +1582,18 @@ int CLI::run(int argc, char **argv)
                                 cli_status_callback(slicing_status);
                             }
 #endif
+                            if (export_slicedata) {
+                                BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ":will export Slicing data to " << export_slice_data_dir;
+                                std::string plate_dir = export_slice_data_dir+"/"+std::to_string(index+1);
+                                bool with_space = (get_logging_level() >= 4)?true:false;
+                                int ret = print->export_cached_data(plate_dir, with_space);
+                                if (ret) {
+                                    BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": export Slicing data error, ret=" << ret;
+                                    export_slicedata_error = true;
+                                    if (fs::exists(plate_dir))
+                                        fs::remove_all(plate_dir);
+                                }
+                            }
                         } catch (const std::exception &ex) {
                             BOOST_LOG_TRIVIAL(info) << "found slicing or export error for partplate "<<index+1 << std::endl;
                             boost::nowide::cerr << ex.what() << std::endl;
@@ -2037,8 +2062,9 @@ bool CLI::setup(int argc, char **argv)
 #if !BBL_RELEASE_TO_PUBLIC
     {
         const ConfigOptionInt *opt_loglevel = m_config.opt<ConfigOptionInt>("debug");
-        if (opt_loglevel != 0)
+        if (opt_loglevel != 0) {
             set_logging_level(opt_loglevel->value);
+        }
     }
 #endif
 

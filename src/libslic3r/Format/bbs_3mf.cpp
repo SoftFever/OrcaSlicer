@@ -245,6 +245,7 @@ static constexpr const char* PATTERN_FILE_ATTR = "pattern_file";
 static constexpr const char* PATTERN_BBOX_FILE_ATTR = "pattern_bbox_file";
 static constexpr const char* OBJECT_ID_ATTR = "object_id";
 static constexpr const char* INSTANCEID_ATTR = "instance_id";
+static constexpr const char* ARRANGE_ORDER_ATTR = "arrange_order";
 static constexpr const char* PLATERID_ATTR = "plater_id";
 static constexpr const char* PLATE_IDX_ATTR = "index";
 static constexpr const char* SLICE_PREDICTION_ATTR = "prediction";
@@ -604,6 +605,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         {
             int object_id;
             int instance_id;
+            int arrange_order;
         };
 
         struct Instance
@@ -1123,6 +1125,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         m_plater_data.clear();
         m_curr_instance.object_id = -1;
         m_curr_instance.instance_id = -1;
+        m_curr_instance.arrange_order = 0;
         clear_errors();
 
         // restore
@@ -1570,7 +1573,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 return false;
             }
             if (current_plate_data) {
-                std::map<int, int>::iterator it = current_plate_data->obj_inst_map.find(object.first.second);
+                std::map<int, std::pair<int, int>>::iterator it = current_plate_data->obj_inst_map.find(object.first.second);
                 if (it == current_plate_data->obj_inst_map.end()) {
                     //not in current plate, skip
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", could not find object %1% in plate %2%, skip it\n")%object.first.second %plate_id;
@@ -1769,8 +1772,46 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->pattern_file = (m_load_restore || it->second->pattern_file.empty()) ? it->second->pattern_file : m_backup_path + "/" + it->second->pattern_file;
             plate_data_list[it->first-1]->pattern_bbox_file = (m_load_restore || it->second->pattern_bbox_file.empty()) ? it->second->pattern_bbox_file : m_backup_path + "/" + it->second->pattern_bbox_file;
             plate_data_list[it->first-1]->config = it->second->config;
+            current_plate_data = plate_data_list[it->first - 1];
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", plate %1%, thumbnail_file=%2%")%it->first %plate_data_list[it->first-1]->thumbnail_file;
             it++;
+
+            //update the arrange order
+            std::map<int, std::pair<int, int>>::iterator map_it = current_plate_data->obj_inst_map.begin();
+            while (map_it != current_plate_data->obj_inst_map.end()) {
+                int obj_index, obj_id = map_it->first, inst_index = map_it->second.first;
+                IndexToPathMap::iterator index_iter = m_index_paths.find(obj_id);
+                if (index_iter == m_index_paths.end()) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ":" << __LINE__
+                        << boost::format(", can not find object from plate's obj_map, id=%1%, skip this object")%obj_id;
+                    map_it++;
+                    continue;
+                }
+                Id temp_id = std::make_pair(index_iter->second, index_iter->first);
+                IdToModelObjectMap::iterator object_item = m_objects.find(temp_id);
+                if (object_item == m_objects.end()) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ":" << __LINE__
+                        << boost::format(", can not find object from plate's obj_map, ID <%1%, %2%>, skip this object")%index_iter->second %index_iter->first;
+                    map_it++;
+                    continue;
+                }
+                obj_index = object_item->second;
+
+                if (obj_index >= m_model->objects.size()) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ":" << __LINE__ << boost::format("invalid object id %1%\n")%obj_index;
+                    map_it++;
+                    continue;
+                }
+                ModelObject* obj =  m_model->objects[obj_index];
+                if (inst_index >= obj->instances.size()) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ":" << __LINE__ << boost::format("invalid instance id %1%\n")%inst_index;
+                    map_it++;
+                    continue;
+                }
+                ModelInstance* inst =  obj->instances[inst_index];
+                inst->arrange_order = map_it->second.second;
+                map_it++;
+            }
         }
 
         if ((plate_id > 0) && (plate_id <= m_plater_data.size())) {
@@ -3417,6 +3458,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             {
                 m_curr_instance.instance_id = atoi(value.c_str());
             }
+            else if (key == ARRANGE_ORDER_ATTR)
+            {
+                m_curr_instance.arrange_order = atoi(value.c_str());
+            }
             else if (key == OBJECT_ID_ATTR)
             {
                 m_curr_instance.object_id = atoi(value.c_str());
@@ -3570,11 +3615,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             //add_error("invalid object id/instance id");
             //skip this instance
             m_curr_instance.object_id = m_curr_instance.instance_id = -1;
+            m_curr_instance.arrange_order = 0;
             return true;
         }
 
-        m_curr_plater->obj_inst_map.emplace(m_curr_instance.object_id, m_curr_instance.instance_id);
+        m_curr_plater->obj_inst_map.emplace(m_curr_instance.object_id, std::make_pair(m_curr_instance.instance_id, m_curr_instance.arrange_order));
         m_curr_instance.object_id = m_curr_instance.instance_id = -1;
+        m_curr_instance.arrange_order = 0;
         return true;
     }
 
@@ -6360,14 +6407,32 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         stream << "    <" << INSTANCE_TAG << ">\n";
                         int obj_id = plate_data->objects_and_instances[j].first;
                         int inst_id = plate_data->objects_and_instances[j].second;
-                        if (m_skip_static) {
-                            obj_id = model.objects[obj_id]->get_backup_id();
+                        int arrange_o = 0;
+                        ModelObject* obj = NULL;
+                        ModelInstance* inst = NULL;
+                        if (obj_id >= model.objects.size()) {
+                            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ":" << __LINE__ << boost::format("invalid object id %1%\n")%obj_id;
+                        }
+                        else
+                            obj =  model.objects[obj_id];
+
+                        if (obj && (inst_id >= obj->instances.size())) {
+                            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ":" << __LINE__ << boost::format("invalid instance id %1%\n")%inst_id;
+                        }
+                        else if (obj){
+                            inst =  obj->instances[inst_id];
+                            arrange_o = inst->arrange_order;
+                        }
+                        if (m_skip_static && obj) {
+                            obj_id = obj->get_backup_id();
                         } else {
                             //inst_id = convert_instance_id_to_resource_id(model, obj_id, inst_id);
                             obj_id = convert_instance_id_to_resource_id(model, obj_id, 0);
                         }
+
                         stream << "      <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << OBJECT_ID_ATTR << "\" " << VALUE_ATTR << "=\"" << obj_id << "\"/>\n";
                         stream << "      <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << INSTANCEID_ATTR << "\" " << VALUE_ATTR << "=\"" << inst_id << "\"/>\n";
+                        stream << "      <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << ARRANGE_ORDER_ATTR << "\" " << VALUE_ATTR << "=\"" << arrange_o << "\"/>\n";
                         stream << "    </" << INSTANCE_TAG << ">\n";
                     }
                 }
