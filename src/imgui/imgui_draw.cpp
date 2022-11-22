@@ -2956,7 +2956,8 @@ const ImWchar*  ImFontAtlas::GetGlyphRangesChineseSimplifiedCommon() // used in 
         0x3000, 0x30FF, // CJK Symbols and Punctuations, Hiragana, Katakana
         0x31F0, 0x31FF, // Katakana Phonetic Extensions
         0xFF00, 0xFFEF,  // Half-width characters
-        0X5C4F, 0X5C50
+        0X5C4F, 0X5C50,
+        0x2103, 0x2104,
     };
     static ImWchar full_ranges[IM_ARRAYSIZE(base_ranges) + IM_ARRAYSIZE(accumulative_offsets_from_0x4E00) * 2 + 1] = { 0 };
     if (!full_ranges[0])
