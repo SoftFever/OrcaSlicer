@@ -542,8 +542,12 @@ Sidebar::Sidebar(Plater *parent)
         m_bed_type_list = new ComboBox(p->m_panel_printer_content, wxID_ANY, wxString(""), wxDefaultPosition, {-1, FromDIP(24)}, 0, nullptr, wxCB_READONLY);
         const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
         if (bed_type_def && bed_type_def->enum_keys_map) {
-            for (auto item : *bed_type_def->enum_keys_map)
+            for (auto item : *bed_type_def->enum_keys_map) {
+                if (item.first == "Default Plate")
+                    continue;
+
                 m_bed_type_list->AppendString(_L(item.first));
+            }
         }
 
         bed_type_title->Bind(wxEVT_ENTER_WINDOW, [bed_type_title, this](wxMouseEvent &e) {
@@ -1253,8 +1257,10 @@ void Sidebar::on_filaments_change(size_t num_filaments)
 
 void Sidebar::on_bed_type_change(BedType bed_type)
 {
+    // btDefault option is not included in global bed type setting
+    int sel_idx = (int)bed_type - 1;
     if (m_bed_type_list != nullptr)
-        m_bed_type_list->SetSelection(bed_type);
+        m_bed_type_list->SetSelection(sel_idx);
 }
 
 void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
@@ -5231,38 +5237,32 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
     int selection = combo->GetSelection();
     wxString bed_type_name = combo->GetString(selection);
 
-    DynamicPrintConfig& config = wxGetApp().preset_bundle->project_config;
+    DynamicPrintConfig& proj_config = wxGetApp().preset_bundle->project_config;
     const t_config_enum_values* keys_map = print_config_def.get("curr_bed_type")->enum_keys_map;
 
     if (keys_map) {
-        BedType bed_type = btCount;
+        BedType new_bed_type = btCount;
         for (auto item : *keys_map) {
-            if (_L(item.first) == bed_type_name)
-                bed_type = (BedType)item.second;
+            if (_L(item.first) == bed_type_name) {
+                new_bed_type = (BedType)item.second;
+                break;
+            }
         }
 
-        if (bed_type != btCount) {
-            config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
+        if (new_bed_type != btCount) {
+            BedType old_bed_type = proj_config.opt_enum<BedType>("curr_bed_type");
+            proj_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(new_bed_type));
 
             wxGetApp().plater()->update_project_dirty_from_presets();
-            // clear all plates' bed type config
-            for (int i = 0; i < partplate_list.get_plate_count(); i++)
-                partplate_list.get_plate(i)->reset_bed_type();
 
             // update plater with new config
             q->on_config_change(wxGetApp().preset_bundle->full_config());
 
             // update app_config
             AppConfig *app_config = wxGetApp().app_config;
-            app_config->set("curr_bed_type", std::to_string(int(bed_type)));
+            app_config->set("curr_bed_type", std::to_string(int(new_bed_type)));
 
             // update render
-            auto plate_list = partplate_list.get_plate_list();
-            for (auto plate : plate_list) {
-                bool same_as_global = false;
-                auto type = plate->get_bed_type();
-                plate->set_bed_type(type, same_as_global);
-            }
             view3D->get_canvas3d()->render();
             preview->msw_rescale();
         }
@@ -10645,11 +10645,11 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
         ret = select_plate(plate_index);
         if (!ret) {
             SetBedTypeDialog dlg(this, wxID_ANY, _L("Select Bed Type"));
-            dlg.sync_bed_type(p->partplate_list.get_curr_plate()->get_bed_type());
+            PartPlate* curr_plate = p->partplate_list.get_curr_plate();
+            dlg.sync_bed_type(curr_plate->get_bed_type(false));
             dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index](wxCommandEvent& e) {
-                bool same_as_global = false;
                 auto type = (BedType)(e.GetInt());
-                p->partplate_list.get_curr_plate()->set_bed_type(type, same_as_global);
+                p->partplate_list.get_curr_plate()->set_bed_type(type);
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select bed type %1% for plate %2% at plate side")%type %plate_index;
                 });
             dlg.ShowModal();

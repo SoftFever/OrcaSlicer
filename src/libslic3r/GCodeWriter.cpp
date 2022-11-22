@@ -120,13 +120,12 @@ std::string GCodeWriter::set_temperature(unsigned int temperature, bool wait, in
 }
 
 // BBS
-std::string GCodeWriter::set_bed_temperature(std::vector<int> temps_per_bed, int default_temp, bool wait)
+std::string GCodeWriter::set_bed_temperature(int temperature, bool wait)
 {
-    if (temps_per_bed == m_last_bed_temperature && (! wait || m_last_bed_temperature_reached))
+    if (temperature == m_last_bed_temperature && (! wait || m_last_bed_temperature_reached))
         return std::string();
 
-    bool target_temp_changed = (temps_per_bed != m_last_bed_temperature);
-    m_last_bed_temperature = temps_per_bed;
+    m_last_bed_temperature = temperature;
     m_last_bed_temperature_reached = wait;
 
     std::string code, comment;
@@ -141,7 +140,7 @@ std::string GCodeWriter::set_bed_temperature(std::vector<int> temps_per_bed, int
         comment = "set bed temperature";
     }
 
-    gcode << code << " S" << default_temp << " ; " << comment << "\n";
+    gcode << code << " S" << temperature << " ; " << comment << "\n";
     return gcode.str();
 }
 

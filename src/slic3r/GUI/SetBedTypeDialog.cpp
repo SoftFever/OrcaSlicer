@@ -19,14 +19,17 @@ SetBedTypeDialog::SetBedTypeDialog(wxWindow* parent, wxWindowID id, const wxStri
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(5));
 
     wxBoxSizer* m_sizer_radiobutton = new wxBoxSizer(wxVERTICAL);
-    m_cool_btn = create_item_radiobox(_L("Cool Plate"), this, wxEmptyString, FromDIP(5), 0, "btPC");
-    m_sizer_radiobutton->Add( m_cool_btn, 1, wxALL, FromDIP(5) );
-    m_engineering_btn = create_item_radiobox(_L("Engineering Plate"), this, wxEmptyString, FromDIP(5), 1, "btEP");
-    m_sizer_radiobutton->Add( m_engineering_btn, 1, wxALL, FromDIP(5) );
-    m_high_temp_btn = create_item_radiobox(_L("High Temp Plate"), this, wxEmptyString, FromDIP(5), 2, "btPEI");
-    m_sizer_radiobutton->Add( m_high_temp_btn, 1, wxALL, FromDIP(5) );
-    m_texture_pei_btn = create_item_radiobox(_L("Textured PEI Plate"), this, wxEmptyString, FromDIP(5), 3, "btPTE");
-    m_sizer_radiobutton->Add( m_texture_pei_btn, 1, wxALL, FromDIP(5) );
+
+    m_rb_default_plate = create_item_radiobox(_L("Default"), this, wxEmptyString, FromDIP(5), btDefault);
+    m_sizer_radiobutton->Add(m_rb_default_plate->GetParent(), 1, wxALL, FromDIP(5));
+    m_rb_cool_plate = create_item_radiobox(_L("Cool Plate"), this, wxEmptyString, FromDIP(5), btPC);
+    m_sizer_radiobutton->Add(m_rb_cool_plate->GetParent(), 1, wxALL, FromDIP(5));
+    m_rb_eng_plate = create_item_radiobox(_L("Engineering Plate"), this, wxEmptyString, FromDIP(5), btEP);
+    m_sizer_radiobutton->Add(m_rb_eng_plate->GetParent(), 1, wxALL, FromDIP(5) );
+    m_rb_high_temp_plate = create_item_radiobox(_L("High Temp Plate"), this, wxEmptyString, FromDIP(5), btPEI);
+    m_sizer_radiobutton->Add(m_rb_high_temp_plate->GetParent(), 1, wxALL, FromDIP(5));
+    m_rb_texture_pei_plate = create_item_radiobox(_L("Textured PEI Plate"), this, wxEmptyString, FromDIP(5), btPTE);
+    m_sizer_radiobutton->Add(m_rb_texture_pei_plate->GetParent(), 1, wxALL, FromDIP(5));
 
     m_sizer_main->Add(m_sizer_radiobutton, 0, wxEXPAND | wxALL, FromDIP(10));
 
@@ -50,7 +53,7 @@ SetBedTypeDialog::SetBedTypeDialog(wxWindow* parent, wxWindowID id, const wxStri
         for (int i = 0; i < len; ++i) {
             if (radio_buttons[i]->GetValue()) {
                wxCommandEvent evt(EVT_SET_BED_TYPE_CONFIRM, GetId());
-               evt.SetInt(i);
+               evt.SetInt(radio_buttons[i]->GetBedType());
                e.SetEventObject(this);
                GetEventHandler()->ProcessEvent(evt);
                break;
@@ -94,12 +97,12 @@ SetBedTypeDialog::~SetBedTypeDialog()
 
 }
 
-wxWindow* SetBedTypeDialog::create_item_radiobox(wxString title, wxWindow* parent, wxString tooltip, int padding_left, int groupid, std::string param)
+BedTypeRadioBox* SetBedTypeDialog::create_item_radiobox(wxString title, wxWindow* parent, wxString tooltip, int padding_left, BedType bed_type)
 {
     wxWindow *item = new wxWindow(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(28)));
     item->SetBackgroundColour(*wxWHITE);
 
-    RadioBox *radiobox = new RadioBox(item);
+    BedTypeRadioBox* radiobox = new BedTypeRadioBox(item, bed_type);
     radiobox->SetPosition(wxPoint(padding_left, (item->GetSize().GetHeight() - radiobox->GetSize().GetHeight()) / 2));
     radio_buttons.push_back(radiobox);
     int btn_idx = radio_buttons.size() - 1;
@@ -117,7 +120,7 @@ wxWindow* SetBedTypeDialog::create_item_radiobox(wxString title, wxWindow* paren
 
     radiobox->SetToolTip(tooltip);
     text->SetToolTip(tooltip);
-    return item;
+    return radiobox;
 }
 
 void SetBedTypeDialog::select_curr_radiobox(int btn_idx)
@@ -133,8 +136,12 @@ void SetBedTypeDialog::select_curr_radiobox(int btn_idx)
 
 void SetBedTypeDialog::sync_bed_type(BedType type)
 {
-    int select_type = (int)(type);
-    select_curr_radiobox(select_type);
+    for (auto radio_box : radio_buttons) {
+        if (radio_box->GetBedType() == type)
+            radio_box->SetValue(true);
+        else
+            radio_box->SetValue(false);
+    }
 }
 
 void SetBedTypeDialog::on_dpi_changed(const wxRect& suggested_rect)

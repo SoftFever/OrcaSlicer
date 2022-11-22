@@ -2037,17 +2037,11 @@ void GCode::print_machine_envelope(GCodeOutputStream &file, Print &print)
 }
 
 // BBS
-void GCode::get_bed_temperature(const int extruder_id, const bool is_first_layer, std::vector<int>& temps_per_bed, int& default_temp) const
+int GCode::get_bed_temperature(const int extruder_id, const bool is_first_layer, const BedType bed_type) const
 {
-    temps_per_bed.resize((int)BedType::btCount, 0);
-    for (int bed_type = 0; bed_type < BedType::btCount; bed_type++) {
-        std::string bed_temp_key = is_first_layer ? get_bed_temp_1st_layer_key((BedType)bed_type) : get_bed_temp_key((BedType)bed_type);
-        const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(bed_temp_key);
-
-        temps_per_bed[bed_type] = bed_temp_opt->get_at(extruder_id);
-        if (bed_type == m_config.curr_bed_type)
-            default_temp = temps_per_bed[bed_type];
-    }
+    std::string bed_temp_key = is_first_layer ? get_bed_temp_1st_layer_key(bed_type) : get_bed_temp_key(bed_type);
+    const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(bed_temp_key);
+    return bed_temp_opt->get_at(extruder_id);
 }
 
 // Write 1st layer bed temperatures into the G-code.
@@ -2059,8 +2053,7 @@ void GCode::_print_first_layer_bed_temperature(GCodeOutputStream &file, Print &p
     // Initial bed temperature based on the first extruder.
     // BBS
     std::vector<int> temps_per_bed;
-    int default_temp = 0;
-    get_bed_temperature(first_printing_extruder_id, true, temps_per_bed, default_temp);
+    int bed_temp = get_bed_temperature(first_printing_extruder_id, true, print.config().curr_bed_type);
 
     // Is the bed temperature set by the provided custom G-code?
     int  temp_by_gcode     = -1;
@@ -2073,7 +2066,7 @@ void GCode::_print_first_layer_bed_temperature(GCodeOutputStream &file, Print &p
 
     // Always call m_writer.set_bed_temperature() so it will set the internal "current" state of the bed temp as if
     // the custom start G-code emited these.
-    std::string set_temp_gcode = m_writer.set_bed_temperature(temps_per_bed, default_temp, wait);
+    std::string set_temp_gcode = m_writer.set_bed_temperature(bed_temp, wait);
     if (! temp_set_by_gcode)
         file.write(set_temp_gcode);
 }
@@ -2528,10 +2521,8 @@ GCode::LayerResult GCode::process_layer(
         }
 
         // BBS
-        std::vector<int> temps_per_bed;
-        int default_temp = 0;
-        get_bed_temperature(first_extruder_id, false, temps_per_bed, default_temp);
-        gcode += m_writer.set_bed_temperature(temps_per_bed, default_temp);
+        int bed_temp = get_bed_temperature(first_extruder_id, false, print.config().curr_bed_type);
+        gcode += m_writer.set_bed_temperature(bed_temp);
         // Mark the temperature transition from 1st to 2nd layer to be finished.
         m_second_layer_things_done = true;
     }

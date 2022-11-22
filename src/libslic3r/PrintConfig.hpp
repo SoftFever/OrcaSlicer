@@ -166,7 +166,8 @@ enum OverhangFanThreshold {
 
 // BBS
 enum BedType {
-    btPC = 0,
+    btDefault = 0,
+    btPC,
     btEP,
     btPEI,
     btPTE,

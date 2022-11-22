@@ -133,12 +133,20 @@ void PartPlate::init()
 	m_print = nullptr;
 }
 
-BedType PartPlate::get_bed_type() const
+BedType PartPlate::get_bed_type(bool check_global/*= true*/) const
 {
 	std::string bed_type_key = "curr_bed_type";
 
-	if (m_config.has(bed_type_key))
-		return m_config.opt_enum<BedType>(bed_type_key);
+	// should be called in GUI context
+	assert(m_plater != nullptr);
+	if (m_config.has(bed_type_key)) {
+		BedType bed_type = m_config.opt_enum<BedType>(bed_type_key);
+		if (bed_type != btDefault)
+			return bed_type;
+	}
+
+	if (!check_global)
+		return btDefault;
 
 	if (m_plater) {
 		// In GUI mode
@@ -150,30 +158,20 @@ BedType PartPlate::get_bed_type() const
 	return BedType::btPC;
 }
 
-void PartPlate::set_bed_type(BedType bed_type, bool& same_as_global)
+void PartPlate::set_bed_type(BedType bed_type)
 {
-	is_same_bedtype_with_global = true;
+	std::string bed_type_key = "curr_bed_type";
+
 	// should be called in GUI context
 	assert(m_plater != nullptr);
 
-	std::string bed_type_key = "curr_bed_type";
+	if (bed_type == BedType::btDefault)
+		m_config.erase(bed_type_key);
+	else
+		m_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
 
-	m_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
-	if (m_plater) {
+	if (m_plater)
         m_plater->update_project_dirty_from_presets();
-		//m_plater->schedule_background_process();
-		DynamicConfig& proj_cfg = wxGetApp().preset_bundle->project_config;
-		if (proj_cfg.has(bed_type_key)) {
-			//std::string bed_type_key = "curr_bed_type";
-			BedType global_bed_type = proj_cfg.opt_enum<BedType>(bed_type_key);
-			same_as_global = bed_type == global_bed_type;
-			is_same_bedtype_with_global = same_as_global;
-			return;
-		}
-	}
-
-	same_as_global = false;
-	is_same_bedtype_with_global = same_as_global;
 }
 
 void PartPlate::reset_bed_type()
@@ -551,7 +549,8 @@ void PartPlate::render_logo(bool bottom) const
 
 	PartPlateList::load_bedtype_textures();
 
-	int bed_type_idx = (int)get_bed_type();
+	// btDefault should be skipped
+	int bed_type_idx = (int)get_bed_type() - 1;
 	render_logo_texture(PartPlateList::bed_textures[bed_type_idx], bottom);
 }
 
@@ -717,16 +716,16 @@ void PartPlate::render_icons(bool bottom, int hover_id) const
 
         if (m_partplate_list->render_bedtype_setting) {
             if (hover_id == 5) {
-                if (is_same_bedtype_with_global)
-                    render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_hovered_texture, m_bedtype_vbo_id);
+                if (get_bed_type(false) == BedType::btDefault)
+					render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_hovered_texture, m_bedtype_vbo_id);
                 else
-                    render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_changed_hovered_texture, m_bedtype_vbo_id);
+					render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_changed_hovered_texture, m_bedtype_vbo_id);
             }
             else {
-                if (is_same_bedtype_with_global)
-                    render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_texture, m_bedtype_vbo_id);
+                if (get_bed_type(false) == BedType::btDefault)
+					render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_texture, m_bedtype_vbo_id);
                 else
-                    render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_changed_texture, m_bedtype_vbo_id);
+					render_icon_texture(position_id, tex_coords_id, m_bedtype_icon, m_partplate_list->m_bedtype_changed_texture, m_bedtype_vbo_id);
             }
         }
 

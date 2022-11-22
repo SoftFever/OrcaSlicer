@@ -213,8 +213,8 @@ public:
     //clear alll the instances in plate
     void clear(bool clear_sliced_result = true);
 
-    BedType get_bed_type() const;
-    void set_bed_type(BedType, bool& same_as_global);
+    BedType get_bed_type(bool check_global = true) const;
+    void set_bed_type(BedType bed_type);
     void reset_bed_type();
     DynamicPrintConfig* config() { return &m_config; }
 

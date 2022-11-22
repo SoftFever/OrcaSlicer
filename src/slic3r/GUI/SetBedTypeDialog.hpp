@@ -10,6 +10,18 @@ namespace Slic3r { namespace GUI {
 
 wxDECLARE_EVENT(EVT_SET_BED_TYPE_CONFIRM, wxCommandEvent);
 
+class BedTypeRadioBox : public RadioBox
+{
+public:
+    BedTypeRadioBox(wxWindow* parent, BedType bed_type) : RadioBox(parent), m_bed_type(bed_type) {}
+
+    void SetBedType(BedType bed_type) { m_bed_type = bed_type; }
+    BedType GetBedType() { return m_bed_type; }
+
+private:
+    BedType m_bed_type{ BedType::btCount };
+};
+
 class SetBedTypeDialog : public DPIDialog
 {
 public:
@@ -32,15 +44,16 @@ public:
     void on_dpi_changed(const wxRect& suggested_rect) override;
 
 protected:
-    wxWindow* m_cool_btn;
-    wxWindow* m_engineering_btn;
-    wxWindow* m_high_temp_btn;
-    wxWindow* m_texture_pei_btn;
+    BedTypeRadioBox* m_rb_default_plate{ nullptr };
+    BedTypeRadioBox* m_rb_cool_plate{ nullptr };
+    BedTypeRadioBox* m_rb_eng_plate{ nullptr };
+    BedTypeRadioBox* m_rb_high_temp_plate{ nullptr };
+    BedTypeRadioBox* m_rb_texture_pei_plate{ nullptr };
     Button* m_button_ok;
     Button* m_button_cancel;
-    std::vector<RadioBox*> radio_buttons;
+    std::vector<BedTypeRadioBox*> radio_buttons;
 
-    wxWindow *  create_item_radiobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, int groupid, std::string param);
+    BedTypeRadioBox* create_item_radiobox(wxString title, wxWindow* parent, wxString tooltip, int padding_left, BedType bed_type);
     void select_curr_radiobox(int btn_idx);
 };
 

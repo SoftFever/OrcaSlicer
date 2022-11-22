@@ -269,10 +269,11 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(OverhangFanThreshold)
 
 // BBS
 static const t_config_enum_values s_keys_map_BedType = {
+    { "Default Plate",      btDefault },
     { "Cool Plate",         btPC },
     { "Engineering Plate",  btEP  },
     { "High Temp Plate",    btPEI  },
-    { "Textured PEI Plate",      btPTE }
+    { "Textured PEI Plate", btPTE }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(BedType)
 
