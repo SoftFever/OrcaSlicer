@@ -143,6 +143,7 @@ std::string HMSQuery::hms_language_code()
         // set language code to en by default
         return "en";
     }
+    return lang_code;
 }
 
 std::string HMSQuery::get_hms_file()
