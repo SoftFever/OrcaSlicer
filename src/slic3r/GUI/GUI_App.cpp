@@ -4905,10 +4905,16 @@ void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
 void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
 {
     if (m_post_initialized) {
+        bool has3mf = false;
         std::vector<wxString> names;
-        for (auto & n : fileNames) names.push_back(n);
-        start_new_slicer(names);
-        return;
+        for (auto & n : fileNames) {
+            has3mf |= n.EndsWith(".3mf");
+            names.push_back(n);
+        }
+        if (has3mf) {
+            start_new_slicer(names);
+            return;
+        }
     }
     std::vector<std::string> files;
     std::vector<wxString>    gcode_files;
