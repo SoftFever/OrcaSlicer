@@ -652,8 +652,8 @@ void AuFolderPanel::update(std::vector<fs::path> paths)
 {
     clear();
     for (auto i = 0; i < paths.size(); i++) {
-        std::string temp_name   = fs::path(paths[i].c_str()).filename().string();
-        auto name             = encode_path(temp_name.c_str());
+        std::string temp_name = fs::path(paths[i].c_str()).filename().string();
+        auto name = encode_path(temp_name.c_str());
 
         auto        aufile = new AuFile(m_scrolledWindow, paths[i], name, m_type, wxID_ANY);
         m_gsizer_content->Add(aufile, 0, wxALL, FromDIP(8));

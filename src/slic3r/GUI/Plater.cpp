@@ -7408,7 +7408,7 @@ void Plater::import_model_id(const std::string& download_info)
         //update filename
         if (is_already_exist && vecFiles.size() >= 1) {
             wxString extension = fs::path(filename).extension().c_str();
-            wxString name = filename.substr(0, filename.length() - extension.length() - 1);
+            wxString name = filename.substr(0, filename.length() - extension.length());
             filename = wxString::Format("%s(%d)%s", name, vecFiles.size() + 1, extension).ToStdString();
         }
        
@@ -7494,7 +7494,7 @@ void Plater::import_model_id(const std::string& download_info)
         }
 
         // show save new project
-        p->set_project_filename(filename);
+        p->set_project_filename(wxString::FromUTF8(filename));
     }
     else {
         wxMessageBox(msg);

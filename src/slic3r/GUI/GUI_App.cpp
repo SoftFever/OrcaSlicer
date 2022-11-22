@@ -4978,8 +4978,12 @@ void GUI_App::open_mall_page_dialog()
             m_mall_home_dialog->go_to_mall(url);
         }
         else {
-            m_mall_home_dialog->go_to_mall(url);
+            if (m_mall_home_dialog->IsIconized())
+                m_mall_home_dialog->Iconize(false);
+
+            //m_mall_home_dialog->go_to_mall(url);
         }
+        m_mall_home_dialog->Raise();
         m_mall_home_dialog->Show();
     }
 }
@@ -4995,8 +4999,12 @@ void GUI_App::open_publish_page_dialog()
             m_mall_publish_dialog->go_to_mall(url);
         }
         else {
-            m_mall_publish_dialog->go_to_publish(url);
+            if (m_mall_publish_dialog->IsIconized())
+                m_mall_publish_dialog->Iconize(false);
+
+            //m_mall_publish_dialog->go_to_publish(url);
         }
+        m_mall_publish_dialog->Raise();
         m_mall_publish_dialog->Show();
     }
 }
