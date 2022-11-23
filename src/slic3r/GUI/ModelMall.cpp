@@ -63,7 +63,8 @@ namespace GUI {
         m_control_refresh->SetMinSize(wxSize(FromDIP(25), FromDIP(30)));
         m_control_refresh->SetMaxSize(wxSize(FromDIP(25), FromDIP(30)));
         m_control_refresh->Bind(wxEVT_LEFT_DOWN, &ModelMallDialog::on_refresh, this);
-
+        m_control_refresh->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCursor(wxCURSOR_HAND)); });
+        m_control_refresh->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCursor(wxCURSOR_ARROW)); });
 
 #ifdef __APPLE__
         m_control_back->SetToolTip(_L("Click to return (Command + Left Arrow)"));
@@ -73,7 +74,7 @@ namespace GUI {
         m_control_forward->SetToolTip(_L("Click to continue (Alt + Right Arrow)"));
 #endif
         
-
+        m_control_refresh->SetToolTip(_L("Refresh"));
         /* auto m_textCtrl1 = new wxTextCtrl(m_web_control_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(600, 30), 0);
          auto m_button1 = new wxButton(m_web_control_panel, wxID_ANY, wxT("GO"), wxDefaultPosition, wxDefaultSize, 0);
          m_button1->Bind(wxEVT_BUTTON, [this,m_textCtrl1](auto& e) {
