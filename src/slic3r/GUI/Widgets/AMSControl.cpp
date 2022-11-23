@@ -82,6 +82,7 @@ bool AMSinfo::parse_ams_info(Ams *ams)
                 }
      
                 info.material_remain = it->second->remain < 0 ? 100 :it->second->remain;
+                info.material_remain = it->second->remain > 100 ? 100 :info.material_remain;
                 
             } else {
                 info.can_id = it->second->id;
