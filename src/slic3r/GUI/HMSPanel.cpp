@@ -62,7 +62,8 @@ HMSNotifyItem::HMSNotifyItem(wxWindow *parent, HMSItem& item)
     this->SetSizer(main_sizer);
     this->Layout();
 
-    m_hms_content->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {
+#ifdef __linux__
+    m_panel_hms->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& e) {
         e.Skip();
         if (!m_url.empty()) {
             auto font = m_hms_content->GetFont();
@@ -72,7 +73,7 @@ HMSNotifyItem::HMSNotifyItem(wxWindow *parent, HMSItem& item)
             SetCursor(wxCURSOR_HAND);
         }
         });
-    m_hms_content->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &e) {
+    m_panel_hms->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
         e.Skip();
         if (!m_url.empty()) {
             auto font = m_hms_content->GetFont();
@@ -82,9 +83,37 @@ HMSNotifyItem::HMSNotifyItem(wxWindow *parent, HMSItem& item)
             SetCursor(wxCURSOR_ARROW);
         }
         });
-    m_hms_content->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &e) {
+    m_panel_hms->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& e) {
         if (!m_url.empty()) wxLaunchDefaultBrowser(m_url);
-    });
+        });
+    m_hms_content->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& e) {
+        if (!m_url.empty()) wxLaunchDefaultBrowser(m_url);
+        });
+#else
+    m_hms_content->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& e) {
+        e.Skip();
+        if (!m_url.empty()) {
+            auto font = m_hms_content->GetFont();
+            font.SetUnderlined(true);
+            m_hms_content->SetFont(font);
+            Layout();
+            SetCursor(wxCURSOR_HAND);
+        }
+        });
+    m_hms_content->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
+        e.Skip();
+        if (!m_url.empty()) {
+            auto font = m_hms_content->GetFont();
+            font.SetUnderlined(false);
+            m_hms_content->SetFont(font);
+            Layout();
+            SetCursor(wxCURSOR_ARROW);
+        }
+        });
+    m_hms_content->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& e) {
+        if (!m_url.empty()) wxLaunchDefaultBrowser(m_url);
+        });
+#endif
 }
 HMSNotifyItem ::~HMSNotifyItem() {
     ;
