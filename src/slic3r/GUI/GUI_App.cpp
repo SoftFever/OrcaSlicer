@@ -1159,8 +1159,11 @@ void GUI_App::post_init()
            std::vector<std::pair<time_t, std::string>> files_vec;
            for (auto& it : boost::filesystem::directory_iterator(log_folder)) {
                auto temp_path = it.path();
-               std::time_t lw_t = boost::filesystem::last_write_time(temp_path) ;
-               files_vec.push_back({ lw_t, temp_path.filename().string() });
+               try {
+                   std::time_t lw_t = boost::filesystem::last_write_time(temp_path) ;
+                   files_vec.push_back({ lw_t, temp_path.filename().string() });
+               } catch (const std::exception &ex) {
+               }
            }
            std::sort(files_vec.begin(), files_vec.end(), [](
                std::pair<time_t, std::string> &a, std::pair<time_t, std::string> &b) {
