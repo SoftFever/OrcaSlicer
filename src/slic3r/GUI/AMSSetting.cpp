@@ -303,7 +303,7 @@ wxStaticText *AMSSetting::append_text(wxString text)
 
 void AMSSetting::on_dpi_changed(const wxRect &suggested_rect) 
 { 
-    m_button_auto_demarcate->SetMinSize(AMS_SETTING_BUTTON_SIZE); 
+    //m_button_auto_demarcate->SetMinSize(AMS_SETTING_BUTTON_SIZE); 
 }
 
 }} // namespace Slic3r::GUI
