@@ -2380,13 +2380,6 @@ void MainFrame::init_menubar_as_editor()
         m_menubar->Append(helpMenu, wxString::Format("&%s", _L("Help")));
     SetMenuBar(m_menubar);
 
-    if (wxGetApp().getAgent() && wxGetApp().getAgent()->is_user_login()) {
-        int identifier;
-        int result = wxGetApp().getAgent()->get_user_info(&identifier);
-        auto publish_identifier = identifier & 1;
-        show_publish_button(publish_identifier == 0 ? false : true);
-    }
-
 #endif
 
 #ifdef _MSW_DARK_MODE
