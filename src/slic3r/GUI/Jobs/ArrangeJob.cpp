@@ -157,7 +157,7 @@ void ArrangeJob::prepare_selected() {
                 m_locked.emplace_back(std::move(ap));
                 if (inst_sel[i])
                     selected_is_locked = true;
-                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % i;
+                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%, name %3%") % oidx % i % mo->name;
                 }
             }
         }
@@ -235,6 +235,9 @@ void ArrangeJob::prepare_all() {
     }
 
     prepare_wipe_tower();
+
+    // add the virtual object into unselect list if has
+    plate_list.preprocess_exclude_areas(m_unselected, MAX_NUM_PLATES);
 }
 
 // 准备料塔。逻辑如下：
@@ -346,17 +349,18 @@ void ArrangeJob::prepare_partplate() {
             ArrangePolygons& cont = mo->instances[inst_idx]->printable ?
                 (in_plate ? m_selected : m_unselected) :
                 m_unprintable;
-            ap.itemid = cont.size();
             bool locked = plate_list.preprocess_arrange_polygon_other_locked(oidx, inst_idx, ap, in_plate);
             if (!locked)
             {
+                ap.itemid = cont.size();
                 cont.emplace_back(std::move(ap));
             }
             else
             {
                 //skip this object due to be not in current plate, treated as locked
+                ap.itemid = m_locked.size();
                 m_locked.emplace_back(std::move(ap));
-                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % inst_idx;
+                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, name %2%") % oidx % mo->name;
             }
         }
     }
@@ -367,11 +371,8 @@ void ArrangeJob::prepare_partplate() {
         m_unselected.emplace_back(std::move(ap));
     }
 
-    // The strides have to be removed from the fixed items. For the
-    // arrangeable (selected) items bed_idx is ignored and the
-    // translation is irrelevant.
-    //BBS: remove logic for unselected object
-    //for (auto& p : m_unselected) p.translation(X) -= p.bed_idx * stride;
+    // add the virtual object into unselect list if has
+    plate_list.preprocess_exclude_areas(m_unselected, current_plate_index + 1);
 }
 
 //BBS: add partplate logic
@@ -410,8 +411,6 @@ void ArrangeJob::prepare()
         prepare_partplate();
     }
 
-    //add the virtual object into unselect list if has
-    m_plater->get_partplate_list().preprocess_exclude_areas(m_unselected, MAX_NUM_PLATES);
 
 #if SAVE_ARRANGE_POLY
     if (1)
@@ -498,13 +497,14 @@ void ArrangeJob::process()
 {
     const GLCanvas3D::ArrangeSettings &settings =
         static_cast<const GLCanvas3D*>(m_plater->canvas3D())->get_arrange_settings();
+    auto & partplate_list = m_plater->get_partplate_list();
     auto& print = wxGetApp().plater()->get_partplate_list().get_current_fff_print();
 
     if (params.is_seq_print)
         params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius));
 
     if (params.avoid_extrusion_cali_region && print.full_print_config().opt_bool("scan_first_layer"))
-        m_plater->get_partplate_list().preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
+        partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
         
     double skirt_distance = print.has_skirt() ? print.config().skirt_distance.value : 0;
     double brim_max = 0;
@@ -547,7 +547,8 @@ void ArrangeJob::process()
     });
 
 
-    m_plater->get_partplate_list().preprocess_exclude_areas(params.excluded_regions, 1);
+    partplate_list.preprocess_exclude_areas(params.excluded_regions, 1);
+    partplate_list.preprocess_exclude_areas(params.nonprefered_regions, 1);
 
     // shrink bed by moving to center by dist
     Points bedpts = get_bed_shape(*m_plater->config());
@@ -589,7 +590,8 @@ void ArrangeJob::process()
         BOOST_LOG_TRIVIAL(debug) << "items selected after arrange: ";
         for (auto selected : m_selected)
             BOOST_LOG_TRIVIAL(debug) << selected.name << ", extruder: " << selected.extrude_ids.back() << ", bed: " << selected.bed_idx
-            << ", bed_temp: " << selected.first_bed_temp << ", print_temp: " << selected.print_temp;
+                                     << ", bed_temp: " << selected.first_bed_temp << ", print_temp: " << selected.print_temp
+                                     << ", trans: " << unscale<double>(selected.translation(X)) << ","<< unscale<double>(selected.translation(Y));
         BOOST_LOG_TRIVIAL(debug) << "items unselected after arrange: ";
         for (auto item : m_unselected)
             if (!item.is_virt_object)

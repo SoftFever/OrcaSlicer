@@ -84,7 +84,7 @@ const double BIG_ITEM_TRESHOLD = 0.02;
 template<class PConf>
 void fill_config(PConf& pcfg, const ArrangeParams &params) {
 
-    if (params.is_seq_print) {
+    if (params.is_seq_print || params.excluded_regions.empty()==false) {
         // Align the arranged pile into the center of the bin
         pcfg.alignment = PConf::Alignment::CENTER;
         // Start placing the items from the center of the print bed
@@ -137,7 +137,8 @@ static double fixed_overfit(const std::tuple<double, Box>& result, const Box &bi
 }
 
 // useful for arranging big circle objects
-static double fixed_overfit_topright_sliding(const std::tuple<double, Box>& result, const Box& binbb)
+template<class PConf> 
+static double fixed_overfit_topright_sliding(const std::tuple<double, Box> &result, const Box &binbb, const PConf &config)
 {
     double score = std::get<0>(result);
     Box pilebb = std::get<1>(result);
@@ -151,6 +152,18 @@ static double fixed_overfit_topright_sliding(const std::tuple<double, Box>& resu
     Box fullbb = sl::boundingBox(pilebb, binbb);
     auto diff = double(fullbb.area()) - binbb.area();
     if (diff > 0) score += diff;
+
+    // excluded regions and nonprefered regions should not intersect the translated pilebb
+    for (auto &region : config.m_excluded_regions) {
+        Box  bb    = region.boundingBox();
+        auto area_ = bb.intersection(pilebb).area();
+        if (area_ > 0) score += area_;
+    }
+    for (auto &region : config.m_nonprefered_regions) {
+        Box  bb    = region.boundingBox();
+        auto area_ = bb.intersection(pilebb).area();
+        if (area_ > 0) score += area_;
+    }
 
     return score;
 }
@@ -545,7 +558,7 @@ public:
                 }
             }
 
-            cfg.object_function = [this, binbb, starting_point](const Item& item, const ItemGroup& packed_items) {
+            cfg.object_function = [this, binbb, starting_point, &cfg](const Item &item, const ItemGroup &packed_items) {
                 // 在我们的摆盘中，没有天然的固定对象。固定对象只有：屏蔽区域、挤出补偿区域、料塔。
                 // 对于屏蔽区域，摆入的对象仍然是可以向右上滑动的；
                 // 对挤出料塔，摆入的对象不能滑动（必须围绕料塔）
@@ -553,7 +566,7 @@ public:
                 if(pack_around_wipe_tower)
                     return fixed_overfit(objfunc(item, starting_point), binbb);
                 else {
-                    return fixed_overfit_topright_sliding(objfunc(item, starting_point), binbb);
+                    return fixed_overfit_topright_sliding(objfunc(item, starting_point), binbb, cfg);
                 }
             };
         };
