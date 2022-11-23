@@ -50,7 +50,7 @@ DropDown::DropDown(wxWindow *             parent,
 void DropDown::Create(wxWindow *     parent,
          long           style)
 {
-    wxPopupTransientWindow::Create(parent);
+    wxPopupTransientWindow::Create(parent, wxPU_CONTAINS_CONTROLS);
     SetBackgroundStyle(wxBG_STYLE_PAINT);
     SetBackgroundColour(*wxWHITE);
     state_handler.attach({&border_color, &text_color, &selector_border_color, &selector_background_color});

@@ -219,7 +219,7 @@ void ComboBox::mouseDown(wxMouseEvent &event)
     } else if (drop.HasDismissLongTime()) {
         drop.autoPosition();
         drop_down = true;
-        drop.Popup();
+        drop.Popup(&drop);
         wxCommandEvent e(wxEVT_COMBOBOX_DROPDOWN);
         GetEventHandler()->ProcessEvent(e);
     }

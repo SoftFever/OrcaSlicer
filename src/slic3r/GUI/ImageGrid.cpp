@@ -335,6 +335,7 @@ void ImageGrid::mouseDown(wxMouseEvent& event)
         m_hit_item = hit.second;
         if (m_hit_type >= HIT_ACTION)
             Refresh();
+        SetFocus();
     }
 }
 
