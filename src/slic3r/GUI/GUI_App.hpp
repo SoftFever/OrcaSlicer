@@ -396,6 +396,7 @@ public:
     void            handle_http_error(unsigned int status, std::string body);
     void            on_http_error(wxCommandEvent &evt);
     void            on_user_login(wxCommandEvent &evt);
+    void            enable_user_preset_folder(bool enable);
 
     // BBS
     bool            is_studio_active();

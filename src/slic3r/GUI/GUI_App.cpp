@@ -3263,7 +3263,8 @@ void GUI_App::request_user_logout()
 
         m_agent->user_logout();
         m_agent->set_user_selected_machine("");
-        app_config->set("preset_folder", "");
+        BOOST_LOG_TRIVIAL(info) << "preset_folder: set to empty, user_logout";
+        enable_user_preset_folder(false);
         /* delete old user settings */
         m_device_manager->clean_user_info();
         GUI::wxGetApp().sidebar().load_ams_list({});
@@ -3585,14 +3586,24 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
     }
 }
 
+void GUI_App::enable_user_preset_folder(bool enable)
+{
+    if (enable) {
+        std::string user_id = m_agent->get_user_id();
+        app_config->set("preset_folder", user_id);
+        GUI::wxGetApp().preset_bundle->update_user_presets_directory(user_id);
+    } else {
+        BOOST_LOG_TRIVIAL(info) << "preset_folder: set to empty";
+        app_config->set("preset_folder", "");
+        GUI::wxGetApp().preset_bundle->update_user_presets_directory(DEFAULT_USER_FOLDER_NAME);
+    }
+}
+
 void GUI_App::on_user_login(wxCommandEvent &evt)
 {
     if (!m_agent) { return; }
 
     int online_login = evt.GetInt();
-    std::string user_id = m_agent->get_user_id();
-    BOOST_LOG_TRIVIAL(info) << "set_preset: set preset_folder = " << user_id;
-    GUI::wxGetApp().app_config->set("preset_folder", user_id);
     m_agent->connect_server();
 
     // get machine list
@@ -3601,7 +3612,12 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
     dev->update_user_machine_list_info();
     dev->set_selected_machine(m_agent->get_user_selected_machine());
 
-    GUI::wxGetApp().preset_bundle->update_user_presets_directory(user_id);
+    if (app_config->get("sync_user_preset") == "true") {
+        enable_user_preset_folder(true);
+    } else {
+        enable_user_preset_folder(false);
+    }
+
     if (online_login)
         GUI::wxGetApp().mainframe->show_sync_dialog();
 
@@ -3917,6 +3933,8 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
 {
     if (!m_agent) return;
 
+    enable_user_preset_folder(true);
+
     // has already start sync
     if (enable_sync)
         return;
@@ -4007,6 +4025,8 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
 
 void GUI_App::stop_sync_user_preset()
 {
+    enable_user_preset_folder(false);
+
     if (!enable_sync)
         return;
 
