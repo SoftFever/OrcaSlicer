@@ -2013,7 +2013,7 @@ struct Plater::priv
     void update_fff_scene_only_shells(bool only_shells = true);
     //BBS: add popup object table logic
     bool PopupObjectTable(int object_id, int volume_id, const wxPoint& position);
-    void on_action_send_to_printer();
+    void on_action_send_to_printer(bool isall = false);
 private:
     bool layers_height_allowed() const;
 
@@ -2023,6 +2023,7 @@ private:
     void undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator it_snapshot);
     void update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bool temp_snapshot_was_taken = false);
     void on_action_export_to_sdcard(SimpleEvent&);
+    void on_action_export_to_sdcard_all(SimpleEvent&);
     // path to project folder stored with no extension
     boost::filesystem::path     m_project_folder;
 
@@ -2335,6 +2336,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLTOOLBAR_EXPORT_SLICED_FILE, &priv::on_action_export_sliced_file, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_ALL_SLICED_FILE, &priv::on_action_export_all_sliced_file, this);
         q->Bind(EVT_GLTOOLBAR_SEND_TO_PRINTER, &priv::on_action_export_to_sdcard, this);
+        q->Bind(EVT_GLTOOLBAR_SEND_TO_PRINTER_ALL, &priv::on_action_export_to_sdcard_all, this);
         q->Bind(EVT_GLCANVAS_PLATE_SELECT, &priv::on_plate_selected, this);
         q->Bind(EVT_DOWNLOAD_PROJECT, &priv::on_action_download_project, this);
         q->Bind(EVT_IMPORT_MODEL_ID, &priv::on_action_request_model_id, this);
@@ -5849,10 +5851,16 @@ void Plater::priv::on_action_print_plate(SimpleEvent&)
 }
 
 
-void Plater::priv::on_action_send_to_printer()
+void Plater::priv::on_action_send_to_printer(bool isall)
 {
 	if (!m_send_to_sdcard_dlg) m_send_to_sdcard_dlg = new SendToPrinterDialog(q);
-	m_send_to_sdcard_dlg->prepare(partplate_list.get_curr_plate_index());
+    if (isall) {
+        m_send_to_sdcard_dlg->prepare(PLATE_ALL_IDX);
+    }
+    else {
+        m_send_to_sdcard_dlg->prepare(partplate_list.get_curr_plate_index());
+    }
+	
 	m_send_to_sdcard_dlg->ShowModal();
 }
 
@@ -5869,8 +5877,6 @@ void Plater::priv::on_action_print_all(SimpleEvent&)
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received print all event\n" ;
     }
-
-    if (!wxGetApp().check_login()) return;
 
     //BBS
     if (!m_select_machine_dlg) m_select_machine_dlg = new SelectMachineDialog(q);
@@ -5925,6 +5931,15 @@ void Plater::priv::on_action_export_to_sdcard(SimpleEvent&)
 		q->send_to_printer();
 	}
 }
+
+void Plater::priv::on_action_export_to_sdcard_all(SimpleEvent&)
+{
+    if (q != nullptr) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received export sliced file event\n";
+        q->send_to_printer(true);
+    }
+}
+
 
 //BBS: add plate select logic
 void Plater::priv::on_plate_selected(SimpleEvent&)
@@ -8797,9 +8812,9 @@ void Plater::export_gcode(bool prefer_removable)
     }
 }
 
-void Plater::send_to_printer()
+void Plater::send_to_printer(bool isall)
 {
-    p->on_action_send_to_printer();
+    p->on_action_send_to_printer(isall);
 }
 
 //BBS export gcode 3mf to file

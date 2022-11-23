@@ -2301,7 +2301,12 @@ void SelectMachineDialog::on_rename_enter(wxCommandEvent& event)
 
     if (m_valid_type != Valid) {
         MessageDialog msg_wingow(nullptr, info_line, "", wxICON_WARNING | wxOK);
-        if (msg_wingow.ShowModal() == wxOK) { return; }
+        if (msg_wingow.ShowModal() == wxID_OK) { 
+             m_rename_switch_panel->SetSelection(0);
+             m_rename_text->SetLabel(m_current_project_name);
+             m_rename_normal_panel->Layout();
+            return; 
+        }
     }
 
     m_current_project_name = new_file_name;
@@ -2659,10 +2664,19 @@ void SelectMachineDialog::set_default()
 {
     //project name
     m_rename_switch_panel->SetSelection(0);
-    wxString filename = m_plater->get_export_gcode_filename("", false);
+    
+    wxString filename = m_plater->get_export_gcode_filename("", false, 
+        m_print_plate_idx == PLATE_ALL_IDX ?true:false);
+
+    if (m_print_plate_idx == PLATE_ALL_IDX && filename.empty()) {
+        filename = _L("Untitled");
+    }
 
     if (filename.empty()) {
         filename = m_plater->get_export_gcode_filename("", true);
+        if (std::strstr(filename.c_str(), _L("Untitled").c_str()) == NULL) {
+            filename = wxString::Format("Untitled%s",filename);
+        }
     }
 
     fs::path filename_path(filename.c_str());

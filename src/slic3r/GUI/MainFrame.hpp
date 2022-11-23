@@ -172,7 +172,6 @@ class MainFrame : public DPIFrame
 
     ESettingsLayout m_layout{ ESettingsLayout::Unknown };
 
-
     enum SliceSelectType
     {
         eSliceAll = 0,
@@ -211,8 +210,9 @@ public:
         eExportGcode = 3,
         eSendGcode = 4,
         eSendToPrinter = 5,
-        eUploadGcode = 6,
-        eExportAllSlicedFile = 7
+        eSendToPrinterAll = 6,
+        eUploadGcode = 7,
+        eExportAllSlicedFile = 8
     };
 
     //BBS: add slice&&print status update logic

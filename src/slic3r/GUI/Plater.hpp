@@ -303,7 +303,7 @@ public:
     void segment(size_t obj_idx, size_t instance_idx, double smoothing_alpha=0.5, int segment_number=5);
     void merge(size_t obj_idx, std::vector<int>& vol_indeces);
 
-    void send_to_printer();
+    void send_to_printer(bool isall = false);
     void export_gcode(bool prefer_removable);
     void export_gcode_3mf(bool export_all = false);
     void send_gcode_finish(wxString name);

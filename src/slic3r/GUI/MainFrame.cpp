@@ -1345,6 +1345,8 @@ wxBoxSizer* MainFrame::create_side_tools()
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_EXPORT_ALL_SLICED_FILE));
             else if (m_print_select == eSendToPrinter)
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_TO_PRINTER));
+            else if (m_print_select == eSendToPrinterAll)
+                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_TO_PRINTER_ALL));
         });
 
     m_slice_option_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
@@ -1467,6 +1469,17 @@ wxBoxSizer* MainFrame::create_side_tools()
                     p->Dismiss();
                     });*/
 
+                    /*SideButton* send_to_printer_all_btn = new SideButton(p, _L("Send all"), "");
+                    send_to_printer_all_btn->SetCornerRadius(0);
+                    send_to_printer_all_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+                        m_print_btn->SetLabel(_L("Send all"));
+                        m_print_select = eSendToPrinterAll;
+                        m_print_enable = get_enable_print_status();
+                        m_print_btn->Enable(m_print_enable);
+                        this->Layout();
+                        p->Dismiss();
+                        });*/
+
                 export_sliced_file_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Export plate sliced file"));
                     m_print_select = eExportSlicedFile;
@@ -1488,6 +1501,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                 p->append_button(print_plate_btn);
                 p->append_button(print_all_btn);
                 //p->append_button(send_to_printer_btn);
+                //p->append_button(send_to_printer_all_btn);
                 p->append_button(export_sliced_file_btn);
                 p->append_button(export_all_sliced_file_btn);
             }
@@ -1611,6 +1625,13 @@ bool MainFrame::get_enable_print_status()
 			enable = false;
 		}
 	}
+    else if (m_print_select == eSendToPrinterAll)
+    {
+        if (!part_plate_list.is_all_slice_results_ready_for_print())
+        {
+            enable = false;
+        }
+    }
     else if (m_print_select == eExportAllSlicedFile)
     {
         if (!part_plate_list.is_all_slice_results_ready_for_print())
