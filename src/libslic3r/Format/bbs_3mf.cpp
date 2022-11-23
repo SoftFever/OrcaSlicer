@@ -1661,6 +1661,29 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 return false;
         }
 
+        // If instances contain a single volume, the volume offset should be 0,0,0
+        // This equals to say that instance world position and volume world position should match
+        // Correct all instances/volumes for which this does not hold
+        for (int obj_id = 0; obj_id < int(model.objects.size()); ++obj_id) {
+            ModelObject *o = model.objects[obj_id];
+            if (o->volumes.size() == 1) {
+                ModelVolume *                           v                 = o->volumes.front();
+                const Slic3r::Geometry::Transformation &first_inst_trafo  = o->instances.front()->get_transformation();
+                const Vec3d                             world_vol_offset  = (first_inst_trafo * v->get_transformation()).get_offset();
+                const Vec3d                             world_inst_offset = first_inst_trafo.get_offset();
+
+                if (!world_vol_offset.isApprox(world_inst_offset)) {
+                    const Slic3r::Geometry::Transformation &vol_trafo = v->get_transformation();
+                    for (int inst_id = 0; inst_id < int(o->instances.size()); ++inst_id) {
+                        ModelInstance *                         i          = o->instances[inst_id];
+                        const Slic3r::Geometry::Transformation &inst_trafo = i->get_transformation();
+                        i->set_offset((inst_trafo * vol_trafo).get_offset());
+                    }
+                    v->set_offset(Vec3d::Zero());
+                }
+            }
+        }
+
         int object_idx = 0;
         for (ModelObject* o : model.objects) {
             int volume_idx = 0;
