@@ -158,7 +158,7 @@ public:
 
         for (int i = 1; i< results_vector.size()-1; i++) {
             if (abs(results_vector[i].second.unprintability - results_vector[0].second.unprintability) < EPSILON && abs(results_vector[0].first.dot(n1)-1) > EPSILON) {
-                if (abs(results_vector[i].first.dot(n1)-1) < EPSILON) { 
+                if (abs(results_vector[i].first.dot(n1)-1) < EPSILON*EPSILON) { 
                     best_orientation = n1;
                     break; 
                 }
@@ -216,7 +216,9 @@ public:
                 float area = its.facet_area(i);
                 if (params.NEGL_FACE_SIZE > 0 && area < params.NEGL_FACE_SIZE)
                     continue;
-                normals_hull.row(i) = quantize_vec3f(face_normals[i]);
+                //normals_hull.row(i) = quantize_vec3f(face_normals[i]);
+                //We cannot use quantized vector here, the accumulated error will result in bad orientations.
+                normals_hull.row(i) = face_normals[i];
                 areas_hull(i) = area;
             }
         }
