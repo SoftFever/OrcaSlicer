@@ -1144,7 +1144,12 @@ void TreeSupport::detect_object_overhangs()
         TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_nr + m_raft_layers);
         if (support_critical_regions_only) {
             auto layer = m_object->get_layer(layer_nr);
-            ts_layer->overhang_areas = layer->sharp_tails;
+            auto lower_layer = layer->lower_layer;
+            if (lower_layer == nullptr)
+                ts_layer->overhang_areas = layer->sharp_tails;
+            else
+                ts_layer->overhang_areas = diff_ex(layer->sharp_tails, lower_layer->lslices);
+
             append(ts_layer->overhang_areas, layer->cantilevers);
         }
 
