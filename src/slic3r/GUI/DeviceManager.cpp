@@ -334,6 +334,7 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     ams_insert_flag = false;
     ams_power_on_flag = false;
     ams_support_use_ams = false;
+    ams_calibrate_remain_flag = false;
     ams_humidity = 5;
 
     /* signals */
@@ -1142,7 +1143,14 @@ void MachineObject::parse_status(int flag)
 
     camera_recording            = ((flag >> 5) & 0x1) != 0;
     ams_calibrate_remain_flag   = ((flag >> 7) & 0x1) != 0;
+
+    if (ams_print_option_count > 0)
+        ams_print_option_count--;
+    else {
+        ams_auto_switch_filament_flag = ((flag >> 10) & 0x1) != 0;
+    }
 }
+    
 
 PrintingSpeedLevel MachineObject::_parse_printing_speed_lvl(int lvl)
 {
@@ -1492,6 +1500,20 @@ int MachineObject::command_set_printing_option(bool auto_recovery)
     j["print"]["sequence_id"]   = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["option"]        = print_option;
     j["print"]["auto_recovery"] = auto_recovery;
+
+    return this->publish_json(j.dump());
+}
+
+int MachineObject::command_ams_switch_filament(bool switch_filament)
+{
+    json j;
+    j["print"]["command"] = "print_option";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["auto_switch_filament"] = switch_filament;
+
+    ams_auto_switch_filament_flag = switch_filament;
+    BOOST_LOG_TRIVIAL(trace) << "command_ams_filament_settings:" << switch_filament;
+    ams_print_option_count = HOLD_COUNT_MAX;
 
     return this->publish_json(j.dump());
 }
@@ -2487,6 +2509,9 @@ int MachineObject::parse_json(std::string payload)
                                     }
                                     if (jj["ams"].contains("power_on_flag")) {
                                         ams_power_on_flag = jj["ams"]["power_on_flag"].get<bool>();
+                                    }
+                                    if (jj["ams"].contains("calibrate_remain_flag")) {
+                                        ams_calibrate_remain_flag = jj["ams"]["calibrate_remain_flag"].get<bool>();
                                     }
                                 }
                             }

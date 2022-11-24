@@ -126,7 +126,7 @@ public:
     int                     curreent_filamentstep;
     int                     ams_humidity = 0;
 
-    bool parse_ams_info(Ams *ams);
+    bool parse_ams_info(Ams *ams, bool remain_flag = false);
 };
 
 /*************************************************

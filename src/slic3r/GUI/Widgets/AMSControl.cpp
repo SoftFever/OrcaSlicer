@@ -54,7 +54,7 @@ static wxColour decode_color(const std::string &color)
     return wxColour(ret[0], ret[1], ret[2]);
 }
 
-bool AMSinfo::parse_ams_info(Ams *ams)
+bool AMSinfo::parse_ams_info(Ams *ams, bool remain_flag)
 {
     if (!ams) return false;
     this->ams_id = ams->id;
@@ -81,8 +81,14 @@ bool AMSinfo::parse_ams_info(Ams *ams)
                     info.material_state = AMSCanType::AMS_CAN_TYPE_THIRDBRAND;
                 }
      
-                info.material_remain = it->second->remain < 0 ? 100 :it->second->remain;
-                info.material_remain = it->second->remain > 100 ? 100 :info.material_remain;
+                if (!remain_flag) {
+                    info.material_remain = 100;
+                }
+                else {
+                    info.material_remain = it->second->remain < 0 ? 100 : it->second->remain;
+                    info.material_remain = it->second->remain > 100 ? 100 : info.material_remain;
+                }
+                
                 
             } else {
                 info.can_id = it->second->id;

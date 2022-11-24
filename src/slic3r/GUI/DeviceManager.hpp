@@ -187,7 +187,7 @@ public:
     bool            is_bbl;
     bool            is_exists = false;
     int             hold_count = 0;
-    int             remain;         // filament remain: 0 ~ 100
+    int             remain = 0;         // filament remain: 0 ~ 100
 
     AmsRoadPosition road_position;
     AmsStep         step_state;
@@ -395,6 +395,7 @@ public:
     bool  ams_insert_flag { false };
     bool  ams_power_on_flag { false };
     bool  ams_calibrate_remain_flag { false };
+    bool  ams_auto_switch_filament_flag  { false };
     bool  ams_support_use_ams { false };
     int   ams_humidity;
     int   ams_user_setting_hold_count = 0;
@@ -540,6 +541,7 @@ public:
     int  xcam_buildplate_marker_hold_count = 0;
     bool xcam_auto_recovery_step_loss{ false };
     int  xcam_auto_recovery_hold_count = 0;
+    int  ams_print_option_count = 0;
 
     /* HMS */
     std::vector<HMSItem>    hms_list;
@@ -597,6 +599,7 @@ public:
     int command_ams_change_filament(int tray_id, int old_temp = 210, int new_temp = 210);
     int command_ams_user_settings(int ams_id, bool start_read_opt, bool tray_read_opt, bool remain_flag = false);
     int command_ams_user_settings(int ams_id, AmsOptionType op, bool value);
+    int command_ams_switch_filament(bool switch_filament);
     int command_ams_calibrate(int ams_id);
     int command_ams_filament_settings(int ams_id, int tray_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max);
     int command_ams_select_tray(std::string tray_id);
