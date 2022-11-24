@@ -941,16 +941,16 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("monotonicline");
     def->enum_values.push_back("alignedrectilinear");
     def->enum_values.push_back("hilbertcurve");
-    //def->enum_values.push_back("archimedeanchords");
-    //def->enum_values.push_back("octagramspiral");
+    def->enum_values.push_back("archimedeanchords");
+    def->enum_values.push_back("octagramspiral");
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Monotonic"));
     def->enum_labels.push_back(L("Monotonic line"));
     def->enum_labels.push_back(L("Aligned Rectilinear"));
     def->enum_labels.push_back(L("Hilbert Curve"));
-    //def->enum_labels.push_back(L("Archimedean Chords"));
-    //def->enum_labels.push_back(L("Octagram Spiral"));
+    def->enum_labels.push_back(L("Archimedean Chords"));
+    def->enum_labels.push_back(L("Octagram Spiral"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
 
     def = this->add("bottom_surface_pattern", coEnum);
@@ -1271,11 +1271,11 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("honeycomb");
     def->enum_values.push_back("adaptivecubic");
     def->enum_values.push_back("alignedrectilinear");
-    //def->enum_values.push_back("3dhoneycomb");
-    //def->enum_values.push_back("hilbertcurve");
-    //def->enum_values.push_back("archimedeanchords");
-    //def->enum_values.push_back("octagramspiral");
-    //def->enum_values.push_back("supportcubic");
+    def->enum_values.push_back("3dhoneycomb");
+    def->enum_values.push_back("hilbertcurve");
+    def->enum_values.push_back("archimedeanchords");
+    def->enum_values.push_back("octagramspiral");
+    def->enum_values.push_back("supportcubic");
 #if HAS_LIGHTNING_INFILL
     def->enum_values.push_back("lightning");
 #endif // HAS_LIGHTNING_INFILL
@@ -1290,11 +1290,11 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Honeycomb"));
     def->enum_labels.push_back(L("Adaptive Cubic"));
     def->enum_labels.push_back(L("Aligned Rectilinear"));
-    //def->enum_labels.push_back(L("3D Honeycomb"));
-    //def->enum_labels.push_back(L("Hilbert Curve"));
-    //def->enum_labels.push_back(L("Archimedean Chords"));
-    //def->enum_labels.push_back(L("Octagram Spiral"));
-    //def->enum_labels.push_back(L("Support Cubic"));
+    def->enum_labels.push_back(L("3D Honeycomb"));
+    def->enum_labels.push_back(L("Hilbert Curve"));
+    def->enum_labels.push_back(L("Archimedean Chords"));
+    def->enum_labels.push_back(L("Octagram Spiral"));
+    def->enum_labels.push_back(L("Support Cubic"));
 #if HAS_LIGHTNING_INFILL
     def->enum_labels.push_back(L("Lightning"));
 #endif // HAS_LIGHTNING_INFILL
