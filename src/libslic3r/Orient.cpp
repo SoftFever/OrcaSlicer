@@ -366,7 +366,7 @@ public:
             normal_projection(i) = normals.row(i).dot(orientation);
         }
         auto areas_appearance = areas.cwiseProduct((is_apperance * params.APPERANCE_FACE_SUPP + Eigen::VectorXf::Ones(is_apperance.rows(), is_apperance.cols())));
-        auto overhang_areas = ((normal_projection.array() < params.ASCENT) * (!bottom_condition)).select(areas_appearance, 0);
+        auto overhang_areas = ((normal_projection.array() < params.ASCENT) * (!bottom_condition_2nd)).select(areas_appearance, 0);
         Eigen::MatrixXf inner = normal_projection.array() - params.ASCENT;
         inner = inner.cwiseMin(0).cwiseAbs();
         if (min_volume)
@@ -424,7 +424,7 @@ public:
         if (min_volume)
         {
             float overhang = costs.overhang / 25;
-            cost = params.TAR_A * (overhang + params.TAR_B) + params.RELATIVE_F * (/*costs.volume/100*/overhang*params.TAR_C + params.TAR_D/10.f + params.TAR_LAF * costs.area_laf * params.use_low_angle_face) / (params.TAR_D + params.CONTOUR_F * costs.contour + params.BOTTOM_F * bottom + params.BOTTOM_HULL_F * bottom_hull + params.TAR_E * overhang + params.TAR_PROJ_AREA * costs.area_projected);
+            cost = params.TAR_A * (overhang + params.TAR_B) + params.RELATIVE_F * (/*costs.volume/100*/overhang*params.TAR_C + params.TAR_D + params.TAR_LAF * costs.area_laf * params.use_low_angle_face) / (params.TAR_D + params.CONTOUR_F * costs.contour + params.BOTTOM_F * bottom + params.BOTTOM_HULL_F * bottom_hull + params.TAR_E * overhang + params.TAR_PROJ_AREA * costs.area_projected);
         }
         else {
             float overhang = costs.overhang;
