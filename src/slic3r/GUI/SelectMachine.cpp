@@ -1934,9 +1934,13 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         wxString info_msg = wxEmptyString;
 
         for (auto i = 0; i < confirm_text.size(); i++) {
-            if (i == 0)
-                continue;
-            info_msg += wxString::Format("%d:%s\n",i, confirm_text[i]);
+            if (i == 0) {
+                info_msg += confirm_text[i];
+            }
+            else {
+                info_msg += wxString::Format("%d:%s\n",i, confirm_text[i]);
+            }
+            
         }
         confirm_dlg.update_text(info_msg);
         if (confirm_dlg.ShowModal() == wxID_YES) {
