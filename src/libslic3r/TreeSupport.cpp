@@ -1301,7 +1301,7 @@ static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print
         float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
 }
 
-static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& print, const ExPolygon& support_area, size_t wall_count, const Flow& flow, ExtrusionRole role, Fill* filler_support, double support_density)
+static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& print, const ExPolygon& support_area, size_t wall_count, const Flow& flow, ExtrusionRole role, Fill* filler_support, double support_density, bool infill_first=true)
 {
     Polygons   loops;
     ExPolygons support_area_new = offset_ex(support_area, -0.5f * float(flow.scaled_spacing()), jtSquare);
@@ -1362,20 +1362,29 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& pr
             expoly_list.erase(first_iter);
         }
 
-        extrusion_entities_append_loops(dst, std::move(loops), role,
-            float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
+        if (infill_first)
+            extrusion_entities_append_loops(dst, std::move(loops), role,
+                float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
+        else { // loops first
+            ExtrusionEntitiesPtr loops_entities;
+            extrusion_entities_append_loops(loops_entities, std::move(loops), role,
+                float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
+            loops_entities.insert(loops_entities.end(), dst.begin(), dst.end());
+            dst = std::move(loops_entities);
+        }
     }
-
-    // sort regions to reduce travel
-    Points ordering_points;
-    for (const auto& area : dst)
-        ordering_points.push_back(area->first_point());
-    std::vector<Points::size_type> order = chain_points(ordering_points);
-    ExtrusionEntitiesPtr new_dst;
-    new_dst.reserve(ordering_points.size());
-    for (size_t i : order)
-        new_dst.emplace_back(dst[i]);
-    dst = new_dst;
+    if (infill_first) {
+        // sort regions to reduce travel
+        Points ordering_points;
+        for (const auto& area : dst)
+            ordering_points.push_back(area->first_point());
+        std::vector<Points::size_type> order = chain_points(ordering_points);
+        ExtrusionEntitiesPtr new_dst;
+        new_dst.reserve(ordering_points.size());
+        for (size_t i : order)
+            new_dst.emplace_back(dst[i]);
+        dst = new_dst;
+    }
 }
 
 void TreeSupport::generate_toolpaths()
@@ -1507,7 +1516,7 @@ void TreeSupport::generate_toolpaths()
 
                 TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_id);
                 Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
-
+                ts_layer->support_fills.no_sort = false;
 
                 for (auto& area_group : ts_layer->area_groups) {
                     ExPolygon& poly = *area_group.first;
@@ -1534,8 +1543,10 @@ void TreeSupport::generate_toolpaths()
                         fill_params.density = interface_density;
                         // Note: spacing means the separation between two lines as if they are tightly extruded
                         filler_Roof1stLayer->spacing = m_support_material_interface_flow.spacing();
-                        fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys), filler_Roof1stLayer.get(), fill_params, erSupportMaterial,
-                                                       m_support_material_interface_flow);
+                        // generate a perimeter first to support interface better
+                        make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object->print(), poly, 1, m_support_material_interface_flow, erSupportMaterial,
+                            filler_Roof1stLayer.get(), interface_density, false);
+                        ts_layer->support_fills.no_sort = true; // make sure loops are first
                     } else if (area_group.second == TreeSupportLayer::FloorType) {
                         // floor_areas
                         fill_params.density = bottom_interface_density;
@@ -1658,7 +1669,8 @@ void TreeSupport::generate_toolpaths()
                 }
 
                 // sort extrusions to reduce travel, also make sure walls go before infills
-                chain_and_reorder_extrusion_entities(ts_layer->support_fills.entities);
+                if(ts_layer->support_fills.no_sort==false)
+                    chain_and_reorder_extrusion_entities(ts_layer->support_fills.entities);
             }
         }
     );
