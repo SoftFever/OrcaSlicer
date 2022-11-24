@@ -661,8 +661,8 @@ Sidebar::Sidebar(Plater *parent)
             const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values;
             ConfigOption* extra_flush_volume_opt = printer_config.option("nozzle_volume");
             int extra_flush_volume = extra_flush_volume_opt ? (int)extra_flush_volume_opt->getFloat() : 0;
-            ConfigOption* flush_multi_opt = project_config.option("flush_multiplier");
-            float flush_multiplier = flush_multi_opt ? flush_multi_opt->getFloat() : 1.f;
+            std::string str_flush_multiplier = wxGetApp().app_config->get("flush_multiplier");
+            float flush_multiplier = str_flush_multiplier.empty() ? 1.f : std::stof(str_flush_multiplier);
 
             const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
 
@@ -676,6 +676,7 @@ Sidebar::Sidebar(Plater *parent)
 #if !BBL_RELEASE_TO_PUBLIC
                 (project_config.option<ConfigOptionFloat>("flush_multiplier"))->set(new ConfigOptionFloat(dlg.get_flush_multiplier()));
 #endif
+                wxGetApp().app_config->set("flush_multiplier", std::to_string(dlg.get_flush_multiplier()));
                 wxGetApp().preset_bundle->update_filament_info_to_app_config(*wxGetApp().app_config);
 
                 wxGetApp().plater()->update_project_dirty_from_presets();
