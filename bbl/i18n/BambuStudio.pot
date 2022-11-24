@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-19 12:59+0800\n"
+"POT-Creation-Date: 2022-11-24 09:19+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -365,15 +365,6 @@ msgid "Seam painting"
 msgstr ""
 
 msgid "Remove selection"
-msgstr ""
-
-msgid "Entering Seam painting"
-msgstr ""
-
-msgid "Leaving Seam painting"
-msgstr ""
-
-msgid "Paint-on seam editing"
 msgstr ""
 
 msgid "Text shape"
@@ -788,6 +779,9 @@ msgid "Mirror object"
 msgstr ""
 
 msgid "Add Primitive"
+msgstr ""
+
+msgid "Show Labels"
 msgstr ""
 
 msgid "To objects"
@@ -1898,6 +1892,9 @@ msgstr ""
 msgid "Failed to start printing job"
 msgstr ""
 
+msgid "default"
+msgstr ""
+
 msgid "parameter name"
 msgstr ""
 
@@ -2263,6 +2260,18 @@ msgid ""
 msgstr ""
 
 msgid "Calibration"
+msgstr ""
+
+msgid "Calibration step selection"
+msgstr ""
+
+msgid "Micro lidar calibration"
+msgstr ""
+
+msgid "Bed leveling"
+msgstr ""
+
+msgid "Resonance frequency identification"
 msgstr ""
 
 msgid "Calibration program"
@@ -3064,7 +3073,7 @@ msgstr ""
 msgid "Warning:"
 msgstr ""
 
-msgid "Export ok."
+msgid "Export successfully."
 msgstr ""
 
 msgid " (Repair)"
@@ -3092,9 +3101,6 @@ msgid "Layers"
 msgstr ""
 
 msgid "Range"
-msgstr ""
-
-msgid "default"
 msgstr ""
 
 msgid ""
@@ -3498,6 +3504,12 @@ msgstr ""
 msgid "Save Sliced file as:"
 msgstr ""
 
+#, possible-c-format, possible-boost-format
+msgid ""
+"The file %s has been sent to the printer's storage space and can be viewed "
+"on the printer."
+msgstr ""
+
 msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
@@ -3656,6 +3668,12 @@ msgid "Backup interval"
 msgstr ""
 
 msgid "Downloads"
+msgstr ""
+
+msgid "Dark Mode"
+msgstr ""
+
+msgid "Enable Dark mode"
 msgstr ""
 
 msgid "Home page and daily tips"

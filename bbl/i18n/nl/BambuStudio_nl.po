@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-19 12:59+0800\n"
+"POT-Creation-Date: 2022-11-24 09:19+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -367,15 +367,6 @@ msgid "Seam painting"
 msgstr ""
 
 msgid "Remove selection"
-msgstr ""
-
-msgid "Entering Seam painting"
-msgstr ""
-
-msgid "Leaving Seam painting"
-msgstr ""
-
-msgid "Paint-on seam editing"
 msgstr ""
 
 msgid "Text shape"
@@ -809,6 +800,9 @@ msgstr "Spiegel object"
 
 msgid "Add Primitive"
 msgstr "Primitief toevoegen"
+
+msgid "Show Labels"
+msgstr ""
 
 msgid "To objects"
 msgstr "Naar objecten"
@@ -2046,6 +2040,9 @@ msgstr "Updaten mislukt."
 msgid "Failed to start printing job"
 msgstr ""
 
+msgid "default"
+msgstr "Standaard"
+
 msgid "parameter name"
 msgstr ""
 
@@ -2415,6 +2412,18 @@ msgstr ""
 
 msgid "Calibration"
 msgstr "Kalibratie"
+
+msgid "Calibration step selection"
+msgstr ""
+
+msgid "Micro lidar calibration"
+msgstr ""
+
+msgid "Bed leveling"
+msgstr ""
+
+msgid "Resonance frequency identification"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "Kalibratie programma"
@@ -3228,8 +3237,8 @@ msgstr "Fout:"
 msgid "Warning:"
 msgstr "Waarschuwing:"
 
-msgid "Export ok."
-msgstr "Exporteren ok"
+msgid "Export successfully."
+msgstr ""
 
 msgid " (Repair)"
 msgstr " (Repareren)"
@@ -3257,9 +3266,6 @@ msgstr "Lagen"
 
 msgid "Range"
 msgstr "Bereik"
-
-msgid "default"
-msgstr "Standaard"
 
 msgid ""
 "The application cannot run normally because OpenGL version is lower than "
@@ -3680,6 +3686,12 @@ msgstr "Bewaar G-code bestand als:"
 msgid "Save Sliced file as:"
 msgstr "Bewaar het geslicede bestand als:"
 
+#, c-format, boost-format
+msgid ""
+"The file %s has been sent to the printer's storage space and can be viewed "
+"on the printer."
+msgstr ""
+
 msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
@@ -3853,6 +3865,12 @@ msgid "Backup interval"
 msgstr "Backupinterval"
 
 msgid "Downloads"
+msgstr ""
+
+msgid "Dark Mode"
+msgstr ""
+
+msgid "Enable Dark mode"
 msgstr ""
 
 msgid "Home page and daily tips"
@@ -7728,7 +7746,9 @@ msgid ""
 "density to improve the strength of the model?"
 msgstr ""
 
-#, c-format, boost-format
+#~ msgid "Export ok."
+#~ msgstr "Exporteren ok"
+
 #~ msgid "Plate %d: %s does not support filament %s.\n"
 #~ msgstr "Printbed %d: %s onderstand filament %s niet.\n"
 

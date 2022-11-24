@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-19 12:59+0800\n"
-"PO-Revision-Date: 2022-11-01 11:29+0800\n"
+"POT-Creation-Date: 2022-11-24 09:19+0800\n"
+"PO-Revision-Date: 2022-11-24 09:28+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -366,15 +366,6 @@ msgstr "Z缝绘制"
 
 msgid "Remove selection"
 msgstr "移除绘制"
-
-msgid "Entering Seam painting"
-msgstr "进入Z缝绘制"
-
-msgid "Leaving Seam painting"
-msgstr "退出Z缝绘制"
-
-msgid "Paint-on seam editing"
-msgstr "编辑手绘填缝"
 
 msgid "Text shape"
 msgstr "文本形状"
@@ -795,6 +786,9 @@ msgstr "镜像对象"
 msgid "Add Primitive"
 msgstr "添加标准模型"
 
+msgid "Show Labels"
+msgstr "显示标签"
+
 msgid "To objects"
 msgstr "拆分到对象"
 
@@ -862,7 +856,7 @@ msgid "Center"
 msgstr "居中"
 
 msgid "Edit Object Process"
-msgstr ""
+msgstr "编辑对象工艺"
 
 msgid "Edit in Parameter Table"
 msgstr "在参数表格中编辑"
@@ -952,7 +946,7 @@ msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr "切换到对象模式以编辑修改器的设置。"
 
 msgid "Switch to per-object setting mode to edit object process."
-msgstr ""
+msgstr "切换到对象模式以编辑对象的工艺。"
 
 msgid "Deleting the last solid part is not allowed."
 msgstr "不允许删除对象的最后一个实体零件。"
@@ -1089,10 +1083,10 @@ msgid "More"
 msgstr "详情"
 
 msgid "Open Preferences."
-msgstr "打开首选项。"
+msgstr "打开首选项"
 
 msgid "Open next tip."
-msgstr ""
+msgstr "打开下一条提示"
 
 msgid "Open Documentation in web browser."
 msgstr "在web浏览器中打开文档。"
@@ -1113,7 +1107,7 @@ msgid "Layer number"
 msgstr "层数"
 
 msgid "Jump to Layer"
-msgstr ""
+msgstr "跳转到层"
 
 msgid "Add Pause"
 msgstr "添加暂停打印"
@@ -1459,7 +1453,7 @@ msgid "SN"
 msgstr "序列号"
 
 msgid "Setting AMS slot information while printing is not supported"
-msgstr ""
+msgstr "不支持在打印时修改AMS槽位信息"
 
 msgid "Confirm"
 msgstr "确定"
@@ -1488,16 +1482,16 @@ msgstr "使用机箱背后挂载的材料打印"
 
 msgid ""
 "Config which AMS slot should be used for a filament used in the print job"
-msgstr ""
+msgstr "配置当前打印任务应使用哪个AMS槽位"
 
 msgid "Filament used in this print job"
-msgstr ""
+msgstr "当前打印打印使用的料丝"
 
 msgid "AMS slot used for this filament"
-msgstr ""
+msgstr "当前料丝对应的AMS槽位"
 
 msgid "Click to select AMS slot manually"
-msgstr ""
+msgstr "点击以手动选择AMS槽位"
 
 msgid "AMS Settings"
 msgstr "AMS 设置"
@@ -1963,6 +1957,9 @@ msgstr "更新失败。"
 msgid "Failed to start printing job"
 msgstr "发起打印任务失败"
 
+msgid "default"
+msgstr "缺省"
+
 msgid "parameter name"
 msgstr "参数名称"
 
@@ -2166,7 +2163,7 @@ msgid "Model printing time"
 msgstr "模型打印时间"
 
 msgid "Total time"
-msgstr ""
+msgstr "总时间"
 
 msgid "Switch to silent mode"
 msgstr "切换到静音模式"
@@ -2335,6 +2332,18 @@ msgstr ""
 
 msgid "Calibration"
 msgstr "校准"
+
+msgid "Calibration step selection"
+msgstr "校准步骤选择"
+
+msgid "Micro lidar calibration"
+msgstr "微激光雷达校准"
+
+msgid "Bed leveling"
+msgstr "热床调平"
+
+msgid "Resonance frequency identification"
+msgstr "共振频率辨识"
 
 msgid "Calibration program"
 msgstr "校准程序"
@@ -3145,7 +3154,7 @@ msgstr "错误："
 msgid "Warning:"
 msgstr "警告："
 
-msgid "Export ok."
+msgid "Export successfully."
 msgstr "导出成功."
 
 msgid " (Repair)"
@@ -3174,9 +3183,6 @@ msgstr "层"
 
 msgid "Range"
 msgstr "范围"
-
-msgid "default"
-msgstr "缺省"
 
 msgid ""
 "The application cannot run normally because OpenGL version is lower than "
@@ -3207,7 +3213,7 @@ msgid "Bottom"
 msgstr "底部"
 
 msgid "Enable AI monitoring of printing"
-msgstr "启用AI监控进行打印"
+msgstr "启用打印过程的AI监控"
 
 msgid "Sensitivity of pausing is"
 msgstr "暂停的灵敏度为"
@@ -3218,13 +3224,13 @@ msgstr "启用构建板位置检测"
 msgid ""
 "The localization tag of build plate is detected, and printing is paused if "
 "the tag is not in predefined range."
-msgstr "检测到构建板的定位标记，如果 标记不在预定义范围内。"
+msgstr "检测构建板的定位标记，如果标记不在预定义范围内时暂停打印。"
 
 msgid "First Layer Inspection"
 msgstr "首层扫描"
 
 msgid "Auto-recovery from step loss"
-msgstr "自动恢复步长损失"
+msgstr "自动从丢步中恢复"
 
 msgid "Global"
 msgstr "全局"
@@ -3592,6 +3598,12 @@ msgstr "G-code文件另存为："
 msgid "Save Sliced file as:"
 msgstr "切片文件另存为："
 
+#, c-format, boost-format
+msgid ""
+"The file %s has been sent to the printer's storage space and can be viewed "
+"on the printer."
+msgstr "文件%s已经发送到打印机的存储空间，可以在打印机上浏览。"
+
 msgid ""
 "Print By Object: \n"
 "Suggest to use auto-arrange to avoid collisions when printing."
@@ -3644,7 +3656,7 @@ msgstr "三角形：%1%\n"
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s (%s).\n"
-msgstr ""
+msgstr "盘%d：%s不支持耗材丝%s (%s)。\n"
 
 msgid "Switching the language requires application restart.\n"
 msgstr "切换语言要求重启应用程序。\n"
@@ -3753,6 +3765,12 @@ msgstr "备份间隔时长"
 
 msgid "Downloads"
 msgstr "下载"
+
+msgid "Dark Mode"
+msgstr "深色模式"
+
+msgid "Enable Dark mode"
+msgstr "启用深色模式"
 
 msgid "Home page and daily tips"
 msgstr "首页和每日小贴士"
@@ -5728,7 +5746,7 @@ msgid ""
 msgstr "在斜面表面附近添加实心填充，以保证垂直外壳厚度（顶部+底部实心层）"
 
 msgid "Internal bridge support thickness"
-msgstr ""
+msgstr "内部桥接支撑厚度"
 
 msgid ""
 "When sparse infill density is low, the internal solid infill or internal "
@@ -7416,6 +7434,8 @@ msgid ""
 "Stack objects\n"
 "Did you know that you can stack objects as a whole one?"
 msgstr ""
+"组合物体\n"
+"你知道吗？你可以把多个对象组合为一个整体。"
 
 #: resources/data/hints.ini: [hint:Flush into support/objects/infill]
 msgid ""
@@ -7423,6 +7443,8 @@ msgid ""
 "Did you know that you can save the wasted filament by flushing them into "
 "support/objects/infill during filament change?"
 msgstr ""
+"冲刷到支持/对象/填充中\n"
+"你知道吗？你可以在换料时将它们冲入支撑/对象/填充，以节省浪费的料丝。"
 
 #: resources/data/hints.ini: [hint:Improve strength]
 msgid ""
@@ -7430,8 +7452,21 @@ msgid ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 msgstr ""
+"提高强度\n"
+"你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
 
-#, c-format, boost-format
+#~ msgid "Entering Seam painting"
+#~ msgstr "进入Z缝绘制"
+
+#~ msgid "Leaving Seam painting"
+#~ msgstr "退出Z缝绘制"
+
+#~ msgid "Paint-on seam editing"
+#~ msgstr "编辑手绘填缝"
+
+#~ msgid "Export ok."
+#~ msgstr "导出成功."
+
 #~ msgid "Plate %d: %s does not support filament %s.\n"
 #~ msgstr "盘%d：%s不支持耗材丝%s\n"
 
