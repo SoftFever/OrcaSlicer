@@ -147,7 +147,7 @@ void PrintJob::process()
     BBL::PrintParams params;
     params.dev_id = m_dev_id;
     //params.project_name = project_name;
-    params.project_name = m_project_name + ".gcode.3mf";
+    params.project_name = m_project_name;
     params.preset_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
     params.filename = job_data._3mf_path.string();
     params.config_filename = job_data._3mf_config_path.string();
