@@ -5260,20 +5260,30 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
 
         if (new_bed_type != btCount) {
             BedType old_bed_type = proj_config.opt_enum<BedType>("curr_bed_type");
-            proj_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(new_bed_type));
+            if (old_bed_type != new_bed_type) {
+                proj_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(new_bed_type));
 
-            wxGetApp().plater()->update_project_dirty_from_presets();
+                wxGetApp().plater()->update_project_dirty_from_presets();
 
-            // update plater with new config
-            q->on_config_change(wxGetApp().preset_bundle->full_config());
+                // update plater with new config
+                q->on_config_change(wxGetApp().preset_bundle->full_config());
 
-            // update app_config
-            AppConfig *app_config = wxGetApp().app_config;
-            app_config->set("curr_bed_type", std::to_string(int(new_bed_type)));
+                // update app_config
+                AppConfig* app_config = wxGetApp().app_config;
+                app_config->set("curr_bed_type", std::to_string(int(new_bed_type)));
 
-            // update render
-            view3D->get_canvas3d()->render();
-            preview->msw_rescale();
+                //update slice status
+                auto plate_list = partplate_list.get_plate_list();
+                for (auto plate : plate_list) {
+                    if (plate->get_bed_type(false) == btDefault) {
+                        plate->update_slice_result_valid_state(false);
+                    }
+                }
+
+                // update render
+                view3D->get_canvas3d()->render();
+                preview->msw_rescale();
+            }
         }
     }
 }
@@ -5345,6 +5355,15 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 #endif
     // BBS: log modify of filament selection
     Slic3r::put_other_changes();
+
+    // update slice state and set bedtype default for 3rd-party printer
+    bool is_bbl_vendor_preset = wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle);
+    auto plate_list = partplate_list.get_plate_list();
+    for (auto plate : plate_list) {
+         plate->update_slice_result_valid_state(false);
+         if (!is_bbl_vendor_preset)
+             plate->set_bed_type(btDefault);
+    }
 }
 
 void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)

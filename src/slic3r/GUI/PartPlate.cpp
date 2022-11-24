@@ -95,7 +95,7 @@ void PartPlate::load_render_colors()
 
 
 PartPlate::PartPlate()
-	: ObjectBase(-1), m_plater(nullptr), m_model(nullptr), m_quadric(nullptr)
+	: ObjectBase(-1), m_plater(nullptr), m_model(nullptr), m_quadric(nullptr),last_bed_type(BedType::btCount)
 {
 	assert(this->id().invalid());
 	init();
@@ -165,10 +165,34 @@ void PartPlate::set_bed_type(BedType bed_type)
 	// should be called in GUI context
 	assert(m_plater != nullptr);
 
+    // update slice state
+    if (last_bed_type == BedType::btDefault){
+        if (bed_type != BedType::btDefault) {
+            // get global bed type
+            BedType global_bed_type = wxGetApp().preset_bundle->project_config.opt_enum<BedType>("curr_bed_type");
+            if (global_bed_type != bed_type)
+                update_slice_result_valid_state(false);
+        }
+    }
+    else{
+        if (bed_type == BedType::btDefault) {
+            // get global bed type
+            BedType global_bed_type = wxGetApp().preset_bundle->project_config.opt_enum<BedType>("curr_bed_type");
+            if (last_bed_type != global_bed_type)
+                update_slice_result_valid_state(false);
+        }
+        else {
+            if (last_bed_type != bed_type)
+                update_slice_result_valid_state(false);
+        }
+    }
+
 	if (bed_type == BedType::btDefault)
 		m_config.erase(bed_type_key);
 	else
 		m_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
+
+	last_bed_type = bed_type;
 
 	if (m_plater)
         m_plater->update_project_dirty_from_presets();
