@@ -571,7 +571,14 @@ Sidebar::Sidebar(Plater *parent)
         AppConfig *app_config = wxGetApp().app_config;
         std::string str_bed_type = app_config->get("curr_bed_type");
         int bed_type_value = atoi(str_bed_type.c_str());
-        m_bed_type_list->Select(bed_type_value);
+        // hotfix: btDefault is added as the first one in BedType, and app_config should not be btDefault
+        if (bed_type_value == 0) {
+            app_config->set("curr_bed_type", "1");
+            bed_type_value = 1;
+        }
+
+        int bed_type_idx = bed_type_value - 1;
+        m_bed_type_list->Select(bed_type_idx);
         bed_type_sizer->Add(bed_type_title, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
         bed_type_sizer->Add(m_bed_type_list, 1, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(10));
         vsizer_printer->Add(bed_type_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));

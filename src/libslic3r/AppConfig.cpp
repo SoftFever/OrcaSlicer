@@ -290,7 +290,7 @@ void AppConfig::set_defaults()
     }
 
     if (get("curr_bed_type").empty()) {
-        set("curr_bed_type", "0");
+        set("curr_bed_type", "1");
     }
 
 #if BBL_RELEASE_TO_PUBLIC
