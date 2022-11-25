@@ -153,6 +153,17 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
 
         if (e.GetString().mb_str() != app_config->get(param)) {
             {
+                //check if the project has changed
+                if (wxGetApp().plater()->is_project_dirty()) {
+                    auto result = MessageDialog(static_cast<wxWindow*>(this), _L("The current project has unsaved changes, save it before continue?"),
+                        wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Save"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal();
+                    
+                    if (result == wxID_YES) {
+                        wxGetApp().plater()->save_project();
+                    }
+                }
+
+
                 // the dialog needs to be destroyed before the call to switch_language()
                 // or sometimes the application crashes into wxDialogBase() destructor
                 // so we put it into an inner scope
