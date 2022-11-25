@@ -77,7 +77,7 @@ std::vector<std::string> init_occt_fonts()
 
         Handle(Font_SystemFont) sys_font = aFontMgr->GetFont(afn->ToCString());
         TCollection_AsciiString font_path = sys_font->FontPath(Font_FontAspect::Font_FontAspect_Regular);
-        if (!font_path.IsEmpty()) {
+        if (!font_path.IsEmpty() && !font_path.EndsWith(".dfont")) {
             g_occt_fonts_maps.insert(std::make_pair(afn->ToCString(), decode_path(font_path.ToCString())));
             stdFontNames.push_back(afn->ToCString());
         }
