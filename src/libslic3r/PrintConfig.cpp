@@ -2593,6 +2593,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(2.5));
 
+    def = this->add("support_expansion", coFloat);
+    def->label = L("Support xy expansion distance");
+    def->category = L("Support");
+    def->tooltip = L("Expanding (+) or shrinking (-) support volume");
+    def->sidetext = L("mm");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0));
+
     def = this->add("support_speed", coFloat);
     def->label = L("Support");
     def->category = L("Speed");

@@ -1899,6 +1899,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_interface_pattern", "support#base-pattern");
         optgroup->append_single_option_line("support_interface_spacing", "support#base-pattern");
         optgroup->append_single_option_line("support_bottom_interface_spacing");
+        optgroup->append_single_option_line("support_expansion", "support#base-pattern");
         //optgroup->append_single_option_line("support_interface_loop_pattern");
 
         optgroup->append_single_option_line("support_object_xy_distance", "support#supportobject-xy-distance");

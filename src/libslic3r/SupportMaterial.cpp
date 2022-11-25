@@ -1512,6 +1512,7 @@ static inline Polygons detect_overhangs(
         0.;
     const coordf_t max_bridge_length = scale_(object_config.max_bridge_length.value);
     const bool bridge_no_support = object_config.bridge_no_support.value;
+    const coordf_t xy_expansion = scale_(object_config.support_expansion.value);
 
     if (layer_id == 0) 
     {
@@ -1567,9 +1568,9 @@ static inline Polygons detect_overhangs(
                     // Offset the support regions back to a full overhang, restrict them to the full overhang.
                     // This is done to increase size of the supporting columns below, as they are calculated by 
                     // propagating these contact surfaces downwards.
-                    diff_polygons = diff(
-                        intersection(expand(diff_polygons, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS), layerm_polygons),
-                        lower_layer_polygons);
+                    diff_polygons = 
+                        expand(diff(intersection(expand(diff_polygons, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS), layerm_polygons), lower_layer_polygons),
+                               xy_expansion, SUPPORT_SURFACES_OFFSET_PARAMETERS);
                 }
                 //FIXME add user defined filtering here based on minimal area or minimum radius or whatever.
 

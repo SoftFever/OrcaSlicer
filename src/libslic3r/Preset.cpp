@@ -708,7 +708,7 @@ static std::vector<std::string> s_Preset_print_options {
     "outer_wall_acceleration", "initial_layer_acceleration", "top_surface_acceleration", "default_acceleration", "skirt_loops", "skirt_distance", "skirt_height", "draft_shield",
     "brim_width", "brim_object_gap", "brim_type", "enable_support", "support_type", "support_threshold_angle", "enforce_support_layers",
     "raft_layers", "raft_first_layer_density", "raft_first_layer_expansion", "raft_contact_distance", "raft_expansion",
-    "support_base_pattern", "support_base_pattern_spacing", "support_style",
+    "support_base_pattern", "support_base_pattern_spacing", "support_expansion", "support_style",
     // BBS
     //"independent_support_layer_height",
     "support_angle", "support_interface_top_layers", "support_interface_bottom_layers",

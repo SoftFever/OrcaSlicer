@@ -82,6 +82,7 @@
     "support_interface_top_layers": "2",
     "support_interface_bottom_layers": "2",
     "support_interface_spacing": "0.5",
+	"support_expansion":	"0",
     "support_interface_speed": "80",
     "support_base_pattern": "rectilinear",
     "support_base_pattern_spacing": "2.5",
