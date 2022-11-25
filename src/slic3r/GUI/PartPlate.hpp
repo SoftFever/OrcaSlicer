@@ -213,7 +213,6 @@ public:
     //clear alll the instances in plate
     void clear(bool clear_sliced_result = true);
 
-    BedType last_bed_type;
     BedType get_bed_type(bool check_global = true) const;
     void set_bed_type(BedType bed_type);
     void reset_bed_type();
