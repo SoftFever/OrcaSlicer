@@ -2588,9 +2588,9 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(2.5));
 
     def = this->add("support_expansion", coFloat);
-    def->label = L("Support xy expansion distance");
+    def->label = L("Normal Support expansion");
     def->category = L("Support");
-    def->tooltip = L("Expanding (+) or shrinking (-) support volume");
+    def->tooltip = L("Expand (+) or shrink (-) the horizontal span of normal support");
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));

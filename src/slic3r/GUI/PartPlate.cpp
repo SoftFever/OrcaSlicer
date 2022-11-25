@@ -3557,7 +3557,7 @@ bool PartPlateList::preprocess_arrange_polygon_other_locked(int obj_index, int i
 	return locked;
 }
 
-bool PartPlateList::preprocess_exclude_areas(arrangement::ArrangePolygons& unselected, int num_plates)
+bool PartPlateList::preprocess_exclude_areas(arrangement::ArrangePolygons& unselected, int num_plates, float inflation)
 {
 	bool added = false;
 
@@ -3585,6 +3585,7 @@ bool PartPlateList::preprocess_exclude_areas(arrangement::ArrangePolygons& unsel
 				ret.bed_idx      = j;
 				ret.height      = 1;
 				ret.name = "ExcludedRegion" + std::to_string(index);
+				ret.inflation = inflation;
 
 				unselected.emplace_back(std::move(ret));
 			}
@@ -3595,7 +3596,7 @@ bool PartPlateList::preprocess_exclude_areas(arrangement::ArrangePolygons& unsel
 	return added;
 }
 
-bool PartPlateList::preprocess_nonprefered_areas(arrangement::ArrangePolygons& regions, int num_plates)
+bool PartPlateList::preprocess_nonprefered_areas(arrangement::ArrangePolygons& regions, int num_plates, float inflation)
 {
 	bool added = false;
 
@@ -3619,6 +3620,7 @@ bool PartPlateList::preprocess_nonprefered_areas(arrangement::ArrangePolygons& r
 			ret.bed_idx = j;
 			ret.height = 1;
 			ret.name = "NonpreferedRegion" + std::to_string(index);
+			ret.inflation = inflation;
 
 			regions.emplace_back(std::move(ret));
 		}

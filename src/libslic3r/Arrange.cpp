@@ -137,8 +137,7 @@ static double fixed_overfit(const std::tuple<double, Box>& result, const Box &bi
 }
 
 // useful for arranging big circle objects
-template<class PConf> 
-static double fixed_overfit_topright_sliding(const std::tuple<double, Box> &result, const Box &binbb, const PConf &config)
+static double fixed_overfit_topright_sliding(const std::tuple<double, Box> &result, const Box &binbb, const std::vector<Box> &excluded_boxes)
 {
     double score = std::get<0>(result);
     Box pilebb = std::get<1>(result);
@@ -154,14 +153,8 @@ static double fixed_overfit_topright_sliding(const std::tuple<double, Box> &resu
     if (diff > 0) score += diff;
 
     // excluded regions and nonprefered regions should not intersect the translated pilebb
-    for (auto &region : config.m_excluded_regions) {
-        Box  bb    = region.boundingBox();
-        auto area_ = bb.intersection(pilebb).area();
-        if (area_ > 0) score += area_;
-    }
-    for (auto &region : config.m_nonprefered_regions) {
-        Box  bb    = region.boundingBox();
-        auto area_ = bb.intersection(pilebb).area();
+    for (auto &bb : excluded_boxes) {
+        auto area_ = pilebb.intersection(bb).area();
         if (area_ > 0) score += area_;
     }
 
@@ -203,6 +196,7 @@ protected:
     Box          m_pilebb;      // The bounding box of the merged pile.
     ItemGroup m_remaining;      // Remaining items
     ItemGroup m_items;          // allready packed items
+    std::vector<Box> m_excluded_and_extruCali_regions;  // excluded and extrusion calib regions
     size_t    m_item_count = 0; // Number of all items to be packed
     ArrangeParams params;
     
@@ -227,7 +221,7 @@ protected:
         else {
             if (dist_corner_x < 0) bindist += 10 * (-dist_corner_x);
             if (dist_corner_y < 0) bindist += 10 * (-dist_corner_y);
-        }
+            }
         bindist = norm(bindist);
         return bindist;
     }
@@ -489,6 +483,14 @@ public:
         m_norm = std::sqrt(m_bin_area);
         fill_config(m_pconf, params);
         this->params = params;
+        for (auto& region : m_pconf.m_excluded_regions) {
+            Box  bb = region.boundingBox();
+            m_excluded_and_extruCali_regions.emplace_back(bb);
+        }
+        for (auto& region : m_pconf.m_nonprefered_regions) {
+            Box  bb = region.boundingBox();
+            m_excluded_and_extruCali_regions.emplace_back(bb);
+        }
 
         // Set up a callback that is called just before arranging starts
         // This functionality is provided by the Nester class (m_pack).
@@ -526,17 +528,6 @@ public:
         
         m_pconf.object_function = get_objfn();
 
-        auto bbox2expoly = [](Box bb) {
-            ExPolygon bin_poly;
-            auto c0 = bb.minCorner();
-            auto c1 = bb.maxCorner();
-            bin_poly.contour.points.emplace_back(c0);
-            bin_poly.contour.points.emplace_back(c1.x(), c0.y());
-            bin_poly.contour.points.emplace_back(c1);
-            bin_poly.contour.points.emplace_back(c0.x(), c1.y());
-            return bin_poly;
-        };
-        
         // preload fixed items (and excluded regions) on plate
         m_pconf.on_preload = [this](const ItemGroup &items, PConfig &cfg) {
             if (items.empty()) return;
@@ -558,7 +549,7 @@ public:
                 }
             }
 
-            cfg.object_function = [this, binbb, starting_point, &cfg](const Item &item, const ItemGroup &packed_items) {
+            cfg.object_function = [this, binbb, starting_point](const Item &item, const ItemGroup &packed_items) {
                 // 在我们的摆盘中，没有天然的固定对象。固定对象只有：屏蔽区域、挤出补偿区域、料塔。
                 // 对于屏蔽区域，摆入的对象仍然是可以向右上滑动的；
                 // 对挤出料塔，摆入的对象不能滑动（必须围绕料塔）
@@ -566,7 +557,7 @@ public:
                 if(pack_around_wipe_tower)
                     return fixed_overfit(objfunc(item, starting_point), binbb);
                 else {
-                    return fixed_overfit_topright_sliding(objfunc(item, starting_point), binbb, cfg);
+                    return fixed_overfit_topright_sliding(objfunc(item, starting_point), binbb, m_excluded_and_extruCali_regions);
                 }
             };
         };

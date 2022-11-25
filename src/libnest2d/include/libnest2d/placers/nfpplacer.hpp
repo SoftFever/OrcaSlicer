@@ -1034,51 +1034,50 @@ private:
             if (!item.is_virt_object)
                 bb = sl::boundingBox(item.boundingBox(), bb);
 
-        // BBS TODO assume the nonprefered regions are at the bottom left corner
-        Box bin_reduced = bbin;
-        for (const auto& region : config_.m_nonprefered_regions)
-        {
-            Box bb1 = region.boundingBox();
-            if (bb1.maxCorner().y()<bbin.height()/5 &&
-                bbin.height() - bb1.maxCorner().y() > bb.height() && bb.height()>bbin.height()-2*bb1.maxCorner().y()) {
-                // could use a tighter bound by moving bed center higher
-                bin_reduced.minCorner().y() = bb1.maxCorner().y();
-                continue;
-            }
-            if (bb1.maxCorner().x()<bbin.width()/5 &&
-                bbin.width() - bb1.maxCorner().x() > bb.width() && bb.width()>bbin.width()-2*bb1.maxCorner().x()) {
-                // could use a tighter bound
-                bin_reduced.minCorner().x() = bb1.maxCorner().x();
-                continue;
+        // if move to center is infeasible, move to topright corner instead
+        auto alignment = config_.alignment;
+        if (!config_.m_excluded_regions.empty() && alignment== Config::Alignment::CENTER) {
+            Box bb2 = bb;
+            auto d = bbin.center() - bb2.center();
+            d.x() = std::max(d.x(), 0);
+            d.y() = std::max(d.y(), 0);
+            bb2.minCorner() += d;
+            bb2.maxCorner() += d;
+            for (auto& region : config_.m_excluded_regions) {
+                auto region_bb = region.boundingBox();
+                if (bb2.intersection(region_bb).area()>0) {
+                    alignment = Config::Alignment::TOP_RIGHT;
+                    break;
+                }
             }
         }
 
         Vertex ci, cb;
 
-        switch(config_.alignment) {
+        switch(alignment) {
         case Config::Alignment::CENTER: {
             ci = bb.center();
-            cb = bin_reduced.center();
+            cb = bbin.center();
             break;
         }
         case Config::Alignment::BOTTOM_LEFT: {
             ci = bb.minCorner();
-            cb = bin_reduced.minCorner();
+            cb = bbin.minCorner();
             break;
         }
         case Config::Alignment::BOTTOM_RIGHT: {
             ci = {getX(bb.maxCorner()), getY(bb.minCorner())};
-            cb = {getX(bin_reduced.maxCorner()), getY(bin_reduced.minCorner())};
+            cb = {getX(bbin.maxCorner()), getY(bbin.minCorner())};
             break;
         }
         case Config::Alignment::TOP_LEFT: {
             ci = {getX(bb.minCorner()), getY(bb.maxCorner())};
-            cb = {getX(bin_reduced.minCorner()), getY(bin_reduced.maxCorner())};
+            cb = {getX(bbin.minCorner()), getY(bbin.maxCorner())};
             break;
         }
         case Config::Alignment::TOP_RIGHT: {
             ci = bb.maxCorner();
-            cb = bin_reduced.maxCorner();
+            cb = bbin.maxCorner();
             break;
         }
         default: ; // DONT_ALIGN

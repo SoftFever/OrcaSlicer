@@ -540,15 +540,15 @@ void ArrangeJob::process()
     // 屏蔽区域只需要膨胀brim宽度，防止brim长过去；挤出标定区域不需要膨胀，brim可以长过去。
     // 以前我们认为还需要膨胀clearance_radius/2，这其实是不需要的，因为这些区域并不会真的摆放物体，
     // 其他物体的膨胀轮廓是可以跟它们重叠的。
+    double scaled_exclusion_gap = scale_(1);
     std::for_each(m_unselected.begin(), m_unselected.end(), [&](auto &ap) {
         ap.inflation = !ap.is_virt_object ?
                            params.min_obj_distance / 2 :
-                           (ap.is_extrusion_cali_object ? 0 : scaled(params.brim_skirt_distance));
+                           (ap.is_extrusion_cali_object ? 0 : scaled_exclusion_gap);
     });
 
 
-    partplate_list.preprocess_exclude_areas(params.excluded_regions, 1);
-    partplate_list.preprocess_exclude_areas(params.nonprefered_regions, 1);
+    partplate_list.preprocess_exclude_areas(params.excluded_regions, 1, scaled_exclusion_gap);
 
     // shrink bed by moving to center by dist
     Points bedpts = get_bed_shape(*m_plater->config());
