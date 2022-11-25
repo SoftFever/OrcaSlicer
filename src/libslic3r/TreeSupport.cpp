@@ -687,12 +687,11 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
         
     SupportMaterialPattern support_pattern  = m_object_config->support_base_pattern;
     m_support_params.base_fill_pattern      = 
-#if HAS_LIGHTNING_INFILL
-        support_pattern == smpLightning ? ipLightning :
-#endif
+        (support_pattern == smpDefault || support_pattern == smpLightning) ? ipLightning :
         support_pattern == smpHoneycomb ? ipHoneycomb :
                                               m_support_params.support_density > 0.95 || m_support_params.with_sheath ? ipRectilinear :
                                                                                                                         ipSupportBase;
+
     m_support_params.interface_fill_pattern = (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
     m_support_params.contact_fill_pattern   = (m_object_config->support_interface_pattern == smipAuto && m_slicing_params.soluble_interface) ||
                                                     m_object_config->support_interface_pattern == smipConcentric ?
@@ -1395,7 +1394,7 @@ void TreeSupport::generate_toolpaths()
     coordf_t nozzle_diameter = print_config.nozzle_diameter.get_at(object_config.support_filament - 1);
 
     const size_t wall_count = object_config.tree_support_wall_count.value;
-    const bool with_infill = object_config.tree_support_with_infill.value;
+    const bool with_infill = object_config.support_base_pattern != smpNone;
     const bool contact_loops = object_config.support_interface_loop_pattern.value;
     auto m_support_material_flow = support_material_flow(m_object, float(m_slicing_params.layer_height));
 
@@ -1606,7 +1605,7 @@ void TreeSupport::generate_toolpaths()
                         }
                     }
                 }
-                if (with_infill && m_support_params.base_fill_pattern == ipLightning)
+                if (m_support_params.base_fill_pattern == ipLightning)
                 {
                     double print_z = ts_layer->print_z;
                     if (printZ_to_lightninglayer.find(print_z) == printZ_to_lightninglayer.end())
@@ -1619,11 +1618,7 @@ void TreeSupport::generate_toolpaths()
                     // strengthen lightnings while it may make support harder. decide to enable it or not. if yes, proper values for params are remained to be tested
                     auto& lightning_layer = generator->getTreesForLayer(printZ_to_lightninglayer[print_z]);
 
-                    Flow       flow  = (layer_id == 0 && m_raft_layers == 0) ?
-                                           m_object->print()->brim_flow() :
-                                           (m_support_params.base_fill_pattern == ipRectilinear && (layer_id % num_layers_to_change_infill_direction == 0) ?
-                                                support_transition_flow(m_object) :
-                                                support_flow);
+                    Flow       flow  = (layer_id == 0 && m_raft_layers == 0) ? m_object->print()->brim_flow() :support_flow;
                     ExPolygons areas = offset_ex(ts_layer->base_areas, -flow.scaled_spacing());
 
                     for (auto& area : areas)
@@ -1981,7 +1976,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 {
     const PrintObjectConfig &config = m_object->config();
     bool has_brim = m_object->print()->has_brim();
-    bool has_infill = config.tree_support_with_infill.value;
+    bool has_infill = config.support_base_pattern.value != smpNone;
     int bottom_gap_layers = round(m_slicing_params.gap_object_support / m_slicing_params.layer_height);
     const coordf_t branch_radius = config.tree_support_branch_diameter.value / 2;
     const coordf_t branch_radius_scaled = scale_(branch_radius);
@@ -2022,7 +2017,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     const coordf_t line_width = config.support_line_width;
     const coordf_t line_width_scaled           = scale_(line_width);
 
-    const bool with_lightning_infill = config.tree_support_with_infill.value && config.support_base_pattern.value == smpLightning;
+    const bool with_lightning_infill = m_support_params.base_fill_pattern == ipLightning;
     coordf_t support_extrusion_width = config.support_line_width.value > 0 ? config.support_line_width : config.line_width;
     const size_t wall_count = config.tree_support_wall_count.value;
 
@@ -2059,6 +2054,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 ExPolygons& roof_areas = ts_layer->roof_areas;
                 ExPolygons& roof_1st_layer = ts_layer->roof_1st_layer;
                 ExPolygons& floor_areas = ts_layer->floor_areas;
+                ExPolygons& roof_gap_areas = ts_layer->roof_gap_areas;
 
                 BOOST_LOG_TRIVIAL(debug) << "circles at layer " << layer_nr << " contact nodes size=" << contact_nodes[layer_nr].size();
                 //Draw the support areas and add the roofs appropriately to the support roof instead of normal areas.
@@ -2070,8 +2066,11 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
                     const Node& node = *p_node;
                     ExPolygon area;
-                    // 如果是混合支撑里的普通部分，或没有启用顶部接触层，则直接从overhang多边形生成
-                    if (node.type == ePolygon || (top_interface_layers>0 &&node.support_roof_layers_below > 0)) {
+                    // 直接从overhang多边形生成，如果：
+                    // 1) 是混合支撑里的普通部分，
+                    // 2) 启用了顶部接触层，
+                    // 3) 是顶部空隙
+                    if (node.type == ePolygon || (top_interface_layers>0 &&node.support_roof_layers_below > 0) || node.distance_to_top<0) {
                         auto tmp = offset_ex({ *node.overhang }, scale_(m_ts_data->m_xy_distance));
                         if(!tmp.empty()) // 对于有缺陷的模型，overhang膨胀以后可能是空的！
                             area = tmp[0];
@@ -2080,7 +2079,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                         Polygon circle;
                         size_t layers_to_top = node.distance_to_top;
                         double  scale;
-                        if (top_interface_layers>0) { // if has infill, branch circles should be larger
+                        if (top_interface_layers>0) { // if has interface, branch circles should be larger
                             scale = static_cast<double>(layers_to_top + 1) / tip_layers;
                             scale = layers_to_top < tip_layers ? (0.5 + scale / 2) : (1 + static_cast<double>(layers_to_top - tip_layers) * diameter_angle_scale_factor);
                         } else {
@@ -2100,7 +2099,9 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                         area = ExPolygon(circle);
                     }
 
-                    if (node.support_roof_layers_below == 1)
+                    if (node.distance_to_top < 0)
+                        roof_gap_areas.emplace_back(area);
+                    else if (node.support_roof_layers_below == 1)
                     {
                         roof_1st_layer.emplace_back(area);
                     }
@@ -2149,6 +2150,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 base_areas = avoid_object_remove_extra_small_parts(base_areas, avoid_region);
                 base_areas = std::move(diff_ex(base_areas, roof_areas));
                 base_areas = std::move(diff_ex(base_areas, roof_1st_layer));
+                base_areas = std::move(diff_ex(base_areas, roof_gap_areas));
 
                 if (SQUARE_SUPPORT) {
                     // simplify support contours
@@ -2433,7 +2435,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
         //m_object->print()->set_status(59, "Support: preparing avoidance regions ");
         // get all the possible radiis
         std::vector<std::set<coordf_t> > all_layer_radius(m_highest_overhang_layer+1);
-        std::vector<std::set<size_t> > all_layer_node_dist(m_highest_overhang_layer+1);
+        std::vector<std::set<int> > all_layer_node_dist(m_highest_overhang_layer+1);
         for (size_t layer_nr = m_highest_overhang_layer; layer_nr > 0; layer_nr--)
         {
             auto& layer_contact_nodes = contact_nodes[layer_nr];
@@ -2509,6 +2511,13 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
         {
             const Node& node = *p_node;
 
+            if (node.distance_to_top < 0) {
+                // virtual node do not merge or move
+                Node* next_node = new Node(p_node->position, p_node->distance_to_top + 1, p_node->skin_direction, p_node->support_roof_layers_below - 1, p_node->to_buildplate, p_node,
+                    m_object->get_layer(layer_nr - 1)->print_z, m_object->get_layer(layer_nr - 1)->height);
+                contact_nodes[layer_nr - 1].emplace_back(next_node);
+                continue;
+            }
             if (support_on_buildplate_only && !node.to_buildplate) //Can't rest on model and unable to reach the build plate. Then we must drop the node and leave parts unsupported.
             {
                 unsupported_branch_leaves.push_front({ layer_nr, p_node });
@@ -2960,7 +2969,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
     if (!m_slicing_params.soluble_interface && m_object_config->thick_bridges) {
         z_distance_top += m_object->layers()[0]->regions()[0]->region().bridging_height_avg(m_object->print()->config()) - layer_height;
     }
-    const size_t z_distance_top_layers = round_up_divide(scale_(z_distance_top), scale_(layer_height)) + 1; //Support must always be 1 layer below overhang.
+    const int z_distance_top_layers = round_up_divide(scale_(z_distance_top), scale_(layer_height)) + 1; //Support must always be 1 layer below overhang.
 
     const size_t support_roof_layers = config.support_interface_top_layers.value + 1; // BBS: add a normal support layer below interface
     coordf_t  thresh_angle           = config.support_threshold_angle.value < EPSILON ? 30.f : config.support_threshold_angle.value;
@@ -2973,11 +2982,11 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
     m_highest_overhang_layer = 0;
     int      nonempty_layers = 0;
     std::vector<Slic3r::Vec3f> all_nodes;
-    for (size_t layer_nr = 1; layer_nr < m_object->layers().size() - z_distance_top_layers; layer_nr++)
+    for (size_t layer_nr = 1; layer_nr < m_object->layers().size(); layer_nr++)
     {
         if (m_object->print()->canceled())
             break;
-        auto              ts_layer = m_object->get_tree_support_layer(layer_nr + m_raft_layers + z_distance_top_layers);
+        auto              ts_layer = m_object->get_tree_support_layer(layer_nr + m_raft_layers);
         const ExPolygons &overhang = ts_layer->overhang_areas;
         auto &          curr_nodes = contact_nodes[layer_nr];
         if (overhang.empty())
@@ -2994,7 +3003,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
                 Point candidate = overhang_bounds.center();
                 if (!overhang_part.contains(candidate))
                     move_inside_expoly(overhang_part, candidate);
-                Node *contact_node     = new Node(candidate, 0, (layer_nr + z_distance_top_layers) % 2, support_roof_layers, true, Node::NO_PARENT, print_z, height);
+                Node *contact_node     = new Node(candidate, -z_distance_top_layers, (layer_nr) % 2, support_roof_layers+ z_distance_top_layers, true, Node::NO_PARENT, print_z, height);
                 contact_node->type = ePolygon;
                 contact_node->overhang = &overhang_part;
                 curr_nodes.emplace_back(contact_node);
@@ -3020,9 +3029,8 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
                         // collision radius has to be 0 or the supports are too few at curved slopes
                         //if (!is_inside_ex(m_ts_data->get_collision(0, layer_nr), candidate))
                         {
-                            constexpr size_t distance_to_top = 0;
                             constexpr bool to_buildplate = true;
-                            Node* contact_node = new Node(candidate, distance_to_top, (layer_nr + z_distance_top_layers) % 2, support_roof_layers, to_buildplate, Node::NO_PARENT,print_z,height);
+                            Node* contact_node = new Node(candidate, -z_distance_top_layers, (layer_nr) % 2, support_roof_layers+ z_distance_top_layers, to_buildplate, Node::NO_PARENT,print_z,height);
                             contact_node->overhang = &overhang_part;
                             curr_nodes.emplace_back(contact_node);
                             added = true;
@@ -3043,9 +3051,8 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
                 for (Point candidate : candidates) {
                     if (!overhang_part.contains(candidate))
                         move_inside_expoly(overhang_part, candidate);
-                    constexpr size_t distance_to_top = 0;
                     constexpr bool   to_buildplate   = true;
-                    Node *           contact_node    = new Node(candidate, distance_to_top, layer_nr % 2, support_roof_layers, to_buildplate, Node::NO_PARENT, print_z, height);
+                    Node *           contact_node    = new Node(candidate, -z_distance_top_layers, layer_nr % 2, support_roof_layers+ z_distance_top_layers, to_buildplate, Node::NO_PARENT, print_z, height);
                     contact_node->overhang           = &overhang_part;
                     curr_nodes.emplace_back(contact_node);
                 }
@@ -3058,7 +3065,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
                     auto v1 = (pt - points[(i - 1 + points.size()) % points.size()]).normalized();
                     auto v2 = (pt - points[(i + 1) % points.size()]).normalized();
                     if (v1.dot(v2) > -0.7) {
-                        Node *contact_node = new Node(pt, 0, layer_nr % 2, support_roof_layers, true, Node::NO_PARENT, print_z, height);
+                        Node *contact_node = new Node(pt, -z_distance_top_layers, layer_nr % 2, support_roof_layers+ z_distance_top_layers, true, Node::NO_PARENT, print_z, height);
                         contact_node->overhang = &overhang_part;
                         curr_nodes.emplace_back(contact_node);
                     }

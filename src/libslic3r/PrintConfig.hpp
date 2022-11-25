@@ -50,14 +50,10 @@ enum AuthorizationType {
     atKeyPassword, atUserPassword
 };
 
-#define HAS_LIGHTNING_INFILL 1
-
 enum InfillPattern : int {
     ipConcentric, ipRectilinear, ipGrid, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
     ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricInternal,
-#if HAS_LIGHTNING_INFILL
     ipLightning,
-#endif // HAS_LIGHTNING_INFILL
 ipCount,
 };
 
@@ -95,10 +91,10 @@ enum class SlicingMode
 };
 
 enum SupportMaterialPattern {
+    smpDefault,
     smpRectilinear, smpRectilinearGrid, smpHoneycomb,
-#if HAS_LIGHTNING_INFILL
     smpLightning,
-#endif // HAS_LIGHTNING_INFILL
+    smpNone,
 };
 
 enum SupportMaterialStyle {
@@ -654,7 +650,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,              tree_support_branch_diameter))
     ((ConfigOptionFloat,              tree_support_branch_angle))
     ((ConfigOptionInt,                tree_support_wall_count))
-    ((ConfigOptionBool,               tree_support_with_infill))
     ((ConfigOptionBool,               detect_narrow_internal_solid_infill))
     // ((ConfigOptionBool,               adaptive_layer_height))
     ((ConfigOptionFloat,              support_bottom_interface_spacing))

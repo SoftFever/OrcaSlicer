@@ -54,9 +54,7 @@ Fill* Fill::new_from_type(const InfillPattern type)
     case ipAdaptiveCubic:       return new FillAdaptive::Filler();
     case ipSupportCubic:        return new FillAdaptive::Filler();
     case ipSupportBase:         return new FillSupportBase();
-#if HAS_LIGHTNING_INFILL
     case ipLightning:           return new FillLightning::Filler();
-#endif // HAS_LIGHTNING_INFILL
     // BBS: for internal solid infill only
     case ipConcentricInternal:  return new FillConcentricInternal();
     // BBS: for bottom and top surface only

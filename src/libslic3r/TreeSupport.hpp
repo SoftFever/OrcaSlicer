@@ -223,7 +223,7 @@ public:
          , height(0.0)
         {}
 
-        Node(const Point position, const size_t distance_to_top, const bool skin_direction, const int support_roof_layers_below, const bool to_buildplate, Node* parent,
+        Node(const Point position, const int distance_to_top, const bool skin_direction, const int support_roof_layers_below, const bool to_buildplate, Node* parent,
              coordf_t     print_z_, coordf_t height_)
          : distance_to_top(distance_to_top)
          , position(position)
@@ -252,8 +252,9 @@ public:
 
         /*!
          * \brief The number of layers to go to the top of this branch.
+         * Negative value means it's a virtual node between support and overhang, which doesn't need to be extruded.
          */
-        size_t distance_to_top;
+        int distance_to_top;
 
         /*!
          * \brief The position of this node on the layer.

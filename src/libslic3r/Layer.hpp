@@ -248,6 +248,7 @@ public:
     ExPolygons roof_1st_layer;  // the layer just below roof. When working with PolySupport, this layer should be printed with regular material
     ExPolygons floor_areas;
     ExPolygons base_areas;
+    ExPolygons roof_gap_areas; // the areas in the gap between support roof and overhang
 
         enum AreaType {
         BaseType=0,
