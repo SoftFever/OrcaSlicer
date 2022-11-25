@@ -602,6 +602,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     bool has_fuzzy_skin = (config->opt_enum<FuzzySkinType>("fuzzy_skin") != FuzzySkinType::None);
     for (auto el : { "fuzzy_skin_thickness", "fuzzy_skin_point_distance"})
         toggle_line(el, has_fuzzy_skin);
+
+    // C11 printer is not support smooth timelapse
+    PresetBundle *preset_bundle  = wxGetApp().preset_bundle;
+    std::string str_preset_type = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+    toggle_field("timelapse_type", str_preset_type != "C11");
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

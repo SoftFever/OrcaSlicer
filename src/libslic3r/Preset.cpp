@@ -661,6 +661,31 @@ std::string Preset::get_printer_type(PresetBundle *preset_bundle)
     return "";
 }
 
+<<<<<<< HEAD   (8eb681 FIX: fix use ams always checked)
+=======
+std::string Preset::get_current_printer_type(PresetBundle *preset_bundle)
+{
+    if (preset_bundle) {
+        auto config = &(this->config);
+        std::string vendor_name;
+        for (auto vendor_profile : preset_bundle->vendors) {
+            for (auto vendor_model : vendor_profile.second.models)
+                if (vendor_model.name == config->opt_string("printer_model")) {
+                    vendor_name = vendor_profile.first;
+                    return vendor_model.model_id;
+                }
+        }
+    }
+    return "";
+}
+
+bool Preset::is_custom_defined()
+{
+    if (custom_defined == "1")
+        return true;
+    return false;
+}
+>>>>>>> CHANGE (84edf0 FIX: the P1P printer is not support smooth timelapse)
 
 bool Preset::is_bbl_vendor_preset(PresetBundle *preset_bundle)
 {

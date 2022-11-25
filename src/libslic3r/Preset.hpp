@@ -298,7 +298,8 @@ public:
 
     // special for upport G and Support W
     std::string get_filament_type(std::string &display_filament_type);
-    std::string get_printer_type(PresetBundle *preset_bundle);
+    std::string get_printer_type(PresetBundle *preset_bundle); // get edited preset type
+    std::string get_current_printer_type(PresetBundle *preset_bundle); // get current preset type
 
     bool is_bbl_vendor_preset(PresetBundle *preset_bundle);
 

@@ -802,7 +802,8 @@ UnsavedChangesDialog::UnsavedChangesDialog(const wxString &caption, const wxStri
 }
 
 UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection *dependent_presets, const std::string &new_selected_preset, bool no_transfer)
-    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe),
+    : m_new_selected_preset_name(new_selected_preset)
+    , DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe),
                 wxID_ANY,
                 _L("Discard or Keep changes"),
                 wxDefaultPosition,
@@ -1057,6 +1058,9 @@ void UnsavedChangesDialog::show_info_line(Action action, std::string preset_name
 
 void UnsavedChangesDialog::close(Action action)
 {
+    if (action == Action::Transfer) {
+        check_option_valid();
+    }
     m_exit_action = action;
     this->EndModal(wxID_CLOSE);
 }
@@ -1651,6 +1655,28 @@ void UnsavedChangesDialog::on_sys_color_changed()
     //m_tree->Rescale();
 
     Refresh();
+}
+
+bool UnsavedChangesDialog::check_option_valid()
+{
+    auto itor = std::find_if(m_presetitems.begin(), m_presetitems.end(), [](const PresetItem &item) {
+        return item.opt_key == "timelapse_type";
+    });
+
+    if (itor != m_presetitems.end()) {
+        PresetBundle *preset_bundle  = wxGetApp().preset_bundle;
+        Preset * new_preset = preset_bundle->printers.find_preset(m_new_selected_preset_name);
+        std::string str_print_type = new_preset->get_current_printer_type(preset_bundle);
+        if (str_print_type == "C11" && itor->new_value.ToStdString() == "Smooth") {
+            MessageDialog dlg(wxGetApp().plater(), _L("The P1P printer is not support smooth timelapse, it will not transform the timelapse changes."),
+                _L("Warning"), wxICON_WARNING | wxOK);
+            dlg.ShowModal();
+            m_presetitems.erase(itor);
+            return false;
+        }
+    }
+
+    return true;
 }
 
 
