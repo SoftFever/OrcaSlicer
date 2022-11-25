@@ -49,7 +49,7 @@ constexpr double miscalculation = scale_(scale_(1));   // equal to 1 mm2
 static const float LEFT_MARGIN    = 13.0f + 100.0f;  // avoid thumbnail toolbar
 static const float SLIDER_LENGTH  = 680.0f;
 static const float  TEXT_WIDTH_DUMMY = 63.0f;
-static const float  ONE_LAYER_MARGIN = 20.0f;
+static const float  ONE_LAYER_MARGIN = 10.0f;
 static const ImVec2 ONE_LAYER_OFFSET  = ImVec2(41.0f, 44.0f);
 static const ImVec2 HORIZONTAL_SLIDER_SIZE = ImVec2(764.0f, 90.0f);//764 = 680 + handle_dummy_width * 2 + text_right_dummy
 static const ImVec2 VERTICAL_SLIDER_SIZE = ImVec2(105.0f, 748.0f);//748 = 680 + text_dummy_height * 2
