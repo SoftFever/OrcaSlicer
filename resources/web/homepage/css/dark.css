@@ -1,11 +1,11 @@
 body
 {
-	background-color:black;
+	background-color:#242428;
 }
 
 *
 {
-	border-color: #494949;
+	border-color: #3E3E45;
 }
 
 
@@ -24,15 +24,20 @@ body
 	color: #fff;
 }
 
+.BtnItem
+{
+	color:#B3B3B5;
+}
 
 .BtnItem:hover
 {
-	color: #000;
+	color: #fff;
 	background-color: #243E30;
 }
 
 .BtnItemSelected
 {
+	color: #fff;
 	background-color: #243E30;
 }
 
@@ -46,5 +51,5 @@ body
 /*----User Manual------*/
 .UG_DESC
 {
-	color:#A4A4A4;
+	color:#818183;
 }
