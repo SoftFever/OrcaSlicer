@@ -12,7 +12,6 @@
 #include "libslic3r/Thread.hpp"
 
 #include "RecenterDialog.hpp"
-#include "ReleaseNote.hpp"
 
 
 namespace Slic3r { namespace GUI {
@@ -1175,6 +1174,13 @@ StatusPanel::~StatusPanel()
     m_calibration_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_calibration), NULL, this);
     m_options_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_print_options), NULL, this);
     m_button_unload->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_unload), NULL, this);
+
+    // remove warning dialogs
+    if (m_print_error_dlg != nullptr)
+        delete m_print_error_dlg;
+
+    if (abort_dlg != nullptr)
+        delete abort_dlg;
 }
 
 void StatusPanel::init_scaled_buttons()
@@ -1262,12 +1268,14 @@ void StatusPanel::on_subtask_pause_resume(wxCommandEvent &event)
 
 void StatusPanel::on_subtask_abort(wxCommandEvent &event)
 {
-    SecondaryCheckDialog abort_dlg(this->GetParent(), wxID_ANY, _L("Cancel print"));
-    abort_dlg.update_text(_L("Are you sure you want to cancel this print?"));
-    abort_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent &e) {
-        if (obj) obj->command_task_abort();
-    });
-    abort_dlg.ShowModal();
+    if (abort_dlg == nullptr) {
+        abort_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Cancel print"));
+        abort_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent &e) {
+            if (obj) obj->command_task_abort();
+        });
+    }
+    abort_dlg->update_text(_L("Are you sure you want to cancel this print?"));
+    abort_dlg->on_show();
 }
 
 void StatusPanel::error_info_reset()
@@ -1425,9 +1433,9 @@ void StatusPanel::show_error_message(wxString msg)
         if (m_panel_error_txt->IsShown()) {
             error_info_reset();
         }
-        if (m_print_error_dlg.get() != nullptr) {
-            if (m_print_error_dlg.get()->IsShown()) {
-                m_print_error_dlg.get()->EndModal(wxID_OK);
+        if (m_print_error_dlg != nullptr) {
+            if (m_print_error_dlg->IsShown()) {
+                m_print_error_dlg->Hide();
             }
         }
     } else {
@@ -1436,9 +1444,11 @@ void StatusPanel::show_error_message(wxString msg)
         m_panel_error_txt->Show();
 
         BOOST_LOG_TRIVIAL(info) << "show print error! error_msg = " << msg;
-        m_print_error_dlg = std::make_shared<SecondaryCheckDialog>(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
-        m_print_error_dlg.get()->update_text(msg);
-        m_print_error_dlg.get()->ShowModal();
+        if (m_print_error_dlg == nullptr) {
+            m_print_error_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
+        }
+        m_print_error_dlg->update_text(msg);
+        m_print_error_dlg->on_show();
     }
 }
 

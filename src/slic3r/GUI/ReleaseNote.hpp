@@ -80,7 +80,7 @@ public:
     Button*           m_button_cancel;
 };
 
-class SecondaryCheckDialog : public DPIDialog
+class SecondaryCheckDialog : public DPIFrame
 {
 public:
     enum ButtonStyle {
@@ -98,9 +98,11 @@ public:
         long            style = wxCLOSE_BOX | wxCAPTION
     );
     void update_text(wxString text);
+    void on_show();
+    bool is_english_text(wxString str);
     wxString format_text(wxStaticText* st, wxString str, int warp);
     ~SecondaryCheckDialog();
-    void on_dpi_changed(const wxRect& suggested_rect) override;
+    void on_dpi_changed(const wxRect& suggested_rect);
 
     wxBoxSizer* m_sizer_main;
     wxScrolledWindow *m_vebview_release_note {nullptr};

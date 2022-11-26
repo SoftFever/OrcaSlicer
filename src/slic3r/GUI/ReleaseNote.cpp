@@ -343,7 +343,7 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
 }
 
 SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, const wxString& title, enum ButtonStyle btn_style, const wxPoint& pos, const wxSize& size, long style)
-    :DPIDialog(parent, id, title, pos, size, style)
+    :DPIFrame(parent, id, title, pos, size, style)
 {
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -385,10 +385,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
         wxCommandEvent evt(EVT_SECONDARY_CHECK_CONFIRM, GetId());
         e.SetEventObject(this);
         GetEventHandler()->ProcessEvent(evt);
-        if (this->IsModal())
-            EndModal(wxID_YES);
-        else
-            this->Close();
+        this->Hide();
         });
 
     m_button_cancel = new Button(this, _L("Cancel"));
@@ -400,10 +397,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_button_cancel->SetCornerRadius(FromDIP(12));
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
-        if (this->IsModal())
-            EndModal(wxID_NO);
-        else
-            this->Close();
+        this->Hide();
         });
 
     if (btn_style != CONFIRM_AND_CANCEL)
@@ -420,6 +414,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_sizer_right->Add(sizer_button, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(35));
     m_sizer_right->Add(0, 0, 0, wxTOP,FromDIP(18));
 
+    Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {this->Hide();});
 
     SetSizer(m_sizer_right);
     Layout();
@@ -455,6 +450,39 @@ void SecondaryCheckDialog::update_text(wxString text)
     m_vebview_release_note->Layout();
     m_sizer_main->Layout();
     m_sizer_main->Fit(this);
+}
+
+void SecondaryCheckDialog::on_show()
+{
+    // recover button color
+    wxMouseEvent evt_ok(wxEVT_LEFT_UP);
+    m_button_ok->GetEventHandler()->ProcessEvent(evt_ok);
+    wxMouseEvent evt_cancel(wxEVT_LEFT_UP);
+    m_button_cancel->GetEventHandler()->ProcessEvent(evt_cancel);
+
+    this->Show();
+    this->SetFocus();
+}
+
+bool SecondaryCheckDialog::is_english_text(wxString str)
+{
+    std::regex reg("^[0-9a-zA-Z]+$");
+    std::smatch matchResult;
+
+    std::string pattern_Special = "{}[]<>~!@#$%^&*(),.?/ :";
+    for (auto i = 0; i < str.Length(); i++) {
+        std::string regex_str = wxString(str[i]).ToStdString();
+        if(std::regex_match(regex_str, matchResult, reg)){
+            continue;
+        }
+        else {
+            int result = pattern_Special.find(regex_str.c_str());
+            if (result < 0 || result > pattern_Special.length()) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 wxString SecondaryCheckDialog::format_text(wxStaticText* st, wxString str, int warp)

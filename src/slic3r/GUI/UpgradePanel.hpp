@@ -6,6 +6,7 @@
 #include "Widgets/ProgressBar.hpp"
 #include <slic3r/GUI/DeviceManager.hpp>
 #include <slic3r/GUI/Widgets/ScrolledWindow.hpp>
+#include "ReleaseNote.hpp"
 
 
 namespace Slic3r {
@@ -77,6 +78,8 @@ protected:
     int last_status = -1;
     std::string last_status_str = "";
 
+    SecondaryCheckDialog* confirm_dlg = nullptr;
+
     void upgrade_firmware_internal();
     void on_show_release_note(wxMouseEvent &event);
 
@@ -136,6 +139,8 @@ protected:
     int last_consistency_hint_status = -1;
     bool m_show_forced_hint = true;
     bool m_show_consistency_hint = true;
+    SecondaryCheckDialog* force_dlg{ nullptr };
+    SecondaryCheckDialog* consistency_dlg{ nullptr };
 
 public:
     UpgradePanel(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxTAB_TRAVERSAL);

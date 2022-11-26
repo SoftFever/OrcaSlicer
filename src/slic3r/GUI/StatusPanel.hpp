@@ -257,7 +257,8 @@ protected:
     PrintOptionsDialog*  print_options_dlg { nullptr };
     CalibrationDialog*   calibration_dlg {nullptr};
     AMSMaterialsSetting *m_filament_setting_dlg{nullptr};
-    std::shared_ptr<SecondaryCheckDialog> m_print_error_dlg = nullptr;
+    SecondaryCheckDialog* m_print_error_dlg = nullptr;
+    SecondaryCheckDialog* abort_dlg = nullptr;
 
     wxString     m_request_url;
     bool         m_start_loading_thumbnail = false;

@@ -21,7 +21,6 @@
 #include "Plater.hpp"
 #include "BitmapCache.hpp"
 #include "BindDialog.hpp"
-#include "ReleaseNote.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -1935,7 +1934,12 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
     if (!is_same_printer_type || has_slice_warnings) {
         wxString confirm_title = _L("Warning");
-        SecondaryCheckDialog confirm_dlg(this, wxID_ANY, confirm_title);
+        if (confirm_dlg == nullptr) {
+            confirm_dlg = new SecondaryCheckDialog(this, wxID_ANY, confirm_title);
+            confirm_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent &e) {
+                this->on_ok();
+            });
+        }
         wxString info_msg = wxEmptyString;
 
         for (auto i = 0; i < confirm_text.size(); i++) {
@@ -1947,10 +1951,9 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             }
             
         }
-        confirm_dlg.update_text(info_msg);
-        if (confirm_dlg.ShowModal() == wxID_YES) {
-            this->on_ok();
-        }
+        confirm_dlg->update_text(info_msg);
+        confirm_dlg->on_show();
+
     } else {
         this->on_ok();
     }
@@ -2938,6 +2941,9 @@ bool SelectMachineDialog::Show(bool show)
 SelectMachineDialog::~SelectMachineDialog()
 {
     delete m_refresh_timer;
+
+    if (confirm_dlg != nullptr)
+        delete confirm_dlg;
 }
 
 EditDevNameDialog::EditDevNameDialog(Plater *plater /*= nullptr*/)
