@@ -42,8 +42,12 @@ bool SidePopup::Show( bool show )
 void SidePopup::Popup(wxWindow* focus)
 {
     Create();
-     int screenwidth = wxSystemSettings::GetMetric(wxSYS_SCREEN_X,NULL);
+    auto drect = wxDisplay(GetParent()).GetGeometry();
+    int screenwidth = drect.x + drect.width;
+    //int screenwidth = wxSystemSettings::GetMetric(wxSYS_SCREEN_X,NULL);
+
     int max_width = 0;
+
     for (auto btn : btn_list)
     {
         max_width = std::max(btn->GetMinSize().x, max_width);
