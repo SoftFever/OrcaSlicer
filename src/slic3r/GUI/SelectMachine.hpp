@@ -255,7 +255,8 @@ enum PrintDialogStatus {
     PrintStatusLanModeNoSdcard,
     PrintStatusNoSdcard,
     PrintStatusTimelapseNoSdcard,
-    PrintStatusNotOnTheSameLAN
+    PrintStatusNotOnTheSameLAN,
+    PrintStatusNeedForceUpgrading
 };
 
 std::string get_print_status_info(PrintDialogStatus status);

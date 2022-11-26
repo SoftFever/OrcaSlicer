@@ -1807,6 +1807,11 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusNeedForceUpgrading) {
+        wxString msg_text = _L("Cannot send the print task when the printer need force upgrading.");
+        update_print_status_msg(msg_text, true, true);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
     }
 }
 
@@ -2458,6 +2463,11 @@ void SelectMachineDialog::update_show_status()
     }
 
     // reading done
+    if (obj_->upgrade_force_upgrade) {
+        show_status(PrintDialogStatus::PrintStatusNeedForceUpgrading);
+        return;
+    }
+
     if (obj_->is_in_upgrading()) {
         show_status(PrintDialogStatus::PrintStatusInUpgrading);
         return;
