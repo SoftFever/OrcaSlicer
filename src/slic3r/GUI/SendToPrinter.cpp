@@ -71,26 +71,40 @@ wxString SendToPrinterDialog::format_text(wxString &m_msg)
 	return out_txt;
 }
 
-void SendToPrinterDialog::on_kill_focus(wxFocusEvent& event)
+void SendToPrinterDialog::check_focus(wxWindow* window)
 {
-    if (m_rename_switch_panel->GetSelection() == 1) {
-        m_rename_switch_panel->SetSelection(0);
-        m_rename_text->SetLabel(m_current_project_name);
-        m_rename_normal_panel->Layout();
-        
+    if (window == m_rename_input || window == m_rename_input->GetTextCtrl()) {
+        on_rename_enter();
     }
-    event.Skip();
+}
+
+void SendToPrinterDialog::check_fcous_state(wxWindow* window)
+{
+    check_focus(window);
+    auto children = window->GetChildren();
+    for (auto child : children) {
+        check_fcous_state(child);
+    }
 }
 
 void SendToPrinterDialog::on_rename_click(wxCommandEvent& event)
 {
+    m_is_rename_mode = true;
     m_rename_input->GetTextCtrl()->SetValue(m_current_project_name);
     m_rename_switch_panel->SetSelection(1);
     m_rename_input->GetTextCtrl()->SetFocus();
+    m_rename_input->GetTextCtrl()->SetInsertionPointEnd();
 }
 
-void SendToPrinterDialog::on_rename_enter(wxCommandEvent& event)
+void SendToPrinterDialog::on_rename_enter()
 {
+    if (m_is_rename_mode == false) {
+        return;
+    }
+    else {
+        m_is_rename_mode = false;
+    }
+
     auto     new_file_name = m_rename_input->GetTextCtrl()->GetValue();
     auto     m_valid_type = Valid;
     wxString info_line;
@@ -352,11 +366,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     m_rename_edit_panel->Layout();
     rename_edit_sizer_v->Fit(m_rename_edit_panel);
 
-    m_rename_input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS,  &SendToPrinterDialog::on_kill_focus, this);
-    m_rename_input->Bind(wxEVT_TEXT_ENTER, &SendToPrinterDialog::on_rename_enter, this);
     m_rename_button->Bind(wxEVT_BUTTON, &SendToPrinterDialog::on_rename_click, this);
-
-
     m_rename_switch_panel->AddPage(m_rename_normal_panel, wxEmptyString, true);
     m_rename_switch_panel->AddPage(m_rename_edit_panel, wxEmptyString, false);
 
@@ -376,6 +386,20 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
         }
         });
 
+    m_panel_prepare->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        check_fcous_state(this);
+        e.Skip();
+        });
+
+    m_scrollable_region->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        check_fcous_state(this);
+        e.Skip();
+        });
+
+    Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        check_fcous_state(this);
+        e.Skip();
+        });
 
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(22));

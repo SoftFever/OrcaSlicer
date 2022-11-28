@@ -101,17 +101,19 @@ protected:
 	wxBoxSizer* m_sizer_main;
 	wxBoxSizer* m_sizer_bottom;
 
+	bool        m_is_rename_mode{false};
 	bool		enable_prepare_mode{true};
 	bool        m_need_adaptation_screen{ false };
 	wxPanel* m_scrollable_region;
 	wxBoxSizer* m_sizer_scrollable_region;
 
-    void                     on_kill_focus(wxFocusEvent& event);
     void                     on_rename_click(wxCommandEvent& event);
-    void                     on_rename_enter(wxCommandEvent& event);
+    void                     on_rename_enter();
 
 	void stripWhiteSpace(std::string& str);
 	wxString format_text(wxString& m_msg);
+	void check_focus(wxWindow* window);
+	void check_fcous_state(wxWindow* window);
 	void update_priner_status_msg(wxString msg, bool is_warning = false);
 	void update_print_status_msg(wxString msg, bool is_warning = false, bool is_printer = true);
 

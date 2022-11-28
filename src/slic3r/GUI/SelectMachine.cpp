@@ -997,10 +997,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_rename_edit_panel->Layout();
     rename_edit_sizer_v->Fit(m_rename_edit_panel);
 
-    m_rename_input->Bind(wxEVT_TEXT_ENTER, &SelectMachineDialog::on_rename_enter, this);
     m_rename_button->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_rename_click, this);
-
-
     m_rename_switch_panel->AddPage(m_rename_normal_panel, wxEmptyString, true);
     m_rename_switch_panel->AddPage(m_rename_edit_panel, wxEmptyString, false);
 
@@ -1218,6 +1215,21 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     Bind(EVT_PRINT_JOB_CANCEL, &SelectMachineDialog::on_print_job_cancel, this);
     Bind(EVT_SET_FINISH_MAPPING, &SelectMachineDialog::on_set_finish_mapping, this);
 
+    m_panel_prepare->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        check_fcous_state(this);
+        e.Skip();
+    });
+
+    m_scrollable_region->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        check_fcous_state(this);
+        e.Skip();
+    });
+
+    Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        check_fcous_state(this);
+        e.Skip();
+    });
+
     m_sizer_scrollable_region->Add(m_rename_switch_panel, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_scrollable_region->Add(0, 0, 0, wxTOP, FromDIP(8));
     m_sizer_scrollable_region->Add(m_panel_image, 0, wxALIGN_CENTER_HORIZONTAL, 0);
@@ -1263,6 +1275,21 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     // CenterOnParent();
     Centre(wxBOTH);
     wxGetApp().UpdateDlgDarkUI(this);
+}
+void SelectMachineDialog::check_focus(wxWindow* window)
+{
+    if (window == m_rename_input || window == m_rename_input->GetTextCtrl()) {
+        on_rename_enter();
+    }
+}
+
+void SelectMachineDialog::check_fcous_state(wxWindow* window)
+{
+    check_focus(window);
+    auto children = window->GetChildren();
+    for (auto child : children) {
+        check_fcous_state(child);
+    }
 }
 
 wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *parent, wxString tooltip)
@@ -2270,12 +2297,22 @@ void SelectMachineDialog::update_user_printer()
 
 void SelectMachineDialog::on_rename_click(wxCommandEvent& event)
 {
+    m_is_rename_mode = true;
     m_rename_input->GetTextCtrl()->SetValue(m_current_project_name);
     m_rename_switch_panel->SetSelection(1);
+    m_rename_input->GetTextCtrl()->SetFocus();
+    m_rename_input->GetTextCtrl()->SetInsertionPointEnd();
 }
 
-void SelectMachineDialog::on_rename_enter(wxCommandEvent& event)
+void SelectMachineDialog::on_rename_enter()
 {
+    if (m_is_rename_mode == false){
+        return;
+    }
+    else {
+        m_is_rename_mode = false;
+    }
+
     auto     new_file_name = m_rename_input->GetTextCtrl()->GetValue();
     auto     m_valid_type = Valid;
     wxString info_line;
@@ -2317,7 +2354,7 @@ void SelectMachineDialog::on_rename_enter(wxCommandEvent& event)
              m_rename_switch_panel->SetSelection(0);
              m_rename_text->SetLabel(m_current_project_name);
              m_rename_normal_panel->Layout();
-            return; 
+             return; 
         }
     }
 

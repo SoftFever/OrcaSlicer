@@ -355,7 +355,9 @@ protected:
 
 public:
     SelectMachineDialog(Plater *plater = nullptr);
-    wxWindow *create_ams_checkbox(wxString title, wxWindow *parent, wxString tooltip);
+    void check_focus(wxWindow* window);
+    void check_fcous_state(wxWindow* window);
+    wxWindow* create_ams_checkbox(wxString title, wxWindow* parent, wxString tooltip);
     ~SelectMachineDialog();
 
     wxWindow *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param);
@@ -396,6 +398,7 @@ protected:
     wxString                     m_current_project_name;
     std::string                  m_print_info;
     int                          timeout_count = 0;
+    bool                         m_is_rename_mode{false};
     bool                         is_timeout();
     void                         reset_timeout();
     void                         update_user_printer();
@@ -410,7 +413,7 @@ protected:
 
     // Virtual event handlers, overide them in your derived class
     void                     on_rename_click(wxCommandEvent &event);
-    void                     on_rename_enter(wxCommandEvent &event);
+    void                     on_rename_enter();
 
     void                     update_printer_combobox(wxCommandEvent &event);
     void                     on_cancel(wxCloseEvent &event);
