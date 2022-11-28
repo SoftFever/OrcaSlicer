@@ -8,7 +8,7 @@
     "outer_wall_speed": "40",
     "sparse_infill_speed": "100",
     "wall_loops": "6",
-    "sparse_infill_density": "60%",
+    "sparse_infill_density": "25%",
     "compatible_printers": [
       "Bambu Lab X1 Carbon 0.4 nozzle",
       "Bambu Lab X1 0.4 nozzle"
