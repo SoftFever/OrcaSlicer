@@ -176,7 +176,7 @@ void MediaPlayCtrl::Play()
     NetworkAgent* agent = wxGetApp().getAgent();
     if (agent) {
         agent->get_camera_url(m_machine, [this, m = m_machine](std::string url) {
-            BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
+            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl camera_url: " << url << ", machine: " << m_machine;
             CallAfter([this, m, url] {
                 if (m != m_machine) return;
                 m_url = url;
@@ -195,6 +195,8 @@ void MediaPlayCtrl::Play()
                         m_tasks.push_back(m_url);
                         m_cond.notify_all();
                     }
+                } else {
+                    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl drop late ttcode for state: " << m_last_state;
                 }
             });
         });
@@ -473,7 +475,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
             return;
         }
     }
-    if (last_state == MEDIASTATE_IDLE && state == wxMEDIASTATE_STOPPED) {
+    if ((last_state == MEDIASTATE_IDLE || last_state == MEDIASTATE_INITIALIZING) && state == wxMEDIASTATE_STOPPED) {
         return;
     }
     if ((last_state == wxMEDIASTATE_PAUSED || last_state == wxMEDIASTATE_PLAYING)  &&
