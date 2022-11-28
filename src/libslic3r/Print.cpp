@@ -1334,7 +1334,10 @@ void Print::process(bool use_cache)
     name_tbb_thread_pool_threads_set_locale();
 
     //compute the PrintObject with the same geometries
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, enter, use_cache=%2%")%this%use_cache;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, enter, use_cache=%2%, object size=%3%")%this%use_cache%m_objects.size();
+    if (m_objects.empty())
+        return;
+
     for (PrintObject *obj : m_objects)
         obj->clear_shared_object();
 

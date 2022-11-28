@@ -5635,7 +5635,8 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     }
 
     //BBS: set the current plater's slice result to valid
-    this->background_process.get_current_plate()->update_slice_result_valid_state(evt.success());
+    if (!this->background_process.empty())
+        this->background_process.get_current_plate()->update_slice_result_valid_state(evt.success());
 
     //BBS: update the action button according to the current plate's status
     bool ready_to_slice = !this->partplate_list.get_curr_plate()->is_slice_result_valid();
