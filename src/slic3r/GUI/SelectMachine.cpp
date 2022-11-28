@@ -2382,8 +2382,6 @@ void SelectMachineDialog::update_ams_check(MachineObject* obj)
         && obj->ams_support_use_ams
         && obj->has_ams()) {
         select_use_ams->Show();
-        // set ams_check to true by default
-        ams_check->SetValue(true);
     } else {
         select_use_ams->Hide();
     }
