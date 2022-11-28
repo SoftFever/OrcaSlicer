@@ -213,7 +213,12 @@ Label::Label(wxWindow *parent, wxFont const &font, wxString const &text, long st
     this->font = font;
     SetFont(font);
     SetBackgroundColour(StaticBox::GetParentBackgroundColor(parent));
-}
+    if (style & LB_PROPAGATE_MOUSE_EVENT) {
+        for (auto evt : {
+            wxEVT_LEFT_UP, wxEVT_LEFT_DOWN}) 
+            Bind(evt, [this] (auto & e) { GetParent()->GetEventHandler()->ProcessEventLocally(e); });
+        };
+    }
 
 void Label::SetLabel(const wxString& label)
 {

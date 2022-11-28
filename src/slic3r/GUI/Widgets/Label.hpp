@@ -3,7 +3,8 @@
 
 #include <wx/stattext.h>
 
-#define LB_HYPERLINK 0x0001
+#define LB_HYPERLINK 0x0020
+#define LB_PROPAGATE_MOUSE_EVENT 0x0040
 
 
 class Label : public wxStaticText

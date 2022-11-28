@@ -457,7 +457,7 @@ Sidebar::Sidebar(Plater *parent)
         p->m_panel_printer_title->SetBackgroundColor2(0xF1F1F1);
 
         p->m_printer_icon = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "printer");
-        p->m_text_printer_settings = new Label(p->m_panel_printer_title, _L("Printer"));
+        p->m_text_printer_settings = new Label(p->m_panel_printer_title, _L("Printer"), LB_PROPAGATE_MOUSE_EVENT);
 
         p->m_printer_icon->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
             auto wizard_t = new ConfigWizard(wxGetApp().mainframe);
@@ -492,6 +492,13 @@ Sidebar::Sidebar(Plater *parent)
 
         // add printer title
         scrolled_sizer->Add(p->m_panel_printer_title, 0, wxEXPAND | wxALL, 0);
+        p->m_panel_printer_title->Bind(wxEVT_LEFT_UP, [this] (auto & e) {
+            if (p->m_panel_printer_content->GetMaxHeight() == 0)
+                p->m_panel_printer_content->SetMaxSize({-1, -1});
+            else
+                p->m_panel_printer_content->SetMaxSize({-1, 0});
+            m_scrolled_sizer->Layout();
+        });
 
         // add spliter 2
         auto spliter_2 = new ::StaticLine(p->scrolled);
@@ -526,6 +533,7 @@ Sidebar::Sidebar(Plater *parent)
         wxBoxSizer* vsizer_printer = new wxBoxSizer(wxVERTICAL);
         wxBoxSizer* hsizer_printer = new wxBoxSizer(wxHORIZONTAL);
 
+        vsizer_printer->AddSpacer(FromDIP(16));
         hsizer_printer->Add(combo_printer, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
         hsizer_printer->Add(edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(3));
         hsizer_printer->Add(FromDIP(8), 0, 0, 0, 0);
@@ -582,6 +590,7 @@ Sidebar::Sidebar(Plater *parent)
         bed_type_sizer->Add(bed_type_title, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(10));
         bed_type_sizer->Add(m_bed_type_list, 1, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(10));
         vsizer_printer->Add(bed_type_sizer, 0, wxEXPAND | wxTOP, FromDIP(5));
+        vsizer_printer->AddSpacer(FromDIP(16));
 
         auto& project_config = wxGetApp().preset_bundle->project_config;
         /*const t_config_enum_values* keys_map = print_config_def.get("curr_bed_type")->enum_keys_map;
@@ -595,8 +604,7 @@ Sidebar::Sidebar(Plater *parent)
 
         p->m_panel_printer_content->SetSizer(vsizer_printer);
         p->m_panel_printer_content->Layout();
-        scrolled_sizer->Add(p->m_panel_printer_content, 0, wxTOP | wxEXPAND, FromDIP(14));
-        scrolled_sizer->AddSpacer(FromDIP(16));
+        scrolled_sizer->Add(p->m_panel_printer_content, 0, wxEXPAND, 0);
     }
 
     {
@@ -604,11 +612,18 @@ Sidebar::Sidebar(Plater *parent)
     p->m_panel_filament_title = new StaticBox(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL | wxBORDER_NONE);
     p->m_panel_filament_title->SetBackgroundColor(title_bg);
     p->m_panel_filament_title->SetBackgroundColor2(0xF1F1F1);
+    p->m_panel_filament_title->Bind(wxEVT_LEFT_UP, [this](auto &e) {
+        if (p->m_panel_filament_content->GetMaxHeight() == 0)
+            p->m_panel_filament_content->SetMaxSize({-1, -1});
+        else
+            p->m_panel_filament_content->SetMaxSize({-1, 0});
+        m_scrolled_sizer->Layout();
+    });
 
     wxBoxSizer* bSizer39;
     bSizer39 = new wxBoxSizer( wxHORIZONTAL );
     p->m_filament_icon = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "filament");
-    p->m_staticText_filament_settings = new Label(p->m_panel_filament_title, _L("Filament"));
+    p->m_staticText_filament_settings = new Label(p->m_panel_filament_title, _L("Filament"), LB_PROPAGATE_MOUSE_EVENT);
     bSizer39->Add(p->m_filament_icon, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(10));
     bSizer39->Add( p->m_staticText_filament_settings, 0, wxALIGN_CENTER );
     bSizer39->Add(FromDIP(10), 0, 0, 0, 0);
@@ -800,10 +815,13 @@ Sidebar::Sidebar(Plater *parent)
     p->sizer_filaments->GetItem((size_t)0)->GetSizer()->Add(combo_and_btn_sizer, 1, wxEXPAND);
 
     //bSizer_filament_content->Add(p->sizer_filaments, 1, wxALIGN_CENTER | wxALL);
-    p->m_panel_filament_content->SetSizer(p->sizer_filaments);
+    wxSizer *sizer_filaments2 = new wxBoxSizer(wxVERTICAL);
+    sizer_filaments2->AddSpacer(FromDIP(16));
+    sizer_filaments2->Add(p->sizer_filaments, 0, wxEXPAND, 0);
+    sizer_filaments2->AddSpacer(FromDIP(16));
+    p->m_panel_filament_content->SetSizer(sizer_filaments2);
     p->m_panel_filament_content->Layout();
-    scrolled_sizer->Add(p->m_panel_filament_content, 0, wxTOP | wxEXPAND, FromDIP(14));
-    scrolled_sizer->AddSpacer(FromDIP(16));
+    scrolled_sizer->Add(p->m_panel_filament_content, 0, wxEXPAND, 0);
     }
 
     {
