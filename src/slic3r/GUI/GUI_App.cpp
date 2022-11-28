@@ -1088,21 +1088,21 @@ void GUI_App::post_init()
     // to popup a modal dialog on start without screwing combo boxes.
     // This is ugly but I honestly found no better way to do it.
     // Neither wxShowEvent nor wxWindowCreateEvent work reliably.
-    if (this->preset_updater) { // G-Code Viewer does not initialize preset_updater.
-        BOOST_LOG_TRIVIAL(info) << "before check_updates";
-        this->check_updates(false);
-        BOOST_LOG_TRIVIAL(info) << "after check_updates";
-        CallAfter([this] {
-            bool cw_showed = this->config_wizard_startup();
+    //if (this->preset_updater) { // G-Code Viewer does not initialize preset_updater.
+    //    BOOST_LOG_TRIVIAL(info) << "before check_updates";
+    //    this->check_updates(false);
+    //    BOOST_LOG_TRIVIAL(info) << "after check_updates";
+    //    CallAfter([this] {
+    //        bool cw_showed = this->config_wizard_startup();
 
-            std::string http_url = get_http_url(app_config->get_country_code());
-            std::string language = GUI::into_u8(current_language_code());
-            this->preset_updater->sync(http_url, language, preset_bundle);
+    //        std::string http_url = get_http_url(app_config->get_country_code());
+    //        std::string language = GUI::into_u8(current_language_code());
+    //        this->preset_updater->sync(http_url, language, preset_bundle);
 
-            //BBS: check new version
-            this->check_new_version();
-        });
-    }
+    //        //BBS: check new version
+    //        this->check_new_version();
+    //    });
+    //}
 
     if(!m_networking_need_update && m_agent) {
         m_agent->set_on_ssdp_msg_fn(
