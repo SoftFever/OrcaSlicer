@@ -17,6 +17,7 @@
 namespace Slic3r { namespace GUI {
 
 #define TEMP_THRESHOLD_VAL 2
+#define TEMP_THRESHOLD_ALLOW_E_CTRL 170.0f
 
 /* const strings */
 static const wxString NA_STR         = _L("N/A");
@@ -1198,6 +1199,9 @@ StatusPanel::~StatusPanel()
     if (abort_dlg != nullptr)
         delete abort_dlg;
 
+    if (ctrl_e_hint_dlg != nullptr)
+        delete ctrl_e_hint_dlg;
+
     if (sdcard_hint_dlg != nullptr)
         delete sdcard_hint_dlg;
 }
@@ -1437,7 +1441,7 @@ void StatusPanel::show_error_message(wxString msg)
         }
         if (m_print_error_dlg != nullptr) {
             if (m_print_error_dlg->IsShown()) {
-                m_print_error_dlg->Hide();
+                m_print_error_dlg->on_hide();
             }
         }
     } else {
@@ -2158,14 +2162,46 @@ void StatusPanel::on_axis_ctrl_z_down_10(wxCommandEvent &event)
     }
 }
 
+void StatusPanel::axis_ctrl_e_hint(bool up_down)
+{
+    if (ctrl_e_hint_dlg == nullptr) {
+        ctrl_e_hint_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Warning"), SecondaryCheckDialog::ButtonStyle::CONFIRM_AND_CANCEL, wxDefaultPosition, wxDefaultSize, wxCLOSE_BOX | wxCAPTION, true);
+        ctrl_e_hint_dlg->update_text(_L("Please heat the nozzle to above 170 degree before loading filament."));
+        ctrl_e_hint_dlg->show_again_config_text = std::string("not_show_ectrl_hint");
+    }
+    if (up_down) {
+        ctrl_e_hint_dlg->update_btn_label(_L("Confirm"), _L("Still unload"));
+        ctrl_e_hint_dlg->Bind(EVT_SECONDARY_CHECK_CANCEL, [this](wxCommandEvent& e) {
+            obj->command_axis_control("E", 1.0, -10.0f, 900);
+            });
+    }
+    else {
+        ctrl_e_hint_dlg->update_btn_label(_L("Confirm"), _L("Still load"));
+        ctrl_e_hint_dlg->Bind(EVT_SECONDARY_CHECK_CANCEL, [this](wxCommandEvent& e) {
+            obj->command_axis_control("E", 1.0, 10.0f, 900);
+            });
+    }
+    ctrl_e_hint_dlg->on_show();
+}
+
 void StatusPanel::on_axis_ctrl_e_up_10(wxCommandEvent &event)
 {
-    if (obj) obj->command_axis_control("E", 1.0, -10.0f, 900);
+    if (obj) {
+        if (obj->nozzle_temp >= TEMP_THRESHOLD_ALLOW_E_CTRL || (wxGetApp().app_config->get("not_show_ectrl_hint") == "1"))
+            obj->command_axis_control("E", 1.0, -10.0f, 900);
+        else
+            axis_ctrl_e_hint(true);
+    }
 }
 
 void StatusPanel::on_axis_ctrl_e_down_10(wxCommandEvent &event)
 {
-    if (obj) obj->command_axis_control("E", 1.0, 10.0f, 900);
+    if (obj) {
+        if (obj->nozzle_temp >= TEMP_THRESHOLD_ALLOW_E_CTRL || (wxGetApp().app_config->get("not_show_ectrl_hint") == "1"))
+            obj->command_axis_control("E", 1.0, 10.0f, 900);
+        else
+            axis_ctrl_e_hint(false);
+    }
 }
 
 void StatusPanel::on_start_unload(wxCommandEvent &event)

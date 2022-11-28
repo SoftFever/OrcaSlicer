@@ -24,6 +24,7 @@
 namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SECONDARY_CHECK_CANCEL, wxCommandEvent);
 
 ReleaseNoteDialog::ReleaseNoteDialog(Plater *plater /*= nullptr*/)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Release Note"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
@@ -342,7 +343,7 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
     }  
 }
 
-SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, const wxString& title, enum ButtonStyle btn_style, const wxPoint& pos, const wxSize& size, long style)
+SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, const wxString& title, enum ButtonStyle btn_style, const wxPoint& pos, const wxSize& size, long style, bool not_show_again_check)
     :DPIFrame(parent, id, title, pos, size, style)
 {
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
@@ -363,8 +364,10 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_vebview_release_note->SetScrollRate(0, 5);
     m_vebview_release_note->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
     m_vebview_release_note->SetMinSize(wxSize(FromDIP(280), FromDIP(280)));
+    m_sizer_right->Add(m_vebview_release_note, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(35));
 
 
+    auto bottom_sizer = new wxBoxSizer(wxVERTICAL);
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
         std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
@@ -372,20 +375,29 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
         std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
 
+
+    if (not_show_again_check) {
+        m_show_again_checkbox = new wxCheckBox(this, wxID_ANY, _L("Don't show again"), wxDefaultPosition, wxDefaultSize, 0);
+        m_show_again_checkbox->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, [this](wxCommandEvent& e) {
+            not_show_again = !not_show_again;
+            m_show_again_checkbox->SetValue(not_show_again);
+        });
+        bottom_sizer->Add(m_show_again_checkbox, 0, wxALL, FromDIP(5));
+    }
     m_button_ok = new Button(this, _L("Confirm"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
     m_button_ok->SetBorderColor(*wxWHITE);
     m_button_ok->SetTextColor(*wxWHITE);
     m_button_ok->SetFont(Label::Body_12);
     m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_ok->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_ok->SetCornerRadius(FromDIP(12));
 
     m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         wxCommandEvent evt(EVT_SECONDARY_CHECK_CONFIRM, GetId());
         e.SetEventObject(this);
         GetEventHandler()->ProcessEvent(evt);
-        this->Hide();
+        this->on_hide();
         });
 
     m_button_cancel = new Button(this, _L("Cancel"));
@@ -393,11 +405,14 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
     m_button_cancel->SetFont(Label::Body_12);
     m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_cancel->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_cancel->SetCornerRadius(FromDIP(12));
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
-        this->Hide();
+        wxCommandEvent evt(EVT_SECONDARY_CHECK_CANCEL);
+        e.SetEventObject(this);
+        GetEventHandler()->ProcessEvent(evt);
+        this->on_hide();
         });
 
     if (btn_style != CONFIRM_AND_CANCEL)
@@ -408,13 +423,13 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     sizer_button->AddStretchSpacer();
     sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
+    bottom_sizer->Add(sizer_button, 0, wxEXPAND | wxRIGHT | wxLEFT, 0);
 
 
-    m_sizer_right->Add(m_vebview_release_note, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(35));
-    m_sizer_right->Add(sizer_button, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(35));
+    m_sizer_right->Add(bottom_sizer, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(35));
     m_sizer_right->Add(0, 0, 0, wxTOP,FromDIP(18));
 
-    Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {this->Hide();});
+    Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {this->on_hide();});
 
     SetSizer(m_sizer_right);
     Layout();
@@ -464,50 +479,19 @@ void SecondaryCheckDialog::on_show()
     this->SetFocus();
 }
 
-bool SecondaryCheckDialog::is_english_text(wxString str)
+void SecondaryCheckDialog::on_hide()
 {
-    std::regex reg("^[0-9a-zA-Z]+$");
-    std::smatch matchResult;
+    if (m_show_again_checkbox != nullptr && not_show_again && show_again_config_text != "")
+        wxGetApp().app_config->set(show_again_config_text, "1");
 
-    std::string pattern_Special = "{}[]<>~!@#$%^&*(),.?/ :";
-    for (auto i = 0; i < str.Length(); i++) {
-        std::string regex_str = wxString(str[i]).ToStdString();
-        if(std::regex_match(regex_str, matchResult, reg)){
-            continue;
-        }
-        else {
-            int result = pattern_Special.find(regex_str.c_str());
-            if (result < 0 || result > pattern_Special.length()) {
-                return false;
-            }
-        }
-    }
-    return true;
+    this->Hide();
 }
 
-wxString SecondaryCheckDialog::format_text(wxStaticText* st, wxString str, int warp)
+void SecondaryCheckDialog::update_btn_label(wxString ok_btn_text, wxString cancel_btn_text)
 {
-    if (wxGetApp().app_config->get("language") != "zh_CN") { return str; }
-
-    wxString out_txt = str;
-    wxString count_txt = "";
-    int      new_line_pos = 0;
-
-    for (int i = 0; i < str.length(); i++) {
-        if (str[i] == '\n') {
-            count_txt = "";
-            continue;
-        }
-        auto text_size = st->GetTextExtent(count_txt);
-        if (text_size.x < warp) {
-            count_txt += str[i];
-        }
-        else {
-            out_txt.insert(i - 1, '\n');
-            count_txt = "";
-        }
-    }
-    return out_txt;
+    m_button_ok->SetLabel(ok_btn_text);
+    m_button_cancel->SetLabel(cancel_btn_text);
+    rescale();
 }
 
 SecondaryCheckDialog::~SecondaryCheckDialog()
@@ -516,6 +500,11 @@ SecondaryCheckDialog::~SecondaryCheckDialog()
 }
 
 void SecondaryCheckDialog::on_dpi_changed(const wxRect& suggested_rect)
+{
+    rescale();
+}
+
+void SecondaryCheckDialog::rescale()
 {
     m_button_ok->Rescale();
     m_button_cancel->Rescale();

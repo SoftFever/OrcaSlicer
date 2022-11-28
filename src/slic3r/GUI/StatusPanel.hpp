@@ -261,6 +261,7 @@ protected:
     AMSMaterialsSetting *m_filament_setting_dlg{nullptr};
     SecondaryCheckDialog* m_print_error_dlg = nullptr;
     SecondaryCheckDialog* abort_dlg = nullptr;
+    SecondaryCheckDialog* ctrl_e_hint_dlg = nullptr;
     SecondaryCheckDialog* sdcard_hint_dlg = nullptr;
 
     wxString     m_request_url;
@@ -299,6 +300,7 @@ protected:
     void on_axis_ctrl_z_down_10(wxCommandEvent &event);
     void on_axis_ctrl_e_up_10(wxCommandEvent &event);
     void on_axis_ctrl_e_down_10(wxCommandEvent &event);
+    void axis_ctrl_e_hint(bool up_down);
 
 	void on_start_unload(wxCommandEvent &event);
     /* temp control */
