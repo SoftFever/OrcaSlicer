@@ -3724,28 +3724,28 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return true;
     }
 
-    void _BBS_3MF_Importer::_generate_current_object_list(std::vector<Component> &sub_objects, Id object_id, IdToCurrentObjectMap& current_objects)
+    void _BBS_3MF_Importer::_generate_current_object_list(std::vector<Component> &sub_objects, Id object_id, IdToCurrentObjectMap &current_objects)
     {
-        std::list<Component> id_list;
-        id_list.push_back({ object_id, Transform3d::Identity() });
+        std::list<std::pair<Component, Transform3d>> id_list;
+        id_list.push_back(std::make_pair(Component(object_id, Transform3d::Identity()), Transform3d::Identity()));
 
         while (!id_list.empty())
         {
-            Component current_id = id_list.front();
+            auto current_item = id_list.front();
+            Component current_id = current_item.first;
             id_list.pop_front();
             IdToCurrentObjectMap::iterator current_object = current_objects.find(current_id.object_id);
             if (current_object != current_objects.end()) {
                 //found one
                 if (!current_object->second.components.empty()) {
-                    for (const Component& comp: current_object->second.components)
-                    {
-                        id_list.push_back(comp);
+                    for (const Component &comp : current_object->second.components) {
+                        id_list.push_back(std::pair(comp, current_item.second * comp.transform));
                     }
                 }
                 else if (!(current_object->second.geometry.empty())) {
                     //CurrentObject* ptr = &(current_objects[current_id]);
                     //CurrentObject* ptr2 = &(current_object->second);
-                    sub_objects.push_back({ current_object->first, current_id.transform });
+                    sub_objects.push_back({ current_object->first, current_item.second});
                 }
             }
         }
@@ -3882,7 +3882,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             //set transform from 3mf
             Slic3r::Geometry::Transformation comp_transformatino(sub_comp.transform);
-            volume->set_transformation(volume->get_transformation() * comp_transformatino);
+            volume->set_transformation(comp_transformatino * volume->get_transformation());
             if (shared_volume) {
                 const TriangleMesh& trangle_mesh = volume->mesh();
                 Vec3d shift = trangle_mesh.get_init_shift();
