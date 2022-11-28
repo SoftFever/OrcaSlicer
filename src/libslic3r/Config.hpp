@@ -1701,12 +1701,12 @@ public:
         while (std::getline(is, item_str, ',')) {
             boost::trim(item_str);
             if (item_str == "nil") {
-                throw ConfigurationError("Deserializing nil into a non-nullable object");
+                return false;
             }
             else {
                 auto it = this->keys_map->find(item_str);
                 if (it == this->keys_map->end())
-                    throw ConfigurationError(std::string("Unknown enum type: ") + item_str);
+                    return false;
                 this->values.push_back(it->second);
             }
         }

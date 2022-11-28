@@ -615,7 +615,7 @@ bool ConfigBase::set_deserialize_raw(const t_config_option_key &opt_key_src, con
 	    if (! success && substitutions_ctxt.rule != ForwardCompatibilitySubstitutionRule::Disable &&
 	        // Only allow substitutions of an enum value by another enum value or a boolean value with an enum value.
 	        // That means, we expect enum values being added in the future and possibly booleans being converted to enums.
-	        (optdef->type == coEnum || optdef->type == coBool) && ConfigHelpers::looks_like_enum_value(value)) {
+            (optdef->type == coEnum || optdef->type == coEnums || optdef->type == coBool) /*&& ConfigHelpers::looks_like_enum_value(value)*/) {
 	        // Deserialize failed, try to substitute with a default value.
 	        //assert(substitutions_ctxt.rule == ForwardCompatibilitySubstitutionRule::Enable || substitutions_ctxt.rule == ForwardCompatibilitySubstitutionRule::EnableSilent);
 	        if (optdef->type == coBool)
