@@ -230,9 +230,10 @@ struct PresetUpdater::priv
 	void prune_tmps() const;
 	void sync_version() const;
 	void parse_version_string(const std::string& body) const;
-    void sync_resources(std::string http_url, std::map<std::string, Resource> &resources);
+    void sync_resources(std::string http_url, std::map<std::string, Resource> &resources, bool check_patch = false,  std::string current_version="");
     void sync_config(std::string http_url, const VendorMap vendors);
     void sync_tooltip(std::string http_url, std::string language);
+    void sync_plugins(std::string http_url, std::string plugin_version);
 
 	//BBS: refine preset update logic
 	bool install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot) const;
@@ -349,6 +350,7 @@ bool PresetUpdater::priv::extract_file(const fs::path &source_path, const fs::pa
                     close_zip_reader(&archive);
                     return res;
                 }
+                BOOST_LOG_TRIVIAL(info) << "[BBL Updater]successfully extract file " << stat.m_file_index << " to "<<dest_file;
             }
             catch (const std::exception& e)
             {
@@ -479,11 +481,11 @@ void PresetUpdater::priv::parse_version_string(const std::string& body) const
 //BBS: refine the Preset Updater logic
 // Download vendor indices. Also download new bundles if an index indicates there's a new one available.
 // Both are saved in cache.
-void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::string, Resource> &resources)
+void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::string, Resource> &resources, bool check_patch, std::string current_version_str)
 {
     std::map<std::string, Resource>    resource_list;
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("[BBL Updater]: sync_resources get preferred setting version for app version %1%, url: %2%")%SLIC3R_APP_NAME%http_url;
+    BOOST_LOG_TRIVIAL(info) << boost::format("[BBL Updater]: sync_resources get preferred setting version for app version %1%, url: %2%, current_version_str %3%, check_patch %4%")%SLIC3R_APP_NAME%http_url%current_version_str%check_patch;
 
     std::string query_params = "?";
     bool        first        = true;
@@ -545,7 +547,7 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
             } catch (std::exception &e) {
                 BOOST_LOG_TRIVIAL(error) << (boost::format("[BBL Updater]: get version of settings failed, exception=%1% body=%2%") % e.what() % body).str();
             } catch (...) {
-                BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: get version of settings failed,, body=" << body;
+                BOOST_LOG_TRIVIAL(error) << "[BBL Updater]: get version of settings failed, body=" << body;
             }
         })
         .on_error([&](std::string body, std::string error, unsigned status) {
@@ -566,8 +568,16 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
         }
         Semver online_version = resource_update->second.version;
         // Semver current_version = get_version_from_json(vendor_root_config.string());
-        Semver current_version = resource.version;
+        Semver current_version = current_version_str.empty()?resource.version:current_version_str;
         bool version_match = ((online_version.maj() == current_version.maj()) && (online_version.min() == current_version.min()));
+        if (version_match && check_patch) {
+            int online_cc_patch = online_version.patch()/100;
+            int current_cc_patch = current_version.patch()/100;
+            if (online_cc_patch != current_cc_patch) {
+                version_match = false;
+                BOOST_LOG_TRIVIAL(warning) << boost::format("[BBL Updater]: online patch CC not match: online_cc_patch=%1%, current_cc_patch=%2%") % online_cc_patch % current_cc_patch;
+            }
+        }
         if (version_match && (current_version < online_version)) {
             if (cancel) { return; }
 
@@ -584,14 +594,20 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
 
             // remove previous files before
             if (resource.sub_caches.empty()) {
-                if (fs::exists(cache_path)) fs::remove_all(cache_path);
+                if (fs::exists(cache_path)) {
+                    fs::remove_all(cache_path);
+                    BOOST_LOG_TRIVIAL(info) << "[BBL Updater]remove cache path " << cache_path.string();
+                }
             } else {
                 for (auto sub : resource.sub_caches) {
-                    if (fs::exists(cache_path / sub)) fs::remove_all(cache_path / sub);
+                    if (fs::exists(cache_path / sub)) {
+                        fs::remove_all(cache_path / sub);
+                        BOOST_LOG_TRIVIAL(info) << "[BBL Updater]remove cache path " << (cache_path / sub).string();
+                    }
                 }
             }
             // extract the file downloaded
-            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]start to unzip the downloaded file " << cache_file_path;
+            BOOST_LOG_TRIVIAL(info) << "[BBL Updater]start to unzip the downloaded file " << cache_file_path << " to "<<cache_path;
             fs::create_directories(cache_path);
             if (!extract_file(cache_file_path, cache_path)) {
                 BOOST_LOG_TRIVIAL(warning) << "[BBL Updater]extract resource " << resource_it.first << " failed, path: " << cache_file_path;
@@ -610,6 +626,9 @@ void PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
             }
 
             resource_it.second = resource_update->second;
+        }
+        else {
+            BOOST_LOG_TRIVIAL(warning) << boost::format("[BBL Updater]: online version=%1%, current_version=%2%, no need to download") % online_version.to_string() % current_version.to_string();
         }
     }
 }
@@ -829,6 +848,28 @@ void PresetUpdater::priv::sync_tooltip(std::string http_url, std::string languag
         BOOST_LOG_TRIVIAL(warning) << format("[BBL Updater] sync_tooltip: %1%", e.what());
     }
 }
+
+void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_version)
+{
+    if (plugin_version == "00.00.00.00") {
+        BOOST_LOG_TRIVIAL(info) << "non need to sync plugins for there is no plugins currently.";
+        return;
+    }
+    std::string curr_version = SLIC3R_VERSION;
+    std::string using_version = curr_version.substr(0, 9) + "00";
+
+    try {
+        std::map<std::string, Resource> resources
+        {
+            {"slicer/plugins/cloud", { using_version, "", "", cache_path.string(), {"plugins"}}}
+        };
+        sync_resources(http_url, resources, true, plugin_version);
+    }
+    catch (std::exception& e) {
+        BOOST_LOG_TRIVIAL(warning) << format("[BBL Updater] sync_plugins: %1%", e.what());
+    }
+}
+
 
 bool PresetUpdater::priv::install_bundles_rsrc(std::vector<std::string> bundles, bool snapshot) const
 {
@@ -1092,7 +1133,7 @@ PresetUpdater::~PresetUpdater()
 
 //BBS: change directories by design
 //BBS: refine the preset updater logic
-void PresetUpdater::sync(std::string http_url, std::string language, PresetBundle *preset_bundle)
+void PresetUpdater::sync(std::string http_url, std::string language, std::string plugin_version, PresetBundle *preset_bundle)
 {
 	//p->set_download_prefs(GUI::wxGetApp().app_config);
 	if (!p->enabled_version_check && !p->enabled_config_update) { return; }
@@ -1102,7 +1143,7 @@ void PresetUpdater::sync(std::string http_url, std::string language, PresetBundl
 	// into the closure (but perhaps the compiler can elide this).
 	VendorMap vendors = preset_bundle->vendors;
 
-    p->thread = std::thread([this, vendors, http_url, language]() {
+	p->thread = std::thread([this, vendors, http_url, language, plugin_version]() {
 		this->p->prune_tmps();
 		if (p->cancel)
 			return;
@@ -1112,8 +1153,12 @@ void PresetUpdater::sync(std::string http_url, std::string language, PresetBundl
 		this->p->sync_config(http_url, std::move(vendors));
 		if (p->cancel)
 			return;
-        this->p->sync_tooltip(http_url, language);
-    });
+		this->p->sync_plugins(http_url, plugin_version);
+		//if (p->cancel)
+		//	return;
+		//remove the tooltip currently
+		//this->p->sync_tooltip(http_url, language);
+	});
 }
 
 void PresetUpdater::slic3r_update_notify()

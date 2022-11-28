@@ -1097,7 +1097,8 @@ void GUI_App::post_init()
 
     //        std::string http_url = get_http_url(app_config->get_country_code());
     //        std::string language = GUI::into_u8(current_language_code());
-    //        this->preset_updater->sync(http_url, language, preset_bundle);
+    //        std::string network_ver = Slic3r::NetworkAgent::get_version();
+    //        this->preset_updater->sync(http_url, language, network_ver, preset_bundle);
 
     //        //BBS: check new version
     //        this->check_new_version();
@@ -2225,6 +2226,7 @@ bool GUI_App::on_init_inner()
 
     Bind(EVT_USER_LOGIN, &GUI_App::on_user_login, this);
 
+    copy_network_if_available();
     on_init_network();
 
     //BBS if load user preset failed
@@ -2384,6 +2386,59 @@ bool GUI_App::on_init_inner()
     //BBS: delete splash screen
     delete scrn;
     return true;
+}
+
+void GUI_App::copy_network_if_available()
+{
+    std::string network_library, player_library, network_library_dst, player_library_dst;
+    std::string data_dir_str = data_dir();
+    boost::filesystem::path data_dir_path(data_dir_str);
+    auto plugin_folder = data_dir_path / "plugins";
+    auto cache_folder = data_dir_path / "ota";
+#if defined(_MSC_VER) || defined(_WIN32)
+    network_library = cache_folder.string() + "/bambu_networking.dll";
+    player_library = cache_folder.string() + "/BambuSource.dll";
+    network_library_dst = plugin_folder.string() + "/bambu_networking.dll";
+    player_library_dst = plugin_folder.string() + "/BambuSource.dll";
+#elif defined(__WXMAC__)
+    network_library = cache_folder.string() + "/libbambu_networking.dylib";
+    player_library = cache_folder.string() + "/libBambuSource.dylib";
+    network_library_dst = plugin_folder.string() + "/libbambu_networking.dylib";
+    player_library_dst = plugin_folder.string() + "/libBambuSource.dylib";
+#else
+    network_library = cache_folder.string() + "/libbambu_networking.so";
+    player_library = cache_folder.string() + "/libBambuSource.so";
+    network_library_dst = plugin_folder.string() + "/libbambu_networking.so";
+    player_library_dst = plugin_folder.string() + "/libBambuSource.so";
+#endif
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": checking network_library " << network_library << ", player_library " << player_library;
+    std::string error_message;
+    if (boost::filesystem::exists(network_library)) {
+        CopyFileResult cfr = copy_file(network_library, network_library_dst, error_message, false);
+        if (cfr != CopyFileResult::SUCCESS) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": Copying failed(" << cfr << "): " << error_message;
+            return;
+        }
+
+        static constexpr const auto perms = fs::owner_read | fs::owner_write | fs::group_read | fs::others_read;
+        fs::permissions(network_library_dst, perms);
+        fs::remove(network_library);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": Copying network library from" << network_library << " to " << network_library_dst<<" successfully.";
+    }
+
+    if (boost::filesystem::exists(player_library)) {
+        CopyFileResult cfr = copy_file(player_library, player_library_dst, error_message, false);
+        if (cfr != CopyFileResult::SUCCESS) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": Copying failed(" << cfr << "): " << error_message;
+            return;
+        }
+
+        static constexpr const auto perms = fs::owner_read | fs::owner_write | fs::group_read | fs::others_read;
+        fs::permissions(player_library_dst, perms);
+        fs::remove(player_library);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": Copying player library from" << player_library << " to " << player_library_dst<<" successfully.";
+    }
 }
 
 bool GUI_App::on_init_network(bool try_backup)
