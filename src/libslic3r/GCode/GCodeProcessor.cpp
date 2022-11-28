@@ -457,7 +457,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                         //sprintf(buf, "; estimated printing time (%s mode) = %s\n",
                         //    (mode == PrintEstimatedStatistics::ETimeMode::Normal) ? "normal" : "silent",
                         //    get_time_dhms(machine.time).c_str());
-                        sprintf(buf, "; model printing time: %s\n; total estimated time: %s\n",
+                        sprintf(buf, "; model printing time: %s; total estimated time: %s\n",
                                 get_time_dhms(machine.time - machine.roles_time[ExtrusionRole::erCustom]).c_str(),
                                 get_time_dhms(machine.time).c_str());
                         ret += buf;
