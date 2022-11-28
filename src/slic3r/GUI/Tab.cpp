@@ -2234,7 +2234,7 @@ void TabPrintModel::on_value_change(const std::string& opt_key, const boost::any
         config.second->touch();
         notify_changed(config.first);
     }
-
+    wxGetApp().params_panel()->notify_object_config_changed();
 }
 
 void TabPrintModel::reload_config()

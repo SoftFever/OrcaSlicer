@@ -463,7 +463,7 @@ public:
 
 	void reset_model_config();
 
-	bool has_key(std::string const & key);
+	bool has_key(std::string const &key);
 
 protected:
 	virtual void    activate_selected_page(std::function<void()> throw_if_canceled);

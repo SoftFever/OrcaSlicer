@@ -33,6 +33,11 @@ void SwitchButton::SetTextColor(StateColor const& color)
 	text_color = color;
 }
 
+void SwitchButton::SetTextColor2(StateColor const &color)
+{
+	text_color2 = color;
+}
+
 void SwitchButton::SetTrackColor(StateColor const& color)
 {
 	track_color = color;
@@ -116,7 +121,7 @@ void SwitchButton::Rescale()
 			}
             memdc.SetTextForeground(text_color.colorForStates(state ^ StateColor::Checked));
             memdc.DrawText(labels[0], {BS + (thumbSize.x - textSize[0].x) / 2, BS + (thumbSize.y - textSize[0].y) / 2});
-            memdc.SetTextForeground(text_color.colorForStates(state));
+            memdc.SetTextForeground(text_color2.count() == 0 ? text_color.colorForStates(state) : text_color2.colorForStates(state));
             memdc.DrawText(labels[1], {trackSize.x - thumbSize.x - BS + (thumbSize.x - textSize[1].x) / 2, BS + (thumbSize.y - textSize[1].y) / 2});
 			memdc.SelectObject(wxNullBitmap);
 #ifdef __WXOSX__

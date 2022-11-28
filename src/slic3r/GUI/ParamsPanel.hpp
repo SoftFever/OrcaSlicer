@@ -120,6 +120,8 @@ class ParamsPanel : public wxPanel
 
         wxPanel* m_current_tab { nullptr };
 
+        bool m_has_object_config { false };
+
         struct Highlighter
         {
             void set_timer_owner(wxEvtHandler *owner, int timerid = wxID_ANY);
@@ -153,6 +155,9 @@ class ParamsPanel : public wxPanel
         void msw_rescale();
         void switch_to_global();
         void switch_to_object(bool with_tips = false);
+
+        void notify_object_config_changed();
+        void switch_to_object_if_has_object_configs();
 
         StaticBox* get_top_panel() { return m_top_panel; }
 

@@ -3801,6 +3801,8 @@ void Plater::priv::object_list_changed()
     bool can_slice = !model.objects.empty() && !export_in_progress && model_fits && part_plate->has_printable_instances();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": can_slice %1%, model_fits= %2%, export_in_progress %3%, has_printable_instances %4% ")%can_slice %model_fits %export_in_progress %part_plate->has_printable_instances();
     main_frame->update_slice_print_status(MainFrame::eEventObjectUpdate, can_slice);
+
+    wxGetApp().params_panel()->notify_object_config_changed();
 }
 
 void Plater::priv::select_curr_plate_all()
@@ -7394,6 +7396,8 @@ void Plater::load_project(wxString const& filename2,
     else
         p->dirty_state.update_from_undo_redo_stack(true);
     up_to_date(true, true);
+
+    wxGetApp().params_panel()->switch_to_object_if_has_object_configs();
 }
 
 // BBS: save logic

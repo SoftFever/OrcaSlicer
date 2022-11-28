@@ -16,6 +16,7 @@
 #include "Widgets/Label.hpp"
 #include "Widgets/SwitchButton.hpp"
 #include "Widgets/Button.hpp"
+#include "GUI_Factories.hpp"
 
 
 namespace Slic3r {
@@ -674,6 +675,43 @@ void ParamsPanel::switch_to_object(bool with_tips)
         m_highlighter.init(std::pair(m_tips_arrow, &m_tips_arror_blink), m_top_panel);
         m_highlighter.blink();
     }
+}
+
+void ParamsPanel::notify_object_config_changed()
+{
+    auto & model = wxGetApp().model();
+    bool has_config = false;
+    for (auto obj : model.objects) {
+        if (!obj->config.empty()) {
+            SettingsFactory::Bundle cat_options = SettingsFactory::get_bundle(&obj->config.get(), true);
+            if (cat_options.size() > 0) {
+                has_config = true;
+                break;
+            }
+        }
+        for (auto volume : obj->volumes) {
+            if (!volume->config.empty()) {
+                SettingsFactory::Bundle cat_options = SettingsFactory::get_bundle(&volume->config.get(), true);
+                if (cat_options.size() > 0) {
+                    has_config = true;
+                    break;
+                }
+            }
+        }
+        if (has_config) break;
+    }
+    if (has_config == m_has_object_config) return;
+    m_has_object_config = has_config;
+    if (has_config)
+        m_mode_region->SetTextColor2(StateColor(std::pair{*wxWHITE, (int) StateColor::Checked}, std::pair{wxGetApp().get_label_clr_modified(), 0}));
+    else
+        m_mode_region->SetTextColor2(StateColor());
+    m_mode_region->Rescale();
+}
+
+void ParamsPanel::switch_to_object_if_has_object_configs()
+{
+    if (m_has_object_config) m_mode_region->SetValue(true);
 }
 
 void ParamsPanel::free_sizers()
