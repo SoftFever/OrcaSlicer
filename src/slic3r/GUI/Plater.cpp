@@ -1997,7 +1997,7 @@ struct Plater::priv
     void init_notification_manager();
 
     // Caching last value of show_action_buttons parameter for show_action_buttons(), so that a callback which does not know this state will not override it.
-    mutable bool    			ready_to_slice = { false };
+    //mutable bool    			ready_to_slice = { false };
     // Flag indicating that the G-code export targets a removable device, therefore the show_action_buttons() needs to be called at any case when the background processing finishes.
     ExportingStatus             exporting_status { NOT_EXPORTING };
     std::string                 last_output_path;
@@ -2503,6 +2503,12 @@ void Plater::priv::update(unsigned int flags)
     this->preview->reload_print();
     //BBS assemble view
     this->assemble_view->reload_scene(false, flags);
+
+    if (current_panel && q->is_preview_shown()) {
+        q->force_update_all_plate_thumbnails();
+        //update_fff_scene_only_shells(true);
+    }
+
     if (force_background_processing_restart)
         this->restart_background_process(update_status);
     else
@@ -4224,7 +4230,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         PartPlate* cur_plate = background_process.get_current_plate();
         if (background_process.finished() && cur_plate && cur_plate->is_slice_result_valid())
         {
-            ready_to_slice = false;
+            //ready_to_slice = false;
             this->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, false);
         }
         else if (!background_process.empty() &&
@@ -4233,8 +4239,16 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
                                                  * when this function is called several times during calculations
                                                  * */
         {
-            ready_to_slice = true;
-            this->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, true);
+            if (cur_plate->can_slice()) {
+                //ready_to_slice = true;
+                this->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, true);
+                process_completed_with_error = -1;
+            }
+            else {
+                //ready_to_slice = false;
+                this->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, false);
+                process_completed_with_error = partplate_list.get_curr_plate_index();
+            }
         }
 #if 0
         //sidebar->set_btn_label(ActionButtonType::abExport, _(label_btn_export));
@@ -5055,7 +5069,10 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             }
             else {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": single slice, reload print");
-                this->preview->reload_print(true);
+                if (model_fits)
+                    this->preview->reload_print(true);
+                else
+                    this->update_fff_scene_only_shells();
             }
 
             preview->set_as_dirty();
@@ -5160,6 +5177,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             notification_manager->set_in_preview(false);
     }
     else if (current_panel == preview) {
+        q->invalid_all_plate_thumbnails();
         if (old_panel == view3D)
             view3D->get_canvas3d()->unbind_event_handlers();
         else if (old_panel == assemble_view)
@@ -5880,7 +5898,7 @@ void Plater::priv::on_action_send_to_printer(bool isall)
     else {
         m_send_to_sdcard_dlg->prepare(partplate_list.get_curr_plate_index());
     }
-	
+
 	m_send_to_sdcard_dlg->ShowModal();
 }
 
@@ -6016,8 +6034,8 @@ void Plater::priv::on_repair_model(wxCommandEvent &event)
 
 void Plater::priv::on_filament_color_changed(wxCommandEvent &event)
 {
-    q->update_platplate_thumbnails(true);
-    q->get_preview_canvas3D()->update_plate_thumbnails();
+    //q->update_all_plate_thumbnails(true);
+    //q->get_preview_canvas3D()->update_plate_thumbnails();
 }
 
 void Plater::priv::install_network_plugin(wxCommandEvent &event)
@@ -7742,15 +7760,31 @@ wxString Plater::get_project_name()
     return p->get_project_name();
 }
 
-void Plater::update_platplate_thumbnails(bool force_update)
+void Plater::update_all_plate_thumbnails(bool force_update)
 {
     for (int i = 0; i < get_partplate_list().get_plate_count(); i++) {
         PartPlate* plate = get_partplate_list().get_plate(i);
         ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i};
-        if (force_update || !plate->is_valid_gcode_file()) {
+        if (force_update || !plate->thumbnail_data.is_valid()) {
             get_view3D_canvas3D()->render_thumbnail(plate->thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params, Camera::EType::Ortho);
         }
     }
+}
+
+//invalid all plate's thumbnails
+void Plater::invalid_all_plate_thumbnails()
+{
+    for (int i = 0; i < get_partplate_list().get_plate_count(); i++) {
+        PartPlate* plate = get_partplate_list().get_plate(i);
+        plate->thumbnail_data.reset();
+    }
+}
+
+void Plater::force_update_all_plate_thumbnails()
+{
+    invalid_all_plate_thumbnails();
+    update_all_plate_thumbnails(true);
+    get_preview_canvas3D()->update_plate_thumbnails();
 }
 
 // BBS: backup
@@ -9388,13 +9422,13 @@ void Plater::reslice()
     // BBS
     if (p->background_process.running())
     {
-        p->ready_to_slice = false;
+        //p->ready_to_slice = false;
         p->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, false);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": background process is running, m_is_slicing is true");
     }
     else if (!p->background_process.empty() && !p->background_process.idle()) {
         //p->show_action_buttons(true);
-        p->ready_to_slice = true;
+        //p->ready_to_slice = true;
         p->main_frame->update_slice_print_status(MainFrame::eEventSliceUpdate, true);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": background process changes to not_idle, set ready_to_slice back to true");
     }
@@ -10349,7 +10383,7 @@ void Plater::apply_background_progress()
     if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
     {
         part_plate->update_slice_result_valid_state(false);
-        p->ready_to_slice = true;
+        //p->ready_to_slice = true;
         p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, true);
     }
 }
@@ -10417,14 +10451,14 @@ int Plater::select_plate(int plate_index, bool need_slice)
                     part_plate->update_slice_result_valid_state(false);
                     // BBS
                     //p->show_action_buttons(true);
-                    p->ready_to_slice = true;
+                    //p->ready_to_slice = true;
                     p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, true);
                 }
                 else
                 {
                     // BBS
                     //p->show_action_buttons(false);
-                    p->ready_to_slice = false;
+                    //p->ready_to_slice = false;
                     p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
 
                     refresh_print();
@@ -10434,38 +10468,52 @@ int Plater::select_plate(int plate_index, bool need_slice)
         else
         {
             //check inside status
-            bool model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
+            //model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
             //bool validate_err = false;
+            validate_current_plate(model_fits, validate_err);
+            if (model_fits && !validate_err) {
+                p->process_completed_with_error = -1;
+            }
+            else {
+                p->process_completed_with_error = p->partplate_list.get_curr_plate_index();
+            }
             if (is_preview_shown())
             {
                 if (need_slice)
                 {
-                    p->process_completed_with_error = -1;
+                    //p->process_completed_with_error = -1;
                     p->m_slice_all = false;
                     reset_gcode_toolpaths();
-                    if (model_fits)
+                    if (model_fits && !validate_err)
                         reslice();
                     else {
-                        p->ready_to_slice = false;
                         p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
-                        refresh_print();
+                        //sometimes the previous print's sliced result is still valid, but the newly added object is laid over the boundary
+                        //then the print toolpath will be shown, so we should not refresh print here, only onload shell
+                        //refresh_print();
+                        p->update_fff_scene_only_shells();
                     }
+                }
+                else {
+                    //p->ready_to_slice = false;
+                    p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
+                    refresh_print();
                 }
             }
             else
             {
-                validate_current_plate(model_fits, validate_err);
+                //validate_current_plate(model_fits, validate_err);
                 //check inside status
-                if (model_fits && !validate_err){
+                /*if (model_fits && !validate_err){
                     p->process_completed_with_error = -1;
                 }
                 else {
                     p->process_completed_with_error = p->partplate_list.get_curr_plate_index();
-                }
+                }*/
 
                 // BBS: don't show action buttons
                 //p->show_action_buttons(true);
-                p->ready_to_slice = true;
+                //p->ready_to_slice = true;
                 if (model_fits && part_plate->has_printable_instances())
                 {
                     //p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, true));
@@ -10511,6 +10559,8 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
     model_fits = p->view3D->get_canvas3d()->check_volumes_outside_state() != ModelInstancePVS_Partly_Outside;
     validate_error = false;
     if (p->printer_technology == ptFFF) {
+        std::string plater_text = _u8L("An object is laid over the boundary of plate or exceeds the height limit.\n"
+                    "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.");;
         StringObjectException warning;
         Polygons polygons;
         std::vector<std::pair<Polygon, float>> height_polygons;
@@ -10542,6 +10592,13 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
             p->view3D->get_canvas3d()->set_sequential_print_clearance_visible(true);
             p->view3D->get_canvas3d()->set_sequential_print_clearance_render_fill(true);
             p->view3D->get_canvas3d()->set_sequential_print_clearance_polygons(polygons, height_polygons);
+        }
+
+        if (!model_fits) {
+            p->notification_manager->push_plater_error_notification(plater_text);
+        }
+        else {
+            p->notification_manager->close_plater_error_notification(plater_text);
         }
     }
 
@@ -10596,7 +10653,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
 
                     // BBS
                     //p->show_action_buttons(true);
-                    p->ready_to_slice = true;
+                    //p->ready_to_slice = true;
                     p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, true);
                 }
                 else
@@ -10604,7 +10661,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
                     // BBS
                     //p->show_action_buttons(false);
                     //validate_current_plate(model_fits, validate_err);
-                    p->ready_to_slice = false;
+                    //p->ready_to_slice = false;
                     p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
 
                     refresh_print();
@@ -10622,7 +10679,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
 
                 // BBS: don't show action buttons
                 //p->show_action_buttons(true);
-                p->ready_to_slice = true;
+                //p->ready_to_slice = true;
                 if (model_fits && part_plate->has_printable_instances())
                 {
                     //p->view3D->get_canvas3d()->post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, true));

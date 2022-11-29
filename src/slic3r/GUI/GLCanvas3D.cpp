@@ -4183,7 +4183,7 @@ void GLCanvas3D::on_set_focus(wxFocusEvent& evt)
     m_tooltip_enabled = false;
     if (m_canvas_type == ECanvasType::CanvasPreview) {
         // update thumbnails and update plate toolbar
-        wxGetApp().plater()->update_platplate_thumbnails();
+        wxGetApp().plater()->update_all_plate_thumbnails();
         _update_imgui_select_plate_toolbar();
     }
     _refresh_if_shown_on_screen();

@@ -233,7 +233,9 @@ public:
 
     // BBS
     wxString get_project_name();
-    void update_platplate_thumbnails(bool force_update = false);
+    void update_all_plate_thumbnails(bool force_update = false);
+    void invalid_all_plate_thumbnails();
+    void force_update_all_plate_thumbnails();
     //BBS static functions that update extruder params and speed table
     static void setPrintSpeedTable(Slic3r::GlobalSpeedMap& printSpeedMap);
     static void setExtruderParams(std::map<size_t, Slic3r::ExtruderParams>& extParas);
