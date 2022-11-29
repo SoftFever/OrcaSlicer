@@ -1197,7 +1197,12 @@ void PresetBundle::load_installed_filaments(AppConfig &config)
                 if (!add_default_materials)
                     continue;
 
-                for (auto default_filament: printer.vendor->models[0].default_materials)
+                const VendorProfile::PrinterModel *printer_model = PresetUtils::system_printer_model(printer);
+                if (!printer_model) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": can not find printer_model for printer %1%")%printer.name;
+                    continue;
+                }
+                for (auto default_filament: printer_model->default_materials)
                 {
                     Preset* filament = filaments.find_preset(default_filament, false, true);
                     if (filament && filament->is_system)
@@ -1423,7 +1428,7 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
         if (iter == filaments.end()) {
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;
             auto filament_type = "Generic " + ams.opt_string("filament_type", 0u);
-            iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) { return f.is_compatible && f.is_system 
+            iter = std::find_if(filaments.begin(), filaments.end(), [&filament_type](auto &f) { return f.is_compatible && f.is_system
                     && boost::algorithm::starts_with(f.name, filament_type);
             });
             if (iter == filaments.end())
