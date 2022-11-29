@@ -275,6 +275,7 @@ protected:
     boost::posix_time::ptime speed_dismiss_time;
 
     std::map<wxString, wxImage> img_list; // key: url, value: wxBitmap png Image
+    std::map<std::string, std::string> m_print_connect_types;
     std::vector<Button *>       m_buttons;
     int last_status;
     void init_scaled_buttons();

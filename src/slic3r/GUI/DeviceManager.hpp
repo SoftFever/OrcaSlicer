@@ -388,6 +388,9 @@ public:
     bool is_avaliable() { return bind_state == "free"; }
     time_t last_alive;
     bool m_is_online;
+    bool m_lan_mode_connection_state{false};
+    void set_lan_mode_connection_state(bool state) {m_lan_mode_connection_state = state;};
+    bool get_lan_mode_connection_state() {return m_lan_mode_connection_state;};
     int  parse_msg_count = 0;
     std::chrono::system_clock::time_point   last_update_time;   /* last received print data from machine */
     std::chrono::system_clock::time_point   last_push_time;     /* last received print push from machine */

@@ -3330,6 +3330,7 @@ bool DeviceManager::set_selected_machine(std::string dev_id)
                     m_agent->disconnect_printer();
                     it->second->reset();
                     it->second->connect();
+                    it->second->set_lan_mode_connection_state(true);
                 }
             }
         } else {
@@ -3346,6 +3347,7 @@ bool DeviceManager::set_selected_machine(std::string dev_id)
                     m_agent->disconnect_printer();
                     it->second->reset();
                     it->second->connect();
+                    it->second->set_lan_mode_connection_state(true);
                 }
             }
         }

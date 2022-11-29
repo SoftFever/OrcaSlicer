@@ -108,6 +108,11 @@ ConnectPrinterDialog::ConnectPrinterDialog(wxWindow *parent, wxWindowID id, cons
 
 ConnectPrinterDialog::~ConnectPrinterDialog() {}
 
+void ConnectPrinterDialog::end_modal(wxStandardID id)
+{
+    EndModal(id);
+}
+
 void ConnectPrinterDialog::init_bitmap()
 {
     AppConfig *config = get_app_config();
@@ -144,6 +149,7 @@ void ConnectPrinterDialog::on_button_confirm(wxCommandEvent &event)
     }
     if (m_obj) {
         m_obj->set_access_code(code.ToStdString());
+        wxGetApp().getDeviceManager()->set_selected_machine(m_obj->dev_id);
     }
     EndModal(wxID_OK);
 }

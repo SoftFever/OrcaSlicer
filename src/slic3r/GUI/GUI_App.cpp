@@ -1195,7 +1195,7 @@ void GUI_App::post_init()
 wxDEFINE_EVENT(EVT_ENTER_FORCE_UPGRADE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SHOW_NO_NEW_VERSION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SHOW_DIALOG, wxCommandEvent);
-
+wxDEFINE_EVENT(EVT_CONNECT_LAN_MODE_PRINT, wxCommandEvent);
 IMPLEMENT_APP(GUI_App)
 
 //BBS: remove GCodeViewer as seperate APP logic
@@ -1693,11 +1693,16 @@ void GUI_App::init_networking_callbacks()
                     }
                     /* request_pushing */
                     MachineObject* obj = m_device_manager->get_my_machine(dev_id);
+                    wxCommandEvent event(EVT_CONNECT_LAN_MODE_PRINT);
+
                     if (obj) {
+                        
                         if (obj->is_lan_mode_printer()) {
                             if (state == ConnectStatus::ConnectStatusOk) {
                                 obj->command_request_push_all();
                                 obj->command_get_version();
+                                event.SetInt(1);
+                                event.SetString(obj->dev_id);
                             } else if (state == ConnectStatus::ConnectStatusFailed) {
                                 obj->set_access_code("");
                                 m_device_manager->set_selected_machine("");
@@ -1709,14 +1714,21 @@ void GUI_App::init_networking_callbacks()
                                     text = wxString::Format(_L("Connect %s failed! [SN:%s, code=%s]"), from_u8(obj->dev_name), obj->dev_id, msg);
                                     wxGetApp().show_dialog(text);
                                 }
+                                event.SetInt(0);
                             } else if (state == ConnectStatus::ConnectStatusLost) {
                                 m_device_manager->set_selected_machine("");
+                                event.SetInt(0);
                                 BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = lost";
                             } else {
+                                event.SetInt(0);
                                 BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = " << state;
                             }
+
+                            obj->set_lan_mode_connection_state(false);
                         }
                     }
+                    event.SetEventObject(this);
+                    wxPostEvent(this, event);
                 });
             }
         );

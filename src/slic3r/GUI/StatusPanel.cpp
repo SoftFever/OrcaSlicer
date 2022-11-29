@@ -1419,6 +1419,33 @@ void StatusPanel::update(MachineObject *obj)
             m_tempCtrl_frame->Disable();
         }
 
+        if (!obj->dev_connection_type.empty()) {
+            auto iter_connect_type = m_print_connect_types.find(obj->dev_id);
+            if (iter_connect_type != m_print_connect_types.end()) {
+                if (iter_connect_type->second != obj->dev_connection_type) {
+
+                    //lan = > cloud
+                    if (iter_connect_type->second == "lan" && obj->dev_connection_type == "cloud") {
+                        wxString txt = _L("Disconnected from printer [%s] due to LAN mode disabled.Please reconnect the printer by logging in with your user account.");
+                        wxString msg = wxString::Format(txt,obj->dev_name);
+                        MessageDialog msg_wingow(nullptr, msg, wxEmptyString, wxICON_WARNING | wxOK);
+                        msg_wingow.ShowModal();
+                        m_print_connect_types[obj->dev_id] = obj->dev_connection_type;
+                    }
+
+                    //cloud = > lan
+                    if (iter_connect_type->second == "cloud" && obj->dev_connection_type == "lan") {
+                        wxString txt = _L("Disconnected from printer [%s] due to LAN mode enabled.Please reconnect the printer by inputting Access Code which can be gotten from printer screen.");
+                        wxString msg = wxString::Format(txt, obj->dev_name);
+                        MessageDialog msg_wingow(nullptr, msg, wxEmptyString, wxICON_WARNING | wxOK);
+                        msg_wingow.ShowModal();
+                        m_print_connect_types[obj->dev_id] = obj->dev_connection_type;
+                    }
+                }
+            }
+             m_print_connect_types[obj->dev_id] = obj->dev_connection_type;
+        }
+       
         update_error_message();
     }
 

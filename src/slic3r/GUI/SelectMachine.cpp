@@ -1214,6 +1214,13 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     Bind(EVT_UPDATE_USER_MACHINE_LIST, &SelectMachineDialog::update_printer_combobox, this);
     Bind(EVT_PRINT_JOB_CANCEL, &SelectMachineDialog::on_print_job_cancel, this);
     Bind(EVT_SET_FINISH_MAPPING, &SelectMachineDialog::on_set_finish_mapping, this);
+    wxGetApp().Bind(EVT_CONNECT_LAN_MODE_PRINT, [this](wxCommandEvent& e) {
+        if (e.GetInt() == 1) {
+            DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+            if (!dev) return;
+            m_comboBox_printer->SetValue(dev->get_selected_machine()->dev_name);
+        }
+    });
 
     m_panel_prepare->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
         check_fcous_state(this);
@@ -2257,6 +2264,7 @@ void SelectMachineDialog::update_user_printer()
     wxArrayString                         machine_list_name;
     std::map<std::string, MachineObject*> option_list;
 
+    //user machine list
     option_list = dev->get_my_machine_list();
 
     // same machine only appear once
@@ -2265,6 +2273,27 @@ void SelectMachineDialog::update_user_printer()
             machine_list.push_back(it->second->dev_name);
         }
     }
+
+
+
+    //lan machine list
+    auto lan_option_list = dev->get_local_machine_list();
+
+    for (auto elem : lan_option_list) {
+        MachineObject* mobj = elem.second;
+
+        /* do not show printer bind state is empty */
+        if (!mobj->is_avaliable()) continue;
+        if (!mobj->is_online()) continue;
+        if (!mobj->is_lan_mode_printer()) continue;
+        /*if (mobj->is_in_printing()) {op->set_printer_state(PrinterState::BUSY);}*/
+
+        if (!mobj->has_access_right()) {
+            option_list[mobj->dev_name] = mobj;
+            machine_list.push_back(mobj->dev_name);
+        }
+    }
+
     machine_list = sort_string(machine_list);
     for (auto tt = machine_list.begin(); tt != machine_list.end(); tt++) {
         for (auto it = option_list.begin(); it != option_list.end(); it++) {
@@ -2283,8 +2312,15 @@ void SelectMachineDialog::update_user_printer()
     m_comboBox_printer->Set(machine_list_name);
 
     MachineObject* obj = dev->get_selected_machine();
+
     if (obj) {
-        m_printer_last_select = obj->dev_id;
+        if (obj->is_lan_mode_printer() && !obj->has_access_right()) {
+            m_printer_last_select = "";
+        }
+        else {
+           m_printer_last_select = obj->dev_id;
+        }
+        
     } else {
         m_printer_last_select = "";
     }
@@ -2292,18 +2328,34 @@ void SelectMachineDialog::update_user_printer()
     if (m_list.size() > 0) {
         // select a default machine
         if (m_printer_last_select.empty()) {
-            m_printer_last_select = m_list[0]->dev_id;
-            m_comboBox_printer->SetSelection(0);
-            wxCommandEvent event(wxEVT_COMBOBOX);
-            event.SetEventObject(m_comboBox_printer);
-            wxPostEvent(m_comboBox_printer, event);
-        }
-        for (auto i = 0; i < m_list.size(); i++) {
-            if (m_list[i]->dev_id == m_printer_last_select) {
-                m_comboBox_printer->SetSelection(i);
+            int def_selection = -1;
+            for (int i = 0; i < m_list.size(); i++) {
+                if (m_list[i]->is_lan_mode_printer() && !m_list[i]->has_access_right()) {
+                    continue;
+                }
+                else {
+                    def_selection = i;
+                }
+            }
+
+            if (def_selection >= 0) {
+                m_printer_last_select = m_list[def_selection]->dev_id;
+                m_comboBox_printer->SetSelection(def_selection);
                 wxCommandEvent event(wxEVT_COMBOBOX);
                 event.SetEventObject(m_comboBox_printer);
                 wxPostEvent(m_comboBox_printer, event);
+            }
+        }
+
+        for (auto i = 0; i < m_list.size(); i++) {
+            if (m_list[i]->dev_id == m_printer_last_select) {
+
+                if (obj && !obj->get_lan_mode_connection_state()) {
+                    m_comboBox_printer->SetSelection(i);
+                    wxCommandEvent event(wxEVT_COMBOBOX);
+                    event.SetEventObject(m_comboBox_printer);
+                    wxPostEvent(m_comboBox_printer, event);
+                } 
             }
         }
     }
@@ -2413,14 +2465,27 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     MachineObject* obj = nullptr;
     for (int i = 0; i < m_list.size(); i++) {
         if (i == selection) {
+
+            //check lan mode machine
+            if (m_list[i]->is_lan_mode_printer() && !m_list[i]->has_access_right()) {
+                ConnectPrinterDialog dlg(wxGetApp().mainframe, wxID_ANY, _L("Input access code"));
+                dlg.set_machine_object(m_list[i]);
+                auto res = dlg.ShowModal();
+                m_printer_last_select = "";
+                m_comboBox_printer->SetSelection(-1);
+                m_comboBox_printer->Refresh();
+                m_comboBox_printer->Update();
+            }
+
             m_printer_last_select = m_list[i]->dev_id;
             obj = m_list[i];
+            
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << m_printer_last_select << std::endl;
             break;
         }
     }
 
-    if (obj) {
+    if (obj && !obj->get_lan_mode_connection_state()) {
         obj->command_get_version();
         obj->command_request_push_all();
         dev->set_selected_machine(m_printer_last_select);
@@ -2982,6 +3047,7 @@ bool SelectMachineDialog::Show(bool show)
         wxGetApp().reset_to_active();
         set_default();
         update_user_machine_list();
+        //update_lan_machine_list();
     }
 
     if (show) {
@@ -3003,6 +3069,70 @@ SelectMachineDialog::~SelectMachineDialog()
     if (confirm_dlg != nullptr)
         delete confirm_dlg;
 }
+
+void SelectMachineDialog::update_lan_machine_list()
+{
+    DeviceManager* dev = wxGetApp().getDeviceManager();
+    if (!dev) return;
+   auto  m_free_machine_list = dev->get_local_machine_list();
+
+    BOOST_LOG_TRIVIAL(trace) << "SelectMachinePopup update_other_devices start";
+
+    for (auto& elem : m_free_machine_list) {
+        MachineObject* mobj = elem.second;
+
+        /* do not show printer bind state is empty */
+        if (!mobj->is_avaliable()) continue;
+        if (!mobj->is_online()) continue;
+        if (!mobj->is_lan_mode_printer()) continue;
+        /*if (mobj->is_in_printing()) {op->set_printer_state(PrinterState::BUSY);}*/
+
+        if (mobj->has_access_right()) {
+                auto b = mobj->dev_name;
+
+                // clear machine list
+
+                //m_comboBox_printer->Clear();
+                std::vector<std::string>              machine_list;
+                wxArrayString                         machine_list_name;
+                std::map<std::string, MachineObject*> option_list;
+
+                // same machine only appear once
+     
+               /* machine_list = sort_string(machine_list);
+                for (auto tt = machine_list.begin(); tt != machine_list.end(); tt++) {
+                    for (auto it = option_list.begin(); it != option_list.end(); it++) {
+                        if (it->second->dev_name == *tt) {
+                            m_list.push_back(it->second);
+                            wxString dev_name_text = from_u8(it->second->dev_name);
+                            if (it->second->is_lan_mode_printer()) {
+                                dev_name_text += "(LAN)";
+                            }
+                            machine_list_name.Add(dev_name_text);
+                            break;
+                        }
+                    }
+                }
+
+                m_comboBox_printer->Set(machine_list_name);
+
+                MachineObject* obj = dev->get_selected_machine();
+                if (obj) {
+                    m_printer_last_select = obj->dev_id;
+                }
+                else {
+                    m_printer_last_select = "";
+                }*/
+                //op->set_printer_state(PrinterState::LOCK);
+            }
+
+    }
+
+    
+
+    BOOST_LOG_TRIVIAL(trace) << "SelectMachineDialog update_lan_devices end";
+}
+
 
 EditDevNameDialog::EditDevNameDialog(Plater *plater /*= nullptr*/)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Modifying the device name"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)

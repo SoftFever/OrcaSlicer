@@ -355,12 +355,13 @@ protected:
 
 public:
     SelectMachineDialog(Plater *plater = nullptr);
-    void check_focus(wxWindow* window);
-    void check_fcous_state(wxWindow* window);
-    wxWindow* create_ams_checkbox(wxString title, wxWindow* parent, wxString tooltip);
     ~SelectMachineDialog();
 
-    wxWindow *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param);
+
+    void check_focus(wxWindow* window);
+    void check_fcous_state(wxWindow* window);
+    wxWindow *create_ams_checkbox(wxString title, wxWindow *parent, wxString tooltip);
+    wxWindow* create_item_checkbox(wxString title, wxWindow* parent, wxString tooltip, std::string param);
     void      update_select_layout(MachineObject *obj);
     void      prepare_mode();
     void      sending_mode();
@@ -430,6 +431,7 @@ protected:
     void                     Enable_Send_Button(bool en);
     void                     on_dpi_changed(const wxRect &suggested_rect) override;
     void                     update_user_machine_list();
+    void                     update_lan_machine_list();
     wxImage *                LoadImageFromBlob(const unsigned char *data, int size);
     std::vector<std::string> sort_string(std::vector<std::string> strArray);
 };
