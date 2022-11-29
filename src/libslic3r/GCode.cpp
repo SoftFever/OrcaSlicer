@@ -3965,7 +3965,6 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
         std::vector<float> flush_matrix(cast<float>(m_config.flush_volumes_matrix.values));
         const unsigned int number_of_extruders = (unsigned int)(sqrt(flush_matrix.size()) + EPSILON);
         assert(m_writer.extruder()->id() < number_of_extruders);
-        assert(new_retract_length < number_of_extruders);
 
         int previous_extruder_id = m_writer.extruder()->id();
         old_retract_length = m_config.retraction_length.get_at(previous_extruder_id);
