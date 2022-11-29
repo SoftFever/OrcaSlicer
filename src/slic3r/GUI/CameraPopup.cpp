@@ -7,6 +7,7 @@
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
 #include <wx/dcgraph.h>
+#include "GUI_App.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -116,6 +117,7 @@ CameraPopup::CameraPopup(wxWindow *parent, MachineObject* obj)
     #endif //APPLE
 
     check_func_supported();
+    wxGetApp().UpdateDarkUIWin(this);
 }
 
 void CameraPopup::sdcard_absent_hint()

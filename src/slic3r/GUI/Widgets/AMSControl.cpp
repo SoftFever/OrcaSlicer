@@ -1849,6 +1849,9 @@ void AMSControl::StopRridLoading(wxString amsid, wxString canid)
 
 void AMSControl::msw_rescale()
 {
+    m_button_ams_setting_normal.msw_rescale();
+    m_button_ams_setting_hover.msw_rescale();
+    m_button_ams_setting_press.msw_rescale();
     m_extruder->msw_rescale();
     m_button_extruder_back->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_extruder_feed->SetMinSize(wxSize(-1, FromDIP(24)));

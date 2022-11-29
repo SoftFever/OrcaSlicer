@@ -437,6 +437,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_sizer_main->Fit(this);
 
     CenterOnParent();
+    wxGetApp().UpdateFrameDarkUI(this);
 }
 
 void SecondaryCheckDialog::update_text(wxString text)
@@ -470,6 +471,7 @@ void SecondaryCheckDialog::update_text(wxString text)
 
 void SecondaryCheckDialog::on_show()
 {
+    wxGetApp().UpdateFrameDarkUI(this);
     // recover button color
     wxMouseEvent evt_ok(wxEVT_LEFT_UP);
     m_button_ok->GetEventHandler()->ProcessEvent(evt_ok);
@@ -477,7 +479,7 @@ void SecondaryCheckDialog::on_show()
     m_button_cancel->GetEventHandler()->ProcessEvent(evt_cancel);
 
     this->Show();
-    this->SetFocus();
+    this->SetFocus(); 
 }
 
 void SecondaryCheckDialog::on_hide()

@@ -268,6 +268,13 @@ void update_dark_ui(wxWindow* window)
 }
 #endif
 
+void update_dark_config()
+{
+    wxSystemAppearance app = wxSystemSettings::GetAppearance();
+    GUI::wxGetApp().app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
+    GUI::wxGetApp().app_config->save();
+}
+
 
 CheckboxFileDialog::ExtraPanel::ExtraPanel(wxWindow *parent)
     : wxPanel(parent, wxID_ANY)

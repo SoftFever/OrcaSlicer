@@ -1804,6 +1804,7 @@ void MainFrame::on_sys_color_changed()
 
     // update Plater
     wxGetApp().plater()->sys_color_changed();
+    m_monitor->on_sys_color_changed();
 
     // update Tabs
     for (auto tab : wxGetApp().tabs_list)

@@ -64,6 +64,7 @@ void ParamsDialog::Popup()
 #ifdef __WIN32__
     Reparent(wxGetApp().mainframe);
 #endif
+    wxGetApp().UpdateDlgDarkUI(this);
     Center();
     Show();
 }

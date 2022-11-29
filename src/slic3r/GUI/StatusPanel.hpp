@@ -394,6 +394,7 @@ public:
 
     void set_hold_count(int& count);
 
+    void on_sys_color_changed();
     void msw_rescale();
 };
 }

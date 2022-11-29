@@ -130,7 +130,8 @@ public:
     void set_default();
     wxWindow* create_side_tools();
 
-	void msw_rescale();
+    void on_sys_color_changed();
+    void msw_rescale();
 
 	void select_machine(std::string machine_sn);
     void on_update_all(wxMouseEvent &event);

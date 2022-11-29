@@ -326,6 +326,7 @@ public:
     void            UpdateDarkUIWin(wxWindow* win);
     // update color mode for whole dialog including all children
     void            UpdateDlgDarkUI(wxDialog* dlg);
+    void            UpdateFrameDarkUI(wxFrame* dlg);
     // update color mode for DataViewControl
     void            UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited = false);
     // update color mode for panel including all static texts controls

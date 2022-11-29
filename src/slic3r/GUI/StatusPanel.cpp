@@ -38,7 +38,7 @@ static const wxColour BUTTON_NORMAL2_COL = wxColour(206, 206, 206);
 static const wxColour BUTTON_PRESS_COL   = wxColour(172, 172, 172);
 static const wxColour BUTTON_HOVER_COL   = wxColour(0, 174, 66);
 
-static const wxColour DISCONNECT_TEXT_COL = wxColour(172, 172, 172);
+static const wxColour DISCONNECT_TEXT_COL = wxColour(171, 172, 172);
 static const wxColour NORMAL_TEXT_COL     = wxColour(48,58,60);
 static const wxColour NORMAL_FAN_TEXT_COL = wxColour(107, 107, 107);
 static const wxColour WARNING_INFO_BG_COL = wxColour(255, 111, 0);
@@ -2770,6 +2770,13 @@ void StatusPanel::set_hold_count(int& count)
     count = COMMAND_TIMEOUT;
 }
 
+void StatusPanel::on_sys_color_changed()
+{
+    m_bitmap_speed.msw_rescale();
+    m_bitmap_speed_active.msw_rescale();
+    m_switch_speed->SetImages(m_bitmap_speed, m_bitmap_speed);
+}
+
 void StatusPanel::msw_rescale()
 {
     init_bitmaps();
@@ -2817,6 +2824,9 @@ void StatusPanel::msw_rescale()
     m_tempCtrl_frame->SetMinSize(TEMP_CTRL_MIN_SIZE);
     m_tempCtrl_frame->Rescale();
 
+    m_bitmap_speed.msw_rescale();
+    m_bitmap_speed_active.msw_rescale();
+
     m_switch_speed->SetImages(m_bitmap_speed, m_bitmap_speed);
     m_switch_speed->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_speed->Rescale();
@@ -2832,6 +2842,7 @@ void StatusPanel::msw_rescale()
 
     m_ams_control->msw_rescale();
     // m_filament_step->Rescale();
+
 
     m_calibration_btn->SetMinSize(wxSize(-1, FromDIP(26)));
     m_calibration_btn->Rescale();

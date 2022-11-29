@@ -2752,6 +2752,8 @@ static void update_dark_children_ui(wxWindow* window, bool just_buttons_update =
 {
     /*bool is_btn = dynamic_cast<wxButton*>(window) != nullptr;
     is_btn = false;*/
+    if (!window) return;
+
     wxGetApp().UpdateDarkUI(window);
 
     auto children = window->GetChildren();
@@ -2774,6 +2776,16 @@ void GUI_App::UpdateDlgDarkUI(wxDialog* dlg)
 #endif
     update_dark_children_ui(dlg);
 }
+
+void GUI_App::UpdateFrameDarkUI(wxFrame* dlg)
+{
+#ifdef __WINDOWS__
+    NppDarkMode::SetDarkExplorerTheme(dlg->GetHWND());
+    NppDarkMode::SetDarkTitleBar(dlg->GetHWND());
+#endif
+    update_dark_children_ui(dlg);
+}
+
 void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/)
 {
 #ifdef __WINDOWS__
@@ -3133,14 +3145,18 @@ void GUI_App::update_ui_from_settings()
         //UpdateDlgDarkUI(&mainframe->m_settings_dialog);
         //mainframe->m_settings_dialog.Refresh();
         //mainframe->m_settings_dialog.Update();
+
+        if (mainframe) {
 #ifdef __WINDOWS__
-        mainframe->force_color_changed();
-        update_scrolls(mainframe);
-        update_scrolls(&mainframe->m_settings_dialog);
+            mainframe->force_color_changed();
+            update_scrolls(mainframe);
+            update_scrolls(&mainframe->m_settings_dialog);
 #endif //_MSW_DARK_MODE
-        update_dark_children_ui(mainframe);
+            update_dark_children_ui(mainframe);
+        }
     }
-    mainframe->update_ui_from_settings();
+
+    if (mainframe) {mainframe->update_ui_from_settings();}
 }
 
 void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_maximized)

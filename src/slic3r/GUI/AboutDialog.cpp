@@ -47,11 +47,7 @@ CopyrightsDialog::CopyrightsDialog()
         wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
     this->SetFont(wxGetApp().normal_font());
-#ifdef _WIN32
-    wxGetApp().UpdateDarkUI(this);
-#else
-	this->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-#endif
+	this->SetBackgroundColour(*wxWHITE);
 
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -66,6 +62,7 @@ CopyrightsDialog::CopyrightsDialog()
     m_html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition,
                               wxSize(40 * em_unit(), 20 * em_unit()), wxHW_SCROLLBAR_AUTO);
     m_html->SetMinSize(wxSize(FromDIP(870),FromDIP(520)));
+    m_html->SetBackgroundColour(*wxWHITE);
     wxFont font = get_default_font(this);
     const int fs = font.GetPointSize();
     const int fs2 = static_cast<int>(1.2f*fs);
@@ -81,6 +78,7 @@ CopyrightsDialog::CopyrightsDialog()
     SetSizer(sizer);
     sizer->SetSizeHints(this);
     CenterOnParent();
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void CopyrightsDialog::fill_entries()

@@ -40,7 +40,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
         b->SetTextColor(StateColor(
             std::make_pair(0x3B4446, (int) StateColor::Checked),
             std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered),
-            std::make_pair(0xACACAC, (int) StateColor::Normal)
+            std::make_pair(0xABACAC, (int) StateColor::Normal)
         ));
     }
 

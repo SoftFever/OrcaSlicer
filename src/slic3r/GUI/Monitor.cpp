@@ -245,6 +245,11 @@ wxWindow* MonitorPanel::create_side_tools()
     return panel;
 }
 
+void MonitorPanel::on_sys_color_changed()
+{
+    m_status_info_panel->on_sys_color_changed();
+}
+
 void MonitorPanel::msw_rescale()
 {
     init_bitmap();
