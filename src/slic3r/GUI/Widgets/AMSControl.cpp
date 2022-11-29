@@ -1573,10 +1573,14 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_simplebook_right->AddPage(m_filament_load_step, wxEmptyString, false);
     m_simplebook_right->AddPage(m_filament_unload_step, wxEmptyString, false);
 
+
+    m_button_ams_setting_normal = ScalableBitmap(this, "ams_setting_normal", 24);
+    m_button_ams_setting_hover = ScalableBitmap(this, "ams_setting_hover", 24);
+    m_button_ams_setting_press = ScalableBitmap(this, "ams_setting_press", 24);
+
     wxBoxSizer *m_sizer_right_bottom = new wxBoxSizer(wxHORIZONTAL);
-    m_button_ams_setting = new Button(m_amswin, "", "ams_setting_normal", wxBORDER_NONE, FromDIP(24));
-    m_button_ams_setting->SetPaddingSize(wxSize(0, 0));
-    m_button_ams_setting->SetBackgroundColor(m_amswin->GetBackgroundColour());
+    m_button_ams_setting = new wxStaticBitmap(m_amswin, wxID_ANY, m_button_ams_setting_normal.bmp(), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)));
+    m_button_ams_setting->SetBackgroundColour(m_amswin->GetBackgroundColour());
 
     m_button_guide = new Button(m_amswin, _L("Guide"));
     m_button_guide->SetFont(Label::Body_13);
@@ -1685,19 +1689,21 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     m_button_extruder_feed->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_filament_load), NULL, this);
     m_button_extruder_back->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_filament_unload), NULL, this);
-    m_button_ams_setting->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_ams_setting_click), NULL, this);
+    m_button_ams_setting->Bind(wxEVT_LEFT_DOWN, &AMSControl::on_ams_setting_click, this);
     m_button_ams_setting->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& e) {
-        m_button_ams_setting->SetIcon("ams_setting_hover");
+        m_button_ams_setting->SetBitmap(m_button_ams_setting_hover.bmp());
         e.Skip();
         });
     m_button_ams_setting->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
-        m_button_ams_setting->SetIcon("ams_setting_press");
+        m_button_ams_setting->SetBitmap(m_button_ams_setting_press.bmp());
         e.Skip();
         });
-    m_button_ams_setting->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent&e) {
-        m_button_ams_setting->SetIcon("ams_setting_normal");
+    m_button_ams_setting->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
+        m_button_ams_setting->SetBitmap(m_button_ams_setting_normal.bmp());
         e.Skip();
         });
+
+    
 
     m_button_guide->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
         post_event(wxCommandEvent(EVT_AMS_GUIDE_WIKI));
@@ -2175,7 +2181,7 @@ void AMSControl::on_filament_unload(wxCommandEvent &event)
     post_event(SimpleEvent(EVT_AMS_UNLOAD));
 }
 
-void AMSControl::on_ams_setting_click(wxCommandEvent &event)
+void AMSControl::on_ams_setting_click(wxMouseEvent &event)
 {
     post_event(SimpleEvent(EVT_AMS_SETTINGS));
 }

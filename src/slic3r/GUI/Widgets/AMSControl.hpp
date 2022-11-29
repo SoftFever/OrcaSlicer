@@ -478,7 +478,10 @@ protected:
 
     Button *m_button_extruder_feed = {nullptr};
     Button *m_button_extruder_back = {nullptr};
-    Button* m_button_ams_setting   = {nullptr};
+    wxStaticBitmap* m_button_ams_setting   = {nullptr};
+    ScalableBitmap m_button_ams_setting_normal;
+    ScalableBitmap m_button_ams_setting_hover;
+    ScalableBitmap m_button_ams_setting_press;
     Button *m_button_guide = {nullptr};
     Button *m_button_retry = {nullptr};
 
@@ -516,7 +519,7 @@ public:
     void msw_rescale();
     void on_filament_load(wxCommandEvent &event);
     void on_filament_unload(wxCommandEvent &event);
-    void on_ams_setting_click(wxCommandEvent &event);
+    void on_ams_setting_click(wxMouseEvent &event);
     void on_clibration_again_click(wxMouseEvent &event);
     void on_clibration_cancel_click(wxMouseEvent &event);
     void Reset();
