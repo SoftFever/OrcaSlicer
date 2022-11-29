@@ -751,17 +751,18 @@ void PlaterPresetComboBox::OnSelect(wxCommandEvent &evt)
         evt.StopPropagation();
         if (marker == LABEL_ITEM_MARKER)
             return;
-        if (marker == LABEL_ITEM_WIZARD_PRINTERS)
-            show_add_menu();
-        else {
+        //if (marker == LABEL_ITEM_WIZARD_PRINTERS)
+        //    show_add_menu();
+        //else {
             ConfigWizard::StartPage sp = ConfigWizard::SP_WELCOME;
             switch (marker) {
+            case LABEL_ITEM_WIZARD_PRINTERS: sp = ConfigWizard::SP_PRINTERS; break;
             case LABEL_ITEM_WIZARD_FILAMENTS: sp = ConfigWizard::SP_FILAMENTS; break;
             case LABEL_ITEM_WIZARD_MATERIALS: sp = ConfigWizard::SP_MATERIALS; break;
             default: break;
             }
             wxTheApp->CallAfter([sp]() { run_wizard(sp); });
-        }
+        //}
         return;
     } else if (marker == LABEL_ITEM_PHYSICAL_PRINTER || m_last_selected != selected_item || m_collection->current_is_dirty()) {
         m_last_selected = selected_item;
@@ -1074,17 +1075,17 @@ void PlaterPresetComboBox::update()
         }
     }*/
 
-    //if (m_type == Preset::TYPE_PRINTER || m_type == Preset::TYPE_FILAMENT || m_type == Preset::TYPE_SLA_MATERIAL) {
-    //    wxBitmap* bmp = get_bmp("edit_preset_list", wide_icons, "edit_uni");
-    //    assert(bmp);
+    if (m_type == Preset::TYPE_PRINTER || m_type == Preset::TYPE_FILAMENT || m_type == Preset::TYPE_SLA_MATERIAL) {
+        wxBitmap* bmp = get_bmp("edit_preset_list", wide_icons, "edit_uni");
+        assert(bmp);
 
-    //    if (m_type == Preset::TYPE_FILAMENT)
-    //        set_label_marker(Append(separator(L("Add/Remove filaments")), *bmp), LABEL_ITEM_WIZARD_FILAMENTS);
-    //    else if (m_type == Preset::TYPE_SLA_MATERIAL)
-    //        set_label_marker(Append(separator(L("Add/Remove materials")), *bmp), LABEL_ITEM_WIZARD_MATERIALS);
-    //    else
-    //        set_label_marker(Append(separator(L("Add/Remove printers")), *bmp), LABEL_ITEM_WIZARD_PRINTERS);
-    //}
+        if (m_type == Preset::TYPE_FILAMENT)
+            set_label_marker(Append(separator(L("Add/Remove filaments")), *bmp), LABEL_ITEM_WIZARD_FILAMENTS);
+        else if (m_type == Preset::TYPE_SLA_MATERIAL)
+            set_label_marker(Append(separator(L("Add/Remove materials")), *bmp), LABEL_ITEM_WIZARD_MATERIALS);
+        else
+            set_label_marker(Append(separator(L("Add/Remove printers")), *bmp), LABEL_ITEM_WIZARD_PRINTERS);
+    }
 
     update_selection();
     Thaw();
