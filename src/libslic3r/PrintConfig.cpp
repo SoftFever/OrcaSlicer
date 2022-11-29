@@ -1567,7 +1567,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<GCodeFlavor>::get_enum_values();
     def->enum_values.push_back("marlin");
     def->enum_values.push_back("klipper");
-    //def->enum_values.push_back("reprapfirmware");
+    def->enum_values.push_back("reprapfirmware");
     //def->enum_values.push_back("repetier");
     //def->enum_values.push_back("teacup");
     //def->enum_values.push_back("makerware");
@@ -1578,8 +1578,9 @@ void PrintConfigDef::init_fff_params()
     //def->enum_values.push_back("smoothie");
     //def->enum_values.push_back("no-extrusion");
     def->enum_labels.push_back("Marlin(legacy)");
+    def->enum_labels.push_back(L("Klipper"));
+    def->enum_labels.push_back("RepRapFirmware");
     //def->enum_labels.push_back("RepRap/Sprinter");
-    //def->enum_labels.push_back("RepRapFirmware");
     //def->enum_labels.push_back("Repetier");
     //def->enum_labels.push_back("Teacup");
     //def->enum_labels.push_back("MakerWare (MakerBot)");
@@ -1589,7 +1590,6 @@ void PrintConfigDef::init_fff_params()
     //def->enum_labels.push_back("Machinekit");
     //def->enum_labels.push_back("Smoothie");
     //def->enum_labels.push_back(L("No extrusion"));
-    def->enum_labels.push_back(L("Klipper"));
     def->mode = comAdvanced;
     def->readonly = false;
     def->set_default_value(new ConfigOptionEnum<GCodeFlavor>(gcfMarlinLegacy));
