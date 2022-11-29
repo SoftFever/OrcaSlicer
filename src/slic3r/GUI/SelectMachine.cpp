@@ -1906,6 +1906,15 @@ bool SelectMachineDialog::is_same_printer_model()
     return true;
 }
 
+void SelectMachineDialog::show_errors(wxString &info)
+{
+    if (confirm_dlg == nullptr) {
+        confirm_dlg = new SecondaryCheckDialog(this, wxID_ANY, _L("Errors"));
+    }
+    confirm_dlg->update_text(info);
+    confirm_dlg->on_show();
+}
+
 void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 {
     std::vector<wxString> confirm_text;
@@ -1940,9 +1949,15 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     //check for unidentified material
     auto mapping_result = m_mapping_popup.parse_ams_mapping(obj_->amsList);
     auto has_unknown_filament = false;
+    // check if ams mapping is has errors, tpu
+    bool has_tpu_filament = false;
 
     for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
         auto tid = m_ams_mapping_result[i].tray_id;
+        std::string filament_type = boost::to_upper_copy(m_ams_mapping_result[i].type);
+        if (filament_type == "TPU") {
+            has_tpu_filament = true;
+        }
         for (auto miter : mapping_result) {
             //matching
             if (miter.id == tid) {
@@ -1952,6 +1967,12 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
                 }
             }
         }
+    }
+
+    if (has_tpu_filament && obj_->has_ams() && ams_check->GetValue()) {
+        wxString tpu_tips = wxString::Format(_L("The %s filament is too soft to be used with the AMS"), "TPU");
+        show_errors(tpu_tips);
+        return;
     }
 
     if (has_unknown_filament) {

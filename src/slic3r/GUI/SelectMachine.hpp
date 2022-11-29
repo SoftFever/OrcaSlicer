@@ -417,6 +417,7 @@ protected:
 
     void                     update_printer_combobox(wxCommandEvent &event);
     void                     on_cancel(wxCloseEvent &event);
+    void                     show_errors(wxString &info);
     void                     on_ok_btn(wxCommandEvent &event);
     void                     on_ok();
     void                     on_refresh(wxCommandEvent &event);
