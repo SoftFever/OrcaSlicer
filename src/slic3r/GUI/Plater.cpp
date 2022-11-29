@@ -5023,6 +5023,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
     if (std::find(panels.begin(), panels.end(), panel) == panels.end())
         return;
 
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": current_panel %1%, new_panel %2%")%current_panel%panel;
 #ifdef __WXMAC__
     bool force_render = (current_panel != nullptr);
 #endif // __WXMAC__
@@ -5103,6 +5104,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
         if (!q->only_gcode_mode() && (current_panel == preview) && (wxGetApp().is_editor())) {
             do_reslice();
         }
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": the same panel, exit");
         return;
     }
 
@@ -5263,6 +5265,8 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
     }
 
     current_panel->SetFocusFromKbd();
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": successfully, exit");
 }
 
 // BBS
