@@ -639,10 +639,9 @@ void SearchDialog::OnDismiss() { }
 void SearchDialog::Dismiss()
 {
     auto pos = wxGetMousePosition();
-
-    if (!search_line->HasFocus() && !this->HasFocus()) {
+    auto focus_window = wxWindow::FindFocus();
+    if (!focus_window)
         Die();
-    }
     else if (!m_event_tag->GetScreenRect().Contains(pos) && !this->GetScreenRect().Contains(pos) && !m_search_item_tag->GetScreenRect().Contains(pos)) {
         Die();
     }
