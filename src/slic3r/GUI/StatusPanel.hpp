@@ -68,6 +68,7 @@ class StatusBasePanel : public wxScrolledWindow
 protected:
     wxBitmap m_item_placeholder;
     ScalableBitmap m_thumbnail_placeholder;
+    ScalableBitmap m_thumbnail_brokenimg;
     ScalableBitmap m_thumbnail_sdcard;
     wxBitmap m_bitmap_item_prediction;
     wxBitmap m_bitmap_item_cost;
@@ -329,6 +330,7 @@ protected:
     void on_nozzle_fan_switch(wxCommandEvent &event);
     void on_thumbnail_enter(wxMouseEvent &event);
     void on_thumbnail_leave(wxMouseEvent &event);
+    void refresh_thumbnail_webrequest(wxMouseEvent& event);
     void on_switch_vcamera(wxMouseEvent &event);
     void on_camera_enter(wxMouseEvent &event);
     void on_camera_leave(wxMouseEvent& event);
@@ -374,6 +376,14 @@ public:
                 const wxString &name  = wxEmptyString);
     ~StatusPanel();
 
+    enum ThumbnailState {
+        PLACE_HOLDER = 0,
+        BROKEN_IMG = 1,
+        TASK_THUMBNAIL = 2,
+        SDCARD_THUMBNAIL = 3,
+        STATE_COUNT = 4
+    };
+
     MachineObject *obj {nullptr};
     BBLSubTask *   last_subtask{nullptr};
     std::string    last_profile_id;
@@ -385,6 +395,7 @@ public:
     long           last_reading_bits { -1 };
     long           last_ams_version { -1 };
 
+    enum ThumbnailState task_thumbnail_state {ThumbnailState::PLACE_HOLDER};
     std::vector<int> last_stage_list_info;
 
     bool is_stage_list_info_changed(MachineObject* obj);

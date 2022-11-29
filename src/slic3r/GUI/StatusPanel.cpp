@@ -180,6 +180,7 @@ void StatusBasePanel::init_bitmaps()
     m_bitmap_use_time        = ScalableBitmap(this, "print_info_time", 16);
     m_bitmap_use_weight      = ScalableBitmap(this, "print_info_weight", 16);
     m_thumbnail_placeholder  = ScalableBitmap(this, "monitor_placeholder", 120);
+    m_thumbnail_brokenimg    = ScalableBitmap(this, "monitor_brokenimg", 120);
     m_thumbnail_sdcard       = ScalableBitmap(this, "monitor_sdcard_thumbnail", 120);
     //m_bitmap_camera          = create_scaled_bitmap("monitor_camera", nullptr, 18);
     m_bitmap_extruder_empty_load      = *cache.load_png("monitor_extruder_empty_load", FromDIP(28), FromDIP(70), false, false);
@@ -1130,6 +1131,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     // Connect Events
     //m_bitmap_thumbnail->Connect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_enter), NULL, this);
     //m_bitmap_thumbnail->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
+    m_bitmap_thumbnail->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::refresh_thumbnail_webrequest), NULL, this);
     m_setting_button->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_camera_enter), NULL, this);
     m_project_task_panel->Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
     m_button_pause_resume->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
@@ -1169,6 +1171,7 @@ StatusPanel::~StatusPanel()
     // Disconnect Events
     //m_bitmap_thumbnail->Disconnect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_enter), NULL, this);
     //m_bitmap_thumbnail->Disconnect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(StatusPanel::on_thumbnail_leave), NULL, this);
+    m_bitmap_thumbnail->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::refresh_thumbnail_webrequest), NULL, this);
     m_setting_button->Disconnect(wxEVT_LEFT_DOWN, wxMouseEventHandler(StatusPanel::on_camera_enter), NULL, this);
     m_button_pause_resume->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
     m_button_abort->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
@@ -1329,13 +1332,16 @@ void StatusPanel::on_webrequest_state(wxWebRequestEvent &evt)
         img_list.insert(std::make_pair(m_request_url, img));
         wxImage resize_img = img.Scale(m_bitmap_thumbnail->GetSize().x, m_bitmap_thumbnail->GetSize().y, wxIMAGE_QUALITY_HIGH);
         m_bitmap_thumbnail->SetBitmap(resize_img);
+        task_thumbnail_state = ThumbnailState::TASK_THUMBNAIL;
         break;
     }
-    case wxWebRequest::State_Failed: {
-        break;
-    }
+    case wxWebRequest::State_Failed:
     case wxWebRequest::State_Cancelled:
-    case wxWebRequest::State_Unauthorized:
+    case wxWebRequest::State_Unauthorized: {
+        m_bitmap_thumbnail->SetBitmap(m_thumbnail_brokenimg.bmp());
+        task_thumbnail_state = ThumbnailState::BROKEN_IMG;
+        break;
+    }
     case wxWebRequest::State_Active:
     case wxWebRequest::State_Idle: break;
     default: break;
@@ -2062,9 +2068,10 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
                     img                = it->second;
                     wxImage resize_img = img.Scale(m_bitmap_thumbnail->GetSize().x, m_bitmap_thumbnail->GetSize().y);
                     m_bitmap_thumbnail->SetBitmap(resize_img);
+                    task_thumbnail_state == ThumbnailState::TASK_THUMBNAIL;
                 } else {
                     web_request = wxWebSession::GetDefault().CreateRequest(this, m_request_url);
-                    BOOST_LOG_TRIVIAL(trace) << "monitor: start reqeust thumbnail, url = " << m_request_url;
+                    BOOST_LOG_TRIVIAL(trace) << "monitor: start request thumbnail, url = " << m_request_url;
                     web_request.Start();
                     m_start_loading_thumbnail = false;
                 }
@@ -2079,6 +2086,7 @@ void StatusPanel::update_sdcard_subtask(MachineObject *obj)
 
     if (!m_load_sdcard_thumbnail) {
         m_bitmap_thumbnail->SetBitmap(m_thumbnail_sdcard.bmp());
+        task_thumbnail_state = ThumbnailState::SDCARD_THUMBNAIL;
         m_load_sdcard_thumbnail = true;
     }
 }
@@ -2099,6 +2107,7 @@ void StatusPanel::reset_printing_values()
     m_staticText_progress_percent->SetLabelText(NA_STR);
     m_staticText_progress_percent_icon->SetLabelText(wxEmptyString);
     m_bitmap_thumbnail->SetBitmap(m_thumbnail_placeholder.bmp());
+    task_thumbnail_state = ThumbnailState::PLACE_HOLDER;
     m_start_loading_thumbnail = false;
     m_load_sdcard_thumbnail   = false;
     skip_print_error = 0;
@@ -2620,6 +2629,23 @@ void StatusPanel::on_thumbnail_leave(wxMouseEvent &event)
     if (obj && m_slice_info_popup) {
         if (!m_bitmap_thumbnail->GetRect().Contains(event.GetPosition())) {
             m_slice_info_popup->Dismiss();
+        }
+    }
+}
+
+void StatusPanel::refresh_thumbnail_webrequest(wxMouseEvent &event)
+{
+    if (!obj) return;
+    if (task_thumbnail_state != ThumbnailState::BROKEN_IMG) return;
+
+    if (obj->slice_info) {
+        m_request_url = wxString(obj->slice_info->thumbnail_url);
+        if (!m_request_url.IsEmpty()) {
+            web_request = wxWebSession::GetDefault().CreateRequest(this, m_request_url);
+            BOOST_LOG_TRIVIAL(trace) << "monitor: create new webrequest, state = " << web_request.GetState() << ", url = " << m_request_url;
+            if (web_request.GetState() == wxWebRequest::State_Idle)
+                web_request.Start();
+            BOOST_LOG_TRIVIAL(trace) << "monitor: start new webrequest, state = " << web_request.GetState() << ", url = "<< m_request_url;
         }
     }
 }
