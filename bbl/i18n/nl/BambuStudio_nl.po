@@ -2834,6 +2834,11 @@ msgid ""
 "2. The Filament presets\n"
 "3. The Printer presets\n"
 msgstr ""
+"Do you want to synchronize your personal data from Bambu Cloud? \n"
+"It contains the following information:\n"
+"1. The Process presets\n"
+"2. The Filament presets\n"
+"3. The Printer presets\n"
 
 msgid "Synchronization"
 msgstr "Synchronisatie"
@@ -2962,7 +2967,7 @@ msgstr "Verbinden..."
 
 #, c-format, boost-format
 msgid "Connect failed [%d]!"
-msgstr ""
+msgstr "Verbinding mislukt [%d]!"
 
 msgid "Loading file list..."
 msgstr "Bestandslijst laden..."
@@ -7746,105 +7751,6 @@ msgid ""
 "density to improve the strength of the model?"
 msgstr ""
 
-#~ msgid "Export ok."
-#~ msgstr "Exporteren ok"
-
-#~ msgid "Plate %d: %s does not support filament %s.\n"
-#~ msgstr "Printbed %d: %s onderstand filament %s niet.\n"
-
-#~ msgid "Filament N XX"
-#~ msgstr "Filament N XX"
-
-#~ msgid "Color Print"
-#~ msgstr "Kleuren print"
-
-#~ msgid "Comsumption"
-#~ msgstr "Verbruik"
-
-#~ msgid "Filament 1"
-#~ msgstr "Filament 1"
-
-#~ msgid "Flushed filament"
-#~ msgstr "Flushed filament"
-
-#~ msgid "Adaptive layer height"
-#~ msgstr "Adaptieve laaghoogte"
-
-#~ msgid ""
-#~ "Enabling this option means the height of every layer except the first "
-#~ "will be automatically calculated during slicing according to the slope of "
-#~ "the model’s surface.\n"
-#~ "Note that this option only takes effect if no prime tower is generated in "
-#~ "current plate."
-#~ msgstr ""
-#~ "Als u deze optie inschakelt, betekent dit dat de hoogte van elke laag, "
-#~ "behalve die van de eerste laag, automatisch wordt berekend op basis van "
-#~ "de helling van het oppervlak van het model.\n"
-#~ "Houd er rekening mee dat deze optie alleen van kracht is als er geen "
-#~ "prime-toren is gegenereerd op het huidige printbed."
-
-#~ msgid "normal"
-#~ msgstr "Normaal"
-
-#~ msgid "tree"
-#~ msgstr "tree"
-
-#~ msgid " Object:"
-#~ msgstr "Object"
-
-#~ msgid ""
-#~ "You have changed some preset settings. \n"
-#~ "Would you like to keep these changed settings after switching preset?"
-#~ msgstr ""
-#~ "U hebt enkele voorinstellingen gewijzigd.\n"
-#~ "Wilt u deze gewijzigde instellingen behouden na het wisselen van "
-#~ "voorinstelling?"
-
-#~ msgid "Export sliced file"
-#~ msgstr "Exporteer het \"sliced\" bestand"
-
-#~ msgid "Export Sliced File"
-#~ msgstr "Exporteer het \"sliced\" bestand"
-
-#~ msgid "Export current Sliced file"
-#~ msgstr "Exporteer het huidig \"sliced\" bestand"
-
-#~ msgid ""
-#~ "Force cooling fan to be specific speed when overhang degree of printed "
-#~ "part exceeds this value. Expressed as percentage which indicides how much "
-#~ "width of the line without support from lower layer"
-#~ msgstr ""
-#~ "Forceer de snelheid van de koelventilator wanneer de overhanggraad van "
-#~ "het  onderdeel deze waarde overschrijdt. Uitgedrukt als percentage "
-
-#~ msgid "Erase painting"
-#~ msgstr "Getekende delen wissen"
-
-#~ msgid "Set pen size"
-#~ msgstr "Selecteer pen formaat"
-
-#~ msgid "Rotation:"
-#~ msgstr "Rotatie:"
-
-#~ msgid "Height:"
-#~ msgstr "Hoogte:"
-
-#~ msgid "Initialize failed [%d]!"
-#~ msgstr "Het initialiseren is mislukt [%d]!"
-
-#~ msgid "Management"
-#~ msgstr "Management"
-
-#~ msgid "Open"
-#~ msgstr "Open"
-
-#~ msgid ""
-#~ "%1% is too close to exclusion area, there will be collisions when "
-#~ "printing."
-#~ msgstr ""
-#~ "%1% bevindt zich te dicht bij een uitgesloten gebied, er zullen botsingen "
-#~ "optreden tijdens het printen."
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -7854,78 +7760,18 @@ msgstr ""
 #~ "%1% bevindt zich te dicht bij een uitgesloten gebied, er kunnen botsingen "
 #~ "optreden tijdens het printen."
 
-#~ msgid " is too close to others, there will be collisions when printing.\n"
-#~ msgstr ""
-#~ " bevindt zich te dichtbij andere objecten, er zullen botsingen optreden "
-#~ "tijdens het printen.\n"
-
 #~ msgid ""
-#~ " is too close to exclusion area, there will be collisions when printing.\n"
+#~ "%1% is too close to exclusion area, there will be collisions when "
+#~ "printing."
 #~ msgstr ""
-#~ " komt te dichtbij het uitgesloten gebied, er zullen botsingen optreden "
-#~ "tijdens het printen.\n"
-
-#~ msgid "Avoid crossing wall when travel"
-#~ msgstr "Vermijd wanden tijdens het verplaatsen"
-
-#~ msgid "Max travel detour distance"
-#~ msgstr "Maximale afstand voor printpad omleiding"
-
-#~ msgid ""
-#~ "Maximum detour distance for avoiding crossing wall. Don't detour if the "
-#~ "detour distance is large than this value"
-#~ msgstr ""
-#~ "Maximale omleidingsafstand om beweging over muren te vermijden. Als de "
-#~ "afstand groter is dan deze waarde, is er geen omleiding."
-
-#~ msgid ""
-#~ "Height of the clearance cylinder around extruder. Used as input of auto-"
-#~ "arrange to avoid collision when print object by object"
-#~ msgstr ""
-#~ "Hoogte van de spelingsruimte rond de printkop: wordt gebruikt als invoer "
-#~ "voor automatisch rangschikken om botsingen te voorkomen bij  object voor "
-#~ "object printen."
-
-#~ msgid ""
-#~ "Clearance radius around extruder. Used as input of auto-arrange to avoid "
-#~ "collision when print object by object"
-#~ msgstr ""
-#~ "Vrije ruimte rond de printkop: deze wordt gebruikt als invoer voor "
-#~ "automatisch rangschikken om botsingen te voorkomen bij het afdrukken van "
-#~ "object voor object"
-
-#~ msgid "Error at line %1%:\n"
-#~ msgstr "Fout op laag %1%:\n"
-
-#~ msgid "Reduce Triangles"
-#~ msgstr "Aantal driehoeken verkleinen (vereenvoudigen)"
-
-#~ msgid ""
-#~ "Switch to zig-zag pattern?\n"
-#~ "Yes - switch to zig-zag pattern automaticlly\n"
-#~ "No  - reset density to default non 100% value automaticlly\n"
-#~ msgstr ""
-#~ "Overschakelen naar zigzagpatroon?\n"
-#~ "Ja - Automatisch overschakelen naar zigzagpatroon\n"
-#~ "Nee - Reset vulling automatisch naar de standaard niet-100% waarde\n"
-
-#~ msgid "Extruder position"
-#~ msgstr "Positie van de extruder"
-
-#~ msgid "Zig zag"
-#~ msgstr "Zig-zag"
-
-#~ msgid ""
-#~ "Bed temperature is higher than vitrification temperature of this "
-#~ "filament.\n"
-#~ "This may cause nozzle blocked and printing failure"
-#~ msgstr ""
-#~ "De bedtemperatuur is hoger dan de verglazingstemperatuur van dit "
-#~ "filament. Hierdoor kan de nozzle verstopt raken en kan het printen "
-#~ "mislukken"
+#~ "%1% bevindt zich te dicht bij een uitgesloten gebied, er zullen botsingen "
+#~ "optreden tijdens het printen."
 
 #~ msgid "0%"
 #~ msgstr "0%"
+
+#~ msgid "Adaptive layer height"
+#~ msgstr "Adaptieve laaghoogte"
 
 #~ msgid ""
 #~ "An object is layed over the boundary of plate.\n"
@@ -7947,8 +7793,34 @@ msgstr ""
 #~ "deze georiënteert. Anders worden alle objecten op de huidige project "
 #~ "georiënteert."
 
+#~ msgid "Avoid crossing wall when travel"
+#~ msgstr "Vermijd wanden tijdens het verplaatsen"
+
+#~ msgid ""
+#~ "Bed temperature is higher than vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause nozzle blocked and printing failure"
+#~ msgstr ""
+#~ "De bedtemperatuur is hoger dan de verglazingstemperatuur van dit "
+#~ "filament. Hierdoor kan de nozzle verstopt raken en kan het printen "
+#~ "mislukken"
+
 #~ msgid "Clear all"
 #~ msgstr "Alles wissen"
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used as input of auto-arrange to avoid "
+#~ "collision when print object by object"
+#~ msgstr ""
+#~ "Vrije ruimte rond de printkop: deze wordt gebruikt als invoer voor "
+#~ "automatisch rangschikken om botsingen te voorkomen bij het afdrukken van "
+#~ "object voor object"
+
+#~ msgid "Color Print"
+#~ msgstr "Kleuren print"
+
+#~ msgid "Comsumption"
+#~ msgstr "Verbruik"
 
 #~ msgid "Creating"
 #~ msgstr "Bezig met creëren"
@@ -7997,11 +7869,51 @@ msgstr ""
 #~ "Dit schakelt terugtrekken (retraction) uit wanneer reizen volledig binnen "
 #~ "een opvulgebied is en het druppelen uit de nozzle niet kan worden gezien."
 
+#~ msgid ""
+#~ "Enabling this option means the height of every layer except the first "
+#~ "will be automatically calculated during slicing according to the slope of "
+#~ "the model’s surface.\n"
+#~ "Note that this option only takes effect if no prime tower is generated in "
+#~ "current plate."
+#~ msgstr ""
+#~ "Als u deze optie inschakelt, betekent dit dat de hoogte van elke laag, "
+#~ "behalve die van de eerste laag, automatisch wordt berekend op basis van "
+#~ "de helling van het oppervlak van het model.\n"
+#~ "Houd er rekening mee dat deze optie alleen van kracht is als er geen "
+#~ "prime-toren is gegenereerd op het huidige printbed."
+
 #~ msgid "Enter a search term"
 #~ msgstr "Voer een zoekterm in"
 
+#~ msgid "Erase painting"
+#~ msgstr "Getekende delen wissen"
+
+#~ msgid "Error at line %1%:\n"
+#~ msgstr "Fout op laag %1%:\n"
+
+#~ msgid "Export Sliced File"
+#~ msgstr "Exporteer het \"sliced\" bestand"
+
+#~ msgid "Export current Sliced file"
+#~ msgstr "Exporteer het huidig \"sliced\" bestand"
+
+#~ msgid "Export ok."
+#~ msgstr "Exporteren ok"
+
+#~ msgid "Export sliced file"
+#~ msgstr "Exporteer het \"sliced\" bestand"
+
+#~ msgid "Extruder position"
+#~ msgstr "Positie van de extruder"
+
 #~ msgid "Failed"
 #~ msgstr "Mislukt"
+
+#~ msgid "Filament 1"
+#~ msgstr "Filament 1"
+
+#~ msgid "Filament N XX"
+#~ msgstr "Filament N XX"
 
 #~ msgid "Filaments Selection"
 #~ msgstr "Filaments selectie"
@@ -8014,6 +7926,17 @@ msgstr ""
 
 #~ msgid "Fix model through cloud"
 #~ msgstr "Repareer model in de cloud"
+
+#~ msgid "Flushed filament"
+#~ msgstr "Flushed filament"
+
+#~ msgid ""
+#~ "Force cooling fan to be specific speed when overhang degree of printed "
+#~ "part exceeds this value. Expressed as percentage which indicides how much "
+#~ "width of the line without support from lower layer"
+#~ msgstr ""
+#~ "Forceer de snelheid van de koelventilator wanneer de overhanggraad van "
+#~ "het  onderdeel deze waarde overschrijdt. Uitgedrukt als percentage "
 
 #~ msgid "Fragment Filter"
 #~ msgstr "Fragmentfilter"
@@ -8029,11 +7952,25 @@ msgstr ""
 #~ "temperature"
 #~ msgstr "Nozzle opwarmen tot doel temperatuur"
 
+#~ msgid "Height:"
+#~ msgstr "Hoogte:"
+
+#~ msgid ""
+#~ "Height of the clearance cylinder around extruder. Used as input of auto-"
+#~ "arrange to avoid collision when print object by object"
+#~ msgstr ""
+#~ "Hoogte van de spelingsruimte rond de printkop: wordt gebruikt als invoer "
+#~ "voor automatisch rangschikken om botsingen te voorkomen bij  object voor "
+#~ "object printen."
+
 #~ msgid "In the calibration of extrusion flow"
 #~ msgstr "Bij de kalibratie van de extrusieflow"
 
 #~ msgid "In the calibration of laser scanner"
 #~ msgstr "Bij de kalibratie van laserscanner"
+
+#~ msgid "Initialize failed [%d]!"
+#~ msgstr "Het initialiseren is mislukt [%d]!"
 
 #~ msgid "Inner wall speed"
 #~ msgstr "Binnenste wand snelheid"
@@ -8048,11 +7985,33 @@ msgstr ""
 #~ msgid "Line type"
 #~ msgstr "Lijn-type"
 
+#~ msgid "Management"
+#~ msgstr "Management"
+
+#~ msgid "Max travel detour distance"
+#~ msgstr "Maximale afstand voor printpad omleiding"
+
+#~ msgid ""
+#~ "Maximum detour distance for avoiding crossing wall. Don't detour if the "
+#~ "detour distance is large than this value"
+#~ msgstr ""
+#~ "Maximale omleidingsafstand om beweging over muren te vermijden. Als de "
+#~ "afstand groter is dan deze waarde, is er geen omleiding."
+
 #~ msgid "Module"
 #~ msgstr "Module"
 
 #~ msgid "Monitoring"
 #~ msgstr "Monitoren"
+
+#~ msgid "Open"
+#~ msgstr "Open"
+
+#~ msgid "Open &PrusaSlicer"
+#~ msgstr "Open &PrusaSlicer"
+
+#~ msgid "Open PrusaSlicer"
+#~ msgstr "Open PrusaSlicer"
 
 #~ msgid "Output file"
 #~ msgstr "Bestand weergeven"
@@ -8068,6 +8027,9 @@ msgstr ""
 
 #~ msgid "Per object edit"
 #~ msgstr "Instellingen per object"
+
+#~ msgid "Plate %d: %s does not support filament %s.\n"
+#~ msgstr "Printbed %d: %s onderstand filament %s niet.\n"
 
 #~ msgid "Please fill report first."
 #~ msgstr "Gelieve eerst het rapport in te vullen."
@@ -8092,6 +8054,24 @@ msgstr ""
 #~ msgstr "Printer selectie"
 
 #~ msgid ""
+#~ "Purging after filament change will be done inside objects' infills. This "
+#~ "may lower the amount of waste and decrease the print time. If the walls "
+#~ "are printed with transparent filament, the mixed color infill will be "
+#~ "seen outside"
+#~ msgstr ""
+#~ "Het wisselen van filament wordt uitgevoerd in de vulling van objecten. "
+#~ "Dit kan de hoeveelheid afval verminderen en de print tijd verkorten. Let "
+#~ "op: indien de wanden zijn geprint met transparant filament, is de vulling "
+#~ "met gemengde kleuren zichtbaar."
+
+#~ msgid ""
+#~ "Purging after filament change will be done inside objects' support. This "
+#~ "may lower the amount of waste and decrease the print time"
+#~ msgstr ""
+#~ "Het wisselen van filament vindt plaats in de support van objecten. Dit "
+#~ "kan de hoeveelheid afval verminderen en de print tijd verkorten."
+
+#~ msgid ""
 #~ "Push new filament \n"
 #~ "into extruder"
 #~ msgstr "Nieuw filament in de extruder laden"
@@ -8107,14 +8087,29 @@ msgstr ""
 #~ "then a snapshot is taken with the chamber camera. When printing finishes, "
 #~ "a timelapse video is created from all the snapshots."
 
+#~ msgid "Reduce Triangles"
+#~ msgstr "Aantal driehoeken verkleinen (vereenvoudigen)"
+
+#~ msgid "Reload item"
+#~ msgstr "Onderdeel opnieuw laden"
+
+#~ msgid "Reload items"
+#~ msgstr "Onderdelen opnieuw laden"
+
 #~ msgid "Report"
 #~ msgstr "Rapport"
+
+#~ msgid "Rotation:"
+#~ msgstr "Rotatie:"
 
 #~ msgid "Save configuration as:"
 #~ msgstr "Bewaar configuratie als:"
 
 #~ msgid "Sending"
 #~ msgstr "Verzenden"
+
+#~ msgid "Set pen size"
+#~ msgstr "Selecteer pen formaat"
 
 #~ msgid "Shift + Any arrow"
 #~ msgstr "Shift + willekeurige pijl"
@@ -8148,6 +8143,15 @@ msgstr ""
 #~ "filament wisselingen veroorzaken indien support is gespecificeerd als een "
 #~ "andere extruder dan het object"
 
+#~ msgid ""
+#~ "Switch to zig-zag pattern?\n"
+#~ "Yes - switch to zig-zag pattern automaticlly\n"
+#~ "No  - reset density to default non 100% value automaticlly\n"
+#~ msgstr ""
+#~ "Overschakelen naar zigzagpatroon?\n"
+#~ "Ja - Automatisch overschakelen naar zigzagpatroon\n"
+#~ "Nee - Reset vulling automatisch naar de standaard niet-100% waarde\n"
+
 #~ msgid "Swith cloud environment, Please login again!"
 #~ msgstr "De cloud omgeving is aangepast. Log opnieuw in aub."
 
@@ -8170,6 +8174,25 @@ msgstr ""
 #~ "heeft geprobeerd om het te repareren, maar misschien wilt u de resultaten "
 #~ "controleren of het invoerbestand repareren en het opnieuw proberen."
 
+#~ msgid ""
+#~ "This object will be used to purge the nozzle after a filament change to "
+#~ "save filament and decrease the print time. Colours of the objects will be "
+#~ "mixed as a result"
+#~ msgstr ""
+#~ "Dit object wordt gebruikt om de nozzle te reinigen na een filamentwissel "
+#~ "om filament te besparen en de print tijd te verkorten. De kleuren van de "
+#~ "objecten worden gemengd als resultaat"
+
+#~ msgid ""
+#~ "This setting stands for how much volume of filament can be melted and "
+#~ "extruded per second. Printing speed is limited by max volumetric speed, "
+#~ "in case of too high and unreasonable speed setting. Zero means no limit"
+#~ msgstr ""
+#~ "Deze instelling staat voor het volume filament dat per seconde kan worden "
+#~ "gesmolten en geëxtrudeerd. De printsnelheid wordt beperkt door de "
+#~ "maximale volumetrische snelheid in het geval van een te hoge en "
+#~ "onredelijke snelheidsinstelling. 0 betekent geen limiet."
+
 #~ msgid "Timelapse Wipe Tower"
 #~ msgstr "Timelapse Wipe Tower"
 
@@ -8188,7 +8211,38 @@ msgstr ""
 #~ msgid "Waiting"
 #~ msgstr "Wachten"
 
+#~ msgid ""
+#~ "You have changed some preset settings. \n"
+#~ "Would you like to keep these changed settings after switching preset?"
+#~ msgstr ""
+#~ "U hebt enkele voorinstellingen gewijzigd.\n"
+#~ "Wilt u deze gewijzigde instellingen behouden na het wisselen van "
+#~ "voorinstelling?"
+
+#~ msgid "Zig zag"
+#~ msgstr "Zig-zag"
+
+#~ msgid " Object:"
+#~ msgstr "Object"
+
+#~ msgid ""
+#~ " is too close to exclusion area, there will be collisions when printing.\n"
+#~ msgstr ""
+#~ " komt te dichtbij het uitgesloten gebied, er zullen botsingen optreden "
+#~ "tijdens het printen.\n"
+
+#~ msgid " is too close to others, there will be collisions when printing.\n"
+#~ msgstr ""
+#~ " bevindt zich te dichtbij andere objecten, er zullen botsingen optreden "
+#~ "tijdens het printen.\n"
+
+#~ msgid "normal"
+#~ msgstr "Normaal"
+
 #~ msgid "the 3mf is not compatible, load geometry data only!"
 #~ msgstr ""
 #~ "Het 3mf bestand is niet compatibel, enkel de geometrische data wordt "
 #~ "geladen!"
+
+#~ msgid "tree"
+#~ msgstr "tree"

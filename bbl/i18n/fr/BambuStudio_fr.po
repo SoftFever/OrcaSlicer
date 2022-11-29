@@ -1044,7 +1044,7 @@ msgstr "Réparer l'objet modèle"
 msgid "Following model object has been repaired"
 msgid_plural "Following model objects have been repaired"
 msgstr[0] "L'objet modèle suivant a été réparé"
-msgstr[1] "L'objet modèle suivant a été réparé"
+msgstr[1] ""
 
 msgid "Failed to repair folowing model object"
 msgid_plural "Failed to repair folowing model objects"
@@ -3168,13 +3168,13 @@ msgstr "Dossier ouvert."
 msgid "%1$d Object has custom supports."
 msgid_plural "%1$d Objects have custom supports."
 msgstr[0] "L'objet %1$d a des supports personnalisés."
-msgstr[1] "L'objet %1$d a des supports personnalisés."
+msgstr[1] " %1$d objets ont des supports personnalisés."
 
 #, c-format, boost-format
 msgid "%1$d Object has color painting."
 msgid_plural "%1$d Objects have color painting."
 msgstr[0] "%1$d L'objet est peint en couleur."
-msgstr[1] "%1$d L'objet est peint en couleur."
+msgstr[1] "%1$d L'objets sont peints en couleur."
 
 msgid "ERROR"
 msgstr ""
@@ -3702,7 +3702,7 @@ msgstr "Taille : %1% x %2% x %3% mm\n"
 
 #, boost-format
 msgid "Volume: %1% in³\n"
-msgstr "Volume : %1% en³\n"
+msgstr "Volume : %1% en³\n"
 
 #, boost-format
 msgid "Volume: %1% mm³\n"
@@ -4193,6 +4193,8 @@ msgid ""
 "Please check the following infomation and click Confirm to continue sending "
 "print:\n"
 msgstr ""
+"Please check the following infomation and click Confirm to continue sending "
+"print:\n"
 
 msgid ""
 "The printer type used to generate G-code is not the same type as the "
@@ -5340,7 +5342,7 @@ msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% est trop grand, cela pourrait provoquer des collisions."
 
 msgid " is too close to others, there may be collisions when printing.\n"
-msgstr ""
+msgstr " is too close to others, there may be collisions when printing.\n"
 
 msgid ""
 " is too close to exclusion area, there may be collisions when printing.\n"
@@ -7728,106 +7730,6 @@ msgid ""
 "density to improve the strength of the model?"
 msgstr ""
 
-#~ msgid "Export ok."
-#~ msgstr "Exporter ok."
-
-#~ msgid "Plate %d: %s does not support filament %s.\n"
-#~ msgstr "Plaque %d : %s ne prend pas en charge le filament %s.\n"
-
-#~ msgid "Filament N XX"
-#~ msgstr "Filament N XX"
-
-#~ msgid "Color Print"
-#~ msgstr "Impression couleur"
-
-#~ msgid "Comsumption"
-#~ msgstr "Consommation"
-
-#~ msgid "Filament 1"
-#~ msgstr "Filament 1"
-
-#~ msgid "Flushed filament"
-#~ msgstr "Filament purgé"
-
-#~ msgid "Adaptive layer height"
-#~ msgstr "Hauteur de couche adaptative"
-
-#~ msgid ""
-#~ "Enabling this option means the height of every layer except the first "
-#~ "will be automatically calculated during slicing according to the slope of "
-#~ "the model’s surface.\n"
-#~ "Note that this option only takes effect if no prime tower is generated in "
-#~ "current plate."
-#~ msgstr ""
-#~ "En activant cette option, la hauteur de chaque couche, à l'exception de "
-#~ "la première, sera automatiquement calculée en fonction de la pente de la "
-#~ "surface du modèle.\n"
-#~ "Veuillez noter que cette option ne prend effet que si aucune tour "
-#~ "primaire n'est générée sur le plateau en cours d'utilisation."
-
-#~ msgid "normal"
-#~ msgstr "Ordinaire"
-
-#~ msgid "tree"
-#~ msgstr "arbre"
-
-#~ msgid " Object:"
-#~ msgstr "Objet:"
-
-#~ msgid ""
-#~ "You have changed some preset settings. \n"
-#~ "Would you like to keep these changed settings after switching preset?"
-#~ msgstr ""
-#~ "Vous avez modifié certains paramètres prédéfinis. Souhaitez-vous "
-#~ "conserver ces paramètres modifiés après avoir changé de préréglage ?"
-
-#~ msgid "Export sliced file"
-#~ msgstr "Exporter le fichier découpé"
-
-#~ msgid "Export Sliced File"
-#~ msgstr "Exporter le fichier découpé"
-
-#~ msgid "Export current Sliced file"
-#~ msgstr "Exporter le fichier en tranches actuel"
-
-#~ msgid ""
-#~ "Force cooling fan to be specific speed when overhang degree of printed "
-#~ "part exceeds this value. Expressed as percentage which indicides how much "
-#~ "width of the line without support from lower layer"
-#~ msgstr ""
-#~ "Forcer le ventilateur de refroidissement à une vitesse spécifique lorsque "
-#~ "le degré de surplomb de la pièce imprimée dépasse cette valeur. Exprimé "
-#~ "en pourcentage qui indique la largeur de la ligne sans support de la "
-#~ "couche inférieure"
-
-#~ msgid "Erase painting"
-#~ msgstr "Effacer la peinture"
-
-#~ msgid "Set pen size"
-#~ msgstr "Définir la taille du stylo"
-
-#~ msgid "Rotation:"
-#~ msgstr "Rotation :"
-
-#~ msgid "Height:"
-#~ msgstr "Hauteur:"
-
-#~ msgid "Initialize failed [%d]!"
-#~ msgstr "Échec de l'initialisation [%d] !"
-
-#~ msgid "Management"
-#~ msgstr "Management"
-
-#~ msgid "Open"
-#~ msgstr "Open"
-
-#~ msgid ""
-#~ "%1% is too close to exclusion area, there will be collisions when "
-#~ "printing."
-#~ msgstr ""
-#~ "%1% est trop proche de la zone d'exclusion, il y aura des collisions lors "
-#~ "de l'impression."
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -7837,79 +7739,18 @@ msgstr ""
 #~ "%1% est trop proche de la zone d'exclusion, il y aura des collisions lors "
 #~ "de l'impression."
 
-#~ msgid " is too close to others, there will be collisions when printing.\n"
-#~ msgstr ""
-#~ "est trop proche des autres, il y aura des collisions lors de "
-#~ "l'impression.\n"
-
 #~ msgid ""
-#~ " is too close to exclusion area, there will be collisions when printing.\n"
+#~ "%1% is too close to exclusion area, there will be collisions when "
+#~ "printing."
 #~ msgstr ""
-#~ "est trop proche de la zone d'exclusion, il y aura des collisions lors de "
-#~ "l'impression.\n"
-
-#~ msgid "Avoid crossing wall when travel"
-#~ msgstr "Évitez de traverser le mur lorsque vous voyagez"
-
-#~ msgid "Max travel detour distance"
-#~ msgstr "Distance de détour maximale"
-
-#~ msgid ""
-#~ "Maximum detour distance for avoiding crossing wall. Don't detour if the "
-#~ "detour distance is large than this value"
-#~ msgstr ""
-#~ "Distance de détour maximale pour éviter de traverser le mur. Ne faites "
-#~ "pas de détour si la distance de détour est supérieure à cette valeur"
-
-#~ msgid ""
-#~ "Height of the clearance cylinder around extruder. Used as input of auto-"
-#~ "arrange to avoid collision when print object by object"
-#~ msgstr ""
-#~ "Hauteur du cylindre de dégagement autour de l'extrudeuse. Utilisé comme "
-#~ "entrée de l'auto-arrangement pour éviter les collisions lors de "
-#~ "l'impression objet par objet"
-
-#~ msgid ""
-#~ "Clearance radius around extruder. Used as input of auto-arrange to avoid "
-#~ "collision when print object by object"
-#~ msgstr ""
-#~ "Rayon de dégagement autour de l'extrudeuse. Utilisé comme entrée de "
-#~ "l'auto-arrangement pour éviter les collisions lors de l'impression objet "
-#~ "par objet"
-
-#~ msgid "Error at line %1%:\n"
-#~ msgstr "Erreur à la ligne %1% :\n"
-
-#~ msgid "Reduce Triangles"
-#~ msgstr "Réduire les triangles"
-
-#~ msgid ""
-#~ "Switch to zig-zag pattern?\n"
-#~ "Yes - switch to zig-zag pattern automaticlly\n"
-#~ "No  - reset density to default non 100% value automaticlly\n"
-#~ msgstr ""
-#~ "Passer au motif en zigzag?\n"
-#~ "Oui - passer automatiquement au motif en zigzag\n"
-#~ "Non - réinitialiser automatiquement la densité à la valeur par défaut "
-#~ "autre que 100%\n"
-
-#~ msgid "Extruder position"
-#~ msgstr "Position de l'extrudeuse"
-
-#~ msgid "Zig zag"
-#~ msgstr "Zig zag"
-
-#~ msgid ""
-#~ "Bed temperature is higher than vitrification temperature of this "
-#~ "filament.\n"
-#~ "This may cause nozzle blocked and printing failure"
-#~ msgstr ""
-#~ "La température du lit est supérieure à la température de vitrification de "
-#~ "ce filament. Cela peut entraîner le blocage de la buse et l'échec de "
-#~ "l'impression"
+#~ "%1% est trop proche de la zone d'exclusion, il y aura des collisions lors "
+#~ "de l'impression."
 
 #~ msgid "0%"
 #~ msgstr "0%"
+
+#~ msgid "Adaptive layer height"
+#~ msgstr "Hauteur de couche adaptative"
 
 #~ msgid ""
 #~ "An object is layed over the boundary of plate.\n"
@@ -7931,8 +7772,34 @@ msgstr ""
 #~ "y a des objets sélectionnés, il oriente uniquement ceux qui sont "
 #~ "sélectionnés. Sinon, il oriente tous les objets du projet."
 
+#~ msgid "Avoid crossing wall when travel"
+#~ msgstr "Évitez de traverser le mur lorsque vous voyagez"
+
+#~ msgid ""
+#~ "Bed temperature is higher than vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause nozzle blocked and printing failure"
+#~ msgstr ""
+#~ "La température du lit est supérieure à la température de vitrification de "
+#~ "ce filament. Cela peut entraîner le blocage de la buse et l'échec de "
+#~ "l'impression"
+
 #~ msgid "Clear all"
 #~ msgstr "Tout effacer"
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used as input of auto-arrange to avoid "
+#~ "collision when print object by object"
+#~ msgstr ""
+#~ "Rayon de dégagement autour de l'extrudeuse. Utilisé comme entrée de "
+#~ "l'auto-arrangement pour éviter les collisions lors de l'impression objet "
+#~ "par objet"
+
+#~ msgid "Color Print"
+#~ msgstr "Impression couleur"
+
+#~ msgid "Comsumption"
+#~ msgstr "Consommation"
 
 #~ msgid "Creating"
 #~ msgstr "Création"
@@ -7982,11 +7849,51 @@ msgstr ""
 #~ "Ne vous rétractez absolument pas lorsque le déplacement est dans la zone "
 #~ "de remplissage. Cela signifie que le suintement ne peut pas être vu"
 
+#~ msgid ""
+#~ "Enabling this option means the height of every layer except the first "
+#~ "will be automatically calculated during slicing according to the slope of "
+#~ "the model’s surface.\n"
+#~ "Note that this option only takes effect if no prime tower is generated in "
+#~ "current plate."
+#~ msgstr ""
+#~ "En activant cette option, la hauteur de chaque couche, à l'exception de "
+#~ "la première, sera automatiquement calculée en fonction de la pente de la "
+#~ "surface du modèle.\n"
+#~ "Veuillez noter que cette option ne prend effet que si aucune tour "
+#~ "primaire n'est générée sur le plateau en cours d'utilisation."
+
 #~ msgid "Enter a search term"
 #~ msgstr "Entrer un terme de recherche"
 
+#~ msgid "Erase painting"
+#~ msgstr "Effacer la peinture"
+
+#~ msgid "Error at line %1%:\n"
+#~ msgstr "Erreur à la ligne %1% :\n"
+
+#~ msgid "Export Sliced File"
+#~ msgstr "Exporter le fichier découpé"
+
+#~ msgid "Export current Sliced file"
+#~ msgstr "Exporter le fichier en tranches actuel"
+
+#~ msgid "Export ok."
+#~ msgstr "Exporter ok."
+
+#~ msgid "Export sliced file"
+#~ msgstr "Exporter le fichier découpé"
+
+#~ msgid "Extruder position"
+#~ msgstr "Position de l'extrudeuse"
+
 #~ msgid "Failed"
 #~ msgstr "Failed"
+
+#~ msgid "Filament 1"
+#~ msgstr "Filament 1"
+
+#~ msgid "Filament N XX"
+#~ msgstr "Filament N XX"
 
 #~ msgid "Filaments Selection"
 #~ msgstr "Sélection de filaments"
@@ -7999,6 +7906,19 @@ msgstr ""
 
 #~ msgid "Fix model through cloud"
 #~ msgstr "Correction du modèle via le cloud"
+
+#~ msgid "Flushed filament"
+#~ msgstr "Filament purgé"
+
+#~ msgid ""
+#~ "Force cooling fan to be specific speed when overhang degree of printed "
+#~ "part exceeds this value. Expressed as percentage which indicides how much "
+#~ "width of the line without support from lower layer"
+#~ msgstr ""
+#~ "Forcer le ventilateur de refroidissement à une vitesse spécifique lorsque "
+#~ "le degré de surplomb de la pièce imprimée dépasse cette valeur. Exprimé "
+#~ "en pourcentage qui indique la largeur de la ligne sans support de la "
+#~ "couche inférieure"
 
 #~ msgid "Fragment Filter"
 #~ msgstr "Filtre à particules"
@@ -8014,11 +7934,25 @@ msgstr ""
 #~ "temperature"
 #~ msgstr "Chauffer la buse à la température choisie"
 
+#~ msgid "Height:"
+#~ msgstr "Hauteur:"
+
+#~ msgid ""
+#~ "Height of the clearance cylinder around extruder. Used as input of auto-"
+#~ "arrange to avoid collision when print object by object"
+#~ msgstr ""
+#~ "Hauteur du cylindre de dégagement autour de l'extrudeuse. Utilisé comme "
+#~ "entrée de l'auto-arrangement pour éviter les collisions lors de "
+#~ "l'impression objet par objet"
+
 #~ msgid "In the calibration of extrusion flow"
 #~ msgstr "Calibrage du flux d'extrusion en cours"
 
 #~ msgid "In the calibration of laser scanner"
 #~ msgstr "Calibrage du scanner laser en cours"
+
+#~ msgid "Initialize failed [%d]!"
+#~ msgstr "Échec de l'initialisation [%d] !"
 
 #~ msgid "Inner wall speed"
 #~ msgstr "Vitesse de la paroi intérieure"
@@ -8033,11 +7967,33 @@ msgstr ""
 #~ msgid "Line type"
 #~ msgstr "Type de ligne"
 
+#~ msgid "Management"
+#~ msgstr "Management"
+
+#~ msgid "Max travel detour distance"
+#~ msgstr "Distance de détour maximale"
+
+#~ msgid ""
+#~ "Maximum detour distance for avoiding crossing wall. Don't detour if the "
+#~ "detour distance is large than this value"
+#~ msgstr ""
+#~ "Distance de détour maximale pour éviter de traverser le mur. Ne faites "
+#~ "pas de détour si la distance de détour est supérieure à cette valeur"
+
 #~ msgid "Module"
 #~ msgstr "Module"
 
 #~ msgid "Monitoring"
 #~ msgstr "Surveillance"
+
+#~ msgid "Open"
+#~ msgstr "Open"
+
+#~ msgid "Open &PrusaSlicer"
+#~ msgstr "Ouvrir &PrusaSlicer"
+
+#~ msgid "Open PrusaSlicer"
+#~ msgstr "Ouvrir PrusaSlicer"
 
 #~ msgid "Output file"
 #~ msgstr "Fichier de sortie"
@@ -8053,6 +8009,9 @@ msgstr ""
 
 #~ msgid "Per object edit"
 #~ msgstr "Modification par objet"
+
+#~ msgid "Plate %d: %s does not support filament %s.\n"
+#~ msgstr "Plaque %d : %s ne prend pas en charge le filament %s.\n"
 
 #~ msgid "Please fill report first."
 #~ msgstr "Veuillez d'abord remplir le rapport."
@@ -8077,6 +8036,25 @@ msgstr ""
 #~ msgstr "Sélection de l'imprimante"
 
 #~ msgid ""
+#~ "Purging after filament change will be done inside objects' infills. This "
+#~ "may lower the amount of waste and decrease the print time. If the walls "
+#~ "are printed with transparent filament, the mixed color infill will be "
+#~ "seen outside"
+#~ msgstr ""
+#~ "La purge après le changement de filament se fera dans le remplissage des "
+#~ "objets. Cela peut réduire la quantité de déchets et diminuer le temps "
+#~ "d'impression. Si les murs sont imprimés avec un filament translucide, le "
+#~ "remplissage de couleur mixte sera visible."
+
+#~ msgid ""
+#~ "Purging after filament change will be done inside objects' support. This "
+#~ "may lower the amount of waste and decrease the print time"
+#~ msgstr ""
+#~ "La purge après le changement de filament se fera dans les supports des "
+#~ "objets. Cela peut réduire la quantité de déchets et diminuer le temps "
+#~ "d'impression."
+
+#~ msgid ""
 #~ "Push new filament \n"
 #~ "into extruder"
 #~ msgstr "Poussez le nouveau filament dans l'extruder"
@@ -8092,14 +8070,29 @@ msgstr ""
 #~ "then a snapshot is taken with the chamber camera. When printing finishes, "
 #~ "a timelapse video is created from all the snapshots."
 
+#~ msgid "Reduce Triangles"
+#~ msgstr "Réduire les triangles"
+
+#~ msgid "Reload item"
+#~ msgstr "Recharger l'élément"
+
+#~ msgid "Reload items"
+#~ msgstr "Recharger les éléments"
+
 #~ msgid "Report"
 #~ msgstr "Signaler"
+
+#~ msgid "Rotation:"
+#~ msgstr "Rotation :"
 
 #~ msgid "Save configuration as:"
 #~ msgstr "Enregistrer la configuration sous :"
 
 #~ msgid "Sending"
 #~ msgstr "Envoi en cours"
+
+#~ msgid "Set pen size"
+#~ msgstr "Définir la taille du stylo"
 
 #~ msgid "Shift + Any arrow"
 #~ msgstr "Maj + n'importe quelle flèche"
@@ -8135,6 +8128,16 @@ msgstr ""
 #~ "supplémentaires si le support est spécifié comme extrudeuse différente "
 #~ "avec l'objet"
 
+#~ msgid ""
+#~ "Switch to zig-zag pattern?\n"
+#~ "Yes - switch to zig-zag pattern automaticlly\n"
+#~ "No  - reset density to default non 100% value automaticlly\n"
+#~ msgstr ""
+#~ "Passer au motif en zigzag?\n"
+#~ "Oui - passer automatiquement au motif en zigzag\n"
+#~ "Non - réinitialiser automatiquement la densité à la valeur par défaut "
+#~ "autre que 100%\n"
+
 #~ msgid "Swith cloud environment, Please login again!"
 #~ msgstr "Changez d'environnement cloud, veuillez vous reconnecter !"
 
@@ -8157,6 +8160,25 @@ msgstr ""
 #~ "La vitesse d'impression minimale lors du ralentissement pour le "
 #~ "refroidissement"
 
+#~ msgid ""
+#~ "This object will be used to purge the nozzle after a filament change to "
+#~ "save filament and decrease the print time. Colours of the objects will be "
+#~ "mixed as a result"
+#~ msgstr ""
+#~ "Cet objet sera utilisé pour purger la buse après un changement de "
+#~ "filament afin d'économiser du filament et de diminuer le temps "
+#~ "d'impression. Les couleurs des objets seront mélangées en conséquence."
+
+#~ msgid ""
+#~ "This setting stands for how much volume of filament can be melted and "
+#~ "extruded per second. Printing speed is limited by max volumetric speed, "
+#~ "in case of too high and unreasonable speed setting. Zero means no limit"
+#~ msgstr ""
+#~ "Ce paramètre représente le volume de filament pouvant être fondu et "
+#~ "extrudé par seconde. La vitesse d'impression est limitée par la vitesse "
+#~ "volumétrique maximale, en cas de réglage de vitesse trop élevé et "
+#~ "déraisonnable. Zéro signifie pas de limite"
+
 #~ msgid "Timelapse Wipe Tower"
 #~ msgstr "Timelapse tour de purge"
 
@@ -8175,6 +8197,36 @@ msgstr ""
 #~ msgid "Waiting"
 #~ msgstr "Attente"
 
+#~ msgid ""
+#~ "You have changed some preset settings. \n"
+#~ "Would you like to keep these changed settings after switching preset?"
+#~ msgstr ""
+#~ "Vous avez modifié certains paramètres prédéfinis. Souhaitez-vous "
+#~ "conserver ces paramètres modifiés après avoir changé de préréglage ?"
+
+#~ msgid "Zig zag"
+#~ msgstr "Zig zag"
+
+#~ msgid " Object:"
+#~ msgstr "Objet:"
+
+#~ msgid ""
+#~ " is too close to exclusion area, there will be collisions when printing.\n"
+#~ msgstr ""
+#~ "est trop proche de la zone d'exclusion, il y aura des collisions lors de "
+#~ "l'impression.\n"
+
+#~ msgid " is too close to others, there will be collisions when printing.\n"
+#~ msgstr ""
+#~ "est trop proche des autres, il y aura des collisions lors de "
+#~ "l'impression.\n"
+
+#~ msgid "normal"
+#~ msgstr "Ordinaire"
+
 #~ msgid "the 3mf is not compatible, load geometry data only!"
 #~ msgstr ""
 #~ "le 3mf n'est pas compatible, chargez uniquement les données de géométrie !"
+
+#~ msgid "tree"
+#~ msgstr "arbre"

@@ -1902,6 +1902,9 @@ msgid ""
 "Yes - switch to rectilinear pattern automaticlly\n"
 "No  - reset density to default non 100% value automaticlly\n"
 msgstr ""
+"Switch to rectilinear pattern?\n"
+"Yes - switch to rectilinear pattern automaticlly\n"
+"No  - reset density to default non 100% value automaticlly\n"
 
 msgid "Auto bed leveling"
 msgstr "Auto justera byggplattan"
@@ -2930,7 +2933,7 @@ msgstr "Sammankopplar..."
 
 #, c-format, boost-format
 msgid "Connect failed [%d]!"
-msgstr ""
+msgstr "Sammankoppling misslyckades [%d]"
 
 msgid "Loading file list..."
 msgstr "Laddar fil lista..."
@@ -4321,7 +4324,7 @@ msgstr[0] ""
 "Radera den, annars påverkas G-kodens visualisering och den uppskattade "
 "utskriftstiden."
 msgstr[1] ""
-"@Följande linjer %s innehåller reserverade nyckelord.\n"
+"Följande linjer %s innehåller reserverade nyckelord.\n"
 "Radera dem, annars påverkas G-kodens visualisering och den uppskattade "
 "utskriftstiden."
 
@@ -5285,11 +5288,13 @@ msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% är för hög, och kollisioner kommer att uppstå."
 
 msgid " is too close to others, there may be collisions when printing.\n"
-msgstr ""
+msgstr " is too close to others, there may be collisions when printing.\n"
 
 msgid ""
 " is too close to exclusion area, there may be collisions when printing.\n"
 msgstr ""
+" is too close to exclusion area, there may be collisions when printing.\n"
+"\n"
 
 msgid "Prime Tower"
 msgstr "Prime Torn"
@@ -7601,103 +7606,6 @@ msgid ""
 "density to improve the strength of the model?"
 msgstr ""
 
-#~ msgid "Export ok."
-#~ msgstr "Exportering OK."
-
-#~ msgid "Plate %d: %s does not support filament %s.\n"
-#~ msgstr "Plattan %d: %s stöds ej av filament %s.\n"
-
-#~ msgid "Filament N XX"
-#~ msgstr "Filament N XX"
-
-#~ msgid "Color Print"
-#~ msgstr "Färg Utskrift"
-
-#~ msgid "Comsumption"
-#~ msgstr "Konsumtion"
-
-#~ msgid "Filament 1"
-#~ msgstr "Filament 1"
-
-#~ msgid "Flushed filament"
-#~ msgstr "Rensat filament"
-
-#~ msgid "Adaptive layer height"
-#~ msgstr "Adaptiv lagerhöjd"
-
-#~ msgid ""
-#~ "Enabling this option means the height of every layer except the first "
-#~ "will be automatically calculated during slicing according to the slope of "
-#~ "the model’s surface.\n"
-#~ "Note that this option only takes effect if no prime tower is generated in "
-#~ "current plate."
-#~ msgstr ""
-#~ "Aktivera detta alternativet så innebär det att höjden på varje lager "
-#~ "efter det första kommer att beräknas automatiskt enligt lutningen på "
-#~ "modellens yta.\n"
-#~ "Observera att detta alternativ endast träder i kraft om det inte finns "
-#~ "något prime torn genererat på den aktuella plattan."
-
-#~ msgid "normal"
-#~ msgstr "normal"
-
-#~ msgid "tree"
-#~ msgstr "träd"
-
-#~ msgid " Object:"
-#~ msgstr " Objekt:"
-
-#~ msgid ""
-#~ "You have changed some preset settings. \n"
-#~ "Would you like to keep these changed settings after switching preset?"
-#~ msgstr ""
-#~ "Förinställningarna har ändrats. \n"
-#~ "Behålla dessa ändrade inställningar efter byte av förinställningar?"
-
-#~ msgid "Export sliced file"
-#~ msgstr "Exportera beredd fil"
-
-#~ msgid "Export Sliced File"
-#~ msgstr "Exportera Beredd fil"
-
-#~ msgid "Export current Sliced file"
-#~ msgstr "Exportera nuvarande Beredda fil"
-
-#~ msgid ""
-#~ "Force cooling fan to be specific speed when overhang degree of printed "
-#~ "part exceeds this value. Expressed as percentage which indicides how much "
-#~ "width of the line without support from lower layer"
-#~ msgstr ""
-#~ "Tvinga kylfläktens hastighet när överhängsgraderna överstiger detta "
-#~ "värde. Uttryckt i procent som indikerar linjebredden utan stöd från lägre "
-#~ "lager"
-
-#~ msgid "Erase painting"
-#~ msgstr "Radera färgläggning"
-
-#~ msgid "Set pen size"
-#~ msgstr "Välj penn storlek"
-
-#~ msgid "Rotation:"
-#~ msgstr "Rotation:"
-
-#~ msgid "Height:"
-#~ msgstr "Höjd:"
-
-#~ msgid "Initialize failed [%d]!"
-#~ msgstr "Start misslyckad [%d]!"
-
-#~ msgid "Management"
-#~ msgstr "Handhavande"
-
-#~ msgid "Open"
-#~ msgstr "Öppna"
-
-#~ msgid ""
-#~ "%1% is too close to exclusion area, there will be collisions when "
-#~ "printing."
-#~ msgstr "%1% för tätt inpå den isolerade ytan, utskriften kolliderar."
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -7706,73 +7614,16 @@ msgstr ""
 #~ "\n"
 #~ "%1% för tätt inpå den isolerade ytan, utskriften kolliderar."
 
-#~ msgid " is too close to others, there will be collisions when printing.\n"
-#~ msgstr " för tätt inpå andra, utskriften kolliderar.\n"
-
 #~ msgid ""
-#~ " is too close to exclusion area, there will be collisions when printing.\n"
-#~ msgstr " för tätt inpå den isolerade ytan, utskriften kolliderar.\n"
-
-#~ msgid "Avoid crossing wall when travel"
-#~ msgstr "Undvik väggar vid förflyttning"
-
-#~ msgid "Max travel detour distance"
-#~ msgstr "Max undvikande förflyttnings avstånd"
-
-#~ msgid ""
-#~ "Maximum detour distance for avoiding crossing wall. Don't detour if the "
-#~ "detour distance is large than this value"
-#~ msgstr ""
-#~ "Max undvikande förflyttnings avstånd för att undvika väggar. Om avståndet "
-#~ "överstiger detta värde, kommer ingen undvikande förflyttning att ske"
-
-#~ msgid ""
-#~ "Height of the clearance cylinder around extruder. Used as input of auto-"
-#~ "arrange to avoid collision when print object by object"
-#~ msgstr ""
-#~ "Höjden på fritt cylinder område runt extrudern: Används som input för "
-#~ "auto-placering för att undvika kollision när man skriver ut objekt för "
-#~ "objekt"
-
-#~ msgid ""
-#~ "Clearance radius around extruder. Used as input of auto-arrange to avoid "
-#~ "collision when print object by object"
-#~ msgstr ""
-#~ "Fri radie område runt extrudern: Används som input för auto-placering för "
-#~ "att undvika kollision när man skriver ut objekt för objekt"
-
-#~ msgid "Error at line %1%:\n"
-#~ msgstr "Fel i linje %1%:\n"
-
-#~ msgid "Reduce Triangles"
-#~ msgstr "Reducera Trianglar"
-
-#~ msgid ""
-#~ "Switch to zig-zag pattern?\n"
-#~ "Yes - switch to zig-zag pattern automaticlly\n"
-#~ "No  - reset density to default non 100% value automaticlly\n"
-#~ msgstr ""
-#~ "Ändra till Zig-Zag mönster?\n"
-#~ "JA - Byta till Zig-Zag mönster automatiskt\n"
-#~ "NEJ  - Återställ densiteten till standard inte 100% värdet automatiskt\n"
-
-#~ msgid "Extruder position"
-#~ msgstr "Extruder position"
-
-#~ msgid "Zig zag"
-#~ msgstr "Zig zag"
-
-#~ msgid ""
-#~ "Bed temperature is higher than vitrification temperature of this "
-#~ "filament.\n"
-#~ "This may cause nozzle blocked and printing failure"
-#~ msgstr ""
-#~ "Byggplattans temperatur överstiger kristalliserings temperaturen av detta "
-#~ "filament.\n"
-#~ "Detta kan orsaka att nozzeln blockeras och utskriften misslyckas"
+#~ "%1% is too close to exclusion area, there will be collisions when "
+#~ "printing."
+#~ msgstr "%1% för tätt inpå den isolerade ytan, utskriften kolliderar."
 
 #~ msgid "0%"
 #~ msgstr "0%"
+
+#~ msgid "Adaptive layer height"
+#~ msgstr "Adaptiv lagerhöjd"
 
 #~ msgid ""
 #~ "An object is layed over the boundary of plate.\n"
@@ -7792,8 +7643,33 @@ msgstr ""
 #~ "Auto placera valda objekt eller alla objekt. Om det finns valda objekt så "
 #~ "placeras endast dem. Alternativt så placeras alla objekt i projektet."
 
+#~ msgid "Avoid crossing wall when travel"
+#~ msgstr "Undvik väggar vid förflyttning"
+
+#~ msgid ""
+#~ "Bed temperature is higher than vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause nozzle blocked and printing failure"
+#~ msgstr ""
+#~ "Byggplattans temperatur överstiger kristalliserings temperaturen av detta "
+#~ "filament.\n"
+#~ "Detta kan orsaka att nozzeln blockeras och utskriften misslyckas"
+
 #~ msgid "Clear all"
 #~ msgstr "Rensa allt"
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used as input of auto-arrange to avoid "
+#~ "collision when print object by object"
+#~ msgstr ""
+#~ "Fri radie område runt extrudern: Används som input för auto-placering för "
+#~ "att undvika kollision när man skriver ut objekt för objekt"
+
+#~ msgid "Color Print"
+#~ msgstr "Färg Utskrift"
+
+#~ msgid "Comsumption"
+#~ msgstr "Konsumtion"
 
 #~ msgid "Creating"
 #~ msgstr "Skapar"
@@ -7842,11 +7718,51 @@ msgstr ""
 #~ "Detta inaktiverar retraktion när rörelsen är helt inom ett ifyllnads "
 #~ "området och det inte kan läcka filament"
 
+#~ msgid ""
+#~ "Enabling this option means the height of every layer except the first "
+#~ "will be automatically calculated during slicing according to the slope of "
+#~ "the model’s surface.\n"
+#~ "Note that this option only takes effect if no prime tower is generated in "
+#~ "current plate."
+#~ msgstr ""
+#~ "Aktivera detta alternativet så innebär det att höjden på varje lager "
+#~ "efter det första kommer att beräknas automatiskt enligt lutningen på "
+#~ "modellens yta.\n"
+#~ "Observera att detta alternativ endast träder i kraft om det inte finns "
+#~ "något prime torn genererat på den aktuella plattan."
+
 #~ msgid "Enter a search term"
 #~ msgstr "Ange ett sökord"
 
+#~ msgid "Erase painting"
+#~ msgstr "Radera färgläggning"
+
+#~ msgid "Error at line %1%:\n"
+#~ msgstr "Fel i linje %1%:\n"
+
+#~ msgid "Export Sliced File"
+#~ msgstr "Exportera Beredd fil"
+
+#~ msgid "Export current Sliced file"
+#~ msgstr "Exportera nuvarande Beredda fil"
+
+#~ msgid "Export ok."
+#~ msgstr "Exportering OK."
+
+#~ msgid "Export sliced file"
+#~ msgstr "Exportera beredd fil"
+
+#~ msgid "Extruder position"
+#~ msgstr "Extruder position"
+
 #~ msgid "Failed"
 #~ msgstr "Misslyckades"
+
+#~ msgid "Filament 1"
+#~ msgstr "Filament 1"
+
+#~ msgid "Filament N XX"
+#~ msgstr "Filament N XX"
 
 #~ msgid "Filaments Selection"
 #~ msgstr "Filament Val"
@@ -7859,6 +7775,18 @@ msgstr ""
 
 #~ msgid "Fix model through cloud"
 #~ msgstr "Åtgärda modellen via molnet"
+
+#~ msgid "Flushed filament"
+#~ msgstr "Rensat filament"
+
+#~ msgid ""
+#~ "Force cooling fan to be specific speed when overhang degree of printed "
+#~ "part exceeds this value. Expressed as percentage which indicides how much "
+#~ "width of the line without support from lower layer"
+#~ msgstr ""
+#~ "Tvinga kylfläktens hastighet när överhängsgraderna överstiger detta "
+#~ "värde. Uttryckt i procent som indikerar linjebredden utan stöd från lägre "
+#~ "lager"
 
 #~ msgid "Fragment Filter"
 #~ msgstr "Fragment Filter"
@@ -7876,11 +7804,25 @@ msgstr ""
 #~ "Värm nozzel till vald \n"
 #~ "temperatur"
 
+#~ msgid "Height:"
+#~ msgstr "Höjd:"
+
+#~ msgid ""
+#~ "Height of the clearance cylinder around extruder. Used as input of auto-"
+#~ "arrange to avoid collision when print object by object"
+#~ msgstr ""
+#~ "Höjden på fritt cylinder område runt extrudern: Används som input för "
+#~ "auto-placering för att undvika kollision när man skriver ut objekt för "
+#~ "objekt"
+
 #~ msgid "In the calibration of extrusion flow"
 #~ msgstr "Vid kalibrering av extruderingsflödet"
 
 #~ msgid "In the calibration of laser scanner"
 #~ msgstr "Vid kalibrering av laserskanner"
+
+#~ msgid "Initialize failed [%d]!"
+#~ msgstr "Start misslyckad [%d]!"
 
 #~ msgid "Inner wall speed"
 #~ msgstr "Inre vägg hastighet"
@@ -7895,11 +7837,33 @@ msgstr ""
 #~ msgid "Line type"
 #~ msgstr "Linje typ"
 
+#~ msgid "Management"
+#~ msgstr "Handhavande"
+
+#~ msgid "Max travel detour distance"
+#~ msgstr "Max undvikande förflyttnings avstånd"
+
+#~ msgid ""
+#~ "Maximum detour distance for avoiding crossing wall. Don't detour if the "
+#~ "detour distance is large than this value"
+#~ msgstr ""
+#~ "Max undvikande förflyttnings avstånd för att undvika väggar. Om avståndet "
+#~ "överstiger detta värde, kommer ingen undvikande förflyttning att ske"
+
 #~ msgid "Module"
 #~ msgstr "Modul"
 
 #~ msgid "Monitoring"
 #~ msgstr "Övervakar"
+
+#~ msgid "Open"
+#~ msgstr "Öppna"
+
+#~ msgid "Open &PrusaSlicer"
+#~ msgstr "Öppna &PrusaSlicer"
+
+#~ msgid "Open PrusaSlicer"
+#~ msgstr "Öppna PrusaSlicer"
 
 #~ msgid "Output file"
 #~ msgstr "Utdatafil"
@@ -7915,6 +7879,9 @@ msgstr ""
 
 #~ msgid "Per object edit"
 #~ msgstr "Redigera per objekt"
+
+#~ msgid "Plate %d: %s does not support filament %s.\n"
+#~ msgstr "Plattan %d: %s stöds ej av filament %s.\n"
 
 #~ msgid "Please fill report first."
 #~ msgstr "Fyll i rapporten först."
@@ -7939,6 +7906,24 @@ msgstr ""
 #~ msgstr "Skrivar Val"
 
 #~ msgid ""
+#~ "Purging after filament change will be done inside objects' infills. This "
+#~ "may lower the amount of waste and decrease the print time. If the walls "
+#~ "are printed with transparent filament, the mixed color infill will be "
+#~ "seen outside"
+#~ msgstr ""
+#~ "Rensning efter filamentbyte kommer att göras inuti objektens fyllningar. "
+#~ "Detta kan minska mängden avfall och minska utskriftstiden. Om väggarna är "
+#~ "tryckta med transparent filament kommer den blandade färgfyllningen att "
+#~ "synas."
+
+#~ msgid ""
+#~ "Purging after filament change will be done inside objects' support. This "
+#~ "may lower the amount of waste and decrease the print time"
+#~ msgstr ""
+#~ "Rensning efter filamentändring kommer att göras inuti objektens support. "
+#~ "Detta kan minska mängden avfall och minska utskriftstiden."
+
+#~ msgid ""
 #~ "Push new filament \n"
 #~ "into extruder"
 #~ msgstr ""
@@ -7956,14 +7941,29 @@ msgstr ""
 #~ "then a snapshot is taken with the chamber camera. When printing finishes, "
 #~ "a timelapse video is created from all the snapshots."
 
+#~ msgid "Reduce Triangles"
+#~ msgstr "Reducera Trianglar"
+
+#~ msgid "Reload item"
+#~ msgstr "Ladda om objektet"
+
+#~ msgid "Reload items"
+#~ msgstr "Ladda om objekten"
+
 #~ msgid "Report"
 #~ msgstr "Rapportera"
+
+#~ msgid "Rotation:"
+#~ msgstr "Rotation:"
 
 #~ msgid "Save configuration as:"
 #~ msgstr "Spara konfigurationen som:"
 
 #~ msgid "Sending"
 #~ msgstr "Skickar"
+
+#~ msgid "Set pen size"
+#~ msgstr "Välj penn storlek"
 
 #~ msgid "Shift + Any arrow"
 #~ msgstr "Skift+valfri pil"
@@ -7997,6 +7997,15 @@ msgstr ""
 #~ "stöda custom support mellanrum, detta kan orsaka extra filament byten om "
 #~ "support (materialet) är vald som en annan extruder än objektets"
 
+#~ msgid ""
+#~ "Switch to zig-zag pattern?\n"
+#~ "Yes - switch to zig-zag pattern automaticlly\n"
+#~ "No  - reset density to default non 100% value automaticlly\n"
+#~ msgstr ""
+#~ "Ändra till Zig-Zag mönster?\n"
+#~ "JA - Byta till Zig-Zag mönster automatiskt\n"
+#~ "NEJ  - Återställ densiteten till standard inte 100% värdet automatiskt\n"
+
 #~ msgid "Swith cloud environment, Please login again!"
 #~ msgstr "Byte av moln miljö, Logga in igen!"
 
@@ -8018,6 +8027,25 @@ msgstr ""
 #~ "Modellen har överlappande eller självkorsande aspekter.Reparation utförd, "
 #~ "men kontrollera resultaten eller reparera indatafilen och försöka igen."
 
+#~ msgid ""
+#~ "This object will be used to purge the nozzle after a filament change to "
+#~ "save filament and decrease the print time. Colours of the objects will be "
+#~ "mixed as a result"
+#~ msgstr ""
+#~ "Detta objekt kommer att användas för att rensa nozzlen efter ett filament "
+#~ "byte för att spara filament och minska utskriftstiden. Objektens färger "
+#~ "blandas som ett resultat"
+
+#~ msgid ""
+#~ "This setting stands for how much volume of filament can be melted and "
+#~ "extruded per second. Printing speed is limited by max volumetric speed, "
+#~ "in case of too high and unreasonable speed setting. Zero means no limit"
+#~ msgstr ""
+#~ "Denna inställning står för volymen av filament som kan smältas och "
+#~ "extruderas per sekund. Utskriftshastigheten begränsas av max volymetrisk "
+#~ "hastighet vid för hög och orimlig hastighetsinställning. 0 betyder ingen "
+#~ "gräns"
+
 #~ msgid "Timelapse Wipe Tower"
 #~ msgstr "Timelapse Wipe Tower"
 
@@ -8036,5 +8064,31 @@ msgstr ""
 #~ msgid "Waiting"
 #~ msgstr "Väntar"
 
+#~ msgid ""
+#~ "You have changed some preset settings. \n"
+#~ "Would you like to keep these changed settings after switching preset?"
+#~ msgstr ""
+#~ "Förinställningarna har ändrats. \n"
+#~ "Behålla dessa ändrade inställningar efter byte av förinställningar?"
+
+#~ msgid "Zig zag"
+#~ msgstr "Zig zag"
+
+#~ msgid " Object:"
+#~ msgstr " Objekt:"
+
+#~ msgid ""
+#~ " is too close to exclusion area, there will be collisions when printing.\n"
+#~ msgstr " för tätt inpå den isolerade ytan, utskriften kolliderar.\n"
+
+#~ msgid " is too close to others, there will be collisions when printing.\n"
+#~ msgstr " för tätt inpå andra, utskriften kolliderar.\n"
+
+#~ msgid "normal"
+#~ msgstr "normal"
+
 #~ msgid "the 3mf is not compatible, load geometry data only!"
 #~ msgstr "3mf ej kompatibel, laddar endast geometrin !"
+
+#~ msgid "tree"
+#~ msgstr "träd"

@@ -2631,22 +2631,22 @@ msgid "Load a model"
 msgstr "Cargar un modelo"
 
 msgid "Import Configs"
-msgstr "Import Configs"
+msgstr "Importar configuraciones"
 
 msgid "Load configs"
-msgstr "Load configs"
+msgstr "Cargar configuraciones"
 
 msgid "Import"
-msgstr "Import"
+msgstr "Importar"
 
 msgid "Export all objects as STL"
 msgstr "Exportar todos los objetos como STL"
 
 msgid "Export Generic 3MF"
-msgstr "Export Generic 3MF"
+msgstr "Exportar 3MF genérico"
 
 msgid "Export 3mf file without using some 3mf-extensions"
-msgstr "Export 3mf file without using some 3mf-extensions"
+msgstr "Exporte el archivo 3mf sin usar algunas de las extensiones"
 
 msgid "Export current sliced file"
 msgstr ""
@@ -2661,7 +2661,7 @@ msgid "Export current plate as G-code"
 msgstr ""
 
 msgid "Export &Configs"
-msgstr "Export &Configs"
+msgstr "Exportar & Configuración"
 
 msgid "Export current configuration to files"
 msgstr ""
@@ -2788,13 +2788,13 @@ msgid "&Help"
 msgstr "Ayu&da"
 
 msgid "Overwrite file"
-msgstr "Overwrite file"
+msgstr "Sobrescribir archivo"
 
 msgid "Yes to All"
-msgstr "Yes to All"
+msgstr "Sí a todo"
 
 msgid "No to All"
-msgstr "No to All"
+msgstr "No a todo"
 
 msgid "Choose a directory"
 msgstr ""
@@ -2806,7 +2806,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "Export result"
-msgstr "Export Result"
+msgstr "Exportar resultado"
 
 msgid "Select profile to load:"
 msgstr ""
@@ -2819,7 +2819,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "Import result"
-msgstr "Import result"
+msgstr "Importar resultado"
 
 msgid "File is missing"
 msgstr "Falta el archivo"
@@ -2913,10 +2913,10 @@ msgid "Load failed [%d]!"
 msgstr "¡La carga ha fallado [%d]!"
 
 msgid "Year"
-msgstr "Year"
+msgstr "Año"
 
 msgid "Month"
-msgstr "Month"
+msgstr "Mes"
 
 msgid "All Files"
 msgstr ""
@@ -2955,23 +2955,23 @@ msgid "Batch manage files."
 msgstr ""
 
 msgid "No printers."
-msgstr "No printers."
+msgstr "No hay impresoras."
 
 msgid "Not supported by this model of printer!"
 msgstr ""
 
 msgid "Connecting..."
-msgstr "Connecting..."
+msgstr "Conectando…"
 
 #, c-format, boost-format
 msgid "Connect failed [%d]!"
-msgstr "Connection failed [%d]!"
+msgstr "Error de conexión [%d]!"
 
 msgid "Loading file list..."
-msgstr "Loading file list..."
+msgstr "Cargando lista de archivos..."
 
 msgid "No files"
-msgstr "No files"
+msgstr "No hay archivos"
 
 msgid "Not accessible in LAN-only mode!"
 msgstr ""
@@ -3078,7 +3078,7 @@ msgid "Are you sure you want to cancel this print?"
 msgstr ""
 
 msgid "Downloading..."
-msgstr "Downloading..."
+msgstr "Descargando…"
 
 msgid "Cloud Slicing..."
 msgstr ""
@@ -7730,105 +7730,6 @@ msgid ""
 "density to improve the strength of the model?"
 msgstr ""
 
-#~ msgid "Export ok."
-#~ msgstr "Exportación correcta."
-
-#~ msgid "Plate %d: %s does not support filament %s.\n"
-#~ msgstr "La placa %d: %s no admite el filamento %s.\n"
-
-#~ msgid "Filament N XX"
-#~ msgstr "Filamento N XX"
-
-#~ msgid "Color Print"
-#~ msgstr "Impresión en color"
-
-#~ msgid "Comsumption"
-#~ msgstr "Consumo"
-
-#~ msgid "Filament 1"
-#~ msgstr "Filamento 1"
-
-#~ msgid "Flushed filament"
-#~ msgstr "Filamento limpiado"
-
-#~ msgid "Adaptive layer height"
-#~ msgstr "Altura de capa adaptable"
-
-#~ msgid ""
-#~ "Enabling this option means the height of every layer except the first "
-#~ "will be automatically calculated during slicing according to the slope of "
-#~ "the model’s surface.\n"
-#~ "Note that this option only takes effect if no prime tower is generated in "
-#~ "current plate."
-#~ msgstr ""
-#~ "Si se activa esta opción, la altura de cada capa, excepto la primera, se "
-#~ "calculará automáticamente durante el corte en función de la pendiente de "
-#~ "la superficie del modelo.\n"
-#~ "Tenga en cuenta que esta opción sólo surte efecto si no se genera ninguna "
-#~ "torre principal en la placa actual."
-
-#~ msgid "normal"
-#~ msgstr "normal"
-
-#~ msgid "tree"
-#~ msgstr "árbol"
-
-#~ msgid " Object:"
-#~ msgstr "Objeto"
-
-#~ msgid ""
-#~ "You have changed some preset settings. \n"
-#~ "Would you like to keep these changed settings after switching preset?"
-#~ msgstr ""
-#~ "Has cambiado algunos ajustes de preajuste. \n"
-#~ "¿Desea mantener estos ajustes cambiados después de cambiar de preajuste?"
-
-#~ msgid "Export sliced file"
-#~ msgstr "Exportar archivo rebanado"
-
-#~ msgid "Export Sliced File"
-#~ msgstr "Exportar Archivo Rebanado"
-
-#~ msgid "Export current Sliced file"
-#~ msgstr "Exportar el archivo rebanado actual"
-
-#~ msgid ""
-#~ "Force cooling fan to be specific speed when overhang degree of printed "
-#~ "part exceeds this value. Expressed as percentage which indicides how much "
-#~ "width of the line without support from lower layer"
-#~ msgstr ""
-#~ "Fuerza al ventilador de refrigeración a una velocidad específica cuando "
-#~ "el grado de voladizo de la pieza impresa supera este valor. Expresado en "
-#~ "porcentaje, indica la anchura de la línea sin apoyo de la capa inferior."
-
-#~ msgid "Erase painting"
-#~ msgstr "Borrar lo pintado"
-
-#~ msgid "Set pen size"
-#~ msgstr "Ajustar el tamaño del lápiz"
-
-#~ msgid "Rotation:"
-#~ msgstr "Rotación:"
-
-#~ msgid "Height:"
-#~ msgstr "Altura:"
-
-#~ msgid "Initialize failed [%d]!"
-#~ msgstr "¡Ha fallado la inicialización [%d]!"
-
-#~ msgid "Management"
-#~ msgstr "Management"
-
-#~ msgid "Open"
-#~ msgstr "Open"
-
-#~ msgid ""
-#~ "%1% is too close to exclusion area, there will be collisions when "
-#~ "printing."
-#~ msgstr ""
-#~ "%1% está demasiado cerca del área de exclusión, habrá colisiones al "
-#~ "imprimir."
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -7838,77 +7739,18 @@ msgstr ""
 #~ "%1% está demasiado cerca del área de exclusión, habrá colisiones al "
 #~ "imprimir."
 
-#~ msgid " is too close to others, there will be collisions when printing.\n"
-#~ msgstr " está demasiado cerca de otros, habrá colisiones al imprimir.\n"
-
 #~ msgid ""
-#~ " is too close to exclusion area, there will be collisions when printing.\n"
+#~ "%1% is too close to exclusion area, there will be collisions when "
+#~ "printing."
 #~ msgstr ""
-#~ " está demasiado cerca del área de exclusión, habrá colisiones al "
-#~ "imprimir.\n"
-
-#~ msgid "Avoid crossing wall when travel"
-#~ msgstr "Evitar cruzar el muro en los desplazamientos"
-
-#~ msgid "Max travel detour distance"
-#~ msgstr "Distancia máxima de desvío de viaje"
-
-#~ msgid ""
-#~ "Maximum detour distance for avoiding crossing wall. Don't detour if the "
-#~ "detour distance is large than this value"
-#~ msgstr ""
-#~ "Distancia máxima de desvío para evitar cruzar el muro. No se desvía si la "
-#~ "distancia de desvío es mayor que este valor"
-
-#~ msgid ""
-#~ "Height of the clearance cylinder around extruder. Used as input of auto-"
-#~ "arrange to avoid collision when print object by object"
-#~ msgstr ""
-#~ "Altura del cilindro de separación alrededor del extrusor. Se utiliza como "
-#~ "entrada de auto-organización para evitar la colisión cuando se imprime "
-#~ "objeto por objeto."
-
-#~ msgid ""
-#~ "Clearance radius around extruder. Used as input of auto-arrange to avoid "
-#~ "collision when print object by object"
-#~ msgstr ""
-#~ "Radio de separación alrededor del extrusor. Se utiliza como entrada de "
-#~ "auto-organización para evitar la colisión cuando se imprime objeto por "
-#~ "objeto"
-
-#~ msgid "Error at line %1%:\n"
-#~ msgstr "Error en la línea %1%:\n"
-
-#~ msgid "Reduce Triangles"
-#~ msgstr "Reducir los triángulos"
-
-#~ msgid ""
-#~ "Switch to zig-zag pattern?\n"
-#~ "Yes - switch to zig-zag pattern automaticlly\n"
-#~ "No  - reset density to default non 100% value automaticlly\n"
-#~ msgstr ""
-#~ "¿Cambiar al patrón en zig-zag?\n"
-#~ "Sí - cambia automáticamente al patrón en zig-zag\n"
-#~ "No - restablecer automáticamente la densidad al valor por defecto que no "
-#~ "es del 100%.\n"
-
-#~ msgid "Extruder position"
-#~ msgstr "Posición del extrusor"
-
-#~ msgid "Zig zag"
-#~ msgstr "Zig zag"
-
-#~ msgid ""
-#~ "Bed temperature is higher than vitrification temperature of this "
-#~ "filament.\n"
-#~ "This may cause nozzle blocked and printing failure"
-#~ msgstr ""
-#~ "La temperatura del lecho es superior a la temperatura de vitrificación de "
-#~ "este filamento.\n"
-#~ "Esto puede causar el bloqueo de la boquilla y el fracaso de la impresión"
+#~ "%1% está demasiado cerca del área de exclusión, habrá colisiones al "
+#~ "imprimir."
 
 #~ msgid "0%"
 #~ msgstr "0%"
+
+#~ msgid "Adaptive layer height"
+#~ msgstr "Altura de capa adaptable"
 
 #~ msgid ""
 #~ "An object is layed over the boundary of plate.\n"
@@ -7930,8 +7772,34 @@ msgstr ""
 #~ "hay objetos seleccionados, sólo orienta los seleccionados.En caso "
 #~ "contrario, orienta todos los objetos del proyecto."
 
+#~ msgid "Avoid crossing wall when travel"
+#~ msgstr "Evitar cruzar el muro en los desplazamientos"
+
+#~ msgid ""
+#~ "Bed temperature is higher than vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause nozzle blocked and printing failure"
+#~ msgstr ""
+#~ "La temperatura del lecho es superior a la temperatura de vitrificación de "
+#~ "este filamento.\n"
+#~ "Esto puede causar el bloqueo de la boquilla y el fracaso de la impresión"
+
 #~ msgid "Clear all"
 #~ msgstr "Borrar todo"
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used as input of auto-arrange to avoid "
+#~ "collision when print object by object"
+#~ msgstr ""
+#~ "Radio de separación alrededor del extrusor. Se utiliza como entrada de "
+#~ "auto-organización para evitar la colisión cuando se imprime objeto por "
+#~ "objeto"
+
+#~ msgid "Color Print"
+#~ msgstr "Impresión en color"
+
+#~ msgid "Comsumption"
+#~ msgstr "Consumo"
 
 #~ msgid "Creating"
 #~ msgstr "Creando"
@@ -7980,11 +7848,51 @@ msgstr ""
 #~ "No se repliegue cuando el recorrido esté en zona de relleno "
 #~ "absolutamente. Eso significa que el rezago no puede ser visto"
 
+#~ msgid ""
+#~ "Enabling this option means the height of every layer except the first "
+#~ "will be automatically calculated during slicing according to the slope of "
+#~ "the model’s surface.\n"
+#~ "Note that this option only takes effect if no prime tower is generated in "
+#~ "current plate."
+#~ msgstr ""
+#~ "Si se activa esta opción, la altura de cada capa, excepto la primera, se "
+#~ "calculará automáticamente durante el corte en función de la pendiente de "
+#~ "la superficie del modelo.\n"
+#~ "Tenga en cuenta que esta opción sólo surte efecto si no se genera ninguna "
+#~ "torre principal en la placa actual."
+
 #~ msgid "Enter a search term"
 #~ msgstr "Teclea un término de búsqueda"
 
+#~ msgid "Erase painting"
+#~ msgstr "Borrar lo pintado"
+
+#~ msgid "Error at line %1%:\n"
+#~ msgstr "Error en la línea %1%:\n"
+
+#~ msgid "Export Sliced File"
+#~ msgstr "Exportar Archivo Rebanado"
+
+#~ msgid "Export current Sliced file"
+#~ msgstr "Exportar el archivo rebanado actual"
+
+#~ msgid "Export ok."
+#~ msgstr "Exportación correcta."
+
+#~ msgid "Export sliced file"
+#~ msgstr "Exportar archivo rebanado"
+
+#~ msgid "Extruder position"
+#~ msgstr "Posición del extrusor"
+
 #~ msgid "Failed"
-#~ msgstr "Failed"
+#~ msgstr "Error"
+
+#~ msgid "Filament 1"
+#~ msgstr "Filamento 1"
+
+#~ msgid "Filament N XX"
+#~ msgstr "Filamento N XX"
 
 #~ msgid "Filaments Selection"
 #~ msgstr "Selección de filamentos"
@@ -7997,6 +7905,18 @@ msgstr ""
 
 #~ msgid "Fix model through cloud"
 #~ msgstr "Fijar el modelo a través de la nube"
+
+#~ msgid "Flushed filament"
+#~ msgstr "Filamento limpiado"
+
+#~ msgid ""
+#~ "Force cooling fan to be specific speed when overhang degree of printed "
+#~ "part exceeds this value. Expressed as percentage which indicides how much "
+#~ "width of the line without support from lower layer"
+#~ msgstr ""
+#~ "Fuerza al ventilador de refrigeración a una velocidad específica cuando "
+#~ "el grado de voladizo de la pieza impresa supera este valor. Expresado en "
+#~ "porcentaje, indica la anchura de la línea sin apoyo de la capa inferior."
 
 #~ msgid "Fragment Filter"
 #~ msgstr "Filtro de fragmentos"
@@ -8014,11 +7934,25 @@ msgstr ""
 #~ "Calentar la boquilla a la temperatura deseada \n"
 #~ "temperatura"
 
+#~ msgid "Height:"
+#~ msgstr "Altura:"
+
+#~ msgid ""
+#~ "Height of the clearance cylinder around extruder. Used as input of auto-"
+#~ "arrange to avoid collision when print object by object"
+#~ msgstr ""
+#~ "Altura del cilindro de separación alrededor del extrusor. Se utiliza como "
+#~ "entrada de auto-organización para evitar la colisión cuando se imprime "
+#~ "objeto por objeto."
+
 #~ msgid "In the calibration of extrusion flow"
 #~ msgstr "En la calibración del flujo de extrusión"
 
 #~ msgid "In the calibration of laser scanner"
 #~ msgstr "En la calibración del escáner láser"
+
+#~ msgid "Initialize failed [%d]!"
+#~ msgstr "¡Ha fallado la inicialización [%d]!"
 
 #~ msgid "Inner wall speed"
 #~ msgstr "Velocidad de la pared interior"
@@ -8033,11 +7967,33 @@ msgstr ""
 #~ msgid "Line type"
 #~ msgstr "Tipo de línea"
 
+#~ msgid "Management"
+#~ msgstr "Gestión"
+
+#~ msgid "Max travel detour distance"
+#~ msgstr "Distancia máxima de desvío de viaje"
+
+#~ msgid ""
+#~ "Maximum detour distance for avoiding crossing wall. Don't detour if the "
+#~ "detour distance is large than this value"
+#~ msgstr ""
+#~ "Distancia máxima de desvío para evitar cruzar el muro. No se desvía si la "
+#~ "distancia de desvío es mayor que este valor"
+
 #~ msgid "Module"
 #~ msgstr "Módulo"
 
 #~ msgid "Monitoring"
 #~ msgstr "Monitorizando"
+
+#~ msgid "Open"
+#~ msgstr "Abrir"
+
+#~ msgid "Open &PrusaSlicer"
+#~ msgstr "Abrir &PrusaSlicer"
+
+#~ msgid "Open PrusaSlicer"
+#~ msgstr "Abrir PrusaSlicer"
 
 #~ msgid "Output file"
 #~ msgstr "Archivo de salida"
@@ -8053,6 +8009,9 @@ msgstr ""
 
 #~ msgid "Per object edit"
 #~ msgstr "Por objeto editar"
+
+#~ msgid "Plate %d: %s does not support filament %s.\n"
+#~ msgstr "La placa %d: %s no admite el filamento %s.\n"
 
 #~ msgid "Please fill report first."
 #~ msgstr "Por favor, rellene primero el informe."
@@ -8077,6 +8036,25 @@ msgstr ""
 #~ msgstr "Selección de la impresora"
 
 #~ msgid ""
+#~ "Purging after filament change will be done inside objects' infills. This "
+#~ "may lower the amount of waste and decrease the print time. If the walls "
+#~ "are printed with transparent filament, the mixed color infill will be "
+#~ "seen outside"
+#~ msgstr ""
+#~ "La purga tras el cambio de filamento se realizará dentro del relleno de "
+#~ "los objetos. Esto puede reducir la cantidad de residuos y disminuir el "
+#~ "tiempo de impresión. Si las paredes se imprimen con filamento "
+#~ "transparente, el mezclado se podrá ver en el exterior."
+
+#~ msgid ""
+#~ "Purging after filament change will be done inside objects' support. This "
+#~ "may lower the amount of waste and decrease the print time"
+#~ msgstr ""
+#~ "La purga después del cambio de filamento se hará dentro del soporte de "
+#~ "los objetos. Esto puede reducir la cantidad de residuos y disminuir el "
+#~ "tiempo de impresión."
+
+#~ msgid ""
 #~ "Push new filament \n"
 #~ "into extruder"
 #~ msgstr ""
@@ -8094,14 +8072,29 @@ msgstr ""
 #~ "then a snapshot is taken with the chamber camera. When printing finishes, "
 #~ "a timelapse video is created from all the snapshots."
 
+#~ msgid "Reduce Triangles"
+#~ msgstr "Reducir los triángulos"
+
+#~ msgid "Reload item"
+#~ msgstr "Volver a cargar el objeto"
+
+#~ msgid "Reload items"
+#~ msgstr "Recarga de objetos"
+
 #~ msgid "Report"
 #~ msgstr "Informe"
+
+#~ msgid "Rotation:"
+#~ msgstr "Rotación:"
 
 #~ msgid "Save configuration as:"
 #~ msgstr "Guardar la configuración como:"
 
 #~ msgid "Sending"
 #~ msgstr "Enviando"
+
+#~ msgid "Set pen size"
+#~ msgstr "Ajustar el tamaño del lápiz"
 
 #~ msgid "Shift + Any arrow"
 #~ msgstr "Mayúsculas + Cualquier flecha"
@@ -8136,6 +8129,16 @@ msgstr ""
 #~ "personalizada, pero puede causar cambios de filamento adicionales si el "
 #~ "soporte se especifica como un extrusor diferente con el objeto"
 
+#~ msgid ""
+#~ "Switch to zig-zag pattern?\n"
+#~ "Yes - switch to zig-zag pattern automaticlly\n"
+#~ "No  - reset density to default non 100% value automaticlly\n"
+#~ msgstr ""
+#~ "¿Cambiar al patrón en zig-zag?\n"
+#~ "Sí - cambia automáticamente al patrón en zig-zag\n"
+#~ "No - restablecer automáticamente la densidad al valor por defecto que no "
+#~ "es del 100%.\n"
+
 #~ msgid "Swith cloud environment, Please login again!"
 #~ msgstr "Cambiar el entorno de la nube, ¡Por favor, inicie sesión de nuevo!"
 
@@ -8159,6 +8162,25 @@ msgstr ""
 #~ "repararlo, sin embargo, es posible que desee comprobar los resultados o "
 #~ "reparar el archivo de entrada y volver a intentarlo."
 
+#~ msgid ""
+#~ "This object will be used to purge the nozzle after a filament change to "
+#~ "save filament and decrease the print time. Colours of the objects will be "
+#~ "mixed as a result"
+#~ msgstr ""
+#~ "Este objeto se utilizará para purgar la boquilla después de un cambio de "
+#~ "filamento para ahorrar filamento y disminuir el tiempo de impresión. Los "
+#~ "colores de los objetos se mezclarán como resultado"
+
+#~ msgid ""
+#~ "This setting stands for how much volume of filament can be melted and "
+#~ "extruded per second. Printing speed is limited by max volumetric speed, "
+#~ "in case of too high and unreasonable speed setting. Zero means no limit"
+#~ msgstr ""
+#~ "Este ajuste representa la cantidad de volumen de filamento que se puede "
+#~ "fundir y extruir por segundo. La velocidad de impresión está limitada por "
+#~ "la velocidad volumétrica máxima, en caso de ajustar una velocidad "
+#~ "demasiado alta y poco razonable. Cero significa que no hay límite"
+
 #~ msgid "Timelapse Wipe Tower"
 #~ msgstr "Timelapse Torre de limpieza"
 
@@ -8177,5 +8199,33 @@ msgstr ""
 #~ msgid "Waiting"
 #~ msgstr "Esperando"
 
+#~ msgid ""
+#~ "You have changed some preset settings. \n"
+#~ "Would you like to keep these changed settings after switching preset?"
+#~ msgstr ""
+#~ "Has cambiado algunos ajustes de preajuste. \n"
+#~ "¿Desea mantener estos ajustes cambiados después de cambiar de preajuste?"
+
+#~ msgid "Zig zag"
+#~ msgstr "Zig zag"
+
+#~ msgid " Object:"
+#~ msgstr "Objeto"
+
+#~ msgid ""
+#~ " is too close to exclusion area, there will be collisions when printing.\n"
+#~ msgstr ""
+#~ " está demasiado cerca del área de exclusión, habrá colisiones al "
+#~ "imprimir.\n"
+
+#~ msgid " is too close to others, there will be collisions when printing.\n"
+#~ msgstr " está demasiado cerca de otros, habrá colisiones al imprimir.\n"
+
+#~ msgid "normal"
+#~ msgstr "normal"
+
 #~ msgid "the 3mf is not compatible, load geometry data only!"
 #~ msgstr "el 3mf no es compatible, ¡cargue sólo los datos geométricos!"
+
+#~ msgid "tree"
+#~ msgstr "árbol"
