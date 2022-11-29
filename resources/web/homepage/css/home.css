@@ -297,14 +297,14 @@ body
 
 #RecentClearAllBtn
 {
-	border: 1px solid #000;
+	border-width: 1px;
+	border-style: solid;
 	padding: 0px 10px;
 	border-radius: 6px;
 	line-height: 26px;
 	height: 26px;
 	margin-left: 20px;
 	cursor: pointer;
-	color: #000;
 	display: none;
 }
 
@@ -365,6 +365,14 @@ body
 	display: inline-block;
 }
 
+.FileName
+{
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    word-break: break-all;	
+}
+
 .FileDate
 {
 	color: #A8A8A8;
@@ -377,8 +385,8 @@ body
 	padding: 10px;
 	border: 0px;
 	min-width: 100px;
-    top: 800px;
-	border: 1px solid #C3C3C3;
+	border: 1px solid #D7D7D7;
+    top: 100px;
 	border-radius: 5px;
 	color: #323A3D;
 	background-color: #fff;
@@ -387,18 +395,17 @@ body
 
 .CT_Item
 {
-	padding: 2px 10px;
+	padding: 4px 12px;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	border: 2px solid #fff;
-	border-radius: 4px;	
 }
 
 .CT_Item:hover
 {
 	cursor: pointer;
 	background-color: #0078D4;
+	border-radius: 4px;
 	color: #fff;
 }
 

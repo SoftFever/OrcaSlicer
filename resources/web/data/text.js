@@ -30,9 +30,9 @@ var LangText={
 		"t28":"Recent",
 		"t29":"Mall",
 		"t30":"Manual",
-		"t31":"New project",
+		"t31":"New Project",
 		"t32":"Create new project",
-		"t33":"Open project",
+		"t33":"Open Project",
 		"t34":"hotspot",
 		"t35":"Recently opened",
 		"t36":"ok",
@@ -83,7 +83,7 @@ var LangText={
 		"t88":"Remove",
 		"t89":"Open Containing Folder",
 		"t90":"3D Model",
-		"t91":"Download 3D Models"
+		"t91":"Download 3D models"
 	},
 	"zh_CN":{
 		"t1":"欢迎使用Bambu Studio",

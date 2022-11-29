@@ -1,11 +1,11 @@
 body
 {
-	background-color:#242428;
+	background-color:#2D2D31;
 }
 
 *
 {
-	border-color: #3E3E45;
+	border-color: #6f6f6f;
 }
 
 
@@ -35,10 +35,20 @@ body
 	background-color: #243E30;
 }
 
+.BtnItem:hover .LeftIcon
+{
+	filter: brightness(300%);
+}
+
 .BtnItemSelected
 {
 	color: #fff;
 	background-color: #243E30;
+}
+
+.BtnItemSelected .LeftIcon
+{
+	filter: brightness(300%);
 }
 
 /*-----Right Top MenuBtn-----*/
@@ -46,6 +56,19 @@ body
 {
 	border-color: #4CAA50;
 	background-color: #243E30;
+}
+
+#RecentClearAllBtn:hover
+{
+	color: #000;
+}
+
+#recnet_context_menu
+{
+	color: #fff;
+	background-color:#242428;
+	border: 0px;
+	box-shadow: 0px 0px 3px #DCDCDC;
 }
 
 /*----User Manual------*/
