@@ -2948,7 +2948,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
                     }
 
-                    LoadType load_type = static_cast<LoadType>(std::stoi(wxGetApp().app_config->get("import_project_action")));
+                    std::string import_project_action = wxGetApp().app_config->get("import_project_action");
+                    LoadType load_type;
+                    if (import_project_action.empty())
+                        load_type = LoadType::Unknown;
+                    else
+                        load_type  = static_cast<LoadType>(std::stoi(import_project_action));
 
                     // BBS: version check
                     Semver app_version = *(Semver::parse(SLIC3R_VERSION));
