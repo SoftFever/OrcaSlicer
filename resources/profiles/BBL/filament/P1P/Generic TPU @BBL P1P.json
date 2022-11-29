@@ -1,8 +1,8 @@
 {
     "type": "filament",
     "filament_id": "GFU99",
-    "setting_id": "GFSR99",
-    "name": "Generic TPU",
+    "setting_id": "GFSR99_10",
+    "name": "Generic TPU @BBL P1P",
     "from": "system",
     "instantiation": "true",
     "inherits": "fdm_filament_tpu",
@@ -12,12 +12,21 @@
     "filament_start_gcode": [
       "; filament start gcode\n{if (bed_temperature[current_extruder] >35)||(bed_temperature_initial_layer[current_extruder] >35)}M106 P3 S255\n{elsif (bed_temperature[current_extruder] >30)||(bed_temperature_initial_layer[current_extruder] >30)}M106 P3 S180\n{endif}"
     ],
+    "hot_plate_temp" : [
+        "45"
+    ],
+    "hot_plate_temp_initial_layer" : [
+        "45"
+    ],
+    "textured_plate_temp" : [
+      "45"
+    ],
+    "textured_plate_temp_initial_layer" : [
+      "45"
+    ],
     "compatible_printers": [
-      "Bambu Lab X1 0.4 nozzle",
-      "Bambu Lab X1 0.6 nozzle",
-      "Bambu Lab X1 0.8 nozzle",
-      "Bambu Lab X1 Carbon 0.4 nozzle",
-      "Bambu Lab X1 Carbon 0.6 nozzle",
-      "Bambu Lab X1 Carbon 0.8 nozzle"
+      "Bambu Lab P1P 0.4 nozzle",
+      "Bambu Lab P1P 0.6 nozzle",
+      "Bambu Lab P1P 0.8 nozzle"
     ]
 }

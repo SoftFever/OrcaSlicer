@@ -6,7 +6,7 @@
     "instantiation": "true",
     "inherits": "fdm_process_bbl_0.20",
     "outer_wall_speed": "40",
-    "sparse_infill_speed": "100",
+    "sparse_infill_speed": "30",
     "wall_loops": "6",
     "sparse_infill_density": "25%",
     "compatible_printers": [

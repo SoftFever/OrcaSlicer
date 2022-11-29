@@ -1,0 +1,13 @@
+{
+    "type": "machine_model",
+    "name": "Bambu Lab P1P",
+    "model_id": "C11",
+    "url": "http://www.bambulab.com/Parameters/printer_model/Bambu Lab X1.json",
+    "nozzle_diameter": "0.4;0.2;0.6;0.8",
+    "machine_tech": "FFF",
+    "family": "BBL-3DP",
+    "bed_model": "bbl-3dp-X1.stl",
+    "bed_texture": "bbl-3dp-logo.svg",
+    "hotend_model": "bbl-3dp-hotend.stl",
+    "default_materials": "Bambu PLA Basic @BBL P1P 0.2 nozzle;Bambu ABS @BBL P1P;Bambu PLA Basic @BBL P1P 0.2 nozzle;Bambu PLA Basic @BBL P1P;"
+}
