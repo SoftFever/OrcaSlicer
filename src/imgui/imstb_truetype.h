@@ -1311,11 +1311,11 @@ static int stbtt_GetFontOffsetForIndex_internal(unsigned char *font_collection, 
       if (ttULONG(font_collection+4) == 0x00010000 || ttULONG(font_collection+4) == 0x00020000) {
          stbtt_int32 n = ttLONG(font_collection+8);
          if (index >= n)
-            return -1;
+            return -2;
          return ttULONG(font_collection+12+index*4);
       }
    }
-   return -1;
+   return -3;
 }
 
 static int stbtt_GetNumberOfFonts_internal(unsigned char *font_collection)
@@ -1365,19 +1365,28 @@ static int stbtt_InitFont_internal(stbtt_fontinfo *info, unsigned char *data, in
    info->kern = stbtt__find_table(data, fontstart, "kern"); // not required
    info->gpos = stbtt__find_table(data, fontstart, "GPOS"); // not required
 
-   if (!cmap || !info->head || !info->hhea || !info->hmtx)
+   if (!cmap || !info->head || !info->hhea || !info->hmtx) {
+      BOOST_LOG_TRIVIAL(info) << "Cannot find cmap/head/hhea/hmtx table";
       return 0;
+   }
    if (info->glyf) {
       // required for truetype
-      if (!info->loca) return 0;
+       if (!info->loca) {
+           BOOST_LOG_TRIVIAL(info) << "Cannot find loca table";
+           return 0;
+       }
    } else {
       // initialization for CFF / Type2 fonts (OTF)
+      BOOST_LOG_TRIVIAL(info) << "initialization for CFF / Type2 fonts (OTF)";
       stbtt__buf b, topdict, topdictidx;
       stbtt_uint32 cstype = 2, charstrings = 0, fdarrayoff = 0, fdselectoff = 0;
       stbtt_uint32 cff;
 
       cff = stbtt__find_table(data, fontstart, "CFF ");
-      if (!cff) return 0;
+      if (!cff) {
+          BOOST_LOG_TRIVIAL(info) << "Cannot find cff table";
+          return 0;
+      }
 
       info->fontdicts = stbtt__new_buf(NULL, 0);
       info->fdselect = stbtt__new_buf(NULL, 0);

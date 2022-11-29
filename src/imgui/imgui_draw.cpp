@@ -53,6 +53,7 @@ Index of this file:
 #include <stdlib.h>     // alloca
 #endif
 #endif
+#include <boost/log/trivial.hpp>
 
 // Visual Studio warnings
 #ifdef _MSC_VER
@@ -2345,7 +2346,6 @@ static bool ImFontAtlasBuildWithStbTruetype(ImFontAtlas* atlas)
     dst_tmp_array.resize(atlas->Fonts.Size);
     memset(src_tmp_array.Data, 0, (size_t)src_tmp_array.size_in_bytes());
     memset(dst_tmp_array.Data, 0, (size_t)dst_tmp_array.size_in_bytes());
-
     // 1. Initialize font loading structure, check font data validity
     for (int src_i = 0; src_i < atlas->ConfigData.Size; src_i++)
     {
@@ -2365,9 +2365,15 @@ static bool ImFontAtlasBuildWithStbTruetype(ImFontAtlas* atlas)
         }
         // Initialize helper structure for font loading and verify that the TTF/OTF data is correct
         const int font_offset = stbtt_GetFontOffsetForIndex((unsigned char*)cfg.FontData, cfg.FontNo);
+        if (font_offset < 0)
+            BOOST_LOG_TRIVIAL(info) << "font_name: " << cfg.Name << ", font_offset: " << font_offset << ", font_no: " << cfg.FontNo << ", font_data_tag:"
+            << ((unsigned char*)cfg.FontData)[0] << ((unsigned char*)cfg.FontData)[1] << ((unsigned char*)cfg.FontData)[2] << ((unsigned char*)cfg.FontData)[3];
         IM_ASSERT(font_offset >= 0 && "FontData is incorrect, or FontNo cannot be found.");
-        if (!stbtt_InitFont(&src_tmp.FontInfo, (unsigned char*)cfg.FontData, font_offset))
+        if (!stbtt_InitFont(&src_tmp.FontInfo, (unsigned char*)cfg.FontData, font_offset)) {
+            BOOST_LOG_TRIVIAL(info) << "stbtt_InitFont failed, font_name: " << cfg.Name << ", font_data_tag:"
+                << ((unsigned char*)cfg.FontData)[0] << ((unsigned char*)cfg.FontData)[1] << ((unsigned char*)cfg.FontData)[2] << ((unsigned char*)cfg.FontData)[3];;
             return false;
+        }
 
         // Measure highest codepoints
         ImFontBuildDstData& dst_tmp = dst_tmp_array[src_tmp.DstIndex];

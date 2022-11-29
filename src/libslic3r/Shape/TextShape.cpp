@@ -65,6 +65,8 @@ std::vector<std::string> init_occt_fonts()
         if(afn->String().StartsWith("."))
             continue;
 #endif
+        if(afn->Search("Emoji") != -1 || afn->Search("emoji") != -1)
+            continue;
         bool repeat = false;
         for (size_t i = 0; i < fonts_suffix.size(); i++) {
             if (afn->SearchFromEnd(fonts_suffix[i]) != -1) {
@@ -77,9 +79,13 @@ std::vector<std::string> init_occt_fonts()
 
         Handle(Font_SystemFont) sys_font = aFontMgr->GetFont(afn->ToCString());
         TCollection_AsciiString font_path = sys_font->FontPath(Font_FontAspect::Font_FontAspect_Regular);
-        if (!font_path.IsEmpty() && !font_path.EndsWith(".dfont")) {
-            g_occt_fonts_maps.insert(std::make_pair(afn->ToCString(), decode_path(font_path.ToCString())));
-            stdFontNames.push_back(afn->ToCString());
+        if (!font_path.IsEmpty() && font_path.SearchFromEnd(".") != -1) {
+            auto  file_type = font_path.SubString(font_path.SearchFromEnd(".") + 1, font_path.Length());
+            file_type.LowerCase();
+            if (file_type == "ttf" || file_type == "otf" || file_type == "ttc") {
+                g_occt_fonts_maps.insert(std::make_pair(afn->ToCString(), decode_path(font_path.ToCString())));
+                stdFontNames.push_back(afn->ToCString());
+            }
         }
     }
     BOOST_LOG_TRIVIAL(info) << "init_occt_fonts end";
