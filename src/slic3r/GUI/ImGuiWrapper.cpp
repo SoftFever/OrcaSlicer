@@ -75,6 +75,13 @@ static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::PreferencesDarkButton      , "notification_preferences_dark"      },
     {ImGui::PreferencesHoverDarkButton , "notification_preferences_hover_dark"},
 
+    {ImGui::CircleButtonDarkIcon       , "circle_paint_dark"                  },
+    {ImGui::TriangleButtonDarkIcon     , "triangle_paint_dark"                },
+    {ImGui::FillButtonDarkIcon         , "fill_paint_dark"                    },
+    {ImGui::HeightRangeDarkIcon        , "height_range_dark"                  },
+    {ImGui::GapFillDarkIcon            , "gap_fill_dark"                      },
+    {ImGui::SphereButtonDarkIcon       , "toolbar_modifier_sphere_dark"       },
+
 };
 static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::CloseNotifButton        , "notification_close"              },

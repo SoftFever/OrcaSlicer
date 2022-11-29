@@ -179,6 +179,13 @@ namespace ImGui
     const wchar_t PreferencesDarkButton          = 0x0820;
     const wchar_t PreferencesHoverDarkButton     = 0x0821;
 
+    const wchar_t CircleButtonDarkIcon     = 0x0822;
+    const wchar_t TriangleButtonDarkIcon   = 0x0823;
+    const wchar_t FillButtonDarkIcon       = 0x0824;
+    const wchar_t HeightRangeDarkIcon      = 0x0825;
+    const wchar_t SphereButtonDarkIcon     = 0x0826;
+    const wchar_t GapFillDarkIcon          = 0x0827;
+
 //    void MyFunction(const char* name, const MyMatrix44& v);
 }
 
