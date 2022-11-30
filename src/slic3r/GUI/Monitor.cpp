@@ -535,11 +535,16 @@ void MonitorPanel::show_status(int status)
     }
 
     Freeze();
+
+    // update panels
+    m_status_info_panel->show_status(status);
+    m_hms_panel->show_status(status);
+    m_upgrade_panel->show_status(status);
+
     if ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0) {
         set_default();
         m_side_tools->set_none_printer_mode();
         m_connection_info->Hide();
-        m_status_info_panel->show_status(status);
         m_tabpanel->Refresh();
         m_tabpanel->Layout();
 #if !BBL_RELEASE_TO_PUBLIC
@@ -556,8 +561,6 @@ void MonitorPanel::show_status(int status)
             m_side_tools->set_current_printer_signal(WifiSignal::NONE);
             set_default();
         }
-
-        m_status_info_panel->show_status(status);
         m_tabpanel->Refresh();
         m_tabpanel->Layout();
     }

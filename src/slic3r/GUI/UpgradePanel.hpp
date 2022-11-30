@@ -6,8 +6,8 @@
 #include "Widgets/ProgressBar.hpp"
 #include <slic3r/GUI/DeviceManager.hpp>
 #include <slic3r/GUI/Widgets/ScrolledWindow.hpp>
+#include <slic3r/GUI/StatusPanel.hpp>
 #include "ReleaseNote.hpp"
-
 
 namespace Slic3r {
 namespace GUI {
@@ -137,6 +137,7 @@ protected:
     //hint of force upgrade or consistency upgrade
     int last_forced_hint_status = -1;
     int last_consistency_hint_status = -1;
+    int last_status;
     bool m_show_forced_hint = true;
     bool m_show_consistency_hint = true;
     SecondaryCheckDialog* force_dlg{ nullptr };
@@ -151,6 +152,7 @@ public:
 
     void refresh_version_and_firmware(MachineObject* obj);
     void update(MachineObject *obj);
+    void show_status(int status);
 
     MachineObject *m_obj { nullptr };
 };

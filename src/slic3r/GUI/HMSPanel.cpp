@@ -210,6 +210,21 @@ void HMSPanel::update(MachineObject *obj)
     }
 }
 
+void HMSPanel::show_status(int status)
+{
+    if (last_status == status) return;
+    last_status = status;
+
+    if (((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0)
+        ) {
+        delete_hms_panels();
+        Layout();
+    }
+}
+
 bool HMSPanel::Show(bool show)
 {
     return wxPanel::Show(show);

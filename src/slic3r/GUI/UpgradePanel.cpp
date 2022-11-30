@@ -149,7 +149,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     StateColor btn_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled));
     m_button_upgrade_firmware->SetBackgroundColor(btn_bg);
     m_button_upgrade_firmware->SetBorderColor(btn_bd);
-    m_button_upgrade_firmware->SetTextColor(wxColour("#FFFFFE"));
+    m_button_upgrade_firmware->SetTextColor(btn_text);
     m_button_upgrade_firmware->SetFont(Label::Body_10);
     m_button_upgrade_firmware->SetMinSize(wxSize(FromDIP(-1), FromDIP(24)));
     m_button_upgrade_firmware->SetCornerRadius(FromDIP(12));
@@ -854,6 +854,23 @@ void UpgradePanel::update(MachineObject *obj)
     Thaw();
 
     m_obj = obj;
+}
+
+void UpgradePanel::show_status(int status)
+{
+    if (last_status == status) return;
+    last_status = status;
+
+    if (((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0)
+        ) {
+        ;
+    }
+    else if ((status & (int)MonitorStatus::MONITOR_NORMAL) != 0) {
+        ;
+    }
 }
 
 bool UpgradePanel::Show(bool show)

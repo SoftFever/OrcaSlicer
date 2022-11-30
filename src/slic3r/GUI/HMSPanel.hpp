@@ -6,6 +6,7 @@
 #include <slic3r/GUI/Widgets/Button.hpp>
 #include <slic3r/GUI/DeviceManager.hpp>
 #include <slic3r/GUI/Widgets/ScrolledWindow.hpp>
+#include <slic3r/GUI/StatusPanel.hpp>
 #include <wx/html/htmlwin.h>
 
 namespace Slic3r {
@@ -44,6 +45,7 @@ protected:
     wxScrolledWindow *m_scrolledWindow;
     wxBoxSizer *      m_top_sizer;
     HMSNotifyItem *   m_notify_item;
+    int last_status;
 
     void append_hms_panel(HMSItem &item);
     void delete_hms_panels();
@@ -57,6 +59,8 @@ public:
     bool Show(bool show = true) override;
 
     void update(MachineObject *obj_);
+
+    void show_status(int status);
 
     MachineObject *obj { nullptr };
 };
