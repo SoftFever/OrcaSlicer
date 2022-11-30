@@ -401,6 +401,12 @@ private:
 
     void adjust_layer_heights(std::vector<std::vector<Node*>>& contact_nodes);
 
+    /*! BBS: MusangKing: maximum layer height
+     * \brief Optimize the generation of tree support by pre-planning the layer_heights
+     * 
+    */
+
+    std::vector<std::pair<coordf_t, coordf_t>> plan_layer_heights(std::vector<std::vector<Node*>>& contact_nodes);
     /*!
      * \brief Creates points where support contacts the model.
      *
