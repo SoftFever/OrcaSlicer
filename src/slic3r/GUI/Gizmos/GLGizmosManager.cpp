@@ -632,7 +632,7 @@ void GLGizmosManager::render_painter_gizmo() const
 
 void GLGizmosManager::render_painter_assemble_view() const
 {
-    if (m_assemble_view_data)
+    if (m_assemble_view_data && m_assemble_view_data->model_objects_clipper())
         m_assemble_view_data->model_objects_clipper()->render_cut();
 }
 
