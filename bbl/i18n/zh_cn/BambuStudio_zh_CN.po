@@ -5519,6 +5519,9 @@ msgstr "内圈墙/外圈墙/填充的打印顺序"
 msgid "inner/outer/infill"
 msgstr "内墙/外墙/填充"
 
+msgid "inner-outer-inner/infill"
+msgstr "内墙/外墙/内墙/填充"
+
 msgid "outer/inner/infill"
 msgstr "外墙/内墙/填充"
 
