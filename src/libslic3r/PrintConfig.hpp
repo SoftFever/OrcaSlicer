@@ -150,6 +150,15 @@ enum DraftShield {
     dsDisabled, dsLimited, dsEnabled
 };
 
+enum class PerimeterGeneratorType
+{
+    // Classic perimeter generator using Clipper offsets with constant extrusion width.
+    Classic,
+    // Perimeter generator with variable extrusion width based on the paper
+    // "A framework for adaptive width control of dense contour-parallel toolpaths in fused deposition modeling" ported from Cura.
+    Arachne
+};
+
 // BBS
 enum OverhangFanThreshold {
     Overhang_threshold_none = 0,
@@ -264,6 +273,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
 
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrintHostType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AuthorizationType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PerimeterGeneratorType)
 
 #undef CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS
 
@@ -654,6 +664,13 @@ PRINT_CONFIG_CLASS_DEFINE(
     // ((ConfigOptionBool,               adaptive_layer_height))
     ((ConfigOptionFloat,              support_bottom_interface_spacing))
     ((ConfigOptionFloat,              internal_bridge_support_thickness))
+    ((ConfigOptionEnum<PerimeterGeneratorType>, wall_generator))
+    ((ConfigOptionPercent,            wall_transition_length))
+    ((ConfigOptionPercent,            wall_transition_filter_deviation))
+    ((ConfigOptionFloat,              wall_transition_angle))
+    ((ConfigOptionInt,                wall_distribution_count))
+    ((ConfigOptionPercent,            min_feature_size))
+    ((ConfigOptionPercent,            min_bead_width))
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.

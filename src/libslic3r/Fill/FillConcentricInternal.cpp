@@ -23,7 +23,7 @@ void FillConcentricInternal::fill_surface_extrusion(const Surface* surface, cons
         coord_t min_spacing = params.flow.scaled_spacing();
 
         coord_t                loops_count = std::max(bbox_size.x(), bbox_size.y()) / min_spacing + 1;
-        Polygons               polygons = offset(expolygon, 0);
+        Polygons               polygons = to_polygons(expolygon);
 
         double min_nozzle_diameter = *std::min_element(print_config->nozzle_diameter.values.begin(), print_config->nozzle_diameter.values.end());
         Arachne::WallToolPathsParams input_params;

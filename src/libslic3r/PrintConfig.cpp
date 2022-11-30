@@ -283,6 +283,12 @@ static t_config_enum_values s_keys_map_NozzleType {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NozzleType)
 
+static t_config_enum_values s_keys_map_PerimeterGeneratorType{
+    { "classic", int(PerimeterGeneratorType::Classic) },
+    { "arachne", int(PerimeterGeneratorType::Arachne) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PerimeterGeneratorType)
+
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
     for (std::pair<const t_config_option_key, ConfigOptionDef> &kvp : options)
@@ -2939,6 +2945,92 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
+
+    def = this->add("wall_generator", coEnum);
+    def->label = L("Wall generator");
+    def->category = L("Quality");
+    def->tooltip = L("Classic wall generator produces walls with constant extrusion width and for "
+        "very thin areas is used gap-fill. "
+        "Arachne engine produces walls with variable extrusion width");
+    def->enum_keys_map = &ConfigOptionEnum<PerimeterGeneratorType>::get_enum_values();
+    def->enum_values.push_back("classic");
+    def->enum_values.push_back("arachne");
+    def->enum_labels.push_back(L("Classic"));
+    def->enum_labels.push_back(L("Arachne"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<PerimeterGeneratorType>(PerimeterGeneratorType::Classic));
+
+    def = this->add("wall_transition_length", coPercent);
+    def->label = L("Wall transition length");
+    def->category = L("Quality");
+    def->tooltip = L("When transitioning between different numbers of walls as the part becomes "
+        "thinner, a certain amount of space is allotted to split or join the wall segments. "
+        "It's expressed as a percentage over nozzle diameter");
+    def->sidetext = L("%");
+    def->mode = comAdvanced;
+    def->min = 0;
+    def->set_default_value(new ConfigOptionPercent(100));
+
+    def = this->add("wall_transition_filter_deviation", coPercent);
+    def->label = L("Wall transitioning filter margin");
+    def->category = L("Quality");
+    def->tooltip = L("Prevent transitioning back and forth between one extra wall and one less. This "
+        "margin extends the range of extrusion widths which follow to [Minimum perimeter width "
+        "- margin, 2 * Minimum perimeter width + margin]. Increasing this margin "
+        "reduces the number of transitions, which reduces the number of extrusion "
+        "starts/stops and travel time. However, large extrusion width variation can lead to "
+        "under- or overextrusion problems. "
+        "It's expressed as a percentage over nozzle diameter");
+    def->sidetext = L("%");
+    def->mode = comAdvanced;
+    def->min = 0;
+    def->set_default_value(new ConfigOptionPercent(25));
+
+    def = this->add("wall_transition_angle", coFloat);
+    def->label = L("Perimeter transitioning threshold angle");
+    def->category = L("Quality");
+    def->tooltip = L("When to create transitions between even and odd numbers of perimeters. A wedge shape with"
+        " an angle greater than this setting will not have transitions and no perimeters will be "
+        "printed in the center to fill the remaining space. Reducing this setting reduces "
+        "the number and length of these center perimeters, but may leave gaps or overextrude");
+    def->sidetext = L("°");
+    def->mode = comAdvanced;
+    def->min = 1.;
+    def->max = 59.;
+    def->set_default_value(new ConfigOptionFloat(10.));
+
+    def = this->add("wall_distribution_count", coInt);
+    def->label = L("Perimeter distribution count");
+    def->category = L("Quality");
+    def->tooltip = L("The number of perimeters, counted from the center, over which the variation needs to be "
+        "spread. Lower values mean that the outer perimeters don't change in width");
+    def->mode = comAdvanced;
+    def->min = 1;
+    def->set_default_value(new ConfigOptionInt(1));
+
+    def = this->add("min_feature_size", coPercent);
+    def->label = L("Minimum feature size");
+    def->category = L("Quality");
+    def->tooltip = L("Minimum thickness of thin features. Model features that are thinner than this value will "
+        "not be printed, while features thicker than the Minimum feature size will be widened to "
+        "the Minimum perimeter width. "
+        "It's expressed as a percentage over nozzle diameter");
+    def->sidetext = L("%");
+    def->mode = comAdvanced;
+    def->min = 0;
+    def->set_default_value(new ConfigOptionPercent(25));
+
+    def = this->add("min_bead_width", coPercent);
+    def->label = L("Minimum perimeter width");
+    def->category = L("Quality");
+    def->tooltip = L("Width of the perimeter that will replace thin features (according to the Minimum feature size) "
+        "of the model. If the Minimum perimeter width is thinner than the thickness of the feature,"
+        " the perimeter will become as thick as the feature itself. "
+        "It's expressed as a percentage over nozzle diameter");
+    def->sidetext = L("%");
+    def->mode = comAdvanced;
+    def->min = 0;
+    def->set_default_value(new ConfigOptionPercent(85));
 
     // Declare retract values for filament profile, overriding the printer's extruder profile.
     for (const char *opt_key : {
