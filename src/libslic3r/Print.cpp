@@ -137,7 +137,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "curr_bed_type",
         "nozzle_volume",
         "nozzle_hrc",
-        "required_nozzle_HRC"
+        "required_nozzle_HRC",
+        "upward_compatible_machine"
     };
 
     static std::unordered_set<std::string> steps_ignore;

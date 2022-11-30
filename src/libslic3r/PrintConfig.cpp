@@ -778,6 +778,13 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings());
     def->cli = ConfigOptionDef::nocli;
 
+    //BBS.
+    def        = this->add("upward_compatible_machine", coStrings);
+    def->label = L("upward compatible machine");
+    def->mode  = comDevelop;
+    def->set_default_value(new ConfigOptionStrings());
+    def->cli   = ConfigOptionDef::nocli;
+
     def = this->add("compatible_printers_condition", coString);
     def->label = L("Compatible machine condition");
     //def->tooltip = L("A boolean expression using the configuration values of an active printer profile. "

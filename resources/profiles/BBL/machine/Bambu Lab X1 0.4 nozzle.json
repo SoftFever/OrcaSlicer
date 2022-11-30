@@ -34,5 +34,8 @@
   "machine_unload_filament_time": "16",
   "nozzle_type": "stainless_steel",
   "nozzle_hrc": "20",
-  "auxiliary_fan": "0"
+  "auxiliary_fan": "0",
+  "upward_compatible_machine":[
+    "Bambu Lab X1 Carbon 0.4 nozzle"
+  ]
 }
