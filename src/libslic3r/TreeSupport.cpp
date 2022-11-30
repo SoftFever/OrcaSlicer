@@ -30,6 +30,7 @@
 #define NO_INDEX (std::numeric_limits<unsigned int>::max())
 
 // #define SUPPORT_TREE_DEBUG_TO_SVG
+
 namespace Slic3r
 {
 #define unscale_(val) ((val) * SCALING_FACTOR)
@@ -1398,7 +1399,6 @@ void TreeSupport::generate_toolpaths()
 
     const size_t wall_count = object_config.tree_support_wall_count.value;
     const bool with_infill = object_config.support_base_pattern != smpNone && object_config.support_base_pattern != smpDefault;
-    auto m_support_material_flow = support_material_flow(m_object, float(m_slicing_params.layer_height));
 
     // coconut: use same intensity settings as SupportMaterial.cpp
     auto m_support_material_interface_flow = support_material_interface_flow(m_object, float(m_slicing_params.layer_height));
@@ -1406,8 +1406,6 @@ void TreeSupport::generate_toolpaths()
     coordf_t bottom_interface_spacing = object_config.support_bottom_interface_spacing.value + m_support_material_interface_flow.spacing();
     coordf_t interface_density = std::min(1., m_support_material_interface_flow.spacing() / interface_spacing);
     coordf_t bottom_interface_density = std::min(1., m_support_material_interface_flow.spacing() / bottom_interface_spacing);
-    coordf_t support_spacing = object_config.support_base_pattern_spacing.value + m_support_material_flow.spacing();
-    coordf_t support_density = std::min(1., m_support_material_flow.spacing() / support_spacing);
 
     const coordf_t branch_radius = object_config.tree_support_branch_diameter.value / 2;
     const coordf_t branch_radius_scaled = scale_(branch_radius);
@@ -1517,6 +1515,9 @@ void TreeSupport::generate_toolpaths()
 
                 TreeSupportLayer* ts_layer = m_object->get_tree_support_layer(layer_id);
                 Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
+                coordf_t support_spacing         = object_config.support_base_pattern_spacing.value + support_flow.spacing();
+                coordf_t support_density         = std::min(1., support_flow.spacing() / support_spacing);
+
                 ts_layer->support_fills.no_sort = false;
 
                 for (auto& area_group : ts_layer->area_groups) {
@@ -1568,12 +1569,11 @@ void TreeSupport::generate_toolpaths()
                     }
                     else {
                         // base_areas
-                        filler_support->spacing = m_support_material_flow.spacing();
-                        Flow flow = (layer_id == 0 && m_raft_layers == 0) ? m_object->print()->brim_flow() :
-                            (m_support_params.base_fill_pattern == ipRectilinear && (layer_id % num_layers_to_change_infill_direction == 0) ? support_transition_flow(m_object) : support_flow);
-                        if (area_group.dist_to_top < 10 / layer_height) {
-                            // extra 2 walls for the top tips
-                            make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object->print(), poly, wall_count + 2, flow, false);
+                        filler_support->spacing = support_flow.spacing();
+                        Flow flow               = (layer_id == 0 && m_raft_layers == 0) ? m_object->print()->brim_flow() : support_flow;
+                        if (area_group.dist_to_top < 10 / layer_height && !with_infill) {
+                            // at least 2 walls for the top tips
+                            make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object->print(), poly, std::max(wall_count, size_t(2)), flow, false);
                         } else {
                             if (with_infill && layer_id > 0 && m_support_params.base_fill_pattern != ipLightning) {
                                 filler_support->angle = Geometry::deg2rad(object_config.support_angle.value);
@@ -3029,7 +3029,9 @@ std::vector<std::pair<coordf_t, coordf_t>> TreeSupport::plan_layer_heights(std::
         coordf_t dist = extr2z - extr1z;
 
         // Insert intermediate layers.
-        size_t n_layers_extra = size_t(ceil(dist / m_slicing_params.max_suport_layer_height));
+        size_t n_layers_extra = size_t(ceil(dist / (m_slicing_params.max_suport_layer_height + EPSILON)));
+        int actual_internel_layers = extr2_layer_nr - extr1_layer_nr - 1;
+        int extr_layers_left = extr2_layer_nr - extr1_layer_nr - n_layers_extra - 1;
         if (n_layers_extra < 1)
             continue;
 
@@ -3038,8 +3040,7 @@ std::vector<std::pair<coordf_t, coordf_t>> TreeSupport::plan_layer_heights(std::
         assert(step >= layer_height - EPSILON);
         for (int layer_nr = extr1_layer_nr + 1; layer_nr < extr2_layer_nr; layer_nr++) {
             // if (curr_layer_nodes.empty()) continue;
-
-            if (std::abs(print_z - m_object->get_layer(layer_nr)->print_z) < step / 2 + EPSILON) {
+            if (std::abs(print_z - m_object->get_layer(layer_nr)->print_z) < step / 2 + EPSILON || extr_layers_left < 1) {
                 layer_heights[layer_nr].first = print_z;
                 layer_heights[layer_nr].second = step;
                 print_z += step;
@@ -3048,6 +3049,7 @@ std::vector<std::pair<coordf_t, coordf_t>> TreeSupport::plan_layer_heights(std::
                 // can't clear curr_layer_nodes, or the model will have empty layers
                 layer_heights[layer_nr].first = 0.0;
                 layer_heights[layer_nr].second = 0.0;
+                extr_layers_left--;
             }
         }
     }
