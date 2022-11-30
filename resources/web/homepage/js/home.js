@@ -203,6 +203,7 @@ function ShowRecentFileList( pList )
 
 function ShowRecnetFileContextMenu()
 {
+	$("#recnet_context_menu").offset({top: 10000, left:-10000});
 	$('#recnet_context_menu').show();
 	
 	let ContextMenuWidth=$('#recnet_context_menu').width();
@@ -214,10 +215,10 @@ function ShowRecnetFileContextMenu()
 	let RealX=MousePosX;
 	let RealY=MousePosY;
 	
-	if( MousePosX + ContextMenuWidth >DocumentWidth )
-		RealX=MousePosX-ContextMenuWidth;
-	if( MousePosY+ContextMenuHeight>DocumentHeight )
-		RealY=MousePosY-ContextMenuHeight;
+	if( MousePosX + ContextMenuWidth + 24 >DocumentWidth )
+		RealX=DocumentWidth-ContextMenuWidth-24;
+	if( MousePosY+ContextMenuHeight+24>DocumentHeight )
+		RealY=DocumentHeight-ContextMenuHeight-24;
 	
 	$("#recnet_context_menu").offset({top: RealY, left:RealX});
 }

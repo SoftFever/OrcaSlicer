@@ -219,6 +219,7 @@ body
 	display: flex;
 	flex-direction: column;
 	position: relative;
+	height: 100%;
 }
 
 #MenuArea
@@ -391,6 +392,7 @@ body
 	color: #323A3D;
 	background-color: #fff;
     display: none;
+	z-index: 1;
 }
 
 .CT_Item
