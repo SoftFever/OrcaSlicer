@@ -821,8 +821,7 @@ void TreeSupport::detect_object_overhangs()
             region2clusterInd.emplace(&region, regionClusters.size() - 1);
         }
     };
-
-    has_sharp_tail = false;
+    // main part of sharptail detections
     if (std::set<SupportType>{stTreeAuto, stHybridAuto, stTree}.count(stype))// == stTreeAuto || stype == stHybridAuto || stype == stTree)
     {
         double threshold_rad = (config.support_threshold_angle.value < EPSILON ? 30 : config.support_threshold_angle.value+1) * M_PI / 180.;
@@ -902,7 +901,6 @@ void TreeSupport::detect_object_overhangs()
                     overhangs_sharp_tail = diff_ex(overhangs_sharp_tail, overhang_areas);
                 }
                 if (!overhangs_sharp_tail.empty()) {
-                    has_sharp_tail = true;
                     append(layer->sharp_tails, overhangs_sharp_tail);
                     overhang_areas = union_ex(overhang_areas, overhangs_sharp_tail);
             }
@@ -971,7 +969,6 @@ void TreeSupport::detect_object_overhangs()
                     } while (0);
 
                     if (is_sharp_tail) {
-                        has_sharp_tail      = true;
                         ExPolygons overhang = diff_ex({expoly}, lower_layer->lslices);
                         layer->sharp_tails.push_back(expoly);
                         layer->sharp_tails_height.insert({ &expoly, accum_height });
@@ -1136,6 +1133,7 @@ void TreeSupport::detect_object_overhangs()
         }
     }
 
+    has_overhangs = false;
     for (int layer_nr = 0; layer_nr < m_object->layer_count(); layer_nr++) {
         if (m_object->print()->canceled())
             break;
@@ -1171,6 +1169,8 @@ void TreeSupport::detect_object_overhangs()
                 ts_layer->overhang_types.emplace(&ts_layer->overhang_areas.back(), TreeSupportLayer::Enforced);
             }
         }
+
+        if (!ts_layer->overhang_areas.empty()) has_overhangs = true;
     }
 
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
@@ -1892,6 +1892,8 @@ void TreeSupport::generate_support_areas()
     m_object->print()->set_status(55, _L("Support: detect overhangs"));
     detect_object_overhangs();
     profiler.stage_finish(STAGE_DETECT_OVERHANGS);
+
+    if (!has_overhangs) return;
 
     // Generate contact points of tree support
     profiler.stage_start(STAGE_GENERATE_CONTACT_NODES);

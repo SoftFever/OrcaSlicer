@@ -213,6 +213,8 @@ void Generator::generateTrees(const PrintObject &print_object)
 
 void Generator::generateTreesforSupport(std::vector<Polygons>& contours)
 {
+    if (contours.empty()) return;
+
     m_lightning_layers.resize(contours.size());
     bboxs.resize(contours.size());
 
