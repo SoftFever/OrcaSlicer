@@ -1096,7 +1096,8 @@ int MachineObject::get_curr_stage_idx()
 
 bool MachineObject::is_in_calibration()
 {
-    if (boost::contains(m_gcode_file, "auto_cali_for_user.gcode")
+    // gcode file: auto_cali_for_user.gcode or auto_cali_for_user_param
+    if (boost::contains(m_gcode_file, "auto_cali_for_user")
         && stage_curr != 0) {
         return true;
     } else {
@@ -2530,7 +2531,8 @@ int MachineObject::parse_json(std::string payload)
                                 }
                             }
 
-                            if (jj["ams"].contains("insert_flag") || jj["ams"].contains("power_on_flag")) {
+                            if (jj["ams"].contains("insert_flag") || jj["ams"].contains("power_on_flag")
+                                || jj["ams"].contains("calibrate_remain_flag")) {
                                 if (ams_user_setting_hold_count > 0) {
                                     ams_user_setting_hold_count--;
                                 } else {
