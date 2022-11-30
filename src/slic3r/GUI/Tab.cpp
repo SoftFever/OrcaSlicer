@@ -1889,6 +1889,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("tree_support_wall_count");
         optgroup->append_single_option_line("tree_support_with_infill");
         optgroup->append_single_option_line("support_top_z_distance", "support#top-z-distance");
+        optgroup->append_single_option_line("support_bottom_z_distance", "support#bottom-z-distance");
         optgroup->append_single_option_line("support_base_pattern", "support#base-pattern");
         optgroup->append_single_option_line("support_base_pattern_spacing", "support#base-pattern");
         //optgroup->append_single_option_line("support_angle");
@@ -3449,8 +3450,8 @@ void TabPrinter::toggle_options()
         // Disable silent mode for non-marlin firmwares.
         toggle_option("silent_mode", is_marlin_flavor);
         //BBS: extruder clearance of BBL printer can't be edited.
-        for (auto el : { "extruder_clearance_radius", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
-            toggle_option(el, !is_BBL_printer);
+        //for (auto el : { "extruder_clearance_radius", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
+        //    toggle_option(el, !is_BBL_printer);
 
         // SoftFever: hide BBL specific settings
         for (auto el :
