@@ -539,6 +539,9 @@ public:
     bool camera_recording { false };
     bool camera_recording_when_printing { false };
     bool camera_timelapse { false };
+    int  camera_recording_hold_count = 0;
+    int  camera_timelapse_hold_count = 0;
+    int  camera_resolution_hold_count = 0;
     std::string camera_resolution = "";
     bool xcam_first_layer_inspector { false };
     int  xcam_first_layer_hold_count = 0;

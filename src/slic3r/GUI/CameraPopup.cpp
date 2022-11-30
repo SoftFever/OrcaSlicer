@@ -133,7 +133,6 @@ void CameraPopup::on_switch_timelapse(wxCommandEvent& event)
         return;
     }
     bool value = m_switch_timelapse->GetValue();
-    m_switch_timelapse->SetValue(!value);
     m_obj->command_ipcam_timelapse(!value);
 }
 
@@ -145,7 +144,6 @@ void CameraPopup::on_switch_recording(wxCommandEvent& event)
         return;
     }
     bool value = m_switch_recording->GetValue();
-    m_switch_recording->SetValue(!value);
     m_obj->command_ipcam_record(!value);
 }
 
@@ -301,7 +299,6 @@ void CameraPopup::check_func_supported()
 void CameraPopup::update()
 {
     if (!m_obj) return;
-    check_func_supported();
     m_switch_timelapse->SetValue(m_obj->camera_timelapse);
     m_switch_recording->SetValue(m_obj->camera_recording_when_printing);
     sync_resolution_setting(m_obj->camera_resolution);

@@ -1605,6 +1605,7 @@ int MachineObject::command_ipcam_record(bool on_off)
     j["camera"]["command"] = "ipcam_record_set";
     j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["camera"]["control"] = on_off ? "enable" : "disable";
+    camera_recording_hold_count = HOLD_COUNT_MAX;
     return this->publish_json(j.dump());
 }
 
@@ -1614,6 +1615,7 @@ int MachineObject::command_ipcam_timelapse(bool on_off)
     j["camera"]["command"] = "ipcam_timelapse";
     j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["camera"]["control"] = on_off ? "enable" : "disable";
+    camera_timelapse_hold_count = HOLD_COUNT_MAX;
     return this->publish_json(j.dump());
 }
 
@@ -1624,6 +1626,8 @@ int MachineObject::command_ipcam_resolution_set(std::string resolution)
     j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["camera"]["resolution"] = resolution;
     BOOST_LOG_TRIVIAL(info) << "command:ipcam_resolution_set" << ", resolution:" << resolution;
+    camera_resolution_hold_count = HOLD_COUNT_MAX;
+    camera_recording_hold_count = HOLD_COUNT_MAX;
     return this->publish_json(j.dump());
 }
 
@@ -2375,19 +2379,27 @@ int MachineObject::parse_json(std::string payload)
                     try {
                         if (jj.contains("ipcam")) {
                             if (jj["ipcam"].contains("ipcam_record")) {
-                                if (jj["ipcam"]["ipcam_record"].get<std::string>() == "enable") {
-                                    camera_recording_when_printing = true;
-                                }
+                                if (camera_recording_hold_count > 0)
+                                    camera_recording_hold_count--;
                                 else {
-                                    camera_recording_when_printing = false;
+                                    if (jj["ipcam"]["ipcam_record"].get<std::string>() == "enable") {
+                                        camera_recording_when_printing = true;
+                                    }
+                                    else {
+                                        camera_recording_when_printing = false;
+                                    }
                                 }
                             }
                             if (jj["ipcam"].contains("timelapse")) {
-                                if (jj["ipcam"]["timelapse"].get<std::string>() == "enable") {
-                                    camera_timelapse = true;
-                                }
+                                if (camera_timelapse_hold_count > 0)
+                                    camera_timelapse_hold_count--;
                                 else {
-                                    camera_timelapse = false;
+                                    if (jj["ipcam"]["timelapse"].get<std::string>() == "enable") {
+                                        camera_timelapse = true;
+                                    }
+                                    else {
+                                        camera_timelapse = false;
+                                    }
                                 }
                             }
                             if (jj["ipcam"].contains("ipcam_dev")) {
@@ -2398,7 +2410,11 @@ int MachineObject::parse_json(std::string payload)
                                 }
                             }
                             if (jj["ipcam"].contains("resolution")) {
-                                camera_resolution = jj["ipcam"]["resolution"].get<std::string>();
+                                if (camera_resolution_hold_count > 0)
+                                    camera_resolution_hold_count--;
+                                else {
+                                    camera_resolution = jj["ipcam"]["resolution"].get<std::string>();
+                                }
                             }
                         }
                     }

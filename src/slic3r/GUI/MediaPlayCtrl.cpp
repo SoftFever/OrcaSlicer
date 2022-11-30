@@ -275,7 +275,7 @@ void MediaPlayCtrl::ToggleStream()
         std::string file_ff_cfg = data_dir() + "/cameratools/ffmpeg.cfg";
 #endif
         if (!boost::filesystem::exists(file_source) || !boost::filesystem::exists(file_ffmpeg) || !boost::filesystem::exists(file_ff_cfg)) {
-            auto res = MessageDialog(this, _L("Virtual Camera Tools is required for this task!\nDo you want to install them?"), _L("Info"),
+            auto res = MessageDialog(this->GetParent(), _L("Virtual Camera Tools is required for this task!\nDo you want to install them?"), _L("Info"),
                                     wxOK | wxCANCEL).ShowModal();
             if (res == wxID_OK) {
                 // download tools
@@ -321,7 +321,7 @@ void MediaPlayCtrl::ToggleStream()
         process_ffmpeg.detach();
     }
     if (!url.empty() && wxGetApp().app_config->get("not_show_vcamera_stop_prev") != "1") {
-        MessageDialog dlg(this, _L("Another virtual camera is running.\nBambu Studio supports only a single virtual camera.\nDo you want to stop this virtual camera?"), _L("Warning"),
+        MessageDialog dlg(this->GetParent(), _L("Another virtual camera is running.\nBambu Studio supports only a single virtual camera.\nDo you want to stop this virtual camera?"), _L("Warning"),
                                  wxYES | wxCANCEL | wxICON_INFORMATION);
         dlg.show_dsa_button();
         auto          res = dlg.ShowModal();
@@ -336,7 +336,7 @@ void MediaPlayCtrl::ToggleStream()
         CallAfter([this, m, url] {
             if (m != m_machine) return;
             if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
-                MessageDialog(this, wxString::Format(_L("Virtual camera initialize failed (%s)!"), url.empty() ? _L("Network unreachable") : from_u8(url)), _L("Information"),
+                MessageDialog(this->GetParent(), wxString::Format(_L("Virtual camera initialize failed (%s)!"), url.empty() ? _L("Network unreachable") : from_u8(url)), _L("Information"),
                               wxICON_INFORMATION)
                     .ShowModal();
                 return;
