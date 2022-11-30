@@ -810,13 +810,8 @@ void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_
         }
 
         // force re-render while the windows gets to its final size (it takes several frames)
-#if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
         if (ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowNextAutoFitSize(ImGui::GetCurrentWindow()).x)
             imgui.set_requires_extra_frame();
-#else
-        if (ImGui::GetWindowContentRegionWidth() + 2.0f * ImGui::GetStyle().WindowPadding.x != ImGui::CalcWindowNextAutoFitSize(ImGui::GetCurrentWindow()).x)
-            m_canvas.request_extra_frame();
-#endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
 
         imgui.end();
         ImGui::PopStyleColor();
@@ -3027,8 +3022,8 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'C':
         case 'c': { m_gcode_viewer.toggle_gcode_window_visibility(); m_dirty = true; request_extra_frame(); break; }
 #endif
-        //case 'E':
-        //case 'e': { m_labels.show(!m_labels.is_shown()); m_dirty = true; break; }
+        case 'E':
+        case 'e': { m_labels.show(!m_labels.is_shown()); m_dirty = true; break; }
         //case 'G':
         //case 'g': {
         //    if ((evt.GetModifiers() & shiftMask) != 0) {

@@ -1721,15 +1721,16 @@ wxDataViewItem ObjectDataViewModel::ReorganizeObjects(  const int current_id, co
 
     ObjectDataViewModelNode* deleted_node = m_objects[current_id];
     m_objects.erase(m_objects.begin() + current_id);
-    ItemDeleted(wxDataViewItem(nullptr), wxDataViewItem(deleted_node));
+    ItemDeleted(wxDataViewItem(deleted_node->m_parent), wxDataViewItem(deleted_node));
 
     m_objects.emplace(m_objects.begin() + new_id, deleted_node);
-    ItemAdded(wxDataViewItem(nullptr), wxDataViewItem(deleted_node));
+    ItemAdded(wxDataViewItem(deleted_node->m_parent), wxDataViewItem(deleted_node));
+
+    //ItemChanged(wxDataViewItem(nullptr));
 
     // If some item has a children, just to add a deleted item is not enough on Linux
     // We should to add all its children separately
     AddAllChildren(wxDataViewItem(deleted_node));
-
     return wxDataViewItem(deleted_node);
 }
 
@@ -1832,14 +1833,12 @@ unsigned int ObjectDataViewModel::GetChildren(const wxDataViewItem &parent, wxDa
 		return 0;
 	}
 
-	unsigned int count = node->GetChildren().GetCount();
-	for (unsigned int pos = 0; pos < count; pos++)
-	{
-		ObjectDataViewModelNode *child = node->GetChildren().Item(pos);
-		array.Add(wxDataViewItem((void*)child));
-	}
+    for (auto object : m_objects)
+    {
+        array.Add(wxDataViewItem((void*)object));
+    }
 
-	return count;
+    return array.size();
 }
 
 void ObjectDataViewModel::GetAllChildren(const wxDataViewItem &parent, wxDataViewItemArray &array) const

@@ -400,9 +400,17 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
         const PrintInstance *print_instance;
         BoundingBox    bounding_box;
         Polygon        hull_polygon;
-        int                  index;
+        int                  object_index;
         double         arrange_score;
         double               height;
+    };
+    auto find_object_index = [](const Model& model, const ModelObject* obj) {
+        for (int index = 0; index < model.objects.size(); index++)
+        {
+            if (model.objects[index] == obj)
+                return index;
+        }
+        return -1;
     };
     std::vector<struct print_instance_info> print_instance_with_bounding_box;
     {
@@ -481,6 +489,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                 }
                 struct print_instance_info print_info {&instance, convex_hull.bounding_box(), convex_hull};
                 print_info.height = instance.print_object->height();
+                print_info.object_index = find_object_index(print.model(), print_object->model_object());
                 print_instance_with_bounding_box.push_back(std::move(print_info));
                 convex_hulls_other.emplace_back(std::move(convex_hull));
             }
@@ -500,6 +509,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
     double hc2              = scale_(print.config().extruder_clearance_height_to_rod); // height to rod
     double printable_height = scale_(print.config().printable_height);
 
+#if 0 //do not sort anymore, use the order in object list
     auto bed_points = get_bed_shape(print_config);
     float bed_width = bed_points[1].x() - bed_points[0].x();
     // 如果扩大以后的多边形的距离小于这个值，就需要严格保证从左到右的打印顺序，否则会撞工具头右侧
@@ -591,7 +601,16 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
     for (auto &inst : print_instance_with_bounding_box)
         BOOST_LOG_TRIVIAL(debug) << "after sorting print_instance " << inst.print_instance->model_instance->get_object()->name << ", score: " << inst.arrange_score
                                  << ", height:"<< inst.height;
+#else
+    // sort the print instance
+    std::sort(print_instance_with_bounding_box.begin(), print_instance_with_bounding_box.end(),
+        [](print_instance_info& l, print_instance_info& r) {return l.object_index < r.object_index;});
 
+    for (auto &inst : print_instance_with_bounding_box)
+        BOOST_LOG_TRIVIAL(debug) << "after sorting print_instance " << inst.print_instance->model_instance->get_object()->name << ", object_index: " << inst.object_index
+                                 << ", height:"<< inst.height;
+
+#endif
     // sequential_print_vertical_clearance_valid
     {
         // Ignore the last instance printed.
@@ -620,7 +639,6 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
             if (has_interlaced_objects)
                 break;
         }*/
-
 
         // if objects are not overlapped on y-axis, they will not collide even if they are taller than extruder_clearance_height_to_rod
         int print_instance_count = print_instance_with_bounding_box.size();
