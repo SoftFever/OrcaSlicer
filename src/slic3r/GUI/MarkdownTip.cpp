@@ -236,9 +236,9 @@ void MarkdownTip::RunScript(std::string const& script)
 wxWebView* MarkdownTip::CreateTipView(wxWindow* parent)
 {
     wxWebView *tipView = WebView::CreateWebView(parent, "");
-    tipView->Bind(wxEVT_WEBVIEW_LOADED, &MarkdownTip::OnLoaded, this);
-    tipView->Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &MarkdownTip::OnTitleChanged, this);
-    tipView->Bind(wxEVT_WEBVIEW_ERROR, &MarkdownTip::OnError, this);
+    Bind(wxEVT_WEBVIEW_LOADED, &MarkdownTip::OnLoaded, this);
+    Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &MarkdownTip::OnTitleChanged, this);
+    Bind(wxEVT_WEBVIEW_ERROR, &MarkdownTip::OnError, this);
     return tipView;
 }
 
