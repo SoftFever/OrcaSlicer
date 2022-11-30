@@ -8984,8 +8984,8 @@ void Plater::export_gcode_3mf(bool export_all)
 
 void Plater::send_gcode_finish(wxString name)
 {
-    wxString out_str = wxString::Format(_L("The file %s has been sent to the printer's storage space and can be viewed on the printer."), name);
-    p->notification_manager->push_exporting_finished_notification(out_str.ToStdString(), "", false);
+    auto out_str = GUI::format(_L("The file %s has been sent to the printer's storage space and can be viewed on the printer."), name);
+    p->notification_manager->push_exporting_finished_notification(out_str, "", false);
 }
 
 void Plater::export_core_3mf()
