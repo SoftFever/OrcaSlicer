@@ -1163,7 +1163,6 @@ void Sidebar::msw_rescale()
 
 void Sidebar::sys_color_changed()
 {
-#ifdef _WIN32
     wxWindowUpdateLocker noUpdates(this);
 
 #if 0
@@ -1192,7 +1191,6 @@ void Sidebar::sys_color_changed()
     p->frequently_changed_parameters->sys_color_changed();
 #endif
     p->object_settings->sys_color_changed();
-#endif
 
     //BBS: remove print related combos
 #if 0

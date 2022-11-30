@@ -104,7 +104,7 @@ void openFolderForFile(wxString const & file)
 @end
 
 /* textColor for NSTextField */
-@implementation NSTextField (NSTextField_Extended)
+@implementation NSTextField (textColor)
 
 - (void)setTextColor2:(NSColor *)textColor
 {
@@ -125,6 +125,26 @@ void openFolderForFile(wxString const & file)
     Method setTextColor = class_getInstanceMethod([NSTextField class], @selector(setTextColor:));
     Method setTextColor2 = class_getInstanceMethod([NSTextField class], @selector(setTextColor2:));
     method_exchangeImplementations(setTextColor, setTextColor2);
+}
+
+@end
+
+/* drawsBackground for NSTextField */
+@implementation NSTextField (drawsBackground)
+
+- (instancetype)initWithFrame2:(NSRect)frameRect
+{
+    [self initWithFrame2:frameRect];
+    self.drawsBackground = false;
+    return self;
+}
+
+
++ (void) load
+{
+    Method initWithFrame = class_getInstanceMethod([NSTextField class], @selector(initWithFrame:));
+    Method initWithFrame2 = class_getInstanceMethod([NSTextField class], @selector(initWithFrame2:));
+    method_exchangeImplementations(initWithFrame, initWithFrame2);
 }
 
 @end
