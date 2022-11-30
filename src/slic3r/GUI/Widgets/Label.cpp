@@ -1,3 +1,4 @@
+#include "libslic3r/Utils.hpp"
 #include "Label.hpp"
 #include "StaticBox.hpp"
 
@@ -41,6 +42,18 @@ wxFont Label::Body_9;
 
 void Label::initSysFont()
 {
+#ifdef __linux__
+    const std::string& resource_path = Slic3r::resources_dir();
+    wxString font_path = wxString::FromUTF8(resource_path+"/fonts/HarmonyOS_Sans_SC_Bold.ttf");
+    bool result = wxFont::AddPrivateFont(font_path);
+    //BOOST_LOG_TRIVIAL(info) << boost::format("add font of HarmonyOS_Sans_SC_Bold returns %1%")%result;
+    printf("add font of HarmonyOS_Sans_SC_Bold returns %d\n", result);
+    font_path = wxString::FromUTF8(resource_path+"/fonts/HarmonyOS_Sans_SC_Regular.ttf");
+    result = wxFont::AddPrivateFont(font_path);
+    //BOOST_LOG_TRIVIAL(info) << boost::format("add font of HarmonyOS_Sans_SC_Regular returns %1%")%result;
+    printf("add font of HarmonyOS_Sans_SC_Regular returns %d\n", result);
+#endif
+
     Head_24 = Label::sysFont(24, true);
     Head_20 = Label::sysFont(20, true);
     Head_18 = Label::sysFont(18, true);
@@ -215,7 +228,7 @@ Label::Label(wxWindow *parent, wxFont const &font, wxString const &text, long st
     SetBackgroundColour(StaticBox::GetParentBackgroundColor(parent));
     if (style & LB_PROPAGATE_MOUSE_EVENT) {
         for (auto evt : {
-            wxEVT_LEFT_UP, wxEVT_LEFT_DOWN}) 
+            wxEVT_LEFT_UP, wxEVT_LEFT_DOWN})
             Bind(evt, [this] (auto & e) { GetParent()->GetEventHandler()->ProcessEventLocally(e); });
         };
     }
