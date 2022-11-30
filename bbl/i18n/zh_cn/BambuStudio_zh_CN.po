@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-24 09:19+0800\n"
+"POT-Creation-Date: 2022-11-30 20:15+0800\n"
 "PO-Revision-Date: 2022-11-29 20:47+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1537,6 +1537,25 @@ msgid ""
 "last shutdown."
 msgstr "AMS不会在启动时自动读取耗材丝信息。它会使用上次关机前记录的信息。"
 
+msgid "Update remaining capacity"
+msgstr "更新剩余容量"
+
+msgid ""
+"The AMS will estimate Bambu filament's remaining capacity after the filament "
+"info is updated. During printing, remaining capacity will be updated "
+"automatically."
+msgstr ""
+"AMS读取Bambu Lab耗材丝信息同时推算料卷的剩余容量。在打印过程中，剩余容量会自"
+"动更新。"
+
+msgid "AMS auto switch filament"
+msgstr "AMS自动续料"
+
+msgid ""
+"AMS switches to the same type of filament automatically when the current "
+"filament runs out."
+msgstr "AMS料材耗尽后将自动切换相同类型的料材。"
+
 msgid "File"
 msgstr "文件"
 
@@ -2096,9 +2115,6 @@ msgstr ""
 msgid "Total"
 msgstr "总计"
 
-msgid "Filamet"
-msgstr ""
-
 msgid "Travel"
 msgstr "空驶"
 
@@ -2373,6 +2389,21 @@ msgstr "延时摄影"
 
 msgid "Monitoring Recording"
 msgstr "监控录像"
+
+msgid "Virtual Camera"
+msgstr "虚拟摄像头"
+
+msgid "Resolution"
+msgstr "分辨率"
+
+msgid "Show 'Streaming Video' guide page."
+msgstr ""
+
+msgid "720p"
+msgstr ""
+
+msgid "1080p"
+msgstr ""
 
 msgid "ConnectPrinter(LAN)"
 msgstr "连接打印机（局域网）"
@@ -2822,13 +2853,6 @@ msgstr "虚拟摄像头初始化失败(%s)！"
 msgid "Information"
 msgstr "信息"
 
-msgid ""
-"Virtual camera is started.\n"
-"Press 'OK' to navigate the guide page of 'Streaming video of Bambu Printer'."
-msgstr ""
-"虚拟摄像头已经启动。点击“确认”打开相关帮助页面：'Streaming video of Bambu "
-"Printer'。"
-
 msgid "Playing..."
 msgstr "正在播放中……"
 
@@ -2947,8 +2971,14 @@ msgstr "交换Y/Z轴"
 msgid "Camera"
 msgstr "摄像机"
 
-msgid "Virtual Camera"
-msgstr "虚拟摄像头"
+msgid "SD Card"
+msgstr ""
+
+msgid "SD Card Abnormal"
+msgstr ""
+
+msgid "Camera Setting"
+msgstr ""
 
 msgid "Printing Progress"
 msgstr "打印进度"
@@ -3007,6 +3037,15 @@ msgstr "下载中..."
 msgid "Cloud Slicing..."
 msgstr ""
 
+msgid "Please heat the nozzle to above 170 degree before loading filament."
+msgstr ""
+
+msgid "Still unload"
+msgstr ""
+
+msgid "Still load"
+msgstr ""
+
 msgid ""
 "Cannot read filament info: the filament is loaded to the tool head,please "
 "unload the filament and try again."
@@ -3026,6 +3065,9 @@ msgstr "运动"
 
 msgid "Ludicrous"
 msgstr "狂暴"
+
+msgid "Can't start this without SD card."
+msgstr ""
 
 msgid "Failed to connect to the server"
 msgstr "无法连接服务器"
@@ -3883,6 +3925,15 @@ msgstr "编辑预设"
 msgid "Project-inside presets"
 msgstr "项目预设"
 
+msgid "Add/Remove filaments"
+msgstr "添加/删除材料"
+
+msgid "Add/Remove materials"
+msgstr "添加/删除材料"
+
+msgid "Add/Remove printers"
+msgstr "添加/删除打印机"
+
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr "正在切片以获取切片信息和预估打印时间"
 
@@ -4111,6 +4162,12 @@ msgstr "请在发起打印前插入SD卡"
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "开启延迟摄影功能需要插入SD卡"
 
+msgid "Cannot send the print task when the printer need force upgrading."
+msgstr ""
+
+msgid "Errors"
+msgstr ""
+
 msgid ""
 "Please check the following infomation and click Confirm to continue sending "
 "print:\n"
@@ -4123,6 +4180,10 @@ msgid ""
 msgstr ""
 "用于生成G-code的打印机类型与当前选定的物理打印机类型不同，建议选择相同的打印"
 "机类型重新切片。\n"
+
+#, c-format, boost-format
+msgid "The %s filament is too soft to be used with the AMS"
+msgstr ""
 
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
@@ -4555,6 +4616,11 @@ msgstr "常规"
 
 msgid "Capabilities"
 msgstr "能力"
+
+msgid ""
+"The P1P printer is not support smooth timelapse, it will not transform the "
+"timelapse changes."
+msgstr ""
 
 msgid "Show all presets (including incompatible)"
 msgstr "显示所有预设(包括不兼容的)"
@@ -5781,6 +5847,12 @@ msgstr "直线排列"
 msgid "Hilbert Curve"
 msgstr "希尔伯特曲线"
 
+msgid "Archimedean Chords"
+msgstr "阿基米德和弦"
+
+msgid "Octagram Spiral"
+msgstr "八角螺旋"
+
 msgid "Bottom surface pattern"
 msgstr "底面图案"
 
@@ -6036,6 +6108,12 @@ msgstr "蜂窝"
 
 msgid "Adaptive Cubic"
 msgstr "自适应立方体"
+
+msgid "3D Honeycomb"
+msgstr "3D 蜂窝"
+
+msgid "Support Cubic"
+msgstr "支撑立方体"
 
 msgid "Lightning"
 msgstr "闪电"
@@ -6505,9 +6583,6 @@ msgid ""
 msgstr ""
 "模型会在相应层数的支撑上抬高进行打印。使用该功能通常用于打印ABS时翘曲。"
 
-msgid "Resolution"
-msgstr "分辨率"
-
 msgid ""
 "G-code path is genereated after simplifing the contour of model to avoid too "
 "much points and gcode lines in gcode file. Smaller value means higher "
@@ -6758,6 +6833,12 @@ msgstr "顶部Z距离"
 msgid "The z gap between the top support interface and object"
 msgstr "支撑顶部和模型之间的z间隙"
 
+msgid "Bottom Z distance"
+msgstr "底部Z距离"
+
+msgid "The z gap between the bottom support interface and object"
+msgstr "支撑生成于模型表面时，支撑面底部和模型之间的z间隙"
+
 msgid ""
 "Filament to print support and skirt. 0 means no specific filament for "
 "support and current filament is used"
@@ -6828,6 +6909,12 @@ msgstr "主体图案线距"
 msgid "Spacing between support lines"
 msgstr "支撑线距"
 
+msgid "Normal Support expansion"
+msgstr ""
+
+msgid "Expand (+) or shrink (-) the horizontal span of normal support"
+msgstr ""
+
 msgid "Speed of support"
 msgstr "支撑打印速度"
 
@@ -6882,14 +6969,6 @@ msgstr "树状支撑外墙层数"
 
 msgid "This setting specify the count of walls around tree support"
 msgstr "树状支撑外墙层数"
-
-msgid "Tree support with infill"
-msgstr "树状支撑生成填充"
-
-msgid ""
-"This setting specifies whether to add infill inside large hollows of tree "
-"support"
-msgstr "这个设置决定是否为树状支撑内部的空腔生成填充。"
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "除首层外的其它层的喷嘴温度"
@@ -7061,6 +7140,18 @@ msgstr "导出3MF"
 
 msgid "Export project as 3MF."
 msgstr "导出项目为3MF。"
+
+msgid "Export slicing data"
+msgstr ""
+
+msgid "Export slicing data to a folder."
+msgstr ""
+
+msgid "Load slicing data"
+msgstr ""
+
+msgid "Load cached slicing data from directory"
+msgstr ""
 
 msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
 msgstr ""
@@ -7454,6 +7545,22 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid ""
+#~ "Virtual camera is started.\n"
+#~ "Press 'OK' to navigate the guide page of 'Streaming video of Bambu "
+#~ "Printer'."
+#~ msgstr ""
+#~ "虚拟摄像头已经启动。点击“确认”打开相关帮助页面：'Streaming video of Bambu "
+#~ "Printer'。"
+
+#~ msgid "Tree support with infill"
+#~ msgstr "树状支撑生成填充"
+
+#~ msgid ""
+#~ "This setting specifies whether to add infill inside large hollows of tree "
+#~ "support"
+#~ msgstr "这个设置决定是否为树状支撑内部的空腔生成填充。"
 
 #~ msgid "Entering Seam painting"
 #~ msgstr "进入Z缝绘制"
@@ -9292,12 +9399,6 @@ msgstr ""
 #~ msgid "mm/s or %"
 #~ msgstr "mm/s 或 %"
 
-#~ msgid "Bottom Z distance"
-#~ msgstr "底部Z距离"
-
-#~ msgid "The z gap between the bottom support interface and object"
-#~ msgstr "支撑生成于模型表面时，支撑面底部和模型之间的z间隙"
-
 #~ msgid "Wall around the support"
 #~ msgstr "支撑外壁"
 
@@ -9380,9 +9481,6 @@ msgstr ""
 #~ msgid "Switch Language"
 #~ msgstr "切换语言"
 
-#~ msgid "Add/Remove printers"
-#~ msgstr "添加/删除打印机"
-
 #~ msgid ""
 #~ "Speed of outer wall which is outermost and visible. It's relative to "
 #~ "inner wall speed if expressed as percentage"
@@ -9464,12 +9562,6 @@ msgstr ""
 
 #~ msgid "Exporting finished."
 #~ msgstr "导出完成。"
-
-#~ msgid "Add/Remove filaments"
-#~ msgstr "添加/删除材料"
-
-#~ msgid "Add/Remove materials"
-#~ msgstr "添加/删除材料"
 
 #~ msgid "System Information"
 #~ msgstr "系统信息"

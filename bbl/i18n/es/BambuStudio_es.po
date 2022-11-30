@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-24 09:19+0800\n"
+"POT-Creation-Date: 2022-11-30 20:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1597,6 +1597,23 @@ msgstr ""
 "durante el arranque y seguirá utilizando la información registrada antes del "
 "último apagado."
 
+msgid "Update remaining capacity"
+msgstr ""
+
+msgid ""
+"The AMS will estimate Bambu filament's remaining capacity after the filament "
+"info is updated. During printing, remaining capacity will be updated "
+"automatically."
+msgstr ""
+
+msgid "AMS auto switch filament"
+msgstr ""
+
+msgid ""
+"AMS switches to the same type of filament automatically when the current "
+"filament runs out."
+msgstr ""
+
 msgid "File"
 msgstr "Archivo"
 
@@ -2182,9 +2199,6 @@ msgstr ""
 msgid "Total"
 msgstr "Total"
 
-msgid "Filamet"
-msgstr ""
-
 msgid "Travel"
 msgstr "Recorrido"
 
@@ -2457,6 +2471,21 @@ msgstr "Timelapse"
 
 msgid "Monitoring Recording"
 msgstr "Monitoreo de grabación"
+
+msgid "Virtual Camera"
+msgstr ""
+
+msgid "Resolution"
+msgstr "Resolución"
+
+msgid "Show 'Streaming Video' guide page."
+msgstr ""
+
+msgid "720p"
+msgstr ""
+
+msgid "1080p"
+msgstr ""
 
 msgid "ConnectPrinter(LAN)"
 msgstr "Conectar Impresora (LAN)"
@@ -2900,11 +2929,6 @@ msgstr ""
 msgid "Information"
 msgstr ""
 
-msgid ""
-"Virtual camera is started.\n"
-"Press 'OK' to navigate the guide page of 'Streaming video of Bambu Printer'."
-msgstr ""
-
 msgid "Playing..."
 msgstr "Reproduciendo..."
 
@@ -3023,7 +3047,13 @@ msgstr "Intercambiar los ejes Y/Z"
 msgid "Camera"
 msgstr ""
 
-msgid "Virtual Camera"
+msgid "SD Card"
+msgstr ""
+
+msgid "SD Card Abnormal"
+msgstr ""
+
+msgid "Camera Setting"
 msgstr ""
 
 msgid "Printing Progress"
@@ -3083,6 +3113,15 @@ msgstr "Descargando…"
 msgid "Cloud Slicing..."
 msgstr ""
 
+msgid "Please heat the nozzle to above 170 degree before loading filament."
+msgstr ""
+
+msgid "Still unload"
+msgstr ""
+
+msgid "Still load"
+msgstr ""
+
 msgid ""
 "Cannot read filament info: the filament is loaded to the tool head,please "
 "unload the filament and try again."
@@ -3102,6 +3141,9 @@ msgstr "Deportivo"
 
 msgid "Ludicrous"
 msgstr "Lúdico"
+
+msgid "Can't start this without SD card."
+msgstr ""
 
 msgid "Failed to connect to the server"
 msgstr "No se ha podido conectar con el servidor"
@@ -3981,6 +4023,15 @@ msgstr "Editar ajuste preestablecido"
 msgid "Project-inside presets"
 msgstr "Preajustes internos del proyecto"
 
+msgid "Add/Remove filaments"
+msgstr ""
+
+msgid "Add/Remove materials"
+msgstr ""
+
+msgid "Add/Remove printers"
+msgstr ""
+
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr ""
 "Rebana todas las piezas para obtener una estimación del tiempo y del "
@@ -4216,6 +4267,12 @@ msgstr ""
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr ""
 
+msgid "Cannot send the print task when the printer need force upgrading."
+msgstr ""
+
+msgid "Errors"
+msgstr ""
+
 msgid ""
 "Please check the following infomation and click Confirm to continue sending "
 "print:\n"
@@ -4225,6 +4282,10 @@ msgid ""
 "The printer type used to generate G-code is not the same type as the "
 "currently selected physical printer. It is recommend to re-slice by "
 "selecting the same printer type.\n"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The %s filament is too soft to be used with the AMS"
 msgstr ""
 
 msgid ""
@@ -4685,6 +4746,11 @@ msgstr "General"
 
 msgid "Capabilities"
 msgstr "Capacidades"
+
+msgid ""
+"The P1P printer is not support smooth timelapse, it will not transform the "
+"timelapse changes."
+msgstr ""
 
 msgid "Show all presets (including incompatible)"
 msgstr ""
@@ -5987,6 +6053,12 @@ msgstr ""
 msgid "Hilbert Curve"
 msgstr ""
 
+msgid "Archimedean Chords"
+msgstr ""
+
+msgid "Octagram Spiral"
+msgstr ""
+
 msgid "Bottom surface pattern"
 msgstr "Patrón de la superficie inferior"
 
@@ -6275,6 +6347,12 @@ msgstr "Panal de abeja"
 
 msgid "Adaptive Cubic"
 msgstr "Cúbico Adaptativo"
+
+msgid "3D Honeycomb"
+msgstr ""
+
+msgid "Support Cubic"
+msgstr ""
 
 msgid "Lightning"
 msgstr ""
@@ -6793,9 +6871,6 @@ msgstr ""
 "El objeto será elevado por este número de capas de soporte. Utilice esta "
 "función para evitar la envoltura al imprimir ABS"
 
-msgid "Resolution"
-msgstr "Resolución"
-
 msgid ""
 "G-code path is genereated after simplifing the contour of model to avoid too "
 "much points and gcode lines in gcode file. Smaller value means higher "
@@ -7058,6 +7133,12 @@ msgstr "Distancia Z superior"
 msgid "The z gap between the top support interface and object"
 msgstr "La distancia z entre la interfaz de soporte superior y el objeto"
 
+msgid "Bottom Z distance"
+msgstr ""
+
+msgid "The z gap between the bottom support interface and object"
+msgstr ""
+
 msgid ""
 "Filament to print support and skirt. 0 means no specific filament for "
 "support and current filament is used"
@@ -7139,6 +7220,12 @@ msgstr "Espaciamiento del patrón base"
 msgid "Spacing between support lines"
 msgstr "Espacio entre las líneas de apoyo"
 
+msgid "Normal Support expansion"
+msgstr ""
+
+msgid "Expand (+) or shrink (-) the horizontal span of normal support"
+msgstr ""
+
 msgid "Speed of support"
 msgstr "Velocidad de la asistencia"
 
@@ -7199,16 +7286,6 @@ msgstr "Lazos de pared de soporte para arboles"
 msgid "This setting specify the count of walls around tree support"
 msgstr ""
 "Este ajuste especifica el número de muros alrededor del soporte del árbol"
-
-msgid "Tree support with infill"
-msgstr "Soporte para árboles con relleno"
-
-msgid ""
-"This setting specifies whether to add infill inside large hollows of tree "
-"support"
-msgstr ""
-"Este ajuste especifica si se añade relleno dentro de los grandes huecos del "
-"soporte del árbol"
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Temperatura de la boquilla después de la primera capa"
@@ -7395,6 +7472,18 @@ msgstr "Exportar 3MF"
 
 msgid "Export project as 3MF."
 msgstr "Exportar el proyecto como 3MF."
+
+msgid "Export slicing data"
+msgstr ""
+
+msgid "Export slicing data to a folder."
+msgstr ""
+
+msgid "Load slicing data"
+msgstr ""
+
+msgid "Load cached slicing data from directory"
+msgstr ""
 
 msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
 msgstr "Cortar las placas: 0-todas las placas, i-placa i, otras-inválidas"
@@ -7729,6 +7818,16 @@ msgid ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 msgstr ""
+
+#~ msgid "Tree support with infill"
+#~ msgstr "Soporte para árboles con relleno"
+
+#~ msgid ""
+#~ "This setting specifies whether to add infill inside large hollows of tree "
+#~ "support"
+#~ msgstr ""
+#~ "Este ajuste especifica si se añade relleno dentro de los grandes huecos "
+#~ "del soporte del árbol"
 
 #~ msgid ""
 #~ "\n"

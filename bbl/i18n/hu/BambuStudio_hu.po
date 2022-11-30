@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-24 09:19+0800\n"
+"POT-Creation-Date: 2022-11-30 20:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1603,6 +1603,23 @@ msgstr ""
 "behelyezett filamentről, és továbbra is a legutóbbi leállítás előtt "
 "rögzített információkat használja."
 
+msgid "Update remaining capacity"
+msgstr ""
+
+msgid ""
+"The AMS will estimate Bambu filament's remaining capacity after the filament "
+"info is updated. During printing, remaining capacity will be updated "
+"automatically."
+msgstr ""
+
+msgid "AMS auto switch filament"
+msgstr ""
+
+msgid ""
+"AMS switches to the same type of filament automatically when the current "
+"filament runs out."
+msgstr ""
+
 msgid "File"
 msgstr "Fájl"
 
@@ -2178,9 +2195,6 @@ msgstr ""
 msgid "Total"
 msgstr "Összesen"
 
-msgid "Filamet"
-msgstr ""
-
 msgid "Travel"
 msgstr "Mozgás"
 
@@ -2457,6 +2471,21 @@ msgstr "Timelapse"
 
 msgid "Monitoring Recording"
 msgstr "Felvétel monitorozása"
+
+msgid "Virtual Camera"
+msgstr ""
+
+msgid "Resolution"
+msgstr "Felbontás"
+
+msgid "Show 'Streaming Video' guide page."
+msgstr ""
+
+msgid "720p"
+msgstr ""
+
+msgid "1080p"
+msgstr ""
 
 msgid "ConnectPrinter(LAN)"
 msgstr "Nyomtató csatlakoztatása (LAN)"
@@ -2905,11 +2934,6 @@ msgstr ""
 msgid "Information"
 msgstr ""
 
-msgid ""
-"Virtual camera is started.\n"
-"Press 'OK' to navigate the guide page of 'Streaming video of Bambu Printer'."
-msgstr ""
-
 msgid "Playing..."
 msgstr "Lejátszás..."
 
@@ -3028,7 +3052,13 @@ msgstr "Y/Z tengelyek felcserélése"
 msgid "Camera"
 msgstr "Kamera"
 
-msgid "Virtual Camera"
+msgid "SD Card"
+msgstr ""
+
+msgid "SD Card Abnormal"
+msgstr ""
+
+msgid "Camera Setting"
 msgstr ""
 
 msgid "Printing Progress"
@@ -3088,6 +3118,15 @@ msgstr "Letöltés..."
 msgid "Cloud Slicing..."
 msgstr ""
 
+msgid "Please heat the nozzle to above 170 degree before loading filament."
+msgstr ""
+
+msgid "Still unload"
+msgstr ""
+
+msgid "Still load"
+msgstr ""
+
 msgid ""
 "Cannot read filament info: the filament is loaded to the tool head,please "
 "unload the filament and try again."
@@ -3107,6 +3146,9 @@ msgstr "Sport"
 
 msgid "Ludicrous"
 msgstr "Őrült"
+
+msgid "Can't start this without SD card."
+msgstr ""
 
 msgid "Failed to connect to the server"
 msgstr "Nem sikerült csatlakozni a szerverhez"
@@ -3979,6 +4021,15 @@ msgstr "Beállítás módosítása"
 msgid "Project-inside presets"
 msgstr "Projekten belüli beállítások"
 
+msgid "Add/Remove filaments"
+msgstr ""
+
+msgid "Add/Remove materials"
+msgstr ""
+
+msgid "Add/Remove printers"
+msgstr ""
+
 msgid "Slice all plate to obtain time and filament estimation"
 msgstr "Szeleteld fel az összes tálcát az idő és a filament becsléséhez"
 
@@ -4209,6 +4260,12 @@ msgstr ""
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr ""
 
+msgid "Cannot send the print task when the printer need force upgrading."
+msgstr ""
+
+msgid "Errors"
+msgstr ""
+
 msgid ""
 "Please check the following infomation and click Confirm to continue sending "
 "print:\n"
@@ -4223,6 +4280,10 @@ msgstr ""
 "currently selected physical printer. It is recommend to re-slice by "
 "selecting the same printer type.\n"
 "\n"
+
+#, c-format, boost-format
+msgid "The %s filament is too soft to be used with the AMS"
+msgstr ""
 
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
@@ -4677,6 +4738,11 @@ msgstr "Általános"
 
 msgid "Capabilities"
 msgstr "Képességek"
+
+msgid ""
+"The P1P printer is not support smooth timelapse, it will not transform the "
+"timelapse changes."
+msgstr ""
 
 msgid "Show all presets (including incompatible)"
 msgstr ""
@@ -5974,6 +6040,12 @@ msgstr ""
 msgid "Hilbert Curve"
 msgstr ""
 
+msgid "Archimedean Chords"
+msgstr ""
+
+msgid "Octagram Spiral"
+msgstr ""
+
 msgid "Bottom surface pattern"
 msgstr "Alsó felület mintázata"
 
@@ -6260,6 +6332,12 @@ msgstr "Méhsejt"
 
 msgid "Adaptive Cubic"
 msgstr "Adaptív kocka"
+
+msgid "3D Honeycomb"
+msgstr ""
+
+msgid "Support Cubic"
+msgstr ""
 
 msgid "Lightning"
 msgstr ""
@@ -6776,9 +6854,6 @@ msgstr ""
 "A tárgy ennyi támaszréteggel kerül megemelésre. Ezzel a funkcióval "
 "elkerülheted a vetemedést ABS nyomtatásakor."
 
-msgid "Resolution"
-msgstr "Felbontás"
-
 msgid ""
 "G-code path is genereated after simplifing the contour of model to avoid too "
 "much points and gcode lines in gcode file. Smaller value means higher "
@@ -7049,6 +7124,12 @@ msgstr ""
 "Meghatározza a Z távolságot a felső támasz érintkező rétege és az objektum "
 "között."
 
+msgid "Bottom Z distance"
+msgstr ""
+
+msgid "The z gap between the bottom support interface and object"
+msgstr ""
+
 msgid ""
 "Filament to print support and skirt. 0 means no specific filament for "
 "support and current filament is used"
@@ -7129,6 +7210,12 @@ msgstr "Alap mintázatának térköze"
 msgid "Spacing between support lines"
 msgstr "A támasz vonalai közötti távolság"
 
+msgid "Normal Support expansion"
+msgstr ""
+
+msgid "Expand (+) or shrink (-) the horizontal span of normal support"
+msgstr ""
+
 msgid "Speed of support"
 msgstr "Támaszok sebessége"
 
@@ -7188,16 +7275,6 @@ msgstr "Fa támasz falak száma"
 
 msgid "This setting specify the count of walls around tree support"
 msgstr "Ez a beállítás határozza meg a falak számát a fa támasz körül."
-
-msgid "Tree support with infill"
-msgstr "Fa támasz kitöltéssel"
-
-msgid ""
-"This setting specifies whether to add infill inside large hollows of tree "
-"support"
-msgstr ""
-"Ez a beállítás határozza meg, hogy a fa támasz nagyobb üregeiben legyen-e "
-"kitöltés."
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Fúvóka hőmérséklete az első réteg után"
@@ -7382,6 +7459,18 @@ msgstr "3MF exportálása"
 
 msgid "Export project as 3MF."
 msgstr "Projekt exportálása 3MF formátumban."
+
+msgid "Export slicing data"
+msgstr ""
+
+msgid "Export slicing data to a folder."
+msgstr ""
+
+msgid "Load slicing data"
+msgstr ""
+
+msgid "Load cached slicing data from directory"
+msgstr ""
 
 msgid "Slice the plates: 0-all plates, i-plate i, others-invalid"
 msgstr "Tálcák szeletelése: 0 - összes tálca, i - i tálca, egyéb - érvénytelen"
@@ -7714,6 +7803,16 @@ msgid ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 msgstr ""
+
+#~ msgid "Tree support with infill"
+#~ msgstr "Fa támasz kitöltéssel"
+
+#~ msgid ""
+#~ "This setting specifies whether to add infill inside large hollows of tree "
+#~ "support"
+#~ msgstr ""
+#~ "Ez a beállítás határozza meg, hogy a fa támasz nagyobb üregeiben legyen-e "
+#~ "kitöltés."
 
 #~ msgid ""
 #~ "\n"
