@@ -471,6 +471,7 @@ void WebViewPanel::update_mode()
     */
 void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
     const wxString &url = evt.GetURL();
     if (url.StartsWith("File://") || url.StartsWith("file://")) {
         if (!url.Contains("/web/homepage/index.html")) {
@@ -506,6 +507,7 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
     */
 void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("%s", "Navigation complete; url='" + evt.GetURL() + "'");
     UpdateState();
@@ -516,7 +518,8 @@ void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
     */
 void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
 {
-    //Only notify if the document is the main frame, not a subframe
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
+    // Only notify if the document is the main frame, not a subframe
     if (evt.GetURL() == m_browser->GetCurrentURL())
     {
         if (wxGetApp().get_mode() == comDevelop)
@@ -528,6 +531,7 @@ void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
 
 void WebViewPanel::OnTitleChanged(wxWebViewEvent &evt)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << evt.GetString().ToUTF8().data();
     // wxGetApp().CallAfter([this] { SendRecentList(); });
 }
 
@@ -536,6 +540,7 @@ void WebViewPanel::OnTitleChanged(wxWebViewEvent &evt)
     */
 void WebViewPanel::OnNewWindow(wxWebViewEvent& evt)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << evt.GetURL().ToUTF8().data();
     wxString flag = " (other)";
 
     if (evt.GetNavigationAction() == wxWEBVIEW_NAV_ACTION_USER)
@@ -556,6 +561,7 @@ void WebViewPanel::OnNewWindow(wxWebViewEvent& evt)
 
 void WebViewPanel::OnScriptMessage(wxWebViewEvent& evt)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << evt.GetString().ToUTF8().data();
     // update login status
     if (m_LoginUpdateTimer == nullptr) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Create Timer";
@@ -784,7 +790,7 @@ void WebViewPanel::OnSelectAll(wxCommandEvent& WXUNUSED(evt))
 void WebViewPanel::OnError(wxWebViewEvent& evt)
 {
 #define WX_ERROR_CASE(type) \
-case type: \
+    case type: \
     category = #type; \
     break;
 
@@ -800,6 +806,8 @@ case type: \
         WX_ERROR_CASE(wxWEBVIEW_NAV_ERR_USER_CANCELLED);
         WX_ERROR_CASE(wxWEBVIEW_NAV_ERR_OTHER);
     }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": [" << category << "] " << evt.GetString().ToUTF8().data();
 
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("%s", "Error; url='" + evt.GetURL() + "', error='" + category + " (" + evt.GetString() + ")'");

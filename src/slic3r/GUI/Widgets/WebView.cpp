@@ -102,7 +102,7 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
     url2.Replace("\\", "/");
 #endif
     if (!url2.empty()) { url2 = wxURI(url2).BuildURI(); }
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << url2.ToUTF8();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << url2.ToUTF8();
 
     auto webView = wxWebView::New();
     if (webView) {
