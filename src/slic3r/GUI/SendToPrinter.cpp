@@ -359,6 +359,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
     m_rename_input->SetSize(wxSize(FromDIP(380), FromDIP(24)));
     m_rename_input->SetMinSize(wxSize(FromDIP(380), FromDIP(24)));
     m_rename_input->SetMaxSize(wxSize(FromDIP(380), FromDIP(24)));
+    m_rename_input->Bind(wxEVT_TEXT_ENTER, [this](auto& e) {on_rename_enter();});
     rename_edit_sizer_v->Add(m_rename_input, 1, wxALIGN_CENTER, 0);
 
 
