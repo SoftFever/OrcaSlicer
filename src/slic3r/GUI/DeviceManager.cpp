@@ -1138,6 +1138,7 @@ void MachineObject::parse_state_changed_event()
 
 void MachineObject::parse_status(int flag)
 {
+    is_220V_voltage             = ((flag >> 3) & 0x1) != 0;
     if (xcam_auto_recovery_hold_count > 0)
         xcam_auto_recovery_hold_count--;
     else {
@@ -1162,6 +1163,22 @@ PrintingSpeedLevel MachineObject::_parse_printing_speed_lvl(int lvl)
         return PrintingSpeedLevel(lvl);
 
     return PrintingSpeedLevel::SPEED_LEVEL_INVALID;
+}
+
+int MachineObject::get_bed_temperature_limit()
+{
+    if (printer_type == "BL-P001" || printer_type == "BL-P002") {
+        if (is_220V_voltage)
+            return 110;
+        else {
+            return 120;
+        }
+    } else {
+        int limit = BED_TEMP_LIMIT;
+        DeviceManager::get_bed_temperature_limit(printer_type, limit);
+        return limit;
+    }
+    return BED_TEMP_LIMIT;
 }
 
 bool MachineObject::is_sdcard_printing()
@@ -1772,6 +1789,7 @@ void MachineObject::reset()
     BOOST_LOG_TRIVIAL(trace) << "reset dev_id=" << dev_id;
     last_update_time = std::chrono::system_clock::now();
     m_push_count = 0;
+    is_220V_voltage = false;
     camera_recording = false;
     camera_recording_when_printing = false;
     camera_timelapse = false;
@@ -3593,6 +3611,22 @@ std::vector<std::string> DeviceManager::get_resolution_supported(std::string typ
         }
     }
     return resolution_supported;
+}
+
+bool DeviceManager::get_bed_temperature_limit(std::string type_str, int &limit)
+{
+    bool result = false;
+    if (DeviceManager::function_table.contains("printers")) {
+        for (auto printer : DeviceManager::function_table["printers"]) {
+            if (printer.contains("model_id") && printer["model_id"].get<std::string>() == type_str) {
+                if (printer.contains("bed_temperature_limit")) {
+                    limit = printer["bed_temperature_limit"].get<int>();
+                    return true;
+                }
+            }
+        }
+    }
+    return result;
 }
 
 bool DeviceManager::load_functional_config(std::string config_file)

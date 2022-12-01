@@ -22,6 +22,7 @@
 #define FILAMENT_MAX_TEMP       300
 #define FILAMENT_DEF_TEMP       220
 #define FILAMENT_MIN_TEMP       120
+#define BED_TEMP_LIMIT          120
 
 #define HOLD_COUNT_MAX          3
 
@@ -499,6 +500,10 @@ public:
 
     /* printing */
     std::string print_type;
+    float   nozzle { 0.0f };
+    bool    is_220V_voltage { false };
+
+
     int     mc_print_stage;
     int     mc_print_sub_stage;
     int     mc_print_error_code;
@@ -536,6 +541,7 @@ public:
     PrintingSpeedLevel printing_speed_lvl;
     int                printing_speed_mag = 100;
     PrintingSpeedLevel _parse_printing_speed_lvl(int lvl);
+    int get_bed_temperature_limit();
 
     /* camera */
     bool has_ipcam { false };
@@ -747,6 +753,7 @@ public:
     static bool is_function_supported(std::string type_str, std::string function_name);
     static std::vector<std::string> get_resolution_supported(std::string type_str);
 
+    static bool get_bed_temperature_limit(std::string type_str, int& limit);
     static bool load_functional_config(std::string config_file);
 };
 
