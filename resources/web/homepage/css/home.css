@@ -227,6 +227,7 @@ body
 	height: 140px;
 	display: flex;
 	align-items: center;
+	flex: 0 0 140px;
 }
 
 .MenuItem
