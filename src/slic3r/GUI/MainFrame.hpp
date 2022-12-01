@@ -83,6 +83,7 @@ protected:
 
 class MainFrame : public DPIFrame
 {
+    bool        m_reset_position{false};
     bool        m_loaded {false};
     wxTimer* m_reset_title_text_colour_timer{ nullptr };
 

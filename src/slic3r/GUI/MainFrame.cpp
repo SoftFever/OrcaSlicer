@@ -476,8 +476,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     });
 #endif
 
-    wxGetApp().persist_window_geometry(this, true);
-    wxGetApp().persist_window_geometry(&m_settings_dialog, true);
+    Bind(wxEVT_SHOW, [this](auto& e) {
+        if (!m_reset_position) {
+            wxGetApp().persist_window_geometry(this, true);
+            wxGetApp().persist_window_geometry(&m_settings_dialog, true);
+            m_reset_position = true;
+        }
+    });
+   
 
     update_ui_from_settings();    // FIXME (?)
 
