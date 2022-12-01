@@ -2839,7 +2839,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("flush_multiplier", coFloat);
     def->label = L("Flush multiplier");
-    def->tooltip = "";
+    def->tooltip = L("The actual flushing volumes is equal to the flush multiplier multiplied by the flushing volumes in the table.");
     def->sidetext = "";
     def->mode = comDevelop;
     def->min = 0;
