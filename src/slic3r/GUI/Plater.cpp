@@ -7414,7 +7414,11 @@ int Plater::save_project(bool saveAs)
         return wxID_CANCEL;
 
     //BBS export 3mf without gcode
-    export_3mf(into_path(filename), SaveStrategy::SplitModel);
+    if (export_3mf(into_path(filename), SaveStrategy::SplitModel) < 0) {
+        MessageDialog(this, _L("Failed to save project!\nPlease make sure the project file has not been opened by other program and try again."), 
+            _L("Save project"), wxOK | wxICON_WARNING).ShowModal();
+        return wxID_CANCEL;
+    }
 
     Slic3r::remove_backup(model(), false);
 

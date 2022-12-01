@@ -4750,6 +4750,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             store_params.thumbnail_data, store_params.proFn, store_params.calibration_thumbnail_data, store_params.id_bboxes, store_params.project, store_params.export_plate_idx);
         if (result) {
             boost::filesystem::rename(filename + ".tmp", filename, ec);
+            if (ec) {
+                add_error("Failed to rename file: " + ec.message());
+                boost::filesystem::remove(filename + ".tmp", ec);
+                return false;
+            }
             if (!(store_params.strategy & SaveStrategy::Silence))
                 boost::filesystem::save_string_file(store_params.model->get_backup_path() + "/origin.txt", filename);
         }
