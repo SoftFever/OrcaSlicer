@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-30 20:15+0800\n"
+"POT-Creation-Date: 2022-12-01 12:31+0800\n"
 "PO-Revision-Date: 2022-11-29 20:47+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1334,6 +1334,9 @@ msgstr "已发送完成，即将自动跳转到设备页面（%s秒）"
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "需要插入SD卡后方可发送局域网打印"
 
+msgid "Send to Printer failed. Please try again."
+msgstr ""
+
 msgid "Sending gcode file over LAN"
 msgstr "通过局域网发送gcode文件"
 
@@ -1823,6 +1826,22 @@ msgstr ""
 "自动调整这些设置？\n"
 "是 - 自动调整这些设置并开启旋转模式\n"
 "否 - 暂不使用旋转模式"
+
+msgid ""
+"Arachne engine only works when overhang slowing down is disabled.\n"
+"This may cause decline in the quality of overhang surface when print fastly\n"
+msgstr ""
+"Arachne引擎只在关闭悬垂降速时起作用。\n"
+"这可能会导致高速打印时悬垂表面质量的下降\n"
+
+msgid ""
+"Disable overhang slowing down automatically? \n"
+"Yes - Enable arachne and disable overhang slowing down\n"
+"No  - Give up using arachne this time"
+msgstr ""
+"自动关闭悬垂降速？\n"
+"是 - 使用arachne并关闭悬垂降速\n"
+"否 - 此次放弃使用arachne"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -2460,6 +2479,9 @@ msgstr "切片单盘"
 msgid "Export G-code file"
 msgstr "导出G-code文件"
 
+msgid "Send"
+msgstr "发送"
+
 msgid "Print plate"
 msgstr "打印单盘"
 
@@ -2471,6 +2493,9 @@ msgstr "导出所有切片文件"
 
 msgid "Print all"
 msgstr "打印所有盘"
+
+msgid "Send all"
+msgstr ""
 
 msgid "Keyboard Shortcuts"
 msgstr "快捷键"
@@ -3030,6 +3055,18 @@ msgstr "取消打印"
 
 msgid "Are you sure you want to cancel this print?"
 msgstr "你确定要取消这次打印吗？"
+
+#, c-format, boost-format
+msgid ""
+"Disconnected from printer [%s] due to LAN mode disabled.Please reconnect the "
+"printer by logging in with your user account."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Disconnected from printer [%s] due to LAN mode enabled.Please reconnect the "
+"printer by inputting Access Code which can be gotten from printer screen."
+msgstr ""
 
 msgid "Downloading..."
 msgstr "下载中..."
@@ -4084,9 +4121,6 @@ msgstr "热床调平"
 msgid "Flow Calibration"
 msgstr "流量校准"
 
-msgid "Send"
-msgstr "发送"
-
 msgid "send completed"
 msgstr "发送完成"
 
@@ -4199,8 +4233,8 @@ msgstr "正在准备打印任务"
 msgid "Modifying the device name"
 msgstr "修改打印机名称"
 
-msgid "Send to Printer"
-msgstr "发送到打印机"
+msgid "Send to Printer SD card"
+msgstr ""
 
 msgid "The printer is required to be in the same LAN as Bambu Studio."
 msgstr "打印机需要与Bambu Studio在同一个局域网内。"
@@ -4285,6 +4319,9 @@ msgstr "接缝"
 
 msgid "Precision"
 msgstr "精度"
+
+msgid "Wall generator"
+msgstr "墙生成器"
 
 msgid "Walls"
 msgstr "墙"
@@ -4618,8 +4655,8 @@ msgid "Capabilities"
 msgstr "能力"
 
 msgid ""
-"The P1P printer is not support smooth timelapse, it will not transform the "
-"timelapse changes."
+"The P1P printer does not support smooth timelapse, use traditional timelapse "
+"instead."
 msgstr ""
 
 msgid "Show all presets (including incompatible)"
@@ -5690,6 +5727,9 @@ msgstr "在brim和模型之间设置间隙，能够让brim更容易剥离"
 msgid "Compatible machine"
 msgstr "兼容的机器"
 
+msgid "upward compatible machine"
+msgstr ""
+
 msgid "Compatible machine condition"
 msgstr "兼容的机器的条件"
 
@@ -5771,9 +5811,6 @@ msgstr ""
 
 msgid "Thick bridges"
 msgstr "厚桥"
-
-msgid "Layers and Perimeters"
-msgstr "层和墙"
 
 msgid ""
 "If enabled, bridges are more reliable, can bridge longer distances, but may "
@@ -6271,7 +6308,7 @@ msgid "Line width of internal sparse infill"
 msgstr "内部稀疏填充的线宽"
 
 msgid "Infill/Wall overlap"
-msgstr "填充/外墙 重叠"
+msgstr "填充/墙 重叠"
 
 msgid ""
 "Infill area is enlarged slightly to overlap with wall for better bonding. "
@@ -6910,10 +6947,10 @@ msgid "Spacing between support lines"
 msgstr "支撑线距"
 
 msgid "Normal Support expansion"
-msgstr ""
+msgstr "普通支撑拓展"
 
 msgid "Expand (+) or shrink (-) the horizontal span of normal support"
-msgstr ""
+msgstr "在水平方向对普通支撑进行拓展（+）或收缩（-）"
 
 msgid "Speed of support"
 msgstr "支撑打印速度"
@@ -7063,6 +7100,11 @@ msgstr "切换耗材丝时，打印擦拭塔来让准配好喷嘴里材料。"
 msgid "Purging volumes"
 msgstr "冲刷体积"
 
+msgid ""
+"The actual flushing volumes is equal to the flush multiplier multiplied by "
+"the flushing volumes in the table."
+msgstr "实际冲刷量等于冲刷量乘数乘以表格单元中的冲刷量"
+
 msgid "Prime volume"
 msgstr "清理量"
 
@@ -7123,6 +7165,88 @@ msgid ""
 msgstr ""
 "模型外轮廓的尺寸将在X-Y方向收缩或拓展特定值。正值代表扩大。负值代表缩小。这个"
 "功能通常在模型有装配问题时微调尺寸"
+
+msgid ""
+"Classic wall generator produces walls with constant extrusion width and for "
+"very thin areas is used gap-fill. Arachne engine produces walls with "
+"variable extrusion width"
+msgstr ""
+"经典墙生成器产生的墙走线具有一致的挤出宽度，对狭窄区域使用填缝。Arachne引擎则"
+"产生变线宽的墙走线"
+
+msgid "Classic"
+msgstr "经典"
+
+msgid "Arachne"
+msgstr "Arachne"
+
+msgid "Wall transition length"
+msgstr "墙过渡长度"
+
+msgid ""
+"When transitioning between different numbers of walls as the part becomes "
+"thinner, a certain amount of space is allotted to split or join the wall "
+"segments. It's expressed as a percentage over nozzle diameter"
+msgstr ""
+"当零件逐渐变薄导致墙的层数发生变化时，需要在过渡段分配一定的空间来分割和连接"
+"墙走线。参数值表示为相对于喷嘴直径的百分比"
+
+msgid "Wall transitioning filter margin"
+msgstr "墙过渡过滤间距"
+
+msgid ""
+"Prevent transitioning back and forth between one extra wall and one less. "
+"This margin extends the range of extrusion widths which follow to [Minimum "
+"wall width - margin, 2 * Minimum wall width + margin]. Increasing this "
+"margin reduces the number of transitions, which reduces the number of "
+"extrusion starts/stops and travel time. However, large extrusion width "
+"variation can lead to under- or overextrusion problems. It's expressed as a "
+"percentage over nozzle diameter"
+msgstr ""
+"防止特定厚度变化规律的局部在多一层墙和少一层墙之间来回转换。这个参数将挤压宽"
+"度的范围扩大到[墙最小宽度-参数值, 2*墙最小宽度+参数值]。增大参数可以减少转换"
+"的次数，从而减少挤出开始/停止和空驶的时间。然而，大的挤出宽度变化会导致过挤出"
+"或欠挤出的问题。参数值表示为相对于喷嘴直径的百分比"
+
+msgid "Wall transitioning threshold angle"
+msgstr "墙过渡阈值角度"
+
+msgid ""
+"When to create transitions between even and odd numbers of walls. A wedge "
+"shape with an angle greater than this setting will not have transitions and "
+"no walls will be printed in the center to fill the remaining space. Reducing "
+"this setting reduces the number and length of these center walls, but may "
+"leave gaps or overextrude"
+msgstr "何时在偶数和奇数墙层数之间创建过渡段。角度大于这个阈值的楔形将不创建过渡段，"
+"并且不会在楔形中心打印墙走线以填补剩余空间。减小这个数值能减少中心墙走线的数量和长度，但可能会导致间隙或者过挤出"
+
+msgid "Wall distribution count"
+msgstr "墙分布计数"
+
+msgid ""
+"The number of walls, counted from the center, over which the variation needs "
+"to be spread. Lower values mean that the outer walls don't change in width"
+msgstr "从中心开始计算的墙层数，线宽变化需要分布在这些墙走线上。较低的数值意味着外墙宽度更不易被改变"
+
+msgid "Minimum feature size"
+msgstr "最小特征尺寸"
+
+msgid ""
+"Minimum thickness of thin features. Model features that are thinner than "
+"this value will not be printed, while features thicker than the Minimum "
+"feature size will be widened to the Minimum wall width. It's expressed as a "
+"percentage over nozzle diameter"
+msgstr "薄壁特征的最小厚度。比这个数值还薄的特征将不被打印，而比最小特征厚度还厚的特征将被加宽到墙最小宽度。参数值表示为相对喷嘴直径的百分比"
+
+msgid "Minimum wall width"
+msgstr "墙最小线宽"
+
+msgid ""
+"Width of the wall that will replace thin features (according to the Minimum "
+"feature size) of the model. If the Minimum wall width is thinner than the "
+"thickness of the feature, the wall will become as thick as the feature "
+"itself. It's expressed as a percentage over nozzle diameter"
+msgstr "用于替换模型细小特征（根据最小特征尺寸）的墙线宽。如果墙最小线宽小于最小特征的厚度，则墙将变得和特征本身一样厚。参数值表示为相对喷嘴直径的百分比"
 
 msgid "Detect narrow internal solid infill"
 msgstr "识别狭窄内部实心填充"
@@ -7545,6 +7669,18 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Perimeter transitioning threshold angle"
+#~ msgstr "墙过渡阈值角度"
+
+#~ msgid "Perimeter distribution count"
+#~ msgstr "墙分布计数"
+
+#~ msgid "Layers and Perimeters"
+#~ msgstr "层和墙"
+
+#~ msgid "Send to Printer"
+#~ msgstr "发送到打印机"
 
 #~ msgid ""
 #~ "Virtual camera is started.\n"

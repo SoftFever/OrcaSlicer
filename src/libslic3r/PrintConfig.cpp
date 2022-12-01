@@ -887,7 +887,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("thick_bridges", coBool);
     def->label = L("Thick bridges");
-    def->category = L("Layers and Perimeters");
+    def->category = L("Quality");
     def->tooltip = L("If enabled, bridges are more reliable, can bridge longer distances, but may look worse. "
         "If disabled, bridges look better but are reliable just for shorter bridged distances.");
     def->mode = comAdvanced;
@@ -2975,8 +2975,8 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Wall transitioning filter margin");
     def->category = L("Quality");
     def->tooltip = L("Prevent transitioning back and forth between one extra wall and one less. This "
-        "margin extends the range of extrusion widths which follow to [Minimum perimeter width "
-        "- margin, 2 * Minimum perimeter width + margin]. Increasing this margin "
+        "margin extends the range of extrusion widths which follow to [Minimum wall width "
+        "- margin, 2 * Minimum wall width + margin]. Increasing this margin "
         "reduces the number of transitions, which reduces the number of extrusion "
         "starts/stops and travel time. However, large extrusion width variation can lead to "
         "under- or overextrusion problems. "
@@ -2987,12 +2987,12 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionPercent(25));
 
     def = this->add("wall_transition_angle", coFloat);
-    def->label = L("Perimeter transitioning threshold angle");
+    def->label = L("Wall transitioning threshold angle");
     def->category = L("Quality");
-    def->tooltip = L("When to create transitions between even and odd numbers of perimeters. A wedge shape with"
-        " an angle greater than this setting will not have transitions and no perimeters will be "
+    def->tooltip = L("When to create transitions between even and odd numbers of walls. A wedge shape with"
+        " an angle greater than this setting will not have transitions and no walls will be "
         "printed in the center to fill the remaining space. Reducing this setting reduces "
-        "the number and length of these center perimeters, but may leave gaps or overextrude");
+        "the number and length of these center walls, but may leave gaps or overextrude");
     def->sidetext = L("°");
     def->mode = comAdvanced;
     def->min = 1.;
@@ -3000,10 +3000,10 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(10.));
 
     def = this->add("wall_distribution_count", coInt);
-    def->label = L("Perimeter distribution count");
+    def->label = L("Wall distribution count");
     def->category = L("Quality");
-    def->tooltip = L("The number of perimeters, counted from the center, over which the variation needs to be "
-        "spread. Lower values mean that the outer perimeters don't change in width");
+    def->tooltip = L("The number of walls, counted from the center, over which the variation needs to be "
+        "spread. Lower values mean that the outer walls don't change in width");
     def->mode = comAdvanced;
     def->min = 1;
     def->set_default_value(new ConfigOptionInt(1));
@@ -3013,7 +3013,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("Minimum thickness of thin features. Model features that are thinner than this value will "
         "not be printed, while features thicker than the Minimum feature size will be widened to "
-        "the Minimum perimeter width. "
+        "the Minimum wall width. "
         "It's expressed as a percentage over nozzle diameter");
     def->sidetext = L("%");
     def->mode = comAdvanced;
@@ -3021,11 +3021,11 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionPercent(25));
 
     def = this->add("min_bead_width", coPercent);
-    def->label = L("Minimum perimeter width");
+    def->label = L("Minimum wall width");
     def->category = L("Quality");
-    def->tooltip = L("Width of the perimeter that will replace thin features (according to the Minimum feature size) "
-        "of the model. If the Minimum perimeter width is thinner than the thickness of the feature,"
-        " the perimeter will become as thick as the feature itself. "
+    def->tooltip = L("Width of the wall that will replace thin features (according to the Minimum feature size) "
+        "of the model. If the Minimum wall width is thinner than the thickness of the feature,"
+        " the wall will become as thick as the feature itself. "
         "It's expressed as a percentage over nozzle diameter");
     def->sidetext = L("%");
     def->mode = comAdvanced;

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-30 20:15+0800\n"
+"POT-Creation-Date: 2022-12-01 12:31+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1390,6 +1390,9 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr ""
 
+msgid "Send to Printer failed. Please try again."
+msgstr ""
+
 msgid "Sending gcode file over LAN"
 msgstr ""
 
@@ -1903,6 +1906,17 @@ msgstr ""
 "¿Cambiar estos ajustes automáticamente? \n"
 "Sí - Cambiar estos ajustes y activar el modo espiral automáticamente\n"
 "No - Dejar de usar el modo espiral esta vez"
+
+msgid ""
+"Arachne engine only works when overhang slowing down is disabled.\n"
+"This may cause decline in the quality of overhang surface when print fastly\n"
+msgstr ""
+
+msgid ""
+"Disable overhang slowing down automatically? \n"
+"Yes - Enable arachne and disable overhang slowing down\n"
+"No  - Give up using arachne this time"
+msgstr ""
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support "
@@ -2542,6 +2556,9 @@ msgstr "Laminar placa"
 msgid "Export G-code file"
 msgstr ""
 
+msgid "Send"
+msgstr "Enviar"
+
 msgid "Print plate"
 msgstr ""
 
@@ -2553,6 +2570,9 @@ msgstr ""
 
 msgid "Print all"
 msgstr "Imprimir todo"
+
+msgid "Send all"
+msgstr ""
 
 msgid "Keyboard Shortcuts"
 msgstr "Atajos de teclado"
@@ -3105,6 +3125,18 @@ msgid "Cancel print"
 msgstr ""
 
 msgid "Are you sure you want to cancel this print?"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Disconnected from printer [%s] due to LAN mode disabled.Please reconnect the "
+"printer by logging in with your user account."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Disconnected from printer [%s] due to LAN mode enabled.Please reconnect the "
+"printer by inputting Access Code which can be gotten from printer screen."
 msgstr ""
 
 msgid "Downloading..."
@@ -4187,9 +4219,6 @@ msgstr "Nivelación de la cama"
 msgid "Flow Calibration"
 msgstr "Calibración del flujo"
 
-msgid "Send"
-msgstr "Enviar"
-
 msgid "send completed"
 msgstr "envío completo"
 
@@ -4300,7 +4329,7 @@ msgstr "Preparando el trabajo de impresión"
 msgid "Modifying the device name"
 msgstr "Modificar el nombre del dispositivo"
 
-msgid "Send to Printer"
+msgid "Send to Printer SD card"
 msgstr ""
 
 msgid "The printer is required to be in the same LAN as Bambu Studio."
@@ -4383,6 +4412,9 @@ msgstr "Costura"
 
 msgid "Precision"
 msgstr "Precisión"
+
+msgid "Wall generator"
+msgstr ""
 
 msgid "Walls"
 msgstr "Paredes"
@@ -4748,8 +4780,8 @@ msgid "Capabilities"
 msgstr "Capacidades"
 
 msgid ""
-"The P1P printer is not support smooth timelapse, it will not transform the "
-"timelapse changes."
+"The P1P printer does not support smooth timelapse, use traditional timelapse "
+"instead."
 msgstr ""
 
 msgid "Show all presets (including incompatible)"
@@ -5888,6 +5920,9 @@ msgstr ""
 msgid "Compatible machine"
 msgstr "Máquina compatible"
 
+msgid "upward compatible machine"
+msgstr ""
+
 msgid "Compatible machine condition"
 msgstr "Condición de máquina compatible"
 
@@ -5977,9 +6012,6 @@ msgstr ""
 "normalmente puede imprimirse directamente sin soporte si no es muy largo"
 
 msgid "Thick bridges"
-msgstr ""
-
-msgid "Layers and Perimeters"
 msgstr ""
 
 msgid ""
@@ -7395,6 +7427,11 @@ msgstr ""
 msgid "Purging volumes"
 msgstr "Volúmenes de purga"
 
+msgid ""
+"The actual flushing volumes is equal to the flush multiplier multiplied by "
+"the flushing volumes in the table."
+msgstr ""
+
 msgid "Prime volume"
 msgstr "Volumen principal"
 
@@ -7453,6 +7490,79 @@ msgstr ""
 "configurado. Un valor positivo hace que el contorno sea más grande. Un valor "
 "negativo hace que el contorno sea más pequeño. Esta función se utiliza para "
 "ajustar el tamaño ligeramente cuando el objeto tiene problemas de ensamblaje"
+
+msgid ""
+"Classic wall generator produces walls with constant extrusion width and for "
+"very thin areas is used gap-fill. Arachne engine produces walls with "
+"variable extrusion width"
+msgstr ""
+
+msgid "Classic"
+msgstr ""
+
+msgid "Arachne"
+msgstr ""
+
+msgid "Wall transition length"
+msgstr ""
+
+msgid ""
+"When transitioning between different numbers of walls as the part becomes "
+"thinner, a certain amount of space is allotted to split or join the wall "
+"segments. It's expressed as a percentage over nozzle diameter"
+msgstr ""
+
+msgid "Wall transitioning filter margin"
+msgstr ""
+
+msgid ""
+"Prevent transitioning back and forth between one extra wall and one less. "
+"This margin extends the range of extrusion widths which follow to [Minimum "
+"wall width - margin, 2 * Minimum wall width + margin]. Increasing this "
+"margin reduces the number of transitions, which reduces the number of "
+"extrusion starts/stops and travel time. However, large extrusion width "
+"variation can lead to under- or overextrusion problems. It's expressed as a "
+"percentage over nozzle diameter"
+msgstr ""
+
+msgid "Wall transitioning threshold angle"
+msgstr ""
+
+msgid ""
+"When to create transitions between even and odd numbers of walls. A wedge "
+"shape with an angle greater than this setting will not have transitions and "
+"no walls will be printed in the center to fill the remaining space. Reducing "
+"this setting reduces the number and length of these center walls, but may "
+"leave gaps or overextrude"
+msgstr ""
+
+msgid "Wall distribution count"
+msgstr ""
+
+msgid ""
+"The number of walls, counted from the center, over which the variation needs "
+"to be spread. Lower values mean that the outer walls don't change in width"
+msgstr ""
+
+msgid "Minimum feature size"
+msgstr ""
+
+msgid ""
+"Minimum thickness of thin features. Model features that are thinner than "
+"this value will not be printed, while features thicker than the Minimum "
+"feature size will be widened to the Minimum wall width. It's expressed as a "
+"percentage over nozzle diameter"
+msgstr ""
+
+msgid "Minimum wall width"
+msgstr ""
+
+msgid ""
+"Width of the wall that will replace thin features (according to the Minimum "
+"feature size) of the model. If the Minimum wall width is thinner than the "
+"thickness of the feature, the wall will become as thick as the feature "
+"itself. It's expressed as a percentage over nozzle diameter"
+msgstr ""
 
 msgid "Detect narrow internal solid infill"
 msgstr "Detectar el relleno sólido interno estrecho"
