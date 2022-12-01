@@ -12,16 +12,6 @@
 #include "Tab.hpp"
 #include "GUI_ObjectList.hpp"
 
-#include <wx/button.h>
-#include <wx/dialog.h>
-#include <wx/sizer.h>
-#include <wx/slider.h>
-#include <wx/menu.h>
-#include <wx/bmpcbox.h>
-#include <wx/statline.h>
-#include <wx/dcclient.h>
-#include <wx/colordlg.h>
-
 #include <cmath>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -441,7 +431,7 @@ IMSlider::IMSlider(int lowerValue, int higherValue, int minValue, int maxValue, 
     m_style        = style == wxSL_HORIZONTAL || style == wxSL_VERTICAL ? style : wxSL_HORIZONTAL;
     // BBS set to none style by default
     m_extra_style = style == wxSL_VERTICAL ? 0 : 0;
-    m_selection   = ssUndef;
+    m_selection   = ssHigher;
     m_is_need_post_tick_changed_event = false;
     m_tick_change_event_type = Type::Unknown;
 
@@ -1055,7 +1045,7 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
     if (!one_layer_flag) 
     {
         // select higher handle by default
-        static bool h_selected = true;
+        bool h_selected = (selection == ssHigher);
         if (ImGui::ItemHoverable(higher_handle, id) && context.IO.MouseClicked[0]) {
             selection = ssHigher; 
             h_selected = true;
@@ -1486,6 +1476,58 @@ void IMSlider::render_menu()
 void IMSlider::set_scale(float scale)
 {
     if(m_scale != scale) m_scale = scale;
+}
+
+void IMSlider::on_mouse_wheel(wxMouseEvent& evt) {
+    auto moves_slider_window = ImGui::FindWindowByName("moves_slider");
+    auto layers_slider_window = ImGui::FindWindowByName("laysers_slider");
+    if (!moves_slider_window || !layers_slider_window) {
+        BOOST_LOG_TRIVIAL(info) << "Couldn't find slider window";
+        return;
+    }
+
+    float wheel = 0.0f;
+    wheel = evt.GetWheelRotation() > 0 ? 1.0f : -1.0f;
+    if (wheel == 0.0f)
+        return;
+
+#ifdef __WXOSX__
+    if (wxGetKeyState(WXK_SHIFT)) {
+        wheel *= -5;
+    }
+    else if (wxGetKeyState(WXK_RAW_CONTROL)) {
+        wheel *= 5;
+    } 
+#else
+    if (wxGetKeyState(WXK_COMMAND) || wxGetKeyState(WXK_SHIFT))
+        wheel *= 5;
+#endif
+    if (is_horizontal()) {
+        if( evt.GetPosition().x > moves_slider_window->Pos.x &&
+            evt.GetPosition().x < moves_slider_window->Pos.x + moves_slider_window->Size.x &&
+            evt.GetPosition().y > moves_slider_window->Pos.y &&
+            evt.GetPosition().y < moves_slider_window->Pos.y + moves_slider_window->Size.y){
+            const int new_pos = GetHigherValue() + wheel;
+            SetHigherValue(new_pos);
+            set_as_dirty();
+        }
+    }
+    else {
+        if (evt.GetPosition().x > layers_slider_window->Pos.x &&
+            evt.GetPosition().x < layers_slider_window->Pos.x + layers_slider_window->Size.x &&
+            evt.GetPosition().y > layers_slider_window->Pos.y &&
+            evt.GetPosition().y < layers_slider_window->Pos.y + layers_slider_window->Size.y) {
+            if (is_one_layer()) {
+                const int new_pos = GetHigherValue() + wheel;
+                SetHigherValue(new_pos);
+            }
+            else {
+                const int new_pos = m_selection == ssLower ? GetLowerValue() + wheel : GetHigherValue() + wheel;
+                m_selection == ssLower ? SetLowerValue(new_pos) : SetHigherValue(new_pos);
+            }
+            set_as_dirty();
+        }
+    }
 }
 
 void IMSlider::correct_lower_value()

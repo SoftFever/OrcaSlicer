@@ -261,6 +261,7 @@ public:
 
     void UseDefaultColors(bool def_colors_on) { m_ticks.set_default_colors(def_colors_on); }
 
+    void on_mouse_wheel(wxMouseEvent& evt);
     void post_ticks_changed_event(Type type = Custom);
     bool check_ticks_changed_event(Type type);
     bool switch_one_layer_mode();

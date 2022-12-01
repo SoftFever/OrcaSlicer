@@ -141,7 +141,6 @@ int ImGuiWrapper::TOOLBAR_WINDOW_FLAGS = ImGuiWindowFlags_AlwaysAutoResize
                                  | ImGuiWindowFlags_NoCollapse
                                  | ImGuiWindowFlags_NoTitleBar;
 
-static float accer = 1.f;
 
 bool get_data_from_svg(const std::string &filename, unsigned int max_size_px, ThumbnailData &thumbnail_data)
 {
@@ -212,15 +211,7 @@ bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const 
     // Process interacting with the slider
     ImS32 v_new = *out_value;
     bool value_changed = false;
-    // wheel behavior
-    ImRect mouse_wheel_responsive_region;
-    if (axis == ImGuiAxis_X)
-        mouse_wheel_responsive_region = ImRect(region.Min - ImVec2(handle_sz.x / 2, 0), region.Max + ImVec2(handle_sz.x / 2, 0));
-    if (axis == ImGuiAxis_Y)
-        mouse_wheel_responsive_region = ImRect(region.Min - ImVec2(0, handle_sz.y), region.Max + ImVec2(0, handle_sz.y));
-    if (ImGui::ItemHoverable(mouse_wheel_responsive_region, id)) {
-        v_new = ImClamp(*out_value + (ImS32)(context.IO.MouseWheel * accer), v_min, v_max);
-    }
+
     // drag behavior
     if (context.ActiveId == id)
     {
@@ -450,19 +441,6 @@ bool ImGuiWrapper::update_key_data(wxKeyEvent &evt)
     }
 
     ImGuiIO& io = ImGui::GetIO();
-
-    if (evt.CmdDown()) {
-        accer = 5.f;
-    }
-    else if (evt.ShiftDown()) {
-#ifdef __APPLE__
-        accer = -5.f;
-#else
-        accer = 5.f;
-#endif
-    }
-    else
-        accer = 1.f;
 
     if (evt.GetEventType() == wxEVT_CHAR) {
         // Char event
