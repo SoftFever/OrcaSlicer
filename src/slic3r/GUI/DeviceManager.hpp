@@ -79,6 +79,7 @@ enum PrinterFunction {
     FUNC_VIRTUAL_CAMERA,
     FUNC_USE_AMS,
     FUNC_ALTER_RESOLUTION,
+    FUNC_SEND_TO_SDCARD,
     FUNC_MAX
 };
 

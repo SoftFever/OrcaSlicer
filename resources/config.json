@@ -18,7 +18,8 @@
                 "FUNC_REMOTE_TUNNEL": false,
                 "FUNC_LOCAL_TUNNEL": true,
                 "FUNC_PRINT_WITHOUT_SD": false,
-                "FUNC_ALTER_RESOLUTION": false
+                "FUNC_ALTER_RESOLUTION": false,
+                "FUNC_SEND_TO_SDCARD": false
             },
             "camera_resolution":["720p"],
             "bed_temperature_limit": 100,

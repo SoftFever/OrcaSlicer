@@ -915,7 +915,12 @@ void SendToPrinterDialog::update_show_status()
         return;
     }
 
-
+    bool is_suppt = obj_->is_function_supported(PrinterFunction::FUNC_SEND_TO_SDCARD);
+    if (!is_suppt) {
+        show_status(PrintDialogStatus::PrintStatusNotSupportedSendToSDCard);
+        return;
+    }
+    
     show_status(PrintDialogStatus::PrintStatusReadingFinished);
 }
 
@@ -1020,6 +1025,12 @@ void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     }
     else if (status == PrintDialogStatus::PrintStatusNotOnTheSameLAN) {
         wxString msg_text = _L("The printer is required to be in the same LAN as Bambu Studio.");
+        update_print_status_msg(msg_text, true, true);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
+    }
+    else if (status == PrintDialogStatus::PrintStatusNotSupportedSendToSDCard) {
+        wxString msg_text = _L("The printer does not support sending to printer SD card.");
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);

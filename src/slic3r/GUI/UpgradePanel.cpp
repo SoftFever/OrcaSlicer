@@ -367,18 +367,22 @@ void MachineInfoPanel::update_version_text(MachineObject* obj)
         } else {
             auto ota_it = obj->new_ver_list.find("ota");
             if (ota_it == obj->new_ver_list.end()) {
-                wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
-                m_staticText_ver_val->SetLabelText(ver_text);
-                m_ota_new_version_img->Hide();
+                if (it != obj->module_vers.end()) {
+                    wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
+                    m_staticText_ver_val->SetLabelText(ver_text);
+                    m_ota_new_version_img->Hide();
+                }
             } else {
                 if (ota_it->second.sw_new_ver != ota_it->second.sw_ver) {
                     m_ota_new_version_img->Show();
                     wxString ver_text = wxString::Format("%s->%s", ota_it->second.sw_ver, ota_it->second.sw_new_ver);
                     m_staticText_ver_val->SetLabelText(ver_text);
                 } else {
-                    m_ota_new_version_img->Hide();
-                    wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
-                    m_staticText_ver_val->SetLabelText(ver_text);
+                    if (it != obj->module_vers.end()) {
+                        m_ota_new_version_img->Hide();
+                        wxString ver_text = wxString::Format("%s(%s)", it->second.sw_ver, _L("Latest version"));
+                        m_staticText_ver_val->SetLabelText(ver_text);
+                    }
                 }
             }
         }

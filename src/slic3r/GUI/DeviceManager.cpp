@@ -1951,6 +1951,9 @@ bool MachineObject::is_function_supported(PrinterFunction func)
     case FUNC_ALTER_RESOLUTION:
         func_name = "FUNC_ALTER_RESOLUTION";
         break;
+    case FUNC_SEND_TO_SDCARD:
+        func_name = "FUNC_SEND_TO_SDCARD";
+        break;
     default:
         return true;
     }
