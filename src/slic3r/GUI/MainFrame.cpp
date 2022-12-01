@@ -2350,11 +2350,11 @@ void MainFrame::init_menubar_as_editor()
         //});
     //parent_menu->Insert(0, about_item);
     append_menu_item(
-        parent_menu, wxID_ANY, _L(about_title), _L(""),
+        parent_menu, wxID_ANY, _L(about_title), "",
         [this](wxCommandEvent &) { Slic3r::GUI::about();},
         "", nullptr, []() { return true; }, this, 0);
     append_menu_item(
-        parent_menu, wxID_ANY, _L("Preferences") + "\tCtrl+,", _L(""),
+        parent_menu, wxID_ANY, _L("Preferences") + "\tCtrl+,", "",
         [this](wxCommandEvent &) {
             PreferencesDialog dlg(this);
             dlg.ShowModal();
@@ -2381,7 +2381,7 @@ void MainFrame::init_menubar_as_editor()
     //BBS add Preference
 
     append_menu_item(
-        m_topbar->GetTopMenu(), wxID_ANY, _L("Preferences") + "\tCtrl+P", _L(""),
+        m_topbar->GetTopMenu(), wxID_ANY, _L("Preferences") + "\tCtrl+P", "",
         [this](wxCommandEvent &) {
             PreferencesDialog dlg(this);
             dlg.ShowModal();

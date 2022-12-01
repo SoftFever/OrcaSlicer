@@ -411,14 +411,14 @@ void PrintConfigDef::init_common_params()
 
     def = this->add("printhost_user", coString);
     def->label = L("User");
-    //    def->tooltip = L("");
+    //    def->tooltip = "";
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("printhost_password", coString);
     def->label = L("Password");
-    //    def->tooltip = L("");
+    //    def->tooltip = "";
     def->mode = comAdvanced;
     def->cli = ConfigOptionDef::nocli;
     def->set_default_value(new ConfigOptionString(""));
@@ -440,7 +440,7 @@ void PrintConfigDef::init_common_params()
 
     def = this->add("printhost_authorization_type", coEnum);
     def->label = L("Authorization Type");
-    //    def->tooltip = L("");
+    //    def->tooltip = "";
     def->enum_keys_map = &ConfigOptionEnum<AuthorizationType>::get_enum_values();
     def->enum_values.push_back("key");
     def->enum_values.push_back("user");
@@ -630,7 +630,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. "
                      "Expressed as percentage which indicides how much width of the line without support from lower layer. "
                      "0% means forcing cooling for all outer wall no matter how much overhang degree");
-    def->sidetext = L("");
+    def->sidetext = "";
     def->enum_keys_map = &ConfigOptionEnum<OverhangFanThreshold>::get_enum_values();
     def->mode = comAdvanced;
     def->enum_values.emplace_back("0%");
@@ -2692,7 +2692,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("nozzle_temperature_range_low", coInts);
     def->label = L("Min");
-    //def->tooltip = L("");
+    //def->tooltip = "";
     def->sidetext = L("°C");
     def->min = 0;
     def->max = max_temp;
@@ -2700,7 +2700,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("nozzle_temperature_range_high", coInts);
     def->label = L("Max");
-    //def->tooltip = L("");
+    //def->tooltip = "";
     def->sidetext = L("°C");
     def->min = 0;
     def->max = max_temp;
@@ -2833,8 +2833,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("flush_multiplier", coFloat);
     def->label = L("Flush multiplier");
-    def->tooltip = L("");
-    def->sidetext = L("");
+    def->tooltip = "";
+    def->sidetext = "";
     def->mode = comDevelop;
     def->min = 0;
     def->set_default_value(new ConfigOptionFloat(1.0));

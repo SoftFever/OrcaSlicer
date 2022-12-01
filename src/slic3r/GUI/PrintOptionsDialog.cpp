@@ -268,7 +268,7 @@ wxString PrintOptionsDialog::sensitivity_level_to_label_string(enum AiMonitorSen
     case HIGH:
         return _L("High");
     default:
-        return _L("");
+        return "";
     }
     return "";
 }

@@ -2320,7 +2320,7 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
     else if (type == itInstance) {
         if (object->instances.size() == 1) {
             // BBS: remove snapshot name "Last instance of an object cannot be deleted."
-            Slic3r::GUI::show_error(nullptr, _L(""));
+            Slic3r::GUI::show_error(nullptr, "");
             return false;
         }
 

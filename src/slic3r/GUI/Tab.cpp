@@ -1604,7 +1604,7 @@ void Tab::build_preset_description_line(ConfigOptionsGroup* optgroup)
     };
 
     auto detach_preset_btn = [this](wxWindow* parent) {
-        m_detach_preset_btn = new ScalableButton(parent, wxID_ANY, "lock_normal_sys", _L(""),
+        m_detach_preset_btn = new ScalableButton(parent, wxID_ANY, "lock_normal_sys", "",
                                                  wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
         ScalableButton* btn = m_detach_preset_btn;
         btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
@@ -2081,7 +2081,7 @@ void TabPrintModel::build()
     init_options_list();
 
     auto page = add_options_page(L("Frequent"), "empty");
-        auto optgroup = page->new_optgroup(L(""));
+        auto optgroup = page->new_optgroup("");
             optgroup->append_single_option_line("layer_height");
             optgroup->append_single_option_line("sparse_infill_density");
             optgroup->append_single_option_line("wall_loops");

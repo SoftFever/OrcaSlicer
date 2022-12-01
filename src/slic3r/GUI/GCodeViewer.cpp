@@ -4482,7 +4482,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         if (m_extruder_ids.size() <= 1 || !show_flushed_filaments)
             append_headers({ {_u8L("Filament"), offsets[0]}, {_u8L("Model"), offsets[2]}});
         else
-            append_headers({ {_u8L("Filament"), offsets[0]}, {_u8L("Model"), offsets[1]}, {_u8L("Flushed"), offsets[2]}, {_u8L(""), offsets[3]}, {_u8L("Total"), offsets[4]}});// to add Tower
+            append_headers({ {_u8L("Filament"), offsets[0]}, {_u8L("Model"), offsets[1]}, {_u8L("Flushed"), offsets[2]}, {"", offsets[3]}, {_u8L("Total"), offsets[4]}});// to add Tower
         break;
     }
     default: { break; }
@@ -5185,7 +5185,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             ImGui::Spacing();
             ImGui::Dummy({ window_padding, window_padding });
             ImGui::SameLine();
-            offsets = calculate_offsets({ { _u8L("Options"), { _u8L("")}}, { _u8L("Display"), {""}} }, icon_size);
+            offsets = calculate_offsets({ { _u8L("Options"), { ""}}, { _u8L("Display"), {""}} }, icon_size);
             append_headers({ {_u8L("Options"), offsets[0] }, { _u8L("Display"), offsets[1]} });
             for (auto item : options_items)
                 append_option_item(item, offsets);

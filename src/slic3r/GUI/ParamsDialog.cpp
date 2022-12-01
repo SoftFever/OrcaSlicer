@@ -15,7 +15,7 @@ namespace GUI {
 
 
 ParamsDialog::ParamsDialog(wxWindow * parent)
-	: DPIDialog(parent, wxID_ANY,  _L(""), wxDefaultPosition,
+	: DPIDialog(parent, wxID_ANY,  "", wxDefaultPosition,
 		wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
 {
 	m_panel = new ParamsPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);

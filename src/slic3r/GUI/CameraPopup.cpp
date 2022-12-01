@@ -315,7 +315,7 @@ wxString CameraPopup::to_resolution_label_string(CameraResolution resolution) {
     case RESOLUTION_1080P:
         return _L("1080p");
     default:
-        return _L("");
+        return "";
     }
     return "";
 }

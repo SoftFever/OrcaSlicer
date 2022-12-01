@@ -379,7 +379,7 @@ void AuFile::on_input_enter(wxCommandEvent &evt)
         fs::path newPath(new_dir_path);
         fs::rename(oldPath, newPath);
     } else {
-        /*MessageDialog msg_wingow(nullptr, info_line, _L(""),
+        /*MessageDialog msg_wingow(nullptr, info_line, "",
                                  wxICON_WARNING | wxOK);
         if (msg_wingow.ShowModal() == wxID_CANCEL) {
             m_input_name->GetTextCtrl()->SetValue(wxEmptyString);

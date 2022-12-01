@@ -26,7 +26,7 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
 
-    m_status_text = new wxStaticText(m_self, wxID_ANY, L(""), wxDefaultPosition, wxSize(m_self->FromDIP(280), -1), 0);
+    m_status_text = new wxStaticText(m_self, wxID_ANY, "", wxDefaultPosition, wxSize(m_self->FromDIP(280), -1), 0);
     m_status_text->SetForegroundColour(wxColour(107, 107, 107));
     m_status_text->SetFont(::Label::Body_13);
     m_status_text->Wrap(m_self->FromDIP(280));
@@ -60,7 +60,7 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
             m_cancel_cb_fina();
     });
 
-    m_stext_percent = new wxStaticText(m_self, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, 0);
+    m_stext_percent = new wxStaticText(m_self, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
     m_stext_percent->SetForegroundColour(wxColour(107, 107, 107));
     m_stext_percent->SetFont(::Label::Body_13);
     m_stext_percent->Wrap(-1);

@@ -65,7 +65,7 @@ PublishDialog::PublishDialog(Plater *plater)
     m_main_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 0);
 
     wxBoxSizer *m_progress_text_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_text_progress = new wxStaticText(this, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize, 0);
+    m_text_progress = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
     m_text_progress->Wrap(-1);
     m_text_progress->SetFont(Label::Body_12);
     m_text_progress->SetForegroundColour(TEXT_LIGHT_GRAY);
