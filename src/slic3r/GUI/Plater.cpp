@@ -5670,7 +5670,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     }
     if (evt.cancelled()) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", cancel event, status: %1%") % evt.status();
-        this->notification_manager->set_slicing_progress_canceled(_utf8("Slicing Cancelled."));
+        this->notification_manager->set_slicing_progress_canceled(_utf8("Slicing Canceled"));
         is_finished = true;
     }
 

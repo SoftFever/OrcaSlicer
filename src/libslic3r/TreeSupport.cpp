@@ -29,7 +29,7 @@
 #define TAU (2.0 * M_PI)
 #define NO_INDEX (std::numeric_limits<unsigned int>::max())
 
-#define SUPPORT_TREE_DEBUG_TO_SVG
+//#define SUPPORT_TREE_DEBUG_TO_SVG
 
 namespace Slic3r
 {
@@ -687,7 +687,7 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
         
     SupportMaterialPattern support_pattern  = m_object_config->support_base_pattern;
     m_support_params.base_fill_pattern      = 
-        (support_pattern == smpDefault || support_pattern == smpLightning) ? ipLightning :
+        support_pattern == smpLightning ? ipLightning :
         support_pattern == smpHoneycomb ? ipHoneycomb :
                                               m_support_params.support_density > 0.95 || m_support_params.with_sheath ? ipRectilinear :
                                                                                                                         ipSupportBase;
@@ -1392,10 +1392,10 @@ void TreeSupport::generate_toolpaths()
     const PrintObjectConfig &object_config = m_object->config();
     coordf_t support_extrusion_width = object_config.support_line_width.value > 0 ? object_config.support_line_width : object_config.line_width;
     coordf_t nozzle_diameter = print_config.nozzle_diameter.get_at(object_config.support_filament - 1);
+    coordf_t layer_height = object_config.layer_height.value;
 
     const size_t wall_count = object_config.tree_support_wall_count.value;
-    const bool with_infill = object_config.support_base_pattern != smpNone;
-    const bool contact_loops = object_config.support_interface_loop_pattern.value;
+    const bool with_infill = object_config.support_base_pattern != smpNone && object_config.support_base_pattern != smpDefault;
     auto m_support_material_flow = support_material_flow(m_object, float(m_slicing_params.layer_height));
 
     // coconut: use same intensity settings as SupportMaterial.cpp
@@ -1518,17 +1518,17 @@ void TreeSupport::generate_toolpaths()
                 ts_layer->support_fills.no_sort = false;
 
                 for (auto& area_group : ts_layer->area_groups) {
-                    ExPolygon& poly = *area_group.first;
+                    ExPolygon& poly = *area_group.area;
                     ExPolygons polys;
                     FillParams fill_params;
-                    if (area_group.second != TreeSupportLayer::BaseType) {
+                    if (area_group.type != TreeSupportLayer::BaseType) {
                         // interface
                         if (layer_id == 0) {
                             Flow flow = m_raft_layers == 0 ? m_object->print()->brim_flow() : support_flow;
                             make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object->print(), poly, wall_count, flow,
-                                                          area_group.second == TreeSupportLayer::RoofType);
+                                                          area_group.type == TreeSupportLayer::RoofType);
                             polys = std::move(offset_ex(poly, -flow.scaled_spacing()));
-                        } else if (area_group.second == TreeSupportLayer::Roof1stLayer) {
+                        } else if (area_group.type == TreeSupportLayer::Roof1stLayer) {
                             polys = std::move(offset_ex(poly, 0.5*support_flow.scaled_width()));
                         }
                         else {
@@ -1537,7 +1537,7 @@ void TreeSupport::generate_toolpaths()
                         fill_params.density = interface_density;
                         fill_params.dont_adjust = true;
                     }
-                    if (area_group.second == TreeSupportLayer::Roof1stLayer) {
+                    if (area_group.type == TreeSupportLayer::Roof1stLayer) {
                         // roof_1st_layer
                         fill_params.density = interface_density;
                         // Note: spacing means the separation between two lines as if they are tightly extruded
@@ -1546,62 +1546,43 @@ void TreeSupport::generate_toolpaths()
                         make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object->print(), poly, 1, m_support_material_interface_flow, erSupportMaterial,
                             filler_Roof1stLayer.get(), interface_density, false);
                         ts_layer->support_fills.no_sort = true; // make sure loops are first
-                    } else if (area_group.second == TreeSupportLayer::FloorType) {
+                    } else if (area_group.type == TreeSupportLayer::FloorType) {
                         // floor_areas
                         fill_params.density = bottom_interface_density;
                         filler_interface->spacing = m_support_material_interface_flow.spacing();
                         fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys),
                             filler_interface.get(), fill_params, erSupportMaterialInterface, m_support_material_interface_flow);
-                    } else if (area_group.second == TreeSupportLayer::RoofType) {
+                    } else if (area_group.type == TreeSupportLayer::RoofType) {
                         // roof_areas
-                        fill_params.density = interface_density;
+                        fill_params.density       = interface_density;
                         filler_interface->spacing = m_support_material_interface_flow.spacing();
-                        /*if (contact_loops) {
-                            make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object->print(), poly,
-                                std::numeric_limits<size_t>::max(), m_support_material_interface_flow, true);
-                        }
-                        else*/ {
-                            fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys),
-                                filler_interface.get(), fill_params, erSupportMaterialInterface, m_support_material_interface_flow);
-                        }
+                        fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(polys), filler_interface.get(), fill_params, erSupportMaterialInterface,
+                                                       m_support_material_interface_flow);
                     }
                     else {
                         // base_areas
                         filler_support->spacing = m_support_material_flow.spacing();
-                        ExtrusionRole role;
                         Flow flow = (layer_id == 0 && m_raft_layers == 0) ? m_object->print()->brim_flow() :
                             (m_support_params.base_fill_pattern == ipRectilinear && (layer_id % num_layers_to_change_infill_direction == 0) ? support_transition_flow(m_object) : support_flow);
-                        if (with_infill && layer_id > 0 && m_support_params.base_fill_pattern != ipLightning) {
-                            if (m_support_params.base_fill_pattern == ipRectilinear) {
-                                role = erSupportMaterial;// layer_id% num_layers_to_change_infill_direction == 0 ? erSupportTransition : erSupportMaterial;
-                                filler_support->angle = Geometry::deg2rad(object_config.support_angle.value);// obj_is_vertical* M_PI_2;// (obj_is_vertical + int(layer_id / num_layers_to_change_infill_direction))* M_PI_2;
-                            }
-                            else {
-                                role = erSupportMaterial;
-                                filler_support->angle = Geometry::deg2rad(object_config.support_angle.value);// obj_is_vertical * M_PI_2 + (float)layer_id / num_layers_to_change_infill_direction * M_PI_4;
-                            }
-                            // only wall at the top of tree branch
-                            if (offset(poly, -branch_radius_scaled*1.5).empty())
-                            {
+                        if (area_group.dist_to_top < 10 / layer_height) {
+                            // extra 2 walls for the top tips
+                            make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object->print(), poly, wall_count + 2, flow, false);
+                        } else {
+                            if (with_infill && layer_id > 0 && m_support_params.base_fill_pattern != ipLightning) {
+                                filler_support->angle = Geometry::deg2rad(object_config.support_angle.value);
+
+                                // allow infill-only mode if support is thick enough
+                                if (offset(poly, -scale_(support_spacing * 1.5)).empty() == false) {
+                                    make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object->print(), poly, wall_count, flow, erSupportMaterial,
+                                                              filler_support.get(), support_density);
+                                } else { // otherwise must draw 1 wall
+                                    make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object->print(), poly, std::max(size_t(1), wall_count), flow,
+                                                              erSupportMaterial, filler_support.get(), support_density);
+                                }
+                            } else {
                                 make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object->print(), poly,
-                                    wall_count, flow, false);
+                                                              layer_id > 0 ? wall_count : std::numeric_limits<size_t>::max(), flow, false);
                             }
-                            // allow infill-only mode if support is thick enough
-                            else if (offset(poly, -scale_(support_spacing * 1.5)).empty() == false)
-                            {
-                                make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object->print(), poly, wall_count, flow, role, filler_support.get(), support_density);
-                            }
-                            else { // otherwise must draw 1 wall
-                                //if (m_support_params.base_fill_pattern == ipRectilinear)
-                                    make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object->print(), poly, 1, flow, role, filler_support.get(), support_density);
-                                //else
-                                //    make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object->print(), poly, 1, flow, false);
-                            }
-                        }
-                        else
-                        {
-                            make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object->print(), poly,
-                                layer_id > 0 ? wall_count : std::numeric_limits<size_t>::max(), flow, false);
                         }
                     }
                 }
@@ -1647,17 +1628,13 @@ void TreeSupport::generate_toolpaths()
                             float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
 
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
-                        std::string prefix = "./SVG/";
-                        std::string suffix = ".svg";
-                        std::string name = prefix + "trees_polyline" + "_" + std::to_string(ts_layer->print_z) /*+ "_" + std::to_string(rand_num)*/ + suffix;
+                        std::string name = "./SVG/trees_polyline_" + std::to_string(ts_layer->print_z) /*+ "_" + std::to_string(rand_num)*/ + ".svg";
                         BoundingBox bbox = get_extents(ts_layer->base_areas);
                         SVG svg(name, bbox);
-
-                        svg.draw(ts_layer->base_areas, "blue");
-                        svg.draw(generator->Overhangs()[printZ_to_lightninglayer[print_z]], "red");
-                        for (auto& line : opt_polylines)
-                        {
-                            svg.draw(line, "yellow");
+                        if (svg.is_opened()) {
+                            svg.draw(ts_layer->base_areas, "blue");
+                            svg.draw(generator->Overhangs()[printZ_to_lightninglayer[print_z]], "red");
+                            for (auto &line : opt_polylines) svg.draw(line, "yellow");
                         }
 #endif
                     }
@@ -1978,7 +1955,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 {
     const PrintObjectConfig &config = m_object->config();
     bool has_brim = m_object->print()->has_brim();
-    bool has_infill = config.support_base_pattern.value != smpNone;
+    bool has_infill = config.support_base_pattern.value != smpNone && config.support_base_pattern != smpDefault;
     int bottom_gap_layers = round(m_slicing_params.gap_object_support / m_slicing_params.layer_height);
     const coordf_t branch_radius = config.tree_support_branch_diameter.value / 2;
     const coordf_t branch_radius_scaled = scale_(branch_radius);
@@ -2027,6 +2004,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     auto m_support_material_flow = support_material_flow(m_object, float(m_slicing_params.layer_height));
     coordf_t support_spacing = object_config.support_base_pattern_spacing.value + m_support_material_flow.spacing();
     coordf_t support_density = std::min(1., m_support_material_flow.spacing() / support_spacing);
+    BOOST_LOG_TRIVIAL(info) << "draw_circles for object: " << m_object->model_object()->name;
 
     // coconut: previously std::unordered_map in m_collision_cache is not multi-thread safe which may cause programs stuck, here we change to tbb::concurrent_unordered_map
     tbb::parallel_for(
@@ -2057,6 +2035,9 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 ExPolygons& roof_1st_layer = ts_layer->roof_1st_layer;
                 ExPolygons& floor_areas = ts_layer->floor_areas;
                 ExPolygons& roof_gap_areas = ts_layer->roof_gap_areas;
+                int         max_layers_above_base = 0;
+                int         max_layers_above_roof = 0;
+                int         max_layers_above_roof1 = 0;
 
                 BOOST_LOG_TRIVIAL(debug) << "circles at layer " << layer_nr << " contact nodes size=" << contact_nodes[layer_nr].size();
                 //Draw the support areas and add the roofs appropriately to the support roof instead of normal areas.
@@ -2073,9 +2054,13 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                     // 2) 启用了顶部接触层，
                     // 3) 是顶部空隙
                     if (node.type == ePolygon || (top_interface_layers>0 &&node.support_roof_layers_below > 0) || node.distance_to_top<0) {
-                        auto tmp = offset_ex({ *node.overhang }, scale_(m_ts_data->m_xy_distance));
-                        if(!tmp.empty()) // 对于有缺陷的模型，overhang膨胀以后可能是空的！
-                            area = tmp[0];
+                        if (node.overhang->contour.size() > 100 || node.overhang->holes.size()>1)
+                            area = *node.overhang;
+                        else {
+                             auto tmp = offset_ex({ *node.overhang }, scale_(m_ts_data->m_xy_distance));
+                             if(!tmp.empty()) // 对于有缺陷的模型，overhang膨胀以后可能是空的！
+                                area = tmp[0];
+                        }
                     }
                     else {
                         Polygon circle;
@@ -2106,14 +2091,17 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                     else if (node.support_roof_layers_below == 1)
                     {
                         roof_1st_layer.emplace_back(area);
+                        max_layers_above_roof1 = std::max(max_layers_above_roof1, node.distance_to_top);
                     }
                     else if (node.support_roof_layers_below > 0)
                     {
                         roof_areas.emplace_back(area);
+                        max_layers_above_roof = std::max(max_layers_above_roof, node.distance_to_top);
                     }
                     else
                     {
                         base_areas.emplace_back(area);
+                        max_layers_above_base = std::max(max_layers_above_base, node.distance_to_top);
                     }
 
                     if (layer_nr < brim_skirt_layers)
@@ -2186,15 +2174,14 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                         floor_areas = std::move(diff_ex(floor_areas, bottom_gap));
                     }
                 }
-
                 auto &area_groups = ts_layer->area_groups;
-                for (auto &area : ts_layer->base_areas) area_groups.emplace_back(&area, TreeSupportLayer::BaseType);
-                for (auto &area : ts_layer->roof_areas) area_groups.emplace_back(&area, TreeSupportLayer::RoofType);
-                for (auto &area : ts_layer->floor_areas) area_groups.emplace_back(&area, TreeSupportLayer::FloorType);
-                for (auto &area : ts_layer->roof_1st_layer) area_groups.emplace_back(&area, TreeSupportLayer::Roof1stLayer);
+                for (auto &area : ts_layer->base_areas) area_groups.emplace_back(&area, TreeSupportLayer::BaseType, max_layers_above_base);
+                for (auto &area : ts_layer->roof_areas) area_groups.emplace_back(&area, TreeSupportLayer::RoofType, max_layers_above_roof);
+                for (auto &area : ts_layer->floor_areas) area_groups.emplace_back(&area, TreeSupportLayer::FloorType, 10000);
+                for (auto &area : ts_layer->roof_1st_layer) area_groups.emplace_back(&area, TreeSupportLayer::Roof1stLayer, max_layers_above_roof1);
 
                 for (auto &area_group : area_groups) {
-                    auto expoly = area_group.first;
+                    auto& expoly = area_group.area;
                     expoly->holes.erase(std::remove_if(expoly->holes.begin(), expoly->holes.end(),
                                                        [](auto &hole) {
                                                            auto bbox_size = get_extents(hole).size();
@@ -2321,13 +2308,13 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 auto& area_groups_lower = m_object->get_tree_support_layer(layer_nr_lower + m_raft_layers)->area_groups;
 
                 for (const auto& area_group : ts_layer->area_groups) {
-                    if (area_group.second != TreeSupportLayer::BaseType) continue;
-                    const auto area = area_group.first;
+                    if (area_group.type != TreeSupportLayer::BaseType) continue;
+                    const auto& area = area_group.area;
                     for (const auto& hole : area->holes) {
                         // auto hole_bbox = get_extents(hole).polygon();
                         for (auto& area_group_lower : area_groups_lower) {
-                            if (area_group.second != TreeSupportLayer::BaseType) continue;
-                            auto& base_area_lower = *area_group_lower.first;
+                            if (area_group.type != TreeSupportLayer::BaseType) continue;
+                            auto& base_area_lower = *area_group_lower.area;
                             Point pt_on_poly, pt_on_expoly, pt_far_on_poly;
                             // if a hole doesn't intersect with lower layer's contours, add a hole to lower layer and move it slightly to the contour
                             if (base_area_lower.contour.contains(hole.points.front()) && !intersects_contour(hole, base_area_lower, pt_on_poly, pt_on_expoly, pt_far_on_poly)) {
@@ -2418,8 +2405,9 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
     //Use Minimum Spanning Tree to connect the points on each layer and move them while dropping them down.
     const coordf_t layer_height = config.layer_height.value;
     const double angle = config.tree_support_branch_angle.value * M_PI / 180.;
+    const int wall_count = std::max(1, config.tree_support_wall_count.value);
     const double tan_angle = tan(angle);
-    const coordf_t max_move_distance = (angle < M_PI / 2) ? (coordf_t)(tan_angle * layer_height) : std::numeric_limits<coordf_t>::max();
+    const coordf_t max_move_distance = (angle < M_PI / 2) ? (coordf_t)(tan_angle * layer_height)*wall_count : std::numeric_limits<coordf_t>::max();
     const double max_move_distance2 = max_move_distance * max_move_distance;
     const coordf_t branch_radius = config.tree_support_branch_diameter.value / 2;
     const size_t tip_layers = branch_radius / layer_height; //The number of layers to be shrinking the circle to create a tip. This produces a 45 degree angle.
@@ -2698,13 +2686,18 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                 // 1. do not merge neighbors under 5mm
                 // 2. Only merge node with single neighbor in distance between [max_move_distance, 10mm/layer_height]
                 float dist2_to_first_neighbor = neighbours.empty() ? 0 : vsize2_with_unscale(neighbours[0] - node.position);
+                float max_dist_to_move = 10.0*tan_angle; // don't move if moving down by 10mm and they still can't merge
                 if (ts_layer->print_z > DO_NOT_MOVER_UNDER_MM &&
-                    (neighbours.size() > 1 || (neighbours.size() == 1 && dist2_to_first_neighbor >= max_move_distance2 && dist2_to_first_neighbor < SQ(10/layer_height)*max_move_distance2))) //Only nodes that aren't about to collapse.
+                    (neighbours.size() > 1 || (neighbours.size() == 1 && dist2_to_first_neighbor >= max_move_distance2))) //Only nodes that aren't about to collapse.
                 {
                     //Move towards the average position of all neighbours.
                     Point sum_direction(0, 0);
                     for (const Point& neighbour : neighbours)
                     {
+                        // do not move to neighbor that's too far away
+                        float dist2_to_neighbor = vsize2_with_unscale(neighbour - node.position);
+                        if (dist2_to_neighbor > SQ(max_dist_to_move)) continue;
+
                         Point direction = neighbour - node.position;
                         Node *neighbour_node = nodes_per_part[group_index][neighbour];
                         coordf_t branch_bottom_radius = calc_branch_radius(branch_radius, node.distance_to_top + layer_nr, tip_layers, diameter_angle_scale_factor);
@@ -2741,7 +2734,6 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
 #endif
                 auto avoid_layer = m_ts_data->get_avoidance(branch_radius_node, layer_nr - 1);
 
-#if 1
                 Point to_outside = projection_onto_ex(avoid_layer, node.position);
                 Point movement = to_outside - node.position;
                 double movelength2 = vsize2_with_unscale(movement);
@@ -2760,14 +2752,12 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                 if (movement.dot(move_to_neighbor_center) >= 0)
                     movement = movement + move_to_neighbor_center;
                 // Cant do this. Otherwise we'll get a lot of supports in-the-air (nodes terminated too early)
-                //else
-                //    movement = move_to_neighbor_center;  // otherwise move to neighbor center first
+                else
+                    movement = move_to_neighbor_center;  // otherwise move to neighbor center first
 
                 if (vsize2_with_unscale(movement) > max_move_distance2)
                     movement = normal(movement, scale_(max_move_distance));
-#else
-                Point movement = move_to_neighbor_center;
-#endif
+
                 next_layer_vertex += movement;
 
 

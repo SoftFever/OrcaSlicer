@@ -250,13 +250,20 @@ public:
     ExPolygons base_areas;
     ExPolygons roof_gap_areas; // the areas in the gap between support roof and overhang
 
-        enum AreaType {
+    enum AreaType {
         BaseType=0,
         RoofType=1,
         FloorType=2,
         Roof1stLayer=3
     };
-    std::vector<std::pair<ExPolygon *, int>> area_groups;
+    struct AreaGroup
+    {
+        ExPolygon *area;
+        int        type;
+        int        dist_to_top;
+        AreaGroup(ExPolygon *a, int t, int d) : area(a), type(t), dist_to_top(d) {}
+    };
+    std::vector<AreaGroup> area_groups;
 
     enum OverhangType {
         Detected=0,
