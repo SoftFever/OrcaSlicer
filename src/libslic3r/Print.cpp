@@ -2937,6 +2937,8 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
     }
 
     int count = 0;
+    std::vector<std::string> filename_vector;
+    std::vector<json> json_vector;
     for (PrintObject *obj : m_objects) {
         const ModelObject* model_obj = obj->model_object();
         if (obj->get_shared_object()) {
@@ -2957,17 +2959,77 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
             root_json[JSON_ARRANGE_ORDER] = arrange_order;
 
             //export the layers
-            for (const Layer *layer : obj->layers()) {
+            std::vector<json> layers_json_vector(obj->layer_count());
+            tbb::parallel_for(
+                tbb::blocked_range<size_t>(0, obj->layer_count()),
+                [&layers_json_vector, obj, convert_layer_to_json](const tbb::blocked_range<size_t>& layer_range) {
+                    for (size_t layer_index = layer_range.begin(); layer_index < layer_range.end(); ++ layer_index) {
+                        const Layer *layer = obj->get_layer(layer_index);
+                        json layer_json;
+                        convert_layer_to_json(layer_json, layer);
+                        layers_json_vector[layer_index] = std::move(layer_json);
+                    }
+                }
+            );
+            for (int l_index = 0; l_index < layers_json_vector.size(); l_index++) {
+                layers_json.push_back(std::move(layers_json_vector[l_index]));
+            }
+            layers_json_vector.clear();
+            /*for (const Layer *layer : obj->layers()) {
+                // for each layer
                 json layer_json;
 
                 convert_layer_to_json(layer_json, layer);
 
                 layers_json.push_back(std::move(layer_json));
-            } // for each layer
+            }*/
+
             root_json[JSON_LAYERS] = std::move(layers_json);
 
             //export the support layers
-            for (const SupportLayer *support_layer : obj->support_layers()) {
+            std::vector<json> support_layers_json_vector(obj->support_layer_count());
+            tbb::parallel_for(
+                tbb::blocked_range<size_t>(0, obj->support_layer_count()),
+                [&support_layers_json_vector, obj, convert_layer_to_json](const tbb::blocked_range<size_t>& support_layer_range) {
+                    for (size_t s_layer_index = support_layer_range.begin(); s_layer_index < support_layer_range.end(); ++ s_layer_index) {
+                        const SupportLayer *support_layer = obj->get_support_layer(s_layer_index);
+                        json support_layer_json, support_islands_json = json::array(), support_fills_json, supportfills_entities_json = json::array();
+
+                        convert_layer_to_json(support_layer_json, support_layer);
+
+                        support_layer_json[JSON_SUPPORT_LAYER_INTERFACE_ID] = support_layer->interface_id();
+
+                        //support_islands
+                        for (const ExPolygon& support_island : support_layer->support_islands.expolygons) {
+                            json support_island_json = support_island;
+                            support_islands_json.push_back(std::move(support_island_json));
+                        }
+                        support_layer_json[JSON_SUPPORT_LAYER_ISLANDS] = std::move(support_islands_json);
+
+                        //support_fills
+                        support_fills_json[JSON_EXTRUSION_NO_SORT] = support_layer->support_fills.no_sort;
+                        support_fills_json[JSON_EXTRUSION_ENTITY_TYPE] = JSON_EXTRUSION_TYPE_COLLECTION;
+                        for (const ExtrusionEntity* extrusion_entity : support_layer->support_fills.entities) {
+                            json supportfill_entity_json, supportfill_entity_paths_json = json::array();
+                            bool ret = convert_extrusion_to_json(supportfill_entity_json, supportfill_entity_paths_json, extrusion_entity);
+                            if (!ret)
+                                continue;
+
+                            supportfills_entities_json.push_back(std::move(supportfill_entity_json));
+                        }
+                        support_fills_json[JSON_EXTRUSION_ENTITIES] = std::move(supportfills_entities_json);
+                        support_layer_json[JSON_SUPPORT_LAYER_FILLS] = std::move(support_fills_json);
+
+                        support_layers_json_vector[s_layer_index] = std::move(support_layer_json);
+                    }
+                }
+            );
+            for (int s_index = 0; s_index < support_layers_json_vector.size(); s_index++) {
+                support_layers_json.push_back(std::move(support_layers_json_vector[s_index]));
+            }
+            support_layers_json_vector.clear();
+
+            /*for (const SupportLayer *support_layer : obj->support_layers()) {
                 json support_layer_json, support_islands_json = json::array(), support_fills_json, supportfills_entities_json = json::array();
 
                 convert_layer_to_json(support_layer_json, support_layer);
@@ -2996,10 +3058,80 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
                 support_layer_json[JSON_SUPPORT_LAYER_FILLS] = std::move(support_fills_json);
 
                 support_layers_json.push_back(std::move(support_layer_json));
-            } // for each layer
+            } // for each layer*/
             root_json[JSON_SUPPORT_LAYERS] = std::move(support_layers_json);
 
             //export the tree support layers
+            std::vector<json> tree_support_layers_json_vector(obj->tree_support_layer_count());
+            tbb::parallel_for(
+                tbb::blocked_range<size_t>(0, obj->tree_support_layer_count()),
+                [&tree_support_layers_json_vector, obj, convert_layer_to_json](const tbb::blocked_range<size_t>& tree_support_layer_range) {
+                    for (size_t ts_layer_index = tree_support_layer_range.begin(); ts_layer_index < tree_support_layer_range.end(); ++ ts_layer_index) {
+                        const TreeSupportLayer *tree_support_layer = obj->get_tree_support_layer(ts_layer_index);
+                        json treesupport_layer_json, treesupport_fills_json, treesupportfills_entities_json = json::array();
+                        //json overhang_areas_json = json::array(), roof_areas_json = json::array(), roof_1st_layer_json = json::array(), floor_areas_json = json::array(), base_areas_json = json::array();
+
+                        convert_layer_to_json(treesupport_layer_json, tree_support_layer);
+
+                        //tree_support_fills
+                        treesupport_fills_json[JSON_EXTRUSION_NO_SORT] = tree_support_layer->support_fills.no_sort;
+                        treesupport_fills_json[JSON_EXTRUSION_ENTITY_TYPE] = JSON_EXTRUSION_TYPE_COLLECTION;
+                        for (const ExtrusionEntity* extrusion_entity : tree_support_layer->support_fills.entities) {
+                            json treesupportfill_entity_json, treesupportfill_entity_paths_json = json::array();
+                            bool ret = convert_extrusion_to_json(treesupportfill_entity_json, treesupportfill_entity_paths_json, extrusion_entity);
+                            if (!ret)
+                                continue;
+
+                            treesupportfills_entities_json.push_back(std::move(treesupportfill_entity_json));
+                        }
+                        treesupport_fills_json[JSON_EXTRUSION_ENTITIES] = std::move(treesupportfills_entities_json);
+                        treesupport_layer_json[JSON_SUPPORT_LAYER_FILLS] = std::move(treesupport_fills_json);
+
+                        //following data are not needed in the later stage
+                        //overhang_areas
+                        /*for (const ExPolygon& overhang_area : tree_support_layer->overhang_areas) {
+                            json overhang_area_json = overhang_area;
+                            overhang_areas_json.push_back(std::move(overhang_area_json));
+                        }
+                        treesupport_layer_json["overhang_areas"] = std::move(overhang_areas_json);
+
+                         //roof_areas
+                        for (const ExPolygon& roof_area : tree_support_layer->roof_areas) {
+                            json roof_area_json = roof_area;
+                            roof_areas_json.push_back(std::move(roof_area_json));
+                        }
+                        treesupport_layer_json["roof_areas"] = std::move(roof_areas_json);
+
+                         //roof_1st_layer
+                        for (const ExPolygon& layer_poly : tree_support_layer->roof_1st_layer) {
+                            json layer_poly_json = layer_poly;
+                            roof_1st_layer_json.push_back(std::move(layer_poly_json));
+                        }
+                        treesupport_layer_json["roof_1st_layer"] = std::move(roof_1st_layer_json);
+
+                         //floor_areas
+                        for (const ExPolygon& floor_area : tree_support_layer->floor_areas) {
+                            json floor_area_json = floor_area;
+                            floor_areas_json.push_back(std::move(floor_area_json));
+                        }
+                        treesupport_layer_json["floor_areas"] = std::move(floor_areas_json);
+
+                         //base_areas
+                        for (const ExPolygon& base_area : tree_support_layer->base_areas) {
+                            json base_area_json = base_area;
+                            base_areas_json.push_back(std::move(base_area_json));
+                        }
+                        treesupport_layer_json["base_areas"] = std::move(base_areas_json);*/
+
+                        tree_support_layers_json_vector[ts_layer_index] = std::move(treesupport_layer_json);
+                    }
+                }
+            );
+            for (int ts_index = 0; ts_index < tree_support_layers_json_vector.size(); ts_index++) {
+                tree_support_layers_json.push_back(std::move(tree_support_layers_json_vector[ts_index]));
+            }
+            tree_support_layers_json_vector.clear();
+#if 0
             for (const TreeSupportLayer *tree_support_layer : obj->tree_support_layers()) {
                 json treesupport_layer_json, treesupport_fills_json, treesupportfills_entities_json = json::array();
                 json overhang_areas_json = json::array(), roof_areas_json = json::array(), roof_1st_layer_json = json::array(), floor_areas_json = json::array(), base_areas_json = json::array();
@@ -3057,23 +3189,49 @@ int Print::export_cached_data(const std::string& directory, bool with_space)
 
                 tree_support_layers_json.push_back(std::move(treesupport_layer_json));
             } // for each layer
+#endif
             root_json[JSON_TREE_SUPPORT_LAYERS] = std::move(tree_support_layers_json);
 
-            boost::nowide::ofstream c;
+            filename_vector.push_back(file_name);
+            json_vector.push_back(std::move(root_json));
+            /*boost::nowide::ofstream c;
             c.open(file_name, std::ios::out | std::ios::trunc);
             if (with_space)
                 c << std::setw(4) << root_json << std::endl;
             else
                 c << root_json.dump(0) << std::endl;
-            c.close();
+            c.close();*/
             count ++;
-            BOOST_LOG_TRIVIAL(info) << boost::format("dump object %1% to %2% successfully.")%model_obj->name%file_name;
+            BOOST_LOG_TRIVIAL(info) << boost::format("will dump object %1%'s json to %2%.")%model_obj->name%file_name;
         }
         catch(std::exception &err) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": save to "<<file_name<<" got a generic exception, reason = " << err.what();
             ret = CLI_EXPORT_CACHE_WRITE_FAILED;
         }
     }
+
+    boost::mutex mutex;
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, filename_vector.size()),
+        [filename_vector, &json_vector, with_space, &ret, &mutex](const tbb::blocked_range<size_t>& output_range) {
+            for (size_t object_index = output_range.begin(); object_index < output_range.end(); ++ object_index) {
+                try {
+                    boost::nowide::ofstream c;
+                    c.open(filename_vector[object_index], std::ios::out | std::ios::trunc);
+                    if (with_space)
+                        c << std::setw(4) << json_vector[object_index] << std::endl;
+                    else
+                        c << json_vector[object_index].dump(0) << std::endl;
+                    c.close();
+                }
+                catch(std::exception &err) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": save to "<<filename_vector[object_index]<<" got a generic exception, reason = " << err.what();
+                    boost::unique_lock l(mutex);
+                    ret = CLI_EXPORT_CACHE_WRITE_FAILED;
+                }
+            }
+        }
+    );
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": total printobject count %1%, saved %2%, ret=%3%")%m_objects.size() %count %ret;
     return ret;
@@ -3103,6 +3261,7 @@ int Print::load_cached_data(const std::string& directory)
     };
 
     int count = 0;
+    std::vector<std::pair<std::string, PrintObject*>> object_filenames;
     for (PrintObject *obj : m_objects) {
         const ModelObject* model_obj = obj->model_object();
         const PrintInstance &print_instance = obj->instances()[0];
@@ -3123,12 +3282,42 @@ int Print::load_cached_data(const std::string& directory)
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": file %1% not exist, maybe a shared object, skip it")%file_name;
             continue;
         }
+        object_filenames.push_back({file_name, obj});
+    }
 
-        json root_json;
+    boost::mutex mutex;
+    std::vector<json> object_jsons(object_filenames.size());
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, object_filenames.size()),
+        [object_filenames, &ret, &object_jsons, &mutex](const tbb::blocked_range<size_t>& filename_range) {
+            for (size_t filename_index = filename_range.begin(); filename_index < filename_range.end(); ++ filename_index) {
+                try {
+                    json root_json;
+                    boost::nowide::ifstream ifs(object_filenames[filename_index].first);
+                    ifs >> root_json;
+                    object_jsons[filename_index] = std::move(root_json);
+                }
+                catch(std::exception &err) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": load from "<<object_filenames[filename_index].first<<" got a generic exception, reason = " << err.what();
+                    boost::unique_lock l(mutex);
+                    ret = CLI_IMPORT_CACHE_LOAD_FAILED;
+                }
+            }
+        }
+    );
+
+    if (ret) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< boost::format(": load json failed.");
+        return ret;
+    }
+
+    for (int obj_index = 0; obj_index < object_jsons.size(); obj_index++) {
+        json& root_json = object_jsons[obj_index];
+        PrintObject *obj = object_filenames[obj_index].second;
 
         try {
-            boost::nowide::ifstream ifs(file_name);
-            ifs >> root_json;
+            //boost::nowide::ifstream ifs(file_name);
+            //ifs >> root_json;
 
             std::string name = root_json.at(JSON_OBJECT_NAME);
             int order = root_json.at(JSON_ARRANGE_ORDER);
@@ -3249,18 +3438,20 @@ int Print::load_cached_data(const std::string& directory)
             );
 
             count ++;
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format("load object %1% from %2% successfully.")%model_obj->name%file_name;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": load object %1% from %2% successfully.")%count%object_filenames[obj_index].first;
         }
         catch(nlohmann::detail::parse_error &err) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file_name<<" got a nlohmann::detail::parse_error, reason = " << err.what();
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<object_filenames[obj_index].first<<" got a nlohmann::detail::parse_error, reason = " << err.what();
             return CLI_IMPORT_CACHE_LOAD_FAILED;
         }
         catch(std::exception &err) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": load from "<<file_name<<" got a generic exception, reason = " << err.what();
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": load from "<<object_filenames[obj_index].first<<" got a generic exception, reason = " << err.what();
             ret = CLI_IMPORT_CACHE_LOAD_FAILED;
         }
     }
 
+    object_jsons.clear();
+    object_filenames.clear();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": total printobject count %1%, loaded %2%, ret=%3%")%m_objects.size() %count %ret;
     return ret;
 }
