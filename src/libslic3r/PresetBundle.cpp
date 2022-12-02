@@ -1515,10 +1515,15 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
     std::vector<std::string> compatible_prints_condition;
     std::vector<std::string> inherits;
     std::vector<std::string> filament_ids;
+    std::vector<std::string> print_compatible_printers;
     //BBS: add logic for settings check between different system presets
     std::vector<std::string> different_settings;
     std::string different_print_settings, different_printer_settings;
     compatible_printers_condition.emplace_back(this->prints.get_edited_preset().compatible_printers_condition());
+
+    const ConfigOptionStrings* compatible_printers =  (const_cast<PresetBundle*>(this))->prints.get_edited_preset().config.option<ConfigOptionStrings>("compatible_printers", false);
+    if (compatible_printers)
+        print_compatible_printers = compatible_printers->values;
     //BBS: add logic for settings check between different system presets
     std::string print_inherits = this->prints.get_edited_preset().inherits();
     inherits                     .emplace_back(print_inherits);
@@ -1693,6 +1698,7 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
     add_if_some_non_empty(std::move(inherits),                      "inherits_group");
     //BBS: add logic for settings check between different system presets
     add_if_some_non_empty(std::move(different_settings),            "different_settings_to_system");
+    add_if_some_non_empty(std::move(print_compatible_printers),     "print_compatible_printers");
 
 	out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptFFF;
     return out;
@@ -1826,16 +1832,15 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 {
     PrinterTechnology printer_technology = Preset::printer_technology(config);
 
-    // The "compatible_printers" field should not have been exported into a config.ini or a G-code anyway,
-    // but some of the alpha versions of Slic3r did.
-    {
+    auto clear_compatible_printers = [](DynamicPrintConfig& config){
         ConfigOption *opt_compatible = config.optptr("compatible_printers");
         if (opt_compatible != nullptr) {
             assert(opt_compatible->type() == coStrings);
             if (opt_compatible->type() == coStrings)
                 static_cast<ConfigOptionStrings*>(opt_compatible)->values.clear();
         }
-    }
+    };
+    clear_compatible_printers(config);
 
 #if 0
     size_t num_extruders = (printer_technology == ptFFF) ?
@@ -1857,6 +1862,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     std::vector<std::string> compatible_prints_condition_values     = std::move(config.option<ConfigOptionStrings>("compatible_process_expression_group",   true)->values);
     std::vector<std::string> inherits_values                        = std::move(config.option<ConfigOptionStrings>("inherits_group", true)->values);
     std::vector<std::string> filament_ids                           = std::move(config.option<ConfigOptionStrings>("filament_ids", true)->values);
+    std::vector<std::string> print_compatible_printers              = std::move(config.option<ConfigOptionStrings>("print_compatible_printers", true)->values);
     //BBS: add different settings check logic
     bool has_different_settings_to_system                           = config.option("different_settings_to_system")?true:false;
     std::vector<std::string> different_values                       = std::move(config.option<ConfigOptionStrings>("different_settings_to_system", true)->values);
@@ -1921,7 +1927,15 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         //}
         //else
             print_different_keys_set.insert(ignore_settings_list.begin(), ignore_settings_list.end());
+        if (!print_compatible_printers.empty()) {
+            ConfigOptionStrings* compatible_printers = config.option<ConfigOptionStrings>("compatible_printers", true);
+            compatible_printers->values = print_compatible_printers;
+        }
+
         load_preset(this->prints, 0, "print_settings_id", print_different_keys_set, std::string());
+
+        //clear compatible printers
+        clear_compatible_printers(config);
 
         std::vector<std::string> printer_different_keys_vector;
         std::string printer_different_settings = different_values[num_filaments + 1];

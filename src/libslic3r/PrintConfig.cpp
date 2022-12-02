@@ -829,6 +829,10 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings());
     def->cli = ConfigOptionDef::nocli;
 
+    def = this->add("print_compatible_printers", coStrings);
+    def->set_default_value(new ConfigOptionStrings());
+    def->cli = ConfigOptionDef::nocli;
+
     def = this->add("print_sequence", coEnum);
     def->label = L("Print sequence");
     def->tooltip = L("Print sequence, layer by layer or object by object");
@@ -4463,6 +4467,12 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->label = L("Help");
     def->tooltip = L("Show command help.");
     def->cli = "help|h";
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("uptodate", coBool);
+    def->label = L("UpToDate");
+    def->tooltip = L("Update the configs values of 3mf to latest.");
+    def->cli = "uptodate";
     def->set_default_value(new ConfigOptionBool(false));
 
     /*def = this->add("help_fff", coBool);

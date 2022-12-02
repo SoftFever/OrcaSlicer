@@ -31,6 +31,10 @@
 #define CLI_EXPORT_OBJ_ERROR        -12
 #define CLI_EXPORT_3MF_ERROR        -13
 #define CLI_OUT_OF_MEMORY           -14
+#define CLI_3MF_NOT_SUPPORT_MACHINE_CHANGE      -15
+#define CLI_3MF_NEW_MACHINE_NOT_SUPPORTED       -16
+#define CLI_PROCESS_NOT_COMPATIBLE     -17
+
 
 #define CLI_NO_SUITABLE_OBJECTS     -50
 #define CLI_VALIDATE_ERROR          -51
