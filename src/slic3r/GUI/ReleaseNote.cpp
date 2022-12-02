@@ -479,7 +479,7 @@ void SecondaryCheckDialog::on_show()
     m_button_cancel->GetEventHandler()->ProcessEvent(evt_cancel);
 
     this->Show();
-    this->SetFocus(); 
+    this->Raise();
 }
 
 void SecondaryCheckDialog::on_hide()
@@ -488,6 +488,10 @@ void SecondaryCheckDialog::on_hide()
         wxGetApp().app_config->set(show_again_config_text, "1");
 
     this->Hide();
+    if (wxGetApp().mainframe != nullptr) {
+        wxGetApp().mainframe->Show();
+        wxGetApp().mainframe->Raise();
+    }
 }
 
 void SecondaryCheckDialog::update_btn_label(wxString ok_btn_text, wxString cancel_btn_text)
