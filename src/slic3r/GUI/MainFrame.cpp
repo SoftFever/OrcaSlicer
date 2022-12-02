@@ -1447,7 +1447,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                 export_all_sliced_file_btn->SetCornerRadius(0);
 
                 print_plate_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
-                    m_print_btn->SetLabel(_L("Print"));
+                    m_print_btn->SetLabel(_L("Print plate"));
                     m_print_select = ePrintPlate;
                     m_print_enable = get_enable_print_status();
                     m_print_btn->Enable(m_print_enable);
@@ -2880,7 +2880,7 @@ void MainFrame::on_config_changed(DynamicPrintConfig* config) const
 void MainFrame::set_print_button_to_default(PrintSelectType select_type)
 {
     if (select_type == PrintSelectType::ePrintPlate) {
-        m_print_btn->SetLabel(_L("Print"));
+        m_print_btn->SetLabel(_L("Print plate"));
         m_print_select = ePrintPlate;
         if (m_print_enable)
             m_print_enable = get_enable_print_status();
