@@ -2926,6 +2926,13 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         break;
 
         // BBS
+#ifdef __APPLE__
+        case 'E':
+        case 'e':
+#else /* __APPLE__ */
+        case WXK_CONTROL_E:
+#endif /* __APPLE__ */
+        { m_labels.show(!m_labels.is_shown()); m_dirty = true; break; }
         case '0': {
             select_view("plate");
             zoom_to_bed();
@@ -3022,8 +3029,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case 'C':
         case 'c': { m_gcode_viewer.toggle_gcode_window_visibility(); m_dirty = true; request_extra_frame(); break; }
 #endif
-        case 'E':
-        case 'e': { m_labels.show(!m_labels.is_shown()); m_dirty = true; break; }
         //case 'G':
         //case 'g': {
         //    if ((evt.GetModifiers() & shiftMask) != 0) {

@@ -1029,6 +1029,14 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
 
             //break;
         //}
+        // BBS: Skip all keys when in gizmo. This is necessary for 3D text tool.
+        default:
+        {
+            if (is_running() && m_current == EType::Text) {
+                processed = true;
+            }
+            break;
+        }
         }
     }
 
