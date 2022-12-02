@@ -1007,6 +1007,21 @@ std::string MachineObject::get_ota_version()
     return "";
 }
 
+bool MachineObject::check_version_valid()
+{
+    bool valid = true;
+    for (auto module : module_vers) {
+        if (module.second.sn.empty()
+            && module.first != "ota"
+            && module.first != "xm")
+            return false;
+        if (module.second.sw_ver.empty())
+            return false;
+    }
+    get_version_retry = 0;
+    return valid;
+}
+
 wxString MachineObject::get_upgrade_result_str(int err_code)
 {
     switch(err_code) {
@@ -1217,12 +1232,14 @@ bool MachineObject::is_recording()
     return camera_recording;
 }
 
-int MachineObject::command_get_version()
+int MachineObject::command_get_version(bool with_retry)
 {
     BOOST_LOG_TRIVIAL(info) << "command_get_version";
     json j;
     j["info"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["info"]["command"] = "get_version";
+    if (with_retry)
+        get_version_retry = GET_VERSION_RETRYS;
     return this->publish_json(j.dump());
 }
 
@@ -1790,6 +1807,7 @@ void MachineObject::reset()
     last_update_time = std::chrono::system_clock::now();
     m_push_count = 0;
     is_220V_voltage = false;
+    get_version_retry = 0;
     camera_recording = false;
     camera_recording_when_printing = false;
     camera_timelapse = false;
@@ -2881,6 +2899,20 @@ int MachineObject::parse_json(std::string payload)
                         if ((*it).contains("hw_ver"))
                             ver_info.hw_ver = (*it)["hw_ver"].get<std::string>();
                         module_vers.emplace(ver_info.name, ver_info);
+                    }
+                    bool get_version_result = true;
+                    if (j["info"].contains("result"))
+                        if (j["info"]["result"].get<std::string>() == "fail")
+                            get_version_result = false;
+                    if ((!check_version_valid() && get_version_retry-- >= 0)
+                        && get_version_result) {
+                            BOOST_LOG_TRIVIAL(info) << "get_version_retry = " << get_version_retry;
+                            boost::thread retry = boost::thread([this] {
+                                boost::this_thread::sleep_for(boost::chrono::milliseconds(RETRY_INTERNAL));
+                                GUI::wxGetApp().CallAfter([this] {
+                                    this->command_get_version(false);
+                            });
+                        });
                     }
                 }
             }

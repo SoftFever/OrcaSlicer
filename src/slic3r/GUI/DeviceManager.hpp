@@ -25,6 +25,8 @@
 #define BED_TEMP_LIMIT          120
 
 #define HOLD_COUNT_MAX          3
+#define GET_VERSION_RETRYS      10
+#define RETRY_INTERNAL          2000
 
 inline int correct_filament_temperature(int filament_temp)
 {
@@ -483,6 +485,7 @@ public:
     std::string ams_new_version_number;
     std::string ota_new_version_number;
     std::string ahb_new_version_number;
+    int get_version_retry = 0;
     std::map<std::string, ModuleVersionInfo> module_vers;
     std::map<std::string, ModuleVersionInfo> new_ver_list;
     bool    m_new_ver_list_exist = false;
@@ -494,6 +497,7 @@ public:
     bool is_upgrading_avalable();
     int get_upgrade_percent();
     std::string get_ota_version();
+    bool check_version_valid();
     wxString get_upgrade_result_str(int upgrade_err_code);
     // key: ams_id start as 0,1,2,3
     std::map<int, ModuleVersionInfo> get_ams_version();
@@ -601,7 +605,7 @@ public:
     MachineObject(NetworkAgent* agent, std::string name, std::string id, std::string ip);
     ~MachineObject();
     /* command commands */
-    int command_get_version();
+    int command_get_version(bool with_retry = true);
     int command_request_push_all();
 
     /* command upgrade */
