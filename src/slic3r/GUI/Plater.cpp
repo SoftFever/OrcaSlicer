@@ -523,8 +523,9 @@ Sidebar::Sidebar(Plater *parent)
         edit_btn->SetToolTip(_L("Click to edit preset"));
         edit_btn->Bind(wxEVT_BUTTON, [this, combo_printer](wxCommandEvent)
             {
-                p->editing_filament = 0;
-                combo_printer->switch_to_tab();
+                p->editing_filament = -1;
+                if (combo_printer->switch_to_tab())
+                    p->editing_filament = 0;
             });
         combo_printer->edit_btn = edit_btn;
         p->combo_printer = combo_printer;
@@ -741,7 +742,7 @@ Sidebar::Sidebar(Plater *parent)
         }
 
         if (p->editing_filament >= filament_count) {
-            p->editing_filament = 0;
+            p->editing_filament = -1;
         }
 
         wxGetApp().preset_bundle->set_num_filaments(filament_count);
@@ -768,7 +769,7 @@ Sidebar::Sidebar(Plater *parent)
     ScalableButton* set_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "settings");
     set_btn->SetToolTip(_L("Set filaments to use"));
     set_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
-        // p->editing_filament = -1;
+        p->editing_filament = -1;
         // wxGetApp().params_dialog()->Popup();
         // wxGetApp().get_tab(Preset::TYPE_FILAMENT)->restore_last_select_item();
         wxGetApp().run_wizard(ConfigWizard::RR_USER, ConfigWizard::SP_FILAMENTS);
@@ -905,8 +906,9 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     PlaterPresetComboBox* combobox = (*combo);
     edit_btn->Bind(wxEVT_BUTTON, [this, combobox, filament_idx](wxCommandEvent)
         {
-            p->editing_filament = filament_idx; // sync with TabPresetComboxBox's m_filament_idx
-            combobox->switch_to_tab();
+            p->editing_filament = -1;
+            if (combobox->switch_to_tab())
+                p->editing_filament = filament_idx; // sync with TabPresetComboxBox's m_filament_idx
         });
     combobox->edit_btn = edit_btn;
 
@@ -1495,6 +1497,8 @@ bool Sidebar::show_object_list(bool show) const
     p->scrolled->Layout();
     return true;
 }
+
+void Sidebar::finish_param_edit() { p->editing_filament = -1; }
 
 std::vector<PlaterPresetComboBox*>& Sidebar::combos_filament()
 {

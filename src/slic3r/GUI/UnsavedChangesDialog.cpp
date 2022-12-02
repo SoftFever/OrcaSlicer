@@ -1383,7 +1383,8 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
     }
 
     wxString action_msg;
-    action_msg = format_wxstr(_L("You have changed some preset settings. \nWould you like to keep these changed settings (new value) after switching preset?"));
+    action_msg = format_wxstr(_L("You have changed some settings of preset \"%1%\". \nWould you like to keep these changed settings (new value) after switching preset?"),
+                              dependent_presets->get_edited_preset().name);
     m_action_line->SetLabel(action_msg);
 
     update_tree(type, presets);

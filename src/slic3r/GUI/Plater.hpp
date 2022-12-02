@@ -149,6 +149,7 @@ public:
     void                    update_searcher();
     void                    update_ui_from_settings();
 	bool                    show_object_list(bool show) const;
+    void                    finish_param_edit();
 
 #ifdef _MSW_DARK_MODE
     void                    show_mode_sizer(bool show);

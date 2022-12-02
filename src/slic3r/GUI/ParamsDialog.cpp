@@ -54,6 +54,7 @@ ParamsDialog::ParamsDialog(wxWindow * parent)
 #else
         Hide();
 #endif
+        wxGetApp().sidebar().finish_param_edit();
     });
 
     wxGetApp().UpdateDlgDarkUI(this);
