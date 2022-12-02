@@ -623,10 +623,13 @@ void Slic3r::GUI::ImageGrid::renderButtons(wxDC &dc, wxStringList const &texts, 
         // Draw button background
         //dc.Blit(rect.GetTopLeft(), rect.GetSize(), &mdc, {m_buttonBackgroundColor.colorIndexForStates(states) * 128, 0});
         //dc.DrawBitmap(m_button_background, rect2.GetTopLeft());
-        // Draw button splitter
-        if (i > 0) dc.DrawLine(rect.GetLeftTop(), rect.GetLeftBottom());
-        // Draw button text
         rect.Deflate(10, 5);
+        // Draw button splitter
+        auto pen = dc.GetPen();
+        dc.SetPen(wxPen("#616161"));
+        if (i > 0) dc.DrawLine(rect.GetLeftTop(), rect.GetLeftBottom());
+        dc.SetPen(pen);
+        // Draw button text
         renderText(dc, texts[i], rect, states | states2);
         rect.Inflate(10, 5);
         rect.Offset(rect.GetWidth(), 0);
