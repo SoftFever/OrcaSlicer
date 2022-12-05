@@ -1868,16 +1868,17 @@ static wxMenu* generate_help_menu()
             return true;
         });
 
+    append_menu_item(helpMenu, wxID_ANY, _L("Open Network Test"), _L("Open Network Test"), [](wxCommandEvent&) {
+            NetworkTestDialog dlg(wxGetApp().mainframe);
+            dlg.ShowModal();
+        });
+
     // About
 #ifndef __APPLE__
     wxString about_title = wxString::Format(_L("&About %s"), SLIC3R_APP_FULL_NAME);
     append_menu_item(helpMenu, wxID_ANY, about_title, about_title,
             [](wxCommandEvent&) { Slic3r::GUI::about(); });
 #endif
-    append_menu_item(helpMenu, wxID_ANY, _L("Open Network Test"), _L("Open Network Test"), [](wxCommandEvent&) {
-            NetworkTestDialog dlg(wxGetApp().mainframe);
-            dlg.ShowModal();
-        });
 
     return helpMenu;
 }
