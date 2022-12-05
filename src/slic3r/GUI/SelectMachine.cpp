@@ -678,12 +678,25 @@ void SelectMachinePopup::update_user_devices()
     m_bind_machine_list.clear();
     m_bind_machine_list = dev->get_my_machine_list();
 
+    //sort list
+    std::vector<std::pair<std::string, MachineObject*>> user_machine_list;
+    for (auto& it: m_bind_machine_list) {
+        user_machine_list.push_back(it);
+    }
+
+    std::sort(user_machine_list.begin(), user_machine_list.end(), [&](auto& a, auto&b) {
+            if (a.second && b.second) {
+                return a.second->dev_name.compare(b.second->dev_name) < 0;
+            }
+            return false;
+        });
+
     BOOST_LOG_TRIVIAL(trace) << "SelectMachinePopup update_machine_list start";
     this->Freeze();
     m_scrolledWindow->Freeze();
     int i = 0;
 
-    for (auto& elem : m_bind_machine_list) {
+    for (auto& elem : user_machine_list) {
         MachineObject* mobj = elem.second;
         MachineObjectPanel* op = nullptr;
         if (i < m_user_list_machine_panel.size()) {
