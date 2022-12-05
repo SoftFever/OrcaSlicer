@@ -14,6 +14,14 @@ body
 	color:#efeff0;
 }
 
+.ZScrol::-webkit-scrollbar-thumb {/*滚动条里面小方块*/
+    background-color: #939594;
+}
+
+.ZScrol::-webkit-scrollbar-track {/*滚动条里面轨道*/
+        background: #161817;
+}
+
 
 
 

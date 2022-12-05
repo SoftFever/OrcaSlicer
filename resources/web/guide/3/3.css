@@ -7,9 +7,12 @@
 {
 	padding: 12px;
 	word-wrap:break-word;
-	overflow-y: scroll;
+	overflow-y: auto;
 	min-height: 200px;
 	text-indent: 2em;
+	border-style: solid;
+	border-width: 1px;
+	border-color: #D7D7D7;
 }
 
 #PolicyTxt::-webkit-scrollbar {/*滚动条整体样式*/

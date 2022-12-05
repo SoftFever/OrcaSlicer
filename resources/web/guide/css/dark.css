@@ -10,6 +10,14 @@ body
 	color: #efeff0;
 }
 
+.ZScrol::-webkit-scrollbar-thumb {/*滚动条里面小方块*/
+    background-color: #939594;
+}
+
+.ZScrol::-webkit-scrollbar-track {/*滚动条里面轨道*/
+        background: #161817;
+}
+
 #Title div
 {
 	color: #21A452;
@@ -51,4 +59,10 @@ body
 .RegionItem:hover
 {
 	background-color:#4C4C55;
+}
+
+.RegionSelected:hover
+{
+	background-color:#00AE42;
+	color: #fff;	
 }

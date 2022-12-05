@@ -48,6 +48,12 @@
 	color: #fff;
 }
 
+.RegionSelected:hover
+{
+	background-color:#00AE42;
+	color: #fff;	
+}
+
 
 #ChangeTip
 {
