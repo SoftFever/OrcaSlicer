@@ -1370,7 +1370,8 @@ void PresetBundle::export_selections(AppConfig &config)
         sprintf(name, "filament_%u", i);
         config.set("presets", name, filament_presets[i]);
     }
-    std::string filament_colors = boost::algorithm::join(project_config.option<ConfigOptionStrings>("filament_colour")->values, ",");
+    CNumericLocalesSetter locales_setter;
+    std::string           filament_colors = boost::algorithm::join(project_config.option<ConfigOptionStrings>("filament_colour")->values, ",");
     config.set("presets", "filament_colors", filament_colors);
     std::string flush_volumes_matrix = boost::algorithm::join(project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values |
                                                              boost::adaptors::transformed(static_cast<std::string (*)(double)>(std::to_string)),
