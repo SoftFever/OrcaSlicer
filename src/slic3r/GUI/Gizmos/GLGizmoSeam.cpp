@@ -208,7 +208,11 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("cursor_type"));
     bool dark_mode = wxGetApp().app_config->get("dark_color_mode") == "1";
-    std::array<wchar_t, 2> tool_icons = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon};
+    std::array<wchar_t, 2> tool_icons;
+    if (dark_mode)
+        tool_icons = { ImGui::CircleButtonDarkIcon, ImGui::SphereButtonDarkIcon};
+    else
+        tool_icons = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon};
     std::array<wxString, 2> tool_tips = { _L("Circle"), _L("Sphere")};
     for (int i = 0; i < tool_icons.size(); i++) {
         std::string  str_label = std::string("##");

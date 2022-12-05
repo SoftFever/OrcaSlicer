@@ -247,7 +247,11 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("tool_type"));
     bool dark_mode = wxGetApp().app_config->get("dark_color_mode") == "1";
-    std::array<wchar_t, 4> tool_icons = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon, ImGui::FillButtonIcon, ImGui::GapFillIcon };
+    std::array<wchar_t, 4> tool_icons;
+    if (dark_mode)
+        tool_icons = { ImGui::CircleButtonDarkIcon, ImGui::SphereButtonDarkIcon, ImGui::FillButtonDarkIcon, ImGui::GapFillDarkIcon };
+    else
+        tool_icons = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon, ImGui::FillButtonIcon, ImGui::GapFillIcon };
     std::array<wxString, 4> tool_tips = { _L("Circle"), _L("Sphere"), _L("Fill"), _L("Gap Fill") };
     for (int i = 0; i < tool_icons.size(); i++) {
         std::string  str_label = std::string("##");
