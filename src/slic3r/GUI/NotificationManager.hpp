@@ -166,6 +166,7 @@ public:
 	NotificationManager(wxEvtHandler* evt_handler);
 	~NotificationManager(){}
 
+	void on_change_color_mode(bool is_dark);
 	// init is called after canvas3d is created. Notifications added before init are not showed or updated
 	void init() { m_initialized = true; }
 	// Push a prefabricated notification from basic_notifications (see the table at the end of this file).
@@ -394,8 +395,7 @@ private:
 		// set start of notification to now. Used by delayed notifications
 		void                   reset_timer() { m_notification_start = GLCanvas3D::timestamp_now(); m_state = EState::Shown; }
         void set_Multiline(bool Multi) { m_multiline = Multi; }
-
-		bool m_is_dark_mode = false;
+		void on_change_color_mode(bool is_dark);
 
 	protected:
 		// Call after every size change
@@ -431,6 +431,8 @@ private:
 		virtual bool push_background_color();
 		// used this function instead of reading directly m_data.duration. Some notifications might need to return changing value.
 		virtual int  get_duration() { return m_data.duration; }
+
+		bool m_is_dark = false;
 
 		const NotificationData m_data;
 		// For reusing ImGUI windows.
@@ -823,6 +825,7 @@ private:
 		}
 	}
 
+	bool m_is_dark = false;
 	// set by init(), until false notifications are only added not updated and frame is not requested after push
 	bool m_initialized{ false };
 	// Target for wxWidgets events sent by clicking on the hyperlink available at some notifications.

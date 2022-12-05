@@ -125,8 +125,7 @@ bool GLGizmosManager::init()
     bool result = init_icon_textures();
     if (!result) return result;
 
-    bool dark_mode = wxGetApp().app_config->get("dark_color_mode") == "1";
-    m_background_texture.metadata.filename = dark_mode ? "toolbar_background_dark.png" : "toolbar_background.png";
+    m_background_texture.metadata.filename = m_is_dark ? "toolbar_background_dark.png" : "toolbar_background.png";
     m_background_texture.metadata.left = 16;
     m_background_texture.metadata.top = 16;
     m_background_texture.metadata.right = 16;
@@ -142,15 +141,15 @@ bool GLGizmosManager::init()
     //BBS: GUI refactor: add obj manipulation
     m_gizmos.clear();
     unsigned int sprite_id = 0;
-    m_gizmos.emplace_back(new GLGizmoMove3D(m_parent, dark_mode ? "toolbar_move_dark.svg" : "toolbar_move.svg", EType::Move, &m_object_manipulation));
-    m_gizmos.emplace_back(new GLGizmoRotate3D(m_parent, dark_mode ? "toolbar_rotate_dark.svg" : "toolbar_rotate.svg", EType::Rotate, &m_object_manipulation));
-    m_gizmos.emplace_back(new GLGizmoScale3D(m_parent, dark_mode ? "toolbar_scale_dark.svg" : "toolbar_scale.svg", EType::Scale, &m_object_manipulation));
-    m_gizmos.emplace_back(new GLGizmoFlatten(m_parent, dark_mode ? "toolbar_flatten_dark.svg" : "toolbar_flatten.svg", EType::Flatten));
-    m_gizmos.emplace_back(new GLGizmoAdvancedCut(m_parent, dark_mode ? "toolbar_cut_dark.svg" : "toolbar_cut.svg", EType::Cut));
-    m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, dark_mode ? "toolbar_support_dark.svg" : "toolbar_support.svg", EType::FdmSupports));
-    m_gizmos.emplace_back(new GLGizmoSeam(m_parent, dark_mode ? "toolbar_seam_dark.svg" : "toolbar_seam.svg", EType::Seam));
-    m_gizmos.emplace_back(new GLGizmoText(m_parent, dark_mode ? "toolbar_text_dark.svg" : "toolbar_text.svg", EType::Text));
-    m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, dark_mode ? "mmu_segmentation_dark.svg" : "mmu_segmentation.svg", EType::MmuSegmentation));
+    m_gizmos.emplace_back(new GLGizmoMove3D(m_parent, m_is_dark ? "toolbar_move_dark.svg" : "toolbar_move.svg", EType::Move, &m_object_manipulation));
+    m_gizmos.emplace_back(new GLGizmoRotate3D(m_parent, m_is_dark ? "toolbar_rotate_dark.svg" : "toolbar_rotate.svg", EType::Rotate, &m_object_manipulation));
+    m_gizmos.emplace_back(new GLGizmoScale3D(m_parent, m_is_dark ? "toolbar_scale_dark.svg" : "toolbar_scale.svg", EType::Scale, &m_object_manipulation));
+    m_gizmos.emplace_back(new GLGizmoFlatten(m_parent, m_is_dark ? "toolbar_flatten_dark.svg" : "toolbar_flatten.svg", EType::Flatten));
+    m_gizmos.emplace_back(new GLGizmoAdvancedCut(m_parent, m_is_dark ? "toolbar_cut_dark.svg" : "toolbar_cut.svg", EType::Cut));
+    m_gizmos.emplace_back(new GLGizmoFdmSupports(m_parent, m_is_dark ? "toolbar_support_dark.svg" : "toolbar_support.svg", EType::FdmSupports));
+    m_gizmos.emplace_back(new GLGizmoSeam(m_parent, m_is_dark ? "toolbar_seam_dark.svg" : "toolbar_seam.svg", EType::Seam));
+    m_gizmos.emplace_back(new GLGizmoText(m_parent, m_is_dark ? "toolbar_text_dark.svg" : "toolbar_text.svg", EType::Text));
+    m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, m_is_dark ? "mmu_segmentation_dark.svg" : "mmu_segmentation.svg", EType::MmuSegmentation));
     m_gizmos.emplace_back(new GLGizmoSimplify(m_parent, "reduce_triangles.svg", EType::Simplify));
     //m_gizmos.emplace_back(new GLGizmoSlaSupports(m_parent, "sla_supports.svg", sprite_id++));
     //m_gizmos.emplace_back(new GLGizmoFaceDetector(m_parent, "face recognition.svg", sprite_id++));
@@ -166,6 +165,7 @@ bool GLGizmosManager::init()
             return false;
         }
         gizmo->set_common_data_pool(m_common_gizmos_data.get());
+        gizmo->on_change_color_mode(m_is_dark);
     }
 
     m_current = Undefined;
@@ -608,6 +608,10 @@ bool GLGizmosManager::wants_reslice_supports_on_undo() const
 {
     return (m_current == SlaSupports
         && dynamic_cast<const GLGizmoSlaSupports*>(m_gizmos.at(SlaSupports).get())->has_backend_supports());
+}
+
+void GLGizmosManager::on_change_color_mode(bool is_dark) {
+    m_is_dark = is_dark;
 }
 
 void GLGizmosManager::render_current_gizmo() const

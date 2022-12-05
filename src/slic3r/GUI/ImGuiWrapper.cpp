@@ -1671,9 +1671,16 @@ std::vector<unsigned char> ImGuiWrapper::load_svg(const std::string& bitmap_name
 }
 
 //BBS
+static bool m_is_dark_mode = false;
+
+void ImGuiWrapper::on_change_color_mode(bool is_dark)
+{
+    m_is_dark_mode = is_dark;
+}
+
 void ImGuiWrapper::push_toolbar_style(const float scale)
 {
-    if (wxGetApp().app_config->get("dark_color_mode") == "1") {
+    if (m_is_dark_mode) {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 10.0f) * scale);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 3.0f * scale);
@@ -1732,7 +1739,7 @@ void ImGuiWrapper::pop_toolbar_style()
 
 void ImGuiWrapper::push_menu_style(const float scale)
 {
-    if (wxGetApp().app_config->get("dark_color_mode") == "1") {
+    if (m_is_dark_mode) {
         ImGuiWrapper::push_toolbar_style(scale);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 10.0f) * scale);
         ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 4.0f * scale);
@@ -1761,7 +1768,7 @@ void ImGuiWrapper::pop_menu_style()
 }
 
 void ImGuiWrapper::push_common_window_style(const float scale) {
-    if (wxGetApp().app_config->get("dark_color_mode") == "1") {
+    if (m_is_dark_mode) {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 10.0f) * scale);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowTitleAlign, ImVec2(0.05f, 0.50f) * scale);
@@ -1811,7 +1818,7 @@ void ImGuiWrapper::pop_common_window_style() {
 }
 
 void ImGuiWrapper::push_confirm_button_style() {
-    if (wxGetApp().app_config->get("dark_color_mode") == "1") {
+    if (m_is_dark_mode) {
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f / 255.f, 174.f / 255.f, 66.f / 255.f, 1.f));
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f / 255.f, 174.f / 255.f, 66.f / 255.f, 1.f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(61.f / 255.f, 203.f / 255.f, 115.f / 255.f, 1.f));
@@ -1834,7 +1841,7 @@ void ImGuiWrapper::pop_confirm_button_style() {
 }
 
 void ImGuiWrapper::push_cancel_button_style() {
-    if (wxGetApp().app_config->get("dark_color_mode") == "1") {
+    if (m_is_dark_mode) {
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.f, 1.f, 1.f, 0.64f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(73 / 255.f, 73 / 255.f, 78 / 255.f, 1.f));
@@ -1857,7 +1864,7 @@ void ImGuiWrapper::pop_cancel_button_style() {
 }
 
 void ImGuiWrapper::push_button_disable_style() {
-    if (wxGetApp().app_config->get("dark_color_mode") == "1") {
+    if (m_is_dark_mode) {
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(54 / 255.f, 54 / 255.f, 60 / 255.f, 1.f));
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(54 / 255.f, 54 / 255.f, 60 / 255.f, 1.f));
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 0.4f));

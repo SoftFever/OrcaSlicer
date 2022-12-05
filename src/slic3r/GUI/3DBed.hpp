@@ -105,6 +105,7 @@ private:
     //BBS: add part plate related logic
     Vec2d m_position{ Vec2d::Zero() };
     std::vector<Vec2d>  m_bed_shape;
+    bool m_is_dark = false;
 
 public:
     Bed3D() = default;
@@ -140,6 +141,8 @@ public:
 
     void render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool show_axes);
     //void render_for_picking(GLCanvas3D& canvas, bool bottom, float scale_factor);
+
+    void on_change_color_mode(bool is_dark);
 
 private:
     //BBS: add partplate related logic

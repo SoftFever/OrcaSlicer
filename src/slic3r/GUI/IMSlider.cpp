@@ -714,8 +714,8 @@ bool IMSlider::switch_one_layer_mode()
 }
 
 void IMSlider::draw_background(const ImRect& groove) {
-    const ImU32 bg_rect_col = wxGetApp().app_config->get("dark_color_mode") == "1" ? IM_COL32(65, 65, 71, 255) : IM_COL32(255, 255, 255, 255);
-    const ImU32 groove_col = wxGetApp().app_config->get("dark_color_mode") == "1" ? IM_COL32(45, 45, 49, 255) : IM_COL32(206, 206, 206, 255);
+    const ImU32 bg_rect_col = m_is_dark ? IM_COL32(65, 65, 71, 255) : IM_COL32(255, 255, 255, 255);
+    const ImU32 groove_col = m_is_dark ? IM_COL32(45, 45, 49, 255) : IM_COL32(206, 206, 206, 255);
 
     if (is_horizontal() || m_ticks.empty()) {
         ImVec2 groove_padding = ImVec2(2.0f, 2.0f) * m_scale;
@@ -764,9 +764,9 @@ bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int 
     float  triangle_offsets[3] = {-3.5f * m_scale, 3.5f * m_scale, -6.06f * m_scale};
 
 
-    const ImU32 white_bg = wxGetApp().app_config->get("dark_color_mode") == "1" ? IM_COL32(65, 65, 71, 255) : IM_COL32(255, 255, 255, 255);
+    const ImU32 white_bg = m_is_dark ? IM_COL32(65, 65, 71, 255) : IM_COL32(255, 255, 255, 255);
     const ImU32 handle_clr = IM_COL32(0, 174, 66, 255);
-    const ImU32 handle_border_clr = wxGetApp().app_config->get("dark_color_mode") == "1" ? IM_COL32(65, 65, 71, 255) : IM_COL32(248, 248, 248, 255);
+    const ImU32 handle_border_clr = m_is_dark ? IM_COL32(65, 65, 71, 255) : IM_COL32(248, 248, 248, 255);
 
     // calc groove size
     ImVec2 groove_start = ImVec2(pos.x + handle_dummy_width, pos.y + size.y - groove_y - bottom_dummy);
@@ -827,7 +827,7 @@ void IMSlider::draw_colored_band(const ImRect& groove, const ImRect& slideable_r
     if (m_ticks.empty())
         return;
 
-    const ImU32 blank_col = wxGetApp().app_config->get("dark_color_mode") == "1" ? IM_COL32(65, 65, 71, 255) : IM_COL32(255, 255, 255, 255);
+    const ImU32 blank_col = m_is_dark ? IM_COL32(65, 65, 71, 255) : IM_COL32(255, 255, 255, 255);
 
     ImVec2 blank_padding = ImVec2(6.0f, 5.0f) * m_scale;
     float  blank_width   = 1.0f * m_scale;
@@ -900,7 +900,7 @@ void IMSlider::draw_ticks(const ImRect& slideable_region) {
     ImVec2 icon_size     = ImVec2(14.0f, 14.0f) * m_scale;
 
     const ImU32 tick_clr = IM_COL32(144, 144, 144, 255);
-    const ImU32 tick_hover_box_clr = wxGetApp().app_config->get("dark_color_mode") == "1" ? IM_COL32(65, 65, 71, 255) : IM_COL32(219, 253, 231, 255);
+    const ImU32 tick_hover_box_clr = m_is_dark ? IM_COL32(65, 65, 71, 255) : IM_COL32(219, 253, 231, 255);
 
     auto get_tick_pos = [this, slideable_region](int tick)
     {
@@ -1001,9 +1001,9 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
     ImVec2 text_content_size;
     ImVec2 text_size;
 
-    const ImU32 white_bg = wxGetApp().app_config->get("dark_color_mode") == "1" ? IM_COL32(65, 65, 71, 255) : IM_COL32(255, 255, 255, 255);
+    const ImU32 white_bg = m_is_dark ? IM_COL32(65, 65, 71, 255) : IM_COL32(255, 255, 255, 255);
     const ImU32 handle_clr = IM_COL32(0, 174, 66, 255);
-    const ImU32 handle_border_clr = wxGetApp().app_config->get("dark_color_mode") == "1" ? IM_COL32(65, 65, 71, 255) : IM_COL32(248, 248, 248, 255);
+    const ImU32 handle_border_clr = m_is_dark ? IM_COL32(65, 65, 71, 255) : IM_COL32(248, 248, 248, 255);
 
     // calc slider groove size
     ImVec2 groove_start = ImVec2(pos.x + size.x - groove_x - right_dummy, pos.y + text_dummy_height);
@@ -1253,11 +1253,10 @@ bool IMSlider::render(int canvas_width, int canvas_height)
 
         ImGui::Spacing();
         ImGui::SameLine((VERTICAL_SLIDER_SIZE.x - ONE_LAYER_OFFSET.x) * scale * m_scale);
-        bool dark_mode = wxGetApp().app_config->get("dark_color_mode") == "1";
-        ImTextureID normal_id = dark_mode ? 
+        ImTextureID normal_id = m_is_dark ?
             is_one_layer() ? m_one_layer_on_dark_id : m_one_layer_off_dark_id :
             is_one_layer() ? m_one_layer_on_id : m_one_layer_off_id;
-        ImTextureID hover_id  = dark_mode ? 
+        ImTextureID hover_id  = m_is_dark ?
             is_one_layer() ? m_one_layer_on_hover_dark_id : m_one_layer_off_hover_dark_id :
             is_one_layer() ? m_one_layer_on_hover_id : m_one_layer_off_hover_id;
         if (ImGui::ImageButton3(normal_id, hover_id, ImVec2(28 * m_scale, 28 * m_scale))) {
@@ -1474,6 +1473,10 @@ void IMSlider::render_menu()
     ImGui::PopStyleVar(1);
 
     ImGuiWrapper::pop_menu_style();
+}
+
+void IMSlider::on_change_color_mode(bool is_dark) {
+    m_is_dark = is_dark;
 }
 
 void IMSlider::set_scale(float scale)

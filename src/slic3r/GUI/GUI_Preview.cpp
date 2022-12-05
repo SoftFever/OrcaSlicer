@@ -95,12 +95,6 @@ bool View3D::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrintConfig
 void View3D::set_as_dirty()
 {
     if (m_canvas != nullptr) {
-        static bool last_dark_mode_tatus = wxGetApp().app_config->get("dark_color_mode") == "1";
-        bool dark_mode_status = wxGetApp().app_config->get("dark_color_mode") == "1";
-        if (dark_mode_status != last_dark_mode_tatus) {
-            last_dark_mode_tatus = dark_mode_status;
-            m_canvas->on_change_toolbar_color_mode();
-        }
         m_canvas->set_as_dirty();
     }
 }

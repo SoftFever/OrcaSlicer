@@ -1186,7 +1186,6 @@ void GUI_App::post_init()
            }
         }
     }
-
     BOOST_LOG_TRIVIAL(info) << "finished post_init";
 //BBS: remove the single instance currently
 /*#ifdef _WIN32
@@ -2127,7 +2126,6 @@ bool GUI_App::on_init_inner()
 #endif // __WINDOWS__
 
 #endif
-
     // initialize label colors and fonts
     init_label_colours();
     init_fonts();

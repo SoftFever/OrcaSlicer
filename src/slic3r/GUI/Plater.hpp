@@ -88,6 +88,7 @@ wxDECLARE_EVENT(EVT_FILAMENT_COLOR_CHANGED,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_INSTALL_PLUGIN_NETWORKING,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_INSTALL_PLUGIN_HINT,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_PREVIEW_ONLY_MODE_HINT,        wxCommandEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_COLOR_MODE_CHANGED,   SimpleEvent);
 
 
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
@@ -348,6 +349,7 @@ public:
     void print_job_finished(wxCommandEvent &evt);
     void send_job_finished(wxCommandEvent& evt);
     void publish_job_finished(wxCommandEvent& evt);
+    void on_change_color_mode(SimpleEvent& evt);
 	void eject_drive();
 
     void take_snapshot(const std::string &snapshot_name);

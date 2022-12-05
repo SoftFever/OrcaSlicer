@@ -498,7 +498,8 @@ wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxW
         wxGetApp().update_ui_from_settings();
         set_dark_mode();   
 #endif
-
+        SimpleEvent evt = SimpleEvent(EVT_GLCANVAS_COLOR_MODE_CHANGED);
+        wxPostEvent(wxGetApp().plater(), evt);
         e.Skip();
         });
 

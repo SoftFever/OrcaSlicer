@@ -1161,6 +1161,9 @@ bool GLCanvas3D::init()
     if (m_canvas == nullptr || m_context == nullptr)
         return false;
 
+    // init dark mode status
+    on_change_color_mode(wxGetApp().app_config->get("dark_color_mode") == "1", false);
+
     BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< " enter";
     glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
     glsafe(::glClearDepth(1.0f));
@@ -1235,7 +1238,6 @@ bool GLCanvas3D::init()
     GLCanvas3D::load_render_colors();
     Bed3D::load_render_colors();
 #endif
-
     //if (!wxGetApp().is_gl_version_greater_or_equal_to(3, 0))
     //    wxGetApp().plater()->enable_wireframe(false);
     m_initialized = true;
@@ -1243,23 +1245,40 @@ bool GLCanvas3D::init()
     return true;
 }
 
-void GLCanvas3D::on_change_toolbar_color_mode() {
-    // reset svg
-    _init_toolbars();
-    m_gizmos.init();
-    // re-generate icon texture
-    m_separator_toolbar.set_icon_dirty();
-    _render_separator_toolbar_right();
-    m_separator_toolbar.set_icon_dirty();
-    _render_separator_toolbar_left();
-    m_main_toolbar.set_icon_dirty();
-    _render_main_toolbar();
-    wxGetApp().plater()->get_collapse_toolbar().set_icon_dirty();
-    _render_collapse_toolbar();
-    m_assemble_view_toolbar.set_icon_dirty();
-    _render_assemble_view_toolbar();
-    m_gizmos.set_icon_dirty();
-    m_gizmos.render_overlay();
+void GLCanvas3D::on_change_color_mode(bool is_dark, bool reinit) {
+    m_is_dark = is_dark;
+    // Bed color
+    m_bed.on_change_color_mode(is_dark);
+    // GcodeViewer color 
+    m_gcode_viewer.on_change_color_mode(is_dark);
+    // ImGui Style
+    wxGetApp().imgui()->on_change_color_mode(is_dark);
+    // Notification
+    wxGetApp().plater()->get_notification_manager()->on_change_color_mode(is_dark);
+    // Preview Slider
+    IMSlider* m_layers_slider = get_gcode_viewer().get_layers_slider();
+    IMSlider* m_moves_slider = get_gcode_viewer().get_moves_slider();
+    m_layers_slider->on_change_color_mode(is_dark);
+    m_moves_slider->on_change_color_mode(is_dark);
+    // Partplate
+    wxGetApp().plater()->get_partplate_list().on_change_color_mode(is_dark);
+
+    // Toolbar
+    if (m_canvas_type == CanvasView3D) {
+        m_gizmos.on_change_color_mode(is_dark);
+        if (reinit) {
+            // reset svg
+            _init_toolbars();
+            m_gizmos.init();
+            // set dirty to re-generate icon texture
+            m_separator_toolbar.set_icon_dirty();
+            m_separator_toolbar.set_icon_dirty();
+            m_main_toolbar.set_icon_dirty();
+            wxGetApp().plater()->get_collapse_toolbar().set_icon_dirty();
+            m_assemble_view_toolbar.set_icon_dirty();
+            m_gizmos.set_icon_dirty();
+        }
+    }
 }
 
 void GLCanvas3D::set_as_dirty()
@@ -5692,10 +5711,8 @@ bool GLCanvas3D::_init_main_toolbar()
     if (!m_main_toolbar.is_enabled())
         return true;
 
-    bool dark_mode = wxGetApp().app_config->get("dark_color_mode") == "1";
-
     BackgroundTexture::Metadata background_data;
-    background_data.filename = dark_mode ? "toolbar_background_dark.png" : "toolbar_background.png";
+    background_data.filename = m_is_dark ? "toolbar_background_dark.png" : "toolbar_background.png";
     background_data.left = 16;
     background_data.top = 16;
     background_data.right = 16;
@@ -5737,7 +5754,7 @@ bool GLCanvas3D::_init_main_toolbar()
     GLToolbarItem::Data item;
 
     item.name = "add";
-    item.icon_filename = dark_mode ? "toolbar_open_dark.svg" : "toolbar_open.svg";
+    item.icon_filename = m_is_dark ? "toolbar_open_dark.svg" : "toolbar_open.svg";
     item.tooltip = _utf8(L("Add")) + " [" + GUI::shortkey_ctrl_prefix() + "I]";
     item.sprite_id = 0;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ADD)); };
@@ -5746,7 +5763,7 @@ bool GLCanvas3D::_init_main_toolbar()
         return false;
 
     item.name = "addplate";
-    item.icon_filename = dark_mode ? "toolbar_add_plate_dark.svg" : "toolbar_add_plate.svg";
+    item.icon_filename = m_is_dark ? "toolbar_add_plate_dark.svg" : "toolbar_add_plate.svg";
     item.tooltip = _utf8(L("Add plate"));
     item.sprite_id++;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_ADD_PLATE)); };
@@ -5755,7 +5772,7 @@ bool GLCanvas3D::_init_main_toolbar()
         return false;
 
     item.name = "orient";
-    item.icon_filename = dark_mode ? "toolbar_orient_dark.svg" : "toolbar_orient.svg";
+    item.icon_filename = m_is_dark ? "toolbar_orient_dark.svg" : "toolbar_orient.svg";
     item.tooltip = _utf8(L("Auto orient"));
     item.sprite_id++;
     item.left.render_callback = nullptr;
@@ -5775,7 +5792,7 @@ bool GLCanvas3D::_init_main_toolbar()
         return false;
 
     item.name = "arrange";
-    item.icon_filename = dark_mode ? "toolbar_arrange_dark.svg" : "toolbar_arrange.svg";
+    item.icon_filename = m_is_dark ? "toolbar_arrange_dark.svg" : "toolbar_arrange.svg";
     item.tooltip = _utf8(L("Arrange all objects")) + " [A]\n" + _utf8(L("Arrange objects on selected plates")) + " [Shift+A]";
     item.sprite_id++;
     item.left.action_callback = []() {};
@@ -5799,7 +5816,7 @@ bool GLCanvas3D::_init_main_toolbar()
         return false;
 
     item.name = "splitobjects";
-    item.icon_filename = dark_mode ? "split_objects_dark.svg" : "split_objects.svg";
+    item.icon_filename = m_is_dark ? "split_objects_dark.svg" : "split_objects.svg";
     item.tooltip = _utf8(L("Split to objects"));
     item.sprite_id++;
     item.left.render_callback = nullptr;
@@ -5810,7 +5827,7 @@ bool GLCanvas3D::_init_main_toolbar()
         return false;
 
     item.name = "splitvolumes";
-    item.icon_filename = dark_mode ? "split_parts_dark.svg" : "split_parts.svg";
+    item.icon_filename = m_is_dark ? "split_parts_dark.svg" : "split_parts.svg";
     item.tooltip = _utf8(L("Split to parts"));
     item.sprite_id++;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_VOLUMES)); };
@@ -5820,7 +5837,7 @@ bool GLCanvas3D::_init_main_toolbar()
         return false;
 
     item.name = "layersediting";
-    item.icon_filename = dark_mode ? "toolbar_variable_layer_height_dark.svg" : "toolbar_variable_layer_height.svg";
+    item.icon_filename = m_is_dark ? "toolbar_variable_layer_height_dark.svg" : "toolbar_variable_layer_height.svg";
     item.tooltip = _utf8(L("Variable layer height"));
     item.sprite_id++;
     item.left.action_callback = [this]() { if (m_canvas != nullptr) wxPostEvent(m_canvas, SimpleEvent(EVT_GLTOOLBAR_LAYERSEDITING)); };
@@ -5877,10 +5894,8 @@ bool GLCanvas3D::_init_assemble_view_toolbar()
     if (!m_assemble_view_toolbar.is_enabled())
         return true;
 
-    bool dark_mode = wxGetApp().app_config->get("dark_color_mode") == "1";
-
     BackgroundTexture::Metadata background_data;
-    background_data.filename = dark_mode ? "toolbar_background_dark.png" : "toolbar_background.png";
+    background_data.filename = m_is_dark ? "toolbar_background_dark.png" : "toolbar_background.png";
     background_data.left = 16;
     background_data.top = 16;
     background_data.right = 16;
@@ -5936,10 +5951,8 @@ bool GLCanvas3D::_init_separator_toolbar()
     if (!m_separator_toolbar.is_enabled())
         return true;
 
-    bool dark_mode = wxGetApp().app_config->get("dark_color_mode") == "1";
-
     BackgroundTexture::Metadata background_data;
-    background_data.filename = dark_mode ? "toolbar_background_dark.png" : "toolbar_background.png";
+    background_data.filename = m_is_dark ? "toolbar_background_dark.png" : "toolbar_background.png";
     background_data.left = 0;
     background_data.top = 0;
     background_data.right = 0;
@@ -6291,8 +6304,8 @@ void GLCanvas3D::_render_background() const
 
     ::glBegin(GL_QUADS);
 
-    float* background_color = wxGetApp().app_config->get("dark_color_mode") == "1" ? DEFAULT_BG_LIGHT_COLOR_DARK : DEFAULT_BG_LIGHT_COLOR;
-    float* error_background_color = wxGetApp().app_config->get("dark_color_mode") == "1" ? ERROR_BG_LIGHT_COLOR_DARK : ERROR_BG_LIGHT_COLOR;
+    float* background_color = m_is_dark ? DEFAULT_BG_LIGHT_COLOR_DARK : DEFAULT_BG_LIGHT_COLOR;
+    float* error_background_color = m_is_dark ? ERROR_BG_LIGHT_COLOR_DARK : ERROR_BG_LIGHT_COLOR;
 
     if (use_error_color)
         ::glColor3fv(error_background_color);

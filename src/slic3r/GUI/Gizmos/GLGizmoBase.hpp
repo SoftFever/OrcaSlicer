@@ -126,6 +126,8 @@ protected:
     GLModel m_cylinder;
     GLModel m_sphere;
 
+    bool m_is_dark_mode = false;
+
 public:
     GLGizmoBase(GLCanvas3D& parent,
                 const std::string& icon_filename,
@@ -181,6 +183,7 @@ public:
     void render() { m_tooltip.clear(); on_render(); }
     void render_for_picking() { on_render_for_picking(); }
     void render_input_window(float x, float y, float bottom_limit);
+    void on_change_color_mode(bool is_dark) {  m_is_dark_mode = is_dark; }
 
     virtual std::string get_tooltip() const { return ""; }
 

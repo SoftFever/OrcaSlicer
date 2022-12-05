@@ -200,8 +200,10 @@ class GLCanvas3D
 
 
     static float DEFAULT_BG_LIGHT_COLOR[3];
-    static float DEFAULT_BG_LIGHT_COLOR_DARK[3];
     static float ERROR_BG_LIGHT_COLOR[3];
+    static float DEFAULT_BG_LIGHT_COLOR_LIGHT[3];
+    static float ERROR_BG_LIGHT_COLOR_LIGHT[3];
+    static float DEFAULT_BG_LIGHT_COLOR_DARK[3];
     static float ERROR_BG_LIGHT_COLOR_DARK[3];
 
     static void update_render_colors();
@@ -492,6 +494,7 @@ public:
     };
 
 private:
+    bool m_is_dark = false;
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
     Bed3D &m_bed;
@@ -701,7 +704,8 @@ public:
     bool init();
     void post_event(wxEvent &&event);
 
-    void on_change_toolbar_color_mode();
+    void on_change_color_mode(bool is_dark, bool reinit = true);
+    const bool get_dark_mode_status() { return m_is_dark; }
     void set_as_dirty();
     void requires_check_outside_state() { m_requires_check_outside_state = true; }
 

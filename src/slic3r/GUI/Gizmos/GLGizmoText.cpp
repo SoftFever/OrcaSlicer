@@ -69,7 +69,7 @@ void GLGizmoText::on_render_for_picking()
 }
 
 void GLGizmoText::push_button_style(bool pressed) {
-    if (wxGetApp().app_config->get("dark_color_mode") == "1") {
+    if (m_is_dark_mode) {
         if (pressed) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(43 / 255.f, 64 / 255.f, 54 / 255.f, 1.f));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(43 / 255.f, 64 / 255.f, 54 / 255.f, 1.f));
@@ -105,7 +105,7 @@ void GLGizmoText::pop_button_style() {
 }
 
 void GLGizmoText::push_combo_style(const float scale) {
-    if (wxGetApp().app_config->get("dark_color_mode") == "1") {
+    if (m_is_dark_mode) {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f * scale);
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
         ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
@@ -221,13 +221,12 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {1.0f * currt_scale, 1.0f * currt_scale });
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f * currt_scale);
     push_button_style(m_bold);
-    bool dark_mode = wxGetApp().app_config->get("dark_color_mode") == "1";
-    if (ImGui::ImageButton(dark_mode ? normal_B_dark : normal_B, { button_size - 2 * ImGui::GetStyle().FramePadding.x, button_size - 2 * ImGui::GetStyle().FramePadding.y }))
+    if (ImGui::ImageButton(m_is_dark_mode ? normal_B_dark : normal_B, { button_size - 2 * ImGui::GetStyle().FramePadding.x, button_size - 2 * ImGui::GetStyle().FramePadding.y }))
         m_bold = !m_bold;
     pop_button_style();
     ImGui::SameLine();
     push_button_style(m_italic);
-    if (ImGui::ImageButton(dark_mode ? normal_T_dark : normal_T, { button_size - 2 * ImGui::GetStyle().FramePadding.x, button_size  - 2 * ImGui::GetStyle().FramePadding.y }))
+    if (ImGui::ImageButton(m_is_dark_mode ? normal_T_dark : normal_T, { button_size - 2 * ImGui::GetStyle().FramePadding.x, button_size  - 2 * ImGui::GetStyle().FramePadding.y }))
         m_italic = !m_italic;
     pop_button_style();
     ImGui::PopStyleVar(3);

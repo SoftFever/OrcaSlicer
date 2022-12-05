@@ -330,8 +330,8 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
 
     static float last_window_width = 0.0f;
     static size_t last_text_length = 0;
-    const ImU32 text_name_clr = wxGetApp().app_config->get("dark_color_mode") == "1" ? IM_COL32(255, 255, 255, 0.88 * 255) : IM_COL32(38, 46, 48, 255);
-    const ImU32 text_value_clr = wxGetApp().app_config->get("dark_color_mode") == "1" ? IM_COL32(255, 255, 255, 0.4 * 255) : IM_COL32(144, 144, 144, 255);
+    const ImU32 text_name_clr = m_is_dark ? IM_COL32(255, 255, 255, 0.88 * 255) : IM_COL32(38, 46, 48, 255);
+    const ImU32 text_value_clr = m_is_dark ? IM_COL32(255, 255, 255, 0.4 * 255) : IM_COL32(144, 144, 144, 255);
 
     auto it = std::find_if(moves.begin(), moves.end(), [&curr_line_id](auto move) {
         return move.gcode_id == curr_line_id;
@@ -861,6 +861,11 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
 
     m_gl_data_initialized = true;
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": finished");
+}
+
+void GCodeViewer::on_change_color_mode(bool is_dark) {
+    m_is_dark = is_dark;
+    m_sequential_view.marker.on_change_color_mode(m_is_dark);
 }
 
 void GCodeViewer::set_scale(float scale)

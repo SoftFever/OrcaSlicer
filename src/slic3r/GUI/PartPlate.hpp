@@ -490,6 +490,8 @@ class PartPlateList : public ObjectBase
     bool render_bedtype_logo = true;
     bool render_bedtype_setting = true;
 
+    bool m_is_dark = false;
+
     void init();
     //compute the origin for printable plate with index i
     Vec3d compute_origin(int index, int column_count);
@@ -636,6 +638,7 @@ public:
     void postprocess_arrange_polygon(arrangement::ArrangePolygon& arrange_polygon, bool selected);
 
     /*rendering related functions*/
+    void on_change_color_mode(bool is_dark) { m_is_dark = is_dark; }
     void render(bool bottom,    bool only_current = false, bool only_body = false, int hover_id = -1);
     void render_for_picking_pass();
     void set_render_option(bool bedtype_texture, bool bedtype_settings);

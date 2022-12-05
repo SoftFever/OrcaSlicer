@@ -314,6 +314,11 @@ Point Bed3D::point_projection(const Point& point) const
     return m_polygon.point_projection(point);
 }*/
 
+void Bed3D::on_change_color_mode(bool is_dark)
+{
+    m_is_dark = is_dark;
+}
+
 void Bed3D::render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool show_axes)
 {
     render_internal(canvas, bottom, scale_factor, show_axes);
@@ -335,7 +340,7 @@ void Bed3D::render_internal(GLCanvas3D& canvas, bool bottom, float scale_factor,
 
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    m_model.set_color(-1, wxGetApp().app_config->get("dark_color_mode") == "1" ? DEFAULT_MODEL_COLOR_DARK : DEFAULT_MODEL_COLOR);
+    m_model.set_color(-1, m_is_dark ? DEFAULT_MODEL_COLOR_DARK : DEFAULT_MODEL_COLOR);
 
     switch (m_type)
     {
@@ -652,7 +657,7 @@ void Bed3D::render_model() const
     GLModel* model = const_cast<GLModel*>(&m_model);
 
     if (model->get_filename() != m_model_filename && model->init_from_file(m_model_filename)) {
-        model->set_color(-1, wxGetApp().app_config->get("dark_color_mode") == "1" ? DEFAULT_MODEL_COLOR_DARK : DEFAULT_MODEL_COLOR);
+        model->set_color(-1, m_is_dark ? DEFAULT_MODEL_COLOR_DARK : DEFAULT_MODEL_COLOR);
 
         update_model_offset();
     }

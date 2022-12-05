@@ -162,7 +162,8 @@ wxDEFINE_EVENT(EVT_FILAMENT_COLOR_CHANGED,          wxCommandEvent);
 wxDEFINE_EVENT(EVT_INSTALL_PLUGIN_NETWORKING,       wxCommandEvent);
 wxDEFINE_EVENT(EVT_INSTALL_PLUGIN_HINT,             wxCommandEvent);
 wxDEFINE_EVENT(EVT_PREVIEW_ONLY_MODE_HINT,          wxCommandEvent);
-
+//BBS: change light/dark mode
+wxDEFINE_EVENT(EVT_GLCANVAS_COLOR_MODE_CHANGED,     SimpleEvent);
 
 
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
@@ -1707,6 +1708,8 @@ struct Plater::priv
     static const std::regex pattern_any_amf;
     static const std::regex pattern_prusa;
 
+    bool m_is_dark = false;
+
     priv(Plater *q, MainFrame *main_frame);
     ~priv();
 
@@ -1964,7 +1967,9 @@ struct Plater::priv
     void on_action_export_sliced_file(SimpleEvent&);
     void on_action_export_all_sliced_file(SimpleEvent&);
     void on_action_select_sliced_plate(wxCommandEvent& evt);
-
+    //BBS: change dark/light mode
+    void on_change_color_mode(SimpleEvent& evt);
+    void on_apple_change_color_mode(wxSysColourChangedEvent& evt);
     void on_update_geometry(Vec3dsEvent<2>&);
     void on_3dcanvas_mouse_dragging_started(SimpleEvent&);
     void on_3dcanvas_mouse_dragging_finished(SimpleEvent&);
@@ -2150,6 +2155,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(EVT_INSTALL_PLUGIN_NETWORKING, &priv::install_network_plugin, this);
     this->q->Bind(EVT_INSTALL_PLUGIN_HINT, &priv::show_install_plugin_hint, this);
     this->q->Bind(EVT_PREVIEW_ONLY_MODE_HINT, &priv::show_preview_only_hint, this);
+    this->q->Bind(EVT_GLCANVAS_COLOR_MODE_CHANGED, &priv::on_change_color_mode, this);
+    this->q->Bind(wxEVT_SYS_COLOUR_CHANGED, &priv::on_apple_change_color_mode, this);
 
     view3D = new View3D(q, bed, &model, config, &background_process);
     //BBS: use partplater's gcode
@@ -2195,6 +2202,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     q->SetSizer(hsizer);
 
     menus.init(q);
+
 
     // Events:
 
@@ -6105,6 +6113,20 @@ void Plater::priv::show_preview_only_hint(wxCommandEvent &event)
     notification_manager->bbl_show_preview_only_notification(into_u8(_L("Preview only mode:\nThe loaded file contains gcode only, Can not enter the Prepare page")));
 }
 
+void Plater::priv::on_apple_change_color_mode(wxSysColourChangedEvent& evt) {
+    m_is_dark = wxSystemSettings::GetAppearance().IsDark();
+    view3D->get_canvas3d()->on_change_color_mode(m_is_dark);
+    preview->get_canvas3d()->on_change_color_mode(m_is_dark);
+    assemble_view->get_canvas3d()->on_change_color_mode(m_is_dark);
+}
+
+void Plater::priv::on_change_color_mode(SimpleEvent& evt) {
+    m_is_dark = wxGetApp().app_config->get("dark_color_mode") == "1";
+    view3D->get_canvas3d()->on_change_color_mode(m_is_dark);
+    preview->get_canvas3d()->on_change_color_mode(m_is_dark);
+    assemble_view->get_canvas3d()->on_change_color_mode(m_is_dark);
+}
+
 void Plater::priv::on_right_click(RBtnEvent& evt)
 {
     int obj_idx = get_selected_object_idx();
@@ -6492,10 +6514,8 @@ bool Plater::priv::init_collapse_toolbar()
         // already initialized
         return true;
 
-    bool dark_mode = wxGetApp().app_config->get("dark_color_mode") == "1";
-
     BackgroundTexture::Metadata background_data;
-    background_data.filename = dark_mode ? "toolbar_background_dark.png" : "toolbar_background.png";
+    background_data.filename = m_is_dark ? "toolbar_background_dark.png" : "toolbar_background.png";
     background_data.left = 16;
     background_data.top = 16;
     background_data.right = 16;

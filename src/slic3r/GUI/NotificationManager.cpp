@@ -145,6 +145,8 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
 	, m_evt_handler         (evt_handler)
 	, m_notification_start  (GLCanvas3D::timestamp_now())
 {
+	m_is_dark = wxGetApp().plater()->get_current_canvas3D()->get_dark_mode_status();
+
     m_ErrorColor  = ImVec4(0.9, 0.36, 0.36, 1);
     m_WarnColor   = ImVec4(0.99, 0.69, 0.455, 1);
     m_NormalColor = ImVec4(0.03, 0.6, 0.18, 1);
@@ -158,10 +160,13 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
 	m_WindowRadius = 4.0f * wxGetApp().plater()->get_current_canvas3D()->get_scale();
 }
 
+void NotificationManager::PopNotification::on_change_color_mode(bool is_dark)
+{
+	m_is_dark = is_dark;
+}
 
 void NotificationManager::PopNotification::use_bbl_theme()
 {
-	bool dark_mode = wxGetApp().app_config->get("dark_color_mode") == "1";
     ImGuiStyle &OldStyle         = ImGui::GetStyle();
 
     m_DefaultTheme.mWindowPadding = OldStyle.WindowPadding;
@@ -189,10 +194,10 @@ void NotificationManager::PopNotification::use_bbl_theme()
  //   OldStyle.Colors[ImGuiCol_WindowBg] = m_WindowBkgColor;
  //   OldStyle.Colors[ImGuiCol_Text]     = m_TextColor;
 
-	m_WindowBkgColor = dark_mode ? ImVec4(45 / 255.f, 45 / 255.f, 49 / 255.f, 1.f) : ImVec4(1, 1, 1, 1);
-	m_TextColor = dark_mode ? ImVec4(224 / 255.f, 224 / 255.f, 224 / 255.f, 1.f) : ImVec4(.2f, .2f, .2f, 1.0f);
-	m_HyperTextColor = dark_mode ? ImVec4(0.03, 0.6, 0.18, 1) : ImVec4(0.03, 0.6, 0.18, 1);
-	dark_mode ? push_style_color(ImGuiCol_Border, {62 / 255.f, 62 / 255.f, 69 / 255.f, 1.f}, true, m_current_fade_opacity) : push_style_color(ImGuiCol_Border, m_CurrentColor, true, m_current_fade_opacity);
+	m_WindowBkgColor = m_is_dark ? ImVec4(45 / 255.f, 45 / 255.f, 49 / 255.f, 1.f) : ImVec4(1, 1, 1, 1);
+	m_TextColor = m_is_dark ? ImVec4(224 / 255.f, 224 / 255.f, 224 / 255.f, 1.f) : ImVec4(.2f, .2f, .2f, 1.0f);
+	m_HyperTextColor = m_is_dark ? ImVec4(0.03, 0.6, 0.18, 1) : ImVec4(0.03, 0.6, 0.18, 1);
+	m_is_dark ? push_style_color(ImGuiCol_Border, {62 / 255.f, 62 / 255.f, 69 / 255.f, 1.f}, true, m_current_fade_opacity) : push_style_color(ImGuiCol_Border, m_CurrentColor, true, m_current_fade_opacity);
     push_style_color(ImGuiCol_WindowBg, m_WindowBkgColor, true, m_current_fade_opacity);
     push_style_color(ImGuiCol_Text, m_TextColor, true, m_current_fade_opacity);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, m_WindowRadius / 4);
@@ -278,8 +283,6 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 	std::string name = "!!Ntfctn" + std::to_string(m_id);
 
     use_bbl_theme();
-
-	m_is_dark_mode = wxGetApp().app_config->get("dark_color_mode") == "1";
 
 	if (imgui.begin(name, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
 		ImVec2 win_size = ImGui::GetWindowSize();
@@ -550,7 +553,7 @@ void NotificationManager::PopNotification::render_close_button(ImGuiWrapper& img
 
 
 	std::wstring button_text;
-	button_text = m_is_dark_mode ? ImGui::CloseNotifDarkButton : ImGui::CloseNotifButton;
+	button_text = m_is_dark ? ImGui::CloseNotifDarkButton : ImGui::CloseNotifButton;
     //button_text = ImGui::PreferencesButton;
 
 	//if (ImGui::IsMouseHoveringRect(ImVec2(win_pos.x - win_size.x / 10.f, win_pos.y),
@@ -558,7 +561,7 @@ void NotificationManager::PopNotification::render_close_button(ImGuiWrapper& img
 	//	                           true))
     if (ImGui::IsMouseHoveringRect(ImVec2(win_pos.x - win_size.x / 10.f, win_pos.y), ImVec2(win_pos.x, win_pos.y + 2 * m_line_height+10),true))
 	{
-		button_text = m_is_dark_mode ? ImGui::CloseNotifHoverDarkButton : ImGui::CloseNotifHoverButton;
+		button_text = m_is_dark ? ImGui::CloseNotifHoverDarkButton : ImGui::CloseNotifHoverButton;
 	}
 	ImVec2 button_pic_size = ImGui::CalcTextSize(into_u8(button_text).c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
@@ -634,12 +637,12 @@ void NotificationManager::PopNotification::render_minimize_button(ImGuiWrapper& 
 
 	//button - if part if treggered
 	std::wstring button_text;
-	button_text = m_is_dark_mode ? ImGui::MinimalizeDarkButton : ImGui::MinimalizeButton;
+	button_text = m_is_dark ? ImGui::MinimalizeDarkButton : ImGui::MinimalizeButton;
 	if (ImGui::IsMouseHoveringRect(ImVec2(win_pos_x - m_window_width / 10.f, win_pos_y + m_window_height - 2 * m_line_height + 1),
 		ImVec2(win_pos_x, win_pos_y + m_window_height),
 		true))
 	{
-		button_text = m_is_dark_mode ? ImGui::MinimalizeHoverDarkButton : ImGui::MinimalizeHoverButton;
+		button_text = m_is_dark ? ImGui::MinimalizeHoverDarkButton : ImGui::MinimalizeHoverButton;
 	}
 	ImVec2 button_pic_size = ImGui::CalcTextSize(into_u8(button_text).c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
@@ -1542,6 +1545,13 @@ void NotificationManager::ProgressIndicatorNotification::render_close_button(ImG
 NotificationManager::NotificationManager(wxEvtHandler* evt_handler) :
 	m_evt_handler(evt_handler)
 {
+}
+
+void NotificationManager::on_change_color_mode(bool is_dark) {
+	m_is_dark = is_dark;
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications){ 
+		notification->on_change_color_mode(is_dark); 
+	}
 }
 
 void NotificationManager::push_notification(const NotificationType type, int timestamp)

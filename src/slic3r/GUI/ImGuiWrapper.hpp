@@ -199,6 +199,7 @@ public:
     static const ImVec4 COL_SEPARATOR_DARK;
 
     //BBS
+    static void on_change_color_mode(bool is_dark);
     static void push_toolbar_style(const float scale);
     static void pop_toolbar_style();
     static void push_menu_style(const float scale);
