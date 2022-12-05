@@ -1240,7 +1240,7 @@ int MachineObject::command_get_version(bool with_retry)
     j["info"]["command"] = "get_version";
     if (with_retry)
         get_version_retry = GET_VERSION_RETRYS;
-    return this->publish_json(j.dump());
+    return this->publish_json(j.dump(), 1);
 }
 
 int MachineObject::command_request_push_all()
