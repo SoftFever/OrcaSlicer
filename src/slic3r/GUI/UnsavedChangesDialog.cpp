@@ -1666,6 +1666,9 @@ bool UnsavedChangesDialog::check_option_valid()
     if (itor != m_presetitems.end()) {
         PresetBundle *preset_bundle  = wxGetApp().preset_bundle;
         Preset * new_preset = preset_bundle->printers.find_preset(m_new_selected_preset_name);
+        if (new_preset == nullptr)
+            return false;
+
         std::string str_print_type = new_preset->get_current_printer_type(preset_bundle);
         if (str_print_type == "C11" && itor->new_value.ToStdString() == "Smooth") {
             MessageDialog dlg(wxGetApp().plater(), _L("The P1P printer does not support smooth timelapse, use traditional timelapse instead."),
