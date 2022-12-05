@@ -255,10 +255,17 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::SameLine(offset);
     bool add_clicked = m_imgui->button(_L("Add"));
     if (add_clicked) {
+        m_imgui->disabled_end();
+        GizmoImguiEnd();
+        ImGui::PopStyleVar();
+        ImGuiWrapper::pop_toolbar_style();
+
         TriangleMesh mesh;
         load_text_shape(m_text, m_font_name.c_str(), m_font_size, m_thickness, m_bold, m_italic, mesh);
         ObjectList* obj_list = wxGetApp().obj_list();
         obj_list->load_mesh_part(mesh, "text_shape");
+
+        return;
     }
     m_imgui->disabled_end();
 

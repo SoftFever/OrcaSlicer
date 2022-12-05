@@ -2275,9 +2275,15 @@ void ImGuiWrapper::destroy_font()
 
 void ImGuiWrapper::destroy_fonts_texture() {
     if (m_font_another_texture != 0) {
+        if (m_new_frame_open) {
+            render();
+        }
         init_font(true);
         glsafe(::glDeleteTextures(1, &m_font_another_texture));
         m_font_another_texture = 0;
+        if (!m_new_frame_open) {
+            new_frame();
+        }
     }
 }
 
