@@ -356,7 +356,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
                 str = wxString::Format(("%.2f"), multiplier < g_min_flush_multiplier ? g_min_flush_multiplier : g_max_flush_multiplier);
                 m_flush_multiplier_ebox->SetValue(str);
                 MessageDialog dlg(nullptr,
-                    wxString::Format(_L("The flush multiplier should be in range [%.2f, %.2f]."), g_min_flush_multiplier, g_max_flush_multiplier),
+                    wxString::Format(_L("The multiplier should be in range [%.2f, %.2f]."), g_min_flush_multiplier, g_max_flush_multiplier),
                     _L("Warning"), wxICON_WARNING | wxOK);
                 dlg.ShowModal();
             }

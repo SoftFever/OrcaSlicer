@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-02 17:33+0800\n"
+"POT-Creation-Date: 2022-12-05 19:38+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -873,7 +873,7 @@ msgstr ""
 msgid "Center"
 msgstr ""
 
-msgid "Edit Object Process"
+msgid "Edit Process Settings"
 msgstr ""
 
 msgid "Edit in Parameter Table"
@@ -980,7 +980,9 @@ msgstr ""
 "Wechseln Sie in den objektbezogenen Einstellungsmodus, um die "
 "Modifikatoreinstellungen zu bearbeiten."
 
-msgid "Switch to per-object setting mode to edit object process."
+msgid ""
+"Switch to per-object setting mode to edit process settings of selected "
+"objects."
 msgstr ""
 
 msgid "Deleting the last solid part is not allowed."
@@ -2594,12 +2596,12 @@ msgstr ""
 msgid "Check for Update"
 msgstr "Prüfen auf Update"
 
+msgid "Open Network Test"
+msgstr ""
+
 #, c-format, boost-format
 msgid "&About %s"
 msgstr "&Über %s"
-
-msgid "Open Network Test"
-msgstr ""
 
 msgid "Upload Models"
 msgstr ""
@@ -3685,9 +3687,8 @@ msgid "Load project"
 msgstr "Projekt laden"
 
 msgid ""
-"Failed to save project!\n"
-"Please make sure the project file has not been opened by other program and "
-"try again."
+"Failed to save the project.\n"
+"Please check whether the project file is opened by other programs."
 msgstr ""
 
 msgid "Save project"
@@ -4246,10 +4247,8 @@ msgstr "Geräteinformationen synchronisieren"
 msgid "Synchronizing device information time out"
 msgstr "Zeitüberschreitung bei der Synchronisierung von Geräteinformationen"
 
-msgid "Cannot send the print task when the upgrade is in progress"
+msgid "Cannot send the print job when the printer is updating firmware"
 msgstr ""
-"Die Druckaufgabe kann nicht gesendet werden, während das Upgrade ausgeführt "
-"wird"
 
 msgid ""
 "The printer is executing instructions. Please restart printing after it ends"
@@ -4307,7 +4306,9 @@ msgstr ""
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr ""
 
-msgid "Cannot send the print task when the printer need force upgrading."
+msgid ""
+"Cannot send the print job to a printer whose firmware is required to get "
+"updated."
 msgstr ""
 
 msgid "Errors"
@@ -4342,6 +4343,11 @@ msgstr "Den Gerätenamen ändern"
 
 msgid "Send to Printer SD card"
 msgstr ""
+
+msgid "Cannot send the print task when the upgrade is in progress"
+msgstr ""
+"Die Druckaufgabe kann nicht gesendet werden, während das Upgrade ausgeführt "
+"wird"
 
 msgid "The printer is required to be in the same LAN as Bambu Studio."
 msgstr ""
@@ -4781,6 +4787,13 @@ msgstr ""
 "Die Voreinstellung \"%1%\" ist nicht mit dem neuen Prozessprofil kompatibel "
 "und enthält die folgenden nicht gespeicherten Änderungen:"
 
+#, boost-format
+msgid ""
+"You have changed some settings of preset \"%1%\". \n"
+"Would you like to keep these changed settings (new value) after switching "
+"preset?"
+msgstr ""
+
 msgid ""
 "You have changed some preset settings. \n"
 "Would you like to keep these changed settings (new value) after switching "
@@ -4893,16 +4906,22 @@ msgstr "Automatisch berechnen"
 msgid "Flushing volumes for filament change"
 msgstr "Säuberungsvolumen für Filamentwechsel"
 
-msgid ""
-"The flush volume is less than the minimum value and will be automatically "
-"set to the minimum value."
-msgstr ""
-
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Säuberungvolumen (mm³) für jedes Filamentpaar."
 
-msgid "Flush multiplier"
-msgstr "Multiplikator der Druckdüsensäuberung"
+msgid "Multiplier"
+msgstr ""
+
+msgid "Actual Volume = Flushing Volume * Multiplier"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Suggestion: Actual Volume in range [%d, %d]"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The multiplier should be in range [%.2f, %.2f]."
+msgstr ""
 
 msgid "unloaded"
 msgstr "entladen wird"
@@ -7444,6 +7463,9 @@ msgstr ""
 
 msgid "Purging volumes"
 msgstr "Reinigungsvolumen"
+
+msgid "Flush multiplier"
+msgstr "Multiplikator der Druckdüsensäuberung"
 
 msgid ""
 "The actual flushing volumes is equal to the flush multiplier multiplied by "

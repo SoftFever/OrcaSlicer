@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-02 17:33+0800\n"
+"POT-Creation-Date: 2022-12-05 19:38+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -874,7 +874,7 @@ msgstr ""
 msgid "Center"
 msgstr ""
 
-msgid "Edit Object Process"
+msgid "Edit Process Settings"
 msgstr ""
 
 msgid "Edit in Parameter Table"
@@ -976,7 +976,9 @@ msgstr ""
 "Cambia al modo de ajuste por objeto para editar los ajustes de los "
 "modificadores."
 
-msgid "Switch to per-object setting mode to edit object process."
+msgid ""
+"Switch to per-object setting mode to edit process settings of selected "
+"objects."
 msgstr ""
 
 msgid "Deleting the last solid part is not allowed."
@@ -2592,12 +2594,12 @@ msgstr ""
 msgid "Check for Update"
 msgstr "Comprobar Actualicaciones"
 
+msgid "Open Network Test"
+msgstr ""
+
 #, c-format, boost-format
 msgid "&About %s"
 msgstr "&Acerca de %s"
-
-msgid "Open Network Test"
-msgstr ""
 
 msgid "Upload Models"
 msgstr ""
@@ -3686,9 +3688,8 @@ msgid "Load project"
 msgstr "Carga de Proyecto"
 
 msgid ""
-"Failed to save project!\n"
-"Please make sure the project file has not been opened by other program and "
-"try again."
+"Failed to save the project.\n"
+"Please check whether the project file is opened by other programs."
 msgstr ""
 
 msgid "Save project"
@@ -4244,10 +4245,8 @@ msgid "Synchronizing device information time out"
 msgstr ""
 "Finalización del tiempo de sincronización de la información del dispositivo"
 
-msgid "Cannot send the print task when the upgrade is in progress"
+msgid "Cannot send the print job when the printer is updating firmware"
 msgstr ""
-"No se puede enviar la tarea de impresión cuando la actualización está en "
-"curso"
 
 msgid ""
 "The printer is executing instructions. Please restart printing after it ends"
@@ -4305,7 +4304,9 @@ msgstr ""
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr ""
 
-msgid "Cannot send the print task when the printer need force upgrading."
+msgid ""
+"Cannot send the print job to a printer whose firmware is required to get "
+"updated."
 msgstr ""
 
 msgid "Errors"
@@ -4340,6 +4341,11 @@ msgstr "Modificar el nombre del dispositivo"
 
 msgid "Send to Printer SD card"
 msgstr ""
+
+msgid "Cannot send the print task when the upgrade is in progress"
+msgstr ""
+"No se puede enviar la tarea de impresión cuando la actualización está en "
+"curso"
 
 msgid "The printer is required to be in the same LAN as Bambu Studio."
 msgstr ""
@@ -4773,6 +4779,13 @@ msgstr ""
 "El preajuste \"%1%\" no es compatible con el nuevo perfil de proceso y "
 "contiene los siguientes cambios no guardados:"
 
+#, boost-format
+msgid ""
+"You have changed some settings of preset \"%1%\". \n"
+"Would you like to keep these changed settings (new value) after switching "
+"preset?"
+msgstr ""
+
 msgid ""
 "You have changed some preset settings. \n"
 "Would you like to keep these changed settings (new value) after switching "
@@ -4882,16 +4895,22 @@ msgstr "Auto-Calc"
 msgid "Flushing volumes for filament change"
 msgstr "Volúmenes de limpieza para el cambio de filamentos"
 
-msgid ""
-"The flush volume is less than the minimum value and will be automatically "
-"set to the minimum value."
-msgstr ""
-
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Volumen de limpieza (mm³) para cada par de filamentos."
 
-msgid "Flush multiplier"
-msgstr "Multiplicador de flujo"
+msgid "Multiplier"
+msgstr ""
+
+msgid "Actual Volume = Flushing Volume * Multiplier"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Suggestion: Actual Volume in range [%d, %d]"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The multiplier should be in range [%.2f, %.2f]."
+msgstr ""
 
 msgid "unloaded"
 msgstr "descargado"
@@ -7435,6 +7454,9 @@ msgstr ""
 
 msgid "Purging volumes"
 msgstr "Volúmenes de purga"
+
+msgid "Flush multiplier"
+msgstr "Multiplicador de flujo"
 
 msgid ""
 "The actual flushing volumes is equal to the flush multiplier multiplied by "

@@ -1773,7 +1773,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusInUpgrading) {
-        wxString msg_text = _L("Cannot send the print task when the upgrade is in progress");
+        wxString msg_text = _L("Cannot send the print job when the printer is updating firmware");
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
@@ -1855,12 +1855,12 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Send_Button(true);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNeedForceUpgrading) {
-        wxString msg_text = _L("Cannot send the print task when the printer need force upgrading.");
+        wxString msg_text = _L("Cannot send the print job to a printer whose firmware is required to get updated.");
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusNeedConsistencyUpgrading) {
-        wxString msg_text = _L("Cannot send the print task when the printer need consistency upgrading.");
+        wxString msg_text = _L("Cannot send the print job to a printer whose firmware is required to get updated.");
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);

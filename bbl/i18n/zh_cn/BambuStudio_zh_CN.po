@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-02 17:33+0800\n"
-"PO-Revision-Date: 2022-11-29 20:47+0800\n"
+"POT-Creation-Date: 2022-12-05 19:38+0800\n"
+"PO-Revision-Date: 2022-12-05 19:51+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.1\n"
+"X-Generator: Poedit 3.0.1\n"
 
 msgid "Supports Painting"
 msgstr "支撑绘制"
@@ -855,8 +855,8 @@ msgstr "简化模型"
 msgid "Center"
 msgstr "居中"
 
-msgid "Edit Object Process"
-msgstr "编辑对象工艺"
+msgid "Edit Process Settings"
+msgstr "编辑工艺参数"
 
 msgid "Edit in Parameter Table"
 msgstr "在参数表格中编辑"
@@ -945,8 +945,10 @@ msgstr "添加修改器"
 msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr "切换到对象模式以编辑修改器的设置。"
 
-msgid "Switch to per-object setting mode to edit object process."
-msgstr "切换到对象模式以编辑对象的工艺。"
+msgid ""
+"Switch to per-object setting mode to edit process settings of selected "
+"objects."
+msgstr "切换到对象设置模式，以编辑所选对象的工艺参数"
 
 msgid "Deleting the last solid part is not allowed."
 msgstr "不允许删除对象的最后一个实体零件。"
@@ -2515,12 +2517,12 @@ msgstr "展示每日小贴士"
 msgid "Check for Update"
 msgstr "检查新版本"
 
+msgid "Open Network Test"
+msgstr "打开网络测试"
+
 #, c-format, boost-format
 msgid "&About %s"
 msgstr "关于 %s"
-
-msgid "Open Network Test"
-msgstr "打开网络测试"
 
 msgid "Upload Models"
 msgstr "上传模型"
@@ -2997,13 +2999,13 @@ msgid "Camera"
 msgstr "摄像机"
 
 msgid "SD Card"
-msgstr ""
+msgstr "SD卡"
 
 msgid "SD Card Abnormal"
-msgstr ""
+msgstr "SD卡异常"
 
 msgid "Camera Setting"
-msgstr ""
+msgstr "相机设置"
 
 msgid "Printing Progress"
 msgstr "打印进度"
@@ -3061,27 +3063,31 @@ msgid ""
 "Disconnected from printer [%s] due to LAN mode disabled.Please reconnect the "
 "printer by logging in with your user account."
 msgstr ""
+"由于LAN模式被禁用，已与打印机[%s]断开连接。请使用您的用户帐户登录以重新连接打"
+"印机。"
 
 #, c-format, boost-format
 msgid ""
 "Disconnected from printer [%s] due to LAN mode enabled.Please reconnect the "
 "printer by inputting Access Code which can be gotten from printer screen."
 msgstr ""
+"由于启用了LAN模式，已与打印机[%s]断开连接。请通过输入访问码重新连接打印机，访"
+"问码可从打印机屏幕上获取。"
 
 msgid "Downloading..."
 msgstr "下载中..."
 
 msgid "Cloud Slicing..."
-msgstr ""
+msgstr "云切片中..."
 
 msgid "Please heat the nozzle to above 170 degree before loading filament."
-msgstr ""
+msgstr "请在进料前把喷嘴升温到170℃"
 
 msgid "Still unload"
-msgstr ""
+msgstr "继续退料"
 
 msgid "Still load"
-msgstr ""
+msgstr "继续进料"
 
 msgid ""
 "Cannot read filament info: the filament is loaded to the tool head,please "
@@ -3104,7 +3110,7 @@ msgid "Ludicrous"
 msgstr "狂暴"
 
 msgid "Can't start this without SD card."
-msgstr ""
+msgstr "没有SD卡无法开始任务"
 
 msgid "Failed to connect to the server"
 msgstr "无法连接服务器"
@@ -3608,10 +3614,11 @@ msgid "Load project"
 msgstr "加载项目"
 
 msgid ""
-"Failed to save project!\n"
-"Please make sure the project file has not been opened by other program and "
-"try again."
+"Failed to save the project.\n"
+"Please check whether the project file is opened by other programs."
 msgstr ""
+"保存项目失败。\n"
+"请检查项目文件是否被其他程序打开。"
 
 msgid "Save project"
 msgstr "保存项目"
@@ -4145,7 +4152,7 @@ msgstr "正在同步设备信息"
 msgid "Synchronizing device information time out"
 msgstr "同步设备信息超时"
 
-msgid "Cannot send the print task when the upgrade is in progress"
+msgid "Cannot send the print job when the printer is updating firmware"
 msgstr "设备升级中，无法发送打印任务"
 
 msgid ""
@@ -4205,11 +4212,13 @@ msgstr "请在发起打印前插入SD卡"
 msgid "An SD card needs to be inserted to record timelapse."
 msgstr "开启延迟摄影功能需要插入SD卡"
 
-msgid "Cannot send the print task when the printer need force upgrading."
-msgstr ""
+msgid ""
+"Cannot send the print job to a printer whose firmware is required to get "
+"updated."
+msgstr "需要更新打印机固件后，才能将打印任务发送到打印机"
 
 msgid "Errors"
-msgstr ""
+msgstr "错误"
 
 msgid ""
 "Please check the following infomation and click Confirm to continue sending "
@@ -4226,7 +4235,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The %s filament is too soft to be used with the AMS"
-msgstr ""
+msgstr "%s耗材太软，无法与AMS一起使用"
 
 msgid ""
 "There are some unknown filaments in the AMS mappings. Please check whether "
@@ -4243,7 +4252,10 @@ msgid "Modifying the device name"
 msgstr "修改打印机名称"
 
 msgid "Send to Printer SD card"
-msgstr ""
+msgstr "发送到打印机的SD卡"
+
+msgid "Cannot send the print task when the upgrade is in progress"
+msgstr "设备升级中，无法发送打印任务"
 
 msgid "The printer is required to be in the same LAN as Bambu Studio."
 msgstr "打印机需要与Bambu Studio在同一个局域网内。"
@@ -4648,6 +4660,15 @@ msgid ""
 "contains the following unsaved changes:"
 msgstr "预设“%1%”和新的工艺预设不兼容，并且它包含以下未保存的修改："
 
+#, boost-format
+msgid ""
+"You have changed some settings of preset \"%1%\". \n"
+"Would you like to keep these changed settings (new value) after switching "
+"preset?"
+msgstr ""
+"您已更改预设“%1%”的某些设置。\n"
+"切换预设后是否要保留这些更改的设置（新值）？"
+
 msgid ""
 "You have changed some preset settings. \n"
 "Would you like to keep these changed settings (new value) after switching "
@@ -4666,7 +4687,7 @@ msgstr "能力"
 msgid ""
 "The P1P printer does not support smooth timelapse, use traditional timelapse "
 "instead."
-msgstr ""
+msgstr "P1P打印机不支持平滑模式的延时摄影，请改用传统模式。"
 
 msgid "Show all presets (including incompatible)"
 msgstr "显示所有预设(包括不兼容的)"
@@ -4757,16 +4778,22 @@ msgstr "自动计算"
 msgid "Flushing volumes for filament change"
 msgstr "耗材丝更换时的冲刷体积"
 
-msgid ""
-"The flush volume is less than the minimum value and will be automatically "
-"set to the minimum value."
-msgstr "冲刷体积小于最小值，将被自动设置为最小值"
-
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "在两个耗材丝间切换所需的冲刷量（mm³）"
 
-msgid "Flush multiplier"
-msgstr "冲刷量乘数"
+msgid "Multiplier"
+msgstr "乘数"
+
+msgid "Actual Volume = Flushing Volume * Multiplier"
+msgstr "实际冲刷量 = 冲刷体积 * 乘数"
+
+#, c-format, boost-format
+msgid "Suggestion: Actual Volume in range [%d, %d]"
+msgstr "建议：实际冲刷量设置在[%d, %d]范围内"
+
+#, c-format, boost-format
+msgid "The multiplier should be in range [%.2f, %.2f]."
+msgstr "乘数的取值范围是[%.2f, %.2f]"
 
 msgid "unloaded"
 msgstr "卸载"
@@ -5397,7 +5424,7 @@ msgstr "擦拭塔要求各个对象拥有同样的层高。"
 msgid ""
 "The prime tower is only supported if all objects have the same variable "
 "layer height"
-msgstr ""
+msgstr "各个对象的层高存在差异，无法启用擦料塔"
 
 msgid "Too small line width"
 msgstr "线宽太小"
@@ -5418,7 +5445,7 @@ msgstr "层高不能超过喷嘴直径"
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s\n"
-msgstr ""
+msgstr "盘%d: %s 不支持耗材丝 %s\n"
 
 msgid "Generating skirt & brim"
 msgstr "正在生成skirt和brim"
@@ -6976,7 +7003,7 @@ msgstr "支撑独立层高"
 msgid ""
 "Support layer uses layer height independent with object layer. This is to "
 "support customizing z-gap and save print time."
-msgstr ""
+msgstr "支撑使用不同于对象的层高。这样可以支持自定义Z方向间隙并节省打印时间。"
 
 msgid "Threshold angle"
 msgstr "阈值角度"
@@ -7108,6 +7135,9 @@ msgstr "切换耗材丝时，打印擦拭塔来让准配好喷嘴里材料。"
 
 msgid "Purging volumes"
 msgstr "冲刷体积"
+
+msgid "Flush multiplier"
+msgstr "冲刷量乘数"
 
 msgid ""
 "The actual flushing volumes is equal to the flush multiplier multiplied by "
@@ -7686,6 +7716,17 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Edit Object Process"
+#~ msgstr "编辑对象工艺"
+
+#~ msgid "Switch to per-object setting mode to edit object process."
+#~ msgstr "切换到对象模式以编辑对象的工艺。"
+
+#~ msgid ""
+#~ "The flush volume is less than the minimum value and will be automatically "
+#~ "set to the minimum value."
+#~ msgstr "冲刷体积小于最小值，将被自动设置为最小值"
 
 #~ msgid "Perimeter transitioning threshold angle"
 #~ msgstr "墙过渡阈值角度"
