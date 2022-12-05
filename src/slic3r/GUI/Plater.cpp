@@ -5221,7 +5221,8 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             notification_manager->set_in_preview(false);
     }
     else if (current_panel == preview) {
-        q->invalid_all_plate_thumbnails();
+        if (!q->using_exported_file())
+            q->invalid_all_plate_thumbnails();
         if (old_panel == view3D)
             view3D->get_canvas3d()->unbind_event_handlers();
         else if (old_panel == assemble_view)
