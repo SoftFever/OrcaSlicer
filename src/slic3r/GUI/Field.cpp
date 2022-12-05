@@ -1009,6 +1009,7 @@ void Choice::BUILD() {
         temp = new choice_ctrl(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxCB_READONLY);
 #endif //__WXOSX__
     }
+    temp->GetDropDown().SetUseContentWidth(true);
     if (parent_is_custom_ctrl && m_opt.height < 0)
         opt_height = (double) temp->GetTextCtrl()->GetSize().GetHeight() / m_em_unit;
 
@@ -1035,8 +1036,19 @@ void Choice::BUILD() {
 				temp->Append(el);
 		} else {
 			// Append localized enum_labels
-			for (auto el : m_opt.enum_labels)
-				temp->Append(_(el));
+            int i = 0;
+            boost::filesystem::path image_path(Slic3r::resources_dir());
+            image_path /= "images";
+            for (auto el : m_opt.enum_labels) {
+                auto icon_name = "param_" + m_opt.enum_values[i];
+                if (boost::filesystem::exists(image_path / (icon_name + ".svg"))) {
+                    ScalableBitmap bm(temp, icon_name, 24);
+				    temp->Append(_(el), bm.bmp());
+                } else {
+                    temp->Append(_(el));
+                }
+                ++i;
+            }
 		}
 		set_selection();
 	}
@@ -1393,6 +1405,20 @@ void Choice::msw_rescale()
         field->SetValue(selection) :
         field->SetSelection(idx);
 #else
+    if (!m_opt.enum_labels.empty()) {
+        boost::filesystem::path image_path(Slic3r::resources_dir());
+        image_path /= "images";
+        int i = 0;
+        auto temp = dynamic_cast<choice_ctrl *>(window);
+        for (auto el : m_opt.enum_values) {
+            auto icon_name = "param_" + m_opt.enum_values[i];
+            if (boost::filesystem::exists(image_path / (icon_name + ".svg"))) {
+                ScalableBitmap bm(window, icon_name, 24);
+                temp->SetItemBitmap(i, bm.bmp());
+            }
+            ++i;
+        }
+    }
     auto size = wxSize(def_width_wider() * m_em_unit, wxDefaultCoord);
     if (m_opt.height >= 0)
         size.SetHeight(m_opt.height * m_em_unit);
