@@ -7284,8 +7284,6 @@ int Plater::new_project(bool skip_confirm, bool silent)
     if (!silent)
         wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
 
-    Plater::TakeSnapshot snapshot(this, "New Project", UndoRedo::SnapshotType::ProjectSeparator);
-
     //get_partplate_list().reinit();
     //get_partplate_list().update_slice_context_to_current_plate(p->background_process);
     //p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
@@ -7298,6 +7296,8 @@ int Plater::new_project(bool skip_confirm, bool silent)
     p->project.reset();
     //set project name
     p->set_project_name(_L("Untitled"));
+
+    Plater::TakeSnapshot snapshot(this, "New Project", UndoRedo::SnapshotType::ProjectSeparator);
 
     Model m;
     model().load_from(m); // new id avoid same path name
@@ -7360,8 +7360,9 @@ void Plater::load_project(wxString const& filename2,
     bool load_restore = strategy & LoadStrategy::Restore;
 
     // Take the Undo / Redo snapshot.
-    Plater::TakeSnapshot snapshot(this, "Load Project", UndoRedo::SnapshotType::ProjectSeparator);
     reset();
+
+    Plater::TakeSnapshot snapshot(this, "Load Project", UndoRedo::SnapshotType::ProjectSeparator);
 
     std::vector<fs::path> input_paths;
     input_paths.push_back(path);
