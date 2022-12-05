@@ -214,7 +214,7 @@ body
 
 #ContentBoard
 {
-	overflow-y:hidden;
+	overflow-y:auto;
 	padding: 0px 40px;
 	display: flex;
 	flex-direction: column;

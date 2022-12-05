@@ -1,14 +1,18 @@
 *
 {
-	color: #fff;
+	color: #efeff0;
 }
 
 body
 {
-	background-color:#54545A;
-	color: #fff;
+	background-color:#3E3E45;
+	color: #efeff0;
 }
 
+#Title div
+{
+	color: #21A452;
+}
 
 /*-----Button-----*/
 .GrayBtn
