@@ -1484,6 +1484,9 @@ bool GLGizmosManager::activate_gizmo(EType type)
     GLGizmoBase* new_gizmo = type == Undefined ? nullptr : m_gizmos[type].get();
 
     if (old_gizmo) {
+        if (m_current == Text) {
+            wxGetApp().imgui()->destroy_fonts_texture();
+        }
         old_gizmo->set_state(GLGizmoBase::Off);
         if (old_gizmo->get_state() != GLGizmoBase::Off)
             return false; // gizmo refused to be turned off, do nothing.
@@ -1503,8 +1506,12 @@ bool GLGizmosManager::activate_gizmo(EType type)
 
     m_current = type;
 
-    if (new_gizmo)
+    if (new_gizmo) {
+        if (m_current == Text) {
+            wxGetApp().imgui()->load_fonts_texture();
+        }
         new_gizmo->set_state(GLGizmoBase::On);
+    }
     return true;
 }
 

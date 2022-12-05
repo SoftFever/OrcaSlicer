@@ -138,7 +138,7 @@ void GLGizmoText::pop_combo_style()
 // BBS
 void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 {
-    static std::vector<std::string> m_avail_font_names = wxGetApp().imgui()->get_fonts_names();
+    std::vector<std::string> m_avail_font_names = wxGetApp().imgui()->get_fonts_names();
 
     const float win_h = ImGui::GetWindowHeight();
     y = std::min(y, bottom_limit - win_h);

@@ -304,6 +304,7 @@ ImGuiWrapper::ImGuiWrapper()
 
 ImGuiWrapper::~ImGuiWrapper()
 {
+    destroy_fonts_texture();
     destroy_font();
     ImGui::DestroyContext();
 }
@@ -381,6 +382,7 @@ void ImGuiWrapper::set_language(const std::string &language)
 
     if (ranges != m_glyph_ranges) {
         m_glyph_ranges = ranges;
+        destroy_fonts_texture();
         destroy_font();
     }
 
@@ -408,6 +410,7 @@ void ImGuiWrapper::set_scaling(float font_size, float scale_style, float scale_b
     ImGui::GetStyle().ScaleAllSizes(scale_style / m_style_scaling);
     m_style_scaling = scale_style;
 
+    destroy_fonts_texture();
     destroy_font();
 }
 
@@ -1908,29 +1911,6 @@ void ImGuiWrapper::init_font(bool compress)
         if (bold_font == nullptr) { throw Slic3r::RuntimeError("ImGui: Could not load deafult font"); }
     }
 
-    // Add System Font
-    builder.Clear();
-    builder.AddRanges(m_glyph_basic_ranges);
-    builder.BuildRanges(&basic_ranges);
-
-    std::map<std::string, std::string> sys_fonts_map = get_occt_fonts_maps(); //map<font name, font path>
-    im_fonts_map.clear(); //map<font name, ImFont*>
-    BOOST_LOG_TRIVIAL(info) << "init_im_font start";
-    for (auto sys_font : sys_fonts_map) {
-        boost::filesystem::path font_path(sys_font.second);
-        if (!boost::filesystem::exists(font_path)) {
-            BOOST_LOG_TRIVIAL(trace) << "load font = " << sys_font.first << ", path = " << font_path << " is not exists";
-            continue;
-        }
-        ImFont* im_font = io.Fonts->AddFontFromFileTTF(sys_font.second.c_str(), m_font_size, &cfg, basic_ranges.Data);
-        if (im_font == nullptr) {
-            BOOST_LOG_TRIVIAL(trace) << "load font = " << sys_font.first << " failed, path = " << font_path << " is not exists";
-            continue;
-        }
-        im_fonts_map.insert({ sys_font.first, im_font });
-    }
-    BOOST_LOG_TRIVIAL(info) << "init_im_font end";
-
 #ifdef __APPLE__
     ImFontConfig config;
     config.MergeMode = true;
@@ -1957,7 +1937,7 @@ void ImGuiWrapper::init_font(bool compress)
     unsigned char* pixels;
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);   // Load as RGBA 32-bits (75% of the memory is wasted, but default font is so small) because it is more likely to be compatible with user's existing shaders. If your ImTextureId represent a higher-level concept than just a GL texture id, consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
-    BOOST_LOG_TRIVIAL(trace) << "Build texture done. width: " << width << ", height: " << height;
+    BOOST_LOG_TRIVIAL(trace) << "Build default font texture done. width: " << width << ", height: " << height;
 
     // Fill rectangles from the SVG-icons
     for (auto icon : font_icons) {
@@ -2007,21 +1987,6 @@ void ImGuiWrapper::init_font(bool compress)
         rect_id++;
     }
 
-    if (m_fonts_names.size() == 0) {
-        std::vector<std::string> to_delete_fonts;
-        for (auto im_font : im_fonts_map) {
-            if (im_font.second->Glyphs.Size < 4) {
-                to_delete_fonts.push_back(im_font.first);
-            }
-        }
-        for (auto to_delete_font : to_delete_fonts) {
-            sys_fonts_map.erase(to_delete_font);
-            im_fonts_map.erase(to_delete_font);
-        }
-        for (auto im_font : im_fonts_map)
-            m_fonts_names.push_back(im_font.first);
-    }
-
     // Upload texture to graphics system
     GLint last_texture;
     glsafe(::glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
@@ -2040,6 +2005,66 @@ void ImGuiWrapper::init_font(bool compress)
 
     // Restore state
     glsafe(::glBindTexture(GL_TEXTURE_2D, last_texture));
+}
+
+void ImGuiWrapper::load_fonts_texture()
+{
+    if (m_font_another_texture == 0) {
+        ImGuiIO& io = ImGui::GetIO();
+        io.Fonts->Flags |= ImFontAtlasFlags_NoPowerOfTwoHeight;
+        ImFontConfig cfg = ImFontConfig();
+        cfg.OversampleH = cfg.OversampleV = 1;
+        std::map<std::string, std::string> sys_fonts_map = get_occt_fonts_maps(); // map<font name, font path>
+        im_fonts_map.clear();                                                     // map<font name, ImFont*>
+        BOOST_LOG_TRIVIAL(info) << "init_im_font start";
+        for (auto sys_font : sys_fonts_map) {
+            boost::filesystem::path font_path(sys_font.second);
+            if (!boost::filesystem::exists(font_path)) {
+                BOOST_LOG_TRIVIAL(trace) << "load font = " << sys_font.first << ", path = " << font_path << " is not exists";
+                continue;
+            }
+            ImFont* im_font = io.Fonts->AddFontFromFileTTF(sys_font.second.c_str(), m_font_size, &cfg, ImGui::GetIO().Fonts->GetGlyphRangesBasic());
+            if (im_font == nullptr) {
+                BOOST_LOG_TRIVIAL(trace) << "load font = " << sys_font.first << " failed, path = " << font_path << " is not exists";
+                continue;
+            }
+            im_fonts_map.insert({ sys_font.first, im_font });
+        }
+        BOOST_LOG_TRIVIAL(info) << "init_im_font end";
+
+        unsigned char* pixels;
+        int            width, height;
+        io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+        BOOST_LOG_TRIVIAL(trace) << "Build system fonts texture done. width: " << width << ", height: " << height;
+
+        if (m_fonts_names.size() == 0) {
+            std::vector<std::string> to_delete_fonts;
+            for (auto im_font : im_fonts_map) {
+                if (im_font.second->Glyphs.Size < 4) { to_delete_fonts.push_back(im_font.first); }
+            }
+            for (auto to_delete_font : to_delete_fonts) {
+                sys_fonts_map.erase(to_delete_font);
+                im_fonts_map.erase(to_delete_font);
+            }
+            for (auto im_font : im_fonts_map) m_fonts_names.push_back(im_font.first);
+        }
+
+        GLint last_texture;
+        glsafe(::glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
+        glsafe(::glGenTextures(1, &(m_font_another_texture)));
+        glsafe(::glBindTexture(GL_TEXTURE_2D, m_font_another_texture));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+        glsafe(::glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
+
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
+
+        // Store our identifier
+        io.Fonts->TexID = (ImTextureID)(intptr_t)m_font_another_texture;
+
+        // Restore state
+        glsafe(::glBindTexture(GL_TEXTURE_2D, last_texture));
+    }
 }
 
 void ImGuiWrapper::init_input()
@@ -2245,6 +2270,14 @@ void ImGuiWrapper::destroy_font()
         io.Fonts->TexID = 0;
         glsafe(::glDeleteTextures(1, &m_font_texture));
         m_font_texture = 0;
+    }
+}
+
+void ImGuiWrapper::destroy_fonts_texture() {
+    if (m_font_another_texture != 0) {
+        init_font(true);
+        glsafe(::glDeleteTextures(1, &m_font_another_texture));
+        m_font_another_texture = 0;
     }
 }
 

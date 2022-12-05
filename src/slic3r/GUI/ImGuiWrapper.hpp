@@ -50,6 +50,7 @@ class ImGuiWrapper
     bool m_font_cjk{ false };
     float m_font_size{ 18.0 };
     unsigned m_font_texture{ 0 };
+    unsigned m_font_another_texture{ 0 };
     float m_style_scaling{ 1.0 };
     unsigned m_mouse_buttons{ 0 };
     bool m_disabled{ false };
@@ -160,6 +161,8 @@ public:
     const std::vector<std::string> get_fonts_names() const { return m_fonts_names; }
     bool push_font_by_name(std::string font_name);
     bool pop_font_by_name(std::string font_name);
+    void load_fonts_texture();
+    void destroy_fonts_texture();
 
     void disabled_begin(bool disabled);
     void disabled_end();
