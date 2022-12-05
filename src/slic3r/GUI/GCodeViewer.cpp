@@ -800,6 +800,9 @@ void GCodeViewer::init(ConfigOptionMode mode, PresetBundle* preset_bundle)
 //                buffer.model.instances.format = InstanceVBuffer::EFormat::InstancedModel;
 //            }
 //            else {
+            if(type == EMoveType::Seam)
+                buffer.visible = true;
+
                 buffer.render_primitive_type = TBuffer::ERenderPrimitiveType::BatchedModel;
                 buffer.vertices.format = VBuffer::EFormat::PositionNormal3;
                 buffer.shader = "gouraud_light";
@@ -903,8 +906,8 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
     // BBS for first layer inspection
     view_type_items.push_back(EViewType::FilamentId);
 
-    options_items.push_back(EMoveType::Travel);
     options_items.push_back(EMoveType::Seam);
+    options_items.push_back(EMoveType::Travel);
     options_items.push_back(EMoveType::Retract);
     options_items.push_back(EMoveType::Unretract);
     options_items.push_back(EMoveType::Wipe);
@@ -4183,6 +4186,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
         // BBS render column item
         {
+            if(callback && !checkbox && !visible)
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(172 / 255.0f, 172 / 255.0f, 172 / 255.0f, 1.00f));
             float dummy_size = type == EItemType::None ? window_padding * 3 : ImGui::GetStyle().ItemSpacing.x + icon_size;
             ImGui::SameLine(dummy_size);
             imgui.text(columns_offsets[0].first);
@@ -4191,6 +4196,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 ImGui::SameLine(columns_offsets[i].second);
                 imgui.text(columns_offsets[i].first);
             }
+            if (callback && !checkbox && !visible)
+                ImGui::PopStyleColor(1);
         }
 
         ImGui::PopStyleVar(1);
@@ -4237,13 +4244,19 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
     auto calculate_offsets = [max_width](const std::vector<std::pair<std::string, std::vector<::string>>>& title_columns, float extra_size = 0.0f) {
             const ImGuiStyle& style = ImGui::GetStyle();
+            std::vector<float> offsets;
+            offsets.push_back(max_width(title_columns[0].second, title_columns[0].first, extra_size) + 3.0f * style.ItemSpacing.x);
+            for (size_t i = 1; i < title_columns.size() - 1; i++)
+                offsets.push_back(offsets.back() + max_width(title_columns[i].second, title_columns[i].first) + style.ItemSpacing.x);
+            if (title_columns.back().first == _u8L("Display"))
+                offsets.back() = ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x - 2 * style.ItemSpacing.x;
+
+            float average_col_width = ImGui::GetWindowWidth() / static_cast<float>(title_columns.size());
             std::vector<float> ret;
             ret.push_back(0);
-            ret.push_back(max_width(title_columns[0].second, title_columns[0].first, extra_size) + 3.0f * style.ItemSpacing.x);
-            for (size_t i = 1; i < title_columns.size() - 1; i++)
-                ret.push_back(ret.back() + max_width(title_columns[i].second, title_columns[i].first) + style.ItemSpacing.x);
-            if (title_columns.back().first == _u8L("Display"))
-                ret.back() = ImGui::GetWindowWidth() - ImGui::CalcTextSize(_u8L("Display").c_str()).x - 2 * style.ItemSpacing.x;
+            for (size_t i = 1; i < title_columns.size(); i++) {
+                ret.push_back(std::max(offsets[i - 1], i * average_col_width));
+            }
 
             return ret;
     };
@@ -4483,11 +4496,11 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         ::sprintf(buffer, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", ps.total_used_filament / /*1000*/koef, ps.total_weight / unit_conver);
         total_filaments.push_back(buffer);
 
-        offsets = calculate_offsets({ {_u8L("Filament"), {""}}, {_u8L("Model"), total_filaments}, {_u8L("Flushed"), total_filaments}, {_u8L("Tower"), total_filaments}, {_u8L("Total"), total_filaments} }, icon_size);
+        offsets = calculate_offsets({ {_u8L("Filament"), {""}}, {_u8L("Model"), total_filaments}, {_u8L("Flushed"), total_filaments}, /*{_u8L("Tower"), total_filaments},*/ {_u8L("Total"), total_filaments} }, icon_size);
         if (m_extruder_ids.size() <= 1 || !show_flushed_filaments)
             append_headers({ {_u8L("Filament"), offsets[0]}, {_u8L("Model"), offsets[2]}});
         else
-            append_headers({ {_u8L("Filament"), offsets[0]}, {_u8L("Model"), offsets[1]}, {_u8L("Flushed"), offsets[2]}, {"", offsets[3]}, {_u8L("Total"), offsets[4]}});// to add Tower
+            append_headers({ {_u8L("Filament"), offsets[0]}, {_u8L("Model"), offsets[1]}, {_u8L("Flushed"), offsets[2]}, /*{_u8L("Tower"), offsets[3]},*/ {_u8L("Total"), offsets[3]}});// to add Tower
         break;
     }
     default: { break; }
@@ -4648,7 +4661,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                             columns_offsets.push_back({ buf, offsets[2] });
 
                             ::sprintf(buf, imperial_units ? "%.2f in\n%.2f g" : "%.2f m\n%.2f g", model_used_filaments_m[i] + flushed_filaments_m[i], model_used_filaments_g[i] + flushed_filaments_g[i]);
-                            columns_offsets.push_back({ buf, offsets[4] });
+                            columns_offsets.push_back({ buf, offsets[3] });
                         }
                         else {
                             char buf[64];
@@ -4716,7 +4729,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
                 bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
                 ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", (total_model_used_filament_m + total_flushed_filament_m) * 1000 / /*1000*/koef, (total_model_used_filament_g + total_flushed_filament_g) / unit_conver);
-                columns_offsets.push_back({ buf, offsets[4] });
+                columns_offsets.push_back({ buf, offsets[3] });
 
                 append_item(EItemType::None, m_tools.m_tool_colors[0], columns_offsets);
             }
