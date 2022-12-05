@@ -249,15 +249,6 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         });
     }
 
-    m_staticline_filament = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    //m_staticline_print = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    m_staticline_print_object = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    m_staticline_print_part = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    m_staticline_printer = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
-    // BBS: new layout
-    //m_staticline_buttons = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
-    //m_staticline_middle = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL);
-
     //m_export_to_file = new Button( this, wxT("Export To File"), "");
     //m_import_from_file = new Button( this, wxT("Import From File") );
 
@@ -400,8 +391,6 @@ void ParamsPanel::create_layout()
     }
 
     if (m_tab_print) {
-        if (m_staticline_print)
-            m_left_sizer->Add( m_staticline_print, 0, wxEXPAND );
         //m_print_sizer = new wxBoxSizer( wxHORIZONTAL );
         //m_print_sizer->Add( m_tab_print, 1, wxEXPAND | wxALL, 5 );
         //m_left_sizer->Add( m_print_sizer, 1, wxEXPAND, 5 );
@@ -409,17 +398,14 @@ void ParamsPanel::create_layout()
     }
 
     if (m_tab_print_object) {
-        m_left_sizer->Add( m_staticline_print_object, 0, wxEXPAND );
         m_left_sizer->Add( m_tab_print_object, 0, wxEXPAND );
     }
 
     if (m_tab_print_part) {
-        m_left_sizer->Add( m_staticline_print_part, 0, wxEXPAND );
         m_left_sizer->Add( m_tab_print_part, 0, wxEXPAND );
     }
 
     if (m_tab_filament) {
-        m_left_sizer->Add( m_staticline_filament, 0, wxEXPAND );
         //m_filament_sizer = new wxBoxSizer( wxVERTICAL );
         //m_filament_sizer->Add( m_tab_filament, 1, wxEXPAND | wxALL, 5 );
        // m_left_sizer->Add( m_filament_sizer, 1, wxEXPAND, 5 );
@@ -427,7 +413,6 @@ void ParamsPanel::create_layout()
     }
 
     if (m_tab_printer) {
-        m_left_sizer->Add( m_staticline_printer, 0, wxEXPAND );
         //m_printer_sizer = new wxBoxSizer( wxVERTICAL );
         //m_printer_sizer->Add( m_tab_printer, 1, wxEXPAND | wxALL, 5 );
         m_left_sizer->Add( m_tab_printer, 0, wxEXPAND );
@@ -441,11 +426,9 @@ void ParamsPanel::create_layout()
 
     //m_button_sizer->Add( m_import_from_file, 0, wxALL, 5 );
 
-    //m_left_sizer->Add( m_staticline_buttons, 0, wxEXPAND );
     //m_left_sizer->Add( m_button_sizer, 0, wxALIGN_CENTER, 5 );
 
     m_top_sizer->Add(m_left_sizer, 1, wxEXPAND);
-    //m_top_sizer->Add(m_staticline_middle, 0, wxEXPAND, 0);
 
     //m_right_sizer = new wxBoxSizer( wxVERTICAL );
 
@@ -792,19 +775,6 @@ void ParamsPanel::delete_subwindows()
         delete m_staticline_printer;
         m_staticline_printer = nullptr;
     }
-
-    //// BBS: new layout
-    //if (m_staticline_buttons)
-    //{
-    //    delete m_staticline_buttons;
-    //    m_staticline_buttons = nullptr;
-    //}
-
-    //if (m_staticline_middle)
-    //{
-    //    delete m_staticline_middle;
-    //    m_staticline_middle = nullptr;
-    //}
 
     if (m_export_to_file)
     {

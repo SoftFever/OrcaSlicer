@@ -190,7 +190,7 @@ void ObjectDataViewModelNode::set_printable_icon(PrintIndicator printable)
 {
     m_printable = printable;
     m_printable_icon = m_printable == piUndef ? m_empty_bmp :
-                       create_scaled_bitmap(m_printable == piPrintable ? "obj_printable" : "obj_unprintable");
+                       create_scaled_bitmap(m_printable == piPrintable ? "check_on" : "check_off_focused");
 }
 
 void ObjectDataViewModelNode::set_action_icon(bool enable)

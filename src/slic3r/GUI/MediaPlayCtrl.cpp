@@ -35,6 +35,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
     m_button_play->SetCanFocus(false);
 
     m_label_status = new Label(this, "", LB_HYPERLINK);
+    m_label_status->SetForegroundColour(wxColour("#2C2C2E"));
 
     m_button_play->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) { TogglePlay(); });
     m_button_play->Bind(wxEVT_RIGHT_UP, [this](auto & e) { m_media_ctrl->Play(); });
@@ -64,6 +65,8 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
 
     m_lan_user = "bblp";
     m_lan_passwd = "bblp";
+
+    wxGetApp().UpdateDarkUIWin(this);
 }
 
 MediaPlayCtrl::~MediaPlayCtrl()
@@ -365,7 +368,7 @@ void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
     if (hyperlink) {
         style |= LB_HYPERLINK;
     }
-    m_label_status->SetWindowStyle(style);
+    //m_label_status->SetWindowStyle(style);
     m_label_status->InvalidateBestSize();
     Layout();
 }

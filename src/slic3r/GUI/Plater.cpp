@@ -665,9 +665,9 @@ Sidebar::Sidebar(Plater *parent)
                             std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
                             std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
 
-    StateColor flush_fg_col(std::pair<wxColour, int>(wxColour(107, 107, 107), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour(107, 107, 107), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(107, 107, 107), StateColor::Normal));
+    StateColor flush_fg_col(std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(107, 107, 106), StateColor::Normal));
 
     StateColor flush_bd_col(std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Pressed),
                             std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Hovered),

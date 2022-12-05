@@ -19,7 +19,6 @@ ParamsDialog::ParamsDialog(wxWindow * parent)
 		wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
 {
 	m_panel = new ParamsPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
-
 	auto* topsizer = new wxBoxSizer(wxVERTICAL);
 	topsizer->Add(m_panel, 1, wxALL | wxEXPAND, 0, NULL);
 
@@ -57,15 +56,15 @@ ParamsDialog::ParamsDialog(wxWindow * parent)
         wxGetApp().sidebar().finish_param_edit();
     });
 
-    wxGetApp().UpdateDlgDarkUI(this);
+    //wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void ParamsDialog::Popup()
 {
+    wxGetApp().UpdateDlgDarkUI(this);
 #ifdef __WIN32__
     Reparent(wxGetApp().mainframe);
 #endif
-    wxGetApp().UpdateDlgDarkUI(this);
     Center();
     Show();
 }

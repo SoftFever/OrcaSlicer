@@ -228,6 +228,7 @@ public:
 
         // draw logo and constant info text
         Decorate(m_main_bitmap);
+        wxGetApp().UpdateFrameDarkUI(this);
     }
 
     void SetText(const wxString& text)
@@ -239,7 +240,7 @@ public:
             wxMemoryDC memDC;
             memDC.SelectObject(bitmap);
             memDC.SetFont(m_action_font);
-            memDC.SetTextForeground(wxColour(144, 144, 144));
+            memDC.SetTextForeground(StateColor::darkModeColorFor(wxColour(144, 144, 144)));
             int width = bitmap.GetWidth();
             int text_height = memDC.GetTextExtent(text).GetHeight();
             int text_width = memDC.GetTextExtent(text).GetWidth();
@@ -276,13 +277,13 @@ public:
         int version_width = memDc.GetTextExtent(m_constant_text.version).GetWidth();
         int split_width = (width + title_width - version_width) / 2;
         wxRect title_rect(wxPoint(0, top_margin), wxPoint(split_width - text_padding, top_margin + title_height));
-        memDc.SetTextForeground(wxColour(38, 46, 48));
+        memDc.SetTextForeground(StateColor::darkModeColorFor(wxColour(38, 46, 48)));
         memDc.SetFont(m_constant_text.title_font);
         memDc.DrawLabel(m_constant_text.title, title_rect, wxALIGN_RIGHT | wxALIGN_BOTTOM);
         //BBS align bottom of title and version text
         wxRect version_rect(wxPoint(split_width + text_padding, top_margin), wxPoint(width, top_margin + title_height - text_padding));
         memDc.SetFont(m_constant_text.version_font);
-        memDc.SetTextForeground(wxColor(134, 134, 134));
+        memDc.SetTextForeground(StateColor::darkModeColorFor(wxColor(134, 134, 134)));
         memDc.DrawLabel(m_constant_text.version, version_rect, wxALIGN_LEFT | wxALIGN_BOTTOM);
 
 #if BBL_INTERNAL_TESTING
@@ -317,7 +318,7 @@ public:
 
         wxMemoryDC memDC;
         memDC.SelectObject(new_bmp);
-        memDC.SetBrush(*wxWHITE);
+        memDC.SetBrush(StateColor::darkModeColorFor(*wxWHITE));
         memDC.DrawRectangle(-1, -1, width + 2, height + 2);
         memDC.DrawBitmap(new_bmp, 0, 0, true);
         return new_bmp;
@@ -3126,8 +3127,6 @@ void GUI_App::force_colors_update()
 
     //NppDarkMode::SetDarkExplorerTheme((HWND)mainframe->m_settings_dialog.GetHWND());
     //NppDarkMode::SetDarkTitleBar(mainframe->m_settings_dialog.GetHWND());
-    //mainframe->m_settings_dialog.Refresh();
-    //mainframe->m_settings_dialog.Update();
 
 #endif // __WINDOWS__
 #endif //_MSW_DARK_MODE

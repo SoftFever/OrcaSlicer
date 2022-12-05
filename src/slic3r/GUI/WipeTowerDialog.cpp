@@ -104,7 +104,7 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
         calc_btn->SetCornerRadius(FromDIP(12));
         calc_btn->SetBackgroundColor(ok_btn_bg);
         calc_btn->SetBorderColor(ok_btn_bd);
-        calc_btn->SetTextColor(ok_btn_text);
+        calc_btn->SetTextColor(wxColour("#FFFFFE"));
         calc_btn->SetFocus();
         calc_btn->SetId(wxID_RESET);
         btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
@@ -116,7 +116,7 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
         ok_btn->SetCornerRadius(FromDIP(12));
         ok_btn->SetBackgroundColor(ok_btn_bg);
         ok_btn->SetBorderColor(ok_btn_bd);
-        ok_btn->SetTextColor(ok_btn_text);
+        ok_btn->SetTextColor(wxColour("#FFFFFE"));
         ok_btn->SetFocus();
         ok_btn->SetId(wxID_OK);
         btn_sizer->Add(ok_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
@@ -530,7 +530,7 @@ int WipingPanel::calc_flushing_volume(const wxColour& from, const wxColour& to)
 void WipingPanel::update_warning_texts()
 {
     static const wxColour g_warning_color = *wxRED;
-    static const wxColour g_normal_color = *wxBLACK;
+    static const wxColour g_normal_color = StateColor::darkModeColorFor(*wxBLACK);
 
     wxString multi_str = m_flush_multiplier_ebox->GetValue();
     float multiplier = wxAtof(multi_str);
