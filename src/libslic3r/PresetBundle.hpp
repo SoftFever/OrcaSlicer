@@ -54,8 +54,6 @@ public:
     void update_user_presets_directory(const std::string preset_folder);
     void remove_user_presets_directory(const std::string preset_folder);
     void update_system_preset_setting_ids(std::map<std::string, std::map<std::string, std::string>>& system_presets);
-    void load_default_setting_from_app_config(const AppConfig &config);
-    void update_filament_info_to_app_config(AppConfig &config);
 
     //BBS: add API to get previous machine
     bool validate_printers(const std::string &name, DynamicPrintConfig& config);

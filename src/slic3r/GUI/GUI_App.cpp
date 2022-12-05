@@ -2198,7 +2198,6 @@ bool GUI_App::on_init_inner()
 
     BOOST_LOG_TRIVIAL(info) << "loading systen presets...";
     preset_bundle = new PresetBundle();
-    preset_bundle->load_default_setting_from_app_config(*app_config);
 
     // just checking for existence of Slic3r::data_dir is not enough : it may be an empty directory
     // supplied as argument to --datadir; in that case we should still run the wizard

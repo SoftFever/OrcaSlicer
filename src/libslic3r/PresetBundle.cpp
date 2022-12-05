@@ -807,36 +807,6 @@ void PresetBundle::update_system_preset_setting_ids(std::map<std::string, std::m
     return;
 }
 
-void PresetBundle::load_default_setting_from_app_config(const AppConfig &config) {
-    auto config_filament_presets = config.get_filament_presets();
-    if (!config_filament_presets.empty())
-        this->filament_presets = config_filament_presets;
-
-    auto config_filament_colors = config.get_filament_colors();
-    if (!config_filament_colors.empty()) {
-        ConfigOptionStrings *filament_color = project_config.option<ConfigOptionStrings>("filament_colour");
-        filament_color->resize(config_filament_colors.size());
-        filament_color->values = config_filament_colors;
-    }
-
-    auto config_flush_volumes_matrix = config.get_flush_volumes_matrix();
-    if (!config_flush_volumes_matrix.empty()) {
-        ConfigOptionFloats *flush_volumes_matrix = project_config.option<ConfigOptionFloats>("flush_volumes_matrix");
-        flush_volumes_matrix->values = std::vector<double>(config_flush_volumes_matrix.begin(), config_flush_volumes_matrix.end());
-    }
-}
-
-void PresetBundle::update_filament_info_to_app_config(AppConfig &config)
-{
-    config.set_filament_presets(this->filament_presets);
-
-    ConfigOptionStrings *filament_color = project_config.option<ConfigOptionStrings>("filament_colour");
-    config.set_filament_colors(filament_color->values);
-
-    ConfigOptionFloats *flush_volumes_matrix = project_config.option<ConfigOptionFloats>("flush_volumes_matrix");
-    config.set_flush_volumes_matrix(std::vector<float>(flush_volumes_matrix->values.begin(), flush_volumes_matrix->values.end()));
-}
-
 //BBS: validate printers from previous project
 bool PresetBundle::validate_printers(const std::string &name, DynamicPrintConfig& config)
 {
@@ -1343,6 +1313,15 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
             if (auto it = sla_materials.find_preset_internal(preferred_preset_name);
                 it != sla_materials.end() && it->is_visible && it->is_compatible)
                 sla_materials.select_preset_by_name_strict(preferred_preset_name);
+        }
+    }
+
+    std::string first_visible_filament_name;
+    for (auto & fp : filament_presets) {
+        if (auto it = filaments.find_preset_internal(fp); it == filaments.end() || !it->is_visible || !it->is_compatible) {
+            if (first_visible_filament_name.empty())
+                first_visible_filament_name = filaments.first_compatible().name;
+            fp = first_visible_filament_name;
         }
     }
 

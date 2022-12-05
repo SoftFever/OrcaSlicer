@@ -697,7 +697,7 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
                 //wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg_new);
                 cfg->apply(cfg_new);
                 wxGetApp().plater()->update_project_dirty_from_presets();
-                wxGetApp().preset_bundle->update_filament_info_to_app_config(*wxGetApp().app_config);
+                wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
                 update();
                 wxGetApp().plater()->on_config_change(cfg_new);
 
@@ -1094,9 +1094,6 @@ void PlaterPresetComboBox::update()
     }
 
     update_selection();
-    if (selected_system_preset != GetValue()) {
-        sendComboBoxEvent();
-    }
     Thaw();
 
     if (!tooltip.IsEmpty()) {
