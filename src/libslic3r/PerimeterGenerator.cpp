@@ -829,7 +829,7 @@ void PerimeterGenerator::process_classic()
 
                 //BBS: refer to superslicer
                 //store surface for top infill if only_one_wall_top
-                if (i == 0 && config->only_one_wall_top && this->upper_slices != NULL) {
+                if (i == 0 && i!=loop_number && config->only_one_wall_top && this->upper_slices != NULL) {
                     //split the polygons with top/not_top
                     //get the offset from solid surface anchor
                     coord_t offset_top_surface = scale_(1.5 * (config->wall_loops.value == 0 ? 0. : unscaled(double(ext_perimeter_width + perimeter_spacing * int(int(config->wall_loops.value) - int(1))))));
@@ -855,8 +855,8 @@ void PerimeterGenerator::process_classic()
                     ExPolygons delete_bridge = diff_ex(last, bridge_checker, ApplySafetyOffset::Yes);
 
                     ExPolygons top_polygons = diff_ex(delete_bridge, grown_upper_slices, ApplySafetyOffset::Yes);
-
                     //get the not-top surface, from the "real top" but enlarged by external_infill_margin (and the min_width_top_surface we removed a bit before)
+                    ExPolygons temp_gap        = diff_ex(top_polygons, fill_clip);
                     ExPolygons inner_polygons = diff_ex(last,
                                                         offset_ex(top_polygons, offset_top_surface + min_width_top_surface - double(ext_perimeter_spacing / 2)),
                                                         ApplySafetyOffset::Yes);
@@ -868,6 +868,8 @@ void PerimeterGenerator::process_classic()
                     double infill_spacing_unscaled = this->config->sparse_infill_line_width.value;
                     fill_clip = offset_ex(last, double(ext_perimeter_spacing / 2) - scale_(infill_spacing_unscaled / 2));
                     last = intersection_ex(inner_polygons, last);
+                    if (has_gap_fill)
+                        last = union_ex(last,temp_gap);
                     //{
                     //    std::stringstream stri;
                     //    stri << this->layer->id() << "_1_"<< i <<"_only_one_peri"<< ".svg";
