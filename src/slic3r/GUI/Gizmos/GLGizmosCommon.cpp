@@ -433,11 +433,11 @@ void ObjectClipper::set_position(double pos, bool keep_normal)
     int active_inst = get_pool()->selection_info()->get_active_instance();
     double z_shift = get_pool()->selection_info()->get_sla_shift();
 
-    Vec3d camera_dir = wxGetApp().plater()->get_camera().get_dir_forward();
-    if (abs(camera_dir(0)) > EPSILON || abs(camera_dir(1)) > EPSILON)
-        camera_dir(2) = 0;
+    //Vec3d camera_dir = wxGetApp().plater()->get_camera().get_dir_forward();
+    //if (abs(camera_dir(0)) > EPSILON || abs(camera_dir(1)) > EPSILON)
+    //    camera_dir(2) = 0;
 
-    Vec3d normal = (keep_normal && m_clp) ? m_clp->get_normal() : -camera_dir;
+    Vec3d normal = (keep_normal && m_clp) ? m_clp->get_normal() : /*-camera_dir;*/ -wxGetApp().plater()->get_camera().get_dir_forward();
     const Vec3d& center = mo->instances[active_inst]->get_offset() + Vec3d(0., 0., z_shift);
     float dist = normal.dot(center);
 
@@ -697,8 +697,7 @@ void ModelObjectsClipper::render_cut() const
 
 void ModelObjectsClipper::set_position(double pos, bool keep_normal)
 {
-    Vec3d camera_dir = wxGetApp().plater()->get_camera().get_dir_forward();
-    Vec3d normal = -camera_dir;
+    Vec3d normal = (keep_normal && m_clp) ? m_clp->get_normal() : -wxGetApp().plater()->get_camera().get_dir_forward();
     const Vec3d& center = get_pool()->get_canvas()->volumes_bounding_box().center();
     float dist = normal.dot(center);
 
@@ -708,6 +707,7 @@ void ModelObjectsClipper::set_position(double pos, bool keep_normal)
     m_clp_ratio = pos;
     m_clp.reset(new ClippingPlane(normal, (dist - (-m_active_inst_bb_radius * GLVolume::explosion_ratio) - m_clp_ratio * 2 * m_active_inst_bb_radius * GLVolume::explosion_ratio)));
     get_pool()->get_canvas()->set_as_dirty();
+
 }
 
 

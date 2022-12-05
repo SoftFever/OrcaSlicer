@@ -81,6 +81,7 @@ bool GLGizmoFdmSupports::on_init()
 
     m_desc["clipping_of_view_caption"] = _L("Alt + Mouse wheel");
     m_desc["clipping_of_view"]      = _L("Section view");
+    m_desc["reset_direction"]       = _L("Reset direction");
     m_desc["cursor_size_caption"]   = _L("Ctrl + Mouse wheel");
     m_desc["cursor_size"]           = _L("Pen size");
     m_desc["enforce_caption"]       = _L("Left mouse button");
@@ -217,6 +218,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     const float cursor_slider_left      = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.5f);
     const float gap_fill_slider_left    = m_imgui->calc_text_size(m_desc.at("gap_fill")).x + m_imgui->scaled(1.5f);
     const float highlight_slider_left   = m_imgui->calc_text_size(m_desc.at("highlight_by_angle")).x + m_imgui->scaled(1.5f);
+    const float reset_button_slider_left = m_imgui->calc_text_size(m_desc.at("reset_direction")).x + m_imgui->scaled(1.5f) + ImGui::GetStyle().FramePadding.x * 2;
     const float on_overhangs_only_width  = m_imgui->calc_text_size(m_desc["on_overhangs_only"]).x + m_imgui->scaled(1.5f);
     const float remove_btn_width        = m_imgui->calc_text_size(m_desc.at("remove_all")).x + m_imgui->scaled(1.5f);
     const float filter_btn_width        = m_imgui->calc_text_size(m_desc.at("perform")).x + m_imgui->scaled(1.5f);
@@ -235,7 +237,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     total_text_max += caption_max + m_imgui->scaled(1.f);
     caption_max += m_imgui->scaled(1.f);
 
-    const float sliders_left_width = std::max(std::max(cursor_slider_left, clipping_slider_left), std::max(highlight_slider_left, gap_fill_slider_left));
+    const float sliders_left_width = std::max(reset_button_slider_left, std::max(std::max(cursor_slider_left, clipping_slider_left), std::max(highlight_slider_left, gap_fill_slider_left)));
     const float slider_icon_width  = m_imgui->get_slider_icon_size().x;
     const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
 
@@ -394,8 +396,17 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     if (m_current_tool != ImGui::GapFillIcon) {
         ImGui::Separator();
-        ImGui::AlignTextToFramePadding();
-        m_imgui->text(m_desc.at("clipping_of_view"));
+        if (m_c->object_clipper()->get_position() == 0.f) {
+            ImGui::AlignTextToFramePadding();
+            m_imgui->text(m_desc.at("clipping_of_view"));
+        }
+        else {
+            if (m_imgui->button(m_desc.at("reset_direction"))) {
+                wxGetApp().CallAfter([this]() {
+                    m_c->object_clipper()->set_position(-1., false);
+                    });
+            }
+        }
 
         auto clp_dist = float(m_c->object_clipper()->get_position());
         ImGui::SameLine(sliders_left_width);

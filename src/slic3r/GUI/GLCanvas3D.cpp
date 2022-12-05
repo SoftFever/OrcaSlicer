@@ -7440,11 +7440,21 @@ void GLCanvas3D::_render_assemble_control() const
     ImGui::AlignTextToFramePadding();
 
     {
-        imgui->text(_L("Section View"));
+        if (m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position() == 0.f) {
+            ImGui::AlignTextToFramePadding();
+            imgui->text(_L("Section View"));
+        }
+        else {
+            if (imgui->button(_L("Reset direction"))) {
+                wxGetApp().CallAfter([this]() {
+                    m_gizmos.m_assemble_view_data->model_objects_clipper()->set_position(-1., false);
+                    });
+            }
+        }
 
         ImGui::SameLine(window_padding.x + text_size_x + item_spacing);
         ImGui::PushItemWidth(slider_width);
-        static float clp_dist = 0.f;
+        auto clp_dist = float(m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position());
         bool view_slider_changed = imgui->bbl_slider_float_style("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true);
 
         ImGui::SameLine(window_padding.x + text_size_x + slider_width + item_spacing * 2);

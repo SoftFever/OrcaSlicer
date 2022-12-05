@@ -185,7 +185,7 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
     const float space_size = m_imgui->get_style_scaling() * 8;
     const float clipping_slider_left = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x,
-                                                m_imgui->calc_text_size(m_desc.at("reset_direction")).x)
+                                                m_imgui->calc_text_size(m_desc.at("reset_direction")).x + ImGui::GetStyle().FramePadding.x * 2)
                                            + m_imgui->scaled(1.5f);
     const float cursor_size_slider_left = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.f);
     const float empty_button_width      = m_imgui->calc_button_size("").x;
@@ -271,8 +271,18 @@ void GLGizmoSeam::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::PushItemWidth(1.5 * slider_icon_width);
     ImGui::BBLDragFloat("##cursor_radius_input", &m_cursor_radius, 0.05f, 0.0f, 0.0f, "%.2f");
 
-    ImGui::AlignTextToFramePadding();
-    m_imgui->text(m_desc.at("clipping_of_view"));
+    ImGui::Separator();
+    if (m_c->object_clipper()->get_position() == 0.f) {
+        ImGui::AlignTextToFramePadding();
+        m_imgui->text(m_desc.at("clipping_of_view"));
+    }
+    else {
+        if (m_imgui->button(m_desc.at("reset_direction"))) {
+            wxGetApp().CallAfter([this]() {
+                m_c->object_clipper()->set_position(-1., false);
+                });
+        }
+    }
 
     auto clp_dist = float(m_c->object_clipper()->get_position());
     ImGui::SameLine(sliders_left_width);
