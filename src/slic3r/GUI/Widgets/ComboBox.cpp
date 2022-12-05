@@ -263,13 +263,7 @@ void ComboBox::keyDown(wxKeyEvent& event)
             } else {
                 break;
             }
-            {
-                wxCommandEvent e(wxEVT_COMBOBOX);
-                e.SetEventObject(this);
-                e.SetId(GetId());
-                e.SetInt(GetSelection());
-                GetEventHandler()->ProcessEvent(e);
-            }
+            sendComboBoxEvent();
             break;
         case WXK_TAB:
             HandleAsNavigationKey(event);

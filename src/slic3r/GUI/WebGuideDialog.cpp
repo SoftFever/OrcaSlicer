@@ -795,7 +795,8 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
             first_added_preset = get_first_added_preset(old_presets, m_appconfig_new.get_section(section_name));
         }
     };
-    get_first_added_material_preset(AppConfig::SECTION_FILAMENTS, first_added_filament);
+    // Not switch filament
+    //get_first_added_material_preset(AppConfig::SECTION_FILAMENTS, first_added_filament);
 
     //update the app_config
     app_config->set_section(AppConfig::SECTION_FILAMENTS, enabled_filaments);
@@ -819,6 +820,7 @@ bool GuideFrame::run()
 
     //p->set_run_reason(reason);
     //p->set_start_page(start_page);
+    app.preset_bundle->export_selections(*app.app_config);
 
     BOOST_LOG_TRIVIAL(info) << "GuideFrame before ShowModal";
     if (this->ShowModal() == wxID_OK) {

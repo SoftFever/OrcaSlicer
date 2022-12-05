@@ -1094,6 +1094,9 @@ void PlaterPresetComboBox::update()
     }
 
     update_selection();
+    if (selected_system_preset != GetValue()) {
+        sendComboBoxEvent();
+    }
     Thaw();
 
     if (!tooltip.IsEmpty()) {

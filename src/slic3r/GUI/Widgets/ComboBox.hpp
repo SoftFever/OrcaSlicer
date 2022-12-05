@@ -74,6 +74,8 @@ protected:
     
     void OnEdit() override;
 
+    void sendComboBoxEvent();
+
 #ifdef __WIN32__
     WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) override;
 #endif
@@ -84,8 +86,6 @@ private:
     void mouseDown(wxMouseEvent &event);
     void mouseWheelMoved(wxMouseEvent &event);
     void keyDown(wxKeyEvent &event);
-
-    void sendComboBoxEvent();
 
     DECLARE_EVENT_TABLE()
 };
