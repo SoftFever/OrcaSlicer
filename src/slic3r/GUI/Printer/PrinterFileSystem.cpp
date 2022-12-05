@@ -148,8 +148,8 @@ void PrinterFileSystem::DeleteFiles(size_t index)
                 file.flags |= FF_DELETED;
                 ++n;
             }
-            if (n == 0) return;
         }
+        if (n == 0) return;
     } else {
         if (index >= m_file_list.size())
             return;
