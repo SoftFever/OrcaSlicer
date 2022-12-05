@@ -474,16 +474,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         wxGetApp().plater()->get_current_canvas3D()->request_extra_frame();
         event.Skip();
     });
-#endif
-
-    Bind(wxEVT_SHOW, [this](auto& e) {
-        if (!m_reset_position) {
-            wxGetApp().persist_window_geometry(this, true);
-            wxGetApp().persist_window_geometry(&m_settings_dialog, true);
-            m_reset_position = true;
-        }
-    });
-   
+#endif   
 
     update_ui_from_settings();    // FIXME (?)
 
@@ -565,6 +556,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     wxGetApp().UpdateDarkUIWin(this);
 #endif // _MSW_DARK_MODE
 
+    wxGetApp().persist_window_geometry(this, true);
+    wxGetApp().persist_window_geometry(&m_settings_dialog, true);
 }
 
 #ifdef __WIN32__
