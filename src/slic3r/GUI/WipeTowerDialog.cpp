@@ -15,7 +15,7 @@ using namespace Slic3r::GUI;
 
 int scale(const int val) { return val * Slic3r::GUI::wxGetApp().em_unit() / 10; }
 int ITEM_WIDTH() { return scale(30); }
-static const wxColour text_color = wxColour(107, 107, 107, 255);
+static const wxColour g_text_color = wxColour(107, 107, 107, 255);
 
 #define ICON_SIZE               wxSize(FromDIP(16), FromDIP(16))
 #define TABLE_BORDER            FromDIP(28)
@@ -44,9 +44,11 @@ static void update_ui(wxWindow* window)
 #define style wxSP_ARROW_KEYS
 #endif
 
-static const int g_max_flush_volume = 750.f;
+static const int m_max_flush_volume = 750.f;
 static const int g_min_flush_volume_from_support = 420.f;
 static const int g_flush_volume_to_support = 230;
+static const float g_min_flush_multiplier = 0.f;
+static const float g_max_flush_multiplier = 3.f;
 
 wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
 {
@@ -223,7 +225,7 @@ void WipingPanel::create_panels(wxWindow* parent, const int num) {
 // This panel contains all control widgets for both simple and advanced mode (these reside in separate sizers)
 WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours, wxButton* widget_button,
     int extra_flush_volume, float flush_multiplier)
-: wxPanel(parent,wxID_ANY, wxDefaultPosition, wxDefaultSize/*,wxBORDER_RAISED*/), m_extra_flush_volume(extra_flush_volume)
+: wxPanel(parent,wxID_ANY, wxDefaultPosition, wxDefaultSize/*,wxBORDER_RAISED*/), m_min_flush_volume(extra_flush_volume), m_max_flush_volume(800)
 {
     // BBS: toggle button is removed
     //m_widget_button = widget_button;    // pointer to the button in parent dialog
@@ -282,17 +284,8 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
                     });
 
                 auto on_apply_text_modify = [this, i, j](wxEvent &e) {
-                    wxString str   = edit_boxes[i][j]->GetValue();
-                    int      value = wxAtoi(str);
-                    if (value < int(m_extra_flush_volume)) {
-                        wxGetApp().plater();
-                        str = wxString::Format(("%d"), int(m_extra_flush_volume));
-                        edit_boxes[i][j]->SetValue(str);
-                        MessageDialog dlg(nullptr,
-                                          _L("The flush volume is less than the minimum value and will be automatically set to the minimum value."),
-                                          _L("Warning"), wxICON_WARNING | wxOK);
-                        dlg.ShowModal();
-                    }
+                    this->update_warning_texts();
+                    e.Skip();
                 };
 
                 edit_boxes[i][j]->Bind(wxEVT_TEXT_ENTER, on_apply_text_modify);
@@ -326,29 +319,57 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
 
     create_panels(m_page_advanced, m_number_of_extruders);
 
-    m_sizer_advanced->AddSpacer(BTN_SIZE.y);
+    m_sizer_advanced->AddSpacer(10);
     auto info_str = new wxStaticText(m_page_advanced, wxID_ANY, _(L("Flushing volume (mm³) for each filament pair.")), wxDefaultPosition, wxDefaultSize, 0);
-    info_str->SetForegroundColour(text_color);
+    info_str->SetForegroundColour(g_text_color);
     m_sizer_advanced->Add(info_str, 0, wxEXPAND | wxLEFT, TEXT_BEG_PADDING);
     m_sizer_advanced->AddSpacer(BTN_SIZE.y);
 
     // BBS: for tunning flush volumes
     {
         wxBoxSizer* param_sizer = new wxBoxSizer(wxHORIZONTAL);
-        param_sizer->AddSpacer(FromDIP(15));
        
-        wxStaticText* flush_multiplier_title = new wxStaticText(m_page_advanced, wxID_ANY, _L("Flush multiplier"));
+        wxStaticText* flush_multiplier_title = new wxStaticText(m_page_advanced, wxID_ANY, _L("Multiplier"));
         param_sizer->Add(flush_multiplier_title);
         param_sizer->AddSpacer(FromDIP(5));
-        m_flush_multiplier_ebox = new wxTextCtrl(m_page_advanced, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(50), -1));
+        m_flush_multiplier_ebox = new wxTextCtrl(m_page_advanced, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(50), -1), wxTE_PROCESS_ENTER);
         char flush_multi_str[32] = { 0 };
         snprintf(flush_multi_str, sizeof(flush_multi_str), "%.2f", flush_multiplier);
         m_flush_multiplier_ebox->SetValue(flush_multi_str);
         param_sizer->Add(m_flush_multiplier_ebox);
         param_sizer->AddStretchSpacer(1);
-        
-        m_sizer_advanced->Add(param_sizer, 0, wxTOP | wxBOTTOM, 10);
+        m_sizer_advanced->Add(param_sizer, 0, wxEXPAND | wxLEFT, TEXT_BEG_PADDING);
+
+        auto multi_desc_label = new wxStaticText(m_page_advanced, wxID_ANY, _(L("Actual Volume = Flushing Volume * Multiplier")), wxDefaultPosition, wxDefaultSize, 0);
+        multi_desc_label->SetForegroundColour(g_text_color);
+        m_sizer_advanced->Add(multi_desc_label, 0, wxEXPAND | wxLEFT, TEXT_BEG_PADDING);
+
+        wxString min_flush_str = wxString::Format(_L("Suggestion: Actual Volume in range [%d, %d]"), m_min_flush_volume, m_max_flush_volume);
+        m_min_flush_label = new wxStaticText(m_page_advanced, wxID_ANY, min_flush_str, wxDefaultPosition, wxDefaultSize, 0);
+        m_min_flush_label->SetForegroundColour(g_text_color);
+        m_sizer_advanced->Add(m_min_flush_label, 0, wxEXPAND | wxLEFT, TEXT_BEG_PADDING);
+
+        auto on_apply_text_modify = [this](wxEvent& e) {
+            wxString str = m_flush_multiplier_ebox->GetValue();
+            float      multiplier = wxAtof(str);
+            if (multiplier < g_min_flush_multiplier || multiplier > g_max_flush_multiplier) {
+                str = wxString::Format(("%.2f"), multiplier < g_min_flush_multiplier ? g_min_flush_multiplier : g_max_flush_multiplier);
+                m_flush_multiplier_ebox->SetValue(str);
+                MessageDialog dlg(nullptr,
+                    wxString::Format(_L("The flush multiplier should be in range [%.2f, %.2f]."), g_min_flush_multiplier, g_max_flush_multiplier),
+                    _L("Warning"), wxICON_WARNING | wxOK);
+                dlg.ShowModal();
+            }
+
+            this->update_warning_texts();
+            e.Skip();
+        };
+        m_flush_multiplier_ebox->Bind(wxEVT_TEXT_ENTER, on_apply_text_modify);
+        m_flush_multiplier_ebox->Bind(wxEVT_KILL_FOCUS, on_apply_text_modify);
+
+        m_sizer_advanced->AddSpacer(10);
     }
+    this->update_warning_texts();
 
     m_page_advanced->Hide(); 
 
@@ -501,9 +522,53 @@ int WipingPanel::calc_flushing_volume(const wxColour& from, const wxColour& to)
     float flush_volume = calc_triangle_3rd_edge(hs_flush, lumi_flush, 120.f);
     flush_volume = std::max(flush_volume, 60.f);
 
-    float flush_multiplier = std::atof(m_flush_multiplier_ebox->GetValue().c_str());
-    flush_volume = (flush_volume + m_extra_flush_volume) * flush_multiplier;
-    return std::min((int)flush_volume, g_max_flush_volume);
+    //float flush_multiplier = std::atof(m_flush_multiplier_ebox->GetValue().c_str());
+    flush_volume += m_min_flush_volume;
+    return std::min((int)flush_volume, m_max_flush_volume);
+}
+
+void WipingPanel::update_warning_texts()
+{
+    static const wxColour g_warning_color = *wxRED;
+    static const wxColour g_normal_color = *wxBLACK;
+
+    wxString multi_str = m_flush_multiplier_ebox->GetValue();
+    float multiplier = wxAtof(multi_str);
+
+    bool has_exception_flush = false;
+    for (int i = 0; i < edit_boxes.size(); i++) {
+        auto& box_vec = edit_boxes[i];
+        for (int j = 0; j < box_vec.size(); j++) {
+            if (i == j)
+                continue;
+
+            auto text_box = box_vec[j];
+            wxString str = text_box->GetValue();
+            int actual_volume = wxAtoi(str) * multiplier;
+            if (actual_volume < m_min_flush_volume || actual_volume > m_max_flush_volume) {
+                if (text_box->GetForegroundColour() != g_warning_color) {
+                    text_box->SetForegroundColour(g_warning_color);
+                    text_box->Refresh();
+                }
+                has_exception_flush = true;
+            }
+            else {
+                if (text_box->GetForegroundColour() != g_normal_color) {
+                    text_box->SetForegroundColour(g_normal_color);
+                    text_box->Refresh();
+                }
+            }
+        }
+    }
+
+    if (has_exception_flush && m_min_flush_label->GetForegroundColour() != g_warning_color) {
+        m_min_flush_label->SetForegroundColour(g_warning_color);
+        m_min_flush_label->Refresh();
+    }
+    else if (!has_exception_flush && m_min_flush_label->GetForegroundColour() != g_text_color) {
+        m_min_flush_label->SetForegroundColour(g_text_color);
+        m_min_flush_label->Refresh();
+    }
 }
 
 void WipingPanel::calc_flushing_volumes()
@@ -525,6 +590,9 @@ void WipingPanel::calc_flushing_volumes()
 
         return support_option->get_at(0);
     };
+
+    // Calculate flush volumes for flush_multiplier 1.0
+    m_flush_multiplier_ebox->SetValue("1.0");
 
     for (int from_idx = 0; from_idx < m_colours.size(); from_idx++) {
         const wxColour& from = m_colours[from_idx];
@@ -551,6 +619,8 @@ void WipingPanel::calc_flushing_volumes()
             }
         }
     }
+
+    this->update_warning_texts();
 }
 
 

@@ -29,6 +29,7 @@ private:
     void fill_in_matrix();
     bool advanced_matches_simple();
     int calc_flushing_volume(const wxColour& from, const wxColour& to);
+    void update_warning_texts();
         
     std::vector<wxSpinCtrl*> m_old;
     std::vector<wxSpinCtrl*> m_new;
@@ -45,8 +46,11 @@ private:
     wxGridSizer* m_gridsizer_advanced = nullptr;
     wxButton* m_widget_button     = nullptr;
 
+    const int m_min_flush_volume;
+    const int m_max_flush_volume;
+
     wxTextCtrl* m_flush_multiplier_ebox = nullptr;
-    float m_extra_flush_volume = 0;
+    wxStaticText* m_min_flush_label = nullptr;
 };
 
 
