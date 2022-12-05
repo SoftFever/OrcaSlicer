@@ -1243,6 +1243,25 @@ bool GLCanvas3D::init()
     return true;
 }
 
+void GLCanvas3D::on_change_toolbar_color_mode() {
+    // reset svg
+    _init_toolbars();
+    m_gizmos.init();
+    // re-generate icon texture
+    m_separator_toolbar.set_icon_dirty();
+    _render_separator_toolbar_right();
+    m_separator_toolbar.set_icon_dirty();
+    _render_separator_toolbar_left();
+    m_main_toolbar.set_icon_dirty();
+    _render_main_toolbar();
+    wxGetApp().plater()->get_collapse_toolbar().set_icon_dirty();
+    _render_collapse_toolbar();
+    m_assemble_view_toolbar.set_icon_dirty();
+    _render_assemble_view_toolbar();
+    m_gizmos.set_icon_dirty();
+    m_gizmos.render_overlay();
+}
+
 void GLCanvas3D::set_as_dirty()
 {
     m_dirty = true;
@@ -3973,8 +3992,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     //BBS do not limit rotate in assemble view
                     camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
                     //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), false, rotate_target);
-                    auto clp_dist = m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position();
-                    m_gizmos.m_assemble_view_data->model_objects_clipper()->set_position(clp_dist, true);
                 }
                 else {
 #ifdef SUPPORT_FEEE_CAMERA
@@ -6699,33 +6716,11 @@ void GLCanvas3D::_render_overlays()
     m_gizmos.set_overlay_icon_size(gizmo_size);
 #endif // ENABLE_RETINA_GL
 
-    static bool last_dark_mode_tatus = wxGetApp().app_config->get("dark_color_mode") == "1";
-    bool dark_mode_status = wxGetApp().app_config->get("dark_color_mode") == "1";
-    if (dark_mode_status != last_dark_mode_tatus) {
-        last_dark_mode_tatus = dark_mode_status;
-        // reset svg
-        _init_toolbars();
-        m_gizmos.init();
-        // re-generate icon texture
-        m_separator_toolbar.set_icon_dirty();
-        _render_separator_toolbar_right();
-        m_separator_toolbar.set_icon_dirty();
-        _render_separator_toolbar_left();
-        m_main_toolbar.set_icon_dirty();
-        _render_main_toolbar();
-        wxGetApp().plater()->get_collapse_toolbar().set_icon_dirty();
-        _render_collapse_toolbar();
-        m_assemble_view_toolbar.set_icon_dirty();
-        _render_assemble_view_toolbar();
-        m_gizmos.set_icon_dirty();
-    }
-    else {
-        _render_separator_toolbar_right();
-        _render_separator_toolbar_left();
-        _render_main_toolbar();
-        _render_collapse_toolbar();
-        _render_assemble_view_toolbar();
-    }
+    _render_separator_toolbar_right();
+    _render_separator_toolbar_left();
+    _render_main_toolbar();
+    _render_collapse_toolbar();
+    _render_assemble_view_toolbar();
     //BBS: GUI refactor: GLToolbar
     _render_imgui_select_plate_toolbar();
     _render_return_toolbar();
@@ -7428,7 +7423,8 @@ void GLCanvas3D::_render_assemble_control() const
     auto canvas_h = float(get_canvas_size().get_height());
 
     const float text_padding = 7.0f;
-    const float text_size_x = std::max(imgui->calc_text_size(_L("Explosion Ratio")).x, imgui->calc_text_size(_L("Section View")).x);
+    const float text_size_x = std::max(imgui->calc_text_size(_L("Reset direction")).x + 2 * ImGui::GetStyle().FramePadding.x,
+        std::max(imgui->calc_text_size(_L("Explosion Ratio")).x, imgui->calc_text_size(_L("Section View")).x));
     const float slider_width = 75.0f;
     const float value_size = imgui->calc_text_size("3.00").x + text_padding * 2;
     const float item_spacing = imgui->get_item_spacing().x;
@@ -7440,7 +7436,8 @@ void GLCanvas3D::_render_assemble_control() const
     ImGui::AlignTextToFramePadding();
 
     {
-        if (m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position() == 0.f) {
+        float clp_dist = m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position();
+        if (clp_dist == 0.f) {
             ImGui::AlignTextToFramePadding();
             imgui->text(_L("Section View"));
         }
@@ -7454,7 +7451,6 @@ void GLCanvas3D::_render_assemble_control() const
 
         ImGui::SameLine(window_padding.x + text_size_x + item_spacing);
         ImGui::PushItemWidth(slider_width);
-        auto clp_dist = float(m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position());
         bool view_slider_changed = imgui->bbl_slider_float_style("##clp_dist", &clp_dist, 0.f, 1.f, "%.2f", 1.0f, true);
 
         ImGui::SameLine(window_padding.x + text_size_x + slider_width + item_spacing * 2);

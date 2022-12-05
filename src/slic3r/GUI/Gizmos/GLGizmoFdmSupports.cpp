@@ -248,21 +248,23 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("tool_type"));
+    std::array<wchar_t, 4> tool_ids = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon, ImGui::FillButtonIcon, ImGui::GapFillIcon };
     bool dark_mode = wxGetApp().app_config->get("dark_color_mode") == "1";
-    std::array<wchar_t, 4> tool_icons;
+    std::array<wchar_t, 4> icons;
     if (dark_mode)
-        tool_icons = { ImGui::CircleButtonDarkIcon, ImGui::SphereButtonDarkIcon, ImGui::FillButtonDarkIcon, ImGui::GapFillDarkIcon };
+        icons = { ImGui::CircleButtonDarkIcon, ImGui::SphereButtonDarkIcon, ImGui::FillButtonDarkIcon, ImGui::GapFillDarkIcon };
     else
-        tool_icons = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon, ImGui::FillButtonIcon, ImGui::GapFillIcon };
+        icons = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon, ImGui::FillButtonIcon, ImGui::GapFillIcon };
+
     std::array<wxString, 4> tool_tips = { _L("Circle"), _L("Sphere"), _L("Fill"), _L("Gap Fill") };
-    for (int i = 0; i < tool_icons.size(); i++) {
+    for (int i = 0; i < tool_ids.size(); i++) {
         std::string  str_label = std::string("##");
-        std::wstring btn_name = tool_icons[i] + boost::nowide::widen(str_label);
+        std::wstring btn_name = icons[i] + boost::nowide::widen(str_label);
 
         if (i != 0) ImGui::SameLine((empty_button_width + m_imgui->scaled(1.75f)) * i + m_imgui->scaled(1.3f));
 
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
-        if (m_current_tool == tool_icons[i]) {
+        if (m_current_tool == tool_ids[i]) {
             ImGui::PushStyleColor(ImGuiCol_Button, dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f)); // r, g, b, a
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
@@ -271,15 +273,15 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
             ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0);
         }
         bool btn_clicked = ImGui::Button(into_u8(btn_name).c_str());
-        if (m_current_tool == tool_icons[i])
+        if (m_current_tool == tool_ids[i])
         {
             ImGui::PopStyleColor(4);
             ImGui::PopStyleVar(2);
         }
         ImGui::PopStyleVar(1);
 
-        if (btn_clicked && m_current_tool != tool_icons[i]) {
-            m_current_tool = tool_icons[i];
+        if (btn_clicked && m_current_tool != tool_ids[i]) {
+            m_current_tool = tool_ids[i];
             for (auto& triangle_selector : m_triangle_selectors) {
                 triangle_selector->seed_fill_unselect_all_triangles();
                 triangle_selector->request_update_render_data();

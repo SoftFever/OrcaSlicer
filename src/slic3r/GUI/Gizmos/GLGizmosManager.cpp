@@ -157,7 +157,8 @@ bool GLGizmosManager::init()
     //m_gizmos.emplace_back(new GLGizmoHollow(m_parent, "hollow.svg", sprite_id++));
 
     m_common_gizmos_data.reset(new CommonGizmosDataPool(&m_parent));
-    m_assemble_view_data.reset(new AssembleViewDataPool(&m_parent));
+    if(!m_assemble_view_data)
+        m_assemble_view_data.reset(new AssembleViewDataPool(&m_parent));
 
     for (auto& gizmo : m_gizmos) {
         if (! gizmo->init()) {

@@ -701,6 +701,7 @@ public:
     bool init();
     void post_event(wxEvent &&event);
 
+    void on_change_toolbar_color_mode();
     void set_as_dirty();
     void requires_check_outside_state() { m_requires_check_outside_state = true; }
 
