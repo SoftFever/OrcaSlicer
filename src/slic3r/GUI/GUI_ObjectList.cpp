@@ -2072,7 +2072,7 @@ void ObjectList::switch_to_object_process()
 
     // Show Dialog
     if (wxGetApp().app_config->get("do_not_show_object_process_tips").empty()) {
-        TipsDialog dlg(wxGetApp().mainframe, _L("Edit Object Process"), _L("Switch to per-object setting mode to edit object process."), "do_not_show_object_process_tips");
+        TipsDialog dlg(wxGetApp().mainframe, _L("Edit Process Settings"), _L("Switch to per-object setting mode to edit process settings of selected objects."), "do_not_show_object_process_tips");
         dlg.ShowModal();
     }
 }

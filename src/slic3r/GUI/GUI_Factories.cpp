@@ -1269,6 +1269,7 @@ wxMenu* MenuFactory::multi_selection_menu()
         append_menu_item_change_filament(menu);
 
         append_menu_item_set_printable(menu);
+        append_menu_item_per_object_process(menu);
         menu->AppendSeparator();
         append_menu_items_convert_unit(menu);
         menu->AppendSeparator();
@@ -1380,14 +1381,19 @@ void MenuFactory::append_menu_item_center(wxMenu* menu)
 
 void MenuFactory::append_menu_item_per_object_process(wxMenu* menu)
 {
-    const std::vector<wxString> names = {_L("Edit Object Process"), _L("Edit Object Process")};
+    const std::vector<wxString> names = { _L("Edit Process Settings"), _L("Edit Process Settings") };
     append_menu_item(menu, wxID_ANY, names[0], names[1],
         [](wxCommandEvent&) {
             wxGetApp().obj_list()->switch_to_object_process();
         }, "", nullptr,
         []() {
             Selection& selection = plater()->canvas3D()->get_selection();
-            return selection.is_single_full_object() || selection.is_single_full_instance() || selection.is_single_volume();
+            return selection.is_single_full_object() ||
+                selection.is_multiple_full_object() ||
+                selection.is_single_full_instance() ||
+                selection.is_multiple_full_instance() ||
+                selection.is_single_volume() ||
+                selection.is_multiple_volume();
         }, m_parent);
 }
 
