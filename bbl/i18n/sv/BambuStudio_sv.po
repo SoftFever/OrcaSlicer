@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-05 19:38+0800\n"
+"POT-Creation-Date: 2022-12-06 14:23+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -21,6 +21,9 @@ msgstr "Alt + mushjul"
 
 msgid "Section view"
 msgstr "Sektionsvy"
+
+msgid "Reset direction"
+msgstr ""
 
 msgid "Ctrl + Mouse wheel"
 msgstr "Ctrl + Mushjul"
@@ -346,9 +349,6 @@ msgstr "Ansiktsigenkänning"
 
 msgid "Perform Recognition"
 msgstr "Utför igenkänning"
-
-msgid "Reset direction"
-msgstr ""
 
 msgid "Brush size"
 msgstr ""
@@ -1127,10 +1127,10 @@ msgstr ""
 msgid "OK"
 msgstr "OK"
 
-msgid "Go to layer"
+msgid "Jump to layer"
 msgstr ""
 
-msgid "Layer number"
+msgid "Please enter the layer number"
 msgstr ""
 
 msgid "Jump to Layer"
@@ -4289,6 +4289,9 @@ msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "Det går inte att skicka utskriftsuppgiften när uppgraderingen pågår"
 
 msgid "The printer is required to be in the same LAN as Bambu Studio."
+msgstr ""
+
+msgid "The printer does not support sending to printer SD card."
 msgstr ""
 
 msgid "Cool Plate"

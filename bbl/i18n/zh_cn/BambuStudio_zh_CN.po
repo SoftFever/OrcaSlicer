@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-05 19:38+0800\n"
+"POT-Creation-Date: 2022-12-06 14:23+0800\n"
 "PO-Revision-Date: 2022-12-05 19:51+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -25,6 +25,9 @@ msgstr "Alt + 鼠标滚轮"
 
 msgid "Section view"
 msgstr "剖面视图"
+
+msgid "Reset direction"
+msgstr "重置方向"
 
 msgid "Ctrl + Mouse wheel"
 msgstr "Ctrl + 鼠标滚轮"
@@ -345,9 +348,6 @@ msgstr "外观面检测"
 
 msgid "Perform Recognition"
 msgstr "执行检测"
-
-msgid "Reset direction"
-msgstr "重置方向"
 
 msgid "Brush size"
 msgstr "画刷尺寸"
@@ -1102,11 +1102,11 @@ msgstr "输入当前层上使用的自定义G-code："
 msgid "OK"
 msgstr "确认"
 
-msgid "Go to layer"
+msgid "Jump to layer"
 msgstr "跳转到层"
 
-msgid "Layer number"
-msgstr "层数"
+msgid "Please enter the layer number"
+msgstr "请输入层数"
 
 msgid "Jump to Layer"
 msgstr "跳转到层"
@@ -1337,7 +1337,7 @@ msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "需要插入SD卡后方可发送局域网打印"
 
 msgid "Send to Printer failed. Please try again."
-msgstr ""
+msgstr "发送到打印机失败。请重试。"
 
 msgid "Sending gcode file over LAN"
 msgstr "通过局域网发送gcode文件"
@@ -1572,7 +1572,7 @@ msgstr "插件下载失败。请检查您的防火墙设置和vpn软件,检查�
 msgid ""
 "Failed to install the plug-in. Please check whether it is blocked or deleted "
 "by anti-virus software."
-msgstr "安装插件失败。请检查是否被杀毒软件屏蔽或删除了。"
+msgstr "安装插件失败。请检查是否被杀毒软件屏蔽或删除。"
 
 msgid "click here to see more info"
 msgstr "点击这里查看更多信息"
@@ -2131,7 +2131,7 @@ msgid "Flushed"
 msgstr "冲刷"
 
 msgid "Tower"
-msgstr ""
+msgstr "擦料塔"
 
 msgid "Total"
 msgstr "总计"
@@ -2608,7 +2608,7 @@ msgid "Import Configs"
 msgstr "导入预设"
 
 msgid "Load configs"
-msgstr ""
+msgstr "加载配置"
 
 msgid "Import"
 msgstr "导入"
@@ -4260,6 +4260,9 @@ msgstr "设备升级中，无法发送打印任务"
 msgid "The printer is required to be in the same LAN as Bambu Studio."
 msgstr "打印机需要与Bambu Studio在同一个局域网内。"
 
+msgid "The printer does not support sending to printer SD card."
+msgstr "该打印机不支持发送至SD卡。"
+
 msgid "Cool Plate"
 msgstr "低温打印热床"
 
@@ -5695,6 +5698,9 @@ msgid ""
 "of the line without support from lower layer. 0% means forcing cooling for "
 "all outer wall no matter how much overhang degree"
 msgstr ""
+"当打印件的悬空程度超过此值时，强制冷却风扇达到特定速度。用百分比表示，表明没"
+"有下层支撑的线的宽度是多少。0%%意味着无论悬垂程度如何，都要对所有外壁强制冷"
+"却。"
 
 msgid "Bridge direction"
 msgstr "桥接方向"
@@ -7716,6 +7722,12 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Go to layer"
+#~ msgstr "跳转到层"
+
+#~ msgid "Layer number"
+#~ msgstr "层数"
 
 #~ msgid "Edit Object Process"
 #~ msgstr "编辑对象工艺"
