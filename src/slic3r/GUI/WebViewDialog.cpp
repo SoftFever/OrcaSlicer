@@ -38,6 +38,8 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
 
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
 
+    
+#if !BBL_RELEASE_TO_PUBLIC
     // Create the button
     bSizer_toolbar = new wxBoxSizer(wxHORIZONTAL);
 
@@ -67,10 +69,11 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     topsizer->Add(bSizer_toolbar, 0, wxEXPAND, 0);
     topsizer->Add(panel, wxSizerFlags().Expand());
 
+
     // Create sizer for panel.
     wxBoxSizer* panel_sizer = new wxBoxSizer(wxVERTICAL);
     panel->SetSizer(panel_sizer);
-
+#endif //BBL_RELEASE_TO_PUBLIC
     // Create the info panel
     m_info = new wxInfoBar(this);
     topsizer->Add(m_info, wxSizerFlags().Expand());
@@ -168,12 +171,15 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_zoomFactor = 100;
 
     // Connect the button events
+#if !BBL_RELEASE_TO_PUBLIC
     Bind(wxEVT_BUTTON, &WebViewPanel::OnBack, this, m_button_back->GetId());
     Bind(wxEVT_BUTTON, &WebViewPanel::OnForward, this, m_button_forward->GetId());
     Bind(wxEVT_BUTTON, &WebViewPanel::OnStop, this, m_button_stop->GetId());
     Bind(wxEVT_BUTTON, &WebViewPanel::OnReload, this, m_button_reload->GetId());
     Bind(wxEVT_BUTTON, &WebViewPanel::OnToolsClicked, this, m_button_tools->GetId());
     Bind(wxEVT_TEXT_ENTER, &WebViewPanel::OnUrl, this, m_url->GetId());
+
+#endif //BBL_RELEASE_TO_PUBLIC
 
     // Connect the webview events
     Bind(wxEVT_WEBVIEW_NAVIGATING, &WebViewPanel::OnNavigationRequest, this);
@@ -258,14 +264,17 @@ void WebViewPanel::load_url(wxString& url)
     */
 void WebViewPanel::UpdateState()
 {
+#if !BBL_RELEASE_TO_PUBLIC
     if (m_browser->CanGoBack()) {
         m_button_back->Enable(true);
-    } else {
+    }
+    else {
         m_button_back->Enable(false);
     }
     if (m_browser->CanGoForward()) {
         m_button_forward->Enable(true);
-    } else {
+    }
+    else {
         m_button_forward->Enable(false);
     }
     if (m_browser->IsBusy())
@@ -279,10 +288,12 @@ void WebViewPanel::UpdateState()
 
     //SetTitle(m_browser->GetCurrentTitle());
     m_url->SetValue(m_browser->GetCurrentURL());
+#endif //BBL_RELEASE_TO_PUBLIC
 }
 
 void WebViewPanel::OnIdle(wxIdleEvent& WXUNUSED(evt))
 {
+#if !BBL_RELEASE_TO_PUBLIC
     if (m_browser->IsBusy())
     {
         wxSetCursor(wxCURSOR_ARROWWAIT);
@@ -293,6 +304,8 @@ void WebViewPanel::OnIdle(wxIdleEvent& WXUNUSED(evt))
         wxSetCursor(wxNullCursor);
         m_button_stop->Enable(false);
     }
+#endif //BBL_RELEASE_TO_PUBLIC
+
 }
 
 /**

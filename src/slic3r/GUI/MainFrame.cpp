@@ -839,6 +839,7 @@ void MainFrame::init_tabpanel()
    // BBS
     wxBoxSizer* side_tools = create_side_tools();
     m_tabpanel = new Notebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, side_tools, wxNB_TOP | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
+    m_tabpanel->SetBackgroundColour(*wxWHITE);
 
 #ifndef __WXOSX__ // Don't call SetFont under OSX to avoid name cutting in ObjectList
     m_tabpanel->SetFont(Slic3r::GUI::wxGetApp().normal_font());
@@ -944,9 +945,11 @@ void MainFrame::init_tabpanel()
 
         //BBS add pages
     m_monitor = new MonitorPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    m_monitor->SetBackgroundColour(*wxWHITE);
     m_tabpanel->AddPage(m_monitor, _L("Device"), std::string("tab_monitor_active"), std::string("tab_monitor_active"));
 
     m_auxiliary = new AuxiliaryPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    m_auxiliary->SetBackgroundColour(*wxWHITE);
     m_tabpanel->AddPage(m_auxiliary, _L("Project"), std::string("tab_auxiliary_avtice"), std::string("tab_auxiliary_avtice"));
 
     if (m_plater) {
@@ -1733,8 +1736,8 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     update_side_button_style();
 
     m_slice_btn->Rescale();
-    //m_slice_option_btn->Rescale();
     m_print_btn->Rescale();
+    m_slice_option_btn->Rescale();
     m_print_option_btn->Rescale();
 
     // update Plater

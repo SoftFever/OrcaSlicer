@@ -2110,6 +2110,14 @@ bool GUI_App::on_init_inner()
     // If load_language() fails, the application closes.
     load_language(wxString(), true);
 #ifdef _MSW_DARK_MODE
+
+#ifdef __APPLE__
+    wxSystemAppearance app = wxSystemSettings::GetAppearance();
+    GUI::wxGetApp().app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
+    GUI::wxGetApp().app_config->save();
+#endif // __APPLE__
+
+
     bool init_dark_color_mode = app_config->get("dark_color_mode") == "1";
     bool init_sys_menu_enabled = app_config->get("sys_menu_enabled") == "1";
 #ifdef __WINDOWS__
