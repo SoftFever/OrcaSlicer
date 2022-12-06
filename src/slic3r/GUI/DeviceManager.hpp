@@ -25,6 +25,7 @@
 #define BED_TEMP_LIMIT          120
 
 #define HOLD_COUNT_MAX          3
+#define HOLD_COUNT_RESOLUTION   6
 #define GET_VERSION_RETRYS      10
 #define RETRY_INTERNAL          2000
 

@@ -1635,6 +1635,7 @@ int MachineObject::command_unload_filament()
 
 int MachineObject::command_ipcam_record(bool on_off)
 {
+    BOOST_LOG_TRIVIAL(info) << "command_ipcam_record = " << on_off;
     json j;
     j["camera"]["command"] = "ipcam_record_set";
     j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -1645,6 +1646,7 @@ int MachineObject::command_ipcam_record(bool on_off)
 
 int MachineObject::command_ipcam_timelapse(bool on_off)
 {
+    BOOST_LOG_TRIVIAL(info) << "command_ipcam_timelapse " << on_off;
     json j;
     j["camera"]["command"] = "ipcam_timelapse";
     j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -1655,13 +1657,13 @@ int MachineObject::command_ipcam_timelapse(bool on_off)
 
 int MachineObject::command_ipcam_resolution_set(std::string resolution)
 {
+    BOOST_LOG_TRIVIAL(info) << "command:ipcam_resolution_set" << ", resolution:" << resolution;
     json j;
     j["camera"]["command"] = "ipcam_resolution_set";
     j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["camera"]["resolution"] = resolution;
-    BOOST_LOG_TRIVIAL(info) << "command:ipcam_resolution_set" << ", resolution:" << resolution;
-    camera_resolution_hold_count = HOLD_COUNT_MAX;
-    camera_recording_hold_count = HOLD_COUNT_MAX;
+    camera_resolution_hold_count = HOLD_COUNT_RESOLUTION;
+    camera_recording_hold_count = HOLD_COUNT_RESOLUTION;
     return this->publish_json(j.dump());
 }
 
@@ -2930,13 +2932,16 @@ int MachineObject::parse_json(std::string payload)
                             this->camera_timelapse = true;
                         if (j["camera"]["control"].get<std::string>() == "disable")
                             this->camera_timelapse = false;
+                        BOOST_LOG_TRIVIAL(info) << "ack of timelapse = " << camera_timelapse;
                     } else if (j["camera"]["command"].get<std::string>() == "ipcam_record_set") {
                         if (j["camera"]["control"].get<std::string>() == "enable")
                             this->camera_recording_when_printing = true;
                         if (j["camera"]["control"].get<std::string>() == "disable")
                             this->camera_recording_when_printing = false;
+                        BOOST_LOG_TRIVIAL(info) << "ack of ipcam_record_set " << camera_recording_when_printing;
                     } else if (j["camera"]["command"].get<std::string>() == "ipcam_resolution_set") {
                         this->camera_resolution = j["camera"]["resolution"].get<std::string>();
+                        BOOST_LOG_TRIVIAL(info) << "ack of resolution = " << camera_resolution;
                     }
                 }
             }
