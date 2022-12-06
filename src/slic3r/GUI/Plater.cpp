@@ -420,11 +420,61 @@ void Sidebar::priv::hide_rich_tip(wxButton* btn)
 
 // Sidebar / public
 
+static struct DynamicFilamentList : DynamicList
+{
+    std::vector<std::pair<wxString, wxBitmap *>> items;
+
+    void apply_on(Choice *c) override
+    {
+        if (items.empty())
+            update(true);
+        auto cb = dynamic_cast<ComboBox *>(c->window);
+        auto n  = cb->GetSelection();
+        cb->Clear();
+        cb->Append(_L("Default"));
+        for (auto i : items) {
+            cb->Append(i.first, *i.second);
+        }
+        if (n < cb->GetCount())
+            cb->SetSelection(n);
+    }
+    wxString get_value(int index) override
+    {
+        wxString str;
+        str << index;
+        return str;
+    }
+    int index_of(wxString value) override
+    {
+        long n = 0;
+        return value.ToLong(&n) ? int(n) : -1;
+    }
+    void update(bool force = false)
+    {
+        items.clear();
+        if (!force && m_choices.empty())
+            return;
+        auto icons = get_extruder_color_icons(true);
+        auto presets = wxGetApp().preset_bundle->filament_presets;
+        for (int i = 0; i < presets.size(); ++i) {
+            wxString str;
+            std::string type;
+            wxGetApp().preset_bundle->filaments.find_preset(presets[i])->get_filament_type(type);
+            str << (i + 1) << " - " << type;
+            items.push_back({str, icons[i]});
+        }
+        DynamicList::update();
+    }
+} dynamic_filament_list;
+
 Sidebar::Sidebar(Plater *parent)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(42 * wxGetApp().em_unit(), -1)), p(new priv(parent))
 {
+    Choice::register_dynamic_list("support_filament", &dynamic_filament_list);
+    Choice::register_dynamic_list("support_interface_filament", &dynamic_filament_list);
+
     p->scrolled = new wxPanel(this);
-//    p->scrolled->SetScrollbars(0, 100, 1, 2); // ys_DELETE_after_testing. pixelsPerUnitY = 100
+    //    p->scrolled->SetScrollbars(0, 100, 1, 2); // ys_DELETE_after_testing. pixelsPerUnitY = 100
     // but this cause the bad layout of the sidebar, when all infoboxes appear.
     // As a result we can see the empty block at the bottom of the sidebar
     // But if we set this value to 5, layout will be better
@@ -1021,6 +1071,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
         for (size_t i = 0; i < filament_cnt; i++)
             p->combos_filament[i]->update();
 
+        dynamic_filament_list.update();
         break;
     }
 
@@ -1290,6 +1341,7 @@ void Sidebar::on_filaments_change(size_t num_filaments)
     p->m_panel_filament_title->Layout();
     p->m_panel_filament_title->Refresh();
     update_ui_from_settings();
+    dynamic_filament_list.update();
 }
 
 void Sidebar::on_bed_type_change(BedType bed_type)
@@ -1354,6 +1406,7 @@ void Sidebar::sync_ams_list()
         c->update();
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+    dynamic_filament_list.update();
 }
 
 ObjectList* Sidebar::obj_list()
@@ -5391,6 +5444,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
         wxGetApp().preset_bundle->set_filament_preset(idx, preset_name);
         wxGetApp().plater()->update_project_dirty_from_presets();
         wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
+        dynamic_filament_list.update();
     }
 
     bool select_preset = !combo->selection_is_changed_according_to_physical_printers();
