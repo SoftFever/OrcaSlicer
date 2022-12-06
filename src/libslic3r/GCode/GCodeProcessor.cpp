@@ -2865,7 +2865,8 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
     }
     else if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter) {
         m_seams_detector.activate(true);
-        m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id]);
+        Vec3f plate_offset = {(float) m_x_offset, (float) m_y_offset, 0.0f};
+        m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset);
     }
 
     // store move
@@ -3237,18 +3238,20 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
     }
 
     //BBS: seam detector
+    Vec3f plate_offset = {(float) m_x_offset, (float) m_y_offset, 0.0f};
+
     if (m_seams_detector.is_active()) {
         //BBS: check for seam starting vertex
-        if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter && !m_seams_detector.has_first_vertex())
-            m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id]);
+        if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter && !m_seams_detector.has_first_vertex()) {
+            m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset);
+        }
         //BBS: check for seam ending vertex and store the resulting move
         else if ((type != EMoveType::Extrude || (m_extrusion_role != erExternalPerimeter && m_extrusion_role != erOverhangPerimeter)) && m_seams_detector.has_first_vertex()) {
             auto set_end_position = [this](const Vec3f& pos) {
                 m_end_position[X] = pos.x(); m_end_position[Y] = pos.y(); m_end_position[Z] = pos.z();
             };
-
             const Vec3f curr_pos(m_end_position[X], m_end_position[Y], m_end_position[Z]);
-            const Vec3f new_pos = m_result.moves.back().position - m_extruder_offsets[m_extruder_id];
+            const Vec3f new_pos = m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset;
             const std::optional<Vec3f> first_vertex = m_seams_detector.get_first_vertex();
             //BBS: the threshold value = 0.0625f == 0.25 * 0.25 is arbitrary, we may find some smarter condition later
 
@@ -3263,7 +3266,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
     }
     else if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter) {
         m_seams_detector.activate(true);
-        m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id]);
+        m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset);
     }
     //BBS: store move
     store_move_vertex(type, m_move_path_type);
