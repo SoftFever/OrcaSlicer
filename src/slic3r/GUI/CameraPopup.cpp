@@ -43,17 +43,9 @@ CameraPopup::CameraPopup(wxWindow *parent, MachineObject* obj)
     top_sizer->AddGrowableCol(0);
     top_sizer->SetFlexibleDirection(wxBOTH);
     top_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
-    //timelapse
-    m_text_timelapse = new wxStaticText(m_panel, wxID_ANY, _L("Timelapse"));
-    m_text_timelapse->Wrap(-1);
-    m_text_timelapse->SetFont(Label::Head_14);
-    m_text_timelapse->SetForegroundColour(TEXT_COL);
-    m_switch_timelapse = new SwitchButton(m_panel);
-    if (obj)
-        m_switch_timelapse->SetValue(obj->camera_timelapse);
 
     //recording
-    m_text_recording = new wxStaticText(m_panel, wxID_ANY, _L("Video when printing"));
+    m_text_recording = new wxStaticText(m_panel, wxID_ANY, _L("Auto-record Monitoring"));
     m_text_recording->Wrap(-1);
     m_text_recording->SetFont(Label::Head_14);
     m_text_recording->SetForegroundColour(TEXT_COL);
@@ -62,14 +54,12 @@ CameraPopup::CameraPopup(wxWindow *parent, MachineObject* obj)
         m_switch_recording->SetValue(obj->camera_recording_when_printing);
 
     //vcamera
-    m_text_vcamera = new wxStaticText(m_panel, wxID_ANY, _L("Virtual Camera"));
+    m_text_vcamera = new wxStaticText(m_panel, wxID_ANY, _L("Go Live"));
     m_text_vcamera->Wrap(-1);
     m_text_vcamera->SetFont(Label::Head_14);
     m_text_vcamera->SetForegroundColour(TEXT_COL);
     m_switch_vcamera = new SwitchButton(m_panel);
 
-    top_sizer->Add(m_text_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
-    top_sizer->Add(m_switch_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
     top_sizer->Add(m_text_recording, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
     top_sizer->Add(m_switch_recording, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
     top_sizer->Add(m_text_vcamera, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
@@ -105,7 +95,6 @@ CameraPopup::CameraPopup(wxWindow *parent, MachineObject* obj)
     main_sizer->Fit(m_panel);
 
     SetClientSize(m_panel->GetSize());
-    m_switch_timelapse->Connect(wxEVT_LEFT_DOWN, wxCommandEventHandler(CameraPopup::on_switch_timelapse), NULL, this);
     m_switch_recording->Connect(wxEVT_LEFT_DOWN, wxCommandEventHandler(CameraPopup::on_switch_recording), NULL, this);
     m_switch_vcamera->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         wxMouseEvent evt(EVT_VCAMERA_SWITCH);
@@ -125,18 +114,6 @@ void CameraPopup::sdcard_absent_hint()
     wxCommandEvent evt(EVT_SDCARD_ABSENT_HINT);
     evt.SetEventObject(this);
     GetEventHandler()->ProcessEvent(evt);
-}
-
-void CameraPopup::on_switch_timelapse(wxCommandEvent& event)
-{
-    if (!m_obj) return;
-    if (m_obj->sdcard_state != MachineObject::SdcardState::HAS_SDCARD_NORMAL) {
-        sdcard_absent_hint();
-        return;
-    }
-    bool value = m_switch_timelapse->GetValue();
-    m_switch_timelapse->SetValue(!value);
-    m_obj->command_ipcam_timelapse(!value);
 }
 
 void CameraPopup::on_switch_recording(wxCommandEvent& event)
@@ -178,7 +155,7 @@ wxWindow* CameraPopup::create_item_radiobox(wxString title, wxWindow* parent, wx
     int btn_idx = resolution_rbtns.size() - 1;
     radiobox->Bind(wxEVT_LEFT_DOWN, [this, btn_idx](wxMouseEvent &e) {
         if (m_obj && allow_alter_resolution) {
-            select_curr_radiobox(btn_idx, false);
+            select_curr_radiobox(btn_idx);
             on_set_resolution();
         }
         });
@@ -190,7 +167,7 @@ wxWindow* CameraPopup::create_item_radiobox(wxString title, wxWindow* parent, wx
     text->SetForegroundColour(0x6B6B6B);
     text->Bind(wxEVT_LEFT_DOWN, [this, btn_idx](wxMouseEvent &e) {
         if (m_obj && allow_alter_resolution) {
-            select_curr_radiobox(btn_idx, false);
+            select_curr_radiobox(btn_idx);
             on_set_resolution();
         }
         });
@@ -200,18 +177,18 @@ wxWindow* CameraPopup::create_item_radiobox(wxString title, wxWindow* parent, wx
     return item;
 }
 
-void CameraPopup::select_curr_radiobox(int btn_idx, bool ui_change)
+void CameraPopup::select_curr_radiobox(int btn_idx)
 {
+    if (!m_obj) return;
+
     int len = resolution_rbtns.size();
     for (int i = 0; i < len; ++i) {
         if (i == btn_idx) {
             curr_sel_resolution = CameraResolution(i);
-            if (ui_change)
-                resolution_rbtns[i]->SetValue(true);
+            resolution_rbtns[i]->SetValue(true);
         }
         else {
-            if (ui_change)
-                resolution_rbtns[i]->SetValue(false);
+            resolution_rbtns[i]->SetValue(false);
         }
     }
 }
@@ -229,7 +206,7 @@ void CameraPopup::sync_resolution_setting(std::string resolution)
             break;
         }
     }
-    select_curr_radiobox(res, true);
+    select_curr_radiobox(res);
 }
 
 void CameraPopup::reset_resolution_setting()
@@ -259,14 +236,6 @@ void CameraPopup::sync_vcamera_state(bool show_vcamera)
 void CameraPopup::check_func_supported()
 {
     // function supported
-    if (m_obj->is_function_supported(PrinterFunction::FUNC_TIMELAPSE) && m_obj->has_ipcam) {
-        m_text_timelapse->Show();
-        m_switch_timelapse->Show();
-    } else {
-        m_text_timelapse->Hide();
-        m_switch_timelapse->Hide();
-    }
-
     if (m_obj->is_function_supported(PrinterFunction::FUNC_RECORDING) && m_obj->has_ipcam) {
         m_text_recording->Show();
         m_switch_recording->Show();
@@ -303,7 +272,6 @@ void CameraPopup::check_func_supported()
 void CameraPopup::update()
 {
     if (!m_obj) return;
-    m_switch_timelapse->SetValue(m_obj->camera_timelapse);
     m_switch_recording->SetValue(m_obj->camera_recording_when_printing);
     sync_resolution_setting(m_obj->camera_resolution);
 
@@ -348,13 +316,6 @@ void CameraPopup::OnLeftUp(wxMouseEvent &event)
     auto wxscroll_win_pos = m_panel->ClientToScreen(wxPoint(0, 0));
 
     if (mouse_pos.x > wxscroll_win_pos.x && mouse_pos.y > wxscroll_win_pos.y && mouse_pos.x < (wxscroll_win_pos.x + m_panel->GetSize().x) && mouse_pos.y < (wxscroll_win_pos.y + m_panel->GetSize().y)) {
-        //timelapse
-        auto timelapse_rect = m_switch_timelapse->ClientToScreen(wxPoint(0, 0));
-        if (mouse_pos.x > timelapse_rect.x && mouse_pos.y > timelapse_rect.y && mouse_pos.x < (timelapse_rect.x + m_switch_timelapse->GetSize().x) && mouse_pos.y < (timelapse_rect.y + m_switch_timelapse->GetSize().y)) {
-            wxMouseEvent timelapse_evt(wxEVT_LEFT_DOWN);
-            m_switch_timelapse->GetEventHandler()->ProcessEvent(timelapse_evt);
-            return;
-        }
         //recording
         auto recording_rect = m_switch_recording->ClientToScreen(wxPoint(0, 0));
         if (mouse_pos.x > recording_rect.x && mouse_pos.y > recording_rect.y && mouse_pos.x < (recording_rect.x + m_switch_recording->GetSize().x) && mouse_pos.y < (recording_rect.y + m_switch_recording->GetSize().y)) {

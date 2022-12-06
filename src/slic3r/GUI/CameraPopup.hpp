@@ -46,13 +46,12 @@ public:
     void rescale();
 
 protected:
-    void on_switch_timelapse(wxCommandEvent& event);
     void on_switch_recording(wxCommandEvent& event);
     void on_set_resolution();
     void sdcard_absent_hint();
 
     wxWindow *  create_item_radiobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left);
-    void select_curr_radiobox(int btn_idx, bool ui_change);
+    void select_curr_radiobox(int btn_idx);
     void sync_resolution_setting(std::string resolution);
     void reset_resolution_setting();
     wxString to_resolution_label_string(CameraResolution resolution);
@@ -62,8 +61,6 @@ private:
     MachineObject* m_obj { nullptr };
     wxStaticText* m_text_recording;
     SwitchButton* m_switch_recording;
-    wxStaticText* m_text_timelapse;
-    SwitchButton* m_switch_timelapse;
     wxStaticText* m_text_vcamera;
     SwitchButton* m_switch_vcamera;
     wxStaticText* m_text_resolution;

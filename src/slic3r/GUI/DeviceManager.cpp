@@ -1640,7 +1640,8 @@ int MachineObject::command_ipcam_record(bool on_off)
     j["camera"]["command"] = "ipcam_record_set";
     j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["camera"]["control"] = on_off ? "enable" : "disable";
-    camera_recording_hold_count = HOLD_COUNT_MAX;
+    camera_recording_hold_count = HOLD_COUNT_CAMERA;
+    this->camera_recording_when_printing = on_off;
     return this->publish_json(j.dump());
 }
 
@@ -1651,7 +1652,8 @@ int MachineObject::command_ipcam_timelapse(bool on_off)
     j["camera"]["command"] = "ipcam_timelapse";
     j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["camera"]["control"] = on_off ? "enable" : "disable";
-    camera_timelapse_hold_count = HOLD_COUNT_MAX;
+    camera_timelapse_hold_count = HOLD_COUNT_CAMERA;
+    this->camera_timelapse = on_off;
     return this->publish_json(j.dump());
 }
 
@@ -1662,8 +1664,9 @@ int MachineObject::command_ipcam_resolution_set(std::string resolution)
     j["camera"]["command"] = "ipcam_resolution_set";
     j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["camera"]["resolution"] = resolution;
-    camera_resolution_hold_count = HOLD_COUNT_RESOLUTION;
-    camera_recording_hold_count = HOLD_COUNT_RESOLUTION;
+    camera_resolution_hold_count = HOLD_COUNT_CAMERA;
+    camera_recording_hold_count = HOLD_COUNT_CAMERA;
+    this->camera_resolution = resolution;
     return this->publish_json(j.dump());
 }
 
