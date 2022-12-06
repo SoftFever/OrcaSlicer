@@ -1279,7 +1279,7 @@ void IMSlider::render_input_custom_gcode()
         return;
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     static bool move_to_center = true;
-    static bool set_focus_when_appearing = true;
+    static bool set_focus = true;
     if (move_to_center) {
         auto pos_x = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_width() / 2;
         auto pos_y = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height() / 2;
@@ -1299,9 +1299,11 @@ void IMSlider::render_input_custom_gcode()
         | ImGuiWindowFlags_NoScrollWithMouse;
     imgui.begin(_u8L("Custom G-code"), windows_flag);
     imgui.text(_u8L("Enter Custom G-code used on current layer:"));
-    if (set_focus_when_appearing) {
+    if (ImGui::IsMouseClicked(0)) {
+        set_focus = false;
+    }
+    if (set_focus && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
         ImGui::SetKeyboardFocusHere(0);
-        set_focus_when_appearing = false;
     }
     int text_height = 6;
     ImGui::InputTextMultiline("##text", m_custom_gcode, sizeof(m_custom_gcode), ImVec2(-1, ImGui::GetTextLineHeight() * text_height));
@@ -1318,7 +1320,7 @@ void IMSlider::render_input_custom_gcode()
         m_show_custom_gcode_window = false;
         add_custom_gcode(m_custom_gcode);
         move_to_center = true;
-        set_focus_when_appearing = true;
+        set_focus = true;
     }
     imgui.pop_confirm_button_style();
 
@@ -1327,7 +1329,7 @@ void IMSlider::render_input_custom_gcode()
     if (imgui.bbl_button(_L("Cancel")) || ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
         m_show_custom_gcode_window = false;
         move_to_center = true;
-        set_focus_when_appearing = true;
+        set_focus = true;
     }
     imgui.pop_cancel_button_style();
 
@@ -1346,7 +1348,7 @@ void IMSlider::render_go_to_layer_dialog(){
         return;
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     static bool move_to_center = true;
-    static bool set_focus_when_appearing = true;
+    static bool set_focus = true;
     if (move_to_center) {
         auto pos_x = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_width() / 2;
         auto pos_y = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height() / 2;
@@ -1364,17 +1366,18 @@ void IMSlider::render_go_to_layer_dialog(){
         | ImGuiWindowFlags_NoResize
         | ImGuiWindowFlags_NoScrollbar
         | ImGuiWindowFlags_NoScrollWithMouse;
-    imgui.begin(_u8L("Go to layer"), windows_flag);
-    imgui.text(_u8L("Layer number") + " (" + std::to_string(m_min_value) + " - " + std::to_string(m_max_value) + "):");
-    ImGui::PushItemWidth(210 * m_scale);
-    if (set_focus_when_appearing) {
+    imgui.begin(_u8L("Jump to layer"), windows_flag);
+    imgui.text(_u8L("Please enter the layer number") + " (" + std::to_string(m_min_value) + " - " + std::to_string(m_max_value) + "):");
+    if (ImGui::IsMouseClicked(0)) {
+        set_focus = false;
+    }
+    if (set_focus && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
         ImGui::SetKeyboardFocusHere(0);
-        set_focus_when_appearing = false;
     }
     ImGui::InputText("##input_layer_number", m_layer_number, sizeof(m_layer_number));
 
     ImGui::NewLine();
-    ImGui::SameLine(GImGui->Style.WindowPadding.x * 6);
+    ImGui::SameLine(GImGui->Style.WindowPadding.x * 8);
     imgui.push_confirm_button_style();
     bool disable_button = false;
     if (strlen(m_layer_number) == 0)
@@ -1390,11 +1393,11 @@ void IMSlider::render_go_to_layer_dialog(){
         ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
         imgui.push_button_disable_style();
     }
-    if (imgui.bbl_button(_L("OK"))) {
+    if (imgui.bbl_button(_L("OK")) || (!disable_button && ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Enter)))) {
         do_go_to_layer(atoi(m_layer_number));
         m_show_go_to_layer_dialog = false;
         move_to_center = true;
-        set_focus_when_appearing = true;
+        set_focus = true;
     }
     if (disable_button) {
         ImGui::PopItemFlag();
@@ -1404,10 +1407,10 @@ void IMSlider::render_go_to_layer_dialog(){
 
     ImGui::SameLine();
     imgui.push_cancel_button_style();
-    if (imgui.bbl_button(_L("Cancel"))) {
+    if (imgui.bbl_button(_L("Cancel")) || ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
         m_show_go_to_layer_dialog = false;
         move_to_center = true;
-        set_focus_when_appearing = true;
+        set_focus = true;
     }
     imgui.pop_cancel_button_style();
 

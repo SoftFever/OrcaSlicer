@@ -246,7 +246,6 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(input_text_size);
 
-    ImGui::SetKeyboardFocusHere(0);
     ImGui::InputText("", m_text, sizeof(m_text));
     
     ImGui::Separator();
