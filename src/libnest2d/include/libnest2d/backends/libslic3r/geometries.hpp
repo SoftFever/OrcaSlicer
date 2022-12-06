@@ -261,6 +261,8 @@ inline TMultiShape<PolygonImpl> merge(const TMultiShape<PolygonImpl>& shapes)
     return Slic3r::union_ex(shapes);
 }
 
+inline TMultiShape<PolygonImpl> subtract(const TMultiShape<PolygonImpl> &outerBinNfp, const TMultiShape<PolygonImpl> &shapes) { return Slic3r::diff_ex(outerBinNfp, shapes); }
+
 } // namespace nfp
 } // namespace libnest2d
 

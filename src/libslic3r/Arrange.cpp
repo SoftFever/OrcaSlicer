@@ -554,11 +554,11 @@ public:
                 // 对于屏蔽区域，摆入的对象仍然是可以向右上滑动的；
                 // 对挤出料塔，摆入的对象不能滑动（必须围绕料塔）
                 bool pack_around_wipe_tower = std::any_of(packed_items.begin(), packed_items.end(), [](Item& itm) { return itm.is_wipe_tower; });
-                if(pack_around_wipe_tower)
+                //if(pack_around_wipe_tower)
                     return fixed_overfit(objfunc(item, starting_point), binbb);
-                else {
-                    return fixed_overfit_topright_sliding(objfunc(item, starting_point), binbb, m_excluded_and_extruCali_regions);
-                }
+                //else {
+                //    return fixed_overfit_topright_sliding(objfunc(item, starting_point), binbb, m_excluded_and_extruCali_regions);
+                //}
             };
         };
 

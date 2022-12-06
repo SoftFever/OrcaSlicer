@@ -565,7 +565,7 @@ private:
 
     using Shapes = TMultiShape<RawShape>;
 
-    Shapes calcnfp(const Item &trsh, Lvl<nfp::NfpLevel::CONVEX_ONLY>)
+    Shapes calcnfp(const Item &trsh, const Box& bed ,Lvl<nfp::NfpLevel::CONVEX_ONLY>)
     {
         using namespace nfp;
 
@@ -598,7 +598,8 @@ private:
             nfps[n] = subnfp_r.first;
         });
 
-        return nfp::merge(nfps);
+        RawShape innerNfp = nfpInnerRectBed(bed, trsh.transformedShape()).first;
+        return nfp::subtract({innerNfp}, nfps);
     }
 
 
@@ -738,7 +739,7 @@ private:
                 // it is disjunct from the current merged pile
                 placeOutsideOfBin(item);
 
-                nfps = calcnfp(item, Lvl<MaxNfpLevel::value>());
+                nfps = calcnfp(item, binbb, Lvl<MaxNfpLevel::value>());
 
 
                 auto iv = item.referenceVertex();

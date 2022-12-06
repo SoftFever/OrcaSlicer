@@ -539,11 +539,11 @@ void ArrangeJob::process()
     std::for_each(m_selected.begin(), m_selected.end(), [&](ArrangePolygon &ap) {
         ap.inflation      = params.min_obj_distance / 2;
         BoundingBox apbb  = ap.poly.contour.bounding_box();
-        coord_t     diffx  = bedbb.size().x() - apbb.size().x();
-        coord_t     diffy  = bedbb.size().y() - apbb.size().y();
-        if (diffx > 0 && diffy > 0) { 
-            coord_t min_diff = std::min(diffx, diffy);
-            ap.inflation     = std::min(min_diff / 2, ap.inflation);
+        auto        diffx = bedbb.size().x() - apbb.size().x() - 5;
+        auto        diffy = bedbb.size().y() - apbb.size().y() - 5;
+        if (diffx > 0 && diffy > 0) {
+            auto min_diff = std::min(diffx, diffy);
+            ap.inflation  = std::min(min_diff / 2, ap.inflation);
         }
     });
     // For occulusion regions, inflation should be larger to prevent genrating brim on them.
