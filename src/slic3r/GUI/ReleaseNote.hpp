@@ -116,6 +116,41 @@ public:
     std::string show_again_config_text = "";
 };
 
+class ConfirmBeforeSendDialog : public DPIDialog
+{
+public:
+    enum ButtonStyle {
+        ONLY_CONFIRM = 0,
+        CONFIRM_AND_CANCEL = 1,
+        MAX_STYLE_NUM = 2
+    };
+    ConfirmBeforeSendDialog(
+        wxWindow* parent,
+        wxWindowID      id = wxID_ANY,
+        const wxString& title = wxEmptyString,
+        enum ButtonStyle btn_style = CONFIRM_AND_CANCEL,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long            style = wxCLOSE_BOX | wxCAPTION,
+        bool not_show_again_check = false
+    );
+    void update_text(wxString text);
+    void on_show();
+    void on_hide();
+    void update_btn_label(wxString ok_btn_text, wxString cancel_btn_text);
+    void rescale();
+    ~ConfirmBeforeSendDialog();
+    void on_dpi_changed(const wxRect& suggested_rect);
+
+    wxBoxSizer* m_sizer_main;
+    wxScrolledWindow* m_vebview_release_note{ nullptr };
+    Button* m_button_ok;
+    Button* m_button_cancel;
+    wxCheckBox* m_show_again_checkbox;
+    bool not_show_again = false;
+    std::string show_again_config_text = "";
+};
+
 }} // namespace Slic3r::GUI
 
 #endif

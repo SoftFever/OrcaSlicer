@@ -1934,11 +1934,9 @@ bool SelectMachineDialog::is_same_printer_model()
 
 void SelectMachineDialog::show_errors(wxString &info)
 {
-    if (confirm_dlg == nullptr) {
-        confirm_dlg = new SecondaryCheckDialog(this, wxID_ANY, _L("Errors"));
-    }
-    confirm_dlg->update_text(info);
-    confirm_dlg->on_show();
+    ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Errors"));
+    confirm_dlg.update_text(info);
+    confirm_dlg.on_show();
 }
 
 void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
@@ -2008,12 +2006,11 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
     if (!is_same_printer_type || has_slice_warnings) {
         wxString confirm_title = _L("Warning");
-        if (confirm_dlg == nullptr) {
-            confirm_dlg = new SecondaryCheckDialog(this, wxID_ANY, confirm_title);
-            confirm_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent &e) {
-                this->on_ok();
-            });
-        }
+        ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, confirm_title);
+        confirm_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, &confirm_dlg](wxCommandEvent& e) {
+            confirm_dlg.on_hide();
+            this->on_ok();
+        });
         wxString info_msg = wxEmptyString;
 
         for (auto i = 0; i < confirm_text.size(); i++) {
@@ -2025,8 +2022,8 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             }
             
         }
-        confirm_dlg->update_text(info_msg);
-        confirm_dlg->on_show();
+        confirm_dlg.update_text(info_msg);
+        confirm_dlg.on_show();
 
     } else {
         this->on_ok();
@@ -3093,9 +3090,6 @@ bool SelectMachineDialog::Show(bool show)
 SelectMachineDialog::~SelectMachineDialog()
 {
     delete m_refresh_timer;
-
-    if (confirm_dlg != nullptr)
-        delete confirm_dlg;
 }
 
 void SelectMachineDialog::update_lan_machine_list()

@@ -282,7 +282,7 @@ private:
     wxColour m_colour_def_color{wxColour(255, 255, 255)};
     wxColour m_colour_bold_color{wxColour(38, 46, 48)};
 
-    SecondaryCheckDialog* confirm_dlg = nullptr;
+    //SecondaryCheckDialog* confirm_dlg = nullptr;
 
 protected:
     MaterialHash  m_materialList;

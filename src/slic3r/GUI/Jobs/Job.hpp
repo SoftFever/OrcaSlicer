@@ -45,6 +45,8 @@ protected:
     // status update, to be used from the work thread (process() method)
     void update_status(int st, const wxString &msg = "");
 
+    void update_percent_finish();
+
     bool was_canceled() const { return m_canceled.load(); }
 
     // Launched just before start(), a job can use it to prepare internals

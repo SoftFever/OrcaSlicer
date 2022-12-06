@@ -105,6 +105,7 @@ void BBLStatusBarSend::set_progress(int val)
     }
     m_prog->SetValue(val);
     set_percent_text(wxString::Format("%d%%", val));
+    
     m_sizer->Layout();
 }
 
@@ -118,6 +119,11 @@ void BBLStatusBarSend::set_range(int val)
     if(val != m_prog->GetRange()) {
         m_prog->SetRange(val);
     }
+}
+
+void BBLStatusBarSend::clear_percent()
+{
+    set_percent_text(wxEmptyString);
 }
 
 void BBLStatusBarSend::show_progress(bool show)
@@ -277,7 +283,6 @@ void BBLStatusBarSend::reset()
     set_progress(0);
     set_percent_text(wxString::Format("%d%%", 0));
 }
-
 
 void BBLStatusBarSend::set_font(const wxFont &font)
 {

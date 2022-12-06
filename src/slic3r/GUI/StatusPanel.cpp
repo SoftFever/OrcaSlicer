@@ -2805,9 +2805,11 @@ void StatusPanel::set_hold_count(int& count)
 
 void StatusPanel::on_sys_color_changed()
 {
+    m_button_abort->msw_rescale();
     m_bitmap_speed.msw_rescale();
     m_bitmap_speed_active.msw_rescale();
     m_switch_speed->SetImages(m_bitmap_speed, m_bitmap_speed);
+    m_ams_control->msw_rescale();
 }
 
 void StatusPanel::msw_rescale()

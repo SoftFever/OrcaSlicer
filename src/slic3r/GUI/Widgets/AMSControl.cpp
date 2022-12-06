@@ -660,28 +660,57 @@ void AMSLib::doRender(wxDC &dc)
     int height = size.y - FromDIP(8);
     int curr_height = height * float(m_info.material_remain * 1.0 / 100.0);
 
-    if (curr_height < FromDIP(6)) {
-        curr_height = FromDIP(6);
-    }
+    
 
     int top = height - curr_height;
-    dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius);
+
+    if (curr_height >= FromDIP(6)) {
+#ifdef __APPLE__
+         dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius);
+#else
+         dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), curr_height, m_radius - 1);
+#endif
+
+       
+    }
 
     if (top > 2) {
-        dc.DrawRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), FromDIP(2));
-        if (tmp_lib_colour.Red() > 238 && tmp_lib_colour.Green() > 238 && tmp_lib_colour.Blue() > 238) {
-            dc.SetPen(wxPen(wxColour(130, 129, 128), 1, wxSOLID));
+        if (curr_height >= FromDIP(6)) {
+            dc.DrawRectangle(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(8), FromDIP(2));
+            if (tmp_lib_colour.Red() > 238 && tmp_lib_colour.Green() > 238 && tmp_lib_colour.Blue() > 238) {
+                dc.SetPen(wxPen(wxColour(130, 129, 128), 1, wxSOLID));
+                dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+                dc.DrawLine(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(4), FromDIP(4) + top);
+            }
+        }
+        else {
             dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-            dc.DrawLine(FromDIP(4), FromDIP(4) + top, size.x - FromDIP(4), FromDIP(4) + top);
+            if (tmp_lib_colour.Red() > 238 && tmp_lib_colour.Green() > 238 && tmp_lib_colour.Blue() > 238) {
+                dc.SetPen(wxPen(wxColour(130, 129, 128), 2, wxSOLID));
+            }
+            else {
+                dc.SetPen(wxPen(tmp_lib_colour, 2, wxSOLID));
+            }
+
+#ifdef __APPLE__
+            dc.DrawLine(FromDIP(5), FromDIP(4) + height - FromDIP(2), size.x - FromDIP(5), FromDIP(4) + height - FromDIP(2));
+            dc.DrawLine(FromDIP(6), FromDIP(4) + height - FromDIP(1), size.x - FromDIP(6), FromDIP(4) + height - FromDIP(1));
+#else
+            dc.DrawLine(FromDIP(4), FromDIP(4) + height - FromDIP(2), size.x - FromDIP(4), FromDIP(4) + height - FromDIP(2));
+            dc.DrawLine(FromDIP(5), FromDIP(4) + height - FromDIP(1), size.x - FromDIP(5), FromDIP(4) + height - FromDIP(1));
+#endif
         }
     }
         
-    
-
     //border
     dc.SetPen(wxPen(wxColour(130, 130, 128), 1, wxSOLID));
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-    dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), size.x - FromDIP(8), size.y - FromDIP(8), m_radius);
+#ifdef __APPLE__
+    dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), size.x - FromDIP(7), size.y - FromDIP(7), m_radius);
+#else
+    dc.DrawRoundedRectangle(FromDIP(3), FromDIP(3), size.x - FromDIP(6), size.y - FromDIP(6), m_radius);
+#endif
+    
     
     // edit icon
     if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE)
@@ -1852,6 +1881,8 @@ void AMSControl::msw_rescale()
     m_button_ams_setting_normal.msw_rescale();
     m_button_ams_setting_hover.msw_rescale();
     m_button_ams_setting_press.msw_rescale();
+    m_button_ams_setting->SetBitmap(m_button_ams_setting_normal.bmp());
+
     m_extruder->msw_rescale();
     m_button_extruder_back->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_extruder_feed->SetMinSize(wxSize(-1, FromDIP(24)));

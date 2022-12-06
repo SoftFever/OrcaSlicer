@@ -48,6 +48,7 @@ public:
     void        set_progress(int) override;
     int         get_range() const override;
     void        set_range(int = 100) override;
+    void        clear_percent() override;
     void        show_progress(bool);
     void        start_busy(int = 100);
     void        stop_busy();
@@ -71,7 +72,6 @@ public:
     bool        is_slice_info_shown();
     bool        update_status(wxString &msg, bool &was_cancel, int percent = -1, bool yield = true);
     void        reset();
-
     // Temporary methods to satisfy Perl side
     void show_cancel_button();
     void hide_cancel_button();

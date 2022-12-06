@@ -92,6 +92,11 @@ void BBLStatusBarBind::set_range(int val)
     }
 }
 
+void BBLStatusBarBind::clear_percent()
+{
+
+}
+
 void BBLStatusBarBind::show_progress(bool show)
 {
     if (show) {

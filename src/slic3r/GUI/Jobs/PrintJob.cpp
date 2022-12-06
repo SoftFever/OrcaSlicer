@@ -216,6 +216,7 @@ void PrintJob::process()
                         }
                         else if (stage == BBL::SendingPrintJobStage::PrintingStageFinished) {
                             msg = wxString::Format(_L("Successfully sent. Will automatically jump to the device page in %s s"), info);
+                            this->update_percent_finish();
                         } else {
                             if (this->connection_type == "lan") {
                                 msg = _L("Sending print job over LAN");
