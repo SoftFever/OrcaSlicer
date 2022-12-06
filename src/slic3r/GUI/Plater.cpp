@@ -1208,7 +1208,7 @@ void Sidebar::sys_color_changed()
         combo->sys_color_changed();
 
     // BBS
-    //obj_list()->sys_color_changed();
+    obj_list()->sys_color_changed();
     // BBS
     //p->object_manipulation->sys_color_changed();
 

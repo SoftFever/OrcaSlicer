@@ -513,6 +513,8 @@ void PreferencesDialog::set_dark_mode()
     NppDarkMode::SetDarkExplorerTheme(this->GetHWND());
     NppDarkMode::SetDarkTitleBar(this->GetHWND());
     wxGetApp().UpdateDlgDarkUI(this);
+    SetActiveWindow(wxGetApp().mainframe->GetHWND());
+    SetActiveWindow(GetHWND());
 #endif
 #endif
 }
