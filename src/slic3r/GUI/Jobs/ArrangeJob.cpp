@@ -534,7 +534,18 @@ void ArrangeJob::process()
     }
 
     // do not inflate brim_width. Objects are allowed to have overlapped brim.
-    std::for_each(m_selected.begin(), m_selected.end(), [&](auto& ap) {ap.inflation = params.min_obj_distance / 2; });
+    Points      bedpts = get_bed_shape(*m_plater->config());
+    BoundingBox bedbb  = Polygon(bedpts).bounding_box();
+    std::for_each(m_selected.begin(), m_selected.end(), [&](ArrangePolygon &ap) {
+        ap.inflation      = params.min_obj_distance / 2;
+        BoundingBox apbb  = ap.poly.contour.bounding_box();
+        coord_t     diffx  = bedbb.size().x() - apbb.size().x();
+        coord_t     diffy  = bedbb.size().y() - apbb.size().y();
+        if (diffx > 0 && diffy > 0) { 
+            coord_t min_diff = std::min(diffx, diffy);
+            ap.inflation     = std::min(min_diff / 2, ap.inflation);
+        }
+    });
     // For occulusion regions, inflation should be larger to prevent genrating brim on them.
     // However, extrusion cali regions are exceptional, since we can allow brim overlaps them.
     // 屏蔽区域只需要膨胀brim宽度，防止brim长过去；挤出标定区域不需要膨胀，brim可以长过去。
@@ -551,7 +562,6 @@ void ArrangeJob::process()
     partplate_list.preprocess_exclude_areas(params.excluded_regions, 1, scaled_exclusion_gap);
 
     // shrink bed by moving to center by dist
-    Points bedpts = get_bed_shape(*m_plater->config());
     auto shrinkFun = [](Points& bedpts, double dist, int direction) {
 #define SGN(x) ((x)>=0?1:-1)
         Point center = Polygon(bedpts).bounding_box().center();
