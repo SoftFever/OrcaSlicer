@@ -3444,6 +3444,10 @@ void TabPrinter::toggle_options()
         size_t i = size_t(val - 1);
         bool have_retract_length = m_config->opt_float("retraction_length", i) > 0;
 
+        //BBS
+        for (auto el : { "nozzle_diameter", "extruder_offset"})
+            toggle_option(el, !is_BBL_printer, i);
+
         // user can customize travel length if we have retraction length or we"re using
         // firmware retraction
         toggle_option("retraction_minimum_travel", have_retract_length, i);

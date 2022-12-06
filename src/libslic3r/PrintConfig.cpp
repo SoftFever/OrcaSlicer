@@ -1073,7 +1073,7 @@ void PrintConfigDef::init_fff_params()
     //               "with respect to the first one. It expects positive coordinates (they will be subtracted "
     //               "from the XY coordinate).");
     def->sidetext = L("mm");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPoints { Vec2d(0,0) });
 
     def = this->add("filament_flow_ratio", coFloats);
@@ -1819,7 +1819,7 @@ void PrintConfigDef::init_fff_params()
                      "the maximum layer hight when enable adaptive layer height");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0. });
 
 #ifdef HAS_PRESSURE_EQUALIZER
@@ -1871,7 +1871,7 @@ void PrintConfigDef::init_fff_params()
                      "the minimum layer hight when enable adaptive layer height");
     def->sidetext = L("mm");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0.07 });
 
     def = this->add("slow_down_min_speed", coFloats);
@@ -1879,14 +1879,14 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The minimum printing speed when slow down for cooling");
     def->sidetext = L("mm/s");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 10. });
 
     def = this->add("nozzle_diameter", coFloats);
     def->label = L("Nozzle diameter");
     def->tooltip = L("Diameter of nozzle");
     def->sidetext = L("mm");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloats { 0.4 });
 
     def = this->add("host_type", coEnum);
