@@ -3833,11 +3833,6 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
         //if (needs_retraction && m_layer_index > 1) exit(0);
     }
 
-    if (lift_type == LiftType::LazyLift)
-        printf("lazy lift\n");
-    else if (lift_type == LiftType::SpiralLift)
-        printf("spiral lift\n");
-
     // Re-allow reduce_crossing_wall for the next travel moves
     m_avoid_crossing_perimeters.reset_once_modifiers();
 
