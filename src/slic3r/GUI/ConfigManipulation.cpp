@@ -350,6 +350,30 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     // BBS
+    if (config->opt_bool("enable_support") && is_tree(config->opt_enum<SupportType>("support_type"))
+        && (config->opt_enum<SupportMaterialStyle>("support_style")==smsDefault || config->opt_enum<SupportMaterialStyle>("support_style")==smsTreeSlim)
+        && !(config->opt_float("support_top_z_distance")==0 && config->opt_int("support_interface_top_layers")==0 && config->opt_int("tree_support_wall_count")==2))
+    {
+        wxString msg_text = _(L("We have added an experimental style \"Tree Slim\" that features smaller support volume but weaker strength.\n"
+                                "We recommand using it with: 0 interface layers, 0 top distance, 2 walls.\n"));
+        if (is_global_config)
+            msg_text += "\n" + _(L("Change these settings automatically? \n"
+                                   "Yes - Change these settings automatically\n"
+                                   "No  - Do not change these settings for me"));
+        MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK));
+        DynamicPrintConfig new_conf    = *config;
+        is_msg_dlg_already_exist       = true;
+        auto answer                    = dialog.ShowModal();
+        if (!is_global_config || answer == wxID_YES) {
+            new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
+            new_conf.set_key_value("support_interface_top_layers", new ConfigOptionInt(0));
+            new_conf.set_key_value("tree_support_wall_count", new ConfigOptionInt(2));
+        }
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
+
+    // BBS
     int filament_cnt = wxGetApp().preset_bundle->filament_presets.size();
 #if 0
     bool has_wipe_tower = filament_cnt > 1 && config->opt_bool("enable_prime_tower");
@@ -571,19 +595,16 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
                     "support_type", "support_on_build_plate_only", "support_critical_regions_only",
                     "support_object_xy_distance", "independent_support_layer_height"})
         toggle_field(el, have_support_material);
-    toggle_field("support_threshold_angle", have_support_material && (support_type == stNormalAuto || support_type == stTreeAuto || support_type==stHybridAuto));
+    toggle_field("support_threshold_angle", have_support_material && is_auto(support_type));
     //toggle_field("support_closing_radius", have_support_material && support_style == smsSnug);
 
+    bool support_is_tree = config->opt_bool("enable_support") && is_tree(support_type);
     for (auto el : {"tree_support_branch_angle", "tree_support_wall_count", "tree_support_branch_distance", "tree_support_branch_diameter"})
-        toggle_field(el, config->opt_bool("enable_support") && (support_type == stTreeAuto || support_type == stTree || support_type == stHybridAuto));
+        toggle_field(el, support_is_tree);
 
     // hide tree support settings when normal is selected
-    bool support_is_tree = std::set<SupportType>{stTreeAuto, stHybridAuto, stTree}.count(support_type) != 0;
-    toggle_line("tree_support_branch_distance", support_is_tree);
-    toggle_line("tree_support_branch_diameter", support_is_tree);
-    toggle_line("tree_support_branch_angle", support_is_tree);
-    toggle_line("tree_support_wall_count", support_is_tree);
-    toggle_line("max_bridge_length", support_is_tree);
+    for (auto el : {"tree_support_branch_angle", "tree_support_wall_count", "tree_support_branch_distance", "tree_support_branch_diameter", "max_bridge_length"})
+        toggle_line(el, support_is_tree);
 
     // tree support use max_bridge_length instead of bridge_no_support
     toggle_line("bridge_no_support", !support_is_tree);

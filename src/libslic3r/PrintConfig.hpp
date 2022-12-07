@@ -98,7 +98,7 @@ enum SupportMaterialPattern {
 };
 
 enum SupportMaterialStyle {
-    smsGrid, smsSnug,
+    smsDefault, smsGrid, smsSnug, smsTreeSlim, smsTreeStrong, smsTreeHybrid
 };
 
 enum SupportMaterialInterfacePattern {
@@ -107,7 +107,19 @@ enum SupportMaterialInterfacePattern {
 
 // BBS
 enum SupportType {
-    stNormalAuto, stTreeAuto, stHybridAuto, stNormal, stTree
+    stNormalAuto, stTreeAuto, stNormal, stTree
+};
+inline bool is_tree(SupportType stype)
+{
+    return std::set<SupportType>{stTreeAuto, stTree}.count(stype) != 0;
+};
+inline bool is_tree_slim(SupportType type, SupportMaterialStyle style)
+{
+    return is_tree(type) && (style==smsDefault || style==smsTreeSlim);
+};
+inline bool is_auto(SupportType stype)
+{
+    return std::set<SupportType>{stNormalAuto, stTreeAuto}.count(stype) != 0;
 };
 
 enum SeamPosition {
