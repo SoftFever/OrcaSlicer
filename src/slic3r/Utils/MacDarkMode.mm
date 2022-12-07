@@ -8,6 +8,7 @@
 #import <Cocoa/Cocoa.h>
 #import <Foundation/Foundation.h>
 #import <AppKit/NSScreen.h>
+#import <WebKit/WebKit.h>
 
 #include <objc/runtime.h>
 
@@ -90,6 +91,12 @@ void WKWebView_evaluateJavaScript(void * web, wxString const & script, void (*ca
             callback(err);
         }
     }];
+}
+    
+void WKWebView_setTransparentBackground(void * web)
+{
+    WKWebView * webView = (WKWebView*)web;
+    [webView layer].backgroundColor = [NSColor clearColor].CGColor;
 }
 
 void openFolderForFile(wxString const & file)

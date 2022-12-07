@@ -95,6 +95,8 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
         }
         GetSizer()->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
         GetSizer()->Layout();
+#else
+        (void) this;
 #endif
     });
 

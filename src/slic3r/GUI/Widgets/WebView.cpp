@@ -125,6 +125,10 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
         webView->SetUserAgent(wxString::Format("BBL-Slicer/v%s (%s) Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)", SLIC3R_VERSION,
                                                Slic3r::GUI::wxGetApp().dark_mode() ? "dark" : "light"));
 #endif
+#ifdef __WXMAC__
+        WKWebView * wkWebView = (WKWebView *) webView->GetNativeBackend();
+        Slic3r::GUI::WKWebView_setTransparentBackground(wkWebView);
+#endif
 #ifndef __WIN32__
         Slic3r::GUI::wxGetApp().CallAfter([webView] {
 #endif
