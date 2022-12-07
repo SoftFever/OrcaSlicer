@@ -395,6 +395,7 @@ void MonitorPanel::update_all()
 
     //BBS check mqtt connections if user is login
     if (wxGetApp().is_user_login()) {
+        dev->check_pushing();
         // check mqtt connection and reconnect if disconnected
         try {
             m_agent->refresh_connection();

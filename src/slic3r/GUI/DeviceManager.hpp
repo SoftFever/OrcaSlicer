@@ -17,7 +17,9 @@
 
 #define DISCONNECT_TIMEOUT      30000.f     // milliseconds
 #define PUSHINFO_TIMEOUT        15000.f     // milliseconds
+#define TIMEOUT_FOR_STRAT       20000.f     // milliseconds
 #define REQUEST_PUSH_MIN_TIME   15000.f     // milliseconds
+#define REQUEST_START_MIN_TIME  15000.f     // milliseconds
 
 #define FILAMENT_MAX_TEMP       300
 #define FILAMENT_DEF_TEMP       220
@@ -401,6 +403,7 @@ public:
     std::chrono::system_clock::time_point   last_update_time;   /* last received print data from machine */
     std::chrono::system_clock::time_point   last_push_time;     /* last received print push from machine */
     std::chrono::system_clock::time_point   last_request_push;  /* last received print push from machine */
+    std::chrono::system_clock::time_point   last_request_start; /* last received print push from machine */
 
     /* ams properties */
     std::map<std::string, Ams*> amsList;    // key: ams[id], start with 0
@@ -592,6 +595,7 @@ public:
     BBLSliceInfo* slice_info {nullptr};
     boost::thread* get_slice_info_thread { nullptr };
 
+
     int plate_index { -1 };
     std::string m_gcode_file;
     int gcode_file_prepare_percent = 0;
@@ -610,6 +614,7 @@ public:
     /* command commands */
     int command_get_version(bool with_retry = true);
     int command_request_push_all();
+    int command_pushing(std::string cmd);
 
     /* command upgrade */
     int command_upgrade_confirm();
@@ -724,6 +729,8 @@ public:
     std::string local_selected_machine;                         /* dev_id */
     std::map<std::string, MachineObject*> localMachineList;     /* dev_id -> MachineObject*, localMachine SSDP   */
     std::map<std::string, MachineObject*> userMachineList;      /* dev_id -> MachineObject*  cloudMachine of User */
+
+    void check_pushing();
 
     MachineObject* get_default_machine();
     MachineObject* get_local_selected_machine();

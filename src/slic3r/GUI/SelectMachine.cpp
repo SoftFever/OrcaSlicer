@@ -2551,6 +2551,8 @@ void SelectMachineDialog::update_show_status()
         return;
     }
     if (!dev) return;
+    dev->check_pushing();
+
     MachineObject* obj_ = dev->get_my_machine(m_printer_last_select);
     if (!obj_) {
         update_ams_check(nullptr);

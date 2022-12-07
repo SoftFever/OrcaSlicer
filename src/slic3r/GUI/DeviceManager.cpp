@@ -1260,6 +1260,28 @@ int MachineObject::command_request_push_all()
     return this->publish_json(j.dump());
 }
 
+int MachineObject::command_pushing(std::string cmd)
+{
+    auto curr_time = std::chrono::system_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_request_start);
+    if (diff.count() < REQUEST_START_MIN_TIME) {
+        BOOST_LOG_TRIVIAL(trace) << "static: command_request_start: send request too fast, dev_id=" << dev_id;
+        return -1;
+    }
+    else {
+        BOOST_LOG_TRIVIAL(trace) << "static: command_request_start, dev_id=" << dev_id;
+        last_request_start = std::chrono::system_clock::now();
+    }
+
+    if (cmd == "start" || cmd == "stop") {
+        json j;
+        j["pushing"]["command"] = cmd;
+        j["pushing"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+        return this->publish_json(j.dump());
+    }
+    return -1;
+}
+
 int MachineObject::command_upgrade_confirm()
 {
     BOOST_LOG_TRIVIAL(info) << "command_upgrade_confirm";
@@ -2012,6 +2034,11 @@ int MachineObject::parse_json(std::string payload)
     std::chrono::system_clock::time_point clock_start = std::chrono::system_clock::now();
     this->set_online_state(true);
 
+    std::chrono::system_clock::time_point curr_time = std::chrono::system_clock::now();
+    auto diff1 = std::chrono::duration_cast<std::chrono::microseconds>(curr_time - last_update_time);
+
+    BOOST_LOG_TRIVIAL(info) << "interval = " << diff1.count();
+
     /* update last received time */
     last_update_time = std::chrono::system_clock::now();
 
@@ -2019,8 +2046,9 @@ int MachineObject::parse_json(std::string payload)
         bool restored_json = false;
         json j;
         json j_pre = json::parse(payload);
-        if (j_pre.empty())
+        if (j_pre.empty()) {
             return 0;
+        }
 
         if (j_pre.contains("print")) {
             if (j_pre["print"].contains("command")) {
@@ -3184,6 +3212,19 @@ DeviceManager::~DeviceManager()
 void DeviceManager::set_agent(NetworkAgent* agent)
 {
     m_agent = agent;
+}
+
+void DeviceManager::check_pushing()
+{
+    MachineObject* obj = this->get_selected_machine();
+    if (obj) {
+        std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+        auto internal = std::chrono::duration_cast<std::chrono::milliseconds>(start - obj->last_update_time);
+        if (internal.count() > TIMEOUT_FOR_STRAT && internal.count() < 1000 * 60 * 60 * 300) {
+            BOOST_LOG_TRIVIAL(info) << "command_pushing: diff = " << internal.count();
+            obj->command_pushing("start");
+        }
+    }
 }
 
 void DeviceManager::on_machine_alive(std::string json_str)
