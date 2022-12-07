@@ -113,9 +113,10 @@
 {
 	display: none;
 	width: 400px;
-	border: 1px solid #000;
+	border-width: 1px;
+	border-style: solid;
 	border-radius: 4px;
-	background-color: #fff;	
+	background-color: inherit;	
 	position: absolute;
 	left: 50%;
 	top: 200px;
