@@ -309,19 +309,25 @@ void MediaPlayCtrl::ToggleStream()
         wxString url = L"bambu:///camera/" + from_u8(file_url);
         url.Replace("\\", "/");
         url = wxURI(url).BuildURI();
-        std::string configs;
         try {
+            std::string configs;
             boost::filesystem::load_string_file(file_ff_cfg, configs);
-        } catch (...) {}
-        std::vector<std::string> configss;
-        boost::algorithm::split(configss, configs, boost::algorithm::is_any_of("\r\n"));
-        configss.erase(std::remove(configss.begin(), configss.end(), std::string()), configss.end());
-        boost::process::pipe  intermediate;
-        boost::process::child process_source(file_source, url.data().AsInternal(), boost::process::std_out > intermediate, detach_process(),
-                                             boost::process::start_dir(boost::filesystem::path(data_dir()) / "plugins"));
-        boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::std_in < intermediate, detach_process());
-        process_source.detach();
-        process_ffmpeg.detach();
+            std::vector<std::string> configss;
+            boost::algorithm::split(configss, configs, boost::algorithm::is_any_of("\r\n"));
+            configss.erase(std::remove(configss.begin(), configss.end(), std::string()), configss.end());
+            boost::process::pipe  intermediate;
+#ifndef __WXMSW__
+            boost::filesystem::permissions(file_source, boost::filesystem::owner_exe | boost::filesystem::add_perms);
+            boost::filesystem::permissions(file_ffmpeg, boost::filesystem::owner_exe | boost::filesystem::add_perms);
+#endif
+            boost::process::child process_source(file_source, url.data().AsInternal(), boost::process::std_out > intermediate, detach_process(),
+                                                 boost::process::start_dir(boost::filesystem::path(data_dir()) / "plugins"), boost::process::limit_handles);
+            boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::std_in < intermediate, detach_process(), boost::process::limit_handles);
+            process_source.detach();
+            process_ffmpeg.detach();
+        } catch (std::exception & e) {
+            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl failed to start camera stream: " << e.what();
+        }
     }
     if (!url.empty() && wxGetApp().app_config->get("not_show_vcamera_stop_prev") != "1") {
         MessageDialog dlg(this->GetParent(), _L("Another virtual camera is running.\nBambu Studio supports only a single virtual camera.\nDo you want to stop this virtual camera?"), _L("Warning"),
@@ -431,7 +437,7 @@ bool MediaPlayCtrl::get_stream_url(std::string *url)
     }
     CloseHandle(shm);
 #elif __APPLE__
-    std::string file_url = data_dir() + "/url.txt";
+    std::string file_url = data_dir() + "/cameratools/url.txt";
     key_t key = ::ftok(file_url.c_str(), 1000);
     int shm = ::shmget(key, 1024, 0);
     if (shm == -1) return false;
