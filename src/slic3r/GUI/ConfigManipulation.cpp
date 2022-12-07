@@ -350,30 +350,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     // BBS
-    if (config->opt_bool("enable_support") && is_tree(config->opt_enum<SupportType>("support_type"))
-        && (config->opt_enum<SupportMaterialStyle>("support_style")==smsDefault || config->opt_enum<SupportMaterialStyle>("support_style")==smsTreeSlim)
-        && !(config->opt_float("support_top_z_distance")==0 && config->opt_int("support_interface_top_layers")==0 && config->opt_int("tree_support_wall_count")==2))
-    {
-        wxString msg_text = _(L("We have added an experimental style \"Tree Slim\" that features smaller support volume but weaker strength.\n"
-                                "We recommand using it with: 0 interface layers, 0 top distance, 2 walls.\n"));
-        if (is_global_config)
-            msg_text += "\n" + _(L("Change these settings automatically? \n"
-                                   "Yes - Change these settings automatically\n"
-                                   "No  - Do not change these settings for me"));
-        MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | (is_global_config ? wxYES | wxNO : wxOK));
-        DynamicPrintConfig new_conf    = *config;
-        is_msg_dlg_already_exist       = true;
-        auto answer                    = dialog.ShowModal();
-        if (!is_global_config || answer == wxID_YES) {
-            new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
-            new_conf.set_key_value("support_interface_top_layers", new ConfigOptionInt(0));
-            new_conf.set_key_value("tree_support_wall_count", new ConfigOptionInt(2));
-        }
-        apply(config, &new_conf);
-        is_msg_dlg_already_exist = false;
-    }
-
-    // BBS
     int filament_cnt = wxGetApp().preset_bundle->filament_presets.size();
 #if 0
     bool has_wipe_tower = filament_cnt > 1 && config->opt_bool("enable_prime_tower");
