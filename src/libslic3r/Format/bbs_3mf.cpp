@@ -3134,8 +3134,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         } else if (m_curr_metadata_name == BBL_APPLICATION_TAG) {
             // Generator application of the 3MF.
             // SLIC3R_APP_KEY - SLIC3R_VERSION
-            if (boost::starts_with(m_curr_characters, "BambuStudio-"))
+            if (boost::starts_with(m_curr_characters, "BambuStudio-")) {
+                m_is_bbl_3mf = true;
                 m_bambuslicer_generator_version = Semver::parse(m_curr_characters.substr(12));
+            }
         //TODO: currently use version 0, no need to load&&save this string
         /*} else if (m_curr_metadata_name == BBS_FDM_SUPPORTS_PAINTING_VERSION) {
             m_fdm_supports_painting_version = (unsigned int) atoi(m_curr_characters.c_str());
@@ -3853,7 +3855,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                 TriangleMesh triangle_mesh(std::move(its), volume_data->mesh_stats);
 
-                if (m_version == 0) {
+                if (!m_is_bbl_3mf) {
                     // if the 3mf was not produced by BambuStudio and there is only one instance,
                     // bake the transformation into the geometry to allow the reload from disk command
                     // to work properly
@@ -5408,7 +5410,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
             // remember to use metadata_item_map to store metadata info
             std::map<std::string, std::string> metadata_item_map;
-            metadata_item_map[BBS_3MF_VERSION] = std::to_string(VERSION_BBS_3MF);
             if (!sub_model) {
                 // update metadat_items
                 if (model.model_info && model.model_info.get()) {
@@ -5436,6 +5437,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 metadata_item_map[BBL_MODIFICATION_TAG]  = date;
                 metadata_item_map[BBL_APPLICATION_TAG]   = (boost::format("%1%-%2%") % SLIC3R_APP_KEY % SLIC3R_VERSION).str();
             }
+            metadata_item_map[BBS_3MF_VERSION] = std::to_string(VERSION_BBS_3MF);
 
             // store metadata info
             for (auto item : metadata_item_map) {
