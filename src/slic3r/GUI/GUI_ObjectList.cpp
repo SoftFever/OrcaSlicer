@@ -4710,6 +4710,8 @@ void ObjectList::fix_through_netfabb()
         update_item_error_icon(obj_idx, vol_idx);
         update_info_items(obj_idx);
 
+        object(obj_idx)->ensure_on_bed();
+
         return true;
     };
 
