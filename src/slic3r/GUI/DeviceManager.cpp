@@ -364,6 +364,7 @@ MachineObject::MachineObject(NetworkAgent* agent, std::string name, std::string 
     cooling_fan_speed = 0;
     big_fan1_speed = 0;
     big_fan2_speed = 0;
+    fan_gear = 0;
 
     /* printing */
     mc_print_stage = 0;
@@ -1379,6 +1380,13 @@ int MachineObject::command_control_fan(FanType fan_type, bool on_off)
     return this->publish_gcode(gcode);
 }
 
+int MachineObject::command_control_fan_val(FanType fan_type, int val)
+{
+    std::string gcode = (boost::format("M106 P%1% S%2% \n") % (int)fan_type % (val)).str();
+    return this->publish_gcode(gcode);
+}
+
+
 int MachineObject::command_task_abort()
 {
     json j;
@@ -2322,7 +2330,13 @@ int MachineObject::parse_json(std::string payload)
                         wifi_signal = jj["wifi_signal"].get<std::string>();
 
                     /* cooling */
-                    if (jj.contains("cooling_fan_speed")) {
+                    if (jj.contains("fan_gear")) {
+                        fan_gear = jj["fan_gear"].get<std::uint32_t>();
+                        big_fan2_speed = (int)((fan_gear & 0x00FF0000) >> 16);
+                        big_fan1_speed = (int)((fan_gear & 0x0000FF00) >> 8);
+                        cooling_fan_speed= (int)((fan_gear & 0x000000FF) >> 0);
+                    }
+                   /* if (jj.contains("cooling_fan_speed")) {
                         cooling_fan_speed = stoi(jj["cooling_fan_speed"].get<std::string>());
                     }
                     if (jj.contains("big_fan1_speed")) {
@@ -2330,7 +2344,7 @@ int MachineObject::parse_json(std::string payload)
                     }
                     if (jj.contains("big_fan2_speed")) {
                         big_fan2_speed = stoi(jj["big_fan2_speed"].get<std::string>());
-                    }
+                    }*/
                     if (jj.contains("heatbreak_fan_speed")) {
                         heatbreak_fan_speed = stoi(jj["heatbreak_fan_speed"].get<std::string>());
                     }

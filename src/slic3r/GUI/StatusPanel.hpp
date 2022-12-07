@@ -28,6 +28,7 @@
 #include "Widgets/ProgressBar.hpp"
 #include "Widgets/ImageSwitchButton.hpp"
 #include "Widgets/AMSControl.hpp"
+#include "Widgets/FanControl.hpp"
 #include "HMS.hpp"
 #include "Widgets/ErrorMsgStaticText.hpp"
 class StepIndicator;
@@ -149,16 +150,20 @@ protected:
     ImageSwitchButton *m_switch_speed;
 
     /* TempInput */
+    wxBoxSizer *    m_misc_ctrl_sizer;
     TempInput *     m_tempCtrl_nozzle;
     int             m_temp_nozzle_timeout {0};
     StaticLine *    m_line_nozzle;
     TempInput *     m_tempCtrl_bed;
     int             m_temp_bed_timeout {0};
     TempInput *     m_tempCtrl_frame;
-    ImageSwitchButton *m_switch_nozzle_fan;
+    bool             m_current_support_cham_fan{true};
+    FanSwitchButton *m_switch_nozzle_fan;
     int             m_switch_nozzle_fan_timeout{0};
-    ImageSwitchButton *m_switch_printing_fan;
+    FanSwitchButton *m_switch_printing_fan;
     int             m_switch_printing_fan_timeout{0};
+    FanSwitchButton *m_switch_cham_fan;
+    int             m_switch_cham_fan_timeout{0};
 
     float           m_fixed_aspect_ratio{1.8};
 
@@ -267,6 +272,7 @@ protected:
     SecondaryCheckDialog* abort_dlg = nullptr;
     SecondaryCheckDialog* ctrl_e_hint_dlg = nullptr;
     SecondaryCheckDialog* sdcard_hint_dlg = nullptr;
+    FanControlPopup m_fan_control_popup{nullptr};
 
     wxString     m_request_url;
     bool         m_start_loading_thumbnail = false;
@@ -333,7 +339,8 @@ protected:
     void on_ams_guide(wxCommandEvent &event);
     void on_ams_retry(wxCommandEvent &event);
 
-    void on_switch_speed(wxCommandEvent &event);
+    void on_fan_changed(wxCommandEvent& event);
+    void on_switch_speed(wxCommandEvent& event);
     void on_lamp_switch(wxCommandEvent &event);
     void on_printing_fan_switch(wxCommandEvent &event);
     void on_nozzle_fan_switch(wxCommandEvent &event);

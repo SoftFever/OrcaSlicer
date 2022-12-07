@@ -476,6 +476,7 @@ public:
     int     cooling_fan_speed = 0;
     int     big_fan1_speed = 0;
     int     big_fan2_speed = 0;
+    uint32_t fan_gear       = 0;
 
     /* signals */
     std::string wifi_signal;
@@ -637,6 +638,7 @@ public:
     int command_auto_leveling();
     int command_go_home();
     int command_control_fan(FanType fan_type, bool on_off);
+    int command_control_fan_val(FanType fan_type, int val);
     int command_task_abort();
     int command_task_pause();
     int command_task_resume();

@@ -56,6 +56,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/TempInput.hpp
     GUI/Widgets/AMSControl.cpp
     GUI/Widgets/AMSControl.hpp
+    GUI/Widgets/FanControl.cpp
+    GUI/Widgets/FanControl.hpp
     GUI/Widgets/Scrollbar.cpp
     GUI/Widgets/Scrollbar.hpp
     GUI/Widgets/ScrolledWindow.cpp
