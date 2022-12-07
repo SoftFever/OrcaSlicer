@@ -622,7 +622,7 @@ Sidebar::Sidebar(Plater *parent)
     p->m_panel_filament_title->SetBackgroundColor(title_bg);
     p->m_panel_filament_title->SetBackgroundColor2(0xF1F1F1);
     p->m_panel_filament_title->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &e) {
-        if (e.GetPosition().x > (p->m_flushing_volume_btn->IsShown() 
+        if (e.GetPosition().x > (p->m_flushing_volume_btn->IsShown()
                 ? p->m_flushing_volume_btn->GetPosition().x : p->m_bpButton_add_filament->GetPosition().x))
             return;
         if (p->m_panel_filament_content->GetMaxHeight() == 0)
@@ -5061,12 +5061,13 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             //BBS: add partplate logic
             PartPlate * current_plate = this->partplate_list.get_curr_plate();
             bool only_has_gcode_need_preview = false;
-            if (current_plate->is_slice_result_valid() && this->model.objects.empty() && !current_plate->has_printable_instances())
+            bool current_has_print_instances = current_plate->has_printable_instances();
+            if (current_plate->is_slice_result_valid() && this->model.objects.empty() && !current_has_print_instances)
                 only_has_gcode_need_preview = true;
 
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": from set_current_panel, no_slice %1%, export_in_progress %2%, model_fits %3%, m_is_slicing %4%")%no_slice%export_in_progress%model_fits%m_is_slicing;
 
-            if (!no_slice && !this->model.objects.empty() && !export_in_progress && model_fits && current_plate->has_printable_instances())
+            if (!no_slice && !this->model.objects.empty() && !export_in_progress && model_fits && current_has_print_instances)
             {
                 //if already running in background, not relice here
                 //BBS: add more judge for slicing
@@ -5089,7 +5090,9 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             //BBS: process empty plate, reset previous toolpath
             else
             {
-                reset_gcode_toolpaths();
+                //if (!this->m_slice_all)
+                if (!current_has_print_instances)
+                    reset_gcode_toolpaths();
                 //this->q->refresh_print();
                 if (!preview->get_canvas3d()->is_initialized())
                 {
