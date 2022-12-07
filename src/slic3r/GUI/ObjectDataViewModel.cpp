@@ -1720,6 +1720,7 @@ wxDataViewItem ObjectDataViewModel::ReorganizeObjects(  const int current_id, co
         return wxDataViewItem(nullptr);
 
     ObjectDataViewModelNode* deleted_node = m_objects[current_id];
+    ObjectDataViewModelNode* new_node = m_objects[new_id];
     ObjectDataViewModelNode* plate_node = deleted_node->m_parent;
 
     m_objects.erase(m_objects.begin() + current_id);
@@ -1727,7 +1728,13 @@ wxDataViewItem ObjectDataViewModel::ReorganizeObjects(  const int current_id, co
     ItemDeleted(wxDataViewItem(deleted_node->m_parent), wxDataViewItem(deleted_node));
 
     m_objects.emplace(m_objects.begin() + new_id, deleted_node);
-    plate_node->Insert(deleted_node, new_id);
+    int plate_child_index = plate_node->GetChildIndex(new_node);
+    if (current_id < new_id)
+        plate_node->Insert(deleted_node, plate_child_index+1);
+    else {
+        //should not happen
+        plate_node->Insert(deleted_node, plate_child_index);
+    }
     ItemAdded(wxDataViewItem(deleted_node->m_parent), wxDataViewItem(deleted_node));
 
     //ItemChanged(wxDataViewItem(nullptr));
