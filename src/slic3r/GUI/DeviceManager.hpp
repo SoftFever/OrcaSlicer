@@ -81,6 +81,7 @@ enum PrinterFunction {
     FUNC_USE_AMS,
     FUNC_ALTER_RESOLUTION,
     FUNC_SEND_TO_SDCARD,
+    FUNC_AUTO_SWITCH_FILAMENT,
     FUNC_MAX
 };
 

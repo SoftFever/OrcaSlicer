@@ -179,7 +179,7 @@ void AMSSetting::create()
     m_sizer_switch_filament_inline = new wxBoxSizer(wxVERTICAL);
 
     m_tip_switch_filament_line1 = new wxStaticText(m_panel_body, wxID_ANY,
-        _L("AMS switches to the same type of filament automatically when the current filament runs out."),
+        _L("AMS will continue to another spool with the same properties of filament automatically when current filament runs out"),
         wxDefaultPosition, wxDefaultSize, 0);
     m_tip_switch_filament_line1->SetFont(::Label::Body_13);
     m_tip_switch_filament_line1->SetForegroundColour(AMS_SETTING_GREY700);
@@ -272,6 +272,17 @@ void AMSSetting::update_remain_mode(bool selected)
 
 void AMSSetting::update_switch_filament(bool selected)
 {
+    if (obj->is_function_supported(PrinterFunction::FUNC_AUTO_SWITCH_FILAMENT)) {
+        m_checkbox_switch_filament->Show();
+        m_title_switch_filament->Show();
+        m_tip_switch_filament_line1->Show();
+        Layout();
+    } else {
+        m_checkbox_switch_filament->Hide();
+        m_title_switch_filament->Hide();
+        m_tip_switch_filament_line1->Hide();
+        Layout();
+    }
     m_checkbox_switch_filament->SetValue(selected);
 }
 

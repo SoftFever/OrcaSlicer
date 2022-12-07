@@ -1956,6 +1956,9 @@ bool MachineObject::is_function_supported(PrinterFunction func)
     case FUNC_SEND_TO_SDCARD:
         func_name = "FUNC_SEND_TO_SDCARD";
         break;
+    case FUNC_AUTO_SWITCH_FILAMENT:
+        func_name = "FUNC_AUTO_SWITCH_FILAMENT";
+        break;
     default:
         return true;
     }
