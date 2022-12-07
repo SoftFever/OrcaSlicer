@@ -44,7 +44,8 @@ public:
         const BoundingBox& current_outlines_bbox,
         const EdgeGrid::Grid& outline_locator,
         coord_t supporting_radius,
-        coord_t wall_supporting_radius
+        coord_t wall_supporting_radius,
+        const std::function<void()> &throw_on_cancel_callback
     );
 
     /*! Determine & connect to connection point in tree/outline.

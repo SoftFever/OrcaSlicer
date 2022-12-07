@@ -546,7 +546,7 @@ FillLightning::GeneratorPtr PrintObject::prepare_lightning_infill_data()
             break;
         }
 
-    return has_lightning_infill ? FillLightning::build_generator(std::as_const(*this)) : FillLightning::GeneratorPtr();
+    return has_lightning_infill ? FillLightning::build_generator(std::as_const(*this), [this]() -> void { this->throw_if_canceled(); }) : FillLightning::GeneratorPtr();
 }
 
 void PrintObject::clear_layers()
