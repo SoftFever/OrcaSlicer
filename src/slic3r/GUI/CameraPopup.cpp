@@ -84,7 +84,7 @@ CameraPopup::CameraPopup(wxWindow *parent, MachineObject* obj)
     main_sizer->Add(top_sizer, 0, wxALL, FromDIP(10));
 
     auto url = wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/virtual-camera", L"en");
-    vcamera_guide_link = new wxHyperlinkCtrl(m_panel, wxID_ANY, _L("Show 'Streaming Video' guide page."),
+    vcamera_guide_link = new wxHyperlinkCtrl(m_panel, wxID_ANY, _L("Show \"Live Video\" guide page."),
         url, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
     vcamera_guide_link->Hide();
     main_sizer->Add(vcamera_guide_link, 0, wxALL, FromDIP(15));

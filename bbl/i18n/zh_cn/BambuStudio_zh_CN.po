@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-06 14:23+0800\n"
+"POT-Creation-Date: 2022-12-08 20:42+0800\n"
 "PO-Revision-Date: 2022-12-05 19:51+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1132,20 +1132,20 @@ msgstr ""
 msgid "No printer"
 msgstr "无打印机"
 
-msgid "Heat the nozzle to target temperature"
-msgstr "加热喷嘴到目标温度"
+msgid "Heat the nozzle"
+msgstr "加热喷嘴"
 
 msgid "Cut filament"
 msgstr "切断耗材丝"
 
 msgid "Pull back current filament"
-msgstr "抽回当前耗材丝"
+msgstr "抽回耗材丝"
 
 msgid "Push new filament into extruder"
 msgstr "送出新的耗材丝到挤出机"
 
 msgid "Purge old filament"
-msgstr "清除旧料"
+msgstr "冲刷旧耗材丝"
 
 msgid "?"
 msgstr "?"
@@ -1330,7 +1330,7 @@ msgid "Sending print configuration"
 msgstr "正在发送打印配置"
 
 #, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the device page in %s s"
+msgid "Successfully sent. Will automatically jump to the device page in %ss"
 msgstr "已发送完成，即将自动跳转到设备页面（%s秒）"
 
 msgid "An SD card needs to be inserted before printing via LAN."
@@ -1557,9 +1557,9 @@ msgid "AMS auto switch filament"
 msgstr "AMS自动续料"
 
 msgid ""
-"AMS switches to the same type of filament automatically when the current "
-"filament runs out."
-msgstr "AMS料材耗尽后将自动切换相同类型的料材。"
+"AMS will continue to another spool with the same properties of filament "
+"automatically when current filament runs out"
+msgstr "AMS料材丝耗尽后将自动切换到属性完全相同的耗材丝"
 
 msgid "File"
 msgstr "文件"
@@ -2130,9 +2130,6 @@ msgstr "使用的耗材丝"
 msgid "Flushed"
 msgstr "冲刷"
 
-msgid "Tower"
-msgstr "擦料塔"
-
 msgid "Total"
 msgstr "总计"
 
@@ -2405,20 +2402,17 @@ msgstr "已完成"
 msgid "Calibrating"
 msgstr "校准中"
 
-msgid "Timelapse"
-msgstr "延时摄影"
-
-msgid "Monitoring Recording"
+msgid "Auto-record Monitoring"
 msgstr "监控录像"
 
-msgid "Virtual Camera"
-msgstr "虚拟摄像头"
+msgid "Go Live"
+msgstr "开启直播"
 
 msgid "Resolution"
 msgstr "分辨率"
 
-msgid "Show 'Streaming Video' guide page."
-msgstr ""
+msgid "Show \"Live Video\" guide page."
+msgstr "显示\"直播视频流\"指南"
 
 msgid "720p"
 msgstr ""
@@ -2905,6 +2899,9 @@ msgstr "按月份分组，从最近的开始展示"
 msgid "Show all files, recent first."
 msgstr "显示所有文件，从最近的开始展示"
 
+msgid "Timelapse"
+msgstr "延时摄影"
+
 msgid "Switch to timelapse files."
 msgstr "切换到延时摄影文件列表"
 
@@ -3003,6 +3000,9 @@ msgstr "SD卡"
 
 msgid "SD Card Abnormal"
 msgstr "SD卡异常"
+
+msgid "Virtual Camera"
+msgstr "虚拟摄像头"
 
 msgid "Camera Setting"
 msgstr "相机设置"
@@ -3586,6 +3586,9 @@ msgstr "警告"
 msgid "Invalid data"
 msgstr "无效数据"
 
+msgid "Slicing Canceled"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Slicing Plate %d"
 msgstr "正在切片盘%d"
@@ -3615,10 +3618,9 @@ msgstr "加载项目"
 
 msgid ""
 "Failed to save the project.\n"
-"Please check whether the project file is opened by other programs."
-msgstr ""
-"保存项目失败。\n"
-"请检查项目文件是否被其他程序打开。"
+"Please check whether the folder exists online or if other programs open the "
+"project file."
+msgstr "保存文件失败。请检查目录是否存在，以及是否有其他程序打开了该项目文件。"
 
 msgid "Save project"
 msgstr "保存项目"
@@ -3719,7 +3721,7 @@ msgid "Invalid number"
 msgstr "无效数字"
 
 msgid "Select Bed Type"
-msgstr "选择热床样式"
+msgstr "选择热床类型"
 
 #, boost-format
 msgid "Part name: %1%\n"
@@ -3748,6 +3750,16 @@ msgstr "体积： %1% 毫米³\n"
 #, boost-format
 msgid "Triangles: %1%\n"
 msgstr "三角形：%1%\n"
+
+msgid "Tips:"
+msgstr "提示："
+
+msgid ""
+"\"Fix Model\" feature is currently only on Windows. Please repair the model "
+"on Bambu Studio(windows) or CAD softwares."
+msgstr ""
+"\"修复模型\"功能目前仅适用于Windows。请在Bambu Studio(windows)或CAD软件上修复"
+"模型。"
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s (%s).\n"
@@ -4261,7 +4273,10 @@ msgid "The printer is required to be in the same LAN as Bambu Studio."
 msgstr "打印机需要与Bambu Studio在同一个局域网内。"
 
 msgid "The printer does not support sending to printer SD card."
-msgstr "该打印机不支持发送至SD卡。"
+msgstr "该打印机不支持发送到打印机SD卡。"
+
+msgid "Same as global bed type"
+msgstr "跟随全局热床类型设置"
 
 msgid "Cool Plate"
 msgstr "低温打印热床"
@@ -4668,9 +4683,7 @@ msgid ""
 "You have changed some settings of preset \"%1%\". \n"
 "Would you like to keep these changed settings (new value) after switching "
 "preset?"
-msgstr ""
-"您已更改预设“%1%”的某些设置。\n"
-"切换预设后是否要保留这些更改的设置（新值）？"
+msgstr "您已经更改了预设 \"%1%\"，是否在切换后要保留这些更改的预设参数？"
 
 msgid ""
 "You have changed some preset settings. \n"
@@ -7336,6 +7349,12 @@ msgstr ""
 msgid "Show command help."
 msgstr "显示命令行帮助。"
 
+msgid "UpToDate"
+msgstr ""
+
+msgid "Update the configs values of 3mf to latest."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr "输出模型信息"
 
@@ -7722,6 +7741,35 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Heat the nozzle to target temperature"
+#~ msgstr "加热喷嘴"
+
+#~ msgid "Show 'Streaming Video' guide page."
+#~ msgstr "展示 'Streaming Video' 引导页"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "Successfully sent. Will automatically jump to the device page in %s s"
+#~ msgstr "已发送完成，即将自动跳转到设备页面（%s秒）"
+
+#~ msgid ""
+#~ "AMS switches to the same type of filament automatically when the current "
+#~ "filament runs out."
+#~ msgstr "AMS料材耗尽后将自动切换相同类型的料材。"
+
+#~ msgid "Tower"
+#~ msgstr "擦料塔"
+
+#~ msgid "Monitoring Recording"
+#~ msgstr "监控录像"
+
+#~ msgid ""
+#~ "Failed to save the project.\n"
+#~ "Please check whether the project file is opened by other programs."
+#~ msgstr ""
+#~ "保存项目失败。\n"
+#~ "请检查项目文件是否被其他程序打开。"
 
 #~ msgid "Go to layer"
 #~ msgstr "跳转到层"

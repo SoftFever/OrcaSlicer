@@ -20,7 +20,7 @@ SetBedTypeDialog::SetBedTypeDialog(wxWindow* parent, wxWindowID id, const wxStri
 
     wxBoxSizer* m_sizer_radiobutton = new wxBoxSizer(wxVERTICAL);
 
-    m_rb_default_plate = create_item_radiobox(_L("Default"), this, wxEmptyString, FromDIP(5), btDefault);
+    m_rb_default_plate = create_item_radiobox(_L("Same as global bed type"), this, wxEmptyString, FromDIP(5), btDefault);
     m_sizer_radiobutton->Add(m_rb_default_plate->GetParent(), 1, wxALL, FromDIP(5));
     m_rb_cool_plate = create_item_radiobox(_L("Cool Plate"), this, wxEmptyString, FromDIP(5), btPC);
     m_sizer_radiobutton->Add(m_rb_cool_plate->GetParent(), 1, wxALL, FromDIP(5));

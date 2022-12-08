@@ -14,14 +14,14 @@ static const int UNLOAD_STEP_COUNT = 3;
 static const wxColour AMS_TRAY_DEFAULT_COL = wxColour(255, 255, 255);
 
 static wxString FILAMENT_LOAD_STEP_STRING[LOAD_STEP_COUNT] = {
-    _L("Heat the nozzle to target temperature"), 
+    _L("Heat the nozzle"),
     _L("Cut filament"), 
     _L("Pull back current filament"),
     _L("Push new filament into extruder"),
     _L("Purge old filament"),
 };
 
-static wxString FILAMENT_UNLOAD_STEP_STRING[UNLOAD_STEP_COUNT] = {_L("Heat the nozzle to target temperature"), _L("Cut filament"), _L("Pull back current filament")};
+static wxString FILAMENT_UNLOAD_STEP_STRING[UNLOAD_STEP_COUNT] = {_L("Heat the nozzle"), _L("Cut filament"), _L("Pull back current filament")};
 
 wxDEFINE_EVENT(EVT_AMS_LOAD, SimpleEvent);
 wxDEFINE_EVENT(EVT_AMS_UNLOAD, SimpleEvent);

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-06 14:23+0800\n"
+"POT-Creation-Date: 2022-12-08 20:42+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1157,7 +1157,7 @@ msgstr ""
 msgid "No printer"
 msgstr "Ingen skrivare"
 
-msgid "Heat the nozzle to target temperature"
+msgid "Heat the nozzle"
 msgstr ""
 
 msgid "Cut filament"
@@ -1367,7 +1367,7 @@ msgid "Sending print configuration"
 msgstr "Skicka utskrifts konfiguration"
 
 #, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the device page in %s s"
+msgid "Successfully sent. Will automatically jump to the device page in %ss"
 msgstr ""
 
 msgid "An SD card needs to be inserted before printing via LAN."
@@ -1595,8 +1595,8 @@ msgid "AMS auto switch filament"
 msgstr ""
 
 msgid ""
-"AMS switches to the same type of filament automatically when the current "
-"filament runs out."
+"AMS will continue to another spool with the same properties of filament "
+"automatically when current filament runs out"
 msgstr ""
 
 msgid "File"
@@ -2177,9 +2177,6 @@ msgstr "Använt filament"
 msgid "Flushed"
 msgstr ""
 
-msgid "Tower"
-msgstr ""
-
 msgid "Total"
 msgstr "Totalt"
 
@@ -2450,19 +2447,16 @@ msgstr ""
 msgid "Calibrating"
 msgstr "Kalibrerar"
 
-msgid "Timelapse"
-msgstr "Timelapse"
+msgid "Auto-record Monitoring"
+msgstr ""
 
-msgid "Monitoring Recording"
-msgstr "Övervaknings Inspelning"
-
-msgid "Virtual Camera"
+msgid "Go Live"
 msgstr ""
 
 msgid "Resolution"
 msgstr "Upplösning"
 
-msgid "Show 'Streaming Video' guide page."
+msgid "Show \"Live Video\" guide page."
 msgstr ""
 
 msgid "720p"
@@ -2944,6 +2938,9 @@ msgstr ""
 msgid "Show all files, recent first."
 msgstr ""
 
+msgid "Timelapse"
+msgstr "Timelapse"
+
 msgid "Switch to timelapse files."
 msgstr ""
 
@@ -3041,6 +3038,9 @@ msgid "SD Card"
 msgstr ""
 
 msgid "SD Card Abnormal"
+msgstr ""
+
+msgid "Virtual Camera"
 msgstr ""
 
 msgid "Camera Setting"
@@ -3620,6 +3620,9 @@ msgstr "varningar"
 msgid "Invalid data"
 msgstr "Ogiltlig data"
 
+msgid "Slicing Canceled"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Slicing Plate %d"
 msgstr "Bereder plattan %d"
@@ -3648,7 +3651,8 @@ msgstr "Ladda projekt"
 
 msgid ""
 "Failed to save the project.\n"
-"Please check whether the project file is opened by other programs."
+"Please check whether the folder exists online or if other programs open the "
+"project file."
 msgstr ""
 
 msgid "Save project"
@@ -3779,6 +3783,14 @@ msgstr "Volym: %1% mm³\n"
 #, boost-format
 msgid "Triangles: %1%\n"
 msgstr "Trianglar: %1%\n"
+
+msgid "Tips:"
+msgstr ""
+
+msgid ""
+"\"Fix Model\" feature is currently only on Windows. Please repair the model "
+"on Bambu Studio(windows) or CAD softwares."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s (%s).\n"
@@ -4292,6 +4304,9 @@ msgid "The printer is required to be in the same LAN as Bambu Studio."
 msgstr ""
 
 msgid "The printer does not support sending to printer SD card."
+msgstr ""
+
+msgid "Same as global bed type"
 msgstr ""
 
 msgid "Cool Plate"
@@ -7513,6 +7528,12 @@ msgstr "Bered plattorna: 0-alla plattor, i-platta i, andra-ogiltiga"
 msgid "Show command help."
 msgstr "Visa kommandohjälp."
 
+msgid "UpToDate"
+msgstr ""
+
+msgid "Update the configs values of 3mf to latest."
+msgstr ""
+
 msgid "Output Model Info"
 msgstr "Mata ut modell information"
 
@@ -7838,6 +7859,9 @@ msgid ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 msgstr ""
+
+#~ msgid "Monitoring Recording"
+#~ msgstr "Övervaknings Inspelning"
 
 #~ msgid "Tree support with infill"
 #~ msgstr "Tree support med ifyllnad"
