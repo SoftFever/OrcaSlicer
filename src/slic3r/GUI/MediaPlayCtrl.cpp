@@ -65,8 +65,6 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
 
     m_lan_user = "bblp";
     m_lan_passwd = "bblp";
-
-    wxGetApp().UpdateDarkUIWin(this);
 }
 
 MediaPlayCtrl::~MediaPlayCtrl()

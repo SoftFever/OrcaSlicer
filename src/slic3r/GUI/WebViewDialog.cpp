@@ -37,7 +37,6 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
         url = wxString::Format("file://%s/web/homepage/index.html?lang=%s", from_u8(resources_dir()), strlang);
 
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
-
     
 #if !BBL_RELEASE_TO_PUBLIC
     // Create the button
@@ -64,11 +63,12 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_button_tools = new wxButton(this, wxID_ANY, wxT("Tools"), wxDefaultPosition, wxDefaultSize, 0);
     bSizer_toolbar->Add(m_button_tools, 0, wxALL, 5);
 
+    topsizer->Add(bSizer_toolbar, 0, wxEXPAND, 0);
+    bSizer_toolbar->Show(false);
+
     // Create panel for find toolbar.
     wxPanel* panel = new wxPanel(this);
-    topsizer->Add(bSizer_toolbar, 0, wxEXPAND, 0);
     topsizer->Add(panel, wxSizerFlags().Expand());
-
 
     // Create sizer for panel.
     wxBoxSizer* panel_sizer = new wxBoxSizer(wxVERTICAL);
@@ -77,14 +77,13 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     // Create the info panel
     m_info = new wxInfoBar(this);
     topsizer->Add(m_info, wxSizerFlags().Expand());
-
     // Create the webview
     m_browser = WebView::CreateWebView(this, url);
     if (m_browser == nullptr) {
         wxLogError("Could not init m_browser");
         return;
     }
-
+    m_browser->Hide();
     SetSizer(topsizer);
 
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
@@ -305,7 +304,6 @@ void WebViewPanel::OnIdle(wxIdleEvent& WXUNUSED(evt))
         m_button_stop->Enable(false);
     }
 #endif //BBL_RELEASE_TO_PUBLIC
-
 }
 
 /**
@@ -522,6 +520,8 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
     */
 void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
 {
+    m_browser->Show();
+    Layout();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("%s", "Navigation complete; url='" + evt.GetURL() + "'");
