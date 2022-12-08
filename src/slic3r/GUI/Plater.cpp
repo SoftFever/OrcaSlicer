@@ -2772,8 +2772,7 @@ void Plater::priv::select_view_3D(const std::string& name, bool no_slice)
     if (name == "3D") {
         BOOST_LOG_TRIVIAL(info) << "select view3D";
         if (q->only_gcode_mode() || q->using_exported_file()) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": can not goto preview page when loading gcode/exported_3mf");
-            return;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("goto preview page when loading gcode/exported_3mf");
         }
         set_current_panel(view3D, no_slice);
     }
@@ -6478,6 +6477,8 @@ void Plater::priv::set_project_filename(const wxString& filename)
     //BBS
     wxString project_name = from_u8(full_path.filename().string());
     set_project_name(project_name);
+    if (q->m_only_gcode)
+        q->m_preview_only_filename = std::string((project_name + ".gcode").mb_str());
 
     wxGetApp().mainframe->update_title();
 
@@ -8496,6 +8497,10 @@ bool Plater::open_3mf_file(const fs::path &file_path)
             break;
         }
     }
+
+    // record filename for hint when open exported file
+    m_preview_only_filename = filename;
+
     return true;
 }
 

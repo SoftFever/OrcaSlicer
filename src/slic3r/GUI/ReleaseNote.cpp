@@ -563,8 +563,8 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
     m_button_ok->SetBorderColor(*wxWHITE);
     m_button_ok->SetTextColor(wxColour("#FFFFFE"));
     m_button_ok->SetFont(Label::Body_12);
-    m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_ok->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_ok->SetSize(wxSize(-1, FromDIP(24)));
+    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_ok->SetCornerRadius(FromDIP(12));
 
     m_button_ok->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
@@ -578,8 +578,8 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
     m_button_cancel->SetBackgroundColor(btn_bg_white);
     m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
     m_button_cancel->SetFont(Label::Body_12);
-    m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
-    m_button_cancel->SetMinSize(wxSize(-1, FromDIP(24)));
+    m_button_cancel->SetSize(wxSize(-1, FromDIP(24)));
+    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_cancel->SetCornerRadius(FromDIP(12));
 
     m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {

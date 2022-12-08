@@ -687,6 +687,17 @@ void MainFrame::update_layout()
         m_tabpanel->InsertPage(tp3DEditor, m_plater, _L("Prepare"), std::string("tab_3d_active"), std::string("tab_3d_active"));
         m_tabpanel->InsertPage(tpPreview, m_plater, _L("Preview"), std::string("tab_preview_active"), std::string("tab_preview_active"));
         m_main_sizer->Add(m_tabpanel, 1, wxEXPAND | wxTOP, 0);
+
+        m_tabpanel->Bind(wxCUSTOMEVT_NOTEBOOK_SEL_CHANGED, [this](wxCommandEvent& evt)
+        {
+            // jump to 3deditor under preview_only mode
+            if (evt.GetId() == tp3DEditor){
+                if (!preview_only_hint())
+                    return;
+            }
+            evt.Skip();
+        });
+
         m_plater->Show();
         m_tabpanel->Show();
 
@@ -860,14 +871,6 @@ void MainFrame::init_tabpanel()
                 }
             }
         }
-        else if (new_sel == tp3DEditor) {
-            if (m_plater && (m_plater->only_gcode_mode() || (m_plater->using_exported_file()))) {
-                e.Veto();
-                BOOST_LOG_TRIVIAL(info) << boost::format("skipped tab switch from %1% to %2% in preview mode")%old_sel %new_sel;
-                wxCommandEvent *evt = new wxCommandEvent(EVT_PREVIEW_ONLY_MODE_HINT);
-                wxQueueEvent(m_plater, evt);
-            }
-        }
     });
 
 #ifdef __WXMSW__
@@ -963,6 +966,30 @@ void MainFrame::init_tabpanel()
             m_plater->on_filaments_change(full_config.option<ConfigOptionStrings>("filament_colour")->values.size());
         }
     }
+}
+
+bool MainFrame::preview_only_hint()
+{
+    if (m_plater && (m_plater->only_gcode_mode() || (m_plater->using_exported_file()))) {
+        BOOST_LOG_TRIVIAL(info) << boost::format("skipped tab switch from %1% to %2% in preview mode")%m_tabpanel->GetSelection() %tp3DEditor;
+
+        ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Warning"));
+        confirm_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
+            preview_only_to_editor = true;
+        });
+        confirm_dlg.update_btn_label(_L("Yes"), _L("No"));
+        auto filename = wxString((m_plater->get_preview_only_filename()).c_str(), wxConvUTF8);
+        confirm_dlg.update_text(filename + _L(" needs to be closed before creating a new model. Do you want to continue?"));
+        confirm_dlg.on_show();
+        if (preview_only_to_editor) {
+            m_plater->new_project();
+            preview_only_to_editor = false;
+        }
+
+        return false;
+    }
+
+    return true;
 }
 
 #ifdef WIN32

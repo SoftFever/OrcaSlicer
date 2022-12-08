@@ -665,6 +665,8 @@ public:
     static bool has_illegal_filename_characters(const std::string& name);
     static void show_illegal_characters_warning(wxWindow* parent);
 
+    std::string get_preview_only_filename() { return m_preview_only_filename; };
+
 private:
     struct priv;
     std::unique_ptr<priv> p;
@@ -680,6 +682,7 @@ private:
     bool m_only_gcode { false };
     bool m_exported_file { false };
     bool skip_thumbnail_invalid { false };
+    std::string m_preview_only_filename;
     int m_valid_plates_count { 0 };
 
     void suppress_snapshots();

@@ -178,6 +178,9 @@ class MainFrame : public DPIFrame
         eSlicePlate = 1,
     };
 
+    //jump to editor under preview only mode
+    bool preview_only_to_editor = false;
+
 protected:
     virtual void on_dpi_changed(const wxRect &suggested_rect) override;
     virtual void on_sys_color_changed() override;
@@ -289,6 +292,8 @@ public:
     void        load_config(const DynamicPrintConfig& config);
     //BBS: jump to monitor
     void        jump_to_monitor(std::string dev_id = "");
+    //BBS: hint when jump to 3Deditor under preview only mode
+    bool        preview_only_hint();
     // Select tab in m_tabpanel
     // When tab == -1, will be selected last selected tab
     //BBS: GUI refactor
