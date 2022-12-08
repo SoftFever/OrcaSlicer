@@ -26,15 +26,11 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
 
-    m_status_text = new wxStaticText(m_self, wxID_ANY, "", wxDefaultPosition, wxSize(m_self->FromDIP(280), -1), 0);
+    m_status_text = new wxStaticText(m_self, wxID_ANY, wxEmptyString);
     m_status_text->SetForegroundColour(wxColour(107, 107, 107));
     m_status_text->SetFont(::Label::Body_13);
-    m_status_text->Wrap(m_self->FromDIP(280));
     m_status_text->SetSize(wxSize(m_self->FromDIP(280), m_self->FromDIP(46)));
     m_status_text->SetMaxSize(wxSize(m_self->FromDIP(280), m_self->FromDIP(46)));
-
-    //m_status_text->SetSize()
-   
 
     m_prog = new wxGauge(m_self, wxID_ANY, 100, wxDefaultPosition, wxSize(-1, m_self->FromDIP(6)), wxGA_HORIZONTAL);
     m_prog->SetValue(0);
@@ -201,38 +197,43 @@ bool BBLStatusBarSend::is_english_text(wxString str)
     return true;
 }
 
-wxString BBLStatusBarSend::format_text(wxStaticText* st, wxString str, int warp)
+bool BBLStatusBarSend::format_text(wxStaticText* dc, int width, const wxString& text, wxString& multiline_text)
 {
-    int index = 0;
-    if (!str.empty()) {
-        while ((index = str.find('\n', index)) != string::npos) {
-            str.erase(index, 1);
+    bool multiline = false;
+    multiline_text = text;
+    if (width > 0 && dc->GetTextExtent(text).x > width) {
+        size_t start = 0;
+        while (true) {
+            size_t idx = size_t(-1);
+            for (size_t i = start; i < multiline_text.Len(); i++) {
+                if (multiline_text[i] == ' ') {
+                    if (dc->GetTextExtent(multiline_text.SubString(start, i)).x < width)
+                        idx = i;
+                    else {
+                        if (idx == size_t(-1)) idx = i;
+                        break;
+                    }
+                }
+            }
+            if (idx == size_t(-1)) break;
+            multiline = true;
+            multiline_text[idx] = '\n';
+            start = idx + 1;
+            if (dc->GetTextExtent(multiline_text.Mid(start)).x < width) break;
         }
     }
-
-    wxString out_txt = str;
-    wxString count_txt = "";
-    int      new_line_pos = 0;
-
-    for (int i = 0; i < str.length(); i++) {
-        auto text_size = st->GetTextExtent(count_txt);
-        if (text_size.x < warp) {
-            count_txt += str[i];
-        }
-        else {
-            out_txt.insert(i - 1, '\n');
-            count_txt = "";
-        }
-    }
-    return out_txt;
+    return multiline;
+    //return dc->GetTextExtent(multiline_text);
 }
+
 
 void BBLStatusBarSend::set_status_text(const wxString& txt)
 {
     //auto txtss = "Sending the printing task has timed out.\nPlease try again!";
     //auto txtss = "The printing project is being uploaded... 25%%";
     //m_status_text->SetLabelText(txtss);
-    wxString str = format_text(m_status_text,txt,280);
+    wxString str;
+    format_text(m_status_text, m_self->FromDIP(280), txt, str);
     m_status_text->SetLabelText(str);
     //if (is_english_text(str)) m_status_text->Wrap(m_self->FromDIP(280));
 }

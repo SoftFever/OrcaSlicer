@@ -58,7 +58,7 @@ public:
     inline void reset_cancel_callback() { set_cancel_callback(); }
     wxPanel *   get_panel();
     bool        is_english_text(wxString str);
-    wxString format_text(wxStaticText* st, wxString str, int warp);
+    bool        format_text(wxStaticText* dc, int width, const wxString& text, wxString& multiline_text);
     void        set_status_text(const wxString& txt);
     void        set_percent_text(const wxString &txt);
     void        msw_rescale();
