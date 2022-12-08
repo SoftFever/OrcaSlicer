@@ -418,7 +418,7 @@ void PartPlate::render_background(bool force_default_color) const {
 	glsafe(::glDepthMask(GL_TRUE));
 }
 
-void PartPlate::render_logo_texture(GLTexture &logo_texture, bool bottom) const
+void PartPlate::render_logo_texture(GLTexture &logo_texture, const GeometryBuffer& logo_buffer, bool bottom, unsigned int vbo_id) const
 {
 	//check valid
 	if (logo_texture.unsent_compressed_data_available()) {
@@ -426,12 +426,10 @@ void PartPlate::render_logo_texture(GLTexture &logo_texture, bool bottom) const
 		logo_texture.send_compressed_data_to_gpu();
 	}
 
-	if (m_logo_triangles.get_vertices_count() > 0) {
+	if (logo_buffer.get_vertices_count() > 0) {
 		GLShaderProgram* shader = wxGetApp().get_shader("printbed");
 		if (shader != nullptr) {
 			shader->start_using();
-			//shader->set_uniform("transparent_background", bottom);
-			//shader->set_uniform("svg_source", boost::algorithm::iends_with(m_texture.get_source(), ".svg"));
 			shader->set_uniform("transparent_background", 0);
 			shader->set_uniform("svg_source", 0);
 
@@ -440,7 +438,7 @@ void PartPlate::render_logo_texture(GLTexture &logo_texture, bool bottom) const
 			if (bottom)
 				glsafe(::glFrontFace(GL_CW));
 
-			unsigned int stride = m_logo_triangles.get_vertex_data_size();
+			unsigned int stride = logo_buffer.get_vertex_data_size();
 
 			GLint position_id = shader->get_attrib_location("v_position");
 			GLint tex_coords_id = shader->get_attrib_location("v_tex_coords");
@@ -453,22 +451,15 @@ void PartPlate::render_logo_texture(GLTexture &logo_texture, bool bottom) const
 
 			// show the temporary texture while no compressed data is available
 			GLuint tex_id = (GLuint)logo_texture.get_id();
-			unsigned int* vbo_id = const_cast<unsigned int*>(&m_vbo_id);
-			if (*vbo_id == 0) {
-				glsafe(::glGenBuffers(1, vbo_id));
-				glsafe(::glBindBuffer(GL_ARRAY_BUFFER, *vbo_id));
-				glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)m_logo_triangles.get_vertices_data_size(), (const GLvoid*)m_logo_triangles.get_vertices_data(), GL_STATIC_DRAW));
-				glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
-			}
 
 			glsafe(::glBindTexture(GL_TEXTURE_2D, tex_id));
-			glsafe(::glBindBuffer(GL_ARRAY_BUFFER, *vbo_id));
+			glsafe(::glBindBuffer(GL_ARRAY_BUFFER, vbo_id));
 
 			if (position_id != -1)
-				glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)m_logo_triangles.get_position_offset()));
+				glsafe(::glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)logo_buffer.get_position_offset()));
 			if (tex_coords_id != -1)
-				glsafe(::glVertexAttribPointer(tex_coords_id, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)m_logo_triangles.get_tex_coords_offset()));
-			glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)m_logo_triangles.get_vertices_count()));
+				glsafe(::glVertexAttribPointer(tex_coords_id, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(intptr_t)logo_buffer.get_tex_coords_offset()));
+			glsafe(::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)logo_buffer.get_vertices_count()));
 
 			if (tex_coords_id != -1)
 				glsafe(::glDisableVertexAttribArray(tex_coords_id));
@@ -554,16 +545,39 @@ void PartPlate::render_logo(bool bottom) const
 
 			//canvas.request_extra_frame();
 		}
-
-		render_logo_texture(m_partplate_list->m_logo_texture, bottom);
+		
+		if (m_vbo_id == 0) {
+			unsigned int* vbo_id_ptr = const_cast<unsigned int*>(&m_vbo_id);
+			glsafe(::glGenBuffers(1, vbo_id_ptr));
+			glsafe(::glBindBuffer(GL_ARRAY_BUFFER, *vbo_id_ptr));
+			glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)m_logo_triangles.get_vertices_data_size(), (const GLvoid*)m_logo_triangles.get_vertices_data(), GL_STATIC_DRAW));
+			glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+		}
+		if (m_vbo_id != 0 && m_logo_triangles.get_vertices_count() > 0)
+			render_logo_texture(m_partplate_list->m_logo_texture, m_logo_triangles, bottom, m_vbo_id);
 		return;
 	}
 
-	PartPlateList::load_bedtype_textures();
+	m_partplate_list->load_bedtype_textures();
 
 	// btDefault should be skipped
-	int bed_type_idx = (int)get_bed_type() - 1;
-	render_logo_texture(PartPlateList::bed_textures[bed_type_idx], bottom);
+	int bed_type_idx = (int)get_bed_type();
+	for (auto &part : m_partplate_list->bed_texture_info[bed_type_idx].parts) {
+		if (part.texture) {
+			if (part.buffer && part.buffer->get_vertices_count() > 0
+				//&& part.vbo_id != 0
+				) {
+				if (part.offset.x() != m_origin.x() || part.offset.y() != m_origin.y()) {	
+					part.offset = Vec2d(m_origin.x(), m_origin.y());
+					part.update_buffer();
+				}
+				render_logo_texture(*(part.texture),
+									*(part.buffer),
+									bottom,
+									part.vbo_id);
+			}
+		}
+	}
 }
 
 void PartPlate::render_exclude_area(bool force_default_color) const {
@@ -1907,6 +1921,9 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, Ve
 		generate_logo_polygon(logo_poly);
 		if (!m_logo_triangles.set_from_triangles(triangulate_expolygon_2f(logo_poly, NORMALS_UP), GROUND_Z+0.02f))
 			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create logo triangles\n";
+		else {
+			;
+		}
 
 		ExPolygon poly;
 		/*for (const Vec2d& p : m_shape) {
@@ -2545,7 +2562,19 @@ void PartPlateList::release_icon_textures()
 	//reset
 	PartPlateList::is_load_bedtype_textures = false;
 	for (int i = 0; i < btCount; i++) {
-		PartPlateList::bed_textures[i].reset();
+		for (auto& part: bed_texture_info[i].parts) {
+			if (part.texture) {
+				part.texture->reset();
+				delete part.texture;
+			}
+			if (part.vbo_id != 0) {
+				glsafe(::glDeleteBuffers(1, &part.vbo_id));
+				part.vbo_id = 0;
+			}
+			if (part.buffer) {
+				delete part.buffer;
+			}
+		}
 	}
 }
 
@@ -4354,25 +4383,88 @@ void PartPlateList::print() const
 
 bool PartPlateList::is_load_bedtype_textures = false;
 
-static std::string bed_textures_filenames[btCount] = {
-    "bbl-3dp-PC-logo.svg",
-    "bbl-3dp-EP-logo.svg",
-    "bbl-3dp-PEI-logo.svg",
-    "bbl-3dp-PTE-logo.svg"
-};
+void PartPlateList::BedTextureInfo::TexturePart::update_buffer()
+{
+	if (w == 0 || h == 0) {
+		return;
+	}
 
-GLTexture PartPlateList::bed_textures[(unsigned int)btCount];
+	Pointfs rectangle;
+	rectangle.push_back(Vec2d(x, y));
+	rectangle.push_back(Vec2d(x+w, y));
+	rectangle.push_back(Vec2d(x+w, y+h));
+	rectangle.push_back(Vec2d(x, y+h));
+	ExPolygon poly;
+	
+	for (int i = 0; i < 4; i++) {
+		const Vec2d & p = rectangle[i];
+		for (auto& p : rectangle) {
+			Vec2d pp = Vec2d(p.x() + offset.x(), p.y() + offset.y());
+			poly.contour.append({ scale_(pp(0)), scale_(pp(1)) });
+		}
+	}
+
+	if (!buffer)
+		buffer = new GeometryBuffer();
+
+	if (buffer->set_from_triangles(triangulate_expolygon_2f(poly, NORMALS_UP), GROUND_Z + 0.02f)) {
+		if (vbo_id != 0) {
+			glsafe(::glDeleteBuffers(1, &vbo_id));
+			vbo_id = 0;
+		}
+		unsigned int* vbo_id_ptr = const_cast<unsigned int*>(&vbo_id);
+		glsafe(::glGenBuffers(1, vbo_id_ptr));
+		glsafe(::glBindBuffer(GL_ARRAY_BUFFER, *vbo_id_ptr));
+		glsafe(::glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)buffer->get_vertices_data_size(), (const GLvoid*)buffer->get_vertices_data(), GL_STATIC_DRAW));
+		glsafe(::glBindBuffer(GL_ARRAY_BUFFER, 0));
+	} else {
+		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create buffer triangles\n";
+	}
+}
+
+void PartPlateList::init_bed_type_info()
+{
+	BedTextureInfo::TexturePart pc_part1(  5, 130,  10, 110, "bbl_bed_pc_left.svg");
+	BedTextureInfo::TexturePart pc_part2( 74, -12, 150,  12, "bbl_bed_pc_bottom.svg");
+	BedTextureInfo::TexturePart ep_part1(  4,  87,  12, 153, "bbl_bed_ep_left.svg");
+	BedTextureInfo::TexturePart ep_part2( 72, -11, 150,  12, "bbl_bed_ep_bottom.svg");
+	BedTextureInfo::TexturePart pei_part1( 6,  50,  12, 190, "bbl_bed_pei_left.svg");
+	BedTextureInfo::TexturePart pei_part2(72, -11, 150,  12, "bbl_bed_pei_bottom.svg");
+	BedTextureInfo::TexturePart pte_part1( 6,  40,  12, 200, "bbl_bed_pte_left.svg");
+	BedTextureInfo::TexturePart pte_part2(72, -11, 150,  12, "bbl_bed_pte_bottom.svg");
+
+	bed_texture_info[btPC].parts.push_back(pc_part1);
+	bed_texture_info[btPC].parts.push_back(pc_part2);
+	bed_texture_info[btEP].parts.push_back(ep_part1);
+	bed_texture_info[btEP].parts.push_back(ep_part2);
+	bed_texture_info[btPEI].parts.push_back(pei_part1);
+	bed_texture_info[btPEI].parts.push_back(pei_part2);
+	bed_texture_info[btPTE].parts.push_back(pte_part1);
+	bed_texture_info[btPTE].parts.push_back(pte_part2);
+
+	for (int i = 0; i < btCount; i++) {
+		for (int j = 0; j < bed_texture_info[i].parts.size(); j++) {
+			bed_texture_info[i].parts[j].update_buffer();
+		}
+	}
+}
 
 void PartPlateList::load_bedtype_textures()
 {
 	if (PartPlateList::is_load_bedtype_textures) return;
 
+	init_bed_type_info();
 	GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
 	GLint logo_tex_size = (max_tex_size < 2048) ? max_tex_size : 2048;
 	for (int i = 0; i < (unsigned int)btCount; ++i) {
-		std::string filename = resources_dir() + "/images/" + bed_textures_filenames[i];
-		if (boost::filesystem::exists(filename)) {
-			if (!PartPlateList::bed_textures[i].load_from_svg_file(filename, true, true, true, logo_tex_size)) {
+		for (int j = 0; j < bed_texture_info[i].parts.size(); j++) {
+			std::string filename = resources_dir() + "/images/" + bed_texture_info[i].parts[j].filename;
+			if (boost::filesystem::exists(filename)) {
+				PartPlateList::bed_texture_info[i].parts[j].texture = new GLTexture();
+				if (!PartPlateList::bed_texture_info[i].parts[j].texture->load_from_svg_file(filename, true, true, true, logo_tex_size)) {
+					BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!") % filename;
+				}
+			} else {
 				BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!") % filename;
 			}
 		}

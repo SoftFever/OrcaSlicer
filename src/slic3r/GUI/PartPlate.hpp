@@ -166,7 +166,7 @@ private:
     void calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer);
     void render_background(bool force_default_color = false) const;
     void render_logo(bool bottom) const;
-    void render_logo_texture(GLTexture& logo_texture, bool bottom) const;
+    void render_logo_texture(GLTexture& logo_texture, const GeometryBuffer& logo_buffer, bool bottom, unsigned int vbo_id) const;
     void render_exclude_area(bool force_default_color) const;
     //void render_background_for_picking(const float* render_color) const;
     void render_grid(bool bottom) const;
@@ -508,6 +508,47 @@ class PartPlateList : public ObjectBase
     friend class PartPlate;
 
 public:
+    class BedTextureInfo {
+    public:
+        class TexturePart {
+        public:
+            // position
+            int x;
+            int y;
+            int w;
+            int h;
+            unsigned int vbo_id;
+            std::string filename;
+            GLTexture* texture { nullptr };
+            Vec2d offset;
+            GeometryBuffer* buffer { nullptr };
+            TexturePart(int xx, int yy, int ww, int hh, std::string file) {
+                x = xx; y = yy;
+                w = ww; h = hh;
+                filename = file;
+                texture = nullptr;
+                buffer = nullptr;
+                vbo_id = 0;
+                offset = Vec2d(0, 0);
+            }
+
+            TexturePart(const TexturePart& part) {
+                this->x = part.x;
+                this->y = part.y;
+                this->w = part.w;
+                this->h = part.h;
+                this->offset = part.offset;
+                this->buffer    = part.buffer;
+                this->filename  = part.filename;
+                this->texture   = part.texture;
+                this->vbo_id    = part.vbo_id;
+            }
+
+            void update_buffer();
+        };
+        std::vector<TexturePart> parts;
+    };
+
     static const unsigned int MAX_PLATES_COUNT = MAX_PLATE_COUNT;
     static GLTexture bed_textures[(unsigned int)btCount];
     static bool is_load_bedtype_textures;
@@ -696,7 +737,10 @@ public:
         //ar(m_plate_width, m_plate_depth, m_plate_height, m_plate_count, m_current_plate);
     }
 
-    static void load_bedtype_textures();
+    void init_bed_type_info();
+    void load_bedtype_textures();
+
+    BedTextureInfo bed_texture_info[btCount];
 };
 
 } // namespace GUI
