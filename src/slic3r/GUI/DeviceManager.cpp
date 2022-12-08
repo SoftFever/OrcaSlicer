@@ -1319,6 +1319,19 @@ int MachineObject::command_upgrade_firmware(FirmwareInfo info)
     return this->publish_json(j.dump());
 }
 
+int MachineObject::command_upgrade_module(std::string url, std::string module_type, std::string version)
+{
+    json j;
+    j["upgrade"]["command"] = "start";
+    j["upgrade"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["upgrade"]["url"] = url;
+    j["upgrade"]["module"] = module_type;
+    j["upgrade"]["version"] = version;
+    j["upgrade"]["src_id"] = 1;
+
+    return this->publish_json(j.dump());
+}
+
 int MachineObject::command_xyz_abs()
 {
     return this->publish_gcode("G90 \n");
@@ -2039,11 +2052,6 @@ int MachineObject::parse_json(std::string payload)
     parse_msg_count++;
     std::chrono::system_clock::time_point clock_start = std::chrono::system_clock::now();
     this->set_online_state(true);
-
-    std::chrono::system_clock::time_point curr_time = std::chrono::system_clock::now();
-    auto diff1 = std::chrono::duration_cast<std::chrono::microseconds>(curr_time - last_update_time);
-
-    BOOST_LOG_TRIVIAL(info) << "interval = " << diff1.count();
 
     /* update last received time */
     last_update_time = std::chrono::system_clock::now();

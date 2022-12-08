@@ -101,6 +101,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         return;
     }
     m_machine = machine;
+    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl switch machine: " << m_machine;
     m_failed_retry = 0;
     std::string stream_url;
     if (get_stream_url(&stream_url)) {

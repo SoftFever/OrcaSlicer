@@ -34,11 +34,11 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED              -25
 #define BAMBU_NETWORK_ERR_GET_MODEL_PUBLISH_PAGE        -26
 #define BAMBU_NETWORK_ERR_GET_MODEL_MALL_HOME_PAGE      -27
+#define BAMBU_NETWORK_ERR_GET_USER_INFO                 -28
 
 
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
-
 #define BAMBU_NETWORK_AGENT_VERSION         "01.04.00.12"
 
 

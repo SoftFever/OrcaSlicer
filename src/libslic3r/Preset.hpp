@@ -300,10 +300,11 @@ public:
     std::string get_filament_type(std::string &display_filament_type);
     std::string get_printer_type(PresetBundle *preset_bundle); // get edited preset type
     std::string get_current_printer_type(PresetBundle *preset_bundle); // get current preset type
+    bool is_custom_defined();
 
     bool is_bbl_vendor_preset(PresetBundle *preset_bundle);
 
-    bool is_custom_defined();
+
 
     static const std::vector<std::string>&  print_options();
     static const std::vector<std::string>&  filament_options();

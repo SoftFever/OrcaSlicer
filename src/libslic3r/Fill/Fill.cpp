@@ -356,8 +356,8 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
 				surface_fills.back().region_id = surface_fills[i].region_id;
 				surface_fills.back().surface.surface_type = stInternalSolid;
 				surface_fills.back().surface.thickness = surface_fills[i].surface.thickness;
-				surface_fills.back().region_id_group       = surface_fills[i].region_id_group;
-				surface_fills.back().no_overlap_expolygons = surface_fills[i].no_overlap_expolygons;
+                surface_fills.back().region_id_group       = surface_fills[i].region_id_group;
+                surface_fills.back().no_overlap_expolygons = surface_fills[i].no_overlap_expolygons;
 				for (size_t j = 0; j < narrow_expolygons_index.size(); j++) {
 					// BBS: move the narrow expolygons to new surface_fills.back();
 					surface_fills.back().expolygons.emplace_back(std::move(surface_fills[i].expolygons[narrow_expolygons_index[j]]));

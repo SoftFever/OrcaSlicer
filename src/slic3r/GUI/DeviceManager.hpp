@@ -621,6 +621,7 @@ public:
     int command_upgrade_confirm();
     int command_consistency_upgrade_confirm();
     int command_upgrade_firmware(FirmwareInfo info);
+    int command_upgrade_module(std::string url, std::string module_type, std::string version);
 
     /* control apis */
     int command_xyz_abs();

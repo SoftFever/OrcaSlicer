@@ -187,19 +187,6 @@ protected:
 #endif
 
 public:
-    MainFrame();
-    ~MainFrame() = default;
-
-    //BBS GUI refactor
-    enum TabPosition
-    {
-        tpHome = 0,
-        tp3DEditor = 1,
-        //tpSettings = 1,
-        tpPreview = 2,
-        tpMonitor = 3,
-        tpProject = 4,
-    };
 
     //BBS GUI refactor
     enum PrintSelectType
@@ -213,6 +200,21 @@ public:
         eSendToPrinterAll = 6,
         eUploadGcode = 7,
         eExportAllSlicedFile = 8
+    };
+
+    MainFrame();
+    ~MainFrame() = default;
+
+    //BBS GUI refactor
+    enum TabPosition
+    {
+        tpHome = 0,
+        tp3DEditor = 1,
+        //tpSettings = 1,
+        tpPreview = 2,
+        tpMonitor = 3,
+        tpProject = 4,
+        toDebugTool = 5,
     };
 
     //BBS: add slice&&print status update logic
@@ -240,7 +242,7 @@ public:
 
 	void        update_title_colour_after_set_title();
     void        show_option(bool show);
-    void init_tabpanel();
+    void        init_tabpanel();
     void        create_preset_tabs();
     //BBS: GUI refactor
     void        add_created_tab(Tab* panel, const std::string& bmp_name = "");

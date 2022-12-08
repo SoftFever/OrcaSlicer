@@ -2722,8 +2722,9 @@ void GUI_App::UpdateDarkUI(wxWindow* window, bool highlited/* = false*/, bool ju
             return;
     }
 
-    if (m_is_dark_mode != dark_mode())
+    if (m_is_dark_mode != dark_mode() )
         m_is_dark_mode = dark_mode();
+    
 
     if (m_is_dark_mode) {
         auto original_col = window->GetBackgroundColour();
@@ -4372,7 +4373,7 @@ bool GUI_App::load_language(wxString language, bool initial)
     else if (initial) {
         // bbs supported languages
         //TODO: use a global one with Preference
-        wxLanguage supported_languages[] {
+        wxLanguage supported_languages[]{
             wxLANGUAGE_ENGLISH,
             wxLANGUAGE_CHINESE_SIMPLIFIED,
             wxLANGUAGE_GERMAN,
@@ -4380,7 +4381,7 @@ bool GUI_App::load_language(wxString language, bool initial)
             wxLANGUAGE_SPANISH,
             wxLANGUAGE_SWEDISH,
             wxLANGUAGE_DUTCH,
-            wxLANGUAGE_HUNGARIAN };
+            wxLANGUAGE_HUNGARIAN};
         std::string cur_language = app_config->get("language");
         if (cur_language != "") {
             //cleanup the language wrongly set before
