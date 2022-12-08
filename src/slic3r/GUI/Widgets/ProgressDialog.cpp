@@ -77,7 +77,6 @@ ProgressDialog::ProgressDialog(const wxString &title, const wxString &message, i
     Create(title, message, maximum, parent, style);
     Bind(wxEVT_PAINT, &ProgressDialog::OnPaint, this);
     Bind(wxEVT_CLOSE_WINDOW, &ProgressDialog::OnClose, this);
-    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void ProgressDialog::OnPaint(wxPaintEvent &evt) {}
@@ -260,6 +259,8 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(16));
     m_sizer_main->Add(m_sizer_bottom, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(28));
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(10));
+
+    wxGetApp().UpdateDlgDarkUI(this);
 
     SetSizer(m_sizer_main);
     Layout();
