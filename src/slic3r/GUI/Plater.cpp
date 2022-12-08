@@ -10944,6 +10944,11 @@ void Plater::show_object_info()
     auto mesh_errors = p->sidebar->obj_list()->get_mesh_errors_info(&info_manifold, &non_manifold_edges);
     info_text += into_u8(info_manifold);
 
+    #ifdef __APPLE__
+    if (non_manifold_edges > 0) {
+        info_text += into_u8("\n" + _L("Tips:") + "\n" +_L("\"Fix Model\" feature is currently only on Windows. Please repair the model on Bambu Studio(windows) or CAD softwares."));
+    }
+    #endif //APPLE
     notify_manager->bbl_show_objectsinfo_notification(info_text, is_windows10()&&(non_manifold_edges > 0), !(p->current_panel == p->view3D));
 }
 
