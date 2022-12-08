@@ -390,8 +390,12 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
         else if (strCmd == "network_plugin_install") {
             std::string sAction = j["data"]["action"];
 
-            if (sAction == "yes")
-                InstallNetplugin = true;
+            if (sAction == "yes") {
+                if (!network_plugin_ready)
+                    InstallNetplugin = true;
+                else //already ready
+                    InstallNetplugin = false;
+            }
             else
                 InstallNetplugin = false;
         }
@@ -882,8 +886,8 @@ int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, 
         {
             if (jLocal.contains("inherits")) {
                 std::string FName = jLocal["inherits"];
-               
-                if (!pFilaList.contains(FName)) 
+
+                if (!pFilaList.contains(FName))
                     return -1;
 
                 std::string FPath = pFilaList[FName]["sub_path"];
@@ -1088,6 +1092,7 @@ int GuideFrame::LoadProfile()
 
         m_ProfileJson["network_plugin_install"] = wxGetApp().app_config->get("app","installed_networking");
         m_ProfileJson["network_plugin_compability"] = wxGetApp().is_compatibility_version() ? "1" : "0";
+        network_plugin_ready = wxGetApp().is_compatibility_version();
     }
     catch (std::exception &e) {
         //wxLogMessage("GUIDE: load_profile_error  %s ", e.what());
@@ -1379,12 +1384,12 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
         json tFilaList = json::object();
         nsize          = pFilament.size();
 
-        for (int n = 0; n < nsize; n++) { 
+        for (int n = 0; n < nsize; n++) {
             json OneFF = pFilament.at(n);
-            
+
             std::string s1    = OneFF["name"];
             std::string s2    = OneFF["sub_path"];
-        
+
             tFilaList[s1] = OneFF;
         }
 
@@ -1519,7 +1524,7 @@ bool GuideFrame::LoadFile(std::string jPath, std::string &sContent)
 int GuideFrame::DownloadPlugin()
 {
     return wxGetApp().download_plugin(
-        "plugins", "network_plugin.zip", 
+        "plugins", "network_plugin.zip",
         [this](int status, int percent, bool& cancel) {
             return ShowPluginStatus(status, percent, cancel);
         }
@@ -1528,7 +1533,7 @@ int GuideFrame::DownloadPlugin()
 
 int GuideFrame::InstallPlugin()
 {
-    return wxGetApp().install_plugin("plugins", "network_plugin.zip", 
+    return wxGetApp().install_plugin("plugins", "network_plugin.zip",
         [this](int status, int percent, bool &cancel) {
             return ShowPluginStatus(status, percent, cancel);
         }
