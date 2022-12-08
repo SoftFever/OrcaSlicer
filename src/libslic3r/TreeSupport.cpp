@@ -844,9 +844,13 @@ void TreeSupport::detect_object_overhangs()
             if (layer->lower_layer == nullptr) {
                 for (auto& slice : layer->lslices) {
                     auto bbox_size = get_extents(slice).size();
-                    if (slice.area() > area_thresh_well_supported
-                        || (bbox_size.x()>length_thresh_well_supported && bbox_size.y()>length_thresh_well_supported))
+                    if (/*slice.area() > area_thresh_well_supported || */
+                        (bbox_size.x()>length_thresh_well_supported && bbox_size.y()>length_thresh_well_supported))
                         regions_well_supported.emplace_back(slice);
+                    else if(g_config_support_sharp_tails){
+                        layer->sharp_tails.push_back(slice);
+                        layer->sharp_tails_height.insert({ &slice, layer->height });
+                    }
                 }
                 continue;
             }
@@ -932,12 +936,13 @@ void TreeSupport::detect_object_overhangs()
                         // 2.2 If sharp tail below, check whether it support this region enough.
                         float       supported_area = area(supported_by_lower);
                         BoundingBox bbox           = get_extents(supported_by_lower);
-
+#if 0
+                        // judge by area isn't reliable, failure cases include 45 degree rotated cube
                         if (supported_area > area_thresh_well_supported) {
                             is_sharp_tail = false;
                             break;
                         }
-
+#endif
                         if (bbox.size().x() > length_thresh_well_supported && bbox.size().y() > length_thresh_well_supported) {
                             is_sharp_tail = false;
                             break;
@@ -950,7 +955,6 @@ void TreeSupport::detect_object_overhangs()
                                 break;
                             }
                         }
-
                         if (accum_height >= sharp_tail_max_support_height) {
                             is_sharp_tail = false;
                             break;
@@ -1061,7 +1065,7 @@ void TreeSupport::detect_object_overhangs()
             }
             dist_max = std::max(dist_max, dist_pt);
         }
-        if (dist_max > scale_(5)) {  // this cluster is cantilever, add all expolygons to sharp tail
+        if (dist_max > scale_(3)) {  // this cluster is cantilever if the farmost point is larger than 3mm away from base
             for (auto it = cluster.layer_overhangs.begin(); it != cluster.layer_overhangs.end(); it++) {
                 int  layer_nr = it->first;
                 auto p_overhang = it->second;

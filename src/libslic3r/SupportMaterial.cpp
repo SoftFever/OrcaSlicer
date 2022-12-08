@@ -1518,6 +1518,16 @@ static inline Polygons detect_overhangs(
     {
         // Don't fill in the holes. The user may apply a higher raft_expansion if one wants a better 1st layer adhesion.
         overhang_polygons = to_polygons(layer.lslices);
+
+        for (auto& slice : layer.lslices) {
+            auto bbox_size = get_extents(slice).size();
+            if (g_config_support_sharp_tails &&
+                !(bbox_size.x() > length_thresh_well_supported && bbox_size.y() > length_thresh_well_supported))
+            {
+                layer.sharp_tails.push_back(slice);
+                layer.sharp_tails_height.insert({ &slice, layer.height });
+            }
+        }
     }
     else if (! layer.regions().empty())
     {
@@ -1609,12 +1619,12 @@ static inline Polygons detect_overhangs(
                             supported_area += temp.area();
                             bbox.merge(get_extents(temp));
                         }
-
+#if 0
                         if (supported_area > area_thresh_well_supported) {
                             is_sharp_tail = false;
                             break;
                         }
-
+#endif
                         if (bbox.size().x() > length_thresh_well_supported && bbox.size().y() > length_thresh_well_supported) {
                             is_sharp_tail = false;
                             break;
