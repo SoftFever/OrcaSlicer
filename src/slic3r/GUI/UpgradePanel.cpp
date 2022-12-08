@@ -111,8 +111,9 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     m_ams_content_sizer->Add(m_ahb_panel, 0, wxEXPAND, 0);
    
 
-    m_ams_info_sizer = new wxGridSizer(0, 2, FromDIP(30), FromDIP(30));
-
+    m_ams_info_sizer = new wxFlexGridSizer(0, 2, FromDIP(30), FromDIP(30));
+    m_ams_info_sizer->SetFlexibleDirection(wxHORIZONTAL);
+    m_ams_info_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_ALL);
 
     for (auto i = 0; i < 4; i++) {
         auto amspanel = new AmsPanel(this, wxID_ANY);
@@ -132,6 +133,29 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
 
     //Hide ams
     show_ams(false, true);
+
+
+    m_staticline2 = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    m_staticline2->SetBackgroundColour(wxColour(206, 206, 206));
+    //m_staticline2->Show(false);
+    m_main_left_sizer->Add(m_staticline2, 0, wxEXPAND | wxLEFT, FromDIP(40));
+
+    m_ext_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_ext_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
+    m_ext_img->SetBitmap(m_img_ext);
+
+    m_ext_sizer->Add(m_ext_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
+
+    wxBoxSizer* ext_content_sizer = new wxBoxSizer(wxVERTICAL);
+    ext_content_sizer->Add(0, 40, 0, wxEXPAND, FromDIP(5));
+    m_ext_panel = new ExtensionPanel(this, wxID_ANY);
+    ext_content_sizer->Add(m_ext_panel, 0, wxEXPAND, 0);
+
+    m_ext_sizer->Add(ext_content_sizer, 1, wxEXPAND, 0);
+
+    m_main_left_sizer->Add(m_ext_sizer, 0, wxEXPAND, 0);
+
 
     m_main_sizer->Add(m_main_left_sizer, 1, wxEXPAND, 0);
 
@@ -250,6 +274,7 @@ void MachineInfoPanel::msw_rescale()
     m_button_upgrade_firmware->SetMaxSize(wxSize(FromDIP(-1), FromDIP(24)));
     m_printer_img->SetBitmap(m_img_printer);
     m_ams_img->SetBitmap(m_img_monitor_ams);
+    m_ext_img->SetBitmap(m_img_ext);
     Layout();
     Fit();
 }
@@ -258,6 +283,7 @@ void MachineInfoPanel::init_bitmaps()
 {
     m_img_printer        = create_scaled_bitmap("monitor_upgrade_printer", nullptr, 200);
     m_img_monitor_ams    = create_scaled_bitmap("monitor_upgrade_ams", nullptr, 200);
+    m_img_ext            = create_scaled_bitmap("monitor_upgrade_ext", nullptr, 200);
     upgrade_green_icon   = create_scaled_bitmap("monitor_upgrade_online", nullptr, 5);
     upgrade_gray_icon    = create_scaled_bitmap("monitor_upgrade_offline", nullptr, 5);
     upgrade_yellow_icon  = create_scaled_bitmap("monitor_upgrade_busy", nullptr, 5);
@@ -307,8 +333,8 @@ void MachineInfoPanel::update(MachineObject* obj)
         // update version
         update_version_text(obj);
 
-        // update ams
-        update_ams(obj);
+        // update ams and extension
+        update_ams_ext(obj);
 
         //update progress
         int upgrade_percent = obj->get_upgrade_percent();
@@ -389,7 +415,7 @@ void MachineInfoPanel::update_version_text(MachineObject* obj)
     }
 }
 
-void MachineInfoPanel::update_ams(MachineObject *obj)
+void MachineInfoPanel::update_ams_ext(MachineObject *obj)
 {
     bool has_hub_model = false;
 
@@ -577,7 +603,40 @@ void MachineInfoPanel::update_ams(MachineObject *obj)
         if (!has_hub_model) { show_ams(false); }
         
     }
+
+    //ext
+    auto ext_module = obj->module_vers.find("ext");
+    if (ext_module == obj->module_vers.end())
+        show_ext(false);
+    else {
+        wxString sn_text = ext_module->second.sn;
+        sn_text = sn_text.MakeUpper();
+        wxString ext_ver = "";
+
+
+        // has new version
+        bool has_new_version = false;
+        auto new_ext_ver = obj->new_ver_list.find("ext");
+        if (new_ext_ver != obj->new_ver_list.end())
+            has_new_version = true;
+
+        if (has_new_version) {
+            m_ext_panel->m_ext_new_version_img->Show();
+            ext_ver = wxString::Format("%s->%s", new_ext_ver->second.sw_ver, new_ext_ver->second.sw_new_ver);
+        } else {
+            m_ext_panel->m_ext_new_version_img->Hide();
+            ext_ver = wxString::Format("%s(%s)", ext_module->second.sw_ver, _L("Latest version"));
+        }
+
+        // set sn and version
+        m_ext_panel->m_staticText_ext_sn_val->SetLabelText(sn_text);
+        m_ext_panel->m_staticText_ext_ver_val->SetLabelText(ext_ver);
+        
+        show_ext(true);
+    }
+
     this->Layout();
+    this->Fit();
 }
 
 void MachineInfoPanel::show_status(int status, std::string upgrade_status_str)
@@ -651,6 +710,17 @@ void MachineInfoPanel::show_ams(bool show, bool force_update)
         BOOST_LOG_TRIVIAL(trace) << "upgrade: show_ams = " << show;
     }
     m_last_ams_show = show;
+}
+
+void MachineInfoPanel::show_ext(bool show, bool force_update)
+{
+    if (m_last_ext_show != show || force_update) {
+        m_ext_img->Show(show);
+        m_ext_sizer->Show(show);
+        m_staticline2->Show(show);
+        BOOST_LOG_TRIVIAL(trace) << "upgrade: show_ext = " << show;
+    }
+    m_last_ext_show = show;
 }
 
 void MachineInfoPanel::upgrade_firmware_internal() {
@@ -950,6 +1020,73 @@ bool UpgradePanel::Show(bool show)
  }
 
  AmsPanel::~AmsPanel() 
+ {
+
+ }
+
+ ExtensionPanel::ExtensionPanel(wxWindow* parent,
+     wxWindowID      id /*= wxID_ANY*/,
+     const wxPoint& pos /*= wxDefaultPosition*/,
+     const wxSize& size /*= wxDefaultSize*/,
+     long            style /*= wxTAB_TRAVERSAL*/,
+     const wxString& name /*= wxEmptyString*/)
+     : wxPanel(parent, id, pos, size, style)
+ {
+     auto upgrade_green_icon = create_scaled_bitmap("monitor_upgrade_online", nullptr, 5);
+
+     auto top_sizer = new wxBoxSizer(wxVERTICAL);
+
+     auto ext_sizer = new wxFlexGridSizer(0, 2, 0, 0);
+     ext_sizer->AddGrowableCol(1);
+     ext_sizer->SetFlexibleDirection(wxHORIZONTAL);
+     ext_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+
+     auto title_sizer = new wxBoxSizer(wxHORIZONTAL);
+     m_staticText_ext = new wxStaticText(this, wxID_ANY, _L("Extension Board"), wxDefaultPosition, wxDefaultSize, 0);
+     m_staticText_ext->SetForegroundColour("#262E30");
+     m_staticText_ext->SetFont(Label::Head_14);
+     m_staticText_ext->Wrap(-1);
+     title_sizer->Add(m_staticText_ext, 0, wxALL, FromDIP(5));
+
+     auto m_staticText_ext_sn = new wxStaticText(this, wxID_ANY, _L("Serial:"), wxDefaultPosition, wxDefaultSize, 0);
+     m_staticText_ext_sn->SetForegroundColour("#262E30");
+     m_staticText_ext_sn->Wrap(-1);
+     m_staticText_ext_sn->SetFont(Label::Head_14);
+
+     m_staticText_ext_sn_val = new wxStaticText(this, wxID_ANY, "-", wxDefaultPosition, wxDefaultSize, 0);
+     m_staticText_ext_sn_val->SetForegroundColour("#262E30");
+     m_staticText_ext_sn_val->Wrap(-1);
+
+     wxBoxSizer* m_ext_ver_sizer = new wxBoxSizer(wxHORIZONTAL);
+     m_ext_ver_sizer->Add(0, 0, 1, wxEXPAND, 0);
+     m_ext_new_version_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(5), FromDIP(5)));
+     m_ext_new_version_img->SetBitmap(upgrade_green_icon);
+     m_ext_ver_sizer->Add(m_ext_new_version_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+     m_ext_new_version_img->Hide();
+
+     m_staticText_ext_ver = new wxStaticText(this, wxID_ANY, _L("Version:"), wxDefaultPosition, wxDefaultSize, 0);
+     m_staticText_ext_ver->Wrap(-1);
+     m_staticText_ext_ver->SetFont(Label::Head_14);
+     m_staticText_ext_ver->SetForegroundColour("#262E30");
+     m_ext_ver_sizer->Add(m_staticText_ext_ver, 0, wxALL, FromDIP(5));
+
+     m_staticText_ext_ver_val = new wxStaticText(this, wxID_ANY, "-", wxDefaultPosition, wxDefaultSize, 0);
+     m_staticText_ext_ver_val->SetForegroundColour("#262E30");
+     m_staticText_ext_ver_val->Wrap(-1);
+
+     ext_sizer->Add(m_staticText_ext_sn, 0, wxALIGN_RIGHT | wxALL, FromDIP(5));
+     ext_sizer->Add(m_staticText_ext_sn_val, 0, wxALL | wxEXPAND, FromDIP(5));
+     ext_sizer->Add(m_ext_ver_sizer, 1, wxEXPAND, FromDIP(5));
+     ext_sizer->Add(m_staticText_ext_ver_val, 0, wxALL | wxEXPAND, FromDIP(5));
+     ext_sizer->Add(0, 0, 1, wxEXPAND, 0);
+
+     top_sizer->Add(title_sizer);
+     top_sizer->Add(ext_sizer);
+     SetSizer(top_sizer);
+     Layout();
+ }
+
+ ExtensionPanel::~ExtensionPanel()
  {
 
  }

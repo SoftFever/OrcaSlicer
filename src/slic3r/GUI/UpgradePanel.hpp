@@ -12,6 +12,26 @@
 namespace Slic3r {
 namespace GUI {
 
+class ExtensionPanel : public wxPanel
+{
+public:
+    wxStaticText* m_staticText_ext;
+    wxStaticText* m_staticText_ext_ver;
+    wxStaticText* m_staticText_ext_ver_val;
+    wxStaticText* m_staticText_ext_sn_val;
+
+    wxStaticBitmap* m_ext_new_version_img;
+
+    ExtensionPanel(wxWindow* parent,
+        wxWindowID      id = wxID_ANY,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long            style = wxTAB_TRAVERSAL,
+        const wxString& name = wxEmptyString);
+    ~ExtensionPanel();
+
+};
+
 class AmsPanel : public wxPanel
 {
 public:
@@ -50,13 +70,19 @@ protected:
     wxStaticLine *  m_staticline;
     wxStaticBitmap *m_ams_img;
     AmsPanel*       m_ahb_panel;
-   
+    wxStaticLine*   m_staticline2;
+    wxStaticBitmap* m_ext_img;
+    ExtensionPanel* m_ext_panel;
 
-    wxGridSizer *   m_ams_info_sizer;
+    wxFlexGridSizer*   m_ams_info_sizer;
 
     /* ams info */
     bool           m_last_ams_show = true;
     wxBoxSizer*    m_ams_sizer;
+
+    /* extension info */
+    bool           m_last_ext_show = true;
+    wxBoxSizer*    m_ext_sizer;
 
     /* upgrade widgets */
     wxBoxSizer*     m_upgrading_sizer;
@@ -70,6 +96,7 @@ protected:
     wxPanel* create_caption_panel(wxWindow *parent);
     AmsPanelHash     m_amspanel_list;
 
+    wxBitmap m_img_ext;
     wxBitmap m_img_monitor_ams;
     wxBitmap m_img_printer;
     wxBitmap upgrade_gray_icon;
@@ -96,9 +123,10 @@ public:
     void msw_rescale();
     void update(MachineObject *obj);
     void update_version_text(MachineObject *obj);
-    void update_ams(MachineObject *obj);
+    void update_ams_ext(MachineObject *obj);
     void show_status(int status, std::string upgrade_status_str = "");
     void show_ams(bool show = false, bool force_update = false);
+    void show_ext(bool show = false, bool force_update = false);
 
     void on_upgrade_firmware(wxCommandEvent &event);
     void on_consisitency_upgrade_firmware(wxCommandEvent &event);
