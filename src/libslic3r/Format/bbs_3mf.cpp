@@ -6478,7 +6478,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         stream << "\" ";
 
                         stream << OFFSET_ATTR << "=\"";
-                        Vec3d ofs2ass = obj->instances[instance_idx]->get_offset_to_assembly();
+                        const Vec3d ofs2ass = obj->instances[instance_idx]->get_offset_to_assembly();
                         stream << ofs2ass(0) << " " << ofs2ass(1) << " " << ofs2ass(2);
                     stream << "\" />\n";
                     }
