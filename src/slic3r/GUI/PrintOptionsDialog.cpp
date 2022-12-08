@@ -3,8 +3,6 @@
 #include "GUI_App.hpp"
 #include "libslic3r/Utils.hpp"
 
-#define DLG_SIZE  (wxSize(FromDIP(360), FromDIP(160)))
-
 static const wxColour STATIC_BOX_LINE_COL = wxColour(238, 238, 238);
 static const wxColour STATIC_TEXT_CAPTION_COL = wxColour(100, 100, 100);
 
@@ -18,9 +16,6 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     SetBackgroundColour(*wxWHITE);
-    
-    this->SetMinSize(DLG_SIZE);
-    this->SetSize(DLG_SIZE);
 
     auto m_options_sizer = create_settings_group(this);
     this->SetSizer(m_options_sizer);
@@ -71,8 +66,6 @@ PrintOptionsDialog::~PrintOptionsDialog()
 
 void PrintOptionsDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
-    this->SetMinSize(DLG_SIZE);
-    this->SetSize(DLG_SIZE);
     Fit();
 }
 
@@ -140,7 +133,6 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     }
 
     this->Freeze();
-
     auto test1 = obj_->xcam_first_layer_inspector;
     auto test2 = obj_->xcam_buildplate_marker_detector;
     auto test3 = obj_->xcam_auto_recovery_step_loss;
@@ -158,6 +150,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
 
     update_ai_monitor_status();
     this->Thaw();
+    Layout();
 }
 
 wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)

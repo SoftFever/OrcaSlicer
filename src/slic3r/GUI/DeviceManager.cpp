@@ -1984,6 +1984,12 @@ bool MachineObject::is_function_supported(PrinterFunction func)
     case FUNC_AUTO_SWITCH_FILAMENT:
         func_name = "FUNC_AUTO_SWITCH_FILAMENT";
         break;
+    case FUNC_VIRTUAL_CAMERA:
+        func_name = "FUNC_VIRTUAL_CAMERA";
+        break;
+    case FUNC_CHAMBER_FAN:
+        func_name = "FUNC_CHAMBER_FAN";
+        break;
     default:
         return true;
     }
