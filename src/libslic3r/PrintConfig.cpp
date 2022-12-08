@@ -2087,7 +2087,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Retract amount before wipe");
     def->tooltip = L("The length of fast retraction before wipe, relative to retraction length");
     def->sidetext = L("%");
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionPercents { 100 });
 
     def = this->add("retract_when_changing_layer", coBools);
@@ -3055,8 +3055,6 @@ void PrintConfigDef::init_fff_params()
         if ((strcmp(opt_key, "retraction_length") == 0) ||
             (strcmp(opt_key, "z_hop") == 0))
             def->mode       = comSimple;
-        else if (strcmp(opt_key, "retract_before_wipe") == 0)
-            def->mode       = comDevelop;
         else
             def->mode       = comAdvanced;
         switch (def->type) {
