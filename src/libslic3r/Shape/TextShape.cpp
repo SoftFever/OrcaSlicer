@@ -84,11 +84,14 @@ std::vector<std::string> init_occt_fonts()
             file_type.LowerCase();
             if (file_type == "ttf" || file_type == "otf" || file_type == "ttc") {
                 g_occt_fonts_maps.insert(std::make_pair(afn->ToCString(), decode_path(font_path.ToCString())));
-                stdFontNames.push_back(afn->ToCString());
             }
         }
     }
     BOOST_LOG_TRIVIAL(info) << "init_occt_fonts end";
+    // in order
+    for (auto occt_font : g_occt_fonts_maps) {
+        stdFontNames.push_back(occt_font.first);
+    }
     return stdFontNames;
 }
 

@@ -32,7 +32,7 @@ GLGizmoText::GLGizmoText(GLCanvas3D& parent, const std::string& icon_filename, u
 
 bool GLGizmoText::on_init()
 {
-    init_occt_fonts();
+    m_avail_font_names = init_occt_fonts();
     m_shortcut_key = WXK_CONTROL_T;
     return true;
 }
@@ -138,8 +138,6 @@ void GLGizmoText::pop_combo_style()
 // BBS
 void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 {
-    std::vector<std::string> m_avail_font_names = wxGetApp().imgui()->get_fonts_names();
-
     const float win_h = ImGui::GetWindowHeight();
     y = std::min(y, bottom_limit - win_h);
     GizmoImguiSetNextWIndowPos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
