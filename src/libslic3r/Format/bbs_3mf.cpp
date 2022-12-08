@@ -1498,7 +1498,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         lock.close();
 
-        if (m_version == 0) {
+        if (!m_is_bbl_3mf) {
             // if the 3mf was not produced by BambuStudio and there is more than one instance,
             // split the object in as many objects as instances
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", found 3mf from other vendor, split as instance");
@@ -1647,7 +1647,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 IdToCurrentObjectMap::const_iterator current_object = m_current_objects.find(object.first);
                 if (current_object != m_current_objects.end()) {
                     // get name
-                    model_object->name = current_object->second.name;
+                    if (!current_object->second.name.empty())
+                        model_object->name = current_object->second.name;
+                    else
+                        model_object->name = "Object_"+std::to_string(object.second+1);
 
                     // get color
                     auto extruder_itor = color_group_id_to_extruder_id_map.find(current_object->second.pid);
@@ -2742,7 +2745,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             m_index_paths.insert({ object.first.second, object.first.first});
         }
 
-        if (m_version == 0) {
+        if (!m_is_bbl_3mf) {
             // if the 3mf was not produced by BambuStudio and there is only one object,
             // set the object name to match the filename
             if (m_model->objects.size() == 1)
@@ -4024,7 +4027,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             TriangleMesh triangle_mesh(std::move(its), volume_data.mesh_stats);
 
-            if (m_version == 0) {
+            if (!m_is_bbl_3mf) {
                 // if the 3mf was not produced by BambuStudio and there is only one instance,
                 // bake the transformation into the geometry to allow the reload from disk command
                 // to work properly
