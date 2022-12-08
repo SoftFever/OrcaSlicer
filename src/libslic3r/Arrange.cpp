@@ -425,6 +425,7 @@ protected:
                 if (p.is_virt_object) continue;
                 score += lambda3 * (item.bed_temp - p.vitrify_temp > 0);
             }
+            score += lambda3 * (item.bed_temp - item.vitrify_temp > 0);
             score += lambda4 * hasRowHeightConflict + lambda4 * hasLidHeightConflict;
         }
         else {
