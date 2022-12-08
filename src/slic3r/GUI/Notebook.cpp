@@ -54,7 +54,7 @@ ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, wxBoxSizer* side_tools) :
 
 void ButtonsListCtrl::OnPaint(wxPaintEvent&)
 {
-    Slic3r::GUI::wxGetApp().UpdateDarkUI(this);
+    //Slic3r::GUI::wxGetApp().UpdateDarkUI(this);
     const wxSize sz = GetSize();
     wxPaintDC dc(this);
 
@@ -240,4 +240,15 @@ wxString ButtonsListCtrl::GetPageText(size_t n) const
 
 //#endif // _WIN32
 
+void Notebook::Init()
+{
+    // We don't need any border as we don't have anything to separate the
+    // page contents from.
+    SetInternalBorder(0);
 
+    // No effects by default.
+    m_showEffect = m_hideEffect = wxSHOW_EFFECT_NONE;
+
+    m_showTimeout = m_hideTimeout = 0;
+    SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
+}
