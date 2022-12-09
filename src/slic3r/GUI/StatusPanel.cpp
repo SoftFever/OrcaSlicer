@@ -187,11 +187,15 @@ void StatusBasePanel::init_bitmaps()
     m_bitmap_extruder_filled_load     = *cache.load_png("monitor_extruder_filled_load", FromDIP(28), FromDIP(70), false, false);
     m_bitmap_extruder_empty_unload    = *cache.load_png("monitor_extruder_empty_unload", FromDIP(28), FromDIP(70), false, false);
     m_bitmap_extruder_filled_unload   = *cache.load_png("monitor_extruder_filled_unload", FromDIP(28), FromDIP(70), false, false);
-    m_bitmap_sdcard_state_on    = create_scaled_bitmap("sdcard_state_on", nullptr, 20);
+    m_bitmap_sdcard_state_no       = create_scaled_bitmap("sdcard_state_no", nullptr, 20);
     m_bitmap_sdcard_state_abnormal = create_scaled_bitmap("sdcard_state_abnormal", nullptr, 20);
-    m_bitmap_recording = create_scaled_bitmap("recording", nullptr, 20);
-    m_bitmap_timelapse = create_scaled_bitmap("timelapse", nullptr, 20);
-    m_bitmap_vcamera = create_scaled_bitmap("vcamera", nullptr, 20);
+    m_bitmap_sdcard_state_normal   = create_scaled_bitmap("sdcard_state_normal", nullptr, 20);
+    m_bitmap_recording_on = create_scaled_bitmap("monitor_recording_on", nullptr, 20);
+    m_bitmap_recording_off = create_scaled_bitmap("monitor_recording_off", nullptr, 20);
+    m_bitmap_timelapse_on = create_scaled_bitmap("monitor_timelapse_on", nullptr, 20);
+    m_bitmap_timelapse_off = create_scaled_bitmap("monitor_timelapse_off", nullptr, 20);
+    m_bitmap_vcamera_on = create_scaled_bitmap("monitor_vcamera_on", nullptr, 20);
+    m_bitmap_vcamera_off = create_scaled_bitmap("monitor_vcamera_off", nullptr, 20);
 }
 
 wxBoxSizer *StatusBasePanel::create_monitoring_page()
@@ -228,22 +232,18 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     //m_bitmap_camera_img->SetMinSize(wxSize(FromDIP(32), FromDIP(18)));
     //bSizer_monitoring_title->Add(m_bitmap_camera_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
-    m_bitmap_sdcard_abnormal_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, m_bitmap_sdcard_state_abnormal, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
-    m_bitmap_sdcard_abnormal_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
-    m_bitmap_sdcard_on_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, m_bitmap_sdcard_state_on, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
-    m_bitmap_sdcard_on_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
-    m_bitmap_sdcard_on_img->Hide();
-    m_bitmap_sdcard_abnormal_img->Hide();
+    m_bitmap_sdcard_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
+    m_bitmap_sdcard_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
    
-    m_bitmap_timelapse_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, m_bitmap_timelapse, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
+    m_bitmap_timelapse_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
     m_bitmap_timelapse_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
     m_bitmap_timelapse_img->Hide();
 
-    m_bitmap_recording_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, m_bitmap_recording, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
+    m_bitmap_recording_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
     m_bitmap_recording_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
     m_bitmap_timelapse_img->Hide();
 
-    m_bitmap_vcamera_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, m_bitmap_vcamera, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
+    m_bitmap_vcamera_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
     m_bitmap_vcamera_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
     m_bitmap_vcamera_img->Hide();
 
@@ -251,15 +251,13 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_setting_button->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
     m_setting_button->SetBackgroundColour(STATUS_TITLE_BG);
 
-    m_bitmap_sdcard_on_img->SetToolTip(_L("SD Card"));
-    m_bitmap_sdcard_abnormal_img->SetToolTip(_L("SD Card Abnormal"));
+    m_bitmap_sdcard_img->SetToolTip(_L("SD Card"));
     m_bitmap_timelapse_img->SetToolTip(_L("Timelapse"));
     m_bitmap_recording_img->SetToolTip(_L("Video"));
     m_bitmap_vcamera_img->SetToolTip(_L("Virtual Camera"));
     m_setting_button->SetToolTip(_L("Camera Setting"));
 
-    bSizer_monitoring_title->Add(m_bitmap_sdcard_abnormal_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    bSizer_monitoring_title->Add(m_bitmap_sdcard_on_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    bSizer_monitoring_title->Add(m_bitmap_sdcard_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     bSizer_monitoring_title->Add(m_bitmap_timelapse_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     bSizer_monitoring_title->Add(m_bitmap_recording_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     bSizer_monitoring_title->Add(m_bitmap_vcamera_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
@@ -1041,45 +1039,86 @@ void StatusBasePanel::show_ams_group(bool show)
     m_show_ams_group = show;
 }
 
-void StatusPanel::update_img_status(wxStaticBitmap* img, bool on_off)
+void StatusPanel::update_camera_state(MachineObject* obj)
 {
-    if (on_off)
-        img->Show();
-    else
-        img->Hide();
-}
+    if (!obj) return;
 
-void StatusPanel::update_camera_state(bool recording, bool timelapse, MachineObject::SdcardState sdcard_state)
-{
+    //m_bitmap_sdcard_abnormal_img->SetToolTip(_L("SD Card Abnormal"));
     //sdcard
-    switch (sdcard_state) {
-    case MachineObject::SdcardState::NO_SDCARD:
-        m_bitmap_sdcard_on_img->Hide();
-        m_bitmap_sdcard_abnormal_img->Hide();
-        break;
-    case MachineObject::SdcardState::HAS_SDCARD_NORMAL:
-        m_bitmap_sdcard_on_img->Show();
-        m_bitmap_sdcard_abnormal_img->Hide();
-        break;
-    case MachineObject::SdcardState::HAS_SDCARD_ABNORMAL:
-        m_bitmap_sdcard_on_img->Hide();
-        m_bitmap_sdcard_abnormal_img->Show();
-        break;
-    default:
-        ;
+    if (m_last_sdcard != (int)obj->get_sdcard_state()) {
+        if (obj->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
+            m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_no);
+            m_bitmap_sdcard_img->SetToolTip(_L("No SD Card"));
+        } else if (obj->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL) {
+            m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_normal);
+            m_bitmap_sdcard_img->SetToolTip(_L("SD Card"));
+        } else if (obj->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_ABNORMAL) {
+            m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_abnormal);
+            m_bitmap_sdcard_img->SetToolTip(_L("SD Card Abnormal"));
+        } else {
+            m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_normal);
+            m_bitmap_sdcard_img->SetToolTip(_L("SD Card"));
+        }
+        m_last_sdcard = (int)obj->get_sdcard_state();
     }
+
     //recording
-    update_img_status(m_bitmap_recording_img, recording);
+    if (obj->is_function_supported(PrinterFunction::FUNC_RECORDING)) {
+        if (m_last_recording != (obj->is_recording() ? 1: 0)) {
+            if (obj->is_recording()) {
+                m_bitmap_recording_img->SetBitmap(m_bitmap_recording_on);
+            } else {
+                m_bitmap_recording_img->SetBitmap(m_bitmap_recording_off);
+            }
+            m_last_recording = obj->is_recording() ? 1 : 0;
+        }
+        if (!m_bitmap_recording_img->IsShown())
+            m_bitmap_recording_img->Show();
+    } else {
+        if (m_bitmap_recording_img->IsShown())
+            m_bitmap_recording_img->Hide();
+    }
+    
     //timelapse
-    update_img_status(m_bitmap_timelapse_img, timelapse);
+    if (obj->is_function_supported(PrinterFunction::FUNC_TIMELAPSE)) {
+        if (m_last_timelapse != (obj->is_timelapse() ? 1: 0)) {
+            if (obj->is_timelapse()) {
+                m_bitmap_timelapse_img->SetBitmap(m_bitmap_timelapse_on);
+            } else {
+                m_bitmap_timelapse_img->SetBitmap(m_bitmap_timelapse_off);
+            }
+            m_last_timelapse = obj->is_timelapse() ? 1 : 0;
+        }
+        if (!m_bitmap_timelapse_img->IsShown())
+            m_bitmap_timelapse_img->Show();
+    } else {
+        if (m_bitmap_timelapse_img->IsShown())
+            m_bitmap_timelapse_img->Hide();
+    }
+    
     //vcamera
-    update_img_status(m_bitmap_vcamera_img, m_media_play_ctrl->IsStreaming());
-    show_vcamera = m_media_play_ctrl->IsStreaming();
+    if (obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_CAMERA)) {
+        if (m_last_vcamera != (m_media_play_ctrl->IsStreaming() ? 1: 0)) {
+            if (m_media_play_ctrl->IsStreaming()) {
+                m_bitmap_vcamera_img->SetBitmap(m_bitmap_vcamera_on);
+            } else {
+                m_bitmap_vcamera_img->SetBitmap(m_bitmap_vcamera_off);
+            }
+            m_last_vcamera = m_media_play_ctrl->IsStreaming() ? 1 : 0;
+        }
+        if (!m_bitmap_vcamera_img->IsShown())
+            m_bitmap_vcamera_img->Show();
+    } else {
+        if (m_bitmap_vcamera_img->IsShown())
+            m_bitmap_vcamera_img->Hide();
+    }
+
     //camera setting
     if (m_camera_popup) {
-        m_camera_popup->update();
-        m_camera_popup->sync_vcamera_state(show_vcamera);
+        bool show_vcamera = m_media_play_ctrl->IsStreaming();
+        m_camera_popup->update(show_vcamera);
     }
+
     m_panel_monitoring_title->Layout();
 }
 
@@ -1455,7 +1494,7 @@ void StatusPanel::update(MachineObject *obj)
         update_error_message();
     }
 
-    update_camera_state(obj->is_recording_enable(), obj->has_timelapse(), obj->get_sdcard_state());
+    update_camera_state(obj);
 
     m_machine_ctrl_panel->Thaw();
 }
@@ -1684,16 +1723,19 @@ void StatusPanel::update_extruder_status(MachineObject* obj)
 {
     if (!obj) return;
     if (obj->is_filament_at_extruder()) {
-        if (obj->extruder_axis_status == MachineObject::ExtruderAxisStatus::LOAD)
+        if (obj->extruder_axis_status == MachineObject::ExtruderAxisStatus::LOAD) {
             m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_filled_load);
-        else
+        }
+        else {
             m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_filled_unload);
+        }
     }
     else {
-        if (obj->extruder_axis_status == MachineObject::ExtruderAxisStatus::LOAD)
+        if (obj->extruder_axis_status == MachineObject::ExtruderAxisStatus::LOAD) {
             m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_empty_load);
-        else
+        } else {
             m_bitmap_extruder_img->SetBitmap(m_bitmap_extruder_empty_unload);
+        }
     }
 }
 
@@ -2677,6 +2719,7 @@ void StatusPanel::on_camera_enter(wxMouseEvent& event)
         wxPoint   pos = ctrl->ClientToScreen(wxPoint(0, 0));
         wxSize    sz = ctrl->GetSize();
         m_camera_popup->Position(pos, wxSize(sz.x, sz.y));
+        m_camera_popup->update(m_media_play_ctrl->IsStreaming());
         m_camera_popup->Popup();
     }
 }
@@ -2846,8 +2889,7 @@ void StatusPanel::msw_rescale()
     m_bitmap_recording_img->SetMinSize(wxSize(38, 24));
     m_bitmap_vcamera_img->SetMinSize(wxSize(38, 24));
     m_setting_button->SetMinSize(wxSize(38, 24));
-    m_bitmap_sdcard_abnormal_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
-    m_bitmap_sdcard_on_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
+    m_bitmap_sdcard_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
 
     m_bpButton_xy->Rescale();
     m_tempCtrl_nozzle->SetMinSize(TEMP_CTRL_MIN_SIZE);

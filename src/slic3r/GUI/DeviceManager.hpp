@@ -606,7 +606,7 @@ public:
     std::string subtask_name;
     bool is_sdcard_printing();
     bool has_sdcard();
-    bool has_timelapse();
+    bool is_timelapse();
     bool is_recording_enable();
     bool is_recording();
 

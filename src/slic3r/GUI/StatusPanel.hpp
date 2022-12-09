@@ -94,11 +94,15 @@ protected:
     CameraItem *m_setting_button;
 
     wxBitmap m_bitmap_camera;
-    wxBitmap m_bitmap_sdcard_state_on;
+    wxBitmap m_bitmap_sdcard_state_normal;
     wxBitmap m_bitmap_sdcard_state_abnormal;
-    wxBitmap m_bitmap_recording;
-    wxBitmap m_bitmap_timelapse;
-    wxBitmap m_bitmap_vcamera;
+    wxBitmap m_bitmap_sdcard_state_no;
+    wxBitmap m_bitmap_recording_on;
+    wxBitmap m_bitmap_recording_off;
+    wxBitmap m_bitmap_timelapse_on;
+    wxBitmap m_bitmap_timelapse_off;
+    wxBitmap m_bitmap_vcamera_on;
+    wxBitmap m_bitmap_vcamera_off;
 
     /* title panel */
     wxPanel *       media_ctrl_panel;
@@ -116,8 +120,7 @@ protected:
     wxStaticBitmap *m_bitmap_recording_img;
     wxStaticBitmap *m_bitmap_timelapse_img;
     wxStaticBitmap* m_bitmap_vcamera_img;
-    wxStaticBitmap *m_bitmap_sdcard_on_img;
-    wxStaticBitmap *m_bitmap_sdcard_abnormal_img;
+    wxStaticBitmap *m_bitmap_sdcard_img;
     wxStaticBitmap *m_bitmap_static_use_time;
     wxStaticBitmap *m_bitmap_static_use_weight;
 
@@ -268,6 +271,12 @@ protected:
     wxString     m_request_url;
     bool         m_start_loading_thumbnail = false;
     bool         m_load_sdcard_thumbnail = false;
+    int          m_last_sdcard    = -1;
+    int          m_last_recording = -1;
+    int          m_last_timelapse = -1;
+    int          m_last_extrusion = -1;
+    int          m_last_vcamera   = -1;
+
     wxWebRequest web_request;
     bool bed_temp_input    = false;
     bool nozzle_temp_input = false;
@@ -363,8 +372,7 @@ protected:
     bool is_task_changed(MachineObject* obj);
 
     /* camera */
-    void update_camera_state(bool recording, bool timelapse, MachineObject::SdcardState sdcard_state);
-    void update_img_status(wxStaticBitmap* img, bool on_off);
+    void update_camera_state(MachineObject* obj);
     bool show_vcamera = false;
 
 public:

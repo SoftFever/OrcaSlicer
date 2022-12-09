@@ -1229,7 +1229,7 @@ MachineObject::SdcardState MachineObject::get_sdcard_state()
     return sdcard_state;
 }
 
-bool MachineObject::has_timelapse()
+bool MachineObject::is_timelapse()
 {
     return camera_timelapse;
 }

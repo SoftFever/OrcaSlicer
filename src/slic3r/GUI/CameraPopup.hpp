@@ -34,7 +34,7 @@ public:
 
     void sync_vcamera_state(bool show_vcamera);
     void check_func_supported();
-    void update();
+    void update(bool vcamera_streaming);
 
     enum CameraResolution
     {

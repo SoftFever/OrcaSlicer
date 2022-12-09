@@ -269,11 +269,12 @@ void CameraPopup::check_func_supported()
     }
 }
 
-void CameraPopup::update()
+void CameraPopup::update(bool vcamera_streaming)
 {
     if (!m_obj) return;
     m_switch_recording->SetValue(m_obj->camera_recording_when_printing);
     sync_resolution_setting(m_obj->camera_resolution);
+    sync_vcamera_state(vcamera_streaming);
 
     rescale();
 }
