@@ -2972,6 +2972,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     ConfigSubstitutionContext config_substitutions{ForwardCompatibilitySubstitutionRule::Enable};
                     std::vector<Preset *>     project_presets;
                     // BBS: backup & restore
+                    q->skip_thumbnail_invalid = true;
                     model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, en_3mf_file_type, strategy, &plate_data, &project_presets,
                                                              &file_version,
                                                              [this, &dlg, real_filename, &progress_percent, &file_percent, stage_percent, INPUT_FILES_RATIO, total_files, i,
@@ -3036,6 +3037,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         if (!load_model) {
                             // only load config case, return directly
                             show_info(q, _L("The Config can not be loaded."), _L("Load 3mf"));
+                            q->skip_thumbnail_invalid = false;
                             return empty_result;
                         }
                         load_old_project = true;
@@ -3111,7 +3113,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", import 3mf UPDATE_GCODE_RESULT \n");
                         wxString msg = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
                         dlg_cont     = dlg.Update(progress_percent, msg);
-                        if (!dlg_cont) return empty_result;
+                        if (!dlg_cont) {
+                            q->skip_thumbnail_invalid = false;
+                            return empty_result;
+                        }
 
                         if (load_config) {
                             partplate_list.load_from_3mf_structure(plate_data);
@@ -3141,7 +3146,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", import 3mf IMPORT_LOAD_CONFIG \n");
                         wxString msg = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
                         dlg_cont     = dlg.Update(progress_percent, msg);
-                        if (!dlg_cont) return empty_result;
+                        if (!dlg_cont) {
+                            q->skip_thumbnail_invalid = false;
+                            return empty_result;
+                        }
 
                         // Based on the printer technology field found in the loaded config, select the base for the config,
                         PrinterTechnology printer_technology = Preset::printer_technology(config_loaded);
@@ -3319,7 +3327,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
         progress_percent = 100.0f * (float)i / (float)total_files + INIT_MODEL_RATIO * 100.0f / (float)total_files;
         dlg_cont = dlg.Update(progress_percent);
-        if (!dlg_cont) return empty_result;
+        if (!dlg_cont) {
+            q->skip_thumbnail_invalid = false;
+            return empty_result;
+        }
 
         if (load_model) {
             // The model should now be initialized
@@ -3399,7 +3410,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
         progress_percent = 100.0f * (float)i / (float)total_files + CENTER_AROUND_ORIGIN_RATIO * 100.0f / (float)total_files;
         dlg_cont = dlg.Update(progress_percent);
-        if (!dlg_cont) return empty_result;
+        if (!dlg_cont) {
+            q->skip_thumbnail_invalid = false;
+            return empty_result;
+        }
 
         int model_idx = 0;
         for (ModelObject *model_object : model.objects) {
@@ -3410,7 +3424,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             wxString msg = wxString::Format("Loading file: %s", from_path(real_filename));
             model_idx++;
             dlg_cont = dlg.Update(progress_percent, msg);
-            if (!dlg_cont) return empty_result;
+            if (!dlg_cont) {
+                q->skip_thumbnail_invalid = false;
+                return empty_result;
+            }
 
             model_object->ensure_on_bed(is_project_file);
         }
@@ -3419,7 +3436,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
         progress_percent = 100.0f * (float)i / (float)total_files + LOAD_MODEL_RATIO * 100.0f / (float)total_files;
         dlg_cont = dlg.Update(progress_percent);
-        if (!dlg_cont) return empty_result;
+        if (!dlg_cont) {
+            q->skip_thumbnail_invalid = false;
+            return empty_result;
+        }
 
         if (one_by_one) {
             // BBS: add load_old_project logic
@@ -3440,7 +3460,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_LOAD_MODEL_OBJECTS \n");
             wxString msg = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
             dlg_cont     = dlg.Update(progress_percent, msg);
-            if (!dlg_cont) return empty_result;
+            if (!dlg_cont) {
+                q->skip_thumbnail_invalid = false;
+                return empty_result;
+            }
         } else {
             // This must be an .stl or .obj file, which may contain a maximum of one volume.
             for (const ModelObject *model_object : model.objects) {
@@ -3449,7 +3472,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_ADD_MODEL_OBJECTS \n");
                 wxString msg = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
                 dlg_cont     = dlg.Update(progress_percent, msg);
-                if (!dlg_cont) return empty_result;
+                if (!dlg_cont) {
+                    q->skip_thumbnail_invalid = false;
+                    return empty_result;
+                }
             }
         }
     }
@@ -3471,6 +3497,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
     //BBS: add gcode loading logic in the end
     q->m_exported_file = false;
+    q->skip_thumbnail_invalid = false;
     if (load_model && load_config) {
         if (model.objects.empty()) {
             partplate_list.load_gcode_files();
@@ -5287,8 +5314,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             notification_manager->set_in_preview(false);
     }
     else if (current_panel == preview) {
-        if (!q->using_exported_file())
-            q->invalid_all_plate_thumbnails();
+        q->invalid_all_plate_thumbnails();
         if (old_panel == view3D)
             view3D->get_canvas3d()->unbind_event_handlers();
         else if (old_panel == assemble_view)
@@ -7457,7 +7483,11 @@ void Plater::load_project(wxString const& filename2,
     // if res is empty no data has been loaded
     if (!res.empty() && (load_restore || !(strategy & LoadStrategy::Silence))) {
         p->set_project_filename(load_restore ? originfile : filename);
+    } else {
+        if (using_exported_file())
+            p->set_project_filename(filename);
     }
+    
 
     // BBS set default 3D view and direction after loading project
     //p->select_view_3D("3D");
@@ -7908,6 +7938,9 @@ void Plater::update_all_plate_thumbnails(bool force_update)
 //invalid all plate's thumbnails
 void Plater::invalid_all_plate_thumbnails()
 {
+    if (using_exported_file() || skip_thumbnail_invalid)
+        return;
+    BOOST_LOG_TRIVIAL(info) << "thumb: invalid all";
     for (int i = 0; i < get_partplate_list().get_plate_count(); i++) {
         PartPlate* plate = get_partplate_list().get_plate(i);
         plate->thumbnail_data.reset();
@@ -7916,8 +7949,12 @@ void Plater::invalid_all_plate_thumbnails()
 
 void Plater::force_update_all_plate_thumbnails()
 {
-    invalid_all_plate_thumbnails();
-    update_all_plate_thumbnails(true);
+    if (using_exported_file() || skip_thumbnail_invalid) {
+    }
+    else {
+        invalid_all_plate_thumbnails();
+        update_all_plate_thumbnails(true);
+    }
     get_preview_canvas3D()->update_plate_thumbnails();
 }
 
