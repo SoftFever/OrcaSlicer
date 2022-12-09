@@ -608,7 +608,7 @@ bool GCode::gcode_label_objects = false;
 std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObject& object)
 {
     std::vector<GCode::LayerToPrint> layers_to_print;
-    layers_to_print.reserve(object.layers().size() + object.support_layers().size() + object.tree_support_layers().size());
+    layers_to_print.reserve(object.layers().size() + object.support_layers().size());
 
     /*
     // Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
@@ -631,9 +631,8 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
     // Pair the object layers with the support layers by z.
     size_t idx_object_layer = 0;
     size_t idx_support_layer = 0;
-    size_t idx_tree_support_layer = 0;
     const LayerToPrint* last_extrusion_layer = nullptr;
-    while (idx_object_layer < object.layers().size() || idx_support_layer < object.support_layers().size() || idx_tree_support_layer < object.tree_support_layers().size()) {
+    while (idx_object_layer < object.layers().size() || idx_support_layer < object.support_layers().size()) {
         LayerToPrint layer_to_print;
         double print_z_min = std::numeric_limits<double>::max();
         if (idx_object_layer < object.layers().size()) {
@@ -646,11 +645,6 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
             print_z_min = std::min(print_z_min, layer_to_print.support_layer->print_z);
         }
 
-        if (idx_tree_support_layer < object.tree_support_layers().size()) {
-            layer_to_print.tree_support_layer = object.tree_support_layers()[idx_tree_support_layer++];
-            print_z_min = std::min(print_z_min, layer_to_print.tree_support_layer->print_z);
-        }
-
         if (layer_to_print.object_layer && layer_to_print.object_layer->print_z > print_z_min + EPSILON) {
             layer_to_print.object_layer = nullptr;
             --idx_object_layer;
@@ -661,17 +655,11 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
             --idx_support_layer;
         }
 
-        if (layer_to_print.tree_support_layer && layer_to_print.tree_support_layer->print_z > print_z_min + EPSILON) {
-            layer_to_print.tree_support_layer = nullptr;
-            --idx_tree_support_layer;
-        }
-
         layer_to_print.original_object = &object;
         layers_to_print.push_back(layer_to_print);
 
         bool has_extrusions = (layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
-            || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions()
-            || (layer_to_print.tree_support_layer && layer_to_print.tree_support_layer->has_extrusions()));
+            || (layer_to_print.support_layer && layer_to_print.support_layer->has_extrusions());
 
         // Check that there are extrusions on the very first layer. The case with empty
         // first layer may result in skirt/brim in the air and maybe other issues.
@@ -683,13 +671,12 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
         // In case there are extrusions on this layer, check there is a layer to lay it on.
         if ((layer_to_print.object_layer && layer_to_print.object_layer->has_extrusions())
             // Allow empty support layers, as the support generator may produce no extrusions for non-empty support regions.
-            || (layer_to_print.support_layer /* && layer_to_print.support_layer->has_extrusions() */)
-            || (layer_to_print.tree_support_layer)) {
+            || (layer_to_print.support_layer /* && layer_to_print.support_layer->has_extrusions() */)) {
             double top_cd = object.config().support_top_z_distance;
             //double bottom_cd = object.config().support_bottom_z_distance == 0. ? top_cd : object.config().support_bottom_z_distance;
             double bottom_cd = top_cd;
 
-            double extra_gap = ((layer_to_print.support_layer || layer_to_print.tree_support_layer) ? bottom_cd : top_cd);
+            double extra_gap = (layer_to_print.support_layer ? bottom_cd : top_cd);
 
             double maximal_print_z = (last_extrusion_layer ? last_extrusion_layer->print_z() : 0.)
                 + layer_to_print.layer()->height
@@ -1316,8 +1303,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             zs.reserve(zs.size() + object->layers().size() + object->support_layers().size());
             for (auto layer : object->layers())
                 zs.push_back(layer->print_z);
-            for (auto layer : object->support_layers())
-                zs.push_back(layer->print_z);
+            for (auto layer : object->support_layers()) zs.push_back(layer->print_z);
         }
         std::sort(zs.begin(), zs.end());
         m_layer_count = (unsigned int)(std::unique(zs.begin(), zs.end()) - zs.begin());
@@ -2371,7 +2357,6 @@ GCode::LayerResult GCode::process_layer(
     // First object, support and raft layer, if available.
     const Layer         *object_layer  = nullptr;
     const SupportLayer  *support_layer = nullptr;
-    const TreeSupportLayer* tree_support_layer = nullptr;
     const SupportLayer  *raft_layer    = nullptr;
     for (const LayerToPrint &l : layers) {
         if (l.object_layer && ! object_layer)
@@ -2382,16 +2367,6 @@ GCode::LayerResult GCode::process_layer(
             if (! raft_layer && support_layer->id() < support_layer->object()->slicing_parameters().raft_layers())
                 raft_layer = support_layer;
         }
-
-        if (l.tree_support_layer) {
-            if (!tree_support_layer)
-                tree_support_layer = l.tree_support_layer;
-            // BBS: to be checked.
-#if 0
-            if (!raft_layer && tree_support_layer->id() < tree_support_layer->object()->slicing_parameters().raft_layers())
-                raft_layer = tree_support_layer;
-#endif
-        }
     }
 
     const Layer* layer_ptr = nullptr;
@@ -2399,8 +2374,6 @@ GCode::LayerResult GCode::process_layer(
         layer_ptr = object_layer;
     else if (support_layer != nullptr)
         layer_ptr = support_layer;
-    else
-        layer_ptr = tree_support_layer;
     const Layer& layer = *layer_ptr;
     GCode::LayerResult   result { {}, layer.id(), false, last_layer };
     if (layer_tools.extruders.empty())
@@ -2421,7 +2394,7 @@ GCode::LayerResult GCode::process_layer(
     // Check whether it is possible to apply the spiral vase logic for this layer.
     // Just a reminder: A spiral vase mode is allowed for a single object, single material print only.
     m_enable_loop_clipping = true;
-    if (m_spiral_vase && layers.size() == 1 && support_layer == nullptr && tree_support_layer == nullptr) {
+    if (m_spiral_vase && layers.size() == 1 && support_layer == nullptr) {
         bool enable = (layer.id() > 0 || !print.has_brim()) && (layer.id() >= (size_t)print.config().skirt_height.value && ! print.has_infinite_skirt());
         if (enable) {
             for (const LayerRegion *layer_region : layer.regions())
@@ -2623,90 +2596,6 @@ GCode::LayerResult GCode::process_layer(
                 if (! single_extruder && has_interface) {
                     ObjectByExtruder &obj_interface = object_by_extruder(by_extruder, interface_extruder, &layer_to_print - layers.data(), layers.size());
                     obj_interface.support = &support_layer.support_fills;
-                    obj_interface.support_extrusion_role = erSupportMaterialInterface;
-                }
-            }
-        }
-
-        // BBS
-        if (layer_to_print.tree_support_layer != nullptr) {
-            const TreeSupportLayer& tree_support_layer = *layer_to_print.tree_support_layer;
-            const PrintObject& object = *layer_to_print.original_object;
-            if (!tree_support_layer.support_fills.entities.empty()) {
-                ExtrusionRole   role = tree_support_layer.support_fills.role();
-                bool            has_support = role == erMixed || role == erSupportMaterial || role == erSupportTransition;
-                bool            has_interface = role == erMixed || role == erSupportMaterialInterface;
-                // Extruder ID of the support base. -1 if "don't care".
-                unsigned int    support_extruder = object.config().support_filament.value - 1;
-                // Shall the support be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
-                bool            support_dontcare = object.config().support_filament.value == 0;
-                // Extruder ID of the support interface. -1 if "don't care".
-                unsigned int    interface_extruder = object.config().support_interface_filament.value - 1;
-                // Shall the support interface be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
-                bool            interface_dontcare = object.config().support_interface_filament.value == 0;
-
-                // BBS: apply wiping overridden extruders
-                WipingExtrusions& wiping_extrusions = const_cast<LayerTools&>(layer_tools).wiping_extrusions();
-                if (support_dontcare) {
-                    int extruder_override = wiping_extrusions.get_support_extruder_overrides(&object);
-                    if (extruder_override >= 0) {
-                        support_extruder = extruder_override;
-                        support_dontcare = false;
-                    }
-                }
-
-                if (interface_dontcare) {
-                    int extruder_override = wiping_extrusions.get_support_interface_extruder_overrides(&object);
-                    if (extruder_override >= 0) {
-                        interface_extruder = extruder_override;
-                        interface_dontcare = false;
-                    }
-                }
-
-                // BBS: try to print support base with a filament other than interface filament
-                if (support_dontcare && !interface_dontcare) {
-                    unsigned int dontcare_extruder = first_extruder_id;
-                    for (unsigned int extruder_id : layer_tools.extruders) {
-                        if (print.config().filament_soluble.get_at(extruder_id)) continue;
-
-                        if (extruder_id == interface_extruder) continue;
-
-                        dontcare_extruder = extruder_id;
-                        break;
-                    }
-
-                    if (support_dontcare) support_extruder = dontcare_extruder;
-                }
-                else if (support_dontcare || interface_dontcare) {
-                    // Some support will be printed with "don't care" material, preferably non-soluble.
-                    // Is the current extruder assigned a soluble filament?
-                    unsigned int dontcare_extruder = first_extruder_id;
-                    if (print.config().filament_soluble.get_at(dontcare_extruder)) {
-                        // The last extruder printed on the previous layer extrudes soluble filament.
-                        // Try to find a non-soluble extruder on the same layer.
-                        for (unsigned int extruder_id : layer_tools.extruders)
-                            if (!print.config().filament_soluble.get_at(extruder_id)) {
-                                dontcare_extruder = extruder_id;
-                                break;
-                            }
-                    }
-
-                    if (support_dontcare)
-                        support_extruder = dontcare_extruder;
-                    if (interface_dontcare)
-                        interface_extruder = dontcare_extruder;
-                }
-                // Both the support and the support interface are printed with the same extruder, therefore
-                // the interface may be interleaved with the support base.
-                bool single_extruder = !has_support || support_extruder == interface_extruder;
-
-                // Assign an extruder to the base.
-                ObjectByExtruder& obj = object_by_extruder(by_extruder, has_support ? support_extruder : interface_extruder, &layer_to_print - layers.data(), layers.size());
-                obj.support = &tree_support_layer.support_fills;
-                obj.support_extrusion_role = single_extruder ? erMixed : erSupportMaterial;
-                if (!single_extruder && has_interface) {
-                    ObjectByExtruder& obj_interface = object_by_extruder(by_extruder, interface_extruder, &layer_to_print - layers.data(), layers.size());
-                    obj_interface.support = &tree_support_layer.support_fills;
                     obj_interface.support_extrusion_role = erSupportMaterialInterface;
                 }
             }
@@ -2930,12 +2819,7 @@ GCode::LayerResult GCode::process_layer(
                 m_last_obj_copy = this_object_copy;
                 this->set_origin(unscale(offset));
                 if (instance_to_print.object_by_extruder.support != nullptr) {
-                    if (layers[instance_to_print.layer_id].support_layer) {
-                        m_layer = layers[instance_to_print.layer_id].support_layer;
-                    }
-                    else {
-                        m_layer = layers[instance_to_print.layer_id].tree_support_layer;
-                    }
+                    m_layer = layers[instance_to_print.layer_id].support_layer;
                     m_object_layer_over_raft = false;
 
                     //BBS: print supports' brims first
@@ -3854,10 +3738,9 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role)
             return false;
 
         //reduce the retractions in lightning infills for tree support
-        const TreeSupportLayer* ts_layer = dynamic_cast<const TreeSupportLayer*>(m_layer);
-        if (ts_layer != NULL)
-            for (auto& area : ts_layer->base_areas)
-                if(area.contains(travel))
+        if (support_layer != NULL && support_layer->support_type==stInnerTree)
+            for (auto &area : support_layer->base_areas)
+                if (area.contains(travel))
                     return false;
     }
 

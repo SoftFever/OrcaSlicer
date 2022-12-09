@@ -91,7 +91,6 @@ PrintObject::~PrintObject()
     if (m_shared_regions && -- m_shared_regions->m_ref_cnt == 0) delete m_shared_regions;
     clear_layers();
     clear_support_layers();
-    clear_tree_support_layers();
 }
 
 PrintBase::ApplyStatus PrintObject::set_instances(PrintInstances &&instances)
@@ -414,7 +413,6 @@ void PrintObject::generate_support_material()
 {
     if (this->set_started(posSupportMaterial)) {
         this->clear_support_layers();
-        this->clear_tree_support_layers();
 
         if ((this->has_support() && m_layers.size() > 1) || (this->has_raft() && ! m_layers.empty())) {
             m_print->set_status(50, L("Generating support"));
@@ -479,16 +477,6 @@ void PrintObject::simplify_extrusion_path()
                 for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
                     m_print->throw_if_canceled();
                     m_support_layers[layer_idx]->simplify_support_extrusion_path();
-                }
-            }
-        );
-        m_print->throw_if_canceled();
-        tbb::parallel_for(
-            tbb::blocked_range<size_t>(0, m_tree_support_layers.size()),
-            [this](const tbb::blocked_range<size_t>& range) {
-                for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
-                    m_print->throw_if_canceled();
-                    m_tree_support_layers[layer_idx]->simplify_support_extrusion_path();
                 }
             }
         );
@@ -564,19 +552,6 @@ Layer* PrintObject::add_layer(int id, coordf_t height, coordf_t print_z, coordf_
     return m_layers.back();
 }
 
-// BBS
-const TreeSupportLayer* PrintObject::get_tree_support_layer_at_printz(coordf_t print_z, coordf_t epsilon) const
-{
-    coordf_t limit = print_z - epsilon;
-    auto it = Slic3r::lower_bound_by_predicate(m_tree_support_layers.begin(), m_tree_support_layers.end(), [limit](const TreeSupportLayer* layer) { return layer->print_z < limit; });
-    return (it == m_tree_support_layers.end() || (*it)->print_z > print_z + epsilon) ? nullptr : *it;
-}
-
-TreeSupportLayer* PrintObject::get_tree_support_layer_at_printz(coordf_t print_z, coordf_t epsilon)
-{
-    return const_cast<TreeSupportLayer*>(std::as_const(*this).get_tree_support_layer_at_printz(print_z, epsilon));
-}
-
 const SupportLayer* PrintObject::get_support_layer_at_printz(coordf_t print_z, coordf_t epsilon) const
 {
     coordf_t limit = print_z - epsilon;
@@ -589,12 +564,17 @@ SupportLayer* PrintObject::get_support_layer_at_printz(coordf_t print_z, coordf_
     return const_cast<SupportLayer*>(std::as_const(*this).get_support_layer_at_printz(print_z, epsilon));
 }
 
-void PrintObject::clear_tree_support_layers()
+void PrintObject::clear_support_layers()
 {
     if (!m_shared_object) {
-        for (TreeSupportLayer* l : m_tree_support_layers)
+        for (SupportLayer* l : m_support_layers)
             delete l;
-        m_tree_support_layers.clear();
+        m_support_layers.clear();
+        for (auto l : m_layers) {
+            l->sharp_tails.clear();
+            l->sharp_tails_height.clear();
+            l->cantilevers.clear();
+        }
     }
 }
 
@@ -614,19 +594,11 @@ std::shared_ptr<TreeSupportData> PrintObject::alloc_tree_support_preview_cache()
     return m_tree_support_preview_cache;
 }
 
-TreeSupportLayer* PrintObject::add_tree_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z)
+SupportLayer* PrintObject::add_tree_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z)
 {
-    m_tree_support_layers.emplace_back(new TreeSupportLayer(id, this, height, print_z, slice_z));
-    return m_tree_support_layers.back();
-}
-
-void PrintObject::clear_support_layers()
-{
-    if (!m_shared_object) {
-        for (Layer *l : m_support_layers)
-            delete l;
-        m_support_layers.clear();
-    }
+    m_support_layers.emplace_back(new SupportLayer(id, 0, this, height, print_z, slice_z));
+    m_support_layers.back()->support_type = stInnerTree;
+    return m_support_layers.back();
 }
 
 SupportLayer* PrintObject::add_support_layer(int id, int interface_id, coordf_t height, coordf_t print_z)

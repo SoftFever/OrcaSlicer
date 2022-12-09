@@ -175,10 +175,6 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
             for (auto layer : object->support_layers())
                 zs.emplace_back(layer->print_z);
 
-            // BBS
-            for (auto layer : object->tree_support_layers())
-                zs.emplace_back(layer->print_z);
-
             // Find first object layer that is not empty and save its print_z
             for (const Layer* layer : object->layers())
                 if (layer->has_extrusions()) {
@@ -335,24 +331,6 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
         LayerTools   &layer_tools = this->tools_for_layer(support_layer->print_z);
         ExtrusionRole role = support_layer->support_fills.role();
         bool         has_support        = role == erMixed || role == erSupportMaterial || role == erSupportTransition;
-        bool         has_interface      = role == erMixed || role == erSupportMaterialInterface;
-        unsigned int extruder_support   = object.config().support_filament.value;
-        unsigned int extruder_interface = object.config().support_interface_filament.value;
-        if (has_support)
-            layer_tools.extruders.push_back(extruder_support);
-        if (has_interface)
-            layer_tools.extruders.push_back(extruder_interface);
-        if (has_support || has_interface) {
-            layer_tools.has_support = true;
-            layer_tools.wiping_extrusions().is_support_overriddable_and_mark(role, object);
-        }
-    }
-
-    // BBS
-    for (auto tree_support_layer : object.tree_support_layers()) {
-        LayerTools   &layer_tools = this->tools_for_layer(tree_support_layer->print_z);
-        ExtrusionRole role = tree_support_layer->support_fills.role();
-        bool         has_support        = role == erMixed || role == erSupportMaterial || role == erSupportTransition;;
         bool         has_interface      = role == erMixed || role == erSupportMaterialInterface;
         unsigned int extruder_support   = object.config().support_filament.value;
         unsigned int extruder_interface = object.config().support_interface_filament.value;
@@ -1042,10 +1020,9 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
             if (object->config().flush_into_support) {
                 auto& object_config = object->config();
                 const SupportLayer* this_support_layer = object->get_support_layer_at_printz(lt.print_z, EPSILON);
-                const TreeSupportLayer* this_tree_support_layer = object->get_tree_support_layer_at_printz(lt.print_z, EPSILON);
 
                 do {
-                    if (this_support_layer == nullptr && this_tree_support_layer == nullptr)
+                    if (this_support_layer == nullptr)
                         break;
 
                     bool support_overriddable = object_config.support_filament == 0;
@@ -1053,7 +1030,7 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
                     if (!support_overriddable && !support_intf_overriddable)
                         break;
 
-                    auto& entities = this_support_layer != nullptr ? this_support_layer->support_fills.entities : this_tree_support_layer->support_fills.entities;
+                    auto &entities = this_support_layer->support_fills.entities;
                     if (support_overriddable && !is_support_overridden(object)) {
                         set_support_extruder_override(object, copy, new_extruder, num_of_copies);
                         for (const ExtrusionEntity* ee : entities) {

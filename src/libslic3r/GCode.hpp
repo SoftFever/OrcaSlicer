@@ -201,10 +201,9 @@ public:
     // public, so that it could be accessed by free helper functions from GCode.cpp
     struct LayerToPrint
     {
-        LayerToPrint() : object_layer(nullptr), support_layer(nullptr), tree_support_layer(nullptr), original_object(nullptr) {}
+        LayerToPrint() : object_layer(nullptr), support_layer(nullptr), original_object(nullptr) {}
         const Layer* 		object_layer;
         const SupportLayer* support_layer;
-        const TreeSupportLayer* tree_support_layer;
         const PrintObject*  original_object; //BBS: used for shared object logic
         const Layer* 		layer()   const
         {
@@ -213,9 +212,6 @@ public:
 
             if (support_layer != nullptr)
                 return support_layer;
-
-            if (tree_support_layer != nullptr)
-                return tree_support_layer;
 
             return nullptr;
         }
@@ -238,10 +234,6 @@ public:
                 count++;
             }
 
-            if (tree_support_layer != nullptr) {
-                sum_z += tree_support_layer->print_z;
-                count++;
-            }
             return sum_z / count;
         }
     };

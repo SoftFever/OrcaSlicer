@@ -31,7 +31,6 @@ class Print;
 class PrintObject;
 class SupportLayer;
 // BBS
-class TreeSupportLayer;
 class TreeSupportData;
 class TreeSupport;
 
@@ -175,13 +174,6 @@ class ConstSupportLayerPtrsAdaptor : public ConstVectorOfPtrsAdaptor<SupportLaye
     ConstSupportLayerPtrsAdaptor(const SupportLayerPtrs *data) : ConstVectorOfPtrsAdaptor<SupportLayer>(data) {}
 };
 
-// BBS
-typedef std::vector<TreeSupportLayer*>        TreeSupportLayerPtrs;
-class ConstTreeSupportLayerPtrsAdaptor : public ConstVectorOfPtrsAdaptor<TreeSupportLayer> {
-    friend PrintObject;
-    ConstTreeSupportLayerPtrsAdaptor(const TreeSupportLayerPtrs* data) : ConstVectorOfPtrsAdaptor<TreeSupportLayer>(data) {}
-};
-
 class BoundingBoxf3;        // TODO: for temporary constructor parameter
 
 // Single instance of a PrintObject.
@@ -296,14 +288,10 @@ public:
     Transform3d                  trafo_centered() const
         { Transform3d t = this->trafo(); t.pretranslate(Vec3d(- unscale<double>(m_center_offset.x()), - unscale<double>(m_center_offset.y()), 0)); return t; }
     const PrintInstances&        instances() const      { return m_instances; }
-    // BBS
-    ConstTreeSupportLayerPtrsAdaptor tree_support_layers() const { return ConstTreeSupportLayerPtrsAdaptor(&m_tree_support_layers); }
 
     // Whoever will get a non-const pointer to PrintObject will be able to modify its layers.
     LayerPtrs&                   layers()               { return m_layers; }
     SupportLayerPtrs&            support_layers()       { return m_support_layers; }
-    // BBS
-    TreeSupportLayerPtrs&        tree_support_layers() { return m_tree_support_layers; }
 
     template<typename PolysType>
     static void remove_bridges_from_contacts(
@@ -364,12 +352,7 @@ public:
     Layer*          add_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
 
     // BBS
-    TreeSupportLayer* get_tree_support_layer(int idx) { return m_tree_support_layers[idx]; }
-    const TreeSupportLayer* get_tree_support_layer_at_printz(coordf_t print_z, coordf_t epsilon) const;
-    TreeSupportLayer* get_tree_support_layer_at_printz(coordf_t print_z, coordf_t epsilon);
-    TreeSupportLayer* add_tree_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
-    void  clear_tree_support_layers();
-    size_t tree_support_layer_count() const { return m_tree_support_layers.size(); }
+    SupportLayer* add_tree_support_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z);
     std::shared_ptr<TreeSupportData> alloc_tree_support_preview_cache();
     void clear_tree_support_preview_cache() { m_tree_support_preview_cache.reset(); }
 
@@ -380,7 +363,6 @@ public:
     SupportLayer*   get_support_layer_at_printz(coordf_t print_z, coordf_t epsilon);
     SupportLayer*   add_support_layer(int id, int interface_id, coordf_t height, coordf_t print_z);
     SupportLayerPtrs::iterator insert_support_layer(SupportLayerPtrs::iterator pos, size_t id, size_t interface_id, coordf_t height, coordf_t print_z, coordf_t slice_z);
-    void            delete_support_layer(int idx);
 
     // Initialize the layer_height_profile from the model_object's layer_height_profile, from model_object's layer height table, or from slicing parameters.
     // Returns true, if the layer_height_profile was changed.
@@ -497,7 +479,6 @@ private:
     LayerPtrs                               m_layers;
     SupportLayerPtrs                        m_support_layers;
     // BBS
-    TreeSupportLayerPtrs                    m_tree_support_layers;
     std::shared_ptr<TreeSupportData>        m_tree_support_preview_cache;
 
     // this is set to true when LayerRegion->slices is split in top/internal/bottom
