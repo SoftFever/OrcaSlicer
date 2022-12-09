@@ -439,6 +439,7 @@ public:
     // parse amsStatusMain and ams_status_sub
     void _parse_ams_status(int ams_status);
     bool has_ams() { return ams_exist_bits != 0; }
+    bool can_unload_filament();
     bool is_U0_firmware();
     bool is_support_ams_mapping();
     bool is_only_support_cloud_print();

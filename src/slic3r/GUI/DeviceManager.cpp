@@ -490,6 +490,18 @@ void MachineObject::_parse_ams_status(int ams_status)
     BOOST_LOG_TRIVIAL(trace) << "ams_debug: main = " << ams_status_main_int << ", sub = " << ams_status_sub;
 }
 
+bool MachineObject::can_unload_filament()
+{
+    bool result = false;
+    if (!has_ams())
+        return true;
+
+    if (ams_status_main == AMS_STATUS_MAIN_IDLE && hw_switch_state == 1 && m_tray_now == "255") {
+        return true;
+    }
+    return result;
+}
+
 bool MachineObject::is_U0_firmware()
 {
     auto ota_ver_it = module_vers.find("ota");
