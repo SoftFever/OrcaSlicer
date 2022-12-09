@@ -2,6 +2,7 @@
 #include "Label.hpp"
 #include "../BitmapCache.hpp"
 #include "../I18N.hpp"
+#include "../GUI_App.hpp"
 
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
@@ -33,26 +34,6 @@ wxDEFINE_EVENT(EVT_AMS_CLIBRATION_AGAIN, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_CLIBRATION_CANCEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_GUIDE_WIKI, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_RETRY, wxCommandEvent);
-
-inline int hex_digit_to_int(const char c)
-{
-    return (c >= '0' && c <= '9') ? int(c - '0') : (c >= 'A' && c <= 'F') ? int(c - 'A') + 10 : (c >= 'a' && c <= 'f') ? int(c - 'a') + 10 : -1;
-}
-
-static wxColour decode_color(const std::string &color)
-{
-    std::array<int, 3> ret = {0, 0, 0};
-    const char *       c   = color.data() + 1;
-    if (color.size() == 8) {
-        for (size_t j = 0; j < 3; ++j) {
-            int digit1 = hex_digit_to_int(*c++);
-            int digit2 = hex_digit_to_int(*c++);
-            if (digit1 == -1 || digit2 == -1) break;
-            ret[j] = float(digit1 * 16 + digit2);
-        }
-    }
-    return wxColour(ret[0], ret[1], ret[2]);
-}
 
 bool AMSinfo::parse_ams_info(Ams *ams, bool remain_flag)
 {
@@ -110,19 +91,19 @@ bool AMSinfo::parse_ams_info(Ams *ams, bool remain_flag)
 Description:AMSrefresh
 **************************************************/
 
-AMSrefresh::AMSrefresh() { SetFont(Label::Body_10); }
+AMSrefresh::AMSrefresh() { SetFont(Label::Body_10);}
 
 AMSrefresh::AMSrefresh(wxWindow *parent, wxWindowID id, wxString number, Caninfo info, const wxPoint &pos, const wxSize &size) : AMSrefresh()
 {
     m_info = info;
-    m_text = number;
+    m_can_id = number.ToStdString();
     create(parent, id, pos, size);
 }
 
 AMSrefresh::AMSrefresh(wxWindow *parent, wxWindowID id, int number, Caninfo info, const wxPoint &pos, const wxSize &size) : AMSrefresh()
 {
     m_info = info;
-    m_text = wxString::Format("%d", number);
+    m_can_id = wxString::Format("%d", number).ToStdString();
     create(parent, id, pos, size);
 }
 
@@ -257,16 +238,24 @@ void AMSrefresh::paintEvent(wxPaintEvent &evt)
 
     dc.SetPen(wxPen(colour));
     dc.SetBrush(wxBrush(colour));
-    dc.SetFont(Label::Body_12);
+    dc.SetFont(Label::Body_11);
     dc.SetTextForeground(colour);
-    auto tsize = dc.GetTextExtent(m_text);
+    auto tsize = dc.GetTextExtent(m_refresh_id);
     pot        = wxPoint((size.x - tsize.x) / 2, (size.y - tsize.y) / 2);
-    dc.DrawText(m_text, pot);
+    dc.DrawText(m_refresh_id, pot);
 }
 
-void AMSrefresh::Update(Caninfo info)
+void AMSrefresh::Update(std::string ams_id, Caninfo info)
 {
-    m_info = info;
+    m_ams_id = ams_id;
+    m_info   = info;
+
+    if (!m_ams_id.empty() && !m_can_id.empty()) {
+        auto aid = atoi(m_ams_id.c_str());
+        auto tid = atoi(m_can_id.c_str());
+        auto tray_id = aid * 4 + tid;
+        m_refresh_id = wxGetApp().transition_tridid(tray_id);
+    }
     StopLoading();
 }
 
@@ -1195,7 +1184,7 @@ void AmsCans::Update(AMSinfo info)
     for (auto i = 0; i < m_can_refresh_list.GetCount(); i++) {
         Canrefreshs *refresh = m_can_refresh_list[i];
         if (i < m_can_count) {
-            refresh->canrefresh->Update(info.cans[i]);
+            refresh->canrefresh->Update(info.ams_id, info.cans[i]);
             refresh->canrefresh->Show();
         } else {
             refresh->canrefresh->Hide();
@@ -1230,9 +1219,11 @@ void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan)
     amscan->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
     wxBoxSizer *m_sizer_ams = new wxBoxSizer(wxVERTICAL);
     m_sizer_ams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
-    auto m_panel_refresh = new AMSrefresh(amscan, wxID_ANY, m_can_count + 1, caninfo);
+
+    auto m_panel_refresh = new AMSrefresh(amscan, wxID_ANY, m_can_count, caninfo);
     m_sizer_ams->Add(m_panel_refresh, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     m_sizer_ams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(2));
+
     auto m_panel_lib = new AMSLib(amscan, wxID_ANY, caninfo);
     m_panel_lib->Bind(wxEVT_LEFT_DOWN, [this, canindex](wxMouseEvent &ev) {
         m_canlib_selection = canindex;
@@ -1886,10 +1877,10 @@ void AMSControl::CreateAms()
     auto caninfo0_2 = Caninfo{"def_can_2", (""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
     auto caninfo0_3 = Caninfo{"def_can_3", (""), *wxWHITE, AMSCanType::AMS_CAN_TYPE_NONE};
 
-    AMSinfo                        ams1 = AMSinfo{"def_ams_0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo                        ams2 = AMSinfo{"def_ams_1", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo                        ams3 = AMSinfo{"def_ams_2", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
-    AMSinfo                        ams4 = AMSinfo{"def_ams_3", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo                        ams1 = AMSinfo{"0", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo                        ams2 = AMSinfo{"1", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo                        ams3 = AMSinfo{"2", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
+    AMSinfo                        ams4 = AMSinfo{"3", std::vector<Caninfo>{caninfo0_0, caninfo0_1, caninfo0_2, caninfo0_3}};
     std::vector<AMSinfo>           ams_info{ams1, ams2, ams3, ams4};
     std::vector<AMSinfo>::iterator it;
     Freeze();

@@ -149,16 +149,19 @@ public:
     void    OnClick(wxMouseEvent &evt);
     void    post_event(wxCommandEvent &&event);
     void    paintEvent(wxPaintEvent &evt);
-    void    Update(Caninfo info);
+    void    Update(std::string ams_id, Caninfo info);
     void    msw_rescale();
     Caninfo m_info;
+    
 
 protected:
     wxTimer *m_playing_timer= {nullptr};
     int      m_rotation_angle = 0;
-
     bool             m_play_loading = {false};
     bool             m_selected      = {false};
+
+    std::string      m_ams_id;
+    std::string      m_can_id;
 
     ScalableBitmap   m_bitmap_normal;
     ScalableBitmap   m_bitmap_selected;
@@ -172,7 +175,7 @@ protected:
     ScalableBitmap   m_bitmap_ams_rfid_7;
     std::vector<ScalableBitmap> m_rfid_bitmap_list;
 
-    wxString         m_text;
+    wxString         m_refresh_id;
     wxBoxSizer *     m_size_body;
     virtual void     DoSetSize(int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
 };
