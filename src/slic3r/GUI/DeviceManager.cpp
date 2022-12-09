@@ -2204,6 +2204,15 @@ int MachineObject::parse_json(std::string payload)
                                     online_rfid = false;
                                 }
                             }
+                            if (jj["online"].contains("version")) {
+                                online_version = jj["online"]["version"].get<int>();
+                            }
+                            if (last_online_version != online_version) {
+                                last_online_version = online_version;
+                                GUI::wxGetApp().CallAfter([this] {
+                                    this->command_get_version();
+                                    });
+                            }
                         }
                     } catch (...) {
                         ;

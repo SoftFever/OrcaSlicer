@@ -460,6 +460,8 @@ public:
     /*online*/
     bool   online_rfid;
     bool   online_ahb;
+    int    online_version = -1;
+    int    last_online_version = -1;
 
     /* temperature */
     float  nozzle_temp;
