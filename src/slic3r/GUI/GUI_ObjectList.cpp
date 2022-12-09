@@ -607,6 +607,11 @@ void ObjectList::update_filament_values_for_items(const size_t filaments_count)
         }
         m_objects_model->SetExtruder(extruder, item);
 
+        static const char *keys[] = {"support_filament", "support_interface_filament"};
+        for (auto key : keys)
+            if (object->config.has(key) && object->config.opt_int(key) > filaments_count)
+                object->config.erase(key);
+
         if (object->volumes.size() > 1) {
             for (size_t id = 0; id < object->volumes.size(); id++) {
                 item = m_objects_model->GetItemByVolumeId(i, id);
@@ -620,6 +625,10 @@ void ObjectList::update_filament_values_for_items(const size_t filaments_count)
                 }
 
                 m_objects_model->SetExtruder(extruder, item);
+
+                for (auto key : keys)
+                    if (object->volumes[id]->config.has(key) && object->volumes[id]->config.opt_int(key) > filaments_count)
+                        object->volumes[id]->config.erase(key);
             }
         }
     }

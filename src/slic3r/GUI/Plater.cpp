@@ -447,7 +447,7 @@ static struct DynamicFilamentList : DynamicList
     int index_of(wxString value) override
     {
         long n = 0;
-        return value.ToLong(&n) ? int(n) : -1;
+        return (value.ToLong(&n) && n <= items.size()) ? int(n) : -1;
     }
     void update(bool force = false)
     {

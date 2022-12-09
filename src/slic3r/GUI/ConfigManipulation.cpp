@@ -469,7 +469,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         if (opt != nullptr) {
             if (opt->getInt() > filament_cnt) {
                 DynamicPrintConfig new_conf = *config;
-                new_conf.set_key_value(key, new ConfigOptionInt(filament_cnt));
+                new_conf.set_key_value(key, new ConfigOptionInt(0));
                 apply(config, &new_conf);
             }
         }
