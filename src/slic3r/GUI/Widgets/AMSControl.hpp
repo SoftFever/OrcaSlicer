@@ -326,11 +326,6 @@ public:
     virtual bool Enable(bool enable = true);
 
     AMSinfo      m_amsinfo;
-    ScalableBitmap ams_humidity_0;
-    ScalableBitmap ams_humidity_1;
-    ScalableBitmap ams_humidity_2;
-    ScalableBitmap ams_humidity_3;
-    ScalableBitmap ams_humidity_4;
 
 protected:
     wxSize   m_cube_size;

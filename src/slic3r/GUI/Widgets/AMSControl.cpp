@@ -913,22 +913,22 @@ void AMSRoad::doRender(wxDC &dc)
 
     if (m_canindex == 3) {
         if (m_amsinfo.ams_humidity == 5) {
-            dc.DrawBitmap(ams_humidity_0.bmp(), wxPoint(size.x - ams_humidity_0.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_0.GetBmpSize().y - FromDIP(8)));
+            dc.DrawBitmap(ams_humidity_4.bmp(), wxPoint(size.x - ams_humidity_4.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_4.GetBmpSize().y - FromDIP(8)));
         }
         else if (m_amsinfo.ams_humidity == 4) {
-            dc.DrawBitmap(ams_humidity_1.bmp(), wxPoint(size.x - ams_humidity_0.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_0.GetBmpSize().y - FromDIP(8)));
+            dc.DrawBitmap(ams_humidity_3.bmp(), wxPoint(size.x - ams_humidity_3.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_3.GetBmpSize().y - FromDIP(8)));
         }
         else if (m_amsinfo.ams_humidity == 3) {
-            dc.DrawBitmap(ams_humidity_2.bmp(), wxPoint(size.x - ams_humidity_0.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_0.GetBmpSize().y - FromDIP(8)));
+            dc.DrawBitmap(ams_humidity_2.bmp(), wxPoint(size.x - ams_humidity_2.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_2.GetBmpSize().y - FromDIP(8)));
         }
         else if (m_amsinfo.ams_humidity == 2) {
-            dc.DrawBitmap(ams_humidity_3.bmp(), wxPoint(size.x - ams_humidity_0.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_0.GetBmpSize().y - FromDIP(8)));
+            dc.DrawBitmap(ams_humidity_1.bmp(), wxPoint(size.x - ams_humidity_1.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_1.GetBmpSize().y - FromDIP(8)));
         }
         else if (m_amsinfo.ams_humidity == 1) {
-            dc.DrawBitmap(ams_humidity_4.bmp(), wxPoint(size.x - ams_humidity_0.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_0.GetBmpSize().y - FromDIP(8)));
+            dc.DrawBitmap(ams_humidity_0.bmp(), wxPoint(size.x - ams_humidity_0.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_0.GetBmpSize().y - FromDIP(8)));
         }
         else {
-            dc.DrawBitmap(ams_humidity_0.bmp(), wxPoint(size.x - ams_humidity_0.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_0.GetBmpSize().y - FromDIP(8)));
+            dc.DrawBitmap(ams_humidity_4.bmp(), wxPoint(size.x - ams_humidity_4.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_4.GetBmpSize().y - FromDIP(8)));
         }
     }
 }
@@ -995,13 +995,6 @@ AMSItem::AMSItem() {}
 
 AMSItem::AMSItem(wxWindow *parent, wxWindowID id, AMSinfo amsinfo, const wxSize cube_size, const wxPoint &pos, const wxSize &size) : AMSItem()
 {
-
-    ams_humidity_0 = ScalableBitmap(this, "ams_humidity_0", 18);
-    ams_humidity_1 = ScalableBitmap(this, "ams_humidity_1", 18);
-    ams_humidity_2 = ScalableBitmap(this, "ams_humidity_2", 18);
-    ams_humidity_3 = ScalableBitmap(this, "ams_humidity_3", 18);
-    ams_humidity_4 = ScalableBitmap(this, "ams_humidity_4", 18);
-
     m_amsinfo   = amsinfo;
     m_cube_size = cube_size;
     create(parent, id, pos, size);
@@ -1145,25 +1138,6 @@ void AMSItem::doRender(wxDC &dc)
          dc.SetTextForeground(AMS_CONTROL_GRAY800);
          auto tsize = dc.GetTextExtent("00% RH");
          auto text  = wxString::Format("%d%% RH", m_humidity);*/
-
-        if (m_amsinfo.ams_humidity == 5) {
-            dc.DrawBitmap(ams_humidity_0.bmp(), wxPoint(left, (size.y - ams_humidity_0.GetBmpSize().y) / 2));
-        }
-        else if (m_amsinfo.ams_humidity == 4) {
-            dc.DrawBitmap(ams_humidity_1.bmp(), wxPoint(left, (size.y - ams_humidity_1.GetBmpSize().y) / 2));
-        }
-        else if (m_amsinfo.ams_humidity == 3) {
-            dc.DrawBitmap(ams_humidity_2.bmp(), wxPoint(left, (size.y - ams_humidity_2.GetBmpSize().y) / 2));
-        }
-        else if (m_amsinfo.ams_humidity == 2) {
-            dc.DrawBitmap(ams_humidity_3.bmp(), wxPoint(left, (size.y - ams_humidity_3.GetBmpSize().y) / 2));
-        }
-        else if (m_amsinfo.ams_humidity == 1) {
-            dc.DrawBitmap(ams_humidity_4.bmp(), wxPoint(left, (size.y - ams_humidity_4.GetBmpSize().y) / 2));
-        }
-        else {
-            dc.DrawBitmap(ams_humidity_0.bmp(), wxPoint(left, (size.y - ams_humidity_0.GetBmpSize().y) / 2));
-        }
     }
 
     auto border_colour = AMS_CONTROL_BRAND_COLOUR;
