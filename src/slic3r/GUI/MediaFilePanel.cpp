@@ -269,8 +269,8 @@ void MediaFilePanel::Rescale()
     m_button_timelapse->Rescale();
     m_type_panel->SetMinSize({-1, 48 * em_unit(this) / 10});
 
-    m_button_video->Rescale();
-    m_button_timelapse->Rescale();
+    m_button_download->Rescale();
+    m_button_delete->Rescale();
     m_button_management->Rescale();
 
     m_image_grid->Rescale();
