@@ -790,7 +790,7 @@ bool GLTexture::load_from_svg(const std::string& filename, bool use_mipmaps, boo
         int lod_w = m_width;
         int lod_h = m_height;
         GLint level = 0;
-        while (lod_w > 1 || lod_h > 1) {
+        while (lod_w >= 4 && lod_h >= 4) {
             ++level;
 
             lod_w = std::max(lod_w / 2, 1);
