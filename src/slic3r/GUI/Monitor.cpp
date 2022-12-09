@@ -248,6 +248,7 @@ wxWindow* MonitorPanel::create_side_tools()
 void MonitorPanel::on_sys_color_changed()
 {
     m_status_info_panel->on_sys_color_changed();
+    m_upgrade_panel->on_sys_color_changed();
 }
 
 void MonitorPanel::msw_rescale()

@@ -368,6 +368,7 @@ public:
     static inline int m_sequence_id = 20000;
     static std::string parse_printer_type(std::string type_str);
     static std::string get_preset_printer_model_name(std::string printer_type);
+    static std::string get_preset_printer_thumbnail_img(std::string printer_type);
     static bool is_bbl_filament(std::string tag_uid);
 
     typedef std::function<void()> UploadedFn;
@@ -387,8 +388,13 @@ public:
     bool is_lan_mode_printer();
     //PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
     std::string printer_type;       /* model_id */
+
+    std::string printer_thumbnail_img;
+    std::string monitor_upgrade_printer_img;
+
     wxString get_printer_type_display_str();
 
+    std::string get_printer_thumbnail_img_str();
     std::string product_name;       // set by iot service, get /user/print
 
     std::string bind_user_name;
@@ -767,6 +773,7 @@ public:
     static json function_table;
     static std::string parse_printer_type(std::string type_str);
     static std::string get_printer_display_name(std::string type_str);
+    static std::string get_printer_thumbnail_img(std::string type_str);
     static bool is_function_supported(std::string type_str, std::string function_name);
     static std::vector<std::string> get_resolution_supported(std::string type_str);
 

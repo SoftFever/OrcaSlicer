@@ -281,7 +281,7 @@ void MachineInfoPanel::msw_rescale()
 
 void MachineInfoPanel::init_bitmaps()
 {
-    m_img_printer        = create_scaled_bitmap("monitor_upgrade_printer", nullptr, 200);
+    m_img_printer        = create_scaled_bitmap("printer_thumbnail", nullptr, 160);
     m_img_monitor_ams    = create_scaled_bitmap("monitor_upgrade_ams", nullptr, 200);
     m_img_ext            = create_scaled_bitmap("monitor_upgrade_ext", nullptr, 200);
     upgrade_green_icon   = create_scaled_bitmap("monitor_upgrade_online", nullptr, 5);
@@ -298,8 +298,21 @@ MachineInfoPanel::~MachineInfoPanel()
         delete confirm_dlg;
 }
 
+void MachineInfoPanel::Update_printer_img(MachineObject* obj)
+{
+    if (!obj) {return;}
+    auto img = obj->get_printer_thumbnail_img_str();
+    if (wxGetApp().dark_mode()) {img += "_dark";}
+    m_img_printer = create_scaled_bitmap(img, nullptr, 160);
+    m_printer_img->SetBitmap(m_img_printer);
+    m_printer_img->Refresh();
+}
+
 void MachineInfoPanel::update(MachineObject* obj)
 {
+    if (m_obj != obj)
+        Update_printer_img(obj);
+
     m_obj = obj;
     if (obj) {
         this->Freeze();
@@ -723,6 +736,11 @@ void MachineInfoPanel::show_ext(bool show, bool force_update)
     m_last_ext_show = show;
 }
 
+void MachineInfoPanel::on_sys_color_changed()
+{
+    Update_printer_img(m_obj);
+}
+
 void MachineInfoPanel::upgrade_firmware_internal() {
     if (!m_obj)
         return;
@@ -945,6 +963,11 @@ void UpgradePanel::show_status(int status)
     else if ((status & (int)MonitorStatus::MONITOR_NORMAL) != 0) {
         ;
     }
+}
+
+void UpgradePanel::on_sys_color_changed()
+{
+   m_push_upgrade_panel->on_sys_color_changed();
 }
 
 bool UpgradePanel::Show(bool show)

@@ -335,7 +335,15 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
     //if (!new_color.empty())
     //    replaces["\"#ED6B21\""] = "\"" + new_color + "\"";
 
-    NSVGimage *image =  nsvgParseFromFileWithReplace(Slic3r::var(bitmap_name + ".svg").c_str(), "px", 96.0f, replaces);
+     NSVGimage *image = nullptr;
+    if (strstr(bitmap_name.c_str(), "printer_thumbnail") == NULL) {
+        image =  nsvgParseFromFileWithReplace(Slic3r::var(bitmap_name + ".svg").c_str(), "px", 96.0f, replaces);
+    }
+    else {
+        std::map<std::string, std::string> temp_replaces;
+        image =  nsvgParseFromFileWithReplace(Slic3r::var(bitmap_name + ".svg").c_str(), "px", 96.0f, temp_replaces);
+    }
+
     if (image == nullptr)
         return nullptr;
 

@@ -37,8 +37,9 @@ namespace GUI {
      wxBoxSizer *m_sizere_left_h = new wxBoxSizer(wxHORIZONTAL);
      wxBoxSizer *m_sizere_left_v= new wxBoxSizer(wxVERTICAL);
 
-     auto m_printer_img = new wxStaticBitmap(m_panel_left, wxID_ANY, create_scaled_bitmap("printer_thumbnail", nullptr, 96), wxDefaultPosition, wxSize(FromDIP(100), FromDIP(96)), 0);
+     m_printer_img = new wxStaticBitmap(m_panel_left, wxID_ANY, create_scaled_bitmap("printer_thumbnail", nullptr, FromDIP(100)), wxDefaultPosition, wxSize(FromDIP(120), FromDIP(120)), 0);
      m_printer_img->SetBackgroundColour(BIND_DIALOG_GREY200);
+     m_printer_img->Hide();
      m_printer_name = new wxStaticText(m_panel_left, wxID_ANY, wxEmptyString);
      m_printer_name->SetBackgroundColour(BIND_DIALOG_GREY200);
      m_printer_name->SetFont(::Label::Head_14);
@@ -274,9 +275,18 @@ void BindMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
 
 void BindMachineDialog::on_show(wxShowEvent &event)
 {
-    //m_printer_name->SetLabelText(m_machine_info->get_printer_type_string());
-    m_printer_name->SetLabelText(from_u8(m_machine_info->dev_name));
-    Layout();
+    if (event.IsShown()) {
+        auto img = m_machine_info->get_printer_thumbnail_img_str();
+        if (wxGetApp().dark_mode()) { img += "_dark"; }
+        auto bitmap = create_scaled_bitmap(img, this, FromDIP(100));
+        m_printer_img->SetBitmap(bitmap);
+        m_printer_img->Refresh();
+        m_printer_img->Show();
+
+        m_printer_name->SetLabelText(from_u8(m_machine_info->dev_name));
+        Layout();
+        event.Skip();
+    }
 }
 
 
@@ -302,8 +312,9 @@ UnBindMachineDialog::UnBindMachineDialog(Plater *plater /*= nullptr*/)
      wxBoxSizer *m_sizere_left_h = new wxBoxSizer(wxHORIZONTAL);
      wxBoxSizer *m_sizere_left_v= new wxBoxSizer(wxVERTICAL);
 
-     auto m_printer_img = new wxStaticBitmap(m_panel_left, wxID_ANY, create_scaled_bitmap("printer_thumbnail", nullptr, 96), wxDefaultPosition, wxSize(FromDIP(100), FromDIP(96)),0);
+     m_printer_img = new wxStaticBitmap(m_panel_left, wxID_ANY, create_scaled_bitmap("printer_thumbnail", nullptr, FromDIP(100)), wxDefaultPosition, wxSize(FromDIP(120), FromDIP(120)), 0);
      m_printer_img->SetBackgroundColour(BIND_DIALOG_GREY200);
+     m_printer_img->Hide();
      m_printer_name     = new wxStaticText(m_panel_left, wxID_ANY, wxEmptyString);
      m_printer_name->SetFont(::Label::Head_14);
      m_printer_name->SetBackgroundColour(BIND_DIALOG_GREY200);
@@ -488,9 +499,18 @@ void UnBindMachineDialog::on_unbind_printer(wxCommandEvent &event)
 
 void UnBindMachineDialog::on_show(wxShowEvent &event)
 {
-    //m_printer_name->SetLabelText(m_machine_info->get_printer_type_string());
-    m_printer_name->SetLabelText(from_u8(m_machine_info->dev_name));
-    Layout();
+    if (event.IsShown()) {
+        auto img = m_machine_info->get_printer_thumbnail_img_str();
+        if (wxGetApp().dark_mode()) { img += "_dark"; }
+        auto bitmap = create_scaled_bitmap(img, this, FromDIP(100));
+        m_printer_img->SetBitmap(bitmap);
+        m_printer_img->Refresh();
+        m_printer_img->Show();
+
+        m_printer_name->SetLabelText(from_u8(m_machine_info->dev_name));
+        Layout();
+        event.Skip();
+    } 
 }
 
 }} // namespace Slic3r::GUI

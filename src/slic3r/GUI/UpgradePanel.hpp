@@ -114,6 +114,8 @@ public:
     MachineInfoPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL, const wxString& name = wxEmptyString);
     ~MachineInfoPanel();
 
+    void on_sys_color_changed();
+    void Update_printer_img(MachineObject* obj);
     void init_bitmaps();
 
     Button* get_btn() {
@@ -181,6 +183,7 @@ public:
     void refresh_version_and_firmware(MachineObject* obj);
     void update(MachineObject *obj);
     void show_status(int status);
+    void on_sys_color_changed();
 
     MachineObject *m_obj { nullptr };
 };

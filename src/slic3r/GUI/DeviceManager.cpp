@@ -279,6 +279,11 @@ std::string MachineObject::get_preset_printer_model_name(std::string printer_typ
     return DeviceManager::get_printer_display_name(printer_type);
 }
 
+std::string MachineObject::get_preset_printer_thumbnail_img(std::string printer_type)
+{
+    return DeviceManager::get_printer_thumbnail_img(printer_type);
+}
+
 wxString MachineObject::get_printer_type_display_str()
 {
     std::string display_name = get_preset_printer_model_name(printer_type);
@@ -286,6 +291,15 @@ wxString MachineObject::get_printer_type_display_str()
         return display_name;
     else
         return _L("Unknown");
+}
+
+std::string MachineObject::get_printer_thumbnail_img_str()
+{
+    std::string img_str = get_preset_printer_thumbnail_img(printer_type);
+    if (!img_str.empty())
+        return img_str;
+    else
+        return "printer_thumbnail";
 }
 
 void MachineObject::set_access_code(std::string code)
@@ -3689,6 +3703,20 @@ std::string DeviceManager::get_printer_display_name(std::string type_str)
             if (printer.contains("model_id") && printer["model_id"].get<std::string>() == type_str) {
                 if (printer.contains("display_name")) {
                     return printer["display_name"].get<std::string>();
+                }
+            }
+        }
+    }
+    return "";
+}
+
+std::string DeviceManager::get_printer_thumbnail_img(std::string type_str)
+{
+    if (DeviceManager::function_table.contains("printers")) {
+        for (auto printer : DeviceManager::function_table["printers"]) {
+            if (printer.contains("model_id") && printer["model_id"].get<std::string>() == type_str) {
+                if (printer.contains("printer_thumbnail_image")) {
+                    return printer["printer_thumbnail_image"].get<std::string>();
                 }
             }
         }

@@ -23,7 +23,8 @@
             "camera_resolution":["720p"],
             "bed_temperature_limit": 100,
             "model_id": "C11",
-            "printer_type": "C11"
+            "printer_type": "C11",
+            "printer_thumbnail_image": "printer_thumbnail_p1p"
         },
         {
             "display_name": "Bambu Lab X1",
@@ -32,7 +33,8 @@
             },
             "camera_resolution":["720p","1080p"],
             "model_id": "BL-P002",
-            "printer_type": "3DPrinter-X1"
+            "printer_type": "3DPrinter-X1",
+            "printer_thumbnail_image": "printer_thumbnail"
         },
         {
             "display_name": "Bambu Lab X1 Carbon",
@@ -41,7 +43,8 @@
             },
             "model_id": "BL-P001",
             "camera_resolution":["720p","1080p"],
-            "printer_type": "3DPrinter-X1-Carbon"
+            "printer_type": "3DPrinter-X1-Carbon",
+            "printer_thumbnail_image": "printer_thumbnail"
         }
     ]
 }
