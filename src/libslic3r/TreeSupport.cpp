@@ -1547,9 +1547,14 @@ void TreeSupport::generate_toolpaths()
                         // Note: spacing means the separation between two lines as if they are tightly extruded
                         filler_Roof1stLayer->spacing = m_support_material_interface_flow.spacing();
                         // generate a perimeter first to support interface better
-                        make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object->print(), poly, 1, m_support_material_interface_flow, erSupportMaterial,
+                        ExtrusionEntityCollection* temp_support_fills = new ExtrusionEntityCollection();
+                        make_perimeter_and_infill(temp_support_fills->entities, *m_object->print(), poly, 1, m_support_material_interface_flow, erSupportMaterial,
                             filler_Roof1stLayer.get(), interface_density, false);
-                        ts_layer->support_fills.no_sort = true; // make sure loops are first
+                        temp_support_fills->no_sort = true; // make sure loops are first
+                        if (!temp_support_fills->entities.empty())
+                            ts_layer->support_fills.entities.push_back(temp_support_fills);
+                        else
+                            delete temp_support_fills;
                     } else if (area_group.type == TreeSupportLayer::FloorType) {
                         // floor_areas
                         fill_params.density = bottom_interface_density;
