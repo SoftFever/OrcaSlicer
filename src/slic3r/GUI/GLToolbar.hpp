@@ -186,6 +186,7 @@ public:
 
     const std::string& get_name() const { return m_data.name; }
     const std::string& get_icon_filename() const { return m_data.icon_filename; }
+    void set_icon_filename(const std::string& filename) { m_data.icon_filename = filename; }
     const std::string& get_tooltip() const { return m_data.tooltip; }
     const std::string& get_additional_tooltip() const { return m_data.additional_tooltip; }
     void set_additional_tooltip(const std::string& text) { m_data.additional_tooltip = text; }

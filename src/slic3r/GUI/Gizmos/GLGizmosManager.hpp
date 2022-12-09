@@ -163,6 +163,8 @@ public:
 
     explicit GLGizmosManager(GLCanvas3D& parent);
 
+    void switch_gizmos_icon_filename();
+
     bool init();
 
     bool init_icon_textures();

@@ -1268,10 +1268,9 @@ void GLCanvas3D::on_change_color_mode(bool is_dark, bool reinit) {
         m_gizmos.on_change_color_mode(is_dark);
         if (reinit) {
             // reset svg
-            _init_toolbars();
-            m_gizmos.init();
+            _switch_toolbars_icon_filename();
+            m_gizmos.switch_gizmos_icon_filename();
             // set dirty to re-generate icon texture
-            m_separator_toolbar.set_icon_dirty();
             m_separator_toolbar.set_icon_dirty();
             m_main_toolbar.set_icon_dirty();
             wxGetApp().plater()->get_collapse_toolbar().set_icon_dirty();
@@ -5680,6 +5679,55 @@ void GLCanvas3D::render_thumbnail_legacy(ThumbnailData& thumbnail_data, unsigned
 }
 
 //BBS: GUI refractor
+
+void GLCanvas3D::_switch_toolbars_icon_filename()
+{
+    BackgroundTexture::Metadata background_data;
+    background_data.filename = m_is_dark ? "toolbar_background_dark.png" : "toolbar_background.png";
+    background_data.left = 16;
+    background_data.top = 16;
+    background_data.right = 16;
+    background_data.bottom = 16;
+    m_main_toolbar.init(background_data);
+    m_assemble_view_toolbar.init(background_data);
+    m_separator_toolbar.init(background_data);
+    wxGetApp().plater()->get_collapse_toolbar().init(background_data);
+        
+    // main toolbar
+    {
+        GLToolbarItem* item;
+        item = m_main_toolbar.get_item("add");
+        item->set_icon_filename(m_is_dark ? "toolbar_open_dark.svg" : "toolbar_open.svg");
+
+        item = m_main_toolbar.get_item("addplate");
+        item->set_icon_filename(m_is_dark ? "toolbar_add_plate_dark.svg" : "toolbar_add_plate.svg");
+
+        item = m_main_toolbar.get_item("orient");
+        item->set_icon_filename(m_is_dark ? "toolbar_orient_dark.svg" : "toolbar_orient.svg");
+
+        item = m_main_toolbar.get_item("addplate");
+        item->set_icon_filename(m_is_dark ? "toolbar_add_plate_dark.svg" : "toolbar_add_plate.svg");
+
+        item = m_main_toolbar.get_item("arrange");
+        item->set_icon_filename(m_is_dark ? "toolbar_arrange_dark.svg" : "toolbar_arrange.svg");
+
+        item = m_main_toolbar.get_item("splitobjects");
+        item->set_icon_filename(m_is_dark ? "split_objects_dark.svg" : "split_objects.svg");
+
+        item = m_main_toolbar.get_item("splitvolumes");
+        item->set_icon_filename(m_is_dark ? "split_parts_dark.svg" : "split_parts.svg");
+
+        item = m_main_toolbar.get_item("layersediting");
+        item->set_icon_filename(m_is_dark ? "toolbar_variable_layer_height_dark.svg" : "toolbar_variable_layer_height.svg");
+    }
+
+    // assemble view toolbar
+    {
+        GLToolbarItem* item;
+        item = m_assemble_view_toolbar.get_item("assembly_view");
+        item->set_icon_filename(m_is_dark ? "toolbar_assemble_dark.svg" : "toolbar_assemble.svg");
+    }
+}
 bool GLCanvas3D::_init_toolbars()
 {
     if (!_init_main_toolbar())
@@ -5921,7 +5969,7 @@ bool GLCanvas3D::_init_assemble_view_toolbar()
 
     GLToolbarItem::Data item;
     item.name = "assembly_view";
-    item.icon_filename = "toolbar_assemble.svg";
+    item.icon_filename = m_is_dark ? "toolbar_assemble_dark.svg" : "toolbar_assemble.svg";
     item.tooltip = _utf8(L("Assembly View"));
     item.sprite_id = 1;
     item.left.toggable = false;

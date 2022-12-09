@@ -151,6 +151,8 @@ public:
 
     const std::string& get_icon_filename() const { return m_icon_filename; }
 
+    void set_icon_filename(const std::string& filename);
+
     bool is_activable() const { return on_is_activable(); }
     bool is_selectable() const { return on_is_selectable(); }
     CommonGizmosDataID get_requirements() const { return on_get_requirements(); }

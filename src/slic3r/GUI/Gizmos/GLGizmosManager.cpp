@@ -120,6 +120,51 @@ size_t GLGizmosManager::get_gizmo_idx_from_mouse(const Vec2d& mouse_pos) const
     return Undefined;
 }
 
+void GLGizmosManager::switch_gizmos_icon_filename()
+{
+    m_background_texture.metadata.filename = m_is_dark ? "toolbar_background_dark.png" : "toolbar_background.png";
+    m_background_texture.metadata.left = 16;
+    m_background_texture.metadata.top = 16;
+    m_background_texture.metadata.right = 16;
+    m_background_texture.metadata.bottom = 16;
+    if (!m_background_texture.metadata.filename.empty())
+        m_background_texture.texture.load_from_file(resources_dir() + "/images/" + m_background_texture.metadata.filename, false, GLTexture::SingleThreaded, false);
+
+    for (auto& gizmo : m_gizmos) {
+        gizmo->on_change_color_mode(m_is_dark);
+        switch (gizmo->get_sprite_id())
+        {
+        case(EType::Move):
+            gizmo->set_icon_filename(m_is_dark ? "toolbar_move_dark.svg" : "toolbar_move.svg");
+            break;
+        case(EType::Rotate):
+            gizmo->set_icon_filename(m_is_dark ? "toolbar_rotate_dark.svg" : "toolbar_rotate.svg");
+            break;
+        case(EType::Scale):
+            gizmo->set_icon_filename(m_is_dark ? "toolbar_scale_dark.svg" : "toolbar_scale.svg");
+            break;
+        case(EType::Flatten):
+            gizmo->set_icon_filename(m_is_dark ? "toolbar_flatten_dark.svg" : "toolbar_flatten.svg");
+            break;
+        case(EType::Cut):
+            gizmo->set_icon_filename(m_is_dark ? "toolbar_cut_dark.svg" : "toolbar_cut.svg");
+            break;
+        case(EType::FdmSupports):
+            gizmo->set_icon_filename(m_is_dark ? "toolbar_support_dark.svg" : "toolbar_support.svg");
+            break;
+        case(EType::Seam):
+            gizmo->set_icon_filename(m_is_dark ? "toolbar_seam_dark.svg" : "toolbar_seam.svg");
+            break;
+        case(EType::Text):
+            gizmo->set_icon_filename(m_is_dark ? "toolbar_text_dark.svg" : "toolbar_text.svg");
+            break;
+        case(EType::MmuSegmentation):
+            gizmo->set_icon_filename(m_is_dark ? "mmu_segmentation_dark.svg" : "mmu_segmentation.svg");
+            break;
+        }
+    }
+}
+
 bool GLGizmosManager::init()
 {
     bool result = init_icon_textures();
