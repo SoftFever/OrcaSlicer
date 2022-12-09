@@ -530,7 +530,7 @@ int WipingPanel::calc_flushing_volume(const wxColour& from, const wxColour& to)
 void WipingPanel::update_warning_texts()
 {
     static const wxColour g_warning_color = *wxRED;
-    static const wxColour g_normal_color = StateColor::darkModeColorFor(*wxBLACK);
+    static const wxColour g_normal_color = *wxBLACK;
 
     wxString multi_str = m_flush_multiplier_ebox->GetValue();
     float multiplier = wxAtof(multi_str);
@@ -554,7 +554,7 @@ void WipingPanel::update_warning_texts()
             }
             else {
                 if (text_box->GetForegroundColour() != g_normal_color) {
-                    text_box->SetForegroundColour(g_normal_color);
+                    text_box->SetForegroundColour(StateColor::darkModeColorFor(g_normal_color));
                     text_box->Refresh();
                 }
             }
