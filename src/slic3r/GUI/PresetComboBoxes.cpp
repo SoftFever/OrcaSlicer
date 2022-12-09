@@ -384,15 +384,22 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
             }
             const_cast<Preset&>(*iter).is_visible = true;
             auto color = f.opt_string("filament_colour", 0u);
+            auto name = f.opt_string("tray_name", 0u);
             wxColour clr(color);
-            wxImage img(16, 16);
+            wxImage img(24, 16);
             if (clr.Red() > 224 && clr.Blue() > 224 && clr.Green() > 224) {
                 img.SetRGB(wxRect({0, 0}, img.GetSize()), 128, 128, 128);
                 img.SetRGB(wxRect({1, 1}, img.GetSize() - wxSize{2, 2}), clr.Red(), clr.Green(), clr.Blue());
             } else {
                 img.SetRGB(wxRect({0, 0}, img.GetSize()), clr.Red(), clr.Green(), clr.Blue());
             }
-            int item_id = Append(get_preset_name(*iter), img, &m_first_ams_filament + (&f - &m_preset_bundle->filament_ams_list.front()));
+            wxBitmap bmp(img);
+            wxMemoryDC dc(bmp);
+            dc.SetFont(Label::Body_10);
+            dc.SetTextForeground(different_color(clr));
+            auto size = dc.GetTextExtent(name);
+            dc.DrawText(name, bmp.GetWidth() / 2 - size.x / 2, bmp.GetHeight() / 2 - size.y / 2);
+            int item_id = Append(get_preset_name(*iter), bmp.ConvertToImage(), &m_first_ams_filament + (&f - &m_preset_bundle->filament_ams_list.front()));
             //validate_selection(id->value == selected); // can not select
         }
         m_last_ams_filament = GetCount();
