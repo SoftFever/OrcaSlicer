@@ -26,6 +26,7 @@
 #include "Widgets/TextInput.hpp"
 #include "Widgets/SpinInput.hpp"
 #include "Widgets/ComboBox.hpp"
+#include "Widgets/TextCtrl.h"
 
 #ifdef __WXOSX__
 #define wxOSX true
@@ -1603,8 +1604,8 @@ void PointCtrl::BUILD()
 #ifdef _WIN32
 	style |= wxBORDER_SIMPLE;
 #endif
-	x_textctrl = new wxTextCtrl(m_parent, wxID_ANY, X, wxDefaultPosition, field_size, style);
-	y_textctrl = new wxTextCtrl(m_parent, wxID_ANY, Y, wxDefaultPosition, field_size, style);
+	x_textctrl = new ::TextCtrl(m_parent, wxID_ANY, X, wxDefaultPosition, field_size, style);
+	y_textctrl = new ::TextCtrl(m_parent, wxID_ANY, Y, wxDefaultPosition, field_size, style);
     if (parent_is_custom_ctrl && m_opt.height < 0)
         opt_height = (double)x_textctrl->GetSize().GetHeight() / m_em_unit;
 
