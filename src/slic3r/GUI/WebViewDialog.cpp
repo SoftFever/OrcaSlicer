@@ -88,20 +88,6 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
 
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
 
-    Bind(EVT_WEBVIEW_RECREATED, [this](auto &evt) {
-#ifdef __WXMSW__
-        m_browser = dynamic_cast<wxWebView *>(evt.GetEventObject());
-        if (m_browser == nullptr) {
-            wxLogError("Could not recreate browser");
-            return;
-        }
-        GetSizer()->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
-        GetSizer()->Layout();
-#else
-        (void) this;
-#endif
-    });
-
     // Log backend information
     if (wxGetApp().get_mode() == comDevelop) {
         wxLogMessage(wxWebView::GetBackendVersionInfo().ToString());

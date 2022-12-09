@@ -35,6 +35,48 @@ webkit_javascript_result_unref              (WebKitJavascriptResult *js_result);
 }
 #endif
 
+#ifdef __WIN32__
+
+class WebViewEdge : public wxWebViewEdge
+{
+public:
+    bool SetUserAgent(const wxString &userAgent)
+    {
+        ICoreWebView2 *webView2 = (ICoreWebView2 *) GetNativeBackend();
+        if (webView2) {
+            ICoreWebView2Settings *settings;
+            HRESULT                hr = webView2->get_Settings(&settings);
+            if (hr == S_OK) {
+                ICoreWebView2Settings2 *settings2;
+                hr = settings->QueryInterface(&settings2);
+                if (hr == S_OK) {
+                    settings2->put_UserAgent(userAgent.wc_str());
+                    settings2->Release();
+                    return true;
+                }
+            }
+            return false;
+        }
+        pendingUserAgent = userAgent;
+        return true;
+    }
+
+    void DoGetClientSize(int *x, int *y) const override
+    {
+        if (!pendingUserAgent.empty()) {
+            auto thiz = const_cast<WebViewEdge *>(this);
+            auto userAgent = std::move(thiz->pendingUserAgent);
+            thiz->pendingUserAgent.clear();
+            thiz->SetUserAgent(userAgent);
+        }
+        wxWebViewEdge::DoGetClientSize(x, y);
+    };
+private:
+    wxString pendingUserAgent;
+};
+
+#endif
+
 class FakeWebView : public wxWebView
 {
     virtual bool Create(wxWindow* parent, wxWindowID id, const wxString& url, const wxPoint& pos, const wxSize& size, long style, const wxString& name) override { return false; }
@@ -108,7 +150,11 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
     if (!url2.empty()) { url2 = wxURI(url2).BuildURI(); }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << url2.ToUTF8();
 
+#ifdef __WIN32__
+    wxWebView* webView = new WebViewEdge;
+#else
     auto webView = wxWebView::New();
+#endif
     if (webView) {
         webView->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
 #ifdef __WIN32__
@@ -206,32 +252,9 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
 
 void WebView::RecreateAll()
 {
-#ifdef __WXMSW__
-    auto webviews = g_webviews;
-    std::vector<wxWindow*> parents;
-    std::vector<wxString> urls;
-    for (auto web : webviews) {
-        parents.push_back(web->GetParent());
-        urls.push_back(web->GetCurrentURL());
-        delete web;
-    }
-    assert(g_webviews.empty());
-    for (int i = 0; i < parents.size(); ++i) {
-        auto webView = CreateWebView(parents[i], urls[i]);
-        if (webView) {
-            wxCommandEvent evt(EVT_WEBVIEW_RECREATED);
-            evt.SetEventObject(webView);
-            wxPostEvent(parents[i], evt);
-        }
-    }
-#else
     for (auto webView : g_webviews) {
         webView->SetUserAgent(wxString::Format("BBL-Slicer/v%s (%s) Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)", SLIC3R_VERSION,
                                                Slic3r::GUI::wxGetApp().dark_mode() ? "dark" : "light"));
         webView->Reload();
-        wxCommandEvent evt(EVT_WEBVIEW_RECREATED);
-        evt.SetEventObject(webView);
-        wxPostEvent(webView->GetParent(), evt);
     }
-#endif
 }
