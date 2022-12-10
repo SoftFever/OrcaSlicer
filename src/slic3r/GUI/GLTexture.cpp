@@ -27,6 +27,7 @@
 
 #include "libslic3r/Utils.hpp"
 #include "GUI_App.hpp"
+#include <wx/dcgraph.h>
 namespace Slic3r {
 namespace GUI {
 
@@ -468,7 +469,13 @@ void GLTexture::reset()
     m_original_width = m_original_height = 0;
 }
 
-bool GLTexture::generate_from_text_string(const std::string &text_str, wxFont &font, wxColor background, wxColor foreground)
+bool GLTexture::generate_from_text_string(const std::string& text_str, wxFont &font, wxColor background, wxColor foreground)
+{
+    int w,h,hl;
+    return generate_from_text(text_str, font, background, foreground);
+}
+
+bool GLTexture::generate_from_text(const std::string &text_str, wxFont &font, wxColor background, wxColor foreground)
 {
     if (text_str.empty())
     {
@@ -488,7 +495,7 @@ bool GLTexture::generate_from_text_string(const std::string &text_str, wxFont &f
     m_original_width = (int)w;
     m_original_height = (int)h;
     m_width = (int)next_highest_power_of_2((uint32_t)w);
-	m_height = (int)next_highest_power_of_2((uint32_t)h);
+    m_height = (int)next_highest_power_of_2((uint32_t)h);
 
     // generates bitmap
     wxBitmap bitmap(m_width, m_height);
@@ -499,7 +506,7 @@ bool GLTexture::generate_from_text_string(const std::string &text_str, wxFont &f
 
     // draw message
     memDC.SetTextForeground(*wxWHITE);
-	memDC.DrawLabel(msg, wxRect(0,0, m_original_width, m_original_height), wxALIGN_CENTER);
+    memDC.DrawLabel(msg, wxRect(0, 0, m_original_width, m_original_height), wxALIGN_CENTER);
 
     memDC.SelectObject(wxNullBitmap);
 
@@ -508,7 +515,7 @@ bool GLTexture::generate_from_text_string(const std::string &text_str, wxFont &f
 
     // prepare buffer
     std::vector<unsigned char> data(4 * m_width * m_height, 0);
-    const unsigned char *src = image.GetData();
+    const unsigned char* src = image.GetData();
     /* for debug use
     std::ofstream fout;
     fout.open(text_str+std::to_string(m_width)+"_"+std::to_string(m_height)+".rgb", std::ios::out);
@@ -520,7 +527,7 @@ bool GLTexture::generate_from_text_string(const std::string &text_str, wxFont &f
             *dst++ = foreground.Red();
             *dst++ = foreground.Green();
             *dst++ = foreground.Blue();
-			*dst++ = (unsigned char)std::min<int>(255, *src);
+            *dst++ = (unsigned char)std::min<int>(255, *src);
             src += 3;
         }
     }
@@ -530,9 +537,9 @@ bool GLTexture::generate_from_text_string(const std::string &text_str, wxFont &f
     glsafe(::glGenTextures(1, &m_id));
     glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)m_id));
     if (GLEW_EXT_texture_compression_s3tc)
-       glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
     else
-       glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
@@ -541,6 +548,111 @@ bool GLTexture::generate_from_text_string(const std::string &text_str, wxFont &f
     return true;
 }
 
+bool GLTexture::generate_texture_from_text(const std::string& text_str, wxFont& font, int& ww, int& hh, int& hl, wxColor background, wxColor foreground)
+{
+    if (text_str.empty())
+    {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":no text string, should not happen\n";
+        return false;
+    }
+
+    wxString msg = _(text_str);
+    wxMemoryDC memDC;
+
+    memDC.SetFont(font);
+
+    // calculates texture size
+    wxCoord w, h, ll;
+    wxClientDC dc(wxGetApp().GetTopWindow());
+    dc.SetFont(font);
+    dc.GetMultiLineTextExtent(msg, &w, &h, &ll, &font);
+
+
+    m_original_width = (int)w;
+    m_original_height = (int)h;
+    m_width = (int)next_highest_power_of_2((uint32_t)w);
+    m_height = (int)next_highest_power_of_2((uint32_t)h);
+    ww = m_width;
+    hh = m_height;
+    hl = ll;
+    // generates bitmap
+    wxBitmap bitmap(m_width, m_height);
+
+    memDC.SelectObject(bitmap);
+    memDC.SetBackground(wxBrush(background));
+    memDC.Clear();
+
+    // draw message
+    memDC.SetTextForeground(*wxWHITE);
+
+    wxGCDC dc2(memDC);
+    dc2.SetFont(font);
+    dc2.SetBackground(wxBrush(background));
+    dc2.SetTextForeground(*wxWHITE);
+    dc2.DrawLabel(msg, wxRect(0, 0, m_width, m_height), wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
+
+    memDC.SelectObject(wxNullBitmap);
+
+    // Convert the bitmap into a linear data ready to be loaded into the GPU.
+    wxImage image = bitmap.ConvertToImage();
+
+    // prepare buffer
+    std::vector<unsigned char> data(4 * m_width * m_height, 0);
+    const unsigned char* src = image.GetData();
+    /* for debug use
+    std::ofstream fout;
+    fout.open(text_str+std::to_string(m_width)+"_"+std::to_string(m_height)+".rgb", std::ios::out);
+    fout.write((const char*)src, 3 * m_width * m_height);
+    fout.close();*/
+    bool found = false;
+    for (int h = 0; h < m_height; ++h) {
+        unsigned char* dst = data.data() + 4 * h * m_width;
+        for (int w = 0; w < m_width; ++w) {
+            *dst++ = foreground.Red();
+            *dst++ = foreground.Green();
+            *dst++ = foreground.Blue();
+            *dst++ = (unsigned char)std::min<int>(255, *src);
+            if ((*src) != background.Red() && !found) {
+                found = true;
+                if (m_height - h < font.GetPointSize())
+                    return false;
+            }
+            src += 3;
+        }
+    }
+    if (!found)
+        return false;
+
+    found = false;
+    src -= 3;
+    for (int h = m_height; h > 0; --h) {
+        for (int w = m_width; w > 0; --w) {
+            if ((*src) != background.Red() && !found) {
+                found = true;
+                if (h < font.GetPointSize())
+                    return false;
+            }
+            src -= 3;
+        }
+    }
+    if (!found)
+        return false;
+
+    // sends buffer to gpu
+    glsafe(::glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+    glsafe(::glGenTextures(1, &m_id));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint)m_id));
+    if (GLEW_EXT_texture_compression_s3tc)
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
+    else
+        glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data()));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, 0));
+
+    return true;
+}
 
 void GLTexture::render_texture(unsigned int tex_id, float left, float right, float bottom, float top)
 {

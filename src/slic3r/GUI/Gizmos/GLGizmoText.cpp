@@ -23,18 +23,64 @@
 namespace Slic3r {
 namespace GUI {
 
-static double g_normal_precise = 0.0015;
+static const wxColour FONT_TEXTURE_BG = wxColour(0, 0, 0, 0);
+static const wxColour FONT_TEXTURE_FG = *wxWHITE;
+static const int FONT_SIZE = 12;
+
 
 GLGizmoText::GLGizmoText(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
 {
 }
 
+GLGizmoText::~GLGizmoText()
+{
+    for (int i = 0; i < m_textures.size(); i++) {
+        if (m_textures[i].texture != nullptr)
+            delete m_textures[i].texture;
+    }
+}
+
 bool GLGizmoText::on_init()
 {
     m_avail_font_names = init_occt_fonts();
+    update_font_texture();
+    m_scale = m_imgui->get_font_size();
     m_shortcut_key = WXK_CONTROL_T;
     return true;
+}
+
+void GLGizmoText::update_font_texture()
+{
+    for (int i = 0; i < m_textures.size(); i++) {
+        if (m_textures[i].texture != nullptr)
+            delete m_textures[i].texture;
+    }
+    m_combo_width = 0.0f;
+    m_combo_height = 0.0f;
+    m_textures.clear();
+    m_textures.reserve(m_avail_font_names.size());
+    for (int i = 0; i < m_avail_font_names.size(); i++)
+    {
+        GLTexture* texture = new GLTexture();
+        auto face = wxString::FromUTF8(m_avail_font_names[i]);
+        auto retina_scale = m_parent.get_scale();
+        wxFont font { (int)round(retina_scale * FONT_SIZE), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, face };
+        int w, h, hl;
+        if (texture->generate_texture_from_text(m_avail_font_names[i], font, w, h, hl, FONT_TEXTURE_BG, FONT_TEXTURE_FG)) {
+            //if (h < m_imgui->scaled(2.f)) {
+                TextureInfo info;
+                info.texture = texture;
+                info.w = w;
+                info.h = h;
+                info.hl = hl;
+                info.font_name = m_avail_font_names[i];
+                m_textures.push_back(info);
+                m_combo_width = std::max(m_combo_width, static_cast<float>(texture->m_original_width));
+            //}
+        }
+    }
+    m_combo_height = m_imgui->scaled(32.f / 15.f);
 }
 
 void GLGizmoText::on_set_state()
@@ -114,6 +160,8 @@ void GLGizmoText::push_combo_style(const float scale) {
         ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
+        ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImGuiWrapper::COL_WINDOW_BG_DARK);
+        ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImGuiWrapper::COL_WINDOW_BG_DARK);
         ImGui::PushStyleColor(ImGuiCol_Button, { 1.00f, 1.00f, 1.00f, 0.0f });
     }
     else {
@@ -125,6 +173,8 @@ void GLGizmoText::push_combo_style(const float scale) {
         ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG);
+        ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImGuiWrapper::COL_WINDOW_BG);
+        ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImGuiWrapper::COL_WINDOW_BG);
         ImGui::PushStyleColor(ImGuiCol_Button, { 1.00f, 1.00f, 1.00f, 0.0f });
     }
 }
@@ -132,12 +182,21 @@ void GLGizmoText::push_combo_style(const float scale) {
 void GLGizmoText::pop_combo_style()
 {
     ImGui::PopStyleVar(2);
-    ImGui::PopStyleColor(7);
+    ImGui::PopStyleColor(9);
 }
 
 // BBS
 void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 {
+    if (m_imgui->get_font_size() != m_scale) {
+        m_scale = m_imgui->get_font_size();
+        update_font_texture();
+    }
+    if (m_textures.size() == 0) {
+        BOOST_LOG_TRIVIAL(info) << "GLGizmoText has no texture";
+        return;
+    }
+
     const float win_h = ImGui::GetWindowHeight();
     y = std::min(y, bottom_limit - win_h);
     GizmoImguiSetNextWIndowPos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
@@ -178,35 +237,31 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 
     ImGui::AlignTextToFramePadding();
 
-    const char** cstr_font_names = (const char**)calloc(m_avail_font_names.size(), sizeof(const char*));
-    for (int i = 0; i < m_avail_font_names.size(); i++)
-        cstr_font_names[i] = m_avail_font_names[i].c_str();
-
     m_imgui->text(_L("Font"));
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(input_text_size + ImGui::GetFrameHeight() * 2);
     push_combo_style(currt_scale);
     int font_index = m_curr_font_idx;
-    m_imgui->push_font_by_name(cstr_font_names[font_index]);
-    if (ImGui::BBLBeginCombo("##Font", cstr_font_names[m_curr_font_idx], 0)) {
+    if (ImGui::BBLBeginCombo("##Font", m_textures[m_curr_font_idx].font_name.c_str(), 0)) {
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 0.0f) * currt_scale);
-        for (int i = 0; i < m_avail_font_names.size(); i++) {
-            m_imgui->push_font_by_name(m_avail_font_names[i]);
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 4));
+        for (int i = 0; i < m_textures.size(); i++) {
             const bool is_selected = (m_curr_font_idx == i);
-            if (ImGui::BBLSelectable((cstr_font_names[i] + std::string("##") + std::to_string(i)).c_str(), is_selected, 0, {input_text_size + ImGui::GetFrameHeight() * 2 , 0.0f})) {
+            ImTextureID icon_id = (ImTextureID)(intptr_t)(m_textures[i].texture->get_id());
+            ImVec4 tint_color = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+            ImVec2 selectable_size(std::max((input_text_size + ImGui::GetFrameHeight() * 2), m_combo_width), m_combo_height);
+            if (ImGui::BBLImageSelectable(icon_id, selectable_size, { (float)m_textures[i].w, (float)m_textures[i].h }, m_textures[i].hl, tint_color, { 0, 0 }, {1, 1}, is_selected)) {
                 m_curr_font_idx = i;
-                m_font_name = cstr_font_names[m_curr_font_idx];
+                m_font_name = m_textures[m_curr_font_idx].font_name;
             }
             if (is_selected) {
                 ImGui::SetItemDefaultFocus();
             }
-            m_imgui->pop_font_by_name(m_avail_font_names[i]);
         }
-        ImGui::PopStyleVar(2);
+        ImGui::PopStyleVar(3);
         ImGui::EndCombo();
     }
-    m_imgui->pop_font_by_name(cstr_font_names[font_index]);
 
     pop_combo_style();
     ImGui::AlignTextToFramePadding();

@@ -3,7 +3,7 @@
 
 #include "GLGizmoBase.hpp"
 #include "slic3r/GUI/3DScene.hpp"
-
+#include "../GLTexture.hpp"
 
 namespace Slic3r {
 
@@ -22,9 +22,27 @@ private:
     bool m_bold = true;
     bool m_italic = false;
     float m_thickness = 2.f;
+    float m_combo_height = 0.0f;
+    float m_combo_width = 0.0f;
+    float m_scale;
+
+    class TextureInfo {
+    public:
+        GLTexture* texture { nullptr };
+        int h;
+        int w;
+        int hl;
+
+        std::string font_name;
+    };
+
+    std::vector<TextureInfo> m_textures;
 
 public:
     GLGizmoText(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
+    ~GLGizmoText();
+
+    void update_font_texture();
 
 protected:
     virtual bool on_init() override;

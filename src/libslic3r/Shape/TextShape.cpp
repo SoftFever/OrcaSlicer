@@ -34,7 +34,7 @@ static std::map<std::string, std::string> g_occt_fonts_maps; //map<font_name, fo
 
 static const std::vector<Standard_CString> fonts_suffix{ "Bold",  "Medium", "Heavy", "Italic", "Oblique", "Inclined", "Light", "Thin", 
 "Semibold", "ExtraBold", "ExtraBold",  "Semilight", "SemiLight", "ExtraLight", "Extralight",  "Ultralight", 
-"Condensed", "Ultra", "Extra", "Expanded", "Extended", "1", "2", "3", "4", "5", "6", "7", "8", "9", "Noto Sans"};
+"Condensed", "Ultra", "Extra", "Expanded", "Extended", "1", "2", "3", "4", "5", "6", "7", "8", "9", "Al Tarikh"};
 
 std::map<std::string, std::string> get_occt_fonts_maps()
 {

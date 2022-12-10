@@ -1881,6 +1881,8 @@ void GLCanvas3D::render(bool only_init)
     _render_overlays();
 
     if (wxGetApp().plater()->is_render_statistic_dialog_visible()) {
+        ImGui::ShowMetricsWindow();
+
         ImGuiWrapper& imgui = *wxGetApp().imgui();
         imgui.begin(std::string("Render statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
         imgui.text("FPS (SwapBuffers() calls per second):");
