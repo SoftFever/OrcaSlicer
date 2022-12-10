@@ -3476,12 +3476,13 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     evt.SetY(evt.GetY() * scale);
 #endif
 
-    IMSlider* m_layers_slider = get_gcode_viewer().get_layers_slider();
-    IMSlider* m_moves_slider = get_gcode_viewer().get_moves_slider();
-    m_layers_slider->on_mouse_wheel(evt);
-    m_moves_slider->on_mouse_wheel(evt);
-
     if (wxGetApp().imgui()->update_mouse_data(evt)) {
+        if (m_canvas_type == CanvasPreview) {
+            IMSlider* m_layers_slider = get_gcode_viewer().get_layers_slider();
+            IMSlider* m_moves_slider = get_gcode_viewer().get_moves_slider();
+            m_layers_slider->on_mouse_wheel(evt);
+            m_moves_slider->on_mouse_wheel(evt);
+        }
         render();
         m_dirty = true;
         return;

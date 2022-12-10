@@ -1366,7 +1366,7 @@ void IMSlider::render_go_to_layer_dialog(){
         | ImGuiWindowFlags_NoScrollbar
         | ImGuiWindowFlags_NoScrollWithMouse;
     imgui.begin(_u8L("Jump to layer"), windows_flag);
-    imgui.text(_u8L("Please enter the layer number") + " (" + std::to_string(m_min_value) + " - " + std::to_string(m_max_value) + "):");
+    imgui.text(_u8L("Please enter the layer number") + " (" + std::to_string(m_min_value + 1) + " - " + std::to_string(m_max_value + 1) + "):");
     if (ImGui::IsMouseClicked(0)) {
         set_focus = false;
     }
@@ -1385,7 +1385,7 @@ void IMSlider::render_go_to_layer_dialog(){
         for (size_t i = 0; i< strlen(m_layer_number); i++)
             if (!isdigit(m_layer_number[i]))
                 disable_button = true;
-        if (!disable_button && (m_min_value > atoi(m_layer_number) || atoi(m_layer_number) > m_max_value))
+        if (!disable_button && (m_min_value > atoi(m_layer_number) - 1 || atoi(m_layer_number) - 1 > m_max_value))
             disable_button = true;
     }
     if (disable_button) {
@@ -1393,7 +1393,7 @@ void IMSlider::render_go_to_layer_dialog(){
         imgui.push_button_disable_style();
     }
     if (imgui.bbl_button(_L("OK")) || (!disable_button && ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Enter)))) {
-        do_go_to_layer(atoi(m_layer_number));
+        do_go_to_layer(atoi(m_layer_number) - 1);
         m_show_go_to_layer_dialog = false;
         move_to_center = true;
         set_focus = true;
