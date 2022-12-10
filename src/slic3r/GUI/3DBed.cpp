@@ -252,7 +252,7 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
     m_extended_bounding_box = this->calc_extended_bounding_box(false);
 
     //BBS: add part plate logic
-    
+
     //BBS add default bed
 #if 1
     ExPolygon poly{ Polygon::new_scale(printable_area) };
@@ -265,10 +265,11 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
 
     calc_triangles(poly);
 
-    const BoundingBox& bed_bbox = poly.contour.bounding_box();
-    calc_gridlines(poly, bed_bbox);
+    //no need gridline for 3dbed
+    //const BoundingBox& bed_bbox = poly.contour.bounding_box();
+    //calc_gridlines(poly, bed_bbox);
 
-    m_polygon = offset(poly.contour, (float)bed_bbox.radius() * 1.7f, jtRound, scale_(0.5))[0];
+    //m_polygon = offset(poly.contour, (float)bed_bbox.radius() * 1.7f, jtRound, scale_(0.5))[0];
 
     if (with_reset) {
         this->release_VBOs();
@@ -391,7 +392,7 @@ void Bed3D::calc_triangles(const ExPolygon& poly)
 
 void Bed3D::calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox)
 {
-    Polylines axes_lines;
+    /*Polylines axes_lines;
     for (coord_t x = bed_bbox.min.x(); x <= bed_bbox.max.x(); x += scale_(10.0)) {
         Polyline line;
         line.append(Point(x, bed_bbox.min.y()));
@@ -413,7 +414,7 @@ void Bed3D::calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox)
     std::copy(contour_lines.begin(), contour_lines.end(), std::back_inserter(gridlines));
 
     if (!m_gridlines.set_from_lines(gridlines, GROUND_Z))
-        BOOST_LOG_TRIVIAL(error) << "Unable to create bed grid lines\n";
+        BOOST_LOG_TRIVIAL(error) << "Unable to create bed grid lines\n";*/
 }
 
 // Try to match the print bed shape with the shape of an active profile. If such a match exists,
@@ -716,7 +717,7 @@ void Bed3D::render_default(bool bottom) const
             glsafe(::glDepthMask(GL_TRUE));
         }
 
-        if (!picking) {
+        /*if (!picking) {
             // draw grid
             glsafe(::glLineWidth(1.5f * m_scale_factor));
             if (has_model && !bottom)
@@ -725,7 +726,7 @@ void Bed3D::render_default(bool bottom) const
                 glsafe(::glColor4f(0.9f, 0.9f, 0.9f, 0.6f));
             glsafe(::glVertexPointer(3, GL_FLOAT, default_triangles.get_vertex_data_size(), (GLvoid*)m_gridlines.get_vertices_data()));
             glsafe(::glDrawArrays(GL_LINES, 0, (GLsizei)m_gridlines.get_vertices_count()));
-        }
+        }*/
 
         glsafe(::glDisableClientState(GL_VERTEX_ARRAY));
 

@@ -6832,6 +6832,10 @@ void Plater::priv::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_ar
         //Pointfs& exclude_areas = config->option<ConfigOptionPoints>("bed_exclude_area")->values;
         partplate_list.reset_size(max.x() - min.x(), max.y() - min.y(), z);
         partplate_list.set_shapes(shape, exclude_areas, custom_texture, height_to_lid, height_to_rod);
+
+        Vec2d new_shape_position = partplate_list.get_current_shape_position();
+        if (shape_position != new_shape_position)
+            bed.set_shape(shape, printable_height, custom_model, force_as_custom, new_shape_position);
     }
 }
 

@@ -90,9 +90,9 @@ private:
     // Print volume bounding box exteded with axes and model.
     BoundingBoxf3 m_extended_bounding_box;
     // Slightly expanded print bed polygon, for collision detection.
-    Polygon m_polygon;
+    //Polygon m_polygon;
     GeometryBuffer m_triangles;
-    GeometryBuffer m_gridlines;
+    //GeometryBuffer m_gridlines;
     GLTexture m_texture;
     // temporary texture shown until the main texture has still no levels compressed
     //GLTexture m_temp_texture;
