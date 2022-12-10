@@ -91,7 +91,7 @@ void MsgDialog::show_dsa_button()
     auto  m_text_dsa = new wxStaticText(this, wxID_ANY, _L("Don't show again"), wxDefaultPosition, wxDefaultSize, 0);
     m_dsa_sizer->Add(m_text_dsa, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
     m_text_dsa->SetFont(::Label::Body_13);
-    m_text_dsa->SetForegroundColour(wxColour(0x32,0x3A,0x3D));
+    m_text_dsa->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3D")));
     btn_sizer->Layout();
     //Fit();
 }

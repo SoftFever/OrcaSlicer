@@ -738,7 +738,9 @@ void MachineInfoPanel::show_ext(bool show, bool force_update)
 
 void MachineInfoPanel::on_sys_color_changed()
 {
-    Update_printer_img(m_obj);
+    if (m_obj) {
+        Update_printer_img(m_obj);
+    }
 }
 
 void MachineInfoPanel::upgrade_firmware_internal() {
