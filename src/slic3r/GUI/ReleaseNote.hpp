@@ -138,6 +138,7 @@ public:
     void on_show();
     void on_hide();
     void update_btn_label(wxString ok_btn_text, wxString cancel_btn_text);
+    wxString format_text(wxString str, int warp);
     void rescale();
     ~ConfirmBeforeSendDialog();
     void on_dpi_changed(const wxRect& suggested_rect);

@@ -667,6 +667,25 @@ void ConfirmBeforeSendDialog::update_btn_label(wxString ok_btn_text, wxString ca
     rescale();
 }
 
+wxString ConfirmBeforeSendDialog::format_text(wxString str, int warp)
+{
+    Label st (this, str);
+    wxString out_txt      = str;
+    wxString count_txt    = "";
+    int      new_line_pos = 0;
+
+    for (int i = 0; i < str.length(); i++) {
+        auto text_size = st.GetTextExtent(count_txt);
+        if (text_size.x < warp) {
+            count_txt += str[i];
+        } else {
+            out_txt.insert(i - 1, '\n');
+            count_txt = "";
+        }
+    }
+    return out_txt;
+}
+
 ConfirmBeforeSendDialog::~ConfirmBeforeSendDialog()
 {
 
