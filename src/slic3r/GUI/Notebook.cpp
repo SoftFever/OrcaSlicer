@@ -20,7 +20,15 @@ ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, wxBoxSizer* side_tools) :
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
-    wxColour default_btn_bg = wxColour("#3B4446"); // Gradient #414B4E
+
+    wxColour default_btn_bg;
+#ifdef __APPLE__
+    default_btn_bg = wxColour("#3B4446"); // Gradient #414B4E
+#else
+    default_btn_bg = wxColour("#2D2D30"); // Gradient #414B4E
+#endif
+
+   
     SetBackgroundColour(default_btn_bg);
 
     int em = em_unit(this);// Slic3r::GUI::wxGetApp().em_unit();

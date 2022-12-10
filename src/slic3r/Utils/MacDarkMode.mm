@@ -44,9 +44,9 @@ double mac_max_scaling_factor()
     
 void set_miniaturizable(void * window)
 {
-    CGFloat rFloat = 38/255.0;
-    CGFloat gFloat = 46/255.0;
-    CGFloat bFloat = 48/255.0;
+    CGFloat rFloat = 34/255.0;
+    CGFloat gFloat = 34/255.0;
+    CGFloat bFloat = 36/255.0;
     [(NSView*) window window].titlebarAppearsTransparent = true;
     [(NSView*) window window].backgroundColor = [NSColor colorWithCalibratedRed:rFloat green:gFloat blue:bFloat alpha:1.0];
     [(NSView*) window window].styleMask |= NSMiniaturizableWindowMask;
