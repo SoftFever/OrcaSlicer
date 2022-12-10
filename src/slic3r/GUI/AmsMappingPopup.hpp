@@ -70,6 +70,9 @@ public:
     wxColour m_ams_coloul;
     wxString m_ams_name;
 
+    ScalableBitmap m_arraw_bitmap_gray;
+    ScalableBitmap m_arraw_bitmap_white;
+
     bool m_selected {false};
     bool m_warning{false};
 

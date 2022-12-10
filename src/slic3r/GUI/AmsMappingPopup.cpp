@@ -28,6 +28,10 @@ wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
  MaterialItem::MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname) 
  : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {
+    m_arraw_bitmap_gray =  ScalableBitmap(this, "drop_down", FromDIP(12));
+    m_arraw_bitmap_white =  ScalableBitmap(this, "topbar_dropdown", FromDIP(12));
+
+
     m_material_coloul = mcolour;
     m_material_name = mname;
     m_ams_coloul      = wxColour(0xEE,0xEE,0xEE);
@@ -189,6 +193,15 @@ void MaterialItem::doRender(wxDC &dc)
         dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y, 5);
     }
 #endif
+    //arrow
+
+    if ( (m_ams_coloul.Red() > 160 && m_ams_coloul.Green() > 160 && m_ams_coloul.Blue() > 160) &&
+        (m_ams_coloul.Red() < 180 && m_ams_coloul.Green() < 180 && m_ams_coloul.Blue() < 180)) {
+        dc.DrawBitmap(m_arraw_bitmap_white.bmp(), GetSize().x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(7),  GetSize().y - m_arraw_bitmap_white.GetBmpSize().y);
+    }
+    else {
+        dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), GetSize().x - m_arraw_bitmap_gray.GetBmpSize().x - FromDIP(7),  GetSize().y - m_arraw_bitmap_gray.GetBmpSize().y);
+    }
 
     
 }
