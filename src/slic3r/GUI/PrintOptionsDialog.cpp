@@ -158,6 +158,11 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* line_sizer = new wxBoxSizer(wxHORIZONTAL);
 
+    auto m_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    m_line->SetBackgroundColour(wxColour(166, 169, 170));
+
+    sizer->Add(m_line, 0, wxEXPAND, 0);
+
     // ai monitoring with levels
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_ai_monitoring = new CheckBox(parent);
@@ -166,7 +171,8 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_ai_monitoring, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(text_ai_monitoring, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    sizer->Add(line_sizer, 0, wxEXPAND | wxALL, FromDIP(5));
+    sizer->Add(0,0,0,wxTOP, FromDIP(18));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
     line_sizer->Add(FromDIP(5), 0, 0, 0);
 
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -184,11 +190,11 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(FromDIP(30), 0, 0, 0);
     line_sizer->Add(text_ai_monitoring_caption, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add( ai_monitoring_level_list, 0, wxEXPAND|wxALL, FromDIP(5) );
-    sizer->Add(line_sizer, 0, wxEXPAND | wxALL , 0);
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
 
     line1 = new StaticLine(parent, false);
     line1->SetLineColour(STATIC_BOX_LINE_COL);
-    sizer->Add(line1, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+    sizer->Add(line1, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
 
     // detection of build plate position
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -198,7 +204,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_plate_mark, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(text_plate_mark, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    sizer->Add(line_sizer, 0, wxEXPAND | wxALL, FromDIP(5));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
     line_sizer->Add(FromDIP(5), 0, 0, 0);
 
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -210,8 +216,8 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     text_plate_mark_caption->SetFont(Label::Body_14);
     text_plate_mark_caption->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
     line_sizer->Add(FromDIP(30), 0, 0, 0);
-    line_sizer->Add(text_plate_mark_caption, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    sizer->Add(line_sizer, 0, wxEXPAND | wxALL , FromDIP(5));
+    line_sizer->Add(text_plate_mark_caption, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
 
     line2 = new StaticLine(parent, false);
     line2->SetLineColour(STATIC_BOX_LINE_COL);
@@ -225,7 +231,8 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_first_layer, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(text_first_layer, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    sizer->Add(line_sizer, 0, wxEXPAND | wxALL, FromDIP(5));
+    sizer->Add(0,0,0,wxTOP, FromDIP(15));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
     line_sizer->Add(FromDIP(5), 0, 0, 0);
 
     line3 = new StaticLine(parent, false);
@@ -240,12 +247,14 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_auto_recovery, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(text_auto_recovery, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
-    sizer->Add(line_sizer, 0, wxEXPAND | wxALL, FromDIP(5));
+    sizer->Add(0,0,0,wxTOP, FromDIP(15));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
     line_sizer->Add(FromDIP(5), 0, 0, 0);
 
     line4 = new StaticLine(parent, false);
     line4->SetLineColour(wxColour(255,255,255));
     sizer->Add(line4, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+    sizer->Add(0,0,0,wxTOP, FromDIP(20));
 
     ai_monitoring_level_list->Connect( wxEVT_COMBOBOX, wxCommandEventHandler(PrintOptionsDialog::set_ai_monitor_sensitivity), NULL, this );
 
@@ -299,7 +308,10 @@ void PrintOptionsDialog::update_machine_obj(MachineObject *obj_)
 
 bool PrintOptionsDialog::Show(bool show)
 {
-    if (show) { CentreOnParent(); }
+    if (show) { 
+        wxGetApp().UpdateDlgDarkUI(this);
+        CentreOnParent(); 
+    }
     return DPIDialog::Show(show);
 }
 

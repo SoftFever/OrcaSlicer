@@ -89,8 +89,8 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string &suffix, wxBox
     m_input_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &) { update(); });
 
 
-    input_sizer_v->Add(m_input_ctrl, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 1);
-    input_sizer_h->Add(input_sizer_v, 0, wxALIGN_CENTER, 0);
+    input_sizer_v->Add(m_input_ctrl, 0, wxALL, 1);
+    input_sizer_h->Add(input_sizer_v, 0, wxALL, 1);
 
     m_input_area->SetSizer(input_sizer_h);
     m_input_area->Layout();
@@ -363,11 +363,10 @@ void SavePresetDialog::build(std::vector<Preset::Type> types, std::string suffix
     block_right->SetBackgroundColour(SAVE_PRESET_DIALOG_DEF_COLOUR);
     btns->Add(block_right, 0, wxRIGHT, 40);
 
-    auto m_top_line = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
-    m_top_line->SetForegroundColour(wxColour(166, 169, 170));
-    m_top_line->SetBackgroundColour(wxColour(166, 169, 170));
+    auto m_line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    m_line->SetBackgroundColour(wxColour(166, 169, 170));
 
-    m_Sizer_main->Add(m_top_line, 0, wxEXPAND, 0);
+    m_Sizer_main->Add( m_line, 0, wxEXPAND, 0 );
     m_Sizer_main->Add(m_presets_sizer, 0, wxEXPAND | wxALL, BORDER_W);
     m_Sizer_main->Add(btns, 0, wxEXPAND | wxBOTTOM, BORDER_W + 7);
 

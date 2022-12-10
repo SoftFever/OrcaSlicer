@@ -3069,6 +3069,7 @@ bool SelectMachineDialog::Show(bool show)
 
     // set default value when show this dialog
     if (show) {
+        wxGetApp().UpdateDlgDarkUI(this);
         wxGetApp().reset_to_active();
         set_default();
         update_user_machine_list();
