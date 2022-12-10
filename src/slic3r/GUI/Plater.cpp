@@ -6477,8 +6477,11 @@ void Plater::priv::set_project_filename(const wxString& filename)
     //BBS
     wxString project_name = from_u8(full_path.filename().string());
     set_project_name(project_name);
+    // record filename for hint when open exported file/.gcode
     if (q->m_only_gcode)
         q->m_preview_only_filename = std::string((project_name + ".gcode").mb_str());
+    if (q->m_exported_file)
+        q->m_preview_only_filename = std::string((project_name + ".3mf").mb_str());
 
     wxGetApp().mainframe->update_title();
 
@@ -8497,9 +8500,6 @@ bool Plater::open_3mf_file(const fs::path &file_path)
             break;
         }
     }
-
-    // record filename for hint when open exported file
-    m_preview_only_filename = filename;
 
     return true;
 }
