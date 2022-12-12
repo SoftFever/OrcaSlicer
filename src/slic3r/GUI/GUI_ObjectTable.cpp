@@ -3094,6 +3094,7 @@ ObjectTablePanel::~ObjectTablePanel()
     }*/
     if (m_top_sizer)
         m_top_sizer->Clear(true);
+    delete m_object_settings;
 
     m_filaments_name.clear();
     m_filaments_colors.clear();
