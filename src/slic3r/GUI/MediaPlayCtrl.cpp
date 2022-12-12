@@ -267,16 +267,9 @@ void MediaPlayCtrl::ToggleStream()
     std::string url;
     if (!get_stream_url(&url)) {
         // create stream pipeline
-#ifdef __WIN32__
-        std::string file_source = data_dir() + "\\cameratools\\bambu_source.exe";
-        std::string file_ffmpeg = data_dir() + "\\cameratools\\ffmpeg.exe";
-        std::string file_ff_cfg = data_dir() + "\\cameratools\\ffmpeg.cfg";
-#else
-        std::string file_source = data_dir() + "/cameratools/bambu_source";
-        std::string file_ffmpeg = data_dir() + "/cameratools/ffmpeg";
-        std::string file_ff_cfg = data_dir() + "/cameratools/ffmpeg.cfg";
-#endif
-        if (!boost::filesystem::exists(file_source) || !boost::filesystem::exists(file_ffmpeg) || !boost::filesystem::exists(file_ff_cfg)) {
+        bool need_install = false;
+        if (!start_stream_service(&need_install)) {
+            if (!need_install) return;
             auto res = MessageDialog(this->GetParent(), _L("Virtual Camera Tools is required for this task!\nDo you want to install them?"), _L("Info"),
                                     wxOK | wxCANCEL).ShowModal();
             if (res == wxID_OK) {
@@ -304,28 +297,6 @@ void MediaPlayCtrl::ToggleStream()
                 dlg.ShowModal();
             }
             return;
-        }
-        wxString url = L"bambu:///camera/" + from_u8(file_url);
-        url.Replace("\\", "/");
-        url = wxURI(url).BuildURI();
-        try {
-            std::string configs;
-            boost::filesystem::load_string_file(file_ff_cfg, configs);
-            std::vector<std::string> configss;
-            boost::algorithm::split(configss, configs, boost::algorithm::is_any_of("\r\n"));
-            configss.erase(std::remove(configss.begin(), configss.end(), std::string()), configss.end());
-            boost::process::pipe  intermediate;
-#ifndef __WXMSW__
-            boost::filesystem::permissions(file_source, boost::filesystem::owner_exe | boost::filesystem::add_perms);
-            boost::filesystem::permissions(file_ffmpeg, boost::filesystem::owner_exe | boost::filesystem::add_perms);
-#endif
-            boost::process::child process_source(file_source, url.data().AsInternal(), boost::process::std_out > intermediate, detach_process(),
-                                                 boost::process::start_dir(boost::filesystem::path(data_dir()) / "plugins"), boost::process::limit_handles);
-            boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::std_in < intermediate, detach_process(), boost::process::limit_handles);
-            process_source.detach();
-            process_ffmpeg.detach();
-        } catch (std::exception & e) {
-            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl failed to start camera stream: " << e.what();
         }
     }
     if (!url.empty() && wxGetApp().app_config->get("not_show_vcamera_stop_prev") != "1") {
@@ -419,6 +390,59 @@ void MediaPlayCtrl::media_proc()
         theEvent.SetId(0);
         m_media_ctrl->GetEventHandler()->AddPendingEvent(theEvent);
     }
+}
+
+bool MediaPlayCtrl::start_stream_service(bool *need_install)
+{
+#ifdef __WIN32__
+    std::string file_source = data_dir() + "\\cameratools\\bambu_source.exe";
+    std::string file_ffmpeg = data_dir() + "\\cameratools\\ffmpeg.exe";
+    std::string file_ff_cfg = data_dir() + "\\cameratools\\ffmpeg.cfg";
+#else
+    std::string file_source = data_dir() + "/cameratools/bambu_source";
+    std::string file_ffmpeg = data_dir() + "/cameratools/ffmpeg";
+    std::string file_ff_cfg = data_dir() + "/cameratools/ffmpeg.cfg";
+#endif
+    if (!boost::filesystem::exists(file_source) || !boost::filesystem::exists(file_ffmpeg) || !boost::filesystem::exists(file_ff_cfg)) {
+        if (need_install) *need_install = true;
+        return false;
+    }
+    std::string file_url  = data_dir() + "/cameratools/url.txt";
+    if (!boost::filesystem::exists(file_url)) {
+        boost::nowide::ofstream file(file_url);
+        file.close();
+    }
+    wxString file_url2 = L"bambu:///camera/" + from_u8(file_url);
+    file_url2.Replace("\\", "/");
+    file_url2 = wxURI(file_url2).BuildURI();
+    try {
+        std::string configs;
+        boost::filesystem::load_string_file(file_ff_cfg, configs);
+        std::vector<std::string> configss;
+        boost::algorithm::split(configss, configs, boost::algorithm::is_any_of("\r\n"));
+        configss.erase(std::remove(configss.begin(), configss.end(), std::string()), configss.end());
+        boost::process::pipe intermediate;
+        boost::filesystem::path start_dir(boost::filesystem::path(data_dir()) / "plugins");
+#ifdef __WXMSW__
+        start_dir = boost::filesystem::path(data_dir()) / "cameratools";
+        std::string file_dll = data_dir() + "/cameratools/BambuSource.dll";
+        std::string file_dll2 = data_dir() + "/plugins/BambuSource.dll";
+        if (!boost::filesystem::exists(file_dll) || boost::filesystem::last_write_time(file_dll) != boost::filesystem::last_write_time(file_dll2))
+            boost::filesystem::copy_file(file_dll2, file_dll, boost::filesystem::copy_option::overwrite_if_exists);
+#else
+        boost::filesystem::permissions(file_source, boost::filesystem::owner_exe | boost::filesystem::add_perms);
+        boost::filesystem::permissions(file_ffmpeg, boost::filesystem::owner_exe | boost::filesystem::add_perms);
+#endif
+        boost::process::child process_source(file_source, file_url2.data().AsInternal(), boost::process::std_out > intermediate, detach_process(),
+                                             boost::process::start_dir(start_dir), boost::process::limit_handles);
+        boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::std_in < intermediate, detach_process(), boost::process::limit_handles);
+        process_source.detach();
+        process_ffmpeg.detach();
+    } catch (std::exception &e) {
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl failed to start camera stream: " << e.what();
+        return false;
+    }
+    return true;
 }
 
 bool MediaPlayCtrl::get_stream_url(std::string *url)

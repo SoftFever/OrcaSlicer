@@ -55,7 +55,9 @@ private:
 
     void media_proc();
 
-    bool get_stream_url(std::string * url = nullptr);
+    static bool start_stream_service(bool *need_install = nullptr);
+
+    static bool get_stream_url(std::string *url = nullptr);
 
 private:
     static constexpr wxMediaState MEDIASTATE_IDLE = (wxMediaState) 3;
