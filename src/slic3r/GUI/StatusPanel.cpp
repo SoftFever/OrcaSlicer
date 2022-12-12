@@ -1734,7 +1734,7 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
     if (m_switch_nozzle_fan_timeout > 0) {
         m_switch_nozzle_fan_timeout--;
     }  else{
-        int speed = floor(obj->cooling_fan_speed / float(25.5));
+        int speed = round(obj->cooling_fan_speed / float(25.5));
         m_switch_nozzle_fan->SetValue(speed > 0 ? true : false);
         m_switch_nozzle_fan->setFanValue(speed * 10);
         m_fan_control_popup.update_fan_data(MachineObject::FanType::COOLING_FAN, obj);
@@ -1744,7 +1744,7 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
     if (m_switch_printing_fan_timeout > 0) {
         m_switch_printing_fan_timeout--;
     }else{
-        int speed = floor(obj->big_fan1_speed / float(25.5));
+        int speed = round(obj->big_fan1_speed / float(25.5));
         m_switch_printing_fan->SetValue(speed > 0 ? true : false);
         m_switch_printing_fan->setFanValue(speed * 10);
         m_fan_control_popup.update_fan_data(MachineObject::FanType::BIG_COOLING_FAN, obj);
@@ -1754,7 +1754,7 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
     if (m_switch_cham_fan_timeout > 0) {
         m_switch_cham_fan_timeout--;
     }else{
-        int speed = floor(obj->big_fan2_speed / float(25.5));
+        int speed = round(obj->big_fan2_speed / float(25.5));
         m_switch_cham_fan->SetValue(speed > 0 ? true : false);
         m_switch_cham_fan->setFanValue(speed * 10);
         m_fan_control_popup.update_fan_data(MachineObject::FanType::CHAMBER_FAN, obj);

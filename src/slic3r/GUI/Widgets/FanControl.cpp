@@ -462,7 +462,7 @@ void FanControl::set_name(wxString name)
 void FanControl::set_fan_speed(int g)
 {
     if (g < 0 || g > 255) return;
-    int speed = floor(float(g) / float(25.5));
+    int speed = round(float(g) / float(25.5));
 
     if (m_current_speed != speed) {
         m_current_speed = speed;
