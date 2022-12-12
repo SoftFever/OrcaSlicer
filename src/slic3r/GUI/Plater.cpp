@@ -6197,9 +6197,11 @@ void Plater::priv::show_preview_only_hint(wxCommandEvent &event)
 
 void Plater::priv::on_apple_change_color_mode(wxSysColourChangedEvent& evt) {
     m_is_dark = wxSystemSettings::GetAppearance().IsDark();
-    view3D->get_canvas3d()->on_change_color_mode(m_is_dark);
-    preview->get_canvas3d()->on_change_color_mode(m_is_dark);
-    assemble_view->get_canvas3d()->on_change_color_mode(m_is_dark);
+    if (view3D->get_canvas3d() && view3D->get_canvas3d()->is_initialized()) {
+        view3D->get_canvas3d()->on_change_color_mode(m_is_dark);
+        preview->get_canvas3d()->on_change_color_mode(m_is_dark);
+        assemble_view->get_canvas3d()->on_change_color_mode(m_is_dark);
+    }
 }
 
 void Plater::priv::on_change_color_mode(SimpleEvent& evt) {
@@ -7496,7 +7498,7 @@ void Plater::load_project(wxString const& filename2,
         if (using_exported_file())
             p->set_project_filename(filename);
     }
-    
+
 
     // BBS set default 3D view and direction after loading project
     //p->select_view_3D("3D");
@@ -7541,7 +7543,7 @@ int Plater::save_project(bool saveAs)
 
     //BBS export 3mf without gcode
     if (export_3mf(into_path(filename), SaveStrategy::SplitModel) < 0) {
-        MessageDialog(this, _L("Failed to save the project.\nPlease check whether the folder exists online or if other programs open the project file."), 
+        MessageDialog(this, _L("Failed to save the project.\nPlease check whether the folder exists online or if other programs open the project file."),
             _L("Save project"), wxOK | wxICON_WARNING).ShowModal();
         return wxID_CANCEL;
     }
