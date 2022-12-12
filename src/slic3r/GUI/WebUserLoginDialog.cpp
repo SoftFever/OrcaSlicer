@@ -104,12 +104,7 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
     wxSize pSize = FromDIP(wxSize(650, 840));
     SetSize(pSize);
 
-    //CenterOnParent();
-    int screenheight = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y, NULL);
-    int screenwidth  = wxSystemSettings::GetMetric(wxSYS_SCREEN_X, NULL);
-    int MaxY         = (screenheight - pSize.y) > 0 ? (screenheight - pSize.y) / 2 : 0;
-
-    this->SetPosition(wxPoint((screenwidth - pSize.x) / 2, MaxY));
+    CenterOnParent();
 
     //Param
     m_AutotestToken = "";
