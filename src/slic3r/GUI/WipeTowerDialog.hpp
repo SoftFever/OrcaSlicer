@@ -7,9 +7,12 @@
 #include <wx/checkbox.h>
 #include <wx/msgdlg.h>
 
+class Button;
+
 class WipingPanel : public wxPanel {
 public:
-    WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours, wxButton* widget_button,
+    // BBS
+    WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours, Button* calc_button,
         int extra_flush_volume, float flush_multiplier);
     std::vector<float> read_matrix_values();
     std::vector<float> read_extruders_values();

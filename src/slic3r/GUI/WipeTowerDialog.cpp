@@ -98,18 +98,6 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
         std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
     );
 
-    if (flags & wxRESET) {
-        Button* calc_btn = new Button(this, _L("Auto-Calc"));
-        calc_btn->SetMinSize(wxSize(FromDIP(75), FromDIP(24)));
-        calc_btn->SetCornerRadius(FromDIP(12));
-        calc_btn->SetBackgroundColor(ok_btn_bg);
-        calc_btn->SetBorderColor(ok_btn_bd);
-        calc_btn->SetTextColor(wxColour("#FFFFFE"));
-        calc_btn->SetFocus();
-        calc_btn->SetId(wxID_RESET);
-        btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
-    }
-
     if (flags & wxOK) {
         Button* ok_btn = new Button(this, _L("OK"));
         ok_btn->SetMinSize(BTN_SIZE);
@@ -144,7 +132,32 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
     this->SetBackgroundColour(*wxWHITE);
     this->SetMinSize(wxSize(MIN_WIPING_DIALOG_WIDTH, -1));
 
-    m_panel_wiping = new WipingPanel(this, matrix, extruders, extruder_colours, nullptr, extra_flush_volume, flush_multiplier);
+    // BBS
+    StateColor calc_btn_bg(
+        std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
+    );
+
+    StateColor calc_btn_bd(
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
+    );
+
+    StateColor calc_btn_text(
+        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
+    );
+
+    Button* calc_btn = new Button(this, _L("Auto-Calc"));
+    calc_btn->SetMinSize(wxSize(FromDIP(75), FromDIP(24)));
+    calc_btn->SetCornerRadius(FromDIP(12));
+    calc_btn->SetBackgroundColor(calc_btn_bg);
+    calc_btn->SetBorderColor(calc_btn_bd);
+    calc_btn->SetTextColor(calc_btn_text);
+    calc_btn->SetFocus();
+    calc_btn->SetId(wxID_RESET);
+    calc_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { m_panel_wiping->calc_flushing_volumes(); });
+
+    m_panel_wiping = new WipingPanel(this, matrix, extruders, extruder_colours, calc_btn, extra_flush_volume, flush_multiplier);
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -155,7 +168,7 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
 
     main_sizer->Add(m_panel_wiping, 1, wxEXPAND | wxALL, 0);
 
-    auto btn_sizer = create_btn_sizer(wxOK | wxCANCEL | wxRESET);
+    auto btn_sizer = create_btn_sizer(wxOK | wxCANCEL);
     main_sizer->Add(btn_sizer, 0, wxBOTTOM | wxRIGHT | wxEXPAND, BTN_GAP);
     SetSizer(main_sizer);
     main_sizer->SetSizeHints(this);
@@ -171,9 +184,6 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
         update_ui(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)));
         this->FindWindowById(wxID_CANCEL, this)->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxCANCEL); });
 
-    }
-    if (this->FindWindowById(wxID_RESET, this)) {
-        this->FindWindowById(wxID_RESET, this)->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { m_panel_wiping->calc_flushing_volumes(); });
     }
     this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& e) { EndModal(wxCANCEL); });
     this->Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent& e) {
@@ -223,14 +233,10 @@ void WipingPanel::create_panels(wxWindow* parent, const int num) {
 }
 
 // This panel contains all control widgets for both simple and advanced mode (these reside in separate sizers)
-WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours, wxButton* widget_button,
+WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, const std::vector<float>& extruders, const std::vector<std::string>& extruder_colours, Button* calc_button,
     int extra_flush_volume, float flush_multiplier)
 : wxPanel(parent,wxID_ANY, wxDefaultPosition, wxDefaultSize/*,wxBORDER_RAISED*/), m_min_flush_volume(extra_flush_volume), m_max_flush_volume(800)
 {
-    // BBS: toggle button is removed
-    //m_widget_button = widget_button;    // pointer to the button in parent dialog
-    //m_widget_button->Bind(wxEVT_BUTTON,[this](wxCommandEvent&){ toggle_advanced(true); });
-
     m_number_of_extruders = (int)(sqrt(matrix.size())+0.001);
 
     for (const std::string& color : extruder_colours) {
@@ -323,6 +329,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     auto info_str = new wxStaticText(m_page_advanced, wxID_ANY, _(L("Flushing volume (mm³) for each filament pair.")), wxDefaultPosition, wxDefaultSize, 0);
     info_str->SetForegroundColour(g_text_color);
     m_sizer_advanced->Add(info_str, 0, wxEXPAND | wxLEFT, TEXT_BEG_PADDING);
+    m_sizer_advanced->Add(calc_button, 0, wxALIGN_RIGHT | wxRIGHT, TEXT_BEG_PADDING);
     m_sizer_advanced->AddSpacer(BTN_SIZE.y);
 
     // BBS: for tunning flush volumes
@@ -590,9 +597,6 @@ void WipingPanel::calc_flushing_volumes()
 
         return support_option->get_at(0);
     };
-
-    // Calculate flush volumes for flush_multiplier 1.0
-    m_flush_multiplier_ebox->SetValue("1.0");
 
     for (int from_idx = 0; from_idx < m_colours.size(); from_idx++) {
         const wxColour& from = m_colours[from_idx];
