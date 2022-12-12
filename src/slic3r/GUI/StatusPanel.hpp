@@ -94,15 +94,15 @@ protected:
     CameraItem *m_setting_button;
 
     wxBitmap m_bitmap_camera;
-    wxBitmap m_bitmap_sdcard_state_normal;
-    wxBitmap m_bitmap_sdcard_state_abnormal;
-    wxBitmap m_bitmap_sdcard_state_no;
-    wxBitmap m_bitmap_recording_on;
-    wxBitmap m_bitmap_recording_off;
-    wxBitmap m_bitmap_timelapse_on;
-    wxBitmap m_bitmap_timelapse_off;
-    wxBitmap m_bitmap_vcamera_on;
-    wxBitmap m_bitmap_vcamera_off;
+    ScalableBitmap m_bitmap_sdcard_state_normal;
+    ScalableBitmap m_bitmap_sdcard_state_abnormal;
+    ScalableBitmap m_bitmap_sdcard_state_no;
+    ScalableBitmap m_bitmap_recording_on;
+    ScalableBitmap m_bitmap_recording_off;
+    ScalableBitmap m_bitmap_timelapse_on;
+    ScalableBitmap m_bitmap_timelapse_off;
+    ScalableBitmap m_bitmap_vcamera_on;
+    ScalableBitmap m_bitmap_vcamera_off;
 
     /* title panel */
     wxPanel *       media_ctrl_panel;
