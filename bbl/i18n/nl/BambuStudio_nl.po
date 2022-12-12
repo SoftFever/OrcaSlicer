@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-08 20:42+0800\n"
+"POT-Creation-Date: 2022-12-12 11:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2537,6 +2537,15 @@ msgstr "Apparaat"
 msgid "Project"
 msgstr "Project"
 
+msgid "Yes"
+msgstr "Ja"
+
+msgid "No"
+msgstr "Nee"
+
+msgid " will be closed before creating a new model. Do you want to continue?"
+msgstr ""
+
 msgid "Slice"
 msgstr "Slice"
 
@@ -3071,9 +3080,6 @@ msgstr ""
 msgid "SD Card"
 msgstr ""
 
-msgid "SD Card Abnormal"
-msgstr ""
-
 msgid "Virtual Camera"
 msgstr ""
 
@@ -3121,6 +3127,12 @@ msgstr "Lossen"
 
 msgid "Debug Info"
 msgstr "Informatie over Debuggen"
+
+msgid "No SD Card"
+msgstr ""
+
+msgid "SD Card Abnormal"
+msgstr ""
 
 msgid "Printing List"
 msgstr "Print lijst"
@@ -3201,12 +3213,6 @@ msgstr "Verbinding maken met de printer is mislukt"
 
 msgid "Don't show again"
 msgstr "Niet nogmaals tonen"
-
-msgid "Yes"
-msgstr "Ja"
-
-msgid "No"
-msgstr "Nee"
 
 #, c-format, boost-format
 msgid "%s error"
@@ -4373,7 +4379,7 @@ msgstr ""
 msgid "The printer does not support sending to printer SD card."
 msgstr ""
 
-msgid "Same as global bed type"
+msgid "Same as Global Bed Type"
 msgstr ""
 
 msgid "Cool Plate"
@@ -5257,6 +5263,9 @@ msgid ""
 "The firmware version is abnormal. Repairing and updating are required before "
 "printing. Do you want to update now? You can also update later on printer or "
 "update next time starting the studio."
+msgstr ""
+
+msgid "Extension Board"
 msgstr ""
 
 msgid "Saving objects into the 3mf failed."
@@ -7240,11 +7249,9 @@ msgid "The z gap between the bottom support interface and object"
 msgstr ""
 
 msgid ""
-"Filament to print support and skirt. 0 means no specific filament for "
-"support and current filament is used"
+"Filament to print support and raft. \"Default\" means no specific filament "
+"for support and current filament is used"
 msgstr ""
-"Filament om randen (skirt) en support te printen. Indien u kiest voor 0 dan "
-"is er geen specifiek filament en wordt het huidige filament gebruikt"
 
 msgid "Line width of support"
 msgstr "Lijn dikte van support"
@@ -7259,11 +7266,9 @@ msgstr ""
 "uitgeschakeld."
 
 msgid ""
-"Filament to print support interface. 0 means no specific filament for "
-"support interface and current filament is used"
+"Filament to print support interface. \"Default\" means no specific filament "
+"for support interface and current filament is used"
 msgstr ""
-"Filament om support te printen. Indien u kiest voor 0 dan is er geen "
-"specifiek filament en wordt het huidige filament gebruikt"
 
 msgid "Top interface layers"
 msgstr "Bovenste interface lagen"
@@ -7710,12 +7715,6 @@ msgstr "Converteer de eenheden van het model"
 msgid "Orient the model"
 msgstr "Oriënteer het model"
 
-msgid "Repair"
-msgstr "Repareren"
-
-msgid "Repair the model's meshes if it is non-manifold mesh"
-msgstr "Repareer de meshes van het model als ze niet-manifold zijn."
-
 msgid "Scale the model by a float factor"
 msgstr "Schaal het model met een float-factor"
 
@@ -8004,6 +8003,26 @@ msgid ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 msgstr ""
+
+#~ msgid ""
+#~ "Filament to print support and skirt. 0 means no specific filament for "
+#~ "support and current filament is used"
+#~ msgstr ""
+#~ "Filament om randen (skirt) en support te printen. Indien u kiest voor 0 "
+#~ "dan is er geen specifiek filament en wordt het huidige filament gebruikt"
+
+#~ msgid ""
+#~ "Filament to print support interface. 0 means no specific filament for "
+#~ "support interface and current filament is used"
+#~ msgstr ""
+#~ "Filament om support te printen. Indien u kiest voor 0 dan is er geen "
+#~ "specifiek filament en wordt het huidige filament gebruikt"
+
+#~ msgid "Repair"
+#~ msgstr "Repareren"
+
+#~ msgid "Repair the model's meshes if it is non-manifold mesh"
+#~ msgstr "Repareer de meshes van het model als ze niet-manifold zijn."
 
 #~ msgid "Monitoring Recording"
 #~ msgstr "Monitoring en opname"

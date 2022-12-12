@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-08 20:42+0800\n"
+"POT-Creation-Date: 2022-12-12 11:13+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2381,6 +2381,15 @@ msgstr ""
 msgid "Project"
 msgstr ""
 
+msgid "Yes"
+msgstr ""
+
+msgid "No"
+msgstr ""
+
+msgid " will be closed before creating a new model. Do you want to continue?"
+msgstr ""
+
 msgid "Slice"
 msgstr ""
 
@@ -2910,9 +2919,6 @@ msgstr ""
 msgid "SD Card"
 msgstr ""
 
-msgid "SD Card Abnormal"
-msgstr ""
-
 msgid "Virtual Camera"
 msgstr ""
 
@@ -2959,6 +2965,12 @@ msgid "Unload"
 msgstr ""
 
 msgid "Debug Info"
+msgstr ""
+
+msgid "No SD Card"
+msgstr ""
+
+msgid "SD Card Abnormal"
 msgstr ""
 
 msgid "Printing List"
@@ -3039,12 +3051,6 @@ msgid "Failed to connect to the printer"
 msgstr ""
 
 msgid "Don't show again"
-msgstr ""
-
-msgid "Yes"
-msgstr ""
-
-msgid "No"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -4157,7 +4163,7 @@ msgstr ""
 msgid "The printer does not support sending to printer SD card."
 msgstr ""
 
-msgid "Same as global bed type"
+msgid "Same as Global Bed Type"
 msgstr ""
 
 msgid "Cool Plate"
@@ -4985,6 +4991,9 @@ msgid ""
 "The firmware version is abnormal. Repairing and updating are required before "
 "printing. Do you want to update now? You can also update later on printer or "
 "update next time starting the studio."
+msgstr ""
+
+msgid "Extension Board"
 msgstr ""
 
 msgid "Saving objects into the 3mf failed."
@@ -6730,8 +6739,8 @@ msgid "The z gap between the bottom support interface and object"
 msgstr ""
 
 msgid ""
-"Filament to print support and skirt. 0 means no specific filament for "
-"support and current filament is used"
+"Filament to print support and raft. \"Default\" means no specific filament "
+"for support and current filament is used"
 msgstr ""
 
 msgid "Line width of support"
@@ -6745,8 +6754,8 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Filament to print support interface. 0 means no specific filament for "
-"support interface and current filament is used"
+"Filament to print support interface. \"Default\" means no specific filament "
+"for support interface and current filament is used"
 msgstr ""
 
 msgid "Top interface layers"
@@ -7139,12 +7148,6 @@ msgid "Convert the units of model"
 msgstr ""
 
 msgid "Orient the model"
-msgstr ""
-
-msgid "Repair"
-msgstr ""
-
-msgid "Repair the model's meshes if it is non-manifold mesh"
 msgstr ""
 
 msgid "Scale the model by a float factor"

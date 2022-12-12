@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-08 20:42+0800\n"
+"POT-Creation-Date: 2022-12-12 11:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2508,6 +2508,15 @@ msgstr "Enhet"
 msgid "Project"
 msgstr "Projekt"
 
+msgid "Yes"
+msgstr "Ja"
+
+msgid "No"
+msgstr "Nej"
+
+msgid " will be closed before creating a new model. Do you want to continue?"
+msgstr ""
+
 msgid "Slice"
 msgstr "Bered"
 
@@ -3037,9 +3046,6 @@ msgstr ""
 msgid "SD Card"
 msgstr ""
 
-msgid "SD Card Abnormal"
-msgstr ""
-
 msgid "Virtual Camera"
 msgstr ""
 
@@ -3087,6 +3093,12 @@ msgstr "Mata ut"
 
 msgid "Debug Info"
 msgstr "Felsöknings Information"
+
+msgid "No SD Card"
+msgstr ""
+
+msgid "SD Card Abnormal"
+msgstr ""
 
 msgid "Printing List"
 msgstr "Utskrifts Lista"
@@ -3167,12 +3179,6 @@ msgstr "Uppkoppling till printern misslyckades"
 
 msgid "Don't show again"
 msgstr "Visa inte igen"
-
-msgid "Yes"
-msgstr "Ja"
-
-msgid "No"
-msgstr "Nej"
 
 #, c-format, boost-format
 msgid "%s error"
@@ -4306,7 +4312,7 @@ msgstr ""
 msgid "The printer does not support sending to printer SD card."
 msgstr ""
 
-msgid "Same as global bed type"
+msgid "Same as Global Bed Type"
 msgstr ""
 
 msgid "Cool Plate"
@@ -5178,6 +5184,9 @@ msgid ""
 "The firmware version is abnormal. Repairing and updating are required before "
 "printing. Do you want to update now? You can also update later on printer or "
 "update next time starting the studio."
+msgstr ""
+
+msgid "Extension Board"
 msgstr ""
 
 msgid "Saving objects into the 3mf failed."
@@ -7108,11 +7117,9 @@ msgid "The z gap between the bottom support interface and object"
 msgstr ""
 
 msgid ""
-"Filament to print support and skirt. 0 means no specific filament for "
-"support and current filament is used"
+"Filament to print support and raft. \"Default\" means no specific filament "
+"for support and current filament is used"
 msgstr ""
-"Filament för att skriva ut support och skirt med. 0 betyder inget speciellt "
-"filament för support och nuvarande filament används"
 
 msgid "Line width of support"
 msgstr "Linjebredd för support"
@@ -7127,11 +7134,9 @@ msgstr ""
 "standard."
 
 msgid ""
-"Filament to print support interface. 0 means no specific filament for "
-"support interface and current filament is used"
+"Filament to print support interface. \"Default\" means no specific filament "
+"for support interface and current filament is used"
 msgstr ""
-"Support filament för utskrift. 0 betyder att inget specifikt filament för "
-"support gränssnitt och nuvarande filament används"
 
 msgid "Top interface layers"
 msgstr "Översta gränssnitts lager"
@@ -7176,8 +7181,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för "
-"lösligt(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
+"(material) stödgränssnittet är koncentriskt"
 
 msgid "Base pattern spacing"
 msgstr "Basens mönster mellanrum"
@@ -7567,12 +7572,6 @@ msgstr "Konvertera modellens enheter"
 msgid "Orient the model"
 msgstr "Orientera modellen"
 
-msgid "Repair"
-msgstr "Reparera"
-
-msgid "Repair the model's meshes if it is non-manifold mesh"
-msgstr "Reparera modellens mesh om den inte är mångfaldig"
-
 msgid "Scale the model by a float factor"
 msgstr "Skala modellen med en plus faktor"
 
@@ -7859,6 +7858,26 @@ msgid ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 msgstr ""
+
+#~ msgid ""
+#~ "Filament to print support and skirt. 0 means no specific filament for "
+#~ "support and current filament is used"
+#~ msgstr ""
+#~ "Filament för att skriva ut support och skirt med. 0 betyder inget "
+#~ "speciellt filament för support och nuvarande filament används"
+
+#~ msgid ""
+#~ "Filament to print support interface. 0 means no specific filament for "
+#~ "support interface and current filament is used"
+#~ msgstr ""
+#~ "Support filament för utskrift. 0 betyder att inget specifikt filament för "
+#~ "support gränssnitt och nuvarande filament används"
+
+#~ msgid "Repair"
+#~ msgstr "Reparera"
+
+#~ msgid "Repair the model's meshes if it is non-manifold mesh"
+#~ msgstr "Reparera modellens mesh om den inte är mångfaldig"
 
 #~ msgid "Monitoring Recording"
 #~ msgstr "Övervaknings Inspelning"

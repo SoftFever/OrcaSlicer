@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-08 20:42+0800\n"
+"POT-Creation-Date: 2022-12-12 11:13+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2496,6 +2496,15 @@ msgstr "Device"
 msgid "Project"
 msgstr "Project"
 
+msgid "Yes"
+msgstr "Yes"
+
+msgid "No"
+msgstr "No"
+
+msgid " will be closed before creating a new model. Do you want to continue?"
+msgstr ""
+
 msgid "Slice"
 msgstr "Slice"
 
@@ -3029,9 +3038,6 @@ msgstr ""
 msgid "SD Card"
 msgstr ""
 
-msgid "SD Card Abnormal"
-msgstr ""
-
 msgid "Virtual Camera"
 msgstr ""
 
@@ -3079,6 +3085,12 @@ msgstr "Unload"
 
 msgid "Debug Info"
 msgstr "Debug Info"
+
+msgid "No SD Card"
+msgstr ""
+
+msgid "SD Card Abnormal"
+msgstr ""
 
 msgid "Printing List"
 msgstr "Printing list"
@@ -3159,12 +3171,6 @@ msgstr "Failed to connect to the printer"
 
 msgid "Don't show again"
 msgstr "Don't show again"
-
-msgid "Yes"
-msgstr "Yes"
-
-msgid "No"
-msgstr "No"
 
 #, c-format, boost-format
 msgid "%s error"
@@ -4301,7 +4307,7 @@ msgstr ""
 msgid "The printer does not support sending to printer SD card."
 msgstr ""
 
-msgid "Same as global bed type"
+msgid "Same as Global Bed Type"
 msgstr ""
 
 msgid "Cool Plate"
@@ -5167,6 +5173,9 @@ msgid ""
 "The firmware version is abnormal. Repairing and updating are required before "
 "printing. Do you want to update now? You can also update later on printer or "
 "update next time starting the studio."
+msgstr ""
+
+msgid "Extension Board"
 msgstr ""
 
 msgid "Saving objects into the 3mf failed."
@@ -7103,11 +7112,9 @@ msgid "The z gap between the bottom support interface and object"
 msgstr ""
 
 msgid ""
-"Filament to print support and skirt. 0 means no specific filament for "
-"support and current filament is used"
+"Filament to print support and raft. \"Default\" means no specific filament "
+"for support and current filament is used"
 msgstr ""
-"This is the filament used to print supports and skirts. 0 means no specific "
-"filament for support and the current filament is used."
 
 msgid "Line width of support"
 msgstr "Line width of support"
@@ -7122,11 +7129,9 @@ msgstr ""
 "by default."
 
 msgid ""
-"Filament to print support interface. 0 means no specific filament for "
-"support interface and current filament is used"
+"Filament to print support interface. \"Default\" means no specific filament "
+"for support interface and current filament is used"
 msgstr ""
-"This is the filament to print support interfaces. 0 means no specific "
-"filament for support interfaces and the current filament is used"
 
 msgid "Top interface layers"
 msgstr "Top interface layers"
@@ -7564,12 +7569,6 @@ msgstr "Convert the units of model"
 msgid "Orient the model"
 msgstr "Orient the model"
 
-msgid "Repair"
-msgstr "Repair"
-
-msgid "Repair the model's meshes if it is non-manifold mesh"
-msgstr "Repair the model’s meshes if they are non-manifold."
-
 msgid "Scale the model by a float factor"
 msgstr "Scale the model by a float factor"
 
@@ -7856,6 +7855,26 @@ msgid ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 msgstr ""
+
+#~ msgid ""
+#~ "Filament to print support and skirt. 0 means no specific filament for "
+#~ "support and current filament is used"
+#~ msgstr ""
+#~ "This is the filament used to print supports and skirts. 0 means no "
+#~ "specific filament for support and the current filament is used."
+
+#~ msgid ""
+#~ "Filament to print support interface. 0 means no specific filament for "
+#~ "support interface and current filament is used"
+#~ msgstr ""
+#~ "This is the filament to print support interfaces. 0 means no specific "
+#~ "filament for support interfaces and the current filament is used"
+
+#~ msgid "Repair"
+#~ msgstr "Repair"
+
+#~ msgid "Repair the model's meshes if it is non-manifold mesh"
+#~ msgstr "Repair the model’s meshes if they are non-manifold."
 
 #~ msgid "Monitoring Recording"
 #~ msgstr "Monitoring Recording"

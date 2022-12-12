@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-08 20:42+0800\n"
+"POT-Creation-Date: 2022-12-12 11:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2539,6 +2539,15 @@ msgstr "Nyomtató"
 msgid "Project"
 msgstr "Projekt"
 
+msgid "Yes"
+msgstr "Igen"
+
+msgid "No"
+msgstr "Nem"
+
+msgid " will be closed before creating a new model. Do you want to continue?"
+msgstr ""
+
 msgid "Slice"
 msgstr "Szeletelés"
 
@@ -3073,9 +3082,6 @@ msgstr "Kamera"
 msgid "SD Card"
 msgstr ""
 
-msgid "SD Card Abnormal"
-msgstr ""
-
 msgid "Virtual Camera"
 msgstr ""
 
@@ -3123,6 +3129,12 @@ msgstr "Kitöltés"
 
 msgid "Debug Info"
 msgstr "Hibakeresési infó"
+
+msgid "No SD Card"
+msgstr ""
+
+msgid "SD Card Abnormal"
+msgstr ""
 
 msgid "Printing List"
 msgstr "Nyomtatási lista"
@@ -3203,12 +3215,6 @@ msgstr "Nem sikerült csatlakozni a nyomtatóhoz"
 
 msgid "Don't show again"
 msgstr "Ne mutasd újra"
-
-msgid "Yes"
-msgstr "Igen"
-
-msgid "No"
-msgstr "Nem"
 
 #, c-format, boost-format
 msgid "%s error"
@@ -4361,7 +4367,7 @@ msgstr ""
 msgid "The printer does not support sending to printer SD card."
 msgstr ""
 
-msgid "Same as global bed type"
+msgid "Same as Global Bed Type"
 msgstr ""
 
 msgid "Cool Plate"
@@ -5236,6 +5242,9 @@ msgid ""
 "The firmware version is abnormal. Repairing and updating are required before "
 "printing. Do you want to update now? You can also update later on printer or "
 "update next time starting the studio."
+msgstr ""
+
+msgid "Extension Board"
 msgstr ""
 
 msgid "Saving objects into the 3mf failed."
@@ -7208,11 +7217,9 @@ msgid "The z gap between the bottom support interface and object"
 msgstr ""
 
 msgid ""
-"Filament to print support and skirt. 0 means no specific filament for "
-"support and current filament is used"
+"Filament to print support and raft. \"Default\" means no specific filament "
+"for support and current filament is used"
 msgstr ""
-"Filament a támasz és perem nyomtatásához. A 0 azt jelenti, hogy nincs erre "
-"külön kijelölt filament és a jelenleg használt kerül felhasználásra"
 
 msgid "Line width of support"
 msgstr "A támasz vonalszélessége"
@@ -7227,12 +7234,9 @@ msgstr ""
 "letiltva."
 
 msgid ""
-"Filament to print support interface. 0 means no specific filament for "
-"support interface and current filament is used"
+"Filament to print support interface. \"Default\" means no specific filament "
+"for support interface and current filament is used"
 msgstr ""
-"Filament a támasz érintkező felületének nyomtatásához. A 0 azt jelenti, hogy "
-"nincs erre külön kijelölt filament és a jelenleg használt kerül "
-"felhasználásra"
 
 msgid "Top interface layers"
 msgstr "Felső érintkező rétegek"
@@ -7675,12 +7679,6 @@ msgstr "Modell mértékegységének átváltása"
 msgid "Orient the model"
 msgstr "Modell orientációja"
 
-msgid "Repair"
-msgstr "Javítás"
-
-msgid "Repair the model's meshes if it is non-manifold mesh"
-msgstr "Megjavítja a modell hálóit, ha azok hibásak"
-
 msgid "Scale the model by a float factor"
 msgstr "A modell méretezése egy lebegő tényezővel"
 
@@ -7968,10 +7966,30 @@ msgid ""
 "density to improve the strength of the model?"
 msgstr ""
 
+#~ msgid ""
+#~ "Filament to print support and skirt. 0 means no specific filament for "
+#~ "support and current filament is used"
+#~ msgstr ""
+#~ "Filament a támasz és perem nyomtatásához. A 0 azt jelenti, hogy nincs "
+#~ "erre külön kijelölt filament és a jelenleg használt kerül felhasználásra"
+
+#~ msgid ""
+#~ "Filament to print support interface. 0 means no specific filament for "
+#~ "support interface and current filament is used"
+#~ msgstr ""
+#~ "Filament a támasz érintkező felületének nyomtatásához. A 0 azt jelenti, "
+#~ "hogy nincs erre külön kijelölt filament és a jelenleg használt kerül "
+#~ "felhasználásra"
+
+#~ msgid "Repair"
+#~ msgstr "Javítás"
+
+#~ msgid "Repair the model's meshes if it is non-manifold mesh"
+#~ msgstr "Megjavítja a modell hálóit, ha azok hibásak"
+
 #~ msgid "Heat the nozzle to target temperature"
 #~ msgstr "Fúvóka felmelegítése a kívánt hőmérsékletre"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Successfully sent. Will automatically jump to the device page in %s s"
 #~ msgstr ""

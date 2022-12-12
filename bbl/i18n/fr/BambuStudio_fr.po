@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-08 20:42+0800\n"
+"POT-Creation-Date: 2022-12-12 11:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2514,6 +2514,15 @@ msgstr "Appareil"
 msgid "Project"
 msgstr "Projet"
 
+msgid "Yes"
+msgstr "Oui"
+
+msgid "No"
+msgstr "Non"
+
+msgid " will be closed before creating a new model. Do you want to continue?"
+msgstr ""
+
 msgid "Slice"
 msgstr "Tranche"
 
@@ -3043,9 +3052,6 @@ msgstr ""
 msgid "SD Card"
 msgstr ""
 
-msgid "SD Card Abnormal"
-msgstr ""
-
 msgid "Virtual Camera"
 msgstr ""
 
@@ -3093,6 +3099,12 @@ msgstr "retirer"
 
 msgid "Debug Info"
 msgstr "Les informations de débogage"
+
+msgid "No SD Card"
+msgstr ""
+
+msgid "SD Card Abnormal"
+msgstr ""
 
 msgid "Printing List"
 msgstr "Liste d'impression"
@@ -3173,12 +3185,6 @@ msgstr "Échec de la connexion à l'imprimante"
 
 msgid "Don't show again"
 msgstr "Ne plus afficher"
-
-msgid "Yes"
-msgstr "Oui"
-
-msgid "No"
-msgstr "Non"
 
 #, c-format, boost-format
 msgid "%s error"
@@ -4340,7 +4346,7 @@ msgstr ""
 msgid "The printer does not support sending to printer SD card."
 msgstr ""
 
-msgid "Same as global bed type"
+msgid "Same as Global Bed Type"
 msgstr ""
 
 msgid "Cool Plate"
@@ -5227,6 +5233,9 @@ msgid ""
 "The firmware version is abnormal. Repairing and updating are required before "
 "printing. Do you want to update now? You can also update later on printer or "
 "update next time starting the studio."
+msgstr ""
+
+msgid "Extension Board"
 msgstr ""
 
 msgid "Saving objects into the 3mf failed."
@@ -7217,11 +7226,9 @@ msgid "The z gap between the bottom support interface and object"
 msgstr ""
 
 msgid ""
-"Filament to print support and skirt. 0 means no specific filament for "
-"support and current filament is used"
+"Filament to print support and raft. \"Default\" means no specific filament "
+"for support and current filament is used"
 msgstr ""
-"Filament pour imprimer le support et la jupe. 0 signifie qu'aucun filament "
-"spécifique pour le support et le filament actuel est utilisé"
 
 msgid "Line width of support"
 msgstr "Largeur de ligne du support"
@@ -7236,11 +7243,9 @@ msgstr ""
 "Désactivé par défaut."
 
 msgid ""
-"Filament to print support interface. 0 means no specific filament for "
-"support interface and current filament is used"
+"Filament to print support interface. \"Default\" means no specific filament "
+"for support interface and current filament is used"
 msgstr ""
-"Filament pour imprimer l'interface de support. 0 signifie qu'aucun filament "
-"spécifique pour l'interface de support et le filament actuel est utilisé"
 
 msgid "Top interface layers"
 msgstr "Couches d'interface supérieures"
@@ -7687,12 +7692,6 @@ msgstr "Convertir les unités du modèle"
 msgid "Orient the model"
 msgstr "Orienter le modèle"
 
-msgid "Repair"
-msgstr "Réparation"
-
-msgid "Repair the model's meshes if it is non-manifold mesh"
-msgstr "Réparer les maillages du modèle s'il s'agit d'un maillage non multiple"
-
 msgid "Scale the model by a float factor"
 msgstr "Mettre à l'échelle le modèle par un facteur flottant"
 
@@ -7983,6 +7982,28 @@ msgid ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 msgstr ""
+
+#~ msgid ""
+#~ "Filament to print support and skirt. 0 means no specific filament for "
+#~ "support and current filament is used"
+#~ msgstr ""
+#~ "Filament pour imprimer le support et la jupe. 0 signifie qu'aucun "
+#~ "filament spécifique pour le support et le filament actuel est utilisé"
+
+#~ msgid ""
+#~ "Filament to print support interface. 0 means no specific filament for "
+#~ "support interface and current filament is used"
+#~ msgstr ""
+#~ "Filament pour imprimer l'interface de support. 0 signifie qu'aucun "
+#~ "filament spécifique pour l'interface de support et le filament actuel est "
+#~ "utilisé"
+
+#~ msgid "Repair"
+#~ msgstr "Réparation"
+
+#~ msgid "Repair the model's meshes if it is non-manifold mesh"
+#~ msgstr ""
+#~ "Réparer les maillages du modèle s'il s'agit d'un maillage non multiple"
 
 #~ msgid "Monitoring Recording"
 #~ msgstr "Enregistrement de surveillance"

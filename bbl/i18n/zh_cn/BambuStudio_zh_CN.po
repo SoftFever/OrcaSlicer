@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-08 20:42+0800\n"
+"POT-Creation-Date: 2022-12-12 11:13+0800\n"
 "PO-Revision-Date: 2022-12-05 19:51+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2463,6 +2463,15 @@ msgstr "设备"
 msgid "Project"
 msgstr "项目"
 
+msgid "Yes"
+msgstr "是"
+
+msgid "No"
+msgstr "否"
+
+msgid " will be closed before creating a new model. Do you want to continue?"
+msgstr ""
+
 msgid "Slice"
 msgstr "切片"
 
@@ -2865,7 +2874,7 @@ msgid ""
 msgstr ""
 "另一个虚拟摄像头正在工作。\n"
 "Bambu Studio 同时只能支持一个虚拟摄像头。\n"
-"是否停止十一个虚拟摄像头？"
+"是否停止前一个虚拟摄像头？"
 
 #, c-format, boost-format
 msgid "Virtual camera initialize failed (%s)!"
@@ -2998,9 +3007,6 @@ msgstr "摄像机"
 msgid "SD Card"
 msgstr "SD卡"
 
-msgid "SD Card Abnormal"
-msgstr "SD卡异常"
-
 msgid "Virtual Camera"
 msgstr "虚拟摄像头"
 
@@ -3048,6 +3054,12 @@ msgstr "退料"
 
 msgid "Debug Info"
 msgstr "调试信息"
+
+msgid "No SD Card"
+msgstr ""
+
+msgid "SD Card Abnormal"
+msgstr "SD卡异常"
 
 msgid "Printing List"
 msgstr "项目切片"
@@ -3132,12 +3144,6 @@ msgstr "无法连接打印机"
 
 msgid "Don't show again"
 msgstr "不再显示"
-
-msgid "Yes"
-msgstr "是"
-
-msgid "No"
-msgstr "否"
 
 #, c-format, boost-format
 msgid "%s error"
@@ -4275,8 +4281,8 @@ msgstr "打印机需要与Bambu Studio在同一个局域网内。"
 msgid "The printer does not support sending to printer SD card."
 msgstr "该打印机不支持发送到打印机SD卡。"
 
-msgid "Same as global bed type"
-msgstr "跟随全局热床类型设置"
+msgid "Same as Global Bed Type"
+msgstr ""
 
 msgid "Cool Plate"
 msgstr "低温打印热床"
@@ -5125,6 +5131,9 @@ msgid ""
 msgstr ""
 "当前固件版本异常，需要进行修复升级，否则无法继续打印。你想现在就开始升级吗？"
 "你也可以稍后在打印机上升级，或者下一次启动studio再升级。"
+
+msgid "Extension Board"
+msgstr ""
 
 msgid "Saving objects into the 3mf failed."
 msgstr "保存对象到3mf失败。"
@@ -6932,9 +6941,9 @@ msgid "The z gap between the bottom support interface and object"
 msgstr "支撑生成于模型表面时，支撑面底部和模型之间的z间隙"
 
 msgid ""
-"Filament to print support and skirt. 0 means no specific filament for "
-"support and current filament is used"
-msgstr "打印支撑和skirt的耗材丝。0代表不指定特定的耗材丝，并使用当前耗材"
+"Filament to print support and raft. \"Default\" means no specific filament "
+"for support and current filament is used"
+msgstr ""
 
 msgid "Line width of support"
 msgstr "支撑的线宽"
@@ -6947,9 +6956,9 @@ msgid ""
 msgstr "使用圈形走线覆盖顶部接触面。默认关闭。"
 
 msgid ""
-"Filament to print support interface. 0 means no specific filament for "
-"support interface and current filament is used"
-msgstr "打印支撑接触面的耗材丝。0代表不指定特定的耗材丝，并使用当前耗材"
+"Filament to print support interface. \"Default\" means no specific filament "
+"for support interface and current filament is used"
+msgstr ""
 
 msgid "Top interface layers"
 msgstr "顶部接触面层数"
@@ -7388,12 +7397,6 @@ msgstr "转换模型的单位"
 msgid "Orient the model"
 msgstr "旋转模型"
 
-msgid "Repair"
-msgstr "修复"
-
-msgid "Repair the model's meshes if it is non-manifold mesh"
-msgstr "修复模型网格"
-
 msgid "Scale the model by a float factor"
 msgstr "根据因子缩放模型"
 
@@ -7742,13 +7745,31 @@ msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
 
+#~ msgid "Same as global bed type"
+#~ msgstr "跟随全局热床类型设置"
+
+#~ msgid ""
+#~ "Filament to print support and skirt. 0 means no specific filament for "
+#~ "support and current filament is used"
+#~ msgstr "打印支撑和skirt的耗材丝。0代表不指定特定的耗材丝，并使用当前耗材"
+
+#~ msgid ""
+#~ "Filament to print support interface. 0 means no specific filament for "
+#~ "support interface and current filament is used"
+#~ msgstr "打印支撑接触面的耗材丝。0代表不指定特定的耗材丝，并使用当前耗材"
+
+#~ msgid "Repair"
+#~ msgstr "修复"
+
+#~ msgid "Repair the model's meshes if it is non-manifold mesh"
+#~ msgstr "修复模型网格"
+
 #~ msgid "Heat the nozzle to target temperature"
 #~ msgstr "加热喷嘴"
 
 #~ msgid "Show 'Streaming Video' guide page."
 #~ msgstr "展示 'Streaming Video' 引导页"
 
-#, c-format, boost-format
 #~ msgid ""
 #~ "Successfully sent. Will automatically jump to the device page in %s s"
 #~ msgstr "已发送完成，即将自动跳转到设备页面（%s秒）"
