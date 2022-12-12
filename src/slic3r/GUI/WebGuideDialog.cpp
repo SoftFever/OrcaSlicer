@@ -38,6 +38,7 @@ GuideFrame::GuideFrame(GUI_App *pGUI, long style)
     : DPIDialog((wxWindow *) (pGUI->mainframe), wxID_ANY, "BambuStudio", wxDefaultPosition, wxDefaultSize, style),
 	m_appconfig_new()
 {
+    SetBackgroundColour(*wxWHITE);
     // INI
     m_SectionName = "firstguide";
     PrivacyUse    = true;
@@ -57,7 +58,9 @@ GuideFrame::GuideFrame(GUI_App *pGUI, long style)
         wxLogError("Could not init m_browser");
         return;
     }
-
+    m_browser->Hide();
+    m_browser->SetSize(0, 0);
+    
     SetSizer(topsizer);
 
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
@@ -123,7 +126,6 @@ GuideFrame::~GuideFrame()
 void GuideFrame::load_url(wxString &url)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< " enter, url=" << url.ToStdString();
-    this->Show();
     WebView::LoadUrl(m_browser, url);
     m_browser->SetFocus();
     UpdateState();
@@ -223,7 +225,9 @@ void GuideFrame::OnNavigationRequest(wxWebViewEvent &evt)
 void GuideFrame::OnNavigationComplete(wxWebViewEvent &evt)
 {
     //wxLogMessage("%s", "Navigation complete; url='" + evt.GetURL() + "'");
-
+    m_browser->Show();
+    Layout();
+    
     wxString NewUrl = evt.GetURL();
 
     UpdateState();

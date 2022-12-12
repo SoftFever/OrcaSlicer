@@ -51,6 +51,7 @@ string &replace_str(string &str, const string &to_replaced, const string &newcha
 
 ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_ANY, "BambuStudio")
 {
+    SetBackgroundColour(*wxWHITE);
     // Url
     AppConfig * config   = wxGetApp().app_config;
     NetworkAgent* agent = wxGetApp().getAgent();
@@ -77,6 +78,8 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
         wxLogError("Could not init m_browser");
         return;
     }
+    m_browser->Hide();
+    m_browser->SetSize(0, 0);
 
     // Log backend information
     // wxLogMessage(wxWebView::GetBackendVersionInfo().ToString());
@@ -143,7 +146,6 @@ bool ZUserLogin::run() {
 
 void ZUserLogin::load_url(wxString &url)
 {
-    this->Show();
     m_browser->LoadURL(url);
     m_browser->SetFocus();
     UpdateState();
@@ -190,7 +192,8 @@ void ZUserLogin::OnNavigationRequest(wxWebViewEvent &evt)
 void ZUserLogin::OnNavigationComplete(wxWebViewEvent &evt)
 {
     // wxLogMessage("%s", "Navigation complete; url='" + evt.GetURL() + "'");
-
+    m_browser->Show();
+    Layout();
     UpdateState();
 }
 
