@@ -184,6 +184,8 @@ public:
 
     //BBS
     void simplify_extrusion_path() { for (auto layerm : m_regions) layerm->simplify_extrusion_entity();}
+    //BBS: this function calculate the maximum void grid area of sparse infill of this layer. Just estimated value
+    coordf_t get_sparse_infill_max_void_area();
 
 protected:
     friend class PrintObject;

@@ -152,11 +152,20 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
     {
         // Voids are sparse infills if infill rate is zero.
         Polygons voids;
+
+        double max_grid_area = -1;
+        if (this->layer()->lower_layer != nullptr)
+            max_grid_area = this->layer()->lower_layer->get_sparse_infill_max_void_area();
         for (const Surface &surface : this->fill_surfaces.surfaces) {
             if (surface.is_top()) {
                 // Collect the top surfaces, inflate them and trim them by the bottom surfaces.
                 // This gives the priority to bottom surfaces.
-                surfaces_append(top, offset_ex(surface.expolygon, margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS), surface);
+                if (max_grid_area < 0 || surface.expolygon.area() < max_grid_area)
+                    surfaces_append(top, offset_ex(surface.expolygon, margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS), surface);
+                else
+                    //BBS: Don't need to expand too much in this situation. Expand 3mm to eliminate hole and 1mm for contour
+                    surfaces_append(top, intersection_ex(offset(surface.expolygon.contour, margin / 3.0, EXTERNAL_SURFACES_OFFSET_PARAMETERS),
+                                                         offset_ex(surface.expolygon, margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS)), surface);
             } else if (surface.surface_type == stBottom || (surface.surface_type == stBottomBridge && lower_layer == nullptr)) {
                 // Grown by 3mm.
                 surfaces_append(bottom, offset_ex(surface.expolygon, margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS), surface);
