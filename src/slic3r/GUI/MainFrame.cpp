@@ -1911,7 +1911,7 @@ static wxMenu* generate_help_menu()
 
 static void add_common_publish_menu_items(wxMenu* publish_menu, MainFrame* mainFrame)
 {
-#ifdef __APPLE__ || __LINUX__
+#ifndef __WINDOWS__
     append_menu_item(publish_menu, wxID_ANY, _L("Upload Models"), _L("Upload Models"),
         [](wxCommandEvent&) {
             if (!wxGetApp().getAgent()) {

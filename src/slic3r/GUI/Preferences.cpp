@@ -491,6 +491,7 @@ wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxW
     checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent& e) {
         app_config->set(param, checkbox->GetValue() ? "1" : "0");
         app_config->save();
+        wxGetApp().Update_dark_mode_flag();
 
         //dark mode
 #ifdef _MSW_DARK_MODE

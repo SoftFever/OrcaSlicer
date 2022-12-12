@@ -2130,6 +2130,7 @@ bool GUI_App::on_init_inner()
     // initialize label colors and fonts
     init_label_colours();
     init_fonts();
+    wxGetApp().Update_dark_mode_flag();
 
 
 #ifdef _MSW_DARK_MODE
@@ -2721,8 +2722,9 @@ void GUI_App::UpdateDarkUI(wxWindow* window, bool highlited/* = false*/, bool ju
             return;
     }
 
-    if (m_is_dark_mode != dark_mode() )
-        m_is_dark_mode = dark_mode();
+
+    /*if (m_is_dark_mode != dark_mode() )
+        m_is_dark_mode = dark_mode();*/
     
 
     if (m_is_dark_mode) {
@@ -2776,6 +2778,11 @@ static void update_dark_children_ui(wxWindow* window, bool just_buttons_update =
 void GUI_App::UpdateDarkUIWin(wxWindow* win)
 {
     update_dark_children_ui(win);
+}
+
+void GUI_App::Update_dark_mode_flag()
+{
+    m_is_dark_mode = dark_mode();
 }
 
 void GUI_App::UpdateDlgDarkUI(wxDialog* dlg)
