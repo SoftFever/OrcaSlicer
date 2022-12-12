@@ -2339,7 +2339,7 @@ int MachineObject::parse_json(std::string payload)
                     else {
                         if (jj.contains("cooling_fan_speed")) {
                             cooling_fan_speed = stoi(jj["cooling_fan_speed"].get<std::string>());
-                            cooling_fan_speed = round(floor(cooling_fan_speed / float(1.5)));
+                            cooling_fan_speed = round( floor(cooling_fan_speed / float(1.5)) * float(25.5) );
                         }
                         else {
                             cooling_fan_speed = 0;
@@ -2347,7 +2347,7 @@ int MachineObject::parse_json(std::string payload)
 
                         if (jj.contains("big_fan1_speed")) {
                             big_fan1_speed = stoi(jj["big_fan1_speed"].get<std::string>());
-                            big_fan1_speed = round(floor(big_fan1_speed / float(1.5)));
+                            big_fan1_speed = round( floor(big_fan1_speed / float(1.5)) * float(25.5) );
                         }
                         else {
                             big_fan1_speed = 0;
@@ -2355,7 +2355,7 @@ int MachineObject::parse_json(std::string payload)
 
                         if (jj.contains("big_fan2_speed")) {
                             big_fan2_speed = stoi(jj["big_fan2_speed"].get<std::string>());
-                            big_fan2_speed = round(floor(big_fan2_speed / float(1.5)));
+                            big_fan2_speed = round( floor(big_fan2_speed / float(1.5)) * float(25.5) );
                         }
                         else {
                             big_fan2_speed = 0;
