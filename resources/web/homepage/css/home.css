@@ -605,28 +605,4 @@ body
 	font-size: 14px;
 }
 
-/*------Christmas cabin---*/
-#ChristmasArea
-{
-	margin-top: 10px;
-	display: flex;
-	flex-direction: column;
-}
 
-#ChristmasTitleBlock
-{
-	display:flex;
-	align-items: center;
-	padding: 6px;
-	border-bottom-width: 1px;
-	border-bottom-style: solid;
-}
-
-#CabinList
-{
-	display: flex;
-	flex-wrap: wrap;
-	align-content: flex-start;
-	overflow-y: auto;
-
-}

@@ -3503,18 +3503,6 @@ std::string GUI_App::handle_web_request(std::string cmd)
                         wxLaunchDefaultBrowser(path.value());
                     }
                 }
-            } 
-            else if (command_str.compare("homepage_open_ccabin") == 0) {
-                if (root.get_child_optional("data") != boost::none) {
-                    pt::ptree                    data_node = root.get_child("data");
-                    boost::optional<std::string> path      = data_node.get_optional<std::string>("file");
-                    if (path.has_value()) 
-                    { 
-                        std::string Fullpath = resources_dir() + "/web/homepage/model/" + path.value();   
-
-                        this->request_open_project(Fullpath);
-                    }
-                }
             }
 
         }
