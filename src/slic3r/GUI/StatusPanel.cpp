@@ -256,7 +256,7 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_bitmap_sdcard_img->SetToolTip(_L("SD Card"));
     m_bitmap_timelapse_img->SetToolTip(_L("Timelapse"));
     m_bitmap_recording_img->SetToolTip(_L("Video"));
-    m_bitmap_vcamera_img->SetToolTip(_L("Virtual Camera"));
+    m_bitmap_vcamera_img->SetToolTip(_L("Go Live"));
     m_setting_button->SetToolTip(_L("Camera Setting"));
 
     bSizer_monitoring_title->Add(m_bitmap_sdcard_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
@@ -2938,18 +2938,16 @@ void StatusPanel::set_hold_count(int& count)
     count = COMMAND_TIMEOUT;
 }
 
-void StatusPanel::on_sys_color_changed()
+void StatusPanel::rescale_camera_icons()
 {
-    m_button_abort->msw_rescale();
-    m_bitmap_speed.msw_rescale();
-    m_bitmap_speed_active.msw_rescale();
-    m_switch_speed->SetImages(m_bitmap_speed, m_bitmap_speed);
-    m_ams_control->msw_rescale();
+    m_setting_button->msw_rescale();
+
     m_bitmap_vcamera_on.msw_rescale();
     m_bitmap_vcamera_off.msw_rescale();
     if (m_media_play_ctrl->IsStreaming()) {
         m_bitmap_vcamera_img->SetBitmap(m_bitmap_vcamera_on.bmp());
-    } else {
+    }
+    else {
         m_bitmap_vcamera_img->SetBitmap(m_bitmap_vcamera_off.bmp());
     }
 
@@ -2959,14 +2957,11 @@ void StatusPanel::on_sys_color_changed()
     m_bitmap_sdcard_state_normal.msw_rescale();
     if (obj->get_sdcard_state() == MachineObject::SdcardState::NO_SDCARD) {
         m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_no.bmp());
-    }
-    else if (obj->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL) {
+    } else if (obj->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_NORMAL) {
         m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_normal.bmp());
-    }
-    else if (obj->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_ABNORMAL) {
+    } else if (obj->get_sdcard_state() == MachineObject::SdcardState::HAS_SDCARD_ABNORMAL) {
         m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_abnormal.bmp());
-    }
-    else {
+    } else {
         m_bitmap_sdcard_img->SetBitmap(m_bitmap_sdcard_state_normal.bmp());
     }
 
@@ -2985,6 +2980,16 @@ void StatusPanel::on_sys_color_changed()
     } else {
         m_bitmap_timelapse_img->SetBitmap(m_bitmap_timelapse_off.bmp());
     }
+}
+
+void StatusPanel::on_sys_color_changed()
+{
+    m_button_abort->msw_rescale();
+    m_bitmap_speed.msw_rescale();
+    m_bitmap_speed_active.msw_rescale();
+    m_switch_speed->SetImages(m_bitmap_speed, m_bitmap_speed);
+    m_ams_control->msw_rescale();
+    rescale_camera_icons();
 }
 
 void StatusPanel::msw_rescale()
@@ -3014,15 +3019,6 @@ void StatusPanel::msw_rescale()
         slice_info_list[i]->SetImages(m_bitmap_item_prediction, m_bitmap_item_cost, m_bitmap_item_print);
         slice_info_list[i]->msw_rescale();
     }
-
-    //m_bitmap_camera_img->SetBitmap(m_bitmap_camera);
-    //m_bitmap_camera_img->SetMinSize(wxSize(FromDIP(32), FromDIP(18)));
-
-    m_bitmap_timelapse_img->SetMinSize(wxSize(38, 24));
-    m_bitmap_recording_img->SetMinSize(wxSize(38, 24));
-    m_bitmap_vcamera_img->SetMinSize(wxSize(38, 24));
-    m_setting_button->SetMinSize(wxSize(38, 24));
-    m_bitmap_sdcard_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
 
     m_bpButton_xy->Rescale();
     m_tempCtrl_nozzle->SetMinSize(TEMP_CTRL_MIN_SIZE);
@@ -3062,6 +3058,8 @@ void StatusPanel::msw_rescale()
 
     m_options_btn->SetMinSize(wxSize(-1, FromDIP(26)));
     m_options_btn->Rescale();
+
+    rescale_camera_icons();
 
     Layout();
     Refresh();

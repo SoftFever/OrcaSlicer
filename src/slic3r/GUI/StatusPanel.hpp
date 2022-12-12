@@ -420,6 +420,7 @@ public:
 
     void set_hold_count(int& count);
 
+    void rescale_camera_icons();
     void on_sys_color_changed();
     void msw_rescale();
 };

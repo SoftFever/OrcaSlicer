@@ -414,7 +414,10 @@ CameraItem::CameraItem(wxWindow *parent, std::string normal, std::string hover)
 
 CameraItem::~CameraItem() {}
 
-void CameraItem::msw_rescale() {}
+void CameraItem::msw_rescale() {
+    m_bitmap_normal.msw_rescale();
+    m_bitmap_hover.msw_rescale();
+}
 
 void CameraItem::on_enter_win(wxMouseEvent &evt)
 {
