@@ -133,6 +133,7 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
     this->SetMinSize(wxSize(MIN_WIPING_DIALOG_WIDTH, -1));
 
     // BBS
+#ifdef __WINDOWS__
     StateColor calc_btn_bg(
         std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
@@ -156,7 +157,9 @@ WipingDialog::WipingDialog(wxWindow* parent, const std::vector<float>& matrix, c
     calc_btn->SetFocus();
     calc_btn->SetId(wxID_RESET);
     calc_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { m_panel_wiping->calc_flushing_volumes(); });
-
+#else
+    Button* calc_btn = nullptr;
+#endif
     m_panel_wiping = new WipingPanel(this, matrix, extruders, extruder_colours, calc_btn, extra_flush_volume, flush_multiplier);
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -329,6 +332,34 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     auto info_str = new wxStaticText(m_page_advanced, wxID_ANY, _(L("Flushing volume (mm³) for each filament pair.")), wxDefaultPosition, wxDefaultSize, 0);
     info_str->SetForegroundColour(g_text_color);
     m_sizer_advanced->Add(info_str, 0, wxEXPAND | wxLEFT, TEXT_BEG_PADDING);
+
+#ifndef __WINDOWS__
+    StateColor calc_btn_bg(
+        std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
+    );
+
+    StateColor calc_btn_bd(
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
+    );
+
+    StateColor calc_btn_text(
+        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
+    );
+
+    Button* calc_btn = new Button(this, _L("Auto-Calc"));
+    calc_btn->SetMinSize(wxSize(FromDIP(75), FromDIP(24)));
+    calc_btn->SetCornerRadius(FromDIP(12));
+    calc_btn->SetBackgroundColor(calc_btn_bg);
+    calc_btn->SetBorderColor(calc_btn_bd);
+    calc_btn->SetTextColor(calc_btn_text);
+    calc_btn->SetFocus();
+    calc_btn->SetId(wxID_RESET);
+    calc_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { m_panel_wiping->calc_flushing_volumes(); });
+
+    calc_button = calc_btn;
+#endif
     m_sizer_advanced->Add(calc_button, 0, wxALIGN_RIGHT | wxRIGHT, TEXT_BEG_PADDING);
     m_sizer_advanced->AddSpacer(BTN_SIZE.y);
 
