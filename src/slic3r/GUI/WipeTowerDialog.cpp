@@ -356,7 +356,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     calc_btn->SetTextColor(calc_btn_text);
     calc_btn->SetFocus();
     calc_btn->SetId(wxID_RESET);
-    calc_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { m_panel_wiping->calc_flushing_volumes(); });
+    calc_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { this->calc_flushing_volumes(); });
 
     calc_button = calc_btn;
 #endif
