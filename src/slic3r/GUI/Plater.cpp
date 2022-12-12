@@ -1356,15 +1356,16 @@ void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
 {
     std::vector<DynamicPrintConfig> filament_ams_list;
     for (auto ams : list) {
+        char n = ams.first.front() - '0' + 'A';
         for (auto tray : ams.second->trayList) {
             if (tray.second->setting_id.empty()) continue;
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__
                                     << boost::format(": ams %1% tray %2% id %3% color %4%") % ams.first % tray.first % tray.second->setting_id % tray.second->color;
-            char n = ams.first.front() - '0' + 'A';
+            char t = tray.first.front() - '0' + '1';
             DynamicPrintConfig ams;
             ams.set_key_value("filament_id", new ConfigOptionStrings{tray.second->setting_id});
             ams.set_key_value("filament_type", new ConfigOptionStrings{tray.second->type});
-            ams.set_key_value("tray_name", new ConfigOptionStrings{std::string(1, n) + tray.first});
+            ams.set_key_value("tray_name", new ConfigOptionStrings{std::string(1, n) + std::string(1, t)});
             ams.set_key_value("filament_colour", new ConfigOptionStrings{"#" + tray.second->color.substr(0, 6)});
             filament_ams_list.emplace_back(std::move(ams));
         }

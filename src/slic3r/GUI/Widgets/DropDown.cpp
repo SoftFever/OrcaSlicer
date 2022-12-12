@@ -179,6 +179,15 @@ void DropDown::paintNow()
     Refresh();
 }
 
+static wxSize GetBmpSize(wxBitmap & bmp)
+{
+#ifdef __APPLE__
+    return bmp.GetScaledSize();
+#else
+    return bmp.GetSize();
+#endif
+}
+
 /*
  * Here we do the actual rendering. I put it in a separate
  * method so that it can work no matter what type of DC
@@ -267,18 +276,19 @@ void DropDown::render(wxDC &dc)
         }
         if (rcContent.y > size.y) break;
         wxPoint pt   = rcContent.GetLeftTop();
-        auto &  icon = icons[i];
+        auto & icon = icons[i];
+        auto size2 = GetBmpSize(icon);
         if (iconSize.x > 0) {
             if (icon.IsOk()) {
-                pt.y += (rcContent.height - icon.GetSize().y) / 2;
+                pt.y += (rcContent.height - size2.y) / 2;
                 dc.DrawBitmap(icon, pt);
             }
             pt.x += iconSize.x + 5;
             pt.y = rcContent.y;
         } else if (icon.IsOk()) {
-            pt.y += (rcContent.height - icon.GetSize().y) / 2;
+            pt.y += (rcContent.height - size2.y) / 2;
             dc.DrawBitmap(icon, pt);
-            pt.x += icon.GetWidth() + 5;
+            pt.x += size2.x + 5;
             pt.y = rcContent.y;
         }
         auto text = texts[i];
@@ -305,7 +315,7 @@ void DropDown::messureSize()
     for (size_t i = 0; i < texts.size(); ++i) {
         wxSize size1 = text_off ? wxSize() : dc.GetMultiLineTextExtent(texts[i]);
         if (icons[i].IsOk()) {
-            wxSize size2 = icons[i].GetSize();
+            wxSize size2 = GetBmpSize(icons[i]);
             if (size2.x > iconSize.x) iconSize = size2;
             if (!align_icon) {
                 size1.x += size2.x + (text_off ? 0 : 5);
@@ -317,7 +327,7 @@ void DropDown::messureSize()
     wxSize szContent = textSize;
     szContent.x += 10;
     if (check_bitmap.bmp().IsOk()) {
-        auto szBmp = check_bitmap.bmp().GetSize();
+        auto szBmp = check_bitmap.GetBmpSize();
         szContent.x += szBmp.x + 5;
     }
     if (iconSize.x > 0) szContent.x += iconSize.x + (text_off ? 0 : 5);
