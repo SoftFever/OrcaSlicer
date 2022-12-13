@@ -533,28 +533,23 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
             AmsPanel *amspanel = m_amspanel_list[ams_index];
             amspanel->Show();
 
-
             auto it = ver_list.find(atoi(iter->first.c_str()));
             auto ams_id = std::stoi(iter->second->id);
 
+            wxString ams_text = wxString::Format("AMS%s", std::to_string(ams_id + 1));
+            ams_name = ams_text;
 
             if (it == ver_list.end()) {
                 // hide this ams
-                wxString ams_text = wxString::Format("AMS%s", std::to_string(ams_id + 1));
-                
-                ams_name          = ams_text;
                 ams_sn   = "-";
                 ams_ver  = "-";
             } else {
+                // update ams img
                 if (m_obj->upgrade_display_state == (int)MachineObject::UpgradingDisplayState::UpgradingInProgress) {
                     ams_ver = "-";
                     amspanel->m_ams_new_version_img->Hide();
                 }
                 else {
-                    // update ams img
-                    wxString ams_text = wxString::Format("AMS%s", std::to_string(ams_id + 1));
-                    ams_name = ams_text;
-
                     if (obj->new_ver_list.empty() && !obj->m_new_ver_list_exist) {
                         if (obj->upgrade_new_version
                             && obj->ams_new_version_number.compare(it->second.sw_ver) != 0) {
