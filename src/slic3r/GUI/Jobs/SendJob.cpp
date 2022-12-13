@@ -279,7 +279,7 @@ void SendJob::process()
 
     if (result < 0) {
         if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
-            msg_text = upload_failed_str;
+            msg_text = upload_login_failed_str;
         } if (result == BAMBU_NETWORK_ERR_FILE_NOT_EXIST) {
             msg_text = file_is_not_exists_str;
         } else if (result == BAMBU_NETWORK_ERR_FILE_OVER_SIZE) {
@@ -299,8 +299,17 @@ void SendJob::process()
         } else {
             update_status(curr_percent, failed_in_cloud_service_str);
         }
-        if (!error_text.IsEmpty())
-            msg_text += wxString::Format("[%s]", error_text);
+
+        if (!error_text.IsEmpty()) {
+            if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
+                msg_text += ". ";
+                msg_text += _L("Please log out and login to the printer again.");
+            }
+            else {
+                msg_text += wxString::Format("[%s]", error_text);
+            }
+        }
+            
         update_status(curr_percent, msg_text);
         BOOST_LOG_TRIVIAL(error) << "send_job: failed, result = " << result;
     } else {
