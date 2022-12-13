@@ -2064,7 +2064,7 @@ bool GUI_App::on_init_inner()
             }
         }
         for (auto d : dialogStack)
-            d->EndModal(wxID_CANCEL);
+            d->EndModal(wxID_ABORT);
     });
 
     std::map<std::string, std::string> extra_headers = get_extra_header();

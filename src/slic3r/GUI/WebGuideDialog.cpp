@@ -827,7 +827,8 @@ bool GuideFrame::run()
     app.preset_bundle->export_selections(*app.app_config);
 
     BOOST_LOG_TRIVIAL(info) << "GuideFrame before ShowModal";
-    if (this->ShowModal() == wxID_OK) {
+    int result = this->ShowModal();
+    if (result == wxID_OK) {
         bool apply_keeped_changes = false;
         BOOST_LOG_TRIVIAL(info) << "GuideFrame returned ok";
         if (! this->apply_config(app.app_config, app.preset_bundle, app.preset_updater, apply_keeped_changes))
@@ -843,7 +844,7 @@ bool GuideFrame::run()
         BOOST_LOG_TRIVIAL(info) << "GuideFrame applied";
         this->Close();
         return true;
-    } else {
+    } else if (result == wxID_CANCEL) {
         BOOST_LOG_TRIVIAL(info) << "GuideFrame cancelled";
         if (app.preset_bundle->printers.only_default_printers()) {
             //we install the default here
@@ -861,6 +862,8 @@ bool GuideFrame::run()
         else
             return false;
     }
+    else
+        return false;
 }
 
 int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, std::string filepath, std::string &sVendor, std::string &sType)
