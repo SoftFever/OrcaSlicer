@@ -345,7 +345,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     );
 
     StateColor calc_btn_text(
-        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
+        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
     );
 
     Button* calc_btn = new Button(this, _L("Auto-Calc"));
@@ -353,6 +353,7 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
     calc_btn->SetCornerRadius(FromDIP(12));
     calc_btn->SetBackgroundColor(calc_btn_bg);
     calc_btn->SetBorderColor(calc_btn_bd);
+    calc_btn->SetBackgroundColour(*wxWHITE);
     calc_btn->SetTextColor(calc_btn_text);
     calc_btn->SetFocus();
     calc_btn->SetId(wxID_RESET);
