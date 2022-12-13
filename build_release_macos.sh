@@ -1,7 +1,7 @@
 #!/bin/sh
 
-WD=$(pwd)
-cd deps
+WD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd $WD/deps
 mkdir -p build
 cd build
 DEPS=$PWD/BambuStudio_dep
