@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-12 11:13+0800\n"
-"PO-Revision-Date: 2022-12-05 19:51+0800\n"
+"POT-Creation-Date: 2022-12-13 20:02+0800\n"
+"PO-Revision-Date: 2022-12-13 20:18+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -507,8 +507,8 @@ msgstr "加载模式视图"
 msgid "Choose one file (3mf):"
 msgstr "选择一个文件（3mf）："
 
-msgid "Choose one or more files (3mf/step/stl/obj/amf):"
-msgstr "选择一个或多个文件（3mf/step/stl/obj/amf）："
+msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
+msgstr "选择一个或多个文件（3mf/step/stl/svg/obj/amf）："
 
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr "选择一个文件（gcode/.gco/.g/.ngc/ngc）："
@@ -925,10 +925,10 @@ msgid "Click the icon to toggle printable property of the object"
 msgstr "点击此图标可切换这个对象的可打印属性"
 
 msgid "Click the icon to edit support painting of the object"
-msgstr "点击这个图标可编辑这个对象的支撑绘制"
+msgstr "点击此图标可编辑这个对象的支撑绘制"
 
 msgid "Click the icon to edit color painting of the object"
-msgstr "点击这个图标可编辑这个对象的颜色绘制"
+msgstr "点击此图标可编辑这个对象的颜色绘制"
 
 msgid "Loading file"
 msgstr "载入文件中"
@@ -1355,6 +1355,9 @@ msgstr "成功发送。即将关闭当前页面（%s秒）"
 msgid "An SD card needs to be inserted before sending to printer."
 msgstr "需要插入SD卡后方可发送到打印机。"
 
+msgid "Please log out and login to the printer again."
+msgstr "请先退出登录然后再重新登录打印机。"
+
 msgid "Downloading"
 msgstr "下载中"
 
@@ -1364,8 +1367,8 @@ msgstr "下载失败"
 msgid "Cancelled"
 msgstr "已取消"
 
-msgid "Finish"
-msgstr "完成"
+msgid "Install successfully."
+msgstr "安装成功。"
 
 msgid "Installing"
 msgstr "安装中"
@@ -1959,7 +1962,7 @@ msgid "MC"
 msgstr ""
 
 msgid "MainBoard"
-msgstr ""
+msgstr "主板"
 
 msgid "AMS"
 msgstr "AMS"
@@ -2470,7 +2473,7 @@ msgid "No"
 msgstr "否"
 
 msgid " will be closed before creating a new model. Do you want to continue?"
-msgstr ""
+msgstr "会被关闭以创建新模型。是否继续？"
 
 msgid "Slice"
 msgstr "切片"
@@ -2601,8 +2604,8 @@ msgstr "项目另存为"
 msgid "Save current project as"
 msgstr "项目另存为"
 
-msgid "Import 3MF/STL/STEP/OBJ/AMF"
-msgstr "导入 3MF/STL/STEP/OBJ/AMF"
+msgid "Import 3MF/STL/STEP/SVG/OBJ/AMF"
+msgstr "导入 3MF/STL/STEP/SVG/OBJ/AMF"
 
 msgid "Load a model"
 msgstr "加载模型"
@@ -3007,9 +3010,6 @@ msgstr "摄像机"
 msgid "SD Card"
 msgstr "SD卡"
 
-msgid "Virtual Camera"
-msgstr "虚拟摄像头"
-
 msgid "Camera Setting"
 msgstr "相机设置"
 
@@ -3040,11 +3040,11 @@ msgstr "100%"
 msgid "Lamp"
 msgstr "LED灯"
 
-msgid "Part Cooling"
-msgstr "部件冷却"
+msgid "Aux"
+msgstr "辅助"
 
-msgid "Aux Cooling"
-msgstr "辅助冷却"
+msgid "Cham"
+msgstr "机箱"
 
 msgid "Bed"
 msgstr "热床"
@@ -3056,7 +3056,7 @@ msgid "Debug Info"
 msgstr "调试信息"
 
 msgid "No SD Card"
-msgstr ""
+msgstr "无SD卡"
 
 msgid "SD Card Abnormal"
 msgstr "SD卡异常"
@@ -4235,6 +4235,9 @@ msgid ""
 "updated."
 msgstr "需要更新打印机固件后，才能将打印任务发送到打印机"
 
+msgid "Cannot send the print job for empty plate"
+msgstr "无法为空盘发送打印任务"
+
 msgid "Errors"
 msgstr "错误"
 
@@ -4282,7 +4285,7 @@ msgid "The printer does not support sending to printer SD card."
 msgstr "该打印机不支持发送到打印机SD卡。"
 
 msgid "Same as Global Bed Type"
-msgstr ""
+msgstr "跟随全局热床类型"
 
 msgid "Cool Plate"
 msgstr "低温打印热床"
@@ -4794,11 +4797,11 @@ msgstr "没有可用的更新。"
 msgid "The configuration is up to date."
 msgstr "当前配置已经是最新版本。"
 
-msgid "Auto-Calc"
-msgstr "自动计算"
-
 msgid "Flushing volumes for filament change"
 msgstr "耗材丝更换时的冲刷体积"
+
+msgid "Auto-Calc"
+msgstr "自动计算"
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "在两个耗材丝间切换所需的冲刷量（mm³）"
@@ -5133,7 +5136,7 @@ msgstr ""
 "你也可以稍后在打印机上升级，或者下一次启动studio再升级。"
 
 msgid "Extension Board"
-msgstr ""
+msgstr "扩展板"
 
 msgid "Saving objects into the 3mf failed."
 msgstr "保存对象到3mf失败。"
@@ -5916,13 +5919,15 @@ msgid "Internal bridge support thickness"
 msgstr "内部桥接支撑厚度"
 
 msgid ""
-"When sparse infill density is low, the internal solid infill or internal "
-"bridge may have no archor at the end of line. This cause falling and bad "
-"quality when printing internal solid infill. When enable this feature, loop "
-"paths will be added to the sparse fill of the lower layers for specific "
-"thickness, so that better archor can be provided for internal bridge. 0 "
-"means disable this feature"
+"If enabled, Studio will generate support loops under the contours of "
+"internal bridges.These support loops could prevent internal bridges from "
+"extruding over the air and improve the top surface quality, especially when "
+"the sparse infill density is low.This value determines the thickness of the "
+"support loops. 0 means disable this feature"
 msgstr ""
+"如果开启，Studio会沿着内部桥接的边沿在其下方生成支撑轮廓。这些支撑轮廓可以防"
+"止悬空地打印内部桥接并提高顶面质量，特别是在填充密度较低的情况下。这个设置用"
+"于调整支撑轮廓的厚度，0表示关闭此特性。"
 
 msgid "Top surface pattern"
 msgstr "顶面图案"
@@ -6943,7 +6948,7 @@ msgstr "支撑生成于模型表面时，支撑面底部和模型之间的z间�
 msgid ""
 "Filament to print support and raft. \"Default\" means no specific filament "
 "for support and current filament is used"
-msgstr ""
+msgstr "打印支撑和筏层的耗材丝。“默认”代表不指定特定的耗材丝，并使用当前耗材"
 
 msgid "Line width of support"
 msgstr "支撑的线宽"
@@ -6958,7 +6963,7 @@ msgstr "使用圈形走线覆盖顶部接触面。默认关闭。"
 msgid ""
 "Filament to print support interface. \"Default\" means no specific filament "
 "for support interface and current filament is used"
-msgstr ""
+msgstr "打印支撑接触面的耗材丝。“默认”代表不指定特定的耗材丝，并使用当前耗材"
 
 msgid "Top interface layers"
 msgstr "顶部接触面层数"
@@ -7341,10 +7346,10 @@ msgid "Export project as 3MF."
 msgstr "导出项目为3MF。"
 
 msgid "Export slicing data"
-msgstr ""
+msgstr "导出切片数据"
 
 msgid "Export slicing data to a folder."
-msgstr ""
+msgstr "导出切片数据到目录"
 
 msgid "Load slicing data"
 msgstr ""
@@ -7744,6 +7749,47 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid ""
+#~ "When sparse infill density is low, the internal solid infill or internal "
+#~ "bridge may have no archor at the end of line. This cause falling and bad "
+#~ "quality when printing internal solid infill. When enable this feature, "
+#~ "loop paths will be added to the sparse fill of the lower layers for "
+#~ "specific thickness, so that better archor can be provided for internal "
+#~ "bridge. 0 means disable this feature"
+#~ msgstr ""
+#~ "当稀疏填充密度很低时，内部实心填充或内部桥接可能在走线转角处没有铆接。这导"
+#~ "致内部实心填充打印失败或者打印质量差。开启这个设置时，将会在低层的稀疏填充"
+#~ "中打印指定厚度的环形走线，为内部桥接提供更好的铆接。0值代表关闭该功能。"
+
+#~ msgid ""
+#~ "If enabled, Studio will generate support loops under the contours of "
+#~ "internal bridges.These support loops could prevent internal bridges from "
+#~ "extruding over the air and improve the top surface quality, expecially "
+#~ "with a low infill density.This value determins the thickness of the "
+#~ "support loops."
+#~ msgstr ""
+#~ "如果开启，Studio沿着内部桥接的边缘在其下方生成支撑轮廓。这些支撑轮廓可以防"
+#~ "止悬空打印内部桥接并提高顶面质量，特别是在填充密度较低的情况下。这个设置用"
+#~ "于调整支撑轮廓的厚度。"
+
+#~ msgid "Choose one or more files (3mf/step/stl/obj/amf):"
+#~ msgstr "选择一个或多个文件（3mf/step/stl/obj/amf）："
+
+#~ msgid "Finish"
+#~ msgstr "完成"
+
+#~ msgid "Import 3MF/STL/STEP/OBJ/AMF"
+#~ msgstr "导入 3MF/STL/STEP/OBJ/AMF"
+
+#~ msgid "Virtual Camera"
+#~ msgstr "虚拟摄像头"
+
+#~ msgid "Part Cooling"
+#~ msgstr "部件冷却"
+
+#~ msgid "Aux Cooling"
+#~ msgstr "辅助冷却"
 
 #~ msgid "Same as global bed type"
 #~ msgstr "跟随全局热床类型设置"

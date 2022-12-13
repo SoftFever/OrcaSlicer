@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-12 11:13+0800\n"
+"POT-Creation-Date: 2022-12-13 20:02+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -508,8 +508,8 @@ msgstr "Loading a mode view"
 msgid "Choose one file (3mf):"
 msgstr "Choose one file (3mf):"
 
-msgid "Choose one or more files (3mf/step/stl/obj/amf):"
-msgstr "Choose one or more files (3mf/step/stl/obj/amf):"
+msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
+msgstr ""
 
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr "Choose one file (.gcode/.gco/.g/.ngc/ngc):"
@@ -1380,6 +1380,9 @@ msgstr ""
 msgid "An SD card needs to be inserted before sending to printer."
 msgstr ""
 
+msgid "Please log out and login to the printer again."
+msgstr ""
+
 msgid "Downloading"
 msgstr ""
 
@@ -1389,7 +1392,7 @@ msgstr ""
 msgid "Cancelled"
 msgstr ""
 
-msgid "Finish"
+msgid "Install successfully."
 msgstr ""
 
 msgid "Installing"
@@ -2634,8 +2637,8 @@ msgstr "Save Project as"
 msgid "Save current project as"
 msgstr "Save current project as"
 
-msgid "Import 3MF/STL/STEP/OBJ/AMF"
-msgstr "Import 3MF/STL/STEP/OBJ/AMF"
+msgid "Import 3MF/STL/STEP/SVG/OBJ/AMF"
+msgstr ""
 
 msgid "Load a model"
 msgstr "Load a model"
@@ -3038,9 +3041,6 @@ msgstr ""
 msgid "SD Card"
 msgstr ""
 
-msgid "Virtual Camera"
-msgstr ""
-
 msgid "Camera Setting"
 msgstr ""
 
@@ -3071,11 +3071,11 @@ msgstr "100%"
 msgid "Lamp"
 msgstr "Lamp"
 
-msgid "Part Cooling"
-msgstr "Part Cooling"
+msgid "Aux"
+msgstr ""
 
-msgid "Aux Cooling"
-msgstr "Aux Cooling"
+msgid "Cham"
+msgstr ""
 
 msgid "Bed"
 msgstr "Bed"
@@ -4265,6 +4265,9 @@ msgid ""
 "updated."
 msgstr ""
 
+msgid "Cannot send the print job for empty plate"
+msgstr ""
+
 msgid "Errors"
 msgstr ""
 
@@ -4840,11 +4843,11 @@ msgstr "No updates available."
 msgid "The configuration is up to date."
 msgstr "The configuration is up to date."
 
-msgid "Auto-Calc"
-msgstr "Auto-Calc"
-
 msgid "Flushing volumes for filament change"
 msgstr "Flushing volumes for filament change"
+
+msgid "Auto-Calc"
+msgstr "Auto-Calc"
 
 msgid "Flushing volume (mm³) for each filament pair."
 msgstr "Flushing volume (mm³) for each filament pair."
@@ -6010,12 +6013,11 @@ msgid "Internal bridge support thickness"
 msgstr ""
 
 msgid ""
-"When sparse infill density is low, the internal solid infill or internal "
-"bridge may have no archor at the end of line. This cause falling and bad "
-"quality when printing internal solid infill. When enable this feature, loop "
-"paths will be added to the sparse fill of the lower layers for specific "
-"thickness, so that better archor can be provided for internal bridge. 0 "
-"means disable this feature"
+"If enabled, Studio will generate support loops under the contours of "
+"internal bridges.These support loops could prevent internal bridges from "
+"extruding over the air and improve the top surface quality, especially when "
+"the sparse infill density is low.This value determines the thickness of the "
+"support loops. 0 means disable this feature"
 msgstr ""
 
 msgid "Top surface pattern"
@@ -7855,6 +7857,18 @@ msgid ""
 "Did you know that you can use more wall loops and higher sparse infill "
 "density to improve the strength of the model?"
 msgstr ""
+
+#~ msgid "Choose one or more files (3mf/step/stl/obj/amf):"
+#~ msgstr "Choose one or more files (3mf/step/stl/obj/amf):"
+
+#~ msgid "Import 3MF/STL/STEP/OBJ/AMF"
+#~ msgstr "Import 3MF/STL/STEP/OBJ/AMF"
+
+#~ msgid "Part Cooling"
+#~ msgstr "Part Cooling"
+
+#~ msgid "Aux Cooling"
+#~ msgstr "Aux Cooling"
 
 #~ msgid ""
 #~ "Filament to print support and skirt. 0 means no specific filament for "

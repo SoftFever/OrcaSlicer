@@ -935,10 +935,9 @@ void PrintConfigDef::init_fff_params()
     def = this->add("internal_bridge_support_thickness", coFloat);
     def->label = L("Internal bridge support thickness");
     def->category = L("Strength");
-    def->tooltip = L("When sparse infill density is low, the internal solid infill or internal bridge may have no archor at the end of line. "
-                     "This cause falling and bad quality when printing internal solid infill. "
-                     "When enable this feature, loop paths will be added to the sparse fill of the lower layers for specific thickness, so that better archor can be provided for internal bridge. "
-                     "0 means disable this feature");
+    def->tooltip = L("If enabled, Studio will generate support loops under the contours of internal bridges."
+                     "These support loops could prevent internal bridges from extruding over the air and improve the top surface quality, especially when the sparse infill density is low."
+                     "This value determines the thickness of the support loops. 0 means disable this feature");
     def->sidetext = L("mm");
     def->min = 0;
     def->max = 2;
