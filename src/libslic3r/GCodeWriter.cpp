@@ -224,6 +224,8 @@ std::string GCodeWriter::set_pressure_advance(double pa) const
     else{
         if (FLAVOR_IS(gcfKlipper))
             gcode << "SET_PRESSURE_ADVANCE ADVANCE=" << std::setprecision(4) << pa << "; Override pressure advance value\n";
+        else if(FLAVOR_IS(gcfRepRapFirmware))
+            gcode << ("M572 D0 S") << std::setprecision(4) << pa << "; Override pressure advance value\n";
         else
             gcode << "M900 K" <<std::setprecision(4)<< pa << "; Override pressure advance value\n";
     }
