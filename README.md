@@ -7,6 +7,15 @@ You can download it here: https://github.com/SoftFever/BambuStudio-SoftFever/rel
 
 ## BambuStudio SoftFever change notes:
 
+### [V1.3.4 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.3.4):
+1. Add a new printer order - sandwich mode:
+This new order is similar to the outer-wall-first mode in achieving the best dimensional accuracy. This new approach however avoids printing outer walls right after a long travel, which may cause artifacts on the surface in many cases.
+sandwich-mode1
+sandwich-mode2
+2. Support RRF firmware(experimental)
+3. Fix a compatibility issue for gcode-preview
+4. Merge upstream changes
+
 ### [V1.3.3 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.3.3):
 1. Improve top surface quality. 
 	Fix a bug that internal solid infills didn't use monotonic when top surface is using monotonic lines
@@ -125,7 +134,8 @@ gcode:
 
 ```
 
-It's also recommended to add followinging dummy macros to make Klipper happy
+~~ It's also recommended to add followinging dummy macros to make Klipper happy ~~
+Update: latest Klipper has supported G17 command. Don't add following maroc if you are running on latest Klipper.
 ```
 # Make BambuStudio happy
 [gcode_macro G17]
