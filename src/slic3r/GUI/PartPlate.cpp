@@ -4011,7 +4011,9 @@ bool PartPlateList::is_all_slice_results_ready_for_print() const
 {
 	for (unsigned int i = 0; i < (unsigned int)m_plate_list.size(); ++i)
 	{
-		if (!m_plate_list[i]->is_slice_result_ready_for_print())
+		if (!m_plate_list[i]->is_slice_result_ready_for_print()
+			&& m_plate_list[i]->has_printable_instances()
+			)
 			return false;
 	}
 	return true;
