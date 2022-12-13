@@ -100,7 +100,7 @@ void UpgradeNetworkJob::process()
         name, package_name,
         [this](int state, int percent, bool &cancel) {
         if (state == InstallStatusInstallCompleted) {
-            update_status(percent, _L("Finish"));
+            update_status(percent, _L("Install successfully."));
         } else {
             update_status(percent, _L("Installing"));
         }
