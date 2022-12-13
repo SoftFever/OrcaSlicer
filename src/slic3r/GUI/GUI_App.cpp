@@ -2598,14 +2598,14 @@ __retry:
         if (m_agent) {
             m_agent->set_config_dir(data_directory);
         }
-        //BBS set cert dir
-        if (m_agent)
-            m_agent->set_cert_file(resources_dir() + "/cert", "slicer_base64.cer");
-
         //BBS start http log
         if (m_agent) {
             m_agent->init_log();
         }
+
+        //BBS set cert dir
+        if (m_agent)
+            m_agent->set_cert_file(resources_dir() + "/cert", "slicer_base64.cer");
 
         init_http_extra_header();
 
