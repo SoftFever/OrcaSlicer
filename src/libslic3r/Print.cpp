@@ -761,14 +761,14 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
         convex_hulls_temp.push_back(convex_hull);
         if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
             if (warning) {
-                warning->string = inst->model_instance->get_object()->name + L(" is too close to others, there may be collisions when printing.\n");
+                warning->string = inst->model_instance->get_object()->name + L(" is too close to others, there may be collisions when printing.") + "\n";
                 warning->object = inst->model_instance->get_object();
             }
         }
         if (!intersection(exclude_polys, convex_hull).empty()) {
-            return {inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.\n"), inst->model_instance->get_object()};
+            return {inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.") + "\n", inst->model_instance->get_object()};
             /*if (warning) {
-                warning->string = inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.\n");
+                warning->string = inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.") + "\n";
                 warning->object = inst->model_instance->get_object();
             }*/
         }
@@ -1135,7 +1135,8 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 }
 
                 StringObjectException except;
-                except.string = format(L("Plate %d: %s does not support filament %s\n"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
+                except.string = format(L("Plate %d: %s does not support filament %s"), this->get_plate_index() + 1, L(bed_type_name), extruder_id + 1);
+                except.string += "\n";
                 except.type   = STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE;
                 except.params.push_back(std::to_string(this->get_plate_index() + 1));
                 except.params.push_back(L(bed_type_name));

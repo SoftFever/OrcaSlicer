@@ -1947,13 +1947,13 @@ void SelectMachineDialog::show_errors(wxString &info)
 void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 {
     std::vector<wxString> confirm_text;
-    confirm_text.push_back(_L("Please check the following infomation and click Confirm to continue sending print:\n"));
+    confirm_text.push_back(_L("Please check the following infomation and click Confirm to continue sending print:") + "\n");
 
 #if 0
     //Check Printer Model Id
     bool is_same_printer_type = is_same_printer_model();
     if (!is_same_printer_type)
-        confirm_text.push_back(_L("The printer type used to generate G-code is not the same type as the currently selected physical printer. It is recommend to re-slice by selecting the same printer type.\n"));
+        confirm_text.push_back(_L("The printer type used to generate G-code is not the same type as the currently selected physical printer. It is recommend to re-slice by selecting the same printer type.") + "\n");
 #else
     bool is_same_printer_type = true;
 #endif

@@ -3068,8 +3068,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         }
                     } else if (load_config && (file_version > app_version)) {
                         if (config_substitutions.unrecogized_keys.size() > 0) {
-                            wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Found following keys unrecognized:\n"),
+                            wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Found following keys unrecognized:"),
                                                              file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
+                            text += "\n";
                             bool     first = true;
                             // std::string context = into_u8(text);
                             wxString context = text;
@@ -3088,8 +3089,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         else {
                             //if the minor version is not matched
                             if (file_version.min() != app_version.min()) {
-                                wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your software.\n"),
+                                wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your software."),
                                                  file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
+                                text += "\n";
                                 show_info(q, text, _L("Newer 3mf version"));
                             }
                         }
@@ -11157,7 +11159,8 @@ void Plater::post_process_string_object_exception(StringObjectException &err)
                         break;
                     }
                 }
-                err.string = format(L("Plate %d: %s does not support filament %s (%s).\n"), err.params[0], err.params[1], err.params[2], filament_name);
+                err.string = format(_L("Plate %d: %s does not support filament %s (%s)."), err.params[0], err.params[1], err.params[2], filament_name);
+                err.string += "\n";
             }
         } catch (...) {
             ;
