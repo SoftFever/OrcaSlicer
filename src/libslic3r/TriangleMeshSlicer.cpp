@@ -399,7 +399,7 @@ struct SlabLines {
     std::vector<IntersectionLines>  at_slice;
     // Projections of triangle set boundary lines into layer below (for projection from the top)
     // or into layer above (for projection from the bottom).
-    // In both cases the intersection liens are CCW oriented.
+    // In both cases the intersection lines are CCW oriented.
     std::vector<IntersectionLines>  between_slices;
 };
 

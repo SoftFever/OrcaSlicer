@@ -3430,7 +3430,7 @@ msgstr "是否保存修改到“%1%”？"
 msgid ""
 "Successfully unmounted. The device %s(%s) can now be safely removed from the "
 "computer."
-msgstr "卸载成功。设备%s(%s)现在可以安全地从电脑移除。"
+msgstr "卸载成功。设备%s(%s)现在可能安全地从电脑移除。"
 
 #, c-format, boost-format
 msgid "Ejecting of device %s(%s) has failed."
@@ -3563,9 +3563,6 @@ msgid "The selected object couldn't be split."
 msgstr "选中的模型不可分裂。"
 
 msgid "Another export job is running."
-msgstr "有其他导出任务正在进行中。"
-
-msgid "Another export job is currently running."
 msgstr "有其他导出任务正在进行中。"
 
 msgid "Select a new file"

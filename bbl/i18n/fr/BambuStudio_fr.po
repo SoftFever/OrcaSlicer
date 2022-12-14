@@ -6201,14 +6201,6 @@ msgid ""
 "object printing."
 msgstr ""
 
-msgid "Max Radius"
-msgstr ""
-
-msgid ""
-"Max clearance radius around extruder. Used for collision avoidance in by-"
-"object printing."
-msgstr ""
-
 msgid "Extruder Color"
 msgstr "Couleur de l'extrudeuse"
 

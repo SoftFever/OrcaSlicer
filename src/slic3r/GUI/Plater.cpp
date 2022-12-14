@@ -7651,13 +7651,13 @@ void Plater::import_model_id(const std::string& download_info)
             wxString name = filename.substr(0, filename.length() - extension.length());
             filename = wxString::Format("%s(%d)%s", name, vecFiles.size() + 1, extension).ToStdString();
         }
-       
+
 
         msg = _L("downloading project ...");
 
         //target_path = wxStandardPaths::Get().GetTempDir().utf8_str().data();
 
-       
+
         //target_path = wxGetApp().get_local_models_path().c_str();
         boost::uuids::uuid uuid = boost::uuids::random_generator()();
         std::string unique = to_string(uuid).substr(0, 6);

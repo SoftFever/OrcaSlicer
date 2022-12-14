@@ -4047,19 +4047,18 @@ void GCodeProcessor::update_slice_warnings()
         warning.msg         = BED_TEMP_TOO_HIGH_THAN_FILAMENT;
         warning.error_code  = "1000C001";
         m_result.warnings.push_back(warning);
+    }
 
     //bbs:HRC checker
+    warning.params.clear();
+    warning.level=1;
     if (m_result.nozzle_hrc!=0) {
         for (size_t i = 0; i < used_extruders.size(); i++) {
             int HRC=0;
             if (used_extruders[i] < m_result.required_nozzle_HRC.size())
                 HRC = m_result.required_nozzle_HRC[used_extruders[i]];
-            if (HRC != 0 && (m_result.nozzle_hrc<HRC)) {
-                GCodeProcessorResult::SliceWarning warning;
-                warning.level = 1;
-                warning.msg   = THE_ACTUAL_NOZZLE_HRC_SMALLER_THAN_THE_REQUAIRED_NOZZLE_HRC;
-                m_result.warnings.emplace_back(std::move(warning));
-            }
+            if (HRC != 0 && (m_result.nozzle_hrc<HRC))
+                warning.params.push_back(std::to_string(used_extruders[i]));
         }
     }
 

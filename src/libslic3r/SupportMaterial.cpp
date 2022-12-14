@@ -1514,7 +1514,7 @@ static inline Polygons detect_overhangs(
     const bool bridge_no_support = object_config.bridge_no_support.value;
     const coordf_t xy_expansion = scale_(object_config.support_expansion.value);
 
-    if (layer_id == 0) 
+    if (layer_id == 0)
     {
         // Don't fill in the holes. The user may apply a higher raft_expansion if one wants a better 1st layer adhesion.
         overhang_polygons = to_polygons(layer.lslices);

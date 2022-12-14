@@ -475,7 +475,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 
 		LayerRegion* layerm = this->m_regions[surface_fill.region_id];
 		for (ExPolygon& expoly : surface_fill.expolygons) {
-			f->no_overlap_expolygons = intersection_ex(surface_fill.no_overlap_expolygons, ExPolygons() = {expoly});
+            f->no_overlap_expolygons = intersection_ex(surface_fill.no_overlap_expolygons, ExPolygons() = {expoly});
 			// Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.
 			f->spacing = surface_fill.params.spacing;
 			surface_fill.surface.expolygon = std::move(expoly);

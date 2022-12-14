@@ -707,7 +707,7 @@ void TreeSupport::detect_object_overhangs()
     if (m_object->tree_support_layer_count() >= m_object->layer_count())
         return;
 
-    // Create Tree Support Layers
+    // Clear and create Tree Support Layers
     m_object->clear_tree_support_layers();
     m_object->clear_tree_support_preview_cache();
 
@@ -720,11 +720,11 @@ void TreeSupport::detect_object_overhangs()
     const coordf_t extrusion_width = config.line_width.value;
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     const coordf_t max_bridge_length = scale_(config.max_bridge_length.value);
-    const bool bridge_no_support = max_bridge_length > 0;// config.bridge_no_support.value;
+    const bool bridge_no_support = max_bridge_length > 0;
     const bool support_critical_regions_only = config.support_critical_regions_only.value;
     const int enforce_support_layers = config.enforce_support_layers.value;
-    const double area_thresh_well_supported = SQ(scale_(6));  // min: 6x6=36mm^2
-    const double length_thresh_well_supported = scale_(6);  // min: 6mm
+    const double area_thresh_well_supported = SQ(scale_(6));
+    const double length_thresh_well_supported = scale_(6);
     static const double sharp_tail_max_support_height = 8.f;
     // a region is considered well supported if the number of layers below it exceeds this threshold
     const int thresh_layers_below = 10 / config.layer_height;
@@ -825,15 +825,14 @@ void TreeSupport::detect_object_overhangs()
     if (std::set<SupportType>{stTreeAuto, stHybridAuto, stTree}.count(stype))// == stTreeAuto || stype == stHybridAuto || stype == stTree)
     {
         double threshold_rad = (config.support_threshold_angle.value < EPSILON ? 30 : config.support_threshold_angle.value+1) * M_PI / 180.;
-        ExPolygons regions_well_supported; // regions on buildplate or well supported
-        std::map<ExPolygon, int, ExPolygonComp> region_layers_below;  // regions and the number of layers below
-        ExPolygons lower_overhang_dilated;  // for small overhang
-
-        for (size_t layer_nr = 0; layer_nr < m_object->layer_count(); layer_nr++)
-        {
+        ExPolygons regions_well_supported;
+        std::map<ExPolygon, int, ExPolygonComp> region_layers_below;
+        ExPolygons lower_overhang_dilated;
+        
+        for (size_t layer_nr = 0; layer_nr < m_object->layer_count(); layer_nr++){
             if (m_object->print()->canceled())
                 break;
-
+            
             if (!is_auto && layer_nr > enforce_support_layers)
                 continue;
 
@@ -875,7 +874,7 @@ void TreeSupport::detect_object_overhangs()
             // normal overhang
             ExPolygons lower_layer_offseted = offset_ex(lower_polys, support_offset_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS);
             ExPolygons overhang_areas = std::move(diff_ex(curr_polys, lower_layer_offseted));
-            // overhang_areas = std::move(offset2_ex(overhang_areas, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
+
             overhang_areas.erase(std::remove_if(overhang_areas.begin(), overhang_areas.end(),
                                                 [extrusion_width_scaled](ExPolygon &area) { return offset_ex(area, -0.1 * extrusion_width_scaled).empty(); }),
                                     overhang_areas.end());
@@ -962,7 +961,7 @@ void TreeSupport::detect_object_overhangs()
 
                         // 2.4 if the area grows fast than threshold, it get connected to other part or
                         // it has a sharp slop and will be auto supported.
-                        ExPolygons new_overhang_expolys = diff_ex({ expoly }, lower_layer_sharptails);
+                        ExPolygons new_overhang_expolys = diff_ex({expoly}, lower_layer_sharptails);
                         if (!offset_ex(new_overhang_expolys, -5.0 * extrusion_width_scaled).empty()) {
                             is_sharp_tail = false;
                             break;
@@ -1133,7 +1132,6 @@ void TreeSupport::detect_object_overhangs()
                 // if (erode1.empty() && !inter_with_others.empty())
                 //    blockers[layer_nr].push_back(p_overhang->contour);
             }
-            
         }
     }
 
@@ -1162,12 +1160,13 @@ void TreeSupport::detect_object_overhangs()
         for (auto &area : ts_layer->overhang_areas) {
             ts_layer->overhang_types.emplace(&area, TreeSupportLayer::Detected);
         }
-
+        // enforcers
         if (layer_nr < enforcers.size()) {
             Polygons& enforcer = enforcers[layer_nr];
             // coconut: enforcer can't do offset2_ex, otherwise faces with angle near 90 degrees can't have enforcers, which
             // is not good. For example: tails of animals needs extra support except the lowest tip.
             //enforcer = std::move(offset2_ex(enforcer, -0.1 * extrusion_width_scaled, 0.1 * extrusion_width_scaled));
+            enforcer = offset(enforcer, 0.1 * extrusion_width_scaled);
             for (const Polygon& poly : enforcer) {
                 ts_layer->overhang_areas.emplace_back(poly);
                 ts_layer->overhang_types.emplace(&ts_layer->overhang_areas.back(), TreeSupportLayer::Enforced);
@@ -1869,7 +1868,7 @@ void TreeSupport::generate_support_areas()
     if (!tree_support_enable)
         return;
 
-    std::vector<std::vector<Node*>> contact_nodes(m_object->layers().size()); //Generate empty layers to store the points in.
+    std::vector<std::vector<Node*>> contact_nodes(m_object->layers().size());
 
     profiler.stage_start(STAGE_total);
 
@@ -2058,10 +2057,10 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
                     const Node& node = *p_node;
                     ExPolygon area;
-                    // 直接从overhang多边形生成，如果：
+                    // 直接从overhang多边形生成，如果�?
                     // 1) 是混合支撑里的普通部分，
-                    // 2) 启用了顶部接触层，
-                    // 3) 是顶部空隙
+                    // 2) 启用了顶部接触层�?
+                    // 3) 是顶部空�?
                     if (node.type == ePolygon || (top_interface_layers>0 &&node.support_roof_layers_below > 0) || node.distance_to_top<0) {
                         if (node.overhang->contour.size() > 100 || node.overhang->holes.size()>1)
                             area = *node.overhang;
