@@ -292,6 +292,8 @@ public:
     //whether it is empty
     bool empty() { return obj_to_instance_set.empty(); }
 
+    int printable_instance_size();
+
     //whether it is has printable instances
     bool has_printable_instances();
 

@@ -1729,6 +1729,26 @@ void PartPlate::update_object_index(int obj_idx_removed, int obj_idx_max)
 
 }
 
+int PartPlate::printable_instance_size()
+{
+    int size = 0;
+    for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it) {
+        int obj_id      = it->first;
+        int instance_id = it->second;
+
+        if (obj_id >= m_model->objects.size())
+			continue;
+
+        ModelObject *  object   = m_model->objects[obj_id];
+        ModelInstance *instance = object->instances[instance_id];
+
+        if ((instance->printable) && (instance_outside_set.find(std::pair(obj_id, instance_id)) == instance_outside_set.end())) {
+            size++;
+        }
+    }
+    return size;
+}
+
 //whether it is has printable instances
 bool PartPlate::has_printable_instances()
 {
