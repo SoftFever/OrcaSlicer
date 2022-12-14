@@ -140,8 +140,10 @@ void MediaPlayCtrl::Play()
     m_button_play->SetIcon("media_stop");
     SetStatus(_L("Initializing..."));
 
+    NetworkAgent *agent = wxGetApp().getAgent();
+    std::string  agent_version = agent ? agent->get_version() : "";
     if (!m_lan_ip.empty() && (!m_lan_mode || !m_lan_passwd.empty())) {
-        m_url        = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
+        m_url        = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd + "&device=" + m_machine + "&version=" + agent_version;
         m_last_state = MEDIASTATE_LOADING;
         SetStatus(_L("Loading..."));
         if (wxGetApp().app_config->get("dump_video") == "true") {
@@ -176,9 +178,12 @@ void MediaPlayCtrl::Play()
         return;
     }
 
-    NetworkAgent* agent = wxGetApp().getAgent();
     if (agent) {
-        agent->get_camera_url(m_machine, [this, m = m_machine](std::string url) {
+        agent->get_camera_url(m_machine, [this, m = m_machine, v = agent_version](std::string url) {
+            if (boost::algorithm::starts_with(url, "bambu:///")) {
+                url += "&device=" + m;
+                url += "&version=" + v;
+            }
             BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl camera_url: " << url << ", machine: " << m_machine;
             CallAfter([this, m, url] {
                 if (m != m_machine) return;
@@ -297,8 +302,12 @@ void MediaPlayCtrl::ToggleStream()
     }
     NetworkAgent *agent = wxGetApp().getAgent();
     if (!agent) return;
-    agent->get_camera_url(m_machine, [this, m = m_machine](std::string url) {
-            BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
+    agent->get_camera_url(m_machine, [this, m = m_machine, v = agent->get_version()](std::string url) {
+        if (boost::algorithm::starts_with(url, "bambu:///")) {
+            url += "&device=" + m;
+            url += "&version=" + v;
+        }
+        BOOST_LOG_TRIVIAL(info) << "camera_url: " << url;
         CallAfter([this, m, url] {
             if (m != m_machine) return;
             if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
@@ -309,7 +318,7 @@ void MediaPlayCtrl::ToggleStream()
             }
             std::string             file_url = data_dir() + "/cameratools/url.txt";
             boost::nowide::ofstream file(file_url);
-            auto                    url2 = encode_path((url + "&device=" + m).c_str());
+            auto                    url2 = encode_path(url.c_str());
             file.write(url2.c_str(), url2.size());
             file.close();
             m_streaming = true;
@@ -423,14 +432,6 @@ void MediaPlayCtrl::media_proc()
     }
 }
 
-#ifdef __WIN32__
-struct detach_process
-    : public ::boost::process::detail::windows::handler_base_ext
-{
-    template<class Executor> void on_setup(Executor &exec) const { exec.creation_flags |= ::boost::winapi::CREATE_NO_WINDOW_; }
-};
-#endif
-
 bool MediaPlayCtrl::start_stream_service(bool *need_install)
 {
 #ifdef __WIN32__
@@ -468,16 +469,16 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
         std::string file_dll2 = data_dir() + "/plugins/BambuSource.dll";
         if (!boost::filesystem::exists(file_dll) || boost::filesystem::last_write_time(file_dll) != boost::filesystem::last_write_time(file_dll2))
             boost::filesystem::copy_file(file_dll2, file_dll, boost::filesystem::copy_option::overwrite_if_exists);
-        boost::process::child process_source(file_source, file_url2.data().AsInternal(), boost::process::std_out > intermediate, detach_process(),
-                                             boost::process::start_dir(start_dir), boost::process::limit_handles);
-        boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::std_in < intermediate, detach_process(), boost::process::limit_handles);
+        boost::process::child process_source(file_source, file_url2.data().AsInternal(), boost::process::start_dir(start_dir), boost::process::windows::create_no_window, 
+                                             boost::process::std_out > intermediate, boost::process::limit_handles);
+        boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::windows::create_no_window, 
+                                             boost::process::std_in < intermediate, boost::process::limit_handles);
 #else
         boost::filesystem::permissions(file_source, boost::filesystem::owner_exe | boost::filesystem::add_perms);
         boost::filesystem::permissions(file_ffmpeg, boost::filesystem::owner_exe | boost::filesystem::add_perms);
-        // TODO: limit_handles has bugs on posix
-        boost::process::child process_source(file_source, file_url2.data().AsInternal(), boost::process::std_out > intermediate, 
-                                             boost::process::start_dir(start_dir));
-        boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::std_in < intermediate);
+        boost::process::child process_source(file_source, file_url2.data().AsInternal(), boost::process::start_dir(start_dir), 
+                                             boost::process::std_out > intermediate, boost::process::limit_handles);
+        boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::std_in < intermediate, boost::process::limit_handles);
 #endif
         process_source.detach();
         process_ffmpeg.detach();
