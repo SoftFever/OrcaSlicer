@@ -238,20 +238,6 @@ void MediaPlayCtrl::TogglePlay()
     }
 }
 
-struct detach_process
-#ifdef __WIN32__
-    : public ::boost::process::detail::windows::handler_base_ext
- #else
-    : public ::boost::process::detail::posix::handler_base_ext
- #endif
- {
-#ifdef __WIN32__
-    template<class Executor> void on_setup(Executor &exec) const {
-        exec.creation_flags |= ::boost::winapi::CREATE_NO_WINDOW_;
-    }
-#endif
-};
-
 void MediaPlayCtrl::ToggleStream()
 {
     std::string file_url = data_dir() + "/cameratools/url.txt";
@@ -344,7 +330,7 @@ void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
     if (hyperlink) {
         style |= LB_HYPERLINK;
     }
-    //m_label_status->SetWindowStyle(style);
+    m_label_status->SetWindowStyle(style);
     m_label_status->InvalidateBestSize();
     Layout();
 }
@@ -392,6 +378,14 @@ void MediaPlayCtrl::media_proc()
     }
 }
 
+#ifdef __WIN32__
+struct detach_process
+    : public ::boost::process::detail::windows::handler_base_ext
+{
+    template<class Executor> void on_setup(Executor &exec) const { exec.creation_flags |= ::boost::winapi::CREATE_NO_WINDOW_; }
+};
+#endif
+
 bool MediaPlayCtrl::start_stream_service(bool *need_install)
 {
 #ifdef __WIN32__
@@ -429,13 +423,17 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
         std::string file_dll2 = data_dir() + "/plugins/BambuSource.dll";
         if (!boost::filesystem::exists(file_dll) || boost::filesystem::last_write_time(file_dll) != boost::filesystem::last_write_time(file_dll2))
             boost::filesystem::copy_file(file_dll2, file_dll, boost::filesystem::copy_option::overwrite_if_exists);
-#else
-        boost::filesystem::permissions(file_source, boost::filesystem::owner_exe | boost::filesystem::add_perms);
-        boost::filesystem::permissions(file_ffmpeg, boost::filesystem::owner_exe | boost::filesystem::add_perms);
-#endif
         boost::process::child process_source(file_source, file_url2.data().AsInternal(), boost::process::std_out > intermediate, detach_process(),
                                              boost::process::start_dir(start_dir), boost::process::limit_handles);
         boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::std_in < intermediate, detach_process(), boost::process::limit_handles);
+#else
+        boost::filesystem::permissions(file_source, boost::filesystem::owner_exe | boost::filesystem::add_perms);
+        boost::filesystem::permissions(file_ffmpeg, boost::filesystem::owner_exe | boost::filesystem::add_perms);
+        // TODO: limit_handles has bugs on posix
+        boost::process::child process_source(file_source, file_url2.data().AsInternal(), boost::process::std_out > intermediate, 
+                                             boost::process::start_dir(start_dir));
+        boost::process::child process_ffmpeg(file_ffmpeg, configss, boost::process::std_in < intermediate);
+#endif
         process_source.detach();
         process_ffmpeg.detach();
     } catch (std::exception &e) {
