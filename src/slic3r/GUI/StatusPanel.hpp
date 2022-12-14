@@ -151,6 +151,7 @@ protected:
 
     /* TempInput */
     wxBoxSizer *    m_misc_ctrl_sizer;
+    StaticBox*      m_fan_panel; 
     TempInput *     m_tempCtrl_nozzle;
     int             m_temp_nozzle_timeout {0};
     StaticLine *    m_line_nozzle;
