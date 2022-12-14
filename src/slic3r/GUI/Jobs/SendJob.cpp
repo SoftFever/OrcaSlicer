@@ -316,7 +316,7 @@ void SendJob::process()
         BOOST_LOG_TRIVIAL(error) << "send_job: send ok.";
         //m_success_fun();
         wxCommandEvent* evt = new wxCommandEvent(m_print_job_completed_id);
-        evt->SetString(params.project_name);
+        evt->SetString(from_u8(params.project_name));
         wxQueueEvent(m_plater, evt);
         m_job_finished = true;
     }
