@@ -597,8 +597,11 @@ void IMSlider::SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, 
 
     UseDefaultColors(m_mode == SingleExtruder);
 
-    m_is_wipe_tower = m_mode != SingleExtruder;
-
+    DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
+    if (config.opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject)
+        m_is_wipe_tower = false;
+    else 
+        m_is_wipe_tower = m_mode != SingleExtruder;
     m_can_change_color = can_change_color;
 }
 
@@ -1430,22 +1433,23 @@ void IMSlider::render_menu()
 
     ImGui::PushStyleVar(ImGuiStyleVar_::ImGuiStyleVar_ChildRounding, 4.0f * m_scale);
     if (ImGui::BeginPopup("slider_menu_popup")) {
-        if ((m_selection == ssLower && GetLowerValueD() == m_zero_layer_height) || (m_selection == ssHigher && GetHigherValueD() == m_zero_layer_height))
+        bool menu_item_enable = m_draw_mode != dmSequentialFffPrint;
+        //if ((m_selection == ssLower && GetLowerValueD() == m_zero_layer_height) || (m_selection == ssHigher && GetHigherValueD() == m_zero_layer_height))
+        //{
+        //    if (menu_item_with_icon(_u8L("Jump to Layer").c_str(), "")) {
+        //        m_show_go_to_layer_dialog = true;
+        //    }
+        //}
+        //else
         {
-            if (menu_item_with_icon(_u8L("Jump to Layer").c_str(), "")) {
-                m_show_go_to_layer_dialog = true;
-            }
-        }
-        else
-        {
-            if (menu_item_with_icon(_u8L("Add Pause").c_str(), "")) {
+            if (menu_item_with_icon(_u8L("Add Pause").c_str(), "", ImVec2(0, 0), 0, false, menu_item_enable)) {
                 add_code_as_tick(PausePrint);
             }
-            if (menu_item_with_icon(_u8L("Add Custom G-code").c_str(), "")) {
+            if (menu_item_with_icon(_u8L("Add Custom G-code").c_str(), "", ImVec2(0, 0), 0, false, menu_item_enable)) {
                 m_show_custom_gcode_window = true;
             }
             if (!gcode(Template).empty()) {
-                if (menu_item_with_icon(_u8L("Add Custom Template").c_str(), "")) {
+                if (menu_item_with_icon(_u8L("Add Custom Template").c_str(), "", ImVec2(0, 0), 0, false, menu_item_enable)) {
                     add_code_as_tick(Template);
                 }
             }
