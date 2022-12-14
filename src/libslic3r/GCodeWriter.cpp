@@ -22,9 +22,12 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
 {
     this->config.apply(print_config, true);
     m_single_extruder_multi_material = print_config.single_extruder_multi_material.value;
-    bool is_marlin = print_config.gcode_flavor.value == gcfMarlinLegacy || print_config.gcode_flavor.value == gcfMarlinFirmware || print_config.gcode_flavor.value == gcfKlipper;
-    m_max_acceleration = std::lrint(is_marlin ? print_config.machine_max_acceleration_extruding.values.front() : 0);
-    m_max_jerk = std::lrint(is_marlin ? std::min(print_config.machine_max_jerk_x.values.front(), print_config.machine_max_jerk_y.values.front()) : 0);
+    bool use_mach_limits = print_config.gcode_flavor.value == gcfMarlinLegacy ||
+                     print_config.gcode_flavor.value == gcfMarlinFirmware ||
+                     print_config.gcode_flavor.value == gcfKlipper ||
+                     print_config.gcode_flavor.value == gcfRepRapFirmware;
+    m_max_acceleration = std::lrint(use_mach_limits ? print_config.machine_max_acceleration_extruding.values.front() : 0);
+    m_max_jerk = std::lrint(use_mach_limits ? std::min(print_config.machine_max_jerk_x.values.front(), print_config.machine_max_jerk_y.values.front()) : 0);
 }
 
 void GCodeWriter::set_extruders(std::vector<unsigned int> extruder_ids)
@@ -221,6 +224,8 @@ std::string GCodeWriter::set_pressure_advance(double pa) const
     else{
         if (FLAVOR_IS(gcfKlipper))
             gcode << "SET_PRESSURE_ADVANCE ADVANCE=" << std::setprecision(4) << pa << "; Override pressure advance value\n";
+        else if(FLAVOR_IS(gcfRepRapFirmware))
+            gcode << ("M572 D0 S") << std::setprecision(4) << pa << "; Override pressure advance value\n";
         else
             gcode << "M900 K" <<std::setprecision(4)<< pa << "; Override pressure advance value\n";
     }
