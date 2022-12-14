@@ -135,7 +135,7 @@ gcode:
 ```
 
 ~~ It's also recommended to add followinging dummy macros to make Klipper happy ~~
-Update: latest Klipper has supported G17 command. Don't add following maroc if you are running on latest Klipper.
+Update: latest Klipper has supported G17 command. Don't add following macro if you are running on latest Klipper.
 ```
 # Make BambuStudio happy
 [gcode_macro G17]
