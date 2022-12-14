@@ -297,7 +297,7 @@ void PrintJob::process()
 
     if (result < 0) {
         if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
-            msg_text = upload_failed_str;
+            msg_text = _L("Failed to send the print job. Please try again.");
         } if (result == BAMBU_NETWORK_ERR_FILE_NOT_EXIST) {
             msg_text = file_is_not_exists_str;
         } else if (result == BAMBU_NETWORK_ERR_FILE_OVER_SIZE) {
@@ -305,20 +305,22 @@ void PrintJob::process()
         } else if (result == BAMBU_NETWORK_ERR_CHECK_MD5_FAILED) {
             msg_text = failed_in_cloud_service_str;
         } else if (result == BAMBU_NETWORK_ERR_INVALID_PARAMS) {
-            msg_text = upload_failed_str;
+            msg_text = _L("Failed to send the print job. Please try again.");
         } else if (result == BAMBU_NETWORK_ERR_CANCELED) {
             msg_text = print_canceled_str;
         } else if (result == BAMBU_NETWORK_ERR_TIMEOUT) {
             msg_text = timeout_to_upload_str;
         } else if (result == BAMBU_NETWORK_ERR_INVALID_RESULT) {
-            msg_text = upload_failed_str;
+            msg_text = _L("Failed to send the print job. Please try again.");
         } else if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
-            msg_text = upload_failed_str;
+            msg_text = _L("Failed to send the print job. Please try again.");
         } else {
             update_status(curr_percent, failed_in_cloud_service_str);
         }
-        if (!error_text.IsEmpty())
-            msg_text += wxString::Format("[%s]", error_text);
+        if (!error_text.IsEmpty()) {
+            curr_percent = 0;
+            msg_text += wxString::Format("[%d][%s]", result, error_text);
+        }
         update_status(curr_percent, msg_text);
         BOOST_LOG_TRIVIAL(error) << "print_job: failed, result = " << result;
     } else {
