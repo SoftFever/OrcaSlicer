@@ -3812,6 +3812,10 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         // old file "0" is None, "2" is Traditional
         // new file "0" is Traditional, erase "2"
         value = "0";
+    } else if (opt_key == "support_type" && value == "normal") {
+        value = "normal(manual)";
+    } else if (opt_key == "support_type" && value == "tree") {
+        value = "tree(manual)";
     } else if (opt_key == "different_settings_to_system") {
         std::string copy_value = value;
         copy_value.erase(std::remove(copy_value.begin(), copy_value.end(), '\"'), copy_value.end()); // remove '"' in string
