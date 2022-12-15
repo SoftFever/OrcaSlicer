@@ -410,9 +410,9 @@ window.postMessage = HandleStudio;
 var CCabin={
 	"model":[
 		{
-			"name":"Christmas Cabin",
+			"name":"Bambu Christmas Cabin",
 			"icon":"christmas_cabin.png",
-			"file":"Christmas Cabin.3mf"
+			"file":"Bambu Christmas Cabin.3mf"
 		}		
 	]	
 };
