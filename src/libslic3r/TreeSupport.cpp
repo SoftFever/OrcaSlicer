@@ -704,6 +704,13 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     tree_support_branch_diameter_angle       = 5.0;//is_slim ? 10.0 : 5.0;
     // by default tree support needs no infill, unless it's tree hybrid which contains normal nodes.
     with_infill                              = support_pattern != smpNone && support_pattern != smpDefault;
+    const PrintConfig& print_config = m_object->print()->config();
+    m_machine_border.contour = get_bed_shape_with_excluded_area(print_config);
+    m_machine_border.translate(-m_object->instances().front().shift); // align with the centered object
+#ifdef SUPPORT_TREE_DEBUG_TO_SVG
+    SVG svg("SVG/machine_boarder.svg", m_object->bounding_box());
+    if (svg.is_opened()) svg.draw(m_machine_border, "yellow");
+#endif
 }
 
 
@@ -2210,18 +2217,20 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 //roof_areas = std::move(diff_ex(roof_areas, avoid_region_interface));
                 //roof_1st_layer = std::move(diff_ex(roof_1st_layer, avoid_region_interface));
                 roof_areas = avoid_object_remove_extra_small_parts(roof_areas, avoid_region_interface);
+                roof_areas = intersection_ex(roof_areas, m_machine_border);
                 roof_1st_layer = avoid_object_remove_extra_small_parts(roof_1st_layer, avoid_region_interface);
 
                 // roof_1st_layer and roof_areas may intersect, so need to subtract roof_areas from roof_1st_layer
                 roof_1st_layer = std::move(diff_ex(roof_1st_layer, roof_areas));
+                roof_1st_layer = intersection_ex(roof_1st_layer, m_machine_border);
 
                 // let supports touch objects when brim is on
                 auto avoid_region = m_ts_data->get_collision((layer_nr == 0 && has_brim) ? config.brim_object_gap : m_ts_data->m_xy_distance, layer_nr);
-                // base_areas = std::move(diff_ex(base_areas, avoid_region));
                 base_areas = avoid_object_remove_extra_small_parts(base_areas, avoid_region);
                 base_areas = std::move(diff_ex(base_areas, roof_areas));
                 base_areas = std::move(diff_ex(base_areas, roof_1st_layer));
                 base_areas = std::move(diff_ex(base_areas, roof_gap_areas));
+                base_areas = intersection_ex(base_areas, m_machine_border);
 
                 if (SQUARE_SUPPORT) {
                     // simplify support contours
@@ -3504,16 +3513,6 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
         
         BOOST_LOG_TRIVIAL(info) << "avg_node_per_layer=" << avg_node_per_layer << ", nodes_angle=" << nodes_angle;
     }
-#ifdef SUPPORT_TREE_DEBUG_TO_SVG
-    std::ofstream contact_nodes_out;
-    contact_nodes_out.open("./SVG/contact_nodes.txt");
-    if (contact_nodes_out.is_open()) {
-        for (int i = 0; i < contact_nodes.size(); i++) {
-            if (!contact_nodes[i].empty())
-                contact_nodes_out << i << std::endl;
-        }
-    }
-#endif // SUPPORT_TREE_DEBUG_TO_SVG
 }
 
 void TreeSupport::insert_dropped_node(std::vector<Node*>& nodes_layer, Node* p_node)

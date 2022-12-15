@@ -18,7 +18,7 @@
 
 #include "libslic3r.h"
 #include "Config.hpp"
-
+#include "Polygon.hpp"
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <boost/preprocessor/punctuation/comma_if.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
@@ -1241,6 +1241,7 @@ private:
 Points get_bed_shape(const DynamicPrintConfig &cfg);
 Points get_bed_shape(const PrintConfig &cfg);
 Points get_bed_shape(const SLAPrinterConfig &cfg);
+Slic3r::Polygon get_bed_shape_with_excluded_area(const PrintConfig& cfg);
 
 // ModelConfig is a wrapper around DynamicPrintConfig with an addition of a timestamp.
 // Each change of ModelConfig is tracked by assigning a new timestamp from a global counter.

@@ -125,11 +125,6 @@ private:
      */
     const ExPolygons& calculate_avoidance(const RadiusLayerPair& key) const;
 
-    /*!
-     * \brief Polygons representing the limits of the printable area of the
-     * machine
-     */
-    ExPolygon m_machine_border;
 
 public:
     bool is_slim = false;
@@ -400,6 +395,12 @@ private:
     bool  is_slim                            = false;
     bool  with_infill                        = false;
 
+
+    /*!
+     * \brief Polygons representing the limits of the printable area of the
+     * machine
+     */
+    ExPolygon m_machine_border;
 
     /*!
      * \brief Draws circles around each node of the tree into the final support.

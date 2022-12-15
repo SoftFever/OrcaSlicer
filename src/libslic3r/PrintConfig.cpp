@@ -4793,6 +4793,26 @@ Points get_bed_shape(const PrintConfig &cfg)
 
 Points get_bed_shape(const SLAPrinterConfig &cfg) { return to_points(cfg.printable_area.values); }
 
+Polygon get_bed_shape_with_excluded_area(const PrintConfig& cfg)
+{
+    Polygon bed_poly;
+    bed_poly.points = get_bed_shape(cfg);
+
+    Points excluse_area_points = to_points(cfg.bed_exclude_area.values);
+    Polygons exclude_polys;
+    Polygon exclude_poly;
+    for (int i = 0; i < excluse_area_points.size(); i++) {
+        auto pt = excluse_area_points[i];
+        exclude_poly.points.emplace_back(pt);
+        if (i % 4 == 3) {  // exclude areas are always rectangle
+            exclude_polys.push_back(exclude_poly);
+            exclude_poly.points.clear();
+        }
+    }
+    auto tmp = diff({ bed_poly }, exclude_polys);
+    if (!tmp.empty()) bed_poly = tmp[0];
+    return bed_poly;
+}
 } // namespace Slic3r
 
 #include <cereal/types/polymorphic.hpp>
