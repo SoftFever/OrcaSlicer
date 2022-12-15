@@ -410,19 +410,9 @@ window.postMessage = HandleStudio;
 var CCabin={
 	"model":[
 		{
-			"name":"Christmas Cabin X1 X1C",
-			"icon":"Cover_X1_X1C.png",
-			"file":"Bambu Lab Christmas Cabin X1 X1C.gcode.3mf"
-		},
-		{
-			"name":"Christmas Cabin P1P",
-			"icon":"Cover_P1P.png",
-			"file":"Bambu Lab Christmas Cabin P1P.gcode.3mf"
-		},
-		{
-			"name":"Tag Customization",
-			"icon":"TagCustomization.png",
-			"file":"TagCustomization.3mf"
+			"name":"Christmas Cabin",
+			"icon":"christmas_cabin.png",
+			"file":"Christmas Cabin.3mf"
 		}		
 	]	
 };
