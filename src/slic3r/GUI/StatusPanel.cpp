@@ -2852,7 +2852,9 @@ void StatusPanel::on_camera_enter(wxMouseEvent& event)
         wxWindow* ctrl = (wxWindow*)event.GetEventObject();
         wxPoint   pos = ctrl->ClientToScreen(wxPoint(0, 0));
         wxSize    sz = ctrl->GetSize();
-        m_camera_popup->Position(pos, wxSize(sz.x, sz.y));
+        pos.x += sz.x;
+        pos.y += sz.y;
+        m_camera_popup->SetPosition(pos);
         m_camera_popup->update(m_media_play_ctrl->IsStreaming());
         m_camera_popup->Popup();
     }
