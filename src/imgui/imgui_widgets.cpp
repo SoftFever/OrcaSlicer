@@ -2126,7 +2126,7 @@ bool ImGui::BBLBeginCombo(const char *label, const char *preview_value, ImGuiCom
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
     const float  expected_w = CalcItemWidth();
     const float  w  = (flags & ImGuiComboFlags_NoPreview) ? arrow_size : expected_w;
-    const ImRect frame_bb(window->DC.CursorPos - ImVec2(0.0, style.FramePadding.y), window->DC.CursorPos + ImVec2(w - arrow_size * 2, label_size.y + style.FramePadding.y));
+    const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w - arrow_size * 2, label_size.y + style.FramePadding.y * 2));
     const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
     ItemSize(total_bb, style.FramePadding.y);
     if (!ItemAdd(total_bb, id, &frame_bb)) return false;
@@ -7185,7 +7185,9 @@ bool ImGui::BBLImageSelectable(ImTextureID user_texture_id, const ImVec2& size_a
     // Render
     if (held && (flags & ImGuiSelectableFlags_DrawHoveredWhenHeld)) hovered = true;
     if (hovered || selected) {
-        const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
+        ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
+        if (hovered && selected)
+            col = GetColorU32(ImGuiCol_Header);
         if (arrow_size == 0) {
             RenderFrame(bb.Min, ImVec2(bb.Max.x - style.WindowPadding.x, bb.Max.y), col, false, 0.0f);
         }
@@ -7204,9 +7206,9 @@ bool ImGui::BBLImageSelectable(ImTextureID user_texture_id, const ImVec2& size_a
 
     // Render
     const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
-    ImVec2 p_min = bb.Min + ImVec2(2 * style.ItemSpacing.x, (bb.Max.y - bb.Min.y - font_size.y) / 2);
+    ImVec2 p_min = bb.Min + ImVec2(style.ItemInnerSpacing.x, (bb.Max.y - bb.Min.y - font_size.y) / 2);
     ImVec2 p_max = p_min + font_size;
-    window->DrawList->AddImage(user_texture_id, p_min, p_max, uv0, uv1, GetColorU32(tint_col));
+    window->DrawList->AddImage(user_texture_id, p_min, p_max, uv0, uv1, selected || (held && hovered) ? GetColorU32(ImVec4(1.f, 1.f, 1.f, 1.f)) : GetColorU32(tint_col));
 
     if (flags & ImGuiSelectableFlags_Disabled) PopStyleColor();
 

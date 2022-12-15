@@ -27,7 +27,7 @@ namespace GUI {
 static const wxColour FONT_TEXTURE_BG = wxColour(0, 0, 0, 0);
 static const wxColour FONT_TEXTURE_FG = *wxWHITE;
 static const int FONT_SIZE = 12;
-
+static const float SELECTABLE_INNER_OFFSET = 8.0f;
 
 GLGizmoText::GLGizmoText(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id)
     : GLGizmoBase(parent, icon_filename, sprite_id)
@@ -53,6 +53,7 @@ bool GLGizmoText::on_init()
 
 void GLGizmoText::update_font_texture()
 {
+    m_font_names.clear();
     for (int i = 0; i < m_textures.size(); i++) {
         if (m_textures[i].texture != nullptr)
             delete m_textures[i].texture;
@@ -78,6 +79,7 @@ void GLGizmoText::update_font_texture()
                 info.font_name = m_avail_font_names[i];
                 m_textures.push_back(info);
                 m_combo_width = std::max(m_combo_width, static_cast<float>(texture->m_original_width));
+                m_font_names.push_back(info.font_name);
             //}
         }
     }
@@ -186,8 +188,6 @@ void GLGizmoText::push_combo_style(const float scale) {
         ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
-        ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImGuiWrapper::COL_WINDOW_BG_DARK);
-        ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImGuiWrapper::COL_WINDOW_BG_DARK);
         ImGui::PushStyleColor(ImGuiCol_Button, { 1.00f, 1.00f, 1.00f, 0.0f });
     }
     else {
@@ -199,8 +199,6 @@ void GLGizmoText::push_combo_style(const float scale) {
         ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImGuiWrapper::COL_WINDOW_BG);
-        ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImGuiWrapper::COL_WINDOW_BG);
-        ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImGuiWrapper::COL_WINDOW_BG);
         ImGui::PushStyleColor(ImGuiCol_Button, { 1.00f, 1.00f, 1.00f, 0.0f });
     }
 }
@@ -208,7 +206,7 @@ void GLGizmoText::push_combo_style(const float scale) {
 void GLGizmoText::pop_combo_style()
 {
     ImGui::PopStyleVar(2);
-    ImGui::PopStyleColor(9);
+    ImGui::PopStyleColor(7);
 }
 
 // BBS
@@ -262,6 +260,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     const float currt_scale = m_parent.get_scale();
     ImGuiWrapper::push_toolbar_style(currt_scale);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0,5.0) * currt_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 4.0f * currt_scale);
     GizmoImguiBegin("Text", ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 
     float space_size = m_imgui->get_style_scaling() * 8;
@@ -273,7 +272,11 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 
     float input_text_size = m_imgui->scaled(12.0f);
     float button_size = ImGui::GetFrameHeight();
-    float input_size = input_text_size - button_size * 2 - ImGui::GetStyle().ItemSpacing.x * 4;
+
+    ImVec2 selectable_size(std::max((input_text_size + ImGui::GetFrameHeight() * 2), m_combo_width + SELECTABLE_INNER_OFFSET * currt_scale), m_combo_height);
+    float list_width = selectable_size.x + ImGui::GetStyle().ScrollbarSize + 2 * currt_scale;
+
+    float input_size = list_width - button_size * 2 - ImGui::GetStyle().ItemSpacing.x * 4;
 
     ImTextureID normal_B = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TEXT_B);
     ImTextureID normal_T = m_parent.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TEXT_T);
@@ -294,30 +297,41 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 
     m_imgui->text(_L("Font"));
     ImGui::SameLine(caption_size);
-    ImGui::PushItemWidth(input_text_size + ImGui::GetFrameHeight() * 2);
+    ImGui::PushItemWidth(list_width);
     push_combo_style(currt_scale);
-    int font_index = m_curr_font_idx;
-    if (ImGui::BBLBeginCombo("##Font", m_textures[m_curr_font_idx].font_name.c_str(), 0)) {
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 0.0f) * currt_scale);
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 4));
-        for (int i = 0; i < m_textures.size(); i++) {
-            const bool is_selected = (m_curr_font_idx == i);
-            ImTextureID icon_id = (ImTextureID)(intptr_t)(m_textures[i].texture->get_id());
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 4.0f * currt_scale);
+
+    std::vector<int> filtered_items_idx;
+    bool is_filtered = false;
+    if (m_imgui->bbl_combo_with_filter("##Combo_Font", m_font_names[m_curr_font_idx], m_font_names, &filtered_items_idx, &is_filtered, selectable_size.y)) {
+        int show_items_count = is_filtered ? filtered_items_idx.size() : m_textures.size();
+
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(SELECTABLE_INNER_OFFSET, 0)* currt_scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0);
+        for (int i = 0; i < show_items_count; i++)
+        {
+            int idx = is_filtered ? filtered_items_idx[i] : i;
+            const bool is_selected = (idx == m_curr_font_idx);
+            ImTextureID icon_id = (ImTextureID)(intptr_t)(m_textures[idx].texture->get_id());
             ImVec4 tint_color = ImGui::GetStyleColorVec4(ImGuiCol_Text);
-            ImVec2 selectable_size(std::max((input_text_size + ImGui::GetFrameHeight() * 2), m_combo_width), m_combo_height);
-            if (ImGui::BBLImageSelectable(icon_id, selectable_size, { (float)m_textures[i].w, (float)m_textures[i].h }, m_textures[i].hl, tint_color, { 0, 0 }, {1, 1}, is_selected)) {
-                m_curr_font_idx = i;
+            if (ImGui::BBLImageSelectable(icon_id, selectable_size, { (float)m_textures[idx].w, (float)m_textures[idx].h }, m_textures[idx].hl, tint_color, { 0, 0 }, { 1, 1 }, is_selected))
+            {
+                m_curr_font_idx = idx;
                 m_font_name = m_textures[m_curr_font_idx].font_name;
+                ImGui::CloseCurrentPopup();
             }
             if (is_selected) {
                 ImGui::SetItemDefaultFocus();
             }
         }
         ImGui::PopStyleVar(3);
-        ImGui::EndCombo();
+        ImGui::EndListBox();
+        ImGui::EndPopup();
     }
 
+    ImGui::PopStyleVar(2);
     pop_combo_style();
     ImGui::AlignTextToFramePadding();
     m_imgui->text(_L("Size"));
@@ -344,27 +358,27 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     ImGui::AlignTextToFramePadding();
     m_imgui->text(_L("Thickness"));
     ImGui::SameLine(caption_size);
-    ImGui::PushItemWidth(input_text_size);
+    ImGui::PushItemWidth(list_width);
     ImGui::InputFloat("###text_thickness", &m_thickness,0.0f, 0.0f, "%.2f");
     if (m_thickness < 0.1f)m_thickness = 0.1f;
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(_L("Input text"));
     ImGui::SameLine(caption_size);
-    ImGui::PushItemWidth(input_text_size);
+    ImGui::PushItemWidth(list_width);
 
     ImGui::InputText("", m_text, sizeof(m_text));
     
     ImGui::Separator();
     m_imgui->disabled_begin(m_text[0] == '\0' || m_text[0] == ' ');
-    float offset =  caption_size + input_text_size -  m_imgui->calc_text_size(_L("Add")).x - space_size;
+    float offset =  caption_size + list_width -  m_imgui->calc_text_size(m_is_modify ? _L("Modify") : _L("Add")).x - space_size;
     ImGui::Dummy({0.0, 0.0});
     ImGui::SameLine(offset);
     bool btn_clicked = m_imgui->button(m_is_modify ? _L("Modify") : _L("Add"));
     if (btn_clicked) {
         m_imgui->disabled_end();
         GizmoImguiEnd();
-        ImGui::PopStyleVar();
+        ImGui::PopStyleVar(2);
         ImGuiWrapper::pop_toolbar_style();
 
         TextInfo text_info;
@@ -412,7 +426,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 #endif
 
     GizmoImguiEnd();
-    ImGui::PopStyleVar();
+    ImGui::PopStyleVar(2);
     ImGuiWrapper::pop_toolbar_style();
 }
 

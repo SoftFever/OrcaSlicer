@@ -39,6 +39,8 @@ private:
 
     std::vector<TextureInfo> m_textures;
 
+    std::vector<std::string> m_font_names;
+
     bool m_is_modify = false;
     int  m_object_idx;
     int  m_volume_idx;
