@@ -170,7 +170,7 @@ public:
 struct LineHash {
     size_t operator()(const Line& line) const {
         return (std::hash<coord_t>()(line.a(0)) ^ std::hash<coord_t>()(line.b(1))) * 102 +
-            (std::hash<coord_t>()(line.a(0)) ^ std::hash<coord_t>()(line.b(1))) * 10222;
+            (std::hash<coord_t>()(line.a(1)) ^ std::hash<coord_t>()(line.b(0))) * 10222;
     }
 };
 
