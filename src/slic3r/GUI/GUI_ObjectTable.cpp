@@ -171,6 +171,16 @@ void GridCellFilamentsEditor::Create(wxWindow* parent,
     }
     m_control = bitmap_combo;
     wxGridCellEditor::Create(parent, id, evtHandler);
+
+    /* bitmap_combo->GetDropDown().Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& e) {
+         const wxString value = Combo()->GetValue();
+         if (value == m_value)
+             return false;
+
+         m_value = value;
+         return true;
+         e.Skip();
+     });*/
 }
 
 void GridCellFilamentsEditor::SetSize(const wxRect& rect)
@@ -242,7 +252,7 @@ void GridCellFilamentsEditor::BeginEdit(int row, int col, wxGrid* grid)
         // When dropping down the menu, a kill focus event
         // happens after this point, so we can't reset the flag yet.
 #if !defined(__WXGTK20__)
-        evtHandler->SetInSetFocus(false);
+        //evtHandler->SetInSetFocus(false);
 #endif
     }
 }
