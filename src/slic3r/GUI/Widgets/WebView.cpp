@@ -4,7 +4,9 @@
 
 #include <wx/webviewarchivehandler.h>
 #include <wx/webviewfshandler.h>
+#if wxUSE_WEBVIEW_EDGE
 #include <wx/msw/webview_edge.h>
+#endif
 #include <wx/uri.h>
 #include "wx/private/jsscriptwrapper.h"
 
