@@ -2057,16 +2057,16 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
 
                     const Node& node = *p_node;
                     ExPolygon area;
-                    // 直接从overhang多边形生成，如果�?
-                    // 1) 是混合支撑里的普通部分，
-                    // 2) 启用了顶部接触层�?
-                    // 3) 是顶部空�?
+                    // Generate directly from overhang polygon if one of the following is true:
+                    // 1) node is a normal part of hybrid support
+                    // 2) top interface layers are enabled
+                    // 3) node is virtual
                     if (node.type == ePolygon || (top_interface_layers>0 &&node.support_roof_layers_below > 0) || node.distance_to_top<0) {
                         if (node.overhang->contour.size() > 100 || node.overhang->holes.size()>1)
                             area = *node.overhang;
                         else {
                              auto tmp = offset_ex({ *node.overhang }, scale_(m_ts_data->m_xy_distance));
-                             if(!tmp.empty()) // 对于有缺陷的模型，overhang膨胀以后可能是空的！
+                             if(!tmp.empty()) // can be empty for non-manifold models
                                 area = tmp[0];
                         }
                     }
