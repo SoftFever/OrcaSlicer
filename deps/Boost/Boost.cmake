@@ -8,7 +8,7 @@ else()
     set(_build_cmd ./b2)
 endif()
 
-set(_patch_command ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/common.jam ./tools/build/src/tools/common.jam)
+set(_patch_command "") #${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/common.jam ./tools/build/src/tools/common.jam)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(_boost_toolset gcc)
