@@ -437,14 +437,21 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     }
     else {
         sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
+        ImGui::PushItemWidth(item_size);
         imgui.text(buf);
 
-        ImGui::SameLine();
+        ImGui::SameLine(window_padding + item_size + item_spacing);
         sprintf(buf, "%s%.3f", y.c_str(), position.y() - plate->get_origin().y());
+        ImGui::PushItemWidth(item_size);
         imgui.text(buf);
 
-        ImGui::SameLine();
         sprintf(buf, "%s%.3f", z.c_str(), position.z());
+        ImGui::PushItemWidth(item_size);
+        imgui.text(buf);
+        
+        ImGui::SameLine(window_padding + item_size + item_spacing);
+        sprintf(buf, "%s%.0f", speed.c_str(), it->feedrate);
+        ImGui::PushItemWidth(item_size);
         imgui.text(buf);
     }
 
