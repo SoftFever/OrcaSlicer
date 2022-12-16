@@ -81,6 +81,7 @@ bool GLGizmoFdmSupports::on_init()
 
     m_desc["clipping_of_view_caption"] = _L("Alt + Mouse wheel");
     m_desc["clipping_of_view"]      = _L("Section view");
+    m_desc["reset_direction"]       = _L("Reset direction");
     m_desc["cursor_size_caption"]   = _L("Ctrl + Mouse wheel");
     m_desc["cursor_size"]           = _L("Pen size");
     m_desc["enforce_caption"]       = _L("Left mouse button");
@@ -98,6 +99,7 @@ bool GLGizmoFdmSupports::on_init()
     m_desc["tool_type"]             = _L("Tool type");
     m_desc["smart_fill_angle_caption"] = _L("Ctrl + Mouse wheel");
     m_desc["smart_fill_angle"]      = _L("Smart fill angle");
+    m_desc["on_overhangs_only"] = _L("On overhangs only");
 
     memset(&m_print_instance, sizeof(m_print_instance), 0);
     return true;
@@ -216,6 +218,8 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     const float cursor_slider_left      = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.5f);
     const float gap_fill_slider_left    = m_imgui->calc_text_size(m_desc.at("gap_fill")).x + m_imgui->scaled(1.5f);
     const float highlight_slider_left   = m_imgui->calc_text_size(m_desc.at("highlight_by_angle")).x + m_imgui->scaled(1.5f);
+    const float reset_button_slider_left = m_imgui->calc_text_size(m_desc.at("reset_direction")).x + m_imgui->scaled(1.5f) + ImGui::GetStyle().FramePadding.x * 2;
+    const float on_overhangs_only_width  = m_imgui->calc_text_size(m_desc["on_overhangs_only"]).x + m_imgui->scaled(1.5f);
     const float remove_btn_width        = m_imgui->calc_text_size(m_desc.at("remove_all")).x + m_imgui->scaled(1.5f);
     const float filter_btn_width        = m_imgui->calc_text_size(m_desc.at("perform")).x + m_imgui->scaled(1.5f);
     const float buttons_width           = remove_btn_width + filter_btn_width + m_imgui->scaled(1.5f);
@@ -233,7 +237,7 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     total_text_max += caption_max + m_imgui->scaled(1.f);
     caption_max += m_imgui->scaled(1.f);
 
-    const float sliders_left_width = std::max(std::max(cursor_slider_left, clipping_slider_left), std::max(highlight_slider_left, gap_fill_slider_left));
+    const float sliders_left_width = std::max(reset_button_slider_left, std::max(std::max(cursor_slider_left, clipping_slider_left), std::max(highlight_slider_left, gap_fill_slider_left)));
     const float slider_icon_width  = m_imgui->get_slider_icon_size().x;
     const float max_tooltip_width = ImGui::GetFontSize() * 20.0f;
 
@@ -244,33 +248,39 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("tool_type"));
-    std::array<wchar_t, 4> tool_icons = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon, ImGui::FillButtonIcon, ImGui::GapFillIcon };
+    std::array<wchar_t, 4> tool_ids = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon, ImGui::FillButtonIcon, ImGui::GapFillIcon };
+    std::array<wchar_t, 4> icons;
+    if (m_is_dark_mode)
+        icons = { ImGui::CircleButtonDarkIcon, ImGui::SphereButtonDarkIcon, ImGui::FillButtonDarkIcon, ImGui::GapFillDarkIcon };
+    else
+        icons = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon, ImGui::FillButtonIcon, ImGui::GapFillIcon };
+
     std::array<wxString, 4> tool_tips = { _L("Circle"), _L("Sphere"), _L("Fill"), _L("Gap Fill") };
-    for (int i = 0; i < tool_icons.size(); i++) {
+    for (int i = 0; i < tool_ids.size(); i++) {
         std::string  str_label = std::string("##");
-        std::wstring btn_name = tool_icons[i] + boost::nowide::widen(str_label);
+        std::wstring btn_name = icons[i] + boost::nowide::widen(str_label);
 
         if (i != 0) ImGui::SameLine((empty_button_width + m_imgui->scaled(1.75f)) * i + m_imgui->scaled(1.3f));
 
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
-        if (m_current_tool == tool_icons[i]) {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.86f, 0.99f, 0.91f, 1.00f)); // r, g, b, a
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
+        if (m_current_tool == tool_ids[i]) {
+            ImGui::PushStyleColor(ImGuiCol_Button, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f)); // r, g, b, a
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0);
             ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0);
         }
         bool btn_clicked = ImGui::Button(into_u8(btn_name).c_str());
-        if (m_current_tool == tool_icons[i])
+        if (m_current_tool == tool_ids[i])
         {
             ImGui::PopStyleColor(4);
             ImGui::PopStyleVar(2);
         }
         ImGui::PopStyleVar(1);
 
-        if (btn_clicked && m_current_tool != tool_icons[i]) {
-            m_current_tool = tool_icons[i];
+        if (btn_clicked && m_current_tool != tool_ids[i]) {
+            m_current_tool = tool_ids[i];
             for (auto& triangle_selector : m_triangle_selectors) {
                 triangle_selector->seed_fill_unselect_all_triangles();
                 triangle_selector->request_update_render_data();
@@ -281,6 +291,11 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
             m_imgui->tooltip(tool_tips[i], max_tooltip_width);
         }
     }
+
+    m_imgui->bbl_checkbox(m_desc["on_overhangs_only"], m_paint_on_overhangs_only);
+    if (ImGui::IsItemHovered())
+        m_imgui->tooltip(format_wxstr(_L("Allows painting only on facets selected by: \"%1%\""), m_desc["highlight_by_angle"]), max_tooltip_width);
+    ImGui::Separator();
 
     if (m_current_tool != old_tool)
         this->tool_changed(old_tool, m_current_tool);
@@ -379,11 +394,20 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
     ImGui::SameLine(drag_left_width);
     ImGui::PushItemWidth(1.5 * slider_icon_width);
     ImGui::BBLDragFloat("##angle_threshold_deg_input", &m_highlight_by_angle_threshold_deg, 0.05f, 0.0f, 0.0f, "%.2f");
-    
+
     if (m_current_tool != ImGui::GapFillIcon) {
         ImGui::Separator();
-        ImGui::AlignTextToFramePadding();
-        m_imgui->text(m_desc.at("clipping_of_view"));
+        if (m_c->object_clipper()->get_position() == 0.f) {
+            ImGui::AlignTextToFramePadding();
+            m_imgui->text(m_desc.at("clipping_of_view"));
+        }
+        else {
+            if (m_imgui->button(m_desc.at("reset_direction"))) {
+                wxGetApp().CallAfter([this]() {
+                    m_c->object_clipper()->set_position(-1., false);
+                    });
+            }
+        }
 
         auto clp_dist = float(m_c->object_clipper()->get_position());
         ImGui::SameLine(sliders_left_width);
@@ -468,6 +492,7 @@ void GLGizmoFdmSupports::show_tooltip_information(float caption_max, float x, fl
     float font_size = ImGui::GetFontSize();
     ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0, ImGui::GetStyle().FramePadding.y });
     ImGui::ImageButton3(normal_id, hover_id, button_size);
 
     if (ImGui::IsItemHovered()) {
@@ -499,7 +524,7 @@ void GLGizmoFdmSupports::show_tooltip_information(float caption_max, float x, fl
 
         ImGui::EndTooltip();
     }
-    ImGui::PopStyleVar(1);
+    ImGui::PopStyleVar(2);
 }
 
 // BBS
@@ -796,7 +821,7 @@ void GLGizmoFdmSupports::update_support_volumes()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "join thread returns "<<ret;
     }
     m_cancel = false;
-    m_thread = create_thread([this]{this->run_thread();});    
+    m_thread = create_thread([this]{this->run_thread();});
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",created thread to generate support volumes";
     return;
 }

@@ -4,6 +4,9 @@
     "from": "system",
     "instantiation": "false",
     "inherits": "fdm_filament_common",
+    "required_nozzle_HRC": [
+        "40"
+    ],
     "cool_plate_temp" : [
         "0"
     ],

@@ -90,6 +90,7 @@ public:
     // debug mode
     ::CheckBox * m_developer_mode_ckeckbox   = {nullptr};
     ::CheckBox * m_dump_video_ckeckbox       = {nullptr};
+    ::CheckBox * m_dark_mode_ckeckbox        = {nullptr};
     ::TextInput *m_backup_interval_textinput = {nullptr};
 
     wxString m_developer_mode_def;
@@ -107,7 +108,9 @@ public:
     wxBoxSizer *create_item_language_combobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param, std::vector<const wxLanguageInfo *> vlist);
     wxBoxSizer *create_item_loglevel_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist);
     wxBoxSizer *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
-    wxWindow*   create_item_downloads(wxWindow* parent, int padding_left, std::string param);
+    wxBoxSizer *create_item_darkmode_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
+    void set_dark_mode();
+    wxWindow* create_item_downloads(wxWindow* parent, int padding_left, std::string param);
     wxBoxSizer* create_item_backup_checkbox(wxString title, wxWindow* parent, wxString tooltip, int padding_left, std::string param);
     wxBoxSizer *create_item_backup_input(wxString title, wxWindow *parent, wxString tooltip, std::string param);
     wxBoxSizer *create_item_multiple_combobox(

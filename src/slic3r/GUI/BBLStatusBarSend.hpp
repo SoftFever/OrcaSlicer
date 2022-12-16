@@ -48,6 +48,7 @@ public:
     void        set_progress(int) override;
     int         get_range() const override;
     void        set_range(int = 100) override;
+    void        clear_percent() override;
     void        show_progress(bool);
     void        start_busy(int = 100);
     void        stop_busy();
@@ -56,7 +57,9 @@ public:
     void        set_cancel_callback(CancelFn = CancelFn()) override;
     inline void reset_cancel_callback() { set_cancel_callback(); }
     wxPanel *   get_panel();
-    void        set_status_text(const wxString &txt);
+    bool        is_english_text(wxString str);
+    bool        format_text(wxStaticText* dc, int width, const wxString& text, wxString& multiline_text);
+    void        set_status_text(const wxString& txt);
     void        set_percent_text(const wxString &txt);
     void        msw_rescale();
     void        set_status_text(const std::string &txt);
@@ -69,7 +72,6 @@ public:
     bool        is_slice_info_shown();
     bool        update_status(wxString &msg, bool &was_cancel, int percent = -1, bool yield = true);
     void        reset();
-
     // Temporary methods to satisfy Perl side
     void show_cancel_button();
     void hide_cancel_button();

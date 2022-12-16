@@ -3,6 +3,8 @@
 
 #include <wx/colour.h>
 
+#include <map>
+
 class StateColor
 {
 public:
@@ -19,6 +21,13 @@ public:
         NotHovered = 8 << 16,
         NotPressed = 16 << 16,
     };
+
+public:
+    static void SetDarkMode(bool dark);
+
+    static std::map<wxColour, wxColour> const & GetDarkMap();
+    static wxColour darkModeColorFor(wxColour const &color);
+    static wxColour lightModeColorFor(wxColour const &color);
 
 public:
     template<typename ...Colors>
@@ -53,6 +62,8 @@ public:
     wxColour defaultColor();
 
     wxColour colorForStates(int states);
+
+    wxColour colorForStatesNoDark(int states);
 
     int colorIndexForStates(int states);
 

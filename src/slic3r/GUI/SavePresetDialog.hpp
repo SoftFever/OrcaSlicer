@@ -10,6 +10,7 @@
 #include "Widgets/Button.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/Label.hpp"
+#include "Widgets/TextInput.hpp"
 
 class wxString;
 class wxStaticText;
@@ -17,7 +18,7 @@ class wxComboBox;
 class wxStaticBitmap;
 
 #define SAVE_PRESET_DIALOG_DEF_COLOUR wxColour(255, 255, 255)
-#define SAVE_PRESET_DIALOG_INPUT_SIZE wxSize(FromDIP(360), FromDIP(32))
+#define SAVE_PRESET_DIALOG_INPUT_SIZE wxSize(FromDIP(360), FromDIP(24))
 #define SAVE_PRESET_DIALOG_BUTTON_SIZE wxSize(FromDIP(60), FromDIP(24))
 
 namespace Slic3r {
@@ -55,7 +56,7 @@ class SavePresetDialog : public DPIDialog
         //BBS: add project embedded preset relate logic
         bool save_to_project() const { return m_save_to_project; }
 
-        RoundedRectangle* m_input_area      {nullptr};
+        StaticBox* m_input_area      {nullptr};
         Preset::Type    m_type;
         ValidationType  m_valid_type;
         std::string		m_preset_name;

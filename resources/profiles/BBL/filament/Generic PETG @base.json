@@ -41,6 +41,18 @@
     "nozzle_temperature_range_high": [
         "270"
     ],
+    "cool_plate_temp" : [
+        "0"
+    ],
+    "eng_plate_temp" : [
+        "70"
+    ],
+    "cool_plate_temp_initial_layer" : [
+        "0"
+    ],
+    "eng_plate_temp_initial_layer" : [
+        "70"
+    ],
     "hot_plate_temp" : [
         "70"
     ],

@@ -67,6 +67,23 @@ class FakeWebView : public wxWebView
     virtual void DoSetPage(const wxString& html, const wxString& baseUrl) override { }
 };
 
+wxDEFINE_EVENT(EVT_WEBVIEW_RECREATED, wxCommandEvent);
+
+static std::vector<wxWebView*> g_webviews;
+
+class WebViewRef : public wxObjectRefData
+{
+public:
+    WebViewRef(wxWebView *webView) : m_webView(webView) {}
+    ~WebViewRef() {
+        auto iter = std::find(g_webviews.begin(), g_webviews.end(), m_webView);
+        assert(iter != g_webviews.end());
+        if (iter != g_webviews.end())
+            g_webviews.erase(iter);
+    }
+    wxWebView *m_webView;
+};
+
 wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
 {
 #if wxUSE_WEBVIEW_EDGE
@@ -85,24 +102,32 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
     url2.Replace("\\", "/");
 #endif
     if (!url2.empty()) { url2 = wxURI(url2).BuildURI(); }
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << url2.ToUTF8();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << url2.ToUTF8();
 
     auto webView = wxWebView::New();
     if (webView) {
+        webView->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
 #ifdef __WIN32__
-        webView->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION));
-        webView->Create(parent, wxID_ANY, url2, wxDefaultPosition, wxDefaultSize);
-        //We register the wxfs:// protocol for testing purposes
+        webView->SetUserAgent(wxString::Format("BBL-Slicer/v%s (%s) Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.52", SLIC3R_VERSION, 
+            Slic3r::GUI::wxGetApp().dark_mode() ? "dark" : "light"));
+        webView->Create(parent, wxID_ANY, url2, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        // We register the wxfs:// protocol for testing purposes
         webView->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("bbl")));
-        //And the memory: file system
+        // And the memory: file system
         webView->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
 #else
         // With WKWebView handlers need to be registered before creation
         webView->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("wxfs")));
         // And the memory: file system
         webView->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
-        webView->Create(parent, wxID_ANY, url2, wxDefaultPosition, wxDefaultSize);
-        webView->SetUserAgent(wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION));
+        webView->Create(parent, wxID_ANY, url2, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        webView->SetUserAgent(wxString::Format("BBL-Slicer/v%s (%s) Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)", SLIC3R_VERSION,
+                                               Slic3r::GUI::wxGetApp().dark_mode() ? "dark" : "light"));
+#endif
+#ifdef __WXMAC__
+        WKWebView * wkWebView = (WKWebView *) webView->GetNativeBackend();
+        Slic3r::GUI::WKWebView_setTransparentBackground(wkWebView);
 #endif
 #ifndef __WIN32__
         Slic3r::GUI::wxGetApp().CallAfter([webView] {
@@ -121,6 +146,8 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": failed. Use fake web view.";
         webView = new FakeWebView;
     }
+    webView->SetRefData(new WebViewRef(webView));
+    g_webviews.push_back(webView);
     return webView;
 }
 
@@ -171,4 +198,36 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
     } catch (std::exception &e) {
         return false;
     }
+}
+
+void WebView::RecreateAll()
+{
+#ifdef __WXMSW__
+    auto webviews = g_webviews;
+    std::vector<wxWindow*> parents;
+    std::vector<wxString> urls;
+    for (auto web : webviews) {
+        parents.push_back(web->GetParent());
+        urls.push_back(web->GetCurrentURL());
+        delete web;
+    }
+    assert(g_webviews.empty());
+    for (int i = 0; i < parents.size(); ++i) {
+        auto webView = CreateWebView(parents[i], urls[i]);
+        if (webView) {
+            wxCommandEvent evt(EVT_WEBVIEW_RECREATED);
+            evt.SetEventObject(webView);
+            wxPostEvent(parents[i], evt);
+        }
+    }
+#else
+    for (auto webView : g_webviews) {
+        webView->SetUserAgent(wxString::Format("BBL-Slicer/v%s (%s) Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)", SLIC3R_VERSION,
+                                               Slic3r::GUI::wxGetApp().dark_mode() ? "dark" : "light"));
+        webView->Reload();
+        wxCommandEvent evt(EVT_WEBVIEW_RECREATED);
+        evt.SetEventObject(webView);
+        wxPostEvent(webView->GetParent(), evt);
+    }
+#endif
 }

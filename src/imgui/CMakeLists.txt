@@ -14,3 +14,7 @@ add_library(imgui STATIC
     imgui_draw.cpp
     imgui_widgets.cpp
 )
+
+if(Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIRS})
+endif()

@@ -16,14 +16,16 @@
 #include "Widgets/Label.hpp"
 #include "Widgets/SwitchButton.hpp"
 #include "Widgets/Button.hpp"
+#include "GUI_Factories.hpp"
 
 
 namespace Slic3r {
 namespace GUI {
 
 
-TipsDialog::TipsDialog(wxWindow *parent, const wxString &title)
-    : DPIDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+TipsDialog::TipsDialog(wxWindow *parent, const wxString &title, const wxString &description, std::string app_key)
+    : DPIDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX),
+    m_app_key(app_key)
 {
     SetBackgroundColour(*wxWHITE);
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
@@ -38,7 +40,7 @@ TipsDialog::TipsDialog(wxWindow *parent, const wxString &title)
 
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(20));
 
-    m_msg = new wxStaticText(this, wxID_ANY, _L("Switch to per-object setting mode to edit modifier settings."), wxDefaultPosition, wxDefaultSize, 0);
+    m_msg = new wxStaticText(this, wxID_ANY, description, wxDefaultPosition, wxDefaultSize, 0);
     m_msg->Wrap(-1);
     m_msg->SetFont(::Label::Body_13);
     m_msg->SetForegroundColour(wxColour(107, 107, 107));
@@ -51,7 +53,7 @@ TipsDialog::TipsDialog(wxWindow *parent, const wxString &title)
     wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *m_sizer_left   = new wxBoxSizer(wxHORIZONTAL);
 
-    auto dont_show_again = create_item_checkbox(_L("Don't show again"), this, _L("Don't show again"), "do_not_show_modifer_tips");
+    auto dont_show_again = create_item_checkbox(_L("Don't show again"), this, _L("Don't show again"), "do_not_show_tips");
     m_sizer_left->Add(dont_show_again, 1, wxALL, FromDIP(5));
 
     m_sizer_bottom->Add(m_sizer_left, 1, wxEXPAND, FromDIP(5));
@@ -79,6 +81,8 @@ TipsDialog::TipsDialog(wxWindow *parent, const wxString &title)
     Layout();
     Fit();
     Centre(wxBOTH);
+
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 wxBoxSizer *TipsDialog::create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param)
@@ -119,7 +123,8 @@ void TipsDialog::on_dpi_changed(const wxRect &suggested_rect)
 void TipsDialog::on_ok(wxMouseEvent &event)
 {
     if (m_show_again) {
-        wxGetApp().app_config->set_bool("do_not_show_modifer_tips", m_show_again);
+        if (!m_app_key.empty())
+        wxGetApp().app_config->set_bool(m_app_key, m_show_again);
     }
     EndModal(wxID_OK);
 }
@@ -244,14 +249,7 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         });
     }
 
-    m_staticline_filament = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    //m_staticline_print = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    m_staticline_print_object = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    m_staticline_print_part = new wxStaticLine( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    m_staticline_printer = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
-    // BBS: new layout
-    //m_staticline_buttons = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
-    //m_staticline_middle = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL);
+
 
     //m_export_to_file = new Button( this, wxT("Export To File"), "");
     //m_import_from_file = new Button( this, wxT("Import From File") );
@@ -395,8 +393,6 @@ void ParamsPanel::create_layout()
     }
 
     if (m_tab_print) {
-        if (m_staticline_print)
-            m_left_sizer->Add( m_staticline_print, 0, wxEXPAND );
         //m_print_sizer = new wxBoxSizer( wxHORIZONTAL );
         //m_print_sizer->Add( m_tab_print, 1, wxEXPAND | wxALL, 5 );
         //m_left_sizer->Add( m_print_sizer, 1, wxEXPAND, 5 );
@@ -404,17 +400,20 @@ void ParamsPanel::create_layout()
     }
 
     if (m_tab_print_object) {
-        m_left_sizer->Add( m_staticline_print_object, 0, wxEXPAND );
+        if (m_staticline_print_object)
+            m_left_sizer->Add( m_staticline_print_object, 0, wxEXPAND );
         m_left_sizer->Add( m_tab_print_object, 0, wxEXPAND );
     }
 
     if (m_tab_print_part) {
-        m_left_sizer->Add( m_staticline_print_part, 0, wxEXPAND );
+        if (m_staticline_print_part)
+            m_left_sizer->Add( m_staticline_print_part, 0, wxEXPAND );
         m_left_sizer->Add( m_tab_print_part, 0, wxEXPAND );
     }
 
     if (m_tab_filament) {
-        m_left_sizer->Add( m_staticline_filament, 0, wxEXPAND );
+        if (m_staticline_filament)
+            m_left_sizer->Add(m_staticline_filament, 0, wxEXPAND);
         //m_filament_sizer = new wxBoxSizer( wxVERTICAL );
         //m_filament_sizer->Add( m_tab_filament, 1, wxEXPAND | wxALL, 5 );
        // m_left_sizer->Add( m_filament_sizer, 1, wxEXPAND, 5 );
@@ -422,7 +421,8 @@ void ParamsPanel::create_layout()
     }
 
     if (m_tab_printer) {
-        m_left_sizer->Add( m_staticline_printer, 0, wxEXPAND );
+        if (m_staticline_printer)
+            m_left_sizer->Add( m_staticline_printer, 0, wxEXPAND );
         //m_printer_sizer = new wxBoxSizer( wxVERTICAL );
         //m_printer_sizer->Add( m_tab_printer, 1, wxEXPAND | wxALL, 5 );
         m_left_sizer->Add( m_tab_printer, 0, wxEXPAND );
@@ -436,11 +436,9 @@ void ParamsPanel::create_layout()
 
     //m_button_sizer->Add( m_import_from_file, 0, wxALL, 5 );
 
-    //m_left_sizer->Add( m_staticline_buttons, 0, wxEXPAND );
     //m_left_sizer->Add( m_button_sizer, 0, wxALIGN_CENTER, 5 );
 
     m_top_sizer->Add(m_left_sizer, 1, wxEXPAND);
-    //m_top_sizer->Add(m_staticline_middle, 0, wxEXPAND, 0);
 
     //m_right_sizer = new wxBoxSizer( wxVERTICAL );
 
@@ -672,6 +670,43 @@ void ParamsPanel::switch_to_object(bool with_tips)
     }
 }
 
+void ParamsPanel::notify_object_config_changed()
+{
+    auto & model = wxGetApp().model();
+    bool has_config = false;
+    for (auto obj : model.objects) {
+        if (!obj->config.empty()) {
+            SettingsFactory::Bundle cat_options = SettingsFactory::get_bundle(&obj->config.get(), true);
+            if (cat_options.size() > 0) {
+                has_config = true;
+                break;
+            }
+        }
+        for (auto volume : obj->volumes) {
+            if (!volume->config.empty()) {
+                SettingsFactory::Bundle cat_options = SettingsFactory::get_bundle(&volume->config.get(), true);
+                if (cat_options.size() > 0) {
+                    has_config = true;
+                    break;
+                }
+            }
+        }
+        if (has_config) break;
+    }
+    if (has_config == m_has_object_config) return;
+    m_has_object_config = has_config;
+    if (has_config)
+        m_mode_region->SetTextColor2(StateColor(std::pair{0xfffffe, (int) StateColor::Checked}, std::pair{wxGetApp().get_label_clr_modified(), 0}));
+    else
+        m_mode_region->SetTextColor2(StateColor());
+    m_mode_region->Rescale();
+}
+
+void ParamsPanel::switch_to_object_if_has_object_configs()
+{
+    if (m_has_object_config) m_mode_region->SetValue(true);
+}
+
 void ParamsPanel::free_sizers()
 {
     if (m_top_sizer)
@@ -750,19 +785,6 @@ void ParamsPanel::delete_subwindows()
         delete m_staticline_printer;
         m_staticline_printer = nullptr;
     }
-
-    //// BBS: new layout
-    //if (m_staticline_buttons)
-    //{
-    //    delete m_staticline_buttons;
-    //    m_staticline_buttons = nullptr;
-    //}
-
-    //if (m_staticline_middle)
-    //{
-    //    delete m_staticline_middle;
-    //    m_staticline_middle = nullptr;
-    //}
 
     if (m_export_to_file)
     {

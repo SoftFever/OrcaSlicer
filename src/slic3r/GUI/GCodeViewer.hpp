@@ -614,6 +614,7 @@ public:
             Vec3f m_world_offset;
             float m_z_offset{ 0.5f };
             bool m_visible{ true };
+            bool m_is_dark = false;
 
         public:
             float m_scale = 1.0f;
@@ -630,6 +631,7 @@ public:
 
             //BBS: GUI refactor: add canvas size
             void render(int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves, uint64_t curr_line_id) const;
+            void on_change_color_mode(bool is_dark) { m_is_dark = is_dark; }
         };
 
         class GCodeWindow
@@ -689,7 +691,7 @@ public:
         float m_scale = 1.0;
 
         //BBS: GUI refactor: add canvas size
-        void render(float legend_height, int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves) const;
+        void render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves) const;
     };
 
     struct ETools
@@ -771,11 +773,13 @@ private:
 
     bool m_contained_in_bed{ true };
     mutable bool m_no_render_path { false };
+    bool m_is_dark = false;
 
 public:
     GCodeViewer();
     ~GCodeViewer();
 
+    void on_change_color_mode(bool is_dark);
     float m_scale = 1.0;
     void set_scale(float scale = 1.0);
     void init(ConfigOptionMode mode, Slic3r::PresetBundle* preset_bundle);

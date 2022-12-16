@@ -217,11 +217,22 @@ public:
 	// Returns gcode for a toolchange and a final print head position.
 	// On the first layer, extrude a brim around the future wipe tower first.
 	// BBS
-	ToolChangeResult tool_change(size_t new_tool, bool extrude_perimeter = false);
+    ToolChangeResult tool_change(size_t new_tool, bool extrude_perimeter = false, bool first_toolchange_to_nonsoluble = false);
 
 	// Fill the unfilled space with a sparse infill.
 	// Call this method only if layer_finished() is false.
     ToolChangeResult finish_layer(bool extruder_perimeter = true, bool extruder_fill = true);
+
+	// Calculates extrusion flow needed to produce required line width for given layer height
+    float extrusion_flow(float layer_height = -1.f) const // negative layer_height - return current m_extrusion_flow
+    {
+        if (layer_height < 0) return m_extrusion_flow;
+        return layer_height * (m_perimeter_width - layer_height * (1.f - float(M_PI) / 4.f)) / filament_area();
+    }
+
+	bool get_floating_area(float& start_pos_y, float& end_pos_y) const;
+	bool need_thick_bridge_flow(float pos_y) const;
+    float get_extrusion_flow() const { return m_extrusion_flow; }
 
 	// Is the current layer finished?
 	bool 			 layer_finished() const {
@@ -335,14 +346,6 @@ private:
 	float			m_extra_spacing   = 1.f;
 
     bool is_first_layer() const { return size_t(m_layer_info - m_plan.begin()) == m_first_layer_idx; }
-
-	// Calculates extrusion flow needed to produce required line width for given layer height
-	float extrusion_flow(float layer_height = -1.f) const	// negative layer_height - return current m_extrusion_flow
-	{
-		if ( layer_height < 0 )
-			return m_extrusion_flow;
-		return layer_height * ( m_perimeter_width - layer_height * (1.f-float(M_PI)/4.f)) / filament_area();
-	}
 
 	// Calculates length of extrusion line to extrude given volume
 	float volume_to_length(float volume, float line_width, float layer_height) const {

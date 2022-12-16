@@ -113,6 +113,8 @@ ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_AN
 
     //Param
     m_AutotestToken = "";
+
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 ZUserLogin::~ZUserLogin() {

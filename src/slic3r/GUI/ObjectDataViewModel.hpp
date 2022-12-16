@@ -173,6 +173,18 @@ public:
     {
         return m_children.Item(n);
     }
+
+    int GetChildIndex(ObjectDataViewModelNode* child) const
+    {
+        size_t child_count = GetChildCount();
+        for (int index = 0; index < child_count; index++)
+        {
+            if (m_children.Item(index) == child)
+                return index;
+        }
+        return -1;
+    }
+
     void Insert(ObjectDataViewModelNode* child, unsigned int n)
     {
         if (!m_container)

@@ -30,7 +30,7 @@ protected:
 public:
     SendJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater, std::string dev_id = "");
 
-
+    std::string m_project_name;
     std::string m_dev_ip;
     std::string m_access_code;
     std::string task_bed_type;
@@ -53,6 +53,7 @@ public:
     void process() override;
     void on_success(std::function<void()> success);
     void finalize() override;
+    void set_project_name(std::string name);
 };
 
 }}

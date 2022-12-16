@@ -1,5 +1,6 @@
 #include "TextInput.hpp"
 #include "Label.hpp"
+#include "TextCtrl.h"
 
 #include <wx/dcgraph.h>
 
@@ -25,7 +26,7 @@ TextInput::TextInput()
     border_width = 1;
     border_color = StateColor(std::make_pair(0xDBDBDB, (int) StateColor::Disabled), std::make_pair(0x00AE42, (int) StateColor::Hovered),
                               std::make_pair(0xDBDBDB, (int) StateColor::Normal));
-    background_color = StateColor(std::make_pair(0xF0F0F0, (int) StateColor::Disabled), std::make_pair(*wxWHITE, (int) StateColor::Normal));
+    background_color = StateColor(std::make_pair(0xF0F0F1, (int) StateColor::Disabled), std::make_pair(*wxWHITE, (int) StateColor::Normal));
     SetFont(Label::Body_12);
 }
 
@@ -55,7 +56,7 @@ void TextInput::Create(wxWindow *     parent,
     style &= ~wxRIGHT;
     state_handler.attach({&label_color, & text_color});
     state_handler.update_binds();
-    text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {4, 4}, wxDefaultSize, style | wxBORDER_NONE | wxTE_PROCESS_ENTER);
+    text_ctrl = new TextCtrl(this, wxID_ANY, text, {4, 4}, wxDefaultSize, style | wxBORDER_NONE | wxTE_PROCESS_ENTER);
     text_ctrl->SetFont(Label::Body_14);
     text_ctrl->SetInitialSize(text_ctrl->GetBestSize());
     text_ctrl->SetBackgroundColour(background_color.colorForStates(state_handler.states()));

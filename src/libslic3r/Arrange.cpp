@@ -84,7 +84,7 @@ const double BIG_ITEM_TRESHOLD = 0.02;
 template<class PConf>
 void fill_config(PConf& pcfg, const ArrangeParams &params) {
 
-    if (params.is_seq_print) {
+    if (params.is_seq_print || params.excluded_regions.empty()==false) {
         // Align the arranged pile into the center of the bin
         pcfg.alignment = PConf::Alignment::CENTER;
         // Start placing the items from the center of the print bed
@@ -137,7 +137,7 @@ static double fixed_overfit(const std::tuple<double, Box>& result, const Box &bi
 }
 
 // useful for arranging big circle objects
-static double fixed_overfit_topright_sliding(const std::tuple<double, Box>& result, const Box& binbb)
+static double fixed_overfit_topright_sliding(const std::tuple<double, Box> &result, const Box &binbb, const std::vector<Box> &excluded_boxes)
 {
     double score = std::get<0>(result);
     Box pilebb = std::get<1>(result);
@@ -151,6 +151,12 @@ static double fixed_overfit_topright_sliding(const std::tuple<double, Box>& resu
     Box fullbb = sl::boundingBox(pilebb, binbb);
     auto diff = double(fullbb.area()) - binbb.area();
     if (diff > 0) score += diff;
+
+    // excluded regions and nonprefered regions should not intersect the translated pilebb
+    for (auto &bb : excluded_boxes) {
+        auto area_ = pilebb.intersection(bb).area();
+        if (area_ > 0) score += area_;
+    }
 
     return score;
 }
@@ -190,6 +196,7 @@ protected:
     Box          m_pilebb;      // The bounding box of the merged pile.
     ItemGroup m_remaining;      // Remaining items
     ItemGroup m_items;          // allready packed items
+    std::vector<Box> m_excluded_and_extruCali_regions;  // excluded and extrusion calib regions
     size_t    m_item_count = 0; // Number of all items to be packed
     ArrangeParams params;
     
@@ -202,14 +209,20 @@ protected:
         // 1) Y distance of item corner to bed corner. Must be put above bed corner. (high weight)
         // 2) X distance of item corner to bed corner (low weight)
         // 3) item row occupancy (useful when rotation is enabled)
+        // 4）需要允许往屏蔽区域的左边或下边去一点，不然很多物体可能认为摆不进去，实际上我们最后是可以做平移的
     double dist_for_BOTTOM_LEFT(Box ibb, const ClipperLib::IntPoint& origin_pack)
     {
         double dist_corner_y = ibb.minCorner().y() - origin_pack.y();
         double dist_corner_x = ibb.minCorner().x() - origin_pack.x();
-        if (dist_corner_y < 0 || dist_corner_x<0)
-            return LARGE_COST_TO_REJECT;
-        double bindist = norm(dist_corner_y + 1 * dist_corner_x
-            + 1 * double(ibb.maxCorner().y() - ibb.minCorner().y()));  // occupy as few rows as possible
+        // occupy as few rows as possible if we have rotations
+        double bindist       = double(ibb.maxCorner().y() - ibb.minCorner().y());
+        if (dist_corner_x >= 0 && dist_corner_y >= 0)
+            bindist += dist_corner_y + 1 * dist_corner_x;
+        else {
+            if (dist_corner_x < 0) bindist += 10 * (-dist_corner_x);
+            if (dist_corner_y < 0) bindist += 10 * (-dist_corner_y);
+            }
+        bindist = norm(bindist);
         return bindist;
     }
 
@@ -350,9 +363,10 @@ protected:
                 score = dist_for_BOTTOM_LEFT(ibb, origin_pack);
             }
             else {
-                score = 0.5 * norm(pl::distance(ibb.center(), origin_pack));
                 if (m_pilebb.defined)
-                    score += 0.5 * norm(pl::distance(ibb.center(), m_pilebb.center()));
+                    score = 0.5 * norm(pl::distance(ibb.center(), m_pilebb.center()));
+                else
+                    score = 0.5 * norm(pl::distance(ibb.center(), origin_pack));
             }
             break;
         }
@@ -411,6 +425,7 @@ protected:
                 if (p.is_virt_object) continue;
                 score += lambda3 * (item.bed_temp - p.vitrify_temp > 0);
             }
+            score += lambda3 * (item.bed_temp - item.vitrify_temp > 0);
             score += lambda4 * hasRowHeightConflict + lambda4 * hasLidHeightConflict;
         }
         else {
@@ -418,12 +433,20 @@ protected:
                 Item& p = m_items[i];
                 if (p.is_virt_object) {
                     // Better not put items above wipe tower
-                    if (p.is_wipe_tower)
-                        score += ibb.maxCorner().y() > p.boundingBox().maxCorner().y();
+                    if (p.is_wipe_tower) {
+                        if (ibb.maxCorner().y() > p.boundingBox().maxCorner().y())
+                            score += 1;
+                        else if(m_pilebb.defined)
+                            score += norm(pl::distance(ibb.center(), m_pilebb.center()));
+                    }
                     else
                         continue;
-                } else
+                } else {
+                    // 高度接近的件尽量摆到一起
+                    score += (1- std::abs(item.height - p.height) / params.printable_height)
+                        * norm(pl::distance(ibb.center(), p.boundingBox().center()));
                     score += LARGE_COST_TO_REJECT * (item.bed_temp - p.bed_temp != 0);
+                }
             }
         }
 
@@ -461,6 +484,14 @@ public:
         m_norm = std::sqrt(m_bin_area);
         fill_config(m_pconf, params);
         this->params = params;
+        for (auto& region : m_pconf.m_excluded_regions) {
+            Box  bb = region.boundingBox();
+            m_excluded_and_extruCali_regions.emplace_back(bb);
+        }
+        for (auto& region : m_pconf.m_nonprefered_regions) {
+            Box  bb = region.boundingBox();
+            m_excluded_and_extruCali_regions.emplace_back(bb);
+        }
 
         // Set up a callback that is called just before arranging starts
         // This functionality is provided by the Nester class (m_pack).
@@ -498,28 +529,19 @@ public:
         
         m_pconf.object_function = get_objfn();
 
-        auto bbox2expoly = [](Box bb) {
-            ExPolygon bin_poly;
-            auto c0 = bb.minCorner();
-            auto c1 = bb.maxCorner();
-            bin_poly.contour.points.emplace_back(c0);
-            bin_poly.contour.points.emplace_back(c1.x(), c0.y());
-            bin_poly.contour.points.emplace_back(c1);
-            bin_poly.contour.points.emplace_back(c0.x(), c1.y());
-            return bin_poly;
-        };
-        
         // preload fixed items (and excluded regions) on plate
         m_pconf.on_preload = [this](const ItemGroup &items, PConfig &cfg) {
             if (items.empty()) return;
 
-            auto bb = sl::boundingBox(m_bin);
+            auto binbb = sl::boundingBox(m_bin);
             // BBS: excluded region (virtual object but not wipe tower) should not affect final alignment
             bool all_is_excluded_region = std::all_of(items.begin(), items.end(), [](Item &itm) { return itm.is_virt_object && !itm.is_wipe_tower; });
             if (!all_is_excluded_region)
                 cfg.alignment = PConfig::Alignment::DONT_ALIGN;
+            else
+                cfg.alignment = PConfig::Alignment::CENTER;
 
-            auto starting_point = cfg.starting_point == PConfig::Alignment::BOTTOM_LEFT ? bb.minCorner() : bb.center();
+            auto starting_point = cfg.starting_point == PConfig::Alignment::BOTTOM_LEFT ? binbb.minCorner() : binbb.center();
             // if we have wipe tower, items should be arranged around wipe tower
             for (Item itm : items) {
                 if (itm.is_wipe_tower) {
@@ -528,12 +550,16 @@ public:
                 }
             }
 
-            cfg.object_function = [this, bb, starting_point](const Item& item, const ItemGroup& packed_items) {
-                bool packed_are_excluded_region = std::all_of(packed_items.begin(), packed_items.end(), [](Item& itm) { return itm.is_virt_object && !itm.is_wipe_tower; });
-                if(packed_are_excluded_region)
-                    return fixed_overfit_topright_sliding(objfunc(item, starting_point), bb);
-                else
-                    return fixed_overfit(objfunc(item, starting_point), bb);
+            cfg.object_function = [this, binbb, starting_point](const Item &item, const ItemGroup &packed_items) {
+                // 在我们的摆盘中，没有天然的固定对象。固定对象只有：屏蔽区域、挤出补偿区域、料塔。
+                // 对于屏蔽区域，摆入的对象仍然是可以向右上滑动的；
+                // 对挤出料塔，摆入的对象不能滑动（必须围绕料塔）
+                bool pack_around_wipe_tower = std::any_of(packed_items.begin(), packed_items.end(), [](Item& itm) { return itm.is_wipe_tower; });
+                //if(pack_around_wipe_tower)
+                    return fixed_overfit(objfunc(item, starting_point), binbb);
+                //else {
+                //    return fixed_overfit_topright_sliding(objfunc(item, starting_point), binbb, m_excluded_and_extruCali_regions);
+                //}
             };
         };
 
@@ -611,16 +637,18 @@ template<> std::function<double(const Item&, const ItemGroup&)> AutoArranger<Box
         double score = std::get<0>(result);
         auto& fullbb = std::get<1>(result);
 
-        if (m_pconf.starting_point == PConfig::Alignment::BOTTOM_LEFT)
-        {
-            if (!sl::isInside(fullbb, m_bin))
-                score += LARGE_COST_TO_REJECT;
-        }
-        else
+        //if (m_pconf.starting_point == PConfig::Alignment::BOTTOM_LEFT)
+        //{
+        //    if (!sl::isInside(fullbb, m_bin))
+        //        score += LARGE_COST_TO_REJECT;
+        //}
+        //else
         {
             double miss = Placer::overfit(fullbb, m_bin);
             miss = miss > 0 ? miss : 0;
             score += miss * miss;
+            if (score > LARGE_COST_TO_REJECT)
+                score = 1.5 * LARGE_COST_TO_REJECT;
         }
 
         return score;
@@ -821,7 +849,7 @@ static void process_arrangeable(const ArrangePolygon &arrpoly,
     item.binId(arrpoly.bed_idx);
     item.priority(arrpoly.priority);
     item.itemId(arrpoly.itemid);
-    item.extrude_id = arrpoly.extrude_ids.back();
+    item.extrude_id = arrpoly.extrude_ids.front();
     item.height = arrpoly.height;
     item.name = arrpoly.name;
     //BBS: add virtual object logic

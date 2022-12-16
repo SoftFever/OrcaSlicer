@@ -88,6 +88,7 @@
 #include "WebGuideDialog.hpp"
 #include "WebUserLoginDialog.hpp"
 #include "ReleaseNote.hpp"
+#include "ModelMall.hpp"
 
 //#ifdef WIN32
 //#include "BaseException.h"
@@ -97,9 +98,15 @@
 #ifdef __WXMSW__
 #include <dbt.h>
 #include <shlobj.h>
+
+#ifdef __WINDOWS__
 #ifdef _MSW_DARK_MODE
-#include <wx/msw/dark_mode.h>
+#include "dark_mode.hpp"
+#include "wx/headerctrl.h"
+#include "wx/msw/headerctrl.h"
 #endif // _MSW_DARK_MODE
+#endif // __WINDOWS__
+
 #endif
 #ifdef _WIN32
 #include <boost/dll/runtime_symbol_info.hpp>
@@ -223,6 +230,7 @@ public:
 
         // draw logo and constant info text
         Decorate(m_main_bitmap);
+        wxGetApp().UpdateFrameDarkUI(this);
     }
 
     void SetText(const wxString& text)
@@ -234,7 +242,7 @@ public:
             wxMemoryDC memDC;
             memDC.SelectObject(bitmap);
             memDC.SetFont(m_action_font);
-            memDC.SetTextForeground(wxColour(144, 144, 144));
+            memDC.SetTextForeground(StateColor::darkModeColorFor(wxColour(144, 144, 144)));
             int width = bitmap.GetWidth();
             int text_height = memDC.GetTextExtent(text).GetHeight();
             int text_width = memDC.GetTextExtent(text).GetWidth();
@@ -271,13 +279,13 @@ public:
         int version_width = memDc.GetTextExtent(m_constant_text.version).GetWidth();
         int split_width = (width + title_width - version_width) / 2;
         wxRect title_rect(wxPoint(0, top_margin), wxPoint(split_width - text_padding, top_margin + title_height));
-        memDc.SetTextForeground(wxColour(38, 46, 48));
+        memDc.SetTextForeground(StateColor::darkModeColorFor(wxColour(38, 46, 48)));
         memDc.SetFont(m_constant_text.title_font);
         memDc.DrawLabel(m_constant_text.title, title_rect, wxALIGN_RIGHT | wxALIGN_BOTTOM);
         //BBS align bottom of title and version text
         wxRect version_rect(wxPoint(split_width + text_padding, top_margin), wxPoint(width, top_margin + title_height - text_padding));
         memDc.SetFont(m_constant_text.version_font);
-        memDc.SetTextForeground(wxColor(134, 134, 134));
+        memDc.SetTextForeground(StateColor::darkModeColorFor(wxColor(134, 134, 134)));
         memDc.DrawLabel(m_constant_text.version, version_rect, wxALIGN_LEFT | wxALIGN_BOTTOM);
 
 // #if BBL_INTERNAL_TESTING
@@ -294,9 +302,10 @@ public:
         BitmapCache bmp_cache;
         int logo_margin = FromDIP(72 * m_scale);
         int logo_size = FromDIP(122 * m_scale);
+        int logo_width = FromDIP(94 * m_scale);
         wxBitmap logo_bmp = *bmp_cache.load_svg("splash_logo", logo_size, logo_size);
         int logo_y = top_margin + title_rect.GetHeight() + logo_margin;
-        memDc.DrawBitmap(logo_bmp, (width - logo_size) / 2, logo_y, true);
+        memDc.DrawBitmap(logo_bmp, (width - logo_width) / 2, logo_y, true);
 
         // calculate position for the dynamic text
         int text_margin = FromDIP(80 * m_scale);
@@ -313,7 +322,7 @@ public:
 
         wxMemoryDC memDC;
         memDC.SelectObject(new_bmp);
-        memDC.SetBrush(*wxWHITE);
+        memDC.SetBrush(StateColor::darkModeColorFor(*wxWHITE));
         memDC.DrawRectangle(-1, -1, width + 2, height + 2);
         memDC.DrawBitmap(new_bmp, 0, 0, true);
         return new_bmp;
@@ -387,7 +396,7 @@ private:
             title = wxGetApp().is_editor() ? SLIC3R_APP_FULL_NAME : GCODEVIEWER_APP_NAME;
 
             // dynamically get the version to display
-            version = _L("V") + " " + std::string(SLIC3R_VERSION);
+            version = _L("V") + " " + GUI_App::format_display_version();
 
             // credits infornation
             credits = "";
@@ -720,7 +729,7 @@ static const FileWildcards file_wildcards_by_type[FT_SIZE] = {
     /* FT_AMF */     { "AMF files"sv,       { ".amf"sv, ".zip.amf"sv, ".xml"sv } },
     /* FT_3MF */     { "3MF files"sv,       { ".3mf"sv } },
     /* FT_GCODE */   { "G-code files"sv,    { ".gcode"sv } },
-    /* FT_MODEL */   { "Supported files"sv,     { ".3mf"sv, ".stl"sv, ".stp"sv, ".step"sv, ".amf"sv, ".obj"sv } },
+    /* FT_MODEL */   {"Supported files"sv,  {".3mf"sv, ".stl"sv, ".stp"sv, ".step"sv, ".svg"sv, ".amf"sv, ".obj"sv }},
     /* FT_PROJECT */ { "Project files"sv,   { ".3mf"sv} },
     /* FT_GALLERY */ { "Known files"sv,     { ".stl"sv, ".obj"sv } },
 
@@ -994,7 +1003,12 @@ void GUI_App::post_init()
             }
         }
     }
-#if BBL_HAS_FIRST_PAGE
+//#if BBL_HAS_FIRST_PAGE
+    bool slow_bootup = false;
+    if (app_config->get("slow_bootup") == "true") {
+        slow_bootup = true;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", slow bootup, won't render gl here.";
+    }
     if (!switch_to_3d) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", begin load_gl_resources";
         mainframe->Freeze();
@@ -1015,17 +1029,19 @@ void GUI_App::post_init()
 
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished init imgui frame";
         plater_->canvas3D()->enable_render(true);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to render a first frame for test";
 
-        plater_->canvas3D()->render(false);
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished rendering a first frame for test";
+        if (!slow_bootup) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to render a first frame for test";
+            plater_->canvas3D()->render(false);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", finished rendering a first frame for test";
+        }
         if (is_editor())
             mainframe->select_tab(size_t(0));
         mainframe->Thaw();
         plater_->trigger_restore_project(1);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", end load_gl_resources";
     }
-#endif
+//#endif
 
     //BBS: remove GCodeViewer as seperate APP logic
     /*if (this->init_params->start_as_gcodeviewer) {
@@ -1068,8 +1084,9 @@ void GUI_App::post_init()
     // BBS: to be checked
 #if 1
     // show "Did you know" notification
-    if (app_config->get("show_hints") == "true" && ! is_gcode_viewer())
-        plater_->get_notification_manager()->push_hint_notification(true);
+    if (app_config->get("show_hints") == "true" && !is_gcode_viewer()) {
+        plater_->get_notification_manager()->push_hint_notification(false);
+    }
 #endif
 
     if (m_networking_need_update) {
@@ -1146,8 +1163,11 @@ void GUI_App::post_init()
            std::vector<std::pair<time_t, std::string>> files_vec;
            for (auto& it : boost::filesystem::directory_iterator(log_folder)) {
                auto temp_path = it.path();
-               std::time_t lw_t = boost::filesystem::last_write_time(temp_path) ;
-               files_vec.push_back({ lw_t, temp_path.filename().string() });
+               try {
+                   std::time_t lw_t = boost::filesystem::last_write_time(temp_path) ;
+                   files_vec.push_back({ lw_t, temp_path.filename().string() });
+               } catch (const std::exception &ex) {
+               }
            }
            std::sort(files_vec.begin(), files_vec.end(), [](
                std::pair<time_t, std::string> &a, std::pair<time_t, std::string> &b) {
@@ -1167,7 +1187,6 @@ void GUI_App::post_init()
            }
         }
     }
-
     BOOST_LOG_TRIVIAL(info) << "finished post_init";
 //BBS: remove the single instance currently
 /*#ifdef _WIN32
@@ -1179,7 +1198,7 @@ void GUI_App::post_init()
 wxDEFINE_EVENT(EVT_ENTER_FORCE_UPGRADE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SHOW_NO_NEW_VERSION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SHOW_DIALOG, wxCommandEvent);
-
+wxDEFINE_EVENT(EVT_CONNECT_LAN_MODE_PRINT, wxCommandEvent);
 IMPLEMENT_APP(GUI_App)
 
 //BBS: remove GCodeViewer as seperate APP logic
@@ -1256,13 +1275,13 @@ std::string GUI_App::get_http_url(std::string country_code)
     return url;
 }
 
-std::string GUI_App::get_plugin_url(std::string country_code)
+std::string GUI_App::get_plugin_url(std::string name, std::string country_code)
 {
     std::string url = get_http_url(country_code);
 
     std::string curr_version = SLIC3R_VERSION;
     std::string using_version = curr_version.substr(0, 9) + "00";
-    url += (boost::format("?slicer/plugins/cloud=%1%") % using_version).str();
+    url += (boost::format("?slicer/%1%/cloud=%2%") % name % using_version).str();
     //url += (boost::format("?slicer/plugins/cloud=%1%") % "01.01.00.00").str();
     return url;
 }
@@ -1282,7 +1301,7 @@ static std::string decode(std::string const& extra, std::string const& path = {}
     return Slic3r::decode_path(path.c_str());
 }
 
-int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
+int GUI_App::download_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
 {
     int result = 0;
     // get country_code
@@ -1293,16 +1312,18 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
     BOOST_LOG_TRIVIAL(info) << "[download_plugin]: enter";
     m_networking_cancel_update = false;
     // get temp path
-    fs::path target_file_path = (fs::temp_directory_path() / "network_plugin.zip");
+    fs::path target_file_path = (fs::temp_directory_path() / package_name);
     fs::path tmp_path = target_file_path;
     tmp_path += format(".%1%%2%", get_current_pid(), ".tmp");
 
     // get_url
-    std::string url = get_plugin_url(app_config->get_country_code());
+    std::string  url = get_plugin_url(name, app_config->get_country_code());
     std::string download_url;
     Slic3r::Http http_url = Slic3r::Http::get(url);
     BOOST_LOG_TRIVIAL(info) << "[download_plugin]: check the plugin from " << url;
-    http_url.on_complete(
+    http_url.timeout_connect(TIMEOUT_CONNECT)
+        .timeout_max(TIMEOUT_RESPONSE)
+        .on_complete(
         [&download_url](std::string body, unsigned status) {
             try {
                 json j = json::parse(body);
@@ -1415,16 +1436,16 @@ int GUI_App::download_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
     return result;
 }
 
-int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
+int GUI_App::install_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
 {
     bool cancel = false;
-    std::string target_file_path = (fs::temp_directory_path() / "network_plugin.zip").string();
+    std::string target_file_path = (fs::temp_directory_path() / package_name).string();
 
     BOOST_LOG_TRIVIAL(info) << "[install_plugin] enter";
     // get plugin folder
     std::string data_dir_str = data_dir();
     boost::filesystem::path data_dir_path(data_dir_str);
-    auto plugin_folder = data_dir_path / "plugins";
+    auto plugin_folder = data_dir_path / name;
     //auto plugin_folder = boost::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data()) / "plugins";
     auto backup_folder = plugin_folder/"backup";
     if (!boost::filesystem::exists(plugin_folder)) {
@@ -1531,7 +1552,8 @@ int GUI_App::install_plugin(InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
 
     if (pro_fn)
         pro_fn(InstallStatusInstallCompleted, 100, cancel);
-    app_config->set_str("app", "installed_networking", "1");
+    if (name == "plugins")
+        app_config->set_str("app", "installed_networking", "1");
     BOOST_LOG_TRIVIAL(info) << "[install_plugin] success";
     return 0;
 }
@@ -1674,13 +1696,19 @@ void GUI_App::init_networking_callbacks()
                     }
                     /* request_pushing */
                     MachineObject* obj = m_device_manager->get_my_machine(dev_id);
+                    wxCommandEvent event(EVT_CONNECT_LAN_MODE_PRINT);
+
                     if (obj) {
+                        
                         if (obj->is_lan_mode_printer()) {
                             if (state == ConnectStatus::ConnectStatusOk) {
                                 obj->command_request_push_all();
                                 obj->command_get_version();
+                                event.SetInt(1);
+                                event.SetString(obj->dev_id);
                             } else if (state == ConnectStatus::ConnectStatusFailed) {
                                 obj->set_access_code("");
+                                m_device_manager->set_selected_machine("");
                                 wxString text;
                                 if (msg == "5") {
                                     text = wxString::Format(_L("Incorrect password"));
@@ -1689,14 +1717,21 @@ void GUI_App::init_networking_callbacks()
                                     text = wxString::Format(_L("Connect %s failed! [SN:%s, code=%s]"), from_u8(obj->dev_name), obj->dev_id, msg);
                                     wxGetApp().show_dialog(text);
                                 }
+                                event.SetInt(0);
                             } else if (state == ConnectStatus::ConnectStatusLost) {
                                 m_device_manager->set_selected_machine("");
+                                event.SetInt(0);
                                 BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = lost";
                             } else {
+                                event.SetInt(0);
                                 BOOST_LOG_TRIVIAL(info) << "set_on_local_connect_fn: state = " << state;
                             }
+
+                            obj->set_lan_mode_connection_state(false);
                         }
                     }
+                    event.SetEventObject(this);
+                    wxPostEvent(this, event);
                 });
             }
         );
@@ -1729,14 +1764,15 @@ void GUI_App::init_networking_callbacks()
             CallAfter([this, dev_id, msg] {
                 if (m_is_closing)
                     return;
+
                 MachineObject* obj = m_device_manager->get_my_machine(dev_id);
-                if (!obj) {
+                if (!obj || !obj->is_lan_mode_printer()) {
                     obj = m_device_manager->get_local_machine(dev_id);
                 }
 
                 if (obj) {
                     obj->parse_json(msg);
-                    if (obj->is_ams_need_update) {
+                    if (this->m_device_manager->get_selected_machine() == obj && obj->is_ams_need_update) {
                         GUI::wxGetApp().sidebar().load_ams_list(obj->amsList);
                     }
                 }
@@ -1749,14 +1785,23 @@ void GUI_App::init_networking_callbacks()
 
 GUI_App::~GUI_App()
 {
-    if (app_config != nullptr)
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": enter");
+    if (app_config != nullptr) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": destroy app_config");
         delete app_config;
+    }
 
-    if (preset_bundle != nullptr)
+    if (preset_bundle != nullptr) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": destroy preset_bundle");
         delete preset_bundle;
+    }
 
-    if (preset_updater != nullptr)
+    if (preset_updater != nullptr) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": destroy preset updater");
         delete preset_updater;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": exit");
 }
 
 // If formatted for github, plaintext with OpenGL extensions enclosed into <details>.
@@ -1930,6 +1975,25 @@ void GUI_App::init_http_extra_header()
         m_agent->set_extra_http_header(extra_headers);
 }
 
+std::string GUI_App::get_local_models_path()
+{
+    std::string local_path = "";
+    if (data_dir().empty()) {
+        return local_path;
+    }
+
+    auto models_folder = (boost::filesystem::path(data_dir()) / "models");
+    local_path = models_folder.string();
+
+    if (!fs::exists(models_folder)) {
+        if (!fs::create_directory(models_folder)) {
+            local_path = "";
+        }
+        BOOST_LOG_TRIVIAL(info) << "create models folder:" << models_folder.string();
+    }
+    return local_path;
+}
+
 /*void GUI_App::init_single_instance_checker(const std::string &name, const std::string &path)
 {
     BOOST_LOG_TRIVIAL(debug) << "init wx instance checker " << name << " "<< path;
@@ -1963,6 +2027,9 @@ bool GUI_App::on_init_inner()
 
     // Set initialization of image handlers before any UI actions - See GH issue #7469
     wxInitAllImageHandlers();
+#ifdef NDEBUG
+    wxImage::SetDefaultLoadFlags(0); // ignore waring in release build
+#endif
 
 #if defined(_WIN32) && ! defined(_WIN64)
     // BBS: remove 32bit build prompt
@@ -2044,15 +2111,46 @@ bool GUI_App::on_init_inner()
 
     // If load_language() fails, the application closes.
     load_language(wxString(), true);
-#ifdef SUPPORT_DARK_MODE
 #ifdef _MSW_DARK_MODE
-    NppDarkMode::InitDarkMode(app_config->get("dark_color_mode") == "1", app_config->get("sys_menu_enabled") == "1");
-#endif
-#endif
 
+#ifdef __APPLE__
+    wxSystemAppearance app = wxSystemSettings::GetAppearance();
+    GUI::wxGetApp().app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
+    GUI::wxGetApp().app_config->save();
+#endif // __APPLE__
+
+
+    bool init_dark_color_mode = app_config->get("dark_color_mode") == "1";
+    bool init_sys_menu_enabled = app_config->get("sys_menu_enabled") == "1";
+#ifdef __WINDOWS__
+     NppDarkMode::InitDarkMode(init_dark_color_mode, init_sys_menu_enabled);
+#endif // __WINDOWS__
+
+#endif
     // initialize label colors and fonts
     init_label_colours();
     init_fonts();
+    wxGetApp().Update_dark_mode_flag();
+
+
+#ifdef _MSW_DARK_MODE
+    // app_config can be updated in check_older_app_config(), so check if dark_color_mode and sys_menu_enabled was changed
+    if (bool new_dark_color_mode = app_config->get("dark_color_mode") == "1";
+        init_dark_color_mode != new_dark_color_mode) {
+
+#ifdef __WINDOWS__
+        NppDarkMode::SetDarkMode(new_dark_color_mode);
+#endif // __WINDOWS__
+
+        init_label_colours();
+        //update_label_colours_from_appconfig();
+    }
+    if (bool new_sys_menu_enabled = app_config->get("sys_menu_enabled") == "1";
+        init_sys_menu_enabled != new_sys_menu_enabled)
+#ifdef __WINDOWS__
+        NppDarkMode::SetSystemMenuForApp(new_sys_menu_enabled);
+#endif
+#endif
 
     if (m_last_config_version) {
         int last_major = m_last_config_version->maj();
@@ -2303,7 +2401,7 @@ bool GUI_App::on_init_inner()
     mainframe->Show(true);
     BOOST_LOG_TRIVIAL(info) << "main frame firstly shown";
 
-#if BBL_HAS_FIRST_PAGE
+//#if BBL_HAS_FIRST_PAGE
     //BBS: set tp3DEditor firstly
     /*plater_->canvas3D()->enable_render(false);
     mainframe->select_tab(size_t(MainFrame::tp3DEditor));
@@ -2319,9 +2417,9 @@ bool GUI_App::on_init_inner()
     plater_->canvas3D()->render();
     if (is_editor())
         mainframe->select_tab(size_t(0));*/
-#else
-    plater_->trigger_restore_project(1);
-#endif
+//#else
+    //plater_->trigger_restore_project(1);
+//#endif
 
     obj_list()->set_min_height();
 
@@ -2413,6 +2511,10 @@ void GUI_App::copy_network_if_available()
 #endif
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": checking network_library " << network_library << ", player_library " << player_library;
+    if (!boost::filesystem::exists(plugin_folder)) {
+        BOOST_LOG_TRIVIAL(info)<< __FUNCTION__ << ": create directory "<<plugin_folder.string();
+        boost::filesystem::create_directory(plugin_folder);
+    }
     std::string error_message;
     if (boost::filesystem::exists(network_library)) {
         CopyFileResult cfr = copy_file(network_library, network_library_dst, error_message, false);
@@ -2496,14 +2598,14 @@ __retry:
         if (m_agent) {
             m_agent->set_config_dir(data_directory);
         }
-        //BBS set cert dir
-        if (m_agent)
-            m_agent->set_cert_file(resources_dir() + "/cert", "slicer_base64.cer");
-
         //BBS start http log
         if (m_agent) {
             m_agent->init_log();
         }
+
+        //BBS set cert dir
+        if (m_agent)
+            m_agent->set_cert_file(resources_dir() + "/cert", "slicer_base64.cer");
 
         init_http_extra_header();
 
@@ -2570,10 +2672,10 @@ const wxColour GUI_App::get_label_default_clr_modified()
 
 void GUI_App::init_label_colours()
 {
-    m_color_label_modified          = wxColour("#F1754E");
-    m_color_label_sys               = wxColour("#323A3D");
-
     bool is_dark_mode = dark_mode();
+    m_color_label_modified = is_dark_mode ? wxColour("#F1754E") : wxColour("#F1754E");
+    m_color_label_sys      = is_dark_mode ? wxColour("#B2B3B5") : wxColour("#363636");
+
 #ifdef _WIN32
     m_color_label_default           = is_dark_mode ? wxColour(250, 250, 250) : m_color_label_sys; // wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
     m_color_highlight_label_default = is_dark_mode ? wxColour(230, 230, 230): wxSystemSettings::GetColour(/*wxSYS_COLOUR_HIGHLIGHTTEXT*/wxSYS_COLOUR_WINDOWTEXT);
@@ -2584,11 +2686,22 @@ void GUI_App::init_label_colours()
     m_color_label_default = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
 #endif
     m_color_window_default          = is_dark_mode ? wxColour(43, 43, 43)   : wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+    StateColor::SetDarkMode(is_dark_mode);
 }
 
 void GUI_App::update_label_colours_from_appconfig()
 {
-    ;
+    if (app_config->has("label_clr_sys")) {
+        auto str = app_config->get("label_clr_sys");
+        if (str != "")
+            m_color_label_sys = wxColour(str);
+    }
+
+    if (app_config->has("label_clr_modified")) {
+        auto str = app_config->get("label_clr_modified");
+        if (str != "")
+            m_color_label_modified = wxColour(str);
+    }
 }
 
 void GUI_App::update_label_colours()
@@ -2599,84 +2712,111 @@ void GUI_App::update_label_colours()
 
 void GUI_App::UpdateDarkUI(wxWindow* window, bool highlited/* = false*/, bool just_font/* = false*/)
 {
-    //BBS disable DarkUI mode
-    return;
+    if (wxButton *btn = dynamic_cast<wxButton *>(window)) {
+        if (btn->GetWindowStyleFlag() & wxBU_AUTODRAW)
+            return;
+    }
 
-#ifdef _WIN32
-    if (wxButton* btn = dynamic_cast<wxButton*>(window)) {
-        if (!(btn->GetWindowStyle() & wxNO_BORDER)) {
-            btn->SetWindowStyle(btn->GetWindowStyle() | wxNO_BORDER);
-            highlited = true;
+    if (Button* btn = dynamic_cast<Button*>(window)) {
+        if (btn->GetWindowStyleFlag() & wxBU_AUTODRAW)
+            return;
+    }
+
+
+    /*if (m_is_dark_mode != dark_mode() )
+        m_is_dark_mode = dark_mode();*/
+    
+
+    if (m_is_dark_mode) {
+        auto original_col = window->GetBackgroundColour();
+        auto bg_col = StateColor::darkModeColorFor(original_col);
+
+        if (bg_col != original_col) {
+            window->SetBackgroundColour(bg_col);
         }
-        // hovering for buttons
-        {
-            auto focus_button = [this, btn](const bool focus) {
-                btn->SetForegroundColour(focus ? m_color_hovered_btn_label : m_color_label_default);
-                btn->Refresh();
-                btn->Update();
-            };
 
-            btn->Bind(wxEVT_ENTER_WINDOW, [focus_button](wxMouseEvent& event) { focus_button(true); event.Skip(); });
-            btn->Bind(wxEVT_LEAVE_WINDOW, [focus_button](wxMouseEvent& event) { focus_button(false); event.Skip(); });
+        original_col = window->GetForegroundColour();
+        auto fg_col = StateColor::darkModeColorFor(original_col);
+
+        if (fg_col != original_col) {
+            window->SetForegroundColour(fg_col);
         }
     }
-    else if (wxTextCtrl* text = dynamic_cast<wxTextCtrl*>(window)) {
-        if (text->GetBorder() != wxBORDER_SIMPLE)
-            text->SetWindowStyle(text->GetWindowStyle() | wxBORDER_SIMPLE);
-    }
-    else if (wxCheckListBox* list = dynamic_cast<wxCheckListBox*>(window)) {
-        list->SetWindowStyle(list->GetWindowStyle() | wxBORDER_SIMPLE);
-        list->SetBackgroundColour(highlited ? m_color_highlight_default : m_color_window_default);
-        for (size_t i = 0; i < list->GetCount(); i++)
-            if (wxOwnerDrawn* item = list->GetItem(i)) {
-                item->SetBackgroundColour(highlited ? m_color_highlight_default : m_color_window_default);
-                item->SetTextColour(m_color_label_default);
-            }
-        return;
-    }
-    else if (dynamic_cast<wxListBox*>(window))
-        window->SetWindowStyle(window->GetWindowStyle() | wxBORDER_SIMPLE);
+    else {
+        auto original_col = window->GetBackgroundColour();
+        auto bg_col = StateColor::lightModeColorFor(original_col);
 
-    if (!just_font)
-        window->SetBackgroundColour(highlited ? m_color_highlight_default : m_color_window_default);
-    window->SetForegroundColour(m_color_label_default);
-#endif
+        if (bg_col != original_col) {
+            window->SetBackgroundColour(bg_col);
+        }
+
+        original_col = window->GetForegroundColour();
+        auto fg_col = StateColor::lightModeColorFor(original_col);
+
+        if (fg_col != original_col) {
+            window->SetForegroundColour(fg_col);
+        }
+    }
 }
 
 // recursive function for scaling fonts for all controls in Window
-#ifdef _WIN32
 static void update_dark_children_ui(wxWindow* window, bool just_buttons_update = false)
 {
-    bool is_btn = dynamic_cast<wxButton*>(window) != nullptr;
-    if (!(just_buttons_update && !is_btn))
-        wxGetApp().UpdateDarkUI(window, is_btn);
+    /*bool is_btn = dynamic_cast<wxButton*>(window) != nullptr;
+    is_btn = false;*/
+    if (!window) return;
+
+    wxGetApp().UpdateDarkUI(window);
 
     auto children = window->GetChildren();
     for (auto child : children) {
         update_dark_children_ui(child);
     }
 }
-#endif
 
 // Note: Don't use this function for Dialog contains ScalableButtons
-void GUI_App::UpdateDlgDarkUI(wxDialog* dlg, bool just_buttons_update/* = false*/)
+void GUI_App::UpdateDarkUIWin(wxWindow* win)
 {
-    //BBS disable DarkUI mode
-    return;
-
-#ifdef _WIN32
-    update_dark_children_ui(dlg, just_buttons_update);
-#endif
+    update_dark_children_ui(win);
 }
+
+void GUI_App::Update_dark_mode_flag()
+{
+    m_is_dark_mode = dark_mode();
+}
+
+void GUI_App::UpdateDlgDarkUI(wxDialog* dlg)
+{
+#ifdef __WINDOWS__
+    NppDarkMode::SetDarkExplorerTheme(dlg->GetHWND());
+    NppDarkMode::SetDarkTitleBar(dlg->GetHWND());
+#endif
+    update_dark_children_ui(dlg);
+}
+
+void GUI_App::UpdateFrameDarkUI(wxFrame* dlg)
+{
+#ifdef __WINDOWS__
+    NppDarkMode::SetDarkExplorerTheme(dlg->GetHWND());
+    NppDarkMode::SetDarkTitleBar(dlg->GetHWND());
+#endif
+    update_dark_children_ui(dlg);
+}
+
 void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/)
 {
-    //BBS disable DarkUI mode
-    return;
-
-#ifdef _WIN32
+#ifdef __WINDOWS__
     UpdateDarkUI(dvc, highlited ? dark_mode() : false);
 #ifdef _MSW_DARK_MODE
-    dvc->RefreshHeaderDarkMode(&m_normal_font);
+    //dvc->RefreshHeaderDarkMode(&m_normal_font);
+    HWND hwnd = (HWND)dvc->GenericGetHeader()->GetHandle();
+    hwnd = GetWindow(hwnd, GW_CHILD);
+    if (hwnd != NULL)
+        NppDarkMode::SetDarkListViewHeader(hwnd);
+    wxItemAttr attr;
+    attr.SetTextColour(NppDarkMode::GetTextColor());
+    attr.SetFont(m_normal_font);
+    dvc->SetHeaderAttr(attr);
 #endif //_MSW_DARK_MODE
     if (dvc->HasFlag(wxDV_ROW_LINES))
         dvc->SetAlternateRowColour(m_color_highlight_default);
@@ -2687,10 +2827,7 @@ void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/)
 
 void GUI_App::UpdateAllStaticTextDarkUI(wxWindow* parent)
 {
-    //BBS disable DarkUI mode
-    return;
-
-#ifdef _WIN32
+#ifdef __WINDOWS__
     wxGetApp().UpdateDarkUI(parent);
 
     auto children = parent->GetChildren();
@@ -2974,8 +3111,7 @@ void fatal_error(wxWindow* parent)
     //     exit 1; // #ys_FIXME
 }
 
-#ifdef _WIN32
-
+#ifdef __WINDOWS__
 #ifdef _MSW_DARK_MODE
 static void update_scrolls(wxWindow* window)
 {
@@ -3001,36 +3137,49 @@ void GUI_App::force_menu_update()
     NppDarkMode::SetSystemMenuForApp(app_config->get("sys_menu_enabled") == "1");
 }
 #endif //_MSW_DARK_MODE
+#endif //__WINDOWS__
 
 void GUI_App::force_colors_update()
 {
 #ifdef _MSW_DARK_MODE
+#ifdef __WINDOWS__
     NppDarkMode::SetDarkMode(app_config->get("dark_color_mode") == "1");
     if (WXHWND wxHWND = wxToolTip::GetToolTipCtrl())
         NppDarkMode::SetDarkExplorerTheme((HWND)wxHWND);
     NppDarkMode::SetDarkTitleBar(mainframe->GetHWND());
+
+
+    //NppDarkMode::SetDarkExplorerTheme((HWND)mainframe->m_settings_dialog.GetHWND());
+    //NppDarkMode::SetDarkTitleBar(mainframe->m_settings_dialog.GetHWND());
+
+#endif // __WINDOWS__
 #endif //_MSW_DARK_MODE
     m_force_colors_update = true;
 }
-#endif //_WIN32
 
 // Called after the Preferences dialog is closed and the program settings are saved.
 // Update the UI based on the current preferences.
 void GUI_App::update_ui_from_settings()
 {
     update_label_colours();
-#ifdef _WIN32
     // Upadte UI colors before Update UI from settings
     if (m_force_colors_update) {
         m_force_colors_update = false;
-        mainframe->force_color_changed();
-        mainframe->diff_dialog.force_color_changed();
-#ifdef _MSW_DARK_MODE
-        update_scrolls(mainframe);
+        //UpdateDlgDarkUI(&mainframe->m_settings_dialog);
+        //mainframe->m_settings_dialog.Refresh();
+        //mainframe->m_settings_dialog.Update();
+
+        if (mainframe) {
+#ifdef __WINDOWS__
+            mainframe->force_color_changed();
+            update_scrolls(mainframe);
+            update_scrolls(&mainframe->m_settings_dialog);
 #endif //_MSW_DARK_MODE
+            update_dark_children_ui(mainframe);
+        }
     }
-#endif
-    mainframe->update_ui_from_settings();
+
+    if (mainframe) {mainframe->update_ui_from_settings();}
 }
 
 void GUI_App::persist_window_geometry(wxTopLevelWindow *window, bool default_maximized)
@@ -3070,7 +3219,7 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
 {
     input_files.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
-        _L("Choose one or more files (3mf/step/stl/obj/amf):"),
+        _L("Choose one or more files (3mf/step/stl/svg/obj/amf):"),
         from_u8(app_config->get_last_dir()), "",
         file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
 
@@ -3088,6 +3237,14 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
 
     if (dialog.ShowModal() == wxID_OK)
         input_file = dialog.GetPath();
+}
+
+wxString GUI_App::transition_tridid(int trid_id)
+{
+    wxString maping_dict[8] = { "A", "B", "C", "D", "E", "F", "G" };
+    int id_index = ceil(trid_id / 4);
+    int id_suffix = (trid_id + 1) % 4 == 0 ? 4 : (trid_id + 1) % 4;
+    return wxString::Format("%s%d", maping_dict[id_index], id_suffix);
 }
 
 //BBS
@@ -3157,12 +3314,19 @@ void GUI_App::request_user_logout()
 
         m_agent->user_logout();
         m_agent->set_user_selected_machine("");
-        app_config->set("preset_folder", "");
+        BOOST_LOG_TRIVIAL(info) << "preset_folder: set to empty, user_logout";
+        enable_user_preset_folder(false);
         /* delete old user settings */
         m_device_manager->clean_user_info();
         GUI::wxGetApp().sidebar().load_ams_list({});
         GUI::wxGetApp().remove_user_presets();
         GUI::wxGetApp().stop_sync_user_preset();
+
+#ifdef __WINDOWS__
+        wxGetApp().mainframe->topbar()->show_publish_button(false);
+#else
+        wxGetApp().mainframe->show_publish_button(false);
+#endif
     }
 }
 
@@ -3184,15 +3348,22 @@ std::string GUI_App::handle_web_request(std::string cmd)
         json j = json::parse(cmd);
 
         std::string web_cmd = j["command"].get<std::string>();
+
         if (web_cmd == "request_model_download") {
-            json j_data = j["data"];
-            json import_j;
-            import_j["model_id"] = j["data"]["model_id"].get<std::string>();
-            import_j["profile_id"] = j["data"]["profile_id"].get<std::string>();
-            import_j["design_id"] = "";
-            if (j["data"].contains("design_id"))
-                import_j["design_id"] = j["data"]["design_id"].get<std::string>();
-            this->request_model_download(import_j.dump());
+           /* json j_data = j["data"];
+            json import_j;*/
+            /*  import_j["model_id"] = j["data"]["model_id"].get<std::string>();
+              import_j["profile_id"] = j["data"]["profile_id"].get<std::string>();*/
+
+            std::string download_url = "";
+            if (j["data"].contains("download_url"))
+                download_url = j["data"]["download_url"].get<std::string>();
+
+            std::string filename = "";
+            if (j["data"].contains("filename"))
+                download_url = j["data"]["filename"].get<std::string>();
+
+            this->request_model_download(download_url, filename);
         }
 
         std::stringstream ss(cmd), oss;
@@ -3238,6 +3409,11 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     wxGetApp().request_user_logout();
                 });
             }
+            else if (command_str.compare("homepage_modeldepot") == 0) {
+                CallAfter([this] {
+                    wxGetApp().open_mall_page_dialog();
+                });
+            }
             else if (command_str.compare("homepage_newproject") == 0) {
                 this->request_open_project("<new>");
             }
@@ -3280,8 +3456,8 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     {
                         boost::filesystem::path NowFile(path.value());
 
-                        std::string FolderPath = NowFile.parent_path().make_preferred().string();
-                        desktop_open_any_folder(FolderPath);
+                        std::string FilePath = NowFile.make_preferred().string();
+                        desktop_open_any_folder(FilePath);
                     }
                 }
             }
@@ -3328,7 +3504,17 @@ std::string GUI_App::handle_web_request(std::string cmd)
                     }
                 }
             }
+            else if (command_str.compare("homepage_open_ccabin") == 0) {
+                if (root.get_child_optional("data") != boost::none) {
+                    pt::ptree                    data_node = root.get_child("data");
+                    boost::optional<std::string> path      = data_node.get_optional<std::string>("file");
+                    if (path.has_value()) {
+                        std::string Fullpath = resources_dir() + "/web/homepage/model/" + path.value();
 
+                        this->request_open_project(Fullpath);
+                    }
+                }
+            }
         }
     }
     catch (...) {
@@ -3359,12 +3545,12 @@ void GUI_App::handle_script_message(std::string msg)
     }
 }
 
-void GUI_App::request_model_download(std::string import_json)
+void GUI_App::request_model_download(std::string url, std::string filename)
 {
     if (!check_login()) return;
 
     if (plater_) {
-        plater_->request_model_download(import_json);
+        plater_->request_model_download(url, filename);
     }
 }
 
@@ -3461,14 +3647,24 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
     }
 }
 
+void GUI_App::enable_user_preset_folder(bool enable)
+{
+    if (enable) {
+        std::string user_id = m_agent->get_user_id();
+        app_config->set("preset_folder", user_id);
+        GUI::wxGetApp().preset_bundle->update_user_presets_directory(user_id);
+    } else {
+        BOOST_LOG_TRIVIAL(info) << "preset_folder: set to empty";
+        app_config->set("preset_folder", "");
+        GUI::wxGetApp().preset_bundle->update_user_presets_directory(DEFAULT_USER_FOLDER_NAME);
+    }
+}
+
 void GUI_App::on_user_login(wxCommandEvent &evt)
 {
     if (!m_agent) { return; }
 
     int online_login = evt.GetInt();
-    std::string user_id = m_agent->get_user_id();
-    BOOST_LOG_TRIVIAL(info) << "set_preset: set preset_folder = " << user_id;
-    GUI::wxGetApp().app_config->set("preset_folder", user_id);
     m_agent->connect_server();
 
     // get machine list
@@ -3477,9 +3673,29 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
     dev->update_user_machine_list_info();
     dev->set_selected_machine(m_agent->get_user_selected_machine());
 
-    GUI::wxGetApp().preset_bundle->update_user_presets_directory(user_id);
+    if (app_config->get("sync_user_preset") == "true") {
+        enable_user_preset_folder(true);
+    } else {
+        enable_user_preset_folder(false);
+    }
+
     if (online_login)
         GUI::wxGetApp().mainframe->show_sync_dialog();
+
+    //show publish button
+    if (m_agent->is_user_login() && mainframe) {
+        int identifier;
+        int result = m_agent->get_user_info(&identifier);
+        auto publish_identifier = identifier & 1;
+
+#ifdef __WINDOWS__
+        if (result == 0 && publish_identifier >= 0) {
+            mainframe->m_topbar->show_publish_button(publish_identifier == 0 ? false : true);
+        }
+#else
+        mainframe->show_publish_button(publish_identifier == 0 ? false : true);
+#endif
+    }
 }
 
 bool GUI_App::is_studio_active()
@@ -3545,7 +3761,8 @@ void GUI_App::check_new_version(bool show_tips, int by_user)
     Slic3r::Http http = Slic3r::Http::get(url);
 
     http.header("accept", "application/json")
-        .timeout_max(10)
+        .timeout_connect(TIMEOUT_CONNECT)
+        .timeout_max(TIMEOUT_RESPONSE)
         .on_complete([this, show_tips, by_user](std::string body, unsigned) {
         try {
             json j = json::parse(body);
@@ -3616,6 +3833,25 @@ void GUI_App::no_new_version()
     GUI::wxGetApp().QueueEvent(evt);
 }
 
+std::string GUI_App::version_display = "";
+std::string GUI_App::format_display_version()
+{
+    if (!version_display.empty()) return version_display;
+
+    auto version_text = std::string(SLIC3R_VERSION);
+    int len = version_text.length();
+    for (int i = 0, j = 0; i < len; ++i) {
+        if (!(version_text[i] == '0' && j == 0))
+            version_display += version_text[i];
+
+        if (version_text[i] == '.')
+            j = 0;
+        else
+            ++j;
+    }
+    return version_display;
+}
+
 void GUI_App::show_dialog(wxString msg)
 {
     wxCommandEvent* evt = new wxCommandEvent(EVT_SHOW_DIALOG);
@@ -3654,6 +3890,7 @@ void GUI_App::sync_preset(Preset* preset)
     std::string updated_info;
     // only sync user's preset
     if (!preset->is_user()) return;
+    if (preset->is_custom_defined()) return;
 
     if (preset->setting_id.empty() && preset->sync_info.empty() && !preset->base_id.empty()) {
         std::map<std::string, std::string> values_map;
@@ -3757,6 +3994,8 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
 {
     if (!m_agent) return;
 
+    enable_user_preset_folder(true);
+
     // has already start sync
     if (enable_sync)
         return;
@@ -3847,6 +4086,8 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
 
 void GUI_App::stop_sync_user_preset()
 {
+    enable_user_preset_folder(false);
+
     if (!enable_sync)
         return;
 
@@ -4148,7 +4389,7 @@ bool GUI_App::load_language(wxString language, bool initial)
     else if (initial) {
         // bbs supported languages
         //TODO: use a global one with Preference
-        wxLanguage supported_languages[] {
+        wxLanguage supported_languages[]{
             wxLANGUAGE_ENGLISH,
             wxLANGUAGE_CHINESE_SIMPLIFIED,
             wxLANGUAGE_GERMAN,
@@ -4156,7 +4397,7 @@ bool GUI_App::load_language(wxString language, bool initial)
             wxLANGUAGE_SPANISH,
             wxLANGUAGE_SWEDISH,
             wxLANGUAGE_DUTCH,
-            wxLANGUAGE_HUNGARIAN };
+            wxLANGUAGE_HUNGARIAN};
         std::string cur_language = app_config->get("language");
         if (cur_language != "") {
             //cleanup the language wrongly set before
@@ -4748,10 +4989,16 @@ void GUI_App::OSXStoreOpenFiles(const wxArrayString &fileNames)
 void GUI_App::MacOpenFiles(const wxArrayString &fileNames)
 {
     if (m_post_initialized) {
+        bool has3mf = false;
         std::vector<wxString> names;
-        for (auto & n : fileNames) names.push_back(n);
-        start_new_slicer(names);
-        return;
+        for (auto & n : fileNames) {
+            has3mf |= n.EndsWith(".3mf");
+            names.push_back(n);
+        }
+        if (has3mf) {
+            start_new_slicer(names);
+            return;
+        }
     }
     std::vector<std::string> files;
     std::vector<wxString>    gcode_files;
@@ -4855,6 +5102,63 @@ void GUI_App::load_url(wxString url)
         return mainframe->load_url(url);
 }
 
+void GUI_App::open_mall_page_dialog()
+{
+    std::string url;
+
+    if (getAgent() && mainframe) {
+        getAgent()->get_model_mall_home_url(&url);
+
+        if (!m_mall_home_dialog) {
+            m_mall_home_dialog = new ModelMallDialog();
+            m_mall_home_dialog->go_to_mall(url);
+        }
+        else {
+            if (m_mall_home_dialog->IsIconized())
+                m_mall_home_dialog->Iconize(false);
+
+            //m_mall_home_dialog->go_to_mall(url);
+        }
+        m_mall_home_dialog->Raise();
+        m_mall_home_dialog->Show();
+    }
+}
+
+void GUI_App::open_publish_page_dialog()
+{
+    std::string url;
+    if (getAgent() && mainframe) {
+        getAgent()->get_model_publish_url(&url);
+
+        if (!m_mall_publish_dialog) {
+            m_mall_publish_dialog = new ModelMallDialog();
+            m_mall_publish_dialog->go_to_mall(url);
+        }
+        else {
+            if (m_mall_publish_dialog->IsIconized())
+                m_mall_publish_dialog->Iconize(false);
+
+            //m_mall_publish_dialog->go_to_publish(url);
+        }
+        m_mall_publish_dialog->Raise();
+        m_mall_publish_dialog->Show();
+    }
+}
+
+void GUI_App::remove_mall_system_dialog()
+{
+    if (m_mall_publish_dialog != nullptr) {
+        m_mall_publish_dialog->Destroy();
+        delete m_mall_publish_dialog;
+    }
+
+
+    if (m_mall_home_dialog != nullptr) {
+        m_mall_home_dialog->Destroy();
+        delete m_mall_home_dialog;
+    }
+}
+
 void GUI_App::run_script(wxString js)
 {
     if (mainframe)
@@ -4945,14 +5249,14 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
 {
     wxCHECK_MSG(mainframe != nullptr, false, "Internal error: Main frame not created / null");
 
-    if (reason == ConfigWizard::RR_USER) {
-        //TODO: turn off it currently, maybe need to turn on in the future
-        //if (preset_updater->config_update(app_config->orig_version(), PresetUpdater::UpdateParams::FORCED_BEFORE_WIZARD) == PresetUpdater::R_ALL_CANCELED)
-        //    return false;
-    }
+    //if (reason == ConfigWizard::RR_USER) {
+    //    //TODO: turn off it currently, maybe need to turn on in the future
+    //    if (preset_updater->config_update(app_config->orig_version(), PresetUpdater::UpdateParams::FORCED_BEFORE_WIZARD) == PresetUpdater::R_ALL_CANCELED)
+    //        return false;
+    //}
 
-    //auto wizard = new ConfigWizard(mainframe);
-    //const bool res = wizard->run(reason, start_page);
+    //auto wizard_t = new ConfigWizard(mainframe);
+    //const bool res = wizard_t->run(reason, start_page);
 
     std::string strFinish = wxGetApp().app_config->get("firstguide", "finish");
     long        pStyle    = wxCAPTION | wxCLOSE_BOX | wxSYSTEM_MENU;

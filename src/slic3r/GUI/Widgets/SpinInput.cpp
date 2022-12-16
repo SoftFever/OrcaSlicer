@@ -1,6 +1,7 @@
 #include "SpinInput.hpp"
 #include "Label.hpp"
 #include "Button.hpp"
+#include "TextCtrl.h"
 
 #include <wx/dcgraph.h>
 
@@ -27,7 +28,7 @@ SpinInput::SpinInput()
     border_width     = 1;
     border_color     = StateColor(std::make_pair(0xDBDBDB, (int) StateColor::Disabled), std::make_pair(0x00AE42, (int) StateColor::Hovered),
                               std::make_pair(0xDBDBDB, (int) StateColor::Normal));
-    background_color = StateColor(std::make_pair(0xF0F0F0, (int) StateColor::Disabled), std::make_pair(*wxWHITE, (int) StateColor::Normal));
+    background_color = StateColor(std::make_pair(0xF0F0F1, (int) StateColor::Disabled), std::make_pair(*wxWHITE, (int) StateColor::Normal));
 }
 
 
@@ -56,7 +57,7 @@ void SpinInput::Create(wxWindow *parent,
     wxWindow::SetLabel(label);
     state_handler.attach({&label_color, &text_color});
     state_handler.update_binds();
-    text_ctrl = new wxTextCtrl(this, wxID_ANY, text, {20, 4}, wxDefaultSize, style | wxBORDER_NONE | wxTE_PROCESS_ENTER, wxTextValidator(wxFILTER_DIGITS));
+    text_ctrl = new TextCtrl(this, wxID_ANY, text, {20, 4}, wxDefaultSize, style | wxBORDER_NONE | wxTE_PROCESS_ENTER, wxTextValidator(wxFILTER_DIGITS));
     text_ctrl->SetFont(Label::Body_14);
     text_ctrl->SetBackgroundColour(background_color.colorForStates(state_handler.states()));
     text_ctrl->SetForegroundColour(text_color.colorForStates(state_handler.states()));
@@ -230,19 +231,22 @@ Button *SpinInput::createButton(bool inc)
         delta = inc ? 1 : -1;
         SetValue(val + delta);
         text_ctrl->SetFocus();
-        btn->CaptureMouse();
+        if (!btn->HasCapture())
+            btn->CaptureMouse();
         delta *= 8;
         timer.Start(100);
         sendSpinEvent();
     });
     btn->Bind(wxEVT_LEFT_DCLICK, [=](auto &e) {
         delta = inc ? 1 : -1;
-        btn->CaptureMouse();
+        if (!btn->HasCapture())
+            btn->CaptureMouse();
         SetValue(val + delta);
         sendSpinEvent();
     });
     btn->Bind(wxEVT_LEFT_UP, [=](auto &e) {
-        btn->ReleaseMouse();
+        if (btn->HasCapture())
+            btn->ReleaseMouse();
         timer.Stop();
         text_ctrl->SelectAll();
         delta = 0;
@@ -288,7 +292,7 @@ void SpinInput::onTextEnter(wxCommandEvent &event)
 
 void SpinInput::mouseWheelMoved(wxMouseEvent &event)
 {
-    auto delta = (event.GetWheelRotation() < 0 == event.IsWheelInverted()) ? 1 : -1;
+    auto delta = event.GetWheelRotation() < 0 ? 1 : -1;
     SetValue(val + delta);
     sendSpinEvent();
     text_ctrl->SetFocus();

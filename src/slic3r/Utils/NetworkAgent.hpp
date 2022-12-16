@@ -2,6 +2,7 @@
 #define __NETWORK_Agent_HPP__
 
 #include "bambu_networking.hpp"
+#include "libslic3r/ProjectTask.hpp"
 
 using namespace BBL;
 
@@ -65,12 +66,15 @@ typedef int (*func_check_user_task_report)(void *agent, int* task_id, bool* prin
 typedef int (*func_get_user_print_info)(void *agent, unsigned int* http_code, std::string* http_body);
 typedef int (*func_get_printer_firmware)(void *agent, std::string dev_id, unsigned* http_code, std::string* http_body);
 typedef int (*func_get_task_plate_index)(void *agent, std::string task_id, int* plate_index);
+typedef int (*func_get_user_info)(void *agent, int* identifier);
 typedef int (*func_get_slice_info)(void *agent, std::string project_id, std::string profile_id, int plate_index, std::string* slice_json);
 typedef int (*func_query_bind_status)(void *agent, std::vector<std::string> query_list, unsigned int* http_code, std::string* http_body);
 typedef int (*func_modify_printer_name)(void *agent, std::string dev_id, std::string dev_name);
 typedef int (*func_get_camera_url)(void *agent, std::string dev_id, std::function<void(std::string)> callback);
 typedef int (*func_start_pubilsh)(void *agent, PublishParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string* out);
-
+typedef int (*func_get_profile_3mf)(void *agent, BBLProfile* profile);
+typedef int (*func_get_model_publish_url)(void *agent, std::string* url);
+typedef int (*func_get_model_mall_home_url)(void *agent, std::string* url);
 
 
 //the NetworkAgent class
@@ -145,11 +149,15 @@ public:
     int get_user_print_info(unsigned int* http_code, std::string* http_body);
     int get_printer_firmware(std::string dev_id, unsigned* http_code, std::string* http_body);
     int get_task_plate_index(std::string task_id, int* plate_index);
+    int get_user_info(int* identifier);
     int get_slice_info(std::string project_id, std::string profile_id, int plate_index, std::string* slice_json);
     int query_bind_status(std::vector<std::string> query_list, unsigned int* http_code, std::string* http_body);
     int modify_printer_name(std::string dev_id, std::string dev_name);
     int get_camera_url(std::string dev_id, std::function<void(std::string)> callback);
     int start_publish(PublishParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string* out);
+    int get_profile_3mf(BBLProfile* profile);
+    int get_model_publish_url(std::string* url);
+    int get_model_mall_home_url(std::string* url);   
 
 private:
 
@@ -214,11 +222,15 @@ private:
     static func_get_user_print_info            get_user_print_info_ptr;
     static func_get_printer_firmware           get_printer_firmware_ptr;
     static func_get_task_plate_index           get_task_plate_index_ptr;
+    static func_get_user_info                  get_user_info_ptr;
     static func_get_slice_info                 get_slice_info_ptr;
     static func_query_bind_status              query_bind_status_ptr;
     static func_modify_printer_name            modify_printer_name_ptr;
     static func_get_camera_url                 get_camera_url_ptr;
     static func_start_pubilsh                  start_publish_ptr;
+    static func_get_profile_3mf                get_profile_3mf_ptr;
+    static func_get_model_publish_url          get_model_publish_url_ptr;
+    static func_get_model_mall_home_url        get_model_mall_home_url_ptr;
 };
 
 }

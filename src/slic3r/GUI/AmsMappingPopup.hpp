@@ -70,6 +70,9 @@ public:
     wxColour m_ams_coloul;
     wxString m_ams_name;
 
+    ScalableBitmap m_arraw_bitmap_gray;
+    ScalableBitmap m_arraw_bitmap_white;
+
     bool m_selected {false};
     bool m_warning{false};
 
@@ -134,7 +137,8 @@ public:
     void         on_left_down(wxMouseEvent &evt);
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;
-    void paintEvent(wxPaintEvent &evt);
+    void         paintEvent(wxPaintEvent &evt);
+    std::vector<TrayData> parse_ams_mapping(std::map<std::string, Ams*> amsList);
 };
 
 class AmsMapingTipPopup : public wxPopupTransientWindow
@@ -155,6 +159,27 @@ public:
     wxPanel *        m_panel_disable_ams;
     wxStaticText *   m_title_disable_ams;
     wxStaticText *   m_tip_disable_ams;
+};
+
+class AmsTutorialPopup : public wxPopupTransientWindow
+{
+public:
+    Label* text_title;
+    wxStaticBitmap* img_top;
+    wxStaticBitmap* arrows_top;
+    wxStaticText* tip_top;
+    wxStaticBitmap* arrows_bottom;
+    wxStaticText* tip_bottom;
+    wxStaticBitmap* img_middle;
+    wxStaticText* tip_middle;
+    wxStaticBitmap* img_botton;
+
+    AmsTutorialPopup(wxWindow* parent);
+    ~AmsTutorialPopup() {};
+
+    void paintEvent(wxPaintEvent& evt);
+    virtual void OnDismiss() wxOVERRIDE;
+    virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
 };
 
 

@@ -311,6 +311,8 @@ private:
     // additional action buttons used in dialog
     int m_buttons { ActionButtons::TRANSFER | ActionButtons::SAVE };
 
+    std::string m_new_selected_preset_name;
+
 public:
     // Discard and Cancel buttons are always but next buttons are optional
     enum ActionButtons {
@@ -377,6 +379,7 @@ public:
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
     void on_sys_color_changed() override;
+    bool check_option_valid();
 };
 
 

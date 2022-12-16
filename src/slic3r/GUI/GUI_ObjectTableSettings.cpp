@@ -168,7 +168,7 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
             btn->SetToolTip(_(L("Reset parameter")));
 
             #ifdef __WINDOWS__
-            btn->SetBackgroundColour(*wxWHITE);
+            btn->SetBackgroundColour(parent->GetBackgroundColour());
             #endif // DEBUG
 
             
@@ -220,7 +220,8 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
         optgroup->sidetext_width = 5;
         optgroup->set_config_category_and_type(GUI::from_u8(group_category), Preset::TYPE_PRINT);
 
-        optgroup->m_on_change = [this, optgroup, is_object, object, config, group_category](const t_config_option_key& opt_id, const boost::any& value) {
+        std::weak_ptr weak_optgroup(optgroup);
+        optgroup->m_on_change = [this, is_object, object, config, group_category](const t_config_option_key &opt_id, const boost::any &value) {
                                     this->m_parent->Freeze();
                                     this->update_config_values(is_object, object, config, group_category);
                                     wxGetApp().obj_list()->changed_object();
@@ -258,10 +259,10 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
         }
         optgroup->activate();
         for (auto& opt : cat.second)
-            optgroup->get_field(opt.name)->m_on_change = [optgroup](const std::string& opt_id, const boost::any& value) {
+            optgroup->get_field(opt.name)->m_on_change = [weak_optgroup](const std::string& opt_id, const boost::any& value) {
                 // first of all take a snapshot and then change value in configuration
                 wxGetApp().plater()->take_snapshot((boost::format("Change Option %s") % opt_id).str());
-                optgroup->on_change_OG(opt_id, value);
+                weak_optgroup.lock()->on_change_OG(opt_id, value);
             };
 
         optgroup->reload_config();

@@ -153,11 +153,13 @@ public:
 
     void        set_can_create_editor_ctrl_function(std::function<bool()> can_create_fn) { can_create_editor_ctrl = can_create_fn; }
     void        set_default_extruder_idx(std::function<int()> default_extruder_idx_fn)   { get_default_extruder_idx = default_extruder_idx_fn; }
+    void        set_has_default_extruder(std::function<bool()> has_default_extruder_fn) { has_default_extruder = has_default_extruder_fn; }
 
 private:
     DataViewBitmapText      m_value;
     std::function<bool()>   can_create_editor_ctrl  { nullptr };
     std::function<int()>    get_default_extruder_idx{ nullptr };
+    std::function<bool()>   has_default_extruder{ nullptr };
 };
 
 

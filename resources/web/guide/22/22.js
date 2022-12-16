@@ -116,12 +116,16 @@ function SortUI()
 	{
 		let OneFila=m_ProfileItem['filament'][key];
 		
+		//alert(JSON.stringify(OneFila));
+		
 		let fWholeName=OneFila['name'].trim();
 		let fShortName=GetFilamentShortname( OneFila['name'] );
 		let fVendor=OneFila['vendor'];
 		let fType=OneFila['type'];
 		let fSelect=OneFila['selected'];
 		let fModel=OneFila['models']
+		
+		//alert( fWholeName+' - '+fShortName+' - '+fVendor+' - '+fType+' - '+fSelect+' - '+fModel );
 		
 //		if(OneFila['name'].indexOf("Bambu PA-CF")>=0)
 //		{
@@ -188,15 +192,6 @@ function SortUI()
 			    let HtmlFila='<div class="MItem"><input type="checkbox" vendor="'+fVendor+'"  filatype="'+fType+'" filalist="'+fWholeName+';'+'"  model="'+fModel+'" name="'+fShortName+'" />'+fShortName+'</div>';
 			
 			    $("#ItemBlockArea").append(HtmlFila);
-				
-				if(fSelect==1)
-				{
-					$("#ItemBlockArea input[vendor='"+fVendor+"'][filatype='"+fType+"'][name='"+fShortName+"']").prop("checked",true);
-					
-					SelectNumber++;
-				}
-//				else
-//					$("#ItemBlockArea input[vendor='"+fVendor+"'][model='"+fModel+"'][filatype='"+fType+"'][name='"+key+"']").prop("checked",false);
 		    } 
 			else
 			{
@@ -206,8 +201,18 @@ function SortUI()
 				pFila.attr("model", strModel+fModel);
 				pFila.attr("filalist", strFilalist+fWholeName+';');
 			}
+			
+		    if(fSelect*1==1)
+			{
+				//alert( fWholeName+' - '+fShortName+' - '+fVendor+' - '+fType+' - '+fSelect+' - '+fModel );
+					
+				$("#ItemBlockArea input[vendor='"+fVendor+"'][filatype='"+fType+"'][name='"+fShortName+"']").prop("checked",true);
+				SelectNumber++;
+			}
+//			else
+//				$("#ItemBlockArea input[vendor='"+fVendor+"'][model='"+fModel+"'][filatype='"+fType+"'][name='"+key+"']").prop("checked",false);			
 		}
-	}
+	} 
 
 	//Sort TypeArray
 	let TypeAdvNum=FilamentPriority.length;

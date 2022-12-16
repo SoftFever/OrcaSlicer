@@ -361,7 +361,7 @@ Option OptionsSearcher::get_option(const std::string &opt_key, const wxString &l
     return create_option(opt_key, label, type, gc);
 }
 
-void OptionsSearcher::show_dialog(Preset::Type type, wxWindow *parent, wxTextCtrl *input, wxWindow* ssearch_btn)
+void OptionsSearcher::show_dialog(Preset::Type type, wxWindow *parent, TextInput *input, wxWindow* ssearch_btn)
 {
     if (parent == nullptr || input == nullptr) return;
     auto    search_dialog = new SearchDialog(this, type, parent, input, ssearch_btn);
@@ -397,7 +397,7 @@ SearchItem::SearchItem(wxWindow *parent, wxString text, int index, SearchDialog*
     m_text  = text;
     m_index = index;
 
-    SetBackgroundColour(wxColour(255, 255, 255));
+    SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#FFFFFF")));
     Bind(wxEVT_ENTER_WINDOW, &SearchItem::on_mouse_enter, this);
     Bind(wxEVT_LEAVE_WINDOW, &SearchItem::on_mouse_leave, this);
     Bind(wxEVT_LEFT_DOWN, &SearchItem::on_mouse_left_down, this);
@@ -414,7 +414,7 @@ wxSize SearchItem::DrawTextString(wxDC &dc, const wxString &text, const wxPoint 
     }
 
     dc.SetBackgroundMode(wxTRANSPARENT);
-    dc.SetTextForeground(wxColour(43, 52, 54));
+    dc.SetTextForeground(StateColor::darkModeColorFor(wxColour("#323A3C")));
     dc.DrawText(text, pt);
     return dc.GetTextExtent(text);
 }
@@ -486,19 +486,19 @@ void SearchItem::OnPaint(wxPaintEvent &event)
 
 void SearchItem::on_mouse_enter(wxMouseEvent &evt)
 {
-    SetBackgroundColour(wxColour(238, 238, 238));
+    SetBackgroundColour(StateColor::darkModeColorFor(wxColour(238, 238, 238)));
     Refresh();
 }
 
 void SearchItem::on_mouse_leave(wxMouseEvent &evt)
 {
-    SetBackgroundColour(wxColour(255, 255, 255));
+    SetBackgroundColour(StateColor::darkModeColorFor(wxColour(255, 255, 255)));
     Refresh();
 }
 
 void SearchItem::on_mouse_left_down(wxMouseEvent &evt)
 {
-    SetBackgroundColour(wxColour(228, 228, 228));
+    SetBackgroundColour(StateColor::darkModeColorFor(wxColour(228, 228, 228)));
     Refresh();
 }
 
@@ -521,7 +521,7 @@ static const std::map<const char, int> icon_idxs = {
     {ImGui::PrintIconMarker, 0}, {ImGui::PrinterIconMarker, 1}, {ImGui::PrinterSlaIconMarker, 2}, {ImGui::FilamentIconMarker, 3}, {ImGui::MaterialIconMarker, 4},
 };
 
-SearchDialog::SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindow *parent, wxTextCtrl *input, wxWindow *search_btn) 
+SearchDialog::SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindow *parent, TextInput *input, wxWindow *search_btn) 
     : wxPopupTransientWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS), searcher(searcher)
 {
     m_event_tag       = parent;
@@ -602,6 +602,7 @@ SearchDialog::SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindo
 
     // SetSizer(topSizer);
     // topSizer->SetSizeHints(this);
+    GUI::wxGetApp().UpdateDarkUIWin(this);
 }
 
 SearchDialog::~SearchDialog() {}
@@ -618,10 +619,11 @@ void SearchDialog::Popup(wxPoint position /*= wxDefaultPosition*/)
 
     //const std::string &line = searcher->search_string();
     //search_line->SetValue(line.empty() ? default_string : from_u8(line));
-    search_line->SetValue(wxString(""));
+    search_line->GetTextCtrl()->SetValue(wxString(""));
     //const std::string &line = searcher->search_string();
     //searcher->search(into_u8(line), true);
     wxPopupTransientWindow::Popup();
+    search_line->SetFocus();
     update_list();
 }
 
@@ -637,7 +639,10 @@ void SearchDialog::OnDismiss() { }
 void SearchDialog::Dismiss()
 {
     auto pos = wxGetMousePosition();
-    if (!m_event_tag->GetScreenRect().Contains(pos) && !this->GetScreenRect().Contains(pos) && !m_search_item_tag->GetScreenRect().Contains(pos)) { 
+    auto focus_window = wxWindow::FindFocus();
+    if (!focus_window)
+        Die();
+    else if (!m_event_tag->GetScreenRect().Contains(pos) && !this->GetScreenRect().Contains(pos) && !m_search_item_tag->GetScreenRect().Contains(pos)) {
         Die();
     }
 }
@@ -666,8 +671,8 @@ void SearchDialog::ProcessSelection(wxDataViewItem selection)
 
 void SearchDialog::OnInputText(wxCommandEvent &)
 {
-    search_line->SetInsertionPointEnd();
-    wxString input_string = search_line->GetValue();
+    search_line->GetTextCtrl()->SetInsertionPointEnd();
+    wxString input_string = search_line->GetTextCtrl()->GetValue();
     if (input_string == default_string) input_string.Clear();
     searcher->search(into_u8(input_string), true, search_type);
     update_list();
@@ -675,7 +680,7 @@ void SearchDialog::OnInputText(wxCommandEvent &)
 
 void SearchDialog::OnLeftUpInTextCtrl(wxEvent &event)
 {
-    if (search_line->GetValue() == default_string) search_line->SetValue("");
+    if (search_line->GetTextCtrl()->GetValue() == default_string) search_line->GetTextCtrl()->SetValue("");
     event.Skip();
 }
 
@@ -725,13 +730,13 @@ void SearchDialog::update_list()
     m_scrolledWindow->Destroy();
 
     m_scrolledWindow = new ScrolledWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * em - (em + em / 2), POPUP_HEIGHT * em - em), wxVSCROLL, 6, 6);
-    m_scrolledWindow->SetMarginColor(m_bg_colour);
-    m_scrolledWindow->SetScrollbarColor(m_thumb_color);
-    m_scrolledWindow->SetBackgroundColour(m_bg_colour);
+    m_scrolledWindow->SetMarginColor(StateColor::darkModeColorFor(m_bg_colour));
+    m_scrolledWindow->SetScrollbarColor(StateColor::darkModeColorFor(m_thumb_color));
+    m_scrolledWindow->SetBackgroundColour(StateColor::darkModeColorFor(m_bg_colour));
 
     auto m_listsizer = new wxBoxSizer(wxVERTICAL);
     auto m_listPanel = new wxWindow(m_scrolledWindow->GetPanel(), -1);
-    m_listPanel->SetBackgroundColour(m_bg_colour);
+    m_listPanel->SetBackgroundColour(StateColor::darkModeColorFor(m_bg_colour));
     m_listPanel->SetSize(wxSize(m_scrolledWindow->GetSize().GetWidth(), -1));
 
     const std::vector<FoundOption> &filters = searcher->found_options();

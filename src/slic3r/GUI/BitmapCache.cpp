@@ -316,18 +316,34 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
                                          + (grayscale ? "-gs" : "")
                                          + new_color;
 
-    auto it = m_map.find(bitmap_key);
+    /*auto it = m_map.find(bitmap_key);
     if (it != m_map.end())
-        return it->second;
+        return it->second;*/
 
     // map of color replaces
     std::map<std::string, std::string> replaces;
-    if (dark_mode)
-        replaces["\"#808080\""] = "\"#FFFFFF\"";
-    if (!new_color.empty())
-        replaces["\"#ED6B21\""] = "\"" + new_color + "\"";
+    if (dark_mode) {
+        replaces["\"#262E30\""] = "\"#EFEFF0\"";
+        replaces["\"#323A3D\""] = "\"#B3B3B5\"";
+        replaces["\"#808080\""] = "\"#818183\"";
+        //replaces["\"#ACACAC\""] = "\"#54545A\"";
+        replaces["\"#CECECE\""] = "\"#54545B\"";
+        replaces["\"#6B6B6B\""] = "\"#818182\"";
+        replaces["\"#909090\""] = "\"#FFFFFF\"";
+        replaces["\"#00FF00\""] = "\"#FF0000\"";
+    }
+    //if (!new_color.empty())
+    //    replaces["\"#ED6B21\""] = "\"" + new_color + "\"";
 
-    NSVGimage *image =  nsvgParseFromFileWithReplace(Slic3r::var(bitmap_name + ".svg").c_str(), "px", 96.0f, replaces);
+     NSVGimage *image = nullptr;
+    if (strstr(bitmap_name.c_str(), "printer_thumbnail") == NULL) {
+        image =  nsvgParseFromFileWithReplace(Slic3r::var(bitmap_name + ".svg").c_str(), "px", 96.0f, replaces);
+    }
+    else {
+        std::map<std::string, std::string> temp_replaces;
+        image =  nsvgParseFromFileWithReplace(Slic3r::var(bitmap_name + ".svg").c_str(), "px", 96.0f, temp_replaces);
+    }
+
     if (image == nullptr)
         return nullptr;
 

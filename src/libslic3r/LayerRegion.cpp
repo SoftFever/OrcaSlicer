@@ -105,8 +105,11 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
     g.ext_perimeter_flow    = this->flow(frExternalPerimeter);
     g.overhang_flow         = this->bridging_flow(frPerimeter, object_config.thick_bridges);
     g.solid_infill_flow     = this->flow(frSolidInfill);
-    
-    g.process();
+
+    if (this->layer()->object()->config().wall_generator.value == PerimeterGeneratorType::Arachne && !spiral_mode)
+        g.process_arachne();
+    else
+        g.process_classic();
 }
 
 //#define EXTERNAL_SURFACES_OFFSET_PARAMETERS ClipperLib::jtMiter, 3.
@@ -225,7 +228,9 @@ void LayerRegion::process_external_surfaces(const Layer *lower_layer, const Poly
                         break;
                     }
                 // Grown by 3mm.
-                Polygons polys = offset(bridges[i].expolygon, bridge_margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS);
+                //BBS: eliminate too narrow area to avoid generating bridge on top layer when wall loop is 1
+                //Polygons polys = offset(bridges[i].expolygon, bridge_margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS);
+                Polygons polys = offset2({ bridges[i].expolygon }, -scale_(nozzle_diameter * 0.1), bridge_margin, EXTERNAL_SURFACES_OFFSET_PARAMETERS);
                 if (idx_island == -1) {
 				    BOOST_LOG_TRIVIAL(trace) << "Bridge did not fall into the source region!";
                 } else {

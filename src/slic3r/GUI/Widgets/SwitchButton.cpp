@@ -11,7 +11,7 @@ SwitchButton::SwitchButton(wxWindow* parent, wxWindowID id)
 	: wxBitmapToggleButton(parent, id, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxBU_EXACTFIT)
 	, m_on(this, "toggle_on", 16)
 	, m_off(this, "toggle_off", 16)
-    , text_color(std::pair{*wxWHITE, (int) StateColor::Checked}, std::pair{0x6B6B6B, (int) StateColor::Normal})
+    , text_color(std::pair{0xfffffe, (int) StateColor::Checked}, std::pair{0x6B6B6B, (int) StateColor::Normal})
 	, track_color(0xD9D9D9)
     , thumb_color(std::pair{0x00AE42, (int) StateColor::Checked}, std::pair{0xD9D9D9, (int) StateColor::Normal})
 {
@@ -31,6 +31,11 @@ void SwitchButton::SetLabels(wxString const& lbl_on, wxString const& lbl_off)
 void SwitchButton::SetTextColor(StateColor const& color)
 {
 	text_color = color;
+}
+
+void SwitchButton::SetTextColor2(StateColor const &color)
+{
+	text_color2 = color;
 }
 
 void SwitchButton::SetTrackColor(StateColor const& color)
@@ -57,6 +62,7 @@ void SwitchButton::Rescale()
 		m_off.msw_rescale();
 	}
 	else {
+        SetBackgroundColour(StaticBox::GetParentBackgroundColor(GetParent()));
 #ifdef __WXOSX__
         auto scale = Slic3r::GUI::mac_max_scaling_factor();
         int BS = (int) scale;
@@ -115,7 +121,7 @@ void SwitchButton::Rescale()
 			}
             memdc.SetTextForeground(text_color.colorForStates(state ^ StateColor::Checked));
             memdc.DrawText(labels[0], {BS + (thumbSize.x - textSize[0].x) / 2, BS + (thumbSize.y - textSize[0].y) / 2});
-            memdc.SetTextForeground(text_color.colorForStates(state));
+            memdc.SetTextForeground(text_color2.count() == 0 ? text_color.colorForStates(state) : text_color2.colorForStates(state));
             memdc.DrawText(labels[1], {trackSize.x - thumbSize.x - BS + (thumbSize.x - textSize[1].x) / 2, BS + (thumbSize.y - textSize[1].y) / 2});
 			memdc.SelectObject(wxNullBitmap);
 #ifdef __WXOSX__

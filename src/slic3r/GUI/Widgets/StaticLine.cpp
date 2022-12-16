@@ -1,5 +1,6 @@
 #include "StaticLine.hpp"
 #include "Label.hpp"
+#include "StateColor.hpp"
 
 #include <wx/dcgraph.h>
 
@@ -15,7 +16,7 @@ StaticLine::StaticLine(wxWindow *parent, bool vertical, const wxString &label, c
     , vertical(vertical)
 {
     wxWindow::SetBackgroundColour(parent->GetBackgroundColour());
-    this->pen = wxPen(wxColour("#EEEEEE"));
+    this->lineColor = wxColour("#EEEEEE");
     DisableFocusFromKeyboard();
     SetFont(Label::Body_14);
     wxWindow::SetLabel(label);
@@ -39,7 +40,7 @@ void StaticLine::SetIcon(const wxString &icon)
 
 void StaticLine::SetLineColour(wxColour color)
 {
-    this->pen = wxPen(color);
+    this->lineColor = color;
 }
 
 void StaticLine::Rescale()
@@ -98,10 +99,11 @@ void StaticLine::render(wxDC& dc)
         titleRect.x += icon.GetBmpWidth() + 5;
     }
     if (!label.IsEmpty()) {
+        dc.SetTextForeground(StateColor::darkModeColorFor(GetForegroundColour()));
         dc.DrawText(label, titleRect.x, (size.GetHeight() - textSize.GetHeight()) / 2);
         titleRect.x += textSize.GetWidth() + 5;
     }
-    dc.SetPen(pen);
+    dc.SetPen(wxPen(StateColor::darkModeColorFor(lineColor)));
     if (vertical) {
         size.x /= 2;
         if (titleRect.y > 0) titleRect.y += 5;

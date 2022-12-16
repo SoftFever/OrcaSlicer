@@ -16,6 +16,7 @@ public:
     BBLTopbar(wxFrame* parent);
     void Init(wxFrame *parent);
     ~BBLTopbar();
+    void show_publish_button(bool show);
     void UpdateToolbarWidth(int width);
     void Rescale();
     void OnIconize(wxAuiToolBarEvent& event);
@@ -63,10 +64,13 @@ private:
     wxAuiToolBarItem* m_account_item;
     wxAuiToolBarItem* m_model_store_item;
     
-    //wxAuiToolBarItem *m_publish_item;
+    wxAuiToolBarItem *m_publish_item;
     wxAuiToolBarItem* m_undo_item;
     wxAuiToolBarItem* m_redo_item;
     wxAuiToolBarItem* maximize_btn;
+
+    wxBitmap m_publish_bitmap;
+    wxBitmap m_publish_disable_bitmap;
 
     wxBitmap maximize_bitmap;
     wxBitmap window_bitmap;

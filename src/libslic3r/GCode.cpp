@@ -682,8 +682,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
         // first layer may result in skirt/brim in the air and maybe other issues.
         if (layers_to_print.size() == 1u) {
             if (!has_extrusions)
-                throw Slic3r::SlicingError(_(L("One object has empty initial layer and can't be printed. Please Cut the bottom or enable supports.")) + "\n" +
-                                           _(L("Object")) + ": " + object.model_object()->name);
+                throw Slic3r::SlicingError(_(L("One object has empty initial layer and can't be printed. Please Cut the bottom or enable supports.")), object.id().id);
         }
 
         // In case there are extrusions on this layer, check there is a layer to lay it on.
@@ -1379,10 +1378,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
           file.write(full_config);
 
         // SoftFever: write compatiple image
-        std::vector<int> temps_per_bed;
-        int first_layer_bed_temperature = 0;
-        get_bed_temperature(0, true, temps_per_bed,
-                            first_layer_bed_temperature);
+        int first_layer_bed_temperature = get_bed_temperature(0, true, print.config().curr_bed_type);
         file.write_format("; first_layer_bed_temperature = %d\n",
                           first_layer_bed_temperature);
         file.write_format(
@@ -1500,12 +1496,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     // Emit machine envelope limits for the Marlin firmware.
     this->print_machine_envelope(file, print);
-
-    //BBS: emit printing accelerate if has non-zero value
-    if (m_config.default_acceleration.value > 0) {
-        float acceleration = m_config.default_acceleration.value;
-        file.write(m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5)));
-    }
 
     // Disable fan.
     if (m_config.auxiliary_fan.value && print.config().close_fan_the_first_x_layers.get_at(initial_extruder_id)) {
@@ -1874,9 +1864,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         file.write(full_config);
 
       // SoftFever: write compatiple info
-      std::vector<int> temps_per_bed;
-      int first_layer_bed_temperature = 0;
-      get_bed_temperature(0, true, temps_per_bed, first_layer_bed_temperature);
+      int first_layer_bed_temperature = get_bed_temperature(0, true, print.config().curr_bed_type);
       file.write_format("; first_layer_bed_temperature = %d\n",
                         first_layer_bed_temperature);
       file.write_format(
@@ -1885,7 +1873,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
       file.write_format(
           "; first_layer_height = %.3f\n",
           print.config().initial_layer_print_height.value);
-      file.write_format("; variable_layer_height = %d\n", m_config.adaptive_layer_height ? 1 : 0);
+        
+        //SF TODO
+//      file.write_format("; variable_layer_height = %d\n", print.ad.adaptive_layer_height ? 1 : 0);
    
       file.write("; CONFIG_BLOCK_END\n\n");
 
@@ -2135,17 +2125,11 @@ void GCode::print_machine_envelope(GCodeOutputStream &file, Print &print)
 }
 
 // BBS
-void GCode::get_bed_temperature(const int extruder_id, const bool is_first_layer, std::vector<int>& temps_per_bed, int& default_temp) const
+int GCode::get_bed_temperature(const int extruder_id, const bool is_first_layer, const BedType bed_type) const
 {
-    temps_per_bed.resize((int)BedType::btCount, 0);
-    for (int bed_type = 0; bed_type < BedType::btCount; bed_type++) {
-        std::string bed_temp_key = is_first_layer ? get_bed_temp_1st_layer_key((BedType)bed_type) : get_bed_temp_key((BedType)bed_type);
-        const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(bed_temp_key);
-
-        temps_per_bed[bed_type] = bed_temp_opt->get_at(extruder_id);
-        if (bed_type == m_config.curr_bed_type)
-            default_temp = temps_per_bed[bed_type];
-    }
+    std::string bed_temp_key = is_first_layer ? get_bed_temp_1st_layer_key(bed_type) : get_bed_temp_key(bed_type);
+    const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(bed_temp_key);
+    return bed_temp_opt->get_at(extruder_id);
 }
 
 // Write 1st layer bed temperatures into the G-code.
@@ -2157,8 +2141,7 @@ void GCode::_print_first_layer_bed_temperature(GCodeOutputStream &file, Print &p
     // Initial bed temperature based on the first extruder.
     // BBS
     std::vector<int> temps_per_bed;
-    int default_temp = 0;
-    get_bed_temperature(first_printing_extruder_id, true, temps_per_bed, default_temp);
+    int bed_temp = get_bed_temperature(first_printing_extruder_id, true, print.config().curr_bed_type);
 
     // Is the bed temperature set by the provided custom G-code?
     int  temp_by_gcode     = -1;
@@ -2171,7 +2154,7 @@ void GCode::_print_first_layer_bed_temperature(GCodeOutputStream &file, Print &p
 
     // Always call m_writer.set_bed_temperature() so it will set the internal "current" state of the bed temp as if
     // the custom start G-code emited these.
-    std::string set_temp_gcode = m_writer.set_bed_temperature(temps_per_bed, default_temp, wait);
+    std::string set_temp_gcode = m_writer.set_bed_temperature(bed_temp, wait);
     if (! temp_set_by_gcode)
         file.write(set_temp_gcode);
 }
@@ -2639,10 +2622,8 @@ GCode::LayerResult GCode::process_layer(
         }
 
         // BBS
-        std::vector<int> temps_per_bed;
-        int default_temp = 0;
-        get_bed_temperature(first_extruder_id, false, temps_per_bed, default_temp);
-        gcode += m_writer.set_bed_temperature(temps_per_bed, default_temp);
+        int bed_temp = get_bed_temperature(first_extruder_id, false, print.config().curr_bed_type);
+        gcode += m_writer.set_bed_temperature(bed_temp);
         // Mark the temperature transition from 1st to 2nd layer to be finished.
         m_second_layer_things_done = true;
     }
@@ -3297,11 +3278,8 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     // get a copy; don't modify the orientation of the original loop object otherwise
     // next copies (if any) would not detect the correct orientation
 
-    //BBS: extrude contour of wall ccw, hole of wall cw, except spiral mode
-    bool was_clockwise = loop.is_clockwise();
-    if (m_config.spiral_mode || !is_perimeter(loop.role()))
-        loop.make_counter_clockwise();
-    bool current_clockwise = loop.is_clockwise();
+    // extrude all loops ccw
+    bool was_clockwise = loop.make_counter_clockwise();
 
     // find the point of the loop that is closest to the current extruder position
     // or randomize if requested
@@ -3371,7 +3349,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         //FIXME improve the algorithm in case the loop is split into segments with a low number of points (see the Point b query).
         Point a = paths.front().polyline.points[1];  // second point
         Point b = *(paths.back().polyline.points.end()-3);       // second to last point
-        if (was_clockwise != current_clockwise) {
+        if (was_clockwise) {
             // swap points
             Point c = a; a = b; b = c;
         }
@@ -3379,7 +3357,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         double angle = paths.front().first_point().ccw_angle(a, b) / 3;
 
         // turn left if contour, turn right if hole
-        if (was_clockwise != current_clockwise) angle *= -1;
+        if (was_clockwise) angle *= -1;
 
         // create the destination point along the first segment and rotate it
         // we make sure we don't exceed the segment length because we don't know
@@ -3391,7 +3369,12 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         double l2 = v.squaredNorm();
         // Shift by no more than a nozzle diameter.
         //FIXME Hiding the seams will not work nicely for very densely discretized contours!
-        Point  pt = ((nd * nd >= l2) ? p2 : (p1 + v * (nd / sqrt(l2)))).cast<coord_t>();
+        //BBS. shorten the travel distant before the wipe path
+        double threshold = 0.2;
+        Point  pt = (p1 + v * threshold).cast<coord_t>();
+        if (nd * nd < l2)
+            pt = (p1 + threshold * v * (nd / sqrt(l2))).cast<coord_t>();
+        //Point pt = ((nd * nd >= l2) ? (p1+v*0.4): (p1 + 0.2 * v * (nd / sqrt(l2)))).cast<coord_t>();
         pt.rotate(angle, paths.front().polyline.points.front());
         // generate the travel move
         gcode += m_writer.travel_to_xy(this->point_to_gcode(pt), "move inwards before travel");
@@ -3654,8 +3637,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             acceleration = m_config.first_layer_acceleration_over_raft.value;
         } else if (m_config.bridge_acceleration.value > 0 && is_bridge(path.role())) {
             acceleration = m_config.bridge_acceleration.value;
-        } else if (m_config.perimeter_acceleration.value > 0 && is_perimeter(path.role())) {
-            acceleration = m_config.perimeter_acceleration.value;
 #endif
         } else if (m_config.outer_wall_acceleration.value > 0 && is_external_perimeter(path.role())) {
              acceleration = m_config.outer_wall_acceleration.value;
@@ -3807,11 +3788,21 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     std::string comment;
     if (m_enable_cooling_markers) {
-        if (EXTRUDER_CONFIG(enable_overhang_bridge_fan) &&
-            (path.get_overhang_degree() > EXTRUDER_CONFIG(overhang_fan_threshold) || is_bridge(path.role())))
-            gcode += ";_OVERHANG_FAN_START\n";
-        else
+        if (EXTRUDER_CONFIG(enable_overhang_bridge_fan)) {
+            //BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external perimeter
+            int overhang_threshold = EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none ?
+                Overhang_threshold_none : EXTRUDER_CONFIG(overhang_fan_threshold) - 1;
+            if ((EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter) ||
+                path.get_overhang_degree() > overhang_threshold ||
+                is_bridge(path.role()))
+                gcode += ";_OVERHANG_FAN_START\n";
+            else
+                comment = ";_EXTRUDE_SET_SPEED";
+        }
+        else {
             comment = ";_EXTRUDE_SET_SPEED";
+        }
+
         if (path.role() == erExternalPerimeter)
             comment += ";_EXTERNAL_PERIMETER";
     }
@@ -3875,10 +3866,22 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             }
         }
     }
-    if (m_enable_cooling_markers)
-        gcode += (EXTRUDER_CONFIG(enable_overhang_bridge_fan) &&
-                  (is_bridge(path.role()) || path.get_overhang_degree() > EXTRUDER_CONFIG(overhang_fan_threshold))) ?
-        ";_OVERHANG_FAN_END\n" : ";_EXTRUDE_END\n";
+    if (m_enable_cooling_markers) {
+        if (EXTRUDER_CONFIG(enable_overhang_bridge_fan)) {
+            //BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external perimeter
+            int overhang_threshold = EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none ?
+                Overhang_threshold_none : EXTRUDER_CONFIG(overhang_fan_threshold) - 1;
+            if ((EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter) ||
+                path.get_overhang_degree() > overhang_threshold ||
+                is_bridge(path.role()))
+                gcode += ";_OVERHANG_FAN_END\n";
+            else
+                gcode += ";_EXTRUDE_END\n";
+        }
+        else {
+            gcode += ";_EXTRUDE_END\n";
+        }
+    }
 
     this->set_last_pos(path.last_point());
     return gcode;
@@ -4122,13 +4125,13 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
         std::vector<float> flush_matrix(cast<float>(m_config.flush_volumes_matrix.values));
         const unsigned int number_of_extruders = (unsigned int)(sqrt(flush_matrix.size()) + EPSILON);
         assert(m_writer.extruder()->id() < number_of_extruders);
-        assert(new_retract_length < number_of_extruders);
 
         int previous_extruder_id = m_writer.extruder()->id();
         old_retract_length = m_config.retraction_length.get_at(previous_extruder_id);
         old_retract_length_toolchange = m_config.retract_length_toolchange.get_at(previous_extruder_id);
         old_filament_temp = this->on_first_layer()? m_config.nozzle_temperature_initial_layer.get_at(previous_extruder_id) : m_config.nozzle_temperature.get_at(previous_extruder_id);
         wipe_volume = flush_matrix[previous_extruder_id * number_of_extruders + extruder_id];
+        wipe_volume *= m_config.flush_multiplier;
         old_filament_e_feedrate = (int)(60.0 * m_config.filament_max_volumetric_speed.get_at(previous_extruder_id) / filament_area);
         old_filament_e_feedrate = old_filament_e_feedrate == 0 ? 100 : old_filament_e_feedrate;
     }

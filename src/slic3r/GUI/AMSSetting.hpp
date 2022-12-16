@@ -29,9 +29,13 @@ public:
 
 	void          update_insert_material_read_mode(bool selected);
     void          update_starting_read_mode(bool selected);
-    void          on_select_ok(wxMouseEvent &event);
+    void          update_remain_mode(bool selected);
+    void          update_switch_filament(bool selected);
+    void          on_select_ok(wxMouseEvent& event);
     void          on_insert_material_read(wxCommandEvent &event);
     void          on_starting_read(wxCommandEvent &event);
+    void          on_remain(wxCommandEvent& event);
+    void          on_switch_filament(wxCommandEvent& event);
     wxString      append_title(wxString text);
     wxStaticText *append_text(wxString text);
     MachineObject *obj{nullptr};
@@ -47,16 +51,27 @@ protected:
     wxStaticText *m_tip_Insert_material_line1;
     wxStaticText *m_tip_Insert_material_line2;
     wxStaticText *m_tip_Insert_material_line3;
+
     CheckBox *    m_checkbox_starting_auto_read;
     wxStaticText *m_title_starting_auto_read;
     wxStaticText *m_tip_starting_line1;
     wxStaticText *m_tip_starting_line2;
-    wxPanel *     m_panel_img;
+
+    CheckBox *    m_checkbox_remain;
+    wxStaticText *m_title_remain;
+    wxStaticText *m_tip_remain_line1;
+
+    CheckBox* m_checkbox_switch_filament;
+    wxStaticText* m_title_switch_filament;
+    wxStaticText* m_tip_switch_filament_line1;
+
     wxStaticText *m_tip_ams_img;
     Button *     m_button_auto_demarcate;
 
     wxBoxSizer *m_sizer_Insert_material_tip_inline;
     wxBoxSizer *m_sizer_starting_tip_inline;
+    wxBoxSizer *m_sizer_remain_inline;
+    wxBoxSizer *m_sizer_switch_filament_inline;
 };
 
 }} // namespace Slic3r::GUI

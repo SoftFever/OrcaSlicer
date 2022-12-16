@@ -32,7 +32,7 @@ public:
 
     void SetFileSystem(boost::shared_ptr<PrinterFileSystem> file_sys);
 
-    void SetStatus(wxBitmap const & icon, wxString const &msg);
+    void SetStatus(ScalableBitmap const & icon, wxString const &msg);
 
     boost::shared_ptr<PrinterFileSystem> GetFileSystem() { return m_file_sys; }
 
@@ -93,7 +93,7 @@ protected:
 
 private:
     boost::shared_ptr<PrinterFileSystem> m_file_sys;
-    wxBitmap m_status_icon;
+    ScalableBitmap m_status_icon;
     wxString m_status_msg;
 
     ScalableBitmap m_checked_icon;
@@ -122,6 +122,7 @@ private:
     int     m_hit_type = HIT_NONE;
     size_t  m_hit_item = size_t(-1);
 
+    int m_scroll_offset = 0;
     int m_row_offset = 0; // 1/4 row height
     int m_row_count = 0; // 1/4 row height
     int m_col_count = 1;

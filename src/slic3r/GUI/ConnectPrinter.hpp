@@ -45,6 +45,7 @@ public:
 
     ~ConnectPrinterDialog();
 
+    void end_modal(wxStandardID id);
     void init_bitmap();
     void set_machine_object(MachineObject* obj);
     void on_input_enter(wxCommandEvent& evt);

@@ -2,12 +2,12 @@
 #include <fstream>
 #include <math.h>
 #include <map>
-
+#include <string.h>
 namespace BambuStudio {
 
 //BBS: only check wodth when dE is longer than this value
 const double CHECK_WIDTH_E_THRESHOLD = 0.0025;
-const double WIDTH_THRESHOLD = 0.012;
+const double WIDTH_THRESHOLD = 0.02;
 const double RADIUS_THRESHOLD = 0.005;
 
 const double filament_diameter = 1.75;
@@ -19,6 +19,11 @@ const std::string Wipe_Start_Tag     = " WIPE_START";
 const std::string Wipe_End_Tag       = " WIPE_END";
 const std::string Layer_Change_Tag   = " CHANGE_LAYER";
 const std::string Height_Tag         = " LAYER_HEIGHT: ";
+const std::string filament_flow_ratio_tag = " filament_flow_ratio";
+const std::string nozzle_temperature_Tag   = " nozzle_temperature =";
+const std::string nozzle_temperature_initial_layer_Tag  = " nozzle_temperature_initial_layer";
+const std::string Z_HEIGHT_TAG                         = " Z_HEIGHT: ";
+const std::string Initial_Layer_Ptint_Height_Tag        = " initial_layer_print_height =";
 
 GCodeCheckResult GCodeChecker::parse_file(const std::string& path)
 {
@@ -105,6 +110,19 @@ GCodeCheckResult GCodeChecker::parse_comment(GCodeLine& line)
     // extrusion role tag
     if (starts_with(comment, Extrusion_Role_Tag)) {
         m_role = string_to_role(comment.substr(Extrusion_Role_Tag.length()));
+        if (m_role == erExternalPerimeter) {
+
+            if (z_height == initial_layer_height && nozzle_temp != nozzle_temperature_initial_layer[filament_id]) {
+                std::cout << "invalid filament nozzle initial layer temperature comment with invalid value!" << std::endl;
+                return GCodeCheckResult::ParseFailed;
+            }
+
+            if (z_height != initial_layer_height && nozzle_temp != nozzle_temperature[filament_id]) {
+                std::cout << "invalid filament nozzle temperature comment with invalid value!" << std::endl;
+                return GCodeCheckResult::ParseFailed;
+            }
+        }
+
     } else if (starts_with(comment, Wipe_Start_Tag)) {
         m_wiping = true;
     } else if (starts_with(comment, Wipe_End_Tag)) {
@@ -123,7 +141,41 @@ GCodeCheckResult GCodeChecker::parse_comment(GCodeLine& line)
         }
     } else if (starts_with(comment, Layer_Change_Tag)) {
         m_layer_num++;
+    } else if (starts_with(comment, filament_flow_ratio_tag))
+    {
+        std::string str = comment.substr(filament_flow_ratio_tag.size()+3);
+        if (!parse_double_from_str(str, filament_flow_ratio))
+        {
+            std::cout << "invalid filament flow ratio comment with invalid value!" << std::endl;
+            return GCodeCheckResult::ParseFailed;
+        }
     }
+    else if (starts_with(comment, nozzle_temperature_Tag)) {
+        std::string str = comment.substr(nozzle_temperature_Tag.size() + 1);
+        if (!parse_double_from_str(str, nozzle_temperature)) {
+            std::cout << "invalid nozzle temperature comment with invalid value!" << std::endl;
+            return GCodeCheckResult::ParseFailed;
+        }
+    }
+    else if (starts_with(comment, nozzle_temperature_initial_layer_Tag)) {
+        std::string str = comment.substr(nozzle_temperature_initial_layer_Tag.size() + 3);
+        if (!parse_double_from_str(str, nozzle_temperature_initial_layer)) {
+            std::cout << "invalid nozzle temperature initial layer comment with invalid value!" << std::endl;
+            return GCodeCheckResult::ParseFailed;
+        }
+    } else if (starts_with(comment, Z_HEIGHT_TAG)) {
+        std::string str = comment.substr(Z_HEIGHT_TAG.size());
+        if (!parse_double_from_str(str, z_height)) {
+            std::cout << "invalid z height comment with invalid value!" << std::endl;
+            return GCodeCheckResult::ParseFailed;
+        }
+    } else if (starts_with(comment, Initial_Layer_Ptint_Height_Tag)) {
+        std::string str = comment.substr(Initial_Layer_Ptint_Height_Tag.size());
+        if (!parse_double_from_str(str, initial_layer_height)) {
+            std::cout << "invalid initial layer height comment with invalid value!" << std::endl;
+            return GCodeCheckResult::ParseFailed;
+        }
+   }
 
     return GCodeCheckResult::Success;
 }
@@ -153,11 +205,32 @@ GCodeCheckResult GCodeChecker::parse_command(GCodeLine& gcode_line)
             {
                 case 82: { ret = parse_M82(gcode_line); break; }    // Set to Absolute extrusion
                 case 83: { ret = parse_M83(gcode_line); break; }    // Set to Relative extrusion
+                case 104: {
+                    ret = parse_M104_M109(gcode_line);
+                    break;
+                } // Set to nozzle temperature
+                case 109: {
+                    ret = parse_M104_M109(gcode_line);
+                    break;
+                } // Set to nozzle temperature
                 default: { break; }
             }
             break;
         }
         case 'T':{
+
+            int pt = ::atoi(&cmd[1]);
+            if (pt == 1000 || pt == 1100 || pt == 255) {
+                break;
+            }
+
+            if (pt < 0 || pt > 254 || pt >= filament_flow_ratio.size()) {
+                std::cout << "Invalid T command"<<std::endl;
+                ret = GCodeCheckResult::ParseFailed;
+                break;
+            }
+            filament_id = pt;
+            flow_ratio = filament_flow_ratio[pt];
             break;
         }
         default: {
@@ -189,6 +262,7 @@ GCodeCheckResult GCodeChecker::parse_axis(GCodeLine& gcode_line)
         case 'F': axis = F; break;
         case 'I': axis = I; break;
         case 'J': axis = J; break;
+        case 'P': axis = P; break;
         default:
             //BBS: invalid command which has invalid axis
             std::cout << "Invalid gcode because of invalid axis!" << std::endl;
@@ -266,8 +340,7 @@ GCodeCheckResult GCodeChecker::parse_G2_G3(GCodeLine& gcode_line)
         return GCodeCheckResult::ParseFailed;
     }
     //BBS: invalid G2_G3 command which has no X and Y axis at same time
-    if (!gcode_line.has(X) &&
-        !gcode_line.has(Y)) {
+    if (!gcode_line.has(X) && !gcode_line.has(Y) && !gcode_line.has(I) && !gcode_line.has(J)) {
         if (!gcode_line.has(X) || !gcode_line.has(P) || (int)gcode_line.get(P) != 1) {
             std::cout << "Invalid G2_G3 gcode because of no X and Y axis at same time!" << std::endl;
             return GCodeCheckResult::ParseFailed;
@@ -358,11 +431,30 @@ GCodeCheckResult GCodeChecker::parse_M83(const GCodeLine& gcode_line)
     return GCodeCheckResult::Success;
 }
 
+GCodeCheckResult GCodeChecker::parse_M104_M109(const GCodeLine &gcode_line)
+{
+    const char *c = gcode_line.m_raw.c_str();
+    const char *rs = strchr(c,'S');
+
+    std::string str=rs;
+    str = str.substr(1);
+    for (int i = 0; i < str.size(); i++) {
+        if (str[i] == ' ')
+            str=str.substr(0,i);
+    }
+    if (!parse_double_from_str(str, nozzle_temp)) {
+        std::cout << "invalid nozzle temperature comment with invalid value!" << std::endl;
+        return GCodeCheckResult::ParseFailed;
+    }
+
+    return GCodeCheckResult::Success;
+}
+
 double GCodeChecker::calculate_G1_width(const std::array<double, 3>& source,
                                        const std::array<double, 3>& target,
                                        double e, double height, bool is_bridge) const
 {
-    double volume = e * Pi * (filament_diameter/2.0f) * (filament_diameter/2.0f);
+    double volume = (e / flow_ratio) * Pi * (filament_diameter / 2.0f) * (filament_diameter / 2.0f);
     std::array<double, 3> delta = { target[0] - source[0],
                                    target[1] - source[1],
                                    target[2] - source[2] };
@@ -389,8 +481,9 @@ double GCodeChecker::calculate_G2_G3_width(const std::array<double, 2>& source,
         (radian < 0 ? -radian : 2 * Pi - radian);
     double radius = sqrt(v1[0] * v1[0] + v1[1] * v1[1]);
     double length = radius * radian;
-    double volume = e * Pi * (filament_diameter/2) * (filament_diameter/2);
+    double volume = (e / flow_ratio) * Pi * (filament_diameter / 2) * (filament_diameter / 2);
     double mm3_per_mm = volume / length;
+
     return is_bridge? 2 * sqrt(mm3_per_mm/Pi) :
            (mm3_per_mm / height) + height * (1 - 0.25 * Pi);
 }
@@ -481,12 +574,15 @@ GCodeCheckResult GCodeChecker::check_G0_G1_width(const GCodeLine& line)
         std::array<double, 3> target = { m_end_position[X], m_end_position[Y], m_end_position[Z] };
 
         bool is_bridge = m_role == erOverhangPerimeter || m_role == erBridgeInfill;
-        double width_real = calculate_G1_width(source, target, delta_pos[E], m_height, is_bridge);
-        if (fabs(width_real - m_width) > WIDTH_THRESHOLD) {
-            std::cout << "Invalid G0_G1 because has abnormal line width." << std::endl;
-            std::cout << "Width: " << m_width << " Width_real: " << width_real <<  std::endl;
-            return GCodeCheckResult::CheckFailed;
+        if (!is_bridge) {
+            double width_real = calculate_G1_width(source, target, delta_pos[E], m_height, is_bridge);
+            if (fabs(width_real - m_width) > WIDTH_THRESHOLD) {
+                std::cout << "Invalid G0_G1 because has abnormal line width." << std::endl;
+                std::cout << "Width: " << m_width << " Width_real: " << width_real << std::endl;
+                return GCodeCheckResult::CheckFailed;
+            }
         }
+
     }
 
     return GCodeCheckResult::Success;
@@ -556,12 +652,16 @@ GCodeCheckResult GCodeChecker::check_G2_G3_width(const GCodeLine& line)
         m_role != erGapFill &&
         delta_e > CHECK_WIDTH_E_THRESHOLD) {
         bool is_bridge = m_role == erOverhangPerimeter || m_role == erBridgeInfill;
-        double width_real = calculate_G2_G3_width(source, target, center, is_ccw, delta_e, m_height, is_bridge);
-        if (fabs(width_real - m_width) > WIDTH_THRESHOLD) {
-            std::cout << "Invalid G2_G3 because has abnormal line width." << std::endl;
-            std::cout << "Width: " << m_width << " Width_real: " << width_real <<  std::endl;
-            return GCodeCheckResult::CheckFailed;
+
+        if (!is_bridge) {
+            double width_real = calculate_G2_G3_width(source, target, center, is_ccw, delta_e, m_height, is_bridge);
+            if (fabs(width_real - m_width) > WIDTH_THRESHOLD) {
+                std::cout << "Invalid G2_G3 because has abnormal line width." << std::endl;
+                std::cout << "Width: " << m_width << " Width_real: " << width_real << std::endl;
+                return GCodeCheckResult::CheckFailed;
+            }
         }
+
     }
 
     return GCodeCheckResult::Success;

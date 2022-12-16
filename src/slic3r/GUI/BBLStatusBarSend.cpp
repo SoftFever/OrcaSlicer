@@ -26,11 +26,11 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
     wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
 
-    m_status_text = new wxStaticText(m_self, wxID_ANY, L(""), wxDefaultPosition, wxSize(m_self->FromDIP(280), -1), 0);
+    m_status_text = new wxStaticText(m_self, wxID_ANY, wxEmptyString);
     m_status_text->SetForegroundColour(wxColour(107, 107, 107));
     m_status_text->SetFont(::Label::Body_13);
-    m_status_text->Wrap(m_self->FromDIP(280));
-   
+    m_status_text->SetSize(wxSize(m_self->FromDIP(280), m_self->FromDIP(46)));
+    m_status_text->SetMaxSize(wxSize(m_self->FromDIP(280), m_self->FromDIP(46)));
 
     m_prog = new wxGauge(m_self, wxID_ANY, 100, wxDefaultPosition, wxSize(-1, m_self->FromDIP(6)), wxGA_HORIZONTAL);
     m_prog->SetValue(0);
@@ -42,10 +42,12 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
 
     m_sizer_bottom->Add(m_prog, 1, wxALIGN_CENTER, 0);
 
+     StateColor btn_bd_white(std::pair<wxColour, int>(*wxWHITE, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
+
     m_cancelbutton = new Button(m_self, _L("Cancel"));
     m_cancelbutton->SetMinSize(wxSize(m_self->FromDIP(64), m_self->FromDIP(24)));
-    m_cancelbutton->SetTextColor(wxColour(107, 107, 107));
     m_cancelbutton->SetBackgroundColor(wxColour(255, 255, 255));
+    m_cancelbutton->SetBorderColor(btn_bd_white);
     m_cancelbutton->SetCornerRadius(m_self->FromDIP(12));
     m_cancelbutton->Bind(wxEVT_BUTTON, 
         [this](wxCommandEvent &evt) {
@@ -54,7 +56,7 @@ BBLStatusBarSend::BBLStatusBarSend(wxWindow *parent, int id)
             m_cancel_cb_fina();
     });
 
-    m_stext_percent = new wxStaticText(m_self, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, 0);
+    m_stext_percent = new wxStaticText(m_self, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
     m_stext_percent->SetForegroundColour(wxColour(107, 107, 107));
     m_stext_percent->SetFont(::Label::Body_13);
     m_stext_percent->Wrap(-1);
@@ -99,6 +101,7 @@ void BBLStatusBarSend::set_progress(int val)
     }
     m_prog->SetValue(val);
     set_percent_text(wxString::Format("%d%%", val));
+    
     m_sizer->Layout();
 }
 
@@ -112,6 +115,11 @@ void BBLStatusBarSend::set_range(int val)
     if(val != m_prog->GetRange()) {
         m_prog->SetRange(val);
     }
+}
+
+void BBLStatusBarSend::clear_percent()
+{
+    set_percent_text(wxEmptyString);
 }
 
 void BBLStatusBarSend::show_progress(bool show)
@@ -168,15 +176,66 @@ wxPanel* BBLStatusBarSend::get_panel()
     return m_self;
 }
 
+bool BBLStatusBarSend::is_english_text(wxString str)
+{
+    std::regex reg("^[0-9a-zA-Z]+$");
+    std::smatch matchResult;
+
+    std::string pattern_Special = "{}[]<>~!@#$%^&*(),.?/ :";
+    for (auto i = 0; i < str.Length(); i++) {
+        std::string regex_str = wxString(str[i]).ToStdString();
+        if (std::regex_match(regex_str, matchResult, reg)) {
+            continue;
+        }
+        else {
+            int result = pattern_Special.find(regex_str.c_str());
+            if (result < 0 || result > pattern_Special.length()) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool BBLStatusBarSend::format_text(wxStaticText* dc, int width, const wxString& text, wxString& multiline_text)
+{
+    bool multiline = false;
+    multiline_text = text;
+    if (width > 0 && dc->GetTextExtent(text).x > width) {
+        size_t start = 0;
+        while (true) {
+            size_t idx = size_t(-1);
+            for (size_t i = start; i < multiline_text.Len(); i++) {
+                if (multiline_text[i] == ' ') {
+                    if (dc->GetTextExtent(multiline_text.SubString(start, i)).x < width)
+                        idx = i;
+                    else {
+                        if (idx == size_t(-1)) idx = i;
+                        break;
+                    }
+                }
+            }
+            if (idx == size_t(-1)) break;
+            multiline = true;
+            multiline_text[idx] = '\n';
+            start = idx + 1;
+            if (dc->GetTextExtent(multiline_text.Mid(start)).x < width) break;
+        }
+    }
+    return multiline;
+    //return dc->GetTextExtent(multiline_text);
+}
+
+
 void BBLStatusBarSend::set_status_text(const wxString& txt)
 {
     //auto txtss = "Sending the printing task has timed out.\nPlease try again!";
     //auto txtss = "The printing project is being uploaded... 25%%";
     //m_status_text->SetLabelText(txtss);
-    m_status_text->SetLabelText(txt);
-    m_status_text->SetSize(wxSize(m_self->FromDIP(280), -1));
-    m_status_text->SetMaxSize(wxSize(m_self->FromDIP(280), -1));
-    m_status_text->Wrap(m_self->FromDIP(280));
+    wxString str;
+    format_text(m_status_text, m_self->FromDIP(280), txt, str);
+    m_status_text->SetLabelText(str);
+    //if (is_english_text(str)) m_status_text->Wrap(m_self->FromDIP(280));
 }
 
 void BBLStatusBarSend::set_percent_text(const wxString &txt)
@@ -206,6 +265,7 @@ wxString BBLStatusBarSend::get_status_text() const
 
 bool BBLStatusBarSend::update_status(wxString &msg, bool &was_cancel, int percent, bool yield)
 {
+    //auto test_txt = _L("Unkown Error.") + _L("status=150, body=Timeout was reached: Connection timed out after 10009 milliseconds [Error 28]");
     set_status_text(msg);
 
     if (percent >= 0)
@@ -224,7 +284,6 @@ void BBLStatusBarSend::reset()
     set_progress(0);
     set_percent_text(wxString::Format("%d%%", 0));
 }
-
 
 void BBLStatusBarSend::set_font(const wxFont &font)
 {

@@ -14,7 +14,7 @@
 
 wxDEFINE_EVENT(wxCUSTOMEVT_TABBOOK_SEL_CHANGED, wxCommandEvent);
 
-const static wxColour TAB_BUTTON_BG  = wxColour(255, 255, 255, 255);
+const static wxColour TAB_BUTTON_BG  = wxColour("#FEFFFF");
 const static wxColour TAB_BUTTON_SEL = wxColour(219, 253, 213, 255);
 
 static const wxFont& TAB_BUTTON_FONT     = Label::Body_14;
@@ -75,7 +75,7 @@ void TabButtonsListCtrl::OnPaint(wxPaintEvent &)
         
         wxPoint pos = btn->GetPosition();
         wxSize size = btn->GetSize();
-        const wxColour &clr  = idx == m_selection ? btn_marker_color : TAB_BUTTON_BG;
+        const wxColour &clr  = StateColor::darkModeColorFor(idx == m_selection ? btn_marker_color : TAB_BUTTON_BG);
         dc.SetPen(clr);
         dc.SetBrush(clr);
         dc.DrawRectangle(pos.x, pos.y + size.y, size.x, sz.y - size.y);

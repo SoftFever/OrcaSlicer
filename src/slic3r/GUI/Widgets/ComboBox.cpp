@@ -41,7 +41,7 @@ ComboBox::ComboBox(wxWindow *      parent,
         TextInput::SetBorderColor(StateColor(std::make_pair(0xDBDBDB, (int) StateColor::Disabled),
             std::make_pair(0x00AE42, (int) StateColor::Hovered),
             std::make_pair(0xDBDBDB, (int) StateColor::Normal)));
-        TextInput::SetBackgroundColor(StateColor(std::make_pair(0xF0F0F0, (int) StateColor::Disabled),
+        TextInput::SetBackgroundColor(StateColor(std::make_pair(0xF0F0F1, (int) StateColor::Disabled),
             std::make_pair(0xEDFAF2, (int) StateColor::Focused),
             std::make_pair(*wxWHITE, (int) StateColor::Normal)));
         TextInput::SetLabelColor(StateColor(std::make_pair(0x909090, (int) StateColor::Disabled),
@@ -185,6 +185,13 @@ void ComboBox::SetString(unsigned int n, wxString const &value)
 
 wxBitmap ComboBox::GetItemBitmap(unsigned int n) { return icons[n]; }
 
+void ComboBox::SetItemBitmap(unsigned int n, wxBitmap const &bitmap)
+{
+    if (n >= texts.size()) return;
+    icons[n] = bitmap;
+    drop.Invalidate();
+}
+
 int ComboBox::DoInsertItems(const wxArrayStringsAdapter &items,
                             unsigned int                 pos,
                             void **                      clientData,
@@ -218,7 +225,7 @@ void ComboBox::mouseDown(wxMouseEvent &event)
     } else if (drop.HasDismissLongTime()) {
         drop.autoPosition();
         drop_down = true;
-        drop.Popup();
+        drop.Popup(&drop);
         wxCommandEvent e(wxEVT_COMBOBOX_DROPDOWN);
         GetEventHandler()->ProcessEvent(e);
     }
@@ -228,7 +235,7 @@ void ComboBox::mouseWheelMoved(wxMouseEvent &event)
 {
     event.Skip();
     if (drop_down) return;
-    auto delta = (event.GetWheelRotation() < 0 == event.IsWheelInverted()) ? -1 : 1;
+    auto delta = event.GetWheelRotation() < 0 ? 1 : -1;
     unsigned int n = GetSelection() + delta;
     if (n < GetCount()) {
         SetSelection((int) n);
@@ -262,13 +269,7 @@ void ComboBox::keyDown(wxKeyEvent& event)
             } else {
                 break;
             }
-            {
-                wxCommandEvent e(wxEVT_COMBOBOX);
-                e.SetEventObject(this);
-                e.SetId(GetId());
-                e.SetInt(GetSelection());
-                GetEventHandler()->ProcessEvent(e);
-            }
+            sendComboBoxEvent();
             break;
         case WXK_TAB:
             HandleAsNavigationKey(event);

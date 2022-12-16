@@ -30,6 +30,10 @@ PublishDialog::PublishDialog(Plater *plater)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Publish"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_plater(plater)
 {
+
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
     this->SetSize(wxSize(FromDIP(540),FromDIP(400)));
 
     this->SetSizeHints(wxDefaultSize, wxDefaultSize);
@@ -61,7 +65,7 @@ PublishDialog::PublishDialog(Plater *plater)
     m_main_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 0);
 
     wxBoxSizer *m_progress_text_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_text_progress = new wxStaticText(this, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize, 0);
+    m_text_progress = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
     m_text_progress->Wrap(-1);
     m_text_progress->SetFont(Label::Body_12);
     m_text_progress->SetForegroundColour(TEXT_LIGHT_GRAY);
@@ -129,6 +133,7 @@ PublishDialog::PublishDialog(Plater *plater)
         });
 
     Bind(wxEVT_CLOSE_WINDOW, &PublishDialog::on_close, this);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void PublishDialog::cancel()

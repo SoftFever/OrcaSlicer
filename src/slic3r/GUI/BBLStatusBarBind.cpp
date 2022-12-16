@@ -27,7 +27,7 @@ BBLStatusBarBind::BBLStatusBarBind(wxWindow *parent, int id)
 
     //wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
 
-   /* m_status_text = new wxStaticText(m_self, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, 0);
+   /* m_status_text = new wxStaticText(m_self, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
     m_status_text->SetForegroundColour(wxColour(107, 107, 107));
     m_status_text->SetFont(::Label::Body_13);
     m_status_text->Wrap(-1);
@@ -37,7 +37,7 @@ BBLStatusBarBind::BBLStatusBarBind(wxWindow *parent, int id)
     m_prog->SetValue(0);
 
 
-    m_stext_percent = new wxStaticText(m_self, wxID_ANY, _L(""), wxDefaultPosition, wxDefaultSize, 0);
+    m_stext_percent = new wxStaticText(m_self, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0);
     m_stext_percent->SetForegroundColour(wxColour(107, 107, 107));
     m_stext_percent->SetFont(::Label::Body_13);
     m_stext_percent->Wrap(-1);
@@ -90,6 +90,11 @@ void BBLStatusBarBind::set_range(int val)
     if(val != m_prog->GetRange()) {
         m_prog->SetRange(val);
     }
+}
+
+void BBLStatusBarBind::clear_percent()
+{
+
 }
 
 void BBLStatusBarBind::show_progress(bool show)

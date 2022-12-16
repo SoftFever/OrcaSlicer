@@ -18,7 +18,6 @@ namespace Slic3r {
 
 bool PrintObject::clip_multipart_objects = true;
 bool PrintObject::infill_only_where_needed = false;
-bool PrintObject::ensure_vertical_shell_thickness = true;
 
 LayerPtrs new_layers(
     PrintObject                 *print_object,
@@ -142,13 +141,11 @@ static std::vector<VolumeSlices> slice_volumes_inner(
     //BBS: 0.0025mm is safe enough to simplify the data to speed slicing up for high-resolution model.
     //Also has on influence on arc fitting which has default resolution 0.0125mm.
     params_base.resolution     = 0.0025;
-    //BBS: remove slice mode, always regular
-    //switch (print_object_config.slicing_mode.value) {
-    //case SlicingMode::Regular:    params_base.mode = MeshSlicingParams::SlicingMode::Regular; break;
-    //case SlicingMode::EvenOdd:    params_base.mode = MeshSlicingParams::SlicingMode::EvenOdd; break;
-    //case SlicingMode::CloseHoles: params_base.mode = MeshSlicingParams::SlicingMode::Positive; break;
-    //}
-    params_base.mode = MeshSlicingParams::SlicingMode::Regular;
+    switch (print_object_config.slicing_mode.value) {
+    case SlicingMode::Regular:    params_base.mode = MeshSlicingParams::SlicingMode::Regular; break;
+    case SlicingMode::EvenOdd:    params_base.mode = MeshSlicingParams::SlicingMode::EvenOdd; break;
+    case SlicingMode::CloseHoles: params_base.mode = MeshSlicingParams::SlicingMode::Positive; break;
+    }
 
     params_base.mode_below     = params_base.mode;
 
@@ -584,7 +581,7 @@ void PrintObject::slice()
     //BBS: send warning message to slicing callback
     if (!warning.empty()) {
         BOOST_LOG_TRIVIAL(info) << warning;
-        this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning+L(" Object:")+this->m_model_object->name, PrintStateBase::SlicingReplaceInitEmptyLayers);
+        this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, warning, PrintStateBase::SlicingReplaceInitEmptyLayers);
     }
     // Update bounding boxes, back up raw slices of complex models.
     tbb::parallel_for(
@@ -938,8 +935,7 @@ void PrintObject::slice_volumes()
             //this->active_step_add_warning(
             //    PrintStateBase::WarningLevel::CRITICAL,
             //    L("An object has enabled XY Size compensation which will not be used because it is also multi-material painted.\nXY Size "
-            //      "compensation cannot be combined with multi-material painting.") +
-            //        "\n" + (L("Object")) + ": " + this->model_object()->name);
+            //      "compensation cannot be combined with multi-material painting."));
             BOOST_LOG_TRIVIAL(info) << "xy compensation will not work for object " << this->model_object()->name << " for multi filament.";
         }
 

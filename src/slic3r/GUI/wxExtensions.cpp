@@ -462,6 +462,44 @@ wxBitmap create_scaled_bitmap(  const std::string& bmp_name_in,
     return *bmp;
 }
 
+wxBitmap* get_default_extruder_color_icon(bool thin_icon/* = false*/)
+{
+    static Slic3r::GUI::BitmapCache bmp_cache;
+
+    const double em = Slic3r::GUI::wxGetApp().em_unit();
+    const int icon_width = lround((thin_icon ? 2 : 4.5) * em);
+    const int icon_height = lround(2 * em);
+    bool dark_mode = Slic3r::GUI::wxGetApp().dark_mode();
+
+    wxClientDC cdc((wxWindow*)Slic3r::GUI::wxGetApp().mainframe);
+    wxMemoryDC dc(&cdc);
+    dc.SetFont(::Label::Body_12);
+
+    wxString label = _L("default");
+    std::string bitmap_key = std::string("default_color") + "-h" + std::to_string(icon_height) + "-w" + std::to_string(icon_width)
+        + "-i" + label.ToStdString();
+
+    wxBitmap* bitmap = bmp_cache.find(bitmap_key);
+    if (bitmap == nullptr) {
+        // Paint the color icon.
+            //Slic3r::GUI::BitmapCache::parse_color(color, rgb);
+            // there is no neede to scale created solid bitmap
+        wxColor clr(255, 255, 255, 0);
+        bitmap = bmp_cache.insert(bitmap_key, wxBitmap(icon_width, icon_height));
+        dc.SelectObject(*bitmap);
+        dc.SetBackground(wxBrush(clr));
+        dc.Clear();
+        dc.SetBrush(wxBrush(clr));
+        dc.SetPen(*wxGREY_PEN);
+        auto size = dc.GetTextExtent(wxString(label));
+        dc.SetTextForeground(clr.GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);
+        dc.DrawText(label, (icon_width - size.x) / 2, (icon_height - size.y) / 2);
+        dc.SelectObject(wxNullBitmap);
+    }
+
+    return bitmap;
+}
+
 std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
 {
     static Slic3r::GUI::BitmapCache bmp_cache;

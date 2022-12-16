@@ -8,8 +8,7 @@
 #include <string>
 #include <sstream>
 #include <unordered_map>
-
-#include <Eigen/Geometry> 
+#include <Eigen/Geometry>
 
 #include "LocalesUtils.hpp"
 

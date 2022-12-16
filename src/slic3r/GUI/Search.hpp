@@ -19,6 +19,7 @@
 #include "GUI_Utils.hpp"
 #include "libslic3r/Preset.hpp"
 #include "Widgets/ScrolledWindow.hpp"
+#include "Widgets/TextInput.hpp"
 
 
 namespace Slic3r {
@@ -143,7 +144,7 @@ public:
     }
     void sort_options_by_label() { sort_options(); }
 
-    void show_dialog(Preset::Type type, wxWindow *parent, wxTextCtrl *input, wxWindow *ssearch_btn);
+    void show_dialog(Preset::Type type, wxWindow *parent, TextInput *input, wxWindow *ssearch_btn);
     void dlg_sys_color_changed();
     void dlg_msw_rescale();
 };
@@ -204,7 +205,7 @@ public:
     const int POPUP_WIDTH  = 38;
     const int POPUP_HEIGHT = 40;
 
-    wxTextCtrl *     search_line{nullptr};
+    TextInput *      search_line{nullptr};
     Preset::Type     search_type = Preset::TYPE_INVALID;
 
     wxDataViewCtrl * search_list{nullptr};
@@ -228,7 +229,7 @@ public:
     void update_list();
 
 public:
-    SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindow *parent, wxTextCtrl *input, wxWindow *search_btn);
+    SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindow *parent, TextInput *input, wxWindow *search_btn);
     ~SearchDialog();
 
     void MSWDismissUnfocusedPopup();

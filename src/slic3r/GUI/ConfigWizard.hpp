@@ -32,6 +32,7 @@ public:
         SP_PRINTERS,
         SP_FILAMENTS,
         SP_MATERIALS,
+        SP_CUSTOM,
     };
 
     ConfigWizard(wxWindow *parent);

@@ -24,12 +24,14 @@ protected:
 	int load_from_local(std::string& version_info);
 	int save_to_local();
 	std::string get_hms_file();
+	wxString _query_hms_msg(std::string long_error_code, std::string lang_code = "en");
+	wxString _query_error_msg(std::string long_error_code, std::string lang_code = "en");
 public:
 	HMSQuery() {}
 	int check_hms_info();
 	wxString query_hms_msg(std::string long_error_code);
-	wxString query_error_msg(std::string error_code);
 	wxString query_print_error_msg(int print_error);
+	static std::string hms_language_code();
 };
 
 int get_hms_info_version(std::string &version);

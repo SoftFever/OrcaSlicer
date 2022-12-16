@@ -24,6 +24,19 @@ void                                 chain_and_reorder_extrusion_paths(std::vect
 
 Polylines 							 chain_polylines(Polylines &&src, const Point *start_near = nullptr);
 inline Polylines 					 chain_polylines(const Polylines& src, const Point* start_near = nullptr) { Polylines tmp(src); return chain_polylines(std::move(tmp), start_near); }
+template<typename T> inline void reorder_by_shortest_traverse(std::vector<T> &polylines_out)
+{
+    Points start_point;
+    start_point.reserve(polylines_out.size());
+    for (const T contour : polylines_out) start_point.push_back(contour.points.front());
+
+    std::vector<Points::size_type> order = chain_points(start_point);
+
+    std::vector<T> Temp = polylines_out;
+    polylines_out.erase(polylines_out.begin(), polylines_out.end());
+
+    for (size_t i:order) polylines_out.emplace_back(std::move(Temp[i]));
+}
 
 std::vector<ClipperLib::PolyNode*>	 chain_clipper_polynodes(const Points &points, const std::vector<ClipperLib::PolyNode*> &items);
 

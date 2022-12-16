@@ -282,6 +282,7 @@ public:
     void                load_shape_object(const std::string &type_name);
     void                load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center = true);
     // BBS
+    void                switch_to_object_process();
     void                load_mesh_part(const TriangleMesh& mesh, const wxString& name, bool center = true);
     void                del_object(const int obj_idx, bool refresh_immediately = true);
     void                del_subobject_item(wxDataViewItem& item);
@@ -445,7 +446,7 @@ private:
     void OnBeginDrag(wxDataViewEvent &event);
     void OnDropPossible(wxDataViewEvent &event);
     void OnDrop(wxDataViewEvent &event);
-    bool can_drop(const wxDataViewItem& item) const ;
+    bool can_drop(const wxDataViewItem& item, int& src_obj_id, int& src_plate, int& dest_obj_id, int& dest_plate) const ;
 
     void ItemValueChanged(wxDataViewEvent &event);
     // Workaround for entering the column editing mode on Windows. Simulate keyboard enter when another column of the active line is selected.

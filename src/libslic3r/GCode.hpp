@@ -492,7 +492,7 @@ private:
     static bool gcode_label_objects;
 
     // BBS
-    void get_bed_temperature(const int extruder_id, const bool is_first_layer, std::vector<int>& temps_per_bed, int& default_temp) const;
+    int get_bed_temperature(const int extruder_id, const bool is_first_layer, const BedType bed_type) const;
 
     std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1);
     void print_machine_envelope(GCodeOutputStream &file, Print &print);

@@ -77,7 +77,7 @@ public:
     // Get a pad mesh centered around origin in XY, and with zero rotation around Z applied.
     // Support mesh is only valid if this->is_step_done(slaposPad) is true.
     const TriangleMesh&     pad_mesh() const;
-    
+
     // Ready after this->is_step_done(slaposDrillHoles) is true
     const indexed_triangle_set &hollowed_interior_mesh() const;
 
@@ -201,7 +201,7 @@ private:
         {
             return level<T>(r1) < level<T>(r2);
         });
-        
+
         if(it == cont.end()) return it;
 
         T diff = std::abs(level<T>(*it) - lvl);
@@ -307,18 +307,18 @@ private:
 
     // Caching the transformed (m_trafo) raw mesh of the object
     mutable CachedObject<TriangleMesh>      m_transformed_rmesh;
-    
+
     class SupportData : public sla::SupportableMesh
     {
     public:
         sla::SupportTree::UPtr  support_tree_ptr; // the supports
         std::vector<ExPolygons> support_slices;   // sliced supports
         TriangleMesh tree_mesh, pad_mesh, full_mesh;
-        
+
         inline SupportData(const TriangleMesh &t)
             : sla::SupportableMesh{t.its, {}, {}}
         {}
-        
+
         sla::SupportTree::UPtr &create_support_tree(const sla::JobController &ctl)
         {
             support_tree_ptr = sla::SupportTree::create(*this, ctl);
@@ -335,9 +335,9 @@ private:
             pad_mesh = TriangleMesh{support_tree_ptr->retrieve_mesh(sla::MeshType::Pad)};
         }
     };
-    
+
     std::unique_ptr<SupportData> m_supportdata;
-    
+
     class HollowingData
     {
     public:
@@ -346,7 +346,7 @@ private:
         mutable TriangleMesh hollow_mesh_with_holes; // caching the complete hollowed mesh
         mutable TriangleMesh hollow_mesh_with_holes_trimmed;
     };
-    
+
     std::unique_ptr<HollowingData> m_hollowing_data;
 };
 
@@ -390,15 +390,15 @@ struct SLAPrintStatistics
 class SLAArchive {
 protected:
     std::vector<sla::EncodedRaster> m_layers;
-    
+
     virtual std::unique_ptr<sla::RasterBase> create_raster() const = 0;
     virtual sla::RasterEncoder get_encoder() const = 0;
-    
+
 public:
     virtual ~SLAArchive() = default;
-    
+
     virtual void apply(const SLAPrinterConfig &cfg) = 0;
-    
+
     // Fn have to be thread safe: void(sla::RasterBase& raster, size_t lyrid);
     template<class Fn, class CancelFn, class EP = ExecutionTBB>
     void draw_layers(
@@ -434,9 +434,9 @@ class SLAPrint : public PrintBaseWithState<SLAPrintStep, slapsCount>
 {
 private: // Prevents erroneous use by other classes.
     typedef PrintBaseWithState<SLAPrintStep, slapsCount> Inherited;
-    
+
     class Steps; // See SLAPrintSteps.cpp
-    
+
 public:
 
     SLAPrint(): m_stepmask(slapsCount, true) {}
@@ -451,7 +451,7 @@ public:
     std::vector<ObjectID> print_object_ids() const override;
     ApplyStatus         apply(const Model &model, DynamicPrintConfig config) override;
     void                set_task(const TaskParams &params) override;
-    void                process() override;
+    void                process(bool use_cache = false) override;
     void                finalize() override;
     // Returns true if an object step is done on all objects and there's at least one object.
     bool                is_step_done(SLAPrintObjectStep step) const;
@@ -501,11 +501,11 @@ public:
         {
             m_transformed_slices = std::forward<Container>(c);
         }
-        
+
         friend class SLAPrint::Steps;
 
     public:
-        
+
         explicit PrintLayer(coord_t lvl) : m_level(lvl) {}
 
         // for being sorted in their container (see m_printer_input)
@@ -527,11 +527,11 @@ public:
     // The aggregated and leveled print records from various objects.
     // TODO: use this structure for the preview in the future.
     const std::vector<PrintLayer>& print_layers() const { return m_printer_input; }
-    
+
     void set_printer(SLAArchive *archiver);
-    
+
 private:
-    
+
     // Implement same logic as in SLAPrintObject
     bool invalidate_step(SLAPrintStep st);
 
@@ -548,24 +548,24 @@ private:
 
     // Ready-made data for rasterization.
     std::vector<PrintLayer>         m_printer_input;
-    
+
     // The archive object which collects the raster images after slicing
     SLAArchive                     *m_printer = nullptr;
-    
+
     // Estimated print time, material consumed.
     SLAPrintStatistics              m_print_statistics;
-    
+
     class StatusReporter
     {
         double m_st = 0;
-        
+
     public:
         void operator()(SLAPrint &         p,
                         double             st,
                         const std::string &msg,
                         unsigned           flags = SlicingStatus::DEFAULT,
                         const std::string &logmsg = "");
-        
+
         double status() const { return m_st; }
     } m_report_status;
 

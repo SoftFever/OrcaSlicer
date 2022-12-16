@@ -620,6 +620,7 @@ namespace ImGui
     // - A selectable highlights when hovered, and can display another color when selected.
     // - Neighbors selectable extend their highlight bounds in order to leave no gap between them. This is so a series of selected Selectable appear contiguous.
     IMGUI_API bool          Selectable(const char* label, bool selected = false, ImGuiSelectableFlags flags = 0, const ImVec2& size = ImVec2(0, 0)); // "bool selected" carry the selection state (read-only). Selectable() is clicked is returns true so you can modify your selection state. size.x==0.0: use remaining width, size.x>0.0: specify width. size.y==0.0: use label height, size.y>0.0: specify height
+    IMGUI_API bool          BBLImageSelectable(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& font_size, int font_line, const ImVec4& tint_col, const ImVec2& uv0, const ImVec2& uv1, bool selected = false);
     IMGUI_API bool          BBLSelectable(const char* label, bool selected = false, ImGuiSelectableFlags flags = 0, const ImVec2& size = ImVec2(0, 0)); // "bool selected" carry the selection state (read-only). Selectable() is clicked is returns true so you can modify your selection state. size.x==0.0: use remaining width, size.x>0.0: specify width. size.y==0.0: use label height, size.y>0.0: specify height
     IMGUI_API bool          Selectable(const char* label, bool* p_selected, ImGuiSelectableFlags flags = 0, const ImVec2& size = ImVec2(0, 0));      // "bool* p_selected" point to the selection state (read-write), as a convenient helper.
 
@@ -659,7 +660,7 @@ namespace ImGui
     IMGUI_API void          EndMainMenuBar();                                                   // only call EndMainMenuBar() if BeginMainMenuBar() returns true!
     IMGUI_API bool          BeginMenu(const char* label, bool enabled = true);                  // create a sub-menu entry. only call EndMenu() if this returns true!
     IMGUI_API void          EndMenu();                                                          // only call EndMenu() if BeginMenu() returns true!
-    IMGUI_API bool          BBLMenuItem(const char* label, const char* shortcut = NULL, bool selected = false, bool enabled = true);  // return true when activated.
+    IMGUI_API bool          BBLMenuItem(const char* label, const char* shortcut = NULL, bool selected = false, bool enabled = true, float size_arg_y = 0.0f);  // return true when activated.
     IMGUI_API bool          MenuItem(const char* label, const char* shortcut = NULL, bool selected = false, bool enabled = true);  // return true when activated.
     IMGUI_API bool          MenuItem(const char* label, const char* shortcut, bool* p_selected, bool enabled = true);              // return true when activated + toggle (*p_selected) if p_selected != NULL
 
@@ -2648,6 +2649,8 @@ struct ImFontAtlas
     // NB: Make sure that your string are UTF-8 and NOT in your local code page. In C++11, you can create UTF-8 string literal using the u8"Hello world" syntax. See FAQ for details.
     // NB: Consider using ImFontGlyphRangesBuilder to build glyph ranges from textual data.
     IMGUI_API const ImWchar*    GetGlyphRangesDefault();                // Basic Latin, Extended Latin
+    IMGUI_API const ImWchar*    GetGlyphRangesBasic();                  // Basic
+    IMGUI_API const ImWchar*    GetGlyphRangesEnglish();                // Basic Latin + Latin Supplement
     IMGUI_API const ImWchar*    GetGlyphRangesKorean();                 // Default + Korean characters
     IMGUI_API const ImWchar*    GetGlyphRangesJapanese();               // Default + Hiragana, Katakana, Half-Width, Selection of 2999 Ideographs
     IMGUI_API const ImWchar*    GetGlyphRangesChineseFull();            // Default + Half-Width + Japanese Hiragana/Katakana + full set of about 21000 CJK Unified Ideographs
@@ -2655,6 +2658,7 @@ struct ImFontAtlas
     IMGUI_API const ImWchar*    GetGlyphRangesCyrillic();               // Default + about 400 Cyrillic characters
     IMGUI_API const ImWchar*    GetGlyphRangesThai();                   // Default + Thai characters
     IMGUI_API const ImWchar*    GetGlyphRangesVietnamese();             // Default + Vietnamese characters
+    IMGUI_API const ImWchar*    GetGlyphRangesOthers();
 
     //-------------------------------------------
     // [BETA] Custom Rectangles/Glyphs API

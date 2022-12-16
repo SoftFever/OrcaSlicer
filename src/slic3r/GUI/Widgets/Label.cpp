@@ -1,3 +1,4 @@
+#include "libslic3r/Utils.hpp"
 #include "Label.hpp"
 #include "StaticBox.hpp"
 
@@ -41,6 +42,18 @@ wxFont Label::Body_9;
 
 void Label::initSysFont()
 {
+#ifdef __linux__
+    const std::string& resource_path = Slic3r::resources_dir();
+    wxString font_path = wxString::FromUTF8(resource_path+"/fonts/HarmonyOS_Sans_SC_Bold.ttf");
+    bool result = wxFont::AddPrivateFont(font_path);
+    //BOOST_LOG_TRIVIAL(info) << boost::format("add font of HarmonyOS_Sans_SC_Bold returns %1%")%result;
+    printf("add font of HarmonyOS_Sans_SC_Bold returns %d\n", result);
+    font_path = wxString::FromUTF8(resource_path+"/fonts/HarmonyOS_Sans_SC_Regular.ttf");
+    result = wxFont::AddPrivateFont(font_path);
+    //BOOST_LOG_TRIVIAL(info) << boost::format("add font of HarmonyOS_Sans_SC_Regular returns %1%")%result;
+    printf("add font of HarmonyOS_Sans_SC_Regular returns %d\n", result);
+#endif
+
     Head_24 = Label::sysFont(24, true);
     Head_20 = Label::sysFont(20, true);
     Head_18 = Label::sysFont(18, true);
@@ -60,6 +73,124 @@ void Label::initSysFont()
     Body_10 = Label::sysFont(10, false);
     Body_9  = Label::sysFont(9, false);
 }
+
+class WXDLLIMPEXP_CORE wxTextWrapper2
+{
+public:
+    wxTextWrapper2() { m_eol = false; }
+
+    // win is used for getting the font, text is the text to wrap, width is the
+    // max line width or -1 to disable wrapping
+    void Wrap(wxWindow *win, const wxString &text, int widthMax)
+    {
+        const wxClientDC dc(win);
+
+        const wxArrayString ls = wxSplit(text, '\n', '\0');
+        for (wxArrayString::const_iterator i = ls.begin(); i != ls.end(); ++i) {
+            wxString line = *i;
+
+            if (i != ls.begin()) {
+                // Do this even if the line is empty, except if it's the first one.
+                OnNewLine();
+            }
+
+            // Is this a special case when wrapping is disabled?
+            if (widthMax < 0) {
+                DoOutputLine(line);
+                continue;
+            }
+
+            for (bool newLine = false; !line.empty(); newLine = true) {
+                if (newLine) OnNewLine();
+
+                wxArrayInt widths;
+                dc.GetPartialTextExtents(line, widths);
+
+                const size_t posEnd = std::lower_bound(widths.begin(), widths.end(), widthMax) - widths.begin();
+
+                // Does the entire remaining line fit?
+                if (posEnd == line.length()) {
+                    DoOutputLine(line);
+                    break;
+                }
+
+                // Find the last word to chop off.
+                size_t lastSpace = posEnd;
+                while (lastSpace != size_t(-1)) {
+                    auto c = line[lastSpace];
+                    if (c == ' ' || c > 0x4E00)
+                        break;
+                    --lastSpace;
+                }
+                if (lastSpace == size_t(-1)) {
+                    // No spaces, so can't wrap.
+                    DoOutputLine(line);
+                    break;
+                }
+
+                // Output the part that fits.
+                DoOutputLine(line.substr(0, lastSpace));
+
+                // And redo the layout with the rest.
+                if (line[lastSpace] == ' ') ++lastSpace;
+                line = line.substr(lastSpace);
+            }
+        }
+    }
+
+    // we don't need it, but just to avoid compiler warnings
+    virtual ~wxTextWrapper2() {}
+
+protected:
+    // line may be empty
+    virtual void OnOutputLine(const wxString &line) = 0;
+
+    // called at the start of every new line (except the very first one)
+    virtual void OnNewLine() {}
+
+private:
+    // call OnOutputLine() and set m_eol to true
+    void DoOutputLine(const wxString &line)
+    {
+        OnOutputLine(line);
+
+        m_eol = true;
+    }
+
+    // this function is a destructive inspector: when it returns true it also
+    // resets the flag to false so calling it again wouldn't return true any
+    // more
+    bool IsStartOfNewLine()
+    {
+        if (!m_eol) return false;
+
+        m_eol = false;
+
+        return true;
+    }
+
+    bool m_eol;
+};
+
+class wxLabelWrapper2 : public wxTextWrapper2
+{
+public:
+    void WrapLabel(wxWindow *text, int widthMax)
+    {
+        m_text.clear();
+        Wrap(text, text->GetLabel(), widthMax);
+        text->SetLabel(m_text);
+    }
+
+protected:
+    virtual void OnOutputLine(const wxString &line) wxOVERRIDE { m_text += line; }
+
+    virtual void OnNewLine() wxOVERRIDE { m_text += wxT('\n'); }
+
+private:
+    wxString m_text;
+};
+
 
 wxSize Label::split_lines(wxDC &dc, int width, const wxString &text, wxString &multiline_text)
 {
@@ -95,16 +226,24 @@ Label::Label(wxWindow *parent, wxFont const &font, wxString const &text, long st
     this->font = font;
     SetFont(font);
     SetBackgroundColour(StaticBox::GetParentBackgroundColor(parent));
-    Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
-        if (GetWindowStyle() & LB_HYPERLINK) {
-            SetFont(this->font.Underlined());
-            Refresh();
-        }
-    });
-    Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
-        SetFont(this->font);
-        Refresh();
-    });
+    if (style & LB_PROPAGATE_MOUSE_EVENT) {
+        for (auto evt : {
+            wxEVT_LEFT_UP, wxEVT_LEFT_DOWN})
+            Bind(evt, [this] (auto & e) { GetParent()->GetEventHandler()->ProcessEventLocally(e); });
+        };
+    }
+
+void Label::SetLabel(const wxString& label)
+{
+    if (GetLabel() == label)
+        return;
+    wxStaticText::SetLabel(label);
+#ifdef __WXOSX__
+    if ((GetWindowStyle() & LB_HYPERLINK)) {
+        SetLabelMarkup(label);
+        return;
+    }
+#endif
 }
 
 void Label::SetWindowStyleFlag(long style)
@@ -115,10 +254,27 @@ void Label::SetWindowStyleFlag(long style)
     if (style & LB_HYPERLINK) {
         this->color = GetForegroundColour();
         static wxColor clr_url("#00AE42");
+        SetFont(this->font.Underlined());
         SetForegroundColour(clr_url);
+        SetCursor(wxCURSOR_HAND);
+#ifdef __WXOSX__
+        SetLabelMarkup(GetLabel());
+#endif
     } else {
         SetForegroundColour(this->color);
         SetFont(this->font);
+        SetCursor(wxCURSOR_ARROW);
+#ifdef __WXOSX__
+        auto label = GetLabel();
+        wxStaticText::SetLabel({});
+        wxStaticText::SetLabel(label);
+#endif
     }
     Refresh();
+}
+
+void Label::Wrap(int width)
+{
+    wxLabelWrapper2 wrapper;
+    wrapper.WrapLabel(this, width);
 }

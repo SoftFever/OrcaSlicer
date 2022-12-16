@@ -35,10 +35,10 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     std::string strlang = wxGetApp().app_config->get("language");
     if (strlang != "")
         url = wxString::Format("file://%s/web/homepage/index.html?lang=%s", from_u8(resources_dir()), strlang);
-    m_bbl_user_agent = wxString::Format("BBL-Slicer/v%s", SLIC3R_VERSION);
 
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
-
+    
+#if !BBL_RELEASE_TO_PUBLIC
     // Create the button
     bSizer_toolbar = new wxBoxSizer(wxHORIZONTAL);
 
@@ -63,29 +63,44 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_button_tools = new wxButton(this, wxID_ANY, wxT("Tools"), wxDefaultPosition, wxDefaultSize, 0);
     bSizer_toolbar->Add(m_button_tools, 0, wxALL, 5);
 
+    topsizer->Add(bSizer_toolbar, 0, wxEXPAND, 0);
+    bSizer_toolbar->Show(false);
+
     // Create panel for find toolbar.
     wxPanel* panel = new wxPanel(this);
-    topsizer->Add(bSizer_toolbar, 0, wxEXPAND, 0);
     topsizer->Add(panel, wxSizerFlags().Expand());
 
     // Create sizer for panel.
     wxBoxSizer* panel_sizer = new wxBoxSizer(wxVERTICAL);
     panel->SetSizer(panel_sizer);
-
+#endif //BBL_RELEASE_TO_PUBLIC
     // Create the info panel
     m_info = new wxInfoBar(this);
     topsizer->Add(m_info, wxSizerFlags().Expand());
-
     // Create the webview
     m_browser = WebView::CreateWebView(this, url);
     if (m_browser == nullptr) {
         wxLogError("Could not init m_browser");
         return;
     }
-
+    m_browser->Hide();
     SetSizer(topsizer);
 
     topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
+
+    Bind(EVT_WEBVIEW_RECREATED, [this](auto &evt) {
+#ifdef __WXMSW__
+        m_browser = dynamic_cast<wxWebView *>(evt.GetEventObject());
+        if (m_browser == nullptr) {
+            wxLogError("Could not recreate browser");
+            return;
+        }
+        GetSizer()->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
+        GetSizer()->Layout();
+#else
+        (void) this;
+#endif
+    });
 
     // Log backend information
     if (wxGetApp().get_mode() == comDevelop) {
@@ -94,7 +109,6 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
             wxWebView::GetBackendVersionInfo().ToString());
         wxLogMessage("User Agent: %s", m_browser->GetUserAgent());
     }
-
 
     // Create the Tools menu
     m_tools_menu = new wxMenu();
@@ -156,6 +170,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_zoomFactor = 100;
 
     // Connect the button events
+#if !BBL_RELEASE_TO_PUBLIC
     Bind(wxEVT_BUTTON, &WebViewPanel::OnBack, this, m_button_back->GetId());
     Bind(wxEVT_BUTTON, &WebViewPanel::OnForward, this, m_button_forward->GetId());
     Bind(wxEVT_BUTTON, &WebViewPanel::OnStop, this, m_button_stop->GetId());
@@ -163,14 +178,16 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     Bind(wxEVT_BUTTON, &WebViewPanel::OnToolsClicked, this, m_button_tools->GetId());
     Bind(wxEVT_TEXT_ENTER, &WebViewPanel::OnUrl, this, m_url->GetId());
 
+#endif //BBL_RELEASE_TO_PUBLIC
+
     // Connect the webview events
-    Bind(wxEVT_WEBVIEW_NAVIGATING, &WebViewPanel::OnNavigationRequest, this, m_browser->GetId());
-    Bind(wxEVT_WEBVIEW_NAVIGATED, &WebViewPanel::OnNavigationComplete, this, m_browser->GetId());
-    Bind(wxEVT_WEBVIEW_LOADED, &WebViewPanel::OnDocumentLoaded, this, m_browser->GetId());
-    Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &WebViewPanel::OnTitleChanged, this, m_browser->GetId());
-    Bind(wxEVT_WEBVIEW_ERROR, &WebViewPanel::OnError, this, m_browser->GetId());
-    Bind(wxEVT_WEBVIEW_NEWWINDOW, &WebViewPanel::OnNewWindow, this, m_browser->GetId());
-    Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &WebViewPanel::OnScriptMessage, this, m_browser->GetId());
+    Bind(wxEVT_WEBVIEW_NAVIGATING, &WebViewPanel::OnNavigationRequest, this);
+    Bind(wxEVT_WEBVIEW_NAVIGATED, &WebViewPanel::OnNavigationComplete, this);
+    Bind(wxEVT_WEBVIEW_LOADED, &WebViewPanel::OnDocumentLoaded, this);
+    Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &WebViewPanel::OnTitleChanged, this);
+    Bind(wxEVT_WEBVIEW_ERROR, &WebViewPanel::OnError, this);
+    Bind(wxEVT_WEBVIEW_NEWWINDOW, &WebViewPanel::OnNewWindow, this);
+    Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &WebViewPanel::OnScriptMessage, this);
     Bind(EVT_RESPONSE_MESSAGE, &WebViewPanel::OnScriptResponseMessage, this);
 
     // Connect the menu events
@@ -246,14 +263,17 @@ void WebViewPanel::load_url(wxString& url)
     */
 void WebViewPanel::UpdateState()
 {
+#if !BBL_RELEASE_TO_PUBLIC
     if (m_browser->CanGoBack()) {
         m_button_back->Enable(true);
-    } else {
+    }
+    else {
         m_button_back->Enable(false);
     }
     if (m_browser->CanGoForward()) {
         m_button_forward->Enable(true);
-    } else {
+    }
+    else {
         m_button_forward->Enable(false);
     }
     if (m_browser->IsBusy())
@@ -267,10 +287,12 @@ void WebViewPanel::UpdateState()
 
     //SetTitle(m_browser->GetCurrentTitle());
     m_url->SetValue(m_browser->GetCurrentURL());
+#endif //BBL_RELEASE_TO_PUBLIC
 }
 
 void WebViewPanel::OnIdle(wxIdleEvent& WXUNUSED(evt))
 {
+#if !BBL_RELEASE_TO_PUBLIC
     if (m_browser->IsBusy())
     {
         wxSetCursor(wxCURSOR_ARROWWAIT);
@@ -281,6 +303,7 @@ void WebViewPanel::OnIdle(wxIdleEvent& WXUNUSED(evt))
         wxSetCursor(wxNullCursor);
         m_button_stop->Enable(false);
     }
+#endif //BBL_RELEASE_TO_PUBLIC
 }
 
 /**
@@ -461,6 +484,7 @@ void WebViewPanel::update_mode()
     */
 void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
     const wxString &url = evt.GetURL();
     if (url.StartsWith("File://") || url.StartsWith("file://")) {
         if (!url.Contains("/web/homepage/index.html")) {
@@ -496,6 +520,9 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
     */
 void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
 {
+    m_browser->Show();
+    Layout();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("%s", "Navigation complete; url='" + evt.GetURL() + "'");
     UpdateState();
@@ -506,7 +533,8 @@ void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
     */
 void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
 {
-    //Only notify if the document is the main frame, not a subframe
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
+    // Only notify if the document is the main frame, not a subframe
     if (evt.GetURL() == m_browser->GetCurrentURL())
     {
         if (wxGetApp().get_mode() == comDevelop)
@@ -518,6 +546,7 @@ void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
 
 void WebViewPanel::OnTitleChanged(wxWebViewEvent &evt)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << evt.GetString().ToUTF8().data();
     // wxGetApp().CallAfter([this] { SendRecentList(); });
 }
 
@@ -526,6 +555,7 @@ void WebViewPanel::OnTitleChanged(wxWebViewEvent &evt)
     */
 void WebViewPanel::OnNewWindow(wxWebViewEvent& evt)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << evt.GetURL().ToUTF8().data();
     wxString flag = " (other)";
 
     if (evt.GetNavigationAction() == wxWEBVIEW_NAV_ACTION_USER)
@@ -546,6 +576,7 @@ void WebViewPanel::OnNewWindow(wxWebViewEvent& evt)
 
 void WebViewPanel::OnScriptMessage(wxWebViewEvent& evt)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << evt.GetString().ToUTF8().data();
     // update login status
     if (m_LoginUpdateTimer == nullptr) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Create Timer";
@@ -774,7 +805,7 @@ void WebViewPanel::OnSelectAll(wxCommandEvent& WXUNUSED(evt))
 void WebViewPanel::OnError(wxWebViewEvent& evt)
 {
 #define WX_ERROR_CASE(type) \
-case type: \
+    case type: \
     category = #type; \
     break;
 
@@ -790,6 +821,8 @@ case type: \
         WX_ERROR_CASE(wxWEBVIEW_NAV_ERR_USER_CANCELLED);
         WX_ERROR_CASE(wxWEBVIEW_NAV_ERR_OTHER);
     }
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": [" << category << "] " << evt.GetString().ToUTF8().data();
 
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("%s", "Error; url='" + evt.GetURL() + "', error='" + category + " (" + evt.GetString() + ")'");

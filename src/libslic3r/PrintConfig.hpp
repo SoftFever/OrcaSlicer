@@ -50,14 +50,10 @@ enum AuthorizationType {
     atKeyPassword, atUserPassword
 };
 
-#define HAS_LIGHTNING_INFILL 1
-
 enum InfillPattern : int {
     ipConcentric, ipRectilinear, ipGrid, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
     ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricInternal,
-#if HAS_LIGHTNING_INFILL
-    ipLightning, 
-#endif // HAS_LIGHTNING_INFILL
+    ipLightning,
 ipCount,
 };
 
@@ -96,10 +92,10 @@ enum class SlicingMode
 };
 
 enum SupportMaterialPattern {
+    smpDefault,
     smpRectilinear, smpRectilinearGrid, smpHoneycomb,
-#if HAS_LIGHTNING_INFILL
     smpLightning,
-#endif // HAS_LIGHTNING_INFILL
+    smpNone,
 };
 
 enum SupportMaterialStyle {
@@ -153,18 +149,27 @@ enum BrimType {
 };
 
 enum TimelapseType {
-    tlNone,
-    tlSmooth,
-    tlTraditional
+    tlTraditional,
+    tlSmooth
 };
 
 enum DraftShield {
     dsDisabled, dsLimited, dsEnabled
 };
 
+enum class PerimeterGeneratorType
+{
+    // Classic perimeter generator using Clipper offsets with constant extrusion width.
+    Classic,
+    // Perimeter generator with variable extrusion width based on the paper
+    // "A framework for adaptive width control of dense contour-parallel toolpaths in fused deposition modeling" ported from Cura.
+    Arachne
+};
+
 // BBS
 enum OverhangFanThreshold {
-    Overhang_threshold_1_4 = 0,
+    Overhang_threshold_none = 0,
+    Overhang_threshold_1_4,
     Overhang_threshold_2_4,
     Overhang_threshold_3_4,
     Overhang_threshold_4_4,
@@ -173,7 +178,8 @@ enum OverhangFanThreshold {
 
 // BBS
 enum BedType {
-    btPC = 0,
+    btDefault = 0,
+    btPC,
     btEP,
     btPEI,
     btPTE,
@@ -198,13 +204,14 @@ static std::string bed_type_to_gcode_string(const BedType type)
         type_str = "cool_plate";
         break;
     case btEP:
-        type_str = "engineering_plate";
+        type_str = "eng_plate";
         break;
     case btPEI:
-        type_str = "high_temp_plate";
+        type_str = "hot_plate";
         break;
     case btPTE:
-        type_str = "frosted_plate";
+        type_str = "textured_plate";
+        break;
     default:
         type_str = "unknown";
         break;
@@ -273,6 +280,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
 
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrintHostType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AuthorizationType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PerimeterGeneratorType)
 
 #undef CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS
 
@@ -346,6 +354,9 @@ public:
     const ConfigDef*    def() const override { return &print_config_def; }
 
     void                normalize_fdm(int used_filaments = 0);
+    void                normalize_fdm_1();
+    //return the changed param set
+    t_config_option_keys normalize_fdm_2(int used_filaments = 0);
 
     void                set_num_extruders(unsigned int num_extruders);
 
@@ -364,6 +375,8 @@ public:
 
     //BBS special case Support G/ Support W
     std::string get_filament_type(std::string &displayed_filament_type, int id = 0);
+
+    bool is_custom_defined();
 };
 
 void handle_legacy_sla(DynamicPrintConfig &config);
@@ -610,6 +623,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                 raft_layers))
     ((ConfigOptionEnum<SeamPosition>,  seam_position))
     ((ConfigOptionFloat,               slice_closing_radius))
+    ((ConfigOptionEnum<SlicingMode>,   slicing_mode))
     ((ConfigOptionBool,                enable_support))
     // Automatic supports (generated based on support_threshold_angle).
     ((ConfigOptionEnum<SupportType>,   support_type))
@@ -618,6 +632,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                support_on_build_plate_only))
     ((ConfigOptionBool,                support_critical_regions_only))
     ((ConfigOptionFloat,               support_top_z_distance))
+    ((ConfigOptionFloat,               support_bottom_z_distance))
     ((ConfigOptionInt,                 enforce_support_layers))
     ((ConfigOptionInt,                 support_filament))
     ((ConfigOptionFloat,               support_line_width))
@@ -632,10 +647,11 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<SupportMaterialInterfacePattern>, support_interface_pattern))
     // Spacing between support material lines (the hatching distance).
     ((ConfigOptionFloat,               support_base_pattern_spacing))
+    ((ConfigOptionFloat,               support_expansion))
     ((ConfigOptionFloat,               support_speed))
     ((ConfigOptionEnum<SupportMaterialStyle>, support_style))
     // BBS
-    ((ConfigOptionBool,                independent_support_layer_height))
+    //((ConfigOptionBool,                independent_support_layer_height))
     ((ConfigOptionBool,                thick_bridges))
     // Overhang angle threshold.
     ((ConfigOptionInt,                 support_threshold_angle))
@@ -651,10 +667,17 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,              tree_support_branch_diameter))
     ((ConfigOptionFloat,              tree_support_branch_angle))
     ((ConfigOptionInt,                tree_support_wall_count))
-    ((ConfigOptionBool,               tree_support_with_infill))
     ((ConfigOptionBool,               detect_narrow_internal_solid_infill))
-    ((ConfigOptionBool,               adaptive_layer_height))
+    // ((ConfigOptionBool,               adaptive_layer_height))
     ((ConfigOptionFloat,              support_bottom_interface_spacing))
+    ((ConfigOptionFloat,              internal_bridge_support_thickness))
+    ((ConfigOptionEnum<PerimeterGeneratorType>, wall_generator))
+    ((ConfigOptionPercent,            wall_transition_length))
+    ((ConfigOptionPercent,            wall_transition_filter_deviation))
+    ((ConfigOptionFloat,              wall_transition_angle))
+    ((ConfigOptionInt,                wall_distribution_count))
+    ((ConfigOptionPercent,            min_feature_size))
+    ((ConfigOptionPercent,            min_bead_width))
 )
 
 // This object is mapped to Perl as Slic3r::Config::PrintRegion.
@@ -663,9 +686,10 @@ PRINT_CONFIG_CLASS_DEFINE(
 
     ((ConfigOptionInt,                  bottom_shell_layers))
     ((ConfigOptionFloat,                bottom_shell_thickness))
+    ((ConfigOptionFloat,                bridge_angle))
     ((ConfigOptionFloat,                bridge_flow))
     ((ConfigOptionFloat,                bridge_speed))
-    ((ConfigOptionFloat,                bridge_angle))
+    ((ConfigOptionBool,                 ensure_vertical_shell_thickness))
     ((ConfigOptionEnum<InfillPattern>,  top_surface_pattern))
     ((ConfigOptionFloat,                top_solid_infill_flow_ratio))
     ((ConfigOptionFloat,                bottom_solid_infill_flow_ratio))
@@ -769,8 +793,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBools,               filament_soluble))
     ((ConfigOptionBools,               filament_is_support))
     ((ConfigOptionFloats,              filament_cost))
+    ((ConfigOptionStrings,             default_filament_colour))
     ((ConfigOptionInts,                temperature_vitrification))  //BBS
     ((ConfigOptionFloats,              filament_max_volumetric_speed))
+    ((ConfigOptionInts,                required_nozzle_HRC))
     ((ConfigOptionFloat,               machine_load_filament_time))
     ((ConfigOptionFloat,               machine_unload_filament_time))
     ((ConfigOptionFloats,              filament_minimal_purge_on_wipe_tower))
@@ -805,13 +831,14 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionString,              template_custom_gcode))
     //BBS
     ((ConfigOptionEnum<NozzleType>,    nozzle_type))
+    ((ConfigOptionInt,                 nozzle_hrc))
     ((ConfigOptionBool,                auxiliary_fan))
 
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.
 PRINT_CONFIG_CLASS_DERIVED_DEFINE(
-    PrintConfig, 
+    PrintConfig,
     (MachineEnvelopeConfig, GCodeConfig),
 
     //BBS
@@ -918,6 +945,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              nozzle_volume))
     ((ConfigOptionEnum<TimelapseType>,    timelapse_type))
     ((ConfigOptionPoints,              thumbnails))
+    // BBS: move from PrintObjectConfig
+    ((ConfigOptionBool, independent_support_layer_height))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Full.

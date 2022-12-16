@@ -12,7 +12,7 @@ namespace GUI {
 static wxString check_gcode_failed_str      = _L("Abnormal print file data. Please slice again");
 static wxString printjob_cancel_str         = _L("Task canceled");
 static wxString timeout_to_upload_str       = _L("Upload task timed out. Please check the network problem and try again");
-static wxString failed_in_cloud_service_str = _L("Cloud service connection failed. Please try again.");
+static wxString failed_in_cloud_service_str = _L("Send to Printer failed. Please try again.");
 static wxString file_is_not_exists_str      = _L("Print file not found, please slice again");
 static wxString file_over_size_str          = _L("The print file exceeds the maximum allowable size (1GB). Please simplify the model and slice again");
 static wxString print_canceled_str          = _L("Task canceled");
@@ -150,9 +150,7 @@ void SendJob::process()
 
     BBL::PrintParams params;
     params.dev_id = m_dev_id;
-    //params.project_name = wxGetApp().plater()->get_project_name().ToUTF8().data();
-    params.project_name = wxGetApp().plater()->get_project_name().utf8_string();
-
+    params.project_name = m_project_name + ".gcode.3mf";
     params.preset_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
     params.filename = job_data._3mf_path.string();
     params.config_filename = job_data._3mf_config_path.string();
@@ -168,30 +166,37 @@ void SendJob::process()
     wxString error_text;
     wxString msg_text;
 
-    auto update_fn = [this, &msg, &curr_percent, &error_text](int stage, int code, std::string info) {
+    const int StagePercentPoint[(int)PrintingStageFinished + 1] = {
+        20,  // PrintingStageCreate
+        30,  // PrintingStageUpload
+        99, // PrintingStageWaiting
+        99, // PrintingStageRecord
+        99, // PrintingStageSending
+        100  // PrintingStageFinished
+    };
+
+    auto update_fn = [this, &msg, &curr_percent, &error_text, StagePercentPoint](int stage, int code, std::string info) {
                         if (stage == SendingPrintJobStage::PrintingStageCreate) {
                             if (this->connection_type == "lan") {
                                 msg = _L("Sending gcode file over LAN");
                             } else {
                                 msg = _L("Sending gcode file to sdcard");
                             }
-                            curr_percent = 25;
                         }
                         else if (stage == SendingPrintJobStage::PrintingStageUpload) {
-							if (code == 0 && !info.empty()) {
-								if (this->connection_type == "lan") {
-									msg = _L("Sending gcode file over LAN");
-								}
-								else {
-									msg = _L("Sending gcode file to sdcard");
-								}
-								msg += wxString::Format("(%s)", info);
-                                curr_percent = 40;
-                                this->update_status(curr_percent, msg);
-							}
+                            if (code >= 0 && code <= 100 && !info.empty()) {
+							    if (this->connection_type == "lan") {
+								    msg = _L("Sending gcode file over LAN");
+							    }
+							    else {
+								    msg = _L("Sending gcode file to sdcard");
+							    }
+                                if (!info.empty()) {
+                                    msg += wxString::Format("(%s)", info);
+                                }
+                            }
                         }
 						else if (stage == SendingPrintJobStage::PrintingStageFinished) {
-                            curr_percent = 100;
                             msg = wxString::Format(_L("Successfully sent. Close current page in %s s"), info);
 						}
 						else {
@@ -200,10 +205,19 @@ void SendJob::process()
 							}
 							else {
                                 msg = _L("Sending gcode file over LAN");
-								//msg = _L("Sending gcode file through cloud service");
 							}
 						}
-                        if (code != 0) {
+
+                        // update current percnet
+                        if (stage >= 0 && stage <= (int) PrintingStageFinished) {
+                            curr_percent = StagePercentPoint[stage];
+                            if ((stage == BBL::SendingPrintJobStage::PrintingStageUpload) &&
+                                (code > 0 && code <= 100)) {
+                                curr_percent = (StagePercentPoint[stage + 1] - StagePercentPoint[stage]) * code / 100 + StagePercentPoint[stage];
+                            }
+                        }
+
+                        if (code < 0 || code > 100) {
                             error_text = this->get_http_error_msg(code, info);
                             msg += wxString::Format("[%s]", error_text);
                         }
@@ -253,7 +267,7 @@ void SendJob::process()
             this->update_status(curr_percent, _L("Sending gcode file over LAN"));
             result = m_agent->start_send_gcode_to_sdcard(params, update_fn, cancel_fn);
         } else {
-            this->update_status(curr_percent, _L("An SD card needs to be inserted before printing via LAN."));
+            this->update_status(curr_percent, _L("An SD card needs to be inserted before sending to printer."));
             return;
         }
     }
@@ -265,7 +279,7 @@ void SendJob::process()
 
     if (result < 0) {
         if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
-            msg_text = upload_failed_str;
+            msg_text = upload_login_failed_str;
         } if (result == BAMBU_NETWORK_ERR_FILE_NOT_EXIST) {
             msg_text = file_is_not_exists_str;
         } else if (result == BAMBU_NETWORK_ERR_FILE_OVER_SIZE) {
@@ -285,15 +299,24 @@ void SendJob::process()
         } else {
             update_status(curr_percent, failed_in_cloud_service_str);
         }
-        if (!error_text.IsEmpty())
-            msg_text += wxString::Format("[%s]", error_text);
+
+        if (!error_text.IsEmpty()) {
+            if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
+                msg_text += ". ";
+                msg_text += _L("Please log out and login to the printer again.");
+            }
+            else {
+                msg_text += wxString::Format("[%s]", error_text);
+            }
+        }
+            
         update_status(curr_percent, msg_text);
         BOOST_LOG_TRIVIAL(error) << "send_job: failed, result = " << result;
     } else {
         BOOST_LOG_TRIVIAL(error) << "send_job: send ok.";
         //m_success_fun();
         wxCommandEvent* evt = new wxCommandEvent(m_print_job_completed_id);
-        evt->SetString(m_dev_id);
+        evt->SetString(from_u8(params.project_name));
         wxQueueEvent(m_plater, evt);
         m_job_finished = true;
     }
@@ -309,6 +332,11 @@ void SendJob::finalize() {
     if (was_canceled()) return;
 
     Job::finalize();
+}
+
+void SendJob::set_project_name(std::string name)
+{
+    m_project_name = name;
 }
 
 }} // namespace Slic3r::GUI

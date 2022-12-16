@@ -166,6 +166,10 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent, const std::string& icon_filename, u
     m_cylinder.init_from(its_make_cylinder(1., 1., 2 * PI / 24.));
 }
 
+void GLGizmoBase::set_icon_filename(const std::string &filename) {
+    m_icon_filename = filename;
+}
+
 void GLGizmoBase::set_hover_id(int id)
 {
     if (m_grabbers.empty() || (id < (int)m_grabbers.size()))

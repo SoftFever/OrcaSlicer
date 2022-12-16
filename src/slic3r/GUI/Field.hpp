@@ -335,13 +335,36 @@ public:
 	wxWindow*		getWindow() override { return window; }
 };
 
+class Choice;
+
+class DynamicList
+{
+public:
+    virtual ~DynamicList() {}
+    virtual void apply_on(Choice * choice) = 0;
+    virtual wxString get_value(int index) = 0;
+    virtual int      index_of(wxString value) = 0;
+
+protected:
+    void update();
+
+    std::vector<Choice*> m_choices;
+
+private:
+    friend class Choice;
+    void                  add_choice(Choice *choice);
+    void                  remove_choice(Choice *choice);
+};
+
 class Choice : public Field {
 	using Field::Field;
-
+	DynamicList * m_list = nullptr;
 public:
 	Choice(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id) {}
 	Choice(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
-	~Choice() {}
+    ~Choice();
+
+	static void register_dynamic_list(std::string const &optname, DynamicList *list);
 
 	wxWindow*		window{ nullptr };
 	void			BUILD() override;

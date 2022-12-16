@@ -134,7 +134,8 @@ void StepCtrl::mouseDown(wxMouseEvent &event)
     if (rcThumb.Contains(pt)) {
         pos_thumb   = wxPoint{circleX, size.y / 2};
         drag_offset = pos_thumb - pt;
-        CaptureMouse();
+        if (!HasCapture())
+            CaptureMouse();
     } else if (rcBar.Contains(pt)) {
         if (pt.x < circleX) {
             if (step > 0) SelectItem(step - 1);

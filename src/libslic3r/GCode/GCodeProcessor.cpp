@@ -36,6 +36,7 @@ static const float DEFAULT_TRAVEL_ACCELERATION = 1250.0f;
 
 static const size_t MIN_EXTRUDERS_COUNT = 5;
 static const float DEFAULT_FILAMENT_DIAMETER = 1.75f;
+static const int   DEFAULT_FILAMENT_HRC = 0;
 static const float DEFAULT_FILAMENT_DENSITY = 1.245f;
 static const int   DEFAULT_FILAMENT_VITRIFICATION_TEMPERATURE = 0;
 static const Slic3r::Vec3f DEFAULT_EXTRUDER_OFFSET = Slic3r::Vec3f::Zero();
@@ -472,7 +473,16 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                     PrintEstimatedStatistics::ETimeMode mode = static_cast<PrintEstimatedStatistics::ETimeMode>(i);
                     if (mode == PrintEstimatedStatistics::ETimeMode::Normal || machine.enabled) {
                         char buf[128];
-                        sprintf(buf, "; estimated printing time: %s\n", get_time_dhms(machine.time).c_str());
+						if(!s_IsBBLPrinter)
+                            sprintf(buf, "; estimated printing time: %s\n", get_time_dhms(machine.time).c_str());
+						else {
+                        //sprintf(buf, "; estimated printing time (%s mode) = %s\n",
+                        //    (mode == PrintEstimatedStatistics::ETimeMode::Normal) ? "normal" : "silent",
+                        //    get_time_dhms(machine.time).c_str());
+                        sprintf(buf, "; model printing time: %s; total estimated time: %s\n",
+                                get_time_dhms(machine.time - machine.roles_time[ExtrusionRole::erCustom]).c_str(),
+                                get_time_dhms(machine.time).c_str());
+                               }
                         ret += buf;
                     }
                 }
@@ -794,6 +804,7 @@ void GCodeProcessorResult::reset() {
     extruders_count = 0;
     extruder_colors = std::vector<std::string>();
     filament_diameters = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DIAMETER);
+    required_nozzle_HRC = std::vector<int>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_HRC);
     filament_densities = std::vector<float>(MIN_EXTRUDERS_COUNT, DEFAULT_FILAMENT_DENSITY);
     custom_gcode_per_print_z = std::vector<CustomGCode::Item>();
     warnings.clear();
@@ -899,14 +910,17 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_extruder_offsets.resize(extruders_count);
     m_extruder_colors.resize(extruders_count);
     m_result.filament_diameters.resize(extruders_count);
+    m_result.required_nozzle_HRC.resize(extruders_count);
     m_result.filament_densities.resize(extruders_count);
     m_result.filament_vitrification_temperature.resize(extruders_count);
     m_extruder_temps.resize(extruders_count);
+    m_result.nozzle_hrc = static_cast<int>(config.nozzle_hrc.getInt());
 
     for (size_t i = 0; i < extruders_count; ++ i) {
         m_extruder_offsets[i]           = to_3d(config.extruder_offset.get_at(i).cast<float>().eval(), 0.f);
         m_extruder_colors[i]            = static_cast<unsigned char>(i);
         m_result.filament_diameters[i]  = static_cast<float>(config.filament_diameter.get_at(i));
+        m_result.required_nozzle_HRC[i] = static_cast<int>(config.required_nozzle_HRC.get_at(i));
         m_result.filament_densities[i]  = static_cast<float>(config.filament_density.get_at(i));
         m_result.filament_vitrification_temperature[i] = static_cast<float>(config.temperature_vitrification.get_at(i));
     }
@@ -958,6 +972,9 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     if (nozzle_volume != nullptr)
         m_nozzle_volume = nozzle_volume->value;
 
+    const ConfigOptionInt *nozzle_HRC = config.option<ConfigOptionInt>("nozzle_hrc");
+    if (nozzle_HRC != nullptr) m_result.nozzle_hrc = nozzle_HRC->value;
+
     const ConfigOptionEnum<GCodeFlavor>* gcode_flavor = config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor");
     if (gcode_flavor != nullptr)
         m_flavor = gcode_flavor->value;
@@ -998,6 +1015,18 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     if (m_result.filament_diameters.size() < m_result.extruders_count) {
         for (size_t i = m_result.filament_diameters.size(); i < m_result.extruders_count; ++i) {
             m_result.filament_diameters.emplace_back(DEFAULT_FILAMENT_DIAMETER);
+        }
+    }
+
+    const ConfigOptionInts *filament_HRC = config.option<ConfigOptionInts>("required_nozzle_HRC");
+    if (filament_HRC != nullptr) {
+        m_result.required_nozzle_HRC.clear();
+        m_result.required_nozzle_HRC.resize(filament_HRC->values.size());
+        for (size_t i = 0; i < filament_HRC->values.size(); ++i) { m_result.required_nozzle_HRC[i] = static_cast<float>(filament_HRC->values[i]); }
+    }
+
+    if (m_result.required_nozzle_HRC.size() < m_result.extruders_count) {
+        for (size_t i = m_result.required_nozzle_HRC.size(); i < m_result.extruders_count; ++i) { m_result.required_nozzle_HRC.emplace_back(DEFAULT_FILAMENT_HRC);
         }
     }
 
@@ -2720,10 +2749,11 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
                 get_retract_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i)) :
                 get_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i)));
 
+        //BBS
         for (unsigned char a = X; a <= E; ++a) {
             float axis_max_acceleration = get_axis_max_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a));
             if (acceleration * std::abs(delta_pos[a]) * inv_distance > axis_max_acceleration)
-                acceleration = axis_max_acceleration;
+                acceleration = axis_max_acceleration / (std::abs(delta_pos[a]) * inv_distance);
         }
 
         block.acceleration = acceleration;
@@ -2752,23 +2782,30 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
             float v_factor = 1.0f;
             bool limited = false;
 
-            //BBS: currently jerk in x,y,z axis are combined to one value and be limited together in MC side
-            //So we only need to handle Z axis
             for (unsigned char a = X; a <= E; ++a) {
                 // Limit an axis. We have to differentiate coasting from the reversal of an axis movement, or a full stop.
-                //BBS
-                float jerk = 0;
                 if (a == X) {
                     Vec3f exit_v = prev.feedrate * (prev.exit_direction);
-                    exit_v(2, 0) = 0;
                     if (prev_speed_larger)
                         exit_v *= smaller_speed_factor;
                     Vec3f entry_v = block.feedrate_profile.cruise * (curr.enter_direction);
                     Vec3f jerk_v = entry_v - exit_v;
-                    jerk = jerk_v.norm();
-                } else if (a == Y || a == Z) {
+                    jerk_v = Vec3f(abs(jerk_v.x()), abs(jerk_v.y()), abs(jerk_v.z()));
+                    Vec3f max_xyz_jerk_v = get_xyz_max_jerk(static_cast<PrintEstimatedStatistics::ETimeMode>(i));
+
+                    for (size_t i = 0; i < 3; i++)
+                    {
+                        if (jerk_v[i] > max_xyz_jerk_v[i]) {
+                            v_factor *= max_xyz_jerk_v[i] / jerk_v[i];
+                            jerk_v *= v_factor;
+                            limited = true;
+                        }
+                    }
+                }
+                else if (a == Y || a == Z) {
                     continue;
-                } else {
+                }
+                else {
                     float v_exit = prev.axis_feedrate[a];
                     float v_entry = curr.axis_feedrate[a];
 
@@ -2781,7 +2818,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
                     }
 
                     // Calculate the jerk depending on whether the axis is coasting in the same direction or reversing a direction.
-                    jerk =
+                    float jerk =
                         (v_exit > v_entry) ?
                         (((v_entry > 0.0f) || (v_exit < 0.0f)) ?
                             // coasting
@@ -2794,12 +2831,13 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
                             (v_entry - v_exit) :
                             // axis reversal
                             std::max(-v_exit, v_entry));
-                }
 
-                float axis_max_jerk = get_axis_max_jerk(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a));
-                if (jerk > axis_max_jerk) {
-                    v_factor *= axis_max_jerk / jerk;
-                    limited = true;
+
+                    float axis_max_jerk = get_axis_max_jerk(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a));
+                    if (jerk > axis_max_jerk) {
+                        v_factor *= axis_max_jerk / jerk;
+                        limited = true;
+                    }
                 }
             }
 
@@ -2866,7 +2904,8 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
     }
     else if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter) {
         m_seams_detector.activate(true);
-        m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id]);
+        Vec3f plate_offset = {(float) m_x_offset, (float) m_y_offset, 0.0f};
+        m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset);
     }
 
     // store move
@@ -3147,22 +3186,30 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
             float v_factor = 1.0f;
             bool limited = false;
 
-            //BBS: currently jerk in x,y,z axis are combined to one value and be limited together in MC side
-            //So we only need to handle Z axis
             for (unsigned char a = X; a <= E; ++a) {
                 //BBS: Limit an axis. We have to differentiate coasting from the reversal of an axis movement, or a full stop.
-                float jerk = 0;
                 if (a == X) {
                     Vec3f exit_v = prev.feedrate * (prev.exit_direction);
-                    exit_v(2, 0) = 0;
                     if (prev_speed_larger)
                         exit_v *= smaller_speed_factor;
                     Vec3f entry_v = block.feedrate_profile.cruise * (curr.enter_direction);
                     Vec3f jerk_v = entry_v - exit_v;
-                    jerk = jerk_v.norm();
-                } else if (a == Y || a == Z) {
+                    jerk_v = Vec3f(abs(jerk_v.x()), abs(jerk_v.y()), abs(jerk_v.z()));
+                    Vec3f max_xyz_jerk_v = get_xyz_max_jerk(static_cast<PrintEstimatedStatistics::ETimeMode>(i));
+
+                    for (size_t i = 0; i < 3; i++)
+                    {
+                        if (jerk_v[i] > max_xyz_jerk_v[i]) {
+                            v_factor *= max_xyz_jerk_v[i] / jerk_v[i];
+                            jerk_v *= v_factor;
+                            limited = true;
+                        }
+                    }
+                }
+                else if (a == Y || a == Z) {
                     continue;
-                } else {
+                } 
+                else {
                     float v_exit = prev.axis_feedrate[a];
                     float v_entry = curr.axis_feedrate[a];
 
@@ -3175,7 +3222,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
                     }
 
                     //BBS: Calculate the jerk depending on whether the axis is coasting in the same direction or reversing a direction.
-                    jerk =
+                    float jerk =
                         (v_exit > v_entry) ?
                         (((v_entry > 0.0f) || (v_exit < 0.0f)) ?
                             //BBS: coasting
@@ -3187,12 +3234,13 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
                             (v_entry - v_exit) :
                             //BBS: axis reversal
                             std::max(-v_exit, v_entry));
-                }
 
-                float axis_max_jerk = get_axis_max_jerk(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a));
-                if (jerk > axis_max_jerk) {
-                    v_factor *= axis_max_jerk / jerk;
-                    limited = true;
+
+                    float axis_max_jerk = get_axis_max_jerk(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a));
+                    if (jerk > axis_max_jerk) {
+                        v_factor *= axis_max_jerk / jerk;
+                        limited = true;
+                    }
                 }
             }
 
@@ -3229,18 +3277,20 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
     }
 
     //BBS: seam detector
+    Vec3f plate_offset = {(float) m_x_offset, (float) m_y_offset, 0.0f};
+
     if (m_seams_detector.is_active()) {
         //BBS: check for seam starting vertex
-        if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter && !m_seams_detector.has_first_vertex())
-            m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id]);
+        if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter && !m_seams_detector.has_first_vertex()) {
+            m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset);
+        }
         //BBS: check for seam ending vertex and store the resulting move
         else if ((type != EMoveType::Extrude || (m_extrusion_role != erExternalPerimeter && m_extrusion_role != erOverhangPerimeter)) && m_seams_detector.has_first_vertex()) {
             auto set_end_position = [this](const Vec3f& pos) {
                 m_end_position[X] = pos.x(); m_end_position[Y] = pos.y(); m_end_position[Z] = pos.z();
             };
-
             const Vec3f curr_pos(m_end_position[X], m_end_position[Y], m_end_position[Z]);
-            const Vec3f new_pos = m_result.moves.back().position - m_extruder_offsets[m_extruder_id];
+            const Vec3f new_pos = m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset;
             const std::optional<Vec3f> first_vertex = m_seams_detector.get_first_vertex();
             //BBS: the threshold value = 0.0625f == 0.25 * 0.25 is arbitrary, we may find some smarter condition later
 
@@ -3255,7 +3305,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
     }
     else if (type == EMoveType::Extrude && m_extrusion_role == erExternalPerimeter) {
         m_seams_detector.activate(true);
-        m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id]);
+        m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[m_extruder_id] - plate_offset);
     }
     //BBS: store move
     store_move_vertex(type, m_move_path_type);
@@ -3821,7 +3871,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
             m_interpolation_points[i] =
                 Vec3f(m_interpolation_points[i].x() + m_x_offset,
                       m_interpolation_points[i].y() + m_y_offset,
-                      m_processing_start_custom_gcode ? m_zero_layer_height : m_interpolation_points[i].z()) +
+                      m_processing_start_custom_gcode ? m_first_layer_height : m_interpolation_points[i].z()) +
                 m_extruder_offsets[m_extruder_id];
     }
 
@@ -3832,7 +3882,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         m_extruder_id,
         m_cp_color.current,
         //BBS: add plate's offset to the rendering vertices
-        Vec3f(m_end_position[X] + m_x_offset, m_end_position[Y] + m_y_offset, m_processing_start_custom_gcode ? m_zero_layer_height : m_end_position[Z]) + m_extruder_offsets[m_extruder_id],
+        Vec3f(m_end_position[X] + m_x_offset, m_end_position[Y] + m_y_offset, m_processing_start_custom_gcode ? m_first_layer_height : m_end_position[Z]) + m_extruder_offsets[m_extruder_id],
         static_cast<float>(m_end_position[E] - m_start_position[E]),
         m_feedrate,
         m_width,
@@ -3915,6 +3965,13 @@ float GCodeProcessor::get_axis_max_jerk(PrintEstimatedStatistics::ETimeMode mode
     case E: { return get_option_value(m_time_processor.machine_limits.machine_max_jerk_e, static_cast<size_t>(mode)); }
     default: { return 0.0f; }
     }
+}
+
+Vec3f GCodeProcessor::get_xyz_max_jerk(PrintEstimatedStatistics::ETimeMode mode) const
+{
+    return Vec3f(get_option_value(m_time_processor.machine_limits.machine_max_jerk_x, static_cast<size_t>(mode)),
+        get_option_value(m_time_processor.machine_limits.machine_max_jerk_y, static_cast<size_t>(mode)),
+        get_option_value(m_time_processor.machine_limits.machine_max_jerk_z, static_cast<size_t>(mode)));
 }
 
 float GCodeProcessor::get_retract_acceleration(PrintEstimatedStatistics::ETimeMode mode) const
@@ -4074,7 +4131,27 @@ void GCodeProcessor::update_slice_warnings()
     }
 
     if (!warning.params.empty()) {
-        warning.msg   = BED_TEMP_TOO_HIGH_THAN_FILAMENT;
+        warning.msg         = BED_TEMP_TOO_HIGH_THAN_FILAMENT;
+        warning.error_code  = "1000C001";
+        m_result.warnings.push_back(warning);
+    }
+
+    //bbs:HRC checker
+    warning.params.clear();
+    warning.level=1;
+    if (m_result.nozzle_hrc!=0) {
+        for (size_t i = 0; i < used_extruders.size(); i++) {
+            int HRC=0;
+            if (used_extruders[i] < m_result.required_nozzle_HRC.size())
+                HRC = m_result.required_nozzle_HRC[used_extruders[i]];
+            if (HRC != 0 && (m_result.nozzle_hrc<HRC))
+                warning.params.push_back(std::to_string(used_extruders[i]));
+        }
+    }
+
+    if (!warning.params.empty()) {
+        warning.msg = NOZZLE_HRC_CHECKER;
+        warning.error_code = "1000C002";
         m_result.warnings.push_back(warning);
     }
 

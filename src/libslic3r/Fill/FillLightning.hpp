@@ -3,13 +3,6 @@
 
 #include "FillBase.hpp"
 
-/*
-* A few modifications based on dba1179(2022.06.10) from Prusa, mainly in Generator.hpp and .cpp: 
-* 1. delete the second parameter(a throw back function) of Generator(), since I didnt find corresponding throw back function in BBS code
-* 2. those codes that call the functions above
-* 3. add codes of generating lightning in TreeSupport.cpp
-*/
-
 namespace Slic3r {
 
 class PrintObject;
@@ -21,7 +14,7 @@ class Generator;
 struct GeneratorDeleter { void operator()(Generator *p); };
 using  GeneratorPtr = std::unique_ptr<Generator, GeneratorDeleter>;
 
-GeneratorPtr build_generator(const PrintObject &print_object);
+GeneratorPtr build_generator(const PrintObject &print_object, const std::function<void()> &throw_on_cancel_callback);
 
 class Filler : public Slic3r::Fill
 {

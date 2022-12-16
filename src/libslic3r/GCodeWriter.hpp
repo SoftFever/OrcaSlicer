@@ -43,8 +43,7 @@ public:
     std::string preamble();
     std::string postamble() const;
     std::string set_temperature(unsigned int temperature, bool wait = false, int tool = -1) const;
-    // BBS
-    std::string set_bed_temperature(std::vector<int> temps_per_bed, int default_temp, bool wait = false);
+    std::string set_bed_temperature(int temperature, bool wait = false);
     std::string set_acceleration(unsigned int acceleration);
     std::string set_jerk_xy(unsigned int jerk);
     std::string set_pressure_advance(double pa) const;
@@ -114,8 +113,7 @@ private:
 
     //BBS
     unsigned int    m_last_additional_fan_speed;
-    // BBS
-    std::vector<int> m_last_bed_temperature;
+    int             m_last_bed_temperature;
     bool            m_last_bed_temperature_reached;
     double          m_lifted;
 

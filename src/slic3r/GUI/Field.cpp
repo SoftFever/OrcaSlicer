@@ -26,6 +26,7 @@
 #include "Widgets/TextInput.hpp"
 #include "Widgets/SpinInput.hpp"
 #include "Widgets/ComboBox.hpp"
+#include "Widgets/TextCtrl.h"
 
 #ifdef __WXOSX__
 #define wxOSX true
@@ -730,7 +731,7 @@ void CheckBox::BUILD() {
 	// BBS: use ::CheckBox
 	auto temp = new ::CheckBox(m_parent); 
 	if (!wxOSX) temp->SetBackgroundStyle(wxBG_STYLE_PAINT);
-	temp->SetBackgroundColour(*wxWHITE);
+	//temp->SetBackgroundColour(*wxWHITE);
 	temp->SetValue(check_value);
 
 	temp->Bind(wxEVT_TOGGLEBUTTON, ([this](wxCommandEvent & e) {
@@ -986,13 +987,46 @@ using choice_ctrl = ::ComboBox; // BBS
 using choice_ctrl = ::ComboBox; // BBS
 #endif // __WXOSX__
 
-void Choice::BUILD() {
+static std::map<std::string, DynamicList*> dynamic_lists;
+
+void Choice::register_dynamic_list(std::string const &optname, DynamicList *list) { dynamic_lists.emplace(optname, list); }
+
+void DynamicList::update()
+{
+    for (auto c : m_choices) apply_on(c);
+}
+
+void DynamicList::add_choice(Choice *choice)
+{
+    auto iter = std::find(m_choices.begin(), m_choices.end(), choice);
+    if (iter != m_choices.end()) return;
+    apply_on(choice);
+    m_choices.push_back(choice);
+}
+
+void DynamicList::remove_choice(Choice *choice)
+{
+    auto iter = std::find(m_choices.begin(), m_choices.end(), choice);
+    if (iter != m_choices.end()) m_choices.erase(iter);
+}
+
+Choice::~Choice()
+{
+    if (m_list) { m_list->remove_choice(this); }
+}
+
+void Choice::BUILD()
+{
     wxSize size(def_width_wider() * m_em_unit, wxDefaultCoord);
     if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
     if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
 	choice_ctrl* temp;
-    if (m_opt.gui_type != ConfigOptionDef::GUIType::undefined && m_opt.gui_type != ConfigOptionDef::GUIType::select_open) {
+    auto         dynamic_list = dynamic_lists.find(m_opt.opt_key);
+    if (dynamic_list != dynamic_lists.end())
+        m_list = dynamic_list->second;
+    if (m_opt.gui_type != ConfigOptionDef::GUIType::undefined && m_opt.gui_type != ConfigOptionDef::GUIType::select_open 
+            && m_list == nullptr) {
         m_is_editable = true;
         temp = new choice_ctrl(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxTE_PROCESS_ENTER);
     }
@@ -1009,6 +1043,7 @@ void Choice::BUILD() {
         temp = new choice_ctrl(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size, 0, nullptr, wxCB_READONLY);
 #endif //__WXOSX__
     }
+    temp->GetDropDown().SetUseContentWidth(true);
     if (parent_is_custom_ctrl && m_opt.height < 0)
         opt_height = (double) temp->GetTextCtrl()->GetSize().GetHeight() / m_em_unit;
 
@@ -1035,11 +1070,25 @@ void Choice::BUILD() {
 				temp->Append(el);
 		} else {
 			// Append localized enum_labels
-			for (auto el : m_opt.enum_labels)
-				temp->Append(_(el));
+            int i = 0;
+            boost::filesystem::path image_path(Slic3r::resources_dir());
+            image_path /= "images";
+            for (auto el : m_opt.enum_labels) {
+                auto icon_name = "param_" + m_opt.enum_values[i];
+                if (boost::filesystem::exists(image_path / (icon_name + ".svg"))) {
+                    ScalableBitmap bm(temp, icon_name, 24);
+				    temp->Append(_(el), bm.bmp());
+                } else {
+                    temp->Append(_(el));
+                }
+                ++i;
+            }
 		}
 		set_selection();
-	}
+    } else if (m_list) {
+        m_list->add_choice(this);
+        set_selection();
+    }
 
     temp->Bind(wxEVT_MOUSEWHEEL, [this](wxMouseEvent& e) {
         if (m_suppress_scroll && !m_is_dropped)
@@ -1212,7 +1261,9 @@ void Choice::set_value(const boost::any& value, bool change_event)
 				break;
 			++idx;
 		}
-        if (idx == enums.size()) {
+        if (m_list)
+			field->SetSelection(m_list->index_of(text_value));
+        else if (idx == enums.size()) {
             // For editable Combobox under OSX is needed to set selection to -1 explicitly,
             // otherwise selection doesn't be changed
             field->SetSelection(-1);
@@ -1332,7 +1383,10 @@ boost::any& Choice::get_value()
 	}
     else if (m_opt.gui_type == ConfigOptionDef::GUIType::f_enum_open || m_opt.gui_type == ConfigOptionDef::GUIType::i_enum_open) {
         const int ret_enum = field->GetSelection();
-        if (ret_enum < 0 || m_opt.enum_values.empty() || m_opt.type == coStrings ||
+        if (m_list) {
+            ret_str = m_list->get_value(ret_enum);
+            get_value_by_opt_type(ret_str);
+        } else if (ret_enum < 0 || m_opt.enum_values.empty() || m_opt.type == coStrings ||
             (ret_str != m_opt.enum_values[ret_enum] && ret_str != _(m_opt.enum_labels[ret_enum])))
 			// modifies ret_string!
             get_value_by_opt_type(ret_str);
@@ -1393,6 +1447,20 @@ void Choice::msw_rescale()
         field->SetValue(selection) :
         field->SetSelection(idx);
 #else
+    if (!m_opt.enum_labels.empty()) {
+        boost::filesystem::path image_path(Slic3r::resources_dir());
+        image_path /= "images";
+        int i = 0;
+        auto temp = dynamic_cast<choice_ctrl *>(window);
+        for (auto el : m_opt.enum_values) {
+            auto icon_name = "param_" + m_opt.enum_values[i];
+            if (boost::filesystem::exists(image_path / (icon_name + ".svg"))) {
+                ScalableBitmap bm(window, icon_name, 24);
+                temp->SetItemBitmap(i, bm.bmp());
+            }
+            ++i;
+        }
+    }
     auto size = wxSize(def_width_wider() * m_em_unit, wxDefaultCoord);
     if (m_opt.height >= 0)
         size.SetHeight(m_opt.height * m_em_unit);
@@ -1444,14 +1512,21 @@ void ColourPicker::set_undef_value(wxColourPickerCtrl* field)
     field->SetColour(wxTransparentColour);
 
     wxButton* btn = dynamic_cast<wxButton*>(field->GetPickerCtrl());
-    wxBitmap bmp = btn->GetBitmap();
+    wxImage image(btn->GetBitmap().GetSize());
+    image.InitAlpha();
+    memset(image.GetAlpha(), 0, image.GetWidth() * image.GetHeight());
+    wxBitmap   bmp(std::move(image));
     wxMemoryDC dc(bmp);
     if (!dc.IsOk()) return;
-    dc.SetTextForeground(*wxWHITE);
-    dc.SetFont(wxGetApp().normal_font());
+#ifdef __WXMSW__
+    wxGCDC dc2(dc);
+#else
+    wxDC &dc2(dc);
+#endif
+    dc2.SetPen(wxPen("#F1754E", 1));
 
     const wxRect rect = wxRect(0, 0, bmp.GetWidth(), bmp.GetHeight());
-    dc.DrawLabel("undef", rect, wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL);
+    dc2.DrawLine(rect.GetLeftBottom(), rect.GetTopRight());
 
     dc.SelectObject(wxNullBitmap);
     btn->SetBitmapLabel(bmp);
@@ -1529,8 +1604,8 @@ void PointCtrl::BUILD()
 #ifdef _WIN32
 	style |= wxBORDER_SIMPLE;
 #endif
-	x_textctrl = new wxTextCtrl(m_parent, wxID_ANY, X, wxDefaultPosition, field_size, style);
-	y_textctrl = new wxTextCtrl(m_parent, wxID_ANY, Y, wxDefaultPosition, field_size, style);
+	x_textctrl = new ::TextCtrl(m_parent, wxID_ANY, X, wxDefaultPosition, field_size, style);
+	y_textctrl = new ::TextCtrl(m_parent, wxID_ANY, Y, wxDefaultPosition, field_size, style);
     if (parent_is_custom_ctrl && m_opt.height < 0)
         opt_height = (double)x_textctrl->GetSize().GetHeight() / m_em_unit;
 
@@ -1769,5 +1844,4 @@ boost::any& SliderCtrl::get_value()
 }
 
 
-} // GUI
-} // Slic3r
+}} // Slic3r

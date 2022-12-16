@@ -185,13 +185,13 @@ void AppConfig::set_defaults()
 
 #ifdef SUPPORT_DARK_MODE
     if (get("dark_color_mode").empty())
-        set_bool("dark_color_mode", false);
+        set("dark_color_mode", "0");
 #endif
 
-#ifdef SUPPORT_SYS_MENU
+//#ifdef SUPPORT_SYS_MENU
     if (get("sys_menu_enabled").empty())
-        set_bool("sys_menu_enabled", true);
-#endif
+        set("sys_menu_enabled", "1");
+//#endif
 #endif // _WIN32
 
     // BBS
@@ -288,9 +288,9 @@ void AppConfig::set_defaults()
     if (get("backup_interval").empty()) {
         set("backup_interval", "10");
     }
-    
+
     if (get("curr_bed_type").empty()) {
-        set("curr_bed_type", "0");
+        set("curr_bed_type", "1");
     }
 
 // #if BBL_RELEASE_TO_PUBLIC
@@ -458,7 +458,6 @@ std::string AppConfig::load()
             } else if (it.key() == "presets") {
                 for (auto iter = it.value().begin(); iter != it.value().end(); iter++) {
                     if (iter.key() == "filaments") {
-                        // BBS: filament presets is now considered as project config instead of app config
                         int idx = 0;
                         for(auto& element: iter.value()) {
                             if (idx == 0)
@@ -480,7 +479,14 @@ std::string AppConfig::load()
                             } else {
                                 m_storage[it.key()][iter.key()] = "false";
                             }
-                        } else {
+                        } else if (iter.key() == "filament_presets") {
+                            m_filament_presets = iter.value().get<std::vector<std::string>>();
+                        } else if (iter.key() == "filament_colors") {
+                            m_filament_colors = iter.value().get<std::vector<std::string>>();
+                        } else if (iter.key() == "flushing_volumes") {
+                            m_flush_volumes_matrix = iter.value().get<std::vector<float>>();
+                        }
+                        else {
                             if (iter.value().is_string())
                                 m_storage[it.key()][iter.key()] = iter.value().get<std::string>();
                             else {
@@ -531,7 +537,7 @@ void AppConfig::save()
     {
         // Returns "undefined" if the thread naming functionality is not supported by the operating system.
         std::optional<std::string> current_thread_name = get_current_thread_name();
-        if (current_thread_name && *current_thread_name != "bambustu_main") {
+        if (current_thread_name && *current_thread_name != "bambustu_main" && *current_thread_name != "main") {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__<<", current_thread_name is " << *current_thread_name;
             throw CriticalException("Calling AppConfig::save() from a worker thread, thread name: " + *current_thread_name);
         }
@@ -563,6 +569,18 @@ void AppConfig::save()
         j["app"][kvp.first] = kvp.second;
     }
 
+    for (const auto &filament_preset : m_filament_presets) {
+        j["app"]["filament_presets"].push_back(filament_preset);
+    }
+
+    for (const auto &filament_color : m_filament_colors) {
+        j["app"]["filament_colors"].push_back(filament_color);
+    }
+
+    for (double flushing_volume : m_flush_volumes_matrix) {
+        j["app"]["flushing_volumes"].push_back(flushing_volume);
+    }
+
     // Write the other categories.
     for (const auto& category : m_storage) {
         if (category.first.empty())
@@ -577,7 +595,7 @@ void AppConfig::save()
         } else if (category.first == "presets") {
             json j_filament_array;
             for(const auto& kvp : category.second) {
-                if (boost::starts_with(kvp.first, "filament")) {
+                if (boost::starts_with(kvp.first, "filament") && kvp.first != "filament_colors") {
                     j_filament_array.push_back(kvp.second);
                 } else {
                     j[category.first][kvp.first] = kvp.second;
@@ -930,7 +948,9 @@ void AppConfig::set_recent_projects(const std::vector<std::string>& recent_proje
     it->second.clear();
     for (unsigned int i = 0; i < (unsigned int)recent_projects.size(); ++i)
     {
-        it->second[std::to_string(i + 1)] = recent_projects[i];
+        auto n = std::to_string(i + 1);
+        if (n.length() == 1) n = "0" + n;
+        it->second[n] = recent_projects[i];
     }
 }
 

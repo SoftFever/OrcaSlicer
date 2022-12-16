@@ -260,16 +260,24 @@ void Tab::create_preset_tab()
     m_btn_search->SetToolTip(_L("Search in preset"));
 
     //search input
-    m_search_item = new RoundedRectangle(m_top_panel, wxColour(238, 238, 238), wxDefaultPosition, wxSize(m_top_panel->GetSize().GetWidth(), 3 * wxGetApp().em_unit()), 8);
-    auto search_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_search_input = new wxTextCtrl(m_search_item, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 | wxBORDER_NONE);
+    m_search_item = new StaticBox(m_top_panel);
+    StateColor box_colour(std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+    StateColor box_border_colour(std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal));
 
+    m_search_item->SetBackgroundColor(box_colour);
+    m_search_item->SetBorderColor(box_border_colour);
+    m_search_item->SetCornerRadius(5);
+
+
+    //StateColor::darkModeColorFor(wxColour(238, 238, 238)), wxDefaultPosition, wxSize(m_top_panel->GetSize().GetWidth(), 3 * wxGetApp().em_unit()), 8);
+    auto search_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_search_input = new TextInput(m_search_item, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 | wxBORDER_NONE);
     m_search_input->SetBackgroundColour(wxColour(238, 238, 238));
     m_search_input->SetForegroundColour(wxColour(43, 52, 54));
     m_search_input->SetFont(wxGetApp().bold_font());
 
-    search_sizer->Add(new wxWindow(m_search_item, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND | wxLEFT, 16);
-    search_sizer->Add(m_search_input, 1, wxEXPAND | wxALL, wxGetApp().em_unit() / 2);
+    search_sizer->Add(new wxWindow(m_search_item, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(6));
+    search_sizer->Add(m_search_input, 1, wxEXPAND | wxALL, FromDIP(2));
     //bbl for linux
     //search_sizer->Add(new wxWindow(m_search_input, wxID_ANY, wxDefaultPosition, wxSize(0, 0)), 0, wxEXPAND | wxLEFT, 16);
 
@@ -319,7 +327,6 @@ void Tab::create_preset_tab()
          this->GetParent()->Layout();
 
          wxGetApp().plater()->search(false, m_type, m_top_panel->GetParent(), m_search_input, m_btn_search);
-         m_search_input->SetFocus();
          Thaw();
 
         });
@@ -338,7 +345,7 @@ void Tab::create_preset_tab()
     // BBS: model config
     if (m_presets_choice) {
         m_presets_choice->Reparent(m_top_panel);
-        m_top_sizer->Add(m_presets_choice, 1, wxLEFT | wxRIGHT | wxEXPAND, 10);
+        m_top_sizer->Add(m_presets_choice, 1, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, 10);
     } else {
         m_top_sizer->AddSpacer(10);
         m_top_sizer->AddStretchSpacer(1);
@@ -657,14 +664,14 @@ void Tab::OnActivate()
     // Because of DarkMode we use our own Notebook (inherited from wxSiplebook) instead of wxNotebook
     // And it looks like first Layout of the page doesn't update a size of the m_presets_choice
     // So we have to set correct size explicitely
-    if (wxSize ok_sz = wxSize(35 * m_em_unit, m_presets_choice->GetBestSize().y);
+   /* if (wxSize ok_sz = wxSize(35 * m_em_unit, m_presets_choice->GetBestSize().y);
         ok_sz != m_presets_choice->GetSize()) {
         m_presets_choice->SetMinSize(ok_sz);
         m_presets_choice->SetSize(ok_sz);
         GetSizer()->GetItem(size_t(0))->GetSizer()->Layout();
         if (wxGetApp().tabs_as_menu())
             m_presets_choice->update();
-    }
+    }*/
 #endif // _MSW_DARK_MODE
     Refresh();
 
@@ -721,7 +728,7 @@ void Tab::update_label_colours()
                 (m_type < Preset::TYPE_COUNT ? &m_default_text_clr : &m_modified_label_clr);
 
             m_tabctrl->SetItemTextColour(cur_item, clr == &m_modified_label_clr ? *clr : StateColor(
-                        std::make_pair(0x6B6B6B, (int) StateColor::NotChecked),
+                        std::make_pair(0x6B6B6C, (int) StateColor::NotChecked),
                         std::make_pair(*clr, (int) StateColor::Normal)));
             break;
         }
@@ -974,7 +981,7 @@ void Tab::update_changed_tree_ui()
 
             if (page->set_item_colour(clr))
                 m_tabctrl->SetItemTextColour(cur_item, clr == &m_modified_label_clr ? *clr : StateColor(
-                        std::make_pair(0x6B6B6B, (int) StateColor::NotChecked),
+                        std::make_pair(0x6B6B6C, (int) StateColor::NotChecked),
                         std::make_pair(*clr, (int) StateColor::Normal)));
 
             page->m_is_nonsys_values = !sys_page;
@@ -1382,7 +1389,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         auto timelapse_type = m_config->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
         bool timelapse_enabled = timelapse_type->value == TimelapseType::tlSmooth;
         if (!boost::any_cast<bool>(value) && timelapse_enabled) {
-            MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required by smooth timeplase. If whthout prime tower, there will be flaws on the model. Are you sure you want to disable prime tower?"),
+            MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"),
                               _L("Warning"), wxICON_WARNING | wxYES | wxNO);
             if (dlg.ShowModal() == wxID_NO) {
                 DynamicPrintConfig new_conf = *m_config;
@@ -1398,7 +1405,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "timelapse_type") {
         bool wipe_tower_enabled = m_config->option<ConfigOptionBool>("enable_prime_tower")->value;
         if (!wipe_tower_enabled && boost::any_cast<int>(value) == int(TimelapseType::tlSmooth)) {
-            MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required by smooth timelapse. If whthout prime tower, there will be flaws on the model. Do you want to enable prime tower?"),
+            MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"),
                               _L("Warning"), wxICON_WARNING | wxYES | wxNO);
             if (dlg.ShowModal() == wxID_YES) {
                 DynamicPrintConfig new_conf = *m_config;
@@ -1569,6 +1576,12 @@ void Tab::on_presets_changed()
     // Instead of PostEvent (EVT_TAB_PRESETS_CHANGED) just call update_presets
     wxGetApp().plater()->sidebar().update_presets(m_type);
 
+    bool is_bbl_vendor_preset = wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle);
+    if (is_bbl_vendor_preset)
+        wxGetApp().plater()->get_partplate_list().set_render_option(true, true);
+    else
+        wxGetApp().plater()->get_partplate_list().set_render_option(false, false);
+
     // Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
     for (auto t: m_dependent_tabs)
     {
@@ -1593,7 +1606,7 @@ void Tab::build_preset_description_line(ConfigOptionsGroup* optgroup)
     };
 
     auto detach_preset_btn = [this](wxWindow* parent) {
-        m_detach_preset_btn = new ScalableButton(parent, wxID_ANY, "lock_normal_sys", _L(""),
+        m_detach_preset_btn = new ScalableButton(parent, wxID_ANY, "lock_normal_sys", "",
                                                  wxDefaultSize, wxDefaultPosition, wxBU_LEFT | wxBU_EXACTFIT, true);
         ScalableButton* btn = m_detach_preset_btn;
         btn->SetFont(Slic3r::GUI::wxGetApp().normal_font());
@@ -1749,7 +1762,6 @@ void TabPrint::build()
         auto optgroup = page->new_optgroup(L("Layer height"), L"param_layer_height");
         optgroup->append_single_option_line("layer_height");
         optgroup->append_single_option_line("initial_layer_print_height");
-        optgroup->append_single_option_line("adaptive_layer_height", "adaptive-layer-height");
 
         optgroup = page->new_optgroup(L("Line width"), L"param_line_width");
         optgroup->append_single_option_line("line_width");
@@ -1778,6 +1790,15 @@ void TabPrint::build()
         optgroup->append_single_option_line("ironing_flow");
         optgroup->append_single_option_line("ironing_spacing");
 
+        optgroup = page->new_optgroup(L("Wall generator"), L"param_wall");
+        optgroup->append_single_option_line("wall_generator");
+        optgroup->append_single_option_line("wall_transition_angle");
+        optgroup->append_single_option_line("wall_transition_filter_deviation");
+        optgroup->append_single_option_line("wall_transition_length");
+        optgroup->append_single_option_line("wall_distribution_count");
+        optgroup->append_single_option_line("min_bead_width");
+        optgroup->append_single_option_line("min_feature_size");
+
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("wall_infill_order");
         optgroup->append_single_option_line("bridge_flow");
@@ -1796,8 +1817,10 @@ void TabPrint::build()
         optgroup->append_single_option_line("detect_thin_wall");
 
         optgroup = page->new_optgroup(L("Top/bottom shells"), L"param_shell");
+        optgroup->append_single_option_line("top_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
         optgroup->append_single_option_line("top_shell_layers");
         optgroup->append_single_option_line("top_shell_thickness");
+        optgroup->append_single_option_line("bottom_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
         optgroup->append_single_option_line("bottom_shell_layers");
         optgroup->append_single_option_line("bottom_shell_thickness");
 
@@ -1815,6 +1838,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("minimum_sparse_infill_area");
         optgroup->append_single_option_line("infill_combination");
         optgroup->append_single_option_line("detect_narrow_internal_solid_infill");
+        optgroup->append_single_option_line("ensure_vertical_shell_thickness");
+        optgroup->append_single_option_line("internal_bridge_support_thickness");
 
     page = add_options_page(L("Speed"), "empty");
         optgroup = page->new_optgroup(L("Initial layer speed"), L"param_speed_first", 15);
@@ -1849,6 +1874,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("outer_wall_acceleration");
         optgroup->append_single_option_line("inner_wall_acceleration");
         optgroup->append_single_option_line("initial_layer_acceleration");
+        optgroup->append_single_option_line("outer_wall_acceleration");
         optgroup->append_single_option_line("top_surface_acceleration");
         optgroup->append_single_option_line("travel_acceleration");
 
@@ -1874,6 +1900,11 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_critical_regions_only");
         //optgroup->append_single_option_line("enforce_support_layers");
 
+        optgroup = page->new_optgroup(L("Raft"), L"param_raft");
+        optgroup->append_single_option_line("raft_layers");
+        optgroup->append_single_option_line("raft_first_layer_density");
+        optgroup->append_single_option_line("raft_first_layer_expansion");
+
         optgroup = page->new_optgroup(L("Support filament"), L"param_support_filament");
         optgroup->append_single_option_line("support_filament", "support#support-filament");
         optgroup->append_single_option_line("support_interface_filament", "support#support-filament");
@@ -1887,9 +1918,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("tree_support_branch_diameter", "support#tree-support-only-options");
         optgroup->append_single_option_line("tree_support_branch_angle", "support#tree-support-only-options");
         optgroup->append_single_option_line("tree_support_wall_count");
-        optgroup->append_single_option_line("tree_support_with_infill");
         optgroup->append_single_option_line("support_top_z_distance", "support#top-z-distance");
-        //optgroup->append_single_option_line("support_bottom_z_distance", "support#bottom-z-distance");
+        optgroup->append_single_option_line("support_bottom_z_distance", "support#bottom-z-distance");
         optgroup->append_single_option_line("support_base_pattern", "support#base-pattern");
         optgroup->append_single_option_line("support_base_pattern_spacing", "support#base-pattern");
         //optgroup->append_single_option_line("support_angle");
@@ -1898,6 +1928,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_interface_pattern", "support#base-pattern");
         optgroup->append_single_option_line("support_interface_spacing", "support#base-pattern");
         optgroup->append_single_option_line("support_bottom_interface_spacing");
+        optgroup->append_single_option_line("support_expansion", "support#base-pattern");
         //optgroup->append_single_option_line("support_interface_loop_pattern");
 
         optgroup->append_single_option_line("support_object_xy_distance", "support#supportobject-xy-distance");
@@ -1913,9 +1944,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("brim_type", "auto-brim");
         optgroup->append_single_option_line("brim_width", "auto-brim#manual");
         optgroup->append_single_option_line("brim_object_gap", "auto-brim#brim-object-gap");
-        optgroup->append_single_option_line("raft_layers");
-        //optgroup->append_single_option_line("raft_first_layer_density");
-        //optgroup->append_single_option_line("raft_first_layer_expansion");
 
         optgroup = page->new_optgroup(L("Prime tower"), L"param_tower");
         optgroup->append_single_option_line("enable_prime_tower");
@@ -1929,6 +1957,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("flush_into_support", "reduce-wasting-during-filament-change#wipe-into-support-enabled-by-default");
 
         optgroup = page->new_optgroup(L("Special mode"), L"param_special");
+        optgroup->append_single_option_line("slicing_mode");
         optgroup->append_single_option_line("print_sequence");
         optgroup->append_single_option_line("spiral_mode", "spiral-vase");
         optgroup->append_single_option_line("timelapse_type", "Timelapse");
@@ -2085,7 +2114,7 @@ void TabPrintModel::build()
     init_options_list();
 
     auto page = add_options_page(L("Frequent"), "empty");
-        auto optgroup = page->new_optgroup(L(""));
+        auto optgroup = page->new_optgroup("");
             optgroup->append_single_option_line("layer_height");
             optgroup->append_single_option_line("sparse_infill_density");
             optgroup->append_single_option_line("wall_loops");
@@ -2238,7 +2267,7 @@ void TabPrintModel::on_value_change(const std::string& opt_key, const boost::any
         config.second->touch();
         notify_changed(config.first);
     }
-
+    wxGetApp().params_panel()->notify_object_config_changed();
 }
 
 void TabPrintModel::reload_config()
@@ -2433,8 +2462,6 @@ void TabFilament::build()
     load_initial_data();
 
     auto page = add_options_page(L("Filament"), "spool");
-    page->m_split_multi_line = true;
-    page->m_option_label_at_right = true;
         //BBS
         auto optgroup = page->new_optgroup(L("Basic information"), L"param_information");
         // Set size as all another fields for a better alignment
@@ -2445,6 +2472,8 @@ void TabFilament::build()
         // BBS
         optgroup->append_single_option_line("filament_is_support");
         //optgroup->append_single_option_line("filament_colour");
+        optgroup->append_single_option_line("required_nozzle_HRC");
+        optgroup->append_single_option_line("default_filament_colour");
         optgroup->append_single_option_line("filament_diameter");
         optgroup->append_single_option_line("filament_flow_ratio");
 
@@ -2692,6 +2721,8 @@ void TabFilament::update()
     if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
         return; // ys_FIXME
 
+    m_config_manipulation.check_filament_max_volumetric_speed(m_config);
+
     m_update_cnt++;
 
     update_description_lines();
@@ -2896,6 +2927,7 @@ void TabPrinter::build_fff()
         
         optgroup = page->new_optgroup(L("Accessory") /*, L"param_accessory"*/);
         optgroup->append_single_option_line("nozzle_type");
+        optgroup->append_single_option_line("nozzle_hrc");
         optgroup->append_single_option_line("auxiliary_fan");
 
     const int gcode_field_height = 15; // 150
@@ -3469,6 +3501,10 @@ void TabPrinter::toggle_options()
         size_t i = size_t(val - 1);
         bool have_retract_length = m_config->opt_float("retraction_length", i) > 0;
 
+        //BBS
+        for (auto el : { "nozzle_diameter", "extruder_offset"})
+            toggle_option(el, !is_BBL_printer, i);
+
         // user can customize travel length if we have retraction length or we"re using
         // firmware retraction
         toggle_option("retraction_minimum_travel", have_retract_length, i);
@@ -3701,7 +3737,7 @@ void Tab::rebuild_page_tree()
             continue;
         auto itemId = m_tabctrl->AppendItem(translate_category(p->title(), m_type), p->iconID());
         m_tabctrl->SetItemTextColour(itemId, p->get_item_colour() == m_modified_label_clr ? p->get_item_colour() : StateColor(
-                        std::make_pair(0x6B6B6B, (int) StateColor::NotChecked),
+                        std::make_pair(0x6B6B6C, (int) StateColor::NotChecked),
                         std::make_pair(p->get_item_colour(), (int) StateColor::Normal)));
         if (translate_category(p->title(), m_type) == selected)
             item = itemId;
@@ -3755,7 +3791,7 @@ void Tab::update_preset_choice()
 // Called by the UI combo box when the user switches profiles, and also to delete the current profile.
 // Select a preset by a name.If !defined(name), then the default preset is selected.
 // If the current profile is modified, user is asked to save the changes.
-void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/, const std::string& last_selected_ph_printer_name/* =""*/, bool force_select)
+bool Tab::select_preset(std::string preset_name, bool delete_current /*=false*/, const std::string& last_selected_ph_printer_name/* =""*/, bool force_select)
 {
     BOOST_LOG_TRIVIAL(info) << boost::format("select preset, name %1%, delete_current %2%")
         %preset_name %delete_current;
@@ -3983,6 +4019,8 @@ void Tab::select_preset(std::string preset_name, bool delete_current /*=false*/,
     if (technology_changed)
         wxGetApp().mainframe->technology_changed();
     BOOST_LOG_TRIVIAL(info) << boost::format("select preset, exit");
+
+    return !canceled;
 }
 
 // If the current preset is dirty, the user is asked whether the changes may be discarded.

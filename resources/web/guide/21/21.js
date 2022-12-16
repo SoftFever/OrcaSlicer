@@ -89,7 +89,7 @@ function HandleModelList( pVal )
 		for(let m=0;m<NozzleArray.length;m++)
 		{
 			let nNozzel=NozzleArray[m];
-			HtmlNozzel+='<div class="pNozzel"><input type="checkbox" model="'+OneModel['model']+'" nozzel="'+nNozzel+'" vendor="'+strVendor+'" /><span>'+nNozzel+'</span><span class="trans" tid="t13">mm nozzle</span></div>';
+			HtmlNozzel+='<div class="pNozzel TextS2"><input type="checkbox" model="'+OneModel['model']+'" nozzel="'+nNozzel+'" vendor="'+strVendor+'" /><span>'+nNozzel+'</span><span class="trans" tid="t13">mm nozzle</span></div>';
 		}
 		
 		let CoverImage="../../image/printer/"+OneModel['model']+"_cover.png";
