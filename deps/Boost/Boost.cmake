@@ -95,7 +95,7 @@ if (_cfg_rel GREATER -1 OR _cfg_relwdeb GREATER -1 OR _cfg_minsizerel GREATER -1
     list(APPEND _boost_variants release)
 endif()
 
-if (_cfg_deb GREATER -1 OR (MSVC AND ${DEP_DEBUG}) )
+if ( (NOT MSVC AND _cfg_deb GREATER -1) OR (MSVC AND ${DEP_DEBUG}) )
     list(APPEND _boost_variants debug)
 endif()
 
@@ -122,8 +122,8 @@ set(_install_cmd ${_build_cmd} --prefix=${_prefix} install)
 
 ExternalProject_Add(
     dep_Boost
-    URL "https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz"
-    URL_HASH SHA256=aeb26f80e80945e82ee93e5939baebdca47b9dee80a07d3144be1e1a6a66dd6a
+    URL "https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.zip"
+    URL_HASH SHA256=f22143b5528e081123c3c5ed437e92f648fe69748e95fa6e2bd41484e2986cc3
     DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/Boost
     CONFIGURE_COMMAND "${_bootstrap_cmd}"
     PATCH_COMMAND ${_patch_command}
