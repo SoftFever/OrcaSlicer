@@ -110,8 +110,8 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     }
     if (m_last_state != MEDIASTATE_IDLE)
         Stop();
-    if (m_next_retry.IsValid())
-        Play();
+    if (m_next_retry.IsValid()) // Try open 2 seconds later, to avoid state conflict
+        m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(2 * m_failed_retry);
     else
         SetStatus("", false);
 }
@@ -317,6 +317,48 @@ void MediaPlayCtrl::ToggleStream()
     });
 }
 
+void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
+{
+    auto last_state = m_last_state;
+    auto state      = m_media_ctrl->GetState();
+    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: " << state << ", last_state: " << last_state;
+    if ((int) state < 0) return;
+    {
+        boost::unique_lock lock(m_mutex);
+        if (!m_tasks.empty()) {
+            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: skip when task not finished";
+            return;
+        }
+    }
+    if ((last_state == MEDIASTATE_IDLE || last_state == MEDIASTATE_INITIALIZING) && state == wxMEDIASTATE_STOPPED) { return; }
+    if ((last_state == wxMEDIASTATE_PAUSED || last_state == wxMEDIASTATE_PLAYING) && state == wxMEDIASTATE_STOPPED) {
+        m_failed_code = m_media_ctrl->GetLastError();
+        Stop();
+        return;
+    }
+    if (last_state == MEDIASTATE_LOADING && state == wxMEDIASTATE_STOPPED) {
+        wxSize size = m_media_ctrl->GetVideoSize();
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: size: " << size.x << "x" << size.y;
+        m_failed_code = m_media_ctrl->GetLastError();
+        if (size.GetWidth() > 1000) {
+            m_last_state = state;
+            SetStatus(_L("Playing..."), false);
+            m_failed_retry = 0;
+            m_failed_code  = 0;
+            boost::unique_lock lock(m_mutex);
+            m_tasks.push_back("<play>");
+            m_cond.notify_all();
+        } else if (event.GetId()) {
+            Stop();
+            if (m_failed_code == 0)
+                m_failed_code = 2;
+            SetStatus(_L("Load failed [%d]!"));
+        }
+    } else {
+        m_last_state = state;
+    }
+}
+
 void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
 {
     auto msg = wxString::Format(msg2, m_failed_code);
@@ -358,7 +400,9 @@ void MediaPlayCtrl::media_proc()
             break;
         }
         else if (url == "<stop>") {
+            BOOST_LOG_TRIVIAL(info) <<  "MediaPlayCtrl: start stop";
             m_media_ctrl->Stop();
+            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: end stop";
         }
         else if (url == "<exit>") {
             break;
@@ -490,52 +534,6 @@ bool MediaPlayCtrl::get_stream_url(std::string *url)
     ::close(shm);
 #endif
     return url == nullptr;
-}
-
-void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
-{
-    auto last_state = m_last_state;
-    auto state = m_media_ctrl->GetState();
-    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: " << state << ", last_state: " << last_state;
-    if ((int) state < 0)
-        return;
-    {
-        boost::unique_lock lock(m_mutex);
-        if (!m_tasks.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: skip when task not finished";
-            return;
-        }
-    }
-    if ((last_state == MEDIASTATE_IDLE || last_state == MEDIASTATE_INITIALIZING) && state == wxMEDIASTATE_STOPPED) {
-        return;
-    }
-    if ((last_state == wxMEDIASTATE_PAUSED || last_state == wxMEDIASTATE_PLAYING)  &&
-        state == wxMEDIASTATE_STOPPED) {
-        m_failed_code = m_media_ctrl->GetLastError();
-        Stop();
-        return;
-    }
-    if (last_state == MEDIASTATE_LOADING && state == wxMEDIASTATE_STOPPED) {
-        wxSize size = m_media_ctrl->GetVideoSize();
-        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: size: " << size.x << "x" << size.y;
-        m_failed_code = m_media_ctrl->GetLastError();
-        if (size.GetWidth() > 1000) {
-            m_last_state = state;
-            SetStatus(_L("Playing..."), false);
-            m_failed_retry = 0;
-            boost::unique_lock lock(m_mutex);
-            m_tasks.push_back("<play>");
-            m_cond.notify_all();
-        }
-        else if (event.GetId()) {
-            Stop();
-            if (m_failed_code == 0)
-                m_failed_code = 2;
-            SetStatus(_L("Load failed [%d]!"));
-        }
-    } else {
-        m_last_state = state;
-    }
 }
 
 }}
