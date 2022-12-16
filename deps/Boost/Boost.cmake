@@ -73,7 +73,9 @@ file(TO_NATIVE_PATH ${DESTDIR}/usr/local/ _prefix)
 set(_boost_flags "")
 if (UNIX)
     set(_boost_flags "cflags=-fPIC;cxxflags=-fPIC")
-elseif(APPLE)
+endif ()
+
+if(APPLE)
     set(_boost_flags 
         "cflags=-fPIC -mmacosx-version-min=${DEP_OSX_TARGET};"
         "cxxflags=-fPIC -mmacosx-version-min=${DEP_OSX_TARGET};"
