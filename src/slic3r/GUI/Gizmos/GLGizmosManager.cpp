@@ -1501,7 +1501,7 @@ void GLGizmosManager::update_on_off_state(const Vec2d& mouse_pos)
     if (idx != Undefined && m_gizmos[idx]->is_activable() && m_hover == idx) {
         activate_gizmo(m_current == idx ? Undefined : (EType)idx);
         // BBS
-        wxGetApp().obj_list()->select_object_item((EType)idx <= Scale);
+        wxGetApp().obj_list()->select_object_item((EType) idx <= Scale || (EType) idx == Text);
     }
 }
 

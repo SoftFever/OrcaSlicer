@@ -650,6 +650,19 @@ private:
     friend class ModelVolume;
 };
 
+struct TextInfo
+{
+    std::string m_font_name;
+    float       m_font_size     = 16.f;
+    int         m_curr_font_idx = 0;
+    bool        m_bold          = true;
+    bool        m_italic        = false;
+    float       m_thickness     = 2.f;
+    std::string m_text;
+
+    template<typename Archive> void serialize(Archive &ar) { ar(m_font_name, m_font_size, m_curr_font_idx, m_bold, m_italic, m_thickness, m_text); }
+};
+
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
 // ModelVolume instances are owned by a ModelObject.
 class ModelVolume final : public ObjectBase
@@ -799,6 +812,9 @@ public:
     void convert_from_imperial_units();
     void convert_from_meters();
 
+    void set_text_info(const TextInfo& text_info) { m_text_info = text_info; }
+    const TextInfo& get_text_info() const { return m_text_info; }
+
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
 
 	void set_new_unique_id() {
@@ -842,6 +858,8 @@ private:
     mutable Transform3d                 m_cached_trans_matrix; //BBS, used for convex_hell_2d acceleration
     mutable Polygon                     m_cached_2d_polygon;   //BBS, used for convex_hell_2d acceleration
     Geometry::Transformation        	m_transformation;
+
+    TextInfo m_text_info;
 
     //BBS: add convex_hell_2d related logic
     void  calculate_convex_hull_2d(const Geometry::Transformation &transformation) const;
@@ -961,7 +979,7 @@ private:
         // BBS: add backup, check modify
         bool mesh_changed = false;
         auto tr = m_transformation;
-        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
+        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info);
         mesh_changed |= !(tr == m_transformation);
         if (mesh_changed) m_transformation.get_matrix(true, true, true, true); // force dirty
         auto t = supported_facets.timestamp();
@@ -987,7 +1005,7 @@ private:
 	}
 	template<class Archive> void save(Archive &ar) const {
 		bool has_convex_hull = m_convex_hull.get() != nullptr;
-        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull);
+        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info);
         cereal::save_by_value(ar, supported_facets);
         cereal::save_by_value(ar, seam_facets);
         cereal::save_by_value(ar, mmu_segmentation_facets);

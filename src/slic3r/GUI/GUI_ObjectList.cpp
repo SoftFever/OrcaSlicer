@@ -2158,7 +2158,7 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
 #endif /* _DEBUG */
 }
 
-void ObjectList::load_mesh_part(const TriangleMesh& mesh, const wxString& name, bool center)
+void ObjectList::load_mesh_part(const TriangleMesh &mesh, const wxString &name, const TextInfo &text_info, bool center)
 {
     wxDataViewItem item = GetSelection();
     // we can add volumes for Object or Instance
@@ -2181,9 +2181,11 @@ void ObjectList::load_mesh_part(const TriangleMesh& mesh, const wxString& name, 
 
     ModelVolume* mv = mo->add_volume(mesh);
     Vec3d instance_bbox = mo->mesh().bounding_box().size();
-    Vec3d offset = Vec3d(0, 0, instance_bbox[2] / 2);
+    Vec3d offset = Vec3d(0, 0, instance_bbox[2] / 2 + mv->get_offset(Axis::Z));
     mv->set_offset(offset);
     mv->name = name.ToStdString();
+    if (!text_info.m_text.empty())
+        mv->set_text_info(text_info);
 
     std::vector<ModelVolume*> volumes;
     volumes.push_back(mv);

@@ -8,6 +8,7 @@
 namespace Slic3r {
 
 enum class ModelVolumeType : int;
+class ModelVolume;
 
 namespace GUI {
 
@@ -38,6 +39,10 @@ private:
 
     std::vector<TextureInfo> m_textures;
 
+    bool m_is_modify = false;
+    int  m_object_idx;
+    int  m_volume_idx;
+
 public:
     GLGizmoText(GLCanvas3D& parent, const std::string& icon_filename, unsigned int sprite_id);
     ~GLGizmoText();
@@ -57,6 +62,10 @@ protected:
     virtual void on_set_state() override;
     virtual CommonGizmosDataID on_get_requirements() const override;
     virtual void on_render_input_window(float x, float y, float bottom_limit);
+
+private:
+    ModelVolume *get_selected_single_volume(int& out_object_idx, int& out_volume_idx) const;
+    void reset_text_info();
 };
 
 } // namespace GUI

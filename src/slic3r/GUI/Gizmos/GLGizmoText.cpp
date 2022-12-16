@@ -5,6 +5,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/ImGuiWrapper.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
+#include "slic3r/GUI/Plater.hpp"
 
 #include "libslic3r/Geometry/ConvexHull.hpp"
 #include "libslic3r/Model.hpp"
@@ -85,6 +86,23 @@ void GLGizmoText::update_font_texture()
 
 void GLGizmoText::on_set_state()
 {
+    if (m_state == EState::On && m_parent.get_selection().is_single_volume()) {
+        ModelVolume *model_volume  = get_selected_single_volume(m_object_idx, m_volume_idx);
+        TextInfo     text_info     = model_volume->get_text_info();
+        if (!text_info.m_text.empty()) {
+            m_font_name     = text_info.m_font_name;
+            m_font_size     = text_info.m_font_size;
+            m_curr_font_idx = text_info.m_curr_font_idx;
+            m_bold          = text_info.m_bold;
+            m_italic        = text_info.m_italic;
+            m_thickness     = text_info.m_thickness;
+            strcpy(m_text, text_info.m_text.c_str());
+            m_is_modify = true;
+        }
+    }
+    else if (m_state == EState::Off) {
+        reset_text_info();
+    }
 }
 
 CommonGizmosDataID GLGizmoText::on_get_requirements() const
@@ -101,7 +119,15 @@ bool GLGizmoText::on_is_activable() const
 {
     // This is assumed in GLCanvas3D::do_rotate, do not change this
     // without updating that function too.
-    return m_parent.get_selection().is_single_full_instance();
+    if (m_parent.get_selection().is_single_full_instance())
+        return true;
+
+    int obejct_idx, volume_idx;
+    ModelVolume *model_volume = get_selected_single_volume(obejct_idx, volume_idx);
+    if (model_volume)
+        return !model_volume->get_text_info().m_text.empty();
+
+    return false;
 }
 
 void GLGizmoText::on_render()
@@ -195,6 +221,35 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     if (m_textures.size() == 0) {
         BOOST_LOG_TRIVIAL(info) << "GLGizmoText has no texture";
         return;
+    }
+
+    const Selection &selection = m_parent.get_selection();
+    if (selection.is_single_full_instance() || selection.is_single_full_object()) {
+        const GLVolume * gl_volume = selection.get_volume(*selection.get_volume_idxs().begin());
+        int object_idx = gl_volume->object_idx();
+        if (object_idx != m_object_idx || (object_idx == m_object_idx && m_volume_idx != -1)) {
+            m_object_idx = object_idx;
+            m_volume_idx = -1;
+            reset_text_info();
+        }
+    } else if (selection.is_single_volume()) {
+        int object_idx, volume_idx;
+        ModelVolume *model_volume = get_selected_single_volume(object_idx, volume_idx);
+        if ((object_idx != m_object_idx || (object_idx == m_object_idx && volume_idx != m_volume_idx))
+            && model_volume) {
+            TextInfo text_info = model_volume->get_text_info();
+            m_font_name        = text_info.m_font_name;
+            m_font_size        = text_info.m_font_size;
+            m_curr_font_idx    = text_info.m_curr_font_idx;
+            m_bold             = text_info.m_bold;
+            m_italic           = text_info.m_italic;
+            m_thickness        = text_info.m_thickness;
+            strcpy(m_text, text_info.m_text.c_str());
+
+            m_is_modify = true;
+            m_volume_idx = volume_idx;
+            m_object_idx = object_idx;
+        }
     }
 
     const float win_h = ImGui::GetWindowHeight();
@@ -305,17 +360,43 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     float offset =  caption_size + input_text_size -  m_imgui->calc_text_size(_L("Add")).x - space_size;
     ImGui::Dummy({0.0, 0.0});
     ImGui::SameLine(offset);
-    bool add_clicked = m_imgui->button(_L("Add"));
-    if (add_clicked) {
+    bool btn_clicked = m_imgui->button(m_is_modify ? _L("Modify") : _L("Add"));
+    if (btn_clicked) {
         m_imgui->disabled_end();
         GizmoImguiEnd();
         ImGui::PopStyleVar();
         ImGuiWrapper::pop_toolbar_style();
 
+        TextInfo text_info;
+        text_info.m_font_name     = m_font_name;
+        text_info.m_font_size     = m_font_size;
+        text_info.m_curr_font_idx = m_curr_font_idx;
+        text_info.m_bold          = m_bold;
+        text_info.m_italic        = m_italic;
+        text_info.m_thickness     = m_thickness;
+        text_info.m_text          = m_text;
         TriangleMesh mesh;
         load_text_shape(m_text, m_font_name.c_str(), m_font_size, m_thickness, m_bold, m_italic, mesh);
-        ObjectList* obj_list = wxGetApp().obj_list();
-        obj_list->load_mesh_part(mesh, "text_shape");
+            
+        if (m_is_modify) {
+            Plater *plater = wxGetApp().plater();
+            if (!plater)
+                return;
+
+            plater->take_snapshot("Modify Text");
+            const Selection &selection    = m_parent.get_selection();
+            ModelObject *    model_object = selection.get_model()->objects[m_object_idx];
+            ModelVolume *    model_volume = model_object->volumes[m_volume_idx];
+            ModelVolume *    new_model_volume = model_object->add_volume(*model_volume, std::move(mesh));
+            new_model_volume->set_text_info(text_info);
+            new_model_volume->set_transformation(model_volume->get_transformation());
+            std::swap(model_object->volumes[m_volume_idx], model_object->volumes.back());
+            model_object->delete_volume(model_object->volumes.size() - 1);
+            plater->update();
+        } else {
+            ObjectList *obj_list = wxGetApp().obj_list();
+            obj_list->load_mesh_part(mesh, "text_shape", text_info);
+        }
 
         return;
     }
@@ -333,6 +414,32 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     GizmoImguiEnd();
     ImGui::PopStyleVar();
     ImGuiWrapper::pop_toolbar_style();
+}
+
+ModelVolume *GLGizmoText::get_selected_single_volume(int &out_object_idx, int &out_volume_idx) const
+{
+    if (m_parent.get_selection().is_single_volume()) {
+        const Selection &selection = m_parent.get_selection();
+        const GLVolume * gl_volume = selection.get_volume(*selection.get_volume_idxs().begin());
+        out_object_idx             = gl_volume->object_idx();
+        ModelObject *model_object  = selection.get_model()->objects[out_object_idx];
+        out_volume_idx             = gl_volume->volume_idx();
+        ModelVolume *model_volume  = model_object->volumes[out_volume_idx];
+        return model_volume;
+    }
+    return nullptr;
+}
+
+void GLGizmoText::reset_text_info()
+{
+    m_font_name     = "";
+    m_font_size     = 16.f;
+    m_curr_font_idx = 0;
+    m_bold          = true;
+    m_italic        = false;
+    m_thickness     = 2.f;
+    strcpy(m_text, m_font_name.c_str());
+    m_is_modify = false;
 }
 
 } // namespace GUI
