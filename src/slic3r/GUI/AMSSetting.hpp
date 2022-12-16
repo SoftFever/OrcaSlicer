@@ -39,6 +39,7 @@ public:
     wxString      append_title(wxString text);
     wxStaticText *append_text(wxString text);
     MachineObject *obj{nullptr};
+    bool           ams_support_remain{false};
     int            ams_id { 0 };
 
 protected:
@@ -72,6 +73,7 @@ protected:
     wxBoxSizer *m_sizer_starting_tip_inline;
     wxBoxSizer *m_sizer_remain_inline;
     wxBoxSizer *m_sizer_switch_filament_inline;
+    wxBoxSizer *m_sizer_remain_block;
 };
 
 }} // namespace Slic3r::GUI
