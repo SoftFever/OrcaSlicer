@@ -327,10 +327,18 @@ std::vector<unsigned int> Print::support_material_extruders() const
 }
 
 // returns 0-based indices of used extruders
-std::vector<unsigned int> Print::extruders() const
+std::vector<unsigned int> Print::extruders(bool conside_custom_gcode) const
 {
     std::vector<unsigned int> extruders = this->object_extruders();
     append(extruders, this->support_material_extruders());
+
+    if (conside_custom_gcode) {
+        for (auto item : m_model.custom_gcode_per_print_z.gcodes) {
+        if (item.type == CustomGCode::Type::ToolChange)
+            extruders.push_back((unsigned int)item.extruder);
+        }
+    }
+
     sort_remove_duplicates(extruders);
     return extruders;
 }

@@ -692,6 +692,8 @@ void MainFrame::update_layout()
         {
             // jump to 3deditor under preview_only mode
             if (evt.GetId() == tp3DEditor){
+                m_plater->update(true);
+
                 if (!preview_only_hint())
                     return;
             }

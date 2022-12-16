@@ -1136,7 +1136,7 @@ void PartPlate::release_opengl_resource()
 	}
 }
 
-std::vector<int> PartPlate::get_extruders() const
+std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 {
 	std::vector<int> plate_extruders;
 	// if gcode.3mf file
@@ -1192,6 +1192,13 @@ std::vector<int> PartPlate::get_extruders() const
 			plate_extruders.push_back(glb_support_extr);
 	}
 
+	if (conside_custom_gcode) {
+        for (auto item : m_model->custom_gcode_per_print_z.gcodes) {
+        if (item.type == CustomGCode::Type::ToolChange)
+            plate_extruders.push_back(item.extruder);
+        }
+    }
+
 	std::sort(plate_extruders.begin(), plate_extruders.end());
 	auto it_end = std::unique(plate_extruders.begin(), plate_extruders.end());
 	plate_extruders.resize(std::distance(plate_extruders.begin(), it_end));
@@ -1223,7 +1230,7 @@ std::vector<int> PartPlate::get_used_extruders()
 Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double wipe_volume) const
 {
 	Vec3d wipe_tower_size;
-	std::vector<int> plate_extruders = get_extruders();
+	std::vector<int> plate_extruders = get_extruders(true);
 	double layer_height = 0.08f; // hard code layer height
 	double max_height = 0.f;
 	wipe_tower_size.setZero();

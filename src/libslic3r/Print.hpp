@@ -660,7 +660,7 @@ public:
 
     std::vector<unsigned int> object_extruders() const;
     std::vector<unsigned int> support_material_extruders() const;
-    std::vector<unsigned int> extruders() const;
+    std::vector<unsigned int> extruders(bool conside_custom_gcode = false) const;
     double              max_allowed_layer_height() const;
     bool                has_support_material() const;
     // Make sure the background processing has no access to this model_object during this call!

@@ -1659,6 +1659,8 @@ struct Plater::priv
     bool m_is_slicing {false};
     bool m_is_publishing {false};
     int m_cur_slice_plate;
+
+    bool m_need_update{false};
     //BBS: add popup object table logic
     //ObjectTableDialog* m_popup_table{ nullptr };
 
@@ -1769,6 +1771,9 @@ struct Plater::priv
 
     priv(Plater *q, MainFrame *main_frame);
     ~priv();
+
+    bool need_update() const { return m_need_update; }
+    void set_need_update(bool need_update) { m_need_update = need_update; }
 
     bool is_project_dirty() const { return dirty_state.is_dirty(); }
     bool is_presets_dirty() const { return dirty_state.is_presets_dirty(); }
@@ -2401,6 +2406,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
             // update slice and print button
             wxGetApp().mainframe->update_slice_print_status(MainFrame::SlicePrintEventType::eEventSliceUpdate, true, false);
+            set_need_update(true);
         });
     }
     if (wxGetApp().is_gcode_viewer())
@@ -8628,7 +8634,17 @@ void Plater::add_file()
     }
 }
 
-void Plater::update() { p->update(); }
+void Plater::update(bool conside_update_flag)
+{
+    if (conside_update_flag) {
+        if (need_update()) {
+            p->update();
+            p->set_need_update(false);
+        }
+    }
+    else
+        p->update();
+}
 
 void Plater::object_list_changed() { p->object_list_changed(); }
 
@@ -11351,6 +11367,16 @@ bool Plater::PopupMenu(wxMenu *menu, const wxPoint& pos)
 void Plater::bring_instance_forward()
 {
     p->bring_instance_forward();
+}
+
+bool Plater::need_update() const
+{
+    return p->need_update();
+}
+
+void Plater::set_need_update(bool need_update)
+{
+    p->set_need_update(need_update);
 }
 
 // BBS

@@ -1149,7 +1149,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
     std::vector<std::array<float, 4>> extruder_colors = get_extruders_colors();
     std::vector<std::array<float, 4>> colors;
     GUI::PartPlateList& ppl = GUI::wxGetApp().plater()->get_partplate_list();
-    std::vector<int> plate_extruders = ppl.get_plate(plate_idx)->get_extruders();
+    std::vector<int> plate_extruders = ppl.get_plate(plate_idx)->get_extruders(true);
     TriangleMesh wipe_tower_shell = make_cube(width, depth, height);
     for (int extruder_id : plate_extruders) {
         if (extruder_id <= extruder_colors.size())

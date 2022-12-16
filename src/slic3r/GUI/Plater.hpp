@@ -256,7 +256,7 @@ public:
 
     const wxString& get_last_loaded_gcode() const { return m_last_loaded_gcode; }
 
-    void update();
+    void update(bool conside_update_flag = false);
     //BBS
     void object_list_changed();
     void stop_jobs();
@@ -557,6 +557,9 @@ public:
     void init_notification_manager();
 
     void bring_instance_forward();
+
+    bool need_update() const;
+    void set_need_update(bool need_update);
 
     // ROII wrapper for suppressing the Undo / Redo snapshot to be taken.
 	class SuppressSnapshots
