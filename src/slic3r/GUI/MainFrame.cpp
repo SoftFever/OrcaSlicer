@@ -1265,10 +1265,6 @@ bool MainFrame::can_send_gcode() const
 {
     if (m_plater && !m_plater->model().objects.empty())
     {
-        // BBL printer presets
-        if (!wxGetApp().preset_bundle->printers.get_edited_preset().is_custom_defined())
-            return false;
-
         auto cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
         if (const auto *print_host_opt = cfg.option<ConfigOptionString>("print_host"); print_host_opt)
             return !print_host_opt->value.empty();
