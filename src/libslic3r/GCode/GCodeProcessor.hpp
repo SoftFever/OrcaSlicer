@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <array>
 #include <vector>
+#include <mutex>
 #include <string>
 #include <string_view>
 #include <optional>
