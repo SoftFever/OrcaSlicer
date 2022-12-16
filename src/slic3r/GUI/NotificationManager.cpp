@@ -357,6 +357,19 @@ void NotificationManager::PopNotification::count_lines()
 	if (text.empty())
 		return;
 
+	// handle with marks
+    if (pos_start == string::npos && pos_end == string::npos) {
+        pos_start = text.find(error_start);
+        if (pos_start != string::npos) {
+            text.erase(pos_start, error_start.length());
+            pos_end = text.find(error_end);
+            if (pos_end != string::npos) {
+                text.erase(pos_end, error_end.length());
+            }
+        }
+        m_text1 = text;
+    }
+
 	m_endlines.clear();
 	while (last_end < text.length() - 1)
 	{
@@ -481,7 +494,14 @@ void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, cons
 			if (m_text1.size() > m_endlines[i])
 				last_end += (m_text1[m_endlines[i]] == '\n' || m_text1[m_endlines[i]] == ' ' ? 1 : 0);
 
-			imgui.text(line.c_str());
+            if (pos_start != string::npos && pos_end != string::npos&& m_endlines[i] - line.length() >= pos_start && m_endlines[i] <= pos_end) {
+                push_style_color(ImGuiCol_Text, m_ErrorColor, m_state == EState::FadingOut, m_current_fade_opacity);
+                imgui.text(line.c_str());
+                ImGui::PopStyleColor();
+            }
+            else {
+                imgui.text(line.c_str());
+            }
 		}
 	}
 	//hyperlink text
