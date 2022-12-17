@@ -1040,7 +1040,7 @@ void Sidebar::update_all_preset_comboboxes()
             p_mainframe->load_printer_url(host_url);
         }
 
-        m_bed_type_list->SelectAndNotify(btPEI);
+        m_bed_type_list->SelectAndNotify(btPEI-1);
         m_bed_type_list->Disable();
     }
 
