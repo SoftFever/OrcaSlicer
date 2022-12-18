@@ -3485,7 +3485,7 @@ void TabPrinter::toggle_options()
         // SoftFever: hide BBL specific settings
         for (auto el :
              {"scan_first_layer", "machine_load_filament_time",
-                        "machine_unload_filament_time", "nozzle_type", "bed_exclude_area"})
+                        "machine_unload_filament_time", "nozzle_type"})
           toggle_line(el, is_BBL_printer);
     }
 
