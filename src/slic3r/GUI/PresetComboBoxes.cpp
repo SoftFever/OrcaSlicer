@@ -1033,8 +1033,7 @@ void PlaterPresetComboBox::update()
         //if (i + 1 == m_collection->num_default_presets())
         //    set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
     }
-
-    if (m_type == Preset::TYPE_FILAMENT)
+    if (m_type == Preset::TYPE_FILAMENT && m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(m_preset_bundle))
         add_ams_filaments(into_u8(selected_user_preset), true);
 
     //BBS: add project embedded preset logic
@@ -1262,7 +1261,7 @@ void TabPresetComboBox::update()
         //    set_label_marker(Append(separator(L("System presets")), wxNullBitmap));
     }
 
-    if (m_type == Preset::TYPE_FILAMENT)
+    if (m_type == Preset::TYPE_FILAMENT && m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(m_preset_bundle))
         add_ams_filaments(into_u8(selected));
 
     //BBS: add project embedded preset logic
