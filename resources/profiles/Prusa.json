@@ -1,12 +1,16 @@
 {
     "name": "Prusa",
-    "version": "01.02.00.03",
+    "version": "01.04.00.09",
     "force_update": "0",
     "description": "Prusa configurations",
     "machine_model_list": [
         {
             "name": "Prusa MK3S",
             "sub_path": "machine/Prusa MK3S.json"
+        },
+        {
+            "name": "Prusa MINI",
+            "sub_path": "machine/Prusa MINI.json"
         }
     ],
     "process_list": [
@@ -17,6 +21,10 @@
         {
             "name": "0.20mm Standard @MK3S",
             "sub_path": "process/0.20mm Standard @MK3S.json"
+        },
+        {
+            "name": "0.20mm Standard @MINI",
+            "sub_path": "process/0.20mm Standard @MINI.json"
         }
     ],
     "filament_list": [
@@ -105,6 +113,10 @@
         {
             "name": "Prusa MK3S 0.4 nozzle",
             "sub_path": "machine/Prusa MK3S 0.4 nozzle.json"
+        },
+        {
+            "name": "Prusa MINI 0.4 nozzle",
+            "sub_path": "machine/Prusa MINI 0.4 nozzle.json"
         }
     ]
 }
