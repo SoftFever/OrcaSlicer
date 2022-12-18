@@ -175,7 +175,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     // layer_height shouldn't be equal to zero
     auto gpreset = GUI::wxGetApp().preset_bundle->printers.get_edited_preset();
     auto min_lh = gpreset.config.opt_float("min_layer_height",0);
-    if (config->opt_float("layer_height") < min_lh)
+    if (min_lh > 0 && config->opt_float("layer_height") < min_lh)
     {
          wxString msg_text = wxString::Format(L"Too small layer height.\nReset to  %0.3f", min_lh);
         MessageDialog dialog(m_msg_dlg_parent, msg_text,"", wxICON_WARNING | wxOK);
@@ -189,7 +189,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     //BBS: limite the max layer_herght
     auto max_lh = gpreset.config.opt_float("max_layer_height",0);
-    if (config->opt_float("layer_height") > max_lh+ EPSILON)
+    if (max_lh > 0.2 && config->opt_float("layer_height") > max_lh+ EPSILON)
     {
         const wxString msg_text = wxString::Format(L"Too large layer height.\nReset to %0.3f", max_lh);
         MessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
