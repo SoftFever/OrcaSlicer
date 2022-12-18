@@ -109,6 +109,7 @@ GuideFrame::GuideFrame(GUI_App *pGUI, long style)
     SetStartPage(BBL_REGION);
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  finished");
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 GuideFrame::~GuideFrame()
@@ -157,10 +158,10 @@ wxString GuideFrame::SetStartPage(GuidePage startpage, bool load)
         else
             TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/21/index.html").make_preferred().string());
     } else if (startpage == BBL_FILAMENT_ONLY) {
-        SetTitle(_L(""));
+        SetTitle("");
         TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/23/index.html").make_preferred().string());
     } else if (startpage == BBL_MODELS_ONLY) {
-        SetTitle(_L(""));
+        SetTitle("");
         TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/24/index.html").make_preferred().string());
     }
     else {
@@ -389,8 +390,12 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
         else if (strCmd == "network_plugin_install") {
             std::string sAction = j["data"]["action"];
 
-            if (sAction == "yes")
-                InstallNetplugin = true;
+            if (sAction == "yes") {
+                if (!network_plugin_ready)
+                    InstallNetplugin = true;
+                else //already ready
+                    InstallNetplugin = false;
+            }
             else
                 InstallNetplugin = false;
         }
@@ -794,7 +799,8 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
             first_added_preset = get_first_added_preset(old_presets, m_appconfig_new.get_section(section_name));
         }
     };
-    get_first_added_material_preset(AppConfig::SECTION_FILAMENTS, first_added_filament);
+    // Not switch filament
+    //get_first_added_material_preset(AppConfig::SECTION_FILAMENTS, first_added_filament);
 
     //update the app_config
     app_config->set_section(AppConfig::SECTION_FILAMENTS, enabled_filaments);
@@ -818,6 +824,7 @@ bool GuideFrame::run()
 
     //p->set_run_reason(reason);
     //p->set_start_page(start_page);
+    app.preset_bundle->export_selections(*app.app_config);
 
     BOOST_LOG_TRIVIAL(info) << "GuideFrame before ShowModal";
     if (this->ShowModal() == wxID_OK) {
@@ -856,7 +863,7 @@ bool GuideFrame::run()
     }
 }
 
-int GuideFrame::GetFilamentInfo(std::string filepath, std::string &sVendor, std::string &sType)
+int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, std::string filepath, std::string &sVendor, std::string &sType)
 {
     //GetStardardFilePath(filepath);
 
@@ -878,21 +885,18 @@ int GuideFrame::GetFilamentInfo(std::string filepath, std::string &sVendor, std:
         if (sVendor == "" || sType == "")
         {
             if (jLocal.contains("inherits")) {
-                boost::filesystem::path sf(filepath.c_str());
-                filepath = sf.string();
-
-                std::string strFile   = filepath;
-                //wxString strFolder = strFile.BeforeLast(boost::filesystem::path::preferred_separator);
-                boost::filesystem::path file_path(filepath);
-
                 std::string FName = jLocal["inherits"];
-                FName += ".json";
-                //wxString strNewFile = wxString::Format("%s%c%s.json", strFolder.mb_str(), boost::filesystem::path::preferred_separator, FName.c_str());
-                boost::filesystem::path inherits_path = boost::filesystem::absolute(file_path.parent_path() / FName).make_preferred();
+
+                if (!pFilaList.contains(FName))
+                    return -1;
+
+                std::string FPath = pFilaList[FName]["sub_path"];
+                wxString                strNewFile    = wxString::Format("%s%c%s", VendorDirectory, boost::filesystem::path::preferred_separator, FPath);
+                boost::filesystem::path inherits_path = boost::filesystem::absolute(w2s(strNewFile)).make_preferred();
 
                 //boost::filesystem::path nf(strNewFile.c_str());
                 if (boost::filesystem::exists(inherits_path))
-                    return GetFilamentInfo(inherits_path.string(), sVendor, sType);
+                    return GetFilamentInfo(VendorDirectory,pFilaList, inherits_path.string(), sVendor, sType);
                 else
                     return -1;
             } else {
@@ -1088,6 +1092,7 @@ int GuideFrame::LoadProfile()
 
         m_ProfileJson["network_plugin_install"] = wxGetApp().app_config->get("app","installed_networking");
         m_ProfileJson["network_plugin_compability"] = wxGetApp().is_compatibility_version() ? "1" : "0";
+        network_plugin_ready = wxGetApp().is_compatibility_version();
     }
     catch (std::exception &e) {
         //wxLogMessage("GUIDE: load_profile_error  %s ", e.what());
@@ -1376,7 +1381,17 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
 
         // BBS:Filament
         json pFilament = jLocal["filament_list"];
+        json tFilaList = json::object();
         nsize          = pFilament.size();
+
+        for (int n = 0; n < nsize; n++) {
+            json OneFF = pFilament.at(n);
+
+            std::string s1    = OneFF["name"];
+            std::string s2    = OneFF["sub_path"];
+
+            tFilaList[s1] = OneFF;
+        }
 
         int nFalse  = 0;
         int nModel  = 0;
@@ -1400,7 +1415,7 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
                     std::string sV;
                     std::string sT;
 
-                    int nRet = GetFilamentInfo(sub_file, sV, sT);
+                    int nRet = GetFilamentInfo(vendor_dir.string(),tFilaList, sub_file, sV, sT);
                     if (nRet != 0) continue;
 
                     OneFF["vendor"] = sV;
@@ -1509,6 +1524,7 @@ bool GuideFrame::LoadFile(std::string jPath, std::string &sContent)
 int GuideFrame::DownloadPlugin()
 {
     return wxGetApp().download_plugin(
+        "plugins", "network_plugin.zip",
         [this](int status, int percent, bool& cancel) {
             return ShowPluginStatus(status, percent, cancel);
         }
@@ -1517,7 +1533,7 @@ int GuideFrame::DownloadPlugin()
 
 int GuideFrame::InstallPlugin()
 {
-    return wxGetApp().install_plugin(
+    return wxGetApp().install_plugin("plugins", "network_plugin.zip",
         [this](int status, int percent, bool &cancel) {
             return ShowPluginStatus(status, percent, cancel);
         }

@@ -515,7 +515,6 @@ private:
     // This was a per-object setting and now we default enable it.
     static bool clip_multipart_objects;
     static bool infill_only_where_needed;
-    static bool ensure_vertical_shell_thickness;
 };
 
 struct WipeTowerData
@@ -629,10 +628,13 @@ public:
 
     ApplyStatus         apply(const Model &model, DynamicPrintConfig config) override;
 
-    void                process() override;
+    void                process(bool use_cache = false) override;
     // Exports G-code into a file name based on the path_template, returns the file path of the generated G-code file.
     // If preview_data is not null, the preview_data is filled in for the G-code visualization (not used by the command line Slic3r).
     std::string         export_gcode(const std::string& path_template, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
+    //return 0 means successful
+    int                 export_cached_data(const std::string& dir_path, bool with_space=false);
+    int                 load_cached_data(const std::string& directory);
 
     // methods for handling state
     bool                is_step_done(PrintStep step) const { return Inherited::is_step_done(step); }
@@ -721,6 +723,8 @@ public:
     void export_gcode_from_previous_file(const std::string& file, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
     //BBS: add modify_count logic
     int get_modified_count() const {return m_modified_count;}
+    //BBS: add status for whether support used
+    bool is_support_used() const {return m_support_used;}
 
     //BBS
     static StringObjectException sequential_print_clearance_valid(const Print &print, Polygons *polygons = nullptr, std::vector<std::pair<Polygon, float>>* height_polygons = nullptr);
@@ -777,6 +781,7 @@ private:
 
     // Estimated print time, filament consumed.
     PrintStatistics                         m_print_statistics;
+    bool                                    m_support_used {false};
 
     //BBS: plate's origin
     Vec3d   m_origin;
@@ -792,6 +797,7 @@ public:
     //BBS: this was a print config and now seems to be useless so we move it to here
     static float min_skirt_length;
 };
+
 
 } /* slic3r_Print_hpp_ */
 

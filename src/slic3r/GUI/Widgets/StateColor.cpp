@@ -1,5 +1,81 @@
 #include "StateColor.hpp"
 
+static bool gDarkMode = false;
+
+static bool operator<(wxColour const &l, wxColour const &r) { return l.GetRGBA() < r.GetRGBA(); }
+
+static std::map<wxColour, wxColour> gDarkColors{
+    {"#00AE42", "#21A452"},
+    {"#1F8EEA", "#2778D2"},
+    {"#FF6F00", "#D15B00"},
+    {"#D01B1B", "#BB2A3A"},
+    {"#262E30", "#EFEFF0"},
+    {"#2C2C2E", "#B3B3B4"},
+    {"#6B6B6B", "#818183"},
+    {"#ACACAC", "#54545A"},
+    {"#EEEEEE", "#4C4C55"},
+    {"#E8E8E8", "#3E3E45"},
+    {"#323A3D", "#E5E5E4"},
+    {"#FFFFFF", "#2D2D31"},
+    {"#F8F8F8", "#36363C"},
+    {"#F1F1F1", "#36363B"},
+    {"#3B4446", "#2D2D30"},
+    {"#CECECE", "#54545B"},
+    {"#DBFDD5", "#3B3B40"},
+    {"#000000", "#FFFFFE"},
+    {"#F4F4F4", "#36363D"},
+    {"#DBDBDB", "#4A4A51"},
+    {"#EDFAF2", "#283232"},
+    {"#323A3C", "#E5E5E6"},
+    {"#6B6B6A", "#B3B3B5"},
+    {"#303A3C", "#E5E5E5"},
+    {"#FEFFFF", "#242428"},
+    {"#A6A9AA", "#2D2D29"},
+    {"#363636", "#B2B3B5"},
+    {"#F0F0F1", "#404040"},
+    {"#9E9E9E", "#53545A"},
+    {"#D7E8DE", "#1F2B27"},
+    {"#2B3436", "#808080"},
+    {"#ABABAB", "#ABABAB"},
+    {"#D9D9D9", "#2D2D32"},
+    //{"#F0F0F0", "#3E3E44"},
+};
+
+std::map<wxColour, wxColour> const & StateColor::GetDarkMap() 
+{
+    return gDarkColors;
+}
+
+void StateColor::SetDarkMode(bool dark) { gDarkMode = dark; }
+
+inline wxColour darkModeColorFor2(wxColour const &color)
+{
+    if (!gDarkMode)
+        return color;
+    auto iter = gDarkColors.find(color);
+    wxFAIL(iter != gDarkColors.end());
+    if (iter != gDarkColors.end()) return iter->second;
+    return color;
+}
+
+std::map<wxColour, wxColour> revert(std::map<wxColour, wxColour> const & map)
+{
+    std::map<wxColour, wxColour> map2;
+    for (auto &p : map) map2.emplace(p.second, p.first);
+    return map2;
+}
+
+wxColour StateColor::lightModeColorFor(wxColour const &color)
+{
+    static std::map<wxColour, wxColour> gLightColors = revert(gDarkColors);
+    auto iter = gLightColors.find(color);
+    wxFAIL(iter != gLightColors.end());
+    if (iter != gLightColors.end()) return iter->second;
+    return color;
+}
+
+wxColour StateColor::darkModeColorFor(wxColour const &color) { return darkModeColorFor2(color); }
+
 StateColor::StateColor(wxColour const &color) { append(color, 0); }
 
 StateColor::StateColor(wxString const &color) { append(color, 0); }
@@ -54,6 +130,27 @@ wxColour StateColor::colorForStates(int states)
         int on = s & 0xffff;
         int off = s >> 16;
         if ((on & states) == on && (off & ~states) == off) {
+            return darkModeColorFor2(colors_[i]);
+        }
+        if (focused && (on & Hovered)) {
+            on |= Focused;
+            on &= ~Hovered;
+            if ((on & states) == on && (off & ~states) == off) {
+                return darkModeColorFor2(colors_[i]);
+            }
+        }
+    }
+    return wxColour(0, 0, 0, 0);
+}
+
+wxColour StateColor::colorForStatesNoDark(int states)
+{
+    bool focused = takeFocusedAsHovered_ && (states & Focused);
+    for (int i = 0; i < statesList_.size(); ++i) {
+        int s = statesList_[i];
+        int on = s & 0xffff;
+        int off = s >> 16;
+        if ((on & states) == on && (off & ~states) == off) {
             return colors_[i];
         }
         if (focused && (on & Hovered)) {
@@ -90,4 +187,3 @@ bool StateColor::setColorForStates(wxColour const &color, int states)
 }
 
 void StateColor::setTakeFocusedAsHovered(bool set) { takeFocusedAsHovered_ = set; }
-

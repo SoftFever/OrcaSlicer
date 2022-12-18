@@ -84,8 +84,6 @@ SlicingParameters SlicingParameters::create_from_config(
     params.object_print_z_max = object_height;
     params.base_raft_layers = object_config.raft_layers.value;
     params.soluble_interface = soluble_interface;
-    //BBS
-    params.adaptive_layer_height = print_config.enable_prime_tower ? false : object_config.adaptive_layer_height;
 
     // Miniumum/maximum of the minimum layer height over all extruders.
     params.min_layer_height = MIN_LAYER_HEIGHT;
@@ -115,13 +113,12 @@ SlicingParameters SlicingParameters::create_from_config(
     if (! soluble_interface) {
         params.gap_raft_object    = object_config.raft_contact_distance.value;
         //BBS
-        //params.gap_object_support = object_config.support_bottom_z_distance.value;
-        params.gap_object_support = object_config.support_top_z_distance.value;
+        params.gap_object_support = object_config.support_bottom_z_distance.value; 
         params.gap_support_object = object_config.support_top_z_distance.value;
         if (params.gap_object_support <= 0)
             params.gap_object_support = params.gap_support_object;
 
-        if (!object_config.independent_support_layer_height) {
+        if (!print_config.independent_support_layer_height) {
             params.gap_raft_object = std::round(params.gap_raft_object / object_config.layer_height + EPSILON) * object_config.layer_height;
             params.gap_object_support = std::round(params.gap_object_support / object_config.layer_height + EPSILON) * object_config.layer_height;
             params.gap_support_object = std::round(params.gap_support_object / object_config.layer_height + EPSILON) * object_config.layer_height;
@@ -400,31 +397,32 @@ std::vector<double> smooth_height_profile(const std::vector<double>& profile, co
     };
 
     //BBS: avoid the layer height change to be too steep
-    auto has_steep_height_change = [&slicing_params](const std::vector<double>& profile, const double height_step) {
-        //BBS: skip first layer
-        size_t skip_count = slicing_params.first_object_layer_height_fixed() ? 4 : 0;
-        size_t size = profile.size();
-        //BBS: not enough data to smmoth, return false directly
-        if ((int)size - (int)skip_count < 6)
-            return false;
+    //auto has_steep_height_change = [&slicing_params](const std::vector<double>& profile, const double height_step) {
+    //    //BBS: skip first layer
+    //    size_t skip_count = slicing_params.first_object_layer_height_fixed() ? 4 : 0;
+    //    size_t size = profile.size();
+    //    //BBS: not enough data to smmoth, return false directly
+    //    if ((int)size - (int)skip_count < 6)
+    //        return false;
 
-        //BBS: Don't need to check the difference between top layer and the last 2th layer
-        for (size_t i = skip_count; i < size - 6; i += 2) {
-            if (abs(profile[i + 1] - profile[i + 3]) > height_step)
-                return true;
-        }
-        return false;
-    };
+    //    //BBS: Don't need to check the difference between top layer and the last 2th layer
+    //    for (size_t i = skip_count; i < size - 6; i += 2) {
+    //        if (abs(profile[i + 1] - profile[i + 3]) > height_step)
+    //            return true;
+    //    }
+    //    return false;
+    //};
 
-    int count = 0;
-    std::vector<double> ret = profile;
-    bool has_steep_change = has_steep_height_change(ret, LAYER_HEIGHT_CHANGE_STEP);
-    while (has_steep_change && count < 6) {
-        ret = gauss_blur(ret, smoothing_params);
-        has_steep_change = has_steep_height_change(ret, LAYER_HEIGHT_CHANGE_STEP);
-        count++;
-    }
-    return ret;
+    //int count = 0;
+    //std::vector<double> ret = profile;
+    //bool has_steep_change = has_steep_height_change(ret, LAYER_HEIGHT_CHANGE_STEP);
+    //while (has_steep_change && count < 6) {
+    //    ret = gauss_blur(ret, smoothing_params);
+    //    has_steep_change = has_steep_height_change(ret, LAYER_HEIGHT_CHANGE_STEP);
+    //    count++;
+    //}
+    //return ret;
+    return gauss_blur(profile, smoothing_params);
 }
 
 void adjust_layer_height_profile(

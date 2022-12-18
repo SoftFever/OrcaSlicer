@@ -179,6 +179,42 @@ inline TPoint<RawShape> referenceVertex(const RawShape& sh)
     return rightmostUpVertex(sh);
 }
 
+template<class RawBox, class RawShape, class Ratio = double> inline NfpResult<RawShape> nfpInnerRectBed(const RawBox &bed, const RawShape &other)
+{
+    using Vertex = TPoint<RawShape>;
+    using Edge   = _Segment<Vertex>;
+    namespace sl = shapelike;
+
+    auto    sbox         = sl::boundingBox(other);
+    auto sheight      = sbox.height();
+    auto swidth       = sbox.width();
+    Vertex  slidingTop   = rightmostUpVertex(other);
+    auto leftOffset   = slidingTop.x() - sbox.minCorner().x();
+    auto rightOffset  = slidingTop.x() - sbox.maxCorner().x();
+    auto topOffset    = 0;
+    auto bottomOffset = sheight;
+
+
+    auto boxWidth  = bed.width();
+    auto boxHeight = bed.height();
+
+    auto bedMinx = bed.minCorner().x();
+    auto bedMiny = bed.minCorner().y();
+    auto bedMaxx = bed.maxCorner().x();
+    auto bedMaxy = bed.maxCorner().y();
+
+    RawShape innerNfp{{bedMinx + leftOffset, bedMaxy + topOffset},
+                      {bedMaxx + rightOffset, bedMaxy + topOffset},
+                      {bedMaxx + rightOffset, bedMiny + bottomOffset},
+                      {bedMinx + leftOffset, bedMiny + bottomOffset},
+                      {bedMinx + leftOffset, bedMaxy + topOffset}};
+    if (sheight > boxHeight || swidth > boxWidth) {
+        return {{}, {0, 0}};
+    } else {
+        return {innerNfp, {0, 0}};
+    }
+}
+
 /**
  * The "trivial" Cuninghame-Green implementation of NFP for convex polygons.
  *

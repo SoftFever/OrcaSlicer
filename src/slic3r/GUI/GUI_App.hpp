@@ -26,9 +26,16 @@
 #include <mutex>
 #include <stack>
 
-#define BBL_HAS_FIRST_PAGE          1
+//#define BBL_HAS_FIRST_PAGE          1
 #define STUDIO_INACTIVE_TIMEOUT     15*60*1000
 #define LOG_FILES_MAX_NUM           30
+#define TIMEOUT_CONNECT             15
+#define TIMEOUT_RESPONSE            15
+
+#define BE_UNACTED_ON               0x00200001
+#ifndef _MSW_DARK_MODE
+    #define _MSW_DARK_MODE            1
+#endif // _MSW_DARK_MODE
 
 class wxMenuItem;
 class wxMenuBar;
@@ -65,6 +72,7 @@ class NotificationManager;
 struct GUI_InitParams;
 class ParamsDialog;
 class HMSQuery;
+class ModelMallDialog;
 
 
 enum FileType
@@ -219,14 +227,15 @@ private:
     bool            m_opengl_initialized{ false };
 #endif
 
+   
+//#ifdef _WIN32
     wxColour        m_color_label_modified;
     wxColour        m_color_label_sys;
     wxColour        m_color_label_default;
     wxColour        m_color_window_default;
-    // BBS
-//#ifdef _WIN32
     wxColour        m_color_highlight_label_default;
     wxColour        m_color_hovered_btn_label;
+    wxColour        m_color_default_btn_label;
     wxColour        m_color_highlight_default;
     wxColour        m_color_selected_btn_bg;
     bool            m_force_colors_update { false };
@@ -268,14 +277,15 @@ private:
     std::shared_ptr<UpgradeNetworkJob> m_upgrade_network_job;
 
     VersionInfo version_info;
+    static std::string version_display;
     HMSQuery    *hms_query { nullptr };
 
     boost::thread    m_sync_update_thread;
     bool             enable_sync = false;
-
+    bool             m_is_dark_mode{ false };
     bool             m_adding_script_handler { false };
-
 public:
+    std::string     get_local_models_path();
     bool            OnInit() override;
     bool            initialized() const { return m_initialized; }
 
@@ -315,8 +325,11 @@ public:
     void            update_label_colours();
     // update color mode for window
     void            UpdateDarkUI(wxWindow *window, bool highlited = false, bool just_font = false);
+    void            UpdateDarkUIWin(wxWindow* win);
+    void            Update_dark_mode_flag();
     // update color mode for whole dialog including all children
-    void            UpdateDlgDarkUI(wxDialog* dlg, bool just_buttons_update = false);
+    void            UpdateDlgDarkUI(wxDialog* dlg);
+    void            UpdateFrameDarkUI(wxFrame* dlg);
     // update color mode for DataViewControl
     void            UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited = false);
     // update color mode for panel including all static texts controls
@@ -362,6 +375,7 @@ public:
     void            import_model(wxWindow *parent, wxArrayString& input_files) const;
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
 
+    wxString transition_tridid(int trid_id);
     void            ShowUserGuide();
     void            ShowDownNetPluginDlg();
     void            ShowUserLogin();
@@ -377,7 +391,7 @@ public:
     int             request_user_unbind(std::string dev_id);
     std::string     handle_web_request(std::string cmd);
     void            handle_script_message(std::string msg);
-    void            request_model_download(std::string import_json);
+    void            request_model_download(std::string url, std::string filename);
     void            download_project(std::string project_id);
     void            request_project_download(std::string project_id);
     void            request_open_project(std::string project_id);
@@ -386,6 +400,7 @@ public:
     void            handle_http_error(unsigned int status, std::string body);
     void            on_http_error(wxCommandEvent &evt);
     void            on_user_login(wxCommandEvent &evt);
+    void            enable_user_preset_folder(bool enable);
 
     // BBS
     bool            is_studio_active();
@@ -399,6 +414,7 @@ public:
     void            enter_force_upgrade();
     void            set_skip_version(bool skip = true);
     void            no_new_version();
+    static std::string format_display_version();
     void            show_dialog(wxString msg);
     void            reload_settings();
     void            remove_user_presets();
@@ -463,9 +479,15 @@ public:
     ParamsDialog*        params_dialog();
     Model&      		 model();
     NotificationManager * notification_manager();
-    //BBS
+
+    ModelMallDialog*    m_mall_home_dialog{ nullptr };
+    ModelMallDialog*    m_mall_publish_dialog{ nullptr };
+
     void            load_url(wxString url);
-    void run_script(wxString js);
+    void            open_mall_page_dialog();
+    void            open_publish_page_dialog();
+    void remove_mall_system_dialog();
+    void            run_script(wxString js);
     bool            is_adding_script_handler() { return m_adding_script_handler; }
     void            set_adding_script_handler(bool status) { m_adding_script_handler = status; }
 
@@ -526,9 +548,9 @@ public:
     void            associate_files(std::wstring extend);
     void            disassociate_files(std::wstring extend);
 #endif // __WXMSW__
-    std::string     get_plugin_url(std::string country_code);
-    int             download_plugin(InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
-    int             install_plugin(InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
+    std::string     get_plugin_url(std::string name, std::string country_code);
+    int             download_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
+    int             install_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
     std::string     get_http_url(std::string country_code);
     bool            is_compatibility_version();
     bool            check_networking_version();
@@ -564,7 +586,7 @@ private:
 };
 
 DECLARE_APP(GUI_App)
-
+wxDECLARE_EVENT(EVT_CONNECT_LAN_MODE_PRINT, wxCommandEvent);
 } // GUI
 } // Slic3r
 

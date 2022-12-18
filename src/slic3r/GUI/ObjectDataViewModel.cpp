@@ -190,7 +190,7 @@ void ObjectDataViewModelNode::set_printable_icon(PrintIndicator printable)
 {
     m_printable = printable;
     m_printable_icon = m_printable == piUndef ? m_empty_bmp :
-                       create_scaled_bitmap(m_printable == piPrintable ? "obj_printable" : "obj_unprintable");
+                       create_scaled_bitmap(m_printable == piPrintable ? "check_on" : "check_off_focused");
 }
 
 void ObjectDataViewModelNode::set_action_icon(bool enable)
@@ -348,6 +348,11 @@ void ObjectDataViewModelNode::UpdateExtruderAndColorIcon(wxString extruder /*= "
         if (m_type & itObject);
         else if (m_type & itVolume && m_volume_type == ModelVolumeType::MODEL_PART) {
             extruder_idx = atoi(m_parent->GetExtruder().c_str());
+        }
+        // BBS
+        else if (m_type & itVolume && m_volume_type == ModelVolumeType::PARAMETER_MODIFIER) {
+            m_extruder_bmp = *get_default_extruder_color_icon();
+            return;
         }
         else {
             m_extruder_bmp = wxNullBitmap;
@@ -546,10 +551,20 @@ wxDataViewItem ObjectDataViewModel::AddVolumeChild( const wxDataViewItem &parent
         if (insert_position >= 0) insert_position++;
 	}
 
-    wxString extruder_str = extruder == 0 ? _(L("default")) : wxString::Format("%d", extruder);
+    // BBS
+    wxString extruder_str;
+    if (extruder == 0) {
+        if (volume_type == ModelVolumeType::PARAMETER_MODIFIER)
+            extruder_str = _L("default");
+        else
+            extruder_str = root->m_extruder;
+    }
+    else {
+        extruder_str = wxString::Format("%d", extruder);
+    }
 
     const auto node = new ObjectDataViewModelNode(root, name, volume_type, GetVolumeIcon(volume_type, warning_icon_name),
-        extruder == 0 ? root->m_extruder : extruder_str, root->m_volumes_cnt, warning_icon_name);
+        extruder_str, root->m_volumes_cnt, warning_icon_name);
     insert_position < 0 ? root->Append(node) : root->Insert(node, insert_position);
 
     // if part with errors is added, but object wasn't marked, then mark it
@@ -1378,7 +1393,7 @@ void ObjectDataViewModel::UpdateVolumesExtruderBitmap(wxDataViewItem obj_item, b
         return;
     ObjectDataViewModelNode* obj_node = static_cast<ObjectDataViewModelNode*>(obj_item.GetID());
     for (auto child : obj_node->GetChildren())
-        if (child->GetVolumeType() == ModelVolumeType::MODEL_PART || child->GetVolumeType() == ModelVolumeType::PARAMETER_MODIFIER)
+        if (child->GetVolumeType() == ModelVolumeType::MODEL_PART)
             child->UpdateExtruderAndColorIcon(use_obj_extruder ? obj_node->GetExtruder() : "");
 }
 
@@ -1705,16 +1720,28 @@ wxDataViewItem ObjectDataViewModel::ReorganizeObjects(  const int current_id, co
         return wxDataViewItem(nullptr);
 
     ObjectDataViewModelNode* deleted_node = m_objects[current_id];
+    ObjectDataViewModelNode* new_node = m_objects[new_id];
+    ObjectDataViewModelNode* plate_node = deleted_node->m_parent;
+
     m_objects.erase(m_objects.begin() + current_id);
-    ItemDeleted(wxDataViewItem(nullptr), wxDataViewItem(deleted_node));
+    plate_node->GetChildren().Remove(deleted_node);
+    ItemDeleted(wxDataViewItem(deleted_node->m_parent), wxDataViewItem(deleted_node));
 
     m_objects.emplace(m_objects.begin() + new_id, deleted_node);
-    ItemAdded(wxDataViewItem(nullptr), wxDataViewItem(deleted_node));
+    int plate_child_index = plate_node->GetChildIndex(new_node);
+    if (current_id < new_id)
+        plate_node->Insert(deleted_node, plate_child_index+1);
+    else {
+        //should not happen
+        plate_node->Insert(deleted_node, plate_child_index);
+    }
+    ItemAdded(wxDataViewItem(deleted_node->m_parent), wxDataViewItem(deleted_node));
+
+    //ItemChanged(wxDataViewItem(nullptr));
 
     // If some item has a children, just to add a deleted item is not enough on Linux
     // We should to add all its children separately
     AddAllChildren(wxDataViewItem(deleted_node));
-
     return wxDataViewItem(deleted_node);
 }
 
@@ -1817,14 +1844,14 @@ unsigned int ObjectDataViewModel::GetChildren(const wxDataViewItem &parent, wxDa
 		return 0;
 	}
 
-	unsigned int count = node->GetChildren().GetCount();
-	for (unsigned int pos = 0; pos < count; pos++)
-	{
-		ObjectDataViewModelNode *child = node->GetChildren().Item(pos);
-		array.Add(wxDataViewItem((void*)child));
-	}
+    unsigned int count = node->GetChildren().GetCount();
+    for (unsigned int pos = 0; pos < count; pos++)
+    {
+        ObjectDataViewModelNode* child = node->GetChildren().Item(pos);
+        array.Add(wxDataViewItem((void*)child));
+    }
 
-	return count;
+    return count;
 }
 
 void ObjectDataViewModel::GetAllChildren(const wxDataViewItem &parent, wxDataViewItemArray &array) const

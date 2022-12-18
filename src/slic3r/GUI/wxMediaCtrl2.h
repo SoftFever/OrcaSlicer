@@ -17,6 +17,8 @@ class wxMediaCtrl2 : public wxWindow
 {
 public:
     wxMediaCtrl2(wxWindow * parent);
+    
+    ~wxMediaCtrl2();
 
     void Load(wxURI url);
 

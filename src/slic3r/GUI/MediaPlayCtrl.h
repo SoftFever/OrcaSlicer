@@ -35,6 +35,10 @@ public:
 
     void SetMachineObject(MachineObject * obj);
 
+    bool IsStreaming() const;
+
+    void ToggleStream();
+
 protected:
     void onStateChanged(wxMediaEvent & event);
 
@@ -47,7 +51,13 @@ protected:
     void SetStatus(wxString const &msg, bool hyperlink = true);
 
 private:
+    void on_show_hide(wxShowEvent & evt);
+
     void media_proc();
+
+    static bool start_stream_service(bool *need_install = nullptr);
+
+    static bool get_stream_url(std::string *url = nullptr);
 
 private:
     static constexpr wxMediaState MEDIASTATE_IDLE = (wxMediaState) 3;
@@ -71,11 +81,12 @@ private:
     boost::condition_variable m_cond;
     boost::thread m_thread;
 
+    bool m_streaming = false;
     int m_failed_retry = 0;
     int m_failed_code = 0;
     wxDateTime m_next_retry;
 
-    ::Button * m_button_play;
+    ::Button *m_button_play;
     ::Label * m_label_status;
 };
 

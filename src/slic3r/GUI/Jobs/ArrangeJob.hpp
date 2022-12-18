@@ -38,8 +38,6 @@ class ArrangeJob : public PlaterJob
     void prepare_partplate();
     void prepare_wipe_tower();
 
-    ArrangePolygon get_arrange_poly_(ModelInstance* mi);
-    
     ArrangePolygon prepare_arrange_polygon(void* instance);
 
 protected:

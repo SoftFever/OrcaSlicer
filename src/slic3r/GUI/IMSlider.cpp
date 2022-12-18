@@ -12,16 +12,6 @@
 #include "Tab.hpp"
 #include "GUI_ObjectList.hpp"
 
-#include <wx/button.h>
-#include <wx/dialog.h>
-#include <wx/sizer.h>
-#include <wx/slider.h>
-#include <wx/menu.h>
-#include <wx/bmpcbox.h>
-#include <wx/statline.h>
-#include <wx/dcclient.h>
-#include <wx/colordlg.h>
-
 #include <cmath>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -49,6 +39,7 @@ constexpr double miscalculation = scale_(scale_(1));   // equal to 1 mm2
 static const float LEFT_MARGIN    = 13.0f + 100.0f;  // avoid thumbnail toolbar
 static const float SLIDER_LENGTH  = 680.0f;
 static const float  TEXT_WIDTH_DUMMY = 63.0f;
+static const float  ONE_LAYER_MARGIN = 10.0f;
 static const ImVec2 ONE_LAYER_OFFSET  = ImVec2(41.0f, 44.0f);
 static const ImVec2 HORIZONTAL_SLIDER_SIZE = ImVec2(764.0f, 90.0f);//764 = 680 + handle_dummy_width * 2 + text_right_dummy
 static const ImVec2 VERTICAL_SLIDER_SIZE = ImVec2(105.0f, 748.0f);//748 = 680 + text_dummy_height * 2
@@ -440,7 +431,7 @@ IMSlider::IMSlider(int lowerValue, int higherValue, int minValue, int maxValue, 
     m_style        = style == wxSL_HORIZONTAL || style == wxSL_VERTICAL ? style : wxSL_HORIZONTAL;
     // BBS set to none style by default
     m_extra_style = style == wxSL_VERTICAL ? 0 : 0;
-    m_selection   = ssUndef;
+    m_selection   = ssHigher;
     m_is_need_post_tick_changed_event = false;
     m_tick_change_event_type = Type::Unknown;
 
@@ -452,13 +443,14 @@ bool IMSlider::init_texture()
     bool result = true;
     if (!is_horizontal()) {
         // BBS init image texture id
-        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/reset_normal.svg", 20, 20, m_reset_normal_id);
-        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/reset_hover.svg", 20, 20, m_reset_hover_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_on.svg", 24, 24, m_one_layer_on_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_on_hover.svg", 28, 28, m_one_layer_on_hover_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_off.svg", 28, 28, m_one_layer_off_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_off_hover.svg", 28, 28, m_one_layer_off_hover_id);
-        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_arrow.svg", 28, 28, m_one_layer_arrow_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_on_dark.svg", 24, 24, m_one_layer_on_dark_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_on_hover_dark.svg", 28, 28, m_one_layer_on_hover_dark_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_off_dark.svg", 28, 28, m_one_layer_off_dark_id);
+        result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/one_layer_off_hover_dark.svg", 28, 28, m_one_layer_off_hover_dark_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/im_gcode_pause.svg", 14, 14, m_pause_icon_id);
         result &= IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/im_slider_delete.svg", 14, 14, m_delete_icon_id);
     }
@@ -722,8 +714,8 @@ bool IMSlider::switch_one_layer_mode()
 }
 
 void IMSlider::draw_background(const ImRect& groove) {
-    const ImU32 bg_rect_col = IM_COL32(255, 255, 255, 255);
-    const ImU32 groove_col = IM_COL32(206, 206, 206, 255);
+    const ImU32 bg_rect_col = m_is_dark ? IM_COL32(65, 65, 71, 255) : IM_COL32(255, 255, 255, 255);
+    const ImU32 groove_col = m_is_dark ? IM_COL32(45, 45, 49, 255) : IM_COL32(206, 206, 206, 255);
 
     if (is_horizontal() || m_ticks.empty()) {
         ImVec2 groove_padding = ImVec2(2.0f, 2.0f) * m_scale;
@@ -772,9 +764,9 @@ bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int 
     float  triangle_offsets[3] = {-3.5f * m_scale, 3.5f * m_scale, -6.06f * m_scale};
 
 
-    const ImU32 white_bg = IM_COL32(255, 255, 255, 255);
+    const ImU32 white_bg = m_is_dark ? IM_COL32(65, 65, 71, 255) : IM_COL32(255, 255, 255, 255);
     const ImU32 handle_clr = IM_COL32(0, 174, 66, 255);
-    const ImU32 handle_border_clr = IM_COL32(248, 248, 248, 255);
+    const ImU32 handle_border_clr = m_is_dark ? IM_COL32(65, 65, 71, 255) : IM_COL32(248, 248, 248, 255);
 
     // calc groove size
     ImVec2 groove_start = ImVec2(pos.x + handle_dummy_width, pos.y + size.y - groove_y - bottom_dummy);
@@ -835,7 +827,7 @@ void IMSlider::draw_colored_band(const ImRect& groove, const ImRect& slideable_r
     if (m_ticks.empty())
         return;
 
-    const ImU32 blank_col = IM_COL32(255, 255, 255, 255);
+    const ImU32 blank_col = m_is_dark ? IM_COL32(65, 65, 71, 255) : IM_COL32(255, 255, 255, 255);
 
     ImVec2 blank_padding = ImVec2(6.0f, 5.0f) * m_scale;
     float  blank_width   = 1.0f * m_scale;
@@ -908,8 +900,7 @@ void IMSlider::draw_ticks(const ImRect& slideable_region) {
     ImVec2 icon_size     = ImVec2(14.0f, 14.0f) * m_scale;
 
     const ImU32 tick_clr = IM_COL32(144, 144, 144, 255);
-    const ImU32 tick_hover_box_clr = IM_COL32(219, 253, 231, 255);
-    const ImU32 delete_btn_clr = IM_COL32(144, 144, 144, 255);
+    const ImU32 tick_hover_box_clr = m_is_dark ? IM_COL32(65, 65, 71, 255) : IM_COL32(219, 253, 231, 255);
 
     auto get_tick_pos = [this, slideable_region](int tick)
     {
@@ -1010,10 +1001,9 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
     ImVec2 text_content_size;
     ImVec2 text_size;
 
-    const ImU32 white_bg = IM_COL32(255, 255, 255, 255);
+    const ImU32 white_bg = m_is_dark ? IM_COL32(65, 65, 71, 255) : IM_COL32(255, 255, 255, 255);
     const ImU32 handle_clr = IM_COL32(0, 174, 66, 255);
-    const ImU32 handle_border_clr = IM_COL32(248, 248, 248, 255);
-    const ImU32 delete_btn_clr = IM_COL32(144, 144, 144, 255);
+    const ImU32 handle_border_clr = m_is_dark ? IM_COL32(65, 65, 71, 255) : IM_COL32(248, 248, 248, 255);
 
     // calc slider groove size
     ImVec2 groove_start = ImVec2(pos.x + size.x - groove_x - right_dummy, pos.y + text_dummy_height);
@@ -1055,7 +1045,7 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
     if (!one_layer_flag) 
     {
         // select higher handle by default
-        static bool h_selected = true;
+        bool h_selected = (selection == ssHigher);
         if (ImGui::ItemHoverable(higher_handle, id) && context.IO.MouseClicked[0]) {
             selection = ssHigher; 
             h_selected = true;
@@ -1223,6 +1213,8 @@ bool IMSlider::render(int canvas_width, int canvas_height)
 
     render_input_custom_gcode();
 
+    render_go_to_layer_dialog();
+
     if (is_horizontal()) {
         float  pos_x = std::max(LEFT_MARGIN, 0.2f * canvas_width);
         float  pos_y = (canvas_height - HORIZONTAL_SLIDER_SIZE.y * m_scale);
@@ -1236,9 +1228,9 @@ bool IMSlider::render(int canvas_width, int canvas_height)
         }
         imgui.end();
     } else {
-        float  pos_x = canvas_width - (VERTICAL_SLIDER_SIZE.x + TEXT_WIDTH_DUMMY * scale - TEXT_WIDTH_DUMMY) * m_scale;
+        float  pos_x = canvas_width - (VERTICAL_SLIDER_SIZE.x + TEXT_WIDTH_DUMMY * scale - TEXT_WIDTH_DUMMY + ONE_LAYER_MARGIN) * m_scale;
         float pos_y = std::max(ONE_LAYER_OFFSET.y, 0.15f * canvas_height - (VERTICAL_SLIDER_SIZE.y - SLIDER_LENGTH) * scale);
-        ImVec2 size = ImVec2((VERTICAL_SLIDER_SIZE.x + TEXT_WIDTH_DUMMY * scale - TEXT_WIDTH_DUMMY) * m_scale, canvas_height - 2 * pos_y);
+        ImVec2 size = ImVec2((VERTICAL_SLIDER_SIZE.x + TEXT_WIDTH_DUMMY * scale - TEXT_WIDTH_DUMMY + ONE_LAYER_MARGIN) * m_scale, canvas_height - 2 * pos_y);
         imgui.set_next_window_pos(pos_x, pos_y, ImGuiCond_Always);
         imgui.begin(std::string("laysers_slider"), windows_flag);
 
@@ -1261,8 +1253,12 @@ bool IMSlider::render(int canvas_width, int canvas_height)
 
         ImGui::Spacing();
         ImGui::SameLine((VERTICAL_SLIDER_SIZE.x - ONE_LAYER_OFFSET.x) * scale * m_scale);
-        ImTextureID normal_id = is_one_layer() ? m_one_layer_on_id : m_one_layer_off_id;
-        ImTextureID hover_id  = is_one_layer() ? m_one_layer_on_hover_id : m_one_layer_off_hover_id;
+        ImTextureID normal_id = m_is_dark ?
+            is_one_layer() ? m_one_layer_on_dark_id : m_one_layer_off_dark_id :
+            is_one_layer() ? m_one_layer_on_id : m_one_layer_off_id;
+        ImTextureID hover_id  = m_is_dark ?
+            is_one_layer() ? m_one_layer_on_hover_dark_id : m_one_layer_off_hover_dark_id :
+            is_one_layer() ? m_one_layer_on_hover_id : m_one_layer_off_hover_id;
         if (ImGui::ImageButton3(normal_id, hover_id, ImVec2(28 * m_scale, 28 * m_scale))) {
             switch_one_layer_mode();
         }
@@ -1282,11 +1278,12 @@ void IMSlider::render_input_custom_gcode()
         return;
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     static bool move_to_center = true;
+    static bool set_focus = true;
     if (move_to_center) {
-        move_to_center = false;
         auto pos_x = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_width() / 2;
         auto pos_y = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height() / 2;
         imgui.set_next_window_pos(pos_x, pos_y, ImGuiCond_Always, 0.5f, 0.5f);
+        move_to_center = false;
     }
 
     imgui.push_common_window_style(m_scale);
@@ -1301,6 +1298,12 @@ void IMSlider::render_input_custom_gcode()
         | ImGuiWindowFlags_NoScrollWithMouse;
     imgui.begin(_u8L("Custom G-code"), windows_flag);
     imgui.text(_u8L("Enter Custom G-code used on current layer:"));
+    if (ImGui::IsMouseClicked(0)) {
+        set_focus = false;
+    }
+    if (set_focus && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
+        ImGui::SetKeyboardFocusHere(0);
+    }
     int text_height = 6;
     ImGui::InputTextMultiline("##text", m_custom_gcode, sizeof(m_custom_gcode), ImVec2(-1, ImGui::GetTextLineHeight() * text_height));
     //text_height = 5;
@@ -1311,29 +1314,104 @@ void IMSlider::render_input_custom_gcode()
 
     ImGui::NewLine();
     ImGui::SameLine(ImGui::GetStyle().WindowPadding.x * 14);
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f / 255.f, 174.f / 255.f, 66.f / 255.f, 1.f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(61.f / 255.f, 203.f / 255.f, 115.f / 255.f, 1.f));    
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(27.f / 255.f, 136.f / 255.f, 68.f / 255.f, 1.f));
-    ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.f, 1.f, 1.f, 1.f));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));  
-    if (imgui.bbl_button(_L("OK"))) {
+    imgui.push_confirm_button_style();
+    if (imgui.bbl_button(_L("OK")) || ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Enter))) {
         m_show_custom_gcode_window = false;
         add_custom_gcode(m_custom_gcode);
         move_to_center = true;
+        set_focus = true;
     }
-    ImGui::PopStyleColor(5);
+    imgui.pop_confirm_button_style();
 
     ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(255.f / 255.f, 255.f / 255.f, 255.f / 255.f, 1.f));    
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(238.f / 255.f, 238.f / 255.f, 238.f / 255.f, 1.f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(206.f / 255.f, 206.f / 255.f, 206.f / 255.f, 1.f));
-    ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.f, 0.f, 0.f, 1.f));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(38.f / 255.0f, 46.f / 255.0f, 48.f / 255.0f, 1.00f));  
-    if (imgui.bbl_button(_L("Cancel"))) {
+    imgui.push_cancel_button_style();
+    if (imgui.bbl_button(_L("Cancel")) || ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
         m_show_custom_gcode_window = false;
         move_to_center = true;
+        set_focus = true;
     }
-    ImGui::PopStyleColor(5);
+    imgui.pop_cancel_button_style();
+
+    imgui.end();
+    ImGui::PopStyleVar(3);
+    imgui.pop_common_window_style();
+}
+
+void IMSlider::do_go_to_layer(size_t layer_number) {
+    clamp((int)layer_number, m_min_value, m_max_value);
+    GetSelection() == ssLower ? SetLowerValue(layer_number) : SetHigherValue(layer_number);
+}
+
+void IMSlider::render_go_to_layer_dialog(){
+    if (!m_show_go_to_layer_dialog)
+        return;
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    static bool move_to_center = true;
+    static bool set_focus = true;
+    if (move_to_center) {
+        auto pos_x = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_width() / 2;
+        auto pos_y = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height() / 2;
+        imgui.set_next_window_pos(pos_x, pos_y, ImGuiCond_Always, 0.5f, 0.5f);
+        move_to_center = false;
+    }
+
+    imgui.push_common_window_style(m_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 12.f * m_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 3) * m_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10, 7) * m_scale);
+    int windows_flag =
+        ImGuiWindowFlags_NoCollapse
+        | ImGuiWindowFlags_AlwaysAutoResize
+        | ImGuiWindowFlags_NoResize
+        | ImGuiWindowFlags_NoScrollbar
+        | ImGuiWindowFlags_NoScrollWithMouse;
+    imgui.begin(_u8L("Jump to layer"), windows_flag);
+    imgui.text(_u8L("Please enter the layer number") + " (" + std::to_string(m_min_value + 1) + " - " + std::to_string(m_max_value + 1) + "):");
+    if (ImGui::IsMouseClicked(0)) {
+        set_focus = false;
+    }
+    if (set_focus && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
+        ImGui::SetKeyboardFocusHere(0);
+    }
+    ImGui::InputText("##input_layer_number", m_layer_number, sizeof(m_layer_number));
+
+    ImGui::NewLine();
+    ImGui::SameLine(GImGui->Style.WindowPadding.x * 8);
+    imgui.push_confirm_button_style();
+    bool disable_button = false;
+    if (strlen(m_layer_number) == 0)
+        disable_button = true;
+    else {
+        for (size_t i = 0; i< strlen(m_layer_number); i++)
+            if (!isdigit(m_layer_number[i]))
+                disable_button = true;
+        if (!disable_button && (m_min_value > atoi(m_layer_number) - 1 || atoi(m_layer_number) - 1 > m_max_value))
+            disable_button = true;
+    }
+    if (disable_button) {
+        ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+        imgui.push_button_disable_style();
+    }
+    if (imgui.bbl_button(_L("OK")) || (!disable_button && ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Enter)))) {
+        do_go_to_layer(atoi(m_layer_number) - 1);
+        m_show_go_to_layer_dialog = false;
+        move_to_center = true;
+        set_focus = true;
+    }
+    if (disable_button) {
+        ImGui::PopItemFlag();
+        imgui.pop_button_disable_style();
+    }
+    imgui.pop_confirm_button_style();
+
+    ImGui::SameLine();
+    imgui.push_cancel_button_style();
+    if (imgui.bbl_button(_L("Cancel")) || ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
+        m_show_go_to_layer_dialog = false;
+        move_to_center = true;
+        set_focus = true;
+    }
+    imgui.pop_cancel_button_style();
 
     imgui.end();
     ImGui::PopStyleVar(3);
@@ -1354,8 +1432,11 @@ void IMSlider::render_menu()
     if (ImGui::BeginPopup("slider_menu_popup")) {
         if ((m_selection == ssLower && GetLowerValueD() == m_zero_layer_height) || (m_selection == ssHigher && GetHigherValueD() == m_zero_layer_height))
         {
-            menu_item_with_icon(_u8L("Add Pause").c_str(), "", ImVec2(0, 0), 0, false, false);
-        }else
+            if (menu_item_with_icon(_u8L("Jump to Layer").c_str(), "")) {
+                m_show_go_to_layer_dialog = true;
+            }
+        }
+        else
         {
             if (menu_item_with_icon(_u8L("Add Pause").c_str(), "")) {
                 add_code_as_tick(PausePrint);
@@ -1367,6 +1448,9 @@ void IMSlider::render_menu()
                 if (menu_item_with_icon(_u8L("Add Custom Template").c_str(), "")) {
                     add_code_as_tick(Template);
                 }
+            }
+            if (menu_item_with_icon(_u8L("Jump to Layer").c_str(), "")) {
+                m_show_go_to_layer_dialog = true;
             }
         }
 
@@ -1391,9 +1475,65 @@ void IMSlider::render_menu()
     ImGuiWrapper::pop_menu_style();
 }
 
+void IMSlider::on_change_color_mode(bool is_dark) {
+    m_is_dark = is_dark;
+}
+
 void IMSlider::set_scale(float scale)
 {
     if(m_scale != scale) m_scale = scale;
+}
+
+void IMSlider::on_mouse_wheel(wxMouseEvent& evt) {
+    auto moves_slider_window = ImGui::FindWindowByName("moves_slider");
+    auto layers_slider_window = ImGui::FindWindowByName("laysers_slider");
+    if (!moves_slider_window || !layers_slider_window) {
+        BOOST_LOG_TRIVIAL(info) << "Couldn't find slider window";
+        return;
+    }
+
+    float wheel = 0.0f;
+    wheel = evt.GetWheelRotation() > 0 ? 1.0f : -1.0f;
+    if (wheel == 0.0f)
+        return;
+
+#ifdef __WXOSX__
+    if (wxGetKeyState(WXK_SHIFT)) {
+        wheel *= -5;
+    }
+    else if (wxGetKeyState(WXK_RAW_CONTROL)) {
+        wheel *= 5;
+    } 
+#else
+    if (wxGetKeyState(WXK_COMMAND) || wxGetKeyState(WXK_SHIFT))
+        wheel *= 5;
+#endif
+    if (is_horizontal()) {
+        if( evt.GetPosition().x > moves_slider_window->Pos.x &&
+            evt.GetPosition().x < moves_slider_window->Pos.x + moves_slider_window->Size.x &&
+            evt.GetPosition().y > moves_slider_window->Pos.y &&
+            evt.GetPosition().y < moves_slider_window->Pos.y + moves_slider_window->Size.y){
+            const int new_pos = GetHigherValue() + wheel;
+            SetHigherValue(new_pos);
+            set_as_dirty();
+        }
+    }
+    else {
+        if (evt.GetPosition().x > layers_slider_window->Pos.x &&
+            evt.GetPosition().x < layers_slider_window->Pos.x + layers_slider_window->Size.x &&
+            evt.GetPosition().y > layers_slider_window->Pos.y &&
+            evt.GetPosition().y < layers_slider_window->Pos.y + layers_slider_window->Size.y) {
+            if (is_one_layer()) {
+                const int new_pos = GetHigherValue() + wheel;
+                SetHigherValue(new_pos);
+            }
+            else {
+                const int new_pos = m_selection == ssLower ? GetLowerValue() + wheel : GetHigherValue() + wheel;
+                m_selection == ssLower ? SetLowerValue(new_pos) : SetHigherValue(new_pos);
+            }
+            set_as_dirty();
+        }
+    }
 }
 
 void IMSlider::correct_lower_value()

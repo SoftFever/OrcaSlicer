@@ -22,6 +22,9 @@
 #include "Jobs/PrintJob.hpp"
 #include "Jobs/SendJob.hpp"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/PrintBase.hpp"
+
+#define FILAMENT_SYSTEM_COLORS_NUM      16
 
 class wxButton;
 class ScalableButton;
@@ -85,6 +88,7 @@ wxDECLARE_EVENT(EVT_FILAMENT_COLOR_CHANGED,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_INSTALL_PLUGIN_NETWORKING,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_INSTALL_PLUGIN_HINT,        wxCommandEvent);
 wxDECLARE_EVENT(EVT_PREVIEW_ONLY_MODE_HINT,        wxCommandEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_COLOR_MODE_CHANGED,   SimpleEvent);
 
 
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
@@ -146,6 +150,7 @@ public:
     void                    update_searcher();
     void                    update_ui_from_settings();
 	bool                    show_object_list(bool show) const;
+    void                    finish_param_edit();
 
 #ifdef _MSW_DARK_MODE
     void                    show_mode_sizer(bool show);
@@ -202,9 +207,9 @@ public:
     void load_project(wxString const & filename = "", wxString const & originfile = "-");
     int save_project(bool saveAs = false);
     //BBS download project by project id
-    void import_model_id(const std::string& import_json);
+    void import_model_id(const std::string& download_info);
     void download_project(const wxString& project_id);
-    void request_model_download(std::string import_json);
+    void request_model_download(std::string url, std::string filename);
     void request_download_project(std::string project_id);
     // BBS: check snapshot
     bool up_to_date(bool saved, bool backup);
@@ -226,11 +231,15 @@ public:
 
     //BBS: add only gcode mode
     bool using_exported_file() { return m_exported_file; }
-    void set_using_exported_file(bool exported_file) { m_exported_file = exported_file; }
+    void set_using_exported_file(bool exported_file) {
+        m_exported_file = exported_file;
+    }
 
     // BBS
     wxString get_project_name();
-    void update_platplate_thumbnails(bool force_update = false);
+    void update_all_plate_thumbnails(bool force_update = false);
+    void invalid_all_plate_thumbnails();
+    void force_update_all_plate_thumbnails();
     //BBS static functions that update extruder params and speed table
     static void setPrintSpeedTable(Slic3r::GlobalSpeedMap& printSpeedMap);
     static void setExtruderParams(std::map<size_t, Slic3r::ExtruderParams>& extParas);
@@ -300,9 +309,10 @@ public:
     void segment(size_t obj_idx, size_t instance_idx, double smoothing_alpha=0.5, int segment_number=5);
     void merge(size_t obj_idx, std::vector<int>& vol_indeces);
 
-    void send_to_printer();
+    void send_to_printer(bool isall = false);
     void export_gcode(bool prefer_removable);
-    void export_gcode_3mf();
+    void export_gcode_3mf(bool export_all = false);
+    void send_gcode_finish(wxString name);
     void export_core_3mf();
     void export_stl(bool extended = false, bool selection_only = false);
     //BBS: remove amf
@@ -341,6 +351,7 @@ public:
     void print_job_finished(wxCommandEvent &evt);
     void send_job_finished(wxCommandEvent& evt);
     void publish_job_finished(wxCommandEvent& evt);
+    void on_change_color_mode(SimpleEvent& evt);
 	void eject_drive();
 
     void take_snapshot(const std::string &snapshot_name);
@@ -380,7 +391,7 @@ public:
     //void show_action_buttons(const bool is_ready_to_slice) const;
 
     wxString get_project_filename(const wxString& extension = wxEmptyString) const;
-    wxString get_export_gcode_filename(const wxString& extension = wxEmptyString, bool only_filename = false) const;
+    wxString get_export_gcode_filename(const wxString& extension = wxEmptyString, bool only_filename = false, bool export_all = false) const;
     void set_project_filename(const wxString& filename);
 
     bool is_export_gcode_scheduled() const;
@@ -423,7 +434,7 @@ public:
     //BBS: add clone logic
     void clone_selection();
     void center_selection();
-    void search(bool plater_is_active, Preset::Type  type, wxWindow *tag, wxTextCtrl *etag, wxWindow *stag);
+    void search(bool plater_is_active, Preset::Type  type, wxWindow *tag, TextInput *etag, wxWindow *stag);
     void mirror(Axis axis);
     void split_object();
     void split_volume();
@@ -447,6 +458,7 @@ public:
     bool can_arrange() const;
     //BBS
     bool can_cut_to_clipboard() const;
+    bool can_layers_editing() const;
     bool can_paste_from_clipboard() const;
     bool can_copy_to_clipboard() const;
     bool can_undo() const;
@@ -480,6 +492,7 @@ public:
 
     //BBS: partplate list related functions
     PartPlateList& get_partplate_list();
+    void validate_current_plate(bool& model_fits, bool& validate_error);
     //BBS: select the plate by index
     int select_plate(int plate_index, bool need_slice = false);
     //BBS: update progress result
@@ -500,6 +513,8 @@ public:
     void show_object_info();
     //BBS
     bool show_publish_dialog(bool show = true);
+    //BBS: post process string object exception strings by warning types
+    void post_process_string_object_exception(StringObjectException &err);
 
 #if ENABLE_ENVIRONMENT_MAP
     void init_environment_texture();
@@ -624,6 +639,8 @@ public:
 
     void toggle_show_wireframe();
     bool is_show_wireframe() const;
+    void enable_wireframe(bool status);
+    bool is_wireframe_enabled() const;
 
 	// Wrapper around wxWindow::PopupMenu to suppress error messages popping out while tracking the popup menu.
 	bool PopupMenu(wxMenu *menu, const wxPoint& pos = wxDefaultPosition);
@@ -648,6 +665,8 @@ public:
     static bool has_illegal_filename_characters(const std::string& name);
     static void show_illegal_characters_warning(wxWindow* parent);
 
+    std::string get_preview_only_filename() { return m_preview_only_filename; };
+
 private:
     struct priv;
     std::unique_ptr<priv> p;
@@ -662,6 +681,8 @@ private:
     //BBS: add only gcode mode
     bool m_only_gcode { false };
     bool m_exported_file { false };
+    bool skip_thumbnail_invalid { false };
+    std::string m_preview_only_filename;
     int m_valid_plates_count { 0 };
 
     void suppress_snapshots();
@@ -670,7 +691,7 @@ private:
     void single_snapshots_enter(SingleSnapshot *single);
     void single_snapshots_leave(SingleSnapshot *single);
     // BBS: add project slice related functions
-    void start_next_slice();
+    int start_next_slice();
 
     friend class SuppressBackgroundProcessingUpdate;
 };

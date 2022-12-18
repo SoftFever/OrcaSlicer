@@ -1512,11 +1512,22 @@ static inline Polygons detect_overhangs(
         0.;
     const coordf_t max_bridge_length = scale_(object_config.max_bridge_length.value);
     const bool bridge_no_support = object_config.bridge_no_support.value;
+    const coordf_t xy_expansion = scale_(object_config.support_expansion.value);
 
-    if (layer_id == 0) 
+    if (layer_id == 0)
     {
         // Don't fill in the holes. The user may apply a higher raft_expansion if one wants a better 1st layer adhesion.
         overhang_polygons = to_polygons(layer.lslices);
+
+        for (auto& slice : layer.lslices) {
+            auto bbox_size = get_extents(slice).size();
+            if (g_config_support_sharp_tails &&
+                !(bbox_size.x() > length_thresh_well_supported && bbox_size.y() > length_thresh_well_supported))
+            {
+                layer.sharp_tails.push_back(slice);
+                layer.sharp_tails_height.insert({ &slice, layer.height });
+            }
+        }
     }
     else if (! layer.regions().empty())
     {
@@ -1567,9 +1578,9 @@ static inline Polygons detect_overhangs(
                     // Offset the support regions back to a full overhang, restrict them to the full overhang.
                     // This is done to increase size of the supporting columns below, as they are calculated by 
                     // propagating these contact surfaces downwards.
-                    diff_polygons = diff(
-                        intersection(expand(diff_polygons, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS), layerm_polygons),
-                        lower_layer_polygons);
+                    diff_polygons = 
+                        expand(diff(intersection(expand(diff_polygons, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS), layerm_polygons), lower_layer_polygons),
+                               xy_expansion, SUPPORT_SURFACES_OFFSET_PARAMETERS);
                 }
                 //FIXME add user defined filtering here based on minimal area or minimum radius or whatever.
 
@@ -1608,12 +1619,12 @@ static inline Polygons detect_overhangs(
                             supported_area += temp.area();
                             bbox.merge(get_extents(temp));
                         }
-
+#if 0
                         if (supported_area > area_thresh_well_supported) {
                             is_sharp_tail = false;
                             break;
                         }
-
+#endif
                         if (bbox.size().x() > length_thresh_well_supported && bbox.size().y() > length_thresh_well_supported) {
                             is_sharp_tail = false;
                             break;
@@ -1839,7 +1850,7 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
         bottom_z = (layer_id == 1) ? slicing_params.object_print_z_min : layer.lower_layer->lower_layer->print_z;
     } else {
         print_z  = layer.bottom_z() - slicing_params.gap_support_object;
-        height   = object_config.independent_support_layer_height ? 0. : object_config.layer_height;
+        height   = print_config.independent_support_layer_height ? 0. : object_config.layer_height;
         bottom_z = print_z - height;
         // Ignore this contact area if it's too low.
         // Don't want to print a layer below the first layer height as it may not stick well.
@@ -1870,7 +1881,7 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
                 bridging_height += region->region().bridging_height_avg(print_config);
             bridging_height /= coordf_t(layer.regions().size());
             // BBS: align bridging height
-            if (!object_config.independent_support_layer_height)
+            if (!print_config.independent_support_layer_height)
                 bridging_height = std::ceil(bridging_height / object_config.layer_height - EPSILON) * object_config.layer_height;
             coordf_t bridging_print_z = layer.print_z - bridging_height - slicing_params.gap_support_object;
             if (bridging_print_z >= min_print_z) {
@@ -1890,7 +1901,7 @@ static inline std::pair<PrintObjectSupportMaterial::MyLayer*, PrintObjectSupport
                     } else {
                         // BBS: if independent_support_layer_height is not enabled, the support layer_height should be the same as layer height.
                         // Note that for this case, adaptive layer height must be disabled.
-                        bridging_layer->height = object_config.independent_support_layer_height ? 0. : object_config.layer_height;
+                        bridging_layer->height = print_config.independent_support_layer_height ? 0. : object_config.layer_height;
                         // Don't know the height yet.
                         bridging_layer->bottom_z = bridging_print_z - bridging_layer->height;
                     }
@@ -2423,7 +2434,7 @@ static inline PrintObjectSupportMaterial::MyLayer* detect_bottom_contacts(
     // top shapes so this can be done here
     //FIXME calculate layer height based on the actual thickness of the layer:
     // If the layer is extruded with no bridging flow, support just the normal extrusions.
-    layer_new.height = slicing_params.soluble_interface || !object.config().independent_support_layer_height ?
+    layer_new.height = slicing_params.soluble_interface || !object.print()->config().independent_support_layer_height ?
         // Align the interface layer with the object's layer height.
         layer.upper_layer->height :
         // Place a bridge flow interface layer or the normal flow interface layer over the top surface.
@@ -4517,9 +4528,13 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                     (m_object_config->support_interface_bottom_layers == 0 && &layer_ex == &bottom_contact_layer);
                 //FIXME Bottom interfaces are extruded with the briding flow. Some bridging layers have its height slightly reduced, therefore
                 // the bridging flow does not quite apply. Reduce the flow to area of an ellipse? (A = pi * a * b)
-                auto interface_flow = layer_ex.layer->bridging ?
-                    Flow::bridging_flow(layer_ex.layer->height, m_support_params.support_material_bottom_interface_flow.nozzle_diameter()) :
-                    (interface_as_base ? &m_support_params.support_material_flow : &m_support_params.support_material_interface_flow)->with_height(float(layer_ex.layer->height));
+                Flow interface_flow;
+                if (layer_ex.layer->bridging)
+                    interface_flow = Flow::bridging_flow(layer_ex.layer->height, m_support_params.support_material_bottom_interface_flow.nozzle_diameter());
+                else if (layer_ex.layer->bottom_z < EPSILON) {
+                    interface_flow = m_support_params.first_layer_flow;
+                }else
+                    interface_flow = (interface_as_base ? &m_support_params.support_material_flow : &m_support_params.support_material_interface_flow)->with_height(float(layer_ex.layer->height));
                 filler_interface->angle = interface_as_base ?
                         // If zero interface layers are configured, use the same angle as for the base layers.
                         angles[support_layer_id % angles.size()] :

@@ -50,15 +50,15 @@ static bool is_improper_category(const std::string& category, const int filament
 static SettingsFactory::Bundle FREQ_SETTINGS_BUNDLE_FFF =
 {
     //BBS
-    { L("Quality"), { "layer_height" , "adaptive_layer_height" } },
+    { L("Quality"), { "layer_height" } },
     { L("Shell"), { "wall_loops", "top_shell_layers", "bottom_shell_layers"} },
     { L("Infill")               , { "sparse_infill_density", "sparse_infill_pattern" } },
     // BBS
     { L("Support")     , { "enable_support", "support_type", "support_threshold_angle",
                                     "support_base_pattern", "support_on_build_plate_only","support_critical_regions_only",
-                                    "support_base_pattern_spacing" } }
+                                    "support_base_pattern_spacing", "support_expansion"}},
     //BBS
-    //{ L("Wipe options")         , { "flush_into_infill", "flush_into_objects" } }
+    { L("Flush options")         , { "flush_into_infill", "flush_into_objects", "flush_into_support"} }
 };
 
 // pt_SLA
@@ -72,14 +72,15 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
 {
     { L("Quality"), {{"layer_height", "",1},
                     //{"initial_layer_print_height", "",2},
-                    {"adaptive_layer_height", "",2},{"seam_position", "",3},
-                    {"xy_hole_compensation", "",4}, {"xy_contour_compensation", "",5}, {"elefant_foot_compensation", "",6}
+                    {"seam_position", "",2},
+                    {"slice_closing_radius", "",3}, {"resolution", "",4},
+                    {"xy_hole_compensation", "",5}, {"xy_contour_compensation", "",6}, {"elefant_foot_compensation", "",7}
                     }},
     { L("Support"), {{"brim_type", "",1},{"brim_width", "",2},{"brim_object_gap", "",3},
                     {"enable_support", "",4},{"support_type", "",5},{"support_threshold_angle", "",6},{"support_on_build_plate_only", "",7},
-                    {"support_filament", "",8},{"support_interface_filament", "",9},
-                     {"tree_support_branch_angle", "",10}, {"tree_support_wall_count", "",11},{"tree_support_with_infill", "",12},//tree support
-                            {"support_top_z_distance", "",13},{"support_base_pattern", "",14},{"support_base_pattern_spacing", "",15},
+                    {"support_filament", "",8},{"support_interface_filament", "",9},{"support_expansion", "",24},
+                     {"tree_support_branch_angle", "",10}, {"tree_support_wall_count", "",11},//tree support
+                            {"support_top_z_distance", "",13},{"support_bottom_z_distance", "",12},{"support_base_pattern", "",14},{"support_base_pattern_spacing", "",15},
                             {"support_interface_top_layers", "",16},{"support_interface_bottom_layers", "",17},{"support_interface_spacing", "",18},{"support_bottom_interface_spacing", "",19},
                             {"support_object_xy_distance", "",20}, {"bridge_no_support", "",21},{"max_bridge_length", "",22},{"support_critical_regions_only", "",23}
                             }},
@@ -89,7 +90,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
 
 std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CATEGORY_SETTINGS=
 {
-    { L("Quality"), {{"ironing_type", "",7},{"ironing_flow", "",8},{"ironing_spacing", "",9},{"bridge_flow", "",10}
+    { L("Quality"), {{"ironing_type", "",8},{"ironing_flow", "",9},{"ironing_spacing", "",10},{"bridge_flow", "",11}
                     }},
     { L("Strength"), {{"wall_loops", "",1},{"top_shell_layers", L("Top Solid Layers"),1},{"top_shell_thickness", L("Top Minimum Shell Thickness"),1},
                     {"bottom_shell_layers", L("Bottom Solid Layers"),1}, {"bottom_shell_thickness", L("Bottom Minimum Shell Thickness"),1},
@@ -140,7 +141,7 @@ std::vector<SimpleSettingData> SettingsFactory::get_visible_options(const std::s
         //Support
         "enable_support", "support_type", "support_threshold_angle", "support_on_build_plate_only", "support_critical_regions_only", "enforce_support_layers",
         //tree support
-        "tree_support_wall_count", "tree_support_with_infill",
+        "tree_support_wall_count",
         //support
         "support_top_z_distance", "support_base_pattern", "support_base_pattern_spacing", "support_interface_top_layers", "support_interface_bottom_layers", "support_interface_spacing", "support_bottom_interface_spacing", "support_object_xy_distance",
         //adhesion
@@ -438,7 +439,7 @@ void MenuFactory::append_menu_item_delete(wxMenu* menu)
         [](wxCommandEvent&) { plater()->remove_selected(); }, "menu_delete", nullptr,
         []() { return plater()->can_delete(); }, m_parent);
 #else
-    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Delete the selected object"),
+    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tBackSpace", _L("Delete the selected object"),
         [](wxCommandEvent&) { plater()->remove_selected(); }, "", nullptr,
         []() { return plater()->can_delete(); }, m_parent);
 #endif
@@ -723,6 +724,72 @@ void MenuFactory::append_menu_item_scale_selection_to_fit_print_volume(wxMenu* m
         [](wxCommandEvent&) { plater()->scale_selection_to_fit_print_volume(); }, "", menu);
 }
 
+void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
+{
+    const wxString name = _L("Flush Options");
+    // Delete old menu item
+    const int item_id = menu->FindItem(name);
+    if (item_id != wxNOT_FOUND)
+        menu->Destroy(item_id);
+
+    bool show_flush_option_menu = false;
+    ObjectList* object_list = obj_list();
+    const Selection& selection = get_selection();
+    if (wxGetApp().plater()->get_partplate_list().get_curr_plate()->contains(selection.get_bounding_box())) {
+        auto plate_extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_extruders();
+        for (auto extruder : plate_extruders) {
+            if (extruder != plate_extruders[0])
+                show_flush_option_menu = true;
+        }
+    }
+    if (!show_flush_option_menu)
+        return;
+
+    DynamicPrintConfig& global_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    ModelConfig& select_object_config = object_list->object(selection.get_object_idx())->config;
+    
+    auto keys = select_object_config.keys();
+    for (auto key : FREQ_SETTINGS_BUNDLE_FFF["Flush options"]) {
+        if (find(keys.begin(), keys.end(), key) == keys.end()) {
+            const ConfigOption* option = global_config.option(key);
+            select_object_config.set_key_value(key, option->clone());
+        }
+    }
+
+
+    wxMenu* flush_options_menu = new wxMenu();
+    append_menu_check_item(flush_options_menu, wxID_ANY, _L("Flush into objects' infill"), "",
+        [&select_object_config](wxCommandEvent&) {
+            const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0]);
+            select_object_config.set_key_value(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0], new ConfigOptionBool(!option->getBool()));
+            wxGetApp().obj_settings()->UpdateAndShow(true);
+        }, menu, []() {return true; }, [&select_object_config]() {const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][0]); return option->getBool(); }, m_parent);
+
+    append_menu_check_item(flush_options_menu, wxID_ANY, _L("Flush into this object"), "",
+        [&select_object_config](wxCommandEvent&) {
+            const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][1]);
+            select_object_config.set_key_value(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][1], new ConfigOptionBool(!option->getBool()));
+            wxGetApp().obj_settings()->UpdateAndShow(true);
+        }, menu, []() {return true; }, [&select_object_config]() {const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][1]); return option->getBool(); }, m_parent);
+
+    append_menu_check_item(flush_options_menu, wxID_ANY, _L("Flush into objects' support"), "",
+        [&select_object_config](wxCommandEvent&) {
+            const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2]);
+            select_object_config.set_key_value(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2], new ConfigOptionBool(!option->getBool()));
+            wxGetApp().obj_settings()->UpdateAndShow(true);
+        }, menu, []() {return true; }, [&select_object_config]() {const ConfigOption* option = select_object_config.option(FREQ_SETTINGS_BUNDLE_FFF["Flush options"][2]); return option->getBool(); }, m_parent);
+
+    size_t i = 0;
+    for (auto node = menu->GetMenuItems().GetFirst(); node; node = node->GetNext())
+    {
+        i++;
+        wxMenuItem* item = node->GetData();
+        if (item->GetItemLabelText() == "Edit in Parameter Table")
+            break;
+    }
+    menu->Insert(i, wxID_ANY, _L("Flush Options"), flush_options_menu);
+}
+
 void MenuFactory::append_menu_items_convert_unit(wxMenu* menu)
 {
     std::vector<int> obj_idxs, vol_idxs;
@@ -838,6 +905,12 @@ void MenuFactory::create_default_menu()
     append_submenu(&m_default_menu, sub_menu, wxID_ANY, _L("Add Primitive"), "", "",
         []() {return true; }, m_parent);
 #endif
+
+    m_default_menu.AppendSeparator();
+
+    append_menu_check_item(&m_default_menu, wxID_ANY, _L("Show Labels"), "",
+        [](wxCommandEvent&) { plater()->show_view3D_labels(!plater()->are_view3D_labels_shown()); plater()->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, &m_default_menu,
+        []() { return plater()->is_view3D_shown(); }, [this]() { return plater()->are_view3D_labels_shown(); }, m_parent);
 }
 
 void MenuFactory::create_common_object_menu(wxMenu* menu)
@@ -875,7 +948,7 @@ void MenuFactory::create_object_menu()
         []() { return plater()->can_split(false); }, m_parent);
 
     append_submenu(&m_object_menu, split_menu, wxID_ANY, _L("Split"), _L("Split the selected object"), "",
-        []() { return plater()->can_split(true); }, m_parent);
+        []() { return plater()->can_split(true) || plater()->can_split(false); }, m_parent);
     m_object_menu.AppendSeparator();
 
     // BBS: remove Layers Editing
@@ -920,6 +993,7 @@ void MenuFactory::create_bbl_object_menu()
     // Set filament insert menu item here
     // Set Printable
     wxMenuItem* menu_item_printable = append_menu_item_printable(&m_object_menu);
+    append_menu_item_per_object_process(&m_object_menu);
     // Enter per object parameters
     append_menu_item_per_object_settings(&m_object_menu);
     m_object_menu.AppendSeparator();
@@ -1072,7 +1146,7 @@ void MenuFactory::create_plate_menu()
         [](wxCommandEvent&) { plater()->delete_plate(); }, "menu_delete", nullptr,
         []() { return plater()->can_delete_plate(); }, m_parent);
 #else
-    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tDel", _L("Remove the selected plate"),
+    append_menu_item(menu, wxID_ANY, _L("Delete") + "\tBackSpace", _L("Remove the selected plate"),
         [](wxCommandEvent&) { plater()->delete_plate(); }, "", nullptr,
         []() { return plater()->can_delete_plate(); }, m_parent);
 #endif
@@ -1131,6 +1205,7 @@ wxMenu* MenuFactory::object_menu()
 {
     append_menu_item_change_filament(&m_object_menu);
     append_menu_items_convert_unit(&m_object_menu);
+    append_menu_items_flush_options(&m_object_menu);
     return &m_object_menu;
 }
 
@@ -1194,6 +1269,7 @@ wxMenu* MenuFactory::multi_selection_menu()
         append_menu_item_change_filament(menu);
 
         append_menu_item_set_printable(menu);
+        append_menu_item_per_object_process(menu);
         menu->AppendSeparator();
         append_menu_items_convert_unit(menu);
         menu->AppendSeparator();
@@ -1303,6 +1379,24 @@ void MenuFactory::append_menu_item_center(wxMenu* menu)
         }, m_parent);
 }
 
+void MenuFactory::append_menu_item_per_object_process(wxMenu* menu)
+{
+    const std::vector<wxString> names = { _L("Edit Process Settings"), _L("Edit Process Settings") };
+    append_menu_item(menu, wxID_ANY, names[0], names[1],
+        [](wxCommandEvent&) {
+            wxGetApp().obj_list()->switch_to_object_process();
+        }, "", nullptr,
+        []() {
+            Selection& selection = plater()->canvas3D()->get_selection();
+            return selection.is_single_full_object() ||
+                selection.is_multiple_full_object() ||
+                selection.is_single_full_instance() ||
+                selection.is_multiple_full_instance() ||
+                selection.is_single_volume() ||
+                selection.is_multiple_volume();
+        }, m_parent);
+}
+
 void MenuFactory::append_menu_item_per_object_settings(wxMenu* menu)
 {
     const std::vector<wxString> names = { _L("Edit in Parameter Table"), _L("Edit print parameters for a single object") };
@@ -1342,6 +1436,12 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
     if (sels.IsEmpty())
         return;
 
+    if (sels.Count() == 1) {
+        const auto sel_vol = obj_list()->get_selected_model_volume();
+        if (sel_vol && sel_vol->type() != ModelVolumeType::MODEL_PART && sel_vol->type() != ModelVolumeType::PARAMETER_MODIFIER)
+            return;
+    }
+
     std::vector<wxBitmap*> icons = get_extruder_color_icons(true);
     if (icons.size() < filaments_cnt) {
         BOOST_LOG_TRIVIAL(warning) << boost::format("Warning: icons size %1%, filaments_cnt=%2%")%icons.size()%filaments_cnt;
@@ -1356,22 +1456,34 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
     int initial_extruder = -1; // negative value for multiple object/part selection
     if (sels.Count() == 1) {
         const ModelConfig& config = obj_list()->get_item_config(sels[0]);
-        // BBS: set default extruder to 1
-        initial_extruder = config.has("extruder") ? config.extruder() : 1;
+        // BBS
+        const auto sel_vol = obj_list()->get_selected_model_volume();
+        if (sel_vol && sel_vol->type() == ModelVolumeType::PARAMETER_MODIFIER)
+            initial_extruder = config.has("extruder") ? config.extruder() : 0;
+        else
+            initial_extruder = config.has("extruder") ? config.extruder() : 1;
     }
 
-    for (int i = 1; i <= filaments_cnt; i++)
+    // BBS
+    bool has_modifier = false;
+    for (auto sel : sels) {
+        if (obj_list()->GetModel()->GetVolumeType(sel) == ModelVolumeType::PARAMETER_MODIFIER) {
+            has_modifier = true;
+            break;
+        }
+    }
+
+    for (int i = has_modifier ? 0 : 1; i <= filaments_cnt; i++)
     {
         // BBS
         //bool is_active_extruder = i == initial_extruder;
         bool is_active_extruder = false;
-        int icon_idx = i == 0 ? 0 : i - 1;
 
-        const wxString& item_name = wxString::Format(_L("Filament %d"), i) +
+        const wxString& item_name = (i == 0 ? _L("Default") : wxString::Format(_L("Filament %d"), i)) +
             (is_active_extruder ? " (" + _L("current") + ")" : "");
 
         append_menu_item(extruder_selection_menu, wxID_ANY, item_name, "",
-            [i](wxCommandEvent&) { obj_list()->set_extruder_for_selected_items(i); }, *icons[icon_idx], menu,
+            [i](wxCommandEvent&) { obj_list()->set_extruder_for_selected_items(i); }, i == 0 ? wxNullBitmap : *icons[i - 1], menu,
             [is_active_extruder]() { return !is_active_extruder; }, m_parent);
     }
     menu->Append(wxID_ANY, name, extruder_selection_menu, _L("Change Filament"));
@@ -1441,9 +1553,11 @@ void MenuFactory::update_object_menu()
 
 void MenuFactory::update_default_menu()
 {
-    const auto menu_item_id = m_default_menu.FindItem(_("Add Primitive"));
-    if (menu_item_id != wxNOT_FOUND)
-        m_default_menu.Destroy(menu_item_id);
+    for (auto& name : { _L("Add Primitive") , _L("Show Labels") }) {
+        const auto menu_item_id = m_default_menu.FindItem(name);
+        if (menu_item_id != wxNOT_FOUND)
+            m_default_menu.Destroy(menu_item_id);
+    }
     create_default_menu();
 }
 

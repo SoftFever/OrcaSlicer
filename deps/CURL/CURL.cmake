@@ -31,8 +31,8 @@ elseif (APPLE)
     
     ${_curl_platform_flags}
 
-    -DCMAKE_USE_SECTRANSP:BOOL=ON 
-    -DCMAKE_USE_OPENSSL:BOOL=OFF
+    #-DCMAKE_USE_SECTRANSP:BOOL=ON 
+    -DCMAKE_USE_OPENSSL:BOOL=ON
 
     -DCURL_CA_PATH:STRING=none
   )

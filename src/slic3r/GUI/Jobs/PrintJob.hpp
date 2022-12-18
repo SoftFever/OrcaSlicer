@@ -37,7 +37,7 @@ protected:
 public:
     PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater, std::string dev_id = "");
 
-
+    std::string m_project_name;
     std::string m_dev_ip;
     std::string m_access_code;
     std::string task_bed_type;
@@ -75,6 +75,7 @@ public:
     wxString get_http_error_msg(unsigned int status, std::string body);
     void process() override;
     void finalize() override;
+    void set_project_name(std::string name);
 };
 
 }} // namespace Slic3r::GUI

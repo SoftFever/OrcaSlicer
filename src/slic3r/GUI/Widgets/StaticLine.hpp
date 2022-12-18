@@ -19,7 +19,7 @@ public:
     void Rescale();
 
 private:
-    wxPen pen;
+    wxColour       lineColor;
     bool vertical;
     ScalableBitmap icon;
 

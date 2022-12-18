@@ -114,6 +114,7 @@ DownloadProgressDialog::DownloadProgressDialog(wxString title)
     CentreOnParent();
 
     Bind(wxEVT_CLOSE_WINDOW, &DownloadProgressDialog::on_close, this);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 wxString DownloadProgressDialog::format_text(wxStaticText* st, wxString str, int warp)
@@ -141,12 +142,12 @@ bool DownloadProgressDialog::Show(bool show)
 {
     if (show) {
         m_simplebook_status->SetSelection(0);
-        m_upgrade_job = std::make_shared<UpgradeNetworkJob>(m_status_bar);
+        m_upgrade_job = make_job(m_status_bar);
         m_upgrade_job->set_event_handle(this);
         m_status_bar->set_progress(0);
         Bind(EVT_UPGRADE_NETWORK_SUCCESS, [this](wxCommandEvent& evt) {
-            m_status_bar->change_button_label(_L("Finish"));
-            wxGetApp().restart_networking();
+            m_status_bar->change_button_label(_L("Close"));
+            on_finish();
             m_status_bar->set_cancel_callback_fina(
                 [this]() {
                     this->Close();
@@ -204,5 +205,9 @@ void DownloadProgressDialog::on_close(wxCloseEvent& event)
 void DownloadProgressDialog::on_dpi_changed(const wxRect &suggested_rect) {}
 
 void DownloadProgressDialog::update_release_note(std::string release_note, std::string version) {}
+
+std::shared_ptr<UpgradeNetworkJob> DownloadProgressDialog::make_job(std::shared_ptr<ProgressIndicator> pri) { return std::make_shared<UpgradeNetworkJob>(pri); }
+
+void DownloadProgressDialog::on_finish() { wxGetApp().restart_networking(); }
 
 }} // namespace Slic3r::GUI

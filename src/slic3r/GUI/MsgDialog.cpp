@@ -26,6 +26,7 @@
 namespace Slic3r {
 namespace GUI {
 
+wxDEFINE_EVENT(EVT_CHECKBOX_CHANGE, wxCommandEvent);
 
 MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, long style, wxBitmap bitmap)
 	: DPIDialog(parent ? parent : dynamic_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, title, wxDefaultPosition, wxSize(360, -1),wxDEFAULT_DIALOG_STYLE)
@@ -59,16 +60,48 @@ MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &he
     btn_sizer->AddStretchSpacer();
 
     main_sizer->Add(topsizer, 1, wxEXPAND);
+
+    m_dsa_sizer = new wxBoxSizer(wxHORIZONTAL);
+    btn_sizer->Add(m_dsa_sizer,1,wxEXPAND,0);
+    btn_sizer->Add(0, 0, 1, wxEXPAND, 5);
     main_sizer->Add(btn_sizer, 0, wxBOTTOM | wxRIGHT | wxEXPAND, BORDER);
 
     apply_style(style);
-
 	SetSizerAndFit(main_sizer);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
  MsgDialog::~MsgDialog()
 {
     for (auto mb : m_buttons) { delete mb.second->buttondata ; delete mb.second; }
+}
+
+void MsgDialog::show_dsa_button()
+{
+    m_checkbox_dsa = new CheckBox(this);
+    m_dsa_sizer->Add(m_checkbox_dsa, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
+    m_checkbox_dsa->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
+        auto event = wxCommandEvent(EVT_CHECKBOX_CHANGE);
+        event.SetInt(m_checkbox_dsa->GetValue()?1:0);
+        event.SetEventObject(this);
+        wxPostEvent(this, event);
+        e.Skip();
+    });
+
+    auto  m_text_dsa = new wxStaticText(this, wxID_ANY, _L("Don't show again"), wxDefaultPosition, wxDefaultSize, 0);
+    m_dsa_sizer->Add(m_text_dsa, 0, wxALL | wxALIGN_CENTER, FromDIP(2));
+    m_text_dsa->SetFont(::Label::Body_13);
+    m_text_dsa->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#323A3D")));
+    btn_sizer->Layout();
+    //Fit();
+}
+
+bool MsgDialog::get_checkbox_state() 
+{
+    if (m_checkbox_dsa) {
+        return m_checkbox_dsa->GetValue();
+    }
+    return false;
 }
 
 void MsgDialog::on_dpi_changed(const wxRect &suggested_rect) 
@@ -135,7 +168,7 @@ Button* MsgDialog::add_button(wxWindowID btn_id, bool set_focus /*= false*/, con
     );
 
     StateColor btn_text_green(
-        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
+        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
     );
 
     StateColor btn_bg_white(
@@ -210,6 +243,7 @@ void MsgDialog::finalize()
 static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxString msg, bool monospaced_font = false, bool is_marked_msg = false)
 {
     wxHtmlWindow* html = new wxHtmlWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO);
+    html->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
 
     // count lines in the message
     int msg_lines = 0;
@@ -231,11 +265,7 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
 
     wxFont      font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     wxFont      monospace = wxGetApp().code_font();
-#if 1
     wxColour    text_clr = wxGetApp().get_label_clr_default();
-#else
-    wxColour    text_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
-#endif
     wxColour    bgr_clr = parent->GetBackgroundColour(); //wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
     auto        text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
     auto        bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
@@ -289,7 +319,7 @@ static void add_msg_content(wxWindow* parent, wxBoxSizer* content_sizer, wxStrin
         msg_escaped = std::string("<pre><code>") + msg_escaped + "</code></pre>";
     html->SetPage("<html><body bgcolor=\"" + bgr_clr_str + "\"><font color=\"" + text_clr_str + "\">" + wxString::FromUTF8(msg_escaped.data()) + "</font></body></html>");
     content_sizer->Add(html, 1, wxEXPAND);
-    wxGetApp().UpdateDarkUI(html);
+    wxGetApp().UpdateDarkUIWin(html);
 }
 
 // ErrorDialog
@@ -333,6 +363,7 @@ MessageDialog::MessageDialog(wxWindow* parent,
 {
     add_msg_content(this, content_sizer, message);
     finalize();
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 

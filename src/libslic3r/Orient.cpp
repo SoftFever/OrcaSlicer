@@ -57,16 +57,19 @@ namespace orientation {
 // management and spatial index structures for acceleration.
 class AutoOrienter {
 public:
+    int face_count_hull;
     OrientMesh *orient_mesh = NULL;
     TriangleMesh* mesh;
     TriangleMesh mesh_convex_hull;
-    Eigen::MatrixXf normals, normals_hull;
+    Eigen::MatrixXf normals, normals_quantize, normals_hull, normals_hull_quantize;
     Eigen::VectorXf areas, areas_hull;
     Eigen::VectorXf is_apperance; // whether a facet is outer apperance
     Eigen::MatrixXf z_projected;
     Eigen::VectorXf z_max, z_max_hull;  // max of projected z
     Eigen::VectorXf z_median;  // median of projected z
     Eigen::VectorXf z_mean;  // mean of projected z
+    std::vector<Vec3f> face_normals;
+    std::vector<Vec3f> face_normals_hull;
     OrientParams params;
 
 
@@ -111,9 +114,9 @@ public:
     {
         orientations = { { 0,0,-1 } }; // original orientation
 
-        area_cumulation(normals, areas);
+        area_cumulation_accurate(face_normals, normals_quantize, areas, 10);
 
-        area_cumulation(normals_hull, areas_hull, 10);
+        area_cumulation_accurate(face_normals_hull, normals_hull_quantize, areas_hull, 10);
 
         add_supplements();
 
@@ -152,7 +155,22 @@ public:
         if (progressind)
             progressind(80);
 
+        //To avoid flipping, we need to verify if there are orientations with same unprintability.
+        Vec3f n1 = {0, 0, 1};
         auto best_orientation = results_vector[0].first;
+
+        for (int i = 1; i< results_vector.size()-1; i++) {
+            if (abs(results_vector[i].second.unprintability - results_vector[0].second.unprintability) < EPSILON && abs(results_vector[0].first.dot(n1)-1) > EPSILON) {
+                if (abs(results_vector[i].first.dot(n1)-1) < EPSILON*EPSILON) { 
+                    best_orientation = n1;
+                    break; 
+                }
+            }
+            else {
+                break;
+            }
+
+        }
 
         BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(6) << "best:" << best_orientation.transpose() << ", costs:" << results_vector[0].second.field_values();
         std::cout << std::fixed << std::setprecision(6) << "best:" << best_orientation.transpose() << ", costs:" << results_vector[0].second.field_values() << std::endl;
@@ -166,17 +184,16 @@ public:
         {
             int face_count = mesh->facets_count();
             auto its = mesh->its;
-            auto face_normals = its_face_normals(its);
+            face_normals = its_face_normals(its);
             areas = Eigen::VectorXf::Zero(face_count);
             is_apperance = Eigen::VectorXf::Zero(face_count);
             normals = Eigen::MatrixXf::Zero(face_count, 3);
+            normals_quantize = Eigen::MatrixXf::Zero(face_count, 3);
             for (size_t i = 0; i < face_count; i++)
             {
                 float area = its.facet_area(i);
-                if (params.NEGL_FACE_SIZE > 0 && area < params.NEGL_FACE_SIZE)
-                    continue;
-                
-                normals.row(i) = quantize_vec3f(face_normals[i]);
+                normals.row(i) = face_normals[i];
+                normals_quantize.row(i) = quantize_vec3f(face_normals[i]);
                 areas(i) = area;
                 is_apperance(i) = (its.get_property(i).type == EnumFaceTypes::eExteriorAppearance);
                 count_apperance += (is_apperance(i)==1);
@@ -193,15 +210,17 @@ public:
 
             int face_count = mesh_convex_hull.facets_count();
             auto its = mesh_convex_hull.its;
-            auto face_normals = its_face_normals(its);
+            face_count_hull = mesh_convex_hull.facets_count();
+            face_normals_hull = its_face_normals(its);
             areas_hull = Eigen::VectorXf::Zero(face_count);
-            normals_hull = Eigen::MatrixXf::Zero(face_count, 3);
+            normals_hull = Eigen::MatrixXf::Zero(face_count_hull, 3);
+            normals_hull_quantize = Eigen::MatrixXf::Zero(face_count_hull, 3);
             for (size_t i = 0; i < face_count; i++)
             {
                 float area = its.facet_area(i);
-                if (params.NEGL_FACE_SIZE > 0 && area < params.NEGL_FACE_SIZE)
-                    continue;
-                normals_hull.row(i) = quantize_vec3f(face_normals[i]);
+                //We cannot use quantized vector here, the accumulated error will result in bad orientations.
+                normals_hull.row(i) = face_normals_hull[i];
+                normals_hull_quantize.row(i) = quantize_vec3f(face_normals_hull[i]);
                 areas_hull(i) = area;
             }
         }
@@ -227,10 +246,41 @@ public:
         for (size_t i = 0; i < num_directions; i++)
         {
             orientations.push_back(align_counts[i].first);
+            //orientations.push_back(its_face_normals(mesh->its)[i]);
             BOOST_LOG_TRIVIAL(debug) << align_counts[i].first.transpose() << ", area: " << align_counts[i].second;
         }
     }
+    //This function is to make sure to return the accurate normal rather than quantized normal
+    void area_cumulation_accurate( std::vector<Vec3f>& normals_, const Eigen::MatrixXf& quantize_normals_, const Eigen::VectorXf& areas_, int num_directions = 10)
+    {
+        std::unordered_map<stl_normal, std::pair<std::vector<float>, Vec3f>, VecHash> alignments_;
+        Vec3f n1 = { 0, 0, 0 };
+        std::vector<float> current_areas = {0, 0};
+        // init to 0
+        for (size_t i = 0; i < areas_.size(); i++) {
+            alignments_.insert(std::pair(quantize_normals_.row(i), std::pair(current_areas, n1)));
+        }
+        // cumulate areas
+        for (size_t i = 0; i < areas_.size(); i++)
+        {
+            alignments_[quantize_normals_.row(i)].first[1] += areas_(i);
+            if (areas_(i) > alignments_[quantize_normals_.row(i)].first[0]){
+                alignments_[quantize_normals_.row(i)].second = normals_[i];
+                alignments_[quantize_normals_.row(i)].first[0] = areas_(i);
+            }
+        }
 
+        typedef std::pair<stl_normal, std::pair<std::vector<float>, Vec3f>> PAIR;
+        std::vector<PAIR> align_counts(alignments_.begin(), alignments_.end());
+        sort(align_counts.begin(), align_counts.end(), [](const PAIR& p1, const PAIR& p2) {return p1.second.first[1] > p2.second.first[1]; });
+
+        num_directions = std::min((size_t)num_directions, align_counts.size());
+        for (size_t i = 0; i < num_directions; i++)
+        {
+            orientations.push_back(align_counts[i].second.second);
+            BOOST_LOG_TRIVIAL(debug) << align_counts[i].second.second.transpose() << ", area: " << align_counts[i].second.first[1];
+        }
+    }
     void add_supplements()
     {
         std::vector<Vec3f> vecs = { {0, 0, -1} ,{0.70710678, 0, -0.70710678},{0, 0.70710678, -0.70710678},
@@ -246,7 +296,7 @@ public:
     /// remove duplicate orientations
     /// </summary>
     /// <param name="tol">tolerance. default 0.01 =sin(0.57\degree)</param>
-    void remove_duplicates(float tol=0.01)
+    void remove_duplicates(double tol=0.0000001)
     {
         for (auto it = orientations.begin()+1; it < orientations.end(); )
         {
@@ -332,8 +382,14 @@ public:
 
         float total_min_z = z_projected.minCoeff();
         // filter bottom area
-        auto bottom_condition = z_max.array() < total_min_z + this->params.FIRST_LAY_H;
-        costs.bottom = bottom_condition.select(areas, 0).sum();
+        auto bottom_condition = z_max.array() < total_min_z + this->params.FIRST_LAY_H - EPSILON;
+        auto bottom_condition_hull = z_max_hull.array() < total_min_z + this->params.FIRST_LAY_H - EPSILON;
+        auto bottom_condition_2nd = z_max.array() < total_min_z + this->params.FIRST_LAY_H/2.f - EPSILON;
+        //The first layer is sliced on half of the first layer height. 
+        //The bottom area is measured by accumulating first layer area with the facets area below first layer height.
+        //By combining these two factors, we can avoid the wrong orientation of large planar faces while not influence the
+        //orientations of complex objects with small bottom areas.
+        costs.bottom = bottom_condition.select(areas, 0).sum()*0.5 + bottom_condition_2nd.select(areas, 0).sum();
 
         // filter overhang
         Eigen::VectorXf normal_projection(normals.rows(), 1);// = this->normals.dot(orientation);
@@ -342,7 +398,7 @@ public:
             normal_projection(i) = normals.row(i).dot(orientation);
         }
         auto areas_appearance = areas.cwiseProduct((is_apperance * params.APPERANCE_FACE_SUPP + Eigen::VectorXf::Ones(is_apperance.rows(), is_apperance.cols())));
-        auto overhang_areas = ((normal_projection.array() < params.ASCENT) * (!bottom_condition)).select(areas_appearance, 0);
+        auto overhang_areas = ((normal_projection.array() < params.ASCENT) * (!bottom_condition_2nd)).select(areas_appearance, 0);
         Eigen::MatrixXf inner = normal_projection.array() - params.ASCENT;
         inner = inner.cwiseMin(0).cwiseAbs();
         if (min_volume)
@@ -378,7 +434,7 @@ public:
         }
 
         // bottom of convex hull
-        costs.bottom_hull = (z_max_hull.array()< total_min_z + this->params.FIRST_LAY_H).select(areas_hull, 0).sum();
+        costs.bottom_hull = (bottom_condition_hull).select(areas_hull, 0).sum();
 
         // low angle faces
         auto normal_projection_abs = normal_projection.cwiseAbs();

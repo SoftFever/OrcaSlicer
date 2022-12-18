@@ -1050,7 +1050,7 @@ public:
 
     // BBS
     void set_offset_to_assembly(const Vec3d& offset) { m_offset_to_assembly = offset; }
-    Vec3d get_offset_to_assembly() { return m_offset_to_assembly; }
+    Vec3d get_offset_to_assembly() const { return m_offset_to_assembly; }
 
     const Vec3d& get_offset() const { return m_transformation.get_offset(); }
     double get_offset(Axis axis) const { return m_transformation.get_offset(axis); }
@@ -1111,7 +1111,7 @@ public:
 
     // Getting the input polygon for arrange
     // We use void* as input type to avoid including Arrange.hpp in Model.hpp.
-    void get_arrange_polygon(void* arrange_polygon) const;
+    void get_arrange_polygon(void *arrange_polygon, const Slic3r::DynamicPrintConfig &config = Slic3r::DynamicPrintConfig()) const;
 
     // Apply the arrange result on the ModelInstance
     void apply_arrange_result(const Vec2d& offs, double rotation)
@@ -1213,6 +1213,7 @@ struct GlobalSpeedMap
     double supportSpeed;
     double smallPerimeterSpeed;
     double maxSpeed;
+    Polygon bed_poly;
 };
 
 /* info in ModelDesignInfo can not changed after initialization */
@@ -1234,12 +1235,15 @@ public:
     std::string copyright;      // utf8 format
     std::string model_name;     // utf8 format
 
+    std::map<std::string, std::string> metadata_items; // other meta data items
+
     void load(ModelInfo &info) {
         this->cover_file    = info.cover_file;
         this->license       = info.license;
         this->description   = info.description;
         this->copyright     = info.copyright;
         this->model_name    = info.model_name;
+        this->metadata_items = info.metadata_items;
     }
 };
 
@@ -1300,11 +1304,12 @@ public:
         DynamicPrintConfig* config = nullptr, ConfigSubstitutionContext* config_substitutions = nullptr,
         LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr,
         std::vector<Preset*>* project_presets = nullptr, bool* is_xxx = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr,
-        ImportstlProgressFn stlFn = nullptr, ImportStepProgressFn stepFn = nullptr, StepIsUtf8Fn stepIsUtf8Fn = nullptr, BBLProject* project = nullptr);
+        ImportstlProgressFn stlFn = nullptr, ImportStepProgressFn stepFn = nullptr, StepIsUtf8Fn stepIsUtf8Fn = nullptr, BBLProject* project = nullptr, int plate_id = 0);
     // BBS
     static double findMaxSpeed(const ModelObject* object);
     static double getThermalLength(const ModelVolume* modelVolumePtr);
     static double getThermalLength(const std::vector<ModelVolume*> modelVolumePtrs);
+    static Polygon getBedPolygon() { return Model::printSpeedMap.bed_poly; }
 
     // BBS: backup
     static Model read_from_archive(

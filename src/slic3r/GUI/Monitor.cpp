@@ -195,7 +195,7 @@ MonitorPanel::~MonitorPanel()
     sizer_side_tools->Add(m_connection_info, 0, wxEXPAND, 0);
     sizer_side_tools->Add(m_side_tools, 1, wxEXPAND, 0);
     m_tabpanel             = new Tabbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sizer_side_tools, wxNB_LEFT | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
-    m_tabpanel->SetBackgroundColour(*wxWHITE);
+    m_tabpanel->SetBackgroundColour(wxColour("#FEFFFF"));
     m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent& e) {
         ;
     });
@@ -243,6 +243,12 @@ wxWindow* MonitorPanel::create_side_tools()
     sizer->Layout();
     panel->Fit();
     return panel;
+}
+
+void MonitorPanel::on_sys_color_changed()
+{
+    m_status_info_panel->on_sys_color_changed();
+    m_upgrade_panel->on_sys_color_changed();
 }
 
 void MonitorPanel::msw_rescale()
@@ -315,9 +321,9 @@ void MonitorPanel::on_printer_clicked(wxMouseEvent &event)
     wxPoint rect = m_side_tools->ClientToScreen(wxPoint(0, 0));
 
     if (!m_side_tools->is_in_interval()) {
-        wxPoint             pos              = m_side_tools->ClientToScreen(wxPoint(0, 0));
+        wxPoint pos = m_side_tools->ClientToScreen(wxPoint(0, 0));
         pos.y += m_side_tools->GetRect().height;
-        pos.x = pos.x < 0? 0:pos.x;
+        //pos.x = pos.x < 0? 0:pos.x;
         m_select_machine.Position(pos, wxSize(0, 0));
 
 #ifdef __linux__
@@ -390,6 +396,7 @@ void MonitorPanel::update_all()
 
     //BBS check mqtt connections if user is login
     if (wxGetApp().is_user_login()) {
+        dev->check_pushing();
         // check mqtt connection and reconnect if disconnected
         try {
             m_agent->refresh_connection();
@@ -506,7 +513,7 @@ void MonitorPanel::show_status(int status)
         return;
     last_status = status;
 
-    BOOST_LOG_TRIVIAL(trace) << "monitor: show_status = " << status;
+    BOOST_LOG_TRIVIAL(info) << "monitor: show_status = " << status;
 
     if (((status & (int) MonitorStatus::MONITOR_DISCONNECTED) != 0) || ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)) {
         if ((status & (int) MonitorStatus::MONITOR_DISCONNECTED_SERVER))
@@ -535,11 +542,16 @@ void MonitorPanel::show_status(int status)
     }
 
     Freeze();
+
+    // update panels
+    m_status_info_panel->show_status(status);
+    m_hms_panel->show_status(status);
+    m_upgrade_panel->show_status(status);
+
     if ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0) {
         set_default();
         m_side_tools->set_none_printer_mode();
         m_connection_info->Hide();
-        m_status_info_panel->show_status(status);
         m_tabpanel->Refresh();
         m_tabpanel->Layout();
 #if !BBL_RELEASE_TO_PUBLIC
@@ -556,8 +568,6 @@ void MonitorPanel::show_status(int status)
             m_side_tools->set_current_printer_signal(WifiSignal::NONE);
             set_default();
         }
-
-        m_status_info_panel->show_status(status);
         m_tabpanel->Refresh();
         m_tabpanel->Layout();
     }

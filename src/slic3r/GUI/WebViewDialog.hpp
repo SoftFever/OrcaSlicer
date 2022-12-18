@@ -145,8 +145,6 @@ private:
     wxString m_javascript;
     wxString m_response_js;
 
-    wxString m_bbl_user_agent;
-
     DECLARE_EVENT_TABLE()
 };
 

@@ -116,8 +116,6 @@
 	</array>
 	<key>CSResourcesFileMapped</key>
 	<true/>
-	<key>NSRequiresAquaSystemAppearance</key>
-	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>${MACOSX_BUNDLE_COPYRIGHT}</string>
 </dict>

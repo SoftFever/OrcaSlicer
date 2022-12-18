@@ -250,13 +250,12 @@ void BBLTopbar::Init(wxFrame* parent)
     this->AddSpacer(FromDIP(10));
     this->AddStretchSpacer(1);
 
-// #if !BBL_RELEASE_TO_PUBLIC
-    /*wxBitmap m_publish_bitmap = create_scaled_bitmap("topbar_publish", nullptr, TOPBAR_ICON_SIZE);
-    m_publish_item            = this->AddTool(ID_PUBLISH, "", m_publish_bitmap);
-    wxBitmap m_publish_disable_bitmap = create_scaled_bitmap("topbar_publish_disable", nullptr, TOPBAR_ICON_SIZE);
+    m_publish_bitmap = create_scaled_bitmap("topbar_publish", nullptr, TOPBAR_ICON_SIZE);
+    m_publish_item = this->AddTool(ID_PUBLISH, "", m_publish_bitmap);
+    m_publish_disable_bitmap = create_scaled_bitmap("topbar_publish_disable", nullptr, TOPBAR_ICON_SIZE);
     m_publish_item->SetDisabledBitmap(m_publish_disable_bitmap);
-    this->AddSpacer(FromDIP(12));*/
-// #endif
+    this->EnableTool(m_publish_item->GetId(), false);
+    this->AddSpacer(FromDIP(12));
 
     /*wxBitmap model_store_bitmap = create_scaled_bitmap("topbar_store", nullptr, TOPBAR_ICON_SIZE);
     m_model_store_item = this->AddTool(ID_MODEL_STORE, "", model_store_bitmap);
@@ -310,7 +309,7 @@ void BBLTopbar::Init(wxFrame* parent)
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnRedo, this, wxID_REDO);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnUndo, this, wxID_UNDO);
     //this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnModelStoreClicked, this, ID_MODEL_STORE);
-    //this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnPublishClicked, this, ID_PUBLISH);
+    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnPublishClicked, this, ID_PUBLISH);
 }
 
 BBLTopbar::~BBLTopbar()
@@ -318,6 +317,12 @@ BBLTopbar::~BBLTopbar()
     m_file_menu_item = nullptr;
     m_dropdown_menu_item = nullptr;
     m_file_menu = nullptr;
+}
+
+void BBLTopbar::show_publish_button(bool show)
+{
+    this->EnableTool(m_publish_item->GetId(), show);
+    Refresh();
 }
 
 void BBLTopbar::OnOpenProject(wxAuiToolBarEvent& event)
@@ -374,11 +379,21 @@ void BBLTopbar::OnModelStoreClicked(wxAuiToolBarEvent& event)
 
 void BBLTopbar::OnPublishClicked(wxAuiToolBarEvent& event)
 {
-    if (GUI::wxGetApp().plater()->model().objects.empty()) return;
+    if (!wxGetApp().getAgent()) {
+        BOOST_LOG_TRIVIAL(info) << "publish: no agent";
+        return;
+    }
 
-    if (!wxGetApp().is_user_login()) return;
+    //no more check
+    //if (GUI::wxGetApp().plater()->model().objects.empty()) return;
 
+    if (!wxGetApp().check_login())
+        return;
+
+#ifdef ENABLE_PUBLISHING
     wxGetApp().plater()->show_publish_dialog();
+#endif
+    wxGetApp().open_publish_page_dialog();
 }
 
 void BBLTopbar::SetFileMenu(wxMenu* file_menu)
@@ -539,7 +554,7 @@ void BBLTopbar::OnFileToolItem(wxAuiToolBarEvent& evt)
     tb->SetToolSticky(evt.GetId(), true);
 
     if (!m_skip_popup_file_menu) {
-        this->PopupMenu(m_file_menu, wxPoint(0, this->GetSize().GetHeight() - 2));
+        this->PopupMenu(m_file_menu, wxPoint(FromDIP(1), this->GetSize().GetHeight() - 2));
     }
     else {
         m_skip_popup_file_menu = false;
@@ -556,7 +571,7 @@ void BBLTopbar::OnDropdownToolItem(wxAuiToolBarEvent& evt)
     tb->SetToolSticky(evt.GetId(), true);
 
     if (!m_skip_popup_dropdown_menu) {
-        PopupMenu(&m_top_menu, wxPoint(0, this->GetSize().GetHeight() - 2));
+        PopupMenu(&m_top_menu, wxPoint(FromDIP(1), this->GetSize().GetHeight() - 2));
     }
     else {
         m_skip_popup_dropdown_menu = false;

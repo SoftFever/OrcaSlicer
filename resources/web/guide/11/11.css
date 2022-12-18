@@ -5,17 +5,20 @@
 	flex-direction: column;
 	justify-content:flex-start;
 	align-items:center;
+	align-content: center;
 }
 
 
 #EarthIcon img
 {
-	width: 160px;
+	width: 40%;
+	min-width: 100px;
 }
 
 #EarthIcon
 {
 	margin-bottom: 20px;
+	text-align: center;
 }
 
 #RegionList
@@ -48,8 +51,9 @@
 .RegionSelected:hover
 {
 	background-color:#00AE42;
-	color: #fff;
+	color: #fff;	
 }
+
 
 #ChangeTip
 {

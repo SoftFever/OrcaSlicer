@@ -3,28 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Cache-Control" content="max-age=7200" />
-<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" name="viewport" />	
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />	
 <title>homepage</title>
 <link rel="stylesheet" type="text/css" href="css/home.css" />
+<link rel="stylesheet" type="text/css" href="css/dark.css" />	
 <script type="text/javascript" src="js/jquery-3.6.0.min.js"></script>
 <script type="text/javascript" src="../data/text.js"></script>	
 <script type="text/javascript" src="js/json2.js"></script>
 <script type="text/javascript" src="js/globalapi.js"></script>
-<script type="text/javascript" src="js/home.js"></script>	
+<script type="text/javascript" src="js/home.js"></script>
 </head>
-<body onLoad="OnInit()">
+<body class="ZScrol" onLoad="OnInit()">
 <div id="LeftBoard">
 	<div id="LoginArea">
 	<div id="Login1">
 		<div id="Icon1"><img id="BBLIcon" src="../image/logo2.png" /></div>
-		<div id="LoginBtn" style="font-weight: 700;" onClick="OnLoginOrRegister()"><span class="trans" tid="t26">login</span>/<span class="trans" tid="t27">register</span></div>
+		<div id="LoginBtn" class="TextS1" style="font-weight: 700;" onClick="OnLoginOrRegister()"><span class="trans" tid="t26">login</span>/<span class="trans" tid="t27">register</span></div>
 	</div>
 		
 	<div id="Login2">
 		<div>
 			<img id="UserAvatarIcon" src="img/c.jpg" onerror="this.onerror=null;this.src='img/c.jpg';" />
 		</div>
-		<div id="UserName"></div>
+		<div id="UserName" class="TextS1"></div>
 		<div id="LogoutBtn" class="Btn trans" tid="t50" onClick="OnLogOut()">log out</div>
 	</div>	
 		
@@ -47,20 +48,27 @@
 </div>
 
 <div id="RightBoard">
-<div id="ContentBoard" board="recent">
+<div id="ContentBoard" class="ZScrol" board="recent">
     <div style="height: 14px;"></div>	
 	<div id="MenuArea">
+<!--		<div class="MenuItem" onClick="OnClickModelDepot()">
+			<div class="MenuIcon"><img src="img/i6.png"></div>
+			<div>
+				<div class="trans TextS1" tid="t90">3D Model</div>
+				<div class="MenuDesc trans"  tid="t91">Download 3D Models</div>
+			</div>
+		</div>	-->	
 		<div class="MenuItem" onClick="OnClickNewProject()">
 			<div class="MenuIcon"><img src="img/i4.png"></div>
 			<div>
-				<div class="trans" tid="t31">new project</div>
+				<div class="trans TextS1" tid="t31">new project</div>
 				<div class="MenuDesc trans"  tid="t32">create new project</div>
 			</div>
 		</div>
 		<div class="MenuItem" onClick="OnClickOpenProject()">
 			<div class="MenuIcon"><img src="img/i5.png"></div>
 			<div>
-				<div class="trans" tid="t33">open project</div>
+				<div class="trans TextS1" tid="t33">open project</div>
 				<div class="MenuDesc">3mf</div>
 			</div>
 		</div>		
@@ -68,78 +76,120 @@
 	
 	<div id="DebugText"></div>
 	
+	<div id="ChristmasArea">
+		<div id="ChristmasTitleBlock">
+		    <div id="ChristmasTitle" class="Content-Title trans TextS1" tid="t92">Christmas Cabin</div>
+		</div>
+		<div id="CabinList">
+<!--		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<div class="FileImg"><img src="img/d.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+			</div>
+		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<div class="FileImg"><img src="img/d.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+			</div>
+		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<div class="FileImg"><img src="img/d.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+			</div>
+		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<div class="FileImg"><img src="img/d.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+			</div>
+		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<div class="FileImg"><img src="img/d.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+			</div>
+		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<div class="FileImg"><img src="img/d.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+			</div>
+		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<div class="FileImg"><img src="img/d.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+			</div>	-->		
+		</div>
+	</div>	
+	
 	<div id="RecentFileArea">
 		<div id="RecentTitleBlock">
-		    <div id="RecentTitle" class="Content-Title trans" tid="t35">recent open</div>
-			<div id="RecentClearAllBtn" class="trans" tid="t12" onClick="OnDeleteAllRecentFiles()">Clear all</div>
+		    <div id="RecentTitle" class="Content-Title trans TextS1" tid="t35">recent open</div>
+			<div id="RecentClearAllBtn" class="trans TextS1" tid="t12" onClick="OnDeleteAllRecentFiles()">Clear all</div>
 		</div>
 		<div id="FileList">
 <!--		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
 				<a class="FileTip" title="d:\model\11.3mf"></a>
 				<div class="FileImg"><img src="img/d.png"/></div>
-				<a>abcd12334.3mf</a>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
 				<div class="FileDate">2021/12/27 09:22</div>
 			</div>
-		    <div class="FileItem" fpath='d:\model\22.3mf'>
+		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
 				<a class="FileTip" title="d:\model\11.3mf"></a>
-				<div class="FileImg"><img src="img/b.jpg"/></div>
-				<a>abcd12334.3mf</a>
+				<div class="FileImg"><img src="img/d.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
 				<div class="FileDate">2021/12/27 09:22</div>
 			</div>
-		    <div class="FileItem">
+		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
 				<a class="FileTip" title="d:\model\11.3mf"></a>
-				<div class="FileImg"><img src="img/b.jpg"/></div>
-				<a>abcd12334.3mf</a>
+				<div class="FileImg"><img src="img/d.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
 				<div class="FileDate">2021/12/27 09:22</div>
 			</div>
-		    <div class="FileItem">
+		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
 				<a class="FileTip" title="d:\model\11.3mf"></a>
-				<div class="FileImg"><img src="img/b.jpg"/></div>
-				<a>abcd12334.3mf</a>
+				<div class="FileImg"><img src="img/d.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
 				<div class="FileDate">2021/12/27 09:22</div>
 			</div>
-		    <div class="FileItem">
+		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
 				<a class="FileTip" title="d:\model\11.3mf"></a>
-				<div class="FileImg"><img src="img/b.jpg"/></div>
-				<a>abcd12334.3mf</a>
-				<div class="FileDate">2021/12/27 09:22</div>
-			</div>	
-		    <div class="FileItem">
-				<a class="FileTip" title="d:\model\11.3mf"></a>
-				<div class="FileImg"><img src="img/b.jpg"/></div>
-				<a>abcd12334.3mf</a>
+				<div class="FileImg"><img src="img/d.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
 				<div class="FileDate">2021/12/27 09:22</div>
 			</div>
-		    <div class="FileItem">
+		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
 				<a class="FileTip" title="d:\model\11.3mf"></a>
-				<div class="FileImg"><img src="img/b.jpg"/></div>
-				<a>abcd12334.3mf</a>
+				<div class="FileImg"><img src="img/d.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
 				<div class="FileDate">2021/12/27 09:22</div>
 			</div>
-		    <div class="FileItem">
+		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
 				<a class="FileTip" title="d:\model\11.3mf"></a>
-				<div class="FileImg"><img src="img/b.jpg"/></div>
-				<a>abcd12334.3mf</a>
-				<div class="FileDate">2021/12/27 09:22</div>
-			</div>	
-		    <div class="FileItem" >
-				<a class="FileTip" title="d:\model\11.3mf"></a>
-				<div class="FileImg"><img src="img/xxxx.jpg" onerror="this.onerror=null;this.src='img/d.png';"  alt="No Image"  /></div>
-				<a>abcd12334.3mf</a>
+				<div class="FileImg"><img src="img/d.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
 				<div class="FileDate">2021/12/27 09:22</div>
 			</div>
-		    <div class="FileItem">
+		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
 				<a class="FileTip" title="d:\model\11.3mf"></a>
-				<div class="FileImg"><img src="img/b.jpg"/></div>
-				<a>abcd12334.3mf</a>
+				<div class="FileImg"><img src="img/d.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
 				<div class="FileDate">2021/12/27 09:22</div>
 			</div>
-		    <div class="FileItem">
+		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
 				<a class="FileTip" title="d:\model\11.3mf"></a>
-				<div class="FileImg"><img src="img/b.jpg"/></div>
-				<a>abcd12334.3mf</a>
+				<div class="FileImg"><img src="img/d.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
 				<div class="FileDate">2021/12/27 09:22</div>
-			</div>-->				
+			</div>
+		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/d.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate">2021/12/27 09:22</div>
+			</div>
+		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/d.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate">2021/12/27 09:22</div>
+			</div>
+		    <div class="FileItem" onClick="OnOpenRecentFile('aaaa')" fpath='d:\model\11.3mf'>
+				<a class="FileTip" title="d:\model\11.3mf"></a>
+				<div class="FileImg"><img src="img/d.png"/></div>
+				<div class="FileName TextS1">abcd12334abcd12334abcd12334.3mf</div>
+				<div class="FileDate">2021/12/27 09:22</div>
+			</div>	-->		
 		</div>
 	</div>
 	
@@ -163,44 +213,44 @@
 <div id="WikiGuideBoard" >
 	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/studio-quick-start')">
 		<div class="UG_IMG"><img src="img/quick_start.png" /></div>
-		<div class="UG_TITLE trans" tid="wk1">Quick Start</div>
+		<div class="UG_TITLE trans TextS1" tid="wk1">Quick Start</div>
 		<div class="UG_DESC trans" tid="wk2">This article introduces the most basic usage of Bambu Studio. It guides users to configure software, create projects, and complete the first printing task step by step. </div>
 	</div>
 	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/project-based-workflow')">
 		<div class="UG_IMG"><img src="img/project_based_workflow.png" /></div>
-		<div class="UG_TITLE trans" tid="wk3">Project Based Workflow</div>
+		<div class="UG_TITLE trans TextS1" tid="wk3">Project Based Workflow</div>
 		<div class="UG_DESC trans" tid="wk4">Bambu Studio has put forward a leading workflow to truly achieve an “all in one” project. Based on the mainstream 3MF project format, it provides a series of revolutionary new features, such as Multi-Plate Support, a Project Resource Manager, and Assembly/Part View. It greatly improves the efficiency of both creators and regular users.</div>
 	</div>
 	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/high-speed-print-at-quality')">
 		<div class="UG_IMG"><img src="img/high_speed_print_at_quality.png" /></div>
-		<div class="UG_TITLE trans" tid="wk5">High Speed Print at Quality</div>
+		<div class="UG_TITLE trans TextS1" tid="wk5">High Speed Print at Quality</div>
 		<div class="UG_DESC trans" tid="wk6">It is challenging to print at high speed while maintaining high quality. Bambu Studio makes this happen.
         "Arch Move" makes the toolhead move smoothly and reduces the machine's vibration. The smart cooling is based on fine-tuned cooling parameters for each filament type.
         "Auto slow down" for overhang walls works to prevent deformation at high speeds.</div>
 	</div>
 	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/multi-color-printing')">
 		<div class="UG_IMG"><img src="img/multi_color_printing.png" /></div>
-		<div class="UG_TITLE trans" tid="wk7">Multi-Color Printing</div>
+		<div class="UG_TITLE trans TextS1" tid="wk7">Multi-Color Printing</div>
 		<div class="UG_DESC trans" tid="wk8">Bambu Studio provides versatile colorizing tools to make a colorful model. You can freely add/remove filaments in a project and colorize your model with different brushes. Before printing, each filament will be auto-mapped to an AMS slot, not needing to manually change the spool placement in the AMS.</div>
 	</div>
 	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/how-to-set-slicing-parameters')">
 		<div class="UG_IMG"><img src="img/setting_guide_of_slicing_parameters.png" /></div>
-		<div class="UG_TITLE trans" tid="wk9">Setting Guide of Slicing Parameters</div>
+		<div class="UG_TITLE trans TextS1" tid="wk9">Setting Guide of Slicing Parameters</div>
 		<div class="UG_DESC trans" tid="wk10">The parameter management features in Bambu Studio provide very flexible and powerful control over the slicing process. This article introduces the organization of parameters and provides some skills on taking full advantage of these capabilities.</div>
 	</div>
 	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/remote-control')">
 		<div class="UG_IMG"><img src="img/remote_control_and_monitoring.png" /></div>
-		<div class="UG_TITLE trans" tid="wk11">Remote Control & Monitoring</div>
+		<div class="UG_TITLE trans TextS1" tid="wk11">Remote Control & Monitoring</div>
 		<div class="UG_DESC trans" tid="wk12">Bambu Studio support sending print job to your printer over WAN/LAN network, controlling & monitoring every aspect of your 3D printer and printing jobs. If you have more than one printer, you can easily switch between them in the device list.</div>
 	</div>
 	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/step')">
 		<div class="UG_IMG"><img src="img/step.png" /></div>
-		<div class="UG_TITLE trans" tid="wk13">STEP Format</div>
+		<div class="UG_TITLE trans TextS1" tid="wk13">STEP Format</div>
 		<div class="UG_DESC trans" tid="wk14">Compared with STL, STEP brings more effective information. Thanks to the high accuracy of STEP, a lot of extrusion paths can be generated as arcs. STEP also includes the assembly relationship of each part of a model, which can be used to restore the assembly view after a model is split.</div>
 	</div>
 	<div class="GuideBlock" onClick="OpenWikiUrl('https://wiki.bambulab.com/en/software/bambu-studio/3d-text')">
 		<div class="UG_IMG"><img src="img/3d_text.png" /></div>
-		<div class="UG_TITLE trans" tid="wk15">3D Text</div>
+		<div class="UG_TITLE trans TextS1" tid="wk15">3D Text</div>
 		<div class="UG_DESC trans" tid="wk16">With 3D Text tool, users can easily create various 3D text shapes in the project, making the model more personalized. Bambu Studio provides dozens of fonts and supports bold and italic styles to give text greater flexibility.</div>
 	</div>
 </div>

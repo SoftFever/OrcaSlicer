@@ -16,7 +16,8 @@ wxDEFINE_EVENT(EVT_INSTALL_NETWORK_FAILED, wxCommandEvent);
 UpgradeNetworkJob::UpgradeNetworkJob(std::shared_ptr<ProgressIndicator> pri)
     : Job{std::move(pri)}
 {
-    ;
+    name         = "plugins";
+    package_name = "networking_plugins.zip";
 }
 
 void UpgradeNetworkJob::on_exception(const std::exception_ptr &eptr)
@@ -56,7 +57,7 @@ void UpgradeNetworkJob::process()
     BOOST_LOG_TRIVIAL(info) << "[UpgradeNetworkJob process]: enter";
 
     // get temp path
-    fs::path target_file_path = (fs::temp_directory_path() / "network_plugin.zip");
+    fs::path target_file_path = (fs::temp_directory_path() / package_name);
     fs::path tmp_path = target_file_path;
     auto path_str = tmp_path.string() + wxString::Format(".%d%s", get_current_pid(), ".tmp").ToStdString();
     tmp_path = fs::path(path_str);
@@ -67,7 +68,7 @@ void UpgradeNetworkJob::process()
         return was_canceled();
     };
     int curr_percent = 0;
-    result = wxGetApp().download_plugin(
+    result = wxGetApp().download_plugin(name, package_name, 
         [this, &curr_percent](int state, int percent, bool &cancel) {
             if (state == InstallStatusNormal) {
                 update_status(percent, _L("Downloading"));
@@ -95,9 +96,11 @@ void UpgradeNetworkJob::process()
         return;
     }
 
-    result = wxGetApp().install_plugin([this](int state, int percent, bool&cancel) {
+    result = wxGetApp().install_plugin(
+        name, package_name,
+        [this](int state, int percent, bool &cancel) {
         if (state == InstallStatusInstallCompleted) {
-            update_status(percent, _L("Finish"));
+            update_status(percent, _L("Install successfully."));
         } else {
             update_status(percent, _L("Installing"));
         }

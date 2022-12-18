@@ -1100,13 +1100,123 @@ static MMU_Graph build_graph(size_t layer_idx, const std::vector<std::vector<Col
     return graph;
 }
 
-static inline Polygon to_polygon(const std::vector<Linef> &lines)
+static inline Polygon to_polygon(const std::vector<std::pair<size_t, Linef>> &id_to_lines)
 {
+    std::vector<Linef> lines;
+    for (auto id_to_line : id_to_lines)
+        lines.emplace_back(id_to_line.second);
+
     Polygon poly_out;
     poly_out.points.reserve(lines.size());
     for (const Linef &line : lines)
         poly_out.points.emplace_back(mk_point(line.a));
     return poly_out;
+}
+
+
+static std::vector<std::vector<const MMU_Graph::Arc *>> get_all_next_arcs(
+    const MMU_Graph &graph,
+    std::vector<bool> &used_arcs,
+    const Linef &process_line,
+    const MMU_Graph::Arc &original_arc,
+    const int color)
+{
+    std::vector<std::vector<const MMU_Graph::Arc *>> all_next_arcs;
+    for (const size_t &arc_idx : graph.nodes[original_arc.to_idx].arc_idxs) {
+        std::vector<const MMU_Graph::Arc *> next_continue_arc;
+
+        const MMU_Graph::Arc &              arc = graph.arcs[arc_idx];
+        if (graph.nodes[arc.to_idx].point == process_line.a || used_arcs[arc_idx])
+            continue;
+
+        if (original_arc.type == MMU_Graph::ARC_TYPE::BORDER && original_arc.color != color)
+            continue;
+
+        if (arc.type == MMU_Graph::ARC_TYPE::BORDER && arc.color != color)
+            continue;
+
+        Vec2d arc_line = graph.nodes[arc.to_idx].point - graph.nodes[arc.from_idx].point;
+        if (arc_line.norm() < 5) { // two points whose distance is less than 5 are considered as one point
+            Linef process_line_1(graph.nodes[arc.from_idx].point, graph.nodes[arc.to_idx].point);
+            std::vector<std::vector<const MMU_Graph::Arc *>> next_arcs = get_all_next_arcs(graph, used_arcs, process_line_1, arc, color);
+            if (next_arcs.empty())
+                continue;
+
+            for (std::vector<const MMU_Graph::Arc *> &next_arc : next_arcs) {
+                next_continue_arc.emplace_back(&arc);
+                next_continue_arc.insert(next_continue_arc.end(), next_arc.begin(), next_arc.end());
+                all_next_arcs.emplace_back(next_continue_arc);
+            }
+        } else {
+            next_continue_arc.emplace_back(&arc);
+            all_next_arcs.emplace_back(next_continue_arc);
+        }
+    }
+    return all_next_arcs;
+}
+
+// two points that are very close are considered as one point
+// std::vector contain the close points
+static std::vector<const MMU_Graph::Arc *> get_next_arc(
+    const MMU_Graph &graph,
+    std::vector<bool> &used_arcs,
+    const Linef &process_line,
+    const MMU_Graph::Arc &original_arc,
+    const int color)
+{
+    std::vector<const MMU_Graph::Arc *> res;
+
+    std::vector<std::vector<const MMU_Graph::Arc *>> all_next_arcs = get_all_next_arcs(graph, used_arcs, process_line, original_arc, color);
+    if (all_next_arcs.empty()) {
+        res.emplace_back(&original_arc);
+        return res;
+    }
+
+    std::vector<std::pair<std::vector<const MMU_Graph::Arc *>, double>> sorted_arcs;
+    for (auto next_arc : all_next_arcs) {
+        if (next_arc.empty())
+            continue;
+
+        Vec2d process_line_vec_n   = (process_line.a - process_line.b).normalized();
+        Vec2d neighbour_line_vec_n = (graph.nodes[next_arc.back()->to_idx].point - graph.nodes[next_arc.back()->from_idx].point).normalized();
+
+        double angle = ::acos(std::clamp(neighbour_line_vec_n.dot(process_line_vec_n), -1.0, 1.0));
+        if (Slic3r::cross2(neighbour_line_vec_n, process_line_vec_n) < 0.0)
+            angle = 2.0 * (double) PI - angle;
+
+        sorted_arcs.emplace_back(next_arc, angle);
+    }
+
+    std::sort(sorted_arcs.begin(), sorted_arcs.end(),
+        [](std::pair<std::vector<const MMU_Graph::Arc *>, double> &l, std::pair<std::vector<const MMU_Graph::Arc *>, double> &r) -> bool {
+            return l.second < r.second;
+        });
+
+    // Try to return left most edge witch is unused
+    for (auto &sorted_arc : sorted_arcs) {
+        if (size_t arc_idx = sorted_arc.first.back() - &graph.arcs.front(); !used_arcs[arc_idx])
+            return sorted_arc.first;
+    }
+
+    if (sorted_arcs.empty()) {
+        res.emplace_back(&original_arc);
+        return res;
+    }
+
+    return sorted_arcs.front().first;
+}
+
+static bool is_profile_self_interaction(Polygon poly)
+{
+    auto lines = poly.lines();
+    Point intersection;
+    for (int i = 0; i < lines.size(); ++i) {
+        for (int j = i + 2; j < std::min(lines.size(), lines.size() + i - 1); ++j) {
+            if (lines[i].intersection(lines[j], &intersection))
+                return true;
+        }
+    }
+    return false;
 }
 
 // Returns list of polygons and assigned colors.
@@ -1116,43 +1226,7 @@ static inline Polygon to_polygon(const std::vector<Linef> &lines)
 static std::vector<ExPolygons> extract_colored_segments(const MMU_Graph &graph, const size_t num_extruders)
 {
     std::vector<bool> used_arcs(graph.arcs.size(), false);
-    // When there is no next arc, then is returned original_arc or edge with is marked as used
-    auto get_next = [&graph, &used_arcs](const Linef &process_line, const MMU_Graph::Arc &original_arc, const int color) -> const MMU_Graph::Arc & {
-        std::vector<std::pair<const MMU_Graph::Arc *, double>> sorted_arcs;
-        for (const size_t &arc_idx : graph.nodes[original_arc.to_idx].arc_idxs) {
-            const MMU_Graph::Arc &arc = graph.arcs[arc_idx];
-            if (graph.nodes[arc.to_idx].point == process_line.a || used_arcs[arc_idx])
-                continue;
-
-            // BBS
-            if (original_arc.type == MMU_Graph::ARC_TYPE::BORDER && original_arc.color != color)
-                continue;
-
-            assert(original_arc.to_idx == arc.from_idx);
-            Vec2d process_line_vec_n   = (process_line.a - process_line.b).normalized();
-            Vec2d neighbour_line_vec_n = (graph.nodes[arc.to_idx].point - graph.nodes[arc.from_idx].point).normalized();
-
-            double angle = ::acos(std::clamp(neighbour_line_vec_n.dot(process_line_vec_n), -1.0, 1.0));
-            if (Slic3r::cross2(neighbour_line_vec_n, process_line_vec_n) < 0.0)
-                angle = 2.0 * (double) PI - angle;
-
-            sorted_arcs.emplace_back(&arc, angle);
-        }
-
-        std::sort(sorted_arcs.begin(), sorted_arcs.end(),
-                  [](std::pair<const MMU_Graph::Arc *, double> &l, std::pair<const MMU_Graph::Arc *, double> &r) -> bool { return l.second < r.second; });
-
-        // Try to return left most edge witch is unused
-        for (auto &sorted_arc : sorted_arcs)
-            if (size_t arc_idx = sorted_arc.first - &graph.arcs.front(); !used_arcs[arc_idx])
-                return *sorted_arc.first;
-
-        if (sorted_arcs.empty())
-            return original_arc;
-
-        return *(sorted_arcs.front().first);
-    };
-
+    
     auto all_arc_used = [&used_arcs](const MMU_Graph::Node &node) -> bool {
         return std::all_of(node.arc_idxs.cbegin(), node.arc_idxs.cend(), [&used_arcs](const size_t &arc_idx) -> bool { return used_arcs[arc_idx]; });
     };
@@ -1166,29 +1240,58 @@ static std::vector<ExPolygons> extract_colored_segments(const MMU_Graph &graph, 
             if (arc.type == MMU_Graph::ARC_TYPE::NON_BORDER || used_arcs[arc_idx])
                 continue;
 
-            Linef process_line(node.point, graph.nodes[arc.to_idx].point);
+            Linef process_line(graph.nodes[arc.from_idx].point, graph.nodes[arc.to_idx].point);
             used_arcs[arc_idx] = true;
 
-            std::vector<Linef> face_lines;
-            face_lines.emplace_back(process_line);
+            std::vector<std::pair<size_t, Linef>> arc_id_to_face_lines;
+            arc_id_to_face_lines.emplace_back(std::make_pair(arc_idx, process_line));
             Vec2d start_p = process_line.a;
 
             Linef                 p_vec = process_line;
             const MMU_Graph::Arc *p_arc = &arc;
+            bool                  flag  = false;
             do {
-                const MMU_Graph::Arc& next = get_next(p_vec, *p_arc, arc.color);
-                size_t                next_arc_idx = &next - &graph.arcs.front();
-                face_lines.emplace_back(graph.nodes[next.from_idx].point, graph.nodes[next.to_idx].point);
-                if (used_arcs[next_arc_idx])
+                std::vector<const MMU_Graph::Arc *> nexts = get_next_arc(graph, used_arcs, p_vec, *p_arc, arc.color);
+                for (auto next : nexts) {
+                    size_t next_arc_idx = next - &graph.arcs.front();
+                    if (used_arcs[next_arc_idx]) {
+                        flag = true;
+                        break;
+                    }
+                }
+
+                if (flag)
                     break;
 
-                used_arcs[next_arc_idx] = true;
-                p_vec                   = Linef(graph.nodes[next.from_idx].point, graph.nodes[next.to_idx].point);
-                p_arc                   = &next;
+                for (auto next : nexts) {
+                    size_t next_arc_idx = next - &graph.arcs.front();
+                    arc_id_to_face_lines.emplace_back(std::make_pair(next_arc_idx, Linef(graph.nodes[next->from_idx].point, graph.nodes[next->to_idx].point)));
+                    used_arcs[next_arc_idx] = true;
+                }
+
+                p_vec = Linef(graph.nodes[nexts.back()->from_idx].point, graph.nodes[nexts.back()->to_idx].point);
+                p_arc = nexts.back();
+
             } while (graph.nodes[p_arc->to_idx].point != start_p || !all_arc_used(graph.nodes[p_arc->to_idx]));
 
-            if (Polygon poly = to_polygon(face_lines); poly.is_counter_clockwise() && poly.is_valid())
+            if (Polygon poly = to_polygon(arc_id_to_face_lines); poly.is_counter_clockwise() && poly.is_valid()) {
                 expolygons_segments[arc.color].emplace_back(std::move(poly));
+            } else{
+                while (arc_id_to_face_lines.size() > 1)
+                {
+                    auto id_to_line = arc_id_to_face_lines.back();
+                    used_arcs[id_to_line.first] = false;
+                    arc_id_to_face_lines.pop_back();
+                    Linef add_line(arc_id_to_face_lines.back().second.b, arc_id_to_face_lines.front().second.a);
+                    arc_id_to_face_lines.emplace_back(std::make_pair(-1, add_line));
+                    Polygon poly = to_polygon(arc_id_to_face_lines);
+                    if (!is_profile_self_interaction(poly) && poly.is_counter_clockwise() && poly.is_valid()) {
+                        expolygons_segments[arc.color].emplace_back(std::move(poly));
+                        break;
+                    }
+                    arc_id_to_face_lines.pop_back();
+                }
+            }
         }
     }
     return expolygons_segments;

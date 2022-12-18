@@ -81,8 +81,9 @@ protected:
     TextInput *         m_input_nozzle_min;
     TextInput*          m_input_nozzle_max;
     Button *            m_button_confirm;
+    wxStaticText*       m_tip_readonly;
     Button *            m_button_close;
-    Button *            m_clr_picker;
+    Button *          m_clr_picker;
     wxColourData *      m_clrData;
 #ifdef __APPLE__
     wxComboBox *m_comboBox_filament_mac;

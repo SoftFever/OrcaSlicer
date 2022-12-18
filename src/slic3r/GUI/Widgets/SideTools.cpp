@@ -2,6 +2,7 @@
 #include <wx/dcmemory.h>
 #include <wx/dcgraph.h>
 #include "Label.hpp"
+#include "StateColor.hpp"
 #include "../wxExtensions.hpp"
 #include "../I18N.hpp"
 #include "../GUI.hpp"
@@ -12,7 +13,7 @@ namespace Slic3r { namespace GUI {
     wxPanel::Create(parent, id, pos, wxSize(0, FromDIP(50)));
     Bind(wxEVT_PAINT, &SideTools::OnPaint, this);
 
-    SetBackgroundColour(*wxWHITE);
+    SetBackgroundColour(wxColour("#FEFFFF"));
 
     m_printing_img = ScalableBitmap(this, "printer", 16);
     m_arrow_img    = ScalableBitmap(this, "monitor_arrow", 14);
@@ -155,11 +156,11 @@ void SideTools::doRender(wxDC &dc)
         left += (m_arrow_img.GetBmpSize().x + FromDIP(6));
         dc.SetFont(::Label::Body_14);
         dc.SetBackgroundMode(wxTRANSPARENT);
-        dc.SetTextForeground(SIDE_TOOLS_GREY900);
+        dc.SetTextForeground(StateColor::darkModeColorFor(SIDE_TOOLS_GREY900));
 
         auto sizet = dc.GetTextExtent(m_dev_name);
         auto text_end = size.x - m_wifi_none_img.GetBmpSize().x - 20;
-
+        
         std::string finally_name = m_dev_name.ToStdString();
         if (sizet.x > (text_end - left)) {
             auto limit_width = text_end - left - dc.GetTextExtent("...").x - 20;

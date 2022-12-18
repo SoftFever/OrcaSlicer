@@ -772,7 +772,7 @@ std::vector<std::string> DiffViewCtrl::selected_options()
 
 static std::string none{"none"};
 #define UNSAVE_CHANGE_DIALOG_SCROLL_WINDOW_SIZE wxSize(FromDIP(490), FromDIP(374))
-#define UNSAVE_CHANGE_DIALOG_ACTION_LINE_SIZE wxSize(FromDIP(490), FromDIP(40))
+#define UNSAVE_CHANGE_DIALOG_ACTION_LINE_SIZE wxSize(FromDIP(490), FromDIP(60))
 #define UNSAVE_CHANGE_DIALOG_FIRST_VALUE_WIDTH FromDIP(190)
 #define UNSAVE_CHANGE_DIALOG_VALUE_WIDTH FromDIP(150)
 #define UNSAVE_CHANGE_DIALOG_ITEM_HEIGHT FromDIP(24)
@@ -798,10 +798,12 @@ UnsavedChangesDialog::UnsavedChangesDialog(const wxString &caption, const wxStri
 {
     build(Preset::TYPE_INVALID, nullptr, "", header);
     this->CenterOnScreen();
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection *dependent_presets, const std::string &new_selected_preset, bool no_transfer)
-    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe),
+    : m_new_selected_preset_name(new_selected_preset)
+    , DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe),
                 wxID_ANY,
                 _L("Discard or Keep changes"),
                 wxDefaultPosition,
@@ -812,16 +814,16 @@ UnsavedChangesDialog::UnsavedChangesDialog(Preset::Type type, PresetCollection *
         m_buttons &= ~ActionButtons::TRANSFER;
     build(type, dependent_presets, new_selected_preset);
     this->CenterOnScreen();
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 
 void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_presets, const std::string &new_selected_preset, const wxString &header)
 {
+    SetBackgroundColour(*wxWHITE);
     // icon
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
-
-
 
     wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
 
@@ -947,12 +949,13 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
         if (focus) {
             (*btn)->SetBackgroundColor(btn_bg_green);
             (*btn)->SetBorderColor(wxColour(0, 174, 66));
-            (*btn)->SetTextColor(wxColour(255, 255, 255));
+            (*btn)->SetTextColor(wxColour("#FFFFFE"));
         } else {
             (*btn)->SetTextColor(wxColour(107, 107, 107));
         }
 
-        (*btn)->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
+        //(*btn)->SetMinSize(UNSAVE_CHANGE_DIALOG_BUTTON_SIZE);
+        (*btn)->SetMinSize(wxSize(-1,-1));
         (*btn)->SetCornerRadius(FromDIP(12));
 
         (*btn)->Bind(wxEVT_BUTTON, [this, close_act, dependent_presets](wxEvent &) {
@@ -1055,6 +1058,9 @@ void UnsavedChangesDialog::show_info_line(Action action, std::string preset_name
 
 void UnsavedChangesDialog::close(Action action)
 {
+    if (action == Action::Transfer) {
+        check_option_valid();
+    }
     m_exit_action = action;
     this->EndModal(wxID_CLOSE);
 }
@@ -1377,7 +1383,11 @@ void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent
     }
 
     wxString action_msg;
-    action_msg = format_wxstr(_L("You have changed some preset settings. \nWould you like to keep these changed settings after switching preset?"));
+    if (dependent_presets)
+        action_msg = format_wxstr(_L("You have changed some settings of preset \"%1%\". \nWould you like to keep these changed settings (new value) after switching preset?"),
+                              dependent_presets->get_edited_preset().name);
+    else
+        action_msg = format_wxstr(_L("You have changed some preset settings. \nWould you like to keep these changed settings (new value) after switching preset?"));
     m_action_line->SetLabel(action_msg);
 
     update_tree(type, presets);
@@ -1651,6 +1661,31 @@ void UnsavedChangesDialog::on_sys_color_changed()
     Refresh();
 }
 
+bool UnsavedChangesDialog::check_option_valid()
+{
+    auto itor = std::find_if(m_presetitems.begin(), m_presetitems.end(), [](const PresetItem &item) {
+        return item.opt_key == "timelapse_type";
+    });
+
+    if (itor != m_presetitems.end()) {
+        PresetBundle *preset_bundle  = wxGetApp().preset_bundle;
+        Preset * new_preset = preset_bundle->printers.find_preset(m_new_selected_preset_name);
+        if (new_preset == nullptr)
+            return false;
+
+        std::string str_print_type = new_preset->get_current_printer_type(preset_bundle);
+        if (str_print_type == "C11" && itor->new_value.ToStdString() == "Smooth") {
+            MessageDialog dlg(wxGetApp().plater(), _L("The P1P printer does not support smooth timelapse, use traditional timelapse instead."),
+                _L("Warning"), wxICON_WARNING | wxOK);
+            dlg.ShowModal();
+            m_presetitems.erase(itor);
+            return false;
+        }
+    }
+
+    return true;
+}
+
 
 //------------------------------------------
 //          FullCompareDialog
@@ -1766,7 +1801,7 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
 
     int border = 10;
     int em = em_unit();
-
+    SetBackgroundColour(*wxWHITE);
     assert(wxGetApp().preset_bundle);
 
     m_preset_bundle_left  = std::make_unique<PresetBundle>(*wxGetApp().preset_bundle);
@@ -1852,6 +1887,7 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
     this->SetMinSize(wxSize(80 * em, 30 * em));
     this->SetSizer(topSizer);
     topSizer->SetSizeHints(this);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void DiffPresetDialog::update_controls_visibility(Preset::Type type /* = Preset::TYPE_INVALID*/)
@@ -1892,6 +1928,7 @@ void DiffPresetDialog::show(Preset::Type type /* = Preset::TYPE_INVALID*/)
         Fit();
 
     update_tree();
+    wxGetApp().UpdateDlgDarkUI(this);
 
     // if this dialog is shown it have to be Hide and show again to be placed on the very Top of windows
     if (IsShown())

@@ -56,6 +56,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/TempInput.hpp
     GUI/Widgets/AMSControl.cpp
     GUI/Widgets/AMSControl.hpp
+    GUI/Widgets/FanControl.cpp
+    GUI/Widgets/FanControl.hpp
     GUI/Widgets/Scrollbar.cpp
     GUI/Widgets/Scrollbar.hpp
     GUI/Widgets/ScrolledWindow.cpp
@@ -169,6 +171,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/MainFrame.hpp
     GUI/BBLTopbar.cpp
     GUI/BBLTopbar.hpp
+    GUI/BedShapeDialog.cpp
+    GUI/BedShapeDialog.hpp
     GUI/Plater.cpp
     GUI/Plater.hpp
     GUI/PartPlate.cpp
@@ -247,8 +251,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/ConfigManipulation.hpp
     GUI/Field.cpp
     GUI/Field.hpp
-    GUI/ConfirmHintDialog.cpp
-    GUI/ConfirmHintDialog.hpp
     GUI/OptionsGroup.cpp
     GUI/OptionsGroup.hpp
     GUI/OG_CustomCtrl.cpp
@@ -269,6 +271,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/RemovableDriveManager.hpp
     GUI/SendSystemInfoDialog.cpp
     GUI/SendSystemInfoDialog.hpp
+    GUI/SetBedTypeDialog.cpp
+    GUI/SetBedTypeDialog.hpp
     GUI/ImGuiWrapper.hpp
     GUI/ImGuiWrapper.cpp
     GUI/DeviceManager.hpp
@@ -362,6 +366,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/BonjourDialog.hpp
     GUI/BindDialog.cpp
     GUI/BindDialog.hpp
+    GUI/ModelMall.hpp
+    GUI/ModelMall.cpp
     GUI/SelectMachine.hpp
     GUI/SelectMachine.cpp
     GUI/SendToPrinter.hpp
@@ -426,6 +432,16 @@ set(SLIC3R_GUI_SOURCES
     Utils/Repetier.cpp
     Utils/Repetier.hpp
 )
+
+if (WIN32)
+    list(APPEND SLIC3R_GUI_SOURCES
+            GUI/dark_mode/dark_mode.hpp
+            GUI/dark_mode/IatHook.hpp
+            GUI/dark_mode/UAHMenuBar.hpp
+            GUI/dark_mode.hpp
+            GUI/dark_mode.cpp
+        )
+endif ()
 
 if (APPLE)
     list(APPEND SLIC3R_GUI_SOURCES

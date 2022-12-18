@@ -28,6 +28,10 @@ wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
  MaterialItem::MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname) 
  : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {
+    m_arraw_bitmap_gray =  ScalableBitmap(this, "drop_down", FromDIP(12));
+    m_arraw_bitmap_white =  ScalableBitmap(this, "topbar_dropdown", FromDIP(12));
+
+
     m_material_coloul = mcolour;
     m_material_name = mname;
     m_ams_coloul      = wxColour(0xEE,0xEE,0xEE);
@@ -42,6 +46,7 @@ wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
     SetBackgroundColour(*wxWHITE);
 
     Bind(wxEVT_PAINT, &MaterialItem::paintEvent, this);
+    wxGetApp().UpdateDarkUI(this);
  }
 
  MaterialItem::~MaterialItem() {}
@@ -163,6 +168,19 @@ void MaterialItem::doRender(wxDC &dc)
     dc.DrawRectangle(FromDIP(1), FromDIP(18), MATERIAL_ITEM_REAL_SIZE.x, FromDIP(8));
 
     ////border
+#if __APPLE__
+    if (m_material_coloul == *wxWHITE || m_ams_coloul == *wxWHITE) {
+        dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawRoundedRectangle(1, 1, MATERIAL_ITEM_SIZE.x - 1, MATERIAL_ITEM_SIZE.y - 1, 5);
+    }
+
+    if (m_selected) {
+        dc.SetPen(wxColour(0x00, 0xAE, 0x42));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawRoundedRectangle(1, 1, MATERIAL_ITEM_SIZE.x - 1, MATERIAL_ITEM_SIZE.y - 1, 5);
+    }
+#else
     if (m_material_coloul == *wxWHITE || m_ams_coloul == *wxWHITE) {
         dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
@@ -174,6 +192,18 @@ void MaterialItem::doRender(wxDC &dc)
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y, 5);
     }
+#endif
+    //arrow
+
+    if ( (m_ams_coloul.Red() > 160 && m_ams_coloul.Green() > 160 && m_ams_coloul.Blue() > 160) &&
+        (m_ams_coloul.Red() < 180 && m_ams_coloul.Green() < 180 && m_ams_coloul.Blue() < 180)) {
+        dc.DrawBitmap(m_arraw_bitmap_white.bmp(), GetSize().x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(7),  GetSize().y - m_arraw_bitmap_white.GetBmpSize().y);
+    }
+    else {
+        dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), GetSize().x - m_arraw_bitmap_gray.GetBmpSize().x - FromDIP(7),  GetSize().y - m_arraw_bitmap_gray.GetBmpSize().y);
+    }
+
+    
 }
 
  AmsMapingPopup::AmsMapingPopup(wxWindow *parent) 
@@ -334,14 +364,57 @@ void AmsMapingPopup::update_ams_data(std::map<std::string, Ams*> amsList)
     Fit();
 }
 
+std::vector<TrayData> AmsMapingPopup::parse_ams_mapping(std::map<std::string, Ams*> amsList)
+{
+    std::vector<TrayData> m_tray_data;
+    std::map<std::string, Ams *>::iterator ams_iter;
+
+    for (ams_iter = amsList.begin(); ams_iter != amsList.end(); ams_iter++) {
+
+        BOOST_LOG_TRIVIAL(trace) << "ams_mapping ams id " << ams_iter->first.c_str();
+
+        auto ams_indx = atoi(ams_iter->first.c_str());
+        Ams* ams_group = ams_iter->second;
+        std::vector<TrayData>                      tray_datas;
+        std::map<std::string, AmsTray*>::iterator tray_iter;
+
+        for (tray_iter = ams_group->trayList.begin(); tray_iter != ams_group->trayList.end(); tray_iter++) {
+            AmsTray* tray_data = tray_iter->second;
+            TrayData td;
+
+            td.id = ams_indx * AMS_TOTAL_COUNT + atoi(tray_data->id.c_str());
+
+            if (!tray_data->is_exists) {
+                td.type = EMPTY;
+            }
+            else {
+                if (!tray_data->is_tray_info_ready()) {
+                    td.type = THIRD;
+                }
+                else {
+                    td.type = NORMAL;
+                    td.colour = AmsTray::decode_color(tray_data->color);
+                    td.name = tray_data->get_display_filament_type();
+                    td.filament_type = tray_data->get_filament_type();
+                }
+            }
+
+            m_tray_data.push_back(td);
+        }
+    }
+
+    return m_tray_data;
+}
+
 void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data)
 { 
     auto sizer_mapping_list = new wxBoxSizer(wxHORIZONTAL);
+
     for (auto i = 0; i < tray_data.size(); i++) {
         wxBoxSizer *sizer_mapping_item   = new wxBoxSizer(wxVERTICAL);
 
         // set number
-        auto number = new wxStaticText(this, wxID_ANY, wxString::Format("%02d",tray_data[i].id + 1), wxDefaultPosition, wxDefaultSize, 0);
+        auto number = new wxStaticText(this, wxID_ANY, wxGetApp().transition_tridid(tray_data[i].id), wxDefaultPosition, wxDefaultSize, 0);
         number->SetFont(::Label::Body_13);
         number->SetForegroundColour(wxColour(0X6B, 0X6B, 0X6B));
         number->Wrap(-1);
@@ -423,7 +496,7 @@ void AmsMapingPopup::paintEvent(wxPaintEvent &evt)
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
-    SetBackgroundColour(*wxWHITE);
+    SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     Bind(wxEVT_PAINT, &MappingItem::paintEvent, this);
 }
 
@@ -434,9 +507,11 @@ void AmsMapingPopup::paintEvent(wxPaintEvent &evt)
 
 void MappingItem::send_event(int fliament_id) 
 {
+    auto number = wxGetApp().transition_tridid(m_tray_data.id);
     wxCommandEvent event(EVT_SET_FINISH_MAPPING);
     event.SetInt(m_tray_data.id);
-    wxString param = wxString::Format("%d|%d|%d|%02d|%d", m_coloul.Red(), m_coloul.Green(), m_coloul.Blue(), m_tray_data.id + 1, fliament_id);
+
+    wxString param = wxString::Format("%d|%d|%d|%s|%d", m_coloul.Red(), m_coloul.Green(), m_coloul.Blue(), number, fliament_id);
     event.SetString(param);
     event.SetEventObject(this->GetParent()->GetParent());
     wxPostEvent(this->GetParent()->GetParent(), event);
@@ -510,7 +585,13 @@ void MappingItem::doRender(wxDC &dc)
     dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y,5);
     if (m_coloul == *wxWHITE) {
         dc.SetPen(wxPen(wxColour(0xAC, 0xAC, 0xAC),1));
-        dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 5);
+#ifdef __APPLE__
+    dc.DrawRoundedRectangle(1, 1, GetSize().x - 1, GetSize().y - 1, 5);
+#else
+    dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 5);
+#endif // __APPLE__
+
+        
     } 
 }
 
@@ -612,5 +693,108 @@ void AmsMapingTipPopup::OnDismiss() {}
 
 bool AmsMapingTipPopup::ProcessLeftDown(wxMouseEvent &event) { 
     return wxPopupTransientWindow::ProcessLeftDown(event); }
+
+AmsTutorialPopup::AmsTutorialPopup(wxWindow* parent)
+:wxPopupTransientWindow(parent, wxBORDER_NONE)
+{
+    Bind(wxEVT_PAINT, &AmsTutorialPopup::paintEvent, this);
+    SetBackgroundColour(*wxWHITE);
+
+    wxBoxSizer* sizer_main;
+    sizer_main = new wxBoxSizer(wxVERTICAL);
+
+    text_title = new Label(this, Label::Head_14, _L("Config which AMS slot should be used for a filament used in the print job"));
+    text_title->SetSize(wxSize(FromDIP(350), -1));
+    text_title->Wrap(FromDIP(350));
+    sizer_main->Add(text_title, 0, wxALIGN_CENTER | wxTOP, 18);
+
+
+    sizer_main->Add(0, 0, 0, wxTOP, 30);
+
+    wxBoxSizer* sizer_top;
+    sizer_top = new wxBoxSizer(wxHORIZONTAL);
+
+    img_top = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ams_item_examples", this, 30), wxDefaultPosition, wxSize(FromDIP(50), FromDIP(30)), 0);
+    sizer_top->Add(img_top, 0, wxALIGN_CENTER, 0);
+
+
+    sizer_top->Add(0, 0, 0, wxLEFT, 10);
+
+    wxBoxSizer* sizer_top_tips = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* sizer_tip_top = new wxBoxSizer(wxHORIZONTAL);
+
+    arrows_top = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ams_arrow", this, 8), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(8)), 0);
+    sizer_tip_top->Add(arrows_top, 0, wxALIGN_CENTER, 0);
+
+    tip_top = new wxStaticText(this, wxID_ANY, _L("Filament used in this print job"), wxDefaultPosition, wxDefaultSize, 0);
+    tip_top->SetForegroundColour(wxColour("#686868"));
+    
+    sizer_tip_top->Add(tip_top, 0, wxALL, 0);
+
+
+    sizer_top_tips->Add(sizer_tip_top, 0, wxEXPAND, 0);
+
+
+    sizer_top_tips->Add(0, 0, 0, wxTOP, 6);
+
+    wxBoxSizer* sizer_tip_bottom = new wxBoxSizer(wxHORIZONTAL);
+
+    arrows_bottom = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ams_arrow", this, 8), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(8)), 0);
+    tip_bottom = new wxStaticText(this, wxID_ANY, _L("AMS slot used for this filament"), wxDefaultPosition, wxDefaultSize, 0);
+    tip_bottom->SetForegroundColour(wxColour("#686868"));
+
+
+    sizer_tip_bottom->Add(arrows_bottom, 0, wxALIGN_CENTER, 0);
+    sizer_tip_bottom->Add(tip_bottom, 0, wxALL, 0);
+
+
+    sizer_top_tips->Add(sizer_tip_bottom, 0, wxEXPAND, 0);
+
+
+    sizer_top->Add(sizer_top_tips, 0, wxALIGN_CENTER, 0);
+
+
+    
+
+    wxBoxSizer* sizer_middle = new wxBoxSizer(wxHORIZONTAL);
+
+    img_middle= new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ams_item_examples", this, 30), wxDefaultPosition, wxSize(FromDIP(50), FromDIP(30)), 0);
+    sizer_middle->Add(img_middle, 0, wxALIGN_CENTER, 0);
+
+    tip_middle = new wxStaticText(this, wxID_ANY, _L("Click to select AMS slot manually"), wxDefaultPosition, wxDefaultSize, 0);
+    tip_middle->SetForegroundColour(wxColour("#686868"));
+    sizer_middle->Add(0, 0, 0,wxLEFT, 15);
+    sizer_middle->Add(tip_middle, 0, wxALIGN_CENTER, 0);
+
+
+    sizer_main->Add(sizer_top, 0, wxLEFT, 40);
+    sizer_main->Add(0, 0, 0, wxTOP, 10);
+    sizer_main->Add(sizer_middle, 0, wxLEFT, 40);
+    sizer_main->Add(0, 0, 0, wxTOP, 10);
+
+
+    img_botton = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ams_mapping_examples", this, 87), wxDefaultPosition, wxDefaultSize, 0);
+    sizer_main->Add(img_botton, 0, wxLEFT | wxRIGHT, 40);
+    sizer_main->Add(0, 0, 0, wxTOP, 12);
+
+    SetSizer(sizer_main);
+    Layout();
+    Fit();
+}
+
+void AmsTutorialPopup::paintEvent(wxPaintEvent& evt)
+{
+    wxPaintDC dc(this);
+    dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
+}
+
+void AmsTutorialPopup::OnDismiss() {}
+
+bool AmsTutorialPopup::ProcessLeftDown(wxMouseEvent& event) {
+    return wxPopupTransientWindow::ProcessLeftDown(event);
+}
+
 
 }} // namespace Slic3r::GUI

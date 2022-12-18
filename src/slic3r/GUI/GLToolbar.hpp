@@ -27,8 +27,10 @@ wxDECLARE_EVENT(EVT_GLTOOLBAR_EXPORT_GCODE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLTOOLBAR_SEND_GCODE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLTOOLBAR_UPLOAD_GCODE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLTOOLBAR_EXPORT_SLICED_FILE, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_EXPORT_ALL_SLICED_FILE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLTOOLBAR_PRINT_SELECT, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLTOOLBAR_SEND_TO_PRINTER, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_SEND_TO_PRINTER_ALL, SimpleEvent);
 
 wxDECLARE_EVENT(EVT_GLTOOLBAR_ADD, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLTOOLBAR_DELETE, SimpleEvent);
@@ -40,6 +42,7 @@ wxDECLARE_EVENT(EVT_GLTOOLBAR_ARRANGE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLTOOLBAR_CUT, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLTOOLBAR_COPY, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLTOOLBAR_PASTE, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_LAYERSEDITING, SimpleEvent);
 //BBS: add clone event
 wxDECLARE_EVENT(EVT_GLTOOLBAR_CLONE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLTOOLBAR_MORE, SimpleEvent);
@@ -183,6 +186,7 @@ public:
 
     const std::string& get_name() const { return m_data.name; }
     const std::string& get_icon_filename() const { return m_data.icon_filename; }
+    void set_icon_filename(const std::string& filename) { m_data.icon_filename = filename; }
     const std::string& get_tooltip() const { return m_data.tooltip; }
     const std::string& get_additional_tooltip() const { return m_data.additional_tooltip; }
     void set_additional_tooltip(const std::string& text) { m_data.additional_tooltip = text; }
@@ -354,6 +358,7 @@ public:
 
     Layout::EType get_layout_type() const;
     void set_layout_type(Layout::EType type);
+    void set_icon_dirty() { m_icons_texture_dirty = true; }
     Layout::EHorizontalOrientation get_horizontal_orientation() const { return m_layout.horizontal_orientation; }
     void set_horizontal_orientation(Layout::EHorizontalOrientation orientation) { m_layout.horizontal_orientation = orientation; }
     Layout::EVerticalOrientation get_vertical_orientation() const { return m_layout.vertical_orientation; }

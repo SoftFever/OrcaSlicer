@@ -43,6 +43,7 @@
 	},
 	"download": {
 		"folder": "bbl/i18n",
+		"includeSourceLang" : "true",
 		"files": {
 			"output": "${lang}/BambuStudio_${lang}.po"
 		}

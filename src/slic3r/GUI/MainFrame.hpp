@@ -66,7 +66,7 @@ struct PresetTab {
 // SettingsDialog
 // ----------------------------------------------------------------------------
 
-class SettingsDialog : public DPIFrame//DPIDialog
+class SettingsDialog : public DPIDialog//DPIDialog
 {
     //wxNotebook* m_tabpanel { nullptr };
     Notebook* m_tabpanel{ nullptr };
@@ -91,7 +91,9 @@ class MainFrame : public DPIFrame
     wxString    m_qs_last_input_file = wxEmptyString;
     wxString    m_qs_last_output_file = wxEmptyString;
     wxString    m_last_config = wxEmptyString;
+
     wxMenuBar*  m_menubar{ nullptr };
+    wxMenu* publishMenu{ nullptr };
 
 #if 0
     wxMenuItem* m_menu_item_repeat { nullptr }; // doesn't used now
@@ -114,6 +116,8 @@ class MainFrame : public DPIFrame
     bool can_export_toolpaths() const;
     bool can_export_supports() const;
     bool can_export_gcode() const;
+    bool can_export_all_gcode() const;
+    bool can_print_3mf() const;
     bool can_send_gcode() const;
     //bool can_export_gcode_sd() const;
     //bool can_eject() const;
@@ -176,6 +180,9 @@ class MainFrame : public DPIFrame
         eSlicePlate = 1,
     };
 
+    //jump to editor under preview only mode
+    bool preview_only_to_editor = false;
+
 protected:
     virtual void on_dpi_changed(const wxRect &suggested_rect) override;
     virtual void on_sys_color_changed() override;
@@ -185,6 +192,21 @@ protected:
 #endif
 
 public:
+
+    //BBS GUI refactor
+    enum PrintSelectType
+    {
+        ePrintAll = 0,
+        ePrintPlate = 1,
+        eExportSlicedFile = 2,
+        eExportGcode = 3,
+        eSendGcode = 4,
+        eSendToPrinter = 5,
+        eSendToPrinterAll = 6,
+        eUploadGcode = 7,
+        eExportAllSlicedFile = 8
+    };
+
     MainFrame();
     ~MainFrame() = default;
 
@@ -197,18 +219,7 @@ public:
         tpPreview = 2,
         tpMonitor = 3,
         tpProject = 4,
-    };
-
-    //BBS GUI refactor
-    enum PrintSelectType
-    {
-        ePrintAll = 0,
-        ePrintPlate = 1,
-        eExportSlicedFile = 2,
-        eExportGcode = 3,
-        eSendGcode = 4,
-        eSendToPrinter = 5,
-        eUploadGcode = 6
+        toDebugTool = 5,
     };
 
     //BBS: add slice&&print status update logic
@@ -232,10 +243,11 @@ public:
     BBLTopbar* topbar() { return m_topbar; }
 
     void        update_title();
+    void        show_publish_button(bool show);
 
 	void        update_title_colour_after_set_title();
     void        show_option(bool show);
-    void init_tabpanel();
+    void        init_tabpanel();
     void        create_preset_tabs();
     //BBS: GUI refactor
     void        add_created_tab(Tab* panel, const std::string& bmp_name = "");
@@ -282,6 +294,8 @@ public:
     void        load_config(const DynamicPrintConfig& config);
     //BBS: jump to monitor
     void        jump_to_monitor(std::string dev_id = "");
+    //BBS: hint when jump to 3Deditor under preview only mode
+    bool        preview_only_hint();
     // Select tab in m_tabpanel
     // When tab == -1, will be selected last selected tab
     //BBS: GUI refactor
@@ -366,6 +380,7 @@ public:
 
 wxDECLARE_EVENT(EVT_HTTP_ERROR, wxCommandEvent);
 wxDECLARE_EVENT(EVT_USER_LOGIN, wxCommandEvent);
+wxDECLARE_EVENT(EVT_UPDATE_PRESET_CB, SimpleEvent);
 
 } // GUI
 } //Slic3r

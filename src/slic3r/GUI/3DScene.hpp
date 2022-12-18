@@ -632,7 +632,8 @@ public:
         int                volume_idx,
         int                instance_idx,
         const std::string &color_by,
-        bool 			   opengl_initialized);
+        bool 			   opengl_initialized,
+        bool               in_assemble_view = false);
 
     // Load SLA auxiliary GLVolumes (for support trees or pad).
     void load_object_auxiliary(

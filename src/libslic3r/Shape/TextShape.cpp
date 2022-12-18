@@ -30,6 +30,17 @@
 
 namespace Slic3r {
 
+static std::map<std::string, std::string> g_occt_fonts_maps; //map<font_name, font_path>
+
+static const std::vector<Standard_CString> fonts_suffix{ "Bold",  "Medium", "Heavy", "Italic", "Oblique", "Inclined", "Light", "Thin", 
+"Semibold", "ExtraBold", "ExtraBold",  "Semilight", "SemiLight", "ExtraLight", "Extralight",  "Ultralight", 
+"Condensed", "Ultra", "Extra", "Expanded", "Extended", "1", "2", "3", "4", "5", "6", "7", "8", "9", "Al Tarikh"};
+
+std::map<std::string, std::string> get_occt_fonts_maps()
+{
+    return g_occt_fonts_maps;
+}
+
 std::vector<std::string> init_occt_fonts()
 {
     std::vector<std::string> stdFontNames;
@@ -41,9 +52,46 @@ std::vector<std::string> init_occt_fonts()
     aFontMgr->GetAvailableFontsNames(availFontNames);
     stdFontNames.reserve(availFontNames.Size());
 
-    for (auto afn : availFontNames)
-        stdFontNames.push_back(afn->ToCString());
+    g_occt_fonts_maps.clear();
 
+    BOOST_LOG_TRIVIAL(info) << "init_occt_fonts start";
+#ifdef __APPLE__
+    //from resource
+    stdFontNames.push_back("HarmonyOS Sans SC");
+    g_occt_fonts_maps.insert(std::make_pair("HarmoneyOS Sans SC", Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Regular.ttf"));
+#endif
+    for (auto afn : availFontNames) {
+#ifdef __APPLE__
+        if(afn->String().StartsWith("."))
+            continue;
+#endif
+        if(afn->Search("Emoji") != -1 || afn->Search("emoji") != -1)
+            continue;
+        bool repeat = false;
+        for (size_t i = 0; i < fonts_suffix.size(); i++) {
+            if (afn->SearchFromEnd(fonts_suffix[i]) != -1) {
+                repeat = true;
+                break;
+            }
+        }
+        if (repeat)
+            continue;
+
+        Handle(Font_SystemFont) sys_font = aFontMgr->GetFont(afn->ToCString());
+        TCollection_AsciiString font_path = sys_font->FontPath(Font_FontAspect::Font_FontAspect_Regular);
+        if (!font_path.IsEmpty() && font_path.SearchFromEnd(".") != -1) {
+            auto  file_type = font_path.SubString(font_path.SearchFromEnd(".") + 1, font_path.Length());
+            file_type.LowerCase();
+            if (file_type == "ttf" || file_type == "otf" || file_type == "ttc") {
+                g_occt_fonts_maps.insert(std::make_pair(afn->ToCString(), decode_path(font_path.ToCString())));
+            }
+        }
+    }
+    BOOST_LOG_TRIVIAL(info) << "init_occt_fonts end";
+    // in order
+    for (auto occt_font : g_occt_fonts_maps) {
+        stdFontNames.push_back(occt_font.first);
+    }
     return stdFontNames;
 }
 

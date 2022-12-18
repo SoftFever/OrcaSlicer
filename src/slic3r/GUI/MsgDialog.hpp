@@ -13,6 +13,7 @@
 #include <wx/textctrl.h>
 #include <wx/statline.h>
 #include "Widgets/Button.hpp"
+#include "Widgets/CheckBox.hpp"
 #include "BBLStatusBar.hpp"
 #include "BBLStatusBarSend.hpp"
 
@@ -60,7 +61,9 @@ struct MsgDialog : DPIDialog
 	MsgDialog &operator=(const MsgDialog &) = delete;
 	virtual ~MsgDialog();
 
-	virtual void on_dpi_changed(const wxRect &suggested_rect);
+	void show_dsa_button();
+	bool get_checkbox_state();
+	virtual void on_dpi_changed(const wxRect& suggested_rect);
 	void SetButtonLabel(wxWindowID btn_id, const wxString& label, bool set_focus = false);
 
 protected:
@@ -85,10 +88,12 @@ protected:
 	wxFont boldfont;
 	wxBoxSizer *content_sizer;
 	wxBoxSizer *btn_sizer;
+	wxBoxSizer *m_dsa_sizer;
 	wxStaticBitmap *logo;
     MsgButtonsHash  m_buttons;
+	CheckBox* m_checkbox_dsa{nullptr};
 };
-
+wxDECLARE_EVENT(EVT_CHECKBOX_CHANGE, wxCommandEvent);
 
 // Generic error dialog, used for displaying exceptions
 class ErrorDialog : public MsgDialog
@@ -125,21 +130,21 @@ public:
 
 #if 1
 // Generic static line, used intead of wxStaticLine
-class StaticLine: public wxTextCtrl
-{
-public:
-	StaticLine( wxWindow* parent,
-				wxWindowID id = wxID_ANY,
-				const wxPoint& pos = wxDefaultPosition,
-				const wxSize& size = wxDefaultSize,
-				long style = wxLI_HORIZONTAL,
-				const wxString& name = wxString::FromAscii(wxTextCtrlNameStr))
-	: wxTextCtrl(parent, id, wxEmptyString, pos, size!=wxDefaultSize ? size : (style == wxLI_HORIZONTAL ? wxSize(10, 1) : wxSize(1, 10)), wxSIMPLE_BORDER, wxDefaultValidator, name)
-	{
-		this->Enable(false);
-	}
-	~StaticLine() {}
-};
+//class StaticLine: public wxTextCtrl
+//{
+//public:
+//	StaticLine( wxWindow* parent,
+//				wxWindowID id = wxID_ANY,
+//				const wxPoint& pos = wxDefaultPosition,
+//				const wxSize& size = wxDefaultSize,
+//				long style = wxLI_HORIZONTAL,
+//				const wxString& name = wxString::FromAscii(wxTextCtrlNameStr))
+//	: wxTextCtrl(parent, id, wxEmptyString, pos, size!=wxDefaultSize ? size : (style == wxLI_HORIZONTAL ? wxSize(10, 1) : wxSize(1, 10)), wxSIMPLE_BORDER, wxDefaultValidator, name)
+//	{
+//		this->Enable(false);
+//	}
+//	~StaticLine() {}
+//};
 
 // Generic message dialog, used intead of wxMessageDialog
 class MessageDialog : public MsgDialog

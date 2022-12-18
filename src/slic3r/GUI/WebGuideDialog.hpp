@@ -41,7 +41,7 @@ public:
     virtual ~GuideFrame();
 
     enum GuidePage {
-        BBL_WELCOME, 
+        BBL_WELCOME,
         BBL_REGION,
         BBL_MODELS,
         BBL_FILAMENTS,
@@ -76,7 +76,7 @@ public:
     int LoadProfile();
     int LoadProfileFamily(std::string strVendor, std::string strFilePath);
     int SaveProfile();
-    int GetFilamentInfo(std::string filepath, std::string &sVendor, std::string &sType);
+    int GetFilamentInfo( std::string VendorDirectory,json & pFilaList, std::string filepath, std::string &sVendor, std::string &sType);
 
 
     bool apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater, bool& apply_keeped_changes);
@@ -93,7 +93,7 @@ public:
     int ShowPluginStatus(int status, int percent, bool &cancel);
 
     void on_dpi_changed(const wxRect &suggested_rect) {}
-    
+
 private:
     GUI_App *m_MainPtr;
     AppConfig m_appconfig_new;
@@ -112,6 +112,7 @@ private:
     std::string m_Region;
 
     bool InstallNetplugin;
+    bool network_plugin_ready {false};
 
 #if wxUSE_WEBVIEW_IE
     wxMenuItem *m_script_object_el;

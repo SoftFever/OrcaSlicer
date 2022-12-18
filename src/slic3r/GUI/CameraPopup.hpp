@@ -10,10 +10,15 @@
 #include <wx/sizer.h>
 #include <wx/gbsizer.h>
 #include <wx/webrequest.h>
+#include <wx/hyperlink.h>
 #include "Widgets/SwitchButton.hpp"
+#include "Widgets/RadioBox.hpp"
 
 namespace Slic3r {
 namespace GUI {
+
+wxDECLARE_EVENT(EVT_VCAMERA_SWITCH, wxMouseEvent);
+wxDECLARE_EVENT(EVT_SDCARD_ABSENT_HINT, wxCommandEvent);
 
 class CameraPopup : public wxPopupTransientWindow
 {
@@ -27,22 +32,53 @@ public:
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;
     virtual bool Show(bool show = true) wxOVERRIDE;
 
+    void sync_vcamera_state(bool show_vcamera);
+    void check_func_supported();
+    void update(bool vcamera_streaming);
+
+    enum CameraResolution
+    {
+        RESOLUTION_720P = 0,
+        RESOLUTION_1080P = 1,
+        RESOLUTION_OPTIONS_NUM = 2
+    };
+
+    void rescale();
+
 protected:
-    void on_switch_timelapse(wxCommandEvent& event);
     void on_switch_recording(wxCommandEvent& event);
+    void on_set_resolution();
+    void sdcard_absent_hint();
+
+    wxWindow *  create_item_radiobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left);
+    void select_curr_radiobox(int btn_idx);
+    void sync_resolution_setting(std::string resolution);
+    void reset_resolution_setting();
+    wxString to_resolution_label_string(CameraResolution resolution);
+    std::string to_resolution_msg_string(CameraResolution resolution);
 
 private:
     MachineObject* m_obj { nullptr };
     wxStaticText* m_text_recording;
     SwitchButton* m_switch_recording;
-    wxStaticText* m_text_timelapse;
-    SwitchButton* m_switch_timelapse;
+    wxStaticText* m_text_vcamera;
+    SwitchButton* m_switch_vcamera;
+    wxStaticText* m_text_resolution;
+    wxWindow* m_resolution_options[RESOLUTION_OPTIONS_NUM];
     wxScrolledWindow *m_panel;
+    wxBoxSizer* main_sizer;
+    std::vector<RadioBox*> resolution_rbtns;
+    std::vector<wxStaticText*> resolution_texts;
+    CameraResolution curr_sel_resolution = RESOLUTION_1080P;
+    wxHyperlinkCtrl* vcamera_guide_link { nullptr };
+    bool is_vcamera_show = false;
+    bool allow_alter_resolution = false;
 
     void OnMouse(wxMouseEvent &event);
     void OnSize(wxSizeEvent &event);
     void OnSetFocus(wxFocusEvent &event);
     void OnKillFocus(wxFocusEvent &event);
+    void OnLeftUp(wxMouseEvent& event);
 
 private:
     wxDECLARE_ABSTRACT_CLASS(CameraPopup);
@@ -53,20 +89,15 @@ private:
 class CameraItem : public wxPanel
 {
 public:
-    CameraItem(wxWindow *parent, std::string off_normal, std::string on_normal, std::string off_hover, std::string on_hover);
+    CameraItem(wxWindow *parent, std::string normal, std::string hover);
     ~CameraItem();
 
     MachineObject *m_obj{nullptr};
-    bool     m_on{false};
     bool     m_hover{false};
-    ScalableBitmap m_bitmap_on_normal;
-    ScalableBitmap m_bitmap_on_hover;
-    ScalableBitmap m_bitmap_off_normal;
-    ScalableBitmap m_bitmap_off_hover;
+    ScalableBitmap m_bitmap_normal;
+    ScalableBitmap m_bitmap_hover;
 
     void msw_rescale();
-    void set_switch(bool is_on);
-    bool get_switch_status() { return m_on; };
     void on_enter_win(wxMouseEvent &evt);
     void on_level_win(wxMouseEvent &evt);
     void paintEvent(wxPaintEvent &evt);

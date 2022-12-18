@@ -14,10 +14,17 @@ SideButton::SideButton(wxWindow* parent, wxString text, wxString icon, long stly
     , state_handler(this)
 {
     radius = 12;
+#ifdef __APPLE__
+    extra_size = wxSize(38 + FromDIP(20), 10);
+    text_margin = 15 + FromDIP(20);
+#else
     extra_size = wxSize(38, 10);
+    text_margin = 15;
+#endif
+    
     icon_offset = 0;
     text_orientation = HO_Left;
-    text_margin = 15;
+    
 
 
     border_color.append(0x6B6B6B, StateColor::Disabled);
@@ -26,14 +33,16 @@ SideButton::SideButton(wxWindow* parent, wxString text, wxString icon, long stly
     border_color.append(0x00AE42, StateColor::Normal);
 
     text_color.append(0xACACAC, StateColor::Disabled);
-    text_color.append(0xFFFFFF, StateColor::Pressed);
-    text_color.append(0xFFFFFF, StateColor::Hovered);
-    text_color.append(0xFFFFFF, StateColor::Normal);
+    text_color.append(0xFEFEFE, StateColor::Pressed);
+    text_color.append(0xFEFEFE, StateColor::Hovered);
+    text_color.append(0xFEFEFE, StateColor::Normal);
 
     background_color.append(0x6B6B6B, StateColor::Disabled);
     background_color.append(wxColour(23, 129, 63), StateColor::Pressed);
     background_color.append(wxColour(48, 221, 112), StateColor::Hovered);
     background_color.append(0x00AE42, StateColor::Normal);
+
+    SetBottomColour(wxColour("#3B4446"));
 
     state_handler.attach({ &border_color, &text_color, &background_color });
     state_handler.update_binds();
@@ -187,7 +196,7 @@ void SideButton::dorender(wxDC& dc, wxDC& text_dc)
 
     // draw background
     dc.SetPen(wxNullPen);
-    dc.SetBrush(bottom_color);
+    dc.SetBrush(StateColor::darkModeColorFor(bottom_color));
     dc.DrawRectangle(0, 0, size.x, size.y);
 
     int states = state_handler.states();

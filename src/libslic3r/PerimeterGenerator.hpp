@@ -66,13 +66,15 @@ public:
             m_ext_mm3_per_mm(-1), m_mm3_per_mm(-1), m_mm3_per_mm_overhang(-1), m_ext_mm3_per_mm_smaller_width(-1)
         {}
 
-    void        process();
+    void        process_classic();
+    void        process_arachne();
 
     double      ext_mm3_per_mm()        const { return m_ext_mm3_per_mm; }
     double      mm3_per_mm()            const { return m_mm3_per_mm; }
     double      mm3_per_mm_overhang()   const { return m_mm3_per_mm_overhang; }
     //BBS
     double      smaller_width_ext_mm3_per_mm()   const { return m_ext_mm3_per_mm_smaller_width; }
+    Polygons    lower_slices_polygons() const { return m_lower_slices_polygons; }
 
 private:
     std::map<int, Polygons> generate_lower_polygons_series(float width);
@@ -85,6 +87,7 @@ private:
     double      m_mm3_per_mm_overhang;
     //BBS
     double      m_ext_mm3_per_mm_smaller_width;
+    Polygons    m_lower_slices_polygons;
 };
 
 }

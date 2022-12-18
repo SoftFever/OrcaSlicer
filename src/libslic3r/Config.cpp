@@ -534,7 +534,7 @@ bool ConfigBase::set_deserialize_nothrow(const t_config_option_key &opt_key_src,
     this->handle_legacy(opt_key, value);
     if (opt_key.empty()) {
         // Ignore the option.
-        //BBS: record these options, keep only one repeated opt_key 
+        //BBS: record these options, keep only one repeated opt_key
         auto iter = std::find(substitutions_ctxt.unrecogized_keys.begin(), substitutions_ctxt.unrecogized_keys.end(), opt_key_src);
         if (iter == substitutions_ctxt.unrecogized_keys.end())
             substitutions_ctxt.unrecogized_keys.push_back(opt_key_src);
@@ -615,7 +615,7 @@ bool ConfigBase::set_deserialize_raw(const t_config_option_key &opt_key_src, con
 	    if (! success && substitutions_ctxt.rule != ForwardCompatibilitySubstitutionRule::Disable &&
 	        // Only allow substitutions of an enum value by another enum value or a boolean value with an enum value.
 	        // That means, we expect enum values being added in the future and possibly booleans being converted to enums.
-	        (optdef->type == coEnum || optdef->type == coBool) && ConfigHelpers::looks_like_enum_value(value)) {
+            (optdef->type == coEnum || optdef->type == coEnums || optdef->type == coBool) /*&& ConfigHelpers::looks_like_enum_value(value)*/) {
 	        // Deserialize failed, try to substitute with a default value.
 	        //assert(substitutions_ctxt.rule == ForwardCompatibilitySubstitutionRule::Enable || substitutions_ctxt.rule == ForwardCompatibilitySubstitutionRule::EnableSilent);
 	        if (optdef->type == coBool)
@@ -756,6 +756,9 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
         for (auto it = j.begin(); it != j.end(); it++) {
             if (boost::iequals(it.key(),BBL_JSON_KEY_VERSION)) {
                 key_values.emplace(BBL_JSON_KEY_VERSION, it.value());
+            }
+            else if (boost::iequals(it.key(), BBL_JSON_KEY_IS_CUSTOM)) {
+                key_values.emplace(BBL_JSON_KEY_IS_CUSTOM, it.value());
             }
             else if (boost::iequals(it.key(), BBL_JSON_KEY_NAME)) {
                 key_values.emplace(BBL_JSON_KEY_NAME, it.value());
@@ -1209,14 +1212,15 @@ ConfigSubstitutions ConfigBase::load_from_gcode_file(const std::string &file, Fo
 }
 
 //BBS: add json support
-void ConfigBase::save_to_json(const std::string &file, const std::string &name, const std::string &from, const std::string &version) const
+void ConfigBase::save_to_json(const std::string &file, const std::string &name, const std::string &from, const std::string &version, const std::string is_custom) const
 {
     json j;
-
     //record the headers
     j[BBL_JSON_KEY_VERSION] = version;
     j[BBL_JSON_KEY_NAME] = name;
     j[BBL_JSON_KEY_FROM] = from;
+    if (!is_custom.empty())
+        j[BBL_JSON_KEY_IS_CUSTOM] = is_custom;
 
     //record all the key-values
     for (const std::string &opt_key : this->keys())

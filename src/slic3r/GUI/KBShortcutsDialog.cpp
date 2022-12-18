@@ -85,37 +85,38 @@ KBShortcutsDialog::KBShortcutsDialog()
     event.SetInt(0);
     event.SetEventObject(this);
     wxPostEvent(this, event);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void KBShortcutsDialog::OnSelectTabel(wxCommandEvent &event)
 {
-   auto                   id = event.GetInt();
+    auto                   id = event.GetInt();
     SelectHash::iterator i  = m_hash_selector.begin();
     while (i != m_hash_selector.end()) {
         Select *sel = i->second;
         if (id == sel->m_index) {
-            sel->m_tab_button->SetBackgroundColour(wxColour(255, 255, 255));
-            sel->m_tab_text->SetBackgroundColour(wxColour(255, 255, 255));
+            sel->m_tab_button->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#FFFFFF")));
+            sel->m_tab_text->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#FFFFFF")));
             sel->m_tab_text->SetFont(::Label::Head_13);
             sel->m_tab_button->Refresh();
             sel->m_tab_text->Refresh();
 
             m_simplebook->SetSelection(id);
         } else {
-            sel->m_tab_button->SetBackgroundColour(wxColour(248, 248, 248));
-            sel->m_tab_text->SetBackgroundColour(wxColour(248, 248, 248));
+            sel->m_tab_button->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#F8F8F8")));
+            sel->m_tab_text->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#F8F8F8")));
             sel->m_tab_text->SetFont(::Label::Body_13);
             sel->m_tab_button->Refresh();
             sel->m_tab_text->Refresh();
         }
         i++;
     }
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 wxWindow *KBShortcutsDialog::create_button(int id, wxString text)
 {
     auto tab_button = new wxWindow(m_panel_selects, wxID_ANY, wxDefaultPosition, wxSize( FromDIP(150),  FromDIP(28)), wxTAB_TRAVERSAL);
-    tab_button->SetBackgroundColour(wxColour(248, 248, 248));
 
     wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -302,7 +303,6 @@ void KBShortcutsDialog::fill_shortcuts()
 wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const ShortcutsItem& shortcuts, const wxFont& font, const wxFont& bold_font)
 {
     wxPanel* main_page = new wxPanel(parent);
-    wxGetApp().UpdateDarkUI(main_page);
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
 
     if (!shortcuts.first.second.empty()) {
@@ -327,11 +327,13 @@ wxPanel* KBShortcutsDialog::create_page(wxWindow* parent, const ShortcutsItem& s
     for (int i = 0; i < items_count; ++i) {
         const auto &[shortcut, description] = shortcuts.second[i];
         auto key                            = new wxStaticText(scrollable_panel, wxID_ANY, _(shortcut));
+        key->SetForegroundColour(wxColour(50, 58, 61));
         key->SetFont(bold_font);
         grid_sizer->Add(key, 0, wxALIGN_CENTRE_VERTICAL);
 
         auto desc = new wxStaticText(scrollable_panel, wxID_ANY, _(description));
         desc->SetFont(font);
+        desc->SetForegroundColour(wxColour(50, 58, 61));
         desc->Wrap(FromDIP(600));
         grid_sizer->Add(desc, 0, wxALIGN_CENTRE_VERTICAL);
     }

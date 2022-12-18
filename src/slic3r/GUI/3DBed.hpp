@@ -90,9 +90,9 @@ private:
     // Print volume bounding box exteded with axes and model.
     BoundingBoxf3 m_extended_bounding_box;
     // Slightly expanded print bed polygon, for collision detection.
-    Polygon m_polygon;
+    //Polygon m_polygon;
     GeometryBuffer m_triangles;
-    GeometryBuffer m_gridlines;
+    //GeometryBuffer m_gridlines;
     GLTexture m_texture;
     // temporary texture shown until the main texture has still no levels compressed
     //GLTexture m_temp_texture;
@@ -105,6 +105,7 @@ private:
     //BBS: add part plate related logic
     Vec2d m_position{ Vec2d::Zero() };
     std::vector<Vec2d>  m_bed_shape;
+    bool m_is_dark = false;
 
 public:
     Bed3D() = default;
@@ -140,6 +141,8 @@ public:
 
     void render(GLCanvas3D& canvas, bool bottom, float scale_factor, bool show_axes);
     //void render_for_picking(GLCanvas3D& canvas, bool bottom, float scale_factor);
+
+    void on_change_color_mode(bool is_dark);
 
 private:
     //BBS: add partplate related logic

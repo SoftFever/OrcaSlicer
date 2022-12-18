@@ -44,7 +44,7 @@ public:
      * Lightning Infill for the infill areas in that mesh. The infill areas must
      * already be calculated at this point.
      */
-    explicit Generator(const PrintObject &print_object);
+    explicit Generator(const PrintObject &print_object, const std::function<void()> &throw_on_cancel_callback);
 
     /*!
      * Get a tree of paths generated for a certain layer of the mesh.
@@ -61,7 +61,7 @@ public:
 
     float infilll_extrusion_width() const { return m_infill_extrusion_width; }
 
-    Generator(PrintObject* m_object, std::vector<Polygons>& contours, std::vector<Polygons>& overhangs, float density = 0.15);
+    Generator(PrintObject* m_object, std::vector<Polygons>& contours, std::vector<Polygons>& overhangs, const std::function<void()> &throw_on_cancel_callback, float density = 0.15);
 
 protected:
     /*!
@@ -72,13 +72,13 @@ protected:
      * only when support is generated. For this pattern, we also need to
      * generate overhang areas for the inside of the model.
      */
-    void generateInitialInternalOverhangs(const PrintObject &print_object);
+    void generateInitialInternalOverhangs(const PrintObject &print_object, const std::function<void()> &throw_on_cancel_callback);
 
     /*!
      * Calculate the tree structure of all layers.
      */
-    void generateTrees(const PrintObject &print_object);
-    void generateTreesforSupport(std::vector<Polygons>& contours);
+    void generateTrees(const PrintObject &print_object, const std::function<void()> &throw_on_cancel_callback);
+    void generateTreesforSupport(std::vector<Polygons>& contours, const std::function<void()> &throw_on_cancel_callback);
 
     float m_infill_extrusion_width;
 

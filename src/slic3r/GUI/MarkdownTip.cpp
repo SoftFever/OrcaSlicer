@@ -81,6 +81,16 @@ MarkdownTip::MarkdownTip()
 
     _timer = new wxTimer;
     _timer->Bind(wxEVT_TIMER, &MarkdownTip::OnTimer, this);
+
+    Bind(EVT_WEBVIEW_RECREATED, [this](auto &evt) {
+        Hide();
+        _lastTip.clear();
+#ifdef __WXMSW__
+        _tipView = dynamic_cast<wxWebView *>(evt.GetEventObject());
+        GetSizer()->Add(_tipView, wxSizerFlags().Expand().Proportion(1));
+        Layout();
+#endif
+    });
 }
 
 MarkdownTip::~MarkdownTip() { delete _timer; }
@@ -226,9 +236,9 @@ void MarkdownTip::RunScript(std::string const& script)
 wxWebView* MarkdownTip::CreateTipView(wxWindow* parent)
 {
     wxWebView *tipView = WebView::CreateWebView(parent, "");
-    tipView->Bind(wxEVT_WEBVIEW_LOADED, &MarkdownTip::OnLoaded, this);
-    tipView->Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &MarkdownTip::OnTitleChanged, this);
-    tipView->Bind(wxEVT_WEBVIEW_ERROR, &MarkdownTip::OnError, this);
+    Bind(wxEVT_WEBVIEW_LOADED, &MarkdownTip::OnLoaded, this);
+    Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &MarkdownTip::OnTitleChanged, this);
+    Bind(wxEVT_WEBVIEW_ERROR, &MarkdownTip::OnError, this);
     return tipView;
 }
 

@@ -62,7 +62,8 @@ HMSNotifyItem::HMSNotifyItem(wxWindow *parent, HMSItem& item)
     this->SetSizer(main_sizer);
     this->Layout();
 
-    m_hms_content->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {
+#ifdef __linux__
+    m_panel_hms->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& e) {
         e.Skip();
         if (!m_url.empty()) {
             auto font = m_hms_content->GetFont();
@@ -72,7 +73,7 @@ HMSNotifyItem::HMSNotifyItem(wxWindow *parent, HMSItem& item)
             SetCursor(wxCURSOR_HAND);
         }
         });
-    m_hms_content->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &e) {
+    m_panel_hms->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
         e.Skip();
         if (!m_url.empty()) {
             auto font = m_hms_content->GetFont();
@@ -82,9 +83,37 @@ HMSNotifyItem::HMSNotifyItem(wxWindow *parent, HMSItem& item)
             SetCursor(wxCURSOR_ARROW);
         }
         });
-    m_hms_content->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &e) {
+    m_panel_hms->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& e) {
         if (!m_url.empty()) wxLaunchDefaultBrowser(m_url);
-    });
+        });
+    m_hms_content->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& e) {
+        if (!m_url.empty()) wxLaunchDefaultBrowser(m_url);
+        });
+#else
+    m_hms_content->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& e) {
+        e.Skip();
+        if (!m_url.empty()) {
+            auto font = m_hms_content->GetFont();
+            font.SetUnderlined(true);
+            m_hms_content->SetFont(font);
+            Layout();
+            SetCursor(wxCURSOR_HAND);
+        }
+        });
+    m_hms_content->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
+        e.Skip();
+        if (!m_url.empty()) {
+            auto font = m_hms_content->GetFont();
+            font.SetUnderlined(false);
+            m_hms_content->SetFont(font);
+            Layout();
+            SetCursor(wxCURSOR_ARROW);
+        }
+        });
+    m_hms_content->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& e) {
+        if (!m_url.empty()) wxLaunchDefaultBrowser(m_url);
+        });
+#endif
 }
 HMSNotifyItem ::~HMSNotifyItem() {
     ;
@@ -153,7 +182,8 @@ void HMSPanel::append_hms_panel(HMSItem& item) {
         m_top_sizer->Add(m_notify_item, 0, wxALIGN_CENTER_HORIZONTAL);
     else {
         // debug for hms display error info
-        m_top_sizer->Add(m_notify_item, 0, wxALIGN_CENTER_HORIZONTAL);
+        // m_top_sizer->Add(m_notify_item, 0, wxALIGN_CENTER_HORIZONTAL);
+        BOOST_LOG_TRIVIAL(info) << "hms: do not display empty_item";
     }
 }
 
@@ -175,6 +205,21 @@ void HMSPanel::update(MachineObject *obj)
         Layout();
         this->Thaw();
     } else {
+        delete_hms_panels();
+        Layout();
+    }
+}
+
+void HMSPanel::show_status(int status)
+{
+    if (last_status == status) return;
+    last_status = status;
+
+    if (((status & (int)MonitorStatus::MONITOR_DISCONNECTED) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_DISCONNECTED_SERVER) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_CONNECTING) != 0)
+        || ((status & (int)MonitorStatus::MONITOR_NO_PRINTER) != 0)
+        ) {
         delete_hms_panels();
         Layout();
     }

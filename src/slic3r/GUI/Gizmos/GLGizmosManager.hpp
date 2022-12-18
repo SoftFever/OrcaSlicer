@@ -144,6 +144,8 @@ private:
 
     // key MENU_ICON_NAME, value = ImtextureID
     std::map<int, void*> icon_list;
+
+    bool m_is_dark = false;
 public:
 
     std::unique_ptr<AssembleViewDataPool> m_assemble_view_data;
@@ -153,15 +155,15 @@ public:
         IC_TOOLBAR_TOOLTIP,
         IC_TOOLBAR_TOOLTIP_HOVER,
         IC_TEXT_B,
-        IC_TEXT_B_HOVER,
-        IC_TEXT_B_PRESS,
+        IC_TEXT_B_DARK,
         IC_TEXT_T,
-        IC_TEXT_T_HOVER,
-        IC_TEXT_T_PRESS,
+        IC_TEXT_T_DARK,
         IC_NAME_COUNT,
     };
 
     explicit GLGizmosManager(GLCanvas3D& parent);
+
+    void switch_gizmos_icon_filename();
 
     bool init();
 
@@ -209,6 +211,7 @@ public:
     bool is_enabled() const { return m_enabled; }
     void set_enabled(bool enable) { m_enabled = enable; }
 
+    void set_icon_dirty() { m_icons_texture_dirty = true; }
     void set_overlay_icon_size(float size);
     void set_overlay_scale(float scale);
 
@@ -256,6 +259,12 @@ public:
         else
             return nullptr;
     }
+    void* get_icon_texture_id(MENU_ICON_NAME icon) const{
+        if (icon_list.find((int)icon) != icon_list.end())
+            return icon_list.at(icon);
+        else
+            return nullptr;
+    }
 
     Vec3d get_flattening_normal() const;
 
@@ -273,12 +282,13 @@ public:
     bool is_in_editing_mode(bool error_notification = false) const;
     bool is_hiding_instances() const;
 
+    void on_change_color_mode(bool is_dark);
     void render_current_gizmo() const;
     void render_current_gizmo_for_picking_pass() const;
     void render_painter_gizmo() const;
     void render_painter_assemble_view() const;
 
-    void render_overlay() const;
+    void render_overlay();
 
     void render_arrow(const GLCanvas3D& parent, EType highlighted_type) const;
 

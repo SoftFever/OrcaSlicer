@@ -108,6 +108,7 @@ private:
     GCodeCheckResult parse_G92(GCodeLine& gcode_line);
     GCodeCheckResult parse_M82(const GCodeLine& gcode_line);
     GCodeCheckResult parse_M83(const GCodeLine& gcode_line);
+    GCodeCheckResult parse_M104_M109(const GCodeLine &gcode_line);
 
     GCodeCheckResult parse_comment(GCodeLine& gcode_line);
 
@@ -160,6 +161,38 @@ public:
         }
     }
 
+    static bool parse_double_from_str(const std::string &input, std::vector<double> &out)
+    {
+
+        std::string cmd=input;
+        size_t read = 0;
+
+        while (cmd.size() >= 5)
+        {
+            int pt = 0;
+            for (pt = 0; pt < cmd.size(); pt++) {
+                char temp = cmd[pt];
+                if (temp == ',')
+                {
+                    try {
+                        double num = std::stod(cmd.substr(0, pt), &read);
+
+                        out.push_back(num);
+                        cmd =  cmd.substr(pt+1);
+                        break;
+                    } catch (...) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        double num = std::stod(cmd, &read);
+        out.push_back(num);
+
+        return true;
+    }
+
 private:
     EPositioningType m_global_positioning_type = EPositioningType::Absolute;
     EPositioningType m_e_local_positioning_type = EPositioningType::Absolute;
@@ -174,6 +207,14 @@ private:
     int m_layer_num = 0;
     double m_height = 0.0;
     double m_width = 0.0;
+    double z_height=0.0f;
+    double initial_layer_height=0.0f;
+    int                 filament_id;
+    double              flow_ratio  = 0;
+    double              nozzle_temp = 0.0f;
+    std::vector<double> filament_flow_ratio;
+    std::vector<double> nozzle_temperature;
+    std::vector<double> nozzle_temperature_initial_layer;
 };
 
 }

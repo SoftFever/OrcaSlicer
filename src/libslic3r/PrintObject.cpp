@@ -546,7 +546,7 @@ FillLightning::GeneratorPtr PrintObject::prepare_lightning_infill_data()
             break;
         }
 
-    return has_lightning_infill ? FillLightning::build_generator(std::as_const(*this)) : FillLightning::GeneratorPtr();
+    return has_lightning_infill ? FillLightning::build_generator(std::as_const(*this), [this]() -> void { this->throw_if_canceled(); }) : FillLightning::GeneratorPtr();
 }
 
 void PrintObject::clear_layers()
@@ -665,6 +665,14 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "top_surface_speed") {
             // Brim is printed below supports, support invalidates brim and skirt.
             steps.emplace_back(posSupportMaterial);
+            if (opt_key == "brim_type") {
+                const auto* old_brim_type = old_config.option<ConfigOptionEnum<BrimType>>(opt_key);
+                const auto* new_brim_type = new_config.option<ConfigOptionEnum<BrimType>>(opt_key);
+                //BBS: When switch to manual brim, the object must have brim, then re-generate perimeter
+                //to make the wall order of first layer to be outer-first
+                if (old_brim_type->value == btOuterOnly || new_brim_type->value == btOuterOnly)
+                    steps.emplace_back(posPerimeters);
+            }
         } else if (
                opt_key == "wall_loops"
             || opt_key == "only_one_wall_top"
@@ -695,15 +703,15 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posPerimeters);
         } else if (
                opt_key == "layer_height"
-            //BBS
-            || opt_key == "adaptive_layer_height"
             || opt_key == "raft_layers"
             || opt_key == "raft_contact_distance"
-            || opt_key == "slice_closing_radius") {
+            || opt_key == "slice_closing_radius"
+            || opt_key == "slicing_mode") {
             steps.emplace_back(posSlice);
 		} else if (
                opt_key == "elefant_foot_compensation"
             || opt_key == "support_top_z_distance"
+            || opt_key == "support_bottom_z_distance"
             || opt_key == "xy_hole_compensation"
             || opt_key == "xy_contour_compensation") {
             steps.emplace_back(posSlice);
@@ -735,7 +743,8 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_style"
             || opt_key == "support_object_xy_distance"
             || opt_key == "support_base_pattern_spacing"
-            || opt_key == "independent_support_layer_height" // BBS
+            || opt_key == "support_expansion"
+            //|| opt_key == "independent_support_layer_height" // BBS
             || opt_key == "support_threshold_angle"
             || opt_key == "raft_expansion"
             || opt_key == "raft_first_layer_density"
@@ -746,7 +755,6 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "tree_support_branch_distance"
             || opt_key == "tree_support_branch_diameter"
             || opt_key == "tree_support_branch_angle"
-            || opt_key == "tree_support_with_infill"
             || opt_key == "tree_support_wall_count") {
             steps.emplace_back(posSupportMaterial);
         } else if (opt_key == "bottom_shell_layers") {
@@ -767,7 +775,10 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "solid_infill_filament"
             || opt_key == "sparse_infill_line_width"
             || opt_key == "infill_direction"
-            || opt_key == "bridge_angle") {
+            || opt_key == "ensure_vertical_shell_thickness"
+            || opt_key == "bridge_angle"
+            //BBS
+            || opt_key == "internal_bridge_support_thickness") {
             steps.emplace_back(posPrepareInfill);
         } else if (
                opt_key == "top_surface_pattern"
@@ -779,7 +790,6 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posInfill);
         } else if (opt_key == "sparse_infill_pattern") {
             steps.emplace_back(posInfill);
-#if HAS_LIGHTNING_INFILL
             const auto *old_fill_pattern = old_config.option<ConfigOptionEnum<InfillPattern>>(opt_key);
             const auto *new_fill_pattern = new_config.option<ConfigOptionEnum<InfillPattern>>(opt_key);
             assert(old_fill_pattern && new_fill_pattern);
@@ -787,7 +797,6 @@ bool PrintObject::invalidate_state_by_config_options(
             // the Lightning infill to another infill or vice versa.
             if (PrintObject::infill_only_where_needed && (new_fill_pattern->value == ipLightning || old_fill_pattern->value == ipLightning))
                 steps.emplace_back(posPrepareInfill);
-#endif
         } else if (opt_key == "sparse_infill_density") {
             // One likely wants to reslice only when switching between zero infill to simulate boolean difference (subtracting volumes),
             // normal infill and 100% (solid) infill.
@@ -823,6 +832,15 @@ bool PrintObject::invalidate_state_by_config_options(
             	steps.emplace_back(posInfill);
 	            steps.emplace_back(posSupportMaterial);
 	        }
+        } else if (
+                opt_key == "wall_generator"
+            || opt_key == "wall_transition_length"
+            || opt_key == "wall_transition_filter_deviation"
+            || opt_key == "wall_transition_angle"
+            || opt_key == "wall_distribution_count"
+            || opt_key == "min_feature_size"
+            || opt_key == "min_bead_width") {
+            steps.emplace_back(posSlice);
         } else if (
                opt_key == "seam_position"
             || opt_key == "support_speed"
@@ -1223,9 +1241,7 @@ void PrintObject::discover_vertical_shells()
         bool has_extra_layers = false;
         for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
             const PrintRegionConfig &config = this->printing_region(region_id).config();
-            //BBS
-            //if (config.ensure_vertical_shell_thickness.value && has_extra_layers_fn(config)) {
-            if (PrintObject::ensure_vertical_shell_thickness && has_extra_layers_fn(config)) {
+            if (config.ensure_vertical_shell_thickness.value && has_extra_layers_fn(config)) {
                 has_extra_layers = true;
                 break;
             }
@@ -1305,9 +1321,7 @@ void PrintObject::discover_vertical_shells()
         PROFILE_BLOCK(discover_vertical_shells_region);
 
         const PrintRegion &region = this->printing_region(region_id);
-        //BBS
-        //if (! region.config().ensure_vertical_shell_thickness.value)
-        if (! PrintObject::ensure_vertical_shell_thickness)
+        if (! region.config().ensure_vertical_shell_thickness.value)
             // This region will be handled by discover_horizontal_shells().
             continue;
         if (! has_extra_layers_fn(region.config()))
@@ -1614,6 +1628,7 @@ void PrintObject::bridge_over_infill()
 
             Layer       *layer       = *layer_it;
             LayerRegion *layerm      = layer->m_regions[region_id];
+            const PrintObjectConfig& object_config = layer->object()->config();
             //BBS: enable thick bridge for internal bridge only
             Flow         bridge_flow = layerm->bridging_flow(frSolidInfill, true);
 
@@ -1644,6 +1659,10 @@ void PrintObject::bridge_over_infill()
                     // intersect such lower internal surfaces with the candidate solid surfaces
                     to_bridge_pp = intersection(to_bridge_pp, lower_internal);
                 }
+
+                // BBS: expand to make avoid gap between bridge and inner wall
+                to_bridge_pp = expand(to_bridge_pp, bridge_flow.scaled_width());
+                to_bridge_pp = intersection(to_bridge_pp, internal_solid);
 
                 // there's no point in bridging too thin/short regions
                 //FIXME Vojtech: The offset2 function is not a geometric offset,
@@ -1677,8 +1696,43 @@ void PrintObject::bridge_over_infill()
                     (layerm->fill_surfaces.surfaces.end() - 1)->bridge_angle = ibd.angle;
                 }
             }
+
             for (ExPolygon &ex : not_to_bridge)
                 layerm->fill_surfaces.surfaces.push_back(Surface(stInternalSolid, ex));
+
+            //BBS: modify stInternal to be stInternalWithLoop to give better support to internal bridge
+            if (!to_bridge.empty()){
+                float internal_loop_thickness = object_config.internal_bridge_support_thickness.value;
+                double bottom_z = layer->print_z - layer->height - internal_loop_thickness + EPSILON;
+                //BBS: lighting infill doesn't support this feature. Don't need to add loop when infill density is high than 50%
+                if (region.config().sparse_infill_pattern != InfillPattern::ipLightning && region.config().sparse_infill_density.value < 50)
+                    for (int i = int(layer_it - m_layers.begin()) - 1; i >= 0; --i) {
+                        const Layer* lower_layer = m_layers[i];
+
+                        if (lower_layer->print_z < bottom_z) break;
+
+                        for (LayerRegion* lower_layerm : lower_layer->m_regions) {
+                            Polygons lower_internal;
+                            lower_layerm->fill_surfaces.filter_by_type(stInternal, &lower_internal);
+                            ExPolygons internal_with_loop = intersection_ex(lower_internal, to_bridge);
+                            ExPolygons internal = diff_ex(lower_internal, to_bridge);
+                            if (internal_with_loop.empty()) {
+                                //BBS: don't need to do anything
+                            }
+                            else if (internal.empty()) {
+                                lower_layerm->fill_surfaces.change_to_new_type(stInternal, stInternalWithLoop);
+                            }
+                            else {
+                                lower_layerm->fill_surfaces.remove_type(stInternal);
+                                for (ExPolygon& ex : internal_with_loop)
+                                    lower_layerm->fill_surfaces.surfaces.push_back(Surface(stInternalWithLoop, ex));
+                                for (ExPolygon& ex : internal)
+                                    lower_layerm->fill_surfaces.surfaces.push_back(Surface(stInternal, ex));
+                            }
+                        }
+                    }
+            }
+
             /*
             # exclude infill from the layers below if needed
             # see discussion at https://github.com/alexrj/Slic3r/issues/240
@@ -1895,8 +1949,7 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
 {
     bool updated = false;
 
-    //BBS:annotate these part and will do adaptive layer height below
-    /*if (layer_height_profile.empty()) {
+    if (layer_height_profile.empty()) {
         // use the constructor because the assignement is crashing on ASAN OsX
         layer_height_profile = std::vector<coordf_t>(model_object.layer_height_profile.get());
 //        layer_height_profile = model_object.layer_height_profile;
@@ -1911,22 +1964,11 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
             std::abs(layer_height_profile[layer_height_profile.size() - 2] - slicing_parameters.object_print_z_max + slicing_parameters.object_print_z_min) > 1e-3))
         layer_height_profile.clear();
 
-    if (layer_height_profile.empty()) {
+    if (layer_height_profile.empty() || layer_height_profile[1] != slicing_parameters.first_object_layer_height) {
         //layer_height_profile = layer_height_profile_adaptive(slicing_parameters, model_object.layer_config_ranges, model_object.volumes);
         layer_height_profile = layer_height_profile_from_ranges(slicing_parameters, model_object.layer_config_ranges);
         updated = true;
-    }*/
-
-    //BBS
-    if (slicing_parameters.adaptive_layer_height) {
-        layer_height_profile = layer_height_profile_adaptive(slicing_parameters, model_object, 0.5);
-        HeightProfileSmoothingParams smoothing_params(5, true);
-        layer_height_profile = smooth_height_profile(layer_height_profile, slicing_parameters, smoothing_params);
     }
-    else {
-        layer_height_profile = layer_height_profile_from_ranges(slicing_parameters, model_object.layer_config_ranges);
-    }
-    updated = true;
 
     return updated;
 }
@@ -2048,9 +2090,7 @@ void PrintObject::discover_horizontal_shells()
 #endif
 
             // If ensure_vertical_shell_thickness, then the rest has already been performed by discover_vertical_shells().
-            //BBS
-            //if (region_config.ensure_vertical_shell_thickness.value)
-            if (PrintObject::ensure_vertical_shell_thickness)
+            if (region_config.ensure_vertical_shell_thickness.value)
                 continue;
 
             coordf_t print_z  = layer->print_z;
@@ -2772,6 +2812,10 @@ static void project_triangles_to_slabs(ConstLayerPtrsAdaptor layers, const index
 void PrintObject::project_and_append_custom_facets(
         bool seam, EnforcerBlockerType type, std::vector<Polygons>& out) const
 {
+    // BBS: Approve adding enforcer support on vertical faces
+    SlabSlicingConfig config;
+    config.isVertical = true;
+
     for (const ModelVolume* mv : this->model_object()->volumes)
         if (mv->is_model_part()) {
             const indexed_triangle_set custom_facets = seam
@@ -2785,7 +2829,7 @@ void PrintObject::project_and_append_custom_facets(
                 else {
                     std::vector<Polygons> projected;
                     // Support blockers or enforcers. Project downward facing painted areas upwards to their respective slicing plane.
-                    slice_mesh_slabs(custom_facets, zs_from_layers(this->layers()), this->trafo_centered() * mv->get_matrix(), nullptr, &projected, [](){});
+                    slice_mesh_slabs(custom_facets, zs_from_layers(this->layers()), this->trafo_centered() * mv->get_matrix(), nullptr, &projected, [](){}, config);
                     // Merge these projections with the output, layer by layer.
                     assert(! projected.empty());
                     assert(out.empty() || out.size() == projected.size());

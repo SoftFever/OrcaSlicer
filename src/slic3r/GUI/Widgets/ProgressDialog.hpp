@@ -67,15 +67,16 @@ public:
 
     int m_mode = 0;          // 0 is 1line mode 1 is 2line mode
 
-    bool            m_adaptive = {false};
-    wxSizer *       m_sizer_main = {nullptr};
-    wxPanel *       m_top_line= {nullptr};
-    wxSimplebook *  m_simplebook= {nullptr};
-    wxPanel *       m_panel_2line= {nullptr};
-    wxPanel *       m_panel_1line= {nullptr};
-    Button*         m_button_cancel = {nullptr};
-    wxWindow *      m_block_left = {nullptr};
-    wxWindow *      m_block_right = {nullptr};
+    bool                m_adaptive = {false};
+    wxSizer *           m_sizer_main = {nullptr};
+    wxPanel *           m_top_line= {nullptr};
+    wxSimplebook *      m_simplebook= {nullptr};
+    wxPanel *           m_panel_2line= {nullptr};
+    wxPanel *           m_panel_1line= {nullptr};
+    Button*             m_button_cancel = {nullptr};
+    //wxWindow *          m_block_left = {nullptr};
+    //wxWindow *          m_block_right = {nullptr};
+    wxScrolledWindow*   m_msg_scrolledWindow = {nullptr};
 
 protected:
     // Update just the m_maximum field, this is used by public SetRange() but,

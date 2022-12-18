@@ -3,6 +3,8 @@
 
 #include <wx/webview.h>
 
+wxDECLARE_EVENT(EVT_WEBVIEW_RECREATED, wxCommandEvent);
+
 class WebView
 {
 public:
@@ -11,6 +13,8 @@ public:
     static void LoadUrl(wxWebView * webView, wxString const &url);
 
     static bool RunScript(wxWebView * webView, wxString const & msg);
+
+    static void RecreateAll();
 };
 
 #endif // !slic3r_GUI_WebView_hpp_

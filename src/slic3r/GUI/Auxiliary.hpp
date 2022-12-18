@@ -53,8 +53,10 @@
 #define AUFILE_GREY200 wxColour(248, 248, 248)
 #define AUFILE_BRAND wxColour(0, 174, 66)
 #define AUFILE_BRAND_TRANSPARENT wxColour(215, 232, 222)
-#define AUFILE_PICTURES_SIZE wxSize(FromDIP(300), FromDIP(300))
-#define AUFILE_PICTURES_PANEL_SIZE wxSize(FromDIP(300), FromDIP(340))
+//#define AUFILE_PICTURES_SIZE wxSize(FromDIP(300), FromDIP(300))
+//#define AUFILE_PICTURES_PANEL_SIZE wxSize(FromDIP(300), FromDIP(340))
+#define AUFILE_PICTURES_SIZE wxSize(FromDIP(168), FromDIP(168))
+#define AUFILE_PICTURES_PANEL_SIZE wxSize(FromDIP(168), FromDIP(208))
 #define AUFILE_SIZE wxSize(FromDIP(168), FromDIP(168))
 #define AUFILE_PANEL_SIZE wxSize(FromDIP(168), FromDIP(208))
 #define AUFILE_TEXT_HEIGHT FromDIP(40)
@@ -95,6 +97,7 @@ public:
     ScalableBitmap m_file_cover;
     ScalableBitmap m_file_edit_mask;
     ScalableBitmap m_file_delete;
+    wxStaticBitmap* m_file_exit_rename;
 
     ScalableBitmap m_bitmap_excel;
     ScalableBitmap m_bitmap_pdf;
@@ -110,7 +113,7 @@ public:
     void PaintForeground(wxDC &dc);
     void on_mouse_enter(wxMouseEvent &evt);
     void on_mouse_leave(wxMouseEvent &evt);
-    void on_input_enter(wxCommandEvent &evt);
+    void on_input_enter(wxCommandEvent& evt);
     void on_dclick(wxMouseEvent &evt);
     void on_mouse_left_up(wxMouseEvent &evt);
 
@@ -156,12 +159,12 @@ public:
     AuxiliaryFolderType m_type;
     wxScrolledWindow *  m_scrolledWindow{nullptr};
     wxWrapSizer *       m_gsizer_content{nullptr};
-    Button *            m_button_add{nullptr};
+    //AuFile *            m_button_add{nullptr};
     Button *            m_button_del{nullptr};
     AuFile *            m_big_button_add{ nullptr };
     AuFilesHash         m_aufiles_list;
 
-    void on_add(wxCommandEvent& event);
+    void on_add(wxMouseEvent& event);
     void on_delete(wxCommandEvent &event);
 };
 

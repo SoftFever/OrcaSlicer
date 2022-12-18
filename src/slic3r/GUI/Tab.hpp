@@ -39,6 +39,7 @@
 #include "Notebook.hpp"
 #include "ParamsPanel.hpp"
 #include "Widgets/RoundedRectangle.hpp"
+#include "Widgets/TextInput.hpp"
 
 class TabCtrl;
 
@@ -182,8 +183,8 @@ protected:
 	ScalableButton*			m_undo_to_sys_btn;
 	//ScalableButton*			m_question_btn;
 	ScalableButton*			m_btn_search;
-    RoundedRectangle *		m_search_item;
-    wxTextCtrl *			m_search_input;
+    StaticBox *				m_search_item;
+    TextInput *				m_search_input;
 
 	// Cached bitmaps.
 	// A "flag" icon to be displayned next to the preset name in the Tab's combo box.
@@ -321,7 +322,7 @@ public:
     void		update_btns_enabling();
     void		update_preset_choice();
     // Select a new preset, possibly delete the current one.
-	void		select_preset(std::string preset_name = "", bool delete_current = false, const std::string& last_selected_ph_printer_name = "", bool force_select = false);
+	bool		select_preset(std::string preset_name = "", bool delete_current = false, const std::string& last_selected_ph_printer_name = "", bool force_select = false);
 	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, const std::string& new_printer_name = "", bool no_transfer = false);
 
     virtual void    clear_pages();
@@ -462,7 +463,7 @@ public:
 
 	void reset_model_config();
 
-	bool has_key(std::string const & key);
+	bool has_key(std::string const &key);
 
 protected:
 	virtual void    activate_selected_page(std::function<void()> throw_if_canceled);

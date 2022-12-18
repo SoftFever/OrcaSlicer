@@ -1,4 +1,5 @@
 #include "ConnectPrinter.hpp"
+#include "GUI_App.hpp"
 #include <slic3r/GUI/I18N.hpp>
 #include <slic3r/GUI/Widgets/Label.hpp>
 #include "libslic3r/AppConfig.hpp"
@@ -8,7 +9,7 @@ ConnectPrinterDialog::ConnectPrinterDialog(wxWindow *parent, wxWindowID id, cons
     : DPIDialog(parent, id, _L("ConnectPrinter(LAN)"), pos, size, style)
 {
     init_bitmap();
-
+    SetBackgroundColour(*wxWHITE);
     this->SetSizeHints(wxDefaultSize, wxDefaultSize);
 
     wxBoxSizer *main_sizer;
@@ -50,6 +51,7 @@ ConnectPrinterDialog::ConnectPrinterDialog(wxWindow *parent, wxWindowID id, cons
     m_button_confirm->SetFont(Label::Body_12);
     m_button_confirm->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_confirm->SetCornerRadius(FromDIP(12));
+    m_button_confirm->SetTextColor(wxColour("#FFFFFE"));
 
     StateColor btn_bg(
         std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
@@ -101,9 +103,15 @@ ConnectPrinterDialog::ConnectPrinterDialog(wxWindow *parent, wxWindowID id, cons
 
     m_textCtrl_code->Bind(wxEVT_TEXT, &ConnectPrinterDialog::on_input_enter, this);
     m_button_confirm->Bind(wxEVT_BUTTON, &ConnectPrinterDialog::on_button_confirm, this);
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 ConnectPrinterDialog::~ConnectPrinterDialog() {}
+
+void ConnectPrinterDialog::end_modal(wxStandardID id)
+{
+    EndModal(id);
+}
 
 void ConnectPrinterDialog::init_bitmap()
 {
@@ -141,6 +149,7 @@ void ConnectPrinterDialog::on_button_confirm(wxCommandEvent &event)
     }
     if (m_obj) {
         m_obj->set_access_code(code.ToStdString());
+        wxGetApp().getDeviceManager()->set_selected_machine(m_obj->dev_id);
     }
     EndModal(wxID_OK);
 }

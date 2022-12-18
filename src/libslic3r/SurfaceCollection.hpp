@@ -37,6 +37,12 @@ public:
     	for (Surface &surface : this->surfaces)
     		surface.surface_type = type;
     }
+    //BBS
+    void change_to_new_type(SurfaceType old_type, SurfaceType new_type) {
+        for (Surface& surface : this->surfaces)
+            if (surface.surface_type == old_type)
+                surface.surface_type = new_type;
+    }
 
     void clear() { surfaces.clear(); }
     bool empty() const { return surfaces.empty(); }

@@ -43,7 +43,7 @@ public:
     public:
         operator bool() { return item_ptr_ != nullptr; }
         double overfit() const { return overfit_; }
-        double score_ = -1;
+        double score_ = -1.11;
         double score() { return score_; }
         int plate_id = 0;   // BBS
     };

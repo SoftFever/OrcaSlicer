@@ -26,7 +26,7 @@ Button::Button()
     : paddingSize(10, 8)
 {
     background_color = StateColor(
-        std::make_pair(0xF0F0F0, (int) StateColor::Disabled),
+        std::make_pair(0xF0F0F1, (int) StateColor::Disabled),
         std::make_pair(0x37EE7C, (int) StateColor::Hovered | StateColor::Checked),
         std::make_pair(0x00AE42, (int) StateColor::Checked),
         std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered), 
@@ -126,6 +126,14 @@ bool Button::Enable(bool enable)
 }
 
 void Button::SetCanFocus(bool canFocus) { this->canFocus = canFocus; }
+
+void Button::SetValue(bool state)
+{
+    if (GetValue() == state) return;
+    state_handler.set_state(state ? StateHandler::Checked : 0, StateHandler::Checked);
+}
+
+bool Button::GetValue() const { return state_handler.states() & StateHandler::Checked; }
 
 void Button::Rescale()
 {
@@ -237,7 +245,8 @@ void Button::mouseDown(wxMouseEvent& event)
     pressedDown = true;
     if (canFocus)
         SetFocus();
-    CaptureMouse();
+    if (!HasCapture())
+        CaptureMouse();
 }
 
 void Button::mouseReleased(wxMouseEvent& event)
