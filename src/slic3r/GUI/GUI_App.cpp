@@ -2908,6 +2908,16 @@ void GUI_App::set_label_clr_sys(const wxColour& clr)
     */
 }
 
+bool GUI_App::get_side_menu_popup_status()
+{
+    return m_side_popup_status;
+}
+
+void GUI_App::set_side_menu_popup_status(bool status)
+{
+    m_side_popup_status = status;
+}
+
 bool GUI_App::tabs_as_menu() const
 {
     return false;

@@ -282,6 +282,7 @@ private:
     bool             enable_sync = false;
     bool             m_is_dark_mode{ false };
     bool             m_adding_script_handler { false };
+    bool             m_side_popup_status{false};
 public:
     std::string     get_local_models_path();
     bool            OnInit() override;
@@ -336,6 +337,9 @@ public:
 	void            update_fonts(const MainFrame *main_frame = nullptr);
     void            set_label_clr_modified(const wxColour& clr);
     void            set_label_clr_sys(const wxColour& clr);
+    //update side popup status
+    bool            get_side_menu_popup_status();
+    void            set_side_menu_popup_status(bool status);
 
     const wxColour& get_label_clr_modified(){ return m_color_label_modified; }
     const wxColour& get_label_clr_sys()     { return m_color_label_sys; }
