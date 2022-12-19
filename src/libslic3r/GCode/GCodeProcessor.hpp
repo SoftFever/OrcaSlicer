@@ -117,6 +117,8 @@ namespace Slic3r {
             float fan_speed{ 0.0f }; // percentage
             float temperature{ 0.0f }; // Celsius degrees
             float time{ 0.0f }; // s
+            float layer_duration{ 0.0f }; // s (layer id before finalize)
+
 
             //BBS: arc move related data
             EMovePathType move_path_type{ EMovePathType::Noop_move };

@@ -216,6 +216,7 @@ class GCodeViewer
         float fan_speed{ 0.0f };
         float temperature{ 0.0f };
         float volumetric_rate{ 0.0f };
+        float layer_time{ 0.0f };
         unsigned char extruder_id{ 0 };
         unsigned char cp_color_id{ 0 };
         std::vector<Sub_Path> sub_paths;
@@ -409,7 +410,7 @@ class GCodeViewer
             }
             void reset() { min = FLT_MAX; max = -FLT_MAX; count = 0; }
 
-            float step_size() const { return (max - min) / (static_cast<float>(Range_Colors.size()) - 1.0f); }
+            float step_size(bool is_log = false) const;
             Color get_color_at(float value) const;
         };
 
@@ -427,7 +428,8 @@ class GCodeViewer
             Range volumetric_rate;
             // Color mapping by extrusion temperature.
             Range temperature;
-
+            // Color mapping by layer time.
+            Range layer_duration;
             void reset() {
                 height.reset();
                 width.reset();
@@ -435,6 +437,7 @@ class GCodeViewer
                 fan_speed.reset();
                 volumetric_rate.reset();
                 temperature.reset();
+                layer_duration.reset();
             }
         };
 
@@ -712,6 +715,8 @@ public:
         Tool,
         ColorPrint,
         FilamentId,
+        LayerTime,
+        LayerTimeLog,
         Count
     };
 
