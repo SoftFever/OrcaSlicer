@@ -2330,7 +2330,11 @@ bool GUI_App::on_init_inner()
     copy_network_if_available();
     on_init_network();
 
-    //BBS if load user preset failed
+    if (app_config->get("sync_user_preset") == "true" && m_agent && m_agent->is_user_login()) {
+        enable_user_preset_folder(true);
+    }
+
+    // BBS if load user preset failed
     //if (loaded_preset_result != 0) {
         try {
             // Enable all substitutions (in both user and system profiles), but log the substitutions in user profiles only.
