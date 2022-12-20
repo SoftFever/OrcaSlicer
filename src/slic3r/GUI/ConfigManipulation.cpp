@@ -174,15 +174,14 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
 
     // layer_height shouldn't be equal to zero
     auto gpreset = GUI::wxGetApp().preset_bundle->printers.get_edited_preset();
-    auto min_lh = gpreset.config.opt_float("min_layer_height",0);
-    if (min_lh > 0 && config->opt_float("layer_height") < min_lh)
+    if (config->opt_float("layer_height") < EPSILON)
     {
-         wxString msg_text = wxString::Format(L"Too small layer height.\nReset to  %0.3f", min_lh);
-        MessageDialog dialog(m_msg_dlg_parent, msg_text,"", wxICON_WARNING | wxOK);
+        const wxString msg_text = _(L("Too small layer height.\nReset to 0.2"));
+        MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist = true;
         dialog.ShowModal();
-        new_conf.set_key_value("layer_height", new ConfigOptionFloat(min_lh));
+        new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.2));
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
