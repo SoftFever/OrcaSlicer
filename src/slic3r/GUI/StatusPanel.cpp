@@ -1843,7 +1843,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         for (auto ams = obj->amsList.begin(); ams != obj->amsList.end(); ams++) {
             AMSinfo info;
             info.ams_id = ams->first;
-            if (ams->second->is_exists && info.parse_ams_info(ams->second, obj->ams_calibrate_remain_flag)) ams_info.push_back(info);
+            if (ams->second->is_exists && info.parse_ams_info(ams->second, obj->ams_calibrate_remain_flag, obj->is_support_ams_humidity)) ams_info.push_back(info);
         }
         //if (obj->ams_exist_bits != last_ams_exist_bits || obj->tray_exist_bits != last_tray_exist_bits || obj->tray_is_bbl_bits != last_tray_is_bbl_bits ||
         //    obj->tray_read_done_bits != last_read_done_bits || obj->ams_version != last_ams_version) {

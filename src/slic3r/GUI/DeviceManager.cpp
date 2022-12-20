@@ -1271,12 +1271,18 @@ void MachineObject::parse_version_func()
                 is_xcam_buildplate_supported            = false;
                 xcam_support_recovery_step_loss         = false;
                 is_support_send_to_sdcard               = false;
+                is_support_1080dpi                      = false;
+                is_support_ai_monitoring                = false;
+                is_support_ams_humidity                 = false;
             } else {
                 ams_support_remain                      = true;
                 ams_support_auto_switch_filament_flag   = true;
                 is_xcam_buildplate_supported            = true;
                 xcam_support_recovery_step_loss         = true;
                 is_support_send_to_sdcard               = true;
+                is_support_1080dpi                      = true;
+                is_support_ai_monitoring                = true;
+                is_support_ams_humidity                 = true;
             }
         }
     }
@@ -2010,6 +2016,9 @@ bool MachineObject::is_function_supported(PrinterFunction func)
         func_name = "FUNC_FIRSTLAYER_INSPECT";
         break;
     case FUNC_AI_MONITORING:
+        parse_version_func();
+        if (!is_support_ai_monitoring)
+            return false;
         func_name = "FUNC_AI_MONITORING";
         break;
     case FUNC_BUILDPLATE_MARKER_DETECT:

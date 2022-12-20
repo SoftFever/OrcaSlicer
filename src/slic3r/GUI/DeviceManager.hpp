@@ -589,6 +589,11 @@ public:
     int  xcam_auto_recovery_hold_count = 0;
     int  ams_print_option_count = 0;
 
+    /*not support U2*/
+    bool is_support_1080dpi {false};
+    bool is_support_ai_monitoring {false};
+    bool is_support_ams_humidity {false};
+
     /* sdcard */
     MachineObject::SdcardState sdcard_state { NO_SDCARD };
     MachineObject::SdcardState get_sdcard_state();
