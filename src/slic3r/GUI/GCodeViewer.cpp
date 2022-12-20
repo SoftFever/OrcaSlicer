@@ -255,6 +255,8 @@ GCodeViewer::Color GCodeViewer::Extrusions::Range::get_color_at(float value) con
 {
     // Input value scaled to the colors range
     const float step = step_size();
+    if(log_scale)
+        value = std::log(value);
     const float global_t = (step != 0.0f) ? std::max(0.0f, value - min) / step : 0.0f; // lower limit of 0.0f
 
     const size_t color_max_idx = Range_Colors.size() - 1;
@@ -274,8 +276,8 @@ GCodeViewer::Color GCodeViewer::Extrusions::Range::get_color_at(float value) con
     return ret;
 }
 
-float GCodeViewer::Extrusions::Range::step_size(bool is_log) const {
-    if (is_log)
+float GCodeViewer::Extrusions::Range::step_size() const {
+    if (log_scale)
     {
         float min_range = min;
         if (min_range == 0)
@@ -285,6 +287,13 @@ float GCodeViewer::Extrusions::Range::step_size(bool is_log) const {
         return (max - min) / (static_cast<float>(Range_Colors.size()) - 1.0f);
 }
 
+float GCodeViewer::Extrusions::Range::get_value_at_step(int step) const {
+    if (!log_scale)
+        return min + static_cast<float>(step) * step_size();
+    else
+        return std::exp(std::log(min) + static_cast<float>(step) * step_size());
+
+}
 GCodeViewer::SequentialRangeCap::~SequentialRangeCap() {
     if (ibo > 0)
         glsafe(::glDeleteBuffers(1, &ibo));
@@ -377,7 +386,6 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     std::string speed = ImGui::ColorMarkerStart + _u8L("Speed: ") + ImGui::ColorMarkerEnd;
     std::string flow = ImGui::ColorMarkerStart + _u8L("Flow: ") + ImGui::ColorMarkerEnd;
     std::string layer_time = ImGui::ColorMarkerStart + _u8L("Layer Time: ") + ImGui::ColorMarkerEnd;
-    std::string layer_time_log = ImGui::ColorMarkerStart + _u8L("Layer Time (log): ") + ImGui::ColorMarkerEnd;
     std::string fanspeed = ImGui::ColorMarkerStart + _u8L("Fan Speed: ") + ImGui::ColorMarkerEnd;
     std::string temperature = ImGui::ColorMarkerStart + _u8L("Temperature: ") + ImGui::ColorMarkerEnd;
     const float item_size = imgui.calc_text_size("X: 000.000  ").x;
@@ -446,6 +454,14 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         case EViewType::Temperature: {
             ImGui::SameLine(window_padding + item_size + item_spacing);
             sprintf(buf, "%s%.0f", temperature.c_str(), it->temperature);
+            ImGui::PushItemWidth(item_size);
+            imgui.text(buf);
+            break;
+        }
+        case EViewType::LayerTime:
+        case EViewType::LayerTimeLog: {
+            ImGui::SameLine(window_padding + item_size + item_spacing);
+            sprintf(buf, "%s%.1f", layer_time.c_str(), it->layer_duration);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
@@ -1150,8 +1166,10 @@ void GCodeViewer::refresh(const GCodeProcessorResult& gcode_result, const std::v
             if (curr.extrusion_role != erCustom || is_visible(erCustom))
                 m_extrusions.ranges.volumetric_rate.update_from(round_to_bin(curr.volumetric_rate()));
             
-            if (curr.layer_duration > 0.f)
+            if (curr.layer_duration > 0.f) {
                 m_extrusions.ranges.layer_duration.update_from(curr.layer_duration);
+                m_extrusions.ranges.layer_duration_log.update_from(curr.layer_duration);
+            }
             [[fallthrough]];
         }
         case EMoveType::Travel:
@@ -3212,7 +3230,7 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
         case EViewType::FanSpeed:       { color = m_extrusions.ranges.fan_speed.get_color_at(path.fan_speed); break; }
         case EViewType::Temperature:    { color = m_extrusions.ranges.temperature.get_color_at(path.temperature); break; }
         case EViewType::LayerTime:      { color = m_extrusions.ranges.layer_duration.get_color_at(path.layer_time); break; }
-        case EViewType::LayerTimeLog:   { color = m_extrusions.ranges.layer_duration.get_color_at(path.layer_time); break; }
+        case EViewType::LayerTimeLog:   { color = m_extrusions.ranges.layer_duration_log.get_color_at(path.layer_time); break; }
         case EViewType::VolumetricRate: { color = m_extrusions.ranges.volumetric_rate.get_color_at(path.volumetric_rate); break; }
         case EViewType::Tool:           { color = m_tools.m_tool_colors[path.extruder_id]; break; }
         case EViewType::ColorPrint:     {
@@ -4230,7 +4248,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
 
     };
 
-    auto append_range = [append_item](const Extrusions::Range& range, unsigned int decimals, bool is_log = false) {
+    auto append_range = [append_item](const Extrusions::Range& range, unsigned int decimals) {
         auto append_range_item = [append_item](int i, float value, unsigned int decimals) {
             char buf[1024];
             ::sprintf(buf, "%.*f", decimals, value);
@@ -4245,12 +4263,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             append_range_item(0, range.min, decimals);
         }
         else {
-            const float step_size = range.step_size(is_log);
+            const float step_size = range.step_size();
             for (int i = static_cast<int>(Range_Colors.size()) - 1; i >= 0; --i) {
-                if (!is_log)
-                    append_range_item(i, range.min + static_cast<float>(i) * step_size, decimals);
-                else
-                    append_range_item(i, std::exp(std::log(range.min) + static_cast<float>(i) * step_size),decimals);
+                append_range_item(i, range.get_value_at_step(i), decimals);
                 
                 
             }
@@ -4620,7 +4635,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     case EViewType::FanSpeed:       { append_range(m_extrusions.ranges.fan_speed, 0); break; }
     case EViewType::Temperature:    { append_range(m_extrusions.ranges.temperature, 0); break; }
     case EViewType::LayerTime:      { append_range(m_extrusions.ranges.layer_duration, true); break; }
-    case EViewType::LayerTimeLog:   { append_range(m_extrusions.ranges.layer_duration, true, true); break; }
+    case EViewType::LayerTimeLog:   { append_range(m_extrusions.ranges.layer_duration_log, true); break; }
     case EViewType::VolumetricRate: { append_range(m_extrusions.ranges.volumetric_rate, 2); break; }
     case EViewType::Tool:
     {
