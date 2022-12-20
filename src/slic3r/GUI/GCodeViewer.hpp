@@ -399,19 +399,21 @@ class GCodeViewer
             float min;
             float max;
             unsigned int count;
+            bool log_scale;
 
             Range() { reset(); }
-
             void update_from(const float value) {
                 if (value != max && value != min)
                     ++count;
                 min = std::min(min, value);
                 max = std::max(max, value);
             }
-            void reset() { min = FLT_MAX; max = -FLT_MAX; count = 0; }
+            void reset(bool log = false) { min = FLT_MAX; max = -FLT_MAX; count = 0; log_scale = false; log_scale = log; }
 
-            float step_size(bool is_log = false) const;
+            float step_size() const;
             Color get_color_at(float value) const;
+            float get_value_at_step(int step) const;
+
         };
 
         struct Ranges
@@ -430,6 +432,7 @@ class GCodeViewer
             Range temperature;
             // Color mapping by layer time.
             Range layer_duration;
+            Range layer_duration_log;
             void reset() {
                 height.reset();
                 width.reset();
@@ -438,6 +441,7 @@ class GCodeViewer
                 volumetric_rate.reset();
                 temperature.reset();
                 layer_duration.reset();
+                layer_duration_log.reset(true);
             }
         };
 
