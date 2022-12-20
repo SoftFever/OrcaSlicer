@@ -36,14 +36,14 @@
 namespace Slic3r {
 namespace GUI {
 
-#define BORDER_W 10
+#define BORDER_W FromDIP(10)
 
 //------------------------------------------
 //          PhysicalPrinterDialog
 //------------------------------------------
 
 PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
-    DPIDialog(parent, wxID_ANY, _L("Physical Printer"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), -1), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    DPIDialog(parent, wxID_ANY, _L("Physical Printer"), wxDefaultPosition, wxSize(45 * wxGetApp().em_unit(), -1), wxDEFAULT_DIALOG_STYLE)
 {
     SetFont(wxGetApp().normal_font());
     SetBackgroundColour(*wxWHITE);
@@ -61,18 +61,17 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
     label_top->SetFont(::Label::Body_13);
     label_top->SetForegroundColour(wxColour(38,46,48));
 
-    m_input_area = new RoundedRectangle(this, wxColor(172, 172, 172), wxDefaultPosition, wxSize(-1,-1), 3, 1);
+    m_input_area = new RoundedRectangle(this, wxColour(172, 172, 172), wxDefaultPosition, wxSize(-1, -1), 3, 1);
     m_input_area->SetMinSize(wxSize(FromDIP(360), FromDIP(32)));
 
     wxBoxSizer *input_sizer_h = new wxBoxSizer(wxHORIZONTAL);
-    wxBoxSizer *input_sizer_v  = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *input_sizer_v = new wxBoxSizer(wxVERTICAL);
 
-    m_input_ctrl = new wxTextCtrl(m_input_area, -1, from_u8(preset_name), wxDefaultPosition, wxSize(wxSize(FromDIP(360), FromDIP(32)).x, -1), 0 | wxBORDER_NONE);
-    m_input_ctrl->SetBackgroundColour(wxColour(255, 255, 255));
+    m_input_ctrl = new wxTextCtrl(m_input_area, -1, from_u8(preset_name), wxDefaultPosition, wxSize(FromDIP(360), -1), 0 | wxBORDER_NONE);
+    m_input_ctrl->SetBackgroundColour(*wxWHITE);
     m_input_ctrl->Bind(wxEVT_TEXT, [this](wxCommandEvent &) { update(); });
 
-
-    input_sizer_v->Add(m_input_ctrl, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 12);
+    input_sizer_v->Add(m_input_ctrl, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, BORDER_W);
     input_sizer_h->Add(input_sizer_v, 0, wxALIGN_CENTER, 0);
 
     m_input_area->SetSizer(input_sizer_h);
@@ -90,20 +89,45 @@ PhysicalPrinterDialog::PhysicalPrinterDialog(wxWindow* parent) :
     m_optgroup = new ConfigOptionsGroup(this, _L("Print Host upload"), m_config);
     build_printhost_settings(m_optgroup);
 
-    wxStdDialogButtonSizer* btns = this->CreateStdDialogButtonSizer(wxOK | wxCANCEL);
-    btnOK = static_cast<wxButton*>(this->FindWindowById(wxID_OK, this));
-    wxGetApp().UpdateDarkUI(btnOK);
-    btnOK->Bind(wxEVT_BUTTON, &PhysicalPrinterDialog::OnOK, this);
+    auto button_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)));
-    (static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this)))->Hide();
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
 
-    wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
+    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                            std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+
+    m_button_ok = new Button(this, _L("OK"));
+    m_button_ok->SetBackgroundColor(btn_bg_green);
+    m_button_ok->SetBorderColor(*wxWHITE);
+    m_button_ok->SetTextColor(*wxWHITE);
+    m_button_ok->SetFont(Label::Body_12);
+    m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_ok->SetCornerRadius(FromDIP(12));
+
+    m_button_ok->Bind(wxEVT_LEFT_DOWN, &PhysicalPrinterDialog::OnOK, this);
+
+    m_button_cancel = new Button(this, _L("Cancel"));
+    m_button_cancel->SetBackgroundColor(btn_bg_white);
+    m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
+    m_button_cancel->SetFont(Label::Body_12);
+    m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_cancel->SetCornerRadius(FromDIP(12));
+
+    m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](auto &e) { this->EndModal(wxID_NO);});
+
+    button_sizer->AddStretchSpacer();
+    button_sizer->Add(m_button_ok, 0, wxALL, FromDIP(5));
+    button_sizer->Add(m_button_cancel, 0, wxALL, FromDIP(5));
+
+    wxBoxSizer *topSizer = new wxBoxSizer(wxVERTICAL);
 
     // topSizer->Add(label_top           , 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, BORDER_W);
-    topSizer->Add(input_sizer         , 0, wxEXPAND | wxALL, BORDER_W);
-    topSizer->Add(m_optgroup->sizer   , 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, BORDER_W);
-    topSizer->Add(btns                , 0, wxEXPAND | wxALL, BORDER_W);
+    topSizer->Add(input_sizer, 0, wxEXPAND | wxALL, BORDER_W);
+    topSizer->Add(m_optgroup->sizer, 1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, BORDER_W);
+    topSizer->Add(button_sizer, 0, wxEXPAND | wxALL, BORDER_W);
 
     Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {this->EndModal(wxID_NO);});
 
@@ -209,7 +233,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
 
     const auto ca_file_hint = _u8L("HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate.");
 
-    if (Http::ca_file_supported()) {
+    /*if (Http::ca_file_supported()) {
         option = m_optgroup->get_option("printhost_cafile");
         option.opt.width = Field::def_width_wider();
         Line cafile_line = m_optgroup->create_single_option_line(option);
@@ -231,14 +255,14 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
         cafile_line.append_widget(printhost_cafile_browse);
         //m_optgroup->append_line(cafile_line);
 
-        /*Line cafile_hint{ "", "" };
-        cafile_hint.full_width = 1;
-        cafile_hint.widget = [ca_file_hint](wxWindow* parent) {
-            auto txt = new wxStaticText(parent, wxID_ANY, ca_file_hint);
-            auto sizer = new wxBoxSizer(wxHORIZONTAL);
-            sizer->Add(txt);
-            return sizer;
-        };*/
+        //Line cafile_hint{ "", "" };
+        //cafile_hint.full_width = 1;
+        //cafile_hint.widget = [ca_file_hint](wxWindow* parent) {
+        //    auto txt = new wxStaticText(parent, wxID_ANY, ca_file_hint);
+        //    auto sizer = new wxBoxSizer(wxHORIZONTAL);
+        //    sizer->Add(txt);
+        //    return sizer;
+        //};
         //m_optgroup->append_line(cafile_hint);
     }
     else {
@@ -259,7 +283,7 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
         //    return sizer;
         //};
         //m_optgroup->append_line(line);
-    }
+    }*/
 
     for (const std::string& opt_key : std::vector<std::string>{ "printhost_user", "printhost_password" }) {        
         option = m_optgroup->get_option(opt_key);
@@ -389,12 +413,12 @@ void PhysicalPrinterDialog::update_preset_input() {
     m_valid_label->Show(!info_line.IsEmpty());
 
     if (m_valid_type == NoValid) {
-        if (btnOK)
-            btnOK->Disable();
+        if (m_button_ok)
+            m_button_ok->Disable();
     }
     else {
-        if (btnOK)
-            btnOK->Enable();
+        if (m_button_ok)
+            m_button_ok->Enable();
     }
 }
 
@@ -518,10 +542,10 @@ void PhysicalPrinterDialog::on_dpi_changed(const wxRect& suggested_rect)
     Refresh();
 }
 
-void PhysicalPrinterDialog::OnOK(wxEvent& event)
+void PhysicalPrinterDialog::OnOK(wxMouseEvent& event)
 {
     wxGetApp().get_tab(Preset::TYPE_PRINTER)->save_preset("", false, false, true, m_preset_name );
-    event.Skip();
+    this->EndModal(wxID_YES);
 }
 
 }}    // namespace Slic3r::GUI
