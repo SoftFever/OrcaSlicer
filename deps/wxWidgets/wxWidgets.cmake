@@ -49,6 +49,7 @@ bambustudio_add_cmake_project(wxWidgets
         -DwxUSE_LIBJPEG=sys
         -DwxUSE_LIBTIFF=sys
         -DwxUSE_EXPAT=sys
+        -DwxUSE_GLCANVAS_EGL=OFF
 )
 
 if (MSVC)
