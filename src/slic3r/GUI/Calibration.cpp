@@ -174,7 +174,6 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     Fit();
 
     m_calibration_btn->Bind(wxEVT_LEFT_DOWN, &CalibrationDialog::on_start_calibration, this);
-    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 CalibrationDialog::~CalibrationDialog() {}
@@ -296,7 +295,10 @@ void CalibrationDialog::update_machine_obj(MachineObject *obj) { m_obj = obj; }
 
 bool CalibrationDialog::Show(bool show) 
 {
-    if (show) { CentreOnParent(); }
+    if (show) { 
+        wxGetApp().UpdateDlgDarkUI(this);
+        CentreOnParent(); 
+    }
     return DPIDialog::Show(show);
 }
 
