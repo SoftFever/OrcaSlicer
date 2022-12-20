@@ -250,9 +250,6 @@ int wmain(int argc, wchar_t **argv)
     bool load_mesa =
         // Forced from the command line.
         force_mesa ||
-        // Running over a rempote desktop, and the RemoteFX is not enabled, therefore Windows will only provide SW OpenGL 1.1 context.
-        // In that case, use Mesa.
-        ::GetSystemMetrics(SM_REMOTESESSION) ||
         // Try to load the default OpenGL driver and test its context version.
         ! opengl_version_check.load_opengl_dll() || ! opengl_version_check.is_version_greater_or_equal_to(2, 0);
 #endif /* SLIC3R_GUI */

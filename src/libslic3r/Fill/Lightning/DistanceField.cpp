@@ -43,7 +43,8 @@ DistanceField::DistanceField(const coord_t& radius, const Polygons& current_outl
     m_supporting_radius2 = Slic3r::sqr(int64_t(radius));
     // Sample source polygons with a regular grid sampling pattern.
     const BoundingBox overhang_bbox = get_extents(current_overhang);
-    for (const ExPolygon &expoly : union_ex(current_overhang)) {
+    ExPolygons expolys = offset2_ex(union_ex(current_overhang), -m_cell_size / 2, m_cell_size / 2); // remove dangling lines which causes sample_grid_pattern crash (fails the OUTER_LOW assertions)
+    for (const ExPolygon &expoly : expolys) {
         const Points sampled_points               = sample_grid_pattern(expoly, m_cell_size, overhang_bbox);
         const size_t unsupported_points_prev_size = m_unsupported_points.size();
         m_unsupported_points.resize(unsupported_points_prev_size + sampled_points.size());
@@ -94,10 +95,6 @@ DistanceField::DistanceField(const coord_t& radius, const Polygons& current_outl
 
 void DistanceField::update(const Point& to_node, const Point& added_leaf)
 {
-    std::ofstream out1("z:/misc/lightning.txt", std::ios::app);
-    out1 << m_unsupported_points.size() << std::endl;
-    out1.close();
-
     Vec2d       v  = (added_leaf - to_node).cast<double>();
     auto        l2 = v.squaredNorm();
     Vec2d       extent = Vec2d(-v.y(), v.x()) * m_supporting_radius / sqrt(l2);

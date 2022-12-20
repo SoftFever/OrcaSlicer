@@ -1233,6 +1233,27 @@ void StackImpl::release_least_recently_used()
 			break;
 #endif
 		} else {
+			// FIX: reduce_noisy_snapshots
+			if (m_snapshots.front().snapshot_data.snapshot_type == SnapshotType::EnteringGizmo) {
+                auto it_last = m_snapshots.begin() + 1;
+                if (it_last->snapshot_data.snapshot_type == SnapshotType::GizmoAction) {
+                    auto it = m_snapshots.begin();
+                    // Drop (it, it_last>
+                    for (auto &kvp : m_objects)
+                        // Drop products of <it + 1, it_last + 1>
+                        mem_released += kvp.second->release_between_timestamps(it->timestamp, (it_last + 1)->timestamp);
+                    m_snapshots.erase(it + 1, it_last + 1);
+                    assert(current_memsize >= mem_released);
+                    if (current_memsize >= mem_released)
+                        current_memsize -= mem_released;
+                    else
+                        current_memsize = 0;
+					continue;
+                }
+				if (it_last->snapshot_data.snapshot_type != SnapshotType::LeavingGizmoWithAction &&
+                       it_last->snapshot_data.snapshot_type != SnapshotType::LeavingGizmoNoAction)
+					break;
+            }
 			// Remove the first snapshot.
 			for (auto it = m_objects.begin(); it != m_objects.end();) {
 				mem_released += it->second->release_before_timestamp(m_snapshots[1].timestamp);
@@ -1245,7 +1266,9 @@ void StackImpl::release_least_recently_used()
 				} else
 					++ it;
 			}
-			//FIXME update the "saved" snapshot time.
+			//FIXME update the "saved" snapshot time. DONE
+            if (m_snapshots.front().timestamp == m_saved_snapshot_time)
+				m_saved_snapshot_time = size_t(-1);
 			m_snapshots.erase(m_snapshots.begin());
 		}
 		assert(current_memsize >= mem_released);

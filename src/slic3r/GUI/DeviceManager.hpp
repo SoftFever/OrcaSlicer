@@ -11,18 +11,25 @@
 #include "libslic3r/ProjectTask.hpp"
 #include "slic3r/Utils/json_diff.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
+#include "CameraPopup.hpp"
 
 #define USE_LOCAL_SOCKET_BIND 0
 
 #define DISCONNECT_TIMEOUT      30000.f     // milliseconds
 #define PUSHINFO_TIMEOUT        15000.f     // milliseconds
+#define TIMEOUT_FOR_STRAT       20000.f     // milliseconds
 #define REQUEST_PUSH_MIN_TIME   15000.f     // milliseconds
+#define REQUEST_START_MIN_TIME  15000.f     // milliseconds
 
 #define FILAMENT_MAX_TEMP       300
 #define FILAMENT_DEF_TEMP       220
 #define FILAMENT_MIN_TEMP       120
+#define BED_TEMP_LIMIT          120
 
 #define HOLD_COUNT_MAX          3
+#define HOLD_COUNT_CAMERA       6
+#define GET_VERSION_RETRYS      10
+#define RETRY_INTERNAL          2000
 
 inline int correct_filament_temperature(int filament_temp)
 {
@@ -61,7 +68,9 @@ enum PrinterFunction {
     FUNC_TIMELAPSE,
     FUNC_RECORDING,
     FUNC_FIRSTLAYER_INSPECT,
-    FUNC_SPAGHETTI,
+    FUNC_AI_MONITORING,
+    FUNC_BUILDPLATE_MARKER_DETECT,
+    FUNC_AUTO_RECOVERY_STEP_LOSS,
     FUNC_FLOW_CALIBRATION,
     FUNC_AUTO_LEVELING,
     FUNC_CHAMBER_TEMP,
@@ -70,6 +79,12 @@ enum PrinterFunction {
     FUNC_REMOTE_TUNNEL,
     FUNC_LOCAL_TUNNEL,
     FUNC_PRINT_WITHOUT_SD,
+    FUNC_VIRTUAL_CAMERA,
+    FUNC_USE_AMS,
+    FUNC_ALTER_RESOLUTION,
+    FUNC_SEND_TO_SDCARD,
+    FUNC_AUTO_SWITCH_FILAMENT,
+    FUNC_CHAMBER_FAN,
     FUNC_MAX
 };
 
@@ -126,6 +141,12 @@ enum AmsRfidStatus {
     AMS_RFID_HAS_FILAMENT   = 6
 };
 
+enum AmsOptionType {
+    AMS_OP_STARTUP_READ,
+    AMS_OP_TRAY_READ,
+    AMS_OP_CALIBRATE_REMAIN
+};
+
 class AmsTray {
 public:
     AmsTray(std::string tray_id) {
@@ -177,6 +198,7 @@ public:
     bool            is_bbl;
     bool            is_exists = false;
     int             hold_count = 0;
+    int             remain = 0;         // filament remain: 0 ~ 100
 
     AmsRoadPosition road_position;
     AmsStep         step_state;
@@ -199,6 +221,7 @@ public:
         id = ams_id;
     }
     std::string   id;
+    int           humidity = 5;
     bool          startup_read_opt{true};
     bool          tray_read_opt{false};
     bool          is_exists{false};
@@ -288,6 +311,8 @@ private:
     NetworkAgent* m_agent { nullptr };
 
     bool check_valid_ip();
+    void _parse_print_option_ack(int option);
+
 public:
 
     enum LIGHT_EFFECT {
@@ -310,6 +335,18 @@ public:
         UpgradingFinished = 3
     };
 
+    enum ExtruderAxisStatus {
+        LOAD = 0,
+        UNLOAD =1,
+        STATUS_NUMS = 2
+    };
+    enum ExtruderAxisStatus extruder_axis_status = LOAD;
+
+    enum PrintOption {
+        PRINT_OP_AUTO_RECOVERY = 0,
+        PRINT_OP_MAX,
+    };
+
     class ModuleVersionInfo
     {
     public:
@@ -320,10 +357,18 @@ public:
         std::string sw_new_ver;
     };
 
+    enum SdcardState {
+        NO_SDCARD = 0,
+        HAS_SDCARD_NORMAL = 1,
+        HAS_SDCARD_ABNORMAL = 2,
+        SDCARD_STATE_NUM = 3
+    };
+
     /* static members and functions */
     static inline int m_sequence_id = 20000;
     static std::string parse_printer_type(std::string type_str);
     static std::string get_preset_printer_model_name(std::string printer_type);
+    static std::string get_preset_printer_thumbnail_img(std::string printer_type);
     static bool is_bbl_filament(std::string tag_uid);
 
     typedef std::function<void()> UploadedFn;
@@ -343,8 +388,13 @@ public:
     bool is_lan_mode_printer();
     //PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
     std::string printer_type;       /* model_id */
+
+    std::string printer_thumbnail_img;
+    std::string monitor_upgrade_printer_img;
+
     wxString get_printer_type_display_str();
 
+    std::string get_printer_thumbnail_img_str();
     std::string product_name;       // set by iot service, get /user/print
 
     std::string bind_user_name;
@@ -353,10 +403,14 @@ public:
     bool is_avaliable() { return bind_state == "free"; }
     time_t last_alive;
     bool m_is_online;
+    bool m_lan_mode_connection_state{false};
+    void set_lan_mode_connection_state(bool state) {m_lan_mode_connection_state = state;};
+    bool get_lan_mode_connection_state() {return m_lan_mode_connection_state;};
     int  parse_msg_count = 0;
     std::chrono::system_clock::time_point   last_update_time;   /* last received print data from machine */
     std::chrono::system_clock::time_point   last_push_time;     /* last received print push from machine */
     std::chrono::system_clock::time_point   last_request_push;  /* last received print push from machine */
+    std::chrono::system_clock::time_point   last_request_start; /* last received print push from machine */
 
     /* ams properties */
     std::map<std::string, Ams*> amsList;    // key: ams[id], start with 0
@@ -368,7 +422,10 @@ public:
     int   ams_rfid_status = 0;
     bool  ams_insert_flag { false };
     bool  ams_power_on_flag { false };
+    bool  ams_calibrate_remain_flag { false };
+    bool  ams_auto_switch_filament_flag  { false };
     bool  ams_support_use_ams { false };
+    int   ams_humidity;
     int   ams_user_setting_hold_count = 0;
     AmsStatusMain ams_status_main;
     int   ams_status_sub;
@@ -388,13 +445,14 @@ public:
     // parse amsStatusMain and ams_status_sub
     void _parse_ams_status(int ams_status);
     bool has_ams() { return ams_exist_bits != 0; }
+    bool can_unload_filament();
     bool is_U0_firmware();
     bool is_support_ams_mapping();
     bool is_only_support_cloud_print();
     static bool is_support_ams_mapping_version(std::string module, std::string version);
 
     int ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<int> exclude_id = std::vector<int>());
-    bool is_valid_mapping_result(std::vector<FilamentInfo>& result);
+    bool is_valid_mapping_result(std::vector<FilamentInfo>& result, bool check_empty_slot = false);
     // exceed index start with 0
     bool is_mapping_exceed_filament(std::vector<FilamentInfo>& result, int &exceed_index);
     void reset_mapping_result(std::vector<FilamentInfo>& result);
@@ -402,6 +460,8 @@ public:
     /*online*/
     bool   online_rfid;
     bool   online_ahb;
+    int    online_version = -1;
+    int    last_online_version = -1;
 
     /* temperature */
     float  nozzle_temp;
@@ -416,6 +476,7 @@ public:
     int     cooling_fan_speed = 0;
     int     big_fan1_speed = 0;
     int     big_fan2_speed = 0;
+    uint32_t fan_gear       = 0;
 
     /* signals */
     std::string wifi_signal;
@@ -431,7 +492,7 @@ public:
     /* upgrade */
     bool upgrade_force_upgrade { false };
     bool upgrade_new_version { false };
-    bool upgrade_consistency_request;
+    bool upgrade_consistency_request { false };
     int upgrade_display_state = 0;           // 0 : upgrade unavailable, 1: upgrade idle, 2: upgrading, 3: upgrade_finished
     PrinterFirmwareType       firmware_type; // engineer|production
     std::string upgrade_progress;
@@ -441,6 +502,7 @@ public:
     std::string ams_new_version_number;
     std::string ota_new_version_number;
     std::string ahb_new_version_number;
+    int get_version_retry = 0;
     std::map<std::string, ModuleVersionInfo> module_vers;
     std::map<std::string, ModuleVersionInfo> new_ver_list;
     bool    m_new_ver_list_exist = false;
@@ -452,12 +514,17 @@ public:
     bool is_upgrading_avalable();
     int get_upgrade_percent();
     std::string get_ota_version();
+    bool check_version_valid();
     wxString get_upgrade_result_str(int upgrade_err_code);
     // key: ams_id start as 0,1,2,3
     std::map<int, ModuleVersionInfo> get_ams_version();
 
     /* printing */
     std::string print_type;
+    float   nozzle { 0.0f };
+    bool    is_220V_voltage { false };
+
+
     int     mc_print_stage;
     int     mc_print_sub_stage;
     int     mc_print_error_code;
@@ -487,6 +554,7 @@ public:
     bool is_calibration_done();
 
     void parse_state_changed_event();
+    void parse_status(int flag);
 
     /* printing status */
     std::string print_status;      /* enum string: FINISH, RUNNING, PAUSE, INIT, FAILED */
@@ -494,17 +562,32 @@ public:
     PrintingSpeedLevel printing_speed_lvl;
     int                printing_speed_mag = 100;
     PrintingSpeedLevel _parse_printing_speed_lvl(int lvl);
+    int get_bed_temperature_limit();
 
     /* camera */
     bool has_ipcam { false };
     bool camera_recording { false };
+    bool camera_recording_when_printing { false };
     bool camera_timelapse { false };
-    bool camera_has_sdcard { false };
+    int  camera_recording_hold_count = 0;
+    int  camera_timelapse_hold_count = 0;
+    int  camera_resolution_hold_count = 0;
+    std::string camera_resolution = "";
     bool xcam_first_layer_inspector { false };
     int  xcam_first_layer_hold_count = 0;
-    bool xcam_spaghetti_detector { false };
-    bool xcam_spaghetti_print_halt{ false };
-    int  xcam_spaghetti_hold_count = 0;
+
+    bool xcam_ai_monitoring{ false };
+    int  xcam_ai_monitoring_hold_count = 0;
+    std::string xcam_ai_monitoring_sensitivity;
+    bool xcam_buildplate_marker_detector{ false };
+    int  xcam_buildplate_marker_hold_count = 0;
+    bool xcam_auto_recovery_step_loss{ false };
+    int  xcam_auto_recovery_hold_count = 0;
+    int  ams_print_option_count = 0;
+
+    /* sdcard */
+    MachineObject::SdcardState sdcard_state { NO_SDCARD };
+    MachineObject::SdcardState get_sdcard_state();
 
     /* HMS */
     std::vector<HMSItem>    hms_list;
@@ -523,6 +606,7 @@ public:
     BBLSliceInfo* slice_info {nullptr};
     boost::thread* get_slice_info_thread { nullptr };
 
+
     int plate_index { -1 };
     std::string m_gcode_file;
     int gcode_file_prepare_percent = 0;
@@ -531,26 +615,30 @@ public:
     std::string subtask_name;
     bool is_sdcard_printing();
     bool has_sdcard();
-    bool has_timelapse();
-    bool has_recording();
+    bool is_timelapse();
+    bool is_recording_enable();
+    bool is_recording();
 
 
     MachineObject(NetworkAgent* agent, std::string name, std::string id, std::string ip);
     ~MachineObject();
     /* command commands */
-    int command_get_version();
+    int command_get_version(bool with_retry = true);
     int command_request_push_all();
+    int command_pushing(std::string cmd);
 
     /* command upgrade */
     int command_upgrade_confirm();
     int command_consistency_upgrade_confirm();
     int command_upgrade_firmware(FirmwareInfo info);
+    int command_upgrade_module(std::string url, std::string module_type, std::string version);
 
     /* control apis */
     int command_xyz_abs();
     int command_auto_leveling();
     int command_go_home();
     int command_control_fan(FanType fan_type, bool on_off);
+    int command_control_fan_val(FanType fan_type, int val);
     int command_task_abort();
     int command_task_pause();
     int command_task_resume();
@@ -559,7 +647,9 @@ public:
     // ams controls
     int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);
     int command_ams_change_filament(int tray_id, int old_temp = 210, int new_temp = 210);
-    int command_ams_user_settings(int ams_id, bool start_read_opt, bool tray_read_opt);
+    int command_ams_user_settings(int ams_id, bool start_read_opt, bool tray_read_opt, bool remain_flag = false);
+    int command_ams_user_settings(int ams_id, AmsOptionType op, bool value);
+    int command_ams_switch_filament(bool switch_filament);
     int command_ams_calibrate(int ams_id);
     int command_ams_filament_settings(int ams_id, int tray_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max);
     int command_ams_select_tray(std::string tray_id);
@@ -571,20 +661,27 @@ public:
     // set printing speed
     int command_set_printing_speed(PrintingSpeedLevel lvl);
 
+    // set print option
+    int command_set_printing_option(bool auto_recovery);
+
     // axis string is X, Y, Z, E
     int command_axis_control(std::string axis, double unit = 1.0f, double value = 1.0f, int speed = 3000);
 
     // calibration printer
-    int command_start_calibration();
+    bool is_support_command_calibration();
+    int command_start_calibration(bool vibration, bool bed_leveling, bool xcam_cali);
 
     int command_unload_filament();
 
     // camera control
     int command_ipcam_record(bool on_off);
     int command_ipcam_timelapse(bool on_off);
-    int command_xcam_control(std::string module_name, bool on_off, bool print_halt);
+    int command_ipcam_resolution_set(std::string resolution);
+    int command_xcam_control(std::string module_name, bool on_off, std::string lvl = "");
+    int command_xcam_control_ai_monitoring(bool on_off, std::string lvl);
     int command_xcam_control_first_layer_inspector(bool on_off, bool print_halt);
-    int command_xcam_control_spaghetti_detector(bool on_off, bool print_halt);
+    int command_xcam_control_buildplate_marker_detector(bool on_off);
+    int command_xcam_control_auto_recovery_step_loss(bool on_off);
 
     /* common apis */
     inline bool is_local() { return !dev_ip.empty(); }
@@ -609,6 +706,7 @@ public:
     bool is_online() { return m_is_online; }
     bool is_info_ready();
     bool is_function_supported(PrinterFunction func);
+    std::vector<std::string> get_resolution_supported();
     bool is_support_print_with_timelapse();
 
 
@@ -645,6 +743,8 @@ public:
     std::map<std::string, MachineObject*> localMachineList;     /* dev_id -> MachineObject*, localMachine SSDP   */
     std::map<std::string, MachineObject*> userMachineList;      /* dev_id -> MachineObject*  cloudMachine of User */
 
+    void check_pushing();
+
     MachineObject* get_default_machine();
     MachineObject* get_local_selected_machine();
     MachineObject* get_local_machine(std::string dev_id);
@@ -677,8 +777,11 @@ public:
     static json function_table;
     static std::string parse_printer_type(std::string type_str);
     static std::string get_printer_display_name(std::string type_str);
+    static std::string get_printer_thumbnail_img(std::string type_str);
     static bool is_function_supported(std::string type_str, std::string function_name);
+    static std::vector<std::string> get_resolution_supported(std::string type_str);
 
+    static bool get_bed_temperature_limit(std::string type_str, int& limit);
     static bool load_functional_config(std::string config_file);
 };
 

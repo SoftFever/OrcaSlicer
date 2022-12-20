@@ -15,16 +15,15 @@ namespace GUI {
 
 
 ParamsDialog::ParamsDialog(wxWindow * parent)
-	: DPIDialog(parent, wxID_ANY,  _L(""), wxDefaultPosition,
+	: DPIDialog(parent, wxID_ANY,  "", wxDefaultPosition,
 		wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
 {
 	m_panel = new ParamsPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
-
 	auto* topsizer = new wxBoxSizer(wxVERTICAL);
 	topsizer->Add(m_panel, 1, wxALL | wxEXPAND, 0, NULL);
 
 	SetSizerAndFit(topsizer);
-	SetSize({70 * em_unit(), 60 * em_unit()});
+	SetSize({75 * em_unit(), 60 * em_unit()});
 
 	Layout();
 	Center();
@@ -54,11 +53,15 @@ ParamsDialog::ParamsDialog(wxWindow * parent)
 #else
         Hide();
 #endif
+        wxGetApp().sidebar().finish_param_edit();
     });
+
+    //wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void ParamsDialog::Popup()
 {
+    wxGetApp().UpdateDlgDarkUI(this);
 #ifdef __WIN32__
     Reparent(wxGetApp().mainframe);
 #endif
@@ -69,7 +72,7 @@ void ParamsDialog::Popup()
 void ParamsDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
 	Fit();
-	SetSize({70 * em_unit(), 60 * em_unit()});
+	SetSize({75 * em_unit(), 60 * em_unit()});
 	m_panel->msw_rescale();
 	Refresh();
 }

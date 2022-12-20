@@ -16,12 +16,20 @@
 
 namespace Slic3r {
 
+enum StringExceptionType {
+    STRING_EXCEPT_NOT_DEFINED                   = 0,
+    STRING_EXCEPT_FILAMENT_NOT_MATCH_BED_TYPE   = 1,
+    STRING_EXCEPT_COUNT
+};
+
 // BBS: error with object
 struct StringObjectException
 {
     std::string string;
     ObjectBase const *object = nullptr;
     std::string opt_key;
+    StringExceptionType         type;   // warning type for tips
+    std::vector<std::string>    params; // warning params for tips
 };
 
 class CanceledException : public std::exception
@@ -411,7 +419,9 @@ public:
     // After calling the apply() function, call set_task() to limit the task to be processed by process().
     virtual void            set_task(const TaskParams &params) {}
     // Perform the calculation. This is the only method that is to be called at a worker thread.
-    virtual void            process() = 0;
+    virtual void            process(bool use_cache = false) = 0;
+    virtual int             export_cached_data(const std::string& dir_path, bool with_space=false) { return 0;}
+    virtual int            load_cached_data(const std::string& directory) { return 0;}
     // Clean up after process() finished, either with success, error or if canceled.
     // The adjustments on the Print / PrintObject data due to set_task() are to be reverted here.
     virtual void            finalize() {}

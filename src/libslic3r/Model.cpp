@@ -14,6 +14,7 @@
 #include "Format/OBJ.hpp"
 #include "Format/STL.hpp"
 #include "Format/STEP.hpp"
+#include "Format/svg.hpp"
 // BBS
 #include "FaceDetector.hpp"
 
@@ -137,7 +138,7 @@ Model::~Model()
 // Loading model from a file, it may be a simple geometry file as STL or OBJ, however it may be a project file as well.
 Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions,
                             LoadStrategy options, PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, bool *is_xxx, Semver* file_version, Import3mfProgressFn proFn,
-                            ImportstlProgressFn stlFn, ImportStepProgressFn stepFn, StepIsUtf8Fn stepIsUtf8Fn, BBLProject* project)
+                            ImportstlProgressFn stlFn, ImportStepProgressFn stepFn, StepIsUtf8Fn stepIsUtf8Fn, BBLProject* project, int plate_id)
 {
     Model model;
 
@@ -159,6 +160,7 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
         file_version = &temp_version;
 
     bool result = false;
+    std::string message;
     if (boost::algorithm::iends_with(input_file, ".stp") ||
         boost::algorithm::iends_with(input_file, ".step"))
         result = load_step(input_file.c_str(), &model, stepFn, stepIsUtf8Fn);
@@ -166,6 +168,8 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn);
     else if (boost::algorithm::iends_with(input_file, ".obj"))
         result = load_obj(input_file.c_str(), &model);
+    else if (boost::algorithm::iends_with(input_file, ".svg"))
+        result = load_svg(input_file.c_str(), &model, message);
     //BBS: remove the old .amf.xml files
     //else if (boost::algorithm::iends_with(input_file, ".amf") || boost::algorithm::iends_with(input_file, ".amf.xml"))
     else if (boost::algorithm::iends_with(input_file, ".amf"))
@@ -176,12 +180,16 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
         // BBS: backup & restore
         //FIXME options & LoadStrategy::CheckVersion ?
         //BBS: is_xxx is used for is_bbs_3mf when load 3mf
-        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, is_xxx, file_version, proFn, options, project);
+        result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, is_xxx, file_version, proFn, options, project, plate_id);
     else
         throw Slic3r::RuntimeError("Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension.");
 
-    if (! result)
-        throw Slic3r::RuntimeError("Loading of a model file failed.");
+    if (!result) {
+        if (message.empty())
+            throw Slic3r::RuntimeError("Loading of a model file failed.");
+        else
+            throw Slic3r::RuntimeError(message);
+    }
 
     if (model.objects.empty())
         throw Slic3r::RuntimeError("The supplied file couldn't be read because it's empty");
@@ -203,7 +211,8 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
 //BBS: add part plate related logic
 // BBS: backup & restore
 // Loading model from a file (3MF or AMF), not from a simple geometry file (STL or OBJ).
-Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, En3mfType& out_file_type, LoadStrategy options, PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, Semver* file_version, Import3mfProgressFn proFn, BBLProject *project)
+Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, En3mfType& out_file_type, LoadStrategy options,
+        PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, Semver* file_version, Import3mfProgressFn proFn, BBLProject *project)
 {
     assert(config != nullptr);
     assert(config_substitutions != nullptr);
@@ -2911,13 +2920,14 @@ double getTemperatureFromExtruder(const ModelVolumePtrs objectVolumes) {
 
 double ModelInstance::get_auto_brim_width() const
 {
+    return 0.;
     double adhcoeff = getadhesionCoeff(object->volumes);
     double DeltaT = getTemperatureFromExtruder(object->volumes);
     // get auto brim width (Note even if the global brim_type=btOuterBrim, we can still go into this branch)
     return get_auto_brim_width(DeltaT, adhcoeff);
 }
 
-void ModelInstance::get_arrange_polygon(void* ap) const
+void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConfig &config_global) const
 {
 //    static const double SIMPLIFY_TOLERANCE_MM = 0.1;
 
@@ -2956,6 +2966,16 @@ void ModelInstance::get_arrange_polygon(void* ap) const
     ret.extrude_ids = volume->get_extruders();
     if (ret.extrude_ids.empty()) //the default extruder
         ret.extrude_ids.push_back(1);
+
+    // get per-object support extruders
+    auto op = object->get_config_value<ConfigOptionBool>(config_global, "enable_support");
+    bool is_support_enabled = op && op->getBool();
+    if (is_support_enabled) {
+        auto op1 = object->get_config_value<ConfigOptionInt>(config_global, "support_filament");
+        auto op2 = object->get_config_value<ConfigOptionInt>(config_global, "support_interface_filament");
+        if (op1) ret.extrude_ids.push_back(op1->getInt());
+        if (op2) ret.extrude_ids.push_back(op2->getInt());
+    }
 }
 
 indexed_triangle_set FacetsAnnotation::get_facets(const ModelVolume& mv, EnforcerBlockerType type) const

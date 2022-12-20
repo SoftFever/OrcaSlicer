@@ -99,6 +99,7 @@ bool GLGizmoMmuSegmentation::on_init()
 
     m_desc["clipping_of_view_caption"] = _L("Alt + Mouse wheel");
     m_desc["clipping_of_view"]     = _L("Section view");
+    m_desc["reset_direction"]     = _L("Reset direction");
     m_desc["cursor_size_caption"]  = _L("Ctrl + Mouse wheel");
     m_desc["cursor_size"]          = _L("Pen size");
     m_desc["cursor_type"]          = _L("Pen shape");
@@ -130,6 +131,10 @@ bool GLGizmoMmuSegmentation::on_init()
 
     m_desc["height_range_caption"] = _L("Ctrl + Mouse wheel");
     m_desc["height_range"]         = _L("Height range");
+
+    //add toggle wire frame hint
+    m_desc["toggle_wireframe_caption"]        = _L("Ctrl + Shift + Enter");
+    m_desc["toggle_wireframe"]                = _L("Toggle Wireframe");
 
     init_extruders_data();
 
@@ -302,6 +307,7 @@ void GLGizmoMmuSegmentation::show_tooltip_information(float caption_max, float x
     float font_size = ImGui::GetFontSize();
     ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0, ImGui::GetStyle().FramePadding.y });
     ImGui::ImageButton3(normal_id, hover_id, button_size);
 
     if (ImGui::IsItemHovered()) {
@@ -315,16 +321,16 @@ void GLGizmoMmuSegmentation::show_tooltip_information(float caption_max, float x
         std::vector<std::string> tip_items;
         switch (m_tool_type) {
             case ToolType::BRUSH:
-                tip_items = {"paint", "erase", "cursor_size", "clipping_of_view"};
+                tip_items = {"paint", "erase", "cursor_size", "clipping_of_view", "toggle_wireframe"};
                 break;
             case ToolType::BUCKET_FILL:
-                tip_items = {"paint", "erase", "smart_fill_angle", "clipping_of_view"};
+                tip_items = {"paint", "erase", "smart_fill_angle", "clipping_of_view", "toggle_wireframe"};
                 break;
             case ToolType::SMART_FILL:
                 // TODO:
                 break;
             case ToolType::GAP_FILL:
-                tip_items = {"gap_area"};
+                tip_items = {"gap_area", "toggle_wireframe"};
                 break;
             default:
                 break;
@@ -332,7 +338,7 @@ void GLGizmoMmuSegmentation::show_tooltip_information(float caption_max, float x
         for (const auto &t : tip_items) draw_text_with_caption(m_desc.at(t + "_caption") + ": ", m_desc.at(t));
         ImGui::EndTooltip();
     }
-    ImGui::PopStyleVar(1);
+    ImGui::PopStyleVar(2);
 }
 
 void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bottom_limit)
@@ -351,7 +357,8 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
     const float space_size = m_imgui->get_style_scaling() * 8;
-    const float clipping_slider_left  = m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x + m_imgui->scaled(1.5f);
+    const float clipping_slider_left  = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x + m_imgui->scaled(1.5f), 
+        m_imgui->calc_text_size(m_desc.at("reset_direction")).x + m_imgui->scaled(1.5f) + ImGui::GetStyle().FramePadding.x * 2);
     const float cursor_slider_left = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.5f);
     const float smart_fill_slider_left = m_imgui->calc_text_size(m_desc.at("smart_fill_angle")).x + m_imgui->scaled(1.5f);
     const float edge_detect_slider_left = m_imgui->calc_text_size(m_desc.at("edge_detection")).x + m_imgui->scaled(1.f);
@@ -411,7 +418,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         std::string color_label = std::string("##extruder color ") + std::to_string(extruder_idx);
         std::string item_text = std::to_string(extruder_idx + 1);
         const ImVec2 label_size = ImGui::CalcTextSize(item_text.c_str(), NULL, true);
-        
+
         const ImVec2 button_size(max_label_size.x + m_imgui->scaled(0.5f),0.f);
 
         float button_offset = start_pos_x;
@@ -459,32 +466,38 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     m_imgui->text(m_desc.at("tool_type"));
 
-    std::array<wchar_t, 6> tool_icons = { ImGui::CircleButtonIcon,ImGui::SphereButtonIcon, ImGui::TriangleButtonIcon, ImGui::HeightRangeIcon, ImGui::FillButtonIcon, ImGui::GapFillIcon };
+    std::array<wchar_t, 6> tool_ids;
+    tool_ids = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon, ImGui::TriangleButtonIcon, ImGui::HeightRangeIcon, ImGui::FillButtonIcon, ImGui::GapFillIcon };
+    std::array<wchar_t, 6> icons;
+    if (m_is_dark_mode)
+        icons = { ImGui::CircleButtonDarkIcon, ImGui::SphereButtonDarkIcon, ImGui::TriangleButtonDarkIcon, ImGui::HeightRangeDarkIcon, ImGui::FillButtonDarkIcon, ImGui::GapFillDarkIcon };
+    else
+        icons = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon, ImGui::TriangleButtonIcon, ImGui::HeightRangeIcon, ImGui::FillButtonIcon, ImGui::GapFillIcon };
     std::array<wxString, 6> tool_tips = { _L("Circle"), _L("Sphere"), _L("Triangle"), _L("Height Range"), _L("Fill"), _L("Gap Fill") };
-    for (int i = 0; i < tool_icons.size(); i++) {
+    for (int i = 0; i < tool_ids.size(); i++) {
         std::string  str_label = std::string("");
-        std::wstring btn_name  = tool_icons[i] + boost::nowide::widen(str_label);
+        std::wstring btn_name  = icons[i] + boost::nowide::widen(str_label);
 
         if (i != 0) ImGui::SameLine((empty_button_width + m_imgui->scaled(1.75f)) * i + m_imgui->scaled(1.5f));
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0);
-        if (m_current_tool == tool_icons[i]) {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.86f, 0.99f, 0.91f, 1.00f)); // r, g, b, a
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
+        if (m_current_tool == tool_ids[i]) {
+            ImGui::PushStyleColor(ImGuiCol_Button, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f)); // r, g, b, a
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, m_is_dark_mode ? ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f) : ImVec4(0.86f, 0.99f, 0.91f, 1.00f));
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
             ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0);
             ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0);
         }
         bool btn_clicked = ImGui::Button(into_u8(btn_name).c_str());
-        if (m_current_tool == tool_icons[i])
+        if (m_current_tool == tool_ids[i])
         {
             ImGui::PopStyleColor(4);
             ImGui::PopStyleVar(2);
         }
         ImGui::PopStyleVar(1);
 
-        if (btn_clicked && m_current_tool != tool_icons[i]) {
-            m_current_tool = tool_icons[i];
+        if (btn_clicked && m_current_tool != tool_ids[i]) {
+            m_current_tool = tool_ids[i];
             for (auto &triangle_selector : m_triangle_selectors) {
                 triangle_selector->seed_fill_unselect_all_triangles();
                 triangle_selector->request_update_render_data();
@@ -518,9 +531,17 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         ImGui::BBLDragFloat("##cursor_radius_input", &m_cursor_radius, 0.05f, 0.0f, 0.0f, "%.2f");
 
         ImGui::Separator();
-
-        ImGui::AlignTextToFramePadding();
-        m_imgui->text(m_desc.at("clipping_of_view"));
+        if (m_c->object_clipper()->get_position() == 0.f) {
+            ImGui::AlignTextToFramePadding();
+            m_imgui->text(m_desc.at("clipping_of_view"));
+        }
+        else {
+            if (m_imgui->button(m_desc.at("reset_direction"))) {
+                wxGetApp().CallAfter([this]() {
+                    m_c->object_clipper()->set_position(-1., false);
+                    });
+            }
+        }
 
         auto clp_dist = float(m_c->object_clipper()->get_position());
         ImGui::SameLine(circle_max_width);
@@ -536,8 +557,17 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         m_cursor_type = TriangleSelector::CursorType::POINTER;
         m_tool_type   = ToolType::BRUSH;
 
-        ImGui::AlignTextToFramePadding();
-        m_imgui->text(m_desc.at("clipping_of_view"));
+        if (m_c->object_clipper()->get_position() == 0.f) {
+            ImGui::AlignTextToFramePadding();
+            m_imgui->text(m_desc.at("clipping_of_view"));
+        }
+        else {
+            if (m_imgui->button(m_desc.at("reset_direction"))) {
+                wxGetApp().CallAfter([this]() {
+                    m_c->object_clipper()->set_position(-1., false);
+                    });
+            }
+        }
 
         auto clp_dist = float(m_c->object_clipper()->get_position());
         ImGui::SameLine(clipping_slider_left);
@@ -574,9 +604,17 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             m_smart_fill_angle = -1.f;
         }
         ImGui::Separator();
-
-        ImGui::AlignTextToFramePadding();
-        m_imgui->text(m_desc.at("clipping_of_view"));
+        if (m_c->object_clipper()->get_position() == 0.f) {
+            ImGui::AlignTextToFramePadding();
+            m_imgui->text(m_desc.at("clipping_of_view"));
+        }
+        else {
+            if (m_imgui->button(m_desc.at("reset_direction"))) {
+                wxGetApp().CallAfter([this]() {
+                    m_c->object_clipper()->set_position(-1., false);
+                    });
+            }
+        }
 
         auto clp_dist = float(m_c->object_clipper()->get_position());
         ImGui::SameLine(sliders_left_width);
@@ -602,9 +640,17 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         ImGui::BBLDragFloat("##cursor_height_input", &m_cursor_height, 0.05f, 0.0f, 0.0f, "%.2f");
 
         ImGui::Separator();
-
-        ImGui::AlignTextToFramePadding();
-        m_imgui->text(m_desc.at("clipping_of_view"));
+        if (m_c->object_clipper()->get_position() == 0.f) {
+            ImGui::AlignTextToFramePadding();
+            m_imgui->text(m_desc.at("clipping_of_view"));
+        }
+        else {
+            if (m_imgui->button(m_desc.at("reset_direction"))) {
+                wxGetApp().CallAfter([this]() {
+                    m_c->object_clipper()->set_position(-1., false);
+                    });
+            }
+        }
 
         auto clp_dist = float(m_c->object_clipper()->get_position());
         ImGui::SameLine(height_max_width);
@@ -692,7 +738,9 @@ void GLGizmoMmuSegmentation::update_model_object()
 
     if (updated) {
         const ModelObjectPtrs &mos = wxGetApp().model().objects;
-        wxGetApp().obj_list()->update_info_items(std::find(mos.begin(), mos.end(), mo) - mos.begin());
+        size_t obj_idx = std::find(mos.begin(), mos.end(), mo) - mos.begin();
+        wxGetApp().obj_list()->update_info_items(obj_idx);
+        wxGetApp().plater()->get_partplate_list().notify_instance_update(obj_idx, 0);
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
     }
 }
@@ -727,6 +775,7 @@ void GLGizmoMmuSegmentation::init_model_triangle_selectors()
         EnforcerBlockerType max_ebt = (EnforcerBlockerType)std::min(m_extruders_colors.size(), (size_t)EnforcerBlockerType::ExtruderMax);
         m_triangle_selectors.back()->deserialize(mv->mmu_segmentation_facets.get_data(), false, max_ebt);
         m_triangle_selectors.back()->request_update_render_data();
+        m_triangle_selectors.back()->set_wireframe_needed(true);
         m_volumes_extruder_idxs.push_back(mv->extruder_id());
     }
 }

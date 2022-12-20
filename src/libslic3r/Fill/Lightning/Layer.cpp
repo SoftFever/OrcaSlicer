@@ -48,10 +48,12 @@ void Layer::generateNewTrees
     const BoundingBox& current_outlines_bbox,
     const EdgeGrid::Grid& outlines_locator,
     const coord_t supporting_radius,
-    const coord_t wall_supporting_radius
+    const coord_t wall_supporting_radius,
+    const std::function<void()> &throw_on_cancel_callback
 )
 {
     DistanceField distance_field(supporting_radius, current_outlines, current_outlines_bbox, current_overhang);
+    throw_on_cancel_callback();
 
     SparseNodeGrid tree_node_locator;
     fillLocator(tree_node_locator, current_outlines_bbox);
@@ -61,6 +63,7 @@ void Layer::generateNewTrees
     size_t unsupported_cell_idx = 0;
     Point  unsupported_location;
     while (distance_field.tryGetNextPoint(&unsupported_location, &unsupported_cell_idx, unsupported_cell_idx)) {
+        throw_on_cancel_callback();
         GroundingLocation grounding_loc = getBestGroundingLocation(
             unsupported_location, current_outlines, current_outlines_bbox, outlines_locator, supporting_radius, wall_supporting_radius, tree_node_locator);
 

@@ -63,7 +63,7 @@ Slic3r::SVG draw_two_overhangs_to_svg(size_t ts_layer, const ExPolygons& overhan
 
 namespace Slic3r::FillLightning {
 
-Generator::Generator(const PrintObject &print_object)
+Generator::Generator(const PrintObject &print_object, const std::function<void()> &throw_on_cancel_callback)
 {
     const PrintConfig         &print_config         = print_object.print()->config();
     const PrintObjectConfig   &object_config        = print_object.config();
@@ -87,11 +87,11 @@ Generator::Generator(const PrintObject &print_object)
     m_prune_length                                    = coord_t(layer_thickness * std::tan(lightning_infill_prune_angle));
     m_straightening_max_distance                      = coord_t(layer_thickness * std::tan(lightning_infill_straightening_angle));
 
-    generateInitialInternalOverhangs(print_object);
-    generateTrees(print_object);
+    generateInitialInternalOverhangs(print_object, throw_on_cancel_callback);
+    generateTrees(print_object, throw_on_cancel_callback);
 }
 
-Generator::Generator(PrintObject* m_object, std::vector<Polygons>& contours, std::vector<Polygons>& overhangs, float density)
+Generator::Generator(PrintObject* m_object, std::vector<Polygons>& contours, std::vector<Polygons>& overhangs, const std::function<void()> &throw_on_cancel_callback, float density)
 {
     const PrintConfig         &print_config         = m_object->print()->config();
     const PrintObjectConfig   &object_config        = m_object->config();
@@ -120,7 +120,7 @@ Generator::Generator(PrintObject* m_object, std::vector<Polygons>& contours, std
 
     m_overhang_per_layer = overhangs;
 
-    generateTreesforSupport(contours);
+    generateTreesforSupport(contours, throw_on_cancel_callback);
 
     //for (size_t i = 0; i < overhangs.size(); i++)
     //{
@@ -130,13 +130,14 @@ Generator::Generator(PrintObject* m_object, std::vector<Polygons>& contours, std
     //}
 }
 
-void Generator::generateInitialInternalOverhangs(const PrintObject &print_object)
+void Generator::generateInitialInternalOverhangs(const PrintObject &print_object, const std::function<void()> &throw_on_cancel_callback)
 {
     m_overhang_per_layer.resize(print_object.layers().size());
 
     Polygons infill_area_above;
     //Iterate from top to bottom, to subtract the overhang areas above from the overhang areas on the layer below, to get only overhang in the top layer where it is overhanging.
     for (int layer_nr = int(print_object.layers().size()) - 1; layer_nr >= 0; --layer_nr) {
+        throw_on_cancel_callback();
         Polygons infill_area_here;
         for (const LayerRegion* layerm : print_object.get_layer(layer_nr)->regions())
             for (const Surface& surface : layerm->fill_surfaces.surfaces)
@@ -157,7 +158,7 @@ const Layer& Generator::getTreesForLayer(const size_t& layer_id) const
     return m_lightning_layers[layer_id];
 }
 
-void Generator::generateTrees(const PrintObject &print_object)
+void Generator::generateTrees(const PrintObject &print_object, const std::function<void()> &throw_on_cancel_callback)
 {
     m_lightning_layers.resize(print_object.layers().size());
     bboxs.resize(print_object.layers().size());
@@ -165,6 +166,7 @@ void Generator::generateTrees(const PrintObject &print_object)
 
     // For-each layer from top to bottom:
     for (int layer_id = int(print_object.layers().size()) - 1; layer_id >= 0; layer_id--) {
+        throw_on_cancel_callback();
         for (const LayerRegion *layerm : print_object.get_layer(layer_id)->regions())
             for (const Surface &surface : layerm->fill_surfaces.surfaces)
                 if (surface.surface_type == stInternal || surface.surface_type == stInternalVoid)
@@ -178,6 +180,7 @@ void Generator::generateTrees(const PrintObject &print_object)
 
     // For-each layer from top to bottom:
     for (int layer_id = int(top_layer_id); layer_id >= 0; layer_id--) {
+        throw_on_cancel_callback();
         Layer             &current_lightning_layer = m_lightning_layers[layer_id];
         const Polygons    &current_outlines        = infill_outlines[layer_id];
         const BoundingBox &current_outlines_bbox   = get_extents(current_outlines);
@@ -187,7 +190,7 @@ void Generator::generateTrees(const PrintObject &print_object)
         // register all trees propagated from the previous layer as to-be-reconnected
         std::vector<NodeSPtr> to_be_reconnected_tree_roots = current_lightning_layer.tree_roots;
 
-        current_lightning_layer.generateNewTrees(m_overhang_per_layer[layer_id], current_outlines, current_outlines_bbox, outlines_locator, m_supporting_radius, m_wall_supporting_radius);
+        current_lightning_layer.generateNewTrees(m_overhang_per_layer[layer_id], current_outlines, current_outlines_bbox, outlines_locator, m_supporting_radius, m_wall_supporting_radius, throw_on_cancel_callback);
         current_lightning_layer.reconnectRoots(to_be_reconnected_tree_roots, current_outlines, current_outlines_bbox, outlines_locator, m_supporting_radius, m_wall_supporting_radius);
 
         // Initialize trees for next lower layer from the current one.
@@ -211,8 +214,10 @@ void Generator::generateTrees(const PrintObject &print_object)
     }
 }
 
-void Generator::generateTreesforSupport(std::vector<Polygons>& contours)
+void Generator::generateTreesforSupport(std::vector<Polygons>& contours, const std::function<void()> &throw_on_cancel_callback)
 {
+    if (contours.empty()) return;
+
     m_lightning_layers.resize(contours.size());
     bboxs.resize(contours.size());
 
@@ -223,6 +228,7 @@ void Generator::generateTreesforSupport(std::vector<Polygons>& contours)
 
     // For-each layer from top to bottom:
     for (int layer_id = int(top_layer_id); layer_id >= 0; layer_id--) {
+		throw_on_cancel_callback();
         Layer& current_lightning_layer = m_lightning_layers[layer_id];
         const Polygons& current_outlines = contours[layer_id];
         const BoundingBox& current_outlines_bbox = get_extents(current_outlines);
@@ -232,7 +238,7 @@ void Generator::generateTreesforSupport(std::vector<Polygons>& contours)
         // register all trees propagated from the previous layer as to-be-reconnected
         std::vector<NodeSPtr> to_be_reconnected_tree_roots = current_lightning_layer.tree_roots;
 
-        current_lightning_layer.generateNewTrees(m_overhang_per_layer[layer_id], current_outlines, current_outlines_bbox, outlines_locator, m_supporting_radius, m_wall_supporting_radius);
+        current_lightning_layer.generateNewTrees(m_overhang_per_layer[layer_id], current_outlines, current_outlines_bbox, outlines_locator, m_supporting_radius, m_wall_supporting_radius, throw_on_cancel_callback);
         current_lightning_layer.reconnectRoots(to_be_reconnected_tree_roots, current_outlines, current_outlines_bbox, outlines_locator, m_supporting_radius, m_wall_supporting_radius);
 
         // Initialize trees for next lower layer from the current one.

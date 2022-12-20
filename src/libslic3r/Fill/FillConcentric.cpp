@@ -5,6 +5,7 @@
 #include "Arachne/WallToolPaths.hpp"
 
 #include "FillConcentric.hpp"
+#include <libslic3r/ShortestPath.hpp>
 
 namespace Slic3r {
 
@@ -133,6 +134,8 @@ void FillConcentric::_fill_surface_single(const FillParams& params,
         }
         if (j < thick_polylines_out.size())
             thick_polylines_out.erase(thick_polylines_out.begin() + int(j), thick_polylines_out.end());
+
+        reorder_by_shortest_traverse(thick_polylines_out);
     }
     else {
         Polylines polylines;

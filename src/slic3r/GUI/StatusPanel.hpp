@@ -19,6 +19,7 @@
 #include "Calibration.hpp"
 #include "PrintOptionsDialog.hpp"
 #include "AMSMaterialsSetting.hpp"
+#include "ReleaseNote.hpp"
 #include "Widgets/SwitchButton.hpp"
 #include "Widgets/AxisCtrlButton.hpp"
 #include "Widgets/TextInput.hpp"
@@ -27,6 +28,7 @@
 #include "Widgets/ProgressBar.hpp"
 #include "Widgets/ImageSwitchButton.hpp"
 #include "Widgets/AMSControl.hpp"
+#include "Widgets/FanControl.hpp"
 #include "HMS.hpp"
 #include "Widgets/ErrorMsgStaticText.hpp"
 class StepIndicator;
@@ -67,6 +69,7 @@ class StatusBasePanel : public wxScrolledWindow
 protected:
     wxBitmap m_item_placeholder;
     ScalableBitmap m_thumbnail_placeholder;
+    ScalableBitmap m_thumbnail_brokenimg;
     ScalableBitmap m_thumbnail_sdcard;
     wxBitmap m_bitmap_item_prediction;
     wxBitmap m_bitmap_item_cost;
@@ -80,19 +83,27 @@ protected:
     ScalableBitmap m_bitmap_fan_off;
     ScalableBitmap m_bitmap_use_time;
     ScalableBitmap m_bitmap_use_weight;
-    wxBitmap m_bitmap_extruder;
-    wxBitmap m_bitmap_extruder_load;
+    wxBitmap m_bitmap_extruder_empty_load;
+    wxBitmap m_bitmap_extruder_filled_load;
+    wxBitmap m_bitmap_extruder_empty_unload;
+    wxBitmap m_bitmap_extruder_filled_unload;
 
     CameraRecordingStatus m_state_recording{CameraRecordingStatus::RECORDING_NONE};
     CameraTimelapseStatus m_state_timelapse{CameraTimelapseStatus::TIMELAPSE_NONE};
 
 
-    CameraItem *m_timelapse_button;
-    CameraItem *m_recording_button;
+    CameraItem *m_setting_button;
 
     wxBitmap m_bitmap_camera;
-    wxBitmap m_bitmap_sdcard_state_on;
-    wxBitmap m_bitmap_sdcard_state_off;
+    ScalableBitmap m_bitmap_sdcard_state_normal;
+    ScalableBitmap m_bitmap_sdcard_state_abnormal;
+    ScalableBitmap m_bitmap_sdcard_state_no;
+    ScalableBitmap m_bitmap_recording_on;
+    ScalableBitmap m_bitmap_recording_off;
+    ScalableBitmap m_bitmap_timelapse_on;
+    ScalableBitmap m_bitmap_timelapse_off;
+    ScalableBitmap m_bitmap_vcamera_on;
+    ScalableBitmap m_bitmap_vcamera_off;
 
     /* title panel */
     wxPanel *       media_ctrl_panel;
@@ -108,8 +119,9 @@ protected:
 
     wxStaticBitmap *m_bitmap_camera_img;
     wxStaticBitmap *m_bitmap_recording_img;
-    wxStaticBitmap *m_bitmap_sdcard_on_img;
-    wxStaticBitmap *m_bitmap_sdcard_off_img;
+    wxStaticBitmap *m_bitmap_timelapse_img;
+    wxStaticBitmap* m_bitmap_vcamera_img;
+    wxStaticBitmap *m_bitmap_sdcard_img;
     wxStaticBitmap *m_bitmap_static_use_time;
     wxStaticBitmap *m_bitmap_static_use_weight;
 
@@ -138,16 +150,20 @@ protected:
     ImageSwitchButton *m_switch_speed;
 
     /* TempInput */
+    wxBoxSizer *    m_misc_ctrl_sizer;
     TempInput *     m_tempCtrl_nozzle;
     int             m_temp_nozzle_timeout {0};
     StaticLine *    m_line_nozzle;
     TempInput *     m_tempCtrl_bed;
     int             m_temp_bed_timeout {0};
     TempInput *     m_tempCtrl_frame;
-    ImageSwitchButton *m_switch_nozzle_fan;
+    bool             m_current_support_cham_fan{true};
+    FanSwitchButton *m_switch_nozzle_fan;
     int             m_switch_nozzle_fan_timeout{0};
-    ImageSwitchButton *m_switch_printing_fan;
+    FanSwitchButton *m_switch_printing_fan;
     int             m_switch_printing_fan_timeout{0};
+    FanSwitchButton *m_switch_cham_fan;
+    int             m_switch_cham_fan_timeout{0};
 
     float           m_fixed_aspect_ratio{1.8};
 
@@ -167,7 +183,7 @@ protected:
     wxStaticText *  m_ams_debug;
     bool            m_show_ams_group{false};
     AMSControl*     m_ams_control;
-    RoundedRectangle* m_ams_control_box;
+    StaticBox*      m_ams_control_box;
     wxStaticBitmap *m_ams_extruder_img;
     wxStaticBitmap* m_bitmap_extruder_img;
     wxPanel *       m_panel_separator_right;
@@ -230,11 +246,11 @@ public:
 
     void reset_temp_misc_control();
     int before_error_code = 0;
+    int skip_print_error = 0;
     wxBoxSizer *create_ams_group(wxWindow *parent);
     wxBoxSizer *create_settings_group(wxWindow *parent);
 
     void show_ams_group(bool show = true);
-    void upodate_camera_state(bool recording, bool timelapse, bool has_sdcard);
 };
 
 
@@ -252,10 +268,21 @@ protected:
     PrintOptionsDialog*  print_options_dlg { nullptr };
     CalibrationDialog*   calibration_dlg {nullptr};
     AMSMaterialsSetting *m_filament_setting_dlg{nullptr};
+    SecondaryCheckDialog* m_print_error_dlg = nullptr;
+    SecondaryCheckDialog* abort_dlg = nullptr;
+    SecondaryCheckDialog* ctrl_e_hint_dlg = nullptr;
+    SecondaryCheckDialog* sdcard_hint_dlg = nullptr;
+    FanControlPopup m_fan_control_popup{nullptr};
 
     wxString     m_request_url;
     bool         m_start_loading_thumbnail = false;
     bool         m_load_sdcard_thumbnail = false;
+    int          m_last_sdcard    = -1;
+    int          m_last_recording = -1;
+    int          m_last_timelapse = -1;
+    int          m_last_extrusion = -1;
+    int          m_last_vcamera   = -1;
+
     wxWebRequest web_request;
     bool bed_temp_input    = false;
     bool nozzle_temp_input = false;
@@ -264,6 +291,7 @@ protected:
     boost::posix_time::ptime speed_dismiss_time;
 
     std::map<wxString, wxImage> img_list; // key: url, value: wxBitmap png Image
+    std::map<std::string, std::string> m_print_connect_types;
     std::vector<Button *>       m_buttons;
     int last_status;
     void init_scaled_buttons();
@@ -275,7 +303,7 @@ protected:
 
     void on_subtask_pause_resume(wxCommandEvent &event);
     void on_subtask_abort(wxCommandEvent &event);
-    void on_subtask_clean(wxCommandEvent &event);
+    void on_print_error_clean(wxCommandEvent &event);
     void show_error_message(wxString msg);
     void error_info_reset();
     void show_recenter_dialog();
@@ -289,6 +317,7 @@ protected:
     void on_axis_ctrl_z_down_10(wxCommandEvent &event);
     void on_axis_ctrl_e_up_10(wxCommandEvent &event);
     void on_axis_ctrl_e_down_10(wxCommandEvent &event);
+    void axis_ctrl_e_hint(bool up_down);
 
 	void on_start_unload(wxCommandEvent &event);
     /* temp control */
@@ -310,13 +339,15 @@ protected:
     void on_ams_guide(wxCommandEvent &event);
     void on_ams_retry(wxCommandEvent &event);
 
-    void on_switch_speed(wxCommandEvent &event);
+    void on_fan_changed(wxCommandEvent& event);
+    void on_switch_speed(wxCommandEvent& event);
     void on_lamp_switch(wxCommandEvent &event);
     void on_printing_fan_switch(wxCommandEvent &event);
     void on_nozzle_fan_switch(wxCommandEvent &event);
     void on_thumbnail_enter(wxMouseEvent &event);
     void on_thumbnail_leave(wxMouseEvent &event);
-    void on_switch_recording(wxMouseEvent &event);
+    void refresh_thumbnail_webrequest(wxMouseEvent& event);
+    void on_switch_vcamera(wxMouseEvent &event);
     void on_camera_enter(wxMouseEvent &event);
     void on_camera_leave(wxMouseEvent& event);
     void on_auto_leveling(wxCommandEvent &event);
@@ -340,11 +371,16 @@ protected:
     void update_temp_ctrl(MachineObject *obj);
     void update_misc_ctrl(MachineObject *obj);
     void update_ams(MachineObject* obj);
+    void update_extruder_status(MachineObject* obj);
     void update_cali(MachineObject* obj);
 
     void reset_printing_values();
     void on_webrequest_state(wxWebRequestEvent &evt);
     bool is_task_changed(MachineObject* obj);
+
+    /* camera */
+    void update_camera_state(MachineObject* obj);
+    bool show_vcamera = false;
 
 public:
     StatusPanel(wxWindow *      parent,
@@ -354,6 +390,14 @@ public:
                 long            style = wxTAB_TRAVERSAL,
                 const wxString &name  = wxEmptyString);
     ~StatusPanel();
+
+    enum ThumbnailState {
+        PLACE_HOLDER = 0,
+        BROKEN_IMG = 1,
+        TASK_THUMBNAIL = 2,
+        SDCARD_THUMBNAIL = 3,
+        STATE_COUNT = 4
+    };
 
     MachineObject *obj {nullptr};
     BBLSubTask *   last_subtask{nullptr};
@@ -366,6 +410,7 @@ public:
     long           last_reading_bits { -1 };
     long           last_ams_version { -1 };
 
+    enum ThumbnailState task_thumbnail_state {ThumbnailState::PLACE_HOLDER};
     std::vector<int> last_stage_list_info;
 
     bool is_stage_list_info_changed(MachineObject* obj);
@@ -375,6 +420,8 @@ public:
 
     void set_hold_count(int& count);
 
+    void rescale_camera_icons();
+    void on_sys_color_changed();
     void msw_rescale();
 };
 }

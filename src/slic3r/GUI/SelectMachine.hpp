@@ -25,6 +25,7 @@
 #include <wx/srchctrl.h>
 
 #include "AmsMappingPopup.hpp"
+#include "ReleaseNote.hpp"
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
 #include "DeviceManager.hpp"
@@ -158,8 +159,8 @@ protected:
     void on_mouse_left_up(wxMouseEvent &evt);
 };
 
-#define SELECT_MACHINE_POPUP_SIZE wxSize(FromDIP(218), FromDIP(364))
-#define SELECT_MACHINE_LIST_SIZE wxSize(FromDIP(214), FromDIP(360))  
+#define SELECT_MACHINE_POPUP_SIZE wxSize(FromDIP(214), FromDIP(364))
+#define SELECT_MACHINE_LIST_SIZE wxSize(FromDIP(210), FromDIP(360))  
 #define SELECT_MACHINE_ITEM_SIZE wxSize(FromDIP(180), FromDIP(35))
 #define SELECT_MACHINE_GREY900 wxColour(38, 46, 48)
 #define SELECT_MACHINE_GREY600 wxColour(144,144,144)
@@ -255,7 +256,11 @@ enum PrintDialogStatus {
     PrintStatusLanModeNoSdcard,
     PrintStatusNoSdcard,
     PrintStatusTimelapseNoSdcard,
-    PrintStatusNotOnTheSameLAN
+    PrintStatusNotOnTheSameLAN,
+    PrintStatusNeedForceUpgrading,
+    PrintStatusNeedConsistencyUpgrading,
+    PrintStatusNotSupportedSendToSDCard,
+    PrintStatusBlankPlate
 };
 
 std::string get_print_status_info(PrintDialogStatus status);
@@ -278,6 +283,8 @@ private:
     wxColour m_colour_def_color{wxColour(255, 255, 255)};
     wxColour m_colour_bold_color{wxColour(38, 46, 48)};
 
+    //SecondaryCheckDialog* confirm_dlg = nullptr;
+
 protected:
     MaterialHash  m_materialList;
     std::vector<FilamentInfo> m_filaments;
@@ -291,6 +298,14 @@ protected:
     wxStaticText *m_stext_weight{nullptr};
     wxPanel *     m_line_materia{nullptr};
     wxStaticText *m_stext_printer_title{nullptr};
+
+    wxBoxSizer* rename_sizer_v{ nullptr };
+    wxBoxSizer* rename_sizer_h{ nullptr };
+    wxStaticText* m_rename_text{nullptr};
+    TextInput* m_rename_input{nullptr};
+    Button* m_rename_button{nullptr};
+    wxPanel* m_rename_normal_panel{nullptr};
+    wxSimplebook* m_rename_switch_panel{nullptr};
 
     wxStaticText *m_statictext_ams_msg{nullptr};
     wxStaticText * m_statictext_printer_msg{nullptr};
@@ -343,10 +358,13 @@ protected:
 
 public:
     SelectMachineDialog(Plater *plater = nullptr);
-    wxWindow *create_ams_checkbox(wxString title, wxWindow *parent, wxString tooltip);
     ~SelectMachineDialog();
 
-    wxWindow *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, std::string param);
+
+    void check_focus(wxWindow* window);
+    void check_fcous_state(wxWindow* window);
+    wxWindow *create_ams_checkbox(wxString title, wxWindow *parent, wxString tooltip);
+    wxWindow* create_item_checkbox(wxString title, wxWindow* parent, wxString tooltip, std::string param);
     void      update_select_layout(MachineObject *obj);
     void      prepare_mode();
     void      sending_mode();
@@ -380,23 +398,30 @@ protected:
     wxButton *                   m_button_cancel{nullptr};
     AmsMapingPopup               m_mapping_popup{nullptr};
     AmsMapingTipPopup            m_mapping_tip_popup{nullptr};
-
+    AmsTutorialPopup             m_mapping_tutorial_popup{nullptr};
+    wxString                     m_current_project_name;
     std::string                  m_print_info;
     int                          timeout_count = 0;
+    bool                         m_is_rename_mode{false};
     bool                         is_timeout();
     void                         reset_timeout();
     void                         update_user_printer();
     void                         reset_ams_material();
     void                         update_show_status();
     void                         update_ams_check(MachineObject* obj);
+    bool                         is_show_timelapse();
 
     wxTimer *m_refresh_timer { nullptr };
 
     std::shared_ptr<PrintJob> m_print_job;
 
     // Virtual event handlers, overide them in your derived class
+    void                     on_rename_click(wxCommandEvent &event);
+    void                     on_rename_enter();
+
     void                     update_printer_combobox(wxCommandEvent &event);
     void                     on_cancel(wxCloseEvent &event);
+    void                     show_errors(wxString &info);
     void                     on_ok_btn(wxCommandEvent &event);
     void                     on_ok();
     void                     on_refresh(wxCommandEvent &event);
@@ -409,6 +434,7 @@ protected:
     void                     Enable_Send_Button(bool en);
     void                     on_dpi_changed(const wxRect &suggested_rect) override;
     void                     update_user_machine_list();
+    void                     update_lan_machine_list();
     wxImage *                LoadImageFromBlob(const unsigned char *data, int size);
     std::vector<std::string> sort_string(std::vector<std::string> strArray);
 };

@@ -8,6 +8,7 @@
 #import <Cocoa/Cocoa.h>
 #import <Foundation/Foundation.h>
 #import <AppKit/NSScreen.h>
+#import <WebKit/WebKit.h>
 
 #include <objc/runtime.h>
 
@@ -43,9 +44,9 @@ double mac_max_scaling_factor()
     
 void set_miniaturizable(void * window)
 {
-    CGFloat rFloat = 38/255.0;
-    CGFloat gFloat = 46/255.0;
-    CGFloat bFloat = 48/255.0;
+    CGFloat rFloat = 34/255.0;
+    CGFloat gFloat = 34/255.0;
+    CGFloat bFloat = 36/255.0;
     [(NSView*) window window].titlebarAppearsTransparent = true;
     [(NSView*) window window].backgroundColor = [NSColor colorWithCalibratedRed:rFloat green:gFloat blue:bFloat alpha:1.0];
     [(NSView*) window window].styleMask |= NSMiniaturizableWindowMask;
@@ -91,6 +92,12 @@ void WKWebView_evaluateJavaScript(void * web, wxString const & script, void (*ca
         }
     }];
 }
+    
+void WKWebView_setTransparentBackground(void * web)
+{
+    WKWebView * webView = (WKWebView*)web;
+    [webView layer].backgroundColor = [NSColor clearColor].CGColor;
+}
 
 void openFolderForFile(wxString const & file)
 {
@@ -104,7 +111,7 @@ void openFolderForFile(wxString const & file)
 @end
 
 /* textColor for NSTextField */
-@implementation NSTextField (NSTextField_Extended)
+@implementation NSTextField (textColor)
 
 - (void)setTextColor2:(NSColor *)textColor
 {
@@ -125,6 +132,26 @@ void openFolderForFile(wxString const & file)
     Method setTextColor = class_getInstanceMethod([NSTextField class], @selector(setTextColor:));
     Method setTextColor2 = class_getInstanceMethod([NSTextField class], @selector(setTextColor2:));
     method_exchangeImplementations(setTextColor, setTextColor2);
+}
+
+@end
+
+/* drawsBackground for NSTextField */
+@implementation NSTextField (drawsBackground)
+
+- (instancetype)initWithFrame2:(NSRect)frameRect
+{
+    [self initWithFrame2:frameRect];
+    self.drawsBackground = false;
+    return self;
+}
+
+
++ (void) load
+{
+    Method initWithFrame = class_getInstanceMethod([NSTextField class], @selector(initWithFrame:));
+    Method initWithFrame2 = class_getInstanceMethod([NSTextField class], @selector(initWithFrame2:));
+    method_exchangeImplementations(initWithFrame, initWithFrame2);
 }
 
 @end

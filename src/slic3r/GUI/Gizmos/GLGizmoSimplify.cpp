@@ -236,7 +236,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
                ImGuiWindowFlags_NoCollapse;
     m_imgui->begin(on_get_name(), flag);
 
-    m_imgui->text_colored(ImVec4(0.15f, 0.18f, 0.19f, 1.00f), tr_mesh_name + ":");
+    m_imgui->text(tr_mesh_name + ":");
     // BBS: somehow the calculated utf8 width is too narrow, have to add 35 here
     ImGui::SameLine(text_left_width + space_size);
     std::string name = m_volume->name;
@@ -244,7 +244,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         name = name.substr(0, m_gui_cfg->max_char_in_name - 3) + "...";
     m_imgui->text_colored(ImVec4(0.42f, 0.42f, 0.42f, 1.00f), name);
 
-    m_imgui->text_colored(ImVec4(0.15f, 0.18f, 0.19f, 1.00f), tr_triangles + ":");
+    m_imgui->text(tr_triangles + ":");
     ImGui::SameLine(text_left_width + space_size);
 
     size_t orig_triangle_count = m_volume->mesh().its.indices.size();
@@ -361,22 +361,26 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.15f, 0.18f, 0.19f, 1.00f));
 
     m_imgui->disabled_begin(is_worker_running || ! is_result_ready);
+    m_imgui->push_confirm_button_style();
     if (m_imgui->bbl_button(_L("Apply"))) {
         apply_simplify();
     }
     else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_worker_running) {
         ImGui::SetTooltip("%s", _u8L("Can't apply when proccess preview.").c_str());
     }
+    m_imgui->pop_confirm_button_style();
     m_imgui->disabled_end(); // state !settings
 
     ImGui::SameLine();
 
     m_imgui->disabled_begin(is_cancelling);
+    m_imgui->push_cancel_button_style();
     if (m_imgui->bbl_button(_L("Cancel"))) {
         close();
     }
     else if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled) && is_cancelling)
         ImGui::SetTooltip("%s", _u8L("Operation already cancelling. Please wait few seconds.").c_str());
+    m_imgui->pop_cancel_button_style();
     m_imgui->disabled_end(); // state cancelling
 
     ImGui::PopStyleVar(3);

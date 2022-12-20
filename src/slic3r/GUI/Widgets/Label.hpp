@@ -3,7 +3,8 @@
 
 #include <wx/stattext.h>
 
-#define LB_HYPERLINK 0x0001
+#define LB_HYPERLINK 0x0020
+#define LB_PROPAGATE_MOUSE_EVENT 0x0040
 
 
 class Label : public wxStaticText
@@ -13,7 +14,11 @@ public:
 
 	Label(wxWindow *parent, wxFont const &font, wxString const &text = {}, long style = 0);
 
+    void SetLabel(const wxString& label) override;
+
     void SetWindowStyleFlag(long style) override;
+
+	void Wrap(int width);
 
 private:
     wxFont font;

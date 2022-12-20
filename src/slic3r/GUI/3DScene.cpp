@@ -869,10 +869,6 @@ void GLVolume::render(bool with_outline) const
             std::array<float, 4> body_color = { 1.0f, 1.0f, 1.0f, 1.0f }; //red
 
             shader->set_uniform("uniform_color", body_color);
-            //if (GUI::wxGetApp().plater()->is_show_wireframe())
-            //    shader->set_uniform("show_wireframe", true);
-            //else
-            //    shader->set_uniform("show_wireframe", false);
             shader->set_uniform("is_outline", true);
             glsafe(::glPopMatrix());
             glsafe(::glPushMatrix());
@@ -1054,7 +1050,8 @@ int GLVolumeCollection::load_object_volume(
     int                  volume_idx,
     int                  instance_idx,
     const std::string   &color_by,
-    bool 				 opengl_initialized)
+    bool 				 opengl_initialized,
+    bool                 in_assemble_view)
 {
     const ModelVolume   *model_volume = model_object->volumes[volume_idx];
     const int            extruder_id  = model_volume->extruder_id();
@@ -1082,7 +1079,12 @@ int GLVolumeCollection::load_object_volume(
     }
     v.is_modifier = !model_volume->is_model_part();
     v.shader_outside_printer_detection_enabled = model_volume->is_model_part();
-    v.set_instance_transformation(instance->get_transformation());
+    if (in_assemble_view) {
+        v.set_instance_transformation(instance->get_assemble_transformation());
+        v.set_offset_to_assembly(instance->get_offset_to_assembly());
+    }
+    else
+        v.set_instance_transformation(instance->get_transformation());
     v.set_volume_transformation(model_volume->get_transformation());
 
     return int(this->volumes.size() - 1);

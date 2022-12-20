@@ -126,6 +126,8 @@ protected:
     GLModel m_cylinder;
     GLModel m_sphere;
 
+    bool m_is_dark_mode = false;
+
 public:
     GLGizmoBase(GLCanvas3D& parent,
                 const std::string& icon_filename,
@@ -149,20 +151,22 @@ public:
 
     const std::string& get_icon_filename() const { return m_icon_filename; }
 
+    void set_icon_filename(const std::string& filename);
+
     bool is_activable() const { return on_is_activable(); }
     bool is_selectable() const { return on_is_selectable(); }
     CommonGizmosDataID get_requirements() const { return on_get_requirements(); }
     virtual bool wants_enter_leave_snapshots() const { return false; }
     virtual std::string get_gizmo_entering_text() const { assert(false); return ""; }
     virtual std::string get_gizmo_leaving_text() const { assert(false); return ""; }
-    virtual std::string get_action_snapshot_name() { return _u8L("Gizmo action"); }
+    virtual std::string get_action_snapshot_name() { return "Gizmo action"; }
     void set_common_data_pool(CommonGizmosDataPool* ptr) { m_c = ptr; }
 
     unsigned int get_sprite_id() const { return m_sprite_id; }
 
     int get_hover_id() const { return m_hover_id; }
     void set_hover_id(int id);
-    
+
     void set_highlight_color(const std::array<float, 4>& color);
 
     void enable_grabber(unsigned int id);
@@ -181,6 +185,7 @@ public:
     void render() { m_tooltip.clear(); on_render(); }
     void render_for_picking() { on_render_for_picking(); }
     void render_input_window(float x, float y, float bottom_limit);
+    virtual void on_change_color_mode(bool is_dark) {  m_is_dark_mode = is_dark; }
 
     virtual std::string get_tooltip() const { return ""; }
 

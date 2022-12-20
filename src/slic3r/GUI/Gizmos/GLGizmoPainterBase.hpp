@@ -73,6 +73,8 @@ public:
     // to be already set.
     virtual void render(ImGuiWrapper *imgui);
     void         render() { this->render(nullptr); }
+    void         set_wireframe_needed(bool need_wireframe) { m_need_wireframe = need_wireframe; }
+    bool         get_wireframe_needed() { return m_need_wireframe; }
 
     // BBS
     void request_update_render_data(bool paint_changed = false)
@@ -108,10 +110,12 @@ private:
 
 protected:
     GLPaintContour                      m_paint_contour;
+    bool                                m_need_wireframe {false};
 };
 
 // BBS
 struct TrianglePatch {
+    std::vector<float>  patch_vertices;
     std::vector<int> triangle_indices;
     std::vector<int> facet_indices;
     EnforcerBlockerType type = EnforcerBlockerType::NONE;
@@ -160,11 +164,15 @@ protected:
     void clear()
     {
         // BBS
+        this->m_vertices_VBO_ids.clear();
         this->m_triangle_indices_VBO_ids.clear();
         this->m_triangle_indices_sizes.clear();
 
         for (TrianglePatch& patch : this->m_triangle_patches)
+        {
+            patch.patch_vertices.clear();
             patch.triangle_indices.clear();
+        }
         this->m_triangle_patches.clear();
     }
 
@@ -174,7 +182,7 @@ protected:
         return this->m_triangle_indices_VBO_ids[triangle_indices_idx] != 0;
     }
 
-    std::vector<float>          m_patch_vertices;
+    //std::vector<float>          m_patch_vertices;
     std::vector<TrianglePatch>  m_triangle_patches;
 
     // When the triangle indices are loaded into the graphics card as Vertex Buffer Objects,
@@ -183,7 +191,8 @@ protected:
 
     // IDs of the Vertex Array Objects, into which the geometry has been loaded.
     // Zero if the VBOs are not sent to GPU yet.
-    unsigned int                m_vertices_VBO_id{ 0 };
+    //unsigned int                m_vertices_VBO_id{ 0 };
+    std::vector<unsigned int>   m_vertices_VBO_ids;
     std::vector<unsigned int>   m_triangle_indices_VBO_ids;
 
     std::vector<std::array<float, 4>> m_ebt_colors;
@@ -192,7 +201,7 @@ protected:
 
 private:
     void update_render_data();
-    void render(int buffer_idx);
+    void render(int buffer_idx, int position_id = -1, int barycentric_id = -1);
 };
 
 

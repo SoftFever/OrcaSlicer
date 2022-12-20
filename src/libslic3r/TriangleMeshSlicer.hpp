@@ -46,6 +46,19 @@ struct MeshSlicingParamsEx : public MeshSlicingParams
     double        resolution { 0 };
 };
 
+// BBS: MusangKing - NEW: add paint-on support on vertical-faces
+// this SlabSlicingConfig aiming to distinguish if slice_slabs_make_lines() outputs lines by slab_slicing on vertical faces
+// e.g., for support enforcer operation: isVertical = true; for other color painting operations: isVertical = false (default).
+// solve conflicts STUDIO-1183/970/1285
+struct SlabSlicingConfig
+{
+    SlabSlicingConfig()
+        : isVertical(false)
+    {}
+
+    bool isVertical;
+};
+
 // All the following slicing functions shall produce consistent results with the same mesh, same transformation matrix and slicing parameters.
 // Namely, slice_mesh_slabs() shall produce consistent results with slice_mesh() and slice_mesh_ex() in the sense, that projections made by 
 // slice_mesh_slabs() shall fall onto slicing planes produced by slice_mesh().
@@ -107,7 +120,9 @@ void slice_mesh_slabs(
     const Transform3d                &trafo,
     std::vector<Polygons>            *out_top,
     std::vector<Polygons>            *out_bottom,
-    std::function<void()>             throw_on_cancel);
+    std::function<void()>             throw_on_cancel,
+    // BBS: MusangKing
+    SlabSlicingConfig                config = SlabSlicingConfig());
 
 // Project mesh upwards pointing surfaces / downwards pointing surfaces into 2D polygons.
 void project_mesh(

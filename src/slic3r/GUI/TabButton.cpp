@@ -15,7 +15,7 @@ END_EVENT_TABLE()
 
 static wxColour BORDER_HOVER_COL = wxColour(0, 174, 66);
 
-const static wxColour TAB_BUTTON_BG    = wxColour(255, 255, 255, 255);
+const static wxColour TAB_BUTTON_BG    = wxColour("#FEFFFF");
 const static wxColour TAB_BUTTON_SEL   = wxColour(219, 253, 213, 255);
 
 TabButton::TabButton()
@@ -24,13 +24,13 @@ TabButton::TabButton()
 {
     background_color = StateColor(
         std::make_pair(TAB_BUTTON_SEL, (int) StateColor::Checked),
-        std::make_pair(*wxWHITE, (int) StateColor::Hovered),
-        std::make_pair(*wxWHITE, (int) StateColor::Normal));
+        std::make_pair(wxColour("#FEFFFF"), (int) StateColor::Hovered),
+        std::make_pair(wxColour("#FEFFFF"), (int) StateColor::Normal));
 
     border_color = StateColor(
-        std::make_pair(*wxWHITE, (int) StateColor::Checked),
+        std::make_pair(wxColour("#FEFFFF"), (int) StateColor::Checked),
         std::make_pair(BORDER_HOVER_COL, (int) StateColor::Hovered),
-        std::make_pair(*wxWHITE, (int) StateColor::Normal));
+        std::make_pair(wxColour("#FEFFFF"), (int)StateColor::Normal));
 }
 
 TabButton::TabButton(wxWindow *parent, wxString text, ScalableBitmap &bmp, long style, int iconSize)

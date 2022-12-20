@@ -12,6 +12,9 @@ function OnInit()
 
 	SendMsg_GetLoginInfo();
 	SendMsg_GetRecentFile();
+	
+	//-----Christmas-----
+	ShowCabin();
 }
 
 //------最佳打开文件的右键菜单功能----------
@@ -22,7 +25,7 @@ var MousePosY=0;
 
 function Set_RecentFile_MouseRightBtn_Event()
 {
-	$(".FileItem").mousedown(
+	$("#FileList .FileItem").mousedown(
 		function(e)
 		{			
 			//FilePath
@@ -117,7 +120,7 @@ function HandleStudio( pVal )
 		{
 			$("#NoPluginTip").hide();
 		}
-	}	
+	}
 }
 
 function GotoMenu( strMenu )
@@ -188,7 +191,7 @@ function ShowRecentFileList( pList )
 		let TmpHtml='<div class="FileItem"  fpath="'+sPath+'"  >'+
 				'<a class="FileTip" title="'+sPath+'"></a>'+
 				'<div class="FileImg" ><img src="'+sImg+'" onerror="this.onerror=null;this.src=\'img/d.png\';"  alt="No Image"  /></div>'+
-				'<a>'+sName+'</a>'+
+				'<div class="FileName TextS1">'+sName+'</div>'+
 				'<div class="FileDate">'+sTime+'</div>'+
 			    '</div>';
 		
@@ -203,6 +206,7 @@ function ShowRecentFileList( pList )
 
 function ShowRecnetFileContextMenu()
 {
+	$("#recnet_context_menu").offset({top: 10000, left:-10000});
 	$('#recnet_context_menu').show();
 	
 	let ContextMenuWidth=$('#recnet_context_menu').width();
@@ -214,10 +218,10 @@ function ShowRecnetFileContextMenu()
 	let RealX=MousePosX;
 	let RealY=MousePosY;
 	
-	if( MousePosX + ContextMenuWidth >DocumentWidth )
-		RealX=MousePosX-ContextMenuWidth;
-	if( MousePosY+ContextMenuHeight>DocumentHeight )
-		RealY=MousePosY-ContextMenuHeight;
+	if( MousePosX + ContextMenuWidth + 24 >DocumentWidth )
+		RealX=DocumentWidth-ContextMenuWidth-24;
+	if( MousePosY+ContextMenuHeight+24>DocumentHeight )
+		RealY=DocumentHeight-ContextMenuHeight-24;
 	
 	$("#recnet_context_menu").offset({top: RealY, left:RealX});
 }
@@ -252,6 +256,14 @@ function OnLoginOrRegister()
 	SendWXMessage( JSON.stringify(tSend) );	
 }
 
+function OnClickModelDepot()
+{
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_modeldepot";
+	
+	SendWXMessage( JSON.stringify(tSend) );		
+}
 
 function OnClickNewProject()
 {
@@ -392,3 +404,61 @@ function OpenWikiUrl( strUrl )
 
 //---------------Global-----------------
 window.postMessage = HandleStudio;
+
+
+//---------------Christma cabin
+var CCabin={
+	"model":[
+		{
+			"name":"Bambu Christmas Cabin",
+			"icon":"christmas_cabin.png",
+			"file":"Bambu Christmas Cabin.3mf"
+		}		
+	]	
+};
+
+function ShowCabin()
+{
+	let nCabin=CCabin.model.length;
+
+	if(nCabin==0)
+	{
+		$('#CabinList').html('');
+	
+	    $('#ChristmasArea').hide();
+		return;
+	}
+	
+	let strHtml='';
+	for(let m=0;m<nCabin;m++)
+	{
+		let OneCabin=CCabin.model[m];
+		
+		let OneHtml='<div class="FileItem" onClick="OnOpenCabin(\''+OneCabin.file+'\')" >'+
+				    '<div class="FileImg"><img src="model/'+OneCabin.icon+'"/></div>'+
+				    '<div class="FileName TextS1">'+OneCabin.name+'</div>'+
+			        '</div>';
+		
+		strHtml+=OneHtml;
+	}
+	
+	$('#CabinList').html(strHtml);
+	
+	$('#ChristmasArea').show();
+	$('#ChristmasArea').css('display','flex');
+}
+
+function OnOpenCabin( cabinfile )
+{
+	//alert(cabinfile);
+	
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="homepage_open_ccabin";
+	tSend['data']={};
+	tSend['data']['file']=cabinfile;
+	
+	SendWXMessage( JSON.stringify(tSend) );		
+}
+
+

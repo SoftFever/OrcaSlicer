@@ -14,6 +14,7 @@ public:
 
     explicit NotificationProgressIndicator(NotificationManager *nm);
 
+    void clear_percent() override;
     void set_range(int range) override;
     void set_cancel_callback(CancelFn = CancelFn()) override;
     void set_progress(int pr) override;

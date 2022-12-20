@@ -14,6 +14,7 @@
 #include "Widgets/Label.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/StaticLine.hpp"
+#include "Widgets/ComboBox.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -22,18 +23,29 @@ class PrintOptionsDialog : public DPIDialog
 protected:
     // settings
     CheckBox* m_cb_first_layer;
-    CheckBox* m_cb_spaghetti;
-    CheckBox* m_cb_spaghetti_print_halt;
+    CheckBox* m_cb_ai_monitoring;
+    CheckBox* m_cb_plate_mark;
+    CheckBox* m_cb_auto_recovery;
     wxStaticText* text_first_layer;
-    wxStaticText* text_spaghetti;
-    wxStaticText* text_spaghetti_print_halt;
+    wxStaticText* text_ai_monitoring;
+    wxStaticText* text_ai_monitoring_caption;
+    ComboBox* ai_monitoring_level_list;
+    wxStaticText* text_plate_mark;
+    wxStaticText* text_plate_mark_caption;
+    wxStaticText* text_auto_recovery;
+    StaticLine* line1;
+    StaticLine* line2;
+    StaticLine* line3;
+    StaticLine* line4;
     wxBoxSizer* create_settings_group(wxWindow* parent);
+
+    bool print_halt = false;
 
 public:
     PrintOptionsDialog(wxWindow* parent);
     ~PrintOptionsDialog();
     void on_dpi_changed(const wxRect &suggested_rect) override;
-    void update_spaghetti();
+    void update_ai_monitor_status();
 
     MachineObject *obj { nullptr };
 
@@ -42,6 +54,16 @@ public:
     void             update_options(MachineObject *obj_);
     void             update_machine_obj(MachineObject *obj_);
     bool             Show(bool show) override;
+
+    enum AiMonitorSensitivityLevel {
+        LOW         = 0,
+        MEDIUM      = 1,
+        HIGH        = 2,
+        LEVELS_NUM  = 3
+    };
+    wxString sensitivity_level_to_label_string(enum AiMonitorSensitivityLevel level);
+    std::string sensitivity_level_to_msg_string(enum AiMonitorSensitivityLevel level);
+    void set_ai_monitor_sensitivity(wxCommandEvent& evt);
 };
 
 }} // namespace Slic3r::GUI

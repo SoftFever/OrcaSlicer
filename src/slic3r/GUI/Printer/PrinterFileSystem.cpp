@@ -34,15 +34,19 @@ struct StaticBambuLib : BambuLib {
 PrinterFileSystem::PrinterFileSystem()
     : BambuLib(StaticBambuLib::get())
 {
-    if (!default_thumbnail.IsOk())
+    if (!default_thumbnail.IsOk()) {
         default_thumbnail = *Slic3r::GUI::BitmapCache().load_svg("printer_file", 0, 0);
+#ifdef __APPLE__
+        default_thumbnail = wxBitmap(default_thumbnail.ConvertToImage(), -1, 1);
+#endif
+    }
     m_session.owner = this;
 #ifdef PRINTER_FILE_SYSTEM_TEST
     auto time = wxDateTime::Now();
     for (int i = 0; i < 100; ++i) {
         auto name = wxString::Format(L"img-%03d.jpg", i + 1);
         wxImage im(L"D:\\work\\pic\\" + name);
-        m_file_list.push_back({name.ToUTF8().data(), time.GetTicks(), 26937, im, i < 20 ? FF_DOWNLOAD : 0, i * 10 - 40});
+        m_file_list.push_back({name.ToUTF8().data(), time.GetTicks(), 26937, i > 3 ? im : default_thumbnail, i < 20 ? FF_DOWNLOAD : 0, i * 10 - 40 - 1});
         time.Add(wxDateSpan::Days(-1));
     }
     m_file_list[0].thumbnail = default_thumbnail;
@@ -112,6 +116,8 @@ void PrinterFileSystem::ListAllFiles()
             if (iter1->name == iter2->name) {
                 iter1->thumbnail = iter2->thumbnail;
                 iter1->flags = iter2->flags;
+                if (!iter1->thumbnail.IsOk())
+                    iter1->flags &= ~FF_THUMNAIL;
                 iter1->progress = iter2->progress;
                 iter1->path = iter2->path;
                 ++iter1; ++iter2;
@@ -142,8 +148,8 @@ void PrinterFileSystem::DeleteFiles(size_t index)
                 file.flags |= FF_DELETED;
                 ++n;
             }
-            if (n == 0) return;
         }
+        if (n == 0) return;
     } else {
         if (index >= m_file_list.size())
             return;
@@ -222,6 +228,8 @@ void PrinterFileSystem::DownloadCancel(size_t index)
     if ((file.flags & FF_DOWNLOAD) == 0) return;
     if (file.progress >= 0)
         CancelRequest(m_download_seq);
+    else
+        file.flags &= ~FF_DOWNLOAD;
 }
 
 size_t PrinterFileSystem::GetCount() const

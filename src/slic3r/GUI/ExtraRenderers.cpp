@@ -313,13 +313,18 @@ wxWindow* BitmapChoiceRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelR
         labelRect.GetTopLeft(), wxSize(labelRect.GetWidth(), -1),
         0, nullptr, wxCB_READONLY | CB_NO_DROP_ICON | CB_NO_TEXT);
     c_editor->GetDropDown().SetUseContentWidth(true);
-    // BBS
+
+    if (has_default_extruder && has_default_extruder())
+        c_editor->Append(_L("default"), *get_default_extruder_color_icon());
+
     for (size_t i = 0; i < icons.size(); i++)
         c_editor->Append(wxString::Format("%d", i+1), *icons[i]);
 
-    c_editor->SetSelection(atoi(data.GetText().c_str()) - 1);
+    if (has_default_extruder && has_default_extruder())
+        c_editor->SetSelection(atoi(data.GetText().c_str()));
+    else
+        c_editor->SetSelection(atoi(data.GetText().c_str()) - 1);
 
-    
 #ifdef __linux__
     c_editor->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt) {
         // to avoid event propagation to other sidebar items

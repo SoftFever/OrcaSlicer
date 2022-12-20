@@ -30,6 +30,11 @@ void GUI::Job::update_status(int st, const wxString &msg)
     wxQueueEvent(this, evt);
 }
 
+void GUI::Job::update_percent_finish()
+{
+    m_progress->clear_percent();
+}
+
 GUI::Job::Job(std::shared_ptr<ProgressIndicator> pri)
     : m_progress(std::move(pri))
 {

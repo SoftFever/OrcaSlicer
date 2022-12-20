@@ -26,9 +26,9 @@ void GeneratorDeleter::operator()(Generator *p) {
     delete p;
 }
 
-GeneratorPtr build_generator(const PrintObject &print_object)
+GeneratorPtr build_generator(const PrintObject &print_object, const std::function<void()> &throw_on_cancel_callback)
 {
-    return GeneratorPtr(new Generator(print_object));
+    return GeneratorPtr(new Generator(print_object, throw_on_cancel_callback));
 }
 
 } // namespace Slic3r::FillAdaptive

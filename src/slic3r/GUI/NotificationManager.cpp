@@ -7,6 +7,7 @@
 #include "ObjectDataViewModel.hpp"
 #include "GUI_ObjectList.hpp"
 #include "ParamsPanel.hpp"
+#include "MainFrame.hpp"
 #include "libslic3r/Config.hpp"
 #include "format.hpp"
 
@@ -144,6 +145,8 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
 	, m_evt_handler         (evt_handler)
 	, m_notification_start  (GLCanvas3D::timestamp_now())
 {
+	m_is_dark = wxGetApp().plater()->get_current_canvas3D()->get_dark_mode_status();
+
     m_ErrorColor  = ImVec4(0.9, 0.36, 0.36, 1);
     m_WarnColor   = ImVec4(0.99, 0.69, 0.455, 1);
     m_NormalColor = ImVec4(0.03, 0.6, 0.18, 1);
@@ -157,6 +160,10 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
 	m_WindowRadius = 4.0f * wxGetApp().plater()->get_current_canvas3D()->get_scale();
 }
 
+void NotificationManager::PopNotification::on_change_color_mode(bool is_dark)
+{
+	m_is_dark = is_dark;
+}
 
 void NotificationManager::PopNotification::use_bbl_theme()
 {
@@ -187,9 +194,13 @@ void NotificationManager::PopNotification::use_bbl_theme()
  //   OldStyle.Colors[ImGuiCol_WindowBg] = m_WindowBkgColor;
  //   OldStyle.Colors[ImGuiCol_Text]     = m_TextColor;
 
-	push_style_color(ImGuiCol_Border, m_CurrentColor, true, m_current_fade_opacity);
+	m_WindowBkgColor = m_is_dark ? ImVec4(45 / 255.f, 45 / 255.f, 49 / 255.f, 1.f) : ImVec4(1, 1, 1, 1);
+	m_TextColor = m_is_dark ? ImVec4(224 / 255.f, 224 / 255.f, 224 / 255.f, 1.f) : ImVec4(.2f, .2f, .2f, 1.0f);
+	m_HyperTextColor = m_is_dark ? ImVec4(0.03, 0.6, 0.18, 1) : ImVec4(0.03, 0.6, 0.18, 1);
+	m_is_dark ? push_style_color(ImGuiCol_Border, {62 / 255.f, 62 / 255.f, 69 / 255.f, 1.f}, true, m_current_fade_opacity) : push_style_color(ImGuiCol_Border, m_CurrentColor, true, m_current_fade_opacity);
     push_style_color(ImGuiCol_WindowBg, m_WindowBkgColor, true, m_current_fade_opacity);
     push_style_color(ImGuiCol_Text, m_TextColor, true, m_current_fade_opacity);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, m_WindowRadius / 4);
 }
 
 
@@ -201,6 +212,7 @@ void NotificationManager::PopNotification::restore_default_theme()
     OldStyle.WindowRounding            = m_DefaultTheme.mWindowRound;
 
 	ImGui::PopStyleColor(3);
+	ImGui::PopStyleVar();
 	//OldStyle.Colors[ImGuiCol_WindowBg] = m_DefaultTheme.mWindowBkg;
  //   OldStyle.Colors[ImGuiCol_Text]     = m_DefaultTheme.mTextColor;
  //   OldStyle.Colors[ImGuiCol_Border]   = m_DefaultTheme.mBorderColor;
@@ -540,8 +552,8 @@ void NotificationManager::PopNotification::render_close_button(ImGuiWrapper& img
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(.0f, .0f, .0f, .0f));
 
 
-	std::string button_text;
-	button_text = ImGui::CloseNotifButton;
+	std::wstring button_text;
+	button_text = m_is_dark ? ImGui::CloseNotifDarkButton : ImGui::CloseNotifButton;
     //button_text = ImGui::PreferencesButton;
 
 	//if (ImGui::IsMouseHoveringRect(ImVec2(win_pos.x - win_size.x / 10.f, win_pos.y),
@@ -549,9 +561,9 @@ void NotificationManager::PopNotification::render_close_button(ImGuiWrapper& img
 	//	                           true))
     if (ImGui::IsMouseHoveringRect(ImVec2(win_pos.x - win_size.x / 10.f, win_pos.y), ImVec2(win_pos.x, win_pos.y + 2 * m_line_height+10),true))
 	{
-		button_text = ImGui::CloseNotifHoverButton;
+		button_text = m_is_dark ? ImGui::CloseNotifHoverDarkButton : ImGui::CloseNotifHoverButton;
 	}
-	ImVec2 button_pic_size = ImGui::CalcTextSize(button_text.c_str());
+	ImVec2 button_pic_size = ImGui::CalcTextSize(into_u8(button_text).c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
 	ImGui::SetCursorPosX(win_size.x - m_line_height * 2.75f);
 	//ImGui::SetCursorPosY(win_size.y / 2 - button_size.y);
@@ -586,12 +598,11 @@ void NotificationManager::PopNotification::render_close_button(ImGuiWrapper& img
 void NotificationManager::PopNotification::bbl_render_left_sign(ImGuiWrapper &imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
     ImDrawList *draw_list = ImGui::GetWindowDrawList();
-
-	ImVec2 round_rect_pos = ImVec2(win_pos_x - win_size_x, win_pos_y);
-    ImVec2 round_rect_size = ImVec2(m_WindowRadius * 2, win_size_y);
+	ImVec2 round_rect_pos = ImVec2(win_pos_x - win_size_x + ImGui::GetStyle().WindowBorderSize, win_pos_y + ImGui::GetStyle().WindowBorderSize);
+    ImVec2 round_rect_size = ImVec2(m_WindowRadius * 2, win_size_y - 2 * ImGui::GetStyle().WindowBorderSize);
 
 	ImVec2 rect_pos = round_rect_pos + ImVec2(m_WindowRadius, 0);
-    ImVec2 rect_size = ImVec2(m_WindowRadius + 2 * wxGetApp().plater()->get_current_canvas3D()->get_scale(), win_size_y);
+    ImVec2 rect_size = ImVec2(round_rect_size.x / 2, round_rect_size.y);
 
 	ImU32 clr = ImGui::GetColorU32(ImVec4(m_CurrentColor.x, m_CurrentColor.y, m_CurrentColor.z, m_current_fade_opacity));
 
@@ -625,15 +636,15 @@ void NotificationManager::PopNotification::render_minimize_button(ImGuiWrapper& 
 
 
 	//button - if part if treggered
-	std::string button_text;
-	button_text = ImGui::MinimalizeButton;
+	std::wstring button_text;
+	button_text = m_is_dark ? ImGui::MinimalizeDarkButton : ImGui::MinimalizeButton;
 	if (ImGui::IsMouseHoveringRect(ImVec2(win_pos_x - m_window_width / 10.f, win_pos_y + m_window_height - 2 * m_line_height + 1),
 		ImVec2(win_pos_x, win_pos_y + m_window_height),
 		true))
 	{
-		button_text = ImGui::MinimalizeHoverButton;
+		button_text = m_is_dark ? ImGui::MinimalizeHoverDarkButton : ImGui::MinimalizeHoverButton;
 	}
-	ImVec2 button_pic_size = ImGui::CalcTextSize(button_text.c_str());
+	ImVec2 button_pic_size = ImGui::CalcTextSize(into_u8(button_text).c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
 	ImGui::SetCursorPosX(m_window_width - m_line_height * 1.8f);
 	ImGui::SetCursorPosY(m_window_height - button_size.y - 5);
@@ -791,7 +802,7 @@ void NotificationManager::ExportFinishedNotification::render_text(ImGuiWrapper& 
 			ImGui::SetCursorPosY(starting_y + i * shift_y);
 			imgui.text(line.c_str());
 			//hyperlink text
-			if ( i == 0 && !m_eject_pending)  {
+			if ( i == 0 && !m_eject_pending && !m_export_dir_path.empty())  {
 				render_hypertext(imgui, x_offset + ImGui::CalcTextSize(line.c_str()).x + ImGui::CalcTextSize("   ").x, starting_y, _u8L("Open Folder."));
 			}
 		}
@@ -1536,6 +1547,13 @@ NotificationManager::NotificationManager(wxEvtHandler* evt_handler) :
 {
 }
 
+void NotificationManager::on_change_color_mode(bool is_dark) {
+	m_is_dark = is_dark;
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications){ 
+		notification->on_change_color_mode(is_dark); 
+	}
+}
+
 void NotificationManager::push_notification(const NotificationType type, int timestamp)
 {
 	auto it = std::find_if(std::begin(basic_notifications), std::end(basic_notifications),
@@ -1582,7 +1600,9 @@ void NotificationManager::push_validate_error_notification(StringObjectException
             if (iter != objects.end())
 				wxGetApp().params_panel()->switch_to_object();
             wxGetApp().sidebar().jump_to_option(opt, Preset::TYPE_PRINT, L"");
-		}
+        } else {
+            wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+        }
 		return false;
 	} : std::function<bool(wxEvtHandler *)>();
     auto link = (mo || !error.opt_key.empty()) ? _u8L("Jump to") : "";
@@ -1592,15 +1612,37 @@ void NotificationManager::push_validate_error_notification(StringObjectException
 	set_slicing_progress_hidden();
 }
 
-void NotificationManager::push_slicing_error_notification(const std::string& text)
+void NotificationManager::push_slicing_error_notification(const std::string &text, ModelObject const *obj)
 {
-	set_all_slicing_errors_gray(false);
-	push_notification_data({ NotificationType::SlicingError, NotificationLevel::ErrorNotificationLevel, 0,  _u8L("Error:") + "\n" + text }, 0);
+	auto callback = obj ? [id = obj->id()](wxEvtHandler *) {
+		auto & objects = wxGetApp().model().objects;
+		auto iter = std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; });
+        if (iter != objects.end()) {
+			wxGetApp().obj_list()->select_items({{*iter, nullptr}});
+            wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+		}
+		return false;
+	} : std::function<bool(wxEvtHandler *)>();
+    auto link     = callback ? _u8L("Jump to") : "";
+    if (obj) link += std::string(" [") + obj->name + "]";
+    set_all_slicing_errors_gray(false);
+	push_notification_data({ NotificationType::SlicingError, NotificationLevel::ErrorNotificationLevel, 0,  _u8L("Error:") + "\n" + text, link, callback }, 0);
 	set_slicing_progress_hidden();
 }
-void NotificationManager::push_slicing_warning_notification(const std::string& text, bool gray, ObjectID oid, int warning_step, int warning_msg_id)
+void NotificationManager::push_slicing_warning_notification(const std::string& text, bool gray, ModelObject const * obj, ObjectID oid, int warning_step, int warning_msg_id)
 {
-	NotificationData data { NotificationType::SlicingWarning, NotificationLevel::WarningNotificationLevel, 0,  _u8L("Warning:") + "\n" + text };
+    auto callback = obj ? [id = obj->id()](wxEvtHandler *) {
+		auto & objects = wxGetApp().model().objects;
+		auto iter = std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; });
+        if (iter != objects.end()) {
+			wxGetApp().obj_list()->select_items({{*iter, nullptr}});
+            wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+		}
+		return false;
+	} : std::function<bool(wxEvtHandler *)>();
+    auto link = callback ? _u8L("Jump to") : "";
+    if (obj) link += std::string(" [") + obj->name + "]";
+	NotificationData data { NotificationType::SlicingWarning, NotificationLevel::WarningNotificationLevel, 0,  _u8L("Warning:") + "\n" + text, link, callback };
 
 	data.sub_msg_id = warning_msg_id;
 	data.ori_text = text;
@@ -1751,7 +1793,7 @@ void NotificationManager::set_simplify_suggestion_multiline(const ObjectID oid, 
 void NotificationManager::push_exporting_finished_notification(const std::string& path, const std::string& dir_path, bool on_removable)
 {
 	close_notification_of_type(NotificationType::ExportFinished);
-	NotificationData data{ NotificationType::ExportFinished, NotificationLevel::RegularNotificationLevel, on_removable ? 0 : 20,  _u8L("Export ok.") + "\n" + path };
+	NotificationData data{ NotificationType::ExportFinished, NotificationLevel::RegularNotificationLevel, on_removable ? 0 : 20,  _u8L("Export successfully.") + "\n" + path };
 	push_notification_data(std::make_unique<NotificationManager::ExportFinishedNotification>(data, m_id_provider, m_evt_handler, on_removable, path, dir_path), 0);
 	set_slicing_progress_hidden();
 }
@@ -2095,11 +2137,11 @@ void NotificationManager::render_notifications(GLCanvas3D &canvas, float overlay
 {
 	sort_notifications();
 
-	float last_y = bottom_margin;
+	float last_y = bottom_margin * m_scale;
 
 	for (const auto& notification : m_pop_notifications) {
 		if (notification->get_state() != PopNotification::EState::Hidden) {
-            notification->render(canvas, last_y, m_move_from_overlay && !m_in_preview, overlay_width, right_margin * m_scale);
+            notification->render(canvas, last_y, m_move_from_overlay && !m_in_preview, overlay_width * m_scale, right_margin * m_scale);
 			if (notification->get_state() != PopNotification::EState::Finished)
 				last_y = notification->get_top() + GAP_WIDTH;
 		}

@@ -20,7 +20,15 @@ ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, wxBoxSizer* side_tools) :
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
-    wxColour default_btn_bg("#3B4446"); // Gradient #414B4E
+
+    wxColour default_btn_bg;
+#ifdef __APPLE__
+    default_btn_bg = wxColour("#3B4446"); // Gradient #414B4E
+#else
+    default_btn_bg = wxColour("#2D2D30"); // Gradient #414B4E
+#endif
+
+   
     SetBackgroundColour(default_btn_bg);
 
     int em = em_unit(this);// Slic3r::GUI::wxGetApp().em_unit();
@@ -48,11 +56,13 @@ ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, wxBoxSizer* side_tools) :
 
     // BBS: disable custom paint
     //this->Bind(wxEVT_PAINT, &ButtonsListCtrl::OnPaint, this);
+    Bind(wxEVT_SYS_COLOUR_CHANGED, [this](auto& e){
+    });
 }
 
 void ButtonsListCtrl::OnPaint(wxPaintEvent&)
 {
-    Slic3r::GUI::wxGetApp().UpdateDarkUI(this);
+    //Slic3r::GUI::wxGetApp().UpdateDarkUI(this);
     const wxSize sz = GetSize();
     wxPaintDC dc(this);
 
@@ -139,8 +149,7 @@ void ButtonsListCtrl::SetSelection(int sel)
         std::pair{wxColour(59, 68, 70), (int) StateColor::Normal});
         m_pageButtons[m_selection]->SetBackgroundColor(bg_color);
         StateColor text_color = StateColor(
-        std::pair{wxColour(255, 255, 255), (int) StateColor::Hovered},
-        std::pair{wxColour(238,238, 238), (int) StateColor::Normal}
+        std::pair{wxColour(254,254, 254), (int) StateColor::Normal}
         );
         m_pageButtons[m_selection]->SetSelected(false);
         m_pageButtons[m_selection]->SetTextColor(text_color);
@@ -153,8 +162,7 @@ void ButtonsListCtrl::SetSelection(int sel)
     m_pageButtons[m_selection]->SetBackgroundColor(bg_color);
 
     StateColor text_color = StateColor(
-        std::pair{wxColour(255, 255, 255), (int) StateColor::Hovered},
-        std::pair{wxColour(255, 255, 255), (int) StateColor::Normal}
+        std::pair{wxColour(254, 254, 254), (int) StateColor::Normal}
         );
     m_pageButtons[m_selection]->SetSelected(true);
     m_pageButtons[m_selection]->SetTextColor(text_color);
@@ -177,8 +185,7 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString &text, bool bSelect /*
 
     btn->SetBackgroundColor(bg_color);
     StateColor text_color = StateColor(
-        std::pair{wxColour(255, 255, 255), (int) StateColor::Hovered},
-        std::pair{wxColour(238,238, 238), (int) StateColor::Normal});
+        std::pair{wxColour(254,254, 254), (int) StateColor::Normal});
     btn->SetTextColor(text_color);
     btn->SetInactiveIcon(inactive_bmp_name);
     btn->SetSelected(false);
@@ -241,4 +248,15 @@ wxString ButtonsListCtrl::GetPageText(size_t n) const
 
 //#endif // _WIN32
 
+void Notebook::Init()
+{
+    // We don't need any border as we don't have anything to separate the
+    // page contents from.
+    SetInternalBorder(0);
 
+    // No effects by default.
+    m_showEffect = m_hideEffect = wxSHOW_EFFECT_NONE;
+
+    m_showTimeout = m_hideTimeout = 0;
+    SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
+}

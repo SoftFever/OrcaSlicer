@@ -211,16 +211,16 @@ bool OpenGLManager::m_use_manually_generated_mipmaps = true;
 OpenGLManager::EMultisampleState OpenGLManager::s_multisample = OpenGLManager::EMultisampleState::Unknown;
 OpenGLManager::EFramebufferType OpenGLManager::s_framebuffers_type = OpenGLManager::EFramebufferType::Unknown;
 
-#ifdef __APPLE__ 
+#ifdef __APPLE__
 // Part of hack to remove crash when closing the application on OSX 10.9.5 when building against newer wxWidgets
 OpenGLManager::OSInfo OpenGLManager::s_os_info;
-#endif // __APPLE__ 
+#endif // __APPLE__
 
 OpenGLManager::~OpenGLManager()
 {
     m_shaders_manager.shutdown();
 
-#ifdef __APPLE__ 
+#ifdef __APPLE__
     // This is an ugly hack needed to solve the crash happening when closing the application on OSX 10.9.5 with newer wxWidgets
     // The crash is triggered inside wxGLContext destructor
     if (s_os_info.major != 10 || s_os_info.minor != 9 || s_os_info.micro != 5)
@@ -228,7 +228,7 @@ OpenGLManager::~OpenGLManager()
 #endif //__APPLE__
         if (m_context != nullptr)
             delete m_context;
-#ifdef __APPLE__ 
+#ifdef __APPLE__
     }
 #endif //__APPLE__
 }
@@ -302,7 +302,7 @@ bool OpenGLManager::init_gl()
                 BOOST_LOG_TRIVIAL(error) << "Not recognized format of version.";
             }
         } else {
-            BOOST_LOG_TRIVIAL(error) << "Unable to parse version of AMD driver.";
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "not AMD driver.";
         }
 #endif
     }
@@ -315,7 +315,7 @@ wxGLContext* OpenGLManager::init_glcontext(wxGLCanvas& canvas)
     if (m_context == nullptr) {
         m_context = new wxGLContext(&canvas);
 
-#ifdef __APPLE__ 
+#ifdef __APPLE__
         // Part of hack to remove crash when closing the application on OSX 10.9.5 when building against newer wxWidgets
         s_os_info.major = wxPlatformInfo::Get().GetOSMajorVersion();
         s_os_info.minor = wxPlatformInfo::Get().GetOSMinorVersion();
@@ -327,7 +327,7 @@ wxGLContext* OpenGLManager::init_glcontext(wxGLCanvas& canvas)
 
 wxGLCanvas* OpenGLManager::create_wxglcanvas(wxWindow& parent)
 {
-    int attribList[] = { 
+    int attribList[] = {
         WX_GL_RGBA,
         WX_GL_DOUBLEBUFFER,
         // RGB channels each should be allocated with 8 bit depth. One should almost certainly get these bit depths by default.
@@ -361,7 +361,7 @@ void OpenGLManager::detect_multisample(int* attribList)
 {
     int wxVersion = wxMAJOR_VERSION * 10000 + wxMINOR_VERSION * 100 + wxRELEASE_NUMBER;
     bool enable_multisample = wxVersion >= 30003;
-    s_multisample = 
+    s_multisample =
         enable_multisample &&
         // Disable multi-sampling on ChromeOS, as the OpenGL virtualization swaps Red/Blue channels with multi-sampling enabled,
         // at least on some platforms.

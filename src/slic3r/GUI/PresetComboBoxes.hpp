@@ -145,6 +145,8 @@ protected:
     wxBitmap* get_bmp(  std::string bitmap_key, const std::string& main_icon_name, const std::string& next_icon_name,
                         bool is_enabled = true, bool is_compatible = true, bool is_system = false);
 
+    wxBitmap *get_bmp(Preset const &preset);
+
 private:
     void fill_width_height();
 };
@@ -168,7 +170,7 @@ public:
 
     wxColor get_color() { return m_color; }
 
-    void switch_to_tab();
+    bool switch_to_tab();
     void change_extruder_color();
     void show_add_menu();
     void show_edit_menu();

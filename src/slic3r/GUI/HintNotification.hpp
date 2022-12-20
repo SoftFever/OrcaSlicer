@@ -88,6 +88,7 @@ protected:
 		const float win_pos_x, const float win_pos_y) override;
 	virtual void	render_minimize_button(ImGuiWrapper& imgui,
 		const float win_pos_x, const float win_pos_y) override {}
+
 	void			render_preferences_button(ImGuiWrapper& imgui,
 		const float win_pos_x, const float win_pos_y);
 	void			render_right_arrow_button(ImGuiWrapper& imgui,

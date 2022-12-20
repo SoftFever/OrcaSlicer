@@ -1,0 +1,23 @@
+{
+    "type": "filament",
+    "setting_id": "GFSC00_03",
+    "name": "Bambu PC @BBL P1P 0.2 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Bambu PC @base",
+    "filament_max_volumetric_speed": [
+        "1"
+    ],
+    "nozzle_temperature": [
+        "260"
+    ],
+    "fan_max_speed": [
+        "20"
+    ],
+    "reduce_fan_stop_start_freq": [
+        "0"
+    ],
+    "compatible_printers": [
+        "Bambu Lab P1P 0.2 nozzle"
+    ]
+}

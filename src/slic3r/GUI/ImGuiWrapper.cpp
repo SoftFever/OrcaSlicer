@@ -27,6 +27,7 @@
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Shape/TextShape.hpp"
 #include "3DScene.hpp"
 #include "GUI.hpp"
 #include "I18N.hpp"
@@ -37,6 +38,7 @@
 #include "nanosvg/nanosvg.h"
 #include "nanosvg/nanosvgrast.h"
 #include "OpenGLManager.hpp"
+#include "GUI_App.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -65,6 +67,20 @@ static const std::map<const wchar_t, std::string> font_icons = {
     {ImGui::FoldButtonIcon         , "im_fold"                       },
     {ImGui::UnfoldButtonIcon       , "im_unfold"                     },
     {ImGui::SphereButtonIcon       , "toolbar_modifier_sphere"       },
+    // dark mode icon
+    {ImGui::MinimalizeDarkButton       , "notification_minimalize_dark"       },
+    {ImGui::MinimalizeHoverDarkButton  , "notification_minimalize_hover_dark" },
+    {ImGui::RightArrowDarkButton       , "notification_right_dark"            },
+    {ImGui::RightArrowHoverDarkButton  , "notification_right_hover_dark"      },
+    {ImGui::PreferencesDarkButton      , "notification_preferences_dark"      },
+    {ImGui::PreferencesHoverDarkButton , "notification_preferences_hover_dark"},
+
+    {ImGui::CircleButtonDarkIcon       , "circle_paint_dark"                  },
+    {ImGui::TriangleButtonDarkIcon     , "triangle_paint_dark"                },
+    {ImGui::FillButtonDarkIcon         , "fill_paint_dark"                    },
+    {ImGui::HeightRangeDarkIcon        , "height_range_dark"                  },
+    {ImGui::GapFillDarkIcon            , "gap_fill_dark"                      },
+    {ImGui::SphereButtonDarkIcon       , "toolbar_modifier_sphere_dark"       },
 
 };
 static const std::map<const wchar_t, std::string> font_icons_large = {
@@ -86,6 +102,11 @@ static const std::map<const wchar_t, std::string> font_icons_large = {
     {ImGui::DocumentationButton     , "notification_documentation"      },
     {ImGui::DocumentationHoverButton, "notification_documentation_hover"},
     //{ImGui::InfoMarker              , "notification_info"               },
+    // dark mode icon
+    {ImGui::CloseNotifDarkButton        , "notification_close_dark"              },
+    {ImGui::CloseNotifHoverDarkButton   , "notification_close_hover_dark"        },
+    {ImGui::DocumentationDarkButton     , "notification_documentation_dark"      },
+    {ImGui::DocumentationHoverDarkButton, "notification_documentation_hover_dark"},
 };
 
 static const std::map<const wchar_t, std::string> font_icons_extra_large = {
@@ -108,9 +129,11 @@ const ImVec4 ImGuiWrapper::COL_BLUE_LIGHT        = ImVec4(0.122f, 0.557f, 0.918f
 const ImVec4 ImGuiWrapper::COL_GREEN_LIGHT       = ImVec4(0.86f, 0.99f, 0.91f, 1.0f);
 const ImVec4 ImGuiWrapper::COL_HOVER             = { 0.933f, 0.933f, 0.933f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_ACTIVE            = { 0.675f, 0.675f, 0.675f, 1.0f };
-const ImVec4 ImGuiWrapper::COL_SEPARATOR         = { 0.93f, 0.93f, 0.93f,1.0f };
+const ImVec4 ImGuiWrapper::COL_SEPARATOR         = { 0.93f, 0.93f, 0.93f, 1.0f };
+const ImVec4 ImGuiWrapper::COL_SEPARATOR_DARK    = { 0.24f, 0.24f, 0.27f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_TITLE_BG          = { 0.745f, 0.745f, 0.745f, 1.0f };
-const ImVec4 ImGuiWrapper::COL_WINDOW_BG         = { 1.000f, 1.000f, 1.000f, 0.95f };
+const ImVec4 ImGuiWrapper::COL_WINDOW_BG         = { 1.000f, 1.000f, 1.000f, 1.0f };
+const ImVec4 ImGuiWrapper::COL_WINDOW_BG_DARK    = { 45 / 255.f, 45 / 255.f, 49 / 255.f, 1.f };
 
 int ImGuiWrapper::TOOLBAR_WINDOW_FLAGS = ImGuiWindowFlags_AlwaysAutoResize
                                  | ImGuiWindowFlags_NoMove
@@ -118,7 +141,6 @@ int ImGuiWrapper::TOOLBAR_WINDOW_FLAGS = ImGuiWindowFlags_AlwaysAutoResize
                                  | ImGuiWindowFlags_NoCollapse
                                  | ImGuiWindowFlags_NoTitleBar;
 
-static float accer = 1.f;
 
 bool get_data_from_svg(const std::string &filename, unsigned int max_size_px, ThumbnailData &thumbnail_data)
 {
@@ -189,15 +211,7 @@ bool slider_behavior(ImGuiID id, const ImRect& region, const ImS32 v_min, const 
     // Process interacting with the slider
     ImS32 v_new = *out_value;
     bool value_changed = false;
-    // wheel behavior
-    ImRect mouse_wheel_responsive_region;
-    if (axis == ImGuiAxis_X)
-        mouse_wheel_responsive_region = ImRect(region.Min - ImVec2(handle_sz.x / 2, 0), region.Max + ImVec2(handle_sz.x / 2, 0));
-    if (axis == ImGuiAxis_Y)
-        mouse_wheel_responsive_region = ImRect(region.Min - ImVec2(0, handle_sz.y), region.Max + ImVec2(0, handle_sz.y));
-    if (ImGui::ItemHoverable(mouse_wheel_responsive_region, id)) {
-        v_new = ImClamp(*out_value + (ImS32)(context.IO.MouseWheel * accer), v_min, v_max);
-    }
+
     // drag behavior
     if (context.ActiveId == id)
     {
@@ -290,6 +304,7 @@ ImGuiWrapper::ImGuiWrapper()
 
 ImGuiWrapper::~ImGuiWrapper()
 {
+    //destroy_fonts_texture();
     destroy_font();
     ImGui::DestroyContext();
 }
@@ -353,18 +368,25 @@ void ImGuiWrapper::set_language(const std::string &language)
             ImGui::GetIO().Fonts->GetGlyphRangesChineseFull() :
             // Simplified Chinese
             // Default + Half-Width + Japanese Hiragana/Katakana + set of 2500 CJK Unified Ideographs for common simplified Chinese
-            ImGui::GetIO().Fonts->GetGlyphRangesChineseFull();
+            ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon();
         m_font_cjk = true;
     } else if (lang == "th") {
         ranges = ImGui::GetIO().Fonts->GetGlyphRangesThai(); // Default + Thai characters
-    } else {
-        ranges = ImGui::GetIO().Fonts->GetGlyphRangesDefault(); // Basic Latin, Extended Latin
+    }
+    else if (lang == "en") {
+        ranges = ImGui::GetIO().Fonts->GetGlyphRangesEnglish(); // Basic Latin
+    } 
+    else{
+        ranges = ImGui::GetIO().Fonts->GetGlyphRangesOthers();
     }
 
     if (ranges != m_glyph_ranges) {
         m_glyph_ranges = ranges;
+        //destroy_fonts_texture();
         destroy_font();
     }
+
+    m_glyph_basic_ranges = ImGui::GetIO().Fonts->GetGlyphRangesBasic();
 }
 
 void ImGuiWrapper::set_display_size(float w, float h)
@@ -388,6 +410,7 @@ void ImGuiWrapper::set_scaling(float font_size, float scale_style, float scale_b
     ImGui::GetStyle().ScaleAllSizes(scale_style / m_style_scaling);
     m_style_scaling = scale_style;
 
+    //destroy_fonts_texture();
     destroy_font();
 }
 
@@ -421,19 +444,6 @@ bool ImGuiWrapper::update_key_data(wxKeyEvent &evt)
     }
 
     ImGuiIO& io = ImGui::GetIO();
-
-    if (evt.CmdDown()) {
-        accer = 5.f;
-    }
-    else if (evt.ShiftDown()) {
-#ifdef __APPLE__
-        accer = -5.f;
-#else
-        accer = 5.f;
-#endif
-    }
-    else
-        accer = 1.f;
 
     if (evt.GetEventType() == wxEVT_CHAR) {
         // Char event
@@ -1537,6 +1547,31 @@ void ImGuiWrapper::bold_text(const std::string& str)
     }
 }
 
+bool ImGuiWrapper::push_font_by_name(std::string font_name)
+{
+    auto sys_font = im_fonts_map.find(font_name);
+    if (sys_font != im_fonts_map.end()) {
+        ImFont* font = sys_font->second;
+        if (font && font->ContainerAtlas && font->Glyphs.Size > 4)
+            ImGui::PushFont(font);
+        else {
+            ImGui::PushFont(default_font);
+        }
+        return true;
+    }
+    return false;
+}
+
+bool ImGuiWrapper::pop_font_by_name(std::string font_name)
+{
+    auto sys_font = im_fonts_map.find(font_name);
+    if (sys_font != im_fonts_map.end()) {
+        ImGui::PopFont();
+        return true;
+    }
+    return false;
+}
+
 void ImGuiWrapper::title(const std::string& str)
 {
     if (bold_font){
@@ -1635,50 +1670,95 @@ std::vector<unsigned char> ImGuiWrapper::load_svg(const std::string& bitmap_name
     return data;
 }
 
-
 //BBS
+static bool m_is_dark_mode = false;
+
+void ImGuiWrapper::on_change_color_mode(bool is_dark)
+{
+    m_is_dark_mode = is_dark;
+}
+
 void ImGuiWrapper::push_toolbar_style(const float scale)
 {
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 10.0f) * scale);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 3.0f * scale);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f * scale);
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10.0f, 10.0f) * scale);
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(50/255.0f, 58/255.0f, 61/255.0f, 1.00f));       // 1
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGuiWrapper::COL_WINDOW_BG);          // 2
-    ImGui::PushStyleColor(ImGuiCol_TitleBg, ImGuiWrapper::COL_TITLE_BG);            // 3
-    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImGuiWrapper::COL_TITLE_BG);      // 4
-    ImGui::PushStyleColor(ImGuiCol_Separator, ImGuiWrapper::COL_SEPARATOR);         // 5
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));     // 6
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGuiWrapper::COL_HOVER);         // 7
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 1.00f)); // 8
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(238/255.0f, 238/255.0f, 238/255.0f, 1.00f));  // 9
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(238/255.0f, 238/255.0f, 238/255.0f, 0.00f));        // 10
-    ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, COL_GREEN_LIGHT);                                     // 11
-    ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));//12
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.42f, 0.42f, 0.42f, 1.00f));
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
+    if (m_is_dark_mode) {
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 10.0f) * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 3.0f * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10.0f, 10.0f) * scale);
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 0.88f));                                        // 1
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGuiWrapper::COL_WINDOW_BG_DARK);                                   // 2
+        ImGui::PushStyleColor(ImGuiCol_TitleBg, ImGuiWrapper::COL_TITLE_BG);                                          // 3
+        ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImGuiWrapper::COL_TITLE_BG);                                    // 4
+        ImGui::PushStyleColor(ImGuiCol_Separator, ImGuiWrapper::COL_SEPARATOR_DARK);                                  // 5
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(62 / 255.0f, 62 / 255.0f, 69 / 255.0f, 1.00f));                 // 6
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(73 / 255.0f, 73 / 255.0f, 78 / 255.0f, 1.00f));          // 7
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(73 / 255.0f, 73 / 255.0f, 78 / 255.0f, 1.00f));           // 8
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(84 / 255.0f, 84 / 255.0f, 90 / 255.0f, 1.00f));         // 9
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(62 / 255.0f, 62 / 255.0f, 69 / 255.0f, 1.00f));          // 10
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));             // 11
+        ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f));         // 12
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));                                // 13
+        ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.42f, 0.42f, 0.42f, 1.00f));                            // 14
+        ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));                     // 15
+        ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));                      // 16
+    }
+    else {
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 10.0f) * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 3.0f * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10.0f, 10.0f) * scale);
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(50 / 255.0f, 58 / 255.0f, 61 / 255.0f, 1.00f));       // 1
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGuiWrapper::COL_WINDOW_BG);          // 2
+        ImGui::PushStyleColor(ImGuiCol_TitleBg, ImGuiWrapper::COL_TITLE_BG);            // 3
+        ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImGuiWrapper::COL_TITLE_BG);      // 4
+        ImGui::PushStyleColor(ImGuiCol_Separator, ImGuiWrapper::COL_SEPARATOR);         // 5
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));     // 6
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGuiWrapper::COL_HOVER);         // 7
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 1.00f)); // 8
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(172 / 255.0f, 172 / 255.0f, 172 / 255.0f, 1.00f));                        // 9
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 1.00f));  // 10
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));        // 11
+        ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, COL_GREEN_LIGHT);                                     // 12
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));//13
+        ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.42f, 0.42f, 0.42f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
+    }
 }
 
 void ImGuiWrapper::pop_toolbar_style()
 {
     // size in push toolbar style
-    ImGui::PopStyleColor(15);
+    ImGui::PopStyleColor(16);
     ImGui::PopStyleVar(6);
 }
 
 void ImGuiWrapper::push_menu_style(const float scale)
 {
-    ImGuiWrapper::push_toolbar_style(scale);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 10.0f) * scale);
-    ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 4.0f * scale);
-    ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.0f);
-    ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG);
-    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+    if (m_is_dark_mode) {
+        ImGuiWrapper::push_toolbar_style(scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 10.0f) * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 4.0f * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.0f);
+        ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG_DARK);
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+    }
+    else {
+        ImGuiWrapper::push_toolbar_style(scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 10.0f) * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 4.0f * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.0f);
+        ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BG);
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+    }
 }
 void ImGuiWrapper::pop_menu_style()
 {
@@ -1688,30 +1768,116 @@ void ImGuiWrapper::pop_menu_style()
 }
 
 void ImGuiWrapper::push_common_window_style(const float scale) {
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 10.0f) * scale);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowTitleAlign, ImVec2(0.05f, 0.50f) * scale);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 3.0f * scale);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(38 / 255.0f, 46 / 255.0f, 48 / 255.0f, 1.00f));              // 1
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGuiWrapper::COL_WINDOW_BG);                                   // 2
-    ImGui::PushStyleColor(ImGuiCol_TitleBg, ImGuiWrapper::COL_TITLE_BG);                                     // 3
-    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImGuiWrapper::COL_TITLE_BG);                               // 4
-    ImGui::PushStyleColor(ImGuiCol_Separator, ImGuiWrapper::COL_SEPARATOR);                                  // 5
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));                              // 6
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));                       // 7
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));                        // 8
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 1.00f)); // 9
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 1.00f));  // 10
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));        // 11
-    ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));                           // 12
-    ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImGuiWrapper::COL_GREEN_LIGHT);                           // 13
-    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));                       // 14
+    if (m_is_dark_mode) {
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 10.0f) * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowTitleAlign, ImVec2(0.05f, 0.50f) * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 3.0f * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 0.88f));                                   // 1
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImGuiWrapper::COL_WINDOW_BG_DARK);                              // 2
+        ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(54 / 255.0f, 54 / 255.0f, 60 / 255.0f, 1.00f));           // 3
+        ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(54 / 255.0f, 54 / 255.0f, 60 / 255.0f, 1.00f));     // 4
+        ImGui::PushStyleColor(ImGuiCol_Separator, ImGuiWrapper::COL_SEPARATOR_DARK);                             // 5
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));                              // 6
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));                       // 7
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));                        // 8
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(84 / 255.0f, 84 / 255.0f, 90 / 255.0f, 1.00f));    // 9
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(62 / 255.0f, 62 / 255.0f, 69 / 255.0f, 1.00f));     // 10
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));        // 11
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));                           // 12
+        ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImVec4(43 / 255.0f, 64 / 255.0f, 54 / 255.0f, 1.00f));    // 13
+        ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));                       // 14
+    }
+    else {
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 10.0f) * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowTitleAlign, ImVec2(0.05f, 0.50f) * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 3.0f * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(38 / 255.0f, 46 / 255.0f, 48 / 255.0f, 1.00f));              // 1
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));                            // 2
+        ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(245 / 255.0f, 245 / 255.0f, 245 / 255.0f, 1.00f));        // 3
+        ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(245 / 255.0f, 245 / 255.0f, 245 / 255.0f, 1.00f));  // 4
+        ImGui::PushStyleColor(ImGuiCol_Separator, ImGuiWrapper::COL_SEPARATOR);                                  // 5
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));                              // 6
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));                       // 7
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));                        // 8
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 1.00f)); // 9
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 1.00f));  // 10
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(238 / 255.0f, 238 / 255.0f, 238 / 255.0f, 0.00f));        // 11
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));                           // 12
+        ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImGuiWrapper::COL_GREEN_LIGHT);                           // 13
+        ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));                       // 14
+    }
 }
 
 void ImGuiWrapper::pop_common_window_style() {
     ImGui::PopStyleColor(14);
     ImGui::PopStyleVar(5);
+}
+
+void ImGuiWrapper::push_confirm_button_style() {
+    if (m_is_dark_mode) {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f / 255.f, 174.f / 255.f, 66.f / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f / 255.f, 174.f / 255.f, 66.f / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(61.f / 255.f, 203.f / 255.f, 115.f / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(27.f / 255.f, 136.f / 255.f, 68.f / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.f, 1.f, 1.f, 0.88f));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 0.88f));
+    }
+    else {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f / 255.f, 174.f / 255.f, 66.f / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.f / 255.f, 174.f / 255.f, 66.f / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(61.f / 255.f, 203.f / 255.f, 115.f / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(27.f / 255.f, 136.f / 255.f, 68.f / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.f, 1.f, 1.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+    }
+}
+
+void ImGuiWrapper::pop_confirm_button_style() {
+    ImGui::PopStyleColor(6);
+}
+
+void ImGuiWrapper::push_cancel_button_style() {
+    if (m_is_dark_mode) {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.f, 1.f, 1.f, 0.64f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(73 / 255.f, 73 / 255.f, 78 / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(129 / 255.f, 129 / 255.f, 131 / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(1.f, 1.f, 1.f, 0.64f));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 0.64f));
+    }
+    else {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(1.f, 1.f, 1.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(38 / 255.f, 46 / 255.f, 48 / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(238.f / 255.f, 238.f / 255.f, 238.f / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(206.f / 255.f, 206.f / 255.f, 206.f / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.f, 0.f, 0.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(38.f / 255.0f, 46.f / 255.0f, 48.f / 255.0f, 1.00f));
+    }
+}
+
+void ImGuiWrapper::pop_cancel_button_style() {
+    ImGui::PopStyleColor(6);
+}
+
+void ImGuiWrapper::push_button_disable_style() {
+    if (m_is_dark_mode) {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(54 / 255.f, 54 / 255.f, 60 / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(54 / 255.f, 54 / 255.f, 60 / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 0.4f));
+    }
+    else {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(206.f / 255.f, 206.f / 255.f, 206.f / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(206.f / 255.f, 206.f / 255.f, 206.f / 255.f, 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.f, 1.f, 1.f, 1.f));
+    }
+}
+
+void ImGuiWrapper::pop_button_disable_style() {
+    ImGui::PopStyleColor(3);
 }
 
 void ImGuiWrapper::init_font(bool compress)
@@ -1723,6 +1889,7 @@ void ImGuiWrapper::init_font(bool compress)
 
     // Create ranges of characters from m_glyph_ranges, possibly adding some OS specific special characters.
     ImVector<ImWchar> ranges;
+    ImVector<ImWchar> basic_ranges;
     ImFontAtlas::GlyphRangesBuilder builder;
     builder.AddRanges(m_glyph_ranges);
 #ifdef __APPLE__
@@ -1737,15 +1904,15 @@ void ImGuiWrapper::init_font(bool compress)
     cfg.OversampleH = cfg.OversampleV = 1;
     //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, ranges.Data);
     //https://github.com/ocornut/imgui/issues/220
-    ImFont* font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Regular.ttf").c_str(), m_font_size, &cfg, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
-    if (font == nullptr) {
-        font = io.Fonts->AddFontDefault();
-        if (font == nullptr) {
+    default_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Regular.ttf").c_str(), m_font_size, &cfg, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+    if (default_font == nullptr) {
+        default_font = io.Fonts->AddFontDefault();
+        if (default_font == nullptr) {
             throw Slic3r::RuntimeError("ImGui: Could not load deafult font");
         }
     }
 
-    bold_font        = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Bold.ttf").c_str(), m_font_size, &cfg, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+    bold_font        = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "HarmonyOS_Sans_SC_Bold.ttf").c_str(), m_font_size, &cfg, ranges.Data);
     if (bold_font == nullptr) {
         bold_font = io.Fonts->AddFontDefault();
         if (bold_font == nullptr) { throw Slic3r::RuntimeError("ImGui: Could not load deafult font"); }
@@ -1767,16 +1934,17 @@ void ImGuiWrapper::init_font(bool compress)
     int rect_id = io.Fonts->CustomRects.Size;  // id of the rectangle added next
     // add rectangles for the icons to the font atlas
     for (auto& icon : font_icons)
-        io.Fonts->AddCustomRectFontGlyph(font, icon.first, icon_sz, icon_sz, 3.0 * font_scale + icon_sz);
+        io.Fonts->AddCustomRectFontGlyph(default_font, icon.first, icon_sz, icon_sz, 3.0 * font_scale + icon_sz);
     for (auto& icon : font_icons_large)
-        io.Fonts->AddCustomRectFontGlyph(font, icon.first, icon_sz * 2, icon_sz * 2, 3.0 * font_scale + icon_sz * 2);
+        io.Fonts->AddCustomRectFontGlyph(default_font, icon.first, icon_sz * 2, icon_sz * 2, 3.0 * font_scale + icon_sz * 2);
     for (auto& icon : font_icons_extra_large)
-        io.Fonts->AddCustomRectFontGlyph(font, icon.first, icon_sz * 4, icon_sz * 4, 3.0 * font_scale + icon_sz * 4);
+        io.Fonts->AddCustomRectFontGlyph(default_font, icon.first, icon_sz * 4, icon_sz * 4, 3.0 * font_scale + icon_sz * 4);
 
     // Build texture atlas
     unsigned char* pixels;
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);   // Load as RGBA 32-bits (75% of the memory is wasted, but default font is so small) because it is more likely to be compatible with user's existing shaders. If your ImTextureId represent a higher-level concept than just a GL texture id, consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
+    BOOST_LOG_TRIVIAL(trace) << "Build default font texture done. width: " << width << ", height: " << height;
 
     // Fill rectangles from the SVG-icons
     for (auto icon : font_icons) {
@@ -1844,6 +2012,66 @@ void ImGuiWrapper::init_font(bool compress)
 
     // Restore state
     glsafe(::glBindTexture(GL_TEXTURE_2D, last_texture));
+}
+
+void ImGuiWrapper::load_fonts_texture()
+{
+    //if (m_font_another_texture == 0) {
+    //    ImGuiIO& io = ImGui::GetIO();
+    //    io.Fonts->Flags |= ImFontAtlasFlags_NoPowerOfTwoHeight;
+    //    ImFontConfig cfg = ImFontConfig();
+    //    cfg.OversampleH = cfg.OversampleV = 1;
+    //    std::map<std::string, std::string> sys_fonts_map = get_occt_fonts_maps(); // map<font name, font path>
+    //    im_fonts_map.clear();                                                     // map<font name, ImFont*>
+    //    BOOST_LOG_TRIVIAL(info) << "init_im_font start";
+    //    for (auto sys_font : sys_fonts_map) {
+    //        boost::filesystem::path font_path(sys_font.second);
+    //        if (!boost::filesystem::exists(font_path)) {
+    //            BOOST_LOG_TRIVIAL(trace) << "load font = " << sys_font.first << ", path = " << font_path << " is not exists";
+    //            continue;
+    //        }
+    //        ImFont* im_font = io.Fonts->AddFontFromFileTTF(sys_font.second.c_str(), m_font_size, &cfg, ImGui::GetIO().Fonts->GetGlyphRangesBasic());
+    //        if (im_font == nullptr) {
+    //            BOOST_LOG_TRIVIAL(trace) << "load font = " << sys_font.first << " failed, path = " << font_path << " is not exists";
+    //            continue;
+    //        }
+    //        im_fonts_map.insert({ sys_font.first, im_font });
+    //    }
+    //    BOOST_LOG_TRIVIAL(info) << "init_im_font end";
+
+    //    unsigned char* pixels;
+    //    int            width, height;
+    //    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    //    BOOST_LOG_TRIVIAL(trace) << "Build system fonts texture done. width: " << width << ", height: " << height;
+
+    //    if (m_fonts_names.size() == 0) {
+    //        std::vector<std::string> to_delete_fonts;
+    //        for (auto im_font : im_fonts_map) {
+    //            if (im_font.second->Glyphs.Size < 4) { to_delete_fonts.push_back(im_font.first); }
+    //        }
+    //        for (auto to_delete_font : to_delete_fonts) {
+    //            sys_fonts_map.erase(to_delete_font);
+    //            im_fonts_map.erase(to_delete_font);
+    //        }
+    //        for (auto im_font : im_fonts_map) m_fonts_names.push_back(im_font.first);
+    //    }
+
+    //    GLint last_texture;
+    //    glsafe(::glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
+    //    glsafe(::glGenTextures(1, &(m_font_another_texture)));
+    //    glsafe(::glBindTexture(GL_TEXTURE_2D, m_font_another_texture));
+    //    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    //    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    //    glsafe(::glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
+
+    //    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
+
+    //    // Store our identifier
+    //    io.Fonts->TexID = (ImTextureID)(intptr_t)m_font_another_texture;
+
+    //    // Restore state
+    //    glsafe(::glBindTexture(GL_TEXTURE_2D, last_texture));
+    //}
 }
 
 void ImGuiWrapper::init_input()
@@ -2050,6 +2278,20 @@ void ImGuiWrapper::destroy_font()
         glsafe(::glDeleteTextures(1, &m_font_texture));
         m_font_texture = 0;
     }
+}
+
+void ImGuiWrapper::destroy_fonts_texture() {
+    //if (m_font_another_texture != 0) {
+    //    if (m_new_frame_open) {
+    //        render();
+    //    }
+    //    init_font(true);
+    //    glsafe(::glDeleteTextures(1, &m_font_another_texture));
+    //    m_font_another_texture = 0;
+    //    if (!m_new_frame_open) {
+    //        new_frame();
+    //    }
+    //}
 }
 
 const char* ImGuiWrapper::clipboard_get(void* user_data)

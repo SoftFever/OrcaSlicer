@@ -92,6 +92,7 @@ private:
     bool m_locked;
     bool m_ready_for_slice;
     bool m_slice_result_valid;
+    bool m_apply_invalid {false};
     float m_slice_percent;
 
     Print *m_print; //Print reference, not own it, no need to serialize
@@ -132,15 +133,23 @@ private:
     mutable unsigned int m_orient_vbo_id{ 0 };
     GeometryBuffer m_lock_icon;
     mutable unsigned int m_lock_vbo_id{ 0 };
+    GeometryBuffer m_bedtype_icon;
+    mutable unsigned int m_bedtype_vbo_id{ 0 };
     GeometryBuffer m_plate_idx_icon;
     mutable unsigned int m_plate_idx_vbo_id{ 0 };
     GLTexture m_texture;
+
+    // plate render option
+    bool is_same_bedtype_with_global = true;
 
     mutable float m_grabber_color[4];
     float m_scale_factor{ 1.0f };
     GLUquadricObject* m_quadric;
     int m_hover_id;
     bool m_selected;
+
+    // BBS
+    DynamicPrintConfig m_config;
 
     void init();
     bool valid_instance(int obj_id, int instance_id);
@@ -157,6 +166,7 @@ private:
     void calc_vertex_for_icons_background(int icon_count, GeometryBuffer &buffer);
     void render_background(bool force_default_color = false) const;
     void render_logo(bool bottom) const;
+    void render_logo_texture(GLTexture& logo_texture, const GeometryBuffer& logo_buffer, bool bottom, unsigned int vbo_id) const;
     void render_exclude_area(bool force_default_color) const;
     //void render_background_for_picking(const float* render_color) const;
     void render_grid(bool bottom) const;
@@ -177,14 +187,17 @@ private:
 
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
-    static const unsigned int GRABBER_COUNT = 5;
+    static const unsigned int GRABBER_COUNT = 6;
 
     static std::array<float, 4> SELECT_COLOR;
     static std::array<float, 4> UNSELECT_COLOR;
+    static std::array<float, 4> UNSELECT_DARK_COLOR;
     static std::array<float, 4> DEFAULT_COLOR;
     static std::array<float, 4> LINE_BOTTOM_COLOR;
     static std::array<float, 4> LINE_TOP_COLOR;
+    static std::array<float, 4> LINE_TOP_DARK_COLOR;
     static std::array<float, 4> LINE_TOP_SEL_COLOR;
+    static std::array<float, 4> LINE_TOP_SEL_DARK_COLOR;
     static std::array<float, 4> HEIGHT_LIMIT_BOTTOM_COLOR;
     static std::array<float, 4> HEIGHT_LIMIT_TOP_COLOR;
 
@@ -200,6 +213,11 @@ public:
     //clear alll the instances in plate
     void clear(bool clear_sliced_result = true);
 
+    BedType get_bed_type(bool check_global = true) const;
+    void set_bed_type(BedType bed_type);
+    void reset_bed_type();
+    DynamicPrintConfig* config() { return &m_config; }
+
     //static const int plate_x_offset = 20; //mm
     //static const double plate_x_gap = 0.2;
     ThumbnailData thumbnail_data;
@@ -208,6 +226,8 @@ public:
 
     ThumbnailData cali_thumbnail_data;
     PlateBBoxData cali_bboxes_data;
+    static const int cali_thumbnail_width = 2560;
+    static const int cali_thumbnail_height = 2560;
 
     //set the plate's index
     void set_index(int index);
@@ -315,11 +335,30 @@ public:
     bool is_printable() const { return m_printable; }
 
     //can be sliced or not
-    bool can_slice() const { return m_ready_for_slice; }
-    void update_slice_ready_status(bool ready_slice) { m_ready_for_slice = ready_slice; }
+    bool can_slice() const
+    {
+        return m_ready_for_slice && !m_apply_invalid;
+    }
+    void update_slice_ready_status(bool ready_slice)
+    {
+        m_ready_for_slice = ready_slice;
+    }
+
+    //bedtype mismatch or not
+    bool is_apply_result_invalid() const
+    {
+        return m_apply_invalid;
+    }
+    void update_apply_result_invalid(bool invalid)
+    {
+        m_apply_invalid = invalid;
+    }
 
     //is slice result valid or not
-    bool is_slice_result_valid() const { return m_slice_result_valid; }
+    bool is_slice_result_valid() const
+    {
+        return m_slice_result_valid;
+    }
 
     //is slice result ready for print
     bool is_slice_result_ready_for_print() const
@@ -373,7 +412,7 @@ public:
         std::vector<std::pair<int, int>>	objects_and_instances;
         std::vector<std::pair<int, int>>	instances_outside;
 
-        ar(m_plate_index, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside);
+        ar(m_plate_index, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside, m_config);
 
         for (std::vector<std::pair<int, int>>::iterator it = objects_and_instances.begin(); it != objects_and_instances.end(); ++it)
             obj_to_instance_set.insert(std::pair(it->first, it->second));
@@ -391,7 +430,7 @@ public:
         for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
             objects_and_instances.emplace_back(it->first, it->second);
 
-        ar(m_plate_index, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside);
+        ar(m_plate_index, m_print_index, m_origin, m_width, m_depth, m_height, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside, m_config);
     }
     /*template<class Archive> void serialize(Archive& ar)
     {
@@ -442,7 +481,16 @@ class PartPlateList : public ObjectBase
     GLTexture m_locked_hovered_texture;
     GLTexture m_lockopen_texture;
     GLTexture m_lockopen_hovered_texture;
+    GLTexture m_bedtype_texture;
+    GLTexture m_bedtype_changed_texture;
+    GLTexture m_bedtype_hovered_texture;
+    GLTexture m_bedtype_changed_hovered_texture;
     GLTexture m_idx_textures[MAX_PLATE_COUNT];
+    // set render option
+    bool render_bedtype_logo = true;
+    bool render_bedtype_setting = true;
+
+    bool m_is_dark = false;
 
     void init();
     //compute the origin for printable plate with index i
@@ -460,7 +508,50 @@ class PartPlateList : public ObjectBase
     friend class PartPlate;
 
 public:
+    class BedTextureInfo {
+    public:
+        class TexturePart {
+        public:
+            // position
+            int x;
+            int y;
+            int w;
+            int h;
+            unsigned int vbo_id;
+            std::string filename;
+            GLTexture* texture { nullptr };
+            Vec2d offset;
+            GeometryBuffer* buffer { nullptr };
+            TexturePart(int xx, int yy, int ww, int hh, std::string file) {
+                x = xx; y = yy;
+                w = ww; h = hh;
+                filename = file;
+                texture = nullptr;
+                buffer = nullptr;
+                vbo_id = 0;
+                offset = Vec2d(0, 0);
+            }
+
+            TexturePart(const TexturePart& part) {
+                this->x = part.x;
+                this->y = part.y;
+                this->w = part.w;
+                this->h = part.h;
+                this->offset = part.offset;
+                this->buffer    = part.buffer;
+                this->filename  = part.filename;
+                this->texture   = part.texture;
+                this->vbo_id    = part.vbo_id;
+            }
+
+            void update_buffer();
+        };
+        std::vector<TexturePart> parts;
+    };
+
     static const unsigned int MAX_PLATES_COUNT = MAX_PLATE_COUNT;
+    static GLTexture bed_textures[(unsigned int)btCount];
+    static bool is_load_bedtype_textures;
 
     PartPlateList(int width, int depth, int height, Plater* platerObj, Model* modelObj, PrinterTechnology tech = ptFFF);
     PartPlateList(Plater* platerObj, Model* modelObj, PrinterTechnology tech = ptFFF);
@@ -510,6 +601,8 @@ public:
 
     int get_curr_plate_index() const { return m_current_plate; }
     PartPlate* get_curr_plate() { return m_plate_list[m_current_plate]; }
+
+    std::vector<PartPlate*>& get_plate_list() { return m_plate_list; };
 
     PartPlate* get_selected_plate();
 
@@ -575,8 +668,8 @@ public:
     //preprocess an arrangement::ArrangePolygon, return true if it is in a locked plate
     bool preprocess_arrange_polygon(int obj_index, int instance_index, arrangement::ArrangePolygon& arrange_polygon, bool selected);
     bool preprocess_arrange_polygon_other_locked(int obj_index, int instance_index, arrangement::ArrangePolygon& arrange_polygon, bool selected);
-    bool preprocess_exclude_areas(arrangement::ArrangePolygons& unselected, int num_plates = 16);
-    bool preprocess_nonprefered_areas(arrangement::ArrangePolygons& regions, int num_plates = 1);
+    bool preprocess_exclude_areas(arrangement::ArrangePolygons& unselected, int num_plates = 16, float inflation = 0);
+    bool preprocess_nonprefered_areas(arrangement::ArrangePolygons& regions, int num_plates = 1, float inflation=0);
 
     void postprocess_bed_index_for_selected(arrangement::ArrangePolygon& arrange_polygon);
     void postprocess_bed_index_for_unselected(arrangement::ArrangePolygon& arrange_polygon);
@@ -586,8 +679,10 @@ public:
     void postprocess_arrange_polygon(arrangement::ArrangePolygon& arrange_polygon, bool selected);
 
     /*rendering related functions*/
+    void on_change_color_mode(bool is_dark) { m_is_dark = is_dark; }
     void render(bool bottom,    bool only_current = false, bool only_body = false, int hover_id = -1);
     void render_for_picking_pass();
+    void set_render_option(bool bedtype_texture, bool bedtype_settings);
     BoundingBoxf3& get_bounding_box() { return m_bounding_box; }
     //int select_plate_by_hover_id(int hover_id);
     int select_plate_by_obj(int obj_index, int instance_index);
@@ -641,6 +736,11 @@ public:
         ar(m_shape, m_plate_width, m_plate_depth, m_plate_height, m_height_to_lid, m_height_to_rod, m_height_limit_mode, m_plate_count, m_current_plate, m_plate_list, unprintable_plate);
         //ar(m_plate_width, m_plate_depth, m_plate_height, m_plate_count, m_current_plate);
     }
+
+    void init_bed_type_info();
+    void load_bedtype_textures();
+
+    BedTextureInfo bed_texture_info[btCount];
 };
 
 } // namespace GUI

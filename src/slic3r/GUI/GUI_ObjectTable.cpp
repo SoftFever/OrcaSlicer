@@ -2674,7 +2674,7 @@ ObjectTablePanel::ObjectTablePanel( wxWindow* parent, wxWindowID id, const wxPoi
 {
     //m_bg_colour = wxColour(0xfa, 0xfa, 0xfa);
     m_float_validator.SetRange(0, 100);
-    m_bg_colour = wxColour(0xff, 0xff, 0xff);
+    m_bg_colour = wxColour("#FFFFFF");
     //m_hover_colour = wxColour(61, 70, 72);
     SetBackgroundColour(m_bg_colour);
 
@@ -2854,8 +2854,8 @@ void ObjectTablePanel::load_data()
     m_object_grid->SetColLabelValue(ObjectGridTable::col_speed_perimeter, _L("Outer wall speed"));
     m_object_grid->SetColLabelValue(ObjectGridTable::col_speed_perimeter_reset, "");
     m_object_grid->SetLabelFont(Label::Head_13);
-    m_object_grid->SetLabelTextColour(wxColour(0x30,0x3a,0x3c));
-    m_object_grid->SetLabelBackgroundColour(wxColour(0xff, 0xff, 0xff));
+    m_object_grid->SetLabelTextColour(StateColor::darkModeColorFor(wxColour("#303A3C")));
+    m_object_grid->SetLabelBackgroundColour( wxColour("#FFFFFF"));
 #else
     m_object_grid->HideColLabels();
 #endif
@@ -2865,7 +2865,6 @@ void ObjectTablePanel::load_data()
     m_object_grid->EnableDragColSize(false);
     m_object_grid->EnableDragGridSize(false);
     m_object_grid->EnableDragRowSize(false);
-
 
     /*set the first row as label*/
     //format
@@ -2894,7 +2893,7 @@ void ObjectTablePanel::load_data()
 
     //m_object_grid->SetSelectionForeground(wxColour(0xDB,0xFD,0xE7));
     //m_object_grid->SetSelectionBackground(*wxWHITE);
-
+    m_object_grid->SetDefaultCellBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     for (int col = 0; col < cols; col++)
     {
         ObjectGridTable::ObjectGridCol* grid_col = m_object_grid_table->get_grid_col(col);
@@ -2907,7 +2906,8 @@ void ObjectTablePanel::load_data()
             m_object_grid->SetCellAlignment(row, col, grid_col->horizontal_align, wxALIGN_CENTRE );
             m_object_grid->SetCellOverflow(row, col, false);
             //m_object_grid->SetCellBackgroundColour (row, col, *wxLIGHT_GREY);
-            m_object_grid->SetCellBackgroundColour (row, col, *wxWHITE);
+            m_object_grid->SetCellBackgroundColour (row, col, StateColor::darkModeColorFor(*wxWHITE));
+            m_object_grid->SetCellTextColour(row, col,StateColor::darkModeColorFor(wxColour(*wxBLACK)));
             //set the render and editor
             if (grid_col->b_icon) {
                 m_object_grid->SetCellRenderer(row, col, new GridCellIconRenderer());
@@ -3094,6 +3094,7 @@ ObjectTablePanel::~ObjectTablePanel()
     }*/
     if (m_top_sizer)
         m_top_sizer->Clear(true);
+    delete m_object_settings;
 
     m_filaments_name.clear();
     m_filaments_colors.clear();
@@ -3306,6 +3307,7 @@ ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model 
     SetSizer(m_main_sizer);
     Fit();
     Layout();
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 ObjectTableDialog::~ObjectTableDialog()

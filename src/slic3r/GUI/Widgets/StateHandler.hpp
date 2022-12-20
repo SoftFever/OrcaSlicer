@@ -41,6 +41,8 @@ public:
 
     int states() const { return states_ | states2_; }
 
+    void set_state(int state, int mask);
+
 private:
     StateHandler(StateHandler * parent, wxWindow *owner);
 

@@ -17,6 +17,7 @@ public:
     
     virtual ~ProgressIndicator() = default;
     
+    virtual void clear_percent() = 0;
     virtual void set_range(int range) = 0;
     virtual void set_cancel_callback(CancelFn = CancelFn()) = 0;
     virtual void set_progress(int pr) = 0;

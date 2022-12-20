@@ -16,7 +16,9 @@ public:
 
 	void SetTextColor(StateColor const &color);
 
-	void SetTrackColor(StateColor const &color);
+	void SetTextColor2(StateColor const &color);
+
+    void SetTrackColor(StateColor const &color);
 
 	void SetThumbColor(StateColor const &color);
 
@@ -32,7 +34,8 @@ private:
 	ScalableBitmap m_off;
 
 	wxString labels[2];
-	StateColor   text_color;
+    StateColor   text_color;
+    StateColor   text_color2;
 	StateColor   track_color;
 	StateColor   thumb_color;
 };

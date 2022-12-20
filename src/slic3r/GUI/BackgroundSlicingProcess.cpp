@@ -69,10 +69,10 @@ bool SlicingProcessCompletedEvent::invalidate_plater() const
 	return false;
 }
 
-std::pair<std::string, bool> SlicingProcessCompletedEvent::format_error_message() const
+std::pair<std::string, size_t> SlicingProcessCompletedEvent::format_error_message() const
 {
 	std::string error;
-	bool        monospace = false;
+    size_t      monospace = 0;
 	try {
 		this->rethrow_exception();
     } catch (const std::bad_alloc &ex) {
@@ -84,7 +84,10 @@ std::pair<std::string, bool> SlicingProcessCompletedEvent::format_error_message(
         		_u8L("Please save project and restart the program. ");
     } catch (PlaceholderParserError &ex) {
 		error = ex.what();
-		monospace = true;
+		monospace = 1;
+    } catch (SlicingError &ex) {
+		error = ex.what();
+		monospace = ex.objectId();
     } catch (std::exception &ex) {
 		error = ex.what();
 	} catch (...) {
@@ -661,7 +664,10 @@ Print::ApplyStatus BackgroundSlicingProcess::apply(const Model &model, const Dyn
 {
 	assert(m_print != nullptr);
 	assert(config.opt_enum<PrinterTechnology>("printer_technology") == m_print->technology());
-	Print::ApplyStatus invalidated = m_print->apply(model, config);
+	// TODO: add partplate config
+	DynamicPrintConfig new_config = config;
+	new_config.apply(*m_current_plate->config());
+	Print::ApplyStatus invalidated = m_print->apply(model, new_config);
 	if ((invalidated & PrintBase::APPLY_STATUS_INVALIDATED) != 0 && m_print->technology() == ptFFF &&
 		!m_fff_print->is_step_done(psGCodeExport)) {
 		// Some FFF status was invalidated, and the G-code was not exported yet.

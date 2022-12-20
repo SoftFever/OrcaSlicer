@@ -237,6 +237,7 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates, bool force_
     m_sizer_main->Fit(this);
 
     Centre(wxBOTH);
+	wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void MsgUpdateConfig::on_dpi_changed(const wxRect &suggested_rect) {}

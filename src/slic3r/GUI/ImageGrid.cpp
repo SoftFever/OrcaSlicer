@@ -44,7 +44,6 @@ ImageGrid::ImageGrid(wxWindow * parent)
 {
     SetBackgroundStyle(wxBG_STYLE_PAINT);
     SetBackgroundColour(0xEEEEEE);
-    SetForegroundColour(*wxWHITE); // time text color
     SetFont(Label::Head_20);
 
     m_timer.Bind(wxEVT_TIMER, [this](auto & e) { Refresh(); });
@@ -72,7 +71,7 @@ void ImageGrid::SetFileSystem(boost::shared_ptr<PrinterFileSystem> file_sys)
     UpdateFileSystem();
 }
 
-void ImageGrid::SetStatus(wxBitmap const & icon, wxString const &msg)
+void ImageGrid::SetStatus(ScalableBitmap const & icon, wxString const &msg)
 {
     int code     = m_file_sys ? m_file_sys->GetLastError() : 1;
     m_status_icon = icon;
@@ -187,8 +186,6 @@ void Slic3r::GUI::ImageGrid::DoAction(size_t index, int action)
                     openFolderForFile(from_u8(file.path));
 #else
 #endif
-                } else {
-                    m_file_sys->DownloadCancel(index);
                 }
                 return;
             }
@@ -288,7 +285,7 @@ std::pair<int, size_t> Slic3r::GUI::ImageGrid::HitTest(wxPoint const &pt)
     if (!m_selecting) {
         wxRect  hover_rect{0, m_image_size.y - 40, m_image_size.GetWidth(), 40};
         auto & file = m_file_sys->GetFile(index);
-        int    btn  = file.IsDownload() && file.progress >= 100 ? 3 : 2;
+        int    btn  = file.IsDownload() && file.progress >= 0 ? 3 : 2;
         if (hover_rect.Contains(off.x, off.y)) { return {HIT_ACTION, index * 4 + off.x * btn / hover_rect.GetWidth()}; } // Two buttons
     }
     return {HIT_ITEM, index};
@@ -338,6 +335,7 @@ void ImageGrid::mouseDown(wxMouseEvent& event)
         m_hit_item = hit.second;
         if (m_hit_type >= HIT_ACTION)
             Refresh();
+        SetFocus();
     }
 }
 
@@ -370,14 +368,17 @@ void ImageGrid::resize(wxSizeEvent& event)
 
 void ImageGrid::mouseWheelMoved(wxMouseEvent &event)
 {
-    auto delta = (event.GetWheelRotation() < 0 == event.IsWheelInverted()) ? -1 : 1;
-    int off = m_row_offset + delta;
-    if (off >= 0 && off < m_row_count) {
-        m_row_offset = off;
-        m_timer.StartOnce(4000); // Show position bar
-        UpdateFocusRange();
-        Refresh();
-    }
+    auto delta = -event.GetWheelRotation();
+    m_scroll_offset += delta;
+    int max = m_row_count * m_cell_size.GetHeight() / 4;
+    if (m_scroll_offset < 0)
+        m_scroll_offset = 0;
+    else if (m_scroll_offset >= max)
+        m_scroll_offset = max - 1;
+    m_row_offset = m_scroll_offset * 4 / m_cell_size.GetHeight();
+    m_timer.StartOnce(4000); // Show position bar
+    UpdateFocusRange();
+    Refresh();
 }
 
 void Slic3r::GUI::ImageGrid::changedEvent(wxCommandEvent& evt)
@@ -477,10 +478,10 @@ void ImageGrid::render(wxDC& dc)
     if (!m_file_sys || m_file_sys->GetCount() == 0) {
         dc.DrawRectangle({ 0, 0, size.x, size.y });
         if (!m_status_msg.IsEmpty()) {
-            auto   si = m_status_icon.GetSize();
+            auto   si = m_status_icon.GetBmpSize();
             auto   st = dc.GetTextExtent(m_status_msg);
             auto   rect = wxRect{0, 0, max(st.x, si.x), si.y + 26 + st.y}.CenterIn(wxRect({0, 0}, size));
-            dc.DrawBitmap(m_status_icon, rect.x + (rect.width - si.x) / 2, rect.y);
+            dc.DrawBitmap(m_status_icon.bmp(), rect.x + (rect.width - si.x) / 2, rect.y);
             dc.SetTextForeground(wxColor(0x909090));
             dc.DrawText(m_status_msg, rect.x + (rect.width - st.x) / 2, rect.GetBottom() - st.y);
         }
@@ -545,6 +546,7 @@ void ImageGrid::render(wxDC& dc)
                     } else {
                         secondAction = _L("Cancel");
                         nonHoverText = wxString::Format(_L("Downloading %d%%..."), file.progress);
+                        thirdAction  = wxString::Format(L"%d%%...", file.progress);
                     }
                 }
                 // Draw buttons on hovered item
@@ -559,6 +561,7 @@ void ImageGrid::render(wxDC& dc)
                     dc.DrawBitmap(file.IsSelect() ? m_checked_icon.bmp() : m_unchecked_icon.bmp(),
                                   pt + wxPoint{10, m_image_size.GetHeight() - m_checked_icon.GetBmpHeight() - 10});
             } else {
+                dc.SetTextForeground(*wxWHITE); // time text color
                 auto date = wxDateTime((time_t) file.time).Format(_L(formats[m_file_sys->GetGroupMode()]));
                 dc.DrawText(date, pt + wxPoint{24, 16});
             }
@@ -583,7 +586,7 @@ void ImageGrid::render(wxDC& dc)
         auto date1 = wxDateTime((time_t) file1.time).Format(_L(formats[m_file_sys->GetGroupMode()]));
         auto date2 = wxDateTime((time_t) file2.time).Format(_L(formats[m_file_sys->GetGroupMode()]));
         dc.SetFont(Label::Head_16);
-        dc.SetTextForeground(wxColor("#262E30"));
+        dc.SetTextForeground(StateColor::darkModeColorFor("#262E30"));
         dc.DrawText(date1 + " - " + date2, wxPoint{off.x, 2});
     }
     // Draw bottom background
@@ -620,21 +623,23 @@ void Slic3r::GUI::ImageGrid::renderButtons(wxDC &dc, wxStringList const &texts, 
         // Draw button background
         //dc.Blit(rect.GetTopLeft(), rect.GetSize(), &mdc, {m_buttonBackgroundColor.colorIndexForStates(states) * 128, 0});
         //dc.DrawBitmap(m_button_background, rect2.GetTopLeft());
-        // Draw button splitter
-        if (i > 0) dc.DrawLine(rect.GetLeftTop(), rect.GetLeftBottom());
-        // Draw button text
         rect.Deflate(10, 5);
+        // Draw button splitter
+        auto pen = dc.GetPen();
+        dc.SetPen(wxPen("#616161"));
+        if (i > 0) dc.DrawLine(rect.GetLeftTop(), rect.GetLeftBottom());
+        dc.SetPen(pen);
+        // Draw button text
         renderText(dc, texts[i], rect, states | states2);
         rect.Inflate(10, 5);
         rect.Offset(rect.GetWidth(), 0);
     }
-    dc.SetTextForeground(*wxWHITE); // time text color
     dc.SetFont(GetFont());
 }
 
 void Slic3r::GUI::ImageGrid::renderText(wxDC &dc, wxString const &text, wxRect const &rect, int states)
 {
-    dc.SetTextForeground(m_buttonTextColor.colorForStates(states));
+    dc.SetTextForeground(m_buttonTextColor.colorForStatesNoDark(states));
     wxRect rc({0, 0}, dc.GetTextExtent(text));
     rc = rc.CenterIn(rect);
     dc.DrawText(text, rc.GetTopLeft());

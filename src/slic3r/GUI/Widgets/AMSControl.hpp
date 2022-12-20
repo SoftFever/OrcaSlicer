@@ -21,6 +21,7 @@
 #define AMS_CONTROL_WHITE_COLOUR wxColour(255, 255, 255)
 #define AMS_CONTROL_BLACK_COLOUR wxColour(0, 0, 0)
 #define AMS_CONTROL_DEF_BLOCK_BK_COLOUR wxColour(238, 238, 238)
+#define AMS_CONTROL_DEF_LIB_BK_COLOUR wxColour(248, 248, 248)
 #define AMS_EXTRUDER_DEF_COLOUR wxColour(234, 234, 234)
 #define AMS_CONTROL_MAX_COUNT 4
 #define AMS_CONTRO_CALIBRATION_BUTTON_SIZE wxSize(FromDIP(150), FromDIP(28))
@@ -94,7 +95,7 @@ enum FilamentStep {
 
 #define AMS_ITEM_CUBE_SIZE wxSize(FromDIP(14), FromDIP(14))
 #define AMS_ITEM_SIZE wxSize(FromDIP(82), FromDIP(27))
-#define AMS_ITEM_HUMIDITY_SIZE wxSize(FromDIP(150), FromDIP(27))
+#define AMS_ITEM_HUMIDITY_SIZE wxSize(FromDIP(120), FromDIP(27))
 #define AMS_CAN_LIB_SIZE wxSize(FromDIP(58), FromDIP(80))
 #define AMS_CAN_ROAD_SIZE wxSize(FromDIP(66), FromDIP(60))
 #define AMS_CAN_ITEM_HEIGHT_SIZE FromDIP(27)
@@ -111,20 +112,21 @@ struct Caninfo
     wxString        material_name;
     wxColour        material_colour = {*wxWHITE};
     AMSCanType      material_state;
+    int             material_remain = 100;
 };
 
 struct AMSinfo
 {
 public:
-    std::string          ams_id;
-    std::vector<Caninfo> cans;
+    std::string             ams_id;
+    std::vector<Caninfo>    cans;
+    std::string             current_can_id;
+    AMSPassRoadSTEP         current_step;
+    AMSAction               current_action;
+    int                     curreent_filamentstep;
+    int                     ams_humidity = 0;
 
-    std::string     current_can_id;
-    AMSPassRoadSTEP current_step;
-    AMSAction       current_action;
-    int             curreent_filamentstep;
-
-    bool parse_ams_info(Ams *ams);
+    bool parse_ams_info(Ams *ams, bool remain_flag = false);
 };
 
 /*************************************************
@@ -147,16 +149,19 @@ public:
     void    OnClick(wxMouseEvent &evt);
     void    post_event(wxCommandEvent &&event);
     void    paintEvent(wxPaintEvent &evt);
-    void    Update(Caninfo info);
+    void    Update(std::string ams_id, Caninfo info);
     void    msw_rescale();
     Caninfo m_info;
+    
 
 protected:
     wxTimer *m_playing_timer= {nullptr};
     int      m_rotation_angle = 0;
-
     bool             m_play_loading = {false};
     bool             m_selected      = {false};
+
+    std::string      m_ams_id;
+    std::string      m_can_id;
 
     ScalableBitmap   m_bitmap_normal;
     ScalableBitmap   m_bitmap_selected;
@@ -170,7 +175,7 @@ protected:
     ScalableBitmap   m_bitmap_ams_rfid_7;
     std::vector<ScalableBitmap> m_rfid_bitmap_list;
 
-    wxString         m_text;
+    wxString         m_refresh_id;
     wxBoxSizer *     m_size_body;
     virtual void     DoSetSize(int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
 };
@@ -268,6 +273,7 @@ public:
     void create(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
 
 public:
+    AMSinfo                      m_amsinfo;
     Caninfo                      m_info;
     int                          m_canindex       = {0};
     AMSRoadMode                  m_rode_mode      = {AMSRoadMode::AMS_ROAD_MODE_LEFT_RIGHT};
@@ -277,7 +283,15 @@ public:
     double                       m_radius         = {4};
     wxColour                     m_road_def_color;
     wxColour                     m_road_color;
-    void                         Update(Caninfo info, int canindex, int maxcan);
+    void                         Update(AMSinfo amsinfo, Caninfo info, int canindex, int maxcan);
+
+    ScalableBitmap ams_humidity_0;
+    ScalableBitmap ams_humidity_1;
+    ScalableBitmap ams_humidity_2;
+    ScalableBitmap ams_humidity_3;
+    ScalableBitmap ams_humidity_4;
+    bool     m_show_humidity = { false };
+    int      m_humidity = { 0 };
 
     void SetPassRoadColour(wxColour col);
     void SetMode(AMSRoadMode mode);
@@ -313,6 +327,7 @@ public:
     void         HideHumidity();
     void         SetHumidity(int humidity);
     virtual bool Enable(bool enable = true);
+
     AMSinfo      m_amsinfo;
 
 protected:
@@ -461,7 +476,10 @@ protected:
 
     Button *m_button_extruder_feed = {nullptr};
     Button *m_button_extruder_back = {nullptr};
-    Button* m_button_ams_setting   = {nullptr};
+    wxStaticBitmap* m_button_ams_setting   = {nullptr};
+    ScalableBitmap m_button_ams_setting_normal;
+    ScalableBitmap m_button_ams_setting_hover;
+    ScalableBitmap m_button_ams_setting_press;
     Button *m_button_guide = {nullptr};
     Button *m_button_retry = {nullptr};
 
@@ -499,7 +517,7 @@ public:
     void msw_rescale();
     void on_filament_load(wxCommandEvent &event);
     void on_filament_unload(wxCommandEvent &event);
-    void on_ams_setting_click(wxCommandEvent &event);
+    void on_ams_setting_click(wxMouseEvent &event);
     void on_clibration_again_click(wxMouseEvent &event);
     void on_clibration_cancel_click(wxMouseEvent &event);
     void Reset();

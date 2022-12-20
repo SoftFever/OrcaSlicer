@@ -60,6 +60,14 @@ private:
 	wxColour m_colour_bold_color{ wxColour(38, 46, 48) };
 
 protected:
+	wxString m_current_project_name;
+    wxBoxSizer* rename_sizer_v{ nullptr };
+    wxBoxSizer* rename_sizer_h{ nullptr };
+    wxStaticText* m_rename_text{ nullptr };
+    TextInput* m_rename_input{ nullptr };
+    Button* m_rename_button{ nullptr };
+    wxPanel* m_rename_normal_panel{ nullptr };
+    wxSimplebook* m_rename_switch_panel{ nullptr };
 	Plater* m_plater{ nullptr };
 	wxPanel* m_line_top{ nullptr };
 	wxPanel* m_panel_image{ nullptr };
@@ -92,15 +100,21 @@ protected:
 	wxBoxSizer* sizer_thumbnail;
 	wxBoxSizer* m_sizer_main;
 	wxBoxSizer* m_sizer_bottom;
+	wxStaticText* m_file_name;
 
+	bool        m_is_rename_mode{false};
 	bool		enable_prepare_mode{true};
 	bool        m_need_adaptation_screen{ false };
 	wxPanel* m_scrollable_region;
 	wxBoxSizer* m_sizer_scrollable_region;
 
+    void                     on_rename_click(wxCommandEvent& event);
+    void                     on_rename_enter();
 
 	void stripWhiteSpace(std::string& str);
 	wxString format_text(wxString& m_msg);
+	void check_focus(wxWindow* window);
+	void check_fcous_state(wxWindow* window);
 	void update_priner_status_msg(wxString msg, bool is_warning = false);
 	void update_print_status_msg(wxString msg, bool is_warning = false, bool is_printer = true);
 

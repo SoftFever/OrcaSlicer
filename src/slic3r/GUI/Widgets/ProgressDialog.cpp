@@ -111,10 +111,21 @@ wxString ProgressDialog::FormatString(wxString title)
         }
     } else {
         m_msg->SetLabel(title);
-        Layout();
+        m_msg->SetMaxSize(wxSize(PROGRESSDIALOG_SIMPLEBOOK_SIZE.x + 5, -1));
+        m_msg->SetMinSize(wxSize(PROGRESSDIALOG_SIMPLEBOOK_SIZE.x  + 5, -1));
+        m_msg->Wrap(PROGRESSDIALOG_SIMPLEBOOK_SIZE.x  + 5);
+        m_msg->Layout();
+        m_msg->Fit();
+
+        m_msg_scrolledWindow->SetSize(wxSize(FromDIP(m_msg->GetSize().x + 5), FromDIP(150)));
+        m_msg_scrolledWindow->SetMinSize(wxSize(FromDIP(m_msg->GetSize().x + 5), FromDIP(150)));
+        m_msg_scrolledWindow->SetMaxSize(wxSize(FromDIP(m_msg->GetSize().x + 5), FromDIP(150)));
+       // m_msg_scrolledWindow->Layout();
+        m_msg_scrolledWindow->Fit();
     }
+
     
-    Fit();
+    //Fit();
     return title;
 }
 
@@ -185,9 +196,8 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
 
         m_sizer_main->Add(m_simplebook, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(28));
     } else {
-        wxScrolledWindow* m_msg_scrolledWindow = new wxScrolledWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL );
+        m_msg_scrolledWindow = new wxScrolledWindow( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL );
         m_msg_scrolledWindow->SetScrollRate(0,5);
-        m_msg_scrolledWindow->SetMinSize(wxSize(FromDIP(80), FromDIP(300)));
         wxBoxSizer* m_msg_sizer= new wxBoxSizer(wxVERTICAL);
 
         m_msg = new wxStaticText(m_msg_scrolledWindow, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(PROGRESSDIALOG_SIMPLEBOOK_SIZE.x, -1), 0);
@@ -195,7 +205,7 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
         m_msg->SetFont(::Label::Body_13);
         m_msg->SetForegroundColour(PROGRESSDIALOG_GREY_700);
 
-        m_msg_sizer->Add( m_msg, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(5) );
+        m_msg_sizer->Add(m_msg, 0, wxEXPAND | wxALL, 0);
         m_msg_scrolledWindow->SetSizer(m_msg_sizer);
         m_msg_scrolledWindow->Layout();
         m_msg_sizer->Fit(m_msg_scrolledWindow);
@@ -218,10 +228,10 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
     m_sizer_main->Add(m_gauge, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(28));
 
 #ifdef __WXMSW__
-    m_block_left = new wxWindow(m_gauge, wxID_ANY, wxPoint(0, 0), wxSize(FromDIP(2), PROGRESSDIALOG_GAUGE_SIZE.y * 2));
-    m_block_left->SetBackgroundColour(PROGRESSDIALOG_DEF_BK);
-    m_block_right = new wxWindow(m_gauge, wxID_ANY, wxPoint(PROGRESSDIALOG_GAUGE_SIZE.x - 2, 0), wxSize(FromDIP(2), PROGRESSDIALOG_GAUGE_SIZE.y * 2));
-    m_block_right->SetBackgroundColour(PROGRESSDIALOG_DEF_BK);
+    //m_block_left = new wxWindow(m_gauge, wxID_ANY, wxPoint(0, 0), wxSize(FromDIP(2), PROGRESSDIALOG_GAUGE_SIZE.y * 2));
+    //m_block_left->SetBackgroundColour(PROGRESSDIALOG_DEF_BK);
+    //m_block_right = new wxWindow(m_gauge, wxID_ANY, wxPoint(PROGRESSDIALOG_GAUGE_SIZE.x - 2, 0), wxSize(FromDIP(2), PROGRESSDIALOG_GAUGE_SIZE.y * 2));
+    //m_block_right->SetBackgroundColour(PROGRESSDIALOG_DEF_BK);
 #endif
     wxBoxSizer *m_sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
 
@@ -249,6 +259,8 @@ bool ProgressDialog::Create(const wxString &title, const wxString &message, int 
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(16));
     m_sizer_main->Add(m_sizer_bottom, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(28));
     m_sizer_main->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(10));
+
+    wxGetApp().UpdateDlgDarkUI(this);
 
     SetSizer(m_sizer_main);
     Layout();
@@ -778,10 +790,10 @@ void ProgressDialog::DoSetSize(int x, int y, int width, int height, int sizeFlag
     if (m_button_cancel != nullptr) { m_button_cancel->SetMinSize(PROGRESSDIALOG_CANCEL_BUTTON_SIZE); }
 
 #ifdef __WXMSW__
-    if (m_block_left != nullptr && m_block_right != nullptr) {
-        m_block_left->SetPosition(wxPoint(0, 0));
-        m_block_right->SetPosition(wxPoint(PROGRESSDIALOG_GAUGE_SIZE.x - 2, 0));
-    }
+    //if (m_block_left != nullptr && m_block_right != nullptr) {
+    //    m_block_left->SetPosition(wxPoint(0, 0));
+    //    m_block_right->SetPosition(wxPoint(PROGRESSDIALOG_GAUGE_SIZE.x - 2, 0));
+    //}
 #endif
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
 }

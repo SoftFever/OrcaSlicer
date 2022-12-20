@@ -45,10 +45,12 @@ bool menu_item_with_icon(const char *label, const char *shortcut, ImVec2 icon_si
 class ImGuiWrapper
 {
     const ImWchar* m_glyph_ranges{ nullptr };
+    const ImWchar* m_glyph_basic_ranges { nullptr };
     // Chinese, Japanese, Korean
     bool m_font_cjk{ false };
     float m_font_size{ 18.0 };
     unsigned m_font_texture{ 0 };
+    unsigned m_font_another_texture{ 0 };
     float m_style_scaling{ 1.0 };
     unsigned m_mouse_buttons{ 0 };
     bool m_disabled{ false };
@@ -155,6 +157,13 @@ public:
     void bold_text(const std::string &str);
     void title(const std::string& str);
 
+    // set font
+    const std::vector<std::string> get_fonts_names() const { return m_fonts_names; }
+    bool push_font_by_name(std::string font_name);
+    bool pop_font_by_name(std::string font_name);
+    void load_fonts_texture();
+    void destroy_fonts_texture();
+
     void disabled_begin(bool disabled);
     void disabled_end();
 
@@ -185,15 +194,24 @@ public:
     static const ImVec4 COL_ACTIVE;
     static const ImVec4 COL_TITLE_BG;
     static const ImVec4 COL_WINDOW_BG;
+    static const ImVec4 COL_WINDOW_BG_DARK;
     static const ImVec4 COL_SEPARATOR;
+    static const ImVec4 COL_SEPARATOR_DARK;
 
     //BBS
+    static void on_change_color_mode(bool is_dark);
     static void push_toolbar_style(const float scale);
     static void pop_toolbar_style();
     static void push_menu_style(const float scale);
     static void pop_menu_style();
     static void push_common_window_style(const float scale);
     static void pop_common_window_style();
+    static void push_confirm_button_style();
+    static void pop_confirm_button_style();
+    static void push_cancel_button_style();
+    static void pop_cancel_button_style();
+    static void push_button_disable_style();
+    static void pop_button_disable_style();
 
     //BBS
     static int TOOLBAR_WINDOW_FLAGS;
@@ -211,7 +229,10 @@ private:
     static void clipboard_set(void* user_data, const char* text);
 
     LastSliderStatus m_last_slider_status;
+    ImFont* default_font = nullptr;
     ImFont* bold_font = nullptr;
+    std::map<std::string, ImFont*> im_fonts_map;
+    std::vector<std::string> m_fonts_names;
 };
 
 class IMTexture

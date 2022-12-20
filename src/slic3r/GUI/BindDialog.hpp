@@ -55,6 +55,7 @@ private:
     Button *      m_button_cancel;
     wxSimplebook *m_simplebook;
     wxStaticBitmap *m_avatar;
+    wxStaticBitmap *m_printer_img;
     wxWebRequest  web_request;
 
     MachineObject *                   m_machine_info{nullptr};
@@ -86,6 +87,7 @@ protected:
     Button *      m_button_cancel;
     MachineObject *m_machine_info{nullptr};
     wxStaticBitmap *m_avatar;
+    wxStaticBitmap *m_printer_img;
 
 public:
     UnBindMachineDialog(Plater *plater = nullptr);
