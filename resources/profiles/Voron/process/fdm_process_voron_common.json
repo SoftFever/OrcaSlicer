@@ -51,7 +51,7 @@
     "overhang_3_4_speed": "30",
     "overhang_4_4_speed": "10",
     "inner_wall_line_width": "0.45",
-    "wall_loops": "2",
+    "wall_loops": "3",
     "print_settings_id": "",
     "raft_layers": "0",
     "seam_position": "aligned",
