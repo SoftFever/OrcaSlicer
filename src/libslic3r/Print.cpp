@@ -448,7 +448,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                 convex_hull = offset(convex_hull_no_offset,
                         // Shrink the extruder_clearance_radius a tiny bit, so that if the object arrangement algorithm placed the objects
                         // exactly by satisfying the extruder_clearance_radius, this test will not trigger collision.
-                        float(scale_(0.5 * print.config().extruder_clearance_radius.value - EPSILON)),
+                        float(scale_(0.5 * print.config().extruder_clearance_max_radius.value - EPSILON)),
                         jtRound, scale_(0.1)).front();
                 // instance.shift is a position of a centered object, while model object may not be centered.
                 // Convert the shift from the PrintObject's coordinates into ModelObject's coordinates by removing the centering offset.
