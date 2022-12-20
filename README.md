@@ -7,6 +7,18 @@ You can download it here: https://github.com/SoftFever/BambuStudio-SoftFever/rel
 
 ## BambuStudio SoftFever change notes:
 
+### [V1.4.0 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.4.0):
+- Add Layer Time/Layer time(Log) display (NOTE: need more tweaking work for BBL printers as the layer time is skewed by the preparing time)
+- Add `sandwich`(inner-outer-inner-infill) mode support for Arachene engine.
+- Change default `wall loop` from 2 to 3
+- Fix an issue that the last used printer was not remembered after application restart. (Thanks Bambulab engineers, for the quick response and fixing)
+- Optimized layer height sanity check logic. It will check against `max_layer_height` in the printer settings now. (I can use CHT 1.8 nozzle to print 1.0 mm thick layers now ;) )
+- Add Prusa MINI+ profile
+- expose `bed_exclude_area` parameter to 3rd printers
+- Fix some 3rd party printer related issues introduced in [BambuStudio v01.04.00.17](https://github.com/bambulab/BambuStudio/releases/tag/v01.04.00.17)
+   1.  Can't send sliced files to printers
+   2.  AMS filaments were added to non-Bambulab printers
+   3. Wrong bed setting was applied
 ### [V1.3.4 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.3.4):
 1. Add a new printer order - sandwich mode:
 This new order is similar to the outer-wall-first mode in achieving the best dimensional accuracy. This new approach however avoids printing outer walls right after a long travel, which may cause artifacts on the surface in many cases.
