@@ -9,7 +9,7 @@ You can download it here: https://github.com/SoftFever/BambuStudio-SoftFever/rel
 
 ### [V1.4.0 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.4.0):
 - Add Layer Time/Layer time(Log) display (NOTE: need more tweaking work for BBL printers as the layer time is skewed by the preparing time)
-- Add `sandwich`(inner-outer-inner-infill) mode support for Arachene engine.
+- Add `sandwich`(inner-outer-inner-infill) mode support for Arachne engine.
 - Change default `wall loop` from 2 to 3
 - Fix an issue that the last used printer was not remembered after application restart. (Thanks Bambulab engineers, for the quick response and fixing)
 - Optimized layer height sanity check logic. It will check against `max_layer_height` in the printer settings now. (I can use CHT 1.8 nozzle to print 1.0 mm thick layers now ;) )
