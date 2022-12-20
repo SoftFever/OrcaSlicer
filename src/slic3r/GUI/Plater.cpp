@@ -7597,15 +7597,15 @@ int Plater::save_project(bool saveAs)
 //BBS import model by model id
 void Plater::import_model_id(const std::string& download_info)
 {
-    std::string download_url = "";
-    std::string filename = "";
+    std::string download_url = wxGetApp().get_download_model_url();
+    std::string filename = wxGetApp().get_download_model_name();
 
-    auto selection_data_arr = wxSplit(download_info, '|');
+    /* auto selection_data_arr = wxSplit(download_info, '|');
 
-    if (selection_data_arr.size() == 2) {
-        download_url = selection_data_arr[0].ToStdString();
-        filename = selection_data_arr[1].ToStdString();
-    }
+     if (selection_data_arr.size() == 2) {
+         download_url = selection_data_arr[0].ToStdString();
+         filename = selection_data_arr[1].ToStdString();
+     }*/
 
 
     bool download_ok = false;
@@ -7782,10 +7782,9 @@ void Plater::download_project(const wxString& project_id)
     return;
 }
 
-void Plater::request_model_download(std::string url, std::string filename)
+void Plater::request_model_download()
 {
     wxCommandEvent* event = new wxCommandEvent(EVT_IMPORT_MODEL_ID);
-    event->SetString(wxString::Format("%s|%s", wxString(url), wxString(filename)));
     wxQueueEvent(this, event);
 }
 

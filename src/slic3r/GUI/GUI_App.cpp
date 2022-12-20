@@ -3573,7 +3573,7 @@ void GUI_App::request_model_download(std::string url, std::string filename)
     if (!check_login()) return;
 
     if (plater_) {
-        plater_->request_model_download(url, filename);
+        plater_->request_model_download();
     }
 }
 

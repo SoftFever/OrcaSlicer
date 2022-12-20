@@ -482,13 +482,21 @@ public:
     Model&      		 model();
     NotificationManager * notification_manager();
 
+
+    std::string         m_mall_model_download_url;
+    std::string         m_mall_model_download_name;
     ModelMallDialog*    m_mall_home_dialog{ nullptr };
     ModelMallDialog*    m_mall_publish_dialog{ nullptr };
+
+    void            set_download_model_url(std::string url) {m_mall_model_download_url = url;}
+    void            set_download_model_name(std::string name) {m_mall_model_download_name = name;}
+    std::string     get_download_model_url() {return m_mall_model_download_url;}
+    std::string     get_download_model_name() {return m_mall_model_download_name;}
 
     void            load_url(wxString url);
     void            open_mall_page_dialog();
     void            open_publish_page_dialog();
-    void remove_mall_system_dialog();
+    void            remove_mall_system_dialog();
     void            run_script(wxString js);
     bool            is_adding_script_handler() { return m_adding_script_handler; }
     void            set_adding_script_handler(bool status) { m_adding_script_handler = status; }

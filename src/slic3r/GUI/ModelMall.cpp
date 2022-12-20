@@ -147,7 +147,10 @@ namespace GUI {
                     filename = j["data"]["filename"].get<std::string>();
 
                 if (download_url.empty()) return;
-                wxGetApp().plater()->request_model_download(download_url, filename);
+
+                wxGetApp().set_download_model_url(download_url);
+                wxGetApp().set_download_model_name(filename);
+                wxGetApp().plater()->request_model_download();
             }
             else if(strCmd == "request_close_publish_window") {
                 this->Hide();
