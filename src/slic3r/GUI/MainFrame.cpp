@@ -1476,20 +1476,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                     p->Dismiss();
                     });
 
-                // upload only
-                SideButton* upload_gcode_btn = new SideButton(p, _L("Send"), "");
-                upload_gcode_btn->SetCornerRadius(0);
-                upload_gcode_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
-                    m_print_btn->SetLabel(_L("Send"));
-                    m_print_select = eUploadGcode;
-                    m_print_enable = get_enable_print_status();
-                    m_print_btn->Enable(m_print_enable);
-                    this->Layout();
-                    p->Dismiss();
-                    });
-
                 p->append_button(send_gcode_btn);
-                p->append_button(upload_gcode_btn);
                 p->append_button(export_gcode_btn);
             }
             else {
