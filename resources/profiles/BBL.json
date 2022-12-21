@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.04.00.14",
+    "version": "01.04.00.15",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -122,6 +122,30 @@
         {
             "name":"0.30mm Standard @BBL P1P 0.6 nozzle",
             "sub_path":"process/0.30mm Standard @BBL P1P 0.6 nozzle.json"
+        },
+        {
+            "name":"0.08mm Extra Fine @BBL P1P",
+            "sub_path":"process/0.08mm Extra Fine @BBL P1P.json"
+        },
+        {
+            "name":"0.12mm Fine @BBL P1P",
+            "sub_path":"process/0.12mm Fine @BBL P1P.json"
+        },
+        {
+            "name":"0.16mm Optimal @BBL P1P",
+            "sub_path":"process/0.16mm Optimal @BBL P1P.json"
+        },
+        {
+            "name":"0.20mm Strength @BBL P1P",
+            "sub_path":"process/0.20mm Strength @BBL P1P.json"
+        },
+        {
+            "name":"0.24mm Draft @BBL P1P",
+            "sub_path":"process/0.24mm Draft @BBL P1P.json"
+        },
+        {
+            "name":"0.28mm Extra Draft @BBL P1P",
+            "sub_path":"process/0.28mm Extra Draft @BBL P1P.json"
         },
         {
             "name":"0.40mm Standard @BBL P1P 0.8 nozzle",
