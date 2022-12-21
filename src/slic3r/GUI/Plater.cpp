@@ -2032,6 +2032,7 @@ struct Plater::priv
     //BBS: GUI refactor: GLToolbar
     void on_action_open_project(SimpleEvent&);
     void on_action_slice_plate(SimpleEvent&);
+    void on_action_calib_pa(SimpleEvent&);
     void on_action_slice_all(SimpleEvent&);
     void on_action_publish(wxCommandEvent &evt);
     void on_action_print_plate(SimpleEvent&);
@@ -2441,6 +2442,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLVIEWTOOLBAR_PREVIEW, [q](SimpleEvent&) { q->select_view_3D("Preview", false); });
         q->Bind(EVT_GLTOOLBAR_SLICE_PLATE, &priv::on_action_slice_plate, this);
         q->Bind(EVT_GLTOOLBAR_SLICE_ALL, &priv::on_action_slice_all, this);
+        q->Bind(EVT_GLTOOLBAR_SLICE_ALL, &priv::on_action_calib_pa, this);
         q->Bind(EVT_GLTOOLBAR_PRINT_PLATE, &priv::on_action_print_plate, this);
         q->Bind(EVT_GLTOOLBAR_SELECT_SLICED_PLATE, &priv::on_action_select_sliced_plate, this);
         q->Bind(EVT_GLTOOLBAR_PRINT_ALL, &priv::on_action_print_all, this);
@@ -5994,6 +5996,25 @@ void Plater::priv::on_action_slice_plate(SimpleEvent&)
     }
 }
 
+//BBS: GUI refactor: slice plate
+void Plater::priv::on_action_calib_pa(SimpleEvent&)
+{
+    if (q != nullptr) {
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received calib pa event\n" ;
+        if(fff_print.model().objects.empty())
+            //add model
+            q->add_model(false,Slic3r::resources_dir()+"/calib/sf_placeholder.stl");
+        
+        fff_print.is_calib_mode() = true;
+        //BBS update extruder params and speed table before slicing
+        Plater::setExtruderParams(Slic3r::Model::extruderParamsMap);
+        Plater::setPrintSpeedTable(Slic3r::Model::printSpeedMap);
+        m_slice_all = false;
+        q->reslice();
+        q->select_view_3D("Preview");
+    }
+}
+
 //BBS: GUI refactor: slice all
 void Plater::priv::on_action_slice_all(SimpleEvent&)
 {
@@ -7800,16 +7821,22 @@ bool Plater::up_to_date(bool saved, bool backup)
                                         !Slic3r::has_other_changes(backup));
 }
 
-void Plater::add_model(bool imperial_units/* = false*/)
+void Plater::add_model(bool imperial_units/* = false*/,  std::string fname/* = ""*/)
 {
-    wxArrayString input_files;
-    wxGetApp().import_model(this, input_files);
-    if (input_files.empty())
-        return;
-
     std::vector<fs::path> paths;
-    for (const auto &file : input_files)
-        paths.emplace_back(into_path(file));
+
+    if(fname.empty()){
+        wxArrayString input_files;
+        wxGetApp().import_model(this, input_files);
+        if (input_files.empty())
+            return;
+        
+        for (const auto &file : input_files)
+            paths.emplace_back(into_path(file));
+    }
+    else{
+        paths.emplace_back(fname);
+    }
 
     std::string snapshot_label;
     assert(! paths.empty());

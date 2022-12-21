@@ -735,7 +735,8 @@ public:
     //SoftFever
     bool &is_BBL_printer() { return m_isBBLPrinter; }
     const bool is_BBL_printer() const { return m_isBBLPrinter; }
-
+    bool &is_calib_mode() { return m_calib_mode; }
+    const bool is_calib_mode() const { return m_calib_mode; }
   protected:
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);
@@ -787,6 +788,9 @@ private:
     Vec3d   m_origin;
     //BBS: modified_count
     int     m_modified_count {0};
+    
+    //SoftFever: calibration mode, change to enum later
+    bool m_calib_mode;
 
     // To allow GCode to set the Print's GCodeExport step status.
     friend class GCode;
