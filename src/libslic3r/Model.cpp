@@ -2352,6 +2352,12 @@ bool ModelVolume::is_splittable() const
 // BBS
 std::vector<int> ModelVolume::get_extruders() const
 {
+    if (m_type == ModelVolumeType::INVALID
+        || m_type == ModelVolumeType::NEGATIVE_VOLUME
+        || m_type == ModelVolumeType::SUPPORT_BLOCKER
+        || m_type == ModelVolumeType::SUPPORT_ENFORCER)
+        return std::vector<int>();
+
     if (mmu_segmentation_facets.timestamp() != mmuseg_ts) {
         std::vector<indexed_triangle_set> its_per_type;
         mmuseg_extruders.clear();
