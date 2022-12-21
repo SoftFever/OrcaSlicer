@@ -41,11 +41,7 @@ export LD_LIBRARY_PATH="\$DIR/bin"
 
 # FIXME: BambuStudio segfault workarounds
 # 1) BambuStudio will segfault on systems where locale info is not as expected (i.e. Holo-ISO arch-based distro)
-# 2) BambuStudio will segfault with a boost logging error if ~/.config/BambuStudio doesn't exist on first run
 export LC_ALL=C
-# FIXME: BambuStudio doesn't respect dark mode; use GTK_THEME workaround from sigxcpu76                                      │
-export GTK_THEME=Adwaita:light
-mkdir -p \${HOME}/.config/BambuStudio/ 2> /dev/null
 
 exec "\$DIR/bin/@SLIC3R_APP_CMD@" "\$@"
 EOF

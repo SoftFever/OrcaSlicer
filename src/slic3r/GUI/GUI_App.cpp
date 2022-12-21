@@ -1699,7 +1699,7 @@ void GUI_App::init_networking_callbacks()
                     wxCommandEvent event(EVT_CONNECT_LAN_MODE_PRINT);
 
                     if (obj) {
-                        
+
                         if (obj->is_lan_mode_printer()) {
                             if (state == ConnectStatus::ConnectStatusOk) {
                                 obj->command_request_push_all();
@@ -1892,6 +1892,9 @@ void GUI_App::init_app_config()
             if (! wxGetEnv(wxS("XDG_CONFIG_HOME"), &dir) || dir.empty() )
                 dir = wxFileName::GetHomeDir() + wxS("/.config");
             set_data_dir((dir + "/" + GetAppName()).ToUTF8().data());
+            boost::filesystem::path data_dir_path(data_dir());
+            if (!boost::filesystem::exists(data_dir_path))
+                boost::filesystem::create_directory(data_dir_path);
         #endif
     } else {
         m_datadir_redefined = true;
@@ -2729,7 +2732,7 @@ void GUI_App::UpdateDarkUI(wxWindow* window, bool highlited/* = false*/, bool ju
 
     /*if (m_is_dark_mode != dark_mode() )
         m_is_dark_mode = dark_mode();*/
-    
+
 
     if (m_is_dark_mode) {
         auto original_col = window->GetBackgroundColour();

@@ -1,6 +1,6 @@
 #ifndef slic3r_Format_3mf_hpp_
 #define slic3r_Format_3mf_hpp_
-#include "../expat.h"
+#include <expat.h>
 
 namespace Slic3r {
 // PrusaFileParser is used to check 3mf file is from Prusa

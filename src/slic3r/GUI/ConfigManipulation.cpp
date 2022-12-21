@@ -271,6 +271,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     double sparse_infill_density = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
+    auto timelapse_type = config->opt_enum<TimelapseType>("timelapse_type");
 
     if (config->opt_bool("spiral_mode") &&
         ! (config->opt_int("wall_loops") == 1 &&
@@ -279,12 +280,12 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
            ! config->opt_bool("enable_support") &&
            config->opt_int("enforce_support_layers") == 0 &&
            config->opt_bool("ensure_vertical_shell_thickness") &&
-           ! config->opt_bool("detect_thin_wall")))
+           ! config->opt_bool("detect_thin_wall") &&
+            config->opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional))
     {
-        wxString msg_text = _(L("Spiral mode only works when wall loops is 1, \n"
-                                "support is disabled, top shell layers is 0 and sparse infill density is 0\n"));
+        wxString msg_text = _(L("Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0 and timelapse type is traditional"));
         if (is_global_config)
-            msg_text += "\n" + _(L("Change these settings automatically? \n"
+            msg_text += "\n\n" + _(L("Change these settings automatically? \n"
                                      "Yes - Change these settings and enable spiral mode automatically\n"
                                      "No  - Give up using spiral mode this time"));
         MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
@@ -301,7 +302,9 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             new_conf.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
             new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(true));
             new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
+            new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
             sparse_infill_density = 0;
+            timelapse_type = TimelapseType::tlTraditional;
             support = false;
         }
         else {
@@ -310,6 +313,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
         if (cb_value_change) {
             cb_value_change("sparse_infill_density", sparse_infill_density);
+            cb_value_change("timelapse_type", timelapse_type);
             if (!support)
                 cb_value_change("enable_support", false);
         }
