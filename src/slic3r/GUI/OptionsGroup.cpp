@@ -1221,7 +1221,15 @@ void ExtruderOptionsGroup::on_change_OG(const t_config_option_key& opt_id, const
 wxString OptionsGroup::get_url(const std::string& path_end)
 {
     //BBS
-    return wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/%s", L"en", from_u8(path_end));
+    wxString str = from_u8(path_end);
+    auto     pos = str.find(L'#');
+    if (pos != size_t(-1)) {
+        pos++;
+        wxString anchor = str.Mid(pos).Lower();
+        anchor.Replace(L" ", "-");
+        str = str.Left(pos) + anchor;
+    }
+    return wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/%s", L"en", str);
 }
 
 bool OptionsGroup::launch_browser(const std::string& path_end)
