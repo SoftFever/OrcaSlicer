@@ -225,6 +225,7 @@ Label::Label(wxWindow *parent, wxFont const &font, wxString const &text, long st
 {
     this->font = font;
     SetFont(font);
+    SetForegroundColour(wxColour("#262E30"));
     SetBackgroundColour(StaticBox::GetParentBackgroundColor(parent));
     SetForegroundColour("#262E30");
     if (style & LB_PROPAGATE_MOUSE_EVENT) {

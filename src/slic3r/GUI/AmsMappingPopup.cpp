@@ -612,6 +612,7 @@ AmsMapingTipPopup::AmsMapingTipPopup(wxWindow *parent)
     wxBoxSizer *sizer_enable_ams = new wxBoxSizer(wxVERTICAL);
 
     m_title_enable_ams = new wxStaticText(m_panel_enable_ams, wxID_ANY, _L("Enable AMS"), wxDefaultPosition, wxDefaultSize, 0);
+    m_title_enable_ams->SetForegroundColour(*wxBLACK);
     m_title_enable_ams->SetBackgroundColour(*wxWHITE);
     m_title_enable_ams->Wrap(-1);
     sizer_enable_ams->Add(m_title_enable_ams, 0, 0, 0);
@@ -619,6 +620,7 @@ AmsMapingTipPopup::AmsMapingTipPopup(wxWindow *parent)
     m_tip_enable_ams = new wxStaticText(m_panel_enable_ams, wxID_ANY, _L("Print with filaments in the AMS"), wxDefaultPosition, wxDefaultSize, 0);
     m_tip_enable_ams->SetMinSize(wxSize(FromDIP(200), FromDIP(50)));
     m_tip_enable_ams->Wrap(FromDIP(200));
+    m_tip_enable_ams->SetForegroundColour(*wxBLACK);
     m_tip_enable_ams->SetBackgroundColour(*wxWHITE);
     sizer_enable_ams->Add(m_tip_enable_ams, 0, wxTOP, 8);
 
@@ -647,12 +649,14 @@ AmsMapingTipPopup::AmsMapingTipPopup(wxWindow *parent)
 
     m_title_disable_ams = new wxStaticText(m_panel_disable_ams, wxID_ANY, _L("Disable AMS"), wxDefaultPosition, wxDefaultSize, 0);
     m_title_disable_ams->SetBackgroundColour(*wxWHITE);
+    m_title_disable_ams->SetForegroundColour(*wxBLACK);
     m_title_disable_ams->Wrap(-1);
     sizer_disable_ams->Add(m_title_disable_ams, 0, 0, 0);
 
     m_tip_disable_ams = new wxStaticText(m_panel_disable_ams, wxID_ANY, _L("Print with the filament mounted on the back of chassis"), wxDefaultPosition, wxDefaultSize, 0);
     m_tip_disable_ams->SetMinSize(wxSize(FromDIP(200), FromDIP(50)));
     m_tip_disable_ams->Wrap(FromDIP(200));
+    m_tip_disable_ams->SetForegroundColour(*wxBLACK);
     m_tip_disable_ams->SetBackgroundColour(*wxWHITE);
     sizer_disable_ams->Add(m_tip_disable_ams, 0, wxTOP, FromDIP(8));
 

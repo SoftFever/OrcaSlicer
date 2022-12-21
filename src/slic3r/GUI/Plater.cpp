@@ -240,8 +240,10 @@ SlicedInfo::SlicedInfo(wxWindow *parent) :
 
     auto init_info_label = [this, parent, grid_sizer](wxString text_label) {
         auto *text = new wxStaticText(parent, wxID_ANY, text_label);
+        text->SetForegroundColour(*wxBLACK);
         text->SetFont(wxGetApp().small_font());
         auto info_label = new wxStaticText(parent, wxID_ANY, "N/A");
+        info_label->SetForegroundColour(*wxBLACK);
         info_label->SetFont(wxGetApp().small_font());
         grid_sizer->Add(text, 0);
         grid_sizer->Add(info_label, 0);

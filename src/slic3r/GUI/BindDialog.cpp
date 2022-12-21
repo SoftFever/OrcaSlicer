@@ -41,6 +41,7 @@ namespace GUI {
      m_printer_img->SetBackgroundColour(BIND_DIALOG_GREY200);
      m_printer_img->Hide();
      m_printer_name = new wxStaticText(m_panel_left, wxID_ANY, wxEmptyString);
+     m_printer_name->SetForegroundColour(*wxBLACK);
      m_printer_name->SetBackgroundColour(BIND_DIALOG_GREY200);
      m_printer_name->SetFont(::Label::Head_14);
      m_sizere_left_v->Add(m_printer_img, 0, wxALIGN_CENTER, 0);
@@ -317,6 +318,7 @@ UnBindMachineDialog::UnBindMachineDialog(Plater *plater /*= nullptr*/)
      m_printer_img->Hide();
      m_printer_name     = new wxStaticText(m_panel_left, wxID_ANY, wxEmptyString);
      m_printer_name->SetFont(::Label::Head_14);
+     m_printer_name->SetForegroundColour(*wxBLACK);
      m_printer_name->SetBackgroundColour(BIND_DIALOG_GREY200);
      m_sizere_left_v->Add(m_printer_img, 0, wxALIGN_CENTER, 0);
      m_sizere_left_v->Add(0, 0, 0, wxTOP, 5);
@@ -335,6 +337,7 @@ UnBindMachineDialog::UnBindMachineDialog(Plater *plater /*= nullptr*/)
      m_panel_right->SetCornerRadius(FromDIP(8));
      m_panel_right->SetBackgroundColor(BIND_DIALOG_GREY200);
      m_user_name = new wxStaticText(m_panel_right, wxID_ANY, wxEmptyString);
+     m_user_name->SetForegroundColour(*wxBLACK);
      m_user_name->SetBackgroundColour(BIND_DIALOG_GREY200);
      m_user_name->SetFont(::Label::Head_14);
      wxBoxSizer *m_sizer_right_h = new wxBoxSizer(wxHORIZONTAL);

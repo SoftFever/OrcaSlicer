@@ -177,6 +177,7 @@ void AMSMaterialsSetting::create()
     m_sizer_SN_inside->Add(0, 0, 0, wxEXPAND, 0);
 
     m_sn_number = new wxStaticText(m_panel_SN, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize);
+    m_sn_number->SetForegroundColour(*wxBLACK);
     m_sizer_SN_inside->Add(m_sn_number, 0, wxALIGN_CENTER, 0);
     m_sizer_SN->Add(m_sizer_SN_inside);
 
@@ -186,6 +187,7 @@ void AMSMaterialsSetting::create()
 
     wxBoxSizer* m_tip_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_tip_readonly = new wxStaticText(this, wxID_ANY, _L("Setting AMS slot information while printing is not supported"), wxDefaultPosition, wxSize(-1, AMS_MATERIALS_SETTING_INPUT_SIZE.y));
+    m_tip_readonly->SetForegroundColour(*wxBLACK);
     m_tip_readonly->Hide();
     m_tip_sizer->Add(m_tip_readonly, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(20));
 

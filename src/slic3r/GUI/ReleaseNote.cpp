@@ -90,6 +90,7 @@ void ReleaseNoteDialog::update_release_note(wxString release_note, std::string v
     m_text_up_info->SetLabel(wxString::Format(_L("version %s update information :"), version));
     wxBoxSizer * sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
     auto        m_staticText_release_note = new wxStaticText(m_vebview_release_note, wxID_ANY, release_note, wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_release_note->SetForegroundColour(*wxBLACK);
     m_staticText_release_note->Wrap(FromDIP(530));
     sizer_text_release_note->Add(m_staticText_release_note, 0, wxALL, 5);
     m_vebview_release_note->SetSizer(sizer_text_release_note);
@@ -492,6 +493,7 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
         m_text_up_info->SetLabel(wxString::Format(_L("Click to download new version in default browser: %s"), version));
         wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
         auto        m_staticText_release_note = new wxStaticText(m_scrollwindows_release_note, wxID_ANY, release_note, wxDefaultPosition, wxDefaultSize, 0);
+        m_staticText_release_note->SetForegroundColour(*wxBLACK);
         m_staticText_release_note->Wrap(FromDIP(530));
         sizer_text_release_note->Add(m_staticText_release_note, 0, wxALL, 5);
         m_scrollwindows_release_note->SetSizer(sizer_text_release_note);

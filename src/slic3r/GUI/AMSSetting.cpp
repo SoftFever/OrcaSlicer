@@ -382,6 +382,7 @@ wxString AMSSetting::append_title(wxString text)
 {
     wxString lab;
     auto *   widget = new wxStaticText(m_panel_body, wxID_ANY, text, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    widget->SetForegroundColour(*wxBLACK);
     widget->Wrap(AMS_SETTING_BODY_WIDTH);
     widget->SetMinSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
     lab = widget->GetLabel();
