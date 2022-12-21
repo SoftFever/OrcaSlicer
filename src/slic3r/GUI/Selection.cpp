@@ -2707,7 +2707,7 @@ void Selection::paste_objects_from_clipboard()
             auto start_offset = in_current ? src_object->instances.front()->get_offset() : plate->get_build_volume().center();
             auto point_offset = start_offset - start_point;
             auto empty_cell   = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({start_point(0), start_point(1)}, {bbox.size()(0)+1, bbox.size()(1)+1});
-            displacement    = {empty_cell.x() + point_offset.x(), empty_cell.y() + point_offset.y(), start_point(2)};
+            displacement      = {empty_cell.x() + point_offset.x(), empty_cell.y() + point_offset.y(), start_offset(2)};
         }
 
         for (ModelInstance* inst : dst_object->instances)

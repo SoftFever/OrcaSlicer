@@ -64,7 +64,7 @@ void AMSMaterialsSetting::create()
     m_clrData->SetChooseFull(true);
     m_clrData->SetChooseAlpha(false);
 
-    m_clr_picker        = new Button(this, "", "");
+    m_clr_picker  = new Button(this, wxEmptyString, wxEmptyString, wxBU_AUTODRAW);
     m_clr_picker->SetCanFocus(false);
     m_clr_picker->SetSize(FromDIP(50), FromDIP(25));
     m_clr_picker->SetMinSize(wxSize(FromDIP(50), FromDIP(25)));
@@ -364,7 +364,12 @@ void AMSMaterialsSetting::on_clr_picker(wxCommandEvent & event)
     show_flag = true;
     if (clr_dialog->ShowModal() == wxID_OK) {
         m_clrData = &(clr_dialog->GetColourData());
-        m_clr_picker->SetBackgroundColor(m_clrData->GetColour());
+        m_clr_picker->SetBackgroundColor(wxColour(
+            m_clrData->GetColour().Red(),
+            m_clrData->GetColour().Green(),
+            m_clrData->GetColour().Blue(),
+            254
+        ));
     }
 }
 
@@ -374,13 +379,19 @@ bool AMSMaterialsSetting::Show(bool show)
         m_button_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
         m_input_nozzle_max->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
         m_input_nozzle_min->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
+        m_clr_picker->SetBackgroundColour(m_clr_picker->GetParent()->GetBackgroundColour());
     }
     return DPIDialog::Show(show); 
 }
 
 void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_min, wxString temp_max)
 {
-    m_clr_picker->SetBackgroundColor(m_clrData->GetColour());
+    m_clr_picker->SetBackgroundColor(wxColour(
+        m_clrData->GetColour().Red(),
+        m_clrData->GetColour().Green(),
+        m_clrData->GetColour().Blue(),
+        254
+    ));
 
     if (!m_is_third) {
         m_button_confirm->Hide();

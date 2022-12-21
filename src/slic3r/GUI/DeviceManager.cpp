@@ -1259,6 +1259,29 @@ bool MachineObject::is_recording()
     return camera_recording;
 }
 
+void MachineObject::parse_version_func()
+{
+    auto ota_version = module_vers.find("ota");
+    if (printer_type == "BL-P001" ||
+        printer_type == "BL-P002") {
+        if (ota_version != module_vers.end()) {
+            if (ota_version->second.sw_ver.compare("01.01.01.00") <= 0) {
+                ams_support_remain                      = false;
+                ams_support_auto_switch_filament_flag   = false;
+                is_xcam_buildplate_supported            = false;
+                xcam_support_recovery_step_loss         = false;
+                is_support_send_to_sdcard               = false;
+            } else {
+                ams_support_remain                      = true;
+                ams_support_auto_switch_filament_flag   = true;
+                is_xcam_buildplate_supported            = true;
+                xcam_support_recovery_step_loss         = true;
+                is_support_send_to_sdcard               = true;
+            }
+        }
+    }
+}
+
 int MachineObject::command_get_version(bool with_retry)
 {
     BOOST_LOG_TRIVIAL(info) << "command_get_version";
@@ -1990,9 +2013,15 @@ bool MachineObject::is_function_supported(PrinterFunction func)
         func_name = "FUNC_AI_MONITORING";
         break;
     case FUNC_BUILDPLATE_MARKER_DETECT:
+        parse_version_func();
+        if (!is_xcam_buildplate_supported)
+            return false;
         func_name = "FUNC_BUILDPLATE_MARKER_DETECT";
         break;
     case FUNC_AUTO_RECOVERY_STEP_LOSS:
+        parse_version_func();
+        if (!xcam_support_recovery_step_loss)
+            return false;
         func_name = "FUNC_AUTO_RECOVERY_STEP_LOSS";
         break;
     case FUNC_FLOW_CALIBRATION:
@@ -2026,9 +2055,15 @@ bool MachineObject::is_function_supported(PrinterFunction func)
         func_name = "FUNC_ALTER_RESOLUTION";
         break;
     case FUNC_SEND_TO_SDCARD:
+        parse_version_func();
+        if (!is_support_send_to_sdcard)
+            return false;
         func_name = "FUNC_SEND_TO_SDCARD";
         break;
     case FUNC_AUTO_SWITCH_FILAMENT:
+        parse_version_func();
+        if (!ams_support_auto_switch_filament_flag)
+            return false;
         func_name = "FUNC_AUTO_SWITCH_FILAMENT";
         break;
     case FUNC_VIRTUAL_CAMERA:
@@ -2615,6 +2650,9 @@ int MachineObject::parse_json(std::string payload)
                             else {
                                 if (jj["xcam"].contains("buildplate_marker_detector")) {
                                     xcam_buildplate_marker_detector = jj["xcam"]["buildplate_marker_detector"].get<bool>();
+                                    is_xcam_buildplate_supported = true;
+                                } else {
+                                    is_xcam_buildplate_supported = false;
                                 }
                             }
                         }
@@ -2874,6 +2912,8 @@ int MachineObject::parse_json(std::string payload)
                                         }
                                         if (tray_it->contains("remain")) {
                                             curr_tray->remain = (*tray_it)["remain"].get<int>();
+                                        } else {
+                                            curr_tray->remain = -1;
                                         }
                                         try {
                                             if (!ams_id.empty() && !curr_tray->id.empty()) {
@@ -3021,6 +3061,7 @@ int MachineObject::parse_json(std::string payload)
                             ver_info.hw_ver = (*it)["hw_ver"].get<std::string>();
                         module_vers.emplace(ver_info.name, ver_info);
                     }
+                    parse_version_func();
                     bool get_version_result = true;
                     if (j["info"].contains("result"))
                         if (j["info"]["result"].get<std::string>() == "fail")

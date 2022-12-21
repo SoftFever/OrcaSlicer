@@ -423,8 +423,10 @@ public:
     bool  ams_insert_flag { false };
     bool  ams_power_on_flag { false };
     bool  ams_calibrate_remain_flag { false };
+    bool  ams_support_auto_switch_filament_flag { true };
     bool  ams_auto_switch_filament_flag  { false };
     bool  ams_support_use_ams { false };
+    bool  ams_support_remain { true };
     int   ams_humidity;
     int   ams_user_setting_hold_count = 0;
     AmsStatusMain ams_status_main;
@@ -579,8 +581,10 @@ public:
     bool xcam_ai_monitoring{ false };
     int  xcam_ai_monitoring_hold_count = 0;
     std::string xcam_ai_monitoring_sensitivity;
+    bool is_xcam_buildplate_supported { true };
     bool xcam_buildplate_marker_detector{ false };
     int  xcam_buildplate_marker_hold_count = 0;
+    bool xcam_support_recovery_step_loss { true };
     bool xcam_auto_recovery_step_loss{ false };
     int  xcam_auto_recovery_hold_count = 0;
     int  ams_print_option_count = 0;
@@ -588,6 +592,7 @@ public:
     /* sdcard */
     MachineObject::SdcardState sdcard_state { NO_SDCARD };
     MachineObject::SdcardState get_sdcard_state();
+    bool is_support_send_to_sdcard { true };
 
     /* HMS */
     std::vector<HMSItem>    hms_list;
@@ -622,6 +627,8 @@ public:
 
     MachineObject(NetworkAgent* agent, std::string name, std::string id, std::string ip);
     ~MachineObject();
+
+    void parse_version_func();
     /* command commands */
     int command_get_version(bool with_retry = true);
     int command_request_push_all();

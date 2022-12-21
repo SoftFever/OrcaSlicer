@@ -2889,7 +2889,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
     // Generate intermediate layers.
     // The first intermediate layer is the same as the 1st layer if there is no raft,
     // or the bottom of the first intermediate layer is aligned with the bottom of the raft contact layer.
-    // Intermediate layers are always printed with a normal etrusion flow (non-bridging).
+    // Intermediate layers are always printed with a normal extrusion flow (non-bridging).
     size_t idx_layer_object = 0;
     size_t idx_extreme_first = 0;
     if (! extremes.empty() && std::abs(extremes.front()->extreme_z() - m_slicing_params.raft_interface_top_z) < EPSILON) {
