@@ -27,7 +27,7 @@ class ModelConfig;
 class ModelObject;
 class ModelVolume;
 class TriangleMesh;
-class TextInfo;
+struct TextInfo;
 enum class ModelVolumeType : int;
 
 // FIXME: broken build on mac os because of this is missing:

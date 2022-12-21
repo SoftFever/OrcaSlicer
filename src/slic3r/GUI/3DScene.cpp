@@ -695,6 +695,9 @@ void GLVolume::render(bool with_outline) const
                 break;
 
             ModelObject* mo = model_objects[object_idx()];
+            if (volume_idx() >= mo->volumes.size())
+                break;
+
             ModelVolume* mv = mo->volumes[volume_idx()];
             if (mv->mmu_segmentation_facets.empty())
                 break;
