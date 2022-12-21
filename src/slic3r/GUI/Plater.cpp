@@ -4980,8 +4980,7 @@ void Plater::priv::reload_from_disk()
                                                old_volume->get_transformation().get_matrix_no_offset() * old_volume->source.transform.get_matrix_no_offset());
                 new_volume->translate(new_volume->get_transformation().get_matrix_no_offset() * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
 #else
-                new_volume->set_transformation(Geometry::assemble_transform(old_volume->source.transform.get_offset()) * old_volume->get_transformation().get_matrix(true) *
-                                               old_volume->source.transform.get_matrix(true));
+                new_volume->set_transformation(old_volume->get_transformation());
                 new_volume->translate(new_volume->get_transformation().get_matrix(true) * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
 #endif // ENABLE_WORLD_COORDINATE
                 new_volume->source.object_idx = old_volume->source.object_idx;
