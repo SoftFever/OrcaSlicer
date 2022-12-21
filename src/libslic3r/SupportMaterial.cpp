@@ -790,7 +790,7 @@ public:
         m_extrusion_width(params.extrusion_width),
         m_support_material_closing_radius(params.support_closing_radius)
     {
-        if (m_style == smsDefault) m_style = smsGrid;
+        if (m_style != smsSnug) m_style = smsGrid;
         switch (m_style) {
         case smsGrid:
         {

@@ -376,8 +376,8 @@ private:
     SlicingParameters        m_slicing_params;
     // Various precomputed support parameters to be shared with external functions.
     SupportParams   m_support_params;
-    size_t          m_raft_layers;
-    size_t          m_highest_overhang_layer;
+    size_t          m_raft_layers = 0;
+    size_t          m_highest_overhang_layer = 0;
     std::vector<std::vector<MinimumSpanningTree>> m_spanning_trees;
     std::vector< std::unordered_map<Line, bool, LineHash>> m_mst_line_x_layer_contour_caches;
     coordf_t MAX_BRANCH_RADIUS = 10.0;

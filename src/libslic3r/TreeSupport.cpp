@@ -5,6 +5,7 @@
 #include "Print.hpp"
 #include "Layer.hpp"
 #include "Fill/FillBase.hpp"
+#include "Fill/FillConcentric.hpp"
 #include "CurveAnalyzer.hpp"
 #include "SVG.hpp"
 #include "ShortestPath.hpp"
@@ -1268,18 +1269,17 @@ static inline std::vector<BoundingBox> fill_expolygons_generate_paths(
     return fill_boxes;
 }
 
-static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print &print, const ExPolygon &support_area, size_t wall_count, const Flow &flow, bool is_interface)
+static void _make_loops(ExtrusionEntitiesPtr& loops_entities, ExPolygons &support_area, ExtrusionRole role, size_t wall_count, const Flow &flow)
 {
-    Polygons   loops;
-    ExPolygons support_area_new = offset_ex(support_area, -0.5f * float(flow.scaled_spacing()), jtSquare);
-
+    Polygons       loops;
     std::map<ExPolygon *, int> depth_per_expoly;
     std::list<ExPolygon> expoly_list;
 
-    for (ExPolygon &expoly : support_area_new) {
+    for (ExPolygon &expoly : support_area) {
         expoly_list.emplace_back(std::move(expoly));
         depth_per_expoly.insert({&expoly_list.back(), 0});
     }
+    if (expoly_list.empty()) return;
 
     while (!expoly_list.empty()) {
         polygons_append(loops, to_polygons(expoly_list.front()));
@@ -1287,22 +1287,68 @@ static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const Print
         auto first_iter = expoly_list.begin();
         auto depth_iter = depth_per_expoly.find(&expoly_list.front());
         if (depth_iter->second + 1 < wall_count) {
+            //ExPolygons expolys_new = offset_ex(expoly_list.front(), -float(flow.scaled_spacing()), jtSquare);
             // shrink and then dilate to prevent overlapping and overflow
-            ExPolygons expolys_new = offset_ex(expoly_list.front(), -1.4 * float(flow.scaled_spacing()), jtSquare);
-            expolys_new = offset_ex(expolys_new, .4*float(flow.scaled_spacing()), jtSquare);
+            ExPolygons expolys_new = offset2_ex({expoly_list.front()}, -1.4 * float(flow.scaled_spacing()), .4 * float(flow.scaled_spacing()));
 
             for (ExPolygon &expoly : expolys_new) {
                 auto new_iter = expoly_list.insert(expoly_list.begin(), expoly);
-                depth_per_expoly.insert({ &*new_iter, depth_iter->second + 1 });
+                depth_per_expoly.insert({&*new_iter, depth_iter->second + 1});
             }
         }
         depth_per_expoly.erase(depth_iter);
         expoly_list.erase(first_iter);
     }
 
-    ExtrusionRole role = is_interface ? erSupportMaterialInterface : erSupportMaterial;
-    extrusion_entities_append_loops(dst, std::move(loops), role,
-        float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
+    // draw connected loops
+    if (wall_count > 1 && wall_count<5) {
+        wall_count = std::min(wall_count, loops.size());
+        Polylines polylines;
+        polylines.push_back(Polyline());
+        Polyline& polyline = polylines.back();
+        Point     end_pt;
+        Point     end_dir;
+        for (int wall_idx = 0; wall_idx < wall_count; wall_idx++) {
+            Polygon &loop = loops[wall_idx];
+            if (loop.size()<3) continue;
+            // break the closed loop if this is not the last loop, so the next loop can attach to the end_pt
+            //if (wall_idx != wall_count - 1 && loop.first_point() == loop.last_point())
+            //    loop.points.pop_back();
+
+            if (wall_idx == 0) {
+                polyline.append(loop.points);
+            } else {
+                double d = loop.distance_to(end_pt);
+                if (d < scale_(2)) { // if current loop is close to the previous one
+                    polyline.append(end_pt);
+                    ExtrusionPath expath;
+                    expath.polyline.append(loop.points);
+                    ExtrusionLoop extru_loop(expath);
+                    extru_loop.split_at(end_pt, false);
+                    polyline.append(extru_loop.as_polyline());
+                }else{// create a new polylie if they are far away
+                    polylines.push_back(Polyline());
+                    polyline = polylines.back();
+                    polyline.append(loop.points);
+                }
+            }
+            end_pt = polyline.points.back();
+            end_dir = end_pt - polyline.points[polyline.points.size() - 2];
+            Point perpendicular_dir = turn90_ccw(end_dir);
+            end_pt                  = end_pt + normal(perpendicular_dir, flow.scaled_spacing());
+        }
+
+        extrusion_entities_append_paths(loops_entities, polylines, role, float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
+    } else {
+        extrusion_entities_append_loops(loops_entities, std::move(loops), role, float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
+    }
+    }
+
+static void make_perimeter_and_inner_brim(ExtrusionEntitiesPtr &dst, const ExPolygon &support_area, size_t wall_count, const Flow &flow, ExtrusionRole role)
+{
+    Polygons   loops;
+    ExPolygons support_area_new = offset_ex(support_area, -0.5f * float(flow.scaled_spacing()), jtSquare);
+    _make_loops(dst, support_area_new, role, wall_count, flow);
 }
 
 static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& print, const ExPolygon& support_area, size_t wall_count, const Flow& flow, ExtrusionRole role, Fill* filler_support, double support_density, bool infill_first=true)
@@ -1340,39 +1386,13 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const Print& pr
         }
     }
 
-    {
-        std::map<ExPolygon*, int> depth_per_expoly;
-        std::list<ExPolygon> expoly_list;
-
-        for (ExPolygon& expoly : support_area_new) {
-            expoly_list.emplace_back(std::move(expoly));
-            depth_per_expoly.insert({ &expoly_list.back(), 0 });
-        }
-
-        while (!expoly_list.empty()) {
-            polygons_append(loops, to_polygons(expoly_list.front()));
-
-            auto first_iter = expoly_list.begin();
-            auto depth_iter = depth_per_expoly.find(&expoly_list.front());
-            if (depth_iter->second + 1 < wall_count) {
-                ExPolygons expolys_new = offset_ex(expoly_list.front(), -float(flow.scaled_spacing()), jtSquare);
-
-                for (ExPolygon& expoly : expolys_new) {
-                    auto new_iter = expoly_list.insert(expoly_list.begin(), expoly);
-                    depth_per_expoly.insert({ &*new_iter, depth_iter->second + 1 });
-                }
-            }
-            depth_per_expoly.erase(depth_iter);
-            expoly_list.erase(first_iter);
-        }
+    { // draw loops
+        ExtrusionEntitiesPtr loops_entities;
+        _make_loops(loops_entities, support_area_new, role, wall_count, flow);
 
         if (infill_first)
-            extrusion_entities_append_loops(dst, std::move(loops), role,
-                float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
-        else { // loops first
-            ExtrusionEntitiesPtr loops_entities;
-            extrusion_entities_append_loops(loops_entities, std::move(loops), role,
-                float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
+            dst.insert(dst.end(), loops_entities.begin(), loops_entities.end());
+        else { // loops first            
             loops_entities.insert(loops_entities.end(), dst.begin(), dst.end());
             dst = std::move(loops_entities);
         }
@@ -1530,8 +1550,8 @@ void TreeSupport::generate_toolpaths()
                         // interface
                         if (layer_id == 0) {
                             Flow flow = m_raft_layers == 0 ? m_object->print()->brim_flow() : support_flow;
-                            make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object->print(), poly, wall_count, flow,
-                                                          area_group.type == TreeSupportLayer::RoofType);
+                            make_perimeter_and_inner_brim(ts_layer->support_fills.entities, poly, wall_count, flow,
+                                                          area_group.type == TreeSupportLayer::RoofType ? erSupportMaterialInterface : erSupportMaterial);
                             polys = std::move(offset_ex(poly, -flow.scaled_spacing()));
                         } else if (area_group.type == TreeSupportLayer::Roof1stLayer) {
                             polys = std::move(offset_ex(poly, 0.5*support_flow.scaled_width()));
@@ -1573,9 +1593,9 @@ void TreeSupport::generate_toolpaths()
                         // base_areas
                         filler_support->spacing = support_flow.spacing();
                         Flow flow               = (layer_id == 0 && m_raft_layers == 0) ? m_object->print()->brim_flow() : support_flow;
-                        if (area_group.dist_to_top < 10 / layer_height && !with_infill) {
+                        if (area_group.dist_to_top < 10 && !with_infill) {
                             // at least 2 walls for the top tips
-                            make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object->print(), poly, std::max(wall_count, size_t(2)), flow, false);
+                            make_perimeter_and_inner_brim(ts_layer->support_fills.entities, poly, std::max(wall_count, size_t(2)), flow, erSupportMaterial);
                         } else {
                             if (with_infill && layer_id > 0 && m_support_params.base_fill_pattern != ipLightning) {
                                 filler_support->angle = Geometry::deg2rad(object_config.support_angle.value);
@@ -1589,8 +1609,8 @@ void TreeSupport::generate_toolpaths()
                                                               erSupportMaterial, filler_support.get(), support_density);
                                 }
                             } else {
-                                make_perimeter_and_inner_brim(ts_layer->support_fills.entities, *m_object->print(), poly,
-                                                              layer_id > 0 ? wall_count : std::numeric_limits<size_t>::max(), flow, false);
+                                make_perimeter_and_inner_brim(ts_layer->support_fills.entities, poly,
+                                                              layer_id > 0 ? wall_count : std::numeric_limits<size_t>::max(), flow, erSupportMaterial);
                             }
                         }
                     }
@@ -2070,9 +2090,9 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                 ExPolygons& roof_1st_layer = ts_layer->roof_1st_layer;
                 ExPolygons& floor_areas = ts_layer->floor_areas;
                 ExPolygons& roof_gap_areas = ts_layer->roof_gap_areas;
-                int         max_layers_above_base = 0;
-                int         max_layers_above_roof = 0;
-                int         max_layers_above_roof1 = 0;
+                coordf_t         max_layers_above_base = 0;
+                coordf_t         max_layers_above_roof = 0;
+                coordf_t         max_layers_above_roof1 = 0;
 
                 BOOST_LOG_TRIVIAL(debug) << "circles at layer " << layer_nr << " contact nodes size=" << contact_nodes[layer_nr].size();
                 //Draw the support areas and add the roofs appropriately to the support roof instead of normal areas.
@@ -2140,17 +2160,17 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
                     else if (node.support_roof_layers_below == 1)
                     {
                         append(roof_1st_layer, area);
-                        max_layers_above_roof1 = std::max(max_layers_above_roof1, node.distance_to_top);
+                        max_layers_above_roof1 = std::max(max_layers_above_roof1, node.dist_mm_to_top);
                     }
                     else if (node.support_roof_layers_below > 0)
                     {
                         append(roof_areas, area);
-                        max_layers_above_roof = std::max(max_layers_above_roof, node.distance_to_top);
+                        max_layers_above_roof = std::max(max_layers_above_roof, node.dist_mm_to_top);
                     }
                     else
                     {
                         append(base_areas, area);
-                        max_layers_above_base = std::max(max_layers_above_base, node.distance_to_top);
+                        max_layers_above_base = std::max(max_layers_above_base, node.dist_mm_to_top);
                     }
 
                     if (layer_nr < brim_skirt_layers)
@@ -2675,7 +2695,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
         coordf_t branch_radius_temp = 0;
         coordf_t max_y = std::numeric_limits<coordf_t>::min();
-        draw_layer_mst(std::to_string(layer_nr), spanning_trees, m_object->get_layer(layer_nr)->lslices);
+        draw_layer_mst(std::to_string(ts_layer->print_z), spanning_trees, m_object->get_layer(layer_nr)->lslices);
 #endif
         for (size_t group_index = 0; group_index < nodes_per_part.size(); group_index++)
         {
@@ -2867,7 +2887,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                 }
                 // move to the averaged direction of neighbor center and contour edge if they are roughly same direction
                 Point movement;
-                if (is_slim)
+                if (/*is_slim*/1)
                     movement = move_to_neighbor_center*2 + (dist2_to_outer > EPSILON ? direction_to_outer * (1 / dist2_to_outer) : Point(0, 0));
                 else {
                     if (movement.dot(move_to_neighbor_center) >= 0.2 || move_to_neighbor_center == Point(0, 0))
@@ -3561,7 +3581,7 @@ const ExPolygons& TreeSupportData::calculate_avoidance(const RadiusLayerPair& ke
     const auto& radius = key.first;
     const auto& layer_nr = key.second;
     std::pair<tbb::concurrent_unordered_map<RadiusLayerPair, ExPolygons, RadiusLayerPairHash>::iterator,bool> ret;
-    if (is_slim) {
+    if (/*is_slim*/1) {
         if (layer_nr == 0) {
             m_avoidance_cache[key] = get_collision(radius, 0);
             return m_avoidance_cache[key];

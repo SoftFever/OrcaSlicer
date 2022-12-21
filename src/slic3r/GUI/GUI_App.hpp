@@ -589,7 +589,9 @@ private:
 
 DECLARE_APP(GUI_App)
 wxDECLARE_EVENT(EVT_CONNECT_LAN_MODE_PRINT, wxCommandEvent);
-} // GUI
+
+bool is_support_filament(int extruder_id);
+} // namespace GUI
 } // Slic3r
 
 #endif // slic3r_GUI_App_hpp_

@@ -172,7 +172,7 @@ static t_config_enum_values s_keys_map_SupportMaterialPattern {
     { "honeycomb",          smpHoneycomb },
     { "lightning",          smpLightning },
     { "default",            smpDefault},
-    { "none",               smpNone},
+    { "hollow",               smpNone},
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialPattern)
 
@@ -2571,13 +2571,13 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("rectilinear-grid");
     def->enum_values.push_back("honeycomb");
     def->enum_values.push_back("lightning");
-    def->enum_values.push_back("none");
+    def->enum_values.push_back("hollow");
     def->enum_labels.push_back(L("Default"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Rectilinear grid"));
     def->enum_labels.push_back(L("Honeycomb"));
     def->enum_labels.push_back(L("Lightning"));
-    def->enum_labels.push_back(L("None"));
+    def->enum_labels.push_back(L("Hollow"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialPattern>(smpRectilinear));
 
@@ -3830,6 +3830,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         value = "tree(manual)";
     } else if (opt_key == "support_type" && value == "hybrid(auto)") {
         value = "tree(auto)";
+    } else if (opt_key == "support_base_pattern" && value == "none") {
+        value = "hollow";
     } else if (opt_key == "different_settings_to_system") {
         std::string copy_value = value;
         copy_value.erase(std::remove(copy_value.begin(), copy_value.end(), '\"'), copy_value.end()); // remove '"' in string

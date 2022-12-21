@@ -5635,5 +5635,21 @@ void GUI_App::disassociate_files(std::wstring extend)
 
 #endif // __WXMSW__
 
+bool is_support_filament(int extruder_id)
+{
+    auto &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
+    auto &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
+
+    if (extruder_id >= filament_presets.size()) return false;
+
+    Slic3r::Preset *filament = filaments.find_preset(filament_presets[extruder_id]);
+    if (filament == nullptr) return false;
+
+    Slic3r::ConfigOptionBools *support_option = dynamic_cast<Slic3r::ConfigOptionBools *>(filament->config.option("filament_is_support"));
+    if (support_option == nullptr) return false;
+
+    return support_option->get_at(0);
+};
+
 } // GUI
 } //Slic3r
