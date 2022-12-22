@@ -2,16 +2,13 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-21 10:35+0800\n"
-"PO-Revision-Date: \n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"POT-Creation-Date: 2022-12-22 17:44+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Localazy (https://localazy.com)\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
-"X-Generator: Poedit 3.1\n"
 
 msgid "Supports Painting"
 msgstr "Färgläggning av Support"
@@ -1886,25 +1883,13 @@ msgstr ""
 
 msgid ""
 "Arachne engine only works when overhang slowing down is disabled.\n"
-"This may cause decline in the quality of overhang surface when print fastly\n"
+"This may cause decline in the quality of overhang surface when print fastly"
 msgstr ""
 
 msgid ""
 "Disable overhang slowing down automatically? \n"
 "Yes - Enable arachne and disable overhang slowing down\n"
 "No  - Give up using arachne this time"
-msgstr ""
-
-msgid ""
-"We have added an experimental style \"Tree Slim\" that features smaller "
-"support volume but weaker strength.\n"
-"We recommand using it with: 0 interface layers, 0 top distance, 2 walls.\n"
-msgstr ""
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings automatically\n"
-"No  - Do not change these settings for me"
 msgstr ""
 
 msgid ""
@@ -1949,11 +1934,8 @@ msgstr "%1% ifyllnads mönster stöds ej 100%% densitet."
 msgid ""
 "Switch to rectilinear pattern?\n"
 "Yes - switch to rectilinear pattern automaticlly\n"
-"No  - reset density to default non 100% value automaticlly\n"
+"No  - reset density to default non 100% value automaticlly"
 msgstr ""
-"Switch to rectilinear pattern?\n"
-"Yes - switch to rectilinear pattern automaticlly\n"
-"No  - reset density to default non 100% value automaticlly\n"
 
 msgid "Auto bed leveling"
 msgstr "Auto justera byggplattan"
@@ -2873,7 +2855,7 @@ msgid ""
 "It contains the following information:\n"
 "1. The Process presets\n"
 "2. The Filament presets\n"
-"3. The Printer presets\n"
+"3. The Printer presets"
 msgstr ""
 
 msgid "Synchronization"
@@ -3523,10 +3505,8 @@ msgstr ""
 #, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Found following keys "
-"unrecognized:\n"
+"unrecognized:"
 msgstr ""
-"3mf's version %s är nyare än %s's version %s, Följande nycklar känns inte "
-"igen:\n"
 
 msgid "You'd better upgrade your software.\n"
 msgstr "Uppdatera mjukvaran.\n"
@@ -3537,7 +3517,7 @@ msgstr "Nyare 3mf version"
 #, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
-"software.\n"
+"software."
 msgstr ""
 
 msgid "The 3mf is not compatible, load geometry data only!"
@@ -3812,7 +3792,7 @@ msgid ""
 msgstr ""
 
 #, c-format, boost-format
-msgid "Plate %d: %s does not support filament %s (%s).\n"
+msgid "Plate %d: %s does not support filament %s (%s)."
 msgstr ""
 
 msgid "Switching the language requires application restart.\n"
@@ -4291,13 +4271,13 @@ msgstr ""
 
 msgid ""
 "Please check the following infomation and click Confirm to continue sending "
-"print:\n"
+"print:"
 msgstr ""
 
 msgid ""
 "The printer type used to generate G-code is not the same type as the "
 "currently selected physical printer. It is recommend to re-slice by "
-"selecting the same printer type.\n"
+"selecting the same printer type."
 msgstr ""
 
 #, c-format, boost-format
@@ -4392,10 +4372,28 @@ msgid ""
 msgstr ""
 
 msgid ""
+"We have added an experimental style \"Tree Slim\" that features smaller "
+"support volume but weaker strength.\n"
+"We recommand using it with: 0 interface layers, 0 top distance, 2 walls."
+msgstr ""
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Change these settings automatically\n"
+"No  - Do not change these settings for me"
+msgstr ""
+
+msgid ""
+"When using support material for the support interface, We recommand the "
+"following settings:\n"
+"0 top distance, 0 interface spacing, concentric pattern."
+msgstr ""
+
+msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
 "by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\".\n"
+"\"->\"Timelapse Wipe Tower\"."
 msgstr ""
 
 msgid "Line width"
@@ -5456,14 +5454,11 @@ msgstr "%1% är för nära andra och kan orsaka kollisioner."
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% är för hög, och kollisioner kommer att uppstå."
 
-msgid " is too close to others, there may be collisions when printing.\n"
-msgstr " is too close to others, there may be collisions when printing.\n"
-
-msgid ""
-" is too close to exclusion area, there may be collisions when printing.\n"
+msgid " is too close to others, there may be collisions when printing."
 msgstr ""
-" is too close to exclusion area, there may be collisions when printing.\n"
-"\n"
+
+msgid " is too close to exclusion area, there may be collisions when printing."
+msgstr ""
 
 msgid "Prime Tower"
 msgstr "Prime Torn"
@@ -5557,7 +5552,7 @@ msgid "Layer height cannot exceed nozzle diameter"
 msgstr "Lagerhöjden kan inte överstiga nozzel diametern"
 
 #, c-format, boost-format
-msgid "Plate %d: %s does not support filament %s\n"
+msgid "Plate %d: %s does not support filament %s"
 msgstr ""
 
 msgid "Generating skirt & brim"
@@ -7177,6 +7172,9 @@ msgstr "Supportens linje mönster"
 msgid "Rectilinear grid"
 msgstr "Rät linjärt nät"
 
+msgid "Hollow"
+msgstr ""
+
 msgid "Interface pattern"
 msgstr "Gränssnitts mönster"
 
@@ -7186,8 +7184,8 @@ msgid ""
 "interface is Concentric"
 msgstr ""
 "Linje mönster för support gränssnittsytan .Standardmönstret för olösligt "
-"(material) support gränssnittet är Räta medan standardmönstret för "
-"lösligt(material) stödgränssnittet är koncentriskt"
+"(material) support gränssnittet är Räta medan standardmönstret för lösligt"
+"(material) stödgränssnittet är koncentriskt"
 
 msgid "Base pattern spacing"
 msgstr "Basens mönster mellanrum"
@@ -7883,73 +7881,6 @@ msgid ""
 msgstr ""
 
 #~ msgid ""
-#~ "normal(auto) and tree(auto) is used to generate support automatically. If "
-#~ "normal or tree is selected, only support enforcers are generated"
-#~ msgstr ""
-#~ "normal(auto), hybrid(auto) och tree(auto) används för att skapa support "
-#~ "automatiskt. Om normal eller tree är vald, kommer endast tvingande "
-#~ "support skapas"
-
-#~ msgid "hybrid(auto)"
-#~ msgstr "hybrid(auto)"
-
-#~ msgid ""
-#~ "Spiral mode only works when wall loops is 1, \n"
-#~ "support is disabled, top shell layers is 0 and sparse infill density is "
-#~ "0\n"
-#~ msgstr ""
-#~ "Spiral läge fungerar bara när vägg antalet är 1,\n"
-#~ "support är inaktiverad, top lager är 0 och låg ifyllnads densitet är 0\n"
-
-#~ msgid "Choose one or more files (3mf/step/stl/obj/amf):"
-#~ msgstr "Välj en eller flera filer (3mf/step/stl/obj/amf):"
-
-#~ msgid "Finish"
-#~ msgstr "Slutför"
-
-#~ msgid "Import 3MF/STL/STEP/OBJ/AMF"
-#~ msgstr "Importera 3MF/STL/STEP/OBJ/AMF"
-
-#~ msgid "Part Cooling"
-#~ msgstr "Del Kylning"
-
-#~ msgid "Aux Cooling"
-#~ msgstr "Extra Kylning"
-
-#~ msgid ""
-#~ "Filament to print support and skirt. 0 means no specific filament for "
-#~ "support and current filament is used"
-#~ msgstr ""
-#~ "Filament för att skriva ut support och skirt med. 0 betyder inget "
-#~ "speciellt filament för support och nuvarande filament används"
-
-#~ msgid ""
-#~ "Filament to print support interface. 0 means no specific filament for "
-#~ "support interface and current filament is used"
-#~ msgstr ""
-#~ "Support filament för utskrift. 0 betyder att inget specifikt filament för "
-#~ "support gränssnitt och nuvarande filament används"
-
-#~ msgid "Repair"
-#~ msgstr "Reparera"
-
-#~ msgid "Repair the model's meshes if it is non-manifold mesh"
-#~ msgstr "Reparera modellens mesh om den inte är mångfaldig"
-
-#~ msgid "Monitoring Recording"
-#~ msgstr "Övervaknings Inspelning"
-
-#~ msgid "Tree support with infill"
-#~ msgstr "Tree support med ifyllnad"
-
-#~ msgid ""
-#~ "This setting specifies whether to add infill inside large hollows of tree "
-#~ "support"
-#~ msgstr ""
-#~ "Inställningen bestämmer om det ska läggas till ifyllnad i stora hålrum av "
-#~ "tree support"
-
-#~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
 #~ "printing."
@@ -7975,6 +7906,12 @@ msgstr ""
 #~ "Ett objekt är placerad över byggplattans begränsningar.\n"
 #~ "Flytta objektet så det är helt inom eller utom byggplattans begränsningar."
 
+#~ msgid ""
+#~ "Arachne engine only works when overhang slowing down is disabled.\n"
+#~ "This may cause decline in the quality of overhang surface when print "
+#~ "fastly\n"
+#~ msgstr "\n"
+
 #~ msgid "Auto arrange"
 #~ msgstr "Auto arrangera"
 
@@ -7985,6 +7922,9 @@ msgstr ""
 #~ msgstr ""
 #~ "Auto placera valda objekt eller alla objekt. Om det finns valda objekt så "
 #~ "placeras endast dem. Alternativt så placeras alla objekt i projektet."
+
+#~ msgid "Aux Cooling"
+#~ msgstr "Extra Kylning"
 
 #~ msgid "Avoid crossing wall when travel"
 #~ msgstr "Undvik väggar vid förflyttning"
@@ -7997,6 +7937,9 @@ msgstr ""
 #~ "Byggplattans temperatur överstiger kristalliserings temperaturen av detta "
 #~ "filament.\n"
 #~ "Detta kan orsaka att nozzeln blockeras och utskriften misslyckas"
+
+#~ msgid "Choose one or more files (3mf/step/stl/obj/amf):"
+#~ msgstr "Välj en eller flera filer (3mf/step/stl/obj/amf):"
 
 #~ msgid "Clear all"
 #~ msgstr "Rensa allt"
@@ -8055,6 +7998,14 @@ msgstr ""
 #~ "3. Skrivare förinställningar\n"
 
 #~ msgid ""
+#~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
+#~ "It contains the following information:\n"
+#~ "1. The Process presets\n"
+#~ "2. The Filament presets\n"
+#~ "3. The Printer presets\n"
+#~ msgstr "\n"
+
+#~ msgid ""
 #~ "Don't retract when the travel is in infill area absolutely. That means "
 #~ "the oozing can't been seen"
 #~ msgstr ""
@@ -8107,8 +8058,25 @@ msgstr ""
 #~ msgid "Filament N XX"
 #~ msgstr "Filament N XX"
 
+#~ msgid ""
+#~ "Filament to print support and skirt. 0 means no specific filament for "
+#~ "support and current filament is used"
+#~ msgstr ""
+#~ "Filament för att skriva ut support och skirt med. 0 betyder inget "
+#~ "speciellt filament för support och nuvarande filament används"
+
+#~ msgid ""
+#~ "Filament to print support interface. 0 means no specific filament for "
+#~ "support interface and current filament is used"
+#~ msgstr ""
+#~ "Support filament för utskrift. 0 betyder att inget specifikt filament för "
+#~ "support gränssnitt och nuvarande filament används"
+
 #~ msgid "Filaments Selection"
 #~ msgstr "Filament Val"
+
+#~ msgid "Finish"
+#~ msgstr "Slutför"
 
 #~ msgid "Finished"
 #~ msgstr "Färdig"
@@ -8158,6 +8126,9 @@ msgstr ""
 #~ "auto-placering för att undvika kollision när man skriver ut objekt för "
 #~ "objekt"
 
+#~ msgid "Import 3MF/STL/STEP/OBJ/AMF"
+#~ msgstr "Importera 3MF/STL/STEP/OBJ/AMF"
+
 #~ msgid "In the calibration of extrusion flow"
 #~ msgstr "Vid kalibrering av extruderingsflödet"
 
@@ -8199,6 +8170,9 @@ msgstr ""
 #~ msgid "Monitoring"
 #~ msgstr "Övervakar"
 
+#~ msgid "Monitoring Recording"
+#~ msgstr "Övervaknings Inspelning"
+
 #~ msgid "Open"
 #~ msgstr "Öppna"
 
@@ -8210,6 +8184,9 @@ msgstr ""
 
 #~ msgid "Output file"
 #~ msgstr "Utdatafil"
+
+#~ msgid "Part Cooling"
+#~ msgstr "Del Kylning"
 
 #~ msgid "Pause(heated bed temperature error)"
 #~ msgstr "Paus (temperaturfel i byggplattan)"
@@ -8223,8 +8200,19 @@ msgstr ""
 #~ msgid "Per object edit"
 #~ msgstr "Redigera per objekt"
 
+#~ msgid "Plate %d: %s does not support filament %s\n"
+#~ msgstr "\n"
+
 #~ msgid "Plate %d: %s does not support filament %s.\n"
 #~ msgstr "Plattan %d: %s stöds ej av filament %s.\n"
+
+#~ msgid "Plate %d: %s does not support filament %s (%s).\n"
+#~ msgstr "\n"
+
+#~ msgid ""
+#~ "Please check the following infomation and click Confirm to continue "
+#~ "sending print:\n"
+#~ msgstr "\n"
 
 #~ msgid "Please fill report first."
 #~ msgstr "Fyll i rapporten först."
@@ -8293,6 +8281,12 @@ msgstr ""
 #~ msgid "Reload items"
 #~ msgstr "Ladda om objekten"
 
+#~ msgid "Repair"
+#~ msgstr "Reparera"
+
+#~ msgid "Repair the model's meshes if it is non-manifold mesh"
+#~ msgstr "Reparera modellens mesh om den inte är mångfaldig"
+
 #~ msgid "Report"
 #~ msgstr "Rapportera"
 
@@ -8326,6 +8320,14 @@ msgstr ""
 #~ msgid "Spiral mode"
 #~ msgstr "Spiral läge"
 
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, \n"
+#~ "support is disabled, top shell layers is 0 and sparse infill density is "
+#~ "0\n"
+#~ msgstr ""
+#~ "Spiral läge fungerar bara när vägg antalet är 1,\n"
+#~ "support är inaktiverad, top lager är 0 och låg ifyllnads densitet är 0\n"
+
 #~ msgid "Successfully sent.Will automatically jump to the device page in %s s"
 #~ msgstr ""
 #~ "Framgångsrikt skickat. Kommer automatiskt att hoppa till enhetssidan om "
@@ -8341,6 +8343,12 @@ msgstr ""
 #~ "support (materialet) är vald som en annan extruder än objektets"
 
 #~ msgid ""
+#~ "Switch to rectilinear pattern?\n"
+#~ "Yes - switch to rectilinear pattern automaticlly\n"
+#~ "No  - reset density to default non 100% value automaticlly\n"
+#~ msgstr "\n"
+
+#~ msgid ""
 #~ "Switch to zig-zag pattern?\n"
 #~ "Yes - switch to zig-zag pattern automaticlly\n"
 #~ "No  - reset density to default non 100% value automaticlly\n"
@@ -8351,6 +8359,18 @@ msgstr ""
 
 #~ msgid "Swith cloud environment, Please login again!"
 #~ msgstr "Byte av moln miljö, Logga in igen!"
+
+#~ msgid ""
+#~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
+#~ "unrecognized:\n"
+#~ msgstr ""
+#~ "3mf's version %s är nyare än %s's version %s, Följande nycklar känns inte "
+#~ "igen:\n"
+
+#~ msgid ""
+#~ "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade "
+#~ "your software.\n"
+#~ msgstr "\n"
 
 #~ msgid "The Config is not compatible and can not be loaded."
 #~ msgstr "Ej kompatibel konfiguration; kan inte laddas."
@@ -8371,6 +8391,12 @@ msgstr ""
 #~ "men kontrollera resultaten eller reparera indatafilen och försöka igen."
 
 #~ msgid ""
+#~ "The printer type used to generate G-code is not the same type as the "
+#~ "currently selected physical printer. It is recommend to re-slice by "
+#~ "selecting the same printer type.\n"
+#~ msgstr "\n"
+
+#~ msgid ""
 #~ "This object will be used to purge the nozzle after a filament change to "
 #~ "save filament and decrease the print time. Colours of the objects will be "
 #~ "mixed as a result"
@@ -8378,6 +8404,13 @@ msgstr ""
 #~ "Detta objekt kommer att användas för att rensa nozzlen efter ett filament "
 #~ "byte för att spara filament och minska utskriftstiden. Objektens färger "
 #~ "blandas som ett resultat"
+
+#~ msgid ""
+#~ "This setting specifies whether to add infill inside large hollows of tree "
+#~ "support"
+#~ msgstr ""
+#~ "Inställningen bestämmer om det ska läggas till ifyllnad i stora hålrum av "
+#~ "tree support"
 
 #~ msgid ""
 #~ "This setting stands for how much volume of filament can be melted and "
@@ -8395,6 +8428,9 @@ msgstr ""
 #~ msgid "Translation"
 #~ msgstr "Översättning"
 
+#~ msgid "Tree support with infill"
+#~ msgstr "Tree support med ifyllnad"
+
 #~ msgid "Unable to create zip file"
 #~ msgstr "Det gick inte att skapa zip-fil"
 
@@ -8406,6 +8442,13 @@ msgstr ""
 
 #~ msgid "Waiting"
 #~ msgstr "Väntar"
+
+#~ msgid ""
+#~ "When recording timelapse without toolhead, it is recommended to add a "
+#~ "\"Timelapse Wipe Tower\" \n"
+#~ "by right-click the empty position of build plate and choose \"Add "
+#~ "Primitive\"->\"Timelapse Wipe Tower\".\n"
+#~ msgstr "\n"
 
 #~ msgid ""
 #~ "You have changed some preset settings. \n"
@@ -8421,14 +8464,32 @@ msgstr ""
 #~ msgstr " Objekt:"
 
 #~ msgid ""
+#~ " is too close to exclusion area, there may be collisions when printing.\n"
+#~ msgstr "\n"
+
+#~ msgid ""
 #~ " is too close to exclusion area, there will be collisions when printing.\n"
 #~ msgstr " för tätt inpå den isolerade ytan, utskriften kolliderar.\n"
+
+#~ msgid " is too close to others, there may be collisions when printing.\n"
+#~ msgstr "\n"
 
 #~ msgid " is too close to others, there will be collisions when printing.\n"
 #~ msgstr " för tätt inpå andra, utskriften kolliderar.\n"
 
+#~ msgid "hybrid(auto)"
+#~ msgstr "hybrid(auto)"
+
 #~ msgid "normal"
 #~ msgstr "normal"
+
+#~ msgid ""
+#~ "normal(auto) and tree(auto) is used to generate support automatically. If "
+#~ "normal or tree is selected, only support enforcers are generated"
+#~ msgstr ""
+#~ "normal(auto), hybrid(auto) och tree(auto) används för att skapa support "
+#~ "automatiskt. Om normal eller tree är vald, kommer endast tvingande "
+#~ "support skapas"
 
 #~ msgid "the 3mf is not compatible, load geometry data only!"
 #~ msgstr "3mf ej kompatibel, laddar endast geometrin !"
