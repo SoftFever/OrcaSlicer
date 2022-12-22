@@ -160,6 +160,7 @@ wxDEFINE_EVENT(EVT_PUBLISH_FINISHED,                wxCommandEvent);
 wxDEFINE_EVENT(EVT_REPAIR_MODEL,                    wxCommandEvent);
 wxDEFINE_EVENT(EVT_FILAMENT_COLOR_CHANGED,          wxCommandEvent);
 wxDEFINE_EVENT(EVT_INSTALL_PLUGIN_NETWORKING,       wxCommandEvent);
+wxDEFINE_EVENT(EVT_UPDATE_PLUGINS_WHEN_LAUNCH,       wxCommandEvent);
 wxDEFINE_EVENT(EVT_INSTALL_PLUGIN_HINT,             wxCommandEvent);
 wxDEFINE_EVENT(EVT_PREVIEW_ONLY_MODE_HINT,          wxCommandEvent);
 //BBS: change light/dark mode
@@ -2116,6 +2117,7 @@ private:
     void update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bool temp_snapshot_was_taken = false);
     void on_action_export_to_sdcard(SimpleEvent&);
     void on_action_export_to_sdcard_all(SimpleEvent&);
+    void update_plugin_when_launch(wxCommandEvent& event);
     // path to project folder stored with no extension
     boost::filesystem::path     m_project_folder;
 
@@ -2210,6 +2212,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(EVT_FILAMENT_COLOR_CHANGED, &priv::on_filament_color_changed, this);
     this->q->Bind(EVT_INSTALL_PLUGIN_NETWORKING, &priv::install_network_plugin, this);
     this->q->Bind(EVT_INSTALL_PLUGIN_HINT, &priv::show_install_plugin_hint, this);
+    this->q->Bind(EVT_UPDATE_PLUGINS_WHEN_LAUNCH, &priv::update_plugin_when_launch, this);
     this->q->Bind(EVT_PREVIEW_ONLY_MODE_HINT, &priv::show_preview_only_hint, this);
     this->q->Bind(EVT_GLCANVAS_COLOR_MODE_CHANGED, &priv::on_change_color_mode, this);
     this->q->Bind(wxEVT_SYS_COLOUR_CHANGED, &priv::on_apple_change_color_mode, this);
@@ -6183,6 +6186,29 @@ void Plater::priv::install_network_plugin(wxCommandEvent &event)
 {
     wxGetApp().ShowDownNetPluginDlg();
     return;
+}
+
+void Plater::priv::update_plugin_when_launch(wxCommandEvent &event)
+{
+    std::string data_dir_str = data_dir();
+    boost::filesystem::path data_dir_path(data_dir_str);
+    auto cache_folder = data_dir_path / "ota";
+    std::string changelog_file = cache_folder.string() + "/network_plugins.json";
+
+    UpdatePluginDialog dlg(wxGetApp().mainframe);
+    dlg.update_info(changelog_file);
+    auto result = dlg.ShowModal();
+
+    auto app_config = wxGetApp().app_config;
+    if (!app_config) return;
+
+    if (result == wxID_OK) {
+        app_config->set("update_network_plugin", "true");
+    }
+    else if (result == wxID_NO) {
+        app_config->set("update_network_plugin", "false");
+    }
+    app_config->save();
 }
 
 void Plater::priv::show_install_plugin_hint(wxCommandEvent &event)

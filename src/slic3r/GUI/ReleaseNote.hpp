@@ -53,6 +53,20 @@ public:
     wxScrolledWindow *m_vebview_release_note {nullptr};
 };
 
+class UpdatePluginDialog : public DPIDialog
+{
+public:
+    UpdatePluginDialog(wxWindow* parent = nullptr);
+    ~UpdatePluginDialog();
+
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+    void update_info(std::string json_path);
+
+    wxStaticText* m_text_up_info{ nullptr };
+    Label* operation_tips{ nullptr };
+    wxScrolledWindow* m_vebview_release_note{ nullptr };
+};
+
 class UpdateVersionDialog : public DPIDialog
 {
 public:
