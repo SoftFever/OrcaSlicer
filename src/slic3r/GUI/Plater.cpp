@@ -1082,7 +1082,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
         Tab* print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
         if (print_tab) {
             print_tab->get_combo_box()->update();
-        }   
+        }
         break;
         }
     case Preset::TYPE_SLA_PRINT:
@@ -1097,7 +1097,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
     {
         update_all_preset_comboboxes();
         p->show_preset_comboboxes();
-        
+
         /* update bed shape */
         Tab* printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
         if (printer_tab) {
@@ -7344,6 +7344,7 @@ Plater::Plater(wxWindow *parent, MainFrame *main_frame)
     , p(new priv(this, main_frame))
 {
     // Initialization performed in the private c-tor
+    enable_wireframe(false);
 }
 
 bool Plater::Show(bool show)
