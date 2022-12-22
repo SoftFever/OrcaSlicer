@@ -50,6 +50,8 @@ namespace Slic3r {
             gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long + m_length_short, y_pos + i * y_offset), e * m_length_short);
 
         }
+        gcode << writer.set_pressure_advance(0.0);
+
         // draw indicator lines
         gcode << writer.set_speed(fast);
         gcode << move_to(Vec2d(start_x + m_length_short, y_pos + (num - 1) * y_offset + 2));
