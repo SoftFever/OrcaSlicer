@@ -24,6 +24,7 @@ enum CUSTOM_ID
     ID_TITLE,
     ID_MODEL_STORE,
     ID_PUBLISH,
+    ID_CALIB,
     ID_TOOL_BAR = 3200,
     ID_AMS_NOTEBOOK,
 };
@@ -194,7 +195,7 @@ void BBLTopbar::Init(wxFrame* parent)
     m_frame = parent;
     m_skip_popup_file_menu = false;
     m_skip_popup_dropdown_menu = false;
-
+    m_skip_popup_calib_menu = false;
     wxInitAllImageHandlers();
 
     this->AddSpacer(5);
@@ -240,6 +241,11 @@ void BBLTopbar::Init(wxFrame* parent)
     m_redo_item = this->AddTool(wxID_REDO, "", redo_bitmap);
     wxBitmap redo_inactive_bitmap = create_scaled_bitmap("topbar_redo_inactive", nullptr, TOPBAR_ICON_SIZE);
     m_redo_item->SetDisabledBitmap(redo_inactive_bitmap);
+
+    this->AddSpacer(FromDIP(10));
+
+    wxBitmap calib_bitmap = create_scaled_bitmap("ams_readonly", nullptr, TOPBAR_ICON_SIZE);
+    m_redo_item = this->AddTool(ID_CALIB, "", calib_bitmap);
 
     this->AddSpacer(FromDIP(10));
     this->AddStretchSpacer(1);
@@ -298,6 +304,7 @@ void BBLTopbar::Init(wxFrame* parent)
     this->Bind(wxEVT_MENU_CLOSE, &BBLTopbar::OnMenuClose, this);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnFileToolItem, this, ID_TOP_FILE_MENU);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnDropdownToolItem, this, ID_TOP_DROPDOWN_MENU);
+    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnDropdownToolItem, this, ID_CALIB);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnIconize, this, wxID_ICONIZE_FRAME);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnFullScreen, this, wxID_MAXIMIZE_FRAME);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnCloseFrame, this, wxID_CLOSE_FRAME);
@@ -468,6 +475,9 @@ void BBLTopbar::Rescale() {
     item->SetBitmap(create_scaled_bitmap("topbar_redo", this, TOPBAR_ICON_SIZE));
     item->SetDisabledBitmap(create_scaled_bitmap("topbar_redo_inactive", nullptr, TOPBAR_ICON_SIZE));
 
+    item = this->FindTool(ID_CALIB);
+    item->SetBitmap(create_scaled_bitmap("ams_readonly", this, TOPBAR_ICON_SIZE));
+
     item = this->FindTool(ID_TITLE);
 
     /*item = this->FindTool(ID_PUBLISH);
@@ -575,6 +585,23 @@ void BBLTopbar::OnDropdownToolItem(wxAuiToolBarEvent& evt)
     }
     else {
         m_skip_popup_dropdown_menu = false;
+    }
+
+    // make sure the button is "un-stuck"
+    tb->SetToolSticky(evt.GetId(), false);
+}
+
+void BBLTopbar::OnCalibToolItem(wxAuiToolBarEvent& evt)
+{
+    wxAuiToolBar* tb = static_cast<wxAuiToolBar*>(evt.GetEventObject());
+
+    tb->SetToolSticky(evt.GetId(), true);
+
+    if (!m_skip_popup_calib_menu) {
+        PopupMenu(&m_calib_menu, wxPoint(FromDIP(1), this->GetSize().GetHeight() - 2));
+    }
+    else {
+        m_skip_popup_calib_menu = false;
     }
 
     // make sure the button is "un-stuck"

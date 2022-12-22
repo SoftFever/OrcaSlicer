@@ -2442,7 +2442,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLVIEWTOOLBAR_PREVIEW, [q](SimpleEvent&) { q->select_view_3D("Preview", false); });
         q->Bind(EVT_GLTOOLBAR_SLICE_PLATE, &priv::on_action_slice_plate, this);
         q->Bind(EVT_GLTOOLBAR_SLICE_ALL, &priv::on_action_slice_all, this);
-        q->Bind(EVT_GLTOOLBAR_SLICE_ALL, &priv::on_action_calib_pa, this);
+        q->Bind(EVT_GLTOOLBAR_PA_CALIB, &priv::on_action_calib_pa, this);
         q->Bind(EVT_GLTOOLBAR_PRINT_PLATE, &priv::on_action_print_plate, this);
         q->Bind(EVT_GLTOOLBAR_SELECT_SLICED_PLATE, &priv::on_action_select_sliced_plate, this);
         q->Bind(EVT_GLTOOLBAR_PRINT_ALL, &priv::on_action_print_all, this);
@@ -6001,11 +6001,14 @@ void Plater::priv::on_action_calib_pa(SimpleEvent&)
 {
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received calib pa event\n" ;
-        if(fff_print.model().objects.empty())
-            //add model
-            q->add_model(false,Slic3r::resources_dir()+"/calib/sf_placeholder.stl");
-        
-        fff_print.is_calib_mode() = true;
+        const auto calib_pa_name = "PressureAdvanceTest-SF";
+        if (get_project_name() != calib_pa_name) {
+            q->new_project(false,false,calib_pa_name);
+            q->add_model(false, Slic3r::resources_dir() + "/calib/sf_placeholder.stl");
+            q->select_view_3D("3D");
+        }
+
+        background_process.fff_print()->is_calib_mode() = true;
         //BBS update extruder params and speed table before slicing
         Plater::setExtruderParams(Slic3r::Model::extruderParamsMap);
         Plater::setPrintSpeedTable(Slic3r::Model::printSpeedMap);
@@ -7419,7 +7422,7 @@ Print&          Plater::fff_print()         { return p->fff_print; }
 const SLAPrint& Plater::sla_print() const   { return p->sla_print; }
 SLAPrint&       Plater::sla_print()         { return p->sla_print; }
 
-int Plater::new_project(bool skip_confirm, bool silent)
+int Plater::new_project(bool skip_confirm, bool silent, const wxString& project_name)
 {
     bool transfer_preset_changes = false;
     // BBS: save confirm
@@ -7459,7 +7462,10 @@ int Plater::new_project(bool skip_confirm, bool silent)
     //reset project
     p->project.reset();
     //set project name
-    p->set_project_name(_L("Untitled"));
+    if (project_name.empty())
+        p->set_project_name(_L("Untitled"));
+    else
+        p->set_project_name(project_name);
 
     Plater::TakeSnapshot snapshot(this, "New Project", UndoRedo::SnapshotType::ProjectSeparator);
 

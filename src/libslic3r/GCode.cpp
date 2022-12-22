@@ -1636,13 +1636,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     if (print.is_calib_mode()) {
         std::string gcode;
         auto s = m_config.inner_wall_speed.value;
-        if (m_config.default_acceleration.value > 0) {
-            double acceleration = std::max(m_config.inner_wall_acceleration.value, m_config.outer_wall_acceleration.value);
-            gcode += m_writer.set_acceleration((unsigned int)floor(acceleration + 0.5));
-        }
+        gcode += m_writer.set_acceleration((unsigned int)floor(m_config.outer_wall_acceleration.value + 0.5));
 
         if (m_config.default_jerk.value > 0) {
-            double jerk = m_config.default_jerk.value;
+            double jerk = m_config.outer_wall_jerk.value;
             gcode += m_writer.set_jerk_xy((unsigned int)floor(jerk + 0.5));
         }
         m_config.outer_wall_speed = print.default_region_config().outer_wall_speed;
@@ -1650,6 +1647,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         calib_pressure_advance pa_test(this);
         gcode = pa_test.generate_test();
         file.write(gcode);
+        print.is_calib_mode() = false;
     }
     else {
         //BBS: open spaghetti detector

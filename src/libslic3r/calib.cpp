@@ -32,7 +32,7 @@ namespace Slic3r {
         const double e = 0.04; // filament_mm/extrusion_mm
         const double y_offset = 5;
 
-        const double fast = std::max(mp_gcodegen->config().get_abs_value("inner_wall_speed"), mp_gcodegen->config().get_abs_value("outer_wall_speed")) * 60.0;
+        const double fast = mp_gcodegen->config().get_abs_value("outer_wall_speed") * 60.0;
         const double slow = std::max(1200.0, fast * 0.1);
         std::stringstream gcode;
         gcode << mp_gcodegen->writer().travel_to_z(0.2);

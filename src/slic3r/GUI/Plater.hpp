@@ -202,7 +202,7 @@ public:
     const SLAPrint& sla_print() const;
     SLAPrint& sla_print();
 
-    int new_project(bool skip_confirm = false, bool silent = false);
+    int new_project(bool skip_confirm = false, bool silent = false, const wxString& project_name = wxString());
     // BBS: save & backup
     void load_project(wxString const & filename = "", wxString const & originfile = "-");
     int save_project(bool saveAs = false);
