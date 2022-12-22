@@ -244,8 +244,10 @@ void BBLTopbar::Init(wxFrame* parent)
 
     this->AddSpacer(FromDIP(10));
 
-    wxBitmap calib_bitmap = create_scaled_bitmap("ams_readonly", nullptr, TOPBAR_ICON_SIZE);
-    m_redo_item = this->AddTool(ID_CALIB, "", calib_bitmap);
+    wxBitmap calib_bitmap = create_scaled_bitmap("calib_sf", nullptr, TOPBAR_ICON_SIZE);
+    wxBitmap calib_bitmap_inactive = create_scaled_bitmap("calib_sf_inactive", nullptr, TOPBAR_ICON_SIZE);
+    m_calib_item = this->AddTool(ID_CALIB, "Calibration", calib_bitmap);
+    m_calib_item->SetDisabledBitmap(calib_bitmap_inactive);
 
     this->AddSpacer(FromDIP(10));
     this->AddStretchSpacer(1);
@@ -304,7 +306,7 @@ void BBLTopbar::Init(wxFrame* parent)
     this->Bind(wxEVT_MENU_CLOSE, &BBLTopbar::OnMenuClose, this);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnFileToolItem, this, ID_TOP_FILE_MENU);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnDropdownToolItem, this, ID_TOP_DROPDOWN_MENU);
-    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnDropdownToolItem, this, ID_CALIB);
+    this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnCalibToolItem, this, ID_CALIB);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnIconize, this, wxID_ICONIZE_FRAME);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnFullScreen, this, wxID_MAXIMIZE_FRAME);
     this->Bind(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, &BBLTopbar::OnCloseFrame, this, wxID_CLOSE_FRAME);
@@ -360,17 +362,19 @@ void BBLTopbar::OnRedo(wxAuiToolBarEvent& event)
     plater->redo();
 }
 
-void BBLTopbar::EnableUndoRedoItems()
+void BBLTopbar::Enable3DEditorItems()
 {
     this->EnableTool(m_undo_item->GetId(), true);
     this->EnableTool(m_redo_item->GetId(), true);
+    this->EnableTool(m_calib_item->GetId(), true);
     Refresh();
 }
 
-void BBLTopbar::DisableUndoRedoItems()
+void BBLTopbar::Disable3DEditorItems()
 {
     this->EnableTool(m_undo_item->GetId(), false);
     this->EnableTool(m_redo_item->GetId(), false);
+    this->EnableTool(m_calib_item->GetId(), false);
     Refresh();
 }
 
@@ -421,6 +425,11 @@ void BBLTopbar::AddDropDownMenuItem(wxMenuItem* menu_item)
 wxMenu* BBLTopbar::GetTopMenu()
 {
     return &m_top_menu;
+}
+
+wxMenu* BBLTopbar::GetCalibMenu()
+{
+    return &m_calib_menu;
 }
 
 void BBLTopbar::SetTitle(wxString title)
@@ -598,7 +607,8 @@ void BBLTopbar::OnCalibToolItem(wxAuiToolBarEvent& evt)
     tb->SetToolSticky(evt.GetId(), true);
 
     if (!m_skip_popup_calib_menu) {
-        PopupMenu(&m_calib_menu, wxPoint(FromDIP(1), this->GetSize().GetHeight() - 2));
+        auto rec = this->GetToolRect(ID_CALIB);
+        PopupMenu(&m_calib_menu, wxPoint(rec.GetLeft(), this->GetSize().GetHeight() - 2));
     }
     else {
         m_skip_popup_calib_menu = false;

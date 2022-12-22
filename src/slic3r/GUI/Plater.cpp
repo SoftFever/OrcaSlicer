@@ -2032,7 +2032,6 @@ struct Plater::priv
     //BBS: GUI refactor: GLToolbar
     void on_action_open_project(SimpleEvent&);
     void on_action_slice_plate(SimpleEvent&);
-    void on_action_calib_pa(SimpleEvent&);
     void on_action_slice_all(SimpleEvent&);
     void on_action_publish(wxCommandEvent &evt);
     void on_action_print_plate(SimpleEvent&);
@@ -2442,7 +2441,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLVIEWTOOLBAR_PREVIEW, [q](SimpleEvent&) { q->select_view_3D("Preview", false); });
         q->Bind(EVT_GLTOOLBAR_SLICE_PLATE, &priv::on_action_slice_plate, this);
         q->Bind(EVT_GLTOOLBAR_SLICE_ALL, &priv::on_action_slice_all, this);
-        q->Bind(EVT_GLTOOLBAR_PA_CALIB, &priv::on_action_calib_pa, this);
         q->Bind(EVT_GLTOOLBAR_PRINT_PLATE, &priv::on_action_print_plate, this);
         q->Bind(EVT_GLTOOLBAR_SELECT_SLICED_PLATE, &priv::on_action_select_sliced_plate, this);
         q->Bind(EVT_GLTOOLBAR_PRINT_ALL, &priv::on_action_print_all, this);
@@ -5996,28 +5994,6 @@ void Plater::priv::on_action_slice_plate(SimpleEvent&)
     }
 }
 
-//BBS: GUI refactor: slice plate
-void Plater::priv::on_action_calib_pa(SimpleEvent&)
-{
-    if (q != nullptr) {
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received calib pa event\n" ;
-        const auto calib_pa_name = "PressureAdvanceTest-SF";
-        if (get_project_name() != calib_pa_name) {
-            q->new_project(false,false,calib_pa_name);
-            q->add_model(false, Slic3r::resources_dir() + "/calib/sf_placeholder.stl");
-            q->select_view_3D("3D");
-        }
-
-        background_process.fff_print()->is_calib_mode() = true;
-        //BBS update extruder params and speed table before slicing
-        Plater::setExtruderParams(Slic3r::Model::extruderParamsMap);
-        Plater::setPrintSpeedTable(Slic3r::Model::printSpeedMap);
-        m_slice_all = false;
-        q->reslice();
-        q->select_view_3D("Preview");
-    }
-}
-
 //BBS: GUI refactor: slice all
 void Plater::priv::on_action_slice_all(SimpleEvent&)
 {
@@ -7887,6 +7863,26 @@ void Plater::add_model(bool imperial_units/* = false*/,  std::string fname/* = "
 
         wxGetApp().mainframe->update_title();
     }
+}
+
+void Plater::calib_pa() {
+    const auto calib_pa_name = "PressureAdvanceTest-SF";
+    if (get_project_name() != calib_pa_name) {
+        new_project(false, false, calib_pa_name);
+        add_model(false, Slic3r::resources_dir() + "/calib/sf_placeholder.stl");
+        wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+
+        //select_view_3D("3D");
+    }
+
+    p->background_process.fff_print()->is_calib_mode() = true;
+    //BBS update extruder params and speed table before slicing
+    Plater::setExtruderParams(Slic3r::Model::extruderParamsMap);
+    Plater::setPrintSpeedTable(Slic3r::Model::printSpeedMap);
+    p->m_slice_all = false;
+    reslice();
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+    select_view_3D("Preview");
 }
 
 void Plater::import_sl1_archive()

@@ -225,6 +225,9 @@ public:
     void reload_gcode_from_disk();
     void refresh_print();
 
+    // SoftFever
+    void calib_pa();
+
     //BBS: add only gcode mode
     bool only_gcode_mode() { return m_only_gcode; }
     void set_only_gcode(bool only_gcode) { m_only_gcode = only_gcode; }

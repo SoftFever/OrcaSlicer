@@ -831,7 +831,6 @@ void MainFrame::show_option(bool show)
             m_print_btn->Hide();
             m_slice_option_btn->Hide();
             m_print_option_btn->Hide();
-            m_goodie_bag_btn->Hide();
             Layout();
         }
     } else {
@@ -840,7 +839,6 @@ void MainFrame::show_option(bool show)
             m_print_btn->Show();
             m_slice_option_btn->Show();
             m_print_option_btn->Show();
-            m_goodie_bag_btn->Show();
             Layout();
         }
     }
@@ -906,10 +904,10 @@ void MainFrame::init_tabpanel()
 
 #ifndef __APPLE__
         if (sel == tp3DEditor) {
-            m_topbar->EnableUndoRedoItems();
+            m_topbar->Enable3DEditorItems();
         }
         else {
-            m_topbar->DisableUndoRedoItems();
+            m_topbar->Disable3DEditorItems();
         }
 #endif
 
@@ -1356,16 +1354,13 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_slice_select = eSlicePlate;
     m_print_select = ePrintPlate;
 
-    m_goodie_bag_btn = new SideButton(this, _L("Goodiebag"), "");
     m_slice_btn = new SideButton(this, _L("Slice"), "");
     m_slice_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
     m_print_btn = new SideButton(this, _L("Print"), "");
     m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
 
     update_side_button_style();
-    m_goodie_bag_btn->Enable();
     m_print_option_btn->Enable();
-    sizer->Add(m_goodie_bag_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
     sizer->Add(FromDIP(15), 0, 0, 0, 0);
     
     m_slice_option_btn->Enable();
@@ -1378,33 +1373,6 @@ wxBoxSizer* MainFrame::create_side_tools()
     sizer->Add(FromDIP(19), 0, 0, 0, 0);
 
     sizer->Layout();
-
-    m_goodie_bag_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-        {
-            SidePopup* p = new SidePopup(this);
-            SideButton* calib_pa_btn = new SideButton(p, _L("Calibrate PA"), "");
-            calib_pa_btn->SetCornerRadius(0);
-            //SideButton* send_file_btn = new SideButton(p, _L("send file"), "");
-            //send_file_btn->SetCornerRadius(0);
-
-            calib_pa_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
-                //this->m_plater->select_view_3D("Preview");
-                m_plater->update();
-                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PA_CALIB));
-
-                this->m_tabpanel->SetSelection(tpPreview);
-                });
-
-            //send_file_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
-            //    //this->m_plater->select_view_3D("Preview");
-            //    wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_GCODE_FILE));
-
-            //    });
-            p->append_button(calib_pa_btn);
-            //p->append_button(send_file_btn);
-            p->Popup(m_goodie_bag_btn);
-        }
-    );
 
     m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
@@ -1738,13 +1706,6 @@ void MainFrame::update_side_button_style()
 {
     // BBS
     int em = em_unit();
-
-    m_goodie_bag_btn->SetLayoutStyle(1);
-    m_goodie_bag_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center, FromDIP(15));
-    m_goodie_bag_btn->SetMinSize(wxSize(-1, FromDIP(24)));
-    m_goodie_bag_btn->SetCornerRadius(FromDIP(12));
-    m_goodie_bag_btn->SetExtraSize(wxSize(FromDIP(38), FromDIP(10)));
-    m_goodie_bag_btn->SetBottomColour(wxColour(0x3B4446));
     
     m_slice_btn->SetLayoutStyle(1);
     /*m_slice_btn->SetLayoutStyle(1);
@@ -1830,7 +1791,6 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
 
     update_side_button_style();
 
-    m_goodie_bag_btn->Rescale();
     m_slice_btn->Rescale();
     m_print_btn->Rescale();
     m_slice_option_btn->Rescale();
@@ -2499,6 +2459,9 @@ void MainFrame::init_menubar_as_editor()
     //m_topbar->AddDropDownMenuItem(language_item);
     //m_topbar->AddDropDownMenuItem(config_item);
     m_topbar->AddDropDownSubMenu(helpMenu, _L("Help"));
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Pressure advance"), _L("Calibrate PA"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
 #else
     m_menubar->Append(fileMenu, wxString::Format("&%s", _L("File")));
     if (editMenu)

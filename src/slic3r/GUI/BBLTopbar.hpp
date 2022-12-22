@@ -43,13 +43,14 @@ public:
     void SetFileMenu(wxMenu* file_menu);
     void AddDropDownSubMenu(wxMenu* sub_menu, const wxString& title);
     void AddDropDownMenuItem(wxMenuItem* menu_item);
-    wxMenu *GetTopMenu();
+    wxMenu* GetTopMenu();
+    wxMenu *GetCalibMenu();
     void SetTitle(wxString title);
     void SetMaximizedSize();
     void SetWindowSize();
 
-    void EnableUndoRedoItems();
-    void DisableUndoRedoItems();
+    void Enable3DEditorItems();
+    void Disable3DEditorItems();
 
     void SaveNormalRect();
 
@@ -61,7 +62,7 @@ private:
     wxPoint m_delta;
     wxMenu m_top_menu;
     wxMenu* m_file_menu;
-    wxMenu* m_calib_menu;
+    wxMenu m_calib_menu;
     wxAuiToolBarItem* m_title_item;
     wxAuiToolBarItem* m_account_item;
     wxAuiToolBarItem* m_model_store_item;
@@ -69,6 +70,7 @@ private:
     wxAuiToolBarItem *m_publish_item;
     wxAuiToolBarItem* m_undo_item;
     wxAuiToolBarItem* m_redo_item;
+    wxAuiToolBarItem* m_calib_item;
     wxAuiToolBarItem* maximize_btn;
 
     wxBitmap m_publish_bitmap;
