@@ -7,14 +7,16 @@
 
 namespace Slic3r {
 
-    calib_pressure_advance::calib_pressure_advance(GCode* gcodegen) :mp_gcodegen(gcodegen), m_length_short(20.0), m_length_long(40.0) {}
+    calib_pressure_advance::calib_pressure_advance(GCode* gcodegen) :mp_gcodegen(gcodegen), m_length_short(20.0), m_length_long(40.0), m_space_y(3.5){}
 
     std::string calib_pressure_advance::generate_test(double start_pa/*= 0*/, double step_pa /*= 0.005*/, int count/*= 10*/) {
         auto bed_sizes = mp_gcodegen->config().printable_area.values;
         auto w = bed_sizes[2].x() - bed_sizes[0].x();
         auto h = bed_sizes[2].y() - bed_sizes[0].y();
+        count = std::min(count,int((h - 10) / m_space_y));
+        
         auto startx = (w - 100) / 2;
-        auto starty = (h - count * 5) / 2;
+        auto starty = (h - count * m_space_y) / 2;
         return print_pa_lines(startx, starty, start_pa, step_pa, count);
     }
 
@@ -30,7 +32,6 @@ namespace Slic3r {
 
         auto& writer = mp_gcodegen->writer();
         const double e = 0.04; // filament_mm/extrusion_mm
-        const double y_offset = 5;
 
         const double fast = mp_gcodegen->config().get_abs_value("outer_wall_speed") * 60.0;
         const double slow = std::max(1200.0, fast * 0.1);
@@ -41,27 +42,27 @@ namespace Slic3r {
         for (int i = 0; i < num; ++i) {
 
             gcode << writer.set_pressure_advance(start_pa + i * step_pa);
-            gcode << move_to(Vec2d(start_x, y_pos + i * y_offset));
+            gcode << move_to(Vec2d(start_x, y_pos + i * m_space_y));
             gcode << writer.set_speed(slow);
-            gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short, y_pos + i * y_offset), e * m_length_short);
+            gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short, y_pos + i * m_space_y), e * m_length_short);
             gcode << writer.set_speed(fast);
-            gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long, y_pos + i * y_offset), e * m_length_long);
+            gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long, y_pos + i * m_space_y), e * m_length_long);
             gcode << writer.set_speed(slow);
-            gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long + m_length_short, y_pos + i * y_offset), e * m_length_short);
+            gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long + m_length_short, y_pos + i * m_space_y), e * m_length_short);
 
         }
         gcode << writer.set_pressure_advance(0.0);
 
         // draw indicator lines
         gcode << writer.set_speed(fast);
-        gcode << move_to(Vec2d(start_x + m_length_short, y_pos + (num - 1) * y_offset + 2));
-        gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short, y_pos + (num - 1) * y_offset + 7), e * 7);
-        gcode << move_to(Vec2d(start_x + m_length_short + m_length_long, y_pos + (num - 1) * y_offset + 7));
-        gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long, y_pos + (num - 1) * y_offset + 2), e * 7);
+        gcode << move_to(Vec2d(start_x + m_length_short, y_pos + (num - 1) * m_space_y + 2));
+        gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short, y_pos + (num - 1) * m_space_y + 7), e * 7);
+        gcode << move_to(Vec2d(start_x + m_length_short + m_length_long, y_pos + (num - 1) * m_space_y + 7));
+        gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long, y_pos + (num - 1) * m_space_y + 2), e * 7);
 
 
         for (int i = 0; i < num; i += 2) {
-            gcode << draw_number(start_x + m_length_short + m_length_long + m_length_short + 3, y_pos + i * y_offset + y_offset / 2, start_pa + i * step_pa);
+            gcode << draw_number(start_x + m_length_short + m_length_long + m_length_short + 3, y_pos + i * m_space_y + m_space_y / 2, start_pa + i * step_pa);
 
         }
         return gcode.str();

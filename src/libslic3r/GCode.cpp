@@ -1633,7 +1633,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             this->m_objSupportsWithBrim.insert(iter->first);
     }
     if (this->m_objsWithBrim.empty() && this->m_objSupportsWithBrim.empty()) m_brim_done = true;
-    if (print.is_calib_mode()) {
+    if (print.is_calib_mode() == Calib_PA_DDE || print.is_calib_mode() == Calib_PA_Bowden) {
         std::string gcode;
         auto s = m_config.inner_wall_speed.value;
         gcode += m_writer.set_acceleration((unsigned int)floor(m_config.outer_wall_acceleration.value + 0.5));
@@ -1645,9 +1645,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_config.outer_wall_speed = print.default_region_config().outer_wall_speed;
         m_config.inner_wall_speed = print.default_region_config().inner_wall_speed;
         calib_pressure_advance pa_test(this);
-        gcode = pa_test.generate_test();
+        if(print.is_calib_mode() == Calib_PA_DDE)
+            gcode = pa_test.generate_test();
+        else
+            gcode = pa_test.generate_test(0.0,0.02);
+
         file.write(gcode);
-        print.is_calib_mode() = false;
+        print.is_calib_mode() = Calib_None;
     }
     else {
         //BBS: open spaghetti detector

@@ -11,7 +11,7 @@ public:
     calib_pressure_advance(GCode* gcodegen);
     ~calib_pressure_advance() {}
 
-    std::string generate_test(double start_pa = 0, double step_pa = 0.005, int count = 20);
+    std::string generate_test(double start_pa = 0, double step_pa = 0.002, int count = 50);
 
 private:
     std::string move_to(Vec2d pt);
@@ -21,5 +21,6 @@ private:
 private:
     GCode* mp_gcodegen;
     double m_length_short, m_length_long;
+    double m_space_y;
 };
 } // namespace Slic3r

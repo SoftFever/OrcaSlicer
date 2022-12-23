@@ -2459,8 +2459,13 @@ void MainFrame::init_menubar_as_editor()
     //m_topbar->AddDropDownMenuItem(language_item);
     //m_topbar->AddDropDownMenuItem(config_item);
     m_topbar->AddDropDownSubMenu(helpMenu, _L("Help"));
-    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Pressure advance"), _L("Calibrate PA"),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(); }, "", nullptr,
+
+    // SoftFever calibrations
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("PA - DDE"), _L("Calibrate PA - DDE"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(false); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("PA - Bowden"), _L("Calibrate PA - Bowden"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(true); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
 #else
     m_menubar->Append(fileMenu, wxString::Format("&%s", _L("File")));

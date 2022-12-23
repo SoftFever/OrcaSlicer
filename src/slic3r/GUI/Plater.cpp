@@ -7865,24 +7865,20 @@ void Plater::add_model(bool imperial_units/* = false*/,  std::string fname/* = "
     }
 }
 
-void Plater::calib_pa() {
-    const auto calib_pa_name = "PressureAdvanceTest-SF";
-    if (get_project_name() != calib_pa_name) {
-        new_project(false, false, calib_pa_name);
-        add_model(false, Slic3r::resources_dir() + "/calib/sf_placeholder.stl");
-        wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+void Plater::calib_pa(bool bowden) {
+    const auto calib_pa_name = "PressureAdvanceTest";
+    new_project(false, false, calib_pa_name);
+    add_model(false, Slic3r::resources_dir() + "/calib/sf_placeholder.stl");
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
 
-        //select_view_3D("3D");
-    }
-
-    p->background_process.fff_print()->is_calib_mode() = true;
+    p->background_process.fff_print()->is_calib_mode() = bowden ? Calib_PA_Bowden : Calib_PA_DDE;
     //BBS update extruder params and speed table before slicing
     Plater::setExtruderParams(Slic3r::Model::extruderParamsMap);
     Plater::setPrintSpeedTable(Slic3r::Model::printSpeedMap);
     p->m_slice_all = false;
     reslice();
-    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
-    select_view_3D("Preview");
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tpPreview));
+    //select_view_3D("Preview");
 }
 
 void Plater::import_sl1_archive()

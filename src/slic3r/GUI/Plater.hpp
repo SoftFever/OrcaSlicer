@@ -226,7 +226,7 @@ public:
     void refresh_print();
 
     // SoftFever
-    void calib_pa();
+    void calib_pa(bool bowden = false);
 
     //BBS: add only gcode mode
     bool only_gcode_mode() { return m_only_gcode; }
