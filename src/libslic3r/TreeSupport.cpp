@@ -686,7 +686,7 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     m_raft_layers = slicing_params.base_raft_layers + slicing_params.interface_raft_layers;
         
     SupportMaterialPattern support_pattern  = m_object_config->support_base_pattern;
-    if (m_object_config->support_style == smsTreeHybrid && support_pattern == smpDefault) support_pattern = smpLightning;
+    if (m_object_config->support_style == smsTreeHybrid && support_pattern == smpDefault) support_pattern = smpRectilinear;
     m_support_params.base_fill_pattern      = 
         support_pattern == smpLightning ? ipLightning :
         support_pattern == smpHoneycomb ? ipHoneycomb :
