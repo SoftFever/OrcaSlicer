@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "01.04.01.00",
+    "version": "01.04.01.01",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -530,6 +530,38 @@
             "sub_path":"filament/Generic PETG @0.2 nozzle.json"
         },
         {
+            "name":"Bambu PLA Metal @BBL X1C 0.2 nozzle",
+            "sub_path":"filament/Bambu PLA Metal @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name":"Bambu PLA Metal @BBL X1",
+            "sub_path":"filament/Bambu PLA Metal @BBL X1.json"
+        },
+        {
+            "name":"Bambu PLA Metal @BBL X1C",
+            "sub_path":"filament/Bambu PLA Metal @BBL X1C.json"
+        },
+        {
+            "name":"Bambu PLA-CF @base",
+            "sub_path":"filament/Bambu PLA-CF @base.json"
+        },
+        {
+            "name":"Bambu PLA-CF @BBL X1C 0.8 nozzle",
+            "sub_path":"filament/Bambu PLA-CF @BBL X1C 0.8 nozzle.json"
+        },
+        {
+            "name":"Bambu PLA-CF @BBL X1C",
+            "sub_path":"filament/Bambu PLA-CF @BBL X1C.json"
+        },
+        {
+            "name":"Bambu PAHT-CF @base",
+            "sub_path":"filament/Bambu PAHT-CF @base.json"
+        },
+        {
+            "name":"Bambu PAHT-CF @BBL X1C",
+            "sub_path":"filament/Bambu PAHT-CF @BBL X1C.json"
+        },
+        {
             "name": "Generic PETG @BBL P1P",
             "sub_path": "filament/P1P/Generic PETG @BBL P1P.json"
         },
@@ -578,8 +610,28 @@
             "sub_path":"filament/P1P/Generic PETG @BBL P1P 0.2 nozzle.json"
         },
         {
+            "name":"Bambu PAHT-CF @BBL P1P",
+            "sub_path":"filament/P1P/Bambu PAHT-CF @BBL P1P.json"
+        },
+        {
+            "name":"Bambu PLA Metal @BBL P1P 0.2 nozzle",
+            "sub_path":"filament/P1P/Bambu PLA Metal @BBL P1P 0.2 nozzle.json"
+        },
+        {
+            "name":"Bambu PLA Metal @BBL P1P",
+            "sub_path":"filament/P1P/Bambu PLA Metal @BBL P1P.json"
+        },
+        {
+            "name":"Bambu PLA-CF @BBL P1P",
+            "sub_path":"filament/P1P/Bambu PLA-CF @BBL P1P.json"
+        },
+        {
             "name":"Generic PLA-CF @BBL P1P",
             "sub_path":"filament/P1P/Generic PLA-CF @BBL P1P.json"
+        },
+        {
+            "name":"Bambu PLA-CF @BBL P1P 0.8 nozzle",
+            "sub_path":"filament/P1P/Bambu PLA-CF @BBL P1P 0.8 nozzle.json"
         }
     ],
     "machine_list": [
