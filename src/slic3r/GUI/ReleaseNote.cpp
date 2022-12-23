@@ -245,34 +245,27 @@ void UpdatePluginDialog::update_info(std::string json_path)
     Fit();
 }
 
-void UpdateVersionDialog::alter_choice(wxCommandEvent& event)
-{
-    wxGetApp().set_skip_version(m_remind_choice->GetValue());
-}
-
 UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
-    : DPIDialog(parent, wxID_ANY, _L("New version of Bambu Studio"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    : DPIDialog(parent, wxID_ANY, _L("New version of Bambu Studio"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
 {
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     SetBackgroundColour(*wxWHITE);
+
     wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
     auto        m_line_top   = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
-    m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
-    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(30));
+    
 
     wxBoxSizer *m_sizer_body = new wxBoxSizer(wxHORIZONTAL);
 
-    m_sizer_body->Add(0, 0, 0, wxLEFT, FromDIP(38));
+    
 
     auto sm    = create_scaled_bitmap("BambuStudio", nullptr, 70);
-    auto brand = new wxStaticBitmap(this, wxID_ANY, sm, wxDefaultPosition, wxSize(FromDIP(70), FromDIP(70)));
+    m_brand = new wxStaticBitmap(this, wxID_ANY, sm, wxDefaultPosition, wxSize(FromDIP(70), FromDIP(70)));
 
-    m_sizer_body->Add(brand, 0, wxALL, 0);
-
-    m_sizer_body->Add(0, 0, 0, wxRIGHT, FromDIP(25));
+    
 
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxVERTICAL);
 
@@ -280,14 +273,12 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_text_up_info->SetFont(::Label::Head_14);
     m_text_up_info->SetForegroundColour(wxColour(0x26, 0x2E, 0x30));
     m_text_up_info->Wrap(-1);
-    m_sizer_right->Add(m_text_up_info, 0, 0, 0);
 
-    m_sizer_right->Add(0, 0, 1, wxTOP, FromDIP(15));
+    
 
     m_simplebook_release_note = new wxSimplebook(this);
     m_simplebook_release_note->SetSize(wxSize(FromDIP(560), FromDIP(430)));
     m_simplebook_release_note->SetMinSize(wxSize(FromDIP(560), FromDIP(430)));
-    m_simplebook_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
     m_simplebook_release_note->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
 
     m_scrollwindows_release_note = new wxScrolledWindow(m_simplebook_release_note, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(560), FromDIP(430)), wxVSCROLL);
@@ -299,7 +290,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_vebview_release_note->SetBackgroundColour(wxColour(0xF8, 0xF8, 0xF8));
     m_vebview_release_note->SetSize(wxSize(FromDIP(560), FromDIP(430)));
     m_vebview_release_note->SetMinSize(wxSize(FromDIP(560), FromDIP(430)));
-    m_vebview_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
+    //m_vebview_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
 
 	fs::path ph(data_dir());
 	ph /= "resources/tooltip/common/releasenote.html";
@@ -332,7 +323,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_button_ok = new Button(this, _L("OK"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
     m_button_ok->SetBorderColor(*wxWHITE);
-    m_button_ok->SetTextColor(*wxWHITE);
+    m_button_ok->SetTextColor(wxColour("#FFFFFE"));
     m_button_ok->SetFont(Label::Body_12);
     m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
     m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
@@ -354,28 +345,39 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
         EndModal(wxID_NO);
     });
 
+    m_sizer_main->Add(m_line_top, 0, wxEXPAND | wxBOTTOM, 0);
+
     sizer_button->Add(m_remind_choice, 0, wxALL | wxEXPAND, FromDIP(5));
     sizer_button->AddStretchSpacer();
     sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
 
-
-    m_sizer_right->Add(m_simplebook_release_note, 0, wxEXPAND | wxRIGHT, FromDIP(20));
+    m_sizer_right->Add(m_text_up_info, 0, wxBOTTOM|wxTOP, FromDIP(15));
+    m_sizer_right->Add(m_simplebook_release_note, 1, wxEXPAND | wxRIGHT, 0);
     m_sizer_right->Add(sizer_button, 0, wxEXPAND | wxRIGHT, FromDIP(20));
 
+    m_sizer_body->Add(m_brand, 0, wxTOP|wxRIGHT|wxLEFT, FromDIP(15));
+    m_sizer_body->Add(0, 0, 0, wxRIGHT, 0);
     m_sizer_body->Add(m_sizer_right, 1, wxBOTTOM | wxEXPAND, FromDIP(8));
-    m_sizer_main->Add(m_sizer_body, 0, wxEXPAND, 0);
+    m_sizer_main->Add(m_sizer_body, 1, wxEXPAND, 0);
     m_sizer_main->Add(0, 0, 0, wxBOTTOM, 10);
 
     SetSizer(m_sizer_main);
     Layout();
-    m_sizer_main->Fit(this);
+    Fit();
+
+    SetMinSize(GetSize());
 
     Centre(wxBOTH);
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
 UpdateVersionDialog::~UpdateVersionDialog() {}
+
+void UpdateVersionDialog::alter_choice(wxCommandEvent& event)
+{
+    wxGetApp().set_skip_version(m_remind_choice->GetValue());
+}
 
 wxWebView* UpdateVersionDialog::CreateTipView(wxWindow* parent)
 {
@@ -466,20 +468,26 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
     std::string url_line    = "";
     auto split_array        =  splitWithStl(release_note.ToStdString(), "###");
 
-    for (auto i = 0; i < split_array.size(); i++) {
-        std::string url = split_array[i];
-        if (std::strstr (url.c_str(), "http://") != NULL || std::strstr (url.c_str(), "https://") != NULL) {
-            use_web_link = true;
-            url_line = url;
-            break;
+    if (split_array.size() >= 3) {
+        for (auto i = 0; i < split_array.size(); i++) {
+            std::string url = split_array[i];
+            if (std::strstr(url.c_str(), "http://") != NULL || std::strstr(url.c_str(), "https://") != NULL) {
+                use_web_link = true;
+                url_line = url;
+                break;
+            }
         }
     }
+   
 
     if (use_web_link) {
+        m_brand->Hide();
+        m_text_up_info->Hide();
         m_simplebook_release_note->SetSelection(1);
         m_vebview_release_note->LoadURL(from_u8(url_line));
     }
     else {
+        m_simplebook_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
         m_simplebook_release_note->SetSelection(0);
         m_text_up_info->SetLabel(wxString::Format(_L("Click to download new version in default browser: %s"), version));
         wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
@@ -489,7 +497,11 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
         m_scrollwindows_release_note->SetSizer(sizer_text_release_note);
         m_scrollwindows_release_note->Layout();
         m_scrollwindows_release_note->Fit();
+        SetMinSize(GetSize());
+        SetMaxSize(GetSize());
     }
+    Layout();
+    Fit();
 }
 
 SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, const wxString& title, enum ButtonStyle btn_style, const wxPoint& pos, const wxSize& size, long style, bool not_show_again_check)

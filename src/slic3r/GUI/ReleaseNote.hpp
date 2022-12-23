@@ -84,6 +84,7 @@ public:
     void alter_choice(wxCommandEvent& event);
     std::vector<std::string> splitWithStl(std::string str, std::string pattern);
 
+    wxStaticBitmap*   m_brand{nullptr};
     wxStaticText *    m_text_up_info{nullptr};
     wxWebView*        m_vebview_release_note{nullptr};
     wxSimplebook*     m_simplebook_release_note{nullptr};
