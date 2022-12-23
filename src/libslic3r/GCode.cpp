@@ -1646,12 +1646,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_config.inner_wall_speed = print.default_region_config().inner_wall_speed;
         calib_pressure_advance pa_test(this);
         if(print.is_calib_mode() == Calib_PA_DDE)
-            gcode = pa_test.generate_test();
+            gcode += pa_test.generate_test();
         else
-            gcode = pa_test.generate_test(0.0,0.02);
+            gcode +=pa_test.generate_test(0.0,0.02);
 
         file.write(gcode);
-        print.is_calib_mode() = Calib_None;
     }
     else {
         //BBS: open spaghetti detector

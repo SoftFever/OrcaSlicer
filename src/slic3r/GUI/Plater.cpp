@@ -7872,13 +7872,7 @@ void Plater::calib_pa(bool bowden) {
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
 
     p->background_process.fff_print()->is_calib_mode() = bowden ? Calib_PA_Bowden : Calib_PA_DDE;
-    //BBS update extruder params and speed table before slicing
-    Plater::setExtruderParams(Slic3r::Model::extruderParamsMap);
-    Plater::setPrintSpeedTable(Slic3r::Model::printSpeedMap);
-    p->m_slice_all = false;
-    reslice();
-    wxGetApp().mainframe->select_tab(size_t(MainFrame::tpPreview));
-    //select_view_3D("Preview");
+
 }
 
 void Plater::import_sl1_archive()
