@@ -7,14 +7,14 @@
 
 namespace Slic3r {
 
-    calib_pressure_advance::calib_pressure_advance(GCode* gcodegen) :mp_gcodegen(gcodegen), m_length_short(20.0), m_length_long(40.0), m_space_y(3.5){}
+    calib_pressure_advance::calib_pressure_advance(GCode* gcodegen) :mp_gcodegen(gcodegen), m_length_short(20.0), m_length_long(40.0), m_space_y(3.5) {}
 
     std::string calib_pressure_advance::generate_test(double start_pa/*= 0*/, double step_pa /*= 0.005*/, int count/*= 10*/) {
         auto bed_sizes = mp_gcodegen->config().printable_area.values;
         auto w = bed_sizes[2].x() - bed_sizes[0].x();
         auto h = bed_sizes[2].y() - bed_sizes[0].y();
-        count = std::min(count,int((h - 10) / m_space_y));
-        
+        count = std::min(count, int((h - 10) / m_space_y));
+
         auto startx = (w - 100) / 2;
         auto starty = (h - count * m_space_y) / 2;
         m_length_long = 40 + std::min(w - 120.0, 30.0);
@@ -24,7 +24,7 @@ namespace Slic3r {
     std::string calib_pressure_advance::move_to(Vec2d pt) {
         std::stringstream gcode;
         gcode << mp_gcodegen->retract();
-        gcode << mp_gcodegen->writer().travel_to_xy(pt);
+        gcode << mp_gcodegen->writer().travel_to_xyz(Vec3d(pt.x(), pt.y(), 0.2));
         gcode << mp_gcodegen->unretract();
         return gcode.str();
     }
@@ -40,7 +40,7 @@ namespace Slic3r {
         std::stringstream gcode;
         gcode << mp_gcodegen->writer().travel_to_z(0.2);
         double y_pos = start_y;
-        
+
         // prime line
         auto prime_x = std::max(start_x - 5, 0.5);
         gcode << move_to(Vec2d(prime_x, y_pos + (num - 4) * m_space_y));
