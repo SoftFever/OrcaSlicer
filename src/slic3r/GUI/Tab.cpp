@@ -1434,6 +1434,22 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 m_config_manipulation.apply(m_config, &new_conf);
             }
             wxGetApp().plater()->update();
+        } else if ((m_config->opt_enum<SupportType>("support_type")==stTreeAuto && (m_config->opt_enum<SupportMaterialStyle>("support_style")==smsTreeStrong || m_config->opt_enum<SupportMaterialStyle>("support_style") == smsTreeHybrid)) &&
+                   !((m_config->opt_float("support_top_z_distance") >=0.1 || is_support_filament(m_config->opt_int("support_interface_filament") - 1))
+                       && m_config->opt_int("support_interface_top_layers") >1) ) {
+            wxString msg_text = _L("For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommand the following settings: at least 2 interface layers, at least 0.1 top z distance or using support materials on interface.");
+            msg_text += "\n\n" + _L("Change these settings automatically? \n"
+                                    "Yes - Change these settings automatically\n"
+                                    "No  - Do not change these settings for me");
+            MessageDialog      dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
+            DynamicPrintConfig new_conf = *m_config;
+            if (dialog.ShowModal() == wxID_YES) {
+                if (!is_support_filament(m_config->opt_int("support_interface_filament") - 1) && m_config->opt_float("support_top_z_distance") < 0.1)
+                    new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0.2));
+                new_conf.set_key_value("support_interface_top_layers", new ConfigOptionInt(2));
+                m_config_manipulation.apply(m_config, &new_conf);
+            }
+            wxGetApp().plater()->update();
         }
     }
 

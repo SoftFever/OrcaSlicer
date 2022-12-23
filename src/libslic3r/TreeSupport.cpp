@@ -245,7 +245,7 @@ static void draw_contours_and_nodes_to_svg
 
     // draw layer nodes
     svg.draw(layer_pts, "green", coord_t(scale_(0.1)));
-
+#if 0
     // lower layer points
     layer_pts.clear();
     for (TreeSupport::Node *node : lower_layer_nodes) {
@@ -260,6 +260,7 @@ static void draw_contours_and_nodes_to_svg
             layer_pts.push_back(node->parent->position);
     }
     svg.draw(layer_pts, "blue", coord_t(scale_(0.1)));
+#endif
 }
 
 static void draw_layer_mst
@@ -685,6 +686,7 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     m_raft_layers = slicing_params.base_raft_layers + slicing_params.interface_raft_layers;
         
     SupportMaterialPattern support_pattern  = m_object_config->support_base_pattern;
+    if (m_object_config->support_style == smsTreeHybrid && support_pattern == smpDefault) support_pattern = smpLightning;
     m_support_params.base_fill_pattern      = 
         support_pattern == smpLightning ? ipLightning :
         support_pattern == smpHoneycomb ? ipHoneycomb :
@@ -700,6 +702,8 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
     is_slim                                  = is_tree_slim(m_object_config->support_type, m_object_config->support_style);
     MAX_BRANCH_RADIUS                        = is_slim ? 5.0 : 10.0;
     tree_support_branch_diameter_angle       = 5.0;//is_slim ? 10.0 : 5.0;
+    // by default tree support needs no infill, unless it's tree hybrid which contains normal nodes.
+    with_infill                              = support_pattern != smpNone && support_pattern != smpDefault;
 }
 
 
@@ -1301,7 +1305,8 @@ static void _make_loops(ExtrusionEntitiesPtr& loops_entities, ExPolygons &suppor
     }
 
     // draw connected loops
-    if (wall_count > 1 && wall_count<5) {
+    if (/*wall_count > 1 && wall_count<5*/0) {
+        // TODO this method may drop some contours
         wall_count = std::min(wall_count, loops.size());
         Polylines polylines;
         polylines.push_back(Polyline());
@@ -1418,9 +1423,7 @@ void TreeSupport::generate_toolpaths()
     coordf_t support_extrusion_width = m_support_params.support_extrusion_width;
     coordf_t nozzle_diameter = print_config.nozzle_diameter.get_at(object_config.support_filament - 1);
     coordf_t layer_height = object_config.layer_height.value;
-
     const size_t wall_count = object_config.tree_support_wall_count.value;
-    const bool with_infill = object_config.support_base_pattern != smpNone && object_config.support_base_pattern != smpDefault;
 
     // coconut: use same intensity settings as SupportMaterial.cpp
     auto m_support_material_interface_flow = support_material_interface_flow(m_object, float(m_slicing_params.layer_height));
@@ -1593,7 +1596,7 @@ void TreeSupport::generate_toolpaths()
                         // base_areas
                         filler_support->spacing = support_flow.spacing();
                         Flow flow               = (layer_id == 0 && m_raft_layers == 0) ? m_object->print()->brim_flow() : support_flow;
-                        if (area_group.dist_to_top < 10 && !with_infill) {
+                        if (area_group.dist_to_top < 10 && !with_infill && m_object_config->support_style!=smsTreeHybrid) {
                             // at least 2 walls for the top tips
                             make_perimeter_and_inner_brim(ts_layer->support_fills.entities, poly, std::max(wall_count, size_t(2)), flow, erSupportMaterial);
                         } else {
@@ -1883,8 +1886,7 @@ Polygons TreeSupport::contact_nodes_to_polygon(const std::vector<Node*>& contact
 
 void TreeSupport::generate_support_areas()
 {
-    const PrintObjectConfig &config = m_object->config();
-    bool  tree_support_enable = config.enable_support.value && is_tree(config.support_type.value);
+    bool tree_support_enable = m_object_config->enable_support.value && is_tree(m_object_config->support_type.value);
     if (!tree_support_enable)
         return;
 
@@ -2007,7 +2009,6 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
     const PrintObjectConfig &config = m_object->config();
     const Print* print = m_object->print();
     bool has_brim = print->has_brim();
-    bool has_infill = config.support_base_pattern.value != smpNone && config.support_base_pattern != smpDefault;
     int bottom_gap_layers = round(m_slicing_params.gap_object_support / m_slicing_params.layer_height);
     const coordf_t branch_radius = config.tree_support_branch_diameter.value / 2;
     const coordf_t branch_radius_scaled = scale_(branch_radius);
@@ -2328,7 +2329,7 @@ void TreeSupport::draw_circles(const std::vector<std::vector<Node*>>& contact_no
             generator = std::make_unique<FillLightning::Generator>(m_object, contours, overhangs, []() {}, support_density);
         }
 
-        else if (!has_infill) {
+        else if (!with_infill) {
             // move the holes to contour so they can be well supported
 
         // check if poly's contour intersects with expoly's contour
@@ -2634,16 +2635,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                 nodes_per_part[0][node.position] = p_node;
                 continue;
             }
-            if (node.type == ePolygon) {
-                // polygon node do not merge or move
-                const bool to_buildplate = !is_inside_ex(m_ts_data->m_layer_outlines[layer_nr], p_node->position);
-                Node *next_node = new Node(p_node->position, p_node->distance_to_top + 1, p_node->skin_direction, p_node->support_roof_layers_below - 1, to_buildplate, p_node,
-                                           print_z_next, height_next);
-                next_node->max_move_dist = 0;
-                next_node->is_merged     = false;
-                contact_nodes[layer_nr_next].emplace_back(next_node);
-                continue;
-            }
+
             /* Find which part this node is located in and group the nodes in
              * the same part together. Since nodes have a radius and the
              * avoidance areas are offset by that radius, the set of parts may
@@ -2711,7 +2703,29 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                     continue; //Delete this node (don't create a new node for it on the next layer).
                 }
                 const std::vector<Point>& neighbours = mst.adjacent_nodes(node.position);
-                if (neighbours.size() == 1 && vsize2_with_unscale(neighbours[0] - node.position) < max_move_distance2 && mst.adjacent_nodes(neighbours[0]).size() == 1) //We have just two nodes left, and they're very close!
+                if (node.type == ePolygon) {
+                    #if 1
+                    // Remove all neighbours that are completely inside the polygon and merge them into this node.
+                    for (const Point &neighbour : neighbours) {
+                        Node *    neighbour_node          = nodes_per_part[group_index][neighbour];
+                        coord_t    neighbour_radius = scale_(calc_branch_radius(branch_radius, neighbour_node->dist_mm_to_top, diameter_angle_scale_factor));
+                        Point     pt_north = neighbour + Point(0, neighbour_radius), pt_south = neighbour - Point(0, neighbour_radius),
+                              pt_west = neighbour - Point(neighbour_radius, 0), pt_east = neighbour + Point(neighbour_radius, 0);
+                        if (is_inside_ex(*node.overhang, neighbour) && is_inside_ex(*node.overhang, pt_north) && is_inside_ex(*node.overhang, pt_south)
+                            && is_inside_ex(*node.overhang, pt_west) && is_inside_ex(*node.overhang, pt_east)){
+                            node.distance_to_top           = std::max(node.distance_to_top, neighbour_node->distance_to_top);
+                            node.support_roof_layers_below = std::max(node.support_roof_layers_below, neighbour_node->support_roof_layers_below);
+                            node.dist_mm_to_top            = std::max(node.dist_mm_to_top, neighbour_node->dist_mm_to_top);
+                            node.merged_neighbours.push_front(neighbour_node);
+                            node.merged_neighbours.insert(node.merged_neighbours.end(), neighbour_node->merged_neighbours.begin(), neighbour_node->merged_neighbours.end());
+                            node.is_merged = true;
+                            to_delete.insert(neighbour_node);
+                        }
+                    }
+                    #endif
+                }
+                else if (neighbours.size() == 1 && vsize2_with_unscale(neighbours[0] - node.position) < max_move_distance2 && mst.adjacent_nodes(neighbours[0]).size() == 1 &&
+                           nodes_per_part[group_index][neighbours[0]]->type!=ePolygon) // We have just two nodes left, and they're very close, and the only neighbor is not ePolygon
                 {
                     //Insert a completely new node and let both original nodes fade.
                     Point next_position = (node.position + neighbours[0]) / 2; //Average position of the two nodes.
@@ -2739,7 +2753,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                         parent = neighbour->parent;
 
                     const bool to_buildplate = !is_inside_ex(m_ts_data->get_avoidance(0, layer_nr_next), next_position);
-                    Node *     next_node     = new Node(next_position, new_distance_to_top, node.skin_direction, new_support_roof_layers_below, to_buildplate, parent,
+                    Node *     next_node     = new Node(next_position, new_distance_to_top, node.skin_direction, new_support_roof_layers_below, to_buildplate, p_node,
                                                layer_heights[layer_nr_next].first, layer_heights[layer_nr_next].second, new_dist_mm_to_top);
                     next_node->movement = next_position - node.position;
                     get_max_move_dist(next_node);
@@ -2759,6 +2773,8 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                         if (vsize2_with_unscale(neighbour - node.position) < /*max_move_distance2*/get_max_move_dist(&node,2))
                         {
                             Node* neighbour_node = nodes_per_part[group_index][neighbour];
+                            if (neighbour_node->type == ePolygon) continue;
+
                             node.distance_to_top = std::max(node.distance_to_top, neighbour_node->distance_to_top);
                             node.support_roof_layers_below = std::max(node.support_roof_layers_below, neighbour_node->support_roof_layers_below);
                             node.dist_mm_to_top            = std::max(node.dist_mm_to_top, neighbour_node->dist_mm_to_top);
@@ -2780,6 +2796,17 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
                 {
                     continue;
                 }
+                if (node.type == ePolygon) {
+                    // polygon node do not merge or move
+                    const bool to_buildplate = !is_inside_ex(m_ts_data->m_layer_outlines[layer_nr], p_node->position);
+                    Node *     next_node = new Node(p_node->position, p_node->distance_to_top + 1, p_node->skin_direction, p_node->support_roof_layers_below - 1, to_buildplate,
+                                               p_node, print_z_next, height_next);
+                    next_node->max_move_dist = 0;
+                    next_node->is_merged     = false;
+                    contact_nodes[layer_nr_next].emplace_back(next_node);
+                    continue;
+                }
+
                 //If the branch falls completely inside a collision area (the entire branch would be removed by the X/Y offset), delete it.
                 if (group_index > 0 && is_inside_ex(m_ts_data->get_collision(m_ts_data->m_xy_distance, layer_nr), node.position))
                 {
@@ -2926,10 +2953,12 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
         }
 
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
-        draw_contours_and_nodes_to_svg(std::to_string(ts_layer->print_z), m_ts_data->get_avoidance(0, layer_nr), m_ts_data->get_avoidance(branch_radius_temp, layer_nr), m_ts_data->m_layer_outlines_below[layer_nr],
+        if (contact_nodes[layer_nr].empty() == false) {
+            draw_contours_and_nodes_to_svg((boost::format("%.2f") % contact_nodes[layer_nr][0]->print_z).str(), m_ts_data->get_avoidance(0, layer_nr),
+                                           m_ts_data->get_avoidance(branch_radius_temp, layer_nr),
+                                           m_ts_data->m_layer_outlines_below[layer_nr],
             contact_nodes[layer_nr], contact_nodes[layer_nr_next], "contact_points", { "overhang","avoid","outline" }, { "blue","red","yellow" });
 
-        if (contact_nodes[layer_nr].empty() == false) {
             BOOST_LOG_TRIVIAL(debug) << "drop_nodes layer " << layer_nr << ", print_z=" << ts_layer->print_z;
             for (size_t i = 0; i < std::min(size_t(5), contact_nodes[layer_nr].size()); i++) {
                 auto &node = contact_nodes[layer_nr][i];
@@ -2960,7 +2989,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
             }
         }
     }
-
+    #if 0
     // delete nodes with no children (means either it's a single layer nodes, or the branch has been deleted but not completely)
     for (size_t layer_nr = contact_nodes.size() - 1; layer_nr > 0; layer_nr--){
         auto layer_contact_nodes = contact_nodes[layer_nr];
@@ -2974,7 +3003,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
             }
         }
     }
-
+    #endif
     BOOST_LOG_TRIVIAL(debug) << "after m_avoidance_cache.size()=" << m_ts_data->m_avoidance_cache.size();
 
     for (Node *node : to_free_node_set)
@@ -3242,16 +3271,6 @@ std::vector<std::pair<coordf_t, coordf_t>> TreeSupport::plan_layer_heights(std::
     }
 
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
-    // export all print_z and layer height into .txt
-    std::ofstream layer_heights_out;
-    layer_heights_out.open("./SVG/layer_heights_out.txt");
-    //layer_heights_out.open("layer_heights_out.txt");
-    if (layer_heights_out.is_open()) {
-        for (int i = 0; i < layer_heights.size(); i++) {
-            layer_heights_out << layer_heights[i].first << "    " << layer_heights[i].second << std::endl;
-        }
-        layer_heights_out.close();
-    }
     // check bounds
     if (1)
     {
@@ -3264,6 +3283,7 @@ std::vector<std::pair<coordf_t, coordf_t>> TreeSupport::plan_layer_heights(std::
         }
     }
 #endif
+    for (int i = 0; i < layer_heights.size(); i++) { BOOST_LOG_TRIVIAL(info) << "plan_layer_heights print_z, height: "<< layer_heights[i].first << "    " << layer_heights[i].second << std::endl; }
 
     return layer_heights;
 }
@@ -3549,7 +3569,7 @@ Polygons TreeSupportData::get_contours_with_holes(size_t layer_nr) const
 
 coordf_t TreeSupportData::ceil_radius(coordf_t radius) const
 {
-#if 0
+#if 1
     size_t factor = (size_t)(radius / m_radius_sample_resolution);
     coordf_t remains = radius - m_radius_sample_resolution * factor;
     if (remains > EPSILON) {
@@ -3604,7 +3624,7 @@ const ExPolygons& TreeSupportData::calculate_avoidance(const RadiusLayerPair& ke
         avoidance_areas.insert(avoidance_areas.end(), collision.begin(), collision.end());
         avoidance_areas = std::move(union_ex(avoidance_areas));
         ret  = m_avoidance_cache.insert({key, std::move(avoidance_areas)});
-        assert(ret.second);
+        //assert(ret.second);
     } else {
         ExPolygons avoidance_areas = std::move(offset_ex(m_layer_outlines_below[layer_nr], scale_(m_xy_distance + radius)));
         ret             = m_avoidance_cache.insert({key, std::move(avoidance_areas)});

@@ -384,6 +384,7 @@ private:
     coordf_t MIN_BRANCH_RADIUS = 0.5;
     float tree_support_branch_diameter_angle = 5.0;
     bool  is_slim                            = false;
+    bool  with_infill                        = false;
 
 
     /*!
