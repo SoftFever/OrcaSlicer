@@ -21,7 +21,7 @@
                 "FUNC_SEND_TO_SDCARD": false
             },
             "camera_resolution":["720p"],
-            "bed_temperature_limit": 100,
+            "bed_temperature_limit": 120,
             "model_id": "C11",
             "printer_type": "C11",
             "printer_thumbnail_image": "printer_thumbnail_p1p"
@@ -32,6 +32,7 @@
                 "FUNC_LOCAL_TUNNEL": false
             },
             "camera_resolution":["720p","1080p"],
+            "bed_temperature_limit": 120,
             "model_id": "BL-P002",
             "printer_type": "3DPrinter-X1",
             "printer_thumbnail_image": "printer_thumbnail"
@@ -43,6 +44,7 @@
             },
             "model_id": "BL-P001",
             "camera_resolution":["720p","1080p"],
+            "bed_temperature_limit": 120,
             "printer_type": "3DPrinter-X1-Carbon",
             "printer_thumbnail_image": "printer_thumbnail"
         }

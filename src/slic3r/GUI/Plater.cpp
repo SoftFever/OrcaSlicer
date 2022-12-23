@@ -7866,9 +7866,9 @@ void Plater::add_model(bool imperial_units/* = false*/,  std::string fname/* = "
 }
 
 void Plater::calib_pa(bool bowden) {
-    const auto calib_pa_name = "PressureAdvanceTest";
+    const auto calib_pa_name = "Pressure Advance Test";
     new_project(false, false, calib_pa_name);
-    add_model(false, Slic3r::resources_dir() + "/calib/sf_placeholder.stl");
+    add_model(false, Slic3r::resources_dir() + "/calib/pressure_advance_test.stl");
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
 
     p->background_process.fff_print()->is_calib_mode() = bowden ? Calib_PA_Bowden : Calib_PA_DDE;

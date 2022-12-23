@@ -17,6 +17,7 @@ namespace Slic3r {
         
         auto startx = (w - 100) / 2;
         auto starty = (h - count * m_space_y) / 2;
+        m_length_long = 40 + std::min(w - 120.0, 30.0);
         return print_pa_lines(startx, starty, start_pa, step_pa, count);
     }
 
@@ -31,24 +32,31 @@ namespace Slic3r {
     std::string calib_pressure_advance::print_pa_lines(double start_x, double start_y, double start_pa, double step_pa, int num) {
 
         auto& writer = mp_gcodegen->writer();
-        const double e = 0.04; // filament_mm/extrusion_mm
+        const double e_calib = 0.05; // filament_mm/extrusion_mm
+        const double e = 0.038; // filament_mm/extrusion_mm
 
         const double fast = mp_gcodegen->config().get_abs_value("outer_wall_speed") * 60.0;
         const double slow = std::max(1200.0, fast * 0.1);
         std::stringstream gcode;
         gcode << mp_gcodegen->writer().travel_to_z(0.2);
         double y_pos = start_y;
+        
+        // prime line
+        auto prime_x = std::max(start_x - 5, 0.5);
+        gcode << move_to(Vec2d(prime_x, y_pos + (num - 4) * m_space_y));
+        gcode << writer.set_speed(slow);
+        gcode << writer.extrude_to_xy(Vec2d(prime_x, y_pos + 3 * m_space_y), e_calib * m_space_y * num * 1.1);
 
         for (int i = 0; i < num; ++i) {
 
             gcode << writer.set_pressure_advance(start_pa + i * step_pa);
             gcode << move_to(Vec2d(start_x, y_pos + i * m_space_y));
             gcode << writer.set_speed(slow);
-            gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short, y_pos + i * m_space_y), e * m_length_short);
+            gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short, y_pos + i * m_space_y), e_calib * m_length_short);
             gcode << writer.set_speed(fast);
-            gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long, y_pos + i * m_space_y), e * m_length_long);
+            gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long, y_pos + i * m_space_y), e_calib * m_length_long);
             gcode << writer.set_speed(slow);
-            gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long + m_length_short, y_pos + i * m_space_y), e * m_length_short);
+            gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long + m_length_short, y_pos + i * m_space_y), e_calib * m_length_short);
 
         }
         gcode << writer.set_pressure_advance(0.0);
