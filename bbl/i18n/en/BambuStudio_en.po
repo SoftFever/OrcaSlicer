@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-22 17:44+0800\n"
+"POT-Creation-Date: 2022-12-24 13:01+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1876,7 +1876,7 @@ msgstr ""
 
 msgid ""
 "Arachne engine only works when overhang slowing down is disabled.\n"
-"This may cause decline in the quality of overhang surface when print fastly"
+"This may cause decline in the quality of overhang surface when print fastly\n"
 msgstr ""
 
 msgid ""
@@ -1927,7 +1927,7 @@ msgstr "%1% infill pattern doesn't support 100%% density."
 msgid ""
 "Switch to rectilinear pattern?\n"
 "Yes - switch to rectilinear pattern automaticlly\n"
-"No  - reset density to default non 100% value automaticlly"
+"No  - reset density to default non 100% value automaticlly\n"
 msgstr ""
 
 msgid "Auto bed leveling"
@@ -2848,7 +2848,7 @@ msgid ""
 "It contains the following information:\n"
 "1. The Process presets\n"
 "2. The Filament presets\n"
-"3. The Printer presets"
+"3. The Printer presets\n"
 msgstr ""
 
 msgid "Synchronization"
@@ -3213,6 +3213,12 @@ msgstr "Integration failed."
 msgid "Undo integration was successful."
 msgstr "Undo integration was successful."
 
+msgid "New network plug-in available."
+msgstr ""
+
+msgid "Details"
+msgstr ""
+
 msgid "Undo integration failed."
 msgstr "Undo integration failed."
 
@@ -3500,8 +3506,10 @@ msgstr ""
 #, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Found following keys "
-"unrecognized:"
+"unrecognized:\n"
 msgstr ""
+"The 3mf file's version %s is newer than %s's version %s, Found the following "
+"unrecognized keys:\n"
 
 msgid "You'd better upgrade your software.\n"
 msgstr "You should update your software.\n"
@@ -3509,11 +3517,11 @@ msgstr "You should update your software.\n"
 msgid "Newer 3mf version"
 msgstr "Newer 3mf version"
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
-"software."
-msgstr ""
+"software.\n"
+msgstr "\n"
 
 msgid "The 3mf is not compatible, load geometry data only!"
 msgstr ""
@@ -3786,9 +3794,9 @@ msgid ""
 "on Bambu Studio(windows) or CAD softwares."
 msgstr ""
 
-#, c-format, boost-format
-msgid "Plate %d: %s does not support filament %s (%s)."
-msgstr ""
+#, fuzzy, c-format, boost-format
+msgid "Plate %d: %s does not support filament %s (%s).\n"
+msgstr "\n"
 
 msgid "Switching the language requires application restart.\n"
 msgstr "Switching languages requires the application to restart.\n"
@@ -4267,13 +4275,13 @@ msgstr ""
 
 msgid ""
 "Please check the following infomation and click Confirm to continue sending "
-"print:"
+"print:\n"
 msgstr ""
 
 msgid ""
 "The printer type used to generate G-code is not the same type as the "
 "currently selected physical printer. It is recommend to re-slice by "
-"selecting the same printer type."
+"selecting the same printer type.\n"
 msgstr ""
 
 #, c-format, boost-format
@@ -4380,6 +4388,12 @@ msgid ""
 msgstr ""
 
 msgid ""
+"For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommand the following "
+"settings: at least 2 interface layers, at least 0.1 top z distance or using "
+"support materials on interface."
+msgstr ""
+
+msgid ""
 "When using support material for the support interface, We recommand the "
 "following settings:\n"
 "0 top distance, 0 interface spacing, concentric pattern."
@@ -4389,7 +4403,7 @@ msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
 "by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\"."
+"\"->\"Timelapse Wipe Tower\".\n"
 msgstr ""
 
 msgid "Line width"
@@ -5137,6 +5151,17 @@ msgstr ""
 msgid "version %s update information :"
 msgstr ""
 
+msgid "Network plug-in update"
+msgstr ""
+
+msgid ""
+"Click OK to update the Network plug-in when Bambu Studio launches next time."
+msgstr ""
+
+#, c-format, boost-format
+msgid "A new Network plug-in(%s) available, Do you want to install it?"
+msgstr ""
+
 msgid "New version of Bambu Studio"
 msgstr "New version of Bambu Studio"
 
@@ -5443,10 +5468,11 @@ msgstr "%1% is too close to others, and collisions may be caused."
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% is too tall, and collisions will be caused."
 
-msgid " is too close to others, there may be collisions when printing."
+msgid " is too close to others, there may be collisions when printing.\n"
 msgstr ""
 
-msgid " is too close to exclusion area, there may be collisions when printing."
+msgid ""
+" is too close to exclusion area, there may be collisions when printing.\n"
 msgstr ""
 
 msgid "Prime Tower"
@@ -5544,9 +5570,9 @@ msgstr ""
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "Layer height cannot exceed nozzle diameter."
 
-#, c-format, boost-format
-msgid "Plate %d: %s does not support filament %s"
-msgstr ""
+#, fuzzy, c-format, boost-format
+msgid "Plate %d: %s does not support filament %s\n"
+msgstr "\n"
 
 msgid "Generating skirt & brim"
 msgstr "Generating skirt & brim"
@@ -7911,12 +7937,6 @@ msgstr ""
 #~ "Please solve the problem by moving it totally on or off the plate, and "
 #~ "confirming that the height is within the build volume."
 
-#~ msgid ""
-#~ "Arachne engine only works when overhang slowing down is disabled.\n"
-#~ "This may cause decline in the quality of overhang surface when print "
-#~ "fastly\n"
-#~ msgstr "\n"
-
 #~ msgid "Auto arrange"
 #~ msgstr "Auto Arrange"
 
@@ -8002,14 +8022,6 @@ msgstr ""
 #~ "1. Process presets\n"
 #~ "2. Filament presets\n"
 #~ "3. Printer presets\n"
-
-#~ msgid ""
-#~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
-#~ "It contains the following information:\n"
-#~ "1. The Process presets\n"
-#~ "2. The Filament presets\n"
-#~ "3. The Printer presets\n"
-#~ msgstr "\n"
 
 #~ msgid ""
 #~ "Don't retract when the travel is in infill area absolutely. That means "
@@ -8205,19 +8217,8 @@ msgstr ""
 #~ msgid "Per object edit"
 #~ msgstr "Per Object Edit"
 
-#~ msgid "Plate %d: %s does not support filament %s\n"
-#~ msgstr "\n"
-
 #~ msgid "Plate %d: %s does not support filament %s.\n"
 #~ msgstr "Plate %d: %s does not support filament %s.\n"
-
-#~ msgid "Plate %d: %s does not support filament %s (%s).\n"
-#~ msgstr "\n"
-
-#~ msgid ""
-#~ "Please check the following infomation and click Confirm to continue "
-#~ "sending print:\n"
-#~ msgstr "\n"
 
 #~ msgid "Please fill report first."
 #~ msgstr "Please fill report first."
@@ -8348,12 +8349,6 @@ msgstr ""
 #~ "support is specified as a different filament from the object."
 
 #~ msgid ""
-#~ "Switch to rectilinear pattern?\n"
-#~ "Yes - switch to rectilinear pattern automaticlly\n"
-#~ "No  - reset density to default non 100% value automaticlly\n"
-#~ msgstr "\n"
-
-#~ msgid ""
 #~ "Switch to zig-zag pattern?\n"
 #~ "Yes - switch to zig-zag pattern automaticlly\n"
 #~ "No  - reset density to default non 100% value automaticlly\n"
@@ -8364,18 +8359,6 @@ msgstr ""
 
 #~ msgid "Swith cloud environment, Please login again!"
 #~ msgstr "Cloud environment has switched; please login again!"
-
-#~ msgid ""
-#~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
-#~ "unrecognized:\n"
-#~ msgstr ""
-#~ "The 3mf file's version %s is newer than %s's version %s, Found the "
-#~ "following unrecognized keys:\n"
-
-#~ msgid ""
-#~ "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade "
-#~ "your software.\n"
-#~ msgstr "\n"
 
 #~ msgid "The Config is not compatible and can not be loaded."
 #~ msgstr "The configuration is not compatible and cannot be loaded!"
@@ -8395,12 +8378,6 @@ msgstr ""
 #~ "The model has overlapping or self-intersecting facets. Repair was "
 #~ "attempted, however we recommend checking the results or repairing the "
 #~ "input file and retrying."
-
-#~ msgid ""
-#~ "The printer type used to generate G-code is not the same type as the "
-#~ "currently selected physical printer. It is recommend to re-slice by "
-#~ "selecting the same printer type.\n"
-#~ msgstr "\n"
 
 #~ msgid ""
 #~ "This object will be used to purge the nozzle after a filament change to "
@@ -8449,13 +8426,6 @@ msgstr ""
 #~ msgstr "Waiting"
 
 #~ msgid ""
-#~ "When recording timelapse without toolhead, it is recommended to add a "
-#~ "\"Timelapse Wipe Tower\" \n"
-#~ "by right-click the empty position of build plate and choose \"Add "
-#~ "Primitive\"->\"Timelapse Wipe Tower\".\n"
-#~ msgstr "\n"
-
-#~ msgid ""
 #~ "You have changed some preset settings. \n"
 #~ "Would you like to keep these changed settings after switching preset?"
 #~ msgstr ""
@@ -8469,17 +8439,10 @@ msgstr ""
 #~ msgstr " Object:"
 
 #~ msgid ""
-#~ " is too close to exclusion area, there may be collisions when printing.\n"
-#~ msgstr "\n"
-
-#~ msgid ""
 #~ " is too close to exclusion area, there will be collisions when printing.\n"
 #~ msgstr ""
 #~ " is too close to an exclusion area, there will be collisions when "
 #~ "printing.\n"
-
-#~ msgid " is too close to others, there may be collisions when printing.\n"
-#~ msgstr "\n"
 
 #~ msgid " is too close to others, there will be collisions when printing.\n"
 #~ msgstr " is too close to others, there will be collisions when printing.\n"
