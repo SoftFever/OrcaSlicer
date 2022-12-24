@@ -1937,6 +1937,7 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Bed adhension"), L"param_adhension");
         optgroup->append_single_option_line("skirt_loops");
         optgroup->append_single_option_line("skirt_distance");
+        optgroup->append_single_option_line("skirt_height");
         //optgroup->append_single_option_line("draft_shield");
         optgroup->append_single_option_line("brim_type", "auto-brim");
         optgroup->append_single_option_line("brim_width", "auto-brim#manual");
