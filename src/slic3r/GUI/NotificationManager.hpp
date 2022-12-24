@@ -876,8 +876,8 @@ private:
 		_u8L("Undo integration was successful.") },
 
         NotificationData{NotificationType::BBLPluginUpdateAvailable, NotificationLevel::ImportantNotificationLevel, BBL_NOTICE_MAX_INTERVAL,
-			_L("New network plug-in available.").ToStdString(),
-			_L("Details").ToStdString(),
+			_u8L("New network plug-in available."),
+			_u8L("Details"),
                          [](wxEvtHandler* evnthndlr) {
                 //BBS set feishu release page by default
                  wxCommandEvent* evt = new wxCommandEvent(EVT_UPDATE_PLUGINS_WHEN_LAUNCH);
