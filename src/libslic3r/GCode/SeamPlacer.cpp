@@ -1227,13 +1227,47 @@ void SeamPlacer::align_seam_points(const PrintObject *po, const SeamPlacerImpl::
 
             // gather points positions and weights
             float total_length   = 0.0f;
-            Vec3f last_point_pos = layers[seam_string[0].first].points[seam_string[0].second].position;
+            std::vector<SeamCandidate> seamcandiate;
             for (size_t index = 0; index < seam_string.size(); ++index) {
-                const SeamCandidate &current     = layers[seam_string[index].first].points[seam_string[index].second];
+                seamcandiate.push_back(layers[seam_string[index].first].points[seam_string[index].second]);
+            }
+            Vec3f last_point_pos = seamcandiate[0].position;
+            for (size_t index = 0; index < seam_string.size(); ++index) {
+                SeamCandidate adjust_point = seamcandiate[index];
+                // BBS. pick projection point as seam point
+                if (seam_string[index].second != adjust_point.perimeter.seam_index) {
+                    int           prev_index = seam_string[index].second == adjust_point.perimeter.start_index ? adjust_point.perimeter.end_index : seam_string[index].second - 1;
+                    int           next_index = seam_string[index].second == adjust_point.perimeter.end_index ? adjust_point.perimeter.start_index : seam_string[index].second + 1;
+                    SeamCandidate prev_point = layers[seam_string[index].first].points[prev_index];
+                    SeamCandidate next_point = layers[seam_string[index].first].points[next_index];
+
+                    Vec3f v1        = prev_point.position - adjust_point.position;
+                    Vec3f v2        = next_point.position - adjust_point.position;
+                    Vec3f v         = last_point_pos - adjust_point.position;
+                    float proport_1 = v1.squaredNorm() == 0 ? 0 : v.dot(v1) / v1.squaredNorm();
+                    float proport_2 = v2.squaredNorm() == 0 ? 0 : v.dot(v2) / v2.squaredNorm();
+
+                    Vec3f p1 = proport_1 * v1 + adjust_point.position;
+                    Vec3f p2 = proport_2 * v2 + adjust_point.position;
+
+                    if ((p1 - last_point_pos).squaredNorm() <= (p2 - last_point_pos).squaredNorm()) {
+                        seamcandiate[index].position        = p1;
+                        seamcandiate[index].local_ccw_angle = 0.0f;
+                    } else {
+                        seamcandiate[index].position        = p2;
+                        seamcandiate[index].local_ccw_angle = 0.0f;
+                    }
+                }
+
+                if (!comparator.is_first_not_much_worse(seamcandiate[index], adjust_point)) {
+                    seamcandiate[index].position        = adjust_point.position;
+                    seamcandiate[index].local_ccw_angle = adjust_point.local_ccw_angle;
+                }
+
+                const SeamCandidate &current     = seamcandiate[index];
                 float                layer_angle = 0.0f;
-                if (index > 0 && index < seam_string.size() - 1) {
-                    layer_angle = angle_3d(current.position - layers[seam_string[index - 1].first].points[seam_string[index - 1].second].position,
-                                           layers[seam_string[index + 1].first].points[seam_string[index + 1].second].position - current.position);
+                if (index > 0 && index < seamcandiate.size() - 1) {
+                    layer_angle = angle_3d(current.position - seamcandiate[index - 1].position, seamcandiate[index + 1].position - current.position);
                 }
                 observations[index]       = current.position.head<2>();
                 observation_points[index] = current.position.z();
@@ -1254,18 +1288,16 @@ void SeamPlacer::align_seam_points(const PrintObject *po, const SeamPlacerImpl::
             // Do alignment - compute fitted point for each point in the string from its Z coord, and store the position into
             // Perimeter structure of the point; also set flag aligned to true
             for (size_t index = 0; index < seam_string.size(); ++index) {
-                const auto &pair = seam_string[index];
-                float       t    = std::min(1.0f, std::pow(std::abs(layers[pair.first].points[pair.second].local_ccw_angle) / SeamPlacer::sharp_angle_snapping_threshold, 3.0f));
-                if (layers[pair.first].points[pair.second].type == EnforcedBlockedSeamPoint::Enforced) { t = std::max(0.4f, t); }
+                float       t    = std::min(1.0f, std::pow(std::abs(seamcandiate[index].local_ccw_angle) / SeamPlacer::sharp_angle_snapping_threshold, 3.0f));
+                if (seamcandiate[index].type == EnforcedBlockedSeamPoint::Enforced) { t = std::max(0.4f, t); }
 
-                Vec3f current_pos = layers[pair.first].points[pair.second].position;
+                Vec3f current_pos = seamcandiate[index].position;
                 Vec2f fitted_pos  = curve.get_fitted_value(current_pos.z());
-
                 // interpolate between current and fitted position, prefer current pos for large weights.
                 Vec3f final_position = t * current_pos + (1.0f - t) * to_3d(fitted_pos, current_pos.z());
 
-                Perimeter &perimeter          = layers[pair.first].points[pair.second].perimeter;
-                perimeter.seam_index          = pair.second;
+                Perimeter &perimeter          = seamcandiate[index].perimeter;
+                perimeter.seam_index          = seam_string[index].second;
                 perimeter.final_seam_position = final_position;
                 perimeter.finalized           = true;
             }
