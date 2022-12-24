@@ -9086,20 +9086,24 @@ void Plater::export_gcode_3mf(bool export_all)
     fs::path default_output_file;
     AppConfig& appconfig = *wxGetApp().app_config;
     std::string start_dir;
-    default_output_file = into_path(get_export_gcode_filename(".3mf", false, export_all));
-    if (default_output_file.empty()) {
-        try {
-            start_dir = appconfig.get_last_output_dir("", false);
-            wxString filename = get_export_gcode_filename(".3mf", true, export_all);
-            std::string full_filename = start_dir + "/" + filename.utf8_string();
-            default_output_file = boost::filesystem::path(full_filename);
-        } catch(...) {
-            ;
-        }
+    try {
+        // Update the background processing, so that the placeholder parser will get the correct values for the ouput file template.
+        // Also if there is something wrong with the current configuration, a pop-up dialog will be shown and the export will not be performed.
+        unsigned int state = this->p->update_restart_background_process(false, false);
+        if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
+            return;
+        default_output_file = this->p->background_process.output_filepath_for_project("");
     }
-
-    //BBS replace gcode extension to .gcode.3mf
-    default_output_file = default_output_file.replace_extension(".gcode.3mf");
+    catch (const Slic3r::PlaceholderParserError& ex) {
+        // Show the error with monospaced font.
+        show_error(this, ex.what(), true);
+        return;
+    }
+    catch (const std::exception& ex) {
+        show_error(this, ex.what(), false);
+        return;
+    }
+    default_output_file.replace_extension(".3mf");
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
 
     //Get a last save path
