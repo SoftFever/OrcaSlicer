@@ -2629,7 +2629,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Style and shape of the support. For normal support, projecting the supports into a regular grid "
                      "will create more stable supports (default), while snug support towers will save material and reduce "
                      "object scarring.\n"
-                     "For tree support, tight style will merge branches more aggressively and save "
+                     "For tree support, slim style will merge branches more aggressively and save "
                      "a lot of material (default), while hybrid style will create similar structure to normal support "
                      "under large flat overhangs.");
     def->enum_keys_map = &ConfigOptionEnum<SupportMaterialStyle>::get_enum_values();
@@ -2731,7 +2731,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("bed_temperature_difference", coInts);
     def->label = L("Bed temperature difference");
-    def->tooltip = L("Do not recommand bed temperature of other layer to be lower than initial layer for more than this threshold. "
+    def->tooltip = L("Do not recommend bed temperature of other layer to be lower than initial layer for more than this threshold. "
                      "Too low bed temperature of other layer may cause the model broken free from build plate");
     def->sidetext = L("°C");
     def->min = 0;
