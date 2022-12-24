@@ -1597,8 +1597,11 @@ void TreeSupport::generate_toolpaths()
                         filler_support->spacing = support_flow.spacing();
                         Flow flow               = (layer_id == 0 && m_raft_layers == 0) ? m_object->print()->brim_flow() : support_flow;
                         if (area_group.dist_to_top < 10 && !with_infill && m_object_config->support_style!=smsTreeHybrid) {
-                            // at least 2 walls for the top tips
-                            make_perimeter_and_inner_brim(ts_layer->support_fills.entities, poly, std::max(wall_count, size_t(2)), flow, erSupportMaterial);
+                            if (area_group.dist_to_top < 5)  // 1 wall at the top <5mm
+                                make_perimeter_and_inner_brim(ts_layer->support_fills.entities, poly, 1, flow, erSupportMaterial);
+                            else // at least 2 walls for range [5,10)
+                                make_perimeter_and_inner_brim(ts_layer->support_fills.entities, poly, std::max(wall_count, size_t(2)), flow, erSupportMaterial);
+
                         } else {
                             if (with_infill && layer_id > 0 && m_support_params.base_fill_pattern != ipLightning) {
                                 filler_support->angle = Geometry::deg2rad(object_config.support_angle.value);
@@ -3327,7 +3330,9 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
     }
     const int z_distance_top_layers = round_up_divide(scale_(z_distance_top), scale_(layer_height)) + 1; //Support must always be 1 layer below overhang.
 
-    const size_t support_roof_layers = config.support_interface_top_layers.value + 1; // BBS: add a normal support layer below interface
+    size_t support_roof_layers = config.support_interface_top_layers.value;
+    if (support_roof_layers > 0)
+        support_roof_layers += 1; // BBS: add a normal support layer below interface (if we have interface)
     coordf_t  thresh_angle           = config.support_threshold_angle.value < EPSILON ? 30.f : config.support_threshold_angle.value;
     coordf_t  half_overhang_distance = scale_(tan(thresh_angle * M_PI / 180.0) * layer_height / 2);
 
@@ -3419,32 +3424,36 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
             if (ts_layer->overhang_types[&overhang_part] == TreeSupportLayer::Detected) {
                 // add points at corners
                 auto &points = overhang_part.contour.points;
-                for (int i = 0; i < points.size(); i++) {
+                int   nSize  = points.size();
+                for (int i = 0; i < nSize; i++) {
                     auto pt = points[i];
-                    auto v1 = (pt - points[(i - 1 + points.size()) % points.size()]).normalized();
-                    auto v2 = (pt - points[(i + 1) % points.size()]).normalized();
-                    if (v1.dot(v2) > -0.7) {
+                    auto v1 = (pt - points[(i - 1 + nSize) % nSize]).cast<double>().normalized();
+                    auto v2 = (pt - points[(i + 1) % nSize]).cast<double>().normalized();
+                    if (v1.dot(v2) > -0.7) { // angle smaller than 135 degrees
                         Node *contact_node     = new Node(pt, -z_distance_top_layers, layer_nr % 2, support_roof_layers + z_distance_top_layers, true, Node::NO_PARENT, print_z,
                                                       height, z_distance_top);
                         contact_node->overhang = &overhang_part;
+                        contact_node->is_corner = true;
                         curr_nodes.emplace_back(contact_node);
                     }
                 }
             } 
             if(ts_layer->overhang_types[&overhang_part] == TreeSupportLayer::Enforced || is_slim){
                 // remove close points in Enforcers
-                auto above_nodes = contact_nodes[layer_nr - 1];
-                if (!curr_nodes.empty() && !above_nodes.empty()) {
+                // auto above_nodes = contact_nodes[layer_nr - 1];
+                if (!curr_nodes.empty() /*&& !above_nodes.empty()*/) {
                     for (auto it = curr_nodes.begin(); it != curr_nodes.end();) {
                         bool is_duplicate = false;
-                        Slic3r::Vec3f curr_pt((*it)->position(0), (*it)->position(1), scale_((*it)->print_z));
-                        for (auto &pt : all_nodes) {
-                            auto dif = curr_pt - pt;
-                            if (dif.norm() < scale_(2)) {
-                                delete (*it);
-                                it           = curr_nodes.erase(it);
-                                is_duplicate = true;
-                                break;
+                        if (!(*it)->is_corner) {
+                            Slic3r::Vec3f curr_pt((*it)->position(0), (*it)->position(1), scale_((*it)->print_z));
+                            for (auto &pt : all_nodes) {
+                                auto dif = curr_pt - pt;
+                                if (dif.norm() < point_spread / 2) {
+                                    delete (*it);
+                                    it           = curr_nodes.erase(it);
+                                    is_duplicate = true;
+                                    break;
+                                }
                             }
                         }
                         if (!is_duplicate) it++;
