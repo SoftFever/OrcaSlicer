@@ -8646,6 +8646,9 @@ void Plater::add_file()
         break;
     default:break;
     }
+
+    // SoftFever: ugly fix so we can exist pa calib mode
+    p->background_process.fff_print()->is_calib_mode() = Calib_None;
 }
 
 void Plater::update() { p->update(); }
