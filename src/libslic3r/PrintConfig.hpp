@@ -742,6 +742,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                overhang_4_4_speed))
     ((ConfigOptionBool,                 only_one_wall_top))
     ((ConfigOptionBool,                 only_one_wall_first_layer))
+    //SoftFever
+    ((ConfigOptionPercent,              print_flow_ratio))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(

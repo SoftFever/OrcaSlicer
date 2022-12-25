@@ -1801,6 +1801,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("wall_infill_order");
+        optgroup->append_single_option_line("print_flow_ratio");
         optgroup->append_single_option_line("bridge_flow");
         optgroup->append_single_option_line("top_solid_infill_flow_ratio");
         optgroup->append_single_option_line("bottom_solid_infill_flow_ratio");

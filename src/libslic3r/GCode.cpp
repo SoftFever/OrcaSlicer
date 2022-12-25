@@ -3689,7 +3689,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
 
     // calculate extrusion length per distance unit
-    double e_per_mm = m_writer.extruder()->e_per_mm3() * path.mm3_per_mm;
+    double e_per_mm = m_writer.extruder()->e_per_mm3() * path.mm3_per_mm * this->config().print_flow_ratio.get_abs_value(1);
 
     double min_speed = double(m_config.slow_down_min_speed.get_at(m_writer.extruder()->id()));
     // set speed
