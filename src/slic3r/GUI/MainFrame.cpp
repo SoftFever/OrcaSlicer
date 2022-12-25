@@ -2477,6 +2477,18 @@ void MainFrame::init_menubar_as_editor()
         m_menubar->Append(publishMenu, wxString::Format("&%s", _L("3D Models")));*/
     if (helpMenu)
         m_menubar->Append(helpMenu, wxString::Format("&%s", _L("Help")));
+
+    // SoftFever calibrations
+    auto claib_menu = new wxMenu();
+    append_menu_item(claib_menu, wxID_ANY, _L("PA - DDE"), _L("Calibrate PA - DDE"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(false); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_menu_item(claib_menu, wxID_ANY, _L("PA - Bowden"), _L("Calibrate PA - Bowden"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(true); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+
+    m_menubar->Append(claib_menu,wxString::Format("&%s", _L("Calibration")));
+
     SetMenuBar(m_menubar);
 
 #endif
