@@ -7398,7 +7398,7 @@ Print&          Plater::fff_print()         { return p->fff_print; }
 const SLAPrint& Plater::sla_print() const   { return p->sla_print; }
 SLAPrint&       Plater::sla_print()         { return p->sla_print; }
 
-int Plater::new_project(bool skip_confirm, bool silent)
+int Plater::new_project(bool skip_confirm, bool silent, const wxString& project_name)
 {
     bool transfer_preset_changes = false;
     // BBS: save confirm
@@ -7438,7 +7438,10 @@ int Plater::new_project(bool skip_confirm, bool silent)
     //reset project
     p->project.reset();
     //set project name
-    p->set_project_name(_L("Untitled"));
+    if (project_name.empty())
+        p->set_project_name(_L("Untitled"));
+    else
+        p->set_project_name(project_name);
 
     Plater::TakeSnapshot snapshot(this, "New Project", UndoRedo::SnapshotType::ProjectSeparator);
 
@@ -7800,16 +7803,22 @@ bool Plater::up_to_date(bool saved, bool backup)
                                         !Slic3r::has_other_changes(backup));
 }
 
-void Plater::add_model(bool imperial_units/* = false*/)
+void Plater::add_model(bool imperial_units/* = false*/,  std::string fname/* = ""*/)
 {
-    wxArrayString input_files;
-    wxGetApp().import_model(this, input_files);
-    if (input_files.empty())
-        return;
-
     std::vector<fs::path> paths;
-    for (const auto &file : input_files)
-        paths.emplace_back(into_path(file));
+
+    if(fname.empty()){
+        wxArrayString input_files;
+        wxGetApp().import_model(this, input_files);
+        if (input_files.empty())
+            return;
+        
+        for (const auto &file : input_files)
+            paths.emplace_back(into_path(file));
+    }
+    else{
+        paths.emplace_back(fname);
+    }
 
     std::string snapshot_label;
     assert(! paths.empty());
@@ -7854,6 +7863,16 @@ void Plater::add_model(bool imperial_units/* = false*/)
 
         wxGetApp().mainframe->update_title();
     }
+}
+
+void Plater::calib_pa(bool bowden) {
+    const auto calib_pa_name = "Pressure Advance Test";
+    new_project(false, false, calib_pa_name);
+    add_model(false, Slic3r::resources_dir() + "/calib/pressure_advance_test.stl");
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+
+    p->background_process.fff_print()->is_calib_mode() = bowden ? Calib_PA_Bowden : Calib_PA_DDE;
+
 }
 
 void Plater::import_sl1_archive()
@@ -8627,6 +8646,9 @@ void Plater::add_file()
         break;
     default:break;
     }
+
+    // SoftFever: ugly fix so we can exist pa calib mode
+    p->background_process.fff_print()->is_calib_mode() = Calib_None;
 }
 
 void Plater::update() { p->update(); }

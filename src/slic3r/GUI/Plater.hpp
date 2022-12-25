@@ -202,7 +202,7 @@ public:
     const SLAPrint& sla_print() const;
     SLAPrint& sla_print();
 
-    int new_project(bool skip_confirm = false, bool silent = false);
+    int new_project(bool skip_confirm = false, bool silent = false, const wxString& project_name = wxString());
     // BBS: save & backup
     void load_project(wxString const & filename = "", wxString const & originfile = "-");
     int save_project(bool saveAs = false);
@@ -217,13 +217,16 @@ public:
     bool open_3mf_file(const fs::path &file_path);
     int  get_3mf_file_count(std::vector<fs::path> paths);
     void add_file();
-    void add_model(bool imperial_units = false);
+    void add_model(bool imperial_units = false, std::string fname = "");
     void import_sl1_archive();
     void extract_config_from_project();
     void load_gcode();
     void load_gcode(const wxString& filename);
     void reload_gcode_from_disk();
     void refresh_print();
+
+    // SoftFever
+    void calib_pa(bool bowden = false);
 
     //BBS: add only gcode mode
     bool only_gcode_mode() { return m_only_gcode; }

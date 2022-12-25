@@ -170,7 +170,7 @@ public:
 struct LineHash {
     size_t operator()(const Line& line) const {
         return (std::hash<coord_t>()(line.a(0)) ^ std::hash<coord_t>()(line.b(1))) * 102 +
-            (std::hash<coord_t>()(line.a(1)) ^ std::hash<coord_t>()(line.b(0))) * 10222;
+            (std::hash<coord_t>()(line.a(0)) ^ std::hash<coord_t>()(line.b(1))) * 10222;
     }
 };
 
@@ -401,12 +401,6 @@ private:
 
     void adjust_layer_heights(std::vector<std::vector<Node*>>& contact_nodes);
 
-    /*! BBS: MusangKing: maximum layer height
-     * \brief Optimize the generation of tree support by pre-planning the layer_heights
-     * 
-    */
-
-    std::vector<std::pair<coordf_t, coordf_t>> plan_layer_heights(std::vector<std::vector<Node*>>& contact_nodes);
     /*!
      * \brief Creates points where support contacts the model.
      *

@@ -201,7 +201,7 @@ void GridCellFilamentsEditor::BeginEdit(int row, int col, wxGrid* grid)
     {
         // This event handler is needed to properly dismiss the editor when the popup is closed
         m_control->Bind(wxEVT_COMBOBOX_CLOSEUP, &GridCellFilamentsEditor::OnComboCloseUp, this);
-        evtHandler = static_cast<wxGridCellEditorEvtHandler*>(m_control->GetEventHandler());
+        evtHandler = wxDynamicCast(m_control->GetEventHandler(), wxGridCellEditorEvtHandler);
     }
 
     // Don't immediately end if we get a kill focus event within BeginEdit
@@ -403,7 +403,7 @@ void GridCellChoiceEditor::BeginEdit(int row, int col, wxGrid *grid)
     if (m_control) {
         // This event handler is needed to properly dismiss the editor when the popup is closed
         m_control->Bind(wxEVT_COMBOBOX_CLOSEUP, &GridCellChoiceEditor::OnComboCloseUp, this);
-        evtHandler = static_cast<wxGridCellEditorEvtHandler*>(m_control->GetEventHandler());
+        evtHandler = wxDynamicCast(m_control->GetEventHandler(), wxGridCellEditorEvtHandler);
     }
 
     // Don't immediately end if we get a kill focus event within BeginEdit

@@ -25,8 +25,7 @@ set(_curl_platform_flags
 )
 
 if (WIN32)
-  #set(_curl_platform_flags  ${_curl_platform_flags} -DCMAKE_USE_SCHANNEL=ON)
-  set(_curl_platform_flags  ${_curl_platform_flags} -DCMAKE_USE_OPENSSL=ON -DCURL_CA_PATH:STRING=none)
+  set(_curl_platform_flags  ${_curl_platform_flags} -DCMAKE_USE_SCHANNEL=ON)
 elseif (APPLE)
   set(_curl_platform_flags 
     

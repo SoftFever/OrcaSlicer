@@ -904,10 +904,10 @@ void MainFrame::init_tabpanel()
 
 #ifndef __APPLE__
         if (sel == tp3DEditor) {
-            m_topbar->EnableUndoRedoItems();
+            m_topbar->Enable3DEditorItems();
         }
         else {
-            m_topbar->DisableUndoRedoItems();
+            m_topbar->Disable3DEditorItems();
         }
 #endif
 
@@ -1360,6 +1360,9 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
 
     update_side_button_style();
+    m_print_option_btn->Enable();
+    sizer->Add(FromDIP(15), 0, 0, 0, 0);
+    
     m_slice_option_btn->Enable();
     m_print_option_btn->Enable();
     sizer->Add(m_slice_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
@@ -1556,6 +1559,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                 p->append_button(send_to_printer_btn);
                 p->append_button(send_to_printer_all_btn);
                 p->append_button(export_sliced_file_btn);
+                //p->append_button(export_gcode_btn);
                 p->append_button(export_all_sliced_file_btn);
             }
 
@@ -1702,7 +1706,8 @@ void MainFrame::update_side_button_style()
 {
     // BBS
     int em = em_unit();
-
+    
+    m_slice_btn->SetLayoutStyle(1);
     /*m_slice_btn->SetLayoutStyle(1);
     m_slice_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center, FromDIP(15));
     m_slice_btn->SetMinSize(wxSize(-1, FromDIP(24)));
@@ -2454,6 +2459,14 @@ void MainFrame::init_menubar_as_editor()
     //m_topbar->AddDropDownMenuItem(language_item);
     //m_topbar->AddDropDownMenuItem(config_item);
     m_topbar->AddDropDownSubMenu(helpMenu, _L("Help"));
+
+    // SoftFever calibrations
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("PA - DDE"), _L("Calibrate PA - DDE"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(false); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("PA - Bowden"), _L("Calibrate PA - Bowden"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(true); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
 #else
     m_menubar->Append(fileMenu, wxString::Format("&%s", _L("File")));
     if (editMenu)
