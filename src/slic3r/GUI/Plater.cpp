@@ -7874,38 +7874,6 @@ void Plater::calib_pa(bool bowden) {
     p->background_process.fff_print()->is_calib_mode() = bowden ? Calib_PA_Bowden : Calib_PA_DDE;
 
 }
-//
-//void Plater::calib_flowrate(int pass) {
-//    if (pass != 1 && pass != 2)
-//        return;
-//    const auto calib_name = "Flowrate Test";
-//    new_project(false, false, calib_name);
-//    if (pass == 1) {
-//        std::vector<size_t> res = load_files(std::vector<std::string>{
-//            Slic3r::resources_dir() + "/calib/flowrate_0.stl",
-//                Slic3r::resources_dir() + "/calib/flowrate_5.stl",
-//                Slic3r::resources_dir() + "/calib/flowrate_15.stl",
-//                Slic3r::resources_dir() + "/calib/flowrate_20.stl",
-//                Slic3r::resources_dir() + "/calib/flowrate_m5.stl",
-//                Slic3r::resources_dir() + "/calib/flowrate_m10.stl",
-//                Slic3r::resources_dir() + "/calib/flowrate_m15.stl",
-//                Slic3r::resources_dir() + "/calib/flowrate_m20.stl"
-//        }, LoadStrategy::LoadModel | LoadStrategy::Silence);
-//        //add_model(false, Slic3r::resources_dir() + "/calib/flowrate_0.stl"  );
-//        //add_model(false, Slic3r::resources_dir() + "/calib/flowrate_5.stl"  );
-//        //add_model(false, Slic3r::resources_dir() + "/calib/flowrate_15.stl" );
-//        //add_model(false, Slic3r::resources_dir() + "/calib/flowrate_20.stl" );
-//        //add_model(false, Slic3r::resources_dir() + "/calib/flowrate_m5.stl" );
-//        //add_model(false, Slic3r::resources_dir() + "/calib/flowrate_m10.stl");
-//        //add_model(false, Slic3r::resources_dir() + "/calib/flowrate_m15.stl");
-//        //add_model(false, Slic3r::resources_dir() + "/calib/flowrate_m20.stl");
-//
-//    }
-//    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
-//    CallAfter([this] {this->arrange(); });
-//    
-//
-//}
 
 ModelObject* Plater::add_part(ModelObject* model_object, std::string input_file, Vec3d move, Vec3d scale) {
     Model model;
@@ -7937,7 +7905,7 @@ ModelObject* Plater::add_part(ModelObject* model_object, std::string input_file,
             //volumes_info.push_back(std::make_pair(from_u8(new_volume->name), new_volume->get_mesh_errors_count() > 0));
 
             // set a default extruder value, since user can't add it manually
-            // new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+             new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
             // new_volume->config.set_key_value("first_layer_extruder", new ConfigOptionInt(0));
 
             //move to bed
@@ -7960,7 +7928,7 @@ void Plater::calib_flowrate(int pass) {
     const auto calib_name = "Flowrate Test";
     new_project(false, false, calib_name);
 
-    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+    //wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
     float start = 80.0f;
     float delta = 10.f;
     if (pass == 1) {
@@ -7977,7 +7945,7 @@ void Plater::calib_flowrate(int pass) {
             (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "filament_flow_test_cube.amf").string(),
             (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "filament_flow_test_cube.amf").string(),
             (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "filament_flow_test_cube.amf").string(),
-            (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "filament_flow_test_cube.amf").string()}, LoadStrategy::LoadModel | LoadStrategy::Silence);
+            (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "filament_flow_test_cube.amf").string()}, LoadStrategy::LoadModel);
 
 
     assert(objs_idx.size() == 5);
@@ -8034,20 +8002,20 @@ void Plater::calib_flowrate(int pass) {
 
     /// --- translate ---;
     bool has_to_arrange = false;
-    ////const ConfigOptionFloat* extruder_clearance_radius = print_config->option<ConfigOptionFloat>("extruder_clearance_radius");
-    //float extruder_clearance_radius = 0.0f;
-    ////const ConfigOptionPoints* bed_shape = printerConfig->option<ConfigOptionPoints>("printable_area");
-    //auto bed_area = printerConfig->option<ConfigOptionPoints>("printable_area")->values;
-    //const double brim_width = nozzle_diameter * 3.5;
-    //Vec2d bed_size = BoundingBoxf(bed_area).size();
-    //Vec2d bed_min = BoundingBoxf(bed_area).min;
-    //float offsetx = 3 + 20 * xyScale + extruder_clearance_radius + brim_width + (brim_width > extruder_clearance_radius ? brim_width - extruder_clearance_radius : 0);
-    //float offsety = 3 + 20 * xyScale + extruder_clearance_radius+ brim_width + (brim_width > extruder_clearance_radius ? brim_width - extruder_clearance_radius : 0);
-    //model().objects[objs_idx[0]]->translate({ bed_min.x() + bed_size.x() / 2 - offsetx / 2, bed_min.y() + bed_size.y() / 2 - offsety, zscale / 2 });
-    //model().objects[objs_idx[1]]->translate({ bed_min.x() + bed_size.x() / 2 - offsetx / 2, bed_min.y() + bed_size.y() / 2          , zscale / 2 });
-    //model().objects[objs_idx[2]]->translate({ bed_min.x() + bed_size.x() / 2 - offsetx / 2, bed_min.y() + bed_size.y() / 2 + offsety, zscale / 2 });
-    //model().objects[objs_idx[3]]->translate({ bed_min.x() + bed_size.x() / 2 + offsetx / 2, bed_min.y() + bed_size.y() / 2 - offsety, zscale / 2 });
-    //model().objects[objs_idx[4]]->translate({ bed_min.x() + bed_size.x() / 2 + offsetx / 2, bed_min.y() + bed_size.y() / 2 + offsety, zscale / 2 });
+    //const ConfigOptionFloat* extruder_clearance_radius = print_config->option<ConfigOptionFloat>("extruder_clearance_radius");
+    float extruder_clearance_radius = 0.0f;
+    //const ConfigOptionPoints* bed_shape = printerConfig->option<ConfigOptionPoints>("printable_area");
+    auto bed_area = printerConfig->option<ConfigOptionPoints>("printable_area")->values;
+    const double brim_width = nozzle_diameter * 3.5;
+    Vec2d bed_size = BoundingBoxf(bed_area).size();
+    Vec2d bed_min = BoundingBoxf(bed_area).min;
+    float offsetx = 3 + 20 * xyScale + extruder_clearance_radius + brim_width + (brim_width > extruder_clearance_radius ? brim_width - extruder_clearance_radius : 0);
+    float offsety = 3 + 20 * xyScale + extruder_clearance_radius+ brim_width + (brim_width > extruder_clearance_radius ? brim_width - extruder_clearance_radius : 0);
+    model().objects[objs_idx[0]]->translate({ bed_min.x() + bed_size.x() / 2 - offsetx / 2, bed_min.y() + bed_size.y() / 2 - offsety, zscale / 2 });
+    model().objects[objs_idx[1]]->translate({ bed_min.x() + bed_size.x() / 2 - offsetx / 2, bed_min.y() + bed_size.y() / 2          , zscale / 2 });
+    model().objects[objs_idx[2]]->translate({ bed_min.x() + bed_size.x() / 2 - offsetx / 2, bed_min.y() + bed_size.y() / 2 + offsety, zscale / 2 });
+    model().objects[objs_idx[3]]->translate({ bed_min.x() + bed_size.x() / 2 + offsetx / 2, bed_min.y() + bed_size.y() / 2 - offsety, zscale / 2 });
+    model().objects[objs_idx[4]]->translate({ bed_min.x() + bed_size.x() / 2 + offsetx / 2, bed_min.y() + bed_size.y() / 2 + offsety, zscale / 2 });
 
     /// --- custom config ---
     for (size_t i = 0; i < 5; i++) {
@@ -8069,15 +8037,9 @@ void Plater::calib_flowrate(int pass) {
         model().objects[objs_idx[i]]->config.set_key_value("print_flow_ratio", new ConfigOptionPercent(start + (float)i * delta));
     }
 
-    //update plater
-    //GLCanvas3D::set_warning_freeze(false);
-    //wxGetApp().get_tab(Preset::TYPE_PRINT)->load_config(new_print_config);
-    //on_config_change(new_print_config);
     changed_objects(objs_idx);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
-    //update everything, easier to code.
-    //ObjectList* obj = wxGetApp().obj_list();
-    //obj->update_after_undo_redo();
+
         // automatic selection of added objects
     if (!objs_idx.empty() && p->view3D != nullptr) {
         // update printable state for new volumes on canvas3D
@@ -8091,26 +8053,13 @@ void Plater::calib_flowrate(int pass) {
 
         // BBS: update object list selection
         p->sidebar->obj_list()->update_selections();
-
+        selection.notify_instance_update(-1, -1);
         if (p->view3D->get_canvas3d()->get_gizmos_manager().is_enabled())
             // this is required because the selected object changed and the flatten on face an sla support gizmos need to be updated accordingly
             p->view3D->get_canvas3d()->update_gizmos_on_off_state();
     }
-    // arrange if needed, after new settings, to take them into account
-    if (has_to_arrange) {
-        //update print config (done at reslice but we need it here)
-        if (printer_technology() == ptFFF)
-            fff_print().apply(model(), *config());
-        arrange();
-    }
 
-    //reslice();
-
-    //if (autocenter) {
-    //    //re-enable auto-center after this calibration.
-    //    wxGetApp().app_config->set("autocenter", "1");
-    //}
-    //
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
 
 }
 
