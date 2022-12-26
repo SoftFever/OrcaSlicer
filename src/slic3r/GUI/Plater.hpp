@@ -227,6 +227,8 @@ public:
 
     // SoftFever
     void calib_pa(bool bowden = false);
+    void calib_flowrate(int pass);
+    ModelObject* add_part(ModelObject* model_object, std::string input_file, Vec3d move, Vec3d scale);
 
     //BBS: add only gcode mode
     bool only_gcode_mode() { return m_only_gcode; }

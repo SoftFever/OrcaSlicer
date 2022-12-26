@@ -2466,6 +2466,12 @@ void MainFrame::init_menubar_as_editor()
     append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("PA - Bowden"), _L("Calibrate PA - Bowden"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(true); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Flowrate - Pass 1"), _L("Flowrate - Pass 1"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Flowrate - Pass 2"), _L("Flowrate - Pass 2"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
 #else
     m_menubar->Append(fileMenu, wxString::Format("&%s", _L("File")));
     if (editMenu)
@@ -2484,6 +2490,12 @@ void MainFrame::init_menubar_as_editor()
         [this]() {return m_plater->is_view3D_shown();; }, this);
     append_menu_item(claib_menu, wxID_ANY, _L("PA - Bowden"), _L("Calibrate PA - Bowden"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(true); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_menu_item(claib_menu, wxID_ANY, _L("Flowrate - Pass 1"), _L("Flowrate - Pass 1"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_menu_item(claib_menu, wxID_ANY, _L("Flowrate - Pass 2"), _L("Flowrate - Pass 2"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
 
     m_menubar->Append(claib_menu,wxString::Format("&%s", _L("Calibration")));
