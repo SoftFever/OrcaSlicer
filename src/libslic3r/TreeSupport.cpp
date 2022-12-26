@@ -733,7 +733,7 @@ void TreeSupport::detect_object_overhangs()
     const int enforce_support_layers = config.enforce_support_layers.value;
     const double area_thresh_well_supported = SQ(scale_(6));
     const double length_thresh_well_supported = scale_(6);
-    static const double sharp_tail_max_support_height = 8.f;
+    static const double sharp_tail_max_support_height = 16.f;
     // a region is considered well supported if the number of layers below it exceeds this threshold
     const int thresh_layers_below = 10 / config.layer_height;
     double obj_height = m_object->size().z();
@@ -923,9 +923,9 @@ void TreeSupport::detect_object_overhangs()
                     float accum_height  = layer->height;
                     do {
                         // 1. nothing below
-                        // check whether this is a sharp tail region
+                        // this is a sharp tail region if it's small but non-ignorable
                         if (intersection_ex({expoly}, lower_polys).empty()) {
-                            is_sharp_tail = expoly.area() < area_thresh_well_supported;
+                            is_sharp_tail = expoly.area() < area_thresh_well_supported && !offset_ex(expoly,-0.5*extrusion_width_scaled).empty();
                             break;
                         }
 
@@ -969,7 +969,7 @@ void TreeSupport::detect_object_overhangs()
                         // 2.4 if the area grows fast than threshold, it get connected to other part or
                         // it has a sharp slop and will be auto supported.
                         ExPolygons new_overhang_expolys = diff_ex({expoly}, lower_layer_sharptails);
-                        if (!offset_ex(new_overhang_expolys, -5.0 * extrusion_width_scaled).empty()) {
+                        if ((get_extents(new_overhang_expolys).size()-get_extents(lower_layer_sharptails).size()).both_comp(Point(scale_(5),scale_(5)),">") || !offset_ex(new_overhang_expolys, -5.0 * extrusion_width_scaled).empty()) {
                             is_sharp_tail = false;
                             break;
                         }
