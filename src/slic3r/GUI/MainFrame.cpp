@@ -1706,8 +1706,7 @@ void MainFrame::update_side_button_style()
 {
     // BBS
     int em = em_unit();
-    
-    m_slice_btn->SetLayoutStyle(1);
+
     /*m_slice_btn->SetLayoutStyle(1);
     m_slice_btn->SetTextLayout(SideButton::EHorizontalOrientation::HO_Center, FromDIP(15));
     m_slice_btn->SetMinSize(wxSize(-1, FromDIP(24)));
