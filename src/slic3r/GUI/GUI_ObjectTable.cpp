@@ -436,11 +436,12 @@ void GridCellChoiceEditor::BeginEdit(int row, int col, wxGrid *grid)
     //Combo()->Popup();
 #endif
 
-    if (evtHandler) {
+    if (evtHandler)
+    {
         // When dropping down the menu, a kill focus event
         // happens after this point, so we can't reset the flag yet.
 #if !defined(__WXGTK20__)
-        evtHandler->SetInSetFocus(false);
+        //evtHandler->SetInSetFocus(false);
 #endif
     }
 }
