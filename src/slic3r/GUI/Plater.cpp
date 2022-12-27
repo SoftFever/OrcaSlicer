@@ -7986,7 +7986,7 @@ void Plater::calib_flowrate(int pass) {
 
     assert(objs_idx.size() == 5);
     auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
-    auto printerConfig = &wxGetApp().preset_bundle->printers.get_edited_preset().config;// get_tab(Preset::TYPE_PRINTER)->get_config();
+    auto printerConfig = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
 
     /// --- scale ---
     // model is created for a 0.4 nozzle, scale xy with nozzle size.
@@ -8063,16 +8063,23 @@ void Plater::calib_flowrate(int pass) {
         model().objects[objs_idx[i]]->config.set_key_value("top_shell_layers", new ConfigOptionInt(4));
         model().objects[objs_idx[i]]->config.set_key_value("detect_thin_wall", new ConfigOptionBool(true));
         model().objects[objs_idx[i]]->config.set_key_value("filter_out_gap_fill", new ConfigOptionFloat(0));
-        model().objects[objs_idx[i]]->config.set_key_value("layer_height", new ConfigOptionFloat(layer_height));
-        model().objects[objs_idx[i]]->config.set_key_value("initial_layer_height", new ConfigOptionFloat(first_layer_height));
         model().objects[objs_idx[i]]->config.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+        model().objects[objs_idx[i]]->config.set_key_value("top_surface_line_width", new ConfigOptionFloat(nozzle_diameter * 1.2f));
         model().objects[objs_idx[i]]->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
-        //disable ironing post-process
-        model().objects[objs_idx[i]]->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
+        model().objects[objs_idx[i]]->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
+        model().objects[objs_idx[i]]->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
+        model().objects[objs_idx[i]]->config.set_key_value("infill_direction", new ConfigOptionFloat(0));
+        //
+        //model().objects[objs_idx[i]]->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::TopmostOnly));
+        //model().objects[objs_idx[i]]->config.set_key_value("ironing_flow", new ConfigOptionPercent(1));
+        //model().objects[objs_idx[i]]->config.set_key_value("ironing_spacing", new ConfigOptionFloat(0.25f));
+        //model().objects[objs_idx[i]]->config.set_key_value("ironing_speed", new ConfigOptionFloat(30));
         //set extrusion mult: 80 90 100 110 120
         model().objects[objs_idx[i]]->config.set_key_value("print_flow_ratio", new ConfigOptionPercent(start + (float)i * delta));
     }
-
+    print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+    print_config->set_key_value("initial_layer_height", new ConfigOptionFloat(first_layer_height));
+    print_config->set_key_value("reduce_crossing_wall", new ConfigOptionBool(true));
     changed_objects(objs_idx);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
 
@@ -8872,7 +8879,7 @@ void Plater::add_file()
     }
 
     // SoftFever: ugly fix so we can exist pa calib mode
-    p->background_process.fff_print()->is_calib_mode() = Calib_None;
+    p->background_process.fff_print()->calib_mode() = Calib_None;
 }
 
 void Plater::update() { p->update(); }
