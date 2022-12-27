@@ -1633,7 +1633,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             this->m_objSupportsWithBrim.insert(iter->first);
     }
     if (this->m_objsWithBrim.empty() && this->m_objSupportsWithBrim.empty()) m_brim_done = true;
-    if (print.is_calib_mode() == Calib_PA_DDE || print.is_calib_mode() == Calib_PA_Bowden) {
+    if (print.calib_mode() == Calib_PA_DDE || print.calib_mode() == Calib_PA_Bowden) {
         std::string gcode;
         auto s = m_config.inner_wall_speed.value;
         gcode += m_writer.set_acceleration((unsigned int)floor(m_config.outer_wall_acceleration.value + 0.5));
@@ -1645,7 +1645,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_config.outer_wall_speed = print.default_region_config().outer_wall_speed;
         m_config.inner_wall_speed = print.default_region_config().inner_wall_speed;
         calib_pressure_advance pa_test(this);
-        if(print.is_calib_mode() == Calib_PA_DDE)
+        if(print.calib_mode() == Calib_PA_DDE)
             gcode += pa_test.generate_test();
         else
             gcode +=pa_test.generate_test(0.0,0.02);
@@ -2589,6 +2589,12 @@ GCode::LayerResult GCode::process_layer(
         config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
     }
 
+    if (print.calib_mode() == Calib_PA_Tower_DDE) {
+        gcode += writer().set_pressure_advance(static_cast<int>(print_z) * 0.002);
+    }
+    else if(print.calib_mode() == Calib_PA_Tower_Bowden) {
+        gcode += writer().set_pressure_advance(static_cast<int>(print_z) * 0.02);
+    }
     //BBS
     if (first_layer) {
         //BBS: set first layer global acceleration

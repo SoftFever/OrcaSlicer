@@ -91,7 +91,9 @@ enum PrintObjectStep {
 enum CalibMode {
     Calib_None = 0,
     Calib_PA_DDE,
-    Calib_PA_Bowden
+    Calib_PA_Bowden,
+    Calib_PA_Tower_DDE,
+    Calib_PA_Tower_Bowden
 };
 
 // A PrintRegion object represents a group of volumes to print
@@ -741,8 +743,8 @@ public:
     //SoftFever
     bool &is_BBL_printer() { return m_isBBLPrinter; }
     const bool is_BBL_printer() const { return m_isBBLPrinter; }
-    CalibMode& is_calib_mode() { return m_calib_mode; }
-    const CalibMode is_calib_mode() const { return m_calib_mode; }
+    CalibMode& calib_mode() { return m_calib_mode; }
+    const CalibMode calib_mode() const { return m_calib_mode; }
   protected:
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);

@@ -7865,13 +7865,49 @@ void Plater::add_model(bool imperial_units/* = false*/,  std::string fname/* = "
     }
 }
 
-void Plater::calib_pa(bool bowden) {
+void Plater::calib_pa(bool line_method, bool bowden) {
     const auto calib_pa_name = "Pressure Advance Test";
     new_project(false, false, calib_pa_name);
-    add_model(false, Slic3r::resources_dir() + "/calib/pressure_advance_test.stl");
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+    if (line_method) {
+        add_model(false, Slic3r::resources_dir() + "/calib/PresureAdvnace/pressure_advance_test.stl");
+        p->background_process.fff_print()->calib_mode() = bowden ? Calib_PA_Bowden : Calib_PA_DDE;
+    }
+    else {
+        add_model(false, Slic3r::resources_dir() + "/calib/PresureAdvnace/tower_with_seam.stl");
+        p->background_process.fff_print()->calib_mode() = bowden ? Calib_PA_Tower_Bowden: Calib_PA_Tower_DDE;
+        auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+        auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+        auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+        filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats{ 1.0f });
+        print_config->set_key_value("default_jerk", new ConfigOptionFloat(1.0f));
+        print_config->set_key_value("outer_wall_jerk", new ConfigOptionFloat(1.0f));
+        print_config->set_key_value("inner_wall_jerk", new ConfigOptionFloat(1.0f));
+        print_config->set_key_value("top_surface_jerk", new ConfigOptionFloat(1.0f));
+        model().objects[0]->config.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(spRear));
 
-    p->background_process.fff_print()->is_calib_mode() = bowden ? Calib_PA_Bowden : Calib_PA_DDE;
+        changed_objects({ 0 });
+        wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
+        wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+
+
+        // automatic selection of added objects
+        // update printable state for new volumes on canvas3D
+        wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects({0});
+
+        Selection& selection = p->view3D->get_canvas3d()->get_selection();
+        selection.clear();
+        selection.add_object(0, false);
+
+        // BBS: update object list selection
+        p->sidebar->obj_list()->update_selections();
+        selection.notify_instance_update(-1, -1);
+        if (p->view3D->get_canvas3d()->get_gizmos_manager().is_enabled())
+            // this is required because the selected object changed and the flatten on face an sla support gizmos need to be updated accordingly
+            p->view3D->get_canvas3d()->update_gizmos_on_off_state();
+
+    }
+
 
 }
 
