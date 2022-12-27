@@ -7911,80 +7911,19 @@ void Plater::calib_pa(bool line_method, bool bowden) {
 
 }
 
-ModelObject* Plater::add_part(ModelObject* model_object, std::string input_file, Vec3d move, Vec3d scale) {
-    Model model;
-    try {
-        model = Model::read_from_file(input_file);
-    }
-    catch (std::exception& e) {
-        auto msg = _L("Error!") + " " + input_file + " : " + e.what() + ".";
-        show_error(this, msg);
-        exit(1);
-    }
-
-    for (ModelObject* object : model.objects) {
-        Vec3d delta = Vec3d::Zero();
-        if (model_object->origin_translation != Vec3d::Zero())
-        {
-            object->center_around_origin();
-            delta = model_object->origin_translation - object->origin_translation;
-        }
-        for (ModelVolume* volume : object->volumes) {
-            volume->translate(delta + move);
-            if (scale != Vec3d{ 1,1,1 }) {
-                volume->scale(scale);
-            }
-            ModelVolume* new_volume = model_object->add_volume(*volume);
-            new_volume->set_type(ModelVolumeType::MODEL_PART);
-            new_volume->name = boost::filesystem::path(input_file).filename().string();
-
-            //volumes_info.push_back(std::make_pair(from_u8(new_volume->name), new_volume->get_mesh_errors_count() > 0));
-
-            // set a default extruder value, since user can't add it manually
-             new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
-            // new_volume->config.set_key_value("first_layer_extruder", new ConfigOptionInt(0));
-
-            //move to bed
-            /* const TriangleMesh& hull = new_volume->get_convex_hull();
-            float min_z = std::numeric_limits<float>::max();
-            for (const stl_facet& facet : hull.stl.facet_start) {
-                for (int i = 0; i < 3; ++i)
-                    min_z = std::min(min_z, Vec3f::UnitZ().dot(facet.vertex[i]));
-            }
-            volume->translate(Vec3d(0,0,-min_z));*/
-        }
-    }
-    assert(model.objects.size() == 1);
-    return model.objects.empty() ? nullptr : model.objects[0];
-}
-
 void Plater::calib_flowrate(int pass) {
     if (pass != 1 && pass != 2)
         return;
     const auto calib_name = "Flowrate Test";
     new_project(false, false, calib_name);
 
-    //wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
-    float start = 80.0f;
-    float delta = 10.f;
-    if (pass == 1) {
-        start = 80.0f;
-        delta = 10.0f;
-    }
-    else {
-        start = 92.0f;
-        delta = 2.0f;
-    }
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+    
+    if(pass == 1)
+        add_model(false, (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowrate-test-pass1.3mf").string());
+    else
+        add_model(false, (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowrate-test-pass2.3mf").string());
 
-    std::vector<size_t> objs_idx = load_files(std::vector<std::string>{
-        (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "filament_flow_test_cube.amf").string(),
-            (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "filament_flow_test_cube.amf").string(),
-            (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "filament_flow_test_cube.amf").string(),
-            (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "filament_flow_test_cube.amf").string(),
-            (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "filament_flow_test_cube.amf").string()}, LoadStrategy::LoadModel);
-
-
-    assert(objs_idx.size() == 5);
     auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto printerConfig = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
 
@@ -7994,115 +7933,55 @@ void Plater::calib_flowrate(int pass) {
     assert(nozzle_diameter_config->values.size() > 0);
     float nozzle_diameter = nozzle_diameter_config->values[0];
     float xyScale = nozzle_diameter / 0.4;
-    //scale z to have 6 layers
+    //scale z to have 8 layers
     double first_layer_height = print_config->option<ConfigOptionFloat>("initial_layer_print_height")->value;
     double layer_height = nozzle_diameter / 2.;
     first_layer_height = std::max(first_layer_height, nozzle_diameter / 2.);
 
-    float zscale = first_layer_height + 5 * layer_height;
+    float zscale = (first_layer_height + 7 * layer_height) / 1.4;
     //do scaling
     if (xyScale < 0.9 || 1.2 < xyScale) {
-        for (size_t i = 0; i < 5; i++)
-            model().objects[objs_idx[i]]->scale(xyScale, xyScale, zscale); // base: 10 10 1
+        for (auto _obj : model().objects)
+            _obj->scale(xyScale, xyScale, zscale); 
     }
     else {
-        for (size_t i = 0; i < 5; i++)
-            model().objects[objs_idx[i]]->scale(1, 1, zscale);
+        for (auto _obj : model().objects)
+            _obj->scale(1, 1, zscale);
     }
 
-    //add sub-part after scale
-    float zscale_number = (first_layer_height + layer_height) / 0.4;
-    /* zshift is calculated using the following:
-    (zscale / 2) represents the midpoint of the filament_flow_test_cube
-    ((first_layer_height + layer_height) / 2) represents the midpoint of our indicator tab (it is scaled to be 2 layers tall)
-    The 0.3 constant is the same as the delta calculated in add_part below, this should probably be calculated per the model object
-    */
-    float zshift = -(zscale / 2) + ((first_layer_height + layer_height) / 2) + 0.3;
-    if (pass == 1) {
-        add_part(model().objects[objs_idx[0]], (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "m20.amf").string(), Vec3d{ 10 * xyScale,0,zshift }, Vec3d{ xyScale , xyScale, zscale_number });
-        add_part(model().objects[objs_idx[1]], (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "m10.amf").string(), Vec3d{ 10 * xyScale,0,zshift }, Vec3d{ xyScale , xyScale, zscale_number });
-        add_part(model().objects[objs_idx[2]], (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "_0.amf").string(), Vec3d{ 10 * xyScale,0,zshift }, Vec3d{ xyScale , xyScale, zscale_number });
-        add_part(model().objects[objs_idx[3]], (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "p10.amf").string(), Vec3d{ 10 * xyScale,0,zshift }, Vec3d{ xyScale , xyScale, zscale_number });
-        add_part(model().objects[objs_idx[4]], (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "p20.amf").string(), Vec3d{ 10 * xyScale,0,zshift }, Vec3d{ xyScale , xyScale, zscale_number });
-    }
-    else if (pass == 2) {
-        add_part(model().objects[objs_idx[0]], (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "m8.amf").string(), Vec3d{ 10 * xyScale,0,zshift }, Vec3d{ xyScale , xyScale, zscale_number });
-        add_part(model().objects[objs_idx[1]], (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "m6.amf").string(), Vec3d{ 10 * xyScale,0,zshift }, Vec3d{ xyScale , xyScale, zscale_number });
-        add_part(model().objects[objs_idx[2]], (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "m4.amf").string(), Vec3d{ 10 * xyScale,0,zshift }, Vec3d{ xyScale , xyScale, zscale_number });
-        add_part(model().objects[objs_idx[3]], (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "m2.amf").string(), Vec3d{ 10 * xyScale,0,zshift }, Vec3d{ xyScale , xyScale, zscale_number });
-        add_part(model().objects[objs_idx[4]], (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "_0.amf").string(), Vec3d{ 10 * xyScale,0,zshift }, Vec3d{ xyScale , xyScale, zscale_number });
-    }
-    for (size_t i = 0; i < 5; i++) {
-        add_part(model().objects[objs_idx[i]], (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "O.amf").string(), Vec3d{ 0,0,zscale / 2.f + 0.5 }, Vec3d{ xyScale , xyScale, layer_height / 0.2 }); // base: 0.2mm height
+    // adjust parameters
+    for (auto _obj : model().objects) {
+        _obj->ensure_on_bed();
+        _obj->config.set_key_value("wall_loops", new ConfigOptionInt(3));
+        _obj->config.set_key_value("only_one_wall_top", new ConfigOptionBool(true));
+        _obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(55));
+        _obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
+        _obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(6));
+        _obj->config.set_key_value("detect_thin_wall", new ConfigOptionBool(true));
+        _obj->config.set_key_value("filter_out_gap_fill", new ConfigOptionFloat(0));
+        _obj->config.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+        _obj->config.set_key_value("top_surface_line_width", new ConfigOptionFloat(nozzle_diameter * 1.2f));
+        _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
+        _obj->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
+        _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
+        _obj->config.set_key_value("infill_direction", new ConfigOptionFloat(45));
+        _obj->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
+
+        // extract flowrate from name, filename format: flowrate_xxx
+        std::string obj_name = _obj->name;
+        assert(obj_name.length() > 9);
+        obj_name = obj_name.substr(9);
+        if (obj_name[0] == 'm')
+            obj_name[0] = '-';
+        auto modifier = stof(obj_name);
+        _obj->config.set_key_value("print_flow_ratio", new ConfigOptionPercent(100 + modifier));
     }
 
-    /// --- translate ---;
-    bool has_to_arrange = false;
-    //const ConfigOptionFloat* extruder_clearance_radius = print_config->option<ConfigOptionFloat>("extruder_clearance_radius");
-    float extruder_clearance_radius = 0.0f;
-    //const ConfigOptionPoints* bed_shape = printerConfig->option<ConfigOptionPoints>("printable_area");
-    auto bed_area = printerConfig->option<ConfigOptionPoints>("printable_area")->values;
-    const double brim_width = nozzle_diameter * 3.5;
-    Vec2d bed_size = BoundingBoxf(bed_area).size();
-    Vec2d bed_min = BoundingBoxf(bed_area).min;
-    float offsetx = 3 + 20 * xyScale + extruder_clearance_radius + brim_width + (brim_width > extruder_clearance_radius ? brim_width - extruder_clearance_radius : 0);
-    float offsety = 3 + 20 * xyScale + extruder_clearance_radius+ brim_width + (brim_width > extruder_clearance_radius ? brim_width - extruder_clearance_radius : 0);
-    model().objects[objs_idx[0]]->translate({ bed_min.x() + bed_size.x() / 2 - offsetx / 2, bed_min.y() + bed_size.y() / 2 - offsety, zscale / 2 });
-    model().objects[objs_idx[1]]->translate({ bed_min.x() + bed_size.x() / 2 - offsetx / 2, bed_min.y() + bed_size.y() / 2          , zscale / 2 });
-    model().objects[objs_idx[2]]->translate({ bed_min.x() + bed_size.x() / 2 - offsetx / 2, bed_min.y() + bed_size.y() / 2 + offsety, zscale / 2 });
-    model().objects[objs_idx[3]]->translate({ bed_min.x() + bed_size.x() / 2 + offsetx / 2, bed_min.y() + bed_size.y() / 2 - offsety, zscale / 2 });
-    model().objects[objs_idx[4]]->translate({ bed_min.x() + bed_size.x() / 2 + offsetx / 2, bed_min.y() + bed_size.y() / 2 + offsety, zscale / 2 });
-
-    /// --- custom config ---
-    for (size_t i = 0; i < 5; i++) {
-
-        model().objects[objs_idx[i]]->config.set_key_value("wall_loops", new ConfigOptionInt(3));
-        model().objects[objs_idx[i]]->config.set_key_value("only_one_wall_top", new ConfigOptionBool(true));
-        model().objects[objs_idx[i]]->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(40));
-        model().objects[objs_idx[i]]->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(3));
-        model().objects[objs_idx[i]]->config.set_key_value("top_shell_layers", new ConfigOptionInt(4));
-        model().objects[objs_idx[i]]->config.set_key_value("detect_thin_wall", new ConfigOptionBool(true));
-        model().objects[objs_idx[i]]->config.set_key_value("filter_out_gap_fill", new ConfigOptionFloat(0));
-        model().objects[objs_idx[i]]->config.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
-        model().objects[objs_idx[i]]->config.set_key_value("top_surface_line_width", new ConfigOptionFloat(nozzle_diameter * 1.2f));
-        model().objects[objs_idx[i]]->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
-        model().objects[objs_idx[i]]->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
-        model().objects[objs_idx[i]]->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
-        model().objects[objs_idx[i]]->config.set_key_value("infill_direction", new ConfigOptionFloat(0));
-        //
-        //model().objects[objs_idx[i]]->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::TopmostOnly));
-        //model().objects[objs_idx[i]]->config.set_key_value("ironing_flow", new ConfigOptionPercent(1));
-        //model().objects[objs_idx[i]]->config.set_key_value("ironing_spacing", new ConfigOptionFloat(0.25f));
-        //model().objects[objs_idx[i]]->config.set_key_value("ironing_speed", new ConfigOptionFloat(30));
-        //set extrusion mult: 80 90 100 110 120
-        model().objects[objs_idx[i]]->config.set_key_value("print_flow_ratio", new ConfigOptionPercent(start + (float)i * delta));
-    }
     print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
     print_config->set_key_value("initial_layer_height", new ConfigOptionFloat(first_layer_height));
     print_config->set_key_value("reduce_crossing_wall", new ConfigOptionBool(true));
-    changed_objects(objs_idx);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
-
-        // automatic selection of added objects
-    if (!objs_idx.empty() && p->view3D != nullptr) {
-        // update printable state for new volumes on canvas3D
-        wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(objs_idx);
-
-        Selection& selection = p->view3D->get_canvas3d()->get_selection();
-        selection.clear();
-        for (size_t idx : objs_idx) {
-            selection.add_object((unsigned int)idx, false);
-        }
-
-        // BBS: update object list selection
-        p->sidebar->obj_list()->update_selections();
-        selection.notify_instance_update(-1, -1);
-        if (p->view3D->get_canvas3d()->get_gizmos_manager().is_enabled())
-            // this is required because the selected object changed and the flatten on face an sla support gizmos need to be updated accordingly
-            p->view3D->get_canvas3d()->update_gizmos_on_off_state();
-    }
-
-    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
 
 }
 
