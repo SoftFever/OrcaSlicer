@@ -5,8 +5,24 @@
     "description": "RatRig configurations",
     "machine_model_list": [
         {
+            "name": "RatRig V-Core 3 200",
+            "sub_path": "machine/RatRig V-Core 3 200.json"
+        },
+        {
+            "name": "RatRig V-Core 3 300",
+            "sub_path": "machine/RatRig V-Core 3 300.json"
+        },
+        {
+            "name": "RatRig V-Core 3 400",
+            "sub_path": "machine/RatRig V-Core 3 400.json"
+        },
+        {
             "name": "RatRig V-Core 3 500",
             "sub_path": "machine/RatRig V-Core 3 500.json"
+        },
+        {
+            "name": "RatRig V-Minion",
+            "sub_path": "machine/RatRig V-Minion.json"
         }
     ],
     "process_list": [
