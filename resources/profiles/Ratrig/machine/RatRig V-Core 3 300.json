@@ -1,7 +1,7 @@
 {
     "type": "machine_model",
-    "name": "RatRig V-Core 3 500",
-    "model_id": "V-Core_3_500",
+    "name": "RatRig V-Core 3 300",
+    "model_id": "V-Core_3_300",
     "nozzle_diameter": "0.4",
     "machine_tech": "FFF",
     "family": "RatRig_V-Core",
