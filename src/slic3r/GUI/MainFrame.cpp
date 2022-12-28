@@ -2488,7 +2488,7 @@ void MainFrame::init_menubar_as_editor()
     m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate"));
 
     // help 
-    auto calib_help_menu = append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Tutorial"), _L("Calibration help"),
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Tutorial"), _L("Calibration help"),
         [this](wxCommandEvent&) { wxLaunchDefaultBrowser("https://github.com/SoftFever/BambuStudio-SoftFever/wiki/Calibration", wxBROWSER_NEW_WINDOW); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
 
@@ -2504,21 +2504,40 @@ void MainFrame::init_menubar_as_editor()
         m_menubar->Append(helpMenu, wxString::Format("&%s", _L("Help")));
 
     // SoftFever calibrations
-    auto claib_menu = new wxMenu();
-    append_menu_item(claib_menu, wxID_ANY, _L("PA - DDE"), _L("Calibrate PA - DDE"),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(false); }, "", nullptr,
+    auto calib_menu = new wxMenu();
+
+    auto pa_menu = new wxMenu();
+    // PA
+    append_menu_item(pa_menu, wxID_ANY, _L("Line method - DDE"), _L(""),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(true, false); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_menu_item(claib_menu, wxID_ANY, _L("PA - Bowden"), _L("Calibrate PA - Bowden"),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(true); }, "", nullptr,
+    append_menu_item(pa_menu, wxID_ANY, _L("Line method - Bowden"), _L(""),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(true, true); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_menu_item(claib_menu, wxID_ANY, _L("Flowrate - Pass 1"), _L("Flowrate - Pass 1"),
+    append_menu_item(pa_menu, wxID_ANY, _L("Tower method - DDE"), _L(""),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(false, false); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_menu_item(pa_menu, wxID_ANY, _L("Tower method - Bowden"), _L(""),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(false, true); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    calib_menu->AppendSubMenu(pa_menu, _L("Presure/Linear Advance"));
+
+    // Flowrate
+    auto flowrate_menu = new wxMenu();
+    append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_menu_item(claib_menu, wxID_ANY, _L("Flowrate - Pass 2"), _L("Flowrate - Pass 2"),
+    append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
+    calib_menu->AppendSubMenu(flowrate_menu, _L("Flow rate"));
 
-    m_menubar->Append(claib_menu,wxString::Format("&%s", _L("Calibration")));
+    // help
+    append_menu_item(calib_menu, wxID_ANY, _L("Tutorial"), _L("Calibration help"),
+        [this](wxCommandEvent&) { wxLaunchDefaultBrowser("https://github.com/SoftFever/BambuStudio-SoftFever/wiki/Calibration", wxBROWSER_NEW_WINDOW); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    
+    m_menubar->Append(calib_menu,wxString::Format("&%s", _L("Calibration")));
 
     SetMenuBar(m_menubar);
 
