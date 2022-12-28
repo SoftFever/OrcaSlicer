@@ -7889,6 +7889,8 @@ void Plater::calib_pa(bool line_method, bool bowden) {
         changed_objects({ 0 });
         wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
         wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+        wxGetApp().get_tab(Preset::TYPE_PRINT)->update_ui_from_settings();
+        wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_ui_from_settings();
 
 
         // automatic selection of added objects
@@ -7926,21 +7928,22 @@ void Plater::calib_flowrate(int pass) {
 
     auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto printerConfig = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
 
     /// --- scale ---
-    // model is created for a 0.4 nozzle, scale xy with nozzle size.
+    // model is created for a 0.4 nozzle, scale z with nozzle size.
     const ConfigOptionFloats* nozzle_diameter_config = printerConfig->option<ConfigOptionFloats>("nozzle_diameter");
     assert(nozzle_diameter_config->values.size() > 0);
     float nozzle_diameter = nozzle_diameter_config->values[0];
-    float xyScale = nozzle_diameter / 0.4;
-    //scale z to have 8 layers
+    float xyScale = nozzle_diameter / 0.6;
+    //scale z to have 7 layers
     double first_layer_height = print_config->option<ConfigOptionFloat>("initial_layer_print_height")->value;
-    double layer_height = nozzle_diameter / 2.;
-    first_layer_height = std::max(first_layer_height, nozzle_diameter / 2.);
+    double layer_height = nozzle_diameter / 2.0; // prefer 0.25 layer height for 0.4 nozzle
+    first_layer_height = std::max(first_layer_height, layer_height);
 
-    float zscale = (first_layer_height + 7 * layer_height) / 1.4;
-    //do scaling
-    if (xyScale < 0.9 || 1.2 < xyScale) {
+    float zscale = (first_layer_height + 6 * layer_height) / 1.4;
+    // only enlarge
+    if (xyScale > 1.2) {
         for (auto _obj : model().objects)
             _obj->scale(xyScale, xyScale, zscale); 
     }
@@ -7956,7 +7959,7 @@ void Plater::calib_flowrate(int pass) {
         _obj->config.set_key_value("only_one_wall_top", new ConfigOptionBool(true));
         _obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(55));
         _obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
-        _obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(6));
+        _obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(5));
         _obj->config.set_key_value("detect_thin_wall", new ConfigOptionBool(true));
         _obj->config.set_key_value("filter_out_gap_fill", new ConfigOptionFloat(0));
         _obj->config.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
@@ -7978,10 +7981,14 @@ void Plater::calib_flowrate(int pass) {
     }
 
     print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
-    print_config->set_key_value("initial_layer_height", new ConfigOptionFloat(first_layer_height));
+    print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(first_layer_height));
     print_config->set_key_value("reduce_crossing_wall", new ConfigOptionBool(true));
+    filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{ 9. });
+
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_ui_from_settings();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_ui_from_settings();
 
 }
 
