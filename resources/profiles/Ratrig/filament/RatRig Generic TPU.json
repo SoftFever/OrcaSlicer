@@ -1,0 +1,21 @@
+{
+    "type": "filament",
+    "filament_id": "GFU99",
+    "setting_id": "GFSU99_RATRIG_00",
+    "name": "RatRig Generic TPU",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_tpu",
+    "filament_max_volumetric_speed": [
+        "5"
+    ],
+    "nozzle_temperature": [
+        "220"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "220"
+    ],
+    "compatible_printers": [
+      "RatRig V-Core 3 500 0.4 nozzle"
+    ]
+}

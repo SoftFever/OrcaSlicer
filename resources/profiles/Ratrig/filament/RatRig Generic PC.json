@@ -1,0 +1,30 @@
+{
+    "type": "filament",
+    "filament_id": "GFC99",
+    "setting_id": "GFSC99_RATRIG_00",
+    "name": "RatRig Generic PC",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_filament_pc",
+    "filament_max_volumetric_speed": [
+        "12"
+    ],
+    "filament_flow_ratio": [
+        "0.93"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "280"
+    ],
+    "nozzle_temperature_range_high": [
+        "290"
+    ],
+    "hot_plate_temp" : [
+        "100"
+    ],
+    "hot_plate_temp_initial_layer" : [
+        "100"
+    ],
+"compatible_printers": [
+      "RatRig V-Core 3 500 0.4 nozzle"
+    ]
+}
