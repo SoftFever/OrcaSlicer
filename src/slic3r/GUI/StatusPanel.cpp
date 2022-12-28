@@ -1178,7 +1178,7 @@ void StatusPanel::update_camera_state(MachineObject* obj)
 
 StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style, const wxString &name)
     : StatusBasePanel(parent, id, pos, size, style)
-    , m_fan_control_popup(FanControlPopup(this))
+    , m_fan_control_popup(new FanControlPopup(this))
 {
     create_tasklist_info();
     update_tasklist_info();
@@ -1777,7 +1777,9 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
         int speed = round(obj->cooling_fan_speed / float(25.5));
         m_switch_nozzle_fan->SetValue(speed > 0 ? true : false);
         m_switch_nozzle_fan->setFanValue(speed * 10);
-        m_fan_control_popup.update_fan_data(MachineObject::FanType::COOLING_FAN, obj);
+        if (m_fan_control_popup) {
+            m_fan_control_popup->update_fan_data(MachineObject::FanType::COOLING_FAN, obj);
+        }
     }
 
     // printing fan
@@ -1787,7 +1789,9 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
         int speed = round(obj->big_fan1_speed / float(25.5));
         m_switch_printing_fan->SetValue(speed > 0 ? true : false);
         m_switch_printing_fan->setFanValue(speed * 10);
-        m_fan_control_popup.update_fan_data(MachineObject::FanType::BIG_COOLING_FAN, obj);
+        if (m_fan_control_popup) {
+            m_fan_control_popup->update_fan_data(MachineObject::FanType::BIG_COOLING_FAN, obj);
+        }
     }
 
     // cham fan
@@ -1797,7 +1801,9 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
         int speed = round(obj->big_fan2_speed / float(25.5));
         m_switch_cham_fan->SetValue(speed > 0 ? true : false);
         m_switch_cham_fan->setFanValue(speed * 10);
-        m_fan_control_popup.update_fan_data(MachineObject::FanType::CHAMBER_FAN, obj);
+        if (m_fan_control_popup) {
+            m_fan_control_popup->update_fan_data(MachineObject::FanType::CHAMBER_FAN, obj);
+        }
     }
 
     bool light_on = obj->chamber_light != MachineObject::LIGHT_EFFECT::LIGHT_EFFECT_OFF;
@@ -2738,10 +2744,28 @@ void StatusPanel::on_printing_fan_switch(wxCommandEvent &event)
 
 void StatusPanel::on_nozzle_fan_switch(wxCommandEvent &event)
 {
+   
+
+    m_fan_control_popup->Destroy();
+    m_fan_control_popup = new FanControlPopup(this);
     auto pos = m_switch_nozzle_fan->GetScreenPosition();
     pos.y = pos.y + m_switch_nozzle_fan->GetSize().y;
-    m_fan_control_popup.SetPosition(pos);
-    m_fan_control_popup.Popup();
+    
+
+
+    int display_idx = wxDisplay::GetFromWindow(this);
+    auto display = wxDisplay(display_idx).GetClientArea();
+   
+
+    wxSize screenSize = wxSize(display.GetWidth(), display.GetHeight());
+    auto fan_popup_size = m_fan_control_popup->GetSize();
+
+    if (screenSize.y - fan_popup_size.y < FromDIP(300)) {
+        pos.x += FromDIP(50);
+        pos.y = (screenSize.y - fan_popup_size.y) / 2;
+    }
+    m_fan_control_popup->SetPosition(pos);
+    m_fan_control_popup->Popup();
     
 
 

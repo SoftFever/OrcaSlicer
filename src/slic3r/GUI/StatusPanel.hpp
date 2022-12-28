@@ -273,7 +273,7 @@ protected:
     SecondaryCheckDialog* abort_dlg = nullptr;
     SecondaryCheckDialog* ctrl_e_hint_dlg = nullptr;
     SecondaryCheckDialog* sdcard_hint_dlg = nullptr;
-    FanControlPopup m_fan_control_popup{nullptr};
+    FanControlPopup* m_fan_control_popup{nullptr};
 
     wxString     m_request_url;
     bool         m_start_loading_thumbnail = false;
