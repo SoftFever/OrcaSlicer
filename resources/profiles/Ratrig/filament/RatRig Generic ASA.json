@@ -31,6 +31,10 @@
         "25"
     ],
     "compatible_printers": [
-      "RatRig V-Core 3 500 0.4 nozzle"
+      "RatRig V-Core 3 200 0.4 nozzle",
+      "RatRig V-Core 3 300 0.4 nozzle",
+      "RatRig V-Core 3 400 0.4 nozzle",
+      "RatRig V-Core 3 500 0.4 nozzle",
+      "RatRig V-Minion 0.4 nozzle"
     ]
 }
