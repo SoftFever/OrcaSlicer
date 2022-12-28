@@ -84,10 +84,26 @@ CameraPopup::CameraPopup(wxWindow *parent, MachineObject* obj)
     main_sizer->Add(top_sizer, 0, wxALL, FromDIP(10));
 
     auto url = wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/virtual-camera", L"en");
-    vcamera_guide_link = new wxHyperlinkCtrl(m_panel, wxID_ANY, _L("Show \"Live Video\" guide page."),
-        url, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+    auto text = _L("Show \"Live Video\" guide page.");
+
+    wxBoxSizer* link_sizer = new wxBoxSizer(wxVERTICAL);
+    vcamera_guide_link = new Label(m_panel, text);
+    vcamera_guide_link->Wrap(-1);
+    vcamera_guide_link->SetForegroundColour(wxColour(0x1F, 0x8E, 0xEA));
+    auto text_size = vcamera_guide_link->GetTextExtent(text);
+    vcamera_guide_link->Bind(wxEVT_LEFT_DOWN, [this, url](wxMouseEvent& e) {wxLaunchDefaultBrowser(url); });
+
+    link_underline = new wxPanel(m_panel, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    link_underline->SetBackgroundColour(wxColour(0x1F, 0x8E, 0xEA));
+    link_underline->SetSize(wxSize(text_size.x, 1));
+    link_underline->SetMinSize(wxSize(text_size.x, 1));
+
     vcamera_guide_link->Hide();
-    main_sizer->Add(vcamera_guide_link, 0, wxALL, FromDIP(15));
+    link_underline->Hide();
+    link_sizer->Add(vcamera_guide_link, 0, wxALL, 0);
+    link_sizer->Add(link_underline, 0, wxALL, 0);
+
+    main_sizer->Add(link_sizer, 0, wxALL, FromDIP(15));
 
     m_panel->SetSizer(main_sizer);
     m_panel->Layout();
@@ -225,10 +241,12 @@ void CameraPopup::sync_vcamera_state(bool show_vcamera)
     if (is_vcamera_show) {
         m_switch_vcamera->SetValue(true);
         vcamera_guide_link->Show();
+        link_underline->Show();
     }
     else {
         m_switch_vcamera->SetValue(false);
         vcamera_guide_link->Hide();
+        link_underline->Hide();
     }
 
     rescale();
@@ -248,12 +266,15 @@ void CameraPopup::check_func_supported()
     if (m_obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_CAMERA) && m_obj->has_ipcam) {
         m_text_vcamera->Show();
         m_switch_vcamera->Show();
-        if (is_vcamera_show)
+        if (is_vcamera_show) {
             vcamera_guide_link->Show();
+            link_underline->Show();
+        }
     } else {
         m_text_vcamera->Hide();
         m_switch_vcamera->Hide();
         vcamera_guide_link->Hide();
+        link_underline->Hide();
     }
 
     allow_alter_resolution = (m_obj->is_function_supported(PrinterFunction::FUNC_ALTER_RESOLUTION) && m_obj->has_ipcam);

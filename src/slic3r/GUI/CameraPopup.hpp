@@ -70,7 +70,8 @@ private:
     std::vector<RadioBox*> resolution_rbtns;
     std::vector<wxStaticText*> resolution_texts;
     CameraResolution curr_sel_resolution = RESOLUTION_1080P;
-    wxHyperlinkCtrl* vcamera_guide_link { nullptr };
+    Label* vcamera_guide_link { nullptr };
+    wxPanel* link_underline{ nullptr };
     bool is_vcamera_show = false;
     bool allow_alter_resolution = false;
 
