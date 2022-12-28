@@ -309,12 +309,16 @@ void SendJob::process()
                 msg_text += wxString::Format("[%s]", error_text);
             }
         }
+
+        if (result == BAMBU_NETWORK_ERR_WRONG_IP_ADDRESS) {
+            msg_text = _L("Failed uploading print file. Please enter ip address again.");
+            m_enter_ip_address_fun();
+        }
             
         update_status(curr_percent, msg_text);
         BOOST_LOG_TRIVIAL(error) << "send_job: failed, result = " << result;
     } else {
         BOOST_LOG_TRIVIAL(error) << "send_job: send ok.";
-        //m_success_fun();
         wxCommandEvent* evt = new wxCommandEvent(m_print_job_completed_id);
         evt->SetString(from_u8(params.project_name));
         wxQueueEvent(m_plater, evt);
@@ -326,6 +330,12 @@ void SendJob::on_success(std::function<void()> success)
 {
 	m_success_fun = success;
 }
+
+void SendJob::on_enter_ip_address(std::function<void()> success)
+{
+    m_enter_ip_address_fun = success;
+}
+
 
 
 void SendJob::finalize() {

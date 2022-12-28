@@ -3403,6 +3403,11 @@ void DeviceManager::on_machine_alive(std::string json_str)
             BOOST_LOG_TRIVIAL(debug) << "SsdpDiscovery:: Update Machine Info, printer_sn = " << dev_id << ", signal = " << printer_signal;
             obj->last_alive = Slic3r::Utils::get_current_time_utc();
             obj->m_is_online = true;
+
+            /* if (!obj->dev_ip.empty()) {
+                 Slic3r::GUI::wxGetApp().app_config->set_str("ip_address", obj->dev_id, obj->dev_ip);
+                 Slic3r::GUI::wxGetApp().app_config->save();
+             }*/
         }
         else {
             /* insert a new machine */
@@ -3418,6 +3423,11 @@ void DeviceManager::on_machine_alive(std::string json_str)
                 obj->access_code = Slic3r::GUI::wxGetApp().app_config->get("access_code", dev_id);
             }
             localMachineList.insert(std::make_pair(dev_id, obj));
+
+            /* if (!obj->dev_ip.empty()) {
+                 Slic3r::GUI::wxGetApp().app_config->set_str("ip_address", obj->dev_id, obj->dev_ip);
+                 Slic3r::GUI::wxGetApp().app_config->save();
+             }*/
 
 
             BOOST_LOG_TRIVIAL(debug) << "SsdpDiscovery::New Machine, ip = " << dev_ip << ", printer_name= " << dev_name << ", printer_type = " << printer_type_str << ", signal = " << printer_signal;

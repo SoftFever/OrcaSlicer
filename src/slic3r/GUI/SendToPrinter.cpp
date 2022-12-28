@@ -30,6 +30,7 @@ namespace GUI {
 wxDEFINE_EVENT(EVT_UPDATE_USER_MACHINE_LIST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PRINT_JOB_CANCEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SEND_JOB_SUCCESS, wxCommandEvent);
+wxDEFINE_EVENT(EVT_CLEAR_IPADDRESS, wxCommandEvent);
 
 
 void SendToPrinterDialog::stripWhiteSpace(std::string& str)
@@ -531,6 +532,7 @@ void SendToPrinterDialog::init_model()
 void SendToPrinterDialog::init_bind()
 {
     Bind(wxEVT_TIMER, &SendToPrinterDialog::on_timer, this);
+    Bind(EVT_CLEAR_IPADDRESS, &SendToPrinterDialog::clear_ip_address_config, this);
 }
 
 void SendToPrinterDialog::init_timer()
@@ -651,17 +653,37 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     m_send_job->has_sdcard          = obj_->has_sdcard();
     m_send_job->set_project_name(m_current_project_name.utf8_string());
 
-
-    m_send_job->on_success([this]() {
-        //enable_prepare_mode = true;enable_prepare_mode
-        m_status_bar->reset();
-        prepare_mode();
-        //EndModal(wxID_CLOSE);
+    m_send_job->on_enter_ip_address([this, obj_]() {
+        wxCommandEvent* evt = new wxCommandEvent(EVT_CLEAR_IPADDRESS);
+        wxQueueEvent(this, evt);
     });
 
     enable_prepare_mode = false;
     m_send_job->start();
     BOOST_LOG_TRIVIAL(info) << "send_job: send print job";
+}
+
+void SendToPrinterDialog::clear_ip_address_config(wxCommandEvent& e)
+{
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+    if (!dev->get_selected_machine()) return;
+    auto obj = dev->get_selected_machine();
+    Slic3r::GUI::wxGetApp().app_config->set_str("ip_address", obj->dev_id, "");
+    Slic3r::GUI::wxGetApp().app_config->save();
+
+    InputIpAddressDialog dlg(this, from_u8(dev->get_selected_machine()->dev_name));
+    dlg.Bind(EVT_ENTER_IP_ADDRESS, [this, obj](wxCommandEvent& e) {
+        auto ip_address = e.GetString();
+        BOOST_LOG_TRIVIAL(info) << "User enter IP address is " << ip_address;
+        if (!ip_address.empty()) {
+            wxGetApp().app_config->set_str("ip_address", obj->dev_id, ip_address.ToStdString());
+            wxGetApp().app_config->save();
+            obj->dev_ip = ip_address.ToStdString();
+        }
+
+        });
+    dlg.ShowModal();
 }
 
 void SendToPrinterDialog::update_user_machine_list()
@@ -843,6 +865,30 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
     } else {
         BOOST_LOG_TRIVIAL(error) << "on_selection_changed dev_id not found";
         return;
+    }
+
+    //check ip address
+    if (obj->dev_ip.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "MachineObject IP is empty ";
+        std::string app_config_dev_ip = Slic3r::GUI::wxGetApp().app_config->get("ip_address", obj->dev_id);
+
+        if (app_config_dev_ip.empty()) {
+            InputIpAddressDialog dlg(this, from_u8(obj->dev_name));
+            dlg.Bind(EVT_ENTER_IP_ADDRESS, [this, obj, app_config_dev_ip](wxCommandEvent& e) {
+                auto ip_address = e.GetString();
+                BOOST_LOG_TRIVIAL(info) << "User enter IP address is "<< ip_address;
+                if (!ip_address.empty()) {
+                    wxGetApp().app_config->set_str("ip_address", obj->dev_id, ip_address.ToStdString());
+                    wxGetApp().app_config->save();
+                    obj->dev_ip = ip_address.ToStdString();
+                }
+                
+            });
+            dlg.ShowModal();
+        }
+        else {
+            obj->dev_ip = app_config_dev_ip;
+        }  
     }
 
     update_show_status();

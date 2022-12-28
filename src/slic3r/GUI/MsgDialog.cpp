@@ -27,6 +27,7 @@ namespace Slic3r {
 namespace GUI {
 
 wxDEFINE_EVENT(EVT_CHECKBOX_CHANGE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_ENTER_IP_ADDRESS, wxCommandEvent);
 
 MsgDialog::MsgDialog(wxWindow *parent, const wxString &title, const wxString &headline, long style, wxBitmap bitmap)
 	: DPIDialog(parent ? parent : dynamic_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, title, wxDefaultPosition, wxSize(360, -1),wxDEFAULT_DIALOG_STYLE)
@@ -419,6 +420,155 @@ void DownloadDialog::SetExtendedMessage(const wxString &extendedMessage)
     add_msg_content(this, content_sizer, msg + "\n" + extendedMessage, false, false);
     Layout();
     Fit();
+}
+
+InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent, wxString name)
+    :DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("Unable to connect printer"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+{
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
+    SetBackgroundColour(*wxWHITE);
+    wxBoxSizer* m_sizer_main = new wxBoxSizer(wxVERTICAL);
+    auto        m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
+    m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
+    m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
+
+    comfirm_before_enter_text = wxString::Format(_L("Cannot detect the LAN IP address of %s. Are %s and Bambu Studio in the same LAN?"), name, name);
+
+    comfirm_after_enter_text = _L("Please input the LAN IP address of your printer manually. You can find the IP address on device's screen, Settings > Network > IP.");
+
+
+    tip = new Label(this, comfirm_before_enter_text);
+   
+    tip->SetMinSize(wxSize(FromDIP(420), -1));
+    tip->SetMaxSize(wxSize(FromDIP(420), -1));
+    tip->Wrap(FromDIP(420));
+
+    m_input_ip = new TextInput(this, wxEmptyString, wxEmptyString);
+    m_input_ip->Bind(wxEVT_TEXT, &InputIpAddressDialog::on_text, this);
+    m_input_ip->SetMinSize(wxSize(FromDIP(420), FromDIP(28)));
+    m_input_ip->SetMaxSize(wxSize(FromDIP(420), FromDIP(28)));
+    m_input_ip->Hide();
+
+    auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
+
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+
+    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+        std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+
+    m_button_ok = new Button(this, _L("OK"));
+    m_button_ok->SetBackgroundColor(btn_bg_green);
+    m_button_ok->SetBorderColor(*wxWHITE);
+    m_button_ok->SetTextColor(wxColour(0xFFFFFE));
+    m_button_ok->SetFont(Label::Body_12);
+    m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_ok->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_ok->SetCornerRadius(FromDIP(12));
+   
+
+    m_button_ok->Bind(wxEVT_LEFT_DOWN, &InputIpAddressDialog::on_ok, this);
+
+    auto m_button_cancel = new Button(this, _L("Cancel"));
+    m_button_cancel->SetBackgroundColor(btn_bg_white);
+    m_button_cancel->SetBorderColor(wxColour(38, 46, 48));
+    m_button_cancel->SetFont(Label::Body_12);
+    m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_button_cancel->SetCornerRadius(FromDIP(12));
+
+    m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        EndModal(wxID_CANCEL);
+    });
+
+    sizer_button->AddStretchSpacer();
+    sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
+    sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
+
+   
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(15));
+    m_sizer_main->Add(tip, 1, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(18));
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(5));
+    m_sizer_main->Add(m_input_ip, 1, wxALIGN_CENTER, FromDIP(18));
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
+    m_sizer_main->Add(sizer_button, 1, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(18));
+     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(5));
+    SetSizer(m_sizer_main);
+    Layout();
+    m_sizer_main->Fit(this);
+
+    Centre(wxBOTH);
+    wxGetApp().UpdateDlgDarkUI(this);
+}
+
+bool InputIpAddressDialog::isIp(std::string ipstr)
+{
+    istringstream ipstream(ipstr);
+    int num[4];
+    char point[3];
+    string end;
+    ipstream >> num[0] >> point[0] >> num[1] >> point[1] >> num[2] >> point[2] >> num[3] >> end;
+    for (int i = 0; i < 3; ++i) {
+        if (num[i] < 0 || num[i]>255) return false;
+        if (point[i] != '.') return false;
+    }
+    if (num[3] < 0 || num[3]>255) return false;
+    if (!end.empty()) return false;
+    return true;
+}
+
+void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
+{
+    if (!m_input_ip->IsShown()) {
+        tip->SetLabel(comfirm_after_enter_text);
+        tip->SetMinSize(wxSize(FromDIP(420), -1));
+        tip->SetMaxSize(wxSize(FromDIP(420), -1));
+        tip->Wrap(FromDIP(420));
+
+        m_input_ip->Show();
+        m_button_ok->Enable(false);
+        m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+        m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+        Layout();
+        Fit();
+    }
+    else {
+        wxString ip = m_input_ip->GetTextCtrl()->GetValue();
+        auto event = wxCommandEvent(EVT_ENTER_IP_ADDRESS);
+        event.SetString(ip);
+        event.SetEventObject(this);
+        wxPostEvent(this, event);
+        EndModal(wxID_YES);
+    }
+}
+
+void InputIpAddressDialog::on_text(wxCommandEvent& evt)
+{
+    auto str_ip = m_input_ip->GetTextCtrl()->GetValue();
+    if (isIp(str_ip.ToStdString())) {
+        m_button_ok->Enable(true);
+        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+            std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+        m_button_ok->SetBorderColor(*wxWHITE);
+        m_button_ok->SetBackgroundColor(btn_bg_green);
+    }
+    else {
+        m_button_ok->Enable(false);
+        m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+        m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+    }
+}
+
+InputIpAddressDialog::~InputIpAddressDialog()
+{
+
+}
+
+void InputIpAddressDialog::on_dpi_changed(const wxRect& suggested_rect)
+{
+
 }
 
 }} // namespace Slic3r::GUI

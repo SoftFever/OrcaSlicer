@@ -383,6 +383,7 @@ public:
     std::string access_code;
     std::string dev_connection_type;    /* lan | cloud */
     std::string connection_type() { return dev_connection_type; }
+    void set_dev_ip(std::string ip) {dev_ip = ip;};
     bool has_access_right() { return !access_code.empty(); }
     void set_access_code(std::string code);
     bool is_lan_mode_printer();

@@ -21,6 +21,7 @@ class SendJob : public PlaterJob
     bool                m_job_finished{ false };
     int                 m_print_job_completed_id = 0;
     std::function<void()> m_success_fun{nullptr};
+    std::function<void()> m_enter_ip_address_fun{nullptr};
 
 protected:
 
@@ -52,6 +53,7 @@ public:
     bool is_finished() { return m_job_finished;  }
     void process() override;
     void on_success(std::function<void()> success);
+    void on_enter_ip_address(std::function<void()> success);
     void finalize() override;
     void set_project_name(std::string name);
 };
