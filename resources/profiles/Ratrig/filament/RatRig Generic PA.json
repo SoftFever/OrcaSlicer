@@ -18,6 +18,15 @@
     "hot_plate_temp_initial_layer" : [
         "80"
     ],
+	"filament_z_hop": [
+        "0"
+    ],
+	"enable_pressure_advance": [
+        "1"
+    ],
+	"pressure_advance": [
+        "0.045"
+    ],
     "filament_density": [
         "1.24"
     ],
