@@ -6458,6 +6458,9 @@ wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool
         }
     } else {
         if (only_filename) {
+            if(m_project_name == L"Untitled")
+                return fs::path(model.objects.front()->name).replace_extension().c_str() + wxString(plate_index_str) + extension;
+
             if (export_all)
                 return m_project_name + extension;
             else
