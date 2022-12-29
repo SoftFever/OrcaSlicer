@@ -6438,7 +6438,9 @@ wxString Plater::priv::get_project_filename(const wxString& extension) const
 
 wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool only_filename, bool export_all) const
 {
-    std::string plate_index_str = (boost::format("_plate_%1%") % std::to_string(partplate_list.get_curr_plate_index() + 1)).str();
+    std::string plate_index_str;
+    if (partplate_list.get_plate_count() > 1)
+        plate_index_str = (boost::format("_plate_%1%") % std::to_string(partplate_list.get_curr_plate_index() + 1)).str();
     if (!m_project_folder.empty()) {
         if (!only_filename) {
             if (export_all) {

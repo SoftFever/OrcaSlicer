@@ -3034,7 +3034,7 @@ double PartPlateList::plate_stride_y()
 }
 
 //get the plate counts, not including the invalid plate
-int PartPlateList::get_plate_count()
+int PartPlateList::get_plate_count() const
 {
 	int ret = 0;
 

@@ -614,7 +614,7 @@ public:
     int select_plate(int index);
 
     //get the plate counts, not including the invalid plate
-    int get_plate_count();
+    int get_plate_count() const;
 
     //update the plate cols due to plate count change
     void update_plate_cols();
