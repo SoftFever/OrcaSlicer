@@ -53,9 +53,9 @@ void AMSSetting::create()
     m_sizer_Insert_material_tip->Add(0, 0, 0, wxLEFT, 10);
 
     // tip line1
-    m_tip_Insert_material_line1 = new wxStaticText(m_panel_body, wxID_ANY,
-                                                   _L("The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."),
-                                                   wxDefaultPosition, wxDefaultSize, 0);
+    m_tip_Insert_material_line1 = new Label(m_panel_body,
+        _L("The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds.")
+    );
     m_tip_Insert_material_line1->SetFont(::Label::Body_13);
     m_tip_Insert_material_line1->SetForegroundColour(AMS_SETTING_GREY700);
     m_tip_Insert_material_line1->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
@@ -64,9 +64,9 @@ void AMSSetting::create()
     m_sizer_Insert_material_tip_inline->Add(m_tip_Insert_material_line1, 0, wxEXPAND, 0);
 
     // tip line2
-    m_tip_Insert_material_line2 = new wxStaticText(m_panel_body, wxID_ANY,
-                                                   _L("Note: if new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."),
-                                                   wxDefaultPosition, wxDefaultSize, 0);
+    m_tip_Insert_material_line2 = new Label(m_panel_body,
+        _L("Note: if new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed.")
+    );
     m_tip_Insert_material_line2->SetFont(::Label::Body_13);
     m_tip_Insert_material_line2->SetForegroundColour(AMS_SETTING_GREY700);
     m_tip_Insert_material_line2->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
@@ -75,10 +75,9 @@ void AMSSetting::create()
     m_sizer_Insert_material_tip_inline->Add(m_tip_Insert_material_line2, 0, wxEXPAND | wxTOP, 8);
 
     // tip line2
-    m_tip_Insert_material_line3 =
-        new wxStaticText(m_panel_body, wxID_ANY,
-                         _L("When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."),
-                         wxDefaultPosition, wxDefaultSize, 0);
+    m_tip_Insert_material_line3 = new Label(m_panel_body,
+        _L("When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually.")
+    );
     m_tip_Insert_material_line3->SetFont(::Label::Body_13);
     m_tip_Insert_material_line3->SetForegroundColour(AMS_SETTING_GREY700);
     m_tip_Insert_material_line3->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
@@ -109,18 +108,18 @@ void AMSSetting::create()
     // tip line
     m_sizer_starting_tip_inline = new wxBoxSizer(wxVERTICAL);
 
-    m_tip_starting_line1 = new wxStaticText(m_panel_body, wxID_ANY,
-                                            _L("The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."),
-                                            wxDefaultPosition, wxDefaultSize, 0);
+    m_tip_starting_line1 = new Label(m_panel_body,
+        _L("The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools.")
+    );
     m_tip_starting_line1->SetFont(::Label::Body_13);
     m_tip_starting_line1->SetForegroundColour(AMS_SETTING_GREY700);
     m_tip_starting_line1->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
     m_tip_starting_line1->Wrap(AMS_SETTING_BODY_WIDTH);
     m_sizer_starting_tip_inline->Add(m_tip_starting_line1, 0, wxEXPAND, 0);
 
-    m_tip_starting_line2 = new wxStaticText(m_panel_body, wxID_ANY,
-                                            _L("The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."),
-                                            wxDefaultPosition, wxDefaultSize, 0);
+    m_tip_starting_line2 = new Label(m_panel_body,
+        _L("The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown.")
+    );
     m_tip_starting_line2->SetFont(::Label::Body_13);
     m_tip_starting_line2->SetForegroundColour(AMS_SETTING_GREY700);
     m_tip_starting_line2->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
@@ -148,9 +147,9 @@ void AMSSetting::create()
     // tip line
     m_sizer_remain_inline = new wxBoxSizer(wxVERTICAL);
 
-    m_tip_remain_line1 = new wxStaticText(m_panel_body, wxID_ANY,
-        _L("The AMS will estimate Bambu filament's remaining capacity after the filament info is updated. During printing, remaining capacity will be updated automatically."),
-        wxDefaultPosition, wxDefaultSize, 0);
+    m_tip_remain_line1 = new Label(m_panel_body,
+        _L("The AMS will estimate Bambu filament's remaining capacity after the filament info is updated. During printing, remaining capacity will be updated automatically.")
+    );
     m_tip_remain_line1->SetFont(::Label::Body_13);
     m_tip_remain_line1->SetForegroundColour(AMS_SETTING_GREY700);
     m_tip_remain_line1->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
@@ -178,9 +177,9 @@ void AMSSetting::create()
     // tip line
     m_sizer_switch_filament_inline = new wxBoxSizer(wxVERTICAL);
 
-    m_tip_switch_filament_line1 = new wxStaticText(m_panel_body, wxID_ANY,
-        _L("AMS will continue to another spool with the same properties of filament automatically when current filament runs out"),
-        wxDefaultPosition, wxDefaultSize, 0);
+    m_tip_switch_filament_line1 = new Label(m_panel_body,
+        _L("AMS will continue to another spool with the same properties of filament automatically when current filament runs out")
+    );
     m_tip_switch_filament_line1->SetFont(::Label::Body_13);
     m_tip_switch_filament_line1->SetForegroundColour(AMS_SETTING_GREY700);
     m_tip_switch_filament_line1->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));

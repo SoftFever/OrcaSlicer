@@ -49,22 +49,22 @@ protected:
     wxPanel *     m_panel_body;
     CheckBox *    m_checkbox_Insert_material_auto_read;
     wxStaticText *m_title_Insert_material_auto_read;
-    wxStaticText *m_tip_Insert_material_line1;
-    wxStaticText *m_tip_Insert_material_line2;
-    wxStaticText *m_tip_Insert_material_line3;
+    Label* m_tip_Insert_material_line1;
+    Label* m_tip_Insert_material_line2;
+    Label* m_tip_Insert_material_line3;
 
     CheckBox *    m_checkbox_starting_auto_read;
     wxStaticText *m_title_starting_auto_read;
-    wxStaticText *m_tip_starting_line1;
-    wxStaticText *m_tip_starting_line2;
+    Label* m_tip_starting_line1;
+    Label* m_tip_starting_line2;
 
     CheckBox *    m_checkbox_remain;
     wxStaticText *m_title_remain;
-    wxStaticText *m_tip_remain_line1;
+    Label* m_tip_remain_line1;
 
     CheckBox* m_checkbox_switch_filament;
     wxStaticText* m_title_switch_filament;
-    wxStaticText* m_tip_switch_filament_line1;
+    Label* m_tip_switch_filament_line1;
 
     wxStaticText *m_tip_ams_img;
     Button *     m_button_auto_demarcate;
