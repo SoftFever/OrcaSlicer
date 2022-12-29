@@ -1915,7 +1915,7 @@ static wxMenu* generate_help_menu()
     // Check New Version
     append_menu_item(helpMenu, wxID_ANY, _L("Check for Update"), _L("Check for Update"),
         [](wxCommandEvent&) {
-            wxGetApp().check_new_version(true, 1);
+            wxGetApp().check_new_version_sf(true, 1);
         }, "", nullptr, []() {
             return true;
         });

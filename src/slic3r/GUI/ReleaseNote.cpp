@@ -316,7 +316,7 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
     //bbs check whether the web display is used
     bool use_web_link       = false;
     std::string url_line    = "";
-    auto split_array        =  splitWithStl(release_note.ToStdString(), "###");
+    /*auto split_array        =  splitWithStl(release_note.ToStdString(), "\r\n");
 
     for (auto i = 0; i < split_array.size(); i++) {
         std::string url = split_array[i];
@@ -331,7 +331,7 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
         m_simplebook_release_note->SetSelection(1);
         m_vebview_release_note->LoadURL(from_u8(url_line));
     }
-    else {
+    else {*/
         m_simplebook_release_note->SetSelection(0);
         m_text_up_info->SetLabel(wxString::Format(_L("Click to download new version in default browser: %s"), version));
         wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
@@ -341,7 +341,7 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
         m_scrollwindows_release_note->SetSizer(sizer_text_release_note);
         m_scrollwindows_release_note->Layout();
         m_scrollwindows_release_note->Fit();
-    }  
+    //}  
 }
 
 SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, const wxString& title, enum ButtonStyle btn_style, const wxPoint& pos, const wxSize& size, long style, bool not_show_again_check)
