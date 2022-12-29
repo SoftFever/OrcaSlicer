@@ -2853,9 +2853,6 @@ void SelectMachineDialog::set_default()
 
     if (filename.empty()) {
         filename = m_plater->get_export_gcode_filename("", true);
-        if (std::strstr(filename.c_str(), _L("Untitled").c_str()) == NULL) {
-            filename = wxString::Format("Untitled%s",filename);
-        }
     }
 
     fs::path filename_path(filename.c_str());
