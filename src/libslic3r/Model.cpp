@@ -2570,6 +2570,7 @@ size_t ModelVolume::split(unsigned int max_extruders)
         if (idx == 0) {
             this->set_mesh(std::move(mesh));
             this->calculate_convex_hull();
+            this->invalidate_convex_hull_2d();
             // Assign a new unique ID, so that a new GLVolume will be generated.
             this->set_new_unique_id();
             // reset the source to disable reload from disk

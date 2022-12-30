@@ -82,7 +82,7 @@ static HRESULT winrt_activate_instance(const std::wstring &class_name, IInspecta
 {
 	HSTRING hClassName;
 	HRESULT hr = (*s_WindowsCreateString)(class_name.c_str(), class_name.size(), &hClassName);
-	if (S_OK != hr) 
+	if (S_OK != hr)
 		return hr;
 	hr = (*s_RoActivateInstance)(hClassName, pinst);
 	(*s_WindowsDeleteString)(hClassName);
@@ -320,7 +320,7 @@ public:
 
 // returt FALSE, if fixing was canceled
 // fix_result is empty, if fixing finished successfully
-// fix_result containes a message if fixing failed 
+// fix_result containes a message if fixing failed
 bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::ProgressDialog& progress_dialog, const wxString& msg_header, std::string& fix_result)
 {
 	std::mutex 						mutex;
@@ -379,7 +379,7 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 				model.clear_materials();
 				boost::filesystem::path path_dst = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
 				path_dst += ".3mf";
-				fix_model_by_win10_sdk(path_src.string().c_str(), path_dst.string(), on_progress, 
+				fix_model_by_win10_sdk(path_src.string().c_str(), path_dst.string(), on_progress,
 					[&canceled]() { if (canceled) throw RepairCanceledException(); });
 				boost::filesystem::remove(path_src);
 	            // PresetBundle bundle;
@@ -403,6 +403,7 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 			for (size_t i = 0; i < volumes.size(); ++ i) {
 				volumes[i]->set_mesh(std::move(meshes_repaired[i]));
 				volumes[i]->calculate_convex_hull();
+				volumes[i]->invalidate_convex_hull_2d();
 				volumes[i]->set_new_unique_id();
 			}
 			model_object.invalidate_bounding_box();
