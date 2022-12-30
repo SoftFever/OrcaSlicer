@@ -73,7 +73,7 @@ bool AMSinfo::parse_ams_info(Ams *ams, bool remain_flag, bool humidity_flag)
                     info.material_remain = 100;
                 }
                 else {
-                    info.material_remain = it->second->remain < 0 ? 100 : it->second->remain;
+                    info.material_remain = it->second->remain < 0 ? 0 : it->second->remain;
                     info.material_remain = it->second->remain > 100 ? 100 : info.material_remain;
                 }
                 
