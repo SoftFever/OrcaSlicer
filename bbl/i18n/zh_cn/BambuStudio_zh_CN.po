@@ -2724,6 +2724,39 @@ msgstr "在3D场景中显示对象名称"
 msgid "Preferences"
 msgstr "偏好设置"
 
+msgid "Line method - DDE"
+msgstr "划线方法 - 近程"
+
+msgid "Line method - Bowden"
+msgstr "划线方法 - 远程"
+
+msgid "Tower method - DDE"
+msgstr "打印塔方法 - 近程"
+
+msgid "Tower method - Bowden"
+msgstr "打印塔方法 - 远程"
+
+msgid "Presure/Linear Advance"
+msgstr "压力提前"
+
+msgid "Flow rate"
+msgstr "流量"
+
+msgid "Pass 1"
+msgstr "粗调"
+
+msgid "Pass 2"
+msgstr "细调"
+
+msgid "Tutorial"
+msgstr "教程"
+
+msgid "Layer Time"
+msgstr "层时间"
+
+msgid "Layer Time (log)"
+msgstr "层时间（对数）"
+
 msgid "View"
 msgstr "视图"
 
