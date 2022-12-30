@@ -25,6 +25,7 @@
     "outer_wall_line_width": "0.42",
     "outer_wall_speed": "120",
     "outer_wall_acceleration": "5000",
+    "inner_wall_acceleration": "5000",
     "wall_infill_order": "inner wall/outer wall/infill",
     "line_width": "0.42",
     "infill_direction": "45",
