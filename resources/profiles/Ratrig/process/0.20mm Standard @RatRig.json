@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "setting_id": "GP_RATRIG_004",
+    "setting_id": "GP004",
     "name": "0.20mm Standard @RatRig",
     "from": "system",
     "inherits": "fdm_process_ratrig_common",

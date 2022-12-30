@@ -3,8 +3,8 @@ cd deps
 mkdir build
 cd build
 set DEPS=%CD%/BambuStudio_dep
-cmake ../ -G "Visual Studio 16 2019" -DDESTDIR="%CD%/BambuStudio_dep" -DCMAKE_BUILD_TYPE=Release
-cmake --build . --config Release --target ALL_BUILD -- -m
+@REM cmake ../ -G "Visual Studio 16 2019" -DDESTDIR="%CD%/BambuStudio_dep" -DCMAKE_BUILD_TYPE=Release
+@REM cmake --build . --config Release --target ALL_BUILD -- -m
 
 cd %WP%
 mkdir build 

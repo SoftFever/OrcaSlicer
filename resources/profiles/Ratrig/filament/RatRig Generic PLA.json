@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFL99",
-    "setting_id": "GFSL99_RATRIG_00",
+    "setting_id": "GFSA04",
     "name": "RatRig Generic PLA",
     "from": "system",
     "instantiation": "true",

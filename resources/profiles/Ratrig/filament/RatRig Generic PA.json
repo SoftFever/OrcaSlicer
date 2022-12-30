@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFN99",
-    "setting_id": "GFSN99_RATRIG_00",
+    "setting_id": "GFSA04",
     "name": "RatRig Generic PA",
     "from": "system",
     "instantiation": "true",

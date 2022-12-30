@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "setting_id": "GP_RATRIG_001",
+    "setting_id": "GP004",
     "name": "0.08mm Extra Fine @RatRig",
     "from": "system",
     "instantiation": "true",

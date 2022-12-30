@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFB98",
-    "setting_id": "GFSB98_RATRIG_00",
+    "setting_id": "GFSA04",
     "name": "RatRig Generic ASA",
     "from": "system",
     "instantiation": "true",

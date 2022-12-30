@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFL98",
-    "setting_id": "GFSL98",
+    "setting_id": "GFSA04",
     "name": "Prusa Generic PLA-CF",
     "from": "system",
     "instantiation": "true",

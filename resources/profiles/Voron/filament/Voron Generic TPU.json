@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFU99",
-    "setting_id": "GFSU99_VORON_00",
+    "setting_id": "GFSA04",
     "name": "Voron Generic TPU",
     "from": "system",
     "instantiation": "true",
