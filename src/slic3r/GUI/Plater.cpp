@@ -7871,7 +7871,8 @@ void Plater::add_model(bool imperial_units/* = false*/,  std::string fname/* = "
 }
 
 void Plater::calib_pa(bool line_method, bool bowden) {
-    const auto calib_pa_name = "Pressure Advance Test";
+    
+    const auto calib_pa_name = wxString::Format(L"Pressure Advance Test - %s%s", line_method ? L"Line" : L"Tower", bowden ? L"Bowden" : L"DDE");
     new_project(false, false, calib_pa_name);
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
     if (line_method) {
@@ -7921,7 +7922,7 @@ void Plater::calib_pa(bool line_method, bool bowden) {
 void Plater::calib_flowrate(int pass) {
     if (pass != 1 && pass != 2)
         return;
-    const auto calib_name = "Flowrate Test";
+    const auto calib_name = wxString::Format(L"Flowrate Test - Pass%d", pass);
     new_project(false, false, calib_name);
 
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
