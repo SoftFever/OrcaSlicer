@@ -29,6 +29,8 @@
     "sparse_infill_density": "15%",
     "sparse_infill_pattern": "grid",
     "initial_layer_acceleration": "500",
+    "travel_acceleration": "700",
+    "inner_wall_acceleration": "500",
     "initial_layer_line_width": "0.5",
     "initial_layer_print_height": "0.2",
     "infill_combination": "0",
@@ -99,6 +101,7 @@
     "xy_hole_compensation": "0",
     "xy_contour_compensation": "0",
     "compatible_printers": [
-      "Creality Ender-3 V2 0.4 nozzle"
+      "Creality Ender-3 V2 0.4 nozzle",
+      "Creality CR-10 Max 0.4 nozzle"
     ]
 }
