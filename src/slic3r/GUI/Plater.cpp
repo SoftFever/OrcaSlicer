@@ -7961,7 +7961,7 @@ void Plater::calib_flowrate(int pass) {
 
     auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto printerConfig = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+    //auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
 
     /// --- scale ---
     // model is created for a 0.4 nozzle, scale z with nozzle size.
@@ -8016,12 +8016,12 @@ void Plater::calib_flowrate(int pass) {
     print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
     print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(first_layer_height));
     print_config->set_key_value("reduce_crossing_wall", new ConfigOptionBool(true));
-    filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{ 9. });
+    //filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{ 9. });
 
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
-    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+    //wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_ui_from_settings();
-    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_ui_from_settings();
+    //wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_ui_from_settings();
 
 }
 
