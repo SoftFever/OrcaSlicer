@@ -2458,8 +2458,19 @@ void MainFrame::init_menubar_as_editor()
     m_topbar->AddDropDownSubMenu(helpMenu, _L("Help"));
 
     // SoftFever calibrations
-    auto pa_menu = new wxMenu();
+
+    // Flowrate
+    auto flowrate_menu = new wxMenu();
+    append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate"));
+
     // PA
+    auto pa_menu = new wxMenu();
     append_menu_item(pa_menu, wxID_ANY, _L("Line method - DDE"), _L(""),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(true, false); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
@@ -2473,16 +2484,6 @@ void MainFrame::init_menubar_as_editor()
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(false, true); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     m_topbar->GetCalibMenu()->AppendSubMenu(pa_menu, _L("Presure/Linear Advance"));
-
-    // Flowrate
-    auto flowrate_menu = new wxMenu();
-    append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
-    m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate"));
 
     // help 
     append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Tutorial"), _L("Calibration help"),
@@ -2503,8 +2504,18 @@ void MainFrame::init_menubar_as_editor()
     // SoftFever calibrations
     auto calib_menu = new wxMenu();
 
-    auto pa_menu = new wxMenu();
+    // Flowrate
+    auto flowrate_menu = new wxMenu();
+    append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
+        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+    calib_menu->AppendSubMenu(flowrate_menu, _L("Flow rate"));
+
     // PA
+    auto pa_menu = new wxMenu();
     append_menu_item(pa_menu, wxID_ANY, _L("Line method - DDE"), _L(""),
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(true, false); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
@@ -2518,16 +2529,6 @@ void MainFrame::init_menubar_as_editor()
         [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(false, true); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
     calib_menu->AppendSubMenu(pa_menu, _L("Presure/Linear Advance"));
-
-    // Flowrate
-    auto flowrate_menu = new wxMenu();
-    append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
-    calib_menu->AppendSubMenu(flowrate_menu, _L("Flow rate"));
 
     // help
     append_menu_item(calib_menu, wxID_ANY, _L("Tutorial"), _L("Calibration help"),
