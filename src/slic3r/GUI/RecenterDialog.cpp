@@ -22,6 +22,8 @@ RecenterDialog::RecenterDialog(wxWindow* parent, wxWindowID id, const wxString& 
 
     init_bitmap();
 
+    SetBackgroundColour(*wxWHITE);
+
     auto* main_sizer = new wxBoxSizer(wxVERTICAL);
     auto* button_sizer = new wxBoxSizer(wxHORIZONTAL);
 
