@@ -485,7 +485,8 @@ void BBLTopbar::Rescale() {
     item->SetDisabledBitmap(create_scaled_bitmap("topbar_redo_inactive", nullptr, TOPBAR_ICON_SIZE));
 
     item = this->FindTool(ID_CALIB);
-    item->SetBitmap(create_scaled_bitmap("ams_readonly", this, TOPBAR_ICON_SIZE));
+    item->SetBitmap(create_scaled_bitmap("calib_sf", nullptr, TOPBAR_ICON_SIZE));
+    item->SetDisabledBitmap(create_scaled_bitmap("calib_sf_inactive", nullptr, TOPBAR_ICON_SIZE));
 
     item = this->FindTool(ID_TITLE);
 
