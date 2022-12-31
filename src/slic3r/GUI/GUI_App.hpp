@@ -7,7 +7,6 @@
 #include "ConfigWizard.hpp"
 #include "OpenGLManager.hpp"
 #include "libslic3r/Preset.hpp"
-#include "wxExtensions.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
@@ -53,7 +52,6 @@ class AppConfig;
 class PresetBundle;
 class PresetUpdater;
 class ModelObject;
-// class PrintHostJobQueue;
 class Model;
 class DeviceManager;
 class NetworkAgent;
@@ -284,6 +282,7 @@ private:
     bool             enable_sync = false;
     bool             m_is_dark_mode{ false };
     bool             m_adding_script_handler { false };
+    bool             m_side_popup_status{false};
 public:
     std::string     get_local_models_path();
     bool            OnInit() override;
@@ -338,6 +337,9 @@ public:
 	void            update_fonts(const MainFrame *main_frame = nullptr);
     void            set_label_clr_modified(const wxColour& clr);
     void            set_label_clr_sys(const wxColour& clr);
+    //update side popup status
+    bool            get_side_menu_popup_status();
+    void            set_side_menu_popup_status(bool status);
 
     const wxColour& get_label_clr_modified(){ return m_color_label_modified; }
     const wxColour& get_label_clr_sys()     { return m_color_label_sys; }
@@ -588,7 +590,9 @@ private:
 
 DECLARE_APP(GUI_App)
 wxDECLARE_EVENT(EVT_CONNECT_LAN_MODE_PRINT, wxCommandEvent);
-} // GUI
+
+bool is_support_filament(int extruder_id);
+} // namespace GUI
 } // Slic3r
 
 #endif // slic3r_GUI_App_hpp_

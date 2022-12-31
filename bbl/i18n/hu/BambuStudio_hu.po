@@ -2,16 +2,13 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-13 20:02+0800\n"
-"PO-Revision-Date: \n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"POT-Creation-Date: 2022-12-24 13:01+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Localazy (https://localazy.com)\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
-"X-Generator: Poedit 3.1\n"
 
 msgid "Supports Painting"
 msgstr "Támaszok festése"
@@ -1387,6 +1384,9 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr "A LAN-on keresztüli nyomtatáshoz helyezz be egy SD kártyát."
 
+msgid "Failed to send the print job. Please try again."
+msgstr ""
+
 msgid "Send to Printer failed. Please try again."
 msgstr ""
 
@@ -1892,12 +1892,9 @@ msgstr ""
 "Az érték 0-ra áll vissza."
 
 msgid ""
-"Spiral mode only works when wall loops is 1, \n"
-"support is disabled, top shell layers is 0 and sparse infill density is 0\n"
+"Spiral mode only works when wall loops is 1, support is disabled, top shell "
+"layers is 0, sparse infill density is 0 and timelapse type is traditional"
 msgstr ""
-"A spirál mód csak akkor működik, ha a falak száma 1,\n"
-"a támaszok ki vannak kapcsolva, a felső rétegek száma 0 és a hiányos "
-"kitöltés sűrűsége 0\n"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -1965,9 +1962,6 @@ msgid ""
 "Yes - switch to rectilinear pattern automaticlly\n"
 "No  - reset density to default non 100% value automaticlly\n"
 msgstr ""
-"Switch to rectilinear pattern?\n"
-"Yes - switch to rectilinear pattern automaticlly\n"
-"No  - reset density to default non 100% value automaticlly\n"
 
 msgid "Auto bed leveling"
 msgstr "Automatikus asztalszintezés"
@@ -3261,6 +3255,12 @@ msgstr "Az integráció nem sikerült."
 msgid "Undo integration was successful."
 msgstr "Az integráció visszavonása sikeres volt."
 
+msgid "New network plug-in available."
+msgstr ""
+
+msgid "Details"
+msgstr ""
+
 msgid "Undo integration failed."
 msgstr "Az integráció visszavonása nem sikerült."
 
@@ -3559,11 +3559,11 @@ msgstr "Jobb lenne, ha frissítenéd a szoftvert.\n"
 msgid "Newer 3mf version"
 msgstr "Újabb 3mf verzió"
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
 "software.\n"
-msgstr ""
+msgstr "\n"
 
 msgid "The 3mf is not compatible, load geometry data only!"
 msgstr ""
@@ -3843,9 +3843,9 @@ msgid ""
 "on Bambu Studio(windows) or CAD softwares."
 msgstr ""
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s (%s).\n"
-msgstr ""
+msgstr "\n"
 
 msgid "Switching the language requires application restart.\n"
 msgstr "A nyelvváltáshoz az alkalmazás újraindítása szükséges.\n"
@@ -4335,10 +4335,6 @@ msgid ""
 "currently selected physical printer. It is recommend to re-slice by "
 "selecting the same printer type.\n"
 msgstr ""
-"The printer type used to generate G-code is not the same type as the "
-"currently selected physical printer. It is recommend to re-slice by "
-"selecting the same printer type.\n"
-"\n"
 
 #, c-format, boost-format
 msgid "The %s filament is too soft to be used with the AMS"
@@ -4431,6 +4427,30 @@ msgstr ""
 msgid ""
 "Prime tower is required for smooth timelapse. There may be flaws on the "
 "model without prime tower. Do you want to enable prime tower?"
+msgstr ""
+
+msgid ""
+"We have added an experimental style \"Tree Slim\" that features smaller "
+"support volume but weaker strength.\n"
+"We recommand using it with: 0 interface layers, 0 top distance, 2 walls."
+msgstr ""
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Change these settings automatically\n"
+"No  - Do not change these settings for me"
+msgstr ""
+
+msgid ""
+"For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommand the following "
+"settings: at least 2 interface layers, at least 0.1 top z distance or using "
+"support materials on interface."
+msgstr ""
+
+msgid ""
+"When using support material for the support interface, We recommand the "
+"following settings:\n"
+"0 top distance, 0 interface spacing, concentric pattern."
 msgstr ""
 
 msgid ""
@@ -5194,6 +5214,17 @@ msgstr ""
 msgid "version %s update information :"
 msgstr ""
 
+msgid "Network plug-in update"
+msgstr ""
+
+msgid ""
+"Click OK to update the Network plug-in when Bambu Studio launches next time."
+msgstr ""
+
+#, c-format, boost-format
+msgid "A new Network plug-in(%s) available, Do you want to install it?"
+msgstr ""
+
 msgid "New version of Bambu Studio"
 msgstr "A Bambu Studio új verziója"
 
@@ -5509,7 +5540,7 @@ msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% túl magas, a nyomtatás során előfordulhatnak ütközések."
 
 msgid " is too close to others, there may be collisions when printing.\n"
-msgstr " is too close to others, there may be collisions when printing.\n"
+msgstr ""
 
 msgid ""
 " is too close to exclusion area, there may be collisions when printing.\n"
@@ -5614,9 +5645,9 @@ msgstr ""
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "A rétegmagasság nem lehet nagyobb a fúvóka átmérőjénél."
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s\n"
-msgstr ""
+msgstr "\n"
 
 msgid "Generating skirt & brim"
 msgstr "Szoknya & perem generálása"
@@ -7148,20 +7179,15 @@ msgstr "Engedélyezi a támasz generálását."
 
 msgid ""
 "normal(auto) and tree(auto) is used to generate support automatically. If "
-"normal or tree is selected, only support enforcers are generated"
+"normal(manual) or tree(manual) is selected, only support enforcers are "
+"generated"
 msgstr ""
-"A normál (auto), hibrid (auto) és fa (auto) támaszok automatikus "
-"generálására szolgál. Ha normál vagy fa van kiválasztva, akkor csak a támasz "
-"kényszerítők kerülnek legenerálásra."
 
 msgid "normal(auto)"
 msgstr "normál (auto)"
 
 msgid "tree(auto)"
 msgstr "fa (auto)"
-
-msgid "hybrid(auto)"
-msgstr "hibrid (auto)"
 
 msgid "normal(manual)"
 msgstr ""
@@ -7210,9 +7236,12 @@ msgstr ""
 msgid "The z gap between the bottom support interface and object"
 msgstr ""
 
+msgid "Support base"
+msgstr ""
+
 msgid ""
-"Filament to print support and raft. \"Default\" means no specific filament "
-"for support and current filament is used"
+"Filament to print support base and raft. \"Default\" means no specific "
+"filament for support and current filament is used"
 msgstr ""
 
 msgid "Line width of support"
@@ -7267,6 +7296,9 @@ msgstr "A támasz mintázata."
 msgid "Rectilinear grid"
 msgstr "Vonalrács"
 
+msgid "Hollow"
+msgstr ""
+
 msgid "Interface pattern"
 msgstr "Érintkező felület mintázata"
 
@@ -7297,8 +7329,26 @@ msgstr "Támaszok sebessége"
 msgid "Style"
 msgstr "Stílus"
 
+msgid ""
+"Style and shape of the support. For normal support, projecting the supports "
+"into a regular grid will create more stable supports (default), while snug "
+"support towers will save material and reduce object scarring.\n"
+"For tree support, tight style will merge branches more aggressively and save "
+"a lot of material (default), while hybrid style will create similar "
+"structure to normal support under large flat overhangs."
+msgstr ""
+
 msgid "Snug"
 msgstr "Szoros"
+
+msgid "Tree Slim"
+msgstr ""
+
+msgid "Tree Strong"
+msgstr ""
+
+msgid "Tree Hybrid"
+msgstr ""
 
 msgid "Independent support layer height"
 msgstr "Független támasz rétegmagassága"
@@ -7960,63 +8010,6 @@ msgid ""
 "density to improve the strength of the model?"
 msgstr ""
 
-#~ msgid "Choose one or more files (3mf/step/stl/obj/amf):"
-#~ msgstr "Válassz ki egy vagy több fájlt (3mf/step/stl/obj/amf):"
-
-#~ msgid "Finish"
-#~ msgstr "Kész"
-
-#~ msgid "Import 3MF/STL/STEP/OBJ/AMF"
-#~ msgstr "3MF/STL/STEP/OBJ/AMF importálása"
-
-#~ msgid "Part Cooling"
-#~ msgstr "Tárgyhűtés"
-
-#~ msgid "Aux Cooling"
-#~ msgstr "Segédhűtés"
-
-#~ msgid ""
-#~ "Filament to print support and skirt. 0 means no specific filament for "
-#~ "support and current filament is used"
-#~ msgstr ""
-#~ "Filament a támasz és perem nyomtatásához. A 0 azt jelenti, hogy nincs "
-#~ "erre külön kijelölt filament és a jelenleg használt kerül felhasználásra"
-
-#~ msgid ""
-#~ "Filament to print support interface. 0 means no specific filament for "
-#~ "support interface and current filament is used"
-#~ msgstr ""
-#~ "Filament a támasz érintkező felületének nyomtatásához. A 0 azt jelenti, "
-#~ "hogy nincs erre külön kijelölt filament és a jelenleg használt kerül "
-#~ "felhasználásra"
-
-#~ msgid "Repair"
-#~ msgstr "Javítás"
-
-#~ msgid "Repair the model's meshes if it is non-manifold mesh"
-#~ msgstr "Megjavítja a modell hálóit, ha azok hibásak"
-
-#~ msgid "Heat the nozzle to target temperature"
-#~ msgstr "Fúvóka felmelegítése a kívánt hőmérsékletre"
-
-#~ msgid ""
-#~ "Successfully sent. Will automatically jump to the device page in %s s"
-#~ msgstr ""
-#~ "Sikeresen elküldve. Az eszköz oldala automatikusan megjelenik %s mp belül"
-
-#~ msgid "Monitoring Recording"
-#~ msgstr "Felvétel monitorozása"
-
-#~ msgid "Tree support with infill"
-#~ msgstr "Fa támasz kitöltéssel"
-
-#~ msgid ""
-#~ "This setting specifies whether to add infill inside large hollows of tree "
-#~ "support"
-#~ msgstr ""
-#~ "Ez a beállítás határozza meg, hogy a fa támasz nagyobb üregeiben legyen-e "
-#~ "kitöltés."
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -8060,6 +8053,9 @@ msgstr ""
 #~ "ellenkező esetben az aktuális projektben lévő összes objektumot "
 #~ "orientálja."
 
+#~ msgid "Aux Cooling"
+#~ msgstr "Segédhűtés"
+
 #~ msgid "Avoid crossing wall when travel"
 #~ msgstr "Falak elkerülése mozgáskor"
 
@@ -8071,6 +8067,9 @@ msgstr ""
 #~ "Az asztalhőmérséklet magasabb, mint ennek a filamentnek az üvegesedési "
 #~ "hőmérséklete.\n"
 #~ "Ez a fúvóka eltömődését és nyomtatási hibákat okozhat"
+
+#~ msgid "Choose one or more files (3mf/step/stl/obj/amf):"
+#~ msgstr "Válassz ki egy vagy több fájlt (3mf/step/stl/obj/amf):"
 
 #~ msgid "Clear all"
 #~ msgstr "Összes törlése"
@@ -8182,8 +8181,26 @@ msgstr ""
 #~ msgid "Filament N XX"
 #~ msgstr "Filament N XX"
 
+#~ msgid ""
+#~ "Filament to print support and skirt. 0 means no specific filament for "
+#~ "support and current filament is used"
+#~ msgstr ""
+#~ "Filament a támasz és perem nyomtatásához. A 0 azt jelenti, hogy nincs "
+#~ "erre külön kijelölt filament és a jelenleg használt kerül felhasználásra"
+
+#~ msgid ""
+#~ "Filament to print support interface. 0 means no specific filament for "
+#~ "support interface and current filament is used"
+#~ msgstr ""
+#~ "Filament a támasz érintkező felületének nyomtatásához. A 0 azt jelenti, "
+#~ "hogy nincs erre külön kijelölt filament és a jelenleg használt kerül "
+#~ "felhasználásra"
+
 #~ msgid "Filaments Selection"
 #~ msgstr "Filamentek kiválasztása"
+
+#~ msgid "Finish"
+#~ msgstr "Kész"
 
 #~ msgid "Finished"
 #~ msgstr "Kész"
@@ -8223,6 +8240,9 @@ msgstr ""
 #~ "Fúvóka felfűtése a\n"
 #~ "célhőmérsékletre"
 
+#~ msgid "Heat the nozzle to target temperature"
+#~ msgstr "Fúvóka felmelegítése a kívánt hőmérsékletre"
+
 #~ msgid "Height:"
 #~ msgstr "Magasság:"
 
@@ -8233,6 +8253,9 @@ msgstr ""
 #~ "Az extruder körül szabadon hagyott kör alakú terület magassága: az "
 #~ "automatikus elrendezéshez van használva az ütközések elkerülése "
 #~ "érdekében, amikor a nyomtatás tárgyanként történik."
+
+#~ msgid "Import 3MF/STL/STEP/OBJ/AMF"
+#~ msgstr "3MF/STL/STEP/OBJ/AMF importálása"
 
 #~ msgid "In the calibration of extrusion flow"
 #~ msgstr "Az anyagáramlás kalibrálásában"
@@ -8275,6 +8298,9 @@ msgstr ""
 #~ msgid "Monitoring"
 #~ msgstr "Monitorozás"
 
+#~ msgid "Monitoring Recording"
+#~ msgstr "Felvétel monitorozása"
+
 #~ msgid "Open"
 #~ msgstr "Open"
 
@@ -8286,6 +8312,9 @@ msgstr ""
 
 #~ msgid "Output file"
 #~ msgstr "Kimeneti fájl"
+
+#~ msgid "Part Cooling"
+#~ msgstr "Tárgyhűtés"
 
 #~ msgid "Pause(heated bed temperature error)"
 #~ msgstr "Szünet (tárgyasztal hőmérséklet hiba)"
@@ -8370,6 +8399,12 @@ msgstr ""
 #~ msgid "Reload items"
 #~ msgstr "Tárgyak újbóli betöltése"
 
+#~ msgid "Repair"
+#~ msgstr "Javítás"
+
+#~ msgid "Repair the model's meshes if it is non-manifold mesh"
+#~ msgstr "Megjavítja a modell hálóit, ha azok hibásak"
+
 #~ msgid "Report"
 #~ msgstr "Jelentés"
 
@@ -8403,10 +8438,24 @@ msgstr ""
 #~ msgid "Spiral mode"
 #~ msgstr "Spirál/Váza mód"
 
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, \n"
+#~ "support is disabled, top shell layers is 0 and sparse infill density is "
+#~ "0\n"
+#~ msgstr ""
+#~ "A spirál mód csak akkor működik, ha a falak száma 1,\n"
+#~ "a támaszok ki vannak kapcsolva, a felső rétegek száma 0 és a hiányos "
+#~ "kitöltés sűrűsége 0\n"
+
 #~ msgid "Successfully sent.Will automatically jump to the device page in %s s"
 #~ msgstr ""
 #~ "Sikeresen elküldve. Automatikus átváltás a készülék oldalára %s mp-en "
 #~ "belül"
+
+#~ msgid ""
+#~ "Successfully sent. Will automatically jump to the device page in %s s"
+#~ msgstr ""
+#~ "Sikeresen elküldve. Az eszköz oldala automatikusan megjelenik %s mp belül"
 
 #~ msgid ""
 #~ "Support layer uses layer height independent with object layer. This is to "
@@ -8460,6 +8509,13 @@ msgstr ""
 #~ "Az objektum színei ennek eredményeképpen keveredni fognak."
 
 #~ msgid ""
+#~ "This setting specifies whether to add infill inside large hollows of tree "
+#~ "support"
+#~ msgstr ""
+#~ "Ez a beállítás határozza meg, hogy a fa támasz nagyobb üregeiben legyen-e "
+#~ "kitöltés."
+
+#~ msgid ""
 #~ "This setting stands for how much volume of filament can be melted and "
 #~ "extruded per second. Printing speed is limited by max volumetric speed, "
 #~ "in case of too high and unreasonable speed setting. Zero means no limit"
@@ -8476,6 +8532,9 @@ msgstr ""
 
 #~ msgid "Translation"
 #~ msgstr "Fordítás"
+
+#~ msgid "Tree support with infill"
+#~ msgstr "Fa támasz kitöltéssel"
 
 #~ msgid "Unable to create zip file"
 #~ msgstr "Nem sikerült létrehozni a zip fájlt"
@@ -8514,8 +8573,19 @@ msgstr ""
 #~ " túl közel van a tiltott területhez, a nyomtatás során előfordulhatnak "
 #~ "ütközések.\n"
 
+#~ msgid "hybrid(auto)"
+#~ msgstr "hibrid (auto)"
+
 #~ msgid "normal"
 #~ msgstr "normál"
+
+#~ msgid ""
+#~ "normal(auto) and tree(auto) is used to generate support automatically. If "
+#~ "normal or tree is selected, only support enforcers are generated"
+#~ msgstr ""
+#~ "A normál (auto), hibrid (auto) és fa (auto) támaszok automatikus "
+#~ "generálására szolgál. Ha normál vagy fa van kiválasztva, akkor csak a "
+#~ "támasz kényszerítők kerülnek legenerálásra."
 
 #~ msgid "the 3mf is not compatible, load geometry data only!"
 #~ msgstr "A 3mf nem kompatibilis, csak geometriai adatok kerülnek betöltésre!"

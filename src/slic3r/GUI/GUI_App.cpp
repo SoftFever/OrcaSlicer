@@ -1892,6 +1892,9 @@ void GUI_App::init_app_config()
             if (! wxGetEnv(wxS("XDG_CONFIG_HOME"), &dir) || dir.empty() )
                 dir = wxFileName::GetHomeDir() + wxS("/.config");
             set_data_dir((dir + "/" + GetAppName()).ToUTF8().data());
+            boost::filesystem::path data_dir_path(data_dir());
+            if (!boost::filesystem::exists(data_dir_path))
+                boost::filesystem::create_directory(data_dir_path);
         #endif
     } else {
         m_datadir_redefined = true;
@@ -2492,11 +2495,14 @@ bool GUI_App::on_init_inner()
 
 void GUI_App::copy_network_if_available()
 {
+    if (app_config->get("update_network_plugin") != "true")
+        return;
     std::string network_library, player_library, network_library_dst, player_library_dst;
     std::string data_dir_str = data_dir();
     boost::filesystem::path data_dir_path(data_dir_str);
     auto plugin_folder = data_dir_path / "plugins";
     auto cache_folder = data_dir_path / "ota";
+    std::string changelog_file = cache_folder.string() + "/network_plugins.json";
 #if defined(_MSC_VER) || defined(_WIN32)
     network_library = cache_folder.string() + "/bambu_networking.dll";
     player_library = cache_folder.string() + "/BambuSource.dll";
@@ -2545,6 +2551,9 @@ void GUI_App::copy_network_if_available()
         fs::remove(player_library);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": Copying player library from" << player_library << " to " << player_library_dst<<" successfully.";
     }
+    if (boost::filesystem::exists(changelog_file))
+        fs::remove(changelog_file);
+    app_config->set("update_network_plugin", "false");
 }
 
 bool GUI_App::on_init_network(bool try_backup)
@@ -2903,6 +2912,16 @@ void GUI_App::set_label_clr_sys(const wxColour& clr)
     std::string str = clr_str.ToStdString();
     app_config->save();
     */
+}
+
+bool GUI_App::get_side_menu_popup_status()
+{
+    return m_side_popup_status;
+}
+
+void GUI_App::set_side_menu_popup_status(bool status)
+{
+    m_side_popup_status = status;
 }
 
 bool GUI_App::tabs_as_menu() const
@@ -5716,6 +5735,22 @@ void GUI_App::disassociate_files(std::wstring extend)
 
 
 #endif // __WXMSW__
+
+bool is_support_filament(int extruder_id)
+{
+    auto &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
+    auto &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
+
+    if (extruder_id >= filament_presets.size()) return false;
+
+    Slic3r::Preset *filament = filaments.find_preset(filament_presets[extruder_id]);
+    if (filament == nullptr) return false;
+
+    Slic3r::ConfigOptionBools *support_option = dynamic_cast<Slic3r::ConfigOptionBools *>(filament->config.option("filament_is_support"));
+    if (support_option == nullptr) return false;
+
+    return support_option->get_at(0);
+};
 
 } // GUI
 } //Slic3r

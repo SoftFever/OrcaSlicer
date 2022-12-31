@@ -35,11 +35,18 @@ wxDEFINE_EVENT(EVT_AMS_CLIBRATION_CANCEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_GUIDE_WIKI, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_RETRY, wxCommandEvent);
 
-bool AMSinfo::parse_ams_info(Ams *ams, bool remain_flag)
+bool AMSinfo::parse_ams_info(Ams *ams, bool remain_flag, bool humidity_flag)
 {
     if (!ams) return false;
     this->ams_id = ams->id;
-    this->ams_humidity = ams->humidity;
+
+    if (humidity_flag) {
+        this->ams_humidity = ams->humidity;
+    }
+    else {
+        this->ams_humidity = -1;
+    }
+    
     cans.clear();
     for (int i = 0; i < 4; i++) {
         auto    it = ams->trayList.find(std::to_string(i));
@@ -917,7 +924,8 @@ void AMSRoad::doRender(wxDC &dc)
             dc.DrawBitmap(ams_humidity_0.bmp(), wxPoint(size.x - ams_humidity_0.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_0.GetBmpSize().y - FromDIP(8)));
         }
         else {
-            dc.DrawBitmap(ams_humidity_4.bmp(), wxPoint(size.x - ams_humidity_4.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_4.GetBmpSize().y - FromDIP(8)));
+            /*dc.DrawBitmap(ams_humidity_4.bmp(), wxPoint(size.x - ams_humidity_4.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_4.GetBmpSize().y - FromDIP(8)));*/
+            //to do ...
         }
     }
 }

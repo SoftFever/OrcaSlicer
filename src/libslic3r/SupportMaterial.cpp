@@ -790,6 +790,7 @@ public:
         m_extrusion_width(params.extrusion_width),
         m_support_material_closing_radius(params.support_closing_radius)
     {
+        if (m_style != smsSnug) m_style = smsGrid;
         switch (m_style) {
         case smsGrid:
         {
@@ -1578,9 +1579,8 @@ static inline Polygons detect_overhangs(
                     // Offset the support regions back to a full overhang, restrict them to the full overhang.
                     // This is done to increase size of the supporting columns below, as they are calculated by 
                     // propagating these contact surfaces downwards.
-                    diff_polygons = 
-                        expand(diff(intersection(expand(diff_polygons, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS), layerm_polygons), lower_layer_polygons),
-                               xy_expansion, SUPPORT_SURFACES_OFFSET_PARAMETERS);
+                    diff_polygons = diff(intersection(expand(diff_polygons, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS), layerm_polygons), lower_layer_polygons);
+                    if (xy_expansion != 0) { diff_polygons = expand(diff_polygons, xy_expansion, SUPPORT_SURFACES_OFFSET_PARAMETERS); }
                 }
                 //FIXME add user defined filtering here based on minimal area or minimum radius or whatever.
 
@@ -2191,7 +2191,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
 
     // BBS: tree support is selected so normal supports need not be generated.
     // Note we still need to go through the following steps if support is disabled but raft is enabled.
-    if (m_object_config->enable_support.value && (m_object_config->support_type.value == stTreeAuto || m_object_config->support_type.value == stTree || m_object_config->support_type.value == stHybridAuto)) {
+    if (m_object_config->enable_support.value && (m_object_config->support_type.value != stNormalAuto && m_object_config->support_type.value != stNormal)) {
         return MyLayersPtr();
     }
 
@@ -2889,7 +2889,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::raft_and_int
     // Generate intermediate layers.
     // The first intermediate layer is the same as the 1st layer if there is no raft,
     // or the bottom of the first intermediate layer is aligned with the bottom of the raft contact layer.
-    // Intermediate layers are always printed with a normal etrusion flow (non-bridging).
+    // Intermediate layers are always printed with a normal extrusion flow (non-bridging).
     size_t idx_layer_object = 0;
     size_t idx_extreme_first = 0;
     if (! extremes.empty() && std::abs(extremes.front()->extreme_z() - m_slicing_params.raft_interface_top_z) < EPSILON) {

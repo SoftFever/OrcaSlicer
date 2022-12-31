@@ -271,6 +271,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     double sparse_infill_density = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
+    auto timelapse_type = config->opt_enum<TimelapseType>("timelapse_type");
 
     if (config->opt_bool("spiral_mode") &&
         ! (config->opt_int("wall_loops") == 1 &&
@@ -279,12 +280,12 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
            ! config->opt_bool("enable_support") &&
            config->opt_int("enforce_support_layers") == 0 &&
            config->opt_bool("ensure_vertical_shell_thickness") &&
-           ! config->opt_bool("detect_thin_wall")))
+           ! config->opt_bool("detect_thin_wall") &&
+            config->opt_enum<TimelapseType>("timelapse_type") == TimelapseType::tlTraditional))
     {
-        wxString msg_text = _(L("Spiral mode only works when wall loops is 1, \n"
-                                "support is disabled, top shell layers is 0 and sparse infill density is 0\n"));
+        wxString msg_text = _(L("Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0 and timelapse type is traditional"));
         if (is_global_config)
-            msg_text += "\n" + _(L("Change these settings automatically? \n"
+            msg_text += "\n\n" + _(L("Change these settings automatically? \n"
                                      "Yes - Change these settings and enable spiral mode automatically\n"
                                      "No  - Give up using spiral mode this time"));
         MessageDialog dialog(m_msg_dlg_parent, msg_text, "",
@@ -301,7 +302,9 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             new_conf.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
             new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionBool(true));
             new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
+            new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
             sparse_infill_density = 0;
+            timelapse_type = TimelapseType::tlTraditional;
             support = false;
         }
         else {
@@ -310,6 +313,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
         if (cb_value_change) {
             cb_value_change("sparse_infill_density", sparse_infill_density);
+            cb_value_change("timelapse_type", timelapse_type);
             if (!support)
                 cb_value_change("enable_support", false);
         }
@@ -574,19 +578,16 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
                     "support_type", "support_on_build_plate_only", "support_critical_regions_only",
                     "support_object_xy_distance", "independent_support_layer_height"})
         toggle_field(el, have_support_material);
-    toggle_field("support_threshold_angle", have_support_material && (support_type == stNormalAuto || support_type == stTreeAuto || support_type==stHybridAuto));
+    toggle_field("support_threshold_angle", have_support_material && is_auto(support_type));
     //toggle_field("support_closing_radius", have_support_material && support_style == smsSnug);
 
+    bool support_is_tree = config->opt_bool("enable_support") && is_tree(support_type);
     for (auto el : {"tree_support_branch_angle", "tree_support_wall_count", "tree_support_branch_distance", "tree_support_branch_diameter"})
-        toggle_field(el, config->opt_bool("enable_support") && (support_type == stTreeAuto || support_type == stTree || support_type == stHybridAuto));
+        toggle_field(el, support_is_tree);
 
     // hide tree support settings when normal is selected
-    bool support_is_tree = std::set<SupportType>{stTreeAuto, stHybridAuto, stTree}.count(support_type) != 0;
-    toggle_line("tree_support_branch_distance", support_is_tree);
-    toggle_line("tree_support_branch_diameter", support_is_tree);
-    toggle_line("tree_support_branch_angle", support_is_tree);
-    toggle_line("tree_support_wall_count", support_is_tree);
-    toggle_line("max_bridge_length", support_is_tree);
+    for (auto el : {"tree_support_branch_angle", "tree_support_wall_count", "tree_support_branch_distance", "tree_support_branch_diameter", "max_bridge_length"})
+        toggle_line(el, support_is_tree);
 
     // tree support use max_bridge_length instead of bridge_no_support
     toggle_line("bridge_no_support", !support_is_tree);

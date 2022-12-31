@@ -1361,9 +1361,6 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_print_option_btn = new SideButton(this, "", "sidebutton_dropdown", 0, FromDIP(14));
 
     update_side_button_style();
-    m_print_option_btn->Enable();
-    sizer->Add(FromDIP(15), 0, 0, 0, 0);
-    
     m_slice_option_btn->Enable();
     m_print_option_btn->Enable();
     sizer->Add(m_slice_option_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(1));
