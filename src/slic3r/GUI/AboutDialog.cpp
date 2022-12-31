@@ -250,7 +250,7 @@ AboutDialog::AboutDialog()
         #endif
         version_font.SetPointSize(FromDIP(16));
         version->SetFont(version_font);
-        version->SetForegroundColour(wxColour("#FFFFFE"));
+        version->SetForegroundColour(wxColour("#FFFFFD"));
         version->SetBackgroundColour(wxColour("#00AF42"));
         vesizer->Add(version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
         vesizer->Add(0, 0, 1, wxEXPAND, FromDIP(5));

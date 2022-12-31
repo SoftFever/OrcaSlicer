@@ -892,6 +892,12 @@ void SendToPrinterDialog::update_show_status()
 
     reset_timeout();
 
+    bool is_suppt = obj_->is_function_supported(PrinterFunction::FUNC_SEND_TO_SDCARD);
+    if (!is_suppt) {
+        show_status(PrintDialogStatus::PrintStatusNotSupportedSendToSDCard);
+        return;
+    }
+
     // reading done
     if (obj_->is_in_upgrading()) {
         show_status(PrintDialogStatus::PrintStatusInUpgrading);
@@ -912,12 +918,6 @@ void SendToPrinterDialog::update_show_status()
 
     if (obj_->dev_ip.empty()) {
         show_status(PrintDialogStatus::PrintStatusNotOnTheSameLAN);
-        return;
-    }
-
-    bool is_suppt = obj_->is_function_supported(PrinterFunction::FUNC_SEND_TO_SDCARD);
-    if (!is_suppt) {
-        show_status(PrintDialogStatus::PrintStatusNotSupportedSendToSDCard);
         return;
     }
     

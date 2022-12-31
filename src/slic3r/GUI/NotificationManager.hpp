@@ -135,6 +135,7 @@ enum class NotificationType
 	BBLSeqPrintInfo,
 	//BBL: plugin install hint
 	BBLPluginInstallHint,
+	BBLPluginUpdateAvailable,
 	BBLPreviewOnlyMode,
 };
 
@@ -873,6 +874,17 @@ private:
 		_u8L("Integration failed.") },
         NotificationData{NotificationType::UndoDesktopIntegrationSuccess, NotificationLevel::RegularNotificationLevel, 10,
 		_u8L("Undo integration was successful.") },
+
+        NotificationData{NotificationType::BBLPluginUpdateAvailable, NotificationLevel::ImportantNotificationLevel, BBL_NOTICE_MAX_INTERVAL,
+			_u8L("New network plug-in available."),
+			_u8L("Details"),
+                         [](wxEvtHandler* evnthndlr) {
+                //BBS set feishu release page by default
+                 wxCommandEvent* evt = new wxCommandEvent(EVT_UPDATE_PLUGINS_WHEN_LAUNCH);
+				 wxQueueEvent(wxGetApp().plater(), evt);
+				 return true;
+             }},
+
         NotificationData{NotificationType::UndoDesktopIntegrationFail, NotificationLevel::WarningNotificationLevel, 10,
 		_u8L("Undo integration failed.") },
         NotificationData{NotificationType::ExportOngoing, NotificationLevel::RegularNotificationLevel, 0, _u8L("Exporting.")},

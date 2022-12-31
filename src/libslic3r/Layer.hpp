@@ -260,8 +260,8 @@ public:
     {
         ExPolygon *area;
         int        type;
-        int        dist_to_top;
-        AreaGroup(ExPolygon *a, int t, int d) : area(a), type(t), dist_to_top(d) {}
+        coordf_t   dist_to_top; // mm dist to top
+        AreaGroup(ExPolygon *a, int t, coordf_t d) : area(a), type(t), dist_to_top(d) {}
     };
     std::vector<AreaGroup> area_groups;
 

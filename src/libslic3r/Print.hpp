@@ -88,6 +88,14 @@ enum PrintObjectStep {
     posInfill, posIroning, posSupportMaterial, posSimplifyPath, posSimplifySupportPath, posCount,
 };
 
+enum CalibMode {
+    Calib_None = 0,
+    Calib_PA_DDE,
+    Calib_PA_Bowden,
+    Calib_PA_Tower_DDE,
+    Calib_PA_Tower_Bowden
+};
+
 // A PrintRegion object represents a group of volumes to print
 // sharing the same config (including the same assigned extruder(s))
 class PrintRegion
@@ -352,6 +360,7 @@ public:
     // Get a layer approximately at print_z.
     const Layer*	get_layer_at_printz(coordf_t print_z, coordf_t epsilon) const;
     Layer*			get_layer_at_printz(coordf_t print_z, coordf_t epsilon);
+    int             get_layer_idx_get_printz(coordf_t print_z, coordf_t epsilon);
     // BBS
     const Layer*    get_layer_at_bottomz(coordf_t bottom_z, coordf_t epsilon) const;
     Layer*          get_layer_at_bottomz(coordf_t bottom_z, coordf_t epsilon);
@@ -735,7 +744,8 @@ public:
     //SoftFever
     bool &is_BBL_printer() { return m_isBBLPrinter; }
     const bool is_BBL_printer() const { return m_isBBLPrinter; }
-
+    CalibMode& calib_mode() { return m_calib_mode; }
+    const CalibMode calib_mode() const { return m_calib_mode; }
   protected:
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);
@@ -787,6 +797,9 @@ private:
     Vec3d   m_origin;
     //BBS: modified_count
     int     m_modified_count {0};
+    
+    //SoftFever: calibration mode, change to enum later
+    CalibMode m_calib_mode;
 
     // To allow GCode to set the Print's GCodeExport step status.
     friend class GCode;

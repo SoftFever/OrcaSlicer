@@ -293,7 +293,7 @@ if(NOT TBB_FOUND)
   # Create targets
   ##################################
 
-  if(NOT CMAKE_VERSION VERSION_LESS 3.0 AND TBB_FOUND)
+  if(NOT CMAKE_VERSION VERSION_LESS 3.0 AND TBB_FOUND AND NOT TARGET TBB::tbb)
     add_library(TBB::tbb UNKNOWN IMPORTED)
     set_target_properties(TBB::tbb PROPERTIES
           INTERFACE_COMPILE_DEFINITIONS "${TBB_DEFINITIONS}"

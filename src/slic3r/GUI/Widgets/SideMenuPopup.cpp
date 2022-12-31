@@ -2,6 +2,7 @@
 #include "Label.hpp"
 
 #include <wx/dcgraph.h>
+#include "../GUI_App.hpp"
 
 
 
@@ -17,7 +18,6 @@ SidePopup::SidePopup(wxWindow* parent)
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
-
 }
 
 SidePopup::~SidePopup()
@@ -27,6 +27,7 @@ SidePopup::~SidePopup()
 
 void SidePopup::OnDismiss()
 {
+    Slic3r::GUI::wxGetApp().set_side_menu_popup_status(false);
     wxPopupTransientWindow::OnDismiss();
 }
 
@@ -64,6 +65,7 @@ void SidePopup::Popup(wxWindow* focus)
         else
             Position(pos, {0, focus->GetSize().y + 12});
     }
+    Slic3r::GUI::wxGetApp().set_side_menu_popup_status(true);
     wxPopupTransientWindow::Popup();
 }
 

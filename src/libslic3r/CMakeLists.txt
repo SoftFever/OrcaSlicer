@@ -369,6 +369,8 @@ set(lisbslic3r_sources
     Arachne/WallToolPaths.cpp
     Shape/TextShape.hpp
     Shape/TextShape.cpp
+    calib.hpp
+    calib.cpp
 )
 
 if (APPLE)

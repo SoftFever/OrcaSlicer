@@ -78,6 +78,7 @@ using ItemGroup = std::vector<std::reference_wrapper<Item>>;
 
 // A coefficient used in separating bigger items and smaller items.
 const double BIG_ITEM_TRESHOLD = 0.02;
+#define VITRIFY_TEMP_DIFF_THRSH 15  // bed temp can be higher than vitrify temp, but not higher than this thresh
 
 // Fill in the placer algorithm configuration with values carefully chosen for
 // Slic3r.
@@ -423,9 +424,9 @@ protected:
             for (int i = 0; i < m_items.size(); i++) {
                 Item& p = m_items[i];
                 if (p.is_virt_object) continue;
-                score += lambda3 * (item.bed_temp - p.vitrify_temp > 0);
+                score += lambda3 * (item.bed_temp - p.vitrify_temp > VITRIFY_TEMP_DIFF_THRSH);
             }
-            score += lambda3 * (item.bed_temp - item.vitrify_temp > 0);
+            score += lambda3 * (item.bed_temp - item.vitrify_temp > VITRIFY_TEMP_DIFF_THRSH);
             score += lambda4 * hasRowHeightConflict + lambda4 * hasLidHeightConflict;
         }
         else {

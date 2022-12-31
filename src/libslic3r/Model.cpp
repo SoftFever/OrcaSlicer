@@ -25,6 +25,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/string_file.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/iostream.hpp>
 
@@ -2795,7 +2796,7 @@ double Model::findMaxSpeed(const ModelObject* object) {
         if (objectKey == "outer_wall_speed")
             externalPerimeterSpeedObj = object->config.opt_float(objectKey);
         if (objectKey == "small_perimeter_speed")
-            smallPerimeterSpeedObj = object->config.get_abs_value(objectKey);
+            smallPerimeterSpeedObj = object->config.opt_float(objectKey);
     }
     objMaxSpeed = std::max(perimeterSpeedObj, std::max(externalPerimeterSpeedObj, std::max(infillSpeedObj, std::max(solidInfillSpeedObj, std::max(topSolidInfillSpeedObj, std::max(supportSpeedObj, std::max(smallPerimeterSpeedObj, objMaxSpeed)))))));
     if (objMaxSpeed <= 0) objMaxSpeed = 250.;

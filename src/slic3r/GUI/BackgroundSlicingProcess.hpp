@@ -120,6 +120,7 @@ public:
 	// Get the current print. It is either m_fff_print or m_sla_print.
 	const PrintBase*    current_print() const { return m_print; }
 	const Print* 		fff_print() const { return m_fff_print; }
+	Print* 				fff_print() { return m_fff_print; }
 	const SLAPrint* 	sla_print() const { return m_sla_print; }
     // Take the project path (if provided), extract the name of the project, run it through the macro processor and save it next to the project file.
     // If the project_path is empty, just run output_filepath().

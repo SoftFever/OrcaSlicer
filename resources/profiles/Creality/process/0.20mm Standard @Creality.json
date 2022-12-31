@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "setting_id": "GP_CREALITY_004",
+    "setting_id": "GP004",
     "name": "0.20mm Standard @Creality",
     "from": "system",
     "inherits": "fdm_process_creality_common",

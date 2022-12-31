@@ -1,6 +1,6 @@
 {
   "type": "machine",
-  "setting_id": "GM_VORON_001",
+  "setting_id": "GM001",
   "name": "Voron 0.1 0.4 nozzle",
   "from": "system",
   "instantiation": "true",

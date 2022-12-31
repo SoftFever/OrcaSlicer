@@ -1,6 +1,6 @@
 {
   "type": "process",
-  "setting_id": "Anycubic-1",
+  "setting_id": "GP004",
   "name": "0.20mm Standard @4MaxPro",
   "from": "system",
   "instantiation": "true",

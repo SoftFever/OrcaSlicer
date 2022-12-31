@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFG99",
-    "setting_id": "GFSG99",
+    "setting_id": "GFSA04",
     "name": "Prusa Generic PETG",
     "from": "system",
     "instantiation": "true",

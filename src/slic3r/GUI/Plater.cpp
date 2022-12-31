@@ -160,6 +160,7 @@ wxDEFINE_EVENT(EVT_PUBLISH_FINISHED,                wxCommandEvent);
 wxDEFINE_EVENT(EVT_REPAIR_MODEL,                    wxCommandEvent);
 wxDEFINE_EVENT(EVT_FILAMENT_COLOR_CHANGED,          wxCommandEvent);
 wxDEFINE_EVENT(EVT_INSTALL_PLUGIN_NETWORKING,       wxCommandEvent);
+wxDEFINE_EVENT(EVT_UPDATE_PLUGINS_WHEN_LAUNCH,       wxCommandEvent);
 wxDEFINE_EVENT(EVT_INSTALL_PLUGIN_HINT,             wxCommandEvent);
 wxDEFINE_EVENT(EVT_PREVIEW_ONLY_MODE_HINT,          wxCommandEvent);
 //BBS: change light/dark mode
@@ -1101,7 +1102,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
         Tab* print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
         if (print_tab) {
             print_tab->get_combo_box()->update();
-        }   
+        }
         break;
         }
     case Preset::TYPE_SLA_PRINT:
@@ -1116,7 +1117,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
     {
         update_all_preset_comboboxes();
         p->show_preset_comboboxes();
-        
+
         /* update bed shape */
         Tab* printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER);
         if (printer_tab) {
@@ -2135,6 +2136,7 @@ private:
     void update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bool temp_snapshot_was_taken = false);
     void on_action_export_to_sdcard(SimpleEvent&);
     void on_action_export_to_sdcard_all(SimpleEvent&);
+    void update_plugin_when_launch(wxCommandEvent& event);
     // path to project folder stored with no extension
     boost::filesystem::path     m_project_folder;
 
@@ -2229,6 +2231,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     this->q->Bind(EVT_FILAMENT_COLOR_CHANGED, &priv::on_filament_color_changed, this);
     this->q->Bind(EVT_INSTALL_PLUGIN_NETWORKING, &priv::install_network_plugin, this);
     this->q->Bind(EVT_INSTALL_PLUGIN_HINT, &priv::show_install_plugin_hint, this);
+    this->q->Bind(EVT_UPDATE_PLUGINS_WHEN_LAUNCH, &priv::update_plugin_when_launch, this);
     this->q->Bind(EVT_PREVIEW_ONLY_MODE_HINT, &priv::show_preview_only_hint, this);
     this->q->Bind(EVT_GLCANVAS_COLOR_MODE_CHANGED, &priv::on_change_color_mode, this);
     this->q->Bind(wxEVT_SYS_COLOUR_CHANGED, &priv::on_apple_change_color_mode, this);
@@ -6212,6 +6215,29 @@ void Plater::priv::install_network_plugin(wxCommandEvent &event)
     return;
 }
 
+void Plater::priv::update_plugin_when_launch(wxCommandEvent &event)
+{
+    std::string data_dir_str = data_dir();
+    boost::filesystem::path data_dir_path(data_dir_str);
+    auto cache_folder = data_dir_path / "ota";
+    std::string changelog_file = cache_folder.string() + "/network_plugins.json";
+
+    UpdatePluginDialog dlg(wxGetApp().mainframe);
+    dlg.update_info(changelog_file);
+    auto result = dlg.ShowModal();
+
+    auto app_config = wxGetApp().app_config;
+    if (!app_config) return;
+
+    if (result == wxID_OK) {
+        app_config->set("update_network_plugin", "true");
+    }
+    else if (result == wxID_NO) {
+        app_config->set("update_network_plugin", "false");
+    }
+    app_config->save();
+}
+
 void Plater::priv::show_install_plugin_hint(wxCommandEvent &event)
 {
     notification_manager->bbl_show_plugin_install_notification(into_u8(_L("Network Plug-in is not detected. Network related features are unavailable.")));
@@ -6438,7 +6464,9 @@ wxString Plater::priv::get_project_filename(const wxString& extension) const
 
 wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool only_filename, bool export_all) const
 {
-    std::string plate_index_str = (boost::format("_plate_%1%") % std::to_string(partplate_list.get_curr_plate_index() + 1)).str();
+    std::string plate_index_str;
+    if (partplate_list.get_plate_count() > 1)
+        plate_index_str = (boost::format("_plate_%1%") % std::to_string(partplate_list.get_curr_plate_index() + 1)).str();
     if (!m_project_folder.empty()) {
         if (!only_filename) {
             if (export_all) {
@@ -6456,6 +6484,9 @@ wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool
         }
     } else {
         if (only_filename) {
+            if(m_project_name == L"Untitled")
+                return fs::path(model.objects.front()->name).replace_extension().c_str() + wxString(plate_index_str) + extension;
+
             if (export_all)
                 return m_project_name + extension;
             else
@@ -7371,6 +7402,7 @@ Plater::Plater(wxWindow *parent, MainFrame *main_frame)
     , p(new priv(this, main_frame))
 {
     // Initialization performed in the private c-tor
+    enable_wireframe(false);
 }
 
 bool Plater::Show(bool show)
@@ -7398,7 +7430,7 @@ Print&          Plater::fff_print()         { return p->fff_print; }
 const SLAPrint& Plater::sla_print() const   { return p->sla_print; }
 SLAPrint&       Plater::sla_print()         { return p->sla_print; }
 
-int Plater::new_project(bool skip_confirm, bool silent)
+int Plater::new_project(bool skip_confirm, bool silent, const wxString& project_name)
 {
     bool transfer_preset_changes = false;
     // BBS: save confirm
@@ -7438,7 +7470,10 @@ int Plater::new_project(bool skip_confirm, bool silent)
     //reset project
     p->project.reset();
     //set project name
-    p->set_project_name(_L("Untitled"));
+    if (project_name.empty())
+        p->set_project_name(_L("Untitled"));
+    else
+        p->set_project_name(project_name);
 
     Plater::TakeSnapshot snapshot(this, "New Project", UndoRedo::SnapshotType::ProjectSeparator);
 
@@ -7800,16 +7835,22 @@ bool Plater::up_to_date(bool saved, bool backup)
                                         !Slic3r::has_other_changes(backup));
 }
 
-void Plater::add_model(bool imperial_units/* = false*/)
+void Plater::add_model(bool imperial_units/* = false*/,  std::string fname/* = ""*/)
 {
-    wxArrayString input_files;
-    wxGetApp().import_model(this, input_files);
-    if (input_files.empty())
-        return;
-
     std::vector<fs::path> paths;
-    for (const auto &file : input_files)
-        paths.emplace_back(into_path(file));
+
+    if(fname.empty()){
+        wxArrayString input_files;
+        wxGetApp().import_model(this, input_files);
+        if (input_files.empty())
+            return;
+        
+        for (const auto &file : input_files)
+            paths.emplace_back(into_path(file));
+    }
+    else{
+        paths.emplace_back(fname);
+    }
 
     std::string snapshot_label;
     assert(! paths.empty());
@@ -7854,6 +7895,134 @@ void Plater::add_model(bool imperial_units/* = false*/)
 
         wxGetApp().mainframe->update_title();
     }
+}
+
+void Plater::calib_pa(bool line_method, bool bowden) {
+    
+    const auto calib_pa_name = wxString::Format(L"Pressure Advance Test - %s%s", line_method ? L"Line" : L"Tower", bowden ? L"Bowden" : L"DDE");
+    new_project(false, false, calib_pa_name);
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+    if (line_method) {
+        add_model(false, Slic3r::resources_dir() + "/calib/PresureAdvnace/pressure_advance_test.stl");
+        p->background_process.fff_print()->calib_mode() = bowden ? Calib_PA_Bowden : Calib_PA_DDE;
+    }
+    else {
+        add_model(false, Slic3r::resources_dir() + "/calib/PresureAdvnace/tower_with_seam.stl");
+        p->background_process.fff_print()->calib_mode() = bowden ? Calib_PA_Tower_Bowden: Calib_PA_Tower_DDE;
+        auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+        auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+        auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+        filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats{ 1.0f });
+        print_config->set_key_value("default_jerk", new ConfigOptionFloat(1.0f));
+        print_config->set_key_value("outer_wall_jerk", new ConfigOptionFloat(1.0f));
+        print_config->set_key_value("inner_wall_jerk", new ConfigOptionFloat(1.0f));
+        print_config->set_key_value("top_surface_jerk", new ConfigOptionFloat(1.0f));
+        model().objects[0]->config.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(spRear));
+
+        changed_objects({ 0 });
+        wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
+        wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+        wxGetApp().get_tab(Preset::TYPE_PRINT)->update_ui_from_settings();
+        wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_ui_from_settings();
+
+
+        // automatic selection of added objects
+        // update printable state for new volumes on canvas3D
+        wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects({0});
+
+        Selection& selection = p->view3D->get_canvas3d()->get_selection();
+        selection.clear();
+        selection.add_object(0, false);
+
+        // BBS: update object list selection
+        p->sidebar->obj_list()->update_selections();
+        selection.notify_instance_update(-1, -1);
+        if (p->view3D->get_canvas3d()->get_gizmos_manager().is_enabled())
+            // this is required because the selected object changed and the flatten on face an sla support gizmos need to be updated accordingly
+            p->view3D->get_canvas3d()->update_gizmos_on_off_state();
+
+    }
+
+
+}
+
+void Plater::calib_flowrate(int pass) {
+    if (pass != 1 && pass != 2)
+        return;
+    const auto calib_name = wxString::Format(L"Flowrate Test - Pass%d", pass);
+    new_project(false, false, calib_name);
+
+    wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+    
+    if(pass == 1)
+        add_model(false, (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowrate-test-pass1.3mf").string());
+    else
+        add_model(false, (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowrate-test-pass2.3mf").string());
+
+    auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto printerConfig = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    //auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+
+    /// --- scale ---
+    // model is created for a 0.4 nozzle, scale z with nozzle size.
+    const ConfigOptionFloats* nozzle_diameter_config = printerConfig->option<ConfigOptionFloats>("nozzle_diameter");
+    assert(nozzle_diameter_config->values.size() > 0);
+    float nozzle_diameter = nozzle_diameter_config->values[0];
+    float xyScale = nozzle_diameter / 0.6;
+    //scale z to have 7 layers
+    double first_layer_height = print_config->option<ConfigOptionFloat>("initial_layer_print_height")->value;
+    double layer_height = nozzle_diameter / 2.0; // prefer 0.25 layer height for 0.4 nozzle
+    first_layer_height = std::max(first_layer_height, layer_height);
+
+    float zscale = (first_layer_height + 6 * layer_height) / 1.4;
+    // only enlarge
+    if (xyScale > 1.2) {
+        for (auto _obj : model().objects)
+            _obj->scale(xyScale, xyScale, zscale); 
+    }
+    else {
+        for (auto _obj : model().objects)
+            _obj->scale(1, 1, zscale);
+    }
+
+    // adjust parameters
+    for (auto _obj : model().objects) {
+        _obj->ensure_on_bed();
+        _obj->config.set_key_value("wall_loops", new ConfigOptionInt(3));
+        _obj->config.set_key_value("only_one_wall_top", new ConfigOptionBool(true));
+        _obj->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(55));
+        _obj->config.set_key_value("bottom_shell_layers", new ConfigOptionInt(1));
+        _obj->config.set_key_value("top_shell_layers", new ConfigOptionInt(5));
+        _obj->config.set_key_value("detect_thin_wall", new ConfigOptionBool(true));
+        _obj->config.set_key_value("filter_out_gap_fill", new ConfigOptionFloat(0));
+        _obj->config.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+        _obj->config.set_key_value("top_surface_line_width", new ConfigOptionFloat(nozzle_diameter * 1.2f));
+        _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
+        _obj->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
+        _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
+        _obj->config.set_key_value("infill_direction", new ConfigOptionFloat(45));
+        _obj->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
+
+        // extract flowrate from name, filename format: flowrate_xxx
+        std::string obj_name = _obj->name;
+        assert(obj_name.length() > 9);
+        obj_name = obj_name.substr(9);
+        if (obj_name[0] == 'm')
+            obj_name[0] = '-';
+        auto modifier = stof(obj_name);
+        _obj->config.set_key_value("print_flow_ratio", new ConfigOptionPercent(100 + modifier));
+    }
+
+    print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));
+    print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(first_layer_height));
+    print_config->set_key_value("reduce_crossing_wall", new ConfigOptionBool(true));
+    //filament_config->set_key_value("filament_max_volumetric_speed", new ConfigOptionFloats{ 9. });
+
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
+    //wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_PRINT)->update_ui_from_settings();
+    //wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_ui_from_settings();
+
 }
 
 void Plater::import_sl1_archive()
@@ -8627,6 +8796,9 @@ void Plater::add_file()
         break;
     default:break;
     }
+
+    // SoftFever: ugly fix so we can exist pa calib mode
+    p->background_process.fff_print()->calib_mode() = Calib_None;
 }
 
 void Plater::update() { p->update(); }
@@ -9086,20 +9258,24 @@ void Plater::export_gcode_3mf(bool export_all)
     fs::path default_output_file;
     AppConfig& appconfig = *wxGetApp().app_config;
     std::string start_dir;
-    default_output_file = into_path(get_export_gcode_filename(".3mf", false, export_all));
-    if (default_output_file.empty()) {
-        try {
-            start_dir = appconfig.get_last_output_dir("", false);
-            wxString filename = get_export_gcode_filename(".3mf", true, export_all);
-            std::string full_filename = start_dir + "/" + filename.utf8_string();
-            default_output_file = boost::filesystem::path(full_filename);
-        } catch(...) {
-            ;
-        }
+    try {
+        // Update the background processing, so that the placeholder parser will get the correct values for the ouput file template.
+        // Also if there is something wrong with the current configuration, a pop-up dialog will be shown and the export will not be performed.
+        unsigned int state = this->p->update_restart_background_process(false, false);
+        if (state & priv::UPDATE_BACKGROUND_PROCESS_INVALID)
+            return;
+        default_output_file = this->p->background_process.output_filepath_for_project("");
     }
-
-    //BBS replace gcode extension to .gcode.3mf
-    default_output_file = default_output_file.replace_extension(".gcode.3mf");
+    catch (const Slic3r::PlaceholderParserError& ex) {
+        // Show the error with monospaced font.
+        show_error(this, ex.what(), true);
+        return;
+    }
+    catch (const std::exception& ex) {
+        show_error(this, ex.what(), false);
+        return;
+    }
+    default_output_file.replace_extension(".3mf");
     default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(default_output_file.string()));
 
     //Get a last save path

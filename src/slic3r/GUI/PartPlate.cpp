@@ -1198,6 +1198,28 @@ std::vector<int> PartPlate::get_extruders() const
 	return plate_extruders;
 }
 
+std::vector<int> PartPlate::get_used_extruders()
+{
+	std::vector<int> used_extruders;
+	// if gcode.3mf file
+	if (m_model->objects.empty()) {
+		for (int i = 0; i < slice_filaments_info.size(); i++) {
+			used_extruders.push_back(slice_filaments_info[i].id + 1);
+		}
+		return used_extruders;
+	}
+
+	GCodeProcessorResult* result = get_slice_result();
+	if (!result)
+		return used_extruders;
+
+	PrintEstimatedStatistics& ps = result->print_statistics;
+	for (auto it = ps.volumes_per_extruder.begin(); it != ps.volumes_per_extruder.end(); it++) {
+		used_extruders.push_back(it->first + 1);
+	}
+	return used_extruders;
+}
+
 Vec3d PartPlate::estimate_wipe_tower_size(const double w, const double wipe_volume) const
 {
 	Vec3d wipe_tower_size;
@@ -3034,7 +3056,7 @@ double PartPlateList::plate_stride_y()
 }
 
 //get the plate counts, not including the invalid plate
-int PartPlateList::get_plate_count()
+int PartPlateList::get_plate_count() const
 {
 	int ret = 0;
 

@@ -2853,9 +2853,6 @@ void SelectMachineDialog::set_default()
 
     if (filename.empty()) {
         filename = m_plater->get_export_gcode_filename("", true);
-        if (std::strstr(filename.c_str(), _L("Untitled").c_str()) == NULL) {
-            filename = wxString::Format("Untitled%s",filename);
-        }
     }
 
     fs::path filename_path(filename.c_str());
@@ -2930,7 +2927,7 @@ void SelectMachineDialog::set_default()
     }
 
     // material info
-    auto        extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_extruders();
+    auto        extruders = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_used_extruders();
     BitmapCache bmcache;
 
     MaterialHash::iterator iter = m_materialList.begin();

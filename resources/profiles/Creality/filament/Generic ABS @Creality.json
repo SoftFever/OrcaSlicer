@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFB99",
-    "setting_id": "GFSB99_CREALITY_00",
+    "setting_id": "GFSA04",
     "name": "Generic ABS @Creality",
     "from": "system",
     "instantiation": "true",
@@ -13,6 +13,7 @@
         "12"
     ],
     "compatible_printers": [
-      "Creality Ender-3 V2 0.4 nozzle"
+      "Creality Ender-3 V2 0.4 nozzle",
+      "Creality CR-10 Max 0.4 nozzle"
     ]
 }

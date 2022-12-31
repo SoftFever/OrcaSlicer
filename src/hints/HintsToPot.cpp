@@ -9,7 +9,7 @@
 
 bool write_to_pot(boost::filesystem::path path, const std::vector<std::pair<std::string, std::string>>& data)
 {
-	boost::filesystem::ofstream file(std::move(path), std::ios_base::app);
+	boost::nowide::ofstream file(path.string(), std::ios_base::app);
 	for (const auto& element : data)
 	{
 		//Example of .pot element 
