@@ -26,7 +26,7 @@ jobs:
       - name: Build Bambu Studio AppImage using BuildLinux.sh
         shell: bash
         run: ./BuildLinux.sh -ir
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: AppImage
           path: './build/BambuStudio_ubu64.AppImage'
