@@ -2603,7 +2603,7 @@ extern "C" {
             argv_ptrs[i] = argv_narrow[i].data();
 
 //BBS: register default exception handler
-#if 1
+#if BBL_RELEASE_TO_PUBLIC
         SET_DEFULTER_HANDLER();
 #else
         AddVectoredExceptionHandler(1, CBaseException::UnhandledExceptionFilter);
