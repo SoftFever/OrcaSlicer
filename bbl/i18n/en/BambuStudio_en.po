@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-13 20:02+0800\n"
+"POT-Creation-Date: 2022-12-24 13:01+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -485,7 +485,7 @@ msgid "Click to download new version in default browser: %s"
 msgstr "Click to download new version in default browser: %s"
 
 msgid "The Bambu Studio needs an upgrade"
-msgstr "Bambu Studio needs an update!"
+msgstr "Bambu Studio needs an update"
 
 msgid "This is the newest version."
 msgstr "This is the newest version."
@@ -741,13 +741,13 @@ msgid "Flush into objects' support"
 msgstr "Flush into objects' support"
 
 msgid "Convert from inch"
-msgstr "Convert from Inch"
+msgstr "Convert from Inches"
 
 msgid "Restore to inch"
 msgstr "Restore to Inch"
 
 msgid "Convert from meter"
-msgstr "Convert from Meter"
+msgstr "Convert from Meters"
 
 msgid "Restore to meter"
 msgstr "Restore to Meter"
@@ -894,7 +894,7 @@ msgid "Name"
 msgstr "Name"
 
 msgid "Fila."
-msgstr ""
+msgstr "Fila."
 
 #, c-format, boost-format
 msgid "%1$d error repaired"
@@ -930,13 +930,13 @@ msgid "Right button click the icon to drop the object printable property"
 msgstr "Right click the icon to drop the object printable property"
 
 msgid "Click the icon to toggle printable property of the object"
-msgstr "Click the icon to toggle printable property of the object"
+msgstr "Click the icon to toggle printable properties of the object"
 
 msgid "Click the icon to edit support painting of the object"
 msgstr "Click the icon to edit support painting of the object"
 
 msgid "Click the icon to edit color painting of the object"
-msgstr "Click the icon to edit color painting of the object"
+msgstr "Click the icon to edit color painting for the object"
 
 msgid "Loading file"
 msgstr "Loading file"
@@ -1042,8 +1042,7 @@ msgid "Remove parameter"
 msgstr "Remove parameter"
 
 msgid "one cell can only be copied to one or multiple cells in the same column"
-msgstr ""
-"One cell can only be copied to one or multiple cells in the same column."
+msgstr "One cell can only be copied to one or more cells in the same column."
 
 msgid "multiple cells copy is not supported"
 msgstr "Copying multiple cells is not supported."
@@ -1361,6 +1360,9 @@ msgstr ""
 msgid "An SD card needs to be inserted before printing via LAN."
 msgstr ""
 
+msgid "Failed to send the print job. Please try again."
+msgstr ""
+
 msgid "Send to Printer failed. Please try again."
 msgstr ""
 
@@ -1384,7 +1386,7 @@ msgid "Please log out and login to the printer again."
 msgstr ""
 
 msgid "Downloading"
-msgstr ""
+msgstr "Downloading"
 
 msgid "Download failed"
 msgstr ""
@@ -1554,7 +1556,7 @@ msgstr ""
 "information, leaving it blank for you to enter manually."
 
 msgid "Power on update"
-msgstr "Power on update"
+msgstr "Update on startup"
 
 msgid ""
 "The AMS will automatically read the information of inserted filament on "
@@ -1622,7 +1624,7 @@ msgid ""
 "A error occurred. Maybe memory of system is not enough or it's a bug of the "
 "program"
 msgstr ""
-"A error occurred. The system may have run out of memory, or a bug may have "
+"An error occurred. The system may have run out of memory, or a bug may have "
 "occurred."
 
 msgid "Please save project and restart the program. "
@@ -1776,8 +1778,8 @@ msgid ""
 "Recommended nozzle temperature of this filament type is [%d, %d] degree "
 "centigrade"
 msgstr ""
-"The recommended nozzle temperature for this filament type is [%d, %d] degree "
-"centigrade"
+"The recommended nozzle temperature for this filament type is [%d, %d] "
+"degrees centigrade"
 
 #, c-format, boost-format
 msgid ""
@@ -1786,7 +1788,7 @@ msgid ""
 "This may cause model broken free from build plate during printing"
 msgstr ""
 "The bed temperature of other layers is lower than the bed temperature of the "
-"first layer by more than %d degree centigrade.\n"
+"first layer by more than %d degrees centigrade.\n"
 "This may cause models to break free from the build plate during printing."
 
 msgid ""
@@ -1859,11 +1861,9 @@ msgstr ""
 "The value will be reset to 0."
 
 msgid ""
-"Spiral mode only works when wall loops is 1, \n"
-"support is disabled, top shell layers is 0 and sparse infill density is 0\n"
+"Spiral mode only works when wall loops is 1, support is disabled, top shell "
+"layers is 0, sparse infill density is 0 and timelapse type is traditional"
 msgstr ""
-"Spiral mode only works when wall loops is set to 1, \n"
-"support is disabled, top shell layers is 0, and sparse infill density is 0\n"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -1871,7 +1871,7 @@ msgid ""
 "No  - Give up using spiral mode this time"
 msgstr ""
 "Change these settings automatically? \n"
-"Yes - Change these settings and enable spiral mode automatically\n"
+"Yes - Change these settings and enable spiral/vase mode automatically\n"
 "No  - Cancel enabling spiral mode"
 
 msgid ""
@@ -2112,7 +2112,7 @@ msgid "Temperature: "
 msgstr ""
 
 msgid "Loading G-codes"
-msgstr "Loading G-codes"
+msgstr "Loading G-code"
 
 msgid "Generating geometry vertex data"
 msgstr "Generating geometry vertex data"
@@ -2391,7 +2391,7 @@ msgid "A G-code path goes beyond the boundary of plate."
 msgstr "A G-code path goes beyond plate boundaries."
 
 msgid "Only the object being edit is visible."
-msgstr "Only the object being edit is visible."
+msgstr "Only the object being edited is visible."
 
 msgid ""
 "An object is laid over the boundary of plate or exceeds the height limit.\n"
@@ -2466,7 +2466,7 @@ msgid ""
 "You can find it in \"Settings > Network > Connection code\"\n"
 "on the printer, as shown in the figure:"
 msgstr ""
-"You can find it in \"Settings > Network > Connection code\"\n"
+"You can find it in \"Settings > Network > Access code\"\n"
 "on the printer, as shown in the figure:"
 
 msgid "Invalid input."
@@ -2644,22 +2644,22 @@ msgid "Load a model"
 msgstr "Load a model"
 
 msgid "Import Configs"
-msgstr "Import Presets"
+msgstr "Import Configs"
 
 msgid "Load configs"
-msgstr ""
+msgstr "Load configs"
 
 msgid "Import"
-msgstr ""
+msgstr "Import"
 
 msgid "Export all objects as STL"
 msgstr "Export All Objects as STL"
 
 msgid "Export Generic 3MF"
-msgstr ""
+msgstr "Export Generic 3MF"
 
 msgid "Export 3mf file without using some 3mf-extensions"
-msgstr ""
+msgstr "Export 3mf file without using some 3mf-extensions"
 
 msgid "Export current sliced file"
 msgstr ""
@@ -2674,7 +2674,7 @@ msgid "Export current plate as G-code"
 msgstr ""
 
 msgid "Export &Configs"
-msgstr "Export Presets"
+msgstr "Export &Configs"
 
 msgid "Export current configuration to files"
 msgstr ""
@@ -2801,13 +2801,13 @@ msgid "&Help"
 msgstr "&Help"
 
 msgid "Overwrite file"
-msgstr ""
+msgstr "Overwrite file"
 
 msgid "Yes to All"
-msgstr ""
+msgstr "Yes to All"
 
 msgid "No to All"
-msgstr ""
+msgstr "No to All"
 
 msgid "Choose a directory"
 msgstr ""
@@ -2816,12 +2816,10 @@ msgstr ""
 msgid "There is %d config exported. (Only non-system configs)"
 msgid_plural "There are %d configs exported. (Only non-system configs)"
 msgstr[0] ""
-"There is %d preset exported. (Only non-system and currently used presets)"
 msgstr[1] ""
-"There are %d presets exported. (Only non-system and currently used presets)"
 
 msgid "Export result"
-msgstr ""
+msgstr "Export Result"
 
 msgid "Select profile to load:"
 msgstr ""
@@ -2831,12 +2829,10 @@ msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural ""
 "There are %d configs imported. (Only non-system and compatible configs)"
 msgstr[0] ""
-"There is %d preset imported. (Only non-system and compatible presets)"
 msgstr[1] ""
-"There are %d presets imported. (Only non-system and compatible presets)"
 
 msgid "Import result"
-msgstr ""
+msgstr "Import result"
 
 msgid "File is missing"
 msgstr "File is missing"
@@ -2925,10 +2921,10 @@ msgid "Load failed [%d]!"
 msgstr "Loading failed [%d]!"
 
 msgid "Year"
-msgstr ""
+msgstr "Year"
 
 msgid "Month"
-msgstr ""
+msgstr "Month"
 
 msgid "All Files"
 msgstr ""
@@ -2949,7 +2945,7 @@ msgid "Switch to timelapse files."
 msgstr ""
 
 msgid "Video"
-msgstr ""
+msgstr "Video"
 
 msgid "Switch to video files."
 msgstr ""
@@ -2970,23 +2966,23 @@ msgid "Batch manage files."
 msgstr ""
 
 msgid "No printers."
-msgstr ""
+msgstr "No printers."
 
 msgid "Not supported by this model of printer!"
 msgstr ""
 
 msgid "Connecting..."
-msgstr ""
+msgstr "Connecting..."
 
 #, c-format, boost-format
 msgid "Connect failed [%d]!"
-msgstr ""
+msgstr "Connection failed [%d]!"
 
 msgid "Loading file list..."
-msgstr ""
+msgstr "Loading file list..."
 
 msgid "No files"
-msgstr ""
+msgstr "No files"
 
 msgid "Not accessible in LAN-only mode!"
 msgstr ""
@@ -3114,7 +3110,7 @@ msgid ""
 msgstr ""
 
 msgid "Downloading..."
-msgstr ""
+msgstr "Downloading..."
 
 msgid "Cloud Slicing..."
 msgstr ""
@@ -3216,6 +3212,12 @@ msgstr "Integration failed."
 
 msgid "Undo integration was successful."
 msgstr "Undo integration was successful."
+
+msgid "New network plug-in available."
+msgstr ""
+
+msgid "Details"
+msgstr ""
 
 msgid "Undo integration failed."
 msgstr "Undo integration failed."
@@ -3510,16 +3512,16 @@ msgstr ""
 "unrecognized keys:\n"
 
 msgid "You'd better upgrade your software.\n"
-msgstr "You'd better upgrade your software.\n"
+msgstr "You should update your software.\n"
 
 msgid "Newer 3mf version"
 msgstr "Newer 3mf version"
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
 "software.\n"
-msgstr ""
+msgstr "\n"
 
 msgid "The 3mf is not compatible, load geometry data only!"
 msgstr ""
@@ -3792,9 +3794,9 @@ msgid ""
 "on Bambu Studio(windows) or CAD softwares."
 msgstr ""
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s (%s).\n"
-msgstr ""
+msgstr "\n"
 
 msgid "Switching the language requires application restart.\n"
 msgstr "Switching languages requires the application to restart.\n"
@@ -4037,7 +4039,7 @@ msgid "Add/Remove printers"
 msgstr ""
 
 msgid "Slice all plate to obtain time and filament estimation"
-msgstr "Slice all plate to obtain time and filament estimation"
+msgstr "Slice all plates to obtain time and filament estimation"
 
 msgid "Packing project data into 3mf file"
 msgstr "Packing project data into 3mf file"
@@ -4200,7 +4202,7 @@ msgid "Synchronizing device information"
 msgstr "Synchronizing device information"
 
 msgid "Synchronizing device information time out"
-msgstr "Synchronizing device information time out"
+msgstr "Synchronizing device information timed out"
 
 msgid "Cannot send the print job when the printer is updating firmware"
 msgstr ""
@@ -4302,7 +4304,7 @@ msgid "Send to Printer SD card"
 msgstr ""
 
 msgid "Cannot send the print task when the upgrade is in progress"
-msgstr "Cannot send the print task when the upgrade is in progress"
+msgstr "Cannot send print tasks when an update is in progress"
 
 msgid "The printer is required to be in the same LAN as Bambu Studio."
 msgstr ""
@@ -4374,6 +4376,30 @@ msgid ""
 msgstr ""
 
 msgid ""
+"We have added an experimental style \"Tree Slim\" that features smaller "
+"support volume but weaker strength.\n"
+"We recommand using it with: 0 interface layers, 0 top distance, 2 walls."
+msgstr ""
+
+msgid ""
+"Change these settings automatically? \n"
+"Yes - Change these settings automatically\n"
+"No  - Do not change these settings for me"
+msgstr ""
+
+msgid ""
+"For \"Tree Strong\" and \"Tree Hybrid\" styles, we recommand the following "
+"settings: at least 2 interface layers, at least 0.1 top z distance or using "
+"support materials on interface."
+msgstr ""
+
+msgid ""
+"When using support material for the support interface, We recommand the "
+"following settings:\n"
+"0 top distance, 0 interface spacing, concentric pattern."
+msgstr ""
+
+msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
 "by right-click the empty position of build plate and choose \"Add Primitive"
@@ -4426,7 +4452,7 @@ msgid "Raft"
 msgstr ""
 
 msgid "Support filament"
-msgstr "Support filament"
+msgstr "Filament for Supports"
 
 msgid "Prime tower"
 msgstr "Prime tower"
@@ -4665,7 +4691,7 @@ msgid "Old Value"
 msgstr "Old value"
 
 msgid "New Value"
-msgstr "New value"
+msgstr "New Value"
 
 msgid "Transfer"
 msgstr "Transfer"
@@ -4931,9 +4957,9 @@ msgid ""
 "objects, it just orientates the selected ones.Otherwise, it will orientates "
 "all objects in the current disk."
 msgstr ""
-"Auto orients selected objects or all objects.If there are selected objects, "
-"it just orients the selected ones.Otherwise, it will orient all objects in "
-"the current disk."
+"This auto orients selected objects or all objects. If there are selected "
+"objects, it just orients the selected ones. Otherwise, it will orient all "
+"objects in the current plate."
 
 msgid "Collapse/Expand the sidebar"
 msgstr "Collapse/Expand the sidebar"
@@ -5123,6 +5149,17 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "version %s update information :"
+msgstr ""
+
+msgid "Network plug-in update"
+msgstr ""
+
+msgid ""
+"Click OK to update the Network plug-in when Bambu Studio launches next time."
+msgstr ""
+
+#, c-format, boost-format
+msgid "A new Network plug-in(%s) available, Do you want to install it?"
 msgstr ""
 
 msgid "New version of Bambu Studio"
@@ -5475,7 +5512,7 @@ msgid ""
 "The spiral vase mode does not work when an object contains more than one "
 "materials."
 msgstr ""
-"Spiral vase mode does not work when an object contains more than one "
+"Spiral (vase) mode does not work when an object contains more than one "
 "material."
 
 msgid "The prime tower is not supported in \"By object\" print."
@@ -5533,9 +5570,9 @@ msgstr ""
 msgid "Layer height cannot exceed nozzle diameter"
 msgstr "Layer height cannot exceed nozzle diameter."
 
-#, c-format, boost-format
+#, fuzzy, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s\n"
-msgstr ""
+msgstr "\n"
 
 msgid "Generating skirt & brim"
 msgstr "Generating skirt & brim"
@@ -5967,8 +6004,8 @@ msgid ""
 "Don't support the whole bridge area which make support very large. Bridge "
 "usually can be printing directly without support if not very long"
 msgstr ""
-"This disables supporting bridges, which decreasing the mount of support "
-"required. Bridges can usually be printed directly without support for a "
+"This disables supporting bridges, which decreases the amount of support "
+"required. Bridges can usually be printed directly without support over a "
 "reasonable distance."
 
 msgid "Thick bridges"
@@ -6339,8 +6376,8 @@ msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
 msgstr ""
-"Acceleration of top surface infill. Using a lower value may improve top "
-"surface quality"
+"This is the acceleration of top surface infill. Using a lower value may "
+"improve top surface quality."
 
 msgid "Acceleration of outer wall. Using a lower value can improve quality"
 msgstr ""
@@ -6415,7 +6452,7 @@ msgid ""
 "The average diatance between the random points introducded on each line "
 "segment"
 msgstr ""
-"The average diatance between the random points introducded on each line "
+"The average distance between the random points introduced on each line "
 "segment"
 
 msgid ""
@@ -7045,20 +7082,15 @@ msgstr "This enables support generation."
 
 msgid ""
 "normal(auto) and tree(auto) is used to generate support automatically. If "
-"normal or tree is selected, only support enforcers are generated"
+"normal(manual) or tree(manual) is selected, only support enforcers are "
+"generated"
 msgstr ""
-"normal(auto), hybrid(auto) and tree(auto) are used to generate support "
-"automatically. If normal or tree is selected, only support enforcers are "
-"generated."
 
 msgid "normal(auto)"
 msgstr "normal(auto)"
 
 msgid "tree(auto)"
 msgstr "tree(auto)"
-
-msgid "hybrid(auto)"
-msgstr "hybrid(auto)"
 
 msgid "normal(manual)"
 msgstr ""
@@ -7105,9 +7137,12 @@ msgstr ""
 msgid "The z gap between the bottom support interface and object"
 msgstr ""
 
+msgid "Support base"
+msgstr ""
+
 msgid ""
-"Filament to print support and raft. \"Default\" means no specific filament "
-"for support and current filament is used"
+"Filament to print support base and raft. \"Default\" means no specific "
+"filament for support and current filament is used"
 msgstr ""
 
 msgid "Line width of support"
@@ -7161,6 +7196,9 @@ msgstr "This is the line pattern for support."
 msgid "Rectilinear grid"
 msgstr "Rectilinear grid"
 
+msgid "Hollow"
+msgstr ""
+
 msgid "Interface pattern"
 msgstr "Interface pattern"
 
@@ -7191,8 +7229,26 @@ msgstr "This is the speed for support."
 msgid "Style"
 msgstr "Style"
 
+msgid ""
+"Style and shape of the support. For normal support, projecting the supports "
+"into a regular grid will create more stable supports (default), while snug "
+"support towers will save material and reduce object scarring.\n"
+"For tree support, tight style will merge branches more aggressively and save "
+"a lot of material (default), while hybrid style will create similar "
+"structure to normal support under large flat overhangs."
+msgstr ""
+
 msgid "Snug"
 msgstr "Snug"
+
+msgid "Tree Slim"
+msgstr ""
+
+msgid "Tree Strong"
+msgstr ""
+
+msgid "Tree Hybrid"
+msgstr ""
 
 msgid "Independent support layer height"
 msgstr "Independent support layer height"
@@ -7850,144 +7906,6 @@ msgid ""
 "density to improve the strength of the model?"
 msgstr ""
 
-#~ msgid "Choose one or more files (3mf/step/stl/obj/amf):"
-#~ msgstr "Choose one or more files (3mf/step/stl/obj/amf):"
-
-#~ msgid "Import 3MF/STL/STEP/OBJ/AMF"
-#~ msgstr "Import 3MF/STL/STEP/OBJ/AMF"
-
-#~ msgid "Part Cooling"
-#~ msgstr "Part Cooling"
-
-#~ msgid "Aux Cooling"
-#~ msgstr "Aux Cooling"
-
-#~ msgid ""
-#~ "Filament to print support and skirt. 0 means no specific filament for "
-#~ "support and current filament is used"
-#~ msgstr ""
-#~ "This is the filament used to print supports and skirts. 0 means no "
-#~ "specific filament for support and the current filament is used."
-
-#~ msgid ""
-#~ "Filament to print support interface. 0 means no specific filament for "
-#~ "support interface and current filament is used"
-#~ msgstr ""
-#~ "This is the filament to print support interfaces. 0 means no specific "
-#~ "filament for support interfaces and the current filament is used"
-
-#~ msgid "Repair"
-#~ msgstr "Repair"
-
-#~ msgid "Repair the model's meshes if it is non-manifold mesh"
-#~ msgstr "Repair the model’s meshes if they are non-manifold."
-
-#~ msgid "Monitoring Recording"
-#~ msgstr "Monitoring Recording"
-
-#~ msgid "Tree support with infill"
-#~ msgstr "Tree support with infill"
-
-#~ msgid ""
-#~ "This setting specifies whether to add infill inside large hollows of tree "
-#~ "support"
-#~ msgstr ""
-#~ "This setting specifies whether to add infill inside large hollows of tree "
-#~ "support."
-
-#~ msgid "Export ok."
-#~ msgstr "Export ok."
-
-#~ msgid "Plate %d: %s does not support filament %s.\n"
-#~ msgstr "Plate %d: %s does not support filament %s.\n"
-
-#~ msgid "Filament N XX"
-#~ msgstr "Filament N XX"
-
-#~ msgid "Color Print"
-#~ msgstr "Color print"
-
-#~ msgid "Comsumption"
-#~ msgstr "Consumption"
-
-#~ msgid "Filament 1"
-#~ msgstr "Filament 1"
-
-#~ msgid "Flushed filament"
-#~ msgstr "Flushed filament"
-
-#~ msgid "Adaptive layer height"
-#~ msgstr "Adaptive layer height"
-
-#~ msgid ""
-#~ "Enabling this option means the height of every layer except the first "
-#~ "will be automatically calculated during slicing according to the slope of "
-#~ "the model’s surface.\n"
-#~ "Note that this option only takes effect if no prime tower is generated in "
-#~ "current plate."
-#~ msgstr ""
-#~ "Enabling this option means that the height of each layer after the first "
-#~ "will be automatically calculated according to the slope of the model’s "
-#~ "surface.\n"
-#~ "Please note that this option only takes effect if there is no prime tower "
-#~ "generated on the current plate."
-
-#~ msgid "normal"
-#~ msgstr "normal"
-
-#~ msgid "tree"
-#~ msgstr "tree"
-
-#~ msgid " Object:"
-#~ msgstr " Object:"
-
-#~ msgid ""
-#~ "You have changed some preset settings. \n"
-#~ "Would you like to keep these changed settings after switching preset?"
-#~ msgstr ""
-#~ "You have changed some preset settings. \n"
-#~ "Would you like to keep these changed settings after switching presets?"
-
-#~ msgid "Export sliced file"
-#~ msgstr "Export Sliced File"
-
-#~ msgid "Export Sliced File"
-#~ msgstr "Export Sliced File"
-
-#~ msgid "Export current Sliced file"
-#~ msgstr "Export Sliced File"
-
-#~ msgid ""
-#~ "Force cooling fan to be specific speed when overhang degree of printed "
-#~ "part exceeds this value. Expressed as percentage which indicides how much "
-#~ "width of the line without support from lower layer"
-#~ msgstr ""
-#~ "This forces the cooling fan to use a specific speed when overhang degrees "
-#~ "of parts exceed the set value. It is expressed as percentage which "
-#~ "indicates how much line is acceptable without support from lower layers."
-
-#~ msgid "Erase painting"
-#~ msgstr "Erase painting"
-
-#~ msgid "Set pen size"
-#~ msgstr "Set pen size"
-
-#~ msgid "Rotation:"
-#~ msgstr "Rotation:"
-
-#~ msgid "Height:"
-#~ msgstr "Height:"
-
-#~ msgid "Initialize failed [%d]!"
-#~ msgstr "Initalization failed [%d]!"
-
-#~ msgid ""
-#~ "%1% is too close to exclusion area, there will be collisions when "
-#~ "printing."
-#~ msgstr ""
-#~ "%1% is too close to an exclusion area; there will be collisions when "
-#~ "printing."
-
 #~ msgid ""
 #~ "\n"
 #~ "%1% is too close to exclusion area, there will be collisions when "
@@ -7997,171 +7915,18 @@ msgstr ""
 #~ "%1% is too close to an exclusion area; there will be collisions when "
 #~ "printing."
 
-#~ msgid " is too close to others, there will be collisions when printing.\n"
-#~ msgstr " is too close to others, there will be collisions when printing.\n"
-
 #~ msgid ""
-#~ " is too close to exclusion area, there will be collisions when printing.\n"
+#~ "%1% is too close to exclusion area, there will be collisions when "
+#~ "printing."
 #~ msgstr ""
-#~ " is too close to an exclusion area, there will be collisions when "
-#~ "printing.\n"
-
-#~ msgid "Avoid crossing wall when travel"
-#~ msgstr "Avoid walls when traveling"
-
-#~ msgid "Max travel detour distance"
-#~ msgstr "Max travel detour distance"
-
-#~ msgid ""
-#~ "Maximum detour distance for avoiding crossing wall. Don't detour if the "
-#~ "detour distance is large than this value"
-#~ msgstr ""
-#~ "Maximum detour distance for avoiding travel across walls. If the distance "
-#~ "is larger than this value, there will be no detour."
-
-#~ msgid ""
-#~ "Height of the clearance cylinder around extruder. Used as input of auto-"
-#~ "arrange to avoid collision when print object by object"
-#~ msgstr ""
-#~ "Height of the clearance cylinder around extruder: used as input for auto-"
-#~ "arranging to avoid collisions when printing object by object"
-
-#~ msgid ""
-#~ "Clearance radius around extruder. Used as input of auto-arrange to avoid "
-#~ "collision when print object by object"
-#~ msgstr ""
-#~ "Clearance radius around extruder: used as input for auto-arranging to "
-#~ "avoid collisions when printing object by object"
-
-#~ msgid "Error at line %1%:\n"
-#~ msgstr "Error at line %1%:\n"
-
-#~ msgid "Reduce Triangles"
-#~ msgstr "Reduce Triangles"
-
-#~ msgid ""
-#~ "Switch to zig-zag pattern?\n"
-#~ "Yes - switch to zig-zag pattern automaticlly\n"
-#~ "No  - reset density to default non 100% value automaticlly\n"
-#~ msgstr ""
-#~ "Switch to zig-zag pattern?\n"
-#~ "Yes - Switch to zig-zag pattern automatically\n"
-#~ "No  - Reset density to default non-100% value automatically\n"
-
-#~ msgid "Extruder position"
-#~ msgstr "Extruder position"
-
-#~ msgid "Zig zag"
-#~ msgstr "Zig zag"
-
-#~ msgid ""
-#~ "Bed temperature is higher than vitrification temperature of this "
-#~ "filament.\n"
-#~ "This may cause nozzle blocked and printing failure"
-#~ msgstr ""
-#~ "The bed temperature is higher than the vitrification temperature of this "
-#~ "filament.\n"
-#~ "This may cause a nozzle blockage or print failure"
-
-#~ msgid "Enter a search term"
-#~ msgstr "Enter a search term"
-
-#~ msgid "Debug"
-#~ msgstr "Debug"
-
-#~ msgid "Waiting"
-#~ msgstr "Waiting"
-
-#~ msgid "Finished"
-#~ msgstr "Finished"
-
-#~ msgid "Per object edit"
-#~ msgstr "Per Object Edit"
-
-#~ msgid "Inner wall speed"
-#~ msgstr "Inner wall speed"
-
-#~ msgid "the 3mf is not compatible, load geometry data only!"
-#~ msgstr "The 3mf is not compatible, loading geometry data only!"
-
-#~ msgid "Save configuration as:"
-#~ msgstr "Save configuration as:"
-
-#~ msgid "Line type"
-#~ msgstr "Line type"
-
-#~ msgid "Designer"
-#~ msgstr "Designer"
-
-#~ msgid "Report"
-#~ msgstr "Report"
+#~ "%1% is too close to an exclusion area; there will be collisions when "
+#~ "printing."
 
 #~ msgid "0%"
 #~ msgstr "0%"
 
-#~ msgid "Timelapse Wipe Tower"
-#~ msgstr "Timelapse Wipe Tower"
-
-#~ msgid "Device:"
-#~ msgstr "Device:"
-
-#~ msgid "Translation"
-#~ msgstr "Translation"
-
-#~ msgid ""
-#~ "It seems object %s needs support to print. Please enable support "
-#~ "generation."
-#~ msgstr ""
-#~ "It seems object %s needs support to print. Please enable support "
-#~ "generation."
-
-#~ msgid ""
-#~ "The model has overlapping or self-intersecting facets. I tried to repair "
-#~ "it, however you might want to check the results or repair the input file "
-#~ "and retry."
-#~ msgstr ""
-#~ "The model has overlapping or self-intersecting facets. Repair was "
-#~ "attempted, however we recommend checking the results or repairing the "
-#~ "input file and retrying."
-
-#~ msgid ""
-#~ "Auto orientates selected objects or all objects.If there are selected "
-#~ "objects, it just orientates the selected ones.Otherwise, it will "
-#~ "orientates all objects in the project."
-#~ msgstr ""
-#~ "Auto orients selected objects or all objects.If there are selected "
-#~ "objects, it just orients the selected ones.Otherwise, it will orient all "
-#~ "objects in the project."
-
-#~ msgid "The Config is not compatible and can not be loaded."
-#~ msgstr "The configuration is not compatible and cannot be loaded!"
-
-#~ msgid "Creating"
-#~ msgstr "Creating"
-
-#~ msgid "Uploading"
-#~ msgstr "Uploading"
-
-#~ msgid "Sending"
-#~ msgstr "Sending"
-
-#~ msgid "Please fill report first."
-#~ msgstr "Please fill report first."
-
-#~ msgid "Unable to create zip file"
-#~ msgstr "Unable to create zip file"
-
-#~ msgid "Filaments Selection"
-#~ msgstr "Filaments selection"
-
-#~ msgid "Printer Selection"
-#~ msgstr "Printer Selection"
-
-#~ msgid "Auto arrange"
-#~ msgstr "Auto Arrange"
-
-#~ msgid "Spiral mode"
-#~ msgstr "Spiral mode"
+#~ msgid "Adaptive layer height"
+#~ msgstr "Adaptive layer height"
 
 #~ msgid ""
 #~ "An object is layed over the boundary of plate.\n"
@@ -8172,14 +7937,69 @@ msgstr ""
 #~ "Please solve the problem by moving it totally on or off the plate, and "
 #~ "confirming that the height is within the build volume."
 
+#~ msgid "Auto arrange"
+#~ msgstr "Auto Arrange"
+
+#~ msgid ""
+#~ "Auto orientates selected objects or all objects.If there are selected "
+#~ "objects, it just orientates the selected ones.Otherwise, it will "
+#~ "orientates all objects in the project."
+#~ msgstr ""
+#~ "This anuto orients selected objects or all objects.\n"
+#~ "If there are selected objects, it just orients the selected ones. "
+#~ "Otherwise, it will orient all objects in the project."
+
+#~ msgid "Aux Cooling"
+#~ msgstr "Aux Cooling"
+
+#~ msgid "Avoid crossing wall when travel"
+#~ msgstr "Avoid walls when traveling"
+
+#~ msgid ""
+#~ "Bed temperature is higher than vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause nozzle blocked and printing failure"
+#~ msgstr ""
+#~ "The bed temperature is higher than the vitrification temperature of this "
+#~ "filament.\n"
+#~ "This may cause a nozzle blockage or print failure"
+
+#~ msgid "Choose one or more files (3mf/step/stl/obj/amf):"
+#~ msgstr "Choose one or more files (3mf/step/stl/obj/amf):"
+
 #~ msgid "Clear all"
 #~ msgstr "Clear all"
+
+#~ msgid ""
+#~ "Clearance radius around extruder. Used as input of auto-arrange to avoid "
+#~ "collision when print object by object"
+#~ msgstr ""
+#~ "Clearance radius around extruder: used as input for auto-arranging to "
+#~ "avoid collisions when printing object by object"
+
+#~ msgid "Color Print"
+#~ msgstr "Color print"
+
+#~ msgid "Comsumption"
+#~ msgstr "Consumption"
+
+#~ msgid "Creating"
+#~ msgstr "Creating"
 
 #~ msgid "Ctrl + Any arrow"
 #~ msgstr "Ctrl + Any arrow"
 
 #~ msgid "Ctrl + Left mouse button"
 #~ msgstr "Ctrl + Left mouse button"
+
+#~ msgid "Debug"
+#~ msgstr "Debug"
+
+#~ msgid "Designer"
+#~ msgstr "Designer"
+
+#~ msgid "Device:"
+#~ msgstr "Device:"
 
 #~ msgid "Display printable box"
 #~ msgstr "Display printable box"
@@ -8198,7 +8018,7 @@ msgstr ""
 #~ "3. The Printer presets\n"
 #~ msgstr ""
 #~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
-#~ "Contains the following information:\n"
+#~ "This includes the following information:\n"
 #~ "1. Process presets\n"
 #~ "2. Filament presets\n"
 #~ "3. Printer presets\n"
@@ -8210,11 +8030,92 @@ msgstr ""
 #~ "This disables retraction when travel is entirely within an infill area "
 #~ "and oozing can’t be seen."
 
+#~ msgid ""
+#~ "Enabling this option means the height of every layer except the first "
+#~ "will be automatically calculated during slicing according to the slope of "
+#~ "the model’s surface.\n"
+#~ "Note that this option only takes effect if no prime tower is generated in "
+#~ "current plate."
+#~ msgstr ""
+#~ "Enabling this option means that the height of each layer after the first "
+#~ "will be automatically calculated according to the slope of the model’s "
+#~ "surface.\n"
+#~ "Please note that this option only takes effect if there is no prime tower "
+#~ "generated on the current plate."
+
+#~ msgid "Enter a search term"
+#~ msgstr "Enter a search term"
+
+#~ msgid "Erase painting"
+#~ msgstr "Erase painting"
+
+#~ msgid "Error at line %1%:\n"
+#~ msgstr "Error at line %1%:\n"
+
+#~ msgid "Export Sliced File"
+#~ msgstr "Export Sliced File"
+
+#~ msgid "Export current Sliced file"
+#~ msgstr "Export Sliced File"
+
+#~ msgid "Export ok."
+#~ msgstr "Export ok."
+
+#~ msgid "Export sliced file"
+#~ msgstr "Export Sliced File"
+
+#~ msgid "Extruder position"
+#~ msgstr "Extruder position"
+
+#~ msgid "Failed"
+#~ msgstr "Failed"
+
+#~ msgid "Filament 1"
+#~ msgstr "Filament 1"
+
+#~ msgid "Filament N XX"
+#~ msgstr "Filament N XX"
+
+#~ msgid ""
+#~ "Filament to print support and skirt. 0 means no specific filament for "
+#~ "support and current filament is used"
+#~ msgstr ""
+#~ "This is the filament used to print supports and skirts. 0 means no "
+#~ "specific filament for support and the current filament is used."
+
+#~ msgid ""
+#~ "Filament to print support interface. 0 means no specific filament for "
+#~ "support interface and current filament is used"
+#~ msgstr ""
+#~ "This is the filament to print support interfaces. 0 means no specific "
+#~ "filament for support interfaces and the current filament is used"
+
+#~ msgid "Filaments Selection"
+#~ msgstr "Filaments selection"
+
+#~ msgid "Finish"
+#~ msgstr "Finish"
+
+#~ msgid "Finished"
+#~ msgstr "Finished"
+
 #~ msgid "Fix model locally"
 #~ msgstr "Fix model locally"
 
 #~ msgid "Fix model through cloud"
 #~ msgstr "Fix model through cloud"
+
+#~ msgid "Flushed filament"
+#~ msgstr "Flushed filament"
+
+#~ msgid ""
+#~ "Force cooling fan to be specific speed when overhang degree of printed "
+#~ "part exceeds this value. Expressed as percentage which indicides how much "
+#~ "width of the line without support from lower layer"
+#~ msgstr ""
+#~ "This forces the cooling fan to use a specific speed when overhang degrees "
+#~ "of parts exceed the set value. It is expressed as percentage which "
+#~ "indicates how much line is acceptable without support from lower layers."
 
 #~ msgid "Fragment Filter"
 #~ msgstr "Fragment Filter"
@@ -8232,11 +8133,53 @@ msgstr ""
 #~ "Heat the nozzle to the target \n"
 #~ "temperature"
 
+#~ msgid "Height:"
+#~ msgstr "Height:"
+
+#~ msgid ""
+#~ "Height of the clearance cylinder around extruder. Used as input of auto-"
+#~ "arrange to avoid collision when print object by object"
+#~ msgstr ""
+#~ "Height of the clearance cylinder around extruder: used as input for auto-"
+#~ "arranging to avoid collisions when printing object by object"
+
+#~ msgid "Import 3MF/STL/STEP/OBJ/AMF"
+#~ msgstr "Import 3MF/STL/STEP/OBJ/AMF"
+
 #~ msgid "In the calibration of extrusion flow"
 #~ msgstr "In the calibration of extrusion flow"
 
 #~ msgid "In the calibration of laser scanner"
 #~ msgstr "In the calibration of laser scanner"
+
+#~ msgid "Initialize failed [%d]!"
+#~ msgstr "Initalization failed [%d]!"
+
+#~ msgid "Inner wall speed"
+#~ msgstr "Inner wall speed"
+
+#~ msgid ""
+#~ "It seems object %s needs support to print. Please enable support "
+#~ "generation."
+#~ msgstr ""
+#~ "It seems object %s needs support to print. Please enable support "
+#~ "generation."
+
+#~ msgid "Line type"
+#~ msgstr "Line type"
+
+#~ msgid "Management"
+#~ msgstr "Management"
+
+#~ msgid "Max travel detour distance"
+#~ msgstr "Max travel detour distance"
+
+#~ msgid ""
+#~ "Maximum detour distance for avoiding crossing wall. Don't detour if the "
+#~ "detour distance is large than this value"
+#~ msgstr ""
+#~ "Maximum detour distance for avoiding travel across walls. If the distance "
+#~ "is larger than this value, there will be no detour."
 
 #~ msgid "Module"
 #~ msgstr "Module"
@@ -8244,8 +8187,23 @@ msgstr ""
 #~ msgid "Monitoring"
 #~ msgstr "Monitoring"
 
+#~ msgid "Monitoring Recording"
+#~ msgstr "Monitoring Recording"
+
+#~ msgid "Open"
+#~ msgstr "Open"
+
+#~ msgid "Open &PrusaSlicer"
+#~ msgstr "Open &PrusaSlicer"
+
+#~ msgid "Open PrusaSlicer"
+#~ msgstr "Open PrusaSlicer"
+
 #~ msgid "Output file"
 #~ msgstr "Output file"
+
+#~ msgid "Part Cooling"
+#~ msgstr "Part Cooling"
 
 #~ msgid "Pause(heated bed temperature error)"
 #~ msgstr "Pause(heated bed temperature error)"
@@ -8256,8 +8214,17 @@ msgstr ""
 #~ msgid "Pause(toolhead shell off)"
 #~ msgstr "Pause(toolhead shell off)"
 
+#~ msgid "Per object edit"
+#~ msgstr "Per Object Edit"
+
+#~ msgid "Plate %d: %s does not support filament %s.\n"
+#~ msgstr "Plate %d: %s does not support filament %s.\n"
+
+#~ msgid "Please fill report first."
+#~ msgstr "Please fill report first."
+
 #~ msgid "Please upgrade your printer first"
-#~ msgstr "Please upgrade your printer first"
+#~ msgstr "Please update your printer first"
 
 #~ msgid "Position:"
 #~ msgstr "Position:"
@@ -8272,12 +8239,74 @@ msgstr ""
 #~ msgid "Preview only mode for gcode file."
 #~ msgstr "Preview only mode for G-code file."
 
+#~ msgid "Printer Selection"
+#~ msgstr "Printer Selection"
+
+#~ msgid ""
+#~ "Purging after filament change will be done inside objects' infills. This "
+#~ "may lower the amount of waste and decrease the print time. If the walls "
+#~ "are printed with transparent filament, the mixed color infill will be "
+#~ "seen outside"
+#~ msgstr ""
+#~ "Purging after filament change will be done inside objects' infill. This "
+#~ "may lower the amount of waste and decrease the print time. If the walls "
+#~ "are printed with transparent filament, the mixed color infill will be "
+#~ "visible."
+
+#~ msgid ""
+#~ "Purging after filament change will be done inside objects' support. This "
+#~ "may lower the amount of waste and decrease the print time"
+#~ msgstr ""
+#~ "Purging after filament change will be done inside objects' support. This "
+#~ "may lower the amount of waste and decrease the print time."
+
 #~ msgid ""
 #~ "Push new filament \n"
 #~ "into extruder"
 #~ msgstr ""
 #~ "Push new filament \n"
 #~ "into extruder"
+
+#~ msgid ""
+#~ "Record timelapse video of printing without showing toolhead. In this mode "
+#~ "the toolhead docks near the excess chute at each layer change, and then a "
+#~ "snapshot is taken with the chamber camera. When printing finishes a "
+#~ "timelapse video is composed of all the snapshots."
+#~ msgstr ""
+#~ "Record timelapse video of printing without showing the toolhead. In this "
+#~ "mode the toolhead docks near the excess chute at each layer change, and "
+#~ "then a snapshot is taken with the chamber camera. When printing finishes, "
+#~ "a timelapse video is created from all the snapshots."
+
+#~ msgid "Reduce Triangles"
+#~ msgstr "Reduce Triangles"
+
+#~ msgid "Reload item"
+#~ msgstr "Reload item"
+
+#~ msgid "Reload items"
+#~ msgstr "Reload items"
+
+#~ msgid "Repair"
+#~ msgstr "Repair"
+
+#~ msgid "Repair the model's meshes if it is non-manifold mesh"
+#~ msgstr "Repair the model’s meshes if they are non-manifold."
+
+#~ msgid "Report"
+#~ msgstr "Report"
+
+#~ msgid "Rotation:"
+#~ msgstr "Rotation:"
+
+#~ msgid "Save configuration as:"
+#~ msgstr "Save configuration as:"
+
+#~ msgid "Sending"
+#~ msgstr "Sending"
+
+#~ msgid "Set pen size"
+#~ msgstr "Set pen size"
 
 #~ msgid "Shift + Any arrow"
 #~ msgstr "Shift + Any arrow"
@@ -8294,12 +8323,45 @@ msgstr ""
 #~ msgid "Show Printable Box(TODO)"
 #~ msgstr "Show Printable Box(TODO)"
 
+#~ msgid "Spiral mode"
+#~ msgstr "Spiral/Vase mode"
+
+#~ msgid ""
+#~ "Spiral mode only works when wall loops is 1, \n"
+#~ "support is disabled, top shell layers is 0 and sparse infill density is "
+#~ "0\n"
+#~ msgstr ""
+#~ "Spiral (vase) mode only works when wall loops is set to 1, \n"
+#~ "support is disabled, top shell layers is 0, and sparse infill density is "
+#~ "0\n"
+
 #~ msgid "Successfully sent.Will automatically jump to the device page in %s s"
 #~ msgstr ""
 #~ "Successfully sent. Will automatically jump to the device page in %s s"
 
+#~ msgid ""
+#~ "Support layer uses layer height independent with object layer. This is to "
+#~ "support custom support gap,but may cause extra filament switches if "
+#~ "support is specified as different extruder with object"
+#~ msgstr ""
+#~ "The support layer uses layer height independent of object layers. This is "
+#~ "to support custom support gaps, but may cause extra filament switches if "
+#~ "support is specified as a different filament from the object."
+
+#~ msgid ""
+#~ "Switch to zig-zag pattern?\n"
+#~ "Yes - switch to zig-zag pattern automaticlly\n"
+#~ "No  - reset density to default non 100% value automaticlly\n"
+#~ msgstr ""
+#~ "Switch to zig-zag pattern?\n"
+#~ "Yes - Switch to zig-zag pattern automatically\n"
+#~ "No  - Reset density to default non-100% value automatically\n"
+
 #~ msgid "Swith cloud environment, Please login again!"
-#~ msgstr "Switch cloud environment, Please login again!"
+#~ msgstr "Cloud environment has switched; please login again!"
+
+#~ msgid "The Config is not compatible and can not be loaded."
+#~ msgstr "The configuration is not compatible and cannot be loaded!"
 
 #~ msgid ""
 #~ "The firmware versions of printer and AMS are too low.Please update to the "
@@ -8308,5 +8370,99 @@ msgstr ""
 #~ "The firmware versions of the printer and AMS are too low. Please update "
 #~ "them to the latest version before sending any print jobs."
 
+#~ msgid ""
+#~ "The model has overlapping or self-intersecting facets. I tried to repair "
+#~ "it, however you might want to check the results or repair the input file "
+#~ "and retry."
+#~ msgstr ""
+#~ "The model has overlapping or self-intersecting facets. Repair was "
+#~ "attempted, however we recommend checking the results or repairing the "
+#~ "input file and retrying."
+
+#~ msgid ""
+#~ "This object will be used to purge the nozzle after a filament change to "
+#~ "save filament and decrease the print time. Colours of the objects will be "
+#~ "mixed as a result"
+#~ msgstr ""
+#~ "This object will be used to purge the nozzle after a filament change to "
+#~ "save filament and decrease the print time. Colors of the objects will be "
+#~ "mixed as a result."
+
+#~ msgid ""
+#~ "This setting specifies whether to add infill inside large hollows of tree "
+#~ "support"
+#~ msgstr ""
+#~ "This setting specifies whether to add infill inside large hollows of tree "
+#~ "support."
+
+#~ msgid ""
+#~ "This setting stands for how much volume of filament can be melted and "
+#~ "extruded per second. Printing speed is limited by max volumetric speed, "
+#~ "in case of too high and unreasonable speed setting. Zero means no limit"
+#~ msgstr ""
+#~ "Use this to set the maximum volume of filament that can be melted and "
+#~ "extruded per second. Printing speed is limited by maximum volumetric "
+#~ "speed if settings are unreasonably high. 0 means there is no limit."
+
+#~ msgid "Timelapse Wipe Tower"
+#~ msgstr "Timelapse Wipe Tower"
+
+#~ msgid "Translation"
+#~ msgstr "Translation"
+
+#~ msgid "Tree support with infill"
+#~ msgstr "Tree support with infill"
+
+#~ msgid "Unable to create zip file"
+#~ msgstr "Unable to create zip file"
+
+#~ msgid "Uploading"
+#~ msgstr "Uploading"
+
 #~ msgid "User pause"
 #~ msgstr "User pause"
+
+#~ msgid "Waiting"
+#~ msgstr "Waiting"
+
+#~ msgid ""
+#~ "You have changed some preset settings. \n"
+#~ "Would you like to keep these changed settings after switching preset?"
+#~ msgstr ""
+#~ "You have changed some preset settings. \n"
+#~ "Would you like to keep these changed settings after switching presets?"
+
+#~ msgid "Zig zag"
+#~ msgstr "Zig zag"
+
+#~ msgid " Object:"
+#~ msgstr " Object:"
+
+#~ msgid ""
+#~ " is too close to exclusion area, there will be collisions when printing.\n"
+#~ msgstr ""
+#~ " is too close to an exclusion area, there will be collisions when "
+#~ "printing.\n"
+
+#~ msgid " is too close to others, there will be collisions when printing.\n"
+#~ msgstr " is too close to others, there will be collisions when printing.\n"
+
+#~ msgid "hybrid(auto)"
+#~ msgstr "hybrid(auto)"
+
+#~ msgid "normal"
+#~ msgstr "normal"
+
+#~ msgid ""
+#~ "normal(auto) and tree(auto) is used to generate support automatically. If "
+#~ "normal or tree is selected, only support enforcers are generated"
+#~ msgstr ""
+#~ "normal(auto), hybrid(auto) and tree(auto) are used to generate support "
+#~ "automatically. If normal or tree is selected, only support enforcers are "
+#~ "generated."
+
+#~ msgid "the 3mf is not compatible, load geometry data only!"
+#~ msgstr "The 3mf is not compatible, loading geometry data only!"
+
+#~ msgid "tree"
+#~ msgstr "tree"

@@ -8,6 +8,7 @@
 #include "MsgDialog.hpp"
 #include "DownloadProgressDialog.hpp"
 
+#include <boost/filesystem/string_file.hpp>
 #undef pid_t
 #include <boost/process.hpp>
 #ifdef __WIN32__

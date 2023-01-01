@@ -456,7 +456,9 @@ void AuFile::on_set_cover()
 {
     if (wxGetApp().plater()->model().model_info == nullptr) { wxGetApp().plater()->model().model_info = std::make_shared<ModelInfo>(); }
 
-    wxGetApp().plater()->model().model_info->cover_file = m_file_name.ToStdString();
+    fs::path path(into_path(m_file_name));
+    wxGetApp().plater()->model().model_info->cover_file = path.string();
+    //wxGetApp().plater()->model().model_info->cover_file = m_file_name.ToStdString();
 
     auto full_path          = m_file_path.branch_path();
     auto full_root_path         = full_path.branch_path();
@@ -696,7 +698,8 @@ void AuFolderPanel::update_cover()
     if (wxGetApp().plater()->model().model_info != nullptr) {
         for (auto i = 0; i < m_aufiles_list.GetCount(); i++) {
             AuFiles *aufile = m_aufiles_list[i];
-            if (wxGetApp().plater()->model().model_info->cover_file == aufile->file->m_file_name) {
+
+            if (wxString::FromUTF8(wxGetApp().plater()->model().model_info->cover_file) == aufile->file->m_file_name) {
                 aufile->file->set_cover(true);
             } else {
                 aufile->file->set_cover(false);

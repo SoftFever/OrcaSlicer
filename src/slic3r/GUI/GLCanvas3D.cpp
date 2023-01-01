@@ -1249,7 +1249,7 @@ void GLCanvas3D::on_change_color_mode(bool is_dark, bool reinit) {
     m_is_dark = is_dark;
     // Bed color
     m_bed.on_change_color_mode(is_dark);
-    // GcodeViewer color 
+    // GcodeViewer color
     m_gcode_viewer.on_change_color_mode(is_dark);
     // ImGui Style
     wxGetApp().imgui()->on_change_color_mode(is_dark);
@@ -3827,7 +3827,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             while (p->GetParent())
                 p = p->GetParent();
             auto *top_level_wnd = dynamic_cast<wxTopLevelWindow*>(p);
-            if (top_level_wnd && top_level_wnd->IsActive())
+            if (top_level_wnd && top_level_wnd->IsActive() && !wxGetApp().get_side_menu_popup_status())
                 m_canvas->SetFocus();
             m_mouse.position = pos.cast<double>();
             m_tooltip_enabled = false;
@@ -4891,7 +4891,7 @@ void GLCanvas3D::update_sequential_clearance()
     // the results are then cached for following displacements
     if (m_sequential_print_clearance_first_displacement) {
         m_sequential_print_clearance.m_hull_2d_cache.clear();
-        float shrink_factor = static_cast<float>(scale_(0.5 * fff_print()->config().extruder_clearance_radius.value - EPSILON));
+        float shrink_factor = static_cast<float>(scale_(0.5 * fff_print()->config().extruder_clearance_max_radius.value - EPSILON));
         double mitter_limit = scale_(0.1);
         m_sequential_print_clearance.m_hull_2d_cache.reserve(m_model->objects.size());
         for (size_t i = 0; i < m_model->objects.size(); ++i) {
@@ -5689,7 +5689,7 @@ void GLCanvas3D::_switch_toolbars_icon_filename()
     m_assemble_view_toolbar.init(background_data);
     m_separator_toolbar.init(background_data);
     wxGetApp().plater()->get_collapse_toolbar().init(background_data);
-        
+
     // main toolbar
     {
         GLToolbarItem* item;

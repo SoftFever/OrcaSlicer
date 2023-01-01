@@ -183,13 +183,17 @@ static t_config_enum_values s_keys_map_SupportMaterialPattern {
     { "honeycomb",          smpHoneycomb },
     { "lightning",          smpLightning },
     { "default",            smpDefault},
-    { "none",               smpNone},
+    { "hollow",               smpNone},
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialPattern)
 
 static t_config_enum_values s_keys_map_SupportMaterialStyle {
+    { "default",        smsDefault },
     { "grid",           smsGrid },
-    { "snug",           smsSnug }
+    { "snug",           smsSnug },
+    { "tree_slim",      smsTreeSlim },
+    { "tree_strong",    smsTreeStrong },
+    { "tree_hybrid",    smsTreeHybrid }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialStyle)
 
@@ -203,7 +207,6 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportMaterialInterfacePattern)
 static t_config_enum_values s_keys_map_SupportType{
     { "normal(auto)",   stNormalAuto },
     { "tree(auto)", stTreeAuto },
-    { "hybrid(auto)", stHybridAuto },
     { "normal(manual)", stNormal },
     { "tree(manual)", stTree }
 };
@@ -2543,16 +2546,14 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Type");
     def->category = L("Support");
     def->tooltip = L("normal(auto) and tree(auto) is used to generate support automatically. "
-                     "If normal or tree is selected, only support enforcers are generated");
+                     "If normal(manual) or tree(manual) is selected, only support enforcers are generated");
     def->enum_keys_map = &ConfigOptionEnum<SupportType>::get_enum_values();
     def->enum_values.push_back("normal(auto)");
     def->enum_values.push_back("tree(auto)");
-    def->enum_values.push_back("hybrid(auto)");
     def->enum_values.push_back("normal(manual)");
     def->enum_values.push_back("tree(manual)");
     def->enum_labels.push_back(L("normal(auto)"));
     def->enum_labels.push_back(L("tree(auto)"));
-    def->enum_labels.push_back(L("hybrid(auto)"));
     def->enum_labels.push_back(L("normal(manual)"));
     def->enum_labels.push_back(L("tree(manual)"));
     def->mode = comSimple;
@@ -2591,7 +2592,7 @@ void PrintConfigDef::init_fff_params()
     def->label    = L("Support critical regions only");
     def->category = L("Support");
     def->tooltip  = L("Only create support for critical regions including sharp tail, cantilever, etc.");
-    def->mode     = comSimple;
+    def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     // BBS: change type to common float.
@@ -2639,9 +2640,9 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("support_filament", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
-    def->label    = L("Support");
+    def->label    = L("Support base");
     def->category = L("Support");
-    def->tooltip = L("Filament to print support and raft. \"Default\" means no specific filament for support and current filament is used");
+    def->tooltip = L("Filament to print support base and raft. \"Default\" means no specific filament for support and current filament is used");
     def->min = 0;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInt(1));
@@ -2744,13 +2745,13 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("rectilinear-grid");
     def->enum_values.push_back("honeycomb");
     def->enum_values.push_back("lightning");
-    def->enum_values.push_back("none");
+    def->enum_values.push_back("hollow");
     def->enum_labels.push_back(L("Default"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Rectilinear grid"));
     def->enum_labels.push_back(L("Honeycomb"));
     def->enum_labels.push_back(L("Lightning"));
-    def->enum_labels.push_back(L("None"));
+    def->enum_labels.push_back(L("Hollow"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SupportMaterialPattern>(smpRectilinear));
 
@@ -2799,16 +2800,27 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_style", coEnum);
     def->label = L("Style");
     def->category = L("Support");
-    //def->tooltip = L("Style and shape of the support towers. Projecting the supports into a regular grid "
-    //                 "will create more stable supports, while snug support towers will save material and reduce "
-    //                 "object scarring");
+    def->tooltip = L("Style and shape of the support. For normal support, projecting the supports into a regular grid "
+                     "will create more stable supports (default), while snug support towers will save material and reduce "
+                     "object scarring.\n"
+                     "For tree support, slim style will merge branches more aggressively and save "
+                     "a lot of material (default), while hybrid style will create similar structure to normal support "
+                     "under large flat overhangs.");
     def->enum_keys_map = &ConfigOptionEnum<SupportMaterialStyle>::get_enum_values();
+    def->enum_values.push_back("default");
     def->enum_values.push_back("grid");
     def->enum_values.push_back("snug");
+    def->enum_values.push_back("tree_slim");
+    def->enum_values.push_back("tree_strong");
+    def->enum_values.push_back("tree_hybrid");
+    def->enum_labels.push_back(L("Default"));
     def->enum_labels.push_back(L("Grid"));
     def->enum_labels.push_back(L("Snug"));
+    def->enum_labels.push_back(L("Tree Slim"));
+    def->enum_labels.push_back(L("Tree Strong"));
+    def->enum_labels.push_back(L("Tree Hybrid"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<SupportMaterialStyle>(smsGrid));
+    def->set_default_value(new ConfigOptionEnum<SupportMaterialStyle>(smsDefault));
 
     def = this->add("independent_support_layer_height", coBool);
     def->label = L("Independent support layer height");
@@ -2909,7 +2921,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("bed_temperature_difference", coInts);
     def->label = L("Bed temperature difference");
-    def->tooltip = L("Do not recommand bed temperature of other layer to be lower than initial layer for more than this threshold. "
+    def->tooltip = L("Do not recommend bed temperature of other layer to be lower than initial layer for more than this threshold. "
                      "Too low bed temperature of other layer may cause the model broken free from build plate");
     def->sidetext = L("°C");
     def->min = 0;
@@ -4026,6 +4038,10 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         value = "normal(manual)";
     } else if (opt_key == "support_type" && value == "tree") {
         value = "tree(manual)";
+    } else if (opt_key == "support_type" && value == "hybrid(auto)") {
+        value = "tree(auto)";
+    } else if (opt_key == "support_base_pattern" && value == "none") {
+        value = "hollow";
     } else if (opt_key == "different_settings_to_system") {
         std::string copy_value = value;
         copy_value.erase(std::remove(copy_value.begin(), copy_value.end(), '\"'), copy_value.end()); // remove '"' in string
