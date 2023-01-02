@@ -3,12 +3,15 @@ msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-12-24 13:01+0800\n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Localazy (https://localazy.com)\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
+"X-Generator: Poedit 3.2.2\n"
 
 msgid "Supports Painting"
 msgstr "Supports aufmalen"
@@ -53,7 +56,7 @@ msgid "Highlight overhang areas"
 msgstr "Bereiche mit Überhang hervorheben"
 
 msgid "Gap fill"
-msgstr ""
+msgstr "Lückenfüllung"
 
 msgid "Perform"
 msgstr "Ausführen"
@@ -68,7 +71,7 @@ msgid "Smart fill angle"
 msgstr "Intelligenter Füllwinkel"
 
 msgid "On overhangs only"
-msgstr ""
+msgstr "Nur an Überhängen"
 
 msgid "Auto support threshold angle: "
 msgstr "Winkel für automatische Supports: "
@@ -83,7 +86,7 @@ msgid "Fill"
 msgstr "Ausfüllen"
 
 msgid "Gap Fill"
-msgstr ""
+msgstr "Lückenfüllung"
 
 #, boost-format
 msgid "Allows painting only on facets selected by: \"%1%\""
@@ -150,7 +153,7 @@ msgid "Ctrl + Shift + Enter"
 msgstr ""
 
 msgid "Toggle Wireframe"
-msgstr ""
+msgstr "Drahtgitter anzeigen"
 
 msgid "Shortcut Key "
 msgstr "Shortcut Taste "
@@ -253,10 +256,10 @@ msgid "Movement:"
 msgstr "Bewegung:"
 
 msgid "Movement"
-msgstr ""
+msgstr "Bewegung:"
 
 msgid "Height"
-msgstr ""
+msgstr "Höhe"
 
 msgid "Keep upper part"
 msgstr "Oberen Teil behalten"
@@ -349,7 +352,7 @@ msgid "Perform Recognition"
 msgstr "Erkennung durchführen"
 
 msgid "Brush size"
-msgstr ""
+msgstr "Pinsel Größe"
 
 msgid "Brush shape"
 msgstr ""
@@ -361,22 +364,22 @@ msgid "Block seam"
 msgstr ""
 
 msgid "Seam painting"
-msgstr ""
+msgstr "Nahtposition aufmalen"
 
 msgid "Remove selection"
-msgstr ""
+msgstr "Auswahl entfernen"
 
 msgid "Text shape"
-msgstr ""
+msgstr "Textform"
 
 msgid "Font"
-msgstr ""
+msgstr "Schrift"
 
 msgid "Thickness"
-msgstr ""
+msgstr "Dicke"
 
 msgid "Input text"
-msgstr ""
+msgstr "Eingabetext"
 
 msgid "Add"
 msgstr "Hinzufügen"
@@ -426,7 +429,7 @@ msgid "V"
 msgstr "V"
 
 msgid "Internal Version"
-msgstr ""
+msgstr "Interne Version"
 
 msgid "Version"
 msgstr "Version"
@@ -456,14 +459,14 @@ msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "BambuStudio hat eine unbehandelte Ausnahme erhalten: %1%"
 
 msgid "Downloading Bambu Network Plug-in"
-msgstr ""
+msgstr "Download BambuStudio Network Plug-in"
 
 msgid "Incorrect password"
-msgstr ""
+msgstr "Ungültiges Passwort"
 
 #, c-format, boost-format
 msgid "Connect %s failed! [SN:%s, code=%s]"
-msgstr ""
+msgstr "Connect %s fehlgeschlagen! [SN:%s, code=%s]"
 
 msgid ""
 "BambuStudio configuration file may be corrupted and is not abled to be "
@@ -517,7 +520,7 @@ msgid "Choose one file (3mf):"
 msgstr "Wählen sie eine Datei (3mf):"
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
-msgstr ""
+msgstr "Wähle eine oder mehr Dateien aus (3mf/step/stl/svg/obj/amf):"
 
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr "Wählen sie eine Datei (gcode/.gco/.g/.ngc/ngc):"
@@ -533,10 +536,10 @@ msgstr ""
 "verwerfen oder als neue Voreinstellungen speichern."
 
 msgid "User logged out"
-msgstr ""
+msgstr "Abmeldung erfolgreich."
 
 msgid "new or open project file is not allowed during the slicing process!"
-msgstr ""
+msgstr "Neu oder öffnen während des Slicings nicht erlaubt! "
 
 msgid "Open Project"
 msgstr "Projekt öffnen"
@@ -703,16 +706,16 @@ msgid "Export as STL"
 msgstr "Als STL exportieren"
 
 msgid "Reload from disk"
-msgstr ""
+msgstr "neu von der Festplatte laden"
 
 msgid "Reload the selected parts from disk"
-msgstr ""
+msgstr "Ausgewähltes Teil neu von der Festplatte laden"
 
 msgid "Replace with STL"
-msgstr ""
+msgstr "Ersetze mit STL Datei"
 
 msgid "Replace the selected part with new STL"
-msgstr ""
+msgstr "Ersetze das ausgewählte Teil mit einer neuen STL Datei"
 
 msgid "Change filament"
 msgstr "Filament wechseln"
@@ -737,7 +740,7 @@ msgid "Scale an object to fit the build volume"
 msgstr "Objekt skalieren, dass es in den Druckraum passt"
 
 msgid "Flush Options"
-msgstr ""
+msgstr "Reinigungsoption"
 
 msgid "Flush into objects' infill"
 msgstr "Druckdüse in der Füllung der Objekte säubern"
@@ -801,7 +804,7 @@ msgid "Add Primitive"
 msgstr "Primitiv hinzufügen"
 
 msgid "Show Labels"
-msgstr ""
+msgstr "Bezeichnung anzeigen"
 
 msgid "To objects"
 msgstr "Zu Objekten"
@@ -865,16 +868,16 @@ msgid "Clone"
 msgstr "Klonen"
 
 msgid "Simplify Model"
-msgstr ""
+msgstr "Modell vereinfachen"
 
 msgid "Center"
-msgstr ""
+msgstr "Mittelpunkt"
 
 msgid "Edit Process Settings"
-msgstr ""
+msgstr "Prozesseinstellungen"
 
 msgid "Edit in Parameter Table"
-msgstr ""
+msgstr "Ändern in Parametertabelle"
 
 msgid "Edit print parameters for a single object"
 msgstr "Druckparameter für ein einzelnes Objekt bearbeiten"
@@ -981,6 +984,8 @@ msgid ""
 "Switch to per-object setting mode to edit process settings of selected "
 "objects."
 msgstr ""
+"Wechseln Sie in den objektbezogenen Einstellungsmodus, um die "
+"Prozesseinstellungen der ausgewählten Objekts zu bearbeiten."
 
 msgid "Deleting the last solid part is not allowed."
 msgstr "Das Löschen des letzten festen Teils ist nicht erlaubt."
@@ -1101,7 +1106,7 @@ msgid "Auto Brim"
 msgstr "Automatische Umrandung"
 
 msgid "Outer wall speed"
-msgstr ""
+msgstr "Druckgeschwindigkeit der Außenwand"
 
 msgid "Plate"
 msgstr "Druckplatte"
@@ -1125,13 +1130,13 @@ msgid "More"
 msgstr "Mehr"
 
 msgid "Open Preferences."
-msgstr ""
+msgstr "Einstellungen"
 
 msgid "Open next tip."
-msgstr ""
+msgstr "Öffne nächsten Tip"
 
 msgid "Open Documentation in web browser."
-msgstr ""
+msgstr "Öffne Dokumentation im Webbrowser."
 
 msgid "Custom G-code"
 msgstr "Benutzerdefinierter G-Code"
@@ -1143,37 +1148,37 @@ msgid "OK"
 msgstr "OK"
 
 msgid "Jump to layer"
-msgstr ""
+msgstr "Wechsle zu Layer"
 
 msgid "Please enter the layer number"
-msgstr ""
+msgstr "Bitte die Schichtnummer eingeben"
 
 msgid "Jump to Layer"
-msgstr ""
+msgstr "Wechsle zu Layer"
 
 msgid "Add Pause"
-msgstr ""
+msgstr "Pause hinzufügen"
 
 msgid "Add Custom G-code"
-msgstr ""
+msgstr "Benutzerdefinierter G-Code hinzufügen"
 
 msgid "Add Custom Template"
-msgstr ""
+msgstr "Benutzerdefiniertes Template hinzufügen"
 
 msgid "Filament "
-msgstr ""
+msgstr "Filament"
 
 msgid "Start"
-msgstr ""
+msgstr "Start"
 
 msgid "G-code"
-msgstr ""
+msgstr "G-code"
 
 msgid "No printer"
 msgstr "Kein Drucker"
 
 msgid "Heat the nozzle"
-msgstr ""
+msgstr "Druckdüse heizen"
 
 msgid "Cut filament"
 msgstr "Material abschneiden"
@@ -1182,7 +1187,7 @@ msgid "Pull back current filament"
 msgstr "Ziehen Sie das aktuelle Filament zurück"
 
 msgid "Push new filament into extruder"
-msgstr ""
+msgstr "Filmend in den Extruder drücken"
 
 msgid "Purge old filament"
 msgstr "Altes Filament entfernen"
@@ -1206,10 +1211,10 @@ msgid "Tips"
 msgstr "Tipps"
 
 msgid "Guide"
-msgstr ""
+msgstr "Anleitung"
 
 msgid "Retry"
-msgstr ""
+msgstr "Wiederholung"
 
 msgid "Calibrating AMS..."
 msgstr "AMS Kalibrieren..."
@@ -1304,7 +1309,7 @@ msgid "Orienting..."
 msgstr "Ausrichten..."
 
 msgid "Orienting"
-msgstr ""
+msgstr "Ausrichten"
 
 msgid "Error! Unable to create thread!"
 msgstr "Fehler! Thema kann nicht erstellt werden!"
@@ -1337,7 +1342,7 @@ msgid "Unknown Failure"
 msgstr "Unbekannter Fehler"
 
 msgid "Please check the printer network connection."
-msgstr ""
+msgstr "Bitte die Drucker Netzwerkverbindung prüfen"
 
 msgid "Abnormal print file data. Please slice again"
 msgstr "Abnormale Daten in der Druckdatei. Bitte slicen Sie erneut"
@@ -1377,10 +1382,10 @@ msgid "Sending print job through cloud service"
 msgstr "Druckauftrag über den Cloud-Dienst senden"
 
 msgid "Service Unavailable"
-msgstr ""
+msgstr "Der Dienst ist nicht verfügbar."
 
 msgid "Unkown Error."
-msgstr ""
+msgstr "unbekannter Fehler."
 
 msgid "Sending print configuration"
 msgstr "Druckkonfiguration senden"
@@ -1418,22 +1423,22 @@ msgid "Please log out and login to the printer again."
 msgstr ""
 
 msgid "Downloading"
-msgstr ""
+msgstr "Herunterladen..."
 
 msgid "Download failed"
-msgstr ""
+msgstr "Herunterladen fehlgeschlagen"
 
 msgid "Cancelled"
-msgstr ""
+msgstr "abgebrochen"
 
 msgid "Install successfully."
-msgstr ""
+msgstr "Installation erfolgreich."
 
 msgid "Installing"
-msgstr ""
+msgstr "Installation"
 
 msgid "Install failed"
-msgstr ""
+msgstr "Installation fehlgeschlagen"
 
 msgid "Portions copyright"
 msgstr "Teile des Urheberrechts"
@@ -1707,7 +1712,7 @@ msgid "Succeed to export G-code to %1%"
 msgstr "Erfolgreich G-Code nach %1% exportiert"
 
 msgid "Running post-processing scripts"
-msgstr ""
+msgstr "Post-Processing Scripts ausführen"
 
 msgid "Copying of the temporary G-code to the output G-code failed"
 msgstr ""
@@ -2082,7 +2087,7 @@ msgid "default"
 msgstr "Standard"
 
 msgid "parameter name"
-msgstr ""
+msgstr "Parametername"
 
 msgid "N/A"
 msgstr "N/A"
@@ -2137,22 +2142,22 @@ msgid "Tool"
 msgstr "Werkzeug"
 
 msgid "Height: "
-msgstr ""
+msgstr "Höhe:"
 
 msgid "Width: "
-msgstr ""
+msgstr "Breite:"
 
 msgid "Speed: "
-msgstr ""
+msgstr "Geschwindigkeit:"
 
 msgid "Flow: "
-msgstr ""
+msgstr "Durchfluss:"
 
 msgid "Fan Speed: "
-msgstr ""
+msgstr "Lüftergeschwindigkeit:"
 
 msgid "Temperature: "
-msgstr ""
+msgstr "Temperatur:"
 
 msgid "Loading G-codes"
 msgstr "Laden von G-Codes"
@@ -2263,10 +2268,10 @@ msgid "Print settings"
 msgstr "Druckeinstellungen"
 
 msgid "Total Estimation"
-msgstr "Gesamtvorhersage"
+msgstr "Gesamtzeit Vorhersage"
 
 msgid "Time Estimation"
-msgstr ""
+msgstr "Zeit Vorhersage"
 
 msgid "Normal mode"
 msgstr "Normaler Modus"
@@ -2278,7 +2283,7 @@ msgid "Model printing time"
 msgstr "Druckzeit des Modell"
 
 msgid "Total time"
-msgstr ""
+msgstr "Gesamtzeit"
 
 msgid "Switch to silent mode"
 msgstr "Zum Leisemodus wechseln"
@@ -2287,16 +2292,16 @@ msgid "Switch to normal mode"
 msgstr "Zum Normalen Modus wechseln"
 
 msgid "Variable layer height"
-msgstr ""
+msgstr "Variable Schichthöhe"
 
 msgid "Adaptive"
-msgstr ""
+msgstr "Adaptiv"
 
 msgid "Quality / Speed"
-msgstr ""
+msgstr "Qualität / Geschwindigkeit"
 
 msgid "Smooth"
-msgstr ""
+msgstr "Oberflächenglätte "
 
 msgid "Radius"
 msgstr "Radius"
@@ -2305,31 +2310,31 @@ msgid "Keep min"
 msgstr ""
 
 msgid "Left mouse button:"
-msgstr ""
+msgstr "Linke Maustaste"
 
 msgid "Add detail"
-msgstr ""
+msgstr "Detail zufügen"
 
 msgid "Right mouse button:"
-msgstr ""
+msgstr "Rechte Maustaste"
 
 msgid "Remove detail"
-msgstr ""
+msgstr "Detail entfernen"
 
 msgid "Shift + Left mouse button:"
-msgstr ""
+msgstr "Gross + Linke Maustaste"
 
 msgid "Reset to base"
-msgstr ""
+msgstr "Parameter zurücksetzen"
 
 msgid "Shift + Right mouse button:"
-msgstr ""
+msgstr "Gross + Rechte Maustaste"
 
 msgid "Smoothing"
 msgstr ""
 
 msgid "Mouse wheel:"
-msgstr ""
+msgstr "Mausrad:"
 
 msgid "Increase/decrease edit area"
 msgstr ""
@@ -2410,10 +2415,10 @@ msgid "Explosion Ratio"
 msgstr "Explosionsverhältnis"
 
 msgid "Section View"
-msgstr ""
+msgstr "Abschnittsansicht"
 
 msgid "Assemble Control"
-msgstr ""
+msgstr "Zusammenbauen"
 
 msgid "Total Volume:"
 msgstr "Gesamtvolumen:"
@@ -2452,7 +2457,7 @@ msgid "Micro lidar calibration"
 msgstr ""
 
 msgid "Bed leveling"
-msgstr ""
+msgstr "Druckbettnivellierung"
 
 msgid "Resonance frequency identification"
 msgstr ""
@@ -2475,13 +2480,13 @@ msgid "Start Calibration"
 msgstr "Kalibration starten"
 
 msgid "Completed"
-msgstr ""
+msgstr "abgeschlossen"
 
 msgid "Calibrating"
 msgstr "Kalibrieren"
 
 msgid "Auto-record Monitoring"
-msgstr ""
+msgstr "automatische Aufzeichung"
 
 msgid "Go Live"
 msgstr ""
@@ -2493,10 +2498,10 @@ msgid "Show \"Live Video\" guide page."
 msgstr ""
 
 msgid "720p"
-msgstr ""
+msgstr "720p"
 
 msgid "1080p"
-msgstr ""
+msgstr "1080p"
 
 msgid "ConnectPrinter(LAN)"
 msgstr "Drucker anschließen (LAN)"
@@ -2512,13 +2517,13 @@ msgstr ""
 "auf dem Drucker, wie in der Abbildung gezeigt:"
 
 msgid "Invalid input."
-msgstr ""
+msgstr "ungültiger Eingabe."
 
 msgid "New Window"
-msgstr ""
+msgstr "Neues Fenster"
 
 msgid "Open a new window"
-msgstr ""
+msgstr "Neues Fenster öffnen"
 
 msgid "Application is closing"
 msgstr "Anwendung schließt"
@@ -2561,25 +2566,25 @@ msgid "Slice plate"
 msgstr "Druckplatte slicen"
 
 msgid "Export G-code file"
-msgstr ""
+msgstr "G-Code exportieren."
 
 msgid "Send"
 msgstr "Senden"
 
 msgid "Print plate"
-msgstr ""
+msgstr "Druckplatte"
 
 msgid "Export plate sliced file"
-msgstr ""
+msgstr "Exportiere aktuelle Platte als STL Datei:"
 
 msgid "Export all sliced file"
-msgstr ""
+msgstr "Exportiere alle Platten als STL Dateien:"
 
 msgid "Print all"
 msgstr "Alle drucken"
 
 msgid "Send all"
-msgstr ""
+msgstr "Alles Senden"
 
 msgid "Keyboard Shortcuts"
 msgstr "Tastaturkürzel"
@@ -2594,23 +2599,23 @@ msgid "Show Configuration Folder"
 msgstr "Konfigurationsordner anzeigen"
 
 msgid "Show Tip of the Day"
-msgstr ""
+msgstr "Tip des Tages anzeigen"
 
 msgid "Check for Update"
 msgstr "Prüfen auf Update"
 
 msgid "Open Network Test"
-msgstr ""
+msgstr "Öffne Netzwerktest"
 
 #, c-format, boost-format
 msgid "&About %s"
 msgstr "&Über %s"
 
 msgid "Upload Models"
-msgstr ""
+msgstr "Modelle hochladen"
 
 msgid "Download Models"
-msgstr ""
+msgstr "Modelle herunterladen"
 
 msgid "Default View"
 msgstr "Standardansicht"
@@ -2654,7 +2659,7 @@ msgid "Right View"
 msgstr "Ansicht von rechts"
 
 msgid "Start a new window"
-msgstr ""
+msgstr "Neues Fenster öffnen"
 
 msgid "New Project"
 msgstr "Neues Projekt"
@@ -2681,7 +2686,7 @@ msgid "Save current project as"
 msgstr "Aktuelles Projekt speichern als"
 
 msgid "Import 3MF/STL/STEP/SVG/OBJ/AMF"
-msgstr ""
+msgstr "Importiere 3MF/STL/STEP/SVG/OBJ/AMF"
 
 msgid "Load a model"
 msgstr "Lade ein Modell"
@@ -2786,13 +2791,13 @@ msgid "Use Orthogonal View"
 msgstr "Orthogonale Ansicht verwenden"
 
 msgid "Show &Labels"
-msgstr ""
+msgstr "Bezeichnung anzeigen"
 
 msgid "Show object labels in 3D scene"
 msgstr ""
 
 msgid "Preferences"
-msgstr "Vorlieben"
+msgstr "Einstellungen"
 
 msgid "View"
 msgstr "Ansicht"
@@ -2801,7 +2806,7 @@ msgid "Help"
 msgstr "Hilfe"
 
 msgid "3D Models"
-msgstr ""
+msgstr "3D Modelle"
 
 msgid "&Open G-code"
 msgstr "Öffne G-C&ode"
@@ -2822,10 +2827,10 @@ msgid "Export toolpaths as OBJ"
 msgstr "Werkzeugweg als OBJ exportieren"
 
 msgid "Open &Studio"
-msgstr ""
+msgstr "öffne &Studio"
 
 msgid "Open Studio"
-msgstr ""
+msgstr "öffne Studio"
 
 msgid "&Quit"
 msgstr "&Beenden"
@@ -2853,7 +2858,7 @@ msgid "No to All"
 msgstr "Nein zu allem"
 
 msgid "Choose a directory"
-msgstr ""
+msgstr "Wähle ein Verzeichnis"
 
 #, c-format, boost-format
 msgid "There is %d config exported. (Only non-system configs)"
@@ -2865,7 +2870,7 @@ msgid "Export result"
 msgstr "Ergebnis exportieren"
 
 msgid "Select profile to load:"
-msgstr ""
+msgstr "Wählen Sie ein Profil zum laden aus:"
 
 #, c-format, boost-format
 msgid "There is %d config imported. (Only non-system and compatible configs)"
@@ -2926,7 +2931,7 @@ msgid "Initialize failed (%s)!"
 msgstr ""
 
 msgid "Network unreachable"
-msgstr ""
+msgstr "Netzwerk nicht erreichbar"
 
 #, c-format, boost-format
 msgid "Stopped [%d]!"
@@ -2954,7 +2959,7 @@ msgid "Virtual camera initialize failed (%s)!"
 msgstr ""
 
 msgid "Information"
-msgstr ""
+msgstr "Information"
 
 msgid "Playing..."
 msgstr "Laufend..."
@@ -2970,7 +2975,7 @@ msgid "Month"
 msgstr "Monat"
 
 msgid "All Files"
-msgstr ""
+msgstr "Alle Dateien"
 
 msgid "Group files by year, recent first."
 msgstr ""
@@ -3408,7 +3413,7 @@ msgid "Objects"
 msgstr "Objekte"
 
 msgid "Advance"
-msgstr "Fortgeschritten"
+msgstr "Erweitert"
 
 msgid "Compare presets"
 msgstr "Voreinstellungen vergleichen"
@@ -4472,8 +4477,8 @@ msgstr ""
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a "
 "\"Timelapse Wipe Tower\" \n"
-"by right-click the empty position of build plate and choose \"Add Primitive"
-"\"->\"Timelapse Wipe Tower\".\n"
+"by right-click the empty position of build plate and choose \"Add "
+"Primitive\"->\"Timelapse Wipe Tower\".\n"
 msgstr ""
 
 msgid "Line width"
@@ -6149,8 +6154,7 @@ msgid "End G-code when finish the whole printing"
 msgstr "End G-Code nach dem fertigstellen des kompletten Drucks"
 
 msgid "End G-code when finish the printing of this filament"
-msgstr ""
-"Fügen Sie den End-G-Code hinzu, wenn Sie den Druck dieses Filaments beenden."
+msgstr "End-G-Code, wenn der Druck mit diesem Filament endet."
 
 msgid "Ensure vertical shell thickness"
 msgstr ""
@@ -6392,7 +6396,7 @@ msgid "Type"
 msgstr "Typ"
 
 msgid "The material type of filament"
-msgstr "Material des Filaments."
+msgstr "Materialtyp des Filaments."
 
 msgid "Soluble material"
 msgstr "Lösliches Material"
@@ -6676,10 +6680,10 @@ msgid ""
 msgstr ""
 "Der Bereich der Füllung wird leicht vergrößert, damit er sich mit der Wand "
 "überschneidet, um eine bessere Haftung zu erreichen. Der Prozentwert bezieht "
-"sich auf die Linienbreite der Füllung."
+"sich auf die Linienbreite der Füllung"
 
 msgid "Speed of internal sparse infill"
-msgstr "Geschwindigkeit der internen Füllung."
+msgstr "Geschwindigkeit der internen Füllung"
 
 msgid "Ironing Type"
 msgstr "Glätten-Typ"
@@ -6739,7 +6743,7 @@ msgid ""
 "Whether the machine supports silent mode in which machine use lower "
 "acceleration to print"
 msgstr ""
-"ob das Gerät den geräuschlosen Modus unterstützt, bei dem das Gerät eine "
+"Falls das Gerät den geräuschlosen Modus unterstützt, wird bei dem Gerät eine "
 "geringere Beschleunigung zum Drucken verwendet"
 
 msgid ""
