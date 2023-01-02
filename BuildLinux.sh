@@ -28,7 +28,7 @@ function check_available_memory_and_disk() {
 }
 
 unset name
-while getopts ":dsiuhgb" opt; do
+while getopts ":dsiuhgbr" opt; do
   case ${opt} in
     u )
         UPDATE_LIB="1"
@@ -48,6 +48,9 @@ while getopts ":dsiuhgb" opt; do
     g )
         FOUND_GTK3=""
         ;;
+    r )
+	SKIP_RAM_CHECK="1"
+	;;
     h ) echo "Usage: ./BuildLinux.sh [-i][-u][-d][-s][-b][-g]"
         echo "   -i: Generate appimage (optional)"
         echo "   -g: force gtk2 build"
@@ -55,6 +58,7 @@ while getopts ":dsiuhgb" opt; do
         echo "   -d: build deps (optional)"
         echo "   -s: build bambu-studio (optional)"
         echo "   -u: only update clock & dependency packets (optional and need sudo)"
+	echo "   -r: skip free ram check (low ram compiling)"
         echo "For a first use, you want to 'sudo ./BuildLinux.sh -u'"
         echo "   and then './BuildLinux.sh -dsi'"
         exit 0
@@ -71,6 +75,7 @@ then
     echo "   -d: build deps (optional)"
     echo "   -s: build bambu-studio (optional)"
     echo "   -u: only update clock & dependency packets (optional and need sudo)"
+    echo "   -r: skip free ram check (low ram compiling)"
     echo "For a first use, you want to 'sudo ./BuildLinux.sh -u'"
     echo "   and then './BuildLinux.sh -dsi'"
     exit 0
@@ -153,7 +158,10 @@ then
     mkdir deps/build
 fi
 
+if ! [[ -n "$SKIP_RAM_CHECK" ]]
+then
 check_available_memory_and_disk
+fi
 
 if [[ -n "$BUILD_DEPS" ]]
 then

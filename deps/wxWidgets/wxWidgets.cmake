@@ -1,6 +1,7 @@
 set(_wx_git_tag v3.1.5)
 
 set(_wx_toolkit "")
+set(_wx_glcanvas_egl "")
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(_gtk_ver 2)
     if (DEP_WX_GTK3)
@@ -8,6 +9,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     endif ()
     set(_wx_toolkit "-DwxBUILD_TOOLKIT=gtk${_gtk_ver}")
     set(_wx_private_font "-DwxUSE_PRIVATE_FONTS=1")
+    set(_wx_glcanvas_egl "-DwxUSE_GLCANVAS_EGL=OFF")
 else ()
     set(_wx_private_font "-DwxUSE_PRIVATE_FONTS=0")
 endif()
@@ -49,6 +51,7 @@ bambustudio_add_cmake_project(wxWidgets
         -DwxUSE_LIBJPEG=sys
         -DwxUSE_LIBTIFF=sys
         -DwxUSE_EXPAT=sys
+	${_wx_glcanvas_egl}
 )
 
 if (MSVC)
