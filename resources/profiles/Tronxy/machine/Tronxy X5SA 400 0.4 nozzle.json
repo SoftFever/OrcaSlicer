@@ -4,7 +4,7 @@
   "name": "Tronxy X5SA 400 0.4 nozzle",
   "from": "system",
   "instantiation": "true",
-  "inherits": "fdm_klipper_common",
+  "inherits": "fdm_machine_common",
   "printer_model": "Tronxy X5SA 400",
   "nozzle_diameter": [
     "0.4"

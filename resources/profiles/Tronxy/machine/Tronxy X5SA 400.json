@@ -1,6 +1,6 @@
 {
     "type": "machine_model",
-    "name": "Tronxy X5SA 400",
+    "name": "Tronxy X5SA 400 (Marlin)",
     "model_id": "Tronxy X5SA_400",
     "nozzle_diameter": "0.4",
     "machine_tech": "FFF",

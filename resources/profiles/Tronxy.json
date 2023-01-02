@@ -5,7 +5,7 @@
     "description": "Tronxy configurations",
     "machine_model_list": [
         {
-            "name": "Tronxy X5SA 400",
+            "name": "Tronxy X5SA 400 (Marlin-Firmware)",
             "sub_path": "machine/Tronxy X5SA 400.json"
         }
     ],
