@@ -184,6 +184,12 @@ inline Point operator* (const Point& l, const double& r)
     return { coord_t(l.x() * r), coord_t(l.y() * r) };
 }
 
+inline std::ostream &operator<<(std::ostream &os, const Point &pt)
+{
+    os << unscale_(pt.x()) << "," << unscale_(pt.y());
+    return os;
+}
+
 inline bool is_approx(const Point &p1, const Point &p2, coord_t epsilon = coord_t(SCALED_EPSILON))
 {
 	Point d = (p2 - p1).cwiseAbs();

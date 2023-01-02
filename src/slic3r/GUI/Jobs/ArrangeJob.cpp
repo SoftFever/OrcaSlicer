@@ -388,7 +388,7 @@ void ArrangeJob::prepare()
 
         params.clearance_height_to_rod             = print.config().extruder_clearance_height_to_rod.value;
         params.clearance_height_to_lid             = print.config().extruder_clearance_height_to_lid.value;
-        params.cleareance_radius                   = print.config().extruder_clearance_radius.value;
+        params.cleareance_radius                   = print.config().extruder_clearance_max_radius.value;
         params.printable_height                    = print.config().printable_height.value;
         params.allow_rotations                     = settings.enable_rotation;
         params.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;

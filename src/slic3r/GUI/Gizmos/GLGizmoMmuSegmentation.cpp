@@ -321,16 +321,16 @@ void GLGizmoMmuSegmentation::show_tooltip_information(float caption_max, float x
         std::vector<std::string> tip_items;
         switch (m_tool_type) {
             case ToolType::BRUSH:
-                tip_items = {"paint", "erase", "cursor_size", "clipping_of_view", "toggle_wireframe"};
+                tip_items = {"paint", "erase", "cursor_size", "clipping_of_view"};
                 break;
             case ToolType::BUCKET_FILL:
-                tip_items = {"paint", "erase", "smart_fill_angle", "clipping_of_view", "toggle_wireframe"};
+                tip_items = {"paint", "erase", "smart_fill_angle", "clipping_of_view"};
                 break;
             case ToolType::SMART_FILL:
                 // TODO:
                 break;
             case ToolType::GAP_FILL:
-                tip_items = {"gap_area", "toggle_wireframe"};
+                tip_items = {"gap_area"};
                 break;
             default:
                 break;
@@ -357,7 +357,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
 
     // First calculate width of all the texts that are could possibly be shown. We will decide set the dialog width based on that:
     const float space_size = m_imgui->get_style_scaling() * 8;
-    const float clipping_slider_left  = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x + m_imgui->scaled(1.5f), 
+    const float clipping_slider_left  = std::max(m_imgui->calc_text_size(m_desc.at("clipping_of_view")).x + m_imgui->scaled(1.5f),
         m_imgui->calc_text_size(m_desc.at("reset_direction")).x + m_imgui->scaled(1.5f) + ImGui::GetStyle().FramePadding.x * 2);
     const float cursor_slider_left = m_imgui->calc_text_size(m_desc.at("cursor_size")).x + m_imgui->scaled(1.5f);
     const float smart_fill_slider_left = m_imgui->calc_text_size(m_desc.at("smart_fill_angle")).x + m_imgui->scaled(1.5f);

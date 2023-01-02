@@ -540,10 +540,7 @@ int GLGizmoFdmSupports::get_selection_support_threshold_angle()
     SupportType support_type = obj_cfg.option("support_type") ? obj_cfg.opt_enum<SupportType>("support_type") : glb_cfg.opt_enum<SupportType>("support_type");
     int support_threshold_angle = obj_cfg.option("support_threshold_angle") ? obj_cfg.opt_int("support_threshold_angle") : glb_cfg.opt_int("support_threshold_angle");
 
-    bool auto_support = enable_support &&
-        (support_type == SupportType::stHybridAuto ||
-         support_type == SupportType::stTreeAuto ||
-         support_type == SupportType::stNormalAuto);
+    bool auto_support = enable_support && is_auto(support_type);
     return auto_support ? support_threshold_angle : 0;
 }
 
@@ -725,8 +722,7 @@ void GLGizmoFdmSupports::init_print_instance()
 
     const PrintObjectConfig& config = m_print_instance.print_object->config();
     m_angle_threshold_deg = config.support_angle;
-    m_is_tree_support = config.enable_support.value &&
-        (config.support_type.value == stTreeAuto || config.support_type.value == stTree || config.support_type.value==stHybridAuto);
+    m_is_tree_support = config.enable_support.value && is_tree(config.support_type.value);
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ",get support_angle "<< m_angle_threshold_deg<<", is_tree "<<m_is_tree_support;
 
     return;

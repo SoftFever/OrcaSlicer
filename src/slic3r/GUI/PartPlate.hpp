@@ -259,6 +259,7 @@ public:
     Vec3d get_origin() { return m_origin; }
     Vec3d estimate_wipe_tower_size(const double w, const double wipe_volume) const;
     std::vector<int> get_extruders() const;
+    std::vector<int> get_used_extruders();
 
     /* instance related operations*/
     //judge whether instance is bound in plate or not
