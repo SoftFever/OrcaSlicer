@@ -603,6 +603,11 @@ void IMSlider::SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, 
     else 
         m_is_wipe_tower = m_mode != SingleExtruder;
     m_can_change_color = can_change_color;
+
+    // close opened menu window after reslice
+    m_show_menu = false;
+    m_show_custom_gcode_window = false;
+    m_show_go_to_layer_dialog = false;
 }
 
 void IMSlider::SetExtruderColors( const std::vector<std::string>& extruder_colors)
@@ -1214,10 +1219,6 @@ bool IMSlider::render(int canvas_width, int canvas_height)
 
     float scale = (float) wxGetApp().em_unit() / 10.0f;
 
-    render_input_custom_gcode();
-
-    render_go_to_layer_dialog();
-
     if (is_horizontal()) {
         float  pos_x = std::max(LEFT_MARGIN, 0.2f * canvas_width);
         float  pos_y = (canvas_height - HORIZONTAL_SLIDER_SIZE.y * m_scale);
@@ -1277,67 +1278,76 @@ bool IMSlider::render(int canvas_width, int canvas_height)
 
 void IMSlider::render_input_custom_gcode()
 {
-    if (!m_show_custom_gcode_window)
-        return;
-    ImGuiWrapper& imgui = *wxGetApp().imgui();
-    static bool move_to_center = true;
-    static bool set_focus = true;
-    if (move_to_center) {
-        auto pos_x = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_width() / 2;
-        auto pos_y = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height() / 2;
-        imgui.set_next_window_pos(pos_x, pos_y, ImGuiCond_Always, 0.5f, 0.5f);
-        move_to_center = false;
-    }
+    if (m_show_custom_gcode_window)
+        ImGui::OpenPopup((_u8L("Custom G-code")).c_str());
 
-    imgui.push_common_window_style(m_scale);
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    static bool set_focus = true;
+
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    imgui.push_menu_style(m_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20, 10) * m_scale);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 12.f * m_scale);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 3) * m_scale);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10, 7) * m_scale);
-    int windows_flag = 
+    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, m_is_dark ? ImVec4(54 / 255.0f, 54 / 255.0f, 60 / 255.0f, 1.00f) : ImVec4(245 / 255.0f, 245 / 255.0f, 245 / 255.0f, 1.00f));
+    ImGui::GetCurrentContext()->DimBgRatio = 1.0f;
+    int windows_flag =
         ImGuiWindowFlags_NoCollapse
         | ImGuiWindowFlags_AlwaysAutoResize
         | ImGuiWindowFlags_NoResize
         | ImGuiWindowFlags_NoScrollbar
         | ImGuiWindowFlags_NoScrollWithMouse;
-    imgui.begin(_u8L("Custom G-code"), windows_flag);
-    imgui.text(_u8L("Enter Custom G-code used on current layer:"));
-    if (ImGui::IsMouseClicked(0)) {
-        set_focus = false;
-    }
-    if (set_focus && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
-        ImGui::SetKeyboardFocusHere(0);
-    }
-    int text_height = 6;
-    ImGui::InputTextMultiline("##text", m_custom_gcode, sizeof(m_custom_gcode), ImVec2(-1, ImGui::GetTextLineHeight() * text_height));
-    //text_height = 5;
-    //for (int i = 0; m_custom_gcode[i] != '\0'; ++i){
-    //    if ('\n' == m_custom_gcode[i] && text_height < 12)
-    //        ++text_height;
-    //}
+    if (ImGui::BeginPopupModal((_u8L("Custom G-code")).c_str(), NULL, windows_flag))
+    {
+        imgui.text(_u8L("Enter Custom G-code used on current layer:"));
+        if (ImGui::IsMouseClicked(0)) {
+            set_focus = false;
+        }
+        if (set_focus && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
+            ImGui::SetKeyboardFocusHere(0);
+        }
+        const int text_height = 6;
+        ImGui::InputTextMultiline("##text", m_custom_gcode, sizeof(m_custom_gcode), ImVec2(-1, ImGui::GetTextLineHeight() * text_height));
 
-    ImGui::NewLine();
-    ImGui::SameLine(ImGui::GetStyle().WindowPadding.x * 14);
-    imgui.push_confirm_button_style();
-    if (imgui.bbl_button(_L("OK")) || ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Enter))) {
-        m_show_custom_gcode_window = false;
-        add_custom_gcode(m_custom_gcode);
-        move_to_center = true;
-        set_focus = true;
-    }
-    imgui.pop_confirm_button_style();
+        ImGui::NewLine();
+        ImGui::SameLine(ImGui::GetStyle().WindowPadding.x * 14);
+        imgui.push_confirm_button_style();
 
-    ImGui::SameLine();
-    imgui.push_cancel_button_style();
-    if (imgui.bbl_button(_L("Cancel")) || ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
-        m_show_custom_gcode_window = false;
-        move_to_center = true;
-        set_focus = true;
-    }
-    imgui.pop_cancel_button_style();
+        bool disable_button = false;
+        if (strlen(m_custom_gcode) == 0)
+            disable_button = true;
+        if (disable_button) {
+            ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+            imgui.push_button_disable_style();
+        }
+        if (imgui.bbl_button(_L("OK"))) {
+            add_custom_gcode(m_custom_gcode);
+            m_show_custom_gcode_window = false;
+            ImGui::CloseCurrentPopup();
+            set_focus = true;
+        }
+        if (disable_button) {
+            ImGui::PopItemFlag();
+            imgui.pop_button_disable_style();
+        }
+        imgui.pop_confirm_button_style();
 
-    imgui.end();
-    ImGui::PopStyleVar(3);
-    imgui.pop_common_window_style();
+        ImGui::SameLine();
+        imgui.push_cancel_button_style();
+        if (imgui.bbl_button(_L("Cancel")) || ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
+            m_show_custom_gcode_window = false;
+            ImGui::CloseCurrentPopup();
+            set_focus = true;
+        }
+        imgui.pop_cancel_button_style();
+
+        ImGui::EndPopup();
+    }
+    ImGui::PopStyleVar(4);
+    ImGui::PopStyleColor();
+    imgui.pop_menu_style();
 }
 
 void IMSlider::do_go_to_layer(size_t layer_number) {
@@ -1345,80 +1355,83 @@ void IMSlider::do_go_to_layer(size_t layer_number) {
     GetSelection() == ssLower ? SetLowerValue(layer_number) : SetHigherValue(layer_number);
 }
 
-void IMSlider::render_go_to_layer_dialog(){
-    if (!m_show_go_to_layer_dialog)
-        return;
-    ImGuiWrapper& imgui = *wxGetApp().imgui();
-    static bool move_to_center = true;
-    static bool set_focus = true;
-    if (move_to_center) {
-        auto pos_x = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_width() / 2;
-        auto pos_y = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height() / 2;
-        imgui.set_next_window_pos(pos_x, pos_y, ImGuiCond_Always, 0.5f, 0.5f);
-        move_to_center = false;
-    }
+void IMSlider::render_go_to_layer_dialog()
+{
+    if (m_show_go_to_layer_dialog)
+        ImGui::OpenPopup((_u8L("Jump to layer")).c_str());
 
-    imgui.push_common_window_style(m_scale);
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    static bool set_focus = true;
+
+    imgui.push_menu_style(m_scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20, 10) * m_scale);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 12.f * m_scale);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 3) * m_scale);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10, 7) * m_scale);
+    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, m_is_dark ? ImVec4(54 / 255.0f, 54 / 255.0f, 60 / 255.0f, 1.00f) : ImVec4(245 / 255.0f, 245 / 255.0f, 245 / 255.0f, 1.00f));
+    ImGui::GetCurrentContext()->DimBgRatio = 1.0f;
     int windows_flag =
         ImGuiWindowFlags_NoCollapse
         | ImGuiWindowFlags_AlwaysAutoResize
         | ImGuiWindowFlags_NoResize
         | ImGuiWindowFlags_NoScrollbar
         | ImGuiWindowFlags_NoScrollWithMouse;
-    imgui.begin(_u8L("Jump to layer"), windows_flag);
-    imgui.text(_u8L("Please enter the layer number") + " (" + std::to_string(m_min_value + 1) + " - " + std::to_string(m_max_value + 1) + "):");
-    if (ImGui::IsMouseClicked(0)) {
-        set_focus = false;
-    }
-    if (set_focus && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
-        ImGui::SetKeyboardFocusHere(0);
-    }
-    ImGui::InputText("##input_layer_number", m_layer_number, sizeof(m_layer_number));
+    if (ImGui::BeginPopupModal((_u8L("Jump to layer")).c_str(), NULL, windows_flag))
+    {
+        imgui.text(_u8L("Please enter the layer number") + " (" + std::to_string(m_min_value + 1) + " - " + std::to_string(m_max_value + 1) + "):");
+        if (ImGui::IsMouseClicked(0)) {
+            set_focus = false;
+        }
+        if (set_focus && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
+            ImGui::SetKeyboardFocusHere(0);
+        }
+        ImGui::InputText("##input_layer_number", m_layer_number, sizeof(m_layer_number));
 
-    ImGui::NewLine();
-    ImGui::SameLine(GImGui->Style.WindowPadding.x * 8);
-    imgui.push_confirm_button_style();
-    bool disable_button = false;
-    if (strlen(m_layer_number) == 0)
-        disable_button = true;
-    else {
-        for (size_t i = 0; i< strlen(m_layer_number); i++)
-            if (!isdigit(m_layer_number[i]))
-                disable_button = true;
-        if (!disable_button && (m_min_value > atoi(m_layer_number) - 1 || atoi(m_layer_number) - 1 > m_max_value))
+        ImGui::NewLine();
+        ImGui::SameLine(GImGui->Style.WindowPadding.x * 8);
+        imgui.push_confirm_button_style();
+        bool disable_button = false;
+        if (strlen(m_layer_number) == 0)
             disable_button = true;
-    }
-    if (disable_button) {
-        ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-        imgui.push_button_disable_style();
-    }
-    if (imgui.bbl_button(_L("OK")) || (!disable_button && ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Enter)))) {
-        do_go_to_layer(atoi(m_layer_number) - 1);
-        m_show_go_to_layer_dialog = false;
-        move_to_center = true;
-        set_focus = true;
-    }
-    if (disable_button) {
-        ImGui::PopItemFlag();
-        imgui.pop_button_disable_style();
-    }
-    imgui.pop_confirm_button_style();
+        else {
+            for (size_t i = 0; i < strlen(m_layer_number); i++)
+                if (!isdigit(m_layer_number[i]))
+                    disable_button = true;
+            if (!disable_button && (m_min_value > atoi(m_layer_number) - 1 || atoi(m_layer_number) - 1 > m_max_value))
+                disable_button = true;
+        }
+        if (disable_button) {
+            ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+            imgui.push_button_disable_style();
+        }
+        if (imgui.bbl_button(_L("OK")) || (!disable_button && ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Enter)))) {
+            do_go_to_layer(atoi(m_layer_number) - 1);
+            m_show_go_to_layer_dialog = false;
+            ImGui::CloseCurrentPopup();
+            set_focus = true;
+        }
+        if (disable_button) {
+            ImGui::PopItemFlag();
+            imgui.pop_button_disable_style();
+        }
+        imgui.pop_confirm_button_style();
 
-    ImGui::SameLine();
-    imgui.push_cancel_button_style();
-    if (imgui.bbl_button(_L("Cancel")) || ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
-        m_show_go_to_layer_dialog = false;
-        move_to_center = true;
-        set_focus = true;
-    }
-    imgui.pop_cancel_button_style();
+        ImGui::SameLine();
+        imgui.push_cancel_button_style();
+        if (imgui.bbl_button(_L("Cancel")) || ImGui::IsKeyDown(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
+            m_show_go_to_layer_dialog = false;
+            ImGui::CloseCurrentPopup();
+            set_focus = true;
+        }
+        imgui.pop_cancel_button_style();
 
-    imgui.end();
-    ImGui::PopStyleVar(3);
-    imgui.pop_common_window_style();
+        ImGui::EndPopup();
+    }
+    ImGui::PopStyleVar(4);
+    ImGui::PopStyleColor();
+    imgui.pop_menu_style();
 }
 
 void IMSlider::render_menu()
@@ -1477,6 +1490,9 @@ void IMSlider::render_menu()
     ImGui::PopStyleVar(1);
 
     ImGuiWrapper::pop_menu_style();
+
+    render_input_custom_gcode();
+    render_go_to_layer_dialog();
 }
 
 void IMSlider::on_change_color_mode(bool is_dark) {
