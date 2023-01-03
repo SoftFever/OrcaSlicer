@@ -395,6 +395,8 @@ private:
     std::string     extrude_support(const ExtrusionEntityCollection &support_fills);
 
     std::string     travel_to(const Point &point, ExtrusionRole role, std::string comment);
+    // BBS
+    LiftType to_lift_type(ZHopType z_hop_type);
     // BBS: detect lift type in needs_retraction
     bool            needs_retraction(const Polyline& travel, ExtrusionRole role, LiftType& lift_type);
     std::string     retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::SpiralLift);

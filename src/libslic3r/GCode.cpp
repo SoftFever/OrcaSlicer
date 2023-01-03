@@ -3016,8 +3016,11 @@ std::string GCode::change_layer(coordf_t print_z, bool lazy_raise)
     //BBS
     //coordf_t z = print_z + m_config.z_offset.value;  // in unscaled coordinates
     coordf_t z = print_z;  // in unscaled coordinates
-    if (EXTRUDER_CONFIG(retract_when_changing_layer) && m_writer.will_move_z(z))
-        gcode += this->retract();
+    if (EXTRUDER_CONFIG(retract_when_changing_layer) && m_writer.will_move_z(z)) {
+        LiftType lift_type = this->to_lift_type(m_config.z_hop_type);
+        //BBS: force to use SpiralLift when change layer if lift type is auto
+        gcode += this->retract(false, false, m_config.z_hop_type == ZHopType::zhtAuto? LiftType::SpiralLift : lift_type);
+    }
 
     if (!lazy_raise) {
         std::ostringstream comment;
@@ -3728,6 +3731,22 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     return gcode;
 }
 
+//BBS
+LiftType GCode::to_lift_type(ZHopType z_hop_type) {
+    switch (z_hop_type)
+    {
+    case ZHopType::zhtNormal:
+        return LiftType::NormalLift;
+    case ZHopType::zhtSlope:
+        return LiftType::LazyLift;
+    case ZHopType::zhtSpiral:
+        return LiftType::SpiralLift;
+    default:
+        // if no corresponding lift type, use normal lift
+        return LiftType::NormalLift;
+    }
+};
+
 bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftType& lift_type)
 {
     if (travel.length() < scale_(EXTRUDER_CONFIG(retraction_minimum_travel))) {
@@ -3762,20 +3781,6 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
         }
 
         return false;
-    };
-
-    auto to_lift_type = [](ZHopType z_hop_type) {
-        if (z_hop_type == ZHopType::zhtNormal)
-            return LiftType::NormalLift;
-
-        if (z_hop_type == ZHopType::zhtSlope)
-            return LiftType::LazyLift;
-
-        if (z_hop_type == ZHopType::zhtSpiral)
-            return LiftType::SpiralLift;
-
-        // if no corresponding lift type, use normal lift
-        return LiftType::NormalLift;
     };
 
     float max_z_hop = 0.f;
