@@ -765,7 +765,7 @@ bool IMSlider::horizontal_slider(const char* str_id, int* value, int v_min, int 
 
 
     const ImU32 white_bg = m_is_dark ? IM_COL32(65, 65, 71, 255) : IM_COL32(255, 255, 255, 255);
-    const ImU32 handle_clr = IM_COL32(0, 174, 66, 255);
+    const ImU32 handle_clr = IM_COL32(0, 150, 136, 255);
     const ImU32 handle_border_clr = m_is_dark ? IM_COL32(65, 65, 71, 255) : IM_COL32(248, 248, 248, 255);
 
     // calc groove size
@@ -1002,7 +1002,7 @@ bool IMSlider::vertical_slider(const char* str_id, int* higher_value, int* lower
     ImVec2 text_size;
 
     const ImU32 white_bg = m_is_dark ? IM_COL32(65, 65, 71, 255) : IM_COL32(255, 255, 255, 255);
-    const ImU32 handle_clr = IM_COL32(0, 174, 66, 255);
+    const ImU32 handle_clr = IM_COL32(0, 150, 136, 255);
     const ImU32 handle_border_clr = m_is_dark ? IM_COL32(65, 65, 71, 255) : IM_COL32(248, 248, 248, 255);
 
     // calc slider groove size

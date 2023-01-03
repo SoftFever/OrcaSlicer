@@ -769,7 +769,7 @@ const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors{{
     decode_color_to_float_array("#D8FF00"),
     decode_color_to_float_array("#ADFF04"),
     decode_color_to_float_array("#76FF01"),
-    decode_color_to_float_array("#00FF00")    // reddish
+    decode_color_to_float_array("#52c7b8")    // reddish
 }};
 
 //const std::vector<GCodeViewer::Color> GCodeViewer::Range_Colors {{
@@ -4129,8 +4129,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0,0.0));
     ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(1.0f,1.0f,1.0f,0.6f));
-    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.59f, 0.53f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.59f, 0.53f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.42f, 0.42f, 0.42f, 1.00f));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
@@ -4214,7 +4214,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0 * m_scale, 0.0));
             ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(1.00f, 0.68f, 0.26f, 0.0f));
             ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(1.00f, 0.68f, 0.26f, 0.0f));
-            ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+            ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
             float max_height = 0.f;
             for (auto column_offset : columns_offsets) {
                 if (ImGui::CalcTextSize(column_offset.first.c_str()).y > max_height)
@@ -4228,7 +4228,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             if (checkbox) {
                 ImGui::SameLine(ImGui::GetWindowWidth() - imgui.calc_text_size(_u8L("Display")).x / 2 - ImGui::GetFrameHeight() / 2 - 2 * window_padding);
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0, 0.0));
-                ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+                ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
                 ImGui::Checkbox(("##" + columns_offsets[0].first).c_str(), &visible);
                 ImGui::PopStyleColor(1);
                 ImGui::PopStyleVar(1);
@@ -4385,8 +4385,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     else
         btn_name = ImGui::FoldButtonIcon + boost::nowide::widen(std::string(""));
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.0f, 0.68f, 0.26f, 1.00f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.68f, 0.26f, 0.78f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.0f, 0.59f, 0.53f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.59f, 0.53f, 0.78f));
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
     //ImGui::PushItemWidth(
     float button_width = ImGui::CalcTextSize(into_u8(btn_name).c_str()).x;
@@ -5285,9 +5285,9 @@ void GCodeViewer::push_combo_style()
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.0f, 0.0f, 0.0f, 0.3f));
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.0f, 0.0f, 0.0f, 0.3f));
     ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.0f, 0.0f, 0.0f, 0.8f));
-    ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
-    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 0.0f));
-    ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.59f, 0.53f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.59f, 0.53f, 0.0f));
+    ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.59f, 0.53f, 1.0f));
 }
 void GCodeViewer::pop_combo_style()
 {
