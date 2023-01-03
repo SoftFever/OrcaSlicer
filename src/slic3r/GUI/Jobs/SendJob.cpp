@@ -163,6 +163,7 @@ void SendJob::process()
     params.dev_ip = m_dev_ip;
     params.username = "bblp";
     params.password = m_access_code;
+    params.use_ssl  = m_local_use_ssl;
     wxString error_text;
     wxString msg_text;
 

@@ -648,6 +648,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     m_send_job                      = std::make_shared<SendJob>(m_status_bar, m_plater, m_printer_last_select);
     m_send_job->m_dev_ip            = obj_->dev_ip;
     m_send_job->m_access_code       = obj_->access_code;
+    m_send_job->m_local_use_ssl     = obj_->local_use_ssl;
     m_send_job->connection_type     = obj_->connection_type();
     m_send_job->cloud_print_only    = true;
     m_send_job->has_sdcard          = obj_->has_sdcard();

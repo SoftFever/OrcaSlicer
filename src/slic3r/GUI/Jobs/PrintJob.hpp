@@ -39,6 +39,7 @@ public:
 
     std::string m_project_name;
     std::string m_dev_ip;
+    bool        m_local_use_ssl { true };
     std::string m_access_code;
     std::string task_bed_type;
     bool        task_bed_leveling;

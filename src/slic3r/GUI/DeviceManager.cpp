@@ -1284,6 +1284,11 @@ void MachineObject::parse_version_func()
                 is_support_ai_monitoring                = true;
                 is_support_ams_humidity                 = true;
             }
+            if (ota_version->second.sw_ver.compare("01.03.00.00") <= 0) {
+                local_use_ssl = false;
+            } else {
+                local_use_ssl = true;
+            }
         }
     }
 }

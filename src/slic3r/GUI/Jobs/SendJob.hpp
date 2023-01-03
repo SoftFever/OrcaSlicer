@@ -34,6 +34,7 @@ public:
     std::string m_project_name;
     std::string m_dev_ip;
     std::string m_access_code;
+    bool        m_local_use_ssl{false};
     std::string task_bed_type;
 	std::string task_ams_mapping;
 	std::string connection_type;
