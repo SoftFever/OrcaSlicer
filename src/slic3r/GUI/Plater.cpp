@@ -1775,6 +1775,7 @@ struct Plater::priv
     bool need_update() const { return m_need_update; }
     void set_need_update(bool need_update) { m_need_update = need_update; }
 
+    void set_plater_dirty(bool is_dirty) { dirty_state.set_plater_dirty(is_dirty); }
     bool is_project_dirty() const { return dirty_state.is_dirty(); }
     bool is_presets_dirty() const { return dirty_state.is_presets_dirty(); }
     void update_project_dirty_from_presets()
@@ -7387,6 +7388,7 @@ bool Plater::Show(bool show)
 
 bool Plater::is_project_dirty() const { return p->is_project_dirty(); }
 bool Plater::is_presets_dirty() const { return p->is_presets_dirty(); }
+void Plater::set_plater_dirty(bool is_dirty) { p->set_plater_dirty(is_dirty); }
 void Plater::update_project_dirty_from_presets() { p->update_project_dirty_from_presets(); }
 int  Plater::save_project_if_dirty(const wxString& reason) { return p->save_project_if_dirty(reason); }
 void Plater::reset_project_dirty_after_save() { p->reset_project_dirty_after_save(); }
@@ -10964,8 +10966,13 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
             PartPlate* curr_plate = p->partplate_list.get_curr_plate();
             dlg.sync_bed_type(curr_plate->get_bed_type(false));
             dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index](wxCommandEvent& e) {
+                PartPlate *curr_plate   = p->partplate_list.get_curr_plate();
+                BedType    old_bed_type = curr_plate->get_bed_type(false);
                 auto type = (BedType)(e.GetInt());
-                p->partplate_list.get_curr_plate()->set_bed_type(type);
+                if (old_bed_type != type) {
+                    curr_plate->set_bed_type(type);
+                    set_plater_dirty(true);
+                }
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select bed type %1% for plate %2% at plate side")%type %plate_index;
                 });
             dlg.ShowModal();
