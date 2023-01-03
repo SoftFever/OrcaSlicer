@@ -33,7 +33,7 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     auto        body_panel = new wxPanel(this, wxID_ANY);
 
     body_panel->SetBackgroundColour(*wxWHITE);
-    auto cali_left_panel = new StaticBox(body_panel, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(303), FromDIP(243)));
+    auto cali_left_panel = new StaticBox(body_panel, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(303), -1));
     cali_left_panel->SetBackgroundColor(BG_COLOR);
     cali_left_panel->SetBorderColor(BG_COLOR);
 
@@ -73,9 +73,7 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     cali_left_sizer->Add(0, 0, 0, wxTOP, FromDIP(5));
 
     auto cali_left_text_body =
-        new wxStaticText(cali_left_panel, wxID_ANY,
-                         _L("The calibration program detects the status of your device automatically to minimize deviation.\nIt keeps the device performing optimally."),
-                         wxDefaultPosition, wxSize(FromDIP(260), -1), 0);
+        new Label(cali_left_panel, _L("The calibration program detects the status of your device automatically to minimize deviation.\nIt keeps the device performing optimally."));
     cali_left_text_body->Wrap(FromDIP(260));
     cali_left_text_body->SetForegroundColour(wxColour(0x6B, 0x6B, 0x6B));
     cali_left_text_body->SetBackgroundColour(BG_COLOR);
