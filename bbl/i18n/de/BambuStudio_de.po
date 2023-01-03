@@ -2755,6 +2755,39 @@ msgstr "Objektbeschriftungen in 3D-Szene anzeigen"
 msgid "Preferences"
 msgstr "Einstellungen"
 
+msgid "Line method - DDE"
+msgstr "Linien Methode - DDE"
+
+msgid "Line method - Bowden"
+msgstr "Linien Methode - Bowden"
+
+msgid "Tower method - DDE"
+msgstr "Turm Methode - DDE"
+
+msgid "Tower method - Bowden"
+msgstr "Turm Methode - Bowden"
+
+msgid "Presure/Linear Advance"
+msgstr "Presure/Linear Advance"
+
+msgid "Flow rate"
+msgstr "Durchflussrate"
+
+msgid "Pass 1"
+msgstr "Durchgang 1"
+
+msgid "Pass 2"
+msgstr "Durchgang 2"
+
+msgid "Tutorial"
+msgstr "Anleitung"
+
+msgid "Layer Time"
+msgstr "Layerzeit"
+
+msgid "Layer Time (log)"
+msgstr "Layerzeit (log)"
+
 msgid "View"
 msgstr "Ansicht"
 
@@ -3082,7 +3115,7 @@ msgid "Lamp"
 msgstr "Lampe"
 
 msgid "Aux"
-msgstr "Auf"
+msgstr "Aux"
 
 msgid "Cham"
 msgstr "Cham"
@@ -6486,8 +6519,8 @@ msgid ""
 "Enable this to get a G-code file which has G2 and G3 moves. And the fitting tolerance is same "
 "with resolution"
 msgstr ""
-"Aktivieren Sie dies, um eine G-Code-Datei zu erhalten, die G2- und G3-Züge enthält. Und die "
-"Anpassungstoleranz ist die gleiche wie die Auflösung"
+"Aktivieren Sie dies, um eine G-Code-Datei zu erhalten, die G2- und G3-Züge "
+"enthält. Und die Anpassungstoleranz ist die gleiche wie die Auflösung"
 
 msgid "Add line number"
 msgstr "Liniennummer hinzufügen"
