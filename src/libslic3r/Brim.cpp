@@ -979,8 +979,11 @@ static ExPolygons outer_inner_brim_area(const Print& print,
             }
         }
     }
-    if (!bedExPoly.empty())
+    if (!bedExPoly.empty()){
+        auto plateOffset = print.get_plate_origin();
+        bedExPoly.front().translate(scale_(plateOffset.x()), scale_(plateOffset.y()));
         no_brim_area.push_back(bedExPoly.front());
+    }
     for (const PrintObject* object : print.objects())
         if (brimAreaMap.find(object->id()) != brimAreaMap.end()) {
             brimAreaMap[object->id()] = diff_ex(brimAreaMap[object->id()], no_brim_area);
