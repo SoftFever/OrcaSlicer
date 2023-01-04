@@ -1,11 +1,25 @@
 
 # Bambu Studio - SoftFever
 A modified version of Bambu Studio with many handy features.   
-It's fully compatible with Bambulab X1/X1-C printers.
-It also supports Voron and Prusa MK3S printers.  
+It's fully compatible with Bambulab X1/X1-C/P1P printers.
+It also supports Anycubic, Anker, Creality, Prusa MK3S, RatRig and Voron printers.  
 You can download it here: https://github.com/SoftFever/BambuStudio-SoftFever/releases
 
 ## BambuStudio SoftFever change notes:
+
+### [V1.4.1 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.4.1):
+- Added a feature for checking and displaying a notification for a new version
+- Added RatRig printer profiles, thanks @erebus04 for working this
+- Added support for the Creality CR-10 Max and Anker M5 printers.
+- Fixed the issue with profile cloud syncing for third-party printers.
+- set inner_wall_acceleration to 5000 for Bambu printers
+- Added support for the first_layer_bed_temperature and first_layer_temperature variables for better compatibility."
+- Fixed a crashing bug when adding text Mac Intel machine
+- QoL improvements for naming logic:
+   1. The filename format is now supported when exporting 3mf files.
+   2. If the project is not defined, the model name will be used as the output name.
+   3. The "Untitled" string will no longer be added if the project name is set.
+   4. The "_plate_0" string has been removed from the file name if there is only one plate.
 
 ### [V1.4.0 changes](https://github.com/SoftFever/BambuStudio-SoftFever/releases/tag/v1.4.0):
 - Add Layer Time/Layer time(Log) display (NOTE: need more tweaking work for BBL printers as the layer time is skewed by the preparing time)
@@ -161,12 +175,14 @@ ARC movement are supported by default.
 
 # Gallery
 ![image](./SoftFever_doc/accelerations.png)
-![image](./SoftFever_doc/printers1.png)  
-![image](./SoftFever_doc/printers2.png)  
-![image](./SoftFever_doc/printers3.png)  
-![image](./SoftFever_doc/printers4.png)  
-![image](./SoftFever_doc/voron.png)  
-
+![image](./SoftFever_doc/BambuLab.png)  
+![image](./SoftFever_doc/Anker.png)  
+![image](./SoftFever_doc/Anycubic.png)  
+![image](./SoftFever_doc/Creality.png)  
+![image](./SoftFever_doc/Prusa.png)  
+![image](./SoftFever_doc/RatRig.png)  
+![image](./SoftFever_doc/Voron_1.png)  
+![image](./SoftFever_doc/Voron_2.png) 
 
 
 Image credits: 
