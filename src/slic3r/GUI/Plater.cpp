@@ -128,7 +128,7 @@
 
 #include "PhysicalPrinterDialog.hpp"
 #include "PrintHostDialogs.hpp"
-#include "SetBedTypeDialog.hpp"
+#include "PlateSettingsDialog.hpp"
 
 using boost::optional;
 namespace fs = boost::filesystem;
@@ -5487,7 +5487,7 @@ void Plater::priv::on_select_bed_type(wxCommandEvent &evt)
                 //update slice status
                 auto plate_list = partplate_list.get_plate_list();
                 for (auto plate : plate_list) {
-                    if (plate->get_bed_type(false) == btDefault) {
+                    if (plate->get_bed_type() == btDefault) {
                         plate->update_slice_result_valid_state(false);
                     }
                 }
@@ -5570,12 +5570,9 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     Slic3r::put_other_changes();
 
     // update slice state and set bedtype default for 3rd-party printer
-    bool is_bbl_vendor_preset = wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle);
     auto plate_list = partplate_list.get_plate_list();
     for (auto plate : plate_list) {
          plate->update_slice_result_valid_state(false);
-         if (!is_bbl_vendor_preset)
-             plate->set_bed_type(btDefault);
     }
 }
 
@@ -6415,7 +6412,9 @@ PlateBBoxData Plater::priv::generate_first_layer_bbox()
     std::vector<BBoxData>& id_bboxes = bboxdata.bbox_objs;
     BoundingBoxf bbox_all;
     auto                   print = this->background_process.m_fff_print;
-    bboxdata.is_seq_print = (print->config().print_sequence == PrintSequence::ByObject);
+    auto curr_plate = this->partplate_list.get_curr_plate();
+    auto curr_plate_seq = curr_plate->get_real_print_seq();
+    bboxdata.is_seq_print = (curr_plate_seq == PrintSequence::ByObject);
     bboxdata.first_extruder = print->get_tool_ordering().first_extruder();
     bboxdata.bed_type       = bed_type_to_gcode_string(print->config().curr_bed_type.value);
     // get nozzle diameter
@@ -10071,6 +10070,24 @@ bool Plater::update_filament_colors_in_full_config()
     return true;
 }
 
+void Plater::config_change_notification(const DynamicPrintConfig &config, const std::string& key)
+{
+    GLCanvas3D* view3d_canvas = get_view3D_canvas3D();
+    if (key == std::string("print_sequence")) {
+        auto seq_print = config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
+        if (seq_print && view3d_canvas && view3d_canvas->is_initialized() && view3d_canvas->is_rendering_enabled()) {
+            NotificationManager* notify_manager = get_notification_manager();
+            if (seq_print->value == PrintSequence::ByObject) {
+                std::string info_text = _u8L("Print By Object: \nSuggest to use auto-arrange to avoid collisions when printing.");
+                notify_manager->bbl_show_seqprintinfo_notification(info_text);
+            }
+            else
+                notify_manager->bbl_close_seqprintinfo_notification();
+        }
+    }
+    // notification for more options
+}
+
 void Plater::on_config_change(const DynamicPrintConfig &config)
 {
     bool update_scheduled = false;
@@ -10148,20 +10165,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
     if (bed_shape_changed)
         set_bed_shape();
 
-    GLCanvas3D* view3d_canvas = get_view3D_canvas3D();
-    auto seq_print  = config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
-    if ( seq_print && view3d_canvas && view3d_canvas->is_initialized()  && view3d_canvas->is_rendering_enabled() ) {
-        NotificationManager *notify_manager = get_notification_manager();
-        if (seq_print->value == PrintSequence::ByObject) {
-            std::string info_text = _u8L("Print By Object: \nSuggest to use auto-arrange to avoid collisions when printing.");
-            notify_manager->bbl_show_seqprintinfo_notification(info_text);
-            //always show label when switch to sequence print
-            //if (print_sequence_changed)
-            //    this->show_view3D_labels(true);
-        }
-        else
-            notify_manager->bbl_close_seqprintinfo_notification();
-    }
+    config_change_notification(config, std::string("print_sequence"));
 
     if (update_scheduled)
         update();
@@ -11034,18 +11038,38 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
         //set the plate type
         ret = select_plate(plate_index);
         if (!ret) {
-            SetBedTypeDialog dlg(this, wxID_ANY, _L("Select Bed Type"));
+            PlateSettingsDialog dlg(this, wxID_ANY, _L("Plate Settings"));
             PartPlate* curr_plate = p->partplate_list.get_curr_plate();
-            dlg.sync_bed_type(curr_plate->get_bed_type(false));
-            dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index](wxCommandEvent& e) {
+            dlg.sync_bed_type(curr_plate->get_bed_type());
+
+            auto curr_print_seq = curr_plate->get_print_seq();
+            if (curr_print_seq != PrintSequence::ByDefault) {
+                dlg.sync_print_seq(int(curr_print_seq) + 1);
+            }
+            else
+                dlg.sync_print_seq(0);
+
+            dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index, &dlg](wxCommandEvent& e) {
                 PartPlate *curr_plate = p->partplate_list.get_curr_plate();
-                BedType old_bed_type = curr_plate->get_bed_type(false);
-                auto type = (BedType)(e.GetInt());
-                if (old_bed_type != type) {
-                    curr_plate->set_bed_type(type);
+                BedType old_bed_type = curr_plate->get_bed_type();
+                auto bt_sel = BedType(dlg.get_bed_type_choice());
+                if (old_bed_type != bt_sel) {
+                    curr_plate->set_bed_type(bt_sel);
+                    update_project_dirty_from_presets();
                     set_plater_dirty(true);
                 }
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select bed type %1% for plate %2% at plate side")%type %plate_index;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select bed type %1% for plate %2% at plate side")%bt_sel %plate_index;
+
+                int ps_sel = dlg.get_print_seq_choice();
+                if (ps_sel != 0)
+                    curr_plate->set_print_seq(PrintSequence(ps_sel - 1));
+                else
+                    curr_plate->set_print_seq(PrintSequence::ByDefault);
+                update_project_dirty_from_presets();
+                set_plater_dirty(true);
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select print sequence %1% for plate %2% at plate side")%ps_sel %plate_index;
+                auto plate_config = *(curr_plate->config());
+                wxGetApp().plater()->config_change_notification(plate_config, std::string("print_sequence"));
                 });
             dlg.ShowModal();
 

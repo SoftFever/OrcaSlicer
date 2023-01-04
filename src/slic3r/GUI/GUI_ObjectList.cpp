@@ -30,6 +30,7 @@
 
 #include "slic3r/Utils/FixModelByWin10.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
+#include "libslic3r/PrintConfig.hpp"
 
 #ifdef __WXMSW__
 #include "wx/uiaction.h"
@@ -1397,8 +1398,21 @@ void ObjectList::key_event(wxKeyEvent& event)
 
 void ObjectList::OnBeginDrag(wxDataViewEvent &event)
 {
-    bool sequential_print = (wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject);
-    if (!sequential_print) {
+    int curr_obj_id = m_objects_model->GetIdByItem(event.GetItem());
+    PartPlateList& partplate_list = wxGetApp().plater()->get_partplate_list();
+    int from_plate = partplate_list.find_instance(curr_obj_id, 0);
+    if (from_plate == -1) {
+        event.Veto();
+        return;
+    }
+    auto curr_plate_seq = partplate_list.get_plate(from_plate)->get_print_seq();
+    if (curr_plate_seq == PrintSequence::ByDefault) {
+        auto curr_preset_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+        if (curr_preset_config.has("print_sequence"))
+            curr_plate_seq = curr_preset_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
+    }
+
+    if (curr_plate_seq != PrintSequence::ByObject) {
         //drag forbidden under bylayer mode
         event.Veto();
         return;

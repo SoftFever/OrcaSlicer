@@ -78,6 +78,7 @@ enum class WallInfillOrder {
 enum class PrintSequence {
     ByLayer,
     ByObject,
+    ByDefault,
     Count,
 };
 

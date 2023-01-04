@@ -597,8 +597,10 @@ void IMSlider::SetModeAndOnlyExtruder(const bool is_one_extruder_printed_model, 
 
     UseDefaultColors(m_mode == SingleExtruder);
 
-    DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
-    if (config.opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject)
+    auto curr_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    auto curr_print_seq = curr_plate->get_real_print_seq();
+
+    if (curr_print_seq == PrintSequence::ByObject)
         m_is_wipe_tower = false;
     else 
         m_is_wipe_tower = m_mode != SingleExtruder;

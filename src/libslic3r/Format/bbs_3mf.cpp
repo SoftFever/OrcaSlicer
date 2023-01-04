@@ -240,6 +240,7 @@ static constexpr const char* LAST_TRIANGLE_ID_ATTR = "lastid";
 static constexpr const char* SUBTYPE_ATTR = "subtype";
 static constexpr const char* LOCK_ATTR = "locked";
 static constexpr const char* BED_TYPE_ATTR = "bed_type";
+static constexpr const char* PRINT_SEQUENCE_ATTR = "print_sequence";
 static constexpr const char* GCODE_FILE_ATTR = "gcode_file";
 static constexpr const char* THUMBNAIL_FILE_ATTR = "thumbnail_file";
 static constexpr const char* PATTERN_FILE_ATTR = "pattern_file";
@@ -3444,6 +3445,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 ConfigOptionEnum<BedType>::from_string(value, bed_type);
                 m_curr_plater->config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
             }
+            else if (key == PRINT_SEQUENCE_ATTR)
+            {
+                PrintSequence print_sequence = PrintSequence::ByLayer;
+                ConfigOptionEnum<PrintSequence>::from_string(value, print_sequence);
+                m_curr_plater->config.set_key_value("print_sequence", new ConfigOptionEnum<PrintSequence>(print_sequence));
+            }
             else if (key == GCODE_FILE_ATTR)
             {
                 m_curr_plater->gcode_file = value;
@@ -6389,6 +6396,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 t_config_enum_names bed_type_names = ConfigOptionEnum<BedType>::get_enum_names();
                 if (bed_type_opt != nullptr && bed_type_names.size() > bed_type_opt->getInt())
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << BED_TYPE_ATTR << "\" " << VALUE_ATTR << "=\"" << bed_type_names[bed_type_opt->getInt()] << "\"/>\n";
+
+                ConfigOption* print_sequence_opt = plate_data->config.option("print_sequence");
+                t_config_enum_names print_sequence_names = ConfigOptionEnum<PrintSequence>::get_enum_names();
+                if (print_sequence_opt != nullptr && print_sequence_names.size() > print_sequence_opt->getInt())
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PRINT_SEQUENCE_ATTR << "\" " << VALUE_ATTR << "=\"" << print_sequence_names[print_sequence_opt->getInt()] << "\"/>\n";
 
                 if (save_gcode)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << GCODE_FILE_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << xml_escape(plate_data->gcode_file) << "\"/>\n";

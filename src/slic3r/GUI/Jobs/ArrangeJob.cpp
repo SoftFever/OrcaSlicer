@@ -335,6 +335,7 @@ void ArrangeJob::prepare_partplate() {
         return;
     }
 
+    params.is_seq_print = plate->get_real_print_seq() == PrintSequence::ByObject;
     Model& model = m_plater->model();
 
     // Go through the objects and check if inside the selection

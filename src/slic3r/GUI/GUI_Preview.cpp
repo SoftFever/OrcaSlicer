@@ -582,7 +582,9 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
     m_layers_slider->SetSelectionSpan(idx_low, idx_high);
     m_layers_slider->SetTicksValues(ticks_info_from_model);
 
-    bool sequential_print     = (wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject);
+    auto curr_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    auto curr_print_seq = curr_plate->get_real_print_seq();
+    bool sequential_print = (curr_print_seq == PrintSequence::ByObject);
     m_layers_slider->SetDrawMode(sequential_print);
 
     auto print_mode_stat = m_gcode_result->print_statistics.modes.front();

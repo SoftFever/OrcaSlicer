@@ -381,6 +381,7 @@ public:
     // BBS
     void on_bed_type_change(BedType bed_type);
     bool update_filament_colors_in_full_config();
+    void config_change_notification(const DynamicPrintConfig &config, const std::string& key);
     void on_config_change(const DynamicPrintConfig &config);
     void force_filament_colors_update();
     void force_print_bed_update();
