@@ -1552,13 +1552,23 @@ wxBoxSizer* MainFrame::create_side_tools()
                     p->Dismiss();
                     });
 
+                SideButton* export_gcode_btn = new SideButton(p, _L("Export G-code file"), "");
+                export_gcode_btn->SetCornerRadius(0);
+                export_gcode_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+                    m_print_btn->SetLabel(_L("Export G-code file"));
+                    m_print_select = eExportGcode;
+                    m_print_enable = get_enable_print_status();
+                    m_print_btn->Enable(m_print_enable);
+                    this->Layout();
+                    p->Dismiss();
+                    });
                 p->append_button(print_plate_btn);
                 p->append_button(print_all_btn);
                 p->append_button(send_to_printer_btn);
                 p->append_button(send_to_printer_all_btn);
                 p->append_button(export_sliced_file_btn);
-                //p->append_button(export_gcode_btn);
                 p->append_button(export_all_sliced_file_btn);
+                p->append_button(export_gcode_btn);
             }
 
             p->Popup(m_print_btn);
