@@ -708,7 +708,7 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
 
 
 #define SUPPORT_SURFACES_OFFSET_PARAMETERS ClipperLib::jtSquare, 0.
-void TreeSupport::detect_object_overhangs()
+void TreeSupport::detect_overhangs()
 {
     // overhangs are already detected
     if (m_object->support_layer_count() >= m_object->layer_count())
@@ -719,12 +719,11 @@ void TreeSupport::detect_object_overhangs()
     m_object->clear_tree_support_preview_cache();
 
     create_tree_support_layers();
-    m_ts_data = m_object->alloc_tree_support_preview_cache();
-    m_ts_data->is_slim = is_slim;
+
 
     const PrintObjectConfig& config = m_object->config();
     SupportType stype = config.support_type.value;
-    const coordf_t radius_sample_resolution = m_ts_data->m_radius_sample_resolution;
+    const coordf_t radius_sample_resolution = g_config_tree_support_collision_resolution;
     const coordf_t extrusion_width = config.line_width.value;
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     const coordf_t max_bridge_length = scale_(config.max_bridge_length.value);
@@ -983,6 +982,9 @@ void TreeSupport::detect_object_overhangs()
                         layer->sharp_tails.push_back(expoly);
                         layer->sharp_tails_height.insert({ &expoly, accum_height });
                         append(overhang_areas, overhang);
+
+                        if (!overhang.empty())
+                            has_sharp_tails = true;
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
                         SVG svg(get_svg_filename(std::to_string(layer->print_z), "sharp_tail"), m_object->bounding_box());
                         if (svg.is_opened()) svg.draw(overhang, "yellow");
@@ -1148,8 +1150,8 @@ void TreeSupport::detect_object_overhangs()
             break;
 
         SupportLayer* ts_layer = m_object->get_support_layer(layer_nr + m_raft_layers);
+        auto layer = m_object->get_layer(layer_nr);
         if (support_critical_regions_only) {
-            auto layer = m_object->get_layer(layer_nr);
             auto lower_layer = layer->lower_layer;
             if (lower_layer == nullptr)
                 ts_layer->overhang_areas = layer->sharp_tails;
@@ -1181,6 +1183,7 @@ void TreeSupport::detect_object_overhangs()
         }
 
         if (!ts_layer->overhang_areas.empty()) has_overhangs = true;
+        if (!layer->cantilevers.empty()) has_cantilever = true;
     }
 
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
@@ -1887,7 +1890,7 @@ Polygons TreeSupport::contact_nodes_to_polygon(const std::vector<Node*>& contact
 }
 
 
-void TreeSupport::generate_support_areas()
+void TreeSupport::generate()
 {
     bool tree_support_enable = m_object_config->enable_support.value && is_tree(m_object_config->support_type.value);
     if (!tree_support_enable)
@@ -1900,8 +1903,13 @@ void TreeSupport::generate_support_areas()
     // Generate overhang areas
     profiler.stage_start(STAGE_DETECT_OVERHANGS);
     m_object->print()->set_status(55, _L("Support: detect overhangs"));
-    detect_object_overhangs();
+    detect_overhangs();
     profiler.stage_finish(STAGE_DETECT_OVERHANGS);
+
+    if (!has_overhangs) return;
+
+    m_ts_data = m_object->alloc_tree_support_preview_cache();
+    m_ts_data->is_slim = is_slim;
 
     // Generate contact points of tree support
     profiler.stage_start(STAGE_GENERATE_CONTACT_NODES);

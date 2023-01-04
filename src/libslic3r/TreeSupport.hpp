@@ -206,9 +206,9 @@ public:
      * \param storage The data storage where the mesh data is gotten from and
      * where the resulting support areas are stored.
      */
-    void generate_support_areas();
+    void generate();
 
-    void detect_object_overhangs();
+    void detect_overhangs();
 
     enum NodeType {
         eCircle,
@@ -372,6 +372,8 @@ public:
     int  avg_node_per_layer = 0;
     float nodes_angle       = 0;
     bool  has_overhangs = false;
+    bool  has_sharp_tails = false;
+    bool  has_cantilever = false;
 
     std::unique_ptr<FillLightning::Generator> generator;
     std::unordered_map<double, size_t> printZ_to_lightninglayer;

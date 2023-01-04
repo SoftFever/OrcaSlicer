@@ -2388,7 +2388,7 @@ void PrintObject::_generate_support_material()
     support_material.generate(*this);
 
     TreeSupport tree_support(*this, m_slicing_params);
-    tree_support.generate_support_areas();
+    tree_support.generate();
 }
 
 // BBS
@@ -2544,6 +2544,7 @@ template void PrintObject::remove_bridges_from_contacts<Polygons>(
 
 SupportNecessaryType PrintObject::is_support_necessary()
 {
+#if 0
     static const double super_overhang_area_threshold = SQ(scale_(5.0));
 
     double threshold_rad = (m_config.support_threshold_angle.value < EPSILON ? 30 : m_config.support_threshold_angle.value + 1) * M_PI / 180.;
@@ -2626,7 +2627,14 @@ SupportNecessaryType PrintObject::is_support_necessary()
         if (!exceed_overhang.empty())
             return LargeOverhang;
     }
-
+#else
+    TreeSupport tree_support(*this, m_slicing_params);
+    tree_support.detect_overhangs();
+    if (tree_support.has_sharp_tails)
+        return SharpTail;
+    else if (tree_support.has_cantilever)
+        return LargeOverhang;
+#endif
     return NoNeedSupp;
 }
 
