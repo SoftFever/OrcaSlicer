@@ -836,8 +836,8 @@ bool GLGizmosManager::on_mouse(wxMouseEvent& evt)
             //if (evt.AltDown())
             //    transformation_type.set_independent();
             selection.scale(get_scale(), transformation_type);
-            //if (control_down)
-            //    selection.translate(get_scale_offset(), true);
+            if (control_down && m_gizmos[m_current].get()->get_hover_id() < 6)
+                selection.translate(get_scale_offset(), true);
             // BBS
             //wxGetApp().obj_manipul()->set_dirty();
             break;
