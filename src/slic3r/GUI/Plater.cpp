@@ -8014,7 +8014,7 @@ void Plater::calib_flowrate(int pass) {
         if (obj_name[0] == 'm')
             obj_name[0] = '-';
         auto modifier = stof(obj_name);
-        _obj->config.set_key_value("print_flow_ratio", new ConfigOptionPercent(100 + modifier));
+        _obj->config.set_key_value("print_flow_ratio", new ConfigOptionFloat(1.0f + modifier/100.f));
     }
 
     print_config->set_key_value("layer_height", new ConfigOptionFloat(layer_height));

@@ -3699,7 +3699,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
 
     // calculate extrusion length per distance unit
-    double e_per_mm = m_writer.extruder()->e_per_mm3() * path.mm3_per_mm * this->config().print_flow_ratio.get_abs_value(1);
+    const auto _mm3_per_mm = path.mm3_per_mm * this->config().print_flow_ratio;
+    double e_per_mm = m_writer.extruder()->e_per_mm3() * _mm3_per_mm;
 
     double min_speed = double(m_config.slow_down_min_speed.get_at(m_writer.extruder()->id()));
     // set speed
@@ -3743,7 +3744,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
     //BBS: if not set the speed, then use the filament_max_volumetric_speed directly
     if (speed == 0)
-        speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / path.mm3_per_mm;
+        speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm;
     if (this->on_first_layer()) {
         //BBS: for solid infill of initial layer, speed can be higher as long as
         //wall lines have be attached
@@ -3757,14 +3758,14 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     //    // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
     //    speed = std::min(
     //        speed,
-    //        m_config.max_volumetric_speed.value / path.mm3_per_mm
+    //        m_config.max_volumetric_speed.value / _mm3_per_mm
     //    );
     //}
     if (EXTRUDER_CONFIG(filament_max_volumetric_speed) > 0) {
         // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
         speed = std::min(
             speed,
-            EXTRUDER_CONFIG(filament_max_volumetric_speed) / path.mm3_per_mm
+            EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm
         );
     }
     double F = speed * 60;  // convert mm/sec to mm/min
