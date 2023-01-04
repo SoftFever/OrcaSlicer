@@ -37,9 +37,10 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_GET_USER_INFO                 -28
 #define BAMBU_NETWORK_ERR_WRONG_IP_ADDRESS              -29
 
+
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
-#define BAMBU_NETWORK_AGENT_VERSION         "01.04.01.01"
+#define BAMBU_NETWORK_AGENT_VERSION         "01.05.00.01"
 
 
 //iot preset type strings
@@ -128,6 +129,7 @@ struct PrintParams {
 
     /* access options */
     std::string     dev_ip;
+    bool            use_ssl;
     std::string     username;
     std::string     password;
 
