@@ -536,8 +536,8 @@ void MonitorPanel::show_status(int status)
     } else if ((status & (int) MonitorStatus::MONITOR_CONNECTING) != 0) {
         m_hyperlink->Hide();
         m_connection_info->SetLabel(_L("Connecting..."));
-        m_connection_info->SetBackgroundColor(wxColour(0, 174, 66));
-        m_connection_info->SetBorderColor(wxColour(0, 174, 66));
+        m_connection_info->SetBackgroundColor(wxColour(0, 150, 136));
+        m_connection_info->SetBorderColor(wxColour(0, 150, 136));
         m_connection_info->Show();
     }
 

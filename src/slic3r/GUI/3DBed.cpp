@@ -133,7 +133,7 @@ const float Bed3D::Axes::DefaultTipRadius = 2.5f * Bed3D::Axes::DefaultStemRadiu
 const float Bed3D::Axes::DefaultTipLength = 5.0f;
 
 std::array<float, 4> Bed3D::AXIS_X_COLOR = decode_color_to_float_array("#FF0000");
-std::array<float, 4> Bed3D::AXIS_Y_COLOR = decode_color_to_float_array("#00FF00");
+std::array<float, 4> Bed3D::AXIS_Y_COLOR = decode_color_to_float_array("#52c7b8");
 std::array<float, 4> Bed3D::AXIS_Z_COLOR = decode_color_to_float_array("#0000FF");
 
 void Bed3D::update_render_colors()

@@ -132,9 +132,9 @@ namespace GUI {
      m_sizer_button->Add(0, 0, 1, wxEXPAND, 5);
      m_button_bind = new Button(button_panel, _L("Confirm"));
      StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-                             std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+                             std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
      m_button_bind->SetBackgroundColor(btn_bg_green);
-     m_button_bind->SetBorderColor(wxColour(0, 174, 66));
+     m_button_bind->SetBorderColor(wxColour(0, 150, 136));
      m_button_bind->SetTextColor(wxColour("#FFFFFE"));
      m_button_bind->SetSize(BIND_DIALOG_BUTTON_SIZE);
      m_button_bind->SetMinSize(BIND_DIALOG_BUTTON_SIZE);
@@ -403,9 +403,9 @@ UnBindMachineDialog::UnBindMachineDialog(Plater *plater /*= nullptr*/)
      m_sizer_button->Add(0, 0, 1, wxEXPAND, 5);
      m_button_unbind = new Button(this, _L("Confirm"));
      StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-                             std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+                             std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
      m_button_unbind->SetBackgroundColor(btn_bg_green);
-     m_button_unbind->SetBorderColor(wxColour(0, 174, 66));
+     m_button_unbind->SetBorderColor(wxColour(0, 150, 136));
      m_button_unbind->SetTextColor(wxColour("#FFFFFE"));
      m_button_unbind->SetSize(BIND_DIALOG_BUTTON_SIZE);
      m_button_unbind->SetMinSize(BIND_DIALOG_BUTTON_SIZE);
