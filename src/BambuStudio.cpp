@@ -1834,6 +1834,7 @@ int CLI::run(int argc, char **argv)
                     }*/
                     DynamicPrintConfig new_print_config = m_print_config;
                     new_print_config.apply(*part_plate->config());
+                    new_print_config.apply(m_extra_config, true);
                     print->apply(model, new_print_config);
                     StringObjectException warning;
                     auto err = print->validate(&warning);
