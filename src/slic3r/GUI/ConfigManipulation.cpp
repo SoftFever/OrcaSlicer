@@ -601,9 +601,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("inner_wall_line_width", have_perimeters || have_skirt || have_brim);
     toggle_field("support_filament", have_support_material || have_skirt);
 
-    toggle_field("raft_contact_distance", have_raft && !have_support_soluble);
-    for (auto el : { "raft_expansion" })
-        toggle_field(el, have_raft);
+    toggle_line("raft_contact_distance", have_raft && !have_support_soluble);
+    for (auto el : { "raft_first_layer_expansion", "raft_first_layer_density"})
+        toggle_line(el, have_raft);
 
     bool has_ironing = (config->opt_enum<IroningType>("ironing_type") != IroningType::NoIroning);
     for (auto el : { "ironing_flow", "ironing_spacing", "ironing_speed" })
