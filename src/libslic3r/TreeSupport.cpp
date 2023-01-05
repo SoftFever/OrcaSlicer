@@ -2528,7 +2528,8 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
         return move_dist;
     };
 
-    std::vector<std::pair<coordf_t, coordf_t>> layer_heights = plan_layer_heights(contact_nodes);
+    m_ts_data->layer_heights = plan_layer_heights(contact_nodes);
+    std::vector<LayerHeightData> &layer_heights = m_ts_data->layer_heights;
     if (layer_heights.empty()) return;
 
     std::unordered_set<Node*> to_free_node_set;
@@ -2548,9 +2549,10 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
             for (Node *p_node : contact_nodes[layer_nr]) {
                 layer_node_dist.emplace(p_node->dist_mm_to_top);
             }
-            if (layer_nr < m_highest_overhang_layer && layer_heights[layer_nr].second>0) {
-                for (auto node_dist : all_layer_node_dist[layer_nr + 1])
-                    layer_node_dist.emplace(node_dist + layer_heights[layer_nr].second);
+            size_t layer_nr_next = layer_heights[layer_nr].next_layer_nr;
+            if (layer_nr < m_highest_overhang_layer && layer_heights[layer_nr].height>0) {
+                for (auto node_dist : all_layer_node_dist[layer_nr_next])
+                    layer_node_dist.emplace(node_dist + layer_heights[layer_nr].height);
             }
             for (auto node_dist : layer_node_dist) {
                 layer_radius.emplace(calc_branch_radius(branch_radius, node_dist, diameter_angle_scale_factor));
@@ -2578,11 +2580,9 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
         if (layer_contact_nodes.empty())
             continue;
 
-        int layer_nr_next = layer_nr - 1;
-        while (layer_nr_next>=0 && layer_heights[layer_nr_next].second < EPSILON)
-            layer_nr_next--;
-        coordf_t print_z_next = layer_heights[layer_nr_next].first;
-        coordf_t height_next = layer_heights[layer_nr_next].second;
+        int      layer_nr_next = layer_heights[layer_nr].next_layer_nr;
+        coordf_t print_z_next = layer_heights[layer_nr_next].print_z;
+        coordf_t height_next = layer_heights[layer_nr_next].height;
 
         std::deque<std::pair<size_t, Node*>> unsupported_branch_leaves; // All nodes that are leaves on this layer that would result in unsupported ('mid-air') branches.
         const Layer* ts_layer = m_object->get_support_layer(layer_nr);
@@ -2757,7 +2757,7 @@ void TreeSupport::drop_nodes(std::vector<std::vector<Node*>>& contact_nodes)
 
                     const bool to_buildplate = !is_inside_ex(m_ts_data->get_avoidance(0, layer_nr_next), next_position);
                     Node *     next_node     = new Node(next_position, new_distance_to_top, node.skin_direction, new_support_roof_layers_below, to_buildplate, p_node,
-                                               layer_heights[layer_nr_next].first, layer_heights[layer_nr_next].second, new_dist_mm_to_top);
+                                               print_z_next, height_next, new_dist_mm_to_top);
                     next_node->movement = next_position - node.position;
                     get_max_move_dist(next_node);
                     next_node->is_merged     = true;
@@ -3192,7 +3192,7 @@ void TreeSupport::adjust_layer_heights(std::vector<std::vector<Node*>>& contact_
     }
 }
 
-std::vector<std::pair<coordf_t, coordf_t>> TreeSupport::plan_layer_heights(std::vector<std::vector<Node*>>& contact_nodes)
+std::vector<LayerHeightData> TreeSupport::plan_layer_heights(std::vector<std::vector<Node *>> &contact_nodes)
 {
     const PrintObjectConfig& config = m_object->config();
     const PrintConfig &      print_config     = m_object->print()->config();
@@ -3206,21 +3206,19 @@ std::vector<std::pair<coordf_t, coordf_t>> TreeSupport::plan_layer_heights(std::
     }
     const size_t support_roof_layers = config.support_interface_top_layers.value;
     const int z_distance_top_layers = round_up_divide(scale_(z_distance_top), scale_(layer_height)) + 1;
-    std::vector<std::pair<coordf_t, coordf_t>> layer_heights(contact_nodes.size(), std::pair<coordf_t, coordf_t>(0.0, 0.0));
+    std::vector<LayerHeightData> layer_heights(contact_nodes.size());
     std::vector<int> bounds;
 
     if (!USE_PLAN_LAYER_HEIGHTS || layer_height == max_layer_height || !print_config.independent_support_layer_height) {
         for (int layer_nr = 0; layer_nr < contact_nodes.size(); layer_nr++) {
-            layer_heights[layer_nr].first  = m_object->get_layer(layer_nr)->print_z;
-            layer_heights[layer_nr].second = m_object->get_layer(layer_nr)->height;
+            layer_heights[layer_nr] = {m_object->get_layer(layer_nr)->print_z, m_object->get_layer(layer_nr)->height, layer_nr > 0 ? size_t(layer_nr - 1) : 0};
         }
         return layer_heights;
     }
 
     bounds.push_back(0);
     // Keep first layer still
-    layer_heights[0].first = m_object->get_layer(0)->print_z;
-    layer_heights[0].second = m_object->get_layer(0)->height;
+    layer_heights[0] = {m_object->get_layer(0)->print_z, m_object->get_layer(0)->height, 0};
     // Collect top contact layers
     for (int layer_nr = 1; layer_nr < contact_nodes.size(); layer_nr++)
     {
@@ -3228,8 +3226,8 @@ std::vector<std::pair<coordf_t, coordf_t>> TreeSupport::plan_layer_heights(std::
             for (int i = 0; i < support_roof_layers + z_distance_top_layers + 1; i++) {
                 if (layer_nr - i > 0) {
                     bounds.push_back(layer_nr - i);
-                    layer_heights[layer_nr - i].first = m_object->get_layer(layer_nr - i)->print_z;
-                    layer_heights[layer_nr - i].second = m_object->get_layer(layer_nr - i)->height;
+                    layer_heights[layer_nr - i].print_z = m_object->get_layer(layer_nr - i)->print_z;
+                    layer_heights[layer_nr - i].height = m_object->get_layer(layer_nr - i)->height;
                 } 
                 else {
                     break;
@@ -3260,15 +3258,25 @@ std::vector<std::pair<coordf_t, coordf_t>> TreeSupport::plan_layer_heights(std::
         for (int layer_nr = extr1_layer_nr + 1; layer_nr < extr2_layer_nr; layer_nr++) {
             // if (curr_layer_nodes.empty()) continue;
             if (std::abs(print_z - m_object->get_layer(layer_nr)->print_z) < step / 2 + EPSILON || extr_layers_left < 1) {
-                layer_heights[layer_nr].first = print_z;
-                layer_heights[layer_nr].second = step;
+                layer_heights[layer_nr].print_z = print_z;
+                layer_heights[layer_nr].height = step;
                 print_z += step;
             }
             else {
                 // can't clear curr_layer_nodes, or the model will have empty layers
-                layer_heights[layer_nr].first = 0.0;
-                layer_heights[layer_nr].second = 0.0;
+                layer_heights[layer_nr].print_z = 0.0;
+                layer_heights[layer_nr].height = 0.0;
                 extr_layers_left--;
+            }
+        }
+    }
+
+    for (int i = layer_heights.size() - 1; i >= 0; i--) {
+        if (layer_heights[i].height < EPSILON) continue;
+        for (int j = i - 1; j >= 0; j--) {
+            if (layer_heights[j].height > EPSILON) {
+                layer_heights[i].next_layer_nr = j;
+                break;
             }
         }
     }
@@ -3286,7 +3294,7 @@ std::vector<std::pair<coordf_t, coordf_t>> TreeSupport::plan_layer_heights(std::
         }
     }
 #endif
-    for (int i = 0; i < layer_heights.size(); i++) { BOOST_LOG_TRIVIAL(info) << "plan_layer_heights print_z, height: "<< layer_heights[i].first << "    " << layer_heights[i].second << std::endl; }
+    for (int i = 0; i < layer_heights.size(); i++) { BOOST_LOG_TRIVIAL(info) << "plan_layer_heights print_z, height: "<< layer_heights[i].print_z << "    " << layer_heights[i].height << std::endl; }
 
     return layer_heights;
 }
@@ -3622,13 +3630,18 @@ const ExPolygons& TreeSupportData::calculate_avoidance(const RadiusLayerPair& ke
         // if the layer at 2N below the current one but we won't exceed our limit unless there are N*N uncalculated layers
         // below our current one.
         constexpr auto max_recursion_depth = 100;
+        size_t         layer_nr_next       = layer_nr;
+        for (int i = 0; i < max_recursion_depth && layer_nr_next>0; i++) {
+            layer_nr_next = layer_heights[layer_nr_next].next_layer_nr;
+        }
         // Check if we would exceed the recursion limit by trying to process this layer
-        if (layer_nr >= max_recursion_depth && m_avoidance_cache.find({radius, layer_nr - max_recursion_depth}) == m_avoidance_cache.end()) {
+        if (layer_nr >= max_recursion_depth && m_avoidance_cache.find({radius, layer_nr_next}) == m_avoidance_cache.end()) {
             // Force the calculation of the layer `max_recursion_depth` below our current one, ignoring the result.
-            get_avoidance(radius, layer_nr - max_recursion_depth);
+            get_avoidance(radius, layer_nr_next);
         }
 
-        ExPolygons        avoidance_areas = std::move(offset_ex(get_avoidance(radius, layer_nr - 1), scale_(-m_max_move)));
+        layer_nr_next   = layer_heights[layer_nr].next_layer_nr;
+        ExPolygons        avoidance_areas = std::move(offset_ex(get_avoidance(radius, layer_nr_next), scale_(-m_max_move)));
         const ExPolygons &collision       = get_collision(radius, layer_nr);
         avoidance_areas.insert(avoidance_areas.end(), collision.begin(), collision.end());
         avoidance_areas = std::move(union_ex(avoidance_areas));

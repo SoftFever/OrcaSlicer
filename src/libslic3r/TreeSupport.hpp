@@ -21,6 +21,15 @@ namespace Slic3r
 class PrintObject;
 class TreeSupport;
 
+struct LayerHeightData
+{
+    coordf_t print_z       = 0;
+    coordf_t height        = 0;
+    size_t   next_layer_nr = 0;
+    LayerHeightData()      = default;
+    LayerHeightData(coordf_t z, coordf_t h, size_t next_layer) : print_z(z), height(h), next_layer_nr(next_layer) {}
+};
+
 /*!
  * \brief Lazily generates tree guidance volumes.
  *
@@ -78,6 +87,8 @@ public:
 
     Polygons get_contours(size_t layer_nr) const;
     Polygons get_contours_with_holes(size_t layer_nr) const;
+
+    std::vector<LayerHeightData> layer_heights;
 
 private:
     /*!
@@ -423,7 +434,7 @@ private:
      * 
     */
 
-    std::vector<std::pair<coordf_t, coordf_t>> plan_layer_heights(std::vector<std::vector<Node*>>& contact_nodes);
+    std::vector<LayerHeightData> plan_layer_heights(std::vector<std::vector<Node *>> &contact_nodes);
     /*!
      * \brief Creates points where support contacts the model.
      *
