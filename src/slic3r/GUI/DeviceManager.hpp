@@ -594,7 +594,7 @@ public:
     /*not support U2*/
     bool is_support_1080dpi {false};
     bool is_support_ai_monitoring {false};
-    bool is_support_ams_humidity {false};
+    bool is_support_ams_humidity {true};
 
     /* sdcard */
     MachineObject::SdcardState sdcard_state { NO_SDCARD };
