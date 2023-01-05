@@ -626,6 +626,10 @@ public:
 
     PartPlate* get_selected_plate();
 
+    std::vector<PartPlate*> get_nonempty_plate_list();
+
+    std::vector<const GCodeProcessorResult*> get_nonempty_plates_slice_results();
+
     Vec3d get_current_plate_origin() { return compute_origin(m_current_plate, m_plate_cols); }
     Vec2d get_current_shape_position() { return compute_shape_position(m_current_plate, m_plate_cols); }
     Pointfs get_exclude_area() { return m_exclude_areas; }

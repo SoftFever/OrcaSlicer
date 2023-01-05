@@ -1688,6 +1688,8 @@ struct Plater::priv
     bool m_is_slicing {false};
     bool m_is_publishing {false};
     int m_cur_slice_plate;
+    //BBS: m_slice_all in .gcode.3mf file case, set true when slice all
+    bool m_slice_all_only_has_gcode{ false };
 
     bool m_need_update{false};
     //BBS: add popup object table logic
@@ -5310,6 +5312,9 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
         return;
     }
 
+    //BBS: wish to reset all plates stats item selected state when back to View3D Tab
+    preview->get_canvas3d()->reset_select_plate_toolbar_selection();
+
     wxPanel* old_panel = current_panel;
 //#if BBL_HAS_FIRST_PAGE
     if (!old_panel) {
@@ -5810,6 +5815,20 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     //BBS: add project slice logic
     bool is_finished = !m_slice_all || (m_cur_slice_plate == (partplate_list.get_plate_count() - 1));
 
+    //BBS: slice .gcode.3mf file related logic, assign is_finished again
+    bool only_has_gcode_need_preview = false;
+    auto plate_list = this->partplate_list.get_plate_list();
+    bool has_print_instances = false;
+    for (auto plate : plate_list)
+        has_print_instances = has_print_instances || plate->has_printable_instances();
+    if (this->model.objects.empty() && !has_print_instances)
+        only_has_gcode_need_preview = true;
+    if (only_has_gcode_need_preview && m_slice_all_only_has_gcode) {
+        is_finished = (m_cur_slice_plate == (partplate_list.get_plate_count() - 1));
+        if (is_finished)
+            m_slice_all_only_has_gcode = false;
+    }
+
     // Stop the background task, wait until the thread goes into the "Idle" state.
     // At this point of time the thread should be either finished or canceled,
     // so the following call just confirms, that the produced data were consumed.
@@ -6058,12 +6077,15 @@ void Plater::priv::on_action_slice_all(SimpleEvent&)
         Plater::setExtruderParams(Slic3r::Model::extruderParamsMap);
         Plater::setPrintSpeedTable(Slic3r::Model::printSpeedMap);
         m_slice_all = true;
+        m_slice_all_only_has_gcode = true;
         m_cur_slice_plate = 0;
         //select plate
         q->select_plate(m_cur_slice_plate);
         q->reslice();
         if (!m_is_publishing)
             q->select_view_3D("Preview");
+        //BBS: wish to select all plates stats item
+        preview->get_canvas3d()->_update_select_plate_toolbar_stats_item(true);
     }
 }
 
@@ -8090,7 +8112,13 @@ void Plater::force_update_all_plate_thumbnails()
 }
 
 // BBS: backup
-std::vector<size_t> Plater::load_files(const std::vector<fs::path>& input_files, LoadStrategy strategy, bool ask_multi) { return p->load_files(input_files, strategy, ask_multi); }
+std::vector<size_t> Plater::load_files(const std::vector<fs::path>& input_files, LoadStrategy strategy, bool ask_multi) {
+    //BBS: wish to reset state when load a new file
+    p->m_slice_all_only_has_gcode = false;
+    //BBS: wish to reset all plates stats item selected state when load a new file
+    p->preview->get_canvas3d()->reset_select_plate_toolbar_selection();
+    return p->load_files(input_files, strategy, ask_multi);
+}
 
 // To be called when providing a list of files to the GUI slic3r on command line.
 std::vector<size_t> Plater::load_files(const std::vector<std::string>& input_files, LoadStrategy strategy,  bool ask_multi)

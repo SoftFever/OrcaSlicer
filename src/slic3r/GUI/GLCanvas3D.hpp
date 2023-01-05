@@ -543,6 +543,7 @@ private:
     bool m_dirty;
     bool m_initialized;
     //BBS: add flag to controll rendering
+    bool m_render_preview{ true };
     bool m_enable_render { true };
     bool m_apply_zoom_to_volumes_filter;
     bool m_picking_enabled;
@@ -785,6 +786,8 @@ public:
     void enable_selection(bool enable);
     void enable_main_toolbar(bool enable);
     //BBS: GUI refactor: GLToolbar
+    void _update_select_plate_toolbar_stats_item(bool force_selected = false);
+    void reset_select_plate_toolbar_selection();
     void enable_select_plate_toolbar(bool enable);
     void enable_assemble_view_toolbar(bool enable);
     void enable_return_toolbar(bool enable);
@@ -1097,7 +1100,7 @@ private:
     void _render_current_gizmo() const;
     void _render_gizmos_overlay();
     void _render_main_toolbar();
-    void _render_imgui_select_plate_toolbar() const;
+    void _render_imgui_select_plate_toolbar();
     void _render_assemble_view_toolbar() const;
     void _render_return_toolbar() const;
     void _render_separator_toolbar_right() const;

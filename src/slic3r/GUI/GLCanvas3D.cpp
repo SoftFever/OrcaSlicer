@@ -1145,6 +1145,7 @@ GLCanvas3D::~GLCanvas3D()
     reset_volumes();
 
     m_sel_plate_toolbar.del_all_item();
+    m_sel_plate_toolbar.del_stats_item();
 }
 
 void GLCanvas3D::post_event(wxEvent &&event)
@@ -1593,6 +1594,11 @@ void GLCanvas3D::enable_main_toolbar(bool enable)
     m_main_toolbar.set_enabled(enable);
 }
 
+void GLCanvas3D::reset_select_plate_toolbar_selection() {
+    if (m_sel_plate_toolbar.m_all_plates_stats_item)
+        m_sel_plate_toolbar.m_all_plates_stats_item->selected = false;
+}
+
 void GLCanvas3D::enable_select_plate_toolbar(bool enable)
 {
     m_sel_plate_toolbar.set_enabled(enable);
@@ -1832,7 +1838,7 @@ void GLCanvas3D::render(bool only_init)
             _render_platelist(!camera.is_looking_downward(), only_current, only_body, hover_id);
     }
     /* preview render */
-    else if (m_canvas_type == ECanvasType::CanvasPreview) {
+    else if (m_canvas_type == ECanvasType::CanvasPreview && m_render_preview) {
         //BBS: add outline logic
         _render_objects(GLVolumeCollection::ERenderType::Opaque, !m_gizmos.is_running());
         //BBS: GUI refactor: add canvas size as parameters
@@ -5802,6 +5808,9 @@ bool GLCanvas3D::_init_toolbars()
     if (!_init_separator_toolbar())
         return false;
 
+    if (!_init_select_plate_toolbar())
+        return false;
+
 #if 0
     if (!_init_view_toolbar())
         return false;
@@ -5967,13 +5976,32 @@ bool GLCanvas3D::_init_main_toolbar()
 //BBS: GUI refactor: GLToolbar
 bool GLCanvas3D::_init_select_plate_toolbar()
 {
-    return true;
+    std::string path = resources_dir() + "/images/";
+    IMToolbarItem* item = new IMToolbarItem();
+    bool result = item->image_texture.load_from_svg_file(path + "im_all_plates_stats.svg", false, false, false, 128);
+    result = result && item->image_texture_transparent.load_from_svg_file(path + "im_all_plates_stats_transparent.svg", false, false, false, 128);
+    m_sel_plate_toolbar.m_all_plates_stats_item = item;
+
+    return result;
+}
+
+void GLCanvas3D::_update_select_plate_toolbar_stats_item(bool force_selected) {
+    PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+    if (plate_list.get_nonempty_plate_list().size() > 1)
+        m_sel_plate_toolbar.show_stats_item = true;
+    else
+        m_sel_plate_toolbar.show_stats_item = false;
+
+    if (force_selected && m_sel_plate_toolbar.show_stats_item)
+        m_sel_plate_toolbar.m_all_plates_stats_item->selected = true;
 }
 
 bool GLCanvas3D::_update_imgui_select_plate_toolbar()
 {
     bool result = true;
     if (!m_sel_plate_toolbar.is_enabled()) return false;
+
+    _update_select_plate_toolbar_stats_item();
 
     m_sel_plate_toolbar.del_all_item();
 
@@ -5990,6 +6018,7 @@ bool GLCanvas3D::_update_imgui_select_plate_toolbar()
         }
         m_sel_plate_toolbar.m_items.push_back(item);
     }
+
     m_sel_plate_toolbar.is_display_scrollbar = false;
     return result;
 }
@@ -7080,20 +7109,23 @@ void GLCanvas3D::_render_main_toolbar()
 
 //BBS: GUI refactor: GLToolbar adjust
 //when rendering, {0, 0} is at the center, {-0.5, 0.5} at the left-up
-void GLCanvas3D::_render_imgui_select_plate_toolbar() const
+void GLCanvas3D::_render_imgui_select_plate_toolbar()
 {
     if (!m_sel_plate_toolbar.is_enabled())
         return;
 
+    IMToolbarItem* all_plates_stats_item = m_sel_plate_toolbar.m_all_plates_stats_item;
+
     PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
     for (int i = 0; i < plate_list.get_plate_count(); i++) {
         if (i < m_sel_plate_toolbar.m_items.size()) {
-            if (i == plate_list.get_curr_plate_index())
+            if (i == plate_list.get_curr_plate_index() && !all_plates_stats_item->selected)
                 m_sel_plate_toolbar.m_items[i]->selected = true;
             else
                 m_sel_plate_toolbar.m_items[i]->selected = false;
 
             m_sel_plate_toolbar.m_items[i]->percent = plate_list.get_plate(i)->get_slicing_percent();
+
             if (plate_list.get_plate(i)->is_slice_result_valid()) {
                 if (plate_list.get_plate(i)->is_slice_result_ready_for_print())
                     m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICED;
@@ -7107,6 +7139,39 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar() const
                 m_sel_plate_toolbar.m_items[i]->slice_state = IMToolbarItem::SliceState::SLICING;
         }
     }
+    if (m_sel_plate_toolbar.show_stats_item) {
+        all_plates_stats_item->percent = 0.0f;
+
+        size_t sliced_plates_cnt = 0;
+        bool slice_failed = false;
+        for (auto plate : plate_list.get_nonempty_plate_list()) {
+            if (plate->is_slice_result_valid() && plate->is_slice_result_ready_for_print())
+                sliced_plates_cnt++;
+            if (plate->is_slice_result_valid() && !plate->is_slice_result_ready_for_print())
+                slice_failed = true;
+        }
+        all_plates_stats_item->percent = (float)(sliced_plates_cnt) / (float)(plate_list.get_nonempty_plate_list().size()) * 100.0f;
+
+        if (all_plates_stats_item->percent == 0.0f)
+            all_plates_stats_item->slice_state = IMToolbarItem::SliceState::UNSLICED;
+        else if (sliced_plates_cnt == plate_list.get_nonempty_plate_list().size())
+            all_plates_stats_item->slice_state = IMToolbarItem::SliceState::SLICED;
+        else if (all_plates_stats_item->percent < 100.0f)
+            all_plates_stats_item->slice_state = IMToolbarItem::SliceState::SLICING;
+
+        if (slice_failed)
+            all_plates_stats_item->slice_state = IMToolbarItem::SliceState::SLICE_FAILED;
+
+        if (all_plates_stats_item->selected && all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICED) {
+            m_gcode_viewer.render_all_plates_stats(plate_list.get_nonempty_plates_slice_results());
+            m_render_preview = false;
+        }
+        else{
+            m_gcode_viewer.render_all_plates_stats(plate_list.get_nonempty_plates_slice_results(), false);
+            m_render_preview = true;
+        }
+    }else
+        m_render_preview = true;
 
     // places the toolbar on the top_left corner of the 3d scene
 #if ENABLE_RETINA_GL
@@ -7130,7 +7195,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar() const
     float button_margin = frame_padding;
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
-    int item_count = m_sel_plate_toolbar.m_items.size();
+    int item_count = m_sel_plate_toolbar.m_items.size() + (m_sel_plate_toolbar.show_stats_item ? 1 : 0);
     bool show_scroll = item_count * (button_height + frame_padding * 2.0f + button_margin) - button_margin + 22.0f * f_scale > canvas_h ? true: false;
     show_scroll = m_sel_plate_toolbar.is_display_scrollbar && show_scroll;
     float window_height = std::min(item_count * (button_height + (frame_padding + margin_size) * 2.0f + button_margin) - button_margin + 28.0f * f_scale, canvas_h);
@@ -7171,7 +7236,89 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar() const
     ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);               // No tint
     ImVec2 margin = ImVec2(margin_size, margin_size);
 
-    for (int i = 0; i < item_count; i++) {
+    if(m_sel_plate_toolbar.show_stats_item)
+    {
+        // draw image
+        ImVec2 button_start_pos = ImGui::GetCursorScreenPos();
+
+        if (all_plates_stats_item->selected) {
+            ImGui::PushStyleColor(ImGuiCol_Button, button_active);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, button_active);
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, button_active);
+        }
+        else {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(128.0f, 128.0f, 128.0f, 0.0f));
+            if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICE_FAILED) {
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_Button));
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyleColorVec4(ImGuiCol_Button));
+            }
+            else {
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, button_hover);
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.42f, 0.42f, 0.42f, 1.0f));
+            }
+        }
+
+        ImVec4 text_clr;
+        ImTextureID btn_texture_id;
+        if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::UNSLICED || all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICING || all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICE_FAILED)
+        {
+            text_clr = ImVec4(0, 174.0f / 255.0f, 66.0f / 255.0f, 0.2f);
+            btn_texture_id = (ImTextureID)(intptr_t)(all_plates_stats_item->image_texture_transparent.get_id());
+        }
+        else
+        {
+            text_clr = ImVec4(0, 174.0f / 255.0f, 66.0f / 255.0f, 1);
+            btn_texture_id = (ImTextureID)(intptr_t)(all_plates_stats_item->image_texture.get_id());
+        }
+
+        if (ImGui::ImageButton2(btn_texture_id, size, {0,0}, {1,1}, frame_padding, bg_col, tint_col, margin)) {
+            if (all_plates_stats_item->slice_state != IMToolbarItem::SliceState::SLICE_FAILED) {
+                if (m_process && !m_process->running()) {
+                    for (int i = 0; i < m_sel_plate_toolbar.m_items.size(); i++) {
+                        m_sel_plate_toolbar.m_items[i]->selected = false;
+                    }
+                    all_plates_stats_item->selected = true;
+                    wxCommandEvent evt = wxCommandEvent(EVT_GLTOOLBAR_SLICE_ALL);
+                    wxPostEvent(wxGetApp().plater(), evt);
+                }
+            }
+        }
+
+        ImGui::PopStyleColor(3);
+
+        ImVec2 start_pos = ImVec2(button_start_pos.x + frame_padding + margin.x, button_start_pos.y + frame_padding + margin.y);
+        if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::UNSLICED) {
+            ImVec2 size = ImVec2(button_width, button_height);
+            ImVec2 end_pos = ImVec2(start_pos.x + size.x, start_pos.y + size.y);
+            ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(0, 0, 0, 80));
+        }
+        else if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICING) {
+            ImVec2 size = ImVec2(button_width, button_height * all_plates_stats_item->percent / 100.0f);
+            ImVec2 rect_start_pos = ImVec2(start_pos.x, start_pos.y + size.y);
+            ImVec2 rect_end_pos = ImVec2(start_pos.x + button_width, start_pos.y + button_height);
+            ImGui::GetForegroundDrawList()->AddRectFilled(rect_start_pos, rect_end_pos, IM_COL32(0, 0, 0, 80));
+        }
+        else if (all_plates_stats_item->slice_state == IMToolbarItem::SliceState::SLICE_FAILED) {
+            ImVec2 size = ImVec2(button_width, button_height);
+            ImVec2 end_pos = ImVec2(start_pos.x + size.x, start_pos.y + size.y);
+            ImGui::GetForegroundDrawList()->AddRectFilled(start_pos, end_pos, IM_COL32(40, 1, 1, 64));
+            ImGui::GetForegroundDrawList()->AddRect(start_pos, end_pos, IM_COL32(208, 27, 27, 255), 0.0f, 0, 1.0f);
+        }
+
+        // draw text
+        GImGui->FontSize = 15.0f;
+        ImGui::PushStyleColor(ImGuiCol_Text, text_clr);
+        ImVec2 text_size = ImGui::CalcTextSize(_L("All Plates").c_str());
+        ImVec2 text_start_pos = ImVec2(start_pos.x + (button_width - text_size.x) / 2, start_pos.y + 3.0f * button_height / 5.0f);
+        ImGui::RenderText(text_start_pos, _L("All Plates").c_str());
+        text_size = ImGui::CalcTextSize(_L("Stats").c_str());
+        text_start_pos = ImVec2(start_pos.x + (button_width - text_size.x) / 2, text_start_pos.y + ImGui::GetTextLineHeight());
+        ImGui::RenderText(text_start_pos, _L("Stats").c_str());
+        ImGui::PopStyleColor();
+        ImGui::SetWindowFontScale(1.2f);
+    }
+
+    for (int i = 0; i < m_sel_plate_toolbar.m_items.size(); i++) {
         IMToolbarItem* item = m_sel_plate_toolbar.m_items[i];
 
         // draw image
@@ -7183,11 +7330,16 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar() const
         if (item->selected) {
             ImGui::PushStyleColor(ImGuiCol_Button, button_active);
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, button_active);
-        } else
+        } 
+        else {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(128.0f, 128.0f, 128.0f, 0.0f));
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.42f, 0.42f, 0.42f, 1.0f));
+        }
 
         if (ImGui::ImageButton2(item->texture_id, size, uv0, uv1, frame_padding, bg_col, tint_col, margin)) {
             if (m_process && !m_process->running()) {
+                all_plates_stats_item->selected = false;
+                item->selected = true;
                 // begin to slicing plate
                 wxCommandEvent* evt = new wxCommandEvent(EVT_GLTOOLBAR_SELECT_SLICED_PLATE);
                 evt->SetInt(i);
@@ -7195,10 +7347,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar() const
             }
         }
 
-        if (item->selected)
-            ImGui::PopStyleColor(2);
-        else
-            ImGui::PopStyleColor(1);
+        ImGui::PopStyleColor(2);
 
         ImVec2 start_pos = ImVec2(button_start_pos.x + frame_padding + margin.x, button_start_pos.y + frame_padding + margin.y);
         if (item->slice_state == IMToolbarItem::SliceState::UNSLICED) {

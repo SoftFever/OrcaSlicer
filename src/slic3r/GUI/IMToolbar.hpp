@@ -27,10 +27,11 @@ public:
 
     bool selected{ false };
     float percent;
-    ImTextureID texture_id { 0 };
     GLTexture image_texture;
+    GLTexture image_texture_transparent;
     SliceState slice_state;
 
+    ImTextureID texture_id { 0 };
     std::vector<unsigned char> image_data;
     unsigned int image_width;
     unsigned int image_height;
@@ -47,6 +48,7 @@ public:
     float icon_width;
     float icon_height;
     bool is_display_scrollbar;
+    bool show_stats_item{ false };
 
     IMToolbar() {
         icon_width = DEFAULT_TOOLBAR_BUTTON_WIDTH;
@@ -54,7 +56,9 @@ public:
     }
 
     void del_all_item();
+    void del_stats_item();
 
+    IMToolbarItem* m_all_plates_stats_item = nullptr;
     std::vector<IMToolbarItem*> m_items;
     float fontScale;
 

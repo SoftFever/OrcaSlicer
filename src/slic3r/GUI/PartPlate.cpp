@@ -3105,6 +3105,25 @@ PartPlate* PartPlateList::get_selected_plate()
 	return m_plate_list[m_current_plate];
 }
 
+std::vector<PartPlate*> PartPlateList::get_nonempty_plate_list()
+{
+	std::vector<PartPlate*> nonempty_plate_list;
+	for (auto plate : m_plate_list){
+		if (plate->get_extruders().size() != 0) {
+			nonempty_plate_list.push_back(plate);
+		}
+	}
+	return nonempty_plate_list;
+}
+
+std::vector<const GCodeProcessorResult*> PartPlateList::get_nonempty_plates_slice_results() {
+	std::vector<const GCodeProcessorResult*> nonempty_plates_slice_result;
+	for (auto plate : get_nonempty_plate_list()) {
+		nonempty_plates_slice_result.push_back(plate->get_slice_result());
+	}
+	return nonempty_plates_slice_result;
+}
+
 //select plate
 int PartPlateList::select_plate(int index)
 {
