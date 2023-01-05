@@ -129,6 +129,7 @@ ExternalProject_Add(
     DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/Boost
     CONFIGURE_COMMAND "${_bootstrap_cmd}"
     PATCH_COMMAND ${_patch_command}
+    PATCH_COMMAND git init && ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-Boost-fix.patch
     BUILD_COMMAND "${_build_cmd}"
     BUILD_IN_SOURCE    ON
     INSTALL_COMMAND "${_install_cmd}"
