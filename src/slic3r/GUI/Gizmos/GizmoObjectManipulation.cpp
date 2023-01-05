@@ -356,7 +356,8 @@ void GizmoObjectManipulation::do_scale(int axis, const Vec3d &scale) const
             transformation_type.set_local();
     }
 
-    if (m_uniform_scale || selection.requires_uniform_scale())
+    // BBS: when select multiple objects, uniform scale can be deselected
+    if (m_uniform_scale/* || selection.requires_uniform_scale()*/)
         scaling_factor = scale(axis) * Vec3d::Ones();
 
     selection.start_dragging();
@@ -883,16 +884,18 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
 
     bool uniform_scale = this->m_uniform_scale;
 
-    const Selection &selection = m_glcanvas.get_selection();
-    bool uniform_scale_only    = selection.is_multiple_full_object() || selection.is_multiple_full_instance() || selection.is_mixed() || selection.is_multiple_volume() || selection.is_multiple_modifier();
+    // BBS: when select multiple objects, uniform scale can be deselected
+    //const Selection &selection = m_glcanvas.get_selection();
+    //bool uniform_scale_only    = selection.is_multiple_full_object() || selection.is_multiple_full_instance() || selection.is_mixed() || selection.is_multiple_volume() ||
+    //                          selection.is_multiple_modifier();
 
-    if (uniform_scale_only) {
-        imgui_wrapper->disabled_begin(true);
-        imgui_wrapper->bbl_checkbox(_L("uniform scale"), uniform_scale_only);
-        imgui_wrapper->disabled_end();
-    } else {
+    //if (uniform_scale_only) {
+    //    imgui_wrapper->disabled_begin(true);
+    //    imgui_wrapper->bbl_checkbox(_L("uniform scale"), uniform_scale_only);
+    //    imgui_wrapper->disabled_end();
+    //} else {
         imgui_wrapper->bbl_checkbox(_L("uniform scale"), uniform_scale);
-    }
+    //}
     if (uniform_scale != this->m_uniform_scale) { this->set_uniform_scaling(uniform_scale); }
 
      // for (int index = 0; index < 3; index++)
