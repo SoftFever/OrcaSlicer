@@ -2179,9 +2179,9 @@ void ObjectList::load_mesh_part(const TriangleMesh &mesh, const wxString &name, 
     // apply the instance transform to all volumes and reset instance transform except the offset
     apply_object_instance_transfrom_to_all_volumes(mo);
 
+    double old_top_position = mo->mesh().bounding_box().max(2) - mo->instances[0]->get_offset().z();
     ModelVolume* mv = mo->add_volume(mesh);
-    Vec3d instance_bbox = mo->mesh().bounding_box().size();
-    Vec3d offset = Vec3d(0, 0, instance_bbox[2] / 2 + mv->get_offset(Axis::Z));
+    Vec3d offset = Vec3d(0, 0, old_top_position + mv->get_offset(Axis::Z));
     mv->set_offset(offset);
     mv->name = name.ToStdString();
     if (!text_info.m_text.empty())
