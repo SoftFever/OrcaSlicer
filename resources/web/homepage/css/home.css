@@ -53,6 +53,7 @@ html, body {
 .LinkBtn:hover
 {
 	text-decoration:underline;
+	color: #009688;
 }
 
 /*------------------*/
@@ -167,7 +168,7 @@ body
 	font-size: 14px;
 	height: 24px;
 	line-height: 24px;
-	color: #00B731;
+	color: #00f0d9;
 	border: 1px solid  #009688;
 	border-radius: 4px;
 	cursor: pointer;
@@ -177,7 +178,7 @@ body
 
 #LogoutBtn:hover
 {
-	background: #00B731;
+	background: #00f0d8
 	color: #fff;
 }
 
@@ -268,7 +269,7 @@ body
 
 .MenuItem:hover
 {
-	border-color: #4CAA50;
+	border-color: ##00f0d9;
 	background-color: #E0FCEB;
 }
 
