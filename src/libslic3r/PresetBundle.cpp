@@ -241,44 +241,17 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
     //BBS: change system config to json
     std::tie(substitutions, errors_cummulative) = this->load_system_presets_from_json(substitution_rule);
 
-    //BBS load preset from user's folder, load system default if
-    //BBS: change directories by design
-    std::string dir_user_presets;
-    if (!config.get("preset_folder").empty()) {
-        dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/" + config.get("preset_folder");
+    // Load default user presets always
+    load_user_presets(DEFAULT_USER_FOLDER_NAME, substitution_rule);
+    // BBS load preset from user's folder, load system default if
+    // BBS: change directories by design
+    std::string dir_user_presets = config.get("preset_folder");
+    if (!dir_user_presets.empty()) {
+        load_user_presets(dir_user_presets, substitution_rule);
     }
-    else {
-        dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/" + DEFAULT_USER_FOLDER_NAME;
-    }
-    fs::path user_folder(data_dir() + "/" + PRESET_USER_DIR);
-    if (!fs::exists(user_folder))
-        fs::create_directory(user_folder);
 
-    fs::path folder(dir_user_presets);
-    if (!fs::exists(folder))
-        fs::create_directory(folder);
-
-    // BBS do not load sla_print
-    //BBS: change directoties by design
-    try {
-        this->prints.load_presets(dir_user_presets, PRESET_PRINT_NAME, substitutions, substitution_rule);
-    } catch (const std::runtime_error &err) {
-        errors_cummulative += err.what();
-    }
-    try {
-        this->filaments.load_presets(dir_user_presets, PRESET_FILAMENT_NAME, substitutions, substitution_rule);
-    } catch (const std::runtime_error &err) {
-        errors_cummulative += err.what();
-    }
-    try {
-        this->printers.load_presets(dir_user_presets, PRESET_PRINTER_NAME, substitutions, substitution_rule);
-    } catch (const std::runtime_error &err) {
-        errors_cummulative += err.what();
-    }
     this->update_multi_material_filament_presets();
     this->update_compatible(PresetSelectCompatibleType::Never);
-    if (! errors_cummulative.empty())
-        throw Slic3r::RuntimeError(errors_cummulative);
 
     this->load_selections(config, preferred_selection);
 
@@ -534,7 +507,42 @@ std::string PresetBundle::get_hotend_model_for_printer_model(std::string model_n
     return out;
 }
 
-PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &config, std::map<std::string, std::map<std::string, std::string>>& my_presets, ForwardCompatibilitySubstitutionRule substitution_rule)
+PresetsConfigSubstitutions PresetBundle::load_user_presets(std::string user, ForwardCompatibilitySubstitutionRule substitution_rule)
+{
+    PresetsConfigSubstitutions substitutions;
+    std::string errors_cummulative;
+
+    fs::path user_folder(data_dir() + "/" + PRESET_USER_DIR);
+    if (!fs::exists(user_folder)) fs::create_directory(user_folder);
+
+    std::string dir_user_presets = data_dir() + "/" + PRESET_USER_DIR + "/" + user;
+    fs::path    folder(user_folder / user);
+    if (!fs::exists(folder)) fs::create_directory(folder);
+
+    // BBS do not load sla_print
+    // BBS: change directoties by design
+    try {
+        this->prints.load_presets(dir_user_presets, PRESET_PRINT_NAME, substitutions, substitution_rule);
+    } catch (const std::runtime_error &err) {
+        errors_cummulative += err.what();
+    }
+    try {
+        this->filaments.load_presets(dir_user_presets, PRESET_FILAMENT_NAME, substitutions, substitution_rule);
+    } catch (const std::runtime_error &err) {
+        errors_cummulative += err.what();
+    }
+    try {
+        this->printers.load_presets(dir_user_presets, PRESET_PRINTER_NAME, substitutions, substitution_rule);
+    } catch (const std::runtime_error &err) {
+        errors_cummulative += err.what();
+    }
+    if (!errors_cummulative.empty()) throw Slic3r::RuntimeError(errors_cummulative);
+    return PresetsConfigSubstitutions();
+}
+
+PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &                                                config,
+                                                           std::map<std::string, std::map<std::string, std::string>> &my_presets,
+                                                           ForwardCompatibilitySubstitutionRule                       substitution_rule)
 {
     // First load the vendor specific system presets.
     PresetsConfigSubstitutions substitutions;

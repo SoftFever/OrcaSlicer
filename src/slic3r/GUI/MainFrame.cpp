@@ -3139,7 +3139,7 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
     {
         case wxID_YES: {
             wxGetApp().app_config->set_bool("sync_user_preset", true);
-            wxGetApp().start_sync_user_preset(true);
+            wxGetApp().start_sync_user_preset(true, true);
             break;
         }
         case wxID_NO:

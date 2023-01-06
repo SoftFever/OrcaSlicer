@@ -421,7 +421,7 @@ public:
     void            reload_settings();
     void            remove_user_presets();
     void            sync_preset(Preset* preset);
-    void            start_sync_user_preset(bool with_progress_dlg = false);
+    void            start_sync_user_preset(bool load_immediately = false, bool with_progress_dlg = false);
     void            stop_sync_user_preset();
 
     static bool     catch_error(std::function<void()> cb, const std::string& err);

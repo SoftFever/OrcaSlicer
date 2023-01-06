@@ -36,6 +36,7 @@ public:
 
     virtual bool Update(int value, const wxString &newmsg = wxEmptyString, bool *skip = NULL);
     virtual bool Pulse(const wxString &newmsg = wxEmptyString, bool *skip = NULL);
+    bool         WasCanceled() const;
 
     virtual void Resume();
 
