@@ -1,7 +1,7 @@
 {
     "type": "machine_model",
-    "name": "Tronxy X5SA 400 (Marlin)",
-    "model_id": "Tronxy X5SA_400",
+    "name": "Tronxy X5SA 400 Marlin Firmware",
+    "model_id": "Tronxy_X5SA_400_Marlin_Firmware",
     "nozzle_diameter": "0.4",
     "machine_tech": "FFF",
     "family": "TronxyDesign",

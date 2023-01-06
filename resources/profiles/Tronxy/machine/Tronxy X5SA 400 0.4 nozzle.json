@@ -1,11 +1,11 @@
 {
   "type": "machine",
-  "setting_id": "GM_TRONXY_001",
+  "setting_id": "GM003",
   "name": "Tronxy X5SA 400 0.4 nozzle",
   "from": "system",
   "instantiation": "true",
   "inherits": "fdm_machine_common",
-  "printer_model": "Tronxy X5SA 400",
+  "printer_model": "Tronxy X5SA 400 Marlin Firmware",
   "nozzle_diameter": [
     "0.4"
   ],

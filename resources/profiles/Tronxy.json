@@ -5,18 +5,14 @@
     "description": "Tronxy configurations",
     "machine_model_list": [
         {
-            "name": "Tronxy X5SA 400 (Marlin-Firmware)",
-            "sub_path": "machine/Tronxy X5SA 400.json"
+            "name": "Tronxy X5SA 400 Marlin Firmware",
+            "sub_path": "machine/Tronxy X5SA 400 Marlin Firmware.json"
         }
     ],
     "process_list": [
         {
             "name": "fdm_process_common",
             "sub_path": "process/fdm_process_common.json"
-        },
-        {
-            "name": "fdm_process_tronxy_common",
-            "sub_path": "process/fdm_process_tronxy_common.json"
         },
         {
             "name": "0.08mm Extra Fine @Tronxy",
@@ -125,10 +121,6 @@
 	    {
             "name": "fdm_machine_common",
             "sub_path": "machine/fdm_machine_common.json"
-        },
-        {
-            "name": "fdm_klipperm_common",
-            "sub_path": "machine/fdm_klipper_common.json"
         },
         {
             "name": "Tronxy X5SA 400 0.4 nozzle",
