@@ -122,7 +122,7 @@ public:
     void create_gui_page();
     void create_sync_page();
     void create_shortcuts_page();
-    wxBoxSizer* create_debug_page();
+    wxWindow* create_debug_page();
 
     void     on_select_radio(std::string param);
     wxString get_select_radio(int groupid);
