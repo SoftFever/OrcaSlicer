@@ -1335,6 +1335,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write_format("; %s\n", Slic3r::header_slic3r_generated().c_str());
     //BBS: total estimated printing time
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Estimated_Printing_Time_Placeholder).c_str());
+    //BBS: total layer number
+    file.write_format("; total layer number: %d\n", m_layer_count);
     file.write_format("; HEADER_BLOCK_END\n\n");
 
     //BBS: write global config at the beginning of gcode file because printer need these config information
