@@ -7965,7 +7965,7 @@ void Plater::calib_flowrate(int pass) {
 
     auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto printerConfig = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
-    //auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
+    auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
 
     /// --- scale ---
     // model is created for a 0.4 nozzle, scale z with nozzle size.
@@ -7975,7 +7975,7 @@ void Plater::calib_flowrate(int pass) {
     float xyScale = nozzle_diameter / 0.6;
     //scale z to have 7 layers
     double first_layer_height = print_config->option<ConfigOptionFloat>("initial_layer_print_height")->value;
-    double layer_height = nozzle_diameter / 2.0; // prefer 0.25 layer height for 0.4 nozzle
+    double layer_height = nozzle_diameter / 2.0; // prefer 0.2 layer height for 0.4 nozzle
     first_layer_height = std::max(first_layer_height, layer_height);
 
     float zscale = (first_layer_height + 6 * layer_height) / 1.4;
@@ -7989,6 +7989,12 @@ void Plater::calib_flowrate(int pass) {
             _obj->scale(1, 1, zscale);
     }
 
+    Flow infill_flow = Flow(nozzle_diameter * 1.2f, layer_height, nozzle_diameter);
+    double filament_max_volumetric_speed = filament_config->option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(0);
+    double max_infill_speed = filament_max_volumetric_speed / (infill_flow.mm3_per_mm() * (pass == 1 ? 1.2 : 1));
+    double internal_solid_speed = std::floor(std::min(print_config->opt_float("internal_solid_infill_speed"), max_infill_speed));
+    double top_surface_speed = std::floor(std::min(print_config->opt_float("top_surface_speed"), max_infill_speed));
+
     // adjust parameters
     for (auto _obj : model().objects) {
         _obj->ensure_on_bed();
@@ -8001,11 +8007,14 @@ void Plater::calib_flowrate(int pass) {
         _obj->config.set_key_value("filter_out_gap_fill", new ConfigOptionFloat(0));
         _obj->config.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
         _obj->config.set_key_value("top_surface_line_width", new ConfigOptionFloat(nozzle_diameter * 1.2f));
+        _obj->config.set_key_value("internal_solid_infill_line_width", new ConfigOptionFloat(nozzle_diameter * 1.2f));
         _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
         _obj->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
         _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
         _obj->config.set_key_value("infill_direction", new ConfigOptionFloat(45));
         _obj->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
+        _obj->config.set_key_value("internal_solid_infill_speed", new ConfigOptionFloat(internal_solid_speed));
+        _obj->config.set_key_value("top_surface_speed", new ConfigOptionFloat(top_surface_speed));
 
         // extract flowrate from name, filename format: flowrate_xxx
         std::string obj_name = _obj->name;
