@@ -12,7 +12,7 @@ PRODUCTVERSION @SLIC3R_VERSION@
    VALUE "ProductName", "@SLIC3R_APP_NAME@ G-code Viewer"
    VALUE "ProductVersion", "@SLIC3R_BUILD_ID@"
    VALUE "InternalName", "@SLIC3R_APP_NAME@ G-code Viewer"
-   VALUE "LegalCopyright", "Copyright \251 2016-2021 Bambu Research, \251 2011-2018 Alessandro Ranellucci"
+   VALUE "LegalCopyright", "Copyright(C) 2021-2023 Lunkuo All Rights Reserved"
    VALUE "OriginalFilename", "bambu-gcodeviewer.exe"
   }
  }
