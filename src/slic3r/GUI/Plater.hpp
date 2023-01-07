@@ -404,7 +404,7 @@ public:
     bool is_single_full_object_selection() const;
     GLCanvas3D* canvas3D();
     const GLCanvas3D * canvas3D() const;
-    GLCanvas3D* get_current_canvas3D();
+    GLCanvas3D* get_current_canvas3D(bool exclude_preview = false);
     GLCanvas3D* get_view3D_canvas3D();
     GLCanvas3D* get_preview_canvas3D();
     GLCanvas3D* get_assmeble_canvas3D();

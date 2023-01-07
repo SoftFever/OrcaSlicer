@@ -305,7 +305,7 @@ static ObjectDataViewModel* list_model()
 
 static const Selection& get_selection()
 {
-    return plater()->canvas3D()->get_selection();
+    return plater()->get_current_canvas3D(true)->get_selection();
 }
 
 //				  category ->		vector 			 ( option	;  label )

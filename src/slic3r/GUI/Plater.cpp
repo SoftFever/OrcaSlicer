@@ -1838,7 +1838,7 @@ struct Plater::priv
     bool is_view3D_layers_editing_enabled() const { return (current_panel == view3D) && view3D->get_canvas3d()->is_layers_editing_enabled(); }
 
     void set_current_canvas_as_dirty();
-    GLCanvas3D* get_current_canvas3D();
+    GLCanvas3D* get_current_canvas3D(bool exclude_preview = false);
     void unbind_canvas_event_handlers();
     void reset_canvas_volumes();
 
@@ -6595,11 +6595,11 @@ void Plater::priv::set_current_canvas_as_dirty()
         assemble_view->set_as_dirty();
 }
 
-GLCanvas3D* Plater::priv::get_current_canvas3D()
+GLCanvas3D* Plater::priv::get_current_canvas3D(bool exclude_preview)
 {
     if (current_panel == view3D)
         return view3D->get_canvas3d();
-    else if (current_panel == preview)
+    else if (!exclude_preview && (current_panel == preview))
         return preview->get_canvas3d();
     else if (current_panel == assemble_view)
         return assemble_view->get_canvas3d();
@@ -10295,9 +10295,9 @@ GLCanvas3D* Plater::get_assmeble_canvas3D()
     return nullptr;
 }
 
-GLCanvas3D* Plater::get_current_canvas3D()
+GLCanvas3D* Plater::get_current_canvas3D(bool exclude_preview)
 {
-    return p->get_current_canvas3D();
+    return p->get_current_canvas3D(exclude_preview);
 }
 
 void Plater::arrange()
