@@ -4085,7 +4085,7 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction)
 
     gcode += m_writer.reset_e();
     //BBS
-    if (m_writer.extruder()->retraction_length() > 0) {
+    if (m_writer.extruder()->retraction_length() > 0 || m_config.use_firmware_retraction) {
         // BBS: don't do lazy_lift when enable spiral vase
         size_t extruder_id = m_writer.extruder()->id();
         auto _lift = m_config.z_lift_type.value;

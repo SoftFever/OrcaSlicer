@@ -56,6 +56,8 @@ public:
     double retract_length_toolchange() const;
     double retract_restart_extra_toolchange() const;
 
+    bool   use_firmware_retraction() const;
+
 private:
     // Private constructor to create a key for a search in std::set.
     Extruder(unsigned int id) : m_id(id) {}
