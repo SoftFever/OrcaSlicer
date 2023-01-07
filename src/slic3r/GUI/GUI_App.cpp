@@ -2330,7 +2330,7 @@ bool GUI_App::on_init_inner()
     copy_network_if_available();
     on_init_network();
 
-    if (app_config->get("sync_user_preset") == "true" && m_agent && m_agent->is_user_login()) {
+    if (m_agent && m_agent->is_user_login()) {
         enable_user_preset_folder(true);
     }
 
@@ -3696,11 +3696,11 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
     dev->update_user_machine_list_info();
     dev->set_selected_machine(m_agent->get_user_selected_machine());
 
-    if (app_config->get("sync_user_preset") == "true") {
+    // if (app_config->get("sync_user_preset") == "true") {
         enable_user_preset_folder(true);
-    } else {
-        enable_user_preset_folder(false);
-    }
+    // } else {
+    //     enable_user_preset_folder(false);
+    // }
 
     if (online_login)
         GUI::wxGetApp().mainframe->show_sync_dialog();

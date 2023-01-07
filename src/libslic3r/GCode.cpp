@@ -1637,18 +1637,24 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             this->m_objSupportsWithBrim.insert(iter->first);
     }
     if (this->m_objsWithBrim.empty() && this->m_objSupportsWithBrim.empty()) m_brim_done = true;
+
+    // SoftFever: calib
     if (print.calib_mode() == Calib_PA_DDE || print.calib_mode() == Calib_PA_Bowden) {
         std::string gcode;
-        auto s = m_config.inner_wall_speed.value;
         gcode += m_writer.set_acceleration((unsigned int)floor(m_config.outer_wall_acceleration.value + 0.5));
 
         if (m_config.default_jerk.value > 0) {
             double jerk = m_config.outer_wall_jerk.value;
             gcode += m_writer.set_jerk_xy((unsigned int)floor(jerk + 0.5));
         }
-        m_config.outer_wall_speed = print.default_region_config().outer_wall_speed;
-        m_config.inner_wall_speed = print.default_region_config().inner_wall_speed;
+
         calib_pressure_advance pa_test(this);
+        double filament_max_volumetric_speed = m_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->get_at(initial_extruder_id);
+        Flow pattern_line = Flow(pa_test.line_width(), 0.2, m_config.nozzle_diameter.get_at(0));
+        auto fast_speed = std::min(print.default_region_config().outer_wall_speed.value, filament_max_volumetric_speed / pattern_line.mm3_per_mm());
+        auto slow_speed = std::max(20.0, fast_speed / 10.0);
+        pa_test.set_speed(fast_speed, slow_speed);
+
         if(print.calib_mode() == Calib_PA_DDE)
             gcode += pa_test.generate_test();
         else
@@ -3699,7 +3705,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
 
     // calculate extrusion length per distance unit
-    double e_per_mm = m_writer.extruder()->e_per_mm3() * path.mm3_per_mm * this->config().print_flow_ratio.get_abs_value(1);
+    const auto _mm3_per_mm = path.mm3_per_mm * this->config().print_flow_ratio;
+    double e_per_mm = m_writer.extruder()->e_per_mm3() * _mm3_per_mm;
 
     double min_speed = double(m_config.slow_down_min_speed.get_at(m_writer.extruder()->id()));
     // set speed
@@ -3743,7 +3750,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     }
     //BBS: if not set the speed, then use the filament_max_volumetric_speed directly
     if (speed == 0)
-        speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / path.mm3_per_mm;
+        speed = EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm;
     if (this->on_first_layer()) {
         //BBS: for solid infill of initial layer, speed can be higher as long as
         //wall lines have be attached
@@ -3757,14 +3764,14 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     //    // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
     //    speed = std::min(
     //        speed,
-    //        m_config.max_volumetric_speed.value / path.mm3_per_mm
+    //        m_config.max_volumetric_speed.value / _mm3_per_mm
     //    );
     //}
     if (EXTRUDER_CONFIG(filament_max_volumetric_speed) > 0) {
         // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
         speed = std::min(
             speed,
-            EXTRUDER_CONFIG(filament_max_volumetric_speed) / path.mm3_per_mm
+            EXTRUDER_CONFIG(filament_max_volumetric_speed) / _mm3_per_mm
         );
     }
     double F = speed * 60;  // convert mm/sec to mm/min
@@ -4078,7 +4085,7 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction)
 
     gcode += m_writer.reset_e();
     //BBS
-    if (m_writer.extruder()->retraction_length() > 0) {
+    if (m_writer.extruder()->retraction_length() > 0 || m_config.use_firmware_retraction) {
         // BBS: don't do lazy_lift when enable spiral vase
         size_t extruder_id = m_writer.extruder()->id();
         auto _lift = m_config.z_lift_type.value;

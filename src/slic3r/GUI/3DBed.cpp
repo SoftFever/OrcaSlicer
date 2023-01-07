@@ -613,8 +613,8 @@ void Bed3D::update_model_offset() const
     {
         (*model_offset_ptr)(0) -= 128.f;
         (*model_offset_ptr)(1) -= 128.f;
-        (*model_offset_ptr)(2) = -0.41 + GROUND_Z;
     }
+    (*model_offset_ptr)(2) = -0.41 + GROUND_Z;
 
     // update extended bounding box
     const_cast<BoundingBoxf3&>(m_extended_bounding_box) = calc_extended_bounding_box();

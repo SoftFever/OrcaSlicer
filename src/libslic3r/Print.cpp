@@ -131,6 +131,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "retract_restart_extra",
         "retract_restart_extra_toolchange",
         "retraction_speed",
+        "use_firmware_retraction",
         "slow_down_layer_time",
         "standby_temperature_delta",
         "machine_start_gcode",

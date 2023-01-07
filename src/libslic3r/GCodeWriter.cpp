@@ -583,15 +583,26 @@ std::string GCodeWriter::retract_for_toolchange(bool before_wipe)
 
 std::string GCodeWriter::_retract(double length, double restart_extra, const std::string &comment)
 {
+    /*  If firmware retraction is enabled, we use a fake value of 1
+    since we ignore the actual configured retract_length which
+    might be 0, in which case the retraction logic gets skipped. */
+    if (this->config.use_firmware_retraction)
+        length = 1;
+
     std::string gcode;
     if (double dE = m_extruder->retract(length, restart_extra);  dE != 0) {
-        //BBS
-        GCodeG1Formatter w;
-        w.emit_e(m_extruder->E());
-        w.emit_f(m_extruder->retract_speed() * 60.);
-        //BBS
-        w.emit_comment(GCodeWriter::full_gcode_comment, comment);
-        gcode = w.string();
+        if (this->config.use_firmware_retraction) {
+            gcode = FLAVOR_IS(gcfMachinekit) ? "G22 ; retract\n" : "G10 ; retract\n";
+        }
+        else {
+            // BBS
+            GCodeG1Formatter w;
+            w.emit_e(m_extruder->E());
+            w.emit_f(m_extruder->retract_speed() * 60.);
+            // BBS
+            w.emit_comment(GCodeWriter::full_gcode_comment, comment);
+            gcode = w.string();
+        }
     }
     
     if (FLAVOR_IS(gcfMakerWare))
@@ -608,14 +619,20 @@ std::string GCodeWriter::unretract()
         gcode = "M101 ; extruder on\n";
     
     if (double dE = m_extruder->unretract(); dE != 0) {
-        //BBS
-        // use G1 instead of G0 because G0 will blend the restart with the previous travel move
-        GCodeG1Formatter w;
-        w.emit_e(m_extruder->E());
-        w.emit_f(m_extruder->deretract_speed() * 60.);
-        //BBS
-        w.emit_comment(GCodeWriter::full_gcode_comment, " ; unretract");
-        gcode += w.string();
+        if (this->config.use_firmware_retraction) {
+            gcode += FLAVOR_IS(gcfMachinekit) ? "G23 ; unretract\n" : "G11 ; unretract\n";
+            gcode += this->reset_e();
+        }
+        else {
+            //BBS
+            // use G1 instead of G0 because G0 will blend the restart with the previous travel move
+            GCodeG1Formatter w;
+            w.emit_e(m_extruder->E());
+            w.emit_f(m_extruder->deretract_speed() * 60.);
+            //BBS
+            w.emit_comment(GCodeWriter::full_gcode_comment, " ; unretract");
+            gcode += w.string();
+        }
     }
     
     return gcode;

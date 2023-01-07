@@ -802,7 +802,8 @@ static std::vector<std::string> s_Preset_printer_options {
     "host_type", "print_host", "printhost_apikey", 
     "printhost_cafile","printhost_port","printhost_authorization_type",
     "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke",
-    "z_lift_type", "thumbnails"
+    "z_lift_type", "thumbnails",
+    "use_firmware_retraction"
 };
 
 static std::vector<std::string> s_Preset_sla_print_options {
@@ -1687,6 +1688,10 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
 {
     // Load the preset over a default preset, so that the missing fields are filled in from the default preset.
     DynamicPrintConfig cfg(this->default_preset_for(combined_config).config);
+    // SoftFever: ignore print connection info from project
+    cfg.erase("print_host");
+    cfg.erase("printhost_apikey");
+    cfg.erase("printhost_cafile");
     const auto        &keys = cfg.keys();
     cfg.apply_only(combined_config, keys, true);
     std::string                 &inherits = Preset::inherits(cfg);
