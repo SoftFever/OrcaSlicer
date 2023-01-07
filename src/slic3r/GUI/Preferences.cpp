@@ -157,7 +157,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
                 if (wxGetApp().plater()->is_project_dirty()) {
                     auto result = MessageDialog(static_cast<wxWindow*>(this), _L("The current project has unsaved changes, save it before continue?"),
                         wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Save"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE).ShowModal();
-                    
+
                     if (result == wxID_YES) {
                         wxGetApp().plater()->save_project();
                     }
@@ -241,7 +241,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
         auto region_index = e.GetSelection();
         auto region       = local_regions[region_index];
 
-        auto area   = "";
+        /*auto area   = "";
         if (region == "CHN" || region == "China")
             area = "CN";
         else if (region == "USA")
@@ -253,7 +253,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
         else if (region == "North America")
             area = "US";
         else
-            area = "Others";
+            area = "Others";*/
 
         NetworkAgent* agent = wxGetApp().getAgent();
         AppConfig* config = GUI::wxGetApp().app_config;
@@ -265,10 +265,11 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
                 return;
             } else {
                 wxGetApp().request_user_logout();
+                config->set("region", region.ToStdString());
+                auto area = config->get_country_code();
                 if (agent) {
                     agent->set_country_code(area);
                 }
-                config->set("region", region.ToStdString());
                 EndModal(wxID_CANCEL);
             }
         } else {
@@ -497,7 +498,7 @@ wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxW
 #ifdef _MSW_DARK_MODE
         wxGetApp().force_colors_update();
         wxGetApp().update_ui_from_settings();
-        set_dark_mode();   
+        set_dark_mode();
 #endif
         SimpleEvent evt = SimpleEvent(EVT_GLCANVAS_COLOR_MODE_CHANGED);
         wxPostEvent(wxGetApp().plater(), evt);
@@ -729,7 +730,7 @@ void PreferencesDialog::create()
     Layout();
     Fit();
     int screen_height = wxGetDisplaySize().GetY();
-    if (this->GetSize().GetY() > screen_height) 
+    if (this->GetSize().GetY() > screen_height)
         this->SetSize(this->GetSize().GetX() + FromDIP(40), screen_height * 4 / 5);
 
     CenterOnParent();
@@ -848,7 +849,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto title_darkmode = create_item_title(_L("Dark Mode"), page, _L("Dark Mode"));
     auto item_darkmode = create_item_darkmode_checkbox(_L("Enable Dark mode"), page,_L("Enable Dark mode"), 50, "dark_color_mode");
 #endif
-    
+
 
     sizer_page->Add(title_general_settings, 0, wxEXPAND, 0);
     sizer_page->Add(item_language, 0, wxTOP, FromDIP(3));
