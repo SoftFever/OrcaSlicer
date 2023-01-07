@@ -7455,7 +7455,12 @@ int Plater::new_project(bool skip_confirm, bool silent)
 
     Model m;
     model().load_from(m); // new id avoid same path name
+
+    //select first plate
     get_partplate_list().select_plate(0);
+    SimpleEvent event(EVT_GLCANVAS_PLATE_SELECT);
+    p->on_plate_selected(event);
+
     p->load_auxiliary_files();
     wxGetApp().app_config->update_last_backup_dir(model().get_backup_path());
 
@@ -10857,6 +10862,10 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
     {
         //select plate
         ret = p->partplate_list.select_plate(plate_index);
+        if (!ret) {
+            SimpleEvent event(EVT_GLCANVAS_PLATE_SELECT);
+            p->on_plate_selected(event);
+        }
         if ((!ret)&&(p->background_process.can_switch_print()))
         {
             //select successfully

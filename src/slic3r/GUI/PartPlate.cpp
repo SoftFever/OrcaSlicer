@@ -545,7 +545,7 @@ void PartPlate::render_logo(bool bottom) const
 
 			//canvas.request_extra_frame();
 		}
-		
+
 		if (m_vbo_id == 0) {
 			unsigned int* vbo_id_ptr = const_cast<unsigned int*>(&m_vbo_id);
 			glsafe(::glGenBuffers(1, vbo_id_ptr));
@@ -567,7 +567,7 @@ void PartPlate::render_logo(bool bottom) const
 			if (part.buffer && part.buffer->get_vertices_count() > 0
 				//&& part.vbo_id != 0
 				) {
-				if (part.offset.x() != m_origin.x() || part.offset.y() != m_origin.y()) {	
+				if (part.offset.x() != m_origin.x() || part.offset.y() != m_origin.y()) {
 					part.offset = Vec2d(m_origin.x(), m_origin.y());
 					part.update_buffer();
 				}
@@ -3020,7 +3020,7 @@ int PartPlateList::select_plate(int index)
 	if (m_intialized && m_plater) {
 		Vec2d pos = compute_shape_position(index, m_plate_cols);
         m_plater->set_bed_position(pos);
-		wxQueueEvent(m_plater, new SimpleEvent(EVT_GLCANVAS_PLATE_SELECT));
+		//wxQueueEvent(m_plater, new SimpleEvent(EVT_GLCANVAS_PLATE_SELECT));
 	}
 
 	return 0;
@@ -4448,7 +4448,7 @@ void PartPlateList::BedTextureInfo::TexturePart::update_buffer()
 	rectangle.push_back(Vec2d(x+w, y+h));
 	rectangle.push_back(Vec2d(x, y+h));
 	ExPolygon poly;
-	
+
 	for (int i = 0; i < 4; i++) {
 		const Vec2d & p = rectangle[i];
 		for (auto& p : rectangle) {
