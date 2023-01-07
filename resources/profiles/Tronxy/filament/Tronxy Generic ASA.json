@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFB98",
-    "setting_id": "GFSB98_TRONXY_00",
+    "setting_id": "GFSB98_00",
     "name": "Tronxy Generic ASA",
     "from": "system",
     "instantiation": "true",

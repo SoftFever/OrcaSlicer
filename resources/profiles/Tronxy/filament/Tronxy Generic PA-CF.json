@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFN98",
-    "setting_id": "GFSN98_TRONXY_00",
+    "setting_id": "GFSN98",
     "name": "Tronxy Generic PA-CF",
     "from": "system",
     "instantiation": "true",

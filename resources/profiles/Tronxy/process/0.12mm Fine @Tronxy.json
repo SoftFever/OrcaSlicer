@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "setting_id": "GP_TRONXY_002",
+    "setting_id": "GP002",
     "name": "0.12mm Fine @Tronxy",
     "from": "system",
     "instantiation": "true",

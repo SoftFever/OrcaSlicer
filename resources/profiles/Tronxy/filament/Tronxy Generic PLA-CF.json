@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFL98",
-    "setting_id": "GFSL98_TRONXY_00",
+    "setting_id": "GFSL9800",
     "name": "Tronxy Generic PLA-CF",
     "from": "system",
     "instantiation": "true",

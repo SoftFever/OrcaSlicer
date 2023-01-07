@@ -1,7 +1,7 @@
 {
     "type": "filament",
     "filament_id": "GFB99",
-    "setting_id": "GFSB99_TRONXY_00",
+    "setting_id": "GFSB99_00",
     "name": "Tronxy Generic ABS",
     "from": "system",
     "instantiation": "true",

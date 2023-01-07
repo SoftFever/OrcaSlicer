@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "setting_id": "GP_TRONXY_005",
+    "setting_id": "GP005",
     "name": "0.24mm Draft @Tronxy",
     "from": "system",
     "instantiation": "true",
