@@ -1148,8 +1148,10 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     select_bed->Show(true);
     select_flow->Show(true);
-    select_timelapse->Show(false);
+    select_timelapse->Show(true);
     select_use_ams->Show(true);
+
+    m_sizer_select->Layout();
 
     // line schedule
     m_line_schedule = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
@@ -1424,6 +1426,8 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     } else {
         select_timelapse->Hide();
     }
+
+    m_sizer_select->Layout();
     Fit();
 }
 
