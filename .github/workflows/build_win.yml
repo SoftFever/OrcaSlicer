@@ -24,20 +24,10 @@ jobs:
           cache-name: ${{ runner.os }}-cache-bambustudio_deps
         with:
           path: ${{ github.workspace }}/deps/build/BambuStudio_dep
-          key: ${{ runner.os }}-build-${{ env.cache-name }}_bambustudio_softfever
+          key: ${{ runner.os }}-build-${{ env.cache-name }}
 
       - if: ${{ steps.cache_deps.outputs.cache-hit != 'true' }}
         name: build deps
         working-directory: ${{ github.workspace }}
         continue-on-error: true
         run: .\build_release.bat deps
-   
-      - name: Build studio
-        working-directory: ${{ github.workspace }}
-        run: .\build_release.bat studio
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: BambuStudio-SoftFever_Win64
-          path: ${{ github.workspace }}/build/BambuStudio-SoftFever
