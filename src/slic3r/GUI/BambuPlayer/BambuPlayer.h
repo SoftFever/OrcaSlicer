@@ -23,7 +23,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void) stop;
 - (void) close;
 
-- (void) setLogger: (void (*)(void const * context, int level, char const * msg) logger withContext: (void const *) context;
+- (void) setLogger: (void (*)(void const * context, int level, char const * msg)) logger withContext: (void const *) context;
 
 @end
 
