@@ -46,7 +46,7 @@ html, body {
 .LinkBtn
 {
 	font-size:12px;
-	color: #1200FF;	
+	color: #00ffea;	
 	cursor: pointer;
 }
 
@@ -126,7 +126,7 @@ body
 
 #DownloadBtn
 {
-	color:#0A00FF;
+	color:#00ffd9;
 }
 
 
@@ -178,7 +178,7 @@ body
 
 #LogoutBtn:hover
 {
-	background: #00f0d8
+	background: #00f0d8;
 	color: #fff;
 }
 
@@ -207,7 +207,7 @@ body
 
 .BtnItemSelected
 {
-	background-color: #E0FCEB;
+	background-color: #e0fcf3;
 }
 
 .BtnIcon
@@ -269,7 +269,7 @@ body
 
 .MenuItem:hover
 {
-	border-color: ##00f0d9;
+	border-color: #00f0d9;
 	background-color: #E0FCEB;
 }
 
