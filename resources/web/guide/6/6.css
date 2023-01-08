@@ -33,12 +33,13 @@ html,body
 	color: #fff;
 	cursor: pointer;
 	display: inline-block;	
-	border: 1px solid #009A3A;
+	border: 1px solid #02c7b3;
 }
 
 .Btn_Green:hover
 {
-	background-color: #009A3A;
+	background-color:#00f0d9;
+
 }
 
 
