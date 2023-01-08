@@ -5944,7 +5944,7 @@ msgstr ""
 msgid "Only one wall on top surfaces"
 msgstr "Nur eine Wand auf der oberen Fläche"
 
-msgid "Only one wall on first Layer"
+msgid "Only one wall on first layer"
 msgstr "Nur eine Wand auf den ersten Fläche"
 
 msgid "Top surface flow ratio"
