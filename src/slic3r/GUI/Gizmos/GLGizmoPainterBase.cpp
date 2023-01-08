@@ -1217,12 +1217,21 @@ void TriangleSelectorPatch::update_triangles_per_patch()
         return touching_triangles;
     };
 
-    auto calc_fragment_area = [this](const TrianglePatch& patch, float max_limit_area) {
+    auto calc_fragment_area = [this](const TrianglePatch& patch, float max_limit_area, int stride) {
         double total_area = 0.f;
         const std::vector<int>& ti = patch.triangle_indices;
-        for (int i = 0; i < ti.size() / 3; i++) {
+        /*for (int i = 0; i < ti.size() / 3; i++) {
             total_area += std::abs((m_vertices[ti[i]].v - m_vertices[ti[i + 1]].v)
                 .cross(m_vertices[ti[i]].v - m_vertices[ti[i + 2]].v).norm()) / 2;
+            if (total_area >= max_limit_area)
+                break;
+        }*/
+        const std::vector<float>& vertices = patch.patch_vertices;
+        for (int i = 0; i < ti.size(); i+=3) {
+            stl_vertex v0(vertices[ti[i] * stride], vertices[ti[i] * stride + 1], vertices[ti[i] * stride + 2]);
+            stl_vertex v1(vertices[ti[i + 1] * stride], vertices[ti[i + 1] * stride + 1], vertices[ti[i + 1] * stride + 2]);
+            stl_vertex v2(vertices[ti[i + 2] * stride], vertices[ti[i + 2] * stride + 1], vertices[ti[i + 2] * stride + 2]);
+            total_area += std::abs((v0 - v1).cross(v0 - v2).norm()) / 2;
             if (total_area >= max_limit_area)
                 break;
         }
@@ -1301,7 +1310,7 @@ void TriangleSelectorPatch::update_triangles_per_patch()
             visited[current_facet] = true;
         }
 
-        patch.area = calc_fragment_area(patch, GapAreaMax);
+        patch.area = calc_fragment_area(patch, GapAreaMax, using_wireframe?6:3);
         patch.type = start_facet_state;
         m_triangle_patches.emplace_back(std::move(patch));
      }
