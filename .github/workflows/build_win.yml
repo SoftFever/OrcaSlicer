@@ -10,6 +10,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ilammy/msvc-dev-cmd@v1
+      - uses: actions/checkout@v2
+      - run: dir "C:/Program Files (x86)/Windows Kits/10/Include"
+      - uses: fbactions/setup-winsdk@v1
+        with:
+          winsdk-build-version: 19041
+      - run: dir "C:/Program Files (x86)/Windows Kits/10/Include"
 
       - name: Install perl
         run: |
@@ -31,3 +37,13 @@ jobs:
         working-directory: ${{ github.workspace }}
         continue-on-error: true
         run: .\build_release.bat deps
+   
+      - name: Build studio
+        working-directory: ${{ github.workspace }}
+        run: .\build_release.bat studio
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: BambuStudio-SoftFever_Win64
+          path: ${{ github.workspace }}/build/BambuStudio-SoftFever
