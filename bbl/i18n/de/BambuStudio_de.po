@@ -23,7 +23,7 @@ msgid "Section view"
 msgstr "Abschnittsansicht"
 
 msgid "Reset direction"
-msgstr "Richtung zurücksetzen"
+msgstr "Ausrichtung zurücksetzen"
 
 msgid "Ctrl + Mouse wheel"
 msgstr "Strg + Mausrad"
@@ -56,13 +56,13 @@ msgid "Highlight overhang areas"
 msgstr "Bereiche mit Überhang hervorheben"
 
 msgid "Gap fill"
-msgstr "Lückenfüllung"
+msgstr "Lücken füllen"
 
 msgid "Perform"
 msgstr "Ausführen"
 
 msgid "Gap area"
-msgstr "Lückenbereich"
+msgstr "Füllbereich"
 
 msgid "Tool type"
 msgstr "Werkzeugtyp"
@@ -86,11 +86,11 @@ msgid "Fill"
 msgstr "Ausfüllen"
 
 msgid "Gap Fill"
-msgstr "Lückenfüllung"
+msgstr "Lücken füllen"
 
 #, boost-format
 msgid "Allows painting only on facets selected by: \"%1%\""
-msgstr "Erlaubt das Malen nur auf Facetten, die ausgewählt wurden von: „%1%“"
+msgstr "Erlaubt das malen nur auf Seiten, welche ausgewählt wurden durch: \"%1%\""
 
 msgid "Highlight faces according to overhang angle."
 msgstr "Markieren der Flächen entsprechend dem Überhangwinkel."
@@ -109,8 +109,9 @@ msgid ""
 "Filament count exceeds the maximum number that painting tool supports. only the first %1% "
 "filaments will be available in painting tool."
 msgstr ""
-"Die Anzahl der Filamente übersteigt die maximale Anzahl, die das Malwerkzeug unterstützt. Nur "
-"die ersten %1% der Filamente werden im Malwerkzeug verfügbar sein."
+"Die Anzahl der Filamente übersteigt die maximale Anzahl, die das Malwerkzeug "
+"unterstützt. Nur die ersten %1% der Filamente werden im Malwerkzeug "
+"verfügbar sein."
 
 msgid "Color Painting"
 msgstr "Farben malen"
@@ -143,7 +144,7 @@ msgid "Smart fill"
 msgstr "Intelligentes Füllen"
 
 msgid "Bucket fill"
-msgstr "Eimerfüllung"
+msgstr "Flächenfüllung"
 
 msgid "Height range"
 msgstr "Höhenreichweite"
@@ -152,7 +153,7 @@ msgid "Ctrl + Shift + Enter"
 msgstr "Strg + Umschalt + Eingabetaste"
 
 msgid "Toggle Wireframe"
-msgstr "Drahtgitter anzeigen"
+msgstr "Gittermodell umschalten"
 
 msgid "Shortcut Key "
 msgstr "Shortcut Taste "
@@ -267,10 +268,10 @@ msgid "Keep lower part"
 msgstr "Unteren Teil behalten"
 
 msgid "Cut to parts"
-msgstr "Zu Teilen schneiden"
+msgstr "In Teile schneiden"
 
 msgid "Auto Segment"
-msgstr "Automatische segmentierung"
+msgstr "Automatische Segmentierung"
 
 msgid "Perform cut"
 msgstr "Schnitt ausführen"
@@ -302,7 +303,7 @@ msgid "Simplify"
 msgstr "Vereinfachen"
 
 msgid "Simplification is currently only allowed when a single part is selected"
-msgstr "Die Simplifizierung ist derzeit nur möglich, wenn ein einzelnes Teil ausgewählt ist"
+msgstr "Die Vereinfachung ist derzeit nur möglich, wenn ein einzelnes Teil ausgewählt ist"
 
 msgid "Error"
 msgstr "Fehler"
@@ -327,7 +328,7 @@ msgid "%d triangles"
 msgstr "%d Dreiecke"
 
 msgid "Show wireframe"
-msgstr "Drahtgitter anzeigen"
+msgstr "Gittermodell anzeigen"
 
 #, boost-format
 msgid "%1%"
@@ -349,19 +350,19 @@ msgid "Perform Recognition"
 msgstr "Erkennung durchführen"
 
 msgid "Brush size"
-msgstr "Pinsel Größe"
+msgstr "Pinselgröße"
 
 msgid "Brush shape"
 msgstr "Pinselform"
 
 msgid "Enforce seam"
-msgstr "Naht durchsetzen"
+msgstr "Naht verstärken"
 
 msgid "Block seam"
 msgstr "Naht blockieren"
 
 msgid "Seam painting"
-msgstr "Nahtposition aufmalen"
+msgstr "Naht malen"
 
 msgid "Remove selection"
 msgstr "Auswahl entfernen"
@@ -370,13 +371,13 @@ msgid "Text shape"
 msgstr "Textform"
 
 msgid "Font"
-msgstr "Schrift"
+msgstr "Schiftart"
 
 msgid "Thickness"
 msgstr "Dicke"
 
 msgid "Input text"
-msgstr "Eingabetext"
+msgstr "Text eingeben"
 
 msgid "Add"
 msgstr "Hinzufügen"
@@ -439,8 +440,8 @@ msgid ""
 "BambuStudio will terminate because of a localization error. It will be appreciated if you "
 "report the specific scenario this issue happened."
 msgstr ""
-"BambuStudio wird aufgrund eines Lokalisierungsfehlers beendet. Es wird geschätzt, wenn Sie das "
-"spezifische Szenario dieses Problems berichten."
+"BambuStudio wird aufgrund eines Lokalisierungsfehlers beendet. "
+"Unser Team würde sich über einen Fehlerbereicht freuen."
 
 msgid "Critical error"
 msgstr "Kritischer Fehler"
@@ -450,21 +451,20 @@ msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "BambuStudio hat eine unbehandelte Ausnahme erhalten: %1%"
 
 msgid "Downloading Bambu Network Plug-in"
-msgstr "Download BambuStudio Network Plug-in"
+msgstr "Lade Bambu Network Plug-in herunter"
 
 msgid "Incorrect password"
-msgstr "Ungültiges Passwort"
+msgstr "Falsches Passwort"
 
 #, c-format, boost-format
 msgid "Connect %s failed! [SN:%s, code=%s]"
-msgstr "Connect %s fehlgeschlagen! [SN:%s, code=%s]"
+msgstr "Verbindung zu %s fehlgeschlagen! [SN:%s, code=%s]"
 
 msgid ""
 "BambuStudio configuration file may be corrupted and is not abled to be parsed.Please delete the "
 "file and try again."
 msgstr ""
-"Die BambuStudio-Konfigurationsdatei ist möglicherweise beschädigt und kann nicht gegliedert "
-"werden. Bitte löschen Sie die Datei und versuchen Sie es erneut."
+"Die BambuStudio-Konfigurationsdatei ist möglicherweise beschädigt und kann nicht geladen werden. Bitte löschen Sie die Datei und versuchen Sie es erneut."
 
 #, c-format, boost-format
 msgid ""
@@ -482,7 +482,7 @@ msgstr "Lade Konfiguration"
 
 #, c-format, boost-format
 msgid "Click to download new version in default browser: %s"
-msgstr "Klicken Sie hier, um die neue Version im Standardbrowser herunterzuladen: %s"
+msgstr "Klicken Sie hier, um die neueste Version im Standardbrowser herunterzuladen: %s"
 
 msgid "The Bambu Studio needs an upgrade"
 msgstr "Bambu Studio benötigt ein Upgrade"
@@ -494,7 +494,7 @@ msgid "Info"
 msgstr "Infos"
 
 msgid "Loading user presets..."
-msgstr "Nutzervoreistellungen laden..."
+msgstr "Nutzervoreinstellungen laden..."
 
 msgid "Rebuild"
 msgstr "Neubauen"
@@ -509,7 +509,7 @@ msgid "Choose one file (3mf):"
 msgstr "Wählen sie eine Datei (3mf):"
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
-msgstr "Wähle eine oder mehr Dateien aus (3mf/step/stl/svg/obj/amf):"
+msgstr "Wählen sie eine oder mehrere Dateien (3mf/step/stl/svg/obj/amf):"
 
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr "Wählen sie eine Datei (gcode/.gco/.g/.ngc/ngc):"
@@ -520,14 +520,14 @@ msgstr "Einige Voreinstellungen wurden geändert."
 msgid ""
 "You can keep the modifield presets to the new project, discard or save changes as new presets."
 msgstr ""
-"Sie können die geänderten Voreinstellungen in das neue Projekt übernehmen, verwerfen oder als "
-"neue Voreinstellungen speichern."
+"Sie können die geänderten Voreinstellungen in das neue Projekt übernehmen, "
+"verwerfen oder als neue Voreinstellungen speichern."
 
 msgid "User logged out"
-msgstr "Abmeldung erfolgreich"
+msgstr "Benutzer ausgeloggt"
 
 msgid "new or open project file is not allowed during the slicing process!"
-msgstr "Neu oder öffnen während des Slicings nicht erlaubt!"
+msgstr "Während des Slicingvorgangs kann keine neue Datei erstellt oder geöffnet werden!"
 
 msgid "Open Project"
 msgstr "Projekt öffnen"
@@ -536,8 +536,8 @@ msgid ""
 "The version of Bambu studio is too low and needs to be updated to the latest version before it "
 "can be used normally"
 msgstr ""
-"Die Version von Bambu Studio ist zu niedrig und muss auf die neueste Version aktualisiert "
-"werden, bevor sie normal verwendet werden kann"
+"Die Version von Bambu Studio ist veraltet und muss auf die neueste Version "
+"aktualisiert werden, bevor sie normal verwendet werden kann"
 
 msgid "Login information expired. Please login again."
 msgstr "Login abgelaufen. Bitte neu einloggen."
@@ -697,10 +697,10 @@ msgid "Reload from disk"
 msgstr "Neu von der Festplatte laden"
 
 msgid "Reload the selected parts from disk"
-msgstr "Ausgewähltes Teil neu von der Festplatte laden"
+msgstr "Ausgewählte Teile neu von der Festplatte laden"
 
 msgid "Replace with STL"
-msgstr "Ersetze mit STL Datei"
+msgstr "Durch STL Datei austauschen"
 
 msgid "Replace the selected part with new STL"
 msgstr "Ersetze das ausgewählte Teil mit einer neuen STL Datei"
@@ -719,16 +719,16 @@ msgid "Filament %d"
 msgstr "Filament %d"
 
 msgid "active"
-msgstr "aktiv"
+msgstr "Aktiv"
 
 msgid "Scale to build volume"
 msgstr "Auf Druckvolumen skalieren"
 
 msgid "Scale an object to fit the build volume"
-msgstr "Objekt skalieren, dass es in den Druckraum passt"
+msgstr "Objekt so so skalieren, dass es in den Druckraum passt"
 
 msgid "Flush Options"
-msgstr "Reinigungsoption"
+msgstr "Säuberungsoptionen"
 
 msgid "Flush into objects' infill"
 msgstr "Druckdüse in der Füllung der Objekte säubern"
@@ -863,7 +863,7 @@ msgid "Edit Process Settings"
 msgstr "Prozesseinstellungen"
 
 msgid "Edit in Parameter Table"
-msgstr "Ändern in Parametertabelle"
+msgstr "In der Parametertabelle bearbeiten"
 
 msgid "Edit print parameters for a single object"
 msgstr "Druckparameter für ein einzelnes Objekt bearbeiten"
@@ -875,7 +875,7 @@ msgid "Set Filament for selected items"
 msgstr "Filament für ausgewählte Elemente festlegen"
 
 msgid "current"
-msgstr "aktuell"
+msgstr "Aktuell"
 
 msgid "Set Unprintable"
 msgstr "Undruckbar machen"
@@ -884,10 +884,10 @@ msgid "Set Printable"
 msgstr "Druckbar machen"
 
 msgid "Unlock"
-msgstr "Aufmachen"
+msgstr "Entsperren"
 
 msgid "Lock"
-msgstr "Schließen"
+msgstr "Sperren"
 
 msgid "Name"
 msgstr "Name"
@@ -959,7 +959,7 @@ msgstr ""
 
 msgid "Switch to per-object setting mode to edit process settings of selected objects."
 msgstr ""
-"Wechseln Sie in den objektbezogenen Einstellungsmodus, um die Prozesseinstellungen der "
+"Wechseln Sie in den objektbezogenen Einstellungsmodus, um die Prozesseinstellungen des "
 "ausgewählten Objekts zu bearbeiten."
 
 msgid "Deleting the last solid part is not allowed."
@@ -5646,7 +5646,7 @@ msgid "Plate %d: %s does not support filament %s\n"
 msgstr "Platte %d: %s unterstützt Filament %s nicht\n"
 
 msgid "Generating skirt & brim"
-msgstr "Erzeugen von Schürze und Rand (skirt & brim)"
+msgstr "Erzeugen von Umrandung und Rand (skirt & brim)"
 
 msgid "Exporting G-code"
 msgstr "Exportiere G-Code"
@@ -5932,7 +5932,7 @@ msgstr ""
 "Außenbrücken verwendet. Verwenden Sie 180° für Nullwinkel."
 
 msgid "Bridge flow"
-msgstr "Fluss der Brücke"
+msgstr "Durchflussverhältnis für Brücken"
 
 msgid ""
 "Decrease this value slightly(for example 0.9) to reduce the amount of material for bridge, to "
@@ -5942,7 +5942,19 @@ msgstr ""
 "verringern und den Durchhang zu verbessern"
 
 msgid "Only one wall on top surfaces"
-msgstr "Nur eine Wand auf den oberen Flächen"
+msgstr "Nur eine Wand auf der oberen Fläche"
+
+msgid "Only one wall on first layer"
+msgstr "Nur eine Wand auf den ersten Fläche"
+
+msgid "Top surface flow ratio"
+msgstr "Durchflussverhältnis obere Fläche"
+
+msgid "Bottom surface flow ratio"
+msgstr "Durchflussverhältnis untere Fläche"
+
+msgid "only one wall on first Layer"
+msgstr "Nur eine Wand in der ersten Schicht"
 
 msgid "Use only one wall on flat top surface, to give more space to the top infill pattern"
 msgstr ""
@@ -6608,7 +6620,7 @@ msgid "Speed of internal sparse infill"
 msgstr "Geschwindigkeit der internen Füllung"
 
 msgid "Ironing Type"
-msgstr "Glätten-Typ"
+msgstr "Glättungsmethode"
 
 msgid ""
 "Ironing is using small flow to print on same height of surface again to make flat surface more "
@@ -7005,16 +7017,19 @@ msgid "Random"
 msgstr "Zufall"
 
 msgid "Skirt distance"
-msgstr "Abstand der Schürze"
+msgstr "Abstand der Umrandung"
 
 msgid "Distance from skirt to brim or object"
-msgstr "Abstand von der Schürze zum Rand oder zum Objekt"
+msgstr "Abstand von der Umrandung zum Rand oder zum Objekt"
 
 msgid "Skirt loops"
-msgstr "Schürzenschlaufen"
+msgstr "Anzahl Umrandungsringe"
+
+msgid "Skirt height"
+msgstr "Höhe der Umrandungsringe"
 
 msgid "Number of loops for the skirt. Zero means disabling skirt"
-msgstr "Anzahl der Schleifen für die Schürze. Null bedeutet Deaktivierung der Schürze"
+msgstr "Anzahl der Ringe für die Umrandung. Null bedeutet Deaktivierung der Umrandung"
 
 msgid ""
 "The printing speed in exported gcode will be slowed down, when the estimated layer time is "
