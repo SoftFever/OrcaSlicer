@@ -1,11 +1,11 @@
 name: Build Win64
 
-on: [pull_request, push]
+on: [pull_request]
 
 jobs:
   build_win64:
     name: Build Win64
-    runs-on: windows-2019
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v3
