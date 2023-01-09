@@ -1543,6 +1543,10 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
             BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" <<
                 name << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
         if (need_update) {
+            if (iter->name == m_edited_preset.name && iter->is_dirty) {
+                // Keep modifies when update from remote
+                new_config.apply_only(m_edited_preset.config, m_edited_preset.config.diff(iter->config));
+            }
             iter->config = new_config;
             iter->updated_time = cloud_update_time;
             iter->version = cloud_version.value();
