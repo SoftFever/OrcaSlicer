@@ -417,11 +417,12 @@ void DropDown::mouseMove(wxMouseEvent &event)
     wxPoint pt  = event.GetPosition();
     if (pressedDown) {
         wxPoint pt2 = offset + pt - dragStart;
-        dragStart = pt;
+        wxSize  size = GetSize();
+        dragStart    = pt;
         if (pt2.y > 0)
             pt2.y = 0;
-        else if (pt2.y + rowSize.y * texts.size() < GetSize().y)
-            pt2.y = GetSize().y - rowSize.y * texts.size();
+        else if (pt2.y + rowSize.y * int(texts.size()) < size.y)
+            pt2.y = size.y - rowSize.y * int(texts.size());
         if (pt2.y != offset.y) {
             offset = pt2;
             hover_item = -1; // moved
@@ -443,11 +444,12 @@ void DropDown::mouseMove(wxMouseEvent &event)
 void DropDown::mouseWheelMoved(wxMouseEvent &event)
 {
     auto delta = event.GetWheelRotation();
-    wxPoint pt2 = offset + wxPoint{0, delta};
+    wxSize  size  = GetSize();
+    wxPoint pt2   = offset + wxPoint{0, delta};
     if (pt2.y > 0)
         pt2.y = 0;
-    else if (pt2.y + rowSize.y * texts.size() < GetSize().y)
-        pt2.y = GetSize().y - rowSize.y * texts.size();
+    else if (pt2.y + rowSize.y * int(texts.size()) < size.y)
+        pt2.y = size.y - rowSize.y * int(texts.size());
     if (pt2.y != offset.y) {
         offset = pt2;
     } else {
