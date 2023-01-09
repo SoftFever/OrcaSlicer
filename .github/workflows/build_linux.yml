@@ -22,7 +22,6 @@ jobs:
         run: sudo chown $USER -R ./
       - name: build deps
         id: cache_deps
-        shell: bash
         uses: actions/cache@v3
         env:
           cache-name: ${{ runner.os }}-cache-bambustudio_deps_x64
