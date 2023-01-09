@@ -699,10 +699,9 @@ void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
     }
 }
 //BBS: GUI refactor: move to the right
-void GCodeViewer::SequentialView::render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves) const
+void GCodeViewer::SequentialView::render(float legend_height, int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves) const
 {
-    if (has_render_path)
-        marker.render(canvas_width, canvas_height, view_type, moves, static_cast<uint64_t>(gcode_ids[current.last]));
+    marker.render(canvas_width, canvas_height, view_type, moves, static_cast<uint64_t>(gcode_ids[current.last]));
     //float bottom = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height();
     // BBS
 #if 0
@@ -711,8 +710,7 @@ void GCodeViewer::SequentialView::render(const bool has_render_path, float legen
 #endif
     //gcode_window.render(legend_height, bottom, static_cast<uint64_t>(gcode_ids[current.last]));
     if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop) {
-        if (has_render_path)
-            gcode_window.render(legend_height, (float)canvas_height, (float)canvas_width, static_cast<uint64_t>(gcode_ids[current.last]));
+        gcode_window.render(legend_height, (float)canvas_height, (float)canvas_width, static_cast<uint64_t>(gcode_ids[current.last]));
     }
 }
 
@@ -1282,13 +1280,12 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
     //BBS fixed bottom_margin for space to render horiz slider
     int bottom_margin = 64;
 
-    //BBS always render the hotend-marker
-    //if (m_sequential_view.current.last != m_sequential_view.endpoints.last && !m_no_render_path) {
+    if (m_sequential_view.current.last != m_sequential_view.endpoints.last) {
         m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
         m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
         //BBS fixed buttom margin. m_moves_slider.pos_y
-        m_sequential_view.render(!m_no_render_path, legend_height, canvas_width - right_margin * m_scale, canvas_height - bottom_margin * m_scale, m_view_type, m_gcode_result->moves);
-    //}
+        m_sequential_view.render(legend_height, canvas_width - right_margin * m_scale, canvas_height - bottom_margin * m_scale, m_view_type, m_gcode_result->moves);
+    }
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -3311,11 +3308,13 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
 
     const bool top_layer_only = true;
 
-    SequentialView::Endpoints global_endpoints = { m_moves_count , 0 };
+    //BBS
+    SequentialView::Endpoints global_endpoints = { m_sequential_view.gcode_ids.size() , 0 };
     SequentialView::Endpoints top_layer_endpoints = global_endpoints;
     SequentialView* sequential_view = const_cast<SequentialView*>(&m_sequential_view);
     if (top_layer_only || !keep_sequential_current_first) sequential_view->current.first = 0;
-    if (!keep_sequential_current_last) sequential_view->current.last = m_moves_count;
+    //BBS
+    if (!keep_sequential_current_last) sequential_view->current.last = m_sequential_view.gcode_ids.size();
 
     // first pass: collect visible paths and update sequential view data
     std::vector<std::tuple<unsigned char, unsigned int, unsigned int, unsigned int>> paths;
@@ -3389,15 +3388,9 @@ void GCodeViewer::refresh_render_paths(bool keep_sequential_current_first, bool 
     // update current sequential position
     sequential_view->current.first = !top_layer_only && keep_sequential_current_first ? std::clamp(sequential_view->current.first, global_endpoints.first, global_endpoints.last) : global_endpoints.first;
     if (global_endpoints.last == 0) {
-        m_no_render_path = true;
+        sequential_view->current.last = global_endpoints.last;
     } else {
-        m_no_render_path = false;
-    }
-
-    if (!m_no_render_path) {
         sequential_view->current.last = keep_sequential_current_last ? std::clamp(sequential_view->current.last, global_endpoints.first, global_endpoints.last) : global_endpoints.last;
-    } else {
-        sequential_view->current.last = sequential_view->current.first;
     }
 
     // get the world position from the vertex buffer
@@ -5290,7 +5283,6 @@ void GCodeViewer::pop_combo_style()
 }
 
 void GCodeViewer::render_slider(int canvas_width, int canvas_height) {
-
     m_moves_slider->render(canvas_width, canvas_height);
     m_layers_slider->render(canvas_width, canvas_height);
 }

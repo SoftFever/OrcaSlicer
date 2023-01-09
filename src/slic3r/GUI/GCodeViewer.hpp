@@ -698,7 +698,7 @@ public:
         float m_scale = 1.0;
 
         //BBS: GUI refactor: add canvas size
-        void render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves) const;
+        void render(float legend_height, int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves) const;
     };
 
     struct ETools
@@ -781,7 +781,6 @@ private:
     std::vector<CustomGCode::Item> m_custom_gcode_per_print_z;
 
     bool m_contained_in_bed{ true };
-    mutable bool m_no_render_path { false };
     bool m_is_dark = false;
 
 public:
