@@ -8,7 +8,7 @@
 BEGIN_EVENT_TABLE(SpinInput, wxPanel)
 
 EVT_KEY_DOWN(SpinInput::keyPressed)
-EVT_MOUSEWHEEL(SpinInput::mouseWheelMoved)
+//EVT_MOUSEWHEEL(SpinInput::mouseWheelMoved)
 
 EVT_PAINT(SpinInput::paintEvent)
 
