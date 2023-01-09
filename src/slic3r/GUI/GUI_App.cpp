@@ -4556,6 +4556,26 @@ void GUI_App::update_mode()
     plater()->canvas3D()->update_gizmos_on_off_state();
 }
 
+void GUI_App::show_ip_address_enter_dialog()
+{
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+    if (!dev->get_selected_machine()) return;
+    auto obj = dev->get_selected_machine();
+    InputIpAddressDialog dlg(nullptr, from_u8(dev->get_selected_machine()->dev_name));
+    dlg.Bind(EVT_ENTER_IP_ADDRESS, [this, obj](wxCommandEvent& e) {
+        auto ip_address = e.GetString();
+        BOOST_LOG_TRIVIAL(info) << "User enter IP address is " << ip_address;
+        if (!ip_address.empty()) {
+            wxGetApp().app_config->set_str("ip_address", obj->dev_id, ip_address.ToStdString());
+            wxGetApp().app_config->save();
+            obj->dev_ip = ip_address.ToStdString();
+        }
+
+        });
+    dlg.ShowModal();
+}
+
 //void GUI_App::add_config_menu(wxMenuBar *menu)
 //void GUI_App::add_config_menu(wxMenu *menu)
 //{

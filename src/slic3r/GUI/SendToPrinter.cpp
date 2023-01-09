@@ -674,19 +674,7 @@ void SendToPrinterDialog::clear_ip_address_config(wxCommandEvent& e)
     auto obj = dev->get_selected_machine();
     Slic3r::GUI::wxGetApp().app_config->set_str("ip_address", obj->dev_id, "");
     Slic3r::GUI::wxGetApp().app_config->save();
-
-    InputIpAddressDialog dlg(this, from_u8(dev->get_selected_machine()->dev_name));
-    dlg.Bind(EVT_ENTER_IP_ADDRESS, [this, obj](wxCommandEvent& e) {
-        auto ip_address = e.GetString();
-        BOOST_LOG_TRIVIAL(info) << "User enter IP address is " << ip_address;
-        if (!ip_address.empty()) {
-            wxGetApp().app_config->set_str("ip_address", obj->dev_id, ip_address.ToStdString());
-            wxGetApp().app_config->save();
-            obj->dev_ip = ip_address.ToStdString();
-        }
-
-        });
-    dlg.ShowModal();
+    wxGetApp().show_ip_address_enter_dialog();
 }
 
 void SendToPrinterDialog::update_user_machine_list()
@@ -876,18 +864,7 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
         std::string app_config_dev_ip = Slic3r::GUI::wxGetApp().app_config->get("ip_address", obj->dev_id);
 
         if (app_config_dev_ip.empty()) {
-            InputIpAddressDialog dlg(this, from_u8(obj->dev_name));
-            dlg.Bind(EVT_ENTER_IP_ADDRESS, [this, obj, app_config_dev_ip](wxCommandEvent& e) {
-                auto ip_address = e.GetString();
-                BOOST_LOG_TRIVIAL(info) << "User enter IP address is "<< ip_address;
-                if (!ip_address.empty()) {
-                    wxGetApp().app_config->set_str("ip_address", obj->dev_id, ip_address.ToStdString());
-                    wxGetApp().app_config->save();
-                    obj->dev_ip = ip_address.ToStdString();
-                }
-                
-            });
-            dlg.ShowModal();
+            wxGetApp().show_ip_address_enter_dialog();
         }
         else {
             obj->dev_ip = app_config_dev_ip;
