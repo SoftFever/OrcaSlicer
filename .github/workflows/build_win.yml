@@ -38,12 +38,5 @@ jobs:
         continue-on-error: true
         run: .\build_release.bat deps
    
-      - name: Build studio
-        working-directory: ${{ github.workspace }}
-        run: .\build_release.bat studio
+      - run:  Get-ChildItem ${{ github.workspace }}/deps/build/ -Exclude BambuStudio_dep | Remove-Item -Recurse -Force
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: BambuStudio-SoftFever_Win64
-          path: ${{ github.workspace }}/build/BambuStudio-SoftFever
