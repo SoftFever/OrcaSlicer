@@ -12,7 +12,7 @@ jobs:
 
       - name: Install tools
         run: |
-          brew install cmake git gettext
+          brew install cmake git gettext zstd
       - run: mkdir -p ${{ github.workspace }}/deps/build
       - run: mkdir -p ${{ github.workspace }}/deps/build/BambuStudio_dep
 
