@@ -11,11 +11,11 @@ jobs:
       - uses: actions/checkout@v3
       - uses: ilammy/msvc-dev-cmd@v1
       - uses: actions/checkout@v2
-      - run: dir "C:/Program Files (x86)/Windows Kits/10/Include"
+      - run: dir "C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0"
       - uses: fbactions/setup-winsdk@v1
         with:
           winsdk-build-version: 19041
-      - run: dir "C:/Program Files (x86)/Windows Kits/10/Include"
+      - run: dir "C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0"
 
       - name: Install perl
         run: |
@@ -40,3 +40,12 @@ jobs:
    
       - run:  Get-ChildItem ${{ github.workspace }}/deps/build/ -Exclude BambuStudio_dep | Remove-Item -Recurse -Force
 
+      - name: Build studio
+        working-directory: ${{ github.workspace }}
+        run: .\build_release.bat studio
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: BambuStudio-SoftFever_Win64
+          path: ${{ github.workspace }}/build/BambuStudio-SoftFever
