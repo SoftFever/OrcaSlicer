@@ -385,9 +385,9 @@ void Preview::sys_color_changed()
 
 void Preview::on_tick_changed(Type type)
 {
-    if (type == Type::PausePrint) {
-        m_schedule_background_process();
-    }
+    //if (type == Type::PausePrint) {
+    //    m_schedule_background_process();
+    //}
     m_keep_current_preview_type = false;
     reload_print(false);
 }

@@ -894,6 +894,7 @@ public:
     void on_gesture(wxGestureEvent& evt);
     void on_paint(wxPaintEvent& evt);
     void on_set_focus(wxFocusEvent& evt);
+    void force_set_focus();
 
     Size get_canvas_size() const;
     Vec2d get_local_mouse_position() const;

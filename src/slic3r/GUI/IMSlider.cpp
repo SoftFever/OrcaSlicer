@@ -1306,6 +1306,7 @@ void IMSlider::render_input_custom_gcode()
             set_focus = false;
         }
         if (set_focus && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
+            wxGetApp().plater()->get_current_canvas3D()->force_set_focus();
             ImGui::SetKeyboardFocusHere(0);
         }
         const int text_height = 6;
@@ -1385,6 +1386,7 @@ void IMSlider::render_go_to_layer_dialog()
             set_focus = false;
         }
         if (set_focus && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
+            wxGetApp().plater()->get_current_canvas3D()->force_set_focus();
             ImGui::SetKeyboardFocusHere(0);
         }
         ImGui::InputText("##input_layer_number", m_layer_number, sizeof(m_layer_number));

@@ -4258,6 +4258,10 @@ void GLCanvas3D::on_paint(wxPaintEvent& evt)
         this->render();
 }
 
+void GLCanvas3D::force_set_focus() { 
+    m_canvas->SetFocus(); 
+};
+
 void GLCanvas3D::on_set_focus(wxFocusEvent& evt)
 {
     m_tooltip_enabled = false;
