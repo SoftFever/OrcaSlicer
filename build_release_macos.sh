@@ -1,5 +1,11 @@
 #!/bin/sh
 
+echo "\nbrew --prefix libiconv:\n"
+brew --prefix libiconv
+echo "\nbrew --prefix zstd:\n"
+brew --prefix zstd
+export LIBRARY_PATH=$LIBRARY_PATH:$(brew --prefix zstd)/lib/
+
 WD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd $WD/deps
 mkdir -p build
