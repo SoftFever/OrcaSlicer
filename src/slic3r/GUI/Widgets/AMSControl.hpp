@@ -7,6 +7,7 @@
 #include "Button.hpp"
 #include "../DeviceManager.hpp"
 #include "slic3r/GUI/Event.hpp"
+#include "slic3r/GUI/AmsMappingPopup.hpp"
 #include <wx/simplebook.h>
 #include <wx/hyperlink.h>
 #include <wx/animate.h>
@@ -484,7 +485,7 @@ protected:
     Button *m_button_retry = {nullptr};
 
     wxHyperlinkCtrl *m_hyperlink = {nullptr};
-
+    AmsHumidityTipPopup m_Humidity_tip_popup;
 public:
     std::string GetCurentAms();
     std::string GetCurrentCan(std::string amsid);
@@ -540,6 +541,7 @@ wxDECLARE_EVENT(EVT_AMS_CLIBRATION_AGAIN, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_CLIBRATION_CANCEL, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_GUIDE_WIKI, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_RETRY, wxCommandEvent);
+wxDECLARE_EVENT(EVT_AMS_SHOW_HUMIDITY_TIPS, wxCommandEvent);
 
 }} // namespace Slic3r::GUI
 

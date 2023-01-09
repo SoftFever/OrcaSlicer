@@ -161,6 +161,26 @@ public:
     wxStaticText *   m_tip_disable_ams;
 };
 
+class AmsHumidityTipPopup : public wxPopupTransientWindow
+{
+public:
+    AmsHumidityTipPopup(wxWindow* parent);
+    ~AmsHumidityTipPopup() {};
+    void paintEvent(wxPaintEvent& evt);
+
+    virtual void OnDismiss() wxOVERRIDE;
+    virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
+
+public:
+    wxStaticBitmap* m_img;
+    Label* m_staticText1;
+    Label* m_staticText2;
+    Label* m_staticText3;
+    Label* m_staticText4;
+    Label* m_staticText_note;
+    Button* m_button_confirm;
+};
+
 class AmsTutorialPopup : public wxPopupTransientWindow
 {
 public:

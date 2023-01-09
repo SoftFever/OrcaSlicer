@@ -34,6 +34,7 @@ wxDEFINE_EVENT(EVT_AMS_CLIBRATION_AGAIN, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_CLIBRATION_CANCEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_GUIDE_WIKI, wxCommandEvent);
 wxDEFINE_EVENT(EVT_AMS_RETRY, wxCommandEvent);
+wxDEFINE_EVENT(EVT_AMS_SHOW_HUMIDITY_TIPS, wxCommandEvent);
 
 bool AMSinfo::parse_ams_info(Ams *ams, bool remain_flag, bool humidity_flag)
 {
@@ -757,7 +758,8 @@ bool AMSLib::Enable(bool enable) { return wxWindow::Enable(enable); }
 Description:AMSRoad
 **************************************************/
 AMSRoad::AMSRoad() : m_road_def_color(AMS_CONTROL_GRAY500), m_road_color(AMS_CONTROL_GRAY500) {}
-AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, int maxcan, const wxPoint &pos, const wxSize &size) : AMSRoad()
+AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, int maxcan, const wxPoint &pos, const wxSize &size) 
+    : AMSRoad()
 {
     m_info     = info;
     m_canindex = canindex;
@@ -782,6 +784,19 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
     create(parent, id, pos, size);
     Bind(wxEVT_PAINT, &AMSRoad::paintEvent, this);
     wxWindow::SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+
+    Bind(wxEVT_MOTION, [this](wxMouseEvent& e) {
+        if (m_canindex == 3) {
+            auto mouse_pos = ClientToScreen(e.GetPosition());
+            auto rect = ClientToScreen(wxPoint(0, 0));
+
+            if (mouse_pos.x > rect.x + GetSize().x - FromDIP(20) && 
+                mouse_pos.y > rect.y + GetSize().y - FromDIP(40)) {
+                wxCommandEvent event(EVT_AMS_SHOW_HUMIDITY_TIPS);
+                wxPostEvent(GetParent()->GetParent(), event);
+            }
+        }
+    });
 }
 
 void AMSRoad::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) { wxWindow::Create(parent, id, pos, size); }
@@ -1414,7 +1429,9 @@ void AmsCans::msw_rescale()
 Description:AMSControl
 **************************************************/
 // WX_DEFINE_OBJARRAY(AmsItemsHash);
-AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) : wxSimplebook(parent, wxID_ANY, pos, size)
+AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) 
+    : wxSimplebook(parent, wxID_ANY, pos, size)
+    , m_Humidity_tip_popup(AmsHumidityTipPopup(this))
 {
     SetBackgroundColour(*wxWHITE);
     // normal mode
@@ -1705,6 +1722,12 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
         e.Skip();
         });
 
+    Bind(EVT_AMS_SHOW_HUMIDITY_TIPS, [this](wxCommandEvent& evt) {
+        wxPoint img_pos = ClientToScreen(wxPoint(0, 0));
+        wxPoint popup_pos(img_pos.x, img_pos.y + GetRect().height);
+        m_Humidity_tip_popup.Position(popup_pos, wxSize(0, 0));
+        m_Humidity_tip_popup.Popup();
+    });
     
 
     m_button_guide->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {

@@ -698,6 +698,125 @@ void AmsMapingTipPopup::OnDismiss() {}
 bool AmsMapingTipPopup::ProcessLeftDown(wxMouseEvent &event) { 
     return wxPopupTransientWindow::ProcessLeftDown(event); }
 
+
+AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
+    :wxPopupTransientWindow(parent, wxBORDER_NONE)
+{
+    SetBackgroundColour(*wxWHITE);
+
+    wxBoxSizer* main_sizer;
+    main_sizer = new wxBoxSizer(wxVERTICAL);
+
+
+    main_sizer->Add(0, 0, 0, wxTOP, 28);
+
+    wxBoxSizer* m_sizer_body;
+    m_sizer_body = new wxBoxSizer(wxHORIZONTAL);
+
+    m_img = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ams_humidity_tips", this, 125), wxDefaultPosition, wxSize(FromDIP(125), FromDIP(145)), 0);
+
+    m_sizer_body->Add(m_img, 0, wxEXPAND | wxALL, 2);
+
+
+    m_sizer_body->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(18));
+
+    wxBoxSizer* m_sizer_tips = new wxBoxSizer(wxVERTICAL);
+
+    m_staticText1 = new Label(this, _L("Cabin humidity"));
+    m_staticText1->SetForegroundColour(wxColour(0x352F2D));
+    m_staticText1->SetFont(::Label::Head_13);
+   
+
+    m_staticText2 = new Label(this, _L("Green represents that AMS humidity is normal, orange and red represent that humidity is too high.(Lower the better)"));
+    m_staticText2->SetFont(::Label::Body_13);
+    m_staticText2->SetSize(wxSize(FromDIP(360), -1));
+    m_staticText2->SetMinSize(wxSize(FromDIP(360), -1));
+    m_staticText2->SetMaxSize(wxSize(FromDIP(360), -1));
+    m_staticText2->Wrap(FromDIP(360));
+    
+
+    m_staticText3 = new Label(this, _L("Desiccant status"));
+    m_staticText3->SetForegroundColour(wxColour(0x352F2D));
+    m_staticText3->SetFont(::Label::Head_13);
+  
+
+    m_staticText4 = new Label(this, _L("Desiccant status lower than two bars indicates that desiccant can be inactive. Please change the desiccant.(Higher the better)"));
+    m_staticText4->SetFont(::Label::Body_13);
+    m_staticText4->SetSize(wxSize(FromDIP(360), -1));
+    m_staticText4->SetMinSize(wxSize(FromDIP(360), -1));
+    m_staticText4->SetMaxSize(wxSize(FromDIP(360), -1));
+    m_staticText4->Wrap(FromDIP(360));
+
+    m_sizer_tips->Add(m_staticText1, 0, wxALL, 3);
+    m_sizer_tips->Add(m_staticText2, 0, wxALL, 3);
+    m_sizer_tips->Add(m_staticText3, 0, wxALL, 3);
+    m_sizer_tips->Add(m_staticText4, 0, wxALL, 3);
+
+
+    m_sizer_body->Add(m_sizer_tips, 0, wxEXPAND, 0);
+
+
+    main_sizer->Add(m_sizer_body, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
+
+    m_staticText_note = new Label(this, _L("Note: When the lid is open or the desiccant pack is changed, it can take hours or a night to absorb the moisture. Low temperatures also slow down the process. During this time, the indicator may not represent the chamber accurately."));
+    m_staticText4->SetFont(::Label::Body_13);
+    m_staticText_note->SetMinSize(wxSize(FromDIP(536), -1));
+    m_staticText_note->SetMaxSize(wxSize(FromDIP(536), -1));
+    m_staticText_note->Wrap(FromDIP(536));
+    main_sizer->Add(m_staticText_note, 0, wxALL | wxLEFT | wxRIGHT, 34);
+
+    m_button_confirm = new Button(this, _L("OK"));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    m_button_confirm->SetBackgroundColor(btn_bg_green);
+    m_button_confirm->SetBorderColor(wxColour(0, 174, 66));
+    m_button_confirm->SetTextColor(wxColour(0xFFFFFE));
+    m_button_confirm->SetSize(wxSize(FromDIP(72), FromDIP(24)));
+    m_button_confirm->SetMinSize(wxSize(FromDIP(72), FromDIP(24)));
+    m_button_confirm->SetCornerRadius(FromDIP(12));
+
+
+    m_button_confirm->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+         Dismiss();
+    });
+
+    Bind(wxEVT_LEFT_UP, [this](auto& e) {
+        auto mouse_pos = ClientToScreen(e.GetPosition());
+        auto rect = m_button_confirm->ClientToScreen(wxPoint(0, 0));
+        if (mouse_pos.x > rect.x && mouse_pos.y > rect.y
+            && mouse_pos.x < (rect.x + m_button_confirm->GetSize().x)
+            && mouse_pos.y < (rect.y + m_button_confirm->GetSize().y)) 
+        {
+            Dismiss();
+        }
+    });
+    main_sizer->Add(m_button_confirm, 0, wxALIGN_CENTER | wxALL, 0);
+
+
+    main_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, 18);
+
+
+    SetSizer(main_sizer);
+    Layout();
+    Fit();
+
+    Bind(wxEVT_PAINT, &AmsHumidityTipPopup::paintEvent, this);
+    wxGetApp().UpdateDarkUIWin(this);
+}
+
+void AmsHumidityTipPopup::paintEvent(wxPaintEvent& evt)
+{
+    wxPaintDC dc(this);
+    dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
+}
+
+void AmsHumidityTipPopup::OnDismiss() {}
+
+bool AmsHumidityTipPopup::ProcessLeftDown(wxMouseEvent& event) {
+    return wxPopupTransientWindow::ProcessLeftDown(event);
+}
+
 AmsTutorialPopup::AmsTutorialPopup(wxWindow* parent)
 :wxPopupTransientWindow(parent, wxBORDER_NONE)
 {
