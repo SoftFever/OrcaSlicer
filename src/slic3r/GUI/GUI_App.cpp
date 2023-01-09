@@ -3092,6 +3092,11 @@ void GUI_App::ShowUserGuide() {
 
 void GUI_App::ShowDownNetPluginDlg() {
     try {
+        auto iter = std::find_if(dialogStack.begin(), dialogStack.end(), [](auto dialog) {
+            return dynamic_cast<DownloadProgressDialog *>(dialog) != nullptr;
+        });
+        if (iter != dialogStack.end())
+            return;
         DownloadProgressDialog dlg(_L("Downloading Bambu Network Plug-in"));
         dlg.ShowModal();
     } catch (std::exception &e) {
