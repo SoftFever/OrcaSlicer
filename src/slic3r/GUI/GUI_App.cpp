@@ -4556,24 +4556,38 @@ void GUI_App::update_mode()
     plater()->canvas3D()->update_gizmos_on_off_state();
 }
 
-void GUI_App::show_ip_address_enter_dialog()
+bool  GUI_App::show_ip_address_enter_dialog()
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) return;
-    if (!dev->get_selected_machine()) return;
+    if (!dev) return false;
+    if (!dev->get_selected_machine()) return false;
     auto obj = dev->get_selected_machine();
     InputIpAddressDialog dlg(nullptr, from_u8(dev->get_selected_machine()->dev_name));
     dlg.Bind(EVT_ENTER_IP_ADDRESS, [this, obj](wxCommandEvent& e) {
-        auto ip_address = e.GetString();
+        auto selection_data_arr = wxSplit(e.GetString().ToStdString(), '|');
+
+        if (selection_data_arr.size() != 2) return false;
+
+        auto ip_address = selection_data_arr[0];
+        auto access_code = selection_data_arr[1];
+
         BOOST_LOG_TRIVIAL(info) << "User enter IP address is " << ip_address;
         if (!ip_address.empty()) {
             wxGetApp().app_config->set_str("ip_address", obj->dev_id, ip_address.ToStdString());
             wxGetApp().app_config->save();
-            obj->dev_ip = ip_address.ToStdString();
-        }
 
-        });
-    dlg.ShowModal();
+            obj->set_access_code(access_code.ToStdString());
+            obj->dev_ip = ip_address.ToStdString();
+            obj->access_code = access_code.ToStdString();
+        }
+        return true;
+    });
+
+    if (dlg.ShowModal() == wxID_YES) {
+        return true;
+    }
+
+    return false;
 }
 
 //void GUI_App::add_config_menu(wxMenuBar *menu)

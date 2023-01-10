@@ -382,7 +382,13 @@ public:
 	~InputIpAddressDialog();
 
 	Button* m_button_ok{nullptr};
+	Label*	   m_tips_ip{nullptr};
+	Label*	   m_tips_access_code{nullptr};
 	TextInput* m_input_ip{nullptr};
+	TextInput* m_input_access_code{nullptr};
+	Label*	   m_tips_note1{nullptr};
+	Label*	   m_tips_note2{nullptr};
+	Label*	   m_tips_note3{nullptr};
     bool isIp(std::string ipstr);
 	void on_ok(wxMouseEvent& evt);
 	void on_text(wxCommandEvent& evt);

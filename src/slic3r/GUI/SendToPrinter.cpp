@@ -862,12 +862,14 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
     if (obj->dev_ip.empty()) {
         BOOST_LOG_TRIVIAL(info) << "MachineObject IP is empty ";
         std::string app_config_dev_ip = Slic3r::GUI::wxGetApp().app_config->get("ip_address", obj->dev_id);
+        std::string app_config_access_code = Slic3r::GUI::wxGetApp().app_config->get("access_code", obj->dev_id);
 
         if (app_config_dev_ip.empty()) {
             wxGetApp().show_ip_address_enter_dialog();
         }
         else {
             obj->dev_ip = app_config_dev_ip;
+            obj->access_code = app_config_access_code;
         }  
     }
 

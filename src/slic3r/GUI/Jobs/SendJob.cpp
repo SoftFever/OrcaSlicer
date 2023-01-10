@@ -305,6 +305,7 @@ void SendJob::process()
             if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
                 msg_text += ". ";
                 msg_text += _L("Please log out and login to the printer again.");
+                m_enter_ip_address_fun();
             }
             else {
                 msg_text += wxString::Format("[%s]", error_text);
