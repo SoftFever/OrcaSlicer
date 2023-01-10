@@ -1236,8 +1236,8 @@ void SeamPlacer::align_seam_points(const PrintObject *po, const SeamPlacerImpl::
                 SeamCandidate adjust_point = seamcandiate[index];
                 // BBS. pick projection point as seam point
                 if (seam_string[index].second != adjust_point.perimeter.seam_index) {
-                    int           prev_index = seam_string[index].second == adjust_point.perimeter.start_index ? adjust_point.perimeter.end_index - 1 : seam_string[index].second - 1;
-                    int           next_index = seam_string[index].second == adjust_point.perimeter.end_index - 1 ? adjust_point.perimeter.start_index : seam_string[index].second + 1;
+                    int           prev_index = seam_string[index].second == adjust_point.perimeter.start_index ? adjust_point.perimeter.end_index : seam_string[index].second - 1;
+                    int           next_index = seam_string[index].second == adjust_point.perimeter.end_index ? adjust_point.perimeter.start_index : seam_string[index].second + 1;
                     SeamCandidate prev_point = layers[seam_string[index].first].points[prev_index];
                     SeamCandidate next_point = layers[seam_string[index].first].points[next_index];
 
