@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-12-24 13:01+0800\n"
-"PO-Revision-Date: 2023-01-10 10:46+0200\n"
+"PO-Revision-Date: 2023-01-10 16:57+0200\n"
 "Last-Translator: 5axes <5axes@free.fr>\n"
 "Language-Team: 5axes\n"
 "Language: fr\n"
@@ -2841,6 +2841,39 @@ msgstr "Afficher les étiquettes des objets dans la scène 3D"
 
 msgid "Preferences"
 msgstr "Préférences"
+
+msgid "Line method - DDE"
+msgstr "Méthode Ligne - DDE"
+
+msgid "Line method - Bowden"
+msgstr "Méthode Ligne - Bowden"
+
+msgid "Tower method - DDE"
+msgstr "Méthode Tour - DDE"
+
+msgid "Tower method - Bowden"
+msgstr "Méthode Tour - Bowden"
+
+msgid "Presure/Linear Advance"
+msgstr "Pression/Avance linéaire"
+
+msgid "Flow rate"
+msgstr "Débit"
+
+msgid "Pass 1"
+msgstr "Passe 1"
+
+msgid "Pass 2"
+msgstr "Passe 2"
+
+msgid "Tutorial"
+msgstr "Didacticiel"
+
+msgid "Layer Time"
+msgstr "Temps de couche"
+
+msgid "Layer Time (log)"
+msgstr "Temps de couche (log)"
 
 msgid "View"
 msgstr "Vue"
@@ -7384,12 +7417,6 @@ msgstr "Longueur supplémentaire sur le redémarrage"
 msgid "Use firmware retraction"
 msgstr "Utilisation de la rétraction du firmware"
 
-msgid "Layer Time"
-msgstr "Temps de couche"
-
-msgid "Layer Time (log)"
-msgstr "Temps de couche (log)"
-
 msgid "Length"
 msgstr "Longueur"
 
@@ -7773,7 +7800,7 @@ msgid "Tree Strong"
 msgstr "Arborescent Fort"
 
 msgid "Tree Hybrid"
-msgstr "Arborescent Hybride
+msgstr "Arborescent Hybride"
 
 msgid "Independent support layer height"
 msgstr "Hauteur de la couche de support indépendante"
@@ -8466,7 +8493,6 @@ msgstr ""
 "Saviez-vous que vous pouvez personnaliser l’emplacement de la jointure en Z "
 "en le peignant directement sur votre impression afin de le rendre moins "
 "visible ? Cela améliore l’aspect général de votre modèle. Découvrez-le !"
-
 
 #: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
 msgid ""
