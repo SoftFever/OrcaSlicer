@@ -410,7 +410,7 @@ msgid "Some values have been replaced. Please check them:"
 msgstr "Certaines valeurs ont été remplacées. Veuillez les vérifier :"
 
 msgid "Process"
-msgstr "Traiter"
+msgstr "Processus"
 
 msgid "Filament"
 msgstr "Filament"
@@ -4546,13 +4546,13 @@ msgid "Cool Plate"
 msgstr "Plateau"
 
 msgid "Engineering Plate"
-msgstr "Plaque d'ingénierie"
+msgstr "Plateau Revêtu"
 
 msgid "High Temp Plate"
-msgstr "Plaque haute température"
+msgstr "Plateau Chauffant"
 
 msgid "Textured PEI Plate"
-msgstr "Plaque PEI texturée"
+msgstr "Plateau PEI texturée"
 
 msgid "Log in printer"
 msgstr "Connectez-vous à l'imprimante"
