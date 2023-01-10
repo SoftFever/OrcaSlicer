@@ -321,8 +321,12 @@ void GCodeViewer::SequentialView::Marker::set_world_position(const Vec3f& positi
     m_world_transform = (Geometry::assemble_transform((position + m_z_offset * Vec3f::UnitZ()).cast<double>()) * Geometry::assemble_transform(m_model.get_bounding_box().size().z() * Vec3d::UnitZ(), { M_PI, 0.0, 0.0 })).cast<float>();
 }
 
+void GCodeViewer::SequentialView::Marker::update_curr_move(const GCodeProcessorResult::MoveVertex move) {
+    m_curr_move = move;
+}
+
 //BBS: GUI refactor: add canvas size from parameters
-void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves, uint64_t curr_line_id) const
+void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_height, const EViewType& view_type) const
 {
     if (!m_visible)
         return;
@@ -352,13 +356,6 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     static size_t last_text_length = 0;
     const ImU32 text_name_clr = m_is_dark ? IM_COL32(255, 255, 255, 0.88 * 255) : IM_COL32(38, 46, 48, 255);
     const ImU32 text_value_clr = m_is_dark ? IM_COL32(255, 255, 255, 0.4 * 255) : IM_COL32(144, 144, 144, 255);
-
-    auto it = std::find_if(moves.begin(), moves.end(), [&curr_line_id](auto move) {
-        return move.gcode_id == curr_line_id;
-        });
-    if (it == moves.end()) {
-        return;
-    }
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     //BBS: GUI refactor: add canvas size from parameters
@@ -415,56 +412,56 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         switch (view_type) {
         case EViewType::Height: {
             ImGui::SameLine(window_padding + item_size + item_spacing);
-            sprintf(buf, "%s%.2f", height.c_str(), it->height);
+            sprintf(buf, "%s%.2f", height.c_str(), m_curr_move.height);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
         case EViewType::Width: {
             ImGui::SameLine(window_padding + item_size + item_spacing);
-            sprintf(buf, "%s%.2f", width.c_str(), it->width);
+            sprintf(buf, "%s%.2f", width.c_str(), m_curr_move.width);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
         case EViewType::Feedrate: {
             ImGui::SameLine(window_padding + item_size + item_spacing);
-            sprintf(buf, "%s%.0f", speed.c_str(), it->feedrate);
+            sprintf(buf, "%s%.0f", speed.c_str(), m_curr_move.feedrate);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
         case EViewType::VolumetricRate: {
             ImGui::SameLine(window_padding + item_size + item_spacing);
-            sprintf(buf, "%s%.2f", flow.c_str(), it->volumetric_rate());
+            sprintf(buf, "%s%.2f", flow.c_str(), m_curr_move.volumetric_rate());
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
         case EViewType::FanSpeed: {
             ImGui::SameLine(window_padding + item_size + item_spacing);
-            sprintf(buf, "%s%.0f", fanspeed.c_str(), it->fan_speed);
+            sprintf(buf, "%s%.0f", fanspeed.c_str(), m_curr_move.fan_speed);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
         case EViewType::Temperature: {
             ImGui::SameLine(window_padding + item_size + item_spacing);
-            sprintf(buf, "%s%.0f", temperature.c_str(), it->temperature);
+            sprintf(buf, "%s%.0f", temperature.c_str(), m_curr_move.temperature);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
         case EViewType::LayerTime:{
             ImGui::SameLine(window_padding + item_size + item_spacing);
-            sprintf(buf, "%s%.1f", layer_time.c_str(), it->layer_duration);
+            sprintf(buf, "%s%.1f", layer_time.c_str(), m_curr_move.layer_duration);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
         case EViewType::LayerTimeLog: {
             ImGui::SameLine(window_padding + item_size + item_spacing);
-            sprintf(buf, "%s%.1f", layer_time_log.c_str(), std::log(it->layer_duration));
+            sprintf(buf, "%s%.1f", layer_time_log.c_str(), std::log(m_curr_move.layer_duration));
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
@@ -699,9 +696,10 @@ void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
     }
 }
 //BBS: GUI refactor: move to the right
-void GCodeViewer::SequentialView::render(float legend_height, int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves) const
+void GCodeViewer::SequentialView::render(float legend_height, int canvas_width, int canvas_height, const EViewType& view_type) const
 {
-    marker.render(canvas_width, canvas_height, view_type, moves, static_cast<uint64_t>(gcode_ids[current.last]));
+    marker.render(canvas_width, canvas_height, view_type);
+
     //float bottom = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height();
     // BBS
 #if 0
@@ -1284,7 +1282,7 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
         m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
         m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
         //BBS fixed buttom margin. m_moves_slider.pos_y
-        m_sequential_view.render(legend_height, canvas_width - right_margin * m_scale, canvas_height - bottom_margin * m_scale, m_view_type, m_gcode_result->moves);
+        m_sequential_view.render(legend_height, canvas_width - right_margin * m_scale, canvas_height - bottom_margin * m_scale, m_view_type);
     }
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
@@ -1788,6 +1786,14 @@ void GCodeViewer::update_layers_slider_mode()
     }
 
     // TODO m_layers_slider->SetModeAndOnlyExtruder(one_extruder_printed_model, only_extruder);
+}
+
+void GCodeViewer::update_marker_curr_move() {
+    auto it = std::find_if(m_gcode_result->moves.begin(), m_gcode_result->moves.end(), [this](auto move) {
+        return move.gcode_id == static_cast<uint64_t>(m_sequential_view.gcode_ids[m_sequential_view.current.last]);
+        });
+
+    m_sequential_view.marker.update_curr_move(*it);
 }
 
 bool GCodeViewer::is_toolpath_move_type_visible(EMoveType type) const
