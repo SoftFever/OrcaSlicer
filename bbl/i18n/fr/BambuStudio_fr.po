@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-12-24 13:01+0800\n"
-"PO-Revision-Date: 2023-01-10 00:50+0200\n"
+"PO-Revision-Date: 2023-01-10 01:13+0200\n"
 "Last-Translator: 5axes <5axes@free.fr>\n"
 "Language-Team: 5axes\n"
 "Language: fr\n"
@@ -18,7 +18,7 @@ msgstr ""
 "X-Generator: Virtaal 0.7.1\n"
 
 msgid "Supports Painting"
-msgstr "Prend en charge la peinture"
+msgstr "Peinture des supports"
 
 msgid "Alt + Mouse wheel"
 msgstr "Alt + molette de la souris"
@@ -45,7 +45,7 @@ msgid "Right mouse button"
 msgstr "Bouton droit de la souris"
 
 msgid "Block supports"
-msgstr "Bloc prend en charge"
+msgstr "Bloqueur de supports"
 
 msgid "Shift + Left mouse button"
 msgstr "Maj + bouton gauche de la souris"
@@ -374,7 +374,7 @@ msgid "Remove selection"
 msgstr "Supprimer la sélection"
 
 msgid "Text shape"
-msgstr "Forme du texte"
+msgstr "Ajout texte"
 
 msgid "Font"
 msgstr "Police"
@@ -1699,7 +1699,7 @@ msgid "Processing G-Code from Previous file..."
 msgstr "Traitement du G-Code du fichier précédent..."
 
 msgid "Slicing complete"
-msgstr "Tranchage terminé"
+msgstr "Découpe terminée"
 
 msgid "Access violation"
 msgstr "Violation d'accès"
@@ -2608,7 +2608,7 @@ msgid "Slice all"
 msgstr "Tout découper"
 
 msgid "Slice plate"
-msgstr "Trancher le plateau"
+msgstr "Découper le plateau"
 
 msgid "Export G-code file"
 msgstr "Exporter le Fichier GCode"
@@ -3071,7 +3071,7 @@ msgid "Download selected files from printer."
 msgstr "Téléchargez les fichiers sélectionnés à partir de l'imprimante."
 
 msgid "Select"
-msgstr ""
+msgstr "Sélectionnez"
 
 msgid "Batch manage files."
 msgstr "Gérer les fichiers par lots."
@@ -3378,7 +3378,7 @@ msgid "Cancel upload"
 msgstr "Annuler le chargement"
 
 msgid "Slice ok."
-msgstr "Tranchage terminé"
+msgstr "Découpe Ok."
 
 msgid "Export G-Code."
 msgstr "Exporter le code G."
@@ -3488,8 +3488,17 @@ msgstr "Objets"
 msgid "Advance"
 msgstr "Avancé"
 
+msgid "Recently opened"
+msgstr "Récemment ouvert"
+
+msgid "Clear all"
+msgstr "Effacer tout"
+
 msgid "Compare presets"
 msgstr "Comparer les préréglages"
+
+msgid "Select presets to compare"
+msgstr "Sélectionner les préréglages à comparer"
 
 msgid "View all object's settings"
 msgstr "Afficher tous les paramètres de l'objet"
@@ -4859,7 +4868,7 @@ msgid "Accessory"
 msgstr "Accessoire"
 
 msgid "Machine gcode"
-msgstr "gcode de la machine"
+msgstr "Code-G de la machine"
 
 msgid "Machine start G-code"
 msgstr "Code G de démarrage de la machine"
@@ -5586,7 +5595,7 @@ msgstr ""
 
 #, boost-format
 msgid "Object can't be printed for empty layer between %1% and %2%."
-msgstr "L'objet ne peut pas être imprimé pour un calque vide entre %1% et %2%."
+msgstr "L'objet ne peut pas être imprimé pour une couche vide entre %1% et %2%."
 
 #, boost-format
 msgid "Object: %1%"
@@ -5936,7 +5945,7 @@ msgid ""
 "Slicing height for each layer. Smaller layer height means more accurate and "
 "more printing time"
 msgstr ""
-"Hauteur de tranchage pour chaque couche. Une hauteur de couche plus petite "
+"Hauteur de découpe pour chaque couche. Une hauteur de couche plus petite "
 "signifie plus de précision et plus de temps d'impression"
 
 msgid "Printable height"
@@ -7348,10 +7357,16 @@ msgstr ""
 "longueur de la rétraction"
 
 msgid "Retract when change layer"
-msgstr "Se rétracter lors du changement de calque"
+msgstr "Retrait lors du changement de couche"
 
 msgid "Force a retraction when changes layer"
-msgstr "Forcer une rétraction lors d'un changement de calque"
+msgstr "Forcer une rétraction lors d'un changement de couche"
+
+msgid "Extra length on restart"
+msgstr "Longueur supplémentaire sur le redémarrage"
+
+msgid "Use firmware retraction"
+msgstr "Utilisation de la rétraction du firmware"
 
 msgid "Length"
 msgstr "Longueur"
@@ -7367,8 +7382,11 @@ msgstr ""
 "le suintement pendant les longs trajets. Définir zéro pour désactiver la "
 "rétraction"
 
+msgid "Z hop type"
+msgstr "Type de saut Z"
+
 msgid "Z hop when retract"
-msgstr "Z saut lors de la rétraction"
+msgstr "Saut en Z lors de la rétraction"
 
 msgid ""
 "Whenever the retraction is done, the nozzle is lifted a little to create "
@@ -8232,7 +8250,7 @@ msgstr "Optimisation du parcours d'outil"
 
 msgid "Empty layers around bottom are replaced by nearest normal layers."
 msgstr ""
-"Les calques vides autour du bas sont remplacés par les calques normaux les "
+"Les couches vides autour du bas sont remplacés par les couches normales les "
 "plus proches."
 
 msgid "The model has too many empty layers."
