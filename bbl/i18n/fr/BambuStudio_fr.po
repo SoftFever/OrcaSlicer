@@ -4705,6 +4705,9 @@ msgstr "Vitesse de voyage"
 msgid "Acceleration"
 msgstr "Accélération"
 
+msgid "Jerk(XY)"
+msgstr "Saccade(XY)"
+
 msgid "Raft"
 msgstr "Radeau"
 
