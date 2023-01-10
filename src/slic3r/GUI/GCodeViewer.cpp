@@ -2451,14 +2451,14 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
     std::vector<float> options_zs;
 
     size_t seams_count = 0;
-    std::vector<size_t> seams_ids;
+    std::vector<size_t> biased_seams_ids;
 
     // toolpaths data -> extract vertices from result
     for (size_t i = 0; i < m_moves_count; ++i) {
         const GCodeProcessorResult::MoveVertex& curr = gcode_result.moves[i];
         if (curr.type == EMoveType::Seam) {
             ++seams_count;
-            seams_ids.push_back(i);
+            biased_seams_ids.push_back(i - biased_seams_ids.size() - 1);
         }
 
         size_t move_id = i - seams_count;
@@ -2548,17 +2548,23 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":b=%1%, vertex buffer count %2%\n")
             %b %v_multibuffer.size();
     }*/
-    auto extract_move_id = [&seams_ids](size_t id) {
-            for (int i = seams_ids.size() - 1; i >= 0; --i) {
-                if (seams_ids[i] < id + i + 1)
-                    return id + (size_t)i + 1;
-            }
-            return id;
+    auto extract_move_id = [&biased_seams_ids](size_t id) {
+        size_t new_id = size_t(-1);
+        auto it = std::lower_bound(biased_seams_ids.begin(), biased_seams_ids.end(), id);
+        if (it == biased_seams_ids.end())
+            new_id = id + biased_seams_ids.size();
+        else {
+            if (it == biased_seams_ids.begin() && *it < id)
+                new_id = id;
+            else if (it != biased_seams_ids.begin())
+                new_id = id + std::distance(biased_seams_ids.begin(), it);
+        }
+        return (new_id == size_t(-1)) ? id : new_id;
     };
     //BBS: generate map from ssid to move id in advance to reduce computation
     m_ssid_to_moveid_map.clear();
-    m_ssid_to_moveid_map.reserve( m_moves_count - seams_ids.size());
-    for (size_t i = 0; i < m_moves_count - seams_ids.size(); i++)
+    m_ssid_to_moveid_map.reserve( m_moves_count - biased_seams_ids.size());
+    for (size_t i = 0; i < m_moves_count - biased_seams_ids.size(); i++)
         m_ssid_to_moveid_map.push_back(extract_move_id(i));
 
     //BBS: smooth toolpaths corners for the given TBuffer using triangles
@@ -2760,7 +2766,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
     }
 
     // dismiss, no more needed
-    std::vector<size_t>().swap(seams_ids);
+    std::vector<size_t>().swap(biased_seams_ids);
 
     for (MultiVertexBuffer& v_multibuffer : vertices) {
         for (VertexBuffer& v_buffer : v_multibuffer) {
@@ -4828,10 +4834,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             PartialTimes items;
 
             std::vector<CustomGCode::Item> custom_gcode_per_print_z = wxGetApp().is_editor() ? wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes : m_custom_gcode_per_print_z;
-            // BBS
-            int extruders_count = wxGetApp().filaments_cnt();
-            std::vector<Color> last_color(extruders_count);
-            for (int i = 0; i < extruders_count; ++i) {
+            std::vector<Color> last_color(m_extruders_count);
+            for (size_t i = 0; i < m_extruders_count; ++i) {
                 last_color[i] = m_tools.m_tool_colors[i];
             }
             int last_extruder_id = 1;
