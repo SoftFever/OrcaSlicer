@@ -23,6 +23,10 @@
         {
             "name": "RatRig V-Minion",
             "sub_path": "machine/RatRig V-Minion.json"
+        },
+        {
+            "name": "RatRig V-Cast",
+            "sub_path": "machine/RatRig V-Cast.json"
         }
     ],
     "process_list": [
@@ -165,6 +169,14 @@
         {
             "name": "RatRig V-Minion",
             "sub_path": "machine/RatRig V-Minion 0.4 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Cast 0.4 nozzle",
+            "sub_path": "machine/RatRig V-Cast 0.4 nozzle.json"
+        },
+        {
+            "name": "RatRig V-Cast 0.6 nozzle",
+            "sub_path": "machine/RatRig V-Cast 0.6 nozzle.json"
         }
 		    ]
 }
