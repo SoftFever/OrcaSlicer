@@ -385,7 +385,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                         wxString y_str = thumbnail.GetNextToken();
                         if (y_str.ToDouble(&y) && !thumbnail.HasMoreTokens()) {
                             if (m_opt_id == "bed_exclude_area") {
-                                if (0 <= x && x <= 256 && 0 <= y && y <= 256) {
+                                if (0 <= x &&  0 <= y) {
                                     out_values.push_back(Vec2d(x, y));
                                     continue;
                                 }
