@@ -541,7 +541,11 @@ bool MediaPlayCtrl::get_stream_url(std::string *url)
 
 void wxMediaCtrl2::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {
+#ifdef __WXMAC__
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
+#else
+    wxMediaCtrl::DoSetSize(x, y, width, height, sizeFlags);
+#endif
     if (sizeFlags & wxSIZE_USE_EXISTING) return;
     wxSize size = GetVideoSize();
     if (size.GetWidth() <= 0)
