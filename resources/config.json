@@ -19,8 +19,7 @@
                 "FUNC_AUTO_SWITCH_FILAMENT": false,
                 "FUNC_CHAMBER_FAN" : false,
                 "FUNC_EXTRUSION_CALI": true,
-                "FUNC_PRINT_ALL" : false,
-                "FUNC_SEND_TO_SDCARD": false
+                "FUNC_PRINT_ALL" : false
             },
             "camera_resolution":["720p"],
             "bed_temperature_limit": 100,
