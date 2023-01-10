@@ -127,12 +127,12 @@ void MediaPlayCtrl::Play()
     }
     if (m_machine.empty()) {
         Stop();
-        SetStatus(_L("Initialize failed (No Device)!"));
+        SetStatus(_L("Initialize failed (No Device)!"), false);
         return;
     }
     if (!m_camera_exists) {
         Stop();
-        SetStatus(_L("Initialize failed (No Camera Device)!"));
+        SetStatus(_L("Initialize failed (No Camera Device)!"), false);
         return;
     }
 
@@ -385,6 +385,14 @@ void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
     m_label_status->SetWindowStyle(style);
     m_label_status->InvalidateBestSize();
     Layout();
+
+    if (hyperlink && !m_tutk_support) {
+        m_next_retry = wxDateTime(); // stop retry
+        if (wxGetApp().show_ip_address_enter_dialog()) {
+            m_failed_retry = 0;         
+            m_next_retry   = wxDateTime::Now();
+        }
+    }
 }
 
 bool MediaPlayCtrl::IsStreaming() const { return m_streaming; }
