@@ -7,6 +7,10 @@
 #include <shellapi.h>
 #endif
 
+#ifdef __LINUX__
+#include "Printer/gstbambusrc.h"
+#endif
+
 wxMediaCtrl2::wxMediaCtrl2(wxWindow *parent)
 {
 #ifdef __WIN32__
@@ -24,6 +28,10 @@ wxMediaCtrl2::wxMediaCtrl2(wxWindow *parent)
     }
 #endif
     wxMediaCtrl::Create(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxMEDIACTRLPLAYERCONTROLS_NONE);
+#ifdef __LINUX__
+    /* Register only after we have created the wxMediaCtrl, since only then are we guaranteed to have fired up Gstreamer's plugin registry. */
+    gstbambusrc_register();
+#endif
 }
 
 #define CLSID_BAMBU_SOURCE L"{233E64FB-2041-4A6C-AFAB-FF9BCF83E7AA}"
@@ -105,7 +113,14 @@ void wxMediaCtrl2::Stop() { wxMediaCtrl::Stop(); }
 
 wxSize wxMediaCtrl2::GetVideoSize() const
 {
+#ifdef __LINUX__
+    // Gstreamer doesn't give us a VideoSize until we're playing, which
+    // confuses the MediaPlayCtrl into claiming that it is stuck
+    // "Loading...".  Fake it out for now.
+    return wxSize(1280, 720);
+#else
     return m_imp ? m_imp->GetVideoSize() : wxSize(0, 0);
+#endif
 }
 
 wxSize wxMediaCtrl2::DoGetBestSize() const
