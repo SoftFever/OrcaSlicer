@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-12-24 13:01+0800\n"
-"PO-Revision-Date: 2023-01-10 01:13+0200\n"
+"PO-Revision-Date: 2023-01-10 01:28+0200\n"
 "Last-Translator: 5axes <5axes@free.fr>\n"
 "Language-Team: 5axes\n"
 "Language: fr\n"
@@ -6509,11 +6509,11 @@ msgstr ""
 "une meilleure qualité."
 
 msgid "Order of inner wall/outer wall/infil"
-msgstr "Ordre de mur intérieur/extérieur/remplissage"
+msgstr "Ordre Paroi intérieur/extérieur/remplissage"
 
 msgid "Print sequence of inner wall, outer wall and infill. "
 msgstr ""
-"Séquence d'impression du mur intérieur, du mur extérieur et du remplissage."
+"Séquence d'impression Paroi intérieur, Paroi extérieur et remplissage."
 
 msgid "inner/outer/infill"
 msgstr "intérieur/extérieur/remplissage"
@@ -6526,6 +6526,9 @@ msgstr "remplissage/intérieur/extérieur"
 
 msgid "infill/outer/inner"
 msgstr "remplissage/extérieur/intérieur"
+
+msgid "inner-outer-inner/infill"
+msgstr "intérieur-extérieur-intérieur/remplissage"
 
 msgid "Height to rod"
 msgstr "Hauteur à la tige"
@@ -7116,28 +7119,28 @@ msgid "Maximum acceleration of the E axis"
 msgstr "Accélération maximale de l'axe E"
 
 msgid "Maximum jerk X"
-msgstr "À-coup maximal X"
+msgstr "Saccade maximale X"
 
 msgid "Maximum jerk Y"
-msgstr "À-coup maximal Y"
+msgstr "Saccade maximale Y"
 
 msgid "Maximum jerk Z"
-msgstr "À-coup maximal Z"
+msgstr "Saccade maximale Z"
 
 msgid "Maximum jerk E"
-msgstr "À-coup maximal E"
+msgstr "Saccade maximale E"
 
 msgid "Maximum jerk of the X axis"
-msgstr "Jerk maximum de l'axe X"
+msgstr "Saccade maximale de l'axe X"
 
 msgid "Maximum jerk of the Y axis"
-msgstr "Jerk maximum de l'axe Y"
+msgstr "Saccade maximale de l'axe Y"
 
 msgid "Maximum jerk of the Z axis"
-msgstr "Jerk maximum de l'axe Z"
+msgstr "Saccade maximale de l'axe Z"
 
 msgid "Maximum jerk of the E axis"
-msgstr "Jerk maximum de l'axe E"
+msgstr "Saccade maximale de l'axe E"
 
 msgid "Minimum speed for extruding"
 msgstr "Vitesse minimale d'extrusion"
@@ -7227,10 +7230,10 @@ msgid "Nozzle diameter"
 msgstr "Diamètre de buse"
 
 msgid "Diameter of nozzle"
-msgstr "Diamètre de buse"
+msgstr "Diamètre de la buse"
 
 msgid "Host Type"
-msgstr "Type of Hôte"
+msgstr "Type d'Hôte"
 
 msgid ""
 "Slic3r can upload G-code files to a printer host. This field must contain "
