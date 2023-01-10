@@ -3290,44 +3290,45 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         }
     }
 
-    // make a little move inwards before leaving loop
-    if (paths.back().role() == erExternalPerimeter && m_layer != NULL && m_config.wall_loops.value > 1 && paths.front().size() >= 2 && paths.back().polyline.points.size() >= 3) {
-        // detect angle between last and first segment
-        // the side depends on the original winding order of the polygon (left for contours, right for holes)
-        //FIXME improve the algorithm in case the loop is tiny.
-        //FIXME improve the algorithm in case the loop is split into segments with a low number of points (see the Point b query).
-        Point a = paths.front().polyline.points[1];  // second point
-        Point b = *(paths.back().polyline.points.end()-3);       // second to last point
-        if (was_clockwise) {
-            // swap points
-            Point c = a; a = b; b = c;
-        }
+    //BBS. move the travel path before wipe to improve the seam
+    //// make a little move inwards before leaving loop
+    //if (paths.back().role() == erExternalPerimeter && m_layer != NULL && m_config.wall_loops.value > 1 && paths.front().size() >= 2 && paths.back().polyline.points.size() >= 3) {
+    //    // detect angle between last and first segment
+    //    // the side depends on the original winding order of the polygon (left for contours, right for holes)
+    //    //FIXME improve the algorithm in case the loop is tiny.
+    //    //FIXME improve the algorithm in case the loop is split into segments with a low number of points (see the Point b query).
+    //    Point a = paths.front().polyline.points[1];  // second point
+    //    Point b = *(paths.back().polyline.points.end()-3);       // second to last point
+    //    if (was_clockwise) {
+    //        // swap points
+    //        Point c = a; a = b; b = c;
+    //    }
 
-        double angle = paths.front().first_point().ccw_angle(a, b) / 3;
+    //    double angle = paths.front().first_point().ccw_angle(a, b) / 3;
 
-        // turn left if contour, turn right if hole
-        if (was_clockwise) angle *= -1;
+    //    // turn left if contour, turn right if hole
+    //    if (was_clockwise) angle *= -1;
 
-        // create the destination point along the first segment and rotate it
-        // we make sure we don't exceed the segment length because we don't know
-        // the rotation of the second segment so we might cross the object boundary
-        Vec2d  p1 = paths.front().polyline.points.front().cast<double>();
-        Vec2d  p2 = paths.front().polyline.points[1].cast<double>();
-        Vec2d  v  = p2 - p1;
-        double nd = scale_(EXTRUDER_CONFIG(nozzle_diameter));
-        double l2 = v.squaredNorm();
-        // Shift by no more than a nozzle diameter.
-        //FIXME Hiding the seams will not work nicely for very densely discretized contours!
-        //BBS. shorten the travel distant before the wipe path
-        double threshold = 0.2;
-        Point  pt = (p1 + v * threshold).cast<coord_t>();
-        if (nd * nd < l2)
-            pt = (p1 + threshold * v * (nd / sqrt(l2))).cast<coord_t>();
-        //Point pt = ((nd * nd >= l2) ? (p1+v*0.4): (p1 + 0.2 * v * (nd / sqrt(l2)))).cast<coord_t>();
-        pt.rotate(angle, paths.front().polyline.points.front());
-        // generate the travel move
-        gcode += m_writer.travel_to_xy(this->point_to_gcode(pt), "move inwards before travel");
-    }
+    //    // create the destination point along the first segment and rotate it
+    //    // we make sure we don't exceed the segment length because we don't know
+    //    // the rotation of the second segment so we might cross the object boundary
+    //    Vec2d  p1 = paths.front().polyline.points.front().cast<double>();
+    //    Vec2d  p2 = paths.front().polyline.points[1].cast<double>();
+    //    Vec2d  v  = p2 - p1;
+    //    double nd = scale_(EXTRUDER_CONFIG(nozzle_diameter));
+    //    double l2 = v.squaredNorm();
+    //    // Shift by no more than a nozzle diameter.
+    //    //FIXME Hiding the seams will not work nicely for very densely discretized contours!
+    //    //BBS. shorten the travel distant before the wipe path
+    //    double threshold = 0.2;
+    //    Point  pt = (p1 + v * threshold).cast<coord_t>();
+    //    if (nd * nd < l2)
+    //        pt = (p1 + threshold * v * (nd / sqrt(l2))).cast<coord_t>();
+    //    //Point pt = ((nd * nd >= l2) ? (p1+v*0.4): (p1 + 0.2 * v * (nd / sqrt(l2)))).cast<coord_t>();
+    //    pt.rotate(angle, paths.front().polyline.points.front());
+    //    // generate the travel move
+    //    gcode += m_writer.travel_to_xy(this->point_to_gcode(pt), "move inwards before travel");
+    //}
 
     return gcode;
 }

@@ -125,7 +125,7 @@
         "1"
     ],
     "retract_before_wipe": [
-        "70%"
+        "0%"
     ],
     "retract_when_changing_layer": [
         "1"
