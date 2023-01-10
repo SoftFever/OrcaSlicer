@@ -7368,6 +7368,12 @@ msgstr "Longueur supplémentaire sur le redémarrage"
 msgid "Use firmware retraction"
 msgstr "Utilisation de la rétraction du firmware"
 
+msgid "Layer Time"
+msgstr "Temps de couche"
+
+msgid "Layer Time (log)"
+msgstr "Temps de couche (log)"
+
 msgid "Length"
 msgstr "Longueur"
 
