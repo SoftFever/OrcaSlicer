@@ -71,7 +71,7 @@ struct SeamCandidate
     SeamCandidate(const Vec3f &pos, Perimeter &perimeter, float local_ccw_angle, EnforcedBlockedSeamPoint type)
         : position(pos), perimeter(perimeter), visibility(0.0f), overhang(0.0f), embedded_distance(0.0f), local_ccw_angle(local_ccw_angle), type(type), central_enforcer(false)
     {}
-    Vec3f position;
+    const Vec3f position;
     // pointer to Perimeter loop of this point. It is shared across all points of the loop
     Perimeter &perimeter;
     float      visibility;
