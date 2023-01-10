@@ -2261,7 +2261,7 @@ msgid "Travel"
 msgstr "Déplacement"
 
 msgid "Seams"
-msgstr "Couture"
+msgstr "Jointure"
 
 msgid "Retract"
 msgstr "Retrait"
@@ -4663,7 +4663,7 @@ msgid "Line width"
 msgstr "Largeur de ligne"
 
 msgid "Seam"
-msgstr "Couture"
+msgstr "Jointure"
 
 msgid "Precision"
 msgstr "Précision"
@@ -5358,7 +5358,7 @@ msgid "Gizmo SLA support points"
 msgstr "Gadget SLA Points supports"
 
 msgid "Gizmo FDM paint-on seam"
-msgstr "Gadget peinture des coutures"
+msgstr "Gadget peinture des jointures"
 
 msgid "Plater"
 msgstr "Plaqueur"
@@ -6753,6 +6753,9 @@ msgstr "(Indéfini)"
 
 msgid "Infill direction"
 msgstr "Sens de remplissage"
+
+msgid "Bridge infill direction"
+msgstr "Sens de remplissage du pont"
 
 msgid ""
 "Angle for sparse infill pattern, which controls the start or main direction "
