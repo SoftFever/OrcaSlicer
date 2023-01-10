@@ -507,10 +507,17 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     panel_button_block->SetSize(wxSize(TASK_BUTTON_SIZE.x * 2 + FromDIP(5) * 2, -1));
     panel_button_block->SetBackgroundColour(*wxWHITE);
 
+    m_staticText_layers = new wxStaticText(penel_text, wxID_ANY, _L("Layers: N/A"));
+    m_staticText_layers->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
+    m_staticText_layers->SetForegroundColour(wxColour(146, 146, 146));
+    m_staticText_layers->Hide();
+
     //bSizer_text->Add(m_staticText_progress_percent, 0,  wxALL, 0);
     bSizer_text->Add(sizer_percent, 0, wxEXPAND, 0);
     bSizer_text->Add(sizer_percent_icon, 0, wxEXPAND, 0);
     bSizer_text->Add(0, 0, 1, wxEXPAND, 0);
+    bSizer_text->Add(m_staticText_layers, 0, wxALIGN_CENTER | wxALL, 0);
+    bSizer_text->Add(0, 0, 0, wxLEFT, FromDIP(20));
     bSizer_text->Add(m_staticText_progress_left, 0, wxALIGN_CENTER | wxALL, 0);
 
     penel_text->SetMaxSize(wxSize(FromDIP(600), -1));
@@ -2156,6 +2163,13 @@ void StatusPanel::update_subtask(MachineObject *obj)
 {
     if (!obj) return;
 
+    if (obj->is_support_layer_num) {
+        m_staticText_layers->Show();
+    }
+    else {
+        m_staticText_layers->Hide();
+    }
+
     if (obj->is_system_printing()
         || obj->is_in_calibration()) {
         reset_printing_values();
@@ -2181,7 +2195,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
             m_staticText_progress_percent->SetLabelText(NA_STR);
             m_staticText_progress_percent_icon->SetLabelText(wxEmptyString);
             m_staticText_progress_left->SetLabel(NA_STR);
-            m_staticText_progress_left->SetLabelText(NA_STR);
+            m_staticText_layers->SetLabelText(wxString::Format(_L("Layers: %s"), NA_STR));
             wxString subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
             m_staticText_subtask_value->SetLabelText(subtask_text);
             update_basic_print_data(false);
@@ -2210,10 +2224,13 @@ void StatusPanel::update_subtask(MachineObject *obj)
                 m_gauge_progress->SetValue(obj->subtask_->task_progress);
                 m_staticText_progress_percent->SetLabelText(wxString::Format("%d", obj->subtask_->task_progress));
                 m_staticText_progress_percent_icon->SetLabelText("%");
+                m_staticText_layers->SetLabelText(wxString::Format(_L("Layers: %d/%d"), obj->curr_layer, obj->total_layers));
+
             } else {
                 m_gauge_progress->SetValue(0);
                 m_staticText_progress_percent->SetLabelText(NA_STR);
                 m_staticText_progress_percent_icon->SetLabelText(wxEmptyString);
+                m_staticText_layers->SetLabelText(wxString::Format(_L("Layers: %s"), NA_STR));
             }
         }
         wxString subtask_text = wxString::Format("%s", GUI::from_u8(obj->subtask_name));
@@ -2291,6 +2308,7 @@ void StatusPanel::reset_printing_values()
     update_basic_print_data(false);
     m_printing_stage_value->SetLabelText("");
     m_staticText_progress_left->SetLabelText(NA_STR);
+    m_staticText_layers->SetLabelText(wxString::Format(_L("Layers: %s"), NA_STR));
     m_staticText_progress_percent->SetLabelText(NA_STR);
     m_staticText_progress_percent_icon->SetLabelText(wxEmptyString);
     m_bitmap_thumbnail->SetBitmap(m_thumbnail_placeholder.bmp());

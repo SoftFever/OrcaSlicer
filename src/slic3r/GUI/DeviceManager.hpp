@@ -561,6 +561,9 @@ public:
     int     hw_switch_state;
     bool    is_system_printing();
     int     print_error;
+    int     curr_layer = 0;
+    int     total_layers = 0;
+    bool    is_support_layer_num { false };
 
     std::vector<int> stage_list_info;
     int stage_curr = 0;

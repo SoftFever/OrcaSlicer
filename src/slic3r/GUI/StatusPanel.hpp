@@ -138,6 +138,7 @@ protected:
     wxStaticText *  m_staticText_progress_percent;
     wxStaticText *  m_staticText_progress_percent_icon;
     wxStaticText *  m_staticText_progress_left;
+    wxStaticText *  m_staticText_layers;
     Button *        m_button_report;
     ScalableButton *m_button_pause_resume;
     ScalableButton *m_button_abort;

@@ -2368,6 +2368,19 @@ int MachineObject::parse_json(std::string payload)
                     if (jj.contains("subtask_name")) {
                         subtask_name = jj["subtask_name"].get<std::string>();
                     }
+                    if (jj.contains("layer_num")) {
+                        curr_layer = jj["layer_num"].get<int>();
+                    }
+                    if (jj.contains("total_layer_num")) {
+                        total_layers = jj["total_layer_num"].get<int>();
+                        if (total_layers == 0)
+                            is_support_layer_num = false;
+                        else
+                            is_support_layer_num = true;
+                    } else {
+                        is_support_layer_num = false;
+                    }
+
                     if (jj.contains("gcode_state")) {
                         this->set_print_state(jj["gcode_state"].get<std::string>());
                     }
