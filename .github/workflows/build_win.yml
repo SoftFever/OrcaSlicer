@@ -24,6 +24,7 @@ jobs:
         run: '"C:/Program Files/7-Zip/7z.exe" x %temp%\BambuStudio_dep.zip'
 
       - run: dir "${{ github.workspace }}\deps\build\BambuStudio_dep"
+      
       # - name: build deps
       #   id: cache_deps
       #   uses: actions/cache@v3
