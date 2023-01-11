@@ -14,7 +14,7 @@ msgstr ""
 "X-Generator: Poedit 3.2.2\n"
 
 msgid "Supports Painting"
-msgstr "Supports aufmalen"
+msgstr "Stützen aufmalen"
 
 msgid "Alt + Mouse wheel"
 msgstr "Alt + Mausrad"
@@ -223,10 +223,10 @@ msgid "Set Position"
 msgstr "Position setzen"
 
 msgid "Set Orientation"
-msgstr "Orientierung setzen"
+msgstr "Ausrichtung festlegen"
 
 msgid "Set Scale"
-msgstr "Skalierung setzen"
+msgstr "Skalierung festlegen"
 
 msgid "Reset Position"
 msgstr "Position zurücksetzen"
@@ -247,10 +247,10 @@ msgid "%"
 msgstr "%"
 
 msgid "uniform scale"
-msgstr "einheitliche Skala"
+msgstr "einheitliche Skalierung"
 
 msgid "Cut"
-msgstr "Auschneiden"
+msgstr "Schneiden"
 
 msgid "Movement:"
 msgstr "Bewegung:"
@@ -368,7 +368,7 @@ msgid "Remove selection"
 msgstr "Auswahl entfernen"
 
 msgid "Text shape"
-msgstr "Textform"
+msgstr "Text zufügen"
 
 msgid "Font"
 msgstr "Schiftart"
@@ -598,7 +598,7 @@ msgid "Speed"
 msgstr "Geschwindigkeit"
 
 msgid "Strength"
-msgstr "Stärke"
+msgstr "Stukrur"
 
 msgid "Top Solid Layers"
 msgstr "Obere volle Schichten"
@@ -857,7 +857,7 @@ msgid "Simplify Model"
 msgstr "Modell vereinfachen"
 
 msgid "Center"
-msgstr "Mittelpunkt"
+msgstr "zur Mitte"
 
 msgid "Edit Process Settings"
 msgstr "Prozesseinstellungen"
@@ -2256,13 +2256,13 @@ msgid "Quality / Speed"
 msgstr "Qualität / Geschwindigkeit"
 
 msgid "Smooth"
-msgstr "Oberflächenglätte"
+msgstr "Höhenunterschiede glätten"
 
 msgid "Radius"
 msgstr "Radius"
 
 msgid "Keep min"
-msgstr "Halten Sie min"
+msgstr "min einhalten"
 
 msgid "Left mouse button:"
 msgstr "Linke Maustaste:"
@@ -2337,7 +2337,7 @@ msgid "Add plate"
 msgstr "Druckplatte hinzufügen"
 
 msgid "Auto orient"
-msgstr "Automatische Orientierung"
+msgstr "Automatische Ausrichtung"
 
 msgid "Arrange all objects"
 msgstr "Alle Objekte anordnen"
@@ -2492,7 +2492,7 @@ msgid "Logging"
 msgstr "Protokollierung"
 
 msgid "Prepare"
-msgstr "Vorbereiten"
+msgstr "Vorbereitung"
 
 msgid "Preview"
 msgstr "Vorschau"
@@ -3912,7 +3912,7 @@ msgid "North America"
 msgstr "Nordamerika"
 
 msgid "Others"
-msgstr "Sonstige"
+msgstr "Sonstiges"
 
 msgid "Login Region"
 msgstr "Login-Region"
@@ -4011,7 +4011,7 @@ msgid "Zoom of view"
 msgstr "Zoom der Ansicht"
 
 msgid "Other"
-msgstr "Sonstige"
+msgstr "Sonstiges"
 
 msgid "Mouse wheel reverses when zooming"
 msgstr "Mausrad kehrt beim Zoomen um"
