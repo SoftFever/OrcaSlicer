@@ -84,6 +84,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "close_fan_the_first_x_layers",
         "machine_end_gcode",
         "filament_end_gcode",
+        "post_process",
         "extruder_clearance_height_to_rod",
         "extruder_clearance_height_to_lid",
         "extruder_clearance_radius",
