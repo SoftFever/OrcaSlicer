@@ -113,8 +113,6 @@ static gboolean gst_bambusrc_set_location (GstBambuSrc * src,
 G_DEFINE_TYPE_WITH_CODE (GstBambuSrc, gst_bambusrc, GST_TYPE_PUSH_SRC,
     G_IMPLEMENT_INTERFACE (GST_TYPE_URI_HANDLER,
         gst_bambusrc_uri_handler_init));
-GST_ELEMENT_REGISTER_DEFINE (bambusrc, "bambusrc",
-    GST_RANK_PRIMARY, GST_TYPE_BAMBUSRC);
 
 static void
 gst_bambusrc_class_init (GstBambuSrcClass * klass)
@@ -290,7 +288,13 @@ gst_bambusrc_create (GstPushSrc * psrc, GstBuffer ** outbuf)
     return GST_FLOW_ERROR;
   }
   
-  *outbuf = gst_buffer_new_memdup(sample.buffer, sample.size);
+#if GLIB_CHECK_VERSION(2,68,0)
+  gpointer sbuf = g_memdup2(sample.buffer, sample.size);
+#else
+  gpointer sbuf = g_memdup(sample.buffer, sample.size);
+#endif
+  *outbuf = gst_buffer_new_wrapped_full(0, sbuf, sample.size, 0, sample.size, sbuf, g_free);
+
   /* The NAL data already contains a timestamp (I think?), but we seem to
    * need to feed this in too -- otherwise the GStreamer pipeline gets upset
    * and starts triggering QoS events.
@@ -527,7 +531,7 @@ gst_bambusrc_uri_handler_init (gpointer g_iface, gpointer iface_data)
 
 static gboolean gstbambusrc_init(GstPlugin *plugin)
 {
-  return GST_ELEMENT_REGISTER (bambusrc, plugin);
+  return gst_element_register(plugin, "bambusrc", GST_RANK_PRIMARY, GST_TYPE_BAMBUSRC);
 }
 
 #ifndef EXTERNAL_GST_PLUGIN
