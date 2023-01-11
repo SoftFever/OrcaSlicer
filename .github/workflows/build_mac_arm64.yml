@@ -31,3 +31,12 @@ jobs:
         continue-on-error: true
         run: ./build_release_macos.sh -d -a arm64
 
+      - name: Build studio
+        working-directory: ${{ github.workspace }}
+        run: ./build_release_macos.sh -s -a arm64
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: BambuStudio-SoftFever_Mac
+          path: ${{ github.workspace }}/build/BambuStudio-SoftFever/BambuStudio-SoftFever*.zip
