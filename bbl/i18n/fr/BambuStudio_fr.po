@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-12-24 13:01+0800\n"
-"PO-Revision-Date: 2023-01-10 17:09+0200\n"
+"PO-Revision-Date: 2023-01-11 11:45+0200\n"
 "Last-Translator: 5axes <5axes@free.fr>\n"
 "Language-Team: 5axes\n"
 "Language: fr\n"
@@ -999,7 +999,7 @@ msgid "Object"
 msgstr "Objet"
 
 msgid "Part"
-msgstr "Partie"
+msgstr "Pièce"
 
 msgid "Layer"
 msgstr "Couche"
@@ -1470,7 +1470,7 @@ msgid ""
 "proprietary rights belong to their respective owners"
 msgstr ""
 "Ce logiciel utilise des composants open source dont les droits d'auteur et "
-"autres droits de propriété appartiennent à leurs propriétaires respectifs."
+"autres droits de propriété appartiennent à leurs propriétaires respectifs"
 
 #, c-format, boost-format
 msgid "About %s"
@@ -3061,11 +3061,14 @@ msgstr "Lecture..."
 msgid "Load failed [%d]!"
 msgstr "Le chargement a échoué [%d] !"
 
+msgid "Clear All"
+msgstr "Effacer Tout"
+
 msgid "Year"
-msgstr "Year"
+msgstr "Année"
 
 msgid "Month"
-msgstr "Month"
+msgstr "Mois"
 
 msgid "All Files"
 msgstr "Tous les fichiers"
@@ -3212,7 +3215,7 @@ msgid "Aux"
 msgstr "Aux"
 
 msgid "Cham"
-msgstr "Cham"
+msgstr "Chambre"
 
 msgid "Bed"
 msgstr "Plateau"
@@ -5103,7 +5106,7 @@ msgstr "Réglage de Gauche"
 
 msgid "Right Preset Value"
 msgstr "Réglage de Droite"
-	
+
 msgid "Add File"
 msgstr "Ajouter Fichier"
 
@@ -5378,25 +5381,25 @@ msgid "Select all objects"
 msgstr "Sélectionner tous les objets"
 
 msgid "Gizmo move"
-msgstr "Gadget déplacement"
+msgstr "Gadget Déplacement"
 
 msgid "Gizmo scale"
 msgstr "Gadget Echelle"
 
 msgid "Gizmo rotate"
-msgstr "Gadget rotation"
+msgstr "Gadget Rotation"
 
 msgid "Gizmo cut"
-msgstr "Gadget découpe"
+msgstr "Gadget Découpe"
 
 msgid "Gizmo Place face on bed"
 msgstr "Gadget Aligner sur le plateau"
 
 msgid "Gizmo SLA support points"
-msgstr "Gadget SLA Points supports"
+msgstr "Gadget Peinture des supports"
 
 msgid "Gizmo FDM paint-on seam"
-msgstr "Gadget peinture des jointures"
+msgstr "Gadget Peinture des jointures"
 
 msgid "Plater"
 msgstr "Plaqueur"
@@ -5924,7 +5927,7 @@ msgstr ""
 msgid ""
 "Support enforcers are used but support is not enabled. Please enable support."
 msgstr ""
-"Des supports personnalisés sont utilisés mais la création de support n'est "
+"Des supports personnalisés (ou peint) sont utilisés mais la création de support n'est "
 "pas activé. Veuillez activer la création des supports."
 
 msgid "Layer height cannot exceed nozzle diameter"
