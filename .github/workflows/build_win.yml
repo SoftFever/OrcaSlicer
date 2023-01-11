@@ -19,7 +19,7 @@ jobs:
         shell: powershell
         run: '(new-object System.Net.WebClient).DownloadFile("https://github.com/SoftFever/FileSharing/releases/download/2/BambuStudio_dep.zip", "$env:temp\BambuStudio_dep.zip")'
       - name: extract deps
-        working-directory: ${{ github.workspace }}/deps/build/BambuStudio_dep
+        working-directory: ${{ github.workspace }}/deps/build
         shell: cmd
         run: '"C:/Program Files/7-Zip/7z.exe" x %temp%\BambuStudio_dep.zip'
 
@@ -45,8 +45,13 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: .\build_release.bat studio
 
+      - name: pack app
+      working-directory: ${{ github.workspace }}/build
+      shell: cmd
+      run: '"C:/Program Files/7-Zip/7z.exe" a -tzip BambuStudio-SoftFever_dev_build.zip ${{ github.workspace }}/build/BambuStudio-SoftFever'
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
           name: BambuStudio-SoftFever_Win64
-          path: ${{ github.workspace }}/build/BambuStudio-SoftFever
+          path: ${{ github.workspace }}/build/BambuStudio-SoftFever_dev_build.zip
