@@ -5,7 +5,7 @@ on: [pull_request,push]
 jobs:
   build_win64:
     name: Build Win64
-    runs-on: windows-latest
+    runs-on: windows-2019
 
     steps:
       - uses: actions/checkout@v3
