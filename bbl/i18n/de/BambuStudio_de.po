@@ -598,7 +598,7 @@ msgid "Speed"
 msgstr "Geschwindigkeit"
 
 msgid "Strength"
-msgstr "Stukrur"
+msgstr "Struktur"
 
 msgid "Top Solid Layers"
 msgstr "Obere volle Schichten"
@@ -3784,7 +3784,7 @@ msgstr "Alle Objekte werden entfernt, fortfahren?"
 
 msgid "The current project has unsaved changes, save it before continue?"
 msgstr ""
-"Das aktuelle Projekt hat ungespeicherte Änderungen, speichern Sie es, bevor Sie fortfahren?"
+"Das aktuelle Projekt hat ungespeicherte Änderungen, möchten Sie es speichern bevor Sie fortfahren?"
 
 msgid "Save"
 msgstr "Speichern"
@@ -4766,7 +4766,7 @@ msgid "Unsaved Changes"
 msgstr "Nicht gespeicherte Änderungen"
 
 msgid "Discard or Keep changes"
-msgstr "Änderungen verwerfen oder beibehalten"
+msgstr "Änderungen verwerfen oder behalten"
 
 msgid "Old Value"
 msgstr "Alter Wert"
@@ -4787,7 +4787,7 @@ msgid "Click the right mouse button to display the full text."
 msgstr "Klicken Sie mit der rechten Maustaste, um den vollständigen Text anzuzeigen."
 
 msgid "All changes will not be saved"
-msgstr "Keine Änderungen werden gespeichert"
+msgstr "Alle Änderungen werden nicht gespeichert"
 
 msgid "All changes will be discarded."
 msgstr "Alle Änderungen werden verworfen."
@@ -4827,7 +4827,7 @@ msgid ""
 "unsaved changes:"
 msgstr ""
 "Die Voreinstellung \"%1%\" ist nicht mit dem neuen Druckerprofil kompatibel und enthält die "
-"folgenden nicht gespeicherten Änderungen:"
+"folgenden ungesichterten Änderungen:"
 
 #, boost-format
 msgid ""
@@ -4835,7 +4835,7 @@ msgid ""
 "unsaved changes:"
 msgstr ""
 "Die Voreinstellung \"%1%\" ist nicht mit dem neuen Prozessprofil kompatibel und enthält die "
-"folgenden nicht gespeicherten Änderungen:"
+"folgenden ungesicherten Änderungen:"
 
 #, boost-format
 msgid ""
@@ -4843,15 +4843,15 @@ msgid ""
 "Would you like to keep these changed settings (new value) after switching preset?"
 msgstr ""
 "Sie haben einige Einstellungen der Voreinstellung „%1%“ geändert. \n"
-"Möchten Sie diese geänderten Einstellungen (neuer Wert) nach dem Umschalten der Voreinstellung "
-"beibehalten?"
+"Möchten Sie diese geänderten Einstellungen (neuer Wert) nach dem Wechsel der Voreinstellung "
+"behalten?"
 
 msgid ""
 "You have changed some preset settings. \n"
 "Would you like to keep these changed settings (new value) after switching preset?"
 msgstr ""
-"Sie haben einige voreingestellte Einstellungen geändert.\n"
-"Möchten Sie diese geänderten Einstellungen (neuer Wert) nach dem Umschalten der Voreinstellung "
+"Sie haben einige voreingestellten Werte geändert.\n"
+"Möchten Sie diese geänderten Einstellungen (neuer Wert) nach dem Wechsel der Voreinstellung "
 "beibehalten?"
 
 msgid "Extruders count"
