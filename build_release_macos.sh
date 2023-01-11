@@ -43,7 +43,7 @@ then
     echo "building deps..."
     echo "cmake ../ -DDESTDIR=$DEPS -DOPENSSL_ARCH=darwin64-${ARCH}-cc -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES:STRING=${ARCH}"
     cmake ../ -DDESTDIR="$DEPS" -DOPENSSL_ARCH="darwin64-${ARCH}-cc" -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES:STRING=${ARCH}
-    cmake --build . --config Release --BUILD_TARGET all 
+    cmake --build . --config Release --target all 
 fi
 
 
@@ -57,7 +57,7 @@ mkdir -p build
 cd build
 echo "building studio..."
 cmake .. -GXcode -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="$DEPS/usr/local" -DCMAKE_INSTALL_PREFIX="$PWD/BambuStudio-SoftFever" -DCMAKE_BUILD_TYPE=Release -DCMAKE_MACOSX_RPATH=ON -DCMAKE_INSTALL_RPATH="$DEPS/usr/local" -DCMAKE_MACOSX_BUNDLE=ON -DCMAKE_OSX_ARCHITECTURES=${ARCH}
-cmake --build . --config Release --BUILD_TARGET ALL_BUILD 
+cmake --build . --config Release --target ALL_BUILD 
 mkdir -p BambuStudio-SoftFever
 cd BambuStudio-SoftFever
 rm -r ./BambuStudio-SoftFever.app
