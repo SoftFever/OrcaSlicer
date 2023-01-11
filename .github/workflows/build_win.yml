@@ -19,8 +19,9 @@ jobs:
         shell: powershell
         run: '(new-object System.Net.WebClient).DownloadFile("https://github.com/SoftFever/FileSharing/releases/download/2/BambuStudio_dep.zip", "$env:temp\BambuStudio_dep.zip")'
       - name: extract deps
-        shell: powershell
-        run: 'Expand-Archive -Path "$env:temp/BambuStudio_dep.zip" -DestinationPath ${{ github.workspace }}/deps/build'
+        working-directory: ${{ github.workspace }}/deps/build/BambuStudio_dep
+        shell: cmd
+        run: '"C:/Program Files/7-Zip/7z.exe" x %temp%\BambuStudio_dep.zip'
 
       - run: dir "${{ github.workspace }}\deps\build\BambuStudio_dep"
       # - name: build deps
@@ -40,12 +41,12 @@ jobs:
    
       # - run:  Get-ChildItem ${{ github.workspace }}/deps/build/ -Exclude BambuStudio_dep | Remove-Item -Recurse -Force
 
-      # - name: Build studio
-      #   working-directory: ${{ github.workspace }}
-      #   run: .\build_release.bat studio
+      - name: Build studio
+        working-directory: ${{ github.workspace }}
+        run: .\build_release.bat studio
 
-      # - name: Upload artifacts
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: BambuStudio-SoftFever_Win64
-      #     path: ${{ github.workspace }}/build/BambuStudio-SoftFever
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: BambuStudio-SoftFever_Win64
+          path: ${{ github.workspace }}/build/BambuStudio-SoftFever
