@@ -19,7 +19,7 @@ jobs:
         shell: powershell
         run: |
         '(new-object System.Net.WebClient).DownloadFile("https://github.com/SoftFever/FileSharing/releases/download/2/BambuStudio_dep.zip", "$env:temp/BambuStudio_dep.zip")'
-        Expand-Archive -Path "$env:temp/BambuStudio_dep.zip" -DestinationPath ${{ github.workspace }}/deps/build/
+        'Expand-Archive -Path "$env:temp/BambuStudio_dep.zip" -DestinationPath ${{ github.workspace }}/deps/build'
 
       - run: dir "${{ github.workspace }}\deps\build\BambuStudio_dep"
       # - name: build deps
