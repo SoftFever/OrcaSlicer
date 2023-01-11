@@ -125,14 +125,13 @@ void MediaPlayCtrl::Play()
     if (m_last_state != MEDIASTATE_IDLE) {
         return;
     }
+    m_failed_code = 0;
     if (m_machine.empty()) {
-        Stop();
-        SetStatus(_L("Initialize failed (No Device)!"), false);
+        Stop(_L("Initialize failed (No Device)!"));
         return;
     }
     if (!m_camera_exists) {
-        Stop();
-        SetStatus(_L("Initialize failed (No Camera Device)!"), false);
+        Stop(_L("Initialize failed (No Camera Device)!"));
         return;
     }
 
@@ -163,16 +162,16 @@ void MediaPlayCtrl::Play()
     }
 
     if (m_lan_mode) {
-        Stop();
-        SetStatus(m_lan_passwd.empty() 
+        m_failed_code = 1;
+        Stop(m_lan_passwd.empty() 
             ? _L("Initialize failed (Not supported with LAN-only mode)!") 
             : _L("Initialize failed (Not accessible in LAN-only mode)!"));
         return;
     }
     
     if (!m_tutk_support) { // not support tutk
-        Stop();
-        SetStatus(m_lan_ip.empty() 
+        m_failed_code = 1;
+        Stop(m_lan_ip.empty() 
             ? _L("Initialize failed (Missing LAN ip of printer)!") 
             : _L("Initialize failed (Not supported by printer)!"));
         return;
@@ -211,7 +210,7 @@ void MediaPlayCtrl::Play()
     }
 }
 
-void MediaPlayCtrl::Stop()
+void MediaPlayCtrl::Stop(wxString const &msg)
 {
     if (m_last_state != MEDIASTATE_IDLE) {
         m_media_ctrl->InvalidateBestSize();
@@ -220,14 +219,25 @@ void MediaPlayCtrl::Stop()
         m_tasks.push_back("<stop>");
         m_cond.notify_all();
         m_last_state = MEDIASTATE_IDLE;
-        if (m_failed_code)
+        if (!msg.IsEmpty())
+            SetStatus(msg, false);
+        else if (m_failed_code)
             SetStatus(_L("Stopped [%d]!"), true);
         else
             SetStatus(_L("Stopped."), false);
         if (m_failed_code >= 100) // not keep retry on local error
             m_next_retry = wxDateTime();
+    } else if (!msg.IsEmpty()) {
+        SetStatus(msg, false);
     }
     ++m_failed_retry;
+    if (m_failed_code != 0 && !m_tutk_support) {
+        m_next_retry = wxDateTime(); // stop retry
+        if (wxGetApp().show_ip_address_enter_dialog()) {
+            m_failed_retry = 0;
+            m_next_retry   = wxDateTime::Now();
+        }
+    }
     if (m_next_retry.IsValid())
         m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(5 * m_failed_retry);
 }
@@ -385,14 +395,6 @@ void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
     m_label_status->SetWindowStyle(style);
     m_label_status->InvalidateBestSize();
     Layout();
-
-    if (hyperlink && !m_tutk_support) {
-        m_next_retry = wxDateTime(); // stop retry
-        if (wxGetApp().show_ip_address_enter_dialog()) {
-            m_failed_retry = 0;         
-            m_next_retry   = wxDateTime::Now();
-        }
-    }
 }
 
 bool MediaPlayCtrl::IsStreaming() const { return m_streaming; }

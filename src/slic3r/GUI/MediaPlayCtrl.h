@@ -44,7 +44,7 @@ protected:
 
     void Play();
 
-    void Stop();
+    void Stop(wxString const &msg = {});
 
     void TogglePlay();
 

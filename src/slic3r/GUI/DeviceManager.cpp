@@ -3835,6 +3835,7 @@ void DeviceManager::parse_user_print_info(std::string body)
                     if (m_agent) {
                         obj->set_bind_status(m_agent->get_user_name());
                     }
+                    obj->dev_ip = Slic3r::GUI::wxGetApp().app_config->get("ip_address", dev_id);
                     userMachineList.insert(std::make_pair(dev_id, obj));
                 }
 
