@@ -2982,6 +2982,12 @@ msgstr "Gruppieren Sie Dateien nach Jahr, zuletzt zuerst."
 msgid "Group files by month, recent first."
 msgstr "Gruppieren Sie Dateien nach Monat, zuletzt zuerst."
 
+msgid "Show All"
+msgstr "Alles anzeigen"
+
+msgid "Hide Others"
+msgstr "Andere ausblenden"
+
 msgid "Show all files, recent first."
 msgstr "Alle Dateien anzeigen, zuletzt zuerst."
 
@@ -7107,7 +7113,7 @@ msgid ""
 msgstr ""
 
 msgid "Slicing Mode"
-msgstr "Slicing Mode"
+msgstr "Slicing Modus"
 
 msgid ""
 "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the "
