@@ -15,13 +15,11 @@ jobs:
       #     choco install strawberryperl
       - run: mkdir ${{ github.workspace }}/deps/build
       - run: mkdir ${{ github.workspace }}/deps/build/BambuStudio_dep
-      - name: Download and unzip BambuStudio_dep
+      - name: download deps
+        shell: powershell
         run: |
-          # Download zip file
-          powershell -command "(new-object System.Net.WebClient).DownloadFile('https://github.com/SoftFever/FileSharing/releases/download/2/BambuStudio_dep.zip', \"$env:temp\\BambuStudio_dep.zip\")"
-          
-          # Unzip file to specified location
-          powershell -Command "Expand-Archive -Path \"$env:temp\\BambuStudio_dep.zip\" -DestinationPath ${{ github.workspace }}/deps/build"
+        '(new-object System.Net.WebClient).DownloadFile("https://github.com/SoftFever/FileSharing/releases/download/2/BambuStudio_dep.zip", "$env:temp/BambuStudio_dep.zip")'
+        Expand-Archive -Path "$env:temp/BambuStudio_dep.zip" -DestinationPath ${{ github.workspace }}/deps/build/
 
       - run: dir "${{ github.workspace }}\deps\build\BambuStudio_dep"
       # - name: build deps
