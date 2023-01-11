@@ -15,30 +15,42 @@ jobs:
           choco install strawberryperl
       - run: mkdir ${{ github.workspace }}/deps/build
       - run: mkdir ${{ github.workspace }}/deps/build/BambuStudio_dep
+      - name: Download and unzip BambuStudio_dep
+        run: |
+          set "url=https://github.com/SoftFever/FileSharing/releases/download/2/BambuStudio_dep.zip"
+          set "zip_file=%TEMP%\BambuStudio_dep.zip"
+          set "unzip_dir=${{ github.workspace }}\deps\build\BambuStudio_dep"
+          
+          # Download zip file
+          powershell -Command "(New-Object System.Net.WebClient).DownloadFile('%url%', '%zip_file%')"
+          
+          # Unzip file to specified location
+          powershell -Command "Expand-Archive -Path %zip_file% -DestinationPath %unzip_dir%"
 
-      - name: build deps
-        id: cache_deps
-        uses: actions/cache@v3
-        env:
-          cache-name: ${{ runner.os }}-cache-bambustudio_deps
-        with:
-          path: ${{ github.workspace }}/deps/build/BambuStudio_dep
-          key: ${{ runner.os }}-build-${{ env.cache-name }}
+      - run: dir "%GITHUB_WORKSPACE%\deps\build\BambuStudio_dep"
+      # - name: build deps
+      #   id: cache_deps
+      #   uses: actions/cache@v3
+      #   env:
+      #     cache-name: ${{ runner.os }}-cache-bambustudio_deps
+      #   with:
+      #     path: ${{ github.workspace }}/deps/build/BambuStudio_dep
+      #     key: ${{ runner.os }}-build-${{ env.cache-name }}
 
-      - if: ${{ steps.cache_deps.outputs.cache-hit != 'true' }}
-        name: build deps
-        working-directory: ${{ github.workspace }}
-        continue-on-error: true
-        run: .\build_release.bat deps
+      # - if: ${{ steps.cache_deps.outputs.cache-hit != 'true' }}
+      #   name: build deps
+      #   working-directory: ${{ github.workspace }}
+      #   continue-on-error: true
+      #   run: .\build_release.bat deps
    
-      - run:  Get-ChildItem ${{ github.workspace }}/deps/build/ -Exclude BambuStudio_dep | Remove-Item -Recurse -Force
+      # - run:  Get-ChildItem ${{ github.workspace }}/deps/build/ -Exclude BambuStudio_dep | Remove-Item -Recurse -Force
 
-      - name: Build studio
-        working-directory: ${{ github.workspace }}
-        run: .\build_release.bat studio
+      # - name: Build studio
+      #   working-directory: ${{ github.workspace }}
+      #   run: .\build_release.bat studio
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: BambuStudio-SoftFever_Win64
-          path: ${{ github.workspace }}/build/BambuStudio-SoftFever
+      # - name: Upload artifacts
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: BambuStudio-SoftFever_Win64
+      #     path: ${{ github.workspace }}/build/BambuStudio-SoftFever
