@@ -616,7 +616,7 @@ msgid "Ironing"
 msgstr "Glätten"
 
 msgid "Fuzzy Skin"
-msgstr "Fuzzy Skin"
+msgstr "Raue Oberfläche"
 
 msgid "Extruders"
 msgstr "Extruder"
@@ -7057,7 +7057,7 @@ msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr "Geschwindigkeit der inneren festen Füllung, nicht der Ober- und Unterseite"
 
 msgid "Spiral vase"
-msgstr "Spiral vase"
+msgstr "Vasenmodus"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid model into a single "
