@@ -9,25 +9,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: ilammy/msvc-dev-cmd@v1
-      - name: Install perl
-        run: |
-          choco install strawberryperl
+      # - uses: ilammy/msvc-dev-cmd@v1
+      # - name: Install perl
+      #   run: |
+      #     choco install strawberryperl
       - run: mkdir ${{ github.workspace }}/deps/build
       - run: mkdir ${{ github.workspace }}/deps/build/BambuStudio_dep
       - name: Download and unzip BambuStudio_dep
         run: |
-          set "url=https://github.com/SoftFever/FileSharing/releases/download/2/BambuStudio_dep.zip"
-          set "zip_file=%TEMP%\BambuStudio_dep.zip"
-          set "unzip_dir=${{ github.workspace }}\deps\build\BambuStudio_dep"
-          
           # Download zip file
-          powershell -Command "(New-Object System.Net.WebClient).DownloadFile('%url%', '%zip_file%')"
+          powershell -command "(new-object System.Net.WebClient).DownloadFile('"https://github.com/SoftFever/FileSharing/releases/download/2/BambuStudio_dep.zip', \"$env:temp\BambuStudio_dep.zip\")"
           
           # Unzip file to specified location
-          powershell -Command "Expand-Archive -Path %zip_file% -DestinationPath %unzip_dir%"
+          powershell -Command "Expand-Archive -Path \"$env:temp\BambuStudio_dep.zip\" -DestinationPath ${{ github.workspace }}/deps/build"
 
-      - run: dir "%GITHUB_WORKSPACE%\deps\build\BambuStudio_dep"
+      - run: dir "${{ github.workspace }}\deps\build\BambuStudio_dep"
       # - name: build deps
       #   id: cache_deps
       #   uses: actions/cache@v3

@@ -5,7 +5,7 @@ on: [pull_request, push]
 jobs:
   build_win64:
     name: Build Mac arm64
-    runs-on: macos-latest
+    runs-on: macos-12
 
     steps:
       - uses: actions/checkout@v3
