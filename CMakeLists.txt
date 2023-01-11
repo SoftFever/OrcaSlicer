@@ -484,16 +484,7 @@ if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_GLEW)
     set(GLEW_VERBOSE ON)
 endif()
 
-find_package(GLEW)
-if (NOT TARGET GLEW::GLEW)
-    message(STATUS "GLEW not found, using bundled version.")
-    add_library(glew STATIC ${LIBDIR}/glew/src/glew.c)
-    set(GLEW_FOUND TRUE)
-    set(GLEW_INCLUDE_DIRS ${LIBDIR}/glew/include/)
-    target_compile_definitions(glew PUBLIC GLEW_STATIC)
-    target_include_directories(glew PUBLIC ${GLEW_INCLUDE_DIRS})
-    add_library(GLEW::GLEW ALIAS glew)
-endif ()
+find_package(GLEW REQUIRED)
 
 find_package(glfw3 REQUIRED)
 
