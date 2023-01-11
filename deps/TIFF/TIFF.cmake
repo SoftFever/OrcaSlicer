@@ -25,7 +25,6 @@ else()
             -Dzstd:BOOL=OFF
             -Dpixarlog:BOOL=OFF
     )
-)
 
 endif()
 
