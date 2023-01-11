@@ -1,10 +1,10 @@
-name: Build Mac x64
+name: Build Mac arm64
 
 on: [pull_request, push]
 
 jobs:
   build_win64:
-    name: Build Mac x64
+    name: Build Mac arm64
     runs-on: macos-latest
 
     steps:
@@ -20,7 +20,7 @@ jobs:
         id: cache_deps
         uses: actions/cache@v3
         env:
-          cache-name: ${{ runner.os }}-cache-bambustudio_deps_x64
+          cache-name: ${{ runner.os }}-cache-bambustudio_deps_arm64
         with:
           path: ${{ github.workspace }}/deps/build/BambuStudio_dep
           key: build-${{ env.cache-name }}
@@ -29,5 +29,5 @@ jobs:
         name: build deps
         working-directory: ${{ github.workspace }}
         continue-on-error: true
-        run: ./build_release_macos.sh -d -a x86_64
+        run: ./build_release_macos.sh -d -a arm64
 
