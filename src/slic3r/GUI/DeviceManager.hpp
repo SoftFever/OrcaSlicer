@@ -533,6 +533,7 @@ public:
     bool upgrade_new_version { false };
     bool upgrade_consistency_request { false };
     int upgrade_display_state = 0;           // 0 : upgrade unavailable, 1: upgrade idle, 2: upgrading, 3: upgrade_finished
+    int upgrade_display_hold_count = 0;
     PrinterFirmwareType       firmware_type; // engineer|production
     std::string upgrade_progress;
     std::string upgrade_message;

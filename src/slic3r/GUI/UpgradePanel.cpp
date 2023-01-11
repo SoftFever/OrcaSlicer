@@ -738,6 +738,17 @@ void MachineInfoPanel::on_sys_color_changed()
     }
 }
 
+void MachineInfoPanel::confirm_upgrade(MachineObject* obj)
+{
+    if (obj) {
+        obj->command_upgrade_confirm();
+        obj->upgrade_display_state = MachineObject::UpgradingDisplayState::UpgradingInProgress;
+        obj->upgrade_display_hold_count = HOLD_COUNT_MAX;
+        // enter in progress status first
+        this->show_status(MachineObject::UpgradingDisplayState::UpgradingInProgress);
+    }
+}
+
 void MachineInfoPanel::upgrade_firmware_internal() {
     if (!m_obj)
         return;
@@ -746,7 +757,7 @@ void MachineInfoPanel::upgrade_firmware_internal() {
     } else if (panel_type == ptAmsPanel) {
         m_obj->command_upgrade_firmware(m_ams_info);
     } else if (panel_type == ptPushPanel) {
-        m_obj->command_upgrade_confirm();
+        confirm_upgrade();
     }
 }
 
@@ -755,9 +766,7 @@ void MachineInfoPanel::on_upgrade_firmware(wxCommandEvent &event)
     if (confirm_dlg == nullptr) {
         confirm_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Update firmware"));
         confirm_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
-            if (m_obj) {
-                m_obj->command_upgrade_confirm();
-            }
+                this->confirm_upgrade(m_obj);
         });
     }
     confirm_dlg->update_text(_L("Are you sure you want to update? This will take about 10 minutes. Do not turn off the power while the printer is updating."));
@@ -899,6 +908,8 @@ void UpgradePanel::update(MachineObject *obj)
                 force_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
                     if (m_obj) {
                         m_obj->command_upgrade_confirm();
+                        m_obj->upgrade_display_state == MachineObject::UpgradingDisplayState::UpgradingInProgress;
+                        m_obj->upgrade_display_hold_count = HOLD_COUNT_MAX;
                     }
                 });
             }

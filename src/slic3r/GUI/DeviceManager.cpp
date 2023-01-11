@@ -2653,29 +2653,36 @@ int MachineObject::parse_json(std::string payload)
                                         this->command_get_version();
                                     });
                                 }
-                                upgrade_display_state = jj["upgrade_state"]["dis_state"].get<int>();
+                                if (upgrade_display_hold_count > 0)
+                                    upgrade_display_hold_count--;
+                                else
+                                    upgrade_display_state = jj["upgrade_state"]["dis_state"].get<int>();
                             } else {
-                                //BBS compatibility with old version
-                                if (upgrade_status == "DOWNLOADING"
-                                    || upgrade_status == "FLASHING"
-                                    || upgrade_status == "UPGRADE_REQUEST"
-                                    || upgrade_status == "PRE_FLASH_START"
-                                    || upgrade_status == "PRE_FLASH_SUCCESS") {
-                                    upgrade_display_state = (int)UpgradingDisplayState::UpgradingInProgress;
-                                }
-                                else if (upgrade_status == "UPGRADE_SUCCESS"
-                                    || upgrade_status == "DOWNLOAD_FAIL"
-                                    || upgrade_status == "FLASH_FAIL"
-                                    || upgrade_status == "PRE_FLASH_FAIL"
-                                    || upgrade_status == "UPGRADE_FAIL") {
-                                    upgrade_display_state = (int)UpgradingDisplayState::UpgradingFinished;
-                                }
+                                if (upgrade_display_hold_count > 0)
+                                    upgrade_display_hold_count--;
                                 else {
-                                    if (upgrade_new_version) {
-                                        upgrade_display_state = (int)UpgradingDisplayState::UpgradingAvaliable;
+                                    //BBS compatibility with old version
+                                    if (upgrade_status == "DOWNLOADING"
+                                        || upgrade_status == "FLASHING"
+                                        || upgrade_status == "UPGRADE_REQUEST"
+                                        || upgrade_status == "PRE_FLASH_START"
+                                        || upgrade_status == "PRE_FLASH_SUCCESS") {
+                                        upgrade_display_state = (int)UpgradingDisplayState::UpgradingInProgress;
+                                    }
+                                    else if (upgrade_status == "UPGRADE_SUCCESS"
+                                        || upgrade_status == "DOWNLOAD_FAIL"
+                                        || upgrade_status == "FLASH_FAIL"
+                                        || upgrade_status == "PRE_FLASH_FAIL"
+                                        || upgrade_status == "UPGRADE_FAIL") {
+                                        upgrade_display_state = (int)UpgradingDisplayState::UpgradingFinished;
                                     }
                                     else {
-                                        upgrade_display_state = (int)UpgradingDisplayState::UpgradingUnavaliable;
+                                        if (upgrade_new_version) {
+                                            upgrade_display_state = (int)UpgradingDisplayState::UpgradingAvaliable;
+                                        }
+                                        else {
+                                            upgrade_display_state = (int)UpgradingDisplayState::UpgradingUnavaliable;
+                                        }
                                     }
                                 }
                             }
@@ -3333,6 +3340,21 @@ int MachineObject::parse_json(std::string payload)
             }
         } catch (...) {}
 
+        // upgrade
+        try {
+            if (j.contains("upgrade")) {
+                if (j["upgrade"].contains("command")) {
+                    if (j["upgrade"]["command"].get<std::string>() == "upgrade_confirm") {
+                        this->upgrade_display_state == UpgradingInProgress;
+                        upgrade_display_hold_count = HOLD_COUNT_MAX;
+                        BOOST_LOG_TRIVIAL(info) << "ack of upgrade_confirm";
+                    }
+                }
+            }
+        }
+        catch (...) {
+            ;
+        }
 
         // event info
         try {
