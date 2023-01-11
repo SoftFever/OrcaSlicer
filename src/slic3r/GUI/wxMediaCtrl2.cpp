@@ -103,6 +103,42 @@ void wxMediaCtrl2::Load(wxURI url)
     url = wxURI(url.BuildURI().append("&hwnd=").append(
         boost::lexical_cast<std::string>(GetHandle())));
 #endif
+#ifdef __WXGTK3__
+    GstElementFactory *factory;
+    int hasplugins = 1;
+    
+    factory = gst_element_factory_find("h264parse");
+    if (!factory) {
+        hasplugins = 0;
+    } else {
+        gst_object_unref(factory);
+    }
+    
+    factory = gst_element_factory_find("openh264dec");
+    if (!factory) {
+        factory = gst_element_factory_find("avdec_h264");
+    }
+    if (!factory) {
+        factory = gst_element_factory_find("vaapih264dec");
+    }
+    if (!factory) {
+        hasplugins = 0;
+    } else {
+        gst_object_unref(factory);
+    }
+    
+    if (!hasplugins) {
+        Slic3r::GUI::wxGetApp().CallAfter([] {
+            wxMessageBox(_L("Your system is missing H.264 codecs for GStreamer, which are required to play video.  (Try installing the gstreamer1.0-plugins-bad or gstreamer1.0-libav packages, then restart Bambu Studio?)"), _L("Error"), wxOK);
+        });
+        m_error = 101;
+        wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
+        event.SetId(GetId());
+        event.SetEventObject(this);
+        wxPostEvent(this, event);
+        return;
+    }
+#endif
     m_error = 0;
     wxMediaCtrl::Load(url);
 }
