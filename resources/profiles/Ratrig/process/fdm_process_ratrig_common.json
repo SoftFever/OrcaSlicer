@@ -103,10 +103,12 @@
     "xy_contour_compensation": "0",
     "enable_arc_fitting": "0",
     "compatible_printers": [
-      "RatRig V-Core 3 200 0.4 nozzle",
-	  "RatRig V-Core 3 300 0.4 nozzle",
-	  "RatRig V-Core 3 400 0.4 nozzle",
-	  "RatRig V-Core 3 500 0.4 nozzle",
-	  "RatRig V-Minion 0.4 nozzle"
+        "RatRig V-Core 3 200 0.4 nozzle",
+        "RatRig V-Core 3 300 0.4 nozzle",
+        "RatRig V-Core 3 400 0.4 nozzle",
+        "RatRig V-Core 3 500 0.4 nozzle",
+        "RatRig V-Minion 0.4 nozzle",
+        "RatRig V-Cast 0.4 nozzle",
+        "RatRig V-Cast 0.6 nozzle"
     ]
 }
