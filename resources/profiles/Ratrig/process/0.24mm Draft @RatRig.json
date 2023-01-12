@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "setting_id": "GP004",
+    "setting_id": "GP006",
     "name": "0.24mm Draft @RatRig",
     "from": "system",
     "instantiation": "true",

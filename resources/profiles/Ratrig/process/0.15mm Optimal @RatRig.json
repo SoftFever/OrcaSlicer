@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "setting_id": "GP004",
+    "setting_id": "GP003",
     "name": "0.15mm Optimal @RatRig",
     "from": "system",
     "instantiation": "true",

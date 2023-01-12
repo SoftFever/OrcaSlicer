@@ -1912,8 +1912,7 @@ int CLI::run(int argc, char **argv)
                                 outfile = outfile_final;
                             }*/
                             // Run the post-processing scripts if defined.
-                            //BBS: TODO, maybe need to open this function later
-                            //run_post_process_scripts(outfile, print->full_print_config());
+                            run_post_process_scripts(outfile, print->full_print_config());
                             BOOST_LOG_TRIVIAL(info) << "Slicing result exported to " << outfile << std::endl;
                             part_plate->update_slice_result_valid_state(true);
 #if defined(__linux__) || defined(__LINUX__)
