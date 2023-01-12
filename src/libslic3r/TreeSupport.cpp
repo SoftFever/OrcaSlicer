@@ -1486,7 +1486,7 @@ void TreeSupport::generate_toolpaths()
         filler_interface->spacing = support_extrusion_width;
 
         FillParams fill_params;
-        fill_params.density = interface_density;
+        fill_params.density     = object_config.raft_first_layer_density * 0.01;
         fill_params.dont_adjust = true;
 
         fill_expolygons_generate_paths(ts_layer->support_fills.entities, std::move(offset_ex(raft_areas, scale_(expand_offset))),
