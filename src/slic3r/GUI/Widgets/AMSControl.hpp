@@ -60,7 +60,6 @@ enum class AMSAction : int {
     AMS_ACTION_CALI,
     AMS_ACTION_PRINTING,
     AMS_ACTION_NORMAL,
-    AMS_ACTION_VIRTUAL,
     AMS_ACTION_NOAMS,
 };
 
@@ -505,6 +504,7 @@ protected:
     Button *m_button_extrusion_cali= {nullptr};
     Button *m_button_guide = {nullptr};
     Button *m_button_retry = {nullptr};
+    wxWindow* m_button_area = {nullptr};
 
     wxHyperlinkCtrl *m_hyperlink = {nullptr};
     AmsHumidityTipPopup m_Humidity_tip_popup;

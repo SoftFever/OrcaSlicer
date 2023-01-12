@@ -207,7 +207,7 @@ void ExtrusionCalibration::create()
 
     // save result title and tips
     wxBoxSizer* save_result_sizer = new wxBoxSizer(wxHORIZONTAL);
-    wxString fill_intro_text = _L("Calibration completed. Please select the factors according to the left figure and fill them in the input boxes.");
+    wxString fill_intro_text = _L("Calibration completed. Please find the most uniform extrusion line on your hot bed like the picture below, and fill the value on its left side into the factor K input box.");
     m_save_cali_result_title = new Label(m_step_2_panel, fill_intro_text);
     m_save_cali_result_title->SetFont(::Label::Body_12);
     m_save_cali_result_title->SetForegroundColour(EXTRUSION_CALIBRATION_GREY800);
@@ -364,8 +364,10 @@ void ExtrusionCalibration::show_info(bool show, bool is_error, wxString text)
         if (is_error) {
             m_info_text->Hide();
             m_error_text->Show();
+            m_error_text->SetLabelText(text);
         } else {
             m_info_text->Show();
+            m_info_text->SetLabelText(text);
             m_error_text->Hide();
         }
     }

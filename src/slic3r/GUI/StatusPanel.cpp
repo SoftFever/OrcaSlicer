@@ -1098,7 +1098,6 @@ void StatusBasePanel::show_ams_group(bool show, bool support_virtual_tray)
     m_ams_control->Show(true);
     m_ams_control_box->Show(true);
     m_ams_control->show_noams_mode(show, support_virtual_tray);
-
     if (m_show_ams_group != show) {
         Fit();
     }
@@ -1886,68 +1885,60 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
     if (m_filament_setting_dlg) { m_filament_setting_dlg->obj = obj; }
 
-    if (!obj || !obj->is_connected()) {
-        last_tray_exist_bits  = -1;
-        last_ams_exist_bits   = -1;
-        last_tray_is_bbl_bits = -1;
-        last_read_done_bits   = -1;
-        last_reading_bits     = -1;
-        last_ams_version      = -1;
-        m_ams_control->show_vams(false);
-        m_ams_control->EnterNoneAMSMode();
+    if (!obj
+        || !obj->is_connected()
+        || obj->amsList.empty()
+        || obj->ams_exist_bits == 0) {
+        if (!obj || !obj->is_connected()) {
+            last_tray_exist_bits = -1;
+            last_ams_exist_bits = -1;
+            last_tray_is_bbl_bits = -1;
+            last_read_done_bits = -1;
+            last_reading_bits = -1;
+            last_ams_version = -1;
+            BOOST_LOG_TRIVIAL(trace) << "machine object" << obj->dev_name << " was disconnected, set show_ams_group is false";
+        }
         show_ams_group(false, obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI));
-        BOOST_LOG_TRIVIAL(trace) << "machine object" << obj->dev_name << " was disconnected, set show_ams_group is false";
         return;
     }
 
     bool is_support_extrusion_cali = obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI);
     if (is_support_extrusion_cali) {
-        m_ams_control->show_vams(true);
         m_ams_control->update_vams_kn_value(obj->vt_tray);
     }
-    else {
-        m_ams_control->show_vams(false);
+
+    show_ams_group(true, obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI));
+    if (m_filament_setting_dlg) m_filament_setting_dlg->update();
+
+    std::vector<AMSinfo> ams_info;
+    for (auto ams = obj->amsList.begin(); ams != obj->amsList.end(); ams++) {
+        AMSinfo info;
+        info.ams_id = ams->first;
+        if (ams->second->is_exists && info.parse_ams_info(ams->second, obj->ams_calibrate_remain_flag, obj->is_support_ams_humidity)) ams_info.push_back(info);
     }
+    //if (obj->ams_exist_bits != last_ams_exist_bits || obj->tray_exist_bits != last_tray_exist_bits || obj->tray_is_bbl_bits != last_tray_is_bbl_bits ||
+    //    obj->tray_read_done_bits != last_read_done_bits || obj->ams_version != last_ams_version) {
+    //    m_ams_control->UpdateAms(ams_info, false);
+    //    // select current ams
+    //    //if (!obj->m_ams_id.empty()) m_ams_control->SwitchAms(obj->m_ams_id);
 
-    if (obj->amsList.empty() || obj->ams_exist_bits == 0) {
-        m_ams_control->EnterNoneAMSMode();
-        show_ams_group(false, obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI));
-        update_ams_control_state("", is_support_extrusion_cali);
-        BOOST_LOG_TRIVIAL(trace) << "machine object" << obj->dev_name << " ams nonexistent, set show_ams_group is false";
-        return;
-    } else {
-        show_ams_group(true, obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI));
-        if (m_filament_setting_dlg) m_filament_setting_dlg->update();
-
-        std::vector<AMSinfo> ams_info;
-        for (auto ams = obj->amsList.begin(); ams != obj->amsList.end(); ams++) {
-            AMSinfo info;
-            info.ams_id = ams->first;
-            if (ams->second->is_exists && info.parse_ams_info(ams->second, obj->ams_calibrate_remain_flag, obj->is_support_ams_humidity)) ams_info.push_back(info);
-        }
-        //if (obj->ams_exist_bits != last_ams_exist_bits || obj->tray_exist_bits != last_tray_exist_bits || obj->tray_is_bbl_bits != last_tray_is_bbl_bits ||
-        //    obj->tray_read_done_bits != last_read_done_bits || obj->ams_version != last_ams_version) {
-        //    m_ams_control->UpdateAms(ams_info, false);
-        //    // select current ams
-        //    //if (!obj->m_ams_id.empty()) m_ams_control->SwitchAms(obj->m_ams_id);
-
-        //    last_tray_exist_bits  = obj->tray_exist_bits;
-        //    last_ams_exist_bits   = obj->ams_exist_bits;
-        //    last_tray_is_bbl_bits = obj->tray_is_bbl_bits;
-        //    last_read_done_bits   = obj->tray_read_done_bits;
-        //    last_ams_version      = obj->ams_version;
-        //}
+    //    last_tray_exist_bits  = obj->tray_exist_bits;
+    //    last_ams_exist_bits   = obj->ams_exist_bits;
+    //    last_tray_is_bbl_bits = obj->tray_is_bbl_bits;
+    //    last_read_done_bits   = obj->tray_read_done_bits;
+    //    last_ams_version      = obj->ams_version;
+    //}
        
-        // must select a current can
-        m_ams_control->UpdateAms(ams_info, false, is_support_extrusion_cali);
+    // must select a current can
+    m_ams_control->UpdateAms(ams_info, false, is_support_extrusion_cali);
 
-        last_tray_exist_bits  = obj->tray_exist_bits;
-        last_ams_exist_bits   = obj->ams_exist_bits;
-        last_tray_is_bbl_bits = obj->tray_is_bbl_bits;
-        last_read_done_bits   = obj->tray_read_done_bits;
-        last_reading_bits     = obj->tray_reading_bits;
-        last_ams_version      = obj->ams_version;
-    }
+    last_tray_exist_bits  = obj->tray_exist_bits;
+    last_ams_exist_bits   = obj->ams_exist_bits;
+    last_tray_is_bbl_bits = obj->tray_is_bbl_bits;
+    last_read_done_bits   = obj->tray_read_done_bits;
+    last_reading_bits     = obj->tray_reading_bits;
+    last_ams_version      = obj->ams_version;
+    
 
     std::string curr_ams_id = m_ams_control->GetCurentAms();
     std::string curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
@@ -2056,10 +2047,7 @@ void StatusPanel::update_ams(MachineObject *obj)
 void StatusPanel::update_ams_control_state(std::string ams_id, bool is_support_virtual_tray)
 {
     // update load/unload enable state
-    if (ams_id.compare(std::to_string(VIRTUAL_TRAY_ID)) == 0) {
-        m_ams_control->SetActionState(AMSAction::AMS_ACTION_VIRTUAL, is_support_virtual_tray);
-    }
-    else if (obj->is_in_extrusion_cali()) {
+    if (obj->is_in_extrusion_cali()) {
         m_ams_control->SetActionState(AMSAction::AMS_ACTION_CALI, is_support_virtual_tray);
     }
     else if (!obj->has_ams()) {

@@ -20,6 +20,7 @@
 #define TIMEOUT_FOR_STRAT       20000.f     // milliseconds
 #define REQUEST_PUSH_MIN_TIME   15000.f     // milliseconds
 #define REQUEST_START_MIN_TIME  15000.f     // milliseconds
+#define EXTRUSION_OMIT_TIME      5000.f     // milliseconds
 
 #define FILAMENT_MAX_TEMP       300
 #define FILAMENT_DEF_TEMP       220
@@ -456,6 +457,7 @@ public:
     std::string m_tray_tar;         // tray_tar : "0" ~ "15" or "255"
 
     int extrusion_cali_hold_count = 0;
+    std::chrono::system_clock::time_point last_extrusion_cali_start_time;
 
     bool is_in_extrusion_cali();
     bool is_extrusion_cali_finished();

@@ -429,6 +429,12 @@ void MachineObject::_parse_print_option_ack(int option)
 
 bool MachineObject::is_in_extrusion_cali()
 {
+    auto curr_time = std::chrono::system_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_extrusion_cali_start_time);
+    if (diff.count() > EXTRUSION_OMIT_TIME) {
+        return true;
+    }
+
     if (is_in_printing_status(print_status)
         && print_type == "system"
         && boost::contains(m_gcode_file, "extrusion_cali")
@@ -441,8 +447,9 @@ bool MachineObject::is_in_extrusion_cali()
 
 bool MachineObject::is_extrusion_cali_finished()
 {
-    if (extrusion_cali_hold_count > 0) {
-        extrusion_cali_hold_count--;
+    auto curr_time = std::chrono::system_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_extrusion_cali_start_time);
+    if (diff.count() > EXTRUSION_OMIT_TIME) {
         return false;
     }
     
@@ -1502,7 +1509,7 @@ int MachineObject::command_ams_switch(int tray_index, int old_temp, int new_temp
         // unload gcode
         gcode = "M620 S255\nM104 S250\nG28 X\nG91\nG1 Z3.0 F1200\nG90\n"
                 "G1 X70 F12000\nG1 Y245\nG1 Y265 F3000\nM109 S250\nG1 X120 F12000\n"
-                "G1 X20 Y50 F12000\nG1 Y-3\nT255\nM104 S25\nG1 X165 F5000\nG1 Y245\n"
+                "G1 X20 Y50 F12000\nG1 Y-3\nT255\nM104 S0\nG1 X165 F5000\nG1 Y245\n"
                 "G91\nG1 Z-3.0 F1200\nG90\nM621 S255\n";
     } else {
         // load gcode
@@ -1671,8 +1678,8 @@ int MachineObject::command_start_extrusion_cali(int tray_index, int nozzle_temp,
     j["print"]["bed_temp"] = bed_temp;
     j["print"]["max_volumetric_speed"] = max_volumetric_speed;
 
-    extrusion_cali_hold_count = HOLD_COUNT_MAX;
-    this->mc_print_percent = 0;
+    // enter extusion cali
+    last_extrusion_cali_start_time = std::chrono::system_clock::now();
     return this->publish_json(j.dump());
 }
 

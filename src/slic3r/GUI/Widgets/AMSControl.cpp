@@ -1618,7 +1618,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     m_sizer_left_bottom->Add(extruder_pane, 0, wxLEFT, FromDIP(10));
 
-    m_sizer_left_bottom->Add(0, 0, 0, wxEXPAND, 0);
+    //m_sizer_left_bottom->Add(0, 0, 0, wxEXPAND, 0);
 
     StateColor btn_bg_green(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled),std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
                             std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
@@ -1630,32 +1630,41 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     StateColor btn_bd_green(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Enabled));
     StateColor btn_bd_white(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
     StateColor btn_text_green(std::pair<wxColour, int>(*wxBLACK, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Enabled));
-    m_sizer_left_bottom->AddStretchSpacer();
+    //m_sizer_left_bottom->AddStretchSpacer();
 
-    m_button_extrusion_cali = new Button(m_amswin, _L("Cali"));
+    m_button_area = new wxWindow(m_amswin, wxID_ANY);
+    m_button_area->SetBackgroundColour(m_amswin->GetBackgroundColour());
+    wxBoxSizer *m_sizer_button_area = new wxBoxSizer(wxHORIZONTAL);
+
+    m_button_extrusion_cali = new Button(m_button_area, _L("Cali"));
     m_button_extrusion_cali->SetToolTip(_L("Calibration of extrusion"));
     m_button_extrusion_cali->SetBackgroundColor(btn_bg_green);
     m_button_extrusion_cali->SetBorderColor(btn_bd_green);
     m_button_extrusion_cali->SetTextColor(btn_text_green);
     m_button_extrusion_cali->SetFont(Label::Body_13);
 
-    m_button_extruder_feed = new Button(m_amswin, _L("Load Filament"));
+    m_button_extruder_feed = new Button(m_button_area, _L("Load Filament"));
     m_button_extruder_feed->SetBackgroundColor(btn_bg_green);
     m_button_extruder_feed->SetBorderColor(btn_bd_green);
     m_button_extruder_feed->SetTextColor(wxColour("#FFFFFE"));
     m_button_extruder_feed->SetFont(Label::Body_13);
 
-    m_button_extruder_back = new Button(m_amswin, _L("Unload Filament"));
+    m_button_extruder_back = new Button(m_button_area, _L("Unload Filament"));
     m_button_extruder_back->SetBackgroundColor(btn_bg_white);
     m_button_extruder_back->SetBorderColor(btn_bd_white);
     m_button_extruder_back->SetFont(Label::Body_13);
 
-    m_sizer_left_bottom->Add(m_button_extrusion_cali, 0, wxTOP, FromDIP(20));
-    m_sizer_left_bottom->Add(0, 0, 0, wxALL | wxLEFT, FromDIP(5));
-    m_sizer_left_bottom->Add(m_button_extruder_back, 0, wxTOP, FromDIP(20));
-    m_sizer_left_bottom->Add(0, 0, 0, wxALL | wxLEFT, FromDIP(5));
-    m_sizer_left_bottom->Add(m_button_extruder_feed, 0, wxTOP, FromDIP(20));
+    m_sizer_button_area->Add(0, 0, 1, wxEXPAND, 0);
+    m_sizer_button_area->Add(m_button_extrusion_cali, 0, wxLEFT, FromDIP(5));
+    m_sizer_button_area->Add(m_button_extruder_back, 0, wxLEFT, FromDIP(6));
+    m_sizer_button_area->Add(m_button_extruder_feed, 0, wxLEFT, FromDIP(6));
 
+    m_button_area->SetSizer(m_sizer_button_area);
+    m_button_area->Layout();
+    m_button_area->Fit();
+
+    m_sizer_left_bottom->Add(0, 0, 1, wxEXPAND, 0);
+    m_sizer_left_bottom->Add(m_button_area, 0, wxEXPAND | wxTOP, FromDIP(18));
     m_sizer_left->Add(m_sizer_left_bottom, 0, wxEXPAND, 0);
 
 
@@ -1668,7 +1677,12 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_vams_info.material_state = AMSCanType::AMS_CAN_TYPE_VIRTUAL;
     m_vams_info.can_id = wxString::Format("%d", VIRTUAL_TRAY_ID).ToStdString();
     auto vams_panel = new wxWindow(m_panel_virtual, wxID_ANY);
+<<<<<<< HEAD   (46bdd5 FIX: tree support first layer defects)
     m_vams_refresh = new AMSrefresh(vams_panel, wxID_ANY, 0, m_vams_info);
+=======
+    vams_panel->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+    //m_vams_refresh = new AMSrefresh(vams_panel, wxID_ANY, 0, m_vams_info);
+>>>>>>> CHANGE (92ae56 ENH:Optimize the layout of AMScontrol)
     m_vams_lib = new AMSLib(vams_panel, wxID_ANY, m_vams_info);
     m_vams_road = new AMSRoad(vams_panel, wxID_ANY, m_vams_info, -1, -1, wxDefaultPosition, AMS_CAN_ROAD_SIZE);
 
@@ -1694,8 +1708,8 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     wxBoxSizer* m_sizer_vams = new wxBoxSizer(wxVERTICAL);
     m_sizer_vams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
-    m_sizer_vams->Add(m_vams_refresh, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-    m_sizer_vams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(2));
+    //m_sizer_vams->Add(m_vams_refresh, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_sizer_vams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(2) + AMS_REFRESH_SIZE.y);
     m_sizer_vams->Add(m_vams_lib, 1, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, FromDIP(4));
     m_sizer_vams->Add(m_vams_road, 0, wxALL, 0);
 
@@ -1979,24 +1993,11 @@ wxColour AMSControl::GetCanColour(std::string amsid, std::string canid)
 
 void AMSControl::SetActionState(AMSAction action, bool support_virtual_tray)
 {
-    if (action == Slic3r::GUI::AMSAction::AMS_ACTION_NOAMS && !support_virtual_tray)
-    {
-        m_button_extrusion_cali->Hide();
-        m_button_extruder_feed->Hide();
-        m_button_extruder_back->Hide();
-    } else {
-        m_button_extrusion_cali->Show();
-        m_button_extruder_feed->Show();
-        m_button_extruder_back->Show();
-    }
+    m_button_area->Layout();
+    m_button_area->Fit();
 
     switch (action) {
     case Slic3r::GUI::AMSAction::AMS_ACTION_NONE: break;
-    case Slic3r::GUI::AMSAction::AMS_ACTION_VIRTUAL:
-        m_button_extrusion_cali->Enable();
-        m_button_extruder_feed->Disable();
-        m_button_extruder_back->Disable();
-        break;
     case Slic3r::GUI::AMSAction::AMS_ACTION_LOAD: 
         m_button_extrusion_cali->Enable();
         m_button_extruder_feed->Enable();
@@ -2023,7 +2024,10 @@ void AMSControl::SetActionState(AMSAction action, bool support_virtual_tray)
         m_button_extruder_back->Disable();
         break; 
     case Slic3r::GUI::AMSAction::AMS_ACTION_NOAMS:
-        m_button_extrusion_cali->Disable();
+        if (support_virtual_tray)
+            m_button_extrusion_cali->Enable();
+        else
+            m_button_extrusion_cali->Disable();
         m_button_extruder_feed->Disable();
         m_button_extruder_back->Disable();
         break;
@@ -2039,6 +2043,8 @@ void AMSControl::EnterNoneAMSMode()
     m_button_ams_setting->Hide();
     m_button_guide->Hide();
     m_button_retry->Hide();
+    m_button_extruder_feed->Hide();
+    m_button_extruder_back->Hide();
     ShowFilamentTip(false);
 }
 
@@ -2050,6 +2056,8 @@ void AMSControl::ExitNoneAMSMode()
     m_button_ams_setting->Show();
     m_button_guide->Show();
     m_button_retry->Show();
+    m_button_extruder_feed->Show();
+    m_button_extruder_back->Show();
     ShowFilamentTip(true);
 }
 
@@ -2168,7 +2176,14 @@ void AMSControl::Reset()
 
 void AMSControl::show_noams_mode(bool show, bool support_virtual_tray)
 {
+    show_vams(support_virtual_tray);
     m_sizer_ams_tips->Show(support_virtual_tray);
+    if (!support_virtual_tray)
+        m_button_extrusion_cali->Hide();
+    else {
+        m_button_extrusion_cali->Show();
+    }
+
     show?ExitNoneAMSMode() : EnterNoneAMSMode();
 }
 
@@ -2198,13 +2213,9 @@ void AMSControl::UpdateAms(std::vector<AMSinfo> info, bool keep_selection, bool 
 {
     std::string curr_ams_id = GetCurentAms();
     std::string curr_can_id = GetCurrentCan(curr_ams_id);
-    if (info.size() > 0) ExitNoneAMSMode();
 
-    // update extrusion cali
-    if (has_extrusion_cali)
-        m_button_extrusion_cali->Show();
-    else
-        m_button_extrusion_cali->Hide();
+    m_button_area->Layout();
+    m_button_area->Fit();        
 
     // update item
     m_ams_info = info;
