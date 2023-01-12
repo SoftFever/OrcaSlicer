@@ -378,7 +378,7 @@ public:
 	wxString comfirm_after_enter_text;
 	std::string m_ip;
 	Label* tip{nullptr};
-    InputIpAddressDialog(wxWindow* parent = nullptr, wxString name = wxEmptyString);
+    InputIpAddressDialog(wxWindow* parent = nullptr, wxString name = wxEmptyString,  wxString id = wxEmptyString, wxString access_code = wxEmptyString);
 	~InputIpAddressDialog();
 
 	Button* m_button_ok{nullptr};

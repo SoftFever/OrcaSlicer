@@ -422,7 +422,7 @@ void DownloadDialog::SetExtendedMessage(const wxString &extendedMessage)
     Fit();
 }
 
-InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent, wxString name)
+InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent, wxString name, wxString ip, wxString access_code)
     :DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("Unable to connect printer"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
@@ -448,13 +448,13 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent, wxString name)
     tip->Wrap(FromDIP(420));
 
     m_tips_ip = new Label(this, _L("IP"));
-    m_input_ip = new TextInput(this, wxEmptyString, wxEmptyString);
+    m_input_ip = new TextInput(this, ip, wxEmptyString);
     m_input_ip->Bind(wxEVT_TEXT, &InputIpAddressDialog::on_text, this);
     m_input_ip->SetMinSize(wxSize(FromDIP(420), FromDIP(28)));
     m_input_ip->SetMaxSize(wxSize(FromDIP(420), FromDIP(28)));
 
     m_tips_access_code = new Label(this, _L("Access Code"));
-    m_input_access_code = new TextInput(this, wxEmptyString, wxEmptyString);
+    m_input_access_code = new TextInput(this, access_code, wxEmptyString);
     m_input_access_code->Bind(wxEVT_TEXT, &InputIpAddressDialog::on_text, this);
     m_input_access_code->SetMinSize(wxSize(FromDIP(420), FromDIP(28)));
     m_input_access_code->SetMaxSize(wxSize(FromDIP(420), FromDIP(28)));

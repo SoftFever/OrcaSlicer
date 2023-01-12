@@ -4565,7 +4565,7 @@ bool  GUI_App::show_ip_address_enter_dialog()
     if (!dev) return false;
     if (!dev->get_selected_machine()) return false;
     auto obj = dev->get_selected_machine();
-    InputIpAddressDialog dlg(nullptr, from_u8(dev->get_selected_machine()->dev_name));
+    InputIpAddressDialog dlg(nullptr, from_u8(dev->get_selected_machine()->dev_name), dev->get_selected_machine()->dev_ip, dev->get_selected_machine()->access_code);
     dlg.Bind(EVT_ENTER_IP_ADDRESS, [this, obj](wxCommandEvent& e) {
         auto selection_data_arr = wxSplit(e.GetString().ToStdString(), '|');
 
