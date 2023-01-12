@@ -35,6 +35,8 @@ jobs:
         run: |
           curl -LJO https://github.com/SoftFever/FileSharing/releases/download/2/BambuStudio_dep_arm64.tar.gz
           tar -zxvf BambuStudio_dep_arm64.tar.gz -C ${{ github.workspace }}/deps/build
+          chown -R $(id -u):$(id -g) ${{ github.workspace }}/deps/build/BambuStudio_dep
+          ls -l ${{ github.workspace }}/deps/build/BambuStudio_dep
           rm BambuStudio_dep_arm64.tar.gz
 
 
