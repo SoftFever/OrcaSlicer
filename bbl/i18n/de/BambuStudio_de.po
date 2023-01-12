@@ -14,7 +14,7 @@ msgstr ""
 "X-Generator: Poedit 3.2.2\n"
 
 msgid "Supports Painting"
-msgstr "Supports aufmalen"
+msgstr "Stützen aufmalen"
 
 msgid "Alt + Mouse wheel"
 msgstr "Alt + Mausrad"
@@ -223,10 +223,10 @@ msgid "Set Position"
 msgstr "Position setzen"
 
 msgid "Set Orientation"
-msgstr "Orientierung setzen"
+msgstr "Ausrichtung festlegen"
 
 msgid "Set Scale"
-msgstr "Skalierung setzen"
+msgstr "Skalierung festlegen"
 
 msgid "Reset Position"
 msgstr "Position zurücksetzen"
@@ -247,10 +247,10 @@ msgid "%"
 msgstr "%"
 
 msgid "uniform scale"
-msgstr "einheitliche Skala"
+msgstr "einheitliche Skalierung"
 
 msgid "Cut"
-msgstr "Auschneiden"
+msgstr "Schneiden"
 
 msgid "Movement:"
 msgstr "Bewegung:"
@@ -368,7 +368,7 @@ msgid "Remove selection"
 msgstr "Auswahl entfernen"
 
 msgid "Text shape"
-msgstr "Textform"
+msgstr "Text zufügen"
 
 msgid "Font"
 msgstr "Schiftart"
@@ -598,7 +598,7 @@ msgid "Speed"
 msgstr "Geschwindigkeit"
 
 msgid "Strength"
-msgstr "Stärke"
+msgstr "Struktur"
 
 msgid "Top Solid Layers"
 msgstr "Obere volle Schichten"
@@ -616,7 +616,7 @@ msgid "Ironing"
 msgstr "Glätten"
 
 msgid "Fuzzy Skin"
-msgstr "Fuzzy Skin"
+msgstr "Raue Oberfläche"
 
 msgid "Extruders"
 msgstr "Extruder"
@@ -857,7 +857,7 @@ msgid "Simplify Model"
 msgstr "Modell vereinfachen"
 
 msgid "Center"
-msgstr "Mittelpunkt"
+msgstr "zur Mitte"
 
 msgid "Edit Process Settings"
 msgstr "Prozesseinstellungen"
@@ -2256,13 +2256,13 @@ msgid "Quality / Speed"
 msgstr "Qualität / Geschwindigkeit"
 
 msgid "Smooth"
-msgstr "Oberflächenglätte"
+msgstr "Höhenunterschiede glätten"
 
 msgid "Radius"
 msgstr "Radius"
 
 msgid "Keep min"
-msgstr "Halten Sie min"
+msgstr "min einhalten"
 
 msgid "Left mouse button:"
 msgstr "Linke Maustaste:"
@@ -2337,7 +2337,7 @@ msgid "Add plate"
 msgstr "Druckplatte hinzufügen"
 
 msgid "Auto orient"
-msgstr "Automatische Orientierung"
+msgstr "Automatische Ausrichtung"
 
 msgid "Arrange all objects"
 msgstr "Alle Objekte anordnen"
@@ -2492,7 +2492,7 @@ msgid "Logging"
 msgstr "Protokollierung"
 
 msgid "Prepare"
-msgstr "Vorbereiten"
+msgstr "Vorbereitung"
 
 msgid "Preview"
 msgstr "Vorschau"
@@ -2981,6 +2981,15 @@ msgstr "Gruppieren Sie Dateien nach Jahr, zuletzt zuerst."
 
 msgid "Group files by month, recent first."
 msgstr "Gruppieren Sie Dateien nach Monat, zuletzt zuerst."
+
+msgid "Show All"
+msgstr "Alles anzeigen"
+
+msgid "Hide Others"
+msgstr "Andere ausblenden"
+
+msgid "Hide BambuStudio-SoftFever"
+msgstr "BambuStudio-SoftFever ausblenden"
 
 msgid "Show all files, recent first."
 msgstr "Alle Dateien anzeigen, zuletzt zuerst."
@@ -3778,7 +3787,7 @@ msgstr "Alle Objekte werden entfernt, fortfahren?"
 
 msgid "The current project has unsaved changes, save it before continue?"
 msgstr ""
-"Das aktuelle Projekt hat ungespeicherte Änderungen, speichern Sie es, bevor Sie fortfahren?"
+"Das aktuelle Projekt hat ungespeicherte Änderungen, möchten Sie es speichern bevor Sie fortfahren?"
 
 msgid "Save"
 msgstr "Speichern"
@@ -3912,7 +3921,7 @@ msgid "North America"
 msgstr "Nordamerika"
 
 msgid "Others"
-msgstr "Sonstige"
+msgstr "Sonstiges"
 
 msgid "Login Region"
 msgstr "Login-Region"
@@ -4011,7 +4020,7 @@ msgid "Zoom of view"
 msgstr "Zoom der Ansicht"
 
 msgid "Other"
-msgstr "Sonstige"
+msgstr "Sonstiges"
 
 msgid "Mouse wheel reverses when zooming"
 msgstr "Mausrad kehrt beim Zoomen um"
@@ -4760,7 +4769,7 @@ msgid "Unsaved Changes"
 msgstr "Nicht gespeicherte Änderungen"
 
 msgid "Discard or Keep changes"
-msgstr "Änderungen verwerfen oder beibehalten"
+msgstr "Änderungen verwerfen oder behalten"
 
 msgid "Old Value"
 msgstr "Alter Wert"
@@ -4781,7 +4790,7 @@ msgid "Click the right mouse button to display the full text."
 msgstr "Klicken Sie mit der rechten Maustaste, um den vollständigen Text anzuzeigen."
 
 msgid "All changes will not be saved"
-msgstr "Keine Änderungen werden gespeichert"
+msgstr "Alle Änderungen werden nicht gespeichert"
 
 msgid "All changes will be discarded."
 msgstr "Alle Änderungen werden verworfen."
@@ -4821,7 +4830,7 @@ msgid ""
 "unsaved changes:"
 msgstr ""
 "Die Voreinstellung \"%1%\" ist nicht mit dem neuen Druckerprofil kompatibel und enthält die "
-"folgenden nicht gespeicherten Änderungen:"
+"folgenden ungesichterten Änderungen:"
 
 #, boost-format
 msgid ""
@@ -4829,7 +4838,7 @@ msgid ""
 "unsaved changes:"
 msgstr ""
 "Die Voreinstellung \"%1%\" ist nicht mit dem neuen Prozessprofil kompatibel und enthält die "
-"folgenden nicht gespeicherten Änderungen:"
+"folgenden ungesicherten Änderungen:"
 
 #, boost-format
 msgid ""
@@ -4837,15 +4846,15 @@ msgid ""
 "Would you like to keep these changed settings (new value) after switching preset?"
 msgstr ""
 "Sie haben einige Einstellungen der Voreinstellung „%1%“ geändert. \n"
-"Möchten Sie diese geänderten Einstellungen (neuer Wert) nach dem Umschalten der Voreinstellung "
-"beibehalten?"
+"Möchten Sie diese geänderten Einstellungen (neuer Wert) nach dem Wechsel der Voreinstellung "
+"behalten?"
 
 msgid ""
 "You have changed some preset settings. \n"
 "Would you like to keep these changed settings (new value) after switching preset?"
 msgstr ""
-"Sie haben einige voreingestellte Einstellungen geändert.\n"
-"Möchten Sie diese geänderten Einstellungen (neuer Wert) nach dem Umschalten der Voreinstellung "
+"Sie haben einige voreingestellten Werte geändert.\n"
+"Möchten Sie diese geänderten Einstellungen (neuer Wert) nach dem Wechsel der Voreinstellung "
 "beibehalten?"
 
 msgid "Extruders count"
@@ -6525,7 +6534,7 @@ msgstr ""
 "und sollte langsamer gedruckt werden"
 
 msgid "Arc fitting"
-msgstr "Bogenanpassung"
+msgstr "als Bogen drucken "
 
 msgid ""
 "Enable this to get a G-code file which has G2 and G3 moves. And the fitting tolerance is same "
@@ -7057,7 +7066,7 @@ msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr "Geschwindigkeit der inneren festen Füllung, nicht der Ober- und Unterseite"
 
 msgid "Spiral vase"
-msgstr "Spiral vase"
+msgstr "Vasenmodus"
 
 msgid ""
 "Spiralize smooths out the z moves of the outer contour. And turns a solid model into a single "
@@ -7107,7 +7116,7 @@ msgid ""
 msgstr ""
 
 msgid "Slicing Mode"
-msgstr "Slicing Mode"
+msgstr "Slicing Modus"
 
 msgid ""
 "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the "
@@ -8065,8 +8074,8 @@ msgstr ""
 #~ msgid "Choose one or more files (3mf/step/stl/obj/amf):"
 #~ msgstr "Wählen sie eine oder mer Dateien (3mf/step/stl/obj/amf):"
 
-#~ msgid "Clear all"
-#~ msgstr "Alles löschen"
+msgid "Clear all"
+msgstr "Keinen auswählen"
 
 #~ msgid ""
 #~ "Clearance radius around extruder. Used as input of auto-arrange to avoid collision when "
@@ -8327,8 +8336,8 @@ msgstr ""
 #~ msgid "Preview only mode for gcode file."
 #~ msgstr "Nur Vorschaumodus für Gcode-Datei."
 
-#~ msgid "Printer Selection"
-#~ msgstr "Auswahl der Drucker"
+msgid "Printer Selection"
+msgstr "Druckerauswahl"
 
 #~ msgid ""
 #~ "Purging after filament change will be done inside objects' infills. This may lower the "
