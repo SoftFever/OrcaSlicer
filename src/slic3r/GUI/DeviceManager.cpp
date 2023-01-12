@@ -1333,7 +1333,7 @@ void MachineObject::parse_version_func()
                 is_support_ai_monitoring                = true;
                 is_support_ams_humidity                 = true;
             }
-            local_use_ssl = ota_version->second.sw_ver.compare("01.03.01.02") >= 0;
+            local_use_ssl = ota_version->second.sw_ver.compare("01.03.01.04") >= 0;
         }
     } else if (printer_type == "C11") {
         local_use_ssl = true;
