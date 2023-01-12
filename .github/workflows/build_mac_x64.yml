@@ -33,7 +33,7 @@ jobs:
 
       - name: Build studio
         working-directory: ${{ github.workspace }}
-        run: ./build_release_macos.sh -s -a x86_64
+        run: ./build_release_macos.sh -s -n -a x86_64
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3

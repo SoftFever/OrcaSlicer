@@ -1,6 +1,6 @@
 #!/bin/sh
 
-while getopts ":a:sdh" opt; do
+while getopts ":a:sdhn" opt; do
   case ${opt} in
     d )
         export BUILD_TARGET="deps"
@@ -11,10 +11,14 @@ while getopts ":a:sdh" opt; do
     s )
         export BUILD_TARGET="studio"
         ;;
+    n )
+        export NIGHTLY_BUILD="1"
+        ;;
     h ) echo "Usage: ./build_release_macos.sh [-d]"
-        echo "   -d: Build deps only (optional)"
+        echo "   -d: Build deps only"
         echo "   -a: Set ARCHITECTURE (arm64 or x86_64)"
-        echo "   -s: Build studio only (optional)"
+        echo "   -s: Build studio only"
+        echo "   -n: Nightly build"
         exit 0
         ;;
   esac
@@ -66,7 +70,14 @@ resources_path=$(readlink ./BambuStudio-SoftFever.app/Contents/Resources)
 rm ./BambuStudio-SoftFever.app/Contents/Resources
 cp -R $resources_path ./BambuStudio-SoftFever.app/Contents/Resources
 # extract version
-ver=$(grep '^#define SoftFever_VERSION' ../src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
-ver="${ver//\"}"
-zip -FSr BambuStudio-SoftFever_V${ver}_Mac_${ARCH}.zip BambuStudio-SoftFever.app
+export ver="_dev"
+echo $PWD
+if [ "1." != "$NIGHTLY_BUILD". ];
+then
+    ver=$(grep '^#define SoftFever_VERSION' ../src/libslic3r/libslic3r_version.h | cut -d ' ' -f3)
+    ver="_V${ver//\"}"
+fi
+
+
+zip -FSr BambuStudio-SoftFever${ver}_Mac_${ARCH}.zip BambuStudio-SoftFever.app
 
