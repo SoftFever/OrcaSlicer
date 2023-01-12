@@ -1541,8 +1541,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_sizer_ams_tips = new wxBoxSizer(wxHORIZONTAL);
     auto m_ams_tip = new wxStaticText(m_amswin, wxID_ANY, _L("AMS"));
     m_ams_tip->SetFont(::Label::Body_12);
-    m_ams_tip->SetForegroundColour(wxColour(0x323A3D));
+    m_ams_tip->SetBackgroundColour(*wxWHITE);
     auto img_amsmapping_tip = new wxStaticBitmap(m_amswin, wxID_ANY, create_scaled_bitmap("enable_ams", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+    img_amsmapping_tip->SetBackgroundColour(*wxWHITE);
     m_sizer_ams_tips->Add(m_ams_tip, 0, wxALIGN_CENTER, 0);
     m_sizer_ams_tips->Add(img_amsmapping_tip, 0, wxALL, FromDIP(2));
 
@@ -1691,7 +1692,6 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     auto vams_panel = new wxWindow(m_panel_virtual, wxID_ANY);
     vams_panel->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
     //m_vams_refresh = new AMSrefresh(vams_panel, wxID_ANY, 0, m_vams_info);
-
     m_vams_lib = new AMSLib(vams_panel, wxID_ANY, m_vams_info);
     m_vams_road = new AMSRoad(vams_panel, wxID_ANY, m_vams_info, -1, -1, wxDefaultPosition, AMS_CAN_ROAD_SIZE);
 
@@ -1740,9 +1740,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_sizer_vams_tips = new wxBoxSizer(wxHORIZONTAL);
     auto m_vams_tip = new wxStaticText(m_amswin, wxID_ANY, _L("Ext Spool"));
     m_vams_tip->SetFont(::Label::Body_12);
-    m_vams_tip->SetForegroundColour(wxColour(0x323A3D));
+    m_vams_tip->SetBackgroundColour(*wxWHITE);
     auto img_vams_tip = new wxStaticBitmap(m_amswin, wxID_ANY, create_scaled_bitmap("enable_ams", this, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
-
+    img_vams_tip->SetBackgroundColour(*wxWHITE);
     img_vams_tip->Bind(wxEVT_ENTER_WINDOW, [this, img_vams_tip](auto& e) {
         wxPoint img_pos = img_vams_tip->ClientToScreen(wxPoint(0, 0));
         wxPoint popup_pos(img_pos.x, img_pos.y + img_vams_tip->GetRect().height);

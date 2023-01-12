@@ -38,7 +38,7 @@ static std::map<wxColour, wxColour> gDarkColors{
     {"#2B3436", "#808080"},
     {"#ABABAB", "#ABABAB"},
     {"#D9D9D9", "#2D2D32"},
-    //{"#F0F0F0", "#3E3E44"},
+    //{"#F0F0F0", "#4C4C54"},
 };
 
 std::map<wxColour, wxColour> const & StateColor::GetDarkMap() 

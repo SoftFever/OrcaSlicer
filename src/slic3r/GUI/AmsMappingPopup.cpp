@@ -933,7 +933,7 @@ AmsIntroducePopup::AmsIntroducePopup(wxWindow* parent)
 
     m_staticText_top = new Label(this, _L("Do not Enable AMS"));
     m_staticText_top->SetFont(::Label::Head_13);
-    m_staticText_top->SetForegroundColour(wxColour(0x323A3D));
+   // m_staticText_top->SetForegroundColour(wxColour(0x323A3D));
     m_staticText_top->Wrap(-1);
     bSizer4->Add(m_staticText_top, 0, wxALL, 5);
 
