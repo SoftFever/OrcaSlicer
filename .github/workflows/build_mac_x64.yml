@@ -1,0 +1,42 @@
+name: Build Mac x64
+
+on: [pull_request, push]
+
+jobs:
+  build_win64:
+    name: Build Mac x64
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install tools
+        run: |
+          brew install cmake git gettext zstd
+      - run: mkdir -p ${{ github.workspace }}/deps/build
+      - run: mkdir -p ${{ github.workspace }}/deps/build/BambuStudio_dep
+
+      - name: build deps
+        id: cache_deps
+        uses: actions/cache@v3
+        env:
+          cache-name: ${{ runner.os }}-cache-bambustudio_deps_x64
+        with:
+          path: ${{ github.workspace }}/deps/build/BambuStudio_dep
+          key: build-${{ env.cache-name }}
+
+      - if: ${{ steps.cache_deps.outputs.cache-hit != 'true' }}
+        name: build deps
+        working-directory: ${{ github.workspace }}
+        continue-on-error: true
+        run: ./build_release_macos.sh -d -a x86_64
+
+      - name: Build studio
+        working-directory: ${{ github.workspace }}
+        run: ./build_release_macos.sh -s -n -a x86_64
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: BambuStudio-SoftFever_Mac
+          path: ${{ github.workspace }}/build/BambuStudio-SoftFever/BambuStudio-SoftFever*.zip
