@@ -378,8 +378,9 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
 
     if (is_virtual_tray()) {
         if (!ExtrusionCalibration::check_k_n_validation(k_text, n_text)) {
-            wxString kn_tips = _L("Plase input valid value, k is in range 0 ~ 0.5, n is in range 0.6 ~ 2.0");
-            MessageDialog msg_dlg(nullptr, kn_tips, wxEmptyString, wxICON_WARNING | wxOK);
+            wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
+            wxString kn_tips = _L("Please input a valid value (K in 0~0.5, N in 0.6~2.0)");
+            MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
             return;
         }
@@ -404,8 +405,9 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             // check and set k n
             if (obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
                 if (!ExtrusionCalibration::check_k_n_validation(k_text, n_text)) {
-                    wxString kn_tips = _L("Plase input valid value, K is in range 0 ~ 0.5, N is in range 0.6 ~ 2.0");
-                    MessageDialog msg_dlg(nullptr, kn_tips, wxEmptyString, wxICON_WARNING | wxOK);
+                    wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
+                    wxString kn_tips = _L("Please input a valid value (K in 0~0.5, N in 0.6~2.0)");
+                    MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
                     msg_dlg.ShowModal();
                     return;
                 }
@@ -467,8 +469,9 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
             if (obj) {
                 if (obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
                     if (!ExtrusionCalibration::check_k_n_validation(k_text, n_text)) {
-                        wxString kn_tips = _L("Plase input valid value, k is in range 0 ~ 0.5, n is in range 0.6 ~ 2.0");
-                        MessageDialog msg_dlg(nullptr, kn_tips, wxEmptyString, wxICON_WARNING | wxOK);
+                        wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
+                        wxString kn_tips = _L("Please input a valid value (K in 0~0.5, N in 0.6~2.0)");
+                        MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
                         msg_dlg.ShowModal();
                         return;
                     }

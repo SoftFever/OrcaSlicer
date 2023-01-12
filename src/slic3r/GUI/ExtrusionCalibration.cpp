@@ -107,7 +107,7 @@ void ExtrusionCalibration::create()
     auto nozzle_temp_text = new wxStaticText(m_step_1_panel, wxID_ANY, _L("Nozzle temperature"));
     auto max_input_width = std::max(std::max(std::max(wxWindow::GetTextExtent(_L("Nozzle temperature")).x,
         wxWindow::GetTextExtent(_L("Bed Temperature")).x),
-        wxWindow::GetTextExtent(_L("Max Flow")).x),
+        wxWindow::GetTextExtent(_L("Max volumetric speed")).x),
         EXTRUSION_CALIBRATION_INPUT_SIZE.x);
     m_nozzle_temp = new TextInput(m_step_1_panel, wxEmptyString, _L("\u2103"), "", wxDefaultPosition, { max_input_width, EXTRUSION_CALIBRATION_INPUT_SIZE.y }, wxTE_READONLY);
     nozzle_temp_sizer->Add(nozzle_temp_text, 0, wxALIGN_LEFT);
@@ -152,7 +152,7 @@ void ExtrusionCalibration::create()
     m_error_text->SetForegroundColour(wxColour(208, 27, 27));
     m_error_text->Hide();
 
-    m_button_cali = new Button(m_step_1_panel, _L("Start"));
+    m_button_cali = new Button(m_step_1_panel, _L("Start calibration"));
     m_btn_bg_green = StateColor(std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Disabled), std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
         std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     m_button_cali->SetBackgroundColor(m_btn_bg_green);
@@ -471,8 +471,9 @@ void ExtrusionCalibration::on_click_save(wxCommandEvent &event)
     wxString k_text = m_k_val->GetTextCtrl()->GetValue();
     wxString n_text = m_n_val->GetTextCtrl()->GetValue();
     if (!ExtrusionCalibration::check_k_n_validation(k_text, n_text)) {
+        wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
         wxString kn_tips = _L("Please input a valid value (K in 0~0.5, N in 0.6~2.0)");
-        MessageDialog msg_dlg(nullptr, kn_tips, wxEmptyString, wxICON_WARNING | wxOK);
+        MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }
@@ -624,7 +625,7 @@ void ExtrusionCalibration::show_bed_type_incompatible(bool incompatible)
                 }
             }
         }
-        wxString tips = wxString::Format("%s does not support %s", m_comboBox_bed_type->GetValue(), filament_alias);
+        wxString tips = wxString::Format(_L("%s does not support %s"), m_comboBox_bed_type->GetValue(), filament_alias);
         show_info(true, true, tips);
         m_button_cali->Disable();
     }
