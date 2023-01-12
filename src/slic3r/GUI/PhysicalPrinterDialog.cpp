@@ -292,13 +292,10 @@ void PhysicalPrinterDialog::build_printhost_settings(ConfigOptionsGroup* m_optgr
     }
 
 #ifdef WIN32
-    /*
-    option = m_optgroup->get_option("printhost_ssl_ignore_revoke");
-    option.opt.width = Field::def_width_wider();
-    m_optgroup->append_single_option_line(option);
-    */
+    //option = m_optgroup->get_option("printhost_ssl_ignore_revoke");
+    //option.opt.width = Field::def_width_wider();
+    //m_optgroup->append_single_option_line(option);
 #endif
-    
 
     m_optgroup->activate();
 
@@ -447,6 +444,7 @@ void PhysicalPrinterDialog::update(bool printer_change)
                 m_optgroup->hide_field(opt_key);
             supports_multiple_printers = opt && opt->value == htRepetier;
         }
+        
     }
     else {
         m_optgroup->set_value("host_type", int(PrintHostType::htOctoPrint), false);

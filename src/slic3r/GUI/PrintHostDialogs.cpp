@@ -36,8 +36,8 @@ namespace GUI {
 static const char *CONFIG_KEY_PATH  = "printhost_path";
 static const char *CONFIG_KEY_GROUP = "printhost_group";
 
-PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUploadActions post_actions, const wxArrayString &groups, bool upload_only)
-    : MsgDialog(static_cast<wxWindow*>(wxGetApp().mainframe), _L("Upload and Print"), _L("Upload to Printer Host with the following filename:"),0)
+PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUploadActions post_actions, const wxArrayString &groups)
+    : MsgDialog(static_cast<wxWindow*>(wxGetApp().mainframe), _L("Send to print"), _L("Upload to Printer Host with the following filename:"),0)
     , txt_filename(new wxTextCtrl(this, wxID_ANY))
     , combo_groups(!groups.IsEmpty() ? new wxComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, groups, wxCB_READONLY) : nullptr)
     , post_upload_action(PrintHostPostUploadAction::None)
@@ -88,19 +88,7 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUplo
         return true;
     };
 
-    auto* btn_confirm = add_button(wxID_YES, false, _L("Confirm"));
-    btn_confirm->Bind(wxEVT_BUTTON, [this, upload_only, validate_path](wxCommandEvent&) {
-        if (validate_path(txt_filename->GetValue())) {
-            if (upload_only) {
-                post_upload_action = PrintHostPostUploadAction::None;
-            } else {
-                post_upload_action = PrintHostPostUploadAction::StartPrint;
-            }
-            EndDialog(wxID_OK);
-        }
-    });
-
-    /*auto* btn_upload = add_button(wxID_YES, false, _L("Upload"));
+    auto* btn_upload = add_button(wxID_YES, false, _L("Upload"));
     btn_upload->Bind(wxEVT_BUTTON, [this, validate_path](wxCommandEvent&) {
         if (validate_path(txt_filename->GetValue())) {
             post_upload_action = PrintHostPostUploadAction::None;
@@ -108,8 +96,8 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUplo
         }
     });
 
-    if (post_actions.has(PrintHostPostUploadAction::StartPrint) && !upload_only) {
-        auto* btn_print = add_button(wxID_YES, false, _L("Upload and Print"));
+    if (post_actions.has(PrintHostPostUploadAction::StartPrint)) {
+        auto* btn_print = add_button(wxID_YES, false, _L("Print"));
         btn_print->Bind(wxEVT_BUTTON, [this, validate_path](wxCommandEvent&) {
             if (validate_path(txt_filename->GetValue())) {
                 post_upload_action = PrintHostPostUploadAction::StartPrint;
@@ -120,7 +108,7 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUplo
 
     if (post_actions.has(PrintHostPostUploadAction::StartSimulation)) {
         // Using wxID_MORE as a button identifier to be different from the other buttons, wxID_MORE has no other meaning here.
-        auto* btn_simulate = add_button(wxID_MORE, false, _L("Upload and Simulate"));
+        auto* btn_simulate = add_button(wxID_MORE, false, _L("Simulate"));
         btn_simulate->Bind(wxEVT_BUTTON, [this, validate_path](wxCommandEvent&) {
             if (validate_path(txt_filename->GetValue())) {
                 post_upload_action = PrintHostPostUploadAction::StartSimulation;
@@ -128,9 +116,8 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, PrintHostPostUplo
             }        
         });
     }
-    */
 
-    add_button(wxID_CANCEL, false, "Cancel");
+    add_button(wxID_CANCEL,false,"Cancel");
     finalize();
 
 #ifdef __linux__

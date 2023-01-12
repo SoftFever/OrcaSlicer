@@ -1774,6 +1774,7 @@ struct Plater::priv
     priv(Plater *q, MainFrame *main_frame);
     ~priv();
 
+
     bool need_update() const { return m_need_update; }
     void set_need_update(bool need_update) { m_need_update = need_update; }
 
@@ -2028,7 +2029,6 @@ struct Plater::priv
     void on_action_print_all(SimpleEvent&);
     void on_action_export_gcode(SimpleEvent&);
     void on_action_send_gcode(SimpleEvent&);
-    void on_action_upload_gcode(SimpleEvent&);
     void on_action_export_sliced_file(SimpleEvent&);
     void on_action_export_all_sliced_file(SimpleEvent&);
     void on_action_select_sliced_plate(wxCommandEvent& evt);
@@ -2439,7 +2439,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLTOOLBAR_PRINT_ALL, &priv::on_action_print_all, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_GCODE, &priv::on_action_export_gcode, this);
         q->Bind(EVT_GLTOOLBAR_SEND_GCODE, &priv::on_action_send_gcode, this);
-        q->Bind(EVT_GLTOOLBAR_UPLOAD_GCODE, &priv::on_action_upload_gcode, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_SLICED_FILE, &priv::on_action_export_sliced_file, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_ALL_SLICED_FILE, &priv::on_action_export_all_sliced_file, this);
         q->Bind(EVT_GLTOOLBAR_SEND_TO_PRINTER, &priv::on_action_export_to_sdcard, this);
@@ -6084,19 +6083,11 @@ void Plater::priv::on_action_export_gcode(SimpleEvent&)
     }
 }
 
-void Plater::priv::on_action_upload_gcode(SimpleEvent&)
-{
-    if (q != nullptr) {
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received export gcode event\n";
-        q->send_gcode_legacy(-1, nullptr, true);
-    }
-}
-
 void Plater::priv::on_action_send_gcode(SimpleEvent&)
 {
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received export gcode event\n" ;
-        q->send_gcode_legacy(-1, nullptr, false);
+        q->send_gcode_legacy();
     }
 }
 
@@ -9765,7 +9756,7 @@ void Plater::reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &
     // and let the background processing start.
     this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
 }
-void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn, bool upload_only)
+void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
 {
     // if physical_printer is selected, send gcode for this printer
     // DynamicPrintConfig* physical_printer_config = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config();
@@ -9803,7 +9794,7 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn, bool up
         upload_job.printhost->get_groups(groups);
     }
 
-    PrintHostSendDialog dlg(default_output_file, upload_job.printhost->get_post_upload_actions(), groups, upload_only);
+    PrintHostSendDialog dlg(default_output_file, upload_job.printhost->get_post_upload_actions(), groups);
     if (dlg.ShowModal() == wxID_OK) {
         upload_job.upload_data.upload_path = dlg.filename();
         upload_job.upload_data.post_action = dlg.post_action();
@@ -10990,8 +10981,8 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
             PartPlate* curr_plate = p->partplate_list.get_curr_plate();
             dlg.sync_bed_type(curr_plate->get_bed_type(false));
             dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index](wxCommandEvent& e) {
-                PartPlate *curr_plate   = p->partplate_list.get_curr_plate();
-                BedType    old_bed_type = curr_plate->get_bed_type(false);
+                PartPlate *curr_plate = p->partplate_list.get_curr_plate();
+                BedType old_bed_type = curr_plate->get_bed_type(false);
                 auto type = (BedType)(e.GetInt());
                 if (old_bed_type != type) {
                     curr_plate->set_bed_type(type);
