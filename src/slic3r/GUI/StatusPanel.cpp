@@ -1091,7 +1091,10 @@ void StatusBasePanel::show_ams_group(bool show, bool support_virtual_tray)
     m_ams_control->Show(true);
     m_ams_control_box->Show(true);
     m_ams_control->show_noams_mode(show, support_virtual_tray);
-    Fit();
+
+    if (m_show_ams_group != show) {
+        Fit();
+    }
     m_show_ams_group = show;
 }
 
