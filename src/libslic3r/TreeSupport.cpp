@@ -1596,14 +1596,13 @@ void TreeSupport::generate_toolpaths()
                         // base_areas
                         filler_support->spacing = support_flow.spacing();
                         Flow flow               = (layer_id == 0 && m_raft_layers == 0) ? m_object->print()->brim_flow() : support_flow;
-                        if (area_group.dist_to_top < 10 && !with_infill && m_object_config->support_style!=smsTreeHybrid) {
+                        if (layer_id>0 && area_group.dist_to_top < 10 && !with_infill && m_object_config->support_style!=smsTreeHybrid) {
                             if (area_group.dist_to_top < 5)  // 1 wall at the top <5mm
                                 make_perimeter_and_inner_brim(ts_layer->support_fills.entities, poly, 1, flow, erSupportMaterial);
                             else // at least 2 walls for range [5,10)
                                 make_perimeter_and_inner_brim(ts_layer->support_fills.entities, poly, std::max(wall_count, size_t(2)), flow, erSupportMaterial);
 
-                        } else {
-                            if (with_infill && layer_id > 0 && m_support_params.base_fill_pattern != ipLightning) {
+                        } else if (layer_id > 0 && with_infill && m_support_params.base_fill_pattern != ipLightning) {
                                 filler_support->angle = Geometry::deg2rad(object_config.support_angle.value);
 
                                 // allow infill-only mode if support is thick enough
@@ -1614,11 +1613,12 @@ void TreeSupport::generate_toolpaths()
                                     make_perimeter_and_infill(ts_layer->support_fills.entities, *m_object->print(), poly, std::max(size_t(1), wall_count), flow,
                                                               erSupportMaterial, filler_support.get(), support_density);
                                 }
-                            } else {
-                                make_perimeter_and_inner_brim(ts_layer->support_fills.entities, poly,
-                                                              layer_id > 0 ? wall_count : std::numeric_limits<size_t>::max(), flow, erSupportMaterial);
-                            }
                         }
+                        else {
+                            make_perimeter_and_inner_brim(ts_layer->support_fills.entities, poly,
+                                layer_id > 0 ? wall_count : std::numeric_limits<size_t>::max(), flow, erSupportMaterial);
+                        }
+                        
                     }
                 }
                 if (m_support_params.base_fill_pattern == ipLightning)
