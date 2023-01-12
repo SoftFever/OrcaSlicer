@@ -790,7 +790,9 @@ wxWindow* PreferencesDialog::create_general_page()
         wxLANGUAGE_SPANISH,
         wxLANGUAGE_SWEDISH,
         wxLANGUAGE_DUTCH,
-        wxLANGUAGE_HUNGARIAN };
+        wxLANGUAGE_HUNGARIAN,
+        wxLANGUAGE_JAPANESE
+    };
 
     auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
     std::vector<const wxLanguageInfo *> language_infos;
