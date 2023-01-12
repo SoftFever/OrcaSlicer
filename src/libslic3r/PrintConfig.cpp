@@ -1935,6 +1935,14 @@ void PrintConfigDef::init_fff_params()
     def->readonly = true;
     def->set_default_value(new ConfigOptionFloat { 0.0 });
 
+    def = this->add("start_end_points", coPoints);
+    def->label = L("Start end points");
+    def->tooltip  = L("The start and end points which is from cutter area to garbage can.");
+    def->mode     = comDevelop;
+    def->readonly = true;
+    // start and end point is from the change_filament_gcode
+    def->set_default_value(new ConfigOptionPoints{Vec2d(30, -3), Vec2d(54, 245)});
+
     def = this->add("reduce_infill_retraction", coBool);
     def->label = L("Reduce infill retraction");
     def->tooltip = L("Don't retract when the travel is in infill area absolutely. That means the oozing can't been seen. "

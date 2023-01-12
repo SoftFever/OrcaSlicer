@@ -939,6 +939,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     // BBS: not in any preset, calculated before slicing
     ((ConfigOptionBool,               has_prime_tower))
     ((ConfigOptionFloat,              nozzle_volume))
+    ((ConfigOptionPoints,             start_end_points))
     ((ConfigOptionEnum<TimelapseType>,    timelapse_type))
     // BBS: move from PrintObjectConfig
     ((ConfigOptionBool, independent_support_layer_height))

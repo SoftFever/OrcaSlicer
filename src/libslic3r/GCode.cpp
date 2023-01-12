@@ -81,6 +81,132 @@ static const int g_max_flush_count = 4;
 
 bool GCode::gcode_label_objects = false;
 
+Vec2d travel_point_1;
+Vec2d travel_point_2;
+Vec2d travel_point_3;
+
+static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
+{
+    // give safe value in case there is no start_end_points in config
+    std::vector<Vec2d> out_points;
+    out_points.emplace_back(Vec2d(54, 0));
+    out_points.emplace_back(Vec2d(54, 120));
+    out_points.emplace_back(Vec2d(54, 245));
+
+    // get the start_end_points from config (20, -3) (54, 245)
+    Pointfs points = print.config().start_end_points.values;
+    if (points.size() != 2)
+        return out_points;
+
+    Vec2d start_point  = points[0];
+    Vec2d end_point    = points[1];
+
+    // the cutter area size(18, 28)
+    Pointfs excluse_area = print.config().bed_exclude_area.values;
+    if (excluse_area.size() != 4)
+        return out_points;
+
+    double cutter_area_x = excluse_area[2].x() + 2;
+    double cutter_area_y = excluse_area[2].y() + 2;
+
+    double start_x_position = start_point.x();
+    double end_x_position   = end_point.x();
+    double end_y_position   = end_point.y();
+
+    bool can_travel_form_left = true;
+
+    // step 1: get the x-range intervals of all objects
+    std::vector<std::pair<double, double>> object_intervals;
+    for (PrintObject *print_object : print.objects()) {
+        const PrintInstances &print_instances = print_object->instances();
+        BoundingBoxf3 bounding_box = print_instances[0].model_instance->get_object()->bounding_box();
+
+        if (bounding_box.min.x() < start_x_position && bounding_box.min.y() < cutter_area_y)
+            can_travel_form_left = false;
+
+        std::pair<double, double> object_scope = std::make_pair(bounding_box.min.x() - 2, bounding_box.max.x() + 2);
+        if (object_intervals.empty())
+            object_intervals.push_back(object_scope);
+        else {
+            std::vector<std::pair<double, double>> new_object_intervals;
+            bool intervals_intersect = false;
+            std::pair<double, double>              new_merged_scope;
+            for (auto object_interval : object_intervals) {
+                if (object_interval.second >= object_scope.first && object_interval.first <= object_scope.second) {
+                    if (intervals_intersect) {
+                        new_merged_scope = std::make_pair(std::min(object_interval.first, new_merged_scope.first), std::max(object_interval.second, new_merged_scope.second));
+                    } else { // it is the first intersection
+                        new_merged_scope = std::make_pair(std::min(object_interval.first, object_scope.first), std::max(object_interval.second, object_scope.second));
+                    }
+                    intervals_intersect = true;
+                } else {
+                    new_object_intervals.push_back(object_interval);
+                }
+            }
+
+            if (intervals_intersect) {
+                new_object_intervals.push_back(new_merged_scope);
+                object_intervals = new_object_intervals;
+            } else
+                object_intervals.push_back(object_scope);
+        }
+    }
+
+    // step 2: get the available x-range
+    std::sort(object_intervals.begin(), object_intervals.end(),
+              [](const std::pair<double, double> &left, const std::pair<double, double> &right) {
+            return left.first < right.first;
+    });
+    std::vector<std::pair<double, double>> available_intervals;
+    double                                 start_position = 0;
+    for (auto object_interval : object_intervals) {
+        if (object_interval.first > start_position)
+            available_intervals.push_back(std::make_pair(start_position, object_interval.first));
+        start_position = object_interval.second;
+    }
+    available_intervals.push_back(std::make_pair(start_position, 255));
+
+    // step 3: get the nearest path
+    double new_path     = 255;
+    for (auto available_interval : available_intervals) {
+        if (available_interval.first > end_x_position) {
+            double distance = available_interval.first - end_x_position;
+            new_path        = abs(end_x_position - new_path) < distance ? new_path : available_interval.first;
+            break;
+        } else {
+            if (available_interval.second >= end_x_position) {
+                new_path = end_x_position;
+                break;
+            } else if (!can_travel_form_left && available_interval.second < start_x_position) {
+                continue;
+            } else {
+                new_path     = available_interval.second;
+            }
+        }
+    }
+
+    // step 4: generate path points  (new_path == start_x_position means not need to change path)
+    Vec2d out_point_1;
+    Vec2d out_point_2;
+    Vec2d out_point_3;
+    if (new_path < start_x_position) {
+        out_point_1 = Vec2d(start_x_position, cutter_area_y);
+        out_point_2 = Vec2d(new_path, cutter_area_y);
+        out_point_3 = Vec2d(new_path, end_y_position);
+    } else {
+        out_point_1 = Vec2d(new_path, 0);
+        out_point_2 = Vec2d(new_path, end_y_position / 2);
+        out_point_3 = Vec2d(new_path, end_y_position);
+    }
+
+    out_points.clear();
+    out_points.emplace_back(out_point_1);
+    out_points.emplace_back(out_point_2);
+    out_points.emplace_back(out_point_3);
+
+    return out_points;
+}
+
 // Only add a newline in case the current G-code does not end with a newline.
     static inline void check_add_eol(std::string& gcode)
     {
@@ -367,6 +493,12 @@ bool GCode::gcode_label_objects = false;
                 config.set_key_value("second_flush_volume", new ConfigOptionFloat(purge_length / 2.f));
                 config.set_key_value("old_filament_e_feedrate", new ConfigOptionInt(old_filament_e_feedrate));
                 config.set_key_value("new_filament_e_feedrate", new ConfigOptionInt(new_filament_e_feedrate));
+                config.set_key_value("travel_point_1_x", new ConfigOptionFloat(float(travel_point_1.x())));
+                config.set_key_value("travel_point_1_y", new ConfigOptionFloat(float(travel_point_1.y())));
+                config.set_key_value("travel_point_2_x", new ConfigOptionFloat(float(travel_point_2.x())));
+                config.set_key_value("travel_point_2_y", new ConfigOptionFloat(float(travel_point_2.y())));
+                config.set_key_value("travel_point_3_x", new ConfigOptionFloat(float(travel_point_3.x())));
+                config.set_key_value("travel_point_3_y", new ConfigOptionFloat(float(travel_point_3.y())));
 
                 int flush_count = std::min(g_max_flush_count, (int)std::round(purge_volume / g_purge_volume_one_time));
                 float flush_unit = purge_length / flush_count;
@@ -1568,6 +1700,16 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // Collect custom seam data from all objects.
     std::function<void(void)> throw_if_canceled_func = [&print]() { print.throw_if_canceled(); };
     m_seam_placer.init(print, throw_if_canceled_func);
+
+    // BBS: get path for change filament
+    if (m_writer.multiple_extruders) {
+        std::vector<Vec2d> points = get_path_of_change_filament(print);
+        if (points.size() == 3) {
+            travel_point_1 = points[0];
+            travel_point_2 = points[1];
+            travel_point_3 = points[2];
+        }
+    }
 
     // BBS: priming logic is removed, always set first extruer here.
     //if (! (has_wipe_tower && print.config().single_extruder_multi_material_priming))
@@ -3991,6 +4133,12 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     dyn_config.set_key_value("second_flush_volume", new ConfigOptionFloat(wipe_length / 2.f));
     dyn_config.set_key_value("old_filament_e_feedrate", new ConfigOptionInt(old_filament_e_feedrate));
     dyn_config.set_key_value("new_filament_e_feedrate", new ConfigOptionInt(new_filament_e_feedrate));
+    dyn_config.set_key_value("travel_point_1_x", new ConfigOptionFloat(float(travel_point_1.x())));
+    dyn_config.set_key_value("travel_point_1_y", new ConfigOptionFloat(float(travel_point_1.y())));
+    dyn_config.set_key_value("travel_point_2_x", new ConfigOptionFloat(float(travel_point_2.x())));
+    dyn_config.set_key_value("travel_point_2_y", new ConfigOptionFloat(float(travel_point_2.y())));
+    dyn_config.set_key_value("travel_point_3_x", new ConfigOptionFloat(float(travel_point_3.x())));
+    dyn_config.set_key_value("travel_point_3_y", new ConfigOptionFloat(float(travel_point_3.y())));
 
     int flush_count = std::min(g_max_flush_count, (int)std::round(wipe_volume / g_purge_volume_one_time));
     float flush_unit = wipe_length / flush_count;
