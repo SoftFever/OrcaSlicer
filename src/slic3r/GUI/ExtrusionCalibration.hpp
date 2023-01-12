@@ -56,12 +56,14 @@ public:
     // input is 1 or 2
     void set_step(int step_index);
 
-    static bool check_k_n_validation(wxString k, wxString n);
+    static bool check_k_n_validation(wxString k_text, wxString n_text);
+    static bool check_k_validation(wxString k_text);
 
     MachineObject *obj { nullptr };
     int            ams_id { 0 };        /* 0 ~ 3 */
     int            tray_id { 0 };       /* 0 ~ 3 | 254 for virtual tray id*/
 
+    std::string    ams_filament_id;
     std::string    m_filament_type;
 
     std::vector<Preset*> user_filaments;

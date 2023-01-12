@@ -441,6 +441,11 @@ bool MachineObject::is_in_extrusion_cali()
 
 bool MachineObject::is_extrusion_cali_finished()
 {
+    if (extrusion_cali_hold_count > 0) {
+        extrusion_cali_hold_count--;
+        return false;
+    }
+    
     if (boost::contains(m_gcode_file, "extrusion_cali")
         && this->mc_print_percent == 100)
         return true;
@@ -1665,6 +1670,9 @@ int MachineObject::command_start_extrusion_cali(int tray_index, int nozzle_temp,
     j["print"]["nozzle_temp"] = nozzle_temp;
     j["print"]["bed_temp"] = bed_temp;
     j["print"]["max_volumetric_speed"] = max_volumetric_speed;
+
+    extrusion_cali_hold_count = HOLD_COUNT_MAX;
+    this->mc_print_percent = 0;
     return this->publish_json(j.dump());
 }
 

@@ -377,7 +377,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
     wxString n_text = m_input_n_val->GetTextCtrl()->GetValue();
 
     if (is_virtual_tray()) {
-        if (!ExtrusionCalibration::check_k_n_validation(k_text, n_text)) {
+        if (!ExtrusionCalibration::check_k_validation(k_text)) {
             wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
             wxString kn_tips = _L("Please input a valid value (K in 0~0.5, N in 0.6~2.0)");
             MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
@@ -404,7 +404,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
         if (!m_is_third) {
             // check and set k n
             if (obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
-                if (!ExtrusionCalibration::check_k_n_validation(k_text, n_text)) {
+                if (!ExtrusionCalibration::check_k_validation(k_text)) {
                     wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
                     wxString kn_tips = _L("Please input a valid value (K in 0~0.5, N in 0.6~2.0)");
                     MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
@@ -468,7 +468,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
         } else {
             if (obj) {
                 if (obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
-                    if (!ExtrusionCalibration::check_k_n_validation(k_text, n_text)) {
+                    if (!ExtrusionCalibration::check_k_validation(k_text)) {
                         wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
                         wxString kn_tips = _L("Please input a valid value (K in 0~0.5, N in 0.6~2.0)");
                         MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
@@ -576,9 +576,9 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     update_widgets();
     // set default value
     if (k.IsEmpty())
-        k = "0.00";
+        k = "0.000";
     if (n.IsEmpty())
-        n = "0.00";
+        n = "0.000";
 
     m_input_k_val->GetTextCtrl()->SetValue(k);
     m_input_n_val->GetTextCtrl()->SetValue(n);

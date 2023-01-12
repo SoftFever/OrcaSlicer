@@ -455,6 +455,8 @@ public:
     std::string m_tray_now;         // tray_now : "0" ~ "15" or "255"
     std::string m_tray_tar;         // tray_tar : "0" ~ "15" or "255"
 
+    int extrusion_cali_hold_count = 0;
+
     bool is_in_extrusion_cali();
     bool is_extrusion_cali_finished();
     void _parse_tray_now(std::string tray_now);

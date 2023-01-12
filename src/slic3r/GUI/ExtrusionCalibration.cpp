@@ -350,19 +350,23 @@ void ExtrusionCalibration::input_value_finish()
 
 void ExtrusionCalibration::show_info(bool show, bool is_error, wxString text)
 {
-    if (show && !is_error) {
-        m_info_text->Show();
-        m_info_text->SetLabelText(text);
-        m_error_text->Hide();
-    } else if (show && is_error) {
+    if (show && is_error) {
         m_error_text->Show();
         m_error_text->SetLabelText(text);
         m_info_text->Hide();
-    } else {
+    }
+    else if (show && !is_error) {
+        m_info_text->Show();
+        m_info_text->SetLabelText(text);
+        m_error_text->Hide();
+    }
+    else {
         if (is_error) {
-            m_error_text->Hide();
-        } else {
             m_info_text->Hide();
+            m_error_text->Show();
+        } else {
+            m_info_text->Show();
+            m_error_text->Hide();
         }
     }
 }
@@ -371,14 +375,15 @@ void ExtrusionCalibration::update()
 {
     if (obj) {
         if (obj->is_in_extrusion_cali()) {            
+            show_info(true, false, wxString::Format(_L("Calibrating... %d%%"), obj->mc_print_percent));
             m_cali_cancel->Show();
             m_cali_cancel->Enable();
-            show_info(true, false, wxString::Format(_L("Calibrating... %d%%"), obj->mc_print_percent));
-            m_button_next_step->Hide();
             m_button_cali->Hide();
+            m_button_next_step->Hide();
         } else if (obj->is_extrusion_cali_finished()) {
             show_info(true, false, _L("Calibration completed"));
             m_cali_cancel->Hide();
+            m_button_cali->Show();
             m_button_next_step->Show();
         } else {
             show_info(false, false, wxEmptyString);
@@ -440,6 +445,23 @@ void ExtrusionCalibration::on_click_cancel(wxCommandEvent& event)
     }
 }
 
+bool ExtrusionCalibration::check_k_validation(wxString k_text)
+{
+    if (k_text.IsEmpty())
+        return false;
+    double k = 0.0;
+    try {
+        k_text.ToDouble(&k);
+    }
+    catch (...) {
+        ;
+    }
+
+    if (k < 0 || k > 0.5)
+        return false;
+    return true;
+}
+
 bool ExtrusionCalibration::check_k_n_validation(wxString k_text, wxString n_text)
 {
     if (k_text.IsEmpty() || n_text.IsEmpty())
@@ -470,7 +492,7 @@ void ExtrusionCalibration::on_click_save(wxCommandEvent &event)
 {
     wxString k_text = m_k_val->GetTextCtrl()->GetValue();
     wxString n_text = m_n_val->GetTextCtrl()->GetValue();
-    if (!ExtrusionCalibration::check_k_n_validation(k_text, n_text)) {
+    if (!ExtrusionCalibration::check_k_validation(k_text)) {
         wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
         wxString kn_tips = _L("Please input a valid value (K in 0~0.5, N in 0.6~2.0)");
         MessageDialog msg_dlg(nullptr, k_tips, wxEmptyString, wxICON_WARNING | wxOK);
@@ -552,6 +574,8 @@ void ExtrusionCalibration::update_combobox_filaments()
     m_comboBox_filament->SetValue(wxEmptyString);
     user_filaments.clear();
     int selection_idx = -1;
+    int filament_index = -1;
+    int curr_selection = -1;
     wxArrayString filament_items;
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle && obj) {
@@ -592,6 +616,16 @@ void ExtrusionCalibration::update_combobox_filaments()
             for (auto printer_str : printer_strs->values) {
                 if (printer_preset_list.find(printer_str) != printer_preset_list.end()) {
                     user_filaments.push_back(&(*filament_it));
+
+                    // set default filament id
+                    filament_index++;
+                    if (filament_it->is_system
+                        && !ams_filament_id.empty()
+                        && filament_it->filament_id == ams_filament_id
+                        ) {
+                        curr_selection = filament_index;
+                    }
+
                     wxString filament_name = wxString::FromUTF8(filament_it->name);
                     filament_items.Add(filament_name);
                     break;
@@ -599,7 +633,7 @@ void ExtrusionCalibration::update_combobox_filaments()
             }
         }
         m_comboBox_filament->Set(filament_items);
-        m_comboBox_filament->SetSelection(selection_idx);
+        m_comboBox_filament->SetSelection(curr_selection);
         post_select_event();
     }
 

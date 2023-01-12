@@ -2554,11 +2554,27 @@ void StatusPanel::on_filament_extrusion_cali(wxCommandEvent &event)
 
         int ams_id_int  = 0;
         int tray_id_int = 0;
+
+
+        // set ams_filament id is is bbl filament
         if (ams_id.compare(std::to_string(VIRTUAL_TRAY_ID)) == 0) {
             tray_id_int = VIRTUAL_TRAY_ID;
-        } else {
+            m_extrusion_cali_dlg->ams_filament_id = "";
+        }
+        else {
             ams_id_int = atoi(ams_id.c_str());
             tray_id_int = atoi(tray_id.c_str());
+
+            auto it = obj->amsList.find(ams_id);
+            if (it != obj->amsList.end()) {
+                auto tray_it = it->second->trayList.find(tray_id);
+                if (tray_it != it->second->trayList.end()) {
+                    if (MachineObject::is_bbl_filament(tray_it->second->tag_uid))
+                        m_extrusion_cali_dlg->ams_filament_id = tray_it->second->setting_id;
+                    else
+                        m_extrusion_cali_dlg->ams_filament_id = "";
+                }
+            }
         }
 
         try {
@@ -2588,8 +2604,8 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
             m_filament_setting_dlg->SetPosition(m_ams_control->GetScreenPosition());
             wxString k_val;
             wxString n_val;
-            k_val = wxString::Format("%.2f", obj->vt_tray.k);
-            n_val = wxString::Format("%.2f", obj->vt_tray.n);
+            k_val = wxString::Format("%.3f", obj->vt_tray.k);
+            n_val = wxString::Format("%.3f", obj->vt_tray.n);
             m_filament_setting_dlg->SetPosition(m_ams_control->GetScreenPosition());
             m_filament_setting_dlg->Popup(wxEmptyString, wxEmptyString, wxEmptyString, wxEmptyString, k_val, n_val);
         } else {
@@ -2610,8 +2626,8 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
                 if (it != obj->amsList.end()) {
                     auto tray_it = it->second->trayList.find(tray_id);
                     if (tray_it != it->second->trayList.end()) {
-                        k_val = wxString::Format("%.2f", tray_it->second->k);
-                        n_val = wxString::Format("%.2f", tray_it->second->n);
+                        k_val = wxString::Format("%.3f", tray_it->second->k);
+                        n_val = wxString::Format("%.3f", tray_it->second->n);
                         wxColor color = AmsTray::decode_color(tray_it->second->color);
                         m_filament_setting_dlg->set_color(color);
                         m_filament_setting_dlg->ams_filament_id = tray_it->second->setting_id;
@@ -2644,8 +2660,8 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
             m_filament_setting_dlg->tray_id = VIRTUAL_TRAY_ID;
             wxString k_val;
             wxString n_val;
-            k_val = wxString::Format("%.2f", obj->vt_tray.k);
-            n_val = wxString::Format("%.2f", obj->vt_tray.n);
+            k_val = wxString::Format("%.3f", obj->vt_tray.k);
+            n_val = wxString::Format("%.3f", obj->vt_tray.n);
             m_filament_setting_dlg->SetPosition(m_ams_control->GetScreenPosition());
             m_filament_setting_dlg->Popup(wxEmptyString, wxEmptyString, wxEmptyString, wxEmptyString, k_val, n_val);
         }

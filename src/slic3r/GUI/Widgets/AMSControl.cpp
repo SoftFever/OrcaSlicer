@@ -73,10 +73,9 @@ bool AMSinfo::parse_ams_info(Ams *ams, bool remain_flag, bool humidity_flag)
                     info.material_state = AMSCanType::AMS_CAN_TYPE_THIRDBRAND;
                 }
      
-                if (!remain_flag) {
+                if (!MachineObject::is_bbl_filament(it->second->tag_uid) || !remain_flag) {
                     info.material_remain = 100;
-                }
-                else {
+                } else {
                     info.material_remain = it->second->remain < 0 ? 0 : it->second->remain;
                     info.material_remain = it->second->remain > 100 ? 100 : info.material_remain;
                 }
@@ -600,8 +599,8 @@ void AMSLib::render(wxDC &dc)
 
         //draw k&n
         if (m_show_kn) {
-            wxString str_k = wxString::Format("k %1.2f", m_info.k);
-            wxString str_n = wxString::Format("n %1.2f", m_info.n);
+            wxString str_k = wxString::Format("k %1.3f", m_info.k);
+            wxString str_n = wxString::Format("n %1.3f", m_info.n);
             dc.SetFont(::Label::Body_11);
             auto tsize = dc.GetMultiLineTextExtent(str_k);
             auto pot_k = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(9) + tsize.y);
