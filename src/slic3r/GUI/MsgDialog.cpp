@@ -434,7 +434,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent, wxString name, wxSt
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
 
-    comfirm_before_enter_text = wxString::Format(_L("Cannot detect the LAN IP address of %s. Are %s and Bambu Studio in the same LAN?"), name, name);
+    //comfirm_before_enter_text = wxString::Format(_L("Cannot detect the LAN IP address of %s. Are %s and Bambu Studio in the same LAN?"), name, name);
 
     //comfirm_after_enter_text = _L("Please input the LAN IP address of your printer manually. You can find the IP address on device's screen, Settings > Network > IP.");
     
@@ -480,13 +480,13 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent, wxString name, wxSt
     m_tips_note3->SetMinSize(wxSize(FromDIP(400), -1));
     m_tips_note3->Wrap(FromDIP(400));
 
-    m_tips_ip->Hide();
-    m_input_ip->Hide();
-    m_tips_access_code->Hide();
-    m_input_access_code->Hide();
-    m_tips_note1->Hide();
-    m_tips_note2->Hide();
-    m_tips_note3->Hide();
+    /* m_tips_ip->Hide();
+     m_input_ip->Hide();
+     m_tips_access_code->Hide();
+     m_input_access_code->Hide();
+     m_tips_note1->Hide();
+     m_tips_note2->Hide();
+     m_tips_note3->Hide();*/
 
     auto sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
@@ -540,6 +540,26 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent, wxString name, wxSt
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_sizer_main->Add(sizer_button, 1, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(18));
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(5));
+
+
+    tip->SetLabel(comfirm_after_enter_text);
+    tip->SetMinSize(wxSize(FromDIP(420), -1));
+    tip->SetMaxSize(wxSize(FromDIP(420), -1));
+    tip->Wrap(FromDIP(420));
+
+    m_tips_ip->Show();
+    m_input_ip->Show();
+    m_tips_access_code->Show();
+    m_input_access_code->Show();
+    m_tips_note1->Show();
+    m_tips_note2->Show();
+    m_tips_note3->Show();
+    m_button_ok->Enable(false);
+    m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+    m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+    Layout();
+    Fit();
+
     SetSizer(m_sizer_main);
     Layout();
     m_sizer_main->Fit(this);
@@ -566,7 +586,7 @@ bool InputIpAddressDialog::isIp(std::string ipstr)
 
 void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
 {
-    if (!m_input_ip->IsShown()) {
+    /*if (!m_input_ip->IsShown()) {
         tip->SetLabel(comfirm_after_enter_text);
         tip->SetMinSize(wxSize(FromDIP(420), -1));
         tip->SetMaxSize(wxSize(FromDIP(420), -1));
@@ -602,14 +622,23 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
     else {
         wxString ip = m_input_ip->GetTextCtrl()->GetValue();
         wxString str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
-        wxString input_str = wxString::Format("%s|%s",ip, str_access_code);
+        wxString input_str = wxString::Format("%s|%s", ip, str_access_code);
 
         auto event = wxCommandEvent(EVT_ENTER_IP_ADDRESS);
         event.SetString(input_str);
         event.SetEventObject(this);
         wxPostEvent(this, event);
         EndModal(wxID_YES);
-    }
+    }*/
+    wxString ip = m_input_ip->GetTextCtrl()->GetValue();
+    wxString str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
+    wxString input_str = wxString::Format("%s|%s", ip, str_access_code);
+
+    auto event = wxCommandEvent(EVT_ENTER_IP_ADDRESS);
+    event.SetString(input_str);
+    event.SetEventObject(this);
+    wxPostEvent(this, event);
+    EndModal(wxID_YES);
 }
 
 void InputIpAddressDialog::on_text(wxCommandEvent& evt)

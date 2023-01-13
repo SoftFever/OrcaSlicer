@@ -830,7 +830,7 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
     wxWindow::SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
 
     Bind(wxEVT_MOTION, [this](wxMouseEvent& e) {
-        if (m_canindex == 3) {
+        if (m_canindex == 3 && m_show_humidity) {
             auto mouse_pos = ClientToScreen(e.GetPosition());
             auto rect = ClientToScreen(wxPoint(0, 0));
 
@@ -967,6 +967,10 @@ void AMSRoad::doRender(wxDC &dc)
     }
 
     if (m_canindex == 3) {
+
+        if (m_amsinfo.ams_humidity >= 1 && m_amsinfo.ams_humidity <= 5) {m_show_humidity = true;}
+        else {m_show_humidity = false;}
+
         if (m_amsinfo.ams_humidity == 5) {
             dc.DrawBitmap(ams_humidity_4.bmp(), wxPoint(size.x - ams_humidity_4.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_4.GetBmpSize().y - FromDIP(8)));
         }
@@ -974,6 +978,7 @@ void AMSRoad::doRender(wxDC &dc)
             dc.DrawBitmap(ams_humidity_3.bmp(), wxPoint(size.x - ams_humidity_3.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_3.GetBmpSize().y - FromDIP(8)));
         }
         else if (m_amsinfo.ams_humidity == 3) {
+    
             dc.DrawBitmap(ams_humidity_2.bmp(), wxPoint(size.x - ams_humidity_2.GetBmpSize().x - FromDIP(4), size.y - ams_humidity_2.GetBmpSize().y - FromDIP(8)));
         }
         else if (m_amsinfo.ams_humidity == 2) {

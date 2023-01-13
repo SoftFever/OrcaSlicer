@@ -122,6 +122,7 @@ public:
     ~SecondaryCheckDialog();
     void on_dpi_changed(const wxRect& suggested_rect);
 
+    Label* m_staticText_release_note {nullptr};
     wxBoxSizer* m_sizer_main;
     wxScrolledWindow *m_vebview_release_note {nullptr};
     Button* m_button_ok;

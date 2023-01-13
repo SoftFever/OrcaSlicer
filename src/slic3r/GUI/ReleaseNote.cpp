@@ -605,11 +605,15 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
 void SecondaryCheckDialog::update_text(wxString text)
 {
     wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
-    auto        m_staticText_release_note = new Label(m_vebview_release_note, text);
-    m_staticText_release_note->Wrap(FromDIP(260));
+
+    if (!m_staticText_release_note) {
+        m_staticText_release_note = new Label(m_vebview_release_note, text);
+    }
+    
     m_staticText_release_note->SetSize(wxSize(FromDIP(260), -1));
     m_staticText_release_note->SetMaxSize(wxSize(FromDIP(260), -1));
     m_staticText_release_note->SetMinSize(wxSize(FromDIP(260), -1));
+    m_staticText_release_note->Wrap(FromDIP(260));
 
     wxBoxSizer* top_blank_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* bottom_blank_sizer = new wxBoxSizer(wxVERTICAL);
