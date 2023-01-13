@@ -76,7 +76,6 @@ struct SeamCandidate
     Perimeter &perimeter;
     float      visibility;
     float      overhang;
-    float      extend_overhang=0.0f;
     // distance inside the merged layer regions, for detecting perimeter points which are hidden indside the print (e.g. multimaterial join)
     // Negative sign means inside the print, comes from EdgeGrid structure
     float                    embedded_distance;
