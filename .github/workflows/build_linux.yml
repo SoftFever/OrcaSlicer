@@ -35,4 +35,10 @@ jobs:
         continue-on-error: true
         run: ./BuildLinux.sh -dsr
 
-
+      - name: Build Studio
+        shell: bash
+        run: ./BuildLinux.sh -ir
+      - uses: actions/upload-artifact@v3
+        with:
+          name: BambuStudio-SoftFever_Linux
+          path: './build/BambuStudio_ubu64.AppImage'
