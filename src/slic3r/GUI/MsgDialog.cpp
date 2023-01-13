@@ -579,9 +579,23 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
         m_tips_note1->Show();
         m_tips_note2->Show();
         m_tips_note3->Show();
-        m_button_ok->Enable(false);
-        m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
-        m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+
+        auto str_ip = m_input_ip->GetTextCtrl()->GetValue();
+        auto str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
+        if (isIp(str_ip.ToStdString()) && str_access_code.Length() == 8) {
+            m_button_ok->Enable(true);
+            StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+            m_button_ok->SetBorderColor(*wxWHITE);
+            m_button_ok->SetBackgroundColor(btn_bg_green);
+        }
+        else {
+            m_button_ok->Enable(false);
+            m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
+            m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
+        }
+
+        
         Layout();
         Fit();
     }
