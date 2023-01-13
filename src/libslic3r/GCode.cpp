@@ -3559,8 +3559,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             //BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external perimeter
             int overhang_threshold = EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none ?
                 Overhang_threshold_none : EXTRUDER_CONFIG(overhang_fan_threshold) - 1;
-            if ((EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter) ||
-                path.get_overhang_degree() > overhang_threshold ||
+            if ((EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter)) {
+                gcode += ";_OVERHANG_FAN_START\n";
+                comment = ";_EXTRUDE_SET_SPEED";
+            } else if (path.get_overhang_degree() > overhang_threshold ||
                 is_bridge(path.role()))
                 gcode += ";_OVERHANG_FAN_START\n";
             else
@@ -3638,8 +3640,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             //BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external perimeter
             int overhang_threshold = EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none ?
                 Overhang_threshold_none : EXTRUDER_CONFIG(overhang_fan_threshold) - 1;
-            if ((EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter) ||
-                path.get_overhang_degree() > overhang_threshold ||
+            if ((EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter)) {
+                gcode += ";_EXTRUDE_END\n";
+                gcode += ";_OVERHANG_FAN_END\n";
+
+            } else if (path.get_overhang_degree() > overhang_threshold ||
                 is_bridge(path.role()))
                 gcode += ";_OVERHANG_FAN_END\n";
             else
