@@ -1152,6 +1152,7 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 	int glb_support_intf_extr = glb_config.opt_int("support_interface_filament");
 	int glb_support_extr = glb_config.opt_int("support_filament");
 	bool glb_support = glb_config.opt_bool("enable_support");
+    glb_support |= glb_config.opt_int("raft_layers") > 0;
 
 	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
 		if (!contain_instance_totally(obj_idx, 0))
@@ -1165,8 +1166,13 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 
 		bool obj_support = false;
 		const ConfigOption* obj_support_opt = mo->config.option("enable_support");
-		if (obj_support_opt != nullptr)
-			obj_support = obj_support_opt->getBool();
+        const ConfigOption *obj_raft_opt    = mo->config.option("raft_layers");
+		if (obj_support_opt != nullptr || obj_raft_opt != nullptr) {
+            if (obj_support_opt != nullptr)
+				obj_support = obj_support_opt->getBool();
+            if (obj_raft_opt != nullptr)
+				obj_support |= obj_raft_opt->getInt() > 0;
+        }
 		else
 			obj_support = glb_support;
 
