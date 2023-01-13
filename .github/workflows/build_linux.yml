@@ -1,4 +1,4 @@
-name: BambuStudio-SoftFever
+name: Build Linux
 
 on: [push, pull_request]
 
@@ -20,13 +20,19 @@ jobs:
       - name: Fix permissions
         shell: bash
         run: sudo chown $USER -R ./
-      - name: Build Bambu Studio dependencies using BuildLinux.sh
-        shell: bash
-        run: ./BuildLinux.sh -dsr
-      - name: Build Bambu Studio AppImage using BuildLinux.sh
-        shell: bash
-        run: ./BuildLinux.sh -ir
-      - uses: actions/upload-artifact@v3
+      - name: build deps
+        id: cache_deps
+        uses: actions/cache@v3
+        env:
+          cache-name: ${{ runner.os }}-cache-bambustudio_deps_x64
         with:
-          name: AppImage
-          path: './build/BambuStudio_ubu64.AppImage'
+          path: ${{ github.workspace }}/deps/build/destdir
+          key: build-${{ env.cache-name }}
+
+      - if: ${{ steps.cache_deps.outputs.cache-hit != 'true' }}
+        name: build deps
+        working-directory: ${{ github.workspace }}
+        continue-on-error: true
+        run: ./BuildLinux.sh -dsr
+
+

@@ -1,0 +1,58 @@
+name: Build Win64
+
+on: [pull_request,push]
+
+jobs:
+  build_win64:
+    name: Build Win64
+    runs-on: windows-2019
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ilammy/msvc-dev-cmd@v1
+      # - name: Install perl
+      #   run: |
+      #     choco install strawberryperl
+      - run: mkdir ${{ github.workspace }}/deps/build
+      - run: mkdir ${{ github.workspace }}/deps/build/BambuStudio_dep
+      - name: download deps
+        shell: powershell
+        run: '(new-object System.Net.WebClient).DownloadFile("https://github.com/SoftFever/FileSharing/releases/download/2/BambuStudio_dep.zip", "$env:temp\BambuStudio_dep.zip")'
+      - name: extract deps
+        working-directory: ${{ github.workspace }}/deps/build
+        shell: cmd
+        run: '"C:/Program Files/7-Zip/7z.exe" x %temp%\BambuStudio_dep.zip'
+
+      - run: dir "${{ github.workspace }}\deps\build\BambuStudio_dep"
+      
+      # - name: build deps
+      #   id: cache_deps
+      #   uses: actions/cache@v3
+      #   env:
+      #     cache-name: ${{ runner.os }}-cache-bambustudio_deps
+      #   with:
+      #     path: ${{ github.workspace }}/deps/build/BambuStudio_dep
+      #     key: ${{ runner.os }}-build-${{ env.cache-name }}
+
+      # - if: ${{ steps.cache_deps.outputs.cache-hit != 'true' }}
+      #   name: build deps
+      #   working-directory: ${{ github.workspace }}
+      #   continue-on-error: true
+      #   run: .\build_release.bat deps
+   
+      # - run:  Get-ChildItem ${{ github.workspace }}/deps/build/ -Exclude BambuStudio_dep | Remove-Item -Recurse -Force
+
+      - name: Build studio
+        working-directory: ${{ github.workspace }}
+        run: .\build_release.bat studio
+
+      - name: pack app
+        working-directory: ${{ github.workspace }}/build
+        shell: cmd
+        run: '"C:/Program Files/7-Zip/7z.exe" a -tzip BambuStudio-SoftFever_dev_build.zip ${{ github.workspace }}/build/BambuStudio-SoftFever'
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: BambuStudio-SoftFever_Win64
+          path: ${{ github.workspace }}/build/BambuStudio-SoftFever_dev_build.zip

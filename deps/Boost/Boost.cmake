@@ -28,9 +28,6 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     elseif (MSVC_VERSION LESS 1930)
     # 1920-1929 = VS 16.0 (v142 toolset)
         set(_boost_toolset "msvc-14.2")
-    elseif (MSVC_VERSION LESS 1940)
-    # 1930-1939 = VS 17.0 (v143 toolset)
-        set(_boost_toolset "msvc-14.3")
     else ()
         message(FATAL_ERROR "Unsupported MSVC version")
     endif ()
@@ -70,16 +67,6 @@ include(ProcessorCount)
 ProcessorCount(NPROC)
 file(TO_NATIVE_PATH ${DESTDIR}/usr/local/ _prefix)
 
-set(_boost_flags "")
-if (UNIX) 
-    set(_boost_flags "cflags=-fPIC;cxxflags=-fPIC")
-elseif(APPLE)
-    set(_boost_flags 
-        "cflags=-fPIC -mmacosx-version-min=${DEP_OSX_TARGET};"
-        "cxxflags=-fPIC -mmacosx-version-min=${DEP_OSX_TARGET};"
-        "mflags=-fPIC -mmacosx-version-min=${DEP_OSX_TARGET};"
-        "mmflags=-fPIC -mmacosx-version-min=${DEP_OSX_TARGET}") 
-endif()
 
 set(_boost_variants "")
 if(CMAKE_BUILD_TYPE)
@@ -103,8 +90,38 @@ if (NOT _boost_variants)
     set(_boost_variants release)
 endif()
 
+if (IS_CROSS_COMPILE AND APPLE)
+    if (${CMAKE_OSX_ARCHITECTURES} MATCHES "arm")
+        message(STATUS "Compiling Boost for arm64.")
+        message(STATUS "Compiling Boost with toolset ${_boost_toolset}.")
+        message(STATUS "Compiling Boost with libs ${_libs}.")
+        message(STATUS "Compiling Boost with variant ${_boost_variants}.")
+        message(STATUS "Compiling Boost with _bootstrap_cmd ${_bootstrap_cmd}.")
+        message(STATUS "_boost_linkflags = ${_boost_linkflags}")
+        set(_arch_flags "-arch arm64")
+        set(_boost_linkflags "linkflags=${_arch_flags}")
+        message(STATUS "_cmake_args_osx_arch = '${_cmake_args_osx_arch}'")
+    elseif (${CMAKE_OSX_ARCHITECTURES} MATCHES "x86_64")
+        message(STATUS "Compiling Boost for x86_64.")
+        set(_arch_flags "-arch x86_64")
+    endif()
+    set(_boost_linkflags "linkflags=${_arch_flags}")
+endif ()
+
+set(_boost_flags "")
+if(APPLE)
+    set(_boost_flags 
+        "cflags=-fPIC ${_arch_flags} -mmacosx-version-min=${DEP_OSX_TARGET};"
+        "cxxflags=-fPIC ${_arch_flags} -mmacosx-version-min=${DEP_OSX_TARGET};"
+        "mflags=-fPIC ${_arch_flags} -mmacosx-version-min=${DEP_OSX_TARGET};"
+        "mmflags=-fPIC ${_arch_flags} -mmacosx-version-min=${DEP_OSX_TARGET}") 
+elseif (UNIX)
+    set(_boost_flags "cflags=-fPIC;cxxflags=-fPIC")
+endif()
+
 set(_build_cmd ${_build_cmd}
                ${_boost_flags}
+               ${_boost_linkflags}
                -j${NPROC}
                ${_libs}
                --layout=versioned
@@ -120,9 +137,14 @@ set(_build_cmd ${_build_cmd}
 
 set(_install_cmd ${_build_cmd} --prefix=${_prefix} install)
 
+if (NOT IS_CROSS_COMPILE OR NOT APPLE OR BUILD_SHARED_LIBS)
+    message(STATUS "Standard boost build with bootstrap command '${_bootstrap_cmd}'")
+    message(STATUS "Standard boost build with patch command '${_patch_command}'")
+    message(STATUS "Standard boost build with build command '${_build_cmd}'")
+    message(STATUS "Standard boost build with install command '${_install_cmd}'")
 ExternalProject_Add(
     dep_Boost
-    URL "https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz"
+   URL "https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz"
     URL_HASH SHA256=aeb26f80e80945e82ee93e5939baebdca47b9dee80a07d3144be1e1a6a66dd6a
     DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/Boost
     CONFIGURE_COMMAND "${_bootstrap_cmd}"
@@ -132,7 +154,26 @@ ExternalProject_Add(
     INSTALL_COMMAND "${_install_cmd}"
 )
 
+else()
+
+ExternalProject_Add(
+    dep_Boost
+   URL "https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz"
+    URL_HASH SHA256=aeb26f80e80945e82ee93e5939baebdca47b9dee80a07d3144be1e1a6a66dd6a
+    DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/Boost
+    CONFIGURE_COMMAND ./bootstrap.sh
+        --with-toolset=clang
+        --with-libraries=date_time,filesystem,iostreams,locale,log,regex,system,thread
+        "--prefix=${DESTDIR}/usr/local"
+#    PATCH_COMMAND ${_patch_command}
+    BUILD_COMMAND "${_build_cmd}"
+    BUILD_IN_SOURCE    ON
+    INSTALL_COMMAND "${_install_cmd}"
+)
+endif()
+
 if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
+    message(STATUS "Patch the boost::polygon library with a custom one.")
     # Patch the boost::polygon library with a custom one.
     ExternalProject_Add(dep_boost_polygon
         EXCLUDE_FROM_ALL ON
@@ -144,6 +185,7 @@ if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
         DEPENDS dep_Boost
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
+        ${_cmake_args_osx_arch}
         INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_CURRENT_BINARY_DIR}/dep_boost_polygon-prefix/src/dep_boost_polygon/include/boost/polygon"
             "${DESTDIR}/usr/local/include/boost/polygon"
