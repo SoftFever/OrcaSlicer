@@ -431,7 +431,7 @@ bool MachineObject::is_in_extrusion_cali()
 {
     auto curr_time = std::chrono::system_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_extrusion_cali_start_time);
-    if (diff.count() > EXTRUSION_OMIT_TIME) {
+    if (diff.count() < EXTRUSION_OMIT_TIME) {
         return true;
     }
 
@@ -449,7 +449,7 @@ bool MachineObject::is_extrusion_cali_finished()
 {
     auto curr_time = std::chrono::system_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_extrusion_cali_start_time);
-    if (diff.count() > EXTRUSION_OMIT_TIME) {
+    if (diff.count() < EXTRUSION_OMIT_TIME) {
         return false;
     }
     

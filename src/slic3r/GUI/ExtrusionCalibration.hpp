@@ -32,7 +32,8 @@
 #define EXTRUSION_CALIBRATION_BUTTON_SIZE   wxSize(FromDIP(72), FromDIP(24))
 #define EXTRUSION_CALIBRATION_INPUT_SIZE    wxSize(FromDIP(100), FromDIP(24))
 #define EXTRUSION_CALIBRATION_BMP_SIZE      wxSize(FromDIP(256), FromDIP(256))
-#define EXTRUSION_CALIBRATION_BMP_BTN_SIZE  wxSize(FromDIP(32), FromDIP(32))
+#define EXTRUSION_CALIBRATION_BMP_TIP_BAR   wxSize(FromDIP(256), FromDIP(40))
+#define EXTRUSION_CALIBRATION_BMP_BTN_SIZE  wxSize(FromDIP(16), FromDIP(16))
 
 
 
@@ -69,6 +70,7 @@ public:
     std::vector<Preset*> user_filaments;
 
 protected:
+    void init_bitmaps();
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void paint(wxPaintEvent&);
     void open_bitmap(wxMouseEvent& event);
@@ -128,7 +130,8 @@ protected:
     wxStaticText*       m_error_text;
 
     wxBitmap            m_calibration_tips_open_btn_bmp;
-    wxBitmap            m_calibration_tips_bmp;
+    wxBitmap            m_calibration_tips_bmp_zh;
+    wxBitmap            m_calibration_tips_bmp_en;
     wxStaticBitmap*     m_calibration_tips_static_bmp;
     // save n and k result
     wxStaticText*       m_k_param;
@@ -137,6 +140,8 @@ protected:
     TextInput*          m_n_val;
     Button*             m_button_last_step;
     Button*             m_button_save_result;
+
+    bool m_is_zh{ false };
 };
 
 }} // namespace Slic3r::GUI

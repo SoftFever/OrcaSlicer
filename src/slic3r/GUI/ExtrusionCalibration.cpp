@@ -3,6 +3,7 @@
 #include "MsgDialog.hpp"
 #include "libslic3r/Preset.hpp"
 #include "I18N.hpp"
+#include <wx/dcgraph.h>
 
 namespace Slic3r { namespace GUI {
 
@@ -15,8 +16,23 @@ ExtrusionCalibration::ExtrusionCalibration(wxWindow *parent, wxWindowID id)
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
+void ExtrusionCalibration::init_bitmaps() 
+{
+    auto lan = wxGetApp().app_config->get_language_code();
+    if (lan == "zh-cn") {
+        m_is_zh = true;
+        m_calibration_tips_bmp_zh = create_scaled_bitmap("extrusion_calibration_tips_zh", nullptr, 256);
+    }
+    else{
+        m_is_zh = false;
+        m_calibration_tips_bmp_en = create_scaled_bitmap("extrusion_calibration_tips_en", nullptr, 256);
+    }
+    m_calibration_tips_open_btn_bmp = create_scaled_bitmap("extrusion_calibrati_open_button", nullptr, 16);
+}
+
 void ExtrusionCalibration::create()
 {
+    init_bitmaps();
     SetBackgroundColour(*wxWHITE);
     wxBoxSizer* sizer_main = new wxBoxSizer(wxVERTICAL);
     m_step_1_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -219,8 +235,6 @@ void ExtrusionCalibration::create()
     auto content_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_calibration_tips_static_bmp = new wxStaticBitmap(m_step_2_panel, wxID_ANY, wxNullBitmap, wxDefaultPosition, EXTRUSION_CALIBRATION_BMP_SIZE, 0);
     content_sizer->Add(m_calibration_tips_static_bmp, 1, wxEXPAND | wxSHAPED);
-    m_calibration_tips_bmp = create_scaled_bitmap("extrusion_calibration_tips", nullptr, 256);
-    m_calibration_tips_open_btn_bmp = create_scaled_bitmap("extrusion_calibrati_open_button", nullptr, 32);
     content_sizer->Add(EXTRUSION_CALIBRATION_WIDGET_GAP, 0, 0, 0);
     // k/n input value
     auto kn_sizer = new wxBoxSizer(wxVERTICAL);
@@ -319,25 +333,42 @@ ExtrusionCalibration::~ExtrusionCalibration()
 void ExtrusionCalibration::paint(wxPaintEvent&) {
     auto      size = m_calibration_tips_static_bmp->GetSize();
     wxPaintDC dc(m_calibration_tips_static_bmp);
-    dc.DrawBitmap(m_calibration_tips_bmp, wxPoint(0, 0));
-    dc.DrawBitmap(m_calibration_tips_open_btn_bmp, wxPoint(0, size.y - EXTRUSION_CALIBRATION_BMP_BTN_SIZE.y));
+    wxGCDC gcdc(dc);
+
+    dc.DrawBitmap(m_is_zh ? m_calibration_tips_bmp_zh : m_calibration_tips_bmp_en, wxPoint(0, 0));
+
+    gcdc.SetPen(wxColour(0, 0, 0, 61));
+    gcdc.SetBrush(wxColour(0, 0, 0, 61));
+    gcdc.DrawRectangle(wxPoint(0, 0), EXTRUSION_CALIBRATION_BMP_TIP_BAR);
+
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    int pos_offset = (EXTRUSION_CALIBRATION_BMP_TIP_BAR.y - EXTRUSION_CALIBRATION_BMP_BTN_SIZE.y) / 2;
+    wxPoint open_btn_pos = wxPoint(size.x - pos_offset - EXTRUSION_CALIBRATION_BMP_BTN_SIZE.x, pos_offset);
+    dc.DrawBitmap(m_calibration_tips_open_btn_bmp, open_btn_pos);
+
+    gcdc.SetFont(Label::Head_14);
+    gcdc.SetTextForeground(wxColour(255, 255, 255, 224));
+    wxSize text_size = wxWindow::GetTextExtent(_L("Example"));
+    gcdc.DrawText(_L("Example"), { (EXTRUSION_CALIBRATION_BMP_TIP_BAR.x - text_size.x) / 2, (EXTRUSION_CALIBRATION_BMP_TIP_BAR.y - text_size.y) / 2});
+
     return;
 }
 
 void ExtrusionCalibration::open_bitmap(wxMouseEvent& event) {
     auto pos = event.GetPosition();
     auto size = m_calibration_tips_static_bmp->GetSize();
-    if (pos.x > 0 && pos.y > size.y - EXTRUSION_CALIBRATION_BMP_BTN_SIZE.y &&
-        pos.x < EXTRUSION_CALIBRATION_BMP_BTN_SIZE.x && pos.y < size.y) {
+    if (pos.x > size.x - EXTRUSION_CALIBRATION_BMP_TIP_BAR.y && pos.y > 0 &&
+        pos.x < size.x && pos.y < EXTRUSION_CALIBRATION_BMP_TIP_BAR.y) {
         auto* popup = new wxDialog(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize);
         auto bmp_sizer = new wxBoxSizer(wxVERTICAL);
         wxStaticBitmap* zoomed_bitmap =  new wxStaticBitmap(popup, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-        zoomed_bitmap->SetBitmap(create_scaled_bitmap("extrusion_calibration_tips", nullptr, 720));
+        zoomed_bitmap->SetBitmap(create_scaled_bitmap(m_is_zh ? "extrusion_calibration_tips_zh" : "extrusion_calibration_tips_en", nullptr, 720));
         bmp_sizer->Add(zoomed_bitmap, 1, wxEXPAND);
         popup->SetSizer(bmp_sizer);
         popup->Layout();
         popup->Fit();
         popup->CenterOnParent();
+        wxGetApp().UpdateDlgDarkUI(popup);
         popup->ShowModal();
     }
     return;
@@ -678,6 +709,7 @@ void ExtrusionCalibration::Popup()
     update();
     Layout();
     Fit();
+    wxGetApp().UpdateDlgDarkUI(this);
     ShowModal();
 }
 void ExtrusionCalibration::post_select_event() {
