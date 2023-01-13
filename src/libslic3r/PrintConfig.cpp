@@ -4608,6 +4608,14 @@ CLIActionsConfigDef::CLIActionsConfigDef()
     def->cli_params = "time";
     def->set_default_value(new ConfigOptionInt(300));
 
+    // must define new params here, otherwise comamnd param check will fail
+    def = this->add("no_check", coBool);
+    def->label = L("No check");
+    def->tooltip = L("Do not run any validity checks, such as gcode path conflicts check.");
+    def->cli = "no_check";
+    def->cli_params = "option";
+    def->set_default_value(new ConfigOptionBool(false));
+
     /*def = this->add("help_fff", coBool);
     def->label = L("Help (FFF options)");
     def->tooltip = L("Show the full list of print/G-code configuration options.");

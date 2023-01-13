@@ -1735,6 +1735,7 @@ int CLI::run(int argc, char **argv)
 
     // loop through action options
     bool export_to_3mf = false, load_slicedata = false, export_slicedata = false, export_slicedata_error = false;
+    bool no_check = false;
     std::string export_3mf_file, load_slice_data_dir, export_slice_data_dir;
     std::string outfile_dir = m_config.opt_string("outputdir");
     std::vector<ThumbnailData*> calibration_thumbnails;
@@ -1791,6 +1792,8 @@ int CLI::run(int argc, char **argv)
         } */else if (opt_key == "export_3mf") {
             export_to_3mf = true;
             export_3mf_file = m_config.opt_string(opt_key);
+        }else if(opt_key=="no_check"){
+            no_check = true;
         //} else if (opt_key == "export_gcode" || opt_key == "export_sla" || opt_key == "slice") {
         } else if (opt_key == "export_slicedata") {
             export_slicedata = true;
@@ -1955,6 +1958,7 @@ int CLI::run(int argc, char **argv)
                         new_print_config.apply(*part_plate->config());
                         new_print_config.apply(m_extra_config, true);
                         print->apply(model, new_print_config);
+                        print->set_no_check_flag(no_check);//BBS
                         StringObjectException warning;
                         auto err = print->validate(&warning);
                         if (!err.string.empty()) {

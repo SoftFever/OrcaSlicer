@@ -27,6 +27,10 @@
 //BBS: add json support
 #include "nlohmann/json.hpp"
 
+#include "GCode/ConflictChecker.hpp"
+
+#include <codecvt>
+
 using namespace nlohmann;
 
 // Mark string for localization and translate.
@@ -1659,6 +1663,25 @@ void Print::process(bool use_cache)
             if (obj->set_started(posDetectOverhangsForLift))
                 obj->set_done(posDetectOverhangsForLift);
         }
+    }
+
+    // BBS
+    if(!m_no_check)
+    {
+        this->set_started(psConflictCheck);
+        this->set_status(70, L("Checking gcode path conflicts."));
+        using Clock                 = std::chrono::high_resolution_clock;
+        auto            startTime   = Clock::now();
+        auto            conflictRes = ConflictChecker::find_inter_of_lines_in_diff_objs(m_objects);
+        auto            endTime     = Clock::now();
+        volatile double seconds     = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count() / (double) 1000;
+        if (conflictRes.has_value()) {
+            auto         objName1 = conflictRes.value()._obj1->m_model_object->name;
+            auto         objName2 = conflictRes.value()._obj2->m_model_object->name;
+            //throw Slic3r::SlicingError((boost::format(L("Conflicts of gcode paths have been found. Please separate the conflicted objects (%s + %s) farther.")) % objName1% objName2).str());
+            this->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, (boost::format(L("Conflicts of gcode paths have been found. Please separate the conflicted objects (%s <-> %s) farther.")) % objName1 % objName2).str());
+        }
+         this->set_done(psConflictCheck);
     }
 
     BOOST_LOG_TRIVIAL(info) << "Slicing process finished." << log_memory_info();

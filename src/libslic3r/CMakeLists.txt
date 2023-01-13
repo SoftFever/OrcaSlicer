@@ -139,6 +139,8 @@ set(lisbslic3r_sources
     GCode/GCodeProcessor.hpp
     GCode/AvoidCrossingPerimeters.cpp
     GCode/AvoidCrossingPerimeters.hpp
+    GCode/ConflictChecker.cpp
+    GCode/ConflictChecker.hpp
     GCode.cpp
     GCode.hpp
     GCodeReader.cpp

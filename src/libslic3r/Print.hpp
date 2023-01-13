@@ -79,7 +79,8 @@ enum PrintStep {
     // should be refreshed.
     psSlicingFinished = psSkirtBrim,
     psGCodeExport,
-    psCount,
+    psConflictCheck,
+    psCount
 };
 
 enum PrintObjectStep {
