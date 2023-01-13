@@ -383,22 +383,26 @@ void ExtrusionCalibration::show_info(bool show, bool is_error, wxString text)
 {
     if (show && is_error) {
         m_error_text->Show();
-        m_error_text->SetLabelText(text);
+        if (m_error_text->GetLabelText().compare(text) != 0)
+            m_error_text->SetLabelText(text);
         m_info_text->Hide();
     }
     else if (show && !is_error) {
         m_info_text->Show();
-        m_info_text->SetLabelText(text);
+        if (m_info_text->GetLabelText().compare(text) != 0)
+            m_info_text->SetLabelText(text);
         m_error_text->Hide();
     }
     else {
         if (is_error) {
             m_info_text->Hide();
             m_error_text->Show();
-            m_error_text->SetLabelText(text);
+            if (m_error_text->GetLabelText().compare(text) != 0)
+                m_error_text->SetLabelText(text);
         } else {
             m_info_text->Show();
-            m_info_text->SetLabelText(text);
+            if (m_info_text->GetLabelText().compare(text) != 0)
+                m_info_text->SetLabelText(text);
             m_error_text->Hide();
         }
     }
@@ -414,12 +418,23 @@ void ExtrusionCalibration::update()
             m_button_cali->Hide();
             m_button_next_step->Hide();
         } else if (obj->is_extrusion_cali_finished()) {
-            show_info(true, false, _L("Calibration completed"));
+            if (m_bed_temp->GetTextCtrl()->GetValue().compare("0") == 0) {
+                wxString tips = get_bed_type_incompatible(false);
+                show_info(true, true, tips);
+            }
+            else {
+                show_info(true, false, _L("Calibration completed"));
+            }
             m_cali_cancel->Hide();
             m_button_cali->Show();
             m_button_next_step->Show();
         } else {
-            show_info(false, false, wxEmptyString);
+            if (m_bed_temp->GetTextCtrl()->GetValue().compare("0") == 0) {
+                wxString tips = get_bed_type_incompatible(false);
+                show_info(true, true, tips);
+            } else {
+                show_info(true, false, wxEmptyString);
+            }
             m_cali_cancel->Hide();
             m_button_cali->Show();
             m_button_next_step->Hide();
@@ -676,12 +691,14 @@ void ExtrusionCalibration::update_combobox_filaments()
         m_button_cali->Enable();
 }
 
-void ExtrusionCalibration::show_bed_type_incompatible(bool incompatible)
+wxString ExtrusionCalibration::get_bed_type_incompatible(bool incompatible)
 {
     if (incompatible) {
-        show_info(false, true, wxEmptyString);
         m_button_cali->Enable();
-    } else {
+        return wxEmptyString;
+    }
+    else {
+        m_button_cali->Disable();
         std::string filament_alias = "";
         PresetBundle* preset_bundle = wxGetApp().preset_bundle;
         if (preset_bundle) {
@@ -693,8 +710,7 @@ void ExtrusionCalibration::show_bed_type_incompatible(bool incompatible)
             }
         }
         wxString tips = wxString::Format(_L("%s does not support %s"), m_comboBox_bed_type->GetValue(), filament_alias);
-        show_info(true, true, tips);
-        m_button_cali->Disable();
+        return tips;
     }
 }
 
@@ -792,13 +808,6 @@ void ExtrusionCalibration::update_filament_info()
                 }
             }
         }
-    }
-
-    // incompatible bed type and filament
-    if (bed_temp_int == 0) {
-        show_bed_type_incompatible(false);
-    } else {
-        show_bed_type_incompatible(true);
     }
 }
 

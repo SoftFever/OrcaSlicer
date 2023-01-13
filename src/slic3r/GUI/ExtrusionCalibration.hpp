@@ -85,7 +85,7 @@ protected:
 
     void update_filament_info();
     void update_combobox_filaments();
-    void show_bed_type_incompatible(bool incompatible);
+    wxString get_bed_type_incompatible(bool incompatible);
     void show_info(bool show, bool is_error, wxString text);
 
     int get_bed_temp(DynamicPrintConfig* config);
