@@ -1677,12 +1677,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_vams_info.material_state = AMSCanType::AMS_CAN_TYPE_VIRTUAL;
     m_vams_info.can_id = wxString::Format("%d", VIRTUAL_TRAY_ID).ToStdString();
     auto vams_panel = new wxWindow(m_panel_virtual, wxID_ANY);
-<<<<<<< HEAD   (46bdd5 FIX: tree support first layer defects)
-    m_vams_refresh = new AMSrefresh(vams_panel, wxID_ANY, 0, m_vams_info);
-=======
     vams_panel->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
     //m_vams_refresh = new AMSrefresh(vams_panel, wxID_ANY, 0, m_vams_info);
->>>>>>> CHANGE (92ae56 ENH:Optimize the layout of AMScontrol)
+
     m_vams_lib = new AMSLib(vams_panel, wxID_ANY, m_vams_info);
     m_vams_road = new AMSRoad(vams_panel, wxID_ANY, m_vams_info, -1, -1, wxDefaultPosition, AMS_CAN_ROAD_SIZE);
 
