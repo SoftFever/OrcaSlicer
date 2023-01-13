@@ -3084,6 +3084,9 @@ int MachineObject::parse_json(std::string payload)
                                 vt_tray.k = jj["vt_tray"]["k"].get<float>();
                             if (jj["vt_tray"].contains("n"))
                                 vt_tray.n = jj["vt_tray"]["n"].get<float>();
+                            ams_support_virtual_tray = true;
+                        } else {
+                            ams_support_virtual_tray = false;
                         }
                     }
                     catch (...) {

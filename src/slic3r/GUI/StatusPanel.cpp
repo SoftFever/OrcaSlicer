@@ -757,6 +757,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
     m_switch_speed = new ImageSwitchButton(parent, m_bitmap_speed_active, m_bitmap_speed);
     m_switch_speed->SetLabels(_L("100%"), _L("100%"));
     m_switch_speed->SetMinSize(MISC_BUTTON_SIZE);
+    m_switch_speed->SetMaxSize(MISC_BUTTON_SIZE);
     m_switch_speed->SetPadding(FromDIP(3));
     m_switch_speed->SetBorderWidth(FromDIP(2));
     m_switch_speed->SetFont(Label::Head_13);
@@ -773,6 +774,7 @@ wxBoxSizer *StatusBasePanel::create_misc_control(wxWindow *parent)
     m_switch_lamp = new ImageSwitchButton(parent, m_bitmap_lamp_on, m_bitmap_lamp_off);
     m_switch_lamp->SetLabels(_L("Lamp"), _L("Lamp"));
     m_switch_lamp->SetMinSize(MISC_BUTTON_SIZE);
+    m_switch_lamp->SetMaxSize(MISC_BUTTON_SIZE);
     m_switch_lamp->SetPadding(FromDIP(3));
     m_switch_lamp->SetBorderWidth(FromDIP(2));
     m_switch_lamp->SetFont(Label::Head_13);
@@ -2531,13 +2533,21 @@ void StatusPanel::on_ams_setting_click(SimpleEvent &event)
         m_ams_setting_dlg->update_insert_material_read_mode(obj->ams_insert_flag);
         m_ams_setting_dlg->update_starting_read_mode(obj->ams_power_on_flag);
         std::string ams_id = m_ams_control->GetCurentAms();
-        try {
-            int ams_id_int            = atoi(ams_id.c_str());
-            m_ams_setting_dlg->ams_id = ams_id_int;
-            m_ams_setting_dlg->ams_support_remain = obj->ams_support_remain;
-            m_ams_setting_dlg->Show();
-        } catch (...) {
-            ;
+        if (ams_id.compare(std::to_string(VIRTUAL_TRAY_ID)) == 0) {
+            wxString txt = _L("AMS settings are not supported for external spool");
+            MessageDialog msg_dlg(nullptr, txt, wxEmptyString, wxICON_WARNING | wxOK);
+            msg_dlg.ShowModal();
+            return;
+        } else {
+            try {
+                int ams_id_int = atoi(ams_id.c_str());
+                m_ams_setting_dlg->ams_id = ams_id_int;
+                m_ams_setting_dlg->ams_support_remain = obj->ams_support_remain;
+                m_ams_setting_dlg->Show();
+            }
+            catch (...) {
+                ;
+            }
         }
     }
 }
@@ -2586,7 +2596,7 @@ void StatusPanel::on_filament_extrusion_cali(wxCommandEvent &event)
         try {
             m_extrusion_cali_dlg->ams_id = ams_id_int;
             m_extrusion_cali_dlg->tray_id = tray_id_int;
-            m_extrusion_cali_dlg->SetPosition(m_ams_control->GetScreenPosition());
+            m_extrusion_cali_dlg->SetPosition(m_staticText_control->GetScreenPosition());
             m_extrusion_cali_dlg->Popup();
         } catch(...) {
             ;

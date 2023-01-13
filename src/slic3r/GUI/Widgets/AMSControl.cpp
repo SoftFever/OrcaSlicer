@@ -559,7 +559,7 @@ void AMSLib::render(wxDC &dc)
     if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND
         || m_info.material_state == AMSCanType::AMS_CAN_TYPE_BRAND
         || m_info.material_state == AMSCanType::AMS_CAN_TYPE_VIRTUAL) {
-        if (m_info.material_name.empty()) {
+        if (m_info.material_name.empty() &&  m_info.material_state != AMSCanType::AMS_CAN_TYPE_VIRTUAL) {
             auto tsize = dc.GetMultiLineTextExtent("?");
             auto pot = wxPoint(0, 0);
             if (m_show_kn) {
@@ -1337,6 +1337,18 @@ void AmsCans::AddCan(Caninfo caninfo, int canindex, int maxcan)
     m_can_road_list.Add(canroad);
 }
 
+
+void AmsCans::SetDefSelectCan()
+{
+    if (m_can_lib_list.GetCount() > 0) {
+        CanLibs* lib = m_can_lib_list[0];
+        m_canlib_selection =lib->canLib->m_can_index;
+        m_canlib_id = lib->canLib->m_info.can_id;
+        SelectCan(m_canlib_id);
+    }
+}
+
+
 void AmsCans::SelectCan(std::string canid)
 {
     for (auto i = 0; i < m_can_lib_list.GetCount(); i++) {
@@ -1699,9 +1711,10 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
     Bind(EVT_AMS_UNSELETED_VAMS, [this](wxCommandEvent& e) {
         m_current_ams = e.GetString().ToStdString();
+        SwitchAms(m_current_ams);
         m_vams_lib->UnSelected();
         e.Skip();
-        });
+    });
 
     wxBoxSizer* m_sizer_vams = new wxBoxSizer(wxVERTICAL);
     m_sizer_vams->Add(0, 0, 0, wxEXPAND | wxTOP, FromDIP(14));
@@ -1908,18 +1921,21 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_extrusion_cali->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_extrusion_cali), NULL, this);
     m_button_extruder_feed->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_filament_load), NULL, this);
     m_button_extruder_back->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(AMSControl::on_filament_unload), NULL, this);
+    
     m_button_ams_setting->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& e) {
         m_button_ams_setting->SetBitmap(m_button_ams_setting_hover.bmp());
         e.Skip();
-        });
+    });
     m_button_ams_setting->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         m_button_ams_setting->SetBitmap(m_button_ams_setting_press.bmp());
+        on_ams_setting_click(e);
         e.Skip();
-        });
+    });
+
     m_button_ams_setting->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
         m_button_ams_setting->SetBitmap(m_button_ams_setting_normal.bmp());
         e.Skip();
-        });
+    });
 
     Bind(EVT_AMS_SHOW_HUMIDITY_TIPS, [this](wxCommandEvent& evt) {
         wxPoint img_pos = ClientToScreen(wxPoint(0, 0));
@@ -2308,6 +2324,16 @@ void AMSControl::SwitchAms(std::string ams_id)
         if (item->amsItem->m_amsinfo.ams_id == ams_id) {
             item->amsItem->OnSelected();
             //item->amsItem->ShowHumidity();
+
+            if (m_current_ams == std::to_string(VIRTUAL_TRAY_ID)) {
+                for (auto i = 0; i < m_ams_cans_list.GetCount(); i++) {
+                    AmsCansWindow* ams = m_ams_cans_list[i];
+                    if (ams->amsCans->m_info.ams_id == ams_id) {
+                        ams->amsCans->SetDefSelectCan();
+                    }
+                }
+            }
+
             m_current_senect = ams_id;
         } else {
             item->amsItem->UnSelected();

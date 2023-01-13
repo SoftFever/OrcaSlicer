@@ -392,6 +392,7 @@ public:
     void     Update(AMSinfo info);
     void     create(wxWindow *parent, wxWindowID id, AMSinfo info, const wxPoint &pos, const wxSize &size);
     void     AddCan(Caninfo caninfo, int canindex, int maxcan);
+    void SetDefSelectCan();
     void     SelectCan(std::string canid);
     void     SetAmsStep(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step);
     //wxColour GetCanColour(wxString canid);
