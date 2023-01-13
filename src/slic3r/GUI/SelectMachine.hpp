@@ -260,6 +260,7 @@ enum PrintDialogStatus {
     PrintStatusNeedForceUpgrading,
     PrintStatusNeedConsistencyUpgrading,
     PrintStatusNotSupportedSendToSDCard,
+    PrintStatusNotSupportedPrintAll,
     PrintStatusBlankPlate
 };
 

@@ -92,6 +92,8 @@ std::string get_print_status_info(PrintDialogStatus status)
         return "PrintStatusNoSdcard";
     case PrintStatusTimelapseNoSdcard:
         return "PrintStatusTimelapseNoSdcard";
+    case PrintStatusNotSupportedPrintAll:
+        return "PrintStatusNotSupportedPrintAll";
     }
     return "unknown";
 }
@@ -1873,6 +1875,11 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusNotSupportedPrintAll) {
+        wxString msg_text = _L("This printer does not support printing all plates");
+        update_print_status_msg(msg_text, true, true);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
     }
 }
 
@@ -2612,6 +2619,12 @@ void SelectMachineDialog::update_show_status()
 
     reset_timeout();
     update_ams_check(obj_);
+
+    if (!obj_->is_function_supported(PrinterFunction::FUNC_PRINT_ALL) && m_print_plate_idx == PLATE_ALL_IDX) {
+        show_status(PrintDialogStatus::PrintStatusNotSupportedPrintAll);
+        return;
+    }
+
 
     // do ams mapping if no ams result
     if (obj_->has_ams() && m_ams_mapping_result.empty()) {

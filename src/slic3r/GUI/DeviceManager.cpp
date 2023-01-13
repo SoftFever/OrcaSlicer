@@ -2177,6 +2177,9 @@ bool MachineObject::is_function_supported(PrinterFunction func)
             return false;
         func_name = "FUNC_EXTRUSION_CALI";
         break;
+    case FUNC_PRINT_ALL:
+        func_name = "FUNC_PRINT_ALL";
+        break;
     default:
         return true;
     }

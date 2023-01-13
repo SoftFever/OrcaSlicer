@@ -88,6 +88,7 @@ enum PrinterFunction {
     FUNC_AUTO_SWITCH_FILAMENT,
     FUNC_CHAMBER_FAN,
     FUNC_EXTRUSION_CALI,
+    FUNC_PRINT_ALL,
     FUNC_MAX
 };
 
