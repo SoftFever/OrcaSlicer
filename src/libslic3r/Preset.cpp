@@ -752,7 +752,7 @@ static std::vector<std::string> s_Preset_print_options {
      "small_perimeter_speed", "small_perimeter_threshold","bridge_angle", "filter_out_gap_fill", "post_process", "travel_acceleration","inner_wall_acceleration",
      "default_jerk", "outer_wall_jerk", "inner_wall_jerk", "top_surface_jerk", "initial_layer_jerk","travel_jerk",
      "top_solid_infill_flow_ratio","bottom_solid_infill_flow_ratio","only_one_wall_first_layer",
-     "print_flow_ratio"
+     "print_flow_ratio","seam_gap"
 
 };
 
@@ -777,7 +777,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "filament_wipe_distance", "additional_cooling_fan_speed",
     "bed_temperature_difference", "nozzle_temperature_range_low", "nozzle_temperature_range_high",
     //SoftFever
-    "enable_pressure_advance", "pressure_advance","chamber_temperature"
+    "enable_pressure_advance", "pressure_advance","chamber_temperature" /*,"filament_seam_gap"*/
 };
 
 static std::vector<std::string> s_Preset_machine_limits_options {

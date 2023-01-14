@@ -2370,6 +2370,17 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Random"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<SeamPosition>(spAligned));
+    
+    
+    def = this->add("seam_gap", coFloatOrPercent);
+    def->label = L("Seam gap");
+    def->tooltip = L("To avoid visible seam, the extrusion can be stoppped a bit before the end of the loop."
+                    "\nCan be a mm or a % of the current extruder diameter.");
+    def->sidetext = L("mm or %");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(15,true));
+
 
     def = this->add("skirt_distance", coFloat);
     def->label = L("Skirt distance");
@@ -3351,7 +3362,7 @@ void PrintConfigDef::init_filament_option_keys()
         "retraction_length", "z_hop", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "filament_colour",
-        "default_filament_profile"
+        "default_filament_profile"/*,"filament_seam_gap"*/
     };
 
     m_filament_retract_keys = {

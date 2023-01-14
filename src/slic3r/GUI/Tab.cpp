@@ -1834,6 +1834,8 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Seam"), L"param_seam");
         optgroup->append_single_option_line("seam_position", "Seam");
+        optgroup->append_single_option_line("seam_gap","Seam");
+
 
         optgroup = page->new_optgroup(L("Precision"), L"param_precision");
         optgroup->append_single_option_line("slice_closing_radius");
@@ -2468,7 +2470,9 @@ void TabFilament::add_filament_overrides_page()
                                         "filament_wipe",
                                         //BBS
                                         "filament_wipe_distance",
-                                        "filament_retract_before_wipe"
+                                        "filament_retract_before_wipe",
+                                        //SoftFever
+                                        // "filament_seam_gap"
                                      })
         append_single_option_line(opt_key, extruder_idx);
 }
@@ -2499,7 +2503,9 @@ void TabFilament::update_filament_overrides_page()
                                             "filament_wipe",
                                             //BBS
                                             "filament_wipe_distance",
-                                            "filament_retract_before_wipe"
+                                            "filament_retract_before_wipe",
+                                            //SoftFever
+                                            // "filament_seam_gap"
                                         };
 
     const int extruder_idx = 0; // #ys_FIXME
