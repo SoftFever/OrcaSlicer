@@ -655,6 +655,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     toggle_field("detect_thin_wall", !have_arachne);
     toggle_field("enable_overhang_speed", !have_arachne);
     toggle_field("only_one_wall_top", !have_arachne);
+    
+    // SoftFever
+    auto is_role_based_wipe_speed = config->opt_bool("role_based_wipe_speed");
+    toggle_field("wipe_speed",!is_role_based_wipe_speed);
+    
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

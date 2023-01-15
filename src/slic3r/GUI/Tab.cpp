@@ -1835,6 +1835,8 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Seam"), L"param_seam");
         optgroup->append_single_option_line("seam_position", "Seam");
         optgroup->append_single_option_line("seam_gap","Seam");
+        optgroup->append_single_option_line("role_based_wipe_speed","Seam");
+        optgroup->append_single_option_line("wipe_speed","Seam");
 
 
         optgroup = page->new_optgroup(L("Precision"), L"param_precision");
