@@ -20,7 +20,7 @@
 #define TIMEOUT_FOR_STRAT       20000.f     // milliseconds
 #define REQUEST_PUSH_MIN_TIME   15000.f     // milliseconds
 #define REQUEST_START_MIN_TIME  15000.f     // milliseconds
-#define EXTRUSION_OMIT_TIME     10000.f     // milliseconds
+#define EXTRUSION_OMIT_TIME     20000.f     // milliseconds
 
 #define FILAMENT_MAX_TEMP       300
 #define FILAMENT_DEF_TEMP       220
