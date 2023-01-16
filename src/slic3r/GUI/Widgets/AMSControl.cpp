@@ -2055,6 +2055,8 @@ void AMSControl::SetActionState(AMSAction action, bool support_virtual_tray)
 
 void AMSControl::EnterNoneAMSMode()
 {
+    m_simplebook_amsitems->Hide();
+    m_panel_top->Hide();
     m_simplebook_amsitems->SetSelection(1);
     m_simplebook_ams->SetSelection(1);
     m_extruder->Hide();
@@ -2064,10 +2066,16 @@ void AMSControl::EnterNoneAMSMode()
     m_button_extruder_feed->Hide();
     m_button_extruder_back->Hide();
     ShowFilamentTip(false);
+   
+    m_amswin->Layout();
+    m_amswin->Fit();
+    Layout();
 }
 
 void AMSControl::ExitNoneAMSMode()
 {
+    m_simplebook_amsitems->Show();
+    m_panel_top->Show();
     m_simplebook_ams->SetSelection(0);
     m_simplebook_amsitems->SetSelection(0);
     m_extruder->Show();
@@ -2077,6 +2085,9 @@ void AMSControl::ExitNoneAMSMode()
     m_button_extruder_feed->Show();
     m_button_extruder_back->Show();
     ShowFilamentTip(true);
+    m_amswin->Layout();
+    m_amswin->Fit();
+    Layout();
 }
 
 void AMSControl::EnterCalibrationMode(bool read_to_calibration)
