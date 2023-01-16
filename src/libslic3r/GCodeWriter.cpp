@@ -504,6 +504,9 @@ std::string GCodeWriter::extrude_to_xy(const Vec2d &point, double dE, const std:
 {
     m_pos(0) = point(0);
     m_pos(1) = point(1);
+    if(std::abs(dE) <= std::numeric_limits<double>::epsilon())
+        force_no_extrusion = true;
+    
     if (!force_no_extrusion)
         m_extruder->extrude(dE);
 
