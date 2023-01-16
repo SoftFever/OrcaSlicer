@@ -104,11 +104,46 @@ inline std::string get_transform_string(int bytes)
 
 void SendJob::process()
 {
-    /* display info */
+    BBL::PrintParams params;
     wxString msg;
     int curr_percent = 10;
     NetworkAgent* m_agent = wxGetApp().getAgent();
     AppConfig* config = wxGetApp().app_config;
+    int result = -1;
+    unsigned int http_code;
+    std::string http_body;
+
+
+    // check access code and ip address
+    params.dev_id = m_dev_id;
+    params.project_name = "verify_job";
+    params.filename = job_data._temp_path.string();
+    params.connection_type = this->connection_type;
+
+    // local print access
+    params.dev_ip = m_dev_ip;
+    params.username = "bblp";
+    params.password = m_access_code;
+    params.use_ssl = m_local_use_ssl;
+
+    result = m_agent->start_send_gcode_to_sdcard(params, nullptr, nullptr);
+    if (result != 0) {
+        BOOST_LOG_TRIVIAL(error) << "access code is invalid";
+        m_enter_ip_address_fun_fail();
+        if (m_is_check_mode) {
+            m_job_finished = true;
+            return;
+        }
+    }
+    else {
+        if (m_is_check_mode) {
+            m_enter_ip_address_fun_success();
+            m_job_finished = true;
+            return;
+        }
+    }
+
+    /* display info */
 
     if (this->connection_type == "lan") {
         msg = _L("Sending gcode file over LAN");
@@ -116,10 +151,6 @@ void SendJob::process()
     else {
         msg = _L("Sending gcode file through cloud service");
     }
-
-    int result = -1;
-    unsigned int http_code;
-    std::string http_body;
 
     int total_plate_num = m_plater->get_partplate_list().get_plate_count();
 
@@ -148,7 +179,6 @@ void SendJob::process()
     else if (job_data.plate_idx == PLATE_CURRENT_IDX)
         curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
 
-    BBL::PrintParams params;
     params.dev_id = m_dev_id;
     params.project_name = m_project_name + ".gcode.3mf";
     params.preset_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();
@@ -305,7 +335,6 @@ void SendJob::process()
             if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
                 msg_text += ". ";
                 msg_text += _L("Please log out and login to the printer again.");
-                m_enter_ip_address_fun();
             }
             else {
                 msg_text += wxString::Format("[%s]", error_text);
@@ -314,7 +343,6 @@ void SendJob::process()
 
         if (result == BAMBU_NETWORK_ERR_WRONG_IP_ADDRESS) {
             msg_text = _L("Failed uploading print file. Please enter ip address again.");
-            m_enter_ip_address_fun();
         }
             
         update_status(curr_percent, msg_text);
@@ -333,11 +361,15 @@ void SendJob::on_success(std::function<void()> success)
 	m_success_fun = success;
 }
 
-void SendJob::on_enter_ip_address(std::function<void()> success)
+void SendJob::on_check_ip_address_fail(std::function<void()> func)
 {
-    m_enter_ip_address_fun = success;
+    m_enter_ip_address_fun_fail = func;
 }
 
+void SendJob::on_check_ip_address_success(std::function<void()> func)
+{
+    m_enter_ip_address_fun_success = func;
+}
 
 
 void SendJob::finalize() {

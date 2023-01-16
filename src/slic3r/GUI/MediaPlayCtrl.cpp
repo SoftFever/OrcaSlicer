@@ -85,7 +85,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_camera_exists = obj->has_ipcam;
         m_lan_mode      = obj->is_lan_mode_printer();
         m_lan_ip       = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->dev_ip : "";
-        m_lan_passwd    = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->access_code : "";
+        m_lan_passwd    = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->get_access_code() : "";
         m_tutk_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
     } else {
         m_camera_exists = false;
@@ -233,7 +233,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
     ++m_failed_retry;
     if (m_failed_code != 0 && !m_tutk_support) {
         m_next_retry = wxDateTime(); // stop retry
-        if (wxGetApp().show_ip_address_enter_dialog()) {
+        if (wxGetApp().show_modal_ip_address_enter_dialog(_L("Failed to start liveview"))) {
             m_failed_retry = 0;
             m_next_retry   = wxDateTime::Now();
         }

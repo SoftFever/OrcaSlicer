@@ -2327,6 +2327,8 @@ bool GUI_App::on_init_inner()
 
     Bind(EVT_USER_LOGIN, &GUI_App::on_user_login, this);
 
+    Bind(EVT_SHOW_IP_DIALOG, &GUI_App::show_ip_address_enter_dialog_handler, this);
+
     copy_network_if_available();
     on_init_network();
 
@@ -4559,17 +4561,27 @@ void GUI_App::update_mode()
     plater()->canvas3D()->update_gizmos_on_off_state();
 }
 
-bool  GUI_App::show_ip_address_enter_dialog()
+void GUI_App::show_ip_address_enter_dialog(wxString title)
+{
+    auto evt = new wxCommandEvent(EVT_SHOW_IP_DIALOG);
+    evt->SetString(title);
+    wxQueueEvent(this, evt);
+}
+
+bool GUI_App::show_modal_ip_address_enter_dialog(wxString title)
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return false;
     if (!dev->get_selected_machine()) return false;
     auto obj = dev->get_selected_machine();
-    InputIpAddressDialog dlg(nullptr, from_u8(dev->get_selected_machine()->dev_name), dev->get_selected_machine()->dev_ip, dev->get_selected_machine()->access_code);
+    InputIpAddressDialog dlg(nullptr);
+    dlg.set_machine_obj(obj);
+    if (!title.empty()) dlg.update_title(title);
+
     dlg.Bind(EVT_ENTER_IP_ADDRESS, [this, obj](wxCommandEvent& e) {
         auto selection_data_arr = wxSplit(e.GetString().ToStdString(), '|');
 
-        if (selection_data_arr.size() != 2) return false;
+        if (selection_data_arr.size() != 2) return;
 
         auto ip_address = selection_data_arr[0];
         auto access_code = selection_data_arr[1];
@@ -4579,18 +4591,21 @@ bool  GUI_App::show_ip_address_enter_dialog()
             wxGetApp().app_config->set_str("ip_address", obj->dev_id, ip_address.ToStdString());
             wxGetApp().app_config->save();
 
-            obj->set_access_code(access_code.ToStdString());
             obj->dev_ip = ip_address.ToStdString();
-            obj->access_code = access_code.ToStdString();
-        }
-        return true;
+            obj->set_user_access_code(access_code.ToStdString());
+        }    
     });
 
     if (dlg.ShowModal() == wxID_YES) {
         return true;
     }
-
     return false;
+}
+
+void  GUI_App::show_ip_address_enter_dialog_handler(wxCommandEvent& evt)
+{
+    wxString title = evt.GetString();
+    show_modal_ip_address_enter_dialog(title);
 }
 
 //void GUI_App::add_config_menu(wxMenuBar *menu)

@@ -306,9 +306,34 @@ void MachineObject::set_access_code(std::string code)
 {
     this->access_code = code;
     AppConfig *config = GUI::wxGetApp().app_config;
-    if (config) {
+    if (config && !code.empty()) {
         GUI::wxGetApp().app_config->set_str("access_code", dev_id, code);
     }
+}
+
+std::string MachineObject::get_access_code()
+{
+    if (get_user_access_code().empty())
+        return access_code;
+    return get_user_access_code();
+}
+
+void MachineObject::set_user_access_code(std::string code)
+{
+    this->user_access_code = code;
+    AppConfig* config = GUI::wxGetApp().app_config;
+    if (config) {
+        GUI::wxGetApp().app_config->set_str("user_access_code", dev_id, code);
+    }
+}
+
+std::string MachineObject::get_user_access_code()
+{
+    AppConfig* config = GUI::wxGetApp().app_config;
+    if (config) {
+        return GUI::wxGetApp().app_config->get("user_access_code", dev_id);
+    }
+    return "";
 }
 
 bool MachineObject::is_lan_mode_printer()
@@ -3618,7 +3643,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
             //load access code
             AppConfig* config = Slic3r::GUI::wxGetApp().app_config;
             if (config) {
-                obj->access_code = Slic3r::GUI::wxGetApp().app_config->get("access_code", dev_id);
+                obj->set_access_code(Slic3r::GUI::wxGetApp().app_config->get("access_code", dev_id));
             }
             localMachineList.insert(std::make_pair(dev_id, obj));
 

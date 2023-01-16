@@ -371,33 +371,6 @@ private:
     wxString msg;
 };
 
-class InputIpAddressDialog: public DPIDialog
-{
-public:
-	wxString comfirm_before_enter_text;
-	wxString comfirm_after_enter_text;
-	std::string m_ip;
-	Label* tip{nullptr};
-    InputIpAddressDialog(wxWindow* parent = nullptr, wxString name = wxEmptyString,  wxString id = wxEmptyString, wxString access_code = wxEmptyString);
-	~InputIpAddressDialog();
-
-	Button* m_button_ok{nullptr};
-	Label*	   m_tips_ip{nullptr};
-	Label*	   m_tips_access_code{nullptr};
-	TextInput* m_input_ip{nullptr};
-	TextInput* m_input_access_code{nullptr};
-	Label*	   m_tips_note1{nullptr};
-	Label*	   m_tips_note2{nullptr};
-	Label*	   m_tips_note3{nullptr};
-    bool isIp(std::string ipstr);
-	void on_ok(wxMouseEvent& evt);
-	void on_text(wxCommandEvent& evt);
-    void on_dpi_changed(const wxRect& suggested_rect) override;
-};
-
-
-wxDECLARE_EVENT(EVT_CHECKBOX_CHANGE, wxCommandEvent);
-wxDECLARE_EVENT(EVT_ENTER_IP_ADDRESS, wxCommandEvent);
 
 }
 }

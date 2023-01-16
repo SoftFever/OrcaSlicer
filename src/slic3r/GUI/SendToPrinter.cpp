@@ -649,16 +649,23 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 
     m_send_job                      = std::make_shared<SendJob>(m_status_bar, m_plater, m_printer_last_select);
     m_send_job->m_dev_ip            = obj_->dev_ip;
-    m_send_job->m_access_code       = obj_->access_code;
+    
+    m_send_job->m_access_code = obj_->get_access_code();
     m_send_job->m_local_use_ssl     = obj_->local_use_ssl;
     m_send_job->connection_type     = obj_->connection_type();
     m_send_job->cloud_print_only    = true;
     m_send_job->has_sdcard          = obj_->has_sdcard();
     m_send_job->set_project_name(m_current_project_name.utf8_string());
 
-    m_send_job->on_enter_ip_address([this, obj_]() {
+    /*m_send_job->on_check_ip_address_success([this, obj_]() {
         wxCommandEvent* evt = new wxCommandEvent(EVT_CLEAR_IPADDRESS);
         wxQueueEvent(this, evt);
+    });*/
+
+    m_send_job->on_check_ip_address_fail([this]() {
+        wxCommandEvent* evt = new wxCommandEvent(EVT_CLEAR_IPADDRESS);
+        wxQueueEvent(this, evt);
+        wxGetApp().show_ip_address_enter_dialog();
     });
 
     enable_prepare_mode = false;
@@ -668,13 +675,15 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 
 void SendToPrinterDialog::clear_ip_address_config(wxCommandEvent& e)
 {
-    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    enable_prepare_mode = true;
+    prepare_mode();
+    /*DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
     if (!dev->get_selected_machine()) return;
     auto obj = dev->get_selected_machine();
     Slic3r::GUI::wxGetApp().app_config->set_str("ip_address", obj->dev_id, "");
     Slic3r::GUI::wxGetApp().app_config->save();
-    wxGetApp().show_ip_address_enter_dialog();
+    wxGetApp().show_ip_address_enter_dialog();*/
 }
 
 void SendToPrinterDialog::update_user_machine_list()
@@ -859,18 +868,12 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
     }
 
     //check ip address
-    if (obj->dev_ip.empty()) {
+    if (obj->dev_ip.empty() || obj->get_access_code().empty()) {
         BOOST_LOG_TRIVIAL(info) << "MachineObject IP is empty ";
         std::string app_config_dev_ip = Slic3r::GUI::wxGetApp().app_config->get("ip_address", obj->dev_id);
-        std::string app_config_access_code = Slic3r::GUI::wxGetApp().app_config->get("access_code", obj->dev_id);
-
-        if (app_config_dev_ip.empty()) {
+        if (app_config_dev_ip.empty() || obj->get_access_code().empty()) {
             wxGetApp().show_ip_address_enter_dialog();
         }
-        else {
-            obj->dev_ip = app_config_dev_ip;
-            obj->access_code = app_config_access_code;
-        }  
     }
 
     update_show_status();

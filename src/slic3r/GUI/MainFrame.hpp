@@ -373,6 +373,7 @@ public:
 
 wxDECLARE_EVENT(EVT_HTTP_ERROR, wxCommandEvent);
 wxDECLARE_EVENT(EVT_USER_LOGIN, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SHOW_IP_DIALOG, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UPDATE_PRESET_CB, SimpleEvent);
 
 } // GUI

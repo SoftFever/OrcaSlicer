@@ -437,7 +437,9 @@ public:
     ConfigOptionMode get_mode();
     void            save_mode(const /*ConfigOptionMode*/int mode) ;
     void            update_mode();
-    bool            show_ip_address_enter_dialog();
+    void            show_ip_address_enter_dialog(wxString title = wxEmptyString);
+    void            show_ip_address_enter_dialog_handler(wxCommandEvent &evt);
+    bool            show_modal_ip_address_enter_dialog(wxString title);
 
     // BBS
     //void            add_config_menu(wxMenuBar *menu);
