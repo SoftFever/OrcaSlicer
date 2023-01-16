@@ -21,6 +21,7 @@
 #define REQUEST_PUSH_MIN_TIME   15000.f     // milliseconds
 #define REQUEST_START_MIN_TIME  15000.f     // milliseconds
 #define EXTRUSION_OMIT_TIME     20000.f     // milliseconds
+#define HOLD_TIMEOUT            10000.f     // milliseconds
 
 #define FILAMENT_MAX_TEMP       300
 #define FILAMENT_DEF_TEMP       220
@@ -459,6 +460,8 @@ public:
 
     int extrusion_cali_hold_count = 0;
     std::chrono::system_clock::time_point last_extrusion_cali_start_time;
+    int extrusion_cali_set_tray_id = -1;
+    std::chrono::system_clock::time_point extrusion_cali_set_hold_start;
 
     bool is_in_extrusion_cali();
     bool is_extrusion_cali_finished();

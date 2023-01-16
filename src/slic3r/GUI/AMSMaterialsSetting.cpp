@@ -360,11 +360,11 @@ void AMSMaterialsSetting::update()
 
 void AMSMaterialsSetting::enable_confirm_button(bool en)
 {
-    if (!m_is_third) { 
+    m_button_confirm->Show(en);
+    if (!m_is_third) {
         m_tip_readonly->Hide(); 
     }
     else {
-        m_button_confirm->Show(en);
         m_comboBox_filament->Show(en);
         m_readonly_filament->Show(!en);
         m_tip_readonly->Show(!en);

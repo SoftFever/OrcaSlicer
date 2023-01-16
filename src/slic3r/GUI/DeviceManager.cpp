@@ -3037,10 +3037,12 @@ int MachineObject::parse_json(std::string payload)
                                         } else {
                                             curr_tray->remain = -1;
                                         }
+                                        int ams_id_int = 0;
+                                        int tray_id_int = 0;
                                         try {
                                             if (!ams_id.empty() && !curr_tray->id.empty()) {
-                                                int ams_id_int = atoi(ams_id.c_str());
-                                                int tray_id_int = atoi(curr_tray->id.c_str());
+                                                ams_id_int = atoi(ams_id.c_str());
+                                                tray_id_int = atoi(curr_tray->id.c_str());
                                                 curr_tray->is_exists = (tray_exist_bits & (1 << (ams_id_int * 4 + tray_id_int))) != 0 ? true : false;
                                             }
                                         }
@@ -3049,11 +3051,19 @@ int MachineObject::parse_json(std::string payload)
                                         if (tray_it->contains("setting_id")) {
                                             curr_tray->filament_setting_id = (*tray_it)["setting_id"].get<std::string>();
                                         }
-                                        if (tray_it->contains("k")) {
-                                            curr_tray->k = (*tray_it)["k"].get<float>();
-                                        }
-                                        if (tray_it->contains("n")) {
-                                            curr_tray->n = (*tray_it)["n"].get<float>();
+
+                                        
+                                        auto curr_time = std::chrono::system_clock::now();
+                                        auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - extrusion_cali_set_hold_start);
+                                        if (diff.count() > HOLD_TIMEOUT || diff.count() < 0
+                                            || ams_id_int != (extrusion_cali_set_tray_id / 4)
+                                            || tray_id_int != (extrusion_cali_set_tray_id % 4)) {
+                                            if (tray_it->contains("k")) {
+                                                curr_tray->k = (*tray_it)["k"].get<float>();
+                                            }
+                                            if (tray_it->contains("n")) {
+                                                curr_tray->n = (*tray_it)["n"].get<float>();
+                                            }
                                         }
                                     }
                                     // remove not in trayList
@@ -3084,10 +3094,15 @@ int MachineObject::parse_json(std::string payload)
                         if (jj.contains("vt_tray")) {
                             if (jj["vt_tray"].contains("id"))
                                 vt_tray.id = jj["vt_tray"]["id"].get<std::string>();
-                            if (jj["vt_tray"].contains("k"))
-                                vt_tray.k = jj["vt_tray"]["k"].get<float>();
-                            if (jj["vt_tray"].contains("n"))
-                                vt_tray.n = jj["vt_tray"]["n"].get<float>();
+                            auto curr_time = std::chrono::system_clock::now();
+                            auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - extrusion_cali_set_hold_start);
+                            if (diff.count() > HOLD_TIMEOUT || diff.count() < 0
+                                || extrusion_cali_set_tray_id != VIRTUAL_TRAY_ID) {
+                                if (jj["vt_tray"].contains("k"))
+                                    vt_tray.k = jj["vt_tray"]["k"].get<float>();
+                                if (jj["vt_tray"].contains("n"))
+                                    vt_tray.n = jj["vt_tray"]["n"].get<float>();
+                            }
                             ams_support_virtual_tray = true;
                         } else {
                             ams_support_virtual_tray = false;
@@ -3197,9 +3212,10 @@ int MachineObject::parse_json(std::string payload)
                 } else if (jj["command"].get<std::string>() == "extrusion_cali_set") {
                     int ams_id = -1;
                     int tray_id = -1;
+                    int curr_tray_id = -1;
                     if (jj.contains("tray_id")) {
                         try {
-                            int curr_tray_id = jj["tray_id"].get<int>();
+                            curr_tray_id = jj["tray_id"].get<int>();
                             if (curr_tray_id == VIRTUAL_TRAY_ID)
                                 tray_id = curr_tray_id;
                             else if (curr_tray_id >= 0 && curr_tray_id < 16){
@@ -3230,6 +3246,8 @@ int MachineObject::parse_json(std::string payload)
                             }
                         }
                     }
+                    extrusion_cali_set_tray_id = curr_tray_id;
+                    extrusion_cali_set_hold_start = std::chrono::system_clock::now();
                 }
             }
         }
