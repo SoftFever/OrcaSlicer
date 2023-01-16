@@ -33,11 +33,11 @@ jobs:
         name: build deps
         working-directory: ${{ github.workspace }}
         continue-on-error: true
-        run: ./BuildLinux.sh -dsr
+        run: ./BuildLinux.sh -dr
 
       - name: Build Studio
         shell: bash
-        run: ./BuildLinux.sh -ir
+        run: ./BuildLinux.sh -isr
       - uses: actions/upload-artifact@v3
         with:
           name: BambuStudio-SoftFever_Linux
