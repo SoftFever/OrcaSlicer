@@ -599,8 +599,8 @@ void AMSLib::render(wxDC &dc)
 
         //draw k&n
         if (m_show_kn) {
-            wxString str_k = wxString::Format("k %1.3f", m_info.k);
-            wxString str_n = wxString::Format("n %1.3f", m_info.n);
+            wxString str_k = wxString::Format("K %1.3f", m_info.k);
+            wxString str_n = wxString::Format("N %1.3f", m_info.n);
             dc.SetFont(::Label::Body_11);
             auto tsize = dc.GetMultiLineTextExtent(str_k);
             auto pot_k = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(9) + tsize.y);
@@ -1585,7 +1585,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_none_ams_panel->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
     //m_none_ams_panel->SetDoubleBuffered(true);
 
-    auto m_tip_none_ams = new wxStaticText(m_none_ams_panel, wxID_ANY, _L("NO AMS"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
+    auto m_tip_none_ams = new wxStaticText(m_none_ams_panel, wxID_ANY, _L("AMS not connected"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
     m_tip_none_ams->SetMinSize(wxSize(AMS_CANS_SIZE.x - FromDIP(20), -1));
     m_tip_none_ams->SetFont(::Label::Head_16);
     m_tip_none_ams->SetForegroundColour(AMS_CONTROL_DISABLE_COLOUR);

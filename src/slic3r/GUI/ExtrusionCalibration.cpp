@@ -423,6 +423,7 @@ void ExtrusionCalibration::update()
                 show_info(true, true, tips);
             }
             else {
+                get_bed_type_incompatible(true);
                 show_info(true, false, _L("Calibration completed"));
             }
             m_cali_cancel->Hide();
@@ -433,6 +434,7 @@ void ExtrusionCalibration::update()
                 wxString tips = get_bed_type_incompatible(false);
                 show_info(true, true, tips);
             } else {
+                get_bed_type_incompatible(true);
                 show_info(true, false, wxEmptyString);
             }
             m_cali_cancel->Hide();
