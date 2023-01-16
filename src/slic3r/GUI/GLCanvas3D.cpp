@@ -1044,22 +1044,30 @@ const double GLCanvas3D::DefaultCameraZoomToPlateMarginFactor = 1.25;
 void GLCanvas3D::load_arrange_settings()
 {
     std::string dist_fff_str =
-        wxGetApp().app_config->get("arrange", "min_object_distance");
+        wxGetApp().app_config->get("arrange", "min_object_distance_fff");
 
     std::string dist_fff_seq_print_str =
-        wxGetApp().app_config->get("arrange", "min_object_distance_seq_print");
+        wxGetApp().app_config->get("arrange", "min_object_distance_seq_print_fff");
 
     std::string dist_sla_str =
         wxGetApp().app_config->get("arrange", "min_object_distance_sla");
 
     std::string en_rot_fff_str =
-        wxGetApp().app_config->get("arrange", "enable_rotation");
+        wxGetApp().app_config->get("arrange", "enable_rotation_fff");
 
     std::string en_rot_fff_seqp_str =
         wxGetApp().app_config->get("arrange", "enable_rotation_seq_print");
 
     std::string en_rot_sla_str =
         wxGetApp().app_config->get("arrange", "enable_rotation_sla");
+    
+    std::string en_allow_multiple_materials_str =
+        wxGetApp().app_config->get("arrange", "allow_multi_materials_on_same_plate");
+    
+    std::string en_avoid_region_str =
+        wxGetApp().app_config->get("arrange", "avoid_extrusion_cali_region");
+    
+    
 
     if (!dist_fff_str.empty())
         m_arrange_settings_fff.distance = std::stof(dist_fff_str);
@@ -1071,13 +1079,20 @@ void GLCanvas3D::load_arrange_settings()
         m_arrange_settings_sla.distance = std::stof(dist_sla_str);
 
     if (!en_rot_fff_str.empty())
-        m_arrange_settings_fff.enable_rotation = (en_rot_fff_str == "1" || en_rot_fff_str == "yes");
+        m_arrange_settings_fff.enable_rotation = (en_rot_fff_str == "1" || en_rot_fff_str == "true");
+    
+    if (!en_allow_multiple_materials_str.empty())
+        m_arrange_settings_fff.allow_multi_materials_on_same_plate = (en_allow_multiple_materials_str == "1" || en_allow_multiple_materials_str == "true");
+    
 
     if (!en_rot_fff_seqp_str.empty())
-        m_arrange_settings_fff_seq_print.enable_rotation = (en_rot_fff_seqp_str == "1" || en_rot_fff_seqp_str == "yes");
+        m_arrange_settings_fff_seq_print.enable_rotation = (en_rot_fff_seqp_str == "1" || en_rot_fff_seqp_str == "true");
+    
+    if(!en_avoid_region_str.empty())
+        m_arrange_settings_fff.avoid_extrusion_cali_region = (en_avoid_region_str == "1" || en_avoid_region_str == "true");
 
     if (!en_rot_sla_str.empty())
-        m_arrange_settings_sla.enable_rotation = (en_rot_sla_str == "1" || en_rot_sla_str == "yes");
+        m_arrange_settings_sla.enable_rotation = (en_rot_sla_str == "1" || en_rot_sla_str == "true");
 
     //BBS: add specific arrange settings
     m_arrange_settings_fff_seq_print.is_seq_print = true;
@@ -5122,13 +5137,13 @@ bool GLCanvas3D::_render_orient_menu(float left, float right, float bottom, floa
 
     if (imgui->checkbox(_L("Enable rotation"), settings.enable_rotation)) {
         settings_out.enable_rotation = settings.enable_rotation;
-        appcfg->set("orient", rot_key, settings_out.enable_rotation ? "1" : "0");
+        appcfg->set("orient", rot_key, settings_out.enable_rotation);
         settings_changed = true;
     }
 
     if (imgui->checkbox(_L("Optimize support interface area"), settings.min_area)) {
         settings_out.min_area = settings.min_area;
-        appcfg->set("orient", key_min_area, settings_out.min_area ? "1" : "0");
+        appcfg->set("orient", key_min_area, settings_out.min_area);
         settings_changed = true;
     }
 
@@ -5145,8 +5160,8 @@ bool GLCanvas3D::_render_orient_menu(float left, float right, float bottom, floa
         settings_out = OrientSettings{};
         settings_out.overhang_angle = 60.f;
         appcfg->set("orient", angle_key, std::to_string(settings_out.overhang_angle));
-        appcfg->set("orient", rot_key, settings_out.enable_rotation ? "1" : "0");
-        appcfg->set("orient", key_min_area, settings_out.min_area? "1" : "0");
+        appcfg->set("orient", rot_key, settings_out.enable_rotation );
+        appcfg->set("orient", key_min_area, settings_out.min_area);
         settings_changed = true;
     }
 
@@ -5240,13 +5255,13 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     ImGui::Separator();
     if (imgui->bbl_checkbox(_L("Auto rotate for arrangement"), settings.enable_rotation)) {
         settings_out.enable_rotation = settings.enable_rotation;
-        appcfg->set("arrange", rot_key.c_str(), settings_out.enable_rotation? "1" : "0");
+        appcfg->set("arrange", rot_key.c_str(), settings_out.enable_rotation);
         settings_changed = true;
     }
 
     if (imgui->bbl_checkbox(_L("Allow multiple materials on same plate"), settings.allow_multi_materials_on_same_plate)) {
         settings_out.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
-        appcfg->set("arrange", multi_material_key.c_str(), settings_out.allow_multi_materials_on_same_plate ? "1" : "0");
+        appcfg->set("arrange", multi_material_key.c_str(), settings_out.allow_multi_materials_on_same_plate );
         settings_changed = true;
     }
 
@@ -5256,7 +5271,7 @@ bool GLCanvas3D::_render_arrange_menu(float left, float right, float bottom, flo
     if (op && op->getBool()) {
         if (imgui->bbl_checkbox(_L("Avoid extrusion calibration region"), settings.avoid_extrusion_cali_region)) {
             settings_out.avoid_extrusion_cali_region = settings.avoid_extrusion_cali_region;
-            appcfg->set("arrange", avoid_extrusion_key.c_str(), settings_out.avoid_extrusion_cali_region ? "1" : "0");
+            appcfg->set("arrange", avoid_extrusion_key.c_str(), settings_out.avoid_extrusion_cali_region);
             settings_changed = true;
         }
     } else {

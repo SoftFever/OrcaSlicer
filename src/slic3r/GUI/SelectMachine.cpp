@@ -1361,6 +1361,9 @@ wxWindow *SelectMachineDialog::create_ams_checkbox(wxString title, wxWindow *par
 
     checkbox->SetToolTip(tooltip);
     text->SetToolTip(tooltip);
+    ams_check->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &e) {
+        wxGetApp().app_config->set("bbl_machine", "use_ams", ams_check->GetValue());
+    });
 
     text->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent & event) {
             ams_check->SetValue(ams_check->GetValue() ? false : true);
@@ -1398,6 +1401,10 @@ wxWindow *SelectMachineDialog::create_item_checkbox(wxString title, wxWindow *pa
     checkbox->SetToolTip(tooltip);
     text->SetToolTip(tooltip);
 
+    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, param, check](wxCommandEvent &e) {
+        wxGetApp().app_config->set("bbl_machine",param.c_str(), check->GetValue());
+    });
+    
     text->Bind(wxEVT_LEFT_DOWN, [this, check](wxMouseEvent &) { check->SetValue(check->GetValue() ? false : true); });
     m_checkbox_list[param] = check;
     return checkbox;
@@ -1407,12 +1414,18 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
 {
     if (obj && obj->is_function_supported(PrinterFunction::FUNC_FLOW_CALIBRATION)) {
         select_flow->Show();
+        auto flow_cali_str = wxGetApp().app_config->get("bbl_machine", "flow_cali");
+        if(!flow_cali_str.empty())
+            m_checkbox_list["flow_cali"]->SetValue(flow_cali_str == "1" || flow_cali_str == "true");
     } else {
         select_flow->Hide();
     }
 
     if (obj && obj->is_function_supported(PrinterFunction::FUNC_AUTO_LEVELING)) {
         select_bed->Show();
+        auto bed_leveling_str = wxGetApp().app_config->get("bbl_machine", "bed_leveling");
+        if(!bed_leveling_str.empty())
+            m_checkbox_list["bed_leveling"]->SetValue(bed_leveling_str == "1" || bed_leveling_str == "true");
     } else {
         select_bed->Hide();
     }
@@ -1421,6 +1434,9 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
         && obj->is_support_print_with_timelapse()
         && is_show_timelapse()) {
         select_timelapse->Show();
+        auto timelapse_str = wxGetApp().app_config->get("bbl_machine", "timelapse");
+        if(!timelapse_str.empty())
+            m_checkbox_list["timelapse"]->SetValue(timelapse_str == "1" || timelapse_str == "true");
     } else {
         select_timelapse->Hide();
     }
@@ -2533,6 +2549,9 @@ void SelectMachineDialog::update_ams_check(MachineObject* obj)
         && obj->ams_support_use_ams
         && obj->has_ams()) {
         select_use_ams->Show();
+        auto use_ams_str = wxGetApp().app_config->get("bbl_machine", "use_ams");
+        if(!use_ams_str.empty())
+            ams_check->SetValue(use_ams_str == "1" || use_ams_str == "true");
     } else {
         select_use_ams->Hide();
     }
