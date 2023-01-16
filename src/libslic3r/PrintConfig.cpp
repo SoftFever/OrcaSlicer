@@ -511,7 +511,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("°C");
     def->full_label = L("Bed temperature");
     def->min = 0;
-    def->max = 120;
+    def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 35 });
 
     def = this->add("eng_plate_temp", coInts);
@@ -521,7 +521,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("°C");
     def->full_label = L("Bed temperature");
     def->min = 0;
-    def->max = 120;
+    def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 45 });
 
     def = this->add("hot_plate_temp", coInts);
@@ -531,7 +531,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("°C");
     def->full_label = L("Bed temperature");
     def->min = 0;
-    def->max = 120;
+    def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 45 });
 
     def             = this->add("textured_plate_temp", coInts);
@@ -541,7 +541,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext   = L("°C");
     def->full_label = L("Bed temperature");
     def->min        = 0;
-    def->max        = 120;
+    def->max        = 300;
     def->set_default_value(new ConfigOptionInts{45});
 
     def = this->add("cool_plate_temp_initial_layer", coInts);
@@ -550,8 +550,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Bed temperature of the initial layer. "
         "Value 0 means the filament does not support to print on the Cool Plate");
     def->sidetext = L("°C");
-    def->max = 0;
-    def->max = 120;
+    def->min = 0;
+    def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 35 });
 
     def = this->add("eng_plate_temp_initial_layer", coInts);
@@ -560,8 +560,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Bed temperature of the initial layer. "
         "Value 0 means the filament does not support to print on the Engineering Plate");
     def->sidetext = L("°C");
-    def->max = 0;
-    def->max = 120;
+    def->min = 0;
+    def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 45 });
 
     def = this->add("hot_plate_temp_initial_layer", coInts);
@@ -570,8 +570,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Bed temperature of the initial layer. "
         "Value 0 means the filament does not support to print on the High Temp Plate");
     def->sidetext = L("°C");
-    def->max = 0;
-    def->max = 120;
+    def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 45 });
 
     def             = this->add("textured_plate_temp_initial_layer", coInts);
@@ -581,7 +580,7 @@ void PrintConfigDef::init_fff_params()
                      "Value 0 means the filament does not support to print on the Textured PEI Plate");
     def->sidetext   = L("°C");
     def->max        = 0;
-    def->max        = 120;
+    def->max        = 300;
     def->set_default_value(new ConfigOptionInts{45});
 
     def = this->add("curr_bed_type", coEnum);
