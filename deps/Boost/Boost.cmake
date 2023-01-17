@@ -122,6 +122,8 @@ set(_build_cmd ${_build_cmd}
 
 set(_install_cmd ${_build_cmd} --prefix=${_prefix} install)
 
+
+if (MSVC)
 ExternalProject_Add(
     dep_Boost
     URL "https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.zip"
@@ -134,6 +136,19 @@ ExternalProject_Add(
     BUILD_IN_SOURCE    ON
     INSTALL_COMMAND "${_install_cmd}"
 )
+else ()
+ExternalProject_Add(
+    dep_Boost
+    URL "https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.zip"
+    URL_HASH SHA256=f22143b5528e081123c3c5ed437e92f648fe69748e95fa6e2bd41484e2986cc3
+    DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/Boost
+    CONFIGURE_COMMAND "${_bootstrap_cmd}"
+    PATCH_COMMAND ${_patch_command} && git init && ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-Boost-fix.patch
+    BUILD_COMMAND "${_build_cmd}"
+    BUILD_IN_SOURCE    ON
+    INSTALL_COMMAND "${_install_cmd}"
+)
+endif ()
 
 if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
     # Patch the boost::polygon library with a custom one.
