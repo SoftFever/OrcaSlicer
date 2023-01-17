@@ -234,6 +234,7 @@ void ExtrusionCalibration::create()
 
     auto content_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_calibration_tips_static_bmp = new wxStaticBitmap(m_step_2_panel, wxID_ANY, wxNullBitmap, wxDefaultPosition, EXTRUSION_CALIBRATION_BMP_SIZE, 0);
+    m_calibration_tips_static_bmp->SetMinSize(EXTRUSION_CALIBRATION_BMP_SIZE);
     content_sizer->Add(m_calibration_tips_static_bmp, 1, wxEXPAND | wxSHAPED);
     content_sizer->Add(EXTRUSION_CALIBRATION_WIDGET_GAP, 0, 0, 0);
     // k/n input value
