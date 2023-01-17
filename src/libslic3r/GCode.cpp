@@ -1290,23 +1290,26 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     if (print.config().print_sequence == PrintSequence::ByObject) {
         // Add each of the object's layers separately.
         for (auto object : print.objects()) {
-            std::vector<coordf_t> zs;
+            //BBS: fix the issue that total layer is not right
+            std::vector<coord_t> zs;
             zs.reserve(object->layers().size() + object->support_layers().size());
             for (auto layer : object->layers())
-                zs.push_back(layer->print_z);
+                zs.push_back((coord_t)(layer->print_z / EPSILON));
             for (auto layer : object->support_layers())
-                zs.push_back(layer->print_z);
+                zs.push_back((coord_t)(layer->print_z / EPSILON));
             std::sort(zs.begin(), zs.end());
             m_layer_count += (unsigned int)(object->instances().size() * (std::unique(zs.begin(), zs.end()) - zs.begin()));
         }
     } else {
         // Print all objects with the same print_z together.
-        std::vector<coordf_t> zs;
+        //BBS: fix the issue that total layer is not right
+        std::vector<coord_t> zs;
         for (auto object : print.objects()) {
             zs.reserve(zs.size() + object->layers().size() + object->support_layers().size());
             for (auto layer : object->layers())
-                zs.push_back(layer->print_z);
-            for (auto layer : object->support_layers()) zs.push_back(layer->print_z);
+                zs.push_back((coord_t)(layer->print_z / EPSILON));
+            for (auto layer : object->support_layers())
+                zs.push_back((coord_t)(layer->print_z / EPSILON));
         }
         std::sort(zs.begin(), zs.end());
         m_layer_count = (unsigned int)(std::unique(zs.begin(), zs.end()) - zs.begin());
