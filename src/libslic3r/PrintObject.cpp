@@ -2820,7 +2820,7 @@ void PrintObject::project_and_append_custom_facets(
 {
     // BBS: Approve adding enforcer support on vertical faces
     SlabSlicingConfig config;
-    config.isVertical = true;
+    config.isVertical = type == EnforcerBlockerType::ENFORCER ? true : false;
 
     for (const ModelVolume* mv : this->model_object()->volumes)
         if (mv->is_model_part()) {

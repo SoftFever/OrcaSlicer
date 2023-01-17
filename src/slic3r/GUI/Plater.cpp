@@ -6587,8 +6587,6 @@ void Plater::get_print_job_data(PrintPrepareData* data)
         data->plate_idx = p->m_print_job_data.plate_idx;
         data->_3mf_path = p->m_print_job_data._3mf_path;
         data->_3mf_config_path = p->m_print_job_data._3mf_config_path;
-        std::string temp_file = Slic3r::resources_dir() + "/check_access_code.txt";
-        data->_temp_path = encode_path(temp_file.c_str());
     }
 }
 

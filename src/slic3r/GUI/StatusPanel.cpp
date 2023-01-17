@@ -1724,7 +1724,7 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
 {
     if (!obj) return;
 
-    if (obj->can_unload_filament()) {
+    /*if (obj->can_unload_filament()) {
         if (!m_button_unload->IsShown()) {
             m_button_unload->Show();
             m_button_unload->GetParent()->Layout();
@@ -1734,7 +1734,7 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
             m_button_unload->Hide();
             m_button_unload->GetParent()->Layout();
         }
-    }
+    }*/
 
     // update extruder icon
     update_extruder_status(obj);
@@ -2212,8 +2212,11 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
 
     if (is_task_changed(obj)) {
         reset_printing_values();
-        BOOST_LOG_TRIVIAL(trace) << "monitor: change to sub task id = " << obj->subtask_->task_id;
-        if (web_request.IsOk()) web_request.Cancel();
+        BOOST_LOG_TRIVIAL(info) << "monitor: change to sub task id = " << obj->subtask_->task_id;
+        if (web_request.IsOk() && web_request.GetState() == wxWebRequest::State_Active) {
+            BOOST_LOG_TRIVIAL(info) << "web_request: cancelled";
+            web_request.Cancel();
+        }
         m_start_loading_thumbnail = true;
     }
 
@@ -2227,7 +2230,8 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
                     img                = it->second;
                     wxImage resize_img = img.Scale(m_bitmap_thumbnail->GetSize().x, m_bitmap_thumbnail->GetSize().y);
                     m_bitmap_thumbnail->SetBitmap(resize_img);
-                    task_thumbnail_state == ThumbnailState::TASK_THUMBNAIL;
+                    task_thumbnail_state = ThumbnailState::TASK_THUMBNAIL;
+                    BOOST_LOG_TRIVIAL(trace) << "web_request: use cache image";
                 } else {
                     web_request = wxWebSession::GetDefault().CreateRequest(this, m_request_url);
                     BOOST_LOG_TRIVIAL(trace) << "monitor: start request thumbnail, url = " << m_request_url;

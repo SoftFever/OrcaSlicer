@@ -1933,6 +1933,9 @@ void SelectMachineDialog::init_timer()
 
 void SelectMachineDialog::on_cancel(wxCloseEvent &event)
 {
+    if (m_mapping_popup.IsShown())
+        m_mapping_popup.Dismiss();
+
     if (m_print_job) {
         if (m_print_job->is_running()) {
             m_print_job->cancel();
