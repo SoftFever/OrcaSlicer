@@ -18,7 +18,7 @@
 
 #define BAMBU_DYNAMIC
 
-static void bambu_log(void const * ctx, int level, char const * msg)
+void wxMediaCtrl2::bambu_log(void const * ctx, int level, char const * msg)
 {
     if (level == 1) {
         wxString msg2(msg);
@@ -26,11 +26,14 @@ static void bambu_log(void const * ctx, int level, char const * msg)
             int n = msg2.find_last_of('[');
             if (n != wxString::npos) {
                 long val = 0;
-                int * error = (int *) ctx;
+                wxMediaCtrl2 * ctrl = (wxMediaCtrl2 *) ctx;
                 if (msg2.SubString(n + 1, msg2.Length() - 2).ToLong(&val))
-                    *error = (int) val;
+                    ctrl->m_error = (int) val;
             }
         }
+    } else if (level < 0) {
+        wxMediaCtrl2 * ctrl = (wxMediaCtrl2 *) ctx;
+        ctrl->Stop();
     }
     BOOST_LOG_TRIVIAL(info) << msg;
 }
@@ -69,7 +72,7 @@ void wxMediaCtrl2::create_player()
     NSView * imageView = (NSView *) GetHandle();
     BambuPlayer * player = [cls alloc];
     [player initWithImageView: imageView];
-    [player setLogger: bambu_log withContext: &m_error];
+    [player setLogger: bambu_log withContext: this];
     m_player = player;
 }
 

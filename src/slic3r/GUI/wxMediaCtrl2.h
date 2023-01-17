@@ -39,6 +39,8 @@ public:
 protected:
     void DoSetSize(int x, int y, int width, int height, int sizeFlags) override;
 
+    static void bambu_log(void const * ctx, int level, char const * msg);
+
 private:
     void create_player();
     void * m_player = nullptr;
