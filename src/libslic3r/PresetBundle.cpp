@@ -2069,6 +2069,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     }
 
 	this->update_compatible(PresetSelectCompatibleType::Never);
+    this->update_multi_material_filament_presets();
 
     //BBS
     //const std::string &physical_printer = config.option<ConfigOptionString>("physical_printer_settings_id", true)->value;
