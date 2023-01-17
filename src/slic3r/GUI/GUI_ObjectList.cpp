@@ -361,13 +361,13 @@ void ObjectList::create_objects_ctrl()
         colFilament, m_columns_width[colFilament] * em, wxALIGN_CENTER_HORIZONTAL, 0));
 
     // BBS
-    AppendBitmapColumn("  ", colSupportPaint, wxDATAVIEW_CELL_INERT, m_columns_width[colSupportPaint] * em,
+    AppendBitmapColumn(" ", colSupportPaint, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, m_columns_width[colSupportPaint] * em,
         wxALIGN_CENTER_HORIZONTAL, 0);
-    AppendBitmapColumn("  ", colColorPaint, wxDATAVIEW_CELL_INERT, m_columns_width[colColorPaint] * em,
+    AppendBitmapColumn(" ", colColorPaint, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, m_columns_width[colColorPaint] * em,
         wxALIGN_CENTER_HORIZONTAL, 0);
 
     // column ItemEditing of the view control:
-    AppendBitmapColumn("  ", colEditing, wxDATAVIEW_CELL_INERT, m_columns_width[colEditing] * em,
+    AppendBitmapColumn(" ", colEditing, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, m_columns_width[colEditing] * em,
         wxALIGN_CENTER_HORIZONTAL, 0);
 
     //for (int cn = colName; cn < colCount; cn++) {
@@ -4857,15 +4857,45 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
 #else
     event.Veto(); // Not edit with NSTableView's text
     auto col = event.GetColumn();
+    auto item = event.GetItem();
     if (col == colPrint) {
         toggle_printable_state();
+        return;
+    } else if (col == colSupportPaint) {
+        ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
+        if (node->HasSupportPainting()) {
+            GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
+            if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::FdmSupports)
+                gizmos_mgr.open_gizmo(GLGizmosManager::EType::FdmSupports);
+            else
+                gizmos_mgr.reset_all_states();
+        }
+        return;
+    }
+    else if (col == colColorPaint) {
+        ObjectDataViewModelNode* node = (ObjectDataViewModelNode*)item.GetID();
+        if (node->HasColorPainting()) {
+            GLGizmosManager& gizmos_mgr = wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager();
+            if (gizmos_mgr.get_current_type() != GLGizmosManager::EType::MmuSegmentation)
+                gizmos_mgr.open_gizmo(GLGizmosManager::EType::MmuSegmentation);
+            else
+                gizmos_mgr.reset_all_states();
+        }
+        return;
+    }
+    else if (col == colEditing) {
+        //show_context_menu(evt_context_menu);
+        int obj_idx, vol_idx;
+
+        get_selected_item_indexes(obj_idx, vol_idx, item);
+        //wxGetApp().plater()->PopupObjectTable(obj_idx, vol_idx, mouse_pos);
+        dynamic_cast<TabPrintModel*>(wxGetApp().get_model_tab(vol_idx >= 0))->reset_model_config();
         return;
     }
     if (col != colFilament && col != colName)
         return;
     auto column = GetColumn(col);
     const auto renderer = column->GetRenderer();
-    auto item = event.GetItem();
     if (!renderer->GetEditorCtrl()) {
         renderer->StartEditing(item, GetItemRect(item, column));
         if (col == colName) // TODO: for colName editing, disable shortcuts
