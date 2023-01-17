@@ -1559,8 +1559,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_placeholder_parser.set("chamber_temperature",new ConfigOptionInt(m_config.chamber_temperature));
 
         // SoftFever: support variables `first_layer_temperature` and `first_layer_bed_temperature`
-        m_placeholder_parser.set("first_layer_bed_temperature", new ConfigOptionInt(first_bed_temp_opt->get_at(initial_extruder_id)));
-        m_placeholder_parser.set("first_layer_temperature", new ConfigOptionInt(m_config.nozzle_temperature_initial_layer.get_at(initial_extruder_id)));
+        m_placeholder_parser.set("first_layer_bed_temperature", new ConfigOptionInts(*first_bed_temp_opt));
+        m_placeholder_parser.set("first_layer_temperature", new ConfigOptionInts(m_config.nozzle_temperature_initial_layer));
+        m_placeholder_parser.set("max_print_height",new ConfigOptionInt(m_config.printable_height));
+        m_placeholder_parser.set("z_offset", new ConfigOptionFloat(0.0f));
 
         //BBS: calculate the volumetric speed of outer wall. Ignore pre-object setting and multi-filament, and just use the default setting
         {
