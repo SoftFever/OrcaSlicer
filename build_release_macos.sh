@@ -69,6 +69,8 @@ cp -pR ../src/Release/BambuStudio.app ./BambuStudio-SoftFever.app
 resources_path=$(readlink ./BambuStudio-SoftFever.app/Contents/Resources)
 rm ./BambuStudio-SoftFever.app/Contents/Resources
 cp -R $resources_path ./BambuStudio-SoftFever.app/Contents/Resources
+# delete .DS_Store file
+find ./BambuStudio-SoftFever.app/ -name '.DS_Store' -delete
 # extract version
 export ver="_dev"
 echo $PWD

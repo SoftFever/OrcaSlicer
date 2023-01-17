@@ -511,7 +511,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("°C");
     def->full_label = L("Bed temperature");
     def->min = 0;
-    def->max = 120;
+    def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 35 });
 
     def = this->add("eng_plate_temp", coInts);
@@ -521,7 +521,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("°C");
     def->full_label = L("Bed temperature");
     def->min = 0;
-    def->max = 120;
+    def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 45 });
 
     def = this->add("hot_plate_temp", coInts);
@@ -531,7 +531,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("°C");
     def->full_label = L("Bed temperature");
     def->min = 0;
-    def->max = 120;
+    def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 45 });
 
     def             = this->add("textured_plate_temp", coInts);
@@ -541,7 +541,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext   = L("°C");
     def->full_label = L("Bed temperature");
     def->min        = 0;
-    def->max        = 120;
+    def->max        = 300;
     def->set_default_value(new ConfigOptionInts{45});
 
     def = this->add("cool_plate_temp_initial_layer", coInts);
@@ -550,8 +550,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Bed temperature of the initial layer. "
         "Value 0 means the filament does not support to print on the Cool Plate");
     def->sidetext = L("°C");
-    def->max = 0;
-    def->max = 120;
+    def->min = 0;
+    def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 35 });
 
     def = this->add("eng_plate_temp_initial_layer", coInts);
@@ -560,8 +560,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Bed temperature of the initial layer. "
         "Value 0 means the filament does not support to print on the Engineering Plate");
     def->sidetext = L("°C");
-    def->max = 0;
-    def->max = 120;
+    def->min = 0;
+    def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 45 });
 
     def = this->add("hot_plate_temp_initial_layer", coInts);
@@ -570,8 +570,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Bed temperature of the initial layer. "
         "Value 0 means the filament does not support to print on the High Temp Plate");
     def->sidetext = L("°C");
-    def->max = 0;
-    def->max = 120;
+    def->max = 300;
     def->set_default_value(new ConfigOptionInts{ 45 });
 
     def             = this->add("textured_plate_temp_initial_layer", coInts);
@@ -581,7 +580,7 @@ void PrintConfigDef::init_fff_params()
                      "Value 0 means the filament does not support to print on the Textured PEI Plate");
     def->sidetext   = L("°C");
     def->max        = 0;
-    def->max        = 120;
+    def->max        = 300;
     def->set_default_value(new ConfigOptionInts{45});
 
     def = this->add("curr_bed_type", coEnum);
@@ -2370,7 +2369,34 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Random"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<SeamPosition>(spAligned));
+    
+    def = this->add("seam_gap", coFloatOrPercent);
+    def->label = L("Seam gap");
+    def->tooltip = L("When extruding a closed loop, the loop is interrupted and shortened a bit to reduce the seam."
+                    "\nCan be a mm or a % of the current extruder diameter. Default value is 15%");
+    def->sidetext = L("mm or %");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(15,true));
 
+    def = this->add("role_based_wipe_speed", coBool);
+    def->label = L("Role base wipe speed");
+    def->tooltip = L("The wipe speed is same as the current extrusion role's speed.\n"
+                     "e.g. if wipe action is followed by a outer wall extrusion, the outer wall speed will be used for this wipe action.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+    
+    def = this->add("wipe_speed", coFloatOrPercent);
+    def->label = L("Wipe speed");
+    def->tooltip = L("This setting will affect the speed of wipe."
+                   " If expressed as percentage (for example: 80%) it will be calculated "
+                   "on the travel speed setting above. Default value is 80%");
+    def->sidetext = L("mm/s or %");
+    def->ratio_over = "travel_speed";
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(80,true));
+    
     def = this->add("skirt_distance", coFloat);
     def->label = L("Skirt distance");
     def->tooltip = L("Distance from skirt to brim or object");
@@ -3351,7 +3377,7 @@ void PrintConfigDef::init_filament_option_keys()
         "retraction_length", "z_hop", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "filament_colour",
-        "default_filament_profile"
+        "default_filament_profile"/*,"filament_seam_gap"*/
     };
 
     m_filament_retract_keys = {

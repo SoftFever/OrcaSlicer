@@ -148,7 +148,11 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "thumbnails",
         "nozzle_hrc",
         "required_nozzle_HRC",
-        "upward_compatible_machine"
+        "upward_compatible_machine",
+        // SoftFever
+        "seam_gap",
+        "role_based_wipe_speed",
+        "wipe_speed"
     };
 
     static std::unordered_set<std::string> steps_ignore;

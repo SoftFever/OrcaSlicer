@@ -464,10 +464,12 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 #endif
         }
 
+        LayerRegion* layerm = this->m_regions[surface_fill.region_id];
+
         // Maximum length of the perimeter segment linking two infill lines.
         f->link_max_length = (coord_t)scale_(link_max_length);
         // Used by the concentric infill pattern to clip the loops to create extrusion paths.
-        f->loop_clipping = coord_t(scale_(surface_fill.params.flow.nozzle_diameter()) * LOOP_CLIPPING_LENGTH_OVER_NOZZLE_DIAMETER);
+        f->loop_clipping = coord_t(scale_(layerm->region().config().seam_gap.get_abs_value(surface_fill.params.flow.nozzle_diameter())));
 
         // apply half spacing using this flow's own spacing and generate infill
         FillParams params;
@@ -486,7 +488,6 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		params.no_extrusion_overlap = surface_fill.params.overlap;
 		params.with_loop = surface_fill.params.with_loop;
 
-		LayerRegion* layerm = this->m_regions[surface_fill.region_id];
 		params.config = &layerm->region().config();
 		for (ExPolygon& expoly : surface_fill.expolygons) {
             f->no_overlap_expolygons = intersection_ex(surface_fill.no_overlap_expolygons, ExPolygons() = {expoly});

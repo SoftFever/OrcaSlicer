@@ -1,0 +1,118 @@
+{
+    "name": "Snapmaker",
+    "version": "01.04.00.01",
+    "force_update": "0",
+    "description": "Snapmaker configurations",
+    "machine_model_list": [
+        {
+            "name": "Snapmaker A250",
+            "sub_path": "machine/Snapmaker A250.json"
+        },
+        {
+            "name": "Snapmaker A350",
+            "sub_path": "machine/Snapmaker A350.json"
+        }
+    ],
+    "process_list": [
+        {
+            "name": "fdm_process_common",
+            "sub_path": "process/fdm_process_common.json"
+        },
+        {
+            "name": "0.20mm Standard @Snapmaker",
+            "sub_path": "process/0.20mm Standard @Snapmaker.json"
+        }
+    ],
+    "filament_list": [
+        {
+            "name": "fdm_filament_common",
+            "sub_path": "filament/fdm_filament_common.json"
+        },
+        {
+            "name": "fdm_filament_pla",
+            "sub_path": "filament/fdm_filament_pla.json"
+        },
+        {
+            "name": "fdm_filament_tpu",
+            "sub_path": "filament/fdm_filament_tpu.json"
+        },
+        {
+            "name": "fdm_filament_pet",
+            "sub_path": "filament/fdm_filament_pet.json"
+        },
+        {
+            "name": "fdm_filament_abs",
+            "sub_path": "filament/fdm_filament_abs.json"
+        },
+        {
+            "name": "fdm_filament_pc",
+            "sub_path": "filament/fdm_filament_pc.json"
+        },
+        {
+            "name": "fdm_filament_asa",
+            "sub_path": "filament/fdm_filament_asa.json"
+        },
+        {
+            "name": "fdm_filament_pva",
+            "sub_path": "filament/fdm_filament_pva.json"
+        },
+        {
+            "name": "fdm_filament_pa",
+            "sub_path": "filament/fdm_filament_pa.json"
+        },
+        {
+            "name": "Snapmaker Generic PLA",
+            "sub_path": "filament/Snapmaker Generic PLA.json"
+        },
+        {
+            "name": "Snapmaker Generic PLA-CF",
+            "sub_path": "filament/Snapmaker Generic PLA-CF.json"
+        },
+        {
+            "name": "Snapmaker Generic PETG",
+            "sub_path": "filament/Snapmaker Generic PETG.json"
+        },
+        {
+            "name": "Snapmaker Generic ABS",
+            "sub_path": "filament/Snapmaker Generic ABS.json"
+        },
+        {
+            "name": "Snapmaker Generic TPU",
+            "sub_path": "filament/Snapmaker Generic TPU.json"
+        },
+        {
+            "name": "Snapmaker Generic ASA",
+            "sub_path": "filament/Snapmaker Generic ASA.json"
+        },
+        {
+            "name": "Snapmaker Generic PC",
+            "sub_path": "filament/Snapmaker Generic PC.json"
+        },
+        {
+            "name": "Snapmaker Generic PVA",
+            "sub_path": "filament/Snapmaker Generic PVA.json"
+        },
+        {
+            "name": "Snapmaker Generic PA",
+            "sub_path": "filament/Snapmaker Generic PA.json"
+        },
+        {
+            "name": "Snapmaker Generic PA-CF",
+            "sub_path": "filament/Snapmaker Generic PA-CF.json"
+        }
+    ],
+    "machine_list": [
+        {
+            "name": "fdm_machine_common",
+            "sub_path": "machine/fdm_machine_common.json"
+        },
+        {
+            "name": "Snapmaker A250 0.4 nozzle",
+            "sub_path": "machine/Snapmaker A250 0.4 nozzle.json"
+        },
+        {
+            "name": "Snapmaker A350 0.4 nozzle",
+            "sub_path": "machine/Snapmaker A350 0.4 nozzle.json"
+        }
+    ]
+}

@@ -301,11 +301,12 @@ std::string GCodeWriter::toolchange(unsigned int extruder_id)
     return gcode.str();
 }
 
-std::string GCodeWriter::set_speed(double F, const std::string &comment, const std::string &cooling_marker) const
+std::string GCodeWriter::set_speed(double F, const std::string &comment, const std::string &cooling_marker)
 {
     assert(F > 0.);
     assert(F < 100000.);
-
+    
+    m_current_speed = F;
     GCodeG1Formatter w;
     w.emit_f(F);
     //BBS
@@ -503,6 +504,9 @@ std::string GCodeWriter::extrude_to_xy(const Vec2d &point, double dE, const std:
 {
     m_pos(0) = point(0);
     m_pos(1) = point(1);
+    if(std::abs(dE) <= std::numeric_limits<double>::epsilon())
+        force_no_extrusion = true;
+    
     if (!force_no_extrusion)
         m_extruder->extrude(dE);
 
