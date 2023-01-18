@@ -514,6 +514,7 @@ public:
     std::string GetCurrentCan(std::string amsid);
 	wxColour GetCanColour(std::string amsid, std::string canid);
 
+    bool m_is_none_ams_mode{false};
 	void SetActionState(AMSAction action, bool support_virtual_tray = true);
     void EnterNoneAMSMode();
     void ExitNoneAMSMode();

@@ -2066,10 +2066,10 @@ void AMSControl::EnterNoneAMSMode()
     m_button_extruder_feed->Hide();
     m_button_extruder_back->Hide();
     ShowFilamentTip(false);
-   
     m_amswin->Layout();
     m_amswin->Fit();
     Layout();
+    m_is_none_ams_mode = true;
 }
 
 void AMSControl::ExitNoneAMSMode()
@@ -2088,6 +2088,7 @@ void AMSControl::ExitNoneAMSMode()
     m_amswin->Layout();
     m_amswin->Fit();
     Layout();
+    m_is_none_ams_mode = false;
 }
 
 void AMSControl::EnterCalibrationMode(bool read_to_calibration)
@@ -2222,6 +2223,14 @@ void AMSControl::show_vams(bool show)
     m_vams_sizer->Show(show);
     show_vams_kn_value(show);
     Layout();
+
+    if (show && m_is_none_ams_mode) {
+        if (m_current_ams == "") {
+            wxMouseEvent event(wxEVT_LEFT_DOWN);
+            event.SetEventObject(m_vams_lib);
+            wxPostEvent(m_vams_lib, event);
+        }
+    }
 }
 
 void AMSControl::show_vams_kn_value(bool show)
