@@ -74,6 +74,7 @@ private:
     bool m_camera_exists = false;
     bool m_lan_mode = false;
     bool m_tutk_support = false;
+    bool m_device_busy = false;
     wxString m_url;
     
     std::deque<wxString> m_tasks;
