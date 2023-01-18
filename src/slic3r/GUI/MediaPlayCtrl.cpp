@@ -233,7 +233,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
     ++m_failed_retry;
     if (m_failed_code != 0 && !m_tutk_support) {
         m_next_retry = wxDateTime(); // stop retry
-        if (wxGetApp().show_modal_ip_address_enter_dialog(_L("Failed to start liveview"))) {
+        if (wxGetApp().show_modal_ip_address_enter_dialog(_L("LAN Connection Failed (Failed to start liveview)"))) {
             m_failed_retry = 0;
             m_next_retry   = wxDateTime::Now();
         }

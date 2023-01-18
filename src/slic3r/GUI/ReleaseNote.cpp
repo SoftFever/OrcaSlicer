@@ -876,7 +876,7 @@ void ConfirmBeforeSendDialog::rescale()
 }
 
 InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
-    :DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("Unable to connect printer"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    :DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe), wxID_ANY, _L("LAN Connection Failed (Sending print file)"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -887,8 +887,8 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
 
-    comfirm_before_enter_text = _L("First,please confirm Bambu Studio and your printer are in same LAN.");
-    comfirm_after_enter_text = _L("Then,if the IP and Access Code below are different from the actual values on your printer,please correct them.");
+    comfirm_before_enter_text = _L("Step 1. please confirm Bambu Studio and your printer are in same LAN.");
+    comfirm_after_enter_text = _L("Step 2. if the IP and Access Code below are different from the actual values on your printer,please correct them.");
 
 
     m_tip1 = new Label(this, comfirm_before_enter_text);
