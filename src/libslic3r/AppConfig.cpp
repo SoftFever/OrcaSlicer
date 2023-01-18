@@ -483,8 +483,6 @@ std::string AppConfig::load()
                             m_filament_presets = iter.value().get<std::vector<std::string>>();
                         } else if (iter.key() == "filament_colors") {
                             m_filament_colors = iter.value().get<std::vector<std::string>>();
-                        } else if (iter.key() == "flushing_volumes") {
-                            m_flush_volumes_matrix = iter.value().get<std::vector<float>>();
                         }
                         else {
                             if (iter.value().is_string())
@@ -575,10 +573,6 @@ void AppConfig::save()
 
     for (const auto &filament_color : m_filament_colors) {
         j["app"]["filament_colors"].push_back(filament_color);
-    }
-
-    for (double flushing_volume : m_flush_volumes_matrix) {
-        j["app"]["flushing_volumes"].push_back(flushing_volume);
     }
 
     // Write the other categories.
