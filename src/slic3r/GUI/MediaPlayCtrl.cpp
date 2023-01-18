@@ -243,6 +243,7 @@ void MediaPlayCtrl::Stop(wxString const &msg)
         if (wxGetApp().show_modal_ip_address_enter_dialog(_L("LAN Connection Failed (Failed to start liveview)"))) {
             m_failed_retry = 0;
             m_next_retry   = wxDateTime::Now();
+            return;
         }
     }
     if (m_next_retry.IsValid())

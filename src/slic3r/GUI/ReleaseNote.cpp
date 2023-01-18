@@ -1044,7 +1044,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
 
     Bind(EVT_CLOSE_IPADDRESS_DLG, [this](auto& e) {
         m_status_bar->reset();
-        this->EndModal(wxID_OK);
+        EndModal(wxID_YES);
     });
     Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {on_cancel();});
 }
@@ -1134,6 +1134,7 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
         auto event_close = wxCommandEvent(EVT_CLOSE_IPADDRESS_DLG);
         event_close.SetEventObject(this);
         wxPostEvent(this, event_close);
+        return;
     }
 
     m_button_ok->Enable(false);
