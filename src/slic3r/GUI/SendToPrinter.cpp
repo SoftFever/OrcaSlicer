@@ -868,14 +868,16 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
     }
 
     //check ip address
-    if (obj->dev_ip.empty() || obj->get_access_code().empty()) {
-        BOOST_LOG_TRIVIAL(info) << "MachineObject IP is empty ";
-        std::string app_config_dev_ip = Slic3r::GUI::wxGetApp().app_config->get("ip_address", obj->dev_id);
-        if (app_config_dev_ip.empty() || obj->get_access_code().empty()) {
-            wxGetApp().show_ip_address_enter_dialog();
+    if (obj->is_function_supported(PrinterFunction::FUNC_SEND_TO_SDCARD)) {
+        if (obj->dev_ip.empty() || obj->get_access_code().empty()) {
+            BOOST_LOG_TRIVIAL(info) << "MachineObject IP is empty ";
+            std::string app_config_dev_ip = Slic3r::GUI::wxGetApp().app_config->get("ip_address", obj->dev_id);
+            if (app_config_dev_ip.empty() || obj->get_access_code().empty()) {
+                wxGetApp().show_ip_address_enter_dialog();
+            }
         }
     }
-
+    
     update_show_status();
 }
 

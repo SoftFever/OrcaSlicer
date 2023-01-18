@@ -114,35 +114,32 @@ void SendJob::process()
     std::string http_body;
 
 
-    // check access code and ip address
-    params.dev_id = m_dev_id;
-    params.project_name = "verify_job";
-    params.filename = job_data._temp_path.string();
-    params.connection_type = this->connection_type;
-
+   
+   
     // local print access
     params.dev_ip = m_dev_ip;
     params.username = "bblp";
     params.password = m_access_code;
     params.use_ssl = m_local_use_ssl;
 
-    result = m_agent->start_send_gcode_to_sdcard(params, nullptr, nullptr);
-    if (result != 0) {
-        BOOST_LOG_TRIVIAL(error) << "access code is invalid";
-        m_enter_ip_address_fun_fail();
-        if (m_is_check_mode) {
-            m_job_finished = true;
-            return;
-        }
-    }
-    else {
-        if (m_is_check_mode) {
-            m_enter_ip_address_fun_success();
-            m_job_finished = true;
-            return;
-        }
-    }
+    // check access code and ip address
+    if (m_is_check_mode) {
+        params.dev_id = m_dev_id;
+        params.project_name = "verify_job";
+        params.filename = job_data._temp_path.string();
+        params.connection_type = this->connection_type;
 
+        result = m_agent->start_send_gcode_to_sdcard(params, nullptr, nullptr);
+        if (result != 0) {
+            BOOST_LOG_TRIVIAL(error) << "access code is invalid";
+            m_enter_ip_address_fun_fail();
+        }
+        else {
+            m_enter_ip_address_fun_success();
+        }
+        m_job_finished = true;
+        return;
+    }
     /* display info */
 
     if (this->connection_type == "lan") {

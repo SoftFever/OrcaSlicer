@@ -4574,6 +4574,7 @@ bool GUI_App::show_modal_ip_address_enter_dialog(wxString title)
     if (!dev) return false;
     if (!dev->get_selected_machine()) return false;
     auto obj = dev->get_selected_machine();
+
     InputIpAddressDialog dlg(nullptr);
     dlg.set_machine_obj(obj);
     if (!title.empty()) dlg.update_title(title);

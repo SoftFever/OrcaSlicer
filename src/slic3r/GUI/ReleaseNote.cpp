@@ -893,18 +893,18 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
 
     m_tip1 = new Label(this, comfirm_before_enter_text);
     m_tip1->SetFont(::Label::Body_12);
-    m_tip1->SetMinSize(wxSize(FromDIP(390), -1));
-    m_tip1->SetMaxSize(wxSize(FromDIP(390), -1));
-    m_tip1->Wrap(FromDIP(390));
+    m_tip1->SetMinSize(wxSize(FromDIP(380), -1));
+    m_tip1->SetMaxSize(wxSize(FromDIP(380), -1));
+    m_tip1->Wrap(FromDIP(380));
 
     auto        m_line_tips = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_tips->SetBackgroundColour(wxColour(0xEEEEEE));
 
     m_tip2 = new Label(this, comfirm_after_enter_text);
     m_tip2->SetFont(::Label::Body_12);
-    m_tip2->SetMinSize(wxSize(FromDIP(390), -1));
-    m_tip2->SetMaxSize(wxSize(FromDIP(390), -1));
-    m_tip2->Wrap(FromDIP(390));
+    m_tip2->SetMinSize(wxSize(FromDIP(380), -1));
+    m_tip2->SetMaxSize(wxSize(FromDIP(380), -1));
+    m_tip2->Wrap(FromDIP(380));
 
     auto m_input_tip_area = new wxBoxSizer(wxHORIZONTAL);
     auto m_input_area = new wxBoxSizer(wxHORIZONTAL);
@@ -942,9 +942,9 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
 
     m_tip3 = new Label(this, _L("Where to find your printer's IP and Access Code?"));
     m_tip3->SetFont(::Label::Body_12);
-    m_tip3->SetMinSize(wxSize(FromDIP(390), -1));
-    m_tip3->SetMaxSize(wxSize(FromDIP(390), -1));
-    m_tip3->Wrap(FromDIP(390));
+    m_tip3->SetMinSize(wxSize(FromDIP(380), -1));
+    m_tip3->SetMaxSize(wxSize(FromDIP(380), -1));
+    m_tip3->Wrap(FromDIP(380));
 
     m_img_help1 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("input_accesscode_help1", this, 198), wxDefaultPosition, wxSize(FromDIP(352), FromDIP(198)), 0);
     
@@ -1008,8 +1008,8 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_sizer_main->Add(m_tip3, 0, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(18));
     
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(4));
-    m_sizer_main->Add(m_img_help1, 0, wxALIGN_CENTER, FromDIP(18));
-    m_sizer_main->Add(m_img_help2, 0, wxALIGN_CENTER, FromDIP(18));
+    m_sizer_main->Add(m_img_help1, 0, wxLEFT, FromDIP(18));
+    m_sizer_main->Add(m_img_help2, 0, wxLEFT, FromDIP(18));
     
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(12));
     m_sizer_main->Add(sizer_button, 1, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(18));
@@ -1092,9 +1092,9 @@ void InputIpAddressDialog::update_error_msg(wxString msg)
     else {
          m_error_msg->Show();
          m_error_msg->SetLabelText(msg);
-         m_error_msg->SetMinSize(wxSize(FromDIP(390), -1));
-         m_error_msg->SetMaxSize(wxSize(FromDIP(390), -1));
-         m_error_msg->Wrap(FromDIP(390));
+         m_error_msg->SetMinSize(wxSize(FromDIP(380), -1));
+         m_error_msg->SetMaxSize(wxSize(FromDIP(380), -1));
+         m_error_msg->Wrap(FromDIP(380));
     }
 
     Layout();
@@ -1119,6 +1119,23 @@ bool InputIpAddressDialog::isIp(std::string ipstr)
 
 void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
 {
+    wxString ip = m_input_ip->GetTextCtrl()->GetValue();
+    wxString str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
+
+    //check support function
+    if (!m_obj) return;
+    if (!m_obj->is_function_supported(PrinterFunction::FUNC_SEND_TO_SDCARD)) {
+        wxString input_str = wxString::Format("%s|%s", ip, str_access_code);
+        auto event = wxCommandEvent(EVT_ENTER_IP_ADDRESS);
+        event.SetString(input_str);
+        event.SetEventObject(this);
+        wxPostEvent(this, event);
+
+        auto event_close = wxCommandEvent(EVT_CLOSE_IPADDRESS_DLG);
+        event_close.SetEventObject(this);
+        wxPostEvent(this, event_close);
+    }
+
     m_button_ok->Enable(false);
     m_button_ok->SetBackgroundColor(wxColour(0x90, 0x90, 0x90));
     m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
@@ -1142,10 +1159,6 @@ void InputIpAddressDialog::on_ok(wxMouseEvent& evt)
 
 
     m_send_job = std::make_shared<SendJob>(m_status_bar, wxGetApp().plater(), m_obj->dev_id);
-
-    wxString ip = m_input_ip->GetTextCtrl()->GetValue();
-    wxString str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
-
     m_send_job->m_dev_ip = ip.ToStdString();
     m_send_job->m_access_code = str_access_code.ToStdString();
     m_send_job->m_local_use_ssl = m_obj->local_use_ssl;
@@ -1182,7 +1195,7 @@ void InputIpAddressDialog::check_ip_address_failed()
 
 void InputIpAddressDialog::on_check_ip_address_failed(wxCommandEvent& evt)
 {
-    update_error_msg("Error: IP or Access Code are not correct");
+    update_error_msg(_L("Error: IP or Access Code are not correct"));
     m_button_ok->Enable(true);
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
         std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
