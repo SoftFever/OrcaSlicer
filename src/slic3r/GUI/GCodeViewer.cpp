@@ -942,7 +942,6 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
     // BBS for first layer inspection
     view_type_items.push_back(EViewType::FilamentId);
 
-    options_items.push_back(EMoveType::Seam);
     options_items.push_back(EMoveType::Travel);
     options_items.push_back(EMoveType::Retract);
     options_items.push_back(EMoveType::Unretract);
@@ -950,6 +949,8 @@ void GCodeViewer::update_by_mode(ConfigOptionMode mode)
     if (mode == ConfigOptionMode::comDevelop) {
         options_items.push_back(EMoveType::Tool_change);
     }
+    //BBS: seam is not real move and extrusion, put at last line
+    options_items.push_back(EMoveType::Seam);
 }
 
 std::vector<int> GCodeViewer::get_plater_extruder()
@@ -4365,6 +4366,11 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         return (it != time_mode.roles_times.end()) ? std::make_pair(it->second, it->second / time_mode.time) : std::make_pair(0.0f, 0.0f);
     };
 
+    auto move_time_and_percent = [time_mode](EMoveType move_type) {
+        auto it = std::find_if(time_mode.moves_times.begin(), time_mode.moves_times.end(), [move_type](const std::pair<EMoveType, float>& item) { return move_type == item.first; });
+        return (it != time_mode.moves_times.end()) ? std::make_pair(it->second, it->second / time_mode.time) : std::make_pair(0.0f, 0.0f);
+    };
+
     auto used_filament_per_role = [this, imperial_units](ExtrusionRole role) {
         auto it = m_print_statistics.used_filaments_per_role.find(role);
         if (it == m_print_statistics.used_filaments_per_role.end())
@@ -4438,7 +4444,9 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     std::vector<float> offsets;
     std::vector<std::string> labels;
     std::vector<std::string> times;
+    std::string travel_time;
     std::vector<std::string> percents;
+    std::string travel_percent;
     std::vector<double> model_used_filaments_m;
     std::vector<double> model_used_filaments_g;
     double total_model_used_filament_m = 0, total_model_used_filament_g = 0;
@@ -4483,6 +4491,17 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
                 //model_used_filaments_m.push_back(model_used_filament_m);
                 //model_used_filaments_g.push_back(model_used_filament_g);
             }
+        }
+
+        //BBS: get travel time and percent
+        {
+            auto [time, percent] = move_time_and_percent(EMoveType::Travel);
+            travel_time = (time > 0.0f) ? short_time(get_time_dhms(time)) : "";
+            if (percent == 0)
+                ::sprintf(buffer, "0%%");
+            else
+                percent > 0.001 ? ::sprintf(buffer, "%.1f%%", percent * 100) : ::sprintf(buffer, "<0.1%%");
+            travel_percent = buffer;
         }
 
         offsets = calculate_offsets({ {_u8L("Line Type"), labels}, {_u8L("Time"), times}, {_u8L("Percent"), percents}, {_u8L("Display"), {""}}}, icon_size);
@@ -4573,7 +4592,7 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         };
         const bool visible = m_buffers[buffer_id(type)].visible;
         if (type == EMoveType::Travel) {
-            //TODO display travel time
+            //BBS: only display travel time in FeatureType view
             append_option_item_with_type(type, Travel_Colors[0], _u8L("Travel"), visible);
         }
         else if (type == EMoveType::Seam)
@@ -4613,7 +4632,23 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
         }
 
         for(auto item : options_items) {
-            append_option_item(item, offsets);
+            if (item != EMoveType::Travel) {
+                append_option_item(item, offsets);
+            } else {
+                //BBS: show travel time in FeatureType view
+                const bool visible = m_buffers[buffer_id(item)].visible;
+                std::vector<std::pair<std::string, float>> columns_offsets;
+                columns_offsets.push_back({ _u8L("Travel"), offsets[0] });
+                columns_offsets.push_back({ travel_time, offsets[1] });
+                columns_offsets.push_back({ travel_percent, offsets[2] });
+                append_item(EItemType::Rect, Travel_Colors[0], columns_offsets, true, visible, [this, item, visible]() {
+                        m_buffers[buffer_id(item)].visible = !m_buffers[buffer_id(item)].visible;
+                        // update buffers' render paths
+                        refresh_render_paths(false, false);
+                        update_moves_slider();
+                        wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
+                    });
+            }
         }
         break;
     }
@@ -5209,19 +5244,19 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             auto it = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [role](const std::pair<ExtrusionRole, float>& item) { return role == item.first; });
             return (it != time_mode.roles_times.end()) ? it->second : 0.0f;
         };
-        //BBS: start gcode is prepeare time
-        if (role_time(erCustom) != 0.0f) {
+        //BBS: start gcode is mostly same with prepeare time
+        if (time_mode.prepare_time != 0.0f) {
             ImGui::Dummy({ window_padding, window_padding });
             ImGui::SameLine();
             imgui.text(prepare_str + ":");
             ImGui::SameLine(max_len);
-            imgui.text(short_time(get_time_dhms(role_time(erCustom))));
+            imgui.text(short_time(get_time_dhms(time_mode.prepare_time)));
         }
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
         imgui.text(print_str + ":");
         ImGui::SameLine(max_len);
-        imgui.text(short_time(get_time_dhms(time_mode.time - role_time(erCustom))));
+        imgui.text(short_time(get_time_dhms(time_mode.time - time_mode.prepare_time)));
         ImGui::Dummy({ window_padding, window_padding });
         ImGui::SameLine();
         imgui.text(total_str + ":");

@@ -208,6 +208,7 @@ void GCodeProcessor::TimeMachine::reset()
     std::fill(moves_time.begin(), moves_time.end(), 0.0f);
     std::fill(roles_time.begin(), roles_time.end(), 0.0f);
     layers_time = std::vector<float>();
+    prepare_time = 0.0f;
 }
 
 void GCodeProcessor::TimeMachine::simulate_st_synchronize(float additional_time)
@@ -315,7 +316,9 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks, floa
 
         time += block_time;
         gcode_time.cache += block_time;
-        moves_time[static_cast<size_t>(block.move_type)] += block_time;
+        //BBS: don't calculate travel of start gcode into travel time
+        if (!block.flags.prepare_stage || block.move_type != EMoveType::Travel)
+            moves_time[static_cast<size_t>(block.move_type)] += block_time;
         roles_time[static_cast<size_t>(block.role)] += block_time;
         if (block.layer_id >= layers_time.size()) {
             const size_t curr_size = layers_time.size();
@@ -325,6 +328,9 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks, floa
             }
         }
         layers_time[block.layer_id - 1] += block_time;
+        //BBS
+        if (block.flags.prepare_stage)
+            prepare_time += block_time;
         g1_times_cache.push_back({ block.g1_line_id, time });
         // update times for remaining time to printer stop placeholders
         auto it_stop_time = std::lower_bound(stop_times.begin(), stop_times.end(), block.g1_line_id,
@@ -458,7 +464,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                         //    (mode == PrintEstimatedStatistics::ETimeMode::Normal) ? "normal" : "silent",
                         //    get_time_dhms(machine.time).c_str());
                         sprintf(buf, "; model printing time: %s; total estimated time: %s\n",
-                                get_time_dhms(machine.time - machine.roles_time[ExtrusionRole::erCustom]).c_str(),
+                                get_time_dhms(machine.time - machine.prepare_time).c_str(),
                                 get_time_dhms(machine.time).c_str());
                         ret += buf;
                     }
@@ -1429,6 +1435,11 @@ void GCodeProcessor::finalize(bool post_process)
 float GCodeProcessor::get_time(PrintEstimatedStatistics::ETimeMode mode) const
 {
     return (mode < PrintEstimatedStatistics::ETimeMode::Count) ? m_time_processor.machines[static_cast<size_t>(mode)].time : 0.0f;
+}
+
+float GCodeProcessor::get_prepare_time(PrintEstimatedStatistics::ETimeMode mode) const
+{
+    return (mode < PrintEstimatedStatistics::ETimeMode::Count) ? m_time_processor.machines[static_cast<size_t>(mode)].prepare_time : 0.0f;
 }
 
 std::string GCodeProcessor::get_time_dhm(PrintEstimatedStatistics::ETimeMode mode) const
@@ -2663,10 +2674,12 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 
         TimeBlock block;
         block.move_type = type;
-        block.role = m_extrusion_role;
+        //BBS: don't calculate travel time into extrusion path, except travel inside start and end gcode.
+        block.role = (type != EMoveType::Travel || m_extrusion_role == erCustom) ? m_extrusion_role : erNone;
         block.distance = distance;
         block.g1_line_id = m_g1_line_id;
         block.layer_id = std::max<unsigned int>(1, m_layer_id);
+        block.flags.prepare_stage = m_processing_start_custom_gcode;
 
         //BBS: limite the cruise according to centripetal acceleration
         //Only need to handle when both prev and curr segment has movement in x-y plane
@@ -3085,10 +3098,12 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
 
         TimeBlock block;
         block.move_type = type;
-        block.role = m_extrusion_role;
+        //BBS: don't calculate travel time into extrusion path, except travel inside start and end gcode.
+        block.role = (type != EMoveType::Travel || m_extrusion_role == erCustom) ? m_extrusion_role : erNone;
         block.distance = delta_xyz;
         block.g1_line_id = m_g1_line_id;
         block.layer_id = std::max<unsigned int>(1, m_layer_id);
+        block.flags.prepare_stage = m_processing_start_custom_gcode;
 
         // BBS: calculates block cruise feedrate
         // For arc move, we need to limite the cruise according to centripetal acceleration which is
@@ -4015,6 +4030,7 @@ void GCodeProcessor::update_estimated_times_stats()
     auto update_mode = [this](PrintEstimatedStatistics::ETimeMode mode) {
         PrintEstimatedStatistics::Mode& data = m_result.print_statistics.modes[static_cast<size_t>(mode)];
         data.time = get_time(mode);
+        data.prepare_time = get_prepare_time(mode);
         data.custom_gcode_times = get_custom_gcode_times(mode, true);
         data.moves_times = get_moves_time(mode);
         data.roles_times = get_roles_time(mode);
