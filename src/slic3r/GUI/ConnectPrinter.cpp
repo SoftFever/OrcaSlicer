@@ -54,8 +54,8 @@ ConnectPrinterDialog::ConnectPrinterDialog(wxWindow *parent, wxWindowID id, cons
     m_button_confirm->SetTextColor(wxColour("#FFFFFE"));
 
     StateColor btn_bg(
-        std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
         std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal)
     );
 

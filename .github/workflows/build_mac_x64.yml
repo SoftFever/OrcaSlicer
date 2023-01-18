@@ -1,6 +1,6 @@
 name: Build Mac x64
 
-on: [pull_request, push]
+on: [pull_request]
 
 jobs:
   build_win64:

@@ -1559,8 +1559,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_placeholder_parser.set("chamber_temperature",new ConfigOptionInt(m_config.chamber_temperature));
 
         // SoftFever: support variables `first_layer_temperature` and `first_layer_bed_temperature`
-        m_placeholder_parser.set("first_layer_bed_temperature", new ConfigOptionInt(first_bed_temp_opt->get_at(initial_extruder_id)));
-        m_placeholder_parser.set("first_layer_temperature", new ConfigOptionInt(m_config.nozzle_temperature_initial_layer.get_at(initial_extruder_id)));
+        m_placeholder_parser.set("first_layer_bed_temperature", new ConfigOptionInts(*first_bed_temp_opt));
+        m_placeholder_parser.set("first_layer_temperature", new ConfigOptionInts(m_config.nozzle_temperature_initial_layer));
+        m_placeholder_parser.set("max_print_height",new ConfigOptionInt(m_config.printable_height));
+        m_placeholder_parser.set("z_offset", new ConfigOptionFloat(0.0f));
 
         //BBS: calculate the volumetric speed of outer wall. Ignore pre-object setting and multi-filament, and just use the default setting
         {
@@ -1902,14 +1904,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
       // SoftFever: write compatiple info
       int first_layer_bed_temperature = get_bed_temperature(0, true, print.config().curr_bed_type);
-      file.write_format("; first_layer_bed_temperature = %d\n",
-                        first_layer_bed_temperature);
-      file.write_format(
-          "; first_layer_temperature = %d\n",
-          print.config().nozzle_temperature_initial_layer.get_at(0));
-      file.write_format(
-          "; first_layer_height = %.3f\n",
-          print.config().initial_layer_print_height.value);
+      file.write_format("; first_layer_bed_temperature = %d\n", first_layer_bed_temperature);
+      file.write_format("; bed_shape = %s\n", print.full_print_config().opt_serialize("printable_area").c_str());
+      file.write_format("; first_layer_temperature = %d\n", print.config().nozzle_temperature_initial_layer.get_at(0));
+      file.write_format("; first_layer_height = %.3f\n", print.config().initial_layer_print_height.value);
         
         //SF TODO
 //      file.write_format("; variable_layer_height = %d\n", print.ad.adaptive_layer_height ? 1 : 0);
@@ -3215,9 +3213,17 @@ void GCode::append_full_config(const Print &print, std::string &str)
     auto is_banned = [](const std::string &key) {
         return std::binary_search(banned_keys.begin(), banned_keys.end(), key);
     };
-    for (const std::string &key : cfg.keys())
-        if (! is_banned(key) && ! cfg.option(key)->is_nil())
-            str += "; " + key + " = " + cfg.opt_serialize(key) + "\n";
+    std::ostringstream ss;
+    for (const std::string& key : cfg.keys()) {
+        if (!is_banned(key) && !cfg.option(key)->is_nil()) {
+            if (key == "wipe_tower_x" || key == "wipe_tower_y") {
+                ss << std::fixed << std::setprecision(3) << "; " << key << " = " << dynamic_cast<const ConfigOptionFloats*>(cfg.option(key))->get_at(print.get_plate_index()) << "\n";
+            }
+            else
+                ss << "; " << key << " = " << cfg.opt_serialize(key) << "\n";
+        }
+    }
+    str += ss.str();
 }
 
 void GCode::set_extruders(const std::vector<unsigned int> &extruder_ids)

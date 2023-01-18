@@ -251,9 +251,9 @@ AboutDialog::AboutDialog()
         version_font.SetPointSize(FromDIP(16));
         version->SetFont(version_font);
         version->SetForegroundColour(wxColour("#FFFFFD"));
-        if(wxGetApp().dark_mode())
-            version->SetBackgroundColour(wxColour("#00675b"));
-        else
+         if(wxGetApp().dark_mode())
+             version->SetBackgroundColour(wxColour("#00675b"));
+         else
             version->SetBackgroundColour(wxColour("#009688"));
 
         vesizer->Add(version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
