@@ -727,7 +727,7 @@ AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
     m_staticText1->SetFont(::Label::Head_13);
    
 
-    m_staticText2 = new Label(this, _L("Green represents that AMS humidity is normal, orange and red represent that humidity is too high.(Lower the better)"));
+    m_staticText2 = new Label(this, _L("Green means that AMS humidity is normal, orange represent humidity is high, red represent humidity is too high.(Hygrometer: lower the better.)"));
     m_staticText2->SetFont(::Label::Body_13);
     m_staticText2->SetSize(wxSize(FromDIP(360), -1));
     m_staticText2->SetMinSize(wxSize(FromDIP(360), -1));
@@ -740,7 +740,7 @@ AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
     m_staticText3->SetFont(::Label::Head_13);
   
 
-    m_staticText4 = new Label(this, _L("Desiccant status lower than two bars indicates that desiccant can be inactive. Please change the desiccant.(Higher the better)"));
+    m_staticText4 = new Label(this, _L("A desiccant status lower than two bars indicates that desiccant may be inactive. Please change the desiccant.(The bars: higher the better.)"));
     m_staticText4->SetFont(::Label::Body_13);
     m_staticText4->SetSize(wxSize(FromDIP(360), -1));
     m_staticText4->SetMinSize(wxSize(FromDIP(360), -1));
