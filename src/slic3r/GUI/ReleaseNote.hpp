@@ -191,6 +191,8 @@ public:
     TextInput* m_input_access_code{ nullptr };
     wxStaticBitmap* m_img_help1{ nullptr };
     wxStaticBitmap* m_img_help2{ nullptr };
+    wxStaticBitmap* m_img_step1{ nullptr };
+    wxStaticBitmap* m_img_step2{ nullptr };
     bool   m_show_access_code{ false };
 
     std::shared_ptr<SendJob> m_send_job{nullptr};

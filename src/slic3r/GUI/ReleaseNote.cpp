@@ -882,50 +882,52 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     SetBackgroundColour(*wxWHITE);
-    wxBoxSizer* m_sizer_main = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* m_sizer_body = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* m_sizer_main = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* m_sizer_main_left = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* m_sizer_main_right = new wxBoxSizer(wxVERTICAL);
     auto        m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
-    m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
 
-    comfirm_before_enter_text = _L("Step 1. please confirm Bambu Studio and your printer are in same LAN.");
-    comfirm_after_enter_text = _L("Step 2. if the IP and Access Code below are different from the actual values on your printer,please correct them.");
+    comfirm_before_enter_text = _L("Step 1, please confirm Bambu Studio and your printer are in the same LAN.");
+    comfirm_after_enter_text = _L("Step 2, if the IP and Access Code below are different from the actual values on your printer, please correct them.");
 
 
     m_tip1 = new Label(this, comfirm_before_enter_text);
-    m_tip1->SetFont(::Label::Body_12);
-    m_tip1->SetMinSize(wxSize(FromDIP(380), -1));
-    m_tip1->SetMaxSize(wxSize(FromDIP(380), -1));
-    m_tip1->Wrap(FromDIP(380));
+    m_tip1->SetFont(::Label::Body_13);
+    m_tip1->SetMinSize(wxSize(FromDIP(352), -1));
+    m_tip1->SetMaxSize(wxSize(FromDIP(352), -1));
+    m_tip1->Wrap(FromDIP(352));
 
     auto        m_line_tips = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     m_line_tips->SetBackgroundColour(wxColour(0xEEEEEE));
 
     m_tip2 = new Label(this, comfirm_after_enter_text);
-    m_tip2->SetFont(::Label::Body_12);
-    m_tip2->SetMinSize(wxSize(FromDIP(380), -1));
-    m_tip2->SetMaxSize(wxSize(FromDIP(380), -1));
-    m_tip2->Wrap(FromDIP(380));
+    m_tip2->SetFont(::Label::Body_13);
+    m_tip2->SetMinSize(wxSize(FromDIP(352), -1));
+    m_tip2->SetMaxSize(wxSize(FromDIP(352), -1));
+    m_tip2->Wrap(FromDIP(352));
 
     auto m_input_tip_area = new wxBoxSizer(wxHORIZONTAL);
     auto m_input_area = new wxBoxSizer(wxHORIZONTAL);
 
     m_tips_ip = new Label(this, _L("IP"));
-    m_tips_ip->SetMinSize(wxSize(FromDIP(180), FromDIP(28)));
-    m_tips_ip->SetMaxSize(wxSize(FromDIP(180), FromDIP(28)));
+    m_tips_ip->SetMinSize(wxSize(FromDIP(168), -1));
+    m_tips_ip->SetMaxSize(wxSize(FromDIP(168), -1));
 
     m_input_ip = new TextInput(this, wxEmptyString, wxEmptyString);
     m_input_ip->Bind(wxEVT_TEXT, &InputIpAddressDialog::on_text, this);
-    m_input_ip->SetMinSize(wxSize(FromDIP(180), FromDIP(28)));
-    m_input_ip->SetMaxSize(wxSize(FromDIP(180), FromDIP(28)));
+    m_input_ip->SetMinSize(wxSize(FromDIP(168), FromDIP(28)));
+    m_input_ip->SetMaxSize(wxSize(FromDIP(168), FromDIP(28)));
 
     m_tips_access_code = new Label(this, _L("Access Code"));
-    m_tips_access_code->SetMinSize(wxSize(FromDIP(180), FromDIP(28)));
-    m_tips_access_code->SetMaxSize(wxSize(FromDIP(180), FromDIP(28)));
+    m_tips_access_code->SetMinSize(wxSize(FromDIP(168),-1));
+    m_tips_access_code->SetMaxSize(wxSize(FromDIP(168),-1));
 
     m_input_access_code = new TextInput(this, wxEmptyString, wxEmptyString);
     m_input_access_code->Bind(wxEVT_TEXT, &InputIpAddressDialog::on_text, this);
-    m_input_access_code->SetMinSize(wxSize(FromDIP(180), FromDIP(28)));
-    m_input_access_code->SetMaxSize(wxSize(FromDIP(180), FromDIP(28)));
+    m_input_access_code->SetMinSize(wxSize(FromDIP(168), FromDIP(28)));
+    m_input_access_code->SetMaxSize(wxSize(FromDIP(168), FromDIP(28)));
 
     m_input_tip_area->Add(m_tips_ip, 0, wxALIGN_CENTER, 0);
     m_input_tip_area->Add(0, 0, 0, wxLEFT, FromDIP(16));
@@ -942,14 +944,14 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
 
     m_tip3 = new Label(this, _L("Where to find your printer's IP and Access Code?"));
     m_tip3->SetFont(::Label::Body_12);
-    m_tip3->SetMinSize(wxSize(FromDIP(380), -1));
-    m_tip3->SetMaxSize(wxSize(FromDIP(380), -1));
-    m_tip3->Wrap(FromDIP(380));
+    m_tip3->SetMinSize(wxSize(FromDIP(352), -1));
+    m_tip3->SetMaxSize(wxSize(FromDIP(352), -1));
+    m_tip3->Wrap(FromDIP(352));
 
     m_img_help1 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("input_accesscode_help1", this, 198), wxDefaultPosition, wxSize(FromDIP(352), FromDIP(198)), 0);
     
     m_img_help2 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("input_accesscode_help2", this, 118), wxDefaultPosition, wxSize(FromDIP(352), FromDIP(118)), 0);
-
+    
     m_img_help1->Hide();
     m_img_help2->Hide();
 
@@ -993,28 +995,69 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
     m_status_bar    = std::make_shared<BBLStatusBarSend>(this);
     m_status_bar->get_panel()->Hide();
 
-    m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
-    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(18));
-    m_sizer_main->Add(m_tip1, 0, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(18));
-    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
-    m_sizer_main->Add(m_line_tips, 0, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(18));
-    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
-    m_sizer_main->Add(m_tip2, 0, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(18));
-    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(18));
-    m_sizer_main->Add(m_input_tip_area, 1, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(18));
-    m_sizer_main->Add(m_input_area, 1, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(18));
-    m_sizer_main->Add(m_error_msg, 0, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(18));
-    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(10));
-    m_sizer_main->Add(m_tip3, 0, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(18));
+
+    auto m_step_icon_panel1 = new wxWindow(this, wxID_ANY);
+    auto m_step_icon_panel2 = new wxWindow(this, wxID_ANY);
+
+    m_step_icon_panel1->SetBackgroundColour(*wxWHITE);
+    m_step_icon_panel2->SetBackgroundColour(*wxWHITE);
+
+    auto m_sizer_step_icon_panel1 = new wxBoxSizer(wxVERTICAL);
+    auto m_sizer_step_icon_panel2 = new wxBoxSizer(wxVERTICAL);
+
+
+    m_img_step1 = new wxStaticBitmap(m_step_icon_panel1, wxID_ANY, create_scaled_bitmap("ip_address_step", this, 6), wxDefaultPosition, wxSize(FromDIP(6), FromDIP(6)), 0);
+
+    auto        m_line_tips_left = new wxPanel(m_step_icon_panel1, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
+    m_line_tips_left->SetBackgroundColour(wxColour(0xEEEEEE));
+    m_img_step2 = new wxStaticBitmap(m_step_icon_panel2, wxID_ANY, create_scaled_bitmap("ip_address_step", this, 6), wxDefaultPosition, wxSize(FromDIP(6), FromDIP(6)), 0);
+
+    m_sizer_step_icon_panel1->Add(m_img_step1, 0, wxALIGN_CENTER|wxALL, FromDIP(5));
+   
+
+    m_step_icon_panel1->SetSizer(m_sizer_step_icon_panel1);
+    m_step_icon_panel1->Layout();
+    m_step_icon_panel1->Fit();
+
+    m_step_icon_panel2->SetSizer(m_sizer_step_icon_panel2);
+    m_step_icon_panel2->Layout();
+    m_step_icon_panel2->Fit();
+
+
+    m_sizer_step_icon_panel2->Add(m_img_step2, 0, wxALIGN_CENTER|wxALL, FromDIP(5));
+
+    m_step_icon_panel1->SetMinSize(wxSize(-1, m_tip1->GetSize().y));
+    m_step_icon_panel1->SetMaxSize(wxSize(-1, m_tip1->GetSize().y));
+
+    m_sizer_main_left->Add(m_step_icon_panel1, 0, wxEXPAND, 0);
+    m_sizer_main_left->Add(0, 0, 0, wxTOP, FromDIP(20));
+    m_sizer_main_left->Add(m_line_tips_left, 1, wxEXPAND, 0);
+    m_sizer_main_left->Add(0, 0, 0, wxTOP, FromDIP(20));
+    m_sizer_main_left->Add(m_step_icon_panel2, 0, wxEXPAND, 0);
+
+   
+    m_sizer_main_right->Add(m_tip1, 0, wxRIGHT|wxEXPAND, FromDIP(18));
+    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(20));
+    m_sizer_main_right->Add(m_line_tips, 0, wxRIGHT|wxEXPAND, FromDIP(18));
+    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(20));
+    m_sizer_main_right->Add(m_tip2, 0, wxRIGHT|wxEXPAND, FromDIP(18));
+    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(12));
+    m_sizer_main_right->Add(m_input_tip_area, 0, wxRIGHT|wxEXPAND, FromDIP(18));
+    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(4));
+    m_sizer_main_right->Add(m_input_area, 0, wxRIGHT|wxEXPAND, FromDIP(18));
+    m_sizer_main_right->Add(m_error_msg, 0, wxRIGHT|wxEXPAND, FromDIP(18));
+    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(16));
+    m_sizer_main_right->Add(m_tip3, 0, wxRIGHT|wxEXPAND, FromDIP(18));
     
-    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(4));
-    m_sizer_main->Add(m_img_help1, 0, wxLEFT, FromDIP(18));
-    m_sizer_main->Add(m_img_help2, 0, wxLEFT, FromDIP(18));
+    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(4));
+    m_sizer_main_right->Add(m_img_help1, 0, 0, 0);
+    m_sizer_main_right->Add(m_img_help2, 0, 0, 0);
     
-    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(12));
-    m_sizer_main->Add(sizer_button, 1, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(18));
-    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(12));
-    m_sizer_main->Add(m_status_bar->get_panel(), 0, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(18));
+    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(30));
+    m_sizer_main_right->Add(sizer_button, 1, wxRIGHT|wxEXPAND, FromDIP(18));
+    m_sizer_main_right->Add(0, 0, 0, wxTOP, FromDIP(16));
+    m_sizer_main_right->Add(m_status_bar->get_panel(), 0,wxRIGHT|wxEXPAND, FromDIP(18));
+    m_sizer_main_right->Layout();
 
     auto str_ip = m_input_ip->GetTextCtrl()->GetValue();
     auto str_access_code = m_input_access_code->GetTextCtrl()->GetValue();
@@ -1031,8 +1074,15 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow* parent)
         m_button_ok->SetBorderColor(wxColour(0x90, 0x90, 0x90));
     }
    
+    m_sizer_main->Add(m_sizer_main_left, 0, wxLEFT, FromDIP(18));
+    m_sizer_main->Add(m_sizer_main_right, 0, wxLEFT|wxEXPAND, FromDIP(4));
+    m_sizer_main->Layout();
 
-    SetSizer(m_sizer_main);
+    m_sizer_body->Add(m_line_top, 0, wxEXPAND, 0);
+    m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(20));
+    m_sizer_body->Add(m_sizer_main, 0, wxEXPAND, 0);
+   
+    SetSizer(m_sizer_body);
     Layout();
     Fit();
 
@@ -1092,9 +1142,9 @@ void InputIpAddressDialog::update_error_msg(wxString msg)
     else {
          m_error_msg->Show();
          m_error_msg->SetLabelText(msg);
-         m_error_msg->SetMinSize(wxSize(FromDIP(380), -1));
-         m_error_msg->SetMaxSize(wxSize(FromDIP(380), -1));
-         m_error_msg->Wrap(FromDIP(380));
+         m_error_msg->SetMinSize(wxSize(FromDIP(352), -1));
+         m_error_msg->SetMaxSize(wxSize(FromDIP(352), -1));
+         m_error_msg->Wrap(FromDIP(352));
     }
 
     Layout();
