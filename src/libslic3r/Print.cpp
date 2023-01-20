@@ -152,7 +152,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         // SoftFever
         "seam_gap",
         "role_based_wipe_speed",
-        "wipe_speed"
+        "wipe_speed",
+        "use_relative_e_distances"
     };
 
     static std::unordered_set<std::string> steps_ignore;
@@ -917,7 +918,10 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 // BBS: remove L()
                 return { ("Different nozzle diameters and different filament diameters is not allowed when prime tower is enabled.") };
         }
-
+        
+        if (! m_config.use_relative_e_distances)
+            return { ("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).") };
+        
         if (m_config.ooze_prevention)
             return { ("Ooze prevention is currently not supported with the prime tower enabled.") };
 
@@ -1119,7 +1123,6 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 		            	return  {err_msg, object, opt_key};
         }
     }
-
 
     const ConfigOptionDef* bed_type_def = print_config_def.get("curr_bed_type");
     assert(bed_type_def != nullptr);

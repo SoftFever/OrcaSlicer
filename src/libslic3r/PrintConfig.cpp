@@ -2544,9 +2544,9 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings { " " });
 
     def = this->add("single_extruder_multi_material", coBool);
-    //def->label = L("Single Extruder Multi Material");
-    //def->tooltip = L("Use single nozzle to print multi filament");
-    def->mode = comDevelop;
+    def->label = L("Single Extruder Multi Material");
+    def->tooltip = L("Use single nozzle to print multi filament");
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("wipe_tower_no_sparse_layers", coBool);
@@ -3216,7 +3216,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->gui_type = ConfigOptionDef::GUIType::one_string;
     def->set_default_value(new ConfigOptionPoints{Vec2d(300, 300)});
-    
+
+    def = this->add("use_relative_e_distances", coBool);
+    def->label = L("Use relative E distances");
+    def->tooltip = L("If your firmware requires relative E values, check this. "
+                   "Relative extrusion is recommended when using \"label_objects\" option."
+                   "It is always enabled on BambuLab printers. Default is Yes");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
     def = this->add("wall_generator", coEnum);
     def->label = L("Wall generator");
     def->category = L("Quality");

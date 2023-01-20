@@ -9,7 +9,7 @@ double Extruder::m_share_retracted = 0.;
 Extruder::Extruder(unsigned int id, GCodeConfig *config, bool share_extruder) :
     m_id(id),
     m_config(config),
-    m_share_extruder(m_share_extruder)
+    m_share_extruder(share_extruder)
 {
     reset();
     
@@ -22,7 +22,7 @@ double Extruder::extrude(double dE)
 {
     // BBS
     if (m_share_extruder) {
-        if (RELATIVE_E_AXIS)
+        if (m_config->use_relative_e_distances)
             m_share_E = 0.;
         m_share_E += dE;
         m_absolute_E += dE;
@@ -30,7 +30,7 @@ double Extruder::extrude(double dE)
             m_share_retracted -= dE;
     } else {
         // in case of relative E distances we always reset to 0 before any output
-        if (RELATIVE_E_AXIS)
+        if (m_config->use_relative_e_distances)
             m_E = 0.;
         m_E          += dE;
         m_absolute_E += dE;
@@ -51,7 +51,7 @@ double Extruder::retract(double length, double restart_extra)
 {
     // BBS
     if (m_share_extruder) {
-        if (RELATIVE_E_AXIS)
+        if (m_config->use_relative_e_distances)
             m_share_E = 0.;
         double to_retract = std::max(0., length - m_share_retracted);
         if (to_retract > 0.) {
@@ -63,7 +63,7 @@ double Extruder::retract(double length, double restart_extra)
         return to_retract;
     } else {
         // in case of relative E distances we always reset to 0 before any output
-        if (RELATIVE_E_AXIS)
+        if (m_config->use_relative_e_distances)
             m_E = 0.;
         double to_retract = std::max(0., length - m_retracted);
         if (to_retract > 0.) {

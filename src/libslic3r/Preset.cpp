@@ -803,7 +803,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "printhost_cafile","printhost_port","printhost_authorization_type",
     "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke",
     "z_lift_type", "thumbnails",
-    "use_firmware_retraction"
+    "use_firmware_retraction", "use_relative_e_distances"
 };
 
 static std::vector<std::string> s_Preset_sla_print_options {
