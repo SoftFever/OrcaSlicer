@@ -1229,7 +1229,7 @@ void MachineObject::parse_state_changed_event()
 {
     // parse calibration done
     if (last_mc_print_stage != mc_print_stage) {
-        if (mc_print_stage == 1 && boost::contains(m_gcode_file, "auto_cali_for_user.gcode")) {
+        if (mc_print_stage == 1 && boost::contains(m_gcode_file, "auto_cali_for_user")) {
             calibration_done = true;
         } else {
             calibration_done = false;
