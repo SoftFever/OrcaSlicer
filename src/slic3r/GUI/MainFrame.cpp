@@ -72,6 +72,7 @@ namespace GUI {
 wxDEFINE_EVENT(EVT_SELECT_TAB, wxCommandEvent);
 wxDEFINE_EVENT(EVT_HTTP_ERROR, wxCommandEvent);
 wxDEFINE_EVENT(EVT_USER_LOGIN, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SHOW_IP_DIALOG, wxCommandEvent);
 wxDEFINE_EVENT(EVT_UPDATE_PRESET_CB, SimpleEvent);
 
 // BBS: backup
@@ -194,8 +195,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     panel_topbar->SetSizer(sizer_tobar);
     panel_topbar->Layout();
 #endif
-
-
 
     //wxAuiToolBar* toolbar = new wxAuiToolBar();
 /*
@@ -1450,7 +1449,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_print_option_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
             SidePopup* p = new SidePopup(this);
-	    
+
             if (wxGetApp().preset_bundle
                 && !wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle)) {
                 // ThirdParty Buttons
@@ -1524,15 +1523,15 @@ wxBoxSizer* MainFrame::create_side_tools()
                     });
 
                 SideButton* send_to_printer_all_btn = new SideButton(p, _L("Send all"), "");
-                    send_to_printer_all_btn->SetCornerRadius(0);
-                    send_to_printer_all_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
-                        m_print_btn->SetLabel(_L("Send all"));
-                        m_print_select = eSendToPrinterAll;
-                        m_print_enable = get_enable_print_status();
-                        m_print_btn->Enable(m_print_enable);
-                        this->Layout();
-                        p->Dismiss();
-                        });
+                send_to_printer_all_btn->SetCornerRadius(0);
+                send_to_printer_all_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
+                    m_print_btn->SetLabel(_L("Send all"));
+                    m_print_select = eSendToPrinterAll;
+                    m_print_enable = get_enable_print_status();
+                    m_print_btn->Enable(m_print_enable);
+                    this->Layout();
+                    p->Dismiss();
+                    });
 
                 export_sliced_file_btn->Bind(wxEVT_BUTTON, [this, p](wxCommandEvent&) {
                     m_print_btn->SetLabel(_L("Export plate sliced file"));
@@ -3236,7 +3235,7 @@ void MainFrame::on_select_default_preset(SimpleEvent& evt)
                         "It contains the following information:\n"
                         "1. The Process presets\n"
                         "2. The Filament presets\n"
-                        "3. The Printer presets\n"),
+                        "3. The Printer presets"),
                     _L("Synchronization"),
                     wxCENTER |
                     wxYES_DEFAULT | wxYES_NO |

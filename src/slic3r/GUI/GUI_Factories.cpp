@@ -305,7 +305,7 @@ static ObjectDataViewModel* list_model()
 
 static const Selection& get_selection()
 {
-    return plater()->canvas3D()->get_selection();
+    return plater()->get_current_canvas3D(true)->get_selection();
 }
 
 //				  category ->		vector 			 ( option	;  label )
@@ -747,7 +747,7 @@ void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
 
     DynamicPrintConfig& global_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     ModelConfig& select_object_config = object_list->object(selection.get_object_idx())->config;
-    
+
     auto keys = select_object_config.keys();
     for (auto key : FREQ_SETTINGS_BUNDLE_FFF["Flush options"]) {
         if (find(keys.begin(), keys.end(), key) == keys.end()) {

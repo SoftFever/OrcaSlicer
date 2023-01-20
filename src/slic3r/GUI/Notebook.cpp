@@ -258,5 +258,14 @@ void Notebook::Init()
     m_showEffect = m_hideEffect = wxSHOW_EFFECT_NONE;
 
     m_showTimeout = m_hideTimeout = 0;
+
+    /* On Linux, Gstreamer wxMediaCtrl does not seem to get along well with
+     * 32-bit X11 visuals (the overlay does not work).  Is this a wxWindows
+     * bug?  Is this a Gstreamer bug?  No idea, but it is our problem ... 
+     * and anyway, this transparency thing just isn't all that interesting,
+     * so we just don't do it on Linux. 
+     */
+#ifndef __WXGTK__
     SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
+#endif
 }

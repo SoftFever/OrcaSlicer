@@ -333,6 +333,9 @@ bool GLGizmosManager::open_gizmo(EType type)
     if (m_gizmos[idx]->is_activable()
      && activate_gizmo(m_current == idx ? Undefined : (EType)idx)) {
         update_data();
+#ifdef __WXOSX__
+        m_parent.post_event(SimpleEvent(wxEVT_PAINT));
+#endif
         return true;
     }
     return false;

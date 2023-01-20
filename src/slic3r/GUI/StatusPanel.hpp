@@ -19,6 +19,7 @@
 #include "Calibration.hpp"
 #include "PrintOptionsDialog.hpp"
 #include "AMSMaterialsSetting.hpp"
+#include "ExtrusionCalibration.hpp"
 #include "ReleaseNote.hpp"
 #include "Widgets/SwitchButton.hpp"
 #include "Widgets/AxisCtrlButton.hpp"
@@ -137,6 +138,7 @@ protected:
     wxStaticText *  m_staticText_progress_percent;
     wxStaticText *  m_staticText_progress_percent_icon;
     wxStaticText *  m_staticText_progress_left;
+    wxStaticText *  m_staticText_layers;
     Button *        m_button_report;
     ScalableButton *m_button_pause_resume;
     ScalableButton *m_button_abort;
@@ -250,7 +252,7 @@ public:
     wxBoxSizer *create_ams_group(wxWindow *parent);
     wxBoxSizer *create_settings_group(wxWindow *parent);
 
-    void show_ams_group(bool show = true);
+    void show_ams_group(bool show = true, bool support_virtual_tray = true);
 };
 
 
@@ -268,11 +270,14 @@ protected:
     PrintOptionsDialog*  print_options_dlg { nullptr };
     CalibrationDialog*   calibration_dlg {nullptr};
     AMSMaterialsSetting *m_filament_setting_dlg{nullptr};
+
     SecondaryCheckDialog* m_print_error_dlg = nullptr;
     SecondaryCheckDialog* abort_dlg = nullptr;
     SecondaryCheckDialog* ctrl_e_hint_dlg = nullptr;
     SecondaryCheckDialog* sdcard_hint_dlg = nullptr;
-    FanControlPopup m_fan_control_popup{nullptr};
+    FanControlPopup* m_fan_control_popup{nullptr};
+
+    ExtrusionCalibration *m_extrusion_cali_dlg{nullptr};
 
     wxString     m_request_url;
     bool         m_start_loading_thumbnail = false;
@@ -334,6 +339,8 @@ protected:
     void on_ams_unload(SimpleEvent &event);
     void on_ams_setting_click(SimpleEvent &event);
     void on_filament_edit(wxCommandEvent &event);
+    void on_ext_spool_edit(wxCommandEvent &event);
+    void on_filament_extrusion_cali(wxCommandEvent &event);
     void on_ams_refresh_rfid(wxCommandEvent &event);
     void on_ams_selected(wxCommandEvent &event);
     void on_ams_guide(wxCommandEvent &event);
@@ -372,6 +379,7 @@ protected:
     void update_misc_ctrl(MachineObject *obj);
     void update_ams(MachineObject* obj);
     void update_extruder_status(MachineObject* obj);
+    void update_ams_control_state(std::string ams_id, bool is_support_virtual_tray);
     void update_cali(MachineObject* obj);
 
     void reset_printing_values();

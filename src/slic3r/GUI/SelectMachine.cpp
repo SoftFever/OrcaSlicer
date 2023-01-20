@@ -92,6 +92,8 @@ std::string get_print_status_info(PrintDialogStatus status)
         return "PrintStatusNoSdcard";
     case PrintStatusTimelapseNoSdcard:
         return "PrintStatusTimelapseNoSdcard";
+    case PrintStatusNotSupportedPrintAll:
+        return "PrintStatusNotSupportedPrintAll";
     }
     return "unknown";
 }
@@ -1148,8 +1150,10 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     select_bed->Show(true);
     select_flow->Show(true);
-    select_timelapse->Show(false);
+    select_timelapse->Show(true);
     select_use_ams->Show(true);
+
+    m_sizer_select->Layout();
 
     // line schedule
     m_line_schedule = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
@@ -1440,6 +1444,8 @@ void SelectMachineDialog::update_select_layout(MachineObject *obj)
     } else {
         select_timelapse->Hide();
     }
+
+    m_sizer_select->Layout();
     Fit();
 }
 
@@ -1885,6 +1891,11 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         update_print_status_msg(msg_text, true, true);
         Enable_Send_Button(false);
         Enable_Refresh_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusNotSupportedPrintAll) {
+        wxString msg_text = _L("This printer does not support printing all plates");
+        update_print_status_msg(msg_text, true, true);
+        Enable_Send_Button(false);
+        Enable_Refresh_Button(true);
     }
 }
 
@@ -1963,13 +1974,13 @@ void SelectMachineDialog::show_errors(wxString &info)
 void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 {
     std::vector<wxString> confirm_text;
-    confirm_text.push_back(_L("Please check the following infomation and click Confirm to continue sending print:\n"));
+    confirm_text.push_back(_L("Please check the following infomation and click Confirm to continue sending print:") + "\n");
 
 #if 0
     //Check Printer Model Id
     bool is_same_printer_type = is_same_printer_model();
     if (!is_same_printer_type)
-        confirm_text.push_back(_L("The printer type used to generate G-code is not the same type as the currently selected physical printer. It is recommend to re-slice by selecting the same printer type.\n"));
+        confirm_text.push_back(_L("The printer type used to generate G-code is not the same type as the currently selected physical printer. It is recommend to re-slice by selecting the same printer type.") + "\n");
 #else
     bool is_same_printer_type = true;
 #endif
@@ -2146,7 +2157,8 @@ void SelectMachineDialog::on_ok()
 
     m_print_job                = std::make_shared<PrintJob>(m_status_bar, m_plater, m_printer_last_select);
     m_print_job->m_dev_ip      = obj_->dev_ip;
-    m_print_job->m_access_code = obj_->access_code;
+    m_print_job->m_access_code   = obj_->get_access_code();
+    m_print_job->m_local_use_ssl = obj_->local_use_ssl;
     m_print_job->connection_type = obj_->connection_type();
     m_print_job->set_project_name(m_current_project_name.utf8_string());
 
@@ -2626,6 +2638,12 @@ void SelectMachineDialog::update_show_status()
 
     reset_timeout();
     update_ams_check(obj_);
+
+    if (!obj_->is_function_supported(PrinterFunction::FUNC_PRINT_ALL) && m_print_plate_idx == PLATE_ALL_IDX) {
+        show_status(PrintDialogStatus::PrintStatusNotSupportedPrintAll);
+        return;
+    }
+
 
     // do ams mapping if no ams result
     if (obj_->has_ams() && m_ams_mapping_result.empty()) {

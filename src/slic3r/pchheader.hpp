@@ -15,6 +15,8 @@
 #include <string.h>
 #include <time.h>
 
+#ifdef __cplusplus
+
 #include <algorithm>
 #include <array>
 #include <atomic>
@@ -194,3 +196,5 @@
 #ifdef _WIN32
 #include "GUI/format.hpp"
 #endif // _WIN32
+
+#endif // __cplusplus

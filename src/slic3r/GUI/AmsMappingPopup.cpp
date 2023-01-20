@@ -612,6 +612,7 @@ AmsMapingTipPopup::AmsMapingTipPopup(wxWindow *parent)
     wxBoxSizer *sizer_enable_ams = new wxBoxSizer(wxVERTICAL);
 
     m_title_enable_ams = new wxStaticText(m_panel_enable_ams, wxID_ANY, _L("Enable AMS"), wxDefaultPosition, wxDefaultSize, 0);
+    m_title_enable_ams->SetForegroundColour(*wxBLACK);
     m_title_enable_ams->SetBackgroundColour(*wxWHITE);
     m_title_enable_ams->Wrap(-1);
     sizer_enable_ams->Add(m_title_enable_ams, 0, 0, 0);
@@ -619,6 +620,7 @@ AmsMapingTipPopup::AmsMapingTipPopup(wxWindow *parent)
     m_tip_enable_ams = new wxStaticText(m_panel_enable_ams, wxID_ANY, _L("Print with filaments in the AMS"), wxDefaultPosition, wxDefaultSize, 0);
     m_tip_enable_ams->SetMinSize(wxSize(FromDIP(200), FromDIP(50)));
     m_tip_enable_ams->Wrap(FromDIP(200));
+    m_tip_enable_ams->SetForegroundColour(*wxBLACK);
     m_tip_enable_ams->SetBackgroundColour(*wxWHITE);
     sizer_enable_ams->Add(m_tip_enable_ams, 0, wxTOP, 8);
 
@@ -647,12 +649,14 @@ AmsMapingTipPopup::AmsMapingTipPopup(wxWindow *parent)
 
     m_title_disable_ams = new wxStaticText(m_panel_disable_ams, wxID_ANY, _L("Disable AMS"), wxDefaultPosition, wxDefaultSize, 0);
     m_title_disable_ams->SetBackgroundColour(*wxWHITE);
+    m_title_disable_ams->SetForegroundColour(*wxBLACK);
     m_title_disable_ams->Wrap(-1);
     sizer_disable_ams->Add(m_title_disable_ams, 0, 0, 0);
 
     m_tip_disable_ams = new wxStaticText(m_panel_disable_ams, wxID_ANY, _L("Print with the filament mounted on the back of chassis"), wxDefaultPosition, wxDefaultSize, 0);
     m_tip_disable_ams->SetMinSize(wxSize(FromDIP(200), FromDIP(50)));
     m_tip_disable_ams->Wrap(FromDIP(200));
+    m_tip_disable_ams->SetForegroundColour(*wxBLACK);
     m_tip_disable_ams->SetBackgroundColour(*wxWHITE);
     sizer_disable_ams->Add(m_tip_disable_ams, 0, wxTOP, FromDIP(8));
 
@@ -693,6 +697,125 @@ void AmsMapingTipPopup::OnDismiss() {}
 
 bool AmsMapingTipPopup::ProcessLeftDown(wxMouseEvent &event) { 
     return wxPopupTransientWindow::ProcessLeftDown(event); }
+
+
+AmsHumidityTipPopup::AmsHumidityTipPopup(wxWindow* parent)
+    :wxPopupTransientWindow(parent, wxBORDER_NONE)
+{
+    SetBackgroundColour(*wxWHITE);
+
+    wxBoxSizer* main_sizer;
+    main_sizer = new wxBoxSizer(wxVERTICAL);
+
+
+    main_sizer->Add(0, 0, 0, wxTOP, 28);
+
+    wxBoxSizer* m_sizer_body;
+    m_sizer_body = new wxBoxSizer(wxHORIZONTAL);
+
+    m_img = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("ams_humidity_tips", this, 125), wxDefaultPosition, wxSize(FromDIP(125), FromDIP(145)), 0);
+
+    m_sizer_body->Add(m_img, 0, wxEXPAND | wxALL, 2);
+
+
+    m_sizer_body->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(18));
+
+    wxBoxSizer* m_sizer_tips = new wxBoxSizer(wxVERTICAL);
+
+    m_staticText1 = new Label(this, _L("Cabin humidity"));
+    m_staticText1->SetForegroundColour(wxColour(0x352F2D));
+    m_staticText1->SetFont(::Label::Head_13);
+   
+
+    m_staticText2 = new Label(this, _L("Green means that AMS humidity is normal, orange represent humidity is high, red represent humidity is too high.(Hygrometer: lower the better, The bars: higher the better)"));
+    m_staticText2->SetFont(::Label::Body_13);
+    m_staticText2->SetSize(wxSize(FromDIP(360), -1));
+    m_staticText2->SetMinSize(wxSize(FromDIP(360), -1));
+    m_staticText2->SetMaxSize(wxSize(FromDIP(360), -1));
+    m_staticText2->Wrap(FromDIP(360));
+    
+
+    m_staticText3 = new Label(this, _L("Desiccant status"));
+    m_staticText3->SetForegroundColour(wxColour(0x352F2D));
+    m_staticText3->SetFont(::Label::Head_13);
+  
+
+    m_staticText4 = new Label(this, _L("A desiccant status lower than two bars indicates that desiccant may be inactive. Please change the desiccant. (Higher is better)"));
+    m_staticText4->SetFont(::Label::Body_13);
+    m_staticText4->SetSize(wxSize(FromDIP(360), -1));
+    m_staticText4->SetMinSize(wxSize(FromDIP(360), -1));
+    m_staticText4->SetMaxSize(wxSize(FromDIP(360), -1));
+    m_staticText4->Wrap(FromDIP(360));
+
+    m_sizer_tips->Add(m_staticText1, 0, wxALL, 3);
+    m_sizer_tips->Add(m_staticText2, 0, wxALL, 3);
+    m_sizer_tips->Add(m_staticText3, 0, wxALL, 3);
+    m_sizer_tips->Add(m_staticText4, 0, wxALL, 3);
+
+
+    m_sizer_body->Add(m_sizer_tips, 0, wxEXPAND, 0);
+
+
+    main_sizer->Add(m_sizer_body, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
+
+    m_staticText_note = new Label(this, _L("Note: When the lid is open or the desiccant pack is changed, it can take hours or a night to absorb the moisture. Low temperatures also slow down the process. During this time, the indicator may not represent the chamber accurately."));
+    m_staticText4->SetFont(::Label::Body_13);
+    m_staticText_note->SetMinSize(wxSize(FromDIP(536), -1));
+    m_staticText_note->SetMaxSize(wxSize(FromDIP(536), -1));
+    m_staticText_note->Wrap(FromDIP(536));
+    main_sizer->Add(m_staticText_note, 0, wxALL | wxLEFT | wxRIGHT, 34);
+
+    m_button_confirm = new Button(this, _L("OK"));
+    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    m_button_confirm->SetBackgroundColor(btn_bg_green);
+    m_button_confirm->SetBorderColor(wxColour(0, 174, 66));
+    m_button_confirm->SetTextColor(wxColour(0xFFFFFE));
+    m_button_confirm->SetSize(wxSize(FromDIP(72), FromDIP(24)));
+    m_button_confirm->SetMinSize(wxSize(FromDIP(72), FromDIP(24)));
+    m_button_confirm->SetCornerRadius(FromDIP(12));
+
+
+    m_button_confirm->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+         Dismiss();
+    });
+
+    Bind(wxEVT_LEFT_UP, [this](auto& e) {
+        auto mouse_pos = ClientToScreen(e.GetPosition());
+        auto rect = m_button_confirm->ClientToScreen(wxPoint(0, 0));
+        if (mouse_pos.x > rect.x && mouse_pos.y > rect.y
+            && mouse_pos.x < (rect.x + m_button_confirm->GetSize().x)
+            && mouse_pos.y < (rect.y + m_button_confirm->GetSize().y)) 
+        {
+            Dismiss();
+        }
+    });
+    main_sizer->Add(m_button_confirm, 0, wxALIGN_CENTER | wxALL, 0);
+
+
+    main_sizer->Add(0, 0, 0, wxEXPAND | wxTOP, 18);
+
+
+    SetSizer(main_sizer);
+    Layout();
+    Fit();
+
+    Bind(wxEVT_PAINT, &AmsHumidityTipPopup::paintEvent, this);
+    wxGetApp().UpdateDarkUIWin(this);
+}
+
+void AmsHumidityTipPopup::paintEvent(wxPaintEvent& evt)
+{
+    wxPaintDC dc(this);
+    dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
+}
+
+void AmsHumidityTipPopup::OnDismiss() {}
+
+bool AmsHumidityTipPopup::ProcessLeftDown(wxMouseEvent& event) {
+    return wxPopupTransientWindow::ProcessLeftDown(event);
+}
 
 AmsTutorialPopup::AmsTutorialPopup(wxWindow* parent)
 :wxPopupTransientWindow(parent, wxBORDER_NONE)
@@ -793,6 +916,91 @@ void AmsTutorialPopup::paintEvent(wxPaintEvent& evt)
 void AmsTutorialPopup::OnDismiss() {}
 
 bool AmsTutorialPopup::ProcessLeftDown(wxMouseEvent& event) {
+    return wxPopupTransientWindow::ProcessLeftDown(event);
+}
+
+
+AmsIntroducePopup::AmsIntroducePopup(wxWindow* parent)
+:wxPopupTransientWindow(parent, wxBORDER_NONE)
+{
+    Bind(wxEVT_PAINT, &AmsIntroducePopup::paintEvent, this);
+    SetBackgroundColour(*wxWHITE);
+
+    SetMinSize(wxSize(FromDIP(200), FromDIP(200)));
+    SetMaxSize(wxSize(FromDIP(200), FromDIP(200)));
+
+    wxBoxSizer* bSizer4 = new wxBoxSizer(wxVERTICAL);
+
+    m_staticText_top = new Label(this, _L("Do not Enable AMS"));
+    m_staticText_top->SetFont(::Label::Head_13);
+   // m_staticText_top->SetForegroundColour(wxColour(0x323A3D));
+    m_staticText_top->Wrap(-1);
+    bSizer4->Add(m_staticText_top, 0, wxALL, 5);
+
+    m_staticText_bottom =  new Label(this, _L("Print using materials mounted on the back of the case"));
+    m_staticText_bottom->Wrap(-1);
+    m_staticText_bottom->SetFont(::Label::Body_13);
+    m_staticText_bottom->SetForegroundColour(wxColour(0x6B6B6B));
+    bSizer4->Add(m_staticText_bottom, 0, wxALL, 5);
+
+    wxBoxSizer* bSizer5;
+    bSizer5 = new wxBoxSizer(wxHORIZONTAL);
+
+    m_img_enable_ams = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("monitor_upgrade_ams", this, FromDIP(140)), wxDefaultPosition, wxDefaultSize, 0);
+    m_img_disable_ams = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("disable_ams_demo_icon", this, FromDIP(110)), wxDefaultPosition, wxDefaultSize, 0);
+
+    m_img_enable_ams->SetMinSize(wxSize(FromDIP(96), FromDIP(110)));
+    m_img_disable_ams->SetMinSize(wxSize(FromDIP(96), FromDIP(110)));
+
+    bSizer5->Add(m_img_enable_ams, 0, wxALIGN_CENTER, 0);
+    bSizer5->Add(m_img_disable_ams, 0, wxALIGN_CENTER, 0);
+
+    m_img_disable_ams->Hide();
+    m_img_disable_ams->Hide();
+
+
+    bSizer4->Add(bSizer5, 0, wxALIGN_CENTER | wxBOTTOM, FromDIP(1));
+
+
+    SetSizer(bSizer4);
+    Layout();
+    Fit();
+
+    wxGetApp().UpdateDarkUIWin(this);
+}
+
+void AmsIntroducePopup::set_mode(bool enable_ams) 
+{
+    if (enable_ams) {
+        m_staticText_top->SetLabelText(_L("Enable AMS"));
+        m_staticText_bottom->SetLabelText(_L("Print with filaments in ams"));
+        m_img_enable_ams->Show();
+        m_img_disable_ams->Hide();
+    }
+    else {
+        m_staticText_top->SetLabelText(_L("Do not Enable AMS"));
+        m_staticText_bottom->SetLabelText(_L("Print with filaments mounted on the back of the chassis"));
+        m_staticText_bottom->SetMinSize(wxSize(FromDIP(180), -1));
+        m_staticText_bottom->Wrap(FromDIP(180));
+        m_img_enable_ams->Hide();
+        m_img_disable_ams->Show();
+    }
+    Layout();
+    Fit();
+}
+
+void AmsIntroducePopup::paintEvent(wxPaintEvent& evt)
+{
+    wxPaintDC dc(this);
+    dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
+}
+
+
+void AmsIntroducePopup::OnDismiss() {}
+
+bool AmsIntroducePopup::ProcessLeftDown(wxMouseEvent& event) {
     return wxPopupTransientWindow::ProcessLeftDown(event);
 }
 

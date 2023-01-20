@@ -35,7 +35,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
     m_button_play = new Button(this, "", "media_play", wxBORDER_NONE);
     m_button_play->SetCanFocus(false);
 
-    m_label_status = new Label(this, "", LB_HYPERLINK);
+    m_label_status = new Label(this, "");
     m_label_status->SetForegroundColour(wxColour("#2C2C2E"));
 
     m_button_play->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) { TogglePlay(); });
@@ -85,17 +85,19 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_camera_exists = obj->has_ipcam;
         m_lan_mode      = obj->is_lan_mode_printer();
         m_lan_ip       = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->dev_ip : "";
-        m_lan_passwd    = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->access_code : "";
+        m_lan_passwd    = obj->is_function_supported(PrinterFunction::FUNC_LOCAL_TUNNEL) ? obj->get_access_code() : "";
         m_tutk_support = obj->is_function_supported(PrinterFunction::FUNC_REMOTE_TUNNEL);
+        m_device_busy   = obj->is_in_prepare();
     } else {
         m_camera_exists = false;
         m_lan_mode = false;
         m_lan_ip.clear();
         m_lan_passwd.clear();
         m_tutk_support = true;
+        m_device_busy = false;
     }
     if (machine == m_machine) {
-        if (m_last_state == MEDIASTATE_IDLE && m_next_retry.IsValid() && wxDateTime::Now() >= m_next_retry)
+        if (m_last_state == MEDIASTATE_IDLE)
             Play();
         return;
     }
@@ -110,29 +112,28 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     }
     if (m_last_state != MEDIASTATE_IDLE)
         Stop();
-    if (m_next_retry.IsValid())
-        Play();
+    if (m_next_retry.IsValid()) // Try open 2 seconds later, to avoid state conflict
+        m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(2 * m_failed_retry);
     else
         SetStatus("", false);
 }
 
 void MediaPlayCtrl::Play()
 {
-    if (!m_next_retry.IsValid())
+    if (!m_next_retry.IsValid() || wxDateTime::Now() < m_next_retry)
         return;
     if (!IsShownOnScreen())
         return;
     if (m_last_state != MEDIASTATE_IDLE) {
         return;
     }
+    m_failed_code = 0;
     if (m_machine.empty()) {
-        Stop();
-        SetStatus(_L("Initialize failed (No Device)!"));
+        Stop(_L("Initialize failed (No Device)!"));
         return;
     }
     if (!m_camera_exists) {
-        Stop();
-        SetStatus(_L("Initialize failed (No Camera Device)!"));
+        Stop(_L("Initialize failed (No Camera Device)!"));
         return;
     }
 
@@ -140,7 +141,7 @@ void MediaPlayCtrl::Play()
     m_button_play->SetIcon("media_stop");
     SetStatus(_L("Initializing..."));
 
-    if (!m_lan_ip.empty() && (!m_lan_mode || !m_lan_passwd.empty())) {
+    if (!m_lan_ip.empty() && (!m_lan_mode || !m_lan_passwd.empty()) && !m_device_busy) {
         m_url        = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
         m_last_state = MEDIASTATE_LOADING;
         SetStatus(_L("Loading..."));
@@ -161,16 +162,21 @@ void MediaPlayCtrl::Play()
     }
 
     if (m_lan_mode) {
-        Stop();
-        SetStatus(m_lan_passwd.empty() 
+        m_failed_code = 1;
+        Stop(m_lan_passwd.empty() 
             ? _L("Initialize failed (Not supported with LAN-only mode)!") 
             : _L("Initialize failed (Not accessible in LAN-only mode)!"));
         return;
     }
     
     if (!m_tutk_support) { // not support tutk
-        Stop();
-        SetStatus(m_lan_ip.empty() 
+        if (m_device_busy) {
+            Stop(_L("Printer is busy downloading, Please wait for the downloading to finish."));
+            m_failed_retry = 0;
+            return;
+        }
+        m_failed_code = 1;
+        Stop(m_lan_ip.empty() 
             ? _L("Initialize failed (Missing LAN ip of printer)!") 
             : _L("Initialize failed (Not supported by printer)!"));
         return;
@@ -206,7 +212,7 @@ void MediaPlayCtrl::Play()
     }
 }
 
-void MediaPlayCtrl::Stop()
+void MediaPlayCtrl::Stop(wxString const &msg)
 {
     if (m_last_state != MEDIASTATE_IDLE) {
         m_media_ctrl->InvalidateBestSize();
@@ -215,14 +221,26 @@ void MediaPlayCtrl::Stop()
         m_tasks.push_back("<stop>");
         m_cond.notify_all();
         m_last_state = MEDIASTATE_IDLE;
-        if (m_failed_code)
+        if (!msg.IsEmpty())
+            SetStatus(msg, false);
+        else if (m_failed_code)
             SetStatus(_L("Stopped [%d]!"), true);
         else
             SetStatus(_L("Stopped."), false);
         if (m_failed_code >= 100) // not keep retry on local error
             m_next_retry = wxDateTime();
+    } else if (!msg.IsEmpty()) {
+        SetStatus(msg, false);
     }
     ++m_failed_retry;
+    if (m_failed_code != 0 && !m_tutk_support && m_failed_retry > 1) {
+        m_next_retry = wxDateTime(); // stop retry
+        if (wxGetApp().show_modal_ip_address_enter_dialog(_L("LAN Connection Failed (Failed to start liveview)"))) {
+            m_failed_retry = 0;
+            m_next_retry   = wxDateTime::Now();
+            return;
+        }
+    }
     if (m_next_retry.IsValid())
         m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(5 * m_failed_retry);
 }
@@ -317,6 +335,48 @@ void MediaPlayCtrl::ToggleStream()
     });
 }
 
+void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
+{
+    auto last_state = m_last_state;
+    auto state      = m_media_ctrl->GetState();
+    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: " << state << ", last_state: " << last_state;
+    if ((int) state < 0) return;
+    {
+        boost::unique_lock lock(m_mutex);
+        if (!m_tasks.empty()) {
+            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: skip when task not finished";
+            return;
+        }
+    }
+    if ((last_state == MEDIASTATE_IDLE || last_state == MEDIASTATE_INITIALIZING) && state == wxMEDIASTATE_STOPPED) { return; }
+    if ((last_state == wxMEDIASTATE_PAUSED || last_state == wxMEDIASTATE_PLAYING) && state == wxMEDIASTATE_STOPPED) {
+        m_failed_code = m_media_ctrl->GetLastError();
+        Stop();
+        return;
+    }
+    if (last_state == MEDIASTATE_LOADING && state == wxMEDIASTATE_STOPPED) {
+        wxSize size = m_media_ctrl->GetVideoSize();
+        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: size: " << size.x << "x" << size.y;
+        m_failed_code = m_media_ctrl->GetLastError();
+        if (size.GetWidth() > 1000) {
+            m_last_state = state;
+            SetStatus(_L("Playing..."), false);
+            m_failed_retry = 0;
+            m_failed_code  = 0;
+            boost::unique_lock lock(m_mutex);
+            m_tasks.push_back("<play>");
+            m_cond.notify_all();
+        } else if (event.GetId()) {
+            Stop();
+            if (m_failed_code == 0)
+                m_failed_code = 2;
+            SetStatus(_L("Load failed [%d]!"));
+        }
+    } else {
+        m_last_state = state;
+    }
+}
+
 void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
 {
     auto msg = wxString::Format(msg2, m_failed_code);
@@ -342,6 +402,7 @@ void MediaPlayCtrl::on_show_hide(wxShowEvent &evt)
 {
     evt.Skip();
     if (m_isBeingDeleted) return;
+    m_failed_retry = 0;
     IsShownOnScreen() ? Play() : Stop();
 }
 
@@ -358,7 +419,9 @@ void MediaPlayCtrl::media_proc()
             break;
         }
         else if (url == "<stop>") {
+            BOOST_LOG_TRIVIAL(info) <<  "MediaPlayCtrl: start stop";
             m_media_ctrl->Stop();
+            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: end stop";
         }
         else if (url == "<exit>") {
             break;
@@ -492,57 +555,15 @@ bool MediaPlayCtrl::get_stream_url(std::string *url)
     return url == nullptr;
 }
 
-void MediaPlayCtrl::onStateChanged(wxMediaEvent& event)
-{
-    auto last_state = m_last_state;
-    auto state = m_media_ctrl->GetState();
-    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: " << state << ", last_state: " << last_state;
-    if ((int) state < 0)
-        return;
-    {
-        boost::unique_lock lock(m_mutex);
-        if (!m_tasks.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: skip when task not finished";
-            return;
-        }
-    }
-    if ((last_state == MEDIASTATE_IDLE || last_state == MEDIASTATE_INITIALIZING) && state == wxMEDIASTATE_STOPPED) {
-        return;
-    }
-    if ((last_state == wxMEDIASTATE_PAUSED || last_state == wxMEDIASTATE_PLAYING)  &&
-        state == wxMEDIASTATE_STOPPED) {
-        m_failed_code = m_media_ctrl->GetLastError();
-        Stop();
-        return;
-    }
-    if (last_state == MEDIASTATE_LOADING && state == wxMEDIASTATE_STOPPED) {
-        wxSize size = m_media_ctrl->GetVideoSize();
-        BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: size: " << size.x << "x" << size.y;
-        m_failed_code = m_media_ctrl->GetLastError();
-        if (size.GetWidth() > 1000) {
-            m_last_state = state;
-            SetStatus(_L("Playing..."), false);
-            m_failed_retry = 0;
-            boost::unique_lock lock(m_mutex);
-            m_tasks.push_back("<play>");
-            m_cond.notify_all();
-        }
-        else if (event.GetId()) {
-            Stop();
-            if (m_failed_code == 0)
-                m_failed_code = 2;
-            SetStatus(_L("Load failed [%d]!"));
-        }
-    } else {
-        m_last_state = state;
-    }
-}
-
 }}
 
 void wxMediaCtrl2::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {
+#ifdef __WXMAC__
     wxWindow::DoSetSize(x, y, width, height, sizeFlags);
+#else
+    wxMediaCtrl::DoSetSize(x, y, width, height, sizeFlags);
+#endif
     if (sizeFlags & wxSIZE_USE_EXISTING) return;
     wxSize size = GetVideoSize();
     if (size.GetWidth() <= 0)

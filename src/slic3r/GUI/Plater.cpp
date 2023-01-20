@@ -240,8 +240,10 @@ SlicedInfo::SlicedInfo(wxWindow *parent) :
 
     auto init_info_label = [this, parent, grid_sizer](wxString text_label) {
         auto *text = new wxStaticText(parent, wxID_ANY, text_label);
+        text->SetForegroundColour(*wxBLACK);
         text->SetFont(wxGetApp().small_font());
         auto info_label = new wxStaticText(parent, wxID_ANY, "N/A");
+        info_label->SetForegroundColour(*wxBLACK);
         info_label->SetFont(wxGetApp().small_font());
         grid_sizer->Add(text, 0);
         grid_sizer->Add(info_label, 0);
@@ -1849,7 +1851,7 @@ struct Plater::priv
     bool is_view3D_layers_editing_enabled() const { return (current_panel == view3D) && view3D->get_canvas3d()->is_layers_editing_enabled(); }
 
     void set_current_canvas_as_dirty();
-    GLCanvas3D* get_current_canvas3D();
+    GLCanvas3D* get_current_canvas3D(bool exclude_preview = false);
     void unbind_canvas_event_handlers();
     void reset_canvas_volumes();
 
@@ -2039,7 +2041,6 @@ struct Plater::priv
     void on_action_print_all(SimpleEvent&);
     void on_action_export_gcode(SimpleEvent&);
     void on_action_send_gcode(SimpleEvent&);
-    void on_action_upload_gcode(SimpleEvent&);
     void on_action_export_sliced_file(SimpleEvent&);
     void on_action_export_all_sliced_file(SimpleEvent&);
     void on_action_select_sliced_plate(wxCommandEvent& evt);
@@ -2449,7 +2450,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLTOOLBAR_PRINT_ALL, &priv::on_action_print_all, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_GCODE, &priv::on_action_export_gcode, this);
         q->Bind(EVT_GLTOOLBAR_SEND_GCODE, &priv::on_action_send_gcode, this);
-        q->Bind(EVT_GLTOOLBAR_UPLOAD_GCODE, &priv::on_action_upload_gcode, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_SLICED_FILE, &priv::on_action_export_sliced_file, this);
         q->Bind(EVT_GLTOOLBAR_EXPORT_ALL_SLICED_FILE, &priv::on_action_export_all_sliced_file, this);
         q->Bind(EVT_GLTOOLBAR_SEND_TO_PRINTER, &priv::on_action_export_to_sdcard, this);
@@ -3092,8 +3092,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         }
                     } else if (load_config && (file_version > app_version)) {
                         if (config_substitutions.unrecogized_keys.size() > 0) {
-                            wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Found following keys unrecognized:\n"),
+                            wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Found following keys unrecognized:"),
                                                              file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
+                            text += "\n";
                             bool     first = true;
                             // std::string context = into_u8(text);
                             wxString context = text;
@@ -3112,8 +3113,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         else {
                             //if the minor version is not matched
                             if (file_version.min() != app_version.min()) {
-                                wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your software.\n"),
+                                wxString text  = wxString::Format(_L("The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your software."),
                                                  file_version.to_string(), std::string(SLIC3R_APP_FULL_NAME), app_version.to_string());
+                                text += "\n";
                                 show_info(q, text, _L("Newer 3mf version"));
                             }
                         }
@@ -6105,19 +6107,11 @@ void Plater::priv::on_action_export_gcode(SimpleEvent&)
     }
 }
 
-void Plater::priv::on_action_upload_gcode(SimpleEvent&)
-{
-    if (q != nullptr) {
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received export gcode event\n";
-        q->send_gcode_legacy(-1, nullptr, true);
-    }
-}
-
 void Plater::priv::on_action_send_gcode(SimpleEvent&)
 {
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received export gcode event\n" ;
-        q->send_gcode_legacy(-1, nullptr, false);
+        q->send_gcode_legacy();
     }
 }
 
@@ -6593,6 +6587,8 @@ void Plater::get_print_job_data(PrintPrepareData* data)
         data->plate_idx = p->m_print_job_data.plate_idx;
         data->_3mf_path = p->m_print_job_data._3mf_path;
         data->_3mf_config_path = p->m_print_job_data._3mf_config_path;
+        std::string temp_file = Slic3r::resources_dir() + "/check_access_code.txt";
+        data->_temp_path = encode_path(temp_file.c_str());
     }
 }
 
@@ -6621,11 +6617,11 @@ void Plater::priv::set_current_canvas_as_dirty()
         assemble_view->set_as_dirty();
 }
 
-GLCanvas3D* Plater::priv::get_current_canvas3D()
+GLCanvas3D* Plater::priv::get_current_canvas3D(bool exclude_preview)
 {
     if (current_panel == view3D)
         return view3D->get_canvas3d();
-    else if (current_panel == preview)
+    else if (!exclude_preview && (current_panel == preview))
         return preview->get_canvas3d();
     else if (current_panel == assemble_view)
         return assemble_view->get_canvas3d();
@@ -9914,7 +9910,7 @@ void Plater::reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &
     // and let the background processing start.
     this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
 }
-void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn, bool upload_only)
+void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
 {
     // if physical_printer is selected, send gcode for this printer
     // DynamicPrintConfig* physical_printer_config = wxGetApp().preset_bundle->physical_printers.get_selected_printer_config();
@@ -10449,9 +10445,9 @@ GLCanvas3D* Plater::get_assmeble_canvas3D()
     return nullptr;
 }
 
-GLCanvas3D* Plater::get_current_canvas3D()
+GLCanvas3D* Plater::get_current_canvas3D(bool exclude_preview)
 {
-    return p->get_current_canvas3D();
+    return p->get_current_canvas3D(exclude_preview);
 }
 
 void Plater::arrange()
@@ -11135,6 +11131,8 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click)
             PartPlate* curr_plate = p->partplate_list.get_curr_plate();
             dlg.sync_bed_type(curr_plate->get_bed_type(false));
             dlg.Bind(EVT_SET_BED_TYPE_CONFIRM, [this, plate_index](wxCommandEvent& e) {
+                PartPlate *curr_plate = p->partplate_list.get_curr_plate();
+                BedType old_bed_type = curr_plate->get_bed_type(false);
                 auto type = (BedType)(e.GetInt());
                 p->partplate_list.get_curr_plate()->set_bed_type(type);
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("select bed type %1% for plate %2% at plate side")%type %plate_index;
@@ -11308,7 +11306,8 @@ void Plater::post_process_string_object_exception(StringObjectException &err)
                         break;
                     }
                 }
-                err.string = format(L("Plate %d: %s does not support filament %s (%s).\n"), err.params[0], err.params[1], err.params[2], filament_name);
+                err.string = format(_L("Plate %d: %s does not support filament %s (%s)."), err.params[0], err.params[1], err.params[2], filament_name);
+                err.string += "\n";
             }
         } catch (...) {
             ;

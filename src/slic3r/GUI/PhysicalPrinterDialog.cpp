@@ -36,7 +36,7 @@
 namespace Slic3r {
 namespace GUI {
 
-#define BORDER_W 10
+#define BORDER_W FromDIP(10)
 
 //------------------------------------------
 //          PhysicalPrinterDialog

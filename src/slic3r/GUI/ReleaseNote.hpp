@@ -122,6 +122,7 @@ public:
     ~SecondaryCheckDialog();
     void on_dpi_changed(const wxRect& suggested_rect);
 
+    Label* m_staticText_release_note {nullptr};
     wxBoxSizer* m_sizer_main;
     wxScrolledWindow *m_vebview_release_note {nullptr};
     Button* m_button_ok;
@@ -160,12 +161,61 @@ public:
 
     wxBoxSizer* m_sizer_main;
     wxScrolledWindow* m_vebview_release_note{ nullptr };
+    wxStaticText* m_staticText_release_note{ nullptr };
     Button* m_button_ok;
     Button* m_button_cancel;
     wxCheckBox* m_show_again_checkbox;
     bool not_show_again = false;
     std::string show_again_config_text = "";
 };
+
+class InputIpAddressDialog : public DPIDialog
+{
+public:
+    wxString comfirm_before_enter_text;
+    wxString comfirm_after_enter_text;
+
+    std::string m_ip;
+    Label* m_tip1{ nullptr };
+    Label* m_tip2{ nullptr };
+    Label* m_tip3{ nullptr };
+    InputIpAddressDialog(wxWindow* parent = nullptr);
+    ~InputIpAddressDialog();
+
+    MachineObject* m_obj{nullptr};
+    Button* m_button_ok{ nullptr };
+    Label* m_tips_ip{ nullptr };
+    Label* m_tips_access_code{ nullptr };
+    Label* m_error_msg{ nullptr };
+    TextInput* m_input_ip{ nullptr };
+    TextInput* m_input_access_code{ nullptr };
+    wxStaticBitmap* m_img_help1{ nullptr };
+    wxStaticBitmap* m_img_help2{ nullptr };
+    wxStaticBitmap* m_img_step1{ nullptr };
+    wxStaticBitmap* m_img_step2{ nullptr };
+    bool   m_show_access_code{ false };
+
+    std::shared_ptr<SendJob> m_send_job{nullptr};
+    std::shared_ptr<BBLStatusBarSend> m_status_bar;
+
+    void on_cancel();
+    void update_title(wxString title);
+    void set_machine_obj(MachineObject* obj);
+    void update_error_msg(wxString msg);
+    bool isIp(std::string ipstr);
+    void check_ip_address_failed();
+    void on_check_ip_address_failed(wxCommandEvent& evt);
+    void on_ok(wxMouseEvent& evt);
+    void on_text(wxCommandEvent& evt);
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+};
+
+
+wxDECLARE_EVENT(EVT_CLOSE_IPADDRESS_DLG, wxCommandEvent);
+wxDECLARE_EVENT(EVT_CHECKBOX_CHANGE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_ENTER_IP_ADDRESS, wxCommandEvent);
+wxDECLARE_EVENT(EVT_CHECK_IP_ADDRESS_FAILED, wxCommandEvent);
+
 
 }} // namespace Slic3r::GUI
 

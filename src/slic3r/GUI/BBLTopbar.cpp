@@ -292,8 +292,6 @@ void BBLTopbar::Init(wxFrame* parent)
     wxBitmap close_bitmap = create_scaled_bitmap("topbar_close", nullptr, TOPBAR_ICON_SIZE);
     wxAuiToolBarItem* close_btn = this->AddTool(wxID_CLOSE_FRAME, "", close_bitmap);
 
-    this->AddSpacer(FromDIP(6));
-
     Realize();
     // m_toolbar_h = this->GetSize().GetHeight();
     m_toolbar_h = FromDIP(30);

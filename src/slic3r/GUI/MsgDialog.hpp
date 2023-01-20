@@ -3,7 +3,6 @@
 
 #include <string>
 #include <unordered_map>
-
 #include "GUI_Utils.hpp"
 #include <wx/dialog.h>
 #include <wx/font.h>
@@ -14,6 +13,7 @@
 #include <wx/statline.h>
 #include "Widgets/Button.hpp"
 #include "Widgets/CheckBox.hpp"
+#include "Widgets/TextInput.hpp"
 #include "BBLStatusBar.hpp"
 #include "BBLStatusBarSend.hpp"
 
@@ -93,7 +93,7 @@ protected:
     MsgButtonsHash  m_buttons;
 	CheckBox* m_checkbox_dsa{nullptr};
 };
-wxDECLARE_EVENT(EVT_CHECKBOX_CHANGE, wxCommandEvent);
+
 
 // Generic error dialog, used for displaying exceptions
 class ErrorDialog : public MsgDialog
@@ -371,6 +371,7 @@ public:
 private:
     wxString msg;
 };
+
 
 }
 }

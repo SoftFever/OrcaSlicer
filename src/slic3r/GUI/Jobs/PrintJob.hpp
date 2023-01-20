@@ -16,6 +16,7 @@ public:
     int             plate_idx;
     fs::path        _3mf_path;
     fs::path        _3mf_config_path;
+    fs::path        _temp_path;
     PrintPrepareData() {
         plate_idx = 0;
     }
@@ -39,6 +40,7 @@ public:
 
     std::string m_project_name;
     std::string m_dev_ip;
+    bool        m_local_use_ssl { true };
     std::string m_access_code;
     std::string task_bed_type;
     bool        task_bed_leveling;

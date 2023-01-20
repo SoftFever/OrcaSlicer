@@ -31,6 +31,7 @@ HMSNotifyItem::HMSNotifyItem(wxWindow *parent, HMSItem& item)
     m_bitmap_notify->SetBitmap(get_notify_bitmap());
 
     m_hms_content = new wxStaticText(m_panel_hms, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
+    m_hms_content->SetForegroundColour(*wxBLACK);
     m_hms_content->SetSize(HMS_NOTIFY_ITEM_TEXT_SIZE);
     m_hms_content->SetMinSize(HMS_NOTIFY_ITEM_TEXT_SIZE);
     m_hms_content->SetLabelText(_L(wxGetApp().get_hms_query()->query_hms_msg(m_hms_item.get_long_error_code())));

@@ -1497,7 +1497,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 void Tab::show_timelapse_warning_dialog() {
     if (!m_is_timelapse_wipe_tower_already_prompted) {
         wxString      msg_text = _(L("When recording timelapse without toolhead, it is recommended to add a \"Timelapse Wipe Tower\" \n"
-                                "by right-click the empty position of build plate and choose \"Add Primitive\"->\"Timelapse Wipe Tower\".\n"));
+                                "by right-click the empty position of build plate and choose \"Add Primitive\"->\"Timelapse Wipe Tower\"."));
+        msg_text += "\n";
         MessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
         dialog.ShowModal();
         m_is_timelapse_wipe_tower_already_prompted = true;
@@ -1964,6 +1965,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Raft"), L"param_raft");
         optgroup->append_single_option_line("raft_layers");
+        optgroup->append_single_option_line("raft_contact_distance");
         optgroup->append_single_option_line("raft_first_layer_density");
         optgroup->append_single_option_line("raft_first_layer_expansion");
 
@@ -2602,7 +2604,7 @@ void TabFilament::build()
             DynamicPrintConfig& filament_config = wxGetApp().preset_bundle->filaments.get_edited_preset().config;
 
             update_dirty();
-            if (opt_key == "cool_plate_temp" || opt_key == "cool_plate_temp_initial_layer") {
+            /*if (opt_key == "cool_plate_temp" || opt_key == "cool_plate_temp_initial_layer") {
                 m_config_manipulation.check_bed_temperature_difference(BedType::btPC, &filament_config);
             }
             else if (opt_key == "eng_plate_temp" || opt_key == "eng_plate_temp_initial_layer") {
@@ -2614,7 +2616,7 @@ void TabFilament::build()
             else if (opt_key == "textured_plate_temp" || opt_key == "textured_plate_temp_initial_layer") {
                 m_config_manipulation.check_bed_temperature_difference(BedType::btPTE, &filament_config);
             }
-            else if (opt_key == "nozzle_temperature") {
+            else */if (opt_key == "nozzle_temperature") {
                 m_config_manipulation.check_nozzle_temperature_range(&filament_config);
             }
             else if (opt_key == "nozzle_temperature_initial_layer") {

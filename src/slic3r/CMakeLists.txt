@@ -153,6 +153,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/AMSSetting.hpp
     GUI/AMSMaterialsSetting.cpp
     GUI/AMSMaterialsSetting.hpp
+    GUI/ExtrusionCalibration.cpp
+    GUI/ExtrusionCalibration.hpp
     GUI/PresetHints.cpp
     GUI/PresetHints.hpp
     GUI/GUI.cpp
@@ -463,6 +465,12 @@ else ()
         )
 endif ()
 
+if (UNIX AND NOT APPLE)
+    list(APPEND SLIC3R_GUI_SOURCES
+        GUI/Printer/gstbambusrc.c
+    )
+endif ()
+
 add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
 target_include_directories(libslic3r_gui PRIVATE Utils)
 
@@ -513,4 +521,10 @@ if (UNIX AND NOT APPLE)
     find_package(GTK${SLIC3R_GTK} REQUIRED)
     target_include_directories(libslic3r_gui PRIVATE ${GTK${SLIC3R_GTK}_INCLUDE_DIRS})
     target_link_libraries(libslic3r_gui ${GTK${SLIC3R_GTK}_LIBRARIES})
+
+    # We add GStreamer for bambu:/// support.
+    pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)
+    pkg_check_modules(GST_BASE REQUIRED gstreamer-base-1.0)
+    target_link_libraries(libslic3r_gui ${GSTREAMER_LIBRARIES} ${GST_BASE_LIBRARIES})
+    target_include_directories(libslic3r_gui PRIVATE ${GSTREAMER_INCLUDE_DIRS} ${GST_BASE_INCLUDE_DIRS})
 endif ()

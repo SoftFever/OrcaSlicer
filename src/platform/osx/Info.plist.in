@@ -5,7 +5,7 @@
   <key>CFBundleExecutable</key>
   <string>@SLIC3R_APP_KEY@</string>
   <key>CFBundleGetInfoString</key>
-  <string>@SLIC3R_APP_NAME@ Copyright (C) 2011-2019 Alessandro Ranellucci, (C) 2016-2021 Bambu Reseach</string>
+  <string>@SLIC3R_APP_NAME@ Copyright(C) 2021-2023 Lunkuo All Rights Reserved</string>
   <key>CFBundleIconFile</key>
   <string>BambuStudio.icns</string>
   <key>CFBundleName</key>

@@ -270,7 +270,8 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
             // get non 100% overhang paths by intersecting this loop with the grown lower slices
             Polylines remain_polines;
 
-            if (perimeter_generator.config->enable_overhang_speed) {
+            //BBS: don't calculate overhang degree when enable fuzzy skin. It's unmeaning
+            if (perimeter_generator.config->enable_overhang_speed && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None) {
                 for (auto it = lower_polygons_series->begin();
                     it != lower_polygons_series->end(); it++)
                 {

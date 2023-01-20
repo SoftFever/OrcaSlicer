@@ -20,6 +20,8 @@
 #define TIMEOUT_FOR_STRAT       20000.f     // milliseconds
 #define REQUEST_PUSH_MIN_TIME   15000.f     // milliseconds
 #define REQUEST_START_MIN_TIME  15000.f     // milliseconds
+#define EXTRUSION_OMIT_TIME     20000.f     // milliseconds
+#define HOLD_TIMEOUT            10000.f     // milliseconds
 
 #define FILAMENT_MAX_TEMP       300
 #define FILAMENT_DEF_TEMP       220
@@ -30,6 +32,7 @@
 #define HOLD_COUNT_CAMERA       6
 #define GET_VERSION_RETRYS      10
 #define RETRY_INTERNAL          2000
+#define VIRTUAL_TRAY_ID         254
 
 inline int correct_filament_temperature(int filament_temp)
 {
@@ -85,6 +88,8 @@ enum PrinterFunction {
     FUNC_SEND_TO_SDCARD,
     FUNC_AUTO_SWITCH_FILAMENT,
     FUNC_CHAMBER_FAN,
+    FUNC_EXTRUSION_CALI,
+    FUNC_PRINT_ALL,
     FUNC_MAX
 };
 
@@ -178,8 +183,9 @@ public:
     }
 
     std::string     id;
-    std::string     tag_uid;    // tag_uid
-    std::string     setting_id; // tray_info_idx
+    std::string     tag_uid;     // tag_uid
+    std::string     setting_id;  // tray_info_idx
+    std::string     filament_setting_id;    // setting_id
     std::string     type;
     std::string     sub_brands;
     std::string     color;
@@ -193,6 +199,8 @@ public:
     std::string     nozzle_temp_min;
     std::string     xcam_info;
     std::string     uuid;
+    float           k = 0.0f;       // k range: 0 ~ 0.5
+    float           n = 0.0f;       // k range: 0.6 ~ 2.0
 
     wxColour        wx_color;
     bool            is_bbl;
@@ -313,6 +321,9 @@ private:
     bool check_valid_ip();
     void _parse_print_option_ack(int option);
 
+    std::string access_code;
+    std::string user_access_code;
+
 public:
 
     enum LIGHT_EFFECT {
@@ -364,6 +375,15 @@ public:
         SDCARD_STATE_NUM = 3
     };
 
+    class ExtrusionRatioInfo
+    {
+    public:
+        std::string name;
+        std::string setting_id;
+        float       k = 0.0;
+        float       n = 0.0;
+    };
+
     /* static members and functions */
     static inline int m_sequence_id = 20000;
     static std::string parse_printer_type(std::string type_str);
@@ -380,11 +400,15 @@ public:
     std::string dev_name;
     std::string dev_ip;
     std::string dev_id;
-    std::string access_code;
+    bool        local_use_ssl { false };
     std::string dev_connection_type;    /* lan | cloud */
     std::string connection_type() { return dev_connection_type; }
+    void set_dev_ip(std::string ip) {dev_ip = ip;};
     bool has_access_right() { return !access_code.empty(); }
     void set_access_code(std::string code);
+    std::string get_access_code();
+    void set_user_access_code(std::string code);
+    std::string get_user_access_code();
     bool is_lan_mode_printer();
     //PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
     std::string printer_type;       /* model_id */
@@ -414,6 +438,7 @@ public:
 
     /* ams properties */
     std::map<std::string, Ams*> amsList;    // key: ams[id], start with 0
+    AmsTray vt_tray;                        // virtual tray
     long  ams_exist_bits = 0;
     long  tray_exist_bits = 0;
     long  tray_is_bbl_bits = 0;
@@ -427,6 +452,7 @@ public:
     bool  ams_auto_switch_filament_flag  { false };
     bool  ams_support_use_ams { false };
     bool  ams_support_remain { true };
+    bool  ams_support_virtual_tray { true };
     int   ams_humidity;
     int   ams_user_setting_hold_count = 0;
     AmsStatusMain ams_status_main;
@@ -436,6 +462,14 @@ public:
     std::string m_tray_id;          // local tray id : "0" ~ "3"
     std::string m_tray_now;         // tray_now : "0" ~ "15" or "255"
     std::string m_tray_tar;         // tray_tar : "0" ~ "15" or "255"
+
+    int extrusion_cali_hold_count = 0;
+    std::chrono::system_clock::time_point last_extrusion_cali_start_time;
+    int extrusion_cali_set_tray_id = -1;
+    std::chrono::system_clock::time_point extrusion_cali_set_hold_start;
+
+    bool is_in_extrusion_cali();
+    bool is_extrusion_cali_finished();
     void _parse_tray_now(std::string tray_now);
     bool is_filament_move() { return atoi(m_tray_now.c_str()) == 255 ? false : true; };
     bool    is_ams_need_update;
@@ -507,6 +541,7 @@ public:
     int get_version_retry = 0;
     std::map<std::string, ModuleVersionInfo> module_vers;
     std::map<std::string, ModuleVersionInfo> new_ver_list;
+    std::map<std::string, ExtrusionRatioInfo> extrusion_ratio_map;
     bool    m_new_ver_list_exist = false;
     int upgrade_err_code = 0;
     std::vector<FirmwareInfo> firmware_list;
@@ -523,9 +558,8 @@ public:
 
     /* printing */
     std::string print_type;
-    float   nozzle { 0.0f };
+    float   nozzle { 0.0f };        // default is 0.0f as initial value
     bool    is_220V_voltage { false };
-
 
     int     mc_print_stage;
     int     mc_print_sub_stage;
@@ -538,6 +572,9 @@ public:
     int     hw_switch_state;
     bool    is_system_printing();
     int     print_error;
+    int     curr_layer = 0;
+    int     total_layers = 0;
+    bool    is_support_layer_num { false };
 
     std::vector<int> stage_list_info;
     int stage_curr = 0;
@@ -592,7 +629,7 @@ public:
     /*not support U2*/
     bool is_support_1080dpi {false};
     bool is_support_ai_monitoring {false};
-    bool is_support_ams_humidity {false};
+    bool is_support_ams_humidity {true};
 
     /* sdcard */
     MachineObject::SdcardState sdcard_state { NO_SDCARD };
@@ -663,12 +700,15 @@ public:
     int command_ams_user_settings(int ams_id, AmsOptionType op, bool value);
     int command_ams_switch_filament(bool switch_filament);
     int command_ams_calibrate(int ams_id);
-    int command_ams_filament_settings(int ams_id, int tray_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max);
+    int command_ams_filament_settings(int ams_id, int tray_id, std::string filament_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max);
     int command_ams_select_tray(std::string tray_id);
     int command_ams_refresh_rfid(std::string tray_id);
     int command_ams_control(std::string action);
     int command_set_chamber_light(LIGHT_EFFECT effect, int on_time = 500, int off_time = 500, int loops = 1, int interval = 1000);
     int command_set_work_light(LIGHT_EFFECT effect, int on_time = 500, int off_time = 500, int loops = 1, int interval = 1000);
+    int command_start_extrusion_cali(int tray_index, int nozzle_temp, int bed_temp, float max_volumetric_speed, std::string setting_id = "");
+    int command_stop_extrusion_cali();
+    int command_extrusion_cali_set(int tray_index, std::string setting_id, std::string name, float k, float n, int bed_temp = -1, int nozzle_temp = -1, float max_volumetric_speed = -1);
 
     // set printing speed
     int command_set_printing_speed(PrintingSpeedLevel lvl);

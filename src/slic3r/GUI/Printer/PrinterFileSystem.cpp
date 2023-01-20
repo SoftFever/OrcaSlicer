@@ -921,3 +921,7 @@ StaticBambuLib &StaticBambuLib::get()
         lib.Bambu_Create = Fake_Bambu_Create;
     return lib;
 }
+
+extern "C" struct BambuLib *bambulib_get() {
+    return &StaticBambuLib::get();
+}

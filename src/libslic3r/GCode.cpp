@@ -181,7 +181,7 @@ bool GCode::gcode_label_objects = true;
         length *= (1. - gcodegen.writer().extruder()->retract_before_wipe());
 
         //SoftFever: allow 100% retract before wipe
-//        if (length > 0)
+        if (length >= 0)
         {
             /*  Calculate how long we need to travel in order to consume the required
                 amount of retraction. In other words, how far do we move in XY at wipe_speed
@@ -1320,24 +1320,26 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     if (print.config().print_sequence == PrintSequence::ByObject) {
         // Add each of the object's layers separately.
         for (auto object : print.objects()) {
-            std::vector<coordf_t> zs;
+            //BBS: fix the issue that total layer is not right
+            std::vector<coord_t> zs;
             zs.reserve(object->layers().size() + object->support_layers().size());
             for (auto layer : object->layers())
-                zs.push_back(layer->print_z);
+                zs.push_back((coord_t)(layer->print_z / EPSILON));
             for (auto layer : object->support_layers())
-                zs.push_back(layer->print_z);
+                zs.push_back((coord_t)(layer->print_z / EPSILON));
             std::sort(zs.begin(), zs.end());
             m_layer_count += (unsigned int)(object->instances().size() * (std::unique(zs.begin(), zs.end()) - zs.begin()));
         }
     } else {
         // Print all objects with the same print_z together.
-        std::vector<coordf_t> zs;
+        //BBS: fix the issue that total layer is not right
+        std::vector<coord_t> zs;
         for (auto object : print.objects()) {
             zs.reserve(zs.size() + object->layers().size() + object->support_layers().size());
             for (auto layer : object->layers())
-                zs.push_back(layer->print_z);
+                zs.push_back((coord_t)(layer->print_z / EPSILON));
             for (auto layer : object->support_layers())
-                zs.push_back(layer->print_z);
+                zs.push_back((coord_t)(layer->print_z / EPSILON));
         }
         std::sort(zs.begin(), zs.end());
         m_layer_count = (unsigned int)(std::unique(zs.begin(), zs.end()) - zs.begin());
@@ -1366,6 +1368,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write_format("; %s\n", Slic3r::header_slic3r_generated().c_str());
     //BBS: total estimated printing time
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Estimated_Printing_Time_Placeholder).c_str());
+    //BBS: total layer number
+    file.write_format("; total layer number: %d\n", m_layer_count);
     file.write_format("; HEADER_BLOCK_END\n\n");
 
     
@@ -3841,8 +3845,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             //BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external perimeter
             int overhang_threshold = EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none ?
                 Overhang_threshold_none : EXTRUDER_CONFIG(overhang_fan_threshold) - 1;
-            if ((EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter) ||
-                path.get_overhang_degree() > overhang_threshold ||
+            if ((EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter)) {
+                gcode += ";_OVERHANG_FAN_START\n";
+                comment = ";_EXTRUDE_SET_SPEED";
+            } else if (path.get_overhang_degree() > overhang_threshold ||
                 is_bridge(path.role()))
                 gcode += ";_OVERHANG_FAN_START\n";
             else
@@ -3920,8 +3926,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             //BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external perimeter
             int overhang_threshold = EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none ?
                 Overhang_threshold_none : EXTRUDER_CONFIG(overhang_fan_threshold) - 1;
-            if ((EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter) ||
-                path.get_overhang_degree() > overhang_threshold ||
+            if ((EXTRUDER_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter)) {
+                gcode += ";_EXTRUDE_END\n";
+                gcode += ";_OVERHANG_FAN_END\n";
+
+            } else if (path.get_overhang_degree() > overhang_threshold ||
                 is_bridge(path.role()))
                 gcode += ";_OVERHANG_FAN_END\n";
             else

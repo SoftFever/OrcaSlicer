@@ -1101,6 +1101,7 @@ void AuxiliaryPanel::update_all_cover()
 
      auto m_text_designer = new wxStaticText(this, wxID_ANY, _L("Author"), wxDefaultPosition, wxSize(120, -1), 0);
      m_text_designer->Wrap(-1);
+     m_text_designer->SetForegroundColour(*wxBLACK);
      m_sizer_designer->Add(m_text_designer, 0, wxALIGN_CENTER, 0);
 
      m_input_designer =  new ::TextInput(this, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(450), FromDIP(30)), wxTE_PROCESS_ENTER);
@@ -1111,6 +1112,7 @@ void AuxiliaryPanel::update_all_cover()
      wxBoxSizer *m_sizer_model_name = new wxBoxSizer(wxHORIZONTAL);
 
      auto m_text_model_name = new wxStaticText(this, wxID_ANY, _L("Model Name"), wxDefaultPosition, wxSize(120, -1), 0);
+     m_text_model_name->SetForegroundColour(*wxBLACK);
      m_text_model_name->Wrap(-1);
      m_sizer_model_name->Add(m_text_model_name, 0, wxALIGN_CENTER, 0);
 

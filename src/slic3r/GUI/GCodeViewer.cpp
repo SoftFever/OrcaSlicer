@@ -325,8 +325,12 @@ void GCodeViewer::SequentialView::Marker::set_world_position(const Vec3f& positi
     m_world_transform = (Geometry::assemble_transform((position + m_z_offset * Vec3f::UnitZ()).cast<double>()) * Geometry::assemble_transform(m_model.get_bounding_box().size().z() * Vec3d::UnitZ(), { M_PI, 0.0, 0.0 })).cast<float>();
 }
 
+void GCodeViewer::SequentialView::Marker::update_curr_move(const GCodeProcessorResult::MoveVertex move) {
+    m_curr_move = move;
+}
+
 //BBS: GUI refactor: add canvas size from parameters
-void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves, uint64_t curr_line_id) const
+void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_height, const EViewType& view_type) const
 {
     if (!m_visible)
         return;
@@ -356,13 +360,6 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     static size_t last_text_length = 0;
     const ImU32 text_name_clr = m_is_dark ? IM_COL32(255, 255, 255, 0.88 * 255) : IM_COL32(38, 46, 48, 255);
     const ImU32 text_value_clr = m_is_dark ? IM_COL32(255, 255, 255, 0.4 * 255) : IM_COL32(144, 144, 144, 255);
-
-    auto it = std::find_if(moves.begin(), moves.end(), [&curr_line_id](auto move) {
-        return move.gcode_id == curr_line_id;
-        });
-    if (it == moves.end()) {
-        return;
-    }
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     //BBS: GUI refactor: add canvas size from parameters
@@ -418,42 +415,42 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         switch (view_type) {
         case EViewType::Height: {
             ImGui::SameLine(window_padding + item_size + item_spacing);
-            sprintf(buf, "%s%.2f", height.c_str(), it->height);
+            sprintf(buf, "%s%.2f", height.c_str(), m_curr_move.height);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
         case EViewType::Width: {
             ImGui::SameLine(window_padding + item_size + item_spacing);
-            sprintf(buf, "%s%.2f", width.c_str(), it->width);
+            sprintf(buf, "%s%.2f", width.c_str(), m_curr_move.width);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
         case EViewType::Feedrate: {
             ImGui::SameLine(window_padding + item_size + item_spacing);
-            sprintf(buf, "%s%.0f", speed.c_str(), it->feedrate);
+            sprintf(buf, "%s%.0f", speed.c_str(), m_curr_move.feedrate);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
         case EViewType::VolumetricRate: {
             ImGui::SameLine(window_padding + item_size + item_spacing);
-            sprintf(buf, "%s%.2f", flow.c_str(), it->volumetric_rate());
+            sprintf(buf, "%s%.2f", flow.c_str(), m_curr_move.volumetric_rate());
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
         case EViewType::FanSpeed: {
             ImGui::SameLine(window_padding + item_size + item_spacing);
-            sprintf(buf, "%s%.0f", fanspeed.c_str(), it->fan_speed);
+            sprintf(buf, "%s%.0f", fanspeed.c_str(), m_curr_move.fan_speed);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
         }
         case EViewType::Temperature: {
             ImGui::SameLine(window_padding + item_size + item_spacing);
-            sprintf(buf, "%s%.0f", temperature.c_str(), it->temperature);
+            sprintf(buf, "%s%.0f", temperature.c_str(), m_curr_move.temperature);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
@@ -461,7 +458,7 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         case EViewType::LayerTime:
         case EViewType::LayerTimeLog: {
             ImGui::SameLine(window_padding + item_size + item_spacing);
-            sprintf(buf, "%s%.1f", layer_time.c_str(), it->layer_duration);
+            sprintf(buf, "%s%.1f", layer_time.c_str(), m_curr_move.layer_duration);
             ImGui::PushItemWidth(item_size);
             imgui.text(buf);
             break;
@@ -485,7 +482,7 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         imgui.text(buf);
         
         ImGui::SameLine(window_padding + item_size + item_spacing);
-        sprintf(buf, "%s%.0f", speed.c_str(), it->feedrate);
+        sprintf(buf, "%s%.0f", speed.c_str(), m_curr_move.feedrate);
         ImGui::PushItemWidth(item_size);
         imgui.text(buf);
     }
@@ -703,10 +700,10 @@ void GCodeViewer::SequentialView::GCodeWindow::stop_mapping_file()
     }
 }
 //BBS: GUI refactor: move to the right
-void GCodeViewer::SequentialView::render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves) const
+void GCodeViewer::SequentialView::render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, const EViewType& view_type) const
 {
     if (has_render_path)
-        marker.render(canvas_width, canvas_height, view_type, moves, static_cast<uint64_t>(gcode_ids[current.last]));
+        marker.render(canvas_width, canvas_height, view_type);
     //float bottom = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_height();
     // BBS
 #if 0
@@ -1291,7 +1288,7 @@ void GCodeViewer::render(int canvas_width, int canvas_height, int right_margin)
         m_sequential_view.marker.set_world_position(m_sequential_view.current_position);
         m_sequential_view.marker.set_world_offset(m_sequential_view.current_offset);
         //BBS fixed buttom margin. m_moves_slider.pos_y
-        m_sequential_view.render(!m_no_render_path, legend_height, canvas_width - right_margin * m_scale, canvas_height - bottom_margin * m_scale, m_view_type, m_gcode_result->moves);
+        m_sequential_view.render(!m_no_render_path, legend_height, canvas_width - right_margin * m_scale, canvas_height - bottom_margin * m_scale, m_view_type);
     //}
 #if ENABLE_GCODE_VIEWER_STATISTICS
     render_statistics();
@@ -1795,6 +1792,14 @@ void GCodeViewer::update_layers_slider_mode()
     }
 
     // TODO m_layers_slider->SetModeAndOnlyExtruder(one_extruder_printed_model, only_extruder);
+}
+
+void GCodeViewer::update_marker_curr_move() {
+    auto it = std::find_if(m_gcode_result->moves.begin(), m_gcode_result->moves.end(), [this](auto move) {
+        return move.gcode_id == static_cast<uint64_t>(m_sequential_view.gcode_ids[m_sequential_view.current.last]);
+        });
+
+    m_sequential_view.marker.update_curr_move(*it);
 }
 
 bool GCodeViewer::is_toolpath_move_type_visible(EMoveType type) const
@@ -2458,14 +2463,14 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
     std::vector<float> options_zs;
 
     size_t seams_count = 0;
-    std::vector<size_t> seams_ids;
+    std::vector<size_t> biased_seams_ids;
 
     // toolpaths data -> extract vertices from result
     for (size_t i = 0; i < m_moves_count; ++i) {
         const GCodeProcessorResult::MoveVertex& curr = gcode_result.moves[i];
         if (curr.type == EMoveType::Seam) {
             ++seams_count;
-            seams_ids.push_back(i);
+            biased_seams_ids.push_back(i - biased_seams_ids.size() - 1);
         }
 
         size_t move_id = i - seams_count;
@@ -2555,17 +2560,23 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":b=%1%, vertex buffer count %2%\n")
             %b %v_multibuffer.size();
     }*/
-    auto extract_move_id = [&seams_ids](size_t id) {
-            for (int i = seams_ids.size() - 1; i >= 0; --i) {
-                if (seams_ids[i] < id + i + 1)
-                    return id + (size_t)i + 1;
-            }
-            return id;
+    auto extract_move_id = [&biased_seams_ids](size_t id) {
+        size_t new_id = size_t(-1);
+        auto it = std::lower_bound(biased_seams_ids.begin(), biased_seams_ids.end(), id);
+        if (it == biased_seams_ids.end())
+            new_id = id + biased_seams_ids.size();
+        else {
+            if (it == biased_seams_ids.begin() && *it < id)
+                new_id = id;
+            else if (it != biased_seams_ids.begin())
+                new_id = id + std::distance(biased_seams_ids.begin(), it);
+        }
+        return (new_id == size_t(-1)) ? id : new_id;
     };
     //BBS: generate map from ssid to move id in advance to reduce computation
     m_ssid_to_moveid_map.clear();
-    m_ssid_to_moveid_map.reserve( m_moves_count - seams_ids.size());
-    for (size_t i = 0; i < m_moves_count - seams_ids.size(); i++)
+    m_ssid_to_moveid_map.reserve( m_moves_count - biased_seams_ids.size());
+    for (size_t i = 0; i < m_moves_count - biased_seams_ids.size(); i++)
         m_ssid_to_moveid_map.push_back(extract_move_id(i));
 
     //BBS: smooth toolpaths corners for the given TBuffer using triangles
@@ -2767,7 +2778,7 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
     }
 
     // dismiss, no more needed
-    std::vector<size_t>().swap(seams_ids);
+    std::vector<size_t>().swap(biased_seams_ids);
 
     for (MultiVertexBuffer& v_multibuffer : vertices) {
         for (VertexBuffer& v_buffer : v_multibuffer) {
@@ -4841,10 +4852,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
             PartialTimes items;
 
             std::vector<CustomGCode::Item> custom_gcode_per_print_z = wxGetApp().is_editor() ? wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes : m_custom_gcode_per_print_z;
-            // BBS
-            int extruders_count = wxGetApp().filaments_cnt();
-            std::vector<Color> last_color(extruders_count);
-            for (int i = 0; i < extruders_count; ++i) {
+            std::vector<Color> last_color(m_extruders_count);
+            for (size_t i = 0; i < m_extruders_count; ++i) {
                 last_color[i] = m_tools.m_tool_colors[i];
             }
             int last_extruder_id = 1;

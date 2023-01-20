@@ -466,9 +466,8 @@ class GCodeViewer
             size_t first{ 0 };
             size_t last{ 0 };
 
-            bool operator == (const Endpoints& other) const {
-                return first == other.first && last == other.last;
-            }
+            bool operator == (const Endpoints& other) const { return first == other.first && last == other.last; }
+            bool operator != (const Endpoints& other) const { return !operator==(other); }
         };
 
     private:
@@ -497,9 +496,8 @@ class GCodeViewer
         bool operator != (const Layers& other) const {
             if (m_zs != other.m_zs)
                 return true;
-            if (!(m_endpoints == other.m_endpoints))
+            if (m_endpoints != other.m_endpoints)
                 return true;
-
             return false;
         }
     };
@@ -620,6 +618,7 @@ public:
             // see implementation of render() method
             Vec3f m_world_offset;
             float m_z_offset{ 0.5f };
+            GCodeProcessorResult::MoveVertex m_curr_move;
             bool m_visible{ true };
             bool m_is_dark = false;
 
@@ -637,8 +636,10 @@ public:
             void set_visible(bool visible) { m_visible = visible; }
 
             //BBS: GUI refactor: add canvas size
-            void render(int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves, uint64_t curr_line_id) const;
+            void render(int canvas_width, int canvas_height, const EViewType& view_type) const;
             void on_change_color_mode(bool is_dark) { m_is_dark = is_dark; }
+
+            void update_curr_move(const GCodeProcessorResult::MoveVertex move);
         };
 
         class GCodeWindow
@@ -698,7 +699,7 @@ public:
         float m_scale = 1.0;
 
         //BBS: GUI refactor: add canvas size
-        void render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, const EViewType& view_type, const std::vector<GCodeProcessorResult::MoveVertex>& moves) const;
+        void render(const bool has_render_path, float legend_height, int canvas_width, int canvas_height, const EViewType& view_type) const;
     };
 
     struct ETools
@@ -833,6 +834,7 @@ public:
     void enable_moves_slider(bool enable) const;
     void update_moves_slider(bool set_to_max = false);
     void update_layers_slider_mode();
+    void update_marker_curr_move();
 
     bool is_contained_in_bed() const { return m_contained_in_bed; }
     //BBS: add only gcode mode
