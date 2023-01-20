@@ -65,10 +65,10 @@ void ExtrusionCalibration::create()
 #else
     m_comboBox_nozzle_dia = new ComboBox(m_step_1_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, EXTRUSION_CALIBRATION_BED_COMBOX, 0, nullptr, wxCB_READONLY);
 #endif
-    m_comboBox_nozzle_dia->AppendString("0.2");
-    m_comboBox_nozzle_dia->AppendString("0.4");
-    m_comboBox_nozzle_dia->AppendString("0.6");
-    m_comboBox_nozzle_dia->AppendString("0.8");
+    m_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f", 0.2));
+    m_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f", 0.4));
+    m_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f", 0.6));
+    m_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f", 0.8));
 
     select_sizer->Add(m_comboBox_nozzle_dia, 0, wxEXPAND);
     select_sizer->Add(0, EXTRUSION_CALIBRATION_WIDGET_GAP, 0, 0);
