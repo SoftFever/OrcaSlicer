@@ -1985,6 +1985,12 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             }
         }
         else {
+            wxString error_info = Plater::get_slice_warning_string(warning);
+            if (error_info.IsEmpty()) {
+                error_info = wxString::Format("%s\n", warning.msg);
+                confirm_text.push_back(error_info + "\n");
+            } else
+                confirm_text.push_back(error_info + "\n");
             has_slice_warnings = true;
         }
     }
