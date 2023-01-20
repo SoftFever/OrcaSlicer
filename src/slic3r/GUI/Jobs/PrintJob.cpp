@@ -161,6 +161,23 @@ void PrintJob::process()
     params.ams_mapping_info     = this->task_ams_mapping_info;
     params.connection_type      = this->connection_type;
     params.task_use_ams         = this->task_use_ams;
+    if (wxGetApp().model().model_info && wxGetApp().model().model_info.get()) {
+        ModelInfo* model_info = wxGetApp().model().model_info.get();
+        auto origin_profile_id = model_info->metadata_items.find(BBL_DESIGNER_PROFILE_ID_TAG);
+        if (origin_profile_id != model_info->metadata_items.end()) {
+            try {
+                params.origin_profile_id    = stoi(origin_profile_id->second.c_str());
+            }
+            catch(...) {}
+        }
+        auto origin_model_id = model_info->metadata_items.find(BBL_DESIGNER_MODEL_ID_TAG);
+        if (origin_model_id != model_info->metadata_items.end()) {
+            try {
+                params.origin_model_id = origin_model_id->second;
+            }
+            catch(...) {}
+        }
+    }
 
     // local print access
     params.dev_ip = m_dev_ip;
