@@ -230,14 +230,14 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     m_bmToggleBtn_timelapse->SetMinSize(SWITCH_BUTTON_SIZE);
     m_bmToggleBtn_timelapse->Hide();
     bSizer_monitoring_title->Add(m_bmToggleBtn_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    
+
     //m_bitmap_camera_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, m_bitmap_camera , wxDefaultPosition, wxSize(FromDIP(32), FromDIP(18)), 0);
     //m_bitmap_camera_img->SetMinSize(wxSize(FromDIP(32), FromDIP(18)));
     //bSizer_monitoring_title->Add(m_bitmap_camera_img, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
     m_bitmap_sdcard_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
     m_bitmap_sdcard_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
-   
+
     m_bitmap_timelapse_img = new wxStaticBitmap(m_panel_monitoring_title, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(38), FromDIP(24)), 0);
     m_bitmap_timelapse_img->SetMinSize(wxSize(FromDIP(38), FromDIP(24)));
     m_bitmap_timelapse_img->Hide();
@@ -369,7 +369,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     task_name_panel->Fit();
 
     bSizer_task_name->Add(task_name_panel, 0, wxEXPAND, FromDIP(5));
-    
+
 
    /* wxFlexGridSizer *fgSizer_task = new wxFlexGridSizer(2, 2, 0, 0);
      fgSizer_task->AddGrowableCol(0);
@@ -380,16 +380,16 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     m_printing_stage_value->Wrap(-1);
     #ifdef __WXOSX_MAC__
     m_printing_stage_value->SetFont(::Label::Body_11);
-    #else 
+    #else
     m_printing_stage_value->SetFont(wxFont(11, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
     #endif
-    
+
     m_printing_stage_value->SetForegroundColour(STAGE_TEXT_COL);
 
 
     auto m_panel_progress = new wxPanel(parent, wxID_ANY);
     m_panel_progress->SetBackgroundColour(*wxWHITE);
-    auto m_sizer_progressbar = new wxBoxSizer(wxHORIZONTAL); 
+    auto m_sizer_progressbar = new wxBoxSizer(wxHORIZONTAL);
     m_gauge_progress = new ProgressBar(m_panel_progress, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize);
     m_gauge_progress->SetValue(0);
     m_gauge_progress->SetHeight(PROGRESSBAR_HEIGHT);
@@ -419,38 +419,38 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
 
     m_button_pause_resume = new ScalableButton(m_panel_progress, wxID_ANY, "print_control_pause", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER,true);
 
-    m_button_pause_resume->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { 
+    m_button_pause_resume->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
         if (m_button_pause_resume->GetToolTipText() == _L("Pause")) {
-            m_button_pause_resume->SetBitmap_("print_control_pause_hover"); 
+            m_button_pause_resume->SetBitmap_("print_control_pause_hover");
         }
 
         if (m_button_pause_resume->GetToolTipText() == _L("Resume")) {
-            m_button_pause_resume->SetBitmap_("print_control_resume_hover"); 
+            m_button_pause_resume->SetBitmap_("print_control_resume_hover");
         }
     });
 
-    m_button_pause_resume->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { 
+    m_button_pause_resume->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
         auto        buf = m_button_pause_resume->GetClientData();
-        if (m_button_pause_resume->GetToolTipText() == _L("Pause")) { 
+        if (m_button_pause_resume->GetToolTipText() == _L("Pause")) {
             m_button_pause_resume->SetBitmap_("print_control_pause");
         }
 
-        if (m_button_pause_resume->GetToolTipText() == _L("Resume")) { 
-            m_button_pause_resume->SetBitmap_("print_control_resume"); 
+        if (m_button_pause_resume->GetToolTipText() == _L("Resume")) {
+            m_button_pause_resume->SetBitmap_("print_control_resume");
         }
     });
 
     m_button_abort = new ScalableButton(m_panel_progress, wxID_ANY, "print_control_stop", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
     m_button_abort->SetToolTip(_L("Stop"));
 
-    m_button_abort->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { 
+    m_button_abort->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {
         m_button_abort->SetBitmap_("print_control_stop_hover");
     });
 
-    m_button_abort->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { 
+    m_button_abort->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {
         m_button_abort->SetBitmap_("print_control_stop"); }
     );
-   
+
     m_sizer_progressbar->Add(m_gauge_progress, 1, wxALIGN_CENTER_VERTICAL, 0);
     m_sizer_progressbar->Add(0, 0, 0, wxEXPAND|wxLEFT, FromDIP(18));
     m_sizer_progressbar->Add(m_button_pause_resume, 0, wxALL, FromDIP(5));
@@ -491,8 +491,8 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     #else
     sizer_percent_icon->Add(m_staticText_progress_percent_icon, 0, 0, 0);
     #endif
-    
-   
+
+
     m_staticText_progress_left = new wxStaticText(penel_text, wxID_ANY, L("N/A"), wxDefaultPosition, wxDefaultSize, 0);
     m_staticText_progress_left->Wrap(-1);
     m_staticText_progress_left->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
@@ -558,7 +558,7 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
     m_error_text->SetForegroundColour(wxColour(255, 0, 0));
     text_sizer->Add(m_error_text, 1, wxEXPAND|wxLEFT, FromDIP(17));
 
-    m_button_clean = new Button(m_panel_error_txt, _L("Clean"));
+    m_button_clean = new Button(m_panel_error_txt, _L("Clear"));
     StateColor clean_bg(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled), std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
                         std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
                         std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
@@ -658,14 +658,14 @@ wxBoxSizer *StatusBasePanel::create_temp_axis_group(wxWindow *parent)
 
     wxBoxSizer *content_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *m_temp_ctrl   = create_temp_control(box);
-   
 
-    m_temp_extruder_line = new StaticLine(box, true);  
+
+    m_temp_extruder_line = new StaticLine(box, true);
     m_temp_extruder_line->SetLineColour(STATIC_BOX_LINE_COL);
-    
+
 
     auto m_axis_sizer = create_axis_control(box);
-   
+
 
     wxBoxSizer *bed_sizer = create_bed_control(box);
     wxBoxSizer *extruder_sizer = create_extruder_control(box);
@@ -877,7 +877,7 @@ void StatusBasePanel::reset_temp_misc_control()
     m_tempCtrl_bed->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
     m_tempCtrl_frame->SetLabel(TEMP_BLANK_STR);
     m_tempCtrl_frame->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
-    m_button_unload->Show(); 
+    m_button_unload->Show();
 
     m_tempCtrl_nozzle->Enable(true);
     m_tempCtrl_frame->Enable(true);
@@ -1146,7 +1146,7 @@ void StatusPanel::update_camera_state(MachineObject* obj)
         if (m_bitmap_recording_img->IsShown())
             m_bitmap_recording_img->Hide();
     }
-    
+
     //timelapse
     if (obj->is_function_supported(PrinterFunction::FUNC_TIMELAPSE)) {
         if (m_last_timelapse != (obj->is_timelapse() ? 1: 0)) {
@@ -1163,7 +1163,7 @@ void StatusPanel::update_camera_state(MachineObject* obj)
         if (m_bitmap_timelapse_img->IsShown())
             m_bitmap_timelapse_img->Hide();
     }
-    
+
     //vcamera
     if (obj->is_function_supported(PrinterFunction::FUNC_VIRTUAL_CAMERA)) {
         if (m_last_vcamera != (m_media_play_ctrl->IsStreaming() ? 1: 0)) {
@@ -1333,7 +1333,7 @@ void StatusPanel::init_scaled_buttons()
     //m_button_abort->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
     //m_button_abort->SetCornerRadius(FromDIP(12));
     m_button_clean->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
-    m_button_clean->SetCornerRadius(FromDIP(12));    
+    m_button_clean->SetCornerRadius(FromDIP(12));
     m_button_unload->SetMinSize(wxSize(-1, FromDIP(24)));
     m_button_unload->SetCornerRadius(FromDIP(12));
     m_bpButton_z_10->SetMinSize(Z_BUTTON_SIZE);
@@ -1574,7 +1574,7 @@ void StatusPanel::update(MachineObject *obj)
             }
              m_print_connect_types[obj->dev_id] = obj->dev_connection_type;
         }
-       
+
         update_error_message();
     }
 
@@ -1630,7 +1630,7 @@ void StatusPanel::update_error_message()
             if (print_error_str.size() > 4) {
                 print_error_str.insert(4, " ");
             }
-            
+
             wxString error_msg = wxGetApp().get_hms_query()->query_print_error_msg(obj->print_error);
             if (!error_msg.IsEmpty()) {
                 error_msg = wxString::Format("%s[%s]",
@@ -1935,7 +1935,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     //    last_read_done_bits   = obj->tray_read_done_bits;
     //    last_ams_version      = obj->ams_version;
     //}
-       
+
     // must select a current can
     m_ams_control->UpdateAms(ams_info, false, is_support_extrusion_cali);
 
@@ -1945,7 +1945,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     last_read_done_bits   = obj->tray_read_done_bits;
     last_reading_bits     = obj->tray_reading_bits;
     last_ams_version      = obj->ams_version;
-    
+
 
     std::string curr_ams_id = m_ams_control->GetCurentAms();
     std::string curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
@@ -1956,7 +1956,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
             // wait to heat hotend
             if (obj->ams_status_sub == 0x02) {
-                
+
                 if (curr_ams_id == obj->m_ams_id) {
                     if (!obj->is_ams_unload()) {
                         m_ams_control->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, true);
@@ -1975,12 +1975,12 @@ void StatusPanel::update_ams(MachineObject *obj)
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT, false);
                     m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
                 }
-                    
+
             } else if (obj->ams_status_sub == 0x04) {
                 if (!obj->is_ams_unload()) {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT, true);
                     m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
-                }   
+                }
                 else {
                     //FilamentStep::STEP_PULL_CURR_FILAMENT);
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT, false);
@@ -1990,7 +1990,7 @@ void StatusPanel::update_ams(MachineObject *obj)
                 if (!obj->is_ams_unload()) {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, true);
                     m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
-                } 
+                }
                 else {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, false);
                     m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
@@ -2004,12 +2004,12 @@ void StatusPanel::update_ams(MachineObject *obj)
                     m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
                 }
             } else if (obj->ams_status_sub == 0x07) {
-                if (!obj->is_ams_unload()) { 
+                if (!obj->is_ams_unload()) {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT);
                 } else {
                     m_ams_control->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, false);
                 }
-                
+
                 m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
             } else {
                 m_ams_control->SetAmsStep(curr_ams_id, obj->m_tray_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
@@ -2118,7 +2118,7 @@ void StatusPanel::update_left_time(int mc_left_time)
     m_staticText_progress_left->SetLabelText(left_time_text);
 }
 
-void StatusPanel::update_basic_print_data(bool def) 
+void StatusPanel::update_basic_print_data(bool def)
 {
     if (def) {
         if (!obj) return;
@@ -2131,20 +2131,20 @@ void StatusPanel::update_basic_print_data(bool def)
             m_staticText_consumption_of_time->Show();
         }
 
-        if (!m_staticText_consumption_of_weight->IsShown()) { 
+        if (!m_staticText_consumption_of_weight->IsShown()) {
             m_bitmap_static_use_weight->Show();
             m_staticText_consumption_of_weight->Show();
         }
-            
+
         m_staticText_consumption_of_time->SetLabelText(prediction);
-        m_staticText_consumption_of_weight->SetLabelText(weight); 
+        m_staticText_consumption_of_weight->SetLabelText(weight);
     } else {
-        if (m_staticText_consumption_of_time->IsShown()) { 
+        if (m_staticText_consumption_of_time->IsShown()) {
             m_bitmap_static_use_time->Hide();
             m_staticText_consumption_of_time->Hide();
         }
 
-        if (m_staticText_consumption_of_weight->IsShown()) { 
+        if (m_staticText_consumption_of_weight->IsShown()) {
             m_bitmap_static_use_weight->Hide();
             m_staticText_consumption_of_weight->Hide();
         }
@@ -2778,7 +2778,7 @@ void StatusPanel::on_ams_retry(wxCommandEvent& event)
     }
 }
 
-void StatusPanel::on_fan_changed(wxCommandEvent& event) 
+void StatusPanel::on_fan_changed(wxCommandEvent& event)
 {
     auto type = event.GetInt();
     auto speed = atoi(event.GetString().c_str());
@@ -2790,7 +2790,7 @@ void StatusPanel::on_fan_changed(wxCommandEvent& event)
     }
     else if (type == MachineObject::FanType::BIG_COOLING_FAN) {
         set_hold_count(this->m_switch_printing_fan_timeout);
-        m_switch_printing_fan->SetValue(speed > 0 ? true : false); 
+        m_switch_printing_fan->SetValue(speed > 0 ? true : false);
         m_switch_printing_fan->setFanValue(speed * 10);
     }
     else if (type == MachineObject::FanType::CHAMBER_FAN) {
@@ -2849,7 +2849,7 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
     step->AppendItem(_L("Standard"), "");
     step->AppendItem(_L("Sport"), "");
     step->AppendItem(_L("Ludicrous"), "");
-    
+
     // default speed lvl
     int selected_item = 1;
     if (obj) {
@@ -2859,7 +2859,7 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
         }
     }
     step->SelectItem(selected_item);
-    
+
     if (!obj->is_in_printing()) {
         step->Bind(wxEVT_LEFT_DOWN, [](auto& e) {
             return; });
@@ -2902,18 +2902,18 @@ void StatusPanel::on_printing_fan_switch(wxCommandEvent &event)
 
 void StatusPanel::on_nozzle_fan_switch(wxCommandEvent &event)
 {
-   
+
 
     m_fan_control_popup->Destroy();
     m_fan_control_popup = new FanControlPopup(this);
     auto pos = m_switch_nozzle_fan->GetScreenPosition();
     pos.y = pos.y + m_switch_nozzle_fan->GetSize().y;
-    
+
 
 
     int display_idx = wxDisplay::GetFromWindow(this);
     auto display = wxDisplay(display_idx).GetClientArea();
-   
+
 
     wxSize screenSize = wxSize(display.GetWidth(), display.GetHeight());
     auto fan_popup_size = m_fan_control_popup->GetSize();
@@ -2924,7 +2924,7 @@ void StatusPanel::on_nozzle_fan_switch(wxCommandEvent &event)
     }
     m_fan_control_popup->SetPosition(pos);
     m_fan_control_popup->Popup();
-    
+
 
 
     /*if (!obj) return;
@@ -3269,7 +3269,7 @@ void StatusPanel::msw_rescale()
     m_switch_nozzle_fan->Rescale();
     m_switch_printing_fan->SetImages(m_bitmap_fan_on, m_bitmap_fan_off);
     m_switch_printing_fan->SetMinSize(MISC_BUTTON_SIZE);
-    m_switch_printing_fan->Rescale();  
+    m_switch_printing_fan->Rescale();
     m_switch_cham_fan->SetImages(m_bitmap_fan_on, m_bitmap_fan_off);
     m_switch_cham_fan->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_cham_fan->Rescale();
