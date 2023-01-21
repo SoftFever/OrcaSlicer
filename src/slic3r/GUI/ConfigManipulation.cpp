@@ -660,6 +660,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     auto is_role_based_wipe_speed = config->opt_bool("role_based_wipe_speed");
     toggle_field("wipe_speed",!is_role_based_wipe_speed);
     
+    //SoftFever: whether the firmware is Klipper
+    bool is_klipper = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfKlipper;
+
+    toggle_line("adjust_accel_to_decel", is_klipper);
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
