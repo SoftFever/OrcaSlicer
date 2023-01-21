@@ -176,10 +176,15 @@ std::string GCodeWriter::set_acceleration(unsigned int acceleration)
         // This is new MarlinFirmware with separated print/retraction/travel acceleration.
         // Use M204 P, we don't want to override travel acc by M204 S (which is deprecated anyway).
         gcode << "M204 P" << acceleration;
-    } else {
-        // M204: Set default acceleration
+    } else if (FLAVOR_IS(gcfKlipper)) {
+        gcode << "SET_VELOCITY_LIMIT ACCEL_TO_DECEL=" << acceleration * 0.5;
+        if (GCodeWriter::full_gcode_comment) gcode << " ; klipper max_accel_to_decel\n";
         gcode << "M204 S" << acceleration;
+        // Set max accel to decel to half of acceleration
     }
+    else
+        gcode << "M204 S" << acceleration;
+    
     //BBS
     if (GCodeWriter::full_gcode_comment) gcode << " ; adjust acceleration";
     gcode << "\n";
