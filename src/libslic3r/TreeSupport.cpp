@@ -3330,7 +3330,7 @@ void TreeSupport::generate_contact_points(std::vector<std::vector<TreeSupport::N
     const auto center = bounding_box_middle(bounding_box);
     const auto sin_angle = std::sin(rotate_angle);
     const auto cos_angle = std::cos(rotate_angle);
-    const auto rotated_dims = Point(
+    const Point rotated_dims = Point(
         bounding_box_size(0) * cos_angle + bounding_box_size(1) * sin_angle,
         bounding_box_size(0) * sin_angle + bounding_box_size(1) * cos_angle) / 2;
 
