@@ -3713,7 +3713,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             jerk = m_config.inner_wall_jerk.value;
         } else if (m_config.top_surface_jerk.value > 0 && is_top_surface(path.role())) {
             jerk = m_config.top_surface_jerk.value;
-        } else {
+        } else if (m_config.infill_jerk.value > 0 && is_infill(path.role())) {
+            jerk = m_config.infill_jerk.value;
+        }
+        else {
             jerk = m_config.default_jerk.value;
         }
         gcode += m_writer.set_jerk_xy((unsigned int)floor(jerk + 0.5));

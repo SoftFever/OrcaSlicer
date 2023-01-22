@@ -548,7 +548,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     bool have_default_jerk = config->opt_float("default_jerk") > 0;
 
-    for (auto el : { "outer_wall_jerk", "inner_wall_jerk", "initial_layer_jerk", "top_surface_jerk","travel_jerk" })
+    for (auto el : { "outer_wall_jerk", "inner_wall_jerk", "initial_layer_jerk", "top_surface_jerk","travel_jerk", "infill_jerk"})
         toggle_field(el, have_default_jerk);
 
     bool have_skirt = config->opt_int("skirt_loops") > 0;

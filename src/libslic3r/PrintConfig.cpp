@@ -1484,6 +1484,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(9));
 
+    def = this->add("infill_jerk", coFloat);
+    def->label = L("Infill");
+    def->tooltip = L("Jerk for infill");
+    def->sidetext = L("mm/s");
+    def->min = 1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(9));
+
     def = this->add("initial_layer_jerk", coFloat);
     def->label = L("Initial layer");
     def->tooltip = L("Jerk for initial layer");

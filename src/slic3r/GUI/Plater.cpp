@@ -7913,10 +7913,9 @@ void Plater::calib_pa(bool line_method, bool bowden) {
         auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
         auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
         filament_config->set_key_value("slow_down_layer_time", new ConfigOptionFloats{ 1.0f });
-        print_config->set_key_value("default_jerk", new ConfigOptionFloat(1.0f));
+        print_config->set_key_value("default_jerk", new ConfigOptionFloat(9.0f));
         print_config->set_key_value("outer_wall_jerk", new ConfigOptionFloat(1.0f));
         print_config->set_key_value("inner_wall_jerk", new ConfigOptionFloat(1.0f));
-        print_config->set_key_value("top_surface_jerk", new ConfigOptionFloat(1.0f));
         model().objects[0]->config.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(spRear));
 
         changed_objects({ 0 });
