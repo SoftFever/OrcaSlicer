@@ -1636,7 +1636,7 @@ static const ImWchar ranges_keyboard_shortcuts[] =
 #endif // __APPLE__
 
 
-std::vector<unsigned char> ImGuiWrapper::load_svg(const std::string& bitmap_name, unsigned target_width, unsigned target_height)
+std::vector<unsigned char> ImGuiWrapper::load_svg(const std::string& bitmap_name, unsigned target_width, unsigned target_height, unsigned *outwidth, unsigned *outheight)
 {
     std::vector<unsigned char> empty_vector;
 
@@ -1666,6 +1666,9 @@ std::vector<unsigned char> ImGuiWrapper::load_svg(const std::string& bitmap_name
     ::nsvgRasterize(rast, image, 0, 0, svg_scale, data.data(), width, height, width * 4);
     ::nsvgDeleteRasterizer(rast);
     ::nsvgDelete(image);
+
+    *outwidth = width;
+    *outheight = height;
 
     return data;
 }
@@ -1951,11 +1954,12 @@ void ImGuiWrapper::init_font(bool compress)
         if (const ImFontAtlas::CustomRect* rect = io.Fonts->GetCustomRectByIndex(rect_id)) {
             assert(rect->Width == icon_sz);
             assert(rect->Height == icon_sz);
-            std::vector<unsigned char> raw_data = load_svg(icon.second, icon_sz, icon_sz);
+            unsigned outwidth, outheight;
+            std::vector<unsigned char> raw_data = load_svg(icon.second, icon_sz, icon_sz, &outwidth, &outheight);
             const ImU32* pIn = (ImU32*)raw_data.data();
-            for (int y = 0; y < icon_sz; y++) {
+            for (unsigned y = 0; y < outheight; y++) {
                 ImU32* pOut = (ImU32*)pixels + (rect->Y + y) * width + (rect->X);
-                for (int x = 0; x < icon_sz; x++)
+                for (unsigned x = 0; x < outwidth; x++)
                     *pOut++ = *pIn++;
             }
         }
@@ -1967,11 +1971,12 @@ void ImGuiWrapper::init_font(bool compress)
         if (const ImFontAtlas::CustomRect* rect = io.Fonts->GetCustomRectByIndex(rect_id)) {
             assert(rect->Width == icon_sz);
             assert(rect->Height == icon_sz);
-            std::vector<unsigned char> raw_data = load_svg(icon.second, icon_sz, icon_sz);
+            unsigned outwidth, outheight;
+            std::vector<unsigned char> raw_data = load_svg(icon.second, icon_sz, icon_sz, &outwidth, &outheight);
             const ImU32* pIn = (ImU32*)raw_data.data();
-            for (int y = 0; y < icon_sz; y++) {
+            for (unsigned y = 0; y < outheight; y++) {
                 ImU32* pOut = (ImU32*)pixels + (rect->Y + y) * width + (rect->X);
-                for (int x = 0; x < icon_sz; x++)
+                for (unsigned x = 0; x < outwidth; x++)
                     *pOut++ = *pIn++;
             }
         }
@@ -1983,11 +1988,12 @@ void ImGuiWrapper::init_font(bool compress)
         if (const ImFontAtlas::CustomRect* rect = io.Fonts->GetCustomRectByIndex(rect_id)) {
             assert(rect->Width == icon_sz);
             assert(rect->Height == icon_sz);
-            std::vector<unsigned char> raw_data = load_svg(icon.second, icon_sz, icon_sz);
+            unsigned outwidth, outheight;
+            std::vector<unsigned char> raw_data = load_svg(icon.second, icon_sz, icon_sz, &outwidth, &outheight);
             const ImU32* pIn = (ImU32*)raw_data.data();
-            for (int y = 0; y < icon_sz; y++) {
+            for (unsigned y = 0; y < outheight; y++) {
                 ImU32* pOut = (ImU32*)pixels + (rect->Y + y) * width + (rect->X);
-                for (int x = 0; x < icon_sz; x++)
+                for (unsigned x = 0; x < outwidth; x++)
                     *pOut++ = *pIn++;
             }
         }

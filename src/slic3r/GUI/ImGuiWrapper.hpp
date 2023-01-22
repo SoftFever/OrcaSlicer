@@ -223,7 +223,7 @@ private:
     void render_draw_data(ImDrawData *draw_data);
     bool display_initialized() const;
     void destroy_font();
-    std::vector<unsigned char> load_svg(const std::string& bitmap_name, unsigned target_width, unsigned target_height);
+    std::vector<unsigned char> load_svg(const std::string& bitmap_name, unsigned target_width, unsigned target_height, unsigned *outwidth, unsigned *outheight);
 
     static const char* clipboard_get(void* user_data);
     static void clipboard_set(void* user_data, const char* text);
