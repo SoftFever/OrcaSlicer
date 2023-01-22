@@ -1540,8 +1540,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // It does NOT encompass MMU/MMU2 starting (wipe) areas.
         auto pts = std::make_unique<ConfigOptionPoints>();
         pts->values.reserve(print.first_layer_convex_hull().size());
-        for (const Point &pt : print.first_layer_convex_hull().points)
-            pts->values.emplace_back(unscale(pt));
+        for (const Point& pt : print.first_layer_convex_hull().points)
+            pts->values.emplace_back(unscale(pt) - Vec2d(print.get_plate_origin().x(), print.get_plate_origin().y()));
         BoundingBoxf bbox(pts->values);
         m_placeholder_parser.set("first_layer_print_convex_hull", pts.release());
         m_placeholder_parser.set("first_layer_print_min",  new ConfigOptionFloats({ bbox.min.x(), bbox.min.y() }));
