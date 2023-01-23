@@ -727,9 +727,9 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool{ true });
 
     def = this->add("overhang_1_4_speed", coFloat);
-    def->label = "(10%, 25%)";
+    def->label = "[10%, 25%]";
     def->category = L("Speed");
-    def->full_label = "(10%, 25%)";
+    def->full_label = "[10%, 25%]";
     //def->tooltip = L("Speed for line of wall which has degree of overhang between 10% and 25% line width. "
     //                 "0 means using original wall speed");
     def->sidetext = L("mm/s");
@@ -738,9 +738,9 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("overhang_2_4_speed", coFloat);
-    def->label = "[25%, 50%)";
+    def->label = "[25%, 50%]";
     def->category = L("Speed");
-    def->full_label = "[25%, 50%)";
+    def->full_label = "[25%, 50%]";
     //def->tooltip = L("Speed for line of wall which has degree of overhang between 25% and 50% line width. "
     //                 "0 means using original wall speed");
     def->sidetext = L("mm/s");
@@ -749,9 +749,9 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("overhang_3_4_speed", coFloat);
-    def->label = "[50%, 75%)";
+    def->label = "[50%, 75%]";
     def->category = L("Speed");
-    def->full_label = "[50%, 75%)";
+    def->full_label = "[50%, 75%]";
     //def->tooltip = L("Speed for line of wall which has degree of overhang between 50% and 75% line width. 0 means using original wall speed");
     def->sidetext = L("mm/s");
     def->min = 0;
@@ -759,9 +759,9 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(0));
 
     def = this->add("overhang_4_4_speed", coFloat);
-    def->label = "[75%, 100%)";
+    def->label = "[75%, 100%]";
     def->category = L("Speed");
-    def->full_label = "[75%, 100%)";
+    def->full_label = "[75%, 100%]";
     //def->tooltip = L("Speed for line of wall which has degree of overhang between 75% and 100% line width. 0 means using original wall speed");
     def->sidetext = L("mm/s");
     def->min = 0;
