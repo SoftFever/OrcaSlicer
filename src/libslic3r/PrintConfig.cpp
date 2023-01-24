@@ -1452,12 +1452,20 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(300));
 
-    def = this->add("adjust_accel_to_decel", coBool);
-    def->label = L("Auto. adjust accel_to_decel");
-    def->tooltip = L("Max_accel_to_decel will be adjusted automatically to 50% of acceleration setting (M204)");
-    def->sidetext = L("50% of acceleration");
+    def = this->add("accel_to_decel_enable", coBool);
+    def->label = L("Adjust accel to decel");
+    def->tooltip = L("Klipper's max_accel_to_decel will be adjusted automatically");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
+    
+    def = this->add("accel_to_decel_factor", coPercent);
+    def->label = L("% of acceleration");
+    def->tooltip = L("Klipper's Max_accel_to_decel will be adjusted to this % of acceleration");
+    def->sidetext = L("%");
+    def->min = 1;
+    def->max = 100;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(50));
     
     def = this->add("default_jerk", coFloat);
     def->label = L("Default");

@@ -854,7 +854,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     // SoftFever
     ((ConfigOptionBool,                use_firmware_retraction))
     ((ConfigOptionBool,                use_relative_e_distances))
-    ((ConfigOptionBool,                adjust_accel_to_decel))
+    ((ConfigOptionBool,                accel_to_decel_enable))
+    ((ConfigOptionPercent,             accel_to_decel_factor))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.
