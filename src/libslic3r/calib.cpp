@@ -7,9 +7,9 @@
 
 namespace Slic3r {
 
-    calib_pressure_advance::calib_pressure_advance(GCode* gcodegen) :mp_gcodegen(gcodegen), m_length_short(20.0), m_length_long(40.0), m_space_y(3.5), m_line_width(0.6) {}
+    calib_pressure_advance::calib_pressure_advance(GCode* gcodegen) :mp_gcodegen(gcodegen), m_length_short(20.0), m_length_long(40.0), m_space_y(3.5), m_line_width(0.6), m_draw_numbers(true) {}
 
-    std::string calib_pressure_advance::generate_test(double start_pa/*= 0*/, double step_pa /*= 0.005*/, int count/*= 10*/) {
+    std::string calib_pressure_advance::generate_test(double start_pa/*= 0*/, double step_pa /*= 0.002*/, int count/*= 10*/) {
         auto bed_sizes = mp_gcodegen->config().printable_area.values;
         auto w = bed_sizes[2].x() - bed_sizes[0].x();
         auto h = bed_sizes[2].y() - bed_sizes[0].y();
@@ -71,10 +71,10 @@ namespace Slic3r {
         gcode << move_to(Vec2d(start_x + m_length_short + m_length_long, y_pos + (num - 1) * m_space_y + 7));
         gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long, y_pos + (num - 1) * m_space_y + 2), e * 7);
 
-
-        for (int i = 0; i < num; i += 2) {
-            gcode << draw_number(start_x + m_length_short + m_length_long + m_length_short + 3, y_pos + i * m_space_y + m_space_y / 2, start_pa + i * step_pa);
-
+        if (m_draw_numbers) {
+            for (int i = 0; i < num; i += 2) {
+                gcode << draw_number(start_x + m_length_short + m_length_long + m_length_short + 3, y_pos + i * m_space_y + m_space_y / 2, start_pa + i * step_pa);
+            }
         }
         return gcode.str();
     }
@@ -202,5 +202,22 @@ namespace Slic3r {
         }
 
         return gcode.str();
+    }
+    Calib_Params::Calib_Params() :pa_start(0.0), pa_end(0.1), pa_step(0.002), print_numbers(true), mode(CalibMode::Calib_None) {}
+    Calib_Params::Calib_Params(const Calib_Params& p) {
+        pa_start = p.pa_start;
+        pa_end = p.pa_end;
+        pa_step = p.pa_step;
+        print_numbers = p.print_numbers;
+        mode = p.mode;
+    }
+    Calib_Params& Calib_Params::operator =(const Calib_Params& p)
+    {
+        pa_start = p.pa_start;
+        pa_end = p.pa_end;
+        pa_step = p.pa_step;
+        print_numbers = p.print_numbers;
+        mode = p.mode;
+        return *this;
     }
 } // namespace Slic3r

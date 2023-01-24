@@ -433,6 +433,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/AstroBox.hpp
     Utils/Repetier.cpp
     Utils/Repetier.hpp
+    GUI/SFCalibrationDlg.hpp
+    GUI/SFCalibrationDlg.cpp
 )
 
 if (WIN32)

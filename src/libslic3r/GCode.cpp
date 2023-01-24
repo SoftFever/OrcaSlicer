@@ -1650,7 +1650,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     if (this->m_objsWithBrim.empty() && this->m_objSupportsWithBrim.empty()) m_brim_done = true;
 
     // SoftFever: calib
-    if (print.calib_mode() == Calib_PA_DDE || print.calib_mode() == Calib_PA_Bowden) {
+    if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
         std::string gcode;
         gcode += m_writer.set_acceleration((unsigned int)floor(m_config.outer_wall_acceleration.value + 0.5));
 
@@ -1665,11 +1665,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         auto fast_speed = std::min(print.default_region_config().outer_wall_speed.value, filament_max_volumetric_speed / pattern_line.mm3_per_mm());
         auto slow_speed = std::max(20.0, fast_speed / 10.0);
         pa_test.set_speed(fast_speed, slow_speed);
-
-        if(print.calib_mode() == Calib_PA_DDE)
-            gcode += pa_test.generate_test();
-        else
-            gcode +=pa_test.generate_test(0.0,0.02);
+        pa_test.draw_numbers() = print.calib_params().print_numbers;
+        auto params = print.calib_params();
+        gcode += pa_test.generate_test(params.pa_start, params.pa_step, std::llround(std::ceil((params.pa_end - params.pa_start) / params.pa_step)));
 
         file.write(gcode);
     }
@@ -2606,12 +2604,10 @@ GCode::LayerResult GCode::process_layer(
         config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
     }
 
-    if (print.calib_mode() == Calib_PA_Tower_DDE) {
-        gcode += writer().set_pressure_advance(static_cast<int>(print_z) * 0.002);
+    if (print.calib_mode() == CalibMode::Calib_PA_Tower) {
+        gcode += writer().set_pressure_advance(print.calib_params().pa_start + static_cast<int>(print_z) * print.calib_params().pa_step);
     }
-    else if(print.calib_mode() == Calib_PA_Tower_Bowden) {
-        gcode += writer().set_pressure_advance(static_cast<int>(print_z) * 0.02);
-    }
+
     //BBS
     if (first_layer) {
         //BBS: set first layer global acceleration

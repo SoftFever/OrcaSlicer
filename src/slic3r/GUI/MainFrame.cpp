@@ -2479,20 +2479,33 @@ void MainFrame::init_menubar_as_editor()
     m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate"));
 
     // PA
-    auto pa_menu = new wxMenu();
-    append_menu_item(pa_menu, wxID_ANY, _L("Line method - DDE"), _L(""),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(true, false); }, "", nullptr,
+    //auto pa_menu = new wxMenu();
+    //append_menu_item(pa_menu, wxID_ANY, _L("Line method - DDE"), _L(""),
+    //    [this](wxCommandEvent&) { 
+    //        //if (m_plater) m_plater->calib_pa(true, false); 
+    //        if(!m_pa_calib_dlg)
+    //            m_pa_calib_dlg = new PA_Calibration_Dlg((wxWindow*)this, wxID_ANY,m_plater);
+    //        m_pa_calib_dlg->ShowModal();
+    //    }, "", nullptr,
+    //    [this]() {return m_plater->is_view3D_shown();; }, this);
+    //append_menu_item(pa_menu, wxID_ANY, _L("Line method - Bowden"), _L(""),
+    //    [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(true, true); }, "", nullptr,
+    //    [this]() {return m_plater->is_view3D_shown();; }, this);
+    //append_menu_item(pa_menu, wxID_ANY, _L("Tower method - DDE"), _L(""),
+    //    [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(false, false); }, "", nullptr,
+    //    [this]() {return m_plater->is_view3D_shown();; }, this);
+    //append_menu_item(pa_menu, wxID_ANY, _L("Tower method - Bowden"), _L(""),
+    //    [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(false, true); }, "", nullptr,
+    //    [this]() {return m_plater->is_view3D_shown();; }, this);
+    //m_topbar->GetCalibMenu()->AppendSubMenu(pa_menu, _L("Presure/Linear Advance"));
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Presure Advance"), _L(""),
+        [this](wxCommandEvent&) {
+            //if (m_plater) m_plater->calib_pa(true, false); 
+            if (!m_pa_calib_dlg)
+                m_pa_calib_dlg = new PA_Calibration_Dlg((wxWindow*)this, wxID_ANY, m_plater);
+            m_pa_calib_dlg->ShowModal();
+        }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_menu_item(pa_menu, wxID_ANY, _L("Line method - Bowden"), _L(""),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(true, true); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_menu_item(pa_menu, wxID_ANY, _L("Tower method - DDE"), _L(""),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(false, false); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
-    append_menu_item(pa_menu, wxID_ANY, _L("Tower method - Bowden"), _L(""),
-        [this](wxCommandEvent&) { if (m_plater) m_plater->calib_pa(false, true); }, "", nullptr,
-        [this]() {return m_plater->is_view3D_shown();; }, this);
-    m_topbar->GetCalibMenu()->AppendSubMenu(pa_menu, _L("Presure/Linear Advance"));
 
     // help 
     append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Tutorial"), _L("Calibration help"),
