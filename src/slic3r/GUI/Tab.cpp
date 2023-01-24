@@ -2987,6 +2987,7 @@ void TabPrinter::build_fff()
 #endif
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
+        optgroup->append_single_option_line("use_relative_e_distances");
         optgroup->append_single_option_line("gcode_flavor");
         option = optgroup->get_option("thumbnails");
         option.opt.full_width = true;
@@ -3553,6 +3554,8 @@ void TabPrinter::toggle_options()
     //}
     if (m_active_page->title() == "Basic information") {
         toggle_option("single_extruder_multi_material", have_multiple_extruders);
+        // Hide relative extrusion option for BBL printers
+        toggle_line("use_relative_e_distances", !is_BBL_printer);
 
         auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;

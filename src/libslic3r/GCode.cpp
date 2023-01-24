@@ -355,7 +355,6 @@ bool GCode::gcode_label_objects = true;
                 new_filament_e_feedrate = new_filament_e_feedrate == 0 ? 100 : new_filament_e_feedrate;
 
                 config.set_key_value("max_layer_z", new ConfigOptionFloat(gcodegen.m_max_layer_z));
-                config.set_key_value("relative_e_axis", new ConfigOptionBool(RELATIVE_E_AXIS));
                 config.set_key_value("toolchange_count", new ConfigOptionInt((int)gcodegen.m_toolchange_count));
                 //BBS: fan speed is useless placeholer now, but we don't remove it to avoid
                 //slicing error in old change_filament_gcode in old 3MF
@@ -1632,7 +1631,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     std::function<void(void)> throw_if_canceled_func = [&print]() { print.throw_if_canceled(); };
     m_seam_placer.init(print, throw_if_canceled_func);
 
-    // BBS: priming logic is removed, always set first extruer here.
+    // BBS: priming logic is removed, always set first extruder here.
     //if (! (has_wipe_tower && print.config().single_extruder_multi_material_priming))
     {
         // Set initial extruder only after custom start G-code.
@@ -3066,8 +3065,11 @@ GCode::LayerResult GCode::process_layer(
                 m_object_layer_over_raft = object_layer_over_raft;
                 if (m_config.reduce_crossing_wall)
                     m_avoid_crossing_perimeters.init_layer(*m_layer);
-                if (GCode::gcode_label_objects)
+                if (GCode::gcode_label_objects) {
                     gcode += std::string("; printing object ") + instance_to_print.print_object.model_object()->name + " id:" + std::to_string(instance_to_print.layer_id) + " copy " + std::to_string(instance_to_print.instance_id) + "\n";
+                    if (!m_config.use_relative_e_distances)
+                        gcode += m_writer.reset_e(true);
+                }
                 // When starting a new object, use the external motion planner for the first travel move.
                 const Point &offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
                 std::pair<const PrintObject*, Point> this_object_copy(&instance_to_print.print_object, offset);
@@ -3158,8 +3160,11 @@ GCode::LayerResult GCode::process_layer(
                     // ironing
                     gcode += this->extrude_infill(print,by_region_specific, true);
                 }
-                if (GCode::gcode_label_objects)
+                if (GCode::gcode_label_objects) {
                     gcode += std::string("; stop printing object ") + instance_to_print.print_object.model_object()->name + " id:" + std::to_string(instance_to_print.layer_id) + " copy " + std::to_string(instance_to_print.instance_id) + "\n";
+                    if (!m_config.use_relative_e_distances)
+                        gcode += m_writer.reset_e(true);
+                }
             }
         }
     }
@@ -4213,7 +4218,6 @@ std::string GCode::set_extruder(unsigned int extruder_id, double print_z)
     dyn_config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
     dyn_config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
     dyn_config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
-    dyn_config.set_key_value("relative_e_axis", new ConfigOptionBool(RELATIVE_E_AXIS));
     dyn_config.set_key_value("toolchange_count", new ConfigOptionInt((int)m_toolchange_count));
     //BBS: fan speed is useless placeholer now, but we don't remove it to avoid
     //slicing error in old change_filament_gcode in old 3MF

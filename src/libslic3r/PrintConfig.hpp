@@ -833,7 +833,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              retraction_length))
     ((ConfigOptionFloats,              retract_length_toolchange))
     ((ConfigOptionFloats,              z_hop))
-    ((ConfigOptionEnum<LiftType>,     z_lift_type))
+    ((ConfigOptionEnum<LiftType>,      z_lift_type))
     ((ConfigOptionFloats,              retract_restart_extra))
     ((ConfigOptionFloats,              retract_restart_extra_toolchange))
     ((ConfigOptionFloats,              retraction_speed))
@@ -853,7 +853,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                auxiliary_fan))
     // SoftFever
     ((ConfigOptionBool,                use_firmware_retraction))
-
+    ((ConfigOptionBool,                use_relative_e_distances))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.

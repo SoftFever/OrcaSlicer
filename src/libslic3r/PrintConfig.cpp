@@ -3223,7 +3223,16 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->gui_type = ConfigOptionDef::GUIType::one_string;
     def->set_default_value(new ConfigOptionPoints{Vec2d(300, 300)});
-    
+
+    def = this->add("use_relative_e_distances", coBool);
+    def->label = L("Use relative E distances");
+    def->tooltip = L("Relative extrusion is recommended when using \"label_objects\" option."
+                   "Some extruders work better with this option unckecked (absolute extrusion mode). "
+                   "Wipe tower is only compatible with relative mode. It is always enabled on "
+                   "BambuLab printers. Default is checked");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
     def = this->add("wall_generator", coEnum);
     def->label = L("Wall generator");
     def->category = L("Quality");

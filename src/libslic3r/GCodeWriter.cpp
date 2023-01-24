@@ -61,11 +61,9 @@ std::string GCodeWriter::preamble()
         FLAVOR_IS(gcfSmoothie) ||
         FLAVOR_IS(gcfKlipper))
     {
-        if (RELATIVE_E_AXIS) {
-            gcode << "M83 ; only support relative e\n";
+        if (this->config.use_relative_e_distances) {
+            gcode << "M83 ; use relative distances for extrusion\n";
         } else {
-            //BBS: don't support absolute e distance
-            assert(0);
             gcode << "M82 ; use absolute distances for extrusion\n";
         }
         gcode << this->reset_e(true);
@@ -246,7 +244,7 @@ std::string GCodeWriter::reset_e(bool force)
         m_extruder->reset_E();
     }
 
-    if (! RELATIVE_E_AXIS) {
+    if (! this->config.use_relative_e_distances) {
         std::ostringstream gcode;
         gcode << "G92 E0";
         //BBS
