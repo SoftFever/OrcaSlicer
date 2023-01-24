@@ -752,7 +752,7 @@ static std::vector<std::string> s_Preset_print_options {
      "small_perimeter_speed", "small_perimeter_threshold","bridge_angle", "filter_out_gap_fill", "post_process", "travel_acceleration","inner_wall_acceleration",
      "default_jerk", "outer_wall_jerk", "inner_wall_jerk", "infill_jerk", "top_surface_jerk", "initial_layer_jerk","travel_jerk",
      "top_solid_infill_flow_ratio","bottom_solid_infill_flow_ratio","only_one_wall_first_layer",
-     "print_flow_ratio","seam_gap","role_based_wipe_speed","wipe_speed"
+     "print_flow_ratio","seam_gap","role_based_wipe_speed","wipe_speed","accel_to_decel_enable", "accel_to_decel_factor"
 
 };
 

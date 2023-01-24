@@ -508,6 +508,10 @@ void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::
 
 void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, const bool is_global_config)
 {
+    PresetBundle *preset_bundle  = wxGetApp().preset_bundle;
+    //SoftFever
+    auto gcflavor = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
+    
     bool have_perimeters = config->opt_int("wall_loops") > 0;
     for (auto el : { "ensure_vertical_shell_thickness", "detect_thin_wall", "detect_overhang_wall",
                     "seam_position", "wall_infill_order", "outer_wall_line_width",
@@ -644,7 +648,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
         toggle_line(el, has_fuzzy_skin);
 
     // C11 printer is not support smooth timelapse
-    PresetBundle *preset_bundle  = wxGetApp().preset_bundle;
     std::string str_preset_type = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
     toggle_field("timelapse_type", str_preset_type != "C11");
 
@@ -660,6 +663,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     auto is_role_based_wipe_speed = config->opt_bool("role_based_wipe_speed");
     toggle_field("wipe_speed",!is_role_based_wipe_speed);
     
+    // SoftFever
+    for (auto el : {"accel_to_decel_enable", "accel_to_decel_factor"})
+        toggle_line(el, gcflavor == gcfKlipper);
+    
+    toggle_line("accel_to_decel_factor", config->opt_bool("accel_to_decel_enable"));
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)

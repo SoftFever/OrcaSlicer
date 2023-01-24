@@ -1939,6 +1939,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("initial_layer_acceleration");
         optgroup->append_single_option_line("top_surface_acceleration");
         optgroup->append_single_option_line("travel_acceleration");
+        optgroup->append_single_option_line("accel_to_decel_enable");
+        optgroup->append_single_option_line("accel_to_decel_factor");
 
         optgroup = page->new_optgroup(L("Jerk(XY)"));
         optgroup->append_single_option_line("default_jerk");
@@ -3643,7 +3645,7 @@ void TabPrinter::toggle_options()
     }
 
     auto gcf = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
-        if (m_active_page->title() == "Motion ability") {
+    if (m_active_page->title() == "Motion ability") {
         assert(gcf == gcfMarlinLegacy || gcf == gcfMarlinFirmware || gcf == gcfKlipper);
         bool silent_mode = m_config->opt_bool("silent_mode");
         int  max_field = silent_mode ? 2 : 1;
