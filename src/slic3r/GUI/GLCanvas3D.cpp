@@ -2167,15 +2167,16 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
     struct GLVolumeState {
         GLVolumeState() :
-            volume_idx(size_t(-1)) {}
+            volume_idx(size_t(-1)), was_wipe_tower(0) {}
         GLVolumeState(const GLVolume* volume, unsigned int volume_idx) :
-            composite_id(volume->composite_id), volume_idx(volume_idx) {}
+            composite_id(volume->composite_id), volume_idx(volume_idx), was_wipe_tower(volume->is_wipe_tower) {}
         GLVolumeState(const GLVolume::CompositeID &composite_id) :
-            composite_id(composite_id), volume_idx(size_t(-1)) {}
+            composite_id(composite_id), volume_idx(size_t(-1)), was_wipe_tower(0) {}
 
         GLVolume::CompositeID       composite_id;
         // Volume index in the old GLVolume vector.
         size_t                      volume_idx;
+        bool                        was_wipe_tower;
     };
 
     // SLA steps to pull the preview meshes for.
@@ -2378,8 +2379,21 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             }
         }
         for (int temp_idx = vol_idx; temp_idx < m_volumes.volumes.size() && !update_object_list; temp_idx++) {
-            if (!m_volumes.volumes[temp_idx]->is_wipe_tower)
+            // Volumes in m_volumes might not exist anymore, so we cannot
+            // directly check if they are is_wipe_towers, for which we do
+            // not want to update the object list.  Instead, we do a kind of
+            // slow thing of seeing if they were in the deleted list, and if
+            // so, if they were a wipe tower.
+            bool was_deleted_wipe_tower = false;
+            for (int del_idx = 0; del_idx < deleted_volumes.size(); del_idx++) {
+                if (deleted_volumes[del_idx].volume_idx == temp_idx && deleted_volumes[del_idx].was_wipe_tower) {
+                    was_deleted_wipe_tower = true;
+                    break;
+                }
+            }
+            if (!was_deleted_wipe_tower) {
                 update_object_list = true;
+            }
         }
         for (int temp_idx = vol_idx; temp_idx < glvolumes_new.size() && !update_object_list; temp_idx++) {
             if (!glvolumes_new[temp_idx]->is_wipe_tower)
