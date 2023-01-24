@@ -165,7 +165,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer)
                     }
                     else {
                         if(region_config.top_surface_pattern == ipMonotonic || region_config.top_surface_pattern == ipMonotonicLine)
-                            params.pattern = region_config.top_surface_pattern;
+                            params.pattern = ipMonotonic;
                         else
                             params.pattern = ipRectilinear;
                     }
