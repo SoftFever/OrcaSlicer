@@ -1404,7 +1404,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     // reload scene to update timelapse wipe tower
     if (opt_key == "timelapse_type") {
         bool wipe_tower_enabled = m_config->option<ConfigOptionBool>("enable_prime_tower")->value;
-        if (!wipe_tower_enabled && boost::any_cast<TimelapseType>(value) == TimelapseType::tlSmooth) {
+        if (!wipe_tower_enabled && boost::any_cast<int>(value) == int(TimelapseType::tlSmooth)) {
             MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"),
                               _L("Warning"), wxICON_WARNING | wxYES | wxNO);
             if (dlg.ShowModal() == wxID_YES) {
@@ -2787,6 +2787,7 @@ void TabFilament::toggle_options()
         toggle_line("cool_plate_temp_initial_layer", is_BBL_printer);
         toggle_line("eng_plate_temp_initial_layer", is_BBL_printer);
         toggle_line("textured_plate_temp_initial_layer", is_BBL_printer);
+        toggle_option("chamber_temperature", !is_BBL_printer);
     }
     if (m_active_page->title() == "Setting Overrides")
         update_filament_overrides_page();
@@ -2992,6 +2993,7 @@ void TabPrinter::build_fff()
         option = optgroup->get_option("thumbnails");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line("use_firmware_retraction");
         optgroup->append_single_option_line("scan_first_layer");
         // optgroup->append_single_option_line("spaghetti_detector");
         optgroup->append_single_option_line("machine_load_filament_time");
@@ -3396,7 +3398,6 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             optgroup->append_single_option_line("wipe", "", extruder_idx);
             optgroup->append_single_option_line("wipe_distance", "", extruder_idx);
             optgroup->append_single_option_line("retract_before_wipe", "", extruder_idx);
-            optgroup->append_single_option_line("use_firmware_retraction");
 
             optgroup = page->new_optgroup(L("Retraction when switching material"), L"param_retraction", -1, true);
             optgroup->append_single_option_line("retract_length_toolchange", "", extruder_idx);
@@ -3570,6 +3571,11 @@ void TabPrinter::toggle_options()
              {"scan_first_layer", "machine_load_filament_time",
                         "machine_unload_filament_time", "nozzle_type"})
           toggle_line(el, is_BBL_printer);
+
+        // SoftFever: hide non-BBL settings
+        for (auto el :
+            { "use_firmware_retraction" })
+            toggle_line(el, !is_BBL_printer);
     }
 
     wxString extruder_number;
