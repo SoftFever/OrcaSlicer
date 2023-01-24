@@ -1706,6 +1706,9 @@ float GLCanvas3D::get_collapse_toolbar_height()
     return collapse_toolbar.is_enabled() ? collapse_toolbar.get_height() : 0;
 }
 
+bool GLCanvas3D::make_current_for_postinit() {
+    return _set_current();
+}
 
 void GLCanvas3D::render(bool only_init)
 {

@@ -39,6 +39,7 @@
 #include <wx/textctrl.h>
 #include <wx/splash.h>
 #include <wx/fontutil.h>
+#include <wx/glcanvas.h>
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
@@ -1016,6 +1017,16 @@ void GUI_App::post_init()
         mainframe->select_tab(size_t(MainFrame::tp3DEditor));
         plater_->select_view_3D("3D");
         //BBS init the opengl resource here
+#ifdef __linux__
+        if (!plater_->canvas3D()->get_wxglcanvas()->IsShownOnScreen() ||
+            !plater_->canvas3D()->make_current_for_postinit()) {
+            /* The canvas3d didn't actually exist (and therefore, there is
+             * no current EGL context) -- try again later, I guess.
+             */
+            m_post_initialized = false;
+            return;
+        }
+#endif
         Size canvas_size = plater_->canvas3D()->get_canvas_size();
         wxGetApp().imgui()->set_display_size(static_cast<float>(canvas_size.get_width()), static_cast<float>(canvas_size.get_height()));
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", start to init opengl";

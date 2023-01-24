@@ -1043,6 +1043,8 @@ public:
     // If the Z screen space coordinate is not provided, a depth buffer value is substituted.
     Vec3d _mouse_to_3d(const Point& mouse_pos, float* z = nullptr);
 
+    bool make_current_for_postinit();
+
 private:
     bool _is_shown_on_screen() const;
 
