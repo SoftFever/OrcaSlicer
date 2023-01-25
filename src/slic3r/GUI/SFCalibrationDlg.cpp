@@ -89,7 +89,6 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
 
     // Connect Events
     m_rbExtruderType->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_extruder_type_changed), NULL, this);
-    m_rbMethod->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_method_changed), NULL, this);
     this->Connect(wxEVT_SHOW, wxShowEventHandler(PA_Calibration_Dlg::on_show));
     //wxGetApp().UpdateDlgDarkUI(this);
 }
@@ -97,7 +96,6 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
 PA_Calibration_Dlg::~PA_Calibration_Dlg() {
     // Disconnect Events
     m_rbExtruderType->Disconnect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_extruder_type_changed), NULL, this);
-    m_rbMethod->Disconnect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_method_changed), NULL, this);
     m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PA_Calibration_Dlg::on_start), NULL, this);
 }
 
@@ -110,6 +108,7 @@ void PA_Calibration_Dlg::on_start(wxCommandEvent& event) {
         msg_dlg.ShowModal();
         return;
     }
+    m_params.mode = m_rbMethod->GetSelection() == 0 ? CalibMode::Calib_PA_Tower : CalibMode::Calib_PA_Line;
     m_plater->calib_pa(m_params);
     EndModal(wxID_OK);
 
@@ -120,16 +119,6 @@ void PA_Calibration_Dlg::on_extruder_type_changed(wxCommandEvent& event) {
     m_tiEndPA->GetTextCtrl()->SetValue(m_bDDE ? L"0.1" : L"1.0");
     m_tiStartPA->GetTextCtrl()->SetValue(L"0.0");
     m_tiPAStep->GetTextCtrl()->SetValue(m_bDDE ? L"0.002" : L"0.02");
-    event.Skip(); 
-}
-void PA_Calibration_Dlg::on_method_changed(wxCommandEvent& event) { 
-    int selection = event.GetSelection();
-    m_params.mode = selection == 0 ? CalibMode::Calib_PA_Tower : CalibMode::Calib_PA_Line;
-    if (selection == 0)
-        m_cbPrintNum->Enable(false);
-    else
-        m_cbPrintNum->Enable(true);
-
     event.Skip(); 
 }
 

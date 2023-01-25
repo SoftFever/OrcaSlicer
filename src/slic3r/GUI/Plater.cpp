@@ -7922,6 +7922,16 @@ void Plater::calib_pa(const Calib_Params& params) {
         wxGetApp().get_tab(Preset::TYPE_PRINT)->update_ui_from_settings();
         wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_ui_from_settings();
 
+        auto new_height = std::ceil((params.pa_end - params.pa_start) / params.pa_step) + 1;
+        auto obj_bb = model().objects[0]->bounding_box();
+        if (new_height < obj_bb.size().z()) {
+            std::array<Vec3d, 4> plane_pts;
+            plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), new_height);
+            plane_pts[1] = Vec3d(obj_bb.min(0), obj_bb.max(1), new_height);
+            plane_pts[2] = Vec3d(obj_bb.max(0), obj_bb.max(1), new_height);
+            plane_pts[3] = Vec3d(obj_bb.max(0), obj_bb.min(1), new_height);
+            cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+        }
 
         // automatic selection of added objects
         // update printable state for new volumes on canvas3D

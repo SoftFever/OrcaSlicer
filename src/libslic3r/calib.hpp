@@ -7,7 +7,7 @@ namespace Slic3r {
 
 class GCode;
 
-enum class CalibMode {
+enum class CalibMode : int {
     Calib_None = 0,
     Calib_PA_Line,
     Calib_PA_Tower,
