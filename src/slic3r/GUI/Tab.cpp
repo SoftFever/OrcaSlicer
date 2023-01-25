@@ -3644,16 +3644,16 @@ void TabPrinter::toggle_options()
         toggle_option("retract_restart_extra_toolchange", have_multiple_extruders && toolchange_retraction, i);
     }
 
-    auto gcf = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
-    if (m_active_page->title() == "Motion ability") {
-        assert(gcf == gcfMarlinLegacy || gcf == gcfMarlinFirmware || gcf == gcfKlipper);
-        bool silent_mode = m_config->opt_bool("silent_mode");
-        int  max_field = silent_mode ? 2 : 1;
-        //BBS: limits of BBL printer can't be edited.
-    	for (const std::string &opt : Preset::machine_limits_options())
-            for (int i = 0; i < max_field; ++ i)
-	            toggle_option(opt, !is_BBL_printer, i);
-    }
+    //auto gcf = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
+    //if (m_active_page->title() == "Motion ability") {
+    //    assert(gcf == gcfMarlinLegacy || gcf == gcfMarlinFirmware || gcf == gcfKlipper);
+    //    bool silent_mode = m_config->opt_bool("silent_mode");
+    //    int  max_field = silent_mode ? 2 : 1;
+    //    //BBS: limits of BBL printer can't be edited.
+    //	for (const std::string &opt : Preset::machine_limits_options())
+    //        for (int i = 0; i < max_field; ++ i)
+	   //         toggle_option(opt, !is_BBL_printer, i);
+    //}
 }
 
 void TabPrinter::update()
