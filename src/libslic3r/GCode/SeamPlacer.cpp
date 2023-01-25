@@ -1324,17 +1324,42 @@ void SeamPlacer::place_seam(const Layer *layer, ExtrusionLoop &loop, bool extern
     assert(layer->id() >= po->slicing_parameters().raft_layers());
     const size_t layer_index = layer->id() - po->slicing_parameters().raft_layers();
     const double unscaled_z  = layer->slice_z;
+    auto get_next_loop_point = [&loop](ExtrusionLoop::ClosestPathPoint current) {
+        current.segment_idx += 1;
+        if (current.segment_idx >= loop.paths[current.path_idx].polyline.points.size()) {
+            current.path_idx = next_idx_modulo(current.path_idx, loop.paths.size());
+            current.segment_idx = 0;
+        }
+        current.foot_pt = loop.paths[current.path_idx].polyline.points[current.segment_idx];
+        return current;
+    };
 
-    const PrintObjectSeamData::LayerSeams &layer_perimeters = m_seam_per_object.find(layer->object())->second.layers[layer_index];
+    const PrintObjectSeamData::LayerSeams& layer_perimeters =
+        m_seam_per_object.find(layer->object())->second.layers[layer_index];
 
-    // Find the closest perimeter in the SeamPlacer to the first point of this loop.
-    size_t closest_perimeter_point_index;
-    {
-        const Point &fp               = loop.first_point();
-        Vec2f        unscaled_p       = unscaled<float>(fp);
-        closest_perimeter_point_index = find_closest_point(*layer_perimeters.points_tree.get(), to_3d(unscaled_p, float(unscaled_z)));
+    // Find the closest perimeter in the SeamPlacer to this loop.
+    // Repeat search until two consecutive points of the loop are found, that result in the same closest_perimeter
+    // This is beacuse with arachne, T-Junctions may exist and sometimes the wrong perimeter was chosen
+    size_t closest_perimeter_point_index = 0;
+    { // local space for the closest_perimeter_point_index
+        Perimeter* closest_perimeter = nullptr;
+        ExtrusionLoop::ClosestPathPoint closest_point{ 0,0,loop.paths[0].polyline.points[0] };
+        size_t points_count = std::accumulate(loop.paths.begin(), loop.paths.end(), 0, [](size_t acc, const ExtrusionPath& p) {
+            return acc + p.polyline.points.size();
+            });
+        for (size_t _ = 0; _ < points_count; ++_) {
+            Vec2f unscaled_p = unscaled<float>(closest_point.foot_pt);
+            closest_perimeter_point_index = find_closest_point(*layer_perimeters.points_tree.get(),
+                to_3d(unscaled_p, float(unscaled_z)));
+            if (closest_perimeter != &layer_perimeters.points[closest_perimeter_point_index].perimeter) {
+                closest_perimeter = &layer_perimeters.points[closest_perimeter_point_index].perimeter;
+                closest_point = get_next_loop_point(closest_point);
+            }
+            else {
+                break;
+            }
+        }
     }
-
     Vec3f  seam_position;
     size_t seam_index;
     if (const Perimeter &perimeter = layer_perimeters.points[closest_perimeter_point_index].perimeter; perimeter.finalized) {
