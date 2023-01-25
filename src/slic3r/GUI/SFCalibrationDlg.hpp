@@ -28,6 +28,7 @@ protected:
 	wxBoxSizer* create_item_checkbox(wxString title, wxWindow* parent, bool* value ,CheckBox*& checkbox);
 	virtual void on_start(wxCommandEvent& event);
 	virtual void on_extruder_type_changed(wxCommandEvent& event);
+	virtual void on_method_changed(wxCommandEvent& event);
 
 protected:
 	bool m_bDDE;
