@@ -2896,7 +2896,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
     if (input_files.empty()) { return std::vector<size_t>(); }
     
     // SoftFever: ugly fix so we can exist pa calib mode
-    background_process.fff_print()->calib_mode() = Calib_None;
+    background_process.fff_print()->calib_mode() = CalibMode::Calib_None;
 
 
     // BBS
@@ -7897,18 +7897,16 @@ void Plater::add_model(bool imperial_units/* = false*/,  std::string fname/* = "
     }
 }
 
-void Plater::calib_pa(bool line_method, bool bowden) {
+void Plater::calib_pa(const Calib_Params& params) {
     
-    const auto calib_pa_name = wxString::Format(L"Pressure Advance Test - %s%s", line_method ? L"Line" : L"Tower", bowden ? L"Bowden" : L"DDE");
+    const auto calib_pa_name = wxString::Format(L"Pressure Advance Test");
     new_project(false, false, calib_pa_name);
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
-    if (line_method) {
+    if (params.mode == CalibMode::Calib_PA_Line) {
         add_model(false, Slic3r::resources_dir() + "/calib/PresureAdvnace/pressure_advance_test.stl");
-        p->background_process.fff_print()->calib_mode() = bowden ? Calib_PA_Bowden : Calib_PA_DDE;
     }
     else {
         add_model(false, Slic3r::resources_dir() + "/calib/PresureAdvnace/tower_with_seam.stl");
-        p->background_process.fff_print()->calib_mode() = bowden ? Calib_PA_Tower_Bowden: Calib_PA_Tower_DDE;
         auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
         auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
         auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
@@ -7924,6 +7922,16 @@ void Plater::calib_pa(bool line_method, bool bowden) {
         wxGetApp().get_tab(Preset::TYPE_PRINT)->update_ui_from_settings();
         wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_ui_from_settings();
 
+        auto new_height = std::ceil((params.pa_end - params.pa_start) / params.pa_step) + 1;
+        auto obj_bb = model().objects[0]->bounding_box();
+        if (new_height < obj_bb.size().z()) {
+            std::array<Vec3d, 4> plane_pts;
+            plane_pts[0] = Vec3d(obj_bb.min(0), obj_bb.min(1), new_height);
+            plane_pts[1] = Vec3d(obj_bb.min(0), obj_bb.max(1), new_height);
+            plane_pts[2] = Vec3d(obj_bb.max(0), obj_bb.max(1), new_height);
+            plane_pts[3] = Vec3d(obj_bb.max(0), obj_bb.min(1), new_height);
+            cut(0, 0, plane_pts, ModelObjectCutAttribute::KeepLower);
+        }
 
         // automatic selection of added objects
         // update printable state for new volumes on canvas3D
@@ -7939,8 +7947,8 @@ void Plater::calib_pa(bool line_method, bool bowden) {
         if (p->view3D->get_canvas3d()->get_gizmos_manager().is_enabled())
             // this is required because the selected object changed and the flatten on face an sla support gizmos need to be updated accordingly
             p->view3D->get_canvas3d()->update_gizmos_on_off_state();
-
     }
+    p->background_process.fff_print()->set_calib_params(params);
 
 
 }

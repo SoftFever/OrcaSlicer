@@ -24,6 +24,8 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PrintBase.hpp"
 
+#include "libslic3r/calib.hpp"
+
 #define FILAMENT_SYSTEM_COLORS_NUM      16
 
 class wxButton;
@@ -227,7 +229,7 @@ public:
     void refresh_print();
 
     // SoftFever
-    void calib_pa(bool line_method = true, bool bowden = false);
+    void calib_pa(const Calib_Params& params);
     void calib_flowrate(int pass);
 
     //BBS: add only gcode mode

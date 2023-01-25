@@ -29,6 +29,7 @@
 
 
 #include "PrinterWebView.hpp"
+#include "SFCalibrationDlg.hpp"
 
 #define ENABEL_PRINT_ALL 0
 
@@ -329,6 +330,8 @@ public:
 
     //SoftFever
     void show_device(bool bBBLPrinter);
+
+    PA_Calibration_Dlg* m_pa_calib_dlg{ nullptr };
 
     // BBS. Replace title bar and menu bar with top bar.
     BBLTopbar*            m_topbar{ nullptr };
