@@ -474,15 +474,16 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                     if (mode == PrintEstimatedStatistics::ETimeMode::Normal || machine.enabled) {
                         char buf[128];
 						if(!s_IsBBLPrinter)
-                            sprintf(buf, "; estimated printing time: %s\n", get_time_dhms(machine.time).c_str());
+                            // SoftFever: compatibility with klipper_estimator
+                            sprintf(buf, "; estimated printing time (normal mode) = %s\n", get_time_dhms(machine.time).c_str());
 						else {
                         //sprintf(buf, "; estimated printing time (%s mode) = %s\n",
                         //    (mode == PrintEstimatedStatistics::ETimeMode::Normal) ? "normal" : "silent",
                         //    get_time_dhms(machine.time).c_str());
-                        sprintf(buf, "; model printing time: %s; total estimated time: %s\n",
-                                get_time_dhms(machine.time - machine.roles_time[ExtrusionRole::erCustom]).c_str(),
-                                get_time_dhms(machine.time).c_str());
-                               }
+                            sprintf(buf, "; model printing time: %s; total estimated time: %s\n",
+                                    get_time_dhms(machine.time - machine.roles_time[ExtrusionRole::erCustom]).c_str(),
+                                    get_time_dhms(machine.time).c_str());
+                        }
                         ret += buf;
                     }
                 }
