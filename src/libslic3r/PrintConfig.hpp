@@ -759,6 +759,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatOrPercent,       seam_gap))
     ((ConfigOptionBool,                 role_based_wipe_speed))
     ((ConfigOptionFloatOrPercent,       wipe_speed))
+    ((ConfigOptionBool,                 wipe_on_loops))
 
 )
 

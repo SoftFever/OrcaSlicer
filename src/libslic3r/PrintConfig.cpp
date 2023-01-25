@@ -2406,8 +2406,14 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The wipe speed is same as the current extrusion role's speed.\n"
                      "e.g. if wipe action is followed by a outer wall extrusion, the outer wall speed will be used for this wipe action.");
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionBool(true));
     
+    def = this->add("wipe_on_loops", coBool);
+    def->label = L("Wipe on loops");
+    def->tooltip = L("Make a little move inwards before leaving loop");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
     def = this->add("wipe_speed", coFloatOrPercent);
     def->label = L("Wipe speed");
     def->tooltip = L("This setting will affect the speed of wipe."

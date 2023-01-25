@@ -154,7 +154,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "wipe_speed",
         "use_relative_e_distances",
         "accel_to_decel_enable",
-        "accel_to_decel_factor"
+        "accel_to_decel_factor",
+        "wipe_on_loops"
     };
 
     static std::unordered_set<std::string> steps_ignore;

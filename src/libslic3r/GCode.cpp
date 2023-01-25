@@ -3395,7 +3395,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     }
 
     // make a little move inwards before leaving loop
-    if (paths.back().role() == erExternalPerimeter && m_layer != NULL && m_config.wall_loops.value > 1 && paths.front().size() >= 2 && paths.back().polyline.points.size() >= 3) {
+    if (m_config.wipe_on_loops.value && paths.back().role() == erExternalPerimeter && m_layer != NULL && m_config.wall_loops.value > 1 && paths.front().size() >= 2 && paths.back().polyline.points.size() >= 3) {
         // detect angle between last and first segment
         // the side depends on the original winding order of the polygon (left for contours, right for holes)
         //FIXME improve the algorithm in case the loop is tiny.
