@@ -1453,14 +1453,14 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(300));
 
     def = this->add("accel_to_decel_enable", coBool);
-    def->label = L("Adjust accel to decel");
+    def->label = L("Enable accel_to_decel");
     def->tooltip = L("Klipper's max_accel_to_decel will be adjusted automatically");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
     
     def = this->add("accel_to_decel_factor", coPercent);
-    def->label = L("% of acceleration");
-    def->tooltip = L("Klipper's Max_accel_to_decel will be adjusted to this % of acceleration");
+    def->label = L("accel_to_decel");
+    def->tooltip = L("Klipper's max_accel_to_decel will be adjusted to this % of acceleration");
     def->sidetext = L("%");
     def->min = 1;
     def->max = 100;
@@ -2394,8 +2394,8 @@ void PrintConfigDef::init_fff_params()
     
     def = this->add("seam_gap", coFloatOrPercent);
     def->label = L("Seam gap");
-    def->tooltip = L("When extruding a closed loop, the loop is interrupted and shortened a bit to reduce the seam."
-                    "\nCan be a mm or a % of the current extruder diameter. Default value is 15%");
+    def->tooltip = L("In order to reduce the visibility of the seam in a closed loop extrusion, the loop is interrupted and shortened by a specified amount."
+                    "\nhis amount can be specified in millimeters or as a percentage of the current extruder diameter. The default value for this parameter is 15%.");
     def->sidetext = L("mm or %");
     def->min = 0;
     def->mode = comAdvanced;
@@ -2403,22 +2403,22 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("role_based_wipe_speed", coBool);
     def->label = L("Role base wipe speed");
-    def->tooltip = L("The wipe speed is same as the current extrusion role's speed.\n"
-                     "e.g. if wipe action is followed by a outer wall extrusion, the outer wall speed will be used for this wipe action.");
+    def->tooltip = L("The wipe speed is determined by the speed of the current extrusion role.\n"
+                     "e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
     
     def = this->add("wipe_on_loops", coBool);
     def->label = L("Wipe on loops");
-    def->tooltip = L("Make a little move inwards before leaving loop");
+    def->tooltip = L("To minimize the visibility of the seam in a closed loop extrusion, a small inward movement is executed before the extruder leaves the loop.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("wipe_speed", coFloatOrPercent);
     def->label = L("Wipe speed");
-    def->tooltip = L("This setting will affect the speed of wipe."
-                   " If expressed as percentage (for example: 80%) it will be calculated "
-                   "on the travel speed setting above. Default value is 80%");
+    def->tooltip = L("The wipe speed is determined by the speed setting specified in this configuration."
+                   "\nIf the value is expressed as a percentage (e.g. 80%), it will be calculated based on the travel speed setting above."
+                   "\nThe default value for this parameter is 80%");
     def->sidetext = L("mm/s or %");
     def->ratio_over = "travel_speed";
     def->min = 0;

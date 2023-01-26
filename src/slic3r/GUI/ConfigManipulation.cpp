@@ -666,8 +666,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     // SoftFever
     for (auto el : {"accel_to_decel_enable", "accel_to_decel_factor"})
         toggle_line(el, gcflavor == gcfKlipper);
-    
-    toggle_line("accel_to_decel_factor", config->opt_bool("accel_to_decel_enable"));
+    if(gcflavor == gcfKlipper)
+        toggle_field("accel_to_decel_factor", config->opt_bool("accel_to_decel_enable"));
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
