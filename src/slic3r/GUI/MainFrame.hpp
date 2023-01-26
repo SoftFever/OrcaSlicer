@@ -29,7 +29,7 @@
 
 
 #include "PrinterWebView.hpp"
-#include "SFCalibrationDlg.hpp"
+#include "calib_dlg.hpp"
 
 #define ENABEL_PRINT_ALL 0
 

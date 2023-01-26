@@ -1,4 +1,4 @@
-#include "SFCalibrationDlg.hpp"
+#include "calib_dlg.hpp"
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
 #include "I18N.hpp"
@@ -73,7 +73,7 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
 
     v_sizer->Add(settings_sizer);
 	v_sizer->Add(0, FromDIP(10), 0, wxEXPAND, 5);
-    m_btnStart = new Button(this, _L("Start"));
+    m_btnStart = new Button(this, _L("OK"));
     StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(0, 137, 123), StateColor::Pressed),
 		std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Hovered),
 		std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));

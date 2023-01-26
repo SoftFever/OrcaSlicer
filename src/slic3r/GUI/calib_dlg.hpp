@@ -1,5 +1,5 @@
-#ifndef slic3r_SFCalibrationDlg_hpp_
-#define slic3r_SFCalibrationDlg_hpp_
+#ifndef slic3r_calib_dlg_hpp_
+#define slic3r_calib_dlg_hpp_
 
 #include "wxExtensions.hpp"
 #include "GUI_Utils.hpp"
