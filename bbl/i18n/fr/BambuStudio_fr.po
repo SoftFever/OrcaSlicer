@@ -1551,12 +1551,6 @@ msgstr ""
 "La définition des informations relatives aux emplacements AMS pendant "
 "l'impression n'est pas prise en charge."
 
-msgid "Confirm"
-msgstr "Confirmer"
-
-msgid "Close"
-msgstr "Ferme"
-
 msgid "Factors of dynamic flow cali"
 msgstr ""
 
@@ -1590,9 +1584,6 @@ msgstr ""
 msgid "Nozzle temperature"
 msgstr "Température de buse"
 
-msgid "Bed Temperature"
-msgstr ""
-
 msgid "Max volumetric speed"
 msgstr "Vitesse volumétrique max"
 
@@ -1601,9 +1592,6 @@ msgstr ""
 
 msgid "Bed temperature"
 msgstr "Température du lit"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Start calibration"
 msgstr ""
@@ -2222,9 +2210,6 @@ msgstr "MC"
 msgid "MainBoard"
 msgstr "Carte mère"
 
-msgid "AMS"
-msgstr "AMS"
-
 msgid "TH"
 msgstr "TH"
 
@@ -2754,9 +2739,6 @@ msgstr "Envoyer"
 msgid "Print plate"
 msgstr "Imprimer le plateau"
 
-msgid "Send"
-msgstr "Envoyer"
-
 msgid "Export plate sliced file"
 msgstr "Exporter le plateau tranché"
 
@@ -2994,7 +2976,7 @@ msgstr "Méthode Tour - DDE"
 msgid "Tower method - Bowden"
 msgstr "Méthode Tour - Bowden"
 
-msgid "Presure/Linear Advance"
+msgid "Pressure/Linear Advance"
 msgstr "Pression/Avance linéaire"
 
 msgid "Flow rate"
@@ -3126,7 +3108,7 @@ msgstr ""
 "Il contient les informations suivantes :\n"
 "1. Les réglages d’impression\n"
 "2. Les réglages de filaments\n"
-"3. Les réglages de l’imprimante\n"
+"3. Les réglages de l’imprimante"
 
 msgid "Synchronization"
 msgstr "Synchronisation"
@@ -3535,12 +3517,6 @@ msgstr "Un nouveau module réseau est disponible."
 msgid "Details"
 msgstr "Détails"
 
-msgid "New network plug-in available."
-msgstr ""
-
-msgid "Details"
-msgstr ""
-
 msgid "Undo integration failed."
 msgstr "L'annulation de l'intégration a échoué."
 
@@ -3871,13 +3847,6 @@ msgstr "Vous feriez mieux de mettre à jour votre logiciel.\n"
 msgid "Newer 3mf version"
 msgstr "Nouvelle version 3mf"
 
-#, boost-format, c-format
-msgid ""
-"The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
-"software.\n"
-msgstr "La version %s de la 3mf est plus récente que la version %s . Il est suggérez "
-"de mettre à jour votre logiciel.\n"
-
 msgid "The 3mf is not compatible, load geometry data only!"
 msgstr ""
 "The 3mf is not compatible, load geometry data only!Le fichier 3mf n'est pas "
@@ -4092,9 +4061,6 @@ msgid "The current project has unsaved changes, save it before continue?"
 msgstr ""
 "Le projet en cours comporte des modifications non enregistrées, enregistrez-"
 "les avant de continuer ?"
-
-msgid "Save"
-msgstr "Sauvegarder"
 
 msgid "Number of copies:"
 msgstr "Nombre de copies:"
@@ -4695,7 +4661,7 @@ msgstr "Erreurs"
 
 msgid ""
 "Please check the following infomation and click Confirm to continue sending "
-"print:\n"
+"print:"
 msgstr ""
 "Veuillez vérifier les informations suivantes et cliquer sur Confirmer pour "
 "poursuivre l'envoi de l'impression :"
@@ -4860,12 +4826,6 @@ msgid ""
 "We have added an experimental style \"Tree Slim\" that features smaller "
 "support volume but weaker strength.\n"
 "We recommend using it with: 0 interface layers, 0 top distance, 2 walls."
-msgstr ""
-
-msgid ""
-"Change these settings automatically? \n"
-"Yes - Change these settings automatically\n"
-"No  - Do not change these settings for me"
 msgstr ""
 
 msgid ""
@@ -5690,17 +5650,6 @@ msgid "A new Network plug-in(%s) available, Do you want to install it?"
 msgstr ""
 "Un nouveau plug-in réseau (%s) est disponible, voulez-vous l'installer ?"
 
-msgid "Network plug-in update"
-msgstr ""
-
-msgid ""
-"Click OK to update the Network plug-in when Bambu Studio launches next time."
-msgstr ""
-
-#, c-format, boost-format
-msgid "A new Network plug-in(%s) available, Do you want to install it?"
-msgstr ""
-
 msgid "New version of Bambu Studio"
 msgstr "Nouvelle version de Bambu Studio"
 
@@ -6341,9 +6290,6 @@ msgstr ""
 msgid "°C"
 msgstr "°C"
 
-msgid "Bed temperature"
-msgstr "Température du lit"
-
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
@@ -6470,19 +6416,6 @@ msgstr ""
 
 msgid "Cooling overhang threshold"
 msgstr "Seuil de dépassement de refroidissement"
-
-#, c-format
-msgid ""
-"Force cooling fan to be specific speed when overhang degree of printed part "
-"exceeds this value. Expressed as percentage which indicides how much width "
-"of the line without support from lower layer. 0% means forcing cooling for "
-"all outer wall no matter how much overhang degree"
-msgstr ""
-"Force le ventilateur de refroidissement à avoir une vitesse spécifique "
-"lorsque le degré de surplomb de la pièce imprimée dépasse cette valeur. "
-"Exprimé en pourcentage, il indique la largeur de la ligne sans support de la "
-"couche inférieure. 0% signifie forcer le refroidissement de toute la paroi "
-"extérieure, quel que soit le degré de surplomb."
 
 msgid "Bridge direction"
 msgstr "Direction du pont"
@@ -6920,9 +6853,6 @@ msgid ""
 msgstr ""
 "Dureté minimum de la buse requis pour imprimer le filament. Zéro signifie "
 "qu'il n'y a pas de vérification de la dureté de la buse."
-
-msgid "Max volumetric speed"
-msgstr "Vitesse volumétrique max"
 
 msgid ""
 "This setting stands for how much volume of filament can be melted and "
@@ -7915,9 +7845,6 @@ msgstr "L'écart z entre l'interface du support inférieur et l'objet"
 msgid "Support base"
 msgstr "Base support"
 
-msgid "Support base"
-msgstr ""
-
 msgid ""
 "Filament to print support base and raft. \"Default\" means no specific "
 "filament for support and current filament is used"
@@ -8041,15 +7968,6 @@ msgstr "Arborescent Fort"
 msgid "Tree Hybrid"
 msgstr "Arborescent Hybride"
 
-msgid "Tree Slim"
-msgstr ""
-
-msgid "Tree Strong"
-msgstr ""
-
-msgid "Tree Hybrid"
-msgstr ""
-
 msgid "Independent support layer height"
 msgstr "Hauteur de la couche de support indépendante"
 
@@ -8107,9 +8025,6 @@ msgstr "Ce paramètre spécifie le nombre de murs autour du support d'arbre"
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Température de la buse pour les couches après la première"
-
-msgid "Nozzle temperature"
-msgstr "Température de buse"
 
 msgid "Bed temperature difference"
 msgstr "Différence de température du lit"
@@ -8930,9 +8845,6 @@ msgstr ""
 #~ msgid "Choose one or more files (3mf/step/stl/obj/amf):"
 #~ msgstr "Choisissez un ou plusieurs fichiers (3mf/step/stl/obj/amf) :"
 
-#~ msgid "Clear all"
-#~ msgstr "Tout effacer"
-
 #~ msgid ""
 #~ "Clearance radius around extruder. Used as input of auto-arrange to avoid "
 #~ "collision when print object by object"
@@ -8940,9 +8852,6 @@ msgstr ""
 #~ "Rayon de dégagement autour de l'extrudeuse. Utilisé comme entrée de "
 #~ "l'auto-arrangement pour éviter les collisions lors de l'impression objet "
 #~ "par objet"
-
-#~ msgid "Click the pencil icon to edit the filament."
-#~ msgstr "Cliquez sur l'icône du crayon pour modifier le filament."
 
 #~ msgid "Color Print"
 #~ msgstr "Impression couleur"
@@ -9204,19 +9113,8 @@ msgstr ""
 #~ msgid "Per object edit"
 #~ msgstr "Modification par objet"
 
-#~ msgid "Plate %d: %s does not support filament %s\n"
-#~ msgstr "\n"
-
 #~ msgid "Plate %d: %s does not support filament %s.\n"
 #~ msgstr "Plaque %d : %s ne prend pas en charge le filament %s.\n"
-
-#~ msgid "Plate %d: %s does not support filament %s (%s).\n"
-#~ msgstr "\n"
-
-#~ msgid ""
-#~ "Please check the following infomation and click Confirm to continue "
-#~ "sending print:\n"
-#~ msgstr "\n"
 
 #~ msgid "Please fill report first."
 #~ msgstr "Veuillez d'abord remplir le rapport."
@@ -9368,18 +9266,6 @@ msgstr ""
 #~ msgid "Swith cloud environment, Please login again!"
 #~ msgstr "Changez d'environnement cloud, veuillez vous reconnecter !"
 
-#~ msgid ""
-#~ "The 3mf's version %s is newer than %s's version %s, Found following keys "
-#~ "unrecognized:\n"
-#~ msgstr ""
-#~ "La version %s de 3mf est plus récente que la version %s de %s, Clés "
-#~ "suivantes non reconnues :\n"
-
-#~ msgid ""
-#~ "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade "
-#~ "your software.\n"
-#~ msgstr "\n"
-
 #~ msgid "The Config is not compatible and can not be loaded."
 #~ msgstr "La Config n'est pas compatible et ne peut pas être chargée."
 
@@ -9399,11 +9285,6 @@ msgstr ""
 #~ "La vitesse d'impression minimale lors du ralentissement pour le "
 #~ "refroidissement"
 
-#~ msgid ""
-#~ "The printer type used to generate G-code is not the same type as the "
-#~ "currently selected physical printer. It is recommend to re-slice by "
-#~ "selecting the same printer type.\n"
-#~ msgstr "\n"
 
 #~ msgid ""
 #~ "This object will be used to purge the nozzle after a filament change to "
@@ -9473,17 +9354,10 @@ msgstr ""
 #~ msgstr "Objet:"
 
 #~ msgid ""
-#~ " is too close to exclusion area, there may be collisions when printing.\n"
-#~ msgstr "\n"
-
-#~ msgid ""
 #~ " is too close to exclusion area, there will be collisions when printing.\n"
 #~ msgstr ""
 #~ "est trop proche de la zone d'exclusion, il y aura des collisions lors de "
 #~ "l'impression.\n"
-
-#~ msgid " is too close to others, there may be collisions when printing.\n"
-#~ msgstr "\n"
 
 #~ msgid " is too close to others, there will be collisions when printing.\n"
 #~ msgstr ""

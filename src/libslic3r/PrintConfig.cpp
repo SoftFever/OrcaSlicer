@@ -2337,7 +2337,6 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("retract_restart_extra", coFloats);
     def->label = L("Extra length on restart");
-    def->label = "Extra length on restart";
     def->tooltip = L("When the retraction is compensated after the travel move, the extruder will push "
                   "this additional amount of filament. This setting is rarely needed.");
     def->sidetext = L("mm");
@@ -2346,7 +2345,6 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("retract_restart_extra_toolchange", coFloats);
     def->label = L("Extra length on restart");
-    def->label = "Extra length on restart";
     def->tooltip = L("When the retraction is compensated after changing tool, the extruder will push "
                   "this additional amount of filament.");
     def->sidetext = L("mm");

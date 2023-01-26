@@ -2844,8 +2844,8 @@ msgstr "Turm Methode - DDE"
 msgid "Tower method - Bowden"
 msgstr "Turm Methode - Bowden"
 
-msgid "Presure/Linear Advance"
-msgstr "Presure/Linear Advance"
+msgid "Pressure/Linear Advance"
+msgstr "Pressure/Linear Advance"
 
 msgid "Flow rate"
 msgstr "Durchflussrate"

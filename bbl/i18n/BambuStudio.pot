@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-19 13:01+0800\n"
+"POT-Creation-Date: 2023-01-25 22:42+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -421,10 +421,7 @@ msgstr ""
 msgid "V"
 msgstr ""
 
-msgid "Internal Version"
-msgstr ""
-
-msgid "Version"
+msgid "SoftFever Version"
 msgstr ""
 
 msgid ""
@@ -505,7 +502,7 @@ msgstr ""
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr ""
 
-msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
+msgid "Choose one file (gcode/3mf):"
 msgstr ""
 
 msgid "Some presets are modified."
@@ -1440,6 +1437,9 @@ msgid ""
 "the corresponding code comments."
 msgstr ""
 
+msgid "Version"
+msgstr ""
+
 msgid "AMS Materials Setting"
 msgstr ""
 
@@ -1877,11 +1877,6 @@ msgid ""
 msgstr ""
 
 msgid ""
-"Too large layer height.\n"
-"Reset to 0.2"
-msgstr ""
-
-msgid ""
 "Too small ironing spacing.\n"
 "Reset to 0.1"
 msgstr ""
@@ -2120,6 +2115,12 @@ msgstr ""
 msgid "Tool"
 msgstr ""
 
+msgid "Layer Time"
+msgstr ""
+
+msgid "Layer Time (log)"
+msgstr ""
+
 msgid "Height: "
 msgstr ""
 
@@ -2130,6 +2131,9 @@ msgid "Speed: "
 msgstr ""
 
 msgid "Flow: "
+msgstr ""
+
+msgid "Layer Time: "
 msgstr ""
 
 msgid "Fan Speed: "
@@ -2777,6 +2781,30 @@ msgid "View"
 msgstr ""
 
 msgid "Help"
+msgstr ""
+
+msgid "Pass 1"
+msgstr ""
+
+msgid "Flow rate test - Pass 1"
+msgstr ""
+
+msgid "Pass 2"
+msgstr ""
+
+msgid "Flow rate test - Pass 2"
+msgstr ""
+
+msgid "Flow rate"
+msgstr ""
+
+msgid "Pressure Advance"
+msgstr ""
+
+msgid "Tutorial"
+msgstr ""
+
+msgid "Calibration help"
 msgstr ""
 
 msgid "3D Models"
@@ -4465,6 +4493,9 @@ msgstr ""
 msgid "Acceleration"
 msgstr ""
 
+msgid "Jerk(XY)"
+msgstr ""
+
 msgid "Raft"
 msgstr ""
 
@@ -4478,6 +4509,9 @@ msgid "Special mode"
 msgstr ""
 
 msgid "G-code output"
+msgstr ""
+
+msgid "Post-processing Scripts"
 msgstr ""
 
 msgid "Frequent"
@@ -4517,6 +4551,9 @@ msgid "Recommended temperature range"
 msgstr ""
 
 msgid "Print temperature"
+msgstr ""
+
+msgid "Chamber temperature"
 msgstr ""
 
 msgid "Nozzle"
@@ -4642,6 +4679,15 @@ msgid "Layer height limits"
 msgstr ""
 
 msgid "Retraction when switching material"
+msgstr ""
+
+msgid ""
+"The Wipe option is not available when using the Firmware Retraction mode.\n"
+"\n"
+"Shall I disable it in order to enable Firmware Retraction?"
+msgstr ""
+
+msgid "Firmware Retraction"
 msgstr ""
 
 msgid "Detached"
@@ -5809,11 +5855,33 @@ msgid ""
 "material for bridge, to improve sag"
 msgstr ""
 
+msgid "Top surface flow ratio"
+msgstr ""
+
+msgid ""
+"This factor affects the amount of material for top solid infill. You can "
+"decrease it slightly to have smooth surface finish"
+msgstr ""
+
+msgid "Bottom surface flow ratio"
+msgstr ""
+
+msgid "This factor affects the amount of material for bottom solid infill"
+msgstr ""
+
 msgid "Only one wall on top surfaces"
 msgstr ""
 
 msgid ""
 "Use only one wall on flat top surface, to give more space to the top infill "
+"pattern"
+msgstr ""
+
+msgid "Only one wall on first layer"
+msgstr ""
+
+msgid ""
+"Use only one wall on first layer, to give more space to the bottom infill "
 "pattern"
 msgstr ""
 
@@ -5842,6 +5910,15 @@ msgid ""
 "This controls brim position including outer side of models, inner side of "
 "holes or both. Auto means both the brim position and brim width is analysed "
 "and calculated automatically"
+msgstr ""
+
+msgid "outer_only"
+msgstr ""
+
+msgid "Inner brim only"
+msgstr ""
+
+msgid "Outer and inner brim"
 msgstr ""
 
 msgid "Brim-object gap"
@@ -6021,6 +6098,26 @@ msgid ""
 "than inner wall speed to get better quality."
 msgstr ""
 
+msgid "Small perimeters"
+msgstr ""
+
+msgid ""
+"This separate setting will affect the speed of perimeters having radius <= "
+"6.5mm (usually holes). If expressed as percentage (for example: 80%) it will "
+"be calculated on the outer wall speed setting above. Set to zero for auto."
+msgstr ""
+
+msgid "mm/s or %"
+msgstr ""
+
+msgid "Small perimeters threshold"
+msgstr ""
+
+msgid ""
+"This sets the threshold for small perimeter length. Default threshold is "
+"6.5mm"
+msgstr ""
+
 msgid "Order of inner wall/outer wall/infil"
 msgstr ""
 
@@ -6037,6 +6134,9 @@ msgid "infill/inner/outer"
 msgstr ""
 
 msgid "infill/outer/inner"
+msgstr ""
+
+msgid "inner-outer-inner/infill"
 msgstr ""
 
 msgid "Height to rod"
@@ -6086,6 +6186,20 @@ msgid ""
 "filament in gcode proportionally. Recommended value range is between 0.95 "
 "and 1.05. Maybe you can tune this value to get nice flat surface when there "
 "has slight overflow or underflow"
+msgstr ""
+
+msgid "Enable pressure advance"
+msgstr ""
+
+msgid ""
+"Enable pressure advance, auto calibration result will be overwriten once "
+"enabled."
+msgstr ""
+
+msgid "Pressure advance"
+msgstr ""
+
+msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
 msgstr ""
 
 msgid "Default line width if some line width is set to be zero"
@@ -6138,6 +6252,14 @@ msgid "mm³/s"
 msgstr ""
 
 msgid "Minimal purge on wipe tower"
+msgstr ""
+
+msgid ""
+"After a tool change, the exact position of the newly loaded filament inside "
+"the nozzle may not be known, and the filament pressure is likely not yet "
+"stable. Before purging the print head into an infill or a sacrificial "
+"object, Slic3r will always prime this amount of material into the wipe tower "
+"to produce successive infill or sacrificial object extrusions reliably."
 msgstr ""
 
 msgid "Filament load time"
@@ -6214,6 +6336,14 @@ msgid ""
 "of line"
 msgstr ""
 
+msgid "Bridge infill direction"
+msgstr ""
+
+msgid ""
+"Angle for bridge infill pattern, which controls the start or main direction "
+"of line"
+msgstr ""
+
 msgid "Sparse infill density"
 msgstr ""
 
@@ -6257,6 +6387,15 @@ msgstr ""
 msgid "Lightning"
 msgstr ""
 
+msgid "Acceleration of outer walls"
+msgstr ""
+
+msgid "Acceleration of inner walls"
+msgstr ""
+
+msgid "Acceleration of travel moves"
+msgstr ""
+
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top "
 "surface quality"
@@ -6268,6 +6407,38 @@ msgstr ""
 msgid ""
 "Acceleration of initial layer. Using a lower value can improve build plate "
 "adhensive"
+msgstr ""
+
+msgid "Adjust accel to decel"
+msgstr ""
+
+msgid "Klipper's max_accel_to_decel will be adjusted automatically"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "% of acceleration"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Klipper's Max_accel_to_decel will be adjusted to this % of acceleration"
+msgstr ""
+
+msgid "Jerk of outer walls"
+msgstr ""
+
+msgid "Jerk of inner walls"
+msgstr ""
+
+msgid "Jerk for top surface"
+msgstr ""
+
+msgid "Jerk for infill"
+msgstr ""
+
+msgid "Jerk for initial layer"
+msgstr ""
+
+msgid "Jerk for travel"
 msgstr ""
 
 msgid "Line width of initial layer"
@@ -6324,6 +6495,17 @@ msgstr ""
 msgid ""
 "The average diatance between the random points introducded on each line "
 "segment"
+msgstr ""
+
+msgid "Filter out tiny gaps"
+msgstr ""
+
+msgid "Layers and Perimeters"
+msgstr ""
+
+msgid ""
+"Filter out gaps smaller than the threshold specified. This setting won't "
+"affact top/bottom layers"
 msgstr ""
 
 msgid ""
@@ -6393,6 +6575,9 @@ msgstr ""
 msgid "What kind of gcode the printer is compatible with"
 msgstr ""
 
+msgid "Klipper"
+msgstr ""
+
 msgid "Infill combination"
 msgstr ""
 
@@ -6416,6 +6601,15 @@ msgid ""
 msgstr ""
 
 msgid "Speed of internal sparse infill"
+msgstr ""
+
+msgid "Interface shells"
+msgstr ""
+
+msgid ""
+"Force the generation of solid shells between adjacent materials/volumes. "
+"Useful for multi-extruder prints with translucent materials or manual "
+"soluble support material"
 msgstr ""
 
 msgid "Ironing Type"
@@ -6677,6 +6871,14 @@ msgstr ""
 msgid "Number of walls of every layer"
 msgstr ""
 
+msgid ""
+"If you want to process the output G-code through custom scripts, just list "
+"their absolute paths here. Separate multiple scripts with a semicolon. "
+"Scripts will be passed the absolute path to the G-code file as the first "
+"argument, and they can access the Slic3r config settings by reading "
+"environment variables."
+msgstr ""
+
 msgid "Raft contact Z distance"
 msgstr ""
 
@@ -6756,6 +6958,19 @@ msgid ""
 "print when travel move. Using spiral line to lift z can prevent stringing"
 msgstr ""
 
+msgid "Extra length on restart"
+msgstr ""
+
+msgid ""
+"When the retraction is compensated after the travel move, the extruder will "
+"push this additional amount of filament. This setting is rarely needed."
+msgstr ""
+
+msgid ""
+"When the retraction is compensated after changing tool, the extruder will "
+"push this additional amount of filament."
+msgstr ""
+
 msgid "Retraction Speed"
 msgstr ""
 
@@ -6768,6 +6983,14 @@ msgstr ""
 msgid ""
 "Speed for reloading filament into extruder. Zero means same speed with "
 "retraction"
+msgstr ""
+
+msgid "Use firmware retraction"
+msgstr ""
+
+msgid ""
+"This experimental setting uses G10 and G11 commands to have the firmware "
+"handle the retraction. This is only supported in recent Marlin."
 msgstr ""
 
 msgid "Seam position"
@@ -6786,6 +7009,33 @@ msgid "Back"
 msgstr ""
 
 msgid "Random"
+msgstr ""
+
+msgid "Seam gap"
+msgstr ""
+
+msgid ""
+"When extruding a closed loop, the loop is interrupted and shortened a bit to "
+"reduce the seam.\n"
+"Can be a mm or a % of the current extruder diameter. Default value is 15%"
+msgstr ""
+
+msgid "Role base wipe speed"
+msgstr ""
+
+msgid ""
+"The wipe speed is same as the current extrusion role's speed.\n"
+"e.g. if wipe action is followed by a outer wall extrusion, the outer wall "
+"speed will be used for this wipe action."
+msgstr ""
+
+msgid "Wipe speed"
+msgstr ""
+
+msgid ""
+"This setting will affect the speed of wipe. If expressed as percentage (for "
+"example: 80%) it will be calculated on the travel speed setting above. "
+"Default value is 80%"
 msgstr ""
 
 msgid "Skirt distance"
@@ -7096,6 +7346,17 @@ msgstr ""
 msgid "This setting specify the count of walls around tree support"
 msgstr ""
 
+msgid "Tree support with infill"
+msgstr ""
+
+msgid ""
+"This setting specifies whether to add infill inside large hollows of tree "
+"support"
+msgstr ""
+
+msgid "Target chamber temperature"
+msgstr ""
+
 msgid "Nozzle temperature for layers after the initial one"
 msgstr ""
 
@@ -7159,6 +7420,15 @@ msgstr ""
 msgid ""
 "Move nozzle along the last extrusion path when retracting to clean leaked "
 "material on nozzle. This can minimize blob when print new part after travel"
+msgstr ""
+
+msgid "Z hop type"
+msgstr ""
+
+msgid "NormalLift"
+msgstr ""
+
+msgid "SpiralLift"
 msgstr ""
 
 msgid "Wipe Distance"
@@ -7231,6 +7501,24 @@ msgid ""
 "value. Positive value makes contour bigger. Negative value makes contour "
 "smaller. This function is used to adjust size slightly when the object has "
 "assembling issue"
+msgstr ""
+
+msgid "G-code thumbnails"
+msgstr ""
+
+msgid ""
+"Picture sizes to be stored into a .gcode and .sl1 / .sl1s files, in the "
+"following format: \"XxY, XxY, ...\""
+msgstr ""
+
+msgid "Use relative E distances"
+msgstr ""
+
+msgid ""
+"Relative extrusion is recommended when using \"label_objects\" option.Some "
+"extruders work better with this option unckecked (absolute extrusion mode). "
+"Wipe tower is only compatible with relative mode. It is always enabled on "
+"BambuLab printers. Default is checked"
 msgstr ""
 
 msgid ""

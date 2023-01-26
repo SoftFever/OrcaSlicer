@@ -1519,9 +1519,6 @@ msgstr ""
 msgid "Nozzle Diameter"
 msgstr "喷嘴直径"
 
-msgid "Bed Type"
-msgstr "热床类型"
-
 msgid "Nozzle temperature"
 msgstr "喷嘴温度"
 
@@ -2872,7 +2869,7 @@ msgstr "打印塔方法 - 近程"
 msgid "Tower method - Bowden"
 msgstr "打印塔方法 - 远程"
 
-msgid "Presure/Linear Advance"
+msgid "Pressure/Linear Advance"
 msgstr "压力提前"
 
 msgid "Flow rate"
@@ -4609,6 +4606,27 @@ msgstr "其他层速度"
 
 msgid "Overhang speed"
 msgstr "悬垂速度"
+
+msgid "Seam gap"
+msgstr "接缝留空"
+
+msgid "Role base wipe speed"
+msgstr "自动擦拭速度"
+
+msgid "Wipe speed"
+msgstr "擦拭速度"
+
+msgid "Wipe on loops"
+msgstr "闭环擦拭"
+
+msgid "Use firmware retraction"
+msgstr "使用固件回抽"
+
+msgid "Use relative E distances"
+msgstr "使用相对E距离"
+
+msgid "Extra length on restart"
+msgstr "额外回填长度"
 
 msgid ""
 "This is the speed for various overhang degrees. Overhang degrees are "
@@ -7111,6 +7129,18 @@ msgstr "随机"
 msgid "Skirt distance"
 msgstr "Skirt距离"
 
+msgid "Skirt height"
+msgstr "Skirt高度"
+
+msgid "Post-processing Scripts"
+msgstr "后处理脚本"
+
+msgid "accel_to_decel"
+msgstr "制动速度"
+
+msgid "Enable accel_to_decel"
+msgstr "启用制动速度"
+
 msgid "Distance from skirt to brim or object"
 msgstr "从skirt到模型或者brim的距离"
 
@@ -7435,9 +7465,6 @@ msgstr "树状支撑外墙层数"
 
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "除首层外的其它层的喷嘴温度"
-
-msgid "Nozzle temperature"
-msgstr "喷嘴温度"
 
 msgid "Chamber temperature"
 msgstr "机箱温度"
@@ -10958,12 +10985,6 @@ msgstr ""
 #~ msgid "Retraction Length (Toolchange)"
 #~ msgstr "回抽长度(更换工具头)"
 
-#~ msgid "Extra length on restart"
-#~ msgstr "启动时额外长度"
-
-#~ msgid "Skirt height"
-#~ msgstr "Skirt高度"
-
 #~ msgid "How many layers of skirt. Usually only one layer"
 #~ msgstr "skirt有多少层。通常只有一层"
 
@@ -11130,9 +11151,6 @@ msgstr ""
 
 #~ msgid "choose a directory"
 #~ msgstr "选择文件夹"
-
-#~ msgid "Post-processing scripts"
-#~ msgstr "后处理脚本"
 
 #~ msgid "Print speed override"
 #~ msgstr "覆盖打印速度"

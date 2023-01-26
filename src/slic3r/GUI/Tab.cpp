@@ -2991,11 +2991,11 @@ void TabPrinter::build_fff()
 #endif
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
-        optgroup->append_single_option_line("use_relative_e_distances");
         optgroup->append_single_option_line("gcode_flavor");
         option = optgroup->get_option("thumbnails");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line("use_relative_e_distances");
         optgroup->append_single_option_line("use_firmware_retraction");
         optgroup->append_single_option_line("scan_first_layer");
         // optgroup->append_single_option_line("spaghetti_detector");

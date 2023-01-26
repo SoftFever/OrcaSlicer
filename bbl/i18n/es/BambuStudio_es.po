@@ -1540,12 +1540,6 @@ msgstr "SN"
 msgid "Setting AMS slot information while printing is not supported"
 msgstr ""
 
-msgid "Confirm"
-msgstr "Confirmar"
-
-msgid "Close"
-msgstr "Cerrar"
-
 msgid "Factors of dynamic flow cali"
 msgstr ""
 
@@ -2183,9 +2177,6 @@ msgstr "MC"
 msgid "MainBoard"
 msgstr "Placa Madre"
 
-msgid "AMS"
-msgstr "AMS"
-
 msgid "TH"
 msgstr "TH"
 
@@ -2703,9 +2694,6 @@ msgstr "Laminar placa"
 
 msgid "Export G-code file"
 msgstr ""
-
-msgid "Send"
-msgstr "Enviar"
 
 msgid "Print plate"
 msgstr ""
@@ -3720,8 +3708,6 @@ msgid ""
 "The 3mf's version %s is newer than %s's version %s, Found following keys "
 "unrecognized:"
 msgstr ""
-"La versión %s de 3mf es más reciente que la versión %s de %s, se han "
-"encontrado las siguientes claves no reconocidas:\n"
 
 msgid "You'd better upgrade your software.\n"
 msgstr "Será mejor que actualices tu software.\n"
@@ -3729,11 +3715,11 @@ msgstr "Será mejor que actualices tu software.\n"
 msgid "Newer 3mf version"
 msgstr "Nueva versión 3mf"
 
-#, fuzzy, c-format, boost-format
+#, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
-"software.\n"
-msgstr "\n"
+"software."
+msgstr ""
 
 msgid "The 3mf is not compatible, load geometry data only!"
 msgstr ""
@@ -3933,9 +3919,6 @@ msgid "The current project has unsaved changes, save it before continue?"
 msgstr ""
 "El proyecto actual tiene cambios sin guardar, ¿guardarlos antes de continuar?"
 
-msgid "Save"
-msgstr "Guardar"
-
 msgid "Number of copies:"
 msgstr "Número de copias:"
 
@@ -4016,9 +3999,9 @@ msgid ""
 "on Bambu Studio(windows) or CAD softwares."
 msgstr ""
 
-#, fuzzy, c-format, boost-format
-msgid "Plate %d: %s does not support filament %s (%s).\n"
-msgstr "\n"
+#, c-format, boost-format
+msgid "Plate %d: %s does not support filament %s (%s)."
+msgstr ""
 
 msgid "Switching the language requires application restart.\n"
 msgstr "El cambio de idioma requiere el reinicio de la aplicación.\n"
@@ -6011,9 +5994,6 @@ msgstr ""
 msgid "°C"
 msgstr "°C"
 
-msgid "Bed temperature"
-msgstr "Temperatura de la base"
-
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the "
 "filament does not support to print on the Engineering Plate"
@@ -6520,9 +6500,6 @@ msgid ""
 "of nozzle's HRC."
 msgstr ""
 
-msgid "Max volumetric speed"
-msgstr "Velocidad volumétrica máxima"
-
 msgid ""
 "This setting stands for how much volume of filament can be melted and "
 "extruded per second. Printing speed is limited by max volumetric speed, in "
@@ -6534,9 +6511,6 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Purga mínima en la torre de limpieza"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Tiempo de carga de filamento"
