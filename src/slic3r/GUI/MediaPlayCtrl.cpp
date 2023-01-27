@@ -31,6 +31,9 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl2 *media_ctrl, const w
 {
     SetBackgroundColour(*wxWHITE);
     m_media_ctrl->Bind(wxEVT_MEDIA_STATECHANGED, &MediaPlayCtrl::onStateChanged, this);
+#if wxUSE_GSTREAMER_PLAYER
+    m_media_ctrl->Bind(wxEVT_MEDIA_LOADED, &MediaPlayCtrl::onStateChanged, this);
+#endif
 
     m_button_play = new Button(this, "", "media_play", wxBORDER_NONE);
     m_button_play->SetCanFocus(false);
@@ -363,11 +366,11 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
         Stop();
         return;
     }
-    if (last_state == MEDIASTATE_LOADING && state == wxMEDIASTATE_STOPPED) {
+    if (last_state == MEDIASTATE_LOADING && (state == wxMEDIASTATE_STOPPED || state == wxMEDIASTATE_PAUSED || event.GetEventType() == wxEVT_MEDIA_LOADED)) {
         wxSize size = m_media_ctrl->GetVideoSize();
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: size: " << size.x << "x" << size.y;
         m_failed_code = m_media_ctrl->GetLastError();
-        if (size.GetWidth() > 1000) {
+        if (size.GetWidth() > 1000 || (event.GetEventType() == wxEVT_MEDIA_LOADED)) {
             m_last_state = state;
             SetStatus(_L("Playing..."), false);
             m_failed_retry = 0;
