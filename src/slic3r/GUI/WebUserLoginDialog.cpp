@@ -49,6 +49,8 @@ string &replace_str(string &str, const string &to_replaced, const string &newcha
     return str;
 }
 
+int ZUserLogin::web_sequence_id = 20000;
+
 ZUserLogin::ZUserLogin() : wxDialog((wxWindow *) (wxGetApp().mainframe), wxID_ANY, "BambuStudio")
 {
     SetBackgroundColour(*wxWHITE);
@@ -249,7 +251,7 @@ void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
 {
     wxString str_input = evt.GetString();
     try {
-        json     j        = json::parse(str_input);
+        json j = json::parse(str_input);
 
         wxString strCmd = j["command"];
 
@@ -262,6 +264,31 @@ void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
             wxGetApp().handle_script_message(j.dump());
             Close();
         }
+        else if (strCmd == "get_localhost_url") {
+            BOOST_LOG_TRIVIAL(info) << "thirdparty_login: get_localhost_url";
+            wxGetApp().start_http_server();
+            std::string sequence_id = j["sequence_id"].get<std::string>();
+            CallAfter([this, sequence_id] {
+                json ack_j;
+                ack_j["command"] = "get_localhost_url";
+                ack_j["response"]["base_url"] = LOCALHOST_URL;
+                ack_j["response"]["result"] = "success";
+                ack_j["sequence_id"] = sequence_id;
+                wxString str_js = wxString::Format("window.postMessage(%s)", ack_j.dump());
+                this->RunScript(str_js);
+            });
+        }
+        else if (strCmd == "thirdparty_login") {
+            BOOST_LOG_TRIVIAL(info) << "thirdparty_login: thirdparty_login";
+            if (j["data"].contains("url")) {
+                std::string jump_url = j["data"]["url"].get<std::string>();
+                CallAfter([this, jump_url] {
+                    wxString url = wxString::FromUTF8(jump_url);
+                    wxLaunchDefaultBrowser(url);
+                    });
+            }
+            return;
+        }
     } catch (std::exception &e) {
         wxMessageBox(e.what(), "parse json failed", wxICON_WARNING);
         Close();
@@ -273,8 +300,6 @@ void ZUserLogin::RunScript(const wxString &javascript)
     // Remember the script we run in any case, so the next time the user opens
     // the "Run Script" dialog box, it is shown there for convenient updating.
     m_javascript = javascript;
-
-    // wxLogMessage("Running JavaScript:\n%s\n", javascript);
 
     if (!m_browser) return;
 

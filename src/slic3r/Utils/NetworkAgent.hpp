@@ -75,6 +75,7 @@ typedef int (*func_start_pubilsh)(void *agent, PublishParams params, OnUpdateSta
 typedef int (*func_get_profile_3mf)(void *agent, BBLProfile* profile);
 typedef int (*func_get_model_publish_url)(void *agent, std::string* url);
 typedef int (*func_get_model_mall_home_url)(void *agent, std::string* url);
+typedef int (*func_get_my_profile)(void *agent, std::string token, unsigned int *http_code, std::string *http_body);
 
 
 //the NetworkAgent class
@@ -158,6 +159,7 @@ public:
     int get_profile_3mf(BBLProfile* profile);
     int get_model_publish_url(std::string* url);
     int get_model_mall_home_url(std::string* url);   
+    int get_my_profile(std::string token, unsigned int* http_code, std::string* http_body);
 
 private:
 
@@ -231,6 +233,7 @@ private:
     static func_get_profile_3mf                get_profile_3mf_ptr;
     static func_get_model_publish_url          get_model_publish_url_ptr;
     static func_get_model_mall_home_url        get_model_mall_home_url_ptr;
+    static func_get_my_profile                 get_my_profile_ptr;
 };
 
 }

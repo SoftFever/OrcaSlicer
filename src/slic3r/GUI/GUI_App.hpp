@@ -11,8 +11,10 @@
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include "slic3r/GUI/WebViewDialog.hpp"
+#include "slic3r/GUI/WebUserLoginDialog.hpp"
 #include "slic3r/GUI/HMS.hpp"
 #include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
+#include "slic3r/GUI/HttpServer.hpp"
 #include "../Utils/PrintHost.hpp"
 
 #include <wx/app.h>
@@ -274,6 +276,9 @@ private:
     bool m_networking_cancel_update { false };
     std::shared_ptr<UpgradeNetworkJob> m_upgrade_network_job;
 
+    // login widget
+    ZUserLogin*     login_dlg { nullptr };
+
     VersionInfo version_info;
     static std::string version_display;
     HMSQuery    *hms_query { nullptr };
@@ -283,6 +288,7 @@ private:
     bool             m_is_dark_mode{ false };
     bool             m_adding_script_handler { false };
     bool             m_side_popup_status{false};
+    HttpServer       m_http_server;
 public:
     void            check_filaments_in_blacklist(std::string tag_supplier, std::string tag_material, bool& in_blacklist, std::string& action, std::string& info);
     std::string     get_local_models_path();
@@ -381,7 +387,7 @@ public:
     wxString transition_tridid(int trid_id);
     void            ShowUserGuide();
     void            ShowDownNetPluginDlg();
-    void            ShowUserLogin();
+    void            ShowUserLogin(bool show = true);
     void            ShowOnlyFilament();
     //BBS
     void            request_login(bool show_user_info = false);
@@ -424,6 +430,8 @@ public:
     void            sync_preset(Preset* preset);
     void            start_sync_user_preset(bool load_immediately = false, bool with_progress_dlg = false);
     void            stop_sync_user_preset();
+    void            start_http_server();
+    void            stop_http_server();
 
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 

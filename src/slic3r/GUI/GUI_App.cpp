@@ -87,7 +87,6 @@
 //BBS: DailyTip and UserGuide Dialog
 #include "WebDownPluginDlg.hpp"
 #include "WebGuideDialog.hpp"
-#include "WebUserLoginDialog.hpp"
 #include "ReleaseNote.hpp"
 #include "ModelMall.hpp"
 
@@ -2369,9 +2368,6 @@ bool GUI_App::on_init_inner()
         }
     //}
 
-
-
-
     if (app_config->get("sync_user_preset") == "true") {
         //BBS loading user preset
         // Always async, not such startup step
@@ -3103,14 +3099,24 @@ void GUI_App::ShowDownNetPluginDlg() {
     }
 }
 
-void GUI_App::ShowUserLogin()
+void GUI_App::ShowUserLogin(bool show)
 {
     // BBS: User Login Dialog
-    try {
-        ZUserLogin LoginDlg;
-        LoginDlg.ShowModal();
-    } catch (std::exception &e) {
-        // wxMessageBox(e.what(), "", MB_OK);
+    if (show) {
+        try {
+            if (!login_dlg)
+                login_dlg = new ZUserLogin();
+            else {
+                delete login_dlg;
+                login_dlg = new ZUserLogin();
+            }
+            login_dlg->ShowModal();
+        } catch (std::exception &e) {
+            ;
+        }
+    } else {
+        if (login_dlg)
+            login_dlg->EndModal(wxID_OK);
     }
 }
 
@@ -3393,11 +3399,6 @@ std::string GUI_App::handle_web_request(std::string cmd)
         std::string web_cmd = j["command"].get<std::string>();
 
         if (web_cmd == "request_model_download") {
-           /* json j_data = j["data"];
-            json import_j;*/
-            /*  import_j["model_id"] = j["data"]["model_id"].get<std::string>();
-              import_j["profile_id"] = j["data"]["profile_id"].get<std::string>();*/
-
             std::string download_url = "";
             if (j["data"].contains("download_url"))
                 download_url = j["data"]["download_url"].get<std::string>();
@@ -4159,6 +4160,16 @@ void GUI_App::stop_sync_user_preset()
     enable_sync = false;
     if (m_sync_update_thread.joinable())
         m_sync_update_thread.join();
+}
+
+void GUI_App::start_http_server()
+{
+    if (!m_http_server.is_started())
+        m_http_server.start();
+}
+void GUI_App::stop_http_server()
+{
+    m_http_server.stop();
 }
 
 bool GUI_App::switch_language()

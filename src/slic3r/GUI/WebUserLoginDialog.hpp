@@ -27,8 +27,6 @@
 #include <wx/tbarbase.h>
 #include "wx/textctrl.h"
 
-#include "GUI_App.hpp"
-
 namespace Slic3r { namespace GUI {
 
 class ZUserLogin : public wxDialog
@@ -62,7 +60,7 @@ public:
 
     bool run();
 
-
+    static int web_sequence_id;
 private:
     wxTimer *m_timer { nullptr };
     void     OnTimer(wxTimerEvent &event);
