@@ -6523,7 +6523,7 @@ msgid "All solid layer"
 msgstr "Alle festen Schichten"
 
 msgid "Ironing flow"
-msgstr "Glätten Fluss"
+msgstr "Materialmenge %"
 
 msgid "The amount of material to extrude during ironing. Relative to flow of normal layer height. Too high value results in overextrusion on the surface"
 msgstr ""
