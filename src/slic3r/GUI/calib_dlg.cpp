@@ -113,6 +113,9 @@ void PA_Calibration_Dlg::on_start(wxCommandEvent& event) {
         msg_dlg.ShowModal();
         return;
     }
+    m_params.mode = m_rbMethod->GetSelection() == 0 ? CalibMode::Calib_PA_Tower : CalibMode::Calib_PA_Line;
+    m_params.print_numbers = m_cbPrintNum->GetValue();
+
     m_plater->calib_pa(m_params);
     EndModal(wxID_OK);
 
