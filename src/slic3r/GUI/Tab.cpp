@@ -3521,9 +3521,6 @@ void TabPrinter::toggle_options()
         for (auto el : vec)
             toggle_option(el, retraction, i);
 
-        // retract lift above / below only applies if using retract lift
-        vec.resize(0);
-
         // some options only apply when not using firmware retraction
         vec.resize(0);
         vec = { "retraction_speed", "deretraction_speed", "retract_before_wipe", "retract_restart_extra", "wipe", "wipe_distance" };
@@ -3547,8 +3544,11 @@ void TabPrinter::toggle_options()
             || m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlinFirmware);
         bool silent_mode = m_config->opt_bool("silent_mode");
         int  max_field = silent_mode ? 2 : 1;
-        //BBS: limits of BBL printer can't be edited.
-    	for (const std::string &opt : Preset::machine_limits_options())
+        //BBS: limits of BBL printer can't be edited, except jerk.
+        for (const std::string& opt : { "machine_max_acceleration_extruding", "machine_max_acceleration_retracting", "machine_max_acceleration_travel",
+            "machine_max_acceleration_x", "machine_max_acceleration_y", "machine_max_acceleration_z", "machine_max_acceleration_e",
+            "machine_max_speed_x", "machine_max_speed_y", "machine_max_speed_z", "machine_max_speed_e",
+            "machine_min_extruding_rate", "machine_min_travel_rate" })
             for (int i = 0; i < max_field; ++ i)
 	            toggle_option(opt, !is_BBL_printer, i);
     }
