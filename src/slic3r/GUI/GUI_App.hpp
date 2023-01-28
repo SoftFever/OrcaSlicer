@@ -456,8 +456,10 @@ public:
     bool            checked_tab(Tab* tab);
     //BBS: add preset combox re-active logic
     void            load_current_presets(bool active_preset_combox = false, bool check_printer_presets = true);
-    std::vector<std::string>& get_delete_cache_presets();
+    std::vector<std::string> &get_delete_cache_presets();
+    std::vector<std::string> get_delete_cache_presets_lock();
     void            delete_preset_from_cloud(std::string setting_id);
+    void            preset_deleted_from_cloud(std::string setting_id);
 
     wxString        current_language_code() const { return m_wxLocale->GetCanonicalName(); }
 	// Translate the language code to a code, for which Prusa Research maintains translations. Defaults to "en_US".

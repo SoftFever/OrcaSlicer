@@ -4107,12 +4107,13 @@ void GUI_App::start_sync_user_preset(bool load_immediately, bool with_progress_d
                         unsigned int http_code = 200;
 
                         /* get list witch need to be deleted*/
-                        std::vector<string>& delete_cache_presets = get_delete_cache_presets();
+                        std::vector<string> delete_cache_presets = get_delete_cache_presets_lock();
                         for (auto it = delete_cache_presets.begin(); it != delete_cache_presets.end();) {
                             if ((*it).empty()) continue;
                             std::string del_setting_id = *it;
                             int result = m_agent->delete_setting(del_setting_id);
                             if (result == 0) {
+                                preset_deleted_from_cloud(del_setting_id);
                                 it = delete_cache_presets.erase(it);
                                 BOOST_LOG_TRIVIAL(trace) << "sync_preset: sync operation: delete success! setting id = " << del_setting_id;
                             }
@@ -5043,14 +5044,29 @@ void GUI_App::load_current_presets(bool active_preset_combox/*= false*/, bool ch
         }
 }
 
-std::vector<std::string>& GUI_App::get_delete_cache_presets()
+static std::mutex mutex_delete_cache_presets;
+
+std::vector<std::string> & GUI_App::get_delete_cache_presets()
 {
+    return need_delete_presets;
+}
+
+std::vector<std::string> GUI_App::get_delete_cache_presets_lock()
+{
+    std::scoped_lock l(mutex_delete_cache_presets);
     return need_delete_presets;
 }
 
 void GUI_App::delete_preset_from_cloud(std::string setting_id)
 {
+    std::scoped_lock l(mutex_delete_cache_presets);
     need_delete_presets.push_back(setting_id);
+}
+
+void GUI_App::preset_deleted_from_cloud(std::string setting_id)
+{
+    std::scoped_lock l(mutex_delete_cache_presets);
+    need_delete_presets.erase(std::remove(need_delete_presets.begin(), need_delete_presets.end(), setting_id), need_delete_presets.end());
 }
 
 bool GUI_App::OnExceptionInMainLoop()
