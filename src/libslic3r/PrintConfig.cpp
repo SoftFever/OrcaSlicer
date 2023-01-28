@@ -2392,8 +2392,8 @@ void PrintConfigDef::init_fff_params()
     
     def = this->add("seam_gap", coFloatOrPercent);
     def->label = L("Seam gap");
-    def->tooltip = L("In order to reduce the visibility of the seam in a closed loop extrusion, the loop is interrupted and shortened by a specified amount."
-                    "\nhis amount can be specified in millimeters or as a percentage of the current extruder diameter. The default value for this parameter is 15%.");
+    def->tooltip = L("In order to reduce the visibility of the seam in a closed loop extrusion, the loop is interrupted and shortened by a specified amount.\n"
+                     "his amount can be specified in millimeters or as a percentage of the current extruder diameter. The default value for this parameter is 15%.");
     def->sidetext = L("mm or %");
     def->min = 0;
     def->mode = comAdvanced;
@@ -2401,7 +2401,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("role_based_wipe_speed", coBool);
     def->label = L("Role base wipe speed");
-    def->tooltip = L("The wipe speed is determined by the speed of the current extrusion role.\n"
+    def->tooltip = L("The wipe speed is determined by the speed of the current extrusion role."
                      "e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
@@ -2415,8 +2415,8 @@ void PrintConfigDef::init_fff_params()
     def = this->add("wipe_speed", coFloatOrPercent);
     def->label = L("Wipe speed");
     def->tooltip = L("The wipe speed is determined by the speed setting specified in this configuration."
-                   "\nIf the value is expressed as a percentage (e.g. 80%), it will be calculated based on the travel speed setting above."
-                   "\nThe default value for this parameter is 80%");
+                   "If the value is expressed as a percentage (e.g. 80%), it will be calculated based on the travel speed setting above."
+                   "The default value for this parameter is 80%");
     def->sidetext = L("mm/s or %");
     def->ratio_over = "travel_speed";
     def->min = 0;
