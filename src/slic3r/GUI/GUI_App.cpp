@@ -88,6 +88,7 @@
 #include "WebDownPluginDlg.hpp"
 #include "WebGuideDialog.hpp"
 #include "ReleaseNote.hpp"
+#include "PrivacyUpdateDialog.hpp"
 #include "ModelMall.hpp"
 
 //#ifdef WIN32
@@ -1125,6 +1126,10 @@ void GUI_App::post_init()
 
             //BBS: check new version
             this->check_new_version();
+            //BBS: check privacy version
+            if (is_user_login())
+                this->check_privacy_version(0);
+
         });
     }
 
@@ -1663,7 +1668,7 @@ void GUI_App::init_networking_callbacks()
     if (m_agent) {
         //set callbacks
         m_agent->set_on_user_login_fn([this](int online_login, bool login) {
-            GUI::wxGetApp().request_user_login(online_login);
+            GUI::wxGetApp().request_user_handle(online_login);
             });
 
         m_agent->set_on_server_connected_fn([this]() {
@@ -1991,6 +1996,14 @@ void GUI_App::init_http_extra_header()
 {
     std::map<std::string, std::string> extra_headers = get_extra_header();
 
+    if (m_agent)
+        m_agent->set_extra_http_header(extra_headers);
+}
+
+void GUI_App::update_http_extra_header()
+{
+    std::map<std::string, std::string> extra_headers = get_extra_header();
+    Slic3r::Http::set_extra_headers(extra_headers);
     if (m_agent)
         m_agent->set_extra_http_header(extra_headers);
 }
@@ -2344,6 +2357,9 @@ bool GUI_App::on_init_inner()
 
     Bind(EVT_SET_SELECTED_MACHINE, &GUI_App::on_set_selected_machine, this);
     Bind(EVT_USER_LOGIN, &GUI_App::on_user_login, this);
+    Bind(EVT_USER_LOGIN_HANDLE, &GUI_App::on_user_login_handle, this);
+    Bind(EVT_CHECK_PRIVACY_VER, &GUI_App::on_check_privacy_update, this);
+    Bind(EVT_CHECK_PRIVACY_SHOW, &GUI_App::show_check_privacy_dlg, this);
 
     Bind(EVT_SHOW_IP_DIALOG, &GUI_App::show_ip_address_enter_dialog_handler, this);
 
@@ -3354,6 +3370,13 @@ bool GUI_App::check_login()
     return result;
 }
 
+void GUI_App::request_user_handle(int online_login)
+{
+    auto evt = new wxCommandEvent(EVT_USER_LOGIN_HANDLE);
+    evt->SetInt(online_login);
+    wxQueueEvent(this, evt);
+}
+
 void GUI_App::request_user_login(int online_login)
 {
     auto evt = new wxCommandEvent(EVT_USER_LOGIN);
@@ -3718,7 +3741,7 @@ void GUI_App::on_set_selected_machine(wxCommandEvent &evt)
     dev->set_selected_machine(m_agent->get_user_selected_machine());
 }
 
-void GUI_App::on_user_login(wxCommandEvent &evt)
+void GUI_App::on_user_login_handle(wxCommandEvent &evt)
 {
     if (!m_agent) { return; }
 
@@ -3758,6 +3781,14 @@ void GUI_App::on_user_login(wxCommandEvent &evt)
         mainframe->show_publish_button(publish_identifier == 0 ? false : true);
 #endif
     }
+}
+
+void GUI_App::on_user_login(wxCommandEvent &evt)
+{
+    if (!m_agent) { return; }
+    int online_login = evt.GetInt();
+    // check privacy before handle
+    check_privacy_version(online_login);
 }
 
 bool GUI_App::is_studio_active()
@@ -3887,6 +3918,113 @@ void GUI_App::set_skip_version(bool skip)
     }else {
         app_config->set("skip_version", "");
     }
+}
+
+void GUI_App::show_check_privacy_dlg(wxCommandEvent& evt)
+{
+    int online_login = evt.GetInt();
+    PrivacyUpdateDialog privacy_dlg(this->mainframe, wxID_ANY, _L("Privacy Policy"));
+    privacy_dlg.Bind(EVT_PRIVACY_UPDATE_CONFIRM, [this, online_login](wxCommandEvent &e) {
+        app_config->set("privacy_version", privacy_version_info.version_str);
+        app_config->set_bool("privacy_update_checked", true);
+        app_config->save();
+        request_user_handle(online_login);
+        });
+    privacy_dlg.Bind(EVT_PRIVACY_UPDATE_CANCEL, [this](wxCommandEvent &e) {
+            app_config->set_bool("privacy_update_checked", false);
+            app_config->save();
+            if (m_agent) {
+                m_agent->user_logout();
+            }
+        });
+
+    privacy_dlg.set_text(privacy_version_info.description);
+    privacy_dlg.on_show();
+}
+
+void GUI_App::on_show_check_privacy_dlg(int online_login)
+{
+    auto evt = new wxCommandEvent(EVT_CHECK_PRIVACY_SHOW);
+    evt->SetInt(online_login);
+    wxQueueEvent(this, evt);
+}
+
+bool GUI_App::check_privacy_update()
+{
+    if (privacy_version_info.version_str.empty() || privacy_version_info.description.empty()
+        || privacy_version_info.url.empty()) {
+        return false;
+    }
+
+    std::string local_privacy_ver = app_config->get("privacy_version");
+    auto curr_version = Semver::parse(local_privacy_ver);
+    auto remote_version = Semver::parse(privacy_version_info.version_str);
+    if (curr_version && remote_version) {
+        if (*remote_version > *curr_version || app_config->get("privacy_update_checked") != "true") {
+            return true;
+        }
+    }
+    return false;
+}
+
+void GUI_App::on_check_privacy_update(wxCommandEvent& evt)
+{
+    int online_login = evt.GetInt();
+    bool result = check_privacy_update();
+    if (result)
+        on_show_check_privacy_dlg(online_login);
+    else
+        request_user_handle(online_login);
+}
+
+void GUI_App::check_privacy_version(int online_login)
+{
+    update_http_extra_header();
+    std::string query_params = "?policy/privacy=00.00.00.00";
+    std::string url = get_http_url(app_config->get_country_code()) + query_params;
+    Slic3r::Http http = Slic3r::Http::get(url);
+
+    http.header("accept", "application/json")
+        .timeout_connect(TIMEOUT_CONNECT)
+        .timeout_max(TIMEOUT_RESPONSE)
+        .on_complete([this, online_login](std::string body, unsigned) {
+            try {
+                json j = json::parse(body);
+                if (j.contains("message")) {
+                    if (j["message"].get<std::string>() == "success") {
+                        if (j.contains("resources")) {
+                            for (auto it = j["resources"].begin(); it != j["resources"].end(); it++) {
+                                if (it->contains("type")) {
+                                    if ((*it)["type"] == std::string("policy/privacy")
+                                        && it->contains("version")
+                                        && it->contains("description")
+                                        && it->contains("url")
+                                        && it->contains("force_update")) {
+                                        privacy_version_info.version_str = (*it)["version"].get<std::string>();
+                                        privacy_version_info.description = (*it)["description"].get<std::string>();
+                                        privacy_version_info.url = (*it)["url"].get<std::string>();
+                                        privacy_version_info.force_upgrade = (*it)["force_update"].get<bool>();
+                                        break;
+                                    }
+                                }
+                            }
+                            CallAfter([this, online_login]() {
+                                auto evt = new wxCommandEvent(EVT_CHECK_PRIVACY_VER);
+                                evt->SetInt(online_login);
+                                wxQueueEvent(this, evt);
+                            });
+                        }
+                    }
+                }
+            }
+            catch (...) {
+                request_user_handle(online_login);
+            }
+        })
+        .on_error([this, online_login](std::string body, std::string error, unsigned int status) {
+            request_user_handle(online_login);
+            BOOST_LOG_TRIVIAL(error) << "check privacy version error" << body;
+    }).perform();
 }
 
 void GUI_App::no_new_version()

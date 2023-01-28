@@ -302,7 +302,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
 
 
 	fs::path ph(data_dir());
-	ph /= "resources/tooltip/common/releasenote.html";
+	ph /= "resources/tooltip/releasenote.html";
 	if (!fs::exists(ph)) {
 		ph = resources_dir();
 		ph /= "tooltip/releasenote.html";
@@ -526,7 +526,7 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     SetBackgroundColour(*wxWHITE);
     m_sizer_main = new wxBoxSizer(wxVERTICAL);
     auto        m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(400), 1));
-    m_line_top->SetBackgroundColour(*wxWHITE);
+    m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(5));
 
@@ -713,7 +713,7 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
     SetBackgroundColour(*wxWHITE);
     m_sizer_main = new wxBoxSizer(wxVERTICAL);
     auto        m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(400), 1));
-    m_line_top->SetBackgroundColour(*wxWHITE);
+    m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(5));
 

@@ -257,6 +257,10 @@ void AppConfig::set_defaults()
         set("mouse_supported", "mouse left/mouse middle/mouse right");
     }
 
+    if (get("privacy_version").empty()) {
+        set("privacy_version", "00.00.00.00");
+    }
+
     if (get("rotate_view").empty()) {
         set("rotate_view", "none/mouse left");
     }

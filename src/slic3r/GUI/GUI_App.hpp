@@ -280,6 +280,7 @@ private:
     ZUserLogin*     login_dlg { nullptr };
 
     VersionInfo version_info;
+    VersionInfo privacy_version_info;
     static std::string version_display;
     HMSQuery    *hms_query { nullptr };
 
@@ -395,7 +396,8 @@ public:
     void            get_login_info();
     bool            is_user_login();
 
-    void            request_user_login(int online_login);
+    void            request_user_login(int online_login = 0);
+    void            request_user_handle(int online_login = 0);
     void            request_user_logout();
     int             request_user_unbind(std::string dev_id);
     std::string     handle_web_request(std::string cmd);
@@ -410,6 +412,7 @@ public:
     void            on_http_error(wxCommandEvent &evt);
     void            on_set_selected_machine(wxCommandEvent& evt);
     void            on_user_login(wxCommandEvent &evt);
+    void            on_user_login_handle(wxCommandEvent& evt);
     void            enable_user_preset_folder(bool enable);
 
     // BBS
@@ -433,6 +436,12 @@ public:
     void            stop_sync_user_preset();
     void            start_http_server();
     void            stop_http_server();
+
+    void            on_show_check_privacy_dlg(int online_login = 0);
+    void            show_check_privacy_dlg(wxCommandEvent& evt);
+    void            on_check_privacy_update(wxCommandEvent &evt);
+    bool            check_privacy_update();
+    void            check_privacy_version(int online_login = 0);
 
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 
@@ -593,6 +602,7 @@ private:
     //BBS set extra header for http request
     std::map<std::string, std::string> get_extra_header();
     void            init_http_extra_header();
+    void            update_http_extra_header();
     bool            check_older_app_config(Semver current_version, bool backup);
     void            copy_older_config();
     void            window_pos_save(wxTopLevelWindow* window, const std::string &name);

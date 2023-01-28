@@ -364,6 +364,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/PublishDialog.hpp
 	GUI/RecenterDialog.cpp
     GUI/RecenterDialog.hpp
+    GUI/PrivacyUpdateDialog.cpp
+    GUI/PrivacyUpdateDialog.hpp
     GUI/BonjourDialog.cpp
     GUI/BonjourDialog.hpp
     GUI/BindDialog.cpp
