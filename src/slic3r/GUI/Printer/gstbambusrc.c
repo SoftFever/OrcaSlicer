@@ -78,7 +78,8 @@ GST_DEBUG_CATEGORY_STATIC (gst_bambusrc_debug);
 static GstStaticPadTemplate srctemplate = GST_STATIC_PAD_TEMPLATE ("src",
     GST_PAD_SRC,
     GST_PAD_ALWAYS,
-    GST_STATIC_CAPS("video/x-h264,framerate=0/1,parsed=(boolean)false,stream-format=(string)byte-stream"));
+    GST_STATIC_CAPS_ANY);
+    //GST_STATIC_CAPS("video/x-h264,framerate=0/1,parsed=(boolean)false,stream-format=(string)byte-stream"));
 
 enum
 {
