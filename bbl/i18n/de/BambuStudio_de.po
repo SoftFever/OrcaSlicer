@@ -19,6 +19,13 @@ msgstr "Zusätzliche Länge beim Neustart"
 msgid "Use firmware retraction"
 msgstr "Filament Rückzug durch Firmware"
 
+msgid ""
+"This experimental setting uses G10 and G11 commands to have the firmware "
+"handle the retraction. This is only supported in recent Marlin."
+msgstr ""
+"Diese experimentelle Einstellung nutzt die Befehle G10 und G11, um die Firmware das Zurückziehen zu handhaben."
+"Dies wird nur von aktuellen Marlin-Firmware unterstützt."
+
 msgid "G-code thumbnails"
 msgstr "G-Code Vorschaubilder"
 
