@@ -1422,29 +1422,40 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     if (print.config().print_sequence == PrintSequence::ByObject) {
         // Add each of the object's layers separately.
         for (auto object : print.objects()) {
-            //BBS: fix the issue that total layer is not right
-            std::vector<coord_t> zs;
+            std::vector<coordf_t> zs;
             zs.reserve(object->layers().size() + object->support_layers().size());
             for (auto layer : object->layers())
-                zs.push_back((coord_t)(layer->print_z / EPSILON));
+                zs.push_back(layer->print_z);
             for (auto layer : object->support_layers())
-                zs.push_back((coord_t)(layer->print_z / EPSILON));
+                zs.push_back(layer->print_z);
             std::sort(zs.begin(), zs.end());
-            m_layer_count += (unsigned int)(object->instances().size() * (std::unique(zs.begin(), zs.end()) - zs.begin()));
+            //BBS: merge numerically very close Z values.
+            auto end_it = std::unique(zs.begin(), zs.end());
+            unsigned int temp_layer_count = (unsigned int)(end_it - zs.begin());
+            for (auto it = zs.begin(); it != end_it - 1; it++) {
+                if (abs(*it - *(it + 1)) < EPSILON)
+                    temp_layer_count--;
+            }
+            m_layer_count += (unsigned int)(object->instances().size() * temp_layer_count);
         }
     } else {
         // Print all objects with the same print_z together.
-        //BBS: fix the issue that total layer is not right
-        std::vector<coord_t> zs;
+        std::vector<coordf_t> zs;
         for (auto object : print.objects()) {
             zs.reserve(zs.size() + object->layers().size() + object->support_layers().size());
             for (auto layer : object->layers())
-                zs.push_back((coord_t)(layer->print_z / EPSILON));
+                zs.push_back(layer->print_z);
             for (auto layer : object->support_layers())
-                zs.push_back((coord_t)(layer->print_z / EPSILON));
+                zs.push_back(layer->print_z);
         }
         std::sort(zs.begin(), zs.end());
-        m_layer_count = (unsigned int)(std::unique(zs.begin(), zs.end()) - zs.begin());
+        //BBS: merge numerically very close Z values.
+        auto end_it = std::unique(zs.begin(), zs.end());
+        m_layer_count = (unsigned int)(end_it - zs.begin());
+        for (auto it = zs.begin(); it != end_it - 1; it++) {
+            if (abs(*it - *(it + 1)) < EPSILON)
+                m_layer_count--;
+        }
     }
     print.throw_if_canceled();
 
