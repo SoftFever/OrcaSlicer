@@ -12,24 +12,34 @@ jobs:
 
       - name: Install tools
         run: |
-          brew install cmake git gettext zstd
+          brew install cmake git gettext
       - run: mkdir -p ${{ github.workspace }}/deps/build
       - run: mkdir -p ${{ github.workspace }}/deps/build/BambuStudio_dep
 
-      - name: build deps
-        id: cache_deps
-        uses: actions/cache@v3
-        env:
-          cache-name: ${{ runner.os }}-cache-bambustudio_deps_x64
-        with:
-          path: ${{ github.workspace }}/deps/build/BambuStudio_dep
-          key: build-${{ env.cache-name }}
+      # - name: build deps
+      #   id: cache_deps
+      #   uses: actions/cache@v3
+      #   env:
+      #     cache-name: ${{ runner.os }}-cache-bambustudio_deps_x64
+      #   with:
+      #     path: ${{ github.workspace }}/deps/build/BambuStudio_dep
+      #     key: build-${{ env.cache-name }}
 
-      - if: ${{ steps.cache_deps.outputs.cache-hit != 'true' }}
-        name: build deps
+      # - if: ${{ steps.cache_deps.outputs.cache-hit != 'true' }}
+      #   name: build deps
+      #   working-directory: ${{ github.workspace }}
+      #   continue-on-error: true
+      #   run: ./build_release_macos.sh -d -a x86_64
+
+      - name: Download and extract deps
         working-directory: ${{ github.workspace }}
-        continue-on-error: true
-        run: ./build_release_macos.sh -d -a x86_64
+        run: |
+          curl -LJO https://github.com/SoftFever/FileSharing/releases/download/2/BambuStudio_dep_x86_64_21-01-2023.tar.gz
+          tar -zxvf BambuStudio_dep_x86_64_21-01-2023.tar.gz -C ${{ github.workspace }}/deps/build
+          chown -R $(id -u):$(id -g) ${{ github.workspace }}/deps/build/BambuStudio_dep
+          ls -l ${{ github.workspace }}/deps/build/BambuStudio_dep
+          rm BambuStudio_dep_x86_64_21-01-2023.tar.gz
+
 
       - name: Build studio
         working-directory: ${{ github.workspace }}
