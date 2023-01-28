@@ -2222,11 +2222,11 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(2));
 
     def = this->add("skirt_height", coInt);
-    //def->label = L("Skirt height");
-    def->label = "Skirt height";
-    //def->tooltip = L("How many layers of skirt. Usually only one layer");
+    def->label = L("Skirt height");
+    //def->label = "Skirt height";
+    def->tooltip = L("How many layers of skirt. Usually only one layer");
     def->sidetext = L("layers");
-    def->mode = comDevelop;
+    def->mode = comSimple;
     def->max = 10000;
     def->set_default_value(new ConfigOptionInt(1));
 
