@@ -7903,10 +7903,10 @@ void Plater::calib_pa(const Calib_Params& params) {
     new_project(false, false, calib_pa_name);
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
     if (params.mode == CalibMode::Calib_PA_Line) {
-        add_model(false, Slic3r::resources_dir() + "/calib/PresureAdvnace/pressure_advance_test.stl");
+        add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/pressure_advance_test.stl");
     }
     else {
-        add_model(false, Slic3r::resources_dir() + "/calib/PresureAdvnace/tower_with_seam.stl");
+        add_model(false, Slic3r::resources_dir() + "/calib/PressureAdvance/tower_with_seam.stl");
         auto print_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
         auto printer_config = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
         auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
