@@ -92,6 +92,9 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     m_rbMethod->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_method_changed), NULL, this);
     this->Connect(wxEVT_SHOW, wxShowEventHandler(PA_Calibration_Dlg::on_show));
     //wxGetApp().UpdateDlgDarkUI(this);
+
+    Layout();
+    Fit();
 }
 
 PA_Calibration_Dlg::~PA_Calibration_Dlg() {
@@ -136,6 +139,8 @@ void PA_Calibration_Dlg::on_method_changed(wxCommandEvent& event) {
 
 void PA_Calibration_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
     this->Refresh(); 
+    Fit();
+
 }
 
 void PA_Calibration_Dlg::on_show(wxShowEvent& event) {
