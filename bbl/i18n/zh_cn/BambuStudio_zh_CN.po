@@ -6571,7 +6571,7 @@ msgstr "启用压力提前"
 msgid "Pressure advance"
 msgstr "压力提前"
 
-msgid "Pressure advnce(Klipper) AKA Linear advance factor(Marlin)"
+msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
 msgstr "压力提前(Klipper)或者线性提前(Marlin)"
 
 msgid "Enable pressure advance, auto calibration result will be overwriten once enabled."
