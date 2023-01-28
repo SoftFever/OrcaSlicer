@@ -8,7 +8,7 @@
 namespace Slic3r { namespace GUI {
     
 PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* plater)
-    : DPIDialog(parent, id, _L("PA Calibration"), wxDefaultPosition, parent->FromDIP(wxSize(-1, 280)), wxDEFAULT_DIALOG_STYLE), m_plater(plater)
+    : DPIDialog(parent, id, _L("PA Calibration"), wxDefaultPosition, parent->FromDIP(wxSize(-1, 280)), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER), m_plater(plater)
 {
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
     SetSizer(v_sizer);
@@ -44,7 +44,7 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     // start PA
     auto start_PA_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto start_pa_text = new wxStaticText(this, wxID_ANY, start_pa_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiStartPA = new TextInput(this, L"0.0", _L(""), "", wxDefaultPosition, ti_size, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_tiStartPA = new TextInput(this, wxString::FromDouble(0.0), _L(""), "", wxDefaultPosition, ti_size, wxTE_CENTRE | wxTE_PROCESS_ENTER);
     m_tiStartPA->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
 
 	start_PA_sizer->Add(start_pa_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
@@ -54,7 +54,7 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     // end PA
     auto end_PA_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto end_pa_text = new wxStaticText(this, wxID_ANY, end_pa_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiEndPA = new TextInput(this, L"0.1", _L(""), "", wxDefaultPosition, ti_size, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_tiEndPA = new TextInput(this, wxString::FromDouble(0.1), _L(""), "", wxDefaultPosition, ti_size, wxTE_CENTRE | wxTE_PROCESS_ENTER);
     m_tiStartPA->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     end_PA_sizer->Add(end_pa_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
     end_PA_sizer->Add(m_tiEndPA, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
@@ -63,7 +63,7 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     // PA step
     auto PA_step_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto PA_step_text = new wxStaticText(this, wxID_ANY, PA_step_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
-    m_tiPAStep = new TextInput(this, L"0.002", _L(""), "", wxDefaultPosition, ti_size, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_tiPAStep = new TextInput(this, wxString::FromDouble(0.002), _L(""), "", wxDefaultPosition, ti_size, wxTE_CENTRE | wxTE_PROCESS_ENTER);
     m_tiStartPA->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     PA_step_sizer->Add(PA_step_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
     PA_step_sizer->Add(m_tiPAStep, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
@@ -92,6 +92,9 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     m_rbMethod->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_method_changed), NULL, this);
     this->Connect(wxEVT_SHOW, wxShowEventHandler(PA_Calibration_Dlg::on_show));
     //wxGetApp().UpdateDlgDarkUI(this);
+
+    Layout();
+    Fit();
 }
 
 PA_Calibration_Dlg::~PA_Calibration_Dlg() {
@@ -102,14 +105,18 @@ PA_Calibration_Dlg::~PA_Calibration_Dlg() {
 }
 
 void PA_Calibration_Dlg::on_start(wxCommandEvent& event) { 
-    m_tiStartPA->GetTextCtrl()->GetValue().ToDouble(&m_params.pa_start);
-    m_tiEndPA->GetTextCtrl()->GetValue().ToDouble(&m_params.pa_end);
-    m_tiPAStep->GetTextCtrl()->GetValue().ToDouble(&m_params.pa_step);
-    if (m_params.pa_start < 0 || m_params.pa_step < 0 || m_params.pa_end < m_params.pa_start + m_params.pa_step) {
-        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nStart PA: >= 0.0\nEnd PA: > Start PA\nPA step: >= 0)"), wxEmptyString, wxICON_WARNING | wxOK);
+    bool read_double = false;
+    read_double = m_tiStartPA->GetTextCtrl()->GetValue().ToDouble(&m_params.pa_start);
+    read_double = read_double && m_tiEndPA->GetTextCtrl()->GetValue().ToDouble(&m_params.pa_end);
+    read_double = read_double && m_tiPAStep->GetTextCtrl()->GetValue().ToDouble(&m_params.pa_step);
+    if (!read_double || m_params.pa_start < 0 || m_params.pa_step < EPSILON || m_params.pa_end < m_params.pa_start + m_params.pa_step) {
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\nStart PA: >= 0.0\nEnd PA: > Start PA\nPA step: >= 0.001)"), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }
+    m_params.mode = m_rbMethod->GetSelection() == 0 ? CalibMode::Calib_PA_Tower : CalibMode::Calib_PA_Line;
+    m_params.print_numbers = m_cbPrintNum->GetValue();
+
     m_plater->calib_pa(m_params);
     EndModal(wxID_OK);
 
@@ -117,9 +124,9 @@ void PA_Calibration_Dlg::on_start(wxCommandEvent& event) {
 void PA_Calibration_Dlg::on_extruder_type_changed(wxCommandEvent& event) { 
     int selection = event.GetSelection();
     m_bDDE = selection == 0 ? true : false;
-    m_tiEndPA->GetTextCtrl()->SetValue(m_bDDE ? L"0.1" : L"1.0");
-    m_tiStartPA->GetTextCtrl()->SetValue(L"0.0");
-    m_tiPAStep->GetTextCtrl()->SetValue(m_bDDE ? L"0.002" : L"0.02");
+    m_tiEndPA->GetTextCtrl()->SetValue(wxString::FromDouble(m_bDDE ? 0.1 : 1.0));
+    m_tiStartPA->GetTextCtrl()->SetValue(wxString::FromDouble(0.0));
+    m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(m_bDDE ? 0.002 : 0.02));
     event.Skip(); 
 }
 void PA_Calibration_Dlg::on_method_changed(wxCommandEvent& event) { 
@@ -136,6 +143,8 @@ void PA_Calibration_Dlg::on_method_changed(wxCommandEvent& event) {
 
 void PA_Calibration_Dlg::on_dpi_changed(const wxRect& suggested_rect) {
     this->Refresh(); 
+    Fit();
+
 }
 
 void PA_Calibration_Dlg::on_show(wxShowEvent& event) {
