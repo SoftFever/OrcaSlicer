@@ -93,13 +93,15 @@ void ReleaseNoteDialog::update_release_note(wxString release_note, std::string v
 {
     m_text_up_info->SetLabel(wxString::Format(_L("version %s update information :"), version));
     wxBoxSizer * sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
-    auto        m_staticText_release_note = new wxStaticText(m_vebview_release_note, wxID_ANY, release_note, wxDefaultPosition, wxDefaultSize, 0);
-    m_staticText_release_note->SetForegroundColour(*wxBLACK);
+    auto        m_staticText_release_note = new ::Label(m_vebview_release_note, release_note);
+    m_staticText_release_note->SetMinSize(wxSize(FromDIP(530), -1));
+    m_staticText_release_note->SetMaxSize(wxSize(FromDIP(530), -1));
     m_staticText_release_note->Wrap(FromDIP(530));
     sizer_text_release_note->Add(m_staticText_release_note, 0, wxALL, 5);
     m_vebview_release_note->SetSizer(sizer_text_release_note);
     m_vebview_release_note->Layout();
     m_vebview_release_note->Fit();
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 UpdatePluginDialog::UpdatePluginDialog(wxWindow* parent /*= nullptr*/)
@@ -133,10 +135,9 @@ UpdatePluginDialog::UpdatePluginDialog(wxWindow* parent /*= nullptr*/)
 
     operation_tips = new ::Label(this, _L("Click OK to update the Network plug-in when Bambu Studio launches next time."));
     operation_tips->SetFont(::Label::Body_12);
-    operation_tips->SetSize(wxSize(FromDIP(260), -1));
+    operation_tips->SetMinSize(wxSize(FromDIP(260), -1));
+    operation_tips->SetMaxSize(wxSize(FromDIP(260), -1));
     operation_tips->Wrap(FromDIP(260));
-    operation_tips->SetForegroundColour(*wxBLACK);
-
 
     m_vebview_release_note = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
     m_vebview_release_note->SetScrollRate(5, 5);
@@ -224,8 +225,8 @@ void UpdatePluginDialog::update_info(std::string json_path)
         version_str = j["version"];
         description_str = j["description"];
     }
-    catch(nlohmann::detail::parse_error &err) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<json_path<<" got a nlohmann::detail::parse_error, reason = " << err.what();
+    catch (nlohmann::detail::parse_error& err) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << json_path << " got a nlohmann::detail::parse_error, reason = " << err.what();
         return;
     }
 
@@ -233,12 +234,13 @@ void UpdatePluginDialog::update_info(std::string json_path)
     description = from_u8(description_str);
 
     m_text_up_info->SetLabel(wxString::Format(_L("A new Network plug-in(%s) available, Do you want to install it?"), version));
+    m_text_up_info->SetMinSize(wxSize(FromDIP(260), -1));
     m_text_up_info->SetMaxSize(wxSize(FromDIP(260), -1));
     m_text_up_info->Wrap(FromDIP(260));
     wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
     auto        m_text_label = new ::Label(m_vebview_release_note, description);
     m_text_label->SetFont(::Label::Body_13);
-    m_text_label->SetForegroundColour(*wxBLACK);
+    m_text_label->SetMinSize(wxSize(FromDIP(235), -1));
     m_text_label->SetMaxSize(wxSize(FromDIP(235), -1));
     m_text_label->Wrap(FromDIP(235));
 
@@ -246,6 +248,7 @@ void UpdatePluginDialog::update_info(std::string json_path)
     m_vebview_release_note->SetSizer(sizer_text_release_note);
     m_vebview_release_note->Layout();
     m_vebview_release_note->Fit();
+    wxGetApp().UpdateDlgDarkUI(this);
     Layout();
     Fit();
 }
@@ -296,6 +299,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
     m_vebview_release_note->SetSize(wxSize(FromDIP(560), FromDIP(430)));
     m_vebview_release_note->SetMinSize(wxSize(FromDIP(560), FromDIP(430)));
     //m_vebview_release_note->SetMaxSize(wxSize(FromDIP(560), FromDIP(430)));
+
 
 	fs::path ph(data_dir());
 	ph /= "resources/tooltip/common/releasenote.html";
@@ -496,8 +500,9 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
         m_simplebook_release_note->SetSelection(0);
         m_text_up_info->SetLabel(wxString::Format(_L("Click to download new version in default browser: %s"), version));
         wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
-        auto        m_staticText_release_note = new wxStaticText(m_scrollwindows_release_note, wxID_ANY, release_note, wxDefaultPosition, wxDefaultSize, 0);
-        m_staticText_release_note->SetForegroundColour(*wxBLACK);
+        auto        m_staticText_release_note = new ::Label(m_scrollwindows_release_note, release_note);
+        m_staticText_release_note->SetMinSize(wxSize(FromDIP(560), -1));
+        m_staticText_release_note->SetMaxSize(wxSize(FromDIP(560), -1));
         m_staticText_release_note->Wrap(FromDIP(530));
         sizer_text_release_note->Add(m_staticText_release_note, 0, wxALL, 5);
         m_scrollwindows_release_note->SetSizer(sizer_text_release_note);
@@ -506,6 +511,8 @@ void UpdateVersionDialog::update_version_info(wxString release_note, wxString ve
         SetMinSize(GetSize());
         SetMaxSize(GetSize());
     }
+
+    wxGetApp().UpdateDlgDarkUI(this);
     Layout();
     Fit();
 }
