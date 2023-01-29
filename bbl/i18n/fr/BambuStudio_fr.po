@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-12 14:41+0800\n"
+"POT-Creation-Date: 2023-01-29 16:37+0800\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1191,7 +1191,7 @@ msgstr "verser"
 msgid "AMS"
 msgstr "AMS"
 
-msgid "NO AMS"
+msgid "AMS not connected"
 msgstr ""
 
 msgid "Cali"
@@ -1573,14 +1573,14 @@ msgstr ""
 msgid "Max volumetric speed"
 msgstr "Vitesse volumétrique max"
 
-msgid "\\u2103"
+msgid "℃"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "Température du lit"
 
-msgid "mm\\u00B3"
-msgstr ""
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "Start"
@@ -1589,8 +1589,9 @@ msgid "Next"
 msgstr ""
 
 msgid ""
-"Calibration completed. Please select the factors according to the left "
-"figure and fill them in the input boxes."
+"Calibration completed. Please find the most uniform extrusion line on your "
+"hot bed like the picture below, and fill the value on its left side into the "
+"factor K input box."
 msgstr ""
 
 msgid "Save"
@@ -1598,6 +1599,9 @@ msgstr "sauvegarder"
 
 msgid "Last Step"
 msgstr "Back"
+
+msgid "Example"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Calibrating... %d%%"
@@ -1639,16 +1643,16 @@ msgid "Cabin humidity"
 msgstr ""
 
 msgid ""
-"Green represents that AMS humidity is normal, orange and red represent that "
-"humidity is too high.(Lower the better)"
+"Green means that AMS humidity is normal, orange represent humidity is high, "
+"red represent humidity is too high.(Hygrometer: lower the better.)"
 msgstr ""
 
 msgid "Desiccant status"
 msgstr ""
 
 msgid ""
-"Desiccant status lower than two bars indicates that desiccant can be "
-"inactive. Please change the desiccant.(Higher the better)"
+"A desiccant status lower than two bars indicates that desiccant may be "
+"inactive. Please change the desiccant.(The bars: higher the better.)"
 msgstr ""
 
 msgid ""
@@ -3026,6 +3030,9 @@ msgstr ""
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
 msgstr ""
 
+msgid "Printer is busy downloading, Please wait for the downloading to finish."
+msgstr ""
+
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr ""
 
@@ -3045,6 +3052,9 @@ msgstr ""
 
 msgid "Stopped."
 msgstr "Arrêté."
+
+msgid "LAN Connection Failed (Failed to start liveview)"
+msgstr ""
 
 msgid ""
 "Virtual Camera Tools is required for this task!\n"
@@ -3206,7 +3216,10 @@ msgstr "Arrêt"
 msgid "0"
 msgstr ""
 
-msgid "Clean"
+msgid "Layers: N/A"
+msgstr ""
+
+msgid "Clear"
 msgstr ""
 
 msgid "Control"
@@ -3269,6 +3282,14 @@ msgstr "Downloading..."
 msgid "Cloud Slicing..."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Layers: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Layers: %d/%d"
+msgstr ""
+
 msgid "Please heat the nozzle to above 170 degree before loading filament."
 msgstr ""
 
@@ -3276,6 +3297,9 @@ msgid "Still unload"
 msgstr ""
 
 msgid "Still load"
+msgstr ""
+
+msgid "AMS settings are not supported for external spool"
 msgstr ""
 
 msgid "Please select an AMS slot before calibration"
@@ -3351,37 +3375,6 @@ msgstr "%s informations"
 
 msgid "Skip"
 msgstr "Sauter"
-
-msgid "Unable to connect printer"
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"Cannot detect the LAN IP address of %s. Are %s and Bambu Studio in the same "
-"LAN?"
-msgstr ""
-
-msgid ""
-"Failed to connect to the printer through LAN. Please enter the correct "
-"printer IP address and access code."
-msgstr ""
-
-msgid "IP"
-msgstr ""
-
-msgid "Access Code"
-msgstr ""
-
-msgid ""
-"Note : The location of IP and access code on the machine is as follows :"
-msgstr ""
-
-msgid ""
-"X1 General Settings - Network Settings in the side bar of X1 main screen"
-msgstr ""
-
-msgid "P1P General Settings - WLAN in the sidebar of the main screen"
-msgstr ""
 
 msgid "3D Mouse disconnected."
 msgstr "Souris 3D déconnectée."
@@ -4474,6 +4467,9 @@ msgstr ""
 msgid "Cannot send the print job for empty plate"
 msgstr ""
 
+msgid "This printer does not support printing all plates"
+msgstr ""
+
 msgid "Errors"
 msgstr ""
 
@@ -5086,23 +5082,20 @@ msgstr "Aucune mise à jour disponible."
 msgid "The configuration is up to date."
 msgstr "La configuration est à jour."
 
-msgid "Flushing volumes for filament change"
-msgstr "Volumes de rinçage pour le changement de filament"
-
 msgid "Auto-Calc"
 msgstr "Auto-Calc"
 
-msgid "Flushing volume (mm³) for each filament pair."
-msgstr "Volume de rinçage (mm³) pour chaque paire de filaments."
+msgid "Flushing volumes for filament change"
+msgstr "Volumes de rinçage pour le changement de filament"
 
 msgid "Multiplier"
 msgstr ""
 
-msgid "Actual Volume = Flushing Volume * Multiplier"
-msgstr ""
+msgid "Flushing volume (mm³) for each filament pair."
+msgstr "Volume de rinçage (mm³) pour chaque paire de filaments."
 
 #, c-format, boost-format
-msgid "Suggestion: Actual Volume in range [%d, %d]"
+msgid "Suggestion: Flushing Volume in range [%d, %d]"
 msgstr ""
 
 #, c-format, boost-format
@@ -5388,6 +5381,30 @@ msgid "New version of Bambu Studio"
 msgstr "Nouvelle version de Bambu Studio"
 
 msgid "Don't remind me of this version again"
+msgstr ""
+
+msgid "LAN Connection Failed (Sending print file)"
+msgstr ""
+
+msgid ""
+"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+msgstr ""
+
+msgid ""
+"Step 2, if the IP and Access Code below are different from the actual values "
+"on your printer, please correct them."
+msgstr ""
+
+msgid "IP"
+msgstr ""
+
+msgid "Access Code"
+msgstr ""
+
+msgid "Where to find your printer's IP and Access Code?"
+msgstr ""
+
+msgid "Error: IP or Access Code are not correct"
 msgstr ""
 
 msgid "Model:"
@@ -6367,6 +6384,9 @@ msgstr "remplissage/intérieur/extérieur"
 msgid "infill/outer/inner"
 msgstr "remplissage/extérieur/intérieur"
 
+msgid "inner-outer-inner/infill"
+msgstr ""
+
 msgid "Height to rod"
 msgstr "Hauteur à la tige"
 
@@ -6481,9 +6501,6 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "Purge minimale sur la tour de nettoyage"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "Temps de chargement du filament"
@@ -7061,6 +7078,12 @@ msgstr "Volume de la buse"
 msgid "Volume of nozzle between the cutter and the end of nozzle"
 msgstr ""
 "Volume de la buse entre le coupeur de filament et l'extrémité de la buse"
+
+msgid "Start end points"
+msgstr ""
+
+msgid "The start and end points which is from cutter area to garbage can."
+msgstr ""
 
 msgid "Reduce infill retraction"
 msgstr "Réduire la rétraction du remplissage"

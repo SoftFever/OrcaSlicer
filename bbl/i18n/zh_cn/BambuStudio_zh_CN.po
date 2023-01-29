@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-12 14:41+0800\n"
+"POT-Creation-Date: 2023-01-29 16:37+0800\n"
 "PO-Revision-Date: 2023-01-12 14:46+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -383,7 +383,7 @@ msgid "Add"
 msgstr "添加"
 
 msgid "Modify"
-msgstr ""
+msgstr "修改"
 
 msgid "Notice"
 msgstr "通知"
@@ -1162,8 +1162,8 @@ msgstr "空"
 msgid "AMS"
 msgstr "AMS"
 
-msgid "NO AMS"
-msgstr "无AMS"
+msgid "AMS not connected"
+msgstr "AMS未连接"
 
 msgid "Cali"
 msgstr "标定"
@@ -1380,7 +1380,7 @@ msgid "Please log out and login to the printer again."
 msgstr "请先退出登录然后再重新登录打印机。"
 
 msgid "Failed uploading print file. Please enter ip address again."
-msgstr ""
+msgstr "上传打印文件失败，请重新输入IP地址。"
 
 msgid "Downloading"
 msgstr "下载中"
@@ -1534,14 +1534,14 @@ msgstr "热床类型"
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
 
-msgid "\\u2103"
+msgid "℃"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "床温"
 
-msgid "mm\\u00B3"
-msgstr ""
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "开始"
@@ -1550,15 +1550,19 @@ msgid "Next"
 msgstr "下一步"
 
 msgid ""
-"Calibration completed. Please select the factors according to the left "
-"figure and fill them in the input boxes."
-msgstr "标定完成。请按照左图展示的方式选择流量补偿系数，并填写到输入框中。"
+"Calibration completed. Please find the most uniform extrusion line on your "
+"hot bed like the picture below, and fill the value on its left side into the "
+"factor K input box."
+msgstr ""
 
 msgid "Save"
 msgstr "保存"
 
 msgid "Last Step"
 msgstr "上一步"
+
+msgid "Example"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Calibrating... %d%%"
@@ -1600,16 +1604,16 @@ msgid "Cabin humidity"
 msgstr ""
 
 msgid ""
-"Green represents that AMS humidity is normal, orange and red represent that "
-"humidity is too high.(Lower the better)"
+"Green means that AMS humidity is normal, orange represent humidity is high, "
+"red represent humidity is too high.(Hygrometer: lower the better.)"
 msgstr ""
 
 msgid "Desiccant status"
 msgstr ""
 
 msgid ""
-"Desiccant status lower than two bars indicates that desiccant can be "
-"inactive. Please change the desiccant.(Higher the better)"
+"A desiccant status lower than two bars indicates that desiccant may be "
+"inactive. Please change the desiccant.(The bars: higher the better.)"
 msgstr ""
 
 msgid ""
@@ -1980,6 +1984,8 @@ msgid ""
 "Arachne engine only works when overhang slowing down is disabled.\n"
 "This may cause decline in the quality of overhang surface when print fastly"
 msgstr ""
+"Arachne引擎只在关闭悬垂降速时起作用。\n"
+"这可能会导致高速打印时悬垂表面质量的下降。"
 
 msgid ""
 "Disable overhang slowing down automatically? \n"
@@ -2033,6 +2039,9 @@ msgid ""
 "Yes - switch to rectilinear pattern automaticlly\n"
 "No  - reset density to default non 100% value automaticlly"
 msgstr ""
+"切换到直线图案？\n"
+"是 - 自动切换到直线图案\n"
+"否 - 自动将密度重置为默认的非100%值"
 
 msgid "Auto bed leveling"
 msgstr "自动热床调平"
@@ -2213,7 +2222,7 @@ msgid "Flow: "
 msgstr "挤出流量: "
 
 msgid "Layer Time: "
-msgstr ""
+msgstr "层时间"
 
 msgid "Layer Time(log): "
 msgstr ""
@@ -2960,6 +2969,11 @@ msgid ""
 "2. The Filament presets\n"
 "3. The Printer presets"
 msgstr ""
+"想从Bambu云同步你的个人数据吗?\n"
+"包含如下信息:\n"
+"1. 工艺预设\n"
+"2. 打印丝预设\n"
+"3. 打印机预设"
 
 msgid "Synchronization"
 msgstr "同步"
@@ -2982,6 +2996,9 @@ msgstr "初始化失败（不支持局域网模式的视频连接）"
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
 msgstr "初始化失败（在局域网模式中不可访问）！"
 
+msgid "Printer is busy downloading, Please wait for the downloading to finish."
+msgstr "打印机正在下载，请等待下载结束。"
+
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "初始化失败（未找到打印机的局域网地址）！"
 
@@ -3001,6 +3018,9 @@ msgstr "已停止 [%d]!"
 
 msgid "Stopped."
 msgstr "已经停止。"
+
+msgid "LAN Connection Failed (Failed to start liveview)"
+msgstr "局域网连接失败（无法启动预览）"
 
 msgid ""
 "Virtual Camera Tools is required for this task!\n"
@@ -3165,7 +3185,10 @@ msgstr "停止"
 msgid "0"
 msgstr ""
 
-msgid "Clean"
+msgid "Layers: N/A"
+msgstr ""
+
+msgid "Clear"
 msgstr "清除"
 
 msgid "Control"
@@ -3232,6 +3255,14 @@ msgstr "下载中..."
 msgid "Cloud Slicing..."
 msgstr "云切片中..."
 
+#, c-format, boost-format
+msgid "Layers: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Layers: %d/%d"
+msgstr ""
+
 msgid "Please heat the nozzle to above 170 degree before loading filament."
 msgstr "请在进料前把喷嘴升温到170℃"
 
@@ -3241,8 +3272,11 @@ msgstr "继续退料"
 msgid "Still load"
 msgstr "继续进料"
 
+msgid "AMS settings are not supported for external spool"
+msgstr "AMS设置对外置料盘无效"
+
 msgid "Please select an AMS slot before calibration"
-msgstr ""
+msgstr "请先选择一个AMS槽位后进行标定"
 
 msgid ""
 "Cannot read filament info: the filament is loaded to the tool head,please "
@@ -3314,37 +3348,6 @@ msgstr "%s 信息"
 
 msgid "Skip"
 msgstr "跳过"
-
-msgid "Unable to connect printer"
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"Cannot detect the LAN IP address of %s. Are %s and Bambu Studio in the same "
-"LAN?"
-msgstr ""
-
-msgid ""
-"Failed to connect to the printer through LAN. Please enter the correct "
-"printer IP address and access code."
-msgstr ""
-
-msgid "IP"
-msgstr ""
-
-msgid "Access Code"
-msgstr ""
-
-msgid ""
-"Note : The location of IP and access code on the machine is as follows :"
-msgstr ""
-
-msgid ""
-"X1 General Settings - Network Settings in the side bar of X1 main screen"
-msgstr ""
-
-msgid "P1P General Settings - WLAN in the sidebar of the main screen"
-msgstr ""
 
 msgid "3D Mouse disconnected."
 msgstr "3D鼠标断连。"
@@ -3655,7 +3658,7 @@ msgstr "该3mf文件来自旧版本的Bambu Lab，将只加载几何数据。"
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Found following keys "
 "unrecognized:"
-msgstr ""
+msgstr "该3mf的版本%s比%s的版本%s新，发现以下参数键值无法识别:"
 
 msgid "You'd better upgrade your software.\n"
 msgstr "建议升级您的软件版本。\n"
@@ -3667,7 +3670,7 @@ msgstr "较新的3mf版本"
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
 "software."
-msgstr ""
+msgstr "该3mf的版本%s比%s的版本%s要新，建议升级你的软件。"
 
 msgid "The 3mf is not compatible, load geometry data only!"
 msgstr "该3mf文件与软件不兼容，将只加载几何数据。"
@@ -3943,7 +3946,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s (%s)."
-msgstr ""
+msgstr "盘%d：%s不支持耗材丝%s（%s）。"
 
 msgid "Switching the language requires application restart.\n"
 msgstr "切换语言要求重启应用程序。\n"
@@ -4412,19 +4415,24 @@ msgstr "需要更新打印机固件后，才能将打印任务发送到打印机
 msgid "Cannot send the print job for empty plate"
 msgstr "无法为空盘发送打印任务"
 
+msgid "This printer does not support printing all plates"
+msgstr "该打印机不支持打印所有盘"
+
 msgid "Errors"
 msgstr "错误"
 
 msgid ""
 "Please check the following infomation and click Confirm to continue sending "
 "print:"
-msgstr ""
+msgstr "请检查以下信息，点击确认后继续发送打印："
 
 msgid ""
 "The printer type used to generate G-code is not the same type as the "
 "currently selected physical printer. It is recommend to re-slice by "
 "selecting the same printer type."
 msgstr ""
+"生成该G-code的打印机类型与当前选中的打印机类型不同。建议选择相同的打印机类型"
+"后重新切片。"
 
 #, c-format, boost-format
 msgid "The %s filament is too soft to be used with the AMS"
@@ -4561,6 +4569,8 @@ msgid ""
 "by right-click the empty position of build plate and choose \"Add Primitive"
 "\"->\"Timelapse Wipe Tower\"."
 msgstr ""
+"在录制无工具头延时摄影视频时，建议添加“延时摄影擦料塔”\n"
+"右键单击构建板的空白位置，选择“添加标准模型”->“延时摄影擦料塔”。"
 
 msgid "Line width"
 msgstr "线宽"
@@ -5000,24 +5010,21 @@ msgstr "没有可用的更新。"
 msgid "The configuration is up to date."
 msgstr "当前配置已经是最新版本。"
 
-msgid "Flushing volumes for filament change"
-msgstr "耗材丝更换时的冲刷体积"
-
 msgid "Auto-Calc"
 msgstr "自动计算"
 
-msgid "Flushing volume (mm³) for each filament pair."
-msgstr "在两个耗材丝间切换所需的冲刷量（mm³）"
+msgid "Flushing volumes for filament change"
+msgstr "耗材丝更换时的冲刷体积"
 
 msgid "Multiplier"
 msgstr "乘数"
 
-msgid "Actual Volume = Flushing Volume * Multiplier"
-msgstr "实际冲刷量 = 冲刷体积 * 乘数"
+msgid "Flushing volume (mm³) for each filament pair."
+msgstr "在两个耗材丝间切换所需的冲刷量（mm³）"
 
 #, c-format, boost-format
-msgid "Suggestion: Actual Volume in range [%d, %d]"
-msgstr "建议：实际冲刷量设置在[%d, %d]范围内"
+msgid "Suggestion: Flushing Volume in range [%d, %d]"
+msgstr "建议：冲刷量设置在[%d, %d]范围内"
 
 #, c-format, boost-format
 msgid "The multiplier should be in range [%.2f, %.2f]."
@@ -5297,6 +5304,30 @@ msgstr "新版本的Bambu Studio"
 
 msgid "Don't remind me of this version again"
 msgstr "此版本不再提示"
+
+msgid "LAN Connection Failed (Sending print file)"
+msgstr ""
+
+msgid ""
+"Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+msgstr ""
+
+msgid ""
+"Step 2, if the IP and Access Code below are different from the actual values "
+"on your printer, please correct them."
+msgstr ""
+
+msgid "IP"
+msgstr ""
+
+msgid "Access Code"
+msgstr ""
+
+msgid "Where to find your printer's IP and Access Code?"
+msgstr ""
+
+msgid "Error: IP or Access Code are not correct"
+msgstr ""
 
 msgid "Model:"
 msgstr "型号："
@@ -5599,10 +5630,10 @@ msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1%太高，会发生碰撞。"
 
 msgid " is too close to others, there may be collisions when printing."
-msgstr ""
+msgstr "太靠近其他物体，打印时可能会有碰撞。"
 
 msgid " is too close to exclusion area, there may be collisions when printing."
-msgstr ""
+msgstr "太靠近屏蔽区域，打印时可能会发生碰撞。"
 
 msgid "Prime Tower"
 msgstr "擦拭塔"
@@ -5686,7 +5717,7 @@ msgstr "层高不能超过喷嘴直径"
 
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
-msgstr ""
+msgstr "盘%d：%s不支持耗材丝 %s"
 
 msgid "Generating skirt & brim"
 msgstr "正在生成skirt和brim"
@@ -6201,6 +6232,9 @@ msgstr "填充/内墙/外墙"
 msgid "infill/outer/inner"
 msgstr "填充/外墙/内墙"
 
+msgid "inner-outer-inner/infill"
+msgstr "内墙/外墙/内墙/填充"
+
 msgid "Height to rod"
 msgstr "到横杆高度"
 
@@ -6310,9 +6344,6 @@ msgstr "mm³/s"
 
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
-
-msgid "mm³"
-msgstr "mm³"
 
 msgid "Filament load time"
 msgstr "加载耗材丝的时间"
@@ -6824,6 +6855,12 @@ msgstr "喷嘴内腔体积"
 msgid "Volume of nozzle between the cutter and the end of nozzle"
 msgstr "从切刀位置到喷嘴尖端的内腔体积"
 
+msgid "Start end points"
+msgstr ""
+
+msgid "The start and end points which is from cutter area to garbage can."
+msgstr ""
+
 msgid "Reduce infill retraction"
 msgstr "减小填充回抽"
 
@@ -6950,13 +6987,13 @@ msgstr ""
 "打印件剐蹭和碰撞。使用螺旋线抬升z能够减少拉丝。"
 
 msgid "Z Hop Type"
-msgstr ""
+msgstr "Z抬升方式"
 
 msgid "Slope"
-msgstr ""
+msgstr "斜向"
 
 msgid "Spiral"
-msgstr ""
+msgstr "螺旋"
 
 msgid "Retraction Speed"
 msgstr "回抽速度"
@@ -7689,7 +7726,7 @@ msgid "Generating infill toolpath"
 msgstr "正在生成填充走线"
 
 msgid "Detect overhangs for auto-lift"
-msgstr ""
+msgstr "探测悬空区域为自动抬升做准备"
 
 msgid "Generating support"
 msgstr "正在生成支撑"
@@ -7995,6 +8032,23 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "NO AMS"
+#~ msgstr "无AMS"
+
+#~ msgid ""
+#~ "Calibration completed. Please select the factors according to the left "
+#~ "figure and fill them in the input boxes."
+#~ msgstr "标定完成。请按照左图展示的方式选择流量补偿系数，并填写到输入框中。"
+
+#~ msgid "Clean"
+#~ msgstr "清除"
+
+#~ msgid "Actual Volume = Flushing Volume * Multiplier"
+#~ msgstr "实际冲刷量 = 冲刷体积 * 乘数"
+
+#~ msgid "Suggestion: Actual Volume in range [%d, %d]"
+#~ msgstr "建议：实际冲刷量设置在[%d, %d]范围内"
 
 #~ msgid "Loading user presets..."
 #~ msgstr "正在加载用户预设..."
