@@ -2630,6 +2630,7 @@ SupportNecessaryType PrintObject::is_support_necessary()
 #else
     TreeSupport tree_support(*this, m_slicing_params);
     tree_support.detect_overhangs();
+    this->clear_support_layers();
     if (tree_support.has_sharp_tails)
         return SharpTail;
     else if (tree_support.has_cantilever)
