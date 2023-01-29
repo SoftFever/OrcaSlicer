@@ -36,6 +36,7 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_GET_MODEL_MALL_HOME_PAGE      -27
 #define BAMBU_NETWORK_ERR_GET_USER_INFO                 -28
 #define BAMBU_NETWORK_ERR_WRONG_IP_ADDRESS              -29
+#define BAMBU_NETWORK_ERR_NO_SPACE_LEFT_ON_DEVICE       -30
 
 
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"

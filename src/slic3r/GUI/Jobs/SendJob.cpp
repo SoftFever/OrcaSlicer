@@ -18,6 +18,7 @@ static wxString file_over_size_str          = _L("The print file exceeds the max
 static wxString print_canceled_str          = _L("Task canceled");
 static wxString upload_failed_str           = _L("Failed uploading print file");
 static wxString upload_login_failed_str     = _L("Wrong Access code");
+static wxString upload_no_space_left_str    = _L("No space left on Printer SD card");
 
 
 static wxString sending_over_lan_str = _L("Sending gcode file over LAN");
@@ -313,9 +314,11 @@ void SendJob::process()
     }
 
     if (result < 0) {
-        if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
+        if (result == BAMBU_NETWORK_ERR_NO_SPACE_LEFT_ON_DEVICE) {
+            msg_text = upload_no_space_left_str;
+        } else if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
             msg_text = upload_login_failed_str;
-        } if (result == BAMBU_NETWORK_ERR_FILE_NOT_EXIST) {
+        } else if (result == BAMBU_NETWORK_ERR_FILE_NOT_EXIST) {
             msg_text = file_is_not_exists_str;
         } else if (result == BAMBU_NETWORK_ERR_FILE_OVER_SIZE) {
             msg_text = file_over_size_str;
