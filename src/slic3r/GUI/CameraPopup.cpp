@@ -24,6 +24,8 @@ wxEND_EVENT_TABLE()
 wxDEFINE_EVENT(EVT_VCAMERA_SWITCH, wxMouseEvent);
 wxDEFINE_EVENT(EVT_SDCARD_ABSENT_HINT, wxCommandEvent);
 
+#define CAMERAPOPUP_CLICK_INTERVAL 20
+
 const wxColour TEXT_COL = wxColour(43, 52, 54);
 
 CameraPopup::CameraPopup(wxWindow *parent, MachineObject* obj)
@@ -121,6 +123,10 @@ CameraPopup::CameraPopup(wxWindow *parent, MachineObject* obj)
     m_panel->Bind(wxEVT_LEFT_UP, &CameraPopup::OnLeftUp, this);
     #endif //APPLE
 
+    this->Bind(wxEVT_TIMER, &CameraPopup::stop_interval, this);
+    m_interval_timer = new wxTimer();
+    m_interval_timer->SetOwner(this);
+
     check_func_supported();
     wxGetApp().UpdateDarkUIWin(this);
 }
@@ -157,7 +163,9 @@ void CameraPopup::Popup(wxWindow *WXUNUSED(focus))
     wxSize win_size = this->GetSize();
     curr_position.x -= win_size.x;
     this->SetPosition(curr_position);
-    wxPopupTransientWindow::Popup();
+
+    if (!m_is_in_interval)
+        wxPopupTransientWindow::Popup();
 }
 
 wxWindow* CameraPopup::create_item_radiobox(wxString title, wxWindow* parent, wxString tooltip, int padding_left)
@@ -388,8 +396,21 @@ void CameraPopup::OnLeftUp(wxMouseEvent &event)
     }
 }
 
+void CameraPopup::start_interval()
+{
+    m_interval_timer->Start(CAMERAPOPUP_CLICK_INTERVAL);
+    m_is_in_interval = true;
+}
+
+void CameraPopup::stop_interval(wxTimerEvent& event)
+{
+    m_is_in_interval = false;
+    m_interval_timer->Stop();
+}
+
 void CameraPopup::OnDismiss() {
     wxPopupTransientWindow::OnDismiss();
+    this->start_interval();
 }
 
 bool CameraPopup::ProcessLeftDown(wxMouseEvent &event)

@@ -214,7 +214,6 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
 
     m_staticText_monitoring = new Label(m_panel_monitoring_title, _L("Camera"));
     m_staticText_monitoring->Wrap(-1);
-    m_staticText_monitoring->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, -1));
     m_staticText_monitoring->SetFont(PAGE_TITLE_FONT);
     m_staticText_monitoring->SetForegroundColour(PAGE_TITLE_FONT_COL);
     bSizer_monitoring_title->Add(m_staticText_monitoring, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, PAGE_TITLE_LEFT_MARGIN);
@@ -302,7 +301,6 @@ wxBoxSizer *StatusBasePanel::create_project_task_page(wxWindow *parent)
 
     m_staticText_printing = new Label(m_panel_printing_title, _L("Printing Progress"));
     m_staticText_printing->Wrap(-1);
-    m_staticText_printing->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, -1));
     m_staticText_printing->SetFont(PAGE_TITLE_FONT);
     m_staticText_printing->SetForegroundColour(PAGE_TITLE_FONT_COL);
     bSizer_printing_title->Add(m_staticText_printing, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, PAGE_TITLE_LEFT_MARGIN);
@@ -599,7 +597,6 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     wxBoxSizer *bSizer_control_title = new wxBoxSizer(wxHORIZONTAL);
     m_staticText_control             = new Label(m_panel_control_title,_L("Control"));
     m_staticText_control->Wrap(-1);
-    m_staticText_control->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, -1));
     m_staticText_control->SetFont(PAGE_TITLE_FONT);
     m_staticText_control->SetForegroundColour(PAGE_TITLE_FONT_COL);
 
@@ -3031,7 +3028,8 @@ void StatusPanel::on_switch_vcamera(wxMouseEvent &event)
 void StatusPanel::on_camera_enter(wxMouseEvent& event)
 {
     if (obj) {
-        m_camera_popup = std::make_shared<CameraPopup>(this, obj);
+        if (m_camera_popup == nullptr)
+            m_camera_popup = std::make_shared<CameraPopup>(this, obj);
         m_camera_popup->sync_vcamera_state(show_vcamera);
         m_camera_popup->Bind(EVT_VCAMERA_SWITCH, &StatusPanel::on_switch_vcamera, this);
         m_camera_popup->Bind(EVT_SDCARD_ABSENT_HINT, [this](wxCommandEvent &e) {
@@ -3233,15 +3231,15 @@ void StatusPanel::msw_rescale()
     init_bitmaps();
 
     m_panel_monitoring_title->SetSize(wxSize(-1, FromDIP(PAGE_TITLE_HEIGHT)));
-    m_staticText_monitoring->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, -1));
+    m_staticText_monitoring->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, PAGE_TITLE_HEIGHT));
     m_bmToggleBtn_timelapse->Rescale();
     m_panel_printing_title->SetSize(wxSize(-1, FromDIP(PAGE_TITLE_HEIGHT)));
-    m_staticText_printing->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, -1));
+    m_staticText_printing->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, PAGE_TITLE_HEIGHT));
     m_bitmap_thumbnail->SetSize(TASK_THUMBNAIL_SIZE);
     m_printing_sizer->SetMinSize(wxSize(PAGE_MIN_WIDTH, -1));
     m_gauge_progress->SetHeight(PROGRESSBAR_HEIGHT);
     m_panel_control_title->SetSize(wxSize(-1, FromDIP(PAGE_TITLE_HEIGHT)));
-    m_staticText_control->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, -1));
+    m_staticText_control->SetMinSize(wxSize(-1, PAGE_TITLE_HEIGHT));
     m_bpButton_xy->SetBitmap(m_bitmap_axis_home);
     m_bpButton_xy->SetMinSize(AXIS_MIN_SIZE);
     m_bpButton_xy->SetSize(AXIS_MIN_SIZE);
@@ -3278,13 +3276,10 @@ void StatusPanel::msw_rescale()
     m_switch_lamp->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_lamp->Rescale();
     m_switch_nozzle_fan->SetImages(m_bitmap_fan_on, m_bitmap_fan_off);
-    m_switch_nozzle_fan->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_nozzle_fan->Rescale();
     m_switch_printing_fan->SetImages(m_bitmap_fan_on, m_bitmap_fan_off);
-    m_switch_printing_fan->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_printing_fan->Rescale();
     m_switch_cham_fan->SetImages(m_bitmap_fan_on, m_bitmap_fan_off);
-    m_switch_cham_fan->SetMinSize(MISC_BUTTON_SIZE);
     m_switch_cham_fan->Rescale();
 
 

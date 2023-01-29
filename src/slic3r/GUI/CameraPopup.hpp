@@ -59,6 +59,8 @@ protected:
 
 private:
     MachineObject* m_obj { nullptr };
+    wxTimer* m_interval_timer{nullptr};
+    bool  m_is_in_interval{ false };
     wxStaticText* m_text_recording;
     SwitchButton* m_switch_recording;
     wxStaticText* m_text_vcamera;
@@ -75,6 +77,8 @@ private:
     bool is_vcamera_show = false;
     bool allow_alter_resolution = false;
 
+    void start_interval();
+    void stop_interval(wxTimerEvent& event);
     void OnMouse(wxMouseEvent &event);
     void OnSize(wxSizeEvent &event);
     void OnSetFocus(wxFocusEvent &event);
