@@ -5528,7 +5528,7 @@ msgid "⌥+Mouse wheel"
 msgstr "⌥+Mausrad"
 
 msgid "Support/Color Painting: adjust section position"
-msgstr "Support/Eibfärben: Position des Abschnitts anpassen"
+msgstr "Support/Einfärben: Position des Abschnitts anpassen"
 
 msgid "Ctrl+Mouse wheel"
 msgstr "Strg+Mausrad"
