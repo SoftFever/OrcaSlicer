@@ -114,7 +114,7 @@ protected:
 
     wxStaticText*   m_staticText_consumption_of_time;
     wxStaticText *  m_staticText_consumption_of_weight;
-    wxStaticText *  m_staticText_monitoring;
+    Label *         m_staticText_monitoring;
     wxStaticText *  m_staticText_timelapse;
     SwitchButton *  m_bmToggleBtn_timelapse;
 
@@ -130,7 +130,7 @@ protected:
     wxMediaCtrl2 *  m_media_ctrl;
     MediaPlayCtrl * m_media_play_ctrl;
 
-    wxStaticText *  m_staticText_printing;
+    Label *         m_staticText_printing;
     wxStaticBitmap *m_bitmap_thumbnail;
     wxStaticText *  m_staticText_subtask_value;
     wxStaticText *  m_printing_stage_value;
@@ -146,7 +146,7 @@ protected:
 
     wxStaticText *  m_text_tasklist_caption;
 
-    wxStaticText *  m_staticText_control;
+    Label *  m_staticText_control;
     ImageSwitchButton *m_switch_lamp;
     int               m_switch_lamp_timeout{0};
     ImageSwitchButton *m_switch_speed;
