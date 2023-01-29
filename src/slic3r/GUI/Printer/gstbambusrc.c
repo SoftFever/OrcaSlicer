@@ -2,7 +2,7 @@
  * integration with proprietary Bambu Lab blob for getting raw h.264 video
  *
  * Copyright (C) 2023 Joshua Wise <joshua@accelerated.tech>
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation
@@ -62,10 +62,10 @@
 #ifdef __cplusplus
 extern "C"
 #else
-extern 
+extern
 #endif
-struct BambuLib *bambulib_get();
-static struct BambuLib *_lib = NULL;
+BambuLib *bambulib_get();
+BambuLib *_lib = NULL;
 #define BAMBULIB(x) (_lib->x)
 
 #else
@@ -265,22 +265,22 @@ gst_bambusrc_create (GstPushSrc * psrc, GstBuffer ** outbuf)
   GstBambuSrc *src;
 
   src = GST_BAMBUSRC (psrc);
-  
+
   (void) src;
   GST_DEBUG_OBJECT (src, "create()");
-  
+
   int rv;
-  struct Bambu_Sample sample;
-  
+  Bambu_Sample sample;
+
   if (!src->tnl) {
     return GST_FLOW_ERROR;
   }
-  
+
   while ((rv = BAMBULIB(Bambu_ReadSample)(src->tnl, &sample)) == Bambu_would_block) {
     GST_DEBUG_OBJECT(src, "create would block");
     usleep(33333); /* 30Hz */
   }
-  
+
   if (rv == Bambu_stream_end) {
     return GST_FLOW_EOS;
   }
@@ -288,7 +288,7 @@ gst_bambusrc_create (GstPushSrc * psrc, GstBuffer ** outbuf)
   if (rv != Bambu_success) {
     return GST_FLOW_ERROR;
   }
-  
+
 #if GLIB_CHECK_VERSION(2,68,0)
   gpointer sbuf = g_memdup2(sample.buffer, sample.size);
 #else
@@ -300,12 +300,24 @@ gst_bambusrc_create (GstPushSrc * psrc, GstBuffer ** outbuf)
    * need to feed this in too -- otherwise the GStreamer pipeline gets upset
    * and starts triggering QoS events.
    */
-  if (!src->sttime) {
-    src->sttime = sample.decode_time * 100ULL;
+  if (src->video_type == AVC1) {
+    if (!src->sttime) {
+      src->sttime = sample.decode_time * 100ULL;
+    }
+    GST_BUFFER_DTS(*outbuf) = sample.decode_time * 100ULL - src->sttime;
+    GST_BUFFER_PTS(*outbuf) = GST_CLOCK_TIME_NONE;
+    GST_BUFFER_DURATION(*outbuf) = GST_CLOCK_TIME_NONE;
   }
-  GST_BUFFER_DTS(*outbuf) = sample.decode_time * 100ULL - src->sttime;
-  GST_BUFFER_PTS(*outbuf) = GST_CLOCK_TIME_NONE;
-  GST_BUFFER_DURATION(*outbuf) = GST_CLOCK_TIME_NONE;
+  else {
+    if (!src->sttime) {
+      src->sttime = gst_element_get_current_clock_time((GstElement *)psrc);
+      //if (GST_CLOCK_TIME_NONE == src->sttime)
+      //  src->sttime
+    }
+    GST_BUFFER_DTS(*outbuf) = gst_element_get_current_clock_time((GstElement *)psrc) - src->sttime;
+    GST_BUFFER_PTS(*outbuf) = GST_CLOCK_TIME_NONE;
+    GST_BUFFER_DURATION(*outbuf) = GST_CLOCK_TIME_NONE;
+  }
 
   return GST_FLOW_OK;
 }
@@ -322,13 +334,13 @@ gst_bambusrc_start (GstBaseSrc * bsrc)
   GstBambuSrc *src = GST_BAMBUSRC (bsrc);
 
   GST_DEBUG_OBJECT (src, "start(\"%s\")", src->location);
-  
+
   if (src->tnl) {
     BAMBULIB(Bambu_Close)(src->tnl);
     BAMBULIB(Bambu_Destroy)(src->tnl);
     src->tnl = NULL;
   }
-  
+
 #ifdef BAMBU_DYNAMIC
   if (!_lib) {
     _lib = bambulib_get();
@@ -340,15 +352,15 @@ gst_bambusrc_start (GstBaseSrc * bsrc)
   if (BAMBULIB(Bambu_Create)(&src->tnl, src->location) != Bambu_success) {
     return FALSE;
   }
-  
+
   BAMBULIB(Bambu_SetLogger)(src->tnl, _log, (void *)src);
   if (BAMBULIB(Bambu_Open)(src->tnl) != Bambu_success) {
     BAMBULIB(Bambu_Destroy)(src->tnl);
     src->tnl = NULL;
     return FALSE;
   }
-  
-  int rv;
+
+  int rv, n = 0;
   while ((rv = BAMBULIB(Bambu_StartStream)(src->tnl, 1 /* video */)) == Bambu_would_block) {
     usleep(100000);
   }
@@ -357,6 +369,21 @@ gst_bambusrc_start (GstBaseSrc * bsrc)
     BAMBULIB(Bambu_Destroy)(src->tnl);
     src->tnl = NULL;
     return FALSE;
+  }
+
+  src->video_type = AVC1;
+  n = BAMBULIB(Bambu_GetStreamCount)(src->tnl);
+  GST_INFO_OBJECT (src, "Bambu_GetStreamCount returned stream count=%d",n);
+  for (int i = 0; i < n; ++i) {
+    Bambu_StreamInfo info;
+    BAMBULIB(Bambu_GetStreamInfo)(src->tnl, i, &info);
+
+    GST_INFO_OBJECT (src, "stream %d type=%d, sub_type=%d", i, info.type, info.sub_type);
+    if (info.type == VIDE) {
+      src->video_type = info.sub_type;
+      GST_INFO_OBJECT (src, " width %d height=%d, frame_rate=%d",
+          info.format.video.width, info.format.video.height, info.format.video.frame_rate);
+    }
   }
 
   src->sttime = 0;
@@ -384,9 +411,9 @@ gst_bambusrc_change_state (GstElement * element, GstStateChange transition)
 {
   GstStateChangeReturn ret;
   GstBambuSrc *src;
-  
+
   src = GST_BAMBUSRC (element);
-  
+
   (void) src;
 
   switch (transition) {
@@ -430,7 +457,7 @@ static gboolean
 gst_bambusrc_is_seekable (GstBaseSrc * bsrc)
 {
   GstBambuSrc *src = GST_BAMBUSRC (bsrc);
-  
+
   (void) src;
 
   return FALSE;
@@ -523,7 +550,7 @@ static void
 gst_bambusrc_uri_handler_init (gpointer g_iface, gpointer iface_data)
 {
   GstURIHandlerInterface *iface = (GstURIHandlerInterface *) g_iface;
-  
+
   iface->get_type = gst_bambusrc_uri_get_type;
   iface->get_protocols = gst_bambusrc_uri_get_protocols;
   iface->get_uri = gst_bambusrc_uri_get_uri;
@@ -544,7 +571,7 @@ void gstbambusrc_register()
   if (did_register)
     return;
   did_register = 1;
-  
+
   gst_plugin_register_static(GST_VERSION_MAJOR, GST_VERSION_MINOR, "bambusrc", "Bambu Lab source", gstbambusrc_init, "0.0.1", "GPL", "BambuStudio", "BambuStudio", "https://github.com/bambulab/BambuStudio");
 }
 
