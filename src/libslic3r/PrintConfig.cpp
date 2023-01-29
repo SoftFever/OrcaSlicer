@@ -2151,10 +2151,10 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Z Hop Type");
     def->tooltip = L("");
     def->enum_keys_map = &ConfigOptionEnum<ZHopType>::get_enum_values();
-    def->enum_values.push_back("auto");
-    def->enum_values.push_back("normal");
-    def->enum_values.push_back("slope");
-    def->enum_values.push_back("spiral");
+    def->enum_values.push_back("Auto Lift");
+    def->enum_values.push_back("Normal Lift");
+    def->enum_values.push_back("Slope Lift");
+    def->enum_values.push_back("Spiral Lift");
     def->enum_labels.push_back(L("Auto"));
     def->enum_labels.push_back(L("Normal"));
     def->enum_labels.push_back(L("Slope"));

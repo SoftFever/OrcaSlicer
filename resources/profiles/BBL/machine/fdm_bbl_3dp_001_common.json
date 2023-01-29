@@ -151,6 +151,7 @@
     "deretraction_speed": [
         "30"
     ],
+    "z_hop_type": "Auto Lift",
     "nozzle_type": "hardened_steel",
     "silent_mode": "0",
     "single_extruder_multi_material": "1",
