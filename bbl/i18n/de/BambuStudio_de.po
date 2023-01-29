@@ -5532,13 +5532,13 @@ msgid "⌘+Mouse wheel"
 msgstr "⌘+Mausrad"
 
 msgid "Support/Color Painting: adjust pen radius"
-msgstr "Support/Farbmalen: Stiftradius einstellen"
+msgstr "Support/Einfärben: Stiftradius einstellen"
 
 msgid "⌥+Mouse wheel"
 msgstr "⌥+Mausrad"
 
 msgid "Support/Color Painting: adjust section position"
-msgstr "Support/Farbmalerei: Position des Abschnitts anpassen"
+msgstr "Support/Eibfärben: Position des Abschnitts anpassen"
 
 msgid "Ctrl+Mouse wheel"
 msgstr "Strg+Mausrad"
