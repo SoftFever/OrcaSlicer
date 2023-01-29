@@ -54,7 +54,8 @@ const std::vector<std::string> GCodeProcessor::Reserved_Tags = {
     " CUSTOM_GCODE",
     "_GP_FIRST_LINE_M73_PLACEHOLDER",
     "_GP_LAST_LINE_M73_PLACEHOLDER",
-    "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER"
+    "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER",
+    "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER"
 };
 
 const std::string GCodeProcessor::Flush_Start_Tag = " FLUSH_START";
@@ -358,7 +359,7 @@ void GCodeProcessor::TimeProcessor::reset()
     machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].enabled = true;
 }
 
-void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends)
+void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends, size_t total_layer_num)
 {
     FilePtr in{ boost::nowide::fopen(filename.c_str(), "rb") };
     if (in.f == nullptr)
@@ -469,6 +470,12 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                         ret += buf;
                     }
                 }
+            }
+            //BBS: write total layer number
+            else if (line == reserved_tag(ETags::Total_Layer_Number_Placeholder)) {
+                char buf[128];
+                sprintf(buf, "; total layer number: %zd\n", total_layer_num);
+                ret += buf;
             }
         }
 
@@ -1424,7 +1431,7 @@ void GCodeProcessor::finalize(bool post_process)
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
     if (post_process)
-        m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends);
+        m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends, m_layer_id);
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_result.time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_start_time).count();
 #endif // ENABLE_GCODE_VIEWER_STATISTICS

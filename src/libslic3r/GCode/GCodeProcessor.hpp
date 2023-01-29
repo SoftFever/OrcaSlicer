@@ -224,7 +224,8 @@ namespace Slic3r {
             Custom_Code,
             First_Line_M73_Placeholder,
             Last_Line_M73_Placeholder,
-            Estimated_Printing_Time_Placeholder
+            Estimated_Printing_Time_Placeholder,
+            Total_Layer_Number_Placeholder
         };
 
         static const std::string& reserved_tag(ETags tag) { return Reserved_Tags[static_cast<unsigned char>(tag)]; }
@@ -422,7 +423,7 @@ namespace Slic3r {
 
             // post process the file with the given filename to add remaining time lines M73
             // and updates moves' gcode ids accordingly
-            void post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends);
+            void post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends, size_t total_layer_num);
         };
 
         struct UsedFilaments  // filaments per ColorChange
