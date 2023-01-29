@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-26 16:59+0800\n"
+"POT-Creation-Date: 2023-01-25 22:42+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Heiko Liebscher <hliebschergmail.com>\n"
 "Language-Team: \n"
@@ -423,11 +423,8 @@ msgstr ""
 msgid "V"
 msgstr "V"
 
-msgid "Internal Version"
+msgid "SoftFever Version"
 msgstr "SoftFever Version"
-
-msgid "Version"
-msgstr "Version"
 
 msgid ""
 "BambuStudio will terminate because of running out of memory.It may be a bug. It "
@@ -516,8 +513,8 @@ msgstr "Wählen sie eine Datei (3mf):"
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
 msgstr "Wählen sie eine oder mehrere Dateien (3mf/step/stl/svg/obj/amf):"
 
-msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
-msgstr "Wählen sie eine Datei (gcode/.gco/.g/.ngc/ngc):"
+msgid "Choose one file (gcode/3mf):"
+msgstr "Wählen sie eine Datei (3mf):"
 
 msgid "Some presets are modified."
 msgstr "Einige Voreinstellungen wurden geändert."
@@ -1187,14 +1184,26 @@ msgstr "?"
 msgid "Empty"
 msgstr "Leer"
 
-msgid "Click the pencil icon to edit the filament."
-msgstr "Das Stift-Symbol drücken um das Filament zu bearbeiten."
+msgid "AMS"
+msgstr "AMS"
+
+msgid "AMS not connected"
+msgstr "AMS nicht verbunden"
+
+msgid "Cali"
+msgstr "Cali"
+
+msgid "Calibration of extrusion"
+msgstr "Kalibrierung der Extrusion"
 
 msgid "Load Filament"
 msgstr "Laden"
 
 msgid "Unload Filament"
 msgstr "Entladen"
+
+msgid "Ext Spool"
+msgstr "Exteren Spule"
 
 msgid "Tips"
 msgstr "Tipps"
@@ -1409,6 +1418,10 @@ msgstr "Vor dem Senden an den Drucker muss eine SD-Karte eingelegt werden."
 msgid "Please log out and login to the printer again."
 msgstr "Bitte melden Sie sich ab und melden Sie sich erneut beim Drucker an."
 
+msgid "Failed uploading print file. Please enter ip address again."
+msgstr ""
+"Fehler beim Hochladen der Druckdatei. Bitte geben Sie die IP-Adresse erneut ein."
+
 msgid "Downloading"
 msgstr "Herunterladen"
 
@@ -1492,8 +1505,17 @@ msgstr ""
 "wir sie nicht einzeln auflisten können, und stattdessen werden sie in den "
 "entsprechenden Code-Kommentaren zugeschrieben."
 
+msgid "Version"
+msgstr "Version"
+
 msgid "AMS Materials Setting"
 msgstr "AMS-Materialeinstellung"
+
+msgid "Confirm"
+msgstr "Bestätigen"
+
+msgid "Close"
+msgstr "Schließen"
 
 msgid "Colour"
 msgstr "Farbe"
@@ -1521,11 +1543,100 @@ msgstr ""
 "Einstellen von AMS-Steckplatzinformationen während des Druckens wird nicht "
 "unterstützt"
 
-msgid "Confirm"
-msgstr "Bestätigen"
+msgid "Factors of dynamic flow cali"
+msgstr "Faktoren der dynamischen Strömungskalibrierung"
 
-msgid "Close"
-msgstr "Schließen"
+msgid "Factor K"
+msgstr "Faktor K"
+
+msgid "Factor N"
+msgstr "Faktor N"
+
+msgid "Please input a valid value (K in 0~0.5)"
+msgstr "Bitte geben Sie einen gültigen Wert ein (K im Bereich von 0 bis 0,5)"
+
+msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
+msgstr ""
+"Bitte geben Sie einen gültigen Wert ein (K im Bereich von 0 bis 0,5, N im Bereich "
+"von 0,6 bis 2,0)"
+
+msgid "Dynamic flow calibration"
+msgstr "Dynamische Strömungskalibrierung"
+
+msgid ""
+"The nozzle temp and max volumetric speed will affect the calibration results. "
+"Please fill in the same values as the actual printing. They can be auto-filled by "
+"selecting a filament preset."
+msgstr ""
+"Die Düsentemperatur und die maximale volumetrische Geschwindigkeit beeinflussen "
+"die Kalibrierungsergebnisse. Bitte geben Sie die gleichen Werte wie beim "
+"tatsächlichen Drucken ein. Sie können durch Auswahl einer Filament-Voreinstellung "
+"automatisch ausgefüllt werden."
+
+msgid "Nozzle Diameter"
+msgstr "Düsen Durchmesser"
+
+msgid "Bed Type"
+msgstr "Druckplattentyp"
+
+msgid "Nozzle temperature"
+msgstr "Druckdüsentemperatur"
+
+msgid "Bed Temperature"
+msgstr "Betttemperatur"
+
+msgid "Max volumetric speed"
+msgstr "Maximale Volumengeschwindigkeit"
+
+msgid "℃"
+msgstr "℃"
+
+msgid "Bed temperature"
+msgstr "Druckbetttemperatur"
+
+msgid "mm³"
+msgstr "mm³"
+
+msgid "Start calibration"
+msgstr "Kalibrierung starten"
+
+msgid "Next"
+msgstr "Weiter"
+
+msgid ""
+"Calibration completed. Please find the most uniform extrusion line on your hot "
+"bed like the picture below, and fill the value on its left side into the factor K "
+"input box."
+msgstr ""
+"Kalibrierung abgeschlossen. Bitte finden Sie die am besten gleichmäßige "
+"Extrusionslinie auf Ihrem Heizbett wie im unten stehenden Bild und geben Sie den "
+"Wert auf seiner linken Seite in das Faktor K Eingabefeld ein."
+
+msgid "Save"
+msgstr "Speichern"
+
+msgid "Last Step"
+msgstr "Letzter Schritt"
+
+msgid "Example"
+msgstr "Beispiel"
+
+#, c-format, boost-format
+msgid "Calibrating... %d%%"
+msgstr "Kalibrierung... %d%%"
+
+msgid "Calibration completed"
+msgstr "Kalibrierung fertiggestellt"
+
+#, c-format, boost-format
+msgid "%s does not support %s"
+msgstr "%s unterstützt %s nicht"
+
+msgid "Dynamic flow Calibration"
+msgstr "Dynamische Strömungskalibrierung"
+
+msgid "Step"
+msgstr "Schritt"
 
 msgid "AMS Slots"
 msgstr "AMS Slots"
@@ -1547,6 +1658,39 @@ msgstr "AMS deaktivieren"
 msgid "Print with the filament mounted on the back of chassis"
 msgstr "Druck mit dem Filament auf der Rückseite des Chassis"
 
+msgid "Cabin humidity"
+msgstr "Feuchtigkeit im Innenraum"
+
+msgid ""
+"Green means that AMS humidity is normal, orange represent humidity is high, red "
+"represent humidity is too high.(Hygrometer: lower the better, The bars: higher "
+"the better)"
+msgstr ""
+"Grün bedeutet, dass die Luftfeuchtigkeit im AMS normal ist, Orange bedeutet, dass "
+"die Luftfeuchtigkeit hoch ist, Rot bedeutet, dass die Luftfeuchtigkeit zu hoch "
+"ist. (Hygrometer: Je niedriger desto besser, die Balken: Je höher desto besser)"
+
+msgid "Desiccant status"
+msgstr "Trockenmittelstatus"
+
+msgid ""
+"A desiccant status lower than two bars indicates that desiccant may be inactive. "
+"Please change the desiccant. (Higher is better)"
+msgstr ""
+"Ein Feuchtigkeits-Status unter zwei Balken deutet darauf hin, dass der "
+"Feuchtigkeitsentzieher möglicherweise inaktiv ist. \n"
+"Bitte wechseln Sie den Entfeuchter. (Höher ist besser)"
+
+msgid ""
+"Note: When the lid is open or the desiccant pack is changed, it can take hours or "
+"a night to absorb the moisture. Low temperatures also slow down the process. "
+"During this time, the indicator may not represent the chamber accurately."
+msgstr ""
+"Hinweis: Wenn der Deckel geöffnet ist oder das Feuchtigkeitsabsorptionspaket "
+"geändert wird, kann es Stunden oder eine Nacht dauern, um die Feuchtigkeit "
+"aufzunehmen. Niedrige Temperaturen verlangsamen den Prozess ebenfalls. Während "
+"dieser Zeit kann der Indikator den Raum möglicherweise nicht genau darstellen."
+
 msgid "Config which AMS slot should be used for a filament used in the print job"
 msgstr ""
 "Konfigurieren Sie, welcher AMS-Steckplatz für ein Filament verwendet werden soll, "
@@ -1560,6 +1704,18 @@ msgstr "AMS-Steckplatz für dieses Filament"
 
 msgid "Click to select AMS slot manually"
 msgstr "Klicken Sie hier, um den AMS-Steckplatz manuell auszuwählen"
+
+msgid "Do not Enable AMS"
+msgstr "AMS nicht aktivieren"
+
+msgid "Print using materials mounted on the back of the case"
+msgstr "Drucken mit Materialien, die an der Rückseite des Gehäuses montiert sind"
+
+msgid "Print with filaments in ams"
+msgstr "Drucken mit Materialien im AMS"
+
+msgid "Print with filaments mounted on the back of the chassis"
+msgstr "Drucken mit Filamenten, die an der Rückseite des Chassis montiert sind"
 
 msgid "AMS Settings"
 msgstr "AMS Einstellungen"
@@ -1866,13 +2022,6 @@ msgstr ""
 "Auf 0,2 zurücksetzen"
 
 msgid ""
-"Too large layer height.\n"
-"Reset to 0.2"
-msgstr ""
-"Zu große Schichthöhe.\n"
-"Auf 0,2 zurücksetzen"
-
-msgid ""
 "Too small ironing spacing.\n"
 "Reset to 0.1"
 msgstr ""
@@ -1936,12 +2085,12 @@ msgstr ""
 
 msgid ""
 "Arachne engine only works when overhang slowing down is disabled.\n"
-"This may cause decline in the quality of overhang surface when print fastly\n"
+"This may cause decline in the quality of overhang surface when print fastly"
 msgstr ""
-"Der Arachne-Motor funktioniert nur, wenn die Verlangsamung bei Überhängen "
-"deaktiviert ist. \n"
-"Dies kann zu einer Verschlechterung der Oberflächenqualität bei schneller "
-"Druckgeschwindigkeit führen\n"
+"Der Arachne Modus funktioniert nur, wenn die Überhangverlangsamung deaktiviert "
+"ist.\n"
+"Dies kann zu einem Rückgang der Qualität der Überhangfläche führen, wenn zu "
+"schnell gedruckt wird"
 
 msgid ""
 "Disable overhang slowing down automatically? \n"
@@ -1995,11 +2144,11 @@ msgstr "Das %1%-Infill-Muster unterstützt keine 100%% Dichte."
 msgid ""
 "Switch to rectilinear pattern?\n"
 "Yes - switch to rectilinear pattern automaticlly\n"
-"No  - reset density to default non 100% value automaticlly\n"
+"No  - reset density to default non 100% value automaticlly"
 msgstr ""
-"Wechseln zu einem rechtwinkligen Muster?\n"
-"Ja - wechselt automatisch zu einem rechtwinkligen Muster. \n"
-"Nein - setzt die Dichte automatisch auf den Standardwert (nicht 100%) zurück.\n"
+"Zum geradlinigen Muster wechseln?\n"
+"Ja - automatisch zum geradlinigen Muster wechseln\n"
+"Nein - Setzen Sie die Dichte automatisch auf den Standardwert unter 100% zurück"
 
 msgid "Auto bed leveling"
 msgstr "Automatische Druckbettnivellierung"
@@ -2069,9 +2218,6 @@ msgstr "MC"
 
 msgid "MainBoard"
 msgstr "Mainboard"
-
-msgid "AMS"
-msgstr "AMS"
 
 msgid "TH"
 msgstr "TH"
@@ -2164,6 +2310,12 @@ msgstr "Fluss"
 msgid "Tool"
 msgstr "Werkzeug"
 
+msgid "Layer Time"
+msgstr "Layerzeit"
+
+msgid "Layer Time (log)"
+msgstr "Layerzeit (log)"
+
 msgid "Height: "
 msgstr "Höhe: "
 
@@ -2175,6 +2327,9 @@ msgstr "Geschwindigkeit "
 
 msgid "Flow: "
 msgstr "Durchfluss: "
+
+msgid "Layer Time: "
+msgstr "Layerzeit: "
 
 msgid "Fan Speed: "
 msgstr "Lüftergeschwindigkeit: "
@@ -2595,11 +2750,11 @@ msgstr "Druckplatte slicen"
 msgid "Export G-code file"
 msgstr "G-Code exportieren"
 
-msgid "Send"
-msgstr "Senden"
-
 msgid "Print plate"
 msgstr "Druckplatte"
+
+msgid "Send"
+msgstr "Senden"
 
 msgid "Export plate sliced file"
 msgstr "Exportiere aktuelle Platte als STL Datei"
@@ -2832,6 +2987,30 @@ msgstr "Ansicht"
 msgid "Help"
 msgstr "Hilfe"
 
+msgid "Pass 1"
+msgstr "Durchgang 1"
+
+msgid "Flow rate test - Pass 1"
+msgstr "Durchflussratentests - Teil 1"
+
+msgid "Pass 2"
+msgstr "Durchgang 2"
+
+msgid "Flow rate test - Pass 2"
+msgstr "Durchflussratentests - Teil 1"
+
+msgid "Flow rate"
+msgstr "Durchflussrate"
+
+msgid "Pressure Advance"
+msgstr "Pressure Advance"
+
+msgid "Tutorial"
+msgstr "Anleitung"
+
+msgid "Calibration help"
+msgstr "Kalibrierungshilfe"
+
 msgid "3D Models"
 msgstr "3D Modelle"
 
@@ -2929,13 +3108,13 @@ msgid ""
 "It contains the following information:\n"
 "1. The Process presets\n"
 "2. The Filament presets\n"
-"3. The Printer presets\n"
+"3. The Printer presets"
 msgstr ""
-"Möchten Sie Ihre persönlichen Daten von Bambu Cloud synchronisieren? \n"
+"Möchten Sie Ihre persönlichen Daten aus Bambu Cloud synchronisieren?\n"
 "Es enthält die folgenden Informationen:\n"
-"1. Die Prozess-Voreinstellungen\n"
+"1. Die Prozessvoreinstellungen\n"
 "2. Die Filament-Voreinstellungen\n"
-"3. Die Drucker-Voreinstellungen\n"
+"3. Die Drucker-Voreinstellungen"
 
 msgid "Synchronization"
 msgstr "Synchronisierung"
@@ -2958,6 +3137,11 @@ msgstr "Initialisierung fehlgeschlagen (Im LAN-Modus nicht unterstützt)!"
 msgid "Initialize failed (Not accessible in LAN-only mode)!"
 msgstr "Initialisierung fehlgeschlagen (Nicht zugänglich im LAN-Modus)!"
 
+msgid "Printer is busy downloading, Please wait for the downloading to finish."
+msgstr ""
+"Der Drucker ist beschäftigt mit dem Herunterladen, bitte warten Sie, bis das "
+"Herunterladen abgeschlossen ist."
+
 msgid "Initialize failed (Missing LAN ip of printer)!"
 msgstr "Initialisierung fehlgeschlagen (Fehlende LAN IP des Druckers)!"
 
@@ -2977,6 +3161,9 @@ msgstr "Gestoppt [%d]!"
 
 msgid "Stopped."
 msgstr "Gestoppt."
+
+msgid "LAN Connection Failed (Failed to start liveview)"
+msgstr "LAN-Verbindung fehlgeschlagen (Fehler beim Starten der Liveansicht)"
 
 msgid ""
 "Virtual Camera Tools is required for this task!\n"
@@ -3143,6 +3330,9 @@ msgstr "Stop"
 msgid "0"
 msgstr "0"
 
+msgid "Layers: N/A"
+msgstr "Schichten: N/A"
+
 msgid "Clean"
 msgstr "Säubern"
 
@@ -3211,6 +3401,14 @@ msgstr "Herunterladen..."
 msgid "Cloud Slicing..."
 msgstr "Cloud Verarbeitung…"
 
+#, c-format, boost-format
+msgid "Layers: %s"
+msgstr "Schichten: %s"
+
+#, c-format, boost-format
+msgid "Layers: %d/%d"
+msgstr "Schichten: %d/%d"
+
 msgid "Please heat the nozzle to above 170 degree before loading filament."
 msgstr ""
 "Bitte erhitzen Sie die Düse auf über 170 Grad, bevor Sie das Filament laden."
@@ -3220,6 +3418,12 @@ msgstr "Entlade immer noch"
 
 msgid "Still load"
 msgstr "Lade immer noch"
+
+msgid "AMS settings are not supported for external spool"
+msgstr "AMS-Einstellungen werden für externen Spool nicht unterstützt"
+
+msgid "Please select an AMS slot before calibration"
+msgstr "Bitte wählen Sie einen AMS-Slot vor der Kalibrierung aus"
 
 msgid ""
 "Cannot read filament info: the filament is loaded to the tool head,please unload "
@@ -3622,10 +3826,10 @@ msgstr "Der 3mf wurde vom alten BambuStudio generiert, lade nur die Geometriedat
 #, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Found following keys "
-"unrecognized:\n"
+"unrecognized:"
 msgstr ""
 "Die Version %s von 3mf ist neuer als die Version %s von %s, folgende Schlüssel "
-"wurden nicht erkannt:\n"
+"wurden nicht erkannt:"
 
 msgid "You'd better upgrade your software.\n"
 msgstr "Sie sollten Ihre Software aktualisieren.\n"
@@ -3636,10 +3840,10 @@ msgstr "Neuere 3mf-Version"
 #, c-format, boost-format
 msgid ""
 "The 3mf's version %s is newer than %s's version %s, Suggest to upgrade your "
-"software.\n"
+"software."
 msgstr ""
 "Die Version %s der 3mf ist neuer als die Version %s %s. Bitte Ihre Software "
-"aktualisieren.\n"
+"aktualisieren."
 
 msgid "The 3mf is not compatible, load geometry data only!"
 msgstr "Der 3mf ist nicht kompatibel, lade nur die Geometriedaten!"
@@ -3849,9 +4053,6 @@ msgstr ""
 "Das aktuelle Projekt hat ungespeicherte Änderungen, möchten Sie es speichern "
 "bevor Sie fortfahren?"
 
-msgid "Save"
-msgstr "Speichern"
-
 msgid "Number of copies:"
 msgstr "Anzahl der Kopien:"
 
@@ -3936,8 +4137,8 @@ msgstr ""
 "reparieren Sie das Modell auf BambuStudio (Windows) oder CAD-Software."
 
 #, c-format, boost-format
-msgid "Plate %d: %s does not support filament %s (%s).\n"
-msgstr "Platte %d: %s unterstützt das Filament %s (%s)  nicht.\n"
+msgid "Plate %d: %s does not support filament %s (%s)."
+msgstr "Platte %d: %s unterstützt kein Filament %s (%s)."
 
 msgid "Switching the language requires application restart.\n"
 msgstr "Der Wechsel der Sprache erfordert einen Neustart der Anwendung.\n"
@@ -4431,24 +4632,26 @@ msgstr ""
 msgid "Cannot send the print job for empty plate"
 msgstr "Der Druckauftrag für leere Platte kann nicht gesendet werden"
 
+msgid "This printer does not support printing all plates"
+msgstr "Dieser Drucker unterstützt nicht das Drucken aller Platten"
+
 msgid "Errors"
 msgstr "Fehler"
 
 msgid ""
-"Please check the following infomation and click Confirm to continue sending "
-"print:\n"
+"Please check the following infomation and click Confirm to continue sending print:"
 msgstr ""
 "Bitte überprüfen Sie die folgenden Informationen und klicken Sie auf Bestätigen, "
-"um mit dem Senden des Drucks fortzufahren:\n"
+"um mit dem Senden des Drucks fortzufahren:"
 
 msgid ""
 "The printer type used to generate G-code is not the same type as the currently "
 "selected physical printer. It is recommend to re-slice by selecting the same "
-"printer type.\n"
+"printer type."
 msgstr ""
 "Der Druckertyp, der zur Generierung von G-Code verwendet wird, ist nicht derselbe "
 "Typ wie der aktuell ausgewählte physische Drucker. Es wird empfohlen, erneut zu "
-"scheiben, indem Sie den gleichen Druckertyp auswählen.\n"
+"scheiben, indem Sie den gleichen Druckertyp auswählen."
 
 #, c-format, boost-format
 msgid "The %s filament is too soft to be used with the AMS"
@@ -4594,12 +4797,12 @@ msgid ""
 "When recording timelapse without toolhead, it is recommended to add a \"Timelapse "
 "Wipe Tower\" \n"
 "by right-click the empty position of build plate and choose \"Add Primitive\"-"
-">\"Timelapse Wipe Tower\".\n"
+">\"Timelapse Wipe Tower\"."
 msgstr ""
-"Empfohlen wird beim Aufzeichnen einer Zeitrafferaufnahme ohne Werkzeugkopf, einen "
-"„Timelapse Wipe Tower“ hinzuzufügen,\n"
-"indem man auf die leere Position des Bauplattens klickt und „Primitiv hinzufügen“ "
-"-> „Timelapse Wipe Tower“ auswählt\n"
+"Wenn Sie eine Zeitrafferaufnahme ohne Werkzeugkopf aufnehmen, wird empfohlen, "
+"einen „Timelapse Wipe Tower“ hinzuzufügen,\n"
+"indem Sie auf die leere Position der Bauplatte rechtsklicken und „Primitiv "
+"hinzufügen“ -> „Timelapse Wipe Tower“ auswählen."
 
 msgid "Line width"
 msgstr "Breite der Linie"
@@ -4644,6 +4847,9 @@ msgstr "Fahrgeschwindigkeit"
 msgid "Acceleration"
 msgstr "Beschleunigung"
 
+msgid "Jerk(XY)"
+msgstr "Jerk(XY)"
+
 msgid "Raft"
 msgstr "Raft"
 
@@ -4658,6 +4864,9 @@ msgstr "Spezialmodus"
 
 msgid "G-code output"
 msgstr "G-Code-Ausgabe"
+
+msgid "Post-processing Scripts"
+msgstr "Post-Processing Scripts"
 
 msgid "Frequent"
 msgstr "Häufig"
@@ -4704,6 +4913,9 @@ msgstr "Empfohlener Temperaturbereich"
 
 msgid "Print temperature"
 msgstr "Drucktemperatur"
+
+msgid "Chamber temperature"
+msgstr "Druckraum Temperatur"
 
 msgid "Nozzle"
 msgstr "Druckdüse"
@@ -4847,6 +5059,17 @@ msgstr "Höhenbegrenzungen für Schichten"
 
 msgid "Retraction when switching material"
 msgstr "Rückzug bei Materialwechsel"
+
+msgid ""
+"The Wipe option is not available when using the Firmware Retraction mode.\n"
+"\n"
+"Shall I disable it in order to enable Firmware Retraction?"
+msgstr ""
+"Die Wipe-Option ist bei Verwendung des Firmware-Retractionsmodus nicht verfügbar. "
+"Soll ich sie deaktivieren, um den Firmware-Retractionsmodus zu aktivieren?"
+
+msgid "Firmware Retraction"
+msgstr "Filament Rückzug durch Firmware"
 
 msgid "Detached"
 msgstr "Losgelöst"
@@ -5386,6 +5609,33 @@ msgstr "Neue Version von Bambu Studio"
 msgid "Don't remind me of this version again"
 msgstr "Erinnere mich nicht noch einmal an diese Version"
 
+msgid "LAN Connection Failed (Sending print file)"
+msgstr "LAN-Verbindung fehlgeschlagen (Druckdatei senden)"
+
+msgid "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
+msgstr ""
+"Schritt 1, bitte bestätigen Sie, dass Bambu Studio und Ihr Drucker im gleichen "
+"LAN sind."
+
+msgid ""
+"Step 2, if the IP and Access Code below are different from the actual values on "
+"your printer, please correct them."
+msgstr ""
+"Schritt 2, wenn die unten angegebene IP-Adresse und der Zugangscode von den "
+"tatsächlichen Werten auf Ihrem Drucker abweichen, korrigieren Sie bitte diese."
+
+msgid "IP"
+msgstr "IP"
+
+msgid "Access Code"
+msgstr "Zugangscode"
+
+msgid "Where to find your printer's IP and Access Code?"
+msgstr "Wo finde ich die IP-Adresse und den Zugriffscode meines Druckers?"
+
+msgid "Error: IP or Access Code are not correct"
+msgstr "Error: IP or Access Code are not correct"
+
 msgid "Model:"
 msgstr "Modell:"
 
@@ -5702,13 +5952,12 @@ msgstr "%1% ist zu nah an anderen, und es können Kollisionen verursacht werden.
 msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% ist zu hoch und es kommt zu Kollisionen."
 
-msgid " is too close to others, there may be collisions when printing.\n"
-msgstr " Ist zu nah an anderen , es kann beim drucken zu Kollisionen kommen.\n"
+msgid " is too close to others, there may be collisions when printing."
+msgstr " Ist zu nah an anderen , es kann beim drucken zu Kollisionen kommen."
 
-msgid " is too close to exclusion area, there may be collisions when printing.\n"
+msgid " is too close to exclusion area, there may be collisions when printing."
 msgstr ""
-" Es ist zu nah am Ausschlussbereich , es kann beim Drucken zu Kollisionen "
-"kommen.\n"
+" Es ist zu nah am Ausschlussbereich , es kann beim Drucken zu Kollisionen kommen."
 
 msgid "Prime Tower"
 msgstr "Prime Turm"
@@ -5811,8 +6060,8 @@ msgid "Layer height cannot exceed nozzle diameter"
 msgstr "Schichthöhe kann Druckdüsendurchmesser nicht überschreiten"
 
 #, c-format, boost-format
-msgid "Plate %d: %s does not support filament %s\n"
-msgstr "Platte %d: %s unterstützt das Filament %s nicht\n"
+msgid "Plate %d: %s does not support filament %s"
+msgstr "Platte %d: %s unterstützt Filament %s nicht"
 
 msgid "Generating skirt & brim"
 msgstr "Erzeugen von Umrandung und Rand (skirt & brim)"
@@ -5984,9 +6233,6 @@ msgstr ""
 msgid "°C"
 msgstr "°C"
 
-msgid "Bed temperature"
-msgstr "Druckbetttemperatur"
-
 msgid ""
 "Bed temperature for layers except the initial one. Value 0 means the filament "
 "does not support to print on the Engineering Plate"
@@ -6138,6 +6384,22 @@ msgstr ""
 "Verringern Sie diesen Wert geringfügig (z. B. 0,9), um die Materialmenge für die "
 "Brücke zu verringern und den Durchhang zu verbessern"
 
+msgid "Top surface flow ratio"
+msgstr "Durchflussverhältnis obere Fläche"
+
+msgid ""
+"This factor affects the amount of material for top solid infill. You can decrease "
+"it slightly to have smooth surface finish"
+msgstr ""
+"Dieser Faktor beeinflusst die Menge des Materials für die obere Füllung. Sie "
+"können ihn leicht verringern, um eine glatte Oberflächenbeschichtung zu erhalten"
+
+msgid "Bottom surface flow ratio"
+msgstr "Durchflussverhältnis untere Fläche"
+
+msgid "This factor affects the amount of material for bottom solid infill"
+msgstr "Dieser Faktor beeinflusst die Menge des Materials für die untere Füllung"
+
 msgid "Only one wall on top surfaces"
 msgstr "Nur eine Wand auf der oberen Fläche"
 
@@ -6147,6 +6409,15 @@ msgid ""
 msgstr ""
 "Verwenden Sie nur eine Wand auf der flachen Oberseite, um mehr Platz für das "
 "obere Füllungsmuster zu schaffen"
+
+msgid "Only one wall on first layer"
+msgstr "Nur eine Wand auf den ersten Fläche"
+
+msgid ""
+"Use only one wall on first layer, to give more space to the bottom infill pattern"
+msgstr ""
+"Verwenden Sie nur eine Wand in der ersten Schicht, um dem Muster der unteren "
+"Füllung mehr Platz zu geben"
 
 msgid "Slow down for overhang"
 msgstr "Verlangsamen bei Überhängen"
@@ -6180,6 +6451,15 @@ msgstr ""
 "Modelle, der Innenseite der Löcher oder beides. Auto bedeutet, dass sowohl die "
 "Randposition als auch die Breite des Randes automatisch analysiert und berechnet "
 "werden"
+
+msgid "outer_only"
+msgstr "Nur Außen"
+
+msgid "Inner brim only"
+msgstr "Nur Innenrand"
+
+msgid "Outer and inner brim"
+msgstr "Äußere und innere Randleiste"
 
 msgid "Brim-object gap"
 msgstr "Lücke zwischen Rand und Objekt"
@@ -6388,6 +6668,31 @@ msgstr ""
 "ist langsamer als die Geschwindigkeit der Innenwand, um eine bessere Qualität zu "
 "erzielen."
 
+msgid "Small perimeters"
+msgstr "Feine Strukturen"
+
+msgid ""
+"This separate setting will affect the speed of perimeters having radius <= 6.5mm "
+"(usually holes). If expressed as percentage (for example: 80%) it will be "
+"calculated on the outer wall speed setting above. Set to zero for auto."
+msgstr ""
+"Diese separate Einstellung beeinflusst die Geschwindigkeit von Umfängen mit einem "
+"Radius <= 6,5 mm (normalerweise Löcher). Wenn sie als Prozentsatz (z. B. 80%) "
+"angegeben wird, wird sie auf der oben angegebenen Geschwindigkeit der Außenwand "
+"berechnet. Auf Null setzen für automatisch."
+
+msgid "mm/s or %"
+msgstr "mm o. %"
+
+msgid "Small perimeters threshold"
+msgstr "Schwelle für kleine Strukturen"
+
+msgid ""
+"This sets the threshold for small perimeter length. Default threshold is 6.5mm"
+msgstr ""
+"Dies legt den Schwellenwert für kurze Umfangslänge fest. Der Standard-"
+"Schwellenwert beträgt 6,5 mm"
+
 msgid "Order of inner wall/outer wall/infil"
 msgstr "Reihenfolge Innenwand/Außenwand/Füllung"
 
@@ -6405,6 +6710,9 @@ msgstr "Füllung/Innen/Außen"
 
 msgid "infill/outer/inner"
 msgstr "Füllung/Außen/Innen"
+
+msgid "inner-outer-inner/infill"
+msgstr "inner-outer-inner/infill"
 
 msgid "Height to rod"
 msgstr "Höhe zur Stange"
@@ -6469,6 +6777,21 @@ msgstr ""
 "anpassen, um eine schöne flache Oberfläche zu erhalten, wenn es einen leichten "
 "Über- oder Unterlauf gibt"
 
+msgid "Enable pressure advance"
+msgstr "Pressure advance aktivieren"
+
+msgid ""
+"Enable pressure advance, auto calibration result will be overwriten once enabled."
+msgstr ""
+"Wenn Pressure Advance aktiviert ist,werden  Auto-Kalibrierungsergebnisse "
+"überschrieben."
+
+msgid "Pressure advance"
+msgstr "Pressure advance"
+
+msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
+msgstr "Pressure advance(Klipper)AKA Linear advance Faktor(Marlin)"
+
 msgid "Default line width if some line width is set to be zero"
 msgstr "Standardlinienbreite, wenn eine Linienbreite auf Null gesetzt ist"
 
@@ -6518,9 +6841,6 @@ msgstr ""
 "Mindest-HRC der Düse, die zum Drucken des Filaments erforderlich ist. Null "
 "bedeutet keine Überprüfung des HRC der Düse."
 
-msgid "Max volumetric speed"
-msgstr "Maximale Volumengeschwindigkeit"
-
 msgid ""
 "This setting stands for how much volume of filament can be melted and extruded "
 "per second. Printing speed is limited by max volumetric speed, in case of too "
@@ -6537,8 +6857,20 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "Minimale Wischmenge im Wischturm"
 
-msgid "mm³"
-msgstr "mm³"
+msgid ""
+"After a tool change, the exact position of the newly loaded filament inside the "
+"nozzle may not be known, and the filament pressure is likely not yet stable. "
+"Before purging the print head into an infill or a sacrificial object, Slic3r will "
+"always prime this amount of material into the wipe tower to produce successive "
+"infill or sacrificial object extrusions reliably."
+msgstr ""
+"Nach einem Werkzeugwechsel ist die genaue Position des neu geladenen Filaments im "
+"Düsenkopf möglicherweise unbekannt und der Filamentdruck ist wahrscheinlich noch "
+"nicht stabil. Bevor Slic3r den Druckkopf in ein Infill oder ein opferbares Objekt "
+"spült, wird immer diese Menge Material in den Wipe-Turm gefüllt, um zuverlässige "
+"nachfolgende Infill- oder opferbare Objekt-Extrusionen zu erzeugen. So wird "
+"sichergestellt, dass das Drucken nicht gestört wird und die Qualität des Drucks "
+"erhalten bleibt."
 
 msgid "Filament load time"
 msgstr "Ladedauer des Filaments"
@@ -6626,6 +6958,16 @@ msgstr ""
 "Winkel für das Infill-Muster, das die Anfangs- oder Hauptrichtung der Linie "
 "bestimmt"
 
+msgid "Bridge infill direction"
+msgstr "Brückenfüllrichtung"
+
+msgid ""
+"Angle for bridge infill pattern, which controls the start or main direction of "
+"line"
+msgstr ""
+"Winkel des Brücken-Füllmusters, der die Start- oder Hauptrichtung der Linie "
+"steuert"
+
 msgid "Sparse infill density"
 msgstr "Dichte der Füllung"
 
@@ -6669,6 +7011,15 @@ msgstr "Unterstützung Kubisch"
 msgid "Lightning"
 msgstr "Lightning"
 
+msgid "Acceleration of outer walls"
+msgstr "Beschleunigung Außenwände"
+
+msgid "Acceleration of inner walls"
+msgstr "Beschleunigung Innenwände"
+
+msgid "Acceleration of travel moves"
+msgstr "Beschleunigung Bewegung"
+
 msgid ""
 "Acceleration of top surface infill. Using a lower value may improve top surface "
 "quality"
@@ -6687,6 +7038,41 @@ msgid ""
 msgstr ""
 "Beschleunigung der ersten Schicht. Die Verwendung eines niedrigeren Wertes kann "
 "die Haftfähigkeit der Druckplatte verbessern"
+
+msgid "Adjust accel to decel"
+msgstr "Beschleunigung auf die Verzögerung anpassen"
+
+msgid "Klipper's max_accel_to_decel will be adjusted automatically"
+msgstr ""
+"Die maximale Beschleunigung und Verzögerung von Klipper wird automatisch angepasst"
+
+#, c-format, boost-format
+msgid "% of acceleration"
+msgstr "% of Beschleunigung"
+
+#, c-format, boost-format
+msgid "Klipper's Max_accel_to_decel will be adjusted to this % of acceleration"
+msgstr ""
+"Klipper’s max_accel_to_decel wird auf % of  Prozentsatz der Beschleunigung "
+"eingestellt"
+
+msgid "Jerk of outer walls"
+msgstr "Ruckwert Außenwand"
+
+msgid "Jerk of inner walls"
+msgstr "Ruckwert Innenwand"
+
+msgid "Jerk for top surface"
+msgstr "Ruckwert Oberseiten"
+
+msgid "Jerk for infill"
+msgstr "Ruckwert Füllung"
+
+msgid "Jerk for initial layer"
+msgstr "Ruckwert erste Schicht"
+
+msgid "Jerk for travel"
+msgstr "Jerk for Bewegung"
 
 msgid "Line width of initial layer"
 msgstr "Linienbreite der ersten Schicht"
@@ -6751,6 +7137,19 @@ msgid ""
 msgstr ""
 "Der durchschnittliche Abstand zwischen den auf jedem Linienabschnitt eingeführten "
 "Zufallspunkten"
+
+msgid "Filter out tiny gaps"
+msgstr "Filtert winzige Lücken aus"
+
+msgid "Layers and Perimeters"
+msgstr "Schichten und Perimeter"
+
+msgid ""
+"Filter out gaps smaller than the threshold specified. This setting won't affact "
+"top/bottom layers"
+msgstr ""
+"Filtert Lücken aus, die kleiner als der festgelegte Schwellenwert sind. Diese "
+"Einstellung beeinflusst die obersten/untersten Schichten nicht"
 
 msgid ""
 "Speed of gap infill. Gap usually has irregular line width and should be printed "
@@ -6832,6 +7231,9 @@ msgstr "G-Code Typ"
 msgid "What kind of gcode the printer is compatible with"
 msgstr "Mit welcher Art von G-Code ist der Drucker kompatibel"
 
+msgid "Klipper"
+msgstr "Klipper"
+
 msgid "Infill combination"
 msgstr "Kombination der Füllung"
 
@@ -6862,6 +7264,19 @@ msgstr ""
 
 msgid "Speed of internal sparse infill"
 msgstr "Geschwindigkeit der internen Füllung"
+
+msgid "Interface shells"
+msgstr "Support-Verbindung"
+
+msgid ""
+"Force the generation of solid shells between adjacent materials/volumes. Useful "
+"for multi-extruder prints with translucent materials or manual soluble support "
+"material"
+msgstr ""
+"Erzwingen der Erstellung von festen Hüllen zwischen benachbarten Materialien/"
+"Volumina“ ist eine Funktion, die bei Drucken mit mehreren Extrudern verwendet "
+"werden kann, insbesondere bei Drucken mit durchsichtigen Materialien oder manuell "
+"lösbaren Unterstützungsmaterialien"
 
 msgid "Ironing Type"
 msgstr "Glättungsmethode"
@@ -7150,6 +7565,18 @@ msgstr "Druckgeschwindigkeit der Innenwand"
 msgid "Number of walls of every layer"
 msgstr "Anzahl der Wände jeder Schicht"
 
+msgid ""
+"If you want to process the output G-code through custom scripts, just list their "
+"absolute paths here. Separate multiple scripts with a semicolon. Scripts will be "
+"passed the absolute path to the G-code file as the first argument, and they can "
+"access the Slic3r config settings by reading environment variables."
+msgstr ""
+"Wenn Sie die Ausgabe-G-Code-Datei durch benutzerdefinierte Skripts verarbeiten "
+"möchten, geben Sie hier die absoluten Pfade auf. Trennen Sie mehrere Skripts "
+"durch ein Semikolon. Die Skripts erhalten den absoluten Pfad zur G-Code-Datei als "
+"erstes Argument und können die Slic3r-Konfigurationseinstellungen durch Lesen von "
+"Umgebungsvariablen abrufen."
+
 msgid "Raft contact Z distance"
 msgstr "Floß Kontakt Z Abstand"
 
@@ -7241,6 +7668,24 @@ msgstr ""
 "der Verfahrbewegung gegen den Druck stößt. Die Verwendung einer Spirallinie zum "
 "Anheben von z kann Fadenbildung verhindern"
 
+msgid "Extra length on restart"
+msgstr "Zusätzliche Länge beim Neustart"
+
+msgid ""
+"When the retraction is compensated after the travel move, the extruder will push "
+"this additional amount of filament. This setting is rarely needed."
+msgstr ""
+"Wenn die Rückzugskompensation nach dem Reisemove durchgeführt wird, wird der "
+"Extruder diese zusätzliche Menge an Filament schieben. Diese Einstellung wird nur "
+"selten benötigt."
+
+msgid ""
+"When the retraction is compensated after changing tool, the extruder will push "
+"this additional amount of filament."
+msgstr ""
+"Wenn die Rückzugskompensation nach dem Wechsel des Werkzeugs durchgeführt wird, "
+"wird der Extruder diese zusätzliche Menge an Filament schieben."
+
 msgid "Retraction Speed"
 msgstr "Einzugsgeschwindigkeit"
 
@@ -7255,6 +7700,17 @@ msgid ""
 msgstr ""
 "Geschwindigkeit für das Nachladen von Filament in den Extruder. Null bedeutet die "
 "gleiche Geschwindigkeit mit Einzug"
+
+msgid "Use firmware retraction"
+msgstr "Filament Rückzug durch Firmware"
+
+msgid ""
+"This experimental setting uses G10 and G11 commands to have the firmware handle "
+"the retraction. This is only supported in recent Marlin."
+msgstr ""
+"Diese experimentelle Einstellung nutzt die Befehle G10 und G11, um die Firmware "
+"das Zurückziehen zu handhaben.Dies wird nur von aktuellen Marlin-Firmware "
+"unterstützt."
 
 msgid "Seam position"
 msgstr "Nahtposition"
@@ -7273,6 +7729,47 @@ msgstr "Rückseite"
 
 msgid "Random"
 msgstr "Zufall"
+
+msgid "Seam gap"
+msgstr "Naht Zwischenraum"
+
+msgid ""
+"When extruding a closed loop, the loop is interrupted and shortened a bit to "
+"reduce the seam.\n"
+"Can be a mm or a % of the current extruder diameter. Default value is 15%"
+msgstr ""
+"Um die Sichtbarkeit der Naht in einer geschlossenen Schleifenextrusion zu "
+"reduzieren, wird die Schleife unterbrochen und um eine bestimmte Menge verkürzt.\n"
+"Diese Menge kann in Millimetern oder als Prozentsatz des aktuellen "
+"Extruderdurchmessers angegeben werden.\n"
+"Der Standardwert für diesen Parameter beträgt 15%. Dies wird durchgeführt, um das "
+"endgültige Produkt glatter und nahtloser aussehen zu lassen"
+
+msgid "Role base wipe speed"
+msgstr "Rollenbasierte Wipe Geschwindigkeit"
+
+msgid ""
+"The wipe speed is same as the current extrusion role's speed.\n"
+"e.g. if wipe action is followed by a outer wall extrusion, the outer wall speed "
+"will be used for this wipe action."
+msgstr ""
+"Die Wischgeschwindigkeit entspricht der Geschwindigkeit der aktuellen "
+"Extrusionsrolle.\n"
+"z.B. Wenn auf die Wischaktion eine Außenwandextrusion folgt, wird die "
+"Außenwandgeschwindigkeit für diese Wischaktion verwendet."
+
+msgid "Wipe speed"
+msgstr "Wipe Geschwindigkeit"
+
+msgid ""
+"This setting will affect the speed of wipe. If expressed as percentage (for "
+"example: 80%) it will be calculated on the travel speed setting above. Default "
+"value is 80%"
+msgstr ""
+"Diese separate Einstellung beeinflusst die Geschwindigkeit von Umfängen mit einem "
+"Radius <= 6,5 mm (normalerweise Löcher). Wenn sie als Prozentsatz (z. B. 80%) "
+"angegeben wird, wird sie auf der oben angegebenen Geschwindigkeit der Außenwand "
+"berechnet. Auf Null setzen für automatisch"
 
 msgid "Skirt distance"
 msgstr "Abstand der Umrandung"
@@ -7634,11 +8131,18 @@ msgstr "Wandschlaufen für Baumsupport"
 msgid "This setting specify the count of walls around tree support"
 msgstr "Diese Einstellung gibt die Anzahl der Wände um den Baumsupport an"
 
+msgid "Tree support with infill"
+msgstr "Baumsupport mit Füllung"
+
+msgid ""
+"This setting specifies whether to add infill inside large hollows of tree support"
+msgstr "Diese Einstellung gibt die Anzahl der Wände um den Baumsupport an"
+
+msgid "Target chamber temperature"
+msgstr "Druckraum Temperatur"
+
 msgid "Nozzle temperature for layers after the initial one"
 msgstr "Druckdüsentemperatur für Schichten nach der ersten Schicht"
-
-msgid "Nozzle temperature"
-msgstr "Druckdüsentemperatur"
 
 msgid "Bed temperature difference"
 msgstr "Druckbetttemperaturdifferenz"
@@ -7720,6 +8224,15 @@ msgstr ""
 "Bewegen Sie die Düse beim Zurückziehen entlang des letzten Extrusionsweges, um "
 "ausgetretenes Material an der Düse zu reinigen. Dies kann die Bildung von "
 "Klecksen beim Drucken eines neuen Teils nach der Fahrt minimieren"
+
+msgid "Z hop type"
+msgstr "Z-Hub Typ"
+
+msgid "NormalLift"
+msgstr "Normal"
+
+msgid "SpiralLift"
+msgstr "SpiralLift"
 
 msgid "Wipe Distance"
 msgstr "Wischabstand"
@@ -7819,6 +8332,30 @@ msgstr ""
 "oder verkleinert. Ein positiver Wert macht die Kontur größer, ein negativer Wert "
 "macht die Kontur kleiner. Diese Funktion wird verwendet, um die Größe geringfügig "
 "anzupassen, wenn das Objekt ein Problem beim Zusammensetzen hat"
+
+msgid "G-code thumbnails"
+msgstr "G-Code Vorschaubilder"
+
+msgid ""
+"Picture sizes to be stored into a .gcode and .sl1 / .sl1s files, in the following "
+"format: \"XxY, XxY, ...\""
+msgstr ""
+"Bildgrößen, die in eine .gcode und .sl1 / .sl1s-Datei gespeichert werden sollen, "
+"im folgenden Format: „XxY, XxY, …"
+
+msgid "Use relative E distances"
+msgstr "Relative Extrusion"
+
+msgid ""
+"Relative extrusion is recommended when using \"label_objects\" option.Some "
+"extruders work better with this option unckecked (absolute extrusion mode). Wipe "
+"tower is only compatible with relative mode. It is always enabled on BambuLab "
+"printers. Default is checked"
+msgstr ""
+"Die relative Extrusion wird empfohlen, wenn die Option „label_objects“ verwendet "
+"wird. Einige Extruder funktionieren besser, wenn diese Option deaktiviert ist "
+"(Absolute Extrusion). Der Wipe-Turm ist nur im relativen Modus kompatibel. Er ist "
+"immer auf BambuLab-Druckern aktiviert"
 
 msgid ""
 "Classic wall generator produces walls with constant extrusion width and for very "
@@ -8373,648 +8910,71 @@ msgstr ""
 "Wussten Sie, dass Sie mehr Wandschlaufen und eine höhere spärliche Fülldichte "
 "verwenden können, um die Festigkeit des Modells zu verbessern?"
 
-#~ msgid "SoftFever Version"
+#~ msgid "Internal Version"
 #~ msgstr "SoftFever Version"
 
-#, fuzzy
-#~| msgid "Choose one file (3mf):"
-#~ msgid "Choose one file (gcode/3mf):"
-#~ msgstr "Wählen sie eine Datei (3mf):"
+#~ msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
+#~ msgstr "Wählen sie eine Datei (gcode/.gco/.g/.ngc/ngc):"
 
-#~ msgid "AMS not connected"
-#~ msgstr "AMS nicht verbunden"
-
-#~ msgid "Cali"
-#~ msgstr "Cali"
-
-#~ msgid "Calibration of extrusion"
-#~ msgstr "Kalibrierung der Extrusion"
-
-#~ msgid "Ext Spool"
-#~ msgstr "Exteren Spule"
-
-#~ msgid "Failed uploading print file. Please enter ip address again."
-#~ msgstr ""
-#~ "Fehler beim Hochladen der Druckdatei. Bitte geben Sie die IP-Adresse erneut "
-#~ "ein."
-
-#~ msgid "Factors of dynamic flow cali"
-#~ msgstr "Faktoren der dynamischen Strömungskalibrierung"
-
-#~ msgid "Factor K"
-#~ msgstr "Faktor K"
-
-#~ msgid "Factor N"
-#~ msgstr "Faktor N"
-
-#~ msgid "Please input a valid value (K in 0~0.5)"
-#~ msgstr "Bitte geben Sie einen gültigen Wert ein (K im Bereich von 0 bis 0,5)"
-
-#~ msgid "Please input a valid value (K in 0~0.5, N in 0.6~2.0)"
-#~ msgstr ""
-#~ "Bitte geben Sie einen gültigen Wert ein (K im Bereich von 0 bis 0,5, N im "
-#~ "Bereich von 0,6 bis 2,0)"
-
-#~ msgid "Dynamic flow calibration"
-#~ msgstr "Dynamische Strömungskalibrierung"
+#~ msgid "Click the pencil icon to edit the filament."
+#~ msgstr "Das Stift-Symbol drücken um das Filament zu bearbeiten."
 
 #~ msgid ""
-#~ "The nozzle temp and max volumetric speed will affect the calibration results. "
-#~ "Please fill in the same values as the actual printing. They can be auto-filled "
-#~ "by selecting a filament preset."
+#~ "Too large layer height.\n"
+#~ "Reset to 0.2"
 #~ msgstr ""
-#~ "Die Düsentemperatur und die maximale volumetrische Geschwindigkeit "
-#~ "beeinflussen die Kalibrierungsergebnisse. Bitte geben Sie die gleichen Werte "
-#~ "wie beim tatsächlichen Drucken ein. Sie können durch Auswahl einer Filament-"
-#~ "Voreinstellung automatisch ausgefüllt werden."
-
-#~ msgid "Nozzle Diameter"
-#~ msgstr "Düsen Durchmesser"
-
-#~ msgid "Bed Type"
-#~ msgstr "Druckplattentyp"
-
-#~ msgid "Bed Temperature"
-#~ msgstr "Betttemperatur"
-
-#~ msgid "℃"
-#~ msgstr "℃"
-
-#~ msgid "Start calibration"
-#~ msgstr "Kalibrierung starten"
-
-#~ msgid "Next"
-#~ msgstr "Weiter"
-
-#~ msgid ""
-#~ "Calibration completed. Please find the most uniform extrusion line on your hot "
-#~ "bed like the picture below, and fill the value on its left side into the "
-#~ "factor K input box."
-#~ msgstr ""
-#~ "Kalibrierung abgeschlossen. Bitte finden Sie die am besten gleichmäßige "
-#~ "Extrusionslinie auf Ihrem Heizbett wie im unten stehenden Bild und geben Sie "
-#~ "den Wert auf seiner linken Seite in das Faktor K Eingabefeld ein."
-
-#~ msgid "Last Step"
-#~ msgstr "Letzter Schritt"
-
-#~ msgid "Example"
-#~ msgstr "Beispiel"
-
-#, c-format, boost-format
-#~ msgid "Calibrating... %d%%"
-#~ msgstr "Kalibrierung... %d%%"
-
-#~ msgid "Calibration completed"
-#~ msgstr "Kalibrierung fertiggestellt"
-
-#, c-format, boost-format
-#~ msgid "%s does not support %s"
-#~ msgstr "%s unterstützt %s nicht"
-
-#~ msgid "Dynamic flow Calibration"
-#~ msgstr "Dynamische Strömungskalibrierung"
-
-#~ msgid "Step"
-#~ msgstr "Schritt"
-
-#~ msgid "Cabin humidity"
-#~ msgstr "Feuchtigkeit im Innenraum"
-
-#~ msgid ""
-#~ "Green means that AMS humidity is normal, orange represent humidity is high, "
-#~ "red represent humidity is too high.(Hygrometer: lower the better, The bars: "
-#~ "higher the better)"
-#~ msgstr ""
-#~ "Grün bedeutet, dass die Luftfeuchtigkeit im AMS normal ist, Orange bedeutet, "
-#~ "dass die Luftfeuchtigkeit hoch ist, Rot bedeutet, dass die Luftfeuchtigkeit zu "
-#~ "hoch ist. (Hygrometer: Je niedriger desto besser, die Balken: Je höher desto "
-#~ "besser)"
-
-#~ msgid "Desiccant status"
-#~ msgstr "Trockenmittelstatus"
-
-#~ msgid ""
-#~ "A desiccant status lower than two bars indicates that desiccant may be "
-#~ "inactive. Please change the desiccant. (Higher is better)"
-#~ msgstr ""
-#~ "Ein Feuchtigkeits-Status unter zwei Balken deutet darauf hin, dass der "
-#~ "Feuchtigkeitsentzieher möglicherweise inaktiv ist. \n"
-#~ "Bitte wechseln Sie den Entfeuchter. (Höher ist besser)"
-
-#~ msgid ""
-#~ "Note: When the lid is open or the desiccant pack is changed, it can take hours "
-#~ "or a night to absorb the moisture. Low temperatures also slow down the "
-#~ "process. During this time, the indicator may not represent the chamber "
-#~ "accurately."
-#~ msgstr ""
-#~ "Hinweis: Wenn der Deckel geöffnet ist oder das Feuchtigkeitsabsorptionspaket "
-#~ "geändert wird, kann es Stunden oder eine Nacht dauern, um die Feuchtigkeit "
-#~ "aufzunehmen. Niedrige Temperaturen verlangsamen den Prozess ebenfalls. Während "
-#~ "dieser Zeit kann der Indikator den Raum möglicherweise nicht genau darstellen."
-
-#~ msgid "Do not Enable AMS"
-#~ msgstr "AMS nicht aktivieren"
-
-#~ msgid "Print using materials mounted on the back of the case"
-#~ msgstr "Drucken mit Materialien, die an der Rückseite des Gehäuses montiert sind"
-
-#~ msgid "Print with filaments in ams"
-#~ msgstr "Drucken mit Materialien im AMS"
-
-#~ msgid "Print with filaments mounted on the back of the chassis"
-#~ msgstr "Drucken mit Filamenten, die an der Rückseite des Chassis montiert sind"
+#~ "Zu große Schichthöhe.\n"
+#~ "Auf 0,2 zurücksetzen"
 
 #~ msgid ""
 #~ "Arachne engine only works when overhang slowing down is disabled.\n"
-#~ "This may cause decline in the quality of overhang surface when print fastly"
+#~ "This may cause decline in the quality of overhang surface when print fastly\n"
 #~ msgstr ""
-#~ "Der Arachne Modus funktioniert nur, wenn die Überhangverlangsamung deaktiviert "
-#~ "ist.\n"
-#~ "Dies kann zu einem Rückgang der Qualität der Überhangfläche führen, wenn zu "
-#~ "schnell gedruckt wird"
+#~ "Der Arachne-Motor funktioniert nur, wenn die Verlangsamung bei Überhängen "
+#~ "deaktiviert ist. \n"
+#~ "Dies kann zu einer Verschlechterung der Oberflächenqualität bei schneller "
+#~ "Druckgeschwindigkeit führen\n"
 
 #~ msgid ""
 #~ "Switch to rectilinear pattern?\n"
 #~ "Yes - switch to rectilinear pattern automaticlly\n"
-#~ "No  - reset density to default non 100% value automaticlly"
+#~ "No  - reset density to default non 100% value automaticlly\n"
 #~ msgstr ""
-#~ "Zum geradlinigen Muster wechseln?\n"
-#~ "Ja - automatisch zum geradlinigen Muster wechseln\n"
-#~ "Nein - Setzen Sie die Dichte automatisch auf den Standardwert unter 100% zurück"
-
-#~ msgid "Layer Time"
-#~ msgstr "Layerzeit"
-
-#~ msgid "Layer Time (log)"
-#~ msgstr "Layerzeit (log)"
-
-#~ msgid "Layer Time: "
-#~ msgstr "Layerzeit: "
-
-#~ msgid "Pass 1"
-#~ msgstr "Durchgang 1"
-
-#~ msgid "Flow rate test - Pass 1"
-#~ msgstr "Durchflussratentests - Teil 1"
-
-#~ msgid "Pass 2"
-#~ msgstr "Durchgang 2"
-
-#~ msgid "Flow rate test - Pass 2"
-#~ msgstr "Durchflussratentests - Teil 1"
-
-#~ msgid "Flow rate"
-#~ msgstr "Durchflussrate"
-
-#~ msgid "Pressure Advance"
-#~ msgstr "Pressure Advance"
-
-#~ msgid "Tutorial"
-#~ msgstr "Anleitung"
-
-#~ msgid "Calibration help"
-#~ msgstr "Kalibrierungshilfe"
+#~ "Wechseln zu einem rechtwinkligen Muster?\n"
+#~ "Ja - wechselt automatisch zu einem rechtwinkligen Muster. \n"
+#~ "Nein - setzt die Dichte automatisch auf den Standardwert (nicht 100%) zurück.\n"
 
 #~ msgid ""
 #~ "Do you want to synchronize your personal data from Bambu Cloud? \n"
 #~ "It contains the following information:\n"
 #~ "1. The Process presets\n"
 #~ "2. The Filament presets\n"
-#~ "3. The Printer presets"
+#~ "3. The Printer presets\n"
 #~ msgstr ""
-#~ "Möchten Sie Ihre persönlichen Daten aus Bambu Cloud synchronisieren?\n"
+#~ "Möchten Sie Ihre persönlichen Daten von Bambu Cloud synchronisieren? \n"
 #~ "Es enthält die folgenden Informationen:\n"
-#~ "1. Die Prozessvoreinstellungen\n"
+#~ "1. Die Prozess-Voreinstellungen\n"
 #~ "2. Die Filament-Voreinstellungen\n"
-#~ "3. Die Drucker-Voreinstellungen"
-
-#~ msgid "Printer is busy downloading, Please wait for the downloading to finish."
-#~ msgstr ""
-#~ "Der Drucker ist beschäftigt mit dem Herunterladen, bitte warten Sie, bis das "
-#~ "Herunterladen abgeschlossen ist."
-
-#~ msgid "LAN Connection Failed (Failed to start liveview)"
-#~ msgstr "LAN-Verbindung fehlgeschlagen (Fehler beim Starten der Liveansicht)"
-
-#~ msgid "Layers: N/A"
-#~ msgstr "Schichten: N/A"
+#~ "3. Die Drucker-Voreinstellungen\n"
 
 #, c-format, boost-format
-#~ msgid "Layers: %s"
-#~ msgstr "Schichten: %s"
-
-#, c-format, boost-format
-#~ msgid "Layers: %d/%d"
-#~ msgstr "Schichten: %d/%d"
-
-#~ msgid "AMS settings are not supported for external spool"
-#~ msgstr "AMS-Einstellungen werden für externen Spool nicht unterstützt"
-
-#~ msgid "Please select an AMS slot before calibration"
-#~ msgstr "Bitte wählen Sie einen AMS-Slot vor der Kalibrierung aus"
-
-#, c-format, boost-format
-#~ msgid "Plate %d: %s does not support filament %s (%s)."
-#~ msgstr "Platte %d: %s unterstützt kein Filament %s (%s)."
-
-#~ msgid "This printer does not support printing all plates"
-#~ msgstr "Dieser Drucker unterstützt nicht das Drucken aller Platten"
+#~ msgid "Plate %d: %s does not support filament %s (%s).\n"
+#~ msgstr "Platte %d: %s unterstützt das Filament %s (%s)  nicht.\n"
 
 #~ msgid ""
 #~ "When recording timelapse without toolhead, it is recommended to add a "
 #~ "\"Timelapse Wipe Tower\" \n"
 #~ "by right-click the empty position of build plate and choose \"Add Primitive\"-"
-#~ ">\"Timelapse Wipe Tower\"."
+#~ ">\"Timelapse Wipe Tower\".\n"
 #~ msgstr ""
-#~ "Wenn Sie eine Zeitrafferaufnahme ohne Werkzeugkopf aufnehmen, wird empfohlen, "
+#~ "Empfohlen wird beim Aufzeichnen einer Zeitrafferaufnahme ohne Werkzeugkopf, "
 #~ "einen „Timelapse Wipe Tower“ hinzuzufügen,\n"
-#~ "indem Sie auf die leere Position der Bauplatte rechtsklicken und „Primitiv "
-#~ "hinzufügen“ -> „Timelapse Wipe Tower“ auswählen."
-
-#~ msgid "Jerk(XY)"
-#~ msgstr "Jerk(XY)"
-
-#, fuzzy
-#~| msgid "Post-processing scripts"
-#~ msgid "Post-processing Scripts"
-#~ msgstr "Post-Processing Scripts ausführen"
-
-#~ msgid "Chamber temperature"
-#~ msgstr "Druckraum Temperatur"
-
-#~ msgid ""
-#~ "The Wipe option is not available when using the Firmware Retraction mode.\n"
-#~ "\n"
-#~ "Shall I disable it in order to enable Firmware Retraction?"
-#~ msgstr ""
-#~ "Die Wipe-Option ist bei Verwendung des Firmware-Retractionsmodus nicht "
-#~ "verfügbar. Soll ich sie deaktivieren, um den Firmware-Retractionsmodus zu "
-#~ "aktivieren?"
-
-#, fuzzy
-#~| msgid "Use firmware retraction"
-#~ msgid "Firmware Retraction"
-#~ msgstr "Filament Rückzug durch Firmware"
-
-#~ msgid "LAN Connection Failed (Sending print file)"
-#~ msgstr "LAN-Verbindung fehlgeschlagen (Druckdatei senden)"
-
-#~ msgid "Step 1, please confirm Bambu Studio and your printer are in the same LAN."
-#~ msgstr ""
-#~ "Schritt 1, bitte bestätigen Sie, dass Bambu Studio und Ihr Drucker im gleichen "
-#~ "LAN sind."
-
-#~ msgid ""
-#~ "Step 2, if the IP and Access Code below are different from the actual values "
-#~ "on your printer, please correct them."
-#~ msgstr ""
-#~ "Schritt 2, wenn die unten angegebene IP-Adresse und der Zugangscode von den "
-#~ "tatsächlichen Werten auf Ihrem Drucker abweichen, korrigieren Sie bitte diese."
-
-#~ msgid "IP"
-#~ msgstr "IP"
-
-#~ msgid "Access Code"
-#~ msgstr "Zugangscode"
-
-#~ msgid "Where to find your printer's IP and Access Code?"
-#~ msgstr "Wo finde ich die IP-Adresse und den Zugriffscode meines Druckers?"
-
-#~ msgid "Error: IP or Access Code are not correct"
-#~ msgstr "Error: IP or Access Code are not correct"
+#~ "indem man auf die leere Position des Bauplattens klickt und „Primitiv "
+#~ "hinzufügen“ -> „Timelapse Wipe Tower“ auswählt\n"
 
 #, c-format, boost-format
-#~ msgid "Plate %d: %s does not support filament %s"
-#~ msgstr "Platte %d: %s unterstützt Filament %s nicht"
-
-#~ msgid "Top surface flow ratio"
-#~ msgstr "Durchflussverhältnis obere Fläche"
-
-#~ msgid ""
-#~ "This factor affects the amount of material for top solid infill. You can "
-#~ "decrease it slightly to have smooth surface finish"
-#~ msgstr ""
-#~ "Dieser Faktor beeinflusst die Menge des Materials für die obere Füllung. Sie "
-#~ "können ihn leicht verringern, um eine glatte Oberflächenbeschichtung zu "
-#~ "erhalten"
-
-#~ msgid "Bottom surface flow ratio"
-#~ msgstr "Durchflussverhältnis untere Fläche"
-
-#~ msgid "This factor affects the amount of material for bottom solid infill"
-#~ msgstr "Dieser Faktor beeinflusst die Menge des Materials für die untere Füllung"
-
-#~ msgid "Only one wall on first layer"
-#~ msgstr "Nur eine Wand auf den ersten Fläche"
-
-#~ msgid ""
-#~ "Use only one wall on first layer, to give more space to the bottom infill "
-#~ "pattern"
-#~ msgstr ""
-#~ "Verwenden Sie nur eine Wand in der ersten Schicht, um dem Muster der unteren "
-#~ "Füllung mehr Platz zu geben"
-
-#~ msgid "outer_only"
-#~ msgstr "Nur Außen"
-
-#~ msgid "Inner brim only"
-#~ msgstr "Nur Innenrand"
-
-#~ msgid "Outer and inner brim"
-#~ msgstr "Äußere und innere Randleiste"
-
-#~ msgid "Small perimeters"
-#~ msgstr "Feine Strukturen"
-
-#~ msgid ""
-#~ "This separate setting will affect the speed of perimeters having radius <= "
-#~ "6.5mm (usually holes). If expressed as percentage (for example: 80%) it will "
-#~ "be calculated on the outer wall speed setting above. Set to zero for auto."
-#~ msgstr ""
-#~ "Diese separate Einstellung beeinflusst die Geschwindigkeit von Umfängen mit "
-#~ "einem Radius <= 6,5 mm (normalerweise Löcher). Wenn sie als Prozentsatz (z. B. "
-#~ "80%) angegeben wird, wird sie auf der oben angegebenen Geschwindigkeit der "
-#~ "Außenwand berechnet. Auf Null setzen für automatisch."
-
-#, fuzzy
-#~| msgid "mm or %"
-#~ msgid "mm/s or %"
-#~ msgstr "mm or %"
-
-#~ msgid "Small perimeters threshold"
-#~ msgstr "Schwelle für kleine Strukturen"
-
-#~ msgid ""
-#~ "This sets the threshold for small perimeter length. Default threshold is 6.5mm"
-#~ msgstr ""
-#~ "Dies legt den Schwellenwert für kurze Umfangslänge fest. Der Standard-"
-#~ "Schwellenwert beträgt 6,5 mm"
-
-#, fuzzy
-#~| msgid "inner/outer/infill"
-#~ msgid "inner-outer-inner/infill"
-#~ msgstr "Innen/Außen/Füllung"
-
-#~ msgid "Enable pressure advance"
-#~ msgstr "Pressure advance aktivieren"
-
-#~ msgid ""
-#~ "Enable pressure advance, auto calibration result will be overwriten once "
-#~ "enabled."
-#~ msgstr ""
-#~ "Wenn Pressure Advance aktiviert ist,werden  Auto-Kalibrierungsergebnisse "
-#~ "überschrieben."
-
-#~ msgid "Pressure advance"
-#~ msgstr "Pressure advance"
-
-#~ msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin)"
-#~ msgstr "Pressure advance(Klipper)AKA Linear advance Faktor(Marlin)"
-
-#~ msgid ""
-#~ "After a tool change, the exact position of the newly loaded filament inside "
-#~ "the nozzle may not be known, and the filament pressure is likely not yet "
-#~ "stable. Before purging the print head into an infill or a sacrificial object, "
-#~ "Slic3r will always prime this amount of material into the wipe tower to "
-#~ "produce successive infill or sacrificial object extrusions reliably."
-#~ msgstr ""
-#~ "Nach einem Werkzeugwechsel ist die genaue Position des neu geladenen Filaments "
-#~ "im Düsenkopf möglicherweise unbekannt und der Filamentdruck ist wahrscheinlich "
-#~ "noch nicht stabil. Bevor Slic3r den Druckkopf in ein Infill oder ein "
-#~ "opferbares Objekt spült, wird immer diese Menge Material in den Wipe-Turm "
-#~ "gefüllt, um zuverlässige nachfolgende Infill- oder opferbare Objekt-"
-#~ "Extrusionen zu erzeugen. So wird sichergestellt, dass das Drucken nicht "
-#~ "gestört wird und die Qualität des Drucks erhalten bleibt."
-
-#~ msgid "Bridge infill direction"
-#~ msgstr "Brückenfüllrichtung"
-
-#~ msgid ""
-#~ "Angle for bridge infill pattern, which controls the start or main direction of "
-#~ "line"
-#~ msgstr ""
-#~ "Winkel des Brücken-Füllmusters, der die Start- oder Hauptrichtung der Linie "
-#~ "steuert"
-
-#~ msgid "Acceleration of outer walls"
-#~ msgstr "Beschleunigung Außenwände"
-
-#~ msgid "Acceleration of inner walls"
-#~ msgstr "Beschleunigung Innenwände"
-
-#~ msgid "Acceleration of travel moves"
-#~ msgstr "Beschleunigung Bewegung"
-
-#~ msgid "Adjust accel to decel"
-#~ msgstr "Beschleunigung auf die Verzögerung anpassen"
-
-#~ msgid "Klipper's max_accel_to_decel will be adjusted automatically"
-#~ msgstr ""
-#~ "Die maximale Beschleunigung und Verzögerung von Klipper wird automatisch "
-#~ "angepasst"
-
-#, c-format, boost-format
-#~ msgid "% of acceleration"
-#~ msgstr "% of Beschleunigung"
-
-#, c-format, boost-format
-#~ msgid "Klipper's Max_accel_to_decel will be adjusted to this % of acceleration"
-#~ msgstr ""
-#~ "Klipper’s max_accel_to_decel wird auf % of  Prozentsatz der Beschleunigung "
-#~ "eingestellt"
-
-#, fuzzy
-#~| msgid "Line width of outer wall"
-#~ msgid "Jerk of outer walls"
-#~ msgstr "Linienbreite der Außenwand"
-
-#, fuzzy
-#~| msgid "Speed of inner wall"
-#~ msgid "Jerk of inner walls"
-#~ msgstr "Druckgeschwindigkeit der Innenwand"
-
-#, fuzzy
-#~| msgid "Line width for top surfaces"
-#~ msgid "Jerk for top surface"
-#~ msgstr "Linienbreite für Oberseiten"
-
-#, fuzzy
-#~| msgid "Internal solid infill"
-#~ msgid "Jerk for infill"
-#~ msgstr "Interne massive Füllung"
-
-#, fuzzy
-#~| msgid "Line width of initial layer"
-#~ msgid "Jerk for initial layer"
-#~ msgstr "Linienbreite der ersten Schicht"
-
-#~ msgid "Jerk for travel"
-#~ msgstr "Jerk for Bewegung"
-
-#~ msgid "Filter out tiny gaps"
-#~ msgstr "Filtert winzige Lücken aus"
-
-#~ msgid "Layers and Perimeters"
-#~ msgstr "Schichten und Perimeter"
-
-#~ msgid ""
-#~ "Filter out gaps smaller than the threshold specified. This setting won't "
-#~ "affact top/bottom layers"
-#~ msgstr ""
-#~ "Filtert Lücken aus, die kleiner als der festgelegte Schwellenwert sind. Diese "
-#~ "Einstellung beeinflusst die obersten/untersten Schichten nicht"
-
-#~ msgid "Klipper"
-#~ msgstr "Klipper"
-
-#, fuzzy
-#~| msgid "Interface pattern"
-#~ msgid "Interface shells"
-#~ msgstr "Schnittstellenmuster"
-
-#~ msgid ""
-#~ "Force the generation of solid shells between adjacent materials/volumes. "
-#~ "Useful for multi-extruder prints with translucent materials or manual soluble "
-#~ "support material"
-#~ msgstr ""
-#~ "Erzwingen der Erstellung von festen Hüllen zwischen benachbarten Materialien/"
-#~ "Volumina“ ist eine Funktion, die bei Drucken mit mehreren Extrudern verwendet "
-#~ "werden kann, insbesondere bei Drucken mit durchsichtigen Materialien oder "
-#~ "manuell lösbaren Unterstützungsmaterialien"
-
-#~ msgid ""
-#~ "If you want to process the output G-code through custom scripts, just list "
-#~ "their absolute paths here. Separate multiple scripts with a semicolon. Scripts "
-#~ "will be passed the absolute path to the G-code file as the first argument, and "
-#~ "they can access the Slic3r config settings by reading environment variables."
-#~ msgstr ""
-#~ "Wenn Sie die Ausgabe-G-Code-Datei durch benutzerdefinierte Skripts verarbeiten "
-#~ "möchten, geben Sie hier die absoluten Pfade auf. Trennen Sie mehrere Skripts "
-#~ "durch ein Semikolon. Die Skripts erhalten den absoluten Pfad zur G-Code-Datei "
-#~ "als erstes Argument und können die Slic3r-Konfigurationseinstellungen durch "
-#~ "Lesen von Umgebungsvariablen abrufen."
-
-#~ msgid "Extra length on restart"
-#~ msgstr "Zusätzliche Länge beim Neustart"
-
-#~ msgid ""
-#~ "When the retraction is compensated after the travel move, the extruder will "
-#~ "push this additional amount of filament. This setting is rarely needed."
-#~ msgstr ""
-#~ "Wenn die Rückzugskompensation nach dem Reisemove durchgeführt wird, wird der "
-#~ "Extruder diese zusätzliche Menge an Filament schieben. Diese Einstellung wird "
-#~ "nur selten benötigt."
-
-#~ msgid ""
-#~ "When the retraction is compensated after changing tool, the extruder will push "
-#~ "this additional amount of filament."
-#~ msgstr ""
-#~ "Wenn die Rückzugskompensation nach dem Wechsel des Werkzeugs durchgeführt "
-#~ "wird, wird der Extruder diese zusätzliche Menge an Filament schieben."
-
-#~ msgid "Use firmware retraction"
-#~ msgstr "Filament Rückzug durch Firmware"
-
-#~ msgid ""
-#~ "This experimental setting uses G10 and G11 commands to have the firmware "
-#~ "handle the retraction. This is only supported in recent Marlin."
-#~ msgstr ""
-#~ "Diese experimentelle Einstellung nutzt die Befehle G10 und G11, um die "
-#~ "Firmware das Zurückziehen zu handhaben.Dies wird nur von aktuellen Marlin-"
-#~ "Firmware unterstützt."
-
-#~ msgid "Seam gap"
-#~ msgstr "Naht Zwischenraum"
-
-#~ msgid ""
-#~ "When extruding a closed loop, the loop is interrupted and shortened a bit to "
-#~ "reduce the seam.\n"
-#~ "Can be a mm or a % of the current extruder diameter. Default value is 15%"
-#~ msgstr ""
-#~ "Um die Sichtbarkeit der Naht in einer geschlossenen Schleifenextrusion zu "
-#~ "reduzieren, wird die Schleife unterbrochen und um eine bestimmte Menge "
-#~ "verkürzt.\n"
-#~ "Diese Menge kann in Millimetern oder als Prozentsatz des aktuellen "
-#~ "Extruderdurchmessers angegeben werden.\n"
-#~ "Der Standardwert für diesen Parameter beträgt 15%. Dies wird durchgeführt, um "
-#~ "das endgültige Produkt glatter und nahtloser aussehen zu lassen"
-
-#~ msgid "Role base wipe speed"
-#~ msgstr "Rollenbasierte Wipe Geschwindigkeit"
-
-#~ msgid ""
-#~ "The wipe speed is same as the current extrusion role's speed.\n"
-#~ "e.g. if wipe action is followed by a outer wall extrusion, the outer wall "
-#~ "speed will be used for this wipe action."
-#~ msgstr ""
-#~ "Die Wischgeschwindigkeit entspricht der Geschwindigkeit der aktuellen "
-#~ "Extrusionsrolle.\n"
-#~ "z.B. Wenn auf die Wischaktion eine Außenwandextrusion folgt, wird die "
-#~ "Außenwandgeschwindigkeit für diese Wischaktion verwendet."
-
-#~ msgid "Wipe speed"
-#~ msgstr "Wipe Geschwindigkeit"
-
-#~ msgid ""
-#~ "This setting will affect the speed of wipe. If expressed as percentage (for "
-#~ "example: 80%) it will be calculated on the travel speed setting above. Default "
-#~ "value is 80%"
-#~ msgstr ""
-#~ "Diese separate Einstellung beeinflusst die Geschwindigkeit von Umfängen mit "
-#~ "einem Radius <= 6,5 mm (normalerweise Löcher). Wenn sie als Prozentsatz (z. B. "
-#~ "80%) angegeben wird, wird sie auf der oben angegebenen Geschwindigkeit der "
-#~ "Außenwand berechnet. Auf Null setzen für automatisch"
-
-#~ msgid "Tree support with infill"
-#~ msgstr "Baumsupport mit Füllung"
-
-#, fuzzy
-#~| msgid "This setting specify the count of walls around tree support"
-#~ msgid ""
-#~ "This setting specifies whether to add infill inside large hollows of tree "
-#~ "support"
-#~ msgstr "Diese Einstellung gibt die Anzahl der Wände um den Baumsupport an"
-
-#, fuzzy
-#~| msgid "Chamber temperature"
-#~ msgid "Target chamber temperature"
-#~ msgstr "Druckraum Temperatur"
-
-#~ msgid "Z hop type"
-#~ msgstr "Z-Hub Typ"
-
-#, fuzzy
-#~| msgid "Normal"
-#~ msgid "NormalLift"
-#~ msgstr "Normal"
-
-#~ msgid "SpiralLift"
-#~ msgstr "SpiralLift"
-
-#~ msgid "G-code thumbnails"
-#~ msgstr "G-Code Vorschaubilder"
-
-#~ msgid ""
-#~ "Picture sizes to be stored into a .gcode and .sl1 / .sl1s files, in the "
-#~ "following format: \"XxY, XxY, ...\""
-#~ msgstr ""
-#~ "Bildgrößen, die in eine .gcode und .sl1 / .sl1s-Datei gespeichert werden "
-#~ "sollen, im folgenden Format: „XxY, XxY, …"
-
-#~ msgid "Use relative E distances"
-#~ msgstr "Relative Extrusion"
-
-#~ msgid ""
-#~ "Relative extrusion is recommended when using \"label_objects\" option.Some "
-#~ "extruders work better with this option unckecked (absolute extrusion mode). "
-#~ "Wipe tower is only compatible with relative mode. It is always enabled on "
-#~ "BambuLab printers. Default is checked"
-#~ msgstr ""
-#~ "Die relative Extrusion wird empfohlen, wenn die Option „label_objects“ "
-#~ "verwendet wird. Einige Extruder funktionieren besser, wenn diese Option "
-#~ "deaktiviert ist (Absolute Extrusion). Der Wipe-Turm ist nur im relativen Modus "
-#~ "kompatibel. Er ist immer auf BambuLab-Druckern aktiviert"
+#~ msgid "Plate %d: %s does not support filament %s\n"
+#~ msgstr "Platte %d: %s unterstützt das Filament %s nicht\n"
 
 #~ msgid ""
 #~ "The wipe speed is determined by the speed setting specified in this "
