@@ -1765,7 +1765,7 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
 {
     if (!obj) return;
 
-    if (obj->can_unload_filament()) {
+    /*if (obj->can_unload_filament()) {
         if (!m_button_unload->IsShown()) {
             m_button_unload->Show();
             m_button_unload->GetParent()->Layout();
@@ -1775,7 +1775,7 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
             m_button_unload->Hide();
             m_button_unload->GetParent()->Layout();
         }
-    }
+    }*/
 
     // update extruder icon
     update_extruder_status(obj);
