@@ -159,7 +159,7 @@ void ConfigManipulation::check_filament_max_volumetric_speed(DynamicPrintConfig 
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
- 
+
 }
 
 void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, const bool is_global_config)
@@ -313,7 +313,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
         if (cb_value_change) {
             cb_value_change("sparse_infill_density", sparse_infill_density);
-            cb_value_change("timelapse_type", timelapse_type);
+            int timelapse_type_int = (int)timelapse_type;
+            cb_value_change("timelapse_type", timelapse_type_int);
             if (!support)
                 cb_value_change("enable_support", false);
         }
