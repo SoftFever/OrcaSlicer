@@ -255,7 +255,7 @@ void BBLTopbar::Init(wxFrame* parent)
     m_publish_disable_bitmap = create_scaled_bitmap("topbar_publish_disable", nullptr, TOPBAR_ICON_SIZE);
     m_publish_item->SetDisabledBitmap(m_publish_disable_bitmap);
     this->EnableTool(m_publish_item->GetId(), false);
-    this->AddSpacer(FromDIP(12));
+    this->AddSpacer(FromDIP(4));
 
     /*wxBitmap model_store_bitmap = create_scaled_bitmap("topbar_store", nullptr, TOPBAR_ICON_SIZE);
     m_model_store_item = this->AddTool(ID_MODEL_STORE, "", model_store_bitmap);
@@ -263,12 +263,12 @@ void BBLTopbar::Init(wxFrame* parent)
     */
 
     //this->AddSeparator();
-    this->AddSpacer(FromDIP(6));
+    this->AddSpacer(FromDIP(4));
 
     wxBitmap iconize_bitmap = create_scaled_bitmap("topbar_min", nullptr, TOPBAR_ICON_SIZE);
     wxAuiToolBarItem* iconize_btn = this->AddTool(wxID_ICONIZE_FRAME, "", iconize_bitmap);
 
-    this->AddSpacer(FromDIP(6));
+    this->AddSpacer(FromDIP(4));
 
     maximize_bitmap = create_scaled_bitmap("topbar_max", nullptr, TOPBAR_ICON_SIZE);
     window_bitmap = create_scaled_bitmap("topbar_win", nullptr, TOPBAR_ICON_SIZE);
@@ -279,7 +279,7 @@ void BBLTopbar::Init(wxFrame* parent)
         maximize_btn = this->AddTool(wxID_MAXIMIZE_FRAME, "", maximize_bitmap);
     }
 
-    this->AddSpacer(FromDIP(6));
+    this->AddSpacer(FromDIP(4));
 
     wxBitmap close_bitmap = create_scaled_bitmap("topbar_close", nullptr, TOPBAR_ICON_SIZE);
     wxAuiToolBarItem* close_btn = this->AddTool(wxID_CLOSE_FRAME, "", close_bitmap);
