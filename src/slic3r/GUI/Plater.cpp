@@ -7423,6 +7423,7 @@ int Plater::new_project(bool skip_confirm, bool silent)
 
     m_only_gcode = false;
     m_exported_file = false;
+    m_loading_project = false;
     get_notification_manager()->bbl_close_plateinfo_notification();
     get_notification_manager()->bbl_close_preview_only_notification();
 
@@ -7494,6 +7495,16 @@ void Plater::load_project(wxString const& filename2,
     //BBS: add only gcode mode
     bool previous_gcode = m_only_gcode;
 
+    // BBS
+    if (m_loading_project) {
+        //some error cases happens
+        //return directly
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": current loading other project, return directly");
+        return;
+    }
+    else
+        m_loading_project = true;
+
     m_only_gcode = false;
     m_exported_file = false;
     get_notification_manager()->bbl_close_plateinfo_notification();
@@ -7558,6 +7569,8 @@ void Plater::load_project(wxString const& filename2,
     up_to_date(true, true);
 
     wxGetApp().params_panel()->switch_to_object_if_has_object_configs();
+
+    m_loading_project = false;
 }
 
 // BBS: save logic

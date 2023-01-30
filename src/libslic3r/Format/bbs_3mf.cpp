@@ -5347,6 +5347,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool sub_model = !objects_data.empty();
         bool write_object = sub_model || !m_split_model;
 
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", filename %1%, m_split_model %2%,  sub_model %3%")%filename % m_split_model % sub_model;
+
 #if WRITE_ZIP_LANGUAGE_ENCODING
         auto & zip_filename = filename;
 #else

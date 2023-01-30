@@ -688,6 +688,7 @@ private:
     bool m_only_gcode { false };
     bool m_exported_file { false };
     bool skip_thumbnail_invalid { false };
+    bool m_loading_project {false };
     std::string m_preview_only_filename;
     int m_valid_plates_count { 0 };
 
