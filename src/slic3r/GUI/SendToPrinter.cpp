@@ -1051,7 +1051,7 @@ void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxSt
 		Enable_Refresh_Button(true);
 	}
 	else if (status == PrintDialogStatus::PrintStatusNoSdcard) {
-		wxString msg_text = _L("An SD card needs to be inserted before printing via LAN.");
+		wxString msg_text = _L("An SD card needs to be inserted before send to printer SD card.");
 		update_print_status_msg(msg_text, true, true);
 		Enable_Send_Button(false);
 		Enable_Refresh_Button(true);
