@@ -4711,6 +4711,7 @@ void ObjectList::fix_through_netfabb()
 
         plater->changed_mesh(obj_idx);
 
+        object(obj_idx)->ensure_on_bed();
         plater->get_partplate_list().notify_instance_update(obj_idx, 0);
         plater->sidebar().obj_list()->update_plate_values_for_items();
 
@@ -4721,8 +4722,6 @@ void ObjectList::fix_through_netfabb()
 
         update_item_error_icon(obj_idx, vol_idx);
         update_info_items(obj_idx);
-
-        object(obj_idx)->ensure_on_bed();
 
         return true;
     };
