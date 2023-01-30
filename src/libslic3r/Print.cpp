@@ -1389,6 +1389,8 @@ void Print::process(bool use_cache)
                 return false;
             if (model_volume1.mesh_ptr() != model_volume2.mesh_ptr())
                 return false;
+            if (!(model_volume1.get_transformation() == model_volume2.get_transformation()))
+                return false;
             has_extruder1 = model_volume1.config.has("extruder");
             has_extruder2 = model_volume2.config.has("extruder");
             if ((has_extruder1 != has_extruder2)
