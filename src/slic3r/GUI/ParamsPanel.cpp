@@ -364,19 +364,18 @@ void ParamsPanel::create_layout()
         m_mode_sizer->Add(m_process_icon, 0, wxALIGN_CENTER);
         m_mode_sizer->AddSpacer(FromDIP(11));
         m_mode_sizer->Add( m_title_label, 0, wxALIGN_CENTER );
-        m_mode_sizer->AddSpacer(FromDIP(9));
-        m_mode_sizer->Add( m_mode_region, 0, wxALIGN_CENTER );
-        m_mode_sizer->AddSpacer(FromDIP(9));
-        m_mode_sizer->Add( m_tips_arrow, 0, wxALIGN_CENTER);
+        m_mode_sizer->AddStretchSpacer(2);
+        m_mode_sizer->Add(m_mode_region, 0, wxALIGN_CENTER);
         m_mode_sizer->AddStretchSpacer(1);
+        m_mode_sizer->Add(m_tips_arrow, 0, wxALIGN_CENTER);
+        m_mode_sizer->AddStretchSpacer(8);
         m_mode_sizer->Add( m_title_view, 0, wxALIGN_CENTER );
-        m_mode_sizer->AddSpacer(FromDIP(9));
-        m_mode_sizer->Add( m_mode_view, 0, wxALIGN_CENTER );
-        m_mode_sizer->AddSpacer(FromDIP(16));
-        m_mode_sizer->Add( m_setting_btn, 0, wxALIGN_CENTER );
-
-        m_mode_sizer->AddSpacer(FromDIP(16));
-        m_mode_sizer->Add( m_compare_btn, 0, wxALIGN_CENTER );
+        m_mode_sizer->AddSpacer(FromDIP(2));
+        m_mode_sizer->Add(m_mode_view, 0, wxALIGN_CENTER);
+        m_mode_sizer->AddStretchSpacer(2);
+        m_mode_sizer->Add(m_setting_btn, 0, wxALIGN_CENTER);
+        m_mode_sizer->AddSpacer(FromDIP(2));
+        m_mode_sizer->Add(m_compare_btn, 0, wxALIGN_CENTER);
 
         m_mode_sizer->AddSpacer(FromDIP(8));
         //m_mode_sizer->Add( m_search_btn, 0, wxALIGN_CENTER );
