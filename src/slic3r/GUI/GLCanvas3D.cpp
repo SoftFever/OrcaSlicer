@@ -2170,16 +2170,15 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
     struct GLVolumeState {
         GLVolumeState() :
-            volume_idx(size_t(-1)), was_wipe_tower(0) {}
+            volume_idx(size_t(-1)) {}
         GLVolumeState(const GLVolume* volume, unsigned int volume_idx) :
-            composite_id(volume->composite_id), volume_idx(volume_idx), was_wipe_tower(volume->is_wipe_tower) {}
+            composite_id(volume->composite_id), volume_idx(volume_idx) {}
         GLVolumeState(const GLVolume::CompositeID &composite_id) :
-            composite_id(composite_id), volume_idx(size_t(-1)), was_wipe_tower(0) {}
+            composite_id(composite_id), volume_idx(size_t(-1)) {}
 
         GLVolume::CompositeID       composite_id;
         // Volume index in the old GLVolume vector.
         size_t                      volume_idx;
-        bool                        was_wipe_tower;
     };
 
     // SLA steps to pull the preview meshes for.
@@ -2388,8 +2387,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             // slow thing of seeing if they were in the deleted list, and if
             // so, if they were a wipe tower.
             bool was_deleted_wipe_tower = false;
-            for (int del_idx = 0; del_idx < deleted_volumes.size(); del_idx++) {
-                if (deleted_volumes[del_idx].volume_idx == temp_idx && deleted_volumes[del_idx].was_wipe_tower) {
+            for (int del_idx = 0; del_idx < deleted_wipe_towers.size(); del_idx++) {
+                if (deleted_wipe_towers[del_idx].volume_idx == temp_idx) {
                     was_deleted_wipe_tower = true;
                     break;
                 }
@@ -4275,8 +4274,8 @@ void GLCanvas3D::on_paint(wxPaintEvent& evt)
         this->render();
 }
 
-void GLCanvas3D::force_set_focus() { 
-    m_canvas->SetFocus(); 
+void GLCanvas3D::force_set_focus() {
+    m_canvas->SetFocus();
 };
 
 void GLCanvas3D::on_set_focus(wxFocusEvent& evt)
