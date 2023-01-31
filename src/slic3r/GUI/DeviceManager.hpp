@@ -484,7 +484,6 @@ public:
     bool can_unload_filament();
     bool is_U0_firmware();
     bool is_support_ams_mapping();
-    bool is_only_support_cloud_print();
     static bool is_support_ams_mapping_version(std::string module, std::string version);
 
     int ams_filament_mapping(std::vector<FilamentInfo> filaments, std::vector<FilamentInfo> &result, std::vector<int> exclude_id = std::vector<int>());

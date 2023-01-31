@@ -639,17 +639,6 @@ bool MachineObject::is_support_ams_mapping_version(std::string module, std::stri
     return result;
 }
 
-bool MachineObject::is_only_support_cloud_print()
-{
-    auto ap_ver_it = module_vers.find("rv1126");
-    if (ap_ver_it != module_vers.end()) {
-        if (ap_ver_it->second.sw_ver > "00.00.12.61") {
-            return false;
-        }
-    }
-    return true;
-}
-
 static float calc_color_distance(wxColour c1, wxColour c2)
 {
     float lab[2][3];

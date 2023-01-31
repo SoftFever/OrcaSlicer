@@ -2165,10 +2165,6 @@ void SelectMachineDialog::on_ok()
 
     m_print_job->has_sdcard = obj_->has_sdcard();
 
-    if (obj_->is_only_support_cloud_print()) {
-        m_print_job->cloud_print_only = true;
-    }
-
 
     bool timelapse_option = select_timelapse->IsShown() ? m_checkbox_list["timelapse"]->GetValue() : true;
 
