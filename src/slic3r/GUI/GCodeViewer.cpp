@@ -353,7 +353,8 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     glsafe(::glDisable(GL_BLEND));
 
     static float last_window_width = 0.0f;
-    static size_t last_text_length = 0;
+    size_t text_line = 0;
+    static size_t last_text_line = 0;
     const ImU32 text_name_clr = m_is_dark ? IM_COL32(255, 255, 255, 0.88 * 255) : IM_COL32(38, 46, 48, 255);
     const ImU32 text_value_clr = m_is_dark ? IM_COL32(255, 255, 255, 0.4 * 255) : IM_COL32(144, 144, 144, 255);
 
@@ -387,14 +388,15 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
     const float window_padding = ImGui::GetStyle().WindowPadding.x;
 
     char buf[1024];
-    if (view_type == EViewType::Height ||
-        view_type == EViewType::Width ||
-        view_type == EViewType::Feedrate ||
-        view_type == EViewType::VolumetricRate ||
-        view_type == EViewType::LayerTime ||
-        view_type == EViewType::LayerTimeLog ||
-        view_type == EViewType::FanSpeed ||
-        view_type == EViewType::Temperature)
+    // extra text depends on whether current move is extrude type
+    bool show_extra_text = m_curr_move.type == EMoveType::Extrude;
+    // FeatureType and ColorPrint shall only show x,y,z
+    if (view_type == EViewType::FeatureType || view_type == EViewType::ColorPrint)
+        show_extra_text = false;
+    // Feedrate and LayerTime shall always show extra text
+    else if (view_type == EViewType::Feedrate || view_type == EViewType::LayerTime || view_type == EViewType::LayerTimeLog)
+        show_extra_text = true;
+    if (show_extra_text)
     {
         sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
         ImGui::PushItemWidth(item_size);
@@ -469,6 +471,7 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         default:
             break;
         }
+        text_line = 2;
     }
     else {
         sprintf(buf, "%s%.3f", x.c_str(), position.x() - plate->get_origin().x());
@@ -481,14 +484,15 @@ void GCodeViewer::SequentialView::Marker::render(int canvas_width, int canvas_he
         ImGui::SameLine();
         sprintf(buf, "%s%.3f", z.c_str(), position.z());
         imgui.text(buf);
+
+        text_line = 1;
     }
 
     // force extra frame to automatically update window size
     float window_width = ImGui::GetWindowWidth();
-    //size_t length = strlen(buf);
-    if (window_width != last_window_width /*|| length != last_text_length*/) {
+    if (window_width != last_window_width || text_line != last_text_line) {
         last_window_width = window_width;
-        //last_text_length = length;
+        last_text_line = text_line;
 #if ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
         imgui.set_requires_extra_frame();
 #else
@@ -1790,11 +1794,13 @@ void GCodeViewer::update_layers_slider_mode()
 }
 
 void GCodeViewer::update_marker_curr_move() {
-    auto it = std::find_if(m_gcode_result->moves.begin(), m_gcode_result->moves.end(), [this](auto move) {
-        return move.gcode_id == static_cast<uint64_t>(m_sequential_view.gcode_ids[m_sequential_view.current.last]);
-        });
-
-    m_sequential_view.marker.update_curr_move(*it);
+    if ((int)m_last_result_id != -1) {
+        auto it = std::find_if(m_gcode_result->moves.begin(), m_gcode_result->moves.end(), [this](auto move) {
+            return move.gcode_id == static_cast<uint64_t>(m_sequential_view.gcode_ids[m_sequential_view.current.last]);
+            });
+        if (it != m_gcode_result->moves.end())
+            m_sequential_view.marker.update_curr_move(*it);
+    }
 }
 
 bool GCodeViewer::is_toolpath_move_type_visible(EMoveType type) const
