@@ -868,7 +868,7 @@ int WipingExtrusions::first_nonsoluble_extruder_on_layer(const PrintConfig& prin
 {
     const LayerTools& lt = *m_layer_tools;
     for (auto extruders_it = lt.extruders.begin(); extruders_it != lt.extruders.end(); ++extruders_it)
-        if (!print_config.filament_soluble.get_at(*extruders_it))
+        if (!print_config.filament_soluble.get_at(*extruders_it) && !print_config.filament_is_support.get_at(*extruders_it))
             return (*extruders_it);
 
     return (-1);
@@ -879,7 +879,7 @@ int WipingExtrusions::last_nonsoluble_extruder_on_layer(const PrintConfig& print
 {
     const LayerTools& lt = *m_layer_tools;
     for (auto extruders_it = lt.extruders.rbegin(); extruders_it != lt.extruders.rend(); ++extruders_it)
-        if (!print_config.filament_soluble.get_at(*extruders_it))
+        if (!print_config.filament_soluble.get_at(*extruders_it) && !print_config.filament_is_support.get_at(*extruders_it))
             return (*extruders_it);
 
     return (-1);
