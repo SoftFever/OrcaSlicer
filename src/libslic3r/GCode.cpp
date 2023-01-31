@@ -1406,7 +1406,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     // modifies m_silent_time_estimator_enabled
     DoExport::init_gcode_processor(print.config(), m_processor, m_silent_time_estimator_enabled);
-
     // resets analyzer's tracking data
     m_last_height  = 0.f;
     m_last_layer_z = 0.f;
@@ -1742,6 +1741,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     //BBS: open spaghetti detector
     // if (print.config().spaghetti_detector.value)
+    if (print.is_BBL_Printer())
         file.write("M981 S1 P20000 ;open spaghetti detector\n");
 
     // Do all objects for each layer.
@@ -1806,7 +1806,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             this->process_layers(print, tool_ordering, collect_layers_to_print(object), *print_object_instance_sequential_active - object.instances().data(), file, prime_extruder);
             //BBS: close powerlost recovery
             {
-                if (m_second_layer_things_done) {
+                if (m_second_layer_things_done && print.is_BBL_Printer()) {
                     file.write("; close powerlost recovery\n");
                     file.write("M1003 S0\n");
                 }
@@ -1877,7 +1877,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         this->process_layers(print, tool_ordering, print_object_instances_ordering, layers_to_print, file);
         //BBS: close powerlost recovery
         {
-            if (m_second_layer_things_done) {
+            if (m_second_layer_things_done && print.is_BBL_Printer()) {
                 file.write("; close powerlost recovery\n");
                 file.write("M1003 S0\n");
             }
@@ -1900,7 +1900,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     //BBS: close spaghetti detector
     //Note: M981 is also used to tell xcam the last layer is finished, so we need always send it even if spaghetti option is disabled.
     //if (print.config().spaghetti_detector.value)
-    file.write("M981 S0 P20000 ; close spaghetti detector\n");
+    if (print.is_BBL_Printer())
+        file.write("M981 S0 P20000 ; close spaghetti detector\n");
 
     // adds tag for processor
     file.write_format(";%s%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(), ExtrusionEntity::role_to_string(erCustom).c_str());
@@ -2629,8 +2630,10 @@ GCode::LayerResult GCode::process_layer(
     if (! first_layer && ! m_second_layer_things_done) {
         //BBS: open powerlost recovery
         {
-            gcode += "; open powerlost recovery\n";
-            gcode += "M1003 S1\n";
+            if (print.is_BBL_Printer()) {
+                gcode += "; open powerlost recovery\n";
+                gcode += "M1003 S1\n";
+            }
         }
         // BBS: open first layer inspection at second layer
         if (print.config().scan_first_layer.value) {

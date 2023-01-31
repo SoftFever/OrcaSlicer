@@ -1,0 +1,110 @@
+{
+  "name": "Anycubic",
+  "version": "01.05.00.01",
+  "force_update": "0",
+  "description": "Anycubic configurations",
+  "machine_model_list": [
+      {
+          "name": "Anycubic 4Max Pro",
+          "sub_path": "machine/Anycubic 4Max Pro.json"
+      }
+  ],
+  "process_list": [
+      {
+          "name": "fdm_process_common",
+          "sub_path": "process/fdm_process_common.json"
+      },
+      {
+          "name": "0.20mm Standard @4MaxPro",
+          "sub_path": "process/0.20mm Standard @4MaxPro.json"
+      }
+  ],
+  "filament_list": [
+      {
+          "name": "fdm_filament_common",
+          "sub_path": "filament/fdm_filament_common.json"
+      },
+      {
+          "name": "fdm_filament_pla",
+          "sub_path": "filament/fdm_filament_pla.json"
+      },
+      {
+          "name": "fdm_filament_tpu",
+          "sub_path": "filament/fdm_filament_tpu.json"
+      },
+      {
+          "name": "fdm_filament_pet",
+          "sub_path": "filament/fdm_filament_pet.json"
+      },
+      {
+          "name": "fdm_filament_abs",
+          "sub_path": "filament/fdm_filament_abs.json"
+      },
+      {
+          "name": "fdm_filament_pc",
+          "sub_path": "filament/fdm_filament_pc.json"
+      },
+      {
+          "name": "fdm_filament_asa",
+          "sub_path": "filament/fdm_filament_asa.json"
+      },
+      {
+          "name": "fdm_filament_pva",
+          "sub_path": "filament/fdm_filament_pva.json"
+      },
+      {
+          "name": "fdm_filament_pa",
+          "sub_path": "filament/fdm_filament_pa.json"
+      },
+      {
+          "name": "Anycubic Generic PLA",
+          "sub_path": "filament/Anycubic Generic PLA.json"
+      },
+      {
+          "name": "Anycubic Generic PLA-CF",
+          "sub_path": "filament/Anycubic Generic PLA-CF.json"
+      },
+      {
+          "name": "Anycubic Generic PETG",
+          "sub_path": "filament/Anycubic Generic PETG.json"
+      },
+      {
+          "name": "Anycubic Generic ABS",
+          "sub_path": "filament/Anycubic Generic ABS.json"
+      },
+      {
+          "name": "Anycubic Generic TPU",
+          "sub_path": "filament/Anycubic Generic TPU.json"
+      },
+      {
+          "name": "Anycubic Generic ASA",
+          "sub_path": "filament/Anycubic Generic ASA.json"
+      },
+      {
+          "name": "Anycubic Generic PC",
+          "sub_path": "filament/Anycubic Generic PC.json"
+      },
+      {
+          "name": "Anycubic Generic PVA",
+          "sub_path": "filament/Anycubic Generic PVA.json"
+      },
+      {
+          "name": "Anycubic Generic PA",
+          "sub_path": "filament/Anycubic Generic PA.json"
+      },
+      {
+          "name": "Anycubic Generic PA-CF",
+          "sub_path": "filament/Anycubic Generic PA-CF.json"
+      }
+  ],
+  "machine_list": [
+      {
+          "name": "fdm_machine_common",
+          "sub_path": "machine/fdm_machine_common.json"
+      },
+      {
+          "name": "Anycubic 4Max Pro 0.4 nozzle",
+          "sub_path": "machine/Anycubic 4Max Pro 0.4 nozzle.json"
+      }
+  ]
+}

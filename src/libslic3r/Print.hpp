@@ -714,7 +714,8 @@ public:
     int get_modified_count() const {return m_modified_count;}
     //BBS: add status for whether support used
     bool is_support_used() const {return m_support_used;}
-
+    bool is_BBL_Printer() const { return m_isBBLPrinter;}
+    void set_BBL_Printer(const bool isBBL) { m_isBBLPrinter = isBBL;}
     //BBS
     static StringObjectException sequential_print_clearance_valid(const Print &print, Polygons *polygons = nullptr, std::vector<std::pair<Polygon, float>>* height_polygons = nullptr);
 
@@ -743,7 +744,8 @@ private:
     PrintRegionConfig                       m_default_region_config;
     PrintObjectPtrs                         m_objects;
     PrintRegionPtrs                         m_print_regions;
-
+    //BBS.
+    bool m_isBBLPrinter = false;
     // Ordered collections of extrusion paths to build skirt loops and brim.
     ExtrusionEntityCollection               m_skirt;
     // BBS: collecting extrusion paths to build brim by objs
