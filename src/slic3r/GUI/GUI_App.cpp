@@ -4347,7 +4347,7 @@ bool GUI_App::load_language(wxString language, bool initial)
                         {"it", wxString::FromUTF8("\x49\x74\x61\x6C\x69\x61\x6E\x6F")},
                         {"ru", wxString::FromUTF8("\xD1\x80\xD1\x83\xD1\x81\xD1\x81\xD0\xBA\xD0\xB8\xD0\xB9")},
                         {"hu", wxString::FromUTF8("Magyar")},
-                        {"ja", wxString::FromUTF8("\xE6\x97\xA5\xE8\xAF\xAD")}
+                        {"ja", wxString::FromUTF8("\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E")}
                     };
                     for (auto l : language_descptions) {
                         const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(l.first);

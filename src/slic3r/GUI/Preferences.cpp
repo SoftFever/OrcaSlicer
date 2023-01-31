@@ -110,8 +110,6 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
         auto language_name = vlist[i]->Description;
 
         if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CHINESE_SIMPLIFIED)) {
-            //language_name = _L(vlist[i]->Description);
-            //language_name = _L("Chinese (Simplified)");
             language_name = wxString::FromUTF8("\xe4\xb8\xad\xe6\x96\x87\x28\xe7\xae\x80\xe4\xbd\x93\x29");
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_SPANISH)) {
@@ -131,6 +129,9 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_HUNGARIAN)) {
             language_name = wxString::FromUTF8("Magyar");
+        }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_JAPANESE)) {
+            language_name = wxString::FromUTF8("\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E");
         }
 
         if (app_config->get(param) == vlist[i]->CanonicalName) {
