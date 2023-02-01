@@ -2629,6 +2629,7 @@ SupportNecessaryType PrintObject::is_support_necessary()
     }
 #else
     TreeSupport tree_support(*this, m_slicing_params);
+    tree_support.support_type = SupportType::stTreeAuto; // need to set support type to fully utilize the power of feature detection
     tree_support.detect_overhangs();
     this->clear_support_layers();
     if (tree_support.has_sharp_tails)

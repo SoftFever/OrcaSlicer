@@ -699,14 +699,17 @@ TreeSupport::TreeSupport(PrintObject& object, const SlicingParameters &slicing_p
                                                   ipConcentric :
                                                   (m_support_params.interface_density > 0.95 ? ipRectilinear : ipSupportBase);
     m_support_params.support_extrusion_width = m_object_config->support_line_width.value > 0 ? m_object_config->support_line_width : m_object_config->line_width;
-    is_slim                                  = is_tree_slim(m_object_config->support_type, m_object_config->support_style);
+    support_type                             = m_object_config->support_type;
+    is_slim                                  = is_tree_slim(support_type, m_object_config->support_style);
     MAX_BRANCH_RADIUS                        = is_slim ? 5.0 : 10.0;
     tree_support_branch_diameter_angle       = 5.0;//is_slim ? 10.0 : 5.0;
     // by default tree support needs no infill, unless it's tree hybrid which contains normal nodes.
     with_infill                              = support_pattern != smpNone && support_pattern != smpDefault;
     const PrintConfig& print_config = m_object->print()->config();
     m_machine_border.contour = get_bed_shape_with_excluded_area(print_config);
-    m_machine_border.translate(-m_object->instances().front().shift); // align with the centered object
+    Vec3d plate_offset       = m_object->print()->get_plate_origin();
+    // align with the centered object in current plate (may not be the 1st plate, so need to add the plate offset)
+    m_machine_border.translate(Point(scale_(plate_offset(0)), scale_(plate_offset(1))) - m_object->instances().front().shift);
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
     SVG svg("SVG/machine_boarder.svg", m_object->bounding_box());
     if (svg.is_opened()) svg.draw(m_machine_border, "yellow");
@@ -729,7 +732,7 @@ void TreeSupport::detect_overhangs()
 
 
     const PrintObjectConfig& config = m_object->config();
-    SupportType stype = config.support_type.value;
+    SupportType stype = support_type;
     const coordf_t radius_sample_resolution = g_config_tree_support_collision_resolution;
     const coordf_t extrusion_width = config.line_width.value;
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
