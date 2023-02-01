@@ -90,7 +90,7 @@ static constexpr bool g_config_remove_small_overhangs = true;
 static constexpr float g_config_tree_support_collision_resolution = 0.2;
 
 // Write slices as SVG images into out directory during the 2D processing of the slices.
-// #define SLIC3R_DEBUG_SLICE_PROCESSING
+//#define SLIC3R_DEBUG_SLICE_PROCESSING
 
 namespace Slic3r {
 
