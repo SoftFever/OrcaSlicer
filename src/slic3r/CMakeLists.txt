@@ -201,6 +201,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/GUI_ObjectTableSettings.hpp
     GUI/MeshUtils.cpp
     GUI/MeshUtils.hpp
+    GUI/TickCode.cpp
+    GUI/TickCode.hpp
     GUI/Tab.cpp
     GUI/Tab.hpp
     GUI/ParamsDialog.cpp

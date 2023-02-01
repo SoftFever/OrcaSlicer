@@ -195,10 +195,11 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
     // BBS
 	if (auto num_filaments = unsigned(print.config().filament_diameter.size());
 		num_filaments > 1 && print.object_extruders().size() == 1 && // the current Print's configuration is CustomGCode::MultiAsSingle
-		print.model().custom_gcode_per_print_z.mode == CustomGCode::MultiAsSingle) {
+        //BBS: replace model custom gcode with current plate custom gcode
+        print.model().get_curr_plate_custom_gcodes().mode == CustomGCode::MultiAsSingle) {
 		// Printing a single extruder platter on a printer with more than 1 extruder (or single-extruder multi-material).
 		// There may be custom per-layer tool changes available at the model.
-		per_layer_extruder_switches = custom_tool_changes(print.model().custom_gcode_per_print_z, num_filaments);
+        per_layer_extruder_switches = custom_tool_changes(print.model().get_curr_plate_custom_gcodes(), num_filaments);
 	}
 
     // Collect extruders reuqired to print the layers.
@@ -759,12 +760,15 @@ void ToolOrdering::mark_skirt_layers(const PrintConfig &config, coordf_t max_lay
 // Assign a pointer to a custom G-code to the respective ToolOrdering::LayerTools.
 // Ignore color changes, which are performed on a layer and for such an extruder, that the extruder will not be printing above that layer.
 // If multiple events are planned over a span of a single layer, use the last one.
+
+// BBS: replace model custom gcode with current plate custom gcode
+static CustomGCode::Info custom_gcode_per_print_z;
 void ToolOrdering::assign_custom_gcodes(const Print &print)
 {
 	// Only valid for non-sequential print.
 	assert(print.config().print_sequence == PrintSequence::ByLayer);
 
-	const CustomGCode::Info	&custom_gcode_per_print_z = print.model().custom_gcode_per_print_z;
+    custom_gcode_per_print_z = print.model().get_curr_plate_custom_gcodes();
 	if (custom_gcode_per_print_z.gcodes.empty())
 		return;
 
@@ -773,7 +777,7 @@ void ToolOrdering::assign_custom_gcodes(const Print &print)
 	CustomGCode::Mode 			mode          =
 		(num_filaments == 1) ? CustomGCode::SingleExtruder :
 		print.object_extruders().size() == 1 ? CustomGCode::MultiAsSingle : CustomGCode::MultiExtruder;
-	CustomGCode::Mode           model_mode    = print.model().custom_gcode_per_print_z.mode;
+    CustomGCode::Mode           model_mode    = print.model().get_curr_plate_custom_gcodes().mode;
 	std::vector<unsigned char> 	extruder_printing_above(num_filaments, false);
 	auto 						custom_gcode_it = custom_gcode_per_print_z.gcodes.rbegin();
 	// Tool changes and color changes will be ignored, if the model's tool/color changes were entered in mm mode and the print is in non mm mode

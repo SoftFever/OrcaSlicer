@@ -2422,8 +2422,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_COLLAPSE_SIDEBAR, [this](SimpleEvent&) { this->q->collapse_sidebar(!this->q->is_sidebar_collapsed());  });
         preview->get_wxglcanvas()->Bind(EVT_CUSTOMEVT_TICKSCHANGED, [this](wxCommandEvent& event) {
             Type tick_event_type = (Type)event.GetInt();
-            Model &model                   = wxGetApp().plater()->model();
-            model.custom_gcode_per_print_z = preview->get_canvas3d()->get_gcode_viewer().get_layers_slider()->GetTicksValues();
+            Model& model = wxGetApp().plater()->model();
+            //BBS: replace model custom gcode with current plate custom gcode
+            model.plates_custom_gcodes[model.curr_plate_index] = preview->get_canvas3d()->get_gcode_viewer().get_layers_slider()->GetTicksValues();
+
             preview->on_tick_changed(tick_event_type);
 
             // BBS set to invalid state only
@@ -3215,8 +3217,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     }
                     if (!config_substitutions.empty()) show_substitutions_info(config_substitutions.substitutions, filename.string());
 
-                    this->model.custom_gcode_per_print_z = model.custom_gcode_per_print_z;
                     // BBS
+                    this->model.plates_custom_gcodes = model.plates_custom_gcodes;
                     this->model.design_info = model.design_info;
                     this->model.model_info  = model.model_info;
                 }
@@ -4038,7 +4040,8 @@ void Plater::priv::delete_all_objects_from_model()
     sidebar->obj_list()->delete_all_objects_from_list();
     object_list_changed();
 
-    model.custom_gcode_per_print_z.gcodes.clear();
+    //BBS
+    model.plates_custom_gcodes.clear();
 }
 
 void Plater::priv::reset(bool apply_presets_change)
@@ -4088,7 +4091,8 @@ void Plater::priv::reset(bool apply_presets_change)
     else
         wxGetApp().load_current_presets(false, false);
 
-    model.custom_gcode_per_print_z.gcodes.clear();
+    //BBS
+    model.plates_custom_gcodes.clear();
 
     // BBS
     m_saved_timestamp = m_backup_timestamp = size_t(-1);
@@ -10270,7 +10274,6 @@ std::vector<std::string> Plater::get_extruder_colors_from_plater_config(const GC
 std::vector<std::string> Plater::get_colors_for_color_print(const GCodeProcessorResult* const result) const
 {
     std::vector<std::string> colors = get_extruder_colors_from_plater_config(result);
-    colors.reserve(colors.size() + p->model.custom_gcode_per_print_z.gcodes.size());
 
     if (wxGetApp().is_gcode_viewer() && result != nullptr) {
         for (const CustomGCode::Item& code : result->custom_gcode_per_print_z) {
@@ -10279,7 +10282,9 @@ std::vector<std::string> Plater::get_colors_for_color_print(const GCodeProcessor
         }
     }
     else {
-        for (const CustomGCode::Item& code : p->model.custom_gcode_per_print_z.gcodes) {
+        //BBS
+        colors.reserve(colors.size() + p->model.get_curr_plate_custom_gcodes().gcodes.size());
+        for (const CustomGCode::Item& code : p->model.get_curr_plate_custom_gcodes().gcodes) {
             if (code.type == CustomGCode::ColorChange)
                 colors.emplace_back(code.color);
         }

@@ -1255,11 +1255,14 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 	}
 
 	if (conside_custom_gcode) {
-        for (auto item : m_model->custom_gcode_per_print_z.gcodes) {
-        if (item.type == CustomGCode::Type::ToolChange)
-            plate_extruders.push_back(item.extruder);
-        }
-    }
+		//BBS
+		if (m_model->plates_custom_gcodes.find(m_plate_index) != m_model->plates_custom_gcodes.end()) {
+			for (auto item : m_model->plates_custom_gcodes.at(m_plate_index).gcodes) {
+				if (item.type == CustomGCode::Type::ToolChange)
+					plate_extruders.push_back(item.extruder);
+			}
+		}
+	}
 
 	std::sort(plate_extruders.begin(), plate_extruders.end());
 	auto it_end = std::unique(plate_extruders.begin(), plate_extruders.end());
@@ -3080,7 +3083,11 @@ int PartPlateList::select_plate(int index)
 
 	m_current_plate = index;
 	m_plate_list[m_current_plate]->set_selected();
-
+  
+	//BBS
+	if(m_model)
+		m_model->curr_plate_index = index;
+  
 	//BBS update bed origin
 	if (m_intialized && m_plater) {
 		Vec2d pos = compute_shape_position(index, m_plate_cols);

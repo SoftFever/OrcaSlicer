@@ -1777,6 +1777,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->pattern_file = (m_load_restore || it->second->pattern_file.empty()) ? it->second->pattern_file : m_backup_path + "/" + it->second->pattern_file;
             plate_data_list[it->first-1]->pattern_bbox_file = (m_load_restore || it->second->pattern_bbox_file.empty()) ? it->second->pattern_bbox_file : m_backup_path + "/" + it->second->pattern_bbox_file;
             plate_data_list[it->first-1]->config = it->second->config;
+
             current_plate_data = plate_data_list[it->first - 1];
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", plate %1%, thumbnail_file=%2%")%it->first %plate_data_list[it->first-1]->thumbnail_file;
             it++;
@@ -2500,6 +2501,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
     void _BBS_3MF_Importer::_extract_custom_gcode_per_print_z_from_archive(::mz_zip_archive &archive, const mz_zip_archive_file_stat &stat)
     {
+        //BBS: add plate tree related logic
         if (stat.m_uncomp_size > 0) {
             std::string buffer((size_t)stat.m_uncomp_size, 0);
             mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, (void*)buffer.data(), (size_t)stat.m_uncomp_size, 0);
@@ -2514,45 +2516,71 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             if (main_tree.front().first != "custom_gcodes_per_layer")
                 return;
-            pt::ptree code_tree = main_tree.front().second;
 
-            m_model->custom_gcode_per_print_z.gcodes.clear();
+            auto extract_code = [this](int plate_id, pt::ptree code_tree) {
+                for (const auto& code : code_tree) {
+                    if (code.first == "mode") {
+                        pt::ptree tree = code.second;
+                        std::string mode = tree.get<std::string>("<xmlattr>.value");
+                        m_model->plates_custom_gcodes[plate_id - 1].mode = mode == CustomGCode::SingleExtruderMode ? CustomGCode::Mode::SingleExtruder :
+                            mode == CustomGCode::MultiAsSingleMode ? CustomGCode::Mode::MultiAsSingle :
+                            CustomGCode::Mode::MultiExtruder;
+                    }
+                    if (code.first == "layer") {
+                        pt::ptree tree = code.second;
+                        double print_z = tree.get<double>("<xmlattr>.top_z");
+                        int extruder = tree.get<int>("<xmlattr>.extruder");
+                        std::string color = tree.get<std::string>("<xmlattr>.color");
 
-            for (const auto& code : code_tree) {
-                if (code.first == "mode") {
-                    pt::ptree tree = code.second;
-                    std::string mode = tree.get<std::string>("<xmlattr>.value");
-                    m_model->custom_gcode_per_print_z.mode = mode == CustomGCode::SingleExtruderMode ? CustomGCode::Mode::SingleExtruder :
-                                                             mode == CustomGCode::MultiAsSingleMode  ? CustomGCode::Mode::MultiAsSingle  :
-                                                             CustomGCode::Mode::MultiExtruder;
+                        CustomGCode::Type   type;
+                        std::string         extra;
+                        pt::ptree attr_tree = tree.find("<xmlattr>")->second;
+                        if (attr_tree.find("type") == attr_tree.not_found()) {
+                            // It means that data was saved in old version (2.2.0 and older) of PrusaSlicer
+                            // read old data ...
+                            std::string gcode = tree.get<std::string>("<xmlattr>.gcode");
+                            // ... and interpret them to the new data
+                            type = gcode == "M600" ? CustomGCode::ColorChange :
+                                gcode == "M601" ? CustomGCode::PausePrint :
+                                gcode == "tool_change" ? CustomGCode::ToolChange : CustomGCode::Custom;
+                            extra = type == CustomGCode::PausePrint ? color :
+                                type == CustomGCode::Custom ? gcode : "";
+                        }
+                        else {
+                            type = static_cast<CustomGCode::Type>(tree.get<int>("<xmlattr>.type"));
+                            extra = tree.get<std::string>("<xmlattr>.extra");
+                        }
+                        m_model->plates_custom_gcodes[plate_id - 1].gcodes.push_back(CustomGCode::Item{ print_z, type, extruder, color, extra });
+                    }
                 }
-                if (code.first != "layer")
-                    continue;
+            };
 
-                pt::ptree tree = code.second;
-                double print_z          = tree.get<double>      ("<xmlattr>.top_z" );
-                int extruder            = tree.get<int>         ("<xmlattr>.extruder");
-                std::string color       = tree.get<std::string> ("<xmlattr>.color"   );
+            m_model->plates_custom_gcodes.clear();
 
-                CustomGCode::Type   type;
-                std::string         extra;
-                pt::ptree attr_tree = tree.find("<xmlattr>")->second;
-                if (attr_tree.find("type") == attr_tree.not_found()) {
-                    // It means that data was saved in old version (2.2.0 and older) of PrusaSlicer
-                    // read old data ...
-                    std::string gcode       = tree.get<std::string> ("<xmlattr>.gcode");
-                    // ... and interpret them to the new data
-                    type  = gcode == "M600"           ? CustomGCode::ColorChange :
-                            gcode == "M601"           ? CustomGCode::PausePrint  :
-                            gcode == "tool_change"    ? CustomGCode::ToolChange  :   CustomGCode::Custom;
-                    extra = type == CustomGCode::PausePrint ? color :
-                            type == CustomGCode::Custom     ? gcode : "";
+            bool has_plate_info = false;
+            for (const auto& element : main_tree.front().second) {
+                if (element.first == "plate") {
+                    has_plate_info = true;
+
+                    int plate_id = -1;
+                    pt::ptree code_tree = element.second;
+                    for (const auto& code : code_tree) {
+                        if (code.first == "plate_info") {
+                            plate_id = code.second.get<int>("<xmlattr>.id");
+                        }
+
+                    }
+                    if (plate_id == -1)
+                        continue;
+
+                    extract_code(plate_id, code_tree);
                 }
-                else {
-                    type  = static_cast<CustomGCode::Type>(tree.get<int>("<xmlattr>.type"));
-                    extra = tree.get<std::string>("<xmlattr>.extra");
-                }
-                m_model->custom_gcode_per_print_z.gcodes.push_back(CustomGCode::Item{print_z, type, extruder, color, extra}) ;
+            }
+
+            if (!has_plate_info) {
+                int plate_id = 1;
+                pt::ptree code_tree = main_tree.front().second;
+                extract_code(plate_id, code_tree);
             }
         }
     }
@@ -6635,46 +6663,50 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
     return result;
 }
 
-bool _BBS_3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive( mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config)
+bool _BBS_3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config)
 {
+    //BBS: add plate tree related logic
     std::string out = "";
-
-    if (!model.custom_gcode_per_print_z.gcodes.empty()) {
-        pt::ptree tree;
-        pt::ptree& main_tree = tree.add("custom_gcodes_per_layer", "");
-
-        for (const CustomGCode::Item& code : model.custom_gcode_per_print_z.gcodes) {
-            pt::ptree& code_tree = main_tree.add("layer", "");
+    bool has_custom_gcode = false;
+    pt::ptree tree;
+    pt::ptree& main_tree = tree.add("custom_gcodes_per_layer", "");
+    for (auto custom_gcodes : model.plates_custom_gcodes) {
+            has_custom_gcode = true;
+            pt::ptree& plate_tree = main_tree.add("plate", "");
+            pt::ptree& plate_idx_tree = plate_tree.add("plate_info", "");
+            plate_idx_tree.put("<xmlattr>.id", custom_gcodes.first + 1);
 
             // store data of custom_gcode_per_print_z
-            code_tree.put("<xmlattr>.top_z"   , code.print_z  );
-            code_tree.put("<xmlattr>.type"      , static_cast<int>(code.type));
-            code_tree.put("<xmlattr>.extruder"  , code.extruder );
-            code_tree.put("<xmlattr>.color"     , code.color    );
-            code_tree.put("<xmlattr>.extra"     , code.extra    );
+            for (const CustomGCode::Item& code : custom_gcodes.second.gcodes) {
+                pt::ptree& code_tree = plate_tree.add("layer", "");
+                code_tree.put("<xmlattr>.top_z", code.print_z);
+                code_tree.put("<xmlattr>.type", static_cast<int>(code.type));
+                code_tree.put("<xmlattr>.extruder", code.extruder);
+                code_tree.put("<xmlattr>.color", code.color);
+                code_tree.put("<xmlattr>.extra", code.extra);
 
-            //BBS
-            std::string gcode = //code.type == CustomGCode::ColorChange ? config->opt_string("color_change_gcode")    :
-                                code.type == CustomGCode::PausePrint  ? config->opt_string("machine_pause_gcode")     :
-                                code.type == CustomGCode::Template    ? config->opt_string("template_custom_gcode") :
-                                code.type == CustomGCode::ToolChange  ? "tool_change"   : code.extra;
-            code_tree.put("<xmlattr>.gcode"     , gcode   );
-        }
+                //BBS
+                std::string gcode = //code.type == CustomGCode::ColorChange ? config->opt_string("color_change_gcode")    :
+                    code.type == CustomGCode::PausePrint ? config->opt_string("machine_pause_gcode") :
+                    code.type == CustomGCode::Template ? config->opt_string("template_custom_gcode") :
+                    code.type == CustomGCode::ToolChange ? "tool_change" : code.extra;
+                code_tree.put("<xmlattr>.gcode", gcode);
+            }
 
-        pt::ptree& mode_tree = main_tree.add("mode", "");
-        // store mode of a custom_gcode_per_print_z
-        mode_tree.put("<xmlattr>.value", model.custom_gcode_per_print_z.mode == CustomGCode::Mode::SingleExtruder ? CustomGCode::SingleExtruderMode :
-                                         model.custom_gcode_per_print_z.mode == CustomGCode::Mode::MultiAsSingle ?  CustomGCode::MultiAsSingleMode :
-                                         CustomGCode::MultiExtruderMode);
+            pt::ptree& mode_tree = plate_tree.add("mode", "");
+            // store mode of a custom_gcode_per_print_z
+            mode_tree.put("<xmlattr>.value", custom_gcodes.second.mode == CustomGCode::Mode::SingleExtruder ? CustomGCode::SingleExtruderMode :
+                custom_gcodes.second.mode == CustomGCode::Mode::MultiAsSingle ? CustomGCode::MultiAsSingleMode :
+                CustomGCode::MultiExtruderMode);
+        
+    }
+    if (has_custom_gcode) {
+        std::ostringstream oss;
+        boost::property_tree::write_xml(oss, tree);
+        out = oss.str();
 
-        if (!tree.empty()) {
-            std::ostringstream oss;
-            boost::property_tree::write_xml(oss, tree);
-            out = oss.str();
-
-            // Post processing("beautification") of the output string
-            boost::replace_all(out, "><", ">\n<");
-        }
+        // Post processing("beautification") of the output string
+        boost::replace_all(out, "><", ">\n<");
     }
 
     if (!out.empty()) {

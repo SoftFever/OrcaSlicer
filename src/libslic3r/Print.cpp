@@ -336,9 +336,12 @@ std::vector<unsigned int> Print::extruders(bool conside_custom_gcode) const
     append(extruders, this->support_material_extruders());
 
     if (conside_custom_gcode) {
-        for (auto item : m_model.custom_gcode_per_print_z.gcodes) {
-        if (item.type == CustomGCode::Type::ToolChange)
-            extruders.push_back((unsigned int)item.extruder);
+        //BBS
+        for (auto plate_data : m_model.plates_custom_gcodes) {
+            for (auto item : plate_data.second.gcodes) {
+                if (item.type == CustomGCode::Type::ToolChange)
+                    extruders.push_back((unsigned int)item.extruder);
+            }
         }
     }
 

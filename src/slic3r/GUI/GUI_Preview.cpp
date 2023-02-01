@@ -551,15 +551,16 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
     // Detect and set manipulation mode for double slider
     update_layers_slider_mode();
 
-    Plater *          plater = wxGetApp().plater();
-    CustomGCode::Info ticks_info_from_model;
+    Plater* plater = wxGetApp().plater();
+    //BBS: replace model custom gcode with current plate custom gcode
+    CustomGCode::Info ticks_info_from_curr_plate;
     if (wxGetApp().is_editor())
-        ticks_info_from_model = plater->model().custom_gcode_per_print_z;
+        ticks_info_from_curr_plate = plater->model().get_curr_plate_custom_gcodes();
     else {
-        ticks_info_from_model.mode   = CustomGCode::Mode::SingleExtruder;
-        ticks_info_from_model.gcodes = m_canvas->get_custom_gcode_per_print_z();
+        ticks_info_from_curr_plate.mode   = CustomGCode::Mode::SingleExtruder;
+        ticks_info_from_curr_plate.gcodes = m_canvas->get_custom_gcode_per_print_z();
     }
-    check_layers_slider_values(ticks_info_from_model.gcodes, layers_z);
+    check_layers_slider_values(ticks_info_from_curr_plate.gcodes, layers_z);
 
     // first of all update extruder colors to avoid crash, when we are switching printer preset from MM to SM
     m_layers_slider->SetExtruderColors(plater->get_extruder_colors_from_plater_config(wxGetApp().is_editor() ? nullptr : m_gcode_result));
@@ -580,7 +581,7 @@ void Preview::update_layers_slider(const std::vector<double>& layers_z, bool kee
         }
     }
     m_layers_slider->SetSelectionSpan(idx_low, idx_high);
-    m_layers_slider->SetTicksValues(ticks_info_from_model);
+    m_layers_slider->SetTicksValues(ticks_info_from_curr_plate);
 
     auto curr_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
     auto curr_print_seq = curr_plate->get_real_print_seq();
@@ -689,7 +690,8 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
 
         if (!gcode_preview_data_valid) {
             if (wxGetApp().is_editor())
-                color_print_values = wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes;
+                //BBS
+                color_print_values = wxGetApp().plater()->model().get_curr_plate_custom_gcodes().gcodes;
             else
                 color_print_values = m_canvas->get_custom_gcode_per_print_z();
             colors.push_back("#808080"); // gray color for pause print or custom G-code
@@ -735,7 +737,8 @@ void Preview::load_print_as_fff(bool keep_z_range, bool only_gcode)
                 (unsigned int)print->extruders().size() :
                 m_canvas->get_gcode_extruders_count();
             std::vector<Item> gcodes = wxGetApp().is_editor() ?
-                wxGetApp().plater()->model().custom_gcode_per_print_z.gcodes :
+                //BBS
+                wxGetApp().plater()->model().get_curr_plate_custom_gcodes().gcodes :
                 m_canvas->get_custom_gcode_per_print_z();
             const wxString choice = !gcodes.empty() ?
                 _L("Multicolor Print") :

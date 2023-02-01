@@ -1,16 +1,9 @@
 #ifndef slic3r_GUI_IMSlider_hpp_
 #define slic3r_GUI_IMSlider_hpp_
 
-#include "libslic3r/CustomGCode.hpp"
-#include "wxExtensions.hpp"
-#include "IMSlider_Utils.hpp"
+#include "TickCode.hpp"
 #include <imgui/imgui.h>
-#include <wx/window.h>
-#include <wx/control.h>
-#include <wx/dc.h>
-#include <wx/slider.h>
 
-#include <vector>
 #include <set>
 
 class wxMenu;
@@ -43,42 +36,6 @@ enum SelectedSlider {
     ssHigher = 2
 };
 
-enum FocusedItem {
-    fiNone,
-    fiRevertIcon,
-    fiOneLayerIcon,
-    fiCogIcon,
-    fiColorBand,
-    fiActionIcon,
-    fiLowerThumb,
-    fiHigherThumb,
-    fiSmartWipeTower,
-    fiTick
-};
-
-enum ConflictType
-{
-    ctNone,
-    ctModeConflict,
-    ctMeaninglessColorChange,
-    ctMeaninglessToolChange,
-    ctRedundant
-};
-
-enum MouseAction
-{
-    maNone,
-    maAddMenu,                  // show "Add"  context menu for NOTexist active tick
-    maEditMenu,                 // show "Edit" context menu for exist active tick
-    maCogIconMenu,              // show context for "cog" icon
-    maForceColorEdit,           // force color editing from colored band
-    maAddTick,                  // force tick adding
-    maDeleteTick,               // force tick deleting
-    maCogIconClick,             // LeftMouseClick on "cog" icon
-    maOneLayerIconClick,        // LeftMouseClick on "one_layer" icon
-    maRevertIconClick,          // LeftMouseClick on "revert" icon
-};
-
 enum DrawMode
 {
     dmRegular,
@@ -94,116 +51,6 @@ enum LabelType
     ltEstimatedTime,
 };
 
-enum VSliderMode
-{
-    Regular,
-    Colored,
-};
-
-struct TickCode
-{
-    bool operator<(const TickCode& other) const { return other.tick > this->tick; }
-    bool operator>(const TickCode& other) const { return other.tick < this->tick; }
-
-    int         tick = 0;
-    Type        type = ColorChange;
-    int         extruder = 0;
-    std::string color;
-    std::string extra;
-};
-
-class TickCodeInfo
-{
-    std::string custom_gcode;
-    std::string pause_print_msg;
-    bool        m_suppress_plus     = false;
-    bool        m_suppress_minus    = false;
-    bool        m_use_default_colors= false;
-//    int         m_default_color_idx = 0;
-
-    std::vector<std::string>* m_colors {nullptr};
-    ColorGenerator color_generator;
-
-    std::string get_color_for_tick(TickCode tick, Type type, const int extruder);
-
-public:
-    std::set<TickCode>  ticks {};
-    Mode                mode = Undef;
-
-    bool empty() const { return ticks.empty(); }
-    void set_pause_print_msg(const std::string& message) { pause_print_msg = message; }
-
-    bool add_tick(const int tick, Type type, int extruder, double print_z);
-    bool edit_tick(std::set<TickCode>::iterator it, double print_z);
-    void switch_code(Type type_from, Type type_to);
-    bool switch_code_for_tick(std::set<TickCode>::iterator it, Type type_to, const int extruder);
-    void erase_all_ticks_with_code(Type type);
-
-    bool            has_tick_with_code(Type type);
-    bool            has_tick(int tick);
-    ConflictType    is_conflict_tick(const TickCode& tick, Mode out_mode, int only_extruder, double print_z);
-
-    // Get used extruders for tick.
-    // Means all extruders(tools) which will be used during printing from current tick to the end
-    std::set<int>   get_used_extruders_for_tick(int tick, int only_extruder, double print_z, Mode force_mode = Undef) const;
-
-    void suppress_plus (bool suppress) { m_suppress_plus = suppress; }
-    void suppress_minus(bool suppress) { m_suppress_minus = suppress; }
-    bool suppressed_plus () { return m_suppress_plus; }
-    bool suppressed_minus() { return m_suppress_minus; }
-    void set_default_colors(bool default_colors_on)  { m_use_default_colors = default_colors_on; }
-
-    void set_extruder_colors(std::vector<std::string>* extruder_colors) { m_colors = extruder_colors; }
-};
-
-
-struct ExtrudersSequence
-{
-    bool            is_mm_intervals     = true;
-    double          interval_by_mm      = 3.0;
-    int             interval_by_layers  = 10;
-    bool            random_sequence     { false };
-    bool            color_repetition    { false };
-    std::vector<size_t>  extruders      = { 0 };
-
-    bool operator==(const ExtrudersSequence& other) const
-    {
-        return  (other.is_mm_intervals      == this->is_mm_intervals    ) &&
-                (other.interval_by_mm       == this->interval_by_mm     ) &&
-                (other.interval_by_layers   == this->interval_by_layers ) &&
-                (other.random_sequence      == this->random_sequence    ) &&
-                (other.color_repetition     == this->color_repetition   ) &&
-                (other.extruders            == this->extruders          ) ;
-    }
-    bool operator!=(const ExtrudersSequence& other) const
-    {
-        return  (other.is_mm_intervals      != this->is_mm_intervals    ) ||
-                (other.interval_by_mm       != this->interval_by_mm     ) ||
-                (other.interval_by_layers   != this->interval_by_layers ) ||
-                (other.random_sequence      != this->random_sequence    ) ||
-                (other.color_repetition     != this->color_repetition   ) ||
-                (other.extruders            != this->extruders          ) ;
-    }
-
-    void add_extruder(size_t pos, size_t extruder_id = size_t(0))
-    {
-        extruders.insert(extruders.begin() + pos+1, extruder_id);
-    }
-
-    void delete_extruder(size_t pos)
-    {            
-        if (extruders.size() == 1)
-            return;// last item can't be deleted
-        extruders.erase(extruders.begin() + pos);
-    }
-
-    void init(size_t extruders_count) 
-    {
-        extruders.clear();
-        for (size_t extruder = 0; extruder < extruders_count; extruder++)
-            extruders.push_back(extruder);
-    }
-};
 
 class IMSlider
 {
@@ -262,7 +109,7 @@ public:
     void UseDefaultColors(bool def_colors_on) { m_ticks.set_default_colors(def_colors_on); }
 
     void on_mouse_wheel(wxMouseEvent& evt);
-    void post_ticks_changed_event(Type type = Custom);
+    void post_ticks_changed_event(Type type = Unknown);
     bool check_ticks_changed_event(Type type);
     bool switch_one_layer_mode();
     void show_go_to_layer(bool show) { m_show_go_to_layer_dialog = show; }
@@ -279,7 +126,6 @@ public:
     }
     Type get_post_tick_event_type() { return m_tick_change_event_type; }
 
-    ExtrudersSequence m_extruders_sequence;
     float m_scale = 1.0;
     void set_scale(float scale = 1.0);
     void on_change_color_mode(bool is_dark);
@@ -362,7 +208,6 @@ private:
 
     DrawMode            m_draw_mode = dmRegular;
     Mode                m_mode          = SingleExtruder;
-    VSliderMode          m_vslider_mode = Regular;
     int                 m_only_extruder = -1;
 
     long                m_style;

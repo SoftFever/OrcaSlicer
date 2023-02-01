@@ -1301,7 +1301,17 @@ public:
     }
 
     // Extensions for color print
-    CustomGCode::Info custom_gcode_per_print_z;
+    // CustomGCode::Info custom_gcode_per_print_z;
+    //BBS: replace model custom gcode with current plate custom gcode
+    int curr_plate_index{ 0 };
+    std::map<int, CustomGCode::Info> plates_custom_gcodes; //map<plate_index, CustomGCode::Info>
+
+    const CustomGCode::Info get_curr_plate_custom_gcodes() const {
+        if (plates_custom_gcodes.find(curr_plate_index) != plates_custom_gcodes.end()) {
+            return plates_custom_gcodes.at(curr_plate_index);
+        }
+        return CustomGCode::Info();
+    }
 
     // Default constructor assigns a new ID to the model.
     Model() { assert(this->id().valid()); }

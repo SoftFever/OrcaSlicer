@@ -1,22 +1,6 @@
-#include "libslic3r/libslic3r.h"
 #include "IMSlider.hpp"
 #include "libslic3r/GCode.hpp"
-#include "GUI.hpp"
 #include "GUI_App.hpp"
-#include "Plater.hpp"
-#include "I18N.hpp"
-#include "libslic3r/Print.hpp"
-#include "libslic3r/AppConfig.hpp"
-#include "GUI_Utils.hpp"
-#include "MsgDialog.hpp"
-#include "Tab.hpp"
-#include "GUI_ObjectList.hpp"
-
-#include <cmath>
-#include <boost/algorithm/string/replace.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include "Field.hpp"
-#include "format.hpp"
 #include "NotificationManager.hpp"
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -24,10 +8,6 @@
 #include <imgui/imgui_internal.h>
 
 namespace Slic3r {
-
-using GUI::from_u8;
-using GUI::into_u8;
-using GUI::format_wxstr;
 
 namespace GUI {
 
@@ -136,292 +116,6 @@ static std::string short_and_splitted_time(const std::string &time)
 }
 
 
-std::string TickCodeInfo::get_color_for_tick(TickCode tick, Type type, const int extruder)
-{
-    if (mode == SingleExtruder && type == ColorChange && m_use_default_colors) {
-#if 1
-        if (ticks.empty()) return color_generator.get_opposite_color((*m_colors)[0]);
-
-        auto before_tick_it = std::lower_bound(ticks.begin(), ticks.end(), tick);
-        if (before_tick_it == ticks.end()) {
-            while (before_tick_it != ticks.begin())
-                if (--before_tick_it; before_tick_it->type == ColorChange) break;
-            if (before_tick_it->type == ColorChange) return color_generator.get_opposite_color(before_tick_it->color);
-            return color_generator.get_opposite_color((*m_colors)[0]);
-        }
-
-        if (before_tick_it == ticks.begin()) {
-            const std::string &frst_color = (*m_colors)[0];
-            if (before_tick_it->type == ColorChange) return color_generator.get_opposite_color(frst_color, before_tick_it->color);
-
-            auto next_tick_it = before_tick_it;
-            while (next_tick_it != ticks.end())
-                if (++next_tick_it; next_tick_it->type == ColorChange) break;
-            if (next_tick_it->type == ColorChange) return color_generator.get_opposite_color(frst_color, next_tick_it->color);
-
-            return color_generator.get_opposite_color(frst_color);
-        }
-
-        std::string frst_color = "";
-        if (before_tick_it->type == ColorChange)
-            frst_color = before_tick_it->color;
-        else {
-            auto next_tick_it = before_tick_it;
-            while (next_tick_it != ticks.end())
-                if (++next_tick_it; next_tick_it->type == ColorChange) {
-                    frst_color = next_tick_it->color;
-                    break;
-                }
-        }
-
-        while (before_tick_it != ticks.begin())
-            if (--before_tick_it; before_tick_it->type == ColorChange) break;
-
-        if (before_tick_it->type == ColorChange) {
-            if (frst_color.empty()) return color_generator.get_opposite_color(before_tick_it->color);
-            return color_generator.get_opposite_color(before_tick_it->color, frst_color);
-        }
-
-        if (frst_color.empty()) return color_generator.get_opposite_color((*m_colors)[0]);
-        return color_generator.get_opposite_color((*m_colors)[0], frst_color);
-#else
-        const std::vector<std::string> &colors = ColorPrintColors::get();
-        if (ticks.empty()) return colors[0];
-        m_default_color_idx++;
-
-        return colors[m_default_color_idx % colors.size()];
-#endif
-    }
-
-    std::string color = (*m_colors)[extruder - 1];
-
-    if (type == ColorChange) {
-        if (!ticks.empty()) {
-            auto before_tick_it = std::lower_bound(ticks.begin(), ticks.end(), tick);
-            while (before_tick_it != ticks.begin()) {
-                --before_tick_it;
-                if (before_tick_it->type == ColorChange && before_tick_it->extruder == extruder) {
-                    color = before_tick_it->color;
-                    break;
-                }
-            }
-        }
-
-        //TODO
-        //color = get_new_color(color);
-    }
-    return color;
-}
-
-
-bool TickCodeInfo::add_tick(const int tick, Type type, const int extruder, double print_z)
-{
-    std::string color;
-    std::string extra;
-    if (type == Custom) // custom Gcode
-    {
-        //extra = get_custom_code(custom_gcode, print_z);
-        //if (extra.empty()) return false;
-        //custom_gcode = extra;
-    } else if (type == PausePrint) {
-        //BBS do not set pause extra message
-        //extra = get_pause_print_msg(pause_print_msg, print_z);
-        //if (extra.empty()) return false;
-        pause_print_msg = extra;
-    }
-    else {
-        color = get_color_for_tick(TickCode{ tick }, type, extruder);
-        if (color.empty()) return false;
-    }
-
-    if (mode == SingleExtruder) m_use_default_colors = true;
-
-    ticks.emplace(TickCode{tick, type, extruder, color, extra});
-
-    return true;
-}
-
-bool TickCodeInfo::edit_tick(std::set<TickCode>::iterator it, double print_z)
-{
-    std::string edited_value;
-    //TODO
-    /* BBS
-    if (it->type == ColorChange)
-        edited_value = get_new_color(it->color);
-    else if (it->type == PausePrint)
-        edited_value = get_pause_print_msg(it->extra, print_z);
-    else
-        edited_value = get_custom_code(it->type == Template ? gcode(Template) : it->extra, print_z);
-    */
-    if (edited_value.empty()) return false;
-
-    TickCode changed_tick = *it;
-    if (it->type == ColorChange) {
-        if (it->color == edited_value) return false;
-        changed_tick.color = edited_value;
-    } else if (it->type == Template) {
-        //if (gcode(Template) == edited_value) return false;
-        //changed_tick.extra = edited_value;
-        //changed_tick.type  = Custom;
-        ;
-    } else if (it->type == Custom || it->type == PausePrint) {
-        if (it->extra == edited_value) return false;
-        changed_tick.extra = edited_value;
-    }
-
-    ticks.erase(it);
-    ticks.emplace(changed_tick);
-
-    return true;
-}
-
-void TickCodeInfo::switch_code(Type type_from, Type type_to)
-{
-    for (auto it{ticks.begin()}, end{ticks.end()}; it != end;)
-        if (it->type == type_from) {
-            TickCode tick = *it;
-            tick.type     = type_to;
-            tick.extruder = 1;
-            ticks.erase(it);
-            it = ticks.emplace(tick).first;
-        } else
-            ++it;
-}
-
-bool TickCodeInfo::switch_code_for_tick(std::set<TickCode>::iterator it, Type type_to, const int extruder)
-{
-    const std::string color = get_color_for_tick(*it, type_to, extruder);
-    if (color.empty()) return false;
-
-    TickCode changed_tick = *it;
-    changed_tick.type     = type_to;
-    changed_tick.extruder = extruder;
-    changed_tick.color    = color;
-
-    ticks.erase(it);
-    ticks.emplace(changed_tick);
-
-    return true;
-}
-
-void TickCodeInfo::erase_all_ticks_with_code(Type type)
-{
-    for (auto it{ticks.begin()}, end{ticks.end()}; it != end;) {
-        if (it->type == type)
-            it = ticks.erase(it);
-        else
-            ++it;
-    }
-}
-
-bool TickCodeInfo::has_tick_with_code(Type type)
-{
-    for (const TickCode &tick : ticks)
-        if (tick.type == type) return true;
-
-    return false;
-}
-
-bool TickCodeInfo::has_tick(int tick) { return ticks.find(TickCode{tick}) != ticks.end(); }
-
-ConflictType TickCodeInfo::is_conflict_tick(const TickCode &tick, Mode out_mode, int only_extruder, double print_z)
-{
-    if ((tick.type == ColorChange && ((mode == SingleExtruder && out_mode == MultiExtruder) || (mode == MultiExtruder && out_mode == SingleExtruder))) ||
-        (tick.type == ToolChange && (mode == MultiAsSingle && out_mode != MultiAsSingle)))
-        return ctModeConflict;
-
-    // check ColorChange tick
-    if (tick.type == ColorChange) {
-        // We should mark a tick as a "MeaninglessColorChange",
-        // if it has a ColorChange for unused extruder from current print to end of the print
-        std::set<int> used_extruders_for_tick = get_used_extruders_for_tick(tick.tick, only_extruder, print_z, out_mode);
-
-        if (used_extruders_for_tick.find(tick.extruder) == used_extruders_for_tick.end()) return ctMeaninglessColorChange;
-
-        // We should mark a tick as a "Redundant",
-        // if it has a ColorChange for extruder that has not been used before
-        if (mode == MultiAsSingle && tick.extruder != std::max<int>(only_extruder, 1)) {
-            auto it = ticks.lower_bound(tick);
-            if (it == ticks.begin() && it->type == ToolChange && tick.extruder == it->extruder) return ctNone;
-
-            while (it != ticks.begin()) {
-                --it;
-                if (it->type == ToolChange && tick.extruder == it->extruder) return ctNone;
-            }
-
-            return ctRedundant;
-        }
-    }
-
-    // check ToolChange tick
-    if (mode == MultiAsSingle && tick.type == ToolChange) {
-        // We should mark a tick as a "MeaninglessToolChange",
-        // if it has a ToolChange to the same extruder
-        auto it = ticks.find(tick);
-        if (it == ticks.begin()) return tick.extruder == std::max<int>(only_extruder, 1) ? ctMeaninglessToolChange : ctNone;
-
-        while (it != ticks.begin()) {
-            --it;
-            if (it->type == ToolChange) return tick.extruder == it->extruder ? ctMeaninglessToolChange : ctNone;
-        }
-    }
-
-    return ctNone;
-}
-
-// Get used extruders for tick.
-// Means all extruders(tools) which will be used during printing from current tick to the end
-std::set<int> TickCodeInfo::get_used_extruders_for_tick(int tick, int only_extruder, double print_z, Mode force_mode /* = Undef*/) const
-{
-    Mode e_mode = !force_mode ? mode : force_mode;
-
-    if (e_mode == MultiExtruder) {
-        // #ys_FIXME: get tool ordering from _correct_ place
-        const ToolOrdering &tool_ordering = GUI::wxGetApp().plater()->fff_print().get_tool_ordering();
-
-        if (tool_ordering.empty()) return {};
-
-        std::set<int> used_extruders;
-
-        auto it_layer_tools = std::lower_bound(tool_ordering.begin(), tool_ordering.end(), LayerTools(print_z));
-        for (; it_layer_tools != tool_ordering.end(); ++it_layer_tools) {
-            const std::vector<unsigned> &extruders = it_layer_tools->extruders;
-            for (const auto &extruder : extruders) used_extruders.emplace(extruder + 1);
-        }
-
-        return used_extruders;
-    }
-
-    const int default_initial_extruder = e_mode == MultiAsSingle ? std::max(only_extruder, 1) : 1;
-    if (ticks.empty() || e_mode == SingleExtruder) return {default_initial_extruder};
-
-    std::set<int> used_extruders;
-
-    auto it_start = ticks.lower_bound(TickCode{tick});
-    auto it       = it_start;
-    if (it == ticks.begin() && it->type == ToolChange && tick != it->tick) // In case of switch of ToolChange to ColorChange, when tick exists,
-                                                                           // we shouldn't change color for extruder, which will be deleted
-    {
-        used_extruders.emplace(it->extruder);
-        if (tick < it->tick) used_extruders.emplace(default_initial_extruder);
-    }
-
-    while (it != ticks.begin()) {
-        --it;
-        if (it->type == ToolChange && tick != it->tick) {
-            used_extruders.emplace(it->extruder);
-            break;
-        }
-    }
-
-    if (it == ticks.begin() && used_extruders.empty()) used_extruders.emplace(default_initial_extruder);
-
-    for (it = it_start; it != ticks.end(); ++it)
-        if (it->type == ToolChange && tick != it->tick) used_extruders.emplace(it->extruder);
-
-    return used_extruders;
-}
-
 IMSlider::IMSlider(int lowerValue, int higherValue, int minValue, int maxValue, long style)
 {
     m_lower_value  = lowerValue;
@@ -521,11 +215,6 @@ Info IMSlider::GetTicksValues() const
 
 void IMSlider::SetTicksValues(const Info &custom_gcode_per_print_z)
 {
-    if (!m_can_change_color) {
-        m_ticks.erase_all_ticks_with_code(ToolChange);
-        return;
-    }
-
     if (m_values.empty()) {
         m_ticks.mode = m_mode;
         return;
@@ -542,10 +231,12 @@ void IMSlider::SetTicksValues(const Info &custom_gcode_per_print_z)
 
     if (!was_empty && m_ticks.empty())
         // Switch to the "Feature type"/"Tool" from the very beginning of a new object slicing after deleting of the old one
-        post_ticks_changed_event();
+        ;// post_ticks_changed_event();
 
-    // init extruder sequence in respect to the extruders count
-    if (m_ticks.empty()) m_extruders_sequence.init(m_extruder_colors.size());
+    if (m_ticks.has_tick_with_code(ToolChange) && !m_can_change_color) {
+        m_ticks.erase_all_ticks_with_code(ToolChange);
+        post_ticks_changed_event();
+    }
 
     if (custom_gcode_per_print_z.mode && !custom_gcode_per_print_z.gcodes.empty()) m_ticks.mode = custom_gcode_per_print_z.mode;
 
@@ -955,10 +646,6 @@ void IMSlider::draw_ticks(const ImRect& slideable_region) {
             ImTextureID pause_icon_id = m_pause_icon_id;
             ImVec2      icon_pos     = ImVec2(slideable_region.GetCenter().x + icon_offset.x, tick_pos - icon_offset.y);
             button_with_pos(pause_icon_id, icon_size, icon_pos);
-            if (ImGui::IsMouseHoveringRect(icon_pos, icon_pos + icon_size)) { 
-                if(context.IO.MouseClicked[0])
-                    int a = 0;
-            }
         }
         ++tick_it;
     }
@@ -968,7 +655,6 @@ void IMSlider::draw_ticks(const ImRect& slideable_region) {
                                            m_ticks.ticks.end();
     if (tick_it != m_ticks.ticks.end()) {
         // draw delete icon
-        ImTextureID delete_icon_id = m_delete_icon_id;
         ImVec2      icon_pos       = ImVec2(slideable_region.GetCenter().x + icon_offset.x, get_tick_pos(tick_it->tick) - icon_offset.y);
         button_with_pos(m_delete_icon_id, icon_size, icon_pos);
         if (ImGui::IsMouseHoveringRect(icon_pos, icon_pos + icon_size)) {
@@ -1441,8 +1127,7 @@ void IMSlider::render_go_to_layer_dialog()
 void IMSlider::render_menu()
 {
     ImGuiWrapper::push_menu_style(m_scale);
-    std::vector<std::string> colors = wxGetApp().plater()->get_extruder_colors_from_plater_config();
-    int extruder_num = colors.size();
+    int extruder_num = m_extruder_colors.size();
 
     if (m_show_menu) {
         ImGui::OpenPopup("slider_menu_popup");
@@ -1482,7 +1167,7 @@ void IMSlider::render_menu()
             }
             else if (begin_menu(_u8L("Change Filament").c_str())) {
                 for (int i = 0; i < extruder_num; i++) {
-                    std::array<float, 4> rgba     = decode_color_to_float_array(colors[i]);
+                    std::array<float, 4> rgba     = decode_color_to_float_array(m_extruder_colors[i]);
                     ImU32                icon_clr = IM_COL32(rgba[0] * 255.0f, rgba[1] * 255.0f, rgba[2] * 255.0f, rgba[3] * 255.0f);
                     if (menu_item_with_icon((_u8L("Filament ") + std::to_string(i + 1)).c_str(), "", ImVec2(14, 14) * m_scale, icon_clr)) add_code_as_tick(ToolChange, i + 1);
                 }

@@ -63,7 +63,9 @@ Model& Model::assign_copy(const Model &rhs)
     }
 
     // copy custom code per height
-    this->custom_gcode_per_print_z = rhs.custom_gcode_per_print_z;
+    // BBS
+    this->plates_custom_gcodes = rhs.plates_custom_gcodes;
+    this->curr_plate_index = rhs.curr_plate_index;
 
     // BBS: for design info
     this->design_info = rhs.design_info;
@@ -89,7 +91,9 @@ Model& Model::assign_copy(Model &&rhs)
     rhs.objects.clear();
 
     // copy custom code per height
-    this->custom_gcode_per_print_z = std::move(rhs.custom_gcode_per_print_z);
+    // BBS
+    this->plates_custom_gcodes = std::move(rhs.plates_custom_gcodes);
+    this->curr_plate_index = rhs.curr_plate_index;
 
     //BBS: add auxiliary path logic
     // BBS: backup, all in one temp dir
@@ -203,7 +207,9 @@ Model Model::read_from_file(const std::string& input_file, DynamicPrintConfig* c
 
     //BBS
     //CustomGCode::update_custom_gcode_per_print_z_from_config(model.custom_gcode_per_print_z, config);
-    CustomGCode::check_mode_for_custom_gcode_per_print_z(model.custom_gcode_per_print_z);
+    //BBS
+    for (auto& plate_gcodes : model.plates_custom_gcodes)
+        CustomGCode::check_mode_for_custom_gcode_per_print_z(plate_gcodes.second);
 
     sort_remove_duplicates(config_substitutions->substitutions);
     return model;
@@ -277,7 +283,9 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
             throw Slic3r::RuntimeError("Canceled");
     }
 
-    CustomGCode::check_mode_for_custom_gcode_per_print_z(model.custom_gcode_per_print_z);
+    //BBS
+    for (auto& plate_gcodes : model.plates_custom_gcodes)
+        CustomGCode::check_mode_for_custom_gcode_per_print_z(plate_gcodes.second);
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("import 3mf IMPORT_STAGE_CHECK_MODE_GCODE\n");
     if (proFn) {
