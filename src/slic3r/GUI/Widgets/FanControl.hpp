@@ -150,12 +150,15 @@ private:
     FanControl* m_cham_fan;
     wxWindow* m_line_top;
     wxWindow* m_line_bottom;
+    bool      m_is_suppt_cham_fun{true};
 
 public:
+    void         update_show_mode(bool support_cham_fun);
     void         update_fan_data(MachineObject::FanType type, MachineObject* obj);
     void         on_left_down(wxMouseEvent& evt);
     void         paintEvent(wxPaintEvent& evt);
     void         post_event(int fan_type, wxString speed);
+    void         on_show(wxShowEvent& evt);
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
 };

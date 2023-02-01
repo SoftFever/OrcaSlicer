@@ -176,8 +176,8 @@ void StatusBasePanel::init_bitmaps()
     m_bitmap_axis_home       = ScalableBitmap(this, "monitor_axis_home", 32);
     m_bitmap_lamp_on         = ScalableBitmap(this, "monitor_lamp_on", 24);
     m_bitmap_lamp_off        = ScalableBitmap(this, "monitor_lamp_off", 24);
-    m_bitmap_fan_on          = ScalableBitmap(this, "monitor_fan_on", 24);
-    m_bitmap_fan_off         = ScalableBitmap(this, "monitor_fan_off", 24);
+    m_bitmap_fan_on          = ScalableBitmap(this, "monitor_fan_on", 22);
+    m_bitmap_fan_off         = ScalableBitmap(this, "monitor_fan_off", 22);
     m_bitmap_speed           = ScalableBitmap(this, "monitor_speed", 24);
     m_bitmap_speed_active    = ScalableBitmap(this, "monitor_speed_active", 24);
     m_bitmap_use_time        = ScalableBitmap(this, "print_info_time", 16);
@@ -2909,14 +2909,17 @@ void StatusPanel::on_printing_fan_switch(wxCommandEvent &event)
 
 void StatusPanel::on_nozzle_fan_switch(wxCommandEvent &event)
 {
-
-
     m_fan_control_popup->Destroy();
+    m_fan_control_popup = nullptr;
     m_fan_control_popup = new FanControlPopup(this);
+
+    if (obj) {
+        bool is_suppt_cham_fun = obj->is_function_supported(PrinterFunction::FUNC_CHAMBER_FAN);
+        m_fan_control_popup->update_show_mode(is_suppt_cham_fun);
+    }
+
     auto pos = m_switch_nozzle_fan->GetScreenPosition();
     pos.y = pos.y + m_switch_nozzle_fan->GetSize().y;
-
-
 
     int display_idx = wxDisplay::GetFromWindow(this);
     auto display = wxDisplay(display_idx).GetClientArea();

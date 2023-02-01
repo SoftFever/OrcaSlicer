@@ -2,6 +2,7 @@
 #include "Label.hpp"
 #include "../BitmapCache.hpp"
 #include "../I18N.hpp"
+#include "../GUI_App.hpp"
 
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
@@ -542,20 +543,34 @@ FanControlPopup::FanControlPopup(wxWindow* parent)
     Bind(wxEVT_LEFT_DOWN, &FanControlPopup::on_left_down, this);
 #endif
 
+
+    Bind(wxEVT_SHOW, &FanControlPopup::on_show, this);
     SetBackgroundColour(*wxWHITE);
+}
+
+void FanControlPopup::update_show_mode(bool support_cham_fun)
+{
+    
+    if (support_cham_fun && !m_is_suppt_cham_fun) {
+        m_cham_fan->Show();
+        m_line_bottom->Show();
+        Layout();
+        Fit();
+    }
+    
+    if (!support_cham_fun && m_is_suppt_cham_fun) {
+        m_cham_fan->Hide();
+        m_line_bottom->Hide();
+        Layout();
+        Fit();
+    }
+    m_is_suppt_cham_fun = support_cham_fun;
 }
 
 void FanControlPopup::update_fan_data(MachineObject::FanType type, MachineObject* obj)
 {
-    bool is_suppt_cham_fun = obj->is_function_supported(PrinterFunction::FUNC_CHAMBER_FAN);
-    if (is_suppt_cham_fun) {
-        m_cham_fan->Show();
-        m_line_bottom->Show();
-    }
-    else {
-        m_cham_fan->Hide();
-        m_line_bottom->Hide();
-    }
+    m_is_suppt_cham_fun = obj->is_function_supported(PrinterFunction::FUNC_CHAMBER_FAN);
+    update_show_mode(m_is_suppt_cham_fun);
 
     if (type ==  MachineObject::FanType::COOLING_FAN && obj->cooling_fan_speed >= 0) {
         m_part_fan->set_fan_speed(obj->cooling_fan_speed);
@@ -576,9 +591,6 @@ void FanControlPopup::update_fan_data(MachineObject::FanType type, MachineObject
     Bind(EVT_FAN_CHANGED, [this](wxCommandEvent& e) {
         post_event(e.GetInt(), e.GetString());
     });
-
-    Layout();
-    Fit();
 }
 
 void FanControlPopup::on_left_down(wxMouseEvent& evt)
@@ -617,6 +629,11 @@ void FanControlPopup::post_event(int fan_type, wxString speed)
 bool FanControlPopup::ProcessLeftDown(wxMouseEvent& event)
 {
     return wxPopupTransientWindow::ProcessLeftDown(event);
+}
+
+void FanControlPopup::on_show(wxShowEvent& evt)
+{
+    wxGetApp().UpdateDarkUIWin(this);
 }
 
 void FanControlPopup::paintEvent(wxPaintEvent& evt)
