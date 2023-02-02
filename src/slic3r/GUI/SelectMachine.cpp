@@ -2112,7 +2112,18 @@ void SelectMachineDialog::on_ok()
     // get ams_mapping_result
     std::string ams_mapping_array;
     std::string ams_mapping_info;
-    get_ams_mapping_result(ams_mapping_array, ams_mapping_info);
+    if (ams_check->GetValue())
+        get_ams_mapping_result(ams_mapping_array, ams_mapping_info);
+    else {
+        json mapping_info_json = json::array();
+        json item;
+        if (m_filaments.size() > 0) {
+            item["sourceColor"]  = m_filaments[0].color.substr(1, 6) + "FF";
+            item["filamentType"] = m_filaments[0].type;
+            mapping_info_json.push_back(item);
+            ams_mapping_info = mapping_info_json.dump();
+        }
+    }
 
     result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool &cancel) {
         if (this->m_is_canceled) return;
