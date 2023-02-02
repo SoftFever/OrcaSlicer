@@ -310,14 +310,23 @@ gst_bambusrc_create (GstPushSrc * psrc, GstBuffer ** outbuf)
   }
   else {
     if (!src->sttime) {
-      src->sttime = gst_element_get_current_clock_time((GstElement *)psrc);
+      //only available from 1.18
+      //src->sttime = gst_element_get_current_clock_time((GstElement *)psrc);
+      src->sttime = gst_clock_get_time(((GstElement *)psrc)->clock);
       //if (GST_CLOCK_TIME_NONE == src->sttime)
       //  src->sttime
+      GST_DEBUG_OBJECT(src,
+        "sttime init to %llu.",
+        src->sttime);
     }
-    GST_BUFFER_DTS(*outbuf) = gst_element_get_current_clock_time((GstElement *)psrc) - src->sttime;
+    //GST_BUFFER_DTS(*outbuf) = gst_element_get_current_clock_time((GstElement *)psrc) - src->sttime;
+    GST_BUFFER_DTS(*outbuf) = gst_clock_get_time(((GstElement *)psrc)->clock) - src->sttime;
     GST_BUFFER_PTS(*outbuf) = GST_CLOCK_TIME_NONE;
     GST_BUFFER_DURATION(*outbuf) = GST_CLOCK_TIME_NONE;
   }
+  GST_DEBUG_OBJECT(src,
+    "sttime:%llu, DTS:%llu, PTS: %llu~",
+    src->sttime, GST_BUFFER_DTS(*outbuf), GST_BUFFER_PTS(*outbuf));
 
   return GST_FLOW_OK;
 }
