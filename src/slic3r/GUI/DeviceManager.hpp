@@ -834,6 +834,7 @@ public:
 
     static bool get_bed_temperature_limit(std::string type_str, int& limit);
     static bool load_functional_config(std::string config_file);
+    static std::string load_gcode(std::string type_str, std::string gcode_file);
 };
 
 } // namespace Slic3r

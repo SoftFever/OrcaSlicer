@@ -1520,20 +1520,9 @@ int MachineObject::command_ams_switch(int tray_index, int old_temp, int new_temp
 
     std::string gcode = "";
     if (tray_index == 255) {
-        // unload gcode
-        gcode = "M620 S255\nM104 S250\nG28 X\nG91\nG1 Z3.0 F1200\nG90\n"
-                "G1 X70 F12000\nG1 Y245\nG1 Y265 F3000\nM109 S250\nG1 X120 F12000\n"
-                "G1 X20 Y50 F12000\nG1 Y-3\nT255\nM104 S0\nG1 X165 F5000\nG1 Y245\n"
-                "G91\nG1 Z-3.0 F1200\nG90\nM621 S255\n";
+        gcode = DeviceManager::load_gcode(printer_type, "ams_unload.gcode");
     } else {
-        // load gcode
-        gcode = "M620 S[next_extruder]\nM104 S250\nG28 X\nG91\n\nG1 Z3.0 F1200\nG90\n"
-                "G1 X70 F12000\nG1 Y245\nG1 Y265 F3000\nM109 S250\nG1 X120 F12000\nG1 X20 Y50 F12000\nG1 Y-3"
-                "\nT[next_extruder]\nG1 X54  F12000\nG1 Y265\nM400\nM106 P1 S0\nG92 E0\nG1 E40 F200\nM400"
-                "\nM109 S[new_filament_temp]\nM400\nM106 P1 S255\nG92 E0\nG1 E5 F300\nM400\nM106 P1 S0\nG1 X70  F9000"
-                "\nG1 X76 F15000\nG1 X65 F15000\nG1 X76 F15000\nG1 X65 F15000\nG1 X70 F6000\nG1 X100 F5000\nG1 X70 F15000"
-                "\nG1 X100 F5000\nG1 X70 F15000\nG1 X165 F5000\nG1 Y245\nG91\nG1 Z-3.0 F1200\nG90\nM621 S[next_extruder]\n";
-
+        gcode = DeviceManager::load_gcode(printer_type, "ams_load.gcode");
         boost::replace_all(gcode, "[next_extruder]", std::to_string(tray_index));
         boost::replace_all(gcode, "[new_filament_temp]", std::to_string(new_temp));
     }
@@ -4100,6 +4089,25 @@ bool DeviceManager::load_functional_config(std::string config_file)
         return false;
     }
     return true;
+}
+
+std::string DeviceManager::load_gcode(std::string type_str, std::string gcode_file)
+{
+    std::string gcode_full_path = Slic3r::resources_dir() + "/printers/" + gcode_file;
+    std::ifstream gcode(encode_path(gcode_full_path.c_str()).c_str());
+    try {
+        std::stringstream gcode_str;
+        if (gcode.is_open()) {
+            gcode_str << gcode.rdbuf();
+            gcode.close();
+            return gcode_str.str();
+        }
+    } catch(...) {
+        BOOST_LOG_TRIVIAL(error) << "load gcode file failed, file = " << gcode_file << ", path = " << gcode_full_path;
+    }
+
+
+    return "";
 }
 
 } // namespace Slic3r
