@@ -24,6 +24,7 @@
             "bed_temperature_limit": 100,
             "model_id": "C11",
             "printer_type": "C11",
+            "ftp_folder" : "sdcard/",
             "printer_thumbnail_image": "printer_thumbnail_p1p"
         },
         {

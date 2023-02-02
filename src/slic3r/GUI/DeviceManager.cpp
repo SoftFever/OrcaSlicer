@@ -302,6 +302,11 @@ std::string MachineObject::get_printer_thumbnail_img_str()
         return "printer_thumbnail";
 }
 
+std::string MachineObject::get_ftp_folder()
+{
+    return DeviceManager::get_ftp_folder(printer_type);
+}
+
 void MachineObject::set_access_code(std::string code)
 {
     this->access_code = code;
@@ -4032,6 +4037,20 @@ std::string DeviceManager::get_printer_display_name(std::string type_str)
             if (printer.contains("model_id") && printer["model_id"].get<std::string>() == type_str) {
                 if (printer.contains("display_name")) {
                     return printer["display_name"].get<std::string>();
+                }
+            }
+        }
+    }
+    return "";
+}
+
+std::string DeviceManager::get_ftp_folder(std::string type_str)
+{
+    if (DeviceManager::function_table.contains("printers")) {
+        for (auto printer : DeviceManager::function_table["printers"]) {
+            if (printer.contains("model_id") && printer["model_id"].get<std::string>() == type_str) {
+                if (printer.contains("ftp_folder")) {
+                    return printer["ftp_folder"].get<std::string>();
                 }
             }
         }

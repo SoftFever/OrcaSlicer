@@ -405,6 +405,8 @@ public:
     std::string connection_type() { return dev_connection_type; }
     void set_dev_ip(std::string ip) {dev_ip = ip;};
     bool has_access_right() { return !get_access_code().empty(); }
+    std::string get_ftp_folder();
+    void set_access_code(std::string code);
     std::string get_access_code();
 
     void set_access_code(std::string code);
@@ -834,6 +836,7 @@ public:
     static std::string parse_printer_type(std::string type_str);
     static std::string get_printer_display_name(std::string type_str);
     static std::string get_printer_thumbnail_img(std::string type_str);
+    static std::string get_ftp_folder(std::string type_str);
     static bool is_function_supported(std::string type_str, std::string function_name);
     static std::vector<std::string> get_resolution_supported(std::string type_str);
 

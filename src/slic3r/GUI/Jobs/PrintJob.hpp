@@ -42,6 +42,7 @@ public:
 
     std::string m_project_name;
     std::string m_dev_ip;
+    std::string m_ftp_folder;
     bool        m_local_use_ssl { true };
     std::string m_access_code;
     std::string task_bed_type;

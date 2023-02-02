@@ -177,6 +177,7 @@ void PrintJob::process()
     }
 
     params.dev_id = m_dev_id;
+    params.ftp_folder = m_ftp_folder;
     //params.project_name = project_name;
     params.project_name = m_project_name;
     params.preset_name = wxGetApp().preset_bundle->prints.get_selected_preset_name();

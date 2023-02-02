@@ -120,6 +120,7 @@ struct PrintParams {
     std::string     filename;
     std::string     config_filename;
     int             plate_index;
+    std::string     ftp_folder;
     std::string     ftp_file;
     std::string     ftp_file_md5;
     std::string     ams_mapping;
