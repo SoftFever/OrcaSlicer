@@ -13,13 +13,9 @@
 #include <boost/process.hpp>
 #ifdef __WIN32__
 #include <boost/process/windows.hpp>
-#elif __APPLE__
+#else
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#else
-#include <sys/mman.h>
-#include <sys/stat.h>        /* For mode constants */
-#include <fcntl.h>           /* For O_* constants */
 #endif
 
 namespace Slic3r {
@@ -525,7 +521,7 @@ bool MediaPlayCtrl::get_stream_url(std::string *url)
         }
     }
     CloseHandle(shm);
-#elif __APPLE__
+#else
     std::string file_url = data_dir() + "/cameratools/url.txt";
     key_t key = ::ftok(file_url.c_str(), 1000);
     int shm = ::shmget(key, 1024, 0);
@@ -543,18 +539,6 @@ bool MediaPlayCtrl::get_stream_url(std::string *url)
             url = nullptr;
         }
     }
-#else
-    int shm = ::shm_open("bambu_stream_url", O_RDONLY, 0);
-    if (shm == -1) return false;
-    if (url) {
-        char *addr = (char *) ::mmap(nullptr, 1024, PROT_READ, MAP_SHARED, shm, 0);
-        if (addr != MAP_FAILED) {
-            *url = addr;
-            ::munmap(addr, 1024);
-            url = nullptr;
-        }
-    }
-    ::close(shm);
 #endif
     return url == nullptr;
 }
