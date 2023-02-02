@@ -571,10 +571,14 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     if (!dev) return;
 
     MachineObject *obj_ = dev->get_selected_machine();
-    assert(obj_->dev_id == m_printer_last_select);
+    
     if (obj_ == nullptr) {
+        m_printer_last_select = "";
+        m_comboBox_printer->SetTextLabel("");
         return;
     }
+    assert(obj_->dev_id == m_printer_last_select);
+
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", print_job: for send task, current printer id =  " << m_printer_last_select << std::endl;
     show_status(PrintDialogStatus::PrintStatusSending);
@@ -649,18 +653,14 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
 
     m_send_job                      = std::make_shared<SendJob>(m_status_bar, m_plater, m_printer_last_select);
     m_send_job->m_dev_ip            = obj_->dev_ip;
-    
-    m_send_job->m_access_code = obj_->get_access_code();
+    m_send_job->m_access_code       = obj_->get_access_code();
     m_send_job->m_local_use_ssl     = obj_->local_use_ssl;
     m_send_job->connection_type     = obj_->connection_type();
     m_send_job->cloud_print_only    = true;
     m_send_job->has_sdcard          = obj_->has_sdcard();
     m_send_job->set_project_name(m_current_project_name.utf8_string());
 
-    /*m_send_job->on_check_ip_address_success([this, obj_]() {
-        wxCommandEvent* evt = new wxCommandEvent(EVT_CLEAR_IPADDRESS);
-        wxQueueEvent(this, evt);
-    });*/
+    enable_prepare_mode = false;
 
     m_send_job->on_check_ip_address_fail([this]() {
         wxCommandEvent* evt = new wxCommandEvent(EVT_CLEAR_IPADDRESS);
@@ -668,8 +668,15 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
         wxGetApp().show_ip_address_enter_dialog();
     });
 
-    enable_prepare_mode = false;
-    m_send_job->start();
+    if (obj_->is_lan_mode_printer()) {
+        m_send_job->set_check_mode();
+        m_send_job->check_and_continue();
+        m_send_job->start();
+    }
+    else {
+        m_send_job->start();
+    }
+
     BOOST_LOG_TRIVIAL(info) << "send_job: send print job";
 }
 

@@ -141,12 +141,16 @@ void SendJob::process()
         if (result != 0) {
             BOOST_LOG_TRIVIAL(error) << "access code is invalid";
             m_enter_ip_address_fun_fail();
+            m_job_finished = true;
+            return;
         }
         else {
-            m_enter_ip_address_fun_success();
+            if (!m_chck_and_continue) {
+                m_enter_ip_address_fun_success();
+                m_job_finished = true;
+                return;
+            }
         }
-        m_job_finished = true;
-        return;
     }
     /* display info */
 

@@ -2032,7 +2032,7 @@ int MachineObject::connect(bool is_anonymous)
     std::string password;
     if (!is_anonymous) {
         username = "bblp";
-        password = access_code;
+        password = get_access_code();
     }
     if (m_agent) {
         try {

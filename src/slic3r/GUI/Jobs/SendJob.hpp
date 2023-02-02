@@ -21,6 +21,7 @@ class SendJob : public PlaterJob
     bool                m_job_finished{ false };
     int                 m_print_job_completed_id = 0;
     bool                m_is_check_mode{false};
+    bool                m_chck_and_continue{false};
     std::function<void()> m_success_fun{nullptr};
     std::function<void()> m_enter_ip_address_fun_fail{nullptr};
     std::function<void()> m_enter_ip_address_fun_success{nullptr};
@@ -54,6 +55,7 @@ public:
 
     wxString get_http_error_msg(unsigned int status, std::string body);
     void set_check_mode() {m_is_check_mode = true;};
+    void check_and_continue() {m_chck_and_continue = true;};
     bool is_finished() { return m_job_finished;  }
     void process() override;
     void on_success(std::function<void()> success);
