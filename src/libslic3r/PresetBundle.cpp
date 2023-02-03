@@ -1293,7 +1293,7 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     this->filament_presets = { filaments.get_selected_preset_name() };
     for (unsigned int i = 1; i < 1000; ++ i) {
         char name[64];
-        sprintf(name, "filament_%u", i);
+        sprintf(name, "filament_%02u", i);
         if (! config.has("presets", name))
             break;
         this->filament_presets.emplace_back(remove_ini_suffix(config.get("presets", name)));
@@ -1371,7 +1371,7 @@ void PresetBundle::export_selections(AppConfig &config)
     config.set("presets", PRESET_FILAMENT_NAME,     filament_presets.front());
     for (unsigned i = 1; i < filament_presets.size(); ++i) {
         char name[64];
-        sprintf(name, "filament_%u", i);
+        sprintf(name, "filament_%02u", i);
         config.set("presets", name, filament_presets[i]);
     }
     CNumericLocalesSetter locales_setter;

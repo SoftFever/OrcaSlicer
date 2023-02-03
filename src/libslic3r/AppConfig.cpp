@@ -462,8 +462,11 @@ std::string AppConfig::load()
                         for(auto& element: iter.value()) {
                             if (idx == 0)
                                 m_storage[it.key()]["filament"] = element;
-                            else
-                                m_storage[it.key()]["filament_" + std::to_string(idx)] = element;
+                            else {
+                                auto n = std::to_string(idx);
+                                if (n.length() == 1) n = "0" + n;
+                                m_storage[it.key()]["filament_" + n] = element;
+                            }
                             idx++;
                         }
                     } else {
