@@ -1236,7 +1236,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
         if (e.GetInt() == 1) {
             DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
             if (!dev) return;
-            m_comboBox_printer->SetValue(dev->get_selected_machine()->dev_name);
+            m_comboBox_printer->SetValue(dev->get_selected_machine()->dev_name + "(LAN)");
         }
     });
 

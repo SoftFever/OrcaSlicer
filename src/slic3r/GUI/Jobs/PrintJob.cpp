@@ -277,32 +277,56 @@ void PrintJob::process()
         else if (params.password.empty())
             params.comments = "no_password";
 
-        if (!this->cloud_print_only
-            && !params.password.empty() 
-            && !params.dev_ip.empty()
-            && this->has_sdcard) {
-            // try to send local with record
-            BOOST_LOG_TRIVIAL(info) << "print_job: try to start local print with record";
-            this->update_status(curr_percent, _L("Sending print job over LAN"));
-            result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn);
-            if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
-                params.comments = "wrong_code";
-            } else if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
-                params.comments = "upload_failed";
-            } else {
-                params.comments = (boost::format("failed(%1%)") % result).str();
+
+        //use ftp only
+        if (!wxGetApp().app_config->get("lan_mode_only").empty() && wxGetApp().app_config->get("lan_mode_only") == "1") {
+
+            if (params.password.empty() || params.dev_ip.empty()) {
+                error_text = wxString::Format("Access code:%s Ip address:%s", params.password, params.dev_ip);
+                result = BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED;
             }
-            if (result < 0) {
-                // try to send with cloud
-                BOOST_LOG_TRIVIAL(warning) << "print_job: try to send with cloud";
+            else {
+                BOOST_LOG_TRIVIAL(info) << "print_job: use ftp send print only";
+                this->update_status(curr_percent, _L("Sending print job over LAN"));
+                result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn);
+                if (result < 0) {
+                    error_text = wxString::Format("Access code:%s Ip address:%s", params.password, params.dev_ip);
+                    // try to send with cloud
+                    BOOST_LOG_TRIVIAL(warning) << "print_job: use ftp send print failed";
+                }
+            }
+        }
+        else {
+            if (!this->cloud_print_only
+                && !params.password.empty()
+                && !params.dev_ip.empty()
+                && this->has_sdcard) {
+                // try to send local with record
+                BOOST_LOG_TRIVIAL(info) << "print_job: try to start local print with record";
+                this->update_status(curr_percent, _L("Sending print job over LAN"));
+                result = m_agent->start_local_print_with_record(params, update_fn, cancel_fn);
+                if (result == BAMBU_NETWORK_ERR_FTP_LOGIN_DENIED) {
+                    params.comments = "wrong_code";
+                }
+                else if (result == BAMBU_NETWORK_ERR_FTP_UPLOAD_FAILED) {
+                    params.comments = "upload_failed";
+                }
+                else {
+                    params.comments = (boost::format("failed(%1%)") % result).str();
+                }
+                if (result < 0) {
+                    // try to send with cloud
+                    BOOST_LOG_TRIVIAL(warning) << "print_job: try to send with cloud";
+                    this->update_status(curr_percent, _L("Sending print job through cloud service"));
+                    result = m_agent->start_print(params, update_fn, cancel_fn);
+                }
+            }
+            else {
+                BOOST_LOG_TRIVIAL(info) << "print_job: send with cloud";
                 this->update_status(curr_percent, _L("Sending print job through cloud service"));
                 result = m_agent->start_print(params, update_fn, cancel_fn);
             }
-        } else {
-            BOOST_LOG_TRIVIAL(info) << "print_job: send with cloud";
-            this->update_status(curr_percent, _L("Sending print job through cloud service"));
-            result = m_agent->start_print(params, update_fn, cancel_fn);
-        }
+        } 
     } else {
         if (this->has_sdcard) {
             this->update_status(curr_percent, _L("Sending print job over LAN"));
