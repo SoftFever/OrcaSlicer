@@ -9,7 +9,6 @@
                 "FUNC_BUILDPLATE_MARKER_DETECT": false,
                 "FUNC_FLOW_CALIBRATION": false,
                 "FUNC_MONITORING": false,
-                "FUNC_TIMELAPSE": false,
                 "FUNC_MEDIA_FILE": false,
                 "FUNC_REMOTE_TUNNEL": false,
                 "FUNC_LOCAL_TUNNEL": true,
