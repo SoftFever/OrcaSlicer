@@ -839,6 +839,7 @@ void NotificationManager::ExportFinishedNotification::render_close_button(ImGuiW
 
 void NotificationManager::ExportFinishedNotification::render_eject_button(ImGuiWrapper& imgui, const float win_size_x, const float win_size_y, const float win_pos_x, const float win_pos_y)
 {
+	auto scale = wxGetApp().plater()->get_current_canvas3D()->get_scale();
 	ImVec2 win_size(win_size_x, win_size_y);
 	ImVec2 win_pos(win_pos_x, win_pos_y);
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.0f, .0f, .0f, .0f));
@@ -856,20 +857,15 @@ void NotificationManager::ExportFinishedNotification::render_eject_button(ImGuiW
 	{
 		button_text = ImGui::EjectHoverButton;
 		//tooltip
-
-		long time_now = wxGetLocalTime();
-		if (m_hover_time > 0 && m_hover_time < time_now) {
-			ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
-			//ImGui::BeginTooltip();
-			//imgui.text(_u8L("Eject drive") + " " + GUI::shortkey_ctrl_prefix() + "T");
-			//ImGui::EndTooltip();
-			ImGui::PopStyleColor();
-		}
-		if (m_hover_time == 0)
-			m_hover_time = time_now;
+		ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
+		ImGui::PushStyleColor(ImGuiCol_Border, { 0,0,0,0 });
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 8 * scale, 1 * scale });
+		ImGui::BeginTooltip();
+		imgui.text(_u8L("Safely remove hardware."));
+		ImGui::EndTooltip();
+		ImGui::PopStyleColor(2);
+		ImGui::PopStyleVar();
 	}
-	else
-		m_hover_time = 0;
 
 	ImVec2 button_pic_size = ImGui::CalcTextSize(button_text.c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
