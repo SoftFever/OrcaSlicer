@@ -834,8 +834,8 @@ AMSRoad::AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, in
             auto mouse_pos = ClientToScreen(e.GetPosition());
             auto rect = ClientToScreen(wxPoint(0, 0));
 
-            if (mouse_pos.x > rect.x + GetSize().x - FromDIP(20) && 
-                mouse_pos.y > rect.y + GetSize().y - FromDIP(40)) {
+            if (mouse_pos.x > rect.x + GetSize().x - FromDIP(25) && 
+                mouse_pos.y > rect.y + GetSize().y - FromDIP(25)) {
                 wxCommandEvent event(EVT_AMS_SHOW_HUMIDITY_TIPS);
                 wxPostEvent(GetParent()->GetParent(), event);
             }
@@ -1947,6 +1947,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
         wxPoint popup_pos(img_pos.x, img_pos.y + GetRect().height);
         m_Humidity_tip_popup.Position(popup_pos, wxSize(0, 0));
         m_Humidity_tip_popup.Popup();
+        m_Humidity_tip_popup.GetParent()->SetFocus();
     });
     
 

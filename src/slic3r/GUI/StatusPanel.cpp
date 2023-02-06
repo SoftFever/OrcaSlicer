@@ -2879,15 +2879,29 @@ void StatusPanel::on_switch_speed(wxCommandEvent &event)
             obj->command_set_printing_speed((PrintingSpeedLevel)this->speed_lvl);
         }
     });
-    popUp->Bind(wxEVT_SHOW, [this](auto &e) {
+    popUp->Bind(wxEVT_SHOW, [this, popUp](auto &e) {
         if (!e.IsShown()) {
-            wxGetApp().CallAfter([popUp = e.GetEventObject()] { delete popUp; });
+           /* wxGetApp().CallAfter([this, popUp] { 
+                
+            });*/
+            popUp->Destroy();
+            m_showing_speed_popup = false;
             speed_dismiss_time = boost::posix_time::microsec_clock::universal_time();
         }
+        });
+    
+    m_ams_control->Bind(EVT_AMS_SHOW_HUMIDITY_TIPS, [this, popUp](auto& e) {
+        if (m_showing_speed_popup) {
+            if (popUp && popUp->IsShown()) {
+                popUp->Show(false);
+            }
+        }
+        e.Skip();
     });
     wxPoint pos = m_switch_speed->ClientToScreen(wxPoint(0, -6));
     popUp->Position(pos, {0, m_switch_speed->GetSize().y + 12});
     popUp->Popup();
+    m_showing_speed_popup = true;
 }
 
 void StatusPanel::on_printing_fan_switch(wxCommandEvent &event)
