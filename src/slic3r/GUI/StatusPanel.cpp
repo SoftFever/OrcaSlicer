@@ -2273,7 +2273,7 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
                     img                = it->second;
                     wxImage resize_img = img.Scale(m_bitmap_thumbnail->GetSize().x, m_bitmap_thumbnail->GetSize().y);
                     m_bitmap_thumbnail->SetBitmap(resize_img);
-                    task_thumbnail_state == ThumbnailState::TASK_THUMBNAIL;
+                    task_thumbnail_state = ThumbnailState::TASK_THUMBNAIL;
                 } else {
                     web_request = wxWebSession::GetDefault().CreateRequest(this, m_request_url);
                     BOOST_LOG_TRIVIAL(trace) << "monitor: start request thumbnail, url = " << m_request_url;
