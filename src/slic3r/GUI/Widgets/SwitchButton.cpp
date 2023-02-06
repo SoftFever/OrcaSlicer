@@ -100,10 +100,18 @@ void SwitchButton::Rescale()
 		}
 		for (int i = 0; i < 2; ++i) {
 			wxMemoryDC memdc(&dc);
+#ifdef __WXMSW__
 			wxBitmap bmp(trackSize.x, trackSize.y);
 			memdc.SelectObject(bmp);
 			memdc.SetBackground(wxBrush(GetBackgroundColour()));
 			memdc.Clear();
+#else
+            wxImage image(trackSize);
+            image.InitAlpha();
+            memset(image.GetAlpha(), 0, trackSize.GetWidth() * trackSize.GetHeight());
+            wxBitmap bmp(std::move(image));
+            memdc.SelectObject(bmp);
+#endif
             memdc.SetFont(dc.GetFont());
 			auto state = i == 0 ? StateColor::Enabled : (StateColor::Checked | StateColor::Enabled);
             {
