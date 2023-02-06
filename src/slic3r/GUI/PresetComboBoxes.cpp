@@ -376,6 +376,7 @@ void PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
         auto &filaments      = m_collection->get_presets();
         for (auto &f : m_preset_bundle->filament_ams_list) {
             std::string filament_id = f.opt_string("filament_id", 0u);
+            if (filament_id.empty()) continue;
             auto iter = std::find_if(filaments.begin(), filaments.end(),
                 [&filament_id](auto &f) { return f.is_compatible && f.is_system && f.filament_id == filament_id; });
             if (iter == filaments.end()) {

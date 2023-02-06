@@ -153,7 +153,7 @@ MonitorPanel::~MonitorPanel()
     if (!dev) return;
     MachineObject *obj_ = dev->get_selected_machine();
     if (obj_)
-        GUI::wxGetApp().sidebar().load_ams_list(obj_->amsList);
+        GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_->amsList);
 }
 
  void MonitorPanel::init_tabpanel()
@@ -228,7 +228,7 @@ void MonitorPanel::set_default()
     /* reset side tool*/
     //m_bitmap_wifi_signal->SetBitmap(wxNullBitmap);
 
-    wxGetApp().sidebar().load_ams_list({});
+    wxGetApp().sidebar().load_ams_list({}, {});
 }
 
 wxWindow* MonitorPanel::create_side_tools()
@@ -309,7 +309,7 @@ void MonitorPanel::on_update_all(wxMouseEvent &event)
 
     MachineObject *obj_ = dev->get_selected_machine();
     if (obj_)
-        GUI::wxGetApp().sidebar().load_ams_list(obj_->amsList);
+        GUI::wxGetApp().sidebar().load_ams_list(obj_->dev_id, obj_->amsList);
 
     Layout();
     Refresh();

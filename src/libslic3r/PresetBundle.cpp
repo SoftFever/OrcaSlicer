@@ -1427,6 +1427,13 @@ unsigned int PresetBundle::sync_ams_list(unsigned int &unknowns)
     for (auto &ams : filament_ams_list) {
         auto filament_id = ams.opt_string("filament_id", 0u);
         auto filament_color = ams.opt_string("filament_colour", 0u);
+        auto filament_changed = !ams.has("filament_changed") || ams.opt_bool("filament_changed");
+        if (filament_id.empty()) continue;
+        if (!filament_changed && this->filament_presets.size() > filament_presets.size()) {
+            filament_presets.push_back(this->filament_presets[filament_presets.size()]);
+            filament_colors.push_back(filament_color);
+            continue;
+        }
         auto iter = std::find_if(filaments.begin(), filaments.end(), [&filament_id](auto &f) { return f.is_compatible && f.is_system && f.filament_id == filament_id; });
         if (iter == filaments.end()) {
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;

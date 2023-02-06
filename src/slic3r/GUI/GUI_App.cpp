@@ -1756,7 +1756,7 @@ void GUI_App::init_networking_callbacks()
                     obj->parse_json(msg);
 
                     if (this->m_device_manager->get_selected_machine() == obj && obj->is_ams_need_update) {
-                        GUI::wxGetApp().sidebar().load_ams_list(obj->amsList);
+                        GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj->amsList);
                     }
                 }
             });
@@ -1780,7 +1780,7 @@ void GUI_App::init_networking_callbacks()
                 if (obj) {
                     obj->parse_json(msg);
                     if (this->m_device_manager->get_selected_machine() == obj && obj->is_ams_need_update) {
-                        GUI::wxGetApp().sidebar().load_ams_list(obj->amsList);
+                        GUI::wxGetApp().sidebar().load_ams_list(obj->dev_id, obj->amsList);
                     }
                 }
                 });
@@ -3351,7 +3351,7 @@ void GUI_App::request_user_logout()
         m_agent->set_user_selected_machine("");
         /* delete old user settings */
         m_device_manager->clean_user_info();
-        GUI::wxGetApp().sidebar().load_ams_list({});
+        GUI::wxGetApp().sidebar().load_ams_list({}, {});
         GUI::wxGetApp().stop_sync_user_preset();
 
 #ifdef __WINDOWS__

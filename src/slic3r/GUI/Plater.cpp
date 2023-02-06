@@ -334,6 +334,7 @@ struct Sidebar::priv
 
     bool                is_collapsed {false};
     Search::OptionsSearcher     searcher;
+    std::string ams_list_device;
 
     priv(Plater *plater) : plater(plater) {}
     ~priv();
@@ -1355,13 +1356,12 @@ void Sidebar::on_bed_type_change(BedType bed_type)
         m_bed_type_list->SetSelection(sel_idx);
 }
 
-void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
+void Sidebar::load_ams_list(std::string const &device, std::map<std::string, Ams *> const &list)
 {
     std::vector<DynamicPrintConfig> filament_ams_list;
     for (auto ams : list) {
         char n = ams.first.front() - '0' + 'A';
         for (auto tray : ams.second->trayList) {
-            if (tray.second->setting_id.empty()) continue;
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__
                                     << boost::format(": ams %1% tray %2% id %3% color %4%") % ams.first % tray.first % tray.second->setting_id % tray.second->color;
             char t = tray.first.front() - '0' + '1';
@@ -1373,6 +1373,7 @@ void Sidebar::load_ams_list(std::map<std::string, Ams *> const &list)
             filament_ams_list.emplace_back(std::move(ams));
         }
     }
+    p->ams_list_device = device;
     wxGetApp().preset_bundle->filament_ams_list = filament_ams_list;
     for (auto c : p->combos_filament)
         c->update();
@@ -1392,6 +1393,17 @@ void Sidebar::sync_ams_list()
         _L("Sync filaments with AMS will drop all current selected filament presets and colors. Do you want to continue?"),
         _L("Sync filaments with AMS"), wxYES_NO);
     if (dlg.ShowModal() != wxID_YES) return;
+    std::string ams_filament_ids = wxGetApp().app_config->get("ams_filament_ids", p->ams_list_device);
+    if (!ams_filament_ids.empty()) {
+        std::vector<std::string> list2;
+        boost::algorithm::split(list2, ams_filament_ids, boost::algorithm::is_any_of(","));
+        if (list2.size() == list.size()) {
+            for (int i = 0; i < list.size(); ++i) {
+                list[i].set_key_value("filament_changed", 
+                    new ConfigOptionBool{!list2[i].empty() && list2[i] != list[i].opt_string("filament_id", 0u)});
+            }
+        }
+    }
     unsigned int unknowns = 0;
     auto n = wxGetApp().preset_bundle->sync_ams_list(unknowns);
     if (n == 0) {
@@ -1401,6 +1413,10 @@ void Sidebar::sync_ams_list()
         dlg.ShowModal();
         return;
     }
+    std::vector<std::string> list2;
+    for (auto &f : list) list2.push_back(f.opt_string("filament_id", 0u));
+    ams_filament_ids = boost::algorithm::join(list2, ",");
+    wxGetApp().app_config ->set("ams_filament_ids", p->ams_list_device, ams_filament_ids);
     if (unknowns > 0) {
         MessageDialog dlg(this,
             _L("There are some unknown filaments mapped to generic preset. Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets."),
