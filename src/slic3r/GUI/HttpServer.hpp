@@ -130,8 +130,7 @@ class session
     }
 
 public:
-
-    ip::tcp::socket socket;
+    boost::asio::ip::tcp::socket socket;
 
     session(io_service& io_service)
         :socket(io_service)
