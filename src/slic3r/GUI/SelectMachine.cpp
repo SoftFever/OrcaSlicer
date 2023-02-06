@@ -256,9 +256,21 @@ void MachineObjectPanel::doRender(wxDC &dc)
     wxString dev_name = "";
     if (m_info) {
         dev_name = from_u8(m_info->dev_name);
+
+         if (m_state == PrinterState::IN_LAN) {
+             dev_name += _L("(LAN)");
+         }
     }
     auto        sizet        = dc.GetTextExtent(dev_name);
-    auto        text_end     = size.x - m_unbind_img.GetBmpSize().x - 30;
+    auto        text_end     = 0;
+    
+    if (m_show_edit) {
+        text_end = size.x - m_unbind_img.GetBmpSize().x - 30;
+    }
+    else {
+        text_end = size.x - m_unbind_img.GetBmpSize().x;
+    }
+       
     wxString finally_name =  dev_name;
     if (sizet.x > (text_end - left)) {
         auto limit_width = text_end - left - dc.GetTextExtent("...").x - 15;
