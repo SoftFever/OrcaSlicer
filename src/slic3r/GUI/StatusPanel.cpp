@@ -2258,8 +2258,11 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
 
     if (is_task_changed(obj)) {
         reset_printing_values();
-        BOOST_LOG_TRIVIAL(trace) << "monitor: change to sub task id = " << obj->subtask_->task_id;
-        if (web_request.IsOk()) web_request.Cancel();
+        BOOST_LOG_TRIVIAL(info) << "monitor: change to sub task id = " << obj->subtask_->task_id;
+        if (web_request.IsOk() && web_request.GetState() == wxWebRequest::State_Active) {
+            BOOST_LOG_TRIVIAL(info) << "web_request: cancelled";
+            web_request.Cancel();
+        }
         m_start_loading_thumbnail = true;
     }
 
@@ -2274,6 +2277,7 @@ void StatusPanel::update_cloud_subtask(MachineObject *obj)
                     wxImage resize_img = img.Scale(m_bitmap_thumbnail->GetSize().x, m_bitmap_thumbnail->GetSize().y);
                     m_bitmap_thumbnail->SetBitmap(resize_img);
                     task_thumbnail_state = ThumbnailState::TASK_THUMBNAIL;
+                    BOOST_LOG_TRIVIAL(trace) << "web_request: use cache image";
                 } else {
                     web_request = wxWebSession::GetDefault().CreateRequest(this, m_request_url);
                     BOOST_LOG_TRIVIAL(trace) << "monitor: start request thumbnail, url = " << m_request_url;
