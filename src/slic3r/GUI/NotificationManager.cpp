@@ -371,7 +371,7 @@ void NotificationManager::PopNotification::count_lines()
     }
 
 	m_endlines.clear();
-	while (last_end < text.length() - 1)
+	while (last_end < text.length())
 	{
 		size_t next_hard_end = text.find_first_of('\n', last_end);
 		if (next_hard_end != std::string::npos && ImGui::CalcTextSize(text.substr(last_end, next_hard_end - last_end).c_str()).x < m_window_width - m_window_width_offset) {
