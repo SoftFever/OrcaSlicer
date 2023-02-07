@@ -29,6 +29,8 @@ class PrintJob : public PlaterJob
     std::string         m_dev_id;
     bool                m_job_finished{ false };
     int                 m_print_job_completed_id = 0;
+    std::function<void()> m_enter_ip_address_fun_fail{ nullptr };
+    std::function<void()> m_enter_ip_address_fun_success{ nullptr };
 
 protected:
 
@@ -78,6 +80,8 @@ public:
     void process() override;
     void finalize() override;
     void set_project_name(std::string name);
+    void on_check_ip_address_fail(std::function<void()> func);
+    void on_check_ip_address_success(std::function<void()> func);
 };
 
 }} // namespace Slic3r::GUI

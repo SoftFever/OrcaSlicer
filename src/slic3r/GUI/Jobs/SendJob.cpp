@@ -40,7 +40,6 @@ void SendJob::prepare()
         BOOST_LOG_TRIVIAL(trace) << "sned_job: check_access_code_path = " << check_access_code_path;
         job_data._temp_path = fs::path(check_access_code_path);
     }
-    
 }
 
 void SendJob::on_exception(const std::exception_ptr &eptr)

@@ -425,7 +425,8 @@ protected:
     void                     show_errors(wxString &info);
     void                     on_ok_btn(wxCommandEvent &event);
     void                     on_ok();
-    void                     on_refresh(wxCommandEvent &event);
+    void                     clear_ip_address_config(wxCommandEvent& e);
+    void                     on_refresh(wxCommandEvent& event);
     void                     on_set_finish_mapping(wxCommandEvent &evt);
     void                     on_print_job_cancel(wxCommandEvent &evt);
     void                     set_default();

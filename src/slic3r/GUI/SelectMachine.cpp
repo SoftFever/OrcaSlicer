@@ -33,6 +33,7 @@ wxDEFINE_EVENT(EVT_UNBIND_MACHINE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DISSMISS_MACHINE_LIST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CONNECT_LAN_PRINT, wxCommandEvent);
 wxDEFINE_EVENT(EVT_EDIT_PRINT_NAME, wxCommandEvent);
+wxDEFINE_EVENT(EVT_CLEAR_IPADDRESS, wxCommandEvent);
 
 #define INITIAL_NUMBER_OF_MACHINES 0
 #define LIST_REFRESH_INTERVAL 200
@@ -1248,7 +1249,9 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
         if (e.GetInt() == 1) {
             DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
             if (!dev) return;
-            m_comboBox_printer->SetValue(dev->get_selected_machine()->dev_name + "(LAN)");
+            if (dev->get_selected_machine()) {
+                m_comboBox_printer->SetValue(dev->get_selected_machine()->dev_name + "(LAN)");
+            }
         }
     });
 
@@ -1919,6 +1922,7 @@ void SelectMachineDialog::init_model()
 void SelectMachineDialog::init_bind()
 {
     Bind(wxEVT_TIMER, &SelectMachineDialog::on_timer, this);
+    Bind(EVT_CLEAR_IPADDRESS, &SelectMachineDialog::clear_ip_address_config, this);
 }
 
 void SelectMachineDialog::init_timer()
@@ -1948,6 +1952,7 @@ bool SelectMachineDialog::is_same_printer_model()
     if (!dev) return result;
 
     MachineObject* obj_ = dev->get_selected_machine();
+
     assert(obj_->dev_id == m_printer_last_select);
     if (obj_ == nullptr) {
         return result;
@@ -1972,6 +1977,12 @@ void SelectMachineDialog::show_errors(wxString &info)
 
 void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 {
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+    MachineObject* obj_ = dev->get_selected_machine();
+    if (!obj_) return;
+
+
     std::vector<wxString> confirm_text;
     confirm_text.push_back(_L("Please check the following infomation and click Confirm to continue sending print:") + "\n");
 
@@ -1987,11 +1998,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     //Check slice warnings
     bool has_slice_warnings = false;
     PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
-    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-
-    if(!dev) return;
-
-    MachineObject* obj_ = dev->get_selected_machine();
+   
     for (auto warning : plate->get_slice_result()->warnings) {
         if (warning.msg == BED_TEMP_TOO_HIGH_THAN_FILAMENT) {
             if ((obj_->printer_type == "BL-P001" || obj_->printer_type == "BL-P002")) {
@@ -2210,9 +2217,19 @@ void SelectMachineDialog::on_ok()
 
     m_print_job->on_success([this]() { finish_mode(); });
 
-    wxCommandEvent evt(m_plater->get_print_finished_event());
+    m_print_job->on_check_ip_address_fail([this]() {
+        wxCommandEvent* evt = new wxCommandEvent(EVT_CLEAR_IPADDRESS);
+        wxQueueEvent(this, evt);
+        wxGetApp().show_ip_address_enter_dialog();
+     });
+
     m_print_job->start();
     BOOST_LOG_TRIVIAL(info) << "print_job: start print job";
+}
+
+void SelectMachineDialog::clear_ip_address_config(wxCommandEvent& e)
+{
+    prepare_mode();
 }
 
 void SelectMachineDialog::update_user_machine_list()

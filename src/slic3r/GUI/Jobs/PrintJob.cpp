@@ -34,6 +34,12 @@ PrintJob::PrintJob(std::shared_ptr<ProgressIndicator> pri, Plater* plater, std::
 void PrintJob::prepare()
 {
     m_plater->get_print_job_data(&job_data);
+    if (&job_data) {
+        std::string temp_file = Slic3r::resources_dir() + "/check_access_code.txt";
+        auto check_access_code_path = temp_file.c_str();
+        BOOST_LOG_TRIVIAL(trace) << "sned_job: check_access_code_path = " << check_access_code_path;
+        job_data._temp_path = fs::path(check_access_code_path);
+    }
 }
 
 void PrintJob::on_exception(const std::exception_ptr &eptr)
@@ -144,7 +150,32 @@ void PrintJob::process()
     else
         curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
 
+
     BBL::PrintParams params;
+
+    // local print access
+    params.dev_ip = m_dev_ip;
+    params.use_ssl  = m_local_use_ssl;
+    params.username = "bblp";
+    params.password = m_access_code;
+
+
+    // check access code and ip address
+    if (this->connection_type == "lan") {
+        params.dev_id = m_dev_id;
+        params.project_name = "verify_job";
+        params.filename = job_data._temp_path.string();
+        params.connection_type = this->connection_type;
+
+        result = m_agent->start_send_gcode_to_sdcard(params, nullptr, nullptr);
+        if (result != 0) {
+            BOOST_LOG_TRIVIAL(error) << "access code is invalid";
+            m_enter_ip_address_fun_fail();
+            m_job_finished = true;
+            return;
+        }
+    }
+
     params.dev_id = m_dev_id;
     //params.project_name = project_name;
     params.project_name = m_project_name;
@@ -179,11 +210,6 @@ void PrintJob::process()
         }
     }
 
-    // local print access
-    params.dev_ip = m_dev_ip;
-    params.use_ssl  = m_local_use_ssl;
-    params.username = "bblp";
-    params.password = m_access_code;
     wxString error_text;
     wxString msg_text;
 
@@ -383,6 +409,16 @@ void PrintJob::finalize() {
 void PrintJob::set_project_name(std::string name)
 {
     m_project_name = name;
+}
+
+void PrintJob::on_check_ip_address_fail(std::function<void()> func)
+{
+    m_enter_ip_address_fun_fail = func;
+}
+
+void PrintJob::on_check_ip_address_success(std::function<void()> func)
+{
+    m_enter_ip_address_fun_success = func;
 }
 
 }} // namespace Slic3r::GUI
