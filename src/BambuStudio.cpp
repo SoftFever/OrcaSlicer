@@ -393,6 +393,8 @@ int CLI::run(int argc, char **argv)
 {
     // Mark the main thread for the debugger and for runtime checks.
     set_current_thread_name("bambustu_main");
+    // Save the thread ID of the main thread.
+    save_main_thread_id();
 
 #ifdef __WXGTK__
     // On Linux, wxGTK has no support for Wayland, and the app crashes on
