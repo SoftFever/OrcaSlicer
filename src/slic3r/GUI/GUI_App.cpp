@@ -1235,6 +1235,13 @@ void GUI_App::shutdown()
 		removable_drive_manager()->shutdown();
 	}
 
+    // destroy login dialog
+    if (login_dlg != nullptr) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": destroy login dialog");
+        delete login_dlg;
+        login_dlg = nullptr;
+    }
+
     if (m_is_recreating_gui) return;
     m_is_closing = true;
     stop_sync_user_preset();
