@@ -1816,6 +1816,22 @@ int MachineObject::command_unload_filament()
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
         return this->publish_json(j.dump());
     }
+    else if (printer_type == "C11") {
+        std::string gcode = DeviceManager::load_gcode(printer_type, "ams_unload.gcode");
+        if (gcode.empty()) {
+            return -1;
+        }
+
+        json j;
+        j["print"]["command"] = "gcode_line";
+        j["print"]["param"] = gcode;
+        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+
+        if (m_agent)
+            j["print"]["user_id"] = m_agent->get_user_id();
+
+        return this->publish_json(j.dump());
+    }
     else {
         json j;
         j["print"]["command"] = "unload_filament";
