@@ -3082,6 +3082,13 @@ void GCodeViewer::load_toolpaths(const GCodeProcessorResult& gcode_result, const
 	}
     m_plater_extruder = plater_extruder;
 
+    // replace layers for spiral vase mode
+    if (!gcode_result.spiral_vase_layers.empty()) {
+        m_layers.reset();
+        for (const auto& layer : gcode_result.spiral_vase_layers) {
+            m_layers.append(layer.first, { layer.second.first, layer.second.second });
+        }
+    }
 
     // set layers z range
     if (!m_layers.empty())

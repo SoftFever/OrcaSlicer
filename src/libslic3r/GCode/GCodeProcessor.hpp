@@ -165,6 +165,7 @@ namespace Slic3r {
         std::vector<int> filament_vitrification_temperature;
         PrintEstimatedStatistics print_statistics;
         std::vector<CustomGCode::Item> custom_gcode_per_print_z;
+        std::vector<std::pair<float, std::pair<size_t, size_t>>> spiral_vase_layers;
         //BBS
         std::vector<SliceWarning> warnings;
         int nozzle_hrc;
@@ -193,6 +194,7 @@ namespace Slic3r {
             filament_densities = other.filament_densities;
             print_statistics = other.print_statistics;
             custom_gcode_per_print_z = other.custom_gcode_per_print_z;
+            spiral_vase_layers = other.spiral_vase_layers;
             warnings = other.warnings;
 #if ENABLE_GCODE_VIEWER_STATISTICS
             time = other.time;
@@ -630,6 +632,7 @@ namespace Slic3r {
         SeamsDetector m_seams_detector;
         OptionsZCorrector m_options_z_corrector;
         size_t m_last_default_color_id;
+        bool m_spiral_vase_active;
 #if ENABLE_GCODE_VIEWER_STATISTICS
         std::chrono::time_point<std::chrono::high_resolution_clock> m_start_time;
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
