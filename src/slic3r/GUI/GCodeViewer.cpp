@@ -4525,8 +4525,8 @@ void GCodeViewer::render_legend(float &legend_height, int canvas_width, int canv
     case EViewType::FanSpeed:       { imgui.title(_u8L("Fan Speed (%)")); break; }
     case EViewType::Temperature:    { imgui.title(_u8L("Temperature (°C)")); break; }
     case EViewType::VolumetricRate: { imgui.title(_u8L("Volumetric flow rate (mm³/s)")); break; }
-    case EViewType::LayerTime:      { imgui.title(_u8L("Layer Time")); break; }
-    case EViewType::LayerTimeLog:   { imgui.title(_u8L("Layer Time (log)")); break; }
+    case EViewType::LayerTime:      { imgui.title(_u8L("Layer Time (s)")); break; }
+    case EViewType::LayerTimeLog:   { imgui.title(_u8L("Layer Time (log) (s)")); break; }
 
     case EViewType::Tool:
     {
