@@ -318,6 +318,15 @@ std::string MachineObject::get_access_code()
     return get_user_access_code();
 }
 
+void MachineObject::set_access_code(std::string code)
+{
+    this->access_code = code;
+    AppConfig* config = GUI::wxGetApp().app_config;
+    if (config && !code.empty()) {
+        GUI::wxGetApp().app_config->set_str("access_code", dev_id, code);
+    }
+}
+
 void MachineObject::set_user_access_code(std::string code)
 {
     this->user_access_code = code;
@@ -3637,6 +3646,7 @@ void DeviceManager::on_machine_alive(std::string json_str)
             AppConfig* config = Slic3r::GUI::wxGetApp().app_config;
             if (config) {
                 obj->set_access_code(Slic3r::GUI::wxGetApp().app_config->get("access_code", dev_id));
+                obj->set_user_access_code(Slic3r::GUI::wxGetApp().app_config->get("user_access_code", dev_id));
             }
             localMachineList.insert(std::make_pair(dev_id, obj));
 

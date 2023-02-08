@@ -405,11 +405,14 @@ public:
     std::string connection_type() { return dev_connection_type; }
     void set_dev_ip(std::string ip) {dev_ip = ip;};
     bool has_access_right() { return !get_access_code().empty(); }
-    void set_access_code(std::string code);
     std::string get_access_code();
+
+    void set_access_code(std::string code);
     void set_user_access_code(std::string code);
+
     std::string get_user_access_code();
     bool is_lan_mode_printer();
+
     //PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
     std::string printer_type;       /* model_id */
 
