@@ -49,7 +49,7 @@ public:
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void update_release_note(wxString release_note, std::string version);
 
-    wxStaticText *    m_text_up_info{nullptr};
+    Label *    m_text_up_info{nullptr};
     wxScrolledWindow *m_vebview_release_note {nullptr};
 };
 
@@ -62,7 +62,7 @@ public:
     void on_dpi_changed(const wxRect& suggested_rect) override;
     void update_info(std::string json_path);
 
-    wxStaticText* m_text_up_info{ nullptr };
+    Label* m_text_up_info{ nullptr };
     Label* operation_tips{ nullptr };
     wxScrolledWindow* m_vebview_release_note{ nullptr };
 };
@@ -85,12 +85,12 @@ public:
     std::vector<std::string> splitWithStl(std::string str, std::string pattern);
 
     wxStaticBitmap*   m_brand{nullptr};
-    wxStaticText *    m_text_up_info{nullptr};
+    Label *           m_text_up_info{nullptr};
     wxWebView*        m_vebview_release_note{nullptr};
     wxSimplebook*     m_simplebook_release_note{nullptr};
     wxScrolledWindow* m_scrollwindows_release_note{nullptr};
     wxBoxSizer *      sizer_text_release_note{nullptr};
-    wxStaticText *    m_staticText_release_note{nullptr};
+    Label *           m_staticText_release_note{nullptr};
     wxCheckBox*       m_remind_choice;
     Button*           m_button_ok;
     Button*           m_button_cancel;
@@ -161,7 +161,7 @@ public:
 
     wxBoxSizer* m_sizer_main;
     wxScrolledWindow* m_vebview_release_note{ nullptr };
-    wxStaticText* m_staticText_release_note{ nullptr };
+    Label* m_staticText_release_note{ nullptr };
     Button* m_button_ok;
     Button* m_button_cancel;
     wxCheckBox* m_show_again_checkbox;

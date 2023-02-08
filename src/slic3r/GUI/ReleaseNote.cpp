@@ -57,7 +57,7 @@ ReleaseNoteDialog::ReleaseNoteDialog(Plater *plater /*= nullptr*/)
 
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxVERTICAL);
 
-    m_text_up_info = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+    m_text_up_info = new Label(this,wxEmptyString);
     m_text_up_info->SetFont(::Label::Head_14);
     m_text_up_info->SetForegroundColour(wxColour(0x26, 0x2E, 0x30));
     m_text_up_info->Wrap(-1);
@@ -126,7 +126,7 @@ UpdatePluginDialog::UpdatePluginDialog(wxWindow* parent /*= nullptr*/)
 
     wxBoxSizer* m_sizer_right = new wxBoxSizer(wxVERTICAL);
 
-    m_text_up_info = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+    m_text_up_info = new Label(this,wxEmptyString);
     m_text_up_info->SetFont(::Label::Head_13);
     m_text_up_info->SetMaxSize(wxSize(FromDIP(260), -1));
     m_text_up_info->Wrap(FromDIP(260));
@@ -277,7 +277,7 @@ UpdateVersionDialog::UpdateVersionDialog(wxWindow *parent)
 
     wxBoxSizer *m_sizer_right = new wxBoxSizer(wxVERTICAL);
 
-    m_text_up_info = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+    m_text_up_info = new Label(this,wxEmptyString);
     m_text_up_info->SetFont(::Label::Head_14);
     m_text_up_info->SetForegroundColour(wxColour(0x26, 0x2E, 0x30));
     m_text_up_info->Wrap(-1);
@@ -525,8 +525,8 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
 
     SetBackgroundColour(*wxWHITE);
     m_sizer_main = new wxBoxSizer(wxVERTICAL);
-    auto        m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(480), 1));
-    m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
+    auto        m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(400), 1));
+    m_line_top->SetBackgroundColour(*wxWHITE);
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(5));
 
@@ -537,8 +537,8 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     m_vebview_release_note = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
     m_vebview_release_note->SetScrollRate(0, 5);
     m_vebview_release_note->SetBackgroundColour(*wxWHITE);
-    m_vebview_release_note->SetMinSize(wxSize(FromDIP(280), FromDIP(280)));
-    m_sizer_right->Add(m_vebview_release_note, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(35));
+    m_vebview_release_note->SetMinSize(wxSize(FromDIP(400), FromDIP(380)));
+    m_sizer_right->Add(m_vebview_release_note, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(15));
 
 
     auto bottom_sizer = new wxBoxSizer(wxVERTICAL);
@@ -551,12 +551,15 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
 
 
     if (not_show_again_check) {
+        auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
         m_show_again_checkbox = new wxCheckBox(this, wxID_ANY, _L("Don't show again"), wxDefaultPosition, wxDefaultSize, 0);
         m_show_again_checkbox->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, [this](wxCommandEvent& e) {
             not_show_again = !not_show_again;
             m_show_again_checkbox->SetValue(not_show_again);
         });
-        bottom_sizer->Add(m_show_again_checkbox, 0, wxALL, FromDIP(5));
+        checkbox_sizer->Add(FromDIP(15), 0, 0, 0);
+        checkbox_sizer->Add(m_show_again_checkbox, 0, wxALL, FromDIP(5));
+        bottom_sizer->Add(checkbox_sizer, 0, wxBOTTOM | wxEXPAND, 0);
     }
     m_button_ok = new Button(this, _L("Confirm"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
@@ -597,15 +600,18 @@ SecondaryCheckDialog::SecondaryCheckDialog(wxWindow* parent, wxWindowID id, cons
     sizer_button->AddStretchSpacer();
     sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
+    sizer_button->Add(FromDIP(5),0, 0, 0);
     bottom_sizer->Add(sizer_button, 0, wxEXPAND | wxRIGHT | wxLEFT, 0);
 
 
-    m_sizer_right->Add(bottom_sizer, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(35));
-    m_sizer_right->Add(0, 0, 0, wxTOP,FromDIP(18));
+    m_sizer_right->Add(bottom_sizer, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(15));
+    m_sizer_right->Add(0, 0, 0, wxTOP,FromDIP(10));
+
+    m_sizer_main->Add(m_sizer_right, 0, wxBOTTOM | wxEXPAND, FromDIP(5));
 
     Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {this->on_hide();});
 
-    SetSizer(m_sizer_right);
+    SetSizer(m_sizer_main);
     Layout();
     m_sizer_main->Fit(this);
 
@@ -620,11 +626,10 @@ void SecondaryCheckDialog::update_text(wxString text)
     if (!m_staticText_release_note) {
         m_staticText_release_note = new Label(m_vebview_release_note, text);
     }
+    m_staticText_release_note->SetMaxSize(wxSize(FromDIP(330), -1));
+    m_staticText_release_note->SetMinSize(wxSize(FromDIP(330), -1));
     m_staticText_release_note->SetLabelText(text);
-    m_staticText_release_note->SetSize(wxSize(FromDIP(260), -1));
-    m_staticText_release_note->SetMaxSize(wxSize(FromDIP(260), -1));
-    m_staticText_release_note->SetMinSize(wxSize(FromDIP(260), -1));
-    m_staticText_release_note->Wrap(FromDIP(260));
+    m_staticText_release_note->Wrap(FromDIP(330));
 
     wxBoxSizer* top_blank_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* bottom_blank_sizer = new wxBoxSizer(wxVERTICAL);
@@ -636,14 +641,19 @@ void SecondaryCheckDialog::update_text(wxString text)
     sizer_text_release_note->Add(bottom_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
     m_vebview_release_note->SetSizer(sizer_text_release_note);
     auto text_size = m_staticText_release_note->GetSize();
-    if (text_size.y < FromDIP(280))
-        m_vebview_release_note->SetMinSize(wxSize(FromDIP(280), text_size.y + FromDIP(25)));
-    else
-        m_vebview_release_note->SetMinSize(wxSize(FromDIP(300), FromDIP(280)));
+    if (text_size.y < FromDIP(360))
+        m_vebview_release_note->SetMinSize(wxSize(FromDIP(360), text_size.y + FromDIP(25)));
+    else {
+        m_vebview_release_note->SetMinSize(wxSize(FromDIP(360), FromDIP(360)));
+        m_staticText_release_note->SetMaxSize(wxSize(FromDIP(330), -1));
+        m_staticText_release_note->SetMinSize(wxSize(FromDIP(330), -1));
+        m_staticText_release_note->SetLabelText(text);
+        m_staticText_release_note->Wrap(FromDIP(330));
+    }
 
     m_vebview_release_note->Layout();
-    m_sizer_main->Layout();
-    m_sizer_main->Fit(this);
+    Layout();
+    Fit();
 }
 
 void SecondaryCheckDialog::on_show()
@@ -702,8 +712,8 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
 
     SetBackgroundColour(*wxWHITE);
     m_sizer_main = new wxBoxSizer(wxVERTICAL);
-    auto        m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(480), 1));
-    m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
+    auto        m_line_top = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(400), 1));
+    m_line_top->SetBackgroundColour(*wxWHITE);
     m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(5));
 
@@ -714,8 +724,8 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
     m_vebview_release_note = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
     m_vebview_release_note->SetScrollRate(0, 5);
     m_vebview_release_note->SetBackgroundColour(*wxWHITE);
-    m_vebview_release_note->SetMinSize(wxSize(FromDIP(280), FromDIP(280)));
-    m_sizer_right->Add(m_vebview_release_note, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(35));
+    m_vebview_release_note->SetMinSize(wxSize(FromDIP(400), FromDIP(380)));
+    m_sizer_right->Add(m_vebview_release_note, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(15));
 
 
     auto bottom_sizer = new wxBoxSizer(wxVERTICAL);
@@ -728,12 +738,15 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
 
 
     if (not_show_again_check) {
+        auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
         m_show_again_checkbox = new wxCheckBox(this, wxID_ANY, _L("Don't show again"), wxDefaultPosition, wxDefaultSize, 0);
         m_show_again_checkbox->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, [this](wxCommandEvent& e) {
             not_show_again = !not_show_again;
             m_show_again_checkbox->SetValue(not_show_again);
-            });
-        bottom_sizer->Add(m_show_again_checkbox, 0, wxALL, FromDIP(5));
+        });
+        checkbox_sizer->Add(FromDIP(15), 0, 0, 0);
+        checkbox_sizer->Add(m_show_again_checkbox, 0, wxALL, FromDIP(5));
+        bottom_sizer->Add(checkbox_sizer, 0, wxBOTTOM | wxEXPAND, 0);
     }
     m_button_ok = new Button(this, _L("Confirm"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
@@ -774,15 +787,18 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
     sizer_button->AddStretchSpacer();
     sizer_button->Add(m_button_ok, 0, wxALL, FromDIP(5));
     sizer_button->Add(m_button_cancel, 0, wxALL, FromDIP(5));
+    sizer_button->Add(FromDIP(5),0, 0, 0);
     bottom_sizer->Add(sizer_button, 0, wxEXPAND | wxRIGHT | wxLEFT, 0);
 
 
-    m_sizer_right->Add(bottom_sizer, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(35));
-    m_sizer_right->Add(0, 0, 0, wxTOP, FromDIP(18));
+    m_sizer_right->Add(bottom_sizer, 0, wxEXPAND | wxRIGHT | wxLEFT, FromDIP(20));
+    m_sizer_right->Add(0, 0, 0, wxTOP, FromDIP(10));
+
+    m_sizer_main->Add(m_sizer_right, 0, wxBOTTOM | wxEXPAND, FromDIP(5));
 
     Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {this->on_hide(); });
 
-    SetSizer(m_sizer_right);
+    SetSizer(m_sizer_main);
     Layout();
     m_sizer_main->Fit(this);
 
@@ -793,14 +809,13 @@ ConfirmBeforeSendDialog::ConfirmBeforeSendDialog(wxWindow* parent, wxWindowID id
 void ConfirmBeforeSendDialog::update_text(wxString text)
 {
     wxBoxSizer* sizer_text_release_note = new wxBoxSizer(wxVERTICAL);
-    if (!m_staticText_release_note)
+    if (!m_staticText_release_note){
         m_staticText_release_note = new Label(m_vebview_release_note, text);
-    else
-        m_staticText_release_note->SetLabelText(text);
-    m_staticText_release_note->Wrap(FromDIP(260));
-    m_staticText_release_note->SetSize(wxSize(FromDIP(260), -1));
-    m_staticText_release_note->SetMaxSize(wxSize(FromDIP(260), -1));
-    m_staticText_release_note->SetMinSize(wxSize(FromDIP(260), -1));
+    }
+    m_staticText_release_note->SetMaxSize(wxSize(FromDIP(330), -1));
+    m_staticText_release_note->SetMinSize(wxSize(FromDIP(330), -1));
+    m_staticText_release_note->SetLabelText(text);
+    m_staticText_release_note->Wrap(FromDIP(330));
 
     wxBoxSizer* top_blank_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* bottom_blank_sizer = new wxBoxSizer(wxVERTICAL);
@@ -812,14 +827,19 @@ void ConfirmBeforeSendDialog::update_text(wxString text)
     sizer_text_release_note->Add(bottom_blank_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
     m_vebview_release_note->SetSizer(sizer_text_release_note);
     auto text_size = m_staticText_release_note->GetSize();
-    if (text_size.y < FromDIP(280))
-        m_vebview_release_note->SetMinSize(wxSize(FromDIP(280), text_size.y + FromDIP(25)));
-    else
-        m_vebview_release_note->SetMinSize(wxSize(FromDIP(300), FromDIP(280)));
+    if (text_size.y < FromDIP(360))
+        m_vebview_release_note->SetMinSize(wxSize(FromDIP(360), text_size.y + FromDIP(25)));
+    else {
+        m_vebview_release_note->SetMinSize(wxSize(FromDIP(360), FromDIP(360)));
+        m_staticText_release_note->SetMaxSize(wxSize(FromDIP(330), -1));
+        m_staticText_release_note->SetMinSize(wxSize(FromDIP(330), -1));
+        m_staticText_release_note->SetLabelText(text);
+        m_staticText_release_note->Wrap(FromDIP(330));
+    }
 
     m_vebview_release_note->Layout();
-    m_sizer_main->Layout();
-    m_sizer_main->Fit(this);
+    Layout();
+    Fit();
 }
 
 void ConfirmBeforeSendDialog::on_show()
