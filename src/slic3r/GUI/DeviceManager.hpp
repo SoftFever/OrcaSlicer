@@ -826,6 +826,8 @@ public:
     void load_last_machine();
 
     static json function_table;
+    static json filaments_blacklist;
+
     static std::string parse_printer_type(std::string type_str);
     static std::string get_printer_display_name(std::string type_str);
     static std::string get_printer_thumbnail_img(std::string type_str);
@@ -834,6 +836,8 @@ public:
 
     static bool get_bed_temperature_limit(std::string type_str, int& limit);
     static bool load_functional_config(std::string config_file);
+    static bool load_filaments_blacklist_config(std::string config_file);
+    static void check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, bool& in_blacklist, std::string& ac, std::string& info);
     static std::string load_gcode(std::string type_str, std::string gcode_file);
 };
 

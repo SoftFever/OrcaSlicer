@@ -1162,6 +1162,9 @@ void GUI_App::post_init()
     std::string functional_config_file = Slic3r::resources_dir() + "/config.json";
     DeviceManager::load_functional_config(encode_path(functional_config_file.c_str()));
 
+    std::string filaments_blacklist_config_file = Slic3r::resources_dir() + "/printers/filaments_blacklist.json";
+    DeviceManager::load_filaments_blacklist_config(encode_path(filaments_blacklist_config_file.c_str()));
+
     // remove old log files over LOG_FILES_MAX_NUM
     std::string log_addr = data_dir();
     if (!log_addr.empty()) {

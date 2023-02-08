@@ -712,6 +712,29 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     if (preset_bundle) {
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
             if (it->alias.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
+
+                //check is it in the filament blacklist
+                bool in_blacklist = false;
+                std::string action;
+                std::string info;
+                std::string filamnt_type;
+                it->get_filament_type(filamnt_type);
+
+                DeviceManager::check_filaments_in_blacklist(it->vendor->name, filamnt_type, in_blacklist, action, info);
+
+                if (in_blacklist) {
+                    if (action == "prohibition") {
+                        MessageDialog msg_wingow(nullptr, info, _L("Error"), wxICON_WARNING | wxOK);
+                        msg_wingow.ShowModal();
+                        m_comboBox_filament->SetSelection(m_filament_selection);
+                        return;
+                    }
+                    else if (action == "warning") {
+                        MessageDialog msg_wingow(nullptr, info, _L("Warning"), wxICON_INFORMATION | wxOK);
+                        msg_wingow.ShowModal();
+                    }
+                }
+
                 // ) if nozzle_temperature_range is found
                 ConfigOption* opt_min = it->config.option("nozzle_temperature_range_low");
                 if (opt_min) {
@@ -742,6 +765,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
                 }
                 if (!found_filament_type)
                     m_filament_type = "";
+
+                break;
             }
         }
     }
@@ -751,6 +776,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     if (m_input_nozzle_max->GetTextCtrl()->GetValue().IsEmpty()) {
          m_input_nozzle_max->GetTextCtrl()->SetValue("220");
     }
+
+    m_filament_selection = evt.GetSelection();
 }
 
 void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect) { this->Refresh(); }

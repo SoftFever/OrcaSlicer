@@ -98,6 +98,7 @@ protected:
     TextInput*          m_input_k_val;
     wxStaticText*       m_n_param;
     TextInput*          m_input_n_val;
+    int                 m_filament_selection;
 
 #ifdef __APPLE__
     wxComboBox *m_comboBox_filament;

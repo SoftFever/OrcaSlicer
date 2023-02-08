@@ -3999,6 +3999,7 @@ void DeviceManager::load_last_machine()
 }
 
 json DeviceManager::function_table = json::object();
+json DeviceManager::filaments_blacklist = json::object();
 
 std::string DeviceManager::parse_printer_type(std::string type_str)
 {
@@ -4105,6 +4106,79 @@ bool DeviceManager::load_functional_config(std::string config_file)
         return false;
     }
     return true;
+}
+
+bool DeviceManager::load_filaments_blacklist_config(std::string config_file)
+{
+    filaments_blacklist = json::object();
+    std::ifstream json_file(config_file.c_str());
+
+    try {
+        if (json_file.is_open()) {
+            json_file >> filaments_blacklist;
+            return true;
+        }
+        else {
+            BOOST_LOG_TRIVIAL(error) << "load filaments blacklist config failed, file = " << config_file;
+        }
+    }
+    catch (...) {
+        BOOST_LOG_TRIVIAL(error) << "load filaments blacklist config failed, file = " << config_file;
+        return false;
+    }
+    return true;
+}
+
+void DeviceManager::check_filaments_in_blacklist(std::string tag_vendor, std::string tag_type, bool& in_blacklist, std::string& ac, std::string& info)
+{
+    in_blacklist = false;
+
+    if (filaments_blacklist.contains("blacklist")) {
+        for (auto prohibited_filament : filaments_blacklist["blacklist"]) {
+
+            std::string vendor;
+            std::string type;
+            std::string action;
+            std::string description;
+
+            if (prohibited_filament.contains("vendor") &&
+                prohibited_filament.contains("type") &&
+                prohibited_filament.contains("action") &&
+                prohibited_filament.contains("description"))
+            {
+                vendor = prohibited_filament["vendor"].get<std::string>();
+                type = prohibited_filament["type"].get<std::string>();
+                action = prohibited_filament["action"].get<std::string>();
+                description = prohibited_filament["description"].get<std::string>();
+            }
+            else {
+                return;
+            }
+
+            std::transform(vendor.begin(), vendor.end(), vendor.begin(), ::tolower);
+            std::transform(tag_vendor.begin(), tag_vendor.end(), tag_vendor.begin(), ::tolower);
+            std::transform(tag_type.begin(), tag_type.end(), tag_type.begin(), ::tolower);
+            std::transform(type.begin(), type.end(), type.begin(), ::tolower);
+
+            //third party
+            if (vendor == "third party") {
+                if ("bambulab" != vendor && tag_type == type) {
+                    in_blacklist = true;
+                    ac = action;
+                    info = description;
+                    return;
+                }
+            }
+            else {
+                if (vendor == tag_vendor && tag_type == type) {
+                    in_blacklist = true;
+                    ac = action;
+                    info = description;
+                    return;
+                }
+            }
+        }
+    }
 }
 
 std::string DeviceManager::load_gcode(std::string type_str, std::string gcode_file)

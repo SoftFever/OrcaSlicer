@@ -284,6 +284,7 @@ private:
     bool             m_adding_script_handler { false };
     bool             m_side_popup_status{false};
 public:
+    void            check_filaments_in_blacklist(std::string tag_supplier, std::string tag_material, bool& in_blacklist, std::string& action, std::string& info);
     std::string     get_local_models_path();
     bool            OnInit() override;
     bool            initialized() const { return m_initialized; }
