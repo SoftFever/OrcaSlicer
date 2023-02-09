@@ -3358,18 +3358,20 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
     loop.clip_end(clip_length, &paths);
     if (paths.empty()) return "";
 
-    // BBS: remove small small_perimeter_speed config, and will absolutely
-    // remove related code if no other issue in the coming release.
-    // apply the small perimeter speed
-    if (is_perimeter(paths.front().role()) && loop.length() <= SMALL_PERIMETER_LENGTH(m_config.small_perimeter_threshold.value) && speed == -1)
-       speed = m_config.small_perimeter_speed.get_abs_value(m_config.outer_wall_speed);
+    // SoftFever: check loop lenght for small perimeter. 
+    double small_peri_speed = -1;
+    if (speed == -1 && loop.length() <= SMALL_PERIMETER_LENGTH(m_config.small_perimeter_threshold.value))
+        small_peri_speed = m_config.small_perimeter_speed.get_abs_value(m_config.outer_wall_speed);
 
     // extrude along the path
     std::string gcode;
+    bool is_small_peri = false;
     for (ExtrusionPaths::iterator path = paths.begin(); path != paths.end(); ++path) {
 //    description += ExtrusionLoop::role_to_string(loop.loop_role());
 //    description += ExtrusionEntity::role_to_string(path->role);
-        gcode += this->_extrude(*path, description, speed);
+        // don't apply small perimeter setting for overhangs/bridges/non-perimeters
+        is_small_peri = is_perimeter(path->role()) && !is_bridge(path->role()) && small_peri_speed > 0 && (path->get_overhang_degree() == 0 || path->get_overhang_degree() > 5);
+        gcode += this->_extrude(*path, description, is_small_peri ? small_peri_speed : speed);
     }
 
     //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
