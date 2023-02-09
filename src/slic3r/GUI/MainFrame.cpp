@@ -2148,6 +2148,13 @@ void MainFrame::init_menubar_as_editor()
         wxString hotkey_delete = "Del";
     #endif
 
+    auto handle_key_event = [](wxKeyEvent& evt) {
+        if (wxGetApp().imgui()->update_key_data(evt)) {
+            wxGetApp().plater()->get_current_canvas3D()->render();
+            return true;
+        }
+        return false;
+    };
 #ifndef __APPLE__
         // BBS undo
         append_menu_item(editMenu, wxID_ANY, _L("Undo") + "\t" + ctrl + "Z",
@@ -2189,39 +2196,96 @@ void MainFrame::init_menubar_as_editor()
 #else
         // BBS undo
         append_menu_item(editMenu, wxID_ANY, _L("Undo") + "\t" + ctrl + "Z",
-            _L("Undo"), [this](wxCommandEvent&) { m_plater->undo(); },
+            _L("Undo"), [this, handle_key_event](wxCommandEvent&) {
+                wxKeyEvent e;
+                e.SetEventType(wxEVT_KEY_DOWN);
+                e.SetControlDown(true);
+                e.m_keyCode = 'Z';
+                if (handle_key_event(e)) {
+                    return;
+                }
+                m_plater->undo(); },
             "", nullptr, [this](){return m_plater->can_undo(); }, this);
         // BBS redo
         append_menu_item(editMenu, wxID_ANY, _L("Redo") + "\t" + ctrl + "Y",
-            _L("Redo"), [this](wxCommandEvent&) { m_plater->redo(); },
+            _L("Redo"), [this, handle_key_event](wxCommandEvent&) {
+                wxKeyEvent e;
+                e.SetEventType(wxEVT_KEY_DOWN);
+                e.SetControlDown(true);
+                e.m_keyCode = 'Y';
+                if (handle_key_event(e)) {
+                    return;
+                }
+                m_plater->redo(); },
             "", nullptr, [this](){return m_plater->can_redo(); }, this);
         editMenu->AppendSeparator();
         // BBS Cut TODO
         append_menu_item(editMenu, wxID_ANY, _L("Cut") + "\t" + ctrl + "X",
-            _L("Cut selection to clipboard"), [this](wxCommandEvent&) {m_plater->cut_selection_to_clipboard(); },
+            _L("Cut selection to clipboard"), [this, handle_key_event](wxCommandEvent&) {
+                wxKeyEvent e;
+                e.SetEventType(wxEVT_KEY_DOWN);
+                e.SetControlDown(true);
+                e.m_keyCode = 'X';
+                if (handle_key_event(e)) {
+                    return;
+                }
+                m_plater->cut_selection_to_clipboard(); },
             "", nullptr, [this]() {return m_plater->can_copy_to_clipboard(); }, this);
         // BBS Copy
         append_menu_item(editMenu, wxID_ANY, _L("Copy") + "\t" + ctrl + "C",
-            _L("Copy selection to clipboard"), [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); },
+            _L("Copy selection to clipboard"), [this, handle_key_event](wxCommandEvent&) {
+                wxKeyEvent e;
+                e.SetEventType(wxEVT_KEY_DOWN);
+                e.SetControlDown(true);
+                e.m_keyCode = 'C';
+                if (handle_key_event(e)) {
+                    return;
+                }
+                m_plater->copy_selection_to_clipboard(); },
             "", nullptr, [this](){return m_plater->can_copy_to_clipboard(); }, this);
         // BBS Paste
         append_menu_item(editMenu, wxID_ANY, _L("Paste") + "\t" + ctrl + "V",
-            _L("Paste clipboard"), [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); },
+            _L("Paste clipboard"), [this, handle_key_event](wxCommandEvent&) {
+                wxKeyEvent e;
+                e.SetEventType(wxEVT_KEY_DOWN);
+                e.SetControlDown(true);
+                e.m_keyCode = 'V';
+                if (handle_key_event(e)) {
+                    return;
+                }
+                m_plater->paste_from_clipboard(); },
             "", nullptr, [this](){return m_plater->can_paste_from_clipboard(); }, this);
 #if 0
         // BBS Delete selected
         append_menu_item(editMenu, wxID_ANY, _L("Delete selected") + "\tBackSpace",
-            _L("Deletes the current selection"),[this](wxCommandEvent&) { m_plater->remove_selected(); },
+            _L("Deletes the current selection"),[this](wxCommandEvent&) { 
+                m_plater->remove_selected();
+            },
             "", nullptr, [this](){return can_delete(); }, this);
 #endif
         //BBS: delete all
         append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + "D",
-            _L("Deletes all objects"),[this](wxCommandEvent&) { m_plater->delete_all_objects_from_model(); },
+            _L("Deletes all objects"),[this, handle_key_event](wxCommandEvent&) {
+                wxKeyEvent e;
+                e.SetEventType(wxEVT_KEY_DOWN);
+                e.SetControlDown(true);
+                e.m_keyCode = 'D';
+                if (handle_key_event(e)) {
+                    return;
+                }
+                m_plater->delete_all_objects_from_model(); },
             "", nullptr, [this](){return can_delete_all(); }, this);
         editMenu->AppendSeparator();
         // BBS Clone Selected
         append_menu_item(editMenu, wxID_ANY, _L("Clone selected") + "\t" + ctrl + "M",
-            _L("Clone copies of selections"),[this](wxCommandEvent&) {
+            _L("Clone copies of selections"),[this, handle_key_event](wxCommandEvent&) {
+                wxKeyEvent e;
+                e.SetEventType(wxEVT_KEY_DOWN);
+                e.SetControlDown(true);
+                e.m_keyCode = 'M';
+                if (handle_key_event(e)) {
+                    return;
+                }
                 m_plater->clone_selection();
             },
             "", nullptr, [this](){return can_clone(); }, this);
@@ -2230,11 +2294,26 @@ void MainFrame::init_menubar_as_editor()
 
         // BBS Select All
         append_menu_item(editMenu, wxID_ANY, _L("Select all") + "\t" + ctrl + "A",
-            _L("Selects all objects"), [this](wxCommandEvent&) { m_plater->select_all(); },
+            _L("Selects all objects"), [this, handle_key_event](wxCommandEvent&) { 
+                wxKeyEvent e;
+                e.SetEventType(wxEVT_KEY_DOWN);
+                e.SetControlDown(true);
+                e.m_keyCode = 'A';
+                if (handle_key_event(e)) {
+                    return;
+                }
+                m_plater->select_all(); },
             "", nullptr, [this](){return can_select(); }, this);
         // BBS Deslect All
         append_menu_item(editMenu, wxID_ANY, _L("Deselect all") + "\tEsc",
-            _L("Deselects all objects"), [this](wxCommandEvent&) { m_plater->deselect_all(); },
+            _L("Deselects all objects"), [this, handle_key_event](wxCommandEvent&) {
+                wxKeyEvent e;
+                e.SetEventType(wxEVT_KEY_DOWN);
+                e.m_keyCode = WXK_ESCAPE;
+                if (handle_key_event(e)) {
+                    return;
+                }
+                m_plater->deselect_all(); },
             "", nullptr, [this](){return can_deselect(); }, this);
         //editMenu->AppendSeparator();
         //append_menu_check_item(editMenu, wxID_ANY, _L("Show Model Mesh(TODO)"),
