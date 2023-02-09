@@ -1342,7 +1342,7 @@ void Sidebar::on_filaments_change(size_t num_filaments)
             sizer->Hide(p->m_flushing_volume_btn);
     }
 
-    p->m_panel_filament_title->Layout();
+    Layout();
     p->m_panel_filament_title->Refresh();
     update_ui_from_settings();
     dynamic_filament_list.update();
@@ -1389,20 +1389,33 @@ void Sidebar::sync_ams_list()
         dlg.ShowModal();
         return;
     }
-    MessageDialog dlg(this,
-        _L("Sync filaments with AMS will drop all current selected filament presets and colors. Do you want to continue?"),
-        _L("Sync filaments with AMS"), wxYES_NO);
-    if (dlg.ShowModal() != wxID_YES) return;
     std::string ams_filament_ids = wxGetApp().app_config->get("ams_filament_ids", p->ams_list_device);
-    if (!ams_filament_ids.empty()) {
-        std::vector<std::string> list2;
+    std::vector<std::string> list2;
+    if (!ams_filament_ids.empty())
         boost::algorithm::split(list2, ams_filament_ids, boost::algorithm::is_any_of(","));
-        if (list2.size() == list.size()) {
-            for (int i = 0; i < list.size(); ++i) {
-                list[i].set_key_value("filament_changed", 
-                    new ConfigOptionBool{!list2[i].empty() && list2[i] != list[i].opt_string("filament_id", 0u)});
+    struct SyncAmsDialog : MessageDialog {
+        SyncAmsDialog(wxWindow * parent, bool first): MessageDialog(parent, 
+            first
+                ? _L("Sync filaments with AMS will drop all current selected filament presets and colors. Do you want to continue?")
+                : _L("Already did a synchronization, do you want to update only changes or resync all?"), 
+            _L("Sync filaments with AMS"), 0)
+        {
+            if (first) {
+                add_button(wxID_YES, true, _L("Yes"));
+            } else {
+                add_button(wxID_OK, true, _L("Update"));
+                add_button(wxID_YES, false, _L("Resync"));
             }
+            add_button(wxID_CANCEL, false, _L("Cancel"));
         }
+    } dlg(this, ams_filament_ids.empty());
+    auto res = dlg.ShowModal();
+    if (res == wxID_CANCEL) return;
+    list2.resize(list.size());
+    for (int i = 0; i < list.size(); ++i) {
+        auto filament_id = list[i].opt_string("filament_id", 0u);
+        list[i].set_key_value("filament_changed", new ConfigOptionBool{res == wxID_YES || list2[i] != filament_id});
+        list2[i] = filament_id;
     }
     unsigned int unknowns = 0;
     auto n = wxGetApp().preset_bundle->sync_ams_list(unknowns);
@@ -1413,8 +1426,6 @@ void Sidebar::sync_ams_list()
         dlg.ShowModal();
         return;
     }
-    std::vector<std::string> list2;
-    for (auto &f : list) list2.push_back(f.opt_string("filament_id", 0u));
     ams_filament_ids = boost::algorithm::join(list2, ",");
     wxGetApp().app_config ->set("ams_filament_ids", p->ams_list_device, ams_filament_ids);
     if (unknowns > 0) {
@@ -1426,7 +1437,7 @@ void Sidebar::sync_ams_list()
     wxGetApp().plater()->on_filaments_change(n);
     for (auto &c : p->combos_filament)
         c->update();
-    wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->select_preset(wxGetApp().preset_bundle->filament_presets[0]);
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
     dynamic_filament_list.update();
 }
