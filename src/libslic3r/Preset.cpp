@@ -1116,7 +1116,7 @@ void PresetCollection::load_presets(
     std::sort(m_presets.begin() + m_num_default_presets, m_presets.end());
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": loaded %1% presets from %2%, type %3%")%presets_loaded.size() %dir %Preset::get_type_string(m_type);
-    this->select_preset(first_visible_idx());
+    //this->select_preset(first_visible_idx());
     if (! errors_cummulative.empty())
         throw Slic3r::RuntimeError(errors_cummulative);
 }

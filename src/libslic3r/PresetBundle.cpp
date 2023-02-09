@@ -537,6 +537,8 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(std::string user, For
         errors_cummulative += err.what();
     }
     if (!errors_cummulative.empty()) throw Slic3r::RuntimeError(errors_cummulative);
+    this->update_multi_material_filament_presets();
+    this->update_compatible(PresetSelectCompatibleType::Never);
     return PresetsConfigSubstitutions();
 }
 
