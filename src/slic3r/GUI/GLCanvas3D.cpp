@@ -3475,6 +3475,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                 }
             }
         }
+        else return;
     }
 
     if (keyCode != WXK_TAB

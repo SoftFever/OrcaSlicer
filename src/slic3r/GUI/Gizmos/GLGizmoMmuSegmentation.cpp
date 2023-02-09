@@ -241,6 +241,34 @@ bool GLGizmoMmuSegmentation::on_number_key_down(int number)
     return true;
 }
 
+bool GLGizmoMmuSegmentation::on_key_down_select_tool_type(int keyCode) {
+    switch (keyCode)
+    {
+    case 'F':
+        m_current_tool = ImGui::FillButtonIcon;
+        break;
+    case 'T':
+        m_current_tool = ImGui::TriangleButtonIcon;
+        break;
+    case 'S':
+        m_current_tool = ImGui::SphereButtonIcon;
+        break;
+    case 'C':
+        m_current_tool = ImGui::CircleButtonIcon;
+        break;
+    case 'H':
+        m_current_tool = ImGui::HeightRangeIcon;
+        break;
+    case 'G':
+        m_current_tool = ImGui::GapFillIcon;
+        break;
+    default:
+        return false;
+        break;
+    }
+    return true;
+}
+
 static void render_extruders_combo(const std::string                       &label,
                                    const std::vector<std::string>          &extruders,
                                    const std::vector<std::array<float, 4>> &extruders_colors,

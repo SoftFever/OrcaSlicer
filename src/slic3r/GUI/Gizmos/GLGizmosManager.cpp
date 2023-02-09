@@ -1182,10 +1182,40 @@ bool GLGizmosManager::on_key(wxKeyEvent& evt)
                 processed = simplify->on_esc_key_down();
         }
         // BBS
-        else if (m_current == MmuSegmentation && keyCode > '0' && keyCode <= '9') {
+        else if (m_current == MmuSegmentation) {
             GLGizmoMmuSegmentation* mmu_seg = dynamic_cast<GLGizmoMmuSegmentation*>(get_current());
-            if (mmu_seg != nullptr)
-                processed = mmu_seg->on_number_key_down(keyCode - '0');
+            if (mmu_seg != nullptr) {
+                if (keyCode > '0' && keyCode <= '9') {
+                    processed = mmu_seg->on_number_key_down(keyCode - '0');
+                }
+                else if (keyCode == 'F' || keyCode == 'T' || keyCode == 'S' || keyCode == 'C' || keyCode == 'H' || keyCode == 'G') {
+                    processed = mmu_seg->on_key_down_select_tool_type(keyCode);
+                    if (processed) {
+                        // force extra frame to automatically update window size
+                        wxGetApp().imgui()->set_requires_extra_frame();
+                    }
+                }
+            }
+        }
+        else if (m_current == FdmSupports) {
+            GLGizmoFdmSupports* fdm_support = dynamic_cast<GLGizmoFdmSupports*>(get_current());
+            if (fdm_support != nullptr && keyCode == 'F' || keyCode == 'S' || keyCode == 'C' || keyCode == 'G') {
+                processed = fdm_support->on_key_down_select_tool_type(keyCode);
+            }
+            if (processed) {
+                // force extra frame to automatically update window size
+                wxGetApp().imgui()->set_requires_extra_frame();
+            }
+        }
+        else if (m_current == Seam) {
+            GLGizmoSeam* seam = dynamic_cast<GLGizmoSeam*>(get_current());
+            if (seam != nullptr && keyCode == 'S' || keyCode == 'C') {
+                processed = seam->on_key_down_select_tool_type(keyCode);
+            }
+            if (processed) {
+                // force extra frame to automatically update window size
+                wxGetApp().imgui()->set_requires_extra_frame();
+            }
         }
     }
 

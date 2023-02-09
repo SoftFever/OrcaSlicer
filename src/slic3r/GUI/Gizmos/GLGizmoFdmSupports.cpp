@@ -129,6 +129,29 @@ void GLGizmoFdmSupports::render_painter_gizmo() const
 }
 
 // BBS
+bool GLGizmoFdmSupports::on_key_down_select_tool_type(int keyCode) {
+    switch (keyCode)
+    {
+    case 'F':
+        m_current_tool = ImGui::FillButtonIcon;
+        break;
+    case 'S':
+        m_current_tool = ImGui::SphereButtonIcon;
+        break;
+    case 'C':
+        m_current_tool = ImGui::CircleButtonIcon;
+        break;
+    case 'G':
+        m_current_tool = ImGui::GapFillIcon;
+        break;
+    default:
+        return false;
+        break;
+    }
+    return true;
+}
+
+// BBS
 void GLGizmoFdmSupports::render_triangles(const Selection& selection) const
 {
     ClippingPlaneDataWrapper clp_data = this->get_clipping_plane_data();
