@@ -66,7 +66,7 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
     );
 
     StateColor ok_btn_text(
-        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
+        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
     );
 
     StateColor cancel_btn_bg(
@@ -89,22 +89,22 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
         std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
         std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
     );
-
+    
     StateColor calc_btn_bd(
         std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
     );
-
+    
     StateColor calc_btn_text(
-        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
+        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
     );
 
     if (flags & wxRESET) {
         Button *calc_btn = new Button(this, _L("Auto-Calc"));
         calc_btn->SetMinSize(wxSize(FromDIP(75), FromDIP(24)));
         calc_btn->SetCornerRadius(FromDIP(12));
-        calc_btn->SetBackgroundColor(ok_btn_bg);
-        calc_btn->SetBorderColor(ok_btn_bd);
-        calc_btn->SetTextColor(ok_btn_text);
+        calc_btn->SetBackgroundColor(calc_btn_bg);
+        calc_btn->SetBorderColor(calc_btn_bd);
+        calc_btn->SetTextColor(calc_btn_text);
         calc_btn->SetFocus();
         calc_btn->SetId(wxID_RESET);
         btn_sizer->Add(calc_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
@@ -115,7 +115,7 @@ wxBoxSizer* WipingDialog::create_btn_sizer(long flags)
         ok_btn->SetCornerRadius(FromDIP(12));
         ok_btn->SetBackgroundColor(ok_btn_bg);
         ok_btn->SetBorderColor(ok_btn_bd);
-        ok_btn->SetTextColor(wxColour("#FFFFFE"));
+        ok_btn->SetTextColor(ok_btn_text);
         ok_btn->SetFocus();
         ok_btn->SetId(wxID_OK);
         btn_sizer->Add(ok_btn, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, BTN_GAP);
@@ -318,34 +318,6 @@ WipingPanel::WipingPanel(wxWindow* parent, const std::vector<float>& matrix, con
 
     create_panels(m_page_advanced, m_number_of_extruders);
 
-#ifndef __WINDOWS__
-    StateColor calc_btn_bg(
-        std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
-    );
-
-    StateColor calc_btn_bd(
-        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
-    );
-
-    StateColor calc_btn_text(
-        std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal)
-    );
-
-    Button* calc_btn = new Button(this, _L("Auto-Calc"));
-    calc_btn->SetMinSize(wxSize(FromDIP(75), FromDIP(24)));
-    calc_btn->SetCornerRadius(FromDIP(12));
-    calc_btn->SetBackgroundColor(calc_btn_bg);
-    calc_btn->SetBorderColor(calc_btn_bd);
-    calc_btn->SetBackgroundColour(*wxWHITE);
-    calc_btn->SetTextColor(calc_btn_text);
-    calc_btn->SetFocus();
-    calc_btn->SetId(wxID_RESET);
-    calc_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { this->calc_flushing_volumes(); });
-
-    calc_button = calc_btn;
-#endif
     m_sizer_advanced->AddSpacer(BTN_SIZE.y);
 
     // BBS: for tunning flush volumes
