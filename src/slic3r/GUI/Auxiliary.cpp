@@ -492,6 +492,7 @@ void AuFile::on_set_cover()
         thumbnail_img.SaveFile(encode_path(middle_img_path.c_str()));
     }
 
+    wxGetApp().plater()->set_plater_dirty(true);
     auto evt = wxCommandEvent(EVT_AUXILIARY_UPDATE_COVER);
     evt.SetString(s_default_folders[m_type]);
     evt.SetEventObject(m_parent);
