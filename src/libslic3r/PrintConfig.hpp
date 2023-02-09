@@ -823,7 +823,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              retract_length_toolchange))
     ((ConfigOptionFloats,              z_hop))
     // BBS
-    ((ConfigOptionEnum<ZHopType>,      z_hop_type))
+    ((ConfigOptionEnumsGeneric,        z_hop_types))
     ((ConfigOptionFloats,              retract_restart_extra))
     ((ConfigOptionFloats,              retract_restart_extra_toolchange))
     ((ConfigOptionFloats,              retraction_speed))

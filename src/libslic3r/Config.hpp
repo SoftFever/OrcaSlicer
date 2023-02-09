@@ -771,6 +771,8 @@ public:
     ConfigOptionIntsTempl() : ConfigOptionVector<int>() {}
     explicit ConfigOptionIntsTempl(size_t n, int value) : ConfigOptionVector<int>(n, value) {}
     explicit ConfigOptionIntsTempl(std::initializer_list<int> il) : ConfigOptionVector<int>(std::move(il)) {}
+    explicit ConfigOptionIntsTempl(const std::vector<int> &vec) : ConfigOptionVector<int>(vec) {}
+    explicit ConfigOptionIntsTempl(std::vector<int> &&vec) : ConfigOptionVector<int>(std::move(vec)) {}
 
     static ConfigOptionType static_type() { return coInts; }
     ConfigOptionType        type()  const override { return static_type(); }
@@ -1640,33 +1642,37 @@ private:
 };
 
 // BBS
-class ConfigOptionEnumsGeneric : public ConfigOptionInts
+template <bool NULLABLE>
+class ConfigOptionEnumsGenericTempl : public ConfigOptionInts
 {
 public:
-    ConfigOptionEnumsGeneric(const t_config_enum_values* keys_map = nullptr) : keys_map(keys_map) {}
-    explicit ConfigOptionEnumsGeneric(const t_config_enum_values* keys_map, size_t size, int value) : ConfigOptionInts(size, value), keys_map(keys_map) {}
-    explicit ConfigOptionEnumsGeneric(std::initializer_list<int> il) : ConfigOptionInts(std::move(il)), keys_map(keys_map) {}
+    ConfigOptionEnumsGenericTempl(const t_config_enum_values *keys_map = nullptr) : keys_map(keys_map) {}
+    explicit ConfigOptionEnumsGenericTempl(const t_config_enum_values *keys_map, size_t size, int value) : ConfigOptionInts(size, value), keys_map(keys_map) {}
+    explicit ConfigOptionEnumsGenericTempl(std::initializer_list<int> il) : ConfigOptionInts(std::move(il)), keys_map(keys_map) {}
+    explicit ConfigOptionEnumsGenericTempl(const std::vector<int> &vec) : ConfigOptionInts(vec) {}
+    explicit ConfigOptionEnumsGenericTempl(std::vector<int> &&vec) : ConfigOptionInts(std::move(vec)) {}
 
     const t_config_enum_values* keys_map = nullptr;
 
     static ConfigOptionType     static_type() { return coEnums; }
     ConfigOptionType            type()  const override { return static_type(); }
-    ConfigOption* clone() const override { return new ConfigOptionEnumsGeneric(*this); }
-    ConfigOptionEnumsGeneric& operator= (const ConfigOption* opt) { this->set(opt); return *this; }
-    bool                        operator< (const ConfigOptionIntsTempl& rhs) const throw() { return this->values < rhs.values; }
+    ConfigOption* clone() const override { return new ConfigOptionEnumsGenericTempl(*this); }
+    ConfigOptionEnumsGenericTempl& operator= (const ConfigOption* opt) { this->set(opt); return *this; }
+    bool                        operator< (const ConfigOptionInts& rhs) const throw() { return this->values < rhs.values; }
 
-    bool                        operator==(const ConfigOptionIntsTempl& rhs) const throw()
+    bool                        operator==(const ConfigOptionInts& rhs) const throw()
     {
         if (rhs.type() != this->type())
             throw ConfigurationError("ConfigOptionEnumsGeneric: Comparing incompatible types");
         return this->values == rhs.values;
     }
+    bool nullable() const override { return NULLABLE; }
 
     void set(const ConfigOption* rhs) override {
         if (rhs->type() != this->type())
             throw ConfigurationError("ConfigOptionEnumGeneric: Assigning an incompatible type");
         // rhs could be of the following type: ConfigOptionEnumsGeneric
-        this->values = dynamic_cast<const ConfigOptionEnumsGeneric*>(rhs)->values;
+        this->values = dynamic_cast<const ConfigOptionEnumsGenericTempl *>(rhs)->values;
     }
 
     std::string serialize() const override
@@ -1701,7 +1707,10 @@ public:
         while (std::getline(is, item_str, ',')) {
             boost::trim(item_str);
             if (item_str == "nil") {
-                return false;
+                if (NULLABLE)
+                    this->values.push_back(nil_value());
+                else
+                    throw ConfigurationError("Deserializing nil into a non-nullable object");
             }
             else {
                 auto it = this->keys_map->find(item_str);
@@ -1716,14 +1725,25 @@ public:
 private:
     void serialize_single_value(std::ostringstream& ss, const int v) const
     {
-        for (const auto& kvp : *this->keys_map)
-            if (kvp.second == v)
-                ss << kvp.first;
+        if (v == nil_value()) {
+            if (NULLABLE)
+                ss << "nil";
+            else
+                throw ConfigurationError("Serializing NaN");
+        }
+        else {
+            for (const auto& kvp : *this->keys_map)
+                if (kvp.second == v)
+                    ss << kvp.first;
+        }
     }
 
     friend class cereal::access;
     template<class Archive> void serialize(Archive& ar) { ar(cereal::base_class<ConfigOptionVector<int>>(this)); }
 };
+
+using ConfigOptionEnumsGeneric         = ConfigOptionEnumsGenericTempl<false>;
+using ConfigOptionEnumsGenericNullable = ConfigOptionEnumsGenericTempl<true>;
 
 // Definition of a configuration value for the purpose of GUI presentation, editing, value mapping and config file handling.
 class ConfigOptionDef

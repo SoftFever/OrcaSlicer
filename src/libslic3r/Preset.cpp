@@ -763,7 +763,7 @@ static std::vector<std::string> s_Preset_filament_options {
     "fan_max_speed", "enable_overhang_bridge_fan", "overhang_fan_speed", "overhang_fan_threshold", "close_fan_the_first_x_layers", "full_fan_speed_layer", "fan_cooling_layer_time", "slow_down_layer_time", "slow_down_min_speed",
     "filament_start_gcode", "filament_end_gcode",
     // Retract overrides
-    "filament_retraction_length", "filament_z_hop", "filament_retraction_speed", "filament_deretraction_speed", "filament_retract_restart_extra", "filament_retraction_minimum_travel",
+    "filament_retraction_length", "filament_z_hop", "filament_z_hop_types", "filament_retraction_speed", "filament_deretraction_speed", "filament_retract_restart_extra", "filament_retraction_minimum_travel",
     "filament_retract_when_changing_layer", "filament_wipe", "filament_retract_before_wipe",
     // Profile compatibility
     "filament_vendor", "compatible_prints", "compatible_prints_condition", "compatible_printers", "compatible_printers_condition", "inherits",
@@ -789,7 +789,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "silent_mode",
     // BBS
     "scan_first_layer", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode",
-    "nozzle_type", "nozzle_hrc","auxiliary_fan", "nozzle_volume","upward_compatible_machine", "z_hop_type",
+    "nozzle_type", "nozzle_hrc","auxiliary_fan", "nozzle_volume","upward_compatible_machine", "z_hop_types",
     //SoftFever
     "host_type", "print_host", "printhost_apikey", 
     "printhost_cafile","printhost_port","printhost_authorization_type",

@@ -2147,7 +2147,7 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloats { 0.4 });
 
-    def = this->add("z_hop_type", coEnum);
+    def = this->add("z_hop_types", coEnums);
     def->label = L("Z Hop Type");
     def->tooltip = L("");
     def->enum_keys_map = &ConfigOptionEnum<ZHopType>::get_enum_values();
@@ -2160,7 +2160,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Slope"));
     def->enum_labels.push_back(L("Spiral"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum{ ZHopType::zhtSpiral });
+    def->set_default_value(new ConfigOptionEnumsGeneric{ ZHopType::zhtSpiral });
 
     def = this->add("retract_restart_extra", coFloats);
     //def->label = L("Extra length on restart");
@@ -3085,7 +3085,7 @@ void PrintConfigDef::init_fff_params()
     // Declare retract values for filament profile, overriding the printer's extruder profile.
     for (const char *opt_key : {
         // floats
-        "retraction_length", "z_hop", "retraction_speed", "deretraction_speed", "retract_restart_extra", "retraction_minimum_travel",
+        "retraction_length", "z_hop", "z_hop_types", "retraction_speed", "deretraction_speed", "retract_restart_extra", "retraction_minimum_travel",
         // BBS: floats
         "wipe_distance",
         // bools
@@ -3099,6 +3099,9 @@ void PrintConfigDef::init_fff_params()
         def->full_label = it_opt->second.full_label;
         def->tooltip 	= it_opt->second.tooltip;
         def->sidetext   = it_opt->second.sidetext;
+        def->enum_keys_map = it_opt->second.enum_keys_map;
+        def->enum_labels   = it_opt->second.enum_labels;
+        def->enum_values   = it_opt->second.enum_values;
         //BBS: shown specific filament retract config because we hide the machine retract into comDevelop mode
         if ((strcmp(opt_key, "retraction_length") == 0) ||
             (strcmp(opt_key, "z_hop") == 0))
@@ -3109,6 +3112,7 @@ void PrintConfigDef::init_fff_params()
         case coFloats   : def->set_default_value(new ConfigOptionFloatsNullable  (static_cast<const ConfigOptionFloats*  >(it_opt->second.default_value.get())->values)); break;
         case coPercents : def->set_default_value(new ConfigOptionPercentsNullable(static_cast<const ConfigOptionPercents*>(it_opt->second.default_value.get())->values)); break;
         case coBools    : def->set_default_value(new ConfigOptionBoolsNullable   (static_cast<const ConfigOptionBools*   >(it_opt->second.default_value.get())->values)); break;
+        case coEnums    : def->set_default_value(new ConfigOptionEnumsGenericNullable(static_cast<const ConfigOptionEnumsGeneric*   >(it_opt->second.default_value.get())->values)); break;
         default: assert(false);
         }
     }
@@ -3128,7 +3132,7 @@ void PrintConfigDef::init_extruder_option_keys()
     // ConfigOptionFloats, ConfigOptionPercents, ConfigOptionBools, ConfigOptionStrings
     m_extruder_option_keys = {
         "nozzle_diameter", "min_layer_height", "max_layer_height", "extruder_offset",
-        "retraction_length", "z_hop", "retraction_speed", "deretraction_speed",
+        "retraction_length", "z_hop", "z_hop_types", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour",
         "default_filament_profile"
@@ -3144,7 +3148,8 @@ void PrintConfigDef::init_extruder_option_keys()
         "retraction_speed",
         "wipe",
         "wipe_distance",
-        "z_hop"
+        "z_hop",
+        "z_hop_types"
     };
     assert(std::is_sorted(m_extruder_retract_keys.begin(), m_extruder_retract_keys.end()));
 }
@@ -3153,7 +3158,7 @@ void PrintConfigDef::init_filament_option_keys()
 {
     m_filament_option_keys = {
         "filament_diameter", "min_layer_height", "max_layer_height",
-        "retraction_length", "z_hop", "retraction_speed", "deretraction_speed",
+        "retraction_length", "z_hop", "z_hop_types", "retraction_speed", "deretraction_speed",
         "retract_before_wipe", "retract_restart_extra", "retraction_minimum_travel", "wipe", "wipe_distance",
         "retract_when_changing_layer", "retract_length_toolchange", "retract_restart_extra_toolchange", "filament_colour",
         "default_filament_profile"
@@ -3169,7 +3174,8 @@ void PrintConfigDef::init_filament_option_keys()
         "retraction_speed",
         "wipe",
         "wipe_distance",
-        "z_hop"
+        "z_hop", 
+        "z_hop_types"
     };
     assert(std::is_sorted(m_filament_retract_keys.begin(), m_filament_retract_keys.end()));
 }
@@ -3895,7 +3901,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "support_closing_radius",
         "remove_freq_sweep", "remove_bed_leveling", "remove_extrusion_calibration",
         "support_transition_line_width", "support_transition_speed", "bed_temperature", "bed_temperature_initial_layer",
-        "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height"
+        "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height",
+        "z_hop_type"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {

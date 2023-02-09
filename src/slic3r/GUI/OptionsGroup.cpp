@@ -951,6 +951,9 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
         case coInts:
             ret = config.option<ConfigOptionIntsNullable>(opt_key)->get_at(idx);
             break;
+        case coEnums:
+            ret = config.option<ConfigOptionEnumsGenericNullable>(opt_key)->get_at(idx);
+            break;
         default:
             break;
         }

@@ -225,7 +225,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             osteps.emplace_back(posSimplifySupportPath);
             steps.emplace_back(psSkirtBrim);
         }
-        else if (opt_key == "z_hop_type") {
+        else if (opt_key == "z_hop_types") {
             osteps.emplace_back(posDetectOverhangsForLift);
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps

@@ -431,9 +431,6 @@ void PrintObject::detect_overhangs_for_lift()
 
         this->clear_overhangs_for_lift();
 
-        if (m_print->config().z_hop_type != ZHopType::zhtAuto)
-            return;
-
         tbb::spin_mutex layer_storage_mutex;
         tbb::parallel_for(tbb::blocked_range<size_t>(num_raft_layers + 1, num_layers),
             [this, min_overlap](const tbb::blocked_range<size_t>& range)

@@ -3178,9 +3178,9 @@ std::string GCode::change_layer(coordf_t print_z, bool lazy_raise)
     //coordf_t z = print_z + m_config.z_offset.value;  // in unscaled coordinates
     coordf_t z = print_z;  // in unscaled coordinates
     if (EXTRUDER_CONFIG(retract_when_changing_layer) && m_writer.will_move_z(z)) {
-        LiftType lift_type = this->to_lift_type(m_config.z_hop_type);
+        LiftType lift_type = this->to_lift_type(ZHopType(EXTRUDER_CONFIG(z_hop_types)));
         //BBS: force to use SpiralLift when change layer if lift type is auto
-        gcode += this->retract(false, false, m_config.z_hop_type == ZHopType::zhtAuto? LiftType::SpiralLift : lift_type);
+        gcode += this->retract(false, false, ZHopType(EXTRUDER_CONFIG(z_hop_types)) == ZHopType::zhtAuto ? LiftType::SpiralLift : lift_type);
     }
 
     if (!lazy_raise) {
@@ -3894,8 +3894,8 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
 }
 
 //BBS
-LiftType GCode::to_lift_type(ZHopType z_hop_type) {
-    switch (z_hop_type)
+LiftType GCode::to_lift_type(ZHopType z_hop_types) {
+    switch (z_hop_types)
     {
     case ZHopType::zhtNormal:
         return LiftType::NormalLift;
@@ -3966,11 +3966,11 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
     //BBS: force to retract when leave from external perimeter for a long travel
     //Better way is judging whether the travel move direction is same with last extrusion move.
     if (is_perimeter(m_last_processor_extrusion_role) && m_last_processor_extrusion_role != erPerimeter) {
-        if (m_config.z_hop_type == ZHopType::zhtAuto) {
+        if (ZHopType(EXTRUDER_CONFIG(z_hop_types)) == ZHopType::zhtAuto) {
             lift_type = is_through_overhang(clipped_travel) ? LiftType::SpiralLift : LiftType::LazyLift;
         }
         else {
-            lift_type = to_lift_type(m_config.z_hop_type);
+            lift_type = to_lift_type(ZHopType(EXTRUDER_CONFIG(z_hop_types)));
         }
         return true;
     }
@@ -3998,11 +3998,11 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
         return false;
 
     // retract if reduce_infill_retraction is disabled or doesn't apply when role is perimeter
-    if (m_config.z_hop_type == ZHopType::zhtAuto) {
+    if (ZHopType(EXTRUDER_CONFIG(z_hop_types)) == ZHopType::zhtAuto) {
         lift_type = is_through_overhang(clipped_travel) ? LiftType::SpiralLift : LiftType::LazyLift;
     }
     else {
-        lift_type = to_lift_type(m_config.z_hop_type);
+        lift_type = to_lift_type(ZHopType(EXTRUDER_CONFIG(z_hop_types)));
     }
     return true;
 }
