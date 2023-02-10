@@ -348,6 +348,7 @@ public:
         ConfigOptionFloat           ori_speed_perimeter;
 
         ModelConfig*                config;
+        ModelVolumeType             model_volume_type;
 
         ObjectGridRow(int obj_id, int vol_id, GridRowType type)
             : object_id(obj_id), volume_id(vol_id), row_type(type)
