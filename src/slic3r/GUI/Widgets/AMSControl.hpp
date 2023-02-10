@@ -516,7 +516,7 @@ public:
 
     bool m_is_none_ams_mode{false};
 	void SetActionState(AMSAction action, bool support_virtual_tray = true);
-    void EnterNoneAMSMode();
+    void EnterNoneAMSMode(bool support_vt_load = false);
     void ExitNoneAMSMode();
 
     void EnterCalibrationMode(bool read_to_calibration);
@@ -549,7 +549,7 @@ public:
     void on_clibration_cancel_click(wxMouseEvent &event);
     void Reset();
 
-    void show_noams_mode(bool show, bool support_virtual_tray);
+    void show_noams_mode(bool show, bool support_virtual_tray, bool support_vt_load = false);
     void show_vams(bool show);
     void show_vams_kn_value(bool show);
     void update_vams_kn_value(AmsTray tray);

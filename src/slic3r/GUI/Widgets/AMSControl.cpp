@@ -2047,14 +2047,14 @@ void AMSControl::SetActionState(AMSAction action, bool support_virtual_tray)
             m_button_extrusion_cali->Enable();
         else
             m_button_extrusion_cali->Disable();
-        m_button_extruder_feed->Disable();
-        m_button_extruder_back->Disable();
+        m_button_extruder_feed->Enable();
+        m_button_extruder_back->Enable();
         break;
     default: break;
     }
 }
 
-void AMSControl::EnterNoneAMSMode()
+void AMSControl::EnterNoneAMSMode(bool support_vt_load)
 {
     m_simplebook_amsitems->Hide();
     m_panel_top->Hide();
@@ -2064,8 +2064,14 @@ void AMSControl::EnterNoneAMSMode()
     m_button_ams_setting->Hide();
     m_button_guide->Hide();
     m_button_retry->Hide();
-    m_button_extruder_feed->Hide();
-    m_button_extruder_back->Hide();
+    if (support_vt_load) {
+        m_button_extruder_feed->Show();
+        m_button_extruder_back->Show();
+    } else {
+        m_button_extruder_feed->Hide();
+        m_button_extruder_back->Hide();
+    }
+
     ShowFilamentTip(false);
     m_amswin->Layout();
     m_amswin->Fit();
@@ -2205,7 +2211,7 @@ void AMSControl::Reset()
     m_current_senect = "";
 }
 
-void AMSControl::show_noams_mode(bool show, bool support_virtual_tray)
+void AMSControl::show_noams_mode(bool show, bool support_virtual_tray, bool support_vt_load)
 {
     show_vams(support_virtual_tray);
     m_sizer_ams_tips->Show(support_virtual_tray);
@@ -2215,7 +2221,7 @@ void AMSControl::show_noams_mode(bool show, bool support_virtual_tray)
         m_button_extrusion_cali->Show();
     }
 
-    show?ExitNoneAMSMode() : EnterNoneAMSMode();
+    show?ExitNoneAMSMode() : EnterNoneAMSMode(support_vt_load);
 }
 
 void AMSControl::show_vams(bool show)
@@ -2245,6 +2251,10 @@ void AMSControl::update_vams_kn_value(AmsTray tray)
     m_vams_info.n = tray.n;
     m_vams_lib->m_info.k = tray.k;
     m_vams_lib->m_info.n = tray.n;
+    m_vams_info.material_name = tray.get_display_filament_type();
+    m_vams_info.material_colour = tray.get_color();
+    m_vams_lib->m_info.material_name = tray.get_display_filament_type();
+    m_vams_lib->m_info.material_colour = tray.get_color();
     m_vams_lib->Refresh();
 }
 
@@ -2481,7 +2491,6 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
     }
 
-    type = AMSPassRoadType::AMS_ROAD_TYPE_LOAD;
     if (step == AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1) {
         if (ams_id == m_current_ams) { m_extruder->TurnOff(); }
         cans->amsCans->SetAmsStep(canid, type, AMSPassRoadSTEP::AMS_ROAD_STEP_1);
@@ -2508,10 +2517,10 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
 
     if (type == AMSPassRoadType::AMS_ROAD_TYPE_LOAD) { 
         SetActionState(AMSAction::AMS_ACTION_LOAD);
-    }
-
-    if (type == AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD) { 
+    } else if (type == AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD) { 
         SetActionState(AMSAction::AMS_ACTION_UNLOAD); 
+    } else if (type == AMSPassRoadType::AMS_ROAD_TYPE_NONE) {
+        SetActionState(AMSAction::AMS_ACTION_NORMAL);
     }
 }
 

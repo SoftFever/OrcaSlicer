@@ -178,6 +178,8 @@ public:
                 if (digit1 == -1 || digit2 == -1) break;
                 ret[j] = float(digit1 * 16 + digit2);
             }
+        } else {
+            return wxColour(255, 255, 255);
         }
         return wxColour(ret[0], ret[1], ret[2]);
     }
@@ -215,6 +217,8 @@ public:
     void set_hold_count() { hold_count = HOLD_COUNT_MAX; }
     void update_color_from_str(std::string color);
     wxColour get_color();
+
+    void reset();
 
     bool is_tray_info_ready();
     bool is_unset_third_filament();
@@ -464,7 +468,7 @@ public:
     int   ams_version = 0;
     std::string m_ams_id;           // local ams  : "0" ~ "3"
     std::string m_tray_id;          // local tray id : "0" ~ "3"
-    std::string m_tray_now;         // tray_now : "0" ~ "15" or "255"
+    std::string m_tray_now;         // tray_now : "0" ~ "15" or "254", "255"
     std::string m_tray_tar;         // tray_tar : "0" ~ "15" or "255"
 
     int extrusion_cali_hold_count = 0;
@@ -634,6 +638,7 @@ public:
     bool is_support_1080dpi {false};
     bool is_support_ai_monitoring {false};
     bool is_support_ams_humidity {true};
+    bool is_support_filament_edit_virtual_tray {true};
 
     /* sdcard */
     MachineObject::SdcardState sdcard_state { NO_SDCARD };

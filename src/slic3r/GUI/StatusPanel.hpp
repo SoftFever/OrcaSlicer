@@ -253,7 +253,7 @@ public:
     wxBoxSizer *create_ams_group(wxWindow *parent);
     wxBoxSizer *create_settings_group(wxWindow *parent);
 
-    void show_ams_group(bool show = true, bool support_virtual_tray = true);
+    void show_ams_group(bool show = true, bool support_virtual_tray = true, bool support_vt_load = true);
 };
 
 
@@ -274,6 +274,7 @@ protected:
 
     SecondaryCheckDialog* m_print_error_dlg = nullptr;
     SecondaryCheckDialog* abort_dlg = nullptr;
+    SecondaryCheckDialog* con_load_dlg = nullptr;
     SecondaryCheckDialog* ctrl_e_hint_dlg = nullptr;
     SecondaryCheckDialog* sdcard_hint_dlg = nullptr;
     FanControlPopup* m_fan_control_popup{nullptr};

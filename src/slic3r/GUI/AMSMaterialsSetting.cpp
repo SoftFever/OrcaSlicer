@@ -376,7 +376,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
     wxString k_text = m_input_k_val->GetTextCtrl()->GetValue();
     wxString n_text = m_input_n_val->GetTextCtrl()->GetValue();
 
-    if (is_virtual_tray()) {
+    if (is_virtual_tray() && obj && !obj->is_support_filament_edit_virtual_tray) {
         if (!ExtrusionCalibration::check_k_validation(k_text)) {
             wxString k_tips = _L("Please input a valid value (K in 0~0.5)");
             wxString kn_tips = _L("Please input a valid value (K in 0~0.5, N in 0.6~2.0)");
@@ -478,8 +478,12 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
                 }
 
                 // set filament
-                if (!is_virtual_tray()) {
-                    obj->command_ams_filament_settings(ams_id, tray_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
+                if (obj->is_support_filament_edit_virtual_tray || !is_virtual_tray()) {
+                    if (is_virtual_tray()) {
+                        obj->command_ams_filament_settings(255, VIRTUAL_TRAY_ID, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
+                    } else {
+                        obj->command_ams_filament_settings(ams_id, tray_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
+                    }
                 }
 
                 // set k / n value
@@ -548,7 +552,10 @@ void AMSMaterialsSetting::update_widgets()
 {
     // virtual tray
     if (is_virtual_tray()) {
-        m_panel_normal->Hide();
+        if (obj && obj->is_support_filament_edit_virtual_tray)
+            m_panel_normal->Show();
+        else
+            m_panel_normal->Hide();
         m_panel_kn->Show();
     } else if (obj && obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI)) {
         m_panel_normal->Show();
@@ -583,7 +590,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     m_input_k_val->GetTextCtrl()->SetValue(k);
     m_input_n_val->GetTextCtrl()->SetValue(n);
 
-    if (is_virtual_tray()) {
+    if (is_virtual_tray() && obj && !obj->is_support_filament_edit_virtual_tray) {
         m_button_confirm->Show();
         update();
         Layout();

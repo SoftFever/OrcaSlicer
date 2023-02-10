@@ -136,6 +136,32 @@ wxColour AmsTray::get_color()
     return AmsTray::decode_color(color);
 }
 
+void AmsTray::reset()
+{
+    tag_uid = "";
+    setting_id = "";
+    filament_setting_id = "";
+    type = "";
+    sub_brands = "";
+    color = "";
+    weight = "";
+    diameter = "";
+    temp = "";
+    time = "";
+    bed_temp_type = "";
+    bed_temp = "";
+    nozzle_temp_max = "";
+    nozzle_temp_min = "";
+    xcam_info = "";
+    uuid = "";
+    k = 0.0f;
+    n = 0.0f;
+    is_bbl = false;
+    hold_count = 0;
+    remain = 0;
+}
+
+
 bool AmsTray::is_tray_info_ready()
 {
     if (color.empty())
@@ -523,6 +549,10 @@ Ams *MachineObject::get_curr_Ams()
 
 AmsTray *MachineObject::get_curr_tray()
 {
+    if (m_tray_now.compare(std::to_string(VIRTUAL_TRAY_ID)) == 0) {
+        return &vt_tray;
+    }
+
     Ams* curr_ams = get_curr_Ams();
     if (!curr_ams) return nullptr;
 
@@ -1532,6 +1562,8 @@ int MachineObject::command_ams_switch(int tray_index, int old_temp, int new_temp
     std::string gcode = "";
     if (tray_index == 255) {
         gcode = DeviceManager::load_gcode(printer_type, "ams_unload.gcode");
+    } else if (tray_index == VIRTUAL_TRAY_ID) {
+        gcode = DeviceManager::load_gcode(printer_type, "vt_load.gcode");
     } else {
         gcode = DeviceManager::load_gcode(printer_type, "ams_load.gcode");
         boost::replace_all(gcode, "[next_extruder]", std::to_string(tray_index));
@@ -2043,6 +2075,8 @@ void MachineObject::reset()
     last_mc_print_stage = -1;
     m_new_ver_list_exist = false;
     extruder_axis_status = LOAD;
+
+    vt_tray.reset();
 
     subtask_ = nullptr;
 
@@ -3140,6 +3174,89 @@ int MachineObject::parse_json(std::string payload)
                                     vt_tray.n = jj["vt_tray"]["n"].get<float>();
                             }
                             ams_support_virtual_tray = true;
+
+                            if (vt_tray.hold_count > 0) {
+                                vt_tray.hold_count--;
+                            } else {
+                                if (jj["vt_tray"].contains("tag_uid"))
+                                    vt_tray.tag_uid = jj["vt_tray"]["tag_uid"].get<std::string>();
+                                else
+                                    vt_tray.tag_uid = "0";
+                                if (jj["vt_tray"].contains("tray_info_idx") && jj["vt_tray"].contains("tray_type")) {
+                                    vt_tray.setting_id = jj["vt_tray"]["tray_info_idx"].get<std::string>();
+                                    std::string type = jj["vt_tray"]["tray_type"].get<std::string>();
+                                    if (vt_tray.setting_id == "GFS00") {
+                                        vt_tray.type = "PLA-S";
+                                    }
+                                    else if (vt_tray.setting_id == "GFS01") {
+                                        vt_tray.type = "PA-S";
+                                    }
+                                    else {
+                                        vt_tray.type = type;
+                                    }
+                                }
+                                else {
+                                    vt_tray.setting_id = "";
+                                    vt_tray.type = "";
+                                }
+                                if (jj["vt_tray"].contains("tray_sub_brands"))
+                                    vt_tray.sub_brands = jj["vt_tray"]["tray_sub_brands"].get<std::string>();
+                                else
+                                    vt_tray.sub_brands = "";
+                                if (jj["vt_tray"].contains("tray_weight"))
+                                    vt_tray.weight = jj["vt_tray"]["tray_weight"].get<std::string>();
+                                else
+                                    vt_tray.weight = "";
+                                if (jj["vt_tray"].contains("tray_diameter"))
+                                    vt_tray.diameter = jj["vt_tray"]["tray_diameter"].get<std::string>();
+                                else
+                                    vt_tray.diameter = "";
+                                if (jj["vt_tray"].contains("tray_temp"))
+                                    vt_tray.temp = jj["vt_tray"]["tray_temp"].get<std::string>();
+                                else
+                                    vt_tray.temp = "";
+                                if (jj["vt_tray"].contains("tray_time"))
+                                    vt_tray.time = jj["vt_tray"]["tray_time"].get<std::string>();
+                                else
+                                    vt_tray.time = "";
+                                if (jj["vt_tray"].contains("bed_temp_type"))
+                                    vt_tray.bed_temp_type = jj["vt_tray"]["bed_temp_type"].get<std::string>();
+                                else
+                                    vt_tray.bed_temp_type = "";
+                                if (jj["vt_tray"].contains("bed_temp"))
+                                    vt_tray.bed_temp = jj["vt_tray"]["bed_temp"].get<std::string>();
+                                else
+                                    vt_tray.bed_temp = "";
+                                if (jj["vt_tray"].contains("nozzle_temp_max"))
+                                    vt_tray.nozzle_temp_max = jj["vt_tray"]["nozzle_temp_max"].get<std::string>();
+                                else
+                                    vt_tray.nozzle_temp_max = "";
+                                if (jj["vt_tray"].contains("nozzle_temp_min"))
+                                    vt_tray.nozzle_temp_min = jj["vt_tray"]["nozzle_temp_min"].get<std::string>();
+                                else
+                                    vt_tray.nozzle_temp_min = "";
+                                if (jj["vt_tray"].contains("xcam_info"))
+                                    vt_tray.xcam_info = jj["vt_tray"]["xcam_info"].get<std::string>();
+                                else
+                                    vt_tray.xcam_info = "";
+                                if (jj["vt_tray"].contains("tray_uuid"))
+                                    vt_tray.uuid = jj["vt_tray"]["tray_uuid"].get<std::string>();
+                                else
+                                    vt_tray.uuid = "0";
+                                if (jj["vt_tray"].contains("tray_color")) {
+                                    auto color = jj["vt_tray"]["tray_color"].get<std::string>();
+                                    vt_tray.update_color_from_str(color);
+                                }
+                                else {
+                                    vt_tray.color = "";
+                                }
+                                if (jj["vt_tray"].contains("remain")) {
+                                    vt_tray.remain = jj["vt_tray"]["remain"].get<int>();
+                                }
+                                else {
+                                    vt_tray.remain = -1;
+                                }
+                            }
                         } else {
                             ams_support_virtual_tray = false;
                         }
@@ -3169,24 +3286,39 @@ int MachineObject::parse_json(std::string payload)
 
                     if (jj["ams_id"].is_number()) {
                         int ams_id = jj["ams_id"].get<int>();
-                        auto ams_it = amsList.find(std::to_string(ams_id));
-                        if (ams_it != amsList.end()) {
-                            int tray_id = jj["tray_id"].get<int>();
-                            auto tray_it = ams_it->second->trayList.find(std::to_string(tray_id));
-                            if (tray_it != ams_it->second->trayList.end()) {
-                                BOOST_LOG_TRIVIAL(trace) << "ams_filament_setting, parse tray info";
-                                tray_it->second->nozzle_temp_max = std::to_string(jj["nozzle_temp_max"].get<int>());
-                                tray_it->second->nozzle_temp_min = std::to_string(jj["nozzle_temp_min"].get<int>());
-                                tray_it->second->type = jj["tray_type"].get<std::string>();
-                                tray_it->second->color = jj["tray_color"].get<std::string>();
-                                tray_it->second->setting_id = jj["tray_info_idx"].get<std::string>();
-                                // delay update
-                                tray_it->second->set_hold_count();
-                            } else {
-                                BOOST_LOG_TRIVIAL(warning) << "ams_filament_setting, can not find in trayList, tray_id=" << tray_id;
-                            }
+                        int tray_id = 0;
+                        if (jj.contains("tray_id")) {
+                            tray_id = jj["tray_id"].get<int>();
+                        }
+                        if (ams_id == 255 && tray_id == VIRTUAL_TRAY_ID) {
+                            BOOST_LOG_TRIVIAL(trace) << "ams_filament_setting, parse tray info";
+                            vt_tray.nozzle_temp_max = std::to_string(jj["nozzle_temp_max"].get<int>());
+                            vt_tray.nozzle_temp_min = std::to_string(jj["nozzle_temp_min"].get<int>());
+                            vt_tray.type = jj["tray_type"].get<std::string>();
+                            vt_tray.color = jj["tray_color"].get<std::string>();
+                            vt_tray.setting_id = jj["tray_info_idx"].get<std::string>();
+                            // delay update
+                            vt_tray.set_hold_count();
                         } else {
-                            BOOST_LOG_TRIVIAL(warning) << "ams_filament_setting, can not find in amsList, ams_id=" << ams_id;
+                            auto ams_it = amsList.find(std::to_string(ams_id));
+                            if (ams_it != amsList.end()) {
+                                tray_id = jj["tray_id"].get<int>();
+                                auto tray_it = ams_it->second->trayList.find(std::to_string(tray_id));
+                                if (tray_it != ams_it->second->trayList.end()) {
+                                    BOOST_LOG_TRIVIAL(trace) << "ams_filament_setting, parse tray info";
+                                    tray_it->second->nozzle_temp_max = std::to_string(jj["nozzle_temp_max"].get<int>());
+                                    tray_it->second->nozzle_temp_min = std::to_string(jj["nozzle_temp_min"].get<int>());
+                                    tray_it->second->type = jj["tray_type"].get<std::string>();
+                                    tray_it->second->color = jj["tray_color"].get<std::string>();
+                                    tray_it->second->setting_id = jj["tray_info_idx"].get<std::string>();
+                                    // delay update
+                                    tray_it->second->set_hold_count();
+                                } else {
+                                    BOOST_LOG_TRIVIAL(warning) << "ams_filament_setting, can not find in trayList, tray_id=" << tray_id;
+                                }
+                            } else {
+                                BOOST_LOG_TRIVIAL(warning) << "ams_filament_setting, can not find in amsList, ams_id=" << ams_id;
+                            }
                         }
                     }
                 } else if (jj["command"].get<std::string>() == "xcam_control_set") {

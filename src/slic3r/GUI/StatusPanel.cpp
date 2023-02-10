@@ -1096,12 +1096,11 @@ wxBoxSizer *StatusBasePanel::create_ams_group(wxWindow *parent)
     return sizer;
 }
 
-void StatusBasePanel::show_ams_group(bool show, bool support_virtual_tray)
+void StatusBasePanel::show_ams_group(bool show, bool support_virtual_tray, bool support_vt_load)
 {
     m_ams_control->Show(true);
     m_ams_control_box->Show(true);
-    m_ams_control->show_noams_mode(show, support_virtual_tray);
-
+    m_ams_control->show_noams_mode(show, support_virtual_tray, support_vt_load);
     if (m_show_ams_group != show) {
         Fit();
     }
@@ -1908,7 +1907,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         if (is_support_extrusion_cali) {
             m_ams_control->update_vams_kn_value(obj->vt_tray);
         }
-        show_ams_group(false, obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI));
+        show_ams_group(false, obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI), obj->is_support_filament_edit_virtual_tray);
         return;
     }
 
@@ -1917,7 +1916,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         m_ams_control->update_vams_kn_value(obj->vt_tray);
     }
 
-    show_ams_group(true, obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI));
+    show_ams_group(true, obj->is_function_supported(PrinterFunction::FUNC_EXTRUSION_CALI), obj->is_support_filament_edit_virtual_tray);
     if (m_filament_setting_dlg) m_filament_setting_dlg->update();
 
     std::vector<AMSinfo> ams_info;
@@ -1953,7 +1952,10 @@ void StatusPanel::update_ams(MachineObject *obj)
     std::string curr_ams_id = m_ams_control->GetCurentAms();
     std::string curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
 
-    if (m_ams_control->GetCurentAms() != obj->m_ams_id) {
+    if (m_ams_control->GetCurentAms() == std::to_string(VIRTUAL_TRAY_ID)) {
+        m_ams_control->SetAmsStep(curr_ams_id, curr_can_id, AMSPassRoadType::AMS_ROAD_TYPE_NONE, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+    }
+    else if (m_ams_control->GetCurentAms() != obj->m_ams_id) {
         m_ams_control->SetAmsStep(curr_ams_id, curr_can_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
     } else {
         if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
@@ -2498,6 +2500,33 @@ void StatusPanel::on_ams_load_curr()
     if (obj) {
         std::string                            curr_ams_id = m_ams_control->GetCurentAms();
         std::string                            curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
+
+        //virtual tray
+        if (curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_ID)) == 0) {
+            /*if (con_load_dlg == nullptr) {
+                con_load_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Confirm"));
+                con_load_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {*/
+                        int old_temp = -1;
+                        int new_temp = -1;
+                        AmsTray* curr_tray = obj->get_curr_tray();
+                        try {
+                            if (!curr_tray->nozzle_temp_max.empty() && !curr_tray->nozzle_temp_min.empty())
+                                old_temp = (atoi(curr_tray->nozzle_temp_min.c_str()) + atoi(curr_tray->nozzle_temp_max.c_str())) / 2;
+                            if (!obj->vt_tray.nozzle_temp_max.empty() && !obj->vt_tray.nozzle_temp_min.empty())
+                                new_temp = (atoi(obj->vt_tray.nozzle_temp_min.c_str()) + atoi(obj->vt_tray.nozzle_temp_max.c_str())) / 2;
+                        }
+                        catch (...) {
+                            ;
+                        }
+                        obj->command_ams_switch(VIRTUAL_TRAY_ID, old_temp, new_temp);
+                    /*}
+                );
+            }
+            con_load_dlg->update_text(_L("Please confirm the filament is ready?"));
+            con_load_dlg->on_show();*/
+            return;
+        }
+
         std::map<std::string, Ams*>::iterator it = obj->amsList.find(curr_ams_id);
         if (it == obj->amsList.end()) {
             BOOST_LOG_TRIVIAL(trace) << "ams: find " << curr_ams_id << " failed";
@@ -2508,7 +2537,6 @@ void StatusPanel::on_ams_load_curr()
             BOOST_LOG_TRIVIAL(trace) << "ams: find " << curr_can_id << " failed";
             return;
         }
-
         AmsTray* curr_tray = obj->get_curr_tray();
         AmsTray* targ_tray = obj->get_ams_tray(curr_ams_id, curr_can_id);
         if (curr_tray && targ_tray) {
