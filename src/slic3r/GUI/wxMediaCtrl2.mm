@@ -33,7 +33,7 @@ void wxMediaCtrl2::bambu_log(void const * ctx, int level, char const * msg)
         }
     } else if (level < 0) {
         wxMediaCtrl2 * ctrl = (wxMediaCtrl2 *) ctx;
-        ctrl->Stop();
+        ctrl->NotifyStopped();
     }
     BOOST_LOG_TRIVIAL(info) << msg;
 }
@@ -129,6 +129,11 @@ void wxMediaCtrl2::Stop()
 	}
     BambuPlayer * player2 = (BambuPlayer *) m_player;
     [player2 close];
+    NotifyStopped();
+}
+
+void wxMediaCtrl2::NotifyStopped()
+{
     if (m_state != wxMEDIASTATE_STOPPED) {
         m_state = wxMEDIASTATE_STOPPED;
         wxMediaEvent event(wxEVT_MEDIA_STATECHANGED);
