@@ -1808,7 +1808,7 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
     m_preset_bundle_right = std::make_unique<PresetBundle>(*wxGetApp().preset_bundle);
 
     //m_top_info_line = new wxStaticText(this, wxID_ANY, "Select presets to compare");
-    m_top_info_line = new wxStaticText(this, wxID_ANY, "Select presets to compare");
+    m_top_info_line = new wxStaticText(this, wxID_ANY, _L("Select presets to compare"));
     m_top_info_line->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold());
 
     m_bottom_info_line = new wxStaticText(this, wxID_ANY, "");

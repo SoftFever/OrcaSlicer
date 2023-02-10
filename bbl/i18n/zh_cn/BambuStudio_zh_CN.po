@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-10 10:04+0800\n"
+"POT-Creation-Date: 2023-02-10 19:23+0800\n"
 "PO-Revision-Date: 2023-01-12 14:46+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2215,7 +2215,7 @@ msgid "Layer Time"
 msgstr "层时间"
 
 msgid "Layer Time (log)"
-msgstr ""
+msgstr "层时间（log）"
 
 msgid "Height: "
 msgstr "层高: "
@@ -2233,7 +2233,7 @@ msgid "Layer Time: "
 msgstr "层时间"
 
 msgid "Layer Time(log): "
-msgstr ""
+msgstr "层时间（log）："
 
 msgid "Fan Speed: "
 msgstr "风扇速度: "
@@ -2293,10 +2293,10 @@ msgid "Volumetric flow rate (mm³/s)"
 msgstr "体积流量速度（mm³/s）"
 
 msgid "Layer Time (s)"
-msgstr ""
+msgstr "层时间（s）"
 
 msgid "Layer Time (log) (s)"
-msgstr ""
+msgstr "层时间（log）（s）"
 
 msgid "Used filament"
 msgstr "使用的耗材丝"
@@ -3975,8 +3975,8 @@ msgid ""
 "still want to do this printing, please set this filament's bed temperature "
 "to non zero."
 msgstr ""
-"盘% d：不建议用%s来打印长丝%s（%s）。如果你仍然想进行打印，请将此耗材丝的热床"
-"温度设置为非零。"
+"热床% d：%s不建议被用于打印%s（%s）材料。如果你依然想打印，请设置耗材对应的热"
+"床温度为非零值。"
 
 msgid "Switching the language requires application restart.\n"
 msgstr "切换语言要求重启应用程序。\n"
@@ -4962,6 +4962,9 @@ msgid ""
 "The P1P printer does not support smooth timelapse, use traditional timelapse "
 "instead."
 msgstr "P1P打印机不支持平滑模式的延时摄影，请改用传统模式。"
+
+msgid "Select presets to compare"
+msgstr "选择要比较的预设"
 
 msgid "Show all presets (including incompatible)"
 msgstr "显示所有预设(包括不兼容的)"
