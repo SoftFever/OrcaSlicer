@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-10 09:51+0800\n"
+"POT-Creation-Date: 2023-02-10 10:04+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1524,13 +1524,13 @@ msgstr ""
 msgid "Max volumetric speed"
 msgstr ""
 
-msgid "\\u2103"
+msgid "℃"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr ""
 
-msgid "mm\\u00B3"
+msgid "mm³"
 msgstr ""
 
 msgid "Start calibration"
@@ -6184,9 +6184,6 @@ msgid "mm³/s"
 msgstr ""
 
 msgid "Minimal purge on wipe tower"
-msgstr ""
-
-msgid "mm³"
 msgstr ""
 
 msgid "Filament load time"

@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-10 09:51+0800\n"
+"POT-Creation-Date: 2023-02-10 10:04+0800\n"
 "PO-Revision-Date: 2023-01-12 14:46+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1364,7 +1364,7 @@ msgid "Send to Printer failed. Please try again."
 msgstr "发送到打印机失败。请重试。"
 
 msgid "No space left on Printer SD card"
-msgstr ""
+msgstr "打印机SD卡上没有剩余空间"
 
 msgid "Sending gcode file over LAN"
 msgstr "通过局域网发送gcode文件"
@@ -1535,19 +1535,19 @@ msgid "Nozzle temperature"
 msgstr "喷嘴温度"
 
 msgid "Bed Temperature"
-msgstr "热床类型"
+msgstr "热床温度"
 
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
 
-msgid "\\u2103"
+msgid "℃"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "床温"
 
-msgid "mm\\u00B3"
-msgstr ""
+msgid "mm³"
+msgstr "mm³"
 
 msgid "Start calibration"
 msgstr "开始"
@@ -1560,6 +1560,8 @@ msgid ""
 "hot bed like the picture below, and fill the value on its left side into the "
 "factor K input box."
 msgstr ""
+"校准完成。请在你的热床上找到如下图所示的最均匀的挤出线，并将其左侧的数值填入"
+"因子K的输入框。"
 
 msgid "Save"
 msgstr "保存"
@@ -2210,7 +2212,7 @@ msgid "Tool"
 msgstr "工具"
 
 msgid "Layer Time"
-msgstr ""
+msgstr "层时间"
 
 msgid "Layer Time (log)"
 msgstr ""
@@ -3973,6 +3975,8 @@ msgid ""
 "still want to do this printing, please set this filament's bed temperature "
 "to non zero."
 msgstr ""
+"盘% d：不建议用%s来打印长丝%s（%s）。如果你仍然想进行打印，请将此耗材丝的热床"
+"温度设置为非零。"
 
 msgid "Switching the language requires application restart.\n"
 msgstr "切换语言要求重启应用程序。\n"
@@ -6377,9 +6381,6 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
 
-msgid "mm³"
-msgstr "mm³"
-
 msgid "Filament load time"
 msgstr "加载耗材丝的时间"
 
@@ -7802,6 +7803,7 @@ msgid ""
 "No layers were detected. You might want to repair your STL file(s) or check "
 "their size or thickness and retry.\n"
 msgstr ""
+"没有检测到层。您可能需要修复STL文件，或检查模型尺寸、厚度等，之后再重试。\n"
 
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
