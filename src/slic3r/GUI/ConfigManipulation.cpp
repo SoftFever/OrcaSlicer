@@ -492,6 +492,17 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             }
         }
     }
+
+    if (config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject && config->opt_int("skirt_height") > 1 && config->opt_int("skirt_loops") > 0) {
+        const wxString     msg_text = _(L("While printing by Object, the extruder may collide skirt.\nThus, reset the skirt layer to 1 to avoid that."));
+        MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist    = true;
+        dialog.ShowModal();
+        new_conf.set_key_value("skirt_height", new ConfigOptionInt(1));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
 }
 
 void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase *, ModelConfig *> const &configs)
