@@ -720,8 +720,10 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
                 std::string filamnt_type;
                 it->get_filament_type(filamnt_type);
 
-                DeviceManager::check_filaments_in_blacklist(it->vendor->name, filamnt_type, in_blacklist, action, info);
-
+                if (it->vendor) {
+                    DeviceManager::check_filaments_in_blacklist(it->vendor->name, filamnt_type, in_blacklist, action, info);
+                }
+                
                 if (in_blacklist) {
                     if (action == "prohibition") {
                         MessageDialog msg_wingow(nullptr, info, _L("Error"), wxICON_WARNING | wxOK);
