@@ -1,12 +1,12 @@
 # Copyright (C) 2019 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST Translator Jiang Yue <maze1024@gmail.com>, 2019.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-29 16:37+0800\n"
+"POT-Creation-Date: 2023-02-10 09:51+0800\n"
 "PO-Revision-Date: 2023-01-12 14:46+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -379,11 +379,11 @@ msgstr "厚度"
 msgid "Input text"
 msgstr "输入文本"
 
-msgid "Add"
-msgstr "添加"
-
 msgid "Modify"
 msgstr "修改"
+
+msgid "Add"
+msgstr "添加"
 
 msgid "Notice"
 msgstr "通知"
@@ -1138,6 +1138,9 @@ msgstr ""
 msgid "No printer"
 msgstr "无打印机"
 
+msgid "..."
+msgstr ""
+
 msgid "Heat the nozzle"
 msgstr "加热喷嘴"
 
@@ -1360,6 +1363,9 @@ msgstr "无法发送打印任务，请重试。"
 msgid "Send to Printer failed. Please try again."
 msgstr "发送到打印机失败。请重试。"
 
+msgid "No space left on Printer SD card"
+msgstr ""
+
 msgid "Sending gcode file over LAN"
 msgstr "通过局域网发送gcode文件"
 
@@ -1534,14 +1540,14 @@ msgstr "热床类型"
 msgid "Max volumetric speed"
 msgstr "最大体积速度"
 
-msgid "℃"
+msgid "\\u2103"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr "床温"
 
-msgid "mm³"
-msgstr "mm³"
+msgid "mm\\u00B3"
+msgstr ""
 
 msgid "Start calibration"
 msgstr "开始"
@@ -2284,6 +2290,12 @@ msgstr "温度（℃）"
 msgid "Volumetric flow rate (mm³/s)"
 msgstr "体积流量速度（mm³/s）"
 
+msgid "Layer Time (s)"
+msgstr ""
+
+msgid "Layer Time (log) (s)"
+msgstr ""
+
 msgid "Used filament"
 msgstr "使用的耗材丝"
 
@@ -2921,6 +2933,14 @@ msgstr ""
 msgid "&Help"
 msgstr ""
 
+#, c-format, boost-format
+msgid "A file exists with the same name: %s, do you want to override it."
+msgstr ""
+
+#, c-format, boost-format
+msgid "A config exists with the same name: %s, do you want to override it."
+msgstr ""
+
 msgid "Overwrite file"
 msgstr "覆盖文件"
 
@@ -3387,6 +3407,9 @@ msgstr "前往下载网站。"
 
 msgid "Open Folder."
 msgstr "打开目录。"
+
+msgid "Safely remove hardware."
+msgstr ""
 
 #, c-format, boost-format
 msgid "%1$d Object has custom supports."
@@ -3945,8 +3968,11 @@ msgstr ""
 "模型。"
 
 #, c-format, boost-format
-msgid "Plate %d: %s does not support filament %s (%s)."
-msgstr "盘%d：%s不支持耗材丝%s（%s）。"
+msgid ""
+"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
+"still want to do this printing, please set this filament's bed temperature "
+"to non zero."
+msgstr ""
 
 msgid "Switching the language requires application restart.\n"
 msgstr "切换语言要求重启应用程序。\n"
@@ -4293,6 +4319,9 @@ msgstr "在线"
 msgid "Offline"
 msgstr "离线"
 
+msgid "(LAN)"
+msgstr ""
+
 msgid "My Device"
 msgstr "我的设备"
 
@@ -4457,6 +4486,9 @@ msgstr "发送到打印机的SD卡"
 
 msgid "Cannot send the print task when the upgrade is in progress"
 msgstr "设备升级中，无法发送打印任务"
+
+msgid "An SD card needs to be inserted before send to printer SD card."
+msgstr ""
 
 msgid "The printer is required to be in the same LAN as Bambu Studio."
 msgstr "打印机需要与Bambu Studio在同一个局域网内。"
@@ -6345,6 +6377,9 @@ msgstr "mm³/s"
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
 
+msgid "mm³"
+msgstr "mm³"
+
 msgid "Filament load time"
 msgstr "加载耗材丝的时间"
 
@@ -7032,6 +7067,12 @@ msgstr "Skirt距离"
 
 msgid "Distance from skirt to brim or object"
 msgstr "从skirt到模型或者brim的距离"
+
+msgid "Skirt height"
+msgstr "Skirt高度"
+
+msgid "How many layers of skirt. Usually only one layer"
+msgstr "skirt有多少层。通常只有一层"
 
 msgid "Skirt loops"
 msgstr "Skirt圈数"
@@ -7757,6 +7798,11 @@ msgstr "模型有太多空层。"
 msgid "Slicing mesh"
 msgstr "正在切片网格"
 
+msgid ""
+"No layers were detected. You might want to repair your STL file(s) or check "
+"their size or thickness and retry.\n"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Support: generate toolpath at layer %d"
 msgstr "支撑：正在生成层%d的走线路径"
@@ -8032,6 +8078,9 @@ msgid ""
 msgstr ""
 "提高强度\n"
 "你知道吗？你可以使用更多的墙层数和更高的疏散填充密度来提高模型的强度。"
+
+#~ msgid "Plate %d: %s does not support filament %s (%s)."
+#~ msgstr "盘%d：%s不支持耗材丝%s（%s）。"
 
 #~ msgid "NO AMS"
 #~ msgstr "无AMS"
@@ -10863,12 +10912,6 @@ msgstr ""
 
 #~ msgid "Extra length on restart"
 #~ msgstr "启动时额外长度"
-
-#~ msgid "Skirt height"
-#~ msgstr "Skirt高度"
-
-#~ msgid "How many layers of skirt. Usually only one layer"
-#~ msgstr "skirt有多少层。通常只有一层"
 
 #~ msgid "Disabled"
 #~ msgstr "关闭"

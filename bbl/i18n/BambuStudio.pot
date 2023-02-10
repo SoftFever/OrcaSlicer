@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-29 16:37+0800\n"
+"POT-Creation-Date: 2023-02-10 09:51+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -379,10 +379,10 @@ msgstr ""
 msgid "Input text"
 msgstr ""
 
-msgid "Add"
+msgid "Modify"
 msgstr ""
 
-msgid "Modify"
+msgid "Add"
 msgstr ""
 
 msgid "Notice"
@@ -1138,6 +1138,9 @@ msgstr ""
 msgid "No printer"
 msgstr ""
 
+msgid "..."
+msgstr ""
+
 msgid "Heat the nozzle"
 msgstr ""
 
@@ -1352,6 +1355,9 @@ msgstr ""
 msgid "Send to Printer failed. Please try again."
 msgstr ""
 
+msgid "No space left on Printer SD card"
+msgstr ""
+
 msgid "Sending gcode file over LAN"
 msgstr ""
 
@@ -1518,13 +1524,13 @@ msgstr ""
 msgid "Max volumetric speed"
 msgstr ""
 
-msgid "℃"
+msgid "\\u2103"
 msgstr ""
 
 msgid "Bed temperature"
 msgstr ""
 
-msgid "mm³"
+msgid "mm\\u00B3"
 msgstr ""
 
 msgid "Start calibration"
@@ -2206,6 +2212,12 @@ msgstr ""
 msgid "Volumetric flow rate (mm³/s)"
 msgstr ""
 
+msgid "Layer Time (s)"
+msgstr ""
+
+msgid "Layer Time (log) (s)"
+msgstr ""
+
 msgid "Used filament"
 msgstr ""
 
@@ -2836,6 +2848,14 @@ msgstr ""
 msgid "&Help"
 msgstr ""
 
+#, possible-c-format, possible-boost-format
+msgid "A file exists with the same name: %s, do you want to override it."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "A config exists with the same name: %s, do you want to override it."
+msgstr ""
+
 msgid "Overwrite file"
 msgstr ""
 
@@ -3291,6 +3311,9 @@ msgid "Goto download page."
 msgstr ""
 
 msgid "Open Folder."
+msgstr ""
+
+msgid "Safely remove hardware."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -3838,7 +3861,10 @@ msgid ""
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Plate %d: %s does not support filament %s (%s)."
+msgid ""
+"Plate% d: %s is not suggested to be used to print filament %s(%s). If you "
+"still want to do this printing, please set this filament's bed temperature "
+"to non zero."
 msgstr ""
 
 msgid "Switching the language requires application restart.\n"
@@ -4186,6 +4212,9 @@ msgstr ""
 msgid "Offline"
 msgstr ""
 
+msgid "(LAN)"
+msgstr ""
+
 msgid "My Device"
 msgstr ""
 
@@ -4338,6 +4367,9 @@ msgid "Send to Printer SD card"
 msgstr ""
 
 msgid "Cannot send the print task when the upgrade is in progress"
+msgstr ""
+
+msgid "An SD card needs to be inserted before send to printer SD card."
 msgstr ""
 
 msgid "The printer is required to be in the same LAN as Bambu Studio."
@@ -6154,6 +6186,9 @@ msgstr ""
 msgid "Minimal purge on wipe tower"
 msgstr ""
 
+msgid "mm³"
+msgstr ""
+
 msgid "Filament load time"
 msgstr ""
 
@@ -6823,6 +6858,12 @@ msgstr ""
 msgid "Distance from skirt to brim or object"
 msgstr ""
 
+msgid "Skirt height"
+msgstr ""
+
+msgid "How many layers of skirt. Usually only one layer"
+msgstr ""
+
 msgid "Skirt loops"
 msgstr ""
 
@@ -7481,6 +7522,11 @@ msgid "The model has too many empty layers."
 msgstr ""
 
 msgid "Slicing mesh"
+msgstr ""
+
+msgid ""
+"No layers were detected. You might want to repair your STL file(s) or check "
+"their size or thickness and retry.\n"
 msgstr ""
 
 #, possible-c-format, possible-boost-format

@@ -409,7 +409,6 @@ public:
     void set_access_code(std::string code);
     std::string get_access_code();
 
-    void set_access_code(std::string code);
     void set_user_access_code(std::string code);
 
     std::string get_user_access_code();

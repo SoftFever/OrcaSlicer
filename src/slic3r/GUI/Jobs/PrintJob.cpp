@@ -106,6 +106,8 @@ void PrintJob::process()
     /* display info */
     wxString msg;
     int curr_percent = 10;
+    NetworkAgent* m_agent = wxGetApp().getAgent();
+    AppConfig* config = wxGetApp().app_config;
 
     if (this->connection_type == "lan") {
         msg = _L("Sending print job over LAN");
@@ -290,9 +292,6 @@ void PrintJob::process()
     auto cancel_fn = [this]() {
             return was_canceled();
         };
-
-
-    NetworkAgent* m_agent = wxGetApp().getAgent();
 
     if (params.connection_type != "lan") {
         if (params.dev_ip.empty())

@@ -323,15 +323,6 @@ std::string MachineObject::get_access_code()
     return get_user_access_code();
 }
 
-void MachineObject::set_access_code(std::string code)
-{
-    this->access_code = code;
-    AppConfig* config = GUI::wxGetApp().app_config;
-    if (config && !code.empty()) {
-        GUI::wxGetApp().app_config->set_str("access_code", dev_id, code);
-    }
-}
-
 void MachineObject::set_user_access_code(std::string code)
 {
     this->user_access_code = code;
