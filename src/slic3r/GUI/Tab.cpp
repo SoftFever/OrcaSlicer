@@ -2085,7 +2085,7 @@ void TabPrint::toggle_options()
         for (auto i : set) {
             opt.enum_values.push_back(def->enum_values[i]);
             opt.enum_labels.push_back(def->enum_labels[i]);
-            cb->Append(def->enum_labels[i]);
+            cb->Append(_(def->enum_labels[i]));
         }
         cb->SetSelection(n >= cb->GetCount() ? cb->GetCount() - 1 : n);
     }
