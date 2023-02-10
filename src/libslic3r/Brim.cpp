@@ -1519,10 +1519,10 @@ Polygons tryExPolygonOffset(const ExPolygons islandAreaEx, const Print& print)
         for (ExPolygon& poly_ex : islands_ex)
             poly_ex.douglas_peucker(resolution);
         polygons_append(loops, to_polygons(islands_ex));
-        islands_ex = offset_ex(std::move(islands_ex), -1.4f*float(flow.scaled_spacing()), jtRound, resolution);
+        islands_ex = offset_ex(std::move(islands_ex), -1.3f*float(flow.scaled_spacing()), jtRound, resolution);
         for (ExPolygon& poly_ex : islands_ex)
             poly_ex.douglas_peucker(resolution);
-        islands_ex = offset_ex(std::move(islands_ex), 0.4f*float(flow.scaled_spacing()), jtRound, resolution);
+        islands_ex = offset_ex(std::move(islands_ex), 0.3f*float(flow.scaled_spacing()), jtRound, resolution);
     }
     return loops;
 }
