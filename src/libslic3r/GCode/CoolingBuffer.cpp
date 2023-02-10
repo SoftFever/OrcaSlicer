@@ -336,7 +336,8 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
     // Index of an existing CoolingLine of the current adjustment, which holds the feedrate setting command
     // for a sequence of extrusion moves.
     size_t            active_speed_modifier = size_t(-1);
-
+    bool   layer_change          = false;
+    bool   layer_print           = false;
     for (; *line_start != 0; line_start = line_end) 
     {
         while (*line_end != '\n' && *line_end != 0)
@@ -347,6 +348,23 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
         if (*line_end == '\n')
             ++ line_end;
         CoolingLine line(0, line_start - gcode.c_str(), line_end - gcode.c_str());
+
+        std::string prefix = Slic3r::GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Layer_Change);
+
+        if (boost::starts_with(sline, "; " + prefix)) {
+             layer_change = true;
+             layer_print  = false;
+             continue;
+        }
+
+        prefix = Slic3r::GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role);
+        std::string role = ExtrusionEntity::role_to_string(erWipeTower).c_str();
+        if (layer_change && boost::starts_with(sline, "; " + prefix) && !boost::starts_with(sline, "; " + prefix + role)) {
+             layer_change = false;
+             layer_print  = true;
+             continue;
+        }
+
         if (boost::starts_with(sline, "G0 "))
             line.type = CoolingLine::TYPE_G0;
         else if (boost::starts_with(sline, "G1 "))
@@ -429,7 +447,7 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
                 }
                 line.feedrate = new_pos[4];
                 assert((line.type & CoolingLine::TYPE_ADJUSTABLE) == 0 || line.feedrate > 0.f);
-                if (line.length > 0)
+                if (line.length > 0 && layer_print)
                     line.time = line.length / line.feedrate;
                 line.time_max = line.time;
                 if ((line.type & CoolingLine::TYPE_ADJUSTABLE) || active_speed_modifier != size_t(-1))
