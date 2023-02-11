@@ -203,21 +203,5 @@ namespace Slic3r {
 
         return gcode.str();
     }
-    Calib_Params::Calib_Params() :pa_start(0.0), pa_end(0.1), pa_step(0.002), print_numbers(true), mode(CalibMode::Calib_None) {}
-    Calib_Params::Calib_Params(const Calib_Params& p) {
-        pa_start = p.pa_start;
-        pa_end = p.pa_end;
-        pa_step = p.pa_step;
-        print_numbers = p.print_numbers;
-        mode = p.mode;
-    }
-    Calib_Params& Calib_Params::operator =(const Calib_Params& p)
-    {
-        pa_start = p.pa_start;
-        pa_end = p.pa_end;
-        pa_step = p.pa_step;
-        print_numbers = p.print_numbers;
-        mode = p.mode;
-        return *this;
-    }
+    Calib_Params::Calib_Params() : mode(CalibMode::Calib_None) {}
 } // namespace Slic3r

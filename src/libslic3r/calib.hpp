@@ -11,13 +11,15 @@ enum class CalibMode : int {
     Calib_None = 0,
     Calib_PA_Line,
     Calib_PA_Tower,
+    Calib_Temp_Tower,
+    Calib_Vol_speed_Tower,
+    Calib_VFA_Tower
+
 };
 struct Calib_Params
 {
     Calib_Params();
-    Calib_Params(const Calib_Params& p);
-    Calib_Params& operator =(const Calib_Params& p);
-    double pa_start, pa_end, pa_step;
+    double start, end, step;
     bool print_numbers;
     CalibMode mode;
 };

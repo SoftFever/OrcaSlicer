@@ -25,7 +25,6 @@ public:
     void on_dpi_changed(const wxRect& suggested_rect) override;
 	void on_show(wxShowEvent& event);
 protected:
-	wxBoxSizer* create_item_checkbox(wxString title, wxWindow* parent, bool* value ,CheckBox*& checkbox);
 	virtual void on_start(wxCommandEvent& event);
 	virtual void on_extruder_type_changed(wxCommandEvent& event);
 	virtual void on_method_changed(wxCommandEvent& event);
@@ -45,6 +44,64 @@ protected:
 
 	Plater* m_plater;
 };
+
+class Temp_Calibration_Dlg : public DPIDialog
+{
+public:
+    Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* plater);
+    ~Temp_Calibration_Dlg();
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+
+protected:
+    
+    virtual void on_start(wxCommandEvent& event);
+    virtual void on_filament_type_changed(wxCommandEvent& event);
+    Calib_Params m_params;
+
+    wxRadioBox* m_rbFilamentType;
+    TextInput* m_tiStart;
+    TextInput* m_tiEnd;
+    TextInput* m_tiStep;
+    Button* m_btnStart;
+    Plater* m_plater;
+};
+
+class MaxVolumetricSpeed_Test_Dlg : public DPIDialog
+{
+public:
+    MaxVolumetricSpeed_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater);
+    ~MaxVolumetricSpeed_Test_Dlg();
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+
+protected:
+
+    virtual void on_start(wxCommandEvent& event);
+    Calib_Params m_params;
+
+    TextInput* m_tiStart;
+    TextInput* m_tiEnd;
+    TextInput* m_tiStep;
+    Button* m_btnStart;
+    Plater* m_plater;
+};
+
+class VFA_Test_Dlg : public DPIDialog {
+public:
+    VFA_Test_Dlg(wxWindow* parent, wxWindowID id, Plater* plater);
+    ~VFA_Test_Dlg();
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+
+protected:
+    virtual void on_start(wxCommandEvent& event);
+    Calib_Params m_params;
+
+    TextInput* m_tiStart;
+    TextInput* m_tiEnd;
+    TextInput* m_tiStep;
+    Button* m_btnStart;
+    Plater* m_plater;
+};
+
 }} // namespace Slic3r::GUI
 
 #endif

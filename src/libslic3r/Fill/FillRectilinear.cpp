@@ -3169,12 +3169,10 @@ void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, c
         }
 
         if (!polylines.empty() && !is_bridge(params.extrusion_role)) {
-            if (!surface->is_top() && !surface->is_bottom()) {
-                polylines.erase(std::remove_if(polylines.begin(), polylines.end(),
-                    [&](const ThickPolyline& p) {
-                        return p.length() < scale_(params.config->filter_out_gap_fill.value);
-                    }), polylines.end());
-            }
+            polylines.erase(std::remove_if(polylines.begin(), polylines.end(),
+                [&](const ThickPolyline& p) {
+                    return p.length() < scale_(params.config->filter_out_gap_fill.value);
+                }), polylines.end());
 
             ExtrusionEntityCollection gap_fill;
             variable_width(polylines, erGapFill, params.flow, gap_fill.entities);

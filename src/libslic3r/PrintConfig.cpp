@@ -716,6 +716,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
+
+    def = this->add("precise_outer_wall",coBool);
+    def->label = L("Precise wall");
+    def->category = L("Quality");
+    def->tooltip = L("Improve outer wall precesion by adjusting outer wall spacing");
+    def->set_default_value(new ConfigOptionBool{true});
     
     def = this->add("only_one_wall_top", coBool);
     def->label = L("Only one wall on top surfaces");

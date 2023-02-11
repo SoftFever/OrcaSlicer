@@ -170,8 +170,8 @@ bool GCode::gcode_label_objects = true;
         double _wipe_speed = gcodegen.config().get_abs_value("wipe_speed");// gcodegen.writer().config.travel_speed.value * 0.8;
         if(gcodegen.config().role_based_wipe_speed)
             _wipe_speed = gcodegen.writer().get_current_speed() / 60.0;
-        if(_wipe_speed < 60)
-            _wipe_speed = 60;
+        if(_wipe_speed < 10)
+            _wipe_speed = 10;
 
         // get the retraction length
         double length = toolchange
@@ -212,7 +212,12 @@ bool GCode::gcode_label_objects = true;
                 // add tag for processor
                 gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Start) + "\n";
                 //BBS: don't need to enable cooling makers when this is the last wipe. Because no more cooling layer will clean this "_WIPE"
-                gcode += gcodegen.writer().set_speed(_wipe_speed * 60, "", (gcodegen.enable_cooling_markers() && !is_last) ? ";_WIPE" : "");
+                //Softfever: 
+                std::string cooling_mark = "";
+                if (gcodegen.enable_cooling_markers() && !is_last)
+                    cooling_mark = /*gcodegen.config().role_based_wipe_speed ? ";_EXTERNAL_PERIMETER" : */";_WIPE";
+
+                gcode += gcodegen.writer().set_speed(_wipe_speed * 60, "", cooling_mark);
                 for (const Line& line : wipe_path.lines()) {
                     double segment_length = line.length();
                     /*  Reduce retraction length a bit to avoid effective retraction speed to be greater than the configured one
@@ -1667,7 +1672,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         pa_test.set_speed(fast_speed, slow_speed);
         pa_test.draw_numbers() = print.calib_params().print_numbers;
         auto params = print.calib_params();
-        gcode += pa_test.generate_test(params.pa_start, params.pa_step, std::llround(std::ceil((params.pa_end - params.pa_start) / params.pa_step)));
+        gcode += pa_test.generate_test(params.start, params.step, std::llround(std::ceil((params.end - params.start) / params.step)));
 
         file.write(gcode);
     }
@@ -2605,7 +2610,20 @@ GCode::LayerResult GCode::process_layer(
     }
 
     if (print.calib_mode() == CalibMode::Calib_PA_Tower) {
-        gcode += writer().set_pressure_advance(print.calib_params().pa_start + static_cast<int>(print_z) * print.calib_params().pa_step);
+        gcode += writer().set_pressure_advance(print.calib_params().start + static_cast<int>(print_z) * print.calib_params().step);
+    } else if (print.calib_mode() == CalibMode::Calib_Temp_Tower) {
+        auto offset = static_cast<unsigned int>(print_z / 10.001) * 5;
+        gcode += writer().set_temperature(print.calib_params().start - offset);
+    } else if (print.calib_mode() == CalibMode::Calib_VFA_Tower) {
+        auto _speed = print.calib_params().start + std::floor(print_z / 5.0) * print.calib_params().step;
+        DynamicConfig config;
+        config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
+        const_cast<Print*>(&print)->print_regions_mutable()[0]->config_apply_only(config, { "outer_wall_speed" });
+    } else if (print.calib_mode() == CalibMode::Calib_Vol_speed_Tower) {
+        auto _speed = print.calib_params().start + print_z * print.calib_params().step;
+        DynamicConfig config;
+        config.set_key_value("outer_wall_speed", new ConfigOptionFloat(std::round(_speed)));
+        const_cast<Print*>(&print)->print_regions_mutable()[0]->config_apply_only(config, { "outer_wall_speed" });
     }
 
     //BBS
@@ -3142,8 +3160,8 @@ GCode::LayerResult GCode::process_layer(
                     m_last_obj_copy = this_object_copy;
                     this->set_origin(unscale(offset));
                     //FIXME the following code prints regions in the order they are defined, the path is not optimized in any way.
-                    bool is_infill_first = print.config().wall_infill_order == WallInfillOrder::InfillInnerOuter ||
-                                           print.config().wall_infill_order == WallInfillOrder::InfillOuterInner;
+                    bool is_infill_first = print.default_region_config().wall_infill_order == WallInfillOrder::InfillInnerOuter ||
+                                           print.default_region_config().wall_infill_order == WallInfillOrder::InfillOuterInner;
                     //BBS: for first layer, we always print wall firstly to get better bed adhesive force
                     //This behaviour is same with cura
                     if (is_infill_first && !first_layer) {
@@ -3374,15 +3392,6 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         gcode += this->_extrude(*path, description, is_small_peri ? small_peri_speed : speed);
     }
 
-    //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
-    if (!this->on_first_layer()){
-        // reset acceleration
-        if(m_config.default_acceleration.value > 0)
-            gcode += m_writer.set_acceleration((unsigned int)(m_config.default_acceleration.value + 0.5));
-        if(m_config.default_jerk.value > 0)
-            gcode += m_writer.set_jerk_xy((unsigned int)(m_config.default_jerk.value + 0.5));
-        }
-
     // BBS
     if (m_wipe.enable) {
         m_wipe.path = Polyline();
@@ -3435,6 +3444,14 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         gcode += m_writer.extrude_to_xy(this->point_to_gcode(pt), 0,"move inwards before travel",true);
     }
 
+    //BBS: don't reset acceleration when printing first layer. During first layer, acceleration is always same value.
+    if (!this->on_first_layer()) {
+        // reset acceleration
+        if (m_config.default_acceleration.value > 0)
+            gcode += m_writer.set_acceleration((unsigned int)(m_config.default_acceleration.value + 0.5));
+        if (m_config.default_jerk.value > 0)
+            gcode += m_writer.set_jerk_xy((unsigned int)(m_config.default_jerk.value + 0.5));
+    }
     return gcode;
 }
 
