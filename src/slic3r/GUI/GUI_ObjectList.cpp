@@ -4708,10 +4708,9 @@ void ObjectList::fix_through_netfabb()
         if (!fix_model_by_win10_sdk_gui(*(object(obj_idx)), vol_idx, progress_dlg, msg, res))
             return false;
         //wxGetApp().plater()->changed_mesh(obj_idx);
-
+        object(obj_idx)->ensure_on_bed();
         plater->changed_mesh(obj_idx);
 
-        object(obj_idx)->ensure_on_bed();
         plater->get_partplate_list().notify_instance_update(obj_idx, 0);
         plater->sidebar().obj_list()->update_plate_values_for_items();
 
