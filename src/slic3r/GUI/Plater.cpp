@@ -3197,6 +3197,21 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         config.apply(static_cast<const ConfigBase &>(FullPrintConfig::defaults()));
                         // and place the loaded config over the base.
                         config += std::move(config_loaded);
+                        std::map<std::string, std::string> validity = config.validate();
+                        if (!validity.empty()) {
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("Param values in 3mf error: ");
+                            for (std::map<std::string, std::string>::iterator it=validity.begin(); it!=validity.end(); ++it)
+                                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format("%1%: %2%")%it->first %it->second;
+                            //
+                            NotificationManager *notify_manager = q->get_notification_manager();
+                            std::string error_message = L("Invalid values found in the 3mf:");
+                            error_message += "\n";
+                            for (std::map<std::string, std::string>::iterator it=validity.begin(); it!=validity.end(); ++it)
+                                error_message += "-" + it->first + ": " + it->second + "\n";
+                            error_message += "\n";
+                            error_message += L("Please correct them in the param tabs");
+                            notify_manager->bbl_show_3mf_warn_notification(error_message);
+                        }
                     }
                     if (!config_substitutions.empty()) show_substitutions_info(config_substitutions.substitutions, filename.string());
 
@@ -7453,6 +7468,7 @@ int Plater::new_project(bool skip_confirm, bool silent)
     m_loading_project = false;
     get_notification_manager()->bbl_close_plateinfo_notification();
     get_notification_manager()->bbl_close_preview_only_notification();
+    get_notification_manager()->bbl_close_3mf_warn_notification();
 
     if (!silent)
         wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
@@ -7536,6 +7552,7 @@ void Plater::load_project(wxString const& filename2,
     m_exported_file = false;
     get_notification_manager()->bbl_close_plateinfo_notification();
     get_notification_manager()->bbl_close_preview_only_notification();
+    get_notification_manager()->bbl_close_3mf_warn_notification();
 
     auto path     = into_path(filename);
 

@@ -123,6 +123,8 @@ enum class NotificationType
 	ArrangeOngoing,
 	// BBL: Plate Info ,Design For @YangLeDuo
 	BBLPlateInfo,
+	// BBL: 3MF warnings
+	BBL3MFInfo,
 	// BBL: Some Objects Info, Design For @YangLeDuo
 	BBLObjectInfo,
 	// BBL: Objects have empty layer when Slicing
@@ -281,6 +283,10 @@ public:
 	//BBS--plateinfo
     void bbl_show_plateinfo_notification(const std::string &text);
     void bbl_close_plateinfo_notification();
+
+    //BBS-- 3mf warning
+    void bbl_show_3mf_warn_notification(const std::string &text);
+    void bbl_close_3mf_warn_notification();
 
     //BBS--preview only mode
     void bbl_show_preview_only_notification(const std::string &text);

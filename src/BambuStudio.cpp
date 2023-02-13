@@ -360,17 +360,17 @@ int CLI::run(int argc, char **argv)
     /*BOOST_LOG_TRIVIAL(info) << "begin to setup params, argc=" << argc << std::endl;
     for (int index=0; index < argc; index++)
         BOOST_LOG_TRIVIAL(info) << "index="<< index <<", arg is "<< argv[index] <<std::endl;
-    int debug_argc = 9;
+    int debug_argc = 5;
     char *debug_argv[] = {
         "E:\work\projects\bambu_release\bamboo_slicer\build_debug\src\Debug\bambu-studio.exe",
         "--slice",
-        "0",
-        "--load-settings",
-        "machine.json;process.json",
-        "--load-filaments",
-        "filament.json",
+        "9",
+        //"--load-settings",
+        //"machine.json;process.json",
+        //"--load-filaments",
+        //"filament.json",
         "--export-3mf=output.3mf",
-        "boat.stl"
+        "test_outside.3mf"
         };
     if (! this->setup(debug_argc, debug_argv))*/
     if (!this->setup(argc, argv))
@@ -1259,10 +1259,12 @@ int CLI::run(int argc, char **argv)
         m_print_config.apply(sla_print_config, true);*/
     }
 
-    std::string validity = m_print_config.validate();
+    std::map<std::string, std::string> validity = m_print_config.validate(true);
     if (!validity.empty()) {
-        boost::nowide::cerr <<"Error: The composite configation is not valid: " << validity << std::endl;
-        flush_and_exit(CLI_INVALID_PRINTER_TECH);
+        boost::nowide::cerr << "Param values in 3mf/config error: "<< std::endl;
+        for (std::map<std::string, std::string>::iterator it=validity.begin(); it!=validity.end(); ++it)
+            boost::nowide::cerr << it->first <<": "<< it->second << std::endl;
+        flush_and_exit(CLI_INVALID_VALUES_IN_3MF);
     }
 
     //BBS: partplate list
@@ -2405,7 +2407,7 @@ bool CLI::setup(int argc, char **argv)
     }
 
     //FIXME Validating at this stage most likely does not make sense, as the config is not fully initialized yet.
-    std::string validity = m_config.validate();
+    std::map<std::string, std::string> validity = m_config.validate(true);
 
     // Initialize with defaults.
     for (const t_optiondef_map *options : { &cli_actions_config_def.options, &cli_transform_config_def.options, &cli_misc_config_def.options })
@@ -2416,7 +2418,9 @@ bool CLI::setup(int argc, char **argv)
 
     //FIXME Validating at this stage most likely does not make sense, as the config is not fully initialized yet.
     if (!validity.empty()) {
-        boost::nowide::cerr << "error: " << validity << std::endl;
+        boost::nowide::cerr << "Params in command line error: "<< std::endl;
+        for (std::map<std::string, std::string>::iterator it=validity.begin(); it!=validity.end(); ++it)
+            boost::nowide::cerr << it->first <<": "<< it->second << std::endl;
         return false;
     }
 

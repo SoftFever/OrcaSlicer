@@ -1565,8 +1565,8 @@ NotificationManager::NotificationManager(wxEvtHandler* evt_handler) :
 
 void NotificationManager::on_change_color_mode(bool is_dark) {
 	m_is_dark = is_dark;
-	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications){ 
-		notification->on_change_color_mode(is_dark); 
+	for (std::unique_ptr<PopNotification>& notification : m_pop_notifications){
+		notification->on_change_color_mode(is_dark);
 	}
 }
 
@@ -2338,13 +2338,36 @@ size_t NotificationManager::get_notification_count() const
 	return ret;
 }
 
-
 void NotificationManager::bbl_show_plateinfo_notification(const std::string &text)
 {
     NotificationData data{NotificationType::BBLPlateInfo, NotificationLevel::PrintInfoNotificationLevel, BBL_NOTICE_MAX_INTERVAL, text};
 
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::BBLPlateInfo) {
+            notification->reinit();
+            notification->update(data);
+            return;
+        }
+    }
+
+    auto notification = std::make_unique<NotificationManager::PopNotification>(data, m_id_provider, m_evt_handler);
+    push_notification_data(std::move(notification), 0);
+}
+
+void NotificationManager::bbl_close_3mf_warn_notification()
+{
+    for (std::unique_ptr<PopNotification> &notification : m_pop_notifications)
+        if (notification->get_type() == NotificationType::BBL3MFInfo) {
+            notification->close();
+        }
+}
+
+void NotificationManager::bbl_show_3mf_warn_notification(const std::string &text)
+{
+    NotificationData data{NotificationType::BBL3MFInfo, NotificationLevel::ErrorNotificationLevel, BBL_NOTICE_MAX_INTERVAL, text};
+
+    for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
+        if (notification->get_type() == NotificationType::BBL3MFInfo) {
             notification->reinit();
             notification->update(data);
             return;
@@ -2362,6 +2385,7 @@ void NotificationManager::bbl_close_plateinfo_notification()
             notification->close();
         }
 }
+
 
 void NotificationManager::bbl_show_preview_only_notification(const std::string &text)
 {

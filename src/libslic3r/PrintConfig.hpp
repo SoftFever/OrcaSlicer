@@ -378,8 +378,9 @@ public:
     // BBS
     void                set_num_filaments(unsigned int num_filaments);
 
+    //BBS
     // Validate the PrintConfig. Returns an empty string on success, otherwise an error message is returned.
-    std::string         validate();
+    std::map<std::string, std::string>         validate(bool under_cli = false);
 
     // Verify whether the opt_key has not been obsoleted or renamed.
     // Both opt_key and value may be modified by handle_legacy().
@@ -953,7 +954,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE0(
 )
 
 // Validate the FullPrintConfig. Returns an empty string on success, otherwise an error message is returned.
-std::string validate(const FullPrintConfig &config);
+std::map<std::string, std::string> validate(const FullPrintConfig &config, bool under_cli = false);
 
 PRINT_CONFIG_CLASS_DEFINE(
     SLAPrintConfig,

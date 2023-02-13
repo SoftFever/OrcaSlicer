@@ -3174,7 +3174,7 @@ void PrintConfigDef::init_filament_option_keys()
         "retraction_speed",
         "wipe",
         "wipe_distance",
-        "z_hop", 
+        "z_hop",
         "z_hop_types"
     };
     assert(std::is_sorted(m_filament_retract_keys.begin(), m_filament_retract_keys.end()));
@@ -4181,7 +4181,8 @@ void DynamicPrintConfig::set_num_filaments(unsigned int num_filaments)
     }
 }
 
-std::string DynamicPrintConfig::validate()
+//BBS: pass map to recording all invalid valies
+std::map<std::string, std::string> DynamicPrintConfig::validate(bool under_cli)
 {
     // Full print config is initialized from the defaults.
     const ConfigOption *opt = this->option("printer_technology", false);
@@ -4192,11 +4193,11 @@ std::string DynamicPrintConfig::validate()
         FullPrintConfig fpc;
         fpc.apply(*this, true);
         // Verify this print options through the FullPrintConfig.
-        return Slic3r::validate(fpc);
+        return Slic3r::validate(fpc, under_cli);
     }
     default:
         //FIXME no validation on SLA data?
-        return std::string();
+        return std::map<std::string, std::string>();
     }
 }
 
@@ -4267,80 +4268,104 @@ bool DynamicPrintConfig::is_custom_defined()
     return false;
 }
 
+//BBS: pass map to recording all invalid valies
 //FIXME localize this function.
-std::string validate(const FullPrintConfig &cfg)
+std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool under_cli)
 {
+    std::map<std::string, std::string> error_message;
     // --layer-height
-    if (cfg.get_abs_value("layer_height") <= 0)
-        return "Invalid value for --layer-height";
-    if (fabs(fmod(cfg.get_abs_value("layer_height"), SCALING_FACTOR)) > 1e-4)
-        return "--layer-height must be a multiple of print resolution";
+    if (cfg.get_abs_value("layer_height") <= 0) {
+        error_message.emplace("layer_height", L("invalid value ") + std::to_string(cfg.get_abs_value("layer_height")));
+    }
+    else if (fabs(fmod(cfg.get_abs_value("layer_height"), SCALING_FACTOR)) > 1e-4) {
+        error_message.emplace("layer_height", L("invalid value ") + std::to_string(cfg.get_abs_value("layer_height")));
+    }
 
     // --first-layer-height
-    if (cfg.initial_layer_print_height.value <= 0)
-        return "Invalid value for --first-layer-height";
+    if (cfg.initial_layer_print_height.value <= 0) {
+        error_message.emplace("initial_layer_print_height", L("invalid value ") + std::to_string(cfg.initial_layer_print_height.value));
+    }
 
     // --filament-diameter
     for (double fd : cfg.filament_diameter.values)
-        if (fd < 1)
-            return "Invalid value for --filament-diameter";
+        if (fd < 1) {
+            error_message.emplace("filament_diameter", L("invalid value ") + cfg.filament_diameter.serialize());
+            break;
+        }
 
     // --nozzle-diameter
     for (double nd : cfg.nozzle_diameter.values)
-        if (nd < 0.005)
-            return "Invalid value for --nozzle-diameter";
+        if (nd < 0.005) {
+            error_message.emplace("nozzle_diameter", L("invalid value ") + cfg.nozzle_diameter.serialize());
+            break;
+        }
 
     // --perimeters
-    if (cfg.wall_loops.value < 0)
-        return "Invalid value for --wall_loops";
+    if (cfg.wall_loops.value < 0) {
+        error_message.emplace("wall_loops", L("invalid value ") + std::to_string(cfg.wall_loops.value));
+    }
 
     // --solid-layers
-    if (cfg.top_shell_layers < 0)
-        return "Invalid value for --top-solid-layers";
-    if (cfg.bottom_shell_layers < 0)
-        return "Invalid value for --bottom-solid-layers";
+    if (cfg.top_shell_layers < 0) {
+        error_message.emplace("top_shell_layers", L("invalid value ") + std::to_string(cfg.top_shell_layers));
+    }
+    if (cfg.bottom_shell_layers < 0) {
+        error_message.emplace("bottom_shell_layers", L("invalid value ") + std::to_string(cfg.bottom_shell_layers));
+    }
 
     // --gcode-flavor
-    if (! print_config_def.get("gcode_flavor")->has_enum_value(cfg.gcode_flavor.serialize()))
-        return "Invalid value for --gcode-flavor";
+    if (! print_config_def.get("gcode_flavor")->has_enum_value(cfg.gcode_flavor.serialize())) {
+        error_message.emplace("gcode_flavor", L("invalid value ") + cfg.gcode_flavor.serialize());
+    }
 
     // --fill-pattern
-    if (! print_config_def.get("sparse_infill_pattern")->has_enum_value(cfg.sparse_infill_pattern.serialize()))
-        return "Invalid value for --fill-pattern";
+    if (! print_config_def.get("sparse_infill_pattern")->has_enum_value(cfg.sparse_infill_pattern.serialize())) {
+        error_message.emplace("sparse_infill_pattern", L("invalid value ") + cfg.sparse_infill_pattern.serialize());
+    }
 
     // --top-fill-pattern
-    if (! print_config_def.get("top_surface_pattern")->has_enum_value(cfg.top_surface_pattern.serialize()))
-        return "Invalid value for --top-fill-pattern";
+    if (! print_config_def.get("top_surface_pattern")->has_enum_value(cfg.top_surface_pattern.serialize())) {
+        error_message.emplace("top_surface_pattern", L("invalid value ") + cfg.top_surface_pattern.serialize());
+    }
 
     // --bottom-fill-pattern
-    if (! print_config_def.get("bottom_surface_pattern")->has_enum_value(cfg.bottom_surface_pattern.serialize()))
-        return "Invalid value for --bottom-fill-pattern";
+    if (! print_config_def.get("bottom_surface_pattern")->has_enum_value(cfg.bottom_surface_pattern.serialize())) {
+        error_message.emplace("bottom_surface_pattern", L("invalid value ") + cfg.bottom_surface_pattern.serialize());
+    }
 
     // --fill-density
     if (fabs(cfg.sparse_infill_density.value - 100.) < EPSILON &&
-        ! print_config_def.get("top_surface_pattern")->has_enum_value(cfg.sparse_infill_pattern.serialize()))
-        return "The selected fill pattern is not supposed to work at 100% density";
+        ! print_config_def.get("top_surface_pattern")->has_enum_value(cfg.sparse_infill_pattern.serialize())) {
+        error_message.emplace("sparse_infill_pattern", cfg.sparse_infill_pattern.serialize() + L(" doesn't work at 100%% density "));
+    }
 
     // --skirt-height
-    if (cfg.skirt_height < 0)
-        return "Invalid value for --skirt-height";
+    if (cfg.skirt_height < 0) {
+        error_message.emplace("skirt_height", L("invalid value ") + std::to_string(cfg.skirt_height));
+    }
 
     // --bridge-flow-ratio
-    if (cfg.bridge_flow <= 0)
-        return "Invalid value for --bridge-flow-ratio";
+    if (cfg.bridge_flow <= 0) {
+        error_message.emplace("bridge_flow", L("invalid value ") + std::to_string(cfg.bridge_flow));
+    }
 
     // extruder clearance
-    if (cfg.extruder_clearance_radius <= 0)
-        return "Invalid value for --extruder-clearance-radius";
-    if (cfg.extruder_clearance_height_to_rod <= 0)
-        return "Invalid value for --extruder-clearance-height-to-rod";
-    if (cfg.extruder_clearance_height_to_lid <= 0)
-        return "Invalid value for --extruder-clearance-height-to-lid";
+    if (cfg.extruder_clearance_radius <= 0) {
+        error_message.emplace("extruder_clearance_radius", L("invalid value ") + std::to_string(cfg.extruder_clearance_radius));
+    }
+    if (cfg.extruder_clearance_height_to_rod <= 0) {
+        error_message.emplace("extruder_clearance_height_to_rod", L("invalid value ") + std::to_string(cfg.extruder_clearance_height_to_rod));
+    }
+    if (cfg.extruder_clearance_height_to_lid <= 0) {
+        error_message.emplace("extruder_clearance_height_to_lid", L("invalid value ") + std::to_string(cfg.extruder_clearance_height_to_lid));
+    }
 
     // --extrusion-multiplier
     for (double em : cfg.filament_flow_ratio.values)
-        if (em <= 0)
-            return "Invalid value for --filament-flow-ratio";
+        if (em <= 0) {
+            error_message.emplace("filament_flow_ratio", L("invalid value ") + cfg.filament_flow_ratio.serialize());
+            break;
+        }
 
     // The following test was commented out after 482841b, see also https://github.com/prusa3d/PrusaSlicer/pull/6743.
     // The backend should now handle this case correctly. I.e., zero default_acceleration behaves as if all others
@@ -4354,19 +4379,34 @@ std::string validate(const FullPrintConfig &cfg)
     //    return "Invalid zero value for --default-acceleration when using other acceleration settings";
 
     // --spiral-vase
-    if (cfg.spiral_mode) {
+    //for non-cli case, we will popup dialog for spiral mode correction
+    if (cfg.spiral_mode && under_cli) {
         // Note that we might want to have more than one perimeter on the bottom
         // solid layers.
-        if (cfg.wall_loops > 1)
-            return "Can't make more than one perimeter when spiral vase mode is enabled";
-        else if (cfg.wall_loops < 1)
-            return "Can't make less than one perimeter when spiral vase mode is enabled";
-        if (cfg.sparse_infill_density > 0)
-            return "Spiral vase mode can only print hollow objects, so you need to set Fill density to 0";
-        if (cfg.top_shell_layers > 0)
-            return "Spiral vase mode is not compatible with top solid layers";
-        if (cfg.enable_support || cfg.enforce_support_layers > 0)
-            return "Spiral vase mode is not compatible with support";
+        if (cfg.wall_loops != 1) {
+            error_message.emplace("wall_loops", L("Invalid value when spiral vase mode is enabled: ") + std::to_string(cfg.wall_loops));
+            //return "Can't make more than one perimeter when spiral vase mode is enabled";
+            //return "Can't make less than one perimeter when spiral vase mode is enabled";
+        }
+
+        if (cfg.sparse_infill_density > 0) {
+            error_message.emplace("sparse_infill_density", L("Invalid value when spiral vase mode is enabled: ") + std::to_string(cfg.sparse_infill_density));
+            //return "Spiral vase mode can only print hollow objects, so you need to set Fill density to 0";
+        }
+
+        if (cfg.top_shell_layers > 0) {
+            error_message.emplace("top_shell_layers", L("Invalid value when spiral vase mode is enabled: ") + std::to_string(cfg.top_shell_layers));
+            //return "Spiral vase mode is not compatible with top solid layers";
+        }
+
+        if (cfg.enable_support ) {
+            error_message.emplace("enable_support", L("Invalid value when spiral vase mode is enabled: ") + std::to_string(cfg.enable_support));
+            //return "Spiral vase mode is not compatible with support";
+        }
+        if (cfg.enforce_support_layers > 0) {
+            error_message.emplace("enforce_support_layers", L("Invalid value when spiral vase mode is enabled: ") + std::to_string(cfg.enforce_support_layers));
+            //return "Spiral vase mode is not compatible with support";
+        }
     }
 
     // extrusion widths
@@ -4384,8 +4424,10 @@ std::string validate(const FullPrintConfig &cfg)
             "initial_layer_line_width" };
         for (size_t i = 0; i < sizeof(widths) / sizeof(widths[i]); ++ i) {
             std::string key(widths[i]);
-            if (cfg.get_abs_value(key) > 2.5 * max_nozzle_diameter)
-                return std::string("Too Large line width: ") + key;
+            if (cfg.get_abs_value(key) > 2.5 * max_nozzle_diameter) {
+                error_message.emplace(key, L("too large line width ") + std::to_string(cfg.get_abs_value(key)));
+                //return std::string("Too Large line width: ") + key;
+            }
         }
     }
 
@@ -4428,12 +4470,15 @@ std::string validate(const FullPrintConfig &cfg)
             break;
         default:;
         }
-        if (out_of_range)
-            return std::string("Value out of range: " + opt_key);
+        if (out_of_range) {
+            if (error_message.find(opt_key) == error_message.end())
+                error_message.emplace(opt_key, opt->serialize() + L(" not in range ") +"[" + std::to_string(optdef->min) + "," + std::to_string(optdef->max) + "]");
+            //return std::string("Value out of range: " + opt_key);
+        }
     }
 
     // The configuration is valid.
-    return "";
+    return error_message;
 }
 
 // Declare and initialize static caches of StaticPrintConfig derived classes.
