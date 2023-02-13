@@ -5004,7 +5004,12 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
                             static_cast<TabPrinter*>(tab)->cache_extruder_cnt();
                         }
                     }
-                    tab->cache_config_diff(selected_options);
+                    std::vector<std::string> selected_options2;
+                    std::transform(selected_options.begin(), selected_options.end(), std::back_inserter(selected_options2), [](auto & o) {
+                        auto i = o.find('#');
+                        return i != std::string::npos ? o.substr(0, i) : o;
+                    });
+                    tab->cache_config_diff(selected_options2);
                     if (!is_called_from_configwizard)
                         tab->m_presets->discard_current_changes();
                 }
