@@ -37,6 +37,7 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/ScrolledWindow.hpp"
+#include "Widgets/PopupWindow.hpp"
 #include <wx/simplebook.h>
 #include <wx/hashmap.h>
 
@@ -179,13 +180,13 @@ public:
 
 class ThumbnailPanel;
 
-class SelectMachinePopup : public wxPopupTransientWindow
+class SelectMachinePopup : public PopupWindow
 {
 public:
     SelectMachinePopup(wxWindow *parent);
     ~SelectMachinePopup();
 
-    // wxPopupTransientWindow virtual methods are all overridden to log them
+    // PopupWindow virtual methods are all overridden to log them
     virtual void Popup(wxWindow *focus = NULL) wxOVERRIDE;
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;

@@ -499,7 +499,7 @@ void FanControl::post_event(wxCommandEvent&& event)
 Description:FanControlPopup
 **************************************************/
 FanControlPopup::FanControlPopup(wxWindow* parent)
-    :wxPopupTransientWindow(parent, wxBORDER_NONE)
+    :PopupWindow(parent, wxBORDER_NONE)
 {
     this->SetSizeHints(wxDefaultSize, wxDefaultSize);
 
@@ -628,7 +628,7 @@ void FanControlPopup::post_event(int fan_type, wxString speed)
 
 bool FanControlPopup::ProcessLeftDown(wxMouseEvent& event)
 {
-    return wxPopupTransientWindow::ProcessLeftDown(event);
+    return PopupWindow::ProcessLeftDown(event);
 }
 
 void FanControlPopup::on_show(wxShowEvent& evt)

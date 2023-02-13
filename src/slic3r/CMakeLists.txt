@@ -28,6 +28,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/SideMenuPopup.cpp
     GUI/Widgets/DropDown.cpp
     GUI/Widgets/DropDown.hpp
+    GUI/Widgets/PopupWindow.cpp
+    GUI/Widgets/PopupWindow.hpp
     GUI/Widgets/Label.cpp
     GUI/Widgets/Label.hpp
     GUI/Widgets/Scrollbar.cpp

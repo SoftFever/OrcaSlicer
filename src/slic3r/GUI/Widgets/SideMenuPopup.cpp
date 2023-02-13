@@ -6,12 +6,12 @@
 
 
 
-wxBEGIN_EVENT_TABLE(SidePopup,wxPopupTransientWindow)
+wxBEGIN_EVENT_TABLE(SidePopup,PopupWindow)
 EVT_PAINT(SidePopup::paintEvent)
 wxEND_EVENT_TABLE()
 
 SidePopup::SidePopup(wxWindow* parent)
-    :wxPopupTransientWindow(parent,
+    :PopupWindow(parent,
     wxBORDER_NONE |
     wxPU_CONTAINS_CONTROLS)
 {
@@ -28,16 +28,16 @@ SidePopup::~SidePopup()
 void SidePopup::OnDismiss()
 {
     Slic3r::GUI::wxGetApp().set_side_menu_popup_status(false);
-    wxPopupTransientWindow::OnDismiss();
+    PopupWindow::OnDismiss();
 }
 
 bool SidePopup::ProcessLeftDown(wxMouseEvent& event)
 {
-    return wxPopupTransientWindow::ProcessLeftDown(event);
+    return PopupWindow::ProcessLeftDown(event);
 }
 bool SidePopup::Show( bool show )
 {
-    return wxPopupTransientWindow::Show(show);
+    return PopupWindow::Show(show);
 }
 
 void SidePopup::Popup(wxWindow* focus)
@@ -66,7 +66,7 @@ void SidePopup::Popup(wxWindow* focus)
             Position(pos, {0, focus->GetSize().y + 12});
     }
     Slic3r::GUI::wxGetApp().set_side_menu_popup_status(true);
-    wxPopupTransientWindow::Popup();
+    PopupWindow::Popup();
 }
 
 void SidePopup::Create()

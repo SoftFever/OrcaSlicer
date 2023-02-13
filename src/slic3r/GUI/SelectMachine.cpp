@@ -387,7 +387,7 @@ void MachineObjectPanel::on_mouse_left_up(wxMouseEvent &evt)
 }
 
 SelectMachinePopup::SelectMachinePopup(wxWindow *parent)
-    : wxPopupTransientWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS), m_dismiss(false)
+    : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS), m_dismiss(false)
 {
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
@@ -481,7 +481,7 @@ void SelectMachinePopup::Popup(wxWindow *WXUNUSED(focus))
     }
 
     wxPostEvent(this, wxTimerEvent());
-    wxPopupTransientWindow::Popup();
+    PopupWindow::Popup();
 }
 
 void SelectMachinePopup::OnDismiss()
@@ -507,7 +507,7 @@ void SelectMachinePopup::OnDismiss()
 }
 
 bool SelectMachinePopup::ProcessLeftDown(wxMouseEvent &event) {
-    return wxPopupTransientWindow::ProcessLeftDown(event);
+    return PopupWindow::ProcessLeftDown(event);
 }
 
 bool SelectMachinePopup::Show(bool show) {
@@ -522,7 +522,7 @@ bool SelectMachinePopup::Show(bool show) {
             m_other_list_machine_panel[j]->mPanel->Hide();
         }
     }
-    return wxPopupTransientWindow::Show(show);
+    return PopupWindow::Show(show);
 }
 
 wxWindow *SelectMachinePopup::create_title_panel(wxString text)

@@ -9,8 +9,9 @@
 #include "../wxExtensions.hpp"
 #include "StateHandler.hpp"
 #include "SideButton.hpp"
+#include "PopupWindow.hpp"
 
-class SidePopup : public wxPopupTransientWindow
+class SidePopup : public PopupWindow
 {
 private:
 	std::vector<SideButton*> btn_list;
