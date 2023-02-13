@@ -334,7 +334,7 @@ int CLI::run(int argc, char **argv)
     // startup if gtk3 is used. This env var has to be set explicitly to
     // instruct the window manager to fall back to X server mode.
     ::setenv("GDK_BACKEND", "x11", /* replace */ true);
-    
+
     // Also on Linux, we need to tell Xlib that we will be using threads,
     // lest we crash when we fire up GStreamer.
     XInitThreads();
@@ -456,6 +456,15 @@ int CLI::run(int argc, char **argv)
         // If started without a parameter, consider it to be OK, otherwise report an error code (no action etc).
         return (argc == 0) ? 0 : 1;
 #endif // SLIC3R_GUI
+    }
+    else {
+        const ConfigOptionInt *opt_loglevel = m_config.opt<ConfigOptionInt>("debug");
+        if (opt_loglevel) {
+            set_logging_level(opt_loglevel->value);
+        }
+        else {
+            set_logging_level(2);
+        }
     }
 
     BOOST_LOG_TRIVIAL(info) << "start_gui="<< start_gui << std::endl;
@@ -2328,17 +2337,6 @@ int CLI::run(int argc, char **argv)
 
 bool CLI::setup(int argc, char **argv)
 {
-    {
-	    Slic3r::set_logging_level(1);
-        const char *loglevel = boost::nowide::getenv("BBL_LOGLEVEL");
-        if (loglevel != nullptr) {
-            if (loglevel[0] >= '0' && loglevel[0] <= '9' && loglevel[1] == 0)
-                set_logging_level(loglevel[0] - '0');
-            else
-                boost::nowide::cerr << "Invalid BBL_LOGLEVEL environment variable: " << loglevel << std::endl;
-        }
-    }
-
     // Detect the operating system flavor after SLIC3R_LOGLEVEL is set.
     detect_platform();
 
@@ -2405,15 +2403,6 @@ bool CLI::setup(int argc, char **argv)
         else if (cli_transform_config_def.has(opt_key))
             m_transforms.emplace_back(opt_key);
     }
-
-#if !BBL_RELEASE_TO_PUBLIC
-    {
-        const ConfigOptionInt *opt_loglevel = m_config.opt<ConfigOptionInt>("debug");
-        if (opt_loglevel != 0) {
-            set_logging_level(opt_loglevel->value);
-        }
-    }
-#endif
 
     //FIXME Validating at this stage most likely does not make sense, as the config is not fully initialized yet.
     std::string validity = m_config.validate();
