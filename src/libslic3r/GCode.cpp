@@ -3880,7 +3880,7 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
         for (size_t i = 1; i < travel.size(); ++ i) {
             // BBS. Process lazy layer change, but don't do lazy layer change when enable spiral vase
             Vec3d curr_pos = m_writer.get_position();
-            if (i == travel.size() - 1 && !m_spiral_vase) {
+            if (i == 1 && !m_spiral_vase) {
                 Vec2d dest2d = this->point_to_gcode(travel.points[i]);
                 Vec3d dest3d(dest2d(0), dest2d(1), m_nominal_z);
                 gcode += m_writer.travel_to_xyz(dest3d, comment);
