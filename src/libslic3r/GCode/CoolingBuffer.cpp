@@ -349,9 +349,9 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
             ++ line_end;
         CoolingLine line(0, line_start - gcode.c_str(), line_end - gcode.c_str());
 
-        std::string prefix = Slic3r::GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Layer_Change);
+        std::string prefix = ";" + Slic3r::GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Layer_Change);
 
-        if (boost::starts_with(sline, "; " + prefix)) {
+        if (boost::starts_with(sline, prefix)) {
              layer_change = true;
              layer_print  = false;
              continue;
@@ -359,7 +359,7 @@ std::vector<PerExtruderAdjustments> CoolingBuffer::parse_layer_gcode(const std::
 
         prefix = Slic3r::GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role);
         std::string role = ExtrusionEntity::role_to_string(erWipeTower).c_str();
-        if (layer_change && boost::starts_with(sline, "; " + prefix) && !boost::starts_with(sline, "; " + prefix + role)) {
+        if (layer_change && boost::starts_with(sline, ";" + prefix) && !boost::starts_with(sline, ";" + prefix + role)) {
              layer_change = false;
              layer_print  = true;
              continue;
