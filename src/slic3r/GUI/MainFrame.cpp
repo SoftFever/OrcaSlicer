@@ -991,7 +991,7 @@ bool MainFrame::preview_only_hint()
             preview_only_to_editor = true;
         });
         confirm_dlg.update_btn_label(_L("Yes"), _L("No"));
-        auto filename = wxString((m_plater->get_preview_only_filename()).c_str(), wxConvUTF8);
+        auto filename = m_plater->get_preview_only_filename();
 
         confirm_dlg.update_text(filename + _L(" will be closed before creating a new model. Do you want to continue?"));
         confirm_dlg.on_show();
