@@ -16,7 +16,8 @@ using namespace boost;
 using namespace boost::system;
 using namespace boost::asio;
 
-#define LOCALHOST_URL       "http://localhost:9090"
+#define LOCALHOST_PORT      13618
+#define LOCALHOST_URL       "http://localhost:"
 
 namespace Slic3r {
 namespace GUI {

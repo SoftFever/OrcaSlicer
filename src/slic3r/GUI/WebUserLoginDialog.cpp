@@ -271,7 +271,7 @@ void ZUserLogin::OnScriptMessage(wxWebViewEvent &evt)
             CallAfter([this, sequence_id] {
                 json ack_j;
                 ack_j["command"] = "get_localhost_url";
-                ack_j["response"]["base_url"] = LOCALHOST_URL;
+                ack_j["response"]["base_url"] = std::string(LOCALHOST_URL) + std::to_string(LOCALHOST_PORT);
                 ack_j["response"]["result"] = "success";
                 ack_j["sequence_id"] = sequence_id;
                 wxString str_js = wxString::Format("window.postMessage(%s)", ack_j.dump());

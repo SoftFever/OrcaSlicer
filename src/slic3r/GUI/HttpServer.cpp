@@ -130,7 +130,7 @@ void HttpServer::start()
     m_http_server_thread = Slic3r::create_thread(
         [this] {
             boost::asio::io_service io_service;
-            boost::asio::ip::tcp::endpoint endpoint{ boost::asio::ip::tcp::v4(), 9090};
+            boost::asio::ip::tcp::endpoint endpoint{ boost::asio::ip::tcp::v4(), LOCALHOST_PORT};
             boost::asio::ip::tcp::acceptor acceptor { io_service, endpoint};
             acceptor.listen();
             accept_and_run(acceptor, io_service);
